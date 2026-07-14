@@ -3,14 +3,14 @@
   "title": "Simulatte autonomy journey receipt",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema", "mission", "identities", "events", "terminalState", "finalState", "settlement", "trace", "verification", "integrity"],
+  "required": ["schema", "mission", "identities", "events", "planning", "terminalState", "finalState", "settlement", "trace", "verification", "integrity"],
   "properties": {
     "schema": { "const": "simulatte.autonomyJourneyReceipt.v2" },
     "mission": { "type": "object" },
     "identities": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["worldId", "worldContentVersion", "embodimentId", "policyId", "occurrenceCatalogId", "regionRegistryId", "regionCompositionId", "regionPackIds", "circuitId", "boundaryGeometrySha256"],
+      "required": ["worldId", "worldContentVersion", "embodimentId", "policyId", "occurrenceCatalogId", "regionRegistryId", "regionCompositionId", "regionPackIds", "circuitId", "boundaryGeometrySha256", "safetyHistoryIndexId"],
       "properties": {
         "worldId": { "type": "string" },
         "worldContentVersion": { "type": "string" },
@@ -21,7 +21,8 @@
         "regionCompositionId": { "type": ["string", "null"] },
         "regionPackIds": { "type": "array", "items": { "type": "string" } },
         "circuitId": { "type": ["string", "null"] },
-        "boundaryGeometrySha256": { "type": ["string", "null"], "pattern": "^[a-f0-9]{64}$" }
+        "boundaryGeometrySha256": { "type": ["string", "null"], "pattern": "^[a-f0-9]{64}$" },
+        "safetyHistoryIndexId": { "type": ["string", "null"] }
       }
     },
     "events": {
@@ -40,15 +41,28 @@
         }
       }
     },
+    "planning": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema", "forecast", "alternatives", "accessibility", "amenities", "safetyHistory"],
+      "properties": {
+        "schema": { "const": "simulatte.autonomyJourneyPlanning.v1" },
+        "forecast": { "type": "object" },
+        "alternatives": { "type": "array", "items": { "type": "object" } },
+        "accessibility": { "type": "object" },
+        "amenities": { "type": "object" },
+        "safetyHistory": { "type": "object" }
+      }
+    },
     "terminalState": { "type": "string", "minLength": 1 },
     "finalState": { "type": "object" },
     "settlement": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["schema", "taskType", "terminationKind", "completionReason", "targetDistanceM", "targetLaps", "targetDurationSeconds", "actualDistanceM", "actualDurationSeconds", "distanceErrorM", "durationErrorSeconds", "exactTargetSettlement", "completedLaps", "finalPartialDistanceM", "finalSegmentId", "finalSegmentProgressM", "boundaryGeometrySha256"],
+      "required": ["schema", "taskType", "terminationKind", "completionReason", "targetDistanceM", "targetLaps", "targetDurationSeconds", "actualDistanceM", "actualDurationSeconds", "distanceErrorM", "durationErrorSeconds", "exactTargetSettlement", "completedLaps", "finalPartialDistanceM", "finalSegmentId", "finalSegmentProgressM", "boundaryGeometrySha256", "predictedDurationSeconds", "etaErrorSeconds", "timing", "orderedStops", "economics"],
       "properties": {
         "schema": { "const": "simulatte.autonomyJourneySettlement.v1" },
-        "taskType": { "enum": ["delivery", "loop"] },
+        "taskType": { "enum": ["delivery", "point_to_point", "loop"] },
         "terminationKind": { "enum": ["arrival", "distance", "laps", "duration"] },
         "completionReason": { "type": "string", "minLength": 1 },
         "targetDistanceM": { "type": ["number", "null"], "minimum": 0 },
@@ -63,7 +77,12 @@
         "finalPartialDistanceM": { "type": ["number", "null"], "minimum": 0 },
         "finalSegmentId": { "type": ["string", "null"] },
         "finalSegmentProgressM": { "type": "number", "minimum": 0 },
-        "boundaryGeometrySha256": { "type": ["string", "null"], "pattern": "^[a-f0-9]{64}$" }
+        "boundaryGeometrySha256": { "type": ["string", "null"], "pattern": "^[a-f0-9]{64}$" },
+        "predictedDurationSeconds": { "type": ["number", "null"], "minimum": 0 },
+        "etaErrorSeconds": { "type": ["number", "null"] },
+        "timing": { "type": "object" },
+        "orderedStops": { "type": ["object", "null"] },
+        "economics": { "type": ["object", "null"] }
       }
     },
     "trace": { "type": "array", "items": { "type": "object" } },

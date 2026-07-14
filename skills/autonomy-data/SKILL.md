@@ -1,75 +1,97 @@
 ---
 name: autonomy-data
-description: Refresh, backfill, verify, promote, and compile Simulatte autonomy map or mobility-history sources. Use when adding a region or city, updating NYC snapshots, importing sidewalks or crossings, backfilling traffic observations, changing source provenance, or diagnosing why a mission lacks a governed route artifact.
+description: Plan, fetch, backfill, verify, promote, compile, and activate Simulatte map, place, accessibility, amenity, safety-history, occurrence, region, or city data with immutable receipts and fail-closed capability gates.
 ---
 
 # Autonomy data
 
-Work from the Simulatte repository root. Read `docs/autonomy/data-ingestion.md`
-and `tools/autonomy/source-catalog-v1.json` before changing source or compiler
-contracts.
+Use this skill for any Simulatte request to add or refresh geography, places,
+streets, buildings, sidewalks, crossings, ramps, bicycle parking, traffic or
+mobility history, safety observations, occurrences, region packs, or cities.
 
-## Preserve the phase boundary
+Work from the Simulatte repository root. Read:
 
-Execute these phases in order:
+1. `AGENTS.md`;
+2. `docs/autonomy/data-ingestion.md`;
+3. `tools/autonomy/source-catalog-v1.json`;
+4. the compiler that owns the target artifact.
 
-1. Plan requests without network access.
-2. Fetch raw bytes into `artifacts/autonomy-data/`.
-3. Verify every staged byte against the fetch receipt.
-4. Inspect source coverage, licensing, temporal semantics, and entry-gate gaps.
-5. Promote the exact accepted receipt into a new immutable directory under
-   `tools/autonomy/data-sources/`.
-6. Compile a candidate world without activating it.
-7. Validate topology, provenance, capabilities, region seams, and browser use.
-8. Activate only the exact candidate that passed all gates.
+## Non-negotiable boundary
 
-Never let fetching rebuild or activate the hosted world. Never edit an existing
-snapshot directory. Never treat source availability as routing capability.
+Never let network acquisition write the hosted world. Execute these states in
+order and report them separately:
 
-## Plan and stage map data
+1. planned;
+2. fetched or backfilled to `artifacts/autonomy-data/`;
+3. byte-verified;
+4. authority, license, coverage, time semantics, and entry gate reviewed;
+5. promoted to a new immutable `tools/autonomy/data-sources/` directory;
+6. compiled as a candidate;
+7. contract-validated;
+8. activated by exact manifest identity and hash;
+9. browser-audited;
+10. deployed and live-verified.
 
-Use an explicit snapshot date and source group:
+Do not edit a promoted source directory. Do not call source availability a
+routing capability. Do not let observed history become a map fact, live
+condition, causal result, or safety ranking.
+
+## Choose the evidence class
+
+| Class | Examples | Authorized use |
+| --- | --- | --- |
+| `map_fact` | bike routes, buildings, park geometry, ramps, racks | frozen world or evidence index |
+| `community_map_fact` | OSM highways and tags | attributed topology/context under its license and gate |
+| `public_semantic_context` | place descriptions | offline descriptor/index construction, never test-derived labels |
+| `observed_history` | crashes, counts, trips | dated aggregation, counterfactual, demand prior, or realism evaluation |
+| simulation assumption | actor spawn, default signal timing, weather scenario | explicitly authored occurrence, never source fact |
+
+If the requested source is absent from `source-catalog-v1.json`, add a catalog
+entry with authority, license, request template, data class, temporal fields,
+capabilities, and an explicit entry gate before fetching.
+
+## Plan and fetch current sources
 
 ```bash
 npm run autonomy:data:plan -- \
-  --group pedestrian-topology \
+  --group GROUP \
   --snapshot-date YYYY-MM-DD
 
 npm run autonomy:data:fetch -- \
-  --group pedestrian-topology \
+  --group GROUP \
   --snapshot-date YYYY-MM-DD \
-  --out artifacts/autonomy-data/pedestrian-YYYY-MM-DD
+  --out artifacts/autonomy-data/GROUP-YYYY-MM-DD
 ```
 
-Run `world-core` for the existing map sources. Select individual sources with
-`--source SOURCE_ID`. Override the tile only with an explicit
-`--bounds south,west,north,east` receipt.
+Available groups include `world-core`, `pedestrian-topology`,
+`place-semantics`, and `route-amenities`. Select one source with
+`--source SOURCE_ID`. Use `--bounds south,west,north,east` only when the
+receipt must intentionally override the catalog bounds.
 
-## Backfill observed history
+## Backfill historical sources
 
-Use first-of-month half-open boundaries:
+Use first-of-month half-open intervals:
 
 ```bash
 npm run autonomy:data:plan -- \
-  --group mobility-history \
+  --group safety-history \
   --from YYYY-MM-01 \
   --to YYYY-MM-01 \
   --snapshot-date YYYY-MM-DD
 
 npm run autonomy:data:backfill -- \
-  --group mobility-history \
+  --group safety-history \
   --from YYYY-MM-01 \
   --to YYYY-MM-01 \
   --snapshot-date YYYY-MM-DD \
-  --out artifacts/autonomy-data/mobility-history-YYYY-MM-DD
+  --out artifacts/autonomy-data/safety-history-YYYY-MM-DD
 ```
 
-Record timezone, missing intervals, sensor or zone identity, aggregation,
-spatial join, and source publication lag in the downstream occurrence receipt.
-Observed history may parameterize actor demand. It does not become a live
-condition or a map fact.
+`mobility-history` and `taxi-history` follow the same pattern. Before
+compilation, declare timezone, publication lag, missing intervals, sensor or
+zone identity, aggregation, spatial join, and the no-data rule.
 
-## Verify and promote
+## Verify and promote exact bytes
 
 ```bash
 npm run autonomy:data:verify -- \
@@ -78,29 +100,106 @@ npm run autonomy:data:verify -- \
 node tools/autonomy/manage-autonomy-data.mjs promote \
   --receipt artifacts/autonomy-data/NAME/fetch-receipt.json \
   --target tools/autonomy/data-sources/IMMUTABLE-SNAPSHOT-ID \
-  --accept-receipt-sha EXACT_SHA256
+  --accept-receipt-sha EXACT_RECEIPT_SHA256
 ```
 
-Promotion freezes source bytes only. It does not authorize compilation or
-hosting.
+Inspect the receipt and every promoted file. Promotion freezes source bytes;
+it does not authorize a compiler claim or activation.
 
-## Compile and gate
+## Route to the owning compiler
 
-Use the owning compiler for each source class. Add a compiler before claiming a
-new capability. Require explicit graph connectivity and access rules for
-pedestrian, bicycle, scooter, or car routing. Require a separately registered
-closed path for loops. Keep render geometry, route geometry, occurrence priors,
-and live conditions as distinct evidence types.
+| Artifact | Owner |
+| --- | --- |
+| Canonical NYC world and feature cards | `tools/autonomy/build-nyc-autonomy-world.mjs` and its split compilers |
+| Region packs and seams | `tools/autonomy/build-region-packs.mjs` |
+| Pedestrian ramp audit index | `tools/autonomy/compile-accessibility-index.mjs` |
+| Bicycle-rack proximity index | `tools/autonomy/compile-route-amenity-index.mjs` |
+| Reported-crash history index | `tools/autonomy/compile-safety-history-index.mjs` |
+| Place vectors | `tools/autonomy/compile-place-embeddings.mjs` |
+| Generic candidate tile | `tools/autonomy/compile-geojson-tile.mjs` |
+| Public feature reranker evidence | `tools/autonomy/evaluate-feature-reranker.mjs` |
+| Qwen place challenger evidence | `tools/autonomy/evaluate-place-resolution.mjs` |
+| Policy comparison evidence | `tools/samer/autonomy/run-policy-trial.mjs` |
 
-For the current NYC world, build and validate with:
+A new data class needs a compiler that emits source identity, input hashes,
+algorithm and parameters, counts, rejected rows, output hash, and claim
+boundary. Do not hand-edit a derived JSON artifact.
+
+## Capability gates by domain
+
+### Route topology
+
+Require stable nodes and segments, explicit allowed modes, connectivity,
+directions, access restrictions, turns, source geometry, and deterministic
+tie-breaking. A display line is not a route edge.
+
+### Pedestrian and wheelchair
+
+Require navigable sidewalk/crossing topology and source-to-route grounding.
+Ramp measurements alone do not prove the connecting path. Preserve exact ramp
+failures and technical-review states. Never label simulator thresholds as ADA
+compliance.
+
+### Bicycle, scooter, and car
+
+Require mode-eligible graph rows and legal/access constraints. A park property
+boundary does not authorize a bicycle loop. Car claims need turn restrictions,
+signal phases, and lane/access authority appropriate to the claim.
+
+### Amenities
+
+Preserve the difference between listed location, geometric proximity, current
+availability, capacity, security, condition, and access. Claim only the fields
+the source and compiler establish.
+
+### Historical observations
+
+Preserve period, spatial join, join radius, unjoined rows, deduplication,
+aggregation, and denominator availability. Without exposure, do not emit a
+rate, causal effect, prediction, or "safest" ranking.
+
+### Place semantics and models
+
+Author descriptors from independent pinned sources, not evaluation probes.
+Bind vectors to world, model, tokenizer, manifest, source-descriptor, and
+packed-vector hashes. Filter runtime candidates to the active embodiment graph.
+Keep the lexical control and must-refuse guardrail.
+
+## Build and prove activation
 
 ```bash
 npm run build:autonomy:data
+npm run samer:autonomy
+node tools/autonomy/sync-autonomy-manifest.mjs
 npm run check:autonomy
 node --test tests/autonomy.test.cjs
 npm run audit:autonomy:browser
+npm run check:deploy
 ```
 
-Inspect the generated world, feature catalog, occurrence catalog, region
-registry, and manifest hashes. Report fetched, compiled, validated, activated,
-and deployed as separate states.
+Inspect regenerated diffs before committing. Verify that world counts,
+region seams, model identities, source hashes, diagnostic populations, and
+claim boundaries changed only as intended.
+
+## Add a region or city
+
+An adjacent NYC region must use the canonical NYC projection origin, stable ID
+policy, source revisions, and exact seam rows. Rebuild the canonical world,
+then derive all packs again.
+
+A new city gets a separate world ID, content version, coordinate origin,
+feature catalog, place index, evidence indexes, region registry, and activation
+receipt. Reuse runtime contracts, not local coordinate values. Keep the new
+registry inactive until its exact candidate passes all gates.
+
+## Final report
+
+State, with concrete paths and hashes:
+
+- what was fetched and from which authority;
+- the staged receipt and verification result;
+- the immutable promoted source directory;
+- the compiler and emitted candidate artifacts;
+- accepted, rejected, and unjoined row counts;
+- the exact claim now enabled and claims still blocked;
+- unit, autonomy, browser, deploy, and live results.

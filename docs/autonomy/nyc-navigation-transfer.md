@@ -1,141 +1,130 @@
-# NYC navigation transfer: Simulatte concepts to governed autonomy
+# NYC navigation transfer
 
-How the Simulatte pipeline doctrine maps onto the NYC walking, cycling, and
-driving simulator, what `nyc-core-autonomy-v1` realizes,
-and which doctrine pieces remain open.
-Companion to [README.md](./README.md) (product goal, decision loop, receipt
-chain) and [data-ingestion.md](./data-ingestion.md).
-
-## The transfer thesis
-
-Simulatte's transferable core is not its renderer. It is the pipeline shape:
+Simulatte transfers Blank's governing discipline to autonomous routing. The
+shared idea is not a graphics stack. It is an evidence loop:
 
 ```text
-natural language -> measurable obligations -> candidate proposals
-  -> constrained assembly -> execute -> verify against evidence -> revise
+language -> measurable obligations -> candidates -> constrained decision
+         -> execution -> verification -> settlement -> revision
 ```
 
-with fail-closed phase contracts and honest receipts. Autonomy is the same
-machine over a different substrate: street graphs instead of part graphs,
-journey traces instead of (only) pixels, settlements instead of visual
-obligations.
+Blank settles whether prompt obligations reached a moving render. Simulatte
+settles whether route and control obligations survived a moving journey.
+
+## Why this is not another maps UI
+
+A directions product primarily answers "how do I get there?" Simulatte is
+built to answer "what would happen if?" under declared assumptions, then show
+the exact data, decisions, traces, errors, and refusals behind the answer.
+
+| Product territory | Current realization | Claim boundary |
+| --- | --- | --- |
+| Settled ETA | Every route receives a free-flow prediction; completed simulations record ETA error in a local hash-chained ledger | Calibration is against deterministic simulated execution, not observed street arrivals |
+| Accessibility proof | Wheelchair missions audit every route node against pinned ramp measurements and topology evidence | Failing or missing evidence blocks execution; measurements are not ADA determinations |
+| Gig wage truth | Delivery text may declare gross pay; settlement reports simulated gross hourly value and excluded costs | Not net pay and not a real labor-time observation |
+| Street what-if | Baseline and one grounded closure run through the same controller | A simulated effect is not causal policy evidence |
+| Road not taken | Planning exports up to three route candidates and their forecasts; journey receipts can be imported and replayed | Alternatives share the same frozen assumptions and are not observations of routes actually traveled |
+| Time-travel streets | Snapshot registry distinguishes executable and unavailable dates; unavailable comparisons retain the baseline and refuse | No historical world is inferred from current geometry plus historical crashes |
+| Trip rehearsal | Four embodied modes run turn by turn with Follow, bird, top, and minimap views | Browser simulation is not proof of physical autonomy |
+| Competence curriculum | Eight exact missions settle into browser-local progress | Demonstrates simulator tasks only, not human or robot certification |
+| Public policy arena | SAME-R compares matched action selectors and names a public diagnostic leader | Promotion remains blocked without sealed evaluation |
+| Obligation routing | Typed language covers stops, return trips, distance, time, daylight, street avoidance, rack proximity, and more | Unknown places and unsupported constraints refuse rather than becoming soft preferences |
+| Privacy-absolute planning | Mission text, model execution, receipts, and ledgers stay in the browser | Model weights may download from their pinned origin; user missions are not uploaded by the app |
 
 ## Concept map
 
-| Simulatte concept | Autonomy realization |
+| Blank discipline | Simulatte realization |
 | --- | --- |
-| Prompt to obligation extraction | Mission contract (`mission.schema.json`): delivery endpoints or a grounded closed circuit, embodiment, distance/unit conversion, and constraints typed before execution |
-| Construction-card index + retrieval/rerank | 13,062 compiled feature cards plus a bounded inverted index through `feature-retrieval.js` |
-| Lexical control lane before model lanes | `method: deterministic_lexical_inverted_scan_v1`; no embedding lane exists, so no model score is fabricated |
-| Typed spatial constraints | Directed segment graph, bike-facility typing, signals; safety gate as the hard-constraint compiler |
-| Anchor grounding, fail closed | Geo-grounded nodes/segments with SHA-256-pinned world; missing grounding is a gate failure, not a fallback |
-| No fixed composition layouts | Actors carry `provenance.source: "scenario authoring"`; simulated traffic stays separate from map facts |
-| Models propose, evidence disposes | `bet-proposer` to `safety-gate` to `bet-selector` to settlement; predictions settle against observed state with recorded error |
-| Pluggable occurrence programs | `occurrence-engine.js` registers typed time and event plugins, resolves effects deterministically, and receipts every activation |
-| Receipts and claim gating | `journey-receipt.schema.json` chain; a generated route is not autonomy proof |
-| Pixel-obligation verifier | Trace-level settlement today; browser visual audit is the pixel half |
+| Prompt spans become typed obligations | Mission evidence retains source intervals, canonical values, unit conversions, and required obligations |
+| Construction catalog | 13,185 feature cards compiled from world geometry, behavior, and scenario identities |
+| Lexical control before neural challengers | Exact and typo place control remains available with no download; Qwen competes as an explicit local option |
+| Ground or fail closed | Every place resolves to a mode-eligible governed node or the mission refuses |
+| Typed spatial constraints | Directed segments, allowed modes, closures, signals, named streets, amenity bounds, and route cost terms |
+| Models propose, evidence disposes | Qwen may suggest one eligible place; A*, hard gates, reference dynamics, and settlement retain authority |
+| No fabricated realization | An unavailable snapshot, graph, accessibility proof, or amenity path emits a named refusal |
+| Pixel and state proof | WebGPU shows the route and agents while the trace verifies topology, transitions, obligations, and hashes |
+| SAME-R propose and dispose | Matched policy lanes run under one budget, one scenario set, and blocking guardrails |
 
-## What the current world realizes
+## Current world
 
-`nyc-core-autonomy-v1` is SHA-256 pinned in
-`autonomy-manifest.json`. It covers West Village, Washington Square, Union
+`nyc-core-autonomy-v1` covers the West Village, Washington Square, Union
 Square, East Village, Tompkins Square, the Williamsburg Bridge corridor,
-Williamsburg waterfront, North Williamsburg, McCarren Park, and Greenpoint.
-The compiled artifact contains 2,491 multimodal nodes, 3,723 directed edges,
-6,589 OSM street ways, nine exterior members from four official NYC Parks
-properties, one executable Union Square property-boundary circuit, and a
-deterministic 8,500-footprint rendering LOD from 26,990 source buildings.
-McCarren, Tompkins Square, Union Square, and Washington Square are visible map
-context; only Union Square has passed the separate circuit gate. Per-source
-receipts retain authority, license, query, snapshot date, and raw SHA-256.
+Williamsburg, North Williamsburg, McCarren Park, Greenpoint, and nearby
+streets. It is reconstructed from three independently pinned region packs.
 
-The browser no longer treats that artifact as one indivisible map file. It
-loads a SHA-256-pinned registry and three packs for Manhattan Villages, the
-East River crossing, and North Brooklyn. Twenty-seven duplicated graph nodes
-form declared seams. Composition fails on an omitted or extra pack, a false
-seam, an inconsistent peer, a changed row, or a count mismatch, then verifies
-that the reconstructed world and feature catalog match their original hashes.
-The pack boundaries are loading and provenance boundaries, not geographic
-limits on simulation behavior.
+The compiled world carries 11,286 nodes, 28,638 directed segments, 6,587 OSM
+street ways, 8,500 retained building footprints, 13,185 feature cards, 20
+mode-specific place nodes, 4 circuits, and 98 exact seam nodes. NYC DOT bike
+facilities and OSM highways supply the active route topology. Park properties,
+buildings, ramps, bicycle racks, and crash history keep separate provenance and
+authority.
 
-The occurrence catalog drives one assumed signal, one tick-window pedestrian,
-and one node-event pedestrian. A separate deterministic ambient layer renders
-four pedestrians, three bicycles, two scooters, and four cars and exposes them
-to observations. Their render-derived paths are nonblocking until mode-legal
-topology is compiled. All are scenario assumptions, not observed traffic. The
-public diagnostic set freezes 20 by-construction missions with
-gold endpoints, constraints, obligations, and route controls. It is exposed
-regression evidence, not a contamination-secure promotion holdout.
+Ambient pedestrians, bicycles, scooters, and cars are deterministic scenario
+assumptions. They make the environment legible and interactive but do not
+become observed traffic. Signal and occurrence coverage remains sparse. No
+"realistic NYC traffic" claim is made.
 
-The checked-in reranker receipt compares the declared weights against lexical
-ranking on 40 mission/query judgments. MRR moves from 0.725 to 0.750 while
-Recall@5 remains 1.000. The receipt supports retaining those weights only on
-that public diagnostic population.
+## Language and model separation
 
-Two non-active worlds preserve bounded development evidence.
-`lower-manhattan-delivery-bike-v1` is the prior frozen open-data compiler
-artifact. `nyc-training-corridor-v1` is a small synthetic contract fixture for
-route, signal, actor, and disruption tests. Neither backs the hosted default
-mission or expands the active world's geographic claim.
+The mission compiler first uses exact labels and bounded typo matching. If the
+user explicitly chooses the Qwen lane, only unresolved origin or destination
+phrases are embedded through Qwen 3 Embedding 0.6B. The precompiled place
+vectors are tied to the world hash, model manifest, and eligible nodes.
 
-## Doctrine gaps and roadmap
+After grounding, no model is involved in route or control selection:
 
-1. **External sealed promotion set.** The 20 checked-in missions cannot become
-   sealed by wording. Promotion evidence needs an unmounted population,
-   candidate commitment, one authorized opening, and a terminal receipt.
-2. **Historical occurrence sources.** The source catalog and month-partitioned
-   fetch/backfill receipts now exist for DOT counts and TLC records. Compile
-   accepted snapshots, plus Citi Bike, weather, 311, and map history,
-   weather, 311, and map-history snapshots into the same occurrence contract.
-   Every replay pattern must name the dataset, snapshot, spatial join, time
-   transform, and missing-data rule.
-3. **Embedding lane, control-armed.** When an embedding/rerank model lane is
-   added, it competes against the existing lexical lane on the same missions
-   under the same receipt schema. The lexical lane is permanent as the
-   control arm, not scaffolding to delete. First revise the public diagnostic
-   population with adjacent parallel streets, similar names, wrong-mode
-   facilities, and off-corridor lookalikes. Recall@5 at 1.000 is a saturated
-   non-regression floor, not evidence that the current weights discriminate
-   hard negatives.
-4. **Behavior-realism benchmark gate.** No realism claim (traffic, actor
-   density, signal timing) until simulated flows compare against real counts
-   (DOT ATR, TLC records) on the same corridor. Until then the manifest's
-   authored-scenario labeling is the claim boundary.
-5. **Signals and disruptions coverage.** One signal and zero disruptions make
-   those mechanics symbolic. Real signal locations enter through the
-   provenance gate; timing defaults stay labeled assumptions in receipts.
-6. **Scale boundary stays honest.** Browser scope is tile + corridor with
-   thousands of agents at most. Agent updates are compute-shader shaped when
-   that ceiling is reached; parity against the reference dynamics
-   (`reference-dynamics.js`) gates any GPU port.
+1. A* constructs legal candidate routes.
+2. Lexical feature retrieval finds relevant cards.
+3. Typed deterministic reranking orders evidence.
+4. The proposer emits control bets.
+5. Hard safety gates reject illegal bets.
+6. The selector applies the checked-in policy.
+7. Reference dynamics execute the selected action.
+8. Settlement compares prediction and observed simulator state.
 
-## Data expansion order (all NYC open data, gate-first)
+This is why Simulatte does not need autoregressive generation for today's
+runtime. A future learned classifier, reranker, route policy, or dynamics model
+must enter as its own lane with model identity, population, guardrails, and
+matched control. It cannot hide inside the existing deterministic receipt.
 
-LION centerline + DOT bike routes (graph), planimetric sidewalks/crosswalks
-(pedestrian mode), signal locations (DOT), 1-ft DEM (grade), Citi Bike GBFS +
-TLC trip records (demand priors for authored actors), Vision Zero crashes
-(risk layer). Every source lands as provenance-carrying cards with per-entry
-validation, mirroring the existing `provenance.sources` shape.
+## Counterfactual contract
 
-NYC extension means rebuilding the canonical NYC source world and deriving
-all packs again under the same coordinate origin and identity policy. Another
-city is a separate governed world and region registry. It can reuse the
-mission, occurrence, bet, gate, settlement, renderer, and receipt contracts,
-but it cannot share local-meter coordinates or claim connected routing without
-an explicit inter-city transport contract. Registry compilation is inactive
-by default so a second city cannot replace the hosted city accidentally.
+Every comparison changes one declared variable. The receipt contains both
+journey hashes and reports completion, verification, duration, distance,
+assumed risk, historical observation totals, and route overlap.
 
-## Mode expansion order
+Current interventions:
 
-Delivery bike and the bounded pedestrian circuit are current. The executable
-capability matrix keeps embodiment, mission family, termination, and governed
-artifact identity independent. General pedestrian navigation still requires a
-sidewalk/crosswalk graph; bicycle loops require a registered bike-legal
-circuit; scooter and car navigation require mode-eligible graphs, and driving
-further requires lane-level turn restrictions and signal phases.
-All modes share observation, action bets, dynamics integration, safety gates,
-selection, settlement, receipts, renderer, camera, and SAME-R evaluation.
-Embodiment data, task grammar, graph eligibility, and legal constraints vary;
-they do not create separate pipelines. The current runner control proves the
-shared multimodal contract and exact loop settlement, not general pedestrian
-navigation.
+- close one grounded routed street;
+- apply a positive weight to one frozen year of spatially joined NYPD crash reports;
+- request an exact dated world.
+
+Negative results are product evidence. Closing an unknown street, running
+without the required history index, or requesting 2019 without a 2019 world
+pack returns a refused challenger rather than silently tuning, substituting,
+or discarding the baseline.
+
+## Expansion rules
+
+NYC regions are mergeable only when they derive from the same canonical world,
+projection origin, identity policy, source revisions, and seam contract. Extend
+the canonical world first, then derive all region packs again. Do not append an
+independently projected graph to the active registry.
+
+A second city receives a separate world, coordinate origin, source manifest,
+feature catalog, region registry, place-vector artifact, and evidence indexes.
+It can reuse the mission, planner, controller, renderer, counterfactual, ledger,
+and receipt code. It cannot claim cross-city routing without an explicit
+transport connection contract.
+
+The next evidence additions are:
+
+1. source-backed sidewalk and crosswalk connectivity with access rules;
+2. lane-level turns, restrictions, signal phases, and curb regulations;
+3. grade and surface data for mobility-specific cost and accessibility;
+4. dated street and facility snapshots for executable historical comparisons;
+5. matched DOT, Citi Bike, TLC, weather, and disruption observations for realism evaluation;
+6. a contamination-secure promotion population for place and policy challengers.
+
+Each addition follows plan, fetch, verify, promote, compile, validate, activate,
+and deploy. Source availability alone never turns on a runtime claim.

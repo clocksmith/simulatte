@@ -6,7 +6,7 @@
   const DISTANCE_TOLERANCE_M = 0.000001;
   const STREET_WORDS = Object.freeze({ avenue: 'av', ave: 'av', street: 'st', str: 'st', boulevard: 'blvd', road: 'rd', lane: 'ln', place: 'pl', square: 'sq' });
 
-  function verifyJourney({ mission, state, receiptChain, worldModel }) {
+  function verifyJourney({ mission, state, receiptChain, worldModel, planning = null }) {
     const ticks = receiptChain.entries.map((entry) => entry.payload).filter((row) => row.schema === 'simulatte.autonomyTickReceipt.v2');
     const violations = ticks.flatMap((row) => row.violations || []);
     const enteredSegmentIds = ticks.map((row) => row.transition && row.transition.enteredSegmentId).filter(Boolean);
@@ -21,7 +21,7 @@
     const requiredByKind = new Map(mission.obligations.map((row) => [row.kind, row.required]));
     const obligations = mission.task.type === 'loop'
       ? loopObligations({ mission, state, ticks, violations, enteredSegmentIds, requiredByKind })
-      : deliveryObligations({ mission, state, violations, protectedPreferenceApplied, protectedSegments, sharedSegments, routeReceipts, requiredByKind, ticks, enteredSegments });
+      : pointToPointObligations({ mission, state, violations, protectedPreferenceApplied, protectedSegments, sharedSegments, routeReceipts, requiredByKind, ticks, enteredSegments, planning });
     const requiredFailures = obligations.filter((row) => row.required && !row.pass);
     const selectedBetCount = ticks.filter((row) => row.selectedBetId).length;
     const settledBetCount = settlements.length;
@@ -65,19 +65,20 @@
     };
   }
 
-  function deliveryObligations({ mission, state, violations, protectedPreferenceApplied, protectedSegments, sharedSegments, routeReceipts, requiredByKind, ticks, enteredSegments }) {
+  function pointToPointObligations({ mission, state, violations, protectedPreferenceApplied, protectedSegments, sharedSegments, routeReceipts, requiredByKind, ticks, enteredSegments, planning }) {
     const avoidedStreetKeys = new Set(mission.constraints.avoidStreetNames.map(normalizeStreetName));
     const enteredAvoidedStreetNames = [...new Set(enteredSegments.map((segment) => segment.source?.street).filter((name) => avoidedStreetKeys.has(normalizeStreetName(name))))];
     const avoidanceReceipted = routeReceipts.every((route) => sameRows(route.avoidedStreetNames, mission.constraints.avoidStreetNames));
     const excludedStreetSegmentIds = [...new Set(routeReceipts.flatMap((route) => route.excludedStreetSegmentIds))];
-    return [
+    const rows = [
       obligation('arrival', state.status === 'completed' && state.currentNodeId === mission.destinationNodeId, requiredByKind.get('arrival'), {
         destinationNodeId: mission.destinationNodeId,
         finalNodeId: state.currentNodeId,
       }),
-      obligation('payload_delivery', state.payloadStatus === 'delivered', requiredByKind.get('payload_delivery'), {
-        payloadId: mission.task.payloadId,
-        payloadStatus: state.payloadStatus,
+      obligation('ordered_stops', sameRows(state.completedStopNodeIds, mission.task.stopNodeIds), requiredByKind.get('ordered_stops'), {
+        declaredStopNodeIds: [...mission.task.stopNodeIds],
+        completedStopNodeIds: [...state.completedStopNodeIds],
+        remainingStopNodeIds: [...state.remainingStopNodeIds],
       }),
       complianceObligation('signal_compliance', 'signal_compliance', violations, requiredByKind),
       obligation('pedestrian_yield', !violations.some((row) => row.kind === 'pedestrian_clearance'), requiredByKind.get('pedestrian_yield'), {
@@ -99,7 +100,32 @@
         excludedStreetSegmentIds,
         alreadyAbsentFromRoutableGraph: mission.constraints.avoidStreetNames.length > 0 && excludedStreetSegmentIds.length === 0,
       }),
+      obligation('arrival_deadline', mission.constraints.maximumDurationSeconds === null || (
+        state.status === 'completed' && state.simulatedTimeSeconds <= mission.constraints.maximumDurationSeconds + DISTANCE_TOLERANCE_M
+      ), requiredByKind.get('arrival_deadline'), {
+        maximumDurationSeconds: mission.constraints.maximumDurationSeconds,
+        actualDurationSeconds: round(state.simulatedTimeSeconds),
+      }),
+      obligation('accessibility', mission.constraints.accessibilityProfile === null || planning?.accessibility?.verdict === 'supported', requiredByKind.get('accessibility'), {
+        requestedProfile: mission.constraints.accessibilityProfile,
+        audit: structuredClone(planning?.accessibility || null),
+      }),
+      obligation('bike_rack_proximity', mission.constraints.maximumBikeRackDistanceM === null || (
+        planning?.amenities?.pass === true
+        && routeReceipts.every((route) => route.maximumBikeRackDistanceM === mission.constraints.maximumBikeRackDistanceM)
+      ), requiredByKind.get('bike_rack_proximity'), {
+        requestedMaximumDistanceM: mission.constraints.maximumBikeRackDistanceM,
+        audit: structuredClone(planning?.amenities || null),
+        routeReceiptCount: routeReceipts.length,
+        constraintReceipted: routeReceipts.every((route) => route.maximumBikeRackDistanceM === mission.constraints.maximumBikeRackDistanceM),
+      }),
+      daylightObligation(mission, state, requiredByKind),
     ];
+    if (mission.task.type === 'delivery') rows.splice(1, 0, obligation('payload_delivery', state.payloadStatus === 'delivered', requiredByKind.get('payload_delivery'), {
+      payloadId: mission.task.payloadId,
+      payloadStatus: state.payloadStatus,
+    }));
+    return rows;
   }
 
   function loopObligations({ mission, state, ticks, violations, enteredSegmentIds, requiredByKind }) {
@@ -140,7 +166,26 @@
         violationCount: violations.filter((row) => row.kind === 'pedestrian_clearance').length,
         minimumObservedClearanceM: minimumClearance(ticks),
       }),
+      obligation('arrival_deadline', mission.constraints.maximumDurationSeconds === null || (
+        state.status === 'completed' && state.simulatedTimeSeconds <= mission.constraints.maximumDurationSeconds + DISTANCE_TOLERANCE_M
+      ), requiredByKind.get('arrival_deadline'), {
+        maximumDurationSeconds: mission.constraints.maximumDurationSeconds,
+        actualDurationSeconds: round(state.simulatedTimeSeconds),
+      }),
+      daylightObligation(mission, state, requiredByKind),
     ];
+  }
+
+  function daylightObligation(mission, state, requiredByKind) {
+    const [sunrise, sunset] = mission.constraints.daylightWindowLocalMinutes;
+    const start = mission.constraints.departureLocalMinutes;
+    const end = start + state.simulatedTimeSeconds / 60;
+    return obligation('daylight_window', !mission.constraints.daylightOnly || (start >= sunrise && end <= sunset + DISTANCE_TOLERANCE_M), requiredByKind.get('daylight_window'), {
+      daylightOnly: mission.constraints.daylightOnly,
+      daylightWindowLocalMinutes: [sunrise, sunset],
+      departureLocalMinutes: start,
+      arrivalLocalMinutes: round(end),
+    });
   }
 
   function terminationObligation(mission, state, requiredByKind) {

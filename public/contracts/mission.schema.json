@@ -14,8 +14,10 @@
     "originNodeId",
     "destinationNodeId",
     "grounding",
+    "placeResolution",
     "constraints",
     "obligations",
+    "economics",
     "seed"
   ],
   "properties": {
@@ -27,8 +29,8 @@
       "additionalProperties": false,
       "required": ["kind", "version", "claimBoundary", "evidence"],
       "properties": {
-        "kind": { "const": "deterministic_grounded_lexical" },
-        "version": { "const": "simulatte.autonomyMissionParser.v3" },
+        "kind": { "enum": ["deterministic_grounded_lexical", "governed_hybrid_place_resolution"] },
+        "version": { "enum": ["simulatte.autonomyMissionParser.v3", "simulatte.autonomyMissionParser.v4"] },
         "claimBoundary": { "type": "string", "minLength": 1 },
         "evidence": {
           "type": "array",
@@ -38,11 +40,11 @@
             "additionalProperties": false,
             "required": ["field", "value", "start", "end", "method", "groundedId", "canonicalValue", "editDistance"],
             "properties": {
-              "field": { "enum": ["task", "mode", "origin", "destination", "circuit", "targetDistance", "targetLaps", "targetDuration", "boundaryKind", "lanePreference", "pedestrianYield", "streetAvoidance"] },
+              "field": { "enum": ["task", "mode", "origin", "destination", "waypoint", "circuit", "targetDistance", "targetLaps", "targetDuration", "boundaryKind", "lanePreference", "pedestrianYield", "streetAvoidance", "maximumDuration", "compensation", "accessibilityProfile", "bikeRackProximity", "departureTime", "arrivalDeadlineTime", "daylightOnly"] },
               "value": { "type": "string", "minLength": 1 },
               "start": { "type": "integer", "minimum": 0 },
               "end": { "type": "integer", "minimum": 1 },
-              "method": { "enum": ["exact_lexical", "exact_world_label", "constrained_fuzzy_place", "constrained_fuzzy_keyword", "unit_conversion", "lap_count_conversion", "exact_routed_street", "constrained_fuzzy_routed_street", "exact_world_street", "constrained_fuzzy_world_street"] },
+              "method": { "enum": ["exact_lexical", "exact_world_label", "constrained_fuzzy_place", "qwen_embedding_cosine", "extended_damerau_place", "constrained_fuzzy_keyword", "unit_conversion", "currency_conversion", "clock_time_conversion", "lap_count_conversion", "exact_routed_street", "constrained_fuzzy_routed_street", "exact_world_street", "constrained_fuzzy_world_street"] },
               "groundedId": { "type": ["string", "null"] },
               "canonicalValue": { "type": ["string", "null"] },
               "editDistance": { "type": "integer", "minimum": 0 }
@@ -73,10 +75,20 @@
         {
           "type": "object",
           "additionalProperties": false,
-          "required": ["type", "payloadId"],
+          "required": ["type", "payloadId", "stopNodeIds"],
           "properties": {
             "type": { "const": "delivery" },
-            "payloadId": { "type": "string", "minLength": 1 }
+            "payloadId": { "type": "string", "minLength": 1 },
+            "stopNodeIds": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "stopNodeIds"],
+          "properties": {
+            "type": { "const": "point_to_point" },
+            "stopNodeIds": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } }
           }
         },
         {
@@ -127,6 +139,36 @@
     },
     "originNodeId": { "type": "string", "minLength": 1 },
     "destinationNodeId": { "type": ["string", "null"] },
+    "placeResolution": {
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["schema", "resolverId", "lane", "modelExecution", "roles"],
+          "properties": {
+            "schema": { "const": "simulatte.missionPlaceResolution.v1" },
+            "resolverId": { "type": "string", "minLength": 1 },
+            "lane": { "const": "hybrid_lexical_extended_typo_qwen_embedding" },
+            "modelExecution": { "type": "boolean" },
+            "roles": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "required": ["role", "outcome", "nodeId", "evidence"],
+                "properties": {
+                  "role": { "enum": ["origin", "destination"] },
+                  "outcome": { "const": "resolve" },
+                  "nodeId": { "type": "string", "minLength": 1 },
+                  "evidence": { "type": "object" }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
     "grounding": {
       "oneOf": [
         { "type": "null" },
@@ -167,14 +209,21 @@
     "constraints": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["lanePreference", "avoidStreetNames", "mustYieldToPedestrians", "mustObeySignals", "mustStayOnCircuit", "maximumSpeedMps"],
+      "required": ["lanePreference", "avoidStreetNames", "mustYieldToPedestrians", "mustObeySignals", "mustStayOnCircuit", "maximumSpeedMps", "maximumDurationSeconds", "accessibilityProfile", "maximumBikeRackDistanceM", "departureLocalMinutes", "arrivalDeadlineLocalMinutes", "daylightOnly", "daylightWindowLocalMinutes"],
       "properties": {
         "lanePreference": { "enum": ["protected", "any"] },
         "avoidStreetNames": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
         "mustYieldToPedestrians": { "type": "boolean" },
         "mustObeySignals": { "type": "boolean" },
         "mustStayOnCircuit": { "type": "boolean" },
-        "maximumSpeedMps": { "type": "number", "exclusiveMinimum": 0 }
+        "maximumSpeedMps": { "type": "number", "exclusiveMinimum": 0 },
+        "maximumDurationSeconds": { "type": ["number", "null"], "exclusiveMinimum": 0 },
+        "accessibilityProfile": { "enum": ["wheelchair", null] },
+        "maximumBikeRackDistanceM": { "type": ["number", "null"], "exclusiveMinimum": 0 },
+        "departureLocalMinutes": { "type": "integer", "minimum": 0, "maximum": 1439 },
+        "arrivalDeadlineLocalMinutes": { "type": ["integer", "null"], "minimum": 0, "maximum": 1439 },
+        "daylightOnly": { "type": "boolean" },
+        "daylightWindowLocalMinutes": { "type": "array", "minItems": 2, "maxItems": 2, "items": { "type": "integer", "minimum": 0, "maximum": 1439 } }
       }
     },
     "obligations": {
@@ -186,10 +235,28 @@
         "required": ["id", "kind", "required"],
         "properties": {
           "id": { "type": "string", "minLength": 1 },
-          "kind": { "enum": ["arrival", "payload_delivery", "signal_compliance", "pedestrian_yield", "lane_preference", "street_avoidance", "distance_target", "laps_target", "duration_target", "closed_loop", "boundary_adherence", "lap_accounting"] },
+          "kind": { "enum": ["arrival", "payload_delivery", "ordered_stops", "signal_compliance", "pedestrian_yield", "lane_preference", "street_avoidance", "arrival_deadline", "daylight_window", "accessibility", "bike_rack_proximity", "distance_target", "laps_target", "duration_target", "closed_loop", "boundary_adherence", "lap_accounting"] },
           "required": { "type": "boolean" }
         }
       }
+    },
+    "economics": {
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["schema", "currency", "amountCents", "basis", "match", "claimBoundary"],
+          "properties": {
+            "schema": { "const": "simulatte.missionEconomics.v1" },
+            "currency": { "const": "USD" },
+            "amountCents": { "type": "integer", "minimum": 1 },
+            "basis": { "const": "declared_gross_compensation" },
+            "match": { "type": "object" },
+            "claimBoundary": { "type": "string", "minLength": 1 }
+          }
+        }
+      ]
     },
     "seed": { "type": "integer", "minimum": 0 }
   },

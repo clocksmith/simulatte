@@ -36,7 +36,7 @@
       schema: manifest.value.schema,
       missionExampleCount: manifest.value.missionExamples.length,
     });
-    const directKeys = ['policy', 'occurrenceCatalog', 'rerankerEvidence', 'regionRegistry'];
+    const directKeys = ['policy', 'occurrenceCatalog', 'rerankerEvidence', 'regionRegistry', 'placeEmbeddingIndex', 'placeResolutionEvidence', 'modelRuntimeLock', 'accessibilityIndex', 'routeAmenityIndex', 'safetyHistoryIndex', 'curriculum', 'worldSnapshotRegistry', 'policyArenaEvidence'];
     const refs = await Promise.all(directKeys.map(async (key) => [key, await loadReference(manifest.value[key], resolvedManifestUrl, key, fetchImpl)]));
     const loaded = Object.fromEntries(refs);
     const embodimentRows = await Promise.all(manifest.value.embodiments.map(async (reference) => ({
@@ -66,6 +66,15 @@
       embodiment: defaultEmbodimentRow.loaded.sha256,
       policy: loaded.policy.sha256,
     });
+    contracts.validateModelRuntimeLock(loaded.modelRuntimeLock.value);
+    contracts.validatePlaceEmbeddingIndex(loaded.placeEmbeddingIndex.value, loaded.modelRuntimeLock.value);
+    contracts.validatePlaceResolutionEvidence(loaded.placeResolutionEvidence.value, loaded.placeEmbeddingIndex.value, loaded.modelRuntimeLock.value);
+    contracts.validateAccessibilityIndex(loaded.accessibilityIndex.value, composition.world, worldHash);
+    contracts.validateRouteAmenityIndex(loaded.routeAmenityIndex.value, composition.world, worldHash);
+    contracts.validateSafetyHistoryIndex(loaded.safetyHistoryIndex.value, composition.world, worldHash);
+    contracts.validateCurriculum(loaded.curriculum.value, composition.world);
+    contracts.validateWorldSnapshotRegistry(loaded.worldSnapshotRegistry.value, composition.world);
+    contracts.validatePolicyArenaEvidence(loaded.policyArenaEvidence.value);
     embodimentRows.forEach((row) => contracts.validateEmbodiment(row.loaded.value));
     contracts.validatePolicy(loaded.policy.value);
     const result = {
@@ -78,6 +87,15 @@
       featureCatalog: composition.featureCatalog,
       occurrenceCatalog: loaded.occurrenceCatalog.value,
       rerankerEvidence: loaded.rerankerEvidence.value,
+      placeEmbeddingIndex: loaded.placeEmbeddingIndex.value,
+      placeResolutionEvidence: loaded.placeResolutionEvidence.value,
+      modelRuntimeLock: loaded.modelRuntimeLock.value,
+      accessibilityIndex: loaded.accessibilityIndex.value,
+      routeAmenityIndex: loaded.routeAmenityIndex.value,
+      safetyHistoryIndex: loaded.safetyHistoryIndex.value,
+      curriculum: loaded.curriculum.value,
+      worldSnapshotRegistry: loaded.worldSnapshotRegistry.value,
+      policyArenaEvidence: loaded.policyArenaEvidence.value,
       regionRegistry: registry,
       regionPacks: packRows.map((row) => row.value),
       regionComposition: composition.receipt,

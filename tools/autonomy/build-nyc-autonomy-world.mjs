@@ -7,6 +7,10 @@ import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { compileFeatureCatalog, compileOccurrenceCatalog } from './compile-autonomy-catalogs.mjs';
 import { compileParkNetwork } from './compile-park-network.mjs';
+import {
+  compileStreetRouteNetwork as compileGovernedStreetRouteNetwork,
+  labelStreetLandmarks as labelGovernedStreetLandmarks,
+} from './compile-street-route-network.mjs';
 
 const TOOL_DIR = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(TOOL_DIR, '../..');
@@ -35,6 +39,7 @@ const DEFAULT_OUTPUT = path.join(ROOT, 'public/data/autonomy/worlds/nyc-core-aut
 const DEFAULT_FEATURE_OUTPUT = path.join(ROOT, 'public/data/autonomy/feature-cards-v1.json');
 const DEFAULT_OCCURRENCE_OUTPUT = path.join(ROOT, 'public/data/autonomy/patterns/nyc-replay-patterns-v1.json');
 const PARK_SOURCE_FILE = path.join(ROOT, 'tools/autonomy/data-sources/nyc-parks-properties-2026-07-13-v2/nyc-parks-properties.geojson');
+const ROUTING_OSM_SOURCE_DIR = path.join(ROOT, 'tools/autonomy/data-sources/nyc-osm-routing-2026-07-13');
 const SOURCE_FILES = Object.freeze({
   bike: 'nyc-bike-routes.geojson.gz',
   buildings: 'nyc-building-footprints.geojson.gz',
@@ -225,7 +230,11 @@ function parseOsmXml(xml) {
     const attributes = xmlAttributes(match[1]);
     if (attributes.id && attributes.lat && attributes.lon) nodes.set(attributes.id, { lat: Number(attributes.lat), lon: Number(attributes.lon) });
   }
-  const allowed = new Set(['motorway', 'trunk', 'primary', 'secondary', 'tertiary', 'residential', 'unclassified', 'service', 'living_street', 'pedestrian', 'cycleway']);
+  const allowed = new Set([
+    'motorway', 'motorway_link', 'trunk', 'trunk_link', 'primary', 'primary_link', 'secondary', 'secondary_link',
+    'tertiary', 'tertiary_link', 'residential', 'unclassified', 'service', 'living_street', 'pedestrian',
+    'cycleway', 'footway', 'path', 'steps',
+  ]);
   const elements = [];
   for (const match of xml.matchAll(/<way\b([^>]*)>([\s\S]*?)<\/way>/g)) {
     const attributes = xmlAttributes(match[1]);
@@ -253,6 +262,9 @@ function decodeXml(value) {
 
 function loadSnapshots(imports = {}) {
   return Object.fromEntries(Object.entries(SOURCE_FILES).map(([key, filename]) => {
+    if (key === 'streets' && !imports[key] && fs.existsSync(path.join(ROUTING_OSM_SOURCE_DIR, 'snapshot-receipt.json'))) {
+      return [key, loadRoutedOsmSnapshot(ROUTING_OSM_SOURCE_DIR)];
+    }
     const file = imports[key] || (key === 'parks' ? PARK_SOURCE_FILE : path.join(SOURCE_DIR, filename));
     if (!fs.existsSync(file)) throw new Error(`Missing frozen source ${file}; pass all source inputs or use --refresh`);
     const sourceBytes = fs.readFileSync(file);
@@ -261,23 +273,51 @@ function loadSnapshots(imports = {}) {
   }));
 }
 
+function loadRoutedOsmSnapshot(directory) {
+  const receiptBytes = fs.readFileSync(path.join(directory, 'snapshot-receipt.json'));
+  const receipt = JSON.parse(receiptBytes.toString('utf8'));
+  if (receipt.schema !== 'simulatte.autonomyOsmSourcePack.v1') throw new Error('OSM routing source expected a compact governed source pack');
+  const elements = new Map();
+  const identityChunks = [receiptBytes];
+  receipt.files.filter((row) => row.output.endsWith('.osm.gz')).sort((left, right) => left.output.localeCompare(right.output)).forEach((row) => {
+    const compressed = fs.readFileSync(path.join(directory, row.output));
+    if (sha256(compressed) !== row.compressedSha256) throw new Error(`OSM routing compressed hash drift for ${row.output}`);
+    const bytes = zlib.gunzipSync(compressed);
+    if (bytes.length !== row.rawByteCount || sha256(bytes) !== row.rawSha256) throw new Error(`OSM routing raw hash drift for ${row.output}`);
+    identityChunks.push(bytes);
+    const parsed = parseOsmXml(bytes.toString('utf8'));
+    parsed.elements.forEach((element) => elements.set(`${element.type}:${element.id}`, element));
+  });
+  return {
+    data: { version: 0.6, generator: 'Simulatte governed OSM routing snapshot compiler', elements: [...elements.values()].sort((left, right) => left.id - right.id) },
+    rawBytes: Buffer.concat(identityChunks),
+    contract: { ...SOURCE_CONTRACTS.streets, query: `receipt:${receipt.plan.planSha256}` },
+  };
+}
+
 function compileWorld(snapshots) {
   const project = createProjector(ORIGIN);
   const bikeNetwork = compileBikeNetwork(snapshots.bike.data, project);
   labelLandmarks(bikeNetwork, LANDMARKS, project);
+  const streetNetworks = compileGovernedStreetRouteNetwork(snapshots.streets.data, {
+    project,
+    sourceContract: SOURCE_CONTRACTS.streets,
+    snapshotDate: SNAPSHOT_DATE,
+  });
+  labelGovernedStreetLandmarks(streetNetworks, LANDMARKS, project);
   const parkNetwork = compileParkNetwork(snapshots.parks.data, {
     project,
     sourceContract: SOURCE_CONTRACTS.parks,
     snapshotDate: SNAPSHOT_DATE,
   });
   const network = {
-    nodes: [...bikeNetwork.nodes, ...parkNetwork.nodes],
-    segments: [...bikeNetwork.segments, ...parkNetwork.segments],
-    nodesById: new Map([...bikeNetwork.nodes, ...parkNetwork.nodes].map((row) => [row.id, row])),
+    nodes: [...bikeNetwork.nodes, ...streetNetworks.nodes, ...parkNetwork.nodes],
+    segments: [...bikeNetwork.segments, ...streetNetworks.segments, ...parkNetwork.segments],
+    nodesById: new Map([...bikeNetwork.nodes, ...streetNetworks.nodes, ...parkNetwork.nodes].map((row) => [row.id, row])),
   };
   const origin = LANDMARKS.find((row) => row.label === DEFAULT_ROUTE.originLabel);
   const destination = LANDMARKS.find((row) => row.label === DEFAULT_ROUTE.destinationLabel);
-  const route = shortestRoute(network, origin, destination, project, (segment) => {
+  const route = shortestRoute(bikeNetwork, origin, destination, project, (segment) => {
     const travel = segment.lengthM / segment.speedLimitMps * routingPolicy.route.travelWeight;
     const risk = segment.riskScore * routingPolicy.route.riskWeight;
     const preference = segment.laneType === 'shared' ? routingPolicy.route.unprotectedPreferencePenalty : 0;
@@ -566,9 +606,13 @@ function buildScenario(route, network) {
       schema: 'simulatte.autonomyScenarioReceipt.v1',
       defaultMissionText: 'Deliver the parcel by bike from Union Square to North Williamsburg. Prefer protected lanes and yield to pedestrians.',
       defaultRoute: { algorithm: 'dijkstra_policy_cost_equivalent', ...route },
+      timeZone: 'America/New_York',
+      defaultStartLocalMinutes: 720,
+      daylightWindowLocalMinutes: [337, 1224],
+      daylightMethod: 'declared_snapshot_daylight_window_v1',
       eventActorTriggerNodeId: eventActorSegment.fromNodeId,
       eventActorDurationTicks,
-      modeledAssumptions: ['signal_timing', 'time_triggered_pedestrian_path', 'event_triggered_pedestrian_path', 'bike_speed_limits', 'lane_risk_scores'],
+      modeledAssumptions: ['signal_timing', 'time_triggered_pedestrian_path', 'event_triggered_pedestrian_path', 'bike_speed_limits', 'lane_risk_scores', 'snapshot_daylight_window'],
       liveConditionsUsed: false,
     },
   };

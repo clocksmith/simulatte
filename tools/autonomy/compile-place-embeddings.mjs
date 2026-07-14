@@ -16,6 +16,8 @@ const ROOT = path.resolve(TOOL_DIR, '../..');
 const WORLD_PATH = 'public/data/autonomy/worlds/nyc-core-autonomy-v1.json';
 const REGION_REGISTRY_PATH = 'public/data/autonomy/regions/nyc-core-v1.json';
 const MODEL_LOCK_PATH = 'public/data/simulatte-embedder/model-runtime-lock.json';
+const PLACE_SEMANTICS_DIR = 'tools/autonomy/data-sources/nyc-place-semantics-2026-07-13';
+const PLACE_SEMANTICS_RECEIPT = `${PLACE_SEMANTICS_DIR}/snapshot-receipt.json`;
 const OUTPUT_PATH = 'public/data/autonomy/place-embedding-index-v1.json';
 const INDEX_ID = 'nyc-core-place-embedding-index-v1';
 const CONTENT_VERSION = 'nyc-core-place-embeddings-v1';
@@ -34,6 +36,7 @@ const DESCRIPTOR_POLICY = Object.freeze({
     'nearby_compiled_osm_street_names',
     'nearby_nyc_parks_property_labels',
     'declared_circuit_aliases',
+    'revision_pinned_public_semantic_context',
   ],
   excludedSources: ['place_resolution_diagnostic_probes', 'evaluation_gold_labels'],
 });
@@ -54,7 +57,7 @@ function parseArgs(argv) {
 async function main() {
   const options = parseArgs(process.argv.slice(2));
   const inputs = await loadInputs();
-  const documents = buildPlaceDocuments(inputs.world, inputs.regionRegistry);
+  const documents = buildPlaceDocuments(inputs.world, inputs.regionRegistry, inputs.placeSemantics);
   if (options.check) {
     const index = JSON.parse(await fs.readFile(resolvePath(options.outputPath), 'utf8'));
     validateIndex(index, inputs, documents);
@@ -69,11 +72,13 @@ async function main() {
 }
 
 async function loadInputs() {
-  const [worldText, regionRegistryText, generatorBytes] = await Promise.all([
+  const [worldText, regionRegistryText, generatorBytes, semanticReceiptText] = await Promise.all([
     fs.readFile(resolvePath(WORLD_PATH), 'utf8'),
     fs.readFile(resolvePath(REGION_REGISTRY_PATH), 'utf8'),
     fs.readFile(fileURLToPath(import.meta.url)),
+    fs.readFile(resolvePath(PLACE_SEMANTICS_RECEIPT), 'utf8'),
   ]);
+  const placeSemantics = await loadPlaceSemantics(semanticReceiptText);
   const modelLock = readModelRuntimeLock();
   const embeddingModel = lockedEmbeddingModel();
   return {
@@ -81,6 +86,7 @@ async function loadInputs() {
     regionRegistry: JSON.parse(regionRegistryText),
     modelLock,
     embeddingModel,
+    placeSemantics,
     identities: {
       world: identity(WORLD_PATH, JSON.parse(worldText).id, Buffer.from(worldText)),
       regionRegistry: identity(REGION_REGISTRY_PATH, JSON.parse(regionRegistryText).id, Buffer.from(regionRegistryText)),
@@ -94,11 +100,18 @@ async function loadInputs() {
         path: path.relative(ROOT, fileURLToPath(import.meta.url)),
         sha256: sha256Hex(generatorBytes),
       },
+      placeSemanticSnapshot: {
+        path: PLACE_SEMANTICS_RECEIPT,
+        id: 'nyc-place-semantics-2026-07-13',
+        sha256: sha256Hex(Buffer.from(semanticReceiptText, 'utf8')),
+        fileCount: placeSemantics.fileIdentities.length,
+        filesSha256: sha256Hex(Buffer.from(stableStringify(placeSemantics.fileIdentities), 'utf8')),
+      },
     },
   };
 }
 
-function buildPlaceDocuments(world, regionRegistry) {
+function buildPlaceDocuments(world, regionRegistry, placeSemantics = { byLabel: new Map() }) {
   const nodeById = new Map(world.nodes.map((node) => [node.id, node]));
   return [...regionRegistry.placeIndex]
     .sort((left, right) => left.label.localeCompare(right.label) || left.nodeId.localeCompare(right.nodeId))
@@ -108,6 +121,7 @@ function buildPlaceDocuments(world, regionRegistry) {
       const nearbyStreets = nearestStreetNames(node.position, world.renderGeometry?.streets || []);
       const nearbyParks = nearestParkProperties(node.position, world.renderGeometry?.parks || []);
       const circuitAliases = nearbyCircuitAliases(node.position, world.circuits || [], nodeById);
+      const semanticContext = placeSemantics.byLabel.get(place.label) || null;
       const sourceEvidence = {
         node: {
           id: node.id,
@@ -120,6 +134,7 @@ function buildPlaceDocuments(world, regionRegistry) {
         nearbyStreets,
         nearbyParks,
         circuitAliases,
+        semanticContext,
       };
       const candidateText = placeDescriptorText(place, sourceEvidence);
       return {
@@ -149,7 +164,50 @@ function placeDescriptorText(place, evidence) {
     `nearby named streets: ${streets || 'none'}`,
     `nearby NYC Parks properties: ${parks || 'none'}`,
     `declared circuit aliases: ${evidence.circuitAliases.join(', ') || 'none'}`,
+    `revision-pinned public context: ${evidence.semanticContext?.extract || 'none'}`,
   ].join('\n');
+}
+
+async function loadPlaceSemantics(receiptText) {
+  const receipt = JSON.parse(receiptText);
+  if (receipt?.schema !== 'simulatte.autonomyDataFetchReceipt.v1') throw new Error('Place semantic snapshot expected autonomy data fetch receipt');
+  if (receipt.activation !== 'staged_not_active') throw new Error(`Place semantic snapshot has unexpected activation ${receipt.activation}`);
+  const requests = new Map(receipt.plan?.requests?.map((row) => [row.id, row]) || []);
+  const byLabel = new Map();
+  const fileIdentities = [];
+  for (const file of receipt.files || []) {
+    const request = requests.get(file.requestId);
+    if (!request || request.transport !== 'mediawiki_json') throw new Error(`Place semantic file ${file.output} has no MediaWiki request`);
+    const bytes = await fs.readFile(resolvePath(`${PLACE_SEMANTICS_DIR}/${file.output}`));
+    const actualSha256 = sha256Hex(bytes);
+    if (actualSha256 !== file.sha256 || bytes.length !== file.byteCount) throw new Error(`Place semantic source identity drift for ${file.output}`);
+    const payload = JSON.parse(bytes.toString('utf8'));
+    const page = payload.query?.pages?.[0];
+    const revision = page?.revisions?.[0];
+    if (!page?.pageid || !revision?.revid || !revision?.timestamp || !String(page.extract || '').trim()) {
+      throw new Error(`Place semantic source ${file.output} lacks page, revision, timestamp, or extract`);
+    }
+    const source = {
+      documentId: request.documentId,
+      pageTitle: page.title,
+      pageId: page.pageid,
+      revisionId: revision.revid,
+      revisionTimestamp: revision.timestamp,
+      url: `https://en.wikipedia.org/?curid=${page.pageid}`,
+      license: request.license,
+      extract: String(page.extract).replace(/\s+/g, ' ').trim(),
+      rawSha256: actualSha256,
+    };
+    request.placeLabels.forEach((label) => {
+      if (byLabel.has(label)) throw new Error(`Place semantic source duplicated label ${label}`);
+      byLabel.set(label, source);
+    });
+    fileIdentities.push({ output: file.output, sha256: actualSha256, byteCount: bytes.length, revisionId: revision.revid });
+  }
+  return {
+    byLabel,
+    fileIdentities: fileIdentities.sort((left, right) => left.output.localeCompare(right.output)),
+  };
 }
 
 function nearestStreetNames(position, streets) {
@@ -392,7 +450,7 @@ function round(value) {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  main().catch((error) => {
+  main().then(() => process.exit(0)).catch((error) => {
     console.error(error && error.stack || error);
     process.exit(1);
   });
@@ -404,6 +462,7 @@ export {
   decodeFloat32LittleEndian,
   distanceToPolyline,
   encodeFloat32LittleEndian,
+  loadPlaceSemantics,
   placeDescriptorText,
   validateIndex,
 };

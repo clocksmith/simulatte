@@ -20,27 +20,27 @@
   "identities": {
     "corpus": {
       "path": "tools/samer/autonomy/public-navigation-missions-v1.json",
-      "sha256": "bbab5184c6163379cce320b09c59b2076a6baaeaf02055ae2541ca0da184c00b"
+      "sha256": "dd02ce2dbd602d1748827bbbecaddf4445c96b985b4d48ab93fccd0cf906be12"
     },
     "embodiment": {
       "path": "public/data/autonomy/embodiments/delivery-bike-v1.json",
-      "sha256": "f144b2c67eb5a30d30162fc3efcb0452ede225a72534d2389a98c139899d0f01"
+      "sha256": "7db2ebdc5e89bbc47c798e5e85e817f3f96945c623c8da6f195cfb9ed3977fba"
     },
     "featureCatalog": {
       "path": "public/data/autonomy/feature-cards-v1.json",
-      "sha256": "16d05573eb74830f70587435612abb0c1c62b8f897ac9f4aa32c371e81bbd72c"
+      "sha256": "2ce6bee15a7e61c1371cd1839ed65d774290ce61d07fd9f2304b502ba9298dbe"
     },
     "policy": {
       "path": "public/data/autonomy/policies/bet-selector-v1.json",
-      "sha256": "7686a27639289aeb449e6ea694fc33234c060841225a777800371f9fa69ed03c"
+      "sha256": "133579888a7db259c85b7f379ba51e2327d57943f82061e56832914d4137e377"
     },
     "runtime": {
       "path": "public/runtime/feature-retrieval.js",
-      "sha256": "52fa68411081d161b5ffc8729b6b4feb1efef41840dc53ec1519463305b45c06"
+      "sha256": "5d74ea7d68398d7b2ad25bc71e1200382d20f04a51c9ee54daf89bed5d169616"
     },
     "world": {
       "path": "public/data/autonomy/worlds/nyc-core-autonomy-v1.json",
-      "sha256": "78cc82a44fac0f1ce3ac1955d9b2a498fd880738a840d07642bb9f54bd074889"
+      "sha256": "85d2f95208406050ea6b87da7e0170c66430cb372e83e712e36c35ce8fefa001"
     }
   },
   "intervention": {

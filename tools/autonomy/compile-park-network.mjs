@@ -1,13 +1,25 @@
 import crypto from 'node:crypto';
 
 function compileParkNetwork(collection, { project, sourceContract, snapshotDate }) {
-  const matches = (collection.features || []).filter((row) => row.properties?.gispropnum === 'M089');
-  if (matches.length !== 1) throw new Error(`Union Square park compilation expected one M089 feature, received ${matches.length}`);
-  const feature = matches[0];
-  if (feature.geometry?.type !== 'MultiPolygon' || !feature.geometry.coordinates.length) {
-    throw new Error(`Union Square park expected a non-empty MultiPolygon, received ${feature.geometry?.type || 'missing'}`);
-  }
-  const members = feature.geometry.coordinates.map((polygon, index) => {
+  const eligible = (collection.features || []).filter((feature) => feature?.properties?.gispropnum
+    && ['Polygon', 'MultiPolygon'].includes(feature.geometry?.type));
+  if (!eligible.length) throw new Error('Park circuit compilation expected at least one governed property geometry');
+  const compiled = eligible.sort((left, right) => String(left.properties.gispropnum).localeCompare(String(right.properties.gispropnum)))
+    .map((feature) => compilePropertyCircuit(feature, { project, sourceContract, snapshotDate }));
+  return {
+    nodes: compiled.flatMap((row) => row.nodes),
+    segments: compiled.flatMap((row) => row.segments),
+    circuits: compiled.map((row) => row.circuit),
+    renderGeometry: compileParkRenderGeometry(collection, { project, sourceContract, snapshotDate }),
+  };
+}
+
+function compilePropertyCircuit(feature, { project, sourceContract, snapshotDate }) {
+  const propertyId = String(feature.properties.gispropnum);
+  const label = String(feature.properties.signname || feature.properties.name || propertyId);
+  const polygons = feature.geometry.type === 'Polygon' ? [feature.geometry.coordinates] : feature.geometry.coordinates;
+  if (!polygons.length) throw new Error(`${label} expected non-empty property geometry`);
+  const members = polygons.map((polygon, index) => {
     const rawRing = polygon[0];
     const rows = cleanCoordinatePairs(rawRing, project);
     return { index, rawRing, rows, areaM2: Math.abs(polygonArea(rows.map((row) => row.position))) };
@@ -16,25 +28,25 @@ function compileParkNetwork(collection, { project, sourceContract, snapshotDate 
   const sourceGeometryHash = sha256(Buffer.from(JSON.stringify(feature.geometry)));
   let rows = selected.rows;
   if (rows.length > 1 && distance(rows[0].position, rows.at(-1).position) < 0.001) rows = rows.slice(0, -1);
-  if (rows.length < 4) throw new Error(`Union Square park boundary expected at least four distinct points, received ${rows.length}`);
+  if (rows.length < 4) throw new Error(`${label} boundary expected at least four distinct points, received ${rows.length}`);
   const closedPositions = [...rows.map((row) => row.position), { ...rows[0].position }];
   if (polygonArea(closedPositions) > 0) rows.reverse();
   const source = {
     datasetId: sourceContract.id,
     sourceRevision: snapshotDate,
-    propertyId: String(feature.properties.gispropnum),
+    propertyId,
     boundaryKind: 'nyc_parks_property_boundary',
     surfaceClaim: 'park_property_boundary_not_surveyed_sidewalk',
     geometryWgs84Sha256: sourceGeometryHash,
     selectedRingWgs84Sha256: sha256(Buffer.from(JSON.stringify(selected.rawRing))),
-    memberCount: feature.geometry.coordinates.length,
+    memberCount: polygons.length,
     selectedMemberIndex: selected.index,
     selectionMethod: 'largest_projected_exterior_ring_area_v1',
     claimBoundary: 'The circuit follows the largest exterior member of the frozen NYC Parks property geometry. It does not claim a surveyed sidewalk centerline, current access condition, or obstacle-free physical route.',
   };
   const nodes = rows.map((row, index) => ({
     id: `ped-node-${shortHash(`${source.datasetId}:${source.sourceRevision}:${source.propertyId}:${row.wgs84.longitude.toFixed(7)},${row.wgs84.latitude.toFixed(7)}`, 12)}`,
-    label: index === 0 ? 'Union Square Park perimeter start' : `Union Square Park perimeter ${String(index + 1).padStart(2, '0')}`,
+    label: index === 0 ? `${label} perimeter start` : `${label} perimeter ${String(index + 1).padStart(2, '0')}`,
     kind: 'pedestrian_waypoint',
     position: { ...row.position },
     positionWgs84: { ...row.wgs84 },
@@ -57,17 +69,18 @@ function compileParkNetwork(collection, { project, sourceContract, snapshotDate 
       source: {
         datasetId: source.datasetId,
         propertyId: source.propertyId,
-        street: 'Union Square Park perimeter',
+        street: `${label} perimeter`,
         direction: 'clockwise',
         sourceRevision: source.sourceRevision,
         geometryWgs84Sha256: sha256(Buffer.from(JSON.stringify([fromWgs84, toWgs84]))),
       },
     };
   });
+  const circuitSlug = label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   const circuit = {
-    id: 'union-square-park-perimeter-v1',
-    label: 'Union Square Park',
-    aliases: ['Union Square', 'Union Square Park'],
+    id: `${circuitSlug}-perimeter-v1`,
+    label,
+    aliases: [...new Set([label, label.replace(/\s+Park$/i, '')])],
     mode: 'pedestrian',
     direction: 'clockwise',
     nodeIds: nodes.map((row) => row.id),
@@ -75,12 +88,7 @@ function compileParkNetwork(collection, { project, sourceContract, snapshotDate 
     lengthM: round(segments.reduce((sum, row) => sum + row.lengthM, 0)),
     source,
   };
-  return {
-    nodes,
-    segments,
-    circuits: [circuit],
-    renderGeometry: compileParkRenderGeometry(collection, { project, sourceContract, snapshotDate }),
-  };
+  return { nodes, segments, circuit };
 }
 
 function compileParkRenderGeometry(collection, { project, sourceContract, snapshotDate }) {

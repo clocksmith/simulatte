@@ -274,7 +274,7 @@ async function runBrowserSmoke(options) {
       && result.camera.minimap.frameCount > 0
       && result.camera.minimap.projection === 'orthographic_top_north_up'
       && result.camera.regionTargetCount === 3
-      && result.camera.placeTargetCount === 10
+      && result.camera.placeTargetCount === 20
       && result.camera.modeProbes.every((row) => row.began && row.noSnap && row.progressed && row.settled && row.moved)
       && result.camera.regionFocus.began
       && result.camera.regionFocus.noSnap

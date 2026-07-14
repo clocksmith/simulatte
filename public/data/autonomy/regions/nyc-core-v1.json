@@ -20,15 +20,15 @@
       "bikeFacilities": 2738,
       "buildings": 8500,
       "disruptions": 0,
-      "featureCards": 13062,
+      "featureCards": 13185,
       "land": 12,
-      "nodes": 2491,
+      "nodes": 11286,
       "parks": 9,
-      "segments": 3723,
+      "segments": 28638,
       "signals": 1,
-      "streets": 6589
+      "streets": 6587
     },
-    "featureCatalogSha256": "16d05573eb74830f70587435612abb0c1c62b8f897ac9f4aa32c371e81bbd72c",
+    "featureCatalogSha256": "2ce6bee15a7e61c1371cd1839ed65d774290ce61d07fd9f2304b502ba9298dbe",
     "id": "nyc-core-default-composition-v1",
     "seamNodeIds": [
       "bike-node-187c7facb939",
@@ -57,9 +57,80 @@
       "bike-node-f14480898841",
       "bike-node-f30984b85ecf",
       "bike-node-f6ec25169c13",
-      "bike-node-fdcb8f82b099"
+      "bike-node-fdcb8f82b099",
+      "street-node-0672ea17a569",
+      "street-node-091bc64ea964",
+      "street-node-147c1faddaff",
+      "street-node-148f109f77c1",
+      "street-node-17028e51ac2e",
+      "street-node-1d29d89e340b",
+      "street-node-1e531921e4e8",
+      "street-node-261525a2bf45",
+      "street-node-264b3f14c0df",
+      "street-node-264f4e0987cb",
+      "street-node-2f2ffa3963fe",
+      "street-node-2fcc46506e76",
+      "street-node-32ecee6f7ddb",
+      "street-node-37a1335aaab9",
+      "street-node-3c6ea5352e8d",
+      "street-node-490b8a9db2fd",
+      "street-node-4ef774da603e",
+      "street-node-542372c9277f",
+      "street-node-5df3a86ae9db",
+      "street-node-5e3d54fb4d78",
+      "street-node-60b18beb0abb",
+      "street-node-61e49f7e62fe",
+      "street-node-638c727f3869",
+      "street-node-6c6db2aadd03",
+      "street-node-6d9ed5f4ab5c",
+      "street-node-70c29324a29f",
+      "street-node-7115f534b04d",
+      "street-node-71c8c7675938",
+      "street-node-7266a38ba9fb",
+      "street-node-72fd3f192b9d",
+      "street-node-7547545f4030",
+      "street-node-78ccdc8b89fd",
+      "street-node-803827d31aae",
+      "street-node-8095e3bfab04",
+      "street-node-8516d6ffce01",
+      "street-node-8695e359a7ac",
+      "street-node-87a3f0442281",
+      "street-node-8819016b6417",
+      "street-node-883c0c3dd157",
+      "street-node-89f33cda6e10",
+      "street-node-8b99a3664a77",
+      "street-node-8f787607dbc1",
+      "street-node-944c98c2d3a8",
+      "street-node-94d829256b2c",
+      "street-node-9c79a77e5abb",
+      "street-node-a5999a98be28",
+      "street-node-a9f72c2cec59",
+      "street-node-aa4bd11716bd",
+      "street-node-ae8f432e6280",
+      "street-node-b1129507691d",
+      "street-node-b2382a181623",
+      "street-node-b64911bc691f",
+      "street-node-baa00c00d258",
+      "street-node-bb27d3cb43b6",
+      "street-node-bde45e329808",
+      "street-node-bf6f82727f97",
+      "street-node-c35510fe1617",
+      "street-node-c862179a4091",
+      "street-node-d133bd423cb5",
+      "street-node-d32054b2225a",
+      "street-node-d832069d45cf",
+      "street-node-d8bd1cef135b",
+      "street-node-e00688bf5a43",
+      "street-node-e845091d3c7d",
+      "street-node-e9fb2e47e15a",
+      "street-node-f1bbab0d877c",
+      "street-node-f30f316cb94f",
+      "street-node-f34d96f0b0da",
+      "street-node-f4ee49d77376",
+      "street-node-fb1fdcabd7b0",
+      "street-node-fd201dcaacf4"
     ],
-    "worldSha256": "78cc82a44fac0f1ce3ac1955d9b2a498fd880738a840d07642bb9f54bd074889"
+    "worldSha256": "85d2f95208406050ea6b87da7e0170c66430cb372e83e712e36c35ce8fefa001"
   },
   "contentVersion": "nyc-core-regions-multimodal-2026-07-13",
   "featureCatalogTemplate": {
@@ -113,20 +184,20 @@
         "bikeFacilities": 1502,
         "buildings": 3129,
         "disruptions": 0,
-        "featureCards": 7283,
-        "nodes": 1391,
+        "featureCards": 7291,
+        "nodes": 6761,
         "parks": 3,
-        "seams": 26,
-        "segments": 1947,
+        "seams": 87,
+        "segments": 18002,
         "signals": 1,
-        "streets": 3833
+        "streets": 3831
       },
       "id": "manhattan-villages-v1",
       "neighborIds": [
         "east-river-crossing-v1"
       ],
       "path": "./packs/manhattan-villages-v1.json",
-      "sha256": "3f9346f0af9f3eb99a26f57d726a52a1c8c838a55f3be3c505399bb860397033"
+      "sha256": "7f334e8f9bc87c9c6789f191c59bb08f6eebad0bdbe849e8a9e3036b6f574fef"
     },
     {
       "boundsWgs84": {
@@ -141,11 +212,11 @@
         "bikeFacilities": 542,
         "buildings": 1757,
         "disruptions": 0,
-        "featureCards": 2244,
-        "nodes": 514,
+        "featureCards": 2248,
+        "nodes": 1546,
         "parks": 1,
-        "seams": 27,
-        "segments": 789,
+        "seams": 98,
+        "segments": 3273,
         "signals": 0,
         "streets": 912
       },
@@ -155,7 +226,7 @@
         "north-brooklyn-v1"
       ],
       "path": "./packs/east-river-crossing-v1.json",
-      "sha256": "4b98cbcce90f1487d61fbe39ed525436b9589fae39ab3b503ae23407c2437456"
+      "sha256": "35ab0e85ccf8ad6e892f347e3b71ace523f55da76df7b8521c59363bc5539540"
     },
     {
       "boundsWgs84": {
@@ -170,11 +241,11 @@
         "bikeFacilities": 694,
         "buildings": 3614,
         "disruptions": 0,
-        "featureCards": 3526,
-        "nodes": 613,
+        "featureCards": 3637,
+        "nodes": 3077,
         "parks": 5,
-        "seams": 1,
-        "segments": 987,
+        "seams": 11,
+        "segments": 7363,
         "signals": 0,
         "streets": 1844
       },
@@ -183,7 +254,7 @@
         "east-river-crossing-v1"
       ],
       "path": "./packs/north-brooklyn-v1.json",
-      "sha256": "e88ea5b128683fa83318a3b46f5bafa7654d26f30cb22914586c727260160ada"
+      "sha256": "a35742b4f3b908ebf611d352c0c3de8521cacb9d9b2486ca705c982b16b12d49"
     }
   ],
   "placeIndex": [
@@ -263,6 +334,86 @@
       "id": "place-bike-node-ffea919f743c",
       "label": "East Village",
       "nodeId": "bike-node-ffea919f743c",
+      "packIds": [
+        "east-river-crossing-v1"
+      ]
+    },
+    {
+      "id": "place-street-node-109558b45073",
+      "label": "Union Square",
+      "nodeId": "street-node-109558b45073",
+      "packIds": [
+        "manhattan-villages-v1"
+      ]
+    },
+    {
+      "id": "place-street-node-233a11f61023",
+      "label": "Williamsburg Waterfront",
+      "nodeId": "street-node-233a11f61023",
+      "packIds": [
+        "north-brooklyn-v1"
+      ]
+    },
+    {
+      "id": "place-street-node-2563d65e230b",
+      "label": "North Williamsburg",
+      "nodeId": "street-node-2563d65e230b",
+      "packIds": [
+        "north-brooklyn-v1"
+      ]
+    },
+    {
+      "id": "place-street-node-39f0fadc02c3",
+      "label": "McCarren Park",
+      "nodeId": "street-node-39f0fadc02c3",
+      "packIds": [
+        "north-brooklyn-v1"
+      ]
+    },
+    {
+      "id": "place-street-node-58f8365bf1c7",
+      "label": "West Village",
+      "nodeId": "street-node-58f8365bf1c7",
+      "packIds": [
+        "manhattan-villages-v1"
+      ]
+    },
+    {
+      "id": "place-street-node-7a024a672fd4",
+      "label": "Greenpoint",
+      "nodeId": "street-node-7a024a672fd4",
+      "packIds": [
+        "north-brooklyn-v1"
+      ]
+    },
+    {
+      "id": "place-street-node-a4a29afb1309",
+      "label": "Tompkins Square",
+      "nodeId": "street-node-a4a29afb1309",
+      "packIds": [
+        "east-river-crossing-v1"
+      ]
+    },
+    {
+      "id": "place-street-node-e872a9abecb6",
+      "label": "Williamsburg Bridge",
+      "nodeId": "street-node-e872a9abecb6",
+      "packIds": [
+        "east-river-crossing-v1"
+      ]
+    },
+    {
+      "id": "place-street-node-ed3148242a5a",
+      "label": "Washington Square",
+      "nodeId": "street-node-ed3148242a5a",
+      "packIds": [
+        "manhattan-villages-v1"
+      ]
+    },
+    {
+      "id": "place-street-node-facd7f9926d4",
+      "label": "East Village",
+      "nodeId": "street-node-facd7f9926d4",
       "packIds": [
         "east-river-crossing-v1"
       ]
@@ -3099,8 +3250,294 @@
     "circuits": [
       {
         "aliases": [
-          "Union Square",
-          "Union Square Park"
+          "McCarren Park",
+          "McCarren"
+        ],
+        "direction": "clockwise",
+        "id": "mccarren-park-perimeter-v1",
+        "label": "McCarren Park",
+        "lengthM": 1012.586708,
+        "mode": "pedestrian",
+        "nodeIds": [
+          "ped-node-fd53ffc7143a",
+          "ped-node-17e906ff219b",
+          "ped-node-32fd87927993",
+          "ped-node-c9a7eddb45e0",
+          "ped-node-b1e09ac4c6ef",
+          "ped-node-4a7ee3376b81",
+          "ped-node-7ff5685aa1c8",
+          "ped-node-0bc53a8cc90e",
+          "ped-node-3dbebb46e228",
+          "ped-node-0bc209a014ec",
+          "ped-node-3d0d505665ae",
+          "ped-node-318d2fb4de97",
+          "ped-node-3fd523a8a30a",
+          "ped-node-fed8069bff47",
+          "ped-node-9eafba591b29",
+          "ped-node-ee5f4f1eea7e",
+          "ped-node-bf26c92552d1",
+          "ped-node-394c6e0722d0",
+          "ped-node-693c22eb68c3",
+          "ped-node-def0ff77f4bb",
+          "ped-node-4212fe0cd94b",
+          "ped-node-3c04185f39f6",
+          "ped-node-39d225b6c076",
+          "ped-node-94a3c618ce22",
+          "ped-node-64c0e5f8e386",
+          "ped-node-b17d55dbc512",
+          "ped-node-460342d7c038",
+          "ped-node-821be7f3ce37",
+          "ped-node-f90a0f13db40",
+          "ped-node-cd49537dd7bd",
+          "ped-node-44e900b2c14a",
+          "ped-node-f0386dc29bd6",
+          "ped-node-cbe60b1ace41",
+          "ped-node-faeb7f1708ce",
+          "ped-node-a2044bc390f0",
+          "ped-node-2fc577399918",
+          "ped-node-001c58b91a7d",
+          "ped-node-45a06ae10c30",
+          "ped-node-76c8b3d76c31",
+          "ped-node-88609403588e",
+          "ped-node-7e8a55b47d60",
+          "ped-node-35dbf2efd80b",
+          "ped-node-0eede99a5f7f",
+          "ped-node-ef8537890801",
+          "ped-node-56036ed438da",
+          "ped-node-8a1a3ba935ec",
+          "ped-node-7d1f2cb21512",
+          "ped-node-465b43af4372",
+          "ped-node-1fde156f4f7a",
+          "ped-node-6635bc4300bb",
+          "ped-node-d6817bf5914c",
+          "ped-node-58fd8b2f9110",
+          "ped-node-6200d2a35f39",
+          "ped-node-25f8897aaac4",
+          "ped-node-23f9a0ab7132",
+          "ped-node-3453e7ed7a45",
+          "ped-node-ba8eec86fada",
+          "ped-node-f32d0dfbbf09",
+          "ped-node-f9dbf25d8520",
+          "ped-node-8dbbe4eba427",
+          "ped-node-0eab20c13055",
+          "ped-node-21933693f585",
+          "ped-node-c890be278677",
+          "ped-node-b35dbed7dd46",
+          "ped-node-1270f22d7ffc",
+          "ped-node-667eaa438870",
+          "ped-node-d6f54fbcc0ec",
+          "ped-node-dc5f81567fd3",
+          "ped-node-7b59dfddb961",
+          "ped-node-7aaffa4b0710",
+          "ped-node-764f5c50aa23",
+          "ped-node-19f4a0fb33c3",
+          "ped-node-9ed46f8f1cf5",
+          "ped-node-9b508cf10b77",
+          "ped-node-6410cc28cffc",
+          "ped-node-4eb569e7eec1",
+          "ped-node-c93e78d40104",
+          "ped-node-2729c6c73ebc",
+          "ped-node-211a086979dc",
+          "ped-node-82b466caefea",
+          "ped-node-53818869e5d3",
+          "ped-node-d47c5d49fa07",
+          "ped-node-136021df3ca5",
+          "ped-node-d1031870c1e6",
+          "ped-node-11a4ffaf60fa",
+          "ped-node-fc1e84385791",
+          "ped-node-3adb70af5256",
+          "ped-node-a4253030f2ca",
+          "ped-node-c648edf47430",
+          "ped-node-96d25c0d1137",
+          "ped-node-5484cc98db00",
+          "ped-node-cba081bb48cc",
+          "ped-node-c2ceecfeb53d",
+          "ped-node-acae65621473",
+          "ped-node-75de9ae01df3",
+          "ped-node-239fcca8dc03",
+          "ped-node-cc8e6707d009",
+          "ped-node-58d857c1c577",
+          "ped-node-a2a5cf63974f",
+          "ped-node-565b2137805e",
+          "ped-node-2325419c6031",
+          "ped-node-e9cbe8659acc",
+          "ped-node-cb3ef2d9edb6",
+          "ped-node-24435d0f31c2",
+          "ped-node-63e5bdaef400",
+          "ped-node-36dbf4c3a2d3",
+          "ped-node-b9dd4c800998",
+          "ped-node-8b7ffb399039",
+          "ped-node-ae2cdeaa3f94",
+          "ped-node-f1bc0a5257f4",
+          "ped-node-6fee17f84dfc"
+        ],
+        "segmentIds": [
+          "ped-39249da87c70-cw",
+          "ped-880f902bb09b-cw",
+          "ped-39de9382ec0c-cw",
+          "ped-0a6f9d21208c-cw",
+          "ped-f047bf7de074-cw",
+          "ped-fea472cfd3d0-cw",
+          "ped-9d8c3c93af70-cw",
+          "ped-383b8e29fab8-cw",
+          "ped-e72649d99148-cw",
+          "ped-81e9e3a208f9-cw",
+          "ped-1c8300021dbf-cw",
+          "ped-b218014b5f20-cw",
+          "ped-d4a989b4cda3-cw",
+          "ped-50eac0072b7b-cw",
+          "ped-e6c75777ad07-cw",
+          "ped-302a3f388736-cw",
+          "ped-56c8250f5594-cw",
+          "ped-19c8ffad2237-cw",
+          "ped-32790ccf78f4-cw",
+          "ped-15b006a5da90-cw",
+          "ped-47fed394a9d6-cw",
+          "ped-eb3f17bc0c88-cw",
+          "ped-c855e5e31636-cw",
+          "ped-9c2175653ef3-cw",
+          "ped-cd0a165085fc-cw",
+          "ped-f032ba1413c7-cw",
+          "ped-7799916e1598-cw",
+          "ped-63ca04becd27-cw",
+          "ped-4e86e522ffb4-cw",
+          "ped-6c52dfb6f36c-cw",
+          "ped-e28be90355e2-cw",
+          "ped-63cfe023fabc-cw",
+          "ped-cd507a273bf7-cw",
+          "ped-8a71c05f1dfb-cw",
+          "ped-e69b50527d50-cw",
+          "ped-f2f8676857d7-cw",
+          "ped-52c0e1cd36bb-cw",
+          "ped-50f478526d9e-cw",
+          "ped-d074a4efa2c2-cw",
+          "ped-191de9aa1b06-cw",
+          "ped-a271bd2260c8-cw",
+          "ped-60c7d71a88e2-cw",
+          "ped-d0c3b5c19c54-cw",
+          "ped-904ad730d5c4-cw",
+          "ped-b381a8044b92-cw",
+          "ped-8de5df3ecd98-cw",
+          "ped-bd1fc43e1c91-cw",
+          "ped-fcd4706c7848-cw",
+          "ped-b526a123c3ee-cw",
+          "ped-6de1309deee3-cw",
+          "ped-3a983ea0a122-cw",
+          "ped-bbb4ca296baf-cw",
+          "ped-f5741e55a335-cw",
+          "ped-2e8951b9ef50-cw",
+          "ped-3f202a1a7a8c-cw",
+          "ped-4a70ee6dd2e4-cw",
+          "ped-2a723e687c1e-cw",
+          "ped-1123d1ea7da5-cw",
+          "ped-7a33872a9ddf-cw",
+          "ped-af492f1c95c3-cw",
+          "ped-d4de08c2f4a4-cw",
+          "ped-85c5650d443f-cw",
+          "ped-832d34e76086-cw",
+          "ped-20156002a91b-cw",
+          "ped-b3746610925e-cw",
+          "ped-0ec0a61c33e2-cw",
+          "ped-bf3be07498d4-cw",
+          "ped-527aa01d22f1-cw",
+          "ped-8f0825e5287d-cw",
+          "ped-2448574c133f-cw",
+          "ped-2d85e9eef3d8-cw",
+          "ped-f90fc859be68-cw",
+          "ped-1d349c028415-cw",
+          "ped-45ee177d8a65-cw",
+          "ped-a6479e18549f-cw",
+          "ped-1f36025a3a5d-cw",
+          "ped-a58c8246efef-cw",
+          "ped-17086b6a76d3-cw",
+          "ped-e214d7682c9f-cw",
+          "ped-acab9140cc65-cw",
+          "ped-aca0bfbbf149-cw",
+          "ped-1b9dc0422ac4-cw",
+          "ped-b4e0f39d8989-cw",
+          "ped-a4c4225ae7ae-cw",
+          "ped-da7cb2f6c978-cw",
+          "ped-4313ef08636a-cw",
+          "ped-e500489dfa6a-cw",
+          "ped-d3c6fb687477-cw",
+          "ped-e37558f85c28-cw",
+          "ped-eea116f8b0ea-cw",
+          "ped-ef003f4f64a6-cw",
+          "ped-af287088933c-cw",
+          "ped-44eff85966e4-cw",
+          "ped-45f7ef7fd27a-cw",
+          "ped-31f17cad1c15-cw",
+          "ped-65908b0b554a-cw",
+          "ped-f5e5eba569a9-cw",
+          "ped-f77a9e12d3e0-cw",
+          "ped-3221dee26a7e-cw",
+          "ped-cb9dd3b4f659-cw",
+          "ped-f22119b806b0-cw",
+          "ped-f9918d667265-cw",
+          "ped-255a855f205f-cw",
+          "ped-cd52cb700db0-cw",
+          "ped-f9d9e63114fa-cw",
+          "ped-da93519523d5-cw",
+          "ped-bd0c0bfb1c7c-cw",
+          "ped-7c916da6a981-cw",
+          "ped-4222e0d595b2-cw",
+          "ped-f30527f6c01e-cw",
+          "ped-acd0190d4584-cw"
+        ],
+        "source": {
+          "boundaryKind": "nyc_parks_property_boundary",
+          "claimBoundary": "The circuit follows the largest exterior member of the frozen NYC Parks property geometry. It does not claim a surveyed sidewalk centerline, current access condition, or obstacle-free physical route.",
+          "datasetId": "nyc-parks-properties",
+          "geometryWgs84Sha256": "4680f4ee845e19798b516b033c7f45f7189980c3a3f1619da24b2d725cd32c15",
+          "memberCount": 5,
+          "propertyId": "B058",
+          "selectedMemberIndex": 0,
+          "selectedRingWgs84Sha256": "45c03b3824c712b32163fd2827b3ebf5160e6e84047dcea1c871db8147fae0ae",
+          "selectionMethod": "largest_projected_exterior_ring_area_v1",
+          "sourceRevision": "2026-07-13",
+          "surfaceClaim": "park_property_boundary_not_surveyed_sidewalk"
+        }
+      },
+      {
+        "aliases": [
+          "Tompkins Square Park",
+          "Tompkins Square"
+        ],
+        "direction": "clockwise",
+        "id": "tompkins-square-park-perimeter-v1",
+        "label": "Tompkins Square Park",
+        "lengthM": 824.051213,
+        "mode": "pedestrian",
+        "nodeIds": [
+          "ped-node-fe6e1d06a218",
+          "ped-node-7adfb5e6d59c",
+          "ped-node-111c952e9c32",
+          "ped-node-0f1f5aec9c74"
+        ],
+        "segmentIds": [
+          "ped-9ae9592c4243-cw",
+          "ped-c301ea71ad3f-cw",
+          "ped-fbca062194f8-cw",
+          "ped-8bfc4ed3ec1e-cw"
+        ],
+        "source": {
+          "boundaryKind": "nyc_parks_property_boundary",
+          "claimBoundary": "The circuit follows the largest exterior member of the frozen NYC Parks property geometry. It does not claim a surveyed sidewalk centerline, current access condition, or obstacle-free physical route.",
+          "datasetId": "nyc-parks-properties",
+          "geometryWgs84Sha256": "12327454e18e697d6555c806e9da2af124021eb4155744ce66aaf6c68cfb42b3",
+          "memberCount": 1,
+          "propertyId": "M088",
+          "selectedMemberIndex": 0,
+          "selectedRingWgs84Sha256": "d38c58f391c8b85bcb6a293e0b06066e6571f26d873e7481629034bec84745f9",
+          "selectionMethod": "largest_projected_exterior_ring_area_v1",
+          "sourceRevision": "2026-07-13",
+          "surfaceClaim": "park_property_boundary_not_surveyed_sidewalk"
+        }
+      },
+      {
+        "aliases": [
+          "Union Square Park",
+          "Union Square"
         ],
         "direction": "clockwise",
         "id": "union-square-park-perimeter-v1",
@@ -3262,6 +3699,54 @@
           "sourceRevision": "2026-07-13",
           "surfaceClaim": "park_property_boundary_not_surveyed_sidewalk"
         }
+      },
+      {
+        "aliases": [
+          "Washington Square Park",
+          "Washington Square"
+        ],
+        "direction": "clockwise",
+        "id": "washington-square-park-perimeter-v1",
+        "label": "Washington Square Park",
+        "lengthM": 848.368244,
+        "mode": "pedestrian",
+        "nodeIds": [
+          "ped-node-8ab38aac31ea",
+          "ped-node-072a57bf2901",
+          "ped-node-09cd1db13b1f",
+          "ped-node-30c9eb8c4e8b",
+          "ped-node-ea9b92a46f4c",
+          "ped-node-070233c535b2",
+          "ped-node-585bc426d0dd",
+          "ped-node-3b404fa09583",
+          "ped-node-6fc34ebe417a",
+          "ped-node-94d8cfd6929e"
+        ],
+        "segmentIds": [
+          "ped-49be85379484-cw",
+          "ped-59c830770e8c-cw",
+          "ped-99230a751092-cw",
+          "ped-a850427b2a1d-cw",
+          "ped-456a1208e0de-cw",
+          "ped-07888544e401-cw",
+          "ped-39940d0ff04a-cw",
+          "ped-5522da614ed0-cw",
+          "ped-e406ae9d3999-cw",
+          "ped-f7dea77e6d78-cw"
+        ],
+        "source": {
+          "boundaryKind": "nyc_parks_property_boundary",
+          "claimBoundary": "The circuit follows the largest exterior member of the frozen NYC Parks property geometry. It does not claim a surveyed sidewalk centerline, current access condition, or obstacle-free physical route.",
+          "datasetId": "nyc-parks-properties",
+          "geometryWgs84Sha256": "af161a680edbabdb66e6d5c353560fbe3532e57745328bbbab0f9bc3d1408d25",
+          "memberCount": 1,
+          "propertyId": "M098",
+          "selectedMemberIndex": 0,
+          "selectedRingWgs84Sha256": "87afd92de8549073ffd290a5639982e9630402f7f5ab98457611c6e115193026",
+          "selectionMethod": "largest_projected_exterior_ring_area_v1",
+          "sourceRevision": "2026-07-13",
+          "surfaceClaim": "park_property_boundary_not_surveyed_sidewalk"
+        }
       }
     ],
     "contentVersion": "nyc-core-autonomy-2026-07-13",
@@ -3333,9 +3818,9 @@
           "authority": "OpenStreetMap contributors",
           "id": "openstreetmap-highways",
           "license": "ODbL 1.0",
-          "query": "deterministic_3_by_4_bbox_subtiles; OSM map responses filtered to governed highway classes",
-          "rawByteCount": 3512663,
-          "rawSha256": "ffdf8c81b87608cf23a28c6db20f35b1cbc5f9389b2a00d45d8c550325496f7f",
+          "query": "receipt:bb26301004d1f7d7e992e2c7ffd97672ff1cb5360505318fd16fa22c1d94f095",
+          "rawByteCount": 173029996,
+          "rawSha256": "280437deb0c65d9bd2361e6f3bd78f84c73a5402e76fcc481558291e05700d9e",
           "snapshotDate": "2026-07-13",
           "url": "https://api.openstreetmap.org/api/0.6/map"
         }
@@ -3356,6 +3841,11 @@
       "schema": "simulatte.autonomyRenderGeometry.v1"
     },
     "scenario": {
+      "daylightMethod": "declared_snapshot_daylight_window_v1",
+      "daylightWindowLocalMinutes": [
+        337,
+        1224
+      ],
       "defaultMissionText": "Deliver the parcel by bike from Union Square to North Williamsburg. Prefer protected lanes and yield to pedestrians.",
       "defaultRoute": {
         "algorithm": "dijkstra_policy_cost_equivalent",
@@ -3556,6 +4046,7 @@
           "bike-7bfdf69ee8aa-ft"
         ]
       },
+      "defaultStartLocalMinutes": 720,
       "eventActorDurationTicks": 18,
       "eventActorTriggerNodeId": "bike-node-969c7a348e01",
       "liveConditionsUsed": false,
@@ -3564,9 +4055,11 @@
         "time_triggered_pedestrian_path",
         "event_triggered_pedestrian_path",
         "bike_speed_limits",
-        "lane_risk_scores"
+        "lane_risk_scores",
+        "snapshot_daylight_window"
       ],
-      "schema": "simulatte.autonomyScenarioReceipt.v1"
+      "schema": "simulatte.autonomyScenarioReceipt.v1",
+      "timeZone": "America/New_York"
     },
     "schema": "simulatte.autonomyWorld.v1"
   }

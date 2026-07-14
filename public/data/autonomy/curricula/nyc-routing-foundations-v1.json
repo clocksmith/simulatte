@@ -1,0 +1,63 @@
+{
+  "schema": "simulatte.autonomyCurriculum.v1",
+  "id": "nyc-routing-foundations-v1",
+  "contentVersion": "2026-07-13",
+  "title": "NYC governed routing foundations",
+  "missions": [
+    {
+      "id": "walk-villages",
+      "sourceText": "Walk from Union Square to Washington Square.",
+      "requiredTaskType": "point_to_point",
+      "requiredEmbodimentId": "pedestrian-v1"
+    },
+    {
+      "id": "bike-amenity-corridor",
+      "sourceText": "Bike from Union Square to Washington Square and keep me within 200 meters of a bike rack.",
+      "requiredTaskType": "point_to_point",
+      "requiredEmbodimentId": "delivery-bike-v1"
+    },
+    {
+      "id": "scooter-cross-river",
+      "sourceText": "Ride a scooter from Union Square to North Williamsburg.",
+      "requiredTaskType": "point_to_point",
+      "requiredEmbodimentId": "scooter-v1"
+    },
+    {
+      "id": "car-cross-river",
+      "sourceText": "Drive from Union Square to North Williamsburg.",
+      "requiredTaskType": "point_to_point",
+      "requiredEmbodimentId": "car-v1"
+    },
+    {
+      "id": "ordered-delivery",
+      "sourceText": "Deliver the parcel by bike from Union Square to Washington Square, then East Village, then North Williamsburg.",
+      "requiredTaskType": "delivery",
+      "requiredEmbodimentId": "delivery-bike-v1"
+    },
+    {
+      "id": "union-square-laps",
+      "sourceText": "Run 5 laps around Union Square Park perimeter.",
+      "requiredTaskType": "loop",
+      "requiredEmbodimentId": "pedestrian-v1"
+    },
+    {
+      "id": "mccarren-distance",
+      "sourceText": "Run around McCarren Park perimeter for 2 miles.",
+      "requiredTaskType": "loop",
+      "requiredEmbodimentId": "pedestrian-v1"
+    },
+    {
+      "id": "daylight-deadline",
+      "sourceText": "Walk from Tompkins Square to Washington Square starting at 4 pm and arrive by 5 pm, only in daylight.",
+      "requiredTaskType": "point_to_point",
+      "requiredEmbodimentId": "pedestrian-v1"
+    }
+  ],
+  "completionRule": {
+    "journeyVerificationPass": true,
+    "exactMissionText": true,
+    "sameWorldContentVersion": true,
+    "receiptIntegrityRequired": true
+  },
+  "claimBoundary": "Completion proves deterministic governed-simulator journeys for the pinned mission texts and world revision. It does not certify physical navigation competence, road legality, or real-world safety."
+}

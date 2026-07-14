@@ -14,9 +14,10 @@
 //   wrongPlace   resolved to a node other than gold (worst class)
 //   violation    resolved anything on an ambiguous or out_of_world probe
 //
-// Guardrails, both hard:
+// Guardrails, all hard:
 //   must_refuse_violations == 0
 //   exact and typo_within probes stay correct (control floor)
+//   wrong_place_resolutions == 0
 //
 // A challenger is accepted only when it clears both guardrails and scores
 // strictly more correct probes than the control. Results on this exposed
@@ -34,17 +35,32 @@ const missionApi = require('../../public/mission/mission-compiler.js');
 const OUTPUT = path.join(ROOT, 'public/data/autonomy/evidence/place-resolution-public-diagnostic-v1.json');
 const FLOOR_KINDS = Object.freeze(['exact', 'typo_within']);
 const MUST_REFUSE_KINDS = Object.freeze(['ambiguous', 'out_of_world']);
+const EXPECTED_CONTROL_REFUSAL_CODES = Object.freeze([
+  'origin_not_grounded',
+  'destination_not_grounded',
+  'from_place_ambiguous',
+  'to_place_ambiguous',
+  // Two diagnostic paraphrases contain "around" as a place relation. The
+  // shipped lexical compiler currently attempts its circuit grammar first.
+  'termination_not_grounded',
+]);
 
 function parseArgs(argv) {
-  const options = { challenger: '' };
+  const options = { challenger: '', check: false, output: OUTPUT };
   for (let index = 0; index < argv.length; index += 1) {
     if (argv[index] === '--challenger') {
       options.challenger = String(argv[index + 1] || '');
+      index += 1;
+    } else if (argv[index] === '--check') {
+      options.check = true;
+    } else if (argv[index] === '--out') {
+      options.output = path.resolve(ROOT, String(argv[index + 1] || ''));
       index += 1;
     } else {
       throw new Error(`unknown argument: ${argv[index]}`);
     }
   }
+  if (!options.output) throw new Error('--out expected a path');
   return options;
 }
 
@@ -59,7 +75,8 @@ async function main() {
   const corpus = readJson(files.corpus);
   const world = readJson(files.world);
   const embodiment = readJson(files.embodiment);
-  const nodeIdByLabel = new Map(world.nodes.filter((node) => node.label).map((node) => [node.label, node.id]));
+  const eligibleNodeIds = new Set(missionApi.eligiblePlaceNodeIds(world, embodiment.kind));
+  const nodeIdByLabel = new Map(world.nodes.filter((node) => node.label && eligibleNodeIds.has(node.id)).map((node) => [node.label, node.id]));
 
   const controlResolver = {
     id: 'mission-compiler-constrained-v1',
@@ -70,34 +87,42 @@ async function main() {
           outcome: 'resolve',
           nodeId: probe.role === 'origin' ? mission.originNodeId : mission.destinationNodeId,
         };
-      } catch {
+      } catch (error) {
+        if (!EXPECTED_CONTROL_REFUSAL_CODES.includes(error?.code)) throw error;
         return { outcome: 'refuse' };
       }
     },
   };
 
-  const lanes = { control: evaluateLane(controlResolver, corpus, nodeIdByLabel) };
+  const lanes = { control: await evaluateLane(controlResolver, corpus, nodeIdByLabel) };
   const identities = Object.fromEntries(
     Object.entries(files).map(([key, file]) => [key, { path: file, sha256: hashFile(file) }])
   );
 
   let accepted = lanes.control.guardrails.mustRefuseViolations === 0
-    && lanes.control.guardrails.floorMisses === 0;
+    && lanes.control.guardrails.floorMisses === 0
+    && lanes.control.metrics.wrongPlace === 0;
 
   if (options.challenger) {
     const challengerModule = await import(pathToFileURL(path.resolve(ROOT, options.challenger)).href);
     const challenger = await challengerModule.createResolver({ world, embodiment });
-    lanes.challenger = evaluateLane(challenger, corpus, nodeIdByLabel);
+    try {
+      lanes.challenger = await evaluateLane(challenger, corpus, nodeIdByLabel);
+    } finally {
+      await challenger.dispose?.();
+    }
     identities.challengerModule = { path: options.challenger, sha256: hashFile(options.challenger) };
+    identities.challengerAssets = structuredClone(challenger.identities || null);
     accepted = lanes.challenger.guardrails.mustRefuseViolations === 0
       && lanes.challenger.guardrails.floorMisses === 0
+      && lanes.challenger.metrics.wrongPlace === 0
       && lanes.challenger.metrics.correct > lanes.control.metrics.correct;
   }
 
   const receipt = {
     schema: 'simulatte.placeResolutionEvaluation.v1',
     id: 'place-resolution-public-diagnostic-v1',
-    contentVersion: `place-resolution-public-diagnostic-${new Date().toISOString().slice(0, 10)}`,
+    contentVersion: corpus.contentVersion,
     population: {
       id: corpus.id,
       kind: corpus.population,
@@ -109,25 +134,40 @@ async function main() {
       control: lanes.control.resolverId,
       challenger: lanes.challenger ? lanes.challenger.resolverId : null,
       frozenMetric: 'correct_probe_count',
-      guardrails: ['must_refuse_violations_zero', 'exact_and_typo_within_floor'],
+      guardrails: ['must_refuse_violations_zero', 'wrong_place_resolutions_zero', 'exact_and_typo_within_floor'],
     },
     identities,
     lanes,
     accepted,
     claimBoundary: 'This receipt scores language-to-place resolution on exposed diagnostic probes. It cannot promote a resolver, establish model quality, or support a generalization claim. Promotion needs an unmounted holdout population.',
   };
-  fs.mkdirSync(path.dirname(OUTPUT), { recursive: true });
-  fs.writeFileSync(OUTPUT, `${JSON.stringify(sortValue(receipt), null, 2)}\n`);
+  const serialized = `${JSON.stringify(sortValue(receipt), null, 2)}\n`;
+  if (options.check) {
+    const existing = fs.readFileSync(options.output, 'utf8');
+    if (existing !== serialized) throw new Error(`place-resolution receipt is stale: run ${reproductionCommand(options)}`);
+  } else {
+    fs.mkdirSync(path.dirname(options.output), { recursive: true });
+    fs.writeFileSync(options.output, serialized);
+  }
   const summary = lanes.challenger || lanes.control;
-  console.log(`PLACE-RESOLUTION accepted=${accepted} lane=${summary.resolverId} correct=${summary.metrics.correct}/${corpus.probes.length} winnable=${summary.metrics.winnableResolved}/${summary.metrics.winnableTotal} violations=${summary.guardrails.mustRefuseViolations} output=${path.relative(ROOT, OUTPUT)}`);
+  console.log(`PLACE-RESOLUTION check=${options.check ? 'pass' : 'write'} accepted=${accepted} lane=${summary.resolverId} correct=${summary.metrics.correct}/${corpus.probes.length} winnable=${summary.metrics.winnableResolved}/${summary.metrics.winnableTotal} violations=${summary.guardrails.mustRefuseViolations} output=${path.relative(ROOT, options.output)}`);
   if (!accepted) process.exitCode = 1;
 }
 
-function evaluateLane(resolver, corpus, nodeIdByLabel) {
+async function evaluateLane(resolver, corpus, nodeIdByLabel) {
   const rows = [];
   const perKind = {};
-  for (const probe of corpus.probes) {
-    const result = resolver.resolve(probe) || { outcome: 'refuse' };
+  const batchResults = resolver.resolveMany
+    ? await resolver.resolveMany(corpus.probes)
+    : await Promise.all(corpus.probes.map((probe) => resolver.resolve(probe)));
+  if (!Array.isArray(batchResults) || batchResults.length !== corpus.probes.length) {
+    throw new Error(`${resolver.id || 'resolver'} expected ${corpus.probes.length} results, received ${batchResults?.length || 0}`);
+  }
+  for (let probeIndex = 0; probeIndex < corpus.probes.length; probeIndex += 1) {
+    const probe = corpus.probes[probeIndex];
+    const result = batchResults[probeIndex] || { outcome: 'refuse' };
+    if (!['resolve', 'refuse'].includes(result.outcome)) throw new Error(`${resolver.id || 'resolver'} returned invalid outcome for ${probe.probeId}`);
+    if (result.outcome === 'resolve' && !result.nodeId) throw new Error(`${resolver.id || 'resolver'} resolved ${probe.probeId} without nodeId`);
     const goldNodeId = probe.gold.placeLabel ? nodeIdByLabel.get(probe.gold.placeLabel) || null : null;
     const resolvedCorrectly = result.outcome === 'resolve'
       && probe.gold.outcome === 'resolve'
@@ -146,6 +186,7 @@ function evaluateLane(resolver, corpus, nodeIdByLabel) {
       correct,
       wrongPlace,
       violation,
+      evidence: result.evidence || null,
     });
     const bucket = perKind[probe.kind] || (perKind[probe.kind] = { probes: 0, correct: 0, wrongPlace: 0, violations: 0 });
     bucket.probes += 1;
@@ -174,6 +215,13 @@ function evaluateLane(resolver, corpus, nodeIdByLabel) {
   };
 }
 
+function reproductionCommand(options) {
+  const rows = ['node tools/autonomy/evaluate-place-resolution.mjs'];
+  if (options.challenger) rows.push(`--challenger ${options.challenger}`);
+  if (options.output !== OUTPUT) rows.push(`--out ${path.relative(ROOT, options.output)}`);
+  return rows.join(' ');
+}
+
 function readJson(file) {
   return JSON.parse(fs.readFileSync(path.join(ROOT, file), 'utf8'));
 }
@@ -189,7 +237,7 @@ function sortValue(value) {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  main().catch((error) => {
+  main().then(() => process.exit(process.exitCode || 0)).catch((error) => {
     console.error(error && error.stack || error);
     process.exit(1);
   });

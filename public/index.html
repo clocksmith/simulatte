@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="simulatte-build" content="745605d5d2951e35625b3b955f17e9ef255a28b0-f2fcbfa99717">
   <title>Simulatte</title>
-  <meta name="description" content="WebGPU bicycle and pedestrian agents make continuous, evidence-scored choices across the Villages and North Brooklyn.">
+  <meta name="description" content="A local-first WebGPU simulator for governed pedestrian, bicycle, scooter, and car journeys across the Villages and North Brooklyn.">
   <link rel="icon" type="image/svg+xml" href="./favicon.svg">
   <link rel="stylesheet" href="./styles.css">
 </head>
@@ -31,6 +31,13 @@
         <textarea id="mission-input" rows="2" spellcheck="false"></textarea>
       </label>
       <div class="mission-controls" aria-label="Mission controls">
+        <label class="resolver-control" for="place-resolution-lane">
+          <span>Place matching</span>
+          <select id="place-resolution-lane">
+            <option value="lexical">Lexical control · no download</option>
+            <option value="qwen_embedding">Hybrid Qwen 0.6B · 533 MB</option>
+          </select>
+        </label>
         <button id="shuffle-button" type="button">Shuffle</button>
         <button id="start-button" class="primary" type="button"><span class="play-mark" aria-hidden="true"></span>Start</button>
         <button id="pause-button" type="button" disabled>Pause</button>
@@ -49,6 +56,30 @@
       <div><span>Action</span><strong id="metric-bet">none</strong></div>
       <div><span>Bet</span><strong id="metric-settlement">none</strong></div>
       <div><span>Calibration</span><strong id="metric-calibration">0 / 0</strong></div>
+    </section>
+
+    <section class="proof-strip" aria-label="Journey forecast and counterfactual controls">
+      <div class="proof-stat"><span>Forecast</span><strong id="planning-forecast">not planned</strong></div>
+      <div class="proof-stat"><span>Accessibility</span><strong id="accessibility-proof">not requested</strong></div>
+      <div class="proof-stat"><span>Roads not taken</span><strong id="alternative-proof">not planned</strong></div>
+      <div class="proof-stat"><span>Settled locally</span><strong id="ledger-proof">0 trials</strong></div>
+      <div class="proof-stat"><span>Policy arena</span><strong id="policy-arena-proof">loading evidence</strong></div>
+      <div class="counterfactual-controls">
+        <label for="counterfactual-kind"><span>What if</span>
+          <select id="counterfactual-kind">
+            <option value="close_street">Close a street</option>
+            <option value="historical_crash_weighting">Weight reported crashes</option>
+            <option value="world_snapshot">Replay a dated world</option>
+          </select>
+        </label>
+        <label class="street-input" for="counterfactual-street"><span class="sr-only">Street to close</span><input id="counterfactual-street" value="Bedford Avenue" autocomplete="off"></label>
+        <label class="snapshot-input" for="counterfactual-snapshot"><span class="sr-only">World snapshot date</span><input id="counterfactual-snapshot" type="date" value="2019-07-13" disabled></label>
+        <button id="compare-button" type="button">Compare outcomes</button>
+        <button id="export-ledger-button" type="button">Export ledger</button>
+        <button id="import-receipt-button" type="button">Import receipt</button>
+        <input id="import-receipt-file" type="file" accept="application/json,.json" hidden>
+      </div>
+      <output id="counterfactual-proof" class="counterfactual-proof">Same mission, matched world, declared intervention.</output>
     </section>
 
     <section class="workspace">
@@ -74,7 +105,7 @@
           </div>
         </div>
         <div class="canvas-shell">
-          <canvas id="autonomy-canvas" width="1440" height="900" aria-label="Pitched WebGPU view of bicycle and pedestrian autonomy missions in the Villages and North Brooklyn"></canvas>
+          <canvas id="autonomy-canvas" width="1440" height="900" aria-label="Pitched WebGPU view of pedestrian, bicycle, scooter, and car autonomy missions in the Villages and North Brooklyn"></canvas>
           <canvas id="follow-minimap" class="follow-minimap" width="320" height="240" aria-label="Top view minimap centered on the active autonomous agent" hidden></canvas>
           <div class="map-provenance">
             <strong>Real geometry</strong>
@@ -123,6 +154,7 @@
           <div class="pipeline-row"><span>Found</span><div id="retrieval-candidates">No candidates</div></div>
           <div class="pipeline-row"><span>Ranked</span><div id="rerank-candidates">No ranking</div></div>
           <p id="reranker-proof" class="evidence-proof">Diagnostic comparison loading</p>
+          <p id="place-resolution-proof" class="evidence-proof">Place matching: lexical control</p>
         </section>
 
         <section class="evidence-section occurrence-evidence" aria-labelledby="occurrence-title">
@@ -170,19 +202,23 @@
   </main>
 
   <footer>
-    Geometry is frozen open-data evidence. The park circuit follows a property boundary, not a surveyed sidewalk. Signals, actors, speed, risk, and outcomes are simulation assumptions. This does not establish physical autonomy.
+    Geometry is frozen open-data evidence. Park circuits follow property boundaries, not surveyed sidewalks. Signals, actors, speed, risk, and outcomes are simulation assumptions. This does not establish physical autonomy.
   </footer>
 
+  <script defer src="./contracts/data-contract-validator.js?v=745605d5d2951e35625b3b955f17e9ef255a28b0-f2fcbfa99717"></script>
   <script defer src="./contracts/contract-validator.js?v=745605d5d2951e35625b3b955f17e9ef255a28b0-f2fcbfa99717"></script>
   <script defer src="./runtime/canonical-receipts.js?v=745605d5d2951e35625b3b955f17e9ef255a28b0-f2fcbfa99717"></script>
   <script defer src="./world/region-pack-merger.js?v=745605d5d2951e35625b3b955f17e9ef255a28b0-f2fcbfa99717"></script>
   <script defer src="./runtime/runtime-log.js?v=745605d5d2951e35625b3b955f17e9ef255a28b0-f2fcbfa99717"></script>
   <script defer src="./runtime/data-loader.js?v=745605d5d2951e35625b3b955f17e9ef255a28b0-f2fcbfa99717"></script>
+  <script defer src="./runtime/neural-place-resolution-core.js?v=745605d5d2951e35625b3b955f17e9ef255a28b0-f2fcbfa99717"></script>
+  <script defer src="./runtime/neural-place-resolver.js?v=745605d5d2951e35625b3b955f17e9ef255a28b0-f2fcbfa99717"></script>
   <script defer src="./mission/capability-matrix.js?v=745605d5d2951e35625b3b955f17e9ef255a28b0-f2fcbfa99717"></script>
   <script defer src="./mission/mission-compiler.js?v=745605d5d2951e35625b3b955f17e9ef255a28b0-f2fcbfa99717"></script>
   <script defer src="./world/ambient-actors.js?v=745605d5d2951e35625b3b955f17e9ef255a28b0-f2fcbfa99717"></script>
   <script defer src="./world/world-model.js?v=745605d5d2951e35625b3b955f17e9ef255a28b0-f2fcbfa99717"></script>
   <script defer src="./world/route-planner.js?v=745605d5d2951e35625b3b955f17e9ef255a28b0-f2fcbfa99717"></script>
+  <script defer src="./world/accessibility-audit.js?v=745605d5d2951e35625b3b955f17e9ef255a28b0-f2fcbfa99717"></script>
   <script defer src="./runtime/feature-retrieval.js?v=745605d5d2951e35625b3b955f17e9ef255a28b0-f2fcbfa99717"></script>
   <script defer src="./runtime/occurrence-engine.js?v=745605d5d2951e35625b3b955f17e9ef255a28b0-f2fcbfa99717"></script>
   <script defer src="./runtime/observation-builder.js?v=745605d5d2951e35625b3b955f17e9ef255a28b0-f2fcbfa99717"></script>
@@ -193,6 +229,8 @@
   <script defer src="./runtime/bet-settlement.js?v=745605d5d2951e35625b3b955f17e9ef255a28b0-f2fcbfa99717"></script>
   <script defer src="./verifier/journey-verifier.js?v=745605d5d2951e35625b3b955f17e9ef255a28b0-f2fcbfa99717"></script>
   <script defer src="./runtime/autonomy-controller.js?v=745605d5d2951e35625b3b955f17e9ef255a28b0-f2fcbfa99717"></script>
+  <script defer src="./runtime/journey-ledger.js?v=745605d5d2951e35625b3b955f17e9ef255a28b0-f2fcbfa99717"></script>
+  <script defer src="./runtime/counterfactual-runner.js?v=745605d5d2951e35625b3b955f17e9ef255a28b0-f2fcbfa99717"></script>
   <script defer src="./app/webgpu-math.js?v=745605d5d2951e35625b3b955f17e9ef255a28b0-f2fcbfa99717"></script>
   <script defer src="./app/webgpu-actor-geometry.js?v=745605d5d2951e35625b3b955f17e9ef255a28b0-f2fcbfa99717"></script>
   <script defer src="./app/webgpu-geometry.js?v=745605d5d2951e35625b3b955f17e9ef255a28b0-f2fcbfa99717"></script>

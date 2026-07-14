@@ -6,7 +6,7 @@
   "label": "Runner or walker",
   "kind": "pedestrian",
   "renderProfile": "runner",
-  "supportedTaskTypes": ["loop"],
+  "supportedTaskTypes": ["point_to_point", "loop"],
   "dimensions": {
     "lengthM": 0.55,
     "widthM": 0.45,

@@ -16,6 +16,7 @@ const controllerApi = require('../../../public/runtime/autonomy-controller.js');
 const receipts = require('../../../public/runtime/canonical-receipts.js');
 const EXPECTED_RUNTIME_SOURCE_PATHS = Object.freeze([
   'public/contracts/contract-validator.js',
+  'public/contracts/data-contract-validator.js',
   'public/mission/capability-matrix.js',
   'public/mission/mission-compiler.js',
   'public/world/ambient-actors.js',
@@ -279,6 +280,8 @@ async function runTrial(contract, scenarios, assets, scenarioHash) {
     .sort((left, right) => right.metrics.safetyAdjustedCompletionScore - left.metrics.safetyAdjustedCompletionScore || left.id.localeCompare(right.id));
   return {
     schema: 'simulatte.samerAutonomyReport.v1',
+    id: 'policy-arena-public-diagnostic-v1',
+    contentVersion: '2026-07-13',
     experimentId: contract.experimentId,
     contractHash: digest(canonicalJson(contract)),
     scenarioSetHash: scenarioHash,

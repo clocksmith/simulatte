@@ -9,14 +9,14 @@
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteAutonomyMission = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyMissionCompiler(contracts, capabilities) {
-  const CLAIM_BOUNDARY = 'Known delivery and registered closed-circuit tasks only. Places, routed streets, and circuits resolve against governed artifacts; constrained spelling correction cannot create a new artifact.';
+  const CLAIM_BOUNDARY = 'Known point-to-point and registered closed-circuit tasks only. Places, routed streets, and circuits resolve against governed artifacts. Optional model-backed place resolution can select only an existing governed node and cannot create a place, route, or capability.';
   const METERS_PER_UNIT = Object.freeze({ foot: 0.3048, meter: 1, kilometer: 1000, mile: 1609.344 });
   const SECONDS_PER_UNIT = Object.freeze({ second: 1, minute: 60, hour: 3600 });
   const DELIVERY_MODES = Object.freeze([
     { kind: 'bicycle', pattern: /\b(?:bike|bicycle|cycling)\b/ },
     { kind: 'scooter', pattern: /\b(?:scooter|scooting)\b/ },
-    { kind: 'car', pattern: /\b(?:car|automobile|driving)\b/ },
-    { kind: 'pedestrian', pattern: /\b(?:walk|walking|on\s+foot)\b/ },
+    { kind: 'car', pattern: /\b(?:car|automobile|drive|driving)\b/ },
+    { kind: 'pedestrian', pattern: /\b(?:walk|walking|on\s+foot|wheelchair|wheel\s+chair|roll|rolling|accessible|step[- ]free)\b/ },
   ]);
   const LOOP_MODES = Object.freeze([
     { kind: 'pedestrian', pattern: /\b(?:run|running|ran|jog|jogging|walk|walking)\b/ },
@@ -29,25 +29,68 @@
     road: 'rd', rd: 'rd', lane: 'ln', ln: 'ln', place: 'pl', pl: 'pl', square: 'sq', sq: 'sq',
   });
 
-  function compileMission(sourceText, world, embodimentInput) {
+  function compileMission(sourceText, world, embodimentInput, options = {}) {
     const text = String(sourceText || '').trim();
     if (!text) throw missionError('source_text_missing', 'Mission text must name a supported task, mode, and grounded location');
     const lower = text.toLowerCase();
     const deliveryMatch = lexicalMatch(lower, /\bdeliver(?:y|ing|ed)?\b|\bparcel\b/);
     const loopMatch = lexicalMatch(lower, /\b(?:around|circles?|laps?|loop(?:ing)?)\b/);
     const pedestrianMatch = lexicalMatch(lower, LOOP_MODES[0].pattern);
-    if (loopMatch) return compileLoopMission(text, world, embodimentInput, loopMatch);
     const deliveryMode = matchMode(lower, DELIVERY_MODES);
-    if (pedestrianMatch && /\bfrom\b/.test(lower) && /\bto\b/.test(lower)) {
-      const matrix = capabilities.buildCapabilityMatrix(world, embodimentInput);
-      capabilities.requireCapability(matrix, { embodimentKind: 'pedestrian', missionFamily: 'point_to_point', terminationKind: 'arrival' });
+    if (deliveryMatch) return compileDeliveryMission(text, world, embodimentInput, deliveryMatch, deliveryMode, options);
+    if (loopMatch) return compileLoopMission(text, world, embodimentInput, loopMatch);
+    if ((deliveryMode || pedestrianMatch) && /\bfrom\b/.test(lower) && /\bto\b/.test(lower)) {
+      return compilePointToPointMission(text, world, embodimentInput, deliveryMode || pedestrianMatch, options);
     }
-    if (deliveryMatch || deliveryMode) return compileDeliveryMission(text, world, embodimentInput, deliveryMatch, deliveryMode);
     if (pedestrianMatch) throw missionError('loop_task_not_grounded', 'Pedestrian mission expected around, circle, lap, or loop');
     throw missionError('task_not_grounded', 'Mission expected a delivery or registered closed-circuit task');
   }
 
-  function compileDeliveryMission(text, world, embodimentInput, deliveryMatch, deliveryMode) {
+  async function compileMissionWithResolver(sourceText, world, embodimentInput, resolver) {
+    try {
+      return compileMission(sourceText, world, embodimentInput);
+    } catch (error) {
+      const expected = new Set(['origin_not_grounded', 'destination_not_grounded', 'from_place_ambiguous', 'to_place_ambiguous']);
+      if (!resolver || !expected.has(error?.code)) throw error;
+      const text = String(sourceText || '').trim();
+      const namedNodes = world.nodes.filter((node) => node.landmark || !['intersection', 'pedestrian_waypoint'].includes(node.kind));
+      const lexical = {
+        origin: matchPlaceAfter(text, namedNodes, 'from'),
+        destination: matchPlaceAfter(text, namedNodes, 'to'),
+      };
+      const missingRoles = ['origin', 'destination'].filter((role) => !lexical[role]);
+      const modeMatch = matchMode(text.toLowerCase(), DELIVERY_MODES) || matchMode(text.toLowerCase(), LOOP_MODES);
+      const eligibleNodeIds = eligiblePlaceNodeIds(world, modeMatch?.kind || null);
+      const results = await resolver.resolveMany(missingRoles.map((role) => ({
+        sourceText: text, role, embodimentKind: modeMatch?.kind || null, eligibleNodeIds,
+      })));
+      const placeResolutions = {};
+      missingRoles.forEach((role, index) => {
+        const result = results[index];
+        if (!result || result.outcome !== 'resolve' || !result.nodeId) {
+          throw missionError('neural_place_not_grounded', `Model-backed resolver refused mission ${role}`, {
+            role,
+            resolverId: resolver.id || 'unnamed-resolver',
+            result: result || null,
+            originalError: { code: error.code, message: error.message },
+          });
+        }
+        placeResolutions[role] = result;
+      });
+      return compileMission(text, world, embodimentInput, {
+        placeResolutions,
+        placeResolutionReceipt: {
+          schema: 'simulatte.missionPlaceResolution.v1',
+          resolverId: resolver.id || 'unnamed-resolver',
+          lane: 'hybrid_lexical_extended_typo_qwen_embedding',
+          modelExecution: results.some((row) => row?.evidence?.lane === 'qwen_embedding_cosine'),
+          roles: missingRoles.map((role, index) => ({ role, ...structuredClone(results[index]) })),
+        },
+      });
+    }
+  }
+
+  function compileDeliveryMission(text, world, embodimentInput, deliveryMatch, deliveryMode, options = {}) {
     const lower = text.toLowerCase();
     if (!deliveryMatch) throw missionError('task_not_grounded', 'Delivery mission expected an explicit delivery or parcel term');
     if (!deliveryMode) throw missionError('mode_not_grounded', 'Delivery mission expected bicycle, scooter, car, or on-foot mode');
@@ -58,28 +101,23 @@
       terminationKind: 'arrival',
     });
     const embodiment = requireEmbodiment(embodimentInput, capability.embodimentId);
-    const origin = matchPlaceAfter(text, world.nodes, 'from');
-    const destination = matchPlaceAfter(text, world.nodes, 'to');
+    const eligibleNodes = nodesForMode(world, embodiment.mode);
+    const origin = resolvedPlaceOverride(text, world, 'origin', options, embodiment.mode) || matchPlaceAfter(text, eligibleNodes, 'from');
+    const destination = resolvedPlaceOverride(text, world, 'destination', options, embodiment.mode) || matchPlaceAfter(text, eligibleNodes, 'to');
     if (!origin) throw missionError('origin_not_grounded', 'Mission origin must match a governed place label after "from"');
     if (!destination) throw missionError('destination_not_grounded', 'Mission destination must match a governed place label after "to"');
-    if (origin.node.id === destination.node.id) throw missionError('route_has_no_extent', 'Mission origin and destination must differ');
-    const protectedMatch = lexicalMatch(lower, /\bprotected\s+(?:lane|lanes|route|routes)\b/);
-    const yieldMatch = lexicalMatch(lower, /\byield(?:ing)?\s+to\s+pedestrians?\b/);
-    const avoidedStreet = matchAvoidedStreet(text, world);
+    const orderedStops = compileOrderedStops(text, eligibleNodes, destination);
+    const finalDestination = orderedStops.at(-1);
+    validateStopExtent(origin, orderedStops);
+    const routeTerms = compileRouteTerms(text, world);
+    const { protectedMatch, yieldMatch, avoidedStreet, deadline, compensation, accessibilityMatch, bikeRackProximity, temporal } = routeTerms;
     const evidence = [
       evidenceRow('task', text, deliveryMatch, 'exact_lexical'),
       evidenceRow('mode', text, deliveryMode, 'exact_lexical', embodiment.id, embodiment.kind),
-      evidenceRow('origin', text, origin, origin.editDistance ? 'constrained_fuzzy_place' : 'exact_world_label', origin.node.id, origin.node.label),
-      evidenceRow('destination', text, destination, destination.editDistance ? 'constrained_fuzzy_place' : 'exact_world_label', destination.node.id, destination.node.label),
+      evidenceRow('origin', text, origin, placeEvidenceMethod(origin), origin.node.id, origin.node.label),
+      ...orderedStopEvidence(text, orderedStops),
     ];
-    if (protectedMatch) evidence.push(evidenceRow('lanePreference', text, protectedMatch, 'exact_lexical'));
-    if (yieldMatch) evidence.push(evidenceRow('pedestrianYield', text, yieldMatch, 'exact_lexical'));
-    if (avoidedStreet) {
-      const method = avoidedStreet.sourceKind === 'routed_graph'
-        ? avoidedStreet.editDistance ? 'constrained_fuzzy_routed_street' : 'exact_routed_street'
-        : avoidedStreet.editDistance ? 'constrained_fuzzy_world_street' : 'exact_world_street';
-      evidence.push(evidenceRow('streetAvoidance', text, avoidedStreet, method, avoidedStreet.id, avoidedStreet.canonicalName));
-    }
+    appendRouteEvidence(evidence, text, routeTerms);
     const seed = hash32(text);
     return contracts.validateMission({
       schema: 'simulatte.autonomyMission.v3',
@@ -88,10 +126,11 @@
       parser: parserReceipt(evidence),
       capability,
       embodimentId: embodiment.id,
-      task: { type: 'delivery', payloadId: 'parcel-1' },
+      task: { type: 'delivery', payloadId: 'parcel-1', stopNodeIds: orderedStops.map((row) => row.node.id) },
       originNodeId: origin.node.id,
-      destinationNodeId: destination.node.id,
+      destinationNodeId: finalDestination.node.id,
       grounding: null,
+      placeResolution: options.placeResolutionReceipt || null,
       constraints: {
         lanePreference: protectedMatch ? 'protected' : 'any',
         avoidStreetNames: avoidedStreet ? [avoidedStreet.canonicalName] : [],
@@ -99,17 +138,130 @@
         mustObeySignals: true,
         mustStayOnCircuit: false,
         maximumSpeedMps: embodiment.dynamics.maximumSpeedMps,
+        maximumDurationSeconds: minimumNullable(deadline?.targetDurationSeconds, temporal.maximumDurationSeconds),
+        accessibilityProfile: accessibilityMatch ? 'wheelchair' : null,
+        maximumBikeRackDistanceM: bikeRackProximity?.targetDistanceM ?? null,
+        departureLocalMinutes: temporal.departureLocalMinutes,
+        arrivalDeadlineLocalMinutes: temporal.arrivalDeadlineLocalMinutes,
+        daylightOnly: Boolean(temporal.daylightMatch),
+        daylightWindowLocalMinutes: [...temporal.daylightWindowLocalMinutes],
       },
       obligations: [
         { id: 'obligation-arrival', kind: 'arrival', required: true },
         { id: 'obligation-payload', kind: 'payload_delivery', required: true },
+        { id: 'obligation-ordered-stops', kind: 'ordered_stops', required: orderedStops.length > 1 },
         { id: 'obligation-signal', kind: 'signal_compliance', required: true },
         { id: 'obligation-pedestrian', kind: 'pedestrian_yield', required: true },
         { id: 'obligation-lane-preference', kind: 'lane_preference', required: Boolean(protectedMatch) },
         { id: 'obligation-street-avoidance', kind: 'street_avoidance', required: Boolean(avoidedStreet) },
+        { id: 'obligation-arrival-deadline', kind: 'arrival_deadline', required: Boolean(deadline || temporal.arrivalMatch) },
+        { id: 'obligation-accessibility', kind: 'accessibility', required: Boolean(accessibilityMatch) },
+        { id: 'obligation-bike-rack-proximity', kind: 'bike_rack_proximity', required: Boolean(bikeRackProximity) },
+        { id: 'obligation-daylight-window', kind: 'daylight_window', required: Boolean(temporal.daylightMatch) },
       ],
+      economics: compensation,
       seed,
     }, world, embodiment);
+  }
+
+  function compilePointToPointMission(text, world, embodimentInput, modeMatch, options = {}) {
+    const matrix = capabilities.buildCapabilityMatrix(world, embodimentInput);
+    const capability = capabilities.requireCapability(matrix, {
+      embodimentKind: modeMatch.kind,
+      missionFamily: 'point_to_point',
+      terminationKind: 'arrival',
+    });
+    const embodiment = requireEmbodiment(embodimentInput, capability.embodimentId);
+    const eligibleNodes = nodesForMode(world, embodiment.mode);
+    const origin = resolvedPlaceOverride(text, world, 'origin', options, embodiment.mode) || matchPlaceAfter(text, eligibleNodes, 'from');
+    const destination = resolvedPlaceOverride(text, world, 'destination', options, embodiment.mode) || matchPlaceAfter(text, eligibleNodes, 'to');
+    if (!origin) throw missionError('origin_not_grounded', 'Mission origin must match a governed place label after "from"');
+    if (!destination) throw missionError('destination_not_grounded', 'Mission destination must match a governed place label after "to"');
+    const orderedStops = compileOrderedStops(text, eligibleNodes, destination);
+    const finalDestination = orderedStops.at(-1);
+    validateStopExtent(origin, orderedStops);
+    const routeTerms = compileRouteTerms(text, world);
+    const { protectedMatch, yieldMatch, avoidedStreet, deadline, accessibilityMatch, bikeRackProximity, temporal } = routeTerms;
+    const evidence = [
+      evidenceRow('task', text, modeMatch, 'exact_lexical', null, 'point_to_point'),
+      evidenceRow('mode', text, modeMatch, 'exact_lexical', embodiment.id, embodiment.kind),
+      evidenceRow('origin', text, origin, placeEvidenceMethod(origin), origin.node.id, origin.node.label),
+      ...orderedStopEvidence(text, orderedStops),
+    ];
+    appendRouteEvidence(evidence, text, routeTerms);
+    const seed = hash32(text);
+    return contracts.validateMission({
+      schema: 'simulatte.autonomyMission.v3',
+      id: `journey-${seed.toString(16).padStart(8, '0')}`,
+      sourceText: text,
+      parser: parserReceipt(evidence),
+      capability,
+      embodimentId: embodiment.id,
+      task: { type: 'point_to_point', stopNodeIds: orderedStops.map((row) => row.node.id) },
+      originNodeId: origin.node.id,
+      destinationNodeId: finalDestination.node.id,
+      grounding: null,
+      placeResolution: options.placeResolutionReceipt || null,
+      constraints: {
+        lanePreference: protectedMatch ? 'protected' : 'any',
+        avoidStreetNames: avoidedStreet ? [avoidedStreet.canonicalName] : [],
+        mustYieldToPedestrians: Boolean(yieldMatch) || embodiment.kind !== 'car',
+        mustObeySignals: true,
+        mustStayOnCircuit: false,
+        maximumSpeedMps: embodiment.dynamics.maximumSpeedMps,
+        maximumDurationSeconds: minimumNullable(deadline?.targetDurationSeconds, temporal.maximumDurationSeconds),
+        accessibilityProfile: accessibilityMatch ? 'wheelchair' : null,
+        maximumBikeRackDistanceM: bikeRackProximity?.targetDistanceM ?? null,
+        departureLocalMinutes: temporal.departureLocalMinutes,
+        arrivalDeadlineLocalMinutes: temporal.arrivalDeadlineLocalMinutes,
+        daylightOnly: Boolean(temporal.daylightMatch),
+        daylightWindowLocalMinutes: [...temporal.daylightWindowLocalMinutes],
+      },
+      obligations: [
+        { id: 'obligation-arrival', kind: 'arrival', required: true },
+        { id: 'obligation-ordered-stops', kind: 'ordered_stops', required: orderedStops.length > 1 },
+        { id: 'obligation-signal', kind: 'signal_compliance', required: true },
+        { id: 'obligation-pedestrian', kind: 'pedestrian_yield', required: true },
+        { id: 'obligation-lane-preference', kind: 'lane_preference', required: Boolean(protectedMatch) },
+        { id: 'obligation-street-avoidance', kind: 'street_avoidance', required: Boolean(avoidedStreet) },
+        { id: 'obligation-arrival-deadline', kind: 'arrival_deadline', required: Boolean(deadline || temporal.arrivalMatch) },
+        { id: 'obligation-accessibility', kind: 'accessibility', required: Boolean(accessibilityMatch) },
+        { id: 'obligation-bike-rack-proximity', kind: 'bike_rack_proximity', required: Boolean(bikeRackProximity) },
+        { id: 'obligation-daylight-window', kind: 'daylight_window', required: Boolean(temporal.daylightMatch) },
+      ],
+      economics: null,
+      seed,
+    }, world, embodiment);
+  }
+
+  function compileRouteTerms(text, world) {
+    const lower = text.toLowerCase();
+    return {
+      protectedMatch: lexicalMatch(lower, /\bprotected\s+(?:lane|lanes|route|routes)\b/),
+      yieldMatch: lexicalMatch(lower, /\byield(?:ing)?\s+to\s+pedestrians?\b/),
+      avoidedStreet: matchAvoidedStreet(text, world),
+      deadline: matchArrivalDeadline(text),
+      compensation: matchCompensation(text),
+      accessibilityMatch: lexicalMatch(lower, /\b(?:wheelchair|wheel\s+chair|accessible|step[- ]free)\b/),
+      bikeRackProximity: matchBikeRackProximity(text),
+      temporal: compileTemporalTerms(text, world),
+    };
+  }
+
+  function appendRouteEvidence(evidence, text, terms) {
+    if (terms.protectedMatch) evidence.push(evidenceRow('lanePreference', text, terms.protectedMatch, 'exact_lexical'));
+    if (terms.yieldMatch) evidence.push(evidenceRow('pedestrianYield', text, terms.yieldMatch, 'exact_lexical'));
+    if (terms.avoidedStreet) {
+      const method = terms.avoidedStreet.sourceKind === 'routed_graph'
+        ? terms.avoidedStreet.editDistance ? 'constrained_fuzzy_routed_street' : 'exact_routed_street'
+        : terms.avoidedStreet.editDistance ? 'constrained_fuzzy_world_street' : 'exact_world_street';
+      evidence.push(evidenceRow('streetAvoidance', text, terms.avoidedStreet, method, terms.avoidedStreet.id, terms.avoidedStreet.canonicalName));
+    }
+    if (terms.deadline) evidence.push(evidenceRow('maximumDuration', text, terms.deadline, 'unit_conversion', null, `${terms.deadline.targetDurationSeconds} s`));
+    if (terms.compensation) evidence.push(evidenceRow('compensation', text, terms.compensation.match, 'currency_conversion', null, `${terms.compensation.amountCents} cents`));
+    if (terms.accessibilityMatch) evidence.push(evidenceRow('accessibilityProfile', text, terms.accessibilityMatch, 'exact_lexical', null, 'wheelchair'));
+    if (terms.bikeRackProximity) evidence.push(evidenceRow('bikeRackProximity', text, terms.bikeRackProximity, 'unit_conversion', null, `${terms.bikeRackProximity.targetDistanceM} m`));
+    appendTemporalEvidence(evidence, text, terms.temporal);
   }
 
   function compileLoopMission(text, world, embodimentInput, loopMatch) {
@@ -132,6 +284,7 @@
     const gait = loopMode.kind === 'pedestrian' ? /walk/.test(loopMode.value) ? 'walk' : 'run' : 'ride';
     const maximumSpeedMps = Math.min(embodiment.dynamics.maximumSpeedMps, gait === 'walk' ? 1.8 : embodiment.dynamics.maximumSpeedMps);
     const termination = buildTermination(terminationMatch, circuitMatch.circuit);
+    const temporal = compileTemporalTerms(text, world);
     const evidence = [
       evidenceRow('task', text, loopMatch, 'exact_lexical'),
       evidenceRow('mode', text, loopMode, 'exact_lexical', embodiment.id, embodiment.kind),
@@ -139,6 +292,7 @@
       evidenceRow(terminationEvidenceField(termination.kind), text, terminationMatch, terminationEvidenceMethod(termination.kind), null, terminationCanonicalValue(termination)),
     ];
     if (boundaryMatch) evidence.push(evidenceRow('boundaryKind', text, boundaryMatch, boundaryMatch.editDistance ? 'constrained_fuzzy_keyword' : 'exact_lexical', null, 'perimeter'));
+    appendTemporalEvidence(evidence, text, temporal);
     const seed = hash32(text);
     const targetDistanceM = termination.targetDistanceM ?? null;
     return contracts.validateMission({
@@ -161,6 +315,7 @@
         finalPartialDistanceM: targetDistanceM === null ? null : round(targetDistanceM % circuitMatch.circuit.lengthM),
         source: structuredClone(circuitMatch.circuit.source),
       },
+      placeResolution: null,
       constraints: {
         lanePreference: 'any',
         avoidStreetNames: [],
@@ -168,6 +323,13 @@
         mustObeySignals: true,
         mustStayOnCircuit: true,
         maximumSpeedMps,
+        maximumDurationSeconds: temporal.maximumDurationSeconds,
+        accessibilityProfile: null,
+        maximumBikeRackDistanceM: null,
+        departureLocalMinutes: temporal.departureLocalMinutes,
+        arrivalDeadlineLocalMinutes: temporal.arrivalDeadlineLocalMinutes,
+        daylightOnly: Boolean(temporal.daylightMatch),
+        daylightWindowLocalMinutes: [...temporal.daylightWindowLocalMinutes],
       },
       obligations: [
         { id: `obligation-${termination.kind}-target`, kind: `${termination.kind}_target`, required: true },
@@ -175,7 +337,10 @@
         { id: 'obligation-boundary', kind: 'boundary_adherence', required: true },
         { id: 'obligation-lap-accounting', kind: 'lap_accounting', required: true },
         { id: 'obligation-pedestrian', kind: 'pedestrian_yield', required: true },
+        { id: 'obligation-arrival-deadline', kind: 'arrival_deadline', required: temporal.arrivalDeadlineLocalMinutes !== null },
+        { id: 'obligation-daylight-window', kind: 'daylight_window', required: Boolean(temporal.daylightMatch) },
       ],
+      economics: null,
       seed,
     }, world, embodiment);
   }
@@ -204,7 +369,53 @@
   }
 
   function parserReceipt(evidence) {
-    return { kind: 'deterministic_grounded_lexical', version: 'simulatte.autonomyMissionParser.v3', claimBoundary: CLAIM_BOUNDARY, evidence };
+    const modelBacked = evidence.some((row) => ['qwen_embedding_cosine', 'extended_damerau_place'].includes(row.method));
+    return {
+      kind: modelBacked ? 'governed_hybrid_place_resolution' : 'deterministic_grounded_lexical',
+      version: modelBacked ? 'simulatte.autonomyMissionParser.v4' : 'simulatte.autonomyMissionParser.v3',
+      claimBoundary: CLAIM_BOUNDARY,
+      evidence,
+    };
+  }
+
+  function resolvedPlaceOverride(sourceText, world, role, options, mode = null) {
+    const resolution = options.placeResolutions?.[role];
+    if (!resolution) return null;
+    const selected = world.nodes.find((row) => row.id === resolution.nodeId);
+    const eligible = nodesForMode(world, mode);
+    const eligibleIds = new Set(eligible.map((row) => row.id));
+    const node = selected && eligibleIds.has(selected.id)
+      ? selected
+      : selected ? eligible.find((row) => row.label === selected.label) : null;
+    if (!node) throw missionError('resolved_place_not_in_world', `${role} resolver selected unknown node ${resolution.nodeId}`);
+    const queryText = String(resolution.evidence?.queryText || '').trim();
+    const index = queryText ? sourceText.toLowerCase().indexOf(queryText.toLowerCase()) : -1;
+    if (index < 0) throw missionError('resolved_place_span_missing', `${role} resolver query is not an exact source span`, { role, queryText });
+    return {
+      node,
+      value: sourceText.slice(index, index + queryText.length),
+      index,
+      end: index + queryText.length,
+      editDistance: resolution.evidence?.lane === 'extended_typo' ? resolution.evidence.ranking?.[0]?.distance || 0 : 0,
+      resolution: structuredClone(resolution.evidence || {}),
+    };
+  }
+
+  function nodesForMode(world, mode) {
+    if (!mode) return world.nodes;
+    const nodeIds = new Set();
+    world.segments.forEach((segment) => {
+      if (!segment.allowedModes.includes(mode)) return;
+      nodeIds.add(segment.fromNodeId);
+      nodeIds.add(segment.toNodeId);
+    });
+    return world.nodes.filter((row) => nodeIds.has(row.id) && (!row.landmark?.modes || row.landmark.modes.includes(mode)));
+  }
+
+  function placeEvidenceMethod(match) {
+    if (match.resolution?.lane === 'qwen_embedding_cosine') return 'qwen_embedding_cosine';
+    if (match.resolution?.lane === 'extended_typo') return 'extended_damerau_place';
+    return match.editDistance ? 'constrained_fuzzy_place' : 'exact_world_label';
   }
 
   function requireEmbodiment(input, embodimentId) {
@@ -251,6 +462,90 @@
     return Number.isFinite(value) ? sourceMatch(match, { kind: 'duration', value, unit: canonicalDurationUnit(match[2]) }) : null;
   }
 
+  function matchArrivalDeadline(sourceText) {
+    const match = /\b(?:within|under|less\s+than|in)\s+(\d[\d,]*(?:\.\d+)?)\s*(seconds?|secs?|minutes?|mins?|hours?|hrs?)\b/i.exec(sourceText);
+    if (!match) return null;
+    const value = Number(match[1].replaceAll(',', ''));
+    const unit = canonicalDurationUnit(match[2]);
+    if (!(value > 0)) return null;
+    return sourceMatch(match, {
+      kind: 'arrival_deadline',
+      value,
+      unit,
+      targetDurationSeconds: round(value * SECONDS_PER_UNIT[unit]),
+    });
+  }
+
+  function matchCompensation(sourceText) {
+    const match = /(?:\$\s*(\d[\d,]*(?:\.\d{1,2})?)|\bfor\s+(\d[\d,]*(?:\.\d{1,2})?)\s+dollars?\b)/i.exec(sourceText);
+    if (!match) return null;
+    const value = Number((match[1] || match[2]).replaceAll(',', ''));
+    if (!(value > 0)) return null;
+    return {
+      schema: 'simulatte.missionEconomics.v1',
+      currency: 'USD',
+      amountCents: Math.round(value * 100),
+      basis: 'declared_gross_compensation',
+      match: sourceMatch(match, {}),
+      claimBoundary: 'Gross declared compensation divided by simulated journey time. This excludes waiting, expenses, taxes, platform deductions, and unpaid work unless a later batch contract includes them.',
+    };
+  }
+
+  function matchBikeRackProximity(sourceText) {
+    const match = /\bwithin\s+(\d[\d,]*(?:\.\d+)?)\s*(feet|foot|ft|meters?|metres?|m|kilometers?|kilometres?|km|miles?|mi)\s+of\s+(?:a\s+|any\s+)?bike\s+rack\b/i.exec(sourceText);
+    if (!match) return null;
+    const value = Number(match[1].replaceAll(',', ''));
+    const unit = canonicalDistanceUnit(match[2]);
+    if (!(value > 0)) return null;
+    return sourceMatch(match, { kind: 'bike_rack_proximity', value, unit, targetDistanceM: round(value * METERS_PER_UNIT[unit]) });
+  }
+
+  function compileTemporalTerms(sourceText, world) {
+    const departureMatch = matchClockTime(sourceText, /\b(?:start(?:ing)?|depart(?:ing)?|leave|leaving)\s+(?:at\s+)?(\d{1,2})(?::(\d{2}))?\s*(am|pm)\b/i, 'departure_time');
+    const arrivalMatch = matchClockTime(sourceText, /\b(?:arrive|finish|arrival)\s+by\s+(\d{1,2})(?::(\d{2}))?\s*(am|pm)\b/i, 'arrival_deadline_time');
+    const daylightMatch = lexicalMatch(sourceText.toLowerCase(), /\b(?:only\s+(?:in\s+)?daylight|daylight\s+only|before\s+dark|before\s+sunset)\b/);
+    const departureLocalMinutes = departureMatch?.localMinutes ?? world.scenario?.defaultStartLocalMinutes ?? 720;
+    const arrivalDeadlineLocalMinutes = arrivalMatch?.localMinutes ?? null;
+    let maximumDurationSeconds = null;
+    if (arrivalDeadlineLocalMinutes !== null) {
+      const availableMinutes = arrivalDeadlineLocalMinutes - departureLocalMinutes;
+      if (availableMinutes <= 0) throw missionError('arrival_deadline_precedes_departure', 'Arrival deadline must be later than the declared same-day departure time');
+      maximumDurationSeconds = availableMinutes * 60;
+    }
+    return {
+      departureMatch,
+      arrivalMatch,
+      daylightMatch,
+      departureLocalMinutes,
+      arrivalDeadlineLocalMinutes,
+      maximumDurationSeconds,
+      timeZone: world.scenario?.timeZone || 'America/New_York',
+      daylightWindowLocalMinutes: world.scenario?.daylightWindowLocalMinutes || [360, 1200],
+      daylightMethod: world.scenario?.daylightMethod || 'declared_default_daylight_window_v1',
+    };
+  }
+
+  function matchClockTime(sourceText, pattern, kind) {
+    const match = pattern.exec(sourceText);
+    if (!match) return null;
+    const hour = Number(match[1]);
+    const minute = Number(match[2] || 0);
+    if (hour < 1 || hour > 12 || minute < 0 || minute > 59) throw missionError('clock_time_invalid', `Clock time ${match[0]} is outside a 12-hour day`);
+    const localMinutes = (hour % 12 + (match[3].toLowerCase() === 'pm' ? 12 : 0)) * 60 + minute;
+    return sourceMatch(match, { kind, localMinutes });
+  }
+
+  function appendTemporalEvidence(evidence, text, temporal) {
+    if (temporal.departureMatch) evidence.push(evidenceRow('departureTime', text, temporal.departureMatch, 'clock_time_conversion', null, `${temporal.departureLocalMinutes} local minutes`));
+    if (temporal.arrivalMatch) evidence.push(evidenceRow('arrivalDeadlineTime', text, temporal.arrivalMatch, 'clock_time_conversion', null, `${temporal.arrivalDeadlineLocalMinutes} local minutes`));
+    if (temporal.daylightMatch) evidence.push(evidenceRow('daylightOnly', text, temporal.daylightMatch, 'exact_lexical', null, temporal.daylightMethod));
+  }
+
+  function minimumNullable(...values) {
+    const rows = values.filter(Number.isFinite);
+    return rows.length ? Math.min(...rows) : null;
+  }
+
   function sourceMatch(match, extension) {
     return { ...extension, index: match.index, end: match.index + match[0].length, editDistance: 0 };
   }
@@ -287,17 +582,67 @@
     const namedNodes = nodes.filter((node) => node.landmark || !['intersection', 'pedestrian_waypoint'].includes(node.kind));
     const tokens = sourceTokens(sourceText);
     const markers = tokens.filter((row) => row.value.toLowerCase() === preposition);
-    const candidates = [];
-    markers.forEach((marker) => {
+    for (const marker of markers) {
       const after = tokens.filter((row) => row.index >= marker.end);
+      const candidates = [];
       namedNodes.forEach((node) => {
         collectTokenCandidates(after, normalizedWords(node.label), (rows, editDistance, aliasLength) => {
           if (rows[0].index !== after[0]?.index) return;
           candidates.push({ node, value: sourceText.slice(rows[0].index, rows.at(-1).end), index: rows[0].index, end: rows.at(-1).end, editDistance, aliasLength });
         }, true);
       });
+      if (candidates.length) return bestGrounding(candidates, `${preposition}_place_ambiguous`, (row) => row.node.id);
+    }
+    return null;
+  }
+
+  function compileOrderedStops(sourceText, nodes, firstDestination) {
+    const tokens = sourceTokens(sourceText);
+    const markers = tokens
+      .filter((row) => row.index >= firstDestination.end && ['then', 'return'].includes(row.value.toLowerCase()))
+      .filter((marker) => {
+        if (marker.value.toLowerCase() !== 'then') return true;
+        const next = tokens.find((row) => row.index >= marker.end);
+        return next?.value.toLowerCase() !== 'return';
+      });
+    const rows = [firstDestination];
+    markers.forEach((marker) => {
+      let after = tokens.filter((row) => row.index >= marker.end);
+      while (after[0] && ['to', 'go', 'continue', 'visit', 'stop', 'return'].includes(after[0].value.toLowerCase())) after = after.slice(1);
+      const candidates = [];
+      nodes.forEach((node) => collectTokenCandidates(after, normalizedWords(node.label), (matched, editDistance, aliasLength) => {
+        if (matched[0].index !== after[0]?.index) return;
+        candidates.push({
+          node,
+          value: sourceText.slice(matched[0].index, matched.at(-1).end),
+          index: matched[0].index,
+          end: matched.at(-1).end,
+          editDistance,
+          aliasLength,
+        });
+      }, true));
+      const selected = bestGrounding(candidates, 'ordered_stop_ambiguous', (row) => row.node.id);
+      if (!selected) throw missionError('ordered_stop_not_grounded', 'Every ordered or return stop must begin with a governed place label');
+      rows.push(selected);
     });
-    return bestGrounding(candidates, `${preposition}_place_ambiguous`, (row) => row.node.id);
+    return rows;
+  }
+
+  function validateStopExtent(origin, orderedStops) {
+    const ids = [origin.node.id, ...orderedStops.map((row) => row.node.id)];
+    if (ids.length < 2 || ids.slice(1).every((id) => id === ids[0])) throw missionError('route_has_no_extent', 'Mission must leave its origin');
+    if (ids.some((id, index) => index > 0 && id === ids[index - 1])) throw missionError('ordered_stop_repeated', 'Consecutive ordered stops must differ');
+  }
+
+  function orderedStopEvidence(sourceText, orderedStops) {
+    return orderedStops.map((row, index) => evidenceRow(
+      index === orderedStops.length - 1 ? 'destination' : 'waypoint',
+      sourceText,
+      row,
+      placeEvidenceMethod(row),
+      row.node.id,
+      row.node.label
+    ));
   }
 
   function matchAvoidedStreet(sourceText, world) {
@@ -313,9 +658,28 @@
     throw missionError('street_avoidance_not_grounded', 'Avoidance must name a street in governed route or display geometry');
   }
 
+  function eligiblePlaceNodeIds(world, embodimentKind) {
+    const mode = embodimentKind === 'bicycle' ? 'delivery_bike' : embodimentKind;
+    if (!mode) return [];
+    const connected = new Set();
+    world.segments.forEach((segment) => {
+      if (!segment.allowedModes.includes(mode)) return;
+      connected.add(segment.fromNodeId);
+      connected.add(segment.toNodeId);
+    });
+    return world.nodes.filter((node) => connected.has(node.id)
+      && (node.landmark || !['intersection', 'pedestrian_waypoint'].includes(node.kind)))
+      .map((node) => node.id).sort();
+  }
+
   function matchStreetCatalog(sourceText, tokens, names, sourceKind) {
     const candidates = [];
+    const canonicalByKey = new Map();
     names.forEach((name) => {
+      const key = normalizedStreetWords(name).join(' ');
+      if (!canonicalByKey.has(key)) canonicalByKey.set(key, name);
+    });
+    canonicalByKey.forEach((name) => {
       collectTokenCandidates(tokens, normalizedStreetWords(name), (rows, editDistance, aliasLength) => {
         if (rows[0].index !== tokens[0]?.index) return;
         candidates.push({
@@ -443,10 +807,15 @@
     METERS_PER_UNIT,
     SECONDS_PER_UNIT,
     compileMission,
+    compileMissionWithResolver,
+    eligiblePlaceNodeIds,
     hash32,
     levenshtein,
     matchDistance,
     matchDuration,
     matchLapCount,
+    matchArrivalDeadline,
+    matchCompensation,
+    matchBikeRackProximity,
   };
 });

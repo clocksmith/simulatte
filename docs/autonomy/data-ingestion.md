@@ -1,43 +1,42 @@
 # Autonomy data ingestion
 
-Owner contracts:
+Simulatte never turns a live API response directly into a navigation claim.
+Network acquisition, immutable source promotion, compilation, activation, and
+deployment are separate states with separate receipts.
 
-- `public/data/autonomy/autonomy-manifest.json`
-- `public/data/autonomy/feature-cards-v1.json`
-- `public/data/autonomy/patterns/nyc-replay-patterns-v1.json`
-- `tools/autonomy/build-nyc-autonomy-world.mjs`
-- `tools/autonomy/build-region-packs.mjs`
-- `tools/autonomy/manage-autonomy-data.mjs`
-- `tools/autonomy/source-catalog-v1.json`
-- `tools/autonomy/region-configs/nyc-core-v1.json`
-- `tools/autonomy/compile-geojson-tile.mjs`
-- `tools/autonomy/check-autonomy-data.mjs`
+## Required sequence
 
-## Source availability is not runtime capability
+```text
+plan -> fetch/backfill -> verify bytes -> inspect authority and coverage
+     -> immutable promotion -> compile candidate -> contract gates
+     -> manifest activation -> browser audit -> deploy
+```
 
-The browser does not query NYC Open Data or OpenStreetMap. It loads one frozen,
-hash-pinned composition. A source may contain a street, park, sidewalk polygon,
-or historical count without providing the topology and mode contract required
-to execute a mission.
+Fetching always writes to an untracked staging directory and emits
+`staged_not_active`. Promotion copies exactly the verified files into a new
+directory under `tools/autonomy/data-sources/`. Existing promoted directories
+are immutable.
 
-| Available bytes | Missing executable proof |
-| --- | --- |
-| OSM street display geometry | Connected, access-aware pedestrian or roadway graph |
-| Sidewalk polygons and curb lines | Centerlines, crossings, directions, accessibility, and connectivity |
-| Park property polygons | Legal, obstacle-free, mode-eligible perimeter path |
-| DOT and TLC historical observations | Spatial join, timezone, missing-data rule, aggregation, and calibrated occurrence model |
-| Building footprints | Entrances or navigable indoor/outdoor access |
+## Source catalog
 
-The capability matrix turns a row on only after the exact embodiment,
-mission-family contract, and compiled graph or circuit are all registered.
+`tools/autonomy/source-catalog-v1.json` owns request templates, authorities,
+licenses, data classes, temporal fields, capabilities, and entry gates.
 
-## Governed refresh and backfill
+| Group | Current sources | Runtime purpose |
+| --- | --- | --- |
+| `world-core` | NYC DOT bike routes, building footprints, borough boundaries, OSM highways, NYC Parks properties | Route and render world |
+| `pedestrian-topology` | Sidewalks, curbs, raised crosswalks, pedestrian ramps | Candidate pedestrian and accessibility evidence |
+| `place-semantics` | Pinned public place descriptions | Offline place-vector construction only |
+| `route-amenities` | NYC DOT bicycle parking | Frozen route-proximity constraints |
+| `safety-history` | NYPD reported crashes | Historical-observation route experiments |
+| `mobility-history` | Bicycle/pedestrian and automated traffic counts | Future demand and realism evaluation |
+| `taxi-history` | TLC trip records | Future demand priors and corridor evaluation |
 
-`manage-autonomy-data.mjs` separates network access from activation. The
-catalog registers current world sources, pedestrian-topology candidates,
-month-partitioned bicycle/pedestrian and motor-vehicle counts, and TLC trip
-records. Every request carries authority, license, data class, capabilities,
-and the entry gate required before its bytes can speak for a runtime claim.
+Map facts, public semantic context, observed history, and simulation
+assumptions are different evidence classes. They never inherit each other's
+authority.
+
+## Plan, fetch, and verify
 
 Plan without network access:
 
@@ -45,201 +44,179 @@ Plan without network access:
 npm run autonomy:data:plan -- \
   --group pedestrian-topology \
   --snapshot-date YYYY-MM-DD
-
-npm run autonomy:data:plan -- \
-  --group mobility-history \
-  --from YYYY-MM-01 \
-  --to YYYY-MM-01 \
-  --snapshot-date YYYY-MM-DD
 ```
 
-Fetch into an untracked staging directory, then verify exact bytes:
+Fetch current map or semantic sources:
 
 ```bash
 npm run autonomy:data:fetch -- \
-  --group pedestrian-topology \
+  --group route-amenities \
   --snapshot-date YYYY-MM-DD \
-  --out artifacts/autonomy-data/pedestrian-YYYY-MM-DD
+  --out artifacts/autonomy-data/route-amenities-YYYY-MM-DD
+```
 
+Backfill half-open historical periods:
+
+```bash
 npm run autonomy:data:backfill -- \
-  --group mobility-history \
+  --group safety-history \
   --from YYYY-MM-01 \
   --to YYYY-MM-01 \
   --snapshot-date YYYY-MM-DD \
-  --out artifacts/autonomy-data/mobility-YYYY-MM-DD
+  --out artifacts/autonomy-data/safety-history-YYYY-MM-DD
+```
 
+Verify the exact staged bytes:
+
+```bash
 npm run autonomy:data:verify -- \
   --receipt artifacts/autonomy-data/NAME/fetch-receipt.json
 ```
 
-Fetching emits `staged_not_active`. Promotion requires the exact receipt hash
-and a new directory under `tools/autonomy/data-sources/`; it still does not
-compile, activate, or deploy the world. The repo-local `autonomy-data` skill
-encodes the full plan, fetch, verify, promote, compile, gate, and activate
-sequence.
+Every receipt binds the request plan, URLs, response metadata, byte counts,
+file SHA-256 values, and the command used. A changed file fails verification.
 
-## Checked-in data
+## Promote immutable sources
 
-The hosted default is `nyc-core-autonomy-v1`. It is compiled
-from frozen NYC DOT bike routes, NYC building footprints, NYC borough
-boundaries, OpenStreetMap highway snapshots, and NYC Parks property geometry
-for McCarren (`B058`), Tompkins Square (`M088`), Union Square (`M089`), and
-Washington Square (`M098`). The four properties contribute nine rendered
-exterior members. Only Union Square has a separately gated executable circuit.
-Each source receipt records authority, license, request, snapshot date, raw
-byte count, and SHA-256.
+```bash
+node tools/autonomy/manage-autonomy-data.mjs promote \
+  --receipt artifacts/autonomy-data/NAME/fetch-receipt.json \
+  --target tools/autonomy/data-sources/IMMUTABLE-SNAPSHOT-ID \
+  --accept-receipt-sha EXACT_RECEIPT_SHA256
+```
 
-The manifest separately pins raw-file SHA-256 values for the world,
-embodiments, policy, feature catalog, occurrence catalog, and reranker evidence.
-Browser loading and the repository data check both reject identity or hash
-drift. `nyc-training-corridor-v1` remains a synthetic unit-test fixture.
+Promotion does not compile or activate anything. Review the dataset's spatial
+coverage, time semantics, missing rows, license, update behavior, and intended
+claim before a compiler consumes it.
 
-The hosted world is assembled from three independently hashed packs:
-Manhattan Villages, the East River crossing, and North Brooklyn. The registry
-pins each pack's city, world, bounds, neighbors, counts, source hashes, and
-seam identities. Shared boundary nodes must be byte-identical. A missing pack,
-extra pack, missing seam, false peer, or conflicting row fails composition.
+## Current promoted indexes
 
-## Governed NYC compilation
+### Accessibility
 
-The main compiler owns the Villages and North Brooklyn tile:
+`compile-accessibility-index.mjs` joins 11,603 NYC DOT pedestrian-ramp rows to
+the pedestrian street nodes. It preserves measured curb reveal, running slope,
+cross slope, warning-surface fields, technical-review flags, nearest-node
+distance, and source hashes. A route audit also checks whether each segment's
+source establishes accessible topology. Missing, failing, or merely street-
+centerline topology blocks a wheelchair mission.
+
+This is a simulator threshold, not an ADA compliance determination.
+
+### Bicycle parking
+
+`compile-route-amenity-index.mjs` joins 9,359 listed rack locations to route
+geometry and records the maximum nearest-rack distance along each segment. The
+runtime may enforce `within N meters of a bike rack` by excluding segments
+that cannot satisfy the frozen geometric bound.
+
+This does not prove availability, capacity, security, condition, or access.
+
+### Safety history
+
+`compile-safety-history-index.mjs` joins one frozen year of 5,131 reported NYPD
+crashes to the nearest physical route geometry. Directed edges sharing one
+physical segment share the same observation row. The index records 5,115
+joined crashes, 16 unjoined crashes, injuries, fatalities, join distance,
+period boundaries, source file hashes, and the fetch receipt hash.
+
+There is no exposure denominator. The only authorized use is a declared
+historical-observation counterfactual. It cannot support "safest route", live
+risk, or causal claims.
+
+### Place embeddings
+
+`compile-place-embeddings.mjs` embeds independently sourced descriptors for 20
+mode-specific governed place nodes with the exact Qwen model in the shared
+runtime lock. The packed vector artifact binds world, descriptor, tokenizer,
+model manifest, and vector hashes. It is compiled offline. The browser embeds
+only the user's unresolved phrase.
+
+Diagnostic probe text is not used to author descriptors. The checked-in probe
+population remains exposed and promotion-ineligible.
+
+## Compile and activate
 
 ```bash
 npm run build:autonomy:data
-npm run eval:autonomy:reranker
 ```
 
-`build-nyc-autonomy-world.mjs` reads four canonical compressed snapshots under
-`tools/autonomy/data-sources/villages-williamsburg-2026-07-13/` and the
-separately promoted NYC Parks snapshot under
-`tools/autonomy/data-sources/nyc-parks-properties-2026-07-13-v2/`. One run
-emits synchronized world, feature-catalog, inverted-index, and occurrence
-artifacts. It labels ten mission-groundable places, compiles the directed bike
-network, produces the default policy-cost route, places authored scenario
-actors on that route, and writes time and event patterns against the generated
-IDs. The Parks compiler renders every exterior member from the four selected
-properties. It separately selects the largest projected exterior member of
-Union Square `M089`, hashes both the full geometry and selected ring, and emits
-that one closed pedestrian circuit as a property-boundary simulation path.
+That command:
 
-Refresh the park source through staging and immutable promotion. The world
-compiler refuses `--refresh-parks` so it cannot mutate accepted source bytes:
+1. rebuilds the canonical NYC world and feature catalog from promoted sources;
+2. derives and activates the three region packs;
+3. compiles accessibility, amenity, and safety-history indexes;
+4. rebuilds the public navigation and deterministic reranker evidence;
+5. verifies the place-vector artifact against the pinned model and world;
+6. evaluates the real Qwen place challenger;
+7. synchronizes manifest identities and raw-byte hashes.
+
+The policy arena is regenerated separately because it hashes the exact runtime
+sources it evaluates:
 
 ```bash
-npm run autonomy:data:fetch -- \
-  --source nyc-parks-properties \
-  --snapshot-date YYYY-MM-DD \
-  --out artifacts/autonomy-data/nyc-parks-properties-YYYY-MM-DD
-
-npm run autonomy:data:verify -- \
-  --receipt artifacts/autonomy-data/nyc-parks-properties-YYYY-MM-DD/fetch-receipt.json
-
-node tools/autonomy/manage-autonomy-data.mjs promote \
-  --receipt artifacts/autonomy-data/nyc-parks-properties-YYYY-MM-DD/fetch-receipt.json \
-  --target tools/autonomy/data-sources/nyc-parks-properties-YYYY-MM-DD-vNEXT \
-  --accept-receipt-sha VERIFIED_RECEIPT_SHA256
+npm run samer:autonomy
+node tools/autonomy/sync-autonomy-manifest.mjs
 ```
 
-`build-region-packs.mjs` can compile another region registry without changing
-the hosted manifest. Activation is a separate operation:
+Then run:
 
 ```bash
-node tools/autonomy/build-region-packs.mjs \
-  --config tools/autonomy/region-configs/another-city-v1.json \
-  --world public/data/autonomy/worlds/another-city-v1.json \
-  --features public/data/autonomy/another-city-feature-cards-v1.json \
-  --registry public/data/autonomy/regions/another-city-v1.json
-
-node tools/autonomy/build-region-packs.mjs --activate
+npm run check:autonomy
+node --test tests/autonomy.test.cjs
+npm run audit:autonomy:browser
+npm run check:deploy
 ```
 
-Only `--activate` updates `autonomy-manifest.json`. An activated registry must
-live under `public/data/autonomy/`. This prevents an experimental city build
-from silently replacing the hosted composition.
+## Region and city growth
 
-## Region extension and multiple cities
+Adjacent NYC regions can merge only if they are derived from the same canonical
+world, coordinate origin, source revisions, ID policy, and exact seam rows.
+Build the larger world first, then repartition it. Never append independently
+projected local coordinates or reconcile conflicting seam rows heuristically.
 
-Adjacent packs are mergeable when all rows come from the same governed world,
-use the same local coordinate origin, preserve stable WGS84-derived node and
-segment identities, and declare exact shared seams. Extend NYC by compiling a
-larger canonical NYC world first, then repartitioning it. Do not append a
-second independently projected graph to an existing registry.
+Another city receives its own:
 
-Another city receives its own source snapshots, world ID, coordinate origin,
-feature catalog, build config, registry ID, and composition receipt. The
-runtime activates one registry at a time. A future cross-city mission layer
-can select registries, but it must not numerically merge incompatible local
-coordinate frames.
+- source snapshots and promotion receipts;
+- world and content-version identities;
+- coordinate origin;
+- route and render geometry;
+- feature catalog and place-vector artifact;
+- region registry and pack composition;
+- accessibility, amenity, history, and occurrence indexes;
+- browser activation receipt.
 
-The next NYC source order is:
+The runtime can reuse mission, controller, counterfactual, renderer, ledger,
+and verifier code. The manifest activates one city composition at a time. A
+cross-city journey requires an explicit transport connection contract.
 
-1. LION topology and turn restrictions plus DOT bike facilities for graph authority.
-2. Planimetric sidewalks and crosswalks for general pedestrian legality and source geometry; the current Union Square control is deliberately limited to the property boundary.
-3. Signal locations, speed limits, curb regulations, and elevation for control and cost contracts.
-4. Dated TLC, Citi Bike, DOT count, 311, and weather snapshots for occurrence priors.
+## Source availability is not capability
 
-Historical rows are not map facts. Every occurrence compilation must bind a
-dataset snapshot, spatial join, time-zone transform, aggregation interval,
-missing-data rule, and source hash. Observed history may parameterize demand
-and disruptions, but it does not turn a simulated trace into observed traffic.
-
-The renderer retains 8,500 source building footprints chosen by route and
-named-focus proximity, height, and area. Its LOD receipt records 26,990 source
-footprints, the retained and omitted counts, and `fullCoverageClaim: false`.
-
-## GeoJSON normalization
-
-The compiler accepts LineString features. It preserves supplied geometry and
-declared feature properties, projects WGS84 coordinates into local meters when
-requested, derives endpoint nodes, and validates the result against the same
-world contract used by the browser.
-
-```bash
-node tools/autonomy/compile-geojson-tile.mjs \
-  --input source-tile.geojson \
-  --output public/data/autonomy/worlds/source-tile-v1.json \
-  --source-id dataset-snapshot-id \
-  --snapshot-date YYYY-MM-DD \
-  --world-id source-tile-v1 \
-  --coordinates wgs84
-```
-
-Each LineString may declare:
-
-| Property | Contract |
+| Available bytes | Still required before execution |
 | --- | --- |
-| `id` | Stable segment ID |
-| `fromNodeId`, `toNodeId` | Stable endpoint identities |
-| `fromLabel`, `toLabel` | Mission-grounding labels |
-| `laneType` | `protected`, `shared`, or `connector` |
-| `allowedModes` | Explicit mode list |
-| `speedLimitMps` | Source-backed numeric limit |
-| `riskScore` | Source-backed normalized risk value |
+| Street centerlines | access rules, turn restrictions, connectivity, mode eligibility |
+| Sidewalk and curb polygons | navigable centerlines, crossings, direction, obstacle and access evidence |
+| Park property polygon | a legal, obstacle-free, mode-eligible circuit |
+| Crash rows | spatial join, period, missing-data rule, exposure-aware claim boundary |
+| Traffic counts | matched corridor, time transform, observation coverage, calibration protocol |
+| Building footprints | entrances and navigable indoor/outdoor connections |
 
-The compiler does not infer signals, right-of-way, turn restrictions, actors,
-closures, legal permissions, or missing intersections. Those require separate
-source snapshots and entry gates before the world can claim them.
+The capability matrix turns on only when embodiment, mission family,
+termination, and exact governed artifact are all registered.
 
-## Entry gates
+## Gate inventory
 
-`npm run check:autonomy` verifies:
+`check:autonomy` verifies:
 
-- every manifest path stays under `public/`;
-- every pinned SHA-256 matches raw bytes;
-- every region pack matches its exact registry identity and declared source hashes;
-- the requested pack set, seam set, peer set, and composed counts match exactly;
-- referenced IDs match loaded artifacts;
-- occurrence plugins and effect targets exist;
-- reranker evidence binds the same world, catalog, default embodiment, and policy;
-- every registered embodiment is identity- and hash-pinned and the declared default exists;
-- node and segment IDs are unique;
-- every segment endpoint exists;
-- mode, geometry, length, speed, signal, actor, disruption, and feature-card references validate;
-- every declared circuit closes in exact node/segment order, uses mode-eligible segments, and reproduces its declared length and source hashes;
-- the browser entry lists only existing scripts;
-- autonomy JavaScript stays below the repository line ceiling;
-- the 20-row public diagnostic corpus retains its row hash;
-- the public SAME-R contract and deterministic repetitions execute.
+- every manifest reference stays inside `public/` and matches raw SHA-256 bytes;
+- IDs, world versions, model locks, source receipts, and compiler identities agree;
+- region pack sets, counts, seams, peers, and reconstructed world hashes match;
+- graph IDs are unique and every segment endpoint and mode is valid;
+- circuits close in declared order and reproduce length and geometry hashes;
+- accessibility, amenity, history, curriculum, and snapshot contracts bind the active world;
+- place vectors bind the exact model, descriptors, world, and eligible node identities;
+- public diagnostics retain their population and claim boundaries;
+- SAME-R runs consume declared budgets and cannot silently promote;
+- browser scripts exist and autonomy JavaScript remains below the repository line ceiling.
 
-A newly compiled tile is not active until its exact hash and identity are added
-to the manifest and all referenced controls have evidence.
+Generated bytes, passing unit tests, activation, browser behavior, and live
+deployment are reported as separate states.

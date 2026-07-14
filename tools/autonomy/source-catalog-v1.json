@@ -18,7 +18,8 @@
     "pedestrian-topology": [
       "nyc-planimetric-sidewalks",
       "nyc-planimetric-curbs",
-      "nyc-raised-crosswalks"
+      "nyc-raised-crosswalks",
+      "nyc-pedestrian-ramps"
     ],
     "mobility-history": [
       "nyc-bicycle-pedestrian-counts",
@@ -26,6 +27,15 @@
     ],
     "taxi-history": [
       "nyc-tlc-yellow-trips"
+    ],
+    "place-semantics": [
+      "wikipedia-nyc-place-descriptions"
+    ],
+    "route-amenities": [
+      "nyc-bicycle-parking"
+    ],
+    "safety-history": [
+      "nyc-motor-vehicle-crashes"
     ]
   },
   "sources": [
@@ -76,7 +86,7 @@
       "license": "ODbL 1.0",
       "transport": "osm_bbox_grid",
       "url": "https://api.openstreetmap.org/api/0.6/map",
-      "grid": { "rows": 3, "columns": 4 },
+      "grid": { "rows": 6, "columns": 8 },
       "output": "osm-highways.json",
       "allowedHighways": [
         "motorway", "trunk", "primary", "secondary", "tertiary", "residential",
@@ -135,6 +145,69 @@
       "output": "nyc-raised-crosswalks.geojson",
       "capabilities": ["raised_crosswalk_point_candidate"],
       "entryGate": "Treat as partial crossing evidence; absence does not prove that an intersection lacks a crosswalk."
+    },
+    {
+      "id": "nyc-pedestrian-ramps",
+      "group": "pedestrian-topology",
+      "dataClass": "map_fact",
+      "authority": "NYC Department of Transportation",
+      "license": "NYC Open Data Terms of Use",
+      "transport": "socrata_geojson",
+      "url": "https://data.cityofnewyork.us/resource/ufzp-rrqu.geojson",
+      "query": "$limit=50000&$select=the_geom,rampid,cornerid,ramp_onstr,stname1,stname2,curb_reveal,ramp_running_slope_total,ramp_cross_slope,dws_conditions,obstacles_ramp,obstacles_landing,geocyclora&$where=within_box(the_geom, {north}, {west}, {south}, {east})",
+      "output": "nyc-pedestrian-ramps.geojson",
+      "capabilities": ["pedestrian_ramp_measurement_candidate", "accessibility_route_audit_candidate"],
+      "entryGate": "Bind every measurement to RampID and capture date. Apply declared simulation thresholds only; never relabel the source rows as ADA compliance determinations."
+    },
+    {
+      "id": "wikipedia-nyc-place-descriptions",
+      "group": "place-semantics",
+      "dataClass": "public_semantic_context",
+      "authority": "Wikipedia contributors through the MediaWiki API",
+      "license": "CC BY-SA 4.0 and GFDL; attribution and revision identity retained",
+      "transport": "mediawiki_json",
+      "url": "https://en.wikipedia.org/w/api.php",
+      "output": "wikipedia-{documentId}.json",
+      "pages": [
+        { "documentId": "east-village", "title": "East Village, Manhattan", "placeLabels": ["East Village"] },
+        { "documentId": "greenpoint", "title": "Greenpoint, Brooklyn", "placeLabels": ["Greenpoint"] },
+        { "documentId": "mccarren-park", "title": "McCarren Park", "placeLabels": ["McCarren Park"] },
+        { "documentId": "williamsburg", "title": "Williamsburg, Brooklyn", "placeLabels": ["North Williamsburg", "Williamsburg Waterfront"] },
+        { "documentId": "union-square", "title": "Union Square, Manhattan", "placeLabels": ["Union Square"] },
+        { "documentId": "washington-square", "title": "Washington Square Park", "placeLabels": ["Washington Square"] },
+        { "documentId": "west-village", "title": "West Village", "placeLabels": ["West Village"] },
+        { "documentId": "williamsburg-bridge", "title": "Williamsburg Bridge", "placeLabels": ["Williamsburg Bridge"] },
+        { "documentId": "tompkins-square", "title": "Tompkins Square Park", "placeLabels": ["Tompkins Square"] }
+      ],
+      "capabilities": ["place_descriptor_candidate"],
+      "entryGate": "Use revision-pinned public prose only as retrieval context. It cannot create a route node, prove access, or override governed map geometry."
+    },
+    {
+      "id": "nyc-bicycle-parking",
+      "group": "route-amenities",
+      "dataClass": "map_fact",
+      "authority": "NYC Department of Transportation",
+      "license": "NYC Open Data Terms of Use",
+      "transport": "socrata_geojson",
+      "url": "https://data.cityofnewyork.us/resource/592z-n7dk.geojson",
+      "query": "$limit=50000&$select=the_geom,site_id,group_id,program,ifoaddress,onstreet,fromstreet,tostreet,racktype,date_inst,latitude,longitude&$where=within_box(the_geom, {north}, {west}, {south}, {east})",
+      "output": "nyc-bicycle-parking.geojson",
+      "capabilities": ["bicycle_parking_proximity_candidate"],
+      "entryGate": "Retain site identity, rack type, installation date, and source snapshot. A listed rack is a proximity fact, not a live capacity or availability claim."
+    },
+    {
+      "id": "nyc-motor-vehicle-crashes",
+      "group": "safety-history",
+      "dataClass": "observed_history",
+      "authority": "New York City Police Department",
+      "license": "NYC Open Data Terms of Use",
+      "transport": "socrata_json_temporal",
+      "url": "https://data.cityofnewyork.us/resource/h9gi-nx95.json",
+      "query": "$limit=50000&$order=crash_date,crash_time,collision_id&$select=crash_date,crash_time,latitude,longitude,on_street_name,off_street_name,cross_street_name,number_of_persons_injured,number_of_persons_killed,number_of_pedestrians_injured,number_of_pedestrians_killed,number_of_cyclist_injured,number_of_cyclist_killed,number_of_motorist_injured,number_of_motorist_killed,collision_id&$where=crash_date >= '{start}' and crash_date < '{end}' and latitude between {south} and {north} and longitude between {west} and {east}",
+      "output": "nyc-motor-vehicle-crashes-{period}.json",
+      "interval": "month",
+      "capabilities": ["historical_route_risk_candidate"],
+      "entryGate": "Bind collision ID, month, source snapshot, spatial-join method, exposure denominator, and missing-location rate. Crash counts alone cannot become a safest-route claim."
     },
     {
       "id": "nyc-bicycle-pedestrian-counts",

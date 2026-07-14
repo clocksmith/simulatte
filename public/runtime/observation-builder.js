@@ -48,6 +48,8 @@
         circuitLengthM: route.circuitLengthM || null,
         avoidedStreetNames: [...(route.avoidedStreetNames || [])],
         excludedStreetSegmentIds: [...(route.excludedStreetSegmentIds || [])],
+        excludedAmenitySegmentIds: [...(route.excludedAmenitySegmentIds || [])],
+        maximumBikeRackDistanceM: route.maximumBikeRackDistanceM ?? null,
       },
       signals: worldModel.signalRows(state.tick),
       nearbyActors,

@@ -1,0 +1,29 @@
+{
+  "schema": "simulatte.autonomyWorldSnapshotRegistry.v1",
+  "id": "nyc-world-snapshot-registry-v1",
+  "contentVersion": "2026-07-13",
+  "snapshots": [
+    {
+      "snapshotDate": "2026-07-13",
+      "worldId": "nyc-core-autonomy-v1",
+      "worldContentVersion": "nyc-core-autonomy-2026-07-13",
+      "status": "executable",
+      "manifestWorldReference": true
+    }
+  ],
+  "unavailableComparisons": [
+    {
+      "snapshotDate": "2019-07-13",
+      "status": "not_loaded",
+      "requiredArtifacts": ["dated_street_topology", "dated_bicycle_facilities", "dated_access_rules", "dated_region_composition"],
+      "reason": "A current map plus historical crash observations is not a historical street world. A separately pinned and validated 2019 world pack is required."
+    },
+    {
+      "snapshotDate": "2027-07-13",
+      "status": "not_loaded",
+      "requiredArtifacts": ["plan_geometry", "plan_effective_dates", "scenario_assumptions", "dated_region_composition"],
+      "reason": "Published plans are not built infrastructure. A declared plan scenario must be compiled separately from observed map facts."
+    }
+  ],
+  "claimBoundary": "Only snapshots marked executable may enter matched counterfactual runs. Crash history, planned infrastructure, and current geometry never silently substitute for a dated world."
+}

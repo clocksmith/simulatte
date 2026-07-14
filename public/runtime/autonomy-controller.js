@@ -35,7 +35,10 @@
   const verifier = typeof module === 'object' && module.exports
     ? require('../verifier/journey-verifier.js')
     : root.SimulatteAutonomyJourneyVerifier;
-  const api = factory(contracts, worldApi, routePlanner, observations, occurrences, proposer, safety, selector, dynamics, settlementApi, receipts, verifier);
+  const accessibility = typeof module === 'object' && module.exports
+    ? require('../world/accessibility-audit.js')
+    : root.SimulatteAccessibilityAudit;
+  const api = factory(contracts, worldApi, routePlanner, observations, occurrences, proposer, safety, selector, dynamics, settlementApi, receipts, verifier, accessibility);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteAutonomyController = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createControllerModule(
@@ -50,9 +53,10 @@
   dynamics,
   settlementApi,
   receipts,
-  verifier
+  verifier,
+  accessibility
 ) {
-  function createAutonomyController({ world, featureCatalog, occurrenceCatalog = null, embodiment, policy, mission, regionComposition = null, onTick = null }) {
+  function createAutonomyController({ world, featureCatalog, occurrenceCatalog = null, accessibilityIndex = null, routeAmenityIndex = null, safetyHistoryIndex = null, embodiment, policy, mission, regionComposition = null, onTick = null }) {
     contracts.validateFeatureCatalog(featureCatalog);
     contracts.validateWorld(world, featureCatalog);
     if (occurrenceCatalog) contracts.validateOccurrenceCatalog(occurrenceCatalog, world);
@@ -69,6 +73,14 @@
     const eventHistory = [occurrences.eventRow({ tick: 0, kind: 'mission_started', sourceId: mission.id })];
     let occurrenceReceipt = evaluateOccurrences(occurrenceEngine, state.tick, eventHistory);
     worldModel.applyRuntimeEffects(occurrenceReceipt.effects);
+    const planning = buildJourneyPlanning({ worldModel, mission, embodiment, policy, accessibilityIndex, routeAmenityIndex, safetyHistoryIndex });
+    if (mission.constraints.accessibilityProfile && planning.accessibility.verdict !== 'supported') {
+      state.status = 'failed';
+      state.terminalReason = 'accessibility_route_not_supported';
+    } else if (mission.constraints.daylightOnly && !departureInsideDaylightWindow(mission)) {
+      state.status = 'failed';
+      state.terminalReason = 'daylight_departure_outside_window';
+    }
     let activeRoute = null;
 
     async function step() {
@@ -86,7 +98,7 @@
       try {
         occurrenceReceipt = evaluateOccurrences(occurrenceEngine, state.tick, eventHistory);
         worldModel.applyRuntimeEffects(occurrenceReceipt.effects);
-        activeRoute = ensureRoute({ state, activeRoute, worldModel, mission, embodiment, policy });
+        activeRoute = ensureRoute({ state, activeRoute, worldModel, mission, embodiment, policy, routeAmenityIndex, safetyHistoryIndex });
         const observation = observations.buildObservation({ mission, state, route: activeRoute, worldModel, policyMemory, policy, featureCatalog, occurrenceReceipt });
         const proposals = proposer.proposeActionBets({ mission, observation, state, route: activeRoute, worldModel, embodiment, policy, policyMemory });
         const gatedRows = safety.gateActionBets({ proposals, state, route: activeRoute, worldModel, embodiment, mission, policy });
@@ -104,6 +116,7 @@
         const violations = transitionViolations(selection.selected, transition, beforeState, worldModel, embodiment, mission, policy);
         const tick = state.tick;
         Object.assign(state, transition.state);
+        const stopCompleted = recordOrderedStopProgress(state, transition, mission);
         const lapCompleted = recordCircuitProgress(state, beforeState, transition, mission);
         if (violations.length) {
           state.status = 'failed';
@@ -116,8 +129,8 @@
         if (transition.reachedNodeId && !transition.enteredSegmentId && state.currentNodeId) {
           activeRoute = { ...activeRoute, segmentIds: activeRoute.segmentIds.slice(1) };
         }
-        if (transition.willComplete) completeMission(state, mission);
-        const emittedEvents = transitionEvents({ transition, observation, mission, state, lapCompleted });
+        if (!violations.length && (transition.willComplete || missionIsComplete(state, mission))) completeMission(state, mission);
+        const emittedEvents = transitionEvents({ transition, observation, mission, state, lapCompleted, stopCompleted });
         eventHistory.push(...emittedEvents);
         const tickReceipt = buildTickReceipt({ tick, observation, route: activeRoute, selection, transition, settlement, violations, state, emittedEvents, lapCompleted });
         if (state.currentSegmentId) state.routeReason = 'continued';
@@ -160,12 +173,13 @@
         eventCount: eventHistory.length,
         traceEntryCount: receiptChain.entries.length,
         terminalHash: receiptChain.terminalHash,
+        planning,
       });
     }
 
     async function journeyReceipt() {
       const integrityCheck = await receipts.verifyReceiptChain(receiptChain);
-      const verification = verifier.verifyJourney({ mission, state, receiptChain, worldModel });
+      const verification = verifier.verifyJourney({ mission, state, receiptChain, worldModel, planning });
       verification.integrityPass = integrityCheck.pass;
       verification.pass = verification.pass && integrityCheck.pass;
       return {
@@ -182,11 +196,13 @@
           regionPackIds: regionComposition ? [...regionComposition.packIds] : [],
           circuitId: mission.task.type === 'loop' ? mission.task.circuitId : null,
           boundaryGeometrySha256: mission.grounding?.source?.geometryWgs84Sha256 || null,
+          safetyHistoryIndexId: safetyHistoryIndex?.id || null,
         },
         events: structuredClone(eventHistory),
+        planning: structuredClone(planning),
         terminalState: state.terminalReason || state.status,
         finalState: structuredClone(state),
-        settlement: buildJourneySettlement(mission, state),
+        settlement: buildJourneySettlement(mission, state, planning.forecast),
         trace: structuredClone(receiptChain.entries),
         verification,
         integrity: {
@@ -203,6 +219,7 @@
       run,
       snapshot,
       journeyReceipt,
+      planning: () => structuredClone(planning),
       worldModel,
     };
   }
@@ -227,6 +244,8 @@
       payloadStatus: mission.task.type === 'delivery' ? 'loaded' : 'not_applicable',
       distanceTraveledM: 0,
       completedLaps: 0,
+      remainingStopNodeIds: mission.task.type === 'loop' ? [] : [...mission.task.stopNodeIds],
+      completedStopNodeIds: [],
       circuitSegmentsCompleted: 0,
       lastCompletedLapDistanceM: null,
       routeRevision: 0,
@@ -235,7 +254,7 @@
     };
   }
 
-  function ensureRoute({ state, activeRoute, worldModel, mission, embodiment, policy }) {
+  function ensureRoute({ state, activeRoute, worldModel, mission, embodiment, policy, routeAmenityIndex = null, safetyHistoryIndex = null }) {
     if (state.currentSegmentId && activeRoute) return activeRoute;
     if (mission.task.type === 'loop') {
       if (missionIsComplete(state, mission)) {
@@ -254,18 +273,21 @@
       state.routeReason = !activeRoute ? 'initial' : activeRoute.segmentIds.length ? 'continued' : 'lap_restart';
       return planned;
     }
-    if (state.currentNodeId === mission.destinationNodeId) {
+    const targetNodeId = currentTargetNodeId(state, mission);
+    if (!targetNodeId) {
       state.routeReason = 'at_destination';
       return emptyRoute();
     }
     const planned = routePlanner.planRoute({
       worldModel,
       originNodeId: state.currentNodeId,
-      destinationNodeId: mission.destinationNodeId,
+      destinationNodeId: targetNodeId,
       mode: embodiment.mode,
       tick: state.tick,
       mission,
       policy,
+      routeAmenityIndex,
+      safetyHistoryIndex,
     });
     if (!activeRoute) {
       state.routeReason = 'initial';
@@ -305,7 +327,29 @@
         violations.push(violation('speed_limit', { speedMps: transition.endSpeedMps, maximumSpeedMps: maximum }));
       }
     }
+    if (mission.constraints.daylightOnly) {
+      const endLocalMinutes = mission.constraints.departureLocalMinutes + transition.state.simulatedTimeSeconds / 60;
+      if (endLocalMinutes > mission.constraints.daylightWindowLocalMinutes[1] + 1e-9) {
+        violations.push(violation('daylight_window', {
+          endLocalMinutes: round(endLocalMinutes),
+          sunsetLocalMinutes: mission.constraints.daylightWindowLocalMinutes[1],
+        }));
+      }
+    }
+    if (mission.constraints.maximumDurationSeconds !== null
+      && transition.state.simulatedTimeSeconds > mission.constraints.maximumDurationSeconds + 1e-9) {
+      violations.push(violation('arrival_deadline', {
+        actualDurationSeconds: transition.state.simulatedTimeSeconds,
+        maximumDurationSeconds: mission.constraints.maximumDurationSeconds,
+      }));
+    }
     return violations;
+  }
+
+  function departureInsideDaylightWindow(mission) {
+    const [sunrise, sunset] = mission.constraints.daylightWindowLocalMinutes;
+    const departure = mission.constraints.departureLocalMinutes;
+    return departure >= sunrise && departure < sunset;
   }
 
   function buildTickReceipt({ tick, observation, route, selection, transition, settlement, violations, state, emittedEvents, lapCompleted }) {
@@ -350,6 +394,8 @@
         distanceTraveledM: state.distanceTraveledM,
         simulatedTimeSeconds: state.simulatedTimeSeconds,
         completedLaps: state.completedLaps,
+        remainingStopNodeIds: [...state.remainingStopNodeIds],
+        completedStopNodeIds: [...state.completedStopNodeIds],
         circuitSegmentsCompleted: state.circuitSegmentsCompleted,
       },
     };
@@ -362,13 +408,17 @@
     if (mission.task.type === 'delivery') state.payloadStatus = 'delivered';
   }
 
-  function buildJourneySettlement(mission, state) {
+  function buildJourneySettlement(mission, state, forecast = null) {
     const termination = mission.task.type === 'loop' ? mission.task.termination : null;
     const targetDistanceM = termination?.targetDistanceM ?? null;
     const targetLaps = termination?.targetLaps ?? null;
     const targetDurationSeconds = termination?.targetDurationSeconds ?? null;
     const distanceErrorM = targetDistanceM === null ? null : Number((state.distanceTraveledM - targetDistanceM).toFixed(9));
     const durationErrorSeconds = targetDurationSeconds === null ? null : Number((state.simulatedTimeSeconds - targetDurationSeconds).toFixed(9));
+    const predictedDurationSeconds = forecast?.predictedDurationSeconds ?? null;
+    const etaErrorSeconds = predictedDurationSeconds === null ? null : Number((state.simulatedTimeSeconds - predictedDurationSeconds).toFixed(9));
+    const amountCents = mission.economics?.amountCents ?? null;
+    const grossHourlyCents = amountCents === null || state.simulatedTimeSeconds <= 0 ? null : Math.round(amountCents * 3600 / state.simulatedTimeSeconds);
     return {
       schema: 'simulatte.autonomyJourneySettlement.v1',
       taskType: mission.task.type,
@@ -383,7 +433,7 @@
       actualDurationSeconds: state.simulatedTimeSeconds,
       distanceErrorM,
       durationErrorSeconds,
-      exactTargetSettlement: mission.task.type === 'delivery'
+      exactTargetSettlement: mission.task.type !== 'loop'
         ? state.status === 'completed' && state.currentNodeId === mission.destinationNodeId
         : distanceErrorM === 0 || durationErrorSeconds === 0 || (targetLaps !== null && state.completedLaps === targetLaps),
       completedLaps: state.completedLaps,
@@ -391,6 +441,191 @@
       finalSegmentId: state.currentSegmentId,
       finalSegmentProgressM: state.segmentProgressM,
       boundaryGeometrySha256: mission.grounding?.source?.geometryWgs84Sha256 || null,
+      predictedDurationSeconds,
+      etaErrorSeconds,
+      timing: {
+        departureLocalMinutes: mission.constraints.departureLocalMinutes,
+        arrivalLocalMinutes: round(mission.constraints.departureLocalMinutes + state.simulatedTimeSeconds / 60),
+        arrivalDeadlineLocalMinutes: mission.constraints.arrivalDeadlineLocalMinutes,
+        daylightOnly: mission.constraints.daylightOnly,
+        daylightWindowLocalMinutes: [...mission.constraints.daylightWindowLocalMinutes],
+      },
+      orderedStops: mission.task.type === 'loop' ? null : {
+        declaredStopNodeIds: [...mission.task.stopNodeIds],
+        completedStopNodeIds: [...state.completedStopNodeIds],
+        remainingStopNodeIds: [...state.remainingStopNodeIds],
+      },
+      economics: amountCents === null ? null : {
+        schema: 'simulatte.journeyEconomicsSettlement.v1',
+        currency: mission.economics.currency,
+        declaredGrossAmountCents: amountCents,
+        grossHourlyCents,
+        simulatedPaidSeconds: state.simulatedTimeSeconds,
+        excludedCosts: ['waiting_outside_journey', 'expenses', 'taxes', 'platform_deductions', 'unpaid_work'],
+      },
+    };
+  }
+
+  function buildJourneyPlanning({ worldModel, mission, embodiment, policy, accessibilityIndex = null, routeAmenityIndex = null, safetyHistoryIndex = null }) {
+    if (mission.task.type === 'loop') {
+      const route = routePlanner.planCircuitRoute({
+        worldModel, circuitId: mission.task.circuitId, currentNodeId: mission.originNodeId,
+        mode: embodiment.mode, tick: 0, mission, policy,
+      });
+      const oneLap = routePlanner.forecastRoute(route, worldModel, mission, safetyHistoryIndex);
+      const targetDistanceM = mission.task.termination.targetDistanceM ?? oneLap.distanceM;
+      const predictedDurationSeconds = mission.task.termination.kind === 'duration'
+        ? mission.task.termination.targetDurationSeconds
+        : targetDistanceM / Math.min(embodiment.dynamics.maximumSpeedMps, mission.constraints.maximumSpeedMps);
+      return {
+        schema: 'simulatte.autonomyJourneyPlanning.v1',
+        forecast: { ...oneLap, distanceM: targetDistanceM, predictedDurationSeconds: round(predictedDurationSeconds) },
+        alternatives: [],
+        accessibility: routeAccessibility({ route, worldModel, accessibilityIndex, mission }),
+        amenities: routeAmenityAudit({ route, routeAmenityIndex, mission }),
+        safetyHistory: routeSafetyHistoryAudit({ route, safetyHistoryIndex, policy }),
+      };
+    }
+    const legAlternatives = [];
+    let originNodeId = mission.originNodeId;
+    mission.task.stopNodeIds.forEach((destinationNodeId, legIndex) => {
+      const routes = routePlanner.planRouteAlternatives({
+        worldModel, originNodeId, destinationNodeId, mode: embodiment.mode, tick: 0, mission, policy, routeAmenityIndex, safetyHistoryIndex,
+      }, 3);
+      legAlternatives.push({ legIndex, originNodeId, destinationNodeId, routes });
+      originNodeId = destinationNodeId;
+    });
+    const candidateLegSets = [legAlternatives.map((row) => row.routes[0])];
+    for (let legIndex = 0; legIndex < legAlternatives.length && candidateLegSets.length < 3; legIndex += 1) {
+      const alternative = legAlternatives[legIndex].routes[1];
+      if (!alternative) continue;
+      const rows = legAlternatives.map((row) => row.routes[0]);
+      rows[legIndex] = alternative;
+      candidateLegSets.push(rows);
+    }
+    const alternatives = candidateLegSets.map((legs, index) => combineJourneyLegs({ legs, legAlternatives, worldModel, mission, safetyHistoryIndex, index })).map((route) => ({
+      ...route,
+      accessibility: routeAccessibility({ route, worldModel, accessibilityIndex, mission }),
+      amenities: routeAmenityAudit({ route, routeAmenityIndex, mission }),
+      safetyHistory: routeSafetyHistoryAudit({ route, safetyHistoryIndex, policy }),
+    }));
+    return {
+      schema: 'simulatte.autonomyJourneyPlanning.v1',
+      forecast: structuredClone(alternatives[0].forecast),
+      alternatives,
+      accessibility: structuredClone(alternatives[0].accessibility),
+      amenities: structuredClone(alternatives[0].amenities),
+      safetyHistory: structuredClone(alternatives[0].safetyHistory),
+    };
+  }
+
+  function combineJourneyLegs({ legs, legAlternatives, worldModel, mission, safetyHistoryIndex, index }) {
+    const segmentIds = legs.flatMap((row) => row.segmentIds);
+    const forecast = routePlanner.forecastRoute({ segmentIds }, worldModel, mission, safetyHistoryIndex);
+    const sums = legs.reduce((total, row) => {
+      total.cost += row.cost;
+      total.travel += row.costBreakdown.travel;
+      total.risk += row.costBreakdown.risk;
+      total.historical += row.costBreakdown.historical || 0;
+      total.preference += row.costBreakdown.preference;
+      total.evaluated += row.evaluatedSegmentCount;
+      return total;
+    }, { cost: 0, travel: 0, risk: 0, historical: 0, preference: 0, evaluated: 0 });
+    return {
+      schema: 'simulatte.autonomyJourneyRoutePlan.v1',
+      alternativeRank: index + 1,
+      alternativeKind: index === 0 ? 'baseline' : 'single_leg_deviation',
+      segmentIds,
+      cost: round(sums.cost),
+      evaluatedSegmentCount: sums.evaluated,
+      costBreakdown: {
+        travel: round(sums.travel), risk: round(sums.risk), historical: round(sums.historical), preference: round(sums.preference), total: round(sums.travel + sums.risk + sums.historical + sums.preference),
+        formula: 'sum(leg.travel + leg.risk + leg.historical + leg.preference)',
+        weights: structuredClone(legs[0].costBreakdown.weights),
+      },
+      forecast,
+      legs: legs.map((row, legIndex) => ({
+        legNumber: legIndex + 1,
+        originNodeId: legAlternatives[legIndex].originNodeId,
+        destinationNodeId: legAlternatives[legIndex].destinationNodeId,
+        segmentIds: [...row.segmentIds],
+        forecast: structuredClone(row.forecast),
+      })),
+    };
+  }
+
+  function routeAccessibility({ route, worldModel, accessibilityIndex, mission }) {
+    return {
+      ...accessibility.auditRouteAccessibility({ route, worldModel, index: accessibilityIndex }),
+      requestedProfile: mission.constraints.accessibilityProfile,
+      enforced: mission.constraints.accessibilityProfile !== null,
+    };
+  }
+
+  function routeAmenityAudit({ route, routeAmenityIndex, mission }) {
+    const maximumDistanceM = mission.constraints.maximumBikeRackDistanceM;
+    if (maximumDistanceM === null) {
+      return {
+        schema: 'simulatte.autonomyRouteAmenityAudit.v1',
+        status: 'not_requested',
+        requestedMaximumDistanceM: null,
+        pass: true,
+        claimBoundary: routeAmenityIndex?.claimBoundary || 'No bicycle-parking proximity claim was requested.',
+      };
+    }
+    if (!routeAmenityIndex) {
+      return {
+        schema: 'simulatte.autonomyRouteAmenityAudit.v1', status: 'unavailable', requestedMaximumDistanceM: maximumDistanceM,
+        pass: false, failure: 'route_amenity_index_not_loaded', claimBoundary: 'No proximity claim is available without a pinned amenity index.',
+      };
+    }
+    const rowsById = new Map(routeAmenityIndex.segmentRows.map((row) => [row.segmentId, row]));
+    const routeRows = route.segmentIds.map((id) => rowsById.get(id) || { segmentId: id, maximumNearestRackDistanceM: null, limitingRackId: null });
+    const failures = routeRows.filter((row) => row.maximumNearestRackDistanceM === null || row.maximumNearestRackDistanceM > maximumDistanceM);
+    const limiting = routeRows.filter((row) => Number.isFinite(row.maximumNearestRackDistanceM))
+      .sort((left, right) => right.maximumNearestRackDistanceM - left.maximumNearestRackDistanceM || left.segmentId.localeCompare(right.segmentId))[0] || null;
+    return {
+      schema: 'simulatte.autonomyRouteAmenityAudit.v1',
+      status: failures.length ? 'blocked' : 'supported',
+      requestedMaximumDistanceM: maximumDistanceM,
+      pass: failures.length === 0,
+      routeSegmentCount: routeRows.length,
+      maximumObservedDistanceM: limiting?.maximumNearestRackDistanceM ?? null,
+      limitingSegmentId: limiting?.segmentId || null,
+      limitingRackId: limiting?.limitingRackId || null,
+      failedSegmentIds: failures.slice(0, 40).map((row) => row.segmentId),
+      identities: { indexId: routeAmenityIndex.id, sourceReceiptSha256: routeAmenityIndex.source.sourceReceiptSha256 },
+      claimBoundary: routeAmenityIndex.claimBoundary,
+    };
+  }
+
+  function routeSafetyHistoryAudit({ route, safetyHistoryIndex, policy }) {
+    if (!safetyHistoryIndex) {
+      return {
+        schema: 'simulatte.autonomyRouteSafetyHistoryAudit.v1', status: 'unavailable', appliedToSelection: false,
+        crashCount: null, injuryCount: null, fatalityCount: null, historicalObservationScore: null,
+        claimBoundary: 'No historical crash comparison is available without a pinned safety-history index.',
+      };
+    }
+    const rowsById = new Map(safetyHistoryIndex.segmentRows.map((row) => [row.segmentId, row]));
+    const physicalRows = new Map();
+    route.segmentIds.forEach((segmentId) => {
+      const row = rowsById.get(segmentId);
+      if (row && !physicalRows.has(row.physicalKey)) physicalRows.set(row.physicalKey, row);
+    });
+    const rows = [...physicalRows.values()];
+    return {
+      schema: 'simulatte.autonomyRouteSafetyHistoryAudit.v1',
+      status: 'observed_history_joined',
+      appliedToSelection: (policy.route.historicalObservationWeight || 0) > 0,
+      historicalObservationWeight: policy.route.historicalObservationWeight || 0,
+      crashCount: rows.reduce((sum, row) => sum + row.crashCount, 0),
+      injuryCount: rows.reduce((sum, row) => sum + row.injuryCount, 0),
+      fatalityCount: rows.reduce((sum, row) => sum + row.fatalityCount, 0),
+      historicalObservationScore: rows.reduce((sum, row) => sum + row.historicalObservationScore, 0),
+      physicalSegmentsWithHistory: rows.length,
+      identities: { indexId: safetyHistoryIndex.id, sourceReceiptSha256: safetyHistoryIndex.source.sourceReceiptSha256 },
+      claimBoundary: safetyHistoryIndex.claimBoundary,
     };
   }
 
@@ -405,14 +640,17 @@
       costBreakdown: {
         travel: 0,
         risk: 0,
+        historical: 0,
         preference: 0,
         total: 0,
-        formula: 'travel + risk + preference',
-        weights: { travelWeight: 0, riskWeight: 0, unprotectedPreferencePenalty: 0 },
+        formula: 'travel + risk + historical + preference',
+        weights: { travelWeight: 0, riskWeight: 0, historicalObservationWeight: 0, unprotectedPreferencePenalty: 0 },
       },
       deterministicTieBreak: algorithm === 'a_star_v1' ? 'segment_id_ascending' : 'declared_circuit_order',
       avoidedStreetNames: [],
       excludedStreetSegmentIds: [],
+      excludedAmenitySegmentIds: [],
+      maximumBikeRackDistanceM: null,
     };
   }
 
@@ -431,7 +669,7 @@
     };
   }
 
-  function transitionEvents({ transition, observation, mission, state, lapCompleted = null }) {
+  function transitionEvents({ transition, observation, mission, state, lapCompleted = null, stopCompleted = null }) {
     const rows = [];
     const tick = state.tick;
     if (transition.enteredSegmentId) rows.push(['segment_entered', transition.enteredSegmentId, { routeRevision: observation.route.revision }]);
@@ -440,6 +678,7 @@
       rows.push(['route_revised', transition.enteredSegmentId || state.currentSegmentId, { reason: observation.route.reason, revision: observation.route.revision }]);
     }
     if (lapCompleted) rows.push(['lap_completed', mission.task.circuitId, structuredClone(lapCompleted)]);
+    if (stopCompleted) rows.push(['ordered_stop_completed', stopCompleted.nodeId, structuredClone(stopCompleted)]);
     if (transition.willComplete) rows.push(['mission_completed', mission.id, {
       completionReason: transition.completionReason,
       destinationNodeId: mission.destinationNodeId,
@@ -468,7 +707,26 @@
         ? state.simulatedTimeSeconds >= termination.targetDurationSeconds - 1e-9
         : state.distanceTraveledM >= termination.targetDistanceM - 1e-9;
     }
-    return state.currentNodeId === mission.destinationNodeId && !state.currentSegmentId;
+    return state.remainingStopNodeIds.length === 0 && state.currentNodeId === mission.destinationNodeId && !state.currentSegmentId;
+  }
+
+  function currentTargetNodeId(state, mission) {
+    return mission.task.type === 'loop' ? null : state.remainingStopNodeIds[0] || null;
+  }
+
+  function recordOrderedStopProgress(state, transition, mission) {
+    if (mission.task.type === 'loop' || !transition.reachedNodeId || state.remainingStopNodeIds[0] !== transition.reachedNodeId) return null;
+    const nodeId = state.remainingStopNodeIds.shift();
+    state.completedStopNodeIds.push(nodeId);
+    return {
+      schema: 'simulatte.autonomyOrderedStopReceipt.v1',
+      nodeId,
+      stopNumber: state.completedStopNodeIds.length,
+      totalStops: mission.task.stopNodeIds.length,
+      finalStop: state.remainingStopNodeIds.length === 0,
+      distanceTraveledM: state.distanceTraveledM,
+      simulatedTimeSeconds: state.simulatedTimeSeconds,
+    };
   }
 
   function recordCircuitProgress(state, beforeState, transition, mission) {
@@ -498,5 +756,9 @@
     return kind === 'distance' ? 'distance_target_reached' : kind === 'laps' ? 'lap_target_reached' : 'duration_target_reached';
   }
 
-  return { createAutonomyController, evaluateOccurrences, initialState, ensureRoute, loopCompletionReason, missionIsComplete, recordCircuitProgress, transitionEvents, transitionViolations };
+  function round(value) {
+    return Number(Number(value).toFixed(9));
+  }
+
+  return { buildJourneyPlanning, buildJourneySettlement, createAutonomyController, currentTargetNodeId, evaluateOccurrences, initialState, ensureRoute, loopCompletionReason, missionIsComplete, recordCircuitProgress, recordOrderedStopProgress, routeAmenityAudit, routeSafetyHistoryAudit, transitionEvents, transitionViolations };
 });

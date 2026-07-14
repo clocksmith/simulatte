@@ -6,10 +6,14 @@ import { fileURLToPath } from 'node:url';
 
 const TOOL_DIR = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(TOOL_DIR, '../..');
+const PUBLIC_DATA_DIR = path.join(ROOT, 'public/data');
 const DATA_DIR = path.join(ROOT, 'public/data/autonomy');
 const MANIFEST_PATH = path.join(DATA_DIR, 'autonomy-manifest.json');
 const REFERENCE_KEYS = Object.freeze([
   'world', 'featureCatalog', 'policy', 'occurrenceCatalog', 'rerankerEvidence', 'regionRegistry',
+  'placeEmbeddingIndex', 'placeResolutionEvidence', 'modelRuntimeLock', 'accessibilityIndex', 'routeAmenityIndex',
+  'safetyHistoryIndex', 'curriculum', 'worldSnapshotRegistry',
+  'policyArenaEvidence',
 ]);
 
 function main() {
@@ -43,7 +47,7 @@ function syncReferenceValue(reference, key) {
 
 function resolvePath(relative) {
   const file = path.resolve(DATA_DIR, relative);
-  const withinData = path.relative(DATA_DIR, file);
+  const withinData = path.relative(PUBLIC_DATA_DIR, file);
   if (withinData.startsWith('..') || path.isAbsolute(withinData)) throw new Error(`Manifest path leaves autonomy data: ${relative}`);
   return file;
 }

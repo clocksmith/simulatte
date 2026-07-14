@@ -6,7 +6,7 @@
   "mode": "delivery_bike",
   "kind": "bicycle",
   "renderProfile": "cycle",
-  "supportedTaskTypes": ["delivery"],
+  "supportedTaskTypes": ["delivery", "point_to_point"],
   "dimensions": {
     "lengthM": 1.8,
     "widthM": 0.65,

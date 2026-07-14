@@ -1,279 +1,215 @@
 # Simulatte navigation
 
-Owner contracts:
+Simulatte is a governed, local-first navigation simulator. It compiles a
+natural-language mission into typed obligations, executes an embodied agent
+through repeated autonomous decisions, settles the predictions made at every
+tick, and emits a hash-linked journey receipt.
 
-- `public/data/autonomy/autonomy-manifest.json`
-- `public/contracts/*.schema.json`
-- `public/data/autonomy/policies/bet-selector-v1.json`
-- `public/data/autonomy/patterns/nyc-replay-patterns-v1.json`
-- `public/data/autonomy/evidence/feature-reranker-public-diagnostic-v1.json`
-- `tools/samer/autonomy/autonomy-policy-contract.json`
+It is not a directions wrapper and it is not a physical-autonomy claim. Its
+distinct product is matched simulation evidence for questions such as:
 
-## Product goal
+- What happens if this street closes?
+- What changes when reported crash history enters route cost?
+- Can this declared wheelchair journey be supported by the loaded evidence?
+- Did the route stay near listed bicycle parking?
+- What did the simulator predict, what occurred, and how large was the error?
 
-Simulatte runs governed bicycle-delivery and pedestrian-loop agents
-in a browser simulation. The simulator is the execution and evaluation
-substrate. The product behavior is the repeated decision loop:
+## Governing loop
 
 ```text
-mission -> observe -> propose action bets -> predict -> safety gate
-        -> select -> execute -> settle -> update memory -> observe
+mission text
+  -> deterministic grammar or governed local place embedding
+  -> typed obligations and eligible embodiment
+  -> route candidates and free-flow forecast
+  -> observe -> propose bets -> gate -> select -> execute -> settle
+  -> terminal verifier -> journey receipt -> local calibration ledger
 ```
 
-A generated route is not autonomy proof. A qualifying journey needs repeated
-closed-loop decisions, validated state transitions, hard-gate compliance,
-settled predictions, task-specific terminal evidence, and a verified receipt
-chain.
+A route alone is not proof. A passing simulated journey requires contract-valid
+inputs, mode-eligible topology, hard-gate compliance, ordered-stop completion,
+required obligations, deterministic state transitions, terminal settlement,
+and a verified receipt chain.
 
-## Repository boundary
+## Current executable surface
 
-The autonomy system is a sibling of the prompt-to-pixels pipeline.
+The active world is `nyc-core-autonomy-v1`, frozen on 2026-07-13.
+
+| Surface | Executable behavior |
+| --- | --- |
+| Pedestrian | Point-to-point walking and running; declared park circuits; wheelchair requests with evidence-gated refusal |
+| Bicycle | Point-to-point and parcel delivery; ordered stops; return trips; protected-lane preference; street avoidance; bicycle-rack proximity |
+| Scooter | Point-to-point and parcel delivery on mode-eligible compiled topology |
+| Car | Point-to-point and parcel delivery on mode-eligible compiled topology |
+| Termination | Arrival, exact distance, integer lap count, or elapsed simulated time |
+| Time obligations | Departure time, same-day arrival deadline, daylight-only window |
+| Economics | Declared gross delivery compensation and simulated gross hourly settlement, with exclusions named |
+| Counterfactuals | Street closure, historical-crash weighting, and dated-world request |
+| Rehearsal | Export, verify, import, and replay a journey mission locally |
+| Curriculum | Browser-local progress over a pinned eight-mission curriculum |
+
+Pedestrian, bicycle, scooter, and car all use the same mission compiler,
+route-planner interface, observation builder, bet proposer, safety gate,
+selector, reference dynamics, settlement, verifier, receipt chain, renderer,
+camera, and counterfactual runner. An embodiment file changes dimensions,
+dynamics, speed, render profile, and allowed graph mode. It does not fork the
+controller.
+
+Declared park circuits are derived from pinned NYC Parks property boundaries.
+They are useful simulation circuits, not surveyed sidewalk centerlines, access
+proof, or legal bicycle routes. Circuit execution therefore remains
+pedestrian-only until a source-backed, mode-eligible perimeter graph is added.
+
+## World evidence
+
+The active composition contains:
+
+- 11,286 multimodal nodes;
+- 28,638 directed segments;
+- 6,587 rendered OSM street ways;
+- 8,500 retained NYC building footprints;
+- 13,185 provenance-carrying feature cards;
+- 20 mode-specific grounded place nodes;
+- 4 declared park circuits and 9 rendered property-boundary members;
+- 3 independently hashed region packs joined by 98 exact seams;
+- 13 deterministic ambient actors across pedestrian, bicycle, scooter, and car render kinds.
+
+The region packs cover Manhattan Villages, the East River crossing, and North
+Brooklyn. Pack boundaries own loading and provenance. They do not block a route
+that crosses declared seams.
+
+Additional pinned indexes bind the world to:
+
+- 9,359 NYC DOT bicycle-parking rows;
+- 11,603 NYC DOT pedestrian-ramp rows;
+- 5,131 NYPD reported crashes from 2025-07-01 through 2026-07-01.
+
+Those rows have deliberately narrow authority. Bicycle parking proves frozen
+geometric proximity, not capacity or security. Ramp measurements are evaluated
+against a simulator policy and are not ADA determinations. Crash history has no
+traffic, trip, population, or distance exposure denominator. It can support an
+observed-history route-cost experiment, but cannot prove causality, current
+risk, or the safest route.
+
+## Mission language
+
+The deterministic grammar supports:
+
+- `Walk from Union Square to Washington Square.`
+- `Drive from Union Square to North Williamsburg.`
+- `Deliver the parcel by bike from Union Square to East Village, then Tompkins Square, then return to Union Square for $25.`
+- `Run 5 laps around Union Square Park perimeter.`
+- `Run around McCarren Park perimeter for 2 miles.`
+- `Walk from Tompkins Square to Washington Square starting at 4 pm and arrive by 5 pm, only in daylight.`
+- `Bike from Union Square to Washington Square and keep me within 200 meters of a bike rack.`
+- `Avoid Kent Avenue`, `prefer protected lanes`, and `yield to pedestrians` as route obligations.
+
+Distance and duration units are converted inside the mission receipt. A 5,000
+foot circuit mission settles at exactly 1,524 meters. Place, circuit, and
+perimeter typos use bounded matching and cannot create new geography. Ambiguous
+and out-of-world places refuse.
+
+Current hard boundaries include arbitrary street addresses, businesses, live
+traffic, live weather, calories, elevation-aware routing, accessibility claims
+beyond loaded ramp and topology evidence, and cross-city travel. Those are
+missing governed artifacts, not prompts the model is invited to guess.
+
+## Model boundary
+
+Simulatte has one optional navigation model lane:
+
+| Stage | Method | Model execution |
+| --- | --- | --- |
+| Exact place matching | Governed label lookup | None |
+| Bounded typo matching | Deterministic edit-distance policy | None |
+| Optional place semantics | Qwen 3 Embedding 0.6B, local Doppler runtime | Embedding only |
+| Feature-card retrieval | Lexical inverted scan | None |
+| Feature-card reranking | Typed deterministic evidence weights | None |
+| Route planning | A* with declared cost terms and deterministic tie-break | None |
+| Tick action choice | Propose, safety gate, evidence-scored select | None |
+| Settlement and verification | Deterministic reference execution | None |
+
+The Qwen lane embeds the origin or destination phrase and compares it with a
+precompiled, hash-pinned place-vector artifact. Candidates are filtered to the
+active embodiment graph before thresholding. The model cannot add a node,
+choose a route, issue a control action, or bypass a gate. The UI names the
+download size and the receipt reports whether model execution occurred.
+
+The exposed public diagnostic improved from 21/37 for the lexical control to
+28/37 for the hybrid lane with zero must-refuse violations. It supports
+continued experimentation only. It is not a sealed promotion result.
+
+The Qwen 3 Reranker 0.6B in the shared model lock is used by Blank. Simulatte
+does not claim that reranker executed. Its navigation reranker remains the
+checked-in deterministic control.
+
+## Counterfactual and settlement contracts
+
+`counterfactual-runner.js` executes baseline and challenger through the same
+controller. The comparison receipt binds world, mission, embodiment, policy,
+evidence-index identities, both journey hashes, outcome deltas, route overlap,
+and the intervention. Only one intervention changes per comparison.
+
+Supported interventions are:
+
+1. `close_street`: add one grounded routed street to the mission exclusion.
+2. `historical_crash_weighting`: change one route-cost weight over the pinned crash index.
+3. `world_snapshot`: execute only when that exact dated world is loaded.
+
+A 2019 request currently returns `snapshot_not_loaded` while retaining the
+current-world baseline. A current map plus old crash reports is not a 2019
+street network. A future plan is not built infrastructure. This negative
+receipt is the required behavior until separately pinned world packs exist.
+
+The local settlement ledger stores compact payloads in `localStorage`, hashes
+each entry into a chain, and verifies the chain before reading. It records
+simulated ETA error, completion, verification, mode, economics, accessibility,
+amenities, and the full journey receipt hash. Imported receipts are verified
+before their mission text can be replayed. Nothing in this ledger is a
+physical-world result.
+
+## Policy arena
+
+`tools/samer/autonomy/` runs matched action-selection lanes over a public
+diagnostic scenario set. The current report selects a diagnostic leader while
+blocking promotion. Runtime source hashes, scenario hashes, budgets, lane
+order, seeds, guardrails, and saturation are part of the receipt.
+
+The challenger slot is an evaluation surface, not automatic recursive
+improvement. A promotion claim still requires an unmounted population,
+candidate commitment, one authorized evaluation opening, contamination audit,
+and a terminal receipt.
+
+## Owners
 
 | Path | Authority |
 | --- | --- |
-| `public/blank/pipeline/` | Existing eight-phase natural-language-to-pixels compiler served at `/blank/` |
-| `public/mission/capability-matrix.js` | Executable embodiment x mission-family x governed-artifact support matrix |
-| `public/app/`, `public/runtime/`, `public/world/` | Online mission, observation, action-bet, safety, execution, settlement, and verification runtime served at `/` |
-| `public/data/autonomy/` | Governed world, embodiment, policy, occurrences, feature cards, evidence, and asset hashes |
-| `tools/autonomy/` | Source acquisition, world compilation, mission construction, evaluation, and data validation |
-| `skills/autonomy-data/` | Repeatable plan, fetch, backfill, verify, promote, compile, and activation workflow |
-| `tools/samer/autonomy/` | Matched policy experiments across journeys |
-| `tests/autonomy.test.cjs` | Autonomy contract, runtime, replay, browser, and data tests |
+| `public/mission/` | Grammar, grounding, capability selection, typed obligations |
+| `public/world/` | World model, A*, route alternatives, accessibility audit |
+| `public/runtime/` | Retrieval, occurrences, bets, gates, dynamics, settlement, ledgers, counterfactuals |
+| `public/verifier/` | Required-obligation and journey checks |
+| `public/contracts/` | Runtime and data validators plus JSON Schemas |
+| `public/data/autonomy/` | Active identities, worlds, indexes, policies, evidence |
+| `tools/autonomy/` | Data planning, fetching, promotion, compilation, evaluation |
+| `tools/samer/autonomy/` | Matched public policy trials |
+| `skills/autonomy-data/` | Governed data refresh and backfill procedure |
 
-Autonomy does not add a ninth compiler phase. Code may become shared only when
-both subsystems consume the same contract without importing each other's
-internal state.
-
-## Governed embodiments
-
-The manifest loads `delivery-bike-v1` and `pedestrian-v1`. Each owns its
-dimensions, collision radius, acceleration, deceleration, integration step,
-maximum speed, task eligibility, network mode, and render profile. The mission
-compiler selects the embodiment by task and kind. Every accepted mission also
-contains a capability receipt naming the exact matrix row, termination kind,
-and graph or circuit artifacts that made it executable. The browser does not
-infer or share dynamics values across modes.
-
-Observation, action proposals, reference dynamics integration, safety gates,
-selection, settlement, receipt chaining, renderer, camera, and SAME-R
-evaluation are one shared engine. Pedestrian, bicycle, future scooter, and
-future car agents vary through embodiment data, task grammar, allowed graph
-modes, and legal constraints. The pedestrian control currently supports a
-runner/walker on one closed circuit, not a general sidewalk graph. Scooter,
-car-delivery, and robotaxi artifacts remain unimplemented; neither current
-journey speaks for them.
-
-## Mission compiler
-
-`mission/mission-compiler.js` implements a deterministic grounded control
-lane. Delivery missions require an explicit delivery term, an embodiment mode,
-`from` node, and `to` node. Closed-circuit missions require a mode, loop
-relation, declared circuit, and one termination: distance, integer lap count,
-or elapsed time. Distance and time units convert inside the mission receipt;
-lap targets derive exact distance from the pinned circuit length. A bounded
-edit-distance matcher corrects misspelled declared places, circuits, and
-`perimeter`; it cannot create a new place. A named-street avoidance grounds to
-the routed DOT graph when possible and otherwise to governed OSM display
-geometry. Receipts distinguish active edge exclusion from a street already
-absent from the routable graph.
-
-`mission/capability-matrix.js` evaluates pedestrian, bicycle, scooter, and car
-against delivery, point-to-point, and closed-circuit families independently.
-Current support is bicycle delivery and pedestrian closed circuits. General
-pedestrian point-to-point navigation is blocked on a routable sidewalk and
-crosswalk artifact. Bicycle park loops are blocked on a registered bike-legal
-circuit. Scooter and car rows are blocked on both embodiment and road-graph
-artifacts. These are executable refusals with evidence, not parser omissions.
-
-The parser is a control lane, not a general natural-language model claim. A
-model parser must beat it on a frozen intent population while preserving the
-same mission schema and failure behavior.
-
-## Continuous action bets
-
-Every tick produces candidate action bets for emergency stop, wait, yield,
-proceed, accelerate, and route revision when applicable. Each bet binds:
-
-| Field | Meaning |
-| --- | --- |
-| `action` | Maneuver, acceleration, and target segment |
-| `prediction` | Position, speed, progress, clearance, node arrival, and mission arrival |
-| `confidence` | Settled-history calibration for that maneuver |
-| `scoreStake` | Nonfinancial score exposed to settlement |
-| `evidence` | Observation tick, route revision, and rollout identity |
-
-The reference dynamics run again during execution. Settlement compares the
-recorded prediction with the observed transition under frozen tolerances. Only
-executed bets update maneuver calibration. Unexecuted candidates remain in the
-trace and do not receive counterfactual credit.
-
-## Safety authority
-
-Safety gates run before utility scoring. A utility score cannot override a
-failed gate.
-
-| Gate | Blocking condition |
-| --- | --- |
-| Network containment | Transition has neither a valid node nor segment |
-| Mode eligibility | Agent enters a segment that excludes its embodiment mode |
-| Segment closure | Candidate enters an active blocked segment |
-| Signal compliance | Candidate enters a controlled segment on red |
-| Speed | Predicted speed exceeds segment, mission, or embodiment limit |
-| Pedestrian clearance | Reference lookahead falls below the policy clearance |
-| Route adherence | Candidate enters a segment outside the active route |
-
-If every candidate fails, the agent emits a failure receipt and stops. It does
-not select the least unsafe action.
-
-## World and renderer
-
-`nyc-core-autonomy-v1` is the governed browser world. It
-covers named nodes from West Village and Union Square through East Village,
-the Williamsburg Bridge corridor, North Williamsburg, McCarren Park, and
-Greenpoint. Its manifest pins the compiled world by SHA-256. The world retains
-frozen source receipts for NYC bike routes, NYC building footprints, NYC
-borough geometry, OpenStreetMap streets, and NYC Parks property geometry for
-McCarren, Tompkins Square, Union Square, and Washington Square.
-
-The artifact contains 2,491 multimodal nodes, 3,723 directed segments, 6,589
-OSM street ways, nine rendered exterior boundary members from four official
-park properties, one 69-segment pedestrian circuit, and 8,500 retained
-building footprints from 26,990 source footprints. The executable circuit
-follows the largest exterior member of Union Square property `M089`; the full
-source geometry and selected ring are separately hashed. The other park rows
-are display context only. A property boundary is not a surveyed sidewalk
-centerline or an access/obstacle claim. The building LOD receipt says that it
-is not full coverage.
-
-The browser renderer requires WebGPU and fails closed when the adapter,
-device, shader, or render geometry is unavailable. It draws source-bound
-streets, bike facilities, park fill and perimeter, building footprints and
-heights, the selected route, the traveled trace, actors, signals, prediction
-geometry, and task-specific pedestrian, bicycle, scooter, or car meshes. The
-shared procedural mesh contract uses articulated riders, wheels and frames,
-vehicle proportions, smooth normals, and per-vertex metallic/roughness lanes;
-it does not substitute mode-specific controllers. Follow, bird, and top
-camera changes interpolate; bird/top pan, orbit where applicable, and mouse
-wheel zoom work, including near and far Follow distance. Starting a mission
-selects Follow and opens a north-up WebGPU top-view minimap centered on the
-controlled agent. The reference dynamics remain on CPU. A browser receipt
-records the adapter, backend, frame count, vertex counts, world identity,
-park/circuit counts, visible feature counts, Follow distance, and minimap
-projection. A deterministic ambient compiler animates four
-pedestrians, three bicycles, two scooters, and four cars from frozen park,
-bike-facility, and street render geometry. All four kinds share the same actor
-mesh and distance-parameterized animation path. They enter observations and
-receipts as `visible_ambient`, but do not become safety-blocking until their
-paths pass the corresponding mode-legal topology gates. Authored scenario
-pedestrians remain hard clearance obstacles. Rendered pixels aid inspection
-but do not prove physical safety or observed traffic realism.
-
-`nyc-training-corridor-v1` remains a small synthetic test fixture. It does not
-back the hosted default mission.
-
-## Occurrence pipeline
-
-`runtime/occurrence-engine.js` owns the pluggable occurrence registry. The
-default catalog uses three plugins:
-
-| Plugin | Trigger |
-| --- | --- |
-| `time.periodic-phase.v1` | Repeating ordered tick phases |
-| `time.window.v1` | Inclusive deterministic tick interval |
-| `event.window.v1` | Window opened by a typed simulation event |
-
-Effects can set a signal state, activate an actor, block a segment, or attach
-an annotation. The controller evaluates occurrences before route planning and
-observation for the same tick. Conflicts resolve by descending priority and
-then pattern ID, with winner and rejected pattern IDs in the receipt. Unknown
-plugins and unknown world targets fail closed.
-
-The checked-in signal and pedestrian patterns are authored scenario facts.
-Their provenance says `isObservedHistory: false`. Historical data must enter
-through a separate compiler that records source artifact, snapshot, spatial
-join, time transform, and missing-data behavior before it can set that field
-to true.
-
-## Receipt chain
-
-Every tick payload is canonicalized by sorted object keys with array order
-preserved. SHA-256 binds payload hash, previous entry hash, and sequence. The
-journey verifier checks the full chain before its verdict can pass.
-
-The journey verifier settles:
-
-- destination arrival;
-- payload delivery;
-- exact loop-distance conversion and terminal distance;
-- closed-circuit segment order;
-- one boundary-bound receipt per completed lap;
-- full-lap and final-partial distance accounting;
-- signal compliance;
-- pedestrian clearance;
-- protected-lane preference when required;
-- continuous tick order;
-- one settlement for every selected bet;
-- absence of runtime safety violations.
-
-## Two improvement loops
-
-| Loop | Job |
-| --- | --- |
-| Within journey | Settled action bets update maneuver confidence before the next observation |
-| Across journeys | SAME-R compares selection approaches under a frozen causal contract |
-
-The public SAME-R contract compares progress-only, evidence-scored, and seeded
-eligible selection. It freezes the proposer, route planner, dynamics, safety
-gate, scenarios, evaluation order, and execution budget. Its scenario set is
-public diagnostic evidence. The report hashes each runtime source file and
-records the execution environment and invocation. The runner blocks promotion
-because no sealed population or physical-world evidence is supplied.
-
-The separate 20-mission public diagnostic set covers named endpoints,
-constraints, obligations, and route controls for the expanded world. It is
-checked into the repository and therefore cannot authorize promotion. The
-typed reranker receipt records MRR 0.725 to 0.750 with Recall@5 unchanged at
-1.000 on 40 exposed mission/query judgments after adding the pedestrian
-catalog. This population remains saturated at Recall@5 and supports retention
-only on the exposed diagnostic rows.
-
-## Commands
+## Gates
 
 ```bash
-npm run serve
-npm run serve:static
-npm run check:autonomy
-npm run autonomy:data:plan -- --group pedestrian-topology --snapshot-date YYYY-MM-DD
-npm run autonomy:data:plan -- --group mobility-history --from YYYY-MM-01 --to YYYY-MM-01 --snapshot-date YYYY-MM-DD
-npm run autonomy:data:verify -- --receipt PATH/fetch-receipt.json
 npm run build:autonomy:data
-npm run eval:autonomy:reranker
+npm run check:autonomy
+node --test tests/autonomy.test.cjs
 npm run audit:autonomy:browser
-node tools/autonomy/run-browser-smoke.mjs --viewport 390x844 --check
-node tools/autonomy/run-browser-smoke.mjs --url https://simulatte.world/ --check
-npm run samer:autonomy:check
-npm run samer:autonomy
-npm test
+npm run check:deploy
 ```
 
-Open `http://localhost:4173/` when using `npm run serve:static`. The compiler
-remains available at `http://localhost:4173/blank/`; `/autonomy/` redirects to
-the root Simulatte runtime.
+`build:autonomy:data` regenerates derived artifacts from immutable promoted
+sources. `check:autonomy` revalidates source receipts, every manifest hash,
+world/index contracts, region composition, diagnostics, and deterministic
+policy evidence. The browser audit executes the deployed journey and inspects
+the WebGPU surface. A generated file is not active evidence until its manifest
+identity and hash pass the same gates.
 
-## Claim boundary
-
-The implemented evidence supports deterministic delivery-bike behavior and a
-pedestrian closed-circuit control over the pinned Villages and North Brooklyn
-map artifact in the named browser runtime. Distance, lap-count, and elapsed-
-time termination have separate exact settlement evidence. Delivery place
-correction and named-street avoidance retain source spans and graph evidence.
-For the exact 5,000-foot Union Square mission, the receipt binds the 0.3048
-conversion, source boundary, ordered segments, full laps, partial lap, and
-exact 1,524-meter settlement. The ambient four-kind traffic layer is animated,
-observation-visible
-simulation context; its paths are explicitly nonblocking until compiled from
-mode-legal topology. Frozen geometry provenance does not make authored traffic
-live or historical, and a park property boundary is not a surveyed sidewalk.
-The evidence does
-not establish physical bicycle or pedestrian control, robotaxi safety,
-public-road readiness, realistic traffic, or policy promotion.
+See [data ingestion](data-ingestion.md) for refresh and city-extension rules
+and [NYC navigation transfer](nyc-navigation-transfer.md) for the product and
+claim map.

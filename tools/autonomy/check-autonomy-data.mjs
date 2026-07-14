@@ -90,6 +90,15 @@ function main() {
   const policy = resolveReference(manifest, 'policy');
   const occurrenceCatalog = resolveReference(manifest, 'occurrenceCatalog');
   const rerankerEvidence = resolveReference(manifest, 'rerankerEvidence');
+  const modelRuntimeLock = resolveReference(manifest, 'modelRuntimeLock');
+  const placeEmbeddingIndex = resolveReference(manifest, 'placeEmbeddingIndex');
+  const placeResolutionEvidence = resolveReference(manifest, 'placeResolutionEvidence');
+  const accessibilityIndex = resolveReference(manifest, 'accessibilityIndex');
+  const routeAmenityIndex = resolveReference(manifest, 'routeAmenityIndex');
+  const safetyHistoryIndex = resolveReference(manifest, 'safetyHistoryIndex');
+  const curriculum = resolveReference(manifest, 'curriculum');
+  const worldSnapshotRegistry = resolveReference(manifest, 'worldSnapshotRegistry');
+  const policyArenaEvidence = resolveReference(manifest, 'policyArenaEvidence');
   const regionRegistry = resolveReference(manifest, 'regionRegistry');
   const registryFile = path.resolve(path.dirname(MANIFEST_PATH), manifest.regionRegistry.path);
   contracts.validateRegionRegistry(regionRegistry);
@@ -111,6 +120,15 @@ function main() {
     embodiment: manifest.embodiments.find((row) => row.id === manifest.defaultEmbodimentId).sha256,
     policy: manifest.policy.sha256,
   });
+  contracts.validateModelRuntimeLock(modelRuntimeLock);
+  contracts.validatePlaceEmbeddingIndex(placeEmbeddingIndex, modelRuntimeLock);
+  contracts.validatePlaceResolutionEvidence(placeResolutionEvidence, placeEmbeddingIndex, modelRuntimeLock);
+  contracts.validateAccessibilityIndex(accessibilityIndex, world, manifest.world.sha256);
+  contracts.validateRouteAmenityIndex(routeAmenityIndex, world, manifest.world.sha256);
+  contracts.validateSafetyHistoryIndex(safetyHistoryIndex, world, manifest.world.sha256);
+  contracts.validateCurriculum(curriculum, world);
+  contracts.validateWorldSnapshotRegistry(worldSnapshotRegistry, world);
+  contracts.validatePolicyArenaEvidence(policyArenaEvidence);
   publicAutonomyJavaScript().forEach((file) => {
     const lineCount = fs.readFileSync(file, 'utf8').split(/\r?\n/).length;
     if (lineCount > 999) throw new Error(`${path.relative(ROOT, file)} has ${lineCount} lines; maximum is 999`);

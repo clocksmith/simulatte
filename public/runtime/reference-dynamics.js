@@ -58,14 +58,17 @@
       embodiment.dimensions.collisionRadiusM,
       policy.safety.nearbyActorRadiusM
     );
-    const willArrive = mission.task.type === 'delivery' && next.currentNodeId === mission.destinationNodeId && !next.currentSegmentId;
+    const finalStopPending = mission.task.type !== 'loop'
+      && next.remainingStopNodeIds.length === 1
+      && next.remainingStopNodeIds[0] === mission.destinationNodeId;
+    const willArrive = finalStopPending && next.currentNodeId === mission.destinationNodeId && !next.currentSegmentId;
     const reachedLoopTarget = loopTerminationReached(next, mission);
     const willComplete = willArrive || reachedLoopTarget;
     const completionReason = willArrive ? 'destination_reached' : reachedLoopTarget ? loopCompletionReason(mission) : null;
     if (willComplete) {
       next.status = 'completed';
       next.speedMps = 0;
-      if (willArrive) next.payloadStatus = 'delivered';
+      if (willArrive && mission.task.type === 'delivery') next.payloadStatus = 'delivered';
     }
     return {
       schema: 'simulatte.autonomyTransition.v2',

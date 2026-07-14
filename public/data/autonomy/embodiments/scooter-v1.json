@@ -1,0 +1,30 @@
+{
+  "schema": "simulatte.autonomyEmbodiment.v2",
+  "id": "scooter-v1",
+  "contentVersion": "scooter-v1",
+  "label": "Electric scooter",
+  "mode": "scooter",
+  "kind": "scooter",
+  "renderProfile": "scooter",
+  "supportedTaskTypes": ["delivery", "point_to_point"],
+  "dimensions": {
+    "lengthM": 1.15,
+    "widthM": 0.5,
+    "collisionRadiusM": 0.8
+  },
+  "dynamics": {
+    "maximumSpeedMps": 5.5,
+    "normalAccelerationMps2": 1.1,
+    "strongAccelerationMps2": 1.6,
+    "comfortableDecelerationMps2": 2.2,
+    "emergencyDecelerationMps2": 4.5,
+    "integrationStepSeconds": 1
+  },
+  "requiredCapabilities": [
+    "route_following",
+    "signal_compliance",
+    "pedestrian_yield",
+    "blocked_segment_replan"
+  ],
+  "claimBoundary": "This is a deterministic scooter simulation over OSM-tag-derived eligible streets. It is not a legal-route opinion or a controller for a physical scooter."
+}

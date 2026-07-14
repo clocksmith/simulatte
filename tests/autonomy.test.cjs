@@ -18,7 +18,10 @@ const capabilityApi = require('../public/mission/capability-matrix.js');
 const worldApi = require('../public/world/world-model.js');
 const routePlanner = require('../public/world/route-planner.js');
 const controllerApi = require('../public/runtime/autonomy-controller.js');
+const counterfactualApi = require('../public/runtime/counterfactual-runner.js');
 const dataLoader = require('../public/runtime/data-loader.js');
+const journeyLedgerApi = require('../public/runtime/journey-ledger.js');
+const neuralPlaceCore = require('../public/runtime/neural-place-resolution-core.js');
 const runtimeLog = require('../public/runtime/runtime-log.js');
 const featureRetrieval = require('../public/runtime/feature-retrieval.js');
 const occurrenceApi = require('../public/runtime/occurrence-engine.js');
@@ -57,6 +60,7 @@ function assets() {
 function governedAssets() {
   const manifest = readJson('public/data/autonomy/autonomy-manifest.json');
   const embodiments = manifest.embodiments.map((reference) => readJson(`public/data/autonomy/${reference.path.replace(/^\.\//, '')}`));
+  const referenced = (key) => JSON.parse(fs.readFileSync(path.resolve(dataDir, manifest[key].path), 'utf8'));
   return {
     manifest,
     world: readJson(`public/data/autonomy/${manifest.world.path.replace(/^\.\//, '')}`),
@@ -68,6 +72,15 @@ function governedAssets() {
     occurrenceCatalog: readJson(`public/data/autonomy/${manifest.occurrenceCatalog.path.replace(/^\.\//, '')}`),
     rerankerEvidence: readJson(`public/data/autonomy/${manifest.rerankerEvidence.path.replace(/^\.\//, '')}`),
     regionRegistry: readJson(`public/data/autonomy/${manifest.regionRegistry.path.replace(/^\.\//, '')}`),
+    accessibilityIndex: readJson(`public/data/autonomy/${manifest.accessibilityIndex.path.replace(/^\.\//, '')}`),
+    routeAmenityIndex: readJson(`public/data/autonomy/${manifest.routeAmenityIndex.path.replace(/^\.\//, '')}`),
+    safetyHistoryIndex: readJson(`public/data/autonomy/${manifest.safetyHistoryIndex.path.replace(/^\.\//, '')}`),
+    curriculum: readJson(`public/data/autonomy/${manifest.curriculum.path.replace(/^\.\//, '')}`),
+    worldSnapshotRegistry: readJson(`public/data/autonomy/${manifest.worldSnapshotRegistry.path.replace(/^\.\//, '')}`),
+    placeEmbeddingIndex: referenced('placeEmbeddingIndex'),
+    placeResolutionEvidence: referenced('placeResolutionEvidence'),
+    modelRuntimeLock: referenced('modelRuntimeLock'),
+    policyArenaEvidence: referenced('policyArenaEvidence'),
   };
 }
 
@@ -85,6 +98,9 @@ function makeController(rows = assets(), mission = compileDefaultMission(rows), 
     world: rows.world,
     featureCatalog: rows.featureCatalog,
     occurrenceCatalog: rows.occurrenceCatalog,
+    accessibilityIndex: rows.accessibilityIndex,
+    routeAmenityIndex: rows.routeAmenityIndex,
+    safetyHistoryIndex: rows.safetyHistoryIndex,
     embodiment,
     policy: rows.policy,
     mission,
@@ -124,8 +140,17 @@ test('autonomy manifest pins and validates every governed asset', () => {
   const composition = regionApi.mergeRegionPacks(rows.regionRegistry, regionPacks);
   assert.equal(crypto.createHash('sha256').update(dataLoader.artifactText(composition.world)).digest('hex'), rows.manifest.world.sha256);
   assert.equal(crypto.createHash('sha256').update(dataLoader.artifactText(composition.featureCatalog)).digest('hex'), rows.manifest.featureCatalog.sha256);
-  assert.equal(composition.receipt.seamNodeIds.length, 27);
-  for (const key of ['world', 'policy', 'featureCatalog', 'occurrenceCatalog', 'rerankerEvidence', 'regionRegistry']) {
+  assert.equal(composition.receipt.seamNodeIds.length, 98);
+  contracts.validateAccessibilityIndex(rows.accessibilityIndex, rows.world, rows.manifest.world.sha256);
+  contracts.validateRouteAmenityIndex(rows.routeAmenityIndex, rows.world, rows.manifest.world.sha256);
+  contracts.validateSafetyHistoryIndex(rows.safetyHistoryIndex, rows.world, rows.manifest.world.sha256);
+  contracts.validateCurriculum(rows.curriculum, rows.world);
+  contracts.validateWorldSnapshotRegistry(rows.worldSnapshotRegistry, rows.world);
+  contracts.validatePlaceEmbeddingIndex(rows.placeEmbeddingIndex, rows.modelRuntimeLock, rows.world, rows.manifest.world.sha256);
+  contracts.validatePlaceResolutionEvidence(rows.placeResolutionEvidence, rows.placeEmbeddingIndex, rows.modelRuntimeLock);
+  contracts.validateModelRuntimeLock(rows.modelRuntimeLock);
+  contracts.validatePolicyArenaEvidence(rows.policyArenaEvidence);
+  for (const key of ['world', 'policy', 'featureCatalog', 'occurrenceCatalog', 'rerankerEvidence', 'regionRegistry', 'accessibilityIndex', 'routeAmenityIndex', 'safetyHistoryIndex', 'curriculum', 'worldSnapshotRegistry', 'placeEmbeddingIndex', 'placeResolutionEvidence', 'modelRuntimeLock', 'policyArenaEvidence']) {
     const reference = rows.manifest[key];
     const file = path.resolve(dataDir, reference.path);
     assert.equal(hashFile(file), reference.sha256, `${key} raw bytes should match the manifest`);
@@ -150,12 +175,13 @@ test('autonomy manifest pins and validates every governed asset', () => {
   ]);
   assert.ok(rows.world.renderGeometry.parks.every((row) => row.source.selectionMethod === 'all_exterior_members_v1'));
   assert.ok(rows.world.renderGeometry.parks.every((row) => /does not authorize traversal/i.test(row.source.claimBoundary)));
-  assert.equal(rows.world.circuits.length, 1);
-  assert.equal(rows.world.circuits[0].source.propertyId, 'M089');
-  assert.equal(rows.world.circuits[0].source.memberCount, 2);
-  assert.equal(rows.world.circuits[0].source.selectionMethod, 'largest_projected_exterior_ring_area_v1');
-  assert.match(rows.world.circuits[0].source.geometryWgs84Sha256, /^[a-f0-9]{64}$/);
-  assert.ok(rows.world.circuits[0].lengthM > 640 && rows.world.circuits[0].lengthM < 660);
+  assert.equal(rows.world.circuits.length, 4);
+  assert.deepEqual(rows.world.circuits.map((row) => row.source.propertyId).sort(), ['B058', 'M088', 'M089', 'M098']);
+  const unionCircuit = rows.world.circuits.find((row) => row.source.propertyId === 'M089');
+  assert.equal(unionCircuit.source.memberCount, 2);
+  assert.equal(unionCircuit.source.selectionMethod, 'largest_projected_exterior_ring_area_v1');
+  assert.match(unionCircuit.source.geometryWgs84Sha256, /^[a-f0-9]{64}$/);
+  assert.ok(unionCircuit.lengthM > 640 && unionCircuit.lengthM < 660);
   assert.match(rows.world.provenance.sources.bike.rawSha256, /^[a-f0-9]{64}$/);
   assert.equal(rows.world.scenario.liveConditionsUsed, false);
 });
@@ -172,11 +198,12 @@ test('autonomy data manager separates fetch plans, historical backfills, verific
   });
   assert.equal(snapshotPlan.mode, 'snapshot_refresh');
   assert.deepEqual(snapshotPlan.sourceIds, [
+    'nyc-pedestrian-ramps',
     'nyc-planimetric-curbs',
     'nyc-planimetric-sidewalks',
     'nyc-raised-crosswalks',
   ]);
-  assert.equal(snapshotPlan.requests.length, 3);
+  assert.equal(snapshotPlan.requests.length, 4);
   assert.ok(snapshotPlan.requests.every((row) => row.dataClass === 'map_fact'));
   assert.ok(snapshotPlan.requests.every((row) => row.entryGate.length > 20));
   assert.match(snapshotPlan.planSha256, /^[a-f0-9]{64}$/);
@@ -375,7 +402,7 @@ test('mission shuffle cycles deterministic governed examples that all compile', 
   assert.ok(rows.manifest.missionExamples.includes(rows.manifest.defaultMissionText));
   rows.manifest.missionExamples.forEach((sourceText) => {
     const mission = missionApi.compileMission(sourceText, rows.world, rows.embodiments);
-    assert.ok(['delivery', 'loop'].includes(mission.task.type), sourceText);
+    assert.ok(['delivery', 'point_to_point', 'loop'].includes(mission.task.type), sourceText);
   });
   const visited = [];
   let current = rows.manifest.defaultMissionText;
@@ -497,7 +524,7 @@ test('mission compiler grounds known labels to source intervals and fails closed
 test('loop mission corrects the exact prompt, converts feet, and grounds the pinned park boundary', () => {
   const rows = governedAssets();
   const mission = missionApi.compileMission(UNION_SQUARE_LOOP, rows.world, rows.embodiments);
-  const circuit = rows.world.circuits[0];
+  const circuit = rows.world.circuits.find((row) => row.id === 'union-square-park-perimeter-v1');
   assert.equal(mission.schema, 'simulatte.autonomyMission.v3');
   assert.equal(mission.task.type, 'loop');
   assert.equal(mission.embodimentId, 'pedestrian-v1');
@@ -530,23 +557,22 @@ test('capability matrix keeps embodiment, mission family, and governed artifacts
   assert.equal(row('pedestrian:closed_circuit').supported, true);
   assert.deepEqual(row('pedestrian:closed_circuit').terminationKinds, ['distance', 'laps', 'duration']);
   assert.ok(row('pedestrian:closed_circuit').circuitIds.includes('union-square-park-perimeter-v1'));
-  assert.equal(row('pedestrian:point_to_point').supported, false);
-  assert.ok(row('pedestrian:point_to_point').blockingReasons.includes('routable_graph_not_registered'));
+  assert.equal(row('pedestrian:point_to_point').supported, true);
   assert.equal(row('bicycle:closed_circuit').supported, false);
   assert.ok(row('bicycle:closed_circuit').blockingReasons.includes('circuit_artifact_not_registered'));
   for (const kind of ['scooter', 'car']) {
-    assert.ok(row(`${kind}:delivery`).blockingReasons.includes('embodiment_not_registered'));
-    assert.throws(
-      () => missionApi.compileMission(`Deliver the parcel by ${kind} from Union Square to North Williamsburg.`, rows.world, rows.embodiments),
-      (error) => error.code === 'capability_not_available' && error.evidence.row.embodimentKind === kind
-    );
+    assert.equal(row(`${kind}:delivery`).supported, true);
+    assert.equal(row(`${kind}:point_to_point`).supported, true);
+    const mission = missionApi.compileMission(`Deliver the parcel by ${kind} from Union Square to North Williamsburg.`, rows.world, rows.embodiments);
+    assert.equal(mission.embodimentId, `${kind}-v1`);
   }
 });
 
 test('closed-circuit missions settle exact lap-count and elapsed-time goals through one controller', async () => {
   const rows = governedAssets();
   const lapMission = missionApi.compileMission('Run 2 laps around Union Square Park perimeter.', rows.world, rows.embodiments);
-  assert.deepEqual(lapMission.task.termination, { kind: 'laps', targetLaps: 2, targetDistanceM: Number((rows.world.circuits[0].lengthM * 2).toFixed(9)) });
+  const unionCircuit = rows.world.circuits.find((row) => row.id === 'union-square-park-perimeter-v1');
+  assert.deepEqual(lapMission.task.termination, { kind: 'laps', targetLaps: 2, targetDistanceM: Number((unionCircuit.lengthM * 2).toFixed(9)) });
   const lapController = makeController(rows, lapMission);
   await lapController.run();
   const lapReceipt = await lapController.journeyReceipt();
@@ -618,7 +644,7 @@ test('delivery canonicalizes governed place typos and proves named routed-street
     policy: rows.policy,
   });
   assert.deepEqual(bedfordMission.constraints.avoidStreetNames, ['Bedford Avenue']);
-  assert.equal(bedfordMission.parser.evidence.find((row) => row.field === 'streetAvoidance').method, 'exact_world_street');
+  assert.equal(bedfordMission.parser.evidence.find((row) => row.field === 'streetAvoidance').method, 'exact_routed_street');
   assert.deepEqual(bedfordRoute.excludedStreetSegmentIds, []);
   assert.ok(bedfordRoute.segmentIds.every((id) => routePlanner.normalizeStreetName(rows.world.segments.find((segment) => segment.id === id).source.street) !== 'bedford av'));
 });
@@ -879,6 +905,202 @@ test('receipt verification rejects a changed tick payload', async () => {
   assert.equal(result.reason, 'entry_hash_mismatch');
 });
 
+test('pedestrian, bicycle, scooter, and car share one point-to-point planner and controller', async () => {
+  const rows = governedAssets();
+  const cases = [
+    ['Walk from Union Square to Washington Square.', 'pedestrian-v1'],
+    ['Bike from Union Square to Washington Square.', 'delivery-bike-v1'],
+    ['Ride a scooter from Union Square to Washington Square.', 'scooter-v1'],
+    ['Drive from Union Square to Washington Square.', 'car-v1'],
+  ];
+  for (const [sourceText, embodimentId] of cases) {
+    const mission = missionApi.compileMission(sourceText, rows.world, rows.embodiments);
+    assert.equal(mission.task.type, 'point_to_point');
+    assert.equal(mission.embodimentId, embodimentId);
+    const controller = makeController(rows, mission);
+    const planning = controller.planning();
+    assert.equal(planning.alternatives[0].schema, 'simulatte.autonomyJourneyRoutePlan.v1');
+    assert.equal(planning.alternatives[0].legs.length, 1);
+    await controller.run();
+    const receipt = await controller.journeyReceipt();
+    assert.equal(receipt.finalState.status, 'completed', sourceText);
+    assert.equal(receipt.verification.pass, true, sourceText);
+    assert.equal(receipt.settlement.orderedStops.completedStopNodeIds.length, 1);
+  }
+});
+
+test('ordered stops, return trips, timing, and gig compensation settle as typed obligations', async () => {
+  const rows = governedAssets();
+  const sourceText = 'Deliver the parcel by bike from Union Square to East Village, then Tompkins Square, then return to Union Square for $25.';
+  const mission = missionApi.compileMission(sourceText, rows.world, rows.embodiments);
+  assert.equal(mission.task.stopNodeIds.length, 3);
+  assert.equal(mission.task.stopNodeIds.at(-1), mission.originNodeId);
+  assert.equal(mission.economics.amountCents, 2500);
+  const controller = makeController(rows, mission);
+  assert.equal(controller.planning().alternatives[0].legs.length, 3);
+  await controller.run();
+  const receipt = await controller.journeyReceipt();
+  assert.equal(receipt.finalState.status, 'completed');
+  assert.deepEqual(receipt.settlement.orderedStops.completedStopNodeIds, mission.task.stopNodeIds);
+  assert.equal(receipt.settlement.economics.declaredGrossAmountCents, 2500);
+  assert.ok(receipt.settlement.economics.grossHourlyCents > 0);
+  assert.equal(receipt.verification.obligations.find((row) => row.kind === 'ordered_stops').pass, true);
+
+  const daylight = missionApi.compileMission(
+    'Walk from Tompkins Square to Washington Square starting at 9 pm and arrive by 10 pm, only in daylight.',
+    rows.world,
+    rows.embodiments
+  );
+  const refused = makeController(rows, daylight);
+  assert.equal(refused.snapshot().state.status, 'failed');
+  assert.equal(refused.snapshot().state.terminalReason, 'daylight_departure_outside_window');
+  assert.equal(refused.snapshot().state.distanceTraveledM, 0);
+
+  const inWindow = missionApi.compileMission(
+    'Walk from Tompkins Square to Washington Square starting at 4 pm and arrive by 5 pm, only in daylight.',
+    rows.world,
+    rows.embodiments
+  );
+  const inWindowController = makeController(rows, inWindow);
+  await inWindowController.run();
+  const inWindowReceipt = await inWindowController.journeyReceipt();
+  assert.equal(inWindowReceipt.finalState.status, 'completed');
+  assert.equal(inWindowReceipt.verification.obligations.find((row) => row.kind === 'arrival_deadline').pass, true);
+  assert.equal(inWindowReceipt.verification.obligations.find((row) => row.kind === 'daylight_window').pass, true);
+});
+
+test('amenity and accessibility requests use pinned evidence and fail closed with exact blockers', () => {
+  const rows = governedAssets();
+  const rackMission = missionApi.compileMission(
+    'Bike from Union Square to Washington Square and keep me within 200 meters of a bike rack.',
+    rows.world,
+    rows.embodiments
+  );
+  const rackPlanning = makeController(rows, rackMission).planning();
+  assert.equal(rackPlanning.amenities.status, 'supported');
+  assert.equal(rackPlanning.amenities.requestedMaximumDistanceM, 200);
+  assert.ok(rackPlanning.amenities.maximumObservedDistanceM <= 200);
+  assert.match(rackPlanning.amenities.identities.sourceReceiptSha256, /^[a-f0-9]{64}$/);
+  const impossibleRackMission = missionApi.compileMission(
+    'Bike from Union Square to Washington Square and keep me within 1 meter of a bike rack.',
+    rows.world,
+    rows.embodiments
+  );
+  assert.throws(
+    () => makeController(rows, impossibleRackMission),
+    (error) => error.code === 'route_not_found' && error.evidence.excludedAmenitySegmentIds.length > 0
+  );
+
+  const wheelchair = missionApi.compileMission('Roll in a wheelchair from Union Square to Washington Square.', rows.world, rows.embodiments);
+  const accessibilityController = makeController(rows, wheelchair);
+  const audit = accessibilityController.planning().accessibility;
+  assert.equal(accessibilityController.snapshot().state.terminalReason, 'accessibility_route_not_supported');
+  assert.equal(audit.enforced, true);
+  assert.equal(audit.verdict, 'blocked');
+  assert.ok(audit.failures.failedRamps.length > 0);
+  assert.ok(audit.failures.failedRamps[0].rampId);
+  assert.match(audit.identities.sourceReceiptSha256, /^[a-f0-9]{64}$/);
+});
+
+test('historical crash weighting produces a matched counterfactual without becoming a safest-route claim', async () => {
+  const rows = governedAssets();
+  const mission = missionApi.compileMission('Drive from Union Square to North Williamsburg.', rows.world, rows.embodiments);
+  const receipt = await counterfactualApi.compareCounterfactual({
+    world: rows.world,
+    featureCatalog: rows.featureCatalog,
+    occurrenceCatalog: rows.occurrenceCatalog,
+    accessibilityIndex: rows.accessibilityIndex,
+    routeAmenityIndex: rows.routeAmenityIndex,
+    safetyHistoryIndex: rows.safetyHistoryIndex,
+    embodiment: rows.embodiments.find((row) => row.id === mission.embodimentId),
+    policy: rows.policy,
+    mission,
+    intervention: { id: 'history-weight-test', kind: 'historical_crash_weighting', historicalObservationWeight: 1 },
+  });
+  assert.equal(receipt.baseline.status, 'completed');
+  assert.equal(receipt.challenger.status, 'completed');
+  assert.equal(receipt.baseline.safetyHistory.appliedToSelection, false);
+  assert.equal(receipt.challenger.safetyHistory.appliedToSelection, true);
+  assert.ok(receipt.diff.historicalCrashDelta < 0);
+  assert.ok(receipt.diff.routeJaccard < 1);
+  assert.match(receipt.claimBoundary, /does not predict live traffic/i);
+  assert.match(receipt.challenger.safetyHistory.claimBoundary, /does not prove causality/i);
+  assert.match(receipt.integrity.payloadSha256, /^[a-f0-9]{64}$/);
+});
+
+test('unloaded dated worlds retain baseline evidence and emit a named refusal', async () => {
+  const rows = assets();
+  const mission = compileDefaultMission(rows);
+  const receipt = await counterfactualApi.compareCounterfactual({
+    ...rows,
+    mission,
+    intervention: { id: 'world-2019-test', kind: 'world_snapshot', snapshotDate: '2019-07-13' },
+  });
+  assert.equal(receipt.baseline.status, 'completed');
+  assert.equal(receipt.challenger.status, 'refused');
+  assert.equal(receipt.challenger.terminalReason, 'snapshot_not_loaded');
+  assert.ok(receipt.baseline.journeyReceiptSha256);
+  assert.equal(receipt.diff.actualDurationDeltaSeconds, null);
+});
+
+test('local settlement ledger, receipt import, and curriculum progress verify hashes before reuse', async () => {
+  const rows = assets();
+  const controller = makeController(rows);
+  await controller.run();
+  const journey = await controller.journeyReceipt();
+  assert.equal((await appApi.validateImportedJourneyReceipt(journey, receipts)).pass, true);
+  const tamperedJourney = structuredClone(journey);
+  tamperedJourney.trace[0].payload.tick += 1;
+  await assert.rejects(() => appApi.validateImportedJourneyReceipt(tamperedJourney, receipts), /failed verification/);
+
+  const rowsByKey = new Map();
+  const storage = {
+    getItem: (key) => rowsByKey.get(key) || null,
+    setItem: (key, value) => rowsByKey.set(key, value),
+    removeItem: (key) => rowsByKey.delete(key),
+  };
+  const ledger = journeyLedgerApi.createJourneyLedger({ storage, now: () => '2026-07-13T12:00:00.000Z' });
+  await ledger.append(journey);
+  const summary = await ledger.summary();
+  assert.equal(summary.trialCount, 1);
+  assert.equal(summary.verifiedCount, 1);
+  assert.equal(summary.privacy, 'browser_local_only');
+  const curriculum = {
+    schema: 'simulatte.autonomyCurriculum.v1', id: 'test-curriculum', claimBoundary: 'test only',
+    missions: [{ id: 'synthetic', sourceText: journey.mission.sourceText }],
+  };
+  assert.equal((await ledger.curriculumProgress(curriculum, journey.identities.worldContentVersion)).completedCount, 1);
+  const stored = JSON.parse(rowsByKey.get('simulatte.journeyLedger.v1'));
+  stored.entries[0].payload.actualDistanceM += 1;
+  rowsByKey.set('simulatte.journeyLedger.v1', JSON.stringify(stored));
+  const verification = await ledger.verify();
+  assert.equal(verification.pass, false);
+  assert.equal(verification.reason, 'ledger_hash_mismatch');
+  await assert.rejects(() => ledger.read(), /ledger_integrity_failed/);
+});
+
+test('neural place matching filters candidates by the active embodiment graph and remains diagnostic', () => {
+  const rows = governedAssets();
+  const decoded = {
+    embeddingDim: 2,
+    documents: [
+      { placeId: 'bike-place', nodeId: 'bike-node', label: 'Shared Place' },
+      { placeId: 'street-place', nodeId: 'street-node', label: 'Shared Place' },
+    ],
+    vectors: [Float32Array.from([1, 0]), Float32Array.from([0.99, 0.1])],
+  };
+  const ranking = neuralPlaceCore.rankVector([1, 0], decoded, 5, ['street-node']);
+  assert.deepEqual(ranking.map((row) => row.nodeId), ['street-node']);
+  assert.equal(rows.modelRuntimeLock.embedding.modelType, 'embedding');
+  assert.equal(rows.placeResolutionEvidence.population.promotionEligible, false);
+  assert.equal(rows.placeResolutionEvidence.accepted, true);
+  assert.ok(rows.placeResolutionEvidence.lanes.challenger.metrics.correct > rows.placeResolutionEvidence.lanes.control.metrics.correct);
+  assert.equal(rows.placeResolutionEvidence.lanes.challenger.guardrails.mustRefuseViolations, 0);
+  contracts.validatePolicyArenaEvidence(rows.policyArenaEvidence);
+  assert.equal(rows.policyArenaEvidence.diagnosticSelection.status, 'diagnostic_leader_only');
+  assert.equal(rows.policyArenaEvidence.promotion.status, 'blocked');
+});
+
 test('agent stops with a failure receipt when every candidate fails safety', async () => {
   const rows = assets();
   rows.policy.safety.minimumPedestrianClearanceM = 33;
@@ -907,11 +1129,11 @@ test('browser loader verifies raw hashes and rejects tampered assets', async () 
   };
   const loaded = await dataLoader.loadAutonomyData('http://localhost/data/autonomy/autonomy-manifest.json', fetchFiles);
   assert.equal(loaded.world.id, 'nyc-core-autonomy-v1');
-  assert.deepEqual(loaded.embodiments.map((row) => row.id), ['delivery-bike-v1', 'pedestrian-v1']);
+  assert.deepEqual(loaded.embodiments.map((row) => row.id), ['delivery-bike-v1', 'pedestrian-v1', 'scooter-v1', 'car-v1']);
   assert.equal(loaded.defaultEmbodiment.id, 'delivery-bike-v1');
   assert.equal(loaded.receipt.assets.policy.sha256, loaded.manifest.policy.sha256);
   assert.deepEqual(loaded.regionComposition.packIds, ['manhattan-villages-v1', 'east-river-crossing-v1', 'north-brooklyn-v1']);
-  assert.equal(loaded.regionComposition.seamNodeIds.length, 27);
+  assert.equal(loaded.regionComposition.seamNodeIds.length, 98);
   assert.equal(loaded.regionRegistry.id, loaded.manifest.regionRegistry.id);
   assert.equal(loaded.regionPacks.length, 3);
   assert.ok(requests.length > 8);
@@ -1035,7 +1257,7 @@ test('autonomy schemas are restrictive and SAME-R declares one intervention', as
   assert.equal(contract.matchedOperationDetails.evaluationOrder, 'scenario_then_lane_then_repetition');
   assert.equal(contract.matchedOperationDetails.modelIdentity, null);
   assert.equal(contract.matchedOperationDetails.adapterIdentity, null);
-  assert.equal(contract.matchedOperationDetails.runtimeSourcePaths.length, 19);
+  assert.equal(contract.matchedOperationDetails.runtimeSourcePaths.length, 20);
   assert.deepEqual(contract.causalContract.blockingGuardrails, [
     'zero_safety_violations',
     'all_required_obligations_pass',
@@ -1050,7 +1272,7 @@ test('autonomy schemas are restrictive and SAME-R declares one intervention', as
   assert.equal(scenarios.population, 'public_diagnostic');
   const runner = await import(pathToFileURL(path.join(root, 'tools/samer/autonomy/run-policy-trial.mjs')));
   const sourceIdentity = runner.hashRuntimeSources(contract.matchedOperationDetails.runtimeSourcePaths);
-  assert.equal(sourceIdentity.files.length, 19);
+  assert.equal(sourceIdentity.files.length, 20);
   assert.match(sourceIdentity.aggregateSha256, /^[a-f0-9]{64}$/);
   assert.ok(sourceIdentity.files.every((row) => /^[a-f0-9]{64}$/.test(row.sha256)));
   assert.equal(runner.isSaturated([], contract.budget), false);

@@ -1,0 +1,30 @@
+{
+  "schema": "simulatte.autonomyEmbodiment.v2",
+  "id": "car-v1",
+  "contentVersion": "car-v1",
+  "label": "Passenger car",
+  "mode": "car",
+  "kind": "car",
+  "renderProfile": "car",
+  "supportedTaskTypes": ["delivery", "point_to_point"],
+  "dimensions": {
+    "lengthM": 4.3,
+    "widthM": 1.85,
+    "collisionRadiusM": 2.35
+  },
+  "dynamics": {
+    "maximumSpeedMps": 11.2,
+    "normalAccelerationMps2": 1.7,
+    "strongAccelerationMps2": 2.6,
+    "comfortableDecelerationMps2": 3.2,
+    "emergencyDecelerationMps2": 7,
+    "integrationStepSeconds": 1
+  },
+  "requiredCapabilities": [
+    "route_following",
+    "signal_compliance",
+    "pedestrian_yield",
+    "blocked_segment_replan"
+  ],
+  "claimBoundary": "This is a deterministic car simulation over OSM-tag-derived eligible streets. It is not a legal-route opinion, live traffic model, robotaxi safety case, or physical vehicle controller."
+}

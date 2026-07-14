@@ -18,42 +18,74 @@ sharing governed data and repository tooling where their contracts agree.
 
 ## Simulatte
 
-One embodied agent at a time, a delivery bicycle or a pedestrian runner,
-executes natural-language missions in a real-data New York world, entirely in
-the browser on WebGPU. The product is the decision loop, not the route:
+Simulatte is a local-first, governed NYC navigation simulator. Maps answers
+"how do I get there?" Simulatte executes "what would happen if?" and returns
+the route, every autonomous choice, the simulated outcome, and the evidence
+needed to inspect that outcome. It runs in the browser on WebGPU and does not
+send mission text or journey ledgers to a server.
 
 ```text
-mission -> observe -> propose action bets -> predict -> safety gate
-        -> select -> execute -> settle -> update memory -> observe
+language -> grounded mission -> candidate routes -> action bets -> safety gates
+         -> selected action -> reference dynamics -> settlement -> receipt chain
 ```
 
-A generated route is not autonomy proof. A qualifying journey needs repeated
-closed-loop decisions, validated state transitions, hard-gate compliance,
-settled predictions, terminal completion, and a verified receipt chain.
+The same controller and A* planner execute pedestrian, bicycle, scooter, and
+car journeys. Embodiment files provide mode-specific dimensions, dynamics,
+speed limits, rendering, and graph eligibility. Missions currently cover
+point-to-point travel, bicycle delivery, ordered stops and return trips,
+declared park circuits, distance, lap and duration goals, named-street
+avoidance, deadlines, daylight windows, gross compensation, bicycle-rack
+proximity, and wheelchair requests. Unsupported requests fail with named
+evidence instead of being guessed.
 
 Every stage is contract-typed: [mission](public/contracts/mission.schema.json),
 [observation](public/contracts/observation.schema.json),
 [action bet](public/contracts/action-bet.schema.json),
 [settlement](public/contracts/settlement.schema.json), and
-[journey receipt](public/contracts/journey-receipt.schema.json).
+[journey receipt](public/contracts/journey-receipt.schema.json). Journey
+receipts can be exported, verified, imported, and replayed. A browser-local
+SHA-256 ledger accumulates settled ETA error, mode results, and curriculum
+progress without a network write.
 
 The active `nyc-core-autonomy-v1` world is compiled from pinned public
-sources. It carries 2,491 multimodal nodes, 3,723 directed segments, 6,589 OSM
-street ways, an 8,500-footprint building render set, and 13,062 feature cards.
-Its three region packs span ten grounded places from the West Village through
-North Brooklyn. Four official NYC Parks properties contribute nine rendered
-exterior boundaries: McCarren, Tompkins Square, Union Square, and Washington
-Square. Only the separately validated Union Square boundary is an executable
-pedestrian circuit. Every source retains authority, license, query, snapshot
-date, and SHA-256 provenance.
+sources. It contains 11,286 multimodal nodes, 28,638 directed segments, 6,587
+rendered OSM street ways, 8,500 building footprints, 13,185 feature cards, 20
+mode-specific grounded place nodes, four declared park circuits, and 98 exact
+seams across three region packs. The current footprint spans the West Village,
+Union Square, East Village, the Williamsburg Bridge corridor, Williamsburg,
+McCarren Park, Greenpoint, and nearby streets. Every source retains authority,
+query, snapshot date, byte hashes, and a claim boundary.
 
-Current missions include bicycle delivery between grounded places, protected
-lane preference, pedestrian yielding, named-street avoidance, and pedestrian
-Union Square loops terminated by distance, lap count, or elapsed time. The UI
-shuffles only examples that compile against those registered capabilities. A
-5,000 ft mission settles at exactly 1,524 m. Scooter and car share the
-renderer and ambient animation contract but fail closed as controlled agents
-until eligible embodiments and roadway graphs are registered.
+The data layer also pins 9,359 NYC DOT bicycle-parking rows, 11,603 NYC DOT
+pedestrian-ramp rows, and 5,131 reported NYPD crashes from July 2025 through
+June 2026. Rack proximity is geometry evidence, not availability. Ramp
+measurements are not ADA determinations. Crash joins have no exposure
+denominator and therefore support historical-observation counterfactuals, not
+"safest route" or live-risk claims.
+
+Simulatte can compare a baseline journey with one declared intervention:
+closing a routed street, weighting the pinned crash history, or requesting a
+dated world snapshot. Both lanes run through the same controller and return a
+matched diff. If the street, evidence index, or dated world is unavailable,
+the challenger refuses while retaining the baseline receipt. Current and
+future map worlds are never silently substituted for a historical street
+network.
+
+### What the models do
+
+The zero-download control resolves place names lexically, retrieves feature
+cards through an inverted index, and reranks them with typed deterministic
+rules. Route planning and every action decision are deterministic and do not
+use a language model.
+
+The optional neural place lane runs the pinned Qwen 3 Embedding 0.6B model
+locally through Doppler. It embeds only the origin or destination phrase and
+may select only a node already eligible for the chosen embodiment. It does not
+generate text, choose a route, operate the vehicle, or replace safety gates.
+Its checked-in public diagnostic score is 28/37 versus 21/37 for the lexical
+control, with zero must-refuse violations. That population is exposed and
+promotion-ineligible. The pinned Qwen reranker remains available to Blank; it
+is not falsely reported as executing in Simulatte's navigation decisions.
 
 | Module | Role |
 | --- | --- |
@@ -65,17 +97,7 @@ until eligible embodiments and roadway graphs are registered.
 | [`public/contracts/`](public/contracts/) | Schemas and contract validator |
 | [`public/data/autonomy/`](public/data/autonomy/) | Worlds, feature cards, embodiments, policies, evidence receipts |
 
-Simulatte navigation currently executes a deterministic lexical retrieval
-control lane and typed deterministic reranker. It does **not** load a neural
-embedding or reranking model. The pinned Qwen 3 Embedding 0.6B and Qwen 3
-Reranker 0.6B artifacts in
-[`model-runtime-lock.json`](public/data/simulatte-embedder/model-runtime-lock.json)
-are used by Blank's compiler pipeline. A future navigation model lane must
-bring its own compatible feature-card index and beat the current control on a
-frozen population before it can replace this lane.
-
 `tools/samer/autonomy/` compares action-selection approaches across matched
-public scenarios. Public diagnostic results cannot promote a policy or
 support a physical-world autonomy claim. Design docs live in
 [docs/autonomy/](docs/autonomy/README.md), including the
 [NYC navigation transfer](docs/autonomy/nyc-navigation-transfer.md) map.

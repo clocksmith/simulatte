@@ -1,0 +1,369 @@
+{
+  "schema": "simulatte.autonomyDataFetchReceipt.v1",
+  "plan": {
+    "schema": "simulatte.autonomyDataFetchPlan.v1",
+    "catalog": {
+      "id": "nyc-autonomy-source-catalog-v1",
+      "sha256": "b4336d4666c721c68c58ea12e18f967d33c8538a2e178dd1ae4a431674408701",
+      "path": "tools/autonomy/source-catalog-v1.json"
+    },
+    "mode": "historical_backfill",
+    "snapshotDate": "2026-07-13",
+    "bounds": {
+      "south": 40.705,
+      "west": -74.015,
+      "north": 40.745,
+      "east": -73.94
+    },
+    "sourceIds": [
+      "nyc-motor-vehicle-crashes"
+    ],
+    "requests": [
+      {
+        "id": "nyc-motor-vehicle-crashes:2025-07",
+        "sourceId": "nyc-motor-vehicle-crashes",
+        "group": "safety-history",
+        "dataClass": "observed_history",
+        "authority": "New York City Police Department",
+        "license": "NYC Open Data Terms of Use",
+        "transport": "socrata_json_temporal",
+        "url": "https://data.cityofnewyork.us/resource/h9gi-nx95.json?$limit=50000&$order=crash_date,crash_time,collision_id&$select=crash_date,crash_time,latitude,longitude,on_street_name,off_street_name,cross_street_name,number_of_persons_injured,number_of_persons_killed,number_of_pedestrians_injured,number_of_pedestrians_killed,number_of_cyclist_injured,number_of_cyclist_killed,number_of_motorist_injured,number_of_motorist_killed,collision_id&$where=crash_date >= '2025-07-01T00:00:00.000' and crash_date < '2025-08-01T00:00:00.000' and latitude between 40.705 and 40.745 and longitude between -74.015 and -73.94",
+        "output": "nyc-motor-vehicle-crashes-2025-07.json",
+        "period": "2025-07",
+        "bounds": null,
+        "capabilities": [
+          "historical_route_risk_candidate"
+        ],
+        "entryGate": "Bind collision ID, month, source snapshot, spatial-join method, exposure denominator, and missing-location rate. Crash counts alone cannot become a safest-route claim."
+      },
+      {
+        "id": "nyc-motor-vehicle-crashes:2025-08",
+        "sourceId": "nyc-motor-vehicle-crashes",
+        "group": "safety-history",
+        "dataClass": "observed_history",
+        "authority": "New York City Police Department",
+        "license": "NYC Open Data Terms of Use",
+        "transport": "socrata_json_temporal",
+        "url": "https://data.cityofnewyork.us/resource/h9gi-nx95.json?$limit=50000&$order=crash_date,crash_time,collision_id&$select=crash_date,crash_time,latitude,longitude,on_street_name,off_street_name,cross_street_name,number_of_persons_injured,number_of_persons_killed,number_of_pedestrians_injured,number_of_pedestrians_killed,number_of_cyclist_injured,number_of_cyclist_killed,number_of_motorist_injured,number_of_motorist_killed,collision_id&$where=crash_date >= '2025-08-01T00:00:00.000' and crash_date < '2025-09-01T00:00:00.000' and latitude between 40.705 and 40.745 and longitude between -74.015 and -73.94",
+        "output": "nyc-motor-vehicle-crashes-2025-08.json",
+        "period": "2025-08",
+        "bounds": null,
+        "capabilities": [
+          "historical_route_risk_candidate"
+        ],
+        "entryGate": "Bind collision ID, month, source snapshot, spatial-join method, exposure denominator, and missing-location rate. Crash counts alone cannot become a safest-route claim."
+      },
+      {
+        "id": "nyc-motor-vehicle-crashes:2025-09",
+        "sourceId": "nyc-motor-vehicle-crashes",
+        "group": "safety-history",
+        "dataClass": "observed_history",
+        "authority": "New York City Police Department",
+        "license": "NYC Open Data Terms of Use",
+        "transport": "socrata_json_temporal",
+        "url": "https://data.cityofnewyork.us/resource/h9gi-nx95.json?$limit=50000&$order=crash_date,crash_time,collision_id&$select=crash_date,crash_time,latitude,longitude,on_street_name,off_street_name,cross_street_name,number_of_persons_injured,number_of_persons_killed,number_of_pedestrians_injured,number_of_pedestrians_killed,number_of_cyclist_injured,number_of_cyclist_killed,number_of_motorist_injured,number_of_motorist_killed,collision_id&$where=crash_date >= '2025-09-01T00:00:00.000' and crash_date < '2025-10-01T00:00:00.000' and latitude between 40.705 and 40.745 and longitude between -74.015 and -73.94",
+        "output": "nyc-motor-vehicle-crashes-2025-09.json",
+        "period": "2025-09",
+        "bounds": null,
+        "capabilities": [
+          "historical_route_risk_candidate"
+        ],
+        "entryGate": "Bind collision ID, month, source snapshot, spatial-join method, exposure denominator, and missing-location rate. Crash counts alone cannot become a safest-route claim."
+      },
+      {
+        "id": "nyc-motor-vehicle-crashes:2025-10",
+        "sourceId": "nyc-motor-vehicle-crashes",
+        "group": "safety-history",
+        "dataClass": "observed_history",
+        "authority": "New York City Police Department",
+        "license": "NYC Open Data Terms of Use",
+        "transport": "socrata_json_temporal",
+        "url": "https://data.cityofnewyork.us/resource/h9gi-nx95.json?$limit=50000&$order=crash_date,crash_time,collision_id&$select=crash_date,crash_time,latitude,longitude,on_street_name,off_street_name,cross_street_name,number_of_persons_injured,number_of_persons_killed,number_of_pedestrians_injured,number_of_pedestrians_killed,number_of_cyclist_injured,number_of_cyclist_killed,number_of_motorist_injured,number_of_motorist_killed,collision_id&$where=crash_date >= '2025-10-01T00:00:00.000' and crash_date < '2025-11-01T00:00:00.000' and latitude between 40.705 and 40.745 and longitude between -74.015 and -73.94",
+        "output": "nyc-motor-vehicle-crashes-2025-10.json",
+        "period": "2025-10",
+        "bounds": null,
+        "capabilities": [
+          "historical_route_risk_candidate"
+        ],
+        "entryGate": "Bind collision ID, month, source snapshot, spatial-join method, exposure denominator, and missing-location rate. Crash counts alone cannot become a safest-route claim."
+      },
+      {
+        "id": "nyc-motor-vehicle-crashes:2025-11",
+        "sourceId": "nyc-motor-vehicle-crashes",
+        "group": "safety-history",
+        "dataClass": "observed_history",
+        "authority": "New York City Police Department",
+        "license": "NYC Open Data Terms of Use",
+        "transport": "socrata_json_temporal",
+        "url": "https://data.cityofnewyork.us/resource/h9gi-nx95.json?$limit=50000&$order=crash_date,crash_time,collision_id&$select=crash_date,crash_time,latitude,longitude,on_street_name,off_street_name,cross_street_name,number_of_persons_injured,number_of_persons_killed,number_of_pedestrians_injured,number_of_pedestrians_killed,number_of_cyclist_injured,number_of_cyclist_killed,number_of_motorist_injured,number_of_motorist_killed,collision_id&$where=crash_date >= '2025-11-01T00:00:00.000' and crash_date < '2025-12-01T00:00:00.000' and latitude between 40.705 and 40.745 and longitude between -74.015 and -73.94",
+        "output": "nyc-motor-vehicle-crashes-2025-11.json",
+        "period": "2025-11",
+        "bounds": null,
+        "capabilities": [
+          "historical_route_risk_candidate"
+        ],
+        "entryGate": "Bind collision ID, month, source snapshot, spatial-join method, exposure denominator, and missing-location rate. Crash counts alone cannot become a safest-route claim."
+      },
+      {
+        "id": "nyc-motor-vehicle-crashes:2025-12",
+        "sourceId": "nyc-motor-vehicle-crashes",
+        "group": "safety-history",
+        "dataClass": "observed_history",
+        "authority": "New York City Police Department",
+        "license": "NYC Open Data Terms of Use",
+        "transport": "socrata_json_temporal",
+        "url": "https://data.cityofnewyork.us/resource/h9gi-nx95.json?$limit=50000&$order=crash_date,crash_time,collision_id&$select=crash_date,crash_time,latitude,longitude,on_street_name,off_street_name,cross_street_name,number_of_persons_injured,number_of_persons_killed,number_of_pedestrians_injured,number_of_pedestrians_killed,number_of_cyclist_injured,number_of_cyclist_killed,number_of_motorist_injured,number_of_motorist_killed,collision_id&$where=crash_date >= '2025-12-01T00:00:00.000' and crash_date < '2026-01-01T00:00:00.000' and latitude between 40.705 and 40.745 and longitude between -74.015 and -73.94",
+        "output": "nyc-motor-vehicle-crashes-2025-12.json",
+        "period": "2025-12",
+        "bounds": null,
+        "capabilities": [
+          "historical_route_risk_candidate"
+        ],
+        "entryGate": "Bind collision ID, month, source snapshot, spatial-join method, exposure denominator, and missing-location rate. Crash counts alone cannot become a safest-route claim."
+      },
+      {
+        "id": "nyc-motor-vehicle-crashes:2026-01",
+        "sourceId": "nyc-motor-vehicle-crashes",
+        "group": "safety-history",
+        "dataClass": "observed_history",
+        "authority": "New York City Police Department",
+        "license": "NYC Open Data Terms of Use",
+        "transport": "socrata_json_temporal",
+        "url": "https://data.cityofnewyork.us/resource/h9gi-nx95.json?$limit=50000&$order=crash_date,crash_time,collision_id&$select=crash_date,crash_time,latitude,longitude,on_street_name,off_street_name,cross_street_name,number_of_persons_injured,number_of_persons_killed,number_of_pedestrians_injured,number_of_pedestrians_killed,number_of_cyclist_injured,number_of_cyclist_killed,number_of_motorist_injured,number_of_motorist_killed,collision_id&$where=crash_date >= '2026-01-01T00:00:00.000' and crash_date < '2026-02-01T00:00:00.000' and latitude between 40.705 and 40.745 and longitude between -74.015 and -73.94",
+        "output": "nyc-motor-vehicle-crashes-2026-01.json",
+        "period": "2026-01",
+        "bounds": null,
+        "capabilities": [
+          "historical_route_risk_candidate"
+        ],
+        "entryGate": "Bind collision ID, month, source snapshot, spatial-join method, exposure denominator, and missing-location rate. Crash counts alone cannot become a safest-route claim."
+      },
+      {
+        "id": "nyc-motor-vehicle-crashes:2026-02",
+        "sourceId": "nyc-motor-vehicle-crashes",
+        "group": "safety-history",
+        "dataClass": "observed_history",
+        "authority": "New York City Police Department",
+        "license": "NYC Open Data Terms of Use",
+        "transport": "socrata_json_temporal",
+        "url": "https://data.cityofnewyork.us/resource/h9gi-nx95.json?$limit=50000&$order=crash_date,crash_time,collision_id&$select=crash_date,crash_time,latitude,longitude,on_street_name,off_street_name,cross_street_name,number_of_persons_injured,number_of_persons_killed,number_of_pedestrians_injured,number_of_pedestrians_killed,number_of_cyclist_injured,number_of_cyclist_killed,number_of_motorist_injured,number_of_motorist_killed,collision_id&$where=crash_date >= '2026-02-01T00:00:00.000' and crash_date < '2026-03-01T00:00:00.000' and latitude between 40.705 and 40.745 and longitude between -74.015 and -73.94",
+        "output": "nyc-motor-vehicle-crashes-2026-02.json",
+        "period": "2026-02",
+        "bounds": null,
+        "capabilities": [
+          "historical_route_risk_candidate"
+        ],
+        "entryGate": "Bind collision ID, month, source snapshot, spatial-join method, exposure denominator, and missing-location rate. Crash counts alone cannot become a safest-route claim."
+      },
+      {
+        "id": "nyc-motor-vehicle-crashes:2026-03",
+        "sourceId": "nyc-motor-vehicle-crashes",
+        "group": "safety-history",
+        "dataClass": "observed_history",
+        "authority": "New York City Police Department",
+        "license": "NYC Open Data Terms of Use",
+        "transport": "socrata_json_temporal",
+        "url": "https://data.cityofnewyork.us/resource/h9gi-nx95.json?$limit=50000&$order=crash_date,crash_time,collision_id&$select=crash_date,crash_time,latitude,longitude,on_street_name,off_street_name,cross_street_name,number_of_persons_injured,number_of_persons_killed,number_of_pedestrians_injured,number_of_pedestrians_killed,number_of_cyclist_injured,number_of_cyclist_killed,number_of_motorist_injured,number_of_motorist_killed,collision_id&$where=crash_date >= '2026-03-01T00:00:00.000' and crash_date < '2026-04-01T00:00:00.000' and latitude between 40.705 and 40.745 and longitude between -74.015 and -73.94",
+        "output": "nyc-motor-vehicle-crashes-2026-03.json",
+        "period": "2026-03",
+        "bounds": null,
+        "capabilities": [
+          "historical_route_risk_candidate"
+        ],
+        "entryGate": "Bind collision ID, month, source snapshot, spatial-join method, exposure denominator, and missing-location rate. Crash counts alone cannot become a safest-route claim."
+      },
+      {
+        "id": "nyc-motor-vehicle-crashes:2026-04",
+        "sourceId": "nyc-motor-vehicle-crashes",
+        "group": "safety-history",
+        "dataClass": "observed_history",
+        "authority": "New York City Police Department",
+        "license": "NYC Open Data Terms of Use",
+        "transport": "socrata_json_temporal",
+        "url": "https://data.cityofnewyork.us/resource/h9gi-nx95.json?$limit=50000&$order=crash_date,crash_time,collision_id&$select=crash_date,crash_time,latitude,longitude,on_street_name,off_street_name,cross_street_name,number_of_persons_injured,number_of_persons_killed,number_of_pedestrians_injured,number_of_pedestrians_killed,number_of_cyclist_injured,number_of_cyclist_killed,number_of_motorist_injured,number_of_motorist_killed,collision_id&$where=crash_date >= '2026-04-01T00:00:00.000' and crash_date < '2026-05-01T00:00:00.000' and latitude between 40.705 and 40.745 and longitude between -74.015 and -73.94",
+        "output": "nyc-motor-vehicle-crashes-2026-04.json",
+        "period": "2026-04",
+        "bounds": null,
+        "capabilities": [
+          "historical_route_risk_candidate"
+        ],
+        "entryGate": "Bind collision ID, month, source snapshot, spatial-join method, exposure denominator, and missing-location rate. Crash counts alone cannot become a safest-route claim."
+      },
+      {
+        "id": "nyc-motor-vehicle-crashes:2026-05",
+        "sourceId": "nyc-motor-vehicle-crashes",
+        "group": "safety-history",
+        "dataClass": "observed_history",
+        "authority": "New York City Police Department",
+        "license": "NYC Open Data Terms of Use",
+        "transport": "socrata_json_temporal",
+        "url": "https://data.cityofnewyork.us/resource/h9gi-nx95.json?$limit=50000&$order=crash_date,crash_time,collision_id&$select=crash_date,crash_time,latitude,longitude,on_street_name,off_street_name,cross_street_name,number_of_persons_injured,number_of_persons_killed,number_of_pedestrians_injured,number_of_pedestrians_killed,number_of_cyclist_injured,number_of_cyclist_killed,number_of_motorist_injured,number_of_motorist_killed,collision_id&$where=crash_date >= '2026-05-01T00:00:00.000' and crash_date < '2026-06-01T00:00:00.000' and latitude between 40.705 and 40.745 and longitude between -74.015 and -73.94",
+        "output": "nyc-motor-vehicle-crashes-2026-05.json",
+        "period": "2026-05",
+        "bounds": null,
+        "capabilities": [
+          "historical_route_risk_candidate"
+        ],
+        "entryGate": "Bind collision ID, month, source snapshot, spatial-join method, exposure denominator, and missing-location rate. Crash counts alone cannot become a safest-route claim."
+      },
+      {
+        "id": "nyc-motor-vehicle-crashes:2026-06",
+        "sourceId": "nyc-motor-vehicle-crashes",
+        "group": "safety-history",
+        "dataClass": "observed_history",
+        "authority": "New York City Police Department",
+        "license": "NYC Open Data Terms of Use",
+        "transport": "socrata_json_temporal",
+        "url": "https://data.cityofnewyork.us/resource/h9gi-nx95.json?$limit=50000&$order=crash_date,crash_time,collision_id&$select=crash_date,crash_time,latitude,longitude,on_street_name,off_street_name,cross_street_name,number_of_persons_injured,number_of_persons_killed,number_of_pedestrians_injured,number_of_pedestrians_killed,number_of_cyclist_injured,number_of_cyclist_killed,number_of_motorist_injured,number_of_motorist_killed,collision_id&$where=crash_date >= '2026-06-01T00:00:00.000' and crash_date < '2026-07-01T00:00:00.000' and latitude between 40.705 and 40.745 and longitude between -74.015 and -73.94",
+        "output": "nyc-motor-vehicle-crashes-2026-06.json",
+        "period": "2026-06",
+        "bounds": null,
+        "capabilities": [
+          "historical_route_risk_candidate"
+        ],
+        "entryGate": "Bind collision ID, month, source snapshot, spatial-join method, exposure denominator, and missing-location rate. Crash counts alone cannot become a safest-route claim."
+      }
+    ],
+    "claimBoundary": "Catalog registration makes a source fetchable, not executable. Only a compiler and entry gate can promote raw bytes into a governed routing, occurrence, or rendering artifact.",
+    "planSha256": "1ca18b3dfff7a63c52bd7e57c23d23da8fe55c74b6651f9a57c5d61a3c93846c"
+  },
+  "command": [
+    "node",
+    "tools/autonomy/manage-autonomy-data.mjs",
+    "backfill",
+    "--group",
+    "safety-history",
+    "--from",
+    "2025-07-01",
+    "--to",
+    "2026-07-01",
+    "--snapshot-date",
+    "2026-07-13",
+    "--out",
+    "artifacts/autonomy-data/safety-history-2026-07-13"
+  ],
+  "files": [
+    {
+      "requestId": "nyc-motor-vehicle-crashes:2025-07",
+      "sourceId": "nyc-motor-vehicle-crashes",
+      "output": "nyc-motor-vehicle-crashes-2025-07.json",
+      "byteCount": 208964,
+      "sha256": "ba3edfa079dd73f0030755109b38d370e42b345e70576d4a24d53f9b6eebbc4b",
+      "contentType": "application/json;charset=utf-8",
+      "etag": "\"Zm94dHJvdC4xNTY3NV80MzNfODA5MTFzNUlld1VlQ0pSSnI2OFk2MElnR1ZzRWY4ZkU---gziooka5QDs93b2hhQ-44tGrCWSXkpQ--gzip--gzip\"",
+      "lastModified": "Mon, 15 Jun 2026 23:05:52 GMT"
+    },
+    {
+      "requestId": "nyc-motor-vehicle-crashes:2025-08",
+      "sourceId": "nyc-motor-vehicle-crashes",
+      "output": "nyc-motor-vehicle-crashes-2025-08.json",
+      "byteCount": 194299,
+      "sha256": "652239eecdfa8111c107ff09dcd5f140e292e550578f88b91c9be815c5f7c70c",
+      "contentType": "application/json;charset=utf-8",
+      "etag": "\"Zm94dHJvdC4xNTY3NV80MzNfODA5MTE0aFB0X2lERU9ISDZOLUNLU0Npbkl3MHRqVTA---gzip6qFxR-TH1INRG8K_1BsiPYQwzOg--gzip--gzip\"",
+      "lastModified": "Mon, 15 Jun 2026 23:05:52 GMT"
+    },
+    {
+      "requestId": "nyc-motor-vehicle-crashes:2025-09",
+      "sourceId": "nyc-motor-vehicle-crashes",
+      "output": "nyc-motor-vehicle-crashes-2025-09.json",
+      "byteCount": 232190,
+      "sha256": "e948bb179472a1929354268393e8f7111dc2198a10d4ca740d78431f9ec15371",
+      "contentType": "application/json;charset=utf-8",
+      "etag": "\"Zm94dHJvdC4xNTY3NV80MzNfODA5MTFHVzhQeFBTWWlNQ0l3SjRCWjVpMVU3R1QxeWM---gziow5aMgQzIrNEGo0AO28qS0o3xYrQ--gzip--gzip\"",
+      "lastModified": "Mon, 15 Jun 2026 23:05:52 GMT"
+    },
+    {
+      "requestId": "nyc-motor-vehicle-crashes:2025-10",
+      "sourceId": "nyc-motor-vehicle-crashes",
+      "output": "nyc-motor-vehicle-crashes-2025-10.json",
+      "byteCount": 224957,
+      "sha256": "5117b0fa2b2b094cdc7133898528476efa41dd1e2e3781ef143327d6c5bd03e7",
+      "contentType": "application/json;charset=utf-8",
+      "etag": "\"Zm94dHJvdC4xNTY3NV80MzNfODA5MTFOdmpfUUt2MHN3UDIweFFrM09HTldZVmw2OW8---gzio4OwUWUh07zZc-VbszZNOOt91egA--gzip--gzip\"",
+      "lastModified": "Mon, 15 Jun 2026 23:05:52 GMT"
+    },
+    {
+      "requestId": "nyc-motor-vehicle-crashes:2025-11",
+      "sourceId": "nyc-motor-vehicle-crashes",
+      "output": "nyc-motor-vehicle-crashes-2025-11.json",
+      "byteCount": 209737,
+      "sha256": "f3f60ce998e6a04365993a6014cd8d76bc19149a3a05e4120209ec9922d083bc",
+      "contentType": "application/json;charset=utf-8",
+      "etag": "\"Zm94dHJvdC4xNTY3NV80MzNfODA5MTFZWU1oNlhlZkloZGVpM0dEMDNLaGpGbmllXzA---gziq3STCyozf7BlthqJG_4anKTHPDJQ--gzip--gzip\"",
+      "lastModified": "Mon, 15 Jun 2026 23:05:52 GMT"
+    },
+    {
+      "requestId": "nyc-motor-vehicle-crashes:2025-12",
+      "sourceId": "nyc-motor-vehicle-crashes",
+      "output": "nyc-motor-vehicle-crashes-2025-12.json",
+      "byteCount": 205875,
+      "sha256": "391149c05dbd75a2edeefa66104ae9313ca75b32b871f3b1b4c15a32ce4f6c00",
+      "contentType": "application/json;charset=utf-8",
+      "etag": "\"Zm94dHJvdC4xNTY3NV80MzNfODA5MTFMUU5Cb3BhNW9ycjU1Um9SazgteTVNVkJFSFE---gzio8WkzxY6PyLEywqExZWGhVrGdhig--gzip--gzip\"",
+      "lastModified": "Mon, 15 Jun 2026 23:05:52 GMT"
+    },
+    {
+      "requestId": "nyc-motor-vehicle-crashes:2026-01",
+      "sourceId": "nyc-motor-vehicle-crashes",
+      "output": "nyc-motor-vehicle-crashes-2026-01.json",
+      "byteCount": 178873,
+      "sha256": "4c8318f5b74a8fbebd3dc530a082309061633023243fd4c22adc70baf706046a",
+      "contentType": "application/json;charset=utf-8",
+      "etag": "\"Zm94dHJvdC4xNTY3NV80MzNfODA5MTFRUUVMcVl1M29ENEU0SVhjbGI1Nm5lWWhtcVE---gziqBRiRWtMO6ImorD-RfmK_wOuWD2Q--gzip--gzip\"",
+      "lastModified": "Mon, 15 Jun 2026 23:05:52 GMT"
+    },
+    {
+      "requestId": "nyc-motor-vehicle-crashes:2026-02",
+      "sourceId": "nyc-motor-vehicle-crashes",
+      "output": "nyc-motor-vehicle-crashes-2026-02.json",
+      "byteCount": 185091,
+      "sha256": "4aa60faafb5c5e93fd22614e6d949768c043043564fe9a19d5288013cdddccd9",
+      "contentType": "application/json;charset=utf-8",
+      "etag": "\"Zm94dHJvdC4xNTY3NV80MzNfODA5MTFRdTg2eGJVRFI1Q3pIbWFic0VQUmJid3N4R28---gziqqXPDla0O3MFYOznO-OopIQfDMGA--gzip--gzip\"",
+      "lastModified": "Mon, 15 Jun 2026 23:05:52 GMT"
+    },
+    {
+      "requestId": "nyc-motor-vehicle-crashes:2026-03",
+      "sourceId": "nyc-motor-vehicle-crashes",
+      "output": "nyc-motor-vehicle-crashes-2026-03.json",
+      "byteCount": 182714,
+      "sha256": "e0094727d92d8c5f1941961c9365e50699ce470421591b5e4c0703e65de4f85d",
+      "contentType": "application/json;charset=utf-8",
+      "etag": "\"Zm94dHJvdC4xNTY3NV80MzNfODA5MTEtMUNXVzBLVG5YZVM3MEFtVzF0YU1ubkxtWTQ---gzirsHMrg33AggmSYvXwtLVT8HJ2xPA--gzip--gzip\"",
+      "lastModified": "Mon, 15 Jun 2026 23:05:52 GMT"
+    },
+    {
+      "requestId": "nyc-motor-vehicle-crashes:2026-04",
+      "sourceId": "nyc-motor-vehicle-crashes",
+      "output": "nyc-motor-vehicle-crashes-2026-04.json",
+      "byteCount": 189244,
+      "sha256": "7efecaee275b662fa7e7d06caa3129a65c770e696ffa38c56887678c257db248",
+      "contentType": "application/json;charset=utf-8",
+      "etag": "\"Zm94dHJvdC4xNTY3NV80MzNfODA5MTFwQ3ljc1R4bFFrMmhnNDN1RXFBRFRTdXF1S28---gzipKPO--YoPyrcyRQOvvBDdPuEEJlg--gzip--gzip\"",
+      "lastModified": "Mon, 15 Jun 2026 23:05:52 GMT"
+    },
+    {
+      "requestId": "nyc-motor-vehicle-crashes:2026-05",
+      "sourceId": "nyc-motor-vehicle-crashes",
+      "output": "nyc-motor-vehicle-crashes-2026-05.json",
+      "byteCount": 202980,
+      "sha256": "e51c9935c92969f85476e39b9b11b0b1fb6c8f37e9a554a8af1fa984638ae4d1",
+      "contentType": "application/json;charset=utf-8",
+      "etag": "\"Zm94dHJvdC4xNTY3NV80MzNfODA5MTFnWlctck9ONHFmYmI5dzhfRmZSNDZLOWRoeUE---gzirgqNPuor64BhE4sQ7vEP7v3NKa-g--gzip--gzip\"",
+      "lastModified": "Mon, 15 Jun 2026 23:05:52 GMT"
+    },
+    {
+      "requestId": "nyc-motor-vehicle-crashes:2026-06",
+      "sourceId": "nyc-motor-vehicle-crashes",
+      "output": "nyc-motor-vehicle-crashes-2026-06.json",
+      "byteCount": 64307,
+      "sha256": "d2bf191da405f96b1fd2923b9cfe77fd3fe37902c4f4fcab95b99e85a812563d",
+      "contentType": "application/json;charset=utf-8",
+      "etag": "\"Zm94dHJvdC4xNTY3NV80MzNfODA5MTFVUk5sM1F3eDJCOTRscDVaMTI0djBzZUJOdnc---gzirMHluZIDTH6hPu7UF_fasebnIfuw--gzip--gzip\"",
+      "lastModified": "Mon, 15 Jun 2026 23:05:52 GMT"
+    }
+  ],
+  "activation": "staged_not_active",
+  "claimBoundary": "Successful fetching proves byte capture and identity only. No fetched source is routable, simulated, or hosted until its compiler and entry gates pass."
+}

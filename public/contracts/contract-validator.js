@@ -1,8 +1,11 @@
 (function attachAutonomyContractValidator(root, factory) {
-  const api = factory();
+  const dataContracts = typeof module === 'object' && module.exports
+    ? require('./data-contract-validator.js')
+    : root.SimulatteAutonomyDataContracts;
+  const api = factory(dataContracts);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteAutonomyContracts = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyContractValidator() {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyContractValidator(dataContracts) {
   const ACTOR_TYPES = Object.freeze(['pedestrian', 'bicycle', 'scooter', 'car']);
   const STREET_WORDS = Object.freeze({ avenue: 'av', ave: 'av', street: 'st', str: 'st', boulevard: 'blvd', road: 'rd', lane: 'ln', place: 'pl', square: 'sq' });
 
@@ -16,49 +19,42 @@
       this.received = received;
     }
   }
-
   function describe(value) {
     if (value === null) return 'null';
     if (Array.isArray(value)) return `array(${value.length})`;
     if (typeof value === 'string') return JSON.stringify(value);
     return typeof value;
   }
-
   function requireObject(value, contract, path) {
     if (!value || typeof value !== 'object' || Array.isArray(value)) {
       throw new AutonomyContractError(contract, path, 'object', value);
     }
     return value;
   }
-
   function requireArray(value, contract, path, minimum = 0) {
     if (!Array.isArray(value) || value.length < minimum) {
       throw new AutonomyContractError(contract, path, `array with at least ${minimum} row(s)`, value);
     }
     return value;
   }
-
   function requireString(value, contract, path) {
     if (typeof value !== 'string' || value.length === 0) {
       throw new AutonomyContractError(contract, path, 'non-empty string', value);
     }
     return value;
   }
-
   function requireFinite(value, contract, path, minimum = -Infinity) {
     if (!Number.isFinite(value) || value < minimum) {
       throw new AutonomyContractError(contract, path, `finite number >= ${minimum}`, value);
     }
     return value;
   }
-
   function requireInteger(value, contract, path, minimum = 0) {
     if (!Number.isInteger(value) || value < minimum) {
       throw new AutonomyContractError(contract, path, `integer >= ${minimum}`, value);
     }
     return value;
   }
-
   function requireBoolean(value, contract, path) {
     if (typeof value !== 'boolean') {
       throw new AutonomyContractError(contract, path, 'boolean', value);
@@ -111,39 +107,38 @@
   }
 
   function validateManifest(manifest) {
-    const contract = 'simulatte.autonomyDataManifest.v3';
-    requireSchema(manifest, contract, contract);
-    requireString(manifest.id, contract, '$.id');
-    requireString(manifest.contentVersion, contract, '$.contentVersion');
-    requireString(manifest.defaultMissionText, contract, '$.defaultMissionText');
-    const missionExamples = requireArray(manifest.missionExamples, contract, '$.missionExamples', 4);
-    missionExamples.forEach((row, index) => requireString(row, contract, `$.missionExamples[${index}]`));
-    if (new Set(missionExamples).size !== missionExamples.length) {
-      throw new AutonomyContractError(contract, '$.missionExamples', 'unique mission strings', missionExamples);
-    }
-    if (!missionExamples.includes(manifest.defaultMissionText)) {
-      throw new AutonomyContractError(contract, '$.missionExamples', 'defaultMissionText member', manifest.defaultMissionText);
-    }
-    ['world', 'policy', 'featureCatalog', 'occurrenceCatalog', 'rerankerEvidence', 'regionRegistry'].forEach((key) => {
-      const ref = requireObject(manifest[key], contract, `$.${key}`);
-      requireString(ref.id, contract, `$.${key}.id`);
-      requireString(ref.path, contract, `$.${key}.path`);
-      if (!/^[a-f0-9]{64}$/.test(ref.sha256 || '')) {
-        throw new AutonomyContractError(contract, `$.${key}.sha256`, '64-character lowercase SHA-256', ref.sha256);
-      }
-    });
-    const embodiments = requireArray(manifest.embodiments, contract, '$.embodiments', 2);
-    uniqueRows(embodiments, contract, '$.embodiments');
-    embodiments.forEach((ref, index) => {
-      requireString(ref.path, contract, `$.embodiments[${index}].path`);
-      requireSha256(ref.sha256, contract, `$.embodiments[${index}].sha256`);
-    });
-    requireString(manifest.defaultEmbodimentId, contract, '$.defaultEmbodimentId');
-    if (!embodiments.some((row) => row.id === manifest.defaultEmbodimentId)) {
-      throw new AutonomyContractError(contract, '$.defaultEmbodimentId', 'declared embodiment ID', manifest.defaultEmbodimentId);
-    }
-    requireString(manifest.claimBoundary, contract, '$.claimBoundary');
-    return manifest;
+    return dataContracts.validateManifest(manifest, AutonomyContractError);
+  }
+  function validatePlaceEmbeddingIndex(index, modelLock) {
+    return dataContracts.validatePlaceEmbeddingIndex(index, modelLock, AutonomyContractError);
+  }
+  function validateAccessibilityIndex(index, world, worldSha256 = null) {
+    return dataContracts.validateAccessibilityIndex(index, world, worldSha256, AutonomyContractError);
+  }
+
+  function validateRouteAmenityIndex(index, world, worldSha256 = null) {
+    return dataContracts.validateRouteAmenityIndex(index, world, worldSha256, AutonomyContractError);
+  }
+  function validateSafetyHistoryIndex(index, world, worldSha256 = null) {
+    return dataContracts.validateSafetyHistoryIndex(index, world, worldSha256, AutonomyContractError);
+  }
+
+  function validateCurriculum(curriculum, world) {
+    return dataContracts.validateCurriculum(curriculum, world, AutonomyContractError);
+  }
+  function validateWorldSnapshotRegistry(registry, world) {
+    return dataContracts.validateWorldSnapshotRegistry(registry, world, AutonomyContractError);
+  }
+
+  function validatePlaceResolutionEvidence(evidence, index, modelLock) {
+    return dataContracts.validatePlaceResolutionEvidence(evidence, index, modelLock, AutonomyContractError);
+  }
+  function validatePolicyArenaEvidence(evidence) {
+    return dataContracts.validatePolicyArenaEvidence(evidence, AutonomyContractError);
+  }
+
+  function validateModelRuntimeLock(lock) {
+    return dataContracts.validateModelRuntimeLock(lock, AutonomyContractError);
   }
 
   function validateRegionRegistry(registry) {
@@ -413,43 +408,7 @@
   }
 
   function validateRerankerEvidence(evidence, featureCatalog, governedHashes = null) {
-    const contract = 'simulatte.autonomyRerankerEvaluation.v1';
-    requireSchema(evidence, contract, contract);
-    requireString(evidence.id, contract, '$.id');
-    requireString(evidence.contentVersion, contract, '$.contentVersion');
-    const population = requireObject(evidence.population, contract, '$.population');
-    requireBoolean(population.promotionEligible, contract, '$.population.promotionEligible');
-    if (population.promotionEligible) throw new AutonomyContractError(contract, '$.population.promotionEligible', 'false for public diagnostic evidence', true);
-    const intervention = requireObject(evidence.intervention, contract, '$.intervention');
-    const weights = requireObject(intervention.weights, contract, '$.intervention.weights');
-    Object.entries(featureCatalog.rerankerPolicy.weights).forEach(([key, value]) => {
-      if (weights[key] !== value) throw new AutonomyContractError(contract, `$.intervention.weights.${key}`, `catalog value ${value}`, weights[key]);
-    });
-    if (governedHashes) {
-      const identities = requireObject(evidence.identities, contract, '$.identities');
-      Object.entries(governedHashes).forEach(([key, expectedHash]) => {
-        const identity = requireObject(identities[key], contract, `$.identities.${key}`);
-        if (identity.sha256 !== expectedHash) throw new AutonomyContractError(contract, `$.identities.${key}.sha256`, expectedHash, identity.sha256);
-      });
-    }
-    const control = validateRankingMetrics(evidence.control, contract, '$.control');
-    const challenger = validateRankingMetrics(evidence.challenger, contract, '$.challenger');
-    requireBoolean(evidence.accepted, contract, '$.accepted');
-    if (!evidence.accepted || challenger.meanReciprocalRank <= control.meanReciprocalRank || challenger.recallAt5 < control.recallAt5) {
-      throw new AutonomyContractError(contract, '$', 'accepted MRR improvement with Recall@5 non-regression', evidence);
-    }
-    requireArray(evidence.judgments, contract, '$.judgments', 1);
-    requireString(evidence.claimBoundary, contract, '$.claimBoundary');
-    return evidence;
-  }
-
-  function validateRankingMetrics(metrics, contract, path) {
-    const row = requireObject(metrics, contract, path);
-    requireInteger(row.judgmentCount, contract, `${path}.judgmentCount`, 1);
-    requireFinite(row.meanReciprocalRank, contract, `${path}.meanReciprocalRank`, 0);
-    requireFinite(row.recallAt5, contract, `${path}.recallAt5`, 0);
-    if (row.meanReciprocalRank > 1 || row.recallAt5 > 1) throw new AutonomyContractError(contract, path, 'ranking metrics between zero and one', row);
-    return row;
+    return dataContracts.validateRerankerEvidence(evidence, featureCatalog, governedHashes, AutonomyContractError);
   }
 
   function validateOccurrenceTrigger(pluginId, trigger, contract, path) {
@@ -640,6 +599,16 @@
         if (!segmentIds.has(id)) throw new AutonomyContractError(contract, `$.scenario.defaultRoute.segmentIds[${index}]`, 'known segment ID', id);
       });
       requireFinite(defaultRoute.distanceM, contract, '$.scenario.defaultRoute.distanceM', Number.MIN_VALUE);
+      if (scenario.timeZone !== undefined) {
+        requireString(scenario.timeZone, contract, '$.scenario.timeZone');
+        requireInteger(scenario.defaultStartLocalMinutes, contract, '$.scenario.defaultStartLocalMinutes');
+        if (scenario.defaultStartLocalMinutes >= 1440) throw new AutonomyContractError(contract, '$.scenario.defaultStartLocalMinutes', 'minute in local day', scenario.defaultStartLocalMinutes);
+        const daylight = requireArray(scenario.daylightWindowLocalMinutes, contract, '$.scenario.daylightWindowLocalMinutes', 2);
+        if (daylight.length !== 2 || !daylight.every((row) => Number.isInteger(row) && row >= 0 && row < 1440) || daylight[0] >= daylight[1]) {
+          throw new AutonomyContractError(contract, '$.scenario.daylightWindowLocalMinutes', 'ordered [sunrise,sunset] local minutes', daylight);
+        }
+        requireString(scenario.daylightMethod, contract, '$.scenario.daylightMethod');
+      }
     }
     return world;
   }
@@ -761,7 +730,7 @@
     const nodeIds = new Set(world.nodes.map((row) => row.id));
     if (!nodeIds.has(mission.originNodeId)) throw new AutonomyContractError(contract, '$.originNodeId', 'known world node', mission.originNodeId);
     const task = requireObject(mission.task, contract, '$.task');
-    if (!['delivery', 'loop'].includes(task.type)) throw new AutonomyContractError(contract, '$.task.type', 'delivery or loop', task.type);
+    if (!['delivery', 'point_to_point', 'loop'].includes(task.type)) throw new AutonomyContractError(contract, '$.task.type', 'delivery, point_to_point, or loop', task.type);
     if (!embodiment.supportedTaskTypes.includes(task.type)) throw new AutonomyContractError(contract, '$.task.type', `task supported by ${embodiment.id}`, task.type);
     const capability = requireObject(mission.capability, contract, '$.capability');
     requireExactValue(capability.schema, 'simulatte.autonomyCapabilityReceipt.v1', contract, '$.capability.schema');
@@ -770,13 +739,17 @@
     requireExactValue(capability.embodimentKind, embodiment.kind, contract, '$.capability.embodimentKind');
     requireArray(capability.artifactIds, contract, '$.capability.artifactIds', 1);
     if (!capability.artifactIds.includes(embodiment.id)) throw new AutonomyContractError(contract, '$.capability.artifactIds', `include ${embodiment.id}`, capability.artifactIds);
-    if (task.type === 'delivery') {
-      requireExactValue(capability.missionFamily, 'delivery', contract, '$.capability.missionFamily');
+    if (task.type !== 'loop') {
+      requireExactValue(capability.missionFamily, task.type, contract, '$.capability.missionFamily');
       requireExactValue(capability.terminationKind, 'arrival', contract, '$.capability.terminationKind');
       requireExactValue(capability.circuitId, null, contract, '$.capability.circuitId');
-      requireString(task.payloadId, contract, '$.task.payloadId');
+      if (task.type === 'delivery') requireString(task.payloadId, contract, '$.task.payloadId');
       if (!nodeIds.has(mission.destinationNodeId)) throw new AutonomyContractError(contract, '$.destinationNodeId', 'known world node', mission.destinationNodeId);
-      if (mission.grounding !== null) throw new AutonomyContractError(contract, '$.grounding', 'null for delivery', mission.grounding);
+      const stopNodeIds = requireArray(task.stopNodeIds, contract, '$.task.stopNodeIds', 1);
+      if (stopNodeIds.some((id) => !nodeIds.has(id)) || stopNodeIds.at(-1) !== mission.destinationNodeId || stopNodeIds.some((id, index) => index > 0 && id === stopNodeIds[index - 1])) {
+        throw new AutonomyContractError(contract, '$.task.stopNodeIds', 'known non-consecutive ordered stops ending at destination', stopNodeIds);
+      }
+      if (mission.grounding !== null) throw new AutonomyContractError(contract, '$.grounding', `null for ${task.type}`, mission.grounding);
     } else {
       requireExactValue(capability.missionFamily, 'closed_circuit', contract, '$.capability.missionFamily');
       if (mission.destinationNodeId !== null) throw new AutonomyContractError(contract, '$.destinationNodeId', 'null for loop', mission.destinationNodeId);
@@ -800,6 +773,12 @@
       if (embodiment.mode !== circuit.mode) throw new AutonomyContractError(contract, '$.embodimentId', `mode ${circuit.mode}`, embodiment.mode);
     }
     const parser = requireObject(mission.parser, contract, '$.parser');
+    if (!['deterministic_grounded_lexical', 'governed_hybrid_place_resolution'].includes(parser.kind)) {
+      throw new AutonomyContractError(contract, '$.parser.kind', 'registered mission parser kind', parser.kind);
+    }
+    if (!['simulatte.autonomyMissionParser.v3', 'simulatte.autonomyMissionParser.v4'].includes(parser.version)) {
+      throw new AutonomyContractError(contract, '$.parser.version', 'registered mission parser version', parser.version);
+    }
     requireArray(parser.evidence, contract, '$.parser.evidence', 1).forEach((row, index) => {
       requireString(row.field, contract, `$.parser.evidence[${index}].field`);
       requireString(row.value, contract, `$.parser.evidence[${index}].value`);
@@ -809,6 +788,24 @@
       requireInteger(row.editDistance, contract, `$.parser.evidence[${index}].editDistance`);
       if (mission.sourceText.slice(row.start, row.end) !== row.value) throw new AutonomyContractError(contract, `$.parser.evidence[${index}]`, 'exact source interval', row);
     });
+    if (mission.placeResolution === null) {
+      if (parser.kind !== 'deterministic_grounded_lexical') throw new AutonomyContractError(contract, '$.parser.kind', 'deterministic parser when placeResolution is null', parser.kind);
+    } else {
+      const resolution = requireObject(mission.placeResolution, contract, '$.placeResolution');
+      requireExactValue(resolution.schema, 'simulatte.missionPlaceResolution.v1', contract, '$.placeResolution.schema');
+      requireString(resolution.resolverId, contract, '$.placeResolution.resolverId');
+      requireExactValue(resolution.lane, 'hybrid_lexical_extended_typo_qwen_embedding', contract, '$.placeResolution.lane');
+      requireBoolean(resolution.modelExecution, contract, '$.placeResolution.modelExecution');
+      requireArray(resolution.roles, contract, '$.placeResolution.roles', 1).forEach((row, index) => {
+        if (!['origin', 'destination'].includes(row.role)) throw new AutonomyContractError(contract, `$.placeResolution.roles[${index}].role`, 'origin or destination', row.role);
+        requireExactValue(row.outcome, 'resolve', contract, `$.placeResolution.roles[${index}].outcome`);
+        if (!nodeIds.has(row.nodeId)) throw new AutonomyContractError(contract, `$.placeResolution.roles[${index}].nodeId`, 'known world node', row.nodeId);
+        requireObject(row.evidence, contract, `$.placeResolution.roles[${index}].evidence`);
+      });
+      if (parser.kind !== 'governed_hybrid_place_resolution' || parser.version !== 'simulatte.autonomyMissionParser.v4') {
+        throw new AutonomyContractError(contract, '$.parser', 'v4 governed hybrid parser for place resolution', parser);
+      }
+    }
     requireObject(mission.constraints, contract, '$.constraints');
     const avoidStreetNames = requireArray(mission.constraints.avoidStreetNames, contract, '$.constraints.avoidStreetNames');
     const governedStreetNames = new Set([
@@ -823,7 +820,39 @@
     requireBoolean(mission.constraints.mustObeySignals, contract, '$.constraints.mustObeySignals');
     requireBoolean(mission.constraints.mustStayOnCircuit, contract, '$.constraints.mustStayOnCircuit');
     requireFinite(mission.constraints.maximumSpeedMps, contract, '$.constraints.maximumSpeedMps', Number.MIN_VALUE);
+    if (mission.constraints.maximumDurationSeconds !== null) requireFinite(mission.constraints.maximumDurationSeconds, contract, '$.constraints.maximumDurationSeconds', Number.MIN_VALUE);
+    if (![null, 'wheelchair'].includes(mission.constraints.accessibilityProfile)) {
+      throw new AutonomyContractError(contract, '$.constraints.accessibilityProfile', 'null or wheelchair', mission.constraints.accessibilityProfile);
+    }
+    if (mission.constraints.accessibilityProfile && embodiment.kind !== 'pedestrian') {
+      throw new AutonomyContractError(contract, '$.constraints.accessibilityProfile', 'pedestrian embodiment', embodiment.kind);
+    }
+    if (mission.constraints.maximumBikeRackDistanceM !== null) {
+      requireFinite(mission.constraints.maximumBikeRackDistanceM, contract, '$.constraints.maximumBikeRackDistanceM', Number.MIN_VALUE);
+      if (embodiment.kind !== 'bicycle') throw new AutonomyContractError(contract, '$.constraints.maximumBikeRackDistanceM', 'bicycle embodiment', embodiment.kind);
+    }
+    requireInteger(mission.constraints.departureLocalMinutes, contract, '$.constraints.departureLocalMinutes');
+    if (mission.constraints.departureLocalMinutes >= 1440) throw new AutonomyContractError(contract, '$.constraints.departureLocalMinutes', 'minute in local day', mission.constraints.departureLocalMinutes);
+    if (mission.constraints.arrivalDeadlineLocalMinutes !== null) {
+      requireInteger(mission.constraints.arrivalDeadlineLocalMinutes, contract, '$.constraints.arrivalDeadlineLocalMinutes');
+      if (mission.constraints.arrivalDeadlineLocalMinutes >= 1440 || mission.constraints.arrivalDeadlineLocalMinutes <= mission.constraints.departureLocalMinutes) {
+        throw new AutonomyContractError(contract, '$.constraints.arrivalDeadlineLocalMinutes', 'later minute in same local day', mission.constraints.arrivalDeadlineLocalMinutes);
+      }
+    }
+    requireBoolean(mission.constraints.daylightOnly, contract, '$.constraints.daylightOnly');
+    const daylightWindow = requireArray(mission.constraints.daylightWindowLocalMinutes, contract, '$.constraints.daylightWindowLocalMinutes', 2);
+    if (daylightWindow.length !== 2 || !daylightWindow.every((row) => Number.isInteger(row) && row >= 0 && row < 1440) || daylightWindow[0] >= daylightWindow[1]) {
+      throw new AutonomyContractError(contract, '$.constraints.daylightWindowLocalMinutes', 'ordered [sunrise,sunset] local minutes', daylightWindow);
+    }
     requireArray(mission.obligations, contract, '$.obligations', 1);
+    if (mission.economics !== null) {
+      const economics = requireObject(mission.economics, contract, '$.economics');
+      requireExactValue(economics.schema, 'simulatte.missionEconomics.v1', contract, '$.economics.schema');
+      requireExactValue(economics.currency, 'USD', contract, '$.economics.currency');
+      requireInteger(economics.amountCents, contract, '$.economics.amountCents', 1);
+      requireString(economics.claimBoundary, contract, '$.economics.claimBoundary');
+      if (task.type !== 'delivery') throw new AutonomyContractError(contract, '$.economics', 'null outside delivery tasks', economics);
+    }
     requireInteger(mission.seed, contract, '$.seed');
     return mission;
   }
@@ -943,6 +972,15 @@
   return {
     AutonomyContractError,
     validateManifest,
+    validateModelRuntimeLock,
+    validatePlaceEmbeddingIndex,
+    validatePlaceResolutionEvidence,
+    validatePolicyArenaEvidence,
+    validateAccessibilityIndex,
+    validateRouteAmenityIndex,
+    validateSafetyHistoryIndex,
+    validateCurriculum,
+    validateWorldSnapshotRegistry,
     validateRegionRegistry,
     validateRegionPack,
     validateFeatureCatalog,

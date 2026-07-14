@@ -1,12 +1,42 @@
 {
   "accepted": true,
   "claimBoundary": "This receipt scores language-to-place resolution on exposed diagnostic probes. It cannot promote a resolver, establish model quality, or support a generalization claim. Promotion needs an unmounted holdout population.",
-  "contentVersion": "place-resolution-public-diagnostic-2026-07-14",
+  "contentVersion": "place-resolution-probes-2026-07-13",
   "id": "place-resolution-public-diagnostic-v1",
   "identities": {
+    "challengerAssets": {
+      "model": {
+        "id": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
+        "manifestSha256": "aa8b96509f17ba0c949aee6891abd0459883d0c4be761f666242240a97e9d979",
+        "sourceRevision": "049000f49325dca7db2ed2c9de2c8881bd0f4603"
+      },
+      "modelRuntimeLock": {
+        "id": "simulatte-doppler-qwen-runtime-lock",
+        "number": 6,
+        "path": "public/data/simulatte-embedder/model-runtime-lock.json",
+        "sha256": "1ce958f02c273efbe09fdbd886bdc34bf7682f6f2ac0a07e10a7b7a284bfe358"
+      },
+      "placeEmbeddingIndex": {
+        "id": "nyc-core-place-embedding-index-v1",
+        "indexSha256": "d2f75ed958cd2ac882b9811fe71cf383ca8c0114215e063bea23c7b3315cf983",
+        "path": "public/data/autonomy/place-embedding-index-v1.json",
+        "sha256": "79843a831e9ea1168e01d53729121bc8bf0bbe347cc99922438c6776c0557317"
+      },
+      "semanticSnapshot": {
+        "fileCount": 9,
+        "filesSha256": "0586a35cf04c4311c9902c9d998073edea4f69acbd7d114db9055657a2bbcbd3",
+        "id": "nyc-place-semantics-2026-07-13",
+        "path": "tools/autonomy/data-sources/nyc-place-semantics-2026-07-13/snapshot-receipt.json",
+        "sha256": "f1c6c1854b00ce762cdec961e3583fe754ebce1050ee7ca4aa07a4ddf7dc77a7"
+      }
+    },
+    "challengerModule": {
+      "path": "tools/autonomy/neural-place-resolver-challenger.mjs",
+      "sha256": "be6e61f95518b0a14ac3dfc560aa5a2dfb0aba56599410ff0b3adf113134eca9"
+    },
     "compiler": {
       "path": "public/mission/mission-compiler.js",
-      "sha256": "a9bd9172ef45323c57c65d810430f7cbfe1e45b924ef5882c3120f46e8804afb"
+      "sha256": "50fee0cd85656869ab7a76e30bac553e0faeb2291e1d0583c24fb902c238263d"
     },
     "corpus": {
       "path": "tools/samer/autonomy/place-resolution-probes-v1.json",
@@ -14,24 +44,2329 @@
     },
     "embodiment": {
       "path": "public/data/autonomy/embodiments/delivery-bike-v1.json",
-      "sha256": "f144b2c67eb5a30d30162fc3efcb0452ede225a72534d2389a98c139899d0f01"
+      "sha256": "7db2ebdc5e89bbc47c798e5e85e817f3f96945c623c8da6f195cfb9ed3977fba"
     },
     "world": {
       "path": "public/data/autonomy/worlds/nyc-core-autonomy-v1.json",
-      "sha256": "78cc82a44fac0f1ce3ac1955d9b2a498fd880738a840d07642bb9f54bd074889"
+      "sha256": "85d2f95208406050ea6b87da7e0170c66430cb372e83e712e36c35ce8fefa001"
     }
   },
   "intervention": {
-    "challenger": null,
+    "challenger": "hybrid-lexical-qwen-embedding-v1",
     "control": "mission-compiler-constrained-v1",
     "frozenMetric": "correct_probe_count",
     "guardrails": [
       "must_refuse_violations_zero",
+      "wrong_place_resolutions_zero",
       "exact_and_typo_within_floor"
     ],
     "kind": "language_to_place_resolution"
   },
   "lanes": {
+    "challenger": {
+      "guardrails": {
+        "floorMisses": 0,
+        "mustRefuseViolations": 0
+      },
+      "metrics": {
+        "correct": 28,
+        "perKind": {
+          "ambiguous": {
+            "correct": 3,
+            "probes": 3,
+            "violations": 0,
+            "wrongPlace": 0
+          },
+          "exact": {
+            "correct": 10,
+            "probes": 10,
+            "violations": 0,
+            "wrongPlace": 0
+          },
+          "out_of_world": {
+            "correct": 4,
+            "probes": 4,
+            "violations": 0,
+            "wrongPlace": 0
+          },
+          "paraphrase": {
+            "correct": 1,
+            "probes": 10,
+            "violations": 0,
+            "wrongPlace": 0
+          },
+          "typo_beyond": {
+            "correct": 6,
+            "probes": 6,
+            "violations": 0,
+            "wrongPlace": 0
+          },
+          "typo_within": {
+            "correct": 4,
+            "probes": 4,
+            "violations": 0,
+            "wrongPlace": 0
+          }
+        },
+        "probeCount": 37,
+        "winnableResolved": 7,
+        "winnableTotal": 16,
+        "wrongPlace": 0
+      },
+      "resolverId": "hybrid-lexical-qwen-embedding-v1",
+      "rows": [
+        {
+          "correct": true,
+          "evidence": {
+            "lane": "lexical_control"
+          },
+          "kind": "exact",
+          "nodeId": "bike-node-e25116ea05a4",
+          "outcome": "resolve",
+          "probeId": "exact-001",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": true,
+          "evidence": {
+            "lane": "lexical_control"
+          },
+          "kind": "exact",
+          "nodeId": "bike-node-0d9391b2bfa3",
+          "outcome": "resolve",
+          "probeId": "exact-002",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": true,
+          "evidence": {
+            "lane": "lexical_control"
+          },
+          "kind": "exact",
+          "nodeId": "bike-node-261ee8be5a25",
+          "outcome": "resolve",
+          "probeId": "exact-003",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": true,
+          "evidence": {
+            "lane": "lexical_control"
+          },
+          "kind": "exact",
+          "nodeId": "bike-node-ffea919f743c",
+          "outcome": "resolve",
+          "probeId": "exact-004",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": true,
+          "evidence": {
+            "lane": "lexical_control"
+          },
+          "kind": "exact",
+          "nodeId": "bike-node-a3f0f4b7e7e3",
+          "outcome": "resolve",
+          "probeId": "exact-005",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": true,
+          "evidence": {
+            "lane": "lexical_control"
+          },
+          "kind": "exact",
+          "nodeId": "bike-node-429dcefa615d",
+          "outcome": "resolve",
+          "probeId": "exact-006",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": true,
+          "evidence": {
+            "lane": "lexical_control"
+          },
+          "kind": "exact",
+          "nodeId": "bike-node-86300f2cfd65",
+          "outcome": "resolve",
+          "probeId": "exact-007",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": true,
+          "evidence": {
+            "lane": "lexical_control"
+          },
+          "kind": "exact",
+          "nodeId": "bike-node-0b79eee2f2ef",
+          "outcome": "resolve",
+          "probeId": "exact-008",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": true,
+          "evidence": {
+            "lane": "lexical_control"
+          },
+          "kind": "exact",
+          "nodeId": "bike-node-8a641140b02c",
+          "outcome": "resolve",
+          "probeId": "exact-009",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": true,
+          "evidence": {
+            "lane": "lexical_control"
+          },
+          "kind": "exact",
+          "nodeId": "bike-node-7a95737b9c7d",
+          "outcome": "resolve",
+          "probeId": "exact-010",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": true,
+          "evidence": {
+            "lane": "lexical_control"
+          },
+          "kind": "typo_within",
+          "nodeId": "bike-node-a3f0f4b7e7e3",
+          "outcome": "resolve",
+          "probeId": "typo-within-001",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": true,
+          "evidence": {
+            "lane": "lexical_control"
+          },
+          "kind": "typo_within",
+          "nodeId": "bike-node-7a95737b9c7d",
+          "outcome": "resolve",
+          "probeId": "typo-within-002",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": true,
+          "evidence": {
+            "lane": "lexical_control"
+          },
+          "kind": "typo_within",
+          "nodeId": "bike-node-8a641140b02c",
+          "outcome": "resolve",
+          "probeId": "typo-within-003",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": true,
+          "evidence": {
+            "lane": "lexical_control"
+          },
+          "kind": "typo_within",
+          "nodeId": "bike-node-261ee8be5a25",
+          "outcome": "resolve",
+          "probeId": "typo-within-004",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": true,
+          "evidence": {
+            "distanceMargin": 3,
+            "lane": "extended_typo",
+            "maximumDistance": 4,
+            "policy": {
+              "id": "damerau-place-typo-policy-v1",
+              "maximumDistanceCap": 5,
+              "maximumDistanceRatio": 0.4,
+              "minimumDistanceMargin": 2
+            },
+            "queryText": "Youniun Sqare",
+            "ranking": [
+              {
+                "distance": 4,
+                "label": "Union Square",
+                "labelLength": 12,
+                "nodeId": "bike-node-0d9391b2bfa3",
+                "placeId": "place-bike-node-0d9391b2bfa3"
+              },
+              {
+                "distance": 7,
+                "label": "Tompkins Square",
+                "labelLength": 15,
+                "nodeId": "bike-node-429dcefa615d",
+                "placeId": "place-bike-node-429dcefa615d"
+              },
+              {
+                "distance": 9,
+                "label": "Washington Square",
+                "labelLength": 17,
+                "nodeId": "bike-node-a3f0f4b7e7e3",
+                "placeId": "place-bike-node-a3f0f4b7e7e3"
+              },
+              {
+                "distance": 10,
+                "label": "McCarren Park",
+                "labelLength": 13,
+                "nodeId": "bike-node-8a641140b02c",
+                "placeId": "place-bike-node-8a641140b02c"
+              },
+              {
+                "distance": 11,
+                "label": "West Village",
+                "labelLength": 12,
+                "nodeId": "bike-node-261ee8be5a25",
+                "placeId": "place-bike-node-261ee8be5a25"
+              }
+            ]
+          },
+          "kind": "typo_beyond",
+          "nodeId": "bike-node-0d9391b2bfa3",
+          "outcome": "resolve",
+          "probeId": "typo-beyond-001",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": true,
+          "evidence": {
+            "distanceMargin": 5,
+            "lane": "extended_typo",
+            "maximumDistance": 4,
+            "policy": {
+              "id": "damerau-place-typo-policy-v1",
+              "maximumDistanceCap": 5,
+              "maximumDistanceRatio": 0.4,
+              "minimumDistanceMargin": 2
+            },
+            "queryText": "Grin Poynt",
+            "ranking": [
+              {
+                "distance": 4,
+                "label": "Greenpoint",
+                "labelLength": 10,
+                "nodeId": "bike-node-7a95737b9c7d",
+                "placeId": "place-bike-node-7a95737b9c7d"
+              },
+              {
+                "distance": 9,
+                "label": "Union Square",
+                "labelLength": 12,
+                "nodeId": "bike-node-0d9391b2bfa3",
+                "placeId": "place-bike-node-0d9391b2bfa3"
+              },
+              {
+                "distance": 10,
+                "label": "McCarren Park",
+                "labelLength": 13,
+                "nodeId": "bike-node-8a641140b02c",
+                "placeId": "place-bike-node-8a641140b02c"
+              },
+              {
+                "distance": 11,
+                "label": "West Village",
+                "labelLength": 12,
+                "nodeId": "bike-node-261ee8be5a25",
+                "placeId": "place-bike-node-261ee8be5a25"
+              },
+              {
+                "distance": 11,
+                "label": "East Village",
+                "labelLength": 12,
+                "nodeId": "bike-node-ffea919f743c",
+                "placeId": "place-bike-node-ffea919f743c"
+              }
+            ]
+          },
+          "kind": "typo_beyond",
+          "nodeId": "bike-node-7a95737b9c7d",
+          "outcome": "resolve",
+          "probeId": "typo-beyond-002",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": true,
+          "evidence": {
+            "distanceMargin": 6,
+            "lane": "extended_typo",
+            "maximumDistance": 5,
+            "policy": {
+              "id": "damerau-place-typo-policy-v1",
+              "maximumDistanceCap": 5,
+              "maximumDistanceRatio": 0.4,
+              "minimumDistanceMargin": 2
+            },
+            "queryText": "Willyamsburg Watrfrunt",
+            "ranking": [
+              {
+                "distance": 3,
+                "label": "Williamsburg Waterfront",
+                "labelLength": 23,
+                "nodeId": "bike-node-0b79eee2f2ef",
+                "placeId": "place-bike-node-0b79eee2f2ef"
+              },
+              {
+                "distance": 9,
+                "label": "Williamsburg Bridge",
+                "labelLength": 19,
+                "nodeId": "bike-node-86300f2cfd65",
+                "placeId": "place-bike-node-86300f2cfd65"
+              },
+              {
+                "distance": 17,
+                "label": "North Williamsburg",
+                "labelLength": 18,
+                "nodeId": "bike-node-e25116ea05a4",
+                "placeId": "place-bike-node-e25116ea05a4"
+              },
+              {
+                "distance": 18,
+                "label": "Union Square",
+                "labelLength": 12,
+                "nodeId": "bike-node-0d9391b2bfa3",
+                "placeId": "place-bike-node-0d9391b2bfa3"
+              },
+              {
+                "distance": 18,
+                "label": "McCarren Park",
+                "labelLength": 13,
+                "nodeId": "bike-node-8a641140b02c",
+                "placeId": "place-bike-node-8a641140b02c"
+              }
+            ]
+          },
+          "kind": "typo_beyond",
+          "nodeId": "bike-node-0b79eee2f2ef",
+          "outcome": "resolve",
+          "probeId": "typo-beyond-003",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": true,
+          "evidence": {
+            "distanceMargin": 8,
+            "lane": "extended_typo",
+            "maximumDistance": 5,
+            "policy": {
+              "id": "damerau-place-typo-policy-v1",
+              "maximumDistanceCap": 5,
+              "maximumDistanceRatio": 0.4,
+              "minimumDistanceMargin": 2
+            },
+            "queryText": "Mackarran Prak",
+            "ranking": [
+              {
+                "distance": 4,
+                "label": "McCarren Park",
+                "labelLength": 13,
+                "nodeId": "bike-node-8a641140b02c",
+                "placeId": "place-bike-node-8a641140b02c"
+              },
+              {
+                "distance": 12,
+                "label": "Greenpoint",
+                "labelLength": 10,
+                "nodeId": "bike-node-7a95737b9c7d",
+                "placeId": "place-bike-node-7a95737b9c7d"
+              },
+              {
+                "distance": 13,
+                "label": "Union Square",
+                "labelLength": 12,
+                "nodeId": "bike-node-0d9391b2bfa3",
+                "placeId": "place-bike-node-0d9391b2bfa3"
+              },
+              {
+                "distance": 13,
+                "label": "Tompkins Square",
+                "labelLength": 15,
+                "nodeId": "bike-node-429dcefa615d",
+                "placeId": "place-bike-node-429dcefa615d"
+              },
+              {
+                "distance": 13,
+                "label": "Washington Square",
+                "labelLength": 17,
+                "nodeId": "bike-node-a3f0f4b7e7e3",
+                "placeId": "place-bike-node-a3f0f4b7e7e3"
+              }
+            ]
+          },
+          "kind": "typo_beyond",
+          "nodeId": "bike-node-8a641140b02c",
+          "outcome": "resolve",
+          "probeId": "typo-beyond-004",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": true,
+          "evidence": {
+            "distanceMargin": 5,
+            "lane": "extended_typo",
+            "maximumDistance": 4,
+            "policy": {
+              "id": "damerau-place-typo-policy-v1",
+              "maximumDistanceCap": 5,
+              "maximumDistanceRatio": 0.4,
+              "minimumDistanceMargin": 2
+            },
+            "queryText": "Unoin Square",
+            "ranking": [
+              {
+                "distance": 1,
+                "label": "Union Square",
+                "labelLength": 12,
+                "nodeId": "bike-node-0d9391b2bfa3",
+                "placeId": "place-bike-node-0d9391b2bfa3"
+              },
+              {
+                "distance": 6,
+                "label": "Tompkins Square",
+                "labelLength": 15,
+                "nodeId": "bike-node-429dcefa615d",
+                "placeId": "place-bike-node-429dcefa615d"
+              },
+              {
+                "distance": 8,
+                "label": "Washington Square",
+                "labelLength": 17,
+                "nodeId": "bike-node-a3f0f4b7e7e3",
+                "placeId": "place-bike-node-a3f0f4b7e7e3"
+              },
+              {
+                "distance": 10,
+                "label": "West Village",
+                "labelLength": 12,
+                "nodeId": "bike-node-261ee8be5a25",
+                "placeId": "place-bike-node-261ee8be5a25"
+              },
+              {
+                "distance": 10,
+                "label": "East Village",
+                "labelLength": 12,
+                "nodeId": "bike-node-ffea919f743c",
+                "placeId": "place-bike-node-ffea919f743c"
+              }
+            ]
+          },
+          "kind": "typo_beyond",
+          "nodeId": "bike-node-0d9391b2bfa3",
+          "outcome": "resolve",
+          "probeId": "typo-beyond-005",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": true,
+          "evidence": {
+            "distanceMargin": 7,
+            "lane": "extended_typo",
+            "maximumDistance": 5,
+            "policy": {
+              "id": "damerau-place-typo-policy-v1",
+              "maximumDistanceCap": 5,
+              "maximumDistanceRatio": 0.4,
+              "minimumDistanceMargin": 2
+            },
+            "queryText": "Tompkins Sqaure",
+            "ranking": [
+              {
+                "distance": 1,
+                "label": "Tompkins Square",
+                "labelLength": 15,
+                "nodeId": "bike-node-429dcefa615d",
+                "placeId": "place-bike-node-429dcefa615d"
+              },
+              {
+                "distance": 8,
+                "label": "Union Square",
+                "labelLength": 12,
+                "nodeId": "bike-node-0d9391b2bfa3",
+                "placeId": "place-bike-node-0d9391b2bfa3"
+              },
+              {
+                "distance": 10,
+                "label": "Washington Square",
+                "labelLength": 17,
+                "nodeId": "bike-node-a3f0f4b7e7e3",
+                "placeId": "place-bike-node-a3f0f4b7e7e3"
+              },
+              {
+                "distance": 12,
+                "label": "McCarren Park",
+                "labelLength": 13,
+                "nodeId": "bike-node-8a641140b02c",
+                "placeId": "place-bike-node-8a641140b02c"
+              },
+              {
+                "distance": 13,
+                "label": "West Village",
+                "labelLength": 12,
+                "nodeId": "bike-node-261ee8be5a25",
+                "placeId": "place-bike-node-261ee8be5a25"
+              }
+            ]
+          },
+          "kind": "typo_beyond",
+          "nodeId": "bike-node-429dcefa615d",
+          "outcome": "resolve",
+          "probeId": "typo-beyond-006",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": false,
+          "evidence": {
+            "extendedTypo": {
+              "distanceMargin": 0,
+              "label": null,
+              "maximumDistance": 5,
+              "nodeId": null,
+              "outcome": "refuse",
+              "placeId": null,
+              "ranking": [
+                {
+                  "distance": 19,
+                  "label": "Washington Square",
+                  "labelLength": 17,
+                  "nodeId": "bike-node-a3f0f4b7e7e3",
+                  "placeId": "place-bike-node-a3f0f4b7e7e3"
+                },
+                {
+                  "distance": 19,
+                  "label": "North Williamsburg",
+                  "labelLength": 18,
+                  "nodeId": "bike-node-e25116ea05a4",
+                  "placeId": "place-bike-node-e25116ea05a4"
+                },
+                {
+                  "distance": 20,
+                  "label": "Union Square",
+                  "labelLength": 12,
+                  "nodeId": "bike-node-0d9391b2bfa3",
+                  "placeId": "place-bike-node-0d9391b2bfa3"
+                },
+                {
+                  "distance": 20,
+                  "label": "West Village",
+                  "labelLength": 12,
+                  "nodeId": "bike-node-261ee8be5a25",
+                  "placeId": "place-bike-node-261ee8be5a25"
+                },
+                {
+                  "distance": 20,
+                  "label": "Tompkins Square",
+                  "labelLength": 15,
+                  "nodeId": "bike-node-429dcefa615d",
+                  "placeId": "place-bike-node-429dcefa615d"
+                }
+              ],
+              "refusalReason": "edit_distance_above_threshold"
+            },
+            "indexId": "nyc-core-place-embedding-index-v1",
+            "lane": "qwen_embedding_cosine",
+            "margin": 0.00591817,
+            "modelId": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
+            "policy": {
+              "id": "qwen-place-cosine-policy-v1",
+              "maximumCandidates": 5,
+              "minimumMargin": 0.005,
+              "minimumSimilarity": 0.775
+            },
+            "queryText": "park with the marble arch",
+            "ranking": [
+              {
+                "label": "Tompkins Square",
+                "nodeId": "bike-node-429dcefa615d",
+                "placeId": "place-bike-node-429dcefa615d",
+                "similarity": 0.74171282
+              },
+              {
+                "label": "Washington Square",
+                "nodeId": "bike-node-a3f0f4b7e7e3",
+                "placeId": "place-bike-node-a3f0f4b7e7e3",
+                "similarity": 0.73579465
+              },
+              {
+                "label": "McCarren Park",
+                "nodeId": "bike-node-8a641140b02c",
+                "placeId": "place-bike-node-8a641140b02c",
+                "similarity": 0.72840111
+              },
+              {
+                "label": "Union Square",
+                "nodeId": "bike-node-0d9391b2bfa3",
+                "placeId": "place-bike-node-0d9391b2bfa3",
+                "similarity": 0.71016239
+              },
+              {
+                "label": "Williamsburg Bridge",
+                "nodeId": "bike-node-86300f2cfd65",
+                "placeId": "place-bike-node-86300f2cfd65",
+                "similarity": 0.69219054
+              }
+            ],
+            "refusalReason": "similarity_below_threshold",
+            "topSimilarity": 0.74171282
+          },
+          "kind": "paraphrase",
+          "nodeId": null,
+          "outcome": "refuse",
+          "probeId": "paraphrase-001",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": false,
+          "evidence": {
+            "extendedTypo": {
+              "distanceMargin": 0,
+              "label": null,
+              "maximumDistance": 5,
+              "nodeId": null,
+              "outcome": "refuse",
+              "placeId": null,
+              "ranking": [
+                {
+                  "distance": 20,
+                  "label": "McCarren Park",
+                  "labelLength": 13,
+                  "nodeId": "bike-node-8a641140b02c",
+                  "placeId": "place-bike-node-8a641140b02c"
+                },
+                {
+                  "distance": 20,
+                  "label": "Washington Square",
+                  "labelLength": 17,
+                  "nodeId": "bike-node-a3f0f4b7e7e3",
+                  "placeId": "place-bike-node-a3f0f4b7e7e3"
+                },
+                {
+                  "distance": 21,
+                  "label": "Union Square",
+                  "labelLength": 12,
+                  "nodeId": "bike-node-0d9391b2bfa3",
+                  "placeId": "place-bike-node-0d9391b2bfa3"
+                },
+                {
+                  "distance": 21,
+                  "label": "Greenpoint",
+                  "labelLength": 10,
+                  "nodeId": "bike-node-7a95737b9c7d",
+                  "placeId": "place-bike-node-7a95737b9c7d"
+                },
+                {
+                  "distance": 22,
+                  "label": "West Village",
+                  "labelLength": 12,
+                  "nodeId": "bike-node-261ee8be5a25",
+                  "placeId": "place-bike-node-261ee8be5a25"
+                }
+              ],
+              "refusalReason": "edit_distance_above_threshold"
+            },
+            "indexId": "nyc-core-place-embedding-index-v1",
+            "lane": "qwen_embedding_cosine",
+            "margin": 0.00142437,
+            "modelId": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
+            "policy": {
+              "id": "qwen-place-cosine-policy-v1",
+              "maximumCandidates": 5,
+              "minimumMargin": 0.005,
+              "minimumSimilarity": 0.775
+            },
+            "queryText": "square with the greenmarket",
+            "ranking": [
+              {
+                "label": "Tompkins Square",
+                "nodeId": "bike-node-429dcefa615d",
+                "placeId": "place-bike-node-429dcefa615d",
+                "similarity": 0.73540206
+              },
+              {
+                "label": "Washington Square",
+                "nodeId": "bike-node-a3f0f4b7e7e3",
+                "placeId": "place-bike-node-a3f0f4b7e7e3",
+                "similarity": 0.73397769
+              },
+              {
+                "label": "McCarren Park",
+                "nodeId": "bike-node-8a641140b02c",
+                "placeId": "place-bike-node-8a641140b02c",
+                "similarity": 0.72514731
+              },
+              {
+                "label": "Union Square",
+                "nodeId": "bike-node-0d9391b2bfa3",
+                "placeId": "place-bike-node-0d9391b2bfa3",
+                "similarity": 0.71976484
+              },
+              {
+                "label": "Greenpoint",
+                "nodeId": "bike-node-7a95737b9c7d",
+                "placeId": "place-bike-node-7a95737b9c7d",
+                "similarity": 0.69682585
+              }
+            ],
+            "refusalReason": "similarity_below_threshold",
+            "topSimilarity": 0.73540206
+          },
+          "kind": "paraphrase",
+          "nodeId": null,
+          "outcome": "refuse",
+          "probeId": "paraphrase-002",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": false,
+          "evidence": {
+            "extendedTypo": {
+              "distanceMargin": 0,
+              "label": null,
+              "maximumDistance": 5,
+              "nodeId": null,
+              "outcome": "refuse",
+              "placeId": null,
+              "ranking": [
+                {
+                  "distance": 23,
+                  "label": "Williamsburg Bridge",
+                  "labelLength": 19,
+                  "nodeId": "bike-node-86300f2cfd65",
+                  "placeId": "place-bike-node-86300f2cfd65"
+                },
+                {
+                  "distance": 23,
+                  "label": "North Williamsburg",
+                  "labelLength": 18,
+                  "nodeId": "bike-node-e25116ea05a4",
+                  "placeId": "place-bike-node-e25116ea05a4"
+                },
+                {
+                  "distance": 24,
+                  "label": "Williamsburg Waterfront",
+                  "labelLength": 23,
+                  "nodeId": "bike-node-0b79eee2f2ef",
+                  "placeId": "place-bike-node-0b79eee2f2ef"
+                },
+                {
+                  "distance": 24,
+                  "label": "West Village",
+                  "labelLength": 12,
+                  "nodeId": "bike-node-261ee8be5a25",
+                  "placeId": "place-bike-node-261ee8be5a25"
+                },
+                {
+                  "distance": 24,
+                  "label": "Washington Square",
+                  "labelLength": 17,
+                  "nodeId": "bike-node-a3f0f4b7e7e3",
+                  "placeId": "place-bike-node-a3f0f4b7e7e3"
+                }
+              ],
+              "refusalReason": "edit_distance_above_threshold"
+            },
+            "indexId": "nyc-core-place-embedding-index-v1",
+            "lane": "qwen_embedding_cosine",
+            "margin": 0.00501827,
+            "modelId": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
+            "policy": {
+              "id": "qwen-place-cosine-policy-v1",
+              "maximumCandidates": 5,
+              "minimumMargin": 0.005,
+              "minimumSimilarity": 0.775
+            },
+            "queryText": "park with the big public pool",
+            "ranking": [
+              {
+                "label": "McCarren Park",
+                "nodeId": "bike-node-8a641140b02c",
+                "placeId": "place-bike-node-8a641140b02c",
+                "similarity": 0.69775105
+              },
+              {
+                "label": "Tompkins Square",
+                "nodeId": "bike-node-429dcefa615d",
+                "placeId": "place-bike-node-429dcefa615d",
+                "similarity": 0.69273278
+              },
+              {
+                "label": "Washington Square",
+                "nodeId": "bike-node-a3f0f4b7e7e3",
+                "placeId": "place-bike-node-a3f0f4b7e7e3",
+                "similarity": 0.68323913
+              },
+              {
+                "label": "West Village",
+                "nodeId": "bike-node-261ee8be5a25",
+                "placeId": "place-bike-node-261ee8be5a25",
+                "similarity": 0.64302366
+              },
+              {
+                "label": "Greenpoint",
+                "nodeId": "bike-node-7a95737b9c7d",
+                "placeId": "place-bike-node-7a95737b9c7d",
+                "similarity": 0.64163749
+              }
+            ],
+            "refusalReason": "similarity_below_threshold",
+            "topSimilarity": 0.69775105
+          },
+          "kind": "paraphrase",
+          "nodeId": null,
+          "outcome": "refuse",
+          "probeId": "paraphrase-003",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": false,
+          "evidence": {
+            "extendedTypo": {
+              "distanceMargin": 0,
+              "label": null,
+              "maximumDistance": 5,
+              "nodeId": null,
+              "outcome": "refuse",
+              "placeId": null,
+              "ranking": [
+                {
+                  "distance": 38,
+                  "label": "Williamsburg Waterfront",
+                  "labelLength": 23,
+                  "nodeId": "bike-node-0b79eee2f2ef",
+                  "placeId": "place-bike-node-0b79eee2f2ef"
+                },
+                {
+                  "distance": 38,
+                  "label": "Washington Square",
+                  "labelLength": 17,
+                  "nodeId": "bike-node-a3f0f4b7e7e3",
+                  "placeId": "place-bike-node-a3f0f4b7e7e3"
+                },
+                {
+                  "distance": 40,
+                  "label": "Greenpoint",
+                  "labelLength": 10,
+                  "nodeId": "bike-node-7a95737b9c7d",
+                  "placeId": "place-bike-node-7a95737b9c7d"
+                },
+                {
+                  "distance": 40,
+                  "label": "Williamsburg Bridge",
+                  "labelLength": 19,
+                  "nodeId": "bike-node-86300f2cfd65",
+                  "placeId": "place-bike-node-86300f2cfd65"
+                },
+                {
+                  "distance": 41,
+                  "label": "Union Square",
+                  "labelLength": 12,
+                  "nodeId": "bike-node-0d9391b2bfa3",
+                  "placeId": "place-bike-node-0d9391b2bfa3"
+                }
+              ],
+              "refusalReason": "edit_distance_above_threshold"
+            },
+            "indexId": "nyc-core-place-embedding-index-v1",
+            "lane": "qwen_embedding_cosine",
+            "margin": 0.00062287,
+            "modelId": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
+            "policy": {
+              "id": "qwen-place-cosine-policy-v1",
+              "maximumCandidates": 5,
+              "minimumMargin": 0.005,
+              "minimumSimilarity": 0.775
+            },
+            "queryText": "Polish neighborhood at the north end of the map",
+            "ranking": [
+              {
+                "label": "Tompkins Square",
+                "nodeId": "bike-node-429dcefa615d",
+                "placeId": "place-bike-node-429dcefa615d",
+                "similarity": 0.7256357
+              },
+              {
+                "label": "East Village",
+                "nodeId": "bike-node-ffea919f743c",
+                "placeId": "place-bike-node-ffea919f743c",
+                "similarity": 0.72501283
+              },
+              {
+                "label": "Greenpoint",
+                "nodeId": "bike-node-7a95737b9c7d",
+                "placeId": "place-bike-node-7a95737b9c7d",
+                "similarity": 0.72333747
+              },
+              {
+                "label": "North Williamsburg",
+                "nodeId": "bike-node-e25116ea05a4",
+                "placeId": "place-bike-node-e25116ea05a4",
+                "similarity": 0.7189126
+              },
+              {
+                "label": "Williamsburg Waterfront",
+                "nodeId": "bike-node-0b79eee2f2ef",
+                "placeId": "place-bike-node-0b79eee2f2ef",
+                "similarity": 0.71342343
+              }
+            ],
+            "refusalReason": "similarity_below_threshold",
+            "topSimilarity": 0.7256357
+          },
+          "kind": "paraphrase",
+          "nodeId": null,
+          "outcome": "refuse",
+          "probeId": "paraphrase-004",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": false,
+          "evidence": {
+            "extendedTypo": {
+              "distanceMargin": 0,
+              "label": null,
+              "maximumDistance": 4,
+              "nodeId": null,
+              "outcome": "refuse",
+              "placeId": null,
+              "ranking": [
+                {
+                  "distance": 23,
+                  "label": "Union Square",
+                  "labelLength": 12,
+                  "nodeId": "bike-node-0d9391b2bfa3",
+                  "placeId": "place-bike-node-0d9391b2bfa3"
+                },
+                {
+                  "distance": 23,
+                  "label": "Washington Square",
+                  "labelLength": 17,
+                  "nodeId": "bike-node-a3f0f4b7e7e3",
+                  "placeId": "place-bike-node-a3f0f4b7e7e3"
+                },
+                {
+                  "distance": 24,
+                  "label": "Tompkins Square",
+                  "labelLength": 15,
+                  "nodeId": "bike-node-429dcefa615d",
+                  "placeId": "place-bike-node-429dcefa615d"
+                },
+                {
+                  "distance": 24,
+                  "label": "Greenpoint",
+                  "labelLength": 10,
+                  "nodeId": "bike-node-7a95737b9c7d",
+                  "placeId": "place-bike-node-7a95737b9c7d"
+                },
+                {
+                  "distance": 24,
+                  "label": "McCarren Park",
+                  "labelLength": 13,
+                  "nodeId": "bike-node-8a641140b02c",
+                  "placeId": "place-bike-node-8a641140b02c"
+                }
+              ],
+              "refusalReason": "edit_distance_above_threshold"
+            },
+            "indexId": "nyc-core-place-embedding-index-v1",
+            "lane": "qwen_embedding_cosine",
+            "margin": 0.00279389,
+            "modelId": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
+            "policy": {
+              "id": "qwen-place-cosine-policy-v1",
+              "maximumCandidates": 5,
+              "minimumMargin": 0.005,
+              "minimumSimilarity": 0.775
+            },
+            "queryText": "neighborhood around Stonewall",
+            "ranking": [
+              {
+                "label": "North Williamsburg",
+                "nodeId": "bike-node-e25116ea05a4",
+                "placeId": "place-bike-node-e25116ea05a4",
+                "similarity": 0.74412319
+              },
+              {
+                "label": "East Village",
+                "nodeId": "bike-node-ffea919f743c",
+                "placeId": "place-bike-node-ffea919f743c",
+                "similarity": 0.7413293
+              },
+              {
+                "label": "Williamsburg Waterfront",
+                "nodeId": "bike-node-0b79eee2f2ef",
+                "placeId": "place-bike-node-0b79eee2f2ef",
+                "similarity": 0.73703914
+              },
+              {
+                "label": "Tompkins Square",
+                "nodeId": "bike-node-429dcefa615d",
+                "placeId": "place-bike-node-429dcefa615d",
+                "similarity": 0.72809971
+              },
+              {
+                "label": "Greenpoint",
+                "nodeId": "bike-node-7a95737b9c7d",
+                "placeId": "place-bike-node-7a95737b9c7d",
+                "similarity": 0.71792085
+              }
+            ],
+            "refusalReason": "similarity_below_threshold",
+            "topSimilarity": 0.74412319
+          },
+          "kind": "paraphrase",
+          "nodeId": null,
+          "outcome": "refuse",
+          "probeId": "paraphrase-005",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": false,
+          "evidence": {
+            "extendedTypo": {
+              "distanceMargin": 0,
+              "label": null,
+              "maximumDistance": 4,
+              "nodeId": null,
+              "outcome": "refuse",
+              "placeId": null,
+              "ranking": [
+                {
+                  "distance": 26,
+                  "label": "Union Square",
+                  "labelLength": 12,
+                  "nodeId": "bike-node-0d9391b2bfa3",
+                  "placeId": "place-bike-node-0d9391b2bfa3"
+                },
+                {
+                  "distance": 26,
+                  "label": "Washington Square",
+                  "labelLength": 17,
+                  "nodeId": "bike-node-a3f0f4b7e7e3",
+                  "placeId": "place-bike-node-a3f0f4b7e7e3"
+                },
+                {
+                  "distance": 26,
+                  "label": "East Village",
+                  "labelLength": 12,
+                  "nodeId": "bike-node-ffea919f743c",
+                  "placeId": "place-bike-node-ffea919f743c"
+                },
+                {
+                  "distance": 27,
+                  "label": "West Village",
+                  "labelLength": 12,
+                  "nodeId": "bike-node-261ee8be5a25",
+                  "placeId": "place-bike-node-261ee8be5a25"
+                },
+                {
+                  "distance": 27,
+                  "label": "Tompkins Square",
+                  "labelLength": 15,
+                  "nodeId": "bike-node-429dcefa615d",
+                  "placeId": "place-bike-node-429dcefa615d"
+                }
+              ],
+              "refusalReason": "edit_distance_above_threshold"
+            },
+            "indexId": "nyc-core-place-embedding-index-v1",
+            "lane": "qwen_embedding_cosine",
+            "margin": 0.02435125,
+            "modelId": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
+            "policy": {
+              "id": "qwen-place-cosine-policy-v1",
+              "maximumCandidates": 5,
+              "minimumMargin": 0.005,
+              "minimumSimilarity": 0.775
+            },
+            "queryText": "neighborhood around St. Marks Place",
+            "ranking": [
+              {
+                "label": "Tompkins Square",
+                "nodeId": "bike-node-429dcefa615d",
+                "placeId": "place-bike-node-429dcefa615d",
+                "similarity": 0.77314253
+              },
+              {
+                "label": "Washington Square",
+                "nodeId": "bike-node-a3f0f4b7e7e3",
+                "placeId": "place-bike-node-a3f0f4b7e7e3",
+                "similarity": 0.74879128
+              },
+              {
+                "label": "East Village",
+                "nodeId": "bike-node-ffea919f743c",
+                "placeId": "place-bike-node-ffea919f743c",
+                "similarity": 0.73908885
+              },
+              {
+                "label": "West Village",
+                "nodeId": "bike-node-261ee8be5a25",
+                "placeId": "place-bike-node-261ee8be5a25",
+                "similarity": 0.734797
+              },
+              {
+                "label": "North Williamsburg",
+                "nodeId": "bike-node-e25116ea05a4",
+                "placeId": "place-bike-node-e25116ea05a4",
+                "similarity": 0.7297338
+              }
+            ],
+            "refusalReason": "similarity_below_threshold",
+            "topSimilarity": 0.77314253
+          },
+          "kind": "paraphrase",
+          "nodeId": null,
+          "outcome": "refuse",
+          "probeId": "paraphrase-006",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": false,
+          "evidence": {
+            "extendedTypo": {
+              "distanceMargin": 1,
+              "label": null,
+              "maximumDistance": 5,
+              "nodeId": null,
+              "outcome": "refuse",
+              "placeId": null,
+              "ranking": [
+                {
+                  "distance": 30,
+                  "label": "McCarren Park",
+                  "labelLength": 13,
+                  "nodeId": "bike-node-8a641140b02c",
+                  "placeId": "place-bike-node-8a641140b02c"
+                },
+                {
+                  "distance": 31,
+                  "label": "Williamsburg Waterfront",
+                  "labelLength": 23,
+                  "nodeId": "bike-node-0b79eee2f2ef",
+                  "placeId": "place-bike-node-0b79eee2f2ef"
+                },
+                {
+                  "distance": 31,
+                  "label": "Greenpoint",
+                  "labelLength": 10,
+                  "nodeId": "bike-node-7a95737b9c7d",
+                  "placeId": "place-bike-node-7a95737b9c7d"
+                },
+                {
+                  "distance": 32,
+                  "label": "Tompkins Square",
+                  "labelLength": 15,
+                  "nodeId": "bike-node-429dcefa615d",
+                  "placeId": "place-bike-node-429dcefa615d"
+                },
+                {
+                  "distance": 32,
+                  "label": "Washington Square",
+                  "labelLength": 17,
+                  "nodeId": "bike-node-a3f0f4b7e7e3",
+                  "placeId": "place-bike-node-a3f0f4b7e7e3"
+                }
+              ],
+              "refusalReason": "edit_distance_above_threshold"
+            },
+            "indexId": "nyc-core-place-embedding-index-v1",
+            "lane": "qwen_embedding_cosine",
+            "margin": 0.05835289,
+            "modelId": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
+            "policy": {
+              "id": "qwen-place-cosine-policy-v1",
+              "maximumCandidates": 5,
+              "minimumMargin": 0.005,
+              "minimumSimilarity": 0.775
+            },
+            "queryText": "bridge that carries the J and M trains",
+            "ranking": [
+              {
+                "label": "Williamsburg Bridge",
+                "nodeId": "bike-node-86300f2cfd65",
+                "placeId": "place-bike-node-86300f2cfd65",
+                "similarity": 0.77101622
+              },
+              {
+                "label": "Tompkins Square",
+                "nodeId": "bike-node-429dcefa615d",
+                "placeId": "place-bike-node-429dcefa615d",
+                "similarity": 0.71266333
+              },
+              {
+                "label": "Union Square",
+                "nodeId": "bike-node-0d9391b2bfa3",
+                "placeId": "place-bike-node-0d9391b2bfa3",
+                "similarity": 0.70171051
+              },
+              {
+                "label": "McCarren Park",
+                "nodeId": "bike-node-8a641140b02c",
+                "placeId": "place-bike-node-8a641140b02c",
+                "similarity": 0.69788753
+              },
+              {
+                "label": "Washington Square",
+                "nodeId": "bike-node-a3f0f4b7e7e3",
+                "placeId": "place-bike-node-a3f0f4b7e7e3",
+                "similarity": 0.69586645
+              }
+            ],
+            "refusalReason": "similarity_below_threshold",
+            "topSimilarity": 0.77101622
+          },
+          "kind": "paraphrase",
+          "nodeId": null,
+          "outcome": "refuse",
+          "probeId": "paraphrase-007",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": false,
+          "evidence": {
+            "extendedTypo": {
+              "distanceMargin": 5,
+              "label": null,
+              "maximumDistance": 5,
+              "nodeId": null,
+              "outcome": "refuse",
+              "placeId": null,
+              "ranking": [
+                {
+                  "distance": 22,
+                  "label": "North Williamsburg",
+                  "labelLength": 18,
+                  "nodeId": "bike-node-e25116ea05a4",
+                  "placeId": "place-bike-node-e25116ea05a4"
+                },
+                {
+                  "distance": 27,
+                  "label": "Williamsburg Waterfront",
+                  "labelLength": 23,
+                  "nodeId": "bike-node-0b79eee2f2ef",
+                  "placeId": "place-bike-node-0b79eee2f2ef"
+                },
+                {
+                  "distance": 27,
+                  "label": "East Village",
+                  "labelLength": 12,
+                  "nodeId": "bike-node-ffea919f743c",
+                  "placeId": "place-bike-node-ffea919f743c"
+                },
+                {
+                  "distance": 28,
+                  "label": "Washington Square",
+                  "labelLength": 17,
+                  "nodeId": "bike-node-a3f0f4b7e7e3",
+                  "placeId": "place-bike-node-a3f0f4b7e7e3"
+                },
+                {
+                  "distance": 29,
+                  "label": "West Village",
+                  "labelLength": 12,
+                  "nodeId": "bike-node-261ee8be5a25",
+                  "placeId": "place-bike-node-261ee8be5a25"
+                }
+              ],
+              "refusalReason": "edit_distance_above_threshold"
+            },
+            "indexId": "nyc-core-place-embedding-index-v1",
+            "lane": "qwen_embedding_cosine",
+            "margin": 0.00261522,
+            "modelId": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
+            "policy": {
+              "id": "qwen-place-cosine-policy-v1",
+              "maximumCandidates": 5,
+              "minimumMargin": 0.005,
+              "minimumSimilarity": 0.775
+            },
+            "queryText": "East River waterfront in Williamsburg",
+            "ranking": [
+              {
+                "label": "Williamsburg Waterfront",
+                "nodeId": "bike-node-0b79eee2f2ef",
+                "placeId": "place-bike-node-0b79eee2f2ef",
+                "similarity": 0.76045289
+              },
+              {
+                "label": "North Williamsburg",
+                "nodeId": "bike-node-e25116ea05a4",
+                "placeId": "place-bike-node-e25116ea05a4",
+                "similarity": 0.75783767
+              },
+              {
+                "label": "Williamsburg Bridge",
+                "nodeId": "bike-node-86300f2cfd65",
+                "placeId": "place-bike-node-86300f2cfd65",
+                "similarity": 0.74255453
+              },
+              {
+                "label": "Tompkins Square",
+                "nodeId": "bike-node-429dcefa615d",
+                "placeId": "place-bike-node-429dcefa615d",
+                "similarity": 0.72398111
+              },
+              {
+                "label": "East Village",
+                "nodeId": "bike-node-ffea919f743c",
+                "placeId": "place-bike-node-ffea919f743c",
+                "similarity": 0.71899022
+              }
+            ],
+            "refusalReason": "similarity_below_threshold",
+            "topSimilarity": 0.76045289
+          },
+          "kind": "paraphrase",
+          "nodeId": null,
+          "outcome": "refuse",
+          "probeId": "paraphrase-008",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": true,
+          "evidence": {
+            "extendedTypo": {
+              "distanceMargin": 1,
+              "label": null,
+              "maximumDistance": 4,
+              "nodeId": null,
+              "outcome": "refuse",
+              "placeId": null,
+              "ranking": [
+                {
+                  "distance": 16,
+                  "label": "East Village",
+                  "labelLength": 12,
+                  "nodeId": "bike-node-ffea919f743c",
+                  "placeId": "place-bike-node-ffea919f743c"
+                },
+                {
+                  "distance": 17,
+                  "label": "Union Square",
+                  "labelLength": 12,
+                  "nodeId": "bike-node-0d9391b2bfa3",
+                  "placeId": "place-bike-node-0d9391b2bfa3"
+                },
+                {
+                  "distance": 17,
+                  "label": "West Village",
+                  "labelLength": 12,
+                  "nodeId": "bike-node-261ee8be5a25",
+                  "placeId": "place-bike-node-261ee8be5a25"
+                },
+                {
+                  "distance": 17,
+                  "label": "Tompkins Square",
+                  "labelLength": 15,
+                  "nodeId": "bike-node-429dcefa615d",
+                  "placeId": "place-bike-node-429dcefa615d"
+                },
+                {
+                  "distance": 17,
+                  "label": "Greenpoint",
+                  "labelLength": 10,
+                  "nodeId": "bike-node-7a95737b9c7d",
+                  "placeId": "place-bike-node-7a95737b9c7d"
+                }
+              ],
+              "refusalReason": "edit_distance_above_threshold"
+            },
+            "indexId": "nyc-core-place-embedding-index-v1",
+            "lane": "qwen_embedding_cosine",
+            "margin": 0.03219718,
+            "modelId": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
+            "policy": {
+              "id": "qwen-place-cosine-policy-v1",
+              "maximumCandidates": 5,
+              "minimumMargin": 0.005,
+              "minimumSimilarity": 0.775
+            },
+            "queryText": "park in Alphabet City",
+            "ranking": [
+              {
+                "label": "Tompkins Square",
+                "nodeId": "bike-node-429dcefa615d",
+                "placeId": "place-bike-node-429dcefa615d",
+                "similarity": 0.80173951
+              },
+              {
+                "label": "Washington Square",
+                "nodeId": "bike-node-a3f0f4b7e7e3",
+                "placeId": "place-bike-node-a3f0f4b7e7e3",
+                "similarity": 0.76954233
+              },
+              {
+                "label": "McCarren Park",
+                "nodeId": "bike-node-8a641140b02c",
+                "placeId": "place-bike-node-8a641140b02c",
+                "similarity": 0.76888371
+              },
+              {
+                "label": "East Village",
+                "nodeId": "bike-node-ffea919f743c",
+                "placeId": "place-bike-node-ffea919f743c",
+                "similarity": 0.76662934
+              },
+              {
+                "label": "Williamsburg Waterfront",
+                "nodeId": "bike-node-0b79eee2f2ef",
+                "placeId": "place-bike-node-0b79eee2f2ef",
+                "similarity": 0.76643079
+              }
+            ],
+            "refusalReason": null,
+            "topSimilarity": 0.80173951
+          },
+          "kind": "paraphrase",
+          "nodeId": "bike-node-429dcefa615d",
+          "outcome": "resolve",
+          "probeId": "paraphrase-009",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": false,
+          "evidence": {
+            "extendedTypo": {
+              "distanceMargin": 0,
+              "label": null,
+              "maximumDistance": 5,
+              "nodeId": null,
+              "outcome": "refuse",
+              "placeId": null,
+              "ranking": [
+                {
+                  "distance": 19,
+                  "label": "Washington Square",
+                  "labelLength": 17,
+                  "nodeId": "bike-node-a3f0f4b7e7e3",
+                  "placeId": "place-bike-node-a3f0f4b7e7e3"
+                },
+                {
+                  "distance": 19,
+                  "label": "North Williamsburg",
+                  "labelLength": 18,
+                  "nodeId": "bike-node-e25116ea05a4",
+                  "placeId": "place-bike-node-e25116ea05a4"
+                },
+                {
+                  "distance": 20,
+                  "label": "Union Square",
+                  "labelLength": 12,
+                  "nodeId": "bike-node-0d9391b2bfa3",
+                  "placeId": "place-bike-node-0d9391b2bfa3"
+                },
+                {
+                  "distance": 20,
+                  "label": "West Village",
+                  "labelLength": 12,
+                  "nodeId": "bike-node-261ee8be5a25",
+                  "placeId": "place-bike-node-261ee8be5a25"
+                },
+                {
+                  "distance": 20,
+                  "label": "Tompkins Square",
+                  "labelLength": 15,
+                  "nodeId": "bike-node-429dcefa615d",
+                  "placeId": "place-bike-node-429dcefa615d"
+                }
+              ],
+              "refusalReason": "edit_distance_above_threshold"
+            },
+            "indexId": "nyc-core-place-embedding-index-v1",
+            "lane": "qwen_embedding_cosine",
+            "margin": 0.00591817,
+            "modelId": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
+            "policy": {
+              "id": "qwen-place-cosine-policy-v1",
+              "maximumCandidates": 5,
+              "minimumMargin": 0.005,
+              "minimumSimilarity": 0.775
+            },
+            "queryText": "park with the marble arch",
+            "ranking": [
+              {
+                "label": "Tompkins Square",
+                "nodeId": "bike-node-429dcefa615d",
+                "placeId": "place-bike-node-429dcefa615d",
+                "similarity": 0.74171282
+              },
+              {
+                "label": "Washington Square",
+                "nodeId": "bike-node-a3f0f4b7e7e3",
+                "placeId": "place-bike-node-a3f0f4b7e7e3",
+                "similarity": 0.73579465
+              },
+              {
+                "label": "McCarren Park",
+                "nodeId": "bike-node-8a641140b02c",
+                "placeId": "place-bike-node-8a641140b02c",
+                "similarity": 0.72840111
+              },
+              {
+                "label": "Union Square",
+                "nodeId": "bike-node-0d9391b2bfa3",
+                "placeId": "place-bike-node-0d9391b2bfa3",
+                "similarity": 0.71016239
+              },
+              {
+                "label": "Williamsburg Bridge",
+                "nodeId": "bike-node-86300f2cfd65",
+                "placeId": "place-bike-node-86300f2cfd65",
+                "similarity": 0.69219054
+              }
+            ],
+            "refusalReason": "similarity_below_threshold",
+            "topSimilarity": 0.74171282
+          },
+          "kind": "paraphrase",
+          "nodeId": null,
+          "outcome": "refuse",
+          "probeId": "paraphrase-010",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": true,
+          "evidence": {
+            "extendedTypo": {
+              "distanceMargin": 1,
+              "label": null,
+              "maximumDistance": 5,
+              "nodeId": null,
+              "outcome": "refuse",
+              "placeId": null,
+              "ranking": [
+                {
+                  "distance": 6,
+                  "label": "North Williamsburg",
+                  "labelLength": 18,
+                  "nodeId": "bike-node-e25116ea05a4",
+                  "placeId": "place-bike-node-e25116ea05a4"
+                },
+                {
+                  "distance": 7,
+                  "label": "Williamsburg Bridge",
+                  "labelLength": 19,
+                  "nodeId": "bike-node-86300f2cfd65",
+                  "placeId": "place-bike-node-86300f2cfd65"
+                },
+                {
+                  "distance": 10,
+                  "label": "Union Square",
+                  "labelLength": 12,
+                  "nodeId": "bike-node-0d9391b2bfa3",
+                  "placeId": "place-bike-node-0d9391b2bfa3"
+                },
+                {
+                  "distance": 11,
+                  "label": "Williamsburg Waterfront",
+                  "labelLength": 23,
+                  "nodeId": "bike-node-0b79eee2f2ef",
+                  "placeId": "place-bike-node-0b79eee2f2ef"
+                },
+                {
+                  "distance": 11,
+                  "label": "West Village",
+                  "labelLength": 12,
+                  "nodeId": "bike-node-261ee8be5a25",
+                  "placeId": "place-bike-node-261ee8be5a25"
+                }
+              ],
+              "refusalReason": "edit_distance_above_threshold"
+            },
+            "indexId": "nyc-core-place-embedding-index-v1",
+            "lane": "qwen_embedding_cosine",
+            "margin": 0.01229916,
+            "modelId": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
+            "policy": {
+              "id": "qwen-place-cosine-policy-v1",
+              "maximumCandidates": 5,
+              "minimumMargin": 0.005,
+              "minimumSimilarity": 0.775
+            },
+            "queryText": "Williamsburg",
+            "ranking": [
+              {
+                "label": "North Williamsburg",
+                "nodeId": "bike-node-e25116ea05a4",
+                "placeId": "place-bike-node-e25116ea05a4",
+                "similarity": 0.77046581
+              },
+              {
+                "label": "Williamsburg Waterfront",
+                "nodeId": "bike-node-0b79eee2f2ef",
+                "placeId": "place-bike-node-0b79eee2f2ef",
+                "similarity": 0.75816665
+              },
+              {
+                "label": "Williamsburg Bridge",
+                "nodeId": "bike-node-86300f2cfd65",
+                "placeId": "place-bike-node-86300f2cfd65",
+                "similarity": 0.73558209
+              },
+              {
+                "label": "Tompkins Square",
+                "nodeId": "bike-node-429dcefa615d",
+                "placeId": "place-bike-node-429dcefa615d",
+                "similarity": 0.70497876
+              },
+              {
+                "label": "McCarren Park",
+                "nodeId": "bike-node-8a641140b02c",
+                "placeId": "place-bike-node-8a641140b02c",
+                "similarity": 0.7016141
+              }
+            ],
+            "refusalReason": "similarity_below_threshold",
+            "topSimilarity": 0.77046581
+          },
+          "kind": "ambiguous",
+          "nodeId": null,
+          "outcome": "refuse",
+          "probeId": "ambiguous-001",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": true,
+          "evidence": {
+            "extendedTypo": {
+              "distanceMargin": 0,
+              "label": null,
+              "maximumDistance": 4,
+              "nodeId": null,
+              "outcome": "refuse",
+              "placeId": null,
+              "ranking": [
+                {
+                  "distance": 9,
+                  "label": "Greenpoint",
+                  "labelLength": 10,
+                  "nodeId": "bike-node-7a95737b9c7d",
+                  "placeId": "place-bike-node-7a95737b9c7d"
+                },
+                {
+                  "distance": 9,
+                  "label": "McCarren Park",
+                  "labelLength": 13,
+                  "nodeId": "bike-node-8a641140b02c",
+                  "placeId": "place-bike-node-8a641140b02c"
+                },
+                {
+                  "distance": 10,
+                  "label": "Union Square",
+                  "labelLength": 12,
+                  "nodeId": "bike-node-0d9391b2bfa3",
+                  "placeId": "place-bike-node-0d9391b2bfa3"
+                },
+                {
+                  "distance": 11,
+                  "label": "West Village",
+                  "labelLength": 12,
+                  "nodeId": "bike-node-261ee8be5a25",
+                  "placeId": "place-bike-node-261ee8be5a25"
+                },
+                {
+                  "distance": 11,
+                  "label": "East Village",
+                  "labelLength": 12,
+                  "nodeId": "bike-node-ffea919f743c",
+                  "placeId": "place-bike-node-ffea919f743c"
+                }
+              ],
+              "refusalReason": "edit_distance_above_threshold"
+            },
+            "indexId": "nyc-core-place-embedding-index-v1",
+            "lane": "qwen_embedding_cosine",
+            "margin": 0.00455298,
+            "modelId": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
+            "policy": {
+              "id": "qwen-place-cosine-policy-v1",
+              "maximumCandidates": 5,
+              "minimumMargin": 0.005,
+              "minimumSimilarity": 0.775
+            },
+            "queryText": "park",
+            "ranking": [
+              {
+                "label": "Tompkins Square",
+                "nodeId": "bike-node-429dcefa615d",
+                "placeId": "place-bike-node-429dcefa615d",
+                "similarity": 0.76467828
+              },
+              {
+                "label": "McCarren Park",
+                "nodeId": "bike-node-8a641140b02c",
+                "placeId": "place-bike-node-8a641140b02c",
+                "similarity": 0.7601253
+              },
+              {
+                "label": "Washington Square",
+                "nodeId": "bike-node-a3f0f4b7e7e3",
+                "placeId": "place-bike-node-a3f0f4b7e7e3",
+                "similarity": 0.75374801
+              },
+              {
+                "label": "Union Square",
+                "nodeId": "bike-node-0d9391b2bfa3",
+                "placeId": "place-bike-node-0d9391b2bfa3",
+                "similarity": 0.72273422
+              },
+              {
+                "label": "West Village",
+                "nodeId": "bike-node-261ee8be5a25",
+                "placeId": "place-bike-node-261ee8be5a25",
+                "similarity": 0.72069366
+              }
+            ],
+            "refusalReason": "similarity_below_threshold",
+            "topSimilarity": 0.76467828
+          },
+          "kind": "ambiguous",
+          "nodeId": null,
+          "outcome": "refuse",
+          "probeId": "ambiguous-002",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": true,
+          "evidence": {
+            "extendedTypo": {
+              "distanceMargin": 3,
+              "label": null,
+              "maximumDistance": 4,
+              "nodeId": null,
+              "outcome": "refuse",
+              "placeId": null,
+              "ranking": [
+                {
+                  "distance": 6,
+                  "label": "Union Square",
+                  "labelLength": 12,
+                  "nodeId": "bike-node-0d9391b2bfa3",
+                  "placeId": "place-bike-node-0d9391b2bfa3"
+                },
+                {
+                  "distance": 9,
+                  "label": "West Village",
+                  "labelLength": 12,
+                  "nodeId": "bike-node-261ee8be5a25",
+                  "placeId": "place-bike-node-261ee8be5a25"
+                },
+                {
+                  "distance": 9,
+                  "label": "Tompkins Square",
+                  "labelLength": 15,
+                  "nodeId": "bike-node-429dcefa615d",
+                  "placeId": "place-bike-node-429dcefa615d"
+                },
+                {
+                  "distance": 9,
+                  "label": "East Village",
+                  "labelLength": 12,
+                  "nodeId": "bike-node-ffea919f743c",
+                  "placeId": "place-bike-node-ffea919f743c"
+                },
+                {
+                  "distance": 10,
+                  "label": "Greenpoint",
+                  "labelLength": 10,
+                  "nodeId": "bike-node-7a95737b9c7d",
+                  "placeId": "place-bike-node-7a95737b9c7d"
+                }
+              ],
+              "refusalReason": "edit_distance_above_threshold"
+            },
+            "indexId": "nyc-core-place-embedding-index-v1",
+            "lane": "qwen_embedding_cosine",
+            "margin": 0.01365833,
+            "modelId": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
+            "policy": {
+              "id": "qwen-place-cosine-policy-v1",
+              "maximumCandidates": 5,
+              "minimumMargin": 0.005,
+              "minimumSimilarity": 0.775
+            },
+            "queryText": "square",
+            "ranking": [
+              {
+                "label": "Tompkins Square",
+                "nodeId": "bike-node-429dcefa615d",
+                "placeId": "place-bike-node-429dcefa615d",
+                "similarity": 0.72109381
+              },
+              {
+                "label": "Washington Square",
+                "nodeId": "bike-node-a3f0f4b7e7e3",
+                "placeId": "place-bike-node-a3f0f4b7e7e3",
+                "similarity": 0.70743548
+              },
+              {
+                "label": "Union Square",
+                "nodeId": "bike-node-0d9391b2bfa3",
+                "placeId": "place-bike-node-0d9391b2bfa3",
+                "similarity": 0.69915973
+              },
+              {
+                "label": "West Village",
+                "nodeId": "bike-node-261ee8be5a25",
+                "placeId": "place-bike-node-261ee8be5a25",
+                "similarity": 0.67817367
+              },
+              {
+                "label": "East Village",
+                "nodeId": "bike-node-ffea919f743c",
+                "placeId": "place-bike-node-ffea919f743c",
+                "similarity": 0.67800673
+              }
+            ],
+            "refusalReason": "similarity_below_threshold",
+            "topSimilarity": 0.72109381
+          },
+          "kind": "ambiguous",
+          "nodeId": null,
+          "outcome": "refuse",
+          "probeId": "ambiguous-003",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": true,
+          "evidence": {
+            "extendedTypo": {
+              "distanceMargin": 3,
+              "label": null,
+              "maximumDistance": 5,
+              "nodeId": null,
+              "outcome": "refuse",
+              "placeId": null,
+              "ranking": [
+                {
+                  "distance": 6,
+                  "label": "McCarren Park",
+                  "labelLength": 13,
+                  "nodeId": "bike-node-8a641140b02c",
+                  "placeId": "place-bike-node-8a641140b02c"
+                },
+                {
+                  "distance": 9,
+                  "label": "West Village",
+                  "labelLength": 12,
+                  "nodeId": "bike-node-261ee8be5a25",
+                  "placeId": "place-bike-node-261ee8be5a25"
+                },
+                {
+                  "distance": 10,
+                  "label": "Union Square",
+                  "labelLength": 12,
+                  "nodeId": "bike-node-0d9391b2bfa3",
+                  "placeId": "place-bike-node-0d9391b2bfa3"
+                },
+                {
+                  "distance": 10,
+                  "label": "East Village",
+                  "labelLength": 12,
+                  "nodeId": "bike-node-ffea919f743c",
+                  "placeId": "place-bike-node-ffea919f743c"
+                },
+                {
+                  "distance": 11,
+                  "label": "Greenpoint",
+                  "labelLength": 10,
+                  "nodeId": "bike-node-7a95737b9c7d",
+                  "placeId": "place-bike-node-7a95737b9c7d"
+                }
+              ],
+              "refusalReason": "edit_distance_above_threshold"
+            },
+            "indexId": "nyc-core-place-embedding-index-v1",
+            "lane": "qwen_embedding_cosine",
+            "margin": 0.00173736,
+            "modelId": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
+            "policy": {
+              "id": "qwen-place-cosine-policy-v1",
+              "maximumCandidates": 5,
+              "minimumMargin": 0.005,
+              "minimumSimilarity": 0.775
+            },
+            "queryText": "Central Park",
+            "ranking": [
+              {
+                "label": "McCarren Park",
+                "nodeId": "bike-node-8a641140b02c",
+                "placeId": "place-bike-node-8a641140b02c",
+                "similarity": 0.7166914
+              },
+              {
+                "label": "Tompkins Square",
+                "nodeId": "bike-node-429dcefa615d",
+                "placeId": "place-bike-node-429dcefa615d",
+                "similarity": 0.71495404
+              },
+              {
+                "label": "Williamsburg Waterfront",
+                "nodeId": "bike-node-0b79eee2f2ef",
+                "placeId": "place-bike-node-0b79eee2f2ef",
+                "similarity": 0.70593528
+              },
+              {
+                "label": "Washington Square",
+                "nodeId": "bike-node-a3f0f4b7e7e3",
+                "placeId": "place-bike-node-a3f0f4b7e7e3",
+                "similarity": 0.70336618
+              },
+              {
+                "label": "North Williamsburg",
+                "nodeId": "bike-node-e25116ea05a4",
+                "placeId": "place-bike-node-e25116ea05a4",
+                "similarity": 0.70177585
+              }
+            ],
+            "refusalReason": "similarity_below_threshold",
+            "topSimilarity": 0.7166914
+          },
+          "kind": "out_of_world",
+          "nodeId": null,
+          "outcome": "refuse",
+          "probeId": "out-of-world-001",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": true,
+          "evidence": {
+            "extendedTypo": {
+              "distanceMargin": 0,
+              "label": null,
+              "maximumDistance": 4,
+              "nodeId": null,
+              "outcome": "refuse",
+              "placeId": null,
+              "ranking": [
+                {
+                  "distance": 5,
+                  "label": "Union Square",
+                  "labelLength": 12,
+                  "nodeId": "bike-node-0d9391b2bfa3",
+                  "placeId": "place-bike-node-0d9391b2bfa3"
+                },
+                {
+                  "distance": 5,
+                  "label": "Tompkins Square",
+                  "labelLength": 15,
+                  "nodeId": "bike-node-429dcefa615d",
+                  "placeId": "place-bike-node-429dcefa615d"
+                },
+                {
+                  "distance": 9,
+                  "label": "West Village",
+                  "labelLength": 12,
+                  "nodeId": "bike-node-261ee8be5a25",
+                  "placeId": "place-bike-node-261ee8be5a25"
+                },
+                {
+                  "distance": 9,
+                  "label": "Washington Square",
+                  "labelLength": 17,
+                  "nodeId": "bike-node-a3f0f4b7e7e3",
+                  "placeId": "place-bike-node-a3f0f4b7e7e3"
+                },
+                {
+                  "distance": 10,
+                  "label": "East Village",
+                  "labelLength": 12,
+                  "nodeId": "bike-node-ffea919f743c",
+                  "placeId": "place-bike-node-ffea919f743c"
+                }
+              ],
+              "refusalReason": "edit_distance_above_threshold"
+            },
+            "indexId": "nyc-core-place-embedding-index-v1",
+            "lane": "qwen_embedding_cosine",
+            "margin": 0.0214674,
+            "modelId": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
+            "policy": {
+              "id": "qwen-place-cosine-policy-v1",
+              "maximumCandidates": 5,
+              "minimumMargin": 0.005,
+              "minimumSimilarity": 0.775
+            },
+            "queryText": "Times Square",
+            "ranking": [
+              {
+                "label": "Tompkins Square",
+                "nodeId": "bike-node-429dcefa615d",
+                "placeId": "place-bike-node-429dcefa615d",
+                "similarity": 0.75408949
+              },
+              {
+                "label": "East Village",
+                "nodeId": "bike-node-ffea919f743c",
+                "placeId": "place-bike-node-ffea919f743c",
+                "similarity": 0.73262209
+              },
+              {
+                "label": "Union Square",
+                "nodeId": "bike-node-0d9391b2bfa3",
+                "placeId": "place-bike-node-0d9391b2bfa3",
+                "similarity": 0.73240129
+              },
+              {
+                "label": "Washington Square",
+                "nodeId": "bike-node-a3f0f4b7e7e3",
+                "placeId": "place-bike-node-a3f0f4b7e7e3",
+                "similarity": 0.73047928
+              },
+              {
+                "label": "North Williamsburg",
+                "nodeId": "bike-node-e25116ea05a4",
+                "placeId": "place-bike-node-e25116ea05a4",
+                "similarity": 0.7265324
+              }
+            ],
+            "refusalReason": "similarity_below_threshold",
+            "topSimilarity": 0.75408949
+          },
+          "kind": "out_of_world",
+          "nodeId": null,
+          "outcome": "refuse",
+          "probeId": "out-of-world-002",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": true,
+          "evidence": {
+            "extendedTypo": {
+              "distanceMargin": 3,
+              "label": null,
+              "maximumDistance": 5,
+              "nodeId": null,
+              "outcome": "refuse",
+              "placeId": null,
+              "ranking": [
+                {
+                  "distance": 8,
+                  "label": "McCarren Park",
+                  "labelLength": 13,
+                  "nodeId": "bike-node-8a641140b02c",
+                  "placeId": "place-bike-node-8a641140b02c"
+                },
+                {
+                  "distance": 11,
+                  "label": "Union Square",
+                  "labelLength": 12,
+                  "nodeId": "bike-node-0d9391b2bfa3",
+                  "placeId": "place-bike-node-0d9391b2bfa3"
+                },
+                {
+                  "distance": 11,
+                  "label": "West Village",
+                  "labelLength": 12,
+                  "nodeId": "bike-node-261ee8be5a25",
+                  "placeId": "place-bike-node-261ee8be5a25"
+                },
+                {
+                  "distance": 11,
+                  "label": "Tompkins Square",
+                  "labelLength": 15,
+                  "nodeId": "bike-node-429dcefa615d",
+                  "placeId": "place-bike-node-429dcefa615d"
+                },
+                {
+                  "distance": 11,
+                  "label": "Greenpoint",
+                  "labelLength": 10,
+                  "nodeId": "bike-node-7a95737b9c7d",
+                  "placeId": "place-bike-node-7a95737b9c7d"
+                }
+              ],
+              "refusalReason": "edit_distance_above_threshold"
+            },
+            "indexId": "nyc-core-place-embedding-index-v1",
+            "lane": "qwen_embedding_cosine",
+            "margin": 0.00217704,
+            "modelId": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
+            "policy": {
+              "id": "qwen-place-cosine-policy-v1",
+              "maximumCandidates": 5,
+              "minimumMargin": 0.005,
+              "minimumSimilarity": 0.775
+            },
+            "queryText": "Prospect Park",
+            "ranking": [
+              {
+                "label": "McCarren Park",
+                "nodeId": "bike-node-8a641140b02c",
+                "placeId": "place-bike-node-8a641140b02c",
+                "similarity": 0.7101929
+              },
+              {
+                "label": "Tompkins Square",
+                "nodeId": "bike-node-429dcefa615d",
+                "placeId": "place-bike-node-429dcefa615d",
+                "similarity": 0.70801586
+              },
+              {
+                "label": "Washington Square",
+                "nodeId": "bike-node-a3f0f4b7e7e3",
+                "placeId": "place-bike-node-a3f0f4b7e7e3",
+                "similarity": 0.70333677
+              },
+              {
+                "label": "Williamsburg Waterfront",
+                "nodeId": "bike-node-0b79eee2f2ef",
+                "placeId": "place-bike-node-0b79eee2f2ef",
+                "similarity": 0.69843122
+              },
+              {
+                "label": "North Williamsburg",
+                "nodeId": "bike-node-e25116ea05a4",
+                "placeId": "place-bike-node-e25116ea05a4",
+                "similarity": 0.68876846
+              }
+            ],
+            "refusalReason": "similarity_below_threshold",
+            "topSimilarity": 0.7101929
+          },
+          "kind": "out_of_world",
+          "nodeId": null,
+          "outcome": "refuse",
+          "probeId": "out-of-world-003",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": true,
+          "evidence": {
+            "extendedTypo": {
+              "distanceMargin": 2,
+              "label": null,
+              "maximumDistance": 4,
+              "nodeId": null,
+              "outcome": "refuse",
+              "placeId": null,
+              "ranking": [
+                {
+                  "distance": 9,
+                  "label": "Greenpoint",
+                  "labelLength": 10,
+                  "nodeId": "bike-node-7a95737b9c7d",
+                  "placeId": "place-bike-node-7a95737b9c7d"
+                },
+                {
+                  "distance": 11,
+                  "label": "Union Square",
+                  "labelLength": 12,
+                  "nodeId": "bike-node-0d9391b2bfa3",
+                  "placeId": "place-bike-node-0d9391b2bfa3"
+                },
+                {
+                  "distance": 12,
+                  "label": "West Village",
+                  "labelLength": 12,
+                  "nodeId": "bike-node-261ee8be5a25",
+                  "placeId": "place-bike-node-261ee8be5a25"
+                },
+                {
+                  "distance": 12,
+                  "label": "East Village",
+                  "labelLength": 12,
+                  "nodeId": "bike-node-ffea919f743c",
+                  "placeId": "place-bike-node-ffea919f743c"
+                },
+                {
+                  "distance": 13,
+                  "label": "McCarren Park",
+                  "labelLength": 13,
+                  "nodeId": "bike-node-8a641140b02c",
+                  "placeId": "place-bike-node-8a641140b02c"
+                }
+              ],
+              "refusalReason": "edit_distance_above_threshold"
+            },
+            "indexId": "nyc-core-place-embedding-index-v1",
+            "lane": "qwen_embedding_cosine",
+            "margin": 0.00151843,
+            "modelId": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
+            "policy": {
+              "id": "qwen-place-cosine-policy-v1",
+              "maximumCandidates": 5,
+              "minimumMargin": 0.005,
+              "minimumSimilarity": 0.775
+            },
+            "queryText": "DUMBO",
+            "ranking": [
+              {
+                "label": "Williamsburg Waterfront",
+                "nodeId": "bike-node-0b79eee2f2ef",
+                "placeId": "place-bike-node-0b79eee2f2ef",
+                "similarity": 0.6668223
+              },
+              {
+                "label": "North Williamsburg",
+                "nodeId": "bike-node-e25116ea05a4",
+                "placeId": "place-bike-node-e25116ea05a4",
+                "similarity": 0.66530387
+              },
+              {
+                "label": "Williamsburg Bridge",
+                "nodeId": "bike-node-86300f2cfd65",
+                "placeId": "place-bike-node-86300f2cfd65",
+                "similarity": 0.65316067
+              },
+              {
+                "label": "Tompkins Square",
+                "nodeId": "bike-node-429dcefa615d",
+                "placeId": "place-bike-node-429dcefa615d",
+                "similarity": 0.64163955
+              },
+              {
+                "label": "East Village",
+                "nodeId": "bike-node-ffea919f743c",
+                "placeId": "place-bike-node-ffea919f743c",
+                "similarity": 0.63452089
+              }
+            ],
+            "refusalReason": "similarity_below_threshold",
+            "topSimilarity": 0.6668223
+          },
+          "kind": "out_of_world",
+          "nodeId": null,
+          "outcome": "refuse",
+          "probeId": "out-of-world-004",
+          "violation": false,
+          "wrongPlace": false
+        }
+      ]
+    },
     "control": {
       "guardrails": {
         "floorMisses": 0,
@@ -86,6 +2421,7 @@
       "rows": [
         {
           "correct": true,
+          "evidence": null,
           "kind": "exact",
           "nodeId": "bike-node-e25116ea05a4",
           "outcome": "resolve",
@@ -95,6 +2431,7 @@
         },
         {
           "correct": true,
+          "evidence": null,
           "kind": "exact",
           "nodeId": "bike-node-0d9391b2bfa3",
           "outcome": "resolve",
@@ -104,6 +2441,7 @@
         },
         {
           "correct": true,
+          "evidence": null,
           "kind": "exact",
           "nodeId": "bike-node-261ee8be5a25",
           "outcome": "resolve",
@@ -113,6 +2451,7 @@
         },
         {
           "correct": true,
+          "evidence": null,
           "kind": "exact",
           "nodeId": "bike-node-ffea919f743c",
           "outcome": "resolve",
@@ -122,6 +2461,7 @@
         },
         {
           "correct": true,
+          "evidence": null,
           "kind": "exact",
           "nodeId": "bike-node-a3f0f4b7e7e3",
           "outcome": "resolve",
@@ -131,6 +2471,7 @@
         },
         {
           "correct": true,
+          "evidence": null,
           "kind": "exact",
           "nodeId": "bike-node-429dcefa615d",
           "outcome": "resolve",
@@ -140,6 +2481,7 @@
         },
         {
           "correct": true,
+          "evidence": null,
           "kind": "exact",
           "nodeId": "bike-node-86300f2cfd65",
           "outcome": "resolve",
@@ -149,6 +2491,7 @@
         },
         {
           "correct": true,
+          "evidence": null,
           "kind": "exact",
           "nodeId": "bike-node-0b79eee2f2ef",
           "outcome": "resolve",
@@ -158,6 +2501,7 @@
         },
         {
           "correct": true,
+          "evidence": null,
           "kind": "exact",
           "nodeId": "bike-node-8a641140b02c",
           "outcome": "resolve",
@@ -167,6 +2511,7 @@
         },
         {
           "correct": true,
+          "evidence": null,
           "kind": "exact",
           "nodeId": "bike-node-7a95737b9c7d",
           "outcome": "resolve",
@@ -176,6 +2521,7 @@
         },
         {
           "correct": true,
+          "evidence": null,
           "kind": "typo_within",
           "nodeId": "bike-node-a3f0f4b7e7e3",
           "outcome": "resolve",
@@ -185,6 +2531,7 @@
         },
         {
           "correct": true,
+          "evidence": null,
           "kind": "typo_within",
           "nodeId": "bike-node-7a95737b9c7d",
           "outcome": "resolve",
@@ -194,6 +2541,7 @@
         },
         {
           "correct": true,
+          "evidence": null,
           "kind": "typo_within",
           "nodeId": "bike-node-8a641140b02c",
           "outcome": "resolve",
@@ -203,6 +2551,7 @@
         },
         {
           "correct": true,
+          "evidence": null,
           "kind": "typo_within",
           "nodeId": "bike-node-261ee8be5a25",
           "outcome": "resolve",
@@ -212,6 +2561,7 @@
         },
         {
           "correct": false,
+          "evidence": null,
           "kind": "typo_beyond",
           "nodeId": null,
           "outcome": "refuse",
@@ -221,6 +2571,7 @@
         },
         {
           "correct": false,
+          "evidence": null,
           "kind": "typo_beyond",
           "nodeId": null,
           "outcome": "refuse",
@@ -230,6 +2581,7 @@
         },
         {
           "correct": false,
+          "evidence": null,
           "kind": "typo_beyond",
           "nodeId": null,
           "outcome": "refuse",
@@ -239,6 +2591,7 @@
         },
         {
           "correct": false,
+          "evidence": null,
           "kind": "typo_beyond",
           "nodeId": null,
           "outcome": "refuse",
@@ -248,6 +2601,7 @@
         },
         {
           "correct": false,
+          "evidence": null,
           "kind": "typo_beyond",
           "nodeId": null,
           "outcome": "refuse",
@@ -257,6 +2611,7 @@
         },
         {
           "correct": false,
+          "evidence": null,
           "kind": "typo_beyond",
           "nodeId": null,
           "outcome": "refuse",
@@ -266,6 +2621,7 @@
         },
         {
           "correct": false,
+          "evidence": null,
           "kind": "paraphrase",
           "nodeId": null,
           "outcome": "refuse",
@@ -275,6 +2631,7 @@
         },
         {
           "correct": false,
+          "evidence": null,
           "kind": "paraphrase",
           "nodeId": null,
           "outcome": "refuse",
@@ -284,6 +2641,7 @@
         },
         {
           "correct": false,
+          "evidence": null,
           "kind": "paraphrase",
           "nodeId": null,
           "outcome": "refuse",
@@ -293,6 +2651,7 @@
         },
         {
           "correct": false,
+          "evidence": null,
           "kind": "paraphrase",
           "nodeId": null,
           "outcome": "refuse",
@@ -302,6 +2661,7 @@
         },
         {
           "correct": false,
+          "evidence": null,
           "kind": "paraphrase",
           "nodeId": null,
           "outcome": "refuse",
@@ -311,6 +2671,7 @@
         },
         {
           "correct": false,
+          "evidence": null,
           "kind": "paraphrase",
           "nodeId": null,
           "outcome": "refuse",
@@ -320,6 +2681,7 @@
         },
         {
           "correct": false,
+          "evidence": null,
           "kind": "paraphrase",
           "nodeId": null,
           "outcome": "refuse",
@@ -329,6 +2691,7 @@
         },
         {
           "correct": false,
+          "evidence": null,
           "kind": "paraphrase",
           "nodeId": null,
           "outcome": "refuse",
@@ -338,6 +2701,7 @@
         },
         {
           "correct": false,
+          "evidence": null,
           "kind": "paraphrase",
           "nodeId": null,
           "outcome": "refuse",
@@ -347,6 +2711,7 @@
         },
         {
           "correct": false,
+          "evidence": null,
           "kind": "paraphrase",
           "nodeId": null,
           "outcome": "refuse",
@@ -356,6 +2721,7 @@
         },
         {
           "correct": true,
+          "evidence": null,
           "kind": "ambiguous",
           "nodeId": null,
           "outcome": "refuse",
@@ -365,6 +2731,7 @@
         },
         {
           "correct": true,
+          "evidence": null,
           "kind": "ambiguous",
           "nodeId": null,
           "outcome": "refuse",
@@ -374,6 +2741,7 @@
         },
         {
           "correct": true,
+          "evidence": null,
           "kind": "ambiguous",
           "nodeId": null,
           "outcome": "refuse",
@@ -383,6 +2751,7 @@
         },
         {
           "correct": true,
+          "evidence": null,
           "kind": "out_of_world",
           "nodeId": null,
           "outcome": "refuse",
@@ -392,6 +2761,7 @@
         },
         {
           "correct": true,
+          "evidence": null,
           "kind": "out_of_world",
           "nodeId": null,
           "outcome": "refuse",
@@ -401,6 +2771,7 @@
         },
         {
           "correct": true,
+          "evidence": null,
           "kind": "out_of_world",
           "nodeId": null,
           "outcome": "refuse",
@@ -410,6 +2781,7 @@
         },
         {
           "correct": true,
+          "evidence": null,
           "kind": "out_of_world",
           "nodeId": null,
           "outcome": "refuse",

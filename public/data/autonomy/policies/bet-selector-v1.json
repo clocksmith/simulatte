@@ -24,6 +24,7 @@
     "algorithm": "a_star_v1",
     "travelWeight": 1,
     "riskWeight": 4,
+    "historicalObservationWeight": 0,
     "unprotectedPreferencePenalty": 24,
     "blockedSegmentsAreIneligible": true,
     "deterministicTieBreak": "segment_id_ascending"

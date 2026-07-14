@@ -57,7 +57,7 @@ function usage() {
     '  node tools/autonomy/manage-autonomy-data.mjs verify --receipt DIR/fetch-receipt.json',
     '  node tools/autonomy/manage-autonomy-data.mjs promote --receipt DIR/fetch-receipt.json --target DIR --accept-receipt-sha SHA256',
     '',
-    'Groups: world-core, pedestrian-topology, mobility-history, taxi-history.',
+    'Groups: world-core, pedestrian-topology, place-semantics, mobility-history, taxi-history.',
     'Fetch and backfill only stage immutable source bytes. They never rebuild or activate the hosted world.',
   ].join('\n');
 }
@@ -79,6 +79,15 @@ function validateCatalog(catalog) {
     ['dataClass', 'authority', 'license', 'transport', 'url', 'output', 'entryGate'].forEach((key) => {
       if (!source[key]) throw new Error(`Source ${source.id} requires ${key}`);
     });
+    if (source.transport === 'mediawiki_json') {
+      if (!Array.isArray(source.pages) || !source.pages.length) throw new Error(`MediaWiki source ${source.id} requires pages`);
+      const documentIds = new Set();
+      source.pages.forEach((page) => {
+        if (!page.documentId || documentIds.has(page.documentId)) throw new Error(`MediaWiki source ${source.id} requires unique document IDs`);
+        documentIds.add(page.documentId);
+        if (!page.title || !Array.isArray(page.placeLabels) || !page.placeLabels.length) throw new Error(`MediaWiki page ${page.documentId} requires title and placeLabels`);
+      });
+    }
   });
   Object.entries(catalog.groups || {}).forEach(([group, sourceIds]) => {
     if (!Array.isArray(sourceIds) || !sourceIds.length) throw new Error(`Group ${group} requires source IDs`);
@@ -136,11 +145,36 @@ function selectSources(catalog, groups, sourceIds) {
 
 function requestsForSource(source, { bounds, periods }) {
   if (source.transport === 'osm_bbox_grid') return osmGridRequests(source, bounds);
+  if (source.transport === 'mediawiki_json') return mediaWikiRequests(source);
   return periods.map((period) => {
     const replacements = templateValues(bounds, period);
     const query = source.query ? fillTemplate(source.query, replacements) : null;
     const url = fillTemplate(source.url, replacements) + (query ? `?${query}` : '');
     return requestRow(source, url, fillTemplate(source.output, replacements), period?.id || null);
+  });
+}
+
+function mediaWikiRequests(source) {
+  return source.pages.map((page) => {
+    const url = new URL(source.url);
+    Object.entries({
+      action: 'query',
+      prop: 'extracts|revisions',
+      explaintext: '1',
+      exintro: '1',
+      rvprop: 'ids|timestamp',
+      titles: page.title,
+      format: 'json',
+      formatversion: '2',
+      maxlag: '5',
+      origin: '*',
+    }).forEach(([key, value]) => url.searchParams.set(key, value));
+    const output = fillTemplate(source.output, { documentId: page.documentId });
+    return requestRow(source, url.toString(), output, null, null, {
+      documentId: page.documentId,
+      pageTitle: page.title,
+      placeLabels: [...page.placeLabels],
+    });
   });
 }
 
@@ -167,7 +201,7 @@ function osmGridRequests(source, bounds) {
   return requests;
 }
 
-function requestRow(source, url, output, period, bounds = null) {
+function requestRow(source, url, output, period, bounds = null, extension = null) {
   return {
     id: `${source.id}:${period || output}`,
     sourceId: source.id,
@@ -182,6 +216,7 @@ function requestRow(source, url, output, period, bounds = null) {
     bounds,
     capabilities: [...source.capabilities],
     entryGate: source.entryGate,
+    ...(extension || {}),
   };
 }
 

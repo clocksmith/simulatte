@@ -4,25 +4,35 @@
     "method": "by_construction_from_named_world_nodes",
     "owner": "tools/autonomy/build-public-navigation-missions.mjs",
     "rowCount": 20,
-    "rowsSha256": "abf7a8914530da4bc23fd4f7cee1e98f988cd11a63bcd582796f63ffb7cb2d7c"
+    "rowsSha256": "bb8aaa31bf069e94b8da169756c3cc5ebda51cb5c2818163553911197c837d53"
   },
   "contentVersion": "public-navigation-missions-2026-07-13",
   "exposure": "Checked into the repository and available to developers, agents, selectors, and evaluators.",
   "id": "public-navigation-missions-v1",
   "identities": {
     "embodimentId": "delivery-bike-v1",
-    "embodimentSha256": "f144b2c67eb5a30d30162fc3efcb0452ede225a72534d2389a98c139899d0f01",
+    "embodimentSha256": "7db2ebdc5e89bbc47c798e5e85e817f3f96945c623c8da6f195cfb9ed3977fba",
     "policyId": "bet-selector-v1",
-    "policySha256": "7686a27639289aeb449e6ea694fc33234c060841225a777800371f9fa69ed03c",
+    "policySha256": "133579888a7db259c85b7f379ba51e2327d57943f82061e56832914d4137e377",
     "worldId": "nyc-core-autonomy-v1",
-    "worldSha256": "78cc82a44fac0f1ce3ac1955d9b2a498fd880738a840d07642bb9f54bd074889"
+    "worldSha256": "85d2f95208406050ea6b87da7e0170c66430cb372e83e712e36c35ce8fefa001"
   },
   "missions": [
     {
       "gold": {
         "constraints": {
+          "accessibilityProfile": null,
+          "arrivalDeadlineLocalMinutes": null,
           "avoidStreetNames": [],
+          "daylightOnly": false,
+          "daylightWindowLocalMinutes": [
+            337,
+            1224
+          ],
+          "departureLocalMinutes": 720,
           "lanePreference": "protected",
+          "maximumBikeRackDistanceM": null,
+          "maximumDurationSeconds": null,
           "maximumSpeedMps": 7,
           "mustObeySignals": true,
           "mustStayOnCircuit": false,
@@ -60,8 +70,18 @@
     {
       "gold": {
         "constraints": {
+          "accessibilityProfile": null,
+          "arrivalDeadlineLocalMinutes": null,
           "avoidStreetNames": [],
+          "daylightOnly": false,
+          "daylightWindowLocalMinutes": [
+            337,
+            1224
+          ],
+          "departureLocalMinutes": 720,
           "lanePreference": "protected",
+          "maximumBikeRackDistanceM": null,
+          "maximumDurationSeconds": null,
           "maximumSpeedMps": 7,
           "mustObeySignals": true,
           "mustStayOnCircuit": false,
@@ -99,8 +119,18 @@
     {
       "gold": {
         "constraints": {
+          "accessibilityProfile": null,
+          "arrivalDeadlineLocalMinutes": null,
           "avoidStreetNames": [],
+          "daylightOnly": false,
+          "daylightWindowLocalMinutes": [
+            337,
+            1224
+          ],
+          "departureLocalMinutes": 720,
           "lanePreference": "protected",
+          "maximumBikeRackDistanceM": null,
+          "maximumDurationSeconds": null,
           "maximumSpeedMps": 7,
           "mustObeySignals": true,
           "mustStayOnCircuit": false,
@@ -138,8 +168,18 @@
     {
       "gold": {
         "constraints": {
+          "accessibilityProfile": null,
+          "arrivalDeadlineLocalMinutes": null,
           "avoidStreetNames": [],
+          "daylightOnly": false,
+          "daylightWindowLocalMinutes": [
+            337,
+            1224
+          ],
+          "departureLocalMinutes": 720,
           "lanePreference": "any",
+          "maximumBikeRackDistanceM": null,
+          "maximumDurationSeconds": null,
           "maximumSpeedMps": 7,
           "mustObeySignals": true,
           "mustStayOnCircuit": false,
@@ -176,8 +216,18 @@
     {
       "gold": {
         "constraints": {
+          "accessibilityProfile": null,
+          "arrivalDeadlineLocalMinutes": null,
           "avoidStreetNames": [],
+          "daylightOnly": false,
+          "daylightWindowLocalMinutes": [
+            337,
+            1224
+          ],
+          "departureLocalMinutes": 720,
           "lanePreference": "protected",
+          "maximumBikeRackDistanceM": null,
+          "maximumDurationSeconds": null,
           "maximumSpeedMps": 7,
           "mustObeySignals": true,
           "mustStayOnCircuit": false,
@@ -215,8 +265,18 @@
     {
       "gold": {
         "constraints": {
+          "accessibilityProfile": null,
+          "arrivalDeadlineLocalMinutes": null,
           "avoidStreetNames": [],
+          "daylightOnly": false,
+          "daylightWindowLocalMinutes": [
+            337,
+            1224
+          ],
+          "departureLocalMinutes": 720,
           "lanePreference": "protected",
+          "maximumBikeRackDistanceM": null,
+          "maximumDurationSeconds": null,
           "maximumSpeedMps": 7,
           "mustObeySignals": true,
           "mustStayOnCircuit": false,
@@ -254,8 +314,18 @@
     {
       "gold": {
         "constraints": {
+          "accessibilityProfile": null,
+          "arrivalDeadlineLocalMinutes": null,
           "avoidStreetNames": [],
+          "daylightOnly": false,
+          "daylightWindowLocalMinutes": [
+            337,
+            1224
+          ],
+          "departureLocalMinutes": 720,
           "lanePreference": "protected",
+          "maximumBikeRackDistanceM": null,
+          "maximumDurationSeconds": null,
           "maximumSpeedMps": 7,
           "mustObeySignals": true,
           "mustStayOnCircuit": false,
@@ -293,8 +363,18 @@
     {
       "gold": {
         "constraints": {
+          "accessibilityProfile": null,
+          "arrivalDeadlineLocalMinutes": null,
           "avoidStreetNames": [],
+          "daylightOnly": false,
+          "daylightWindowLocalMinutes": [
+            337,
+            1224
+          ],
+          "departureLocalMinutes": 720,
           "lanePreference": "any",
+          "maximumBikeRackDistanceM": null,
+          "maximumDurationSeconds": null,
           "maximumSpeedMps": 7,
           "mustObeySignals": true,
           "mustStayOnCircuit": false,
@@ -331,8 +411,18 @@
     {
       "gold": {
         "constraints": {
+          "accessibilityProfile": null,
+          "arrivalDeadlineLocalMinutes": null,
           "avoidStreetNames": [],
+          "daylightOnly": false,
+          "daylightWindowLocalMinutes": [
+            337,
+            1224
+          ],
+          "departureLocalMinutes": 720,
           "lanePreference": "protected",
+          "maximumBikeRackDistanceM": null,
+          "maximumDurationSeconds": null,
           "maximumSpeedMps": 7,
           "mustObeySignals": true,
           "mustStayOnCircuit": false,
@@ -370,8 +460,18 @@
     {
       "gold": {
         "constraints": {
+          "accessibilityProfile": null,
+          "arrivalDeadlineLocalMinutes": null,
           "avoidStreetNames": [],
+          "daylightOnly": false,
+          "daylightWindowLocalMinutes": [
+            337,
+            1224
+          ],
+          "departureLocalMinutes": 720,
           "lanePreference": "protected",
+          "maximumBikeRackDistanceM": null,
+          "maximumDurationSeconds": null,
           "maximumSpeedMps": 7,
           "mustObeySignals": true,
           "mustStayOnCircuit": false,
@@ -409,8 +509,18 @@
     {
       "gold": {
         "constraints": {
+          "accessibilityProfile": null,
+          "arrivalDeadlineLocalMinutes": null,
           "avoidStreetNames": [],
+          "daylightOnly": false,
+          "daylightWindowLocalMinutes": [
+            337,
+            1224
+          ],
+          "departureLocalMinutes": 720,
           "lanePreference": "protected",
+          "maximumBikeRackDistanceM": null,
+          "maximumDurationSeconds": null,
           "maximumSpeedMps": 7,
           "mustObeySignals": true,
           "mustStayOnCircuit": false,
@@ -448,8 +558,18 @@
     {
       "gold": {
         "constraints": {
+          "accessibilityProfile": null,
+          "arrivalDeadlineLocalMinutes": null,
           "avoidStreetNames": [],
+          "daylightOnly": false,
+          "daylightWindowLocalMinutes": [
+            337,
+            1224
+          ],
+          "departureLocalMinutes": 720,
           "lanePreference": "any",
+          "maximumBikeRackDistanceM": null,
+          "maximumDurationSeconds": null,
           "maximumSpeedMps": 7,
           "mustObeySignals": true,
           "mustStayOnCircuit": false,
@@ -486,8 +606,18 @@
     {
       "gold": {
         "constraints": {
+          "accessibilityProfile": null,
+          "arrivalDeadlineLocalMinutes": null,
           "avoidStreetNames": [],
+          "daylightOnly": false,
+          "daylightWindowLocalMinutes": [
+            337,
+            1224
+          ],
+          "departureLocalMinutes": 720,
           "lanePreference": "protected",
+          "maximumBikeRackDistanceM": null,
+          "maximumDurationSeconds": null,
           "maximumSpeedMps": 7,
           "mustObeySignals": true,
           "mustStayOnCircuit": false,
@@ -525,8 +655,18 @@
     {
       "gold": {
         "constraints": {
+          "accessibilityProfile": null,
+          "arrivalDeadlineLocalMinutes": null,
           "avoidStreetNames": [],
+          "daylightOnly": false,
+          "daylightWindowLocalMinutes": [
+            337,
+            1224
+          ],
+          "departureLocalMinutes": 720,
           "lanePreference": "protected",
+          "maximumBikeRackDistanceM": null,
+          "maximumDurationSeconds": null,
           "maximumSpeedMps": 7,
           "mustObeySignals": true,
           "mustStayOnCircuit": false,
@@ -564,8 +704,18 @@
     {
       "gold": {
         "constraints": {
+          "accessibilityProfile": null,
+          "arrivalDeadlineLocalMinutes": null,
           "avoidStreetNames": [],
+          "daylightOnly": false,
+          "daylightWindowLocalMinutes": [
+            337,
+            1224
+          ],
+          "departureLocalMinutes": 720,
           "lanePreference": "protected",
+          "maximumBikeRackDistanceM": null,
+          "maximumDurationSeconds": null,
           "maximumSpeedMps": 7,
           "mustObeySignals": true,
           "mustStayOnCircuit": false,
@@ -603,8 +753,18 @@
     {
       "gold": {
         "constraints": {
+          "accessibilityProfile": null,
+          "arrivalDeadlineLocalMinutes": null,
           "avoidStreetNames": [],
+          "daylightOnly": false,
+          "daylightWindowLocalMinutes": [
+            337,
+            1224
+          ],
+          "departureLocalMinutes": 720,
           "lanePreference": "any",
+          "maximumBikeRackDistanceM": null,
+          "maximumDurationSeconds": null,
           "maximumSpeedMps": 7,
           "mustObeySignals": true,
           "mustStayOnCircuit": false,
@@ -641,8 +801,18 @@
     {
       "gold": {
         "constraints": {
+          "accessibilityProfile": null,
+          "arrivalDeadlineLocalMinutes": null,
           "avoidStreetNames": [],
+          "daylightOnly": false,
+          "daylightWindowLocalMinutes": [
+            337,
+            1224
+          ],
+          "departureLocalMinutes": 720,
           "lanePreference": "protected",
+          "maximumBikeRackDistanceM": null,
+          "maximumDurationSeconds": null,
           "maximumSpeedMps": 7,
           "mustObeySignals": true,
           "mustStayOnCircuit": false,
@@ -680,8 +850,18 @@
     {
       "gold": {
         "constraints": {
+          "accessibilityProfile": null,
+          "arrivalDeadlineLocalMinutes": null,
           "avoidStreetNames": [],
+          "daylightOnly": false,
+          "daylightWindowLocalMinutes": [
+            337,
+            1224
+          ],
+          "departureLocalMinutes": 720,
           "lanePreference": "protected",
+          "maximumBikeRackDistanceM": null,
+          "maximumDurationSeconds": null,
           "maximumSpeedMps": 7,
           "mustObeySignals": true,
           "mustStayOnCircuit": false,
@@ -719,8 +899,18 @@
     {
       "gold": {
         "constraints": {
+          "accessibilityProfile": null,
+          "arrivalDeadlineLocalMinutes": null,
           "avoidStreetNames": [],
+          "daylightOnly": false,
+          "daylightWindowLocalMinutes": [
+            337,
+            1224
+          ],
+          "departureLocalMinutes": 720,
           "lanePreference": "protected",
+          "maximumBikeRackDistanceM": null,
+          "maximumDurationSeconds": null,
           "maximumSpeedMps": 7,
           "mustObeySignals": true,
           "mustStayOnCircuit": false,
@@ -758,8 +948,18 @@
     {
       "gold": {
         "constraints": {
+          "accessibilityProfile": null,
+          "arrivalDeadlineLocalMinutes": null,
           "avoidStreetNames": [],
+          "daylightOnly": false,
+          "daylightWindowLocalMinutes": [
+            337,
+            1224
+          ],
+          "departureLocalMinutes": 720,
           "lanePreference": "any",
+          "maximumBikeRackDistanceM": null,
+          "maximumDurationSeconds": null,
           "maximumSpeedMps": 7,
           "mustObeySignals": true,
           "mustStayOnCircuit": false,

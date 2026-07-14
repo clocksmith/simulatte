@@ -11,6 +11,7 @@ export function compileFeatureCatalog(world, { snapshotDate }) {
     provenance: { sourceKind: 'hand_authored_behavior_contract', sourceId: row.id },
   }));
   world.segments.forEach((segment) => {
+    if (segment.source?.datasetId === 'openstreetmap-highways') return;
     const cardId = `network.${segment.id}`;
     const modes = segment.allowedModes.join(' ');
     segment.cardIds = [...new Set([...segment.cardIds, cardId])].sort();

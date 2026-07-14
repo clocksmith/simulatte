@@ -30,8 +30,11 @@
   }
 
   async function sha256Hex(value) {
-    const text = typeof value === 'string' ? value : canonicalJson(value);
-    const bytes = new TextEncoder().encode(text);
+    const bytes = ArrayBuffer.isView(value)
+      ? new Uint8Array(value.buffer, value.byteOffset, value.byteLength)
+      : value instanceof ArrayBuffer
+        ? new Uint8Array(value)
+        : new TextEncoder().encode(typeof value === 'string' ? value : canonicalJson(value));
     if (root.crypto && root.crypto.subtle) {
       const digest = await root.crypto.subtle.digest('SHA-256', bytes);
       return Array.from(new Uint8Array(digest), (row) => row.toString(16).padStart(2, '0')).join('');
