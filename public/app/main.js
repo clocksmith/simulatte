@@ -225,7 +225,7 @@
   }
 
   function runtimeLabel(state) {
-    if (state.status === 'completed' && state.taskType === 'loop_distance') return `Distance complete: ${state.distanceTraveledM.toFixed(1)} m in ${state.completedLaps} full lap(s)`;
+    if (state.status === 'completed' && state.taskType === 'loop') return `Loop complete: ${state.distanceTraveledM.toFixed(1)} m | ${state.completedLaps} full lap(s) | ${state.simulatedTimeSeconds.toFixed(1)} s`;
     if (state.status === 'completed') return `Delivered at tick ${state.tick}`;
     if (state.status === 'failed') return `Stopped: ${state.terminalReason}`;
     return `Tick ${state.tick}: observe, retrieve, choose, settle`;

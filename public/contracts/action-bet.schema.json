@@ -47,7 +47,7 @@
         "willReachNode": { "type": "boolean" },
         "willArrive": { "type": "boolean" },
         "willComplete": { "type": "boolean" },
-        "completionReason": { "enum": ["destination_reached", "distance_target_reached", null] }
+        "completionReason": { "enum": ["destination_reached", "distance_target_reached", "lap_target_reached", "duration_target_reached", null] }
       }
     },
     "confidence": { "type": "number", "minimum": 0, "maximum": 1 },

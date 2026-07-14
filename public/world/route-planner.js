@@ -3,8 +3,11 @@
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteAutonomyRoutePlanner = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyRoutePlanner() {
+  const STREET_WORDS = Object.freeze({ avenue: 'av', ave: 'av', street: 'st', str: 'st', boulevard: 'blvd', road: 'rd', lane: 'ln', place: 'pl', square: 'sq' });
+
   function planRoute({ worldModel, originNodeId, destinationNodeId, mode, tick, mission, policy }) {
     const avoidedStreetNames = new Set(mission.constraints.avoidStreetNames || []);
+    const avoidedStreetKeys = new Set([...avoidedStreetNames].map(normalizeStreetName));
     const excludedStreetSegmentIds = new Set();
     if (originNodeId === destinationNodeId) {
       return routeResult([], 0, [originNodeId], 0, routeCostBreakdown([], worldModel, mission, policy), 'a_star_v1', routeConstraintReceipt(avoidedStreetNames, excludedStreetSegmentIds));
@@ -35,7 +38,7 @@
         evaluatedSegmentCount += 1;
         if (!segment.allowedModes.includes(mode)) continue;
         if (policy.route.blockedSegmentsAreIneligible && blocked.has(segment.id)) continue;
-        if (avoidedStreetNames.has(segment.source?.street)) {
+        if (avoidedStreetKeys.has(normalizeStreetName(segment.source?.street))) {
           excludedStreetSegmentIds.add(segment.id);
           continue;
         }
@@ -170,5 +173,9 @@
     return Number(value.toFixed(9));
   }
 
-  return { planCircuitRoute, planRoute, routeCostBreakdown, segmentCost };
+  function normalizeStreetName(value) {
+    return String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim().split(/\s+/).filter(Boolean).map((word) => STREET_WORDS[word] || word).join(' ');
+  }
+
+  return { normalizeStreetName, planCircuitRoute, planRoute, routeCostBreakdown, segmentCost };
 });

@@ -4,6 +4,7 @@
   root.SimulatteAutonomyContracts = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyContractValidator() {
   const ACTOR_TYPES = Object.freeze(['pedestrian', 'bicycle', 'scooter', 'car']);
+  const STREET_WORDS = Object.freeze({ avenue: 'av', ave: 'av', street: 'st', str: 'st', boulevard: 'blvd', road: 'rd', lane: 'ln', place: 'pl', square: 'sq' });
 
   class AutonomyContractError extends Error {
     constructor(contract, path, expected, received) {
@@ -802,10 +803,13 @@
     });
     requireObject(mission.constraints, contract, '$.constraints');
     const avoidStreetNames = requireArray(mission.constraints.avoidStreetNames, contract, '$.constraints.avoidStreetNames');
-    const routedStreetNames = new Set(world.segments.map((segment) => segment.source && segment.source.street).filter(Boolean));
+    const governedStreetNames = new Set([
+      ...world.segments.map((segment) => segment.source && segment.source.street),
+      ...(world.renderGeometry?.streets || []).map((street) => street.name),
+    ].filter(Boolean).map(normalizeStreetName));
     avoidStreetNames.forEach((name, index) => {
       requireString(name, contract, `$.constraints.avoidStreetNames[${index}]`);
-      if (!routedStreetNames.has(name)) throw new AutonomyContractError(contract, `$.constraints.avoidStreetNames[${index}]`, 'street in governed routing graph', name);
+      if (!governedStreetNames.has(normalizeStreetName(name))) throw new AutonomyContractError(contract, `$.constraints.avoidStreetNames[${index}]`, 'street in governed route or display geometry', name);
     });
     requireBoolean(mission.constraints.mustYieldToPedestrians, contract, '$.constraints.mustYieldToPedestrians');
     requireBoolean(mission.constraints.mustObeySignals, contract, '$.constraints.mustObeySignals');
@@ -844,6 +848,10 @@
     if (Math.abs(requested.value * requested.secondsPerUnit - requested.convertedSeconds) > 0.000001 || requested.convertedSeconds !== termination.targetDurationSeconds) {
       throw new AutonomyContractError(contract, '$.task.termination.requestedDuration', 'exact conversion to targetDurationSeconds', requested);
     }
+  }
+
+  function normalizeStreetName(value) {
+    return String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim().split(/\s+/).filter(Boolean).map((word) => STREET_WORDS[word] || word).join(' ');
   }
 
   function validateObservation(observation) {

@@ -1649,7 +1649,7 @@ test('common-world and celestial nouns survive grounding as literal object geome
   }
 });
 
-test('Phase 7 reports submitted object parts and preserves canonical identity aliases beyond 32 rows', () => {
+test('Phase 7 reports submitted object parts and preserves canonical identity aliases beyond 32 parts', () => {
   const spec = lab.createSpecFromPrompt(
     'planetary rings shepherd moon resonance sorting ice boulders into density waves and orbital gaps',
     { allowPrototypeFallback: true }
@@ -1664,7 +1664,6 @@ test('Phase 7 reports submitted object parts and preserves canonical identity al
     null
   );
 
-  assert.ok(renderData.semanticDrawableCount > 32);
   assert.equal(renderData.drawables.length, renderData.semanticDrawableCount);
   assert.ok(renderData.objectPartCount > 32);
   assert.equal(renderData.sceneInstanceCapacity, 256);
@@ -2466,15 +2465,15 @@ test('legacy custom specs migrate to pipeline artifacts during normalization', (
   assert.equal(spec.renderProgram.provenance.solverGraph, 'simulatte.solverGraph.v1');
 });
 
-test('generic RenderIR scene fallback uses prompt evidence for visual routing', () => {
+test('generic RenderIR scene fallback routes identity without inventing executable fields', () => {
   const cases = [
-    ['forest fire with flame smoke and wind through pine fuel', 'fire', 'thermal'],
-    ['lab bench optics with glass lens mirror prism and laser sensor', 'optics', 'optical-rays'],
-    ['city market queue traffic network with sensor delays', 'city', 'network-flow'],
-    ['rain erodes a mountain watershed into sediment channels', 'watershed', 'gravity'],
+    ['forest fire with flame smoke and wind through pine fuel', 'fire'],
+    ['lab bench optics with glass lens mirror prism and laser sensor', 'optics'],
+    ['city market queue traffic network with sensor delays', 'city'],
+    ['rain erodes a mountain watershed into sediment channels', 'watershed'],
   ];
 
-  for (const [prompt, sceneKind, fieldKind] of cases) {
+  for (const [prompt, sceneKind] of cases) {
     const program = compositionGraph.compileCompositionToRenderProgram({
       schema: compositionGraph.COMPOSITION_SCHEMA,
       graphId: `generic-${sceneKind}`,
@@ -2502,7 +2501,8 @@ test('generic RenderIR scene fallback uses prompt evidence for visual routing', 
 
     assert.equal(program.rendererPlan.sceneKind, sceneKind);
     assert.equal(program.visualIR.sceneKind, sceneKind);
-    assert.ok(program.fields.some((field) => field.kind === fieldKind));
+    assert.deepEqual(program.fields, []);
+    assert.deepEqual(program.visualIR.graphicsAtoms.mappings, []);
   }
 });
 

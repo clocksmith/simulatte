@@ -440,7 +440,7 @@
   }
 
   function edgeRowsForIntentBrief(intentBrief = {}, nodes = [], promptEdges = []) {
-    if (!Array.isArray(intentBrief.causalGraph)) return [];
+    if (!intentBrief || !Array.isArray(intentBrief.causalGraph)) return [];
     return intentBrief.causalGraph.flatMap((causalEdge, index) => {
       const from = nodeForCausalRef(nodes, causalEdge.sourceRef, causalEdge.sourceLabel);
       const to = nodeForCausalRef(nodes, causalEdge.targetRef, causalEdge.targetLabel);

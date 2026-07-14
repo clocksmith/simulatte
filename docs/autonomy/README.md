@@ -32,6 +32,7 @@ The autonomy system is a sibling of the prompt-to-pixels pipeline.
 | Path | Authority |
 | --- | --- |
 | `public/blank/pipeline/` | Existing eight-phase natural-language-to-pixels compiler served at `/blank/` |
+| `public/mission/capability-matrix.js` | Executable embodiment x mission-family x governed-artifact support matrix |
 | `public/app/`, `public/runtime/`, `public/world/` | Online mission, observation, action-bet, safety, execution, settlement, and verification runtime served at `/` |
 | `public/data/autonomy/` | Governed world, embodiment, policy, occurrences, feature cards, evidence, and asset hashes |
 | `tools/autonomy/` | Source acquisition, world compilation, mission construction, evaluation, and data validation |
@@ -47,8 +48,10 @@ internal state.
 The manifest loads `delivery-bike-v1` and `pedestrian-v1`. Each owns its
 dimensions, collision radius, acceleration, deceleration, integration step,
 maximum speed, task eligibility, network mode, and render profile. The mission
-compiler selects the embodiment by task and kind; the browser does not infer
-or share dynamics values across modes.
+compiler selects the embodiment by task and kind. Every accepted mission also
+contains a capability receipt naming the exact matrix row, termination kind,
+and graph or circuit artifacts that made it executable. The browser does not
+infer or share dynamics values across modes.
 
 Observation, action proposals, reference dynamics integration, safety gates,
 selection, settlement, receipt chaining, renderer, camera, and SAME-R
@@ -63,14 +66,23 @@ journey speaks for them.
 
 `mission/mission-compiler.js` implements a deterministic grounded control
 lane. Delivery missions require an explicit delivery term, an embodiment mode,
-`from` node, and `to` node. Loop-distance missions require a run/walk term, a
-loop relation, a declared circuit, and a numeric distance with units. Feet,
-meters, kilometers, and miles convert to meters inside the mission receipt. A
-bounded edit-distance matcher can correct a misspelled declared circuit or
-`perimeter`; it cannot create a new place. Every accepted term retains its
-exact source interval, correction distance, grounded identity, and canonical
-value. Unknown places, unloaded embodiments, unsupported tasks, and invalid
-distances fail closed.
+`from` node, and `to` node. Closed-circuit missions require a mode, loop
+relation, declared circuit, and one termination: distance, integer lap count,
+or elapsed time. Distance and time units convert inside the mission receipt;
+lap targets derive exact distance from the pinned circuit length. A bounded
+edit-distance matcher corrects misspelled declared places, circuits, and
+`perimeter`; it cannot create a new place. A named-street avoidance grounds to
+the routed DOT graph when possible and otherwise to governed OSM display
+geometry. Receipts distinguish active edge exclusion from a street already
+absent from the routable graph.
+
+`mission/capability-matrix.js` evaluates pedestrian, bicycle, scooter, and car
+against delivery, point-to-point, and closed-circuit families independently.
+Current support is bicycle delivery and pedestrian closed circuits. General
+pedestrian point-to-point navigation is blocked on a routable sidewalk and
+crosswalk artifact. Bicycle park loops are blocked on a registered bike-legal
+circuit. Scooter and car rows are blocked on both embodiment and road-graph
+artifacts. These are executable refusals with evidence, not parser omissions.
 
 The parser is a control lane, not a general natural-language model claim. A
 model parser must beat it on a frozen intent population while preserving the
@@ -134,9 +146,12 @@ The browser renderer requires WebGPU and fails closed when the adapter,
 device, shader, or render geometry is unavailable. It draws source-bound
 streets, bike facilities, park fill and perimeter, building footprints and
 heights, the selected route, the traveled trace, actors, signals, prediction
-geometry, and a task-specific bicycle or runner marker. Follow, bird, and top
+geometry, and task-specific pedestrian, bicycle, scooter, or car meshes. The
+shared procedural mesh contract uses articulated riders, wheels and frames,
+vehicle proportions, smooth normals, and per-vertex metallic/roughness lanes;
+it does not substitute mode-specific controllers. Follow, bird, and top
 camera changes interpolate; bird/top pan, orbit where applicable, and mouse
-wheel zoom work, including adjustable Follow distance. The reference dynamics
+wheel zoom work, including near and far Follow distance. The reference dynamics
 remain on CPU. A browser receipt records the adapter, backend, frame count,
 vertex counts, world identity, park/circuit counts, visible feature counts,
 and Follow distance. Rendered pixels aid inspection but do not prove physical
@@ -234,10 +249,13 @@ the root Autonomy runtime.
 ## Claim boundary
 
 The implemented evidence supports deterministic delivery-bike behavior and a
-pedestrian loop-distance control over the pinned Villages and North Brooklyn
-map artifact in the named browser runtime. For the exact 5,000-foot Union
-Square mission, the receipt binds the 0.3048 conversion, source boundary,
-ordered segments, full laps, partial lap, and exact 1,524-meter settlement.
+pedestrian closed-circuit control over the pinned Villages and North Brooklyn
+map artifact in the named browser runtime. Distance, lap-count, and elapsed-
+time termination have separate exact settlement evidence. Delivery place
+correction and named-street avoidance retain source spans and graph evidence.
+For the exact 5,000-foot Union Square mission, the receipt binds the 0.3048
+conversion, source boundary, ordered segments, full laps, partial lap, and
+exact 1,524-meter settlement.
 Frozen geometry provenance does not make authored traffic live or historical,
 and a park property boundary is not a surveyed sidewalk. The evidence does
 not establish physical bicycle or pedestrian control, robotaxi safety,

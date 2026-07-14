@@ -152,7 +152,7 @@
     setText(elements.metricTick, state.tick);
     setText(elements.metricSpeed, `${format(state.speedMps, 1)} m/s`);
     setText(elements.metricDistance, `${format(state.distanceTraveledM, 1)} m`);
-    const routeMetric = state.taskType === 'loop_distance'
+    const routeMetric = state.taskType === 'loop'
       ? `${state.completedLaps} laps · ${snapshot.route?.segmentIds.length || 0} edges`
       : snapshot.route ? `${snapshot.route.segmentIds.length} edges` : 'unplanned';
     setText(elements.metricRoute, routeMetric);

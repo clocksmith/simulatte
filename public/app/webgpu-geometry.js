@@ -87,7 +87,7 @@
       point: snapshot.state.position,
       heading,
       motionPhase: snapshot.state.distanceTraveledM * 2.1,
-      gait: snapshot.state.taskType === 'loop_distance' ? 'run' : null,
+      gait: snapshot.state.taskType === 'loop' ? snapshot.state.embodimentKind === 'pedestrian' ? 'run' : null : null,
       isPrimary: true,
     });
     addSensorCone(writer, snapshot.state.position, heading, snapshot.state.speedMps);

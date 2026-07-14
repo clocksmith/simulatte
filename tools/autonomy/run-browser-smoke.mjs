@@ -227,7 +227,15 @@ async function runBrowserSmoke(options) {
     });
     if (evaluated.exceptionDetails) throw new Error(evaluated.exceptionDetails.exception && evaluated.exceptionDetails.exception.description || evaluated.exceptionDetails.text);
     const browserVersion = await client.send('Browser.getVersion');
-    const screenshot = await client.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false });
+    const overviewScreenshot = await client.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false });
+    const actorViewEvaluation = await client.send('Runtime.evaluate', {
+      expression: actorViewExpression(),
+      awaitPromise: true,
+      returnByValue: true,
+    });
+    if (actorViewEvaluation.exceptionDetails) throw new Error(actorViewEvaluation.exceptionDetails.exception && actorViewEvaluation.exceptionDetails.exception.description || actorViewEvaluation.exceptionDetails.text);
+    const actorView = actorViewEvaluation.result.value;
+    const actorScreenshot = await client.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false });
     const result = evaluated.result.value;
     const pass = result.state === 'completed'
       && result.rendererBackend === 'webgpu'
@@ -260,18 +268,23 @@ async function runBrowserSmoke(options) {
       && result.camera.followZoomWorked
       && result.camera.returnedToRoute
       && result.distance === '1524 m'
-      && result.runtime.includes('Distance complete')
+      && result.runtime.includes('Loop complete')
+      && actorView.mode === 'follow'
+      && actorView.transition === 'settled'
+      && actorView.followDistance <= 5.01
+      && actorView.dynamicVertexCount > 1000
       && result.scrollY === 0
       && !result.hasHorizontalOverflow
       && errors.length === 0
       && failedResponses.length === 0;
     const report = {
-      schema: 'simulatte.autonomyBrowserSmoke.v3',
+      schema: 'simulatte.autonomyBrowserSmoke.v4',
       pass,
       targetUrl,
       viewport: options.viewport,
       browser: { product: browserVersion.product, protocolVersion: browserVersion.protocolVersion, userAgent: browserVersion.userAgent },
       result,
+      actorView,
       errors,
       failedResponses,
       requests: staticHost ? staticHost.requests : [],
@@ -280,7 +293,8 @@ async function runBrowserSmoke(options) {
     if (!options.checkOnly) {
       fs.mkdirSync(options.outDir, { recursive: true });
       fs.writeFileSync(path.join(options.outDir, 'report.json'), `${JSON.stringify(report, null, 2)}\n`);
-      fs.writeFileSync(path.join(options.outDir, 'journey.png'), Buffer.from(screenshot.data, 'base64'));
+      fs.writeFileSync(path.join(options.outDir, 'journey.png'), Buffer.from(overviewScreenshot.data, 'base64'));
+      fs.writeFileSync(path.join(options.outDir, 'actor-follow.png'), Buffer.from(actorScreenshot.data, 'base64'));
     }
     return report;
   } finally {
@@ -289,6 +303,28 @@ async function runBrowserSmoke(options) {
     if (staticHost) await new Promise((resolve) => staticHost.server.close(resolve));
     fs.rmSync(profileDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 50 });
   }
+}
+
+function actorViewExpression() {
+  return `(async () => {
+    const canvas = document.getElementById('autonomy-canvas');
+    canvas.scrollIntoView({ block: 'center', behavior: 'instant' });
+    document.getElementById('camera-follow').click();
+    const started = performance.now();
+    while (canvas.dataset.cameraTransition !== 'settled') {
+      if (performance.now() - started > 5000) throw new Error('actor follow camera did not settle');
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    }
+    canvas.dispatchEvent(new WheelEvent('wheel', { bubbles: true, cancelable: true, deltaY: -3000 }));
+    await new Promise((resolve) => setTimeout(resolve, 320));
+    return {
+      mode: canvas.dataset.cameraMode,
+      transition: canvas.dataset.cameraTransition,
+      followDistance: Number(canvas.dataset.cameraFollowDistance),
+      dynamicVertexCount: Number(canvas.dataset.dynamicVertexCount),
+      actorMeshSchema: canvas.dataset.actorMeshSchema,
+    };
+  })()`;
 }
 
 async function stopChild(child) {
@@ -506,4 +542,4 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   });
 }
 
-export { CdpClient, browserJourneyExpression, createStaticServer, findChrome, parseUrl, parseViewport, runBrowserSmoke };
+export { CdpClient, actorViewExpression, browserJourneyExpression, createStaticServer, findChrome, parseUrl, parseViewport, runBrowserSmoke };

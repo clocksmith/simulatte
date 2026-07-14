@@ -38,11 +38,11 @@
     const pedestrianMatch = lexicalMatch(lower, LOOP_MODES[0].pattern);
     if (loopMatch) return compileLoopMission(text, world, embodimentInput, loopMatch);
     const deliveryMode = matchMode(lower, DELIVERY_MODES);
-    if (deliveryMatch || deliveryMode) return compileDeliveryMission(text, world, embodimentInput, deliveryMatch, deliveryMode);
     if (pedestrianMatch && /\bfrom\b/.test(lower) && /\bto\b/.test(lower)) {
       const matrix = capabilities.buildCapabilityMatrix(world, embodimentInput);
       capabilities.requireCapability(matrix, { embodimentKind: 'pedestrian', missionFamily: 'point_to_point', terminationKind: 'arrival' });
     }
+    if (deliveryMatch || deliveryMode) return compileDeliveryMission(text, world, embodimentInput, deliveryMatch, deliveryMode);
     if (pedestrianMatch) throw missionError('loop_task_not_grounded', 'Pedestrian mission expected around, circle, lap, or loop');
     throw missionError('task_not_grounded', 'Mission expected a delivery or registered closed-circuit task');
   }
@@ -74,7 +74,12 @@
     ];
     if (protectedMatch) evidence.push(evidenceRow('lanePreference', text, protectedMatch, 'exact_lexical'));
     if (yieldMatch) evidence.push(evidenceRow('pedestrianYield', text, yieldMatch, 'exact_lexical'));
-    if (avoidedStreet) evidence.push(evidenceRow('streetAvoidance', text, avoidedStreet, avoidedStreet.editDistance ? 'constrained_fuzzy_routed_street' : 'exact_routed_street', avoidedStreet.id, avoidedStreet.canonicalName));
+    if (avoidedStreet) {
+      const method = avoidedStreet.sourceKind === 'routed_graph'
+        ? avoidedStreet.editDistance ? 'constrained_fuzzy_routed_street' : 'exact_routed_street'
+        : avoidedStreet.editDistance ? 'constrained_fuzzy_world_street' : 'exact_world_street';
+      evidence.push(evidenceRow('streetAvoidance', text, avoidedStreet, method, avoidedStreet.id, avoidedStreet.canonicalName));
+    }
     const seed = hash32(text);
     return contracts.validateMission({
       schema: 'simulatte.autonomyMission.v3',
@@ -266,7 +271,7 @@
   }
 
   function matchCircuit(sourceText, circuits, loopMatch, terminationMatch) {
-    const tokens = sourceTokens(sourceText).filter((row) => row.index >= loopMatch.end && row.index < terminationMatch.index);
+    const tokens = sourceTokens(sourceText);
     const candidates = [];
     circuits.forEach((circuit) => {
       [...new Set([circuit.label, ...(circuit.aliases || [])])].forEach((alias) => {
@@ -300,27 +305,23 @@
     if (!marker) return null;
     const tokens = sourceTokens(sourceText).filter((row) => row.index >= marker.index + marker[0].length);
     const routedNames = [...new Set(world.segments.map((segment) => segment.source?.street).filter(Boolean))];
-    const match = matchStreetCatalog(sourceText, tokens, routedNames);
+    const match = matchStreetCatalog(sourceText, tokens, routedNames, 'routed_graph');
     if (match) return match;
     const visualNames = [...new Set((world.renderGeometry?.streets || []).map((street) => street.name).filter(Boolean))];
-    const visual = matchStreetCatalog(sourceText, tokens, visualNames);
-    if (visual) {
-      throw missionError('street_not_routable', `${visual.canonicalName} exists in display geometry but not in the governed routing graph`, {
-        streetName: visual.canonicalName,
-        displayGeometryOnly: true,
-      });
-    }
-    throw missionError('street_avoidance_not_grounded', 'Avoidance must name a street in the governed routing graph');
+    const visual = matchStreetCatalog(sourceText, tokens, visualNames, 'display_geometry');
+    if (visual) return visual;
+    throw missionError('street_avoidance_not_grounded', 'Avoidance must name a street in governed route or display geometry');
   }
 
-  function matchStreetCatalog(sourceText, tokens, names) {
+  function matchStreetCatalog(sourceText, tokens, names, sourceKind) {
     const candidates = [];
     names.forEach((name) => {
       collectTokenCandidates(tokens, normalizedStreetWords(name), (rows, editDistance, aliasLength) => {
         if (rows[0].index !== tokens[0]?.index) return;
         candidates.push({
-          id: `routed-street:${normalizedStreetWords(name).join('-')}`,
+          id: `${sourceKind === 'routed_graph' ? 'routed' : 'display'}-street:${normalizedStreetWords(name).join('-')}`,
           canonicalName: name,
+          sourceKind,
           value: sourceText.slice(rows[0].index, rows.at(-1).end),
           index: rows[0].index,
           end: rows.at(-1).end,

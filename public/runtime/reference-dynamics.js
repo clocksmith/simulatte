@@ -6,7 +6,7 @@
   function simulateAction({ state, action, worldModel, embodiment, mission, policy }) {
     const before = structuredClone(state);
     const next = structuredClone(state);
-    const stepSeconds = embodiment.dynamics.integrationStepSeconds;
+    const stepSeconds = integrationStepSeconds(before, embodiment, mission);
     const startPosition = worldModel.agentPosition(before);
     let enteredSegmentId = null;
     let reachedNodeId = null;
@@ -33,9 +33,9 @@
     if (next.currentSegmentId) {
       const segment = worldModel.segment(next.currentSegmentId);
       const remainingM = Math.max(0, segment.lengthM - next.segmentProgressM);
-      const remainingMissionM = mission.task.type === 'loop_distance'
-        ? Math.max(0, mission.task.targetDistanceM - before.distanceTraveledM)
-        : Infinity;
+      const remainingMissionM = loopTargetDistanceM(mission) === null
+        ? Infinity
+        : Math.max(0, loopTargetDistanceM(mission) - before.distanceTraveledM);
       progressDeltaM = Math.min(remainingM, travelM, remainingMissionM);
       next.segmentProgressM += progressDeltaM;
       next.distanceTraveledM += progressDeltaM;
@@ -48,7 +48,7 @@
     }
 
     next.tick += 1;
-    next.simulatedTimeSeconds += stepSeconds;
+    next.simulatedTimeSeconds = round(next.simulatedTimeSeconds + stepSeconds);
     const endPosition = worldModel.agentPosition(next);
     next.position = { ...endPosition };
     const clearance = worldModel.minimumActorClearance(
@@ -59,9 +59,9 @@
       policy.safety.nearbyActorRadiusM
     );
     const willArrive = mission.task.type === 'delivery' && next.currentNodeId === mission.destinationNodeId && !next.currentSegmentId;
-    const reachedDistance = mission.task.type === 'loop_distance' && next.distanceTraveledM >= mission.task.targetDistanceM - 1e-9;
-    const willComplete = willArrive || reachedDistance;
-    const completionReason = willArrive ? 'destination_reached' : reachedDistance ? 'distance_target_reached' : null;
+    const reachedLoopTarget = loopTerminationReached(next, mission);
+    const willComplete = willArrive || reachedLoopTarget;
+    const completionReason = willArrive ? 'destination_reached' : reachedLoopTarget ? loopCompletionReason(mission) : null;
     if (willComplete) {
       next.status = 'completed';
       next.speedMps = 0;
@@ -86,6 +86,29 @@
     };
   }
 
+  function integrationStepSeconds(state, embodiment, mission) {
+    const configured = embodiment.dynamics.integrationStepSeconds;
+    if (mission.task.type !== 'loop' || mission.task.termination.kind !== 'duration') return configured;
+    return Math.min(configured, Math.max(0, mission.task.termination.targetDurationSeconds - state.simulatedTimeSeconds));
+  }
+
+  function loopTargetDistanceM(mission) {
+    if (mission.task.type !== 'loop') return null;
+    return mission.task.termination.targetDistanceM ?? null;
+  }
+
+  function loopTerminationReached(state, mission) {
+    if (mission.task.type !== 'loop') return false;
+    const termination = mission.task.termination;
+    if (termination.kind === 'duration') return state.simulatedTimeSeconds >= termination.targetDurationSeconds - 1e-9;
+    return state.distanceTraveledM >= termination.targetDistanceM - 1e-9;
+  }
+
+  function loopCompletionReason(mission) {
+    const kind = mission.task.termination.kind;
+    return kind === 'distance' ? 'distance_target_reached' : kind === 'laps' ? 'lap_target_reached' : 'duration_target_reached';
+  }
+
   function dynamicsError(code, message) {
     const error = new Error(`${code}: ${message}`);
     error.name = 'AutonomyDynamicsError';
@@ -105,5 +128,5 @@
     return { x: round(point.x), y: round(point.y) };
   }
 
-  return { simulateAction };
+  return { integrationStepSeconds, loopCompletionReason, loopTargetDistanceM, loopTerminationReached, simulateAction };
 });

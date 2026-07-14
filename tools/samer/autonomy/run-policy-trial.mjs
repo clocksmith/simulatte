@@ -16,6 +16,7 @@ const controllerApi = require('../../../public/runtime/autonomy-controller.js');
 const receipts = require('../../../public/runtime/canonical-receipts.js');
 const EXPECTED_RUNTIME_SOURCE_PATHS = Object.freeze([
   'public/contracts/contract-validator.js',
+  'public/mission/capability-matrix.js',
   'public/mission/mission-compiler.js',
   'public/world/world-model.js',
   'public/world/route-planner.js',

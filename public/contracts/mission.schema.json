@@ -42,7 +42,7 @@
               "value": { "type": "string", "minLength": 1 },
               "start": { "type": "integer", "minimum": 0 },
               "end": { "type": "integer", "minimum": 1 },
-              "method": { "enum": ["exact_lexical", "exact_world_label", "constrained_fuzzy_place", "constrained_fuzzy_keyword", "unit_conversion", "lap_count_conversion", "exact_routed_street", "constrained_fuzzy_routed_street"] },
+              "method": { "enum": ["exact_lexical", "exact_world_label", "constrained_fuzzy_place", "constrained_fuzzy_keyword", "unit_conversion", "lap_count_conversion", "exact_routed_street", "constrained_fuzzy_routed_street", "exact_world_street", "constrained_fuzzy_world_street"] },
               "groundedId": { "type": ["string", "null"] },
               "canonicalValue": { "type": ["string", "null"] },
               "editDistance": { "type": "integer", "minimum": 0 }

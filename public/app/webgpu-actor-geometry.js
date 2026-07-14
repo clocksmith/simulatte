@@ -24,7 +24,7 @@
     aluminum: Object.freeze([0.62, 0.69, 0.72, 1]),
     glass: Object.freeze([0.035, 0.12, 0.16, 1]),
     carPaint: Object.freeze([0.08, 0.2, 0.25, 1]),
-    jacket: Object.freeze([0.055, 0.16, 0.18, 1]),
+    jacket: Object.freeze([0.035, 0.25, 0.265, 1]),
     trousers: Object.freeze([0.045, 0.055, 0.065, 1]),
     skin: Object.freeze([0.56, 0.4, 0.31, 1]),
     helmet: Object.freeze([0.12, 0.16, 0.18, 1]),
@@ -76,6 +76,7 @@
     addOrientedBox(writer, frame, [stride * 0.78 + 0.17, 0.075, -0.12], [0.3, 0.1, 0.12], COLORS.graphite, MATERIALS.rubber);
     addOrientedBox(writer, frame, [-stride * 0.78 + 0.17, 0.075, 0.12], [0.3, 0.1, 0.12], COLORS.graphite, MATERIALS.rubber);
     addEllipsoid(writer, frame, [0, 1.28, 0], [0.22, 0.38, 0.17], COLORS.jacket, MATERIALS.fabric, 10, 6);
+    addOrientedBox(writer, frame, [-0.205, 1.34, 0], [0.035, 0.075, 0.31], COLORS.accent, MATERIALS.light, 0.28);
     const leftShoulder = localPoint(frame, [0, 1.5, -0.23]);
     const rightShoulder = localPoint(frame, [0, 1.5, 0.23]);
     const leftElbow = localPoint(frame, [-stride * 0.42, 1.2, -0.27]);
@@ -120,6 +121,7 @@
     const hip = [-0.38, 1.58, 0];
     const shoulder = [0.05, 2.02, 0];
     addEllipsoid(writer, frame, [-0.14, 1.82, 0], [0.26, 0.35, 0.18], COLORS.jacket, MATERIALS.fabric, 10, 6);
+    addOrientedBox(writer, frame, [-0.38, 1.87, 0], [0.035, 0.07, 0.3], COLORS.accent, MATERIALS.light, 0.24);
     addEllipsoid(writer, frame, [0.13, 2.2, 0], [0.14, 0.16, 0.135], COLORS.helmet, MATERIALS.polymer, 10, 6);
     [-1, 1].forEach((side, index) => {
       const sideOffset = side * 0.12;
@@ -147,6 +149,7 @@
     addLocalTube(writer, frame, [-0.17, 0.28, -0.1], [-0.15, 0.9, -0.1], 0.065, COLORS.trousers, MATERIALS.fabric);
     addLocalTube(writer, frame, [0.05, 0.28, 0.1], [-0.05, 0.9, 0.1], 0.065, COLORS.trousers, MATERIALS.fabric);
     addEllipsoid(writer, frame, [sway, 1.27, 0], [0.2, 0.34, 0.16], COLORS.jacket, MATERIALS.fabric, 10, 6);
+    addOrientedBox(writer, frame, [-0.19, 1.31, 0], [0.035, 0.07, 0.28], COLORS.accent, MATERIALS.light, 0.24);
     addEllipsoid(writer, frame, [0.02, 1.72, 0], [0.125, 0.15, 0.12], COLORS.helmet, MATERIALS.polymer, 10, 6);
     [-1, 1].forEach((side) => {
       addLocalTube(writer, frame, [0.03, 1.46, side * 0.2], [0.25, 1.25, side * 0.25], 0.05, COLORS.jacket, MATERIALS.fabric);

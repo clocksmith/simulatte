@@ -4,6 +4,7 @@
   root.SimulatteAutonomyJourneyVerifier = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyJourneyVerifier() {
   const DISTANCE_TOLERANCE_M = 0.000001;
+  const STREET_WORDS = Object.freeze({ avenue: 'av', ave: 'av', street: 'st', str: 'st', boulevard: 'blvd', road: 'rd', lane: 'ln', place: 'pl', square: 'sq' });
 
   function verifyJourney({ mission, state, receiptChain, worldModel }) {
     const ticks = receiptChain.entries.map((entry) => entry.payload).filter((row) => row.schema === 'simulatte.autonomyTickReceipt.v2');
@@ -18,16 +19,17 @@
     );
     const settlements = ticks.map((row) => row.settlement).filter(Boolean);
     const requiredByKind = new Map(mission.obligations.map((row) => [row.kind, row.required]));
-    const obligations = mission.task.type === 'loop_distance'
+    const obligations = mission.task.type === 'loop'
       ? loopObligations({ mission, state, ticks, violations, enteredSegmentIds, requiredByKind })
-      : deliveryObligations({ mission, state, violations, protectedPreferenceApplied, protectedSegments, sharedSegments, routeReceipts, requiredByKind, ticks });
+      : deliveryObligations({ mission, state, violations, protectedPreferenceApplied, protectedSegments, sharedSegments, routeReceipts, requiredByKind, ticks, enteredSegments });
     const requiredFailures = obligations.filter((row) => row.required && !row.pass);
     const selectedBetCount = ticks.filter((row) => row.selectedBetId).length;
     const settledBetCount = settlements.length;
     const continuityPass = ticks.every((row, index) => row.tick === index);
-    const partialLapDistanceM = mission.task.type === 'loop_distance'
+    const partialLapDistanceM = mission.task.type === 'loop'
       ? round(state.distanceTraveledM - state.completedLaps * mission.grounding.circuitLengthM)
       : null;
+    const termination = mission.task.type === 'loop' ? mission.task.termination : null;
     return {
       schema: 'simulatte.autonomyJourneyVerification.v2',
       pass: requiredFailures.length === 0 && violations.length === 0 && continuityPass && selectedBetCount === settledBetCount,
@@ -44,7 +46,10 @@
       metrics: {
         tickCount: ticks.length,
         distanceTraveledM: round(state.distanceTraveledM),
-        targetDistanceM: mission.task.targetDistanceM || null,
+        targetDistanceM: termination?.targetDistanceM ?? null,
+        targetLaps: termination?.targetLaps ?? null,
+        targetDurationSeconds: termination?.targetDurationSeconds ?? null,
+        simulatedTimeSeconds: round(state.simulatedTimeSeconds),
         completedLaps: state.completedLaps,
         partialLapDistanceM,
         routeRevisionCount: ticks.filter((row) => row.route.reason === 'blocked_segment').length,
@@ -54,13 +59,17 @@
         lostBetCount: settlements.filter((row) => row.verdict === 'lost').length,
         minimumPedestrianClearanceM: minimumClearance(ticks),
       },
-      claimBoundary: mission.task.type === 'loop_distance'
+      claimBoundary: mission.task.type === 'loop'
         ? 'This verification proves deterministic traversal of the pinned park-property boundary circuit. The boundary source does not prove a surveyed sidewalk centerline or physical-world running capability.'
         : 'This verification settles deterministic trace obligations against the named world artifact. It does not establish physical-world autonomy or live traffic knowledge.',
     };
   }
 
-  function deliveryObligations({ mission, state, violations, protectedPreferenceApplied, protectedSegments, sharedSegments, routeReceipts, requiredByKind, ticks }) {
+  function deliveryObligations({ mission, state, violations, protectedPreferenceApplied, protectedSegments, sharedSegments, routeReceipts, requiredByKind, ticks, enteredSegments }) {
+    const avoidedStreetKeys = new Set(mission.constraints.avoidStreetNames.map(normalizeStreetName));
+    const enteredAvoidedStreetNames = [...new Set(enteredSegments.map((segment) => segment.source?.street).filter((name) => avoidedStreetKeys.has(normalizeStreetName(name))))];
+    const avoidanceReceipted = routeReceipts.every((route) => sameRows(route.avoidedStreetNames, mission.constraints.avoidStreetNames));
+    const excludedStreetSegmentIds = [...new Set(routeReceipts.flatMap((route) => route.excludedStreetSegmentIds))];
     return [
       obligation('arrival', state.status === 'completed' && state.currentNodeId === mission.destinationNodeId, requiredByKind.get('arrival'), {
         destinationNodeId: mission.destinationNodeId,
@@ -82,6 +91,14 @@
         sharedSegmentIds: sharedSegments,
         routeReceiptCount: routeReceipts.length,
       }),
+      obligation('street_avoidance', enteredAvoidedStreetNames.length === 0 && avoidanceReceipted, requiredByKind.get('street_avoidance'), {
+        avoidedStreetNames: [...mission.constraints.avoidStreetNames],
+        enteredAvoidedStreetNames,
+        routeReceiptCount: routeReceipts.length,
+        avoidanceReceipted,
+        excludedStreetSegmentIds,
+        alreadyAbsentFromRoutableGraph: mission.constraints.avoidStreetNames.length > 0 && excludedStreetSegmentIds.length === 0,
+      }),
     ];
   }
 
@@ -96,16 +113,14 @@
       && receipt.boundaryGeometrySha256 === mission.grounding.source.geometryWgs84Sha256
       && Math.abs(receipt.cumulativeDistanceM - receipt.lapNumber * mission.grounding.circuitLengthM) <= DISTANCE_TOLERANCE_M
     );
+    const termination = terminationObligation(mission, state, requiredByKind);
+    const expectedCompletedLaps = terminationExpectedLaps(mission);
     return [
-      obligation('distance_target', state.status === 'completed' && Math.abs(state.distanceTraveledM - mission.task.targetDistanceM) <= DISTANCE_TOLERANCE_M, requiredByKind.get('distance_target'), {
-        requestedDistance: structuredClone(mission.task.requestedDistance),
-        targetDistanceM: mission.task.targetDistanceM,
-        distanceTraveledM: round(state.distanceTraveledM),
-        toleranceM: DISTANCE_TOLERANCE_M,
-      }),
-      obligation('closed_loop', state.completedLaps >= Math.floor(mission.task.targetDistanceM / mission.grounding.circuitLengthM), requiredByKind.get('closed_loop'), {
+      termination,
+      obligation('closed_loop', state.completedLaps >= expectedCompletedLaps, requiredByKind.get('closed_loop'), {
         circuitId: mission.task.circuitId,
         circuitLengthM: mission.grounding.circuitLengthM,
+        expectedCompletedLaps,
         completedLaps: state.completedLaps,
         lapReceipts,
       }),
@@ -128,6 +143,39 @@
     ];
   }
 
+  function terminationObligation(mission, state, requiredByKind) {
+    const termination = mission.task.termination;
+    if (termination.kind === 'distance') {
+      return obligation('distance_target', state.status === 'completed' && Math.abs(state.distanceTraveledM - termination.targetDistanceM) <= DISTANCE_TOLERANCE_M, requiredByKind.get('distance_target'), {
+        requestedDistance: structuredClone(termination.requestedDistance),
+        targetDistanceM: termination.targetDistanceM,
+        distanceTraveledM: round(state.distanceTraveledM),
+        toleranceM: DISTANCE_TOLERANCE_M,
+      });
+    }
+    if (termination.kind === 'laps') {
+      return obligation('laps_target', state.status === 'completed' && state.completedLaps === termination.targetLaps && Math.abs(state.distanceTraveledM - termination.targetDistanceM) <= DISTANCE_TOLERANCE_M, requiredByKind.get('laps_target'), {
+        targetLaps: termination.targetLaps,
+        completedLaps: state.completedLaps,
+        targetDistanceM: termination.targetDistanceM,
+        distanceTraveledM: round(state.distanceTraveledM),
+        toleranceM: DISTANCE_TOLERANCE_M,
+      });
+    }
+    return obligation('duration_target', state.status === 'completed' && Math.abs(state.simulatedTimeSeconds - termination.targetDurationSeconds) <= DISTANCE_TOLERANCE_M, requiredByKind.get('duration_target'), {
+      requestedDuration: structuredClone(termination.requestedDuration),
+      targetDurationSeconds: termination.targetDurationSeconds,
+      simulatedTimeSeconds: round(state.simulatedTimeSeconds),
+      toleranceSeconds: DISTANCE_TOLERANCE_M,
+    });
+  }
+
+  function terminationExpectedLaps(mission) {
+    const termination = mission.task.termination;
+    if (termination.kind === 'duration') return 0;
+    return Math.floor(termination.targetDistanceM / mission.grounding.circuitLengthM);
+  }
+
   function complianceObligation(kind, violationKind, violations, requiredByKind) {
     return obligation(kind, !violations.some((row) => row.kind === violationKind), requiredByKind.get(kind), {
       violationCount: violations.filter((row) => row.kind === violationKind).length,
@@ -141,6 +189,14 @@
   function minimumClearance(ticks) {
     const values = ticks.map((row) => row.transition && row.transition.minimumClearanceM).filter(Number.isFinite);
     return values.length ? round(Math.min(...values)) : null;
+  }
+
+  function sameRows(left, right) {
+    return left.length === right.length && left.every((row, index) => row === right[index]);
+  }
+
+  function normalizeStreetName(value) {
+    return String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim().split(/\s+/).filter(Boolean).map((word) => STREET_WORDS[word] || word).join(' ');
   }
 
   function round(value) {

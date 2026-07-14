@@ -38,7 +38,7 @@
     "route": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["segmentIds", "cost", "algorithm", "visitedNodeCount", "visitedNodeIds", "evaluatedSegmentCount", "costBreakdown", "revision", "reason", "circuitId", "circuitLengthM"],
+      "required": ["segmentIds", "cost", "algorithm", "visitedNodeCount", "visitedNodeIds", "evaluatedSegmentCount", "costBreakdown", "revision", "reason", "circuitId", "circuitLengthM", "avoidedStreetNames", "excludedStreetSegmentIds"],
       "properties": {
         "segmentIds": { "type": "array", "items": { "type": "string" } },
         "cost": { "type": "number", "minimum": 0 },
@@ -69,9 +69,11 @@
           }
         },
         "revision": { "type": "integer", "minimum": 0 },
-        "reason": { "enum": ["initial", "continued", "blocked_segment", "route_exhausted", "at_destination", "lap_restart", "distance_target_reached"] },
+        "reason": { "enum": ["initial", "continued", "blocked_segment", "route_exhausted", "at_destination", "lap_restart", "termination_target_reached"] },
         "circuitId": { "type": ["string", "null"] },
-        "circuitLengthM": { "type": ["number", "null"], "exclusiveMinimum": 0 }
+        "circuitLengthM": { "type": ["number", "null"], "exclusiveMinimum": 0 },
+        "avoidedStreetNames": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+        "excludedStreetSegmentIds": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true }
       }
     },
     "signals": {
@@ -95,7 +97,7 @@
         "required": ["id", "type", "position", "distanceM", "isActive"],
         "properties": {
           "id": { "type": "string" },
-          "type": { "enum": ["pedestrian", "vehicle"] },
+        "type": { "enum": ["pedestrian", "bicycle", "scooter", "car"] },
           "position": { "$ref": "#/$defs/point" },
           "distanceM": { "type": "number", "minimum": 0 },
           "isActive": { "type": "boolean" }

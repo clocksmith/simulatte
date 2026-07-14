@@ -13,6 +13,7 @@ const dataDir = path.join(publicDir, 'data', 'autonomy');
 const contracts = require('../public/contracts/contract-validator.js');
 const receipts = require('../public/runtime/canonical-receipts.js');
 const missionApi = require('../public/mission/mission-compiler.js');
+const capabilityApi = require('../public/mission/capability-matrix.js');
 const worldApi = require('../public/world/world-model.js');
 const routePlanner = require('../public/world/route-planner.js');
 const controllerApi = require('../public/runtime/autonomy-controller.js');
@@ -357,7 +358,7 @@ test('mission compiler grounds known labels to source intervals and fails closed
   );
   assert.throws(
     () => missionApi.compileMission('Walk from Canal Depot to East Market.', rows.world, rows.embodiment),
-    (error) => error.code === 'task_not_grounded'
+    (error) => error.code === 'capability_not_available'
   );
 });
 
@@ -365,11 +366,13 @@ test('loop mission corrects the exact prompt, converts feet, and grounds the pin
   const rows = governedAssets();
   const mission = missionApi.compileMission(UNION_SQUARE_LOOP, rows.world, rows.embodiments);
   const circuit = rows.world.circuits[0];
-  assert.equal(mission.schema, 'simulatte.autonomyMission.v2');
-  assert.equal(mission.task.type, 'loop_distance');
+  assert.equal(mission.schema, 'simulatte.autonomyMission.v3');
+  assert.equal(mission.task.type, 'loop');
   assert.equal(mission.embodimentId, 'pedestrian-v1');
-  assert.equal(mission.task.targetDistanceM, 1524);
-  assert.deepEqual(mission.task.requestedDistance, { value: 5000, unit: 'foot', metersPerUnit: 0.3048, convertedMeters: 1524 });
+  assert.equal(mission.task.termination.targetDistanceM, 1524);
+  assert.deepEqual(mission.task.termination.requestedDistance, { value: 5000, unit: 'foot', metersPerUnit: 0.3048, convertedMeters: 1524 });
+  assert.equal(mission.capability.rowId, 'pedestrian:closed_circuit');
+  assert.ok(mission.capability.artifactIds.includes(circuit.id));
   assert.equal(mission.grounding.circuitId, circuit.id);
   assert.deepEqual(mission.grounding.segmentIds, circuit.segmentIds);
   assert.equal(mission.grounding.fullLapsBeforeFinalPartial, 2);
@@ -385,7 +388,110 @@ test('loop mission corrects the exact prompt, converts feet, and grounds the pin
   );
 });
 
-test('one embodiment contract configures pedestrian, bicycle, scooter, and car kinds', () => {
+test('capability matrix keeps embodiment, mission family, and governed artifacts orthogonal', () => {
+  const rows = governedAssets();
+  const matrix = capabilityApi.buildCapabilityMatrix(rows.world, rows.embodiments);
+  assert.equal(matrix.schema, 'simulatte.autonomyCapabilityMatrix.v1');
+  assert.equal(matrix.rows.length, 12);
+  const row = (id) => matrix.rows.find((candidate) => candidate.id === id);
+  assert.equal(row('bicycle:delivery').supported, true);
+  assert.equal(row('pedestrian:closed_circuit').supported, true);
+  assert.deepEqual(row('pedestrian:closed_circuit').terminationKinds, ['distance', 'laps', 'duration']);
+  assert.ok(row('pedestrian:closed_circuit').circuitIds.includes('union-square-park-perimeter-v1'));
+  assert.equal(row('pedestrian:point_to_point').supported, false);
+  assert.ok(row('pedestrian:point_to_point').blockingReasons.includes('routable_graph_not_registered'));
+  assert.equal(row('bicycle:closed_circuit').supported, false);
+  assert.ok(row('bicycle:closed_circuit').blockingReasons.includes('circuit_artifact_not_registered'));
+  for (const kind of ['scooter', 'car']) {
+    assert.ok(row(`${kind}:delivery`).blockingReasons.includes('embodiment_not_registered'));
+    assert.throws(
+      () => missionApi.compileMission(`Deliver the parcel by ${kind} from Union Square to North Williamsburg.`, rows.world, rows.embodiments),
+      (error) => error.code === 'capability_not_available' && error.evidence.row.embodimentKind === kind
+    );
+  }
+});
+
+test('closed-circuit missions settle exact lap-count and elapsed-time goals through one controller', async () => {
+  const rows = governedAssets();
+  const lapMission = missionApi.compileMission('Run 2 laps around Union Square Park perimeter.', rows.world, rows.embodiments);
+  assert.deepEqual(lapMission.task.termination, { kind: 'laps', targetLaps: 2, targetDistanceM: Number((rows.world.circuits[0].lengthM * 2).toFixed(9)) });
+  const lapController = makeController(rows, lapMission);
+  await lapController.run();
+  const lapReceipt = await lapController.journeyReceipt();
+  assert.equal(lapReceipt.terminalState, 'completed');
+  assert.equal(lapReceipt.finalState.completedLaps, 2);
+  assert.equal(lapReceipt.settlement.completionReason, 'lap_target_reached');
+  assert.equal(lapReceipt.settlement.exactTargetSettlement, true);
+  assert.equal(lapReceipt.verification.requiredFailureIds.length, 0);
+
+  const durationMission = missionApi.compileMission('Run around Union Square Park perimeter for 12 seconds.', rows.world, rows.embodiments);
+  assert.deepEqual(durationMission.task.termination, {
+    kind: 'duration',
+    targetDurationSeconds: 12,
+    requestedDuration: { value: 12, unit: 'second', secondsPerUnit: 1, convertedSeconds: 12 },
+  });
+  const durationController = makeController(rows, durationMission);
+  await durationController.run();
+  const durationReceipt = await durationController.journeyReceipt();
+  assert.equal(durationReceipt.terminalState, 'completed');
+  assert.equal(durationReceipt.finalState.simulatedTimeSeconds, 12);
+  assert.equal(durationReceipt.settlement.durationErrorSeconds, 0);
+  assert.equal(durationReceipt.settlement.completionReason, 'duration_target_reached');
+  assert.equal(durationReceipt.verification.requiredFailureIds.length, 0);
+});
+
+test('delivery canonicalizes governed place typos and proves named routed-street avoidance', async () => {
+  const rows = governedAssets();
+  const mission = missionApi.compileMission(
+    'Deliver the parcel by bike from Union Squre to North Willamsburg. Prefer protected lanes and avoid Kent Avenue.',
+    rows.world,
+    rows.embodiments
+  );
+  assert.equal(mission.originNodeId, rows.world.nodes.find((node) => node.label === 'Union Square').id);
+  assert.equal(mission.destinationNodeId, rows.world.nodes.find((node) => node.label === 'North Williamsburg').id);
+  assert.equal(mission.parser.evidence.find((row) => row.field === 'origin').editDistance, 1);
+  assert.equal(mission.parser.evidence.find((row) => row.field === 'destination').editDistance, 1);
+  assert.deepEqual(mission.constraints.avoidStreetNames, ['KENT AV']);
+  const planned = routePlanner.planRoute({
+    worldModel: worldApi.createWorldModel(rows.world),
+    originNodeId: mission.originNodeId,
+    destinationNodeId: mission.destinationNodeId,
+    mode: rows.embodiment.mode,
+    tick: 0,
+    mission,
+    policy: rows.policy,
+  });
+  assert.ok(planned.excludedStreetSegmentIds.length > 0);
+  assert.ok(planned.segmentIds.every((id) => rows.world.segments.find((segment) => segment.id === id).source.street !== 'KENT AV'));
+  const controller = makeController(rows, mission);
+  await controller.run();
+  const receipt = await controller.journeyReceipt();
+  const avoidance = receipt.verification.obligations.find((row) => row.kind === 'street_avoidance');
+  assert.equal(receipt.terminalState, 'completed');
+  assert.equal(avoidance.required, true);
+  assert.equal(avoidance.pass, true);
+  assert.deepEqual(avoidance.evidence.enteredAvoidedStreetNames, []);
+  const bedfordMission = missionApi.compileMission(
+    'Deliver the parcel by bike from Union Square to North Williamsburg. Avoid Bedford Avenue.',
+    rows.world,
+    rows.embodiments
+  );
+  const bedfordRoute = routePlanner.planRoute({
+    worldModel: worldApi.createWorldModel(rows.world),
+    originNodeId: bedfordMission.originNodeId,
+    destinationNodeId: bedfordMission.destinationNodeId,
+    mode: rows.embodiment.mode,
+    tick: 0,
+    mission: bedfordMission,
+    policy: rows.policy,
+  });
+  assert.deepEqual(bedfordMission.constraints.avoidStreetNames, ['Bedford Avenue']);
+  assert.equal(bedfordMission.parser.evidence.find((row) => row.field === 'streetAvoidance').method, 'exact_world_street');
+  assert.deepEqual(bedfordRoute.excludedStreetSegmentIds, []);
+  assert.ok(bedfordRoute.segmentIds.every((id) => routePlanner.normalizeStreetName(rows.world.segments.find((segment) => segment.id === id).source.street) !== 'bedford av'));
+});
+
+test('one embodiment contract validates all render kinds while missing route artifacts fail closed', () => {
   const rows = assets();
   for (const kind of ['scooter', 'car']) {
     const embodiment = {
@@ -398,24 +504,14 @@ test('one embodiment contract configures pedestrian, bicycle, scooter, and car k
       renderProfile: kind,
     };
     contracts.validateEmbodiment(embodiment);
-    const mission = missionApi.compileMission(
-      `Deliver the parcel by ${kind} from Canal Depot to East Market.`,
-      rows.world,
-      [embodiment]
-    );
-    assert.equal(mission.embodimentId, embodiment.id);
     assert.throws(
-      () => routePlanner.planRoute({
-        worldModel: worldApi.createWorldModel(rows.world),
-        originNodeId: mission.originNodeId,
-        destinationNodeId: mission.destinationNodeId,
-        mode: embodiment.mode,
-        tick: 0,
-        mission,
-        policy: rows.policy,
-      }),
-      (error) => error.code === 'route_not_found',
-      `${kind} must not borrow bicycle graph eligibility`
+      () => missionApi.compileMission(
+        `Deliver the parcel by ${kind} from Canal Depot to East Market.`,
+        rows.world,
+        [embodiment]
+      ),
+      (error) => error.code === 'capability_not_available' && error.evidence.row.blockingReasons.includes('routable_graph_not_registered'),
+      `${kind} must not borrow bicycle graph eligibility before compilation`
     );
   }
 });
@@ -444,7 +540,7 @@ test('declared circuit route and runtime receipt settle exactly at 5000 feet', a
   assert.equal(receipt.finalState.completedLaps, 2);
   assert.equal(receipt.settlement.completionReason, 'distance_target_reached');
   assert.equal(receipt.settlement.distanceErrorM, 0);
-  assert.equal(receipt.settlement.exactDistanceSettlement, true);
+  assert.equal(receipt.settlement.exactTargetSettlement, true);
   assert.ok(mission.grounding.segmentIds.includes(receipt.settlement.finalSegmentId));
   assert.ok(receipt.settlement.finalSegmentProgressM > 0);
   assert.equal(receipt.settlement.boundaryGeometrySha256, mission.grounding.source.geometryWgs84Sha256);
@@ -734,7 +830,7 @@ test('autonomy schemas are restrictive and SAME-R declares one intervention', as
   assert.equal(contract.matchedOperationDetails.evaluationOrder, 'scenario_then_lane_then_repetition');
   assert.equal(contract.matchedOperationDetails.modelIdentity, null);
   assert.equal(contract.matchedOperationDetails.adapterIdentity, null);
-  assert.equal(contract.matchedOperationDetails.runtimeSourcePaths.length, 17);
+  assert.equal(contract.matchedOperationDetails.runtimeSourcePaths.length, 18);
   assert.deepEqual(contract.causalContract.blockingGuardrails, [
     'zero_safety_violations',
     'all_required_obligations_pass',
@@ -749,7 +845,7 @@ test('autonomy schemas are restrictive and SAME-R declares one intervention', as
   assert.equal(scenarios.population, 'public_diagnostic');
   const runner = await import(pathToFileURL(path.join(root, 'tools/samer/autonomy/run-policy-trial.mjs')));
   const sourceIdentity = runner.hashRuntimeSources(contract.matchedOperationDetails.runtimeSourcePaths);
-  assert.equal(sourceIdentity.files.length, 17);
+  assert.equal(sourceIdentity.files.length, 18);
   assert.match(sourceIdentity.aggregateSha256, /^[a-f0-9]{64}$/);
   assert.ok(sourceIdentity.files.every((row) => /^[a-f0-9]{64}$/.test(row.sha256)));
   assert.equal(runner.isSaturated([], contract.budget), false);

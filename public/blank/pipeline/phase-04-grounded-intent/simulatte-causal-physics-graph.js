@@ -26,6 +26,8 @@
     relation('causal.thin-film-forms-interference', ['thin film', 'soap film', 'film thickness'], ['iridescent interference', 'interference', 'iridescence'], 'refraction', 'wave_field', 'path length through a thin film shifts reflected phase and produces iridescent interference', typedCooccurrencePolicy()),
     relation('causal.particle-track-produces-detector-readout', ['muon tracks', 'particle tracks'], ['detector slice', 'particle detector', 'detector'], 'measurement', 'derive_readout', 'charged particle tracks crossing detector layers deposit energy and produce a detector signal', directSpatialPolicy('through')),
     relation('causal.energy-deposition-produces-calorimeter-pulse', ['detector slice', 'particle detector', 'energy deposition'], ['calorimeter pulses', 'calorimeter pulse'], 'measurement', 'derive_readout', 'energy deposited in detector material becomes a bounded calorimeter pulse', directSpatialPolicy('with')),
+    relation('causal.fermentation-grows-gas-pockets', ['sourdough fermentation'], ['gas bubbles'], 'growthCoupling', 'growth_decay', 'microbial fermentation converts dough nutrients into expanding gas pockets', typedCooccurrencePolicy()),
+    relation('causal.acoustic-source-drives-standing-pressure-wave', ['acoustic levitator', 'levitator', 'brass tube'], ['standing pressure waves'], 'waveCoupling', 'wave_field', 'the acoustic source drives a standing pressure field inside the resonant tube', typedCooccurrencePolicy()),
     relation('causal.laser-heats-metal', ['laser', 'beam', 'hot spot'], ['metal', 'copper', 'plate', 'steel'], 'heatTransfer', 'heat_transfer', 'focused optical power raises local metal temperature'),
     relation('causal.impact-fractures-glass', ['projectile', 'hammer', 'impact', 'collision', 'crash'], ['glass', 'wall', 'rock', 'metal', 'ice'], 'collision', 'rigid_collision', 'impulse transfers stress and damage'),
     relation('causal.speaker-drives-air-wave', ['speaker', 'piano', 'oscillator', 'vibration'], ['air', 'water', 'bridge', 'membrane'], 'waveCoupling', 'wave_field', 'oscillation launches a pressure or displacement wave'),
@@ -244,8 +246,9 @@
     const nodes = intentNodes(structured, evidenceRows);
     const edges = [];
     for (const rule of CAUSAL_RELATION_RULES) {
-      const source = bestNodeForTerms(nodes, rule.sources, prompt);
-      const target = bestNodeForTerms(nodes, rule.targets, prompt, source && source.id);
+      const predicatePair = predicateBoundNodePair(input.languageEvidence, nodes, rule);
+      const source = predicatePair?.source || bestNodeForTerms(nodes, rule.sources);
+      const target = predicatePair?.target || bestNodeForTerms(nodes, rule.targets, source && source.id);
       const evidence = strongEvidenceIdsForRule(evidenceRows, rule);
       const policyEvidence = groundingPolicyEvidence(prompt, rule);
       const promptHit = termsHit(prompt, rule.sources) && termsHit(prompt, rule.targets) &&
@@ -362,17 +365,15 @@
     return uniqueNodes(rows).slice(0, 96);
   }
 
-  function bestNodeForTerms(nodes, terms, prompt, excludeId = '') {
+  function bestNodeForTerms(nodes, terms, excludeId = '') {
     let best = null;
     let bestScore = 0;
     for (const node of nodes || []) {
       if (node.id === excludeId) continue;
-      const text = `${node.id} ${node.label} ${node.group} ${(node.primitiveHints || []).join(' ')} ${(node.operatorHints || []).join(' ')}`.toLowerCase();
+      const text = `${node.id} ${node.label} ${node.group} ${(node.primitiveHints || []).join(' ')} ${(node.operatorHints || []).join(' ')}`;
       let score = 0;
       for (const term of terms || []) {
-        const clean = String(term).toLowerCase();
-        if (text.includes(clean)) score += 1.1;
-        if (prompt.includes(clean)) score += 0.35;
+        if (phraseHit(text, term)) score += 1.1;
       }
       if (score > bestScore) {
         best = node;
@@ -382,8 +383,22 @@
     return best;
   }
 
+  function predicateBoundNodePair(languageEvidence = {}, nodes = [], rule = {}) {
+    const spansById = new Map((languageEvidence.spans || []).map((span) => [span.id, span]));
+    for (const clause of languageEvidence.clauses || []) {
+      const sourceSpan = spansById.get(clause.subjectSpanId);
+      const targetSpan = spansById.get(clause.objectSpanId);
+      if (!sourceSpan || !targetSpan) continue;
+      if (!termsHit(sourceSpan.text, rule.sources) || !termsHit(targetSpan.text, rule.targets)) continue;
+      const source = nodes.find((node) => node.id === sourceSpan.id);
+      const target = nodes.find((node) => node.id === targetSpan.id && node.id !== sourceSpan.id);
+      if (source && target) return { source, target };
+    }
+    return null;
+  }
+
   function termsHit(text, terms) {
-    return (terms || []).some((term) => String(text || '').includes(String(term).toLowerCase()));
+    return (terms || []).some((term) => phraseHit(text, term));
   }
 
   function groundingPolicyEvidence(text, rule = {}) {
@@ -399,19 +414,36 @@
   }
 
   function orderedRelationHit(text, sources, connector, targets) {
-    const value = String(text || '').toLowerCase();
-    const relationName = String(connector || '').toLowerCase();
+    const value = ` ${normalizePhraseText(text)} `;
+    const relationName = normalizePhraseText(connector);
     if (!relationName) return true;
     for (const source of sources || []) {
-      const sourceIndex = value.indexOf(String(source).toLowerCase());
+      const sourceNeedle = ` ${normalizePhraseText(source)} `;
+      const sourceIndex = value.indexOf(sourceNeedle);
       if (sourceIndex < 0) continue;
-      const connectorIndex = value.indexOf(relationName, sourceIndex + String(source).length);
+      const connectorNeedle = ` ${relationName} `;
+      const connectorIndex = value.indexOf(connectorNeedle, sourceIndex + sourceNeedle.length - 1);
       if (connectorIndex < 0) continue;
       for (const target of targets || []) {
-        if (value.indexOf(String(target).toLowerCase(), connectorIndex + relationName.length) >= 0) return true;
+        const targetNeedle = ` ${normalizePhraseText(target)} `;
+        if (value.indexOf(targetNeedle, connectorIndex + connectorNeedle.length - 1) >= 0) return true;
       }
     }
     return false;
+  }
+
+  function phraseHit(text, phrase) {
+    const value = normalizePhraseText(text);
+    const needle = normalizePhraseText(phrase);
+    return Boolean(needle) && ` ${value} `.includes(` ${needle} `);
+  }
+
+  function normalizePhraseText(value) {
+    return String(value || '').toLowerCase()
+      .replace(/[_-]+/g, ' ')
+      .replace(/[^a-z0-9]+/g, ' ')
+      .trim()
+      .replace(/\s+/g, ' ');
   }
 
   function evidenceIdsForRule(rows, rule) {

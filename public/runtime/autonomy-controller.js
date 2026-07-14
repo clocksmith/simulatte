@@ -180,7 +180,7 @@
           regionRegistryId: regionComposition ? regionComposition.registryId : null,
           regionCompositionId: regionComposition ? regionComposition.id : null,
           regionPackIds: regionComposition ? [...regionComposition.packIds] : [],
-          circuitId: mission.task.type === 'loop_distance' ? mission.task.circuitId : null,
+          circuitId: mission.task.type === 'loop' ? mission.task.circuitId : null,
           boundaryGeometrySha256: mission.grounding?.source?.geometryWgs84Sha256 || null,
         },
         events: structuredClone(eventHistory),
@@ -214,6 +214,7 @@
       embodimentKind: null,
       renderProfile: null,
       taskType: mission.task.type,
+      terminationKind: mission.task.type === 'loop' ? mission.task.termination.kind : 'arrival',
       tick: 0,
       simulatedTimeSeconds: 0,
       currentNodeId: mission.originNodeId,
@@ -236,9 +237,9 @@
 
   function ensureRoute({ state, activeRoute, worldModel, mission, embodiment, policy }) {
     if (state.currentSegmentId && activeRoute) return activeRoute;
-    if (mission.task.type === 'loop_distance') {
-      if (state.distanceTraveledM >= mission.task.targetDistanceM - 1e-9) {
-        state.routeReason = 'distance_target_reached';
+    if (mission.task.type === 'loop') {
+      if (missionIsComplete(state, mission)) {
+        state.routeReason = 'termination_target_reached';
         return emptyRoute('declared_closed_circuit_v1');
       }
       const planned = routePlanner.planCircuitRoute({
@@ -347,6 +348,7 @@
         speedMps: state.speedMps,
         payloadStatus: state.payloadStatus,
         distanceTraveledM: state.distanceTraveledM,
+        simulatedTimeSeconds: state.simulatedTimeSeconds,
         completedLaps: state.completedLaps,
         circuitSegmentsCompleted: state.circuitSegmentsCompleted,
       },
@@ -361,18 +363,29 @@
   }
 
   function buildJourneySettlement(mission, state) {
-    const targetDistanceM = mission.task.type === 'loop_distance' ? mission.task.targetDistanceM : null;
+    const termination = mission.task.type === 'loop' ? mission.task.termination : null;
+    const targetDistanceM = termination?.targetDistanceM ?? null;
+    const targetLaps = termination?.targetLaps ?? null;
+    const targetDurationSeconds = termination?.targetDurationSeconds ?? null;
     const distanceErrorM = targetDistanceM === null ? null : Number((state.distanceTraveledM - targetDistanceM).toFixed(9));
+    const durationErrorSeconds = targetDurationSeconds === null ? null : Number((state.simulatedTimeSeconds - targetDurationSeconds).toFixed(9));
     return {
       schema: 'simulatte.autonomyJourneySettlement.v1',
       taskType: mission.task.type,
+      terminationKind: termination?.kind || 'arrival',
       completionReason: state.status === 'completed'
-        ? mission.task.type === 'loop_distance' ? 'distance_target_reached' : 'destination_reached'
+        ? mission.task.type === 'loop' ? loopCompletionReason(mission) : 'destination_reached'
         : state.terminalReason || state.status,
       targetDistanceM,
+      targetLaps,
+      targetDurationSeconds,
       actualDistanceM: state.distanceTraveledM,
+      actualDurationSeconds: state.simulatedTimeSeconds,
       distanceErrorM,
-      exactDistanceSettlement: distanceErrorM === 0,
+      durationErrorSeconds,
+      exactTargetSettlement: mission.task.type === 'delivery'
+        ? state.status === 'completed' && state.currentNodeId === mission.destinationNodeId
+        : distanceErrorM === 0 || durationErrorSeconds === 0 || (targetLaps !== null && state.completedLaps === targetLaps),
       completedLaps: state.completedLaps,
       finalPartialDistanceM: mission.grounding?.finalPartialDistanceM ?? null,
       finalSegmentId: state.currentSegmentId,
@@ -398,6 +411,8 @@
         weights: { travelWeight: 0, riskWeight: 0, unprotectedPreferencePenalty: 0 },
       },
       deterministicTieBreak: algorithm === 'a_star_v1' ? 'segment_id_ascending' : 'declared_circuit_order',
+      avoidedStreetNames: [],
+      excludedStreetSegmentIds: [],
     };
   }
 
@@ -428,8 +443,12 @@
     if (transition.willComplete) rows.push(['mission_completed', mission.id, {
       completionReason: transition.completionReason,
       destinationNodeId: mission.destinationNodeId,
-      targetDistanceM: mission.task.targetDistanceM || null,
+      terminationKind: mission.task.type === 'loop' ? mission.task.termination.kind : 'arrival',
+      targetDistanceM: mission.task.type === 'loop' ? mission.task.termination.targetDistanceM ?? null : null,
+      targetLaps: mission.task.type === 'loop' ? mission.task.termination.targetLaps ?? null : null,
+      targetDurationSeconds: mission.task.type === 'loop' ? mission.task.termination.targetDurationSeconds ?? null : null,
       distanceTraveledM: state.distanceTraveledM,
+      simulatedTimeSeconds: state.simulatedTimeSeconds,
     }]);
     return rows.map(([kind, sourceId, evidence], sequence) => occurrences.eventRow({ tick, kind, sourceId, evidence, sequence }));
   }
@@ -443,12 +462,17 @@
   }
 
   function missionIsComplete(state, mission) {
-    if (mission.task.type === 'loop_distance') return state.distanceTraveledM >= mission.task.targetDistanceM - 1e-9;
+    if (mission.task.type === 'loop') {
+      const termination = mission.task.termination;
+      return termination.kind === 'duration'
+        ? state.simulatedTimeSeconds >= termination.targetDurationSeconds - 1e-9
+        : state.distanceTraveledM >= termination.targetDistanceM - 1e-9;
+    }
     return state.currentNodeId === mission.destinationNodeId && !state.currentSegmentId;
   }
 
   function recordCircuitProgress(state, beforeState, transition, mission) {
-    if (mission.task.type !== 'loop_distance' || !transition.reachedNodeId) return null;
+    if (mission.task.type !== 'loop' || !transition.reachedNodeId) return null;
     const traversedSegmentId = beforeState.currentSegmentId || transition.enteredSegmentId;
     const expectedSegmentId = mission.grounding.segmentIds[state.circuitSegmentsCompleted];
     if (traversedSegmentId !== expectedSegmentId) return null;
@@ -469,5 +493,10 @@
     };
   }
 
-  return { createAutonomyController, evaluateOccurrences, initialState, ensureRoute, missionIsComplete, recordCircuitProgress, transitionEvents, transitionViolations };
+  function loopCompletionReason(mission) {
+    const kind = mission.task.termination.kind;
+    return kind === 'distance' ? 'distance_target_reached' : kind === 'laps' ? 'lap_target_reached' : 'duration_target_reached';
+  }
+
+  return { createAutonomyController, evaluateOccurrences, initialState, ensureRoute, loopCompletionReason, missionIsComplete, recordCircuitProgress, transitionEvents, transitionViolations };
 });

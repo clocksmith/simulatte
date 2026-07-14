@@ -70,9 +70,10 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
   let pulse = 0.82 + 0.18 * sin(uniforms.timeViewport.x * 2.4 + input.worldPosition.x * 0.018 - input.worldPosition.z * 0.012);
   let diffuseColor = input.color.rgb * (0.2 + diffuse * 0.74) * (1.0 - metallic * 0.38);
   let lit = diffuseColor + specular + input.color.rgb * rim + input.color.rgb * input.emissive * pulse;
+  let toneMapped = lit / (lit + vec3<f32>(0.85));
   let cameraDistance = distance(uniforms.cameraPosition.xyz, input.worldPosition);
   let fogAmount = clamp(1.0 - exp(-cameraDistance * uniforms.fogColorDensity.w), 0.0, 0.88);
-  return vec4<f32>(mix(lit, uniforms.fogColorDensity.rgb, fogAmount), input.color.a);
+  return vec4<f32>(mix(toneMapped, uniforms.fogColorDensity.rgb, fogAmount), input.color.a);
 }
 `;
 

@@ -57,6 +57,7 @@
     "adapterIdentity": null,
     "runtimeSourcePaths": [
       "public/contracts/contract-validator.js",
+      "public/mission/capability-matrix.js",
       "public/mission/mission-compiler.js",
       "public/world/world-model.js",
       "public/world/route-planner.js",

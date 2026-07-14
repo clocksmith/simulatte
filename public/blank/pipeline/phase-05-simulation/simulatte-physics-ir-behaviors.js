@@ -202,17 +202,21 @@
           });
         }
         if (type === 'growth_decay') {
+          const channels = [`density:${id}`, `nutrient:${id}`];
           return addOperator(operators, type, to, {
-            reads: [`density:${id}`, `nutrient:${id}`],
-            writes: [`density:${id}`, `nutrient:${id}`],
+            reads: channels,
+            writes: channels,
             params: { rate: clamp01(Number(params.populationGrowth || 0.32)) },
+            receipt: behaviorChannelReceipt(source, type, channels, channels),
           });
         }
         if (type === 'reaction_diffusion') {
+          const channels = [`reactionProgress:${id}`];
           return addOperator(operators, type, to, {
-            reads: [`reactionProgress:${id}`],
-            writes: [`reactionProgress:${id}`],
+            reads: channels,
+            writes: channels,
             params: { rate: clamp01(Number(params.catalyst || params.combustibility || 0.46)) },
+            receipt: behaviorChannelReceipt(source, type, channels, channels),
           });
         }
         if (type === 'network_flow') {
@@ -248,14 +252,26 @@
 
     function inferredBehaviorReceipt(source = {}, operatorType = '', reads = [], writes = []) {
         if (!source.inferred || !source.provenance) return null;
+        return behaviorChannelReceipt(source, operatorType, reads, writes);
+      }
+
+    function behaviorChannelReceipt(source = {}, operatorType = '', reads = [], writes = []) {
+        const evidence = unique([
+          ...(source.evidence || []),
+          ...(source.evidenceIds || []),
+          ...(source.sourceSpanIds || []),
+          source.receiptId || '',
+        ]);
         return {
           schema: 'simulatte.solverChannelReceipt.v1',
           operatorType,
           sourceEdgeId: source.id || '',
-          evidence: source.evidence || [],
+          evidence,
           consumedChannels: reads,
           producedChannels: writes,
-          inferenceProvenance: { ...source.provenance },
+          ...(source.inferred && source.provenance
+            ? { inferenceProvenance: { ...source.provenance } }
+            : {}),
         };
       }
 

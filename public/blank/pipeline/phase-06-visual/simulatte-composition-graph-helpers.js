@@ -650,7 +650,7 @@
           return 'building';
         }
         if (/gear[_-]train|gearbox|wheel|rotor|gear/.test(`${specific} ${geometryShapes}`)) return 'wheel';
-        if (/span[_-]structure|bridge|truss|span/.test(`${specific} ${geometryShapes}`)) return 'bridge';
+        if (/(?:^|[\s_-])(?:span[_-]structure|bridge|truss|span)(?:$|[\s_-])/.test(`${specific} ${geometryShapes}`)) return 'bridge';
         if (/crystal tower|crystal towers/.test(phrase) || (/\btower\b/.test(specific) && !/castle/.test(specific))) return 'tower';
         if (/castle/.test(`${specific} ${geometryShapes}`)) return 'castle';
         if (/lava[_-]flow|lava|magma|molten/.test(`${specific} ${geometryShapes}`)) return 'lava-flow';
@@ -665,7 +665,7 @@
         if (/\b(dust|powder|particle cloud)\b/.test(text)) return 'grain-bed';
         if (/\b(acoustic levitator|levitator|waveguide|brass tube|tube)\b/.test(text)) return 'instrument';
         if (/volcano|volcanic/.test(text)) return 'volcano';
-        if (/bridge|truss|span/.test(text)) return 'bridge';
+        if (/\b(?:bridge|truss|span)\b/.test(text)) return 'bridge';
         if (/crystal tower|crystal towers|tower/.test(text)) return 'tower';
         if (/ice castle|castle/.test(text)) return 'castle';
         if (/lava|magma|molten/.test(text)) return 'lava-flow';

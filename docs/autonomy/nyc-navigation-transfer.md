@@ -120,10 +120,12 @@ by default so a second city cannot replace the hosted city accidentally.
 
 ## Mode expansion order
 
-Delivery bike and the bounded pedestrian circuit are current. General
-pedestrian navigation still requires a sidewalk/crosswalk graph and
-social-force actors; scooter and car navigation require mode-eligible graphs,
-and driving further requires lane-level turn restrictions and signal phases.
+Delivery bike and the bounded pedestrian circuit are current. The executable
+capability matrix keeps embodiment, mission family, termination, and governed
+artifact identity independent. General pedestrian navigation still requires a
+sidewalk/crosswalk graph; bicycle loops require a registered bike-legal
+circuit; scooter and car navigation require mode-eligible graphs, and driving
+further requires lane-level turn restrictions and signal phases.
 All modes share observation, action bets, dynamics integration, safety gates,
 selection, settlement, receipts, renderer, camera, and SAME-R evaluation.
 Embodiment data, task grammar, graph eligibility, and legal constraints vary;

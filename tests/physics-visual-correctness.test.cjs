@@ -26,13 +26,14 @@ const {
   assertVisualIRCase,
 } = require('./physics-lab-fixture.cjs');
 
-test('molecular biology prompts do not admit robot visuals without robot evidence', () => {
+test('molecular identity does not imply growth or robot activity', () => {
   const spec = createPrototypeSpec(
     'protein folding energy minimization with chain geometry and bond constraints'
   );
   const mappingIds = spec.renderProgram.visualIR.graphicsAtoms.mappings.map((row) => row.id);
 
-  assert.ok(mappingIds.includes('visual.operator.biological-growth.v1'));
+  assert.equal(spec.phaseArtifacts.phase5.artifact.simulationCompile.physicsIR.operators.length, 0);
+  assert.ok(!mappingIds.includes('visual.operator.biological-growth.v1'));
   assert.ok(!mappingIds.includes('visual.operator.robot-contact.v1'));
   assert.equal(spec.renderProgram.visualIR.sceneKind, 'molecular-biology');
 });
@@ -59,9 +60,13 @@ test('fermentation prompts compile to molecular biology with dough-specific visu
   const geometryIds = atoms.geometry.map((row) => row.id);
   const processIds = atoms.processes.map((row) => row.id);
   const motionIds = atoms.motion.map((row) => row.id);
+  const activityOperators = spec.phaseArtifacts.phase5.artifact.simulationCompile.physicsIR.operators
+    .filter((row) => ['growth_decay', 'reaction_diffusion'].includes(row.type));
 
   assert.equal(spec.renderIR.sceneHint, 'molecular-biology');
   assert.equal(spec.renderProgram.visualIR.sceneKind, 'molecular-biology');
+  assert.equal(activityOperators.length, 2);
+  assert.ok(activityOperators.every((row) => row.receipt?.schema === 'simulatte.solverChannelReceipt.v1'));
   assert.ok(mappingIds.includes('visual.operator.fermentation-matrix.v1'));
   assert.ok(mappingIds.includes('visual.operator.chemical-diffusion.v1'));
   assert.ok(mappingIds.includes('visual.operator.biological-growth.v1'));
@@ -75,6 +80,9 @@ test('fermentation prompts compile to molecular biology with dough-specific visu
   assert.ok(atoms.uniforms.bySlot.chemical > 0);
   assert.ok(atoms.uniforms.bySlot.fluid > 0);
   assert.ok(atoms.wgslOperators.includes('atomFermentationBubbles'));
+  const control = createPrototypeSpec('sourdough beside gas bubbles');
+  assert.equal(control.phaseArtifacts.phase5.artifact.simulationCompile.physicsIR.operators
+    .some((row) => ['growth_decay', 'reaction_diffusion'].includes(row.type)), false);
 });
 
 test('thin-film prompts do not collapse into fermentation bubble visuals', () => {
@@ -119,9 +127,13 @@ test('acoustic dust levitation stays acoustic instead of collapsing into granula
   );
   const atoms = spec.renderProgram.visualIR.graphicsAtoms;
   const mappingIds = atoms.mappings.map((row) => row.id);
+  const waveOperator = spec.phaseArtifacts.phase5.artifact.simulationCompile.physicsIR.operators
+    .find((row) => row.type === 'wave_field');
 
   assert.equal(spec.renderIR.sceneHint, 'acoustic');
   assert.equal(spec.renderProgram.visualIR.sceneKind, 'acoustic');
+  assert.equal(waveOperator.receipt.inferenceProvenance.causalRuleId,
+    'causal.acoustic-source-drives-standing-pressure-wave');
   assert.ok(mappingIds.includes('visual.operator.acoustic-wave.v1'));
   assert.ok(atoms.uniforms.bySlot.acoustic > atoms.uniforms.bySlot.granular);
   assert.ok(atoms.wgslOperators.includes('atomAcousticRings'));
@@ -130,6 +142,11 @@ test('acoustic dust levitation stays acoustic instead of collapsing into granula
   const grammarIds = new Set(spec.renderProgram.sceneRenderPacket.entities.map((entity) => entity.geometry.coverage.grammarId));
   assert.ok(grammarIds.has('object-grammar.waveguide'));
   assert.ok(grammarIds.has('object-grammar.particle-cloud'));
+  for (const prompt of ['acoustic levitator beside dust', 'brass tube beside pressure gauge']) {
+    const control = createPrototypeSpec(prompt);
+    assert.equal(control.phaseArtifacts.phase5.artifact.simulationCompile.physicsIR.operators
+      .some((row) => row.type === 'wave_field'), false, prompt);
+  }
 });
 
 test('bridge resonance prompts carry structural stress graphics atoms', () => {
@@ -198,6 +215,11 @@ test('visual routing avoids weather, hazard, and material scene false positives'
     row.type === 'phase_transition' && row.receipt?.inferenceProvenance?.causalRuleId ===
       'causal.storm-updraft-grows-hail'
   )));
+  const hailRule = weather.universeGraph.edges.find((row) => (
+    row.provenance?.causalRuleId === 'causal.storm-updraft-grows-hail'
+  ));
+  assert.equal(hailRule.provenance.sourceRef, spanByText.get('thunderstorm').id);
+  assert.equal(hailRule.provenance.targetRef, spanByText.get('hail').id);
   assert.equal(weatherIR.operators.some((row) => (
     ['growth_decay', 'reaction_diffusion'].includes(row.type)
   )), false);
@@ -222,12 +244,31 @@ test('visual routing avoids weather, hazard, and material scene false positives'
   }
 
   const agro = createPrototypeSpec(
-    'compost feeds greenhouse nutrient loop with organic waste'
+    'compost nutrients grow flowers inside a greenhouse with organic waste'
   );
+  const agroIR = agro.phaseArtifacts.phase5.artifact.simulationCompile.physicsIR;
   const agroMappings = agro.renderProgram.visualIR.graphicsAtoms.mappings.map((row) => row.id);
+  const growthOperator = agroIR.operators.find((row) => row.type === 'growth_decay');
   assert.equal(agro.renderProgram.visualIR.sceneKind, 'agro-waste-loop');
+  assert.ok(growthOperator);
+  assert.equal(growthOperator.receipt.schema, 'simulatte.solverChannelReceipt.v1');
+  const growthEdge = agro.universeGraph.edges.find((row) => (
+    row.id === growthOperator.receipt.sourceEdgeId
+  ));
+  assert.equal(growthEdge.processId, 'growth');
+  assert.ok(growthEdge.evidence.includes('prompt-clause'));
+  assert.deepEqual(growthOperator.receipt.consumedChannels, growthOperator.reads);
   assert.ok(agroMappings.includes('visual.operator.biological-growth.v1'));
   assert.ok(agro.renderProgram.visualIR.graphicsAtoms.uniforms.bySlot.biological > 0);
+
+  const nonGrowthAgro = createPrototypeSpec(
+    'compost feeds greenhouse nutrient loop with organic waste'
+  );
+  assert.equal(nonGrowthAgro.renderProgram.visualIR.sceneKind, 'agro-waste-loop');
+  assert.equal(nonGrowthAgro.phaseArtifacts.phase5.artifact.simulationCompile.physicsIR.operators
+    .some((row) => row.type === 'growth_decay'), false);
+  assert.equal(nonGrowthAgro.renderProgram.visualIR.graphicsAtoms.mappings
+    .some((row) => row.id === 'visual.operator.biological-growth.v1'), false);
 
   const hazard = createPrototypeSpec(
     'hurricane evacuation traffic under storm surge'
@@ -256,17 +297,41 @@ test('warehouse language does not unlock robot visuals without robot evidence', 
   const robotWarehouse = createPrototypeSpec(
     'robot arm sorts packages in a warehouse with force sensors and feedback'
   );
+  const movingRobot = createPrototypeSpec(
+    'robot arm twists a package in a warehouse with force sensors and feedback'
+  );
+  const burningFuel = createPrototypeSpec(
+    'fire burns wood with smoke in concrete stairwell'
+  );
   const fireMappings = warehouseFire.renderProgram.visualIR.graphicsAtoms.mappings.map((row) => row.id);
   const parcelMappings = parcelSorting.renderProgram.visualIR.graphicsAtoms.mappings.map((row) => row.id);
   const robotMappings = robotWarehouse.renderProgram.visualIR.graphicsAtoms.mappings.map((row) => row.id);
+  const movingRobotMappings = movingRobot.renderProgram.visualIR.graphicsAtoms.mappings.map((row) => row.id);
+  const burningMappings = burningFuel.renderProgram.visualIR.graphicsAtoms.mappings.map((row) => row.id);
+  const warehouseRules = warehouseFire.phaseArtifacts.phase3.artifact.activationCloud.groundingEvidence
+    .universeGraphCandidates.intentBrief.causalGraph.map((row) => row.ruleId);
 
   assert.equal(warehouseFire.renderProgram.visualIR.sceneKind, 'fire');
-  assert.ok(fireMappings.includes('visual.operator.thermal-combustion.v1'));
+  assert.ok(!fireMappings.includes('visual.operator.thermal-combustion.v1'));
+  assert.ok(!fireMappings.includes('visual.operator.particle-track-detector.v1'));
   assert.ok(!fireMappings.includes('visual.operator.robot-contact.v1'));
+  assert.ok(!warehouseRules.includes('causal.wind-advects-smoke'));
+  assert.ok(!warehouseRules.includes('causal.oxygen-feeds-combustion'));
+  assert.equal(warehouseFire.universeGraph.edges.some((row) => (
+    /concrete-stairwell/.test(`${row.from} ${row.to}`) &&
+    ['advection', 'reaction_diffusion'].includes(row.operatorType)
+  )), false);
+  assert.ok(burningMappings.includes('visual.operator.thermal-combustion.v1'));
+  assert.ok(burningFuel.phaseArtifacts.phase5.artifact.simulationCompile.physicsIR.operators
+    .some((row) => row.type === 'combustion' && row.receipt?.sourceEdgeId === 'edge1'));
   assert.ok(parcelMappings.includes('visual.operator.network-flow.v1'));
   assert.ok(!parcelMappings.includes('visual.operator.robot-contact.v1'));
   assert.notEqual(parcelSorting.renderProgram.visualIR.sceneKind, 'robotics-control');
-  assert.ok(robotMappings.includes('visual.operator.robot-contact.v1'));
+  assert.ok(!robotMappings.includes('visual.operator.robot-contact.v1'));
+  assert.ok(robotMappings.includes('visual.operator.control-feedback.v1'));
+  assert.ok(movingRobotMappings.includes('visual.operator.robot-contact.v1'));
+  assert.ok(movingRobot.phaseArtifacts.phase5.artifact.simulationCompile.physicsIR.operators
+    .some((row) => row.type === 'rotational_torque'));
   assert.ok(robotWarehouse.renderProgram.visualIR.graphicsAtoms.languageSignals.length > 0);
 });
 
@@ -282,7 +347,7 @@ test('negated visual operator language does not satisfy positive graphics requir
   const phaseSignals = phase.renderProgram.visualIR.graphicsAtoms.languageSignals.map((row) => row.text).join(' ');
 
   assert.equal(protein.renderProgram.visualIR.sceneKind, 'molecular-biology');
-  assert.ok(proteinMappings.includes('visual.operator.biological-growth.v1'));
+  assert.ok(!proteinMappings.includes('visual.operator.biological-growth.v1'));
   assert.ok(!proteinMappings.includes('visual.operator.robot-contact.v1'));
   assert.ok(phaseMappings.includes('visual.operator.phase-transition.v1'));
   assert.ok(!phaseMappings.includes('visual.operator.quantum-phase-readout.v1'));
@@ -486,6 +551,7 @@ test('literal training review prompts survive semantic grounding into render obj
   const flowers = createPrototypeSpec('flowers');
   const mountains = createPrototypeSpec('trees and mountaints');
   const swimming = createPrototypeSpec('dogs and cats swimming');
+  const growingFlowers = createPrototypeSpec('flowers grow near trees');
 
   const dogObjects = dogs.renderProgram.objects.filter((object) => object.shape === 'animal-body');
   const flowerObjects = flowers.renderProgram.objects.filter((object) => object.shape === 'plant-cluster');
@@ -501,7 +567,7 @@ test('literal training review prompts survive semantic grounding into render obj
   assert.ok(dogObjects[0].sourceIds.includes('dog-a'));
   assert.ok(geometryKinds(dogs).includes('animal-body'));
   assert.equal(dogs.renderProgram.rendererPlan.sceneKind, 'biology');
-  assert.ok(mappingIds(dogs).includes('visual.operator.biological-growth.v1'));
+  assert.ok(!mappingIds(dogs).includes('visual.operator.biological-growth.v1'));
   assert.ok(!mappingIds(dogs).includes('visual.operator.instrument-readout.v1'));
   assert.ok(catalogCount(dogs) <= 6);
   assert.ok(!dogs.renderProgram.solverPlan.families.includes('fracture-threshold'));
@@ -511,7 +577,7 @@ test('literal training review prompts survive semantic grounding into render obj
     entity.identity.type === 'flower' && entity.geometry.coverage.grammarId === 'object-grammar.flower'
   )));
   assert.equal(flowers.renderProgram.rendererPlan.sceneKind, 'biology');
-  assert.ok(mappingIds(flowers).includes('visual.operator.biological-growth.v1'));
+  assert.ok(!mappingIds(flowers).includes('visual.operator.biological-growth.v1'));
   assert.ok(!mappingIds(flowers).includes('visual.operator.instrument-readout.v1'));
   assert.ok(catalogCount(flowers) <= 6);
   const flowerPacketIdentities = flowers.renderProgram.sceneRenderPacket.entities.map((entity) => entity.identity);
@@ -522,8 +588,8 @@ test('literal training review prompts survive semantic grounding into render obj
   assert.equal(mountainObjects.length, 1);
   assert.equal(mountainObjects[0].phrase, 'mountaints');
   assert.equal(mountains.renderProgram.rendererPlan.sceneKind, 'watershed');
-  assert.ok(mappingIds(mountains).includes('visual.operator.granular-erosion.v1'));
-  assert.ok(mappingIds(mountains).includes('visual.operator.biological-growth.v1'));
+  assert.ok(!mappingIds(mountains).includes('visual.operator.granular-erosion.v1'));
+  assert.ok(!mappingIds(mountains).includes('visual.operator.biological-growth.v1'));
   assert.ok(!mappingIds(mountains).includes('visual.operator.instrument-readout.v1'));
   assert.equal(swimmingAnimals.length, 2);
   assert.ok(swimmingWater);
@@ -537,10 +603,13 @@ test('literal training review prompts survive semantic grounding into render obj
   assert.ok(swimmingIdentities.has('water'));
   assert.ok(geometryKinds(swimming).every((kind) => kind && kind !== 'body'));
   assert.equal(swimming.renderProgram.rendererPlan.sceneKind, 'watershed');
-  assert.ok(mappingIds(swimming).includes('visual.operator.biological-growth.v1'));
-  assert.ok(mappingIds(swimming).includes('visual.operator.fluid-advection.v1'));
+  assert.ok(!mappingIds(swimming).includes('visual.operator.biological-growth.v1'));
+  assert.ok(!mappingIds(swimming).includes('visual.operator.fluid-advection.v1'));
   assert.ok(!mappingIds(swimming).includes('visual.operator.instrument-readout.v1'));
   assert.equal(catalogCount(swimming), 0);
+  assert.ok(mappingIds(growingFlowers).includes('visual.operator.biological-growth.v1'));
+  assert.ok(growingFlowers.phaseArtifacts.phase5.artifact.simulationCompile.physicsIR.operators
+    .some((row) => row.type === 'growth_decay' && row.receipt?.sourceEdgeId));
 });
 
 test('embedding-guided graph synthesis composes unseen animal wheel collision scenes', () => {
@@ -694,6 +763,7 @@ test('render programs keep prompt nouns literal and avoid unrelated scene fields
     'gold hammer supports glass in a swamp while fracturing near a black hole'
   );
   const city = createPrototypeSpec('city market queue traffic network');
+  const cityFlow = createPrototypeSpec('traffic flows through city network queue');
   const watershed = createPrototypeSpec('rain erodes a mountain watershed into sediment channels');
   const ferrofluid = createPrototypeSpec('ferrofluid with copper coil and pulsing current');
 
@@ -724,12 +794,23 @@ test('render programs keep prompt nouns literal and avoid unrelated scene fields
   assert.ok(mixedScene.renderIR.compositionLedger.relations.some((relation) => (
     relation.process === 'material_assignment' && relation.target === 'entity:hammer'
   )));
-  assert.equal(ferrofluid.renderProgram.objects.find((object) => object.id === 'ferrofluid-a').shape, 'pool');
-  assert.equal(ferrofluid.renderProgram.objects.find((object) => object.id === 'ferrofluid-a').material, 'ferrofluid');
-  assert.deepEqual(city.renderProgram.fields.map((field) => field.kind), ['network-flow']);
-  assert.deepEqual([...watershed.renderProgram.fields.map((field) => field.kind)].sort(), ['flow', 'gravity']);
-  assert.deepEqual(ferrofluid.renderProgram.fields.map((field) => field.kind), ['dipole']);
-  assert.deepEqual(thinFilm.renderProgram.fields.map((field) => field.kind), ['optical-rays']);
+  const ferrofluidObject = ferrofluid.renderProgram.objects.find((object) => object.material === 'ferrofluid');
+  assert.equal(ferrofluidObject.shape, 'pool');
+  assert.equal(ferrofluidObject.phrase, 'ferrofluid');
+  assert.deepEqual(city.renderProgram.fields.map((field) => field.kind), []);
+  assert.deepEqual(cityFlow.renderProgram.fields.map((field) => field.kind), ['network-flow']);
+  assert.ok(cityFlow.phaseArtifacts.phase5.artifact.simulationCompile.physicsIR.operators
+    .some((row) => row.type === 'network_flow'));
+  assert.deepEqual(watershed.renderProgram.fields.map((field) => field.kind), ['flow']);
+  assert.deepEqual(ferrofluid.renderProgram.fields, []);
+  assert.ok(ferrofluid.renderProgram.visualIR.graphicsAtoms.mappings
+    .some((row) => row.id === 'visual.operator.electromagnetic-field.v1'));
+  assert.ok(ferrofluid.phaseArtifacts.phase5.artifact.simulationCompile.physicsIR.operators
+    .some((row) => row.type === 'wave_field' &&
+      row.receipt?.inferenceProvenance?.causalRuleId === 'causal.magnet-deflects-ferrofluid'));
+  assert.deepEqual(thinFilm.renderProgram.fields, []);
+  assert.ok(!thinFilm.renderProgram.visualIR.graphicsAtoms.mappings
+    .some((row) => row.id === 'visual.operator.thin-film-interference.v1'));
 });
 
 test('expanded universe prompts preserve specific generated simulation objects', () => {
@@ -741,6 +822,9 @@ test('expanded universe prompts preserve specific generated simulation objects',
   );
   const undersea = createPrototypeSpec(
     'submarine city under a storm with turbines and glowing algae'
+  );
+  const growingUndersea = createPrototypeSpec(
+    'submarine city under a storm with turbines while algae grows'
   );
   const lavaBridge = createPrototypeSpec(
     'clockwork bridge over lava with mirrors and falling sand'
@@ -768,7 +852,8 @@ test('expanded universe prompts preserve specific generated simulation objects',
   assert.ok(bridgeShapes.has('mirror'));
   assert.ok(bridgeShapes.has('grain-bed'));
   assert.equal(lavaBridge.renderProgram.objects.some((object) => /gearbox/.test(object.id)), false);
-  assert.ok(undersea.renderProgram.solverPlan.families.includes('growth-diffusion'));
+  assert.ok(!undersea.renderProgram.solverPlan.families.includes('growth-diffusion'));
+  assert.ok(growingUndersea.renderProgram.solverPlan.families.includes('growth-diffusion'));
   assert.ok(cosmic.renderProgram.solverPlan.families.includes('phase-boundary'));
 });
 

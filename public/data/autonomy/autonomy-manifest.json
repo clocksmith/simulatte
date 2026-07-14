@@ -12,7 +12,7 @@
     {
       "id": "pedestrian-v1",
       "path": "./embodiments/pedestrian-v1.json",
-      "sha256": "7b7409242cfe7fbbbe019b674da4323e06d2c4162160a9ba18e3a15e4361964a"
+      "sha256": "2cd680c1497a1287e7e46147fa1c217455e2507905187aca67ac86011a8a8939"
     }
   ],
   "featureCatalog": {

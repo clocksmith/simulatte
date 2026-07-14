@@ -43,6 +43,8 @@
         reason: state.routeReason,
         circuitId: route.circuitId || null,
         circuitLengthM: route.circuitLengthM || null,
+        avoidedStreetNames: [...(route.avoidedStreetNames || [])],
+        excludedStreetSegmentIds: [...(route.excludedStreetSegmentIds || [])],
       },
       signals: worldModel.signalRows(state.tick),
       nearbyActors,

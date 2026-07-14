@@ -12,7 +12,7 @@
   const MIN_DISTANCE = 140;
   const MAX_DISTANCE = 9000;
   const DEFAULT_FOLLOW_DISTANCE = 62;
-  const MIN_FOLLOW_DISTANCE = 12;
+  const MIN_FOLLOW_DISTANCE = 5;
   const MAX_FOLLOW_DISTANCE = 260;
 
   function createCameraState(world, worldModel, regionRegistry = null, regionPacks = []) {
@@ -176,9 +176,9 @@
       const point = snapshot.state.position;
       const heading = routeHeading(snapshot, worldModel);
       const distance = state.followDistance;
-      const height = clamp(distance * 0.7, 8, 92);
-      const lookAhead = clamp(distance * 0.68, 10, 96);
-      const targetHeight = clamp(distance * 0.065, 1.8, 8);
+      const height = clamp(distance * 0.58, 2.8, 92);
+      const lookAhead = clamp(distance * 0.68, 4, 96);
+      const targetHeight = clamp(distance * 0.065, 1.35, 8);
       return {
         eye: [point.x - Math.cos(heading) * distance, height, -point.y + Math.sin(heading) * distance],
         target: [point.x + Math.cos(heading) * lookAhead, targetHeight, -point.y - Math.sin(heading) * lookAhead],

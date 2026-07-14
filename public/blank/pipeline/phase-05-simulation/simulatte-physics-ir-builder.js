@@ -34,7 +34,11 @@
             continue;
           }
           const semanticType = String(node.semanticType || node.type || '').toLowerCase();
-          const executableObservable = semanticType === 'observable' && node.semanticRole === 'measurement-signal';
+          const explicitActivity = /-process$/.test(String(node.semanticRole || '')) &&
+            (node.operatorTypes || node.operatorHints || []).length > 0;
+          const executableObservable = semanticType === 'observable' && (
+            node.semanticRole === 'measurement-signal' || explicitActivity
+          );
           if (node.supportOnly === true || !executableObservable &&
             /^(concept|event|process|action|observable|operator|part|property|relation|state|visual-effect)$/.test(semanticType)) {
             receipt.exact.push({

@@ -36,12 +36,13 @@
   }
 
   function capabilityRow({ kind, missionFamily, embodiment, graphSegments, graphArtifactIds, circuits }) {
+    const pointToPointSegments = graphSegments.filter((segment) => !segment.source?.propertyId);
     const blockingReasons = [];
     if (!embodiment) blockingReasons.push('embodiment_not_registered');
     const requiredTaskType = missionFamily === 'closed_circuit' ? 'loop' : missionFamily;
     if (embodiment && !embodiment.supportedTaskTypes.includes(requiredTaskType)) blockingReasons.push('mission_family_not_registered');
     if (missionFamily === 'closed_circuit' && circuits.length === 0) blockingReasons.push('circuit_artifact_not_registered');
-    if (missionFamily !== 'closed_circuit' && graphSegments.length === 0) blockingReasons.push('routable_graph_not_registered');
+    if (missionFamily !== 'closed_circuit' && pointToPointSegments.length === 0) blockingReasons.push('routable_graph_not_registered');
     return {
       id: `${kind}:${missionFamily}`,
       embodimentKind: kind,
@@ -51,7 +52,7 @@
       supported: blockingReasons.length === 0,
       terminationKinds: missionFamily === 'closed_circuit' ? [...CIRCUIT_TERMINATIONS] : missionFamily === 'delivery' ? ['arrival'] : ['arrival'],
       artifactIds: [embodiment?.id, ...graphArtifactIds, ...circuits.map((circuit) => circuit.id)].filter(Boolean),
-      graphSegmentCount: graphSegments.length,
+      graphSegmentCount: missionFamily === 'closed_circuit' ? graphSegments.length : pointToPointSegments.length,
       circuitIds: circuits.map((circuit) => circuit.id),
       blockingReasons,
     };
