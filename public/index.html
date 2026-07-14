@@ -74,6 +74,12 @@
             </div>
           </div>
           <div class="camera-controls" aria-label="Map camera">
+            <label class="camera-focus-label" for="camera-focus">
+              <span class="sr-only">Map focus</span>
+              <select id="camera-focus" aria-label="Map focus">
+                <option value="route">Full route</option>
+              </select>
+            </label>
             <button id="camera-follow" type="button">Follow</button>
             <button id="camera-bird" class="is-active" type="button">Bird</button>
             <button id="camera-top" type="button">Top</button>
@@ -94,7 +100,7 @@
             <span><i class="trace"></i>Driven</span>
             <span><i class="prediction"></i>Prediction</span>
           </div>
-          <div class="map-hint">Drag to orbit · scroll to zoom</div>
+          <div class="map-hint">Drag to orbit · Shift-drag or Top to pan · scroll to zoom</div>
         </div>
       </div>
 
@@ -195,6 +201,7 @@
   <script defer src="./runtime/autonomy-controller.js?v=d7dd0a392135330ae0507e255f96abdf2cf6b26a-fd5c58a9c803"></script>
   <script defer src="./app/webgpu-math.js?v=d7dd0a392135330ae0507e255f96abdf2cf6b26a-fd5c58a9c803"></script>
   <script defer src="./app/webgpu-geometry.js?v=d7dd0a392135330ae0507e255f96abdf2cf6b26a-fd5c58a9c803"></script>
+  <script defer src="./app/camera-controller.js?v=d7dd0a392135330ae0507e255f96abdf2cf6b26a-fd5c58a9c803"></script>
   <script defer src="./app/webgpu-renderer.js?v=d7dd0a392135330ae0507e255f96abdf2cf6b26a-fd5c58a9c803"></script>
   <script defer src="./app/trace-view.js?v=d7dd0a392135330ae0507e255f96abdf2cf6b26a-fd5c58a9c803"></script>
   <script defer src="./app/main.js?v=d7dd0a392135330ae0507e255f96abdf2cf6b26a-fd5c58a9c803"></script>

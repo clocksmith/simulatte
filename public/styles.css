@@ -346,11 +346,29 @@ p {
 
 .camera-controls {
   display: flex;
+  align-items: center;
   gap: 0.25rem;
   padding: 0.2rem;
   border: 1px solid var(--line);
   border-radius: 9px;
   background: rgba(1, 8, 14, 0.58);
+}
+
+.camera-focus-label,
+.camera-controls select {
+  min-width: 0;
+}
+
+.camera-controls select {
+  width: 10.5rem;
+  min-height: 30px;
+  border: 1px solid rgba(42, 231, 255, 0.24);
+  border-radius: 6px;
+  padding: 0.3rem 1.5rem 0.3rem 0.48rem;
+  color: var(--text);
+  background: #03111c;
+  font-family: var(--mono);
+  font-size: 0.64rem;
 }
 
 .camera-controls button {
@@ -953,6 +971,15 @@ footer {
 
   .camera-controls {
     align-self: stretch;
+    flex-wrap: wrap;
+  }
+
+  .camera-focus-label {
+    flex: 1 0 100%;
+  }
+
+  .camera-controls select {
+    width: 100%;
   }
 
   .camera-controls button {

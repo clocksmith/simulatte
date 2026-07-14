@@ -48,6 +48,8 @@
       });
       if (!renderer) {
         renderer = await canvasApi.createCanvasRenderer(elements.autonomyCanvas, nextController.worldModel, {
+          regionRegistry: data.regionRegistry,
+          regionPacks: data.regionPacks,
           onFailure: (error) => {
             stopLoop();
             failRuntime(elements, error);
@@ -154,7 +156,7 @@
       'reranker-proof',
       'occurrence-stats', 'occurrence-patterns', 'occurrence-effects',
       'metric-state', 'metric-tick', 'metric-speed', 'metric-distance', 'metric-route', 'metric-bet',
-      'metric-settlement', 'metric-calibration', 'camera-follow', 'camera-bird', 'camera-top',
+      'metric-settlement', 'metric-calibration', 'camera-focus', 'camera-follow', 'camera-bird', 'camera-top',
     ];
     return Object.fromEntries(ids.map((id) => [camelId(id), document.getElementById(id)]));
   }
@@ -165,10 +167,35 @@
       [elements.cameraBird, 'bird'],
       [elements.cameraTop, 'top'],
     ];
+    const selectMode = (mode) => controls.forEach(([row, rowMode]) => row.classList.toggle('is-active', rowMode === mode));
+    populateCameraFocus(elements.cameraFocus, renderer.cameraTargets());
     controls.forEach(([button, mode]) => button.addEventListener('click', () => {
       renderer.setCameraMode(mode);
-      controls.forEach(([row, rowMode]) => row.classList.toggle('is-active', rowMode === mode));
+      selectMode(mode);
     }));
+    elements.cameraFocus.addEventListener('change', () => selectMode(renderer.focusCameraTarget(elements.cameraFocus.value)));
+  }
+
+  function populateCameraFocus(select, targets) {
+    select.replaceChildren();
+    const groups = new Map([
+      ['route', document.createElement('optgroup')],
+      ['region', document.createElement('optgroup')],
+      ['place', document.createElement('optgroup')],
+    ]);
+    groups.get('route').label = 'Journey';
+    groups.get('region').label = 'Regions';
+    groups.get('place').label = 'Places';
+    targets.forEach((target) => {
+      const option = document.createElement('option');
+      option.value = target.id;
+      option.textContent = target.label;
+      groups.get(target.kind).append(option);
+    });
+    groups.forEach((group) => {
+      if (group.children.length) select.append(group);
+    });
+    select.value = 'route';
   }
 
   function camelId(id) {
@@ -221,5 +248,5 @@
     else start();
   }
 
-  return { collectElements, renderIdentity, runtimeLabel, start };
+  return { collectElements, populateCameraFocus, renderIdentity, runtimeLabel, start };
 });

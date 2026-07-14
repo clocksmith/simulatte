@@ -5,10 +5,13 @@
   const geometry = typeof module === 'object' && module.exports
     ? require('./webgpu-geometry.js')
     : root.SimulatteAutonomyGpuGeometry;
-  const api = factory(math, geometry);
+  const cameraController = typeof module === 'object' && module.exports
+    ? require('./camera-controller.js')
+    : root.SimulatteAutonomyCamera;
+  const api = factory(math, geometry, cameraController);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteAutonomyCanvas = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyWebGpuRenderer(math, geometry) {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyWebGpuRenderer(math, geometry, cameraController) {
   const SAMPLE_COUNT = 4;
   const SHADER = `
 struct Uniforms {
@@ -113,11 +116,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
     const staticData = geometry.createStaticGeometry(worldModel.world);
     const staticBuffer = createVertexBuffer(device, staticData, 'autonomy-static-geometry');
     const state = {
-      mode: 'bird',
-      yaw: -0.72,
-      pitch: 0.84,
-      distance: routeCameraDistance(worldModel.world),
-      orbitTarget: routeCenter(worldModel.world, worldModel),
+      ...cameraController.createCameraState(worldModel.world, worldModel, options.regionRegistry, options.regionPacks),
       routeIdentity: null,
       latestSnapshot: null,
       latestReceipt: null,
@@ -135,6 +134,9 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
     const adapterInfo = readAdapterInfo(adapter);
     canvas.dataset.rendererBackend = 'webgpu';
     canvas.dataset.adapterName = adapterInfo.description || adapterInfo.device || adapterInfo.architecture || 'WebGPU adapter';
+    canvas.dataset.cameraMode = state.mode;
+    canvas.dataset.cameraFocus = state.focusId;
+    canvas.dataset.cameraTransition = 'settled';
     installCameraControls(canvas, state);
     device.lost.then((info) => {
       canvas.dataset.rendererLost = 'true';
@@ -146,7 +148,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       state.latestReceipt = tickReceipt || state.latestReceipt;
       if (!state.routeIdentity && snapshot.route?.segmentIds?.length) {
         state.routeIdentity = snapshot.route.segmentIds.join('|');
-        state.orbitTarget = routeCenterForSegments(snapshot.route.segmentIds, worldModel);
+        cameraController.updateRouteTarget(state, snapshot.route.segmentIds, worldModel, worldModel.world, performance.now());
       }
       const position = snapshot.state.position;
       if (position && (!state.tracePositions.length || pointDistance(position, state.tracePositions.at(-1)) > 0.15)) state.tracePositions.push({ ...position });
@@ -158,7 +160,9 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
     function drawFrame(timestamp = performance.now()) {
       if (state.isDestroyed || !state.latestSnapshot) return;
       resizeCanvas(canvas, device, format, state);
-      const camera = cameraFor(state, state.latestSnapshot, worldModel, canvas);
+      const pose = cameraController.advanceCamera(state, state.latestSnapshot, worldModel, canvas.width / canvas.height, timestamp);
+      const camera = cameraForPose(pose, canvas);
+      recordCameraDataset(canvas, pose);
       writeUniforms(device, uniformBuffer, camera, canvas, (timestamp - state.startedAt) / 1000);
       const encoder = device.createCommandEncoder({ label: 'autonomy-map-frame' });
       const colorView = context.getCurrentTexture().createView();
@@ -208,15 +212,27 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
     }
 
     function setCameraMode(mode) {
-      if (!['follow', 'bird', 'top'].includes(mode)) throw rendererError('camera_mode_invalid', `Expected follow, bird, or top; received ${mode}`);
-      state.mode = mode;
+      cameraController.setCameraMode(state, mode, performance.now());
       canvas.dataset.cameraMode = mode;
       if (state.latestSnapshot) drawFrame();
+      return mode;
+    }
+
+    function focusCameraTarget(targetId) {
+      const mode = cameraController.focusCameraTarget(state, targetId, performance.now());
+      canvas.dataset.cameraMode = mode;
+      canvas.dataset.cameraFocus = targetId;
+      if (state.latestSnapshot) drawFrame();
+      return mode;
+    }
+
+    function cameraTargets() {
+      return structuredClone(state.targets);
     }
 
     function receipt() {
       return {
-        schema: 'simulatte.autonomyWebGpuRenderReceipt.v1',
+        schema: 'simulatte.autonomyWebGpuRenderReceipt.v2',
         backend: 'webgpu',
         adapter: adapterInfo,
         format,
@@ -229,6 +245,12 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
         buildingCount: worldModel.world.renderGeometry.buildings.length,
         streetCount: worldModel.world.renderGeometry.streets.length,
         bikeFacilityCount: worldModel.world.renderGeometry.bikeFacilities.length,
+        camera: {
+          mode: state.mode,
+          focusId: state.focusId,
+          transitionState: state.transition ? 'active' : 'settled',
+          targetCount: state.targets.length,
+        },
       };
     }
 
@@ -244,7 +266,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
     }
 
     state.animationFrame = requestAnimationFrame(animationFrame);
-    return { render, reset, setCameraMode, receipt, destroy, device, adapterInfo };
+    return { render, reset, setCameraMode, focusCameraTarget, cameraTargets, receipt, destroy, device, adapterInfo };
   }
 
   function createVertexBuffer(device, data, label) {
@@ -279,28 +301,25 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
     };
   }
 
-  function cameraFor(state, snapshot, worldModel, canvas) {
+  function cameraForPose(pose, canvas) {
     const aspect = canvas.width / canvas.height;
-    if (state.mode === 'follow') {
-      const point = snapshot.state.position;
-      const heading = routeHeading(snapshot, worldModel);
-      const eye = [point.x - Math.cos(heading) * 62, 44, -point.y + Math.sin(heading) * 62];
-      const target = [point.x + Math.cos(heading) * 42, 4, -point.y - Math.sin(heading) * 42];
-      return { eye, viewProjection: math.multiply(math.perspective(52 * Math.PI / 180, aspect, 0.4, 20000), math.lookAt(eye, target)) };
-    }
-    const focus = state.mode === 'bird' ? state.orbitTarget : state.orbitTarget;
-    if (state.mode === 'top') {
-      const span = state.distance * 0.7;
-      const eye = [focus[0], span * 1.4, focus[2]];
-      return { eye, viewProjection: math.multiply(math.orthographic(-span * aspect, span * aspect, -span, span, 0.1, 20000), math.lookAt(eye, focus, [0, 0, -1])) };
-    }
-    const horizontal = state.distance * Math.cos(state.pitch);
-    const eye = [
-      focus[0] + Math.cos(state.yaw) * horizontal,
-      Math.max(80, state.distance * Math.sin(state.pitch)),
-      focus[2] + Math.sin(state.yaw) * horizontal,
-    ];
-    return { eye, viewProjection: math.multiply(math.perspective(46 * Math.PI / 180, aspect, 1, 20000), math.lookAt(eye, focus)) };
+    return {
+      eye: pose.eye,
+      viewProjection: math.multiply(
+        math.perspective(pose.fieldOfViewRadians, aspect, pose.near, pose.far),
+        math.lookAt(pose.eye, pose.target)
+      ),
+    };
+  }
+
+  function recordCameraDataset(canvas, pose) {
+    const vector = (values) => values.map((value) => Number(value.toFixed(2))).join(',');
+    canvas.dataset.cameraMode = pose.mode;
+    canvas.dataset.cameraFocus = pose.focusId;
+    canvas.dataset.cameraTransition = pose.transitionState;
+    canvas.dataset.cameraTransitionProgress = pose.transitionProgress.toFixed(3);
+    canvas.dataset.cameraEye = vector(pose.eye);
+    canvas.dataset.cameraTarget = vector(pose.target);
   }
 
   function writeUniforms(device, buffer, camera, canvas, seconds) {
@@ -316,13 +335,17 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
   function installCameraControls(canvas, state) {
     let pointer = null;
     canvas.addEventListener('pointerdown', (event) => {
-      pointer = { id: event.pointerId, x: event.clientX, y: event.clientY };
+      const action = state.mode === 'top' || event.shiftKey || event.button !== 0 ? 'pan' : 'orbit';
+      pointer = { id: event.pointerId, x: event.clientX, y: event.clientY, action };
+      canvas.dataset.cameraInteraction = action;
       canvas.setPointerCapture(event.pointerId);
     });
     canvas.addEventListener('pointermove', (event) => {
-      if (!pointer || pointer.id !== event.pointerId || state.mode !== 'bird') return;
-      state.yaw -= (event.clientX - pointer.x) * 0.006;
-      state.pitch = clamp(state.pitch + (event.clientY - pointer.y) * 0.004, 0.35, 1.25);
+      if (!pointer || pointer.id !== event.pointerId) return;
+      const deltaX = event.clientX - pointer.x;
+      const deltaY = event.clientY - pointer.y;
+      if (pointer.action === 'pan') cameraController.panCamera(state, deltaX, deltaY, canvas.clientHeight);
+      else cameraController.orbitCamera(state, deltaX, deltaY);
       pointer.x = event.clientX;
       pointer.y = event.clientY;
     });
@@ -331,38 +354,11 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
     };
     canvas.addEventListener('pointerup', release);
     canvas.addEventListener('pointercancel', release);
+    canvas.addEventListener('contextmenu', (event) => event.preventDefault());
     canvas.addEventListener('wheel', (event) => {
       event.preventDefault();
-      state.distance = clamp(state.distance * Math.exp(event.deltaY * 0.001), 140, 9000);
+      cameraController.zoomCamera(state, event.deltaY);
     }, { passive: false });
-  }
-
-  function routeCenter(world, worldModel) {
-    return routeCenterForSegments(world.scenario.defaultRoute.segmentIds, worldModel);
-  }
-
-  function routeCenterForSegments(segmentIds, worldModel) {
-    const points = segmentIds.flatMap((id) => worldModel.segment(id).geometry);
-    const minimumX = Math.min(...points.map((row) => row.x));
-    const maximumX = Math.max(...points.map((row) => row.x));
-    const minimumY = Math.min(...points.map((row) => row.y));
-    const maximumY = Math.max(...points.map((row) => row.y));
-    return [(minimumX + maximumX) / 2, 0, -(minimumY + maximumY) / 2];
-  }
-
-  function routeCameraDistance(world) {
-    const bounds = world.coordinateSystem.bounds;
-    const worldSpan = Math.max(bounds.maximumX - bounds.minimumX, bounds.maximumY - bounds.minimumY);
-    return clamp(worldSpan * 0.98, 620, 8200);
-  }
-
-  function routeHeading(snapshot, worldModel) {
-    const segmentId = snapshot.state.currentSegmentId || snapshot.route?.segmentIds?.[0];
-    if (!segmentId) return 0;
-    const geometry = worldModel.segment(segmentId).geometry;
-    const start = geometry[0];
-    const end = geometry[Math.min(1, geometry.length - 1)];
-    return Math.atan2(end.y - start.y, end.x - start.x);
   }
 
   function readAdapterInfo(adapter) {

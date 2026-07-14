@@ -51,6 +51,8 @@
       featureCatalog: composition.featureCatalog,
       occurrenceCatalog: loaded.occurrenceCatalog.value,
       rerankerEvidence: loaded.rerankerEvidence.value,
+      regionRegistry: registry,
+      regionPacks: packRows.map((row) => row.value),
       regionComposition: composition.receipt,
       receipt: {
         schema: 'simulatte.autonomyDataLoadReceipt.v1',

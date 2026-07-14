@@ -20,6 +20,7 @@ const dataLoader = require('../public/runtime/data-loader.js');
 const featureRetrieval = require('../public/runtime/feature-retrieval.js');
 const occurrenceApi = require('../public/runtime/occurrence-engine.js');
 const regionApi = require('../public/world/region-pack-merger.js');
+const cameraApi = require('../public/app/camera-controller.js');
 const SYNTHETIC_MISSION = 'Deliver the parcel by bike from Canal Depot to East Market. Prefer protected lanes and yield to pedestrians.';
 
 function readJson(file) {
@@ -215,6 +216,40 @@ test('the governed journey crosses all three independently owned region packs', 
     'north-brooklyn-v1',
   ]);
   assert.ok(route.segmentIds.every((id) => ownerBySegmentId.has(id)));
+});
+
+test('camera targets expose every composed region and pan between modes without snapping', () => {
+  const rows = governedAssets();
+  const packs = governedRegionPacks(rows);
+  const model = worldApi.createWorldModel(rows.world);
+  const targets = cameraApi.createCameraTargets(rows.world, model, rows.regionRegistry, packs);
+  assert.equal(targets.filter((row) => row.kind === 'region').length, 3);
+  assert.equal(targets.filter((row) => row.kind === 'place').length, rows.regionRegistry.placeIndex.length);
+  assert.ok(targets.every((row) => row.target.every(Number.isFinite) && Number.isFinite(row.distance)));
+
+  const state = cameraApi.createCameraState(rows.world, model, rows.regionRegistry, packs);
+  const segmentId = rows.world.scenario.defaultRoute.segmentIds[0];
+  const snapshot = {
+    route: { segmentIds: rows.world.scenario.defaultRoute.segmentIds },
+    state: { position: model.node(rows.world.scenario.defaultRoute.nodeIds[0]).position, currentSegmentId: segmentId },
+  };
+  const initial = cameraApi.advanceCamera(state, snapshot, model, 1.6, 1000);
+  cameraApi.setCameraMode(state, 'top', 1000);
+  const transitionStart = cameraApi.advanceCamera(state, snapshot, model, 1.6, 1000);
+  const transitionMiddle = cameraApi.advanceCamera(state, snapshot, model, 1.6, 1425);
+  const transitionEnd = cameraApi.advanceCamera(state, snapshot, model, 1.6, 1850);
+  assert.deepEqual(transitionStart.eye, initial.eye);
+  assert.notDeepEqual(transitionMiddle.eye, initial.eye);
+  assert.equal(transitionMiddle.transitionState, 'active');
+  assert.equal(transitionEnd.transitionState, 'settled');
+
+  const beforePan = [...state.orbitTarget];
+  assert.equal(cameraApi.panCamera(state, 18, -7, 800), true);
+  assert.notDeepEqual(state.orbitTarget, beforePan);
+  assert.equal(state.focusId, 'custom');
+  const beforeZoom = state.distance;
+  assert.equal(cameraApi.zoomCamera(state, -120), true);
+  assert.ok(state.distance < beforeZoom);
 });
 
 test('mission compiler grounds known labels to source intervals and fails closed', () => {
@@ -451,6 +486,8 @@ test('browser loader verifies raw hashes and rejects tampered assets', async () 
   assert.equal(loaded.receipt.assets.policy.sha256, loaded.manifest.policy.sha256);
   assert.deepEqual(loaded.regionComposition.packIds, ['manhattan-villages-v1', 'east-river-crossing-v1', 'north-brooklyn-v1']);
   assert.equal(loaded.regionComposition.seamNodeIds.length, 27);
+  assert.equal(loaded.regionRegistry.id, loaded.manifest.regionRegistry.id);
+  assert.equal(loaded.regionPacks.length, 3);
 
   const tampered = async (url) => {
     const file = fileForUrl(url);

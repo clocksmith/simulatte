@@ -242,12 +242,24 @@ async function runBrowserSmoke(options) {
       && result.selectedRows === 1
       && result.editInvalidatedController
       && result.missionLockedDuringRun
+      && result.camera.regionTargetCount === 3
+      && result.camera.placeTargetCount === 10
+      && result.camera.modeProbes.every((row) => row.began && row.noSnap && row.progressed && row.settled && row.moved)
+      && result.camera.regionFocus.began
+      && result.camera.regionFocus.noSnap
+      && result.camera.regionFocus.progressed
+      && result.camera.regionFocus.settled
+      && result.camera.regionFocus.moved
+      && result.camera.panWorked
+      && result.camera.orbitWorked
+      && result.camera.zoomWorked
+      && result.camera.returnedToRoute
       && result.scrollY === 0
       && !result.hasHorizontalOverflow
       && errors.length === 0
       && failedResponses.length === 0;
     const report = {
-      schema: 'simulatte.autonomyBrowserSmoke.v1',
+      schema: 'simulatte.autonomyBrowserSmoke.v2',
       pass,
       targetUrl,
       viewport: options.viewport,
@@ -303,6 +315,109 @@ function browserJourneyExpression() {
       }
     };
     await waitFor(() => document.getElementById('runtime-status').dataset.kind === 'ready', 'runtime-ready');
+    const canvas = document.getElementById('autonomy-canvas');
+    const focusSelect = document.getElementById('camera-focus');
+    const sleep = (duration) => new Promise((resolve) => setTimeout(resolve, duration));
+    const vector = (value) => String(value || '').split(',').map(Number);
+    const vectorDistance = (left, right) => Math.hypot(...left.map((value, index) => value - right[index]));
+    const cameraEye = () => vector(canvas.dataset.cameraEye);
+    const cameraTarget = () => vector(canvas.dataset.cameraTarget);
+    const waitForCamera = (label) => waitFor(() => canvas.dataset.cameraTransition === 'settled', label, 5000);
+    const probeMode = async (mode) => {
+      await waitForCamera('camera-' + mode + '-ready');
+      const before = cameraEye();
+      document.getElementById('camera-' + mode).click();
+      const immediate = cameraEye();
+      const began = canvas.dataset.cameraMode === mode && canvas.dataset.cameraTransition === 'active';
+      const noSnap = vectorDistance(before, immediate) < 1;
+      await sleep(260);
+      const middle = cameraEye();
+      const progress = Number(canvas.dataset.cameraTransitionProgress);
+      const progressed = canvas.dataset.cameraTransition === 'active'
+        && progress > 0
+        && progress < 1
+        && vectorDistance(before, middle) > 1;
+      await waitForCamera('camera-' + mode + '-settled');
+      const after = cameraEye();
+      return {
+        mode,
+        began,
+        noSnap,
+        progressed,
+        settled: canvas.dataset.cameraMode === mode && canvas.dataset.cameraTransition === 'settled',
+        moved: vectorDistance(before, after) > 2,
+      };
+    };
+    const regionOptions = [...focusSelect.options].filter((option) => option.value.startsWith('region:'));
+    const placeOptions = [...focusSelect.options].filter((option) => option.value.startsWith('place:'));
+    const modeProbes = [];
+    modeProbes.push(await probeMode('top'));
+    modeProbes.push(await probeMode('follow'));
+    modeProbes.push(await probeMode('bird'));
+
+    const focusBefore = cameraTarget();
+    const regionTargetId = regionOptions.find((option) => option.value.includes('north-brooklyn'))?.value || regionOptions.at(-1)?.value;
+    focusSelect.value = regionTargetId;
+    focusSelect.dispatchEvent(new Event('change', { bubbles: true }));
+    const focusImmediate = cameraTarget();
+    const regionFocusBegan = canvas.dataset.cameraFocus === regionTargetId && canvas.dataset.cameraTransition === 'active';
+    const regionFocusNoSnap = vectorDistance(focusBefore, focusImmediate) < 1;
+    await sleep(260);
+    const focusMiddle = cameraTarget();
+    const focusProgress = Number(canvas.dataset.cameraTransitionProgress);
+    const regionFocusProgressed = canvas.dataset.cameraTransition === 'active'
+      && focusProgress > 0
+      && focusProgress < 1
+      && vectorDistance(focusBefore, focusMiddle) > 1;
+    await waitForCamera('region-focus-settled');
+    const regionFocusAfter = cameraTarget();
+    const regionFocus = {
+      targetId: regionTargetId,
+      began: regionFocusBegan,
+      noSnap: regionFocusNoSnap,
+      progressed: regionFocusProgressed,
+      settled: canvas.dataset.cameraFocus === regionTargetId && canvas.dataset.cameraTransition === 'settled',
+      moved: vectorDistance(focusBefore, regionFocusAfter) > 100,
+    };
+
+    const originalSetPointerCapture = canvas.setPointerCapture;
+    canvas.setPointerCapture = () => {};
+    const pointer = (type, pointerId, x, y, options = {}) => canvas.dispatchEvent(new PointerEvent(type, {
+      bubbles: true,
+      pointerId,
+      clientX: x,
+      clientY: y,
+      button: options.button || 0,
+      buttons: type === 'pointerup' ? 0 : 1,
+      shiftKey: Boolean(options.shiftKey),
+    }));
+    const panBefore = cameraTarget();
+    pointer('pointerdown', 41, 180, 220, { shiftKey: true });
+    pointer('pointermove', 41, 215, 240, { shiftKey: true });
+    pointer('pointerup', 41, 215, 240, { shiftKey: true });
+    await sleep(260);
+    const panWorked = canvas.dataset.cameraInteraction === 'pan'
+      && canvas.dataset.cameraFocus === 'custom'
+      && vectorDistance(panBefore, cameraTarget()) > 1;
+    const orbitBefore = cameraEye();
+    pointer('pointerdown', 42, 180, 220);
+    pointer('pointermove', 42, 225, 238);
+    pointer('pointerup', 42, 225, 238);
+    await sleep(260);
+    const orbitWorked = canvas.dataset.cameraInteraction === 'orbit'
+      && vectorDistance(orbitBefore, cameraEye()) > 1;
+    const zoomBefore = vectorDistance(cameraEye(), cameraTarget());
+    canvas.dispatchEvent(new WheelEvent('wheel', { bubbles: true, cancelable: true, deltaY: -240 }));
+    await sleep(260);
+    const zoomWorked = vectorDistance(cameraEye(), cameraTarget()) < zoomBefore - 1;
+    canvas.setPointerCapture = originalSetPointerCapture;
+
+    focusSelect.value = 'route';
+    focusSelect.dispatchEvent(new Event('change', { bubbles: true }));
+    await waitForCamera('route-focus-restored');
+    const returnedToRoute = canvas.dataset.cameraMode === 'bird'
+      && canvas.dataset.cameraFocus === 'route'
+      && canvas.dataset.cameraTransition === 'settled';
     const missionInput = document.getElementById('mission-input');
     missionInput.value += ' ';
     missionInput.dispatchEvent(new Event('input', { bubbles: true }));
@@ -311,6 +426,7 @@ function browserJourneyExpression() {
     document.getElementById('start-button').click();
     const missionLockedDuringRun = missionInput.disabled;
     await waitFor(() => ['completed', 'failed'].includes(document.getElementById('metric-state').textContent), 'journey-terminal');
+    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     return {
       runtime: document.getElementById('runtime-status').textContent,
       state: document.getElementById('metric-state').textContent,
@@ -328,6 +444,16 @@ function browserJourneyExpression() {
       rerankRows: document.querySelectorAll('#rerank-candidates > span').length,
       occurrenceRows: document.querySelectorAll('#occurrence-patterns > span').length,
       rerankerProof: document.getElementById('reranker-proof').textContent,
+      camera: {
+        regionTargetCount: regionOptions.length,
+        placeTargetCount: placeOptions.length,
+        modeProbes,
+        regionFocus,
+        panWorked,
+        orbitWorked,
+        zoomWorked,
+        returnedToRoute,
+      },
       editInvalidatedController,
       missionLockedDuringRun,
       rendererBackend: document.getElementById('autonomy-canvas').dataset.rendererBackend || null,
