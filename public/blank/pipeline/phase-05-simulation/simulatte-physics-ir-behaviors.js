@@ -207,13 +207,40 @@
           });
         }
         if (type === 'wave_field') {
+          const reads = [`phase:${id}`, `amplitude:${id}`];
           return addOperator(operators, type, to, {
-            reads: [`phase:${id}`, `amplitude:${id}`],
-            writes: [`phase:${id}`, `amplitude:${id}`],
+            reads,
+            writes: reads,
             params: { frequency: clamp(Number(params.soundFrequency || 0.7), 0.05, 4) },
+            receipt: inferredBehaviorReceipt(source, type, reads, reads),
+          });
+        }
+        if (type === 'derive_readout') {
+          const channels = [`signal:${id}`];
+          return addOperator(operators, type, to, {
+            reads: channels,
+            writes: channels,
+            params: {
+              gain: clamp(Number(params.measurementGain || 0.76), 0.05, 2),
+              frequency: clamp(Number(params.measurementFrequency || 2.4), 0.1, 8),
+            },
+            receipt: inferredBehaviorReceipt(source, type, channels, channels),
           });
         }
         return null;
+      }
+
+    function inferredBehaviorReceipt(source = {}, operatorType = '', reads = [], writes = []) {
+        if (!source.inferred || !source.provenance) return null;
+        return {
+          schema: 'simulatte.solverChannelReceipt.v1',
+          operatorType,
+          sourceEdgeId: source.id || '',
+          evidence: source.evidence || [],
+          consumedChannels: reads,
+          producedChannels: writes,
+          inferenceProvenance: { ...source.provenance },
+        };
       }
 
     function behaviorProcessForText(text = '') {
@@ -322,6 +349,9 @@
         if (type === 'wave_field') {
           addField(fields, to, 'phase', 'scalar', 'rad', 0);
           addField(fields, to, 'amplitude', 'scalar', 'ratio', clamp01(Number(params.waveAmplitude || 0.44)));
+        }
+        if (type === 'derive_readout') {
+          addField(fields, to, 'signal', 'scalar', 'ratio', 0.08);
         }
       }
 

@@ -24,6 +24,8 @@
     relation('causal.magnet-deflects-ferrofluid', ['magnet', 'magnetic', 'electric', 'field', 'coil'], ['ferrofluid', 'ion', 'electron', 'plasma', 'charge'], 'fieldForce', 'wave_field', 'field gradients deflect charged or magnetized matter'),
     relation('causal.lens-refracts-beam', ['light', 'laser', 'beam', 'lamp', 'sunlight'], ['lens', 'prism', 'water'], 'refraction', 'wave_field', 'optical field bends through refractive media'),
     relation('causal.thin-film-forms-interference', ['thin film', 'soap film', 'film thickness'], ['iridescent interference', 'interference', 'iridescence'], 'refraction', 'wave_field', 'path length through a thin film shifts reflected phase and produces iridescent interference'),
+    relation('causal.particle-track-produces-detector-readout', ['muon tracks', 'particle tracks'], ['detector slice', 'particle detector', 'detector'], 'measurement', 'derive_readout', 'charged particle tracks crossing detector layers deposit energy and produce a detector signal', { connector: 'through' }),
+    relation('causal.energy-deposition-produces-calorimeter-pulse', ['detector slice', 'particle detector', 'energy deposition'], ['calorimeter pulses', 'calorimeter pulse'], 'measurement', 'derive_readout', 'energy deposited in detector material becomes a bounded calorimeter pulse', { connector: 'with' }),
     relation('causal.laser-heats-metal', ['laser', 'beam', 'hot spot'], ['metal', 'copper', 'plate', 'steel'], 'heatTransfer', 'heat_transfer', 'focused optical power raises local metal temperature'),
     relation('causal.impact-fractures-glass', ['projectile', 'hammer', 'impact', 'collision', 'crash'], ['glass', 'wall', 'rock', 'metal', 'ice'], 'collision', 'rigid_collision', 'impulse transfers stress and damage'),
     relation('causal.speaker-drives-air-wave', ['speaker', 'piano', 'oscillator', 'vibration'], ['air', 'water', 'bridge', 'membrane'], 'waveCoupling', 'wave_field', 'oscillation launches a pressure or displacement wave'),
@@ -204,8 +206,8 @@
     relation('causal.tooling-cools-molded-plastic', ['injection molding', 'cooling', 'cooling line', 'steel tooling'], ['plastic', 'polymer', 'mold', 'part'], 'phaseChange', 'phase_transition', 'cold steel tooling removes heat from polymer and solidifies the molded part'),
   ]);
 
-  function relation(id, sources, targets, relationType, operatorType, mechanism) {
-    return { id, sources, targets, relationType, operatorType, mechanism };
+  function relation(id, sources, targets, relationType, operatorType, mechanism, requirements = {}) {
+    return { id, sources, targets, relationType, operatorType, mechanism, requirements };
   }
 
   function buildCausalPhysicsGraph(input = {}) {
@@ -218,7 +220,8 @@
       const source = bestNodeForTerms(nodes, rule.sources, prompt);
       const target = bestNodeForTerms(nodes, rule.targets, prompt, source && source.id);
       const evidence = strongEvidenceIdsForRule(evidenceRows, rule);
-      const promptHit = termsHit(prompt, rule.sources) && termsHit(prompt, rule.targets);
+      const promptHit = termsHit(prompt, rule.sources) && termsHit(prompt, rule.targets) &&
+        orderedRelationHit(prompt, rule);
       if (!source || !target || !promptHit) continue;
       edges.push({
         id: `${rule.id}.${edges.length + 1}`,
@@ -300,7 +303,7 @@
 
   function intentNodes(structured, evidenceRows) {
     const rows = [];
-    for (const group of ['entities', 'materials', 'phenomena', 'forces', 'fields', 'environment']) {
+    for (const group of ['entities', 'materials', 'phenomena', 'forces', 'fields', 'environment', 'observables']) {
       for (const item of structured[group] || []) {
         rows.push({
           id: item.id || `${group}.${slugify(item.label)}`,
@@ -349,6 +352,22 @@
 
   function termsHit(text, terms) {
     return (terms || []).some((term) => String(text || '').includes(String(term).toLowerCase()));
+  }
+
+  function orderedRelationHit(text, rule = {}) {
+    const connector = String(rule.requirements && rule.requirements.connector || '').toLowerCase();
+    if (!connector) return true;
+    const value = String(text || '').toLowerCase();
+    for (const source of rule.sources || []) {
+      const sourceIndex = value.indexOf(String(source).toLowerCase());
+      if (sourceIndex < 0) continue;
+      const connectorIndex = value.indexOf(connector, sourceIndex + String(source).length);
+      if (connectorIndex < 0) continue;
+      for (const target of rule.targets || []) {
+        if (value.indexOf(String(target).toLowerCase(), connectorIndex + connector.length) >= 0) return true;
+      }
+    }
+    return false;
   }
 
   function evidenceIdsForRule(rows, rule) {
@@ -428,6 +447,7 @@
       orbitalGravity: 'oscillation',
       torqueTransfer: 'rotate',
       controlLoop: 'exchange',
+      measurement: 'measurement',
     };
     return map[type] || 'interact';
   }

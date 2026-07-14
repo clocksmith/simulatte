@@ -24,7 +24,7 @@
     oscillator: contract(['phase', 'amplitude'], ['phase', 'amplitude'], ['field']),
     growth_decay: contract(['density', 'nutrient'], ['density', 'nutrient'], ['field']),
     particle_deposition: contract(['airborneDensity', 'depositedMass'], ['airborneDensity', 'depositedMass'], ['rigidBody', 'solid', 'fluid', 'field']),
-    derive_readout: contract([], [], ['field']),
+    derive_readout: contract(['signal'], ['signal'], ['field', 'rigidBody', 'solid', 'fluid']),
   });
 
   function contract(reads, writes, domainKinds) {

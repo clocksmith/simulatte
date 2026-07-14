@@ -62,7 +62,7 @@
     wake_generation: solver('wake-generation', ['wake_generation'], ['velocity', 'wake'], ['wake', 'flowVelocity'], 0.05, stepWakeGeneration),
     body_water_contact: solver('body-water-contact', ['body_water_contact'], ['position', 'submersion'], ['submersion'], 0.05, stepBodyWaterContact),
     partial_submersion: solver('partial-submersion', ['partial_submersion'], ['position', 'buoyancy', 'submersion'], ['submersion', 'buoyancy'], 0.05, stepPartialSubmersion),
-    derive_readout: solver('derived-readout', ['derive_readout'], [], [], 0.05, stepNoop),
+    derive_readout: solver('derived-readout', ['derive_readout'], ['signal'], ['signal'], 0.05, stepDerivedReadout),
   });
 
   function solver(id, operatorTypes, requiredFields, producedFields, stableDt, step) {
@@ -191,6 +191,17 @@
     channels[buoyancyKey] = clamp(1 - Math.abs(0.58 - submersion), 0, 1);
   }
 
+  function stepDerivedReadout({ channels, step, dt }) {
+    const signalKey = findChannel(step.outputs, 'signal') || findChannel(step.inputs, 'signal');
+    if (!signalKey) return;
+    const gain = clamp(Number(step.params && step.params.gain || 0.76), 0.05, 2);
+    const frequency = clamp(Number(step.params && step.params.frequency || 2.4), 0.1, 8);
+    const phase = Number(channels.__t || 0) * frequency;
+    const pulse = 0.18 + Math.max(0, Math.sin(phase)) * 0.72;
+    const current = clamp(Number(channels[signalKey] || 0), 0, 1);
+    channels[signalKey] = clamp(current + (pulse - current) * dt * gain * 4, 0, 1);
+  }
+
   function findChannel(channels, name) {
     return (channels || []).find((id) => String(id || '').startsWith(`${name}:`)) || '';
   }
@@ -201,8 +212,6 @@
     }
     return { x: 0, y: 0 };
   }
-
-  function stepNoop() {}
 
   function clamp(value, min, max) {
     return Math.max(min, Math.min(max, value));

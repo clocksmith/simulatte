@@ -42,6 +42,14 @@
     ['photon cone', 'observable', { entityClass: 'photon-path', visualArchetype: 'particle-track' }],
     ['phototube array', 'entity', { entityClass: 'phototube-array', visualArchetype: 'detector-geometry' }],
     ['phototube', 'entity', { entityClass: 'phototube', visualArchetype: 'detector-geometry' }],
+    ['calorimeter pulses', 'observable', {
+      entityClass: 'calorimeter-pulses', semanticRole: 'measurement-signal',
+      visualArchetype: 'readout-strip', stateBinding: 'signal',
+    }],
+    ['calorimeter pulse', 'observable', {
+      entityClass: 'calorimeter-pulse', semanticRole: 'measurement-signal',
+      visualArchetype: 'readout-strip', stateBinding: 'signal',
+    }],
     ['calorimeter', 'entity', { entityClass: 'calorimeter', visualArchetype: 'detector-geometry' }],
     ['hamster wheel', 'entity', { entityClass: 'wheel', visualArchetype: 'wheel' }],
     ['mice', 'entity', { entityClass: 'mouse', visualArchetype: 'animal' }],

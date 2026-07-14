@@ -571,12 +571,20 @@ test('typed optical rules activate executable lens and thin-film phase fields wi
     edge.operatorType === 'wave_field' && edge.provenance?.causalRuleId === 'causal.lens-refracts-beam'
   )));
   assert.ok(optics.physicsIR.operators.some((operator) => operator.type === 'wave_field'));
+  assert.equal(optics.physicsIR.operators.find((operator) => operator.type === 'wave_field')
+    .receipt.inferenceProvenance.causalRuleId, 'causal.lens-refracts-beam');
+  assert.equal(optics.solverGraph.steps.find((step) => step.operatorType === 'wave_field')
+    .receipt.inferenceProvenance.causalRuleId, 'causal.lens-refracts-beam');
   assert.ok(mappings(optics).includes('visual.operator.optical-ray.v1'));
   assert.ok(thinFilm.universeGraph.edges.some((edge) => (
     edge.operatorType === 'wave_field' &&
     edge.provenance?.causalRuleId === 'causal.thin-film-forms-interference'
   )));
   assert.ok(thinFilm.physicsIR.operators.some((operator) => operator.type === 'wave_field'));
+  assert.equal(thinFilm.physicsIR.operators.find((operator) => operator.type === 'wave_field')
+    .receipt.inferenceProvenance.causalRuleId, 'causal.thin-film-forms-interference');
+  assert.equal(thinFilm.solverGraph.steps.find((step) => step.operatorType === 'wave_field')
+    .receipt.inferenceProvenance.causalRuleId, 'causal.thin-film-forms-interference');
   assert.ok(mappings(thinFilm).includes('visual.operator.thin-film-interference.v1'));
 
   for (const prompt of [
