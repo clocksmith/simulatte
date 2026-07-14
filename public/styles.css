@@ -94,45 +94,13 @@ button.primary {
 .site-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 2rem;
   min-height: 78px;
   padding: 0.9rem clamp(1rem, 2.2vw, 2.5rem);
   border-bottom: 1px solid var(--line);
   background: rgba(3, 9, 18, 0.82);
   backdrop-filter: blur(18px);
-}
-
-.product-heading {
-  display: flex;
-  align-items: baseline;
-  gap: 0.55rem;
-  min-width: 0;
-}
-
-.brand,
-.product-name {
-  color: var(--ink);
-  text-decoration: none;
-  font-size: 1rem;
-  font-weight: 850;
-  letter-spacing: 0.02em;
-}
-
-.brand:hover {
-  color: var(--cyan);
-}
-
-.product-slash {
-  color: var(--line-hot);
-}
-
-.product-heading h1 {
-  margin: 0 0 0 0.6rem;
-  color: var(--muted);
-  font-size: 0.88rem;
-  font-weight: 550;
-  letter-spacing: 0.01em;
 }
 
 .runtime-block {
@@ -202,7 +170,7 @@ main {
 
 .mission-section {
   display: grid;
-  grid-template-columns: minmax(14rem, 0.72fr) minmax(24rem, 1.6fr) auto;
+  grid-template-columns: minmax(24rem, 1fr) auto;
   align-items: center;
   gap: 1rem;
   padding: 0.82rem 1rem;
@@ -402,6 +370,25 @@ p {
 
 #autonomy-canvas:active {
   cursor: grabbing;
+}
+
+.follow-minimap {
+  position: absolute;
+  top: 0.8rem;
+  right: 0.8rem;
+  z-index: 3;
+  display: block;
+  width: clamp(180px, 24vw, 300px);
+  height: clamp(140px, 18vw, 225px);
+  border: 1px solid rgba(42, 231, 255, 0.58);
+  border-radius: 10px;
+  background: #020812;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.48), 0 0 20px rgba(42, 231, 255, 0.13);
+  pointer-events: none;
+}
+
+.follow-minimap[hidden] {
+  display: none;
 }
 
 .map-provenance,
@@ -829,13 +816,11 @@ footer {
 
 @media (max-width: 1180px) {
   .mission-section {
-    grid-template-columns: minmax(13rem, 0.7fr) minmax(22rem, 1.3fr);
+    grid-template-columns: minmax(22rem, 1fr) auto;
   }
 
   .mission-controls {
-    grid-column: 1 / -1;
-    justify-content: flex-start;
-    max-width: none;
+    grid-column: auto;
   }
 
   .workspace {
@@ -856,15 +841,6 @@ footer {
 @media (max-width: 920px) {
   .site-header {
     align-items: flex-start;
-  }
-
-  .product-heading {
-    flex-wrap: wrap;
-  }
-
-  .product-heading h1 {
-    flex-basis: 100%;
-    margin-left: 0;
   }
 
   .runtime-identities {
@@ -920,7 +896,6 @@ footer {
 
   .runtime-block {
     justify-content: flex-start;
-    margin-top: 0.65rem;
     text-align: left;
   }
 
@@ -950,6 +925,13 @@ footer {
     padding-right: 0.45rem;
     padding-left: 0.45rem;
     font-size: 0.7rem;
+  }
+
+  .follow-minimap {
+    top: 0.55rem;
+    right: 0.55rem;
+    width: 156px;
+    height: 118px;
   }
 
   .metric-strip {

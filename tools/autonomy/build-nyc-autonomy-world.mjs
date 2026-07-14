@@ -34,6 +34,7 @@ const SOURCE_DIR = path.join(ROOT, 'tools/autonomy/data-sources/villages-william
 const DEFAULT_OUTPUT = path.join(ROOT, 'public/data/autonomy/worlds/nyc-core-autonomy-v1.json');
 const DEFAULT_FEATURE_OUTPUT = path.join(ROOT, 'public/data/autonomy/feature-cards-v1.json');
 const DEFAULT_OCCURRENCE_OUTPUT = path.join(ROOT, 'public/data/autonomy/patterns/nyc-replay-patterns-v1.json');
+const PARK_SOURCE_FILE = path.join(ROOT, 'tools/autonomy/data-sources/nyc-parks-properties-2026-07-13-v2/nyc-parks-properties.geojson');
 const SOURCE_FILES = Object.freeze({
   bike: 'nyc-bike-routes.geojson.gz',
   buildings: 'nyc-building-footprints.geojson.gz',
@@ -75,7 +76,7 @@ const SOURCE_CONTRACTS = Object.freeze({
     authority: 'NYC Department of Parks and Recreation',
     license: 'NYC Open Data Terms of Use',
     url: 'https://data.cityofnewyork.us/resource/enfh-gkve.geojson',
-    query: "$limit=10&$where=gispropnum='M089'",
+    query: "$limit=20&$where=gispropnum in('M089','M098','M088','B058')",
   },
 });
 
@@ -104,10 +105,13 @@ function parseArgs(argv) {
 
 async function main() {
   const options = parseArgs(process.argv.slice(2));
-  if (Object.keys(options.imports).length) stageImports(options.imports);
+  if (Object.keys(options.imports).length) {
+    const missing = Object.keys(SOURCE_FILES).filter((key) => !options.imports[key]);
+    if (missing.length) throw new Error(`Source import expected all five inputs, missing ${missing.join(', ')}`);
+  }
   if (options.refresh) await refreshSources();
-  else if (options.refreshParks) await refreshParkSource();
-  const snapshots = loadSnapshots();
+  else if (options.refreshParks) throw new Error('Park refresh requires manage-autonomy-data.mjs fetch, verify, and promote; the compiler never mutates a frozen park snapshot');
+  const snapshots = loadSnapshots(options.imports);
   const world = compileWorld(snapshots);
   const featureCatalog = compileFeatureCatalog(world, { snapshotDate: SNAPSHOT_DATE });
   const occurrenceCatalog = compileOccurrenceCatalog(world);
@@ -122,17 +126,6 @@ async function main() {
   fs.writeFileSync(options.occurrenceOutput, `${JSON.stringify(sortValue(occurrenceCatalog), null, 2)}\n`);
   const route = world.scenario.defaultRoute;
   console.log(`AUTONOMY-NYC world=${world.id} nodes=${world.nodes.length} segments=${world.segments.length} cards=${featureCatalog.cards.length} patterns=${occurrenceCatalog.patterns.length} buildings=${world.renderGeometry.buildings.length} streets=${world.renderGeometry.streets.length} routeSegments=${route.segmentIds.length} routeMeters=${route.distanceM} output=${options.output}`);
-}
-
-function stageImports(imports) {
-  const missing = Object.keys(SOURCE_FILES).filter((key) => !imports[key]);
-  if (missing.length) throw new Error(`Source import expected all four inputs, missing ${missing.join(', ')}`);
-  fs.mkdirSync(SOURCE_DIR, { recursive: true });
-  for (const [key, filename] of Object.entries(SOURCE_FILES)) {
-    const bytes = fs.readFileSync(imports[key]);
-    JSON.parse(bytes.toString('utf8'));
-    fs.writeFileSync(path.join(SOURCE_DIR, filename), zlib.gzipSync(bytes, { level: 9, mtime: 0 }));
-  }
 }
 
 async function refreshSources() {
@@ -168,19 +161,6 @@ async function refreshSources() {
   };
   const bytes = Buffer.from(`${JSON.stringify(merged)}\n`);
   fs.writeFileSync(path.join(SOURCE_DIR, SOURCE_FILES.streets), zlib.gzipSync(bytes, { level: 9, mtime: 0 }));
-  await refreshParkSource();
-}
-
-async function refreshParkSource() {
-  fs.mkdirSync(SOURCE_DIR, { recursive: true });
-  const source = SOURCE_CONTRACTS.parks;
-  const response = await fetch(`${source.url}?${source.query}`);
-  if (!response.ok) throw new Error(`parks source request failed with ${response.status}`);
-  const bytes = Buffer.from(await response.arrayBuffer());
-  const value = JSON.parse(bytes.toString('utf8'));
-  const matches = (value.features || []).filter((row) => row.properties?.gispropnum === 'M089');
-  if (matches.length !== 1) throw new Error(`Union Square park source expected one M089 feature, received ${matches.length}`);
-  fs.writeFileSync(path.join(SOURCE_DIR, SOURCE_FILES.parks), zlib.gzipSync(bytes, { level: 9, mtime: 0 }));
 }
 
 function streetTiles(bounds) {
@@ -271,11 +251,12 @@ function decodeXml(value) {
   return value.replaceAll('&quot;', '"').replaceAll('&apos;', "'").replaceAll('&lt;', '<').replaceAll('&gt;', '>').replaceAll('&amp;', '&');
 }
 
-function loadSnapshots() {
+function loadSnapshots(imports = {}) {
   return Object.fromEntries(Object.entries(SOURCE_FILES).map(([key, filename]) => {
-    const file = path.join(SOURCE_DIR, filename);
+    const file = imports[key] || (key === 'parks' ? PARK_SOURCE_FILE : path.join(SOURCE_DIR, filename));
     if (!fs.existsSync(file)) throw new Error(`Missing frozen source ${file}; pass all source inputs or use --refresh`);
-    const rawBytes = zlib.gunzipSync(fs.readFileSync(file));
+    const sourceBytes = fs.readFileSync(file);
+    const rawBytes = file.endsWith('.gz') ? zlib.gunzipSync(sourceBytes) : sourceBytes;
     return [key, { data: JSON.parse(rawBytes.toString('utf8')), rawBytes, contract: SOURCE_CONTRACTS[key] }];
   }));
 }

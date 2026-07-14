@@ -1,0 +1,182 @@
+{
+  "schema": "simulatte.autonomySourceCatalog.v1",
+  "id": "nyc-autonomy-source-catalog-v1",
+  "defaultBounds": {
+    "south": 40.705,
+    "west": -74.015,
+    "north": 40.745,
+    "east": -73.94
+  },
+  "groups": {
+    "world-core": [
+      "nyc-dot-bike-routes",
+      "nyc-building-footprints",
+      "nyc-borough-boundaries",
+      "openstreetmap-highways",
+      "nyc-parks-properties"
+    ],
+    "pedestrian-topology": [
+      "nyc-planimetric-sidewalks",
+      "nyc-planimetric-curbs",
+      "nyc-raised-crosswalks"
+    ],
+    "mobility-history": [
+      "nyc-bicycle-pedestrian-counts",
+      "nyc-automated-traffic-volume-counts"
+    ],
+    "taxi-history": [
+      "nyc-tlc-yellow-trips"
+    ]
+  },
+  "sources": [
+    {
+      "id": "nyc-dot-bike-routes",
+      "group": "world-core",
+      "dataClass": "map_fact",
+      "authority": "NYC Department of Transportation",
+      "license": "NYC Open Data Terms of Use",
+      "transport": "socrata_geojson",
+      "url": "https://data.cityofnewyork.us/resource/mzxg-pwib.geojson",
+      "query": "$limit=50000&$where=within_box(the_geom, {north}, {west}, {south}, {east})",
+      "output": "nyc-bike-routes.geojson",
+      "capabilities": ["bicycle_facility_geometry", "bicycle_route_candidate"],
+      "entryGate": "Compile directed facilities, retain source direction, and prove graph connectivity before routing."
+    },
+    {
+      "id": "nyc-building-footprints",
+      "group": "world-core",
+      "dataClass": "map_fact",
+      "authority": "NYC Office of Technology and Innovation",
+      "license": "NYC Open Data Terms of Use",
+      "transport": "socrata_geojson",
+      "url": "https://data.cityofnewyork.us/resource/5zhs-2jue.geojson",
+      "query": "$limit=50000&$where=within_box(the_geom, {north}, {west}, {south}, {east})",
+      "output": "nyc-building-footprints.geojson",
+      "capabilities": ["building_render_geometry"],
+      "entryGate": "Validate polygon geometry and height provenance; never infer navigable access."
+    },
+    {
+      "id": "nyc-borough-boundaries",
+      "group": "world-core",
+      "dataClass": "map_fact",
+      "authority": "NYC Department of City Planning",
+      "license": "NYC Open Data Terms of Use",
+      "transport": "socrata_geojson",
+      "url": "https://data.cityofnewyork.us/resource/gthc-hcne.geojson",
+      "query": "$where=borocode in ('1','3')",
+      "output": "nyc-borough-boundaries.geojson",
+      "capabilities": ["land_render_geometry"],
+      "entryGate": "Validate polygon closure and clip only after retaining the raw snapshot."
+    },
+    {
+      "id": "openstreetmap-highways",
+      "group": "world-core",
+      "dataClass": "community_map_fact",
+      "authority": "OpenStreetMap contributors",
+      "license": "ODbL 1.0",
+      "transport": "osm_bbox_grid",
+      "url": "https://api.openstreetmap.org/api/0.6/map",
+      "grid": { "rows": 3, "columns": 4 },
+      "output": "osm-highways.json",
+      "allowedHighways": [
+        "motorway", "trunk", "primary", "secondary", "tertiary", "residential",
+        "unclassified", "service", "living_street", "pedestrian", "cycleway",
+        "footway", "path", "steps"
+      ],
+      "capabilities": ["street_render_geometry", "pedestrian_graph_candidate", "road_graph_candidate"],
+      "entryGate": "Preserve access, crossing, one-way, surface, and node topology before any mode becomes routable."
+    },
+    {
+      "id": "nyc-parks-properties",
+      "group": "world-core",
+      "dataClass": "map_fact",
+      "authority": "NYC Department of Parks and Recreation",
+      "license": "NYC Open Data Terms of Use",
+      "transport": "socrata_geojson",
+      "url": "https://data.cityofnewyork.us/resource/enfh-gkve.geojson",
+      "query": "$limit=20&$where=gispropnum in('M089','M098','M088','B058')",
+      "output": "nyc-parks-properties.geojson",
+      "capabilities": ["park_render_geometry", "park_boundary_candidate"],
+      "entryGate": "A property boundary may render a park but cannot claim a legal or obstacle-free loop without a separately gated path."
+    },
+    {
+      "id": "nyc-planimetric-sidewalks",
+      "group": "pedestrian-topology",
+      "dataClass": "map_fact",
+      "authority": "NYC Office of Technology and Innovation",
+      "license": "NYC Open Data Terms of Use",
+      "transport": "http",
+      "url": "https://data.cityofnewyork.us/api/geospatial/vfx9-tbb6?method=export&format=GeoJSON",
+      "output": "nyc-planimetric-sidewalks.geojson",
+      "capabilities": ["pedestrian_surface_candidate"],
+      "entryGate": "Clip after download, validate polygon topology, and derive a centerline graph only with explicit crossing connections."
+    },
+    {
+      "id": "nyc-planimetric-curbs",
+      "group": "pedestrian-topology",
+      "dataClass": "map_fact",
+      "authority": "NYC Office of Technology and Innovation",
+      "license": "NYC Open Data Terms of Use",
+      "transport": "http",
+      "url": "https://data.cityofnewyork.us/api/geospatial/ikvd-dex8?method=export&format=GeoJSON",
+      "output": "nyc-planimetric-curbs.geojson",
+      "capabilities": ["curb_geometry_candidate"],
+      "entryGate": "Use as a crossing and access constraint; curb geometry alone is not a pedestrian route."
+    },
+    {
+      "id": "nyc-raised-crosswalks",
+      "group": "pedestrian-topology",
+      "dataClass": "map_fact",
+      "authority": "NYC Department of Transportation",
+      "license": "NYC Open Data Terms of Use",
+      "transport": "socrata_geojson",
+      "url": "https://data.cityofnewyork.us/resource/uh2s-ftgh.geojson",
+      "query": "$limit=50000",
+      "output": "nyc-raised-crosswalks.geojson",
+      "capabilities": ["raised_crosswalk_point_candidate"],
+      "entryGate": "Treat as partial crossing evidence; absence does not prove that an intersection lacks a crosswalk."
+    },
+    {
+      "id": "nyc-bicycle-pedestrian-counts",
+      "group": "mobility-history",
+      "dataClass": "observed_history",
+      "authority": "NYC Department of Transportation",
+      "license": "NYC Open Data Terms of Use",
+      "transport": "socrata_json_temporal",
+      "url": "https://data.cityofnewyork.us/resource/ct66-47at.json",
+      "query": "$limit=50000&$order=timestamp&$where=timestamp >= '{start}' and timestamp < '{end}'",
+      "output": "nyc-bicycle-pedestrian-counts-{period}.json",
+      "interval": "month",
+      "capabilities": ["pedestrian_demand_prior", "bicycle_demand_prior"],
+      "entryGate": "Bind sensor identity, timezone, missing intervals, and aggregation; counts parameterize simulation but do not become live traffic."
+    },
+    {
+      "id": "nyc-automated-traffic-volume-counts",
+      "group": "mobility-history",
+      "dataClass": "observed_history",
+      "authority": "NYC Department of Transportation",
+      "license": "NYC Open Data Terms of Use",
+      "transport": "socrata_json_temporal",
+      "url": "https://data.cityofnewyork.us/resource/7ym2-wayt.json",
+      "query": "$limit=50000&$order=requestid,yr,m,d,hh,mm&$where=yr={yy} and m={monthNumber}",
+      "output": "nyc-traffic-volume-{period}.json",
+      "interval": "month",
+      "capabilities": ["motor_vehicle_demand_prior"],
+      "entryGate": "Bind LION segment revision and sampling gaps; do not extrapolate an unobserved corridor without a declared model."
+    },
+    {
+      "id": "nyc-tlc-yellow-trips",
+      "group": "taxi-history",
+      "dataClass": "observed_history",
+      "authority": "NYC Taxi and Limousine Commission",
+      "license": "NYC Open Data Terms of Use",
+      "transport": "http_temporal",
+      "url": "https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_{period}.parquet",
+      "output": "yellow_tripdata_{period}.parquet",
+      "interval": "month",
+      "capabilities": ["taxi_zone_demand_prior"],
+      "entryGate": "Join through a pinned taxi-zone artifact, record publication lag, and keep trip demand separate from street-level trajectories."
+    }
+  ],
+  "claimBoundary": "Catalog registration makes a source fetchable, not executable. Only a compiler and entry gate can promote raw bytes into a governed routing, occurrence, or rendering artifact."
+}

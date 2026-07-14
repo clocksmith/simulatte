@@ -23,7 +23,7 @@
       "featureCards": 13062,
       "land": 12,
       "nodes": 2491,
-      "parks": 1,
+      "parks": 9,
       "segments": 3723,
       "signals": 1,
       "streets": 6589
@@ -59,7 +59,7 @@
       "bike-node-f6ec25169c13",
       "bike-node-fdcb8f82b099"
     ],
-    "worldSha256": "c5b78f235978b8b3c791f2f8cf21c43d41a8523b8aa5e039201887af5564c714"
+    "worldSha256": "78cc82a44fac0f1ce3ac1955d9b2a498fd880738a840d07642bb9f54bd074889"
   },
   "contentVersion": "nyc-core-regions-multimodal-2026-07-13",
   "featureCatalogTemplate": {
@@ -115,7 +115,7 @@
         "disruptions": 0,
         "featureCards": 7283,
         "nodes": 1391,
-        "parks": 1,
+        "parks": 3,
         "seams": 26,
         "segments": 1947,
         "signals": 1,
@@ -126,7 +126,7 @@
         "east-river-crossing-v1"
       ],
       "path": "./packs/manhattan-villages-v1.json",
-      "sha256": "fd4bc2ec69deda3b14e288b846c770dd92b622b2e97c68a9fd086bda33dd8d9e"
+      "sha256": "3f9346f0af9f3eb99a26f57d726a52a1c8c838a55f3be3c505399bb860397033"
     },
     {
       "boundsWgs84": {
@@ -143,7 +143,7 @@
         "disruptions": 0,
         "featureCards": 2244,
         "nodes": 514,
-        "parks": 0,
+        "parks": 1,
         "seams": 27,
         "segments": 789,
         "signals": 0,
@@ -155,7 +155,7 @@
         "north-brooklyn-v1"
       ],
       "path": "./packs/east-river-crossing-v1.json",
-      "sha256": "7eacc8352b87c82ca941db55d258986d85a5930c5251f34dd93e72dc891bbf2b"
+      "sha256": "4b98cbcce90f1487d61fbe39ed525436b9589fae39ab3b503ae23407c2437456"
     },
     {
       "boundsWgs84": {
@@ -172,7 +172,7 @@
         "disruptions": 0,
         "featureCards": 3526,
         "nodes": 613,
-        "parks": 0,
+        "parks": 5,
         "seams": 1,
         "segments": 987,
         "signals": 0,
@@ -183,7 +183,7 @@
         "east-river-crossing-v1"
       ],
       "path": "./packs/north-brooklyn-v1.json",
-      "sha256": "dba73db4e5a9f65fcd4491562fba43373ca5c2eb16a0c9db121123af606f84dd"
+      "sha256": "e88ea5b128683fa83318a3b46f5bafa7654d26f30cb22914586c727260160ada"
     }
   ],
   "placeIndex": [
@@ -3323,9 +3323,9 @@
           "authority": "NYC Department of Parks and Recreation",
           "id": "nyc-parks-properties",
           "license": "NYC Open Data Terms of Use",
-          "query": "$limit=10&$where=gispropnum='M089'",
-          "rawByteCount": 8993,
-          "rawSha256": "53cb9353182e12c5d67fc2cff1df98238ca9bcffd4bd4f8179f607d616e7f03d",
+          "query": "$limit=20&$where=gispropnum in('M089','M098','M088','B058')",
+          "rawByteCount": 17976,
+          "rawSha256": "c2ca0a2bbccd417769c6514f243bc31ff28fe87a26897f17dbc638a51a02b9bc",
           "snapshotDate": "2026-07-13",
           "url": "https://data.cityofnewyork.us/resource/enfh-gkve.geojson"
         },

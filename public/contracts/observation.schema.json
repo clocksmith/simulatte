@@ -94,12 +94,15 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["id", "type", "position", "distanceM", "isActive"],
+        "required": ["id", "type", "position", "distanceM", "motionKind", "interactionRole", "provenanceKind", "isActive"],
         "properties": {
           "id": { "type": "string" },
         "type": { "enum": ["pedestrian", "bicycle", "scooter", "car"] },
           "position": { "$ref": "#/$defs/point" },
           "distanceM": { "type": "number", "minimum": 0 },
+          "motionKind": { "enum": ["single_pass", "loop", "ping_pong"] },
+          "interactionRole": { "enum": ["dynamic_obstacle", "visible_ambient"] },
+          "provenanceKind": { "enum": ["simulation_assumption", null] },
           "isActive": { "type": "boolean" }
         }
       }

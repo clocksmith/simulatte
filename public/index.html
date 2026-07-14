@@ -4,19 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="simulatte-build" content="745605d5d2951e35625b3b955f17e9ef255a28b0-f2fcbfa99717">
-  <title>Simulatte Autonomy | NYC Missions</title>
+  <title>Simulatte</title>
   <meta name="description" content="WebGPU bicycle and pedestrian agents make continuous, evidence-scored choices across the Villages and North Brooklyn.">
   <link rel="icon" type="image/svg+xml" href="./favicon.svg">
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
   <header class="site-header">
-    <div class="product-heading">
-      <a class="brand" href="./blank/">Simulatte</a>
-      <span class="product-slash">/</span>
-      <span class="product-name">Autonomy</span>
-      <h1>Every autonomous choice, exposed and settled.</h1>
-    </div>
     <div class="runtime-block">
       <span class="pulse" aria-hidden="true"></span>
       <div>
@@ -24,27 +18,20 @@
         <strong id="runtime-status" class="runtime-status" data-kind="loading" aria-live="polite">Loading governed assets</strong>
       </div>
       <div class="runtime-identities">
-        <span id="data-identity"></span>
         <span id="render-identity"></span>
       </div>
     </div>
   </header>
 
   <main>
-    <section class="mission-section" aria-labelledby="mission-title">
-      <div class="mission-heading">
-        <span class="section-index">01</span>
-        <div>
-          <span class="section-label">Mission compiler</span>
-          <h2 id="mission-title">Natural language to grounded obligations</h2>
-        </div>
-      </div>
+    <section class="mission-section" aria-label="Mission">
       <label class="mission-field" for="mission-input">
         <span class="sr-only">Natural-language autonomy mission</span>
         <textarea id="mission-input" rows="2" spellcheck="false"></textarea>
       </label>
       <div class="mission-controls" aria-label="Mission controls">
-        <button id="start-button" class="primary" type="button"><span class="play-mark" aria-hidden="true"></span>Start mission</button>
+        <button id="shuffle-button" type="button">Shuffle</button>
+        <button id="start-button" class="primary" type="button"><span class="play-mark" aria-hidden="true"></span>Start</button>
         <button id="pause-button" type="button" disabled>Pause</button>
         <button id="step-button" type="button">Step</button>
         <button id="reset-button" type="button">Reset</button>
@@ -67,7 +54,7 @@
       <div class="simulation-stage">
         <div class="stage-heading">
           <div class="stage-title">
-            <span class="section-index">02</span>
+            <span class="section-index">01</span>
             <div>
               <span class="section-label">WebGPU world model</span>
               <h2>Villages to North Brooklyn, frozen 2026-07-13</h2>
@@ -87,15 +74,16 @@
         </div>
         <div class="canvas-shell">
           <canvas id="autonomy-canvas" width="1440" height="900" aria-label="Pitched WebGPU view of bicycle and pedestrian autonomy missions in the Villages and North Brooklyn"></canvas>
+          <canvas id="follow-minimap" class="follow-minimap" width="320" height="240" aria-label="Top view minimap centered on the active autonomous agent" hidden></canvas>
           <div class="map-provenance">
             <strong>Real geometry</strong>
-            <span>NYC bike routes + park boundary</span>
+            <span>NYC bike routes + park properties</span>
             <span>NYC buildings</span>
             <span>OSM street context</span>
           </div>
           <div class="legend" aria-label="Map legend">
             <span><i class="building"></i>Buildings</span>
-            <span><i class="park"></i>Park</span>
+            <span><i class="park"></i>Parks</span>
             <span><i class="protected"></i>Protected</span>
             <span><i class="shared"></i>Shared</span>
             <span><i class="route"></i>Planned</span>
@@ -108,7 +96,7 @@
 
       <aside class="evidence-panel" aria-label="Decision evidence">
         <header class="evidence-heading">
-          <span class="section-index">03</span>
+          <span class="section-index">02</span>
           <div>
             <span class="section-label">Decision engine</span>
             <h2 id="decision-heading"><span id="decision-title">Awaiting first observation</span></h2>
@@ -190,6 +178,7 @@
   <script defer src="./runtime/data-loader.js?v=745605d5d2951e35625b3b955f17e9ef255a28b0-f2fcbfa99717"></script>
   <script defer src="./mission/capability-matrix.js?v=745605d5d2951e35625b3b955f17e9ef255a28b0-f2fcbfa99717"></script>
   <script defer src="./mission/mission-compiler.js?v=745605d5d2951e35625b3b955f17e9ef255a28b0-f2fcbfa99717"></script>
+  <script defer src="./world/ambient-actors.js?v=745605d5d2951e35625b3b955f17e9ef255a28b0-f2fcbfa99717"></script>
   <script defer src="./world/world-model.js?v=745605d5d2951e35625b3b955f17e9ef255a28b0-f2fcbfa99717"></script>
   <script defer src="./world/route-planner.js?v=745605d5d2951e35625b3b955f17e9ef255a28b0-f2fcbfa99717"></script>
   <script defer src="./runtime/feature-retrieval.js?v=745605d5d2951e35625b3b955f17e9ef255a28b0-f2fcbfa99717"></script>

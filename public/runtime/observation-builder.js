@@ -16,6 +16,9 @@
       type: actor.type,
       position: roundPoint(actor.position),
       distanceM: round(actor.distanceM),
+      motionKind: actor.motionKind,
+      interactionRole: actor.interactionRole,
+      provenanceKind: actor.provenanceKind,
       isActive: actor.isActive,
     }));
     const observation = {

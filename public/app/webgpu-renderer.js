@@ -13,6 +13,7 @@
   root.SimulatteAutonomyCanvas = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyWebGpuRenderer(math, geometry, cameraController) {
   const SAMPLE_COUNT = 4;
+  const MINIMAP_RADIUS_M = 420;
   const SHADER = `
 struct Uniforms {
   viewProjection: mat4x4<f32>,
@@ -85,8 +86,12 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
     const device = await adapter.requestDevice();
     const context = canvas.getContext('webgpu');
     if (!context) throw rendererError('webgpu_context_missing', 'Canvas did not provide a WebGPU context');
+    const minimapCanvas = options.minimapCanvas || null;
+    const minimapContext = minimapCanvas ? minimapCanvas.getContext('webgpu') : null;
+    if (minimapCanvas && !minimapContext) throw rendererError('webgpu_minimap_context_missing', 'Follow minimap did not provide a WebGPU context');
     const format = navigator.gpu.getPreferredCanvasFormat();
     context.configure({ device, format, alphaMode: 'opaque', colorSpace: 'srgb' });
+    minimapContext?.configure({ device, format, alphaMode: 'opaque', colorSpace: 'srgb' });
     const shader = device.createShaderModule({ label: 'autonomy-map-shader', code: SHADER });
     const compilation = await shader.getCompilationInfo();
     const shaderErrors = compilation.messages.filter((row) => row.type === 'error');
@@ -129,6 +134,16 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       layout: pipeline.getBindGroupLayout(0),
       entries: [{ binding: 0, resource: { buffer: uniformBuffer } }],
     });
+    const minimapUniformBuffer = minimapCanvas
+      ? device.createBuffer({ label: 'autonomy-minimap-uniforms', size: 128, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST })
+      : null;
+    const minimapBindGroup = minimapUniformBuffer
+      ? device.createBindGroup({
+        label: 'autonomy-minimap-bind-group',
+        layout: pipeline.getBindGroupLayout(0),
+        entries: [{ binding: 0, resource: { buffer: minimapUniformBuffer } }],
+      })
+      : null;
     const staticData = geometry.createStaticGeometry(worldModel.world);
     const staticBuffer = createVertexBuffer(device, staticData, 'autonomy-static-geometry');
     const state = {
@@ -145,6 +160,8 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       startedAt: performance.now(),
       animationFrame: null,
       renderTargets: null,
+      minimapTargets: null,
+      minimapFrameCount: 0,
       isDestroyed: false,
     };
     const adapterInfo = readAdapterInfo(adapter);
@@ -153,9 +170,17 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
     canvas.dataset.actorMeshSchema = geometry.ACTOR_MESH_SCHEMA;
     canvas.dataset.actorMeshKinds = geometry.SUPPORTED_ACTOR_KINDS.join(',');
     canvas.dataset.materialModel = geometry.MATERIAL_MODEL;
+    canvas.dataset.ambientActorCount = String(worldModel.ambientCompilation.actors.length);
+    canvas.dataset.ambientActorKinds = Object.entries(worldModel.ambientCompilation.counts)
+      .filter(([, count]) => count > 0).map(([kind]) => kind).join(',');
     canvas.dataset.cameraMode = state.mode;
     canvas.dataset.cameraFocus = state.focusId;
     canvas.dataset.cameraTransition = 'settled';
+    canvas.dataset.followMinimap = 'hidden';
+    if (minimapCanvas) {
+      minimapCanvas.dataset.projection = 'orthographic_top_north_up';
+      minimapCanvas.dataset.radiusM = String(MINIMAP_RADIUS_M);
+    }
     installCameraControls(canvas, state);
     device.lost.then((info) => {
       canvas.dataset.rendererLost = 'true';
@@ -182,27 +207,63 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       const pose = cameraController.advanceCamera(state, state.latestSnapshot, worldModel, canvas.width / canvas.height, timestamp);
       const camera = cameraForPose(pose, canvas);
       recordCameraDataset(canvas, pose);
-      writeUniforms(device, uniformBuffer, camera, canvas, (timestamp - state.startedAt) / 1000);
+      const seconds = (timestamp - state.startedAt) / 1000;
+      writeUniforms(device, uniformBuffer, camera, canvas, seconds);
       const encoder = device.createCommandEncoder({ label: 'autonomy-map-frame' });
-      const colorView = context.getCurrentTexture().createView();
-      const pass = encoder.beginRenderPass({
+      encodeScene(encoder, {
         label: 'autonomy-map-pass',
+        context,
+        targets: state.renderTargets,
+        bindGroup,
+        clearValue: { r: 0.006, g: 0.018, b: 0.035, a: 1 },
+      });
+      const minimapVisible = Boolean(pose.mode === 'follow' && minimapCanvas);
+      canvas.dataset.followMinimap = minimapVisible ? 'visible' : 'hidden';
+      if (minimapVisible) {
+        minimapCanvas.hidden = false;
+        resizeMinimapCanvas(minimapCanvas, device, format, state);
+        const minimapCamera = cameraForMinimap(state.latestSnapshot, minimapCanvas);
+        writeUniforms(device, minimapUniformBuffer, minimapCamera, minimapCanvas, seconds);
+        encodeScene(encoder, {
+          label: 'autonomy-minimap-pass',
+          context: minimapContext,
+          targets: state.minimapTargets,
+          bindGroup: minimapBindGroup,
+          clearValue: { r: 0.003, g: 0.012, b: 0.022, a: 1 },
+        });
+        state.minimapFrameCount += 1;
+        minimapCanvas.dataset.frameCount = String(state.minimapFrameCount);
+        minimapCanvas.dataset.center = `${state.latestSnapshot.state.position.x.toFixed(2)},${state.latestSnapshot.state.position.y.toFixed(2)}`;
+      } else if (minimapCanvas) {
+        minimapCanvas.hidden = true;
+      }
+      device.queue.submit([encoder.finish()]);
+      state.frameCount += 1;
+      if (!state.firstFrameAt) state.firstFrameAt = performance.now();
+      canvas.dataset.frameCount = String(state.frameCount);
+      canvas.dataset.staticVertexCount = String(staticData.length / geometry.FLOATS_PER_VERTEX);
+      canvas.dataset.dynamicVertexCount = String(state.dynamicData.length / geometry.FLOATS_PER_VERTEX);
+    }
+
+    function encodeScene(encoder, { label, context: renderContext, targets, bindGroup: sceneBindGroup, clearValue }) {
+      const pass = encoder.beginRenderPass({
+        label,
         colorAttachments: [{
-          view: state.renderTargets.color.createView(),
-          resolveTarget: colorView,
-          clearValue: { r: 0.006, g: 0.018, b: 0.035, a: 1 },
+          view: targets.color.createView(),
+          resolveTarget: renderContext.getCurrentTexture().createView(),
+          clearValue,
           loadOp: 'clear',
           storeOp: 'discard',
         }],
         depthStencilAttachment: {
-          view: state.renderTargets.depth.createView(),
+          view: targets.depth.createView(),
           depthClearValue: 1,
           depthLoadOp: 'clear',
           depthStoreOp: 'discard',
         },
       });
       pass.setPipeline(pipeline);
-      pass.setBindGroup(0, bindGroup);
+      pass.setBindGroup(0, sceneBindGroup);
       pass.setVertexBuffer(0, staticBuffer);
       pass.draw(staticData.length / geometry.FLOATS_PER_VERTEX);
       if (state.dynamicBuffer && state.dynamicData.length) {
@@ -210,12 +271,6 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
         pass.draw(state.dynamicData.length / geometry.FLOATS_PER_VERTEX);
       }
       pass.end();
-      device.queue.submit([encoder.finish()]);
-      state.frameCount += 1;
-      if (!state.firstFrameAt) state.firstFrameAt = performance.now();
-      canvas.dataset.frameCount = String(state.frameCount);
-      canvas.dataset.staticVertexCount = String(staticData.length / geometry.FLOATS_PER_VERTEX);
-      canvas.dataset.dynamicVertexCount = String(state.dynamicData.length / geometry.FLOATS_PER_VERTEX);
     }
 
     function animationFrame(timestamp) {
@@ -251,7 +306,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
 
     function receipt() {
       return {
-        schema: 'simulatte.autonomyWebGpuRenderReceipt.v4',
+        schema: 'simulatte.autonomyWebGpuRenderReceipt.v5',
         backend: 'webgpu',
         adapter: adapterInfo,
         format,
@@ -271,12 +326,29 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
           supportedKinds: [...geometry.SUPPORTED_ACTOR_KINDS],
           materialModel: geometry.MATERIAL_MODEL,
         },
+        ambientTraffic: {
+          schema: worldModel.ambientCompilation.schema,
+          actorCount: worldModel.ambientCompilation.actors.length,
+          counts: structuredClone(worldModel.ambientCompilation.counts),
+          interactionModel: worldModel.ambientCompilation.interactionModel,
+          animationModel: worldModel.ambientCompilation.animationModel,
+          sourceGeometryIds: [...worldModel.ambientCompilation.sourceGeometryIds],
+          claimBoundary: worldModel.ambientCompilation.claimBoundary,
+        },
         camera: {
           mode: state.mode,
           focusId: state.focusId,
           transitionState: state.transition ? 'active' : 'settled',
           targetCount: state.targets.length,
           followDistanceM: Number(state.followDistance.toFixed(3)),
+        },
+        minimap: {
+          schema: 'simulatte.autonomyFollowMinimap.v1',
+          available: Boolean(minimapCanvas),
+          visible: Boolean(minimapCanvas && state.mode === 'follow'),
+          projection: 'orthographic_top_north_up',
+          radiusM: MINIMAP_RADIUS_M,
+          frameCount: state.minimapFrameCount,
         },
       };
     }
@@ -288,7 +360,10 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       state.dynamicBuffer?.destroy();
       state.renderTargets?.color.destroy();
       state.renderTargets?.depth.destroy();
+      state.minimapTargets?.color.destroy();
+      state.minimapTargets?.depth.destroy();
       uniformBuffer.destroy();
+      minimapUniformBuffer?.destroy();
       device.destroy();
     }
 
@@ -328,6 +403,21 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
     };
   }
 
+  function resizeMinimapCanvas(canvas, device, format, state) {
+    const ratio = Math.min(2, globalThis.devicePixelRatio || 1);
+    const width = Math.max(160, Math.round(canvas.clientWidth * ratio));
+    const height = Math.max(120, Math.round(canvas.clientHeight * ratio));
+    if (canvas.width === width && canvas.height === height && state.minimapTargets) return;
+    canvas.width = width;
+    canvas.height = height;
+    state.minimapTargets?.color.destroy();
+    state.minimapTargets?.depth.destroy();
+    state.minimapTargets = {
+      color: device.createTexture({ label: 'autonomy-minimap-msaa-color', size: [width, height], sampleCount: SAMPLE_COUNT, format, usage: GPUTextureUsage.RENDER_ATTACHMENT }),
+      depth: device.createTexture({ label: 'autonomy-minimap-depth', size: [width, height], sampleCount: SAMPLE_COUNT, format: 'depth24plus', usage: GPUTextureUsage.RENDER_ATTACHMENT }),
+    };
+  }
+
   function cameraForPose(pose, canvas) {
     const aspect = canvas.width / canvas.height;
     return {
@@ -335,6 +425,20 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       viewProjection: math.multiply(
         math.perspective(pose.fieldOfViewRadians, aspect, pose.near, pose.far),
         math.lookAt(pose.eye, pose.target)
+      ),
+    };
+  }
+
+  function cameraForMinimap(snapshot, canvas) {
+    const point = snapshot.state.position;
+    const eye = [point.x, 1800, -point.y];
+    const target = [point.x, 0, -point.y];
+    const aspect = canvas.width / canvas.height;
+    return {
+      eye,
+      viewProjection: math.multiply(
+        math.orthographic(-MINIMAP_RADIUS_M * aspect, MINIMAP_RADIUS_M * aspect, -MINIMAP_RADIUS_M, MINIMAP_RADIUS_M, 1, 4000),
+        math.lookAt(eye, target, [0, 0, -1])
       ),
     };
   }
@@ -422,5 +526,5 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
     return error;
   }
 
-  return { SHADER, createCanvasRenderer, readAdapterInfo, rendererError };
+  return { MINIMAP_RADIUS_M, SHADER, cameraForMinimap, createCanvasRenderer, readAdapterInfo, rendererError };
 });

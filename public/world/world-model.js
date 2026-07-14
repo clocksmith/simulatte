@@ -1,8 +1,11 @@
 (function attachAutonomyWorldModel(root, factory) {
-  const api = factory();
+  const ambientActors = typeof module === 'object' && module.exports
+    ? require('./ambient-actors.js')
+    : root.SimulatteAutonomyAmbientActors;
+  const api = factory(ambientActors);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteAutonomyWorld = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyWorldModule() {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyWorldModule(ambientActors) {
   function createWorldModel(world) {
     const nodesById = new Map(world.nodes.map((row) => [row.id, row]));
     const segmentsById = new Map(world.segments.map((row) => [row.id, row]));
@@ -11,6 +14,8 @@
     outgoingByNodeId.forEach((rows) => rows.sort((left, right) => left.id.localeCompare(right.id)));
     const signalsByNodeId = new Map();
     world.signals.forEach((signal) => signalsByNodeId.set(signal.nodeId, signal));
+    const ambientCompilation = ambientActors.compileAmbientActors(world);
+    const allActors = [...world.actors, ...ambientCompilation.actors];
     let runtimeEffects = null;
 
     function applyRuntimeEffects(effects) {
@@ -70,7 +75,7 @@
       const span = Math.max(1, actor.activeUntilTick - actor.activeFromTick);
       const ratio = isControlled && Number.isFinite(controlledState?.progress)
         ? controlledState.progress
-        : clamp((tick - actor.activeFromTick) / span, 0, 1);
+        : actor.motion ? motionRatio(actor, tick) : clamp((tick - actor.activeFromTick) / span, 0, 1);
       const motion = samplePolyline(actor.path, ratio);
       return {
         id: actor.id,
@@ -78,16 +83,19 @@
         position: motion.position,
         heading: motion.heading,
         radiusM: actor.radiusM,
+        motionKind: actor.motion?.kind || 'single_pass',
+        interactionRole: actor.interactionRole || 'dynamic_obstacle',
+        provenanceKind: actor.provenance?.kind || null,
         isActive,
       };
     }
 
     function activeActors(tick) {
-      return world.actors.map((actor) => actorAtTick(actor, tick)).filter((actor) => actor.isActive);
+      return allActors.map((actor) => actorAtTick(actor, tick)).filter((actor) => actor.isActive);
     }
 
     function nearbyActors(position, tick, radiusM) {
-      return world.actors.map((actor) => actorAtTick(actor, tick)).map((actor) => ({
+      return allActors.map((actor) => actorAtTick(actor, tick)).map((actor) => ({
         ...actor,
         distanceM: distance(position, actor.position),
       })).filter((actor) => actor.isActive && actor.distanceM <= radiusM)
@@ -98,7 +106,8 @@
       let minimum = capM;
       let actorId = null;
       const samples = 8;
-      for (const actor of world.actors) {
+      for (const actor of allActors) {
+        if ((actor.interactionRole || 'dynamic_obstacle') !== 'dynamic_obstacle') continue;
         for (let index = 0; index <= samples; index += 1) {
           const ratio = index / samples;
           const actorState = actorAtTick(actor, tick + ratio);
@@ -126,6 +135,8 @@
 
     return {
       world,
+      allActors,
+      ambientCompilation,
       nodesById,
       segmentsById,
       node,
@@ -143,6 +154,22 @@
       applyRuntimeEffects,
       runtimeEffects: () => structuredClone(runtimeEffects),
     };
+  }
+
+  function motionRatio(actor, tick) {
+    const lengthM = polylineLength(actor.path);
+    if (!lengthM) return 0;
+    const traveledM = actor.motion.phaseOffsetM + Math.max(0, tick - actor.activeFromTick) * actor.motion.speedMps;
+    if (actor.motion.kind === 'loop') return modulo(traveledM, lengthM) / lengthM;
+    const cyclePositionM = modulo(traveledM, lengthM * 2);
+    const pathPositionM = cyclePositionM <= lengthM ? cyclePositionM : lengthM * 2 - cyclePositionM;
+    return pathPositionM / lengthM;
+  }
+
+  function polylineLength(points) {
+    let length = 0;
+    for (let index = 1; index < points.length; index += 1) length += distance(points[index - 1], points[index]);
+    return length;
   }
 
   function interpolatePolyline(points, ratio) {
@@ -198,5 +225,5 @@
     return error;
   }
 
-  return { createWorldModel, distance, interpolatePoint, interpolatePolyline, samplePolyline };
+  return { createWorldModel, distance, interpolatePoint, interpolatePolyline, motionRatio, polylineLength, samplePolyline };
 });

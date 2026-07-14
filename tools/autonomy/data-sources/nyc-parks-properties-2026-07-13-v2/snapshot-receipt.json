@@ -1,0 +1,69 @@
+{
+  "schema": "simulatte.autonomyDataFetchReceipt.v1",
+  "plan": {
+    "schema": "simulatte.autonomyDataFetchPlan.v1",
+    "catalog": {
+      "id": "nyc-autonomy-source-catalog-v1",
+      "sha256": "8c02798b9b323bb1d1b6b8add5f531728ae5ede9df65be9fa578ffa28f56e8f5",
+      "path": "tools/autonomy/source-catalog-v1.json"
+    },
+    "mode": "snapshot_refresh",
+    "snapshotDate": "2026-07-13",
+    "bounds": {
+      "south": 40.705,
+      "west": -74.015,
+      "north": 40.745,
+      "east": -73.94
+    },
+    "sourceIds": [
+      "nyc-parks-properties"
+    ],
+    "requests": [
+      {
+        "id": "nyc-parks-properties:nyc-parks-properties.geojson",
+        "sourceId": "nyc-parks-properties",
+        "group": "world-core",
+        "dataClass": "map_fact",
+        "authority": "NYC Department of Parks and Recreation",
+        "license": "NYC Open Data Terms of Use",
+        "transport": "socrata_geojson",
+        "url": "https://data.cityofnewyork.us/resource/enfh-gkve.geojson?$limit=20&$where=gispropnum in('M089','M098','M088','B058')",
+        "output": "nyc-parks-properties.geojson",
+        "period": null,
+        "bounds": null,
+        "capabilities": [
+          "park_render_geometry",
+          "park_boundary_candidate"
+        ],
+        "entryGate": "A property boundary may render a park but cannot claim a legal or obstacle-free loop without a separately gated path."
+      }
+    ],
+    "claimBoundary": "Catalog registration makes a source fetchable, not executable. Only a compiler and entry gate can promote raw bytes into a governed routing, occurrence, or rendering artifact.",
+    "planSha256": "7db78200a9b85823e72cc80af5bb4343d5b9ab23f63fbf216dc2792e9a82eff4"
+  },
+  "command": [
+    "node",
+    "tools/autonomy/manage-autonomy-data.mjs",
+    "fetch",
+    "--source",
+    "nyc-parks-properties",
+    "--snapshot-date",
+    "2026-07-13",
+    "--out",
+    "artifacts/autonomy-data/nyc-parks-properties-2026-07-13-v2"
+  ],
+  "files": [
+    {
+      "requestId": "nyc-parks-properties:nyc-parks-properties.geojson",
+      "sourceId": "nyc-parks-properties",
+      "output": "nyc-parks-properties.geojson",
+      "byteCount": 17976,
+      "sha256": "c2ca0a2bbccd417769c6514f243bc31ff28fe87a26897f17dbc638a51a02b9bc",
+      "contentType": "application/vnd.geo+json; charset=UTF-8",
+      "etag": "\"aG90ZWwuMzEzNTdfNF8xNTFqMF83ZkVyNDdNcFU4T2pvRUtkY0dydjY3Skk---gzioesLyL2atldehHh-Wp8PS5MMgDcg--gzip--gzip\"",
+      "lastModified": "Wed, 17 Jun 2026 14:16:04 GMT"
+    }
+  ],
+  "activation": "staged_not_active",
+  "claimBoundary": "Successful fetching proves byte capture and identity only. No fetched source is routable, simulated, or hosted until its compiler and entry gates pass."
+}

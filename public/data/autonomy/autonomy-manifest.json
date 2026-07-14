@@ -21,6 +21,16 @@
     "sha256": "16d05573eb74830f70587435612abb0c1c62b8f897ac9f4aa32c371e81bbd72c"
   },
   "id": "simulatte-autonomy-nyc-v1",
+  "missionExamples": [
+    "Deliver the parcel by bike from Union Square to North Williamsburg. Prefer protected lanes and yield to pedestrians.",
+    "Deliver the parcel by bike from West Village to Greenpoint. Prefer protected lanes and yield to pedestrians.",
+    "Deliver a parcel by bicycle from Washington Square to McCarren Park. Prefer protected routes.",
+    "Deliver the parcel by bike from East Village to North Williamsburg. Avoid Kent Avenue and yield to pedestrians.",
+    "Run 5 laps around Union Square Park perimeter.",
+    "Walk 1 lap around Union Square Park perimeter.",
+    "Run around Union Square Park perimeter for 45 seconds.",
+    "Run in circles around Union Squatre Park parimeter until you've run 5000 feet."
+  ],
   "occurrenceCatalog": {
     "id": "nyc-replay-patterns-v1",
     "path": "./patterns/nyc-replay-patterns-v1.json",
@@ -34,12 +44,12 @@
   "regionRegistry": {
     "id": "nyc-core-region-registry-v1",
     "path": "./regions/nyc-core-v1.json",
-    "sha256": "b1a9e5aa03a2ecf8491bc8150c6932a75fa85263fcd001cfb8cf99866c3a8ada"
+    "sha256": "6bed27fa4e8b86c8169a2d34a00f1faa6dee1e48faa1b3af9293eb2b548724e0"
   },
   "rerankerEvidence": {
     "id": "feature-reranker-public-diagnostic-v1",
     "path": "./evidence/feature-reranker-public-diagnostic-v1.json",
-    "sha256": "802b647307ccca8b770be43600bd03114a4d311e43df5e4feed855274258ce09"
+    "sha256": "e1e8d216a9173daa84870c45909cf1acc1118d1a8d25c815c7ba1ab233eb0778"
   },
   "runtime": {
     "controllerSchema": "simulatte.autonomyController.v1",
@@ -51,6 +61,6 @@
   "world": {
     "id": "nyc-core-autonomy-v1",
     "path": "./worlds/nyc-core-autonomy-v1.json",
-    "sha256": "c5b78f235978b8b3c791f2f8cf21c43d41a8523b8aa5e039201887af5564c714"
+    "sha256": "78cc82a44fac0f1ce3ac1955d9b2a498fd880738a840d07642bb9f54bd074889"
   }
 }

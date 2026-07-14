@@ -20,7 +20,7 @@
   "identities": {
     "corpus": {
       "path": "tools/samer/autonomy/public-navigation-missions-v1.json",
-      "sha256": "0aa6f0baae66ae3da102bd96a4fbe92b2279c13933f9ce058bc3fc9bdc249aa2"
+      "sha256": "bbab5184c6163379cce320b09c59b2076a6baaeaf02055ae2541ca0da184c00b"
     },
     "embodiment": {
       "path": "public/data/autonomy/embodiments/delivery-bike-v1.json",
@@ -36,11 +36,11 @@
     },
     "runtime": {
       "path": "public/runtime/feature-retrieval.js",
-      "sha256": "d506f442c0062d87d5b34686390568f0a6ebd5510080b8e31ebd6881f01bb3f5"
+      "sha256": "52fa68411081d161b5ffc8729b6b4feb1efef41840dc53ec1519463305b45c06"
     },
     "world": {
       "path": "public/data/autonomy/worlds/nyc-core-autonomy-v1.json",
-      "sha256": "c5b78f235978b8b3c791f2f8cf21c43d41a8523b8aa5e039201887af5564c714"
+      "sha256": "78cc82a44fac0f1ce3ac1955d9b2a498fd880738a840d07642bb9f54bd074889"
     }
   },
   "intervention": {

@@ -4,7 +4,7 @@
     "method": "by_construction_from_named_world_nodes",
     "owner": "tools/autonomy/build-public-navigation-missions.mjs",
     "rowCount": 20,
-    "rowsSha256": "481e13c81475d2e0e3ecbdd50e78565681c3c608b254e2e456ce3fc2002f2fa7"
+    "rowsSha256": "abf7a8914530da4bc23fd4f7cee1e98f988cd11a63bcd582796f63ffb7cb2d7c"
   },
   "contentVersion": "public-navigation-missions-2026-07-13",
   "exposure": "Checked into the repository and available to developers, agents, selectors, and evaluators.",
@@ -15,12 +15,13 @@
     "policyId": "bet-selector-v1",
     "policySha256": "7686a27639289aeb449e6ea694fc33234c060841225a777800371f9fa69ed03c",
     "worldId": "nyc-core-autonomy-v1",
-    "worldSha256": "c5b78f235978b8b3c791f2f8cf21c43d41a8523b8aa5e039201887af5564c714"
+    "worldSha256": "78cc82a44fac0f1ce3ac1955d9b2a498fd880738a840d07642bb9f54bd074889"
   },
   "missions": [
     {
       "gold": {
         "constraints": {
+          "avoidStreetNames": [],
           "lanePreference": "protected",
           "maximumSpeedMps": 7,
           "mustObeySignals": true,
@@ -59,6 +60,7 @@
     {
       "gold": {
         "constraints": {
+          "avoidStreetNames": [],
           "lanePreference": "protected",
           "maximumSpeedMps": 7,
           "mustObeySignals": true,
@@ -97,6 +99,7 @@
     {
       "gold": {
         "constraints": {
+          "avoidStreetNames": [],
           "lanePreference": "protected",
           "maximumSpeedMps": 7,
           "mustObeySignals": true,
@@ -135,6 +138,7 @@
     {
       "gold": {
         "constraints": {
+          "avoidStreetNames": [],
           "lanePreference": "any",
           "maximumSpeedMps": 7,
           "mustObeySignals": true,
@@ -172,6 +176,7 @@
     {
       "gold": {
         "constraints": {
+          "avoidStreetNames": [],
           "lanePreference": "protected",
           "maximumSpeedMps": 7,
           "mustObeySignals": true,
@@ -210,6 +215,7 @@
     {
       "gold": {
         "constraints": {
+          "avoidStreetNames": [],
           "lanePreference": "protected",
           "maximumSpeedMps": 7,
           "mustObeySignals": true,
@@ -248,6 +254,7 @@
     {
       "gold": {
         "constraints": {
+          "avoidStreetNames": [],
           "lanePreference": "protected",
           "maximumSpeedMps": 7,
           "mustObeySignals": true,
@@ -286,6 +293,7 @@
     {
       "gold": {
         "constraints": {
+          "avoidStreetNames": [],
           "lanePreference": "any",
           "maximumSpeedMps": 7,
           "mustObeySignals": true,
@@ -323,6 +331,7 @@
     {
       "gold": {
         "constraints": {
+          "avoidStreetNames": [],
           "lanePreference": "protected",
           "maximumSpeedMps": 7,
           "mustObeySignals": true,
@@ -361,6 +370,7 @@
     {
       "gold": {
         "constraints": {
+          "avoidStreetNames": [],
           "lanePreference": "protected",
           "maximumSpeedMps": 7,
           "mustObeySignals": true,
@@ -399,6 +409,7 @@
     {
       "gold": {
         "constraints": {
+          "avoidStreetNames": [],
           "lanePreference": "protected",
           "maximumSpeedMps": 7,
           "mustObeySignals": true,
@@ -437,6 +448,7 @@
     {
       "gold": {
         "constraints": {
+          "avoidStreetNames": [],
           "lanePreference": "any",
           "maximumSpeedMps": 7,
           "mustObeySignals": true,
@@ -474,6 +486,7 @@
     {
       "gold": {
         "constraints": {
+          "avoidStreetNames": [],
           "lanePreference": "protected",
           "maximumSpeedMps": 7,
           "mustObeySignals": true,
@@ -512,6 +525,7 @@
     {
       "gold": {
         "constraints": {
+          "avoidStreetNames": [],
           "lanePreference": "protected",
           "maximumSpeedMps": 7,
           "mustObeySignals": true,
@@ -550,6 +564,7 @@
     {
       "gold": {
         "constraints": {
+          "avoidStreetNames": [],
           "lanePreference": "protected",
           "maximumSpeedMps": 7,
           "mustObeySignals": true,
@@ -588,6 +603,7 @@
     {
       "gold": {
         "constraints": {
+          "avoidStreetNames": [],
           "lanePreference": "any",
           "maximumSpeedMps": 7,
           "mustObeySignals": true,
@@ -625,6 +641,7 @@
     {
       "gold": {
         "constraints": {
+          "avoidStreetNames": [],
           "lanePreference": "protected",
           "maximumSpeedMps": 7,
           "mustObeySignals": true,
@@ -663,6 +680,7 @@
     {
       "gold": {
         "constraints": {
+          "avoidStreetNames": [],
           "lanePreference": "protected",
           "maximumSpeedMps": 7,
           "mustObeySignals": true,
@@ -701,6 +719,7 @@
     {
       "gold": {
         "constraints": {
+          "avoidStreetNames": [],
           "lanePreference": "protected",
           "maximumSpeedMps": 7,
           "mustObeySignals": true,
@@ -739,6 +758,7 @@
     {
       "gold": {
         "constraints": {
+          "avoidStreetNames": [],
           "lanePreference": "any",
           "maximumSpeedMps": 7,
           "mustObeySignals": true,

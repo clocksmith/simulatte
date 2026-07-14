@@ -1,0 +1,4 @@
+interface:
+  display_name: "Autonomy Data"
+  short_description: "Refresh and govern autonomy world data"
+  default_prompt: "Use $autonomy-data to plan, fetch, validate, and stage an autonomy data refresh."

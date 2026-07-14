@@ -18,6 +18,7 @@ const EXPECTED_RUNTIME_SOURCE_PATHS = Object.freeze([
   'public/contracts/contract-validator.js',
   'public/mission/capability-matrix.js',
   'public/mission/mission-compiler.js',
+  'public/world/ambient-actors.js',
   'public/world/world-model.js',
   'public/world/route-planner.js',
   'public/world/region-pack-merger.js',

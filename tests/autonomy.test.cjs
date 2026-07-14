@@ -1,6 +1,7 @@
 const assert = require('node:assert/strict');
 const crypto = require('node:crypto');
 const fs = require('node:fs');
+const os = require('node:os');
 const path = require('node:path');
 const test = require('node:test');
 const { pathToFileURL } = require('node:url');
@@ -21,7 +22,11 @@ const dataLoader = require('../public/runtime/data-loader.js');
 const featureRetrieval = require('../public/runtime/feature-retrieval.js');
 const occurrenceApi = require('../public/runtime/occurrence-engine.js');
 const regionApi = require('../public/world/region-pack-merger.js');
+const ambientActorApi = require('../public/world/ambient-actors.js');
 const cameraApi = require('../public/app/camera-controller.js');
+const appApi = require('../public/app/main.js');
+const gpuMath = require('../public/app/webgpu-math.js');
+const rendererApi = require('../public/app/webgpu-renderer.js');
 const actorGeometry = require('../public/app/webgpu-actor-geometry.js');
 const gpuGeometry = require('../public/app/webgpu-geometry.js');
 const SYNTHETIC_MISSION = 'Deliver the parcel by bike from Canal Depot to East Market. Prefer protected lanes and yield to pedestrians.';
@@ -135,7 +140,15 @@ test('autonomy manifest pins and validates every governed asset', () => {
   assert.equal(rows.world.renderGeometry.schema, 'simulatte.autonomyRenderGeometry.v1');
   assert.ok(rows.world.renderGeometry.buildings.length > 1500);
   assert.ok(rows.world.renderGeometry.streets.length > 2000);
-  assert.equal(rows.world.renderGeometry.parks.length, 1);
+  assert.equal(rows.world.renderGeometry.parks.length, 9);
+  assert.deepEqual([...new Set(rows.world.renderGeometry.parks.map((row) => row.source.propertyId))], [
+    'B058',
+    'M088',
+    'M089',
+    'M098',
+  ]);
+  assert.ok(rows.world.renderGeometry.parks.every((row) => row.source.selectionMethod === 'all_exterior_members_v1'));
+  assert.ok(rows.world.renderGeometry.parks.every((row) => /does not authorize traversal/i.test(row.source.claimBoundary)));
   assert.equal(rows.world.circuits.length, 1);
   assert.equal(rows.world.circuits[0].source.propertyId, 'M089');
   assert.equal(rows.world.circuits[0].source.memberCount, 2);
@@ -144,6 +157,71 @@ test('autonomy manifest pins and validates every governed asset', () => {
   assert.ok(rows.world.circuits[0].lengthM > 640 && rows.world.circuits[0].lengthM < 660);
   assert.match(rows.world.provenance.sources.bike.rawSha256, /^[a-f0-9]{64}$/);
   assert.equal(rows.world.scenario.liveConditionsUsed, false);
+});
+
+test('autonomy data manager separates fetch plans, historical backfills, verification, and activation', async () => {
+  const manager = await import(pathToFileURL(path.join(root, 'tools/autonomy/manage-autonomy-data.mjs')).href);
+  const catalog = manager.loadCatalog(path.join(root, 'tools/autonomy/source-catalog-v1.json'));
+  const snapshotPlan = manager.buildDataPlan(catalog, {
+    command: 'plan',
+    groups: ['pedestrian-topology'],
+    sources: [],
+    snapshotDate: '2026-07-13',
+    bounds: null,
+  });
+  assert.equal(snapshotPlan.mode, 'snapshot_refresh');
+  assert.deepEqual(snapshotPlan.sourceIds, [
+    'nyc-planimetric-curbs',
+    'nyc-planimetric-sidewalks',
+    'nyc-raised-crosswalks',
+  ]);
+  assert.equal(snapshotPlan.requests.length, 3);
+  assert.ok(snapshotPlan.requests.every((row) => row.dataClass === 'map_fact'));
+  assert.ok(snapshotPlan.requests.every((row) => row.entryGate.length > 20));
+  assert.match(snapshotPlan.planSha256, /^[a-f0-9]{64}$/);
+
+  const backfillPlan = manager.buildDataPlan(catalog, {
+    command: 'backfill',
+    groups: ['mobility-history'],
+    sources: [],
+    snapshotDate: '2026-07-13',
+    bounds: null,
+    from: '2026-01-01',
+    to: '2026-03-01',
+  });
+  assert.equal(backfillPlan.mode, 'historical_backfill');
+  assert.equal(backfillPlan.requests.length, 4);
+  assert.deepEqual([...new Set(backfillPlan.requests.map((row) => row.period))], ['2026-01', '2026-02']);
+  assert.ok(backfillPlan.requests.every((row) => row.dataClass === 'observed_history'));
+  assert.match(backfillPlan.requests.find((row) => row.sourceId === 'nyc-bicycle-pedestrian-counts').url, /timestamp >= '2026-01-01/);
+  assert.throws(
+    () => manager.buildDataPlan(catalog, {
+      command: 'plan', groups: ['mobility-history'], sources: [], snapshotDate: '2026-07-13', bounds: null,
+    }),
+    /require backfill/
+  );
+
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'simulatte-autonomy-data-'));
+  const testPlan = {
+    schema: 'simulatte.autonomyDataFetchPlan.v1',
+    planSha256: '1'.repeat(64),
+    requests: [{
+      id: 'fixture:one', sourceId: 'fixture', output: 'fixture.json', url: 'https://example.test/fixture.json',
+    }],
+  };
+  const fetched = await manager.fetchDataPlan(testPlan, {
+    outDir: directory,
+    command: ['fixture'],
+    fetchImpl: async () => new Response('{"status":"ok"}\n', {
+      status: 200,
+      headers: { 'content-type': 'application/json', etag: 'fixture-v1' },
+    }),
+  });
+  assert.equal(fetched.receipt.activation, 'staged_not_active');
+  assert.equal(manager.verifyFetchReceipt(fetched.receiptPath).status, 'verified');
+  fs.appendFileSync(path.join(directory, 'fixture.json'), 'tamper');
+  assert.throws(() => manager.verifyFetchReceipt(fetched.receiptPath), /Byte count drift/);
+  fs.rmSync(directory, { recursive: true, force: true });
 });
 
 test('region composition fails closed on missing packs and conflicting seam rows', () => {
@@ -279,6 +357,37 @@ test('camera targets expose every composed region and pan between modes without 
   assert.equal(nearFollowPose.followDistance, state.followDistance);
 });
 
+test('follow minimap uses a finite north-up orthographic camera centered on the agent', () => {
+  const snapshot = { state: { position: { x: 2105.25, y: -486.5 } } };
+  const camera = rendererApi.cameraForMinimap(snapshot, { width: 320, height: 240 });
+  assert.deepEqual(camera.eye, [2105.25, 1800, 486.5]);
+  assert.ok([...camera.viewProjection].every(Number.isFinite));
+  const center = gpuMath.transformPoint(camera.viewProjection, [2105.25, 0, 486.5]);
+  assert.ok(Math.abs(center[0]) < 1e-5);
+  assert.ok(Math.abs(center[1]) < 1e-5);
+  assert.equal(rendererApi.MINIMAP_RADIUS_M, 420);
+});
+
+test('mission shuffle cycles deterministic governed examples that all compile', () => {
+  const rows = governedAssets();
+  assert.ok(rows.manifest.missionExamples.length >= 4);
+  assert.ok(rows.manifest.missionExamples.includes(rows.manifest.defaultMissionText));
+  rows.manifest.missionExamples.forEach((sourceText) => {
+    const mission = missionApi.compileMission(sourceText, rows.world, rows.embodiments);
+    assert.ok(['delivery', 'loop'].includes(mission.task.type), sourceText);
+  });
+  const visited = [];
+  let current = rows.manifest.defaultMissionText;
+  for (let index = 0; index < rows.manifest.missionExamples.length; index += 1) {
+    const next = appApi.nextMissionExample(rows.manifest.missionExamples, current);
+    assert.notEqual(next, current);
+    visited.push(next);
+    current = next;
+  }
+  assert.equal(new Set(visited).size, rows.manifest.missionExamples.length);
+  assert.equal(appApi.nextMissionExample(rows.manifest.missionExamples, rows.manifest.defaultMissionText), visited[0]);
+});
+
 test('one actor mesh contract renders realistic pedestrian, bicycle, scooter, and car geometry', () => {
   const minimumBounds = {
     pedestrian: [0.65, 1.8, 0.55],
@@ -342,6 +451,28 @@ test('world actors expose path heading and reject unregistered render kinds', ()
     () => contracts.validateWorld(invalidRadius, rows.featureCatalog),
     (error) => error instanceof contracts.AutonomyContractError && error.path.endsWith('.radiusM')
   );
+});
+
+test('ambient traffic animates every actor kind through one deterministic observation contract', () => {
+  const rows = governedAssets();
+  const first = ambientActorApi.compileAmbientActors(rows.world);
+  const second = ambientActorApi.compileAmbientActors(rows.world);
+  assert.deepEqual(first, second);
+  assert.deepEqual(first.counts, { pedestrian: 4, bicycle: 3, scooter: 2, car: 4 });
+  assert.equal(first.actors.length, 13);
+  assert.deepEqual([...new Set(first.actors.map((row) => row.type))].sort(), ['bicycle', 'car', 'pedestrian', 'scooter']);
+  assert.ok(first.actors.every((row) => row.interactionRole === 'visible_ambient'));
+  assert.ok(first.actors.every((row) => row.provenance.kind === 'simulation_assumption' && row.provenance.isLiveCondition === false));
+  assert.ok(first.actors.every((row) => ['loop', 'ping_pong'].includes(row.motion.kind) && row.motion.speedMps > 0));
+
+  const model = worldApi.createWorldModel(rows.world);
+  assert.equal(model.ambientCompilation.schema, 'simulatte.autonomyAmbientActorCompilation.v1');
+  const atZero = new Map(model.activeActors(0).filter((row) => row.id.startsWith('ambient-')).map((row) => [row.id, row]));
+  const atOne = new Map(model.activeActors(1).filter((row) => row.id.startsWith('ambient-')).map((row) => [row.id, row]));
+  assert.equal(atZero.size, 13);
+  assert.ok([...atZero].every(([id, row]) => worldApi.distance(row.position, atOne.get(id).position) > 0));
+  assert.ok([...atOne.values()].every((row) => Number.isFinite(row.heading)));
+  assert.match(model.ambientCompilation.claimBoundary, /not observed traffic/i);
 });
 
 test('mission compiler grounds known labels to source intervals and fails closed', () => {
@@ -805,11 +936,17 @@ test('autonomy browser surface loads every declared module and stays independent
   assert.ok(scripts.indexOf('./world/region-pack-merger.js') < scripts.indexOf('./runtime/data-loader.js'));
   scripts.forEach((source) => assert.ok(fs.existsSync(path.resolve(autonomyDir, source)), `${source} should exist`));
   assert.match(html, /id="autonomy-canvas"/);
-  assert.match(html, /Start mission/);
+  assert.match(html, /id="follow-minimap"/);
+  assert.match(html, /id="shuffle-button"[^>]*>Shuffle</);
+  assert.match(html, /id="start-button"[^>]*>[\s\S]*?Start<\/button>/);
   assert.match(compatibilityHtml, /location\.replace/);
   assert.match(compatibilityHtml, /rel="canonical" href="\/"/);
-  assert.match(html, /class="brand" href="\.\/blank\/"/);
   assert.match(compilerHtml, /class="prompt-dock-autonomy" href="\/"/);
+  assert.doesNotMatch(html, /Every autonomous choice, exposed and settled/);
+  assert.doesNotMatch(html, /observe, retrieve, choose, settle/);
+  assert.doesNotMatch(html, /Mission compiler/);
+  assert.doesNotMatch(html, /Natural language to grounded obligations/);
+  assert.doesNotMatch(html, /3 regions \| 2026-07-13/);
   assert.doesNotMatch(html, /phase-0[1-8]/);
   for (const file of autonomySourceDirs.flatMap(jsFiles)) {
     assert.ok(fs.readFileSync(file, 'utf8').split(/\r?\n/).length <= 999, `${path.relative(root, file)} should remain below 1,000 lines`);
@@ -830,7 +967,7 @@ test('autonomy schemas are restrictive and SAME-R declares one intervention', as
   assert.equal(contract.matchedOperationDetails.evaluationOrder, 'scenario_then_lane_then_repetition');
   assert.equal(contract.matchedOperationDetails.modelIdentity, null);
   assert.equal(contract.matchedOperationDetails.adapterIdentity, null);
-  assert.equal(contract.matchedOperationDetails.runtimeSourcePaths.length, 18);
+  assert.equal(contract.matchedOperationDetails.runtimeSourcePaths.length, 19);
   assert.deepEqual(contract.causalContract.blockingGuardrails, [
     'zero_safety_violations',
     'all_required_obligations_pass',
@@ -845,7 +982,7 @@ test('autonomy schemas are restrictive and SAME-R declares one intervention', as
   assert.equal(scenarios.population, 'public_diagnostic');
   const runner = await import(pathToFileURL(path.join(root, 'tools/samer/autonomy/run-policy-trial.mjs')));
   const sourceIdentity = runner.hashRuntimeSources(contract.matchedOperationDetails.runtimeSourcePaths);
-  assert.equal(sourceIdentity.files.length, 18);
+  assert.equal(sourceIdentity.files.length, 19);
   assert.match(sourceIdentity.aggregateSha256, /^[a-f0-9]{64}$/);
   assert.ok(sourceIdentity.files.every((row) => /^[a-f0-9]{64}$/.test(row.sha256)));
   assert.equal(runner.isSaturated([], contract.budget), false);

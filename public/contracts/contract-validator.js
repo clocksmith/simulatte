@@ -116,6 +116,14 @@
     requireString(manifest.id, contract, '$.id');
     requireString(manifest.contentVersion, contract, '$.contentVersion');
     requireString(manifest.defaultMissionText, contract, '$.defaultMissionText');
+    const missionExamples = requireArray(manifest.missionExamples, contract, '$.missionExamples', 4);
+    missionExamples.forEach((row, index) => requireString(row, contract, `$.missionExamples[${index}]`));
+    if (new Set(missionExamples).size !== missionExamples.length) {
+      throw new AutonomyContractError(contract, '$.missionExamples', 'unique mission strings', missionExamples);
+    }
+    if (!missionExamples.includes(manifest.defaultMissionText)) {
+      throw new AutonomyContractError(contract, '$.missionExamples', 'defaultMissionText member', manifest.defaultMissionText);
+    }
     ['world', 'policy', 'featureCatalog', 'occurrenceCatalog', 'rerankerEvidence', 'regionRegistry'].forEach((key) => {
       const ref = requireObject(manifest[key], contract, `$.${key}`);
       requireString(ref.id, contract, `$.${key}.id`);

@@ -79,13 +79,50 @@ function compileParkNetwork(collection, { project, sourceContract, snapshotDate 
     nodes,
     segments,
     circuits: [circuit],
-    renderGeometry: [{
-      id: 'park-union-square-m089',
-      label: 'Union Square Park',
-      outerRing: [...rows.map((row) => ({ ...row.position })), { ...rows[0].position }],
-      source: structuredClone(source),
-    }],
+    renderGeometry: compileParkRenderGeometry(collection, { project, sourceContract, snapshotDate }),
   };
+}
+
+function compileParkRenderGeometry(collection, { project, sourceContract, snapshotDate }) {
+  return (collection.features || [])
+    .filter((feature) => feature?.properties?.gispropnum && ['Polygon', 'MultiPolygon'].includes(feature.geometry?.type))
+    .sort((left, right) => String(left.properties.gispropnum).localeCompare(String(right.properties.gispropnum)))
+    .flatMap((feature) => {
+      const propertyId = String(feature.properties.gispropnum);
+      const label = String(feature.properties.signname || feature.properties.name || propertyId);
+      const polygons = feature.geometry.type === 'Polygon' ? [feature.geometry.coordinates] : feature.geometry.coordinates;
+      const geometryWgs84Sha256 = sha256(Buffer.from(JSON.stringify(feature.geometry)));
+      const memberAreas = polygons.map((polygon) => Math.abs(polygonArea(cleanCoordinatePairs(polygon[0], project).map((row) => row.position))));
+      const largestMemberIndex = memberAreas.indexOf(Math.max(...memberAreas));
+      return polygons.map((polygon, memberIndex) => {
+        const rawRing = polygon[0];
+        let ring = cleanCoordinatePairs(rawRing, project);
+        if (ring.length > 1 && distance(ring[0].position, ring.at(-1).position) < 0.001) ring = ring.slice(0, -1);
+        if (ring.length < 3) throw new Error(`${label} property boundary member ${memberIndex} expected at least three distinct points`);
+        const outerRing = [...ring.map((row) => ({ ...row.position })), { ...ring[0].position }];
+        return {
+          id: propertyId === 'M089' && memberIndex === largestMemberIndex
+            ? 'park-union-square-m089'
+            : `park-${propertyId.toLowerCase()}-${String(memberIndex + 1).padStart(2, '0')}`,
+          label,
+          outerRing,
+          source: {
+            datasetId: sourceContract.id,
+            sourceRevision: snapshotDate,
+            propertyId,
+            boundaryKind: 'nyc_parks_property_boundary',
+            surfaceClaim: 'park_property_boundary_not_surveyed_sidewalk',
+            geometryWgs84Sha256,
+            selectedRingWgs84Sha256: sha256(Buffer.from(JSON.stringify(rawRing))),
+            memberCount: polygons.length,
+            selectedMemberIndex: memberIndex,
+            selectionMethod: 'all_exterior_members_v1',
+            claimBoundary: 'This row renders a frozen NYC Parks property exterior. It does not authorize traversal or claim current access, sidewalk placement, or obstacle-free conditions.',
+          },
+        };
+      });
+    })
+    .sort((left, right) => left.id.localeCompare(right.id));
 }
 
 function cleanCoordinatePairs(coordinates, project) {
@@ -121,4 +158,4 @@ function shortHash(value, length) {
   return crypto.createHash('sha256').update(String(value)).digest('hex').slice(0, length);
 }
 
-export { compileParkNetwork };
+export { compileParkNetwork, compileParkRenderGeometry };

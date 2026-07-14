@@ -7,17 +7,87 @@ Owner contracts:
 - `public/data/autonomy/patterns/nyc-replay-patterns-v1.json`
 - `tools/autonomy/build-nyc-autonomy-world.mjs`
 - `tools/autonomy/build-region-packs.mjs`
+- `tools/autonomy/manage-autonomy-data.mjs`
+- `tools/autonomy/source-catalog-v1.json`
 - `tools/autonomy/region-configs/nyc-core-v1.json`
 - `tools/autonomy/compile-geojson-tile.mjs`
 - `tools/autonomy/check-autonomy-data.mjs`
+
+## Source availability is not runtime capability
+
+The browser does not query NYC Open Data or OpenStreetMap. It loads one frozen,
+hash-pinned composition. A source may contain a street, park, sidewalk polygon,
+or historical count without providing the topology and mode contract required
+to execute a mission.
+
+| Available bytes | Missing executable proof |
+| --- | --- |
+| OSM street display geometry | Connected, access-aware pedestrian or roadway graph |
+| Sidewalk polygons and curb lines | Centerlines, crossings, directions, accessibility, and connectivity |
+| Park property polygons | Legal, obstacle-free, mode-eligible perimeter path |
+| DOT and TLC historical observations | Spatial join, timezone, missing-data rule, aggregation, and calibrated occurrence model |
+| Building footprints | Entrances or navigable indoor/outdoor access |
+
+The capability matrix turns a row on only after the exact embodiment,
+mission-family contract, and compiled graph or circuit are all registered.
+
+## Governed refresh and backfill
+
+`manage-autonomy-data.mjs` separates network access from activation. The
+catalog registers current world sources, pedestrian-topology candidates,
+month-partitioned bicycle/pedestrian and motor-vehicle counts, and TLC trip
+records. Every request carries authority, license, data class, capabilities,
+and the entry gate required before its bytes can speak for a runtime claim.
+
+Plan without network access:
+
+```bash
+npm run autonomy:data:plan -- \
+  --group pedestrian-topology \
+  --snapshot-date YYYY-MM-DD
+
+npm run autonomy:data:plan -- \
+  --group mobility-history \
+  --from YYYY-MM-01 \
+  --to YYYY-MM-01 \
+  --snapshot-date YYYY-MM-DD
+```
+
+Fetch into an untracked staging directory, then verify exact bytes:
+
+```bash
+npm run autonomy:data:fetch -- \
+  --group pedestrian-topology \
+  --snapshot-date YYYY-MM-DD \
+  --out artifacts/autonomy-data/pedestrian-YYYY-MM-DD
+
+npm run autonomy:data:backfill -- \
+  --group mobility-history \
+  --from YYYY-MM-01 \
+  --to YYYY-MM-01 \
+  --snapshot-date YYYY-MM-DD \
+  --out artifacts/autonomy-data/mobility-YYYY-MM-DD
+
+npm run autonomy:data:verify -- \
+  --receipt artifacts/autonomy-data/NAME/fetch-receipt.json
+```
+
+Fetching emits `staged_not_active`. Promotion requires the exact receipt hash
+and a new directory under `tools/autonomy/data-sources/`; it still does not
+compile, activate, or deploy the world. The repo-local `autonomy-data` skill
+encodes the full plan, fetch, verify, promote, compile, gate, and activate
+sequence.
 
 ## Checked-in data
 
 The hosted default is `nyc-core-autonomy-v1`. It is compiled
 from frozen NYC DOT bike routes, NYC building footprints, NYC borough
 boundaries, OpenStreetMap highway snapshots, and NYC Parks property geometry
-for Union Square Park (`M089`). Each source receipt records authority, license,
-request, snapshot date, raw byte count, and SHA-256.
+for McCarren (`B058`), Tompkins Square (`M088`), Union Square (`M089`), and
+Washington Square (`M098`). The four properties contribute nine rendered
+exterior members. Only Union Square has a separately gated executable circuit.
+Each source receipt records authority, license, request, snapshot date, raw
+byte count, and SHA-256.
 
 The manifest separately pins raw-file SHA-256 values for the world,
 embodiments, policy, feature catalog, occurrence catalog, and reranker evidence.
@@ -39,23 +109,35 @@ npm run build:autonomy:data
 npm run eval:autonomy:reranker
 ```
 
-`build-nyc-autonomy-world.mjs` reads the five canonical compressed snapshots
-under `tools/autonomy/data-sources/villages-williamsburg-2026-07-13/`. One run
+`build-nyc-autonomy-world.mjs` reads four canonical compressed snapshots under
+`tools/autonomy/data-sources/villages-williamsburg-2026-07-13/` and the
+separately promoted NYC Parks snapshot under
+`tools/autonomy/data-sources/nyc-parks-properties-2026-07-13-v2/`. One run
 emits synchronized world, feature-catalog, inverted-index, and occurrence
 artifacts. It labels ten mission-groundable places, compiles the directed bike
 network, produces the default policy-cost route, places authored scenario
 actors on that route, and writes time and event patterns against the generated
-IDs. The Parks compiler selects the largest projected exterior member from
-the official two-member `M089` MultiPolygon under a named deterministic rule.
-It hashes both the full source geometry and selected ring, emits the closed
-pedestrian circuit, and labels it as a property boundary rather than a
-surveyed sidewalk.
+IDs. The Parks compiler renders every exterior member from the four selected
+properties. It separately selects the largest projected exterior member of
+Union Square `M089`, hashes both the full geometry and selected ring, and emits
+that one closed pedestrian circuit as a property-boundary simulation path.
 
-Refresh only the official park snapshot without changing the other frozen
-sources:
+Refresh the park source through staging and immutable promotion. The world
+compiler refuses `--refresh-parks` so it cannot mutate accepted source bytes:
 
 ```bash
-node tools/autonomy/build-nyc-autonomy-world.mjs --refresh-parks
+npm run autonomy:data:fetch -- \
+  --source nyc-parks-properties \
+  --snapshot-date YYYY-MM-DD \
+  --out artifacts/autonomy-data/nyc-parks-properties-YYYY-MM-DD
+
+npm run autonomy:data:verify -- \
+  --receipt artifacts/autonomy-data/nyc-parks-properties-YYYY-MM-DD/fetch-receipt.json
+
+node tools/autonomy/manage-autonomy-data.mjs promote \
+  --receipt artifacts/autonomy-data/nyc-parks-properties-YYYY-MM-DD/fetch-receipt.json \
+  --target tools/autonomy/data-sources/nyc-parks-properties-YYYY-MM-DD-vNEXT \
+  --accept-receipt-sha VERIFIED_RECEIPT_SHA256
 ```
 
 `build-region-packs.mjs` can compile another region registry without changing

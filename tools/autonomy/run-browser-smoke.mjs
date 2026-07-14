@@ -242,6 +242,8 @@ async function runBrowserSmoke(options) {
       && result.actorMeshSchema === 'simulatte.autonomyActorMesh.v1'
       && result.actorMeshKinds === 'pedestrian,bicycle,scooter,car'
       && result.materialModel === 'metallic_roughness_vertex_v1'
+      && result.ambientActorCount === 13
+      && result.ambientActorKinds === 'pedestrian,bicycle,scooter,car'
       && result.rendererFrames > 0
       && result.staticVertexCount > 10000
       && result.retrievalRows > 0
@@ -254,6 +256,13 @@ async function runBrowserSmoke(options) {
       && result.selectedRows === 1
       && result.editInvalidatedController
       && result.missionLockedDuringRun
+      && result.shuffle.changed
+      && result.shuffle.startLabel === 'Start'
+      && result.copy.removedLabelsAbsent
+      && result.camera.startedInFollow
+      && result.camera.minimap.visible
+      && result.camera.minimap.frameCount > 0
+      && result.camera.minimap.projection === 'orthographic_top_north_up'
       && result.camera.regionTargetCount === 3
       && result.camera.placeTargetCount === 10
       && result.camera.modeProbes.every((row) => row.began && row.noSnap && row.progressed && row.settled && row.moved)
@@ -273,12 +282,14 @@ async function runBrowserSmoke(options) {
       && actorView.transition === 'settled'
       && actorView.followDistance <= 5.01
       && actorView.dynamicVertexCount > 1000
+      && actorView.minimapVisible
+      && actorView.minimapFrameCount > 0
       && result.scrollY === 0
       && !result.hasHorizontalOverflow
       && errors.length === 0
       && failedResponses.length === 0;
     const report = {
-      schema: 'simulatte.autonomyBrowserSmoke.v4',
+      schema: 'simulatte.autonomyBrowserSmoke.v5',
       pass,
       targetUrl,
       viewport: options.viewport,
@@ -308,6 +319,7 @@ async function runBrowserSmoke(options) {
 function actorViewExpression() {
   return `(async () => {
     const canvas = document.getElementById('autonomy-canvas');
+    const minimap = document.getElementById('follow-minimap');
     canvas.scrollIntoView({ block: 'center', behavior: 'instant' });
     document.getElementById('camera-follow').click();
     const started = performance.now();
@@ -323,6 +335,10 @@ function actorViewExpression() {
       followDistance: Number(canvas.dataset.cameraFollowDistance),
       dynamicVertexCount: Number(canvas.dataset.dynamicVertexCount),
       actorMeshSchema: canvas.dataset.actorMeshSchema,
+      ambientActorCount: Number(canvas.dataset.ambientActorCount),
+      ambientActorKinds: canvas.dataset.ambientActorKinds,
+      minimapVisible: !minimap.hidden && canvas.dataset.followMinimap === 'visible',
+      minimapFrameCount: Number(minimap.dataset.frameCount || 0),
     };
   })()`;
 }
@@ -359,7 +375,28 @@ function browserJourneyExpression() {
     };
     await waitFor(() => document.getElementById('runtime-status').dataset.kind === 'ready', 'runtime-ready');
     const canvas = document.getElementById('autonomy-canvas');
+    const minimap = document.getElementById('follow-minimap');
     const focusSelect = document.getElementById('camera-focus');
+    const missionInput = document.getElementById('mission-input');
+    const shuffleButton = document.getElementById('shuffle-button');
+    const startButton = document.getElementById('start-button');
+    const originalMission = missionInput.value;
+    shuffleButton.click();
+    const shuffledMission = missionInput.value;
+    const shuffle = {
+      changed: shuffledMission.length > 0 && shuffledMission !== originalMission,
+      originalMission,
+      shuffledMission,
+      startLabel: startButton.textContent.trim(),
+    };
+    const visibleCopy = document.body.innerText;
+    const copy = {
+      removedLabelsAbsent: !visibleCopy.includes('Mission compiler')
+        && !visibleCopy.includes('Natural language to grounded obligations')
+        && !visibleCopy.includes('Every autonomous choice, exposed and settled.')
+        && !visibleCopy.includes('observe, retrieve, choose, settle')
+        && !visibleCopy.includes('3 regions | 2026-07-13'),
+    };
     const sleep = (duration) => new Promise((resolve) => setTimeout(resolve, duration));
     const vector = (value) => String(value || '').split(',').map(Number);
     const vectorDistance = (left, right) => Math.hypot(...left.map((value, index) => value - right[index]));
@@ -469,13 +506,23 @@ function browserJourneyExpression() {
     const returnedToRoute = canvas.dataset.cameraMode === 'bird'
       && canvas.dataset.cameraFocus === 'route'
       && canvas.dataset.cameraTransition === 'settled';
-    const missionInput = document.getElementById('mission-input');
     missionInput.value = 'run in circles around union squatre park parimeter until youve ran 5000 feet';
     missionInput.dispatchEvent(new Event('input', { bubbles: true }));
     const editInvalidatedController = document.getElementById('export-button').disabled
       && document.getElementById('runtime-status').dataset.kind === 'changed';
-    document.getElementById('start-button').click();
+    startButton.click();
     const missionLockedDuringRun = missionInput.disabled;
+    await waitFor(() => canvas.dataset.cameraMode === 'follow'
+      && canvas.dataset.followMinimap === 'visible'
+      && !minimap.hidden
+      && Number(minimap.dataset.frameCount || 0) > 0, 'start-follow-minimap', 5000);
+    const startedInFollow = canvas.dataset.cameraMode === 'follow';
+    const minimapReceipt = {
+      visible: canvas.dataset.followMinimap === 'visible' && !minimap.hidden,
+      projection: minimap.dataset.projection,
+      radiusM: Number(minimap.dataset.radiusM),
+      frameCount: Number(minimap.dataset.frameCount || 0),
+    };
     await waitFor(() => ['completed', 'failed'].includes(document.getElementById('metric-state').textContent), 'journey-terminal');
     await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     return {
@@ -495,6 +542,8 @@ function browserJourneyExpression() {
       rerankRows: document.querySelectorAll('#rerank-candidates > span').length,
       occurrenceRows: document.querySelectorAll('#occurrence-patterns > span').length,
       rerankerProof: document.getElementById('reranker-proof').textContent,
+      shuffle,
+      copy,
       camera: {
         regionTargetCount: regionOptions.length,
         placeTargetCount: placeOptions.length,
@@ -507,6 +556,8 @@ function browserJourneyExpression() {
         followZoomBefore,
         followZoomAfter,
         returnedToRoute,
+        startedInFollow,
+        minimap: minimapReceipt,
       },
       editInvalidatedController,
       missionLockedDuringRun,
@@ -514,6 +565,8 @@ function browserJourneyExpression() {
       actorMeshSchema: document.getElementById('autonomy-canvas').dataset.actorMeshSchema || null,
       actorMeshKinds: document.getElementById('autonomy-canvas').dataset.actorMeshKinds || null,
       materialModel: document.getElementById('autonomy-canvas').dataset.materialModel || null,
+      ambientActorCount: Number(document.getElementById('autonomy-canvas').dataset.ambientActorCount || 0),
+      ambientActorKinds: document.getElementById('autonomy-canvas').dataset.ambientActorKinds || null,
       adapterName: document.getElementById('autonomy-canvas').dataset.adapterName || null,
       rendererFrames: Number(document.getElementById('autonomy-canvas').dataset.frameCount || 0),
       staticVertexCount: Number(document.getElementById('autonomy-canvas').dataset.staticVertexCount || 0),

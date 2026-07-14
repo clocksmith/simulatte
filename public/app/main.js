@@ -20,7 +20,6 @@
       return null;
     }
     elements.missionInput.value = data.manifest.defaultMissionText;
-    elements.dataIdentity.textContent = `${data.regionComposition.packIds.length} regions | ${data.world.provenance.snapshotDate}`;
     const traceView = traceApi.createTraceView(elements, data.policy, data.rerankerEvidence);
     let controller = null;
     let renderer = null;
@@ -50,6 +49,7 @@
       });
       if (!renderer) {
         renderer = await canvasApi.createCanvasRenderer(elements.autonomyCanvas, nextController.worldModel, {
+          minimapCanvas: elements.followMinimap,
           regionRegistry: data.regionRegistry,
           regionPacks: data.regionPacks,
           onFailure: (error) => {
@@ -82,6 +82,8 @@
     async function runLoop() {
       updateButtons(elements, true, Boolean(controller));
       if (!controller || controller.snapshot().state.status !== 'active') await buildController({ keepMissionLocked: true });
+      renderer.setCameraMode('follow');
+      selectCameraMode(elements, 'follow');
       isRunning = true;
       updateButtons(elements, true, true);
       setRuntimeStatus(elements, 'Executing continuous action bets', 'active');
@@ -102,6 +104,11 @@
         stopLoop();
         failRuntime(elements, error);
       }
+    });
+    elements.shuffleButton.addEventListener('click', () => {
+      if (isRunning) return;
+      elements.missionInput.value = nextMissionExample(data.manifest.missionExamples, elements.missionInput.value);
+      elements.missionInput.dispatchEvent(new Event('input', { bubbles: true }));
     });
     elements.pauseButton.addEventListener('click', () => {
       stopLoop();
@@ -151,8 +158,8 @@
 
   function collectElements() {
     const ids = [
-      'mission-input', 'start-button', 'pause-button', 'step-button', 'reset-button', 'export-button',
-      'runtime-status', 'data-identity', 'render-identity', 'autonomy-canvas', 'decision-title', 'decision-meta',
+      'mission-input', 'shuffle-button', 'start-button', 'pause-button', 'step-button', 'reset-button', 'export-button',
+      'runtime-status', 'render-identity', 'autonomy-canvas', 'follow-minimap', 'decision-title', 'decision-meta',
       'bet-list', 'gate-list', 'trace-list', 'route-formula', 'route-stats', 'route-components',
       'retrieval-query', 'retrieval-candidates', 'rerank-candidates', 'retrieval-stats', 'settlement-math',
       'reranker-proof',
@@ -169,13 +176,20 @@
       [elements.cameraBird, 'bird'],
       [elements.cameraTop, 'top'],
     ];
-    const selectMode = (mode) => controls.forEach(([row, rowMode]) => row.classList.toggle('is-active', rowMode === mode));
     populateCameraFocus(elements.cameraFocus, renderer.cameraTargets());
     controls.forEach(([button, mode]) => button.addEventListener('click', () => {
       renderer.setCameraMode(mode);
-      selectMode(mode);
+      selectCameraMode(elements, mode);
     }));
-    elements.cameraFocus.addEventListener('change', () => selectMode(renderer.focusCameraTarget(elements.cameraFocus.value)));
+    elements.cameraFocus.addEventListener('change', () => selectCameraMode(elements, renderer.focusCameraTarget(elements.cameraFocus.value)));
+  }
+
+  function selectCameraMode(elements, mode) {
+    [
+      [elements.cameraFollow, 'follow'],
+      [elements.cameraBird, 'bird'],
+      [elements.cameraTop, 'top'],
+    ].forEach(([button, buttonMode]) => button.classList.toggle('is-active', buttonMode === mode));
   }
 
   function populateCameraFocus(select, targets) {
@@ -206,6 +220,7 @@
 
   function updateButtons(elements, running, hasController) {
     elements.missionInput.disabled = running;
+    elements.shuffleButton.disabled = running;
     elements.startButton.disabled = running;
     elements.pauseButton.disabled = !running;
     elements.stepButton.disabled = running;
@@ -228,12 +243,29 @@
     if (state.status === 'completed' && state.taskType === 'loop') return `Loop complete: ${state.distanceTraveledM.toFixed(1)} m | ${state.completedLaps} full lap(s) | ${state.simulatedTimeSeconds.toFixed(1)} s`;
     if (state.status === 'completed') return `Delivered at tick ${state.tick}`;
     if (state.status === 'failed') return `Stopped: ${state.terminalReason}`;
-    return `Tick ${state.tick}: observe, retrieve, choose, settle`;
+    return `Tick ${state.tick}`;
+  }
+
+  function nextMissionExample(examples, currentText) {
+    const rows = [...new Set((examples || []).map((row) => String(row).trim()).filter(Boolean))]
+      .sort((left, right) => hash32(left) - hash32(right) || left.localeCompare(right));
+    if (rows.length < 2) throw new Error('Mission shuffle expected at least two governed examples');
+    const currentIndex = rows.indexOf(String(currentText || '').trim());
+    return rows[(currentIndex + 1 + rows.length) % rows.length];
+  }
+
+  function hash32(value) {
+    let hash = 2166136261;
+    for (const character of String(value)) {
+      hash ^= character.codePointAt(0);
+      hash = Math.imul(hash, 16777619);
+    }
+    return hash >>> 0;
   }
 
   function renderIdentity(receipt) {
     const adapter = receipt.adapter.description || receipt.adapter.device || receipt.adapter.architecture || 'adapter';
-    return `${adapter} | ${receipt.buildingCount} buildings | ${receipt.parkCount} park | ${receipt.staticVertexCount.toLocaleString()} vertices`;
+    return `${adapter} | ${receipt.buildingCount} buildings | ${receipt.ambientTraffic.actorCount} moving actors | ${receipt.staticVertexCount.toLocaleString()} static vertices`;
   }
 
   function downloadJson(filename, value) {
@@ -251,5 +283,5 @@
     else start();
   }
 
-  return { collectElements, populateCameraFocus, renderIdentity, runtimeLabel, start };
+  return { collectElements, nextMissionExample, populateCameraFocus, renderIdentity, runtimeLabel, selectCameraMode, start };
 });

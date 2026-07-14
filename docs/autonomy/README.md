@@ -1,4 +1,4 @@
-# Simulatte autonomy
+# Simulatte navigation
 
 Owner contracts:
 
@@ -11,7 +11,7 @@ Owner contracts:
 
 ## Product goal
 
-Simulatte Autonomy runs governed bicycle-delivery and pedestrian-loop agents
+Simulatte runs governed bicycle-delivery and pedestrian-loop agents
 in a browser simulation. The simulator is the execution and evaluation
 substrate. The product behavior is the repeated decision loop:
 
@@ -36,6 +36,7 @@ The autonomy system is a sibling of the prompt-to-pixels pipeline.
 | `public/app/`, `public/runtime/`, `public/world/` | Online mission, observation, action-bet, safety, execution, settlement, and verification runtime served at `/` |
 | `public/data/autonomy/` | Governed world, embodiment, policy, occurrences, feature cards, evidence, and asset hashes |
 | `tools/autonomy/` | Source acquisition, world compilation, mission construction, evaluation, and data validation |
+| `skills/autonomy-data/` | Repeatable plan, fetch, backfill, verify, promote, compile, and activation workflow |
 | `tools/samer/autonomy/` | Matched policy experiments across journeys |
 | `tests/autonomy.test.cjs` | Autonomy contract, runtime, replay, browser, and data tests |
 
@@ -131,16 +132,18 @@ covers named nodes from West Village and Union Square through East Village,
 the Williamsburg Bridge corridor, North Williamsburg, McCarren Park, and
 Greenpoint. Its manifest pins the compiled world by SHA-256. The world retains
 frozen source receipts for NYC bike routes, NYC building footprints, NYC
-borough geometry, OpenStreetMap streets, and the NYC Parks Union Square Park
-property geometry.
+borough geometry, OpenStreetMap streets, and NYC Parks property geometry for
+McCarren, Tompkins Square, Union Square, and Washington Square.
 
 The artifact contains 2,491 multimodal nodes, 3,723 directed segments, 6,589
-OSM street ways, one 69-segment pedestrian circuit, and 8,500 retained
-building footprints from 26,990 source footprints. The park circuit follows
-the largest exterior member of property `M089`; the full source geometry and
-selected ring are separately hashed. It is a property-boundary simulation
-path, not a surveyed sidewalk centerline or an access/obstacle claim. The
-building LOD receipt says that it is not full coverage.
+OSM street ways, nine rendered exterior boundary members from four official
+park properties, one 69-segment pedestrian circuit, and 8,500 retained
+building footprints from 26,990 source footprints. The executable circuit
+follows the largest exterior member of Union Square property `M089`; the full
+source geometry and selected ring are separately hashed. The other park rows
+are display context only. A property boundary is not a surveyed sidewalk
+centerline or an access/obstacle claim. The building LOD receipt says that it
+is not full coverage.
 
 The browser renderer requires WebGPU and fails closed when the adapter,
 device, shader, or render geometry is unavailable. It draws source-bound
@@ -151,11 +154,19 @@ shared procedural mesh contract uses articulated riders, wheels and frames,
 vehicle proportions, smooth normals, and per-vertex metallic/roughness lanes;
 it does not substitute mode-specific controllers. Follow, bird, and top
 camera changes interpolate; bird/top pan, orbit where applicable, and mouse
-wheel zoom work, including near and far Follow distance. The reference dynamics
-remain on CPU. A browser receipt records the adapter, backend, frame count,
-vertex counts, world identity, park/circuit counts, visible feature counts,
-and Follow distance. Rendered pixels aid inspection but do not prove physical
-safety.
+wheel zoom work, including near and far Follow distance. Starting a mission
+selects Follow and opens a north-up WebGPU top-view minimap centered on the
+controlled agent. The reference dynamics remain on CPU. A browser receipt
+records the adapter, backend, frame count, vertex counts, world identity,
+park/circuit counts, visible feature counts, Follow distance, and minimap
+projection. A deterministic ambient compiler animates four
+pedestrians, three bicycles, two scooters, and four cars from frozen park,
+bike-facility, and street render geometry. All four kinds share the same actor
+mesh and distance-parameterized animation path. They enter observations and
+receipts as `visible_ambient`, but do not become safety-blocking until their
+paths pass the corresponding mode-legal topology gates. Authored scenario
+pedestrians remain hard clearance obstacles. Rendered pixels aid inspection
+but do not prove physical safety or observed traffic realism.
 
 `nyc-training-corridor-v1` remains a small synthetic test fixture. It does not
 back the hosted default mission.
@@ -232,6 +243,9 @@ only on the exposed diagnostic rows.
 npm run serve
 npm run serve:static
 npm run check:autonomy
+npm run autonomy:data:plan -- --group pedestrian-topology --snapshot-date YYYY-MM-DD
+npm run autonomy:data:plan -- --group mobility-history --from YYYY-MM-01 --to YYYY-MM-01 --snapshot-date YYYY-MM-DD
+npm run autonomy:data:verify -- --receipt PATH/fetch-receipt.json
 npm run build:autonomy:data
 npm run eval:autonomy:reranker
 npm run audit:autonomy:browser
@@ -244,7 +258,7 @@ npm test
 
 Open `http://localhost:4173/` when using `npm run serve:static`. The compiler
 remains available at `http://localhost:4173/blank/`; `/autonomy/` redirects to
-the root Autonomy runtime.
+the root Simulatte runtime.
 
 ## Claim boundary
 
@@ -255,8 +269,11 @@ time termination have separate exact settlement evidence. Delivery place
 correction and named-street avoidance retain source spans and graph evidence.
 For the exact 5,000-foot Union Square mission, the receipt binds the 0.3048
 conversion, source boundary, ordered segments, full laps, partial lap, and
-exact 1,524-meter settlement.
-Frozen geometry provenance does not make authored traffic live or historical,
-and a park property boundary is not a surveyed sidewalk. The evidence does
+exact 1,524-meter settlement. The ambient four-kind traffic layer is animated,
+observation-visible
+simulation context; its paths are explicitly nonblocking until compiled from
+mode-legal topology. Frozen geometry provenance does not make authored traffic
+live or historical, and a park property boundary is not a surveyed sidewalk.
+The evidence does
 not establish physical bicycle or pedestrian control, robotaxi safety,
 public-road readiness, realistic traffic, or policy promotion.

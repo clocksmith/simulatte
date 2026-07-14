@@ -17,9 +17,10 @@
       }
       const selected = receipt.bets.find((row) => row.bet.id === receipt.selectedBetId);
       elements.decisionTitle.textContent = selected ? label(selected.bet.action.maneuver) : 'No decision';
+      const nearbyActorSummary = actorSummary(receipt.observation.nearbyActors);
       elements.decisionMeta.textContent = selected
-        ? `Tick ${receipt.tick} · utility ${format(selected.utility, 2)} · confidence ${format(selected.bet.confidence * 100, 0)}%`
-        : `Tick ${receipt.tick}`;
+        ? `Tick ${receipt.tick} · utility ${format(selected.utility, 2)} · confidence ${format(selected.bet.confidence * 100, 0)}% · ${nearbyActorSummary}`
+        : `Tick ${receipt.tick} · ${nearbyActorSummary}`;
       elements.betList.replaceChildren(...receipt.bets.map((row) => betRow(row, receipt.selectedBetId)));
       renderRoute(elements, receipt.observation.route);
       renderRetrieval(elements, receipt.observation.featureRetrieval);
@@ -140,7 +141,7 @@
     heading.innerHTML = `<span>Tick ${receipt.tick}</span><span>${escapeHtml(selected ? label(selected.bet.action.maneuver) : 'failure')}</span>`;
     const meta = document.createElement('div');
     meta.className = 'trace-row-meta';
-    meta.textContent = `${format(receipt.transition.progressDeltaM, 1)} m · ${format(receipt.transition.endSpeedMps, 1)} m/s · ${rejected} gated · ${receipt.settlement.verdict}`;
+    meta.textContent = `${format(receipt.transition.progressDeltaM, 1)} m · ${format(receipt.transition.endSpeedMps, 1)} m/s · ${receipt.observation.nearbyActors.length} actors · ${rejected} gated · ${receipt.settlement.verdict}`;
     traceRow.append(heading, meta);
     elements.traceList.prepend(traceRow);
     while (elements.traceList.children.length > 48) elements.traceList.lastElementChild.remove();
@@ -204,6 +205,14 @@
     return `${number >= 0 ? '+' : ''}${format(number, 2)}`;
   }
 
+  function actorSummary(actors) {
+    if (!actors.length) return 'no nearby actors';
+    const counts = actors.reduce((rows, actor) => ({ ...rows, [actor.type]: (rows[actor.type] || 0) + 1 }), {});
+    const mix = Object.entries(counts).sort(([left], [right]) => left.localeCompare(right))
+      .map(([kind, count]) => `${count} ${kind}`).join(', ');
+    return `${actors.length} nearby: ${mix}`;
+  }
+
   function setText(element, value) {
     if (element) element.textContent = String(value);
   }
@@ -212,5 +221,5 @@
     return String(value).replace(/[&<>"]/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[character]));
   }
 
-  return { createTraceView, format, label, signed };
+  return { actorSummary, createTraceView, format, label, signed };
 });

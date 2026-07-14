@@ -42,10 +42,12 @@ obligations.
 Square, East Village, Tompkins Square, the Williamsburg Bridge corridor,
 Williamsburg waterfront, North Williamsburg, McCarren Park, and Greenpoint.
 The compiled artifact contains 2,491 multimodal nodes, 3,723 directed edges,
-6,589 OSM street ways, one official-source Union Square property-boundary
-circuit, and a deterministic 8,500-footprint rendering LOD
-from 26,990 source buildings. Per-source receipts retain authority, license,
-query, snapshot date, and raw SHA-256.
+6,589 OSM street ways, nine exterior members from four official NYC Parks
+properties, one executable Union Square property-boundary circuit, and a
+deterministic 8,500-footprint rendering LOD from 26,990 source buildings.
+McCarren, Tompkins Square, Union Square, and Washington Square are visible map
+context; only Union Square has passed the separate circuit gate. Per-source
+receipts retain authority, license, query, snapshot date, and raw SHA-256.
 
 The browser no longer treats that artifact as one indivisible map file. It
 loads a SHA-256-pinned registry and three packs for Manhattan Villages, the
@@ -57,8 +59,11 @@ The pack boundaries are loading and provenance boundaries, not geographic
 limits on simulation behavior.
 
 The occurrence catalog drives one assumed signal, one tick-window pedestrian,
-and one node-event pedestrian. These are scenario assumptions, not observed
-traffic. The public diagnostic set freezes 20 by-construction missions with
+and one node-event pedestrian. A separate deterministic ambient layer renders
+four pedestrians, three bicycles, two scooters, and four cars and exposes them
+to observations. Their render-derived paths are nonblocking until mode-legal
+topology is compiled. All are scenario assumptions, not observed traffic. The
+public diagnostic set freezes 20 by-construction missions with
 gold endpoints, constraints, obligations, and route controls. It is exposed
 regression evidence, not a contamination-secure promotion holdout.
 
@@ -78,7 +83,9 @@ mission or expands the active world's geographic claim.
 1. **External sealed promotion set.** The 20 checked-in missions cannot become
    sealed by wording. Promotion evidence needs an unmounted population,
    candidate commitment, one authorized opening, and a terminal receipt.
-2. **Historical occurrence sources.** Compile dated TLC, Citi Bike, DOT,
+2. **Historical occurrence sources.** The source catalog and month-partitioned
+   fetch/backfill receipts now exist for DOT counts and TLC records. Compile
+   accepted snapshots, plus Citi Bike, weather, 311, and map history,
    weather, 311, and map-history snapshots into the same occurrence contract.
    Every replay pattern must name the dataset, snapshot, spatial join, time
    transform, and missing-data rule.
