@@ -28,6 +28,7 @@
     avenue: 'av', ave: 'av', av: 'av', street: 'st', str: 'st', st: 'st', boulevard: 'blvd', blvd: 'blvd',
     road: 'rd', rd: 'rd', lane: 'ln', ln: 'ln', place: 'pl', pl: 'pl', square: 'sq', sq: 'sq',
   });
+  const modeNodeCache = new WeakMap();
 
   function compileMission(sourceText, world, embodimentInput, options = {}) {
     const text = String(sourceText || '').trim();
@@ -403,13 +404,21 @@
 
   function nodesForMode(world, mode) {
     if (!mode) return world.nodes;
+    let rowsByMode = modeNodeCache.get(world);
+    if (!rowsByMode) {
+      rowsByMode = new Map();
+      modeNodeCache.set(world, rowsByMode);
+    }
+    if (rowsByMode.has(mode)) return rowsByMode.get(mode);
     const nodeIds = new Set();
     world.segments.forEach((segment) => {
       if (!segment.allowedModes.includes(mode)) return;
       nodeIds.add(segment.fromNodeId);
       nodeIds.add(segment.toNodeId);
     });
-    return world.nodes.filter((row) => nodeIds.has(row.id) && (!row.landmark?.modes || row.landmark.modes.includes(mode)));
+    const rows = world.nodes.filter((row) => nodeIds.has(row.id) && (!row.landmark?.modes || row.landmark.modes.includes(mode)));
+    rowsByMode.set(mode, rows);
+    return rows;
   }
 
   function placeEvidenceMethod(match) {

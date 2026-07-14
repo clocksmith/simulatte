@@ -85,7 +85,7 @@
   "placeResolutionEvidence": {
     "id": "place-resolution-public-diagnostic-v1",
     "path": "./evidence/place-resolution-public-diagnostic-v1.json",
-    "sha256": "8842006e9f385055026454bae00a9b20d412bc80113165beda6ae83f5109165c"
+    "sha256": "1b139f40b4032005062c1c26da99bf3d0c3ed36baaa9b256663bec4d5a01ecb2"
   },
   "policy": {
     "id": "bet-selector-v1",

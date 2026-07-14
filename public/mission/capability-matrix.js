@@ -8,8 +8,14 @@
   const EMBODIMENT_KINDS = Object.freeze(['pedestrian', 'bicycle', 'scooter', 'car']);
   const MISSION_FAMILIES = Object.freeze(['delivery', 'point_to_point', 'closed_circuit']);
   const CIRCUIT_TERMINATIONS = Object.freeze(['distance', 'laps', 'duration']);
+  const matrixCache = new WeakMap();
 
   function buildCapabilityMatrix(world, embodimentInput) {
+    if (world && embodimentInput && typeof embodimentInput === 'object') {
+      const cachedByEmbodiment = matrixCache.get(world);
+      const cached = cachedByEmbodiment?.get(embodimentInput);
+      if (cached) return cached;
+    }
     const embodiments = Array.isArray(embodimentInput) ? embodimentInput : embodimentInput ? [embodimentInput] : [];
     const rows = EMBODIMENT_KINDS.flatMap((kind) => {
       const embodiment = embodiments.find((candidate) => candidate.kind === kind) || null;
@@ -26,13 +32,22 @@
         circuits,
       }));
     });
-    return {
+    const matrix = {
       schema: MATRIX_SCHEMA,
       worldId: world.id,
       worldContentVersion: world.contentVersion,
       rows,
       claimBoundary: 'A supported row proves only that the named embodiment, mission family, and governed graph or circuit artifacts are registered together. It does not establish physical-world autonomy or legality outside those artifacts.',
     };
+    if (world && embodimentInput && typeof embodimentInput === 'object') {
+      let cachedByEmbodiment = matrixCache.get(world);
+      if (!cachedByEmbodiment) {
+        cachedByEmbodiment = new WeakMap();
+        matrixCache.set(world, cachedByEmbodiment);
+      }
+      cachedByEmbodiment.set(embodimentInput, matrix);
+    }
+    return matrix;
   }
 
   function capabilityRow({ kind, missionFamily, embodiment, graphSegments, graphArtifactIds, circuits }) {

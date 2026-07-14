@@ -393,6 +393,8 @@ function browserJourneyExpression() {
     await waitFor(() => document.getElementById('runtime-status').dataset.kind === 'ready', 'runtime-ready');
     const rafIntervals = [];
     const longTasks = [];
+    const phaseMarks = [{ phase: 'sampling_started', at: performance.now() }];
+    const markPhase = (phase) => phaseMarks.push({ phase, at: performance.now() });
     let lastRafTimestamp = null;
     let sampleRaf = true;
     const sampleFrame = (timestamp) => {
@@ -479,6 +481,7 @@ function browserJourneyExpression() {
       && Number.isFinite(followZoomAfter)
       && followZoomAfter < followZoomBefore;
     modeProbes.push(await probeMode('bird'));
+    markPhase('camera_modes_complete');
 
     const focusBefore = cameraTarget();
     const regionTargetId = regionOptions.find((option) => option.value.includes('north-brooklyn'))?.value || regionOptions.at(-1)?.value;
@@ -543,11 +546,14 @@ function browserJourneyExpression() {
     const returnedToRoute = canvas.dataset.cameraMode === 'bird'
       && canvas.dataset.cameraFocus === 'route'
       && canvas.dataset.cameraTransition === 'settled';
+    markPhase('camera_interactions_complete');
     missionInput.value = 'run in circles around union squatre park parimeter until youve ran 5000 feet';
     missionInput.dispatchEvent(new Event('input', { bubbles: true }));
     const editInvalidatedController = document.getElementById('export-button').disabled
       && document.getElementById('runtime-status').dataset.kind === 'changed';
+    markPhase('mission_edited');
     startButton.click();
+    markPhase('start_clicked');
     const missionLockedDuringRun = missionInput.disabled;
     await waitFor(() => canvas.dataset.cameraMode === 'follow'
       && canvas.dataset.followMinimap === 'visible'
@@ -560,11 +566,14 @@ function browserJourneyExpression() {
       radiusM: Number(minimap.dataset.radiusM),
       frameCount: Number(minimap.dataset.frameCount || 0),
     };
+    markPhase('follow_minimap_ready');
     await waitFor(() => ['completed', 'failed'].includes(document.getElementById('metric-state').textContent), 'journey-terminal');
+    markPhase('journey_terminal');
     await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     sampleRaf = false;
     longTaskObserver?.disconnect();
     const sortedFrameIntervals = [...rafIntervals].sort((left, right) => left - right);
+    const sampledLongTasks = longTasks.filter((row) => row.startTime >= phaseMarks[0].at);
     const percentile = (fraction) => sortedFrameIntervals[Math.min(sortedFrameIntervals.length - 1, Math.max(0, Math.ceil(sortedFrameIntervals.length * fraction) - 1))] || null;
     const roundMetric = (value) => Number.isFinite(value) ? Number(value.toFixed(4)) : null;
     const frameDistribution = {
@@ -652,9 +661,15 @@ function browserJourneyExpression() {
         over20msCount: rafIntervals.filter((value) => value > 20).length,
         over33msCount: rafIntervals.filter((value) => value > 33.34).length,
         over33msRatio: roundMetric(rafIntervals.filter((value) => value > 33.34).length / Math.max(1, rafIntervals.length)),
-        longTaskCount: longTasks.length,
-        longTaskTotalMs: roundMetric(longTasks.reduce((sum, row) => sum + row.duration, 0)),
-        longestTaskMs: roundMetric(Math.max(0, ...longTasks.map((row) => row.duration))),
+        longTaskCount: sampledLongTasks.length,
+        longTaskTotalMs: roundMetric(sampledLongTasks.reduce((sum, row) => sum + row.duration, 0)),
+        longestTaskMs: roundMetric(Math.max(0, ...sampledLongTasks.map((row) => row.duration))),
+        phaseMarks,
+        longTasks: sampledLongTasks.map((row) => ({
+          startTime: roundMetric(row.startTime),
+          duration: roundMetric(row.duration),
+          phase: [...phaseMarks].reverse().find((mark) => mark.at <= row.startTime)?.phase || 'before_sampling',
+        })),
       },
       staticVertexCount: Number(document.getElementById('autonomy-canvas').dataset.staticVertexCount || 0),
       dynamicVertexCount: Number(document.getElementById('autonomy-canvas').dataset.dynamicVertexCount || 0),

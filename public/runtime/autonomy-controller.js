@@ -56,10 +56,13 @@
   verifier,
   accessibility
 ) {
+  // Loaded governed assets are hash-verified and remain immutable for their
+  // object lifetime. Rebuilding a controller must not rescan the full render
+  // geometry on the UI thread.
+  const staticValidationCache = new WeakMap();
+
   function createAutonomyController({ world, featureCatalog, occurrenceCatalog = null, accessibilityIndex = null, routeAmenityIndex = null, safetyHistoryIndex = null, embodiment, policy, mission, regionComposition = null, onTick = null }) {
-    contracts.validateFeatureCatalog(featureCatalog);
-    contracts.validateWorld(world, featureCatalog);
-    if (occurrenceCatalog) contracts.validateOccurrenceCatalog(occurrenceCatalog, world);
+    validateStaticInputs(world, featureCatalog, occurrenceCatalog);
     contracts.validateEmbodiment(embodiment);
     contracts.validatePolicy(policy);
     contracts.validateMission(mission, world, embodiment);
@@ -178,7 +181,7 @@
     }
 
     async function journeyReceipt() {
-      const integrityCheck = await receipts.verifyReceiptChain(receiptChain);
+      const integrityCheck = await receipts.verifyReceiptChain(receiptChain, { yieldEveryEntries: 8 });
       const verification = verifier.verifyJourney({ mission, state, receiptChain, worldModel, planning });
       verification.integrityPass = integrityCheck.pass;
       verification.pass = verification.pass && integrityCheck.pass;
@@ -222,6 +225,15 @@
       planning: () => structuredClone(planning),
       worldModel,
     };
+  }
+
+  function validateStaticInputs(world, featureCatalog, occurrenceCatalog) {
+    const cached = staticValidationCache.get(world);
+    if (cached?.featureCatalog === featureCatalog && cached?.occurrenceCatalog === occurrenceCatalog) return;
+    contracts.validateFeatureCatalog(featureCatalog);
+    contracts.validateWorld(world, featureCatalog);
+    if (occurrenceCatalog) contracts.validateOccurrenceCatalog(occurrenceCatalog, world);
+    staticValidationCache.set(world, { featureCatalog, occurrenceCatalog });
   }
 
   function initialState(mission, worldModel) {

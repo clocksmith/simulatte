@@ -6,16 +6,12 @@
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteAutonomyWorld = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyWorldModule(ambientActors) {
+  const staticWorldCache = new WeakMap();
+
   function createWorldModel(world) {
-    const nodesById = new Map(world.nodes.map((row) => [row.id, row]));
-    const segmentsById = new Map(world.segments.map((row) => [row.id, row]));
-    const outgoingByNodeId = new Map(world.nodes.map((row) => [row.id, []]));
-    world.segments.forEach((segment) => outgoingByNodeId.get(segment.fromNodeId).push(segment));
-    outgoingByNodeId.forEach((rows) => rows.sort((left, right) => left.id.localeCompare(right.id)));
-    const signalsByNodeId = new Map();
-    world.signals.forEach((signal) => signalsByNodeId.set(signal.nodeId, signal));
-    const ambientCompilation = ambientActors.compileAmbientActors(world);
-    const allActors = [...world.actors, ...ambientCompilation.actors];
+    const statics = staticWorldCache.get(world) || compileStaticWorld(world);
+    staticWorldCache.set(world, statics);
+    const { nodesById, segmentsById, outgoingByNodeId, signalsByNodeId, ambientCompilation, allActors } = statics;
     let runtimeEffects = null;
 
     function applyRuntimeEffects(effects) {
@@ -154,6 +150,19 @@
       applyRuntimeEffects,
       runtimeEffects: () => structuredClone(runtimeEffects),
     };
+  }
+
+  function compileStaticWorld(world) {
+    const nodesById = new Map(world.nodes.map((row) => [row.id, row]));
+    const segmentsById = new Map(world.segments.map((row) => [row.id, row]));
+    const outgoingByNodeId = new Map(world.nodes.map((row) => [row.id, []]));
+    world.segments.forEach((segment) => outgoingByNodeId.get(segment.fromNodeId).push(segment));
+    outgoingByNodeId.forEach((rows) => rows.sort((left, right) => left.id.localeCompare(right.id)));
+    const signalsByNodeId = new Map();
+    world.signals.forEach((signal) => signalsByNodeId.set(signal.nodeId, signal));
+    const ambientCompilation = ambientActors.compileAmbientActors(world);
+    const allActors = [...world.actors, ...ambientCompilation.actors];
+    return { nodesById, segmentsById, outgoingByNodeId, signalsByNodeId, ambientCompilation, allActors };
   }
 
   function motionRatio(actor, tick) {

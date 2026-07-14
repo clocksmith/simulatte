@@ -503,6 +503,32 @@ test('ambient traffic animates every actor kind through one deterministic observ
   assert.match(model.ambientCompilation.claimBoundary, /not observed traffic/i);
 });
 
+test('controller rebuilds reuse validated immutable world topology without changing behavior', () => {
+  const rows = governedAssets();
+  const mission = missionApi.compileMission(rows.manifest.defaultMissionText, rows.world, rows.embodiments);
+  const firstMatrix = capabilityApi.buildCapabilityMatrix(rows.world, rows.embodiments);
+  const secondMatrix = capabilityApi.buildCapabilityMatrix(rows.world, rows.embodiments);
+  assert.strictEqual(secondMatrix, firstMatrix);
+
+  const originalValidateWorld = contracts.validateWorld;
+  let worldValidationCount = 0;
+  contracts.validateWorld = (...args) => {
+    worldValidationCount += 1;
+    return originalValidateWorld(...args);
+  };
+  try {
+    const first = makeController(rows, mission);
+    const second = makeController(rows, mission);
+    assert.equal(worldValidationCount, 1);
+    assert.strictEqual(second.worldModel.nodesById, first.worldModel.nodesById);
+    assert.strictEqual(second.worldModel.segmentsById, first.worldModel.segmentsById);
+    assert.strictEqual(second.worldModel.ambientCompilation, first.worldModel.ambientCompilation);
+    assert.deepEqual(second.snapshot(), first.snapshot());
+  } finally {
+    contracts.validateWorld = originalValidateWorld;
+  }
+});
+
 test('mission compiler grounds known labels to source intervals and fails closed', () => {
   const rows = assets();
   const mission = compileDefaultMission(rows);
@@ -898,7 +924,7 @@ test('receipt verification rejects a changed tick payload', async () => {
     terminalHash: journey.integrity.terminalHash,
     entries: structuredClone(journey.trace),
   };
-  assert.equal((await receipts.verifyReceiptChain(chain)).pass, true);
+  assert.equal((await receipts.verifyReceiptChain(chain, { yieldEveryEntries: 1 })).pass, true);
   chain.entries[1].payload.transition.endSpeedMps += 1;
   const result = await receipts.verifyReceiptChain(chain);
   assert.equal(result.pass, false);

@@ -73,7 +73,7 @@
     return entry;
   }
 
-  async function verifyReceiptChain(chain) {
+  async function verifyReceiptChain(chain, options = {}) {
     if (!chain || chain.schema !== 'simulatte.autonomyReceiptChain.v1') {
       return { pass: false, reason: 'invalid_chain_schema', entryCount: 0, terminalHash: null };
     }
@@ -89,6 +89,9 @@
         return { pass: false, reason: 'entry_hash_mismatch', failedSequence: index, entryCount: chain.entries.length, terminalHash: chain.terminalHash };
       }
       previousHash = entry.hash;
+      if (Number.isInteger(options.yieldEveryEntries) && options.yieldEveryEntries > 0 && (index + 1) % options.yieldEveryEntries === 0) {
+        await yieldToHost();
+      }
     }
     const pass = previousHash === chain.terminalHash;
     return {
@@ -97,6 +100,14 @@
       entryCount: chain.entries.length,
       terminalHash: chain.terminalHash,
     };
+  }
+
+  function yieldToHost() {
+    if (typeof root.requestAnimationFrame === 'function') {
+      return new Promise((resolve) => root.requestAnimationFrame(() => resolve()));
+    }
+    if (typeof root.setImmediate === 'function') return new Promise((resolve) => root.setImmediate(resolve));
+    return new Promise((resolve) => root.setTimeout(resolve, 0));
   }
 
   return { canonicalJson, sha256Hex, createReceiptChain, appendReceiptEntry, verifyReceiptChain };
