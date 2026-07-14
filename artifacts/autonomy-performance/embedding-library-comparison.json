@@ -1,0 +1,94 @@
+{
+  "schema": "simulatte.embeddingLibraryComparison.v1",
+  "generatedAt": "2026-07-14T13:02:22.223Z",
+  "identities": {
+    "simulatteCommit": "fe46af4a3e1dfd94d4fd2126d318cb456191c6b9",
+    "dopplerCommit": "a5f85a5e852df27cdfeb29714f70a978377792bf",
+    "dopplerConfig": {
+      "path": "benchmarks/vendors/embedding-compare.config.json",
+      "sha256": "064893c5f6c8033bfe6f48bc08c7ee0e06658a600e7569cafda80df5d6de0628"
+    },
+    "dopplerCatalog": {
+      "path": "models/catalog.json",
+      "sha256": "c1f21eac872ed1f97ca44796cb327ec5d8ec347b563e17717c28dafe5471cba1"
+    },
+    "rawReceiptSha256": "d3731582591efa61d1d02c630b2b1370a79b386fbcbadc51dd4844685e914bc3"
+  },
+  "models": {
+    "sourceCheckpointId": "Qwen/Qwen3-Embedding-0.6B",
+    "doppler": {
+      "id": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
+      "format": "RDRR Q4K EHF16 AF32",
+      "runtime": "Doppler"
+    },
+    "transformersjs": {
+      "id": "onnx-community/Qwen3-Embedding-0.6B-ONNX",
+      "format": "ONNX q4f16",
+      "runtime": "Transformers.js 4.x"
+    }
+  },
+  "workload": {
+    "prompt": "NYC navigation place: park with the marble arch",
+    "warmupRuns": 1,
+    "timedRuns": 3,
+    "cacheMode": "warm",
+    "loadMode": "http",
+    "pooling": "last_token",
+    "normalize": true,
+    "semanticFixture": "doppler/src/inference/fixtures/embedding-semantic-fixtures.json"
+  },
+  "host": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "cpu": "Apple M3",
+    "gpuBackend": "Metal 3 via WebGPU",
+    "browser": "HeadlessChrome/145.0.7632.6"
+  },
+  "validity": {
+    "lane": "performance_comparable",
+    "claimGrade": true,
+    "correctnessOk": true,
+    "releaseClaimable": true,
+    "invalidReasons": []
+  },
+  "accuracy": {
+    "doppler": {
+      "semanticPassed": true,
+      "semanticRetrievalTop1Accuracy": 1,
+      "semanticPairAccuracy": 0.6429,
+      "finiteRatio": 1,
+      "embeddingDimension": 1024
+    },
+    "transformersjs": {
+      "semanticPassed": true,
+      "semanticRetrievalTop1Accuracy": 1,
+      "semanticPairAccuracy": 0.6428571428571429,
+      "finiteRatio": 1,
+      "embeddingDimension": 1024
+    }
+  },
+  "performance": {
+    "doppler": {
+      "modelLoadMs": 106529.58,
+      "medianEmbeddingMs": 38.2,
+      "p95EmbeddingMs": 38.55,
+      "embeddingsPerSecond": 26.13
+    },
+    "transformersjs": {
+      "modelLoadMs": 35434.07000017166,
+      "medianEmbeddingMs": 42.640000343322754,
+      "p95EmbeddingMs": 43.895500326156615,
+      "embeddingsPerSecond": 23.19916473425596
+    },
+    "ratios": {
+      "dopplerMedianLatencyOverTransformersjs": 0.8959,
+      "dopplerThroughputOverTransformersjs": 1.1263,
+      "dopplerLoadTimeOverTransformersjs": 3.0064
+    }
+  },
+  "decision": {
+    "runtimeWinner": null,
+    "reason": "Both runtimes passed the shared semantic fixture. Doppler has better steady-state latency and throughput, while Transformers.js has materially lower load latency. Mission compilation should keep the deterministic control and only load a neural resolver after a separately promoted accuracy contract justifies its download and startup cost."
+  },
+  "claimBoundary": "The two lanes share a source checkpoint and semantic contract but use runtime-specific converted artifacts, not byte-identical weights. This receipt measures one Apple M3 Metal/WebGPU host and does not establish navigation-policy quality, sealed place-resolution promotion, or physical-world autonomy."
+}

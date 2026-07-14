@@ -1,7 +1,7 @@
 {
-  "schema": "simulatte.autonomyBrowserSmoke.v6",
+  "schema": "simulatte.autonomyBrowserSmoke.v7",
   "pass": true,
-  "targetUrl": "http://127.0.0.1:53698/",
+  "targetUrl": "http://127.0.0.1:61116/",
   "viewport": {
     "width": 390,
     "height": 844
@@ -147,7 +147,55 @@
     "ambientActorCount": 13,
     "ambientActorKinds": "pedestrian,bicycle,scooter,car",
     "adapterName": "metal-3",
-    "rendererFrames": 1628,
+    "rendererFrames": 1622,
+    "smoothness": {
+      "rafFrameCount": 1170,
+      "frameIntervalMs": {
+        "min": 14.5,
+        "p50": 16.7,
+        "p95": 18.7,
+        "p99": 18.8,
+        "max": 52,
+        "mean": 16.8364
+      },
+      "over20msCount": 11,
+      "over33msCount": 5,
+      "over33msRatio": 0.0043,
+      "longTaskCount": 0,
+      "longTaskTotalMs": 0,
+      "longestTaskMs": 0,
+      "phaseMarks": [
+        {
+          "phase": "sampling_started",
+          "at": 5662.699999809265
+        },
+        {
+          "phase": "camera_modes_complete",
+          "at": 8550
+        },
+        {
+          "phase": "camera_interactions_complete",
+          "at": 11079
+        },
+        {
+          "phase": "mission_edited",
+          "at": 11079.099999904633
+        },
+        {
+          "phase": "start_clicked",
+          "at": 11116.699999809265
+        },
+        {
+          "phase": "follow_minimap_ready",
+          "at": 11172.099999904633
+        },
+        {
+          "phase": "journey_terminal",
+          "at": 25333.599999904633
+        }
+      ],
+      "longTasks": []
+    },
     "staticVertexCount": 547548,
     "dynamicVertexCount": 47469,
     "canvasWidth": 370,
@@ -166,7 +214,7 @@
     "ambientActorCount": 13,
     "ambientActorKinds": "pedestrian,bicycle,scooter,car",
     "minimapVisible": true,
-    "minimapFrameCount": 1387
+    "minimapFrameCount": 1382
   },
   "errors": [],
   "failedResponses": [],
@@ -192,19 +240,19 @@
       "status": 200
     },
     {
-      "pathname": "/world/region-pack-merger.js",
-      "status": 200
-    },
-    {
       "pathname": "/runtime/data-loader.js",
       "status": 200
     },
     {
-      "pathname": "/runtime/runtime-log.js",
+      "pathname": "/runtime/neural-place-resolution-core.js",
       "status": 200
     },
     {
-      "pathname": "/runtime/neural-place-resolution-core.js",
+      "pathname": "/world/region-pack-merger.js",
+      "status": 200
+    },
+    {
+      "pathname": "/runtime/runtime-log.js",
       "status": 200
     },
     {
@@ -316,6 +364,10 @@
       "status": 200
     },
     {
+      "pathname": "/favicon.svg",
+      "status": 200
+    },
+    {
       "pathname": "/data/autonomy/policies/bet-selector-v1.json",
       "status": 200
     },
@@ -365,10 +417,6 @@
     },
     {
       "pathname": "/data/autonomy/evidence/policy-arena-public-diagnostic-v1/report.json",
-      "status": 200
-    },
-    {
-      "pathname": "/favicon.svg",
       "status": 200
     },
     {

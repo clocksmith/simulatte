@@ -1,10 +1,10 @@
 {
   "schema": "simulatte.autonomyBrowserSmoke.v7",
   "pass": true,
-  "targetUrl": "http://127.0.0.1:60815/",
+  "targetUrl": "http://127.0.0.1:58703/",
   "viewport": {
-    "width": 1440,
-    "height": 1000
+    "width": 390,
+    "height": 844
   },
   "browser": {
     "product": "Chrome/150.0.7871.115",
@@ -135,7 +135,7 @@
         "visible": true,
         "projection": "orthographic_top_north_up",
         "radiusM": 420,
-        "frameCount": 74
+        "frameCount": 77
       }
     },
     "editInvalidatedController": true,
@@ -147,61 +147,61 @@
     "ambientActorCount": 13,
     "ambientActorKinds": "pedestrian,bicycle,scooter,car",
     "adapterName": "metal-3",
-    "rendererFrames": 1625,
+    "rendererFrames": 1629,
     "smoothness": {
-      "rafFrameCount": 1173,
+      "rafFrameCount": 1177,
       "frameIntervalMs": {
         "min": 14.5,
         "p50": 16.7,
         "p95": 18.7,
-        "p99": 18.8,
-        "max": 49.4,
-        "mean": 16.8223
+        "p99": 31.3,
+        "max": 51,
+        "mean": 16.8626
       },
-      "over20msCount": 10,
-      "over33msCount": 7,
-      "over33msRatio": 0.006,
+      "over20msCount": 13,
+      "over33msCount": 5,
+      "over33msRatio": 0.0042,
       "longTaskCount": 0,
       "longTaskTotalMs": 0,
       "longestTaskMs": 0,
       "phaseMarks": [
         {
           "phase": "sampling_started",
-          "at": 5549.700000286102
+          "at": 5936.89999961853
         },
         {
           "phase": "camera_modes_complete",
-          "at": 8422.200000286102
+          "at": 8824.5
         },
         {
           "phase": "camera_interactions_complete",
-          "at": 10942.900000095367
+          "at": 11352.89999961853
         },
         {
           "phase": "mission_edited",
-          "at": 10942.900000095367
+          "at": 11353
         },
         {
           "phase": "start_clicked",
-          "at": 10980.400000095367
+          "at": 11391.699999809265
         },
         {
           "phase": "follow_minimap_ready",
-          "at": 11031.900000095367
+          "at": 11454.39999961853
         },
         {
           "phase": "journey_terminal",
-          "at": 25249.200000286102
+          "at": 25753.39999961853
         }
       ],
       "longTasks": []
     },
     "staticVertexCount": 547548,
     "dynamicVertexCount": 47469,
-    "canvasWidth": 946,
-    "canvasHeight": 760,
-    "viewportWidth": 1440,
-    "documentWidth": 1440,
+    "canvasWidth": 370,
+    "canvasHeight": 520,
+    "viewportWidth": 390,
+    "documentWidth": 390,
     "scrollY": 0,
     "hasHorizontalOverflow": false
   },
@@ -214,7 +214,7 @@
     "ambientActorCount": 13,
     "ambientActorKinds": "pedestrian,bicycle,scooter,car",
     "minimapVisible": true,
-    "minimapFrameCount": 1387
+    "minimapFrameCount": 1389
   },
   "errors": [],
   "failedResponses": [],
@@ -244,11 +244,11 @@
       "status": 200
     },
     {
-      "pathname": "/runtime/data-loader.js",
+      "pathname": "/runtime/runtime-log.js",
       "status": 200
     },
     {
-      "pathname": "/runtime/runtime-log.js",
+      "pathname": "/runtime/data-loader.js",
       "status": 200
     },
     {

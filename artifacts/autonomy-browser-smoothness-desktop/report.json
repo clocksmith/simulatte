@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.autonomyBrowserSmoke.v7",
   "pass": true,
-  "targetUrl": "http://127.0.0.1:60815/",
+  "targetUrl": "http://127.0.0.1:58405/",
   "viewport": {
     "width": 1440,
     "height": 1000
@@ -135,7 +135,7 @@
         "visible": true,
         "projection": "orthographic_top_north_up",
         "radiusM": 420,
-        "frameCount": 74
+        "frameCount": 75
       }
     },
     "editInvalidatedController": true,
@@ -147,18 +147,18 @@
     "ambientActorCount": 13,
     "ambientActorKinds": "pedestrian,bicycle,scooter,car",
     "adapterName": "metal-3",
-    "rendererFrames": 1625,
+    "rendererFrames": 1610,
     "smoothness": {
-      "rafFrameCount": 1173,
+      "rafFrameCount": 1158,
       "frameIntervalMs": {
-        "min": 14.5,
+        "min": 14.6,
         "p50": 16.7,
         "p95": 18.7,
-        "p99": 18.8,
-        "max": 49.4,
-        "mean": 16.8223
+        "p99": 31.3,
+        "max": 48,
+        "mean": 16.853
       },
-      "over20msCount": 10,
+      "over20msCount": 12,
       "over33msCount": 7,
       "over33msRatio": 0.006,
       "longTaskCount": 0,
@@ -167,31 +167,31 @@
       "phaseMarks": [
         {
           "phase": "sampling_started",
-          "at": 5549.700000286102
+          "at": 6344.299999713898
         },
         {
           "phase": "camera_modes_complete",
-          "at": 8422.200000286102
+          "at": 9228.39999961853
         },
         {
           "phase": "camera_interactions_complete",
-          "at": 10942.900000095367
+          "at": 11757
         },
         {
           "phase": "mission_edited",
-          "at": 10942.900000095367
+          "at": 11757.099999904633
         },
         {
           "phase": "start_clicked",
-          "at": 10980.400000095367
+          "at": 11796.599999904633
         },
         {
           "phase": "follow_minimap_ready",
-          "at": 11031.900000095367
+          "at": 11847.299999713898
         },
         {
           "phase": "journey_terminal",
-          "at": 25249.200000286102
+          "at": 25825.599999904633
         }
       ],
       "longTasks": []
@@ -214,7 +214,7 @@
     "ambientActorCount": 13,
     "ambientActorKinds": "pedestrian,bicycle,scooter,car",
     "minimapVisible": true,
-    "minimapFrameCount": 1387
+    "minimapFrameCount": 1372
   },
   "errors": [],
   "failedResponses": [],
@@ -244,11 +244,11 @@
       "status": 200
     },
     {
-      "pathname": "/runtime/data-loader.js",
+      "pathname": "/runtime/runtime-log.js",
       "status": 200
     },
     {
-      "pathname": "/runtime/runtime-log.js",
+      "pathname": "/runtime/data-loader.js",
       "status": 200
     },
     {

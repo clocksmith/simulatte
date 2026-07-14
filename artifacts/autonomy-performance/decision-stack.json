@@ -1,6 +1,6 @@
 {
   "schema": "simulatte.autonomyDecisionStackBenchmark.v1",
-  "generatedAt": "2026-07-14T12:05:33.430Z",
+  "generatedAt": "2026-07-14T12:53:39.085Z",
   "host": {
     "platform": "darwin",
     "release": "25.3.0",
@@ -11,7 +11,7 @@
     "node": "v22.20.0"
   },
   "identities": {
-    "commit": "487735067832c5c9e2d3bbefb4bad928c2925177",
+    "commit": "fe46af4a3e1dfd94d4fd2126d318cb456191c6b9",
     "corpus": {
       "path": "tools/samer/autonomy/public-navigation-missions-v1.json",
       "sha256": "dd02ce2dbd602d1748827bbbecaddf4445c96b985b4d48ab93fccd0cf906be12"
@@ -28,7 +28,7 @@
     },
     "compiler": {
       "path": "public/mission/mission-compiler.js",
-      "sha256": "50fee0cd85656869ab7a76e30bac553e0faeb2291e1d0583c24fb902c238263d"
+      "sha256": "39cd9e3a21f7007352c1f8925f32bb50f92bb60a279d7f4d32ab65043cc0c348"
     },
     "router": {
       "path": "public/world/route-planner.js",
@@ -36,13 +36,13 @@
     },
     "controller": {
       "path": "public/runtime/autonomy-controller.js",
-      "sha256": "db0832fde09bad0b966f1490407a40818563a8aabc15b933b4cad5823b9a2a1c"
+      "sha256": "c7af4634d58514a30feff5de343ce08943f4ca85f3b71b52f71334ac91c8a8d3"
     }
   },
   "workload": {
     "missionCount": 20,
-    "compileAndRouteRepetitions": 10,
-    "totalCompileAndRouteOperations": 200,
+    "compileAndRouteRepetitions": 20,
+    "totalCompileAndRouteOperations": 400,
     "controllerMissionSelection": "minimum_median_max_route_segment_count",
     "controllerRepetitions": 1
   },
@@ -755,22 +755,22 @@
   },
   "performance": {
     "missionCompileLatencyMs": {
-      "count": 200,
-      "min": 23.9572,
-      "p50": 26.8751,
-      "p95": 28.8085,
-      "p99": 31.2363,
-      "max": 48.8407,
-      "mean": 27.0501
+      "count": 400,
+      "min": 11.3822,
+      "p50": 12.3202,
+      "p95": 13.1349,
+      "p99": 14.1116,
+      "max": 51.8853,
+      "mean": 12.5914
     },
     "routePlanLatencyMs": {
-      "count": 200,
-      "min": 3.042,
-      "p50": 3.8517,
-      "p95": 6.717,
-      "p99": 7.1999,
-      "max": 7.3971,
-      "mean": 4.2967
+      "count": 400,
+      "min": 3.2945,
+      "p50": 3.9237,
+      "p95": 6.4095,
+      "p99": 7.2201,
+      "max": 8.0524,
+      "mean": 4.3208
     },
     "controller": {
       "selectedMissionIds": [
@@ -780,16 +780,16 @@
       ],
       "repetitions": 1,
       "journeyCount": 3,
-      "completedAndVerified": 0,
+      "completedAndVerified": 3,
       "totalTicks": 1802,
       "stepLatencyMs": {
         "count": 1802,
-        "min": 0.996,
-        "p50": 1.997,
-        "p95": 6.8211,
-        "p99": 8.3444,
-        "max": 16.5785,
-        "mean": 2.4646
+        "min": 1.0662,
+        "p50": 2.0529,
+        "p95": 6.7167,
+        "p99": 8.0958,
+        "max": 11.4472,
+        "mean": 2.4782
       },
       "journeys": [
         {
@@ -799,7 +799,7 @@
           "verificationPass": true,
           "tickCount": 143,
           "traceEntryCount": 143,
-          "durationMs": 380.5117
+          "durationMs": 365.3859
         },
         {
           "missionId": "public-mission-17",
@@ -808,7 +808,7 @@
           "verificationPass": true,
           "tickCount": 395,
           "traceEntryCount": 395,
-          "durationMs": 1030.0229
+          "durationMs": 1046.9991
         },
         {
           "missionId": "public-mission-20",
@@ -817,7 +817,7 @@
           "verificationPass": true,
           "tickCount": 1264,
           "traceEntryCount": 1264,
-          "durationMs": 4281.5849
+          "durationMs": 4332.4713
         }
       ]
     }
