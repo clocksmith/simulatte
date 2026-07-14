@@ -1,0 +1,4 @@
+interface:
+  display_name: "Simulatte Train"
+  short_description: "Open the local human review loop"
+  default_prompt: "Use $train to start Simulatte training mode for local human review."

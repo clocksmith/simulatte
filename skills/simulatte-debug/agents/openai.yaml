@@ -1,0 +1,4 @@
+interface:
+  display_name: "Simulatte Debug"
+  short_description: "Trace and fix Simulatte project failures"
+  default_prompt: "Use $simulatte-debug to reproduce, trace, and fix this failure in Simulatte."
