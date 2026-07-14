@@ -25,6 +25,9 @@
 
     function addBehaviorBundlesFromLedger(couplings, operators, fields, domains, ledger, prompt, params, receipt, behaviorRelations) {
         if (!ledger || !Array.isArray(ledger.obligations)) return;
+        const causalBehaviors = behaviorRelations.filter((row) => (
+          (row.evidence || []).some((value) => String(value).startsWith('causal-rule:'))
+        ));
         const relationById = new Map((ledger.relations || []).map((row) => [row.id, row]));
         const relationProcesses = new Set(ledger.obligations
           .filter((row) => row.kind === 'relation')
@@ -44,8 +47,17 @@
           if (row.kind === 'action' && relationProcesses.has(process)) continue;
           const pair = behaviorDomainsForLedgerRow(source, domains, process);
           if (!pair.from || !pair.to) continue;
+          if (causalBehaviors.some((behavior) => (
+            behavior.process === process && sameDomainPair(behavior, pair)
+          ))) continue;
           addBehaviorBundle(couplings, operators, fields, pair.from, pair.to, process, source, params, receipt, behaviorRelations);
         }
+      }
+
+    function sameDomainPair(behavior = {}, pair = {}) {
+        const expected = new Set([pair.from.entityId, pair.to.entityId]);
+        return expected.size <= 2 &&
+          expected.has(behavior.agentEntityId) && expected.has(behavior.mediumEntityId);
       }
 
     function behaviorProcessForLedgerRow(row = {}, prompt = '') {
@@ -92,10 +104,13 @@
           } else {
           const flow = fluidDomain(from, to) || to;
           ensureFlowFields(fields, flow, params);
+          const reads = [`flowVelocity:${flow.entityId}`, `viscosity:${flow.entityId}`];
+          const writes = [`flowVelocity:${flow.entityId}`, `pressure:${flow.entityId}`];
           opRows.push(addOperator(operators, 'advection', flow, {
-            reads: [`flowVelocity:${flow.entityId}`, `viscosity:${flow.entityId}`],
-            writes: [`flowVelocity:${flow.entityId}`, `pressure:${flow.entityId}`],
+            reads,
+            writes,
             params: { rate: clamp(Number(params.flowRate ?? params.windSpeed ?? 0.55), 0, 2) },
+            receipt: inferredBehaviorReceipt(source, 'advection', reads, writes),
           }));
           add('pressure_flow_lite', flow, flow);
           }
@@ -117,7 +132,8 @@
           ensureFlowFields(fields, leakDomain, params);
           add('pressure_flow_lite', leakDomain, leakDomain);
         } else if (process === 'growth') {
-          const target = biologicalDomain(from, to) || to;
+          const target = biologicalDomain(from, to);
+          if (!target) return;
           add('growth_decay', target, target);
           add('reaction_diffusion', target, target);
         } else if (process === 'combustion') {
@@ -298,9 +314,21 @@
       }
 
     function domainMatchScore(domain, text) {
-        const value = `${domain.entityId || ''} ${domain.materialId || ''} ${(domain.tags || []).join(' ')}`.toLowerCase().replace(/[_-]+/g, ' ');
-        const terms = unique(String(text || '').split(/\s+/).filter((term) => term.length > 2));
-        return terms.reduce((score, term) => score + Number(value.includes(term)), 0);
+        const query = String(text || '').toLowerCase().replace(/[_-]+/g, ' ').trim();
+        const identity = `${domain.entityId || ''} ${domain.sourceNodeId || ''}`
+          .toLowerCase().replace(/[_-]+/g, ' ');
+        const evidence = `${domain.materialId || ''} ${(domain.tags || []).join(' ')}`
+          .toLowerCase().replace(/[_-]+/g, ' ');
+        const identityRows = [domain.entityId, domain.sourceNodeId].map((value) => (
+          String(value || '').toLowerCase().replace(/[_-]+/g, ' ').trim()
+        ));
+        const exactIdentity = identityRows.some((value) => (
+          value === query || value.endsWith(` ${query}`)
+        ));
+        const terms = unique(query.split(/\s+/).filter((term) => term.length > 2));
+        const identityScore = terms.reduce((score, term) => score + Number(identity.includes(term)) * 3, 0);
+        const evidenceScore = terms.reduce((score, term) => score + Number(evidence.includes(term)), 0);
+        return Number(exactIdentity) * 12 + identityScore + evidenceScore;
       }
 
     function ensureBehaviorFields(fields, type, from, to, params) {

@@ -21,6 +21,8 @@ const featureRetrieval = require('../public/runtime/feature-retrieval.js');
 const occurrenceApi = require('../public/runtime/occurrence-engine.js');
 const regionApi = require('../public/world/region-pack-merger.js');
 const cameraApi = require('../public/app/camera-controller.js');
+const actorGeometry = require('../public/app/webgpu-actor-geometry.js');
+const gpuGeometry = require('../public/app/webgpu-geometry.js');
 const SYNTHETIC_MISSION = 'Deliver the parcel by bike from Canal Depot to East Market. Prefer protected lanes and yield to pedestrians.';
 const UNION_SQUARE_LOOP = 'run in circles around union squatre park parimeter until youve ran 5000 feet';
 
@@ -274,6 +276,71 @@ test('camera targets expose every composed region and pan between modes without 
   assert.ok(state.followDistance < beforeFollowZoom);
   const nearFollowPose = cameraApi.advanceCamera(state, snapshot, model, 1.6, 2900);
   assert.equal(nearFollowPose.followDistance, state.followDistance);
+});
+
+test('one actor mesh contract renders realistic pedestrian, bicycle, scooter, and car geometry', () => {
+  const minimumBounds = {
+    pedestrian: [0.65, 1.8, 0.55],
+    bicycle: [2.8, 2.2, 0.5],
+    scooter: [1.2, 1.7, 0.55],
+    car: [4.2, 1.4, 2],
+  };
+  assert.equal(gpuGeometry.FLOATS_PER_VERTEX, actorGeometry.FLOATS_PER_VERTEX);
+  assert.deepEqual(actorGeometry.SUPPORTED_ACTOR_KINDS, ['pedestrian', 'bicycle', 'scooter', 'car']);
+
+  actorGeometry.SUPPORTED_ACTOR_KINDS.forEach((kind) => {
+    const writer = gpuGeometry.createWriter();
+    const receipt = actorGeometry.addActor(writer, {
+      kind,
+      point: { x: 0, y: 0 },
+      heading: 0,
+      motionPhase: 1.2,
+    });
+    const vertices = writer.finish();
+    const minimum = [Infinity, Infinity, Infinity];
+    const maximum = [-Infinity, -Infinity, -Infinity];
+    for (let offset = 0; offset < vertices.length; offset += gpuGeometry.FLOATS_PER_VERTEX) {
+      for (let axis = 0; axis < 3; axis += 1) {
+        minimum[axis] = Math.min(minimum[axis], vertices[offset + axis]);
+        maximum[axis] = Math.max(maximum[axis], vertices[offset + axis]);
+      }
+      assert.ok(vertices[offset + 11] >= 0 && vertices[offset + 11] <= 1, `${kind} metallic lane`);
+      assert.ok(vertices[offset + 12] >= 0 && vertices[offset + 12] <= 1, `${kind} roughness lane`);
+    }
+    const bounds = maximum.map((value, axis) => value - minimum[axis]);
+    assert.ok(vertices.every(Number.isFinite), `${kind} mesh must contain only finite values`);
+    assert.equal(receipt.schema, 'simulatte.autonomyActorMesh.v1');
+    assert.equal(receipt.kind, kind);
+    assert.equal(receipt.materialModel, 'metallic_roughness_vertex_v1');
+    assert.equal(receipt.vertexCount, vertices.length / gpuGeometry.FLOATS_PER_VERTEX);
+    assert.ok(receipt.vertexCount > 1000, `${kind} should not regress to a placeholder primitive`);
+    minimumBounds[kind].forEach((value, axis) => assert.ok(bounds[axis] >= value, `${kind} axis ${axis} extent`));
+  });
+
+  assert.throws(
+    () => actorGeometry.addActor(gpuGeometry.createWriter(), { kind: 'hoverboard', point: { x: 0, y: 0 } }),
+    /actor_kind_unsupported/
+  );
+});
+
+test('world actors expose path heading and reject unregistered render kinds', () => {
+  const motion = worldApi.samplePolyline([{ x: 0, y: 0 }, { x: 0, y: 10 }], 0.25);
+  assert.deepEqual(motion.position, { x: 0, y: 2.5 });
+  assert.equal(motion.heading, Math.PI / 2);
+
+  const rows = assets();
+  const invalidType = structuredClone(rows.world);
+  invalidType.actors[0].type = 'hoverboard';
+  assert.throws(
+    () => contracts.validateWorld(invalidType, rows.featureCatalog),
+    (error) => error instanceof contracts.AutonomyContractError && error.path.endsWith('.type')
+  );
+  const invalidRadius = structuredClone(rows.world);
+  invalidRadius.actors[0].radiusM = 0;
+  assert.throws(
+    () => contracts.validateWorld(invalidRadius, rows.featureCatalog),
+    (error) => error instanceof contracts.AutonomyContractError && error.path.endsWith('.radiusM')
+  );
 });
 
 test('mission compiler grounds known labels to source intervals and fails closed', () => {

@@ -273,40 +273,24 @@
         "stress",
         "strain",
         "fracture",
+        "fractures",
         "crack",
+        "cracks",
         "collision",
         "impact",
-        "load",
-        "buckling",
-        "constraint",
-        "constraints",
-        "bond",
-        "bridge",
-        "cable",
-        "cables",
-        "tension",
-        "resonance",
-        "vortex shedding"
+        "damage"
       ],
       "requires": [
         [
           "stress",
           "strain",
           "fracture",
+          "fractures",
           "crack",
+          "cracks",
           "collision",
           "impact",
-          "load",
-          "buckling",
-          "constraint",
-          "constraints",
-          "bond",
-          "bridge",
-          "cable",
-          "cables",
-          "tension",
-          "resonance",
-          "vortex shedding"
+          "damage"
         ]
       ],
       "excludes": [],
@@ -348,6 +332,76 @@
         "dynamic-motion-depth"
       ],
       "receiptText": "Mechanical stress becomes deformation, crack branches, contact pads, and strain contours."
+    },
+    {
+      "id": "visual.operator.structural-stress.v1",
+      "matchTerms": [
+        "bridge",
+        "bridge deck",
+        "cable",
+        "cables",
+        "cable tension",
+        "tension",
+        "stress",
+        "strain",
+        "resonance",
+        "vortex shedding",
+        "structural mode"
+      ],
+      "requires": [
+        [
+          "bridge",
+          "bridge deck",
+          "cable",
+          "cables",
+          "cable tension",
+          "tension",
+          "stress",
+          "strain",
+          "resonance",
+          "vortex shedding",
+          "structural mode"
+        ]
+      ],
+      "excludes": [],
+      "minimumScore": 0.5,
+      "priority": 1.18,
+      "uniformSlots": [
+        "stress",
+        "constraint",
+        "surface",
+        "motion"
+      ],
+      "wgslOperators": [
+        "atomStandingNodes",
+        "atomConstraintPads"
+      ],
+      "geometryAtoms": [
+        "bridge-mode-deck",
+        "cable-tension-lines",
+        "anchor-load-pads"
+      ],
+      "fieldAtoms": [
+        "tension-band-field",
+        "mode-amplitude-field"
+      ],
+      "materialAtoms": [
+        "structural-steel",
+        "tension-emissive"
+      ],
+      "processAtoms": [
+        "aeroelastic-response",
+        "cable-load-transfer"
+      ],
+      "motionAtoms": [
+        "bridge-mode-oscillation",
+        "tension-pulse"
+      ],
+      "cameraAtoms": [
+        "wide-structural-depth",
+        "cutaway-section-depth"
+      ],
+      "receiptText": "Structural resonance becomes bridge mode shape, cable tension bands, and moving load paths without fracture marks."
     },
     {
       "id": "visual.operator.control-feedback.v1",

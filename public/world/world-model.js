@@ -71,10 +71,12 @@
       const ratio = isControlled && Number.isFinite(controlledState?.progress)
         ? controlledState.progress
         : clamp((tick - actor.activeFromTick) / span, 0, 1);
+      const motion = samplePolyline(actor.path, ratio);
       return {
         id: actor.id,
         type: actor.type,
-        position: interpolatePolyline(actor.path, ratio),
+        position: motion.position,
+        heading: motion.heading,
         radiusM: actor.radiusM,
         isActive,
       };
@@ -144,7 +146,11 @@
   }
 
   function interpolatePolyline(points, ratio) {
-    if (points.length === 1) return { ...points[0] };
+    return samplePolyline(points, ratio).position;
+  }
+
+  function samplePolyline(points, ratio) {
+    if (points.length === 1) return { position: { ...points[0] }, heading: 0 };
     const lengths = [];
     let total = 0;
     for (let index = 1; index < points.length; index += 1) {
@@ -155,11 +161,18 @@
     let target = clamp(ratio, 0, 1) * total;
     for (let index = 0; index < lengths.length; index += 1) {
       if (target <= lengths[index] || index === lengths.length - 1) {
-        return interpolatePoint(points[index], points[index + 1], lengths[index] ? target / lengths[index] : 0);
+        const start = points[index];
+        const end = points[index + 1];
+        return {
+          position: interpolatePoint(start, end, lengths[index] ? target / lengths[index] : 0),
+          heading: Math.atan2(end.y - start.y, end.x - start.x),
+        };
       }
       target -= lengths[index];
     }
-    return { ...points[points.length - 1] };
+    const start = points.at(-2);
+    const end = points.at(-1);
+    return { position: { ...end }, heading: Math.atan2(end.y - start.y, end.x - start.x) };
   }
 
   function interpolatePoint(start, end, ratio) {
@@ -185,5 +198,5 @@
     return error;
   }
 
-  return { createWorldModel, distance, interpolatePoint, interpolatePolyline };
+  return { createWorldModel, distance, interpolatePoint, interpolatePolyline, samplePolyline };
 });

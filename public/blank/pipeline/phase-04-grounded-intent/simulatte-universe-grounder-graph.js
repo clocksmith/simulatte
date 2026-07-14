@@ -446,13 +446,20 @@
       const to = nodeForCausalRef(nodes, causalEdge.targetRef, causalEdge.targetLabel);
       if (!from || !to || from.id === to.id) return [];
       const direct = directCausalPromptEdge(promptEdges, from.id, to.id, causalEdge);
-      const path = direct ? [direct] : connectedProximityPath(promptEdges, from.id, to.id);
-      if (thermalInference(causalEdge) && !path.length) return [];
+      const policyResult = direct
+        ? { accepted: true, path: [direct] }
+        : causalGroundingPolicyResult(causalEdge, promptEdges, from.id, to.id);
+      if (!policyResult.accepted) return [];
+      const path = direct ? [direct] : policyResult.path;
       const target = materialAssignmentTarget(nodes, promptEdges, to) || to;
       const pathEdgeIds = path.map((edge) => edge.id);
       const inferenceMode = direct
         ? 'direct-causal-clause'
-        : path.length ? 'causal-rule-connected-proximity' : 'causal-rule-typed-evidence';
+        : causalEdge.groundingPolicy?.mode === 'direct-spatial'
+          ? 'causal-rule-direct-spatial'
+          : path.length && (causalEdge.groundingPolicy?.requiredSpatialRelations || []).includes('near')
+            ? 'causal-rule-connected-proximity'
+            : path.length ? 'causal-rule-connected-path' : 'causal-rule-typed-evidence';
       return [{
         id: `intent-${causalEdge.id || index + 1}`,
         type: causalEdge.relationType || causalEdge.type || 'interaction',
@@ -471,6 +478,8 @@
         provenance: {
           schema: 'simulatte.groundedEdgeProvenance.v1', sourcePhase: 4,
           inferenceMode,
+          groundingPolicy: { ...(causalEdge.groundingPolicy || {}) },
+          groundingPolicyEvidence: { ...(causalEdge.groundingPolicyEvidence || {}) },
           causalRuleId: causalEdge.ruleId || '', causalEdgeId: causalEdge.id || '',
           derivedFromEdgeId: causalEdge.derivedFromEdgeId || '',
           sourceRef: causalEdge.sourceRef || '', targetRef: causalEdge.targetRef || '',
@@ -516,11 +525,36 @@
     ));
   }
 
-  function thermalInference(edge = {}) {
-    return ['heat_transfer', 'phase_transition'].includes(edge.operatorType || edge.processId);
+  function causalGroundingPolicyResult(causalEdge = {}, edges = [], fromId = '', toId = '') {
+    const policy = causalEdge.groundingPolicy || { mode: 'typed-cooccurrence', maxPathDepth: 0 };
+    const evidence = causalEdge.groundingPolicyEvidence || {};
+    if (evidence.accepted === false) return { accepted: false, path: [] };
+    if (policy.mode === 'typed-cooccurrence') {
+      const requiredTerms = policy.requiredEvidenceTerms || [];
+      const matchedTerms = evidence.matchedEvidenceTerms || [];
+      return { accepted: !requiredTerms.length || matchedTerms.length > 0, path: [] };
+    }
+    if (policy.mode === 'evidence-qualified') {
+      const requiredTerms = policy.requiredEvidenceTerms || [];
+      const matchedTerms = evidence.matchedEvidenceTerms || [];
+      if (requiredTerms.length && !matchedTerms.length) return { accepted: false, path: [] };
+      const path = connectedPolicyPath(edges, fromId, toId, policy);
+      return { accepted: path.length > 0, path };
+    }
+    if (policy.mode === 'direct-spatial') {
+      const edge = edges.find((row) => (
+        row.from === fromId && row.to === toId && pathSatisfiesPolicy([row], policy)
+      ));
+      return { accepted: Boolean(edge), path: edge ? [edge] : [] };
+    }
+    if (policy.mode === 'connected-path') {
+      const path = connectedPolicyPath(edges, fromId, toId, policy);
+      return { accepted: path.length > 0, path };
+    }
+    return { accepted: false, path: [] };
   }
 
-  function connectedProximityPath(edges = [], fromId = '', toId = '') {
+  function connectedPolicyPath(edges = [], fromId = '', toId = '', policy = {}) {
     const adjacency = new Map();
     for (const edge of edges) {
       if (!adjacency.has(edge.from)) adjacency.set(edge.from, []);
@@ -530,12 +564,11 @@
     }
     const queue = [{ nodeId: fromId, path: [] }];
     const visited = new Set([fromId]);
+    const maxDepth = Math.max(1, Number(policy.maxPathDepth || 1));
     while (queue.length) {
       const current = queue.shift();
-      if (current.nodeId === toId && current.path.some((edge) => (
-        edge.type === 'near' || edge.spatialRelation === 'near'
-      ))) return current.path;
-      if (current.path.length >= 3) continue;
+      if (current.nodeId === toId && pathSatisfiesPolicy(current.path, policy)) return current.path;
+      if (current.path.length >= maxDepth) continue;
       for (const next of adjacency.get(current.nodeId) || []) {
         if (visited.has(next.nodeId)) continue;
         visited.add(next.nodeId);
@@ -543,6 +576,18 @@
       }
     }
     return [];
+  }
+
+  function pathSatisfiesPolicy(path = [], policy = {}) {
+    const spatial = policy.requiredSpatialRelations || [];
+    const processes = policy.requiredProcesses || [];
+    const spatialMatch = !spatial.length || path.some((edge) => spatial.includes(
+      String(edge.spatialRelation || edge.type || '').toLowerCase()
+    ));
+    const processMatch = !processes.length || path.some((edge) => processes.includes(
+      String(edge.processId || edge.operatorType || edge.type || '').toLowerCase()
+    ));
+    return spatialMatch && processMatch;
   }
 
   function groundedFireEvidence(node = {}, span = {}) {

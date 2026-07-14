@@ -138,23 +138,88 @@ test('bridge resonance prompts carry structural stress graphics atoms', () => {
   );
   const atoms = spec.renderProgram.visualIR.graphicsAtoms;
   const mappingIds = atoms.mappings.map((row) => row.id);
+  const waveOperators = spec.phaseArtifacts.phase5.artifact.simulationCompile.physicsIR.operators
+    .filter((row) => row.type === 'wave_field');
+  const tensionSpan = spec.phaseArtifacts.phase2.artifact.languageGraph.spans
+    .find((row) => row.text === 'cable tension');
 
   assert.equal(spec.renderProgram.visualIR.sceneKind, 'structural-mechanics');
-  assert.ok(mappingIds.includes('visual.operator.stress-fracture.v1'));
-  assert.ok(mappingIds.includes('visual.operator.fluid-advection.v1'));
+  assert.equal(tensionSpan.kind, 'observable');
+  assert.equal(tensionSpan.semanticRole, 'structural-state');
+  assert.equal(tensionSpan.stateBinding, 'amplitude');
+  assert.equal(waveOperators.length, 1);
+  assert.match(waveOperators[0].entityId, /bridge/);
+  assert.equal(waveOperators[0].receipt.inferenceProvenance.causalRuleId, 'causal.wind-excites-bridge');
+  assert.ok(mappingIds.includes('visual.operator.structural-stress.v1'));
+  assert.equal(mappingIds.includes('visual.operator.stress-fracture.v1'), false);
+  assert.equal(mappingIds.includes('visual.operator.fluid-advection.v1'), false);
   assert.ok(atoms.uniforms.bySlot.stress > 0);
   assert.ok(atoms.uniforms.bySlot.constraint > 0);
-  assert.ok(atoms.wgslOperators.includes('atomStressCracks'));
+  assert.ok(atoms.geometry.some((row) => row.id === 'cable-tension-lines'));
+  assert.ok(atoms.wgslOperators.includes('atomStandingNodes'));
+  assert.equal(atoms.wgslOperators.includes('atomStressCracks'), false);
+
+  for (const prompt of [
+    'bridge beside a wind farm',
+    'bridge resonance under wind with cable',
+  ]) {
+    const control = createPrototypeSpec(prompt);
+    const controlMappings = control.renderProgram.visualIR.graphicsAtoms.mappings.map((row) => row.id);
+    assert.equal(controlMappings.includes('visual.operator.structural-stress.v1'), false, prompt);
+    assert.equal(controlMappings.includes('visual.operator.stress-fracture.v1'), false, prompt);
+  }
+  const fracture = createPrototypeSpec('hammer fractures glass');
+  assert.ok(fracture.renderProgram.visualIR.graphicsAtoms.mappings.some((row) => (
+    row.id === 'visual.operator.stress-fracture.v1'
+  )));
 });
 
 test('visual routing avoids weather, hazard, and material scene false positives', () => {
   const weather = createPrototypeSpec(
     'supercell thunderstorm grows hail under wind shear'
   );
+  const weatherPhase2 = weather.phaseArtifacts.phase2.artifact.languageGraph;
+  const weatherIR = weather.phaseArtifacts.phase5.artifact.simulationCompile.physicsIR;
+  const weatherSteps = weather.phaseArtifacts.phase5.artifact.simulationCompile.solverGraph.steps;
   const weatherMappings = weather.renderProgram.visualIR.graphicsAtoms.mappings.map((row) => row.id);
+  const spanByText = new Map(weatherPhase2.spans.map((row) => [row.text, row]));
+  const growth = weatherPhase2.predicates.find((row) => row.process === 'growth');
   assert.equal(weather.renderProgram.visualIR.sceneKind, 'weather-atmosphere');
+  assert.equal(spanByText.get('supercell').kind, 'environment');
+  assert.equal(spanByText.get('thunderstorm').kind, 'environment');
+  assert.equal(spanByText.get('hail').semanticRole, 'phase-particle');
+  assert.equal(spanByText.get('wind shear').semanticRole, 'fluid-medium');
+  assert.equal(growth.objectSpanId, spanByText.get('hail').id);
+  assert.ok(weatherIR.operators.some((row) => (
+    row.type === 'advection' && row.receipt?.inferenceProvenance?.causalRuleId ===
+      'causal.wind-shear-advects-thunderstorm'
+  )));
+  assert.ok(weatherIR.operators.some((row) => (
+    row.type === 'phase_transition' && row.receipt?.inferenceProvenance?.causalRuleId ===
+      'causal.storm-updraft-grows-hail'
+  )));
+  assert.equal(weatherIR.operators.some((row) => (
+    ['growth_decay', 'reaction_diffusion'].includes(row.type)
+  )), false);
+  assert.ok(weatherSteps.some((row) => (
+    row.operatorType === 'advection' && row.receipt?.inferenceProvenance?.causalRuleId ===
+      'causal.wind-shear-advects-thunderstorm'
+  )));
   assert.ok(weatherMappings.includes('visual.operator.fluid-advection.v1'));
+  assert.ok(weatherMappings.includes('visual.operator.phase-transition.v1'));
   assert.ok(!weatherMappings.includes('visual.operator.biological-growth.v1'));
+
+  for (const prompt of ['hail beside thunderstorm', 'thunderstorm beside wind shear']) {
+    const control = createPrototypeSpec(prompt);
+    const blocked = new Set(['advection', 'pressure_flow_lite', 'phase_transition', 'growth_decay']);
+    assert.equal(control.phaseArtifacts.phase5.artifact.simulationCompile.physicsIR.operators.some((row) => (
+      blocked.has(row.type)
+    )), false, prompt);
+    assert.equal(control.renderProgram.visualIR.graphicsAtoms.mappings.some((row) => (
+      ['visual.operator.fluid-advection.v1', 'visual.operator.phase-transition.v1',
+        'visual.operator.biological-growth.v1'].includes(row.id)
+    )), false, prompt);
+  }
 
   const agro = createPrototypeSpec(
     'compost feeds greenhouse nutrient loop with organic waste'

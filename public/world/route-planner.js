@@ -4,7 +4,11 @@
   root.SimulatteAutonomyRoutePlanner = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyRoutePlanner() {
   function planRoute({ worldModel, originNodeId, destinationNodeId, mode, tick, mission, policy }) {
-    if (originNodeId === destinationNodeId) return routeResult([], 0, [originNodeId], 0, routeCostBreakdown([], worldModel, mission, policy));
+    const avoidedStreetNames = new Set(mission.constraints.avoidStreetNames || []);
+    const excludedStreetSegmentIds = new Set();
+    if (originNodeId === destinationNodeId) {
+      return routeResult([], 0, [originNodeId], 0, routeCostBreakdown([], worldModel, mission, policy), 'a_star_v1', routeConstraintReceipt(avoidedStreetNames, excludedStreetSegmentIds));
+    }
     const blocked = new Set(worldModel.blockedSegmentIds(tick));
     const open = [{ nodeId: originNodeId, cost: 0, estimate: heuristic(worldModel, originNodeId, destinationNodeId), path: [] }];
     const bestCost = new Map([[originNodeId, 0]]);
@@ -17,12 +21,24 @@
       if (current.cost > (bestCost.get(current.nodeId) ?? Infinity)) continue;
       visited.push(current.nodeId);
       if (current.nodeId === destinationNodeId) {
-        return routeResult(current.path, current.cost, visited, evaluatedSegmentCount, routeCostBreakdown(current.path, worldModel, mission, policy));
+        return routeResult(
+          current.path,
+          current.cost,
+          visited,
+          evaluatedSegmentCount,
+          routeCostBreakdown(current.path, worldModel, mission, policy),
+          'a_star_v1',
+          routeConstraintReceipt(avoidedStreetNames, excludedStreetSegmentIds)
+        );
       }
       for (const segment of worldModel.outgoing(current.nodeId)) {
         evaluatedSegmentCount += 1;
         if (!segment.allowedModes.includes(mode)) continue;
         if (policy.route.blockedSegmentsAreIneligible && blocked.has(segment.id)) continue;
+        if (avoidedStreetNames.has(segment.source?.street)) {
+          excludedStreetSegmentIds.add(segment.id);
+          continue;
+        }
         const nextCost = current.cost + segmentCost(segment, mission, policy);
         const previous = bestCost.get(segment.toNodeId);
         if (previous !== undefined && nextCost >= previous - 1e-12) continue;
@@ -38,7 +54,16 @@
     const error = new Error(`route_not_found: ${originNodeId} to ${destinationNodeId} at tick ${tick} has no ${mode} path`);
     error.name = 'AutonomyRouteError';
     error.code = 'route_not_found';
-    error.evidence = { originNodeId, destinationNodeId, tick, mode, blockedSegmentIds: [...blocked].sort(), visitedNodeIds: visited };
+    error.evidence = {
+      originNodeId,
+      destinationNodeId,
+      tick,
+      mode,
+      blockedSegmentIds: [...blocked].sort(),
+      avoidedStreetNames: [...avoidedStreetNames].sort(),
+      excludedStreetSegmentIds: [...excludedStreetSegmentIds].sort(),
+      visitedNodeIds: visited,
+    };
     throw error;
   }
 
@@ -66,7 +91,7 @@
       segmentIds.length,
       costBreakdown,
       'declared_closed_circuit_v1',
-      { circuitId, circuitLengthM: circuit.lengthM }
+      { circuitId, circuitLengthM: circuit.lengthM, ...routeConstraintReceipt(new Set(), new Set()) }
     );
   }
 
@@ -123,6 +148,13 @@
       costBreakdown,
       deterministicTieBreak: algorithm === 'a_star_v1' ? 'segment_id_ascending' : 'declared_circuit_order',
       ...extension,
+    };
+  }
+
+  function routeConstraintReceipt(avoidedStreetNames, excludedStreetSegmentIds) {
+    return {
+      avoidedStreetNames: [...avoidedStreetNames].sort(),
+      excludedStreetSegmentIds: [...excludedStreetSegmentIds].sort(),
     };
   }
 

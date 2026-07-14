@@ -8,6 +8,7 @@
     "id",
     "sourceText",
     "parser",
+    "capability",
     "embodimentId",
     "task",
     "originNodeId",
@@ -18,7 +19,7 @@
     "seed"
   ],
   "properties": {
-    "schema": { "const": "simulatte.autonomyMission.v2" },
+    "schema": { "const": "simulatte.autonomyMission.v3" },
     "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
     "sourceText": { "type": "string", "minLength": 1 },
     "parser": {
@@ -27,7 +28,7 @@
       "required": ["kind", "version", "claimBoundary", "evidence"],
       "properties": {
         "kind": { "const": "deterministic_grounded_lexical" },
-        "version": { "const": "simulatte.autonomyMissionParser.v2" },
+        "version": { "const": "simulatte.autonomyMissionParser.v3" },
         "claimBoundary": { "type": "string", "minLength": 1 },
         "evidence": {
           "type": "array",
@@ -37,17 +38,33 @@
             "additionalProperties": false,
             "required": ["field", "value", "start", "end", "method", "groundedId", "canonicalValue", "editDistance"],
             "properties": {
-              "field": { "enum": ["task", "mode", "origin", "destination", "circuit", "targetDistance", "boundaryKind", "lanePreference", "pedestrianYield"] },
+              "field": { "enum": ["task", "mode", "origin", "destination", "circuit", "targetDistance", "targetLaps", "targetDuration", "boundaryKind", "lanePreference", "pedestrianYield", "streetAvoidance"] },
               "value": { "type": "string", "minLength": 1 },
               "start": { "type": "integer", "minimum": 0 },
               "end": { "type": "integer", "minimum": 1 },
-              "method": { "enum": ["exact_lexical", "exact_world_label", "constrained_fuzzy_place", "constrained_fuzzy_keyword", "unit_conversion"] },
+              "method": { "enum": ["exact_lexical", "exact_world_label", "constrained_fuzzy_place", "constrained_fuzzy_keyword", "unit_conversion", "lap_count_conversion", "exact_routed_street", "constrained_fuzzy_routed_street"] },
               "groundedId": { "type": ["string", "null"] },
               "canonicalValue": { "type": ["string", "null"] },
               "editDistance": { "type": "integer", "minimum": 0 }
             }
           }
         }
+      }
+    },
+    "capability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema", "matrixSchema", "rowId", "embodimentKind", "embodimentId", "missionFamily", "terminationKind", "artifactIds", "circuitId"],
+      "properties": {
+        "schema": { "const": "simulatte.autonomyCapabilityReceipt.v1" },
+        "matrixSchema": { "const": "simulatte.autonomyCapabilityMatrix.v1" },
+        "rowId": { "type": "string", "minLength": 1 },
+        "embodimentKind": { "enum": ["pedestrian", "bicycle", "scooter", "car"] },
+        "embodimentId": { "type": "string", "minLength": 1 },
+        "missionFamily": { "enum": ["delivery", "point_to_point", "closed_circuit"] },
+        "terminationKind": { "enum": ["arrival", "distance", "laps", "duration"] },
+        "artifactIds": { "type": "array", "minItems": 1, "items": { "type": "string" }, "uniqueItems": true },
+        "circuitId": { "type": ["string", "null"] }
       }
     },
     "embodimentId": { "type": "string", "minLength": 1 },
@@ -65,22 +82,44 @@
         {
           "type": "object",
           "additionalProperties": false,
-          "required": ["type", "circuitId", "gait", "targetDistanceM", "requestedDistance"],
+          "required": ["type", "circuitId", "gait", "termination"],
           "properties": {
-            "type": { "const": "loop_distance" },
+            "type": { "const": "loop" },
             "circuitId": { "type": "string", "minLength": 1 },
-            "gait": { "enum": ["run", "walk"] },
-            "targetDistanceM": { "type": "number", "exclusiveMinimum": 0 },
-            "requestedDistance": {
-              "type": "object",
-              "additionalProperties": false,
-              "required": ["value", "unit", "metersPerUnit", "convertedMeters"],
-              "properties": {
-                "value": { "type": "number", "exclusiveMinimum": 0 },
-                "unit": { "enum": ["foot", "meter", "kilometer", "mile"] },
-                "metersPerUnit": { "type": "number", "exclusiveMinimum": 0 },
-                "convertedMeters": { "type": "number", "exclusiveMinimum": 0 }
-              }
+            "gait": { "enum": ["run", "walk", "ride"] },
+            "termination": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["kind", "targetDistanceM", "requestedDistance"],
+                  "properties": {
+                    "kind": { "const": "distance" },
+                    "targetDistanceM": { "type": "number", "exclusiveMinimum": 0 },
+                    "requestedDistance": { "$ref": "#/$defs/requestedDistance" }
+                  }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["kind", "targetLaps", "targetDistanceM"],
+                  "properties": {
+                    "kind": { "const": "laps" },
+                    "targetLaps": { "type": "integer", "minimum": 1 },
+                    "targetDistanceM": { "type": "number", "exclusiveMinimum": 0 }
+                  }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["kind", "targetDurationSeconds", "requestedDuration"],
+                  "properties": {
+                    "kind": { "const": "duration" },
+                    "targetDurationSeconds": { "type": "number", "exclusiveMinimum": 0 },
+                    "requestedDuration": { "$ref": "#/$defs/requestedDuration" }
+                  }
+                }
+              ]
             }
           }
         }
@@ -101,12 +140,12 @@
             "nodeIds": { "type": "array", "minItems": 2, "items": { "type": "string" }, "uniqueItems": true },
             "segmentIds": { "type": "array", "minItems": 2, "items": { "type": "string" }, "uniqueItems": true },
             "circuitLengthM": { "type": "number", "exclusiveMinimum": 0 },
-            "fullLapsBeforeFinalPartial": { "type": "integer", "minimum": 0 },
-            "finalPartialDistanceM": { "type": "number", "minimum": 0 },
+            "fullLapsBeforeFinalPartial": { "type": ["integer", "null"], "minimum": 0 },
+            "finalPartialDistanceM": { "type": ["number", "null"], "minimum": 0 },
             "source": {
               "type": "object",
               "additionalProperties": false,
-              "required": ["datasetId", "sourceRevision", "propertyId", "boundaryKind", "surfaceClaim", "geometryWgs84Sha256", "claimBoundary"],
+              "required": ["datasetId", "sourceRevision", "propertyId", "boundaryKind", "surfaceClaim", "geometryWgs84Sha256", "selectedRingWgs84Sha256", "memberCount", "selectedMemberIndex", "selectionMethod", "claimBoundary"],
               "properties": {
                 "datasetId": { "type": "string", "minLength": 1 },
                 "sourceRevision": { "type": "string", "minLength": 1 },
@@ -114,6 +153,10 @@
                 "boundaryKind": { "type": "string", "minLength": 1 },
                 "surfaceClaim": { "type": "string", "minLength": 1 },
                 "geometryWgs84Sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+                "selectedRingWgs84Sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+                "memberCount": { "type": "integer", "minimum": 1 },
+                "selectedMemberIndex": { "type": "integer", "minimum": 0 },
+                "selectionMethod": { "type": "string", "minLength": 1 },
                 "claimBoundary": { "type": "string", "minLength": 1 }
               }
             }
@@ -124,9 +167,10 @@
     "constraints": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["lanePreference", "mustYieldToPedestrians", "mustObeySignals", "mustStayOnCircuit", "maximumSpeedMps"],
+      "required": ["lanePreference", "avoidStreetNames", "mustYieldToPedestrians", "mustObeySignals", "mustStayOnCircuit", "maximumSpeedMps"],
       "properties": {
         "lanePreference": { "enum": ["protected", "any"] },
+        "avoidStreetNames": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
         "mustYieldToPedestrians": { "type": "boolean" },
         "mustObeySignals": { "type": "boolean" },
         "mustStayOnCircuit": { "type": "boolean" },
@@ -142,11 +186,35 @@
         "required": ["id", "kind", "required"],
         "properties": {
           "id": { "type": "string", "minLength": 1 },
-          "kind": { "enum": ["arrival", "payload_delivery", "signal_compliance", "pedestrian_yield", "lane_preference", "distance_target", "closed_loop", "boundary_adherence", "lap_accounting"] },
+          "kind": { "enum": ["arrival", "payload_delivery", "signal_compliance", "pedestrian_yield", "lane_preference", "street_avoidance", "distance_target", "laps_target", "duration_target", "closed_loop", "boundary_adherence", "lap_accounting"] },
           "required": { "type": "boolean" }
         }
       }
     },
     "seed": { "type": "integer", "minimum": 0 }
+  },
+  "$defs": {
+    "requestedDistance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["value", "unit", "metersPerUnit", "convertedMeters"],
+      "properties": {
+        "value": { "type": "number", "exclusiveMinimum": 0 },
+        "unit": { "enum": ["foot", "meter", "kilometer", "mile"] },
+        "metersPerUnit": { "type": "number", "exclusiveMinimum": 0 },
+        "convertedMeters": { "type": "number", "exclusiveMinimum": 0 }
+      }
+    },
+    "requestedDuration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["value", "unit", "secondsPerUnit", "convertedSeconds"],
+      "properties": {
+        "value": { "type": "number", "exclusiveMinimum": 0 },
+        "unit": { "enum": ["second", "minute", "hour"] },
+        "secondsPerUnit": { "type": "number", "exclusiveMinimum": 0 },
+        "convertedSeconds": { "type": "number", "exclusiveMinimum": 0 }
+      }
+    }
   }
 }

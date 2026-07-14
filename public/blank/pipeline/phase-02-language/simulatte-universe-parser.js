@@ -318,7 +318,8 @@
 
   function buildClauses(spans, lower) {
     const clauseEntities = spans.filter((span) => (
-      span.kind === 'entity' || span.kind === 'material' || span.kind === 'environment' || span.kind === 'term'
+      span.kind === 'entity' || span.kind === 'material' || span.kind === 'environment' ||
+      span.kind === 'term' || span.kind === 'observable' && span.semanticRole === 'measurement-signal'
     ));
     const attributiveMaterials = attributiveMaterialSpanIds(clauseEntities, lower);
     const processes = spans.filter((span) => span.kind === 'process');

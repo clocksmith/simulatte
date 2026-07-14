@@ -34,7 +34,9 @@
             continue;
           }
           const semanticType = String(node.semanticType || node.type || '').toLowerCase();
-          if (node.supportOnly === true || /^(concept|event|process|action|observable|operator|part|property|relation|state|visual-effect)$/.test(semanticType)) {
+          const executableObservable = semanticType === 'observable' && node.semanticRole === 'measurement-signal';
+          if (node.supportOnly === true || !executableObservable &&
+            /^(concept|event|process|action|observable|operator|part|property|relation|state|visual-effect)$/.test(semanticType)) {
             receipt.exact.push({
               promptSpan: node.label,
               canonicalId: node.canonicalId,
@@ -343,6 +345,7 @@
           semanticType,
           ...(domains || []),
         ].filter(Boolean).join(' ').toLowerCase();
+        if (semanticType === 'observable' && entity.semanticRole === 'measurement-signal') return 'field';
         if (
           semanticType === 'network' ||
           (domains || []).some((domain) => domain === 'network' || domain === 'control') ||
@@ -495,7 +498,19 @@
       }
 
     function addCouplingsFromEdges(couplings, operators, fields, domainByNode, edges, params, receipt, behaviorRelations) {
+        const edgeById = new Map((edges || []).map((edge) => [edge.id, edge]));
+        const supersededPromptEdges = new Set();
+        for (const causalEdge of edges || []) {
+          if (!causalEdge.operatorType) continue;
+          for (const edgeId of causalEdge.provenance?.pathEdgeIds || []) {
+            const promptEdge = edgeById.get(edgeId);
+            if (promptEdge && promptEdge.processId === causalEdge.processId) {
+              supersededPromptEdges.add(edgeId);
+            }
+          }
+        }
         for (const edge of edges || []) {
+          if (supersededPromptEdges.has(edge.id)) continue;
           const from = domainByNode.get(edge.from);
           const to = domainByNode.get(edge.to);
           if (!from || !to) {
@@ -728,10 +743,13 @@
           });
         }
         if (type === 'pressure_flow_lite') {
+          const reads = [`pressure:${fromEntity}`, `flowVelocity:${toEntity}`];
+          const writes = [`flowVelocity:${toEntity}`];
           return addOperator(operators, type, to, {
-            reads: [`pressure:${fromEntity}`, `flowVelocity:${toEntity}`],
-            writes: [`flowVelocity:${toEntity}`],
+            reads,
+            writes,
             params: { rate: clamp(Number(params.flowRate || params.erosionRate || 0.52), 0.05, 2) },
+            receipt: inferredChannelReceipt(edge, type, reads, writes),
           });
         }
         if (type === 'fracture_threshold') {

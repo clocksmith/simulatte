@@ -231,6 +231,9 @@ async function runBrowserSmoke(options) {
     const result = evaluated.result.value;
     const pass = result.state === 'completed'
       && result.rendererBackend === 'webgpu'
+      && result.actorMeshSchema === 'simulatte.autonomyActorMesh.v1'
+      && result.actorMeshKinds === 'pedestrian,bicycle,scooter,car'
+      && result.materialModel === 'metallic_roughness_vertex_v1'
       && result.rendererFrames > 0
       && result.staticVertexCount > 10000
       && result.retrievalRows > 0
@@ -472,6 +475,9 @@ function browserJourneyExpression() {
       editInvalidatedController,
       missionLockedDuringRun,
       rendererBackend: document.getElementById('autonomy-canvas').dataset.rendererBackend || null,
+      actorMeshSchema: document.getElementById('autonomy-canvas').dataset.actorMeshSchema || null,
+      actorMeshKinds: document.getElementById('autonomy-canvas').dataset.actorMeshKinds || null,
+      materialModel: document.getElementById('autonomy-canvas').dataset.materialModel || null,
       adapterName: document.getElementById('autonomy-canvas').dataset.adapterName || null,
       rendererFrames: Number(document.getElementById('autonomy-canvas').dataset.frameCount || 0),
       staticVertexCount: Number(document.getElementById('autonomy-canvas').dataset.staticVertexCount || 0),

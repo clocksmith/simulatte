@@ -11,7 +11,7 @@
   const { slugify = defaultSlugify, uniqueStrings = unique } = schema;
 
   const CAUSAL_RELATION_RULES = Object.freeze([
-    relation('causal.lava-heats-rain', ['lava', 'magma', 'volcano'], ['rain', 'water', 'ice', 'snow'], 'heatTransfer', 'heat_transfer', 'hot molten rock transfers heat into water or ice'),
+    relation('causal.lava-heats-rain', ['lava', 'magma', 'volcano'], ['rain', 'water', 'ice', 'snow'], 'heatTransfer', 'heat_transfer', 'hot molten rock transfers heat into water or ice', connectedPathPolicy(['near'], 3)),
     relation('causal.lava-vaporizes-rain', ['lava', 'magma'], ['rain', 'droplet', 'water'], 'phaseChange', 'phase_transition', 'rain droplets vaporize when crossing the hot lava boundary'),
     relation('causal.rain-cools-lava-crust', ['rain', 'water', 'storm'], ['lava', 'magma', 'molten'], 'heatTransfer', 'heat_transfer', 'cool precipitation extracts heat and grows a crust boundary'),
     relation('causal.heat-drives-plume', ['heat', 'fire', 'lava', 'combustion'], ['smoke', 'steam', 'plume', 'air'], 'fluidForce', 'advection', 'buoyancy lifts heated gas and particles'),
@@ -22,10 +22,10 @@
     relation('causal.gravity-drives-sediment', ['gravity', 'slope', 'hill'], ['sand', 'sediment', 'soil', 'rock'], 'fluidForce', 'pressure_flow_lite', 'gravity pulls grains through terrain channels'),
     relation('causal.river-erodes-sediment', ['rain', 'river', 'water', 'runoff', 'storm surge', 'surge'], ['soil', 'sand', 'terrain', 'delta', 'basalt', 'sediment', 'shoreline', 'coast'], 'erosion', 'pressure_flow_lite', 'water flow removes and transports surface material'),
     relation('causal.magnet-deflects-ferrofluid', ['magnet', 'magnetic', 'electric', 'field', 'coil'], ['ferrofluid', 'ion', 'electron', 'plasma', 'charge'], 'fieldForce', 'wave_field', 'field gradients deflect charged or magnetized matter'),
-    relation('causal.lens-refracts-beam', ['light', 'laser', 'beam', 'lamp', 'sunlight'], ['lens', 'prism', 'water'], 'refraction', 'wave_field', 'optical field bends through refractive media'),
-    relation('causal.thin-film-forms-interference', ['thin film', 'soap film', 'film thickness'], ['iridescent interference', 'interference', 'iridescence'], 'refraction', 'wave_field', 'path length through a thin film shifts reflected phase and produces iridescent interference'),
-    relation('causal.particle-track-produces-detector-readout', ['muon tracks', 'particle tracks'], ['detector slice', 'particle detector', 'detector'], 'measurement', 'derive_readout', 'charged particle tracks crossing detector layers deposit energy and produce a detector signal', { connector: 'through' }),
-    relation('causal.energy-deposition-produces-calorimeter-pulse', ['detector slice', 'particle detector', 'energy deposition'], ['calorimeter pulses', 'calorimeter pulse'], 'measurement', 'derive_readout', 'energy deposited in detector material becomes a bounded calorimeter pulse', { connector: 'with' }),
+    relation('causal.lens-refracts-beam', ['light', 'laser', 'beam', 'lamp', 'sunlight'], ['lens', 'prism', 'water'], 'refraction', 'wave_field', 'optical field bends through refractive media', typedCooccurrencePolicy()),
+    relation('causal.thin-film-forms-interference', ['thin film', 'soap film', 'film thickness'], ['iridescent interference', 'interference', 'iridescence'], 'refraction', 'wave_field', 'path length through a thin film shifts reflected phase and produces iridescent interference', typedCooccurrencePolicy()),
+    relation('causal.particle-track-produces-detector-readout', ['muon tracks', 'particle tracks'], ['detector slice', 'particle detector', 'detector'], 'measurement', 'derive_readout', 'charged particle tracks crossing detector layers deposit energy and produce a detector signal', directSpatialPolicy('through')),
+    relation('causal.energy-deposition-produces-calorimeter-pulse', ['detector slice', 'particle detector', 'energy deposition'], ['calorimeter pulses', 'calorimeter pulse'], 'measurement', 'derive_readout', 'energy deposited in detector material becomes a bounded calorimeter pulse', directSpatialPolicy('with')),
     relation('causal.laser-heats-metal', ['laser', 'beam', 'hot spot'], ['metal', 'copper', 'plate', 'steel'], 'heatTransfer', 'heat_transfer', 'focused optical power raises local metal temperature'),
     relation('causal.impact-fractures-glass', ['projectile', 'hammer', 'impact', 'collision', 'crash'], ['glass', 'wall', 'rock', 'metal', 'ice'], 'collision', 'rigid_collision', 'impulse transfers stress and damage'),
     relation('causal.speaker-drives-air-wave', ['speaker', 'piano', 'oscillator', 'vibration'], ['air', 'water', 'bridge', 'membrane'], 'waveCoupling', 'wave_field', 'oscillation launches a pressure or displacement wave'),
@@ -45,7 +45,9 @@
     relation('causal.pressure-drives-blood-flow', ['pressure', 'heart', 'pulse'], ['blood', 'artery', 'vessel'], 'fluidForce', 'pressure_flow_lite', 'pressure gradient drives pulsing fluid through a compliant vessel'),
     relation('causal.warming-calves-glacier', ['warming', 'heat', 'ocean'], ['glacier', 'ice shelf', 'ice cliff'], 'phaseChange', 'phase_transition', 'heat weakens ice boundary and promotes calving blocks'),
     relation('causal.wind-shear-forms-vortex', ['wind shear', 'shear', 'storm'], ['vortex', 'tornado', 'funnel'], 'fluidForce', 'advection', 'opposed air streams roll into a concentrated rotating column'),
-    relation('causal.storm-updraft-grows-hail', ['supercell', 'thunderstorm', 'updraft', 'storm'], ['hail', 'ice', 'graupel'], 'phaseChange', 'phase_transition', 'storm updraft cycles droplets through freezing layers and grows hail cores'),
+    relation('causal.wind-shear-advects-thunderstorm', ['wind shear'], ['thunderstorm'], 'fluidForce', 'advection', 'wind shear transports and tilts the thunderstorm flow field', evidenceQualifiedPolicy(['grows', 'updraft', 'tilts'])),
+    relation('causal.wind-shear-advects-supercell', ['wind shear'], ['supercell'], 'fluidForce', 'advection', 'wind shear transports and tilts the supercell flow field', evidenceQualifiedPolicy(['grows', 'updraft', 'tilts'])),
+    relation('causal.storm-updraft-grows-hail', ['supercell', 'thunderstorm', 'updraft', 'storm'], ['hail', 'ice', 'graupel'], 'phaseChange', 'phase_transition', 'storm updraft cycles droplets through freezing layers and grows hail cores', evidenceQualifiedPolicy(['grows', 'updraft', 'freezing'])),
     relation('causal.solar-wind-drives-aurora', ['solar wind', 'charged particles', 'magnetosphere'], ['aurora', 'upper atmosphere', 'ionosphere'], 'fieldForce', 'wave_field', 'charged particles follow magnetic field lines and excite atmospheric emission'),
     relation('causal.current-heats-chip', ['current', 'power', 'compute', 'server', 'rack'], ['chip', 'silicon', 'trace', 'wafer', 'heat', 'cooling', 'aisle'], 'heatTransfer', 'heat_transfer', 'electrical power dissipates as heat in semiconductor traces'),
     relation('causal.data-center-cooling-feedback', ['data center', 'controller', 'sensor', 'feedback', 'thermal policy'], ['server', 'rack', 'fan', 'cooling', 'aisle'], 'controlLoop', 'network_flow', 'rack temperature sensors adjust fans and cooling aisles'),
@@ -55,7 +57,7 @@
     relation('causal.query-loads-index-shards', ['query', 'request', 'search'], ['index', 'shard', 'database'], 'networkFlow', 'network_flow', 'requests route through index shards and increase load'),
     relation('causal.delay-amplifies-supply-chain', ['delay', 'demand', 'forecast'], ['inventory', 'warehouse', 'supply'], 'networkFlow', 'network_flow', 'delayed feedback amplifies order and inventory oscillations'),
     relation('causal.narrow-exit-jams-crowd', ['crowd', 'agent', 'people'], ['exit', 'door', 'bottleneck'], 'networkFlow', 'network_flow', 'agent arrivals compress at a narrow service boundary'),
-    relation('causal.wind-excites-bridge', ['wind', 'gust', 'vortex'], ['bridge', 'cable', 'deck'], 'waveCoupling', 'wave_field', 'periodic aerodynamic load excites structural modes'),
+    relation('causal.wind-excites-bridge', ['wind', 'gust', 'vortex'], ['bridge', 'cable', 'deck'], 'waveCoupling', 'wave_field', 'periodic aerodynamic load excites structural modes', evidenceQualifiedPolicy(['resonance', 'vortex', 'shedding'])),
     relation('causal.wind-drives-upwelling', ['wind', 'surface stress'], ['upwelling', 'nutrient', 'deep water'], 'fluidForce', 'advection', 'wind stress displaces surface water and pulls deep water upward'),
     relation('causal.heat-bleaches-coral', ['heat', 'warming', 'thermal stress'], ['coral', 'reef', 'algae'], 'growthCoupling', 'growth_decay', 'thermal stress reduces symbiotic algae density in coral tissue'),
     relation('causal.root-network-stabilizes-soil', ['mangrove', 'root', 'roots', 'root network'], ['soil', 'shoreline', 'sediment', 'slope', 'bank'], 'growthCoupling', 'growth_decay', 'biological roots increase soil cohesion and resist erosion'),
@@ -206,8 +208,33 @@
     relation('causal.tooling-cools-molded-plastic', ['injection molding', 'cooling', 'cooling line', 'steel tooling'], ['plastic', 'polymer', 'mold', 'part'], 'phaseChange', 'phase_transition', 'cold steel tooling removes heat from polymer and solidifies the molded part'),
   ]);
 
-  function relation(id, sources, targets, relationType, operatorType, mechanism, requirements = {}) {
-    return { id, sources, targets, relationType, operatorType, mechanism, requirements };
+  function relation(id, sources, targets, relationType, operatorType, mechanism, groundingPolicy = null) {
+    return {
+      id, sources, targets, relationType, operatorType, mechanism,
+      groundingPolicy: groundingPolicy || defaultGroundingPolicy(operatorType),
+    };
+  }
+
+  function typedCooccurrencePolicy() {
+    return { mode: 'typed-cooccurrence', maxPathDepth: 0 };
+  }
+
+  function directSpatialPolicy(relationName) {
+    return { mode: 'direct-spatial', requiredSpatialRelations: [relationName], maxPathDepth: 1 };
+  }
+
+  function connectedPathPolicy(relations, maxPathDepth) {
+    return { mode: 'connected-path', requiredSpatialRelations: relations, maxPathDepth };
+  }
+
+  function evidenceQualifiedPolicy(terms) {
+    return { mode: 'evidence-qualified', requiredEvidenceTerms: terms, maxPathDepth: 2 };
+  }
+
+  function defaultGroundingPolicy(operatorType) {
+    return ['heat_transfer', 'phase_transition'].includes(operatorType)
+      ? connectedPathPolicy(['near'], 3)
+      : connectedPathPolicy([], 2);
   }
 
   function buildCausalPhysicsGraph(input = {}) {
@@ -220,8 +247,9 @@
       const source = bestNodeForTerms(nodes, rule.sources, prompt);
       const target = bestNodeForTerms(nodes, rule.targets, prompt, source && source.id);
       const evidence = strongEvidenceIdsForRule(evidenceRows, rule);
+      const policyEvidence = groundingPolicyEvidence(prompt, rule);
       const promptHit = termsHit(prompt, rule.sources) && termsHit(prompt, rule.targets) &&
-        orderedRelationHit(prompt, rule);
+        policyEvidence.accepted;
       if (!source || !target || !promptHit) continue;
       edges.push({
         id: `${rule.id}.${edges.length + 1}`,
@@ -234,6 +262,8 @@
         sourceLabel: source.label,
         targetLabel: target.label,
         mechanism: rule.mechanism,
+        groundingPolicy: { ...rule.groundingPolicy },
+        groundingPolicyEvidence: policyEvidence,
         primitiveHints: primitiveHintsForEvidence(evidenceRows, evidence),
         evidence: uniqueStrings([
           ...evidence, `causal-rule:${rule.id}`, ...(promptHit ? ['prompt-text'] : []),
@@ -273,6 +303,8 @@
         sourceLabel: edge.sourceLabel,
         targetLabel: edge.targetLabel,
         mechanism: rule.mechanism,
+        groundingPolicy: { ...rule.groundingPolicy },
+        groundingPolicyEvidence: edge.groundingPolicyEvidence || { accepted: true, matchedEvidenceTerms: [] },
         primitiveHints: edge.primitiveHints || [],
         evidence: [`causal-rule:${rule.id}`, `causal-edge:${edge.id}`],
         confidence: Math.min(Number(edge.confidence || 0.66), 0.82),
@@ -354,17 +386,29 @@
     return (terms || []).some((term) => String(text || '').includes(String(term).toLowerCase()));
   }
 
-  function orderedRelationHit(text, rule = {}) {
-    const connector = String(rule.requirements && rule.requirements.connector || '').toLowerCase();
-    if (!connector) return true;
+  function groundingPolicyEvidence(text, rule = {}) {
+    const policy = rule.groundingPolicy || typedCooccurrencePolicy();
+    const requiredTerms = policy.requiredEvidenceTerms || [];
+    const matchedEvidenceTerms = requiredTerms.filter((term) => termsHit(text, [term]));
+    const evidenceAccepted = !requiredTerms.length || matchedEvidenceTerms.length > 0;
+    const requiredRelations = policy.requiredSpatialRelations || [];
+    const spatialAccepted = policy.mode !== 'direct-spatial' || requiredRelations.some((relationName) => (
+      orderedRelationHit(text, rule.sources, relationName, rule.targets)
+    ));
+    return { accepted: evidenceAccepted && spatialAccepted, matchedEvidenceTerms, requiredRelations };
+  }
+
+  function orderedRelationHit(text, sources, connector, targets) {
     const value = String(text || '').toLowerCase();
-    for (const source of rule.sources || []) {
+    const relationName = String(connector || '').toLowerCase();
+    if (!relationName) return true;
+    for (const source of sources || []) {
       const sourceIndex = value.indexOf(String(source).toLowerCase());
       if (sourceIndex < 0) continue;
-      const connectorIndex = value.indexOf(connector, sourceIndex + String(source).length);
+      const connectorIndex = value.indexOf(relationName, sourceIndex + String(source).length);
       if (connectorIndex < 0) continue;
-      for (const target of rule.targets || []) {
-        if (value.indexOf(String(target).toLowerCase(), connectorIndex + connector.length) >= 0) return true;
+      for (const target of targets || []) {
+        if (value.indexOf(String(target).toLowerCase(), connectorIndex + relationName.length) >= 0) return true;
       }
     }
     return false;

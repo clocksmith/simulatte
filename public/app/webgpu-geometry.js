@@ -1,9 +1,13 @@
 (function attachAutonomyWebGpuGeometry(root, factory) {
-  const api = factory();
+  const actorGeometry = typeof module === 'object' && module.exports
+    ? require('./webgpu-actor-geometry.js')
+    : root.SimulatteAutonomyActorGeometry;
+  const api = factory(actorGeometry);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteAutonomyGpuGeometry = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyWebGpuGeometry() {
-  const FLOATS_PER_VERTEX = 11;
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyWebGpuGeometry(actorGeometry) {
+  const FLOATS_PER_VERTEX = actorGeometry.FLOATS_PER_VERTEX;
+  const DEFAULT_MATERIAL = Object.freeze([0.02, 0.78]);
   const COLORS = Object.freeze({
     water: [0.014, 0.042, 0.078, 1],
     land: [0.052, 0.12, 0.125, 1],
@@ -69,17 +73,23 @@
       const point = worldModel.node(signal.nodeId).position;
       addBeacon(writer, point, signal.state === 'green' ? COLORS.signalGreen : COLORS.signalRed, 28, 2.2);
     });
-    worldModel.activeActors(snapshot.state.tick).forEach((actor) => {
-      addBox(writer, {
-        minimum: [actor.position.x - 0.65, 0.2, -actor.position.y - 0.65],
-        maximum: [actor.position.x + 0.65, 2.3, -actor.position.y + 0.65],
-        color: COLORS.actor,
-        emissive: 0.8,
+    worldModel.activeActors(snapshot.state.tick).forEach((actor, index) => {
+      actorGeometry.addActor(writer, {
+        kind: actor.type,
+        point: actor.position,
+        heading: actor.heading,
+        motionPhase: snapshot.state.tick * 0.42 + index * 1.7,
       });
     });
     const heading = headingFor(snapshot.state.position, routeIds, worldModel, tracePositions);
-    if (snapshot.state.renderProfile === 'runner') addRunner(writer, snapshot.state.position, heading);
-    else addAgent(writer, snapshot.state.position, heading);
+    actorGeometry.addActor(writer, {
+      kind: snapshot.state.embodimentKind || snapshot.state.renderProfile,
+      point: snapshot.state.position,
+      heading,
+      motionPhase: snapshot.state.distanceTraveledM * 2.1,
+      gait: snapshot.state.taskType === 'loop_distance' ? 'run' : null,
+      isPrimary: true,
+    });
     addSensorCone(writer, snapshot.state.position, heading, snapshot.state.speedMps);
     const selected = tickReceipt?.bets?.find((row) => row.bet.id === tickReceipt.selectedBetId);
     if (selected) addRibbon(writer, [snapshot.state.position, selected.bet.prediction.endPosition], 0.85, 1.1, COLORS.prediction, 1.2);
@@ -88,11 +98,11 @@
 
   function createWriter() {
     const values = [];
-    const vertex = (position, normal, color, emissive = 0) => values.push(...position, ...normal, ...color, emissive);
-    const triangle = (a, b, c, normal, color, emissive = 0) => {
-      vertex(a, normal, color, emissive);
-      vertex(b, normal, color, emissive);
-      vertex(c, normal, color, emissive);
+    const vertex = (position, normal, color, emissive = 0, material = DEFAULT_MATERIAL) => values.push(...position, ...normal, ...color, emissive, ...material);
+    const triangle = (a, b, c, normal, color, emissive = 0, material = DEFAULT_MATERIAL) => {
+      vertex(a, normal, color, emissive, material);
+      vertex(b, normal, color, emissive, material);
+      vertex(c, normal, color, emissive, material);
     };
     return { values, vertex, triangle, finish: () => new Float32Array(values) };
   }
@@ -174,49 +184,6 @@
       color,
       emissive: 1.25,
     });
-  }
-
-  function addAgent(writer, point, heading) {
-    const forward = [Math.cos(heading), -Math.sin(heading)];
-    const right = [-forward[1], forward[0]];
-    const local = (forwardM, rightM, height) => [
-      point.x + forward[0] * forwardM + right[0] * rightM,
-      height,
-      -point.y - forward[1] * forwardM - right[1] * rightM,
-    ];
-    const nose = local(2.5, 0, 1.1);
-    const left = local(-1.7, -1.05, 0.35);
-    const rightPoint = local(-1.7, 1.05, 0.35);
-    const top = local(-0.25, 0, 2.4);
-    writer.triangle(nose, left, top, faceNormal(nose, left, top), COLORS.agent, 1.3);
-    writer.triangle(nose, top, rightPoint, faceNormal(nose, top, rightPoint), COLORS.agent, 1.3);
-    writer.triangle(left, rightPoint, top, faceNormal(left, rightPoint, top), COLORS.agent, 1.3);
-  }
-
-  function addRunner(writer, point, heading) {
-    const forward = [Math.cos(heading), -Math.sin(heading)];
-    const right = [-forward[1], forward[0]];
-    const local = (forwardM, rightM, height) => ({
-      x: point.x + forward[0] * forwardM + right[0] * rightM,
-      y: -point.y - forward[1] * forwardM - right[1] * rightM,
-      height,
-    });
-    const torso = local(0, 0, 1.25);
-    addBox(writer, {
-      minimum: [torso.x - 0.32, 0.45, torso.y - 0.22],
-      maximum: [torso.x + 0.32, 1.75, torso.y + 0.22],
-      color: COLORS.runner,
-      emissive: 1.15,
-    });
-    const head = local(0.08, 0, 2.02);
-    addBox(writer, {
-      minimum: [head.x - 0.24, 1.76, head.y - 0.24],
-      maximum: [head.x + 0.24, 2.24, head.y + 0.24],
-      color: COLORS.agent,
-      emissive: 0.95,
-    });
-    const lead = local(0.55, 0, 0.35);
-    addRibbon(writer, [point, { x: lead.x, y: -lead.y }], 0.42, 0.25, COLORS.runner, 1.05);
   }
 
   function addSensorCone(writer, point, heading, speedMps) {
@@ -319,8 +286,12 @@
   }
 
   return {
+    ACTOR_MESH_SCHEMA: actorGeometry.ACTOR_MESH_SCHEMA,
     COLORS,
+    DEFAULT_MATERIAL,
     FLOATS_PER_VERTEX,
+    MATERIAL_MODEL: actorGeometry.MATERIAL_MODEL,
+    SUPPORTED_ACTOR_KINDS: actorGeometry.SUPPORTED_ACTOR_KINDS,
     addRibbon,
     createDynamicGeometry,
     createStaticGeometry,

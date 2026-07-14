@@ -27,6 +27,7 @@ struct VertexInput {
   @location(1) normal: vec3<f32>,
   @location(2) color: vec4<f32>,
   @location(3) emissive: f32,
+  @location(4) material: vec2<f32>,
 }
 
 struct VertexOutput {
@@ -35,6 +36,7 @@ struct VertexOutput {
   @location(1) normal: vec3<f32>,
   @location(2) color: vec4<f32>,
   @location(3) emissive: f32,
+  @location(4) material: vec2<f32>,
 }
 
 @group(0) @binding(0) var<uniform> uniforms: Uniforms;
@@ -47,15 +49,27 @@ fn vertexMain(input: VertexInput) -> VertexOutput {
   output.normal = input.normal;
   output.color = input.color;
   output.emissive = input.emissive;
+  output.material = input.material;
   return output;
 }
 
 @fragment
 fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
   let normal = normalize(input.normal);
-  let diffuse = max(dot(normal, normalize(-uniforms.lightDirection.xyz)), 0.0);
+  let lightDirection = normalize(-uniforms.lightDirection.xyz);
+  let viewDirection = normalize(uniforms.cameraPosition.xyz - input.worldPosition);
+  let halfDirection = normalize(lightDirection + viewDirection);
+  let diffuse = max(dot(normal, lightDirection), 0.0);
+  let roughness = clamp(input.material.y, 0.06, 1.0);
+  let metallic = clamp(input.material.x, 0.0, 1.0);
+  let specularPower = mix(180.0, 7.0, roughness);
+  let fresnelBase = mix(vec3<f32>(0.035), input.color.rgb, vec3<f32>(metallic));
+  let fresnel = fresnelBase + (vec3<f32>(1.0) - fresnelBase) * pow(1.0 - max(dot(viewDirection, halfDirection), 0.0), 5.0);
+  let specular = fresnel * pow(max(dot(normal, halfDirection), 0.0), specularPower) * mix(1.3, 0.18, roughness);
+  let rim = pow(1.0 - max(dot(normal, viewDirection), 0.0), 3.0) * 0.08;
   let pulse = 0.82 + 0.18 * sin(uniforms.timeViewport.x * 2.4 + input.worldPosition.x * 0.018 - input.worldPosition.z * 0.012);
-  let lit = input.color.rgb * (0.24 + diffuse * 0.78) + input.color.rgb * input.emissive * pulse;
+  let diffuseColor = input.color.rgb * (0.2 + diffuse * 0.74) * (1.0 - metallic * 0.38);
+  let lit = diffuseColor + specular + input.color.rgb * rim + input.color.rgb * input.emissive * pulse;
   let cameraDistance = distance(uniforms.cameraPosition.xyz, input.worldPosition);
   let fogAmount = clamp(1.0 - exp(-cameraDistance * uniforms.fogColorDensity.w), 0.0, 0.88);
   return vec4<f32>(mix(lit, uniforms.fogColorDensity.rgb, fogAmount), input.color.a);
@@ -89,6 +103,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
             { shaderLocation: 1, offset: 12, format: 'float32x3' },
             { shaderLocation: 2, offset: 24, format: 'float32x4' },
             { shaderLocation: 3, offset: 40, format: 'float32' },
+            { shaderLocation: 4, offset: 44, format: 'float32x2' },
           ],
         }],
       },
@@ -134,6 +149,9 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
     const adapterInfo = readAdapterInfo(adapter);
     canvas.dataset.rendererBackend = 'webgpu';
     canvas.dataset.adapterName = adapterInfo.description || adapterInfo.device || adapterInfo.architecture || 'WebGPU adapter';
+    canvas.dataset.actorMeshSchema = geometry.ACTOR_MESH_SCHEMA;
+    canvas.dataset.actorMeshKinds = geometry.SUPPORTED_ACTOR_KINDS.join(',');
+    canvas.dataset.materialModel = geometry.MATERIAL_MODEL;
     canvas.dataset.cameraMode = state.mode;
     canvas.dataset.cameraFocus = state.focusId;
     canvas.dataset.cameraTransition = 'settled';
@@ -232,7 +250,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
 
     function receipt() {
       return {
-        schema: 'simulatte.autonomyWebGpuRenderReceipt.v3',
+        schema: 'simulatte.autonomyWebGpuRenderReceipt.v4',
         backend: 'webgpu',
         adapter: adapterInfo,
         format,
@@ -247,6 +265,11 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
         parkCount: worldModel.world.renderGeometry.parks.length,
         circuitCount: worldModel.world.circuits.length,
         bikeFacilityCount: worldModel.world.renderGeometry.bikeFacilities.length,
+        actorGeometry: {
+          schema: geometry.ACTOR_MESH_SCHEMA,
+          supportedKinds: [...geometry.SUPPORTED_ACTOR_KINDS],
+          materialModel: geometry.MATERIAL_MODEL,
+        },
         camera: {
           mode: state.mode,
           focusId: state.focusId,

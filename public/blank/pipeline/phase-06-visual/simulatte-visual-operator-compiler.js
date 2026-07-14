@@ -400,6 +400,11 @@
       const quantumScene = directHas(/\b(qubit|quantum|microwave|superconducting|resonator)\b/);
       if (!quantumScene) return { ok: false, reason: 'scene-gate:no-direct-quantum-evidence' };
     }
+    if (/structural-stress/.test(id)) {
+      const structuralScene = directHas(/\bbridge(?: deck)?\b/) &&
+        directHas(/\b(cable tension|tension|stress|strain)\b/);
+      if (!structuralScene) return { ok: false, reason: 'scene-gate:no-direct-bridge-stress-evidence' };
+    }
     const watershedLike = /watershed|restoration water|ocean cryosphere|weather atmosphere|hazard atmosphere/.test(scene) ||
       /\b(watershed|river|rain|erosion|erodes|sediment|terrain|mountain|delta|aquifer|storm surge|glacier|ocean)\b/.test(direct);
     if (watershedLike) {
@@ -479,8 +484,8 @@
   }
 
   function compiledIntentBrief(context = {}) {
-    return context && context.spec && context.spec.renderIR && context.spec.renderIR.intentBriefReceipt ||
-      context && context.spec && context.spec.universeGraph && context.spec.universeGraph.intentBrief ||
+    return context && context.spec && context.spec.universeGraph && context.spec.universeGraph.intentBrief ||
+      context && context.spec && context.spec.renderIR && context.spec.renderIR.intentBriefReceipt ||
       null;
   }
 

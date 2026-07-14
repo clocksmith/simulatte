@@ -3,6 +3,8 @@
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteAutonomyContracts = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyContractValidator() {
+  const ACTOR_TYPES = Object.freeze(['pedestrian', 'bicycle', 'scooter', 'car']);
+
   class AutonomyContractError extends Error {
     constructor(contract, path, expected, received) {
       super(`${contract} contract at ${path} expected ${expected}, received ${describe(received)}`);
@@ -595,6 +597,8 @@
     uniqueRows(actors, contract, '$.actors');
     actors.forEach((actor, index) => {
       requireString(actor.id, contract, `$.actors[${index}].id`);
+      if (!ACTOR_TYPES.includes(actor.type)) throw new AutonomyContractError(contract, `$.actors[${index}].type`, ACTOR_TYPES.join(' | '), actor.type);
+      requireFinite(actor.radiusM, contract, `$.actors[${index}].radiusM`, Number.MIN_VALUE);
       requireInteger(actor.activeFromTick, contract, `$.actors[${index}].activeFromTick`);
       requireInteger(actor.activeUntilTick, contract, `$.actors[${index}].activeUntilTick`);
       if (actor.activeUntilTick <= actor.activeFromTick) {
@@ -704,7 +708,7 @@
     const supportedTaskTypes = requireArray(embodiment.supportedTaskTypes, contract, '$.supportedTaskTypes', 1);
     requireExactStringSet(supportedTaskTypes, [...new Set(supportedTaskTypes)], contract, '$.supportedTaskTypes');
     supportedTaskTypes.forEach((task, index) => {
-      if (!['delivery', 'loop_distance'].includes(task)) throw new AutonomyContractError(contract, `$.supportedTaskTypes[${index}]`, 'registered task type', task);
+      if (!['delivery', 'point_to_point', 'loop'].includes(task)) throw new AutonomyContractError(contract, `$.supportedTaskTypes[${index}]`, 'registered task type', task);
     });
     const dimensions = requireObject(embodiment.dimensions, contract, '$.dimensions');
     const dynamics = requireObject(embodiment.dynamics, contract, '$.dynamics');
@@ -740,7 +744,7 @@
   }
 
   function validateMission(mission, world, embodiment) {
-    const contract = 'simulatte.autonomyMission.v2';
+    const contract = 'simulatte.autonomyMission.v3';
     requireSchema(mission, contract, contract);
     requireString(mission.id, contract, '$.id');
     requireString(mission.sourceText, contract, '$.sourceText');
@@ -748,26 +752,35 @@
     const nodeIds = new Set(world.nodes.map((row) => row.id));
     if (!nodeIds.has(mission.originNodeId)) throw new AutonomyContractError(contract, '$.originNodeId', 'known world node', mission.originNodeId);
     const task = requireObject(mission.task, contract, '$.task');
-    if (!['delivery', 'loop_distance'].includes(task.type)) throw new AutonomyContractError(contract, '$.task.type', 'delivery or loop_distance', task.type);
+    if (!['delivery', 'loop'].includes(task.type)) throw new AutonomyContractError(contract, '$.task.type', 'delivery or loop', task.type);
     if (!embodiment.supportedTaskTypes.includes(task.type)) throw new AutonomyContractError(contract, '$.task.type', `task supported by ${embodiment.id}`, task.type);
+    const capability = requireObject(mission.capability, contract, '$.capability');
+    requireExactValue(capability.schema, 'simulatte.autonomyCapabilityReceipt.v1', contract, '$.capability.schema');
+    requireExactValue(capability.matrixSchema, 'simulatte.autonomyCapabilityMatrix.v1', contract, '$.capability.matrixSchema');
+    requireExactValue(capability.embodimentId, embodiment.id, contract, '$.capability.embodimentId');
+    requireExactValue(capability.embodimentKind, embodiment.kind, contract, '$.capability.embodimentKind');
+    requireArray(capability.artifactIds, contract, '$.capability.artifactIds', 1);
+    if (!capability.artifactIds.includes(embodiment.id)) throw new AutonomyContractError(contract, '$.capability.artifactIds', `include ${embodiment.id}`, capability.artifactIds);
     if (task.type === 'delivery') {
+      requireExactValue(capability.missionFamily, 'delivery', contract, '$.capability.missionFamily');
+      requireExactValue(capability.terminationKind, 'arrival', contract, '$.capability.terminationKind');
+      requireExactValue(capability.circuitId, null, contract, '$.capability.circuitId');
       requireString(task.payloadId, contract, '$.task.payloadId');
       if (!nodeIds.has(mission.destinationNodeId)) throw new AutonomyContractError(contract, '$.destinationNodeId', 'known world node', mission.destinationNodeId);
       if (mission.grounding !== null) throw new AutonomyContractError(contract, '$.grounding', 'null for delivery', mission.grounding);
     } else {
-      if (mission.destinationNodeId !== null) throw new AutonomyContractError(contract, '$.destinationNodeId', 'null for loop_distance', mission.destinationNodeId);
+      requireExactValue(capability.missionFamily, 'closed_circuit', contract, '$.capability.missionFamily');
+      if (mission.destinationNodeId !== null) throw new AutonomyContractError(contract, '$.destinationNodeId', 'null for loop', mission.destinationNodeId);
       requireString(task.circuitId, contract, '$.task.circuitId');
-      if (!['run', 'walk'].includes(task.gait)) throw new AutonomyContractError(contract, '$.task.gait', 'run or walk', task.gait);
-      requireFinite(task.targetDistanceM, contract, '$.task.targetDistanceM', Number.MIN_VALUE);
-      const requested = requireObject(task.requestedDistance, contract, '$.task.requestedDistance');
-      requireFinite(requested.value, contract, '$.task.requestedDistance.value', Number.MIN_VALUE);
-      requireFinite(requested.metersPerUnit, contract, '$.task.requestedDistance.metersPerUnit', Number.MIN_VALUE);
-      requireFinite(requested.convertedMeters, contract, '$.task.requestedDistance.convertedMeters', Number.MIN_VALUE);
-      if (Math.abs(requested.value * requested.metersPerUnit - requested.convertedMeters) > 0.000001 || requested.convertedMeters !== task.targetDistanceM) {
-        throw new AutonomyContractError(contract, '$.task.requestedDistance', 'exact conversion to targetDistanceM', requested);
-      }
+      if (!['run', 'walk', 'ride'].includes(task.gait)) throw new AutonomyContractError(contract, '$.task.gait', 'run, walk, or ride', task.gait);
       const circuit = (world.circuits || []).find((row) => row.id === task.circuitId);
       if (!circuit) throw new AutonomyContractError(contract, '$.task.circuitId', 'known world circuit', task.circuitId);
+      requireExactValue(capability.circuitId, circuit.id, contract, '$.capability.circuitId');
+      if (!capability.artifactIds.includes(circuit.id)) throw new AutonomyContractError(contract, '$.capability.artifactIds', `include ${circuit.id}`, capability.artifactIds);
+      const termination = requireObject(task.termination, contract, '$.task.termination');
+      if (!['distance', 'laps', 'duration'].includes(termination.kind)) throw new AutonomyContractError(contract, '$.task.termination.kind', 'distance, laps, or duration', termination.kind);
+      requireExactValue(capability.terminationKind, termination.kind, contract, '$.capability.terminationKind');
+      validateLoopTermination(termination, circuit, contract);
       const grounding = requireObject(mission.grounding, contract, '$.grounding');
       requireExactValue(grounding.circuitId, circuit.id, contract, '$.grounding.circuitId');
       requireExactValue(grounding.nodeIds, circuit.nodeIds, contract, '$.grounding.nodeIds');
@@ -788,6 +801,12 @@
       if (mission.sourceText.slice(row.start, row.end) !== row.value) throw new AutonomyContractError(contract, `$.parser.evidence[${index}]`, 'exact source interval', row);
     });
     requireObject(mission.constraints, contract, '$.constraints');
+    const avoidStreetNames = requireArray(mission.constraints.avoidStreetNames, contract, '$.constraints.avoidStreetNames');
+    const routedStreetNames = new Set(world.segments.map((segment) => segment.source && segment.source.street).filter(Boolean));
+    avoidStreetNames.forEach((name, index) => {
+      requireString(name, contract, `$.constraints.avoidStreetNames[${index}]`);
+      if (!routedStreetNames.has(name)) throw new AutonomyContractError(contract, `$.constraints.avoidStreetNames[${index}]`, 'street in governed routing graph', name);
+    });
     requireBoolean(mission.constraints.mustYieldToPedestrians, contract, '$.constraints.mustYieldToPedestrians');
     requireBoolean(mission.constraints.mustObeySignals, contract, '$.constraints.mustObeySignals');
     requireBoolean(mission.constraints.mustStayOnCircuit, contract, '$.constraints.mustStayOnCircuit');
@@ -795,6 +814,36 @@
     requireArray(mission.obligations, contract, '$.obligations', 1);
     requireInteger(mission.seed, contract, '$.seed');
     return mission;
+  }
+
+  function validateLoopTermination(termination, circuit, contract) {
+    if (termination.kind === 'distance') {
+      requireFinite(termination.targetDistanceM, contract, '$.task.termination.targetDistanceM', Number.MIN_VALUE);
+      const requested = requireObject(termination.requestedDistance, contract, '$.task.termination.requestedDistance');
+      requireFinite(requested.value, contract, '$.task.termination.requestedDistance.value', Number.MIN_VALUE);
+      requireFinite(requested.metersPerUnit, contract, '$.task.termination.requestedDistance.metersPerUnit', Number.MIN_VALUE);
+      requireFinite(requested.convertedMeters, contract, '$.task.termination.requestedDistance.convertedMeters', Number.MIN_VALUE);
+      if (Math.abs(requested.value * requested.metersPerUnit - requested.convertedMeters) > 0.000001 || requested.convertedMeters !== termination.targetDistanceM) {
+        throw new AutonomyContractError(contract, '$.task.termination.requestedDistance', 'exact conversion to targetDistanceM', requested);
+      }
+      return;
+    }
+    if (termination.kind === 'laps') {
+      requireInteger(termination.targetLaps, contract, '$.task.termination.targetLaps', 1);
+      requireFinite(termination.targetDistanceM, contract, '$.task.termination.targetDistanceM', Number.MIN_VALUE);
+      if (Math.abs(termination.targetLaps * circuit.lengthM - termination.targetDistanceM) > 0.000001) {
+        throw new AutonomyContractError(contract, '$.task.termination.targetDistanceM', 'targetLaps multiplied by circuit length', termination.targetDistanceM);
+      }
+      return;
+    }
+    requireFinite(termination.targetDurationSeconds, contract, '$.task.termination.targetDurationSeconds', Number.MIN_VALUE);
+    const requested = requireObject(termination.requestedDuration, contract, '$.task.termination.requestedDuration');
+    requireFinite(requested.value, contract, '$.task.termination.requestedDuration.value', Number.MIN_VALUE);
+    requireFinite(requested.secondsPerUnit, contract, '$.task.termination.requestedDuration.secondsPerUnit', Number.MIN_VALUE);
+    requireFinite(requested.convertedSeconds, contract, '$.task.termination.requestedDuration.convertedSeconds', Number.MIN_VALUE);
+    if (Math.abs(requested.value * requested.secondsPerUnit - requested.convertedSeconds) > 0.000001 || requested.convertedSeconds !== termination.targetDurationSeconds) {
+      throw new AutonomyContractError(contract, '$.task.termination.requestedDuration', 'exact conversion to targetDurationSeconds', requested);
+    }
   }
 
   function validateObservation(observation) {

@@ -109,7 +109,10 @@
           ? brief.languageEvidence.spans
           : [];
         return spans
-          .filter((span) => span && span.text && ['clause', 'predicate-frame', 'verb-phrase', 'noun-phrase', 'modifier'].includes(span.kind || ''))
+          .filter((span) => span && span.text && [
+            'clause', 'predicate-frame', 'verb-phrase', 'noun-phrase', 'modifier',
+            'entity', 'material', 'environment', 'observable', 'process', 'term',
+          ].includes(span.kind || ''))
           .slice(0, 48)
           .map((span) => ({
             id: span.id || '',

@@ -82,7 +82,12 @@
     ['thermal plume', 'environment', { entityClass: 'thermal-plume', visualArchetype: 'cloud' }],
     ['cooling fins', 'entity', { entityClass: 'cooling-fin', visualArchetype: 'structure' }],
     ['cooling fin', 'entity', { entityClass: 'cooling-fin', visualArchetype: 'structure' }],
-    ['traffic queue', 'entity'], ['glass tower', 'entity'], ['bridge cables', 'entity'],
+    ['traffic queue', 'entity'], ['glass tower', 'entity'],
+    ['cable tension', 'observable', {
+      entityClass: 'cable-tension', semanticRole: 'structural-state',
+      visualArchetype: 'tension-band', stateBinding: 'amplitude', preserveNestedSemanticSpans: true,
+    }],
+    ['bridge cables', 'entity'],
     ['bridge cable', 'entity'], ['feedback shock', 'entity'], ['basalt delta', 'environment'],
     ['quartz wetland', 'environment'], ['lava', 'material'], ['magma', 'material'],
     ['turbines', 'entity', {
@@ -138,10 +143,19 @@
     ['gold', 'material'], ['piano', 'entity'], ['volcano', 'entity'],
     ['submarine', 'entity'], ['algae', 'entity'],
     ['storm surge', 'observable', { entityClass: 'storm-surge', visualArchetype: 'water-volume' }],
+    ['supercell', 'environment', {
+      semanticRole: 'atmospheric-system', entityClass: 'supercell', visualArchetype: 'storm-volume',
+    }],
+    ['thunderstorm', 'environment', {
+      semanticRole: 'atmospheric-system', entityClass: 'thunderstorm', visualArchetype: 'storm-volume',
+    }],
+    ['hail', 'entity', {
+      semanticRole: 'phase-particle', entityClass: 'hail', visualArchetype: 'ice-particle', materialHint: 'ice',
+    }],
     ['storm', 'environment'], ['clouds', 'environment', { entityClass: 'cloud', visualArchetype: 'cloud' }],
     ['cloud', 'environment', { entityClass: 'cloud', visualArchetype: 'cloud' }],
     ['wind shear', 'environment', {
-      semanticRole: 'visual-effect', entityClass: 'wind-field', visualArchetype: 'field-sheet',
+      semanticRole: 'fluid-medium', entityClass: 'wind-field', visualArchetype: 'field-sheet',
     }],
     ['wind', 'entity'], ['building masses', 'entity'],
     ['building', 'entity', { entityClass: 'building', visualArchetype: 'building', containerFamily: 'building' }],

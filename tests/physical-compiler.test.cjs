@@ -6,6 +6,7 @@ const test = require('node:test');
 const lab = require('../public/blank/app/simulation/simulation-lab.js');
 const compositionGraph = require('../public/blank/pipeline/phase-06-visual/simulatte-composition-graph.js');
 const solverRegistry = require('../public/blank/pipeline/phase-05-simulation/simulatte-solver-registry.js');
+const solverCompiler = require('../public/blank/pipeline/phase-05-simulation/simulatte-solver-compiler.js');
 const advectionSolver = require('../public/blank/pipeline/phase-05-simulation/solvers/simulatte-solver-advection.js');
 const depositionSolver = require('../public/blank/pipeline/phase-05-simulation/solvers/simulatte-solver-particle-deposition.js');
 const webgpuRenderer = require('../public/blank/pipeline/phase-07-render/simulatte-webgpu-renderer.js');
@@ -602,6 +603,91 @@ test('typed optical rules activate executable lens and thin-film phase fields wi
   const meltingFilm = lab.createSpecFromPrompt('thin film melts ice', { allowPrototypeFallback: true });
   assert.ok(meltingFilm.physicsIR.operators.some((operator) => operator.type === 'phase_transition'));
   assert.equal(mappings(meltingFilm).includes('visual.operator.thin-film-interference.v1'), false);
+});
+
+test('particle measurement paths lower two receipt-bound readouts and reject noun co-occurrence', () => {
+  const spec = lab.createSpecFromPrompt(
+    'particle collider muon tracks through detector slice with calorimeter pulses',
+    { allowPrototypeFallback: true }
+  );
+  const pulseSpan = spec.promptParse.spans.find((span) => span.text === 'calorimeter pulses');
+  const causalEdges = spec.universeGraph.edges.filter((edge) => edge.operatorType === 'derive_readout');
+  const operators = spec.physicsIR.operators.filter((operator) => operator.type === 'derive_readout');
+  const steps = spec.solverGraph.steps.filter((step) => step.operatorType === 'derive_readout');
+  const signalFields = spec.physicsIR.stateFields.filter((field) => field.name === 'signal');
+  const ruleIds = new Set(causalEdges.map((edge) => edge.provenance?.causalRuleId));
+  const mappingIds = spec.renderProgram.visualIR.graphicsAtoms.mappings.map((row) => row.id);
+
+  assert.equal(pulseSpan.kind, 'observable');
+  assert.equal(pulseSpan.semanticRole, 'measurement-signal');
+  assert.equal(pulseSpan.stateBinding, 'signal');
+  assert.deepEqual(ruleIds, new Set([
+    'causal.particle-track-produces-detector-readout',
+    'causal.energy-deposition-produces-calorimeter-pulse',
+  ]));
+  assert.equal(causalEdges.length, 2);
+  assert.equal(operators.length, 2);
+  assert.equal(steps.length, 2);
+  assert.equal(signalFields.length, 2);
+  for (const edge of causalEdges) {
+    assert.equal(edge.provenance.inferenceMode, 'causal-rule-direct-spatial');
+    assert.equal(edge.provenance.pathEdgeIds.length, 1);
+    const operator = operators.find((row) => row.receipt?.sourceEdgeId === edge.id);
+    const step = steps.find((row) => row.receipt?.sourceEdgeId === edge.id);
+    assert.ok(operator, `missing operator receipt for ${edge.id}`);
+    assert.ok(step, `missing solver receipt for ${edge.id}`);
+    assert.equal(operator.receipt.inferenceProvenance.causalRuleId, edge.provenance.causalRuleId);
+    assert.deepEqual(step.receipt.producedChannels, operator.writes);
+  }
+  const initial = solverCompiler.createSolverState(spec.solverGraph);
+  const stepped = solverCompiler.stepSolverState(initial, spec.solverGraph, 0.05);
+  for (const field of signalFields) {
+    assert.notEqual(stepped.channels[field.id], initial.channels[field.id]);
+    assert.ok(stepped.channels[field.id] >= 0 && stepped.channels[field.id] <= 1);
+  }
+  assert.ok(mappingIds.includes('visual.operator.particle-track-detector.v1'));
+  assert.ok(mappingIds.includes('visual.operator.instrument-readout.v1'));
+
+  for (const prompt of [
+    'muon tracks beside a detector slice',
+    'particle sculpture beside a calorimeter',
+    'muon tracks painted on a wall',
+    'calorimeter on a lab bench',
+  ]) {
+    const control = lab.createSpecFromPrompt(prompt, { allowPrototypeFallback: true });
+    assert.equal(control.physicsIR.operators.some((row) => row.type === 'derive_readout'), false, prompt);
+    assert.equal(control.solverGraph.steps.some((row) => row.operatorType === 'derive_readout'), false, prompt);
+    assert.equal(control.renderProgram.visualIR.graphicsAtoms.mappings.some((row) => (
+      ['visual.operator.particle-track-detector.v1', 'visual.operator.instrument-readout.v1'].includes(row.id)
+    )), false, prompt);
+  }
+});
+
+test('causal grounding policies admit direct clauses and reject disconnected noun pairs', () => {
+  for (const [prompt, operatorType] of [
+    ['laser heats metal', 'heat_transfer'],
+    ['fire melts ice', 'phase_transition'],
+  ]) {
+    const spec = lab.createSpecFromPrompt(prompt, { allowPrototypeFallback: true });
+    assert.ok(spec.universeGraph.edges.some((edge) => edge.processId === operatorType), prompt);
+    assert.ok(spec.physicsIR.operators.some((operator) => operator.type === operatorType), prompt);
+  }
+  const laser = lab.createSpecFromPrompt('laser heats metal', { allowPrototypeFallback: true });
+  const heatOperators = laser.physicsIR.operators.filter((operator) => operator.type === 'heat_transfer');
+  assert.equal(heatOperators.length, 1);
+  assert.deepEqual(heatOperators[0].reads, [
+    'temperature:primitive-laser-a',
+    'temperature:metal',
+  ]);
+  assert.deepEqual(heatOperators[0].writes, ['temperature:metal']);
+
+  for (const [prompt, blockedTypes] of [
+    ['laser beside metal', ['heat_transfer', 'phase_transition']],
+    ['speaker, air', ['wave_field']],
+  ]) {
+    const spec = lab.createSpecFromPrompt(prompt, { allowPrototypeFallback: true });
+    assert.equal(spec.physicsIR.operators.some((operator) => blockedTypes.includes(operator.type)), false, prompt);
+  }
 });
 
 test('Phase 2 phrase parser matches multi-word entities across whitespace', () => {

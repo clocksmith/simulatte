@@ -61,7 +61,7 @@
     ),
     mapping(
       'visual.operator.stress-fracture.v1',
-      ['stress', 'strain', 'fracture', 'crack', 'collision', 'impact', 'load', 'buckling', 'constraint', 'constraints', 'bond', 'bridge', 'cable', 'cables', 'tension', 'resonance', 'vortex shedding'],
+      ['stress', 'strain', 'fracture', 'fractures', 'crack', 'cracks', 'collision', 'impact', 'damage'],
       ['sectioned-solid', 'crack-branch-network', 'constraint-contact-pad'],
       ['stress-contour-field', 'impulse-ring-field'],
       ['deformed-matte', 'fracture-edge'],
@@ -69,6 +69,17 @@
       ['deformation-pulse', 'crack-propagation'],
       ['cutaway-section-depth', 'dynamic-motion-depth'],
       'Mechanical stress becomes deformation, crack branches, contact pads, and strain contours.'
+    ),
+    mapping(
+      'visual.operator.structural-stress.v1',
+      ['bridge', 'bridge deck', 'cable', 'cables', 'cable tension', 'tension', 'stress', 'strain', 'resonance', 'vortex shedding', 'structural mode'],
+      ['bridge-mode-deck', 'cable-tension-lines', 'anchor-load-pads'],
+      ['tension-band-field', 'mode-amplitude-field'],
+      ['structural-steel', 'tension-emissive'],
+      ['aeroelastic-response', 'cable-load-transfer'],
+      ['bridge-mode-oscillation', 'tension-pulse'],
+      ['wide-structural-depth', 'cutaway-section-depth'],
+      'Structural resonance becomes bridge mode shape, cable tension bands, and moving load paths without fracture marks.'
     ),
     mapping(
       'visual.operator.control-feedback.v1',
@@ -339,7 +350,7 @@
   }
 
   function priorityForMapping(id) {
-    if (/quantum|robot|control-feedback|sport-trajectory|cryosphere-surface|fermentation-matrix|thin-film-interference|particle-track-detector/.test(id)) return 1.18;
+    if (/quantum|robot|control-feedback|structural-stress|sport-trajectory|cryosphere-surface|fermentation-matrix|thin-film-interference|particle-track-detector/.test(id)) return 1.18;
     if (/heat-transfer|fluid-advection|network-flow|phase-transition/.test(id)) return 1.1;
     if (/instrument-readout/.test(id)) return 0.92;
     return 1;
@@ -349,7 +360,8 @@
     const types = {
       'visual.operator.heat-transfer.v1': ['heat_source', 'heat_transfer'],
       'visual.operator.fluid-advection.v1': ['advection', 'pressure_flow_lite', 'fluid_locomotion', 'buoyancy', 'drag', 'wake_generation', 'body_water_contact', 'partial_submersion'],
-      'visual.operator.stress-fracture.v1': ['rigid_collision', 'fracture_threshold', 'rotational_torque'],
+      'visual.operator.stress-fracture.v1': ['fracture_threshold'],
+      'visual.operator.structural-stress.v1': ['wave_field'],
       'visual.operator.control-feedback.v1': ['network_flow'],
       'visual.operator.orbital-gravity.v1': ['wave_field', 'oscillator'],
       'visual.operator.electromagnetic-field.v1': ['wave_field', 'rotational_torque'],
@@ -378,6 +390,7 @@
       'visual.operator.heat-transfer.v1': ['thermal', 'phase', 'emission', 'motion'],
       'visual.operator.fluid-advection.v1': ['fluid', 'motion', 'density', 'surface'],
       'visual.operator.stress-fracture.v1': ['stress', 'constraint', 'surface', 'motion'],
+      'visual.operator.structural-stress.v1': ['stress', 'constraint', 'surface', 'motion'],
       'visual.operator.control-feedback.v1': ['feedback', 'signal', 'constraint'],
       'visual.operator.orbital-gravity.v1': ['orbital', 'motion', 'density', 'surface'],
       'visual.operator.electromagnetic-field.v1': ['electromagnetic', 'signal', 'emission', 'motion'],
@@ -406,6 +419,7 @@
       'visual.operator.heat-transfer.v1': ['atomThermalPlume', 'atomPhaseBoundary'],
       'visual.operator.fluid-advection.v1': ['atomFluidRibbons', 'atomVectorFlow'],
       'visual.operator.stress-fracture.v1': ['atomStressCracks', 'atomConstraintPads'],
+      'visual.operator.structural-stress.v1': ['atomStandingNodes', 'atomConstraintPads'],
       'visual.operator.control-feedback.v1': ['atomFeedbackArcs', 'atomSignalPulses'],
       'visual.operator.orbital-gravity.v1': ['atomOrbitalTrails', 'atomGravityWell'],
       'visual.operator.electromagnetic-field.v1': ['atomFluxLines', 'atomChargeShell'],
