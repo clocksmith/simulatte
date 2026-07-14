@@ -428,9 +428,15 @@
         b.x += (targetB - b.x) * 0.72;
         a.y += (b.y - a.y) * 0.38;
       } else if (type === 'holding') {
-        const offset = Math.max(a.w * 0.32, (a.w + b.w) * 0.5 - Math.min(a.w, b.w) * 0.08);
+        const heldScale = Math.min(1, a.w * 0.52 / Math.max(0.01, b.w), a.h * 0.58 / Math.max(0.01, b.h));
+        b.w *= heldScale;
+        b.h *= heldScale;
+        const offset = Math.max(
+          a.w * 0.32,
+          (a.w + b.w) * 0.5 - Math.min(a.w, b.w) * 0.08
+        );
         b.x += (a.x + direction * offset - b.x) * 0.76;
-        b.y += (a.y + a.h * 0.08 - b.y) * 0.76;
+        b.y += (a.y + a.h * 0.12 - b.y) * 0.76;
         b.z = (Number.isFinite(a.z) ? a.z : 0) - 0.5;
       } else if (type === 'coating') {
         a.w = Math.min(Math.max(a.w, b.w * 0.52), b.w * 0.82);

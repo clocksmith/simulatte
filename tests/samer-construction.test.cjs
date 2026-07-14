@@ -1,4 +1,5 @@
 const assert = require('node:assert/strict');
+const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
@@ -39,6 +40,61 @@ test('public gold set binds simple prompts to counts relations poses and visual 
   assert.ok(goldSet.rows.every((row) => row.entities.length && row.blockingVisualRules.length));
   assert.ok(goldSet.rows.some((row) => row.relations.length));
   assert.ok(goldSet.rows.some((row) => row.poses.length));
+});
+
+test('every public gold row reaches Phase 6 with its exact entities relations poses and properties', () => {
+  const goldSet = JSON.parse(fs.readFileSync(goldSetPath, 'utf8'));
+  const relationAliases = { above: ['above', 'over'], inside: ['inside', 'in'], with: ['with'] };
+  const poseKinds = {
+    static: 'static-pose',
+    flight: 'flight-path',
+    'play-interaction': 'play-loop',
+    'grasp-hold': 'hold-pose',
+  };
+
+  for (const row of goldSet.rows) {
+    const spec = lab.createSpecFromPrompt(row.prompt, { allowPrototypeFallback: true });
+    const phase6 = spec.phaseArtifacts.phase6.artifact;
+    const packet = phase6.visualCompile.sceneRenderPacket;
+    const obligations = phase6.compositionLedger.obligations || [];
+    for (const expected of row.entities || []) {
+      const matches = packet.entities.filter((entity) => entity.identity.type === expected.type);
+      if (expected.count != null) {
+        assert.equal(matches.length, expected.count, `${row.prompt}: ${expected.type} count`);
+      }
+      if (expected.minimumCount != null) {
+        assert.ok(matches.length >= expected.minimumCount, `${row.prompt}: ${expected.type} minimum count`);
+      }
+      assert.ok(matches.every((entity) => (
+        entity.geometry.program.grammarId !== 'object-grammar.object' &&
+        entity.geometry.program.unsupportedIdentity !== true
+      )), `${row.prompt}: ${expected.type} needs specific supported geometry`);
+    }
+    for (const expected of row.relations || []) {
+      const aliases = relationAliases[expected.kind] || [expected.kind];
+      assert.ok(obligations.some((obligation) => {
+        const id = String(obligation.id || '').toLowerCase();
+        return obligation.status === 'preserved' &&
+          id.includes(`entity-${expected.subjectType}`) && id.includes(`entity-${expected.objectType}`) &&
+          aliases.some((kind) => id.includes(`:${kind}:`) || id.includes(`-${kind}-`));
+      }), `${row.prompt}: ${expected.subjectType} ${expected.kind} ${expected.objectType}`);
+    }
+    for (const expected of row.poses || []) {
+      const matches = packet.entities.filter((entity) => entity.identity.type === expected.type);
+      assert.ok(matches.length > 0 && matches.every((entity) => (
+        entity.animation.kind === poseKinds[expected.pose]
+      )), `${row.prompt}: ${expected.type} ${expected.pose}`);
+    }
+    for (const expected of row.properties || []) {
+      const bindings = packet.entities
+        .filter((entity) => entity.identity.type === expected.type)
+        .flatMap((entity) => entity.geometry.program.promptPropertyBindings || []);
+      assert.ok(bindings.some((binding) => (
+        binding.propertyKind === expected.kind && binding.value === expected.value &&
+        binding.status === 'bound' && binding.matchedPartIds.length > 0
+      )), `${row.prompt}: ${expected.type} ${expected.kind}=${expected.value}`);
+    }
+  }
 });
 
 test('construction approaches use the same candidates and emit strategy receipts', () => {
@@ -137,6 +193,9 @@ test('playing with creates a shared pose and relation while flight stays on the 
   assert.equal(dogs.length, 3);
   assert.equal(people.length, 7);
   assert.ok([...dogs, ...people].every((row) => row.animation.kind === 'play-loop'));
+  assert.ok([...dogs, ...people].every((row) => row.animation.speed > 0 && row.animation.amplitude > 0));
+  assert.equal(new Set(dogs.map((row) => row.animation.phase)).size, dogs.length);
+  assert.equal(new Set(people.map((row) => row.animation.phase)).size, people.length);
   assert.ok([...dogs, ...people].every((row) => row.geometry.program.pose === 'play-interaction'));
   assert.ok(playLedger.obligations.some((row) => (
     row.id === 'relation:spatial:entity-dog:with:entity-person' && row.status === 'preserved'
@@ -146,6 +205,23 @@ test('playing with creates a shared pose and relation while flight stays on the 
   const flightPacket = flight.phaseArtifacts.phase6.artifact.visualCompile.sceneRenderPacket;
   assert.equal(flightPacket.entities.find((row) => row.identity.type === 'airplane').animation.kind, 'flight-path');
   assert.equal(flightPacket.entities.find((row) => row.identity.type === 'tree').animation.kind, 'static-pose');
+  assert.equal(flightPacket.entities.find((row) => row.identity.type === 'tree').animation.speed, 0);
+
+  const hold = lab.createSpecFromPrompt('an octopus holding a teapot', { allowPrototypeFallback: true });
+  const holdPacket = hold.phaseArtifacts.phase6.artifact.visualCompile.sceneRenderPacket;
+  const octopus = holdPacket.entities.find((row) => row.identity.type === 'octopus');
+  const teapot = holdPacket.entities.find((row) => row.identity.type === 'teapot');
+  assert.equal(octopus.animation.kind, 'hold-pose');
+  assert.ok(octopus.animation.speed > 0 && octopus.animation.amplitude > 0);
+  assert.ok(teapot.transform.scale[0] <= octopus.transform.scale[0] * 0.6);
+  assert.ok(teapot.transform.scale[1] <= octopus.transform.scale[1] * 0.6);
+  const octopusParts = globalThis.__SimulatteWebGpuRendererRefactorScope.scenePacketObjectParts(holdPacket)
+    .filter((row) => row.entityId === octopus.id);
+  const coreDepth = octopusParts.find((row) => row.constructionRole === 'core').depth;
+  assert.ok(octopusParts.filter((row) => row.constructionRole === 'appendage')
+    .every((row) => row.depth > coreDepth));
+  assert.ok(octopusParts.filter((row) => row.constructionRole === 'sensor')
+    .every((row) => row.depth < coreDepth));
 });
 
 test('Phase 7 accepts standing-leg and seated-thigh person topologies', () => {
@@ -170,10 +246,16 @@ test('Phase 7 accepts standing-leg and seated-thigh person topologies', () => {
 test('gold visual evaluation fails closed without hash-bound human adjudication', async () => {
   const evaluator = await import(pathToFileURL(path.join(root, 'tools/samer/gold-visual-evaluator.mjs')));
   const goldSet = evaluator.loadGoldSet(goldSetPath);
+  const promptHash = (value) => crypto.createHash('sha256').update(value).digest('hex');
+  const packetHash = (row) => promptHash(`packet:${row.id}`);
   const results = goldSet.rows.map((row, index) => ({
     index: index + 1,
     goldRowId: row.id,
     prompt: row.prompt,
+    compiledPrompt: row.prompt,
+    promptSha256: promptHash(row.prompt),
+    buildId: 'test-build-identity',
+    sceneRenderPacketSha256: packetHash(row),
     screenshotHash: String(index + 1).padStart(64, '0'),
     sceneRenderPacketIdentities: row.entities.flatMap((entity) => (
       Array.from({ length: entity.count || entity.minimumCount || 1 }, () => ({
@@ -209,10 +291,14 @@ test('gold visual evaluation fails closed without hash-bound human adjudication'
   assert.equal(withoutHuman.pass, false);
 
   const adjudication = {
-    schema: 'simulatte.goldVisualAdjudication.v1',
+    schema: 'simulatte.goldVisualAdjudication.v2',
     goldSetId: goldSet.id,
     rows: goldSet.rows.map((row, index) => ({
       goldRowId: row.id,
+      prompt: row.prompt,
+      promptSha256: promptHash(row.prompt),
+      buildId: 'test-build-identity',
+      sceneRenderPacketSha256: packetHash(row),
       screenshotSha256: String(index + 1).padStart(64, '0'),
       reviewer: 'test-reviewer',
       reviewedAt: '2026-07-12T00:00:00.000Z',
@@ -224,4 +310,46 @@ test('gold visual evaluation fails closed without hash-bound human adjudication'
   assert.equal(withHuman.machinePassCount, 6);
   assert.equal(withHuman.humanPassCount, 6);
   assert.equal(withHuman.pass, true);
+
+  const changed = (edit) => {
+    const copy = structuredClone(adjudication);
+    edit(copy);
+    return copy;
+  };
+  for (const [field, value] of [
+    ['prompt', 'different prompt'],
+    ['promptSha256', 'f'.repeat(64)],
+    ['buildId', 'different-build'],
+    ['sceneRenderPacketSha256', 'e'.repeat(64)],
+    ['screenshotSha256', 'd'.repeat(64)],
+  ]) {
+    const mismatch = changed((copy) => { copy.rows[0][field] = value; });
+    const evaluation = evaluator.evaluateGoldVisualResults(results, goldSet, mismatch);
+    assert.equal(evaluation.rows[0].human.pass, false, `${field} mismatch must fail human proof`);
+  }
+  for (const field of ['prompt', 'compiledPrompt', 'promptSha256', 'buildId', 'sceneRenderPacketSha256']) {
+    const mismatchResults = structuredClone(results);
+    mismatchResults[0][field] = '';
+    const evaluation = evaluator.evaluateGoldVisualResults(mismatchResults, goldSet, adjudication);
+    assert.equal(evaluation.rows[0].machine.pass, false, `${field} mismatch must fail machine proof`);
+  }
+
+  assert.throws(() => evaluator.evaluateGoldVisualResults(results, goldSet, changed((copy) => {
+    copy.rows.push(structuredClone(copy.rows[0]));
+  })), /duplicate row/);
+  assert.throws(() => evaluator.evaluateGoldVisualResults(results, goldSet, changed((copy) => {
+    copy.rows[0].goldRowId = 'gold.unknown';
+  })), /unknown row/);
+  assert.throws(() => evaluator.evaluateGoldVisualResults(results, goldSet, changed((copy) => {
+    copy.rows.pop();
+  })), /missing row/);
+  assert.throws(() => evaluator.evaluateGoldVisualResults(results, goldSet, changed((copy) => {
+    copy.rows[0].rules.push(structuredClone(copy.rows[0].rules[0]));
+  })), /duplicate rule/);
+  assert.throws(() => evaluator.evaluateGoldVisualResults(results, goldSet, changed((copy) => {
+    copy.rows[0].rules.push({ id: 'rule.unknown', pass: true });
+  })), /unknown rule/);
+  assert.throws(() => evaluator.evaluateGoldVisualResults(results, goldSet, changed((copy) => {
+    copy.schema = 'simulatte.goldVisualAdjudication.v1';
+  })), /goldVisualAdjudication[.]v2/);
 });

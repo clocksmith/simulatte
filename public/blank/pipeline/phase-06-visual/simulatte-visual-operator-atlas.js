@@ -170,6 +170,17 @@
       'Biological change becomes branching networks, membranes, gradients, and growth fronts.'
     ),
     mapping(
+      'visual.operator.molecular-folding.v1',
+      ['protein folding', 'protein fold', 'bond constraint', 'bond constraints', 'energy minimization', 'collapse motion', 'conformational'],
+      ['molecular-chain-ribbon', 'bond-constraint-ring', 'energy-basin-surface'],
+      ['conformation-phase-field', 'bond-strain-field'],
+      ['protein-ribbon', 'constraint-emissive'],
+      ['conformational-relaxation', 'energy-descent'],
+      ['fold-collapse', 'bond-torsion-pulse'],
+      ['microscopic-cutaway-depth', 'instrumented-lab-depth'],
+      'Protein folding becomes a chain ribbon, bond constraints, an energy basin, and receipt-bound conformational motion.'
+    ),
+    mapping(
       'visual.operator.fermentation-matrix.v1',
       ['ferment', 'fermentation', 'sourdough', 'yeast', 'dough', 'gluten', 'gas bubble', 'gas bubbles', 'bubble', 'bubbles', 'acidity', 'acid gradient', 'acidity gradient'],
       ['porous-dough-matrix', 'gluten-strand-network', 'fermentation-bubble-cell'],
@@ -182,7 +193,7 @@
     ),
     mapping(
       'visual.operator.chemical-diffusion.v1',
-      ['reaction', 'chemical', 'acid', 'acidic', 'acidity', 'crystal', 'concentration', 'electrolyte', 'solvent', 'catalyst', 'microfluidic', 'droplet', 'dose', 'fermentation'],
+      ['reaction', 'chemical', 'acid', 'acidic', 'acidity', 'crystal', 'concentration', 'electrolyte', 'solvent', 'catalyst', 'microfluidic', 'droplet', 'dose', 'fermentation', 'metabolite', 'metabolites', 'microbiome'],
       ['reaction-vessel', 'diffusion-cloud-volume', 'crystal-facet-cluster'],
       ['concentration-isobands', 'reaction-front-field'],
       ['translucent-reagent', 'facet-crystal'],
@@ -339,18 +350,19 @@
       'visual.operator.optical-ray.v1': ['opaque-market-only', 'soil-only'],
       'visual.operator.quantum-phase-readout.v1': ['macroscopic-traffic-only'],
       'visual.operator.robot-contact.v1': ['fluid-only', 'orbital-only'],
+      'visual.operator.sport-trajectory.v1': ['robot', 'robotic', 'gripper', 'servo', 'warehouse'],
     };
     return Object.freeze(rules[id] || []);
   }
 
   function minimumScoreForMapping(id) {
     if (/instrument-readout/.test(id)) return 0.42;
-    if (/quantum|robot|orbital|control-feedback/.test(id)) return 0.56;
+    if (/quantum|robot|orbital|control-feedback|molecular-folding/.test(id)) return 0.56;
     return 0.5;
   }
 
   function priorityForMapping(id) {
-    if (/quantum|robot|control-feedback|structural-stress|sport-trajectory|cryosphere-surface|fermentation-matrix|thin-film-interference|particle-track-detector/.test(id)) return 1.18;
+    if (/quantum|robot|control-feedback|structural-stress|sport-trajectory|cryosphere-surface|fermentation-matrix|thin-film-interference|particle-track-detector|molecular-folding/.test(id)) return 1.18;
     if (/heat-transfer|fluid-advection|network-flow|phase-transition/.test(id)) return 1.1;
     if (/instrument-readout/.test(id)) return 0.92;
     return 1;
@@ -369,7 +381,8 @@
       'visual.operator.thin-film-interference.v1': ['wave_field'],
       'visual.operator.quantum-phase-readout.v1': ['wave_field', 'derive_readout'],
       'visual.operator.acoustic-wave.v1': ['wave_field', 'oscillator'],
-      'visual.operator.biological-growth.v1': ['growth_decay', 'reaction_diffusion'],
+      'visual.operator.biological-growth.v1': ['growth_decay'],
+      'visual.operator.molecular-folding.v1': ['wave_field'],
       'visual.operator.fermentation-matrix.v1': ['growth_decay', 'reaction_diffusion'],
       'visual.operator.chemical-diffusion.v1': ['reaction_diffusion'],
       'visual.operator.network-flow.v1': ['network_flow'],
@@ -399,6 +412,7 @@
       'visual.operator.quantum-phase-readout.v1': ['quantum', 'phase', 'instrument', 'signal'],
       'visual.operator.acoustic-wave.v1': ['acoustic', 'motion', 'density', 'instrument'],
       'visual.operator.biological-growth.v1': ['biological', 'density', 'motion', 'surface'],
+      'visual.operator.molecular-folding.v1': ['biological', 'constraint', 'motion', 'surface'],
       'visual.operator.fermentation-matrix.v1': ['biological', 'chemical', 'fluid', 'density', 'motion', 'surface'],
       'visual.operator.chemical-diffusion.v1': ['chemical', 'density', 'phase', 'surface'],
       'visual.operator.network-flow.v1': ['network', 'constraint', 'signal', 'motion'],
@@ -428,6 +442,7 @@
       'visual.operator.quantum-phase-readout.v1': ['atomQuantumFringes', 'atomReadoutPulse'],
       'visual.operator.acoustic-wave.v1': ['atomAcousticRings', 'atomStandingNodes'],
       'visual.operator.biological-growth.v1': ['atomBiologicalBranches', 'atomDensityFront'],
+      'visual.operator.molecular-folding.v1': ['atomBiologicalBranches', 'atomConstraintPads'],
       'visual.operator.fermentation-matrix.v1': ['atomFermentationBubbles', 'atomGlutenStrands', 'atomAcidityGradient'],
       'visual.operator.chemical-diffusion.v1': ['atomChemicalClouds', 'atomReactionFront'],
       'visual.operator.network-flow.v1': ['atomNetworkPressure', 'atomPacketPulses'],

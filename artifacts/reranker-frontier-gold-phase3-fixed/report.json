@@ -1,0 +1,241 @@
+{
+  "schema": "simulatte.rerankerFrontierBenchmark.v1",
+  "source": {
+    "path": "artifacts/samer-gold-model-phase3-fixed/report.json",
+    "sha256": "0f75b0888d32c309e5f7296e49054fe56a2a54a77f15cc613afbbd4f108369b3",
+    "reportSchema": "simulatte.intentSceneScreenshotAudit.v1",
+    "reportCreatedAt": "2026-07-14T03:28:40.108Z",
+    "intentMode": "model"
+  },
+  "model": {
+    "id": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+    "manifestHash": "6b1eaca7f3fba2f78a7676a7912442877b85d6f01c083f62759b9c5dd6496a9e",
+    "runtimeLockNumber": 6
+  },
+  "promptCount": 6,
+  "fullCandidateCount": 12,
+  "fullExecutionDurationMs": 4703,
+  "selectionModes": {
+    "construction-evidence-round-robin": 6
+  },
+  "frontiers": [
+    {
+      "k": 1,
+      "promptCount": 6,
+      "evaluatedCandidateCount": 6,
+      "candidateReductionCount": 6,
+      "candidateReductionRate": 0.5,
+      "estimatedExecutionDurationMs": 2602.4,
+      "estimatedDurationSavingsMs": 2100.6,
+      "estimatedDurationSavingsRate": 0.446651,
+      "fullWinnerRetentionCount": 4,
+      "fullWinnerRetentionRate": 0.666667,
+      "changedPromptCount": 2,
+      "changedPrompts": [
+        {
+          "prompt": "5 cats in a galaxy",
+          "fullWinner": "gravity",
+          "frontierWinner": "soft-body",
+          "fullWinnerInputOrder": 1,
+          "selectionMode": "construction-evidence-round-robin"
+        },
+        {
+          "prompt": "yellow excavator beside a glass greenhouse",
+          "fullWinner": "concrete",
+          "frontierWinner": "metal",
+          "fullWinnerInputOrder": 1,
+          "selectionMode": "construction-evidence-round-robin"
+        }
+      ]
+    },
+    {
+      "k": 2,
+      "promptCount": 6,
+      "evaluatedCandidateCount": 12,
+      "candidateReductionCount": 0,
+      "candidateReductionRate": 0,
+      "estimatedExecutionDurationMs": 4703,
+      "estimatedDurationSavingsMs": 0,
+      "estimatedDurationSavingsRate": 0,
+      "fullWinnerRetentionCount": 6,
+      "fullWinnerRetentionRate": 1,
+      "changedPromptCount": 0,
+      "changedPrompts": []
+    }
+  ],
+  "promotionEligible": false,
+  "promotionBlockers": [
+    "winner retention compares against the observed full-K model winner, not labeled semantic relevance",
+    "replay does not recompile Phases 4 through 8 or compare visible obligation coverage"
+  ],
+  "rows": [
+    {
+      "prompt": "5 cats in a galaxy",
+      "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+      "candidateCount": 2,
+      "selectionMode": "construction-evidence-round-robin",
+      "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
+      "fullWinner": "gravity",
+      "fullWinnerInputOrder": 1,
+      "executionDurationMs": 847.6,
+      "candidates": [
+        {
+          "primitiveId": "soft-body",
+          "inputOrder": 0,
+          "modelRank": 1,
+          "modelScore": 0.956732,
+          "localScore": 0.4341,
+          "executionDurationMs": 456.9
+        },
+        {
+          "primitiveId": "gravity",
+          "inputOrder": 1,
+          "modelRank": 0,
+          "modelScore": 0.967507,
+          "localScore": 0.4472,
+          "executionDurationMs": 390.7
+        }
+      ]
+    },
+    {
+      "prompt": "airplane flying over trees",
+      "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+      "candidateCount": 2,
+      "selectionMode": "construction-evidence-round-robin",
+      "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
+      "fullWinner": "rigid-body",
+      "fullWinnerInputOrder": 0,
+      "executionDurationMs": 832.7,
+      "candidates": [
+        {
+          "primitiveId": "rigid-body",
+          "inputOrder": 0,
+          "modelRank": 0,
+          "modelScore": 0.968696,
+          "localScore": 0.4714,
+          "executionDurationMs": 444.9
+        },
+        {
+          "primitiveId": "wood",
+          "inputOrder": 1,
+          "modelRank": 1,
+          "modelScore": 0.964886,
+          "localScore": 0.5179,
+          "executionDurationMs": 387.8
+        }
+      ]
+    },
+    {
+      "prompt": "3 dogs playing with 7 people",
+      "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+      "candidateCount": 2,
+      "selectionMode": "construction-evidence-round-robin",
+      "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
+      "fullWinner": "soft-body",
+      "fullWinnerInputOrder": 0,
+      "executionDurationMs": 808.1,
+      "candidates": [
+        {
+          "primitiveId": "soft-body",
+          "inputOrder": 0,
+          "modelRank": 0,
+          "modelScore": 0.948912,
+          "localScore": 0.3988,
+          "executionDurationMs": 463.6
+        },
+        {
+          "primitiveId": "collision",
+          "inputOrder": 1,
+          "modelRank": 1,
+          "modelScore": 0.877785,
+          "localScore": 0.405,
+          "executionDurationMs": 344.5
+        }
+      ]
+    },
+    {
+      "prompt": "purple violin on a wooden stool",
+      "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+      "candidateCount": 2,
+      "selectionMode": "construction-evidence-round-robin",
+      "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
+      "fullWinner": "wave-source",
+      "fullWinnerInputOrder": 0,
+      "executionDurationMs": 729.4,
+      "candidates": [
+        {
+          "primitiveId": "wave-source",
+          "inputOrder": 0,
+          "modelRank": 0,
+          "modelScore": 0.939596,
+          "localScore": 0.444,
+          "executionDurationMs": 338.9
+        },
+        {
+          "primitiveId": "metal",
+          "inputOrder": 1,
+          "modelRank": 1,
+          "modelScore": 0.893129,
+          "localScore": 0.4322,
+          "executionDurationMs": 390.5
+        }
+      ]
+    },
+    {
+      "prompt": "yellow excavator beside a glass greenhouse",
+      "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+      "candidateCount": 2,
+      "selectionMode": "construction-evidence-round-robin",
+      "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
+      "fullWinner": "concrete",
+      "fullWinnerInputOrder": 1,
+      "executionDurationMs": 738.4,
+      "candidates": [
+        {
+          "primitiveId": "metal",
+          "inputOrder": 0,
+          "modelRank": 1,
+          "modelScore": 0.917235,
+          "localScore": 0.4572,
+          "executionDurationMs": 425.4
+        },
+        {
+          "primitiveId": "concrete",
+          "inputOrder": 1,
+          "modelRank": 0,
+          "modelScore": 0.931715,
+          "localScore": 0.4491,
+          "executionDurationMs": 313
+        }
+      ]
+    },
+    {
+      "prompt": "an octopus holding a teapot",
+      "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+      "candidateCount": 2,
+      "selectionMode": "construction-evidence-round-robin",
+      "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
+      "fullWinner": "fluid-advection",
+      "fullWinnerInputOrder": 0,
+      "executionDurationMs": 746.8,
+      "candidates": [
+        {
+          "primitiveId": "fluid-advection",
+          "inputOrder": 0,
+          "modelRank": 0,
+          "modelScore": 0.964033,
+          "localScore": 0.4587,
+          "executionDurationMs": 472.7
+        },
+        {
+          "primitiveId": "heater",
+          "inputOrder": 1,
+          "modelRank": 1,
+          "modelScore": 0.951582,
+          "localScore": 0.4512,
+          "executionDurationMs": 274.1
+        }
+      ]
+    }
+  ]
+}

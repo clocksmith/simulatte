@@ -41,19 +41,22 @@
         y += Math.sin(angle) * offset;
       }
       x += (Number(camera.focalDepth || 0.5) - depth) * Number(camera.tilt || 0);
-      const phase = Math.fround(Number(part.variantCode || 0)) * 6.28318;
+      const phase = Number(part.animationPhase || 0) * 6.28318;
       const motion = Number(part.animationCode || 0);
-      if (motion > 0.75) {
-        if (motion < 1.5) { x += Math.sin(time * 1.4 + phase) * 0.07; y += Math.cos(time * 2.1 + phase) * 0.028; }
-        else if (motion < 2.5) { x += Math.sin(time * 0.9 + phase) * 0.045; y += Math.cos(time * 1.3 + phase) * 0.018; }
-        else if (motion < 3.5) { x += Math.sin(time * 1.6 + phase) * 0.032; y += Math.cos(time * 1.1 + phase) * 0.014; }
-        else if (motion < 4.5) y += Math.sin(time * 1.2 + phase) * 0.01;
-        else if (motion < 5.5) x += ((time * 0.035 + Math.fround(Number(part.variantCode || 0))) % 1) * 0.02 - 0.01;
-        else if (motion < 6.5) y += Math.sin(time * 0.72 + phase) * 0.024;
-        else if (motion < 7.5) { x += Math.sin(time * 0.74 + phase) * 0.012; y += Math.sin(time * 1.05 + phase) * 0.028; }
-        else if (motion < 8.5) { x += Math.cos(time * 0.42 + phase) * 0.026; y += Math.sin(time * 0.42 + phase) * 0.026; }
-        else if (motion > 9.5 && motion < 10.5) { x += Math.cos(time * 0.72 + phase) * 0.065; y += Math.sin(time * 1.14 + phase) * 0.022; }
-        else y += Math.sin(time * 0.5 + phase) * 0.004;
+      const amplitude = Number(part.animationAmplitude || 0);
+      const motionTime = time * Number(part.animationSpeed || 0);
+      if (motion > 0.75 && amplitude > 0 && Number(part.animationSpeed || 0) > 0) {
+        if (motion < 1.5) { x += Math.sin(motionTime * 1.4 + phase) * amplitude; y += Math.cos(motionTime * 2.1 + phase) * amplitude * 0.4; }
+        else if (motion < 2.5) { x += Math.sin(motionTime * 0.9 + phase) * amplitude; y += Math.cos(motionTime * 1.3 + phase) * amplitude * 0.4; }
+        else if (motion < 3.5) { x += Math.sin(motionTime * 1.6 + phase) * amplitude; y += Math.cos(motionTime * 1.1 + phase) * amplitude * 0.44; }
+        else if (motion < 4.5) y += Math.sin(motionTime * 1.2 + phase) * amplitude * 0.3;
+        else if (motion < 5.5) x += (((motionTime * 0.35 + Number(part.animationPhase || 0)) % 1) * 2 - 1) * amplitude;
+        else if (motion < 6.5) y += Math.sin(motionTime * 0.72 + phase) * amplitude;
+        else if (motion < 7.5) { x += Math.sin(motionTime * 0.74 + phase) * amplitude * 0.42; y += Math.sin(motionTime * 1.05 + phase) * amplitude; }
+        else if (motion < 8.5) { x += Math.cos(motionTime * 0.42 + phase) * amplitude; y += Math.sin(motionTime * 0.42 + phase) * amplitude; }
+        else if (motion < 9.5) { x += Math.sin(motionTime * 1.2 + phase) * amplitude; y += Math.cos(motionTime * 1.6 + phase) * amplitude * 0.65; }
+        else if (motion < 10.5) { x += Math.cos(motionTime * 0.72 + phase) * amplitude; y += Math.sin(motionTime * 1.14 + phase) * amplitude * 0.34; }
+        else y += Math.sin(motionTime * 0.5 + phase) * amplitude * 0.25;
       }
       if (Math.abs(Number(part.semanticCode || 0) - 16) < 0.5) x += Math.sin(time * 0.7 + phase) * 0.012;
       if (Math.abs(Number(part.semanticCode || 0) - 23) < 0.5) {

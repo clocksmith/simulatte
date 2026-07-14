@@ -38,8 +38,16 @@
     ['water tank', 'entity', { entityClass: 'water-tank', visualArchetype: 'water-volume' }],
     ['water sensors', 'entity', { entityClass: 'water-sensor', visualArchetype: 'instrument' }],
     ['water sensor', 'entity', { entityClass: 'water-sensor', visualArchetype: 'instrument' }],
-    ['photon cones', 'observable', { entityClass: 'photon-paths', visualArchetype: 'particle-track' }],
-    ['photon cone', 'observable', { entityClass: 'photon-path', visualArchetype: 'particle-track' }],
+    ['photon cones', 'observable', {
+      entityClass: 'photon-paths', semanticRole: 'wave-process',
+      visualArchetype: 'particle-track', domains: ['field', 'wave', 'optical'],
+      operatorTypes: ['wave_field'],
+    }],
+    ['photon cone', 'observable', {
+      entityClass: 'photon-path', semanticRole: 'wave-process',
+      visualArchetype: 'particle-track', domains: ['field', 'wave', 'optical'],
+      operatorTypes: ['wave_field'],
+    }],
     ['phototube array', 'entity', { entityClass: 'phototube-array', visualArchetype: 'detector-geometry' }],
     ['phototube', 'entity', { entityClass: 'phototube', visualArchetype: 'detector-geometry' }],
     ['calorimeter pulses', 'observable', {
@@ -95,6 +103,10 @@
       entityClass: 'cable-tension', semanticRole: 'structural-state',
       visualArchetype: 'tension-band', stateBinding: 'amplitude', preserveNestedSemanticSpans: true,
     }],
+    ['skateboard rider', 'entity', {
+      entityClass: 'skateboard-rider', semanticRole: 'agent', visualArchetype: 'wheeled-rider',
+    }],
+    ['bowl', 'entity', { entityClass: 'bowl', visualArchetype: 'curved-basin' }],
     ['bridge cables', 'entity'],
     ['bridge cable', 'entity'], ['feedback shock', 'entity'], ['basalt delta', 'environment'],
     ['quartz wetland', 'environment'], ['lava', 'material'], ['magma', 'material'],
@@ -247,7 +259,10 @@
     }],
     ['intestinal folds', 'entity'],
     ['immune sampling', 'observable'],
-    ['railway dispatch', 'observable', { semanticRole: 'control-process' }],
+    ['railway dispatch', 'observable', {
+      semanticRole: 'control-process', domains: ['control', 'network', 'queue', 'transport'],
+      operatorTypes: ['network_flow'],
+    }],
     ['conflict', 'observable', { semanticRole: 'control-state' }],
     ['resolution', 'observable', { semanticRole: 'control-state' }],
     ['signal blocks', 'entity', {
@@ -383,6 +398,7 @@
   ]);
 
   const PROCESS_PHRASES = Object.freeze([
+    'gel diffusion', 'pressure waves', 'pressure wave', 'diffusion',
     'spins', 'spin', 'rotates', 'rotate', 'melts', 'melt', 'hits', 'hit',
     'impacts', 'impact', 'burns', 'burn', 'ignites', 'ignite', 'igniting', 'flows', 'flow', 'falls', 'fall',
     'collides', 'collide', 'fractures', 'fracture', 'cracks', 'crack',
@@ -456,7 +472,7 @@
     { process: 'flow', phrases: ['flow', 'flows', 'advection', 'dispersion', 'dispersing', 'surge', 'tidal', 'channel', 'wind', 'smoke', 'plume', 'pour', 'pours', 'sink', 'float', 'settle', 'erosion', 'bend', 'bends', 'bending', 'reduce', 'reduces', 'reducing'] },
     { process: 'increase', phrases: ['increase', 'increases', 'increasing'] },
     { process: 'growth', phrases: ['growth', 'grow', 'grows', 'growing', 'sourdough', 'yeast', 'dough', 'gluten', 'bubble', 'bubbles', 'microbiome', 'metabolite', 'ferment', 'ferments', 'fermentation'] },
-    { process: 'diffusion', phrases: ['diffuse', 'diffusion', 'dissolve', 'dissolving', 'exchange', 'exchanges', 'exchanging', 'chemical', 'reaction', 'acidity', 'acid', 'concentration'] },
+    { process: 'diffusion', phrases: ['diffuse', 'diffusion', 'gel diffusion', 'dissolve', 'dissolving', 'exchange', 'exchanges', 'exchanging', 'chemical', 'reaction', 'acidity', 'acid', 'concentration'] },
     { process: 'deposition', phrases: ['layer', 'layers', 'layering', 'deposit', 'deposits', 'depositing', 'deposition', 'settle', 'settles', 'settling'] },
     { process: 'cooling', phrases: ['cool', 'cooling'] },
     { process: 'combustion', phrases: [
@@ -465,8 +481,9 @@
     { process: 'heat_transfer', phrases: ['heat', 'heats', 'thermal'] },
     { process: 'measurement', phrases: ['measurement', 'readout', 'readouts', 'watch', 'watches', 'watching'] },
     { process: 'phase_transition', phrases: ['freeze', 'freezing', 'melt', 'melting', 'phase', 'ice'] },
-    { process: 'network_flow', phrases: ['network', 'queue', 'dispatch', 'signal', 'train', 'platform', 'server', 'packet', 'parcel', 'traffic', 'zoning', 'allocation', 'resolve', 'resolution', 'conflict', 'throttle', 'throttles', 'throttling'] },
-    { process: 'oscillation', phrases: ['wave', 'waves', 'resonance', 'orbital', 'orbit', 'ring', 'moon', 'oscillate', 'oscillates', 'oscillation'] },
+    { process: 'network_flow', phrases: ['network', 'queue', 'dispatch', 'signal', 'train', 'platform', 'server', 'packet', 'parcel', 'traffic', 'zoning', 'allocation', 'resolve', 'resolution', 'conflict', 'route', 'routes', 'routing', 'throttle', 'throttles', 'throttling'] },
+    { process: 'oscillation', phrases: ['wave', 'waves', 'pressure wave', 'pressure waves', 'resonance', 'orbital', 'orbit', 'ring', 'moon', 'oscillate', 'oscillates', 'oscillation'] },
+    { process: 'folding', phrases: ['fold', 'folds', 'folded', 'folding', 'collapse', 'collapsing', 'collapse motion'] },
     { process: 'motion', phrases: ['motion'] },
     { process: 'support', phrases: ['support', 'supports', 'supporting'] },
     { process: 'leak', phrases: ['leak', 'leaks', 'leaking', 'spill', 'seep', 'drip'] },
@@ -510,6 +527,7 @@
   const OBSERVABLE_PHRASES = Object.freeze([
     'energy', 'temperature', 'speed', 'velocity', 'stress', 'immune pressure', 'pressure',
     'phase', 'damage', 'angular velocity', 'flow', 'torque', 'output',
+    'friction loss', 'friction', 'centripetal acceleration', 'centripetal arcs', 'centripetal arc',
     'heat', 'control feedback', 'comfort', 'limits', 'density', 'acidity', 'readout', 'sampling',
     'air quality', 'quality', 'capacity',
     'iridescent interference', 'iridescence', 'interference',

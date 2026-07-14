@@ -2,6 +2,7 @@
   const scope = root.__SimulatteWebGpuRendererRefactorScope;
   if (!scope || scope.missingDependency) return;
   with (scope) {
+    const OBJECT_PART_DEPTH_BIAS = Object.freeze({ field: 0.006, appendage: 0.003, support: 0.003, core: 0, head: -0.001, panel: -0.001, path: -0.001, opening: -0.002, joint: -0.002, detail: -0.003, sensor: -0.004 });
     function pixelSampleForDrawable(row = {}, obligation = {}, width = 0, height = 0, index = 0, total = 1) {
         const point = phase7DrawableSamplePoint(row, index, total, obligation);
         if (!point) return null;
@@ -308,6 +309,9 @@
               opacity: clamp01(Number(sourcePart.opacity == null ? 1 : sourcePart.opacity) * literalOpacity),
               semanticCode: scenePacketSemanticCode(row),
               animationCode: scenePacketAnimationCode(row.animation && row.animation.kind),
+              animationSpeed: Math.max(0, Number(row.animation && row.animation.speed || 0)),
+              animationAmplitude: Math.max(0, Number(row.animation && row.animation.amplitude || 0)),
+              animationPhase: clamp01(Number(row.animation && row.animation.phase || 0)),
               variantCode: Number(row.renderCodes && row.renderCodes.variantCode || scenePacketVariantCode(row)),
               zOrder: Number(program.zOrder || 0) + Number(sourcePart.order || 0) * 0.001,
               depth: scenePacketObjectDepth(row, program, sourcePart),
@@ -328,11 +332,12 @@
     function scenePacketObjectDepth(row = {}, program = {}, part = {}) {
         const position = row.transform && Array.isArray(row.transform.position) ? row.transform.position : [];
         const explicit = Number(position[2]);
+        const roleBias = Number(OBJECT_PART_DEPTH_BIAS[String(part.constructionRole || '')] || 0);
         if (Number.isFinite(explicit) && Math.abs(explicit) > 0.0001) {
-          return clamp(explicit * 0.25 + 0.5, 0.04, 0.94);
+          return clamp(explicit * 0.25 + 0.5 + roleBias, 0.04, 0.94);
         }
         const zOrder = Number(program.zOrder || 0) + Number(part.order || 0) * 0.001;
-        return clamp(0.84 - clamp(zOrder / 64, 0, 1) * 0.66, 0.04, 0.94);
+        return clamp(0.84 - clamp(zOrder / 64, 0, 1) * 0.66 + roleBias, 0.04, 0.94);
       }
 
     function scenePacketObjectPartTransform(row = {}, part = {}) {
@@ -398,6 +403,10 @@
           vector[offset + 17] = Number(row.metallic || 0);
           vector[offset + 18] = Number(row.emissive || 0);
           vector[offset + 19] = Number(row.depth || 0.5);
+          vector[offset + 20] = Number(row.animationSpeed || 0);
+          vector[offset + 21] = Number(row.animationAmplitude || 0);
+          vector[offset + 22] = Number(row.animationPhase || 0);
+          vector[offset + 23] = 0;
         });
         return vector;
       }

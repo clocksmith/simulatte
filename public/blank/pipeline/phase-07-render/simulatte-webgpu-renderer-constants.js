@@ -8,7 +8,7 @@
 
     const GPU_OBJECT_PART_CAPACITY = 256;
 
-    const GPU_OBJECT_PART_FLOATS = 20;
+    const GPU_OBJECT_PART_FLOATS = 24;
 
     const GPU_OBJECT_UNIFORM_FLOATS = 20;
 

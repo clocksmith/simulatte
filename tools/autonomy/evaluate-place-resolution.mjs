@@ -1,0 +1,198 @@
+#!/usr/bin/env node
+// Language-to-place resolution evaluation over the public diagnostic probe
+// corpus (tools/samer/autonomy/place-resolution-probes-v1.json).
+//
+// The control lane is the shipped mission compiler: exact_world_label plus
+// constrained_fuzzy_place, refusing everything else. A challenger lane loads
+// via --challenger <module.mjs>; the module must export
+// createResolver({ world, embodiment }) returning
+// { id, resolve(probe) -> { outcome: 'resolve'|'refuse', nodeId? } }.
+//
+// Scoring per probe:
+//   correct      gold outcome matched; resolve additionally requires the
+//                gold place's exact world node id
+//   wrongPlace   resolved to a node other than gold (worst class)
+//   violation    resolved anything on an ambiguous or out_of_world probe
+//
+// Guardrails, both hard:
+//   must_refuse_violations == 0
+//   exact and typo_within probes stay correct (control floor)
+//
+// A challenger is accepted only when it clears both guardrails and scores
+// strictly more correct probes than the control. Results on this exposed
+// corpus cannot promote a resolver; the claim boundary rides in the receipt.
+import crypto from 'node:crypto';
+import fs from 'node:fs';
+import path from 'node:path';
+import { createRequire } from 'node:module';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+
+const TOOL_DIR = path.dirname(fileURLToPath(import.meta.url));
+const ROOT = path.resolve(TOOL_DIR, '../..');
+const require = createRequire(import.meta.url);
+const missionApi = require('../../public/mission/mission-compiler.js');
+const OUTPUT = path.join(ROOT, 'public/data/autonomy/evidence/place-resolution-public-diagnostic-v1.json');
+const FLOOR_KINDS = Object.freeze(['exact', 'typo_within']);
+const MUST_REFUSE_KINDS = Object.freeze(['ambiguous', 'out_of_world']);
+
+function parseArgs(argv) {
+  const options = { challenger: '' };
+  for (let index = 0; index < argv.length; index += 1) {
+    if (argv[index] === '--challenger') {
+      options.challenger = String(argv[index + 1] || '');
+      index += 1;
+    } else {
+      throw new Error(`unknown argument: ${argv[index]}`);
+    }
+  }
+  return options;
+}
+
+async function main() {
+  const options = parseArgs(process.argv.slice(2));
+  const files = {
+    corpus: 'tools/samer/autonomy/place-resolution-probes-v1.json',
+    world: 'public/data/autonomy/worlds/nyc-core-autonomy-v1.json',
+    embodiment: 'public/data/autonomy/embodiments/delivery-bike-v1.json',
+    compiler: 'public/mission/mission-compiler.js',
+  };
+  const corpus = readJson(files.corpus);
+  const world = readJson(files.world);
+  const embodiment = readJson(files.embodiment);
+  const nodeIdByLabel = new Map(world.nodes.filter((node) => node.label).map((node) => [node.label, node.id]));
+
+  const controlResolver = {
+    id: 'mission-compiler-constrained-v1',
+    resolve(probe) {
+      try {
+        const mission = missionApi.compileMission(probe.sourceText, world, embodiment);
+        return {
+          outcome: 'resolve',
+          nodeId: probe.role === 'origin' ? mission.originNodeId : mission.destinationNodeId,
+        };
+      } catch {
+        return { outcome: 'refuse' };
+      }
+    },
+  };
+
+  const lanes = { control: evaluateLane(controlResolver, corpus, nodeIdByLabel) };
+  const identities = Object.fromEntries(
+    Object.entries(files).map(([key, file]) => [key, { path: file, sha256: hashFile(file) }])
+  );
+
+  let accepted = lanes.control.guardrails.mustRefuseViolations === 0
+    && lanes.control.guardrails.floorMisses === 0;
+
+  if (options.challenger) {
+    const challengerModule = await import(pathToFileURL(path.resolve(ROOT, options.challenger)).href);
+    const challenger = await challengerModule.createResolver({ world, embodiment });
+    lanes.challenger = evaluateLane(challenger, corpus, nodeIdByLabel);
+    identities.challengerModule = { path: options.challenger, sha256: hashFile(options.challenger) };
+    accepted = lanes.challenger.guardrails.mustRefuseViolations === 0
+      && lanes.challenger.guardrails.floorMisses === 0
+      && lanes.challenger.metrics.correct > lanes.control.metrics.correct;
+  }
+
+  const receipt = {
+    schema: 'simulatte.placeResolutionEvaluation.v1',
+    id: 'place-resolution-public-diagnostic-v1',
+    contentVersion: `place-resolution-public-diagnostic-${new Date().toISOString().slice(0, 10)}`,
+    population: {
+      id: corpus.id,
+      kind: corpus.population,
+      promotionEligible: false,
+      probeCount: corpus.probes.length,
+    },
+    intervention: {
+      kind: 'language_to_place_resolution',
+      control: lanes.control.resolverId,
+      challenger: lanes.challenger ? lanes.challenger.resolverId : null,
+      frozenMetric: 'correct_probe_count',
+      guardrails: ['must_refuse_violations_zero', 'exact_and_typo_within_floor'],
+    },
+    identities,
+    lanes,
+    accepted,
+    claimBoundary: 'This receipt scores language-to-place resolution on exposed diagnostic probes. It cannot promote a resolver, establish model quality, or support a generalization claim. Promotion needs an unmounted holdout population.',
+  };
+  fs.mkdirSync(path.dirname(OUTPUT), { recursive: true });
+  fs.writeFileSync(OUTPUT, `${JSON.stringify(sortValue(receipt), null, 2)}\n`);
+  const summary = lanes.challenger || lanes.control;
+  console.log(`PLACE-RESOLUTION accepted=${accepted} lane=${summary.resolverId} correct=${summary.metrics.correct}/${corpus.probes.length} winnable=${summary.metrics.winnableResolved}/${summary.metrics.winnableTotal} violations=${summary.guardrails.mustRefuseViolations} output=${path.relative(ROOT, OUTPUT)}`);
+  if (!accepted) process.exitCode = 1;
+}
+
+function evaluateLane(resolver, corpus, nodeIdByLabel) {
+  const rows = [];
+  const perKind = {};
+  for (const probe of corpus.probes) {
+    const result = resolver.resolve(probe) || { outcome: 'refuse' };
+    const goldNodeId = probe.gold.placeLabel ? nodeIdByLabel.get(probe.gold.placeLabel) || null : null;
+    const resolvedCorrectly = result.outcome === 'resolve'
+      && probe.gold.outcome === 'resolve'
+      && result.nodeId === goldNodeId;
+    const refusedCorrectly = result.outcome === 'refuse' && probe.gold.outcome === 'refuse';
+    const wrongPlace = result.outcome === 'resolve'
+      && probe.gold.outcome === 'resolve'
+      && result.nodeId !== goldNodeId;
+    const violation = result.outcome === 'resolve' && MUST_REFUSE_KINDS.includes(probe.kind);
+    const correct = resolvedCorrectly || refusedCorrectly;
+    rows.push({
+      probeId: probe.probeId,
+      kind: probe.kind,
+      outcome: result.outcome,
+      nodeId: result.outcome === 'resolve' ? result.nodeId || null : null,
+      correct,
+      wrongPlace,
+      violation,
+    });
+    const bucket = perKind[probe.kind] || (perKind[probe.kind] = { probes: 0, correct: 0, wrongPlace: 0, violations: 0 });
+    bucket.probes += 1;
+    if (correct) bucket.correct += 1;
+    if (wrongPlace) bucket.wrongPlace += 1;
+    if (violation) bucket.violations += 1;
+  }
+  const winnable = corpus.probes.filter((probe) => probe.kind === 'typo_beyond' || probe.kind === 'paraphrase');
+  const winnableResolved = rows.filter((row) =>
+    (row.kind === 'typo_beyond' || row.kind === 'paraphrase') && row.correct
+  ).length;
+  const floorMisses = rows.filter((row) => FLOOR_KINDS.includes(row.kind) && !row.correct).length;
+  const mustRefuseViolations = rows.filter((row) => row.violation).length;
+  return {
+    resolverId: resolver.id || 'unnamed-resolver',
+    metrics: {
+      probeCount: rows.length,
+      correct: rows.filter((row) => row.correct).length,
+      wrongPlace: rows.filter((row) => row.wrongPlace).length,
+      winnableResolved,
+      winnableTotal: winnable.length,
+      perKind,
+    },
+    guardrails: { floorMisses, mustRefuseViolations },
+    rows,
+  };
+}
+
+function readJson(file) {
+  return JSON.parse(fs.readFileSync(path.join(ROOT, file), 'utf8'));
+}
+
+function hashFile(file) {
+  return crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, file))).digest('hex');
+}
+
+function sortValue(value) {
+  if (Array.isArray(value)) return value.map(sortValue);
+  if (!value || typeof value !== 'object') return value;
+  return Object.fromEntries(Object.keys(value).sort().map((key) => [key, sortValue(value[key])]));
+}
+
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  main().catch((error) => {
+    console.error(error && error.stack || error);
+    process.exit(1);
+  });
+}
+
+export { evaluateLane };

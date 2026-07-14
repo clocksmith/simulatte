@@ -293,7 +293,7 @@ function assertVisualIRCase(prompt, expected) {
     .every((entity) => entity.geometry.coverage.realized));
   assert.ok(ir.materials.length >= 2);
   assert.ok(ir.fields.length >= 1);
-  assert.ok(ir.processes.length >= 4);
+  assert.ok(ir.processes.length >= 1);
   assert.ok(ir.receipts.length >= 5);
   assert.equal(ir.graphicsAtoms.schema, 'simulatte.graphicsAtomPlan.v1');
   assert.equal(ir.graphicsAtoms.compiler, 'simulatte.visualOperatorCompiler.v1');

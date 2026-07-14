@@ -38,17 +38,23 @@ test('molecular identity does not imply growth or robot activity', () => {
   assert.equal(spec.renderProgram.visualIR.sceneKind, 'molecular-biology');
 });
 
-test('microbiome evidence compiles a biological graphics basis', () => {
+test('microbiome exchange compiles biological topology with receipt-bound chemical motion', () => {
   const spec = createPrototypeSpec(
     'gut microbiome colonies exchanging metabolites through intestinal folds under immune sampling'
   );
   const atoms = spec.renderProgram.visualIR.graphicsAtoms;
   const mappingIds = atoms.mappings.map((row) => row.id);
+  const diffusion = spec.physicsIR.operators.find((row) => row.type === 'reaction_diffusion');
 
   assert.equal(spec.renderProgram.visualIR.sceneKind, 'evolution-ecology');
-  assert.ok(mappingIds.includes('visual.operator.biological-growth.v1'));
-  assert.ok(atoms.uniforms.bySlot.biological > 0);
-  assert.ok(atoms.wgslOperators.includes('atomBiologicalBranches'));
+  assert.ok(diffusion);
+  assert.deepEqual(diffusion.receipt.consumedChannels, diffusion.reads);
+  assert.deepEqual(diffusion.receipt.producedChannels, diffusion.writes);
+  assert.ok(mappingIds.includes('visual.operator.chemical-diffusion.v1'));
+  assert.equal(mappingIds.includes('visual.operator.biological-growth.v1'), false);
+  assert.ok(atoms.uniforms.bySlot.chemical > 0);
+  assert.ok(atoms.wgslOperators.includes('atomChemicalClouds'));
+  assert.ok(atoms.geometry.some((row) => row.id === 'composition-topology-branching'));
 });
 
 test('fermentation prompts compile to molecular biology with dough-specific visual atoms', () => {
@@ -312,6 +318,7 @@ test('warehouse language does not unlock robot visuals without robot evidence', 
     .universeGraphCandidates.intentBrief.causalGraph.map((row) => row.ruleId);
 
   assert.equal(warehouseFire.renderProgram.visualIR.sceneKind, 'fire');
+  assert.ok(fireMappings.includes('visual.operator.heat-transfer.v1'));
   assert.ok(!fireMappings.includes('visual.operator.thermal-combustion.v1'));
   assert.ok(!fireMappings.includes('visual.operator.particle-track-detector.v1'));
   assert.ok(!fireMappings.includes('visual.operator.robot-contact.v1'));

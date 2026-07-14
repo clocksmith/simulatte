@@ -319,30 +319,31 @@ test('math layer stays neutral and leaves physical quantities to higher layers',
 });
 
 test('downloaded embedding priors steer retrieval, regimes, and solver plans', () => {
+  const modelOptions = {
+    embeddingPriors: [
+      { primitiveId: 'mycelium', score: 0.98 },
+      { primitiveId: 'membrane', score: 0.94 },
+      { primitiveId: 'gel', score: 0.91 },
+      { primitiveId: 'bacteria', score: 0.88 },
+      { primitiveId: 'wave-source', score: 0.82 },
+    ],
+    embeddingModel: {
+      id: 'qwen-3-embedding-0-6b-q4k-ehf16-af32',
+      family: 'qwen3-embedding',
+      dimensions: 1024,
+      indexId: 'simulatte-primitive-qwen-3-embedding-0-6b-index-v1',
+      reranker: 'simulatte.doppler-intent-reranker.v1',
+    },
+    embeddingBackend: 'webgpu',
+    intentRerank: {
+      schema: 'simulatte.intentRerank.v1',
+      required: true,
+      top: ['mycelium', 'membrane', 'gel'],
+    },
+  };
   const spec = lab.createSpecFromPrompt(
     'soft fungal membrane colony with gel diffusion and pressure waves',
-    {
-      embeddingPriors: [
-        { primitiveId: 'mycelium', score: 0.98 },
-        { primitiveId: 'membrane', score: 0.94 },
-        { primitiveId: 'gel', score: 0.91 },
-        { primitiveId: 'bacteria', score: 0.88 },
-        { primitiveId: 'wave-source', score: 0.82 },
-      ],
-      embeddingModel: {
-        id: 'qwen-3-embedding-0-6b-q4k-ehf16-af32',
-        family: 'qwen3-embedding',
-        dimensions: 1024,
-        indexId: 'simulatte-primitive-qwen-3-embedding-0-6b-index-v1',
-        reranker: 'simulatte.doppler-intent-reranker.v1',
-      },
-      embeddingBackend: 'webgpu',
-      intentRerank: {
-        schema: 'simulatte.intentRerank.v1',
-        required: true,
-        top: ['mycelium', 'membrane', 'gel'],
-      },
-    }
+    modelOptions
   );
   const ids = new Set(spec.objects.map((object) => object.id));
   const regimes = new Set(spec.renderProgram.objects.map((object) => object.visualRegime));
@@ -358,8 +359,23 @@ test('downloaded embedding priors steer retrieval, regimes, and solver plans', (
   assert.ok(ids.has('gel'));
   assert.ok(regimes.has('biological'));
   assert.ok(regimes.has('soft'));
-  assert.ok(solverFamilies.has('growth-diffusion'));
-  assert.ok(solverFamilies.has('membrane-relaxation'));
+  assert.ok(solverFamilies.has('reaction-diffusion'));
+  assert.ok(solverFamilies.has('wave-equation'));
+  assert.equal(solverFamilies.has('growth-diffusion'), false);
+  assert.ok(spec.phaseArtifacts.phase5.artifact.simulationCompile.physicsIR.operators.every((row) => (
+    row.receipt?.schema === 'simulatte.solverChannelReceipt.v1'
+  )));
+  assert.equal(spec.renderProgram.visualIR.graphicsAtoms.mappings.some((row) => (
+    row.id === 'visual.operator.biological-growth.v1'
+  )), false);
+
+  const inactive = lab.createSpecFromPrompt(
+    'soft fungal membrane colony beside gel and a pressure gauge',
+    modelOptions
+  );
+  assert.equal(inactive.phaseArtifacts.phase5.artifact.simulationCompile.physicsIR.operators.some((row) => (
+    ['growth_decay', 'reaction_diffusion', 'wave_field'].includes(row.type)
+  )), false);
 });
 
 test('component and scene prompts materialize lower-layer recipes', () => {
@@ -472,6 +488,9 @@ test('prompt worlds compile into Grid-like classifier composition graphs', () =>
     'lab bench optics bench with sun lamp, glass lens, mirror, prism, and sensor'
   );
   const city = createPrototypeSpec(
+    'city grid routes traffic through a power grid and market queue with sensors, delays, and conservation ledger'
+  );
+  const staticCity = createPrototypeSpec(
     'city grid with traffic system, power grid, market queue, sensors, delays, and conservation ledger'
   );
   const machine = createPrototypeSpec(
@@ -493,11 +512,24 @@ test('prompt worlds compile into Grid-like classifier composition graphs', () =>
   assert.ok(city.intent.classification.priors.some((prior) => prior.primitiveId === 'city-grid'));
   assert.ok(city.renderProgram.objects.some((object) => object.shape === 'queue-node'));
   assert.ok(city.renderProgram.fields.some((field) => field.kind === 'network-flow'));
+  assert.equal(staticCity.phaseArtifacts.phase4.artifact.groundedIntent.acceptedGraph.intentBrief
+    .causalGraph.some((row) => row.ruleId === 'causal.arrivals-create-queue'), false);
+  assert.equal(staticCity.phaseArtifacts.phase5.artifact.simulationCompile.physicsIR.operators
+    .some((row) => row.type === 'network_flow'), false);
   assert.ok(machine.compositionGraph.nodes.some((node) => node.primitiveId === 'rotor-wheel'));
   assert.ok(machine.renderProgram.objects.some((object) => object.shape === 'wheel'));
-  assert.ok(machine.renderProgram.fields.some((field) => field.kind === 'dipole'));
+  const magneticField = machine.physicsIR.operators.find((row) => (
+    row.type === 'wave_field' &&
+    row.receipt?.inferenceProvenance?.causalRuleId === 'causal.magnetic-slider-drives-machine-field'
+  ));
+  assert.ok(magneticField);
+  assert.deepEqual(magneticField.receipt.consumedChannels, magneticField.reads);
+  assert.deepEqual(magneticField.receipt.producedChannels, magneticField.writes);
+  assert.ok(machine.renderProgram.visualIR.graphicsAtoms.mappings.some((row) => (
+    row.id === 'visual.operator.electromagnetic-field.v1'
+  )));
   assert.equal(machine.physicalSpec.executionSource, 'solverGraph');
-  assert.ok(machine.physicalSpec.visualPassHints.includes('magnetic-vector-field-solve'));
+  assert.ok(machine.physicalSpec.renderPasses.includes('wave-field-solve'));
 });
 
 test('prompt worlds choose distinct regime renderer identities', () => {
@@ -592,7 +624,7 @@ test('VisualIR compiles hard natural language into structural render programs', 
       'instrumented-lab-depth',
     ],
     [
-      'housing market pressure across parcels with household agents and zoning constraints',
+      'housing market pressure routes household agents across parcels under zoning constraints',
       'civic-market',
       'city',
       'aerial-map-depth',
@@ -649,6 +681,18 @@ test('VisualIR compiles hard natural language into structural render programs', 
 
   for (const [prompt, sceneKind, painterKind, camera] of cases) {
     assertVisualIRCase(prompt, { sceneKind, painterKind, camera });
+  }
+
+  const inactiveCases = [
+    ['neutrino detector in an underground water tank with a phototube array', 'wave_field'],
+    ['housing market beside parcels with household agents and zoning constraints', 'network_flow'],
+    ['protein folding with bond constraints', 'wave_field'],
+    ['blockchain mempool beside a validator network', 'network_flow'],
+  ];
+  for (const [prompt, operatorType] of inactiveCases) {
+    const spec = createPrototypeSpec(prompt);
+    assert.equal(spec.phaseArtifacts.phase5.artifact.simulationCompile.physicsIR.operators
+      .some((row) => row.type === operatorType), false, prompt);
   }
 });
 
@@ -871,6 +915,9 @@ test('compiled-artifact visual genomes diversify close and broad worlds', () => 
   const railway = createPrototypeSpec('railway dispatch conflict resolution across signal blocks with delayed train agents and platform slots');
   const zoning = createPrototypeSpec('city zoning shadow allocation between building masses with sunlight volumes and pedestrian comfort');
   assert.equal(railway.renderProgram.visualIR.sceneKind, zoning.renderProgram.visualIR.sceneKind);
+  assert.ok(railway.physicsIR.operators.some((row) => row.type === 'network_flow'));
+  assert.ok(railway.renderProgram.visualIR.graphicsAtoms.mappings
+    .some((row) => row.id === 'visual.operator.network-flow.v1'));
   assert.ok(railway.renderProgram.visualGenome.motifs.includes('track-ladder'));
   assert.ok(zoning.renderProgram.visualGenome.motifs.includes('parcel-zoning-grid'));
   assert.notDeepEqual(railway.renderProgram.visualGenome.motifs, zoning.renderProgram.visualGenome.motifs);
@@ -1098,7 +1145,7 @@ test('visual operator atlas maps grounded physics to distinct graphics atom plan
       ['thermal', 'phase'],
     ],
     [
-      'housing market pressure across parcels with zoning constraints and household agents',
+      'housing market pressure routes household agents across parcels under zoning constraints',
       ['visual.operator.network-flow.v1'],
       ['node-link-graph', 'parcel-grid'],
       ['network', 'constraint'],
@@ -1123,8 +1170,8 @@ test('visual operator atlas maps grounded physics to distinct graphics atom plan
     ],
     [
       'glacier calving into fjord with internal ocean waves and iceberg collisions',
-      ['visual.operator.cryosphere-surface.v1', 'visual.operator.fluid-advection.v1'],
-      ['ice-cliff-shelf', 'calving-block-field', 'ribbon-streamline'],
+      ['visual.operator.cryosphere-surface.v1'],
+      ['ice-cliff-shelf', 'calving-block-field'],
       ['phase', 'fluid', 'surface'],
     ],
     [
@@ -1159,9 +1206,9 @@ test('visual operator atlas maps grounded physics to distinct graphics atom plan
     ],
     [
       'bridge resonance under wind vortex shedding with cable tension',
-      ['visual.operator.stress-fracture.v1', 'visual.operator.fluid-advection.v1'],
-      ['sectioned-solid', 'crack-branch-network', 'ribbon-streamline'],
-      ['stress', 'fluid', 'constraint'],
+      ['visual.operator.structural-stress.v1'],
+      ['bridge-mode-deck', 'cable-tension-lines', 'anchor-load-pads'],
+      ['stress', 'motion', 'constraint'],
     ],
   ];
   const signatures = new Set();
@@ -1201,4 +1248,84 @@ test('visual operator atlas maps grounded physics to distinct graphics atom plan
   }
 
   assert.equal(signatures.size, cases.length);
+});
+
+test('evidence-qualified motion keeps rigid rotation out of the fluid solver path', () => {
+  const prompt = 'skateboard rider carves a bowl with friction loss and centripetal arcs';
+  const spec = createPrototypeSpec(prompt);
+  const operator = spec.physicsIR.operators.find((row) => row.type === 'rotational_torque');
+  const fieldNames = spec.physicsIR.stateFields.map((row) => row.name);
+
+  assert.ok(operator);
+  assert.deepEqual(operator.reads.map((id) => id.split(':')[0]), [
+    'velocity', 'angle', 'angularVelocity', 'friction',
+  ]);
+  assert.deepEqual(operator.writes.map((id) => id.split(':')[0]), [
+    'angle', 'angularVelocity', 'angularMomentum',
+  ]);
+  assert.equal(fieldNames.includes('flowVelocity'), false);
+  assert.equal(fieldNames.includes('viscosity'), false);
+  assert.deepEqual(operator.receipt.consumedChannels, operator.reads);
+  assert.deepEqual(operator.receipt.producedChannels, operator.writes);
+  assert.equal(spec.validationReceipt.unsupported.length, 0);
+
+  let state = lab.createSimulationState(spec);
+  const angularVelocityId = operator.writes.find((id) => id.startsWith('angularVelocity:'));
+  const angularMomentumId = operator.writes.find((id) => id.startsWith('angularMomentum:'));
+  const initialAngularVelocity = state.solverState.channels[angularVelocityId];
+  for (let index = 0; index < 24; index += 1) state = lab.stepSimulation(state, spec, 0.016);
+  assert.ok(state.solverState.channels[angularVelocityId] > initialAngularVelocity);
+  assert.ok(state.solverState.channels[angularMomentumId] > 0);
+});
+
+test('causal visual mechanisms stay inactive without their qualifying prompt evidence', () => {
+  const glacier = createPrototypeSpec('glacier beside ocean');
+  assert.equal(glacier.universeGraph.edges.some((row) => (
+    row.provenance?.causalRuleId === 'causal.warming-calves-glacier'
+  )), false);
+  assert.equal(glacier.physicsIR.operators.some((row) => row.type === 'phase_transition'), false);
+
+  const robot = createPrototypeSpec('robot sorts parcels in warehouse queue');
+  assert.ok(robot.physicsIR.operators.some((row) => row.type === 'network_flow'));
+  assert.equal(robot.physicsIR.operators.some((row) => row.type === 'rigid_collision'), false);
+  assert.equal(robot.renderProgram.visualIR.graphicsAtoms.mappings.some((row) => (
+    row.id === 'visual.operator.robot-contact.v1'
+  )), false);
+
+  const skateboard = createPrototypeSpec('skateboard rider beside a bowl with friction');
+  assert.equal(skateboard.physicsIR.operators.some((row) => row.type === 'rotational_torque'), false);
+  assert.equal(skateboard.renderProgram.visualIR.graphicsAtoms.mappings.some((row) => (
+    row.id === 'visual.operator.sport-trajectory.v1'
+  )), false);
+
+  const magneticMachine = createPrototypeSpec('magnetic slider beside a machine');
+  assert.equal(magneticMachine.physicsIR.operators.some((row) => row.type === 'wave_field'), false);
+  assert.equal(magneticMachine.renderProgram.visualIR.graphicsAtoms.mappings.some((row) => (
+    row.id === 'visual.operator.electromagnetic-field.v1'
+  )), false);
+});
+
+test('solver-channel receipts match executable reads and writes for corrected prompt families', () => {
+  const prompts = [
+    'soft fungal membrane colony with gel diffusion and pressure waves',
+    'housing market pressure routes household agents across parcels under zoning constraints',
+    'robot sorts parcels with servo gripper contact force in warehouse queue',
+    'glacier calving into fjord with internal ocean waves and iceberg collisions',
+    'skateboard rider carves a bowl with friction loss and centripetal arcs',
+    'protein folding energy minimization with bond constraints and collapse motion',
+    'build a solar magnetic perpetual motion machine with a moving magnetic slider powered by the sun',
+  ];
+
+  for (const prompt of prompts) {
+    const spec = createPrototypeSpec(prompt);
+    assert.ok(spec.physicsIR.operators.length > 0, `${prompt} missing executable operators`);
+    for (const operator of spec.physicsIR.operators) {
+      assert.equal(operator.receipt?.schema, 'simulatte.solverChannelReceipt.v1', prompt);
+      assert.deepEqual(operator.receipt.consumedChannels, operator.reads, prompt);
+      assert.deepEqual(operator.receipt.producedChannels, operator.writes, prompt);
+    }
+    assert.equal(spec.validationReceipt.unsupported.some((row) => (
+      /missing (?:input|output)|operator is not registered|operator domain is missing/.test(row.reason || '')
+    )), false, prompt);
+  }
 });

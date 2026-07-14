@@ -18,7 +18,7 @@
       "kind": "visual-operator-atlas",
       "artifact": "./visual-operator-atlas-v1.json",
       "documentSchema": "simulatte.visualOperatorAtlas.v1",
-      "documentCount": 22
+      "documentCount": 24
     }
   },
   "coverage": {
@@ -33,7 +33,7 @@
     "sourceExamples": 1177,
     "generatedScaffoldCards": 0,
     "causalAffordances": 190,
-    "visualOperatorMappings": 22
+    "visualOperatorMappings": 24
   },
   "generator": {
     "schema": "simulatte.visualCardGenerator.v1",
@@ -44,7 +44,7 @@
       "generatedScaffoldCards": 0,
       "maxSlotsPerType": 512,
       "handwrittenCausalAffordances": 190,
-      "handwrittenVisualOperatorMappings": 22
+      "handwrittenVisualOperatorMappings": 24
     }
   }
 }

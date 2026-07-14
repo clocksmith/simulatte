@@ -27,6 +27,10 @@
     between: 'between',
     supports: 'supports',
   });
+  const NEAR_RELATION_EQUIVALENTS = new Set([
+    'at', 'with', 'against', 'attachedto', 'attached-to',
+    'on', 'supportedby', 'supported-by', 'in', 'inside', 'within',
+  ]);
 
   function canonicalizeGroundedNodes(nodes = [], input = {}) {
     const promptSpans = (input.promptParse && input.promptParse.spans || [])
@@ -581,13 +585,21 @@
   function pathSatisfiesPolicy(path = [], policy = {}) {
     const spatial = policy.requiredSpatialRelations || [];
     const processes = policy.requiredProcesses || [];
-    const spatialMatch = !spatial.length || path.some((edge) => spatial.includes(
-      String(edge.spatialRelation || edge.type || '').toLowerCase()
-    ));
+    const spatialMatch = !spatial.length || path.some((edge) => spatial.some((required) => (
+      spatialRelationSatisfies(edge.spatialRelation || edge.type, required)
+    )));
     const processMatch = !processes.length || path.some((edge) => processes.includes(
       String(edge.processId || edge.operatorType || edge.type || '').toLowerCase()
     ));
     return spatialMatch && processMatch;
+  }
+
+  function spatialRelationSatisfies(actual = '', required = '') {
+    const observed = String(actual || '').toLowerCase();
+    const expected = String(required || '').toLowerCase();
+    if (observed === expected) return true;
+    if (expected !== 'near') return false;
+    return NEAR_RELATION_EQUIVALENTS.has(observed.replace(/\s+/g, ''));
   }
 
   function groundedFireEvidence(node = {}, span = {}) {
@@ -842,6 +854,7 @@
 
   return {
     SPATIAL_EDGE_TYPES,
+    spatialRelationSatisfies,
     canonicalizeGroundedNodes,
     attachConstructionEvidence,
     edgeRowsForClauses,

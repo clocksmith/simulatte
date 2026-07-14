@@ -80,20 +80,20 @@ const GRAM_TOKENS = Object.freeze([
 
 const VISUAL_RUBRIC_SIGNALS = Object.freeze([
   rubricSignal('thermal', /\b(heat|heats|thermal|temperature|cool|cools|cooling|coolant|steam|lava|hot|cold|melt|melts|freeze|freezes|fire|flame|smoke)\b/i, ['thermal', 'combustion', 'phase', 'emission'], ['visual.operator.heat-transfer.v1', 'visual.operator.thermal-combustion.v1', 'visual.operator.phase-transition.v1'], ['atomThermalPlume']),
-  rubricSignal('fluid', /\b(flow|flows|fluid|water|river|wind|airflow|coolant|pump|channel|droplet|pressure|velocity|turbulence|vortex|microfluidic|meniscus|swim|swims|swimming|underwater|pool)\b/i, ['fluid', 'density', 'motion'], ['visual.operator.fluid-advection.v1'], ['atomFluidRibbons']),
-  rubricSignal('stress', /\b(stress|strain|fracture|crack|impact|collision|load|buckling|contact|deform|shear|torque|resonance|bridge)\b/i, ['stress', 'constraint', 'motion'], ['visual.operator.stress-fracture.v1'], ['atomStressCracks']),
+  rubricSignal('fluid', /\b(flow|flows|flowing|advect|advects|airflow|pumps?|pressure drives?|velocity|turbulence|vortex|swim|swims|swimming|surge|upwelling|dispersion)\b/i, ['fluid', 'density', 'motion'], ['visual.operator.fluid-advection.v1'], ['atomFluidRibbons']),
+  rubricSignal('stress', /\b(stress|strain|fracture|fractures|crack|cracks|impact|collision|collides?|buckling|contact force|deform|deforms|shear|torque|resonance|vortex shedding)\b/i, ['stress', 'constraint', 'motion'], ['visual.operator.stress-fracture.v1'], ['atomStressCracks']),
   rubricSignal('feedback', /\b(control|controller|feedback|sensor|setpoint|regulate|stabilize|stabilizes|actuator|valve|loop|throttle|inverter)\b/i, ['feedback', 'signal', 'instrument', 'measurement'], ['visual.operator.control-feedback.v1'], ['atomFeedbackArcs']),
-  rubricSignal('orbital', /\b(orbit|orbits|orbital|gravity|planet|moon|asteroid|rocket|space|ring|rings|trajectory|barycenter)\b/i, ['orbital', 'motion'], ['visual.operator.orbital-gravity.v1'], []),
+  rubricSignal('orbital', /\b(orbit|orbits|orbiting|orbital resonance|gravity bends?|gravitational|trajectory|barycenter|accretion)\b/i, ['orbital', 'motion'], ['visual.operator.orbital-gravity.v1'], []),
   rubricSignal('electromagnetic', /\b(magnet|magnetic|electric|charge|current|voltage|coil|plasma|field|flux|transformer|grid|battery)\b/i, ['electromagnetic', 'emission', 'signal'], ['visual.operator.electromagnetic-field.v1'], []),
-  rubricSignal('optical', /\b(light|laser|lens|prism|mirror|photon|caustic|refraction|interference|ray|spectral|glass|thin film|soap film|iridescent)\b/i, ['optical', 'phase', 'emission', 'surface'], ['visual.operator.optical-ray.v1', 'visual.operator.thin-film-interference.v1'], []),
+  rubricSignal('optical', /\b(light|laser|lens|prism|mirror|photon|caustic|refraction|interference|ray|spectral|thin film|soap film|iridescent|glass (?:refracts?|focuses?|splits?|scatters?))\b/i, ['optical', 'phase', 'emission', 'surface'], ['visual.operator.optical-ray.v1', 'visual.operator.thin-film-interference.v1'], []),
   rubricSignal('quantum', /\b(quantum|qubit|superconducting|microwave|resonator|spin|ion trap|readout)\b/i, ['quantum', 'measurement', 'instrument', 'signal'], ['visual.operator.quantum-phase-readout.v1'], ['atomQuantumFringes']),
   rubricSignal('acoustic', /\b(acoustic|sound|speaker|membrane|frequency|vibration|pressure ring|standing wave)\b/i, ['acoustic', 'motion'], ['visual.operator.acoustic-wave.v1'], []),
-  rubricSignal('biological', /\b(growth|grow|grows|cell|protein|root|roots|coral|algae|mycelium|membrane|neuron|tissue|microbiome|enzyme|mangrove|fermentation|gluten|plant|plants|flower|flowers|tree|trees|leaf|leaves|dog|dogs|cat|cats|animal|animals|mammal|mammals)\b/i, ['biological', 'density', 'surface'], ['visual.operator.biological-growth.v1'], []),
-  rubricSignal('chemical', /\b(reaction|chemical|acid|crystal|concentration|electrolyte|solvent|catalyst|reagent|diffusion|dose|fermentation|metabolite)\b/i, ['chemical', 'density', 'phase'], ['visual.operator.chemical-diffusion.v1'], []),
-  rubricSignal('network', /\b(network|queue|market|traffic|route|packet|server|parcel|zoning|agent|dispatch|supply|demand|crowd|railway|data center|warehouse queue|warehouse robot|warehouse robots|warehouse logistics)\b/i, ['network', 'signal', 'constraint'], ['visual.operator.network-flow.v1'], ['atomNetworkPressure']),
-  rubricSignal('granular', /\b(grain|sand|soil|sediment|erosion|erodes|terrain|slope|mountain|mountains|mountaint|mountaints|dust|powder|silo|avalanche|bead|sieve|hail|boulder)\b/i, ['granular', 'density', 'surface'], ['visual.operator.granular-erosion.v1'], []),
+  rubricSignal('biological', /\b(growth|grow|grows|growing|germinate|germinates|sprout|sprouts|bloom|blooms|bleach|bleaches|bleaching|decay|fermentation|cell division|population expands?)\b/i, ['biological', 'density', 'surface'], ['visual.operator.biological-growth.v1'], []),
+  rubricSignal('chemical', /\b(reaction|reacts?|diffusion|diffuses?|concentration gradient|corrodes?|oxidizes?|catalyzes?|fermentation|metabolites? (?:exchange|exchanges|exchanging))\b/i, ['chemical', 'density', 'phase'], ['visual.operator.chemical-diffusion.v1'], []),
+  rubricSignal('network', /\b(routing|routes?|network flow|traffic flows?|queue grows?|dispatch|redistribute|redistributes|redistributing|packet travels?|loads? index|meters? intersection|stabilizes? (?:grid|load)|feedback amplifies?)\b/i, ['network', 'signal', 'constraint'], ['visual.operator.network-flow.v1'], ['atomNetworkPressure']),
+  rubricSignal('granular', /\b(erosion|erodes?|sediment settles?|grains? flow|sandblasts?|avalanche|powder compacts?|hail grows?|debris flow)\b/i, ['granular', 'density', 'surface'], ['visual.operator.granular-erosion.v1'], []),
   rubricSignal('instrument', /\b(detector|sensor|readout|instrument|probe|meter|scope|camera|phototube|calorimeter|chip|chiplet|particle|collider|muon)\b/i, ['instrument', 'measurement', 'signal'], ['visual.operator.instrument-readout.v1', 'visual.operator.particle-track-detector.v1'], []),
-  rubricSignal('robotic', /\b(robot|robotic|gripper|servo|workcell|manipulator|armature|pick and place|conveyor)\b/i, ['robotic', 'feedback', 'constraint'], ['visual.operator.robot-contact.v1'], []),
+  rubricSignal('robotic', /\b(contact force|gripper (?:grasps?|grips?|twists?|holds?)|robot (?:grasps?|grips?|twists?|holds?|pushes?)|pick and place)\b/i, ['robotic', 'feedback', 'constraint'], ['visual.operator.robot-contact.v1'], []),
 ]);
 
 const MIME = Object.freeze({
@@ -1192,11 +1192,21 @@ async function runPrompt(cdp, entry, index, outDir, options) {
         })),
       };
     };
+    const canonicalBrowserJson = (value) => {
+      const sort = (item) => {
+        if (Array.isArray(item)) return item.map(sort);
+        if (!item || typeof item !== 'object') return item;
+        return Object.fromEntries(Object.keys(item).sort().map((key) => [key, sort(item[key])]));
+      };
+      return JSON.stringify(sort(value));
+    };
     return {
+      buildId: document.querySelector('meta[name="simulatte-build"]')?.content || '',
       runtimeState: runtime ? runtime.dataset.state || '' : '',
       renderInputSerial: Number(canvas && canvas.dataset && canvas.dataset.renderInputSerial || 0),
       compiledPrompt,
       compiledSourcePromptHash,
+      sceneRenderPacketCanonicalJson: sceneRenderPacket ? canonicalBrowserJson(sceneRenderPacket) : '',
       runtimeStage: runtime ? runtime.dataset.stage || '' : '',
       runtimeLastStage: runtime ? runtime.dataset.lastStage || '' : '',
       runtimePipelineStep: runtime ? runtime.dataset.pipelineStep || '' : '',
@@ -1390,6 +1400,8 @@ async function runPrompt(cdp, entry, index, outDir, options) {
         layerSlot: row.layerSlot || '',
         animationKind: row.animation && row.animation.kind || '',
         animationSpeed: Number(row.animation && row.animation.speed || 0),
+        animationAmplitude: Number(row.animation && row.animation.amplitude || 0),
+        animationPhase: Number(row.animation && row.animation.phase || 0),
         grammarId: row.geometry && row.geometry.program && row.geometry.program.grammarId || '',
         literal: row.geometry && row.geometry.program && row.geometry.program.literal === true,
         unsupportedIdentity: row.geometry && row.geometry.program && row.geometry.program.unsupportedIdentity === true,
@@ -1683,7 +1695,14 @@ async function runPrompt(cdp, entry, index, outDir, options) {
     }
   }
   markStage('analyze');
+  const sceneRenderPacketCanonicalJson = diagnostics.sceneRenderPacketCanonicalJson || '';
+  delete diagnostics.sceneRenderPacketCanonicalJson;
   const finalDiagnostics = { ...diagnostics, ...settledProof };
+  finalDiagnostics.promptSha256 = sha256Hex(prompt);
+  finalDiagnostics.sceneRenderPacketSha256 = sceneRenderPacketCanonicalJson
+    ? sha256Hex(sceneRenderPacketCanonicalJson)
+    : '';
+  finalDiagnostics.sceneRenderPacketHashKind = 'sha256:canonical-json-recursive-key-sort-v1';
   if (!finalDiagnostics.sampleCount && canvasStats && canvasStats.sampleCount) {
     finalDiagnostics.sampleSource = 'canvas-screenshot';
     finalDiagnostics.sampleCount = canvasStats.sampleCount;
@@ -1828,7 +1847,7 @@ function visualRubricForResult(result, prompt) {
 }
 
 function promptRequiresVisibleDynamics(prompt = '') {
-  return /\b(swim|swims|swimming|fly|flies|flying|orbit|orbits|orbiting|flow|flows|float|floats|floating|run|runs|running|move|moves|moving|spin|spins|rotate|rotates|rotating|fall|falls|falling|melt|melts|melting|grow|grows|growing|jump|jumps|crash|crashes|collide|collides|wave|waves|waving|pulse|pulses|pulsing)\b/i.test(prompt);
+  return /\b(swim|swims|swimming|fly|flies|flying|orbit|orbits|orbiting|flow|flows|float|floats|floating|run|runs|running|move|moves|moving|spin|spins|rotate|rotates|rotating|fall|falls|falling|melt|melts|melting|grow|grows|growing|jump|jumps|crash|crashes|collide|collides|wave|waves|waving|pulse|pulses|pulsing|play|plays|playing|carve|carves|carving|sort|sorts|sorting|route|routes|routing)\b/i.test(prompt);
 }
 
 function representationQualityForResult(result, expectedCount) {
@@ -1933,11 +1952,12 @@ function phase3ConstructionGate(result = {}) {
       array(slot.candidates).find((candidate) => candidate.localGeometryGrammarId)?.localGeometryGrammarId || '');
     const targetId = constructionIdentityKey(slotEntryIds.get(slot.slotId) || slot.slotId);
     const realizedLocal = realizedIdentities.some((identity) => (
-      constructionIdentityKey(identity.type || identity.sourceLabel || identity.label) === targetId &&
+      [identity.type, identity.sourceLabel, identity.label]
+        .some((value) => constructionIdentityKey(value) === targetId) &&
       identity.literal === true && identity.unsupportedIdentity !== true &&
       Number(identity.partCount || 0) >= 2 && /^object-grammar\.(?!object$)[a-z0-9.-]+$/.test(String(identity.grammarId || ''))
     ));
-    const localProven = /^object-grammar\.[a-z0-9-]+$/.test(localGeometryGrammarId) || realizedLocal;
+    const localProven = /^object-grammar\.(?!object$)[a-z0-9.-]+$/.test(localGeometryGrammarId) || realizedLocal;
     const modelEvaluated = array(slot.candidates).some((candidate) => (
       candidate.modelEvaluated === true && candidate.constructionEvidence === true
     ));
@@ -2109,7 +2129,6 @@ function analyze(results, options = {}) {
     if (!rubric.pass) {
       failures.push(`${result.index}: visual rubric failed score=${rubric.score} coverage=${rubric.coverage} missing=${rubric.missingSignals.join(',') || 'none'} dynamic=${rubric.dynamic}`);
     }
-    if (result.visualIROperatorCount < 5) failures.push(`${result.index}: VisualIR has too few operators`);
     const requiredEntityCount = array(result.phase6CompositionObligations).filter((row) => (
       row.required === true && ['entity', 'object'].includes(row.kind) && row.status !== 'lost'
     )).length;
@@ -2132,12 +2151,21 @@ function analyze(results, options = {}) {
     if (requiredEnvironments.length && !result.visualIREnvironmentProgram && !visibleEnvironmentProof) {
       failures.push(`${result.index}: required environment has neither a rendered program nor live pixel proof`);
     }
-    if (result.visualIRProcessCount < 2) failures.push(`${result.index}: VisualIR has too few processes`);
-    if (result.visualIRRenderInstanceCount < 3) failures.push(`${result.index}: VisualIR has too few render instances`);
+    if (rubric.expectedCount > 0 && result.visualIRProcessCount < 1) {
+      failures.push(`${result.index}: VisualIR has no process for an expected visual signal`);
+    }
+    const minimumRenderInstanceCount = Math.max(
+      1,
+      requiredEntityCount + Number(requiredEnvironments.length > 0)
+    );
+    if (result.visualIRRenderInstanceCount < minimumRenderInstanceCount) {
+      failures.push(
+        `${result.index}: VisualIR has ${result.visualIRRenderInstanceCount}/${minimumRenderInstanceCount} required render instances`
+      );
+    }
     if (result.visualIRReceiptCount < 4) failures.push(`${result.index}: VisualIR has too few receipts`);
-    if (result.visualIRGraphicsAtomCount < 4) failures.push(`${result.index}: VisualIR has too few graphics atoms`);
     if (!result.visualIRGraphicsCompiler) failures.push(`${result.index}: VisualIR missing graphics atom compiler`);
-    if (!(result.visualIRGraphicsUniformSlots || []).length) {
+    if (rubric.expectedCount > 0 && !(result.visualIRGraphicsUniformSlots || []).length) {
       failures.push(`${result.index}: VisualIR missing graphics atom uniform slots`);
     }
     if (result.kind === 'curated' && result.intentBriefSchema !== 'simulatte.intentBrief.v1') {

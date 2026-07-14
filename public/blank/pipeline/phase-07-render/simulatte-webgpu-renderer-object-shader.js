@@ -17,6 +17,7 @@ struct ObjectPart {
   color: vec4f,
   identity: vec4f,
   material: vec4f,
+  motion: vec4f,
 };
 
 @group(0) @binding(0) var<uniform> u: ObjectUniforms;
@@ -64,29 +65,32 @@ fn objectVs(
   var center = vec2f(row.rect.x * 2.0 - 1.0, 1.0 - row.rect.y * 2.0);
   center *= u.camera.y;
   center.x += (u.camera.w - depth) * u.camera.z;
-  let phase = row.identity.y * 6.28318;
-  let time = u.viewport.z;
-  if (row.style.w > 0.75) {
+  let phase = row.motion.z * 6.28318;
+  let time = u.viewport.z * row.motion.x;
+  let amplitude = row.motion.y;
+  if (row.style.w > 0.75 && amplitude > 0.0 && row.motion.x > 0.0) {
     if (row.style.w < 1.5) {
-      center += vec2f(sin(time * 1.4 + phase) * 0.07, cos(time * 2.1 + phase) * 0.028);
+      center += vec2f(sin(time * 1.4 + phase) * amplitude, cos(time * 2.1 + phase) * amplitude * 0.4);
     } else if (row.style.w > 1.5 && row.style.w < 2.5) {
-      center += vec2f(sin(time * 0.9 + phase) * 0.045, cos(time * 1.3 + phase) * 0.018);
+      center += vec2f(sin(time * 0.9 + phase) * amplitude, cos(time * 1.3 + phase) * amplitude * 0.4);
     } else if (row.style.w > 2.5 && row.style.w < 3.5) {
-      center += vec2f(sin(time * 1.6 + phase) * 0.032, cos(time * 1.1 + phase) * 0.014);
+      center += vec2f(sin(time * 1.6 + phase) * amplitude, cos(time * 1.1 + phase) * amplitude * 0.44);
     } else if (row.style.w > 3.5 && row.style.w < 4.5) {
-      center.y += sin(time * 1.2 + phase) * 0.01;
+      center.y += sin(time * 1.2 + phase) * amplitude * 0.3;
     } else if (row.style.w > 7.5 && row.style.w < 8.5) {
-      center += vec2f(cos(time * 0.42 + phase), sin(time * 0.42 + phase)) * 0.026;
+      center += vec2f(cos(time * 0.42 + phase), sin(time * 0.42 + phase)) * amplitude;
     } else if (row.style.w > 4.5 && row.style.w < 5.5) {
-      center.x += fract(time * 0.035 + row.identity.y) * 0.02 - 0.01;
+      center.x += (fract(time * 0.35 + row.motion.z) * 2.0 - 1.0) * amplitude;
     } else if (row.style.w > 5.5 && row.style.w < 6.5) {
-      center.y += sin(time * 0.72 + phase) * 0.024;
+      center.y += sin(time * 0.72 + phase) * amplitude;
     } else if (row.style.w > 6.5 && row.style.w < 7.5) {
-      center += vec2f(sin(time * 0.74 + phase) * 0.012, sin(time * 1.05 + phase) * 0.028);
+      center += vec2f(sin(time * 0.74 + phase) * amplitude * 0.42, sin(time * 1.05 + phase) * amplitude);
+    } else if (row.style.w > 8.5 && row.style.w < 9.5) {
+      center += vec2f(sin(time * 1.2 + phase) * amplitude, cos(time * 1.6 + phase) * amplitude * 0.65);
     } else if (row.style.w > 9.5 && row.style.w < 10.5) {
-      center += vec2f(cos(time * 0.72 + phase) * 0.065, sin(time * 1.14 + phase) * 0.022);
+      center += vec2f(cos(time * 0.72 + phase) * amplitude, sin(time * 1.14 + phase) * amplitude * 0.34);
     } else {
-      center.y += sin(time * 0.5 + phase) * 0.004;
+      center.y += sin(time * 0.5 + phase) * amplitude * 0.25;
     }
   }
   if (abs(row.identity.x - 16.0) < 0.5) {

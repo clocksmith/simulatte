@@ -1,0 +1,586 @@
+{
+  "schema": "simulatte.rerankerFrontierBenchmark.v1",
+  "source": {
+    "path": "artifacts/targeted-repair-post-perf-graph-receipt/report.json",
+    "sha256": "4c3a1ed079bc55264ced893552f0286dfb28f532df3d849cfed141336a69f021",
+    "reportSchema": "simulatte.intentSceneScreenshotAudit.v1",
+    "reportCreatedAt": "2026-07-13T23:19:24.213Z",
+    "intentMode": "model"
+  },
+  "model": {
+    "id": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+    "manifestHash": "6b1eaca7f3fba2f78a7676a7912442877b85d6f01c083f62759b9c5dd6496a9e",
+    "runtimeLockNumber": 6
+  },
+  "promptCount": 8,
+  "fullCandidateCount": 35,
+  "fullExecutionDurationMs": 14024.6,
+  "selectionModes": {
+    "construction-evidence-round-robin": 5,
+    "local-score-top-k": 3
+  },
+  "frontiers": [
+    {
+      "k": 1,
+      "promptCount": 8,
+      "evaluatedCandidateCount": 8,
+      "candidateReductionCount": 27,
+      "candidateReductionRate": 0.771429,
+      "estimatedExecutionDurationMs": 3512.5,
+      "estimatedDurationSavingsMs": 10512.1,
+      "estimatedDurationSavingsRate": 0.749547,
+      "fullWinnerRetentionCount": 4,
+      "fullWinnerRetentionRate": 0.5,
+      "changedPromptCount": 4,
+      "changedPrompts": [
+        {
+          "prompt": "railway dispatch conflict resolution across signal blocks with delayed train agents",
+          "fullWinner": "particle-set",
+          "frontierWinner": "traffic-system",
+          "fullWinnerInputOrder": 4,
+          "selectionMode": "local-score-top-k"
+        },
+        {
+          "prompt": "edge data center server racks recirculating heat between cooling aisles under control feedback",
+          "fullWinner": "queue",
+          "frontierWinner": "graph-network",
+          "fullWinnerInputOrder": 1,
+          "selectionMode": "construction-evidence-round-robin"
+        },
+        {
+          "prompt": "warehouse fire with smoke in concrete stairwell and renderer layers soot",
+          "fullWinner": "fire-plasma",
+          "frontierWinner": "smoke",
+          "fullWinnerInputOrder": 3,
+          "selectionMode": "local-score-top-k"
+        },
+        {
+          "prompt": "forest fire jumps a road under wind shear",
+          "fullWinner": "wood",
+          "frontierWinner": "concrete",
+          "fullWinnerInputOrder": 1,
+          "selectionMode": "construction-evidence-round-robin"
+        }
+      ]
+    },
+    {
+      "k": 2,
+      "promptCount": 8,
+      "evaluatedCandidateCount": 16,
+      "candidateReductionCount": 19,
+      "candidateReductionRate": 0.542857,
+      "estimatedExecutionDurationMs": 6527.1,
+      "estimatedDurationSavingsMs": 7497.5,
+      "estimatedDurationSavingsRate": 0.534596,
+      "fullWinnerRetentionCount": 6,
+      "fullWinnerRetentionRate": 0.75,
+      "changedPromptCount": 2,
+      "changedPrompts": [
+        {
+          "prompt": "railway dispatch conflict resolution across signal blocks with delayed train agents",
+          "fullWinner": "particle-set",
+          "frontierWinner": "queue-server",
+          "fullWinnerInputOrder": 4,
+          "selectionMode": "local-score-top-k"
+        },
+        {
+          "prompt": "warehouse fire with smoke in concrete stairwell and renderer layers soot",
+          "fullWinner": "fire-plasma",
+          "frontierWinner": "smoke",
+          "fullWinnerInputOrder": 3,
+          "selectionMode": "local-score-top-k"
+        }
+      ]
+    },
+    {
+      "k": 3,
+      "promptCount": 8,
+      "evaluatedCandidateCount": 20,
+      "candidateReductionCount": 15,
+      "candidateReductionRate": 0.428571,
+      "estimatedExecutionDurationMs": 8172,
+      "estimatedDurationSavingsMs": 5852.6,
+      "estimatedDurationSavingsRate": 0.41731,
+      "fullWinnerRetentionCount": 6,
+      "fullWinnerRetentionRate": 0.75,
+      "changedPromptCount": 2,
+      "changedPrompts": [
+        {
+          "prompt": "railway dispatch conflict resolution across signal blocks with delayed train agents",
+          "fullWinner": "particle-set",
+          "frontierWinner": "city-grid",
+          "fullWinnerInputOrder": 4,
+          "selectionMode": "local-score-top-k"
+        },
+        {
+          "prompt": "warehouse fire with smoke in concrete stairwell and renderer layers soot",
+          "fullWinner": "fire-plasma",
+          "frontierWinner": "smoke",
+          "fullWinnerInputOrder": 3,
+          "selectionMode": "local-score-top-k"
+        }
+      ]
+    },
+    {
+      "k": 4,
+      "promptCount": 8,
+      "evaluatedCandidateCount": 23,
+      "candidateReductionCount": 12,
+      "candidateReductionRate": 0.342857,
+      "estimatedExecutionDurationMs": 9447.8,
+      "estimatedDurationSavingsMs": 4576.8,
+      "estimatedDurationSavingsRate": 0.326341,
+      "fullWinnerRetentionCount": 7,
+      "fullWinnerRetentionRate": 0.875,
+      "changedPromptCount": 1,
+      "changedPrompts": [
+        {
+          "prompt": "railway dispatch conflict resolution across signal blocks with delayed train agents",
+          "fullWinner": "particle-set",
+          "frontierWinner": "sensor-array",
+          "fullWinnerInputOrder": 4,
+          "selectionMode": "local-score-top-k"
+        }
+      ]
+    },
+    {
+      "k": 5,
+      "promptCount": 8,
+      "evaluatedCandidateCount": 26,
+      "candidateReductionCount": 9,
+      "candidateReductionRate": 0.257143,
+      "estimatedExecutionDurationMs": 10657.3,
+      "estimatedDurationSavingsMs": 3367.3,
+      "estimatedDurationSavingsRate": 0.2401,
+      "fullWinnerRetentionCount": 8,
+      "fullWinnerRetentionRate": 1,
+      "changedPromptCount": 0,
+      "changedPrompts": []
+    },
+    {
+      "k": 6,
+      "promptCount": 8,
+      "evaluatedCandidateCount": 29,
+      "candidateReductionCount": 6,
+      "candidateReductionRate": 0.171429,
+      "estimatedExecutionDurationMs": 11781.4,
+      "estimatedDurationSavingsMs": 2243.2,
+      "estimatedDurationSavingsRate": 0.159948,
+      "fullWinnerRetentionCount": 8,
+      "fullWinnerRetentionRate": 1,
+      "changedPromptCount": 0,
+      "changedPrompts": []
+    },
+    {
+      "k": 7,
+      "promptCount": 8,
+      "evaluatedCandidateCount": 32,
+      "candidateReductionCount": 3,
+      "candidateReductionRate": 0.085714,
+      "estimatedExecutionDurationMs": 12933.8,
+      "estimatedDurationSavingsMs": 1090.8,
+      "estimatedDurationSavingsRate": 0.077778,
+      "fullWinnerRetentionCount": 8,
+      "fullWinnerRetentionRate": 1,
+      "changedPromptCount": 0,
+      "changedPrompts": []
+    },
+    {
+      "k": 8,
+      "promptCount": 8,
+      "evaluatedCandidateCount": 35,
+      "candidateReductionCount": 0,
+      "candidateReductionRate": 0,
+      "estimatedExecutionDurationMs": 14024.6,
+      "estimatedDurationSavingsMs": 0,
+      "estimatedDurationSavingsRate": 0,
+      "fullWinnerRetentionCount": 8,
+      "fullWinnerRetentionRate": 1,
+      "changedPromptCount": 0,
+      "changedPrompts": []
+    }
+  ],
+  "promotionEligible": false,
+  "promotionBlockers": [
+    "winner retention compares against the observed full-K model winner, not labeled semantic relevance",
+    "replay does not recompile Phases 4 through 8 or compare visible obligation coverage"
+  ],
+  "rows": [
+    {
+      "prompt": "gut microbiome colonies exchanging metabolites through intestinal folds under immune pressure",
+      "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+      "candidateCount": 2,
+      "selectionMode": "construction-evidence-round-robin",
+      "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
+      "fullWinner": "bacteria",
+      "fullWinnerInputOrder": 0,
+      "executionDurationMs": 804.7,
+      "candidates": [
+        {
+          "primitiveId": "bacteria",
+          "inputOrder": 0,
+          "modelRank": 0,
+          "modelScore": 0.940404,
+          "localScore": 0.5516,
+          "executionDurationMs": 467.7
+        },
+        {
+          "primitiveId": "fabric",
+          "inputOrder": 1,
+          "modelRank": 1,
+          "modelScore": 0.939774,
+          "localScore": 0.414,
+          "executionDurationMs": 337
+        }
+      ]
+    },
+    {
+      "prompt": "railway dispatch conflict resolution across signal blocks with delayed train agents",
+      "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+      "candidateCount": 8,
+      "selectionMode": "local-score-top-k",
+      "candidateBudgetPolicy": "model-lock-decision-frontier",
+      "fullWinner": "particle-set",
+      "fullWinnerInputOrder": 4,
+      "executionDurationMs": 3047.9,
+      "candidates": [
+        {
+          "primitiveId": "traffic-system",
+          "inputOrder": 0,
+          "modelRank": 4,
+          "modelScore": 0.959231,
+          "localScore": 0.6754,
+          "executionDurationMs": 446.1
+        },
+        {
+          "primitiveId": "queue-server",
+          "inputOrder": 1,
+          "modelRank": 3,
+          "modelScore": 0.966002,
+          "localScore": 0.6674,
+          "executionDurationMs": 343.3
+        },
+        {
+          "primitiveId": "city-grid",
+          "inputOrder": 2,
+          "modelRank": 2,
+          "modelScore": 0.966007,
+          "localScore": 0.6396,
+          "executionDurationMs": 453.8
+        },
+        {
+          "primitiveId": "sensor-array",
+          "inputOrder": 3,
+          "modelRank": 1,
+          "modelScore": 0.967292,
+          "localScore": 0.6156,
+          "executionDurationMs": 341
+        },
+        {
+          "primitiveId": "particle-set",
+          "inputOrder": 4,
+          "modelRank": 0,
+          "modelScore": 0.971982,
+          "localScore": 0.6094,
+          "executionDurationMs": 345.1
+        },
+        {
+          "primitiveId": "time-series",
+          "inputOrder": 5,
+          "modelRank": 7,
+          "modelScore": 0.937518,
+          "localScore": 0.604,
+          "executionDurationMs": 432.3
+        },
+        {
+          "primitiveId": "population-field",
+          "inputOrder": 6,
+          "modelRank": 5,
+          "modelScore": 0.954602,
+          "localScore": 0.601,
+          "executionDurationMs": 352.4
+        },
+        {
+          "primitiveId": "feedback-controller",
+          "inputOrder": 7,
+          "modelRank": 6,
+          "modelScore": 0.945637,
+          "localScore": 0.5959,
+          "executionDurationMs": 333.9
+        }
+      ]
+    },
+    {
+      "prompt": "edge data center server racks recirculating heat between cooling aisles under control feedback",
+      "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+      "candidateCount": 2,
+      "selectionMode": "construction-evidence-round-robin",
+      "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
+      "fullWinner": "queue",
+      "fullWinnerInputOrder": 1,
+      "executionDurationMs": 722,
+      "candidates": [
+        {
+          "primitiveId": "graph-network",
+          "inputOrder": 0,
+          "modelRank": 1,
+          "modelScore": 0.955557,
+          "localScore": 0.5209,
+          "executionDurationMs": 384
+        },
+        {
+          "primitiveId": "queue",
+          "inputOrder": 1,
+          "modelRank": 0,
+          "modelScore": 0.960547,
+          "localScore": 0.6326,
+          "executionDurationMs": 338
+        }
+      ]
+    },
+    {
+      "prompt": "planetary rings shepherd moon resonance sorting ice boulders into density waves and orbital gaps",
+      "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+      "candidateCount": 2,
+      "selectionMode": "construction-evidence-round-robin",
+      "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
+      "fullWinner": "gravity",
+      "fullWinnerInputOrder": 0,
+      "executionDurationMs": 919.7,
+      "candidates": [
+        {
+          "primitiveId": "gravity",
+          "inputOrder": 0,
+          "modelRank": 0,
+          "modelScore": 0.952813,
+          "localScore": 0.496,
+          "executionDurationMs": 478.2
+        },
+        {
+          "primitiveId": "radiation",
+          "inputOrder": 1,
+          "modelRank": 1,
+          "modelScore": 0.918177,
+          "localScore": 0.6027,
+          "executionDurationMs": 441.5
+        }
+      ]
+    },
+    {
+      "prompt": "sourdough fermentation gas bubbles growing through a dough matrix with gluten strands",
+      "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+      "candidateCount": 3,
+      "selectionMode": "construction-evidence-round-robin",
+      "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
+      "fullWinner": "metal",
+      "fullWinnerInputOrder": 0,
+      "executionDurationMs": 1133.2,
+      "candidates": [
+        {
+          "primitiveId": "metal",
+          "inputOrder": 0,
+          "modelRank": 0,
+          "modelScore": 0.968368,
+          "localScore": 0.4006,
+          "executionDurationMs": 462
+        },
+        {
+          "primitiveId": "fabric",
+          "inputOrder": 1,
+          "modelRank": 1,
+          "modelScore": 0.964536,
+          "localScore": 0.4262,
+          "executionDurationMs": 337.7
+        },
+        {
+          "primitiveId": "rock",
+          "inputOrder": 2,
+          "modelRank": 2,
+          "modelScore": 0.934195,
+          "localScore": 0.5727,
+          "executionDurationMs": 333.5
+        }
+      ]
+    },
+    {
+      "prompt": "warehouse fire with smoke in concrete stairwell and renderer layers soot",
+      "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+      "candidateCount": 8,
+      "selectionMode": "local-score-top-k",
+      "candidateBudgetPolicy": "model-lock-decision-frontier",
+      "fullWinner": "fire-plasma",
+      "fullWinnerInputOrder": 3,
+      "executionDurationMs": 3217.8,
+      "candidates": [
+        {
+          "primitiveId": "smoke",
+          "inputOrder": 0,
+          "modelRank": 2,
+          "modelScore": 0.967174,
+          "localScore": 0.7913,
+          "executionDurationMs": 386.4
+        },
+        {
+          "primitiveId": "concrete",
+          "inputOrder": 1,
+          "modelRank": 5,
+          "modelScore": 0.951656,
+          "localScore": 0.7576,
+          "executionDurationMs": 342.2
+        },
+        {
+          "primitiveId": "fire-front",
+          "inputOrder": 2,
+          "modelRank": 7,
+          "modelScore": 0.935372,
+          "localScore": 0.7349,
+          "executionDurationMs": 364.6
+        },
+        {
+          "primitiveId": "fire-plasma",
+          "inputOrder": 3,
+          "modelRank": 0,
+          "modelScore": 0.972036,
+          "localScore": 0.6904,
+          "executionDurationMs": 442.2
+        },
+        {
+          "primitiveId": "flame",
+          "inputOrder": 4,
+          "modelRank": 4,
+          "modelScore": 0.954967,
+          "localScore": 0.6864,
+          "executionDurationMs": 430.6
+        },
+        {
+          "primitiveId": "forest",
+          "inputOrder": 5,
+          "modelRank": 3,
+          "modelScore": 0.963985,
+          "localScore": 0.6645,
+          "executionDurationMs": 362.6
+        },
+        {
+          "primitiveId": "forest-fire",
+          "inputOrder": 6,
+          "modelRank": 6,
+          "modelScore": 0.942883,
+          "localScore": 0.6475,
+          "executionDurationMs": 457.6
+        },
+        {
+          "primitiveId": "combustion",
+          "inputOrder": 7,
+          "modelRank": 1,
+          "modelScore": 0.968955,
+          "localScore": 0.6357,
+          "executionDurationMs": 431.6
+        }
+      ]
+    },
+    {
+      "prompt": "phase study in a generic lab with no qubits or quantum hardware",
+      "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+      "candidateCount": 8,
+      "selectionMode": "local-score-top-k",
+      "candidateBudgetPolicy": "model-lock-decision-frontier",
+      "fullWinner": "materials-lab",
+      "fullWinnerInputOrder": 0,
+      "executionDurationMs": 3420.2,
+      "candidates": [
+        {
+          "primitiveId": "materials-lab",
+          "inputOrder": 0,
+          "modelRank": 0,
+          "modelScore": 0.990316,
+          "localScore": 0.6352,
+          "executionDurationMs": 537.6
+        },
+        {
+          "primitiveId": "lab-bench",
+          "inputOrder": 1,
+          "modelRank": 7,
+          "modelScore": 0.928558,
+          "localScore": 0.6192,
+          "executionDurationMs": 466.3
+        },
+        {
+          "primitiveId": "wet-lab",
+          "inputOrder": 2,
+          "modelRank": 6,
+          "modelScore": 0.92983,
+          "localScore": 0.6166,
+          "executionDurationMs": 493
+        },
+        {
+          "primitiveId": "phase-change",
+          "inputOrder": 3,
+          "modelRank": 1,
+          "modelScore": 0.977509,
+          "localScore": 0.6085,
+          "executionDurationMs": 492.6
+        },
+        {
+          "primitiveId": "phase-change-material",
+          "inputOrder": 4,
+          "modelRank": 4,
+          "modelScore": 0.970273,
+          "localScore": 0.5938,
+          "executionDurationMs": 433.8
+        },
+        {
+          "primitiveId": "queue",
+          "inputOrder": 5,
+          "modelRank": 5,
+          "modelScore": 0.956666,
+          "localScore": 0.5882,
+          "executionDurationMs": 329.2
+        },
+        {
+          "primitiveId": "queue-server",
+          "inputOrder": 6,
+          "modelRank": 3,
+          "modelScore": 0.971774,
+          "localScore": 0.5764,
+          "executionDurationMs": 342.4
+        },
+        {
+          "primitiveId": "oscillator",
+          "inputOrder": 7,
+          "modelRank": 2,
+          "modelScore": 0.976311,
+          "localScore": 0.5714,
+          "executionDurationMs": 325.3
+        }
+      ]
+    },
+    {
+      "prompt": "forest fire jumps a road under wind shear",
+      "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+      "candidateCount": 2,
+      "selectionMode": "construction-evidence-round-robin",
+      "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
+      "fullWinner": "wood",
+      "fullWinnerInputOrder": 1,
+      "executionDurationMs": 759.1,
+      "candidates": [
+        {
+          "primitiveId": "concrete",
+          "inputOrder": 0,
+          "modelRank": 1,
+          "modelScore": 0.900847,
+          "localScore": 0.582,
+          "executionDurationMs": 350.5
+        },
+        {
+          "primitiveId": "wood",
+          "inputOrder": 1,
+          "modelRank": 0,
+          "modelScore": 0.966082,
+          "localScore": 0.607,
+          "executionDurationMs": 408.6
+        }
+      ]
+    }
+  ]
+}

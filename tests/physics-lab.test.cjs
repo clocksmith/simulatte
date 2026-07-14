@@ -931,6 +931,10 @@ test('slot lexical evidence separates local identity from model construction wor
     semanticClass: 'cat',
     visualArchetype: 'cat',
     localGeometryGrammarId: 'object-grammar.cat',
+  }), false);
+  assert.equal(scope.slotHasPromptOwnedVisualIdentity({
+    ...slot,
+    localGeometryGrammarId: 'object-grammar.cat',
   }), true);
   assert.equal(scope.slotUsesPromptOwnedLocalEvidence({
     slotRole: 'action', entryId: 'action:swimming', required: true,
@@ -1513,13 +1517,17 @@ test('Phase 3 keeps known visual identities local and model-ranks unresolved con
     assert.equal(result.rerank.modelCandidateInputs.length, result.rerank.modelCandidateInputCount);
     assert.equal(result.rerank.modelCandidateOutputs.length, result.rerank.modelCandidateOutputCount);
     assert.ok(result.rerank.modelCandidateInputs.every((row) => row.primitiveId));
-    assert.deepEqual(dogSlot.candidates.map((row) => row.candidateId), ['prompt.actor.dog']);
-    assert.deepEqual(catSlot.candidates.map((row) => row.candidateId), ['prompt.actor.cat']);
-    assert.equal(dogSlot.receipt.skipReason, 'phase2-data-owned-visual-archetype');
-    assert.equal(catSlot.receipt.skipReason, 'phase2-data-owned-visual-archetype');
-    assert.equal(result.slotRetrieval.promptEmbeddingSlotCount, 0);
-    assert.deepEqual(dogSlot.constructionCandidates, []);
-    assert.deepEqual(catSlot.constructionCandidates, []);
+    assert.equal(dogSlot.candidates[0].candidateId, 'prompt.actor.dog');
+    assert.equal(catSlot.candidates[0].candidateId, 'prompt.actor.cat');
+    assert.equal(dogSlot.candidates[0].modelEvaluated, false);
+    assert.equal(catSlot.candidates[0].modelEvaluated, false);
+    assert.equal(dogSlot.receipt.skipReason, 'exact-construction-scored-by-prompt-embedding');
+    assert.equal(catSlot.receipt.skipReason, 'exact-construction-scored-by-prompt-embedding');
+    assert.equal(result.slotRetrieval.promptEmbeddingSlotCount, 2);
+    assert.ok(dogSlot.constructionCandidates.length >= 1);
+    assert.ok(catSlot.constructionCandidates.length >= 1);
+    assert.ok(dogSlot.constructionCandidates.every((row) => row.modelEvaluated === true));
+    assert.ok(catSlot.constructionCandidates.every((row) => row.modelEvaluated === true));
     assert.equal(actionSlot.acceptedCandidates[0].semanticType, 'action');
     assert.equal(actionSlot.acceptedCandidates[0].identityEvidence, false);
     assert.equal(Object.hasOwn(actionSlot.acceptedCandidates[0], 'modelScore'), false);
@@ -1537,7 +1545,7 @@ test('Phase 3 keeps known visual identities local and model-ranks unresolved con
     assert.equal(embedTexts.some((text) => /species distinct silhouettes|wake ripples|partial submersion/.test(text)), false);
     assert.equal(embedTexts.some((text) => /Construct the required actor: dog/.test(text)), false);
     assert.equal(embedTexts.some((text) => /Construct the required environment: lake/.test(text)), false);
-    assert.equal(dogSlot.primitiveRankBackend, 'prompt-owned-local-evidence');
+    assert.equal(dogSlot.primitiveRankBackend, 'prompt-embedding-surface-card-index');
     assert.ok(events.some((event) => event.stage === 'slot-retrieval'));
     assert.ok(result.evidenceRows.some((row) => (
       row.retrievalKind === 'slot-retrieval' &&
@@ -1554,11 +1562,11 @@ test('Phase 3 keeps known visual identities local and model-ranks unresolved con
     assert.ok(groundedCatSlot.acceptedCandidates.some((row) => (
       row.source === 'prompt-typed-slot' && row.candidateText === 'cat'
     )));
-    assert.deepEqual(groundedDogSlot.constructionCandidates, []);
+    assert.ok(groundedDogSlot.constructionCandidates.length >= 1);
 
     const phase4 = lab.runPhase4GroundedIntent(phase3);
     const acceptedGraph = phase4.artifact.groundedIntent.acceptedGraph;
-    assert.equal(acceptedGraph.constructionReceipt.modelEvaluatedCount, 0);
+    assert.ok(acceptedGraph.constructionReceipt.modelEvaluatedCount >= 2);
     assert.equal(acceptedGraph.constructionReceipt.rerankEvaluatedCount, 0);
     assert.deepEqual(acceptedGraph.nodes.map((row) => row.id).sort(), [
       'prompt-body-cat', 'prompt-body-dog', 'prompt-environment-lake',

@@ -305,13 +305,17 @@
         }
         const started = nowMs();
         const bySlot = [];
-        const localSlots = slots.filter(slotUsesPromptOwnedLocalEvidence);
         const promptConstructionBySlot = new Map(slots.filter((slot) => !slotUsesPromptOwnedLocalEvidence(slot))
           .map((slot) => [slot.slotId, promptVectorExactConstructionCandidates(
             slot, runtime, payload.promptVector, config, payload.options
           )]).filter(([, rows]) => rows.length));
+        const localSlotIds = new Set(slots.filter((slot) => (
+          slotUsesPromptOwnedLocalEvidence(slot) ||
+          (slotHasPromptOwnedVisualIdentity(slot) && !promptConstructionBySlot.has(slot.slotId))
+        )).map((slot) => slot.slotId));
+        const localSlots = slots.filter((slot) => localSlotIds.has(slot.slotId));
         const modelSlots = slots.filter((slot) => (
-          !slotUsesPromptOwnedLocalEvidence(slot) && !promptConstructionBySlot.has(slot.slotId)
+          !localSlotIds.has(slot.slotId) && !promptConstructionBySlot.has(slot.slotId)
         ));
         let rerankCallCount = 0;
         emitRuntimeProgress(payload.progress, payload.traceEnabled, {
@@ -341,13 +345,13 @@
         let modelSlotIndex = 0;
         for (let i = 0; i < slots.length; i += 1) {
           const slot = slots[i];
-          if (slotUsesPromptOwnedLocalEvidence(slot)) {
+          if (localSlotIds.has(slot.slotId)) {
             bySlot.push(promptOwnedLocalSlotRow(slot, payload.promptText));
             continue;
           }
           if (promptConstructionBySlot.has(slot.slotId)) {
             bySlot.push(promptVectorConstructionSlotRow(
-              slot, promptConstructionBySlot.get(slot.slotId), payload.promptVector, config
+              slot, promptConstructionBySlot.get(slot.slotId), payload.promptVector, config, payload.promptText
             ));
             continue;
           }
@@ -411,6 +415,12 @@
             constructionMode: slotNeedsModelConstructionEvidence(slot),
           });
           if (reranked.rerankCall) rerankCallCount += 1;
+          const localIdentity = slotHasPromptOwnedVisualIdentity(slot)
+            ? promptOwnedLocalCandidate(slot)
+            : null;
+          const rankedCandidates = localIdentity
+            ? [localIdentity, ...reranked.candidates]
+            : reranked.candidates;
           bySlot.push({
             schema: 'simulatte.phase3ModelSlotRetrievalRow.v1',
             slotId: slot.slotId || '',
@@ -422,8 +432,9 @@
             primitiveRankBackend: gpuScores ? 'webgpu' : 'cpu',
             rerankerMode: reranked.receipt.rerankerMode,
             rerankerModelReady: reranked.receipt.modelReady,
-            candidates: reranked.candidates,
-            acceptedCandidates: reranked.candidates.filter((row) => row.supportOnly !== true).slice(0, config.perSlotAcceptedMax),
+            candidates: rankedCandidates,
+            acceptedCandidates: rankedCandidates.filter((row) => row.supportOnly !== true)
+              .slice(0, config.perSlotAcceptedMax),
             constructionCandidates: constructionCandidatesForSlot(slot, reranked.candidates, 3),
             supportOnlyCandidates: reranked.candidates.filter((row) => row.supportOnly === true),
             receipt: reranked.receipt,

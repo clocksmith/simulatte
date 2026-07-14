@@ -46,7 +46,7 @@
     advection: solver('advection-lite', ['advection'], ['flowVelocity'], ['flowVelocity', 'pressure'], 0.05, moduleStep('advection')),
     diffusion: solver('scalar-diffusion', ['diffusion'], [], [], 0.05, stepDiffusion),
     phase_transition: solver('phase-transition', ['phase_transition'], ['temperature'], ['liquidFraction'], 0.05, moduleStep('thermal')),
-    rotational_torque: solver('rotational-mechanics', ['rotational_torque'], ['flowVelocity'], ['angularVelocity'], 0.05, moduleStep('rotation')),
+    rotational_torque: solver('rotational-mechanics', ['rotational_torque'], ['angularVelocity'], ['angularVelocity', 'angle'], 0.05, moduleStep('rotation')),
     rigid_collision: solver('rigid-collision', ['rigid_collision'], [], ['stress', 'damage'], 0.05, moduleStep('rigid')),
     fracture_threshold: solver('fracture-threshold', ['fracture_threshold'], ['stress'], ['damage'], 0.05, moduleStep('fracture')),
     pressure_flow_lite: solver('pressure-flow-lite', ['pressure_flow_lite'], ['pressure'], ['flowVelocity'], 0.05, moduleStep('pressure')),

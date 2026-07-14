@@ -332,7 +332,7 @@
             nodeRow.primitive,
             [placement.center[0] * spread, placement.center[1] * aspect],
             placement.size,
-            palette[parts.length % Math.max(1, palette.length)],
+            nodeRow.role === 'sensor' ? palette[3] || palette[0] : palette[parts.length % Math.max(1, palette.length)],
             placement.rotation || 0
           ),
           order: parts.length,

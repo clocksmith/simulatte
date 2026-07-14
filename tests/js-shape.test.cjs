@@ -464,7 +464,7 @@ test('training launcher is shared by Codex and Claude skill surfaces', () => {
   assert.match(codexSkill, /saved locally in the browser first/);
   assert.match(claudeSkill, /^name: train/m);
   assert.match(claudeSkill, /npm run train/);
-  assert.match(claudeSkill, /selected checkpoint/);
+  assert.match(claudeSkill, /selected\s+checkpoint/);
   assert.match(claudeCommand, /^description: Launch Simulatte training mode in Chrome/m);
   assert.match(claudeCommand, /npm run train -- \$ARGUMENTS/);
   assert.match(claudeCommand, /export JSONL/);
@@ -874,7 +874,9 @@ test('physics loading uses a phase-reactive canvas Snake game instead of a card 
   assert.match(webgpuRenderer, /const SCENE_PACKET_FLOATS = SCENE_PACKET_OBJECT_SLOTS \* 12/);
   assert.doesNotMatch(webgpuRenderer, /GPU_SCENE_INSTANCE_CAPACITY|GPU_SCENE_INSTANCE_FLOATS/);
   assert.match(webgpuRenderer, /const GPU_OBJECT_PART_CAPACITY = 256/);
-  assert.match(webgpuRenderer, /const GPU_OBJECT_PART_FLOATS = 20/);
+  assert.match(webgpuRenderer, /const GPU_OBJECT_PART_FLOATS = 24/);
+  assert.match(webgpuRenderer, /motion: vec4f/);
+  assert.match(webgpuRenderer, /u\.viewport\.z \* row\.motion\.x/);
   assert.match(webgpuRenderer, /const WEBGPU_OPTIONAL_FEATURES = Object\.freeze/);
   assert.match(webgpuRenderer, /const WEBGPU_OPTIONAL_FEATURES = Object\.freeze\(\[\]\)/);
   assert.match(webgpuRenderer, /const UNIFORM_FLOAT_COUNT = 144 \+ SCENE_PACKET_FLOATS/);
@@ -1800,6 +1802,8 @@ test('visual audit auto-judges prompt fidelity and motion with a rubric', () => 
   assert.match(tool, /phase4CandidateMatchReceipt/);
   assert.match(tool, /groundingCandidateMatchReceipt\.v1/);
   assert.match(tool, /candidate matching did not use one bounded node-candidate scan/);
+  assert.match(tool, /minimumRenderInstanceCount/);
+  assert.doesNotMatch(tool, /visualIRRenderInstanceCount < 3/);
   assert.match(tool, /canvasFrameLumaMeanDelta/);
   assert.match(tool, /matchedSignals/);
   assert.match(tool, /missingSignals/);

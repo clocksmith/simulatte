@@ -133,13 +133,18 @@
       }
 
     function focusFieldsForScene(fields, sceneKind) {
+        const normalizedFields = sceneKind === 'molecular-biology'
+          ? (fields || []).map((field) => (
+            /^(?:phase|amplitude)$/.test(field.kind) ? { ...field, kind: 'force-field' } : field
+          ))
+          : fields || [];
         const registry = renderRegistryRef();
         const recipe = registry && typeof registry.recipeForScene === 'function'
           ? registry.recipeForScene(sceneKind)
           : null;
         if (recipe && Array.isArray(recipe.fieldKinds) && recipe.fieldKinds.length) {
           const wanted = new Set(recipe.fieldKinds);
-          return (fields || []).filter((field) => wanted.has(field.kind));
+          return normalizedFields.filter((field) => wanted.has(field.kind));
         }
         const allowed = {
           fire: ['thermal', 'gravity'],
@@ -161,7 +166,7 @@
           generic: ['force-field'],
         };
         const wanted = new Set(allowed[sceneKind] || allowed.generic);
-        return (fields || []).filter((field) => wanted.has(field.kind));
+        return normalizedFields.filter((field) => wanted.has(field.kind));
       }
 
     function dominantRegimeForScene(sceneKind, objects) {
@@ -454,7 +459,8 @@
         if (['heat_source', 'heat_transfer'].some((type) => types.has(type))) families.push('heat-diffusion');
         if (types.has('combustion')) families.push('reaction-front');
         if (types.has('phase_transition')) families.push('phase-boundary');
-        if (['growth_decay', 'reaction_diffusion'].some((type) => types.has(type))) families.push('growth-diffusion');
+        if (types.has('growth_decay')) families.push('growth-diffusion');
+        if (types.has('reaction_diffusion')) families.push('reaction-diffusion');
         if (['rigid_collision', 'fracture_threshold', 'rotational_torque'].some((type) => types.has(type))) {
           families.push('constraint-dynamics');
         }
@@ -503,6 +509,7 @@
           'magnetic-vector-field': ['flux', 'force'],
           'granular-settling': ['height', 'sediment'],
           'growth-diffusion': ['population', 'nutrient'],
+          'reaction-diffusion': ['reactionProgress', 'acidity'],
           'electric-potential-field': ['charge', 'potential'],
           'wave-equation': ['phase', 'amplitude'],
           'membrane-relaxation': ['tension', 'displacement'],

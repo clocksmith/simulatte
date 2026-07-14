@@ -22,8 +22,10 @@ npm run samer:construction
 The public gold set binds each prompt to entity counts, spatial relations,
 poses, and blocking visual rules. Structural evaluation cannot settle the
 visual rules. Promotion also requires matched live screenshots, human
-adjudication, and a sealed prompt set. The generated report states those
-blockers instead of treating internal receipts as pixel proof.
+adjudication, and a sealed prompt set. Each human receipt binds the gold row,
+exact prompt and hash, page build, canonical full Phase 6 packet hash,
+screenshot hash, reviewer, and allowed blocking rules. The generated report
+states missing proof instead of treating internal receipts as pixel proof.
 
 Owner files:
 

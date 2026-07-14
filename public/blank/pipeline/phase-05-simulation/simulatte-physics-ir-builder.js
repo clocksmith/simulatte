@@ -91,6 +91,18 @@
             behaviorRelations
           );
         }
+        if (typeof addBehaviorBundlesFromNodeActivity === 'function') {
+          addBehaviorBundlesFromNodeActivity(
+            couplings,
+            operators,
+            stateFields,
+            universeGraph.nodes || [],
+            domainByNode,
+            params,
+            receipt,
+            behaviorRelations
+          );
+        }
         if (!entities.length) {
           receipt.unsupported.push({
             promptSpan: prompt || 'empty prompt',
@@ -506,9 +518,15 @@
         const supersededPromptEdges = new Set();
         for (const causalEdge of edges || []) {
           if (!causalEdge.operatorType) continue;
+          const supersededProcesses = new Set(
+            causalEdge.provenance?.groundingPolicy?.supersedesProcessIds || []
+          );
           for (const edgeId of causalEdge.provenance?.pathEdgeIds || []) {
             const promptEdge = edgeById.get(edgeId);
-            if (promptEdge && promptEdge.processId === causalEdge.processId) {
+            if (promptEdge && (
+              promptEdge.processId === causalEdge.processId ||
+              supersededProcesses.has(promptEdge.processId)
+            )) {
               supersededPromptEdges.add(edgeId);
             }
           }
@@ -562,6 +580,14 @@
             continue;
           }
           const op = addCouplingOperator(operators, operator, from, to, params, edge);
+          if (!op) {
+            receipt.unsupported.push({
+              promptSpan: `${edge.from} ${edge.type} ${edge.to}`,
+              reason: `operator ${operator} is incompatible with the grounded source domain`,
+              fallback: 'visual adjacency only',
+            });
+            continue;
+          }
           couplings.push({ from: from.id, to: to.id, type: edge.type, operatorId: op.id });
         }
       }
@@ -713,6 +739,7 @@
         const fromEntity = from.entityId;
         const toEntity = to.entityId;
         if (type === 'rotational_torque') {
+          if (from.kind !== 'fluid') return null;
           return addOperator(operators, type, to, {
             reads: [`flowVelocity:${fromEntity}`, `angularVelocity:${toEntity}`, `viscosity:${fromEntity}`],
             writes: [`angularVelocity:${toEntity}`, `angle:${toEntity}`, `torque:${toEntity}`],

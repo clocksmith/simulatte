@@ -400,6 +400,10 @@
       const quantumScene = directHas(/\b(qubit|quantum|microwave|superconducting|resonator)\b/);
       if (!quantumScene) return { ok: false, reason: 'scene-gate:no-direct-quantum-evidence' };
     }
+    if (/particle-track-detector/.test(id)) {
+      const detectorScene = directHas(/\b(particle detector|collider|calorimeter|phototube|muon|particle track)\b/);
+      if (!detectorScene) return { ok: false, reason: 'scene-gate:no-direct-particle-detector-evidence' };
+    }
     if (/structural-stress/.test(id)) {
       const structuralScene = directHas(/\bbridge(?: deck)?\b/) &&
         directHas(/\b(cable tension|tension|stress|strain)\b/);

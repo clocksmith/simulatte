@@ -14,7 +14,7 @@
     advection: contract(['flowVelocity'], ['flowVelocity'], ['fluid']),
     diffusion: contract([], [], ['field']),
     phase_transition: contract(['temperature', 'liquidFraction'], ['liquidFraction'], ['phase']),
-    rotational_torque: contract(['flowVelocity', 'angularVelocity'], ['angularVelocity', 'angle'], ['rigidBody']),
+    rotational_torque: contract(['angularVelocity'], ['angularVelocity', 'angle'], ['rigidBody']),
     rigid_collision: contract([], ['stress', 'damage'], ['rigidBody', 'solid']),
     fracture_threshold: contract(['stress', 'damage'], ['damage'], ['solid']),
     pressure_flow_lite: contract(['pressure'], ['flowVelocity'], ['fluid']),

@@ -652,6 +652,10 @@
         },
         representedEntityIds: uniqueList([...(row.representedEntityIds || []), row.id]),
         transform: { ...transform, position, scale },
+        animation: row.animation ? {
+          ...row.animation,
+          phase: Number(((Number(row.animation.phase || 0) + index / count) % 1).toFixed(3)),
+        } : row.animation,
         geometry: { ...(row.geometry || {}), bounds },
         collider: { ...(row.collider || {}), bounds, pickId: `${row.id}:instance:${index + 1}` },
       };

@@ -168,6 +168,8 @@
       "id": "visual.operator.fluid-advection.v1",
       "matchTerms": [
         "flow",
+        "dispersion",
+        "dispersing",
         "water",
         "river",
         "ocean",
@@ -197,6 +199,8 @@
       "requires": [
         [
           "flow",
+          "dispersion",
+          "dispersing",
           "water",
           "river",
           "ocean",
@@ -1032,6 +1036,68 @@
       "receiptText": "Biological change becomes branching networks, membranes, gradients, and growth fronts."
     },
     {
+      "id": "visual.operator.molecular-folding.v1",
+      "matchTerms": [
+        "protein folding",
+        "protein fold",
+        "bond constraint",
+        "bond constraints",
+        "energy minimization",
+        "collapse motion",
+        "conformational"
+      ],
+      "requires": [
+        [
+          "protein folding",
+          "protein fold",
+          "bond constraint",
+          "bond constraints",
+          "energy minimization",
+          "collapse motion",
+          "conformational"
+        ]
+      ],
+      "excludes": [],
+      "minimumScore": 0.56,
+      "priority": 1.18,
+      "uniformSlots": [
+        "biological",
+        "constraint",
+        "motion",
+        "surface"
+      ],
+      "wgslOperators": [
+        "atomBiologicalBranches",
+        "atomConstraintPads"
+      ],
+      "geometryAtoms": [
+        "molecular-chain-ribbon",
+        "bond-constraint-ring",
+        "energy-basin-surface"
+      ],
+      "fieldAtoms": [
+        "conformation-phase-field",
+        "bond-strain-field"
+      ],
+      "materialAtoms": [
+        "protein-ribbon",
+        "constraint-emissive"
+      ],
+      "processAtoms": [
+        "conformational-relaxation",
+        "energy-descent"
+      ],
+      "motionAtoms": [
+        "fold-collapse",
+        "bond-torsion-pulse"
+      ],
+      "cameraAtoms": [
+        "microscopic-cutaway-depth",
+        "instrumented-lab-depth"
+      ],
+      "receiptText": "Protein folding becomes a chain ribbon, bond constraints, an energy basin, and receipt-bound conformational motion."
+    },
+    {
       "id": "visual.operator.fermentation-matrix.v1",
       "matchTerms": [
         "ferment",
@@ -1137,7 +1203,10 @@
         "microfluidic",
         "droplet",
         "dose",
-        "fermentation"
+        "fermentation",
+        "metabolite",
+        "metabolites",
+        "microbiome"
       ],
       "requires": [
         [
@@ -1154,7 +1223,10 @@
           "microfluidic",
           "droplet",
           "dose",
-          "fermentation"
+          "fermentation",
+          "metabolite",
+          "metabolites",
+          "microbiome"
         ]
       ],
       "excludes": [],
@@ -1467,7 +1539,13 @@
           "contact"
         ]
       ],
-      "excludes": [],
+      "excludes": [
+        "robot",
+        "robotic",
+        "gripper",
+        "servo",
+        "warehouse"
+      ],
       "minimumScore": 0.5,
       "priority": 1.18,
       "uniformSlots": [

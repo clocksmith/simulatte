@@ -40,12 +40,15 @@
       const role = String(slot.slotRole || '');
       const lexicalVisual = role === 'visual' && (slot.queries || []).length > 0 &&
         (slot.queries || []).every((row) => row && row.kind === 'lexical');
-      const dataOwnedVisual = /^(?:actor|object|environment)$/.test(role) &&
-        /^object-grammar\.[a-z0-9-]+$/.test(String(slot.localGeometryGrammarId || ''));
-      return Boolean(slot.entryId) && (!slotNeedsModelRetrievalEvidence(slot) || lexicalVisual || dataOwnedVisual);
+      return Boolean(slot.entryId) && (!slotNeedsModelRetrievalEvidence(slot) || lexicalVisual);
     }
 
-    function promptOwnedLocalSlotRow(slot = {}, promptText = '') {
+    function slotHasPromptOwnedVisualIdentity(slot = {}) {
+      return /^(?:actor|object|environment)$/.test(String(slot.slotRole || '')) &&
+        /^object-grammar\.[a-z0-9-]+$/.test(String(slot.localGeometryGrammarId || ''));
+    }
+
+    function promptOwnedLocalCandidate(slot = {}) {
       const role = String(slot.slotRole || 'object');
       const target = normalizeSpanText(String(slot.entryId || '')
         .replace(/^[a-z]+:/, '').replace(/[_:]+/g, ' '));
@@ -54,10 +57,7 @@
         actor: 'entity', concept: 'entity', object: 'entity', part: 'part', environment: 'environment', medium: 'medium',
         action: 'action', relation: 'relation', visual: 'visual',
       })[role] || 'entity';
-      const skipReason = slot.localGeometryGrammarId && /^(?:actor|object|environment)$/.test(role)
-        ? 'phase2-data-owned-visual-archetype'
-        : 'prompt-owned-local-identity';
-      const candidate = {
+      return {
         id,
         candidateId: id,
         candidateType: 'prompt-literal',
@@ -84,10 +84,17 @@
         slotRole: role,
         entryId: slot.entryId || '',
       };
+    }
+
+    function promptOwnedLocalSlotRow(slot = {}, promptText = '') {
+      const candidate = promptOwnedLocalCandidate(slot);
+      const skipReason = slotHasPromptOwnedVisualIdentity(slot)
+        ? 'phase2-data-owned-visual-identity'
+        : 'prompt-owned-local-identity';
       return {
         schema: 'simulatte.phase3ModelSlotRetrievalRow.v1',
         slotId: slot.slotId || '',
-        slotRole: role,
+        slotRole: candidate.slotRole,
         entryId: slot.entryId || '',
         required: slot.required !== false,
         queryText: slotQueryText(slot, promptText),
@@ -338,8 +345,12 @@
       ));
     }
 
-    function promptVectorConstructionSlotRow(slot = {}, rows = [], vector = null, config = {}) {
-      const candidates = rows.slice().sort(slotCandidateSort);
+    function promptVectorConstructionSlotRow(slot = {}, rows = [], vector = null, config = {}, promptText = '') {
+      const constructionRows = rows.slice().sort(slotCandidateSort);
+      const localIdentity = slotHasPromptOwnedVisualIdentity(slot)
+        ? promptOwnedLocalCandidate(slot)
+        : null;
+      const candidates = localIdentity ? [localIdentity, ...constructionRows] : constructionRows;
       return {
         schema: 'simulatte.phase3ModelSlotRetrievalRow.v1',
         slotId: slot.slotId || '',
@@ -352,8 +363,9 @@
         rerankerMode: 'not-run-exact-prompt-embedding-construction',
         rerankerModelReady: false,
         candidates,
-        acceptedCandidates: candidates.slice(0, config.perSlotAcceptedMax),
-        constructionCandidates: constructionCandidatesForSlot(slot, candidates, 3),
+        acceptedCandidates: candidates.filter((row) => row.supportOnly !== true)
+          .slice(0, config.perSlotAcceptedMax),
+        constructionCandidates: constructionCandidatesForSlot(slot, constructionRows, 3),
         supportOnlyCandidates: [],
         receipt: {
           schema: 'simulatte.phase3SlotRerankReceipt.v1',
@@ -364,6 +376,7 @@
           candidateInputCount: 0,
           candidateOutputCount: 0,
           localCandidateCount: candidates.length,
+          localIdentityCandidateCount: localIdentity ? 1 : 0,
         },
       };
     }
@@ -399,6 +412,8 @@
       slotNeedsModelConstructionEvidence,
       slotNeedsModelRetrievalEvidence,
       slotUsesPromptOwnedLocalEvidence,
+      slotHasPromptOwnedVisualIdentity,
+      promptOwnedLocalCandidate,
       promptOwnedLocalSlotRow,
       constructionQueryText,
       constructionForCandidate,

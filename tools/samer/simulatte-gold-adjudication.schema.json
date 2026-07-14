@@ -5,7 +5,7 @@
   "additionalProperties": false,
   "required": ["schema", "goldSetId", "rows"],
   "properties": {
-    "schema": { "const": "simulatte.goldVisualAdjudication.v1" },
+    "schema": { "const": "simulatte.goldVisualAdjudication.v2" },
     "goldSetId": { "type": "string" },
     "rows": {
       "type": "array",
@@ -13,9 +13,24 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["goldRowId", "screenshotSha256", "reviewer", "reviewedAt", "verdict", "rules"],
+        "required": [
+          "goldRowId",
+          "prompt",
+          "promptSha256",
+          "buildId",
+          "sceneRenderPacketSha256",
+          "screenshotSha256",
+          "reviewer",
+          "reviewedAt",
+          "verdict",
+          "rules"
+        ],
         "properties": {
           "goldRowId": { "type": "string" },
+          "prompt": { "type": "string", "minLength": 1 },
+          "promptSha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+          "buildId": { "type": "string", "minLength": 1 },
+          "sceneRenderPacketSha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
           "screenshotSha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
           "reviewer": { "type": "string", "minLength": 1 },
           "reviewedAt": { "type": "string", "format": "date-time" },

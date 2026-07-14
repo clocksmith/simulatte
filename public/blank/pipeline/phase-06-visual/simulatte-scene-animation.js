@@ -43,10 +43,13 @@
       else if (/organic-matrix|bubble-volume|fermentation|gas|dough|gluten/.test(value)) kind = 'fermentation-rise';
       else if (/thermal|fire|plume|smoke|combust/.test(value)) kind = 'plume-rise';
       else if (/orbital|orbit|gravity|planet/.test(value)) kind = 'orbital-drift';
-      const speedSource = kind === 'flight-path'
-        ? animationSpeedForKind(kind)
-        : motion && motion.speed || process && process.speed || field && field.speed;
-      const speed = Number.isFinite(Number(speedSource)) ? Number(speedSource) : animationSpeedForKind(kind);
+      const speedSource = [motion && motion.speed, process && process.speed, field && field.speed]
+        .find((value) => value != null && value !== '' && Number.isFinite(Number(value)));
+      const speed = kind === 'static-pose'
+        ? 0
+        : kind === 'flight-path' || speedSource == null
+          ? animationSpeedForKind(kind)
+          : Number(speedSource);
       return {
         kind,
         stateBinding,
@@ -85,8 +88,10 @@
     }
 
     function animationSpeedForKind(kind) {
+      if (kind === 'static-pose') return 0;
       if (kind === 'flight-path') return 0.62;
-      if (kind === 'play-loop') return 0.56;
+      if (kind === 'play-loop') return 1.1;
+      if (kind === 'hold-pose') return 0.18;
       if (kind === 'particle-track' || kind === 'packet-flow') return 0.74;
       if (kind === 'swim-cycle' || kind === 'flow-ripple') return 0.48;
       if (kind === 'fermentation-rise' || kind === 'orbital-drift') return 0.24;
@@ -95,8 +100,10 @@
     }
 
     function animationAmplitudeForKind(kind) {
+      if (kind === 'static-pose') return 0;
       if (kind === 'flight-path') return 0.07;
-      if (kind === 'play-loop') return 0.035;
+      if (kind === 'play-loop') return 0.05;
+      if (kind === 'hold-pose') return 0.018;
       if (kind === 'swim-cycle') return 0.055;
       if (kind === 'flow-ripple') return 0.04;
       if (kind === 'packet-flow' || kind === 'particle-track') return 0.08;

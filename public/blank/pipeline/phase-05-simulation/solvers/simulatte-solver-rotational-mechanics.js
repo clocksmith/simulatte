@@ -10,8 +10,8 @@
   return {
     id: 'rotational-mechanics',
     operatorTypes: ['rotational_torque'],
-    stateVariables: ['angularVelocity', 'angle', 'torque'],
-    supportedInteractions: ['fluidForce', 'torqueTransfer'],
+    stateVariables: ['angularVelocity', 'angle', 'angularMomentum', 'torque'],
+    supportedInteractions: ['fluidForce', 'torqueTransfer', 'trajectoryCurvature'],
     stableDt: 0.05,
     step,
   };
@@ -22,6 +22,10 @@
     const angleId = firstOutput(row, 'angle');
     const torqueId = firstOutput(row, 'torque');
     if (!angularId) return;
+    if (!flowId) {
+      stepRigidRotation(channels, row, dt, angularId, angleId);
+      return;
+    }
     const flow = vector(channels[flowId], { x: 0.2, y: 0 });
     const speed = Math.hypot(flow.x, flow.y);
     const viscosityId = firstInput(row, 'viscosity');
@@ -33,6 +37,25 @@
     channels[angularId] = angular;
     if (angleId) channels[angleId] = wrapAngle(scalar(channels[angleId], 0) + angular * dt);
     if (torqueId) channels[torqueId] = torque;
+  }
+
+  function stepRigidRotation(channels, row, dt, angularId, angleId) {
+    const velocityId = firstInput(row, 'velocity');
+    const frictionId = firstInput(row, 'friction');
+    const momentumId = firstOutput(row, 'angularMomentum');
+    const velocity = vector(channels[velocityId], { x: 0, y: 0 });
+    const speed = Math.hypot(velocity.x, velocity.y);
+    const friction = clamp(scalar(channels[frictionId], 0.16), 0, 1);
+    const coupling = finite(row.params && row.params.coupling, 0.72);
+    const drive = finite(row.params && row.params.drive, 0.58);
+    const inertia = Math.max(0.05, finite(row.params && row.params.inertia, 0.62));
+    const previous = scalar(channels[angularId], 0);
+    const target = (speed + drive) * coupling;
+    const torque = target - previous * (0.18 + friction * 0.82);
+    const angular = clamp(previous + torque * dt * 4.4, -24, 24);
+    channels[angularId] = angular;
+    if (angleId) channels[angleId] = wrapAngle(scalar(channels[angleId], 0) + angular * dt);
+    if (momentumId) channels[momentumId] = angular * inertia;
   }
 
 });

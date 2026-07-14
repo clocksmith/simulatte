@@ -3,7 +3,9 @@
   if (!scope || scope.missingDependency) return;
   with (scope) {
     function addBehaviorBundleFromEdge(couplings, operators, fields, from, to, edge, params, receipt, behaviorRelations) {
-        const process = behaviorProcessForText(behaviorText(edge, from, to));
+        const process = behaviorProcessForText(edge.processId) ||
+          behaviorProcessForText(edge.operatorType) ||
+          behaviorProcessForText(behaviorText(edge, from, to));
         if (!process || process === 'coexists') return false;
         addBehaviorBundle(couplings, operators, fields, from, to, process, edge, params, receipt, behaviorRelations);
         return true;
@@ -11,16 +13,92 @@
 
     function addBehaviorBundleFromPartialEdge(couplings, operators, fields, from, to, edge, params, receipt, behaviorRelations) {
         const process = behaviorProcessForText(behaviorText(edge, from, to));
+        const target = from || to;
+        if (!target) return false;
         if (process === 'combustion') {
           const fuel = combustionFuelDomain(from, to);
           if (!fuel) return false;
           addBehaviorBundle(couplings, operators, fields, fuel, fuel, 'combustion', edge, params, receipt, behaviorRelations);
           return true;
         }
-        const target = from || to;
+        if (process === 'flow' && target.kind === 'fluid') {
+          addBehaviorBundle(couplings, operators, fields, target, target, 'flow', edge, params, receipt, behaviorRelations);
+          return true;
+        }
+        if (process === 'heat_transfer' && !from && to) {
+          return addPartialHeatSource(operators, fields, to, edge, params, receipt, behaviorRelations);
+        }
         if (edge.operatorType !== 'wave_field' || !edge.provenance?.causalRuleId || !target) return false;
         addBehaviorBundle(couplings, operators, fields, target, target, 'oscillation', edge, params, receipt, behaviorRelations);
         return true;
+      }
+
+    function addPartialHeatSource(operators, fields, target, source, params, receipt, behaviorRelations) {
+        addField(fields, target, 'temperature', 'scalar', 'K', materialTemperature(target.materialId, params));
+        const output = `temperature:${target.entityId}`;
+        const operator = addOperator(operators, 'heat_source', target, {
+          reads: [],
+          writes: [output],
+          params: { strength: clamp(Number(params.thermalFlux || params.heatTransfer || 0.5), 0.02, 2) },
+          receipt: behaviorChannelReceipt(source, 'heat_source', [], [output]),
+        });
+        const behaviorId = `behavior:heat_source:${target.entityId}`;
+        if (!behaviorRelations.some((row) => row.id === behaviorId)) behaviorRelations.push({
+          schema: 'simulatte.behaviorRelation.v1',
+          id: behaviorId,
+          process: 'heat_transfer',
+          agentEntityId: target.entityId,
+          mediumEntityId: target.entityId,
+          relation: source.type || 'heatTransfer',
+          spatialRelation: source.spatialRelation || '',
+          operators: ['heat_source'],
+          supersedesProcessIds: [],
+          evidence: unique([...(source.evidence || []), source.id || 'causal-heat-source']),
+          status: 'lowered',
+        });
+        receipt.exact.push({
+          promptSpan: source.id || target.entityId,
+          canonicalId: 'behavior.heat_source',
+          confidence: source.confidence || 0.68,
+          evidence: source.evidence || [],
+          operatorId: operator.id,
+        });
+        return true;
+      }
+
+    function addBehaviorBundlesFromNodeActivity(couplings, operators, fields, nodes, domainByNode, params, receipt, behaviorRelations) {
+        for (const node of nodes || []) {
+          const domain = domainByNode.get(node.id);
+          if (!domain || !nodeOwnsExecutableActivity(node)) continue;
+          for (const hint of unique([...(node.operatorTypes || []), ...(node.operatorHints || [])])) {
+            const process = behaviorProcessForText(hint);
+            if (!nodeActivityCanSelfApply(process, domain)) continue;
+            if (behaviorRelations.some((row) => (
+              row.process === process && row.agentEntityId === domain.entityId && row.mediumEntityId === domain.entityId
+            ))) continue;
+            const source = {
+              ...node,
+              id: `node-activity:${node.id}:${process}`,
+              kind: 'node-owned-activity',
+              evidence: unique([...(node.evidence || []), `operator-hint:${hint}`]),
+            };
+            addBehaviorBundle(couplings, operators, fields, domain, domain, process, source, params, receipt, behaviorRelations);
+          }
+        }
+      }
+
+    function nodeActivityCanSelfApply(process = '', domain = {}) {
+        if (process === 'flow') return domain.kind === 'fluid';
+        return ['folding', 'growth', 'network_flow', 'orbital', 'oscillation', 'rotate'].includes(process);
+      }
+
+    function nodeOwnsExecutableActivity(node = {}) {
+        if (node.supportOnly === true) return false;
+        const hints = unique([...(node.operatorTypes || []), ...(node.operatorHints || [])]);
+        if (!hints.length) return false;
+        const role = String(node.semanticRole || '').toLowerCase();
+        const type = String(node.semanticType || node.type || '').toLowerCase();
+        return /-process$/.test(role) || /(process|control|event|operator)$/.test(type);
       }
 
     function addBehaviorBundlesFromLedger(couplings, operators, fields, domains, ledger, prompt, params, receipt, behaviorRelations) {
@@ -48,7 +126,10 @@
           const pair = behaviorDomainsForLedgerRow(source, domains, process);
           if (!pair.from || !pair.to) continue;
           if (causalBehaviors.some((behavior) => (
-            behavior.process === process && sameDomainPair(behavior, pair)
+            sameDomainPair(behavior, pair) && (
+              behavior.process === process ||
+              (behavior.supersedesProcessIds || []).includes(process)
+            )
           ))) continue;
           addBehaviorBundle(couplings, operators, fields, pair.from, pair.to, process, source, params, receipt, behaviorRelations);
         }
@@ -84,6 +165,9 @@
           ensureBehaviorFields(fields, type, sourceDomain, targetDomain, params);
           const op = addBehaviorOperator(operators, type, sourceDomain, targetDomain, params, source) ||
             addCouplingOperator(operators, type, sourceDomain, targetDomain, params, source);
+          if (!op.receipt) {
+            op.receipt = behaviorChannelReceipt(source, type, op.reads || [], op.writes || []);
+          }
           opRows.push(op);
           couplings.push({
             from: sourceDomain.id,
@@ -93,7 +177,10 @@
             processId: process,
           });
         };
-        if (process === 'rotate') add('rotational_torque', fluidDomain(from, to) || from, rotationalDomain(from, to) || to);
+        const operatorBundle = source.provenance?.groundingPolicy?.operatorBundle ||
+          source.groundingPolicy?.operatorBundle || [];
+        if (operatorBundle.length) operatorBundle.forEach((type) => add(type));
+        else if (process === 'rotate') add('rotational_torque', fluidDomain(from, to) || from, rotationalDomain(from, to) || to);
         else if (process === 'impact') {
           add('rigid_collision', movingDomain(from, to), impactDomain(from, to));
           add('fracture_threshold', impactDomain(from, to), impactDomain(from, to));
@@ -146,6 +233,10 @@
           add('phase_transition', to, to);
           add('heat_transfer', from, to);
         } else if (process === 'network_flow') add('network_flow', networkDomain(from, to) || to, networkDomain(from, to) || to);
+        else if (process === 'folding') {
+          const foldingDomain = biologicalDomain(from, to) || to;
+          add('wave_field', foldingDomain, foldingDomain);
+        }
         else if (process === 'oscillation' || process === 'orbital') add('wave_field', waveDomain(from, to) || to, waveDomain(from, to) || to);
         else if (process === 'measurement') add('derive_readout', from, to);
         const operatorTypes = unique(opRows.map((op) => op.type));
@@ -159,6 +250,7 @@
           relation: source.type || source.kind || 'behavior',
           spatialRelation: source.prepositions && source.prepositions[0] || '',
           operators: operatorTypes,
+          supersedesProcessIds: source.provenance?.groundingPolicy?.supersedesProcessIds || [],
           evidence: unique([
             ...(source.evidence || []),
             source.id || 'phase3-composition-ledger',
@@ -177,6 +269,25 @@
 
     function addBehaviorOperator(operators, type, from, to, params, source = {}) {
         const id = to.entityId;
+        if (type === 'rotational_torque' && from.kind !== 'fluid') {
+          const reads = [
+            `velocity:${from.entityId}`,
+            `angle:${id}`,
+            `angularVelocity:${id}`,
+            `friction:${id}`,
+          ];
+          const writes = [`angle:${id}`, `angularVelocity:${id}`, `angularMomentum:${id}`];
+          return addOperator(operators, type, to, {
+            reads,
+            writes,
+            params: {
+              coupling: clamp(Number(params.rotationCoupling || params.fieldStrength || 0.72), 0.05, 2),
+              drive: clamp(Number(params.motionDrive || params.flowRate || 0.58), 0, 2),
+              inertia: clamp(Number(params.rotationalInertia || 0.62), 0.05, 4),
+            },
+            receipt: behaviorChannelReceipt(source, type, reads, writes),
+          });
+        }
         if (type === 'combustion') {
           const fuelChannel = `fuel:${id}`;
           const temperatureChannel = `temperature:${id}`;
@@ -351,6 +462,9 @@
         ensureMotionFields(fields, from);
         ensureMotionFields(fields, to);
         if (type === 'rotational_torque') {
+          if (from.kind === 'fluid') ensureFlowFields(fields, from, params);
+          addField(fields, to, 'angle', 'scalar', 'rad', 0);
+          addField(fields, to, 'angularVelocity', 'scalar', 'rad/s', 0);
           addField(fields, to, 'angularMomentum', 'scalar', 'kg*m2/s', 0);
           addField(fields, to, 'friction', 'scalar', 'ratio', 0.16);
         }
@@ -436,6 +550,7 @@
       addBehaviorBundleFromEdge,
       addBehaviorBundleFromPartialEdge,
       addBehaviorBundlesFromLedger,
+      addBehaviorBundlesFromNodeActivity,
       addBehaviorBundle,
       behaviorProcessForText,
     });

@@ -777,6 +777,13 @@ test('Phase 2 spatial clauses use grounded nouns instead of nearby terms or nomi
   );
 });
 
+test('Phase 4 proximity policies accept explicit co-location without accepting unrelated relations', () => {
+  assert.equal(grounderGraph.spatialRelationSatisfies('with', 'near'), true);
+  assert.equal(grounderGraph.spatialRelationSatisfies('inside', 'near'), true);
+  assert.equal(grounderGraph.spatialRelationSatisfies('above', 'near'), false);
+  assert.equal(grounderGraph.spatialRelationSatisfies('with', 'below'), false);
+});
+
 test('Phase 6 renders laboratories as workspaces rather than exterior buildings', () => {
   const packet = lab.createSpecFromPrompt('generic lab', { allowPrototypeFallback: true })
     .renderProgram.visualIR.sceneRenderPacket;
@@ -1112,6 +1119,10 @@ test('metabolite exchange and soot layering lower into executable behavior evide
   }
   assert.ok(layeringTypes.has('particle_deposition'));
   assert.ok(layeringSolverTypes.has('particle_deposition'));
+  assert.ok(layeringTypes.has('advection'));
+  assert.ok(layeringSolverTypes.has('advection'));
+  assert.ok(layeringTypes.has('heat_source'));
+  assert.ok(layeringSolverTypes.has('heat_source'));
   assert.equal(layeringLost.includes('action:layers'), false);
   assert.equal(layeringLost.includes('relation:entity-concrete-stairwell:layers:medium-soot-deposit'), false);
   assert.equal(layering.universeGraph.nodes.some((row) => /renderer/.test(row.id)), false);
@@ -1609,7 +1620,10 @@ test('common-world and celestial nouns survive grounding as literal object geome
       )), `${prompt} should realize ${identity} in Phase 7`);
     }
     assert.ok(renderData.objectPartCount > identities.length);
-    assert.equal(renderData.objectPartData.length, 256 * 20);
+    assert.equal(
+      renderData.objectPartData.length,
+      webgpuRendererScope.GPU_OBJECT_PART_CAPACITY * webgpuRendererScope.GPU_OBJECT_PART_FLOATS
+    );
     if (identities.includes('person')) {
       const person = packet.entities.find((row) => row.identity.type === 'person');
       const personObject = spec.renderProgram.objects.find((row) => row.id === 'prompt-body-person');

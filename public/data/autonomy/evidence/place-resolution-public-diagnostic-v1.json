@@ -1,0 +1,430 @@
+{
+  "accepted": true,
+  "claimBoundary": "This receipt scores language-to-place resolution on exposed diagnostic probes. It cannot promote a resolver, establish model quality, or support a generalization claim. Promotion needs an unmounted holdout population.",
+  "contentVersion": "place-resolution-public-diagnostic-2026-07-14",
+  "id": "place-resolution-public-diagnostic-v1",
+  "identities": {
+    "compiler": {
+      "path": "public/mission/mission-compiler.js",
+      "sha256": "a9bd9172ef45323c57c65d810430f7cbfe1e45b924ef5882c3120f46e8804afb"
+    },
+    "corpus": {
+      "path": "tools/samer/autonomy/place-resolution-probes-v1.json",
+      "sha256": "22249e998af19033117c97872d83f7a511a1d6e807bc3522f6e35ad487d3d00f"
+    },
+    "embodiment": {
+      "path": "public/data/autonomy/embodiments/delivery-bike-v1.json",
+      "sha256": "f144b2c67eb5a30d30162fc3efcb0452ede225a72534d2389a98c139899d0f01"
+    },
+    "world": {
+      "path": "public/data/autonomy/worlds/nyc-core-autonomy-v1.json",
+      "sha256": "78cc82a44fac0f1ce3ac1955d9b2a498fd880738a840d07642bb9f54bd074889"
+    }
+  },
+  "intervention": {
+    "challenger": null,
+    "control": "mission-compiler-constrained-v1",
+    "frozenMetric": "correct_probe_count",
+    "guardrails": [
+      "must_refuse_violations_zero",
+      "exact_and_typo_within_floor"
+    ],
+    "kind": "language_to_place_resolution"
+  },
+  "lanes": {
+    "control": {
+      "guardrails": {
+        "floorMisses": 0,
+        "mustRefuseViolations": 0
+      },
+      "metrics": {
+        "correct": 21,
+        "perKind": {
+          "ambiguous": {
+            "correct": 3,
+            "probes": 3,
+            "violations": 0,
+            "wrongPlace": 0
+          },
+          "exact": {
+            "correct": 10,
+            "probes": 10,
+            "violations": 0,
+            "wrongPlace": 0
+          },
+          "out_of_world": {
+            "correct": 4,
+            "probes": 4,
+            "violations": 0,
+            "wrongPlace": 0
+          },
+          "paraphrase": {
+            "correct": 0,
+            "probes": 10,
+            "violations": 0,
+            "wrongPlace": 0
+          },
+          "typo_beyond": {
+            "correct": 0,
+            "probes": 6,
+            "violations": 0,
+            "wrongPlace": 0
+          },
+          "typo_within": {
+            "correct": 4,
+            "probes": 4,
+            "violations": 0,
+            "wrongPlace": 0
+          }
+        },
+        "probeCount": 37,
+        "winnableResolved": 0,
+        "winnableTotal": 16,
+        "wrongPlace": 0
+      },
+      "resolverId": "mission-compiler-constrained-v1",
+      "rows": [
+        {
+          "correct": true,
+          "kind": "exact",
+          "nodeId": "bike-node-e25116ea05a4",
+          "outcome": "resolve",
+          "probeId": "exact-001",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": true,
+          "kind": "exact",
+          "nodeId": "bike-node-0d9391b2bfa3",
+          "outcome": "resolve",
+          "probeId": "exact-002",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": true,
+          "kind": "exact",
+          "nodeId": "bike-node-261ee8be5a25",
+          "outcome": "resolve",
+          "probeId": "exact-003",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": true,
+          "kind": "exact",
+          "nodeId": "bike-node-ffea919f743c",
+          "outcome": "resolve",
+          "probeId": "exact-004",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": true,
+          "kind": "exact",
+          "nodeId": "bike-node-a3f0f4b7e7e3",
+          "outcome": "resolve",
+          "probeId": "exact-005",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": true,
+          "kind": "exact",
+          "nodeId": "bike-node-429dcefa615d",
+          "outcome": "resolve",
+          "probeId": "exact-006",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": true,
+          "kind": "exact",
+          "nodeId": "bike-node-86300f2cfd65",
+          "outcome": "resolve",
+          "probeId": "exact-007",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": true,
+          "kind": "exact",
+          "nodeId": "bike-node-0b79eee2f2ef",
+          "outcome": "resolve",
+          "probeId": "exact-008",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": true,
+          "kind": "exact",
+          "nodeId": "bike-node-8a641140b02c",
+          "outcome": "resolve",
+          "probeId": "exact-009",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": true,
+          "kind": "exact",
+          "nodeId": "bike-node-7a95737b9c7d",
+          "outcome": "resolve",
+          "probeId": "exact-010",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": true,
+          "kind": "typo_within",
+          "nodeId": "bike-node-a3f0f4b7e7e3",
+          "outcome": "resolve",
+          "probeId": "typo-within-001",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": true,
+          "kind": "typo_within",
+          "nodeId": "bike-node-7a95737b9c7d",
+          "outcome": "resolve",
+          "probeId": "typo-within-002",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": true,
+          "kind": "typo_within",
+          "nodeId": "bike-node-8a641140b02c",
+          "outcome": "resolve",
+          "probeId": "typo-within-003",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": true,
+          "kind": "typo_within",
+          "nodeId": "bike-node-261ee8be5a25",
+          "outcome": "resolve",
+          "probeId": "typo-within-004",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": false,
+          "kind": "typo_beyond",
+          "nodeId": null,
+          "outcome": "refuse",
+          "probeId": "typo-beyond-001",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": false,
+          "kind": "typo_beyond",
+          "nodeId": null,
+          "outcome": "refuse",
+          "probeId": "typo-beyond-002",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": false,
+          "kind": "typo_beyond",
+          "nodeId": null,
+          "outcome": "refuse",
+          "probeId": "typo-beyond-003",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": false,
+          "kind": "typo_beyond",
+          "nodeId": null,
+          "outcome": "refuse",
+          "probeId": "typo-beyond-004",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": false,
+          "kind": "typo_beyond",
+          "nodeId": null,
+          "outcome": "refuse",
+          "probeId": "typo-beyond-005",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": false,
+          "kind": "typo_beyond",
+          "nodeId": null,
+          "outcome": "refuse",
+          "probeId": "typo-beyond-006",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": false,
+          "kind": "paraphrase",
+          "nodeId": null,
+          "outcome": "refuse",
+          "probeId": "paraphrase-001",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": false,
+          "kind": "paraphrase",
+          "nodeId": null,
+          "outcome": "refuse",
+          "probeId": "paraphrase-002",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": false,
+          "kind": "paraphrase",
+          "nodeId": null,
+          "outcome": "refuse",
+          "probeId": "paraphrase-003",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": false,
+          "kind": "paraphrase",
+          "nodeId": null,
+          "outcome": "refuse",
+          "probeId": "paraphrase-004",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": false,
+          "kind": "paraphrase",
+          "nodeId": null,
+          "outcome": "refuse",
+          "probeId": "paraphrase-005",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": false,
+          "kind": "paraphrase",
+          "nodeId": null,
+          "outcome": "refuse",
+          "probeId": "paraphrase-006",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": false,
+          "kind": "paraphrase",
+          "nodeId": null,
+          "outcome": "refuse",
+          "probeId": "paraphrase-007",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": false,
+          "kind": "paraphrase",
+          "nodeId": null,
+          "outcome": "refuse",
+          "probeId": "paraphrase-008",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": false,
+          "kind": "paraphrase",
+          "nodeId": null,
+          "outcome": "refuse",
+          "probeId": "paraphrase-009",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": false,
+          "kind": "paraphrase",
+          "nodeId": null,
+          "outcome": "refuse",
+          "probeId": "paraphrase-010",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": true,
+          "kind": "ambiguous",
+          "nodeId": null,
+          "outcome": "refuse",
+          "probeId": "ambiguous-001",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": true,
+          "kind": "ambiguous",
+          "nodeId": null,
+          "outcome": "refuse",
+          "probeId": "ambiguous-002",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": true,
+          "kind": "ambiguous",
+          "nodeId": null,
+          "outcome": "refuse",
+          "probeId": "ambiguous-003",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": true,
+          "kind": "out_of_world",
+          "nodeId": null,
+          "outcome": "refuse",
+          "probeId": "out-of-world-001",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": true,
+          "kind": "out_of_world",
+          "nodeId": null,
+          "outcome": "refuse",
+          "probeId": "out-of-world-002",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": true,
+          "kind": "out_of_world",
+          "nodeId": null,
+          "outcome": "refuse",
+          "probeId": "out-of-world-003",
+          "violation": false,
+          "wrongPlace": false
+        },
+        {
+          "correct": true,
+          "kind": "out_of_world",
+          "nodeId": null,
+          "outcome": "refuse",
+          "probeId": "out-of-world-004",
+          "violation": false,
+          "wrongPlace": false
+        }
+      ]
+    }
+  },
+  "population": {
+    "id": "place-resolution-probes-v1",
+    "kind": "public_diagnostic",
+    "probeCount": 37,
+    "promotionEligible": false
+  },
+  "schema": "simulatte.placeResolutionEvaluation.v1"
+}

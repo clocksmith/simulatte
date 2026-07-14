@@ -22,7 +22,9 @@
     relation('causal.gravity-drives-sediment', ['gravity', 'slope', 'hill'], ['sand', 'sediment', 'soil', 'rock'], 'fluidForce', 'pressure_flow_lite', 'gravity pulls grains through terrain channels'),
     relation('causal.river-erodes-sediment', ['rain', 'river', 'water', 'runoff', 'storm surge', 'surge'], ['soil', 'sand', 'terrain', 'delta', 'basalt', 'sediment', 'shoreline', 'coast'], 'erosion', 'pressure_flow_lite', 'water flow removes and transports surface material'),
     relation('causal.magnet-deflects-ferrofluid', ['magnet', 'magnetic', 'electric', 'field', 'coil'], ['ferrofluid', 'ion', 'electron', 'plasma', 'charge'], 'fieldForce', 'wave_field', 'field gradients deflect charged or magnetized matter'),
+    relation('causal.magnetic-slider-drives-machine-field', ['moving magnetic slider', 'magnetic slider'], ['machine', 'wheel', 'rotor'], 'fieldForce', 'wave_field', 'the moving magnetic slider changes the machine field that couples into the rotor', evidenceQualifiedPolicy(['moving', 'powered'], { supersedesProcessIds: ['spatial_constraint'] })),
     relation('causal.lens-refracts-beam', ['light', 'laser', 'beam', 'lamp', 'sunlight'], ['lens', 'prism', 'water'], 'refraction', 'wave_field', 'optical field bends through refractive media', typedCooccurrencePolicy()),
+    relation('causal.photon-cones-propagate-to-phototubes', ['photon cones', 'photon cone'], ['phototube array', 'phototube'], 'refraction', 'wave_field', 'photon paths propagate through the detector volume to the phototube array', typedCooccurrencePolicy()),
     relation('causal.thin-film-forms-interference', ['thin film', 'soap film', 'film thickness'], ['iridescent interference', 'interference', 'iridescence'], 'refraction', 'wave_field', 'path length through a thin film shifts reflected phase and produces iridescent interference', typedCooccurrencePolicy()),
     relation('causal.particle-track-produces-detector-readout', ['muon tracks', 'particle tracks'], ['detector slice', 'particle detector', 'detector'], 'measurement', 'derive_readout', 'charged particle tracks crossing detector layers deposit energy and produce a detector signal', directSpatialPolicy('through')),
     relation('causal.energy-deposition-produces-calorimeter-pulse', ['detector slice', 'particle detector', 'energy deposition'], ['calorimeter pulses', 'calorimeter pulse'], 'measurement', 'derive_readout', 'energy deposited in detector material becomes a bounded calorimeter pulse', directSpatialPolicy('with')),
@@ -33,7 +35,7 @@
     relation('causal.speaker-drives-air-wave', ['speaker', 'piano', 'oscillator', 'vibration'], ['air', 'water', 'bridge', 'membrane'], 'waveCoupling', 'wave_field', 'oscillation launches a pressure or displacement wave'),
     relation('causal.nutrients-grow-algae', ['nutrient', 'light', 'sun', 'water'], ['plant', 'algae', 'biofilm', 'mycelium', 'cell'], 'growthCoupling', 'growth_decay', 'resource availability changes biological density'),
     relation('causal.chemical-diffuses-through-gel', ['chemical', 'salt', 'oxygen', 'metabolite'], ['water', 'gel', 'tissue', 'soil'], 'diffusion', 'diffusion', 'concentration gradient spreads a dissolved species'),
-    relation('causal.arrivals-create-queue', ['demand', 'arrival', 'arrivals', 'packet', 'traffic'], ['queue', 'server', 'intersection', 'platform'], 'networkFlow', 'network_flow', 'arrivals increase backlog and delay'),
+    relation('causal.arrivals-create-queue', ['demand', 'arrival', 'arrivals', 'packet', 'traffic'], ['queue', 'server', 'intersection', 'platform'], 'networkFlow', 'network_flow', 'arrivals increase backlog and delay', evidenceQualifiedPolicy(['demand', 'arrival', 'arrivals', 'packet'])),
     relation('causal.gravity-curves-orbit', ['planet', 'planetary', 'moon', 'star', 'gravity'], ['satellite', 'asteroid', 'ring', 'rings', 'comet'], 'orbitalGravity', 'oscillator', 'central gravity bends trajectory into orbit or resonance'),
     relation('causal.cooling-freezes-water', ['cooling', 'cold', 'freezer'], ['water', 'brine', 'droplet'], 'phaseChange', 'phase_transition', 'temperature drop moves liquid toward solid fraction'),
     relation('causal.heating-melts-ice', ['heat', 'laser', 'fire', 'thermal', 'warm air'], ['ice', 'snow', 'frost', 'metal', 'wax', 'plastic', 'rock'], 'phaseChange', 'phase_transition', 'temperature rise moves solid toward liquid fraction'),
@@ -45,7 +47,7 @@
     relation('causal.hydrophobic-collapse-folds-protein', ['hydrophobic', 'solvent', 'water'], ['protein', 'chain', 'fold'], 'growthCoupling', 'growth_decay', 'coarse molecular chain relaxes toward a lower exposure folded state'),
     relation('causal.synapse-triggers-neuron', ['synapse', 'neurotransmitter', 'signal'], ['neuron', 'axon', 'membrane'], 'networkFlow', 'network_flow', 'synaptic input changes membrane state and launches a signal pulse'),
     relation('causal.pressure-drives-blood-flow', ['pressure', 'heart', 'pulse'], ['blood', 'artery', 'vessel'], 'fluidForce', 'pressure_flow_lite', 'pressure gradient drives pulsing fluid through a compliant vessel'),
-    relation('causal.warming-calves-glacier', ['warming', 'heat', 'ocean'], ['glacier', 'ice shelf', 'ice cliff'], 'phaseChange', 'phase_transition', 'heat weakens ice boundary and promotes calving blocks'),
+    relation('causal.warming-calves-glacier', ['warming', 'heat', 'ocean'], ['glacier', 'ice shelf', 'ice cliff'], 'phaseChange', 'phase_transition', 'heat weakens ice boundary and promotes calving blocks', evidenceQualifiedPolicy(['warming', 'heat', 'warms'])),
     relation('causal.wind-shear-forms-vortex', ['wind shear', 'shear', 'storm'], ['vortex', 'tornado', 'funnel'], 'fluidForce', 'advection', 'opposed air streams roll into a concentrated rotating column'),
     relation('causal.wind-shear-advects-thunderstorm', ['wind shear'], ['thunderstorm'], 'fluidForce', 'advection', 'wind shear transports and tilts the thunderstorm flow field', evidenceQualifiedPolicy(['grows', 'updraft', 'tilts'])),
     relation('causal.wind-shear-advects-supercell', ['wind shear'], ['supercell'], 'fluidForce', 'advection', 'wind shear transports and tilts the supercell flow field', evidenceQualifiedPolicy(['grows', 'updraft', 'tilts'])),
@@ -64,7 +66,8 @@
     relation('causal.heat-bleaches-coral', ['heat', 'warming', 'thermal stress'], ['coral', 'reef', 'algae'], 'growthCoupling', 'growth_decay', 'thermal stress reduces symbiotic algae density in coral tissue'),
     relation('causal.root-network-stabilizes-soil', ['mangrove', 'root', 'roots', 'root network'], ['soil', 'shoreline', 'sediment', 'slope', 'bank'], 'growthCoupling', 'growth_decay', 'biological roots increase soil cohesion and resist erosion'),
     relation('causal.magnetic-field-confines-plasma', ['magnetic', 'field', 'coil'], ['plasma', 'tokamak', 'ionized gas'], 'fieldForce', 'wave_field', 'magnetic flux constrains charged plasma motion'),
-    relation('causal.robot-applies-contact-force', ['robot', 'actuator', 'servo'], ['tool', 'surface', 'object'], 'collision', 'rigid_collision', 'actuated rigid link transfers contact force into a target surface'),
+    relation('causal.robot-applies-contact-force', ['robot'], ['tool', 'surface', 'object', 'parcel', 'parcels', 'sample holder'], 'collision', 'rigid_collision', 'actuated rigid link transfers contact force into a target surface', evidenceQualifiedPolicy(['contact force', 'contacts', 'twists'], { operatorBundle: ['rigid_collision'] })),
+    relation('causal.rider-carves-bowl', ['skateboard rider'], ['bowl'], 'torqueTransfer', 'rotational_torque', 'the rider follows the curved bowl under centripetal acceleration and rolling friction', evidenceQualifiedPolicy(['carves', 'centripetal', 'friction loss'], { supersedesProcessIds: ['flow'] })),
     relation('causal.wind-loads-fabric', ['wind', 'airflow', 'gust'], ['fabric', 'sail', 'canopy', 'membrane'], 'fluidForce', 'advection', 'air pressure deforms flexible fabric under anchored constraints'),
     relation('causal.pressure-splits-droplet', ['pressure', 'pump', 'channel'], ['droplet', 'microfluidic', 'junction'], 'fluidForce', 'pressure_flow_lite', 'pressure-driven channel flow splits a droplet at a junction'),
     relation('causal.wildfire-wind-spreads-embers', ['wildfire', 'wind', 'gust', 'dry fuel'], ['ember', 'fireline', 'spot fire', 'forest'], 'fluidForce', 'advection', 'wind lofts burning embers ahead of the fireline and ignites new fuel patches'),
@@ -229,8 +232,8 @@
     return { mode: 'connected-path', requiredSpatialRelations: relations, maxPathDepth };
   }
 
-  function evidenceQualifiedPolicy(terms) {
-    return { mode: 'evidence-qualified', requiredEvidenceTerms: terms, maxPathDepth: 2 };
+  function evidenceQualifiedPolicy(terms, options = {}) {
+    return { mode: 'evidence-qualified', requiredEvidenceTerms: terms, maxPathDepth: 2, ...options };
   }
 
   function defaultGroundingPolicy(operatorType) {
@@ -394,7 +397,30 @@
       const target = nodes.find((node) => node.id === targetSpan.id && node.id !== sourceSpan.id);
       if (source && target) return { source, target };
     }
+    for (const frame of languageEvidence.predicateFrames || []) {
+      const source = nodeForPredicateSegment(nodes, rule.sources, frame.subject, 'tail');
+      const target = nodeForPredicateSegment(nodes, rule.targets, frame.object, 'head', source?.id);
+      if (source && target) return { source, target };
+    }
     return null;
+  }
+
+  function nodeForPredicateSegment(nodes, terms, segment, edge, excludeId = '') {
+    const value = ` ${normalizePhraseText(segment)} `;
+    let best = null;
+    let bestPosition = edge === 'tail' ? -1 : Number.POSITIVE_INFINITY;
+    for (const node of nodes || []) {
+      if (node.id === excludeId || !termsHit(node.label, terms)) continue;
+      const needle = ` ${normalizePhraseText(node.label)} `;
+      const position = value.indexOf(needle);
+      if (position < 0) continue;
+      const boundary = edge === 'tail' ? position + needle.length : position;
+      if ((edge === 'tail' && boundary > bestPosition) || (edge !== 'tail' && boundary < bestPosition)) {
+        best = node;
+        bestPosition = boundary;
+      }
+    }
+    return best;
   }
 
   function termsHit(text, terms) {
