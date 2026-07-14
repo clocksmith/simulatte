@@ -267,6 +267,8 @@ async function runBrowserSmoke(options) {
       && result.shuffle.changed
       && result.shuffle.startLabel === 'Start'
       && result.copy.removedLabelsAbsent
+      && result.copy.blankLink.href === '/blank/'
+      && result.copy.blankLink.label === 'Blank'
       && result.camera.startedInFollow
       && result.camera.minimap.visible
       && result.camera.minimap.frameCount > 0
@@ -371,8 +373,11 @@ function browserJourneyExpression() {
     const waitFor = async (predicate, label, limit = 60000) => {
       const started = performance.now();
       while (!predicate()) {
+        const status = document.getElementById('runtime-status');
+        if (status?.dataset.kind === 'error') {
+          throw new Error('autonomy browser runtime failed at ' + label + ': ' + status.textContent);
+        }
         if (performance.now() - started > limit) {
-          const status = document.getElementById('runtime-status');
           const state = document.getElementById('metric-state');
           throw new Error('autonomy browser timeout at ' + label +
             '; runtime=' + (status && status.dataset.kind) + ':' + (status && status.textContent) +
@@ -404,6 +409,10 @@ function browserJourneyExpression() {
         && !visibleCopy.includes('Every autonomous choice, exposed and settled.')
         && !visibleCopy.includes('observe, retrieve, choose, settle')
         && !visibleCopy.includes('3 regions | 2026-07-13'),
+      blankLink: {
+        href: document.querySelector('.blank-link')?.getAttribute('href') || null,
+        label: document.querySelector('.blank-link')?.textContent.trim() || null,
+      },
     };
     const sleep = (duration) => new Promise((resolve) => setTimeout(resolve, duration));
     const vector = (value) => String(value || '').split(',').map(Number);

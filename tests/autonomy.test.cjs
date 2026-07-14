@@ -968,6 +968,7 @@ test('autonomy browser surface loads every declared module and stays independent
   assert.match(html, /id="follow-minimap"/);
   assert.match(html, /id="shuffle-button"[^>]*>Shuffle</);
   assert.match(html, /id="start-button"[^>]*>[\s\S]*?Start<\/button>/);
+  assert.match(html, /class="blank-link" href="\/blank\/"[^>]*>Blank<\/a>/);
   assert.match(compatibilityHtml, /location\.replace/);
   assert.match(compatibilityHtml, /rel="canonical" href="\/"/);
   assert.match(compilerHtml, /class="prompt-dock-autonomy" href="\/"/);
@@ -980,6 +981,24 @@ test('autonomy browser surface loads every declared module and stays independent
   for (const file of autonomySourceDirs.flatMap(jsFiles)) {
     assert.ok(fs.readFileSync(file, 'utf8').split(/\r?\n/).length <= 999, `${path.relative(root, file)} should remain below 1,000 lines`);
   }
+});
+
+test('renderer resolves the camera runtime at use time and rejects incomplete APIs explicitly', () => {
+  const complete = Object.fromEntries([
+    'createCameraState',
+    'updateRouteTarget',
+    'advanceCamera',
+    'setCameraMode',
+    'focusCameraTarget',
+    'panCamera',
+    'orbitCamera',
+    'zoomCamera',
+  ].map((name) => [name, () => name]));
+  assert.equal(rendererApi.resolveCameraController(complete), complete);
+  assert.throws(
+    () => rendererApi.resolveCameraController({ createCameraState() {} }),
+    (error) => error.code === 'camera_runtime_unavailable' && /updateRouteTarget/.test(error.message)
+  );
 });
 
 test('autonomy runtime logs bounded structured events and deployment revalidates governed data', () => {

@@ -79,6 +79,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
 `;
 
   async function createCanvasRenderer(canvas, worldModel, options = {}) {
+    const cameraApi = resolveCameraController(cameraController);
     if (!globalThis.navigator?.gpu) throw rendererError('webgpu_unavailable', 'This simulation requires a browser with WebGPU enabled');
     if (!worldModel.world.renderGeometry) throw rendererError('render_geometry_missing', `World ${worldModel.world.id} has no compiled renderGeometry`);
     const adapter = await navigator.gpu.requestAdapter({ powerPreference: 'high-performance' });
@@ -147,7 +148,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
     const staticData = geometry.createStaticGeometry(worldModel.world);
     const staticBuffer = createVertexBuffer(device, staticData, 'autonomy-static-geometry');
     const state = {
-      ...cameraController.createCameraState(worldModel.world, worldModel, options.regionRegistry, options.regionPacks),
+      ...cameraApi.createCameraState(worldModel.world, worldModel, options.regionRegistry, options.regionPacks),
       routeIdentity: null,
       latestSnapshot: null,
       latestReceipt: null,
@@ -181,7 +182,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       minimapCanvas.dataset.projection = 'orthographic_top_north_up';
       minimapCanvas.dataset.radiusM = String(MINIMAP_RADIUS_M);
     }
-    installCameraControls(canvas, state);
+    installCameraControls(canvas, state, cameraApi);
     device.lost.then((info) => {
       canvas.dataset.rendererLost = 'true';
       if (!state.isDestroyed && typeof options.onFailure === 'function') options.onFailure(rendererError('webgpu_device_lost', `${info.reason}: ${info.message}`));
@@ -192,7 +193,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       state.latestReceipt = tickReceipt || state.latestReceipt;
       if (!state.routeIdentity && snapshot.route?.segmentIds?.length) {
         state.routeIdentity = snapshot.route.segmentIds.join('|');
-        cameraController.updateRouteTarget(state, snapshot.route.segmentIds, worldModel, worldModel.world, performance.now());
+        cameraApi.updateRouteTarget(state, snapshot.route.segmentIds, worldModel, worldModel.world, performance.now());
       }
       const position = snapshot.state.position;
       if (position && (!state.tracePositions.length || pointDistance(position, state.tracePositions.at(-1)) > 0.15)) state.tracePositions.push({ ...position });
@@ -204,7 +205,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
     function drawFrame(timestamp = performance.now()) {
       if (state.isDestroyed || !state.latestSnapshot) return;
       resizeCanvas(canvas, device, format, state);
-      const pose = cameraController.advanceCamera(state, state.latestSnapshot, worldModel, canvas.width / canvas.height, timestamp);
+      const pose = cameraApi.advanceCamera(state, state.latestSnapshot, worldModel, canvas.width / canvas.height, timestamp);
       const camera = cameraForPose(pose, canvas);
       recordCameraDataset(canvas, pose);
       const seconds = (timestamp - state.startedAt) / 1000;
@@ -286,14 +287,14 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
     }
 
     function setCameraMode(mode) {
-      cameraController.setCameraMode(state, mode, performance.now());
+      cameraApi.setCameraMode(state, mode, performance.now());
       canvas.dataset.cameraMode = mode;
       if (state.latestSnapshot) drawFrame();
       return mode;
     }
 
     function focusCameraTarget(targetId) {
-      const mode = cameraController.focusCameraTarget(state, targetId, performance.now());
+      const mode = cameraApi.focusCameraTarget(state, targetId, performance.now());
       canvas.dataset.cameraMode = mode;
       canvas.dataset.cameraFocus = targetId;
       if (state.latestSnapshot) drawFrame();
@@ -464,7 +465,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
     device.queue.writeBuffer(buffer, 0, values);
   }
 
-  function installCameraControls(canvas, state) {
+  function installCameraControls(canvas, state, camera) {
     let pointer = null;
     canvas.addEventListener('pointerdown', (event) => {
       const action = state.mode === 'top' || event.shiftKey || event.button !== 0 ? 'pan' : 'orbit';
@@ -476,8 +477,8 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       if (!pointer || pointer.id !== event.pointerId) return;
       const deltaX = event.clientX - pointer.x;
       const deltaY = event.clientY - pointer.y;
-      if (pointer.action === 'pan') cameraController.panCamera(state, deltaX, deltaY, canvas.clientHeight);
-      else cameraController.orbitCamera(state, deltaX, deltaY);
+      if (pointer.action === 'pan') camera.panCamera(state, deltaX, deltaY, canvas.clientHeight);
+      else camera.orbitCamera(state, deltaX, deltaY);
       pointer.x = event.clientX;
       pointer.y = event.clientY;
     });
@@ -490,8 +491,27 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
     canvas.addEventListener('wheel', (event) => {
       event.preventDefault();
       canvas.dataset.cameraInteraction = 'zoom';
-      cameraController.zoomCamera(state, event.deltaY);
+      camera.zoomCamera(state, event.deltaY);
     }, { passive: false });
+  }
+
+  function resolveCameraController(candidate) {
+    const api = candidate || globalThis.SimulatteAutonomyCamera;
+    const requiredMethods = [
+      'createCameraState',
+      'updateRouteTarget',
+      'advanceCamera',
+      'setCameraMode',
+      'focusCameraTarget',
+      'panCamera',
+      'orbitCamera',
+      'zoomCamera',
+    ];
+    const missingMethods = requiredMethods.filter((name) => typeof api?.[name] !== 'function');
+    if (missingMethods.length) {
+      throw rendererError('camera_runtime_unavailable', `Camera runtime is missing: ${missingMethods.join(', ')}`);
+    }
+    return api;
   }
 
   function readAdapterInfo(adapter) {
@@ -526,5 +546,5 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
     return error;
   }
 
-  return { MINIMAP_RADIUS_M, SHADER, cameraForMinimap, createCanvasRenderer, readAdapterInfo, rendererError };
+  return { MINIMAP_RADIUS_M, SHADER, cameraForMinimap, createCanvasRenderer, readAdapterInfo, rendererError, resolveCameraController };
 });
