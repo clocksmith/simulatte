@@ -3,6 +3,33 @@ const test = require('node:test');
 
 const lab = require('../public/blank/app/simulation/simulation-lab.js');
 const forensics = require('../public/blank/pipeline/phase-04-grounded-intent/simulatte-intent-forensics.js');
+const causalPhysics = require('../public/blank/pipeline/phase-04-grounded-intent/simulatte-causal-physics-graph.js');
+
+test('causal endpoints prefer direct prompt concepts over retrieved analog support', () => {
+  const prompt = 'edge data center server racks recirculating heat between cooling aisles under controller limits';
+  const graph = causalPhysics.buildCausalPhysicsGraph({
+    prompt,
+    languageEvidence: { normalizedText: prompt, spans: [], clauses: [], predicateFrames: [] },
+    structuredIntent: {
+      entities: [
+        { id: 'prompt.data-center', label: 'edge data center' },
+        { id: 'prompt.server-racks', label: 'server racks' },
+        { id: 'prompt.cooling-aisles', label: 'cooling aisles' },
+      ],
+      observables: [{ id: 'prompt.controller-limits', label: 'controller limits' }],
+    },
+    evidenceRows: [
+      { id: 'shape.structural-network', label: 'structural network' },
+      { id: 'operator.heat-exchange', label: 'heat exchange' },
+      { id: 'analog.edge-data-center-heat', label: 'server rack heat recirculates between cooling aisles under control feedback' },
+      { id: 'concept.card-synthesis-autoclave', label: 'autoclave' },
+    ],
+  });
+  const feedback = graph.edges.find((row) => row.ruleId === 'causal.data-center-cooling-feedback');
+
+  assert.equal(feedback.sourceRef, 'prompt.data-center');
+  assert.ok(['prompt.server-racks', 'prompt.cooling-aisles'].includes(feedback.targetRef));
+});
 
 test('intent forensics emits retrieval-grounded causal brief', () => {
   const brief = forensics.buildIntentForensics({

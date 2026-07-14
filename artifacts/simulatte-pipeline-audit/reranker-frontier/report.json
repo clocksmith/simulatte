@@ -2,19 +2,19 @@
   "schema": "simulatte.rerankerFrontierBenchmark.v1",
   "source": {
     "path": "artifacts/simulatte-pipeline-audit/live-webgpu/report.json",
-    "sha256": "926404ba6e15f88297d111a1774d0c1751e6eb6c4c870faa1d0df7be8c90bbd7",
+    "sha256": "2795a8f7a66043ba805b768397f5526116770588fa2384a0e8c85d7269ff08a6",
     "reportSchema": "simulatte.intentSceneScreenshotAudit.v1",
-    "reportCreatedAt": "2026-07-14T08:20:33.225Z",
+    "reportCreatedAt": "2026-07-14T15:22:13.003Z",
     "intentMode": "model"
   },
   "model": {
     "id": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
     "manifestHash": "6b1eaca7f3fba2f78a7676a7912442877b85d6f01c083f62759b9c5dd6496a9e",
-    "runtimeLockNumber": 6
+    "runtimeLockNumber": 7
   },
   "promptCount": 20,
-  "fullCandidateCount": 52,
-  "fullExecutionDurationMs": 20399.6,
+  "fullCandidateCount": 51,
+  "fullExecutionDurationMs": 19029.8,
   "selectionModes": {
     "construction-evidence-round-robin": 20
   },
@@ -23,48 +23,48 @@
       "k": 1,
       "promptCount": 20,
       "evaluatedCandidateCount": 20,
-      "candidateReductionCount": 32,
-      "candidateReductionRate": 0.615385,
-      "estimatedExecutionDurationMs": 8538.8,
-      "estimatedDurationSavingsMs": 11860.8,
-      "estimatedDurationSavingsRate": 0.581423,
-      "fullWinnerRetentionCount": 11,
-      "fullWinnerRetentionRate": 0.55,
-      "changedPromptCount": 9,
+      "candidateReductionCount": 31,
+      "candidateReductionRate": 0.607843,
+      "estimatedExecutionDurationMs": 7902.4,
+      "estimatedDurationSavingsMs": 11127.4,
+      "estimatedDurationSavingsRate": 0.584736,
+      "fullWinnerRetentionCount": 9,
+      "fullWinnerRetentionRate": 0.45,
+      "changedPromptCount": 11,
       "changedPrompts": [
         {
           "prompt": "particle collider muon tracks collision plume through a detector slice with field lines and calorimeter heat",
-          "fullWinner": "queue",
+          "fullWinner": "metal",
           "frontierWinner": "sensor",
-          "fullWinnerInputOrder": 3,
+          "fullWinnerInputOrder": 1,
           "selectionMode": "construction-evidence-round-robin"
         },
         {
-          "prompt": "gut microbiome colonies exchanging metabolites through intestinal folds under immune sampling",
-          "fullWinner": "fabric",
-          "frontierWinner": "bacteria",
+          "prompt": "mangrove roots buffering storm surge while sediment settles in brackish tidal channels",
+          "fullWinner": "water",
+          "frontierWinner": "graph-network",
+          "fullWinnerInputOrder": 1,
+          "selectionMode": "construction-evidence-round-robin"
+        },
+        {
+          "prompt": "edge data center server racks recirculating heat between cooling aisles under controller limits",
+          "fullWinner": "graph-network",
+          "frontierWinner": "concrete",
           "fullWinnerInputOrder": 1,
           "selectionMode": "construction-evidence-round-robin"
         },
         {
           "prompt": "city zoning shadow allocation between building masses with sunlight volumes and pedestrian comfort",
-          "fullWinner": "soft-body",
-          "frontierWinner": "rigid-body",
+          "fullWinner": "metal",
+          "frontierWinner": "concrete",
           "fullWinnerInputOrder": 1,
           "selectionMode": "construction-evidence-round-robin"
         },
         {
-          "prompt": "sourdough fermentation gas bubbles growing through a dough matrix with gluten strands and acidity gradients",
-          "fullWinner": "fabric",
-          "frontierWinner": "metal",
-          "fullWinnerInputOrder": 1,
-          "selectionMode": "construction-evidence-round-robin"
-        },
-        {
-          "prompt": "protein folding with bond constraints and energy minimization",
-          "fullWinner": "gel",
-          "frontierWinner": "protein",
-          "fullWinnerInputOrder": 1,
+          "prompt": "planetary rings shepherd moon resonance sorting ice boulders into density waves and orbital gaps",
+          "fullWinner": "rock",
+          "frontierWinner": "gravity",
+          "fullWinnerInputOrder": 3,
           "selectionMode": "construction-evidence-round-robin"
         },
         {
@@ -75,16 +75,9 @@
           "selectionMode": "construction-evidence-round-robin"
         },
         {
-          "prompt": "phase study in a generic lab with no qubits or quantum hardware",
-          "fullWinner": "controller",
-          "frontierWinner": "sensor",
-          "fullWinnerInputOrder": 1,
-          "selectionMode": "construction-evidence-round-robin"
-        },
-        {
           "prompt": "glacier calving into fjord with sea ice waves",
           "fullWinner": "water",
-          "frontierWinner": "ice",
+          "frontierWinner": "terrain-patch",
           "fullWinnerInputOrder": 1,
           "selectionMode": "construction-evidence-round-robin"
         },
@@ -94,6 +87,27 @@
           "frontierWinner": "concrete",
           "fullWinnerInputOrder": 1,
           "selectionMode": "construction-evidence-round-robin"
+        },
+        {
+          "prompt": "dogs",
+          "fullWinner": "collision",
+          "frontierWinner": "soft-body",
+          "fullWinnerInputOrder": 1,
+          "selectionMode": "construction-evidence-round-robin"
+        },
+        {
+          "prompt": "flowers",
+          "fullWinner": "leaf",
+          "frontierWinner": "wood",
+          "fullWinnerInputOrder": 1,
+          "selectionMode": "construction-evidence-round-robin"
+        },
+        {
+          "prompt": "dogs and cats swimming",
+          "fullWinner": "collision",
+          "frontierWinner": "soft-body",
+          "fullWinnerInputOrder": 1,
+          "selectionMode": "construction-evidence-round-robin"
         }
       ]
     },
@@ -101,19 +115,19 @@
       "k": 2,
       "promptCount": 20,
       "evaluatedCandidateCount": 40,
-      "candidateReductionCount": 12,
-      "candidateReductionRate": 0.230769,
-      "estimatedExecutionDurationMs": 16066,
-      "estimatedDurationSavingsMs": 4333.6,
-      "estimatedDurationSavingsRate": 0.212436,
+      "candidateReductionCount": 11,
+      "candidateReductionRate": 0.215686,
+      "estimatedExecutionDurationMs": 15182.5,
+      "estimatedDurationSavingsMs": 3847.3,
+      "estimatedDurationSavingsRate": 0.202172,
       "fullWinnerRetentionCount": 19,
       "fullWinnerRetentionRate": 0.95,
       "changedPromptCount": 1,
       "changedPrompts": [
         {
-          "prompt": "particle collider muon tracks collision plume through a detector slice with field lines and calorimeter heat",
-          "fullWinner": "queue",
-          "frontierWinner": "sensor",
+          "prompt": "planetary rings shepherd moon resonance sorting ice boulders into density waves and orbital gaps",
+          "fullWinner": "rock",
+          "frontierWinner": "gravity",
           "fullWinnerInputOrder": 3,
           "selectionMode": "construction-evidence-round-robin"
         }
@@ -122,20 +136,20 @@
     {
       "k": 3,
       "promptCount": 20,
-      "evaluatedCandidateCount": 48,
+      "evaluatedCandidateCount": 47,
       "candidateReductionCount": 4,
-      "candidateReductionRate": 0.076923,
-      "estimatedExecutionDurationMs": 19044.8,
-      "estimatedDurationSavingsMs": 1354.8,
-      "estimatedDurationSavingsRate": 0.066413,
+      "candidateReductionRate": 0.078431,
+      "estimatedExecutionDurationMs": 17689.1,
+      "estimatedDurationSavingsMs": 1340.7,
+      "estimatedDurationSavingsRate": 0.070453,
       "fullWinnerRetentionCount": 19,
       "fullWinnerRetentionRate": 0.95,
       "changedPromptCount": 1,
       "changedPrompts": [
         {
-          "prompt": "particle collider muon tracks collision plume through a detector slice with field lines and calorimeter heat",
-          "fullWinner": "queue",
-          "frontierWinner": "sensor",
+          "prompt": "planetary rings shepherd moon resonance sorting ice boulders into density waves and orbital gaps",
+          "fullWinner": "rock",
+          "frontierWinner": "gravity",
           "fullWinnerInputOrder": 3,
           "selectionMode": "construction-evidence-round-robin"
         }
@@ -144,12 +158,12 @@
     {
       "k": 4,
       "promptCount": 20,
-      "evaluatedCandidateCount": 51,
+      "evaluatedCandidateCount": 50,
       "candidateReductionCount": 1,
-      "candidateReductionRate": 0.019231,
-      "estimatedExecutionDurationMs": 20049.8,
+      "candidateReductionRate": 0.019608,
+      "estimatedExecutionDurationMs": 18680,
       "estimatedDurationSavingsMs": 349.8,
-      "estimatedDurationSavingsRate": 0.017147,
+      "estimatedDurationSavingsRate": 0.018382,
       "fullWinnerRetentionCount": 20,
       "fullWinnerRetentionRate": 1,
       "changedPromptCount": 0,
@@ -158,10 +172,10 @@
     {
       "k": 5,
       "promptCount": 20,
-      "evaluatedCandidateCount": 52,
+      "evaluatedCandidateCount": 51,
       "candidateReductionCount": 0,
       "candidateReductionRate": 0,
-      "estimatedExecutionDurationMs": 20399.6,
+      "estimatedExecutionDurationMs": 19029.8,
       "estimatedDurationSavingsMs": 0,
       "estimatedDurationSavingsRate": 0,
       "fullWinnerRetentionCount": 20,
@@ -182,48 +196,48 @@
       "candidateCount": 5,
       "selectionMode": "construction-evidence-round-robin",
       "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
-      "fullWinner": "queue",
-      "fullWinnerInputOrder": 3,
-      "executionDurationMs": 1720,
+      "fullWinner": "metal",
+      "fullWinnerInputOrder": 1,
+      "executionDurationMs": 1814,
       "candidates": [
         {
           "primitiveId": "sensor",
           "inputOrder": 0,
-          "modelRank": 2,
-          "modelScore": 0.958302,
-          "localScore": 0.537,
-          "executionDurationMs": 360.5
+          "modelRank": 4,
+          "modelScore": 0.972224,
+          "localScore": 0.2195,
+          "executionDurationMs": 357.6
         },
         {
-          "primitiveId": "graph-network",
+          "primitiveId": "metal",
           "inputOrder": 1,
-          "modelRank": 4,
-          "modelScore": 0.93589,
-          "localScore": 0.5056,
-          "executionDurationMs": 352.5
+          "modelRank": 0,
+          "modelScore": 0.999675,
+          "localScore": 0.3049,
+          "executionDurationMs": 434.1
         },
         {
           "primitiveId": "controller",
           "inputOrder": 2,
-          "modelRank": 3,
-          "modelScore": 0.953968,
-          "localScore": 0.5305,
-          "executionDurationMs": 328.8
+          "modelRank": 2,
+          "modelScore": 0.983484,
+          "localScore": 0.2334,
+          "executionDurationMs": 329.2
         },
         {
-          "primitiveId": "queue",
+          "primitiveId": "rock",
           "inputOrder": 3,
-          "modelRank": 0,
-          "modelScore": 0.969594,
-          "localScore": 0.5138,
-          "executionDurationMs": 328.4
+          "modelRank": 1,
+          "modelScore": 0.992377,
+          "localScore": 0.2268,
+          "executionDurationMs": 343.3
         },
         {
           "primitiveId": "data-recorder",
           "inputOrder": 4,
-          "modelRank": 1,
-          "modelScore": 0.960804,
-          "localScore": 0.5244,
+          "modelRank": 3,
+          "modelScore": 0.980214,
+          "localScore": 0.2233,
           "executionDurationMs": 349.8
         }
       ]
@@ -234,25 +248,25 @@
       "candidateCount": 2,
       "selectionMode": "construction-evidence-round-robin",
       "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
-      "fullWinner": "graph-network",
-      "fullWinnerInputOrder": 0,
-      "executionDurationMs": 821.2,
+      "fullWinner": "water",
+      "fullWinnerInputOrder": 1,
+      "executionDurationMs": 792.9,
       "candidates": [
         {
           "primitiveId": "graph-network",
           "inputOrder": 0,
-          "modelRank": 0,
-          "modelScore": 0.938811,
-          "localScore": 0.4726,
-          "executionDurationMs": 374.9
+          "modelRank": 1,
+          "modelScore": 0.907314,
+          "localScore": 0.1925,
+          "executionDurationMs": 366.5
         },
         {
           "primitiveId": "water",
           "inputOrder": 1,
-          "modelRank": 1,
-          "modelScore": 0.936811,
-          "localScore": 0.4726,
-          "executionDurationMs": 446.3
+          "modelRank": 0,
+          "modelScore": 0.993337,
+          "localScore": 0.2586,
+          "executionDurationMs": 426.4
         }
       ]
     },
@@ -262,25 +276,25 @@
       "candidateCount": 2,
       "selectionMode": "construction-evidence-round-robin",
       "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
-      "fullWinner": "fabric",
-      "fullWinnerInputOrder": 1,
-      "executionDurationMs": 829.6,
+      "fullWinner": "bacteria",
+      "fullWinnerInputOrder": 0,
+      "executionDurationMs": 782.8,
       "candidates": [
         {
           "primitiveId": "bacteria",
           "inputOrder": 0,
-          "modelRank": 1,
-          "modelScore": 0.925048,
-          "localScore": 0.5502,
-          "executionDurationMs": 481.7
+          "modelRank": 0,
+          "modelScore": 0.999999,
+          "localScore": 0.2253,
+          "executionDurationMs": 456.7
         },
         {
           "primitiveId": "fabric",
           "inputOrder": 1,
-          "modelRank": 0,
-          "modelScore": 0.933168,
-          "localScore": 0.4119,
-          "executionDurationMs": 347.9
+          "modelRank": 1,
+          "modelScore": 0.955743,
+          "localScore": 0.1817,
+          "executionDurationMs": 326.1
         }
       ]
     },
@@ -292,31 +306,31 @@
       "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
       "fullWinner": "graph-network",
       "fullWinnerInputOrder": 0,
-      "executionDurationMs": 1052.1,
+      "executionDurationMs": 1010.7,
       "candidates": [
         {
           "primitiveId": "graph-network",
           "inputOrder": 0,
           "modelRank": 0,
-          "modelScore": 0.938446,
-          "localScore": 0.5354,
-          "executionDurationMs": 377.1
+          "modelScore": 0.995544,
+          "localScore": 0.261,
+          "executionDurationMs": 361.9
         },
         {
           "primitiveId": "wheel",
           "inputOrder": 1,
           "modelRank": 1,
-          "modelScore": 0.933243,
-          "localScore": 0.4695,
-          "executionDurationMs": 333.7
+          "modelScore": 0.973059,
+          "localScore": 0.1996,
+          "executionDurationMs": 321.9
         },
         {
           "primitiveId": "concrete",
           "inputOrder": 2,
           "modelRank": 2,
-          "modelScore": 0.912122,
-          "localScore": 0.4842,
-          "executionDurationMs": 341.3
+          "modelScore": 0.933867,
+          "localScore": 0.2247,
+          "executionDurationMs": 326.9
         }
       ]
     },
@@ -326,33 +340,33 @@
       "candidateCount": 3,
       "selectionMode": "construction-evidence-round-robin",
       "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
-      "fullWinner": "concrete",
-      "fullWinnerInputOrder": 0,
-      "executionDurationMs": 1159.5,
+      "fullWinner": "graph-network",
+      "fullWinnerInputOrder": 1,
+      "executionDurationMs": 1127.1,
       "candidates": [
         {
           "primitiveId": "concrete",
           "inputOrder": 0,
-          "modelRank": 0,
-          "modelScore": 0.959716,
-          "localScore": 0.5237,
-          "executionDurationMs": 372.5
+          "modelRank": 2,
+          "modelScore": 0.98567,
+          "localScore": 0.2383,
+          "executionDurationMs": 360.5
         },
         {
           "primitiveId": "graph-network",
           "inputOrder": 1,
-          "modelRank": 1,
-          "modelScore": 0.95913,
-          "localScore": 0.5221,
-          "executionDurationMs": 347.5
+          "modelRank": 0,
+          "modelScore": 0.998783,
+          "localScore": 0.293,
+          "executionDurationMs": 342.2
         },
         {
           "primitiveId": "metal",
           "inputOrder": 2,
-          "modelRank": 2,
-          "modelScore": 0.958547,
-          "localScore": 0.5151,
-          "executionDurationMs": 439.5
+          "modelRank": 1,
+          "modelScore": 0.986334,
+          "localScore": 0.2909,
+          "executionDurationMs": 424.4
         }
       ]
     },
@@ -362,25 +376,25 @@
       "candidateCount": 2,
       "selectionMode": "construction-evidence-round-robin",
       "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
-      "fullWinner": "soft-body",
+      "fullWinner": "metal",
       "fullWinnerInputOrder": 1,
-      "executionDurationMs": 948,
+      "executionDurationMs": 770.7,
       "candidates": [
         {
-          "primitiveId": "rigid-body",
+          "primitiveId": "concrete",
           "inputOrder": 0,
           "modelRank": 1,
-          "modelScore": 0.93961,
-          "localScore": 0.4943,
-          "executionDurationMs": 487.8
+          "modelScore": 0.951767,
+          "localScore": 0.2359,
+          "executionDurationMs": 358.2
         },
         {
-          "primitiveId": "soft-body",
+          "primitiveId": "metal",
           "inputOrder": 1,
           "modelRank": 0,
-          "modelScore": 0.94388,
-          "localScore": 0.4271,
-          "executionDurationMs": 460.2
+          "modelScore": 0.980864,
+          "localScore": 0.1844,
+          "executionDurationMs": 412.5
         }
       ]
     },
@@ -390,41 +404,41 @@
       "candidateCount": 4,
       "selectionMode": "construction-evidence-round-robin",
       "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
-      "fullWinner": "gravity",
-      "fullWinnerInputOrder": 0,
-      "executionDurationMs": 1743.3,
+      "fullWinner": "rock",
+      "fullWinnerInputOrder": 3,
+      "executionDurationMs": 1652.6,
       "candidates": [
         {
           "primitiveId": "gravity",
           "inputOrder": 0,
-          "modelRank": 0,
-          "modelScore": 0.952813,
-          "localScore": 0.496,
-          "executionDurationMs": 480
+          "modelRank": 1,
+          "modelScore": 0.999686,
+          "localScore": 0.2175,
+          "executionDurationMs": 448.9
         },
         {
           "primitiveId": "radiation",
           "inputOrder": 1,
           "modelRank": 3,
-          "modelScore": 0.918177,
-          "localScore": 0.6027,
-          "executionDurationMs": 445.6
+          "modelScore": 0.98762,
+          "localScore": 0.2171,
+          "executionDurationMs": 421.1
         },
         {
           "primitiveId": "rigid-body",
           "inputOrder": 2,
-          "modelRank": 1,
-          "modelScore": 0.945636,
-          "localScore": 0.5965,
-          "executionDurationMs": 473.3
+          "modelRank": 2,
+          "modelScore": 0.994871,
+          "localScore": 0.2711,
+          "executionDurationMs": 452.9
         },
         {
           "primitiveId": "rock",
           "inputOrder": 3,
-          "modelRank": 2,
-          "modelScore": 0.942327,
-          "localScore": 0.5959,
-          "executionDurationMs": 344.4
+          "modelRank": 0,
+          "modelScore": 0.999952,
+          "localScore": 0.3096,
+          "executionDurationMs": 329.7
         }
       ]
     },
@@ -434,33 +448,33 @@
       "candidateCount": 3,
       "selectionMode": "construction-evidence-round-robin",
       "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
-      "fullWinner": "fabric",
-      "fullWinnerInputOrder": 1,
-      "executionDurationMs": 1180.4,
+      "fullWinner": "metal",
+      "fullWinnerInputOrder": 0,
+      "executionDurationMs": 1118.3,
       "candidates": [
         {
           "primitiveId": "metal",
           "inputOrder": 0,
-          "modelRank": 2,
-          "modelScore": 0.939633,
-          "localScore": 0.4077,
-          "executionDurationMs": 478.3
+          "modelRank": 0,
+          "modelScore": 0.962699,
+          "localScore": 0.1279,
+          "executionDurationMs": 450
         },
         {
           "primitiveId": "fabric",
           "inputOrder": 1,
-          "modelRank": 0,
-          "modelScore": 0.945844,
-          "localScore": 0.4261,
-          "executionDurationMs": 352.7
+          "modelRank": 2,
+          "modelScore": 0.901948,
+          "localScore": 0.2146,
+          "executionDurationMs": 334.5
         },
         {
           "primitiveId": "rock",
           "inputOrder": 2,
           "modelRank": 1,
-          "modelScore": 0.942531,
-          "localScore": 0.5827,
-          "executionDurationMs": 349.4
+          "modelScore": 0.944755,
+          "localScore": 0.2682,
+          "executionDurationMs": 333.8
         }
       ]
     },
@@ -470,25 +484,25 @@
       "candidateCount": 2,
       "selectionMode": "construction-evidence-round-robin",
       "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
-      "fullWinner": "rigid-body",
+      "fullWinner": "graph-network",
       "fullWinnerInputOrder": 0,
-      "executionDurationMs": 866.5,
+      "executionDurationMs": 770.5,
       "candidates": [
         {
-          "primitiveId": "rigid-body",
+          "primitiveId": "graph-network",
           "inputOrder": 0,
           "modelRank": 0,
-          "modelScore": 0.947703,
-          "localScore": 0.472,
-          "executionDurationMs": 499.6
+          "modelScore": 0.963501,
+          "localScore": 0.1987,
+          "executionDurationMs": 361.6
         },
         {
-          "primitiveId": "collision",
+          "primitiveId": "metal",
           "inputOrder": 1,
           "modelRank": 1,
-          "modelScore": 0.931955,
-          "localScore": 0.4913,
-          "executionDurationMs": 366.9
+          "modelScore": 0.955795,
+          "localScore": 0.2011,
+          "executionDurationMs": 408.9
         }
       ]
     },
@@ -500,31 +514,31 @@
       "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
       "fullWinner": "rigid-body",
       "fullWinnerInputOrder": 0,
-      "executionDurationMs": 1194.4,
+      "executionDurationMs": 1140.1,
       "candidates": [
         {
           "primitiveId": "rigid-body",
           "inputOrder": 0,
           "modelRank": 0,
-          "modelScore": 0.971842,
-          "localScore": 0.4618,
-          "executionDurationMs": 469.3
+          "modelScore": 0.973636,
+          "localScore": 0.2377,
+          "executionDurationMs": 446.1
         },
         {
           "primitiveId": "metal",
           "inputOrder": 1,
-          "modelRank": 2,
-          "modelScore": 0.888696,
-          "localScore": 0.4482,
-          "executionDurationMs": 412.1
+          "modelRank": 1,
+          "modelScore": 0.927112,
+          "localScore": 0.2309,
+          "executionDurationMs": 392.6
         },
         {
           "primitiveId": "rubber",
           "inputOrder": 2,
-          "modelRank": 1,
-          "modelScore": 0.948888,
-          "localScore": 0.4664,
-          "executionDurationMs": 313
+          "modelRank": 2,
+          "modelScore": 0.889039,
+          "localScore": 0.2393,
+          "executionDurationMs": 301.4
         }
       ]
     },
@@ -534,25 +548,25 @@
       "candidateCount": 2,
       "selectionMode": "construction-evidence-round-robin",
       "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
-      "fullWinner": "gel",
-      "fullWinnerInputOrder": 1,
-      "executionDurationMs": 791.9,
+      "fullWinner": "fabric",
+      "fullWinnerInputOrder": 0,
+      "executionDurationMs": 646,
       "candidates": [
         {
-          "primitiveId": "protein",
+          "primitiveId": "fabric",
           "inputOrder": 0,
-          "modelRank": 1,
-          "modelScore": 0.958417,
-          "localScore": 0.738,
-          "executionDurationMs": 445.2
+          "modelRank": 0,
+          "modelScore": 0.957694,
+          "localScore": 0.1943,
+          "executionDurationMs": 342.6
         },
         {
-          "primitiveId": "gel",
+          "primitiveId": "rubber",
           "inputOrder": 1,
-          "modelRank": 0,
-          "modelScore": 0.969001,
-          "localScore": 0.4564,
-          "executionDurationMs": 346.7
+          "modelRank": 1,
+          "modelScore": 0.902957,
+          "localScore": 0.223,
+          "executionDurationMs": 303.4
         }
       ]
     },
@@ -564,23 +578,23 @@
       "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
       "fullWinner": "rigid-body",
       "fullWinnerInputOrder": 0,
-      "executionDurationMs": 833.7,
+      "executionDurationMs": 805.7,
       "candidates": [
         {
           "primitiveId": "rigid-body",
           "inputOrder": 0,
           "modelRank": 0,
-          "modelScore": 0.969647,
-          "localScore": 0.4675,
-          "executionDurationMs": 477.4
+          "modelScore": 0.997539,
+          "localScore": 0.2278,
+          "executionDurationMs": 460.3
         },
         {
           "primitiveId": "collision",
           "inputOrder": 1,
           "modelRank": 1,
-          "modelScore": 0.944243,
-          "localScore": 0.4736,
-          "executionDurationMs": 356.3
+          "modelScore": 0.985529,
+          "localScore": 0.2276,
+          "executionDurationMs": 345.4
         }
       ]
     },
@@ -592,23 +606,23 @@
       "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
       "fullWinner": "wave-source",
       "fullWinnerInputOrder": 1,
-      "executionDurationMs": 703.2,
+      "executionDurationMs": 675.2,
       "candidates": [
         {
           "primitiveId": "graph-network",
           "inputOrder": 0,
           "modelRank": 1,
-          "modelScore": 0.935915,
-          "localScore": 0.3877,
-          "executionDurationMs": 370.2
+          "modelScore": 0.96886,
+          "localScore": 0.1392,
+          "executionDurationMs": 356.9
         },
         {
           "primitiveId": "wave-source",
           "inputOrder": 1,
           "modelRank": 0,
-          "modelScore": 0.939437,
-          "localScore": 0.4723,
-          "executionDurationMs": 333
+          "modelScore": 0.988271,
+          "localScore": 0.2185,
+          "executionDurationMs": 318.3
         }
       ]
     },
@@ -618,25 +632,25 @@
       "candidateCount": 2,
       "selectionMode": "construction-evidence-round-robin",
       "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
-      "fullWinner": "controller",
-      "fullWinnerInputOrder": 1,
-      "executionDurationMs": 691.7,
+      "fullWinner": "sensor",
+      "fullWinnerInputOrder": 0,
+      "executionDurationMs": 653,
       "candidates": [
         {
           "primitiveId": "sensor",
           "inputOrder": 0,
-          "modelRank": 1,
-          "modelScore": 0.957517,
-          "localScore": 0.5509,
-          "executionDurationMs": 371.8
+          "modelRank": 0,
+          "modelScore": 0.987648,
+          "localScore": 0.2094,
+          "executionDurationMs": 340.7
         },
         {
           "primitiveId": "controller",
           "inputOrder": 1,
-          "modelRank": 0,
-          "modelScore": 0.964127,
-          "localScore": 0.5538,
-          "executionDurationMs": 319.9
+          "modelRank": 1,
+          "modelScore": 0.982691,
+          "localScore": 0.2144,
+          "executionDurationMs": 312.3
         }
       ]
     },
@@ -648,75 +662,67 @@
       "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
       "fullWinner": "water",
       "fullWinnerInputOrder": 1,
-      "executionDurationMs": 1563.6,
+      "executionDurationMs": 1487.3,
       "candidates": [
         {
-          "primitiveId": "ice",
+          "primitiveId": "terrain-patch",
           "inputOrder": 0,
           "modelRank": 3,
-          "modelScore": 0.92934,
-          "localScore": 0.7188,
-          "executionDurationMs": 376.3
+          "modelScore": 0.905588,
+          "localScore": 0.2354,
+          "executionDurationMs": 427.4
         },
         {
           "primitiveId": "water",
           "inputOrder": 1,
           "modelRank": 0,
-          "modelScore": 0.962331,
-          "localScore": 0.4839,
-          "executionDurationMs": 437.9
+          "modelScore": 0.964636,
+          "localScore": 0.2715,
+          "executionDurationMs": 404
         },
         {
-          "primitiveId": "terrain-patch",
+          "primitiveId": "soil",
           "inputOrder": 2,
-          "modelRank": 2,
-          "modelScore": 0.954559,
-          "localScore": 0.4605,
-          "executionDurationMs": 417.2
+          "modelRank": 1,
+          "modelScore": 0.93481,
+          "localScore": 0.2061,
+          "executionDurationMs": 338
         },
         {
           "primitiveId": "air",
           "inputOrder": 3,
-          "modelRank": 1,
-          "modelScore": 0.957919,
-          "localScore": 0.5848,
-          "executionDurationMs": 332.2
+          "modelRank": 2,
+          "modelScore": 0.91045,
+          "localScore": 0.2185,
+          "executionDurationMs": 317.9
         }
       ]
     },
     {
       "prompt": "forest fire jumps a road under wind shear",
       "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
-      "candidateCount": 3,
+      "candidateCount": 2,
       "selectionMode": "construction-evidence-round-robin",
       "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
       "fullWinner": "wood",
       "fullWinnerInputOrder": 1,
-      "executionDurationMs": 1082,
+      "executionDurationMs": 730.4,
       "candidates": [
         {
           "primitiveId": "concrete",
           "inputOrder": 0,
-          "modelRank": 2,
-          "modelScore": 0.900847,
-          "localScore": 0.582,
-          "executionDurationMs": 357.1
+          "modelRank": 1,
+          "modelScore": 0.927108,
+          "localScore": 0.1999,
+          "executionDurationMs": 337.7
         },
         {
           "primitiveId": "wood",
           "inputOrder": 1,
           "modelRank": 0,
-          "modelScore": 0.966082,
-          "localScore": 0.607,
-          "executionDurationMs": 408.6
-        },
-        {
-          "primitiveId": "air",
-          "inputOrder": 2,
-          "modelRank": 1,
-          "modelScore": 0.929734,
-          "localScore": 0.6069,
-          "executionDurationMs": 316.3
+          "modelScore": 0.992827,
+          "localScore": 0.2983,
+          "executionDurationMs": 392.7
         }
       ]
     },
@@ -726,25 +732,25 @@
       "candidateCount": 2,
       "selectionMode": "construction-evidence-round-robin",
       "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
-      "fullWinner": "soft-body",
-      "fullWinnerInputOrder": 0,
-      "executionDurationMs": 767.1,
+      "fullWinner": "collision",
+      "fullWinnerInputOrder": 1,
+      "executionDurationMs": 739.6,
       "candidates": [
         {
           "primitiveId": "soft-body",
           "inputOrder": 0,
-          "modelRank": 0,
-          "modelScore": 0.940292,
-          "localScore": 0.3659,
-          "executionDurationMs": 446.5
+          "modelRank": 1,
+          "modelScore": 0.978817,
+          "localScore": 0.1213,
+          "executionDurationMs": 427.2
         },
         {
           "primitiveId": "collision",
           "inputOrder": 1,
-          "modelRank": 1,
-          "modelScore": 0.828678,
-          "localScore": 0.3646,
-          "executionDurationMs": 320.6
+          "modelRank": 0,
+          "modelScore": 0.979793,
+          "localScore": 0.131,
+          "executionDurationMs": 312.4
         }
       ]
     },
@@ -754,25 +760,25 @@
       "candidateCount": 2,
       "selectionMode": "construction-evidence-round-robin",
       "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
-      "fullWinner": "wood",
-      "fullWinnerInputOrder": 0,
-      "executionDurationMs": 810.9,
+      "fullWinner": "leaf",
+      "fullWinnerInputOrder": 1,
+      "executionDurationMs": 766.2,
       "candidates": [
         {
           "primitiveId": "wood",
           "inputOrder": 0,
-          "modelRank": 0,
-          "modelScore": 0.955012,
-          "localScore": 0.5011,
-          "executionDurationMs": 415.8
+          "modelRank": 1,
+          "modelScore": 0.994569,
+          "localScore": 0.199,
+          "executionDurationMs": 395
         },
         {
           "primitiveId": "leaf",
           "inputOrder": 1,
-          "modelRank": 1,
-          "modelScore": 0.93832,
-          "localScore": 0.5195,
-          "executionDurationMs": 395.1
+          "modelRank": 0,
+          "modelScore": 0.999978,
+          "localScore": 0.261,
+          "executionDurationMs": 371.2
         }
       ]
     },
@@ -784,23 +790,23 @@
       "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
       "fullWinner": "wood",
       "fullWinnerInputOrder": 0,
-      "executionDurationMs": 844.1,
+      "executionDurationMs": 794.9,
       "candidates": [
         {
           "primitiveId": "wood",
           "inputOrder": 0,
           "modelRank": 0,
-          "modelScore": 0.952813,
-          "localScore": 0.5345,
-          "executionDurationMs": 434.1
+          "modelScore": 0.967896,
+          "localScore": 0.2464,
+          "executionDurationMs": 408.7
         },
         {
           "primitiveId": "leaf",
           "inputOrder": 1,
           "modelRank": 1,
-          "modelScore": 0.943724,
-          "localScore": 0.4846,
-          "executionDurationMs": 410
+          "modelScore": 0.95244,
+          "localScore": 0.192,
+          "executionDurationMs": 386.2
         }
       ]
     },
@@ -810,25 +816,25 @@
       "candidateCount": 2,
       "selectionMode": "construction-evidence-round-robin",
       "candidateBudgetPolicy": "one-per-construction-group-minimum-two",
-      "fullWinner": "soft-body",
-      "fullWinnerInputOrder": 0,
-      "executionDurationMs": 796.4,
+      "fullWinner": "collision",
+      "fullWinnerInputOrder": 1,
+      "executionDurationMs": 751.8,
       "candidates": [
         {
           "primitiveId": "soft-body",
           "inputOrder": 0,
-          "modelRank": 0,
-          "modelScore": 0.970108,
-          "localScore": 0.437,
-          "executionDurationMs": 462.7
+          "modelRank": 1,
+          "modelScore": 0.735336,
+          "localScore": 0.2035,
+          "executionDurationMs": 437.9
         },
         {
           "primitiveId": "collision",
           "inputOrder": 1,
-          "modelRank": 1,
-          "modelScore": 0.92762,
-          "localScore": 0.4387,
-          "executionDurationMs": 333.7
+          "modelRank": 0,
+          "modelScore": 0.753175,
+          "localScore": 0.2028,
+          "executionDurationMs": 313.9
         }
       ]
     }

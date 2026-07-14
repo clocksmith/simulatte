@@ -1,19 +1,19 @@
 {
   "schema": "simulatte.vendorInferenceLaneReceipt.v1",
-  "createdAt": "2026-07-11T03:06:29.499Z",
+  "createdAt": "2026-07-14T15:52:19.546Z",
   "status": "pass",
   "prompt": "particle collider muon tracks collision plume through a detector slice with field lines and calorimeter heat",
   "modelRuntimeLock": {
     "id": "simulatte-doppler-qwen-runtime-lock",
-    "number": 4,
-    "sha256": "5f692503b892ea440f25b64949dc3630279e641894d5c9ee7976de9c4dbd70f5"
+    "number": 7,
+    "sha256": "828c8a98976683952554746f8ea2005358aae2a97ffe15df8caf4b909e5cfd7b"
   },
   "dopplerPackage": {
     "name": "doppler-gpu",
-    "version": "0.4.8",
-    "integrity": "sha512-xJMjB6LGChjgBDIENo1YOcr5ZYzyj2MRGyif8JbWuCie4PwjMflGPxYfcE/V/OVh7Nsoe3MYKv4uE/Xns332Zg==",
-    "shasum": "2f4b0233dfb00235c7b9fc61ecaa6e6a615050d3",
-    "fileCount": 1350
+    "version": "0.4.9",
+    "integrity": "sha512-2wJO8zIuLb7D57AdDq0Sxj7ABm7Pp5vJ+BwB4BHUdJgtzE1VKr1xSwi5AOC4yM+HWbQbk97OC2iZfS0vr3bHtQ==",
+    "shasum": "8bcdc8c2fcb419978614e956c8a4bc307bb5b328",
+    "fileCount": 1364
   },
   "embedding": {
     "modelId": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
@@ -31,23 +31,24 @@
     "backend": "doppler-reranker-load",
     "probeCount": 1,
     "promptBackend": "doppler-reranker-load",
-    "candidateInputCount": 8,
-    "candidateOutputCount": 8,
+    "candidateInputCount": 5,
+    "candidateOutputCount": 5,
     "promptScoringPaths": [
       "prefix-selected-token-logits"
     ],
-    "promptSelectedTokenLogitCount": 8,
-    "promptPrefixKvReuseCount": 8,
-    "promptPrefixStateReuseCount": 8,
-    "slotRerankCallCount": 9,
-    "slotCandidateInputCount": 36,
-    "slotCandidateOutputCount": 36,
-    "slotScoringPaths": [
-      "prefix-selected-token-logits"
-    ],
-    "slotSelectedTokenLogitCount": 36,
-    "slotPrefixKvReuseCount": 36,
-    "slotPrefixStateReuseCount": 32
+    "promptSelectedTokenLogitCount": 5,
+    "promptPrefixKvReuseCount": 5,
+    "promptPrefixStateReuseCount": 0,
+    "promptEmbeddingSlotCount": 5,
+    "modelEvidenceSlotCount": 5,
+    "slotSelectionMode": "exact-model-embedding",
+    "slotRerankCallCount": 0,
+    "slotCandidateInputCount": 0,
+    "slotCandidateOutputCount": 0,
+    "slotScoringPaths": [],
+    "slotSelectedTokenLogitCount": 0,
+    "slotPrefixKvReuseCount": 0,
+    "slotPrefixStateReuseCount": 0
   },
   "browserProof": {
     "sceneProofVerdict": "pass",

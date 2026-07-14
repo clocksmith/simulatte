@@ -228,6 +228,30 @@ async function runBrowserSmoke(options) {
     if (evaluated.exceptionDetails) throw new Error(evaluated.exceptionDetails.exception && evaluated.exceptionDetails.exception.description || evaluated.exceptionDetails.text);
     const browserVersion = await client.send('Browser.getVersion');
     const overviewScreenshot = await client.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false });
+    const decisionViewEvaluation = await client.send('Runtime.evaluate', {
+      expression: `(async () => {
+        const button = document.getElementById('decisions-button');
+        const drawer = document.getElementById('decisions-drawer');
+        button.click();
+        await new Promise((resolve) => setTimeout(resolve, 320));
+        const value = {
+          open: drawer.classList.contains('is-open'),
+          hidden: drawer.getAttribute('aria-hidden'),
+          expanded: button.getAttribute('aria-expanded'),
+          summary: document.getElementById('decision-title').textContent.trim(),
+        };
+        document.getElementById('decisions-close').click();
+        return value;
+      })()`,
+      awaitPromise: true,
+      returnByValue: true,
+    });
+    if (decisionViewEvaluation.exceptionDetails) throw new Error(decisionViewEvaluation.exceptionDetails.exception && decisionViewEvaluation.exceptionDetails.exception.description || decisionViewEvaluation.exceptionDetails.text);
+    const decisionView = decisionViewEvaluation.result.value;
+    await client.send('Runtime.evaluate', { expression: `document.getElementById('decisions-button').click()` });
+    await new Promise((resolve) => setTimeout(resolve, 320));
+    const decisionScreenshot = await client.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false });
+    await client.send('Runtime.evaluate', { expression: `document.getElementById('decisions-close').click()` });
     const actorViewEvaluation = await client.send('Runtime.evaluate', {
       expression: actorViewExpression(),
       awaitPromise: true,
@@ -273,6 +297,12 @@ async function runBrowserSmoke(options) {
       && result.copy.removedLabelsAbsent
       && result.copy.blankLink.href === '/blank/'
       && result.copy.blankLink.label === 'Blank'
+      && result.initialLayout.allWithinViewport
+      && result.initialLayout.primaryControlsVisible
+      && decisionView.open
+      && decisionView.hidden === 'false'
+      && decisionView.expanded === 'true'
+      && decisionView.summary.length > 0
       && result.camera.startedInFollow
       && result.camera.minimap.visible
       && result.camera.minimap.frameCount > 0
@@ -291,7 +321,7 @@ async function runBrowserSmoke(options) {
       && result.camera.followZoomWorked
       && result.camera.returnedToRoute
       && result.distance === '1524 m'
-      && result.runtime.includes('Loop complete')
+      && result.runtime === 'Complete'
       && actorView.mode === 'follow'
       && actorView.transition === 'settled'
       && actorView.followDistance <= 5.01
@@ -303,12 +333,13 @@ async function runBrowserSmoke(options) {
       && errors.length === 0
       && failedResponses.length === 0;
     const report = {
-      schema: 'simulatte.autonomyBrowserSmoke.v7',
+      schema: 'simulatte.autonomyBrowserSmoke.v8',
       pass,
       targetUrl,
       viewport: options.viewport,
       browser: { product: browserVersion.product, protocolVersion: browserVersion.protocolVersion, userAgent: browserVersion.userAgent },
       result,
+      decisionView,
       actorView,
       errors,
       failedResponses,
@@ -319,6 +350,7 @@ async function runBrowserSmoke(options) {
       fs.mkdirSync(options.outDir, { recursive: true });
       fs.writeFileSync(path.join(options.outDir, 'report.json'), `${JSON.stringify(report, null, 2)}\n`);
       fs.writeFileSync(path.join(options.outDir, 'journey.png'), Buffer.from(overviewScreenshot.data, 'base64'));
+      fs.writeFileSync(path.join(options.outDir, 'decisions.png'), Buffer.from(decisionScreenshot.data, 'base64'));
       fs.writeFileSync(path.join(options.outDir, 'actor-follow.png'), Buffer.from(actorScreenshot.data, 'base64'));
     }
     return report;
@@ -391,6 +423,22 @@ function browserJourneyExpression() {
       }
     };
     await waitFor(() => document.getElementById('runtime-status').dataset.kind === 'ready', 'runtime-ready');
+    const viewportRect = { width: document.documentElement.clientWidth, height: document.documentElement.clientHeight };
+    const rectFor = (id) => {
+      const element = document.getElementById(id);
+      const rect = element.getBoundingClientRect();
+      return { id, hidden: element.hidden, left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom, width: rect.width, height: rect.height };
+    };
+    const initialRects = ['runtime-toggle', 'camera-follow', 'camera-bird', 'camera-top', 'mission-input', 'shuffle-button', 'start-button', 'map-panel-button', 'decisions-button'].map(rectFor);
+    const initialLayout = {
+      viewport: viewportRect,
+      rects: initialRects,
+      allWithinViewport: initialRects.every((rect) => rect.hidden || (rect.left >= -0.5 && rect.top >= -0.5 && rect.right <= viewportRect.width + 0.5 && rect.bottom <= viewportRect.height + 0.5)),
+      primaryControlsVisible: ['mission-input', 'shuffle-button', 'start-button'].every((id) => {
+        const rect = initialRects.find((row) => row.id === id);
+        return rect && !rect.hidden && rect.width >= 40 && rect.height >= 40;
+      }),
+    };
     const rafIntervals = [];
     const longTasks = [];
     const phaseMarks = [{ phase: 'sampling_started', at: performance.now() }];
@@ -602,6 +650,7 @@ function browserJourneyExpression() {
     ];
     return {
       runtime: document.getElementById('runtime-status').textContent,
+      initialLayout,
       state: document.getElementById('metric-state').textContent,
       tick: Number(document.getElementById('metric-tick').textContent),
       distance: document.getElementById('metric-distance').textContent,

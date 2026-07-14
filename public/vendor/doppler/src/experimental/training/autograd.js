@@ -13,6 +13,7 @@ export const OpType = {
   MATMUL: 'matmul',
   RMSNORM: 'rmsnorm',
   RESIDUAL_ADD: 'residual_add',
+  RESHAPE: 'reshape',
   ROW_SLICE: 'row_slice',
   LAYERNORM: 'layernorm',
   ATTENTION: 'attention',
@@ -20,6 +21,7 @@ export const OpType = {
   ROPE: 'rope',
   SILU: 'silu',
   SILU_ROWSPLIT: 'silu_rowsplit',
+  SILU_GATED: 'silu_gated',
   GELU: 'gelu',
   SCALE: 'scale',
   CROSS_ENTROPY: 'cross_entropy',
@@ -29,6 +31,38 @@ export const OpType = {
   GROUPNORM: 'groupnorm',
   CONV2D: 'conv2d',
 };
+
+export function resolveMatmulBackwardOptions(options = {}) {
+  const stopped = new Set(
+    (Array.isArray(options.stopGradInputs) ? options.stopGradInputs : [])
+      .map((value) => Math.floor(Number(value)))
+      .filter((value) => Number.isInteger(value))
+  );
+  return {
+    ...options,
+    computeGradInput: options.computeGradInput !== false && !stopped.has(0),
+    computeGradWeight: options.computeGradWeight !== false && !stopped.has(1),
+  };
+}
+
+export function computeSiluGatedBackwardValues(gate, up, gradOutput, swigluLimit = 0) {
+  if (gate.length !== up.length || gate.length !== gradOutput.length) {
+    throw new Error('gated SiLU backward requires equal-length gate, up, and gradient arrays.');
+  }
+  const gradGate = new Float32Array(gate.length);
+  const gradUp = new Float32Array(gate.length);
+  for (let index = 0; index < gate.length; index += 1) {
+    const clamped = Math.max(-15, Math.min(15, gate[index]));
+    const sigmoid = 1 / (1 + Math.exp(-clamped));
+    const activated = gate[index] * sigmoid;
+    const product = activated * up[index];
+    if (swigluLimit > 0 && Math.abs(product) > swigluLimit) continue;
+    const derivative = sigmoid * (1 + (gate[index] * (1 - sigmoid)));
+    gradGate[index] = gradOutput[index] * derivative * up[index];
+    gradUp[index] = gradOutput[index] * activated;
+  }
+  return { gradGate, gradUp };
+}
 
 const MAX_RESIDUAL_ELEMENTS_PER_DISPATCH = 65535 * 256;
 
@@ -149,6 +183,24 @@ export class AutogradTape {
       ]);
     }
 
+    if (backwardName === 'reshape_backward') {
+      const input = record.inputs[0];
+      const inputElements = input.shape.reduce((product, value) => product * value, 1);
+      const gradElements = gradOut.shape.reduce((product, value) => product * value, 1);
+      if (inputElements !== gradElements) {
+        throw new Error(
+          `reshape backward element mismatch: input=${inputElements}, grad=${gradElements}`
+        );
+      }
+      const gradInput = createTensor(
+        gradOut.buffer,
+        gradOut.dtype,
+        [...input.shape],
+        'reshape_backward_output'
+      );
+      return this.filterStoppedGradients(record, [{ input, grad: gradInput }]);
+    }
+
     if (backwardName === 'row_slice_backward') {
       const rows = Math.max(1, Math.floor(Number(record.options?.rows) || 0));
       const cols = Math.max(1, Math.floor(Number(record.options?.cols) || 0));
@@ -170,6 +222,40 @@ export class AutogradTape {
       return this.filterStoppedGradients(record, [{ input: record.inputs[0], grad: gradInput }]);
     }
 
+    if (backwardName === 'silu_gated_backward') {
+      const [gate, up] = record.inputs;
+      const gateValues = await this.readTensorAsF32(gate);
+      const upValues = await this.readTensorAsF32(up);
+      const gradValues = await this.readTensorAsF32(gradOut);
+      const count = Math.max(1, Math.floor(Number(record.options?.count) || 0));
+      if (gateValues.length < count || upValues.length < count || gradValues.length < count) {
+        throw new Error('gated SiLU backward tensor is shorter than the declared count.');
+      }
+      const values = computeSiluGatedBackwardValues(
+        gateValues.subarray(0, count),
+        upValues.subarray(0, count),
+        gradValues.subarray(0, count),
+        Number.isFinite(record.options?.swigluLimit) ? record.options.swigluLimit : 0
+      );
+      const gradGate = createUploadedTensor(values.gradGate, 'f32', [...gate.shape], 'silu_gated_grad_gate');
+      const gradUp = createUploadedTensor(values.gradUp, 'f32', [...up.shape], 'silu_gated_grad_up');
+      return this.filterStoppedGradients(record, [
+        { input: gate, grad: gradGate },
+        { input: up, grad: gradUp },
+      ]);
+    }
+
+    if (backwardName === 'rope_backward') {
+      const [input, freqsCos, freqsSin] = record.inputs;
+      const gradInput = await backwardKernels.runRoPEBackward(
+        gradOut,
+        freqsCos,
+        freqsSin,
+        record.options
+      );
+      return this.filterStoppedGradients(record, [{ input, grad: gradInput }]);
+    }
+
     if (backwardName === 'cross_entropy_backward') {
       const [softmax, targets] = record.inputs;
       const gradLogits = await backwardKernels.runCrossEntropyBackward(softmax, targets, gradOut, {
@@ -184,6 +270,10 @@ export class AutogradTape {
 
     if (backwardName === 'embed_backward') {
       const [indices, embeddings] = record.inputs;
+      if (Array.isArray(record.options?.stopGradInputs)
+        && record.options.stopGradInputs.some((value) => Math.floor(Number(value)) === 1)) {
+        return [];
+      }
       const gradWeight = await backwardKernels.runEmbedBackward(indices, gradOut, {
         numTokens: Math.max(1, Math.floor(Number(record.options?.numTokens) || 0)),
         hiddenSize: Math.max(1, Math.floor(Number(record.options?.hiddenSize) || 0)),
@@ -197,19 +287,19 @@ export class AutogradTape {
     // Special case for attention which has CPU fallback and complex internal logic
     if (backwardName === 'attention_backward') {
       const [q, k, v, softmax] = record.inputs;
-      const { seqLen, numHeads, headDim, scale } = record.options;
+      const { seqLen, numHeads, numKVHeads, headDim, scale } = record.options;
       const recomputeForward = record.options.recomputeForward === true || !softmax;
       const { gradQ, gradK, gradV } = recomputeForward
         ? await attentionBackwardCpu(
           q, k, v, null, gradOut,
-          { seqLen, numHeads, headDim, scale, causal: record.options.causal }
+          { seqLen, numHeads, numKVHeads, headDim, scale, causal: record.options.causal }
         )
         : await backwardKernels.runAttentionBackward(
           q, k, v, softmax, gradOut,
-          { seqLen, numHeads, headDim, scale, causal: record.options.causal }
+          { seqLen, numHeads, numKVHeads, headDim, scale, causal: record.options.causal }
         ).catch(() => attentionBackwardCpu(
           q, k, v, softmax, gradOut,
-          { seqLen, numHeads, headDim, scale, causal: record.options.causal }
+          { seqLen, numHeads, numKVHeads, headDim, scale, causal: record.options.causal }
         ));
       return this.filterStoppedGradients(record, [
         { input: q, grad: gradQ },
@@ -226,12 +316,18 @@ export class AutogradTape {
     }
 
     // Prepare options from registry metadata
-    const options = { ...record.options };
+    let options = { ...record.options };
     if (entry.params) {
       for (const param of entry.params) {
         if (options[param] === undefined && record.options[param] !== undefined) {
           options[param] = record.options[param];
         }
+      }
+    }
+    if (backwardName === 'matmul_backward') {
+      options = resolveMatmulBackwardOptions(options);
+      if (!options.computeGradInput && !options.computeGradWeight) {
+        return [];
       }
     }
 

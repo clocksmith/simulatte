@@ -1,0 +1,44 @@
+{
+  "schema": "simulatte.resolutionPerformanceBudgets.v1",
+  "id": "resolution-performance-budgets-v1",
+  "contentVersion": "resolution-performance-budgets-2026-07-14",
+  "claimBoundary": "Budgets are declared before measurement. A metric gates deployment only when its mode is hard. Promoting a recorded metric to hard requires editing this file in a reviewed change; the performance receipt pins this file's SHA-256 so results can never quietly redefine their own thresholds.",
+  "lanes": {
+    "default_lexical": {
+      "description": "The shipped default path: lexical compiler plus extended deterministic typo matching. No model may load or execute.",
+      "budgets": {
+        "modelDownloadBytes": { "mode": "hard", "max": 0 },
+        "modelExecutions": { "mode": "hard", "max": 0 },
+        "endToEndP50Ms": { "mode": "record" },
+        "endToEndP95Ms": { "mode": "record" },
+        "maxLongTaskMs": { "mode": "hard", "max": 200 }
+      }
+    },
+    "hybrid_optin": {
+      "description": "Opt-in cascade: lexical, then extended typo, then Qwen embedding for still-unresolved places only.",
+      "budgets": {
+        "modelExecutionsOnDeterministicHits": { "mode": "hard", "max": 0 },
+        "mustRefuseViolations": { "mode": "hard", "max": 0 },
+        "wrongPlaceResolutions": { "mode": "hard", "max": 0 },
+        "embeddingExecutedObserved": { "mode": "hard", "equals": true },
+        "modelDownloadBytes": { "mode": "hard", "max": 600000000 },
+        "coldModelLoadMs": { "mode": "record" },
+        "warmModelLoadMs": { "mode": "record" },
+        "tierLexicalP95Ms": { "mode": "record" },
+        "tierTypoP95Ms": { "mode": "record" },
+        "tierEmbeddingP95Ms": { "mode": "record" },
+        "endToEndP50Ms": { "mode": "record" },
+        "endToEndP95Ms": { "mode": "record" },
+        "maxLongTaskMsExcludingLoad": { "mode": "hard", "max": 200 },
+        "maxLongTaskMsDuringLoad": { "mode": "record" },
+        "peakJsHeapBytes": { "mode": "record" },
+        "droppedFramesDuringResolution": { "mode": "record" }
+      }
+    }
+  },
+  "cascade": {
+    "tiers": ["lexical", "extended_typo", "embedding"],
+    "requirement": "The receipt must report hit counts per tier. A probe resolved by an earlier tier must show zero executions in every later tier."
+  },
+  "promotionNote": "Recorded metrics gain hard maxima only after two receipts on unchanged budgets establish a baseline. The first hard set protects the invariants already known: the default lane stays model-free, deterministic hits never pay model cost, refusal and wrong-place guardrails carry over from the accuracy receipt, and no long task may stall the page outside the attributed load phase."
+}

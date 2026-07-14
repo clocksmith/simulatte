@@ -626,6 +626,16 @@ test('closed-circuit missions settle exact lap-count and elapsed-time goals thro
 
 test('delivery canonicalizes governed place typos and proves named routed-street avoidance', async () => {
   const rows = governedAssets();
+  const extendedTypoMission = missionApi.compileMission(
+    'Deliver the parcel by bike from East Village to Youniun Sqare.',
+    rows.world,
+    rows.embodiments
+  );
+  const extendedDestination = extendedTypoMission.parser.evidence.find((row) => row.field === 'destination');
+  assert.equal(extendedTypoMission.destinationNodeId, rows.world.nodes.find((node) => node.label === 'Union Square').id);
+  assert.equal(extendedDestination.method, 'extended_damerau_place');
+  assert.equal(extendedTypoMission.parser.kind, 'deterministic_grounded_lexical');
+  assert.equal(extendedTypoMission.placeResolution, null);
   const mission = missionApi.compileMission(
     'Deliver the parcel by bike from Union Squre to North Willamsburg. Prefer protected lanes and avoid Kent Avenue.',
     rows.world,
@@ -1122,6 +1132,9 @@ test('neural place matching filters candidates by the active embodiment graph an
   assert.equal(rows.placeResolutionEvidence.accepted, true);
   assert.ok(rows.placeResolutionEvidence.lanes.challenger.metrics.correct > rows.placeResolutionEvidence.lanes.control.metrics.correct);
   assert.equal(rows.placeResolutionEvidence.lanes.challenger.guardrails.mustRefuseViolations, 0);
+  assert.equal(rows.placeResolutionEvidence.lanes.modelCandidate.metrics.correct, rows.placeResolutionEvidence.lanes.challenger.metrics.correct);
+  assert.equal(rows.placeResolutionEvidence.modelSelection.status, 'rejected_no_incremental_gain');
+  assert.equal(rows.placeResolutionEvidence.modelSelection.incrementalCorrect, 0);
   contracts.validatePolicyArenaEvidence(rows.policyArenaEvidence);
   assert.equal(rows.policyArenaEvidence.diagnosticSelection.status, 'diagnostic_leader_only');
   assert.equal(rows.policyArenaEvidence.promotion.status, 'blocked');
@@ -1134,9 +1147,9 @@ test('neural place evaluation binds the vendored Doppler runtime named by its re
   const runtimePath = 'public/vendor/doppler/src/index.js';
   assert.match(source, /from '\.\.\/\.\.\/public\/vendor\/doppler\/src\/index\.js'/);
   assert.doesNotMatch(source, /from '\.\.\/\.\.\/\.\.\/doppler\/src\/index\.js'/);
-  assert.equal(evidence.identities.challengerAssets.dopplerRuntime.path, runtimePath);
-  assert.equal(evidence.identities.challengerAssets.dopplerRuntime.gitSha, lock.doppler.development.gitSha);
-  assert.equal(evidence.identities.challengerAssets.dopplerRuntime.sha256, hashFile(path.join(root, runtimePath)));
+  assert.equal(evidence.identities.modelCandidateAssets.dopplerRuntime.path, runtimePath);
+  assert.equal(evidence.identities.modelCandidateAssets.dopplerRuntime.gitSha, lock.doppler.development.gitSha);
+  assert.equal(evidence.identities.modelCandidateAssets.dopplerRuntime.sha256, hashFile(path.join(root, runtimePath)));
 });
 
 test('agent stops with a failure receipt when every candidate fails safety', async () => {
@@ -1241,6 +1254,35 @@ test('autonomy browser surface loads every declared module and stays independent
   for (const file of autonomySourceDirs.flatMap(jsFiles)) {
     assert.ok(fs.readFileSync(file, 'utf8').split(/\r?\n/).length <= 999, `${path.relative(root, file)} should remain below 1,000 lines`);
   }
+});
+
+test('autonomy UI keeps the map primary and moves technical controls behind progressive disclosure', () => {
+  const html = fs.readFileSync(path.join(autonomyDir, 'index.html'), 'utf8');
+  const blankHtml = fs.readFileSync(path.join(root, 'public/blank/index.html'), 'utf8');
+  const css = fs.readFileSync(path.join(autonomyDir, 'styles.css'), 'utf8');
+  const design = fs.readFileSync(path.join(autonomyDir, 'design/simulatte.css'), 'utf8');
+  assert.match(html, /href="\.\/design\/simulatte\.css"/);
+  assert.match(blankHtml, /href="\.\.\/design\/simulatte\.css"/);
+  assert.match(html, /class="mission-dock sim-surface"/);
+  assert.match(html, /id="decisions-drawer"[^>]*aria-hidden="true"/);
+  assert.match(html, /id="runtime-toggle"[^>]*aria-expanded="false"/);
+  assert.match(html, /id="map-popover"[^>]*hidden/);
+  assert.match(html, /<details class="evidence-section retrieval-evidence">/);
+  assert.match(html, /<details class="evidence-section receipt-evidence">/);
+  assert.match(html, /Fast, no download/);
+  assert.match(html, /Semantic test, 533 MB/);
+  assert.doesNotMatch(html, /WebGPU world model|Decision engine|Route search|Prediction settlement/);
+  assert.match(css, /#autonomy-canvas[\s\S]*width: 100%;[\s\S]*height: 100%/);
+  assert.match(css, /@media \(max-width: 820px\)[\s\S]*translateY/);
+  assert.match(design, /--sim-spectrum:/);
+  assert.match(design, /prefers-reduced-motion/);
+});
+
+test('mission input failures become short actionable interface messages', () => {
+  assert.equal(appApi.friendlyMissionError({ code: 'destination_not_grounded' }), 'I cannot identify the destination in the loaded regions.');
+  assert.equal(appApi.friendlyMissionError({ code: 'termination_not_grounded' }), 'Add a distance, lap count, or duration for this loop.');
+  assert.match(appApi.friendlyMissionError({ code: 'from_place_ambiguous' }), /more than one loaded location/);
+  assert.doesNotMatch(appApi.friendlyMissionError({ code: 'destination_not_grounded' }), /destination_not_grounded/);
 });
 
 test('renderer resolves the camera runtime at use time and rejects incomplete APIs explicitly', () => {

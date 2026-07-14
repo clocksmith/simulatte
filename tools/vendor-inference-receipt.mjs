@@ -68,32 +68,43 @@ export function validateVendorInferenceReport(report, modelRuntimeLock, modelRun
       phase3.promptMinimumPrefixTokenCount > 0,
     'prompt reranking selected-token or prefix-KV counts are incomplete'
   );
+  const slotRerankCallCount = Number(phase3.slotRerankCallCount || 0);
+  const promptEmbeddingSlotCount = Number(phase3.promptEmbeddingSlotCount || 0);
+  const modelEvidenceSlotCount = Number(phase3.modelEvidenceSlotCount || 0);
+  const exactEmbeddingPath = slotRerankCallCount === 0 &&
+    promptEmbeddingSlotCount > 0 &&
+    modelEvidenceSlotCount >= promptEmbeddingSlotCount;
   requireValue(
-    phase3.promptPrefixStateReuseCount === phase3.candidateOutputCount,
-    'prompt reranking did not reuse the live slot-query prefix state'
+    slotRerankCallCount > 0 || exactEmbeddingPath,
+    'Phase 3 neither reranked ambiguous slots nor proved exact model-embedded construction slots'
   );
-  requireValue(phase3.slotRerankCallCount > 0, 'Phase 3 did not rerank typed scene slots');
-  requireValue(
-    phase3.slotCandidateInputCount > 0 && phase3.slotCandidateOutputCount > 0,
-    'typed scene slot reranking had no candidates'
-  );
-  requireValue(
-    Array.isArray(phase3.slotScoringPaths) &&
-      phase3.slotScoringPaths.length === 1 &&
-      phase3.slotScoringPaths[0] === 'prefix-selected-token-logits',
-    'slot reranking did not exclusively use prefix-selected-token logits'
-  );
-  requireValue(
-    phase3.slotSelectedTokenLogitCount === phase3.slotCandidateOutputCount &&
-      phase3.slotPrefixKvReuseCount === phase3.slotCandidateOutputCount &&
-      phase3.slotMinimumPrefixTokenCount > 0,
-    'slot reranking selected-token or prefix-KV counts are incomplete'
-  );
-  const slotColdStartBudget = Math.max(1, Number(expectedReranker.maxSlotCandidatesPerCall || 0));
-  requireValue(
-    phase3.slotPrefixStateReuseCount >= phase3.slotCandidateOutputCount - slotColdStartBudget,
-    'slot reranking did not reuse live prefix state across compatible calls'
-  );
+  if (slotRerankCallCount > 0) {
+    requireValue(
+      phase3.promptPrefixStateReuseCount === phase3.candidateOutputCount,
+      'prompt reranking did not reuse the live slot-query prefix state'
+    );
+    requireValue(
+      phase3.slotCandidateInputCount > 0 && phase3.slotCandidateOutputCount > 0,
+      'typed scene slot reranking had no candidates'
+    );
+    requireValue(
+      Array.isArray(phase3.slotScoringPaths) &&
+        phase3.slotScoringPaths.length === 1 &&
+        phase3.slotScoringPaths[0] === 'prefix-selected-token-logits',
+      'slot reranking did not exclusively use prefix-selected-token logits'
+    );
+    requireValue(
+      phase3.slotSelectedTokenLogitCount === phase3.slotCandidateOutputCount &&
+        phase3.slotPrefixKvReuseCount === phase3.slotCandidateOutputCount &&
+        phase3.slotMinimumPrefixTokenCount > 0,
+      'slot reranking selected-token or prefix-KV counts are incomplete'
+    );
+    const slotColdStartBudget = Math.max(1, Number(expectedReranker.maxSlotCandidatesPerCall || 0));
+    requireValue(
+      phase3.slotPrefixStateReuseCount >= phase3.slotCandidateOutputCount - slotColdStartBudget,
+      'slot reranking did not reuse live prefix state across compatible calls'
+    );
+  }
   requireValue(result.sceneProofVerdict === 'pass', 'scene proof did not pass');
   requireValue(result.phase7PixelProofStatus === 'pass', 'pixel proof did not pass');
 
@@ -130,6 +141,9 @@ export function validateVendorInferenceReport(report, modelRuntimeLock, modelRun
       promptSelectedTokenLogitCount: phase3.promptSelectedTokenLogitCount,
       promptPrefixKvReuseCount: phase3.promptPrefixKvReuseCount,
       promptPrefixStateReuseCount: phase3.promptPrefixStateReuseCount,
+      promptEmbeddingSlotCount,
+      modelEvidenceSlotCount,
+      slotSelectionMode: exactEmbeddingPath ? 'exact-model-embedding' : 'ambiguous-model-rerank',
       slotRerankCallCount: phase3.slotRerankCallCount,
       slotCandidateInputCount: phase3.slotCandidateInputCount,
       slotCandidateOutputCount: phase3.slotCandidateOutputCount,

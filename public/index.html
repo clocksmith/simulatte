@@ -7,203 +7,205 @@
   <title>Simulatte</title>
   <meta name="description" content="A local-first WebGPU simulator for governed pedestrian, bicycle, scooter, and car journeys across the Villages and North Brooklyn.">
   <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+  <link rel="stylesheet" href="./design/simulatte.css">
   <link rel="stylesheet" href="./styles.css">
 </head>
-<body>
-  <header class="site-header">
-    <div class="runtime-block">
-      <span class="pulse" aria-hidden="true"></span>
-      <div>
-        <span class="runtime-label">Runtime</span>
-        <strong id="runtime-status" class="runtime-status" data-kind="loading" aria-live="polite">Loading governed assets</strong>
-      </div>
-      <div class="runtime-identities">
-        <span id="render-identity"></span>
-      </div>
-    </div>
-    <a class="blank-link" href="/blank/" aria-label="Open Blank world compiler">Blank</a>
-  </header>
+<body class="sim-app" data-journey-phase="loading">
+  <main class="map-workspace" aria-label="Simulatte">
+    <section class="simulation-stage" aria-label="NYC mission map">
+      <div class="canvas-shell">
+        <canvas id="autonomy-canvas" width="1440" height="900" aria-label="Interactive WebGPU view of pedestrian, bicycle, scooter, and car missions in the Villages and North Brooklyn"></canvas>
+        <canvas id="follow-minimap" class="follow-minimap" width="320" height="240" aria-label="Top view minimap centered on the active agent" hidden></canvas>
 
-  <main>
-    <section class="mission-section" aria-label="Mission">
-      <label class="mission-field" for="mission-input">
-        <span class="sr-only">Natural-language autonomy mission</span>
-        <textarea id="mission-input" rows="2" spellcheck="false"></textarea>
-      </label>
-      <div class="mission-controls" aria-label="Mission controls">
-        <label class="resolver-control" for="place-resolution-lane">
-          <span>Place matching</span>
-          <select id="place-resolution-lane">
-            <option value="lexical">Lexical control · no download</option>
-            <option value="qwen_embedding">Hybrid Qwen 0.6B · 533 MB</option>
-          </select>
-        </label>
-        <button id="shuffle-button" type="button">Shuffle</button>
-        <button id="start-button" class="primary" type="button"><span class="play-mark" aria-hidden="true"></span>Start</button>
-        <button id="pause-button" type="button" disabled>Pause</button>
-        <button id="step-button" type="button">Step</button>
-        <button id="reset-button" type="button">Reset</button>
-        <button id="export-button" type="button" disabled>Export receipt</button>
-      </div>
-    </section>
+        <div class="runtime-anchor">
+          <button id="runtime-toggle" class="status-pill sim-surface" type="button" aria-controls="runtime-details" aria-expanded="false">
+            <span class="status-dot" aria-hidden="true"></span>
+            <strong id="runtime-status" class="runtime-status" data-kind="loading" aria-live="polite">Loading map</strong>
+          </button>
+          <div id="runtime-details" class="runtime-details sim-popover" hidden>
+            <span class="sim-label">This device</span>
+            <span id="render-identity">Waiting for renderer</span>
+            <button id="runtime-details-close" class="quiet-action" type="button">Close</button>
+          </div>
+        </div>
 
-    <section class="metric-strip" aria-label="Journey metrics">
-      <div><span>State</span><strong id="metric-state">active</strong></div>
-      <div><span>Tick</span><strong id="metric-tick">0</strong></div>
-      <div><span>Speed</span><strong id="metric-speed">0 m/s</strong></div>
-      <div><span>Travel</span><strong id="metric-distance">0 m</strong></div>
-      <div><span>Route</span><strong id="metric-route">unplanned</strong></div>
-      <div><span>Action</span><strong id="metric-bet">none</strong></div>
-      <div><span>Bet</span><strong id="metric-settlement">none</strong></div>
-      <div><span>Calibration</span><strong id="metric-calibration">0 / 0</strong></div>
-    </section>
+        <div class="camera-controls" aria-label="Camera controls">
+          <label class="camera-focus-label" for="camera-focus">
+            <span class="sr-only">Map focus</span>
+            <select id="camera-focus" class="sim-field" aria-label="Map focus">
+              <option value="route">Full route</option>
+            </select>
+          </label>
+          <div class="camera-modes sim-segmented">
+            <button id="camera-follow" type="button" aria-pressed="false">Follow</button>
+            <button id="camera-bird" class="is-active" type="button" aria-pressed="true">Bird</button>
+            <button id="camera-top" type="button" aria-pressed="false">Top</button>
+          </div>
+        </div>
 
-    <section class="proof-strip" aria-label="Journey forecast and counterfactual controls">
-      <div class="proof-stat"><span>Forecast</span><strong id="planning-forecast">not planned</strong></div>
-      <div class="proof-stat"><span>Accessibility</span><strong id="accessibility-proof">not requested</strong></div>
-      <div class="proof-stat"><span>Roads not taken</span><strong id="alternative-proof">not planned</strong></div>
-      <div class="proof-stat"><span>Settled locally</span><strong id="ledger-proof">0 trials</strong></div>
-      <div class="proof-stat"><span>Policy arena</span><strong id="policy-arena-proof">loading evidence</strong></div>
-      <div class="counterfactual-controls">
-        <label for="counterfactual-kind"><span>What if</span>
-          <select id="counterfactual-kind">
-            <option value="close_street">Close a street</option>
-            <option value="historical_crash_weighting">Weight reported crashes</option>
-            <option value="world_snapshot">Replay a dated world</option>
-          </select>
-        </label>
-        <label class="street-input" for="counterfactual-street"><span class="sr-only">Street to close</span><input id="counterfactual-street" value="Bedford Avenue" autocomplete="off"></label>
-        <label class="snapshot-input" for="counterfactual-snapshot"><span class="sr-only">World snapshot date</span><input id="counterfactual-snapshot" type="date" value="2019-07-13" disabled></label>
-        <button id="compare-button" type="button">Compare outcomes</button>
-        <button id="export-ledger-button" type="button">Export ledger</button>
-        <button id="import-receipt-button" type="button">Import receipt</button>
-        <input id="import-receipt-file" type="file" accept="application/json,.json" hidden>
-      </div>
-      <output id="counterfactual-proof" class="counterfactual-proof">Same mission, matched world, declared intervention.</output>
-    </section>
+        <section class="journey-hud sim-surface" aria-label="Journey progress">
+          <div class="journey-progress" aria-hidden="true"><span id="journey-progress-fill"></span></div>
+          <div class="journey-hud-line">
+            <strong id="metric-state">active</strong>
+            <span id="metric-distance">0 m</span>
+            <span id="metric-time">0:00</span>
+            <span id="metric-speed">0 m/s</span>
+          </div>
+          <div class="hud-contract-values sr-only" aria-hidden="true">
+            <span id="metric-tick">0</span>
+            <span id="metric-route">unplanned</span>
+            <span id="metric-bet">none</span>
+            <span id="metric-settlement">none</span>
+            <span id="metric-calibration">0 / 0</span>
+          </div>
+        </section>
 
-    <section class="workspace">
-      <div class="simulation-stage">
-        <div class="stage-heading">
-          <div class="stage-title">
-            <span class="section-index">01</span>
-            <div>
-              <span class="section-label">WebGPU world model</span>
-              <h2>Villages to North Brooklyn, frozen 2026-07-13</h2>
+        <div class="map-anchor">
+          <button id="map-panel-button" class="sim-action map-button" type="button" aria-controls="map-popover" aria-expanded="false">Map</button>
+          <div id="map-popover" class="map-popover sim-popover" hidden>
+            <div class="map-popover-head">
+              <strong>Map</strong>
+              <button id="map-panel-close" class="quiet-action" type="button">Close</button>
             </div>
-          </div>
-          <div class="camera-controls" aria-label="Map camera">
-            <label class="camera-focus-label" for="camera-focus">
-              <span class="sr-only">Map focus</span>
-              <select id="camera-focus" aria-label="Map focus">
-                <option value="route">Full route</option>
-              </select>
-            </label>
-            <button id="camera-follow" type="button">Follow</button>
-            <button id="camera-bird" class="is-active" type="button">Bird</button>
-            <button id="camera-top" type="button">Top</button>
+            <div class="legend" aria-label="Map legend">
+              <span><i class="building"></i>Buildings</span>
+              <span><i class="park"></i>Parks</span>
+              <span><i class="protected"></i>Protected</span>
+              <span><i class="shared"></i>Shared</span>
+              <span><i class="route"></i>Planned</span>
+              <span><i class="trace"></i>Traveled</span>
+              <span><i class="prediction"></i>Prediction</span>
+            </div>
+            <p class="map-hint">Drag to orbit. Shift-drag or use Top to pan. Scroll to zoom.</p>
+            <details class="map-data-details">
+              <summary>Data and limits</summary>
+              <p>NYC bike routes, park properties, building footprints, and OpenStreetMap street context.</p>
+              <p>Park circuits follow property boundaries, not surveyed sidewalks. Traffic, signals, risk, and outcomes are simulated.</p>
+            </details>
+            <a class="blank-link" href="/blank/" aria-label="Open Blank world compiler">Blank</a>
           </div>
         </div>
-        <div class="canvas-shell">
-          <canvas id="autonomy-canvas" width="1440" height="900" aria-label="Pitched WebGPU view of pedestrian, bicycle, scooter, and car autonomy missions in the Villages and North Brooklyn"></canvas>
-          <canvas id="follow-minimap" class="follow-minimap" width="320" height="240" aria-label="Top view minimap centered on the active autonomous agent" hidden></canvas>
-          <div class="map-provenance">
-            <strong>Real geometry</strong>
-            <span>NYC bike routes + park properties</span>
-            <span>NYC buildings</span>
-            <span>OSM street context</span>
+
+        <button id="decisions-button" class="sim-action decisions-button" type="button" aria-controls="decisions-drawer" aria-expanded="false">Decisions</button>
+
+        <section class="mission-dock sim-surface" aria-label="Mission">
+          <label class="mission-field" for="mission-input">
+            <span class="sr-only">Describe a mission</span>
+            <textarea id="mission-input" rows="2" spellcheck="false" aria-describedby="mission-error" placeholder="Where should the agent go?"></textarea>
+          </label>
+          <div class="mission-actions" aria-label="Mission actions">
+            <button id="shuffle-button" class="sim-action" type="button">Shuffle<span aria-hidden="true">↻</span></button>
+            <button id="start-button" class="sim-action sim-action-primary" type="button"><span class="play-mark" aria-hidden="true"></span>Start</button>
+            <button id="pause-button" class="sim-action" type="button" hidden>Pause</button>
+            <button id="step-button" class="sim-action" type="button" hidden>Step</button>
+            <button id="reset-button" class="sim-action" type="button" hidden>Reset</button>
+            <button id="replay-button" class="sim-action sim-action-primary" type="button" hidden>Replay</button>
+            <button id="what-if-button" class="sim-action" type="button" hidden>What if</button>
+            <details id="mission-more-menu" class="mission-more-menu">
+              <summary class="sim-action">More</summary>
+              <div class="mission-more-content sim-popover">
+                <label class="resolver-control" for="place-resolution-lane">
+                  <span>Place matching</span>
+                  <select id="place-resolution-lane" class="sim-field">
+                    <option value="lexical">Fast, no download</option>
+                    <option value="qwen_embedding">Semantic test, 533 MB</option>
+                  </select>
+                </label>
+                <p id="place-lane-note">Fast matching is ready.</p>
+              </div>
+            </details>
           </div>
-          <div class="legend" aria-label="Map legend">
-            <span><i class="building"></i>Buildings</span>
-            <span><i class="park"></i>Parks</span>
-            <span><i class="protected"></i>Protected</span>
-            <span><i class="shared"></i>Shared</span>
-            <span><i class="route"></i>Planned</span>
-            <span><i class="trace"></i>Traveled</span>
-            <span><i class="prediction"></i>Prediction</span>
-          </div>
-          <div class="map-hint">Drag to orbit · Shift-drag or Top to pan · scroll to zoom</div>
-        </div>
+          <output id="mission-error" class="mission-error" aria-live="polite"></output>
+        </section>
       </div>
-
-      <aside class="evidence-panel" aria-label="Decision evidence">
-        <header class="evidence-heading">
-          <span class="section-index">02</span>
-          <div>
-            <span class="section-label">Decision engine</span>
-            <h2 id="decision-heading"><span id="decision-title">Awaiting first observation</span></h2>
-            <p id="decision-meta">No action selected</p>
-          </div>
-        </header>
-
-        <section class="evidence-section route-evidence" aria-labelledby="route-evidence-title">
-          <div class="evidence-section-heading">
-            <h3 id="route-evidence-title">Route search</h3>
-            <span id="route-stats">A* not run</span>
-          </div>
-          <code id="route-formula">cost = travel + risk + preference</code>
-          <div id="route-components" class="component-line"></div>
-        </section>
-
-        <section class="evidence-section retrieval-evidence" aria-labelledby="retrieval-title">
-          <div class="evidence-section-heading">
-            <h3 id="retrieval-title">Retrieve → rerank</h3>
-            <span id="retrieval-stats">No query</span>
-          </div>
-          <div class="pipeline-row"><span>Query</span><div id="retrieval-query">Waiting for observation</div></div>
-          <div class="pipeline-row"><span>Found</span><div id="retrieval-candidates">No candidates</div></div>
-          <div class="pipeline-row"><span>Ranked</span><div id="rerank-candidates">No ranking</div></div>
-          <p id="reranker-proof" class="evidence-proof">Diagnostic comparison loading</p>
-          <p id="place-resolution-proof" class="evidence-proof">Place matching: lexical control</p>
-        </section>
-
-        <section class="evidence-section occurrence-evidence" aria-labelledby="occurrence-title">
-          <div class="evidence-section-heading">
-            <h3 id="occurrence-title">Occurrence pipeline</h3>
-            <span id="occurrence-stats">No patterns evaluated</span>
-          </div>
-          <div class="pipeline-row"><span>Active</span><div id="occurrence-patterns">No active pattern</div></div>
-          <div class="pipeline-row"><span>Effects</span><div id="occurrence-effects">No world effect</div></div>
-        </section>
-
-        <section class="evidence-section action-evidence" aria-labelledby="action-title">
-          <div class="evidence-section-heading">
-            <h3 id="action-title">Candidate action bets</h3>
-            <span>utility after hard gates</span>
-          </div>
-          <div id="bet-list" class="bet-list" aria-label="Candidate action bets"></div>
-        </section>
-
-        <section class="evidence-section gate-evidence" aria-labelledby="gate-title">
-          <div class="evidence-section-heading">
-            <h3 id="gate-title">Safety gates</h3>
-            <span>all must pass</span>
-          </div>
-          <div id="gate-list" class="gate-list"></div>
-        </section>
-
-        <section class="evidence-section settlement-evidence" aria-labelledby="settlement-title">
-          <div class="evidence-section-heading">
-            <h3 id="settlement-title">Prediction settlement</h3>
-            <span>forecast against outcome</span>
-          </div>
-          <div id="settlement-math" class="settlement-math">No settled bet</div>
-        </section>
-
-        <section class="evidence-section trace-evidence" aria-labelledby="trace-title">
-          <div class="evidence-section-heading">
-            <h3 id="trace-title">Receipt chain</h3>
-            <span>newest first</span>
-          </div>
-          <div id="trace-list" class="trace-list" aria-live="polite"></div>
-        </section>
-      </aside>
     </section>
-  </main>
 
-  <footer>
-    Geometry is frozen open-data evidence. Park circuits follow property boundaries, not surveyed sidewalks. Signals, actors, speed, risk, and outcomes are simulation assumptions. This does not establish physical autonomy.
-  </footer>
+    <div id="decisions-backdrop" class="drawer-backdrop" hidden></div>
+    <aside id="decisions-drawer" class="evidence-panel sim-surface" aria-label="Decision details" aria-hidden="true">
+      <header class="evidence-heading">
+        <div>
+          <strong id="decision-title">Awaiting first observation</strong>
+          <p id="decision-meta">Start a mission to see why each action was selected.</p>
+        </div>
+        <button id="decisions-close" class="drawer-close" type="button" aria-label="Close decisions">×</button>
+      </header>
+
+      <details class="evidence-section journey-evidence" open>
+        <summary>Journey</summary>
+        <dl class="journey-facts">
+          <div><dt>Forecast</dt><dd id="planning-forecast">Not planned</dd></div>
+          <div><dt>Accessibility</dt><dd id="accessibility-proof">Not requested</dd></div>
+          <div><dt>Alternative</dt><dd id="alternative-proof">Not planned</dd></div>
+          <div><dt>Settled locally</dt><dd id="ledger-proof">0 trials</dd></div>
+          <div><dt>Policy</dt><dd id="policy-arena-proof">Loading evidence</dd></div>
+        </dl>
+      </details>
+
+      <details class="evidence-section route-evidence" open>
+        <summary>Route <span id="route-stats">Not planned</span></summary>
+        <code id="route-formula">cost = travel + risk + preference</code>
+        <div id="route-components" class="component-line"></div>
+      </details>
+
+      <details class="evidence-section retrieval-evidence">
+        <summary>Place and feature matching <span id="retrieval-stats">No query</span></summary>
+        <div class="pipeline-row"><span>Query</span><div id="retrieval-query">Waiting for observation</div></div>
+        <div class="pipeline-row"><span>Found</span><div id="retrieval-candidates">No candidates</div></div>
+        <div class="pipeline-row"><span>Ranked</span><div id="rerank-candidates">No ranking</div></div>
+        <p id="reranker-proof" class="evidence-proof">Diagnostic comparison loading</p>
+        <p id="place-resolution-proof" class="evidence-proof">Fast place matching</p>
+      </details>
+
+      <details class="evidence-section occurrence-evidence">
+        <summary>World events <span id="occurrence-stats">No patterns evaluated</span></summary>
+        <div class="pipeline-row"><span>Active</span><div id="occurrence-patterns">No active pattern</div></div>
+        <div class="pipeline-row"><span>Effects</span><div id="occurrence-effects">No world effect</div></div>
+      </details>
+
+      <details class="evidence-section action-evidence">
+        <summary>Candidate actions</summary>
+        <div id="bet-list" class="bet-list" aria-label="Candidate actions"></div>
+      </details>
+
+      <details class="evidence-section gate-evidence">
+        <summary>Safety</summary>
+        <div id="gate-list" class="gate-list"></div>
+      </details>
+
+      <details class="evidence-section settlement-evidence">
+        <summary>Prediction check</summary>
+        <div id="settlement-math" class="settlement-math">No settled prediction</div>
+      </details>
+
+      <details id="what-if-section" class="evidence-section what-if-section">
+        <summary>What if</summary>
+        <div class="counterfactual-controls">
+          <label for="counterfactual-kind"><span>Change</span>
+            <select id="counterfactual-kind" class="sim-field">
+              <option value="close_street">Close a street</option>
+              <option value="historical_crash_weighting">Weight reported crashes</option>
+              <option value="world_snapshot">Replay a dated world</option>
+            </select>
+          </label>
+          <label id="counterfactual-street-wrap" for="counterfactual-street"><span>Street</span><input id="counterfactual-street" class="sim-field" value="Bedford Avenue" autocomplete="off"></label>
+          <label id="counterfactual-snapshot-wrap" for="counterfactual-snapshot" hidden><span>Date</span><input id="counterfactual-snapshot" class="sim-field" type="date" value="2019-07-13" disabled></label>
+          <button id="compare-button" class="sim-action" type="button">Compare</button>
+        </div>
+        <output id="counterfactual-proof" class="counterfactual-proof">Choose one change and compare the same mission.</output>
+      </details>
+
+      <details class="evidence-section receipt-evidence">
+        <summary>Receipts</summary>
+        <div class="receipt-actions">
+          <button id="export-button" class="sim-action" type="button" disabled>Export journey</button>
+          <button id="export-ledger-button" class="sim-action" type="button">Export ledger</button>
+          <button id="import-receipt-button" class="sim-action" type="button">Import</button>
+          <input id="import-receipt-file" type="file" accept="application/json,.json" hidden>
+        </div>
+        <div id="trace-list" class="trace-list" aria-live="polite"></div>
+      </details>
+    </aside>
+  </main>
 
   <script defer src="./contracts/data-contract-validator.js?v=29e33315f409f41b5fada87d673db233e414d023-9d08dc8dd1e4"></script>
   <script defer src="./contracts/contract-validator.js?v=29e33315f409f41b5fada87d673db233e414d023-9d08dc8dd1e4"></script>

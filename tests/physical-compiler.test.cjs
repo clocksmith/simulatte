@@ -801,6 +801,39 @@ test('Phase 4 proximity policies accept explicit co-location without accepting u
   assert.equal(grounderGraph.spatialRelationSatisfies('with', 'below'), false);
 });
 
+test('Phase 4 remaps retrieved causal endpoints onto direct prompt nodes', () => {
+  const nodes = [
+    { id: 'prompt-body-data-center', canonicalId: 'prompt.body.data-center', label: 'Edge Data Center', directlyGrounded: true },
+    { id: 'prompt-body-server-racks', canonicalId: 'prompt.body.server-racks', label: 'Server Racks', directlyGrounded: true },
+    { id: 'concept-card-synthesis-data-center', canonicalId: 'concept.card-synthesis-data-center', label: 'Data Center', directlyGrounded: false },
+    { id: 'material-server-racks', canonicalId: 'material.server-racks', label: 'Server Racks', directlyGrounded: false },
+  ];
+  const edges = grounderGraph.edgeRowsForIntentBrief({ causalGraph: [{
+    id: 'causal.data-center-cooling-feedback.1',
+    ruleId: 'causal.data-center-cooling-feedback',
+    relationType: 'controlLoop',
+    processId: 'network_flow',
+    operatorType: 'network_flow',
+    sourceRef: 'concept.card-synthesis-data-center',
+    sourceLabel: 'data center',
+    targetRef: 'material.server-racks',
+    targetLabel: 'server racks',
+    groundingPolicy: { mode: 'connected-path', requiredSpatialRelations: [], maxPathDepth: 2 },
+    groundingPolicyEvidence: { accepted: true },
+    evidence: ['prompt-text'],
+  }] }, nodes, [{
+    id: 'prompt-edge',
+    from: 'prompt-body-server-racks',
+    to: 'prompt-body-data-center',
+    type: 'inside',
+    processId: 'spatial_constraint',
+  }]);
+
+  assert.equal(edges[0].from, 'prompt-body-data-center');
+  assert.equal(edges[0].to, 'prompt-body-server-racks');
+  assert.equal(edges[0].operatorType, 'network_flow');
+});
+
 test('thermal process qualifiers lower recirculated heat between concrete endpoints', () => {
   const prompt = 'edge data center server racks recirculating heat between cooling aisles under controller limits';
   const spec = lab.createSpecFromPrompt(prompt, { allowPrototypeFallback: true });
@@ -848,6 +881,20 @@ test('fuel-bearing environments lower explicit forest fire as combustion', () =>
   assert.equal(edge.provenance.fuelNodeId, forest.id);
   assert.ok(operator);
   assert.ok(mappingIds.includes('visual.operator.thermal-combustion.v1'));
+  assert.deepEqual(compositionGraphScope.directlyGroundedRenderFallbacks([
+    {
+      id: 'prompt-environment-forest',
+      semanticRef: 'prompt.environment.forest',
+      directlyGrounded: true,
+    },
+  ], [{
+    id: 'render:prompt-body-fire-front',
+    semanticRef: 'prompt.body.fire-front',
+    directlyGrounded: true,
+  }]).map((row) => row.id), ['prompt-environment-forest']);
+  assert.ok(spec.renderProgram.sceneRenderPacket.entities.some((entity) => (
+    entity.identity && entity.identity.semanticRef === 'prompt.environment.forest'
+  )));
 });
 
 test('cryosphere identities select exact recognizable construction topologies', () => {
@@ -1749,6 +1796,51 @@ test('Phase 4 attaches construction to the slot target instead of a material con
   assert.equal(receipt.attachedCount, 1);
   assert.equal(nodes[0].construction, undefined);
   assert.deepEqual(nodes[1].construction.sourceCardIds, ['construction.architectural-enclosure']);
+});
+
+test('Phase 4 construction target selection prefers a direct label over a shared canonical tail', () => {
+  const nodes = [
+    {
+      id: 'prompt-body-greenhouse',
+      spanId: 'span-glass',
+      canonicalId: 'prompt.body.greenhouse',
+      label: 'Glass',
+      sourceLabel: 'glass',
+      directlyGrounded: true,
+    },
+    {
+      id: 'prompt-term-greenhouse',
+      spanId: 'span-greenhouse',
+      canonicalId: 'prompt.body.greenhouse',
+      label: 'Greenhouse',
+      sourceLabel: 'greenhouse',
+      directlyGrounded: true,
+    },
+  ];
+  const construction = {
+    schema: 'simulatte.constructionEvidence.v1',
+    targetEntryId: 'entity:greenhouse',
+    sourceCardId: 'environment.greenhouse',
+    sourceLabel: 'greenhouse',
+    partHints: ['enclosure', 'glass panel', 'roof', 'support frame'],
+  };
+  const receipt = grounderGraph.attachConstructionEvidence(nodes, [{
+    slotId: 'slot.object.greenhouse',
+    entryId: 'entity:greenhouse',
+    sourceSpanIds: ['span-glass', 'span-greenhouse'],
+    constructionCandidates: [{
+      candidateId: 'environment.greenhouse',
+      labels: ['greenhouse', 'glass house'],
+      literalSlotMatch: true,
+      modelEvaluated: true,
+      constructionEvidence: true,
+      construction,
+    }],
+  }]);
+
+  assert.equal(receipt.attachedCount, 1);
+  assert.equal(nodes[0].construction, undefined);
+  assert.deepEqual(nodes[1].construction.sourceCardIds, ['environment.greenhouse']);
 });
 
 test('Phase 6 lowers unmatched typed physics entities for expanded scene kinds', () => {

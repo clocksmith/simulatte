@@ -753,7 +753,8 @@
     	      camera: visualIR && visualIR.camera || visualProgram && visualProgram.camera || {},
     	      lights: sceneRenderPacket && sceneRenderPacket.lights || visualIR && visualIR.lighting && visualIR.lighting.lights || [],
     	      passes: sceneRenderPacket && sceneRenderPacket.passes || [],
-    	      rendererPlan: visualProgram && visualProgram.rendererPlan || null,
+	      rendererPlan: visualProgram && visualProgram.rendererPlan || null,
+          visualAcceptance: visualProgram && visualProgram.visualAcceptance || [],
           compositionGraphId: compiled.compositionGraph && compiled.compositionGraph.graphId || '',
         };
         return createPhaseEnvelope({

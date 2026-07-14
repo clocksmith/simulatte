@@ -288,6 +288,13 @@
     const spanIds = new Set(slot.sourceSpanIds || []);
     const spanOwned = nodes.filter((node) => node.spanId && spanIds.has(node.spanId));
     const target = normalizedIdentity(String(slot.entryId || '').replace(/^[a-z]+:/, '').replace(/:\d+$/, ''));
+    const directLabelMatches = nodes.filter((node) => unique([
+      node.label,
+      node.sourceLabel,
+    ].map(normalizedIdentity)).includes(target));
+    const directSpanOwned = directLabelMatches.filter((node) => spanOwned.includes(node));
+    if (directSpanOwned.length === 1) return directSpanOwned[0];
+    if (directLabelMatches.length === 1) return directLabelMatches[0];
     const exact = nodes.filter((node) => nodePrimaryIdentityLabels(node).includes(target));
     const exactSpanOwned = exact.filter((node) => spanOwned.includes(node));
     if (exactSpanOwned.length === 1) return exactSpanOwned[0];
@@ -517,6 +524,9 @@
     const identityNode = (nodes || []).find((node) => normalizedIdentity([
       node.id, node.canonicalId, ...(node.aliases || []),
     ].join(' ')).includes(refText));
+    if (refText && identityNode && identityNode.directlyGrounded === true) return identityNode;
+    const promptNode = directPromptNodeForCausalLabel(nodes, label || identityNode && identityNode.label);
+    if (promptNode) return promptNode;
     if (refText && identityNode) return identityNode;
     const ranked = (nodes || []).map((node) => {
       const text = normalizedIdentity([
@@ -529,6 +539,21 @@
       return { node, score: refScore * 3 + labelScore };
     }).sort((a, b) => b.score - a.score || Number(b.node.directlyGrounded) - Number(a.node.directlyGrounded));
     return ranked[0] && ranked[0].score > 0 ? ranked[0].node : null;
+  }
+
+  function directPromptNodeForCausalLabel(nodes = [], label = '') {
+    const wanted = normalizedIdentity(label);
+    if (!wanted) return null;
+    const wantedTerms = unique(wanted.split(/\s+/).filter((term) => term.length > 2));
+    return (nodes || []).filter((node) => (
+      node.directlyGrounded === true || /^prompt[.-]/.test(String(node.canonicalId || node.id || ''))
+    )).map((node, index) => {
+      const text = normalizedIdentity([node.label, node.canonicalId, ...(node.aliases || [])].join(' '));
+      const shared = wantedTerms.filter((term) => (` ${text} `).includes(` ${term} `)).length;
+      const contains = text.includes(wanted) || wanted.includes(normalizedIdentity(node.label));
+      return { node, index, score: shared + Number(contains) * 8 };
+    }).filter((row) => row.score > 0)
+      .sort((a, b) => b.score - a.score || a.index - b.index)[0]?.node || null;
   }
 
   function directCausalPromptEdge(edges = [], fromId = '', toId = '', causalEdge = {}) {
@@ -879,5 +904,6 @@
     materializeTypedPromptNodes,
     applyPromptSemanticContracts,
     edgeRowsForIntentBrief,
+    directPromptNodeForCausalLabel,
   };
 });

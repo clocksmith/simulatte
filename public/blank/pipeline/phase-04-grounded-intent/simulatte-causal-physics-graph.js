@@ -250,8 +250,8 @@
     const edges = [];
     for (const rule of CAUSAL_RELATION_RULES) {
       const predicatePair = predicateBoundNodePair(input.languageEvidence, nodes, rule);
-      const source = predicatePair?.source || bestNodeForTerms(nodes, rule.sources);
-      const target = predicatePair?.target || bestNodeForTerms(nodes, rule.targets, source && source.id);
+      const source = predicatePair?.source || bestNodeForTerms(nodes, rule.sources, '', prompt);
+      const target = predicatePair?.target || bestNodeForTerms(nodes, rule.targets, source && source.id, prompt);
       const evidence = strongEvidenceIdsForRule(evidenceRows, rule);
       const policyEvidence = groundingPolicyEvidence(prompt, rule);
       const promptHit = termsHit(prompt, rule.sources) && termsHit(prompt, rule.targets) &&
@@ -350,6 +350,7 @@
           evidence: item.evidence || [],
           primitiveHints: item.primitiveHints || [],
           operatorHints: item.operatorHints || [],
+          retrievedEvidence: false,
         });
       }
     }
@@ -363,12 +364,13 @@
         evidence: [row.id || label],
         primitiveHints: row.primitiveHints || [],
         operatorHints: row.operatorHints || row.operatorTypes || [],
+        retrievedEvidence: true,
       });
     }
     return uniqueNodes(rows).slice(0, 96);
   }
 
-  function bestNodeForTerms(nodes, terms, excludeId = '') {
+  function bestNodeForTerms(nodes, terms, excludeId = '', prompt = '') {
     let best = null;
     let bestScore = 0;
     for (const node of nodes || []) {
@@ -378,6 +380,8 @@
       for (const term of terms || []) {
         if (phraseHit(text, term)) score += 1.1;
       }
+      if (score > 0 && phraseHit(prompt, node.label)) score += 4;
+      if (score > 0 && node.retrievedEvidence !== true) score += 1.5;
       if (score > bestScore) {
         best = node;
         bestScore = score;

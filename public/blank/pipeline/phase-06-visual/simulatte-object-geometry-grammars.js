@@ -849,6 +849,14 @@
         scale[0] = Math.max(scale[0], 0.22);
         scale[1] = Math.max(scale[1], 0.18);
       }
+      if (relationRoles.has('between:source')) {
+        scale[0] = Math.min(scale[0], 0.24);
+        scale[1] = Math.min(scale[1], 0.34);
+      }
+      if (relationRoles.has('between:target')) {
+        scale[0] = Math.max(scale[0], 0.5);
+        scale[1] = Math.max(scale[1], 0.46);
+      }
       if (entity.supportOnly === true) {
         scale[0] = Math.min(scale[0], 0.15);
         scale[1] = Math.min(scale[1], 0.13);

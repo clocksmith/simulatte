@@ -326,7 +326,7 @@
       ...((context.solverPlan && context.solverPlan.steps) || []).map(solverStepText),
       ...((context.solverPlan && context.solverPlan.executableSteps) || []).map(solverStepText),
     ].join(' '));
-    return termsMatched(row.matchTerms || [], solverText, solverText).length > 0;
+    return termsMatched(row.operatorTypes || [], solverText, solverText).length > 0;
   }
 
   function contextHasObjectEvidence(context, row) {

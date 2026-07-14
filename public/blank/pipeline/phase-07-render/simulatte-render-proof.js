@@ -78,6 +78,7 @@
         sceneRenderPacket,
         renderData
       );
+      const geometryProof = relationVisualObligationGeometryReceipt(row, sceneRenderPacket, renderData);
       const pixelProof = visualObligationPixelProof(row, renderData);
       const pixelSatisfied = rendered && packetSatisfied && geometrySatisfied && pixelProof.satisfied;
       const sourceStatus = row.status || '';
@@ -92,6 +93,7 @@
         phase6Status: sourceStatus,
         packetSatisfied,
         geometrySatisfied,
+        ...(geometryProof ? { geometryProof } : {}),
         pixelSatisfied,
         pixelProof,
         status,
@@ -744,6 +746,14 @@
     if (/^(?:below|under)$/.test(parts.relation)) {
       return sourceBounds.centerY > targetBounds.centerY && sourceBounds.top >= targetBounds.centerY;
     }
+    if (/^(?:between)$/.test(parts.relation)) {
+      const targetParts = relationObjectPartBounds(renderData, targetIds);
+      const horizontal = targetParts.some((row) => row.centerX < sourceBounds.left - 0.006) &&
+        targetParts.some((row) => row.centerX > sourceBounds.right + 0.006);
+      const vertical = targetParts.some((row) => row.centerY < sourceBounds.top - 0.006) &&
+        targetParts.some((row) => row.centerY > sourceBounds.bottom + 0.006);
+      return horizontal || vertical;
+    }
     if (/^(?:beside|near)$/.test(parts.relation)) {
       const horizontal = Math.abs(sourceBounds.centerX - targetBounds.centerX);
       const vertical = Math.abs(sourceBounds.centerY - targetBounds.centerY);
@@ -754,6 +764,16 @@
         sourceBounds.centerX - targetBounds.centerX,
         sourceBounds.centerY - targetBounds.centerY
       ) <= 0.42;
+    }
+    if (/^(?:through)$/.test(parts.relation)) {
+      const overlapWidth = Math.max(0, Math.min(sourceBounds.right, targetBounds.right) -
+        Math.max(sourceBounds.left, targetBounds.left));
+      const overlapHeight = Math.max(0, Math.min(sourceBounds.bottom, targetBounds.bottom) -
+        Math.max(sourceBounds.top, targetBounds.top));
+      const sourceArea = Math.max(0.0001, sourceBounds.width * sourceBounds.height);
+      const centerInside = sourceBounds.centerX >= targetBounds.left && sourceBounds.centerX <= targetBounds.right &&
+        sourceBounds.centerY >= targetBounds.top && sourceBounds.centerY <= targetBounds.bottom;
+      return centerInside && overlapWidth * overlapHeight >= sourceArea * 0.55;
     }
     if (/^(?:on|onto|seated on|supports)$/.test(parts.relation)) {
       const gap = targetBounds.top - sourceBounds.bottom;
@@ -770,6 +790,33 @@
     return false;
   }
 
+  function relationVisualObligationGeometryReceipt(obligation = {}, sceneRenderPacket = {}, renderData = null) {
+    if (!visualRelationObligation(obligation)) return null;
+    const parts = visualRelationParts(obligation);
+    if (!parts || !renderData || !Array.isArray(renderData.objectParts)) return {
+      schema: 'simulatte.phase7RelationGeometryProof.v1', status: 'missing-render-data',
+    };
+    const sourceIds = relationEntityIds(sceneRenderPacket, parts.sourceIdentity);
+    const targetIds = relationEntityIds(sceneRenderPacket, parts.targetIdentity);
+    const sourceBounds = relationObjectBounds(renderData, sourceIds);
+    const targetBounds = relationObjectBounds(renderData, targetIds);
+    return {
+      schema: 'simulatte.phase7RelationGeometryProof.v1',
+      relation: parts.relation,
+      sourceEntityIds: Array.from(sourceIds),
+      targetEntityIds: Array.from(targetIds),
+      sourceBounds: compactRelationBounds(sourceBounds),
+      targetBounds: compactRelationBounds(targetBounds),
+      satisfied: relationVisualObligationGeometrySatisfied(obligation, sceneRenderPacket, renderData) === true,
+    };
+  }
+
+  function compactRelationBounds(bounds = null) {
+    if (!bounds) return null;
+    return Object.fromEntries(['left', 'top', 'right', 'bottom', 'width', 'height', 'centerX', 'centerY']
+      .map((key) => [key, Number(Number(bounds[key] || 0).toFixed(5))]));
+  }
+
   function relationEntityIds(sceneRenderPacket = {}, identity = '') {
     return new Set((sceneRenderPacket.entities || []).filter((row) => (
       promptProofEntityMatches(row, identity)
@@ -777,9 +824,8 @@
   }
 
   function relationObjectBounds(renderData = {}, entityIds = new Set()) {
-    const rows = (renderData.objectParts || []).filter((row) => entityIds.has(row.entityId));
-    if (!rows.length) return null;
-    const bounds = rows.map((row) => relationPartBounds(row, renderData.cameraState || {}));
+    const bounds = relationObjectPartBounds(renderData, entityIds);
+    if (!bounds.length) return null;
     const left = Math.min(...bounds.map((row) => row.left));
     const top = Math.min(...bounds.map((row) => row.top));
     const right = Math.max(...bounds.map((row) => row.right));
@@ -794,6 +840,11 @@
       centerX: (left + right) * 0.5,
       centerY: (top + bottom) * 0.5,
     };
+  }
+
+  function relationObjectPartBounds(renderData = {}, entityIds = new Set()) {
+    return (renderData.objectParts || []).filter((row) => entityIds.has(row.entityId))
+      .map((row) => relationPartBounds(row, renderData.cameraState || {}));
   }
 
   function relationPartBounds(part = {}, camera = {}) {
@@ -817,6 +868,8 @@
       top: centerY - halfHeight - motionMargin,
       right: centerX + halfWidth + motionMargin,
       bottom: centerY + halfHeight + motionMargin,
+      centerX,
+      centerY,
     };
   }
 

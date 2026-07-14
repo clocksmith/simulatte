@@ -2,9 +2,10 @@
 // Language-to-place resolution evaluation over the public diagnostic probe
 // corpus (tools/samer/autonomy/place-resolution-probes-v1.json).
 //
-// The control lane is the shipped mission compiler: exact_world_label plus
-// constrained_fuzzy_place, refusing everything else. A challenger lane loads
-// via --challenger <module.mjs>; the module must export
+// The control lane is the prior deterministic compiler policy: exact labels
+// plus constrained fuzzy matching. The challenger is the shipped default
+// compiler with the receipted extended typo policy enabled. An optional model
+// candidate loads via --challenger <module.mjs>; the module must export
 // createResolver({ world, embodiment }) returning
 // { id, resolve(probe) -> { outcome: 'resolve'|'refuse', nodeId? } }.
 //
@@ -78,11 +79,11 @@ async function main() {
   const eligibleNodeIds = new Set(missionApi.eligiblePlaceNodeIds(world, embodiment.kind));
   const nodeIdByLabel = new Map(world.nodes.filter((node) => node.label && eligibleNodeIds.has(node.id)).map((node) => [node.label, node.id]));
 
-  const controlResolver = {
-    id: 'mission-compiler-constrained-v1',
+  const resolver = (id, deterministicPlaceResolution) => ({
+    id,
     resolve(probe) {
       try {
-        const mission = missionApi.compileMission(probe.sourceText, world, embodiment);
+        const mission = missionApi.compileMission(probe.sourceText, world, embodiment, { deterministicPlaceResolution });
         return {
           outcome: 'resolve',
           nodeId: probe.role === 'origin' ? mission.originNodeId : mission.destinationNodeId,
@@ -92,35 +93,35 @@ async function main() {
         return { outcome: 'refuse' };
       }
     },
-  };
+  });
 
-  const lanes = { control: await evaluateLane(controlResolver, corpus, nodeIdByLabel) };
+  const lanes = {
+    control: await evaluateLane(resolver('mission-compiler-legacy-constrained-v1', 'legacy_constrained'), corpus, nodeIdByLabel),
+    challenger: await evaluateLane(resolver('mission-compiler-extended-typo-v2', 'extended_typo'), corpus, nodeIdByLabel),
+  };
   const identities = Object.fromEntries(
     Object.entries(files).map(([key, file]) => [key, { path: file, sha256: hashFile(file) }])
   );
 
-  let accepted = lanes.control.guardrails.mustRefuseViolations === 0
-    && lanes.control.guardrails.floorMisses === 0
-    && lanes.control.metrics.wrongPlace === 0;
+  const accepted = lanes.challenger.guardrails.mustRefuseViolations === 0
+    && lanes.challenger.guardrails.floorMisses === 0
+    && lanes.challenger.metrics.wrongPlace === 0
+    && lanes.challenger.metrics.correct > lanes.control.metrics.correct;
 
   if (options.challenger) {
     const challengerModule = await import(pathToFileURL(path.resolve(ROOT, options.challenger)).href);
     const challenger = await challengerModule.createResolver({ world, embodiment });
     try {
-      lanes.challenger = await evaluateLane(challenger, corpus, nodeIdByLabel);
+      lanes.modelCandidate = await evaluateLane(challenger, corpus, nodeIdByLabel);
     } finally {
       await challenger.dispose?.();
     }
-    identities.challengerModule = { path: options.challenger, sha256: hashFile(options.challenger) };
-    identities.challengerAssets = structuredClone(challenger.identities || null);
-    accepted = lanes.challenger.guardrails.mustRefuseViolations === 0
-      && lanes.challenger.guardrails.floorMisses === 0
-      && lanes.challenger.metrics.wrongPlace === 0
-      && lanes.challenger.metrics.correct > lanes.control.metrics.correct;
+    identities.modelCandidateModule = { path: options.challenger, sha256: hashFile(options.challenger) };
+    identities.modelCandidateAssets = structuredClone(challenger.identities || null);
   }
 
   const receipt = {
-    schema: 'simulatte.placeResolutionEvaluation.v1',
+    schema: 'simulatte.placeResolutionEvaluation.v2',
     id: 'place-resolution-public-diagnostic-v1',
     contentVersion: corpus.contentVersion,
     population: {
@@ -132,13 +133,21 @@ async function main() {
     intervention: {
       kind: 'language_to_place_resolution',
       control: lanes.control.resolverId,
-      challenger: lanes.challenger ? lanes.challenger.resolverId : null,
+      challenger: lanes.challenger.resolverId,
       frozenMetric: 'correct_probe_count',
       guardrails: ['must_refuse_violations_zero', 'wrong_place_resolutions_zero', 'exact_and_typo_within_floor'],
     },
     identities,
     lanes,
     accepted,
+    modelSelection: lanes.modelCandidate ? {
+      status: lanes.modelCandidate.metrics.correct > lanes.challenger.metrics.correct
+        ? 'candidate_improves_default'
+        : 'rejected_no_incremental_gain',
+      incrementalCorrect: lanes.modelCandidate.metrics.correct - lanes.challenger.metrics.correct,
+      defaultCorrect: lanes.challenger.metrics.correct,
+      modelCorrect: lanes.modelCandidate.metrics.correct,
+    } : null,
     claimBoundary: 'This receipt scores language-to-place resolution on exposed diagnostic probes. It cannot promote a resolver, establish model quality, or support a generalization claim. Promotion needs an unmounted holdout population.',
   };
   const serialized = `${JSON.stringify(sortValue(receipt), null, 2)}\n`;
@@ -149,7 +158,7 @@ async function main() {
     fs.mkdirSync(path.dirname(options.output), { recursive: true });
     fs.writeFileSync(options.output, serialized);
   }
-  const summary = lanes.challenger || lanes.control;
+  const summary = lanes.challenger;
   console.log(`PLACE-RESOLUTION check=${options.check ? 'pass' : 'write'} accepted=${accepted} lane=${summary.resolverId} correct=${summary.metrics.correct}/${corpus.probes.length} winnable=${summary.metrics.winnableResolved}/${summary.metrics.winnableTotal} violations=${summary.guardrails.mustRefuseViolations} output=${path.relative(ROOT, options.output)}`);
   if (!accepted) process.exitCode = 1;
 }

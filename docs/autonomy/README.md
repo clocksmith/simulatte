@@ -134,9 +134,11 @@ active embodiment graph before thresholding. The model cannot add a node,
 choose a route, issue a control action, or bypass a gate. The UI names the
 download size and the receipt reports whether model execution occurred.
 
-The exposed public diagnostic improved from 21/37 for the lexical control to
-28/37 for the hybrid lane with zero must-refuse violations. It supports
-continued experimentation only. It is not a sealed promotion result.
+The corrected public diagnostic improves from 21/37 for the legacy lexical
+control to 27/37 for the shipped deterministic extended-typo lane with zero
+wrong-place and must-refuse violations. The Qwen candidate also scores 27/37,
+so its measured incremental gain is zero. It remains available for explicit
+experiments and is not a sealed promotion result.
 
 The Qwen 3 Reranker 0.6B in the shared model lock is used by Blank. Simulatte
 does not claim that reranker executed. Its navigation reranker remains the

@@ -23,6 +23,8 @@
 
   async function start() {
     const elements = collectElements();
+    const interfaceUi = wireInterfaceControls(elements);
+    setJourneyPhase('loading');
     log.info('app.boot.started', {
       build: document.querySelector('meta[name="simulatte-build"]')?.content || null,
       location: window.location.href,
@@ -37,6 +39,8 @@
       return null;
     }
     elements.missionInput.value = data.manifest.defaultMissionText;
+    restorePlaceMatchingPreference(elements);
+    resizeMissionInput(elements.missionInput);
     const traceView = traceApi.createTraceView(elements, data.policy, data.rerankerEvidence);
     let controller = null;
     let activeMission = null;
@@ -46,6 +50,7 @@
     let lastStepAt = 0;
     let retrievalLaneLogged = false;
     let terminalJourneyLogged = false;
+    let hasJourneyStarted = false;
     let placeResolver = null;
     const journeyLedger = ledgerApi.createJourneyLedger();
     const recordedJourneyHashes = new Set();
@@ -53,14 +58,20 @@
     const stepIntervalMs = 18;
 
     async function buildController({ keepMissionLocked = false } = {}) {
+      clearMissionError(elements);
       const useNeuralPlaces = elements.placeResolutionLane.value === 'qwen_embedding';
       if (useNeuralPlaces && !placeResolver) {
         placeResolver = neuralPlaceApi.createPlaceResolver({
           index: data.placeEmbeddingIndex,
           modelLock: data.modelRuntimeLock,
           onProgress(event) {
-            if (event?.phase === 'ready') setRuntimeStatus(elements, 'Qwen place model ready', 'ready');
-            else if (event?.percent != null) setRuntimeStatus(elements, `Loading Qwen place model · ${Math.round(event.percent)}%`, 'loading');
+            if (event?.phase === 'ready') {
+              setRuntimeStatus(elements, 'Ready', 'ready');
+              elements.placeLaneNote.textContent = 'Semantic test ready. It currently adds no diagnostic matches.';
+            } else if (event?.percent != null) {
+              setRuntimeStatus(elements, `Loading semantic matching ${Math.round(event.percent)}%`, 'loading');
+              elements.placeLaneNote.textContent = `Downloading semantic matching ${Math.round(event.percent)}%.`;
+            }
           },
         });
       }
@@ -151,8 +162,8 @@
       traceView.renderInitial(snapshot, renderer.receipt());
       renderPlanning(elements, controller.planning());
       elements.renderIdentity.textContent = renderIdentity(renderer.receipt());
-      setRuntimeStatus(elements, snapshot.state.status === 'active' ? 'WebGPU world ready' : accessibilityRuntimeLabel(controller.planning().accessibility), snapshot.state.status === 'active' ? 'ready' : 'failed');
-      updateButtons(elements, keepMissionLocked, true);
+      setRuntimeStatus(elements, snapshot.state.status === 'active' ? 'Ready' : accessibilityRuntimeLabel(controller.planning().accessibility), snapshot.state.status === 'active' ? 'ready' : 'failed');
+      updateButtons(elements, keepMissionLocked, true, snapshot.state.status, hasJourneyStarted);
       if (snapshot.state.status !== 'active') await recordJourney(nextController);
       return controller;
     }
@@ -177,18 +188,20 @@
     }
 
     async function runLoop() {
-      updateButtons(elements, true, Boolean(controller));
+      clearMissionError(elements);
+      updateButtons(elements, true, Boolean(controller), controller?.snapshot().state.status || 'active', true);
       if (!controller || controller.snapshot().state.status !== 'active') await buildController({ keepMissionLocked: true });
       if (controller.snapshot().state.status !== 'active') {
         setRuntimeStatus(elements, accessibilityRuntimeLabel(controller.planning().accessibility), 'failed');
-        updateButtons(elements, false, true);
+        updateButtons(elements, false, true, controller.snapshot().state.status, true);
         return;
       }
       renderer.setCameraMode('follow');
       selectCameraMode(elements, 'follow');
       isRunning = true;
-      updateButtons(elements, true, true);
-      setRuntimeStatus(elements, 'Executing continuous action bets', 'active');
+      hasJourneyStarted = true;
+      updateButtons(elements, true, true, 'active', true);
+      setRuntimeStatus(elements, 'Running', 'active');
       const snapshot = controller.snapshot();
       log.info('journey.started', {
         missionId: activeMission.id,
@@ -203,7 +216,8 @@
       isRunning = false;
       if (frameRequest !== null) cancelAnimationFrame(frameRequest);
       frameRequest = null;
-      updateButtons(elements, false, Boolean(controller));
+      const status = controller?.snapshot().state.status || 'active';
+      updateButtons(elements, false, Boolean(controller), status, hasJourneyStarted);
     }
 
     elements.startButton.addEventListener('click', async () => {
@@ -222,10 +236,11 @@
         exampleCount: data.manifest.missionExamples.length,
       });
       elements.missionInput.dispatchEvent(new Event('input', { bubbles: true }));
+      resizeMissionInput(elements.missionInput);
     });
     elements.pauseButton.addEventListener('click', () => {
       stopLoop();
-      setRuntimeStatus(elements, 'Paused with state retained', 'paused');
+      setRuntimeStatus(elements, 'Paused', 'paused');
     });
     elements.stepButton.addEventListener('click', async () => {
       try {
@@ -239,11 +254,24 @@
     elements.resetButton.addEventListener('click', async () => {
       stopLoop();
       try {
+        hasJourneyStarted = false;
         await buildController();
       } catch (error) {
         failRuntime(elements, error);
       }
     });
+    elements.replayButton.addEventListener('click', async () => {
+      try {
+        stopLoop();
+        hasJourneyStarted = false;
+        await buildController({ keepMissionLocked: true });
+        await runLoop();
+      } catch (error) {
+        stopLoop();
+        failRuntime(elements, error);
+      }
+    });
+    elements.whatIfButton.addEventListener('click', () => interfaceUi.openDecisions('what-if-section'));
     elements.exportButton.addEventListener('click', async () => {
       if (!controller) return;
       const receipt = await controller.journeyReceipt();
@@ -269,9 +297,11 @@
         await validateImportedJourneyReceipt(imported, receiptsApi);
         stopLoop();
         elements.missionInput.value = imported.mission.sourceText;
+        resizeMissionInput(elements.missionInput);
         controller = null;
-        updateButtons(elements, false, false);
-        setRuntimeStatus(elements, 'Verified receipt imported locally; press Start to replay its mission', 'ready');
+        hasJourneyStarted = false;
+        updateButtons(elements, false, false, 'active', false);
+        setRuntimeStatus(elements, 'Receipt verified. Ready to replay.', 'ready');
         log.info('journey.receipt.imported', {
           filename: file.name,
           missionId: imported.mission.id,
@@ -285,15 +315,14 @@
       }
     });
     elements.counterfactualKind.addEventListener('change', () => {
-      elements.counterfactualStreet.disabled = elements.counterfactualKind.value !== 'close_street';
-      elements.counterfactualSnapshot.disabled = elements.counterfactualKind.value !== 'world_snapshot';
+      syncCounterfactualInputs(elements);
     });
     elements.compareButton.addEventListener('click', async () => {
       try {
         stopLoop();
         if (!controller) await buildController();
         elements.compareButton.disabled = true;
-        elements.counterfactualProof.textContent = 'Running matched baseline and intervention simulations…';
+        elements.counterfactualProof.textContent = 'Comparing the same mission under one declared change.';
         const embodiment = data.embodiments.find((row) => row.id === activeMission.embodimentId);
         const intervention = elements.counterfactualKind.value === 'close_street'
           ? { id: `close-${hash32(elements.counterfactualStreet.value).toString(16)}`, kind: 'close_street', streetName: elements.counterfactualStreet.value }
@@ -324,25 +353,39 @@
     });
     elements.missionInput.addEventListener('input', () => {
       if (isRunning) return;
+      clearMissionError(elements);
+      resizeMissionInput(elements.missionInput);
       controller = null;
-      updateButtons(elements, false, false);
-      setRuntimeStatus(elements, 'Mission changed; execute to recompile', 'changed');
+      hasJourneyStarted = false;
+      updateButtons(elements, false, false, 'active', false);
+      setRuntimeStatus(elements, 'Ready', 'changed');
+    });
+    elements.missionInput.addEventListener('keydown', (event) => {
+      if (event.key !== 'Enter' || event.shiftKey || event.isComposing) return;
+      event.preventDefault();
+      elements.startButton.click();
     });
     elements.placeResolutionLane.addEventListener('change', () => {
       if (isRunning) return;
       controller = null;
-      updateButtons(elements, false, false);
+      hasJourneyStarted = false;
+      updateButtons(elements, false, false, 'active', false);
       const neural = elements.placeResolutionLane.value === 'qwen_embedding';
-      setRuntimeStatus(elements, neural ? 'Hybrid Qwen place matching selected' : 'Lexical place matching selected', 'changed');
+      persistPlaceMatchingPreference(elements.placeResolutionLane.value);
+      setRuntimeStatus(elements, 'Ready', 'changed');
+      elements.placeLaneNote.textContent = neural
+        ? 'Experimental. Downloads 533 MB and currently adds no diagnostic matches.'
+        : 'Fast matching is ready with no model download.';
       elements.placeResolutionProof.textContent = neural
-        ? 'Hybrid: lexical first, then local Qwen embedding with fail-closed thresholds · 533 MB'
-        : 'Lexical control · no model execution or download';
+        ? 'Experimental Qwen embedding after deterministic matching · measured gain +0/37 · 533 MB'
+        : 'Deterministic place matching · 27/37 diagnostic · no model execution';
     });
     window.addEventListener('resize', () => {
       if (renderer && controller) renderer.render(controller.snapshot());
     });
 
     try {
+      syncCounterfactualInputs(elements);
       renderPolicyArena(elements, data.policyArenaEvidence);
       await renderLedger(elements, journeyLedger, data.curriculum, data.world.contentVersion);
       await buildController();
@@ -354,19 +397,24 @@
 
   function collectElements() {
     const ids = [
-      'mission-input', 'place-resolution-lane', 'shuffle-button', 'start-button', 'pause-button', 'step-button', 'reset-button', 'export-button',
-      'runtime-status', 'render-identity', 'autonomy-canvas', 'follow-minimap', 'decision-title', 'decision-meta',
+      'mission-input', 'mission-error', 'place-resolution-lane', 'place-lane-note', 'shuffle-button', 'start-button', 'pause-button', 'step-button', 'reset-button', 'replay-button', 'what-if-button', 'export-button',
+      'runtime-status', 'runtime-toggle', 'runtime-details', 'runtime-details-close', 'render-identity', 'autonomy-canvas', 'follow-minimap', 'decision-title', 'decision-meta',
       'bet-list', 'gate-list', 'trace-list', 'route-formula', 'route-stats', 'route-components',
       'retrieval-query', 'retrieval-candidates', 'rerank-candidates', 'retrieval-stats', 'settlement-math',
       'reranker-proof', 'place-resolution-proof',
       'occurrence-stats', 'occurrence-patterns', 'occurrence-effects',
-      'metric-state', 'metric-tick', 'metric-speed', 'metric-distance', 'metric-route', 'metric-bet',
+      'metric-state', 'metric-tick', 'metric-time', 'metric-speed', 'metric-distance', 'metric-route', 'metric-bet', 'journey-progress-fill',
       'metric-settlement', 'metric-calibration', 'camera-focus', 'camera-follow', 'camera-bird', 'camera-top',
       'planning-forecast', 'accessibility-proof', 'alternative-proof', 'ledger-proof', 'policy-arena-proof',
       'counterfactual-kind', 'counterfactual-street', 'counterfactual-snapshot', 'compare-button', 'export-ledger-button',
-      'import-receipt-button', 'import-receipt-file', 'counterfactual-proof',
+      'counterfactual-street-wrap', 'counterfactual-snapshot-wrap', 'import-receipt-button', 'import-receipt-file', 'counterfactual-proof',
+      'decisions-button', 'decisions-drawer', 'decisions-close', 'decisions-backdrop', 'what-if-section',
+      'map-panel-button', 'map-popover', 'map-panel-close', 'mission-more-menu',
     ];
-    return Object.fromEntries(ids.map((id) => [camelId(id), document.getElementById(id)]));
+    const elements = Object.fromEntries(ids.map((id) => [camelId(id), document.getElementById(id)]));
+    const missing = ids.filter((id) => !document.getElementById(id));
+    if (missing.length) throw new Error(`Autonomy UI expected elements: ${missing.join(', ')}`);
+    return elements;
   }
 
   function wireCameraControls(elements, renderer) {
@@ -388,7 +436,11 @@
       [elements.cameraFollow, 'follow'],
       [elements.cameraBird, 'bird'],
       [elements.cameraTop, 'top'],
-    ].forEach(([button, buttonMode]) => button.classList.toggle('is-active', buttonMode === mode));
+    ].forEach(([button, buttonMode]) => {
+      const active = buttonMode === mode;
+      button.classList.toggle('is-active', active);
+      button.setAttribute('aria-pressed', String(active));
+    });
   }
 
   function populateCameraFocus(select, targets) {
@@ -417,33 +469,193 @@
     return id.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
   }
 
-  function updateButtons(elements, running, hasController) {
+  function wireInterfaceControls(elements) {
+    let lastDrawerTrigger = null;
+
+    function setPopover(button, panel, open) {
+      panel.hidden = !open;
+      button.setAttribute('aria-expanded', String(open));
+    }
+
+    function closeTransientPopovers(except = null) {
+      if (except !== 'runtime') setPopover(elements.runtimeToggle, elements.runtimeDetails, false);
+      if (except !== 'map') setPopover(elements.mapPanelButton, elements.mapPopover, false);
+      if (except !== 'more') elements.missionMoreMenu.open = false;
+    }
+
+    function openDecisions(sectionId = null) {
+      closeTransientPopovers();
+      lastDrawerTrigger = document.activeElement;
+      elements.decisionsDrawer.classList.add('is-open');
+      elements.decisionsDrawer.setAttribute('aria-hidden', 'false');
+      elements.decisionsButton.setAttribute('aria-expanded', 'true');
+      elements.decisionsBackdrop.hidden = false;
+      if (sectionId) {
+        const section = document.getElementById(sectionId);
+        if (section?.tagName === 'DETAILS') section.open = true;
+        section?.scrollIntoView({ block: 'start' });
+      }
+      window.setTimeout(() => elements.decisionsClose.focus(), 0);
+    }
+
+    function closeDecisions({ restoreFocus = true } = {}) {
+      elements.decisionsDrawer.classList.remove('is-open');
+      elements.decisionsDrawer.setAttribute('aria-hidden', 'true');
+      elements.decisionsButton.setAttribute('aria-expanded', 'false');
+      elements.decisionsBackdrop.hidden = true;
+      if (restoreFocus && lastDrawerTrigger instanceof HTMLElement) lastDrawerTrigger.focus();
+    }
+
+    elements.runtimeToggle.addEventListener('click', () => {
+      const open = elements.runtimeDetails.hidden;
+      closeTransientPopovers(open ? 'runtime' : null);
+      setPopover(elements.runtimeToggle, elements.runtimeDetails, open);
+    });
+    elements.runtimeDetailsClose.addEventListener('click', () => setPopover(elements.runtimeToggle, elements.runtimeDetails, false));
+    elements.mapPanelButton.addEventListener('click', () => {
+      const open = elements.mapPopover.hidden;
+      closeTransientPopovers(open ? 'map' : null);
+      setPopover(elements.mapPanelButton, elements.mapPopover, open);
+    });
+    elements.mapPanelClose.addEventListener('click', () => setPopover(elements.mapPanelButton, elements.mapPopover, false));
+    elements.decisionsButton.addEventListener('click', () => openDecisions());
+    elements.decisionsClose.addEventListener('click', () => closeDecisions());
+    elements.decisionsBackdrop.addEventListener('click', () => closeDecisions());
+    document.addEventListener('keydown', (event) => {
+      if (event.key !== 'Escape') return;
+      if (elements.decisionsDrawer.classList.contains('is-open')) closeDecisions();
+      else closeTransientPopovers();
+    });
+    document.addEventListener('pointerdown', (event) => {
+      if (!elements.runtimeDetails.hidden && !elements.runtimeDetails.contains(event.target) && !elements.runtimeToggle.contains(event.target)) {
+        setPopover(elements.runtimeToggle, elements.runtimeDetails, false);
+      }
+      if (!elements.mapPopover.hidden && !elements.mapPopover.contains(event.target) && !elements.mapPanelButton.contains(event.target)) {
+        setPopover(elements.mapPanelButton, elements.mapPopover, false);
+      }
+    });
+    return { closeDecisions, openDecisions };
+  }
+
+  function setJourneyPhase(phase) {
+    const allowed = new Set(['loading', 'ready', 'running', 'paused', 'completed', 'failed']);
+    document.body.dataset.journeyPhase = allowed.has(phase) ? phase : 'ready';
+  }
+
+  function syncCounterfactualInputs(elements) {
+    const street = elements.counterfactualKind.value === 'close_street';
+    const snapshot = elements.counterfactualKind.value === 'world_snapshot';
+    elements.counterfactualStreetWrap.hidden = !street;
+    elements.counterfactualStreet.disabled = !street;
+    elements.counterfactualSnapshotWrap.hidden = !snapshot;
+    elements.counterfactualSnapshot.disabled = !snapshot;
+  }
+
+  function resizeMissionInput(textarea) {
+    if (!textarea) return;
+    textarea.style.height = 'auto';
+    textarea.style.height = `${Math.min(150, Math.max(58, textarea.scrollHeight))}px`;
+  }
+
+  function clearMissionError(elements) {
+    elements.missionError.textContent = '';
+    elements.missionInput.removeAttribute('aria-invalid');
+  }
+
+  function isMissionInputError(error) {
+    if (error?.name === 'AutonomyMissionError') return true;
+    return /(_not_grounded|_ambiguous|_not_positive|source_text_missing|route_has_no_extent|ordered_stop_repeated|clock_time_invalid|arrival_deadline_precedes_departure)$/.test(String(error?.code || ''));
+  }
+
+  function friendlyMissionError(error) {
+    const messages = {
+      source_text_missing: 'Describe a supported trip or loop before starting.',
+      task_not_grounded: 'Describe a trip between places or a loop around a declared circuit.',
+      loop_task_not_grounded: 'For a loop, say around, circle, lap, or loop.',
+      mode_not_grounded: 'Say whether to walk, run, bike, scooter, or drive.',
+      origin_not_grounded: 'I cannot identify the starting place in the loaded regions.',
+      destination_not_grounded: 'I cannot identify the destination in the loaded regions.',
+      neural_place_not_grounded: 'Semantic matching could not identify that place safely.',
+      circuit_not_grounded: 'I cannot identify a registered loop boundary for that place.',
+      termination_not_grounded: 'Add a distance, lap count, or duration for this loop.',
+      street_avoidance_not_grounded: 'I cannot identify that street in the loaded regions.',
+      embodiment_not_available: 'That travel mode is not available in the loaded world.',
+      route_has_no_extent: 'Choose different starting and ending places.',
+    };
+    if (messages[error?.code]) return messages[error.code];
+    if (String(error?.code || '').includes('ambiguous')) return 'That place matches more than one loaded location. Be more specific.';
+    return 'I could not ground this mission in the loaded map. Try a named place and a clear travel goal.';
+  }
+
+  function restorePlaceMatchingPreference(elements) {
+    try {
+      const saved = localStorage.getItem('simulatte.placeResolutionLane.v1');
+      if ([...elements.placeResolutionLane.options].some((option) => option.value === saved)) elements.placeResolutionLane.value = saved;
+    } catch {
+      // Storage is optional. The explicit fast lane remains the default.
+    }
+    const neural = elements.placeResolutionLane.value === 'qwen_embedding';
+    elements.placeLaneNote.textContent = neural
+      ? 'Experimental. Downloads 533 MB and currently adds no diagnostic matches.'
+      : 'Fast matching is ready with no model download.';
+  }
+
+  function persistPlaceMatchingPreference(value) {
+    try {
+      localStorage.setItem('simulatte.placeResolutionLane.v1', value);
+    } catch {
+      // Storage is optional. The current selection still applies to this tab.
+    }
+  }
+
+  function updateButtons(elements, running, hasController, status = 'active', hasJourneyStarted = false) {
+    const completed = status === 'completed';
+    const failed = status === 'failed';
+    const paused = !running && hasJourneyStarted && status === 'active';
+    const phase = running ? 'running' : completed ? 'completed' : failed ? 'failed' : paused ? 'paused' : 'ready';
+    setJourneyPhase(phase);
     elements.missionInput.disabled = running;
     elements.placeResolutionLane.disabled = running;
     elements.shuffleButton.disabled = running;
     elements.startButton.disabled = running;
-    elements.pauseButton.disabled = !running;
-    elements.stepButton.disabled = running;
-    elements.resetButton.disabled = running;
+    elements.pauseButton.disabled = false;
+    elements.stepButton.disabled = false;
+    elements.resetButton.disabled = false;
     elements.exportButton.disabled = !hasController;
+    elements.shuffleButton.hidden = phase !== 'ready';
+    elements.startButton.hidden = phase !== 'ready';
+    elements.pauseButton.hidden = !running;
+    elements.stepButton.hidden = !['running', 'paused'].includes(phase);
+    elements.resetButton.hidden = !['running', 'paused'].includes(phase);
+    elements.replayButton.hidden = !['completed', 'failed'].includes(phase);
+    elements.whatIfButton.hidden = phase !== 'completed';
   }
 
   function setRuntimeStatus(elements, text, kind) {
-    elements.runtimeStatus.textContent = text;
-    elements.runtimeStatus.dataset.kind = kind;
+    if (elements.runtimeStatus.textContent !== text) elements.runtimeStatus.textContent = text;
+    if (elements.runtimeStatus.dataset.kind !== kind) elements.runtimeStatus.dataset.kind = kind;
+    if (elements.runtimeToggle.title !== text) elements.runtimeToggle.title = text;
   }
 
   function failRuntime(elements, error) {
     log.error('runtime.failed', log.serializeError(error));
-    setRuntimeStatus(elements, error.message, 'error');
-    updateButtons(elements, false, false);
+    if (isMissionInputError(error)) {
+      elements.missionError.textContent = friendlyMissionError(error);
+      elements.missionInput.setAttribute('aria-invalid', 'true');
+      setRuntimeStatus(elements, 'Check mission', 'changed');
+      updateButtons(elements, false, false, 'active', false);
+      elements.missionInput.focus();
+      return;
+    }
+    elements.missionError.textContent = 'The simulator stopped. Open status for technical details.';
+    setRuntimeStatus(elements, 'Stopped', 'error');
+    updateButtons(elements, false, false, 'failed', true);
   }
 
   function runtimeLabel(state) {
-    if (state.status === 'completed' && state.taskType === 'loop') return `Loop complete: ${state.distanceTraveledM.toFixed(1)} m | ${state.completedLaps} full lap(s) | ${state.simulatedTimeSeconds.toFixed(1)} s`;
-    if (state.status === 'completed') return `${state.taskType === 'delivery' ? 'Delivered' : 'Arrived'} at tick ${state.tick}`;
-    if (state.status === 'failed') return `Stopped: ${state.terminalReason}`;
-    return `Tick ${state.tick}`;
+    if (state.status === 'completed') return state.taskType === 'delivery' ? 'Delivered' : 'Complete';
+    if (state.status === 'failed') return 'Stopped';
+    return 'Running';
   }
 
   function nextMissionExample(examples, currentText) {
@@ -470,7 +682,9 @@
 
   function renderPlaceResolution(elements, mission, readiness, evidence) {
     if (!mission.placeResolution) {
-      elements.placeResolutionProof.textContent = `Place matching: lexical control · Qwen ${readiness?.state || 'idle'} · diagnostic ${evidence?.lanes?.challenger?.metrics?.correct || 0}/${evidence?.population?.probeCount || 0}`;
+      const defaultCorrect = evidence?.lanes?.challenger?.metrics?.correct || 0;
+      const modelCorrect = evidence?.lanes?.modelCandidate?.metrics?.correct || 0;
+      elements.placeResolutionProof.textContent = `Deterministic place matching ${defaultCorrect}/${evidence?.population?.probeCount || 0} · Qwen +${Math.max(0, modelCorrect - defaultCorrect)} · ${readiness?.state || 'idle'}`;
       return;
     }
     const roles = mission.placeResolution.roles.map((row) => {
@@ -586,5 +800,5 @@
     else start();
   }
 
-  return { accessibilityProofLabel, collectElements, nextMissionExample, populateCameraFocus, renderCounterfactual, renderIdentity, renderPlaceResolution, renderPlanning, renderPolicyArena, runtimeLabel, selectCameraMode, start, validateImportedJourneyReceipt };
+  return { accessibilityProofLabel, collectElements, friendlyMissionError, nextMissionExample, populateCameraFocus, renderCounterfactual, renderIdentity, renderPlaceResolution, renderPlanning, renderPolicyArena, runtimeLabel, selectCameraMode, start, validateImportedJourneyReceipt };
 });

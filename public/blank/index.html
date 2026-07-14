@@ -6,6 +6,7 @@
   <title>Simulatte</title>
   <meta name="simulatte-build" content="29e33315f409f41b5fada87d673db233e414d023-9d08dc8dd1e4">
   <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+  <link rel="stylesheet" href="../design/simulatte.css">
   <script>
     globalThis.__DOPPLER_KERNEL_BASE_PATH__ = new URL(
       '../vendor/doppler/src/gpu/kernels',
@@ -14,21 +15,21 @@
   </script>
   <style>
     :root {
-      --bg: #ffffff;
-      --panel: rgba(255, 255, 255, 0.74);
-      --panel-strong: rgba(255, 255, 255, 0.92);
-      --border: rgba(34, 34, 38, 0.12);
-      --border-strong: rgba(34, 34, 38, 0.24);
-      --text: #17201d;
-      --dim: rgba(23, 32, 29, 0.66);
-      --muted: rgba(23, 32, 29, 0.46);
+      --bg: var(--sim-paper);
+      --panel: var(--sim-glass-soft);
+      --panel-strong: var(--sim-glass);
+      --border: var(--sim-line);
+      --border-strong: var(--sim-line-strong);
+      --text: var(--sim-ink);
+      --dim: var(--sim-ink-soft);
+      --muted: var(--sim-ink-faint);
       --accent: #b8d8f6;
       --accent-ink: #20242b;
       --teal: #b8d8f6;
       --gold: #d9a431;
       --risk: #e7725f;
       --ok: #8f949c;
-      --shadow: 0 24px 80px rgba(45, 67, 60, 0.14);
+      --shadow: var(--sim-shadow);
       color-scheme: light;
       accent-color: var(--accent);
     }
@@ -2620,7 +2621,7 @@
 </head>
 <body>
   <main class="physics-stage" aria-label="Simulatte physics lab">
-    <section class="physics-panel prompt-dock" aria-label="Simulation prompt runner">
+    <section class="physics-panel prompt-dock sim-surface" aria-label="Simulation prompt runner">
       <div class="prompt-dock-head">
         <a class="prompt-dock-autonomy" href="/">Autonomy</a>
         <button id="prompt-dock-toggle" class="prompt-dock-toggle" type="button" aria-label="Minimize prompt panel" aria-expanded="true">−</button>
@@ -2630,11 +2631,11 @@
         <div class="builder-row">
           <label class="sr-only" for="build-prompt">Simulation request</label>
           <textarea id="build-prompt" aria-label="Simulation request" placeholder="Describe a world to simulate"></textarea>
-          <button id="shuffle-prompt" class="example-chip prompt-side-action" type="button" aria-label="Shuffle 256 examples" title="Shuffle 256 examples">
+          <button id="shuffle-prompt" class="example-chip prompt-side-action sim-action" type="button" aria-label="Shuffle 256 examples" title="Shuffle 256 examples">
             <span class="prompt-action-icon" aria-hidden="true">⇄</span>
             <span class="prompt-action-label">Shuffle</span>
           </button>
-          <button id="build-lab" class="primary-action prompt-side-action" type="button" aria-label="Run simulation">
+          <button id="build-lab" class="primary-action prompt-side-action sim-action sim-action-primary" type="button" aria-label="Run simulation">
             <span class="prompt-action-icon" aria-hidden="true">↵</span>
             <span class="prompt-action-label">Run</span>
           </button>

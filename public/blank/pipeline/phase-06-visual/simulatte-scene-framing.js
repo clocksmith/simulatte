@@ -6,7 +6,7 @@
 
     function frameScenePacketEntities(entities = []) {
       const graspLayout = enforcePacketGraspContacts(
-        enforcePacketContainment((entities || []).filter(Boolean))
+        enforcePacketBetween(enforcePacketContainment((entities || []).filter(Boolean)))
       );
       const contactLayout = enforcePacketSurfaceContacts(
         graspLayout.entities
@@ -74,6 +74,7 @@
         },
       }));
       const constraintIds = uniqueList(rows.flatMap((row) => row.layoutConstraints || []));
+      const constraints = [];
       for (const constraintId of constraintIds) {
         const members = rows.filter((row) => (row.layoutConstraints || []).includes(constraintId));
         const inner = members.find((row) => (row.layoutRelationRoles || []).some((role) => (
@@ -83,25 +84,86 @@
           /^(?:in|inside|into|within):target$/.test(role)
         )));
         if (!inner || !outer || inner === outer) continue;
-        const margin = 0.012;
-        const innerScale = inner.transform.scale;
-        const outerScale = outer.transform.scale;
-        outerScale[0] = Math.min(0.88, Math.max(outerScale[0], innerScale[0] + margin * 2));
-        outerScale[1] = Math.min(0.82, Math.max(outerScale[1], innerScale[1] + margin * 2));
-        innerScale[0] = Math.min(innerScale[0], outerScale[0] - margin * 2);
-        innerScale[1] = Math.min(innerScale[1], outerScale[1] - margin * 2);
-        const innerPosition = inner.transform.position;
-        const outerPosition = outer.transform.position;
-        innerPosition[0] = clamp(
-          innerPosition[0],
-          outerPosition[0] - outerScale[0] * 0.5 + innerScale[0] * 0.5 + margin,
-          outerPosition[0] + outerScale[0] * 0.5 - innerScale[0] * 0.5 - margin
-        );
-        innerPosition[1] = clamp(
-          innerPosition[1],
-          outerPosition[1] - outerScale[1] * 0.5 + innerScale[1] * 0.5 + margin,
-          outerPosition[1] + outerScale[1] * 0.5 - innerScale[1] * 0.5 - margin
-        );
+        constraints.push({ constraintId, inner, outer });
+      }
+      const byInner = new Map();
+      for (const constraint of constraints) {
+        const group = byInner.get(constraint.inner.id) || [];
+        group.push(constraint);
+        byInner.set(constraint.inner.id, group);
+      }
+      for (const group of byInner.values()) {
+        if (group.length < 2) continue;
+        const innerBounds = sceneEntityVisibleBounds(group[0].inner);
+        const center = [innerBounds[0] + innerBounds[2] * 0.5, innerBounds[1] + innerBounds[3] * 0.5];
+        for (const { outer } of group) centerVisibleEntityAt(outer, center);
+      }
+      for (let pass = 0; pass < 3; pass += 1) {
+        for (const { inner, outer } of constraints) fitVisibleEntityInside(inner, outer, 0.012);
+      }
+      return rows;
+    }
+
+    function centerVisibleEntityAt(entity = {}, center = [0.5, 0.5]) {
+      const bounds = sceneEntityVisibleBounds(entity);
+      entity.transform.position[0] += center[0] - (bounds[0] + bounds[2] * 0.5);
+      entity.transform.position[1] += center[1] - (bounds[1] + bounds[3] * 0.5);
+    }
+
+    function fitVisibleEntityInside(inner = {}, outer = {}, margin = 0.012) {
+      let innerBounds = sceneEntityVisibleBounds(inner);
+      let outerBounds = sceneEntityVisibleBounds(outer);
+      const outerScale = outer.transform.scale;
+      outerScale[0] = Math.min(0.88, outerScale[0] * Math.max(1,
+        (innerBounds[2] + margin * 2) / Math.max(0.001, outerBounds[2])));
+      outerScale[1] = Math.min(0.82, outerScale[1] * Math.max(1,
+        (innerBounds[3] + margin * 2) / Math.max(0.001, outerBounds[3])));
+      innerBounds = sceneEntityVisibleBounds(inner);
+      outerBounds = sceneEntityVisibleBounds(outer);
+      const innerScale = inner.transform.scale;
+      innerScale[0] *= Math.min(1, Math.max(0.04, outerBounds[2] - margin * 2) /
+        Math.max(0.001, innerBounds[2]));
+      innerScale[1] *= Math.min(1, Math.max(0.04, outerBounds[3] - margin * 2) /
+        Math.max(0.001, innerBounds[3]));
+      innerBounds = sceneEntityVisibleBounds(inner);
+      outerBounds = sceneEntityVisibleBounds(outer);
+      const center = [innerBounds[0] + innerBounds[2] * 0.5, innerBounds[1] + innerBounds[3] * 0.5];
+      const desired = [
+        clamp(center[0], outerBounds[0] + margin + innerBounds[2] * 0.5,
+          outerBounds[0] + outerBounds[2] - margin - innerBounds[2] * 0.5),
+        clamp(center[1], outerBounds[1] + margin + innerBounds[3] * 0.5,
+          outerBounds[1] + outerBounds[3] - margin - innerBounds[3] * 0.5),
+      ];
+      inner.transform.position[0] += desired[0] - center[0];
+      inner.transform.position[1] += desired[1] - center[1];
+      inner.transform.position[2] = Number(outer.transform.position[2] || 0) - 0.08;
+    }
+
+    function enforcePacketBetween(entities = []) {
+      const rows = entities.slice();
+      const constraintIds = uniqueList(rows.flatMap((row) => row.layoutConstraints || []));
+      for (const constraintId of constraintIds) {
+        const members = rows.filter((row) => (row.layoutConstraints || []).includes(constraintId));
+        const source = members.find((row) => (row.layoutRelationRoles || []).includes('between:source'));
+        const target = members.find((row) => (row.layoutRelationRoles || []).includes('between:target'));
+        if (!source || !target || source === target) continue;
+        for (let pass = 0; pass < 3; pass += 1) {
+          const targetParts = (target.geometry && target.geometry.program && target.geometry.program.parts || [])
+            .map((part) => sceneEntityPartProjection(target, part));
+          if (!targetParts.length) break;
+          const targetBounds = sceneEntityVisibleBounds(target);
+          const center = [targetBounds[0] + targetBounds[2] * 0.5, targetBounds[1] + targetBounds[3] * 0.5];
+          centerVisibleEntityAt(source, center);
+          const sourceBounds = sceneEntityVisibleBounds(source);
+          const leftCenter = Math.min(...targetParts.map((row) => row.center[0]));
+          const rightCenter = Math.max(...targetParts.map((row) => row.center[0]));
+          const availableHalf = Math.max(0.025, Math.min(center[0] - leftCenter, rightCenter - center[0]) - 0.008);
+          const requiredHalf = Math.max(0.001, sourceBounds[2] * 0.5);
+          const factor = Math.min(1, availableHalf / requiredHalf);
+          source.transform.scale[0] = Math.max(0.08, source.transform.scale[0] * factor);
+          source.transform.scale[1] = Math.max(0.1, source.transform.scale[1] * factor);
+        }
+        source.transform.position[2] = Number(target.transform.position[2] || 0) - 0.08;
       }
       return rows;
     }
@@ -287,10 +349,11 @@
       const parts = entity.geometry && entity.geometry.program && entity.geometry.program.parts || [];
       if (!parts.length) return framedSceneEntityBounds(entity.transform || {});
       const partBounds = parts.map((part) => sceneEntityPartProjection(entity, part).bounds);
-      const left = Math.min(...partBounds.map((row) => row[0]));
-      const top = Math.min(...partBounds.map((row) => row[1]));
-      const right = Math.max(...partBounds.map((row) => row[2]));
-      const bottom = Math.max(...partBounds.map((row) => row[3]));
+      const motionMargin = Number(entity.animation && entity.animation.amplitude || 0) * 0.5;
+      const left = Math.min(...partBounds.map((row) => row[0])) - motionMargin;
+      const top = Math.min(...partBounds.map((row) => row[1])) - motionMargin;
+      const right = Math.max(...partBounds.map((row) => row[2])) + motionMargin;
+      const bottom = Math.max(...partBounds.map((row) => row[3])) + motionMargin;
       return [left, top, right - left, bottom - top];
     }
 

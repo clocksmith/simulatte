@@ -626,6 +626,16 @@ test('visual operator atlas exposes reusable graphics atoms for Layer 7', () => 
   assert.ok(plan.uniforms.bySlot.fluid > 0);
   assert.ok(plan.wgslOperators.includes('atomThermalPlume'));
   assert.ok(plan.wgslOperators.includes('atomFluidRibbons'));
+
+  const feedbackPlan = visualOperatorCompiler.compileVisualGraphicsAtoms({
+    sceneKind: 'digital-network',
+    solverPlan: { executableSteps: ['network_flow'] },
+    objects: [{ source: 'prompt-explicit', phrase: 'controller limits', role: 'controller' }],
+    fields: [],
+    causalAffordances: [],
+  });
+  assert.ok(feedbackPlan.mappings.some((row) => row.id === 'visual.operator.control-feedback.v1'));
+  assert.ok(feedbackPlan.uniforms.bySlot.feedback > 0);
 });
 
 test('procedural visual base exposes a broad prompt-addressed catalog', () => {
@@ -1784,6 +1794,7 @@ test('visual audit auto-judges prompt fidelity and motion with a rubric', () => 
   assert.match(tool, /pathname\.endsWith\('\/'\) \? `\$\{pathname\}index\.html`/);
   assert.match(tool, /Network\.clearBrowserCache/);
   assert.match(tool, /Network\.setCacheDisabled.*cacheDisabled: true/);
+  assert.match(tool, /Network\.setBypassServiceWorker.*bypass: true/);
   assert.match(tool, /startStaticServer\(options\.profileDir \? options\.localPort : 0\)/);
   assert.match(tool, /runtimeProgressLogs: \(window\.__simulatteRuntimeProgressLogs/);
   assert.match(tool, /runtimePerformanceLogs: \(window\.__simulatteRuntimePerformanceLogs/);
@@ -2351,7 +2362,7 @@ test('Firebase hosting revalidates app lab and app JavaScript', () => {
     pkg.scripts['check:model-lock'],
     'npm run check:model-lock-references && node tools/check-model-runtime-lock.mjs && npm run check:doppler:development'
   );
-  assert.equal(pkg.scripts['check:autonomy'], 'npm run check:autonomy:derived && node tools/autonomy/check-autonomy-data.mjs && npm run samer:autonomy:check');
+  assert.equal(pkg.scripts['check:autonomy'], 'npm run check:autonomy:derived && node tools/autonomy/check-autonomy-data.mjs && npm run samer:autonomy:check && npm run check:place-performance');
   assert.equal(pkg.scripts['check:deploy'], 'npm run check:model-lock && node tools/check-deploy-surface.mjs && npm run check:autonomy');
   assert.match(deployCheck, /public\/vendor\/doppler/);
   assert.match(deployCheck, /readModelRuntimeLock/);
@@ -2455,7 +2466,7 @@ test('model-backed intent retrieval uses a 1024d Qwen index and required reranke
   assert.equal(rawManifest.modelRuntimeLock.id, modelRuntimeLock.id);
   assert.equal(rawManifest.modelRuntimeLock.number, modelRuntimeLock.number);
   assert.equal(modelRuntimeLock.schema, 'simulatte.modelRuntimeLock.v1');
-  assert.equal(modelRuntimeLock.number, 6);
+  assert.equal(modelRuntimeLock.number, 7);
   assert.equal(Object.hasOwn(rawManifest, 'embedModel'), false);
   assert.equal(Object.hasOwn(rawManifest, 'reranker'), false);
 	  assert.equal(Object.hasOwn(rawManifest, 'runtime'), false);
@@ -2529,7 +2540,7 @@ test('model-backed intent retrieval uses a 1024d Qwen index and required reranke
   assert.doesNotMatch(manifest.embedModel.defaultModelBaseUrl, /models\/local/);
   assert.equal(manifest.embedModel.source.kind, 'huggingface-rdrr');
   assert.equal(manifest.embedModel.source.sourceCheckpointId, 'Qwen/Qwen3-Embedding-0.6B');
-  assert.equal(modelRuntimeLock.doppler.package.version, '0.4.8');
+  assert.equal(modelRuntimeLock.doppler.package.version, '0.4.9');
   assert.equal(modelRuntimeLock.doppler.development.kind, 'sibling-git-archive');
   assert.match(modelRuntimeLock.doppler.development.gitSha, /^[0-9a-f]{40}$/);
   assert.equal(manifest.runtime.moduleUrl, '../../vendor/doppler/src/index.js');

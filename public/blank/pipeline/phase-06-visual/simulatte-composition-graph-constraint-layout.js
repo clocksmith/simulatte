@@ -270,15 +270,16 @@
         } else if (!spatialRelation && deposition) {
           spatialRelation = 'coating';
         }
-        if (relation.process === 'impact' && ['in', 'inside', 'into', 'within'].includes(spatialRelation)) {
-          spatialRelation = 'against';
-        }
         if (!spatialRelation) continue;
         let from = layoutObjectForReference(states, relation.from || relation.sourceSpanId);
         const targetRef = relation.kind === 'spatial-constraint' ? relation.to : relation.target || relation.to;
         let to = layoutObjectForReference(states, targetRef || relation.targetSpanId);
         if (!from || !to || from === to) continue;
-        if (deposition) [from, to] = [to, from];
+        if (relation.process === 'impact' && ['in', 'inside', 'into', 'within'].includes(spatialRelation) &&
+          !layoutContainerObject(to.object)) {
+          spatialRelation = 'against';
+        }
+        if (spatialRelation === 'coating') [from, to] = [to, from];
         rows.push({
           id: relation.id || `relation-${rows.length + 1}`,
           spatialRelation,
@@ -288,10 +289,16 @@
           direct: relation.kind === 'spatial-constraint',
         });
       }
-      const containmentByChild = new Map(rows
+      const directPairs = new Set(rows.filter((row) => row.direct).map((row) => (
+        [row.from.object.id, row.to.object.id].sort().join(':')
+      )));
+      const authoritativeRows = rows.filter((row) => row.direct || !directPairs.has(
+        [row.from.object.id, row.to.object.id].sort().join(':')
+      ));
+      const containmentByChild = new Map(authoritativeRows
         .filter((row) => ['in', 'inside', 'into', 'within'].includes(row.spatialRelation))
         .map((row) => [row.from.object.id, row]));
-      const resolvedRows = rows.map((row) => {
+      const resolvedRows = authoritativeRows.map((row) => {
         if (row.spatialRelation !== 'against') return row;
         const sourceContainer = containmentByChild.get(row.from.object.id);
         const targetContainer = containmentByChild.get(row.to.object.id);
@@ -392,6 +399,15 @@
       } else if (type === 'supports') {
         b.x += (a.x - b.x) * 0.62;
         b.y += (a.y - a.h * 0.5 - b.h * 0.5 - 0.012 - b.y) * 0.68;
+      } else if (type === 'between') {
+        b.w = Math.max(b.w, Math.min(0.78, a.w * 2.45));
+        b.h = Math.max(b.h, Math.min(0.68, a.h * 1.28));
+        a.w = Math.min(a.w, b.w * 0.34);
+        a.h = Math.min(a.h, b.h * 0.72);
+        a.x += (b.x - a.x) * 0.82;
+        a.y += (b.y - a.y) * 0.72;
+        a.z = (Number.isFinite(b.z) ? b.z : 0.5) - 0.5;
+        b.z = Number.isFinite(b.z) ? b.z : 0.5;
       } else if (type === 'over' || type === 'above') {
         a.y += (b.y - (a.h + b.h) * 0.72 - a.y) * 0.64;
       } else if (type === 'under' || type === 'below') {
@@ -483,6 +499,19 @@
           const support = relation.to;
           seated.x = support.x;
           seated.y = support.y - support.h * 0.08 - seated.h * 0.16;
+          continue;
+        }
+        if (relation.spatialRelation === 'between') {
+          const source = relation.from;
+          const flanks = relation.to;
+          flanks.w = Math.max(flanks.w, Math.min(0.82, source.w * 2.45));
+          flanks.h = Math.max(flanks.h, Math.min(0.72, source.h * 1.28));
+          source.w = Math.min(source.w, flanks.w * 0.34);
+          source.h = Math.min(source.h, flanks.h * 0.72);
+          source.x = flanks.x;
+          source.y = flanks.y;
+          source.z = (Number.isFinite(flanks.z) ? flanks.z : 0.5) - 0.5;
+          flanks.z = Number.isFinite(flanks.z) ? flanks.z : 0.5;
           continue;
         }
         let inner = null;

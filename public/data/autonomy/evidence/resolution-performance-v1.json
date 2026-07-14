@@ -1,0 +1,108 @@
+{
+  "schema": "simulatte.resolutionPerformanceEvaluation.v1",
+  "id": "resolution-performance-v1",
+  "measuredAt": "2026-07-14T15:38:19.175Z",
+  "population": {
+    "id": "place-resolution-probes-v1",
+    "probeCount": 37,
+    "repetitions": 5
+  },
+  "budgets": {
+    "id": "resolution-performance-budgets-v1",
+    "sha256": "44af597b28c4af6ab5a374d9f41b02c7fbbf260d9371d13b0b71b35ce1e5f35a"
+  },
+  "identities": {
+    "budgets": {
+      "path": "public/data/autonomy/policies/resolution-performance-budgets-v1.json",
+      "sha256": "44af597b28c4af6ab5a374d9f41b02c7fbbf260d9371d13b0b71b35ce1e5f35a"
+    },
+    "corpus": {
+      "path": "tools/samer/autonomy/place-resolution-probes-v1.json",
+      "sha256": "22249e998af19033117c97872d83f7a511a1d6e807bc3522f6e35ad487d3d00f"
+    },
+    "world": {
+      "path": "public/data/autonomy/worlds/nyc-core-autonomy-v1.json",
+      "sha256": "85d2f95208406050ea6b87da7e0170c66430cb372e83e712e36c35ce8fefa001"
+    },
+    "embodiment": {
+      "path": "public/data/autonomy/embodiments/delivery-bike-v1.json",
+      "sha256": "7db2ebdc5e89bbc47c798e5e85e817f3f96945c623c8da6f195cfb9ed3977fba"
+    },
+    "embeddingIndex": {
+      "path": "public/data/autonomy/place-embedding-index-v1.json",
+      "sha256": "1bccbab07c06e82d4a71d4e9bf1e8a239527a490f0c735443a2dc29fc37ff7c6"
+    },
+    "modelLock": {
+      "path": "public/data/simulatte-embedder/model-runtime-lock.json",
+      "sha256": "828c8a98976683952554746f8ea2005358aae2a97ffe15df8caf4b909e5cfd7b"
+    },
+    "fixture": {
+      "path": "tools/autonomy/fixtures/resolution-bench.html",
+      "sha256": "724cd16e650561211aa4573bd8d7b210b19ed5684e36ad7a206d3e5058373864"
+    },
+    "resolver": {
+      "path": "public/runtime/neural-place-resolver.js",
+      "sha256": "96a8613cf364cfcbb95cd21ab0ad5b4b28d6fec24dbd05b7895ba51b90e8d32e"
+    },
+    "resolutionCore": {
+      "path": "public/runtime/neural-place-resolution-core.js",
+      "sha256": "bd4fd91c914705a4bdec98679070c59040ef18a946718c851621545fc893b4d6"
+    },
+    "missionCompiler": {
+      "path": "public/mission/mission-compiler.js",
+      "sha256": "4094d8cce8213269440f838f44dab3a8402f7f4d16d8580064471de3a6bebe7c"
+    }
+  },
+  "modelSource": "sibling_doppler_local",
+  "lanes": {
+    "default_lexical": {
+      "measured": {
+        "modelDownloadBytes": 0,
+        "modelExecutions": 0,
+        "endToEndP50Ms": 9.1,
+        "endToEndP95Ms": 10.6,
+        "maxLongTaskMs": 0
+      },
+      "network": {
+        "modelBytes": 0,
+        "dopplerBytes": 0,
+        "otherBytes": 51599183,
+        "requests": 12
+      },
+      "unresolvedCount": 17,
+      "memory": {
+        "usedJsHeapBytes": 103766614,
+        "totalJsHeapBytes": 170223762
+      }
+    }
+  },
+  "skippedLanes": [],
+  "hardChecks": [
+    {
+      "lane": "default_lexical",
+      "budget": "modelDownloadBytes",
+      "mode": "hard",
+      "value": 0,
+      "limit": 0,
+      "pass": true
+    },
+    {
+      "lane": "default_lexical",
+      "budget": "modelExecutions",
+      "mode": "hard",
+      "value": 0,
+      "limit": 0,
+      "pass": true
+    },
+    {
+      "lane": "default_lexical",
+      "budget": "maxLongTaskMs",
+      "mode": "hard",
+      "value": 0,
+      "limit": 200,
+      "pass": true
+    }
+  ],
+  "accepted": true,
+  "claimBoundary": "Performance numbers are evidence snapshots for this host and build; only hard-mode budget checks gate. Recorded metrics inform future budget promotion and carry no pass or fail meaning here."
+}

@@ -19,16 +19,25 @@
     let initialization = null;
     let lastFailure = null;
     const executions = [];
+    const loads = [];
+    const tierStats = {
+      extendedTypo: { batches: 0, resolved: 0, totalMs: 0, maxMs: 0 },
+      embedding: { batches: 0, resolved: 0, refused: 0, queryCount: 0, totalMs: 0, maxMs: 0 },
+    };
+    let queryNotExtracted = 0;
+    let deterministicHitModelExecutions = 0;
 
     async function initialize() {
       if (state === 'ready') return receipt();
       if (initialization) return initialization;
       initialization = (async () => {
+        let loadStartedAt = null;
         state = 'validating';
         await validateAssets(index, modelLock);
         decodedIndex = core.decodeIndex(index);
         if (!handle) {
           state = 'loading';
+          loadStartedAt = now();
           runtimeLog.info('place-model.load.started', {
             modelId: modelLock.embedding.id,
             bytes: modelLock.embedding.source.sizeBytes,
@@ -48,6 +57,7 @@
           });
         }
         if (typeof handle.embedBatch !== 'function') throw resolverError('embedding_capability_missing', 'Doppler model handle does not expose embedBatch()');
+        if (loadStartedAt !== null) loads.push(round(now() - loadStartedAt));
         state = 'ready';
         runtimeLog.info('place-model.ready', receipt());
         return receipt();
@@ -63,6 +73,7 @@
     }
 
     async function resolveMany(references) {
+      const typoStartedAt = now();
       const rows = references.map((reference, inputIndex) => {
         const queryText = core.extractPlaceQuery(reference.sourceText, reference.role);
         if (!queryText) return { inputIndex, reference, queryText, result: refusal('query_not_extracted', null) };
@@ -91,7 +102,16 @@
         }
         return { inputIndex, reference, queryText, typo, result: null };
       });
+      const typoMs = round(now() - typoStartedAt);
+      tierStats.extendedTypo.batches += 1;
+      tierStats.extendedTypo.totalMs = round(tierStats.extendedTypo.totalMs + typoMs);
+      if (typoMs > tierStats.extendedTypo.maxMs) tierStats.extendedTypo.maxMs = typoMs;
+      tierStats.extendedTypo.resolved += rows.filter((row) => row.result?.evidence?.lane === 'extended_typo').length;
+      queryNotExtracted += rows.filter((row) => row.result?.evidence?.refusalReason === 'query_not_extracted').length;
       const neuralRows = rows.filter((row) => !row.result);
+      // Runtime proof of the budget invariant, not an assumption: a row the
+      // deterministic tier already resolved must never reach the model.
+      deterministicHitModelExecutions += neuralRows.filter((row) => row.typo?.outcome === 'resolve').length;
       if (neuralRows.length) {
         await initialize();
         const startedAt = now();
@@ -124,7 +144,14 @@
             },
           };
         });
-        executions.push({ queryCount: neuralRows.length, durationMs: round(now() - startedAt) });
+        const embeddingMs = round(now() - startedAt);
+        executions.push({ queryCount: neuralRows.length, durationMs: embeddingMs });
+        tierStats.embedding.batches += 1;
+        tierStats.embedding.queryCount += neuralRows.length;
+        tierStats.embedding.totalMs = round(tierStats.embedding.totalMs + embeddingMs);
+        if (embeddingMs > tierStats.embedding.maxMs) tierStats.embedding.maxMs = embeddingMs;
+        tierStats.embedding.resolved += neuralRows.filter((row) => row.result?.outcome === 'resolve').length;
+        tierStats.embedding.refused += neuralRows.filter((row) => row.result?.outcome === 'refuse').length;
       }
       return rows.sort((left, right) => left.inputIndex - right.inputIndex).map((row) => row.result);
     }
@@ -153,7 +180,19 @@
       };
     }
 
-    return { id: 'hybrid-lexical-qwen-embedding-v1', initialize, receipt, resolveMany, unload };
+    function stats() {
+      return {
+        schema: 'simulatte.placeResolverStats.v1',
+        lane: 'hybrid_lexical_extended_typo_qwen_embedding',
+        tiers: structuredClone(tierStats),
+        loadDurationsMs: loads.slice(),
+        queryNotExtracted,
+        deterministicHitModelExecutions,
+        embeddingExecuted: tierStats.embedding.queryCount > 0,
+      };
+    }
+
+    return { id: 'hybrid-lexical-qwen-embedding-v1', initialize, receipt, resolveMany, stats, unload };
   }
 
   async function validateAssets(index, modelLock) {

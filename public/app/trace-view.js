@@ -16,26 +16,30 @@
         return;
       }
       const selected = receipt.bets.find((row) => row.bet.id === receipt.selectedBetId);
-      elements.decisionTitle.textContent = selected ? label(selected.bet.action.maneuver) : 'No decision';
+      elements.decisionTitle.textContent = selected ? decisionSummary(selected, receipt) : 'No safe action selected';
       const nearbyActorSummary = actorSummary(receipt.observation.nearbyActors);
       elements.decisionMeta.textContent = selected
-        ? `Tick ${receipt.tick} · utility ${format(selected.utility, 2)} · confidence ${format(selected.bet.confidence * 100, 0)}% · ${nearbyActorSummary}`
-        : `Tick ${receipt.tick} · ${nearbyActorSummary}`;
-      elements.betList.replaceChildren(...receipt.bets.map((row) => betRow(row, receipt.selectedBetId)));
-      renderRoute(elements, receipt.observation.route);
-      renderRetrieval(elements, receipt.observation.featureRetrieval);
-      renderOccurrences(elements, receipt.observation.occurrenceReceipt);
-      renderGates(elements, selected);
-      renderSettlement(elements, receipt.settlement);
-      renderTrace(elements, receipt, selected);
+        ? `${selected.gate.accepted ? 'Safety checks passed' : 'Blocked by safety checks'} · ${format(selected.bet.confidence * 100, 0)}% confidence · ${nearbyActorSummary}`
+        : nearbyActorSummary;
       renderMetrics(elements, snapshot, selected, receipt);
+      const drawerOpen = elements.decisionsDrawer?.classList.contains('is-open');
+      const refreshEvidence = drawerOpen || snapshot.state.status !== 'active' || receipt.tick % 8 === 0;
+      if (refreshEvidence) {
+        elements.betList.replaceChildren(...receipt.bets.map((row) => betRow(row, receipt.selectedBetId)));
+        renderRoute(elements, receipt.observation.route);
+        renderRetrieval(elements, receipt.observation.featureRetrieval);
+        renderOccurrences(elements, receipt.observation.occurrenceReceipt);
+        renderGates(elements, selected);
+        renderSettlement(elements, receipt.settlement);
+        renderTrace(elements, receipt, selected);
+      }
     }
 
     function renderInitial(snapshot, rendererReceipt) {
-      elements.decisionTitle.textContent = 'Awaiting first observation';
+      elements.decisionTitle.textContent = 'Ready to choose a route';
       elements.decisionMeta.textContent = rendererReceipt
-        ? `${rendererReceipt.backend.toUpperCase()} ready · ${rendererReceipt.buildingCount.toLocaleString()} buildings`
-        : 'No action selected';
+        ? `${rendererReceipt.buildingCount.toLocaleString()} buildings loaded on this device.`
+        : 'Start a mission to see each decision.';
       elements.betList.replaceChildren();
       elements.gateList.replaceChildren();
       elements.traceList.replaceChildren();
@@ -152,6 +156,7 @@
     const state = snapshot.state;
     setText(elements.metricState, state.status);
     setText(elements.metricTick, state.tick);
+    setText(elements.metricTime, formatClock(state.simulatedTimeSeconds));
     setText(elements.metricSpeed, `${format(state.speedMps, 1)} m/s`);
     setText(elements.metricDistance, `${format(state.distanceTraveledM, 1)} m`);
     const routeMetric = state.taskType === 'loop'
@@ -161,6 +166,24 @@
     setText(elements.metricBet, selected ? label(selected.bet.action.maneuver) : 'none');
     setText(elements.metricSettlement, receipt ? receipt.settlement.verdict : 'none');
     setText(elements.metricCalibration, `${snapshot.policyMemory.wonBetCount} / ${snapshot.policyMemory.settledBetCount}`);
+    const targetDistance = Number(snapshot.planning?.forecast?.distanceM || 0);
+    const progress = targetDistance > 0 ? Math.min(1, Math.max(0, state.distanceTraveledM / targetDistance)) : 0;
+    if (elements.journeyProgressFill) elements.journeyProgressFill.style.width = `${(progress * 100).toFixed(2)}%`;
+  }
+
+  function decisionSummary(selected, receipt) {
+    const maneuver = label(selected.bet.action.maneuver);
+    const clearance = Number(selected.bet.prediction.minimumClearanceM || 0);
+    const actorCount = receipt.observation.nearbyActors.length;
+    if (!selected.gate.accepted) return `${maneuver} was blocked`;
+    if (actorCount > 0) return `${maneuver} while keeping ${format(clearance, 1)} m clear`;
+    return `${maneuver} on the selected route`;
+  }
+
+  function formatClock(seconds) {
+    const total = Math.max(0, Math.round(Number(seconds || 0)));
+    const minutes = Math.floor(total / 60);
+    return `${minutes}:${String(total % 60).padStart(2, '0')}`;
   }
 
   function betRow(row, selectedBetId) {
@@ -222,5 +245,5 @@
     return String(value).replace(/[&<>"]/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[character]));
   }
 
-  return { actorSummary, createTraceView, format, label, signed };
+  return { actorSummary, createTraceView, decisionSummary, format, formatClock, label, signed };
 });

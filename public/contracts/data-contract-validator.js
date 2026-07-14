@@ -263,9 +263,10 @@
   }
 
   function validatePlaceResolutionEvidence(evidence, index, modelLock, ErrorType = DataContractError) {
-    const contract = 'simulatte.placeResolutionEvaluation.v1';
+    const contract = 'simulatte.placeResolutionEvaluation.v2';
     const v = validator(ErrorType, contract);
     v.schema(evidence);
+    v.exact(evidence.schema, contract, '$.schema');
     v.string(evidence.id, '$.id');
     v.exact(evidence.population?.promotionEligible, false, '$.population.promotionEligible');
     v.exact(evidence.accepted, true, '$.accepted');
@@ -277,10 +278,16 @@
     v.exact(challenger.metrics.wrongPlace, 0, '$.lanes.challenger.metrics.wrongPlace');
     v.exact(challenger.guardrails?.mustRefuseViolations, 0, '$.lanes.challenger.guardrails.mustRefuseViolations');
     v.exact(challenger.guardrails?.floorMisses, 0, '$.lanes.challenger.guardrails.floorMisses');
-    v.exact(evidence.identities?.challengerAssets?.placeEmbeddingIndex?.id, index.id, '$.identities.challengerAssets.placeEmbeddingIndex.id');
-    v.exact(evidence.identities?.challengerAssets?.placeEmbeddingIndex?.indexSha256, index.indexSha256, '$.identities.challengerAssets.placeEmbeddingIndex.indexSha256');
-    v.exact(evidence.identities?.challengerAssets?.modelRuntimeLock?.id, modelLock.id, '$.identities.challengerAssets.modelRuntimeLock.id');
-    v.exact(evidence.identities?.challengerAssets?.model?.id, modelLock.embedding.id, '$.identities.challengerAssets.model.id');
+    const modelCandidate = v.object(evidence.lanes?.modelCandidate, '$.lanes.modelCandidate');
+    v.exact(modelCandidate.metrics?.wrongPlace, 0, '$.lanes.modelCandidate.metrics.wrongPlace');
+    v.exact(modelCandidate.guardrails?.mustRefuseViolations, 0, '$.lanes.modelCandidate.guardrails.mustRefuseViolations');
+    v.exact(modelCandidate.guardrails?.floorMisses, 0, '$.lanes.modelCandidate.guardrails.floorMisses');
+    v.exact(evidence.modelSelection?.status, 'rejected_no_incremental_gain', '$.modelSelection.status');
+    v.exact(evidence.modelSelection?.incrementalCorrect, 0, '$.modelSelection.incrementalCorrect');
+    v.exact(evidence.identities?.modelCandidateAssets?.placeEmbeddingIndex?.id, index.id, '$.identities.modelCandidateAssets.placeEmbeddingIndex.id');
+    v.exact(evidence.identities?.modelCandidateAssets?.placeEmbeddingIndex?.indexSha256, index.indexSha256, '$.identities.modelCandidateAssets.placeEmbeddingIndex.indexSha256');
+    v.exact(evidence.identities?.modelCandidateAssets?.modelRuntimeLock?.id, modelLock.id, '$.identities.modelCandidateAssets.modelRuntimeLock.id');
+    v.exact(evidence.identities?.modelCandidateAssets?.model?.id, modelLock.embedding.id, '$.identities.modelCandidateAssets.model.id');
     v.string(evidence.claimBoundary, '$.claimBoundary');
     return evidence;
   }

@@ -87,9 +87,9 @@
       return '';
     }
 
-    function animationSpeedForKind(kind) {
-      if (kind === 'static-pose') return 0;
-      if (kind === 'flight-path') return 0.62;
+  function animationSpeedForKind(kind) {
+    if (kind === 'static-pose') return 0;
+    if (kind === 'flight-path') return 0.8;
       if (kind === 'play-loop') return 1.1;
       if (kind === 'hold-pose') return 0.18;
       if (kind === 'particle-track' || kind === 'packet-flow') return 0.74;
@@ -99,9 +99,9 @@
       return 0.34;
     }
 
-    function animationAmplitudeForKind(kind) {
-      if (kind === 'static-pose') return 0;
-      if (kind === 'flight-path') return 0.07;
+  function animationAmplitudeForKind(kind) {
+    if (kind === 'static-pose') return 0;
+    if (kind === 'flight-path') return 0.1;
       if (kind === 'play-loop') return 0.05;
       if (kind === 'hold-pose') return 0.018;
       if (kind === 'swim-cycle') return 0.055;

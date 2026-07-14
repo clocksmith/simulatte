@@ -5,10 +5,13 @@
   const capabilities = typeof module === 'object' && module.exports
     ? require('./capability-matrix.js')
     : root.SimulatteAutonomyCapabilities;
-  const api = factory(contracts, capabilities);
+  const placeResolution = typeof module === 'object' && module.exports
+    ? require('../runtime/neural-place-resolution-core.js')
+    : root.SimulatteNeuralPlaceResolutionCore;
+  const api = factory(contracts, capabilities, placeResolution);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteAutonomyMission = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyMissionCompiler(contracts, capabilities) {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyMissionCompiler(contracts, capabilities, placeResolution) {
   const CLAIM_BOUNDARY = 'Known point-to-point and registered closed-circuit tasks only. Places, routed streets, and circuits resolve against governed artifacts. Optional model-backed place resolution can select only an existing governed node and cannot create a place, route, or capability.';
   const METERS_PER_UNIT = Object.freeze({ foot: 0.3048, meter: 1, kilometer: 1000, mile: 1609.344 });
   const SECONDS_PER_UNIT = Object.freeze({ second: 1, minute: 60, hour: 3600 });
@@ -103,8 +106,9 @@
     });
     const embodiment = requireEmbodiment(embodimentInput, capability.embodimentId);
     const eligibleNodes = nodesForMode(world, embodiment.mode);
-    const origin = resolvedPlaceOverride(text, world, 'origin', options, embodiment.mode) || matchPlaceAfter(text, eligibleNodes, 'from');
-    const destination = resolvedPlaceOverride(text, world, 'destination', options, embodiment.mode) || matchPlaceAfter(text, eligibleNodes, 'to');
+    const allowExtendedTypo = options.deterministicPlaceResolution !== 'legacy_constrained';
+    const origin = resolvedPlaceOverride(text, world, 'origin', options, embodiment.mode) || matchPlaceAfter(text, eligibleNodes, 'from', allowExtendedTypo);
+    const destination = resolvedPlaceOverride(text, world, 'destination', options, embodiment.mode) || matchPlaceAfter(text, eligibleNodes, 'to', allowExtendedTypo);
     if (!origin) throw missionError('origin_not_grounded', 'Mission origin must match a governed place label after "from"');
     if (!destination) throw missionError('destination_not_grounded', 'Mission destination must match a governed place label after "to"');
     const orderedStops = compileOrderedStops(text, eligibleNodes, destination);
@@ -124,7 +128,7 @@
       schema: 'simulatte.autonomyMission.v3',
       id: `delivery-${seed.toString(16).padStart(8, '0')}`,
       sourceText: text,
-      parser: parserReceipt(evidence),
+      parser: parserReceipt(evidence, Boolean(options.placeResolutionReceipt)),
       capability,
       embodimentId: embodiment.id,
       task: { type: 'delivery', payloadId: 'parcel-1', stopNodeIds: orderedStops.map((row) => row.node.id) },
@@ -174,8 +178,9 @@
     });
     const embodiment = requireEmbodiment(embodimentInput, capability.embodimentId);
     const eligibleNodes = nodesForMode(world, embodiment.mode);
-    const origin = resolvedPlaceOverride(text, world, 'origin', options, embodiment.mode) || matchPlaceAfter(text, eligibleNodes, 'from');
-    const destination = resolvedPlaceOverride(text, world, 'destination', options, embodiment.mode) || matchPlaceAfter(text, eligibleNodes, 'to');
+    const allowExtendedTypo = options.deterministicPlaceResolution !== 'legacy_constrained';
+    const origin = resolvedPlaceOverride(text, world, 'origin', options, embodiment.mode) || matchPlaceAfter(text, eligibleNodes, 'from', allowExtendedTypo);
+    const destination = resolvedPlaceOverride(text, world, 'destination', options, embodiment.mode) || matchPlaceAfter(text, eligibleNodes, 'to', allowExtendedTypo);
     if (!origin) throw missionError('origin_not_grounded', 'Mission origin must match a governed place label after "from"');
     if (!destination) throw missionError('destination_not_grounded', 'Mission destination must match a governed place label after "to"');
     const orderedStops = compileOrderedStops(text, eligibleNodes, destination);
@@ -195,7 +200,7 @@
       schema: 'simulatte.autonomyMission.v3',
       id: `journey-${seed.toString(16).padStart(8, '0')}`,
       sourceText: text,
-      parser: parserReceipt(evidence),
+      parser: parserReceipt(evidence, Boolean(options.placeResolutionReceipt)),
       capability,
       embodimentId: embodiment.id,
       task: { type: 'point_to_point', stopNodeIds: orderedStops.map((row) => row.node.id) },
@@ -369,8 +374,8 @@
     };
   }
 
-  function parserReceipt(evidence) {
-    const modelBacked = evidence.some((row) => ['qwen_embedding_cosine', 'extended_damerau_place'].includes(row.method));
+  function parserReceipt(evidence, hasExternalResolution = false) {
+    const modelBacked = hasExternalResolution || evidence.some((row) => row.method === 'qwen_embedding_cosine');
     return {
       kind: modelBacked ? 'governed_hybrid_place_resolution' : 'deterministic_grounded_lexical',
       version: modelBacked ? 'simulatte.autonomyMissionParser.v4' : 'simulatte.autonomyMissionParser.v3',
@@ -587,7 +592,7 @@
     return bestGrounding(candidates, 'circuit_ambiguous', (row) => row.circuit.id);
   }
 
-  function matchPlaceAfter(sourceText, nodes, preposition) {
+  function matchPlaceAfter(sourceText, nodes, preposition, allowExtendedTypo = true) {
     const namedNodes = nodes.filter((node) => node.landmark || !['intersection', 'pedestrian_waypoint'].includes(node.kind));
     const tokens = sourceTokens(sourceText);
     const markers = tokens.filter((row) => row.value.toLowerCase() === preposition);
@@ -601,6 +606,35 @@
         }, true);
       });
       if (candidates.length) return bestGrounding(candidates, `${preposition}_place_ambiguous`, (row) => row.node.id);
+      if (!allowExtendedTypo) continue;
+      const role = preposition === 'from' ? 'origin' : 'destination';
+      const queryText = placeResolution.extractPlaceQuery(sourceText, role);
+      const queryTokenCount = sourceTokens(queryText).length;
+      const matchedRows = after.slice(0, queryTokenCount);
+      const extended = placeResolution.resolveExtendedTypo(queryText, namedNodes.map((node) => ({
+        placeId: `place-${node.id}`,
+        nodeId: node.id,
+        label: node.label,
+      })));
+      if (extended.outcome === 'resolve' && matchedRows.length === queryTokenCount) {
+        const node = namedNodes.find((row) => row.id === extended.nodeId);
+        if (!node) throw missionError('place_resolution_invalid', `Extended typo resolution selected missing node ${extended.nodeId}`);
+        return {
+          node,
+          value: sourceText.slice(matchedRows[0].index, matchedRows.at(-1).end),
+          index: matchedRows[0].index,
+          end: matchedRows.at(-1).end,
+          editDistance: extended.ranking[0].distance,
+          aliasLength: extended.ranking[0].labelLength,
+          resolution: {
+            lane: 'extended_typo',
+            policy: placeResolution.TYPO_POLICY,
+            maximumDistance: extended.maximumDistance,
+            distanceMargin: extended.distanceMargin,
+            ranking: extended.ranking,
+          },
+        };
+      }
     }
     return null;
   }

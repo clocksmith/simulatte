@@ -702,6 +702,7 @@ async function setupPage(cdp, url, width, height, timeoutMs, intentMode) {
   await cdp.send('Network.enable');
   await cdp.send('Network.clearBrowserCache');
   await cdp.send('Network.setCacheDisabled', { cacheDisabled: true });
+  await cdp.send('Network.setBypassServiceWorker', { bypass: true });
   await cdp.send('Emulation.setDeviceMetricsOverride', {
     width,
     height,
@@ -1129,10 +1130,12 @@ async function runPrompt(cdp, entry, index, outDir, options) {
       phaseArtifacts.phase4.artifact &&
       phaseArtifacts.phase4.artifact.groundedIntent &&
       phaseArtifacts.phase4.artifact.groundedIntent.acceptedGraph || {};
-    const phase5PhysicsIR = phaseArtifacts.phase5 &&
+    const phase5SimulationCompile = phaseArtifacts.phase5 &&
       phaseArtifacts.phase5.artifact &&
-      phaseArtifacts.phase5.artifact.simulationCompile &&
-      phaseArtifacts.phase5.artifact.simulationCompile.physicsIR || {};
+      phaseArtifacts.phase5.artifact.simulationCompile || {};
+    const phase5PhysicsIR = phase5SimulationCompile.physicsIR || {};
+    const phase5SolverGraph = phase5SimulationCompile.solverGraph || {};
+    const phase5RenderIR = phase5SimulationCompile.renderIR || {};
     const phase3RerankReceipt = phase3Retrieval.rerankReceipt || {};
     const sourceRerankReceipt = phase3RerankReceipt.source || {};
     const slotRetrieval = phase3Retrieval.slotRetrieval || {};
@@ -1375,6 +1378,27 @@ async function runPrompt(cdp, entry, index, outDir, options) {
         directlyGrounded: row.directlyGrounded === true,
         construction: constructionAuditSummary(row),
       })),
+      phase4AcceptedEdges: (phase4AcceptedGraph.edges || []).map((row) => ({
+        id: row.id || '',
+        source: row.source || row.from || '',
+        target: row.target || row.to || '',
+        processId: row.processId || '',
+        operatorType: row.operatorType || '',
+        causalRuleId: row.provenance && row.provenance.causalRuleId || '',
+        causal: row.causal === true,
+      })),
+      intentBriefCausalGraph: (intentBrief && intentBrief.causalGraph || []).map((row) => ({
+        id: row.id || '',
+        ruleId: row.ruleId || '',
+        sourceRef: row.sourceRef || '',
+        targetRef: row.targetRef || '',
+        sourceLabel: row.sourceLabel || '',
+        targetLabel: row.targetLabel || '',
+        processId: row.processId || '',
+        operatorType: row.operatorType || '',
+        groundingPolicy: row.groundingPolicy || null,
+        groundingPolicyEvidence: row.groundingPolicyEvidence || null,
+      })),
       phase4Canonicalization: phase4AcceptedGraph.canonicalization || null,
       phase4ConstructionReceipt: phase4AcceptedGraph.constructionReceipt || null,
       phase4CandidateMatchReceipt: phase4AcceptedGraph.candidateMatchReceipt || null,
@@ -1386,6 +1410,31 @@ async function runPrompt(cdp, entry, index, outDir, options) {
         semanticType: row.semanticType || row.type || '',
         supportOnly: row.supportOnly === true,
         construction: constructionAuditSummary(row),
+      })),
+      phase5OperatorTypes: (phase5PhysicsIR.operators || []).map((row) => row.type || '').filter(Boolean),
+      phase5SolverSteps: (phase5SolverGraph.steps || []).map((row) => ({
+        id: row.id || '',
+        operatorType: row.operatorType || '',
+        solverId: row.solverId || '',
+        reads: row.reads || row.inputs || [],
+        writes: row.writes || row.outputs || [],
+      })),
+      phase5RenderIRObjects: (phase5RenderIR.objects || []).map((row) => ({
+        id: row.id || '',
+        label: row.label || '',
+        semanticRef: row.semanticRef || '',
+        physicalRef: row.physicalRef || '',
+        directlyGrounded: row.directlyGrounded === true,
+        glyph: row.glyph || '',
+      })),
+      phase6VisualAcceptance: (phase6VisualCompile && phase6VisualCompile.visualAcceptance || []).map((row) => ({
+        id: row.id || '',
+        sourceKind: row.sourceKind || '',
+        phrase: row.phrase || '',
+        status: row.status || '',
+        reason: row.reason || '',
+        promptGrounded: row.promptGrounded === true,
+        supportOnly: row.supportOnly === true,
       })),
       phase6CompositionObligations: (phase6CompositionLedger.obligations || []).map((row) => ({
         id: row.id || row.obligationId || '',

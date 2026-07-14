@@ -774,13 +774,28 @@
           ...graphObjects,
           ...irContext,
         ]));
-        const laidOutObjects = preservePromptGroundedSurfaceObjects(layoutObjectsForScene(
-          prioritizeObjectsForScene(groundedObjects, sceneKind),
+        const prioritizedObjects = prioritizeObjectsForScene(groundedObjects, sceneKind);
+        const promptRenderFallbacks = irObjects.filter((object) => (
+          object.directlyGrounded === true &&
+          !prioritizedObjects.some((row) => visualObjectsShareConcept(row, object))
+        ));
+        let laidOutObjects = preservePromptGroundedSurfaceObjects(layoutObjectsForScene(
+          uniqueObjectsById([...promptRenderFallbacks, ...prioritizedObjects]).slice(0, 24),
           sceneKind,
           spec,
           layoutGenome
         ), graphObjects, spec, sceneKind);
-        const objectLedger = visualObjectAcceptanceLedger(laidOutObjects, sceneKind, spec);
+        let objectLedger = visualObjectAcceptanceLedger(laidOutObjects, sceneKind, spec);
+        const acceptanceFallbacks = directlyGroundedRenderFallbacks(irObjects, objectLedger.accepted);
+        if (acceptanceFallbacks.length) {
+          laidOutObjects = preservePromptGroundedSurfaceObjects(layoutObjectsForScene(
+            uniqueObjectsById([...acceptanceFallbacks, ...laidOutObjects]).slice(0, 24),
+            sceneKind,
+            spec,
+            layoutGenome
+          ), graphObjects, spec, sceneKind);
+          objectLedger = visualObjectAcceptanceLedger(laidOutObjects, sceneKind, spec);
+        }
         const objects = objectLedger.accepted;
         const fields = layoutFields;
         const solverPlan = layoutSolverPlan;
@@ -823,6 +838,14 @@
             solverGraph: solverGraph.schema,
           },
         };
+      }
+
+    function directlyGroundedRenderFallbacks(irObjects = [], acceptedObjects = []) {
+        return (irObjects || []).filter((object) => (
+          object && object.directlyGrounded === true &&
+          /^prompt[.-]/.test(String(object.semanticRef || object.physicalRef || '')) &&
+          !(acceptedObjects || []).some((row) => visualObjectsShareConcept(row, object))
+        ));
       }
 
     function bindRenderIRToObject(object, bindingByText) {
@@ -943,6 +966,7 @@
       renderBindingRefMatches,
       renderBindingTokenMatches,
       renderProgramFromRenderIR,
+      directlyGroundedRenderFallbacks,
       bindRenderIRToObject,
       preservePromptGroundedSurfaceObjects,
       unmatchedRenderIRObjects,

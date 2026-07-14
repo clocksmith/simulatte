@@ -203,7 +203,10 @@ test('playing with creates a shared pose and relation while flight stays on the 
 
   const flight = lab.createSpecFromPrompt('airplane flying over trees', { allowPrototypeFallback: true });
   const flightPacket = flight.phaseArtifacts.phase6.artifact.visualCompile.sceneRenderPacket;
-  assert.equal(flightPacket.entities.find((row) => row.identity.type === 'airplane').animation.kind, 'flight-path');
+  const airplaneAnimation = flightPacket.entities.find((row) => row.identity.type === 'airplane').animation;
+  assert.equal(airplaneAnimation.kind, 'flight-path');
+  assert.ok(airplaneAnimation.speed >= 0.8);
+  assert.ok(airplaneAnimation.amplitude >= 0.1);
   assert.equal(flightPacket.entities.find((row) => row.identity.type === 'tree').animation.kind, 'static-pose');
   assert.equal(flightPacket.entities.find((row) => row.identity.type === 'tree').animation.speed, 0);
 

@@ -82,10 +82,13 @@ The optional neural place lane runs the pinned Qwen 3 Embedding 0.6B model
 locally through Doppler. It embeds only the origin or destination phrase and
 may select only a node already eligible for the chosen embodiment. It does not
 generate text, choose a route, operate the vehicle, or replace safety gates.
-Its checked-in public diagnostic score is 28/37 versus 21/37 for the lexical
-control, with zero must-refuse violations. That population is exposed and
-promotion-ineligible. The pinned Qwen reranker remains available to Blank; it
-is not falsely reported as executing in Simulatte's navigation decisions.
+After correcting the Doppler 0.4.8 embedding math, the shipped deterministic
+extended-typo lane scores 27/37 versus 21/37 for the legacy lexical control,
+with zero wrong-place or must-refuse violations. The Qwen candidate also scores
+27/37 and adds no correct rows, so it remains an explicit experiment rather
+than the default. That population is exposed and promotion-ineligible. The
+pinned Qwen reranker remains available to Blank; it is not falsely reported as
+executing in Simulatte's navigation decisions.
 
 | Module | Role |
 | --- | --- |
@@ -98,7 +101,8 @@ is not falsely reported as executing in Simulatte's navigation decisions.
 | [`public/data/autonomy/`](public/data/autonomy/) | Worlds, feature cards, embodiments, policies, evidence receipts |
 
 `tools/samer/autonomy/` compares action-selection approaches across matched
-support a physical-world autonomy claim. Design docs live in
+diagnostic scenarios. Those runs do not support a physical-world autonomy
+claim. Design docs live in
 [docs/autonomy/](docs/autonomy/README.md), including the
 [NYC navigation transfer](docs/autonomy/nyc-navigation-transfer.md) map.
 

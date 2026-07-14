@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <!-- Served by measure-resolution-performance.mjs at /__bench/. The base
+       href pins document.baseURI to the server root so the model lock's
+       doppler.moduleUrl, kernel paths, and /data/... fetches resolve exactly
+       as they do on the production page. -->
+  <base href="/">
+  <title>Simulatte place-resolution bench</title>
+</head>
+<body>
+<script src="/runtime/runtime-log.js"></script>
+<script src="/runtime/canonical-receipts.js"></script>
+<script src="/runtime/neural-place-resolution-core.js"></script>
+<script src="/runtime/neural-place-resolver.js"></script>
+<script src="/contracts/data-contract-validator.js"></script>
+<script src="/contracts/contract-validator.js"></script>
+<script src="/mission/capability-matrix.js"></script>
+<script src="/mission/mission-compiler.js"></script>
+<script>
+(function attachBench(root) {
+  const longTasks = [];
+  const observer = new PerformanceObserver((list) => {
+    for (const entry of list.getEntries()) {
+      longTasks.push({ startMs: round(entry.startTime), durationMs: round(entry.duration) });
+    }
+  });
+  observer.observe({ entryTypes: ['longtask'] });
+
+  async function runBench(config) {
+    const phaseMarks = [];
+    const mark = (name) => phaseMarks.push({ name, atMs: round(performance.now()) });
+    const [world, embodiment] = await Promise.all([
+      fetchJson(config.worldPath),
+      fetchJson(config.embodimentPath),
+    ]);
+    const missionApi = root.SimulatteAutonomyMission;
+    const eligible = new Set(missionApi.eligiblePlaceNodeIds(world, embodiment.kind));
+    const nodeIdByLabel = new Map(world.nodes
+      .filter((node) => node.label && eligible.has(node.id))
+      .map((node) => [node.label, node.id]));
+
+    const compileMs = [];
+    const perProbe = [];
+    mark('deterministic_pass_start');
+    const unresolved = [];
+    for (let repetition = 0; repetition < config.repetitions; repetition += 1) {
+      for (const probe of config.probes) {
+        const startedAt = performance.now();
+        let outcome = 'resolve';
+        let nodeId = null;
+        try {
+          const mission = missionApi.compileMission(probe.sourceText, world, embodiment);
+          nodeId = probe.role === 'origin' ? mission.originNodeId : mission.destinationNodeId;
+        } catch {
+          outcome = 'refuse';
+        }
+        const elapsed = round(performance.now() - startedAt);
+        compileMs.push(elapsed);
+        if (repetition === 0) {
+          perProbe.push({ probeId: probe.probeId, kind: probe.kind, tier: 'lexical', outcome, nodeId, ms: elapsed });
+          if (outcome === 'refuse') unresolved.push(probe);
+        }
+      }
+    }
+    mark('deterministic_pass_end');
+
+    let resolverStats = null;
+    let resolverReadiness = null;
+    let hybridResults = null;
+    if (config.lane === 'hybrid_optin' && unresolved.length) {
+      const [index, modelLock] = await Promise.all([
+        fetchJson(config.embeddingIndexPath),
+        fetchJson(config.modelLockPath),
+      ]);
+      const resolver = root.SimulatteNeuralPlaceResolver.createPlaceResolver({
+        index,
+        modelLock,
+        modelBaseUrl: config.modelBaseUrl || '',
+      });
+      mark('model_load_start');
+      resolverReadiness = await resolver.initialize();
+      mark('model_load_end');
+      mark('hybrid_pass_start');
+      const results = await resolver.resolveMany(unresolved.map((probe) => ({
+        sourceText: probe.sourceText,
+        role: probe.role,
+        eligibleNodeIds: [...eligible],
+      })));
+      mark('hybrid_pass_end');
+      hybridResults = results.map((result, indexInBatch) => {
+        const probe = unresolved[indexInBatch];
+        return {
+          probeId: probe.probeId,
+          kind: probe.kind,
+          tier: result?.evidence?.lane || 'hybrid',
+          outcome: result?.outcome || 'refuse',
+          nodeId: result?.nodeId || null,
+          goldNodeId: probe.gold.placeLabel ? nodeIdByLabel.get(probe.gold.placeLabel) || null : null,
+          goldOutcome: probe.gold.outcome,
+        };
+      });
+      resolverStats = resolver.stats();
+      await resolver.unload();
+    }
+
+    return {
+      schema: 'simulatte.resolutionBenchPageResult.v1',
+      lane: config.lane,
+      probeCount: config.probes.length,
+      repetitions: config.repetitions,
+      compileMs,
+      perProbe,
+      unresolvedCount: unresolved.length,
+      hybridResults,
+      resolverStats,
+      resolverReadiness,
+      phaseMarks,
+      longTasks: longTasks.slice(),
+      memory: performance.memory
+        ? { usedJsHeapBytes: performance.memory.usedJSHeapSize, totalJsHeapBytes: performance.memory.totalJSHeapSize }
+        : null,
+    };
+  }
+
+  async function fetchJson(url) {
+    const response = await fetch(url, { cache: 'no-store' });
+    if (!response.ok) throw new Error(`bench fetch failed ${response.status}: ${url}`);
+    return response.json();
+  }
+
+  function round(value) {
+    return Number(Number(value).toFixed(3));
+  }
+
+  root.__SIMULATTE_BENCH__ = { runBench, longTasks };
+})(window);
+</script>
+</body>
+</html>

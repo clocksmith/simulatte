@@ -1,0 +1,192 @@
+/* Simulatte shared interface system.
+   RD supplies the discipline, Blank supplies the glass, and Simulatte keeps
+   motion and evidence readable over live worlds. */
+
+:root {
+  color-scheme: light;
+  --sim-ink: #17201d;
+  --sim-ink-soft: rgba(23, 32, 29, 0.68);
+  --sim-ink-faint: rgba(23, 32, 29, 0.46);
+  --sim-paper: #f7f8f7;
+  --sim-glass: rgba(255, 255, 255, 0.9);
+  --sim-glass-soft: rgba(255, 255, 255, 0.72);
+  --sim-glass-faint: rgba(255, 255, 255, 0.54);
+  --sim-line: rgba(23, 32, 29, 0.14);
+  --sim-line-strong: rgba(23, 32, 29, 0.28);
+  --sim-blue: #75bef4;
+  --sim-green: #4bc98d;
+  --sim-gold: #d9a431;
+  --sim-red: #d85f55;
+  --sim-spectrum: linear-gradient(122deg, #ef718a, #ef9e62 24%, #e1bd57 42%, #69c99a 60%, #62bfd8 77%, #a986e4);
+  --sim-font: Inter, "Avenir Next", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --sim-mono: "SFMono-Regular", "Cascadia Code", "Roboto Mono", monospace;
+  --sim-space-1: 4px;
+  --sim-space-2: 8px;
+  --sim-space-3: 12px;
+  --sim-space-4: 16px;
+  --sim-space-5: 24px;
+  --sim-radius-small: 8px;
+  --sim-radius: 14px;
+  --sim-radius-large: 20px;
+  --sim-shadow: 0 18px 56px rgba(4, 12, 18, 0.2), 0 2px 10px rgba(4, 12, 18, 0.12);
+  --sim-shadow-small: 0 10px 28px rgba(4, 12, 18, 0.16);
+  --sim-blur: blur(22px) saturate(1.18);
+  --sim-motion-fast: 160ms;
+  --sim-motion: 240ms;
+  --sim-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --sim-touch-target: 44px;
+}
+
+.sim-surface {
+  border: 1px solid var(--sim-line);
+  border-radius: var(--sim-radius);
+  color: var(--sim-ink);
+  background: var(--sim-glass);
+  box-shadow: var(--sim-shadow);
+  backdrop-filter: var(--sim-blur);
+  -webkit-backdrop-filter: var(--sim-blur);
+}
+
+.sim-action {
+  display: inline-flex;
+  min-width: var(--sim-touch-target);
+  min-height: var(--sim-touch-target);
+  align-items: center;
+  justify-content: center;
+  gap: var(--sim-space-2);
+  border: 1px solid var(--sim-line);
+  border-radius: var(--sim-radius-small);
+  padding: 0 var(--sim-space-3);
+  color: var(--sim-ink);
+  background: var(--sim-glass-soft);
+  font: 650 13px/1 var(--sim-font);
+  cursor: pointer;
+  transition: transform var(--sim-motion-fast) var(--sim-ease), background var(--sim-motion-fast) ease, border-color var(--sim-motion-fast) ease, box-shadow var(--sim-motion-fast) ease;
+}
+
+.sim-action:hover:not(:disabled),
+.sim-action:focus-visible {
+  border-color: var(--sim-line-strong);
+  background: var(--sim-glass);
+  box-shadow: var(--sim-shadow-small);
+  outline: none;
+}
+
+.sim-action:focus-visible {
+  outline: 2px solid rgba(117, 190, 244, 0.72);
+  outline-offset: 2px;
+}
+
+.sim-action:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.sim-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
+}
+
+.sim-action-primary {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-color: transparent;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: var(--sim-shadow-small);
+  font-weight: 760;
+}
+
+.sim-action-primary::before {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  content: "";
+  background: var(--sim-spectrum);
+}
+
+.sim-action-primary::after {
+  position: absolute;
+  inset: 2px;
+  z-index: -1;
+  border-radius: calc(var(--sim-radius-small) - 2px);
+  content: "";
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.sim-action-primary:hover:not(:disabled)::after,
+.sim-action-primary:focus-visible::after {
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.sim-popover {
+  border: 1px solid var(--sim-line);
+  border-radius: var(--sim-radius);
+  color: var(--sim-ink);
+  background: var(--sim-glass);
+  box-shadow: var(--sim-shadow);
+  backdrop-filter: var(--sim-blur);
+  -webkit-backdrop-filter: var(--sim-blur);
+}
+
+.sim-segmented {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--sim-line);
+  border-radius: calc(var(--sim-radius-small) + 2px);
+  background: var(--sim-glass-soft);
+  box-shadow: var(--sim-shadow-small);
+  backdrop-filter: var(--sim-blur);
+  -webkit-backdrop-filter: var(--sim-blur);
+}
+
+.sim-segmented > button {
+  min-height: 38px;
+  border: 0;
+  border-radius: 7px;
+  padding: 0 11px;
+  color: var(--sim-ink-soft);
+  background: transparent;
+}
+
+.sim-segmented > button:hover,
+.sim-segmented > button:focus-visible,
+.sim-segmented > button.is-active {
+  color: var(--sim-ink);
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 3px 12px rgba(4, 12, 18, 0.1);
+  outline: none;
+}
+
+.sim-field {
+  width: 100%;
+  border: 1px solid var(--sim-line);
+  border-radius: var(--sim-radius-small);
+  color: var(--sim-ink);
+  background: rgba(255, 255, 255, 0.76);
+  font-family: var(--sim-font);
+}
+
+.sim-field:focus {
+  border-color: rgba(117, 190, 244, 0.8);
+  box-shadow: 0 0 0 3px rgba(117, 190, 244, 0.18);
+  outline: none;
+}
+
+.sim-label {
+  color: var(--sim-ink-faint);
+  font: 700 10px/1.2 var(--sim-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+}

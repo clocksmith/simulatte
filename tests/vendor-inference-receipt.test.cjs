@@ -98,6 +98,31 @@ test('vendor inference receipt requires real probes, prompt reranking, and the n
   assert.equal(receipt.status, 'pass');
   assert.equal(receipt.modelRuntimeLock.number, 7);
   assert.equal(receipt.reranker.candidateInputCount, 8);
+  assert.equal(receipt.reranker.slotSelectionMode, 'ambiguous-model-rerank');
+
+  const exactEmbeddingSlots = structuredClone(report);
+  Object.assign(exactEmbeddingSlots.results[0].modelExecutionReceipt.phase3Rerank, {
+    promptPrefixStateReuseCount: 0,
+    promptEmbeddingSlotCount: 5,
+    modelEvidenceSlotCount: 5,
+    slotRerankCallCount: 0,
+    slotCandidateInputCount: 0,
+    slotCandidateOutputCount: 0,
+    slotScoringPaths: [],
+    slotSelectedTokenLogitCount: 0,
+    slotPrefixKvReuseCount: 0,
+    slotPrefixStateReuseCount: 0,
+    slotMinimumPrefixTokenCount: 0,
+  });
+  const exactReceipt = validateVendorInferenceReport(exactEmbeddingSlots, lock, 'lock-hash');
+  assert.equal(exactReceipt.reranker.slotSelectionMode, 'exact-model-embedding');
+
+  const unevaluatedSlots = structuredClone(exactEmbeddingSlots);
+  unevaluatedSlots.results[0].modelExecutionReceipt.phase3Rerank.modelEvidenceSlotCount = 0;
+  assert.throws(
+    () => validateVendorInferenceReport(unevaluatedSlots, lock, 'lock-hash'),
+    /neither reranked ambiguous slots nor proved exact model-embedded construction slots/
+  );
 
   const configOnly = structuredClone(report);
   configOnly.results[0].modelExecutionReceipt.rerankerProbeCount = 0;

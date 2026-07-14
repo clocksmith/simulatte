@@ -181,12 +181,12 @@
     }
 
     function applyPromptGeometryContracts(program = {}, entity = {}) {
-      const parts = (program.parts || []).map((row, index) => ({
+      const parts = promptSpatialRelationParts((program.parts || []).map((row, index) => ({
         ...row,
         center: (row.center || []).slice(),
         size: (row.size || []).slice(),
         rotation: promptPosePartRotation(row, index, entity),
-      }));
+      })), entity);
       const bindings = [];
       for (const property of entity.properties || []) {
         if (!property.value) continue;
@@ -252,6 +252,21 @@
         parts,
         promptPropertyBindings: bindings,
       };
+    }
+
+    function promptSpatialRelationParts(parts = [], entity = {}) {
+      const relationRoles = new Set(entity.layoutRelationRoles || []);
+      if (!relationRoles.has('between:target')) return parts;
+      return parts.flatMap((part, index) => [-1, 1].map((side, sideIndex) => ({
+        ...part,
+        id: `${part.id || `part-${index + 1}`}-${side < 0 ? 'left' : 'right'}`,
+        center: [Number(part.center && part.center[0] || 0) * 0.42 + side * 0.3,
+          Number(part.center && part.center[1] || 0)],
+        size: [Number(part.size && part.size[0] || 0.1) * 0.42,
+          Number(part.size && part.size[1] || 0.1)],
+        order: index * 2 + sideIndex,
+        spatialRole: side < 0 ? 'between-left-flank' : 'between-right-flank',
+      })));
     }
 
     function promptEntityColorParts(parts = []) {
