@@ -40,7 +40,8 @@ The optimizer may rank feasible plans. It may not trade away consent, item
 compatibility, carrying capacity, custody rules, accessibility, deadlines, or
 declared maximum detour.
 
-Two initial acceptance cases define the product:
+Two acceptance fixtures exercise the same general contracts; neither defines
+the product boundary:
 
 1. A person in an office needs two AA batteries. Another participant has two
    batteries and already plans to pass nearby. Simulatte proves the original
@@ -52,27 +53,37 @@ Two initial acceptance cases define the product:
 
 ## Current boundary
 
-The browser now executes one deterministic cooperative scenario and one
-shade-aware routing path. The cooperative scenario uses indexed item and
-space-time corridor matching, immutable baseline commitments, rolling plan
-states, backup reassignment, a vertical handoff graph, custody events,
-accounting, liquidity metrics, and a hash-linked settlement. The shade path
-uses governed building footprints and heights with a CPU visibility reference,
+The browser accepts cooperative language through Blank's canonical Phase 2
+prompt graph, then binds item, quantity, destination, mode, deadline, and
+detour obligations to the governed cooperative catalog. Known umbrella,
+battery, and USB-C charger requests all execute through the same indexed
+item-and-space-time matcher. Unknown items, places, or missing quantities
+produce editable clarification rows instead of a fabricated plan.
+
+The local engine retains immutable baseline commitments, rolling plan states,
+backup reassignment, vertical handoff graphs, consent receipts, custody events,
+accounting, liquidity metrics, and hash-linked settlement. The shade path uses
+governed building footprints and heights with a CPU visibility reference,
 three legal route candidates, and explicit direct, shaded, and unknown time.
+The bounded relay planner enumerates chronologically feasible paths and uses
+exact dynamic programming to allocate shared leg capacity inside declared hop
+and candidate bounds.
 
 These are local reference capabilities. They do not establish a live peer
 network, factual indoor building topology, real participant consent, payment,
-physical custody, relay allocation, or GPU-compute parity. WebGPU renders the
-city; sunlight and cooperative scoring currently execute in JavaScript.
+or physical custody. The cooperative numeric scorer has a WebGPU lane with an
+f32 CPU-reference parity receipt; language, policy, graph search,
+authorization, and small candidate sets remain in JavaScript. Sun visibility
+and exposure remain CPU-reference computations.
 
 | Current owner | Executable contract | Remaining change |
 | --- | --- | --- |
-| `public/mission/` | Place, mode, time, route, shade, and constraint grounding | General cooperative language beyond the governed battery request |
-| `public/world/` | Directed multimodal graph, governed alternatives, building-height visibility reference | Segment-time GPU fields, richer surface data, and route caching |
-| `public/runtime/` | Indexed one-hop opportunity generation, hard gates, rolling authorization, custody, settlement, and receipts | Multiple simultaneous requests, relays, capacity allocation, and live updates |
-| `public/app/` | WebGPU city rendering plus inspectable cooperation and shade results | Shared compute buffers, interpolation, culling, and indirect drawing |
-| `public/contracts/` | Restrictive participant, need, offer, plan, handoff, environment, settlement, and scenario validators | Peer message, relay, allocation, and live authorization contracts |
-| `public/data/autonomy/` | SHA-pinned city sources and a governed synthetic battery/building scenario | Factual indoor graphs, item taxonomy expansion, compute policy, and field-quality receipts |
+| `public/mission/` | Shared Phase 2 language graph plus governed cooperative obligation binding | Broader governed item/place catalogs and clarification UI editing |
+| `public/world/` | Directed multimodal graph, governed alternatives, building-height visibility reference, atomic tile staging contract | Live renderer adoption of tile residency and segment-time GPU shade fields |
+| `public/runtime/` | Indexed direct matches, hard gates, exact bounded relay allocation, rolling authorization, custody, settlement, and receipts | Live multi-peer updates and cross-request execution scheduling |
+| `public/app/` | WebGPU city rendering, inspectable cooperation/shade results, and parity-proven bulk candidate scoring | Shared actor buffers, interpolation, culling, and indirect drawing |
+| `public/contracts/` | Restrictive participant, need, offer, journey, consent, custody, plan, relay, allocation, handoff, environment, settlement, scenario, and tile validators | Peer transport messages and physical authorization adapters |
+| `public/data/autonomy/` | SHA-pinned city sources and governed synthetic item, journey, building, and handoff fixtures | Factual indoor graphs, larger item taxonomy, and field-quality receipts |
 
 The present renderer rebuilds dynamic triangle data in JavaScript and uploads
 it when state changes. It has no autonomy compute pipeline. The target keeps
@@ -275,19 +286,18 @@ Edges represent travel, wait, pickup, handoff, and delivery. An edge exists only
 when time windows overlap, item handling remains valid, and both participants
 can reach the handoff.
 
-The initial relay solver should:
+The local bounded relay reference:
 
-- bound hop count and candidate handoff places in policy;
-- search the resulting directed acyclic time graph deterministically;
-- keep the best feasible plans per request as a Pareto set;
-- allocate shared participant capacity across requests;
-- report whether the selected plan is globally proven or the best plan inside
-  the declared bounds.
+- bounds carrier legs and candidate handoff places in policy;
+- enumerates the resulting chronological paths deterministically;
+- allocates shared physical-leg capacity with exact dynamic programming;
+- reports optimality only when the supplied leg set is declared complete and
+  the requested quantity is fully allocated.
 
-Fungible items and simple capacities can use min-cost flow. Non-fungible items,
-exclusive time windows, and plan-level conflicts require bounded branch and
-bound over complete candidate plans. A heuristic result must not be labeled
-optimal.
+The reference is exact inside its declared finite path set. It does not claim
+citywide relay optimality, live carrier availability, or non-fungible
+plan-conflict resolution. A later min-cost-flow or branch-and-bound lane must
+retain the same capacity identities and optimality boundary.
 
 ## Sun and shade computation
 
@@ -448,13 +458,16 @@ Correctness gates require:
 
 ## Implementation slices
 
-### 1. Contract and local scenario: implemented
+### 1. Contracts, shared language graph, and local scenarios: implemented
 
-Need, offer, participant-intent, cooperative-plan, handoff, environment,
-settlement, and scenario validators run in the browser and Node. The East
-Village battery scenario includes compatible carriers, quantity and item
-decoys, immutable route commitments, and an explicitly synthetic indoor graph.
-The existing single-agent route remains the baseline control.
+Need, offer, journey, consent, custody, participant-intent, cooperative-plan,
+relay, allocation, handoff, environment, settlement, scenario, and world-tile
+validators run in the browser and Node. Cooperative text passes through the
+same Phase 2 language graph used by Blank before governed obligation binding.
+The East Village scenario supplies several item fixtures, compatible carriers,
+quantity and item decoys, immutable route commitments, and an explicitly
+synthetic indoor graph. The existing single-agent route remains the baseline
+control.
 
 ### 2. One-hop opportunity engine: implemented local reference
 
@@ -471,19 +484,37 @@ route exposure integration, and route selection are tested against synthetic
 occlusion fixtures and the real checked-in world. GPU field passes and their
 CPU/GPU parity receipt remain required before a GPU-compute claim.
 
-### 4. Shared GPU city state
+### 4. Numeric WebGPU scoring: parity reference implemented
+
+The eight-feature opportunity scorer has matching f32 CPU and WGSL lanes. The
+browser parity receipt records candidate count, feature count, tolerance, and
+maximum error. Small jobs intentionally stay on the inspectable CPU lane;
+shaders do not interpret language, apply hard gates, or authorize plans.
+
+### 5. Atomic world-tile residency: manager contract implemented
+
+The tile manager stages fetch, SHA-256 verification, worker decode, seam
+validation, inactive-resource upload, budget preflight, and atomic activation.
+Failed replacements preserve the active resource, and pinned routes survive
+LRU eviction. Cache Storage, OPFS, and IndexedDB adapters exist. The current
+live renderer has not yet adopted this manager as its region-pack residency
+owner, so non-blocking live tile streaming remains outside the claim.
+
+### 6. Shared GPU city state
 
 Replace per-update dynamic triangle construction with persistent actor and
 instance buffers. Add fixed-step actor compute, interpolation, culling, and
 indirect drawing. The visible city and opportunity engine consume the same
 actor and plan identities.
 
-### 5. Relays and allocation
+### 7. Relays and allocation: exact bounded reference implemented
 
-Add bounded time-expanded handoff graphs, capacity conflicts, multi-request
-allocation, custody transitions, and explicit optimality status.
+Chronological relay paths, shared-leg capacity conflicts, quantity allocation,
+and explicit optimality status are executable over a declared finite leg set.
+Live carrier feeds, citywide candidate generation, and physical multi-carrier
+handoffs remain outside the claim.
 
-### 6. Live peer adapter
+### 8. Live peer adapter
 
 Add coarse discovery, consent-gated detail exchange, expiry, revocation, and
 signed handoff messages behind `PeerIntentAdapter`. Keep the deterministic

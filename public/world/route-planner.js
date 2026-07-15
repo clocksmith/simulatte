@@ -106,7 +106,7 @@
       || (index > 0 && suffix[index - 1].toNodeId !== segment.fromNodeId))) return null;
     const segmentIds = suffix.map((row) => row.id);
     const costBreakdown = routeCostBreakdown(segmentIds, worldModel, mission, policy, safetyHistoryIndex);
-    return routeResult(segmentIds, costBreakdown.total, suffix.map((row) => row.fromNodeId), suffix.length, costBreakdown, 'governed_environment_route_v1', {
+    return routeResult(segmentIds, costBreakdown.total, suffix.map((row) => row.fromNodeId), suffix.length, costBreakdown, override.algorithm || 'governed_environment_route_v1', {
       environmentFieldId: override.environmentFieldId,
       environmentSelectionId: override.selectionId,
       environmentObjective: override.objective,

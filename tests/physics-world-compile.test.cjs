@@ -872,8 +872,37 @@ test('direct prompt objects outrank inferred scene tags and remain peer-scale be
   const octopusProgram = octopusPacket.entities.find((row) => row.identity.type === 'octopus').geometry.program;
   const tentacles = octopusProgram.parts.filter((part) => /^tentacle-\d+$/.test(part.id));
   assert.equal(tentacles.length, 8);
+  const freeTentacles = tentacles.filter((part) => !part.interactionConstraintIds?.includes(grasp.constraintId));
+  const tentacleAngles = freeTentacles.map((part) => part.rotation).sort((left, right) => left - right);
+  assert.ok(tentacleAngles.at(-1) - tentacleAngles[0] > Math.PI * 0.85, 'eight tentacles span a readable fan');
+  assert.ok(tentacleAngles.slice(1).every((angle, index) => angle - tentacleAngles[index] > 0.3),
+    'neighboring tentacles remain visually separated');
+  assert.ok(freeTentacles.every((part) => part.size[0] / part.size[1] >= 6), 'tentacles read as limbs, not body blobs');
   assert.deepEqual(tentacles.filter((part) => part.interactionConstraintIds?.includes(grasp.constraintId))
     .map((part) => part.id).sort(), grasp.sourcePartIds.slice().sort());
+});
+
+test('prompt-owned scene evidence outranks an unrelated residual optics fallback', () => {
+  const scope = globalThis.__SimulatteCompositionGraphRefactorScope;
+  const renderIR = {
+    prompt: 'an octopus holding a teapot',
+    sceneHint: 'optics',
+    objects: [{
+      label: 'Octopus',
+      semanticRef: 'prompt.body.octopus',
+      physicalRef: 'prompt-body-octopus',
+      directlyGrounded: true,
+    }],
+    fields: [],
+  };
+  const residual = [{ source: 'doppler-residual', visualRegime: 'optical refraction' }];
+
+  assert.equal(scope.sceneKindForRenderIR(renderIR, { steps: [] }, {}, residual, {
+    name: 'Optics laboratory',
+  }), 'biology', 'a derived spec name cannot re-enter the direct-prompt evidence lane');
+  assert.equal(scope.sceneKindForRenderIR(renderIR, { steps: [] }, {}, [], {}), 'biology',
+    'an incompatible scene hint cannot overrule directly grounded prompt objects without a residual row');
+  assert.equal(scope.directSceneKindForText('octopus viewed through a prism'), 'optics');
 });
 
 test('counted instances remain individually readable and constructive parts stay in local bounds', () => {

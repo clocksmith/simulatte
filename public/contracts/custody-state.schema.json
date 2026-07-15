@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Simulatte cooperative custody state",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "planId", "needId", "itemId", "quantity", "state", "custodianId", "priorEventHash"],
+  "properties": {
+    "schema": { "const": "simulatte.custodyState.v1" },
+    "planId": { "type": "string", "minLength": 1 },
+    "needId": { "type": "string", "minLength": 1 },
+    "itemId": { "type": "string", "minLength": 1 },
+    "quantity": { "type": "integer", "minimum": 1 },
+    "state": { "enum": ["requested", "proposed", "authorized", "pickup_pending", "in_custody", "handoff_pending", "delivered", "settled", "expired", "revoked", "refused", "missed", "failed"] },
+    "custodianId": { "type": ["string", "null"] },
+    "priorEventHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+  }
+}

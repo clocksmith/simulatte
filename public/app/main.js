@@ -95,6 +95,17 @@
       const mission = useNeuralPlaces && !cooperativeSession
         ? await missionApi.compileMissionWithResolver(executableSourceText, data.world, data.embodiments, placeResolver)
         : missionApi.compileMission(executableSourceText, data.world, data.embodiments);
+      if (cooperativeSession) {
+        const cooperative = cooperativeSession.snapshot().plan.routes.cooperative;
+        mission.originNodeId = cooperative.originNodeId;
+        mission.destinationNodeId = cooperative.destinationNodeId;
+        mission.constraints.routeOverride = {
+          segmentIds: [...cooperative.segmentIds],
+          selectionId: cooperativeSession.snapshot().plan.id,
+          objective: cooperativeSession.snapshot().plan.utilityScore,
+          algorithm: 'governed_cooperative_route_v1',
+        };
+      }
       if (mission.constraints.preferShade) {
         const pedestrian = data.embodiments.find((row) => row.id === mission.embodimentId);
         shadeSelection = sunApi.selectShadeAwareRoute({
@@ -793,12 +804,15 @@
     elements.cooperativeMatch.textContent = `${plan.carrierId} · ${snapshot.matching.counts.feasibleCandidates} eligible of ${snapshot.matching.counts.totalOffers}`;
     elements.cooperativeBurden.textContent = `${signedMeters(burden.addedDistanceM)} · ${signedDuration(burden.addedDurationSeconds)} · $${(burden.compensationCents / 100).toFixed(2)}`;
     elements.cooperativeReliability.textContent = `${Math.round(plan.reliability.onTimeProbability * 100)}% on time · ${Math.round(plan.reliability.cancellationProbability * 100)}% cancellation · backup available`;
-    elements.cooperativeHandoff.textContent = 'Entrance · security · elevator · floor 12 · office';
+    elements.cooperativeHandoff.textContent = snapshot.handoff.nodeLabels.join(' · ');
     elements.cooperativeSettlement.textContent = snapshot.settlement
       ? `fulfilled · ${snapshot.settlement.custodyEventIds.length} custody events · dedicated trip avoided`
       : `${snapshot.custodyState.replaceAll('_', ' ')} · awaiting outcome`;
     elements.cooperativeLiquidity.textContent = `${snapshot.liquidity.eligibleOpportunitiesPerRequest} opportunities · ${Math.round(snapshot.liquidity.fulfillmentProbability * 100)}% modeled fulfillment`;
-    elements.cooperativeChipTitle.textContent = '2 AA batteries';
+    const itemSurface = snapshot.request.evidence.find((row) => row.field === 'item')?.value
+      || snapshot.request.obligations.itemLabel
+      || snapshot.request.obligations.itemId;
+    elements.cooperativeChipTitle.textContent = `${snapshot.request.obligations.quantity} ${itemSurface}`;
     elements.cooperativeChipMeta.textContent = `${state} · ${signedDuration(burden.addedDurationSeconds)} marginal`;
   }
 

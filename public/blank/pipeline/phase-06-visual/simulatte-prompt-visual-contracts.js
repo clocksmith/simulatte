@@ -289,6 +289,7 @@
       if (pose === 'play-interaction' && /arm|leg|tail|hand|foot|appendage/.test(partId)) {
         return Number((base + (index % 2 ? 0.32 : -0.32)).toFixed(3));
       }
+      if (pose === 'grasp-hold' && /tentacle/.test(partId)) return base;
       if (pose === 'grasp-hold' && /arm|tentacle|hand|appendage|gripper/.test(partId)) {
         return Number((base + (index % 2 ? -0.48 : 0.48)).toFixed(3));
       }

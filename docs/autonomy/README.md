@@ -8,9 +8,11 @@ tick, and emits a hash-linked journey receipt.
 The target cooperative-city architecture is specified in
 [Cooperative city architecture](cooperative-city-architecture.md). It covers
 incidental peer delivery, marginal-detour matching, relays, custody, dynamic
-shade routing, and the WebGPU compute boundary. The checked-in battery scenario
-and CPU-reference shade route are executable; relays, live peers, and promoted
-GPU compute remain outside the current claim boundary.
+shade routing, and the WebGPU compute boundary. Governed natural-language
+item requests, direct matching, exact bounded relay allocation, simulated
+consent/custody, CPU-reference shade routing, and parity-proven numeric WebGPU
+scoring are executable. Live peers, physical consent/custody, GPU shade fields,
+and live renderer adoption of atomic tile residency remain outside the claim.
 
 It is not a directions wrapper and it is not a physical-autonomy claim. Its
 distinct product is matched simulation evidence for questions such as:

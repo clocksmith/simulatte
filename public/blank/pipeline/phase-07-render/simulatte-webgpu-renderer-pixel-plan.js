@@ -144,11 +144,11 @@
       }
       const matched = drawablesForPixelObligation(drawables, obligation).slice(0, expectedSamples);
       if (obligation.constraintKind === 'construction-part') {
-        const projectedParts = phase7ProjectedObjectPartPoints(
+        const projectedParts = uniqueProjectedConstructionParts(phase7ProjectedObjectPartPoints(
           renderData,
           obligation,
           Number(renderData.pixelReadbackTimeMs || 0) * 0.001
-        ).slice(0, expectedSamples);
+        )).slice(0, expectedSamples);
         const drawable = matched[0];
         for (const projected of projectedParts) {
           const sample = drawable && pixelSampleForDrawable(
@@ -182,6 +182,16 @@
         if (sample && projected) applyProjectedPixelSample(sample, projected, width, height, obligation);
         if (sample) samples.push(sample);
       }
+    }
+
+    function uniqueProjectedConstructionParts(rows = []) {
+      const seen = new Set();
+      return rows.filter((row) => {
+        const key = String(row.part?.constructionPartId || row.part?.id || '');
+        if (!key || seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
     }
 
     function phase7UnrenderablePixelPlan(

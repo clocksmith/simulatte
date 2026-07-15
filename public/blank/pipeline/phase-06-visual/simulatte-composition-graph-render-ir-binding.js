@@ -30,11 +30,15 @@
           (hasDirectBuiltEnvironmentSignal(promptText) || hasDirectMechanicalRigSignal(promptText)) &&
           !/\b(magnet|magnetic|ferrofluid|coil|stator|flux|dipole)\b/.test(promptText) &&
           ['', 'biology', 'city', 'literal-composite', 'magnetic-machine', 'watershed'].includes(sceneHint)) return 'mechanical';
-        if (directScene && broadSceneHintCanYieldToDirectLanguage(sceneHint)) return directScene;
         const residualOptics = (graphObjects || []).some((object) => (
           object.source === 'doppler-residual' &&
           /optical|optics|lens|prism|refraction/.test(`${object.visualRegime || ''} ${object.shape || ''} ${object.role || ''}`)
         ));
+        if (directScene && (
+          broadSceneHintCanYieldToDirectLanguage(sceneHint) ||
+          (sceneHint === 'optics' && directScene !== 'optics' && !hasDirectOpticsSignal(promptText)) ||
+          (residualOptics && !hasDirectOpticsSignal(promptText))
+        )) return directScene;
         if (residualOptics) return 'optics';
         if (sceneHint && sceneHint !== 'literal-composite') return sceneHint;
         const signalScene = sceneKindFromRenderIRSignals(renderIR, solverGraph, spec);
@@ -62,6 +66,7 @@
         if (hasDirectThermalSignal(promptText)) return 'thermal-plume';
         if (hasDirectSwimmingSignal(promptText)) return 'watershed';
         if (hasThinFilmSignal(promptText)) return 'thin-film';
+        if (hasDirectOpticsSignal(promptText)) return 'optics';
         if (hasDirectAcousticSignal(promptText)) return 'acoustic';
         if (hasDirectTerrainSignal(text)) return 'watershed';
         if (hasDirectMechanicalRigSignal(promptText)) return 'mechanical';
@@ -175,7 +180,6 @@
           renderIR && renderIR.prompt,
           universeGraph.prompt,
           physicsIR.prompt,
-          spec && spec.name,
           ...((promptParse.spans || []).map((span) => span.text)),
           ...promptOwnedObjects.map((object) => [
             object.sourceLabel,
@@ -215,6 +219,10 @@
 
     function hasDirectAcousticSignal(text = '') {
         return /\b(violin|viola|cello|guitar|harp|piano|drum|speaker|sound|acoustic|resonance|resonator)\b/.test(text);
+      }
+
+    function hasDirectOpticsSignal(text = '') {
+        return /\b(optics|optical|lens|lenses|prism|prisms|refraction|refract|mirror|mirrors|laser|lasers)\b/.test(text);
       }
 
     function hasDirectBuiltEnvironmentSignal(text = '') {
@@ -932,6 +940,7 @@
       hasDirectCombustionSignal,
       hasDirectAnimalOrPlantSignal,
       hasDirectMechanicalRigSignal,
+      hasDirectOpticsSignal,
       hasRoboticsSignal,
       positiveLanguageText,
       hasChemistryLabSignal,

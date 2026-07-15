@@ -71,6 +71,16 @@ the challenger refuses while retaining the baseline receipt. Current and
 future map worlds are never silently substituted for a historical street
 network.
 
+Simulatte also runs a local cooperative-city reference. A request such as
+“bring one umbrella to my office” passes through Blank's shared Phase 2
+language graph, binds to governed item, quantity, destination, deadline, and
+detour contracts, then searches compatible offers and existing journeys by
+item and space-time corridor. The browser shows marginal burden, authorization,
+handoff, custody, and settlement. Unknown items or places ask for clarification.
+Exact bounded relay allocation and a CPU/WGSL-parity candidate scorer are
+available as reference lanes; live peers, payment, physical custody, factual
+indoor routing, and citywide relay optimality are not claimed.
+
 ### What the models do
 
 The zero-download control resolves place names lexically, retrieves feature

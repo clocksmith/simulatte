@@ -9,7 +9,7 @@
   "cooperativeScenario": {
     "id": "battery-office-east-village-v1",
     "path": "./cooperation/battery-office-v1.json",
-    "sha256": "67aef222c0716fb9ee52327c0788af7f4c492d5d6352e22c99e8384490cb96ea"
+    "sha256": "46401b03aba9145d6382d678ed5240dbc40a8dc1502a9075335a42e1fe2962cb"
   },
   "curriculum": {
     "id": "nyc-routing-foundations-v1",

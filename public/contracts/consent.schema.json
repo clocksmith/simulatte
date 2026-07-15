@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Simulatte cooperative consent",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "id", "participantId", "planId", "state", "scope", "issuedAt", "expiresAt", "planIdentitySha256"],
+  "properties": {
+    "schema": { "const": "simulatte.cooperativeConsent.v1" },
+    "id": { "type": "string", "minLength": 1 },
+    "participantId": { "type": "string", "minLength": 1 },
+    "planId": { "type": "string", "minLength": 1 },
+    "state": { "enum": ["authorized", "revoked", "expired"] },
+    "scope": { "const": "exact_plan_and_handoff" },
+    "issuedAt": { "type": "string", "format": "date-time" },
+    "expiresAt": { "type": "string", "format": "date-time" },
+    "planIdentitySha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+  }
+}

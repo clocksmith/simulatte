@@ -13,8 +13,9 @@
     "baselineJourney": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["originNodeId", "destinationNodeId", "departureAt", "commitmentSha256"],
+      "required": ["schema", "originNodeId", "destinationNodeId", "departureAt", "commitmentSha256"],
       "properties": {
+        "schema": { "const": "simulatte.journeyIntent.v1" },
         "originNodeId": { "type": "string" },
         "destinationNodeId": { "type": "string" },
         "departureAt": { "type": "string" },

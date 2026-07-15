@@ -62,6 +62,7 @@
   const languageAndGroundingEntry = group(
     'pipeline/phase-03-retrieval/simulatte-intent-classifier.js',
     '../data/simulatte-language-lexicon.js',
+    '../language/simulatte-universe-parser.js',
     'pipeline/phase-02-language/simulatte-universe-parser.js',
     'pipeline/phase-04-grounded-intent/simulatte-universe-grounder-graph.js',
     'pipeline/phase-04-grounded-intent/simulatte-universe-grounder-candidates.js',
@@ -159,6 +160,7 @@
     'pipeline/phase-07-render/simulatte-webgpu-renderer-pixel-plan.js',
     'pipeline/phase-07-render/simulatte-webgpu-renderer-scene-proof-observer.js',
     'pipeline/phase-07-render/simulatte-webgpu-renderer-renderer-class.js',
+    'pipeline/phase-07-render/simulatte-webgpu-renderer-part-segmentation.js',
     'pipeline/phase-07-render/simulatte-webgpu-renderer-packets.js',
     'pipeline/phase-07-render/simulatte-webgpu-renderer-pixel-proof.js',
     'pipeline/phase-07-render/simulatte-webgpu-renderer-gpu-data.js',

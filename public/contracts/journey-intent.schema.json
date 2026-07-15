@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Simulatte journey intent",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "originNodeId", "destinationNodeId", "departureAt", "commitmentSha256"],
+  "properties": {
+    "schema": { "const": "simulatte.journeyIntent.v1" },
+    "originNodeId": { "type": "string", "minLength": 1 },
+    "destinationNodeId": { "type": "string", "minLength": 1 },
+    "departureAt": { "type": "string", "format": "date-time" },
+    "commitmentSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+  }
+}

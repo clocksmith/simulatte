@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Simulatte world tile manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "id", "contentVersion", "tiles", "claimBoundary"],
+  "properties": {
+    "schema": { "const": "simulatte.worldTileManifest.v1" },
+    "id": { "type": "string", "minLength": 1 },
+    "contentVersion": { "type": "string", "minLength": 1 },
+    "tiles": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "url", "sha256", "layers", "neighborIds", "byteLength"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "url": { "type": "string", "minLength": 1 },
+          "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+          "layers": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+          "neighborIds": { "type": "array", "items": { "type": "string" } },
+          "byteLength": { "type": "integer", "minimum": 1 }
+        }
+      }
+    },
+    "claimBoundary": { "type": "string", "minLength": 1 }
+  }
+}

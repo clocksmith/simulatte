@@ -220,6 +220,17 @@ test('playing with creates a shared pose and relation while flight stays on the 
   assert.ok(teapot.transform.scale[1] <= octopus.transform.scale[1] * 0.6);
   const renderedHoldParts = globalThis.__SimulatteWebGpuRendererRefactorScope.scenePacketObjectParts(holdPacket);
   const octopusParts = renderedHoldParts.filter((row) => row.entityId === octopus.id);
+  const renderedTentacles = octopusParts.filter((row) => row.constructionRole === 'appendage');
+  assert.equal(renderedTentacles.length, 16, 'eight semantic tentacles render as two joined segments each');
+  assert.equal(new Set(renderedTentacles.map((row) => row.constructionPartId)).size, 8,
+    'renderer segmentation preserves the eight-arm semantic contract');
+  for (const partId of new Set(renderedTentacles.map((row) => row.constructionPartId))) {
+    assert.equal(renderedTentacles.filter((row) => row.constructionPartId === partId).length, 2);
+  }
+  assert.ok(renderedTentacles.some((row) => /-distal$/.test(row.id) &&
+    renderedTentacles.some((candidate) => candidate.constructionPartId === row.constructionPartId &&
+      /-proximal$/.test(candidate.id) && Math.abs(candidate.rotation - row.rotation) > 0.1)),
+  'unconstrained tentacles bend without changing their semantic count');
   const coreDepth = octopusParts.find((row) => row.constructionRole === 'core').depth;
   const grasp = holdPacket.receipts.framing.graspContacts[0];
   const graspDepth = renderedHoldParts.find((row) => (

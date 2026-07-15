@@ -420,10 +420,10 @@
         return true;
       }
       if (operation === 'radial' || operation === 'orbit' || operation === 'surround') {
-        const radius = operation === 'surround' ? 0.12 : operation === 'orbit' ? 0.36 : 0.3;
+        const cephalopodFan = operation === 'radial' && /cephalopod/.test(topologyId) && anchor === 'below';
+        const radius = operation === 'surround' ? 0.12 : operation === 'orbit' ? 0.36 : cephalopodFan ? 0.39 : 0.3;
         sources.forEach((nodeRow, index) => {
-          const span = anchor === 'below' ? Math.PI * 0.72 : Math.PI * 2;
-          const start = anchor === 'below' ? Math.PI * 0.14 : -Math.PI * 0.5;
+          const span = anchor === 'below' ? Math.PI * (cephalopodFan ? 0.92 : 0.72) : Math.PI * 2; const start = anchor === 'below' ? Math.PI * (cephalopodFan ? 0.04 : 0.14) : -Math.PI * 0.5;
           const angle = start + span * index / Math.max(1, sources.length - (anchor === 'below' ? 1 : 0));
           const current = placements.get(nodeRow.id) || {};
           set(nodeRow, {
@@ -432,7 +432,7 @@
             rotation: operation === 'orbit' ? angle + Math.PI * 0.5 : angle,
             size: operation === 'surround'
               ? [Math.max(current.size[0], 0.72 - index * 0.06), Math.max(current.size[1], 0.48 - index * 0.04)]
-              : current.size,
+              : cephalopodFan ? [Math.max(current.size[0], 0.46 + (index % 2) * 0.055), Math.min(current.size[1], 0.068)] : current.size,
           });
         });
         return true;

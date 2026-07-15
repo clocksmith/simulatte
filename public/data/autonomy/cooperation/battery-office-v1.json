@@ -10,6 +10,7 @@
       {
         "id": "battery-aa-alkaline",
         "label": "AA alkaline battery",
+        "aliases": ["AA battery", "AA batteries", "double A battery", "double A batteries"],
         "unit": "each",
         "substitutionGroupId": "battery-aa-compatible",
         "riskTier": "ordinary_goods",
@@ -21,6 +22,7 @@
       {
         "id": "battery-aaa-alkaline",
         "label": "AAA alkaline battery",
+        "aliases": ["AAA battery", "AAA batteries", "triple A battery", "triple A batteries"],
         "unit": "each",
         "substitutionGroupId": "battery-aaa-compatible",
         "riskTier": "ordinary_goods",
@@ -28,6 +30,30 @@
         "volumeCm3": 3.8,
         "maximumValueCents": 1000,
         "requiredAcknowledgements": ["quantity", "sealed_or_loose_condition"]
+      },
+      {
+        "id": "umbrella-compact",
+        "label": "compact umbrella",
+        "aliases": ["umbrella", "umbrellas", "rain umbrella"],
+        "unit": "each",
+        "substitutionGroupId": "umbrella-compatible",
+        "riskTier": "ordinary_goods",
+        "massGrams": 350,
+        "volumeCm3": 1400,
+        "maximumValueCents": 5000,
+        "requiredAcknowledgements": ["quantity", "condition"]
+      },
+      {
+        "id": "charger-usb-c",
+        "label": "USB-C charger",
+        "aliases": ["USB C charger", "phone charger", "laptop charger"],
+        "unit": "each",
+        "substitutionGroupId": "usb-c-charger-compatible",
+        "riskTier": "ordinary_goods",
+        "massGrams": 180,
+        "volumeCm3": 420,
+        "maximumValueCents": 8000,
+        "requiredAcknowledgements": ["quantity", "wattage", "connector"]
       }
     ]
   },
@@ -56,6 +82,7 @@
       "participantId": "carrier-alex",
       "mode": "delivery_bike",
       "baselineJourney": {
+        "schema": "simulatte.journeyIntent.v1",
         "originNodeId": "bike-node-a3f0f4b7e7e3",
         "destinationNodeId": "bike-node-e25116ea05a4",
         "departureAt": "2026-07-14T16:00:00-04:00",
@@ -89,6 +116,7 @@
       "participantId": "carrier-jules",
       "mode": "delivery_bike",
       "baselineJourney": {
+        "schema": "simulatte.journeyIntent.v1",
         "originNodeId": "bike-node-0d9391b2bfa3",
         "destinationNodeId": "bike-node-e25116ea05a4",
         "departureAt": "2026-07-14T16:04:00-04:00",
@@ -132,6 +160,15 @@
     "consentState": "available",
     "expiresAt": "2026-07-14T16:32:00-04:00"
   },
+  "destinationLexicon": [
+    {
+      "id": "destination-east-village-office",
+      "label": "East Village office",
+      "aliases": ["my office", "office building", "office"],
+      "nodeId": "bike-node-ffea919f743c",
+      "buildingHandoffGraphId": "east-village-office-handoff-v1"
+    }
+  ],
   "offers": [
     {
       "schema": "simulatte.resourceOffer.v1",
@@ -188,6 +225,34 @@
       "minimumCompensationCents": 100,
       "consentState": "available",
       "expiresAt": "2026-07-14T16:20:00-04:00"
+    },
+    {
+      "schema": "simulatte.resourceOffer.v1",
+      "id": "offer-alex-umbrella-v1",
+      "participantId": "carrier-alex",
+      "intentId": "intent-alex-north-brooklyn-v1",
+      "itemId": "umbrella-compact",
+      "quantity": 2,
+      "kind": "already_carried",
+      "availableNodeId": "bike-node-a3f0f4b7e7e3",
+      "riskTier": "ordinary_goods",
+      "minimumCompensationCents": 175,
+      "consentState": "available",
+      "expiresAt": "2026-07-14T16:20:00-04:00"
+    },
+    {
+      "schema": "simulatte.resourceOffer.v1",
+      "id": "offer-jules-usb-c-charger-v1",
+      "participantId": "carrier-jules",
+      "intentId": "intent-jules-north-brooklyn-v1",
+      "itemId": "charger-usb-c",
+      "quantity": 1,
+      "kind": "already_carried",
+      "availableNodeId": "bike-node-0d9391b2bfa3",
+      "riskTier": "ordinary_goods",
+      "minimumCompensationCents": 300,
+      "consentState": "available",
+      "expiresAt": "2026-07-14T16:25:00-04:00"
     }
   ],
   "buildingHandoffGraphs": [

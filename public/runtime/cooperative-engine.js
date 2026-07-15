@@ -11,46 +11,51 @@
   const receipts = typeof module === 'object' && module.exports
     ? require('./canonical-receipts.js')
     : root.SimulatteAutonomyReceipts;
-  const api = factory(contracts, worldApi, routePlanner, receipts);
+  const language = typeof module === 'object' && module.exports
+    ? require('../mission/cooperative-language-compiler.js')
+    : root.SimulatteCooperativeLanguage;
+  const api = factory(contracts, worldApi, routePlanner, receipts, language);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteCooperativeEngine = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createCooperativeEngineModule(contracts, worldApi, routePlanner, receipts) {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createCooperativeEngineModule(contracts, worldApi, routePlanner, receipts, language) {
   const ZERO_HASH = '0'.repeat(64);
   const TRIGGERS = Object.freeze(['intent_changed', 'route_delay_changed', 'environment_field_changed', 'reservation_expired']);
 
   function recognizesCooperativeRequest(sourceText) {
-    const normalized = String(sourceText || '').toLowerCase();
-    return /\b(?:need|bring|deliver|drop|have)\b/.test(normalized)
-      && /\b(?:two|2)\s+aa\s+batter(?:y|ies)\b/.test(normalized);
+    return language.recognizesCooperativeIntent(sourceText);
   }
 
-  function compileCooperativeRequest(sourceText, scenario) {
-    if (!recognizesCooperativeRequest(sourceText)) return null;
+  function compileCooperativeRequest(sourceText, scenario, world = null) {
     contracts.validateScenario(scenario);
+    const compilation = language.compileCooperativeLanguage({
+      sourceText,
+      taxonomy: scenario.itemTaxonomy,
+      destinations: scenario.destinationLexicon || [],
+      world,
+      defaults: {
+        mode: scenario.intents[0]?.mode || null,
+        anchorInstant: scenario.need.earliestAt,
+        buildingHandoffGraphId: scenario.need.buildingHandoffGraphId,
+      },
+    });
+    const need = language.needFromCompilation(compilation, scenario.need, scenario.itemTaxonomy);
     return {
-      schema: 'simulatte.cooperativeRequestCompilation.v1',
-      sourceText: String(sourceText),
+      ...compilation,
       scenarioId: scenario.id,
-      needId: scenario.need.id,
-      quantity: 2,
-      itemId: 'battery-aa-alkaline',
-      destinationNodeId: scenario.need.destinationNodeId,
-      evidence: [
-        { field: 'intent', value: 'need or delivery', method: 'deterministic_lexical' },
-        { field: 'quantity', value: 2, method: 'exact_number_word_or_digit' },
-        { field: 'item', value: 'AA batteries', method: 'governed_item_taxonomy' },
-        { field: 'destination', value: 'East Village office', method: 'scenario_bound_governed_street_node' },
-      ],
-      unsupported: [],
-      claimBoundary: 'This parser recognizes only the governed two-AA-battery cooperative acceptance scenario.',
+      needId: need?.id || null,
+      need,
     };
   }
 
   async function createCooperativeSession({ world, routingPolicy, scenario, sourceText = null }) {
     contracts.validateScenario(scenario);
     if (scenario.worldId !== world.id) throw cooperativeError('scenario_world_mismatch', `Scenario ${scenario.id} expected world ${scenario.worldId}, received ${world.id}`);
-    const request = compileCooperativeRequest(sourceText || 'I need two AA batteries delivered to my East Village office.', scenario);
-    if (!request) throw cooperativeError('cooperative_request_not_grounded', 'Expected the governed two-AA-battery request');
+    const request = compileCooperativeRequest(sourceText, scenario, world);
+    if (!request.executable || request.primaryKind !== 'need' || !request.need) {
+      throw cooperativeError('cooperative_clarification_required', 'The cooperative request has unresolved typed obligations', request);
+    }
+    scenario = { ...scenario, need: request.need };
+    contracts.validateNeed(scenario.need);
     await verifyBaselineCommitments(scenario);
     const worldModel = worldApi.createWorldModel(world);
     const receiptChain = receipts.createReceiptChain();
@@ -61,10 +66,12 @@
     let selectedIndex = 0;
     let plan = structuredClone(matching.feasiblePlans[selectedIndex]);
     let custodyState = 'requested';
+    let custody = custodyRecord(plan, scenario, custodyState, null, ZERO_HASH);
     let custodyEvents = [];
     let settlement = null;
     let recovery = null;
     const authorizationIds = new Map();
+    const authorizationReceipts = [];
     await receipts.appendReceiptEntry(receiptChain, request);
     await receipts.appendReceiptEntry(receiptChain, matching.receipt);
     await receipts.appendReceiptEntry(receiptChain, selectionReceipt(plan, matching.feasiblePlans));
@@ -102,15 +109,20 @@
         authorizationIds.set(participantId, authorizationId);
         plan.authorizationParticipantIds.push(participantId);
         plan.authorizationParticipantIds.sort();
-        await receipts.appendReceiptEntry(receiptChain, {
-          schema: 'simulatte.cooperativeAuthorization.v1',
+        const authorization = {
+          schema: 'simulatte.cooperativeConsent.v1',
           id: authorizationId,
           planId: plan.id,
           participantId,
-          exactPlanIdentity: planIdentity(plan),
-          disclosureStage: 'exact_terms_revealed',
-          compensationCents: plan.marginalBurden.compensationCents,
-        });
+          state: 'authorized',
+          scope: 'exact_plan_and_handoff',
+          issuedAt: eventTime(scenario, authorizationReceipts.length),
+          expiresAt: scenario.need.expiresAt,
+          planIdentitySha256: await receipts.sha256Hex(planIdentity(plan)),
+        };
+        contracts.validateConsent(authorization);
+        authorizationReceipts.push(authorization);
+        await receipts.appendReceiptEntry(receiptChain, authorization);
       }
       if (authorizationIds.size === plan.participantIds.length) await transition('mutually_authorized', 'all_affected_participants_authorized');
       return snapshot();
@@ -145,6 +157,9 @@
         selectedIndex = nextIndex;
         plan = structuredClone(matching.feasiblePlans[selectedIndex]);
         authorizationIds.clear();
+        authorizationReceipts.length = 0;
+        custodyState = 'requested';
+        custody = custodyRecord(plan, scenario, custodyState, null, ZERO_HASH);
         recovery = {
           schema: 'simulatte.cooperativeRecovery.v1',
           priorPlanId: prior.id,
@@ -242,6 +257,7 @@
       contracts.validateHandoff(base);
       custodyEvents.push(base);
       custodyState = resultingState;
+      custody = custodyRecord(plan, scenario, resultingState, actorId, base.eventHash);
       await receipts.appendReceiptEntry(receiptChain, base);
       return base;
     }
@@ -292,16 +308,31 @@
         schema: 'simulatte.cooperativeSessionSnapshot.v1',
         request,
         plan,
+        authorizationReceipts,
+        custody,
         custodyState,
         custodyEvents,
         settlement,
         recovery,
         matching: matching.receipt,
+        handoff: handoffSummary(),
         liquidity: liquidityMetrics(matching, plan, settlement),
         discoveryEnvelope: discoveryEnvelope(),
         trainingRows: trainingRows(),
         integrity,
       });
+    }
+
+    function handoffSummary() {
+      const graph = scenario.buildingHandoffGraphs.find((row) => row.id === scenario.need.buildingHandoffGraphId);
+      return {
+        schema: 'simulatte.cooperativeHandoffSummary.v1',
+        graphId: graph.id,
+        sourceKind: graph.sourceKind,
+        nodeLabels: graph.nodes.map((row) => row.label),
+        edgeIds: graph.edges.map((row) => row.id),
+        claimBoundary: graph.claimBoundary,
+      };
     }
 
     function trace() {
@@ -321,10 +352,13 @@
     const corridor = new Map();
     scenario.intents.forEach((intent) => {
       const route = planLeg(intent.baselineJourney.originNodeId, intent.baselineJourney.destinationNodeId, intent.mode, worldModel, routingPolicy, routeCache);
-      routeCells(route.segmentIds, worldModel, scenario.policy.cellSizeM).forEach((cell) => {
-        if (!corridor.has(cell)) corridor.set(cell, []);
-        corridor.get(cell).push(intent.id);
-      });
+      const cells = routeCells(route.segmentIds, worldModel, scenario.policy.cellSizeM);
+      const buckets = timeBuckets(intent, route.durationSeconds, scenario.policy.timeBucketSeconds);
+      cells.forEach((cell) => buckets.forEach((bucket) => {
+        const key = `${cell}|${bucket}`;
+        if (!corridor.has(key)) corridor.set(key, []);
+        corridor.get(key).push(intent.id);
+      }));
     });
     return { itemOffers, corridor };
   }
@@ -337,10 +371,20 @@
     const quantityCompatible = itemCompatible.filter((offer) => offer.quantity >= need.quantity);
     const consentEligible = quantityCompatible.filter((offer) => offer.consentState === 'available'
       && scenario.intents.find((intent) => intent.id === offer.intentId)?.consentState === 'available');
+    const needStart = Date.parse(need.earliestAt);
+    const needEnd = Date.parse(need.latestAt);
+    const temporallyEligible = consentEligible.filter((offer) => {
+      const intent = scenario.intents.find((row) => row.id === offer.intentId);
+      return Date.parse(offer.expiresAt) >= needStart
+        && Date.parse(intent.expiresAt) >= needStart
+        && Date.parse(intent.slack.earliestDepartureAt) <= needEnd
+        && Date.parse(intent.slack.latestDepartureAt) >= needStart;
+    });
     const needCell = cellForPoint(worldModel.node(need.destinationNodeId).position, scenario.policy.cellSizeM);
     const nearbyCells = neighborCells(needCell);
-    const corridorIntentIds = new Set(nearbyCells.flatMap((cell) => indexes.corridor.get(cell) || []));
-    const corridorEligible = consentEligible.filter((offer) => corridorIntentIds.has(offer.intentId));
+    const needBuckets = timeBucketRange(need.earliestAt, need.latestAt, scenario.policy.timeBucketSeconds);
+    const corridorIntentIds = new Set(nearbyCells.flatMap((cell) => needBuckets.flatMap((bucket) => indexes.corridor.get(`${cell}|${bucket}`) || [])));
+    const corridorEligible = temporallyEligible.filter((offer) => corridorIntentIds.has(offer.intentId));
     const planned = corridorEligible.slice(0, scenario.policy.maximumCandidates).map((offer) => buildCandidatePlan({ offer, scenario, worldModel, routingPolicy, routeCache, item }));
     const feasiblePlans = planned.filter((row) => row.hardGates.every((gate) => gate.pass))
       .sort(comparePlans);
@@ -354,6 +398,7 @@
         itemCompatible: itemCompatible.length,
         quantityCompatible: quantityCompatible.length,
         consentEligible: consentEligible.length,
+        temporallyEligible: temporallyEligible.length,
         corridorEligible: corridorEligible.length,
         routedCandidates: planned.length,
         feasibleCandidates: feasiblePlans.length,
@@ -362,7 +407,8 @@
         filterRow('item_compatibility', allOffers, itemCompatible),
         filterRow('quantity', itemCompatible, quantityCompatible),
         filterRow('consent', quantityCompatible, consentEligible),
-        filterRow('space_time_corridor', consentEligible, corridorEligible),
+        filterRow('availability_window', consentEligible, temporallyEligible),
+        filterRow('space_time_corridor', temporallyEligible, corridorEligible),
         filterRow('hard_gates', planned, feasiblePlans),
       ],
       rejectedPlans: planned.filter((row) => row.hardGates.some((gate) => !gate.pass)).map((row) => ({
@@ -371,9 +417,10 @@
       })),
       indexes: {
         itemKeys: indexes.itemOffers.size,
-        corridorCells: indexes.corridor.size,
+        corridorSpaceTimeKeys: indexes.corridor.size,
         queryCell: needCell,
         queriedNeighborCellCount: nearbyCells.length,
+        queriedTimeBucketCount: needBuckets.length,
       },
       routeCache: { entries: routeCache.size },
     };
@@ -544,6 +591,14 @@
     return rows;
   }
 
+  function timeBucketRange(startAt, endAt, bucketSeconds) {
+    const start = Math.floor(Date.parse(startAt) / 1000 / bucketSeconds);
+    const end = Math.ceil(Date.parse(endAt) / 1000 / bucketSeconds);
+    const rows = [];
+    for (let value = start; value <= end; value += 1) rows.push(value);
+    return rows;
+  }
+
   function liquidityMetrics(matching, plan, settlement) {
     const burdens = matching.feasiblePlans.map((row) => row.marginalBurden.addedDurationSeconds).sort((a, b) => a - b);
     return {
@@ -631,6 +686,21 @@
       interactionBurden: burden.interactionBurden,
       compensationCents: burden.compensationCents,
     };
+  }
+
+  function custodyRecord(plan, scenario, state, custodianId, priorEventHash) {
+    const custody = {
+      schema: 'simulatte.custodyState.v1',
+      planId: plan.id,
+      needId: scenario.need.id,
+      itemId: scenario.need.itemId,
+      quantity: scenario.need.quantity,
+      state,
+      custodianId,
+      priorEventHash,
+    };
+    contracts.validateCustodyState(custody);
+    return custody;
   }
 
   function eventTime(scenario, index) {

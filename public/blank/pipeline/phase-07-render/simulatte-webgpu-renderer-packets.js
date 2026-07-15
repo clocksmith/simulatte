@@ -285,7 +285,7 @@
         const parts = [];
         for (const row of rows) {
           const program = row.geometry.program || {};
-          for (const sourcePart of program.parts || []) {
+          for (const sourcePart of scenePacketConstructionParts(program)) {
             const transformed = scenePacketObjectPartTransform(row, sourcePart);
             const fill = scenePacketObjectPartColor(sourcePart.fill);
             const materialOpacity = Number(row.material && row.material.opacity || 0.72);
@@ -298,7 +298,7 @@
               grammarId: program.grammarId || '',
               constructionRole: sourcePart.constructionRole || '',
               constructionRoleIndex: Number(sourcePart.constructionRoleIndex || 0),
-              constructionPartId: sourcePart.id || '',
+              constructionPartId: sourcePart.constructionPartId || sourcePart.id || '',
               constructionConstraintIds: (sourcePart.constructionConstraintIds || []).slice(),
               primitive: sourcePart.primitive || 'rounded-box',
               shapeCode: OBJECT_PART_SHAPE_CODES[sourcePart.primitive] || OBJECT_PART_SHAPE_CODES['rounded-box'],
@@ -424,9 +424,15 @@
           const coverage = row && row.geometry && row.geometry.coverage || {};
           const scale = row && row.transform && row.transform.scale || [];
           const projectedArea = Number((Number(scale[0] || 0) * Number(scale[1] || 0)).toFixed(5));
-          const submittedPartCount = submittedParts.filter((part) => part.entityId === row.id).length;
+          const submittedEntityParts = submittedParts.filter((part) => part.entityId === row.id);
+          const submittedPartCount = submittedEntityParts.length;
           const expectedPartCount = Array.isArray(program.parts) ? program.parts.length : 0;
-          const submitted = expectedPartCount > 0 && submittedPartCount === expectedPartCount;
+          const expectedPartIds = new Set((program.parts || []).map((part) => part.id).filter(Boolean));
+          const submittedSemanticPartIds = new Set(submittedEntityParts
+            .map((part) => part.constructionPartId).filter(Boolean));
+          const submittedSemanticPartCount = Array.from(expectedPartIds)
+            .filter((partId) => submittedSemanticPartIds.has(partId)).length;
+          const submitted = expectedPartCount > 0 && submittedSemanticPartCount === expectedPartCount;
           const topologyVerified = scenePacketObjectTopologyVerified(program);
           const semanticFit = program.source === 'phase6-data-owned-part-graph' &&
             /^(?:category-catalog|identity-catalog|prompt-specialized)$/.test(String(program.selectionRole || '')) ||
@@ -452,6 +458,7 @@
             literal: program.literal === true,
             partCount: expectedPartCount,
             submittedPartCount,
+            submittedSemanticPartCount,
             submitted,
             primitiveCount: Number(coverage.primitiveCount || 0),
             projectedArea,

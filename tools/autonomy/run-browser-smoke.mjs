@@ -340,6 +340,10 @@ async function runBrowserSmoke(options) {
       && featureView.cooperation.match.includes('eligible')
       && featureView.cooperation.burden.includes('$')
       && featureView.cooperation.reliability.includes('on time')
+      && featureView.cooperation.itemTitle.includes('umbrella')
+      && featureView.gpuParity.pass
+      && featureView.gpuParity.candidateCount === 3
+      && featureView.gpuParity.maximumAbsoluteError <= featureView.gpuParity.tolerance
       && featureView.shade.preferShade
       && featureView.shade.routeAlgorithm === 'governed_environment_route_v1'
       && featureView.shade.proof.includes('direct sun')
@@ -349,7 +353,7 @@ async function runBrowserSmoke(options) {
       && errors.length === 0
       && failedResponses.length === 0;
     const report = {
-      schema: 'simulatte.autonomyBrowserSmoke.v9',
+      schema: 'simulatte.autonomyBrowserSmoke.v10',
       pass,
       targetUrl,
       viewport: options.viewport,
@@ -385,14 +389,17 @@ function cooperativeFeatureExpression() {
       const started = performance.now();
       while (!predicate()) {
         const status = document.getElementById('runtime-status');
-        if (status?.dataset.kind === 'error') throw new Error(label + ': ' + status.textContent);
+        if (status?.dataset.kind === 'error') {
+          const failure = (window.__simulatteAutonomyRuntimeEvents || []).filter((row) => row.level === 'error').at(-1);
+          throw new Error(label + ': ' + status.textContent + (failure ? ' · ' + JSON.stringify(failure.details) : ''));
+        }
         if (performance.now() - started > limit) throw new Error('timeout at ' + label);
         await new Promise((resolve) => setTimeout(resolve, 25));
       }
     };
     const input = document.getElementById('mission-input');
     const step = document.getElementById('step-button');
-    input.value = 'I need two AA batteries delivered to my East Village office. Match someone already passing nearby.';
+    input.value = 'I need an umbrella delivered to my East Village office. Match someone already passing nearby.';
     input.dispatchEvent(new Event('input', { bubbles: true }));
     step.click();
     await waitFor(() => !document.getElementById('cooperative-section').hidden
@@ -404,7 +411,17 @@ function cooperativeFeatureExpression() {
       burden: document.getElementById('cooperative-burden').textContent.trim(),
       reliability: document.getElementById('cooperative-reliability').textContent.trim(),
       handoff: document.getElementById('cooperative-handoff').textContent.trim(),
+      itemTitle: document.getElementById('cooperative-chip-title').textContent.trim(),
     };
+    const adapter = await navigator.gpu.requestAdapter({ powerPreference: 'high-performance' });
+    if (!adapter) throw new Error('cooperative GPU parity adapter unavailable');
+    const parityDevice = await adapter.requestDevice();
+    const gpuParity = await SimulatteCooperativeGpuCompute.verifyGpuParity(parityDevice, [
+      [120, 45, 0.05, 1, 0, 0.1, 200, 20],
+      [30, 18, 0.01, 0.5, 0, 0.02, 100, 5],
+      [240, 90, 0.2, 2, 0.5, 0.3, 400, 45],
+    ]);
+    parityDevice.destroy();
     input.value = 'Walk from Union Square to Washington Square in the shade on a hot day.';
     input.dispatchEvent(new Event('input', { bubbles: true }));
     step.click();
@@ -415,7 +432,7 @@ function cooperativeFeatureExpression() {
       routeAlgorithm: proof.dataset.routeAlgorithm || null,
       proof: proof.textContent.trim(),
     };
-    return { cooperation, shade };
+    return { cooperation, gpuParity, shade };
   })()`;
 }
 

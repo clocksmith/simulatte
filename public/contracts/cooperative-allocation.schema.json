@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Simulatte cooperative allocation receipt",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "requestId", "candidateLegCount", "retainedLegCount", "enumeratedPathCount", "dynamicProgrammingStateCount", "requiredQuantity", "allocatedQuantity", "rejectedLegIds"],
+  "properties": {
+    "schema": { "const": "simulatte.cooperativeAllocationReceipt.v1" },
+    "requestId": { "type": "string", "minLength": 1 },
+    "candidateLegCount": { "type": "integer", "minimum": 0 },
+    "retainedLegCount": { "type": "integer", "minimum": 0 },
+    "enumeratedPathCount": { "type": "integer", "minimum": 0 },
+    "dynamicProgrammingStateCount": { "type": "integer", "minimum": 0 },
+    "requiredQuantity": { "type": "integer", "minimum": 1 },
+    "allocatedQuantity": { "type": "integer", "minimum": 0 },
+    "rejectedLegIds": { "type": "array", "items": { "type": "string" } }
+  }
+}

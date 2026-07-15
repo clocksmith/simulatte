@@ -22,11 +22,11 @@
   const CONSTRUCTION_TOPOLOGIES = Object.freeze([
     topology('cephalopod', ['ground.swimmer-body'], [
       node('core', 1, 'ellipse', [[0.42, 0.52]], ['mantle']),
-      node('appendage', 8, 'capsule', [[0.38, 0.095]], [
+      node('appendage', 8, 'capsule', [[0.5, 0.065]], [
         'tentacle-1', 'tentacle-2', 'tentacle-3', 'tentacle-4',
         'tentacle-5', 'tentacle-6', 'tentacle-7', 'tentacle-8',
       ]),
-      node('sensor', 2, 'ellipse', [[0.075, 0.075]], ['eye-left', 'eye-right']),
+      node('sensor', 2, 'ellipse', [[0.09, 0.09]], ['eye-left', 'eye-right']),
     ], ['radial:appendage:core:below', 'attach:sensor:core:front'], [
       'octopus', 'squid', 'cephalopod', 'tentacle',
     ], 'medium'),

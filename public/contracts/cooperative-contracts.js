@@ -15,6 +15,7 @@
     'handoff_pending', 'delivered', 'settled', 'expired', 'revoked',
     'refused', 'missed', 'failed',
   ]);
+  const AUTHORIZATION_STATES = Object.freeze(['authorized', 'revoked', 'expired']);
 
   class CooperativeContractError extends Error {
     constructor(contract, path, expected, received) {
@@ -66,9 +67,7 @@
     const v = validator(contract);
     v.schema(intent);
     ['id', 'revisionId', 'participantId', 'mode', 'expiresAt'].forEach((key) => v.string(intent[key], `$.${key}`));
-    const baseline = v.object(intent.baselineJourney, '$.baselineJourney');
-    ['originNodeId', 'destinationNodeId', 'departureAt'].forEach((key) => v.string(baseline[key], `$.baselineJourney.${key}`));
-    v.sha(baseline.commitmentSha256, '$.baselineJourney.commitmentSha256');
+    validateJourneyIntent(intent.baselineJourney);
     const slack = v.object(intent.slack, '$.slack');
     ['fixedRoutePrefixSegmentIds', 'flexibleRouteSuffixSegmentIds', 'acceptableHandoffTypes']
       .forEach((key) => v.array(slack[key], `$.slack.${key}`));
@@ -83,6 +82,38 @@
     v.finite(reliability.arrivalIntervalSeconds, '$.reliability.arrivalIntervalSeconds', 0);
     v.oneOf(intent.consentState, CONSENT_STATES, '$.consentState');
     return intent;
+  }
+
+  function validateJourneyIntent(journey) {
+    const contract = 'simulatte.journeyIntent.v1';
+    const v = validator(contract);
+    v.schema(journey);
+    ['originNodeId', 'destinationNodeId', 'departureAt'].forEach((key) => v.string(journey[key], `$.${key}`));
+    v.sha(journey.commitmentSha256, '$.commitmentSha256');
+    return journey;
+  }
+
+  function validateConsent(consent) {
+    const contract = 'simulatte.cooperativeConsent.v1';
+    const v = validator(contract);
+    v.schema(consent);
+    ['id', 'participantId', 'planId', 'issuedAt', 'expiresAt'].forEach((key) => v.string(consent[key], `$.${key}`));
+    v.oneOf(consent.state, AUTHORIZATION_STATES, '$.state');
+    v.oneOf(consent.scope, ['exact_plan_and_handoff'], '$.scope');
+    v.sha(consent.planIdentitySha256, '$.planIdentitySha256');
+    return consent;
+  }
+
+  function validateCustodyState(custody) {
+    const contract = 'simulatte.custodyState.v1';
+    const v = validator(contract);
+    v.schema(custody);
+    ['planId', 'needId', 'itemId', 'priorEventHash'].forEach((key) => v.string(custody[key], `$.${key}`));
+    v.integer(custody.quantity, '$.quantity', 1);
+    v.oneOf(custody.state, CUSTODY_STATES, '$.state');
+    if (custody.custodianId !== null) v.string(custody.custodianId, '$.custodianId');
+    v.sha(custody.priorEventHash, '$.priorEventHash');
+    return custody;
   }
 
   function validateNeed(need) {
@@ -205,6 +236,7 @@
       ['label', 'unit', 'substitutionGroupId', 'riskTier'].forEach((key) => v.string(item[key], `$.itemTaxonomy.items[${index}].${key}`));
       ['massGrams', 'volumeCm3', 'maximumValueCents'].forEach((key) => v.finite(item[key], `$.itemTaxonomy.items[${index}].${key}`, 0));
       v.array(item.requiredAcknowledgements, `$.itemTaxonomy.items[${index}].requiredAcknowledgements`);
+      if (item.aliases !== undefined) v.array(item.aliases, `$.itemTaxonomy.items[${index}].aliases`).forEach((alias, aliasIndex) => v.string(alias, `$.itemTaxonomy.items[${index}].aliases[${aliasIndex}]`));
     });
     const participants = v.array(scenario.participants, '$.participants', 3);
     const participantIds = uniqueIds(participants, '$.participants', v);
@@ -233,6 +265,13 @@
     const graphIds = uniqueIds(graphs, '$.buildingHandoffGraphs', v);
     if (!graphIds.has(scenario.need.buildingHandoffGraphId)) v.fail('$.need.buildingHandoffGraphId', 'known building handoff graph ID', scenario.need.buildingHandoffGraphId);
     graphs.forEach((graph, graphIndex) => validateBuildingGraph(graph, graphIndex, v));
+    if (scenario.destinationLexicon !== undefined) {
+      v.array(scenario.destinationLexicon, '$.destinationLexicon', 1).forEach((destination, index) => {
+        ['id', 'label', 'nodeId', 'buildingHandoffGraphId'].forEach((key) => v.string(destination[key], `$.destinationLexicon[${index}].${key}`));
+        v.array(destination.aliases, `$.destinationLexicon[${index}].aliases`).forEach((alias, aliasIndex) => v.string(alias, `$.destinationLexicon[${index}].aliases[${aliasIndex}]`));
+        if (!graphIds.has(destination.buildingHandoffGraphId)) v.fail(`$.destinationLexicon[${index}].buildingHandoffGraphId`, 'known building handoff graph ID', destination.buildingHandoffGraphId);
+      });
+    }
     const policy = v.object(scenario.policy, '$.policy');
     ['cellSizeM', 'timeBucketSeconds', 'maximumCandidates', 'softHoldSeconds', 'maximumRelayHops', 'minimumOnTimeProbability']
       .forEach((key) => v.finite(policy[key], `$.policy.${key}`, 0));
@@ -264,7 +303,10 @@
     CUSTODY_STATES,
     PLAN_STATES,
     validateEnvironmentField,
+    validateConsent,
+    validateCustodyState,
     validateHandoff,
+    validateJourneyIntent,
     validateNeed,
     validateOffer,
     validateParticipantIntent,

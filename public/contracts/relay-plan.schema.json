@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Simulatte cooperative relay plan",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "requestId", "algorithm", "maximumCarrierLegs", "requiredQuantity", "allocatedQuantity", "totalCost", "allocations", "searchComplete", "optimalityProven", "claimBoundary"],
+  "properties": {
+    "schema": { "const": "simulatte.cooperativeRelayPlan.v1" },
+    "requestId": { "type": "string", "minLength": 1 },
+    "algorithm": { "const": "bounded_relay_path_allocation_dp_v1" },
+    "maximumCarrierLegs": { "type": "integer", "minimum": 1 },
+    "requiredQuantity": { "type": "integer", "minimum": 1 },
+    "allocatedQuantity": { "type": "integer", "minimum": 0 },
+    "totalCost": { "type": "number", "minimum": 0 },
+    "allocations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["legId", "carrierId", "fromNodeId", "toNodeId", "departureAt", "arrivalAt", "quantity", "unitCost"],
+        "properties": {
+          "legId": { "type": "string", "minLength": 1 },
+          "carrierId": { "type": "string", "minLength": 1 },
+          "fromNodeId": { "type": "string", "minLength": 1 },
+          "toNodeId": { "type": "string", "minLength": 1 },
+          "departureAt": { "type": "string", "format": "date-time" },
+          "arrivalAt": { "type": "string", "format": "date-time" },
+          "quantity": { "type": "integer", "minimum": 1 },
+          "unitCost": { "type": "number", "minimum": 0 }
+        }
+      }
+    },
+    "searchComplete": { "type": "boolean" },
+    "optimalityProven": { "type": "boolean" },
+    "claimBoundary": { "type": "string", "minLength": 1 }
+  }
+}
