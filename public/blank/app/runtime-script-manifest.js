@@ -209,6 +209,7 @@
   );
 
   const browser = join(
+    group('../neural-model-consent.js'),
     phaseContracts,
     catalog,
     semanticRag,

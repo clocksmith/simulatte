@@ -12,11 +12,12 @@
     root.SimulatteAutonomyReceipts,
     root.SimulatteCooperativeEngine,
     root.SimulatteSunExposure,
-    root.SimulatteAutonomyWorld
+    root.SimulatteAutonomyWorld,
+    root.SimulatteNeuralModelConsent
   );
   root.SimulatteAutonomyApp = api;
   if (typeof module === 'object' && module.exports) module.exports = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyApp(dataLoader, missionApi, controllerApi, canvasApi, traceApi, runtimeLog, neuralPlaceApi, ledgerApi, counterfactualApi, receiptsApi, cooperativeApi, sunApi, worldApi) {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyApp(dataLoader, missionApi, controllerApi, canvasApi, traceApi, runtimeLog, neuralPlaceApi, ledgerApi, counterfactualApi, receiptsApi, cooperativeApi, sunApi, worldApi, neuralConsentApi) {
   const log = runtimeLog || {
     info: () => null,
     warn: () => null,
@@ -42,7 +43,6 @@
       return null;
     }
     elements.missionInput.value = data.manifest.defaultMissionText;
-    restorePlaceMatchingPreference(elements);
     resizeMissionInput(elements.missionInput);
     const traceView = traceApi.createTraceView(elements, data.policy, data.rerankerEvidence);
     let controller = null;
@@ -61,6 +61,18 @@
     const recordedJourneyHashes = new Set();
     let latestCounterfactual = null;
     const stepIntervalMs = 18;
+    const neuralGate = await neuralConsentApi.createGate({
+      root: document,
+      lockUrl: './data/simulatte-embedder/model-runtime-lock.json',
+      toggle: elements.placeResolutionLane,
+      dialog: document.getElementById('neural-model-dialog'),
+      surface: 'autonomy',
+      status(enabled, bundle) {
+        elements.placeLaneNote.textContent = enabled
+          ? `On demand · ${bundle.embedding.size} · measured gain +0/37`
+          : 'Deterministic matching · no download';
+      },
+    });
 
     async function buildController({ keepMissionLocked = false } = {}) {
       clearMissionError(elements);
@@ -75,7 +87,7 @@
         })
         : null;
       shadeSelection = null;
-      const useNeuralPlaces = elements.placeResolutionLane.value === 'qwen_embedding';
+      const useNeuralPlaces = neuralGate.isEnabled();
       if (useNeuralPlaces && !placeResolver) {
         placeResolver = neuralPlaceApi.createPlaceResolver({
           index: data.placeEmbeddingIndex,
@@ -442,19 +454,19 @@
       event.preventDefault();
       elements.startButton.click();
     });
-    elements.placeResolutionLane.addEventListener('change', () => {
+    elements.placeResolutionLane.addEventListener('neural-model-consent-change', async (event) => {
       if (isRunning) return;
+      if (!event.detail.enabled && placeResolver) {
+        await placeResolver.unload();
+        placeResolver = null;
+      }
       controller = null;
       hasJourneyStarted = false;
       updateButtons(elements, false, false, 'active', false);
-      const neural = elements.placeResolutionLane.value === 'qwen_embedding';
-      persistPlaceMatchingPreference(elements.placeResolutionLane.value);
+      const neural = event.detail.enabled;
       setRuntimeStatus(elements, 'Ready', 'changed');
-      elements.placeLaneNote.textContent = neural
-        ? 'Experimental. Downloads 533 MB and currently adds no diagnostic matches.'
-        : 'Fast matching is ready with no model download.';
       elements.placeResolutionProof.textContent = neural
-        ? 'Experimental Qwen embedding after deterministic matching · measured gain +0/37 · 533 MB'
+        ? 'Qwen embedding after deterministic refusal · measured gain +0/37 · no neural reranker on this surface'
         : 'Deterministic place matching · 27/37 diagnostic · no model execution';
     });
     window.addEventListener('resize', () => {
@@ -664,27 +676,6 @@
     if (messages[error?.code]) return messages[error.code];
     if (String(error?.code || '').includes('ambiguous')) return 'That place matches more than one loaded location. Be more specific.';
     return 'I could not ground this mission in the loaded map. Try a named place and a clear travel goal.';
-  }
-
-  function restorePlaceMatchingPreference(elements) {
-    try {
-      const saved = localStorage.getItem('simulatte.placeResolutionLane.v1');
-      if ([...elements.placeResolutionLane.options].some((option) => option.value === saved)) elements.placeResolutionLane.value = saved;
-    } catch {
-      // Storage is optional. The explicit fast lane remains the default.
-    }
-    const neural = elements.placeResolutionLane.value === 'qwen_embedding';
-    elements.placeLaneNote.textContent = neural
-      ? 'Experimental. Downloads 533 MB and currently adds no diagnostic matches.'
-      : 'Fast matching is ready with no model download.';
-  }
-
-  function persistPlaceMatchingPreference(value) {
-    try {
-      localStorage.setItem('simulatte.placeResolutionLane.v1', value);
-    } catch {
-      // Storage is optional. The current selection still applies to this tab.
-    }
   }
 
   function updateButtons(elements, running, hasController, status = 'active', hasJourneyStarted = false) {

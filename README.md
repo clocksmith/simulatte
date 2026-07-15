@@ -92,6 +92,11 @@ The optional neural place lane runs the pinned Qwen 3 Embedding 0.6B model
 locally through Doppler. It embeds only the origin or destination phrase and
 may select only a node already eligible for the chosen embodiment. It does not
 generate text, choose a route, operate the vehicle, or replace safety gates.
+Both browser products keep neural loading off until the user enables the
+lock-pinned bundle in a confirmation dialog that names the embedding and
+reranking models and their download sizes. Consent is remembered only for the
+exact lock identity and can be revoked from the same switch. Simulatte loads
+the embedder on deterministic refusal; Blank loads and executes both models.
 After correcting the Doppler 0.4.8 embedding math, the shipped deterministic
 extended-typo lane scores 27/37 versus 21/37 for the legacy lexical control,
 with zero wrong-place or must-refuse violations. The Qwen candidate also scores

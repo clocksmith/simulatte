@@ -1277,8 +1277,11 @@ test('autonomy UI keeps the map primary and moves technical controls behind prog
   assert.match(html, /id="map-popover"[^>]*hidden/);
   assert.match(html, /<details class="evidence-section retrieval-evidence">/);
   assert.match(html, /<details class="evidence-section receipt-evidence">/);
-  assert.match(html, /Fast, no download/);
-  assert.match(html, /Semantic test, 533 MB/);
+  assert.match(html, /id="place-resolution-lane" type="checkbox" role="switch"/);
+  assert.match(html, /Qwen place matching/);
+  assert.match(html, /id="neural-model-dialog"/);
+  assert.match(blankHtml, /id="blank-neural-models" type="checkbox" role="switch"/);
+  assert.match(blankHtml, /Blank uses both models to retrieve and rerank construction evidence/);
   assert.doesNotMatch(html, /WebGPU world model|Decision engine|Route search|Prediction settlement/);
   assert.match(css, /#autonomy-canvas[\s\S]*width: 100%;[\s\S]*height: 100%/);
   assert.match(css, /@media \(max-width: 820px\)[\s\S]*translateY/);

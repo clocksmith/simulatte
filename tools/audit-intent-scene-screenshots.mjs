@@ -23,6 +23,24 @@ import {
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const PUBLIC_DIR = path.join(ROOT, 'public');
 const DEFAULT_OUT_DIR = path.join(ROOT, 'artifacts', 'simulatte-intent-scene-audit');
+const MODEL_CONSENT_STORAGE_KEY = 'simulatte.neuralModels.consent.v1';
+const MODEL_RUNTIME_LOCK = JSON.parse(await fs.readFile(path.join(PUBLIC_DIR, 'data/simulatte-embedder/model-runtime-lock.json'), 'utf8'));
+const MODEL_CONSENT_GRANT = Object.freeze({
+  schema: 'simulatte.neuralModelConsent.v1',
+  enabled: true,
+  bundleIdentity: [
+    MODEL_RUNTIME_LOCK.id,
+    MODEL_RUNTIME_LOCK.number,
+    MODEL_RUNTIME_LOCK.doppler.package.version,
+    MODEL_RUNTIME_LOCK.embedding.id,
+    MODEL_RUNTIME_LOCK.embedding.manifestHash.hex,
+    MODEL_RUNTIME_LOCK.reranker.model.id,
+    MODEL_RUNTIME_LOCK.reranker.model.manifestHash.hex,
+  ].join(':'),
+  lockId: MODEL_RUNTIME_LOCK.id,
+  lockNumber: MODEL_RUNTIME_LOCK.number,
+  grantedAt: 'audit-authorized',
+});
 const require = createRequire(import.meta.url);
 const phaseContracts = require('../public/blank/pipeline/simulatte-phase-contracts.js');
 const EXPECTED_PHASE_OUTPUT_SCHEMAS = Object.freeze(Object.fromEntries(
@@ -711,6 +729,10 @@ async function setupPage(cdp, url, width, height, timeoutMs, intentMode) {
   });
   if (intentMode !== 'model') {
     await cdp.send('Page.addScriptToEvaluateOnNewDocument', { source: forceLocalIntentScript() });
+  } else {
+    await cdp.send('Page.addScriptToEvaluateOnNewDocument', {
+      source: `localStorage.setItem(${JSON.stringify(MODEL_CONSENT_STORAGE_KEY)}, ${JSON.stringify(JSON.stringify(MODEL_CONSENT_GRANT))});`,
+    });
   }
   const loaded = cdp.waitForEvent('Page.loadEventFired');
   await cdp.send('Page.navigate', { url });

@@ -109,12 +109,9 @@
             <details id="mission-more-menu" class="mission-more-menu">
               <summary class="sim-action">More</summary>
               <div class="mission-more-content sim-popover">
-                <label class="resolver-control" for="place-resolution-lane">
-                  <span>Place matching</span>
-                  <select id="place-resolution-lane" class="sim-field">
-                    <option value="lexical">Fast, no download</option>
-                    <option value="qwen_embedding">Semantic test, 533 MB</option>
-                  </select>
+                <label class="resolver-control sim-switch-row" for="place-resolution-lane">
+                  <span>Qwen place matching</span>
+                  <input id="place-resolution-lane" type="checkbox" role="switch" aria-describedby="place-lane-note">
                 </label>
                 <p id="place-lane-note">Fast matching is ready.</p>
               </div>
@@ -224,6 +221,23 @@
     </aside>
   </main>
 
+  <dialog id="neural-model-dialog" class="neural-consent-dialog" aria-labelledby="neural-model-title">
+    <div class="neural-consent-body">
+      <h2 id="neural-model-title">Enable local Qwen models?</h2>
+      <p data-neural-model="surface-use">Simulatte uses the embedder only when deterministic place matching refuses.</p>
+      <div class="neural-model-list" aria-label="Models stored on this device">
+        <div class="neural-model-row"><span data-neural-model="embedding-name">Qwen embedding</span><span data-neural-model="embedding-size">Loading size</span></div>
+        <div class="neural-model-row"><span data-neural-model="reranker-name">Qwen reranker</span><span data-neural-model="reranker-size">Loading size</span></div>
+      </div>
+      <p class="neural-consent-facts"><span data-neural-model="download-summary">Model sizes loading</span>. Runs locally through Doppler <span data-neural-model="doppler-version"></span>. Model files are cached on this device; mission text stays in this browser.</p>
+      <div class="neural-consent-actions">
+        <button class="sim-action" type="button" data-neural-consent="cancel">Not now</button>
+        <button class="sim-action sim-action-primary" type="button" data-neural-consent="accept">Enable models</button>
+      </div>
+    </div>
+  </dialog>
+
+  <script defer src="./neural-model-consent.js?v=f3f03307df65edeee5e440601eaf733ec78cb2a6-45c94d2c6884"></script>
   <script defer src="./contracts/data-contract-validator.js?v=f3f03307df65edeee5e440601eaf733ec78cb2a6-45c94d2c6884"></script>
   <script defer src="./contracts/contract-validator.js?v=f3f03307df65edeee5e440601eaf733ec78cb2a6-45c94d2c6884"></script>
   <script defer src="./contracts/cooperative-contracts.js?v=f3f03307df65edeee5e440601eaf733ec78cb2a6-45c94d2c6884"></script>

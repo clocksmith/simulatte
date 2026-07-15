@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.autonomyBrowserSmoke.v10",
   "pass": true,
-  "targetUrl": "http://127.0.0.1:52386/",
+  "targetUrl": "http://127.0.0.1:58171/",
   "viewport": {
     "width": 1440,
     "height": 1000
@@ -236,7 +236,7 @@
         "visible": true,
         "projection": "orthographic_top_north_up",
         "radiusM": 420,
-        "frameCount": 77
+        "frameCount": 78
       }
     },
     "editInvalidatedController": true,
@@ -248,51 +248,51 @@
     "ambientActorCount": 13,
     "ambientActorKinds": "pedestrian,bicycle,scooter,car",
     "adapterName": "metal-3",
-    "rendererFrames": 1610,
+    "rendererFrames": 1609,
     "smoothness": {
-      "rafFrameCount": 1158,
+      "rafFrameCount": 1157,
       "frameIntervalMs": {
         "min": 14.6,
         "p50": 16.7,
         "p95": 18.6,
         "p99": 18.7,
-        "max": 64.7,
-        "mean": 16.7659
+        "max": 50.3,
+        "mean": 16.6955
       },
-      "over20msCount": 4,
-      "over33msCount": 2,
-      "over33msRatio": 0.0017,
+      "over20msCount": 1,
+      "over33msCount": 1,
+      "over33msRatio": 0.0009,
       "longTaskCount": 0,
       "longTaskTotalMs": 0,
       "longestTaskMs": 0,
       "phaseMarks": [
         {
           "phase": "sampling_started",
-          "at": 5967.5
+          "at": 5664
         },
         {
           "phase": "camera_modes_complete",
-          "at": 8851.199999809265
+          "at": 8549.099999904633
         },
         {
           "phase": "camera_interactions_complete",
-          "at": 11422
+          "at": 11071.89999961853
         },
         {
           "phase": "mission_edited",
-          "at": 11422.39999961853
+          "at": 11072.099999904633
         },
         {
           "phase": "start_clicked",
-          "at": 11461.299999713898
+          "at": 11110.89999961853
         },
         {
           "phase": "follow_minimap_ready",
-          "at": 11521
+          "at": 11173.799999713898
         },
         {
           "phase": "journey_terminal",
-          "at": 25346.5
+          "at": 24951.89999961853
         }
       ],
       "longTasks": []
@@ -305,6 +305,18 @@
     "documentWidth": 1440,
     "scrollY": 0,
     "hasHorizontalOverflow": false
+  },
+  "consentView": {
+    "disclosed": {
+      "title": "Enable local Qwen models?",
+      "embedding": "533 MB",
+      "reranker": "895 MB",
+      "total": "533 MB on this page; 1.39 GB across Simulatte and Blank",
+      "use": "Simulatte uses the embedder only when deterministic place matching refuses. Blank uses the reranker."
+    },
+    "grantRemembered": true,
+    "revoked": true,
+    "finalEnabled": false
   },
   "decisionView": {
     "open": true,
@@ -321,7 +333,7 @@
     "ambientActorCount": 13,
     "ambientActorKinds": "pedestrian,bicycle,scooter,car",
     "minimapVisible": true,
-    "minimapFrameCount": 1415
+    "minimapFrameCount": 1418
   },
   "featureView": {
     "cooperation": {
@@ -364,6 +376,10 @@
     },
     {
       "pathname": "/styles.css",
+      "status": 200
+    },
+    {
+      "pathname": "/neural-model-consent.js",
       "status": 200
     },
     {
@@ -628,6 +644,10 @@
     },
     {
       "pathname": "/data/autonomy/regions/packs/north-brooklyn-v1.json",
+      "status": 200
+    },
+    {
+      "pathname": "/data/simulatte-embedder/model-runtime-lock.json",
       "status": 200
     }
   ],

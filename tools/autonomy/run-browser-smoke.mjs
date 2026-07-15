@@ -220,6 +220,48 @@ async function runBrowserSmoke(options) {
     const loaded = client.once('Page.loadEventFired');
     await client.send('Page.navigate', { url: targetUrl });
     await loaded;
+    const consentEvaluation = await client.send('Runtime.evaluate', {
+      expression: `(async () => {
+        const waitFor = async (predicate, label) => {
+          const started = performance.now();
+          while (!predicate()) {
+            if (performance.now() - started > 10000) throw new Error('timeout at ' + label);
+            await new Promise((resolve) => setTimeout(resolve, 25));
+          }
+        };
+        const toggle = document.getElementById('place-resolution-lane');
+        const dialog = document.getElementById('neural-model-dialog');
+        await waitFor(() => toggle && toggle.getAttribute('aria-checked') === 'false', 'consent-ready');
+        toggle.click();
+        await waitFor(() => dialog.open, 'consent-open');
+        const disclosed = {
+          title: dialog.querySelector('h2').textContent.trim(),
+          embedding: dialog.querySelector('[data-neural-model="embedding-size"]').textContent.trim(),
+          reranker: dialog.querySelector('[data-neural-model="reranker-size"]').textContent.trim(),
+          total: dialog.querySelector('[data-neural-model="download-summary"]').textContent.trim(),
+          use: dialog.querySelector('[data-neural-model="surface-use"]').textContent.trim(),
+        };
+        dialog.querySelector('[data-neural-consent="cancel"]').click();
+        await waitFor(() => !dialog.open && !toggle.checked, 'consent-cancel');
+        toggle.click();
+        await waitFor(() => dialog.open, 'consent-reopen');
+        dialog.querySelector('[data-neural-consent="accept"]').click();
+        await waitFor(() => !dialog.open && toggle.checked, 'consent-accept');
+        const grantRemembered = Boolean(localStorage.getItem('simulatte.neuralModels.consent.v1'));
+        toggle.click();
+        await waitFor(() => !toggle.checked, 'consent-revoke');
+        return {
+          disclosed,
+          grantRemembered,
+          revoked: !localStorage.getItem('simulatte.neuralModels.consent.v1'),
+          finalEnabled: toggle.checked,
+        };
+      })()`,
+      awaitPromise: true,
+      returnByValue: true,
+    });
+    if (consentEvaluation.exceptionDetails) throw new Error(consentEvaluation.exceptionDetails.exception && consentEvaluation.exceptionDetails.exception.description || consentEvaluation.exceptionDetails.text);
+    const consentView = consentEvaluation.result.value;
     const evaluated = await client.send('Runtime.evaluate', {
       expression: browserJourneyExpression(),
       awaitPromise: true,
@@ -304,6 +346,14 @@ async function runBrowserSmoke(options) {
       && result.copy.removedLabelsAbsent
       && result.copy.blankLink.href === '/blank/'
       && result.copy.blankLink.label === 'Blank'
+      && consentView.disclosed.title === 'Enable local Qwen models?'
+      && consentView.disclosed.embedding === '533 MB'
+      && consentView.disclosed.reranker === '895 MB'
+      && consentView.disclosed.total === '533 MB on this page; 1.39 GB across Simulatte and Blank'
+      && consentView.disclosed.use.includes('embedder only')
+      && consentView.grantRemembered
+      && consentView.revoked
+      && consentView.finalEnabled === false
       && result.initialLayout.allWithinViewport
       && result.initialLayout.primaryControlsVisible
       && decisionView.open
@@ -359,6 +409,7 @@ async function runBrowserSmoke(options) {
       viewport: options.viewport,
       browser: { product: browserVersion.product, protocolVersion: browserVersion.protocolVersion, userAgent: browserVersion.userAgent },
       result,
+      consentView,
       decisionView,
       actorView,
       featureView,

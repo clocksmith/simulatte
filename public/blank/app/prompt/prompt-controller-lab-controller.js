@@ -32,6 +32,23 @@
           value: root.getElementById(`readout-${index + 1}`),
         }));
         const stateReadout = root.getElementById('lab-state');
+        const neuralToggle = root.getElementById('blank-neural-models');
+        const neuralNote = root.getElementById('blank-neural-model-note');
+        const neuralConsentApi = root.defaultView && root.defaultView.SimulatteNeuralModelConsent;
+        const neuralGateReady = neuralConsentApi
+          ? neuralConsentApi.createGate({
+            root,
+            lockUrl: '../data/simulatte-embedder/model-runtime-lock.json',
+            toggle: neuralToggle,
+            dialog: root.getElementById('neural-model-dialog'),
+            surface: 'blank',
+            status(enabled, bundle) {
+              if (neuralNote) neuralNote.textContent = enabled
+                ? `Ready to load ${bundle.totalSize} locally`
+                : 'Enable to retrieve and rerank with local models';
+            },
+          })
+          : Promise.reject(new Error('Neural model consent runtime unavailable'));
         const fpsMeter = createFpsMeter(root.getElementById('fps-readout'), canvas);
         const trainingRun = createTrainingRunState();
         const runtimeProgress = runtimeProgressApi.connect(root, {
@@ -211,14 +228,14 @@
           if (stage) stage.dataset.sceneVisible = simulationVisible ? 'true' : 'false';
         }
 
-        const buildFromPrompt = (paramsOverride = null) => {
+        const buildFromPrompt = async (paramsOverride = null) => {
           const prompt = promptInput ? promptInput.value : '';
           const params = paramsOverride || readPromptParams(promptInput, {});
           const serial = buildSerial + 1;
           buildSerial = serial;
           constructionRetryPending = false;
-          beginTrainingRun(trainingRun, prompt, params, serial);
           if (!String(prompt || '').trim()) {
+            beginTrainingRun(trainingRun, prompt, params, serial);
             publishRuntime({
               state: 'ready',
               stage: 'blank',
@@ -230,6 +247,25 @@
             setSpec(createSpec('blank-world', { params }), { visible: false });
             return;
           }
+          let neuralGate;
+          try {
+            neuralGate = await neuralGateReady;
+          } catch (error) {
+            reportIntentFailure(serial, error.message);
+            return;
+          }
+          if (!neuralGate.isEnabled() && !await neuralGate.requestEnable()) {
+            publishRuntime({
+              state: 'ready',
+              stage: 'models-off',
+              percent: 100,
+              message: 'Neural models off',
+              detail: 'Enable Qwen models to run Blank',
+              canvasLoading: false,
+            });
+            return;
+          }
+          beginTrainingRun(trainingRun, prompt, params, serial);
           publishRuntime({
             state: 'active',
             stage: 'manifest',
@@ -565,17 +601,30 @@
         }
 
         setSpec(spec, { visible: false });
-        if (!skipInitialBuildForAudit(root)) {
-          warmIntentRuntime(buildSerial);
-        } else {
+        neuralToggle?.addEventListener('neural-model-consent-change', (event) => {
+          if (event.detail.enabled || runtimeProgress.isBusy()) return;
           publishRuntime({
             state: 'ready',
-            stage: 'blank',
+            stage: 'models-off',
             percent: 100,
-            message: 'Ready',
+            message: 'Neural models off',
+            detail: activePromptRuntimeReceipt
+              ? 'Disabled for new runs; reload releases model memory'
+              : 'Enable Qwen models to run Blank',
             canvasLoading: false,
           });
-        }
+        });
+        neuralGateReady.then((neuralGate) => {
+          if (neuralGate.isEnabled() && !skipInitialBuildForAudit(root)) warmIntentRuntime(buildSerial);
+          else publishRuntime({
+            state: 'ready',
+            stage: neuralGate.isEnabled() ? 'blank' : 'models-off',
+            percent: 100,
+            message: neuralGate.isEnabled() ? 'Ready' : 'Neural models off',
+            detail: neuralGate.isEnabled() ? '' : 'Enable Qwen models to run Blank',
+            canvasLoading: false,
+          });
+        }).catch((error) => reportIntentFailure(buildSerial, error.message));
         requestAnimationFrame(tick);
         return {
           getSpec: () => spec,

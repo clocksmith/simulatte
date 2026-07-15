@@ -2643,7 +2643,7 @@
 
         <div id="intent-runtime" class="intent-runtime" data-state="idle" aria-live="polite">
           <div class="intent-runtime-head">
-            <strong id="intent-runtime-title">Loading embeddings</strong>
+            <strong id="intent-runtime-title">Neural models off</strong>
             <span id="intent-runtime-percent" class="intent-runtime-percent">0%</span>
           </div>
           <div class="intent-runtime-track" aria-hidden="true">
@@ -2658,6 +2658,11 @@
         <details id="prompt-more-menu" class="prompt-more-menu">
           <summary>More</summary>
           <div class="prompt-more-content">
+            <label class="sim-switch-row" for="blank-neural-models">
+              <span>Qwen models</span>
+              <input id="blank-neural-models" type="checkbox" role="switch" aria-describedby="blank-neural-model-note">
+            </label>
+            <div id="blank-neural-model-note" class="prompt-more-section-title">Enable to retrieve and rerank with local models</div>
             <div class="prompt-more-section-title">Minimize corner</div>
             <div class="prompt-corner-controls" aria-label="Minimized panel corner">
               <button type="button" data-dock-corner="top-left" aria-label="Minimize to top left">↖</button>
@@ -2691,6 +2696,22 @@
       <canvas id="physics-canvas" aria-label="Simulatte physics canvas" data-scene-visible="false"></canvas>
       <canvas id="loading-canvas" aria-label="Snake loading canvas" hidden></canvas>
     </section>
+
+    <dialog id="neural-model-dialog" class="neural-consent-dialog" aria-labelledby="neural-model-title">
+      <div class="neural-consent-body">
+        <h2 id="neural-model-title">Enable local Qwen models?</h2>
+        <p data-neural-model="surface-use">Blank uses both models to retrieve and rerank construction evidence.</p>
+        <div class="neural-model-list" aria-label="Models stored on this device">
+          <div class="neural-model-row"><span data-neural-model="embedding-name">Qwen embedding</span><span data-neural-model="embedding-size">Loading size</span></div>
+          <div class="neural-model-row"><span data-neural-model="reranker-name">Qwen reranker</span><span data-neural-model="reranker-size">Loading size</span></div>
+        </div>
+        <p class="neural-consent-facts"><span data-neural-model="download-summary">Model sizes loading</span>. Runs locally through Doppler <span data-neural-model="doppler-version"></span>. Model files are cached on this device; prompts stay in this browser.</p>
+        <div class="neural-consent-actions">
+          <button class="sim-action" type="button" data-neural-consent="cancel">Not now</button>
+          <button class="sim-action sim-action-primary" type="button" data-neural-consent="accept">Enable models</button>
+        </div>
+      </div>
+    </dialog>
   </main>
 
   <script>
@@ -2706,6 +2727,7 @@
   </script>
   <!-- SIMULATTE_RUNTIME_SCRIPTS_START -->
   <script defer src="./app/runtime-script-manifest.js?v=f3f03307df65edeee5e440601eaf733ec78cb2a6-45c94d2c6884"></script>
+  <script defer src="../neural-model-consent.js?v=f3f03307df65edeee5e440601eaf733ec78cb2a6-45c94d2c6884"></script>
   <script defer src="./pipeline/simulatte-phase-contracts.js?v=f3f03307df65edeee5e440601eaf733ec78cb2a6-45c94d2c6884"></script>
   <script defer src="./pipeline/phase-05-simulation/simulatte-physics-catalog-dependencies.js?v=f3f03307df65edeee5e440601eaf733ec78cb2a6-45c94d2c6884"></script>
   <script defer src="./pipeline/phase-05-simulation/simulatte-physics-catalog-constants.js?v=f3f03307df65edeee5e440601eaf733ec78cb2a6-45c94d2c6884"></script>
