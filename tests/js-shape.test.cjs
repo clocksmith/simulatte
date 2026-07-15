@@ -1150,6 +1150,9 @@ test('physics loading uses a phase-reactive canvas Snake game instead of a card 
   assert.doesNotMatch(webgpuRenderer, /graphicsAtoms\.languageSignals|ranked\.slice\(0, 10\)/);
   assert.match(renderer, /sceneMix: canvas && canvas\.dataset \? canvas\.dataset\.sceneMix/);
   assert.match(renderer, /resolveWithEmbedding\(prompt, params, serial, true\)/);
+	  assert.match(renderer, /resolveDeterministically\(prompt, params, serial, true\)/);
+	  assert.match(renderer, /deterministicRuntime: true/);
+	  assert.doesNotMatch(renderer, /!await neuralGate\.requestEnable\(\)/);
 	  assert.match(renderer, /function warmIntentRuntime\(serial\)/);
 	  assert.match(renderer, /await embedder\.loadModel\(\)/);
 	  assert.match(renderer, /const promptRuntimeReceipt = loadedRuntime && loadedRuntime\.promptRuntimeReceipt \|\| null/);

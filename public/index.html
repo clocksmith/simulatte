@@ -106,16 +106,11 @@
             <button id="reset-button" class="sim-action" type="button" hidden>Reset</button>
             <button id="replay-button" class="sim-action sim-action-primary" type="button" hidden>Replay</button>
             <button id="what-if-button" class="sim-action" type="button" hidden>What if</button>
-            <details id="mission-more-menu" class="mission-more-menu">
-              <summary class="sim-action">More</summary>
-              <div class="mission-more-content sim-popover">
-                <label class="resolver-control sim-switch-row" for="place-resolution-lane">
-                  <span>Qwen place matching</span>
-                  <input id="place-resolution-lane" type="checkbox" role="switch" aria-describedby="place-lane-note">
-                </label>
-                <p id="place-lane-note">Fast matching is ready.</p>
-              </div>
-            </details>
+            <label class="neural-mode-toggle" for="place-resolution-lane" title="Use local Qwen place matching">
+              <span>Qwen</span>
+              <input id="place-resolution-lane" type="checkbox" role="switch" aria-describedby="place-lane-note">
+            </label>
+            <span id="place-lane-note" class="sr-only">Deterministic matching is active.</span>
           </div>
           <output id="mission-error" class="mission-error" aria-live="polite"></output>
         </section>

@@ -498,7 +498,7 @@
       'counterfactual-kind', 'counterfactual-street', 'counterfactual-snapshot', 'compare-button', 'export-ledger-button',
       'counterfactual-street-wrap', 'counterfactual-snapshot-wrap', 'import-receipt-button', 'import-receipt-file', 'counterfactual-proof',
       'decisions-button', 'decisions-drawer', 'decisions-close', 'decisions-backdrop', 'what-if-section',
-      'map-panel-button', 'map-popover', 'map-panel-close', 'mission-more-menu',
+      'map-panel-button', 'map-popover', 'map-panel-close',
       'cooperative-chip', 'cooperative-chip-title', 'cooperative-chip-meta', 'cooperative-section', 'cooperative-state',
       'cooperative-match', 'cooperative-burden', 'cooperative-reliability', 'cooperative-handoff', 'cooperative-settlement', 'cooperative-liquidity',
     ];
@@ -571,7 +571,6 @@
     function closeTransientPopovers(except = null) {
       if (except !== 'runtime') setPopover(elements.runtimeToggle, elements.runtimeDetails, false);
       if (except !== 'map') setPopover(elements.mapPanelButton, elements.mapPopover, false);
-      if (except !== 'more') elements.missionMoreMenu.open = false;
     }
 
     function openDecisions(sectionId = null) {

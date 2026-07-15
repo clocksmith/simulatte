@@ -481,49 +481,6 @@ body[data-journey-phase="ready"] .journey-hud {
   border-left: 8px solid currentColor;
 }
 
-.mission-more-menu {
-  position: relative;
-}
-
-.mission-more-menu > summary {
-  height: 100%;
-  list-style: none;
-}
-
-.mission-more-menu > summary::-webkit-details-marker {
-  display: none;
-}
-
-.mission-more-content {
-  position: absolute;
-  right: 0;
-  bottom: calc(100% + 10px);
-  display: grid;
-  width: 280px;
-  gap: 8px;
-  padding: 14px;
-}
-
-.resolver-control {
-  display: grid;
-  gap: 7px;
-  color: var(--sim-ink);
-  font-size: 12px;
-  font-weight: 650;
-}
-
-.resolver-control select {
-  min-height: 42px;
-  padding: 0 30px 0 10px;
-}
-
-#place-lane-note {
-  margin: 0;
-  color: var(--sim-ink-soft);
-  font-size: 11px;
-  line-height: 1.45;
-}
-
 .mission-error {
   display: none;
   grid-column: 1 / -1;
@@ -549,11 +506,7 @@ body[data-journey-phase="failed"] .mission-dock {
 body[data-journey-phase="running"] .mission-field,
 body[data-journey-phase="paused"] .mission-field,
 body[data-journey-phase="completed"] .mission-field,
-body[data-journey-phase="failed"] .mission-field,
-body[data-journey-phase="running"] .mission-more-menu,
-body[data-journey-phase="paused"] .mission-more-menu,
-body[data-journey-phase="completed"] .mission-more-menu,
-body[data-journey-phase="failed"] .mission-more-menu {
+body[data-journey-phase="failed"] .mission-field {
   display: none;
 }
 
@@ -1072,22 +1025,13 @@ body[data-journey-phase="failed"] .mission-more-menu {
     padding: 0 8px;
   }
 
-  .mission-more-menu > summary {
-    width: 100%;
-  }
-
-  .mission-more-content {
-    right: 0;
-    width: min(310px, calc(100vw - 24px));
-  }
-
   body[data-journey-phase="running"] .mission-dock,
   body[data-journey-phase="paused"] .mission-dock,
   body[data-journey-phase="completed"] .mission-dock,
   body[data-journey-phase="failed"] .mission-dock {
     right: 50%;
     left: auto;
-    width: auto;
+    width: min(330px, calc(100vw - 20px));
     transform: translateX(50%);
   }
 
@@ -1096,6 +1040,13 @@ body[data-journey-phase="failed"] .mission-more-menu {
   body[data-journey-phase="completed"] .mission-actions,
   body[data-journey-phase="failed"] .mission-actions {
     display: flex;
+  }
+
+  body[data-journey-phase="running"] .mission-actions > *,
+  body[data-journey-phase="paused"] .mission-actions > *,
+  body[data-journey-phase="completed"] .mission-actions > *,
+  body[data-journey-phase="failed"] .mission-actions > * {
+    flex: 1 1 0;
   }
 
   .map-anchor {

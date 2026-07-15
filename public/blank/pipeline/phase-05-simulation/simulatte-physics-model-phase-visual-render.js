@@ -470,9 +470,11 @@
           && options.embeddingModel
           && options.embeddingModel.id;
         const allowPrototypeFallback = options.allowPrototypeFallback === true;
+        const deterministicRuntime = options.deterministicRuntime === true;
         const blankPromptIntent = options.blankPromptIntent === true;
         const shouldClassify = classifyIntentPrompt && (
           hasModelBackedSelection ||
+          deterministicRuntime ||
           allowPrototypeFallback ||
           !prompt ||
           blankPromptIntent
@@ -484,6 +486,7 @@
             embeddingModel: options.embeddingModel || null,
             embeddingBackend: options.embeddingBackend || '',
             allowPrototypeFallback,
+            deterministicRuntime,
             blankPromptIntent,
             semanticRag,
           })

@@ -21,6 +21,7 @@
     SYNTH_GRAPH_SCHEMA,
     buildPrimitiveProgram,
     buildSemanticFeatureVector,
+    createDeterministicSlotRetrieval,
     createPrototypeSlotRetrieval,
     createSemanticRag,
   };

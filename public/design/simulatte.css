@@ -199,6 +199,64 @@
   cursor: pointer;
 }
 
+.neural-mode-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  border: 1px solid var(--sim-line);
+  border-radius: var(--sim-radius-small);
+  padding: 0 10px;
+  color: var(--sim-ink-soft);
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: var(--sim-shadow-small);
+  font: 650 12px/1 var(--sim-font);
+  cursor: pointer;
+  user-select: none;
+}
+
+.neural-mode-toggle:focus-within {
+  border-color: rgba(117, 190, 244, 0.8);
+  box-shadow: 0 0 0 3px rgba(117, 190, 244, 0.18);
+}
+
+.neural-mode-toggle input {
+  width: 30px;
+  height: 18px;
+  margin: 0;
+  appearance: none;
+  position: relative;
+  flex: 0 0 auto;
+  border: 1px solid var(--sim-line-strong);
+  border-radius: 999px;
+  background: rgba(90, 101, 112, 0.2);
+  cursor: pointer;
+  transition: border-color 150ms ease, background 150ms ease;
+}
+
+.neural-mode-toggle input::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(3, 10, 16, 0.28);
+  transition: transform 150ms ease;
+}
+
+.neural-mode-toggle input:checked {
+  border-color: var(--sim-accent);
+  background: var(--sim-accent);
+}
+
+.neural-mode-toggle input:checked::after {
+  transform: translateX(12px);
+}
+
 .neural-consent-dialog {
   width: min(460px, calc(100vw - 28px));
   border: 1px solid var(--sim-line-strong);

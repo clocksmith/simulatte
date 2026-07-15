@@ -20,6 +20,15 @@
     let lexicalConstructionIndexCache = null;
 
     function createPrototypeSlotRetrieval(queryPlan = {}, promptText = '') {
+      return createLexicalSlotRetrieval(queryPlan, promptText, 'prototype');
+    }
+
+    function createDeterministicSlotRetrieval(queryPlan = {}, promptText = '') {
+      return createLexicalSlotRetrieval(queryPlan, promptText, 'deterministic');
+    }
+
+    function createLexicalSlotRetrieval(queryPlan = {}, promptText = '', lane = 'prototype') {
+      const deterministic = lane === 'deterministic';
       const index = lexicalConstructionIndex();
       const bySlot = [];
       let postingVisits = 0;
@@ -39,7 +48,7 @@
         slotId: row.slotId,
         slotRole: row.slotRole,
         entryId: row.entryId,
-        retrievalKind: 'prototype-lexical-construction',
+        retrievalKind: deterministic ? 'deterministic-lexical-construction' : 'prototype-lexical-construction',
         evidence: [row.slotId, candidate.candidateId].filter(Boolean),
       })));
       return {
@@ -47,9 +56,11 @@
         queryPlanSchema: queryPlan.schema || '',
         sourcePromptHash: queryPlan.sourcePromptHash || '',
         model: '',
-        mode: 'prototype-lexical-construction-index',
+        mode: deterministic ? 'deterministic-lexical-construction-index' : 'prototype-lexical-construction-index',
         config: {
-          schema: 'simulatte.prototypeLexicalConstructionConfig.v1',
+          schema: deterministic
+            ? 'simulatte.deterministicLexicalConstructionConfig.v1'
+            : 'simulatte.prototypeLexicalConstructionConfig.v1',
           maximumPostingTerms: MAX_POSTING_TERMS,
           maximumScoredCards: MAX_SCORED_CARDS,
           maximumSlotCandidates: MAX_SLOT_CANDIDATES,
@@ -384,6 +395,7 @@
     }
 
     Object.assign(scope, {
+      createDeterministicSlotRetrieval,
       createPrototypeSlotRetrieval,
       lexicalConstructionIndex,
       normalizeConstructionPhrase,

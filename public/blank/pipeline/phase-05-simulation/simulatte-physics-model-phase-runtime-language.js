@@ -197,11 +197,18 @@
       }
 
     function runtimeContextFromOptions(options = {}) {
+        const deterministicRuntime = options.deterministicRuntime === true;
         const receipt = options.promptRuntimeReceipt || options.runtimeReceipt || null;
         const embeddingModel = options.embeddingModel || receipt && receipt.model || null;
-        const modelId = embeddingModel && embeddingModel.id || receipt && (receipt.modelId || receipt.id) || '';
-        const backend = options.embeddingBackend || receipt && (receipt.providerBackend || receipt.backend || receipt.provider) || '';
-        const cacheMode = receipt && (receipt.cacheMode || receipt.cacheBackends) || options.cacheMode || '';
+        const modelId = deterministicRuntime
+          ? 'simulatte-deterministic-language-runtime-v1'
+          : embeddingModel && embeddingModel.id || receipt && (receipt.modelId || receipt.id) || '';
+        const backend = deterministicRuntime
+          ? 'javascript'
+          : options.embeddingBackend || receipt && (receipt.providerBackend || receipt.backend || receipt.provider) || '';
+        const cacheMode = deterministicRuntime
+          ? 'static-in-memory-index'
+          : receipt && (receipt.cacheMode || receipt.cacheBackends) || options.cacheMode || '';
         const runtimeReceiptId = String(
           options.runtimeReceiptId ||
           receipt && (receipt.runtimeReceiptId || receipt.receiptId || receipt.id) ||
@@ -215,11 +222,14 @@
           backend: backend || '',
           cacheMode: cacheMode || '',
           providerReady: receipt && receipt.providerReady === true,
-          noFallback: receipt && receipt.noFallback === true,
+          deterministicReady: deterministicRuntime,
+          noFallback: deterministicRuntime || receipt && receipt.noFallback === true,
           promptRuntimeReceipt: receipt,
           retrievalEvidence,
           retrievalPhase: options.retrievalPhase || '',
-          runtimeMode: receipt && receipt.providerReady === true
+          runtimeMode: deterministicRuntime
+            ? 'deterministic-local'
+            : receipt && receipt.providerReady === true
             ? 'model-backed'
             : options.allowPrototypeFallback === true
               ? 'prototype-fallback'
@@ -904,6 +914,7 @@
 
     function phase1RequiresModelProof(promptText = '', options = {}, runtimeContext = {}) {
         if (!promptText) return false;
+        if (options.deterministicRuntime === true && runtimeContext.runtimeMode === 'deterministic-local') return false;
         if (options.allowPrototypeFallback === true) return false;
         if (!isBrowserRuntime()) return false;
         const receipt = runtimeContext.promptRuntimeReceipt || {};

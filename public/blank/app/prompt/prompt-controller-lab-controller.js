@@ -45,7 +45,7 @@
             status(enabled, bundle) {
               if (neuralNote) neuralNote.textContent = enabled
                 ? `Ready to load ${bundle.totalSize} locally`
-                : 'Enable to retrieve and rerank with local models';
+                : 'Deterministic language pipeline is active';
             },
           })
           : Promise.reject(new Error('Neural model consent runtime unavailable'));
@@ -254,26 +254,19 @@
             reportIntentFailure(serial, error.message);
             return;
           }
-          if (!neuralGate.isEnabled() && !await neuralGate.requestEnable()) {
-            publishRuntime({
-              state: 'ready',
-              stage: 'models-off',
-              percent: 100,
-              message: 'Neural models off',
-              detail: 'Enable Qwen models to run Blank',
-              canvasLoading: false,
-            });
-            return;
-          }
           beginTrainingRun(trainingRun, prompt, params, serial);
-          publishRuntime({
-            state: 'active',
-            stage: 'manifest',
-            percent: 1,
-            message: 'Loading embeddings',
-            canvasLoading: true,
-          });
-          resolveWithEmbedding(prompt, params, serial, true);
+          if (neuralGate.isEnabled()) {
+            publishRuntime({
+              state: 'active',
+              stage: 'manifest',
+              percent: 1,
+              message: 'Loading embeddings',
+              canvasLoading: true,
+            });
+            resolveWithEmbedding(prompt, params, serial, true);
+          } else {
+            resolveDeterministically(prompt, params, serial, true);
+          }
         };
 
         if (shuffleButton) {
@@ -470,6 +463,63 @@
           }
         }
 
+        async function resolveDeterministically(prompt, params, serial, showCanvasLoader = false) {
+          if (!String(prompt || '').trim()) return;
+          if (stateReadout) stateReadout.textContent = 'compiling intent';
+          publishRuntime({
+            state: 'active',
+            stage: 'deterministic-start',
+            percent: 4,
+            message: 'Reading language',
+            backend: 'deterministic-local',
+            canvasLoading: showCanvasLoader,
+          });
+          try {
+            await waitForLoadingPaint();
+            if (serial !== buildSerial) return;
+            const token = compileSerial + 1;
+            compileSerial = token;
+            const nextSpec = await compilePromptSpec(prompt, {
+              params,
+              deterministicRuntime: true,
+              retrievalPhase: 'deterministic-local',
+            }, {
+              stage: 'language',
+              percent: 18,
+              message: 'Parsing language',
+              backend: 'deterministic-local',
+              canvasLoading: showCanvasLoader,
+            });
+            if (serial !== buildSerial || token !== compileSerial) return;
+            setSpec(nextSpec, { visible: true });
+            publishRuntime({
+              state: 'ready',
+              stage: 'ready',
+              percent: 100,
+              message: 'Deterministic ready',
+              detail: 'Lexical retrieval and typed rules',
+              backend: 'deterministic-local',
+              modelId: 'simulatte-deterministic-language-runtime-v1',
+              providerReady: false,
+              noFallback: true,
+              canvasLoading: false,
+            });
+          } catch (error) {
+            if (serial !== buildSerial) return;
+            const diagnostic = error && error.message ? error.message : String(error || 'deterministic compiler failed');
+            console.error('[simulatte.intent] deterministic intent failed', error);
+            publishRuntime({
+              state: 'error',
+              stage: 'error',
+              percent: 0,
+              message: 'Deterministic compiler failed',
+              detail: diagnostic,
+              backend: 'deterministic-local',
+              canvasLoading: false,
+            });
+          }
+        }
+
         async function ensurePromptRuntimeReceipt(serial) {
           if (
             activePromptRuntimeReceipt &&
@@ -605,12 +655,12 @@
           if (event.detail.enabled || runtimeProgress.isBusy()) return;
           publishRuntime({
             state: 'ready',
-            stage: 'models-off',
+            stage: 'deterministic-ready',
             percent: 100,
-            message: 'Neural models off',
+            message: 'Deterministic ready',
             detail: activePromptRuntimeReceipt
-              ? 'Disabled for new runs; reload releases model memory'
-              : 'Enable Qwen models to run Blank',
+              ? 'Qwen disabled for new runs; reload releases model memory'
+              : 'Lexical retrieval and typed rules',
             canvasLoading: false,
           });
         });
@@ -618,10 +668,10 @@
           if (neuralGate.isEnabled() && !skipInitialBuildForAudit(root)) warmIntentRuntime(buildSerial);
           else publishRuntime({
             state: 'ready',
-            stage: neuralGate.isEnabled() ? 'blank' : 'models-off',
+            stage: neuralGate.isEnabled() ? 'blank' : 'deterministic-ready',
             percent: 100,
-            message: neuralGate.isEnabled() ? 'Ready' : 'Neural models off',
-            detail: neuralGate.isEnabled() ? '' : 'Enable Qwen models to run Blank',
+            message: neuralGate.isEnabled() ? 'Ready' : 'Deterministic ready',
+            detail: neuralGate.isEnabled() ? '' : 'Lexical retrieval and typed rules',
             canvasLoading: false,
           });
         }).catch((error) => reportIntentFailure(buildSerial, error.message));

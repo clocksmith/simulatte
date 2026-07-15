@@ -554,14 +554,15 @@ function browserJourneyExpression() {
       const rect = element.getBoundingClientRect();
       return { id, hidden: element.hidden, left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom, width: rect.width, height: rect.height };
     };
-    const initialRects = ['runtime-toggle', 'camera-follow', 'camera-bird', 'camera-top', 'mission-input', 'shuffle-button', 'start-button', 'map-panel-button', 'decisions-button'].map(rectFor);
+    const initialRects = ['runtime-toggle', 'camera-follow', 'camera-bird', 'camera-top', 'mission-input', 'shuffle-button', 'start-button', 'place-resolution-lane', 'map-panel-button', 'decisions-button'].map(rectFor);
     const initialLayout = {
       viewport: viewportRect,
       rects: initialRects,
       allWithinViewport: initialRects.every((rect) => rect.hidden || (rect.left >= -0.5 && rect.top >= -0.5 && rect.right <= viewportRect.width + 0.5 && rect.bottom <= viewportRect.height + 0.5)),
-      primaryControlsVisible: ['mission-input', 'shuffle-button', 'start-button'].every((id) => {
+      primaryControlsVisible: ['mission-input', 'shuffle-button', 'start-button', 'place-resolution-lane'].every((id) => {
         const rect = initialRects.find((row) => row.id === id);
-        return rect && !rect.hidden && rect.width >= 40 && rect.height >= 40;
+        const minimum = id === 'place-resolution-lane' ? 18 : 40;
+        return rect && !rect.hidden && rect.width >= minimum && rect.height >= minimum;
       }),
     };
     const rafIntervals = [];

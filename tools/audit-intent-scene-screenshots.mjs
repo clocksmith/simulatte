@@ -696,23 +696,6 @@ function promptDeadlineMs(options = {}) {
   return Number(options.timeoutMs || 0) * 4;
 }
 
-function forceLocalIntentScript() {
-  return `
-(() => {
-  let storedEmbedder = null;
-  Object.defineProperty(window, 'SimulatteIntentEmbedder', {
-    configurable: true,
-    get() { return storedEmbedder; },
-    set(value) {
-      if (value && typeof value === 'object') {
-        value.create = () => null;
-      }
-      storedEmbedder = value;
-    },
-  });
-})();`;
-}
-
 async function setupPage(cdp, url, width, height, timeoutMs, intentMode) {
   await cdp.send('Page.enable');
   await cdp.send('Runtime.enable');
@@ -727,9 +710,7 @@ async function setupPage(cdp, url, width, height, timeoutMs, intentMode) {
     deviceScaleFactor: 1,
     mobile: false,
   });
-  if (intentMode !== 'model') {
-    await cdp.send('Page.addScriptToEvaluateOnNewDocument', { source: forceLocalIntentScript() });
-  } else {
+  if (intentMode === 'model') {
     await cdp.send('Page.addScriptToEvaluateOnNewDocument', {
       source: `localStorage.setItem(${JSON.stringify(MODEL_CONSENT_STORAGE_KEY)}, ${JSON.stringify(JSON.stringify(MODEL_CONSENT_GRANT))});`,
     });
@@ -829,6 +810,7 @@ async function runPrompt(cdp, entry, index, outDir, options) {
     });
   };
   let expectedRenderInputSerial = 0;
+  let consentDeclinedBeforeRun = false;
   await evaluate(cdp, `(() => {
     const canvas = document.getElementById('physics-canvas');
     if (canvas && canvas.dataset) {
@@ -838,59 +820,44 @@ async function runPrompt(cdp, entry, index, outDir, options) {
     return Boolean(canvas);
   })()`);
   markStage('runtime-wait');
-  if (options.intentMode !== 'model') {
+  if (options.intentMode !== 'model' && index === 0) {
+    await waitForCondition('Blank Qwen consent control ready', () => evaluate(cdp, `(() => {
+      const toggle = document.getElementById('blank-neural-models');
+      const dialog = document.getElementById('neural-model-dialog');
+      return {
+        ok: !!toggle && !!dialog && !toggle.checked && toggle.getAttribute('aria-checked') === 'false',
+        checked: toggle && toggle.checked,
+        ariaChecked: toggle && toggle.getAttribute('aria-checked'),
+        dialogOpen: dialog && dialog.open,
+      };
+    })()`), timeoutMs);
     await evaluate(cdp, `(() => {
-      const input = document.getElementById('build-prompt');
-      const run = document.getElementById('build-lab');
-      const runtime = document.getElementById('intent-runtime');
-      const title = document.getElementById('intent-runtime-title');
-      const model = window.SimulattePhysicsModel;
-      const lab = window.SimulattePhysicsLab && window.SimulattePhysicsLab._browserLab;
-      if (!input || !run || !runtime || !model || !lab || typeof model.createSpecFromPrompt !== 'function' || typeof lab.setSpec !== 'function') {
-        return { ok: false, reason: 'missing local audit compiler surface' };
-      }
-      input.value = ${JSON.stringify(prompt)};
-      input.dispatchEvent(new Event('input', { bubbles: true }));
-      const spec = model.createSpecFromPrompt(${JSON.stringify(prompt)}, { allowPrototypeFallback: true });
-      lab.setSpec(spec, { visible: true });
-      runtime.dataset.state = 'ready';
-      runtime.dataset.stage = 'webgpu-ready';
-      runtime.dataset.pipelineStep = '8';
-      runtime.dataset.progress = 'determinate';
-      runtime.dataset.detail = 'Ready 100%';
-      runtime.style.setProperty('--runtime-progress', '100%');
-      if (title) title.textContent = 'Ready 100%';
-      run.disabled = false;
-      run.setAttribute('aria-disabled', 'false');
-      run.setAttribute('aria-busy', 'false');
-      return {
-        ok: true,
-        sceneKind: spec && spec.phaseArtifacts && spec.phaseArtifacts.phase6 &&
-          spec.phaseArtifacts.phase6.artifact &&
-          spec.phaseArtifacts.phase6.artifact.visualCompile &&
-          spec.phaseArtifacts.phase6.artifact.visualCompile.sceneRenderPacket &&
-          spec.phaseArtifacts.phase6.artifact.visualCompile.sceneRenderPacket.sceneKind || ''
-      };
+      document.getElementById('blank-neural-models').click();
+      return true;
     })()`);
-    await waitForCondition(`local render ready for ${label}`, () => evaluate(cdp, `(() => {
-      const node = document.getElementById('intent-runtime');
-      const run = document.getElementById('build-lab');
-      const canvas = document.getElementById('physics-canvas');
+    await waitForCondition('Blank Qwen consent dialog open', () => evaluate(cdp, `(() => {
+      const dialog = document.getElementById('neural-model-dialog');
+      return { ok: !!dialog && dialog.open, dialogOpen: dialog && dialog.open };
+    })()`), timeoutMs);
+    await evaluate(cdp, `(() => {
+      const cancel = document.querySelector('#neural-model-dialog [data-neural-consent="cancel"]');
+      if (!cancel) return false;
+      cancel.click();
+      return true;
+    })()`);
+    await waitForCondition('Blank deterministic mode retained after declining Qwen', () => evaluate(cdp, `(() => {
+      const toggle = document.getElementById('blank-neural-models');
+      const dialog = document.getElementById('neural-model-dialog');
       return {
-        ok: !!node && node.dataset.state === 'ready' && (!run || run.disabled === false) &&
-          !!canvas && Number(canvas.dataset.renderCount || 0) > 0,
-        state: node && node.dataset.state,
-        stageId: node && node.dataset.stage,
-        renderer: canvas && canvas.dataset && canvas.dataset.renderer,
-        rendererStatus: canvas && canvas.dataset && canvas.dataset.rendererStatus,
-        sceneKind: canvas && canvas.dataset && canvas.dataset.sceneKind,
-        sceneMix: canvas && canvas.dataset && canvas.dataset.sceneMix,
-        renderCount: canvas && canvas.dataset && canvas.dataset.renderCount,
-        disabled: run && run.disabled
+        ok: !!toggle && !!dialog && !dialog.open && !toggle.checked && toggle.getAttribute('aria-checked') === 'false',
+        checked: toggle && toggle.checked,
+        ariaChecked: toggle && toggle.getAttribute('aria-checked'),
+        dialogOpen: dialog && dialog.open,
       };
-    })()`), timeoutMs, { extendOnProgress: true, stallTimeoutMs: MODEL_RUNTIME_STALL_MS });
-  } else {
-    const promptBaseline = await evaluate(cdp, `(() => {
+    })()`), timeoutMs);
+    consentDeclinedBeforeRun = true;
+  }
+  const promptBaseline = await evaluate(cdp, `(() => {
       const input = document.getElementById('build-prompt');
       if (!input) return { ok: false, reason: 'missing prompt input' };
       const canvas = document.getElementById('physics-canvas');
@@ -1000,8 +967,7 @@ async function runPrompt(cdp, entry, index, outDir, options) {
         runtimeEvents: (window.__simulatteIntentRuntimeEvents || []).slice(-8),
       };
     })()`), timeoutMs, { extendOnProgress: true, stallTimeoutMs: MODEL_RUNTIME_STALL_MS });
-    expectedRenderInputSerial = Number(readyState && readyState.renderInputSerial || 0);
-  }
+  expectedRenderInputSerial = Number(readyState && readyState.renderInputSerial || 0);
   markStage('scene-proof');
   await delay(frameDelayMs);
   const settledProof = await waitForCondition(`pixel and scene proof settled for ${label}`, () => evaluate(cdp, `(() => {
@@ -1122,7 +1088,7 @@ async function runPrompt(cdp, entry, index, outDir, options) {
     } catch (_err) {}
     try {
       if (!browserSpec && window.SimulattePhysicsModel && typeof window.SimulattePhysicsModel.createSpecFromPrompt === 'function') {
-        modelSpec = window.SimulattePhysicsModel.createSpecFromPrompt(${JSON.stringify(prompt)}, { allowPrototypeFallback: true });
+        modelSpec = window.SimulattePhysicsModel.createSpecFromPrompt(${JSON.stringify(prompt)}, { deterministicRuntime: true });
       }
     } catch (_err) {}
     const specForIntent = browserSpec || modelSpec || parsed || null;
@@ -1265,6 +1231,10 @@ async function runPrompt(cdp, entry, index, outDir, options) {
       runtimeCacheHitCount: runtime ? Number(runtime.dataset.cacheHitCount || 0) : 0,
       runtimeCacheMissCount: runtime ? Number(runtime.dataset.cacheMissCount || 0) : 0,
       runtimeCachedSpanCount: runtime ? Number(runtime.dataset.cachedSpanCount || 0) : 0,
+      phase1RuntimeMode: phase1RuntimeContext.runtimeMode || '',
+      phase1DeterministicReady: phase1RuntimeContext.deterministicReady === true,
+      phase1NoFallback: phase1RuntimeContext.noFallback === true,
+      phase1RuntimeModelId: phase1RuntimeContext.modelId || '',
       modelExecutionReceipt: promptRuntimeReceipt.schema ? {
         schema: 'simulatte.modelExecutionAuditReceipt.v1',
         promptRuntimeSchema: promptRuntimeReceipt.schema || '',
@@ -1824,6 +1794,7 @@ async function runPrompt(cdp, entry, index, outDir, options) {
   finalDiagnostics.canvasDiversityPerceptualHash = canvasDiversityPerceptualHash;
   finalDiagnostics.canvasDiversityPerceptualHashLater = canvasDiversityPerceptualHashLater;
   finalDiagnostics.canvasDiversityHashKind = 'audit:visual-clean-canvas-dhash-64';
+  finalDiagnostics.consentDeclinedBeforeRun = consentDeclinedBeforeRun;
   finalDiagnostics.canvasDiversityFrameStable = Boolean(canvasDiversityPerceptualHash &&
     canvasDiversityPerceptualHash === canvasDiversityPerceptualHashLater);
   finalDiagnostics.canvasFrameHashChanged = Boolean(canvasScreenshotHash && canvasScreenshotLaterHash && canvasScreenshotHash !== canvasScreenshotLaterHash);

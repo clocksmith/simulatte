@@ -35,6 +35,7 @@
 
   const INTENT_CLASSIFICATION_SCHEMA = 'simulatte.intentClassification.v1';
   const INTENT_MODEL_ID = 'simulatte-local-tfidf-prototype-embedder.v1';
+  const DETERMINISTIC_CONTROL_ID = 'simulatte-local-tfidf-control.v1';
   const LAYER_PROFILES = Object.freeze([
     ['math', 'scalar vector matrix tensor field grid particle graph curve boundary unit kernel gradient divergence curl laplacian sampling interpolation invariant'],
     ['physics', 'gravity collision friction pressure diffusion radiation combustion magnetism optics erosion'],
@@ -108,7 +109,7 @@
         confidence: Number(clamp(top - next * 0.35, 0, 1).toFixed(4)),
       };
     }
-    if (options.allowPrototypeFallback !== true) {
+    if (options.allowPrototypeFallback !== true && options.deterministicRuntime !== true) {
       throw new Error('classifyIntentPrompt requires model-backed embeddingPriors; set allowPrototypeFallback for dev-only lexical classification');
     }
     const intentVec = provider.encode(prompt);
@@ -149,8 +150,8 @@
       : null;
     if (!runtime) {
       return {
-        id: INTENT_MODEL_ID,
-        family: 'local-embedding-prototype',
+        id: options.deterministicRuntime === true ? DETERMINISTIC_CONTROL_ID : INTENT_MODEL_ID,
+        family: options.deterministicRuntime === true ? 'local-deterministic-control' : 'local-embedding-prototype',
         encoder: 'tf-idf word ngram bigram cosine',
         corpusSize: PHYSICAL_PRIMITIVES.length,
         dimensions: provider.dimensions,

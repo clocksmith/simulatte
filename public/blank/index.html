@@ -2133,6 +2133,15 @@
       right: 10px;
     }
 
+    .prompt-dock .neural-mode-toggle {
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      z-index: 2;
+      min-height: 38px;
+      transform: translateX(-50%);
+    }
+
     .prompt-action-icon {
       display: block;
       font-family: "Times New Roman", Georgia, serif;
@@ -2639,11 +2648,16 @@
             <span class="prompt-action-icon" aria-hidden="true">↵</span>
             <span class="prompt-action-label">Run</span>
           </button>
+          <label class="neural-mode-toggle" for="blank-neural-models" title="Use local Qwen retrieval and reranking">
+            <span>Qwen</span>
+            <input id="blank-neural-models" type="checkbox" role="switch" aria-describedby="blank-neural-model-note">
+          </label>
+          <span id="blank-neural-model-note" class="sr-only">Deterministic language pipeline is active.</span>
         </div>
 
         <div id="intent-runtime" class="intent-runtime" data-state="idle" aria-live="polite">
           <div class="intent-runtime-head">
-            <strong id="intent-runtime-title">Neural models off</strong>
+            <strong id="intent-runtime-title">Deterministic ready</strong>
             <span id="intent-runtime-percent" class="intent-runtime-percent">0%</span>
           </div>
           <div class="intent-runtime-track" aria-hidden="true">
@@ -2658,11 +2672,6 @@
         <details id="prompt-more-menu" class="prompt-more-menu">
           <summary>More</summary>
           <div class="prompt-more-content">
-            <label class="sim-switch-row" for="blank-neural-models">
-              <span>Qwen models</span>
-              <input id="blank-neural-models" type="checkbox" role="switch" aria-describedby="blank-neural-model-note">
-            </label>
-            <div id="blank-neural-model-note" class="prompt-more-section-title">Enable to retrieve and rerank with local models</div>
             <div class="prompt-more-section-title">Minimize corner</div>
             <div class="prompt-corner-controls" aria-label="Minimized panel corner">
               <button type="button" data-dock-corner="top-left" aria-label="Minimize to top left">↖</button>

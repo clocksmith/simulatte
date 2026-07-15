@@ -226,6 +226,24 @@ test('free text resolves varied physical primitive families', () => {
   assert.ok(ids.has('spring-constraint'));
 });
 
+test('deterministic browser mode is a first-class receipted compiler lane', () => {
+  const spec = lab.createSpecFromPrompt('5 cats in a galaxy', { deterministicRuntime: true });
+  const phase1 = spec.phaseArtifacts.phase1;
+  const phase3 = spec.phaseArtifacts.phase3;
+  const receipt = (id) => phase1.receipts.find((row) => row.id === id);
+
+  assert.equal(spec.intent.resolution.ranker, 'simulatte-local-tfidf-control.v1');
+  assert.equal(phase1.artifact.runtimeContext.runtimeMode, 'deterministic-local');
+  assert.equal(phase1.artifact.runtimeContext.deterministicReady, true);
+  assert.equal(receipt('runtime-ready').ready, true);
+  assert.equal(receipt('runtime-ready').deterministicReady, true);
+  assert.equal(receipt('model-ready').required, false);
+  assert.equal(receipt('model-ready').ready, false);
+  assert.equal(receipt('model-ready').skipReason, 'deterministic-runtime-selected');
+  assert.equal(phase3.artifact.retrievalRerankResult.slotRetrieval.mode, 'deterministic-lexical-construction-index');
+  assert.equal(phase3.artifact.retrievalRerankResult.slotRetrieval.config.schema, 'simulatte.deterministicLexicalConstructionConfig.v1');
+});
+
 test('world builder resolves broader component families for composed worlds', () => {
   const spec = createPrototypeSpec(
     'terrain erosion river with logistics nodes, market demand, queue backlog, noisy sensors, feedback control, infection front, phase change, data recorder, and audit trace'

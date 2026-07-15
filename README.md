@@ -95,8 +95,12 @@ generate text, choose a route, operate the vehicle, or replace safety gates.
 Both browser products keep neural loading off until the user enables the
 lock-pinned bundle in a confirmation dialog that names the embedding and
 reranking models and their download sizes. Consent is remembered only for the
-exact lock identity and can be revoked from the same switch. Simulatte loads
-the embedder on deterministic refusal; Blank loads and executes both models.
+exact lock identity and can be revoked from the same switch. Turning Qwen off
+or declining that dialog never blocks either product: Simulatte continues with
+its lexical place resolver, while Blank runs its explicitly receipted local
+TF-IDF, lexical retrieval, and typed-rule compiler. Simulatte loads the
+embedder on deterministic refusal; Blank loads and executes both models only
+when the switch is enabled.
 After correcting the Doppler 0.4.8 embedding math, the shipped deterministic
 extended-typo lane scores 27/37 versus 21/37 for the legacy lexical control,
 with zero wrong-place or must-refuse violations. The Qwen candidate also scores

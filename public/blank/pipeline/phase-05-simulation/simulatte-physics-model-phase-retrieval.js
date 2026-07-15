@@ -3,11 +3,12 @@
   if (!scope || scope.missingDependency) return;
   with (scope) {
     function phase1RuntimeReceipts(runtimeContext = {}, options = {}) {
+        const deterministic = runtimeContext.runtimeMode === 'deterministic-local' && runtimeContext.deterministicReady === true;
         const receipt = runtimeContext.promptRuntimeReceipt || {};
-        const cacheReady = receipt.cachePrefetch === true || Boolean(runtimeContext.cacheMode) || options.allowPrototypeFallback === true;
+        const cacheReady = deterministic || receipt.cachePrefetch === true || Boolean(runtimeContext.cacheMode) || options.allowPrototypeFallback === true;
         const probeReady = receipt.embeddingProbe === true || options.allowPrototypeFallback === true;
         const modelReady = runtimeContext.providerReady === true || options.allowPrototypeFallback === true;
-        const rerankerRequired = receipt.rerankerRequired === true;
+        const rerankerRequired = !deterministic && receipt.rerankerRequired === true;
         const rerankerReady = !rerankerRequired || receipt.rerankerReady === true || options.allowPrototypeFallback === true;
         return [
           {
@@ -18,11 +19,14 @@
             cacheMode: runtimeContext.cacheMode,
             providerReady: runtimeContext.providerReady,
             runtimeMode: runtimeContext.runtimeMode,
+            deterministicReady: deterministic,
           },
           {
             id: 'model-ready',
             schema: 'simulatte.phaseReceipt.v1',
             ready: modelReady,
+            required: !deterministic,
+            skipReason: deterministic ? 'deterministic-runtime-selected' : '',
             modelId: runtimeContext.modelId,
             backend: runtimeContext.backend,
             providerReady: runtimeContext.providerReady,
@@ -32,6 +36,8 @@
             id: 'model-probe',
             schema: 'simulatte.phaseReceipt.v1',
             ready: probeReady,
+            required: !deterministic,
+            skipReason: deterministic ? 'deterministic-runtime-selected' : '',
             embeddingProbe: receipt.embeddingProbe === true,
             probeCount: Number(receipt.probeCount || 0),
             embeddingDim: Number(receipt.embeddingDim || receipt.probeEmbeddingDim || 0),
@@ -49,8 +55,9 @@
           {
             id: 'runtime-ready',
             schema: 'simulatte.phaseReceipt.v1',
-            ready: modelReady && (probeReady || options.allowPrototypeFallback === true) && rerankerReady,
+            ready: deterministic || modelReady && (probeReady || options.allowPrototypeFallback === true) && rerankerReady,
             providerReady: runtimeContext.providerReady,
+            deterministicReady: deterministic,
             rerankerRequired,
             rerankerReady,
             rerankerStatus: receipt.rerankerStatus || '',
@@ -280,10 +287,13 @@
     		    const rankedUniverseRows = retrievalEvidence.rankedUniverseRows || retrievalEvidence.universeMatches || [];
     		    const semanticRag = retrievalEvidence.semanticRag || null;
 		    const slotRetrieval = retrievalEvidence.slotRetrieval || (
-		      runtimeContext.runtimeMode === 'prototype-fallback' &&
-		      semantic && typeof semantic.createPrototypeSlotRetrieval === 'function'
-		        ? semantic.createPrototypeSlotRetrieval(queryPlan, query)
-		        : null
+		      runtimeContext.runtimeMode === 'deterministic-local' &&
+		      semantic && typeof semantic.createDeterministicSlotRetrieval === 'function'
+		        ? semantic.createDeterministicSlotRetrieval(queryPlan, query)
+		        : runtimeContext.runtimeMode === 'prototype-fallback' &&
+		          semantic && typeof semantic.createPrototypeSlotRetrieval === 'function'
+		          ? semantic.createPrototypeSlotRetrieval(queryPlan, query)
+		          : null
 		    );
     		    const slotEvidence = phase3SlotEvidence(queryPlan, typedEvidenceBuckets, rankedCards, rankedUniverseRows, slotRetrieval);
     	    const acceptedCandidatesBySlot = phase3AcceptedCandidatesBySlot(slotEvidence);
