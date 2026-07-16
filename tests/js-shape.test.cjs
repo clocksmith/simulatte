@@ -95,7 +95,7 @@ test('runtime source is owned by app, pipeline, data, and worker directories', (
     'simulatte-intent-worker.js',
     'simulatte-intent-classifier.js',
     'simulatte-intent-brief-schema.js',
-    'simulatte-structured-intent-model.js',
+    'simulatte-structured-intent-rules.js',
     'simulatte-causal-physics-graph.js',
     'simulatte-assumption-ledger.js',
     'simulatte-causal-visual-affordances.js',
@@ -268,7 +268,7 @@ test('intent forensics modules load before the physics model in the browser lab'
 
   for (const name of [
     'simulatte-intent-brief-schema.js',
-    'simulatte-structured-intent-model.js',
+    'simulatte-structured-intent-rules.js',
     'simulatte-causal-physics-graph.js',
     'simulatte-assumption-ledger.js',
     'simulatte-causal-visual-affordances.js',

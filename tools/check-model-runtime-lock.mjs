@@ -233,12 +233,17 @@ function main() {
   if (inventory.embedModel) fail('catalog inventory must not duplicate the embedding pin');
 
   const structurerManifest = readJson(STRUCTURER_MANIFEST_PATH);
-  assertLockReference(
-    structurerManifest.modelRuntimeLock,
-    lock,
-    'intent structurer modelRuntimeLock',
-    '../simulatte-embedder/model-runtime-lock.json'
+  assertEqual(
+    structurerManifest.activeImplementation?.id,
+    'simulatte.deterministic-catalog-grounded-intent-rules.v1',
+    'intent structurer active implementation'
   );
+  assertEqual(structurerManifest.activeImplementation?.kind, 'deterministic-rules', 'intent structurer kind');
+  assertEqual(structurerManifest.activeImplementation?.modelExecution?.executed, false, 'intent structurer model execution');
+  assertEqual(structurerManifest.activeImplementation?.modelExecution?.modelId, null, 'intent structurer model id');
+  if (structurerManifest.modelRuntimeLock || structurerManifest.model) {
+    fail('deterministic intent structurer must not claim a model runtime lock or model identity');
+  }
   if (structurerManifest.retrievalDependency?.id || structurerManifest.rerank?.id) {
     fail('intent structurer must not duplicate retrieval or reranker model ids');
   }

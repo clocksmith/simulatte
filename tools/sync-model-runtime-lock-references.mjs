@@ -13,7 +13,6 @@ const REFERENCES = Object.freeze([
   ['public/data/simulatte-embedder/intent-evidence-contract-v1.json', './model-runtime-lock.json'],
   ['public/data/simulatte-universe/manifest.json', '../simulatte-embedder/model-runtime-lock.json'],
   ['public/data/simulatte-catalog-inventory.json', './simulatte-embedder/model-runtime-lock.json'],
-  ['public/data/simulatte-intent-structurer/manifest.json', '../simulatte-embedder/model-runtime-lock.json'],
 ]);
 
 function main() {

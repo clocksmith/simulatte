@@ -81,7 +81,7 @@
   );
   const groundedIntent = group(
     'pipeline/phase-04-grounded-intent/simulatte-intent-brief-schema.js',
-    'pipeline/phase-04-grounded-intent/simulatte-structured-intent-model.js',
+    'pipeline/phase-04-grounded-intent/simulatte-structured-intent-rules.js',
     'pipeline/phase-04-grounded-intent/simulatte-causal-physics-graph.js',
     'pipeline/phase-04-grounded-intent/simulatte-assumption-ledger.js',
     'pipeline/phase-04-grounded-intent/simulatte-causal-visual-affordances.js',

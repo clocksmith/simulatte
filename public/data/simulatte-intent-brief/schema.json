@@ -1,6 +1,6 @@
 {
-  "schema": "simulatte.intentBriefSchemaDocument.v1",
-  "id": "simulatte-intent-brief-v1",
+  "schema": "simulatte.intentBriefSchemaDocument.v2",
+  "id": "simulatte-intent-brief-v2",
   "briefSchema": "simulatte.intentBrief.v1",
   "required": [
     "prompt",
@@ -40,7 +40,7 @@
   "policy": {
     "retrievalBeforeFinalBrief": true,
     "allPhysicalClaimsNeedPromptOrCatalogEvidenceOrExplicitAssumption": true,
-    "structuredModelCannotInventExecutablePrimitive": true,
+    "structuredDraftCannotInventExecutablePrimitive": true,
     "compilerMustRejectUnsupportedWithoutDegradation": true
   }
 }

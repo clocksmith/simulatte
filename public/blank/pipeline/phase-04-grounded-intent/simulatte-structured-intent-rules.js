@@ -1,4 +1,4 @@
-(function attachSimulatteStructuredIntentModel(root, factory) {
+(function attachSimulatteStructuredIntentRules(root, factory) {
   const schema = typeof module === 'object' && module.exports
     ? require('./simulatte-intent-brief-schema.js')
     : root.SimulatteIntentBriefSchema;
@@ -6,15 +6,21 @@
   if (typeof module === 'object' && module.exports) {
     module.exports = api;
   }
-  root.SimulatteStructuredIntentModel = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createStructuredIntentModelApi(schema = {}) {
+  root.SimulatteStructuredIntentRules = api;
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createStructuredIntentRulesApi(schema = {}) {
   const { slugify = defaultSlugify, uniqueStrings = unique } = schema;
 
-  const STRUCTURED_INTENT_MODEL_ID = 'simulatte.qwen-3-5-0-8b-intent-structurer.v1';
-  const STRUCTURED_INTENT_MODEL_ROLE = Object.freeze({
-    baseModel: 'qwen-3-5-0-8b-q4k-ehaf16',
-    role: 'catalog-grounded-json-intent-extractor',
+  const STRUCTURED_INTENT_IMPLEMENTATION = Object.freeze({
+    id: 'simulatte.deterministic-catalog-grounded-intent-rules.v1',
+    kind: 'deterministic-rules',
+    runtime: 'javascript',
+    role: 'catalog-grounded-structured-intent-draft',
     guardrail: 'may select, connect, or question retrieved catalog IDs; may not invent executable physics',
+  });
+  const STRUCTURED_INTENT_EXECUTION = Object.freeze({
+    schema: 'simulatte.structuredIntentExecution.v1',
+    implementation: STRUCTURED_INTENT_IMPLEMENTATION,
+    model: Object.freeze({ executed: false, modelId: null, backend: null }),
   });
 
   const FORCE_TERMS = Object.freeze({
@@ -115,8 +121,8 @@
     const timeBehavior = timeRows(promptLower, evidenceRows, activationCloud);
     const visualIntent = visualIntentFor(promptLower, evidenceRows, activationCloud);
     return {
-      schema: 'simulatte.structuredIntentDraft.v1',
-      model: { id: STRUCTURED_INTENT_MODEL_ID, ...STRUCTURED_INTENT_MODEL_ROLE },
+      schema: 'simulatte.structuredIntentDraft.v2',
+      execution: STRUCTURED_INTENT_EXECUTION,
       entities: uniqueById(entities).map(intentItem),
       materials: uniqueById(materials).map(intentItem),
       phenomena: uniqueById(phenomena).map(intentItem),
@@ -132,7 +138,7 @@
         evidenceRows: evidenceRows.length,
         languageEvidence: languageEvidence.schema || '',
         activationCloud: activationCloud.length,
-        guardrail: STRUCTURED_INTENT_MODEL_ROLE.guardrail,
+        guardrail: STRUCTURED_INTENT_IMPLEMENTATION.guardrail,
       },
     };
   }
@@ -436,8 +442,8 @@
   }
 
   return {
-    STRUCTURED_INTENT_MODEL_ID,
-    STRUCTURED_INTENT_MODEL_ROLE,
+    STRUCTURED_INTENT_EXECUTION,
+    STRUCTURED_INTENT_IMPLEMENTATION,
     draftStructuredIntent,
   };
 });

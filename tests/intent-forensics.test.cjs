@@ -4,6 +4,36 @@ const test = require('node:test');
 const lab = require('../public/blank/app/simulation/simulation-lab.js');
 const forensics = require('../public/blank/pipeline/phase-04-grounded-intent/simulatte-intent-forensics.js');
 const causalPhysics = require('../public/blank/pipeline/phase-04-grounded-intent/simulatte-causal-physics-graph.js');
+const structuredIntentRules = require('../public/blank/pipeline/phase-04-grounded-intent/simulatte-structured-intent-rules.js');
+
+test('deterministic structured intent receipts its implementation without claiming model execution', () => {
+  const draft = structuredIntentRules.draftStructuredIntent({
+    prompt: 'lava heats water',
+    evidenceRows: [
+      { id: 'material.lava', label: 'lava', indexName: 'materials', score: 0.9 },
+      { id: 'material.water', label: 'water', indexName: 'materials', score: 0.88 },
+    ],
+  });
+
+  assert.equal(draft.schema, 'simulatte.structuredIntentDraft.v2');
+  assert.equal(draft.execution.schema, 'simulatte.structuredIntentExecution.v1');
+  assert.equal(draft.execution.implementation.id, 'simulatte.deterministic-catalog-grounded-intent-rules.v1');
+  assert.equal(draft.execution.implementation.kind, 'deterministic-rules');
+  assert.deepEqual(draft.execution.model, { executed: false, modelId: null, backend: null });
+  assert.equal(Object.hasOwn(draft, 'model'), false);
+  assert.doesNotMatch(JSON.stringify(draft), /qwen/i);
+
+  const brief = forensics.buildIntentForensics({
+    prompt: 'lava heats water',
+    evidenceRows: [
+      { id: 'material.lava', label: 'lava', indexName: 'materials', score: 0.9 },
+      { id: 'material.water', label: 'water', indexName: 'materials', score: 0.88 },
+    ],
+  });
+  assert.equal(brief.provenance.structuredIntentExecution.model.executed, false);
+  assert.equal(Object.hasOwn(brief.provenance, 'structuredModel'), false);
+  assert.doesNotMatch(JSON.stringify(brief.provenance.structuredIntentExecution), /qwen/i);
+});
 
 test('causal endpoints prefer direct prompt concepts over retrieved analog support', () => {
   const prompt = 'edge data center server racks recirculating heat between cooling aisles under controller limits';

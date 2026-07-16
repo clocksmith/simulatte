@@ -1,48 +1,34 @@
 {
-  "schema": "simulatte.structuredIntentModelManifest.v1",
-  "id": "simulatte-qwen-3-5-0-8b-intent-structurer-v1",
-  "modelRuntimeLock": {
-    "id": "simulatte-doppler-qwen-runtime-lock",
-    "number": 7,
-    "artifact": "../simulatte-embedder/model-runtime-lock.json",
-    "artifactHash": {
-      "alg": "sha256",
-      "hex": "828c8a98976683952554746f8ea2005358aae2a97ffe15df8caf4b909e5cfd7b"
+  "schema": "simulatte.structuredIntentImplementationManifest.v2",
+  "id": "simulatte-deterministic-structured-intent-rules-v1",
+  "activeImplementation": {
+    "id": "simulatte.deterministic-catalog-grounded-intent-rules.v1",
+    "kind": "deterministic-rules",
+    "runtime": "javascript",
+    "source": "../../blank/pipeline/phase-04-grounded-intent/simulatte-structured-intent-rules.js",
+    "inputContract": "prompt plus Phase 2 language evidence and Phase 3 retrieved catalog evidence",
+    "outputContract": "simulatte.structuredIntentDraft.v2",
+    "modelExecution": {
+      "executed": false,
+      "modelId": null,
+      "backend": null
     }
-  },
-  "model": {
-    "id": "qwen-3-5-0-8b-q4k-ehaf16",
-    "family": "qwen3.5",
-    "role": "catalog-grounded structured intent extraction",
-    "defaultModelBaseUrl": "https://huggingface.co/Clocksmith/rdrr/resolve/95a01447eecbf13fc5964986f507b08ded0cd40f/models/qwen-3-5-0-8b-q4k-ehaf16",
-    "manifestHash": {
-      "alg": "sha256",
-      "hex": "e7a1254b28059fa63177486fc68321c68431c84b6ec449bf6dd30f86a296c4a6"
-    },
-    "source": {
-      "kind": "huggingface-rdrr",
-      "repoId": "Clocksmith/rdrr",
-      "revision": "95a01447eecbf13fc5964986f507b08ded0cd40f",
-      "path": "models/qwen-3-5-0-8b-q4k-ehaf16",
-      "sourceCheckpointId": "Qwen/Qwen3.5-0.8B",
-      "sizeBytes": 1146048704,
-      "weightPackId": "qwen-3-5-0-8b-q4k-ehaf16-wp-catalog-v1",
-      "manifestVariantId": "qwen-3-5-0-8b-q4k-ehaf16-mv-exec-v1"
-    },
-    "inputContract": "prompt plus retrieved catalog evidence",
-    "outputContract": "simulatte.intentBrief.v1 fields: entities, materials, phenomena, forces, fields, causal candidates, assumptions, unsupported",
-    "guardrail": "The model may select, connect, or question retrieved catalog IDs. It may not invent executable physics primitives."
   },
   "retrievalDependency": {
     "role": "semantic evidence retrieval for prompt, catalog entries, primitives, materials, visual cards, examples, and causal patterns"
   },
   "rerank": {
-    "policy": "use Qwen reranker scores over Phase 3 candidate document text, then fuse with embedding score, lexical hit, prompt citation, primitive support, and causal operator availability"
+    "policy": "consume receipted Phase 3 ranking evidence without claiming that the Phase 4 structurer executed the reranker"
   },
   "compilerBoundary": {
-    "mlCanDraft": true,
+    "deterministicRulesDraft": true,
     "codeValidates": true,
     "unsupportedMustBeExplicit": true,
     "compilerOwnsExecutableGraph": true
+  },
+  "modelPromotion": {
+    "currentModelId": null,
+    "status": "no-model-executed",
+    "requireTaskSpecificHeldOutFrontier": true
   }
 }

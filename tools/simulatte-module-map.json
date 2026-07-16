@@ -48,7 +48,7 @@
     },
     {
       "oldPath": "public/js/simulatte-structured-intent-model.js",
-      "newPath": "public/blank/pipeline/phase-04-grounded-intent/simulatte-structured-intent-model.js"
+      "newPath": "public/blank/pipeline/phase-04-grounded-intent/simulatte-structured-intent-rules.js"
     },
     {
       "oldPath": "public/js/simulatte-causal-physics-graph.js",

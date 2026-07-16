@@ -3,8 +3,8 @@
     ? require('./simulatte-intent-brief-schema.js')
     : root.SimulatteIntentBriefSchema;
   const structured = typeof module === 'object' && module.exports
-    ? require('./simulatte-structured-intent-model.js')
-    : root.SimulatteStructuredIntentModel;
+    ? require('./simulatte-structured-intent-rules.js')
+    : root.SimulatteStructuredIntentRules;
   const causal = typeof module === 'object' && module.exports
     ? require('./simulatte-causal-physics-graph.js')
     : root.SimulatteCausalPhysicsGraph;
@@ -166,7 +166,7 @@
       provenance: {
         compiler: 'simulatte.intent-forensics.v1',
         retrieval: input.embeddingModel && input.embeddingModel.id || 'catalog-and-embedding-evidence',
-        structuredModel: structuredIntentDraft.model || null,
+        structuredIntentExecution: structuredIntentDraft.execution || null,
         structuredDraftSchema: structuredIntentDraft.schema || '',
         groundingGate: initialGrounding.schema || '',
         causalGraph: causalGraph.schema || '',
