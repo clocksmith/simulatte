@@ -512,9 +512,10 @@
             mode: '2d',
             integrator: 'semi-implicit-euler',
             renderer: 'webgpu-field-with-canvas-fallback',
-            ranker: classification ? classification.model.id : 'simulatte-physical-primitives-v1',
-            classifier: classification ? classification.model.id : 'simulatte-physical-primitives-v1',
-            embedding: classification && classification.model.runtime ? classification.model.runtime : null,
+            ranker: classification ? classification.id : 'simulatte-physical-primitives-v1',
+            classifier: classification ? classification.id : 'simulatte-physical-primitives-v1',
+            embedding: classification && classification.runtime ? classification.runtime : null,
+            classification: classification ? classificationSummary(classification) : null,
             rerank: options.intentRerank || options.rerank || null,
             doppler: dopplerIntent ? dopplerReceipt(dopplerIntent) : null,
             retrievalPhase: options.retrievalPhase || '',
@@ -651,7 +652,12 @@
           contract.classification = classificationSummary
             ? classificationSummary(classification)
             : {
-              model: classification.model.id,
+              id: classification.id,
+              kind: classification.kind,
+              model: classification.model,
+              modelId: classification.modelId,
+              rankingPolicy: classification.rankingPolicy,
+              candidateCounts: classification.candidateCounts,
               confidence: classification.confidence,
               layerFocus: classification.layerFocus,
             };

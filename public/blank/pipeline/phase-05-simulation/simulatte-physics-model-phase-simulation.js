@@ -473,7 +473,10 @@
           debugViews: debugViewsForGraph(graph),
           quality: graph.quality || { score: 1, residualTerms: [] },
           receipt: {
-            classifier: spec.intent && spec.intent.classification ? spec.intent.classification.model.id : '',
+            classifier: spec.intent && spec.intent.classification ? spec.intent.classification.id : '',
+            classification: spec.intent && spec.intent.classification
+              ? classificationSummary(spec.intent.classification)
+              : null,
             rerank: spec.intent && spec.intent.rerank ? spec.intent.rerank : null,
             rag: spec.intent && spec.intent.semanticRag ? spec.intent.semanticRag.model.id : '',
             doppler: dopplerReceipt(spec.intent && spec.intent.dopplerIntent),

@@ -154,6 +154,12 @@ test('blank prompt resolves to empty construction plane intent', () => {
 
   assert.equal(spec.templateId, 'blank-world');
   assert.deepEqual(intent.domains, ['blank']);
+  assert.equal(intent.classification.kind, 'deterministic-rules');
+  assert.deepEqual(intent.classification.model, { executed: false });
+  assert.equal(intent.classification.modelId, null);
+  assert.equal(intent.classification.rankingPolicy.id, 'simulatte.blank-intent-short-circuit.v1');
+  assert.equal(intent.classification.candidateCounts.tfidfScored, 0);
+  assert.equal(intent.classification.candidateCounts.selected, 0);
   assert.equal(spec.modules.length, 0);
   assert.equal(spec.objects.length, 0);
 });
@@ -208,8 +214,14 @@ test('free text resolves varied physical primitive families', () => {
   );
   const ids = new Set(spec.objects.map((object) => object.id));
 
-  assert.equal(spec.intent.resolution.ranker, 'simulatte-local-tfidf-prototype-embedder.v1');
-  assert.equal(spec.intent.classification.schema, 'simulatte.intentClassification.v1');
+  assert.equal(spec.intent.resolution.ranker, 'simulatte.deterministic-tfidf-intent-ranker.v1');
+  assert.equal(spec.intent.classification.schema, 'simulatte.intentClassification.v2');
+  assert.equal(spec.intent.classification.kind, 'deterministic-rules');
+  assert.deepEqual(spec.intent.classification.model, { executed: false });
+  assert.equal(spec.intent.classification.modelId, null);
+  assert.equal(spec.intent.classification.rankingPolicy.id, 'simulatte.deterministic-tfidf-ranking.v1');
+  assert.equal(spec.intent.classification.candidateCounts.tfidfScored, spec.intent.classification.candidateCounts.retrievableEligible);
+  assert.equal(spec.intent.classification.candidateCounts.selected, spec.intent.classification.priors.length);
   assert.ok(spec.intent.classification.priors.length >= 8);
   assert.ok(spec.intent.conceptGraph.length >= 8);
   assert.ok(spec.modules.includes('optics'));
@@ -232,7 +244,10 @@ test('deterministic browser mode is a first-class receipted compiler lane', () =
   const phase3 = spec.phaseArtifacts.phase3;
   const receipt = (id) => phase1.receipts.find((row) => row.id === id);
 
-  assert.equal(spec.intent.resolution.ranker, 'simulatte-local-tfidf-control.v1');
+  assert.equal(spec.intent.resolution.ranker, 'simulatte.deterministic-tfidf-intent-ranker.v1');
+  assert.equal(spec.intent.classification.kind, 'deterministic-rules');
+  assert.deepEqual(spec.intent.classification.model, { executed: false });
+  assert.equal(spec.intent.classification.modelId, null);
   assert.equal(phase1.artifact.runtimeContext.runtimeMode, 'deterministic-local');
   assert.equal(phase1.artifact.runtimeContext.deterministicReady, true);
   assert.equal(receipt('runtime-ready').ready, true);
@@ -372,9 +387,12 @@ test('downloaded embedding priors steer retrieval, regimes, and solver plans', (
   const regimes = new Set(spec.renderProgram.objects.map((object) => object.visualRegime));
   const solverFamilies = new Set(spec.renderProgram.solverPlan.families);
 
-  assert.equal(spec.intent.classification.model.id, 'simulatte-qwen-3-embedding-0-6b-q4k-ehf16-af32-intent-ranker.v1');
-  assert.equal(spec.intent.classification.model.runtime.backend, 'webgpu');
-  assert.equal(spec.intent.classification.model.runtime.indexId, 'simulatte-primitive-qwen-3-embedding-0-6b-index-v1');
+  assert.equal(spec.intent.classification.id, 'simulatte-qwen-3-embedding-0-6b-q4k-ehf16-af32-intent-ranker.v1');
+  assert.equal(spec.intent.classification.kind, 'model-backed-ranking');
+  assert.deepEqual(spec.intent.classification.model, { executed: true });
+  assert.equal(spec.intent.classification.modelId, 'qwen-3-embedding-0-6b-q4k-ehf16-af32');
+  assert.equal(spec.intent.classification.runtime.backend, 'webgpu');
+  assert.equal(spec.intent.classification.runtime.indexId, 'simulatte-primitive-qwen-3-embedding-0-6b-index-v1');
   assert.equal(spec.intent.rerank.schema, 'simulatte.intentRerank.v1');
   assert.equal(spec.physicalSpec.receipt.rerank.required, true);
   assert.ok(ids.has('mycelium'));

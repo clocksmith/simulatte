@@ -48,7 +48,7 @@
 
     const {
         INTENT_CLASSIFICATION_SCHEMA,
-        INTENT_MODEL_ID,
+        DETERMINISTIC_TFIDF_RANKER_ID,
         classificationSummary,
         classifyIntentPrompt,
         rankPrimitivesForClassification,
@@ -205,7 +205,7 @@
       buildCompositionGraph,
       compileCompositionToRenderProgram,
       INTENT_CLASSIFICATION_SCHEMA,
-      INTENT_MODEL_ID,
+      DETERMINISTIC_TFIDF_RANKER_ID,
       classificationSummary,
       classifyIntentPrompt,
       rankPrimitivesForClassification,
