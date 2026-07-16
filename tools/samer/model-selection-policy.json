@@ -1,0 +1,136 @@
+{
+  "schema": "simulatte.modelSelectionPolicy.v2",
+  "id": "simulatte-smallest-sufficient-model-v2",
+  "classificationJobs": {
+    "path": "tools/samer/classification-jobs-v1.json",
+    "id": "simulatte-compact-classification-jobs-v1",
+    "requiredHeadIds": [
+      "scene-domain",
+      "span-entity-role",
+      "relation",
+      "material",
+      "pose",
+      "obligation-support"
+    ]
+  },
+  "requiredTasks": [
+    {
+      "id": "classification",
+      "primaryMetric": "macroF1",
+      "requiredQualityMetrics": [
+        "macroF1",
+        "coverage",
+        "selectiveRisk",
+        "expectedCalibrationError"
+      ],
+      "populationContract": "simulatte.sealedClassificationPopulation.v1"
+    },
+    {
+      "id": "embedding-retrieval",
+      "primaryMetric": "recallAtK",
+      "evaluationK": 2,
+      "requiredQualityMetrics": [
+        "recallAtK",
+        "hardNegativeAccuracy",
+        "mustRefuseAccuracy"
+      ],
+      "qualityFloor": {
+        "minimumRecallAtK": 0.92,
+        "minimumHardNegativeAccuracy": 0.9,
+        "minimumMustRefuseAccuracy": 0.98
+      },
+      "populationContract": "simulatte.sealedEmbeddingRetrievalPopulation.v1"
+    },
+    {
+      "id": "reranking",
+      "primaryMetric": "ndcgAtK",
+      "evaluationK": 4,
+      "requiredQualityMetrics": [
+        "ndcgAtK",
+        "winnerAccuracy"
+      ],
+      "qualityFloor": {
+        "minimumNdcgAtK": 0.92,
+        "minimumWinnerAccuracy": 0.9
+      },
+      "populationContract": "simulatte.sealedRerankingPopulation.v1"
+    }
+  ],
+  "requiredPopulation": {
+    "kind": "held-out",
+    "visibility": "sealed",
+    "promotionEligible": true,
+    "contaminationStatus": "unexposed",
+    "openingPolicy": "one-time-evaluation-with-append-only-opening-receipt"
+  },
+  "performanceContract": {
+    "sameDevice": true,
+    "sameRuntime": true,
+    "sameDtype": true,
+    "sameWorkload": true,
+    "sameCacheProtocol": true,
+    "requiredMetrics": [
+      "downloadBytes",
+      "peakMemoryBytes",
+      "coldLoadMs",
+      "warmLatencyMs"
+    ],
+    "warmLatency": {
+      "requiredStatistic": "p95",
+      "minimumMeasuredSamples": 20,
+      "warmupSamplesExcluded": 3
+    },
+    "cacheProtocol": {
+      "cold": "candidate-artifact-cache-cleared-before-load",
+      "warm": "artifact-resident-and-identical-input-order",
+      "network": "download-bytes-counted-once-per-cold-run"
+    }
+  },
+  "comparisonContract": {
+    "minimumCandidateCount": 2,
+    "deterministicControlRequired": true,
+    "candidateCannotReadPopulationLabels": true,
+    "evaluatorOwnsMetrics": true,
+    "publicDiagnosticsCannotPromote": true
+  },
+  "selection": {
+    "qualityGateFirst": true,
+    "removeDominatedCandidates": true,
+    "deploymentParityRequiredForPromotion": true,
+    "resourcePriority": [
+      "downloadBytes",
+      "peakMemoryBytes",
+      "coldLoadMs",
+      "warmLatencyMs"
+    ],
+    "warmLatencyStatistic": "p95",
+    "finalTieBreak": "higher-primary-quality-then-candidate-id"
+  },
+  "conditionalReranking": {
+    "promotionStatus": "blocked-until-sealed-frontier",
+    "requiredSignals": [
+      "lexicalMargin",
+      "embeddingMargin",
+      "entropy",
+      "candidateDisagreement"
+    ],
+    "requiredReceiptFields": [
+      "ruleId",
+      "signalValues",
+      "candidateCount",
+      "modelExecuted",
+      "modelNotExecutedReason"
+    ]
+  },
+  "structuredIntentBoundary": {
+    "includedInClassificationFrontier": false,
+    "requiredEvaluationId": "simulatte-structured-intent-extraction-v1",
+    "requiredMetrics": [
+      "entityPreservation",
+      "relationPreservation",
+      "unsupportedConceptRecall",
+      "schemaValidity",
+      "phase8ObligationCoverage"
+    ]
+  }
+}

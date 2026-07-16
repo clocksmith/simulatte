@@ -1,0 +1,20 @@
+{
+  "schema": "simulatte.sealedModelSelectionPopulationCommitment.v1",
+  "id": "simulatte-reranking-sealed-v1",
+  "task": "reranking",
+  "populationSchema": "simulatte.sealedRerankingPopulation.v1",
+  "sealedAt": "2026-07-16T00:00:00.000Z",
+  "populationSha256": "9083202238c2a5712f0df35916ff6eb375857ea448b650f4c8239f69045600c3",
+  "generatorSha256": "45f51789b7c445b1520c4d3f39f634a86bbb06740e045d5f77f33d32f5819721",
+  "rowCount": 100,
+  "visibility": "sealed",
+  "contaminationStatus": "opened-for-one-time-evaluation",
+  "labelAuthority": "private-graded-relevance-entailment-v1",
+  "custody": "The population bytes and generator remain outside version control. Move them off the evaluation host before candidate development. Opening requires a hash-bound append-only receipt.",
+  "openings": [
+    {
+      "path": "tools/samer/evidence/model-selection/reranking-v1/opening-receipt.json",
+      "sha256": "b92ba893447d3f8ddb65de81e68a06d70530fd045166d3c48d8602e0e6e10e71"
+    }
+  ]
+}

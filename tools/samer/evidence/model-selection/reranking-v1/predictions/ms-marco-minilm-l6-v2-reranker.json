@@ -1,0 +1,3428 @@
+{
+  "schema": "simulatte.modelCandidatePredictions.v1",
+  "candidateId": "ms-marco-minilm-l6-v2-reranker",
+  "task": "reranking",
+  "kind": "model-backed",
+  "model": {
+    "executed": true
+  },
+  "modelId": "cross-encoder/ms-marco-MiniLM-L6-v2",
+  "revision": "c5ee24cb16019beea0893ab7796b1df96625c6b8",
+  "runtime": {
+    "id": "python-transformers-candidate-screen-v1",
+    "python": "3.13.2",
+    "deviceId": "cpu",
+    "dtype": "f32"
+  },
+  "rows": [
+    {
+      "id": "rank-7691c87b197529c5",
+      "ranking": [
+        "sunset",
+        "sunset-related",
+        "sunset-hard",
+        "sunset-generic",
+        "sunset-wrong"
+      ],
+      "scores": [
+        {
+          "id": "sunset",
+          "score": 0.5599791407585144
+        },
+        {
+          "id": "sunset-related",
+          "score": -10.34559440612793
+        },
+        {
+          "id": "sunset-hard",
+          "score": -10.49699592590332
+        },
+        {
+          "id": "sunset-generic",
+          "score": -11.103048324584961
+        },
+        {
+          "id": "sunset-wrong",
+          "score": -11.248619079589844
+        }
+      ],
+      "durationMs": 7.430291
+    },
+    {
+      "id": "rank-218b8a7974f6ed99",
+      "ranking": [
+        "building-related",
+        "building",
+        "building-hard",
+        "building-generic",
+        "building-wrong"
+      ],
+      "scores": [
+        {
+          "id": "building-related",
+          "score": -11.21616268157959
+        },
+        {
+          "id": "building",
+          "score": -11.234588623046875
+        },
+        {
+          "id": "building-hard",
+          "score": -11.287840843200684
+        },
+        {
+          "id": "building-generic",
+          "score": -11.378284454345703
+        },
+        {
+          "id": "building-wrong",
+          "score": -11.37847900390625
+        }
+      ],
+      "durationMs": 5.118042
+    },
+    {
+      "id": "rank-104ed88a783ea673",
+      "ranking": [
+        "tree",
+        "tree-hard",
+        "tree-generic",
+        "tree-related",
+        "tree-wrong"
+      ],
+      "scores": [
+        {
+          "id": "tree",
+          "score": -0.9615535736083984
+        },
+        {
+          "id": "tree-hard",
+          "score": -10.783824920654297
+        },
+        {
+          "id": "tree-generic",
+          "score": -11.142801284790039
+        },
+        {
+          "id": "tree-related",
+          "score": -11.1599702835083
+        },
+        {
+          "id": "tree-wrong",
+          "score": -11.196044921875
+        }
+      ],
+      "durationMs": 5.584584
+    },
+    {
+      "id": "rank-13d1aada3bc0fe53",
+      "ranking": [
+        "cat",
+        "cat-hard",
+        "cat-related",
+        "cat-wrong",
+        "cat-generic"
+      ],
+      "scores": [
+        {
+          "id": "cat",
+          "score": -0.43212324380874634
+        },
+        {
+          "id": "cat-hard",
+          "score": -9.795492172241211
+        },
+        {
+          "id": "cat-related",
+          "score": -11.123705863952637
+        },
+        {
+          "id": "cat-wrong",
+          "score": -11.262199401855469
+        },
+        {
+          "id": "cat-generic",
+          "score": -11.312559127807617
+        }
+      ],
+      "durationMs": 5.639625
+    },
+    {
+      "id": "rank-f580f3c9367dc633",
+      "ranking": [
+        "battery-hard",
+        "battery-related",
+        "battery-wrong",
+        "battery-generic",
+        "battery"
+      ],
+      "scores": [
+        {
+          "id": "battery-hard",
+          "score": -11.260272979736328
+        },
+        {
+          "id": "battery-related",
+          "score": -11.321218490600586
+        },
+        {
+          "id": "battery-wrong",
+          "score": -11.372920989990234
+        },
+        {
+          "id": "battery-generic",
+          "score": -11.378376007080078
+        },
+        {
+          "id": "battery",
+          "score": -11.436776161193848
+        }
+      ],
+      "durationMs": 4.712292
+    },
+    {
+      "id": "rank-1506080c4be06d09",
+      "ranking": [
+        "dog",
+        "dog-hard",
+        "dog-related",
+        "dog-wrong",
+        "dog-generic"
+      ],
+      "scores": [
+        {
+          "id": "dog",
+          "score": -10.867325782775879
+        },
+        {
+          "id": "dog-hard",
+          "score": -11.158811569213867
+        },
+        {
+          "id": "dog-related",
+          "score": -11.1743745803833
+        },
+        {
+          "id": "dog-wrong",
+          "score": -11.362642288208008
+        },
+        {
+          "id": "dog-generic",
+          "score": -11.375381469726562
+        }
+      ],
+      "durationMs": 4.354083
+    },
+    {
+      "id": "rank-6c80c56d3d1e6a81",
+      "ranking": [
+        "bridge",
+        "bridge-hard",
+        "bridge-related",
+        "bridge-generic",
+        "bridge-wrong"
+      ],
+      "scores": [
+        {
+          "id": "bridge",
+          "score": 1.6722534894943237
+        },
+        {
+          "id": "bridge-hard",
+          "score": -10.81101131439209
+        },
+        {
+          "id": "bridge-related",
+          "score": -10.898721694946289
+        },
+        {
+          "id": "bridge-generic",
+          "score": -11.265594482421875
+        },
+        {
+          "id": "bridge-wrong",
+          "score": -11.268939971923828
+        }
+      ],
+      "durationMs": 5.744791
+    },
+    {
+      "id": "rank-ad1419ec1bbf0e1e",
+      "ranking": [
+        "cat",
+        "cat-hard",
+        "cat-related",
+        "cat-wrong",
+        "cat-generic"
+      ],
+      "scores": [
+        {
+          "id": "cat",
+          "score": -0.5527755618095398
+        },
+        {
+          "id": "cat-hard",
+          "score": -9.762186050415039
+        },
+        {
+          "id": "cat-related",
+          "score": -10.978833198547363
+        },
+        {
+          "id": "cat-wrong",
+          "score": -11.302021980285645
+        },
+        {
+          "id": "cat-generic",
+          "score": -11.349952697753906
+        }
+      ],
+      "durationMs": 6.450917
+    },
+    {
+      "id": "rank-d45c54915bcb772b",
+      "ranking": [
+        "chair",
+        "chair-hard",
+        "chair-related",
+        "chair-wrong",
+        "chair-generic"
+      ],
+      "scores": [
+        {
+          "id": "chair",
+          "score": -1.750113844871521
+        },
+        {
+          "id": "chair-hard",
+          "score": -10.027824401855469
+        },
+        {
+          "id": "chair-related",
+          "score": -10.512613296508789
+        },
+        {
+          "id": "chair-wrong",
+          "score": -11.049189567565918
+        },
+        {
+          "id": "chair-generic",
+          "score": -11.062824249267578
+        }
+      ],
+      "durationMs": 5.53475
+    },
+    {
+      "id": "rank-fd4448e83468e419",
+      "ranking": [
+        "airplane",
+        "airplane-hard",
+        "airplane-wrong",
+        "airplane-related",
+        "airplane-generic"
+      ],
+      "scores": [
+        {
+          "id": "airplane",
+          "score": 2.4987242221832275
+        },
+        {
+          "id": "airplane-hard",
+          "score": -10.847057342529297
+        },
+        {
+          "id": "airplane-wrong",
+          "score": -11.072416305541992
+        },
+        {
+          "id": "airplane-related",
+          "score": -11.125194549560547
+        },
+        {
+          "id": "airplane-generic",
+          "score": -11.183156967163086
+        }
+      ],
+      "durationMs": 4.333208
+    },
+    {
+      "id": "rank-e41cc6d51f9c6447",
+      "ranking": [
+        "conveyor-generic",
+        "conveyor-related",
+        "conveyor",
+        "conveyor-wrong",
+        "conveyor-hard"
+      ],
+      "scores": [
+        {
+          "id": "conveyor-generic",
+          "score": -11.302387237548828
+        },
+        {
+          "id": "conveyor-related",
+          "score": -11.31842041015625
+        },
+        {
+          "id": "conveyor",
+          "score": -11.329055786132812
+        },
+        {
+          "id": "conveyor-wrong",
+          "score": -11.344948768615723
+        },
+        {
+          "id": "conveyor-hard",
+          "score": -11.396718978881836
+        }
+      ],
+      "durationMs": 4.633083
+    },
+    {
+      "id": "rank-e866cd020cae6656",
+      "ranking": [
+        "dog",
+        "dog-related",
+        "dog-hard",
+        "dog-wrong",
+        "dog-generic"
+      ],
+      "scores": [
+        {
+          "id": "dog",
+          "score": -0.32764679193496704
+        },
+        {
+          "id": "dog-related",
+          "score": -9.818549156188965
+        },
+        {
+          "id": "dog-hard",
+          "score": -10.095682144165039
+        },
+        {
+          "id": "dog-wrong",
+          "score": -11.070591926574707
+        },
+        {
+          "id": "dog-generic",
+          "score": -11.175751686096191
+        }
+      ],
+      "durationMs": 5.610708
+    },
+    {
+      "id": "rank-483482d69089a5f3",
+      "ranking": [
+        "bird",
+        "bird-hard",
+        "bird-related",
+        "bird-wrong",
+        "bird-generic"
+      ],
+      "scores": [
+        {
+          "id": "bird",
+          "score": 0.290754109621048
+        },
+        {
+          "id": "bird-hard",
+          "score": -8.797988891601562
+        },
+        {
+          "id": "bird-related",
+          "score": -10.452422142028809
+        },
+        {
+          "id": "bird-wrong",
+          "score": -11.153207778930664
+        },
+        {
+          "id": "bird-generic",
+          "score": -11.241231918334961
+        }
+      ],
+      "durationMs": 4.323792
+    },
+    {
+      "id": "rank-b4ba1f9a1bb82cd4",
+      "ranking": [
+        "bridge",
+        "bridge-related",
+        "bridge-hard",
+        "bridge-generic",
+        "bridge-wrong"
+      ],
+      "scores": [
+        {
+          "id": "bridge",
+          "score": 3.7872114181518555
+        },
+        {
+          "id": "bridge-related",
+          "score": -10.393056869506836
+        },
+        {
+          "id": "bridge-hard",
+          "score": -10.594165802001953
+        },
+        {
+          "id": "bridge-generic",
+          "score": -11.238454818725586
+        },
+        {
+          "id": "bridge-wrong",
+          "score": -11.254165649414062
+        }
+      ],
+      "durationMs": 5.805542
+    },
+    {
+      "id": "rank-77689307cd69892d",
+      "ranking": [
+        "bird",
+        "bird-hard",
+        "bird-related",
+        "bird-wrong",
+        "bird-generic"
+      ],
+      "scores": [
+        {
+          "id": "bird",
+          "score": 0.290754109621048
+        },
+        {
+          "id": "bird-hard",
+          "score": -8.797988891601562
+        },
+        {
+          "id": "bird-related",
+          "score": -10.452422142028809
+        },
+        {
+          "id": "bird-wrong",
+          "score": -11.153207778930664
+        },
+        {
+          "id": "bird-generic",
+          "score": -11.241231918334961
+        }
+      ],
+      "durationMs": 4.440958
+    },
+    {
+      "id": "rank-d9135a36e666c04b",
+      "ranking": [
+        "bird",
+        "bird-hard",
+        "bird-related",
+        "bird-wrong",
+        "bird-generic"
+      ],
+      "scores": [
+        {
+          "id": "bird",
+          "score": -0.34604817628860474
+        },
+        {
+          "id": "bird-hard",
+          "score": -8.79308032989502
+        },
+        {
+          "id": "bird-related",
+          "score": -9.350961685180664
+        },
+        {
+          "id": "bird-wrong",
+          "score": -11.17031478881836
+        },
+        {
+          "id": "bird-generic",
+          "score": -11.180510520935059
+        }
+      ],
+      "durationMs": 5.417667
+    },
+    {
+      "id": "rank-ca7225e7954989fa",
+      "ranking": [
+        "castle-related",
+        "castle-wrong",
+        "castle-hard",
+        "castle",
+        "castle-generic"
+      ],
+      "scores": [
+        {
+          "id": "castle-related",
+          "score": -11.238187789916992
+        },
+        {
+          "id": "castle-wrong",
+          "score": -11.358736038208008
+        },
+        {
+          "id": "castle-hard",
+          "score": -11.361431121826172
+        },
+        {
+          "id": "castle",
+          "score": -11.371997833251953
+        },
+        {
+          "id": "castle-generic",
+          "score": -11.387750625610352
+        }
+      ],
+      "durationMs": 4.218083
+    },
+    {
+      "id": "rank-b49b08d679f17ff6",
+      "ranking": [
+        "television-hard",
+        "television-generic",
+        "television-related",
+        "television-wrong",
+        "television"
+      ],
+      "scores": [
+        {
+          "id": "television-hard",
+          "score": -11.030346870422363
+        },
+        {
+          "id": "television-generic",
+          "score": -11.236713409423828
+        },
+        {
+          "id": "television-related",
+          "score": -11.247247695922852
+        },
+        {
+          "id": "television-wrong",
+          "score": -11.297722816467285
+        },
+        {
+          "id": "television",
+          "score": -11.317193984985352
+        }
+      ],
+      "durationMs": 4.480375
+    },
+    {
+      "id": "rank-1510486d26da4fe2",
+      "ranking": [
+        "galaxy",
+        "galaxy-hard",
+        "galaxy-related",
+        "galaxy-wrong",
+        "galaxy-generic"
+      ],
+      "scores": [
+        {
+          "id": "galaxy",
+          "score": 1.0149407386779785
+        },
+        {
+          "id": "galaxy-hard",
+          "score": -10.925612449645996
+        },
+        {
+          "id": "galaxy-related",
+          "score": -11.152291297912598
+        },
+        {
+          "id": "galaxy-wrong",
+          "score": -11.241344451904297
+        },
+        {
+          "id": "galaxy-generic",
+          "score": -11.264375686645508
+        }
+      ],
+      "durationMs": 6.034792
+    },
+    {
+      "id": "rank-7c5aa320641c684e",
+      "ranking": [
+        "chair-hard",
+        "chair-related",
+        "chair",
+        "chair-generic",
+        "chair-wrong"
+      ],
+      "scores": [
+        {
+          "id": "chair-hard",
+          "score": -11.095264434814453
+        },
+        {
+          "id": "chair-related",
+          "score": -11.241005897521973
+        },
+        {
+          "id": "chair",
+          "score": -11.292829513549805
+        },
+        {
+          "id": "chair-generic",
+          "score": -11.364522933959961
+        },
+        {
+          "id": "chair-wrong",
+          "score": -11.367864608764648
+        }
+      ],
+      "durationMs": 4.330833
+    },
+    {
+      "id": "rank-d4d665f2e89381f0",
+      "ranking": [
+        "watershed-hard",
+        "watershed-related",
+        "watershed-wrong",
+        "watershed-generic",
+        "watershed"
+      ],
+      "scores": [
+        {
+          "id": "watershed-hard",
+          "score": -11.291336059570312
+        },
+        {
+          "id": "watershed-related",
+          "score": -11.34410285949707
+        },
+        {
+          "id": "watershed-wrong",
+          "score": -11.361737251281738
+        },
+        {
+          "id": "watershed-generic",
+          "score": -11.378355026245117
+        },
+        {
+          "id": "watershed",
+          "score": -11.408893585205078
+        }
+      ],
+      "durationMs": 4.190875
+    },
+    {
+      "id": "rank-42d03b326eab7c70",
+      "ranking": [
+        "television-hard",
+        "television-generic",
+        "television-related",
+        "television-wrong",
+        "television"
+      ],
+      "scores": [
+        {
+          "id": "television-hard",
+          "score": -11.030346870422363
+        },
+        {
+          "id": "television-generic",
+          "score": -11.236713409423828
+        },
+        {
+          "id": "television-related",
+          "score": -11.247247695922852
+        },
+        {
+          "id": "television-wrong",
+          "score": -11.297722816467285
+        },
+        {
+          "id": "television",
+          "score": -11.317193984985352
+        }
+      ],
+      "durationMs": 4.215416
+    },
+    {
+      "id": "rank-dca47cdc5c4f71c9",
+      "ranking": [
+        "airplane",
+        "airplane-hard",
+        "airplane-related",
+        "airplane-wrong",
+        "airplane-generic"
+      ],
+      "scores": [
+        {
+          "id": "airplane",
+          "score": 0.9986433386802673
+        },
+        {
+          "id": "airplane-hard",
+          "score": -10.256903648376465
+        },
+        {
+          "id": "airplane-related",
+          "score": -11.041279792785645
+        },
+        {
+          "id": "airplane-wrong",
+          "score": -11.091818809509277
+        },
+        {
+          "id": "airplane-generic",
+          "score": -11.092732429504395
+        }
+      ],
+      "durationMs": 5.429709
+    },
+    {
+      "id": "rank-3de8e32312724a0a",
+      "ranking": [
+        "building-related",
+        "building",
+        "building-hard",
+        "building-generic",
+        "building-wrong"
+      ],
+      "scores": [
+        {
+          "id": "building-related",
+          "score": -11.21616268157959
+        },
+        {
+          "id": "building",
+          "score": -11.234588623046875
+        },
+        {
+          "id": "building-hard",
+          "score": -11.287840843200684
+        },
+        {
+          "id": "building-generic",
+          "score": -11.378284454345703
+        },
+        {
+          "id": "building-wrong",
+          "score": -11.37847900390625
+        }
+      ],
+      "durationMs": 4.840166
+    },
+    {
+      "id": "rank-b21c46393644173e",
+      "ranking": [
+        "cat",
+        "cat-hard",
+        "cat-related",
+        "cat-wrong",
+        "cat-generic"
+      ],
+      "scores": [
+        {
+          "id": "cat",
+          "score": 0.8427894115447998
+        },
+        {
+          "id": "cat-hard",
+          "score": -9.984670639038086
+        },
+        {
+          "id": "cat-related",
+          "score": -11.202630043029785
+        },
+        {
+          "id": "cat-wrong",
+          "score": -11.280844688415527
+        },
+        {
+          "id": "cat-generic",
+          "score": -11.328368186950684
+        }
+      ],
+      "durationMs": 5.752833
+    },
+    {
+      "id": "rank-df71e01cca17dd4f",
+      "ranking": [
+        "castle-related",
+        "castle-generic",
+        "castle-wrong",
+        "castle-hard",
+        "castle"
+      ],
+      "scores": [
+        {
+          "id": "castle-related",
+          "score": -11.05889892578125
+        },
+        {
+          "id": "castle-generic",
+          "score": -11.084224700927734
+        },
+        {
+          "id": "castle-wrong",
+          "score": -11.199577331542969
+        },
+        {
+          "id": "castle-hard",
+          "score": -11.223295211791992
+        },
+        {
+          "id": "castle",
+          "score": -11.369060516357422
+        }
+      ],
+      "durationMs": 4.494875
+    },
+    {
+      "id": "rank-2f03196787341275",
+      "ranking": [
+        "airplane",
+        "airplane-related",
+        "airplane-hard",
+        "airplane-wrong",
+        "airplane-generic"
+      ],
+      "scores": [
+        {
+          "id": "airplane",
+          "score": -10.623702049255371
+        },
+        {
+          "id": "airplane-related",
+          "score": -11.129149436950684
+        },
+        {
+          "id": "airplane-hard",
+          "score": -11.269716262817383
+        },
+        {
+          "id": "airplane-wrong",
+          "score": -11.349183082580566
+        },
+        {
+          "id": "airplane-generic",
+          "score": -11.351211547851562
+        }
+      ],
+      "durationMs": 4.252083
+    },
+    {
+      "id": "rank-66b36f29ea0493bd",
+      "ranking": [
+        "conveyor-generic",
+        "conveyor-related",
+        "conveyor",
+        "conveyor-wrong",
+        "conveyor-hard"
+      ],
+      "scores": [
+        {
+          "id": "conveyor-generic",
+          "score": -11.302387237548828
+        },
+        {
+          "id": "conveyor-related",
+          "score": -11.31842041015625
+        },
+        {
+          "id": "conveyor",
+          "score": -11.329055786132812
+        },
+        {
+          "id": "conveyor-wrong",
+          "score": -11.344949722290039
+        },
+        {
+          "id": "conveyor-hard",
+          "score": -11.396718978881836
+        }
+      ],
+      "durationMs": 4.891708
+    },
+    {
+      "id": "rank-0e2c5241e6836489",
+      "ranking": [
+        "galaxy",
+        "galaxy-hard",
+        "galaxy-related",
+        "galaxy-wrong",
+        "galaxy-generic"
+      ],
+      "scores": [
+        {
+          "id": "galaxy",
+          "score": 1.0149407386779785
+        },
+        {
+          "id": "galaxy-hard",
+          "score": -10.925612449645996
+        },
+        {
+          "id": "galaxy-related",
+          "score": -11.152291297912598
+        },
+        {
+          "id": "galaxy-wrong",
+          "score": -11.241344451904297
+        },
+        {
+          "id": "galaxy-generic",
+          "score": -11.264375686645508
+        }
+      ],
+      "durationMs": 5.904458
+    },
+    {
+      "id": "rank-5525e007f52f5984",
+      "ranking": [
+        "sunset-related",
+        "sunset-hard",
+        "sunset-generic",
+        "sunset-wrong",
+        "sunset"
+      ],
+      "scores": [
+        {
+          "id": "sunset-related",
+          "score": -7.910543918609619
+        },
+        {
+          "id": "sunset-hard",
+          "score": -10.965656280517578
+        },
+        {
+          "id": "sunset-generic",
+          "score": -11.131604194641113
+        },
+        {
+          "id": "sunset-wrong",
+          "score": -11.201859474182129
+        },
+        {
+          "id": "sunset",
+          "score": -11.26233196258545
+        }
+      ],
+      "durationMs": 4.212583
+    },
+    {
+      "id": "rank-e06a798bd25c5301",
+      "ranking": [
+        "galaxy",
+        "galaxy-hard",
+        "galaxy-wrong",
+        "galaxy-generic",
+        "galaxy-related"
+      ],
+      "scores": [
+        {
+          "id": "galaxy",
+          "score": -11.270633697509766
+        },
+        {
+          "id": "galaxy-hard",
+          "score": -11.317587852478027
+        },
+        {
+          "id": "galaxy-wrong",
+          "score": -11.350815773010254
+        },
+        {
+          "id": "galaxy-generic",
+          "score": -11.375663757324219
+        },
+        {
+          "id": "galaxy-related",
+          "score": -11.396184921264648
+        }
+      ],
+      "durationMs": 4.958209
+    },
+    {
+      "id": "rank-85b46f2d11c6d59a",
+      "ranking": [
+        "battery",
+        "battery-related",
+        "battery-generic",
+        "battery-wrong",
+        "battery-hard"
+      ],
+      "scores": [
+        {
+          "id": "battery",
+          "score": 0.14155447483062744
+        },
+        {
+          "id": "battery-related",
+          "score": -11.199153900146484
+        },
+        {
+          "id": "battery-generic",
+          "score": -11.3307523727417
+        },
+        {
+          "id": "battery-wrong",
+          "score": -11.344982147216797
+        },
+        {
+          "id": "battery-hard",
+          "score": -11.361299514770508
+        }
+      ],
+      "durationMs": 5.632292
+    },
+    {
+      "id": "rank-3dc79af88cf8d51d",
+      "ranking": [
+        "chair",
+        "chair-hard",
+        "chair-related",
+        "chair-wrong",
+        "chair-generic"
+      ],
+      "scores": [
+        {
+          "id": "chair",
+          "score": 0.5702483654022217
+        },
+        {
+          "id": "chair-hard",
+          "score": -9.940582275390625
+        },
+        {
+          "id": "chair-related",
+          "score": -10.038979530334473
+        },
+        {
+          "id": "chair-wrong",
+          "score": -11.015311241149902
+        },
+        {
+          "id": "chair-generic",
+          "score": -11.088892936706543
+        }
+      ],
+      "durationMs": 5.008083
+    },
+    {
+      "id": "rank-26d1358b74d6b124",
+      "ranking": [
+        "castle-related",
+        "castle-generic",
+        "castle-wrong",
+        "castle-hard",
+        "castle"
+      ],
+      "scores": [
+        {
+          "id": "castle-related",
+          "score": -11.05889892578125
+        },
+        {
+          "id": "castle-generic",
+          "score": -11.084224700927734
+        },
+        {
+          "id": "castle-wrong",
+          "score": -11.199576377868652
+        },
+        {
+          "id": "castle-hard",
+          "score": -11.223295211791992
+        },
+        {
+          "id": "castle",
+          "score": -11.369060516357422
+        }
+      ],
+      "durationMs": 4.32725
+    },
+    {
+      "id": "rank-1ad8e28ae91c3bd2",
+      "ranking": [
+        "tree-hard",
+        "tree-generic",
+        "tree-wrong",
+        "tree-related",
+        "tree"
+      ],
+      "scores": [
+        {
+          "id": "tree-hard",
+          "score": -10.878116607666016
+        },
+        {
+          "id": "tree-generic",
+          "score": -11.116289138793945
+        },
+        {
+          "id": "tree-wrong",
+          "score": -11.237524032592773
+        },
+        {
+          "id": "tree-related",
+          "score": -11.253724098205566
+        },
+        {
+          "id": "tree",
+          "score": -11.276937484741211
+        }
+      ],
+      "durationMs": 4.431167
+    },
+    {
+      "id": "rank-d14231a48b90918a",
+      "ranking": [
+        "bird-related",
+        "bird-hard",
+        "bird-generic",
+        "bird-wrong",
+        "bird"
+      ],
+      "scores": [
+        {
+          "id": "bird-related",
+          "score": -11.015449523925781
+        },
+        {
+          "id": "bird-hard",
+          "score": -11.060489654541016
+        },
+        {
+          "id": "bird-generic",
+          "score": -11.200493812561035
+        },
+        {
+          "id": "bird-wrong",
+          "score": -11.245525360107422
+        },
+        {
+          "id": "bird",
+          "score": -11.311637878417969
+        }
+      ],
+      "durationMs": 3.703083
+    },
+    {
+      "id": "rank-7358782a5af771f3",
+      "ranking": [
+        "protein-folding",
+        "protein-folding-related",
+        "protein-folding-hard",
+        "protein-folding-generic",
+        "protein-folding-wrong"
+      ],
+      "scores": [
+        {
+          "id": "protein-folding",
+          "score": 1.7969865798950195
+        },
+        {
+          "id": "protein-folding-related",
+          "score": -10.844173431396484
+        },
+        {
+          "id": "protein-folding-hard",
+          "score": -11.095970153808594
+        },
+        {
+          "id": "protein-folding-generic",
+          "score": -11.172876358032227
+        },
+        {
+          "id": "protein-folding-wrong",
+          "score": -11.189547538757324
+        }
+      ],
+      "durationMs": 5.718084
+    },
+    {
+      "id": "rank-7488f25ea23ecc8e",
+      "ranking": [
+        "galaxy",
+        "galaxy-hard",
+        "galaxy-wrong",
+        "galaxy-generic",
+        "galaxy-related"
+      ],
+      "scores": [
+        {
+          "id": "galaxy",
+          "score": -11.270633697509766
+        },
+        {
+          "id": "galaxy-hard",
+          "score": -11.317587852478027
+        },
+        {
+          "id": "galaxy-wrong",
+          "score": -11.350815773010254
+        },
+        {
+          "id": "galaxy-generic",
+          "score": -11.375664710998535
+        },
+        {
+          "id": "galaxy-related",
+          "score": -11.396184921264648
+        }
+      ],
+      "durationMs": 5.032208
+    },
+    {
+      "id": "rank-a11e8e79fcce0ceb",
+      "ranking": [
+        "protein-folding",
+        "protein-folding-related",
+        "protein-folding-hard",
+        "protein-folding-wrong",
+        "protein-folding-generic"
+      ],
+      "scores": [
+        {
+          "id": "protein-folding",
+          "score": 3.7045812606811523
+        },
+        {
+          "id": "protein-folding-related",
+          "score": -10.84290599822998
+        },
+        {
+          "id": "protein-folding-hard",
+          "score": -11.028336524963379
+        },
+        {
+          "id": "protein-folding-wrong",
+          "score": -11.097746849060059
+        },
+        {
+          "id": "protein-folding-generic",
+          "score": -11.166709899902344
+        }
+      ],
+      "durationMs": 5.180417
+    },
+    {
+      "id": "rank-dffe034d07c961d1",
+      "ranking": [
+        "sunset-related",
+        "sunset-hard",
+        "sunset-wrong",
+        "sunset-generic",
+        "sunset"
+      ],
+      "scores": [
+        {
+          "id": "sunset-related",
+          "score": -8.461692810058594
+        },
+        {
+          "id": "sunset-hard",
+          "score": -11.255868911743164
+        },
+        {
+          "id": "sunset-wrong",
+          "score": -11.35562515258789
+        },
+        {
+          "id": "sunset-generic",
+          "score": -11.365097045898438
+        },
+        {
+          "id": "sunset",
+          "score": -11.386810302734375
+        }
+      ],
+      "durationMs": 5.131583
+    },
+    {
+      "id": "rank-1c7afedef20fcd5d",
+      "ranking": [
+        "shade-route",
+        "shade-route-hard",
+        "shade-route-generic",
+        "shade-route-wrong",
+        "shade-route-related"
+      ],
+      "scores": [
+        {
+          "id": "shade-route",
+          "score": 1.9885038137435913
+        },
+        {
+          "id": "shade-route-hard",
+          "score": -10.768272399902344
+        },
+        {
+          "id": "shade-route-generic",
+          "score": -11.23187255859375
+        },
+        {
+          "id": "shade-route-wrong",
+          "score": -11.2733154296875
+        },
+        {
+          "id": "shade-route-related",
+          "score": -11.276084899902344
+        }
+      ],
+      "durationMs": 6.620959
+    },
+    {
+      "id": "rank-78a1d3bda4564d72",
+      "ranking": [
+        "shade-route-hard",
+        "shade-route-related",
+        "shade-route-generic",
+        "shade-route-wrong",
+        "shade-route"
+      ],
+      "scores": [
+        {
+          "id": "shade-route-hard",
+          "score": -10.604066848754883
+        },
+        {
+          "id": "shade-route-related",
+          "score": -11.270861625671387
+        },
+        {
+          "id": "shade-route-generic",
+          "score": -11.304491996765137
+        },
+        {
+          "id": "shade-route-wrong",
+          "score": -11.312036514282227
+        },
+        {
+          "id": "shade-route",
+          "score": -11.39879035949707
+        }
+      ],
+      "durationMs": 5.491208
+    },
+    {
+      "id": "rank-4135e42ce14751b2",
+      "ranking": [
+        "building",
+        "building-related",
+        "building-generic",
+        "building-wrong",
+        "building-hard"
+      ],
+      "scores": [
+        {
+          "id": "building",
+          "score": 1.118304967880249
+        },
+        {
+          "id": "building-related",
+          "score": -10.778705596923828
+        },
+        {
+          "id": "building-generic",
+          "score": -11.122249603271484
+        },
+        {
+          "id": "building-wrong",
+          "score": -11.155326843261719
+        },
+        {
+          "id": "building-hard",
+          "score": -11.207927703857422
+        }
+      ],
+      "durationMs": 6.287958
+    },
+    {
+      "id": "rank-0c520cfcb66fcc7b",
+      "ranking": [
+        "person-hard",
+        "person-related",
+        "person-wrong",
+        "person-generic",
+        "person"
+      ],
+      "scores": [
+        {
+          "id": "person-hard",
+          "score": -11.251899719238281
+        },
+        {
+          "id": "person-related",
+          "score": -11.340278625488281
+        },
+        {
+          "id": "person-wrong",
+          "score": -11.364324569702148
+        },
+        {
+          "id": "person-generic",
+          "score": -11.390897750854492
+        },
+        {
+          "id": "person",
+          "score": -11.411465644836426
+        }
+      ],
+      "durationMs": 4.7325
+    },
+    {
+      "id": "rank-e0f9fb132625f7a2",
+      "ranking": [
+        "television-hard",
+        "television-related",
+        "television",
+        "television-generic",
+        "television-wrong"
+      ],
+      "scores": [
+        {
+          "id": "television-hard",
+          "score": -11.154634475708008
+        },
+        {
+          "id": "television-related",
+          "score": -11.212127685546875
+        },
+        {
+          "id": "television",
+          "score": -11.265652656555176
+        },
+        {
+          "id": "television-generic",
+          "score": -11.353286743164062
+        },
+        {
+          "id": "television-wrong",
+          "score": -11.365755081176758
+        }
+      ],
+      "durationMs": 4.973625
+    },
+    {
+      "id": "rank-1e0db5e198660960",
+      "ranking": [
+        "bicycle",
+        "bicycle-hard",
+        "bicycle-related",
+        "bicycle-generic",
+        "bicycle-wrong"
+      ],
+      "scores": [
+        {
+          "id": "bicycle",
+          "score": 0.18613852560520172
+        },
+        {
+          "id": "bicycle-hard",
+          "score": -9.758098602294922
+        },
+        {
+          "id": "bicycle-related",
+          "score": -10.16456413269043
+        },
+        {
+          "id": "bicycle-generic",
+          "score": -10.932340621948242
+        },
+        {
+          "id": "bicycle-wrong",
+          "score": -11.063907623291016
+        }
+      ],
+      "durationMs": 7.961584
+    },
+    {
+      "id": "rank-d96411acfff637fb",
+      "ranking": [
+        "bicycle",
+        "bicycle-hard",
+        "bicycle-related",
+        "bicycle-wrong",
+        "bicycle-generic"
+      ],
+      "scores": [
+        {
+          "id": "bicycle",
+          "score": -10.263101577758789
+        },
+        {
+          "id": "bicycle-hard",
+          "score": -11.059932708740234
+        },
+        {
+          "id": "bicycle-related",
+          "score": -11.230020523071289
+        },
+        {
+          "id": "bicycle-wrong",
+          "score": -11.341813087463379
+        },
+        {
+          "id": "bicycle-generic",
+          "score": -11.344454765319824
+        }
+      ],
+      "durationMs": 5.4315
+    },
+    {
+      "id": "rank-cc6372acee485775",
+      "ranking": [
+        "dog-hard",
+        "dog",
+        "dog-related",
+        "dog-generic",
+        "dog-wrong"
+      ],
+      "scores": [
+        {
+          "id": "dog-hard",
+          "score": -10.856403350830078
+        },
+        {
+          "id": "dog",
+          "score": -10.866649627685547
+        },
+        {
+          "id": "dog-related",
+          "score": -11.00429916381836
+        },
+        {
+          "id": "dog-generic",
+          "score": -11.124502182006836
+        },
+        {
+          "id": "dog-wrong",
+          "score": -11.221305847167969
+        }
+      ],
+      "durationMs": 4.698542
+    },
+    {
+      "id": "rank-04205fb65a41df43",
+      "ranking": [
+        "tree",
+        "tree-hard",
+        "tree-wrong",
+        "tree-generic",
+        "tree-related"
+      ],
+      "scores": [
+        {
+          "id": "tree",
+          "score": -0.2858584225177765
+        },
+        {
+          "id": "tree-hard",
+          "score": -10.7630615234375
+        },
+        {
+          "id": "tree-wrong",
+          "score": -11.01980209350586
+        },
+        {
+          "id": "tree-generic",
+          "score": -11.023626327514648
+        },
+        {
+          "id": "tree-related",
+          "score": -11.120590209960938
+        }
+      ],
+      "durationMs": 5.093375
+    },
+    {
+      "id": "rank-65620fe0ab3de38b",
+      "ranking": [
+        "watershed-hard",
+        "watershed-wrong",
+        "watershed-generic",
+        "watershed-related",
+        "watershed"
+      ],
+      "scores": [
+        {
+          "id": "watershed-hard",
+          "score": -11.125015258789062
+        },
+        {
+          "id": "watershed-wrong",
+          "score": -11.18094253540039
+        },
+        {
+          "id": "watershed-generic",
+          "score": -11.200937271118164
+        },
+        {
+          "id": "watershed-related",
+          "score": -11.241353988647461
+        },
+        {
+          "id": "watershed",
+          "score": -11.398893356323242
+        }
+      ],
+      "durationMs": 4.205041
+    },
+    {
+      "id": "rank-cb4d96518334e441",
+      "ranking": [
+        "robot-gripper",
+        "robot-gripper-related",
+        "robot-gripper-wrong",
+        "robot-gripper-generic",
+        "robot-gripper-hard"
+      ],
+      "scores": [
+        {
+          "id": "robot-gripper",
+          "score": 2.334388256072998
+        },
+        {
+          "id": "robot-gripper-related",
+          "score": -10.969066619873047
+        },
+        {
+          "id": "robot-gripper-wrong",
+          "score": -11.281851768493652
+        },
+        {
+          "id": "robot-gripper-generic",
+          "score": -11.295771598815918
+        },
+        {
+          "id": "robot-gripper-hard",
+          "score": -11.29935359954834
+        }
+      ],
+      "durationMs": 5.51975
+    },
+    {
+      "id": "rank-aa3267e540f54cbe",
+      "ranking": [
+        "television",
+        "television-hard",
+        "television-related",
+        "television-wrong",
+        "television-generic"
+      ],
+      "scores": [
+        {
+          "id": "television",
+          "score": 1.8176530599594116
+        },
+        {
+          "id": "television-hard",
+          "score": -10.929656028747559
+        },
+        {
+          "id": "television-related",
+          "score": -11.227774620056152
+        },
+        {
+          "id": "television-wrong",
+          "score": -11.323202133178711
+        },
+        {
+          "id": "television-generic",
+          "score": -11.363252639770508
+        }
+      ],
+      "durationMs": 4.949125
+    },
+    {
+      "id": "rank-a34b45fe5fd99bd2",
+      "ranking": [
+        "conveyor",
+        "conveyor-related",
+        "conveyor-generic",
+        "conveyor-wrong",
+        "conveyor-hard"
+      ],
+      "scores": [
+        {
+          "id": "conveyor",
+          "score": 1.2408082485198975
+        },
+        {
+          "id": "conveyor-related",
+          "score": -10.686090469360352
+        },
+        {
+          "id": "conveyor-generic",
+          "score": -11.102395057678223
+        },
+        {
+          "id": "conveyor-wrong",
+          "score": -11.153568267822266
+        },
+        {
+          "id": "conveyor-hard",
+          "score": -11.243936538696289
+        }
+      ],
+      "durationMs": 4.941209
+    },
+    {
+      "id": "rank-eec1ce5ec23abff5",
+      "ranking": [
+        "battery-hard",
+        "battery-wrong",
+        "battery-generic",
+        "battery-related",
+        "battery"
+      ],
+      "scores": [
+        {
+          "id": "battery-hard",
+          "score": -11.200761795043945
+        },
+        {
+          "id": "battery-wrong",
+          "score": -11.201641082763672
+        },
+        {
+          "id": "battery-generic",
+          "score": -11.215811729431152
+        },
+        {
+          "id": "battery-related",
+          "score": -11.249597549438477
+        },
+        {
+          "id": "battery",
+          "score": -11.361522674560547
+        }
+      ],
+      "durationMs": 4.662583
+    },
+    {
+      "id": "rank-31ee0a47f3e5f223",
+      "ranking": [
+        "robot-gripper-related",
+        "robot-gripper",
+        "robot-gripper-wrong",
+        "robot-gripper-generic",
+        "robot-gripper-hard"
+      ],
+      "scores": [
+        {
+          "id": "robot-gripper-related",
+          "score": -11.214075088500977
+        },
+        {
+          "id": "robot-gripper",
+          "score": -11.268227577209473
+        },
+        {
+          "id": "robot-gripper-wrong",
+          "score": -11.285002708435059
+        },
+        {
+          "id": "robot-gripper-generic",
+          "score": -11.31545639038086
+        },
+        {
+          "id": "robot-gripper-hard",
+          "score": -11.327156066894531
+        }
+      ],
+      "durationMs": 5.369041
+    },
+    {
+      "id": "rank-5d31b350a001f8d6",
+      "ranking": [
+        "shade-route",
+        "shade-route-hard",
+        "shade-route-generic",
+        "shade-route-wrong",
+        "shade-route-related"
+      ],
+      "scores": [
+        {
+          "id": "shade-route",
+          "score": 1.9885038137435913
+        },
+        {
+          "id": "shade-route-hard",
+          "score": -10.768272399902344
+        },
+        {
+          "id": "shade-route-generic",
+          "score": -11.23187255859375
+        },
+        {
+          "id": "shade-route-wrong",
+          "score": -11.273316383361816
+        },
+        {
+          "id": "shade-route-related",
+          "score": -11.276084899902344
+        }
+      ],
+      "durationMs": 6.293542
+    },
+    {
+      "id": "rank-917c9b6ff60d7adc",
+      "ranking": [
+        "shade-route",
+        "shade-route-hard",
+        "shade-route-wrong",
+        "shade-route-related",
+        "shade-route-generic"
+      ],
+      "scores": [
+        {
+          "id": "shade-route",
+          "score": 1.5613539218902588
+        },
+        {
+          "id": "shade-route-hard",
+          "score": -10.553155899047852
+        },
+        {
+          "id": "shade-route-wrong",
+          "score": -11.151203155517578
+        },
+        {
+          "id": "shade-route-related",
+          "score": -11.186408042907715
+        },
+        {
+          "id": "shade-route-generic",
+          "score": -11.187211036682129
+        }
+      ],
+      "durationMs": 5.708375
+    },
+    {
+      "id": "rank-ec233905354fdc4b",
+      "ranking": [
+        "castle",
+        "castle-hard",
+        "castle-related",
+        "castle-wrong",
+        "castle-generic"
+      ],
+      "scores": [
+        {
+          "id": "castle",
+          "score": 0.41299334168434143
+        },
+        {
+          "id": "castle-hard",
+          "score": -9.949563980102539
+        },
+        {
+          "id": "castle-related",
+          "score": -10.98585319519043
+        },
+        {
+          "id": "castle-wrong",
+          "score": -11.11577033996582
+        },
+        {
+          "id": "castle-generic",
+          "score": -11.185979843139648
+        }
+      ],
+      "durationMs": 4.916583
+    },
+    {
+      "id": "rank-f6b8d7d0c9bd31c1",
+      "ranking": [
+        "cat-related",
+        "cat-hard",
+        "cat",
+        "cat-generic",
+        "cat-wrong"
+      ],
+      "scores": [
+        {
+          "id": "cat-related",
+          "score": -11.113851547241211
+        },
+        {
+          "id": "cat-hard",
+          "score": -11.119592666625977
+        },
+        {
+          "id": "cat",
+          "score": -11.160697937011719
+        },
+        {
+          "id": "cat-generic",
+          "score": -11.195684432983398
+        },
+        {
+          "id": "cat-wrong",
+          "score": -11.200800895690918
+        }
+      ],
+      "durationMs": 4.321166
+    },
+    {
+      "id": "rank-7d55bf6627942389",
+      "ranking": [
+        "building-related",
+        "building-generic",
+        "building-hard",
+        "building-wrong",
+        "building"
+      ],
+      "scores": [
+        {
+          "id": "building-related",
+          "score": -11.146150588989258
+        },
+        {
+          "id": "building-generic",
+          "score": -11.17203140258789
+        },
+        {
+          "id": "building-hard",
+          "score": -11.202409744262695
+        },
+        {
+          "id": "building-wrong",
+          "score": -11.23721981048584
+        },
+        {
+          "id": "building",
+          "score": -11.29708480834961
+        }
+      ],
+      "durationMs": 4.252042
+    },
+    {
+      "id": "rank-038b796080645844",
+      "ranking": [
+        "protein-folding",
+        "protein-folding-related",
+        "protein-folding-hard",
+        "protein-folding-wrong",
+        "protein-folding-generic"
+      ],
+      "scores": [
+        {
+          "id": "protein-folding",
+          "score": 3.7045812606811523
+        },
+        {
+          "id": "protein-folding-related",
+          "score": -10.842906951904297
+        },
+        {
+          "id": "protein-folding-hard",
+          "score": -11.028336524963379
+        },
+        {
+          "id": "protein-folding-wrong",
+          "score": -11.097746849060059
+        },
+        {
+          "id": "protein-folding-generic",
+          "score": -11.166709899902344
+        }
+      ],
+      "durationMs": 4.879166
+    },
+    {
+      "id": "rank-33114c2f2c290003",
+      "ranking": [
+        "bridge",
+        "bridge-hard",
+        "bridge-related",
+        "bridge-generic",
+        "bridge-wrong"
+      ],
+      "scores": [
+        {
+          "id": "bridge",
+          "score": 1.6722534894943237
+        },
+        {
+          "id": "bridge-hard",
+          "score": -10.81101131439209
+        },
+        {
+          "id": "bridge-related",
+          "score": -10.898721694946289
+        },
+        {
+          "id": "bridge-generic",
+          "score": -11.265594482421875
+        },
+        {
+          "id": "bridge-wrong",
+          "score": -11.268939018249512
+        }
+      ],
+      "durationMs": 5.47775
+    },
+    {
+      "id": "rank-1d32508be36e6ee5",
+      "ranking": [
+        "watershed-hard",
+        "watershed-related",
+        "watershed-wrong",
+        "watershed-generic",
+        "watershed"
+      ],
+      "scores": [
+        {
+          "id": "watershed-hard",
+          "score": -11.291335105895996
+        },
+        {
+          "id": "watershed-related",
+          "score": -11.34410285949707
+        },
+        {
+          "id": "watershed-wrong",
+          "score": -11.361737251281738
+        },
+        {
+          "id": "watershed-generic",
+          "score": -11.378355026245117
+        },
+        {
+          "id": "watershed",
+          "score": -11.408893585205078
+        }
+      ],
+      "durationMs": 4.204792
+    },
+    {
+      "id": "rank-93d0201d5a4ee20d",
+      "ranking": [
+        "bird",
+        "bird-hard",
+        "bird-related",
+        "bird-wrong",
+        "bird-generic"
+      ],
+      "scores": [
+        {
+          "id": "bird",
+          "score": -0.34604817628860474
+        },
+        {
+          "id": "bird-hard",
+          "score": -8.79308032989502
+        },
+        {
+          "id": "bird-related",
+          "score": -9.350961685180664
+        },
+        {
+          "id": "bird-wrong",
+          "score": -11.17031478881836
+        },
+        {
+          "id": "bird-generic",
+          "score": -11.180510520935059
+        }
+      ],
+      "durationMs": 5.246459
+    },
+    {
+      "id": "rank-d244522253a13db3",
+      "ranking": [
+        "protein-folding-related",
+        "protein-folding-wrong",
+        "protein-folding-hard",
+        "protein-folding-generic",
+        "protein-folding"
+      ],
+      "scores": [
+        {
+          "id": "protein-folding-related",
+          "score": -11.197602272033691
+        },
+        {
+          "id": "protein-folding-wrong",
+          "score": -11.339532852172852
+        },
+        {
+          "id": "protein-folding-hard",
+          "score": -11.341935157775879
+        },
+        {
+          "id": "protein-folding-generic",
+          "score": -11.357973098754883
+        },
+        {
+          "id": "protein-folding",
+          "score": -11.418888092041016
+        }
+      ],
+      "durationMs": 4.773084
+    },
+    {
+      "id": "rank-d6b6902ef6facb29",
+      "ranking": [
+        "bridge-hard",
+        "bridge-related",
+        "bridge",
+        "bridge-generic",
+        "bridge-wrong"
+      ],
+      "scores": [
+        {
+          "id": "bridge-hard",
+          "score": -11.007831573486328
+        },
+        {
+          "id": "bridge-related",
+          "score": -11.114934921264648
+        },
+        {
+          "id": "bridge",
+          "score": -11.299375534057617
+        },
+        {
+          "id": "bridge-generic",
+          "score": -11.371450424194336
+        },
+        {
+          "id": "bridge-wrong",
+          "score": -11.37390422821045
+        }
+      ],
+      "durationMs": 5.105083
+    },
+    {
+      "id": "rank-6e8eabd5cd5ba0a3",
+      "ranking": [
+        "watershed",
+        "watershed-hard",
+        "watershed-related",
+        "watershed-generic",
+        "watershed-wrong"
+      ],
+      "scores": [
+        {
+          "id": "watershed",
+          "score": 1.0919673442840576
+        },
+        {
+          "id": "watershed-hard",
+          "score": -11.153482437133789
+        },
+        {
+          "id": "watershed-related",
+          "score": -11.18698787689209
+        },
+        {
+          "id": "watershed-generic",
+          "score": -11.30569076538086
+        },
+        {
+          "id": "watershed-wrong",
+          "score": -11.337018013000488
+        }
+      ],
+      "durationMs": 5.859791
+    },
+    {
+      "id": "rank-fc7ca00546a6e4fa",
+      "ranking": [
+        "robot-gripper-related",
+        "robot-gripper-generic",
+        "robot-gripper-wrong",
+        "robot-gripper-hard",
+        "robot-gripper"
+      ],
+      "scores": [
+        {
+          "id": "robot-gripper-related",
+          "score": -10.970998764038086
+        },
+        {
+          "id": "robot-gripper-generic",
+          "score": -11.071155548095703
+        },
+        {
+          "id": "robot-gripper-wrong",
+          "score": -11.167449951171875
+        },
+        {
+          "id": "robot-gripper-hard",
+          "score": -11.246160507202148
+        },
+        {
+          "id": "robot-gripper",
+          "score": -11.266945838928223
+        }
+      ],
+      "durationMs": 4.278916
+    },
+    {
+      "id": "rank-2f4ce196e9805d9b",
+      "ranking": [
+        "person",
+        "person-hard",
+        "person-related",
+        "person-wrong",
+        "person-generic"
+      ],
+      "scores": [
+        {
+          "id": "person",
+          "score": 1.2466984987258911
+        },
+        {
+          "id": "person-hard",
+          "score": -11.081701278686523
+        },
+        {
+          "id": "person-related",
+          "score": -11.274723052978516
+        },
+        {
+          "id": "person-wrong",
+          "score": -11.362308502197266
+        },
+        {
+          "id": "person-generic",
+          "score": -11.36452865600586
+        }
+      ],
+      "durationMs": 5.399917
+    },
+    {
+      "id": "rank-528ca895dac65554",
+      "ranking": [
+        "sunset",
+        "sunset-related",
+        "sunset-hard",
+        "sunset-generic",
+        "sunset-wrong"
+      ],
+      "scores": [
+        {
+          "id": "sunset",
+          "score": 0.5599791407585144
+        },
+        {
+          "id": "sunset-related",
+          "score": -10.34559440612793
+        },
+        {
+          "id": "sunset-hard",
+          "score": -10.49699592590332
+        },
+        {
+          "id": "sunset-generic",
+          "score": -11.103048324584961
+        },
+        {
+          "id": "sunset-wrong",
+          "score": -11.248619079589844
+        }
+      ],
+      "durationMs": 6.766917
+    },
+    {
+      "id": "rank-0b8d22b505157cee",
+      "ranking": [
+        "chair-hard",
+        "chair-generic",
+        "chair-related",
+        "chair-wrong",
+        "chair"
+      ],
+      "scores": [
+        {
+          "id": "chair-hard",
+          "score": -11.027910232543945
+        },
+        {
+          "id": "chair-generic",
+          "score": -11.059030532836914
+        },
+        {
+          "id": "chair-related",
+          "score": -11.077964782714844
+        },
+        {
+          "id": "chair-wrong",
+          "score": -11.22758960723877
+        },
+        {
+          "id": "chair",
+          "score": -11.23646354675293
+        }
+      ],
+      "durationMs": 4.354125
+    },
+    {
+      "id": "rank-a45efefa42b25bfa",
+      "ranking": [
+        "protein-folding-related",
+        "protein-folding-wrong",
+        "protein-folding-hard",
+        "protein-folding-generic",
+        "protein-folding"
+      ],
+      "scores": [
+        {
+          "id": "protein-folding-related",
+          "score": -11.197602272033691
+        },
+        {
+          "id": "protein-folding-wrong",
+          "score": -11.339532852172852
+        },
+        {
+          "id": "protein-folding-hard",
+          "score": -11.341935157775879
+        },
+        {
+          "id": "protein-folding-generic",
+          "score": -11.357973098754883
+        },
+        {
+          "id": "protein-folding",
+          "score": -11.418888092041016
+        }
+      ],
+      "durationMs": 4.831084
+    },
+    {
+      "id": "rank-dd783eac04a22dd2",
+      "ranking": [
+        "conveyor",
+        "conveyor-related",
+        "conveyor-generic",
+        "conveyor-wrong",
+        "conveyor-hard"
+      ],
+      "scores": [
+        {
+          "id": "conveyor",
+          "score": 1.2408082485198975
+        },
+        {
+          "id": "conveyor-related",
+          "score": -10.686090469360352
+        },
+        {
+          "id": "conveyor-generic",
+          "score": -11.102395057678223
+        },
+        {
+          "id": "conveyor-wrong",
+          "score": -11.153568267822266
+        },
+        {
+          "id": "conveyor-hard",
+          "score": -11.243936538696289
+        }
+      ],
+      "durationMs": 5.392208
+    },
+    {
+      "id": "rank-91445bc2442d2651",
+      "ranking": [
+        "tree",
+        "tree-hard",
+        "tree-generic",
+        "tree-related",
+        "tree-wrong"
+      ],
+      "scores": [
+        {
+          "id": "tree",
+          "score": -0.9615535736083984
+        },
+        {
+          "id": "tree-hard",
+          "score": -10.783824920654297
+        },
+        {
+          "id": "tree-generic",
+          "score": -11.142801284790039
+        },
+        {
+          "id": "tree-related",
+          "score": -11.1599702835083
+        },
+        {
+          "id": "tree-wrong",
+          "score": -11.196044921875
+        }
+      ],
+      "durationMs": 5.579125
+    },
+    {
+      "id": "rank-d29fd444b46d2564",
+      "ranking": [
+        "battery-hard",
+        "battery-related",
+        "battery-wrong",
+        "battery-generic",
+        "battery"
+      ],
+      "scores": [
+        {
+          "id": "battery-hard",
+          "score": -11.260272979736328
+        },
+        {
+          "id": "battery-related",
+          "score": -11.321218490600586
+        },
+        {
+          "id": "battery-wrong",
+          "score": -11.372920989990234
+        },
+        {
+          "id": "battery-generic",
+          "score": -11.378376960754395
+        },
+        {
+          "id": "battery",
+          "score": -11.436776161193848
+        }
+      ],
+      "durationMs": 4.230792
+    },
+    {
+      "id": "rank-ceba8cb30b75b265",
+      "ranking": [
+        "watershed-hard",
+        "watershed-wrong",
+        "watershed-generic",
+        "watershed-related",
+        "watershed"
+      ],
+      "scores": [
+        {
+          "id": "watershed-hard",
+          "score": -11.125015258789062
+        },
+        {
+          "id": "watershed-wrong",
+          "score": -11.18094253540039
+        },
+        {
+          "id": "watershed-generic",
+          "score": -11.200937271118164
+        },
+        {
+          "id": "watershed-related",
+          "score": -11.241353988647461
+        },
+        {
+          "id": "watershed",
+          "score": -11.398893356323242
+        }
+      ],
+      "durationMs": 4.078833
+    },
+    {
+      "id": "rank-d1533291712f2de6",
+      "ranking": [
+        "bicycle-hard",
+        "bicycle",
+        "bicycle-related",
+        "bicycle-generic",
+        "bicycle-wrong"
+      ],
+      "scores": [
+        {
+          "id": "bicycle-hard",
+          "score": -10.332247734069824
+        },
+        {
+          "id": "bicycle",
+          "score": -10.547567367553711
+        },
+        {
+          "id": "bicycle-related",
+          "score": -11.061521530151367
+        },
+        {
+          "id": "bicycle-generic",
+          "score": -11.13939380645752
+        },
+        {
+          "id": "bicycle-wrong",
+          "score": -11.158443450927734
+        }
+      ],
+      "durationMs": 4.120667
+    },
+    {
+      "id": "rank-a2aa0b1ca7bb0367",
+      "ranking": [
+        "person-generic",
+        "person-related",
+        "person-wrong",
+        "person-hard",
+        "person"
+      ],
+      "scores": [
+        {
+          "id": "person-generic",
+          "score": -11.208148956298828
+        },
+        {
+          "id": "person-related",
+          "score": -11.253511428833008
+        },
+        {
+          "id": "person-wrong",
+          "score": -11.299810409545898
+        },
+        {
+          "id": "person-hard",
+          "score": -11.304471969604492
+        },
+        {
+          "id": "person",
+          "score": -11.43948745727539
+        }
+      ],
+      "durationMs": 4.191167
+    },
+    {
+      "id": "rank-850830361d9e138e",
+      "ranking": [
+        "dog",
+        "dog-related",
+        "dog-hard",
+        "dog-wrong",
+        "dog-generic"
+      ],
+      "scores": [
+        {
+          "id": "dog",
+          "score": 0.6601430177688599
+        },
+        {
+          "id": "dog-related",
+          "score": -10.403382301330566
+        },
+        {
+          "id": "dog-hard",
+          "score": -10.554619789123535
+        },
+        {
+          "id": "dog-wrong",
+          "score": -11.13229751586914
+        },
+        {
+          "id": "dog-generic",
+          "score": -11.250865936279297
+        }
+      ],
+      "durationMs": 4.243042
+    },
+    {
+      "id": "rank-f5de31be6d98a985",
+      "ranking": [
+        "airplane",
+        "airplane-related",
+        "airplane-generic",
+        "airplane-hard",
+        "airplane-wrong"
+      ],
+      "scores": [
+        {
+          "id": "airplane",
+          "score": -10.692289352416992
+        },
+        {
+          "id": "airplane-related",
+          "score": -11.091302871704102
+        },
+        {
+          "id": "airplane-generic",
+          "score": -11.141550064086914
+        },
+        {
+          "id": "airplane-hard",
+          "score": -11.15760612487793
+        },
+        {
+          "id": "airplane-wrong",
+          "score": -11.239497184753418
+        }
+      ],
+      "durationMs": 4.06375
+    },
+    {
+      "id": "rank-20b2762c26fb5d6a",
+      "ranking": [
+        "tree-hard",
+        "tree-generic",
+        "tree-wrong",
+        "tree-related",
+        "tree"
+      ],
+      "scores": [
+        {
+          "id": "tree-hard",
+          "score": -10.878116607666016
+        },
+        {
+          "id": "tree-generic",
+          "score": -11.116289138793945
+        },
+        {
+          "id": "tree-wrong",
+          "score": -11.237524032592773
+        },
+        {
+          "id": "tree-related",
+          "score": -11.253724098205566
+        },
+        {
+          "id": "tree",
+          "score": -11.276937484741211
+        }
+      ],
+      "durationMs": 4.197
+    },
+    {
+      "id": "rank-f7f0ca427b435ecb",
+      "ranking": [
+        "sunset",
+        "sunset-related",
+        "sunset-hard",
+        "sunset-generic",
+        "sunset-wrong"
+      ],
+      "scores": [
+        {
+          "id": "sunset",
+          "score": 0.5599792003631592
+        },
+        {
+          "id": "sunset-related",
+          "score": -10.34559440612793
+        },
+        {
+          "id": "sunset-hard",
+          "score": -10.49699592590332
+        },
+        {
+          "id": "sunset-generic",
+          "score": -11.103048324584961
+        },
+        {
+          "id": "sunset-wrong",
+          "score": -11.248619079589844
+        }
+      ],
+      "durationMs": 6.344208
+    },
+    {
+      "id": "rank-b3d3bd13a21e50b0",
+      "ranking": [
+        "person",
+        "person-hard",
+        "person-related",
+        "person-wrong",
+        "person-generic"
+      ],
+      "scores": [
+        {
+          "id": "person",
+          "score": 1.0535467863082886
+        },
+        {
+          "id": "person-hard",
+          "score": -11.107192993164062
+        },
+        {
+          "id": "person-related",
+          "score": -11.256948471069336
+        },
+        {
+          "id": "person-wrong",
+          "score": -11.264068603515625
+        },
+        {
+          "id": "person-generic",
+          "score": -11.348867416381836
+        }
+      ],
+      "durationMs": 5.000125
+    },
+    {
+      "id": "rank-87ac2bc08adb9b51",
+      "ranking": [
+        "chair",
+        "chair-related",
+        "chair-hard",
+        "chair-generic",
+        "chair-wrong"
+      ],
+      "scores": [
+        {
+          "id": "chair",
+          "score": -1.0608699321746826
+        },
+        {
+          "id": "chair-related",
+          "score": -9.8590669631958
+        },
+        {
+          "id": "chair-hard",
+          "score": -10.001416206359863
+        },
+        {
+          "id": "chair-generic",
+          "score": -10.998580932617188
+        },
+        {
+          "id": "chair-wrong",
+          "score": -11.035078048706055
+        }
+      ],
+      "durationMs": 5.529208
+    },
+    {
+      "id": "rank-349256ffe9a5aba3",
+      "ranking": [
+        "television",
+        "television-hard",
+        "television-related",
+        "television-generic",
+        "television-wrong"
+      ],
+      "scores": [
+        {
+          "id": "television",
+          "score": -0.49361860752105713
+        },
+        {
+          "id": "television-hard",
+          "score": -11.114800453186035
+        },
+        {
+          "id": "television-related",
+          "score": -11.237560272216797
+        },
+        {
+          "id": "television-generic",
+          "score": -11.341941833496094
+        },
+        {
+          "id": "television-wrong",
+          "score": -11.343019485473633
+        }
+      ],
+      "durationMs": 5.360334
+    },
+    {
+      "id": "rank-52da6b27e9e15599",
+      "ranking": [
+        "robot-gripper-related",
+        "robot-gripper",
+        "robot-gripper-wrong",
+        "robot-gripper-generic",
+        "robot-gripper-hard"
+      ],
+      "scores": [
+        {
+          "id": "robot-gripper-related",
+          "score": -11.214075088500977
+        },
+        {
+          "id": "robot-gripper",
+          "score": -11.268226623535156
+        },
+        {
+          "id": "robot-gripper-wrong",
+          "score": -11.285003662109375
+        },
+        {
+          "id": "robot-gripper-generic",
+          "score": -11.31545639038086
+        },
+        {
+          "id": "robot-gripper-hard",
+          "score": -11.327156066894531
+        }
+      ],
+      "durationMs": 4.849792
+    },
+    {
+      "id": "rank-18246c454d062d08",
+      "ranking": [
+        "bicycle-hard",
+        "bicycle",
+        "bicycle-related",
+        "bicycle-generic",
+        "bicycle-wrong"
+      ],
+      "scores": [
+        {
+          "id": "bicycle-hard",
+          "score": -10.332247734069824
+        },
+        {
+          "id": "bicycle",
+          "score": -10.547567367553711
+        },
+        {
+          "id": "bicycle-related",
+          "score": -11.061521530151367
+        },
+        {
+          "id": "bicycle-generic",
+          "score": -11.13939380645752
+        },
+        {
+          "id": "bicycle-wrong",
+          "score": -11.158443450927734
+        }
+      ],
+      "durationMs": 4.22725
+    },
+    {
+      "id": "rank-66f92f55ca1a480c",
+      "ranking": [
+        "building",
+        "building-related",
+        "building-generic",
+        "building-wrong",
+        "building-hard"
+      ],
+      "scores": [
+        {
+          "id": "building",
+          "score": 1.118304967880249
+        },
+        {
+          "id": "building-related",
+          "score": -10.778705596923828
+        },
+        {
+          "id": "building-generic",
+          "score": -11.122249603271484
+        },
+        {
+          "id": "building-wrong",
+          "score": -11.155326843261719
+        },
+        {
+          "id": "building-hard",
+          "score": -11.207927703857422
+        }
+      ],
+      "durationMs": 6.704542
+    },
+    {
+      "id": "rank-657d95175549e0d6",
+      "ranking": [
+        "airplane",
+        "airplane-related",
+        "airplane-generic",
+        "airplane-hard",
+        "airplane-wrong"
+      ],
+      "scores": [
+        {
+          "id": "airplane",
+          "score": -10.692289352416992
+        },
+        {
+          "id": "airplane-related",
+          "score": -11.091302871704102
+        },
+        {
+          "id": "airplane-generic",
+          "score": -11.141550064086914
+        },
+        {
+          "id": "airplane-hard",
+          "score": -11.15760612487793
+        },
+        {
+          "id": "airplane-wrong",
+          "score": -11.239497184753418
+        }
+      ],
+      "durationMs": 4.239875
+    },
+    {
+      "id": "rank-6b9d7c8ae25c4f77",
+      "ranking": [
+        "battery",
+        "battery-related",
+        "battery-wrong",
+        "battery-generic",
+        "battery-hard"
+      ],
+      "scores": [
+        {
+          "id": "battery",
+          "score": 1.2433836460113525
+        },
+        {
+          "id": "battery-related",
+          "score": -11.170614242553711
+        },
+        {
+          "id": "battery-wrong",
+          "score": -11.239938735961914
+        },
+        {
+          "id": "battery-generic",
+          "score": -11.264765739440918
+        },
+        {
+          "id": "battery-hard",
+          "score": -11.357809066772461
+        }
+      ],
+      "durationMs": 4.576959
+    },
+    {
+      "id": "rank-77f02dfc6c307f1c",
+      "ranking": [
+        "bridge",
+        "bridge-related",
+        "bridge-hard",
+        "bridge-generic",
+        "bridge-wrong"
+      ],
+      "scores": [
+        {
+          "id": "bridge",
+          "score": 1.4649879932403564
+        },
+        {
+          "id": "bridge-related",
+          "score": -10.744461059570312
+        },
+        {
+          "id": "bridge-hard",
+          "score": -10.820293426513672
+        },
+        {
+          "id": "bridge-generic",
+          "score": -11.25750732421875
+        },
+        {
+          "id": "bridge-wrong",
+          "score": -11.32113265991211
+        }
+      ],
+      "durationMs": 6.426667
+    },
+    {
+      "id": "rank-3f8e35a8b0b67948",
+      "ranking": [
+        "cat-related",
+        "cat-hard",
+        "cat",
+        "cat-generic",
+        "cat-wrong"
+      ],
+      "scores": [
+        {
+          "id": "cat-related",
+          "score": -11.113851547241211
+        },
+        {
+          "id": "cat-hard",
+          "score": -11.119592666625977
+        },
+        {
+          "id": "cat",
+          "score": -11.160697937011719
+        },
+        {
+          "id": "cat-generic",
+          "score": -11.195684432983398
+        },
+        {
+          "id": "cat-wrong",
+          "score": -11.200800895690918
+        }
+      ],
+      "durationMs": 4.365792
+    },
+    {
+      "id": "rank-f28857b58cd8a91d",
+      "ranking": [
+        "robot-gripper",
+        "robot-gripper-related",
+        "robot-gripper-wrong",
+        "robot-gripper-generic",
+        "robot-gripper-hard"
+      ],
+      "scores": [
+        {
+          "id": "robot-gripper",
+          "score": 2.334388256072998
+        },
+        {
+          "id": "robot-gripper-related",
+          "score": -10.969066619873047
+        },
+        {
+          "id": "robot-gripper-wrong",
+          "score": -11.281851768493652
+        },
+        {
+          "id": "robot-gripper-generic",
+          "score": -11.295771598815918
+        },
+        {
+          "id": "robot-gripper-hard",
+          "score": -11.29935359954834
+        }
+      ],
+      "durationMs": 5.335166
+    },
+    {
+      "id": "rank-8b9c8a8fafab4f5f",
+      "ranking": [
+        "dog",
+        "dog-related",
+        "dog-hard",
+        "dog-wrong",
+        "dog-generic"
+      ],
+      "scores": [
+        {
+          "id": "dog",
+          "score": 0.6601430177688599
+        },
+        {
+          "id": "dog-related",
+          "score": -10.403382301330566
+        },
+        {
+          "id": "dog-hard",
+          "score": -10.554619789123535
+        },
+        {
+          "id": "dog-wrong",
+          "score": -11.13229751586914
+        },
+        {
+          "id": "dog-generic",
+          "score": -11.250865936279297
+        }
+      ],
+      "durationMs": 4.381375
+    },
+    {
+      "id": "rank-075e5436d992bfd7",
+      "ranking": [
+        "shade-route",
+        "shade-route-hard",
+        "shade-route-related",
+        "shade-route-wrong",
+        "shade-route-generic"
+      ],
+      "scores": [
+        {
+          "id": "shade-route",
+          "score": 2.792088508605957
+        },
+        {
+          "id": "shade-route-hard",
+          "score": -10.852373123168945
+        },
+        {
+          "id": "shade-route-related",
+          "score": -11.147939682006836
+        },
+        {
+          "id": "shade-route-wrong",
+          "score": -11.211658477783203
+        },
+        {
+          "id": "shade-route-generic",
+          "score": -11.292661666870117
+        }
+      ],
+      "durationMs": 5.907291
+    },
+    {
+      "id": "rank-31393821234a0495",
+      "ranking": [
+        "conveyor",
+        "conveyor-related",
+        "conveyor-generic",
+        "conveyor-wrong",
+        "conveyor-hard"
+      ],
+      "scores": [
+        {
+          "id": "conveyor",
+          "score": 1.2408082485198975
+        },
+        {
+          "id": "conveyor-related",
+          "score": -10.686090469360352
+        },
+        {
+          "id": "conveyor-generic",
+          "score": -11.102395057678223
+        },
+        {
+          "id": "conveyor-wrong",
+          "score": -11.153568267822266
+        },
+        {
+          "id": "conveyor-hard",
+          "score": -11.243936538696289
+        }
+      ],
+      "durationMs": 5.025792
+    },
+    {
+      "id": "rank-caef7a3a29561069",
+      "ranking": [
+        "bicycle-hard",
+        "bicycle",
+        "bicycle-related",
+        "bicycle-generic",
+        "bicycle-wrong"
+      ],
+      "scores": [
+        {
+          "id": "bicycle-hard",
+          "score": -10.332247734069824
+        },
+        {
+          "id": "bicycle",
+          "score": -10.547567367553711
+        },
+        {
+          "id": "bicycle-related",
+          "score": -11.061521530151367
+        },
+        {
+          "id": "bicycle-generic",
+          "score": -11.13939380645752
+        },
+        {
+          "id": "bicycle-wrong",
+          "score": -11.158443450927734
+        }
+      ],
+      "durationMs": 4.177875
+    },
+    {
+      "id": "rank-bc23d8b80690aad8",
+      "ranking": [
+        "castle-related",
+        "castle-generic",
+        "castle-wrong",
+        "castle-hard",
+        "castle"
+      ],
+      "scores": [
+        {
+          "id": "castle-related",
+          "score": -11.05889892578125
+        },
+        {
+          "id": "castle-generic",
+          "score": -11.084224700927734
+        },
+        {
+          "id": "castle-wrong",
+          "score": -11.199577331542969
+        },
+        {
+          "id": "castle-hard",
+          "score": -11.223295211791992
+        },
+        {
+          "id": "castle",
+          "score": -11.369059562683105
+        }
+      ],
+      "durationMs": 4.086042
+    },
+    {
+      "id": "rank-1217183ffa498339",
+      "ranking": [
+        "galaxy",
+        "galaxy-hard",
+        "galaxy-related",
+        "galaxy-wrong",
+        "galaxy-generic"
+      ],
+      "scores": [
+        {
+          "id": "galaxy",
+          "score": 2.900399684906006
+        },
+        {
+          "id": "galaxy-hard",
+          "score": -10.866447448730469
+        },
+        {
+          "id": "galaxy-related",
+          "score": -11.170133590698242
+        },
+        {
+          "id": "galaxy-wrong",
+          "score": -11.236281394958496
+        },
+        {
+          "id": "galaxy-generic",
+          "score": -11.325519561767578
+        }
+      ],
+      "durationMs": 5.511292
+    },
+    {
+      "id": "rank-0065e54a685e0fa0",
+      "ranking": [
+        "person",
+        "person-hard",
+        "person-related",
+        "person-wrong",
+        "person-generic"
+      ],
+      "scores": [
+        {
+          "id": "person",
+          "score": 2.921231746673584
+        },
+        {
+          "id": "person-hard",
+          "score": -10.797697067260742
+        },
+        {
+          "id": "person-related",
+          "score": -11.231645584106445
+        },
+        {
+          "id": "person-wrong",
+          "score": -11.24048900604248
+        },
+        {
+          "id": "person-generic",
+          "score": -11.335664749145508
+        }
+      ],
+      "durationMs": 4.292791
+    }
+  ],
+  "performance": {
+    "coldLoadMs": 10007.2685,
+    "warmLatencyMs": [
+      7.430291,
+      5.118042,
+      5.584584,
+      5.639625,
+      4.712292,
+      4.354083,
+      5.744791,
+      6.450917,
+      5.53475,
+      4.333208,
+      4.633083,
+      5.610708,
+      4.323792,
+      5.805542,
+      4.440958,
+      5.417667,
+      4.218083,
+      4.480375,
+      6.034792,
+      4.330833,
+      4.190875,
+      4.215416,
+      5.429709,
+      4.840166,
+      5.752833,
+      4.494875,
+      4.252083,
+      4.891708,
+      5.904458,
+      4.212583,
+      4.958209,
+      5.632292,
+      5.008083,
+      4.32725,
+      4.431167,
+      3.703083,
+      5.718084,
+      5.032208,
+      5.180417,
+      5.131583,
+      6.620959,
+      5.491208,
+      6.287958,
+      4.7325,
+      4.973625,
+      7.961584,
+      5.4315,
+      4.698542,
+      5.093375,
+      4.205041,
+      5.51975,
+      4.949125,
+      4.941209,
+      4.662583,
+      5.369041,
+      6.293542,
+      5.708375,
+      4.916583,
+      4.321166,
+      4.252042,
+      4.879166,
+      5.47775,
+      4.204792,
+      5.246459,
+      4.773084,
+      5.105083,
+      5.859791,
+      4.278916,
+      5.399917,
+      6.766917,
+      4.354125,
+      4.831084,
+      5.392208,
+      5.579125,
+      4.230792,
+      4.078833,
+      4.120667,
+      4.191167,
+      4.243042,
+      4.06375,
+      4.197,
+      6.344208,
+      5.000125,
+      5.529208,
+      5.360334,
+      4.849792,
+      4.22725,
+      6.704542,
+      4.239875,
+      4.576959,
+      6.426667,
+      4.365792,
+      5.335166,
+      4.381375,
+      5.907291,
+      5.025792,
+      4.177875,
+      4.086042,
+      5.511292,
+      4.292791
+    ],
+    "downloadBytes": 91815758,
+    "peakMemoryBytes": 849035264,
+    "deviceId": "cpu",
+    "dtype": "f32"
+  }
+}

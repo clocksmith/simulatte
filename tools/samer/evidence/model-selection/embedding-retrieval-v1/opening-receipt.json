@@ -1,0 +1,80 @@
+{
+  "schema": "simulatte.sealedModelSelectionOpening.v1",
+  "populationId": "simulatte-embedding-retrieval-sealed-v1",
+  "populationSha256": "dbff5cf91ab5dc0066dc4ae2f21cb17a421ae5fa1cb90f1f48ee937953bbbf2f",
+  "task": "embedding-retrieval",
+  "openedAt": "2026-07-16T23:23:07.968Z",
+  "purpose": "one-time-smallest-sufficient-model-selection",
+  "registrySha256": "5d55c632b8d754bd026b36c490596265339c4dbe7f3c59b0f07d44b68fbdd4d4",
+  "runtimeSha256": "26d3a94502abe80851b674478c218768b2e53ee64b65b2dc6d738709ffd15240",
+  "workloadSha256": "5353ea65439b5fe64407f73f407cb83bd9abc66ac8223049a24df4f4d6d2fb6d",
+  "candidateProcessesReceivedGoldLabels": false,
+  "evaluatorOwnedMetrics": true,
+  "executions": [
+    {
+      "candidateId": "deterministic-lexical-control",
+      "implementationId": "simulatte.deterministic-lexical-retrieval.v1",
+      "modelId": null,
+      "revision": null,
+      "command": [
+        "python3",
+        "tools/samer/model-candidate-runtime.py",
+        "--input",
+        "tools/samer/evidence/model-selection/embedding-retrieval-v1/deterministic-lexical-control-workload.json",
+        "--out",
+        "tools/samer/evidence/model-selection/embedding-retrieval-v1/predictions/deterministic-lexical-control.json",
+        "--mode",
+        "deterministic-retrieval"
+      ],
+      "predictionSha256": "08e940c6fd82b1d987d045b809170a415f3cdae3c772fb0df1af3ac25c5cbd69"
+    },
+    {
+      "candidateId": "all-minilm-l6-v2-embedder",
+      "implementationId": "simulatte.all-minilm-l6-v2-embedder.v1",
+      "modelId": "sentence-transformers/all-MiniLM-L6-v2",
+      "revision": "1110a243fdf4706b3f48f1d95db1a4f5529b4d41",
+      "command": [
+        "python3",
+        "tools/samer/model-candidate-runtime.py",
+        "--input",
+        "tools/samer/evidence/model-selection/embedding-retrieval-v1/all-minilm-l6-v2-embedder-workload.json",
+        "--out",
+        "tools/samer/evidence/model-selection/embedding-retrieval-v1/predictions/all-minilm-l6-v2-embedder.json",
+        "--mode",
+        "sentence-embedding",
+        "--model-id",
+        "sentence-transformers/all-MiniLM-L6-v2",
+        "--revision",
+        "1110a243fdf4706b3f48f1d95db1a4f5529b4d41",
+        "--pooling",
+        "mean"
+      ],
+      "predictionSha256": "58754fd3d192c39e137ced2ecfa7f591bd3c9b674207102eb1b6753165ccbe7a"
+    },
+    {
+      "candidateId": "qwen3-embedding-control",
+      "implementationId": "simulatte.qwen3-embedding-retrieval.v1",
+      "modelId": "Qwen/Qwen3-Embedding-0.6B",
+      "revision": "97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3",
+      "command": [
+        "python3",
+        "tools/samer/model-candidate-runtime.py",
+        "--input",
+        "tools/samer/evidence/model-selection/embedding-retrieval-v1/qwen3-embedding-control-workload.json",
+        "--out",
+        "tools/samer/evidence/model-selection/embedding-retrieval-v1/predictions/qwen3-embedding-control.json",
+        "--mode",
+        "sentence-embedding",
+        "--model-id",
+        "Qwen/Qwen3-Embedding-0.6B",
+        "--revision",
+        "97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3",
+        "--pooling",
+        "last",
+        "--instruction",
+        "Given a visual-world request, retrieve construction evidence that satisfies its entities, relations, materials, poses, and obligations"
+      ],
+      "predictionSha256": "b040ab75a66cb4cb49fade7813585c04535fc87bbf4c3f1a15cb1ede0e41a1da"
+    }
+  ]
+}

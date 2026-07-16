@@ -2374,7 +2374,7 @@ test('Firebase hosting revalidates app lab and app JavaScript', () => {
     'npm run check:model-lock-references && node tools/check-model-runtime-lock.mjs && npm run check:doppler:development'
   );
   assert.equal(pkg.scripts['check:autonomy'], 'npm run check:autonomy:derived && node tools/autonomy/check-autonomy-data.mjs && npm run samer:autonomy:check && npm run check:place-performance');
-  assert.equal(pkg.scripts['check:deploy'], 'npm run check:model-lock && node tools/check-deploy-surface.mjs && npm run check:autonomy');
+  assert.equal(pkg.scripts['check:deploy'], 'npm run check:model-lock && npm run check:model-candidates && npm run check:model-populations && node tools/check-deploy-surface.mjs && npm run check:autonomy');
   assert.match(deployCheck, /public\/vendor\/doppler/);
   assert.match(deployCheck, /readModelRuntimeLock/);
   assert.match(modelLockUtils, /model-runtime-lock\.json/);

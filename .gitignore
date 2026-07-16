@@ -19,3 +19,4 @@ node_modules/
 artifacts/model-cache-profile/
 artifacts/simulatte-train/*.log
 tools/samer/autonomy/sealed/
+tools/samer/model-selection/sealed/

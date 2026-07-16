@@ -1,0 +1,213 @@
+{
+  "schema": "simulatte.compactClassificationJobs.v1",
+  "id": "simulatte-compact-classification-jobs-v1",
+  "claimBoundary": "These are six independently scored heads grouped into five language-understanding jobs. No aggregate score may hide a failed head.",
+  "jobs": [
+    {
+      "id": "scene-domain",
+      "inputUnit": "prompt",
+      "labels": [
+        "acoustic",
+        "advanced-energy",
+        "agro-waste-loop",
+        "biology",
+        "chemistry-lab",
+        "civic-market",
+        "clinical-control",
+        "cultural-material",
+        "digital-network",
+        "fire",
+        "granular",
+        "grid-energy",
+        "hazard-atmosphere",
+        "manufacturing-line",
+        "material-tray",
+        "mechanical",
+        "molecular-biology",
+        "ocean-cryosphere",
+        "optics",
+        "particle-instrument",
+        "planetary-space",
+        "quantum-instrument",
+        "restoration-water",
+        "robotics-control",
+        "space-instrument",
+        "sport-motion",
+        "thermal-plume",
+        "venue-crowd",
+        "watershed",
+        "weather-atmosphere",
+        "abstain"
+      ],
+      "scoredLabelsExclude": ["abstain"],
+      "abstention": {
+        "label": "abstain",
+        "requiredWhen": "no declared scene label has calibrated confidence at or above 0.72",
+        "minimumConfidence": 0.72,
+        "mustNotCoerceUnknown": true
+      },
+      "qualityFloor": {
+        "minimumMacroF1": 0.9,
+        "minimumCoverage": 0.8,
+        "maximumSelectiveRisk": 0.08,
+        "maximumExpectedCalibrationError": 0.05
+      }
+    },
+    {
+      "id": "span-entity-role",
+      "inputUnit": "prompt-span",
+      "labels": [
+        "actor",
+        "object",
+        "environment",
+        "medium",
+        "property",
+        "quantity",
+        "support-evidence",
+        "not-an-entity",
+        "abstain"
+      ],
+      "scoredLabelsExclude": ["abstain"],
+      "abstention": {
+        "label": "abstain",
+        "requiredWhen": "the span boundary or semantic role is ambiguous",
+        "minimumConfidence": 0.76,
+        "mustNotCoerceUnknown": true
+      },
+      "qualityFloor": {
+        "minimumMacroF1": 0.92,
+        "minimumCoverage": 0.82,
+        "maximumSelectiveRisk": 0.06,
+        "maximumExpectedCalibrationError": 0.05
+      }
+    },
+    {
+      "id": "relation",
+      "inputUnit": "ordered-entity-pair-in-prompt",
+      "labels": [
+        "above",
+        "below",
+        "inside",
+        "contains",
+        "attached-to",
+        "beside",
+        "near",
+        "far-from",
+        "in-front-of",
+        "behind",
+        "moving-toward",
+        "moving-away-from",
+        "interacting-with",
+        "no-explicit-relation",
+        "abstain"
+      ],
+      "scoredLabelsExclude": ["abstain"],
+      "abstention": {
+        "label": "abstain",
+        "requiredWhen": "direction, argument order, or relation scope cannot be resolved",
+        "minimumConfidence": 0.78,
+        "mustNotCoerceUnknown": true
+      },
+      "qualityFloor": {
+        "minimumMacroF1": 0.9,
+        "minimumCoverage": 0.78,
+        "maximumSelectiveRisk": 0.07,
+        "maximumExpectedCalibrationError": 0.05
+      }
+    },
+    {
+      "id": "material",
+      "inputUnit": "entity-or-part-span",
+      "labels": [
+        "air",
+        "biomass",
+        "dust",
+        "fabric",
+        "fire",
+        "glass",
+        "ice",
+        "lava",
+        "membrane",
+        "metal",
+        "plastic",
+        "rock",
+        "sand",
+        "silicon",
+        "smoke",
+        "water",
+        "wood",
+        "unspecified-material",
+        "abstain"
+      ],
+      "scoredLabelsExclude": ["abstain"],
+      "abstention": {
+        "label": "abstain",
+        "requiredWhen": "the prompt does not support one declared material class",
+        "minimumConfidence": 0.78,
+        "mustNotCoerceUnknown": true
+      },
+      "qualityFloor": {
+        "minimumMacroF1": 0.92,
+        "minimumCoverage": 0.8,
+        "maximumSelectiveRisk": 0.06,
+        "maximumExpectedCalibrationError": 0.05
+      }
+    },
+    {
+      "id": "pose",
+      "inputUnit": "actor-or-articulated-object-span",
+      "labels": [
+        "flying",
+        "standing",
+        "sitting",
+        "walking",
+        "running",
+        "playing",
+        "swimming",
+        "bending",
+        "rotating",
+        "gripping",
+        "resting",
+        "unspecified-pose",
+        "abstain"
+      ],
+      "scoredLabelsExclude": ["abstain"],
+      "abstention": {
+        "label": "abstain",
+        "requiredWhen": "the action does not imply one declared pose or articulation state",
+        "minimumConfidence": 0.76,
+        "mustNotCoerceUnknown": true
+      },
+      "qualityFloor": {
+        "minimumMacroF1": 0.9,
+        "minimumCoverage": 0.78,
+        "maximumSelectiveRisk": 0.08,
+        "maximumExpectedCalibrationError": 0.05
+      }
+    },
+    {
+      "id": "obligation-support",
+      "inputUnit": "typed-prompt-obligation",
+      "labels": [
+        "supported",
+        "unsupported",
+        "needs-clarification",
+        "not-an-obligation",
+        "abstain"
+      ],
+      "scoredLabelsExclude": ["abstain"],
+      "abstention": {
+        "label": "abstain",
+        "requiredWhen": "support cannot be proven from the declared catalog and renderer contracts",
+        "minimumConfidence": 0.9,
+        "mustNotCoerceUnknown": true
+      },
+      "qualityFloor": {
+        "minimumMacroF1": 0.97,
+        "minimumCoverage": 0.9,
+        "maximumSelectiveRisk": 0.02,
+        "maximumExpectedCalibrationError": 0.03
+      }
+    }
+  ]
+}

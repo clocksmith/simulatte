@@ -1,0 +1,14 @@
+{
+  "schema": "simulatte.structuredIntentEvaluationPolicy.v1",
+  "id": "simulatte-structured-intent-extraction-v1",
+  "populationContract": "simulatte.sealedStructuredIntentPopulation.v1",
+  "includedInClassificationFrontier": false,
+  "requiredMetrics": {
+    "entityPreservation": { "minimum": 0.95, "statistic": "micro-f1" },
+    "relationPreservation": { "minimum": 0.93, "statistic": "micro-f1" },
+    "unsupportedConceptRecall": { "minimum": 0.95, "statistic": "micro-recall" },
+    "schemaValidity": { "minimum": 1, "statistic": "row-rate" },
+    "phase8ObligationCoverage": { "minimum": 0.95, "statistic": "micro-recall" }
+  },
+  "claimBoundary": "A classification result cannot satisfy this contract. The evaluated artifact must preserve structured entities and relations, identify unsupported concepts, validate against the intent schema, and carry obligations into Phase 8."
+}

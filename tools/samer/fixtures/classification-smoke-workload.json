@@ -1,0 +1,22 @@
+{
+  "schema": "simulatte.modelCandidateWorkload.v1",
+  "id": "simulatte-public-classification-smoke-v1",
+  "candidateId": "smoke-candidate",
+  "task": "classification",
+  "rows": [
+    {
+      "id": "pose-flying",
+      "headId": "pose",
+      "text": "three birds flying over a castle",
+      "span": "flying",
+      "labels": [
+        { "id": "flying", "description": "flying" },
+        { "id": "standing", "description": "standing" },
+        { "id": "swimming", "description": "swimming" },
+        { "id": "abstain", "description": "abstain because no pose is supported" }
+      ],
+      "abstentionId": "abstain",
+      "minimumConfidence": 0.1
+    }
+  ]
+}

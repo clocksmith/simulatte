@@ -1,0 +1,20 @@
+{
+  "schema": "simulatte.modelCandidateWorkload.v1",
+  "id": "simulatte-public-retrieval-smoke-v1",
+  "candidateId": "smoke-candidate",
+  "task": "embedding-retrieval",
+  "rows": [
+    {
+      "id": "bird-parts",
+      "query": "construction parts for three birds flying",
+      "candidates": [
+        { "id": "bird-skeleton", "text": "articulated bird body with wings, beak, legs, and flying pose", "types": ["actor", "articulation"] },
+        { "id": "castle", "text": "stone castle towers and walls", "types": ["object"] },
+        { "id": "table", "text": "wooden table with four legs", "types": ["object"] },
+        { "id": "galaxy", "text": "spiral galaxy field", "types": ["environment"] }
+      ],
+      "minimumScore": 0.08,
+      "minimumMargin": 0.015
+    }
+  ]
+}

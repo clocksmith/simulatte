@@ -1,0 +1,28 @@
+{
+  "schema": "simulatte.modelSelectionEvidenceAssessment.v1",
+  "task": "embedding-retrieval",
+  "trialSha256": "cce59f6a46324981a8edda34107a9db5f6ca3eba664ba8a24982fba7270cd044",
+  "frontierSha256": "6ca85b605d4153420833894a54b5bf8f0bc38c16211c135ee49e8ea542fa2e81",
+  "promotionEligible": false,
+  "originalEvaluationK": 10,
+  "contractDefect": "Recall@10 was saturated because each row has four candidates. The trial cannot promote a retrieval candidate.",
+  "correctedPolicyEvaluationK": 2,
+  "derivedDiagnosticOnly": {
+    "deterministic-lexical-control": {
+      "recallAtK": 0.64,
+      "hardNegativeAccuracy": 0.66,
+      "mustRefuseAccuracy": 1
+    },
+    "all-minilm-l6-v2-embedder": {
+      "recallAtK": 0.99,
+      "hardNegativeAccuracy": 0.99,
+      "mustRefuseAccuracy": 0.3
+    },
+    "qwen3-embedding-control": {
+      "recallAtK": 1,
+      "hardNegativeAccuracy": 1,
+      "mustRefuseAccuracy": 0.366667
+    }
+  },
+  "nextPopulationRequirement": "Mint a new unopened retrieval population and precommit K=2. Do not retune refusal thresholds on this opened population."
+}

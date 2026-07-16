@@ -1,0 +1,20 @@
+{
+  "schema": "simulatte.modelCandidateWorkload.v1",
+  "id": "simulatte-public-reranking-smoke-v1",
+  "candidateId": "smoke-candidate",
+  "task": "reranking",
+  "rows": [
+    {
+      "id": "bird-parts",
+      "query": "three birds flying over a black castle",
+      "candidates": [
+        { "id": "bird-skeleton", "text": "articulated bird with paired wings in a flying pose", "types": ["actor", "pose"] },
+        { "id": "molecule", "text": "molecular nodes joined by bonds", "types": ["particle"] },
+        { "id": "table", "text": "rectangular table with four legs", "types": ["object"] },
+        { "id": "water", "text": "blue water basin", "types": ["environment"] }
+      ],
+      "minimumScore": 0.08,
+      "minimumMargin": 0.015
+    }
+  ]
+}

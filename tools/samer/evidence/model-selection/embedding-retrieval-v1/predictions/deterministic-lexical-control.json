@@ -1,0 +1,4708 @@
+{
+  "schema": "simulatte.modelCandidatePredictions.v1",
+  "candidateId": "deterministic-lexical-control",
+  "task": "embedding-retrieval",
+  "kind": "deterministic-rules",
+  "model": {
+    "executed": false
+  },
+  "modelId": null,
+  "revision": null,
+  "runtime": {
+    "id": "python-transformers-candidate-screen-v1",
+    "python": "3.13.2",
+    "deviceId": "cpu",
+    "dtype": "f32"
+  },
+  "rows": [
+    {
+      "id": "ret-7e5fad1c8958c0d5",
+      "ranking": [
+        "protein-folding",
+        "protein-folding-wrong",
+        "protein-folding-related",
+        "protein-folding-hard",
+        "protein-folding-generic"
+      ],
+      "scores": [
+        {
+          "id": "protein-folding",
+          "score": 0.6899535095191562
+        },
+        {
+          "id": "protein-folding-wrong",
+          "score": 0.07416750812364792
+        },
+        {
+          "id": "protein-folding-related",
+          "score": 0.07046536846093916
+        },
+        {
+          "id": "protein-folding-hard",
+          "score": 0.03428607416830696
+        },
+        {
+          "id": "protein-folding-generic",
+          "score": 0.024049485794086924
+        }
+      ],
+      "refused": false,
+      "margin": 0.6157860013955083,
+      "durationMs": 0.32025
+    },
+    {
+      "id": "ret-refuse-17bee6713d4c16a4",
+      "ranking": [
+        "television-related",
+        "television-generic",
+        "television-hard",
+        "television",
+        "television-wrong"
+      ],
+      "scores": [
+        {
+          "id": "television-related",
+          "score": 0.03928176753472014
+        },
+        {
+          "id": "television-generic",
+          "score": 0.02915487819427547
+        },
+        {
+          "id": "television-hard",
+          "score": 0.01934623393490392
+        },
+        {
+          "id": "television",
+          "score": 0.014030368679963873
+        },
+        {
+          "id": "television-wrong",
+          "score": 0.011478081984467262
+        }
+      ],
+      "refused": true,
+      "margin": 0.010126889340444669,
+      "durationMs": 0.194584
+    },
+    {
+      "id": "ret-bc74cd8cb7e89264",
+      "ranking": [
+        "cat-wrong",
+        "cat-related",
+        "cat-hard",
+        "cat",
+        "cat-generic"
+      ],
+      "scores": [
+        {
+          "id": "cat-wrong",
+          "score": 0.22254535850644816
+        },
+        {
+          "id": "cat-related",
+          "score": 0.19800196145322338
+        },
+        {
+          "id": "cat-hard",
+          "score": 0.17315881062914704
+        },
+        {
+          "id": "cat",
+          "score": 0.12844114446555543
+        },
+        {
+          "id": "cat-generic",
+          "score": 0.08689623262603202
+        }
+      ],
+      "refused": false,
+      "margin": 0.02454339705322478,
+      "durationMs": 0.129125
+    },
+    {
+      "id": "ret-913e2d27f87a81a3",
+      "ranking": [
+        "sunset-related",
+        "sunset-wrong",
+        "sunset",
+        "sunset-hard",
+        "sunset-generic"
+      ],
+      "scores": [
+        {
+          "id": "sunset-related",
+          "score": 0.3139516013885328
+        },
+        {
+          "id": "sunset-wrong",
+          "score": 0.25553036714099836
+        },
+        {
+          "id": "sunset",
+          "score": 0.2491775699571297
+        },
+        {
+          "id": "sunset-hard",
+          "score": 0.24628856912092456
+        },
+        {
+          "id": "sunset-generic",
+          "score": 0.1249787005622125
+        }
+      ],
+      "refused": false,
+      "margin": 0.058421234247534426,
+      "durationMs": 0.136625
+    },
+    {
+      "id": "ret-refuse-4a34799d94b849f9",
+      "ranking": [
+        "airplane-wrong",
+        "airplane-related",
+        "airplane",
+        "airplane-generic",
+        "airplane-hard"
+      ],
+      "scores": [
+        {
+          "id": "airplane-wrong",
+          "score": 0.06619829254668456
+        },
+        {
+          "id": "airplane-related",
+          "score": 0.04375104488976694
+        },
+        {
+          "id": "airplane",
+          "score": 0.030074316684445178
+        },
+        {
+          "id": "airplane-generic",
+          "score": 0.016854782514672602
+        },
+        {
+          "id": "airplane-hard",
+          "score": 0.0
+        }
+      ],
+      "refused": true,
+      "margin": 0.022447247656917628,
+      "durationMs": 0.17
+    },
+    {
+      "id": "ret-422de501a1b35bb3",
+      "ranking": [
+        "chair-related",
+        "chair",
+        "chair-wrong",
+        "chair-hard",
+        "chair-generic"
+      ],
+      "scores": [
+        {
+          "id": "chair-related",
+          "score": 0.2902919269889506
+        },
+        {
+          "id": "chair",
+          "score": 0.26591034672138036
+        },
+        {
+          "id": "chair-wrong",
+          "score": 0.24485943570843055
+        },
+        {
+          "id": "chair-hard",
+          "score": 0.20913129724350665
+        },
+        {
+          "id": "chair-generic",
+          "score": 0.1089038817967418
+        }
+      ],
+      "refused": false,
+      "margin": 0.024381580267570258,
+      "durationMs": 0.142792
+    },
+    {
+      "id": "ret-21e020d238ab0fd4",
+      "ranking": [
+        "bird",
+        "bird-wrong",
+        "bird-related",
+        "bird-generic",
+        "bird-hard"
+      ],
+      "scores": [
+        {
+          "id": "bird",
+          "score": 0.6254114302556254
+        },
+        {
+          "id": "bird-wrong",
+          "score": 0.023886696799127766
+        },
+        {
+          "id": "bird-related",
+          "score": 0.019464900407999336
+        },
+        {
+          "id": "bird-generic",
+          "score": 0.01001410622999834
+        },
+        {
+          "id": "bird-hard",
+          "score": 0.0
+        }
+      ],
+      "refused": false,
+      "margin": 0.6015247334564976,
+      "durationMs": 0.184
+    },
+    {
+      "id": "ret-64453c9e9a95d525",
+      "ranking": [
+        "shade-route",
+        "shade-route-wrong",
+        "shade-route-generic",
+        "shade-route-hard",
+        "shade-route-related"
+      ],
+      "scores": [
+        {
+          "id": "shade-route",
+          "score": 0.8043329501181283
+        },
+        {
+          "id": "shade-route-wrong",
+          "score": 0.050295032880215695
+        },
+        {
+          "id": "shade-route-generic",
+          "score": 0.028588433432964553
+        },
+        {
+          "id": "shade-route-hard",
+          "score": 0.0
+        },
+        {
+          "id": "shade-route-related",
+          "score": 0.0
+        }
+      ],
+      "refused": false,
+      "margin": 0.7540379172379126,
+      "durationMs": 0.207834
+    },
+    {
+      "id": "ret-5e452b917ceae3a0",
+      "ranking": [
+        "bicycle",
+        "bicycle-wrong",
+        "bicycle-related",
+        "bicycle-hard",
+        "bicycle-generic"
+      ],
+      "scores": [
+        {
+          "id": "bicycle",
+          "score": 0.8191446009718849
+        },
+        {
+          "id": "bicycle-wrong",
+          "score": 0.08088843202717827
+        },
+        {
+          "id": "bicycle-related",
+          "score": 0.06852913237625037
+        },
+        {
+          "id": "bicycle-hard",
+          "score": 0.009293580933053937
+        },
+        {
+          "id": "bicycle-generic",
+          "score": 0.005273671837596032
+        }
+      ],
+      "refused": false,
+      "margin": 0.7382561689447067,
+      "durationMs": 0.178958
+    },
+    {
+      "id": "ret-97d2c2f711310c8b",
+      "ranking": [
+        "sunset",
+        "sunset-wrong",
+        "sunset-generic",
+        "sunset-related",
+        "sunset-hard"
+      ],
+      "scores": [
+        {
+          "id": "sunset",
+          "score": 0.7034160594181619
+        },
+        {
+          "id": "sunset-wrong",
+          "score": 0.11545279146454956
+        },
+        {
+          "id": "sunset-generic",
+          "score": 0.01557215347696558
+        },
+        {
+          "id": "sunset-related",
+          "score": 0.007328055461630928
+        },
+        {
+          "id": "sunset-hard",
+          "score": 0.0
+        }
+      ],
+      "refused": false,
+      "margin": 0.5879632679536123,
+      "durationMs": 0.210833
+    },
+    {
+      "id": "ret-30142fe5d0880f0b",
+      "ranking": [
+        "battery-related",
+        "battery-wrong",
+        "battery-hard",
+        "battery",
+        "battery-generic"
+      ],
+      "scores": [
+        {
+          "id": "battery-related",
+          "score": 0.2786734376033538
+        },
+        {
+          "id": "battery-wrong",
+          "score": 0.26589624910365894
+        },
+        {
+          "id": "battery-hard",
+          "score": 0.24370286544335973
+        },
+        {
+          "id": "battery",
+          "score": 0.1679637998925767
+        },
+        {
+          "id": "battery-generic",
+          "score": 0.12979246902593805
+        }
+      ],
+      "refused": true,
+      "margin": 0.012777188499694836,
+      "durationMs": 0.139791
+    },
+    {
+      "id": "ret-c66d4c0080863f3d",
+      "ranking": [
+        "cat-wrong",
+        "cat-related",
+        "cat-hard",
+        "cat",
+        "cat-generic"
+      ],
+      "scores": [
+        {
+          "id": "cat-wrong",
+          "score": 0.22254535850644816
+        },
+        {
+          "id": "cat-related",
+          "score": 0.19800196145322338
+        },
+        {
+          "id": "cat-hard",
+          "score": 0.17315881062914704
+        },
+        {
+          "id": "cat",
+          "score": 0.12844114446555543
+        },
+        {
+          "id": "cat-generic",
+          "score": 0.08689623262603202
+        }
+      ],
+      "refused": false,
+      "margin": 0.02454339705322478,
+      "durationMs": 0.122458
+    },
+    {
+      "id": "ret-98eb7542b2bb3e34",
+      "ranking": [
+        "chair-related",
+        "chair",
+        "chair-wrong",
+        "chair-hard",
+        "chair-generic"
+      ],
+      "scores": [
+        {
+          "id": "chair-related",
+          "score": 0.2902919269889506
+        },
+        {
+          "id": "chair",
+          "score": 0.26591034672138036
+        },
+        {
+          "id": "chair-wrong",
+          "score": 0.24485943570843055
+        },
+        {
+          "id": "chair-hard",
+          "score": 0.20913129724350665
+        },
+        {
+          "id": "chair-generic",
+          "score": 0.1089038817967418
+        }
+      ],
+      "refused": false,
+      "margin": 0.024381580267570258,
+      "durationMs": 0.12525
+    },
+    {
+      "id": "ret-c85b9cce5c068da6",
+      "ranking": [
+        "person-hard",
+        "person-related",
+        "person",
+        "person-wrong",
+        "person-generic"
+      ],
+      "scores": [
+        {
+          "id": "person-hard",
+          "score": 0.2194432292189476
+        },
+        {
+          "id": "person-related",
+          "score": 0.20492579612825548
+        },
+        {
+          "id": "person",
+          "score": 0.15667645136539823
+        },
+        {
+          "id": "person-wrong",
+          "score": 0.131047305869569
+        },
+        {
+          "id": "person-generic",
+          "score": 0.11025043754952804
+        }
+      ],
+      "refused": true,
+      "margin": 0.014517433090692117,
+      "durationMs": 0.140791
+    },
+    {
+      "id": "ret-refuse-c727645be444000e",
+      "ranking": [
+        "bird-generic",
+        "bird-related",
+        "bird",
+        "bird-hard",
+        "bird-wrong"
+      ],
+      "scores": [
+        {
+          "id": "bird-generic",
+          "score": 0.02391960526333167
+        },
+        {
+          "id": "bird-related",
+          "score": 0.018597475343517897
+        },
+        {
+          "id": "bird",
+          "score": 0.015627925557578113
+        },
+        {
+          "id": "bird-hard",
+          "score": 0.00976044765599959
+        },
+        {
+          "id": "bird-wrong",
+          "score": 0.005705555197411952
+        }
+      ],
+      "refused": true,
+      "margin": 0.005322129919813772,
+      "durationMs": 0.172708
+    },
+    {
+      "id": "ret-63896a093c8f3a90",
+      "ranking": [
+        "galaxy",
+        "galaxy-hard",
+        "galaxy-generic",
+        "galaxy-related",
+        "galaxy-wrong"
+      ],
+      "scores": [
+        {
+          "id": "galaxy",
+          "score": 0.7849229699397043
+        },
+        {
+          "id": "galaxy-hard",
+          "score": 0.1593701651537366
+        },
+        {
+          "id": "galaxy-generic",
+          "score": 0.09950618886892873
+        },
+        {
+          "id": "galaxy-related",
+          "score": 0.020082266867302738
+        },
+        {
+          "id": "galaxy-wrong",
+          "score": 0.013726240204252498
+        }
+      ],
+      "refused": false,
+      "margin": 0.6255528047859678,
+      "durationMs": 0.234792
+    },
+    {
+      "id": "ret-2d203f15c5cb4a18",
+      "ranking": [
+        "watershed",
+        "watershed-wrong",
+        "watershed-related",
+        "watershed-hard",
+        "watershed-generic"
+      ],
+      "scores": [
+        {
+          "id": "watershed",
+          "score": 0.6320299053272544
+        },
+        {
+          "id": "watershed-wrong",
+          "score": 0.1336566925126898
+        },
+        {
+          "id": "watershed-related",
+          "score": 0.09067810715171624
+        },
+        {
+          "id": "watershed-hard",
+          "score": 0.06202260437152864
+        },
+        {
+          "id": "watershed-generic",
+          "score": 0.04666374149710098
+        }
+      ],
+      "refused": false,
+      "margin": 0.49837321281456465,
+      "durationMs": 0.207709
+    },
+    {
+      "id": "ret-refuse-73b6d27a3a9563e5",
+      "ranking": [
+        "battery-wrong",
+        "battery-related",
+        "battery-generic",
+        "battery",
+        "battery-hard"
+      ],
+      "scores": [
+        {
+          "id": "battery-wrong",
+          "score": 0.06693576985699164
+        },
+        {
+          "id": "battery-related",
+          "score": 0.047542921956385216
+        },
+        {
+          "id": "battery-generic",
+          "score": 0.016921690002652284
+        },
+        {
+          "id": "battery",
+          "score": 0.0
+        },
+        {
+          "id": "battery-hard",
+          "score": 0.0
+        }
+      ],
+      "refused": true,
+      "margin": 0.01939284790060642,
+      "durationMs": 0.145875
+    },
+    {
+      "id": "ret-35da23f7f6152747",
+      "ranking": [
+        "watershed",
+        "watershed-wrong",
+        "watershed-related",
+        "watershed-hard",
+        "watershed-generic"
+      ],
+      "scores": [
+        {
+          "id": "watershed",
+          "score": 0.8068384563025806
+        },
+        {
+          "id": "watershed-wrong",
+          "score": 0.09505432182018926
+        },
+        {
+          "id": "watershed-related",
+          "score": 0.08014022637494263
+        },
+        {
+          "id": "watershed-hard",
+          "score": 0.07917698505275447
+        },
+        {
+          "id": "watershed-generic",
+          "score": 0.04873919407600316
+        }
+      ],
+      "refused": false,
+      "margin": 0.7117841344823913,
+      "durationMs": 0.158917
+    },
+    {
+      "id": "ret-f7d23818a414e435",
+      "ranking": [
+        "chair",
+        "chair-wrong",
+        "chair-generic",
+        "chair-related",
+        "chair-hard"
+      ],
+      "scores": [
+        {
+          "id": "chair",
+          "score": 0.651790698309458
+        },
+        {
+          "id": "chair-wrong",
+          "score": 0.12473516434624468
+        },
+        {
+          "id": "chair-generic",
+          "score": 0.07556936425810501
+        },
+        {
+          "id": "chair-related",
+          "score": 0.00878666536183488
+        },
+        {
+          "id": "chair-hard",
+          "score": 0.0
+        }
+      ],
+      "refused": false,
+      "margin": 0.5270555339632134,
+      "durationMs": 0.182209
+    },
+    {
+      "id": "ret-623e89cf1eb3c45a",
+      "ranking": [
+        "shade-route-hard",
+        "shade-route-related",
+        "shade-route",
+        "shade-route-wrong",
+        "shade-route-generic"
+      ],
+      "scores": [
+        {
+          "id": "shade-route-hard",
+          "score": 0.410386109868161
+        },
+        {
+          "id": "shade-route-related",
+          "score": 0.3215584952974256
+        },
+        {
+          "id": "shade-route",
+          "score": 0.2482049182792376
+        },
+        {
+          "id": "shade-route-wrong",
+          "score": 0.22893366538350587
+        },
+        {
+          "id": "shade-route-generic",
+          "score": 0.19519387338810515
+        }
+      ],
+      "refused": false,
+      "margin": 0.0888276145707354,
+      "durationMs": 0.160459
+    },
+    {
+      "id": "ret-5ab3ab6566d49a97",
+      "ranking": [
+        "building",
+        "building-wrong",
+        "building-generic",
+        "building-related",
+        "building-hard"
+      ],
+      "scores": [
+        {
+          "id": "building",
+          "score": 0.7378095590457944
+        },
+        {
+          "id": "building-wrong",
+          "score": 0.09546223504749073
+        },
+        {
+          "id": "building-generic",
+          "score": 0.0782073450082735
+        },
+        {
+          "id": "building-related",
+          "score": 0.03264919969687608
+        },
+        {
+          "id": "building-hard",
+          "score": 0.020522950163934742
+        }
+      ],
+      "refused": false,
+      "margin": 0.6423473239983036,
+      "durationMs": 0.218042
+    },
+    {
+      "id": "ret-143bbf3586111413",
+      "ranking": [
+        "building",
+        "building-wrong",
+        "building-generic",
+        "building-related",
+        "building-hard"
+      ],
+      "scores": [
+        {
+          "id": "building",
+          "score": 0.8481336485101643
+        },
+        {
+          "id": "building-wrong",
+          "score": 0.10493337400206972
+        },
+        {
+          "id": "building-generic",
+          "score": 0.09050900370134643
+        },
+        {
+          "id": "building-related",
+          "score": 0.028338577430591178
+        },
+        {
+          "id": "building-hard",
+          "score": 0.023751116626623915
+        }
+      ],
+      "refused": false,
+      "margin": 0.7432002745080946,
+      "durationMs": 0.188375
+    },
+    {
+      "id": "ret-00b54268071d82df",
+      "ranking": [
+        "chair",
+        "chair-wrong",
+        "chair-generic",
+        "chair-related",
+        "chair-hard"
+      ],
+      "scores": [
+        {
+          "id": "chair",
+          "score": 0.6469692141295031
+        },
+        {
+          "id": "chair-wrong",
+          "score": 0.08036013587140009
+        },
+        {
+          "id": "chair-generic",
+          "score": 0.07718811011022342
+        },
+        {
+          "id": "chair-related",
+          "score": 0.010102010531658155
+        },
+        {
+          "id": "chair-hard",
+          "score": 0.0
+        }
+      ],
+      "refused": false,
+      "margin": 0.566609078258103,
+      "durationMs": 0.169
+    },
+    {
+      "id": "ret-ff91482eb651b9f8",
+      "ranking": [
+        "castle",
+        "castle-hard",
+        "castle-generic",
+        "castle-wrong",
+        "castle-related"
+      ],
+      "scores": [
+        {
+          "id": "castle",
+          "score": 0.8123604618062121
+        },
+        {
+          "id": "castle-hard",
+          "score": 0.15761374205965561
+        },
+        {
+          "id": "castle-generic",
+          "score": 0.0872736022951858
+        },
+        {
+          "id": "castle-wrong",
+          "score": 0.04559777074609999
+        },
+        {
+          "id": "castle-related",
+          "score": 0.010577021960680092
+        }
+      ],
+      "refused": false,
+      "margin": 0.6547467197465565,
+      "durationMs": 0.161
+    },
+    {
+      "id": "ret-73892e260755c46b",
+      "ranking": [
+        "building",
+        "building-wrong",
+        "building-generic",
+        "building-related",
+        "building-hard"
+      ],
+      "scores": [
+        {
+          "id": "building",
+          "score": 0.7188330641826144
+        },
+        {
+          "id": "building-wrong",
+          "score": 0.13416714521690992
+        },
+        {
+          "id": "building-generic",
+          "score": 0.07849339017297292
+        },
+        {
+          "id": "building-related",
+          "score": 0.029636639789763393
+        },
+        {
+          "id": "building-hard",
+          "score": 0.018629286079866636
+        }
+      ],
+      "refused": false,
+      "margin": 0.5846659189657044,
+      "durationMs": 0.248708
+    },
+    {
+      "id": "ret-cc4b1a1a3f803c60",
+      "ranking": [
+        "castle",
+        "castle-hard",
+        "castle-wrong",
+        "castle-generic",
+        "castle-related"
+      ],
+      "scores": [
+        {
+          "id": "castle",
+          "score": 0.636355520434485
+        },
+        {
+          "id": "castle-hard",
+          "score": 0.1234653575249024
+        },
+        {
+          "id": "castle-wrong",
+          "score": 0.0965688956023416
+        },
+        {
+          "id": "castle-generic",
+          "score": 0.0769507809292341
+        },
+        {
+          "id": "castle-related",
+          "score": 0.01657083679200815
+        }
+      ],
+      "refused": false,
+      "margin": 0.5128901629095826,
+      "durationMs": 0.211167
+    },
+    {
+      "id": "ret-1bfbcaf49e7db5f6",
+      "ranking": [
+        "castle",
+        "castle-hard",
+        "castle-wrong",
+        "castle-generic",
+        "castle-related"
+      ],
+      "scores": [
+        {
+          "id": "castle",
+          "score": 0.636355520434485
+        },
+        {
+          "id": "castle-hard",
+          "score": 0.1234653575249024
+        },
+        {
+          "id": "castle-wrong",
+          "score": 0.0965688956023416
+        },
+        {
+          "id": "castle-generic",
+          "score": 0.0769507809292341
+        },
+        {
+          "id": "castle-related",
+          "score": 0.01657083679200815
+        }
+      ],
+      "refused": false,
+      "margin": 0.5128901629095826,
+      "durationMs": 0.197708
+    },
+    {
+      "id": "ret-a9e27ad859204eef",
+      "ranking": [
+        "robot-gripper",
+        "robot-gripper-wrong",
+        "robot-gripper-related",
+        "robot-gripper-hard",
+        "robot-gripper-generic"
+      ],
+      "scores": [
+        {
+          "id": "robot-gripper",
+          "score": 0.6807562168831655
+        },
+        {
+          "id": "robot-gripper-wrong",
+          "score": 0.0861849106060324
+        },
+        {
+          "id": "robot-gripper-related",
+          "score": 0.06772592244292192
+        },
+        {
+          "id": "robot-gripper-hard",
+          "score": 0.03228686339164121
+        },
+        {
+          "id": "robot-gripper-generic",
+          "score": 0.012342955920346598
+        }
+      ],
+      "refused": false,
+      "margin": 0.5945713062771331,
+      "durationMs": 0.223916
+    },
+    {
+      "id": "ret-959857dcda3beaf9",
+      "ranking": [
+        "cat-wrong",
+        "cat-related",
+        "cat-hard",
+        "cat",
+        "cat-generic"
+      ],
+      "scores": [
+        {
+          "id": "cat-wrong",
+          "score": 0.22254535850644816
+        },
+        {
+          "id": "cat-related",
+          "score": 0.19800196145322338
+        },
+        {
+          "id": "cat-hard",
+          "score": 0.17315881062914704
+        },
+        {
+          "id": "cat",
+          "score": 0.12844114446555543
+        },
+        {
+          "id": "cat-generic",
+          "score": 0.08689623262603202
+        }
+      ],
+      "refused": false,
+      "margin": 0.02454339705322478,
+      "durationMs": 0.131541
+    },
+    {
+      "id": "ret-7d0b6d48211dbf83",
+      "ranking": [
+        "sunset-related",
+        "sunset-wrong",
+        "sunset",
+        "sunset-hard",
+        "sunset-generic"
+      ],
+      "scores": [
+        {
+          "id": "sunset-related",
+          "score": 0.3139516013885328
+        },
+        {
+          "id": "sunset-wrong",
+          "score": 0.25553036714099836
+        },
+        {
+          "id": "sunset",
+          "score": 0.2491775699571297
+        },
+        {
+          "id": "sunset-hard",
+          "score": 0.24628856912092456
+        },
+        {
+          "id": "sunset-generic",
+          "score": 0.1249787005622125
+        }
+      ],
+      "refused": false,
+      "margin": 0.058421234247534426,
+      "durationMs": 0.14125
+    },
+    {
+      "id": "ret-df85629b37d098be",
+      "ranking": [
+        "bridge",
+        "bridge-generic",
+        "bridge-related",
+        "bridge-wrong",
+        "bridge-hard"
+      ],
+      "scores": [
+        {
+          "id": "bridge",
+          "score": 0.6930506886333575
+        },
+        {
+          "id": "bridge-generic",
+          "score": 0.09877165531775578
+        },
+        {
+          "id": "bridge-related",
+          "score": 0.044833276906126075
+        },
+        {
+          "id": "bridge-wrong",
+          "score": 0.03194782701213514
+        },
+        {
+          "id": "bridge-hard",
+          "score": 0.0
+        }
+      ],
+      "refused": false,
+      "margin": 0.5942790333156017,
+      "durationMs": 0.203208
+    },
+    {
+      "id": "ret-4feed73e59d03719",
+      "ranking": [
+        "watershed-related",
+        "watershed-wrong",
+        "watershed-hard",
+        "watershed",
+        "watershed-generic"
+      ],
+      "scores": [
+        {
+          "id": "watershed-related",
+          "score": 0.3125057209249026
+        },
+        {
+          "id": "watershed-wrong",
+          "score": 0.29619363004570637
+        },
+        {
+          "id": "watershed-hard",
+          "score": 0.2523981015012756
+        },
+        {
+          "id": "watershed",
+          "score": 0.24087383720005337
+        },
+        {
+          "id": "watershed-generic",
+          "score": 0.14965094801289455
+        }
+      ],
+      "refused": false,
+      "margin": 0.016312090879196217,
+      "durationMs": 0.153875
+    },
+    {
+      "id": "ret-refuse-91c1e24b79da6d62",
+      "ranking": [
+        "cat-wrong",
+        "cat-generic",
+        "cat",
+        "cat-related",
+        "cat-hard"
+      ],
+      "scores": [
+        {
+          "id": "cat-wrong",
+          "score": 0.01751438241146516
+        },
+        {
+          "id": "cat-generic",
+          "score": 0.014659728682302555
+        },
+        {
+          "id": "cat",
+          "score": 0.007781656340141814
+        },
+        {
+          "id": "cat-related",
+          "score": 0.007781656340141814
+        },
+        {
+          "id": "cat-hard",
+          "score": 0.0
+        }
+      ],
+      "refused": true,
+      "margin": 0.002854653729162604,
+      "durationMs": 0.173542
+    },
+    {
+      "id": "ret-refuse-0bae64f094bf802c",
+      "ranking": [
+        "tree-wrong",
+        "tree-related",
+        "tree-generic",
+        "tree",
+        "tree-hard"
+      ],
+      "scores": [
+        {
+          "id": "tree-wrong",
+          "score": 0.06808970860544737
+        },
+        {
+          "id": "tree-related",
+          "score": 0.05113732262524827
+        },
+        {
+          "id": "tree-generic",
+          "score": 0.017127296776408542
+        },
+        {
+          "id": "tree",
+          "score": 0.016643801295117673
+        },
+        {
+          "id": "tree-hard",
+          "score": 0.0
+        }
+      ],
+      "refused": true,
+      "margin": 0.016952385980199103,
+      "durationMs": 0.150459
+    },
+    {
+      "id": "ret-c9797ed318e4df2e",
+      "ranking": [
+        "shade-route",
+        "shade-route-wrong",
+        "shade-route-generic",
+        "shade-route-hard",
+        "shade-route-related"
+      ],
+      "scores": [
+        {
+          "id": "shade-route",
+          "score": 0.8043329501181283
+        },
+        {
+          "id": "shade-route-wrong",
+          "score": 0.050295032880215695
+        },
+        {
+          "id": "shade-route-generic",
+          "score": 0.028588433432964553
+        },
+        {
+          "id": "shade-route-hard",
+          "score": 0.0
+        },
+        {
+          "id": "shade-route-related",
+          "score": 0.0
+        }
+      ],
+      "refused": false,
+      "margin": 0.7540379172379126,
+      "durationMs": 0.1985
+    },
+    {
+      "id": "ret-823dd068153c0df5",
+      "ranking": [
+        "castle",
+        "castle-hard",
+        "castle-generic",
+        "castle-wrong",
+        "castle-related"
+      ],
+      "scores": [
+        {
+          "id": "castle",
+          "score": 0.8123604618062121
+        },
+        {
+          "id": "castle-hard",
+          "score": 0.15761374205965561
+        },
+        {
+          "id": "castle-generic",
+          "score": 0.0872736022951858
+        },
+        {
+          "id": "castle-wrong",
+          "score": 0.04559777074609999
+        },
+        {
+          "id": "castle-related",
+          "score": 0.010577021960680092
+        }
+      ],
+      "refused": false,
+      "margin": 0.6547467197465565,
+      "durationMs": 0.166834
+    },
+    {
+      "id": "ret-fce0acd83a11ca50",
+      "ranking": [
+        "dog-related",
+        "dog-wrong",
+        "dog-hard",
+        "dog",
+        "dog-generic"
+      ],
+      "scores": [
+        {
+          "id": "dog-related",
+          "score": 0.2581162102723173
+        },
+        {
+          "id": "dog-wrong",
+          "score": 0.22254535850644816
+        },
+        {
+          "id": "dog-hard",
+          "score": 0.1694309758950989
+        },
+        {
+          "id": "dog",
+          "score": 0.12101754636923293
+        },
+        {
+          "id": "dog-generic",
+          "score": 0.08689623262603202
+        }
+      ],
+      "refused": false,
+      "margin": 0.03557085176586913,
+      "durationMs": 0.131542
+    },
+    {
+      "id": "ret-refuse-d6f69dcb2acd223b",
+      "ranking": [
+        "television-wrong",
+        "television-related",
+        "television-generic",
+        "television",
+        "television-hard"
+      ],
+      "scores": [
+        {
+          "id": "television-wrong",
+          "score": 0.016836891466879656
+        },
+        {
+          "id": "television-related",
+          "score": 0.015365699774678904
+        },
+        {
+          "id": "television-generic",
+          "score": 0.014255503679429873
+        },
+        {
+          "id": "television",
+          "score": 0.013720515037531827
+        },
+        {
+          "id": "television-hard",
+          "score": 0.0
+        }
+      ],
+      "refused": true,
+      "margin": 0.0014711916922007517,
+      "durationMs": 0.187542
+    },
+    {
+      "id": "ret-b78706cee6f5b5b3",
+      "ranking": [
+        "battery",
+        "battery-wrong",
+        "battery-generic",
+        "battery-related",
+        "battery-hard"
+      ],
+      "scores": [
+        {
+          "id": "battery",
+          "score": 0.6258047085076482
+        },
+        {
+          "id": "battery-wrong",
+          "score": 0.06642988686190686
+        },
+        {
+          "id": "battery-generic",
+          "score": 0.06496530123132177
+        },
+        {
+          "id": "battery-related",
+          "score": 0.029204083004283177
+        },
+        {
+          "id": "battery-hard",
+          "score": 0.017041400117274383
+        }
+      ],
+      "refused": false,
+      "margin": 0.5593748216457414,
+      "durationMs": 0.229375
+    },
+    {
+      "id": "ret-9f20dd3f38676b96",
+      "ranking": [
+        "airplane-hard",
+        "airplane-related",
+        "airplane",
+        "airplane-wrong",
+        "airplane-generic"
+      ],
+      "scores": [
+        {
+          "id": "airplane-hard",
+          "score": 0.27227758912686556
+        },
+        {
+          "id": "airplane-related",
+          "score": 0.26051318958814995
+        },
+        {
+          "id": "airplane",
+          "score": 0.20781309035472847
+        },
+        {
+          "id": "airplane-wrong",
+          "score": 0.16179866950889787
+        },
+        {
+          "id": "airplane-generic",
+          "score": 0.1313289565525643
+        }
+      ],
+      "refused": true,
+      "margin": 0.011764399538715609,
+      "durationMs": 0.156083
+    },
+    {
+      "id": "ret-3397789a8b8368d0",
+      "ranking": [
+        "sunset-related",
+        "sunset-hard",
+        "sunset",
+        "sunset-wrong",
+        "sunset-generic"
+      ],
+      "scores": [
+        {
+          "id": "sunset-related",
+          "score": 0.2528282395982402
+        },
+        {
+          "id": "sunset-hard",
+          "score": 0.23926731243016566
+        },
+        {
+          "id": "sunset",
+          "score": 0.15186233500001875
+        },
+        {
+          "id": "sunset-wrong",
+          "score": 0.131047305869569
+        },
+        {
+          "id": "sunset-generic",
+          "score": 0.11593710609104015
+        }
+      ],
+      "refused": true,
+      "margin": 0.013560927168074527,
+      "durationMs": 0.144584
+    },
+    {
+      "id": "ret-9f75849350f46ef9",
+      "ranking": [
+        "airplane",
+        "airplane-wrong",
+        "airplane-related",
+        "airplane-hard",
+        "airplane-generic"
+      ],
+      "scores": [
+        {
+          "id": "airplane",
+          "score": 0.638111989336131
+        },
+        {
+          "id": "airplane-wrong",
+          "score": 0.09907990119245602
+        },
+        {
+          "id": "airplane-related",
+          "score": 0.07230145364071289
+        },
+        {
+          "id": "airplane-hard",
+          "score": 0.026248861683914125
+        },
+        {
+          "id": "airplane-generic",
+          "score": 0.02532147891198505
+        }
+      ],
+      "refused": false,
+      "margin": 0.539032088143675,
+      "durationMs": 0.226458
+    },
+    {
+      "id": "ret-refuse-11a526035f676827",
+      "ranking": [
+        "person-wrong",
+        "person-generic",
+        "person-related",
+        "person",
+        "person-hard"
+      ],
+      "scores": [
+        {
+          "id": "person-wrong",
+          "score": 0.0120128385206781
+        },
+        {
+          "id": "person-generic",
+          "score": 0.010106432134017141
+        },
+        {
+          "id": "person-related",
+          "score": 0.008896265176840617
+        },
+        {
+          "id": "person",
+          "score": 0.007181104936711488
+        },
+        {
+          "id": "person-hard",
+          "score": 0.0
+        }
+      ],
+      "refused": true,
+      "margin": 0.0019064063866609578,
+      "durationMs": 0.183333
+    },
+    {
+      "id": "ret-0a0d38cbf0930af4",
+      "ranking": [
+        "protein-folding-related",
+        "protein-folding-wrong",
+        "protein-folding-hard",
+        "protein-folding",
+        "protein-folding-generic"
+      ],
+      "scores": [
+        {
+          "id": "protein-folding-related",
+          "score": 0.41600862929357163
+        },
+        {
+          "id": "protein-folding-wrong",
+          "score": 0.3883753515064646
+        },
+        {
+          "id": "protein-folding-hard",
+          "score": 0.3847164290934769
+        },
+        {
+          "id": "protein-folding",
+          "score": 0.3388769515064247
+        },
+        {
+          "id": "protein-folding-generic",
+          "score": 0.2501793705698065
+        }
+      ],
+      "refused": false,
+      "margin": 0.027633277787107058,
+      "durationMs": 0.180958
+    },
+    {
+      "id": "ret-refuse-96a5855c38d09596",
+      "ranking": [
+        "chair-wrong",
+        "chair-related",
+        "chair-generic",
+        "chair",
+        "chair-hard"
+      ],
+      "scores": [
+        {
+          "id": "chair-wrong",
+          "score": 0.012081471377284339
+        },
+        {
+          "id": "chair-related",
+          "score": 0.010574471512353903
+        },
+        {
+          "id": "chair-generic",
+          "score": 0.01014719838533524
+        },
+        {
+          "id": "chair",
+          "score": 0.0
+        },
+        {
+          "id": "chair-hard",
+          "score": 0.0
+        }
+      ],
+      "refused": true,
+      "margin": 0.0015069998649304365,
+      "durationMs": 0.175542
+    },
+    {
+      "id": "ret-ffd4608bfedc71c1",
+      "ranking": [
+        "galaxy",
+        "galaxy-hard",
+        "galaxy-generic",
+        "galaxy-related",
+        "galaxy-wrong"
+      ],
+      "scores": [
+        {
+          "id": "galaxy",
+          "score": 0.7849229699397043
+        },
+        {
+          "id": "galaxy-hard",
+          "score": 0.1593701651537366
+        },
+        {
+          "id": "galaxy-generic",
+          "score": 0.09950618886892873
+        },
+        {
+          "id": "galaxy-related",
+          "score": 0.020082266867302738
+        },
+        {
+          "id": "galaxy-wrong",
+          "score": 0.013726240204252498
+        }
+      ],
+      "refused": false,
+      "margin": 0.6255528047859678,
+      "durationMs": 0.249834
+    },
+    {
+      "id": "ret-a1a10e88cf37c21b",
+      "ranking": [
+        "dog",
+        "dog-wrong",
+        "dog-generic",
+        "dog-related",
+        "dog-hard"
+      ],
+      "scores": [
+        {
+          "id": "dog",
+          "score": 0.8372597288280763
+        },
+        {
+          "id": "dog-wrong",
+          "score": 0.07836550747464154
+        },
+        {
+          "id": "dog-generic",
+          "score": 0.05971789808772141
+        },
+        {
+          "id": "dog-related",
+          "score": 0.011946760805550448
+        },
+        {
+          "id": "dog-hard",
+          "score": 0.0
+        }
+      ],
+      "refused": false,
+      "margin": 0.7588942213534348,
+      "durationMs": 0.1515
+    },
+    {
+      "id": "ret-refuse-c60cceaa3b2474dd",
+      "ranking": [
+        "protein-folding",
+        "protein-folding-generic",
+        "protein-folding-hard",
+        "protein-folding-related",
+        "protein-folding-wrong"
+      ],
+      "scores": [
+        {
+          "id": "protein-folding",
+          "score": 0.03780761655063594
+        },
+        {
+          "id": "protein-folding-generic",
+          "score": 0.022356564455397042
+        },
+        {
+          "id": "protein-folding-hard",
+          "score": 0.0076494158782030326
+        },
+        {
+          "id": "protein-folding-related",
+          "score": 0.007146009003837753
+        },
+        {
+          "id": "protein-folding-wrong",
+          "score": 0.005170996243099109
+        }
+      ],
+      "refused": true,
+      "margin": 0.0154510520952389,
+      "durationMs": 0.214417
+    },
+    {
+      "id": "ret-cc7f859de24ee39b",
+      "ranking": [
+        "protein-folding",
+        "protein-folding-wrong",
+        "protein-folding-related",
+        "protein-folding-hard",
+        "protein-folding-generic"
+      ],
+      "scores": [
+        {
+          "id": "protein-folding",
+          "score": 0.6899535095191562
+        },
+        {
+          "id": "protein-folding-wrong",
+          "score": 0.07416750812364792
+        },
+        {
+          "id": "protein-folding-related",
+          "score": 0.07046536846093916
+        },
+        {
+          "id": "protein-folding-hard",
+          "score": 0.03428607416830696
+        },
+        {
+          "id": "protein-folding-generic",
+          "score": 0.024049485794086924
+        }
+      ],
+      "refused": false,
+      "margin": 0.6157860013955083,
+      "durationMs": 0.241166
+    },
+    {
+      "id": "ret-fcd265ab231ce6b9",
+      "ranking": [
+        "conveyor",
+        "conveyor-wrong",
+        "conveyor-hard",
+        "conveyor-related",
+        "conveyor-generic"
+      ],
+      "scores": [
+        {
+          "id": "conveyor",
+          "score": 0.8416688063678046
+        },
+        {
+          "id": "conveyor-wrong",
+          "score": 0.06695656317967928
+        },
+        {
+          "id": "conveyor-hard",
+          "score": 0.02701769175040806
+        },
+        {
+          "id": "conveyor-related",
+          "score": 0.02638539630271333
+        },
+        {
+          "id": "conveyor-generic",
+          "score": 0.02046991801125524
+        }
+      ],
+      "refused": false,
+      "margin": 0.7747122431881254,
+      "durationMs": 0.174542
+    },
+    {
+      "id": "ret-1f62749e79d35bc3",
+      "ranking": [
+        "bicycle",
+        "bicycle-wrong",
+        "bicycle-related",
+        "bicycle-hard",
+        "bicycle-generic"
+      ],
+      "scores": [
+        {
+          "id": "bicycle",
+          "score": 0.6959740448130457
+        },
+        {
+          "id": "bicycle-wrong",
+          "score": 0.07340728161763804
+        },
+        {
+          "id": "bicycle-related",
+          "score": 0.06597140819559917
+        },
+        {
+          "id": "bicycle-hard",
+          "score": 0.007828375685850538
+        },
+        {
+          "id": "bicycle-generic",
+          "score": 0.0044422364948432415
+        }
+      ],
+      "refused": false,
+      "margin": 0.6225667631954077,
+      "durationMs": 0.205709
+    },
+    {
+      "id": "ret-77dd0562c3535428",
+      "ranking": [
+        "galaxy-related",
+        "galaxy-hard",
+        "galaxy-wrong",
+        "galaxy",
+        "galaxy-generic"
+      ],
+      "scores": [
+        {
+          "id": "galaxy-related",
+          "score": 0.2024257207017503
+        },
+        {
+          "id": "galaxy-hard",
+          "score": 0.19910927896755368
+        },
+        {
+          "id": "galaxy-wrong",
+          "score": 0.131047305869569
+        },
+        {
+          "id": "galaxy",
+          "score": 0.12249358325845204
+        },
+        {
+          "id": "galaxy-generic",
+          "score": 0.11025043754952804
+        }
+      ],
+      "refused": true,
+      "margin": 0.0033164417341966235,
+      "durationMs": 0.157125
+    },
+    {
+      "id": "ret-23dc0fd5009a6235",
+      "ranking": [
+        "cat",
+        "cat-generic",
+        "cat-wrong",
+        "cat-related",
+        "cat-hard"
+      ],
+      "scores": [
+        {
+          "id": "cat",
+          "score": 0.6084861291790548
+        },
+        {
+          "id": "cat-generic",
+          "score": 0.08205637770160128
+        },
+        {
+          "id": "cat-wrong",
+          "score": 0.08162767451806416
+        },
+        {
+          "id": "cat-related",
+          "score": 0.029159193261027942
+        },
+        {
+          "id": "cat-hard",
+          "score": 0.010651910754700109
+        }
+      ],
+      "refused": false,
+      "margin": 0.5264297514774535,
+      "durationMs": 0.19625
+    },
+    {
+      "id": "ret-refuse-833514ac43665d0f",
+      "ranking": [
+        "robot-gripper-wrong",
+        "robot-gripper-related",
+        "robot-gripper",
+        "robot-gripper-generic",
+        "robot-gripper-hard"
+      ],
+      "scores": [
+        {
+          "id": "robot-gripper-wrong",
+          "score": 0.06955729542902339
+        },
+        {
+          "id": "robot-gripper-related",
+          "score": 0.06261007738186895
+        },
+        {
+          "id": "robot-gripper",
+          "score": 0.054083708439001094
+        },
+        {
+          "id": "robot-gripper-generic",
+          "score": 0.021734476602970516
+        },
+        {
+          "id": "robot-gripper-hard",
+          "score": 0.008527998659690903
+        }
+      ],
+      "refused": true,
+      "margin": 0.006947218047154438,
+      "durationMs": 0.168084
+    },
+    {
+      "id": "ret-baa82e2b9ad71ef1",
+      "ranking": [
+        "dog",
+        "dog-wrong",
+        "dog-generic",
+        "dog-related",
+        "dog-hard"
+      ],
+      "scores": [
+        {
+          "id": "dog",
+          "score": 0.7103229046575166
+        },
+        {
+          "id": "dog-wrong",
+          "score": 0.07073858343781156
+        },
+        {
+          "id": "dog-generic",
+          "score": 0.04975924881012197
+        },
+        {
+          "id": "dog-related",
+          "score": 0.019909000900372453
+        },
+        {
+          "id": "dog-hard",
+          "score": 0.0
+        }
+      ],
+      "refused": false,
+      "margin": 0.639584321219705,
+      "durationMs": 0.186166
+    },
+    {
+      "id": "ret-e2e65eb2f8572cf7",
+      "ranking": [
+        "person-related",
+        "person-wrong",
+        "person-hard",
+        "person",
+        "person-generic"
+      ],
+      "scores": [
+        {
+          "id": "person-related",
+          "score": 0.2817338402081824
+        },
+        {
+          "id": "person-wrong",
+          "score": 0.2603336245655798
+        },
+        {
+          "id": "person-hard",
+          "score": 0.2238837745021567
+        },
+        {
+          "id": "person",
+          "score": 0.18518560410530396
+        },
+        {
+          "id": "person-generic",
+          "score": 0.1243683518947979
+        }
+      ],
+      "refused": false,
+      "margin": 0.021400215642602582,
+      "durationMs": 0.147417
+    },
+    {
+      "id": "ret-fa512ae886532f0d",
+      "ranking": [
+        "castle-related",
+        "castle-wrong",
+        "castle-hard",
+        "castle",
+        "castle-generic"
+      ],
+      "scores": [
+        {
+          "id": "castle-related",
+          "score": 0.2884728516058013
+        },
+        {
+          "id": "castle-wrong",
+          "score": 0.25553036714099836
+        },
+        {
+          "id": "castle-hard",
+          "score": 0.19412252246680156
+        },
+        {
+          "id": "castle",
+          "score": 0.17549800999051582
+        },
+        {
+          "id": "castle-generic",
+          "score": 0.11948225446107505
+        }
+      ],
+      "refused": false,
+      "margin": 0.03294248446480291,
+      "durationMs": 0.143
+    },
+    {
+      "id": "ret-refuse-3dce7c1f81c0507c",
+      "ranking": [
+        "bicycle-wrong",
+        "bicycle-related",
+        "bicycle-generic",
+        "bicycle",
+        "bicycle-hard"
+      ],
+      "scores": [
+        {
+          "id": "bicycle-wrong",
+          "score": 0.06693576985699164
+        },
+        {
+          "id": "bicycle-related",
+          "score": 0.052354808581043244
+        },
+        {
+          "id": "bicycle-generic",
+          "score": 0.016921690002652284
+        },
+        {
+          "id": "bicycle",
+          "score": 0.015170949231736314
+        },
+        {
+          "id": "bicycle-hard",
+          "score": 0.0
+        }
+      ],
+      "refused": true,
+      "margin": 0.014580961275948393,
+      "durationMs": 0.153583
+    },
+    {
+      "id": "ret-59cfadba8685082a",
+      "ranking": [
+        "protein-folding-related",
+        "protein-folding-wrong",
+        "protein-folding-hard",
+        "protein-folding",
+        "protein-folding-generic"
+      ],
+      "scores": [
+        {
+          "id": "protein-folding-related",
+          "score": 0.41600862929357163
+        },
+        {
+          "id": "protein-folding-wrong",
+          "score": 0.3883753515064646
+        },
+        {
+          "id": "protein-folding-hard",
+          "score": 0.3847164290934769
+        },
+        {
+          "id": "protein-folding",
+          "score": 0.3388769515064247
+        },
+        {
+          "id": "protein-folding-generic",
+          "score": 0.2501793705698065
+        }
+      ],
+      "refused": false,
+      "margin": 0.027633277787107058,
+      "durationMs": 0.197625
+    },
+    {
+      "id": "ret-3ecab4e41705084f",
+      "ranking": [
+        "bird-related",
+        "bird-wrong",
+        "bird-hard",
+        "bird",
+        "bird-generic"
+      ],
+      "scores": [
+        {
+          "id": "bird-related",
+          "score": 0.25041145194156406
+        },
+        {
+          "id": "bird-wrong",
+          "score": 0.2338694129398444
+        },
+        {
+          "id": "bird-hard",
+          "score": 0.18747809577792746
+        },
+        {
+          "id": "bird",
+          "score": 0.15009013048151493
+        },
+        {
+          "id": "bird-generic",
+          "score": 0.09804591923369116
+        }
+      ],
+      "refused": false,
+      "margin": 0.01654203900171966,
+      "durationMs": 0.147209
+    },
+    {
+      "id": "ret-28a5163c82700294",
+      "ranking": [
+        "person",
+        "person-generic",
+        "person-related",
+        "person-wrong",
+        "person-hard"
+      ],
+      "scores": [
+        {
+          "id": "person",
+          "score": 0.806432598323796
+        },
+        {
+          "id": "person-generic",
+          "score": 0.09973961154847097
+        },
+        {
+          "id": "person-related",
+          "score": 0.06857113940805629
+        },
+        {
+          "id": "person-wrong",
+          "score": 0.05291042338802636
+        },
+        {
+          "id": "person-hard",
+          "score": 0.011075040889400718
+        }
+      ],
+      "refused": false,
+      "margin": 0.706692986775325,
+      "durationMs": 0.166667
+    },
+    {
+      "id": "ret-refuse-11890b3fbb51f79b",
+      "ranking": [
+        "castle-generic",
+        "castle-related",
+        "castle-hard",
+        "castle",
+        "castle-wrong"
+      ],
+      "scores": [
+        {
+          "id": "castle-generic",
+          "score": 0.009817867176455998
+        },
+        {
+          "id": "castle-related",
+          "score": 0.009474422927830349
+        },
+        {
+          "id": "castle-hard",
+          "score": 0.008865399983674414
+        },
+        {
+          "id": "castle",
+          "score": 0.006865766420007967
+        },
+        {
+          "id": "castle-wrong",
+          "score": 0.0
+        }
+      ],
+      "refused": true,
+      "margin": 0.0003434442486256496,
+      "durationMs": 0.162375
+    },
+    {
+      "id": "ret-13d7e09b6f35597a",
+      "ranking": [
+        "bicycle",
+        "bicycle-wrong",
+        "bicycle-related",
+        "bicycle-hard",
+        "bicycle-generic"
+      ],
+      "scores": [
+        {
+          "id": "bicycle",
+          "score": 0.6959740448130457
+        },
+        {
+          "id": "bicycle-wrong",
+          "score": 0.07340728161763804
+        },
+        {
+          "id": "bicycle-related",
+          "score": 0.06597140819559917
+        },
+        {
+          "id": "bicycle-hard",
+          "score": 0.007828375685850538
+        },
+        {
+          "id": "bicycle-generic",
+          "score": 0.0044422364948432415
+        }
+      ],
+      "refused": false,
+      "margin": 0.6225667631954077,
+      "durationMs": 0.196792
+    },
+    {
+      "id": "ret-14b0c1bb64241119",
+      "ranking": [
+        "bird",
+        "bird-wrong",
+        "bird-generic",
+        "bird-related",
+        "bird-hard"
+      ],
+      "scores": [
+        {
+          "id": "bird",
+          "score": 0.7688734541873974
+        },
+        {
+          "id": "bird-wrong",
+          "score": 0.022616011163403563
+        },
+        {
+          "id": "bird-generic",
+          "score": 0.012641856131257215
+        },
+        {
+          "id": "bird-related",
+          "score": 0.01228629220199606
+        },
+        {
+          "id": "bird-hard",
+          "score": 0.0
+        }
+      ],
+      "refused": false,
+      "margin": 0.7462574430239938,
+      "durationMs": 0.129209
+    },
+    {
+      "id": "ret-88d393dfd43d9cf0",
+      "ranking": [
+        "bird",
+        "bird-wrong",
+        "bird-related",
+        "bird-generic",
+        "bird-hard"
+      ],
+      "scores": [
+        {
+          "id": "bird",
+          "score": 0.6254114302556254
+        },
+        {
+          "id": "bird-wrong",
+          "score": 0.023886696799127766
+        },
+        {
+          "id": "bird-related",
+          "score": 0.019464900407999336
+        },
+        {
+          "id": "bird-generic",
+          "score": 0.01001410622999834
+        },
+        {
+          "id": "bird-hard",
+          "score": 0.0
+        }
+      ],
+      "refused": false,
+      "margin": 0.6015247334564976,
+      "durationMs": 0.174375
+    },
+    {
+      "id": "ret-refuse-d8ac518fcc68ef88",
+      "ranking": [
+        "bird-generic",
+        "bird-related",
+        "bird",
+        "bird-hard",
+        "bird-wrong"
+      ],
+      "scores": [
+        {
+          "id": "bird-generic",
+          "score": 0.024882639740467
+        },
+        {
+          "id": "bird-related",
+          "score": 0.01934623393490392
+        },
+        {
+          "id": "bird",
+          "score": 0.016257126205012032
+        },
+        {
+          "id": "bird-hard",
+          "score": 0.010153415997304611
+        },
+        {
+          "id": "bird-wrong",
+          "score": 0.005935268284472363
+        }
+      ],
+      "refused": true,
+      "margin": 0.005536405805563079,
+      "durationMs": 0.189333
+    },
+    {
+      "id": "ret-8011575627bd1029",
+      "ranking": [
+        "battery",
+        "battery-wrong",
+        "battery-generic",
+        "battery-related",
+        "battery-hard"
+      ],
+      "scores": [
+        {
+          "id": "battery",
+          "score": 0.6258047085076482
+        },
+        {
+          "id": "battery-wrong",
+          "score": 0.06642988686190686
+        },
+        {
+          "id": "battery-generic",
+          "score": 0.06496530123132177
+        },
+        {
+          "id": "battery-related",
+          "score": 0.029204083004283177
+        },
+        {
+          "id": "battery-hard",
+          "score": 0.017041400117274383
+        }
+      ],
+      "refused": false,
+      "margin": 0.5593748216457414,
+      "durationMs": 0.219791
+    },
+    {
+      "id": "ret-31eab28239012a02",
+      "ranking": [
+        "watershed",
+        "watershed-wrong",
+        "watershed-related",
+        "watershed-hard",
+        "watershed-generic"
+      ],
+      "scores": [
+        {
+          "id": "watershed",
+          "score": 0.8068384563025806
+        },
+        {
+          "id": "watershed-wrong",
+          "score": 0.09505432182018926
+        },
+        {
+          "id": "watershed-related",
+          "score": 0.08014022637494263
+        },
+        {
+          "id": "watershed-hard",
+          "score": 0.07917698505275447
+        },
+        {
+          "id": "watershed-generic",
+          "score": 0.04873919407600316
+        }
+      ],
+      "refused": false,
+      "margin": 0.7117841344823913,
+      "durationMs": 0.162917
+    },
+    {
+      "id": "ret-c7517d5a18269c1a",
+      "ranking": [
+        "dog-related",
+        "dog-hard",
+        "dog",
+        "dog-wrong",
+        "dog-generic"
+      ],
+      "scores": [
+        {
+          "id": "dog-related",
+          "score": 0.1810803458522087
+        },
+        {
+          "id": "dog-hard",
+          "score": 0.17404116061495267
+        },
+        {
+          "id": "dog",
+          "score": 0.10645639918947385
+        },
+        {
+          "id": "dog-wrong",
+          "score": 0.09132575524707968
+        },
+        {
+          "id": "dog-generic",
+          "score": 0.07644065101331537
+        }
+      ],
+      "refused": true,
+      "margin": 0.007039185237256024,
+      "durationMs": 0.127042
+    },
+    {
+      "id": "ret-refuse-ca5d7019843c0405",
+      "ranking": [
+        "castle-wrong",
+        "castle-generic",
+        "castle-related",
+        "castle-hard",
+        "castle"
+      ],
+      "scores": [
+        {
+          "id": "castle-wrong",
+          "score": 0.017932937675841764
+        },
+        {
+          "id": "castle-generic",
+          "score": 0.015087026873164312
+        },
+        {
+          "id": "castle-related",
+          "score": 0.009706172820826352
+        },
+        {
+          "id": "castle-hard",
+          "score": 0.00908225282138638
+        },
+        {
+          "id": "castle",
+          "score": 0.007033707058218086
+        }
+      ],
+      "refused": true,
+      "margin": 0.0028459108026774524,
+      "durationMs": 0.17625
+    },
+    {
+      "id": "ret-5122f8ecfadf8dc4",
+      "ranking": [
+        "cat",
+        "cat-generic",
+        "cat-wrong",
+        "cat-related",
+        "cat-hard"
+      ],
+      "scores": [
+        {
+          "id": "cat",
+          "score": 0.6084861291790548
+        },
+        {
+          "id": "cat-generic",
+          "score": 0.08205637770160128
+        },
+        {
+          "id": "cat-wrong",
+          "score": 0.08162767451806416
+        },
+        {
+          "id": "cat-related",
+          "score": 0.029159193261027942
+        },
+        {
+          "id": "cat-hard",
+          "score": 0.010651910754700109
+        }
+      ],
+      "refused": false,
+      "margin": 0.5264297514774535,
+      "durationMs": 0.18625
+    },
+    {
+      "id": "ret-e7ee1415d269c1ac",
+      "ranking": [
+        "conveyor",
+        "conveyor-wrong",
+        "conveyor-hard",
+        "conveyor-related",
+        "conveyor-generic"
+      ],
+      "scores": [
+        {
+          "id": "conveyor",
+          "score": 0.8416688063678046
+        },
+        {
+          "id": "conveyor-wrong",
+          "score": 0.06695656317967928
+        },
+        {
+          "id": "conveyor-hard",
+          "score": 0.02701769175040806
+        },
+        {
+          "id": "conveyor-related",
+          "score": 0.02638539630271333
+        },
+        {
+          "id": "conveyor-generic",
+          "score": 0.02046991801125524
+        }
+      ],
+      "refused": false,
+      "margin": 0.7747122431881254,
+      "durationMs": 0.165458
+    },
+    {
+      "id": "ret-refuse-ad9a80811569db62",
+      "ranking": [
+        "galaxy-wrong",
+        "galaxy-generic",
+        "galaxy-related",
+        "galaxy",
+        "galaxy-hard"
+      ],
+      "scores": [
+        {
+          "id": "galaxy-wrong",
+          "score": 0.01721416826021388
+        },
+        {
+          "id": "galaxy-generic",
+          "score": 0.014482324303780207
+        },
+        {
+          "id": "galaxy-related",
+          "score": 0.008395101055984898
+        },
+        {
+          "id": "galaxy",
+          "score": 0.00536352156451101
+        },
+        {
+          "id": "galaxy-hard",
+          "score": 0.0
+        }
+      ],
+      "refused": true,
+      "margin": 0.002731843956433673,
+      "durationMs": 0.19175
+    },
+    {
+      "id": "ret-refuse-7f57e6bb8b37091d",
+      "ranking": [
+        "conveyor-related",
+        "conveyor-wrong",
+        "conveyor",
+        "conveyor-hard",
+        "conveyor-generic"
+      ],
+      "scores": [
+        {
+          "id": "conveyor-related",
+          "score": 0.04099315189650559
+        },
+        {
+          "id": "conveyor-wrong",
+          "score": 0.039718921648554305
+        },
+        {
+          "id": "conveyor",
+          "score": 0.03766426820239527
+        },
+        {
+          "id": "conveyor-hard",
+          "score": 0.03358040422393959
+        },
+        {
+          "id": "conveyor-generic",
+          "score": 0.03339281969287746
+        }
+      ],
+      "refused": true,
+      "margin": 0.0012742302479512857,
+      "durationMs": 0.220542
+    },
+    {
+      "id": "ret-e1894d8204d0a78f",
+      "ranking": [
+        "conveyor-hard",
+        "conveyor-related",
+        "conveyor",
+        "conveyor-wrong",
+        "conveyor-generic"
+      ],
+      "scores": [
+        {
+          "id": "conveyor-hard",
+          "score": 0.24895632083510014
+        },
+        {
+          "id": "conveyor-related",
+          "score": 0.24312999230218674
+        },
+        {
+          "id": "conveyor",
+          "score": 0.17837462562369452
+        },
+        {
+          "id": "conveyor-wrong",
+          "score": 0.16123309857728385
+        },
+        {
+          "id": "conveyor-generic",
+          "score": 0.14146606757592328
+        }
+      ],
+      "refused": true,
+      "margin": 0.0058263285329134,
+      "durationMs": 0.154167
+    },
+    {
+      "id": "ret-af44cec6563f4c7a",
+      "ranking": [
+        "shade-route",
+        "shade-route-wrong",
+        "shade-route-generic",
+        "shade-route-hard",
+        "shade-route-related"
+      ],
+      "scores": [
+        {
+          "id": "shade-route",
+          "score": 0.8043329501181283
+        },
+        {
+          "id": "shade-route-wrong",
+          "score": 0.050295032880215695
+        },
+        {
+          "id": "shade-route-generic",
+          "score": 0.028588433432964553
+        },
+        {
+          "id": "shade-route-hard",
+          "score": 0.0
+        },
+        {
+          "id": "shade-route-related",
+          "score": 0.0
+        }
+      ],
+      "refused": false,
+      "margin": 0.7540379172379126,
+      "durationMs": 0.190667
+    },
+    {
+      "id": "ret-c6e0bb4d3305d044",
+      "ranking": [
+        "airplane-related",
+        "airplane-wrong",
+        "airplane-hard",
+        "airplane",
+        "airplane-generic"
+      ],
+      "scores": [
+        {
+          "id": "airplane-related",
+          "score": 0.31794185573896117
+        },
+        {
+          "id": "airplane-wrong",
+          "score": 0.2813413372934901
+        },
+        {
+          "id": "airplane-hard",
+          "score": 0.26569739697317774
+        },
+        {
+          "id": "airplane",
+          "score": 0.19496867733243434
+        },
+        {
+          "id": "airplane-generic",
+          "score": 0.13984530718154142
+        }
+      ],
+      "refused": false,
+      "margin": 0.036600518445471075,
+      "durationMs": 0.145167
+    },
+    {
+      "id": "ret-f395380fbe11efc6",
+      "ranking": [
+        "battery",
+        "battery-wrong",
+        "battery-generic",
+        "battery-related",
+        "battery-hard"
+      ],
+      "scores": [
+        {
+          "id": "battery",
+          "score": 0.6258047085076482
+        },
+        {
+          "id": "battery-wrong",
+          "score": 0.06642988686190686
+        },
+        {
+          "id": "battery-generic",
+          "score": 0.06496530123132177
+        },
+        {
+          "id": "battery-related",
+          "score": 0.029204083004283177
+        },
+        {
+          "id": "battery-hard",
+          "score": 0.017041400117274383
+        }
+      ],
+      "refused": false,
+      "margin": 0.5593748216457414,
+      "durationMs": 0.216291
+    },
+    {
+      "id": "ret-ec714e7a5a6ac97f",
+      "ranking": [
+        "building-related",
+        "building-hard",
+        "building",
+        "building-wrong",
+        "building-generic"
+      ],
+      "scores": [
+        {
+          "id": "building-related",
+          "score": 0.2712287475290885
+        },
+        {
+          "id": "building-hard",
+          "score": 0.21740630886046688
+        },
+        {
+          "id": "building",
+          "score": 0.18605515290683483
+        },
+        {
+          "id": "building-wrong",
+          "score": 0.18003662986684407
+        },
+        {
+          "id": "building-generic",
+          "score": 0.1313289565525643
+        }
+      ],
+      "refused": false,
+      "margin": 0.0538224386686216,
+      "durationMs": 0.150084
+    },
+    {
+      "id": "ret-refuse-3248101cbcbce39c",
+      "ranking": [
+        "dog-wrong",
+        "dog-related",
+        "dog-generic",
+        "dog",
+        "dog-hard"
+      ],
+      "scores": [
+        {
+          "id": "dog-wrong",
+          "score": 0.07251988548149403
+        },
+        {
+          "id": "dog-related",
+          "score": 0.06633360161218937
+        },
+        {
+          "id": "dog-generic",
+          "score": 0.018209980008220338
+        },
+        {
+          "id": "dog",
+          "score": 0.008453481558522043
+        },
+        {
+          "id": "dog-hard",
+          "score": 0.0
+        }
+      ],
+      "refused": true,
+      "margin": 0.006186283869304657,
+      "durationMs": 0.132041
+    },
+    {
+      "id": "ret-a3c11ab76965c109",
+      "ranking": [
+        "bridge",
+        "bridge-generic",
+        "bridge-wrong",
+        "bridge-related",
+        "bridge-hard"
+      ],
+      "scores": [
+        {
+          "id": "bridge",
+          "score": 0.6463631370639591
+        },
+        {
+          "id": "bridge-generic",
+          "score": 0.1014304737238415
+        },
+        {
+          "id": "bridge-wrong",
+          "score": 0.08481022265775202
+        },
+        {
+          "id": "bridge-related",
+          "score": 0.04219146487924814
+        },
+        {
+          "id": "bridge-hard",
+          "score": 0.0
+        }
+      ],
+      "refused": false,
+      "margin": 0.5449326633401176,
+      "durationMs": 0.205
+    },
+    {
+      "id": "ret-a385794f44f6ba63",
+      "ranking": [
+        "airplane-related",
+        "airplane-wrong",
+        "airplane-hard",
+        "airplane",
+        "airplane-generic"
+      ],
+      "scores": [
+        {
+          "id": "airplane-related",
+          "score": 0.31794185573896117
+        },
+        {
+          "id": "airplane-wrong",
+          "score": 0.2813413372934901
+        },
+        {
+          "id": "airplane-hard",
+          "score": 0.26569739697317774
+        },
+        {
+          "id": "airplane",
+          "score": 0.19496867733243434
+        },
+        {
+          "id": "airplane-generic",
+          "score": 0.13984530718154142
+        }
+      ],
+      "refused": false,
+      "margin": 0.036600518445471075,
+      "durationMs": 0.141125
+    },
+    {
+      "id": "ret-dc1b0f2f9d8f659d",
+      "ranking": [
+        "television-related",
+        "television-hard",
+        "television",
+        "television-wrong",
+        "television-generic"
+      ],
+      "scores": [
+        {
+          "id": "television-related",
+          "score": 0.30133786405178703
+        },
+        {
+          "id": "television-hard",
+          "score": 0.3012920283840266
+        },
+        {
+          "id": "television",
+          "score": 0.21850445170805938
+        },
+        {
+          "id": "television-wrong",
+          "score": 0.1787559591543556
+        },
+        {
+          "id": "television-generic",
+          "score": 0.15134956701821609
+        }
+      ],
+      "refused": true,
+      "margin": 4.5835667760452115e-05,
+      "durationMs": 0.153
+    },
+    {
+      "id": "ret-refuse-91009facf0bc19bb",
+      "ranking": [
+        "dog-hard",
+        "dog-related",
+        "dog-generic",
+        "dog",
+        "dog-wrong"
+      ],
+      "scores": [
+        {
+          "id": "dog-hard",
+          "score": 0.01131364154016275
+        },
+        {
+          "id": "dog-related",
+          "score": 0.010860509013033336
+        },
+        {
+          "id": "dog-generic",
+          "score": 0.009938133273825431
+        },
+        {
+          "id": "dog",
+          "score": 0.0069202568853859
+        },
+        {
+          "id": "dog-wrong",
+          "score": 0.0
+        }
+      ],
+      "refused": true,
+      "margin": 0.00045313252712941496,
+      "durationMs": 0.14325
+    },
+    {
+      "id": "ret-54d244e1080720a2",
+      "ranking": [
+        "television-related",
+        "television-hard",
+        "television-wrong",
+        "television",
+        "television-generic"
+      ],
+      "scores": [
+        {
+          "id": "television-related",
+          "score": 0.3321579896649809
+        },
+        {
+          "id": "television-hard",
+          "score": 0.3314395666402568
+        },
+        {
+          "id": "television-wrong",
+          "score": 0.30786017557281825
+        },
+        {
+          "id": "television",
+          "score": 0.23233589591903112
+        },
+        {
+          "id": "television-generic",
+          "score": 0.17205739601071957
+        }
+      ],
+      "refused": true,
+      "margin": 0.0007184230247240797,
+      "durationMs": 0.143834
+    },
+    {
+      "id": "ret-74c0f37c59cbfba9",
+      "ranking": [
+        "galaxy-related",
+        "galaxy-wrong",
+        "galaxy-hard",
+        "galaxy",
+        "galaxy-generic"
+      ],
+      "scores": [
+        {
+          "id": "galaxy-related",
+          "score": 0.25992511911136246
+        },
+        {
+          "id": "galaxy-wrong",
+          "score": 0.25553036714099836
+        },
+        {
+          "id": "galaxy-hard",
+          "score": 0.19412252246680156
+        },
+        {
+          "id": "galaxy",
+          "score": 0.12608813565381718
+        },
+        {
+          "id": "galaxy-generic",
+          "score": 0.11948225446107505
+        }
+      ],
+      "refused": true,
+      "margin": 0.004394751970364097,
+      "durationMs": 0.142791
+    },
+    {
+      "id": "ret-1e7226dc308f2bbf",
+      "ranking": [
+        "robot-gripper",
+        "robot-gripper-wrong",
+        "robot-gripper-related",
+        "robot-gripper-hard",
+        "robot-gripper-generic"
+      ],
+      "scores": [
+        {
+          "id": "robot-gripper",
+          "score": 0.637046489814431
+        },
+        {
+          "id": "robot-gripper-wrong",
+          "score": 0.1315817821286914
+        },
+        {
+          "id": "robot-gripper-related",
+          "score": 0.08364862914288469
+        },
+        {
+          "id": "robot-gripper-hard",
+          "score": 0.03067512936549536
+        },
+        {
+          "id": "robot-gripper-generic",
+          "score": 0.019544675957759168
+        }
+      ],
+      "refused": false,
+      "margin": 0.5054647076857396,
+      "durationMs": 0.242625
+    },
+    {
+      "id": "ret-292099adafaa8749",
+      "ranking": [
+        "tree-related",
+        "tree-hard",
+        "tree",
+        "tree-wrong",
+        "tree-generic"
+      ],
+      "scores": [
+        {
+          "id": "tree-related",
+          "score": 0.18032932956850353
+        },
+        {
+          "id": "tree-hard",
+          "score": 0.16197545769498448
+        },
+        {
+          "id": "tree",
+          "score": 0.14673067414063648
+        },
+        {
+          "id": "tree-wrong",
+          "score": 0.10497755135589078
+        },
+        {
+          "id": "tree-generic",
+          "score": 0.08802023652608038
+        }
+      ],
+      "refused": false,
+      "margin": 0.018353871873519056,
+      "durationMs": 0.133917
+    },
+    {
+      "id": "ret-refuse-b22675523623d157",
+      "ranking": [
+        "sunset",
+        "sunset-wrong",
+        "sunset-generic",
+        "sunset-related",
+        "sunset-hard"
+      ],
+      "scores": [
+        {
+          "id": "sunset",
+          "score": 0.018894332861999284
+        },
+        {
+          "id": "sunset-wrong",
+          "score": 0.01721416826021388
+        },
+        {
+          "id": "sunset-generic",
+          "score": 0.014424605505642773
+        },
+        {
+          "id": "sunset-related",
+          "score": 0.009050712162909301
+        },
+        {
+          "id": "sunset-hard",
+          "score": 0.0
+        }
+      ],
+      "refused": true,
+      "margin": 0.0016801646017854041,
+      "durationMs": 0.16675
+    },
+    {
+      "id": "ret-93f44126d12b71e0",
+      "ranking": [
+        "person-related",
+        "person-wrong",
+        "person-hard",
+        "person",
+        "person-generic"
+      ],
+      "scores": [
+        {
+          "id": "person-related",
+          "score": 0.2817338402081824
+        },
+        {
+          "id": "person-wrong",
+          "score": 0.2603336245655798
+        },
+        {
+          "id": "person-hard",
+          "score": 0.2238837745021567
+        },
+        {
+          "id": "person",
+          "score": 0.18518560410530396
+        },
+        {
+          "id": "person-generic",
+          "score": 0.1243683518947979
+        }
+      ],
+      "refused": false,
+      "margin": 0.021400215642602582,
+      "durationMs": 0.134417
+    },
+    {
+      "id": "ret-779d8fce5cf138f8",
+      "ranking": [
+        "dog-related",
+        "dog-hard",
+        "dog",
+        "dog-wrong",
+        "dog-generic"
+      ],
+      "scores": [
+        {
+          "id": "dog-related",
+          "score": 0.1810803458522087
+        },
+        {
+          "id": "dog-hard",
+          "score": 0.17404116061495267
+        },
+        {
+          "id": "dog",
+          "score": 0.10645639918947385
+        },
+        {
+          "id": "dog-wrong",
+          "score": 0.09132575524707968
+        },
+        {
+          "id": "dog-generic",
+          "score": 0.07644065101331537
+        }
+      ],
+      "refused": true,
+      "margin": 0.007039185237256024,
+      "durationMs": 0.123459
+    },
+    {
+      "id": "ret-refuse-1467ec1924c9916f",
+      "ranking": [
+        "galaxy-wrong",
+        "galaxy",
+        "galaxy-generic",
+        "galaxy-related",
+        "galaxy-hard"
+      ],
+      "scores": [
+        {
+          "id": "galaxy-wrong",
+          "score": 0.0120128385206781
+        },
+        {
+          "id": "galaxy",
+          "score": 0.011228736262366184
+        },
+        {
+          "id": "galaxy-generic",
+          "score": 0.010106432134017141
+        },
+        {
+          "id": "galaxy-related",
+          "score": 0.008787731578940756
+        },
+        {
+          "id": "galaxy-hard",
+          "score": 0.0
+        }
+      ],
+      "refused": true,
+      "margin": 0.0007841022583119153,
+      "durationMs": 0.180083
+    },
+    {
+      "id": "ret-816c38843b0b5e0a",
+      "ranking": [
+        "battery",
+        "battery-generic",
+        "battery-related",
+        "battery-hard",
+        "battery-wrong"
+      ],
+      "scores": [
+        {
+          "id": "battery",
+          "score": 0.7975763732031831
+        },
+        {
+          "id": "battery-generic",
+          "score": 0.06689691902547619
+        },
+        {
+          "id": "battery-related",
+          "score": 0.00939762813245111
+        },
+        {
+          "id": "battery-hard",
+          "score": 0.0
+        },
+        {
+          "id": "battery-wrong",
+          "score": 0.0
+        }
+      ],
+      "refused": false,
+      "margin": 0.7306794541777069,
+      "durationMs": 0.163875
+    },
+    {
+      "id": "ret-2bccf66e766cb6a8",
+      "ranking": [
+        "television",
+        "television-wrong",
+        "television-related",
+        "television-hard",
+        "television-generic"
+      ],
+      "scores": [
+        {
+          "id": "television",
+          "score": 0.6504003238946817
+        },
+        {
+          "id": "television-wrong",
+          "score": 0.13125836428426937
+        },
+        {
+          "id": "television-related",
+          "score": 0.03755112603348483
+        },
+        {
+          "id": "television-hard",
+          "score": 0.01849389460697632
+        },
+        {
+          "id": "television-generic",
+          "score": 0.01393519913018772
+        }
+      ],
+      "refused": false,
+      "margin": 0.5191419596104123,
+      "durationMs": 0.184375
+    },
+    {
+      "id": "ret-1599cc742c141fa9",
+      "ranking": [
+        "robot-gripper",
+        "robot-gripper-wrong",
+        "robot-gripper-related",
+        "robot-gripper-hard",
+        "robot-gripper-generic"
+      ],
+      "scores": [
+        {
+          "id": "robot-gripper",
+          "score": 0.6807562168831655
+        },
+        {
+          "id": "robot-gripper-wrong",
+          "score": 0.0861849106060324
+        },
+        {
+          "id": "robot-gripper-related",
+          "score": 0.06772592244292192
+        },
+        {
+          "id": "robot-gripper-hard",
+          "score": 0.03228686339164121
+        },
+        {
+          "id": "robot-gripper-generic",
+          "score": 0.012342955920346598
+        }
+      ],
+      "refused": false,
+      "margin": 0.5945713062771331,
+      "durationMs": 0.223
+    },
+    {
+      "id": "ret-refuse-28940ac470718f4e",
+      "ranking": [
+        "tree-generic",
+        "tree-related",
+        "tree-hard",
+        "tree-wrong",
+        "tree"
+      ],
+      "scores": [
+        {
+          "id": "tree-generic",
+          "score": 0.024882639740467
+        },
+        {
+          "id": "tree-related",
+          "score": 0.017830226349723872
+        },
+        {
+          "id": "tree-hard",
+          "score": 0.009157841695704492
+        },
+        {
+          "id": "tree-wrong",
+          "score": 0.005935268284472363
+        },
+        {
+          "id": "tree",
+          "score": 0.0
+        }
+      ],
+      "refused": true,
+      "margin": 0.007052413390743126,
+      "durationMs": 0.1715
+    },
+    {
+      "id": "ret-refuse-9bd0779825f2286f",
+      "ranking": [
+        "building-hard",
+        "building-generic",
+        "building-related",
+        "building",
+        "building-wrong"
+      ],
+      "scores": [
+        {
+          "id": "building-hard",
+          "score": 0.016124041070423784
+        },
+        {
+          "id": "building-generic",
+          "score": 0.009740073782994539
+        },
+        {
+          "id": "building-related",
+          "score": 0.009619176932844416
+        },
+        {
+          "id": "building",
+          "score": 0.0
+        },
+        {
+          "id": "building-wrong",
+          "score": 0.0
+        }
+      ],
+      "refused": true,
+      "margin": 0.006383967287429244,
+      "durationMs": 0.156834
+    },
+    {
+      "id": "ret-2dad1f7240e6f5dd",
+      "ranking": [
+        "galaxy",
+        "galaxy-hard",
+        "galaxy-generic",
+        "galaxy-related",
+        "galaxy-wrong"
+      ],
+      "scores": [
+        {
+          "id": "galaxy",
+          "score": 0.8853728617071408
+        },
+        {
+          "id": "galaxy-hard",
+          "score": 0.17593109057750483
+        },
+        {
+          "id": "galaxy-generic",
+          "score": 0.10984635869602319
+        },
+        {
+          "id": "galaxy-related",
+          "score": 0.014779408294833011
+        },
+        {
+          "id": "galaxy-wrong",
+          "score": 0.010101733518037188
+        }
+      ],
+      "refused": false,
+      "margin": 0.7094417711296359,
+      "durationMs": 0.216792
+    },
+    {
+      "id": "ret-39269c887685fa14",
+      "ranking": [
+        "protein-folding",
+        "protein-folding-wrong",
+        "protein-folding-related",
+        "protein-folding-hard",
+        "protein-folding-generic"
+      ],
+      "scores": [
+        {
+          "id": "protein-folding",
+          "score": 0.6899535095191562
+        },
+        {
+          "id": "protein-folding-wrong",
+          "score": 0.07416750812364792
+        },
+        {
+          "id": "protein-folding-related",
+          "score": 0.07046536846093916
+        },
+        {
+          "id": "protein-folding-hard",
+          "score": 0.03428607416830696
+        },
+        {
+          "id": "protein-folding-generic",
+          "score": 0.024049485794086924
+        }
+      ],
+      "refused": false,
+      "margin": 0.6157860013955083,
+      "durationMs": 0.233416
+    },
+    {
+      "id": "ret-8f5271e5cca946f1",
+      "ranking": [
+        "watershed-related",
+        "watershed-wrong",
+        "watershed-hard",
+        "watershed",
+        "watershed-generic"
+      ],
+      "scores": [
+        {
+          "id": "watershed-related",
+          "score": 0.3125057209249026
+        },
+        {
+          "id": "watershed-wrong",
+          "score": 0.29619363004570637
+        },
+        {
+          "id": "watershed-hard",
+          "score": 0.2523981015012756
+        },
+        {
+          "id": "watershed",
+          "score": 0.24087383720005337
+        },
+        {
+          "id": "watershed-generic",
+          "score": 0.14965094801289455
+        }
+      ],
+      "refused": false,
+      "margin": 0.016312090879196217,
+      "durationMs": 0.14525
+    },
+    {
+      "id": "ret-b42f30ad02af7205",
+      "ranking": [
+        "robot-gripper-related",
+        "robot-gripper-wrong",
+        "robot-gripper-hard",
+        "robot-gripper",
+        "robot-gripper-generic"
+      ],
+      "scores": [
+        {
+          "id": "robot-gripper-related",
+          "score": 0.4373770761752811
+        },
+        {
+          "id": "robot-gripper-wrong",
+          "score": 0.357798287981282
+        },
+        {
+          "id": "robot-gripper-hard",
+          "score": 0.3343443223059059
+        },
+        {
+          "id": "robot-gripper",
+          "score": 0.29781732406025047
+        },
+        {
+          "id": "robot-gripper-generic",
+          "score": 0.21829536221631402
+        }
+      ],
+      "refused": false,
+      "margin": 0.0795787881939991,
+      "durationMs": 0.161125
+    },
+    {
+      "id": "ret-71d829745c6ad1e8",
+      "ranking": [
+        "sunset",
+        "sunset-wrong",
+        "sunset-generic",
+        "sunset-related",
+        "sunset-hard"
+      ],
+      "scores": [
+        {
+          "id": "sunset",
+          "score": 0.7142463267288023
+        },
+        {
+          "id": "sunset-wrong",
+          "score": 0.07248304434692923
+        },
+        {
+          "id": "sunset-generic",
+          "score": 0.008723336770517651
+        },
+        {
+          "id": "sunset-related",
+          "score": 0.00821018053275626
+        },
+        {
+          "id": "sunset-hard",
+          "score": 0.0
+        }
+      ],
+      "refused": false,
+      "margin": 0.6417632823818731,
+      "durationMs": 0.190417
+    },
+    {
+      "id": "ret-5694fc8d00643468",
+      "ranking": [
+        "bridge",
+        "bridge-generic",
+        "bridge-wrong",
+        "bridge-related",
+        "bridge-hard"
+      ],
+      "scores": [
+        {
+          "id": "bridge",
+          "score": 0.6463631370639591
+        },
+        {
+          "id": "bridge-generic",
+          "score": 0.1014304737238415
+        },
+        {
+          "id": "bridge-wrong",
+          "score": 0.08481022265775202
+        },
+        {
+          "id": "bridge-related",
+          "score": 0.04219146487924814
+        },
+        {
+          "id": "bridge-hard",
+          "score": 0.0
+        }
+      ],
+      "refused": false,
+      "margin": 0.5449326633401176,
+      "durationMs": 0.199917
+    },
+    {
+      "id": "ret-0850902d006f3679",
+      "ranking": [
+        "conveyor",
+        "conveyor-wrong",
+        "conveyor-generic",
+        "conveyor-related",
+        "conveyor-hard"
+      ],
+      "scores": [
+        {
+          "id": "conveyor",
+          "score": 0.6626081283142814
+        },
+        {
+          "id": "conveyor-wrong",
+          "score": 0.1019040532503785
+        },
+        {
+          "id": "conveyor-generic",
+          "score": 0.01637711183124222
+        },
+        {
+          "id": "conveyor-related",
+          "score": 0.014073223147045498
+        },
+        {
+          "id": "conveyor-hard",
+          "score": 0.007205235816042728
+        }
+      ],
+      "refused": false,
+      "margin": 0.5607040750639029,
+      "durationMs": 0.210334
+    },
+    {
+      "id": "ret-refuse-74490d1a14ab0f24",
+      "ranking": [
+        "watershed-related",
+        "watershed-wrong",
+        "watershed-generic",
+        "watershed",
+        "watershed-hard"
+      ],
+      "scores": [
+        {
+          "id": "watershed-related",
+          "score": 0.02463198338757166
+        },
+        {
+          "id": "watershed-wrong",
+          "score": 0.017529597171618685
+        },
+        {
+          "id": "watershed-generic",
+          "score": 0.014980529418358538
+        },
+        {
+          "id": "watershed",
+          "score": 0.013053728470385644
+        },
+        {
+          "id": "watershed-hard",
+          "score": 0.009125970199595285
+        }
+      ],
+      "refused": true,
+      "margin": 0.007102386215952973,
+      "durationMs": 0.176
+    },
+    {
+      "id": "ret-refuse-dd643e737bd23e10",
+      "ranking": [
+        "bridge-wrong",
+        "bridge-related",
+        "bridge",
+        "bridge-generic",
+        "bridge-hard"
+      ],
+      "scores": [
+        {
+          "id": "bridge-wrong",
+          "score": 0.06693576985699164
+        },
+        {
+          "id": "bridge-related",
+          "score": 0.056359699902907574
+        },
+        {
+          "id": "bridge",
+          "score": 0.031254526049580206
+        },
+        {
+          "id": "bridge-generic",
+          "score": 0.016989400666144974
+        },
+        {
+          "id": "bridge-hard",
+          "score": 0.0
+        }
+      ],
+      "refused": true,
+      "margin": 0.010576069954084062,
+      "durationMs": 0.139792
+    },
+    {
+      "id": "ret-refuse-7ad1b9fc56362b27",
+      "ranking": [
+        "chair-wrong",
+        "chair",
+        "chair-generic",
+        "chair-related",
+        "chair-hard"
+      ],
+      "scores": [
+        {
+          "id": "chair-wrong",
+          "score": 0.018035393788767624
+        },
+        {
+          "id": "chair",
+          "score": 0.015320209133191189
+        },
+        {
+          "id": "chair-generic",
+          "score": 0.01514788331795101
+        },
+        {
+          "id": "chair-related",
+          "score": 0.010523815180988128
+        },
+        {
+          "id": "chair-hard",
+          "score": 0.0
+        }
+      ],
+      "refused": true,
+      "margin": 0.002715184655576436,
+      "durationMs": 0.155875
+    },
+    {
+      "id": "ret-refuse-02a337d20538f8f9",
+      "ranking": [
+        "person-generic",
+        "person",
+        "person-hard",
+        "person-related",
+        "person-wrong"
+      ],
+      "scores": [
+        {
+          "id": "person-generic",
+          "score": 0.02468230344232879
+        },
+        {
+          "id": "person",
+          "score": 0.014030368679963873
+        },
+        {
+          "id": "person-hard",
+          "score": 0.00982556530809843
+        },
+        {
+          "id": "person-related",
+          "score": 0.008690715523992674
+        },
+        {
+          "id": "person-wrong",
+          "score": 0.005867639967087321
+        }
+      ],
+      "refused": true,
+      "margin": 0.010651934762364918,
+      "durationMs": 0.173333
+    },
+    {
+      "id": "ret-785b5a18022176e0",
+      "ranking": [
+        "airplane-hard",
+        "airplane-related",
+        "airplane",
+        "airplane-wrong",
+        "airplane-generic"
+      ],
+      "scores": [
+        {
+          "id": "airplane-hard",
+          "score": 0.27227758912686556
+        },
+        {
+          "id": "airplane-related",
+          "score": 0.26051318958814995
+        },
+        {
+          "id": "airplane",
+          "score": 0.20781309035472847
+        },
+        {
+          "id": "airplane-wrong",
+          "score": 0.16179866950889787
+        },
+        {
+          "id": "airplane-generic",
+          "score": 0.1313289565525643
+        }
+      ],
+      "refused": true,
+      "margin": 0.011764399538715609,
+      "durationMs": 0.1455
+    },
+    {
+      "id": "ret-2404e014443bce3c",
+      "ranking": [
+        "bridge",
+        "bridge-generic",
+        "bridge-related",
+        "bridge-wrong",
+        "bridge-hard"
+      ],
+      "scores": [
+        {
+          "id": "bridge",
+          "score": 0.8172779657539114
+        },
+        {
+          "id": "bridge-generic",
+          "score": 0.11860357304086276
+        },
+        {
+          "id": "bridge-related",
+          "score": 0.04306811961460417
+        },
+        {
+          "id": "bridge-wrong",
+          "score": 0.031968739938098595
+        },
+        {
+          "id": "bridge-hard",
+          "score": 0.0
+        }
+      ],
+      "refused": false,
+      "margin": 0.6986743927130487,
+      "durationMs": 0.149583
+    },
+    {
+      "id": "ret-a3c5f5951949d095",
+      "ranking": [
+        "shade-route",
+        "shade-route-wrong",
+        "shade-route-generic",
+        "shade-route-related",
+        "shade-route-hard"
+      ],
+      "scores": [
+        {
+          "id": "shade-route",
+          "score": 0.6921934232352452
+        },
+        {
+          "id": "shade-route-wrong",
+          "score": 0.04844707024268279
+        },
+        {
+          "id": "shade-route-generic",
+          "score": 0.024784221960016332
+        },
+        {
+          "id": "shade-route-related",
+          "score": 0.013236200422769469
+        },
+        {
+          "id": "shade-route-hard",
+          "score": 0.0
+        }
+      ],
+      "refused": false,
+      "margin": 0.6437463529925624,
+      "durationMs": 0.216
+    },
+    {
+      "id": "ret-7ab57e5d51dba30c",
+      "ranking": [
+        "bicycle",
+        "bicycle-wrong",
+        "bicycle-related",
+        "bicycle-hard",
+        "bicycle-generic"
+      ],
+      "scores": [
+        {
+          "id": "bicycle",
+          "score": 0.8191446009718849
+        },
+        {
+          "id": "bicycle-wrong",
+          "score": 0.08088843202717827
+        },
+        {
+          "id": "bicycle-related",
+          "score": 0.06852913237625037
+        },
+        {
+          "id": "bicycle-hard",
+          "score": 0.009293580933053937
+        },
+        {
+          "id": "bicycle-generic",
+          "score": 0.005273671837596032
+        }
+      ],
+      "refused": false,
+      "margin": 0.7382561689447067,
+      "durationMs": 0.159333
+    },
+    {
+      "id": "ret-refuse-8819a0aab3cc1b3b",
+      "ranking": [
+        "cat-wrong",
+        "cat-related",
+        "cat-generic",
+        "cat",
+        "cat-hard"
+      ],
+      "scores": [
+        {
+          "id": "cat-wrong",
+          "score": 0.07251988548149403
+        },
+        {
+          "id": "cat-related",
+          "score": 0.05799717421341792
+        },
+        {
+          "id": "cat-generic",
+          "score": 0.018209980008220338
+        },
+        {
+          "id": "cat",
+          "score": 0.00966619570223632
+        },
+        {
+          "id": "cat-hard",
+          "score": 0.0
+        }
+      ],
+      "refused": true,
+      "margin": 0.01452271126807611,
+      "durationMs": 0.131417
+    },
+    {
+      "id": "ret-2adb8f264e1f1a22",
+      "ranking": [
+        "tree",
+        "tree-wrong",
+        "tree-generic",
+        "tree-hard",
+        "tree-related"
+      ],
+      "scores": [
+        {
+          "id": "tree",
+          "score": 0.8138546266782835
+        },
+        {
+          "id": "tree-wrong",
+          "score": 0.09463303678770893
+        },
+        {
+          "id": "tree-generic",
+          "score": 0.011396124417861607
+        },
+        {
+          "id": "tree-hard",
+          "score": 0.010485614112075152
+        },
+        {
+          "id": "tree-related",
+          "score": 0.01020769299396458
+        }
+      ],
+      "refused": false,
+      "margin": 0.7192215898905745,
+      "durationMs": 0.144125
+    },
+    {
+      "id": "ret-68075aebdd2422a2",
+      "ranking": [
+        "building",
+        "building-wrong",
+        "building-generic",
+        "building-related",
+        "building-hard"
+      ],
+      "scores": [
+        {
+          "id": "building",
+          "score": 0.7378095590457944
+        },
+        {
+          "id": "building-wrong",
+          "score": 0.09546223504749073
+        },
+        {
+          "id": "building-generic",
+          "score": 0.0782073450082735
+        },
+        {
+          "id": "building-related",
+          "score": 0.03264919969687608
+        },
+        {
+          "id": "building-hard",
+          "score": 0.020522950163934742
+        }
+      ],
+      "refused": false,
+      "margin": 0.6423473239983036,
+      "durationMs": 0.222333
+    },
+    {
+      "id": "ret-refuse-84c3df61a6994f84",
+      "ranking": [
+        "shade-route-related",
+        "shade-route-hard",
+        "shade-route-wrong",
+        "shade-route-generic",
+        "shade-route"
+      ],
+      "scores": [
+        {
+          "id": "shade-route-related",
+          "score": 0.04695595619931889
+        },
+        {
+          "id": "shade-route-hard",
+          "score": 0.027801564680410073
+        },
+        {
+          "id": "shade-route-wrong",
+          "score": 0.022915725416058193
+        },
+        {
+          "id": "shade-route-generic",
+          "score": 0.01953845100922809
+        },
+        {
+          "id": "shade-route",
+          "score": 0.012081471377284339
+        }
+      ],
+      "refused": true,
+      "margin": 0.019154391518908815,
+      "durationMs": 0.182083
+    },
+    {
+      "id": "ret-acc282c34cc1b1b6",
+      "ranking": [
+        "bird-related",
+        "bird-wrong",
+        "bird-hard",
+        "bird",
+        "bird-generic"
+      ],
+      "scores": [
+        {
+          "id": "bird-related",
+          "score": 0.25041145194156406
+        },
+        {
+          "id": "bird-wrong",
+          "score": 0.2338694129398444
+        },
+        {
+          "id": "bird-hard",
+          "score": 0.18747809577792746
+        },
+        {
+          "id": "bird",
+          "score": 0.15009013048151493
+        },
+        {
+          "id": "bird-generic",
+          "score": 0.09804591923369116
+        }
+      ],
+      "refused": false,
+      "margin": 0.01654203900171966,
+      "durationMs": 0.126833
+    },
+    {
+      "id": "ret-d6b65c16cf7489eb",
+      "ranking": [
+        "conveyor-related",
+        "conveyor-wrong",
+        "conveyor-hard",
+        "conveyor",
+        "conveyor-generic"
+      ],
+      "scores": [
+        {
+          "id": "conveyor-related",
+          "score": 0.29687980506796957
+        },
+        {
+          "id": "conveyor-wrong",
+          "score": 0.2804775220910563
+        },
+        {
+          "id": "conveyor-hard",
+          "score": 0.23288492824768015
+        },
+        {
+          "id": "conveyor",
+          "score": 0.21971360243342125
+        },
+        {
+          "id": "conveyor-generic",
+          "score": 0.14965094801289455
+        }
+      ],
+      "refused": false,
+      "margin": 0.016402282976913263,
+      "durationMs": 0.141
+    },
+    {
+      "id": "ret-9fa192a0db5eda6d",
+      "ranking": [
+        "person",
+        "person-generic",
+        "person-related",
+        "person-wrong",
+        "person-hard"
+      ],
+      "scores": [
+        {
+          "id": "person",
+          "score": 0.6787486357004479
+        },
+        {
+          "id": "person-generic",
+          "score": 0.08233306165068767
+        },
+        {
+          "id": "person-related",
+          "score": 0.06469041033881355
+        },
+        {
+          "id": "person-wrong",
+          "score": 0.04913606257865746
+        },
+        {
+          "id": "person-hard",
+          "score": 0.00914222554283544
+        }
+      ],
+      "refused": false,
+      "margin": 0.5964155740497602,
+      "durationMs": 0.187208
+    },
+    {
+      "id": "ret-refuse-e79b0cda7ea10100",
+      "ranking": [
+        "airplane-wrong",
+        "airplane-generic",
+        "airplane-related",
+        "airplane",
+        "airplane-hard"
+      ],
+      "scores": [
+        {
+          "id": "airplane-wrong",
+          "score": 0.017635738391871898
+        },
+        {
+          "id": "airplane-generic",
+          "score": 0.014967482475525462
+        },
+        {
+          "id": "airplane-related",
+          "score": 0.0077704117167154635
+        },
+        {
+          "id": "airplane",
+          "score": 0.006676692617451136
+        },
+        {
+          "id": "airplane-hard",
+          "score": 0.0
+        }
+      ],
+      "refused": true,
+      "margin": 0.002668255916346436,
+      "durationMs": 0.170958
+    },
+    {
+      "id": "ret-67b02f79bd770a6e",
+      "ranking": [
+        "tree",
+        "tree-wrong",
+        "tree-generic",
+        "tree-hard",
+        "tree-related"
+      ],
+      "scores": [
+        {
+          "id": "tree",
+          "score": 0.8138546266782835
+        },
+        {
+          "id": "tree-wrong",
+          "score": 0.09463303678770893
+        },
+        {
+          "id": "tree-generic",
+          "score": 0.011396124417861607
+        },
+        {
+          "id": "tree-hard",
+          "score": 0.010485614112075152
+        },
+        {
+          "id": "tree-related",
+          "score": 0.01020769299396458
+        }
+      ],
+      "refused": false,
+      "margin": 0.7192215898905745,
+      "durationMs": 0.143792
+    },
+    {
+      "id": "ret-c66709152ed3d821",
+      "ranking": [
+        "television-related",
+        "television-hard",
+        "television",
+        "television-wrong",
+        "television-generic"
+      ],
+      "scores": [
+        {
+          "id": "television-related",
+          "score": 0.30133786405178703
+        },
+        {
+          "id": "television-hard",
+          "score": 0.3012920283840266
+        },
+        {
+          "id": "television",
+          "score": 0.21850445170805938
+        },
+        {
+          "id": "television-wrong",
+          "score": 0.1787559591543556
+        },
+        {
+          "id": "television-generic",
+          "score": 0.15134956701821609
+        }
+      ],
+      "refused": true,
+      "margin": 4.5835667760452115e-05,
+      "durationMs": 0.149625
+    },
+    {
+      "id": "ret-0a53fb9fda43a61e",
+      "ranking": [
+        "robot-gripper",
+        "robot-gripper-wrong",
+        "robot-gripper-related",
+        "robot-gripper-hard",
+        "robot-gripper-generic"
+      ],
+      "scores": [
+        {
+          "id": "robot-gripper",
+          "score": 0.6807562168831655
+        },
+        {
+          "id": "robot-gripper-wrong",
+          "score": 0.0861849106060324
+        },
+        {
+          "id": "robot-gripper-related",
+          "score": 0.06772592244292192
+        },
+        {
+          "id": "robot-gripper-hard",
+          "score": 0.03228686339164121
+        },
+        {
+          "id": "robot-gripper-generic",
+          "score": 0.012342955920346598
+        }
+      ],
+      "refused": false,
+      "margin": 0.5945713062771331,
+      "durationMs": 0.229709
+    },
+    {
+      "id": "ret-a097702998fff9b3",
+      "ranking": [
+        "tree",
+        "tree-wrong",
+        "tree-generic",
+        "tree-hard",
+        "tree-related"
+      ],
+      "scores": [
+        {
+          "id": "tree",
+          "score": 0.8138546266782835
+        },
+        {
+          "id": "tree-wrong",
+          "score": 0.09463303678770893
+        },
+        {
+          "id": "tree-generic",
+          "score": 0.011396124417861607
+        },
+        {
+          "id": "tree-hard",
+          "score": 0.010485614112075152
+        },
+        {
+          "id": "tree-related",
+          "score": 0.01020769299396458
+        }
+      ],
+      "refused": false,
+      "margin": 0.7192215898905745,
+      "durationMs": 0.168333
+    },
+    {
+      "id": "ret-dafd50a12a02f42b",
+      "ranking": [
+        "chair",
+        "chair-generic",
+        "chair-wrong",
+        "chair-hard",
+        "chair-related"
+      ],
+      "scores": [
+        {
+          "id": "chair",
+          "score": 0.7896119035280447
+        },
+        {
+          "id": "chair-generic",
+          "score": 0.0942064154256122
+        },
+        {
+          "id": "chair-wrong",
+          "score": 0.0910346198548629
+        },
+        {
+          "id": "chair-hard",
+          "score": 0.0
+        },
+        {
+          "id": "chair-related",
+          "score": 0.0
+        }
+      ],
+      "refused": false,
+      "margin": 0.6954054881024325,
+      "durationMs": 0.143791
+    },
+    {
+      "id": "ret-aec00144403fe7b1",
+      "ranking": [
+        "bicycle",
+        "bicycle-wrong",
+        "bicycle-related",
+        "bicycle-hard",
+        "bicycle-generic"
+      ],
+      "scores": [
+        {
+          "id": "bicycle",
+          "score": 0.6959740448130457
+        },
+        {
+          "id": "bicycle-wrong",
+          "score": 0.07340728161763804
+        },
+        {
+          "id": "bicycle-related",
+          "score": 0.06597140819559917
+        },
+        {
+          "id": "bicycle-hard",
+          "score": 0.007828375685850538
+        },
+        {
+          "id": "bicycle-generic",
+          "score": 0.0044422364948432415
+        }
+      ],
+      "refused": false,
+      "margin": 0.6225667631954077,
+      "durationMs": 0.193375
+    },
+    {
+      "id": "ret-e201a7e49eb867c6",
+      "ranking": [
+        "tree-related",
+        "tree-hard",
+        "tree",
+        "tree-wrong",
+        "tree-generic"
+      ],
+      "scores": [
+        {
+          "id": "tree-related",
+          "score": 0.18032932956850353
+        },
+        {
+          "id": "tree-hard",
+          "score": 0.16197545769498448
+        },
+        {
+          "id": "tree",
+          "score": 0.14673067414063648
+        },
+        {
+          "id": "tree-wrong",
+          "score": 0.10497755135589078
+        },
+        {
+          "id": "tree-generic",
+          "score": 0.08802023652608038
+        }
+      ],
+      "refused": false,
+      "margin": 0.018353871873519056,
+      "durationMs": 0.134916
+    },
+    {
+      "id": "ret-47ff2ceb65c8a343",
+      "ranking": [
+        "television",
+        "television-wrong",
+        "television-related",
+        "television-generic",
+        "television-hard"
+      ],
+      "scores": [
+        {
+          "id": "television",
+          "score": 0.5898698263375768
+        },
+        {
+          "id": "television-wrong",
+          "score": 0.16866828525747043
+        },
+        {
+          "id": "television-related",
+          "score": 0.021086063371359896
+        },
+        {
+          "id": "television-generic",
+          "score": 0.013041707976552552
+        },
+        {
+          "id": "television-hard",
+          "score": 0.0
+        }
+      ],
+      "refused": false,
+      "margin": 0.4212015410801063,
+      "durationMs": 0.200291
+    },
+    {
+      "id": "ret-f09b71a0d3cc2df1",
+      "ranking": [
+        "bridge",
+        "bridge-generic",
+        "bridge-related",
+        "bridge-wrong",
+        "bridge-hard"
+      ],
+      "scores": [
+        {
+          "id": "bridge",
+          "score": 0.6930506886333575
+        },
+        {
+          "id": "bridge-generic",
+          "score": 0.09877165531775578
+        },
+        {
+          "id": "bridge-related",
+          "score": 0.044833276906126075
+        },
+        {
+          "id": "bridge-wrong",
+          "score": 0.03194782701213514
+        },
+        {
+          "id": "bridge-hard",
+          "score": 0.0
+        }
+      ],
+      "refused": false,
+      "margin": 0.5942790333156017,
+      "durationMs": 0.182584
+    }
+  ],
+  "performance": {
+    "coldLoadMs": 0.0549110000000006,
+    "warmLatencyMs": [
+      0.32025,
+      0.194584,
+      0.129125,
+      0.136625,
+      0.17,
+      0.142792,
+      0.184,
+      0.207834,
+      0.178958,
+      0.210833,
+      0.139791,
+      0.122458,
+      0.12525,
+      0.140791,
+      0.172708,
+      0.234792,
+      0.207709,
+      0.145875,
+      0.158917,
+      0.182209,
+      0.160459,
+      0.218042,
+      0.188375,
+      0.169,
+      0.161,
+      0.248708,
+      0.211167,
+      0.197708,
+      0.223916,
+      0.131541,
+      0.14125,
+      0.203208,
+      0.153875,
+      0.173542,
+      0.150459,
+      0.1985,
+      0.166834,
+      0.131542,
+      0.187542,
+      0.229375,
+      0.156083,
+      0.144584,
+      0.226458,
+      0.183333,
+      0.180958,
+      0.175542,
+      0.249834,
+      0.1515,
+      0.214417,
+      0.241166,
+      0.174542,
+      0.205709,
+      0.157125,
+      0.19625,
+      0.168084,
+      0.186166,
+      0.147417,
+      0.143,
+      0.153583,
+      0.197625,
+      0.147209,
+      0.166667,
+      0.162375,
+      0.196792,
+      0.129209,
+      0.174375,
+      0.189333,
+      0.219791,
+      0.162917,
+      0.127042,
+      0.17625,
+      0.18625,
+      0.165458,
+      0.19175,
+      0.220542,
+      0.154167,
+      0.190667,
+      0.145167,
+      0.216291,
+      0.150084,
+      0.132041,
+      0.205,
+      0.141125,
+      0.153,
+      0.14325,
+      0.143834,
+      0.142791,
+      0.242625,
+      0.133917,
+      0.16675,
+      0.134417,
+      0.123459,
+      0.180083,
+      0.163875,
+      0.184375,
+      0.223,
+      0.1715,
+      0.156834,
+      0.216792,
+      0.233416,
+      0.14525,
+      0.161125,
+      0.190417,
+      0.199917,
+      0.210334,
+      0.176,
+      0.139792,
+      0.155875,
+      0.173333,
+      0.1455,
+      0.149583,
+      0.216,
+      0.159333,
+      0.131417,
+      0.144125,
+      0.222333,
+      0.182083,
+      0.126833,
+      0.141,
+      0.187208,
+      0.170958,
+      0.143792,
+      0.149625,
+      0.229709,
+      0.168333,
+      0.143791,
+      0.193375,
+      0.134916,
+      0.200291,
+      0.182584
+    ],
+    "downloadBytes": 0,
+    "peakMemoryBytes": 22036480,
+    "deviceId": "cpu",
+    "dtype": "f32"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "schema": "simulatte.conditionalRerankingPolicy.v1",
+  "id": "simulatte-sealed-rerank-skip-frontier-v1",
+  "populationContract": "simulatte.sealedRerankingDecisionPopulation.v1",
+  "requiredSignals": [
+    "lexicalMargin",
+    "embeddingMargin",
+    "entropy",
+    "candidateDisagreement"
+  ],
+  "quality": {
+    "minimumWinnerAccuracy": 0.9,
+    "maximumAccuracyDegradationFromAlwaysRerank": 0.01,
+    "minimumEvaluatedRows": 60
+  },
+  "selection": {
+    "primary": "maximum-model-skip-rate",
+    "tieBreak": "higher-winner-accuracy-then-rule-id"
+  },
+  "runtime": {
+    "default": "always-rerank",
+    "uncalibratedSkipAllowed": false,
+    "activationRequiresSealedFrontierReceipt": true,
+    "requiredSkipReceiptFields": [
+      "ruleId",
+      "signalValues",
+      "candidateCount",
+      "modelExecuted",
+      "modelNotExecutedReason"
+    ]
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "schema": "simulatte.sealedModelSelectionPopulationCommitment.v1",
+  "id": "simulatte-embedding-retrieval-sealed-v1",
+  "task": "embedding-retrieval",
+  "populationSchema": "simulatte.sealedEmbeddingRetrievalPopulation.v1",
+  "sealedAt": "2026-07-16T00:00:00.000Z",
+  "populationSha256": "dbff5cf91ab5dc0066dc4ae2f21cb17a421ae5fa1cb90f1f48ee937953bbbf2f",
+  "generatorSha256": "45f51789b7c445b1520c4d3f39f634a86bbb06740e045d5f77f33d32f5819721",
+  "rowCount": 130,
+  "visibility": "sealed",
+  "contaminationStatus": "opened-for-one-time-evaluation",
+  "labelAuthority": "private-query-candidate-entailment-v1",
+  "custody": "The population bytes and generator remain outside version control. Move them off the evaluation host before candidate development. Opening requires a hash-bound append-only receipt.",
+  "openings": [
+    {
+      "path": "tools/samer/evidence/model-selection/embedding-retrieval-v1/opening-receipt.json",
+      "sha256": "6c1983adabe2d58d482709c3ff0c8c3701f04cf88e8bfc4ab952df748c61f292"
+    }
+  ]
+}

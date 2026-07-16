@@ -1,0 +1,116 @@
+{
+  "schema": "simulatte.sealedModelSelectionOpening.v1",
+  "populationId": "simulatte-classification-sealed-v1",
+  "populationSha256": "5472373ca0eac45715276a48a0c23bbeca57e827e93b49553753b65bccb4bfae",
+  "task": "classification",
+  "openedAt": "2026-07-16T23:21:04.024Z",
+  "purpose": "one-time-smallest-sufficient-model-selection",
+  "registrySha256": "5d55c632b8d754bd026b36c490596265339c4dbe7f3c59b0f07d44b68fbdd4d4",
+  "runtimeSha256": "26d3a94502abe80851b674478c218768b2e53ee64b65b2dc6d738709ffd15240",
+  "workloadSha256": "87f3dfdbd467335ff0bbe5f4838eec4a84ed6139b65aaa3bf660365c0cabfe94",
+  "candidateProcessesReceivedGoldLabels": false,
+  "evaluatorOwnedMetrics": true,
+  "executions": [
+    {
+      "candidateId": "deterministic-tfidf-control",
+      "implementationId": "simulatte.deterministic-tfidf-label-ranking.v1",
+      "modelId": null,
+      "revision": null,
+      "command": [
+        "python3",
+        "tools/samer/model-candidate-runtime.py",
+        "--input",
+        "tools/samer/evidence/model-selection/classification-v1/deterministic-tfidf-control-workload.json",
+        "--out",
+        "tools/samer/evidence/model-selection/classification-v1/predictions/deterministic-tfidf-control.json",
+        "--mode",
+        "deterministic-classification"
+      ],
+      "predictionSha256": "bcad21883b1e6739a75831b325c5da194c1c2166672c149a19ae3806b5e2ceee"
+    },
+    {
+      "candidateId": "linear-tfidf-head",
+      "implementationId": "simulatte.public-taxonomy-linear-head.v1",
+      "modelId": "simulatte-public-taxonomy-linear-head-v1",
+      "revision": "taxonomy-descriptions-v1",
+      "command": [
+        "python3",
+        "tools/samer/model-candidate-runtime.py",
+        "--input",
+        "tools/samer/evidence/model-selection/classification-v1/linear-tfidf-head-workload.json",
+        "--out",
+        "tools/samer/evidence/model-selection/classification-v1/predictions/linear-tfidf-head.json",
+        "--mode",
+        "linear-classification"
+      ],
+      "predictionSha256": "8a5a3a8e735e101a40f3b1c7f8649b5b4422110cb179cde1c855b96ddfc4b198"
+    },
+    {
+      "candidateId": "minilm-nli-classifier",
+      "implementationId": "simulatte.minilm-nli-classifier.v1",
+      "modelId": "cross-encoder/nli-MiniLM2-L6-H768",
+      "revision": "b95119ce93d3e065de6214e38cd4a97b0f2f2c6d",
+      "command": [
+        "python3",
+        "tools/samer/model-candidate-runtime.py",
+        "--input",
+        "tools/samer/evidence/model-selection/classification-v1/minilm-nli-classifier-workload.json",
+        "--out",
+        "tools/samer/evidence/model-selection/classification-v1/predictions/minilm-nli-classifier.json",
+        "--mode",
+        "nli-classification",
+        "--model-id",
+        "cross-encoder/nli-MiniLM2-L6-H768",
+        "--revision",
+        "b95119ce93d3e065de6214e38cd4a97b0f2f2c6d"
+      ],
+      "predictionSha256": "62fabe797e8a0e11e934a94f1f08cc58b3e17d9f6774a2738fdb67bf29d680cd"
+    },
+    {
+      "candidateId": "deberta-small-nli-classifier",
+      "implementationId": "simulatte.deberta-small-nli-classifier.v1",
+      "modelId": "cross-encoder/nli-deberta-v3-small",
+      "revision": "fa2804872c3b4bd748f38c0185cc85775361e735",
+      "command": [
+        "python3",
+        "tools/samer/model-candidate-runtime.py",
+        "--input",
+        "tools/samer/evidence/model-selection/classification-v1/deberta-small-nli-classifier-workload.json",
+        "--out",
+        "tools/samer/evidence/model-selection/classification-v1/predictions/deberta-small-nli-classifier.json",
+        "--mode",
+        "nli-classification",
+        "--model-id",
+        "cross-encoder/nli-deberta-v3-small",
+        "--revision",
+        "fa2804872c3b4bd748f38c0185cc85775361e735"
+      ],
+      "predictionSha256": "1bbad0301aef6c0efcead8a76b41925971adc054c087ba0fd7065cc83c320a6b"
+    },
+    {
+      "candidateId": "qwen3-embedding-classifier-control",
+      "implementationId": "simulatte.qwen3-embedding-label-classifier.v1",
+      "modelId": "Qwen/Qwen3-Embedding-0.6B",
+      "revision": "97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3",
+      "command": [
+        "python3",
+        "tools/samer/model-candidate-runtime.py",
+        "--input",
+        "tools/samer/evidence/model-selection/classification-v1/qwen3-embedding-classifier-control-workload.json",
+        "--out",
+        "tools/samer/evidence/model-selection/classification-v1/predictions/qwen3-embedding-classifier-control.json",
+        "--mode",
+        "embedding-classification",
+        "--model-id",
+        "Qwen/Qwen3-Embedding-0.6B",
+        "--revision",
+        "97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3",
+        "--pooling",
+        "last",
+        "--instruction",
+        "Classify a visual-world prompt into the supplied fixed taxonomy; prefer abstention when the text does not support a label"
+      ],
+      "predictionSha256": "836594d5348d1366bb453259ede06955cfc54734fc3efcffe53fde5ac6540c31"
+    }
+  ]
+}

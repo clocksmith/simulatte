@@ -1,0 +1,179 @@
+{
+  "schema": "simulatte.modelCandidateRegistry.v1",
+  "id": "simulatte-compact-model-candidates-v1",
+  "comparisonEnvironment": {
+    "runtimeId": "python-transformers-candidate-screen-v1",
+    "deviceId": "cpu",
+    "dtype": "f32",
+    "cacheProtocolId": "simulatte-model-selection-cache-v1",
+    "entrypoint": "tools/samer/model-candidate-runtime.py"
+  },
+  "claimBoundary": "This registry makes architecture candidates executable under one screening runtime. A neural winner is not deployable until its exact browser artifact passes Doppler parity and the same sealed quality gates.",
+  "tasks": {
+    "classification": [
+      {
+        "id": "deterministic-tfidf-control",
+        "kind": "deterministic",
+        "implementationId": "simulatte.deterministic-tfidf-label-ranking.v1",
+        "modelId": null,
+        "revision": null,
+        "mode": "deterministic-classification",
+        "source": "tools/samer/model-candidate-runtime.py",
+        "evaluationEligible": true,
+        "deploymentEligible": false,
+        "deploymentEvidence": "The screening adapter is Python while production is JavaScript; exact prediction and performance parity have not been receipted."
+      },
+      {
+        "id": "linear-tfidf-head",
+        "kind": "model",
+        "implementationId": "simulatte.public-taxonomy-linear-head.v1",
+        "modelId": "simulatte-public-taxonomy-linear-head-v1",
+        "revision": "taxonomy-descriptions-v1",
+        "mode": "linear-classification",
+        "source": "tools/samer/model-candidate-runtime.py",
+        "evaluationEligible": true,
+        "deploymentEligible": false,
+        "deploymentEvidence": "Candidate-only sklearn implementation; browser serialization and parity are not yet proven."
+      },
+      {
+        "id": "minilm-nli-classifier",
+        "kind": "model",
+        "implementationId": "simulatte.minilm-nli-classifier.v1",
+        "modelId": "cross-encoder/nli-MiniLM2-L6-H768",
+        "revision": "b95119ce93d3e065de6214e38cd4a97b0f2f2c6d",
+        "mode": "nli-classification",
+        "source": "https://huggingface.co/cross-encoder/nli-MiniLM2-L6-H768",
+        "license": "Apache-2.0",
+        "evaluationEligible": true,
+        "deploymentEligible": false,
+        "deploymentEvidence": "Pinned Transformers candidate; no browser/Doppler artifact or parity receipt exists."
+      },
+      {
+        "id": "deberta-small-nli-classifier",
+        "kind": "model",
+        "implementationId": "simulatte.deberta-small-nli-classifier.v1",
+        "modelId": "cross-encoder/nli-deberta-v3-small",
+        "revision": "fa2804872c3b4bd748f38c0185cc85775361e735",
+        "mode": "nli-classification",
+        "source": "https://huggingface.co/cross-encoder/nli-deberta-v3-small",
+        "license": "Apache-2.0",
+        "evaluationEligible": true,
+        "deploymentEligible": false,
+        "deploymentEvidence": "Pinned Transformers candidate; no browser/Doppler artifact or parity receipt exists."
+      },
+      {
+        "id": "qwen3-embedding-classifier-control",
+        "kind": "model",
+        "implementationId": "simulatte.qwen3-embedding-label-classifier.v1",
+        "modelId": "Qwen/Qwen3-Embedding-0.6B",
+        "revision": "97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3",
+        "mode": "embedding-classification",
+        "pooling": "last",
+        "instruction": "Classify a visual-world prompt into the supplied fixed taxonomy; prefer abstention when the text does not support a label",
+        "source": "https://huggingface.co/Qwen/Qwen3-Embedding-0.6B",
+        "license": "Apache-2.0",
+        "evaluationEligible": true,
+        "deploymentEligible": false,
+        "deploymentEvidence": "The deployed Qwen embedding artifact exists, but a calibrated fixed-label classifier and parity receipt do not."
+      }
+    ],
+    "embedding-retrieval": [
+      {
+        "id": "deterministic-lexical-control",
+        "kind": "deterministic",
+        "implementationId": "simulatte.deterministic-lexical-retrieval.v1",
+        "modelId": null,
+        "revision": null,
+        "mode": "deterministic-retrieval",
+        "source": "tools/samer/model-candidate-runtime.py",
+        "evaluationEligible": true,
+        "deploymentEligible": false,
+        "deploymentEvidence": "The screening adapter is Python while production is JavaScript; exact prediction and performance parity have not been receipted."
+      },
+      {
+        "id": "all-minilm-l6-v2-embedder",
+        "kind": "model",
+        "implementationId": "simulatte.all-minilm-l6-v2-embedder.v1",
+        "modelId": "sentence-transformers/all-MiniLM-L6-v2",
+        "revision": "1110a243fdf4706b3f48f1d95db1a4f5529b4d41",
+        "mode": "sentence-embedding",
+        "pooling": "mean",
+        "instruction": "",
+        "source": "https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2",
+        "license": "Apache-2.0",
+        "evaluationEligible": true,
+        "deploymentEligible": false,
+        "deploymentEvidence": "Pinned compact encoder; no browser/Doppler artifact or parity receipt exists."
+      },
+      {
+        "id": "qwen3-embedding-control",
+        "kind": "model",
+        "implementationId": "simulatte.qwen3-embedding-retrieval.v1",
+        "modelId": "Qwen/Qwen3-Embedding-0.6B",
+        "revision": "97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3",
+        "mode": "sentence-embedding",
+        "pooling": "last",
+        "instruction": "Given a visual-world request, retrieve construction evidence that satisfies its entities, relations, materials, poses, and obligations",
+        "source": "public/data/simulatte-embedder/model-runtime-lock.json#embedding",
+        "license": "Apache-2.0",
+        "evaluationEligible": true,
+        "deploymentEligible": false,
+        "deploymentEvidence": "The deployed artifact is Q4_K WebGPU while this comparison is source-model CPU f32; browser parity and matched performance remain separate gates."
+      }
+    ],
+    "reranking": [
+      {
+        "id": "deterministic-typed-score-control",
+        "kind": "deterministic",
+        "implementationId": "simulatte.deterministic-typed-score-reranker.v1",
+        "modelId": null,
+        "revision": null,
+        "mode": "deterministic-reranking",
+        "source": "tools/samer/model-candidate-runtime.py",
+        "evaluationEligible": true,
+        "deploymentEligible": false,
+        "deploymentEvidence": "The screening adapter is Python while production is JavaScript; exact prediction and performance parity have not been receipted."
+      },
+      {
+        "id": "ms-marco-minilm-l6-v2-reranker",
+        "kind": "model",
+        "implementationId": "simulatte.ms-marco-minilm-l6-v2-reranker.v1",
+        "modelId": "cross-encoder/ms-marco-MiniLM-L6-v2",
+        "revision": "c5ee24cb16019beea0893ab7796b1df96625c6b8",
+        "mode": "sequence-reranking",
+        "source": "https://huggingface.co/cross-encoder/ms-marco-MiniLM-L6-v2",
+        "license": "Apache-2.0",
+        "evaluationEligible": true,
+        "deploymentEligible": false,
+        "deploymentEvidence": "Pinned compact cross-encoder; no browser/Doppler artifact or parity receipt exists."
+      },
+      {
+        "id": "deberta-v3-bce-reranker",
+        "kind": "model",
+        "implementationId": "simulatte.deberta-v3-bce-reranker.v1",
+        "modelId": "xpmir/cross-encoder-DeBERTav3-BCE",
+        "revision": "75eefc17b67a56ea2991fce8114d8ad1ade53b5f",
+        "mode": "sequence-reranking",
+        "source": "https://huggingface.co/xpmir/cross-encoder-DeBERTav3-BCE",
+        "license": "Apache-2.0",
+        "evaluationEligible": true,
+        "deploymentEligible": false,
+        "deploymentEvidence": "Pinned DeBERTa cross-encoder; no browser/Doppler artifact or parity receipt exists."
+      },
+      {
+        "id": "qwen3-reranker-control",
+        "kind": "model",
+        "implementationId": "simulatte.qwen3-causal-reranker.v1",
+        "modelId": "Qwen/Qwen3-Reranker-0.6B",
+        "revision": "e61197ed45024b0ed8a2d74b80b4d909f1255473",
+        "mode": "causal-reranking",
+        "instruction": "Given a visual-world request, rank evidence that best satisfies its entities, relations, materials, poses, and obligations",
+        "source": "public/data/simulatte-embedder/model-runtime-lock.json#reranker",
+        "license": "Apache-2.0",
+        "evaluationEligible": true,
+        "deploymentEligible": false,
+        "deploymentEvidence": "The deployed artifact is Q4_K WebGPU while this comparison is source-model CPU f32; browser parity and matched performance remain separate gates."
+      }
+    ]
+  }
+}

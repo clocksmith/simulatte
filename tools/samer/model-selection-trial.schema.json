@@ -1,0 +1,252 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Simulatte sealed model selection trial",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "task",
+    "population",
+    "environment",
+    "workload",
+    "candidates"
+  ],
+  "properties": {
+    "schema": { "const": "simulatte.modelSelectionTrial.v2" },
+    "task": { "enum": ["classification", "embedding-retrieval", "reranking"] },
+    "population": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "id",
+        "kind",
+        "visibility",
+        "commitmentSha256",
+        "rowCount",
+        "promotionEligible",
+        "contaminationStatus",
+        "openingReceipt"
+      ],
+      "properties": {
+        "schema": {
+          "enum": [
+            "simulatte.sealedClassificationPopulation.v1",
+            "simulatte.sealedEmbeddingRetrievalPopulation.v1",
+            "simulatte.sealedRerankingPopulation.v1"
+          ]
+        },
+        "id": { "type": "string", "minLength": 1 },
+        "kind": { "const": "held-out" },
+        "visibility": { "const": "sealed" },
+        "commitmentSha256": { "$ref": "#/$defs/hash" },
+        "rowCount": { "type": "integer", "minimum": 1 },
+        "promotionEligible": { "const": true },
+        "contaminationStatus": { "const": "unexposed" },
+        "openingReceipt": { "$ref": "#/$defs/receiptPointer" }
+      }
+    },
+    "environment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["deviceId", "runtimeId", "dtype", "cacheProtocolId"],
+      "properties": {
+        "deviceId": { "type": "string", "minLength": 1 },
+        "runtimeId": { "type": "string", "minLength": 1 },
+        "dtype": { "type": "string", "minLength": 1 },
+        "cacheProtocolId": { "type": "string", "minLength": 1 }
+      }
+    },
+    "workload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "sha256"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "sha256": { "$ref": "#/$defs/hash" },
+        "k": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "candidates": {
+      "type": "array",
+      "minItems": 2,
+      "items": { "$ref": "#/$defs/candidate" }
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "task": { "const": "classification" } } },
+      "then": {
+        "properties": {
+          "candidates": {
+            "items": {
+              "properties": { "quality": { "$ref": "#/$defs/classificationQuality" } }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "task": { "const": "embedding-retrieval" } } },
+      "then": {
+        "properties": {
+          "candidates": {
+            "items": {
+              "properties": { "quality": { "$ref": "#/$defs/retrievalQuality" } }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "task": { "const": "reranking" } } },
+      "then": {
+        "properties": {
+          "candidates": {
+            "items": {
+              "properties": { "quality": { "$ref": "#/$defs/rerankingQuality" } }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "receiptPointer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "sha256": { "$ref": "#/$defs/hash" }
+      }
+    },
+    "candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "implementationId",
+        "kind",
+        "modelId",
+        "deploymentEligible",
+        "deploymentEvidence",
+        "quality",
+        "performance",
+        "receipt"
+      ],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "implementationId": { "type": "string", "minLength": 1 },
+        "kind": { "enum": ["deterministic", "model"] },
+        "modelId": { "type": ["string", "null"] },
+        "deploymentEligible": { "type": "boolean" },
+        "deploymentEvidence": { "type": "string", "minLength": 1 },
+        "quality": { "type": "object" },
+        "performance": { "$ref": "#/$defs/performance" },
+        "receipt": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "path",
+            "sha256",
+            "environmentSha256",
+            "workloadSha256",
+            "cacheProtocolId"
+          ],
+          "properties": {
+            "path": { "type": "string", "minLength": 1 },
+            "sha256": { "$ref": "#/$defs/hash" },
+            "environmentSha256": { "$ref": "#/$defs/hash" },
+            "workloadSha256": { "$ref": "#/$defs/hash" },
+            "cacheProtocolId": { "type": "string", "minLength": 1 }
+          }
+        }
+      }
+    },
+    "classificationQuality": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["heads"],
+      "properties": {
+        "heads": {
+          "type": "array",
+          "minItems": 6,
+          "maxItems": 6,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "macroF1", "coverage", "selectiveRisk", "expectedCalibrationError"],
+            "properties": {
+              "id": {
+                "enum": [
+                  "scene-domain",
+                  "span-entity-role",
+                  "relation",
+                  "material",
+                  "pose",
+                  "obligation-support"
+                ]
+              },
+              "macroF1": { "$ref": "#/$defs/unitMetric" },
+              "coverage": { "$ref": "#/$defs/unitMetric" },
+              "selectiveRisk": { "$ref": "#/$defs/unitMetric" },
+              "expectedCalibrationError": { "$ref": "#/$defs/unitMetric" }
+            }
+          }
+        }
+      }
+    },
+    "retrievalQuality": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["recallAtK", "hardNegativeAccuracy", "mustRefuseAccuracy"],
+      "properties": {
+        "recallAtK": { "$ref": "#/$defs/unitMetric" },
+        "hardNegativeAccuracy": { "$ref": "#/$defs/unitMetric" },
+        "mustRefuseAccuracy": { "$ref": "#/$defs/unitMetric" }
+      }
+    },
+    "rerankingQuality": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ndcgAtK", "winnerAccuracy"],
+      "properties": {
+        "ndcgAtK": { "$ref": "#/$defs/unitMetric" },
+        "winnerAccuracy": { "$ref": "#/$defs/unitMetric" }
+      }
+    },
+    "performance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["downloadBytes", "peakMemoryBytes", "coldLoadMs", "warmLatencyMs"],
+      "properties": {
+        "downloadBytes": { "type": "integer", "minimum": 0 },
+        "peakMemoryBytes": { "type": "integer", "minimum": 0 },
+        "coldLoadMs": { "$ref": "#/$defs/sampleSet" },
+        "warmLatencyMs": { "$ref": "#/$defs/sampleSet" }
+      }
+    },
+    "sampleSet": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["samples"],
+      "properties": {
+        "samples": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "number", "minimum": 0 }
+        }
+      }
+    },
+    "unitMetric": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    }
+  }
+}

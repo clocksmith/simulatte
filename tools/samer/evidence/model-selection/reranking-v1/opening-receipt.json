@@ -1,0 +1,97 @@
+{
+  "schema": "simulatte.sealedModelSelectionOpening.v1",
+  "populationId": "simulatte-reranking-sealed-v1",
+  "populationSha256": "9083202238c2a5712f0df35916ff6eb375857ea448b650f4c8239f69045600c3",
+  "task": "reranking",
+  "openedAt": "2026-07-16T23:27:26.332Z",
+  "purpose": "one-time-smallest-sufficient-model-selection",
+  "registrySha256": "5d55c632b8d754bd026b36c490596265339c4dbe7f3c59b0f07d44b68fbdd4d4",
+  "runtimeSha256": "26d3a94502abe80851b674478c218768b2e53ee64b65b2dc6d738709ffd15240",
+  "workloadSha256": "540fc3da22d3e951cf55df083e241475f488d020b71ddc2f9cc0ebeb63e87813",
+  "candidateProcessesReceivedGoldLabels": false,
+  "evaluatorOwnedMetrics": true,
+  "executions": [
+    {
+      "candidateId": "deterministic-typed-score-control",
+      "implementationId": "simulatte.deterministic-typed-score-reranker.v1",
+      "modelId": null,
+      "revision": null,
+      "command": [
+        "python3",
+        "tools/samer/model-candidate-runtime.py",
+        "--input",
+        "tools/samer/evidence/model-selection/reranking-v1/deterministic-typed-score-control-workload.json",
+        "--out",
+        "tools/samer/evidence/model-selection/reranking-v1/predictions/deterministic-typed-score-control.json",
+        "--mode",
+        "deterministic-reranking"
+      ],
+      "predictionSha256": "ec59c418b8015c65af8b042af712a9c2b0c6679d229507bbd01047626913fb78"
+    },
+    {
+      "candidateId": "ms-marco-minilm-l6-v2-reranker",
+      "implementationId": "simulatte.ms-marco-minilm-l6-v2-reranker.v1",
+      "modelId": "cross-encoder/ms-marco-MiniLM-L6-v2",
+      "revision": "c5ee24cb16019beea0893ab7796b1df96625c6b8",
+      "command": [
+        "python3",
+        "tools/samer/model-candidate-runtime.py",
+        "--input",
+        "tools/samer/evidence/model-selection/reranking-v1/ms-marco-minilm-l6-v2-reranker-workload.json",
+        "--out",
+        "tools/samer/evidence/model-selection/reranking-v1/predictions/ms-marco-minilm-l6-v2-reranker.json",
+        "--mode",
+        "sequence-reranking",
+        "--model-id",
+        "cross-encoder/ms-marco-MiniLM-L6-v2",
+        "--revision",
+        "c5ee24cb16019beea0893ab7796b1df96625c6b8"
+      ],
+      "predictionSha256": "4b17c96514ee2682194e7e7cdf532538ea459f748b91fa7cfacf075c76529f53"
+    },
+    {
+      "candidateId": "deberta-v3-bce-reranker",
+      "implementationId": "simulatte.deberta-v3-bce-reranker.v1",
+      "modelId": "xpmir/cross-encoder-DeBERTav3-BCE",
+      "revision": "75eefc17b67a56ea2991fce8114d8ad1ade53b5f",
+      "command": [
+        "python3",
+        "tools/samer/model-candidate-runtime.py",
+        "--input",
+        "tools/samer/evidence/model-selection/reranking-v1/deberta-v3-bce-reranker-workload.json",
+        "--out",
+        "tools/samer/evidence/model-selection/reranking-v1/predictions/deberta-v3-bce-reranker.json",
+        "--mode",
+        "sequence-reranking",
+        "--model-id",
+        "xpmir/cross-encoder-DeBERTav3-BCE",
+        "--revision",
+        "75eefc17b67a56ea2991fce8114d8ad1ade53b5f"
+      ],
+      "predictionSha256": "e5956148d6f321729ab2ad7d7cbc897d603d6a988fcb818a35262486670c79f3"
+    },
+    {
+      "candidateId": "qwen3-reranker-control",
+      "implementationId": "simulatte.qwen3-causal-reranker.v1",
+      "modelId": "Qwen/Qwen3-Reranker-0.6B",
+      "revision": "e61197ed45024b0ed8a2d74b80b4d909f1255473",
+      "command": [
+        "python3",
+        "tools/samer/model-candidate-runtime.py",
+        "--input",
+        "tools/samer/evidence/model-selection/reranking-v1/qwen3-reranker-control-workload.json",
+        "--out",
+        "tools/samer/evidence/model-selection/reranking-v1/predictions/qwen3-reranker-control.json",
+        "--mode",
+        "causal-reranking",
+        "--model-id",
+        "Qwen/Qwen3-Reranker-0.6B",
+        "--revision",
+        "e61197ed45024b0ed8a2d74b80b4d909f1255473",
+        "--instruction",
+        "Given a visual-world request, rank evidence that best satisfies its entities, relations, materials, poses, and obligations"
+      ],
+      "predictionSha256": "0318f28b7004933d2fbc6f0fe08dc901aa6878b536c2f2f53717881afe39a25f"
+    }
+  ]
+}

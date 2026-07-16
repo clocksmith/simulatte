@@ -1,0 +1,20 @@
+{
+  "schema": "simulatte.sealedModelSelectionPopulationCommitment.v1",
+  "id": "simulatte-classification-sealed-v1",
+  "task": "classification",
+  "populationSchema": "simulatte.sealedClassificationPopulation.v1",
+  "sealedAt": "2026-07-16T00:00:00.000Z",
+  "populationSha256": "5472373ca0eac45715276a48a0c23bbeca57e827e93b49553753b65bccb4bfae",
+  "generatorSha256": "45f51789b7c445b1520c4d3f39f634a86bbb06740e045d5f77f33d32f5819721",
+  "rowCount": 276,
+  "visibility": "sealed",
+  "contaminationStatus": "opened-for-one-time-evaluation",
+  "labelAuthority": "private-template-entailment-v1",
+  "custody": "The population bytes and generator remain outside version control. Move them off the evaluation host before candidate development. Opening requires a hash-bound append-only receipt.",
+  "openings": [
+    {
+      "path": "tools/samer/evidence/model-selection/classification-v1/opening-receipt.json",
+      "sha256": "db6c9cdb092cbd6b866c20193f771cbb773a758c70569b304328d15e554aae58"
+    }
+  ]
+}
