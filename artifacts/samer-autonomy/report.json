@@ -9,25 +9,25 @@
     "worldHash": "c03caee65a04140f361c154c4478386240ecc653a59912fc32001ade2d2d5d45",
     "featureCatalogHash": "15fc155c8bc66051984a8ddeca358ef04fc9876d8e47dcced0675aeadcdcf043",
     "embodimentHash": "27419ce686731bc5bd61bdfa120f2a442d4d2a10ce0825c6e7406abd3e30e7d2",
-    "basePolicyHash": "0956e228e16b7b01c12e9e7e1878b82e782825ffdcf4d6890d9a926c0817ff1f",
+    "basePolicyHash": "f0e0c7acfe594e4891793a0b6c83469b52635686995d467faea4255053dc34d6",
     "runtimeSourceIdentity": {
       "algorithm": "sha256_raw_bytes",
       "files": [
         {
           "path": "public/contracts/contract-validator.js",
-          "sha256": "65afe51e91d8bc7a83ffcfe218f3148fbccc559b4fe1bf3e84d0cf233336ee12"
+          "sha256": "13a2ee726bb483a5b8e556d3902d5617c36fecccb9b047397ce23ffa5a853c5e"
         },
         {
           "path": "public/contracts/data-contract-validator.js",
-          "sha256": "3249e03d79d7c2db7d530bd1f94076879defab95ce1f4e194b74c65d9799073d"
+          "sha256": "7828472dfacf3e575bb89ccf90c932734f92feb9d77ac9e94edccc47444a6f4c"
         },
         {
           "path": "public/mission/capability-matrix.js",
-          "sha256": "8418b1aa861fa50d1c8418e03ef34a45058d251254862aec0715ceafd98b2570"
+          "sha256": "ddfcb7a25eac0190f9a973cacf890153ca9ccd75e67f08a0429961859a36916e"
         },
         {
           "path": "public/mission/mission-compiler.js",
-          "sha256": "50fee0cd85656869ab7a76e30bac553e0faeb2291e1d0583c24fb902c238263d"
+          "sha256": "bf607689230073726fb94a9839a096aadc87b491df1ca2eef2f382781d9b07e4"
         },
         {
           "path": "public/world/ambient-actors.js",
@@ -35,11 +35,11 @@
         },
         {
           "path": "public/world/world-model.js",
-          "sha256": "5870d1117239a3b9342db20b8576ce32aaf2d1ec124af8c28cd73a205b1db0b8"
+          "sha256": "652e2f76cd597404f051eb1e825fcc8d4aacca0fe052ff48652b77420c0f7098"
         },
         {
           "path": "public/world/route-planner.js",
-          "sha256": "eb836b33f4ebe5c0b63df3c042c2eec3f66b290a66dbf5a2cb5dfbc5e7f8def9"
+          "sha256": "1c614c4ff2181fc07383fecc3948304aa7888abaa70d8dd69f02c8807bf75546"
         },
         {
           "path": "public/world/region-pack-merger.js",
@@ -47,7 +47,7 @@
         },
         {
           "path": "public/runtime/canonical-receipts.js",
-          "sha256": "aa4c0345e5063e6200d6478f46dd7476cdba875ed12d1a945b6c1fafee9c6064"
+          "sha256": "7a913e978ae5ac8e363f98c2b6908b4ffbcc0910fe6d12ca2b18e80913664c34"
         },
         {
           "path": "public/runtime/feature-retrieval.js",
@@ -83,7 +83,7 @@
         },
         {
           "path": "public/runtime/autonomy-controller.js",
-          "sha256": "db0832fde09bad0b966f1490407a40818563a8aabc15b933b4cad5823b9a2a1c"
+          "sha256": "4294a8420d9a2a59dc56f89ea4d02b208bfefa27d03aad6137f0a69e965f261f"
         },
         {
           "path": "public/verifier/journey-verifier.js",
@@ -94,7 +94,7 @@
           "sha256": "a3a7a10f03c43d48d2daa7a6f31024cbdfa4fea136e2a3e857ff7c55a129cb8a"
         }
       ],
-      "aggregateSha256": "39824f3366d0eaa4238925b1a8d09cc035338599c85a89d01ca717ad311d60b5"
+      "aggregateSha256": "cb0a761785e01c1323a63a264e71c2874e83fe986e6513633ab8be029d408322"
     }
   },
   "execution": {
