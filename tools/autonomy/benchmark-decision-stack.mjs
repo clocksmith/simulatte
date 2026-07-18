@@ -185,7 +185,7 @@ async function benchmarkController(rows, repetitions, assets) {
 async function main() {
   const options = parseArgs(process.argv.slice(2));
   const assets = loadAssets();
-  const corpus = readJson('tools/samer/autonomy/public-navigation-missions-v1.json');
+  const corpus = readJson('tools/samer/autonomy/public-navigation-missions-v2.json');
   const worldModel = worldApi.createWorldModel(assets.world);
 
   for (const row of corpus.missions) {
@@ -236,7 +236,7 @@ async function main() {
     },
     identities: {
       commit: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim(),
-      corpus: { path: 'tools/samer/autonomy/public-navigation-missions-v1.json', sha256: hashFile('tools/samer/autonomy/public-navigation-missions-v1.json') },
+      corpus: { path: 'tools/samer/autonomy/public-navigation-missions-v2.json', sha256: hashFile('tools/samer/autonomy/public-navigation-missions-v2.json') },
       world: { id: assets.world.id, path: 'public/data/autonomy/worlds/nyc-core-autonomy-v1.json', sha256: hashFile('public/data/autonomy/worlds/nyc-core-autonomy-v1.json') },
       policy: { id: assets.policy.id, path: 'public/data/autonomy/policies/bet-selector-v1.json', sha256: hashFile('public/data/autonomy/policies/bet-selector-v1.json') },
       compiler: { path: 'public/mission/mission-compiler.js', sha256: hashFile('public/mission/mission-compiler.js') },

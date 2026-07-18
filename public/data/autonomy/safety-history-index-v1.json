@@ -5,7 +5,7 @@
   "world": {
     "id": "nyc-core-autonomy-v1",
     "contentVersion": "nyc-core-autonomy-2026-07-13",
-    "sha256": "85d2f95208406050ea6b87da7e0170c66430cb372e83e712e36c35ce8fefa001"
+    "sha256": "218c6f3734815066669f57ae1bc1ce14aace261f0865ebf25f903db3880dcb3e"
   },
   "source": {
     "datasetId": "nyc-motor-vehicle-crashes",

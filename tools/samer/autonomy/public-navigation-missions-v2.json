@@ -1,0 +1,1020 @@
+{
+  "claimBoundary": "These exposed rows detect parser, route, and retrieval regressions. They are not a contamination-secure promotion holdout and cannot authorize an autonomy capability claim.",
+  "construction": {
+    "method": "by_construction_from_named_world_nodes",
+    "owner": "tools/autonomy/build-public-navigation-missions.mjs",
+    "rowCount": 20,
+    "rowsSha256": "6320ee26b30e3babcec1d65c3a180ae3f70ee01fb41aabbee27326a9af0c36c5"
+  },
+  "contentVersion": "public-navigation-missions-2026-07-18",
+  "exposure": "Checked into the repository and available to developers, agents, selectors, and evaluators.",
+  "id": "public-navigation-missions-v2",
+  "identities": {
+    "embodimentId": "delivery-bike-v1",
+    "embodimentSha256": "7db2ebdc5e89bbc47c798e5e85e817f3f96945c623c8da6f195cfb9ed3977fba",
+    "policyId": "bet-selector-v1",
+    "policySha256": "0ce4b32caceb30abafd79e029c8a8cd62691b0d33ac917f5b0e15988a8c41fab",
+    "worldId": "nyc-core-autonomy-v1",
+    "worldSha256": "218c6f3734815066669f57ae1bc1ce14aace261f0865ebf25f903db3880dcb3e"
+  },
+  "missions": [
+    {
+      "gold": {
+        "constraints": {
+          "accessibilityProfile": null,
+          "arrivalDeadlineLocalMinutes": null,
+          "avoidStreetNames": [],
+          "daylightOnly": false,
+          "daylightWindowLocalMinutes": [
+            337,
+            1224
+          ],
+          "departureLocalMinutes": 720,
+          "lanePreference": "protected",
+          "maximumBikeRackDistanceM": null,
+          "maximumDurationSeconds": null,
+          "maximumSpeedMps": 7,
+          "mustObeySignals": true,
+          "mustStayOnCircuit": false,
+          "mustYieldToPedestrians": true,
+          "preferShade": false
+        },
+        "destinationLabel": "North Williamsburg",
+        "destinationNodeId": "bike-node-e25116ea05a4",
+        "originLabel": "Union Square",
+        "originNodeId": "bike-node-0d9391b2bfa3",
+        "requiredObligationIds": [
+          "obligation-arrival",
+          "obligation-payload",
+          "obligation-signal",
+          "obligation-pedestrian",
+          "obligation-lane-preference"
+        ],
+        "retrieval": {
+          "missionCardId": "scenario.delivery-arrival",
+          "routeSegmentCardId": "network.bike-30ee92829e72-tf"
+        }
+      },
+      "id": "public-mission-01",
+      "routeControl": {
+        "algorithm": "a_star_v1",
+        "distanceM": 7220.116811,
+        "firstSegmentId": "bike-30ee92829e72-tf",
+        "isReachable": true,
+        "lastSegmentId": "bike-7bfdf69ee8aa-ft",
+        "protectedSegmentCount": 86,
+        "segmentCount": 95,
+        "sharedSegmentCount": 9
+      },
+      "sourceText": "Deliver the parcel by bike from Union Square to North Williamsburg. Prefer protected lanes. Yield to pedestrians."
+    },
+    {
+      "gold": {
+        "constraints": {
+          "accessibilityProfile": null,
+          "arrivalDeadlineLocalMinutes": null,
+          "avoidStreetNames": [],
+          "daylightOnly": false,
+          "daylightWindowLocalMinutes": [
+            337,
+            1224
+          ],
+          "departureLocalMinutes": 720,
+          "lanePreference": "protected",
+          "maximumBikeRackDistanceM": null,
+          "maximumDurationSeconds": null,
+          "maximumSpeedMps": 7,
+          "mustObeySignals": true,
+          "mustStayOnCircuit": false,
+          "mustYieldToPedestrians": true,
+          "preferShade": false
+        },
+        "destinationLabel": "Union Square",
+        "destinationNodeId": "bike-node-0d9391b2bfa3",
+        "originLabel": "West Village",
+        "originNodeId": "bike-node-261ee8be5a25",
+        "requiredObligationIds": [
+          "obligation-arrival",
+          "obligation-payload",
+          "obligation-signal",
+          "obligation-pedestrian",
+          "obligation-lane-preference"
+        ],
+        "retrieval": {
+          "missionCardId": "scenario.delivery-arrival",
+          "routeSegmentCardId": "network.bike-5bc633d32761-tf"
+        }
+      },
+      "id": "public-mission-02",
+      "routeControl": {
+        "algorithm": "a_star_v1",
+        "distanceM": 1715.457479,
+        "firstSegmentId": "bike-5bc633d32761-tf",
+        "isReachable": true,
+        "lastSegmentId": "bike-c698e8b137d0-ft",
+        "protectedSegmentCount": 12,
+        "segmentCount": 24,
+        "sharedSegmentCount": 12
+      },
+      "sourceText": "Deliver the parcel by bike from West Village to Union Square. Prefer protected lanes. Yield to pedestrians."
+    },
+    {
+      "gold": {
+        "constraints": {
+          "accessibilityProfile": null,
+          "arrivalDeadlineLocalMinutes": null,
+          "avoidStreetNames": [],
+          "daylightOnly": false,
+          "daylightWindowLocalMinutes": [
+            337,
+            1224
+          ],
+          "departureLocalMinutes": 720,
+          "lanePreference": "protected",
+          "maximumBikeRackDistanceM": null,
+          "maximumDurationSeconds": null,
+          "maximumSpeedMps": 7,
+          "mustObeySignals": true,
+          "mustStayOnCircuit": false,
+          "mustYieldToPedestrians": true,
+          "preferShade": false
+        },
+        "destinationLabel": "West Village",
+        "destinationNodeId": "bike-node-261ee8be5a25",
+        "originLabel": "Union Square",
+        "originNodeId": "bike-node-0d9391b2bfa3",
+        "requiredObligationIds": [
+          "obligation-arrival",
+          "obligation-payload",
+          "obligation-signal",
+          "obligation-pedestrian",
+          "obligation-lane-preference"
+        ],
+        "retrieval": {
+          "missionCardId": "scenario.delivery-arrival",
+          "routeSegmentCardId": "network.bike-30ee92829e72-tf"
+        }
+      },
+      "id": "public-mission-03",
+      "routeControl": {
+        "algorithm": "a_star_v1",
+        "distanceM": 2138.734453,
+        "firstSegmentId": "bike-30ee92829e72-tf",
+        "isReachable": true,
+        "lastSegmentId": "bike-793260e61f7c-tf",
+        "protectedSegmentCount": 13,
+        "segmentCount": 22,
+        "sharedSegmentCount": 9
+      },
+      "sourceText": "Deliver the parcel by bike from Union Square to West Village. Prefer protected lanes. Yield to pedestrians."
+    },
+    {
+      "gold": {
+        "constraints": {
+          "accessibilityProfile": null,
+          "arrivalDeadlineLocalMinutes": null,
+          "avoidStreetNames": [],
+          "daylightOnly": false,
+          "daylightWindowLocalMinutes": [
+            337,
+            1224
+          ],
+          "departureLocalMinutes": 720,
+          "lanePreference": "any",
+          "maximumBikeRackDistanceM": null,
+          "maximumDurationSeconds": null,
+          "maximumSpeedMps": 7,
+          "mustObeySignals": true,
+          "mustStayOnCircuit": false,
+          "mustYieldToPedestrians": true,
+          "preferShade": false
+        },
+        "destinationLabel": "Union Square",
+        "destinationNodeId": "bike-node-0d9391b2bfa3",
+        "originLabel": "East Village",
+        "originNodeId": "bike-node-ffea919f743c",
+        "requiredObligationIds": [
+          "obligation-arrival",
+          "obligation-payload",
+          "obligation-signal",
+          "obligation-pedestrian"
+        ],
+        "retrieval": {
+          "missionCardId": "scenario.delivery-arrival",
+          "routeSegmentCardId": "network.bike-bc5707edfa14-ft"
+        }
+      },
+      "id": "public-mission-04",
+      "routeControl": {
+        "algorithm": "a_star_v1",
+        "distanceM": 1473.07519,
+        "firstSegmentId": "bike-bc5707edfa14-ft",
+        "isReachable": true,
+        "lastSegmentId": "bike-c698e8b137d0-ft",
+        "protectedSegmentCount": 11,
+        "segmentCount": 20,
+        "sharedSegmentCount": 9
+      },
+      "sourceText": "Deliver the parcel by bike from East Village to Union Square. Yield to pedestrians."
+    },
+    {
+      "gold": {
+        "constraints": {
+          "accessibilityProfile": null,
+          "arrivalDeadlineLocalMinutes": null,
+          "avoidStreetNames": [],
+          "daylightOnly": false,
+          "daylightWindowLocalMinutes": [
+            337,
+            1224
+          ],
+          "departureLocalMinutes": 720,
+          "lanePreference": "protected",
+          "maximumBikeRackDistanceM": null,
+          "maximumDurationSeconds": null,
+          "maximumSpeedMps": 7,
+          "mustObeySignals": true,
+          "mustStayOnCircuit": false,
+          "mustYieldToPedestrians": false,
+          "preferShade": false
+        },
+        "destinationLabel": "East Village",
+        "destinationNodeId": "bike-node-ffea919f743c",
+        "originLabel": "Union Square",
+        "originNodeId": "bike-node-0d9391b2bfa3",
+        "requiredObligationIds": [
+          "obligation-arrival",
+          "obligation-payload",
+          "obligation-signal",
+          "obligation-pedestrian",
+          "obligation-lane-preference"
+        ],
+        "retrieval": {
+          "missionCardId": "scenario.delivery-arrival",
+          "routeSegmentCardId": "network.bike-30ee92829e72-tf"
+        }
+      },
+      "id": "public-mission-05",
+      "routeControl": {
+        "algorithm": "a_star_v1",
+        "distanceM": 1528.993856,
+        "firstSegmentId": "bike-30ee92829e72-tf",
+        "isReachable": true,
+        "lastSegmentId": "bike-87ae7cb7e384-tf",
+        "protectedSegmentCount": 13,
+        "segmentCount": 19,
+        "sharedSegmentCount": 6
+      },
+      "sourceText": "Deliver the parcel by bike from Union Square to East Village. Prefer protected lanes."
+    },
+    {
+      "gold": {
+        "constraints": {
+          "accessibilityProfile": null,
+          "arrivalDeadlineLocalMinutes": null,
+          "avoidStreetNames": [],
+          "daylightOnly": false,
+          "daylightWindowLocalMinutes": [
+            337,
+            1224
+          ],
+          "departureLocalMinutes": 720,
+          "lanePreference": "protected",
+          "maximumBikeRackDistanceM": null,
+          "maximumDurationSeconds": null,
+          "maximumSpeedMps": 7,
+          "mustObeySignals": true,
+          "mustStayOnCircuit": false,
+          "mustYieldToPedestrians": true,
+          "preferShade": false
+        },
+        "destinationLabel": "East Village",
+        "destinationNodeId": "bike-node-ffea919f743c",
+        "originLabel": "Washington Square",
+        "originNodeId": "bike-node-a3f0f4b7e7e3",
+        "requiredObligationIds": [
+          "obligation-arrival",
+          "obligation-payload",
+          "obligation-signal",
+          "obligation-pedestrian",
+          "obligation-lane-preference"
+        ],
+        "retrieval": {
+          "missionCardId": "scenario.delivery-arrival",
+          "routeSegmentCardId": "network.bike-2824173a7a8e-ft"
+        }
+      },
+      "id": "public-mission-06",
+      "routeControl": {
+        "algorithm": "a_star_v1",
+        "distanceM": 3051.531997,
+        "firstSegmentId": "bike-2824173a7a8e-ft",
+        "isReachable": true,
+        "lastSegmentId": "bike-87ae7cb7e384-tf",
+        "protectedSegmentCount": 25,
+        "segmentCount": 37,
+        "sharedSegmentCount": 12
+      },
+      "sourceText": "Deliver the parcel by bike from Washington Square to East Village. Prefer protected lanes. Yield to pedestrians."
+    },
+    {
+      "gold": {
+        "constraints": {
+          "accessibilityProfile": null,
+          "arrivalDeadlineLocalMinutes": null,
+          "avoidStreetNames": [],
+          "daylightOnly": false,
+          "daylightWindowLocalMinutes": [
+            337,
+            1224
+          ],
+          "departureLocalMinutes": 720,
+          "lanePreference": "protected",
+          "maximumBikeRackDistanceM": null,
+          "maximumDurationSeconds": null,
+          "maximumSpeedMps": 7,
+          "mustObeySignals": true,
+          "mustStayOnCircuit": false,
+          "mustYieldToPedestrians": true,
+          "preferShade": false
+        },
+        "destinationLabel": "Washington Square",
+        "destinationNodeId": "bike-node-a3f0f4b7e7e3",
+        "originLabel": "East Village",
+        "originNodeId": "bike-node-ffea919f743c",
+        "requiredObligationIds": [
+          "obligation-arrival",
+          "obligation-payload",
+          "obligation-signal",
+          "obligation-pedestrian",
+          "obligation-lane-preference"
+        ],
+        "retrieval": {
+          "missionCardId": "scenario.delivery-arrival",
+          "routeSegmentCardId": "network.bike-bc5707edfa14-ft"
+        }
+      },
+      "id": "public-mission-07",
+      "routeControl": {
+        "algorithm": "a_star_v1",
+        "distanceM": 2159.554698,
+        "firstSegmentId": "bike-bc5707edfa14-ft",
+        "isReachable": true,
+        "lastSegmentId": "bike-789adb0b13f3-tf",
+        "protectedSegmentCount": 15,
+        "segmentCount": 21,
+        "sharedSegmentCount": 6
+      },
+      "sourceText": "Deliver the parcel by bike from East Village to Washington Square. Prefer protected lanes. Yield to pedestrians."
+    },
+    {
+      "gold": {
+        "constraints": {
+          "accessibilityProfile": null,
+          "arrivalDeadlineLocalMinutes": null,
+          "avoidStreetNames": [],
+          "daylightOnly": false,
+          "daylightWindowLocalMinutes": [
+            337,
+            1224
+          ],
+          "departureLocalMinutes": 720,
+          "lanePreference": "any",
+          "maximumBikeRackDistanceM": null,
+          "maximumDurationSeconds": null,
+          "maximumSpeedMps": 7,
+          "mustObeySignals": true,
+          "mustStayOnCircuit": false,
+          "mustYieldToPedestrians": true,
+          "preferShade": false
+        },
+        "destinationLabel": "Union Square",
+        "destinationNodeId": "bike-node-0d9391b2bfa3",
+        "originLabel": "Tompkins Square",
+        "originNodeId": "bike-node-429dcefa615d",
+        "requiredObligationIds": [
+          "obligation-arrival",
+          "obligation-payload",
+          "obligation-signal",
+          "obligation-pedestrian"
+        ],
+        "retrieval": {
+          "missionCardId": "scenario.delivery-arrival",
+          "routeSegmentCardId": "network.bike-525b89419eaa-ft"
+        }
+      },
+      "id": "public-mission-08",
+      "routeControl": {
+        "algorithm": "a_star_v1",
+        "distanceM": 1550.517746,
+        "firstSegmentId": "bike-525b89419eaa-ft",
+        "isReachable": true,
+        "lastSegmentId": "bike-c698e8b137d0-ft",
+        "protectedSegmentCount": 11,
+        "segmentCount": 21,
+        "sharedSegmentCount": 10
+      },
+      "sourceText": "Deliver the parcel by bike from Tompkins Square to Union Square. Yield to pedestrians."
+    },
+    {
+      "gold": {
+        "constraints": {
+          "accessibilityProfile": null,
+          "arrivalDeadlineLocalMinutes": null,
+          "avoidStreetNames": [],
+          "daylightOnly": false,
+          "daylightWindowLocalMinutes": [
+            337,
+            1224
+          ],
+          "departureLocalMinutes": 720,
+          "lanePreference": "protected",
+          "maximumBikeRackDistanceM": null,
+          "maximumDurationSeconds": null,
+          "maximumSpeedMps": 7,
+          "mustObeySignals": true,
+          "mustStayOnCircuit": false,
+          "mustYieldToPedestrians": true,
+          "preferShade": false
+        },
+        "destinationLabel": "Tompkins Square",
+        "destinationNodeId": "bike-node-429dcefa615d",
+        "originLabel": "Union Square",
+        "originNodeId": "bike-node-0d9391b2bfa3",
+        "requiredObligationIds": [
+          "obligation-arrival",
+          "obligation-payload",
+          "obligation-signal",
+          "obligation-pedestrian",
+          "obligation-lane-preference"
+        ],
+        "retrieval": {
+          "missionCardId": "scenario.delivery-arrival",
+          "routeSegmentCardId": "network.bike-30ee92829e72-tf"
+        }
+      },
+      "id": "public-mission-09",
+      "routeControl": {
+        "algorithm": "a_star_v1",
+        "distanceM": 1606.436412,
+        "firstSegmentId": "bike-30ee92829e72-tf",
+        "isReachable": true,
+        "lastSegmentId": "bike-f9cd8f0bd2bd-tf",
+        "protectedSegmentCount": 13,
+        "segmentCount": 20,
+        "sharedSegmentCount": 7
+      },
+      "sourceText": "Deliver the parcel by bike from Union Square to Tompkins Square. Prefer protected lanes. Yield to pedestrians."
+    },
+    {
+      "gold": {
+        "constraints": {
+          "accessibilityProfile": null,
+          "arrivalDeadlineLocalMinutes": null,
+          "avoidStreetNames": [],
+          "daylightOnly": false,
+          "daylightWindowLocalMinutes": [
+            337,
+            1224
+          ],
+          "departureLocalMinutes": 720,
+          "lanePreference": "protected",
+          "maximumBikeRackDistanceM": null,
+          "maximumDurationSeconds": null,
+          "maximumSpeedMps": 7,
+          "mustObeySignals": true,
+          "mustStayOnCircuit": false,
+          "mustYieldToPedestrians": false,
+          "preferShade": false
+        },
+        "destinationLabel": "North Williamsburg",
+        "destinationNodeId": "bike-node-e25116ea05a4",
+        "originLabel": "Williamsburg Bridge",
+        "originNodeId": "bike-node-86300f2cfd65",
+        "requiredObligationIds": [
+          "obligation-arrival",
+          "obligation-payload",
+          "obligation-signal",
+          "obligation-pedestrian",
+          "obligation-lane-preference"
+        ],
+        "retrieval": {
+          "missionCardId": "scenario.delivery-arrival",
+          "routeSegmentCardId": "network.bike-bb2677d5568d-ft"
+        }
+      },
+      "id": "public-mission-10",
+      "routeControl": {
+        "algorithm": "a_star_v1",
+        "distanceM": 2642.561146,
+        "firstSegmentId": "bike-bb2677d5568d-ft",
+        "isReachable": true,
+        "lastSegmentId": "bike-7bfdf69ee8aa-ft",
+        "protectedSegmentCount": 23,
+        "segmentCount": 30,
+        "sharedSegmentCount": 7
+      },
+      "sourceText": "Deliver the parcel by bike from Williamsburg Bridge to North Williamsburg. Prefer protected lanes."
+    },
+    {
+      "gold": {
+        "constraints": {
+          "accessibilityProfile": null,
+          "arrivalDeadlineLocalMinutes": null,
+          "avoidStreetNames": [],
+          "daylightOnly": false,
+          "daylightWindowLocalMinutes": [
+            337,
+            1224
+          ],
+          "departureLocalMinutes": 720,
+          "lanePreference": "protected",
+          "maximumBikeRackDistanceM": null,
+          "maximumDurationSeconds": null,
+          "maximumSpeedMps": 7,
+          "mustObeySignals": true,
+          "mustStayOnCircuit": false,
+          "mustYieldToPedestrians": true,
+          "preferShade": false
+        },
+        "destinationLabel": "Williamsburg Bridge",
+        "destinationNodeId": "bike-node-86300f2cfd65",
+        "originLabel": "North Williamsburg",
+        "originNodeId": "bike-node-e25116ea05a4",
+        "requiredObligationIds": [
+          "obligation-arrival",
+          "obligation-payload",
+          "obligation-signal",
+          "obligation-pedestrian",
+          "obligation-lane-preference"
+        ],
+        "retrieval": {
+          "missionCardId": "scenario.delivery-arrival",
+          "routeSegmentCardId": "network.bike-cadb6da5d98d-ft"
+        }
+      },
+      "id": "public-mission-11",
+      "routeControl": {
+        "algorithm": "a_star_v1",
+        "distanceM": 2168.157075,
+        "firstSegmentId": "bike-cadb6da5d98d-ft",
+        "isReachable": true,
+        "lastSegmentId": "bike-396223911d7b-tf",
+        "protectedSegmentCount": 18,
+        "segmentCount": 25,
+        "sharedSegmentCount": 7
+      },
+      "sourceText": "Deliver the parcel by bike from North Williamsburg to Williamsburg Bridge. Prefer protected lanes. Yield to pedestrians."
+    },
+    {
+      "gold": {
+        "constraints": {
+          "accessibilityProfile": null,
+          "arrivalDeadlineLocalMinutes": null,
+          "avoidStreetNames": [],
+          "daylightOnly": false,
+          "daylightWindowLocalMinutes": [
+            337,
+            1224
+          ],
+          "departureLocalMinutes": 720,
+          "lanePreference": "any",
+          "maximumBikeRackDistanceM": null,
+          "maximumDurationSeconds": null,
+          "maximumSpeedMps": 7,
+          "mustObeySignals": true,
+          "mustStayOnCircuit": false,
+          "mustYieldToPedestrians": true,
+          "preferShade": false
+        },
+        "destinationLabel": "North Williamsburg",
+        "destinationNodeId": "bike-node-e25116ea05a4",
+        "originLabel": "Williamsburg Waterfront",
+        "originNodeId": "bike-node-0b79eee2f2ef",
+        "requiredObligationIds": [
+          "obligation-arrival",
+          "obligation-payload",
+          "obligation-signal",
+          "obligation-pedestrian"
+        ],
+        "retrieval": {
+          "missionCardId": "scenario.delivery-arrival",
+          "routeSegmentCardId": "network.bike-e2c1b08cca63-tf"
+        }
+      },
+      "id": "public-mission-12",
+      "routeControl": {
+        "algorithm": "a_star_v1",
+        "distanceM": 1219.677502,
+        "firstSegmentId": "bike-e2c1b08cca63-tf",
+        "isReachable": true,
+        "lastSegmentId": "bike-7bfdf69ee8aa-ft",
+        "protectedSegmentCount": 0,
+        "segmentCount": 14,
+        "sharedSegmentCount": 14
+      },
+      "sourceText": "Deliver the parcel by bike from Williamsburg Waterfront to North Williamsburg. Yield to pedestrians."
+    },
+    {
+      "gold": {
+        "constraints": {
+          "accessibilityProfile": null,
+          "arrivalDeadlineLocalMinutes": null,
+          "avoidStreetNames": [],
+          "daylightOnly": false,
+          "daylightWindowLocalMinutes": [
+            337,
+            1224
+          ],
+          "departureLocalMinutes": 720,
+          "lanePreference": "protected",
+          "maximumBikeRackDistanceM": null,
+          "maximumDurationSeconds": null,
+          "maximumSpeedMps": 7,
+          "mustObeySignals": true,
+          "mustStayOnCircuit": false,
+          "mustYieldToPedestrians": true,
+          "preferShade": false
+        },
+        "destinationLabel": "Williamsburg Waterfront",
+        "destinationNodeId": "bike-node-0b79eee2f2ef",
+        "originLabel": "North Williamsburg",
+        "originNodeId": "bike-node-e25116ea05a4",
+        "requiredObligationIds": [
+          "obligation-arrival",
+          "obligation-payload",
+          "obligation-signal",
+          "obligation-pedestrian",
+          "obligation-lane-preference"
+        ],
+        "retrieval": {
+          "missionCardId": "scenario.delivery-arrival",
+          "routeSegmentCardId": "network.bike-cadb6da5d98d-ft"
+        }
+      },
+      "id": "public-mission-13",
+      "routeControl": {
+        "algorithm": "a_star_v1",
+        "distanceM": 745.206483,
+        "firstSegmentId": "bike-cadb6da5d98d-ft",
+        "isReachable": true,
+        "lastSegmentId": "bike-1ec711b01827-ft",
+        "protectedSegmentCount": 0,
+        "segmentCount": 8,
+        "sharedSegmentCount": 8
+      },
+      "sourceText": "Deliver the parcel by bike from North Williamsburg to Williamsburg Waterfront. Prefer protected lanes. Yield to pedestrians."
+    },
+    {
+      "gold": {
+        "constraints": {
+          "accessibilityProfile": null,
+          "arrivalDeadlineLocalMinutes": null,
+          "avoidStreetNames": [],
+          "daylightOnly": false,
+          "daylightWindowLocalMinutes": [
+            337,
+            1224
+          ],
+          "departureLocalMinutes": 720,
+          "lanePreference": "protected",
+          "maximumBikeRackDistanceM": null,
+          "maximumDurationSeconds": null,
+          "maximumSpeedMps": 7,
+          "mustObeySignals": true,
+          "mustStayOnCircuit": false,
+          "mustYieldToPedestrians": true,
+          "preferShade": false
+        },
+        "destinationLabel": "Greenpoint",
+        "destinationNodeId": "bike-node-7a95737b9c7d",
+        "originLabel": "McCarren Park",
+        "originNodeId": "bike-node-8a641140b02c",
+        "requiredObligationIds": [
+          "obligation-arrival",
+          "obligation-payload",
+          "obligation-signal",
+          "obligation-pedestrian",
+          "obligation-lane-preference"
+        ],
+        "retrieval": {
+          "missionCardId": "scenario.delivery-arrival",
+          "routeSegmentCardId": "network.bike-21a25ccf6628-ft"
+        }
+      },
+      "id": "public-mission-14",
+      "routeControl": {
+        "algorithm": "a_star_v1",
+        "distanceM": 2206.81106,
+        "firstSegmentId": "bike-21a25ccf6628-ft",
+        "isReachable": true,
+        "lastSegmentId": "bike-7767019a7a63-ft",
+        "protectedSegmentCount": 13,
+        "segmentCount": 21,
+        "sharedSegmentCount": 8
+      },
+      "sourceText": "Deliver the parcel by bike from McCarren Park to Greenpoint. Prefer protected lanes. Yield to pedestrians."
+    },
+    {
+      "gold": {
+        "constraints": {
+          "accessibilityProfile": null,
+          "arrivalDeadlineLocalMinutes": null,
+          "avoidStreetNames": [],
+          "daylightOnly": false,
+          "daylightWindowLocalMinutes": [
+            337,
+            1224
+          ],
+          "departureLocalMinutes": 720,
+          "lanePreference": "protected",
+          "maximumBikeRackDistanceM": null,
+          "maximumDurationSeconds": null,
+          "maximumSpeedMps": 7,
+          "mustObeySignals": true,
+          "mustStayOnCircuit": false,
+          "mustYieldToPedestrians": false,
+          "preferShade": false
+        },
+        "destinationLabel": "McCarren Park",
+        "destinationNodeId": "bike-node-8a641140b02c",
+        "originLabel": "Greenpoint",
+        "originNodeId": "bike-node-7a95737b9c7d",
+        "requiredObligationIds": [
+          "obligation-arrival",
+          "obligation-payload",
+          "obligation-signal",
+          "obligation-pedestrian",
+          "obligation-lane-preference"
+        ],
+        "retrieval": {
+          "missionCardId": "scenario.delivery-arrival",
+          "routeSegmentCardId": "network.bike-6925b5ebf41e-ft"
+        }
+      },
+      "id": "public-mission-15",
+      "routeControl": {
+        "algorithm": "a_star_v1",
+        "distanceM": 1158.943244,
+        "firstSegmentId": "bike-6925b5ebf41e-ft",
+        "isReachable": true,
+        "lastSegmentId": "bike-6e65707f4ed8-ft",
+        "protectedSegmentCount": 0,
+        "segmentCount": 8,
+        "sharedSegmentCount": 8
+      },
+      "sourceText": "Deliver the parcel by bike from Greenpoint to McCarren Park. Prefer protected lanes."
+    },
+    {
+      "gold": {
+        "constraints": {
+          "accessibilityProfile": null,
+          "arrivalDeadlineLocalMinutes": null,
+          "avoidStreetNames": [],
+          "daylightOnly": false,
+          "daylightWindowLocalMinutes": [
+            337,
+            1224
+          ],
+          "departureLocalMinutes": 720,
+          "lanePreference": "any",
+          "maximumBikeRackDistanceM": null,
+          "maximumDurationSeconds": null,
+          "maximumSpeedMps": 7,
+          "mustObeySignals": true,
+          "mustStayOnCircuit": false,
+          "mustYieldToPedestrians": true,
+          "preferShade": false
+        },
+        "destinationLabel": "Greenpoint",
+        "destinationNodeId": "bike-node-7a95737b9c7d",
+        "originLabel": "North Williamsburg",
+        "originNodeId": "bike-node-e25116ea05a4",
+        "requiredObligationIds": [
+          "obligation-arrival",
+          "obligation-payload",
+          "obligation-signal",
+          "obligation-pedestrian"
+        ],
+        "retrieval": {
+          "missionCardId": "scenario.delivery-arrival",
+          "routeSegmentCardId": "network.bike-cadb6da5d98d-ft"
+        }
+      },
+      "id": "public-mission-16",
+      "routeControl": {
+        "algorithm": "a_star_v1",
+        "distanceM": 2277.344119,
+        "firstSegmentId": "bike-cadb6da5d98d-ft",
+        "isReachable": true,
+        "lastSegmentId": "bike-7767019a7a63-ft",
+        "protectedSegmentCount": 13,
+        "segmentCount": 27,
+        "sharedSegmentCount": 14
+      },
+      "sourceText": "Deliver the parcel by bike from North Williamsburg to Greenpoint. Yield to pedestrians."
+    },
+    {
+      "gold": {
+        "constraints": {
+          "accessibilityProfile": null,
+          "arrivalDeadlineLocalMinutes": null,
+          "avoidStreetNames": [],
+          "daylightOnly": false,
+          "daylightWindowLocalMinutes": [
+            337,
+            1224
+          ],
+          "departureLocalMinutes": 720,
+          "lanePreference": "protected",
+          "maximumBikeRackDistanceM": null,
+          "maximumDurationSeconds": null,
+          "maximumSpeedMps": 7,
+          "mustObeySignals": true,
+          "mustStayOnCircuit": false,
+          "mustYieldToPedestrians": true,
+          "preferShade": false
+        },
+        "destinationLabel": "North Williamsburg",
+        "destinationNodeId": "bike-node-e25116ea05a4",
+        "originLabel": "Greenpoint",
+        "originNodeId": "bike-node-7a95737b9c7d",
+        "requiredObligationIds": [
+          "obligation-arrival",
+          "obligation-payload",
+          "obligation-signal",
+          "obligation-pedestrian",
+          "obligation-lane-preference"
+        ],
+        "retrieval": {
+          "missionCardId": "scenario.delivery-arrival",
+          "routeSegmentCardId": "network.bike-dc4df7aa5145-tf"
+        }
+      },
+      "id": "public-mission-17",
+      "routeControl": {
+        "algorithm": "a_star_v1",
+        "distanceM": 2205.335439,
+        "firstSegmentId": "bike-dc4df7aa5145-tf",
+        "isReachable": true,
+        "lastSegmentId": "bike-7bfdf69ee8aa-ft",
+        "protectedSegmentCount": 14,
+        "segmentCount": 23,
+        "sharedSegmentCount": 9
+      },
+      "sourceText": "Deliver the parcel by bike from Greenpoint to North Williamsburg. Prefer protected lanes. Yield to pedestrians."
+    },
+    {
+      "gold": {
+        "constraints": {
+          "accessibilityProfile": null,
+          "arrivalDeadlineLocalMinutes": null,
+          "avoidStreetNames": [],
+          "daylightOnly": false,
+          "daylightWindowLocalMinutes": [
+            337,
+            1224
+          ],
+          "departureLocalMinutes": 720,
+          "lanePreference": "protected",
+          "maximumBikeRackDistanceM": null,
+          "maximumDurationSeconds": null,
+          "maximumSpeedMps": 7,
+          "mustObeySignals": true,
+          "mustStayOnCircuit": false,
+          "mustYieldToPedestrians": true,
+          "preferShade": false
+        },
+        "destinationLabel": "Williamsburg Waterfront",
+        "destinationNodeId": "bike-node-0b79eee2f2ef",
+        "originLabel": "Union Square",
+        "originNodeId": "bike-node-0d9391b2bfa3",
+        "requiredObligationIds": [
+          "obligation-arrival",
+          "obligation-payload",
+          "obligation-signal",
+          "obligation-pedestrian",
+          "obligation-lane-preference"
+        ],
+        "retrieval": {
+          "missionCardId": "scenario.delivery-arrival",
+          "routeSegmentCardId": "network.bike-30ee92829e72-tf"
+        }
+      },
+      "id": "public-mission-18",
+      "routeControl": {
+        "algorithm": "a_star_v1",
+        "distanceM": 5855.294637,
+        "firstSegmentId": "bike-30ee92829e72-tf",
+        "isReachable": true,
+        "lastSegmentId": "bike-761e776351e6-tf",
+        "protectedSegmentCount": 71,
+        "segmentCount": 81,
+        "sharedSegmentCount": 10
+      },
+      "sourceText": "Deliver the parcel by bike from Union Square to Williamsburg Waterfront. Prefer protected lanes. Yield to pedestrians."
+    },
+    {
+      "gold": {
+        "constraints": {
+          "accessibilityProfile": null,
+          "arrivalDeadlineLocalMinutes": null,
+          "avoidStreetNames": [],
+          "daylightOnly": false,
+          "daylightWindowLocalMinutes": [
+            337,
+            1224
+          ],
+          "departureLocalMinutes": 720,
+          "lanePreference": "protected",
+          "maximumBikeRackDistanceM": null,
+          "maximumDurationSeconds": null,
+          "maximumSpeedMps": 7,
+          "mustObeySignals": true,
+          "mustStayOnCircuit": false,
+          "mustYieldToPedestrians": true,
+          "preferShade": false
+        },
+        "destinationLabel": "Union Square",
+        "destinationNodeId": "bike-node-0d9391b2bfa3",
+        "originLabel": "Williamsburg Waterfront",
+        "originNodeId": "bike-node-0b79eee2f2ef",
+        "requiredObligationIds": [
+          "obligation-arrival",
+          "obligation-payload",
+          "obligation-signal",
+          "obligation-pedestrian",
+          "obligation-lane-preference"
+        ],
+        "retrieval": {
+          "missionCardId": "scenario.delivery-arrival",
+          "routeSegmentCardId": "network.bike-f8a15271364c-ft"
+        }
+      },
+      "id": "public-mission-19",
+      "routeControl": {
+        "algorithm": "a_star_v1",
+        "distanceM": 5148.827321,
+        "firstSegmentId": "bike-f8a15271364c-ft",
+        "isReachable": true,
+        "lastSegmentId": "bike-c698e8b137d0-ft",
+        "protectedSegmentCount": 76,
+        "segmentCount": 92,
+        "sharedSegmentCount": 16
+      },
+      "sourceText": "Deliver the parcel by bike from Williamsburg Waterfront to Union Square. Prefer protected lanes. Yield to pedestrians."
+    },
+    {
+      "gold": {
+        "constraints": {
+          "accessibilityProfile": null,
+          "arrivalDeadlineLocalMinutes": null,
+          "avoidStreetNames": [],
+          "daylightOnly": false,
+          "daylightWindowLocalMinutes": [
+            337,
+            1224
+          ],
+          "departureLocalMinutes": 720,
+          "lanePreference": "any",
+          "maximumBikeRackDistanceM": null,
+          "maximumDurationSeconds": null,
+          "maximumSpeedMps": 7,
+          "mustObeySignals": true,
+          "mustStayOnCircuit": false,
+          "mustYieldToPedestrians": false,
+          "preferShade": false
+        },
+        "destinationLabel": "Greenpoint",
+        "destinationNodeId": "bike-node-7a95737b9c7d",
+        "originLabel": "West Village",
+        "originNodeId": "bike-node-261ee8be5a25",
+        "requiredObligationIds": [
+          "obligation-arrival",
+          "obligation-payload",
+          "obligation-signal",
+          "obligation-pedestrian"
+        ],
+        "retrieval": {
+          "missionCardId": "scenario.delivery-arrival",
+          "routeSegmentCardId": "network.bike-55dee1ed7c4d-tf"
+        }
+      },
+      "id": "public-mission-20",
+      "routeControl": {
+        "algorithm": "a_star_v1",
+        "distanceM": 7095.851366,
+        "firstSegmentId": "bike-55dee1ed7c4d-tf",
+        "isReachable": true,
+        "lastSegmentId": "bike-7767019a7a63-ft",
+        "protectedSegmentCount": 86,
+        "segmentCount": 127,
+        "sharedSegmentCount": 41
+      },
+      "sourceText": "Deliver the parcel by bike from West Village to Greenpoint."
+    }
+  ],
+  "population": "public_diagnostic",
+  "promotionEligible": false,
+  "schema": "simulatte.autonomyDiagnosticMissionSet.v1"
+}

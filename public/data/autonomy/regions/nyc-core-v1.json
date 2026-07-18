@@ -130,7 +130,7 @@
       "street-node-fb1fdcabd7b0",
       "street-node-fd201dcaacf4"
     ],
-    "worldSha256": "85d2f95208406050ea6b87da7e0170c66430cb372e83e712e36c35ce8fefa001"
+    "worldSha256": "218c6f3734815066669f57ae1bc1ce14aace261f0865ebf25f903db3880dcb3e"
   },
   "contentVersion": "nyc-core-regions-multimodal-2026-07-13",
   "featureCatalogTemplate": {
@@ -197,7 +197,7 @@
         "east-river-crossing-v1"
       ],
       "path": "./packs/manhattan-villages-v1.json",
-      "sha256": "7f334e8f9bc87c9c6789f191c59bb08f6eebad0bdbe849e8a9e3036b6f574fef"
+      "sha256": "8d0f4c03c438860de4f35ffd1b780789612715ca65383f8c7493507b62f61228"
     },
     {
       "boundsWgs84": {
@@ -226,7 +226,7 @@
         "north-brooklyn-v1"
       ],
       "path": "./packs/east-river-crossing-v1.json",
-      "sha256": "35ab0e85ccf8ad6e892f347e3b71ace523f55da76df7b8521c59363bc5539540"
+      "sha256": "93e101503fb659c807a7b190650fe354dcfb27695819972572e112292e5c8904"
     },
     {
       "boundsWgs84": {
@@ -254,7 +254,7 @@
         "east-river-crossing-v1"
       ],
       "path": "./packs/north-brooklyn-v1.json",
-      "sha256": "a35742b4f3b908ebf611d352c0c3de8521cacb9d9b2486ca705c982b16b12d49"
+      "sha256": "bc82170df08325ec1f824a8f930b44252ba960ee43d67173df640abd06da558d"
     }
   ],
   "placeIndex": [
@@ -3829,6 +3829,12 @@
     "renderGeometry": {
       "buildingLodReceipt": {
         "fullCoverageClaim": false,
+        "groundElevationField": "ground_elevation",
+        "groundElevationSourceUnit": "feet",
+        "heightField": "height_roof",
+        "heightOutputUnit": "meters",
+        "heightSourceUnit": "feet",
+        "interiorRingPolicy": "preserve_valid_simplified_source_rings",
         "maximumRetainedFeatures": 8500,
         "omittedFeatureCount": 18490,
         "policy": "nearest_to_default_route_or_named_focus_center_then_height_and_area",

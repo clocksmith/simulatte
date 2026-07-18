@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
+import { writeImmutableGeneratedArtifact } from './immutable-generated-artifact.mjs';
 
 const TOOL_DIR = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(TOOL_DIR, '../..');
@@ -12,7 +13,7 @@ const missionApi = require('../../public/mission/mission-compiler.js');
 const worldApi = require('../../public/world/world-model.js');
 const routePlanner = require('../../public/world/route-planner.js');
 const featureRetrieval = require('../../public/runtime/feature-retrieval.js');
-const OUTPUT = path.join(ROOT, 'public/data/autonomy/evidence/feature-reranker-public-diagnostic-v1.json');
+const OUTPUT = path.join(ROOT, 'public/data/autonomy/evidence/feature-reranker-public-diagnostic-v2.json');
 
 function main() {
   const files = {
@@ -20,7 +21,7 @@ function main() {
     featureCatalog: 'public/data/autonomy/feature-cards-v1.json',
     embodiment: 'public/data/autonomy/embodiments/delivery-bike-v1.json',
     policy: 'public/data/autonomy/policies/bet-selector-v1.json',
-    corpus: 'tools/samer/autonomy/public-navigation-missions-v1.json',
+    corpus: 'tools/samer/autonomy/public-navigation-missions-v2.json',
     runtime: 'public/runtime/feature-retrieval.js',
   };
   const world = readJson(files.world);
@@ -35,8 +36,8 @@ function main() {
     && challenger.recallAt5 >= control.recallAt5;
   const receipt = {
     schema: 'simulatte.autonomyRerankerEvaluation.v1',
-    id: 'feature-reranker-public-diagnostic-v1',
-    contentVersion: 'feature-reranker-public-diagnostic-2026-07-13',
+    id: 'feature-reranker-public-diagnostic-v2',
+    contentVersion: 'feature-reranker-public-diagnostic-2026-07-18',
     population: { id: corpus.id, kind: corpus.population, promotionEligible: false, rowCount: corpus.missions.length },
     intervention: {
       kind: 'typed_evidence_reranker_weights',
@@ -57,9 +58,8 @@ function main() {
     judgments,
     claimBoundary: 'This receipt supports retaining the declared deterministic reranker weights on the exposed diagnostic missions. It does not establish model quality, generalization, or promotion eligibility.',
   };
-  fs.mkdirSync(path.dirname(OUTPUT), { recursive: true });
-  fs.writeFileSync(OUTPUT, `${JSON.stringify(sortValue(receipt), null, 2)}\n`);
-  console.log(`AUTONOMY-RERANKER accepted=${accepted} controlMRR=${control.meanReciprocalRank} challengerMRR=${challenger.meanReciprocalRank} recallAt5=${challenger.recallAt5} output=${OUTPUT}`);
+  const status = writeImmutableGeneratedArtifact(OUTPUT, `${JSON.stringify(sortValue(receipt), null, 2)}\n`, receipt.id);
+  console.log(`AUTONOMY-RERANKER accepted=${accepted} controlMRR=${control.meanReciprocalRank} challengerMRR=${challenger.meanReciprocalRank} recallAt5=${challenger.recallAt5} status=${status} output=${OUTPUT}`);
   if (!accepted) process.exitCode = 1;
 }
 

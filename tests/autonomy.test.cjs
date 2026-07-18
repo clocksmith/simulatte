@@ -906,8 +906,11 @@ test('occurrence plugins apply time and event effects with target validation', (
 });
 
 test('public missions stay diagnostic and reranker weights retain measured evidence', () => {
-  const corpus = readJson('tools/samer/autonomy/public-navigation-missions-v1.json');
-  const evidence = readJson('public/data/autonomy/evidence/feature-reranker-public-diagnostic-v1.json');
+  const manifest = readJson('public/data/autonomy/autonomy-manifest.json');
+  const evidencePath = `public/data/autonomy/${manifest.rerankerEvidence.path.replace(/^\.\//, '')}`;
+  const evidence = readJson(evidencePath);
+  const corpus = readJson(evidence.identities.corpus.path);
+  assert.equal(evidence.id, manifest.rerankerEvidence.id);
   assert.equal(corpus.missions.length, 20);
   assert.equal(corpus.population, 'public_diagnostic');
   assert.equal(corpus.promotionEligible, false);

@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
+import { writeImmutableGeneratedArtifact } from './immutable-generated-artifact.mjs';
 
 const TOOL_DIR = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(TOOL_DIR, '../..');
@@ -11,7 +12,7 @@ const require = createRequire(import.meta.url);
 const missionApi = require('../../public/mission/mission-compiler.js');
 const routePlanner = require('../../public/world/route-planner.js');
 const worldApi = require('../../public/world/world-model.js');
-const OUTPUT = path.join(ROOT, 'tools/samer/autonomy/public-navigation-missions-v1.json');
+const OUTPUT = path.join(ROOT, 'tools/samer/autonomy/public-navigation-missions-v2.json');
 const PAIRS = Object.freeze([
   ['Union Square', 'North Williamsburg'],
   ['West Village', 'Union Square'],
@@ -50,8 +51,8 @@ function main() {
   const rowsHash = sha256(Buffer.from(JSON.stringify(sortValue(missions))));
   const artifact = {
     schema: 'simulatte.autonomyDiagnosticMissionSet.v1',
-    id: 'public-navigation-missions-v1',
-    contentVersion: 'public-navigation-missions-2026-07-13',
+    id: 'public-navigation-missions-v2',
+    contentVersion: 'public-navigation-missions-2026-07-18',
     population: 'public_diagnostic',
     promotionEligible: false,
     exposure: 'Checked into the repository and available to developers, agents, selectors, and evaluators.',
@@ -72,9 +73,8 @@ function main() {
     missions,
     claimBoundary: 'These exposed rows detect parser, route, and retrieval regressions. They are not a contamination-secure promotion holdout and cannot authorize an autonomy capability claim.',
   };
-  fs.mkdirSync(path.dirname(OUTPUT), { recursive: true });
-  fs.writeFileSync(OUTPUT, `${JSON.stringify(sortValue(artifact), null, 2)}\n`);
-  console.log(`AUTONOMY-DIAGNOSTIC id=${artifact.id} rows=${missions.length} rowsSha256=${rowsHash} output=${OUTPUT}`);
+  const status = writeImmutableGeneratedArtifact(OUTPUT, `${JSON.stringify(sortValue(artifact), null, 2)}\n`, artifact.id);
+  console.log(`AUTONOMY-DIAGNOSTIC id=${artifact.id} rows=${missions.length} rowsSha256=${rowsHash} status=${status} output=${OUTPUT}`);
 }
 
 function buildMissionRow({ index, origin, destination, world, worldModel, policy, embodiment }) {
