@@ -133,7 +133,7 @@
   function addBuilding(writer, building) {
     const points = openRing(building.footprint);
     if (points.length < 3) return;
-    const height = Math.max(3, building.heightM);
+    const height = Number.isFinite(building.heightM) ? Math.max(3, building.heightM) : 3;
     const roofColor = buildingColor(height, true);
     const sideColor = buildingColor(height, false);
     const vertices = points.map((point) => [point.x, height, -point.y]);

@@ -45,6 +45,148 @@
     return { plan, receipt };
   }
 
+  function allocateCompetingRequests({ requests, carriers, candidates, candidateSetComplete = false }) {
+    validateMultiRequestInputs(requests, carriers, candidates);
+    const source = 'source';
+    const sink = 'sink';
+    const graph = new Map();
+    const addNode = (id) => { if (!graph.has(id)) graph.set(id, []); };
+    const addEdge = (from, to, capacity, cost, metadata = null) => {
+      addNode(from);
+      addNode(to);
+      const forward = { to, capacity, cost, flow: 0, reverse: graph.get(to).length, metadata };
+      const reverse = { to: from, capacity: 0, cost: -cost, flow: 0, reverse: graph.get(from).length, metadata: null };
+      graph.get(from).push(forward);
+      graph.get(to).push(reverse);
+    };
+    [...carriers].sort(byId).forEach((carrier) => addEdge(source, `carrier:${carrier.id}`, carrier.capacity, 0));
+    [...candidates].sort(compareMultiCandidates).forEach((candidate) => addEdge(
+      `carrier:${candidate.carrierId}`,
+      `request:${candidate.requestId}`,
+      candidate.capacity,
+      candidate.unitCost,
+      { candidateId: candidate.id, carrierId: candidate.carrierId, requestId: candidate.requestId }
+    ));
+    [...requests].sort(byId).forEach((request) => addEdge(`request:${request.id}`, sink, request.quantity, 0));
+    let totalFlow = 0;
+    let totalCost = 0;
+    let augmentationCount = 0;
+    while (true) {
+      const path = shortestResidualPath(graph, source, sink);
+      if (!path) break;
+      const capacity = Math.min(...path.map(({ edge }) => edge.capacity - edge.flow));
+      if (!(capacity > 0)) break;
+      path.forEach(({ from, edge }) => {
+        edge.flow += capacity;
+        graph.get(edge.to)[edge.reverse].flow -= capacity;
+        totalCost += capacity * edge.cost;
+        void from;
+      });
+      totalFlow += capacity;
+      augmentationCount += 1;
+    }
+    const allocations = [];
+    graph.forEach((edges) => edges.forEach((edge) => {
+      if (edge.metadata && edge.flow > 0) allocations.push({ ...edge.metadata, quantity: edge.flow, unitCost: edge.cost });
+    }));
+    allocations.sort((left, right) => left.requestId.localeCompare(right.requestId)
+      || left.carrierId.localeCompare(right.carrierId) || left.candidateId.localeCompare(right.candidateId));
+    const requiredQuantity = requests.reduce((sum, request) => sum + request.quantity, 0);
+    const fulfilledByRequest = Object.fromEntries([...requests].sort(byId).map((request) => [
+      request.id,
+      allocations.filter((row) => row.requestId === request.id).reduce((sum, row) => sum + row.quantity, 0),
+    ]));
+    return {
+      schema: 'simulatte.cooperativeMultiRequestAllocation.v1',
+      algorithm: 'successive_shortest_residual_path_min_cost_flow_v1',
+      requiredQuantity,
+      allocatedQuantity: totalFlow,
+      totalCost: round(totalCost),
+      fulfilledByRequest,
+      allocations,
+      candidateSetComplete: Boolean(candidateSetComplete),
+      optimalityProven: Boolean(candidateSetComplete),
+      augmentationCount,
+      searchComplete: true,
+      claimBoundary: candidateSetComplete
+        ? 'Minimum cost maximum flow over the declared complete candidate graph with integer capacities.'
+        : 'Minimum cost maximum flow over the supplied candidate graph; absent candidates prevent global optimality claims.',
+    };
+  }
+
+  function shortestResidualPath(graph, source, sink) {
+    const nodes = [...graph.keys()].sort();
+    const distance = new Map(nodes.map((node) => [node, Infinity]));
+    const prior = new Map();
+    distance.set(source, 0);
+    for (let iteration = 0; iteration < nodes.length - 1; iteration += 1) {
+      let changed = false;
+      for (const from of nodes) {
+        if (!Number.isFinite(distance.get(from))) continue;
+        graph.get(from).forEach((edge, edgeIndex) => {
+          if (edge.flow >= edge.capacity) return;
+          const candidate = distance.get(from) + edge.cost;
+          const current = distance.get(edge.to);
+          const key = `${from}:${edgeIndex}`;
+          const priorKey = prior.get(edge.to)?.key || '';
+          if (candidate < current - 1e-12 || (Math.abs(candidate - current) <= 1e-12 && key < priorKey)) {
+            distance.set(edge.to, candidate);
+            prior.set(edge.to, { from, edgeIndex, key });
+            changed = true;
+          }
+        });
+      }
+      if (!changed) break;
+    }
+    if (!prior.has(sink)) return null;
+    const path = [];
+    let cursor = sink;
+    const seen = new Set();
+    while (cursor !== source) {
+      if (seen.has(cursor)) throw relayError('residual_path_cycle');
+      seen.add(cursor);
+      const step = prior.get(cursor);
+      if (!step) return null;
+      const edge = graph.get(step.from)[step.edgeIndex];
+      path.unshift({ from: step.from, edge });
+      cursor = step.from;
+    }
+    return path;
+  }
+
+  function validateMultiRequestInputs(requests, carriers, candidates) {
+    if (!Array.isArray(requests) || !requests.length) throw relayError('multi_requests_invalid');
+    if (!Array.isArray(carriers) || !carriers.length) throw relayError('multi_carriers_invalid');
+    if (!Array.isArray(candidates)) throw relayError('multi_candidates_invalid');
+    const requestIds = new Set();
+    requests.forEach((request) => {
+      if (!request?.id || requestIds.has(request.id) || !Number.isInteger(request.quantity) || request.quantity < 1) throw relayError('multi_request_invalid');
+      requestIds.add(request.id);
+    });
+    const carrierIds = new Set();
+    carriers.forEach((carrier) => {
+      if (!carrier?.id || carrierIds.has(carrier.id) || !Number.isInteger(carrier.capacity) || carrier.capacity < 1) throw relayError('multi_carrier_invalid');
+      carrierIds.add(carrier.id);
+    });
+    const candidateIds = new Set();
+    candidates.forEach((candidate) => {
+      if (!candidate?.id || candidateIds.has(candidate.id) || !requestIds.has(candidate.requestId) || !carrierIds.has(candidate.carrierId)
+        || !Number.isInteger(candidate.capacity) || candidate.capacity < 1 || !Number.isFinite(candidate.unitCost) || candidate.unitCost < 0) {
+        throw relayError('multi_candidate_invalid');
+      }
+      candidateIds.add(candidate.id);
+    });
+  }
+
+  function compareMultiCandidates(left, right) {
+    return left.unitCost - right.unitCost || left.requestId.localeCompare(right.requestId)
+      || left.carrierId.localeCompare(right.carrierId) || left.id.localeCompare(right.id);
+  }
+
+  function byId(left, right) {
+    return left.id.localeCompare(right.id);
+  }
+
   function enumeratePaths(request, legs, maximumCarrierLegs) {
     const byOrigin = new Map();
     legs.forEach((leg) => {
@@ -178,5 +320,5 @@
     return error;
   }
 
-  return { planRelay };
+  return { allocateCompetingRequests, planRelay };
 });

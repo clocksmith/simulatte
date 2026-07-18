@@ -642,16 +642,28 @@ function compileBuildings(collection, project, routeGeometry) {
     polygons.forEach((polygon, partIndex) => {
       const footprint = simplifyRing(polygon[0].map(project), 0.8);
       if (footprint.length < 4 || Math.abs(polygonArea(footprint)) < 5) return;
+      const sourceInteriorRingCount = Math.max(0, polygon.length - 1);
+      const interiorRings = polygon.slice(1)
+        .map((ring) => simplifyRing(ring.map(project), 0.8))
+        .filter((ring) => ring.length >= 4 && Math.abs(polygonArea(ring)) >= 1);
+      const heightFeet = Number(feature.properties?.height_roof);
+      const groundElevationFeet = Number(feature.properties?.ground_elevation);
       const areaM2 = Math.abs(polygonArea(footprint));
       const centroid = ringCentroid(footprint);
       buildings.push({
         id: `building-${feature.properties?.objectid || feature.properties?.doitt_id || hash32(JSON.stringify(polygon[0]))}-${partIndex}`,
         footprint,
-        heightM: round(clamp(Number(feature.properties?.height_roof || 24) * 0.3048, 3, 360)),
-        groundElevationM: round(Number(feature.properties?.ground_elevation || 0) * 0.3048),
+        interiorRings,
+        heightM: Number.isFinite(heightFeet) && heightFeet > 0 ? round(clamp(heightFeet * 0.3048, 3, 360)) : null,
+        heightState: Number.isFinite(heightFeet) && heightFeet > 0 ? 'source_height_roof' : 'source_missing',
+        heightSourceUnit: 'feet',
+        groundElevationM: Number.isFinite(groundElevationFeet) ? round(groundElevationFeet * 0.3048) : null,
+        groundElevationState: Number.isFinite(groundElevationFeet) ? 'source_ground_elevation' : 'source_missing',
         sourceObjectId: String(feature.properties?.objectid || ''),
         sourceBin: feature.properties?.bin || null,
-        omittedInteriorRingCount: Math.max(0, polygon.length - 1),
+        sourceInteriorRingCount,
+        retainedInteriorRingCount: interiorRings.length,
+        omittedInteriorRingCount: sourceInteriorRingCount - interiorRings.length,
         areaM2: round(areaM2),
         centroid,
       });
@@ -668,9 +680,9 @@ function compileBuildings(collection, project, routeGeometry) {
   const ranked = buildings.map((row) => {
     const routeDistanceM = distanceToPolyline(row.centroid, routeGeometry);
     const focusDistanceM = Math.min(...focusPoints.map((point) => distance(row.centroid, point)));
-    const importance = Math.min(routeDistanceM, focusDistanceM * 0.82) - row.heightM * 2.4 - Math.sqrt(row.areaM2) * 1.2;
+    const importance = Math.min(routeDistanceM, focusDistanceM * 0.82) - (row.heightM || 0) * 2.4 - Math.sqrt(row.areaM2) * 1.2;
     return { row, routeDistanceM, focusDistanceM, importance };
-  }).sort((left, right) => left.importance - right.importance || right.row.heightM - left.row.heightM || left.row.id.localeCompare(right.row.id));
+  }).sort((left, right) => left.importance - right.importance || (right.row.heightM || 0) - (left.row.heightM || 0) || left.row.id.localeCompare(right.row.id));
   const selected = ranked.slice(0, maximumRows).map(({ row, routeDistanceM, focusDistanceM }) => ({
     ...row,
     lod: 'source_footprint',
@@ -687,6 +699,12 @@ function compileBuildings(collection, project, routeGeometry) {
       maximumRetainedFeatures: maximumRows,
       policy: 'nearest_to_default_route_or_named_focus_center_then_height_and_area',
       fullCoverageClaim: false,
+      heightField: 'height_roof',
+      heightSourceUnit: 'feet',
+      heightOutputUnit: 'meters',
+      groundElevationField: 'ground_elevation',
+      groundElevationSourceUnit: 'feet',
+      interiorRingPolicy: 'preserve_valid_simplified_source_rings',
     },
   };
 }

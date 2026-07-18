@@ -31,13 +31,19 @@
       "evaluationK": 2,
       "requiredQualityMetrics": [
         "recallAtK",
+        "deliveredRecallAtK",
         "hardNegativeAccuracy",
-        "mustRefuseAccuracy"
+        "mustRefuseAccuracy",
+        "answerableAcceptance",
+        "refusalPrecision"
       ],
       "qualityFloor": {
         "minimumRecallAtK": 0.92,
+        "minimumDeliveredRecallAtK": 0.92,
         "minimumHardNegativeAccuracy": 0.9,
-        "minimumMustRefuseAccuracy": 0.98
+        "minimumMustRefuseAccuracy": 0.98,
+        "minimumAnswerableAcceptance": 0.92,
+        "minimumRefusalPrecision": 0.9
       },
       "populationContract": "simulatte.sealedEmbeddingRetrievalPopulation.v1"
     },
@@ -92,6 +98,35 @@
     "candidateCannotReadPopulationLabels": true,
     "evaluatorOwnsMetrics": true,
     "publicDiagnosticsCannotPromote": true
+  },
+  "calibrationContract": {
+    "requiredBeforeSealedEvaluation": true,
+    "populationRole": "calibration",
+    "promotionEligible": false,
+    "mustBeDisjointFromPromotionPopulation": true,
+    "candidateSpecificClassificationThresholds": true,
+    "sealedLabelsCannotTuneThresholds": true
+  },
+  "retrievalRefusalCascade": {
+    "promotionStatus": "blocked-until-calibrated-fresh-sealed-frontier",
+    "rankingOwner": "selected-recall-candidate",
+    "refusalOwner": "deterministic-calibrated-rule",
+    "acceptanceRule": "(lexicalTopScore >= minimumLexicalTopScore AND lexicalMargin >= minimumLexicalMargin) OR (recallTopScore >= minimumRecallTopScore AND recallMargin >= minimumRecallMargin)",
+    "calibrationFloor": {
+      "minimumAnswerableAcceptance": 0.92,
+      "minimumMustRefuseAccuracy": 0.98,
+      "minimumRefusalPrecision": 0.9
+    },
+    "requiredReceiptFields": [
+      "calibrationId",
+      "cascadeId",
+      "ruleId",
+      "signalValues",
+      "lexicalAccepted",
+      "semanticAccepted",
+      "refused",
+      "recallModelExecuted"
+    ]
   },
   "selection": {
     "qualityGateFirst": true,

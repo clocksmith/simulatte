@@ -75,17 +75,41 @@ npm run check:model-populations
 ```
 
 Candidates execute under one CPU/f32 Transformers screening protocol. The
-candidate process receives prompt text, candidate text, taxonomy labels, and
-thresholds. It never receives expected labels, relevance grades, winners, hard
-negatives, or must-refuse flags. `run-model-selection-trial.mjs` owns the hidden
-population, calculates every metric, records artifact bytes, peak memory, cold
-load, and warm p95, then applies the quality-first Pareto rule.
+candidate process receives prompt text, candidate text, and concrete taxonomy
+labels. It never receives expected labels, relevance grades, winners, hard
+negatives, must-refuse flags, or universal abstention thresholds.
+`run-model-selection-trial.mjs` owns the hidden population, calculates every
+metric, records artifact bytes, peak memory, cold load, and warm p95, then
+applies the quality-first Pareto rule.
+
+Calibration is a separate, non-promotable split. Classification calibrates an
+abstention threshold for every candidate and head. Embedding retrieval
+calibrates a deterministic refusal rule for each neural recall lane. Generate
+candidate predictions and the calibration receipt with:
+
+```bash
+node tools/samer/calibrate-model-selection.mjs \
+  --task classification \
+  --population /private/classification-calibration-v2.json \
+  --out /private/classification-calibration-v2.receipt.json
+
+node tools/samer/calibrate-model-selection.mjs \
+  --task embedding-retrieval \
+  --population /private/retrieval-calibration-v2.json \
+  --out /private/retrieval-refusal-calibration-v2.receipt.json
+```
+
+The candidate subprocesses still receive sanitized rows without calibration
+labels. The calibration evaluator alone sees those labels. A calibration
+population is always stamped `promotionEligible: false`, and its identity and
+hash must differ from the later promotion population.
 
 Running a sealed task is a one-time opening operation:
 
 ```bash
 npm run evaluate:model-task -- \
   --task classification \
+  --classification-calibration /private/classification-calibration-v2.receipt.json \
   --out artifacts/model-selection/classification
 ```
 
@@ -94,6 +118,19 @@ excludes three warmups, binds every prediction to the same workload and
 environment hash, writes the opening receipt, and marks the commitment opened.
 Do not run it while candidate code is still changing. Mint a new population
 after any opened evaluation needs to be repeated.
+
+The v3 embedding frontier evaluates the deterministic refusal plus MiniLM and
+deterministic refusal plus Qwen compositions as first-class candidates. The
+neural component owns ranking; the calibrated deterministic rule owns refusal.
+Raw recall cannot hide over-refusal: promotion also gates delivered recall,
+answerable acceptance, and refusal precision. Run it with:
+
+```bash
+npm run evaluate:model-task -- \
+  --task embedding-retrieval \
+  --refusal-calibration /private/retrieval-refusal-calibration-v2.receipt.json \
+  --out artifacts/model-selection/embedding-retrieval
+```
 
 `model-selection-frontier.mjs` selects the smallest candidate only after every
 task-specific quality floor passes. Source-model screening is not deployment

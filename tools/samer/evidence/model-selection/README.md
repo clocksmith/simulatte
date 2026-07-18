@@ -38,6 +38,14 @@ The neural embedders retrieved relevant evidence but did not provide a safe
 refusal boundary. A new unopened population and independently calibrated
 refusal rule are required before another promotion trial.
 
+The diagnosis-only cascade composition over the already-opened rows confirmed
+the boundary more precisely. Deterministic refusal plus Qwen ranking restored
+must-refuse accuracy to 1.00, but over-refused 13 answerable rows and reduced
+delivered recall to 0.87. The v3 contract therefore scores the refusal rule as
+a first-class component and requires delivered recall, answerable acceptance,
+and refusal precision in addition to raw recall and must-refuse accuracy. The
+diagnostic does not promote the cascade.
+
 ## Reranking v1
 
 Four candidates ran over 100 rows at nDCG@4. Qwen was strongest but missed both

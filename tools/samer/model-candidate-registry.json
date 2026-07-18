@@ -9,6 +9,28 @@
     "entrypoint": "tools/samer/model-candidate-runtime.py"
   },
   "claimBoundary": "This registry makes architecture candidates executable under one screening runtime. A neural winner is not deployable until its exact browser artifact passes Doppler parity and the same sealed quality gates.",
+  "retrievalCascades": [
+    {
+      "id": "deterministic-refusal-plus-minilm-recall",
+      "implementationId": "simulatte.deterministic-refusal-minilm-recall.v1",
+      "kind": "composite",
+      "refusalGateCandidateId": "deterministic-lexical-control",
+      "recallCandidateId": "all-minilm-l6-v2-embedder",
+      "evaluationEligible": true,
+      "deploymentEligible": false,
+      "deploymentEvidence": "The composition requires a disjoint calibration receipt, a fresh sealed frontier, and exact browser parity before promotion."
+    },
+    {
+      "id": "deterministic-refusal-plus-qwen3-recall",
+      "implementationId": "simulatte.deterministic-refusal-qwen3-recall.v1",
+      "kind": "composite",
+      "refusalGateCandidateId": "deterministic-lexical-control",
+      "recallCandidateId": "qwen3-embedding-control",
+      "evaluationEligible": true,
+      "deploymentEligible": false,
+      "deploymentEvidence": "The composition requires a disjoint calibration receipt, a fresh sealed frontier, and exact browser parity before promotion."
+    }
+  ],
   "tasks": {
     "classification": [
       {

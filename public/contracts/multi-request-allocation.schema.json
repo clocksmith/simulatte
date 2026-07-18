@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Simulatte cooperative multi-request allocation",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "algorithm", "requiredQuantity", "allocatedQuantity", "totalCost", "fulfilledByRequest", "allocations", "candidateSetComplete", "optimalityProven", "augmentationCount", "searchComplete", "claimBoundary"],
+  "properties": {
+    "schema": { "const": "simulatte.cooperativeMultiRequestAllocation.v1" },
+    "algorithm": { "const": "successive_shortest_residual_path_min_cost_flow_v1" },
+    "requiredQuantity": { "type": "integer", "minimum": 1 },
+    "allocatedQuantity": { "type": "integer", "minimum": 0 },
+    "totalCost": { "type": "number", "minimum": 0 },
+    "fulfilledByRequest": { "type": "object", "additionalProperties": { "type": "integer", "minimum": 0 } },
+    "allocations": { "type": "array", "items": { "type": "object" } },
+    "candidateSetComplete": { "type": "boolean" },
+    "optimalityProven": { "type": "boolean" },
+    "augmentationCount": { "type": "integer", "minimum": 0 },
+    "searchComplete": { "const": true },
+    "claimBoundary": { "type": "string", "minLength": 1 }
+  }
+}

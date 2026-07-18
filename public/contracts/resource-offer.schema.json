@@ -3,7 +3,7 @@
   "title": "Simulatte resource offer",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema", "id", "participantId", "intentId", "itemId", "quantity", "kind", "availableNodeId", "riskTier", "minimumCompensationCents", "consentState", "expiresAt"],
+  "required": ["schema", "id", "participantId", "intentId", "itemId", "quantity", "kind", "availableNodeId", "pickupServiceSeconds", "riskTier", "minimumCompensationCents", "consentState", "expiresAt"],
   "properties": {
     "schema": { "const": "simulatte.resourceOffer.v1" },
     "id": { "type": "string" },
@@ -13,6 +13,7 @@
     "quantity": { "type": "integer", "minimum": 1 },
     "kind": { "enum": ["already_carried", "available_along_journey"] },
     "availableNodeId": { "type": "string" },
+    "pickupServiceSeconds": { "type": "number", "minimum": 0 },
     "riskTier": { "type": "string" },
     "minimumCompensationCents": { "type": "number", "minimum": 0 },
     "consentState": { "enum": ["available", "revoked"] },

@@ -53,6 +53,26 @@ export function validateCandidateRegistry(registry, modelLock, options = {}) {
       }
     }
   }
+  const retrievalIds = new Set(registry.tasks['embedding-retrieval'].map((row) => row.id));
+  const cascades = registry.retrievalCascades;
+  if (!Array.isArray(cascades) || !cascades.length) fail('retrieval cascades are required');
+  for (const cascade of cascades) {
+    const id = requireText(cascade.id, 'retrieval cascade id');
+    if (ids.has(id)) fail(`candidate id is duplicated: ${id}`);
+    ids.add(id);
+    const implementationId = requireText(cascade.implementationId, `${id} implementationId`);
+    if (implementations.has(implementationId)) fail(`implementation id is duplicated: ${implementationId}`);
+    implementations.add(implementationId);
+    if (cascade.kind !== 'composite') fail(`${id} kind must be composite`);
+    if (!retrievalIds.has(cascade.refusalGateCandidateId) || !retrievalIds.has(cascade.recallCandidateId)) fail(`${id} references an unknown retrieval component`);
+    const gate = candidateById(registry, cascade.refusalGateCandidateId);
+    const recall = candidateById(registry, cascade.recallCandidateId);
+    if (gate.kind !== 'deterministic') fail(`${id} refusal gate must be deterministic`);
+    if (recall.kind !== 'model') fail(`${id} recall component must be model-backed`);
+    if (cascade.evaluationEligible !== true) fail(`${id} must explicitly be evaluation eligible`);
+    if (typeof cascade.deploymentEligible !== 'boolean') fail(`${id} deploymentEligible must be boolean`);
+    requireText(cascade.deploymentEvidence, `${id} deployment evidence`);
+  }
   const embedding = candidateById(registry, 'qwen3-embedding-control');
   const reranker = candidateById(registry, 'qwen3-reranker-control');
   if (embedding.modelId !== modelLock.embedding.source.sourceCheckpointId) fail('Qwen embedding candidate differs from the runtime lock source checkpoint');
@@ -63,6 +83,7 @@ export function validateCandidateRegistry(registry, modelLock, options = {}) {
     registrySha256: digest(Buffer.from(`${JSON.stringify(registry, null, 2)}\n`)),
     runtimeSha256: digest(fs.readFileSync(entrypoint)),
     candidateCount: ids.size,
+    retrievalCascadeCount: cascades.length,
     taskCandidateCounts: Object.fromEntries(TASKS.map((task) => [task, registry.tasks[task].length])),
     modelLockNumber: modelLock.number,
   };

@@ -12,7 +12,7 @@
     "candidates"
   ],
   "properties": {
-    "schema": { "const": "simulatte.modelSelectionTrial.v2" },
+    "schema": { "const": "simulatte.modelSelectionTrial.v3" },
     "task": { "enum": ["classification", "embedding-retrieval", "reranking"] },
     "population": {
       "type": "object",
@@ -142,8 +142,17 @@
       "properties": {
         "id": { "type": "string", "minLength": 1 },
         "implementationId": { "type": "string", "minLength": 1 },
-        "kind": { "enum": ["deterministic", "model"] },
+        "kind": { "enum": ["deterministic", "model", "composite"] },
         "modelId": { "type": ["string", "null"] },
+        "components": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["refusalGateCandidateId", "recallCandidateId"],
+          "properties": {
+            "refusalGateCandidateId": { "type": "string", "minLength": 1 },
+            "recallCandidateId": { "type": "string", "minLength": 1 }
+          }
+        },
         "deploymentEligible": { "type": "boolean" },
         "deploymentEvidence": { "type": "string", "minLength": 1 },
         "quality": { "type": "object" },
@@ -163,7 +172,8 @@
             "sha256": { "$ref": "#/$defs/hash" },
             "environmentSha256": { "$ref": "#/$defs/hash" },
             "workloadSha256": { "$ref": "#/$defs/hash" },
-            "cacheProtocolId": { "type": "string", "minLength": 1 }
+            "cacheProtocolId": { "type": "string", "minLength": 1 },
+            "calibration": { "$ref": "#/$defs/receiptPointer" }
           }
         }
       }
@@ -204,11 +214,14 @@
     "retrievalQuality": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["recallAtK", "hardNegativeAccuracy", "mustRefuseAccuracy"],
+      "required": ["recallAtK", "deliveredRecallAtK", "hardNegativeAccuracy", "mustRefuseAccuracy", "answerableAcceptance", "refusalPrecision"],
       "properties": {
         "recallAtK": { "$ref": "#/$defs/unitMetric" },
+        "deliveredRecallAtK": { "$ref": "#/$defs/unitMetric" },
         "hardNegativeAccuracy": { "$ref": "#/$defs/unitMetric" },
-        "mustRefuseAccuracy": { "$ref": "#/$defs/unitMetric" }
+        "mustRefuseAccuracy": { "$ref": "#/$defs/unitMetric" },
+        "answerableAcceptance": { "$ref": "#/$defs/unitMetric" },
+        "refusalPrecision": { "$ref": "#/$defs/unitMetric" }
       }
     },
     "rerankingQuality": {

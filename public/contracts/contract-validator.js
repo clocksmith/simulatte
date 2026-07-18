@@ -640,8 +640,20 @@
     });
     facilities.forEach((row, index) => validatePointArray(row.geometry, contract, `$.renderGeometry.bikeFacilities[${index}].geometry`, 2));
     buildings.forEach((row, index) => {
-      requireFinite(row.heightM, contract, `$.renderGeometry.buildings[${index}].heightM`, Number.MIN_VALUE);
+      if (row.heightM === null) requireExactValue(row.heightState, 'source_missing', contract, `$.renderGeometry.buildings[${index}].heightState`);
+      else requireFinite(row.heightM, contract, `$.renderGeometry.buildings[${index}].heightM`, Number.MIN_VALUE);
+      requireString(row.heightState, contract, `$.renderGeometry.buildings[${index}].heightState`);
+      requireString(row.heightSourceUnit, contract, `$.renderGeometry.buildings[${index}].heightSourceUnit`);
       validatePointArray(row.footprint, contract, `$.renderGeometry.buildings[${index}].footprint`, 4);
+      requireArray(row.interiorRings, contract, `$.renderGeometry.buildings[${index}].interiorRings`).forEach((ring, ringIndex) => {
+        validatePointArray(ring, contract, `$.renderGeometry.buildings[${index}].interiorRings[${ringIndex}]`, 4);
+      });
+      requireInteger(row.sourceInteriorRingCount, contract, `$.renderGeometry.buildings[${index}].sourceInteriorRingCount`);
+      requireInteger(row.retainedInteriorRingCount, contract, `$.renderGeometry.buildings[${index}].retainedInteriorRingCount`);
+      requireInteger(row.omittedInteriorRingCount, contract, `$.renderGeometry.buildings[${index}].omittedInteriorRingCount`);
+      if (row.sourceInteriorRingCount !== row.retainedInteriorRingCount + row.omittedInteriorRingCount) {
+        throw new AutonomyContractError(contract, `$.renderGeometry.buildings[${index}]`, 'interior ring counts preserving source total', row);
+      }
     });
     if (renderGeometry.buildingLodReceipt !== undefined) {
       const lod = requireObject(renderGeometry.buildingLodReceipt, contract, '$.renderGeometry.buildingLodReceipt');
@@ -712,6 +724,16 @@
     requireInteger(policy.rollout.horizonTicks, contract, '$.rollout.horizonTicks', 1);
     requireInteger(policy.runtime.maximumTicks, contract, '$.runtime.maximumTicks', 1);
     requireInteger(policy.runtime.maximumCandidatesPerTick, contract, '$.runtime.maximumCandidatesPerTick', 1);
+    const timeDependentCosts = requireObject(policy.route.timeDependentCosts, contract, '$.route.timeDependentCosts');
+    const shadeCost = requireObject(timeDependentCosts.shade, contract, '$.route.timeDependentCosts.shade');
+    requireExactValue(shadeCost.costModelId, 'building-direct-sun-arrival-cost', contract, '$.route.timeDependentCosts.shade.costModelId');
+    requireBoolean(shadeCost.fifo, contract, '$.route.timeDependentCosts.shade.fifo');
+    requireInteger(shadeCost.maximumAlternatives, contract, '$.route.timeDependentCosts.shade.maximumAlternatives', 1);
+    ['maximumAddedTimeSeconds', 'maximumAddedRatio', 'directSunWeight', 'unknownWeight', 'sampleSpacingM', 'minimumSolarElevationDegrees']
+      .forEach((key) => requireFinite(shadeCost[key], contract, `$.route.timeDependentCosts.shade.${key}`, key === 'sampleSpacingM' ? Number.MIN_VALUE : 0));
+    const handoffCost = requireObject(timeDependentCosts.cooperativeHandoff, contract, '$.route.timeDependentCosts.cooperativeHandoff');
+    requireString(handoffCost.costModelId, contract, '$.route.timeDependentCosts.cooperativeHandoff.costModelId');
+    requireBoolean(handoffCost.fifo, contract, '$.route.timeDependentCosts.cooperativeHandoff.fifo');
     ['minimumPedestrianClearanceM', 'nearbyActorRadiusM', 'maximumSpeedToleranceMps']
       .forEach((key) => requireFinite(policy.safety[key], contract, `$.safety.${key}`, 0));
     requireInteger(policy.safety.lookaheadTicks, contract, '$.safety.lookaheadTicks', 1);

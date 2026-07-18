@@ -17,13 +17,14 @@ const RESOURCE_METRICS = Object.freeze([
 export function evaluateModelSelectionFrontier(trial, policy = readPolicy(), jobs = readClassificationJobs()) {
   const taskPolicy = validateTrial(trial, policy, jobs);
   const candidates = trial.candidates.map((candidate) => {
-    const quality = normalizeQuality(candidate.quality, trial.task, jobs, candidate.id);
-    const qualityGate = qualityGateResult(quality, trial.task, taskPolicy, jobs);
+    const quality = normalizeQuality(candidate.quality, trial.task, jobs, candidate.id, trial.schema);
+    const qualityGate = qualityGateResult(quality, trial.task, taskPolicy, jobs, trial.schema);
     return {
       id: candidate.id,
       implementationId: candidate.implementationId,
       kind: candidate.kind,
-      modelId: candidate.kind === 'model' ? candidate.modelId : null,
+      modelId: candidate.kind === 'deterministic' ? null : candidate.modelId,
+      ...(candidate.components ? { components: { ...candidate.components } } : {}),
       deploymentEligible: candidate.deploymentEligible,
       deploymentEvidence: candidate.deploymentEvidence,
       quality,
@@ -108,7 +109,10 @@ export function environmentSha256(environment) {
 }
 
 function validateTrial(trial, policy, jobs) {
-  if (!trial || trial.schema !== 'simulatte.modelSelectionTrial.v2') fail('trial schema must be simulatte.modelSelectionTrial.v2');
+  if (!trial || !['simulatte.modelSelectionTrial.v2', 'simulatte.modelSelectionTrial.v3'].includes(trial.schema)) {
+    fail('trial schema must be simulatte.modelSelectionTrial.v2 or simulatte.modelSelectionTrial.v3');
+  }
+  const calibratedContract = trial.schema === 'simulatte.modelSelectionTrial.v3';
   if (!policy || policy.schema !== 'simulatte.modelSelectionPolicy.v2') fail('model selection policy schema mismatch');
   validateClassificationJobs(policy, jobs);
   const taskPolicy = policy.requiredTasks.find((task) => task.id === trial.task);
@@ -145,22 +149,41 @@ function validateTrial(trial, policy, jobs) {
     fail(`${trial.task} frontier requires a deterministic control`);
   }
   const candidateIds = new Set();
+  const candidatesById = new Map();
   for (const candidate of trial.candidates) {
     const candidateId = requireText(candidate && candidate.id, `${trial.task} candidate id`);
     if (candidateIds.has(candidateId)) fail(`${trial.task} candidate id is duplicated: ${candidateId}`);
     candidateIds.add(candidateId);
+    candidatesById.set(candidateId, candidate);
     requireText(candidate.implementationId, `${candidateId} implementation id`);
-    if (!['deterministic', 'model'].includes(candidate.kind)) fail(`${candidateId} kind must be deterministic or model`);
-    if (candidate.kind === 'model') requireText(candidate.modelId, `${candidateId} model id`);
+    if (!['deterministic', 'model', 'composite'].includes(candidate.kind)) fail(`${candidateId} kind must be deterministic, model, or composite`);
+    if (candidate.kind !== 'deterministic') requireText(candidate.modelId, `${candidateId} model id`);
     if (candidate.kind === 'deterministic' && candidate.modelId != null) fail(`${candidateId} deterministic candidate must use a null model id`);
+    if (candidate.kind === 'composite') {
+      requireText(candidate.components && candidate.components.refusalGateCandidateId, `${candidateId} refusal gate component`);
+      requireText(candidate.components && candidate.components.recallCandidateId, `${candidateId} recall component`);
+    }
     if (typeof candidate.deploymentEligible !== 'boolean') fail(`${candidateId} deploymentEligible must be boolean`);
     requireText(candidate.deploymentEvidence, `${candidateId} deployment evidence`);
-    normalizeQuality(candidate.quality, trial.task, jobs, candidateId);
+    normalizeQuality(candidate.quality, trial.task, jobs, candidateId, trial.schema);
     normalizePerformance(candidate.performance, policy, candidateId);
     requireReceipt(candidate.receipt, `${candidateId} receipt`);
+    if (calibratedContract && trial.task === 'classification') requireReceipt(candidate.receipt.calibration, `${candidateId} calibration receipt`);
+    if (calibratedContract && candidate.kind === 'composite') requireReceipt(candidate.receipt.calibration, `${candidateId} calibration receipt`);
     if (candidate.receipt.environmentSha256 !== expectedEnvironmentHash) fail(`${candidateId} receipt environment hash differs from the trial environment`);
     if (candidate.receipt.workloadSha256 !== trial.workload.sha256) fail(`${candidateId} receipt workload hash differs from the trial workload`);
     if (candidate.receipt.cacheProtocolId !== environment.cacheProtocolId) fail(`${candidateId} receipt cache protocol differs from the trial environment`);
+  }
+  if (calibratedContract && trial.task === 'embedding-retrieval') {
+    const cascades = trial.candidates.filter((candidate) => candidate.kind === 'composite');
+    if (!cascades.length) fail('embedding-retrieval v3 requires a calibrated composite candidate');
+    for (const cascade of cascades) {
+      const gate = candidatesById.get(cascade.components.refusalGateCandidateId);
+      const recall = candidatesById.get(cascade.components.recallCandidateId);
+      if (gate?.kind !== 'deterministic') fail(`${cascade.id} refusal gate component must be deterministic`);
+      if (recall?.kind !== 'model') fail(`${cascade.id} recall component must be model-backed`);
+      if (cascade.modelId !== recall.modelId) fail(`${cascade.id} model identity must match its recall component`);
+    }
   }
   return taskPolicy;
 }
@@ -181,7 +204,7 @@ function validateClassificationJobs(policy, jobs) {
   }
 }
 
-function normalizeQuality(quality, task, jobs, candidateId = 'candidate') {
+function normalizeQuality(quality, task, jobs, candidateId = 'candidate', trialSchema = 'simulatte.modelSelectionTrial.v2') {
   if (!quality || typeof quality !== 'object') fail(`${candidateId} quality metrics are required`);
   if (task === 'classification') {
     const rows = Array.isArray(quality.heads) ? quality.heads : [];
@@ -204,11 +227,17 @@ function normalizeQuality(quality, task, jobs, candidateId = 'candidate') {
     };
   }
   if (task === 'embedding-retrieval') {
-    return {
+    const normalized = {
       recallAtK: unitMetric(quality.recallAtK, `${candidateId} recallAtK`),
       hardNegativeAccuracy: unitMetric(quality.hardNegativeAccuracy, `${candidateId} hardNegativeAccuracy`),
       mustRefuseAccuracy: unitMetric(quality.mustRefuseAccuracy, `${candidateId} mustRefuseAccuracy`),
     };
+    if (trialSchema === 'simulatte.modelSelectionTrial.v3') {
+      normalized.deliveredRecallAtK = unitMetric(quality.deliveredRecallAtK, `${candidateId} deliveredRecallAtK`);
+      normalized.answerableAcceptance = unitMetric(quality.answerableAcceptance, `${candidateId} answerableAcceptance`);
+      normalized.refusalPrecision = unitMetric(quality.refusalPrecision, `${candidateId} refusalPrecision`);
+    }
+    return normalized;
   }
   return {
     ndcgAtK: unitMetric(quality.ndcgAtK, `${candidateId} ndcgAtK`),
@@ -216,7 +245,7 @@ function normalizeQuality(quality, task, jobs, candidateId = 'candidate') {
   };
 }
 
-function qualityGateResult(quality, task, taskPolicy, jobs) {
+function qualityGateResult(quality, task, taskPolicy, jobs, trialSchema = 'simulatte.modelSelectionTrial.v2') {
   const reasons = [];
   if (task === 'classification') {
     for (const row of quality.heads) {
@@ -229,8 +258,11 @@ function qualityGateResult(quality, task, taskPolicy, jobs) {
   } else if (task === 'embedding-retrieval') {
     const floor = taskPolicy.qualityFloor;
     if (quality.recallAtK < floor.minimumRecallAtK) reasons.push('recallAtK');
+    if (trialSchema === 'simulatte.modelSelectionTrial.v3' && quality.deliveredRecallAtK < floor.minimumDeliveredRecallAtK) reasons.push('deliveredRecallAtK');
     if (quality.hardNegativeAccuracy < floor.minimumHardNegativeAccuracy) reasons.push('hardNegativeAccuracy');
     if (quality.mustRefuseAccuracy < floor.minimumMustRefuseAccuracy) reasons.push('mustRefuseAccuracy');
+    if (trialSchema === 'simulatte.modelSelectionTrial.v3' && quality.answerableAcceptance < floor.minimumAnswerableAcceptance) reasons.push('answerableAcceptance');
+    if (trialSchema === 'simulatte.modelSelectionTrial.v3' && quality.refusalPrecision < floor.minimumRefusalPrecision) reasons.push('refusalPrecision');
   } else {
     const floor = taskPolicy.qualityFloor;
     if (quality.ndcgAtK < floor.minimumNdcgAtK) reasons.push('ndcgAtK');

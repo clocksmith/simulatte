@@ -129,9 +129,6 @@
           mission,
           policy: data.policy,
           utcInstant: environmentInstant(data.world, mission),
-          maximumAlternatives: 3,
-          directSunWeight: 1.5,
-          unknownWeight: 3,
         });
         mission.constraints.routeOverride = {
           segmentIds: [...shadeSelection.selected.route.segmentIds],
@@ -774,7 +771,7 @@
     elements.alternativeProof.dataset.preferShade = String(Boolean(environment));
     elements.alternativeProof.dataset.routeAlgorithm = planning.alternatives?.[0]?.algorithm || '';
     elements.alternativeProof.textContent = environment
-      ? `${environment.candidates.length} compared · ${Math.round(environment.selected.exposure.directSunSeconds)} s direct sun · ${Math.round(environment.selected.exposure.shadeSeconds)} s shade`
+      ? `${environment.candidates.length} compared · ${Math.round(environment.comparison.selectedModeledBuildingShadePercent)}% modeled building shade vs ${Math.round(environment.comparison.fastestModeledBuildingShadePercent)}% fastest · ${signedDuration(environment.comparison.addedTravelSeconds)}`
       : planning.alternatives.length > 1
       ? `${planning.alternatives.length} compared · ${(planning.alternatives[1].forecast.predictedDurationSeconds - forecast.predictedDurationSeconds).toFixed(1)} s next`
       : 'No distinct legal alternative';
@@ -824,7 +821,10 @@
     const localMinutes = mission.constraints.departureLocalMinutes;
     const hour = String(Math.floor(localMinutes / 60)).padStart(2, '0');
     const minute = String(localMinutes % 60).padStart(2, '0');
-    return new Date(`${snapshotDate}T${hour}:${minute}:00-04:00`).toISOString();
+    return sunApi.zonedCivilTimeToUtc({
+      civilTime: `${snapshotDate}T${hour}:${minute}:00`,
+      timeZone: world.scenario?.timeZone || 'America/New_York',
+    }).utcInstant;
   }
 
   function accessibilityProofLabel(audit) {

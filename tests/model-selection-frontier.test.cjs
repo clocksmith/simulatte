@@ -79,9 +79,34 @@ function candidate(task, id, overrides = {}, kind = 'model') {
       environmentSha256: overrides.environmentSha256 || environmentHash(),
       workloadSha256,
       cacheProtocolId: ENVIRONMENT.cacheProtocolId,
+      ...overrides.receipt,
     },
   };
 }
+
+test('v3 retrieval frontiers require a calibrated composite and gate delivered recall', async () => {
+  const { evaluateModelSelectionFrontier } = await import('../tools/model-selection-frontier.mjs');
+  const calibration = { path: 'calibration/retrieval.json', sha256: HASH };
+  const det = candidate('embedding-retrieval', 'det', { quality: retrievalV3Quality(0.7) }, 'deterministic');
+  const neural = candidate('embedding-retrieval', 'neural', { quality: retrievalV3Quality(0.95) });
+  const cascade = candidate('embedding-retrieval', 'cascade', {
+    quality: retrievalV3Quality(0.96),
+    receipt: { calibration },
+  });
+  cascade.kind = 'composite';
+  cascade.modelId = neural.modelId;
+  cascade.components = { refusalGateCandidateId: det.id, recallCandidateId: neural.id };
+  const evidence = trial('embedding-retrieval', [det, neural, cascade], { schema: 'simulatte.modelSelectionTrial.v3' });
+  const report = evaluateModelSelectionFrontier(evidence);
+  assert.equal(report.selectedCandidateId, 'cascade');
+
+  cascade.quality.deliveredRecallAtK = 0.8;
+  const rejected = evaluateModelSelectionFrontier(evidence);
+  assert.ok(rejected.candidates.find((row) => row.id === 'cascade').qualityRejectionReasons.includes('deliveredRecallAtK'));
+
+  delete cascade.receipt.calibration;
+  assert.throws(() => evaluateModelSelectionFrontier(evidence), /calibration receipt path/);
+});
 
 function trial(task, candidates, overrides = {}) {
   const commitment = String(['classification', 'embedding-retrieval', 'reranking'].indexOf(task) + 1).repeat(64);
@@ -103,6 +128,17 @@ function trial(task, candidates, overrides = {}) {
     workload: { id: `${task}-workload-v1`, sha256: HASH, k: task === 'embedding-retrieval' ? 2 : task === 'reranking' ? 4 : 1 },
     candidates,
     ...overrides,
+  };
+}
+
+function retrievalV3Quality(value) {
+  return {
+    recallAtK: value,
+    deliveredRecallAtK: value,
+    hardNegativeAccuracy: value,
+    mustRefuseAccuracy: 0.99,
+    answerableAcceptance: value,
+    refusalPrecision: 0.95,
   };
 }
 
@@ -254,7 +290,14 @@ test('policy and schema own separate task quality and comparable performance con
 
   assert.equal(policy.schema, 'simulatte.modelSelectionPolicy.v2');
   assert.deepEqual(policy.requiredTasks.map((row) => row.id), ['classification', 'embedding-retrieval', 'reranking']);
-  assert.deepEqual(policy.requiredTasks[1].requiredQualityMetrics, ['recallAtK', 'hardNegativeAccuracy', 'mustRefuseAccuracy']);
+  assert.deepEqual(policy.requiredTasks[1].requiredQualityMetrics, [
+    'recallAtK',
+    'deliveredRecallAtK',
+    'hardNegativeAccuracy',
+    'mustRefuseAccuracy',
+    'answerableAcceptance',
+    'refusalPrecision',
+  ]);
   assert.equal(policy.requiredTasks[1].evaluationK, 2);
   assert.deepEqual(policy.requiredTasks[2].requiredQualityMetrics, ['ndcgAtK', 'winnerAccuracy']);
   assert.equal(policy.requiredTasks[2].evaluationK, 4);

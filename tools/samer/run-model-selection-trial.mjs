@@ -7,6 +7,14 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { environmentSha256, evaluateModelSelectionFrontier } from '../model-selection-frontier.mjs';
 import { readCandidateRegistry, validateCandidateRegistry } from './check-model-candidate-registry.mjs';
+import {
+  applyClassificationCalibration,
+  assertCalibrationDisjoint,
+  composeRetrievalCascade,
+  readCalibration,
+  validateClassificationCalibration,
+  validateRetrievalCalibration,
+} from './model-selection-calibration.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const SAMER_DIR = path.join(ROOT, 'tools', 'samer');
@@ -45,9 +53,10 @@ export function sanitizedWorkload(population, task, jobs, candidateId, evaluatio
         headId: row.headId,
         text: row.input.text,
         span: row.input.span || '',
-        labels: job.labels.map((id) => ({ id, description: labelDescription(id) })),
+        labels: job.labels
+          .filter((id) => id !== job.abstention.label)
+          .map((id) => ({ id, description: labelDescription(id) })),
         abstentionId: job.abstention.label,
-        minimumConfidence: job.abstention.minimumConfidence,
       };
     }
     return {
@@ -74,9 +83,12 @@ export function sanitizedWorkload(population, task, jobs, candidateId, evaluatio
   return workload;
 }
 
-export function scoreCandidatePredictions(population, predictions, task, jobs, k = 10) {
+export function scoreCandidatePredictions(population, predictions, task, jobs, k = 10, calibration = null, candidateId = '') {
   validatePredictionEnvelope(predictions, task, population.rows);
-  const byId = new Map(predictions.rows.map((row) => [row.id, row]));
+  const calibrated = task === 'classification' && calibration
+    ? applyClassificationCalibration(predictions, jobs, calibration, candidateId || predictions.candidateId)
+    : predictions;
+  const byId = new Map(calibrated.rows.map((row) => [row.id, row]));
   if (task === 'classification') return scoreClassification(population.rows, byId, jobs);
   if (task === 'embedding-retrieval') return scoreRetrieval(population.rows, byId, k);
   return scoreReranking(population.rows, byId, k);
@@ -114,7 +126,7 @@ function scoreClassification(goldRows, predictions, jobs) {
       macroF1: round(mean(labels.map((label) => f1ForLabel(pairs, label)))),
       coverage: round(answered.length / Math.max(1, pairs.length)),
       selectiveRisk: round(answered.length ? 1 - correctAnswered / answered.length : 1),
-      expectedCalibrationError: round(calibrationError(pairs)),
+      expectedCalibrationError: round(calibrationError(answered)),
     };
   });
   return { heads };
@@ -129,6 +141,13 @@ function scoreRetrieval(goldRows, predictions, k) {
     const hits = row.relevantIds.filter((id) => ranking.includes(id)).length;
     return hits / Math.max(1, row.relevantIds.length);
   });
+  const deliveredRecall = answerable.map((row) => {
+    const prediction = predictions.get(row.id);
+    if (prediction.refused === true) return 0;
+    const ranking = prediction.ranking.slice(0, k);
+    const hits = row.relevantIds.filter((id) => ranking.includes(id)).length;
+    return hits / Math.max(1, row.relevantIds.length);
+  });
   const hardAccuracy = hardRows.map((row) => {
     const ranking = predictions.get(row.id).ranking;
     const bestRelevant = Math.min(...row.relevantIds.map((id) => rankOf(ranking, id)));
@@ -136,10 +155,15 @@ function scoreRetrieval(goldRows, predictions, k) {
     return bestRelevant < bestHard ? 1 : 0;
   });
   const refusalAccuracy = refusalRows.map((row) => predictions.get(row.id).refused === true ? 1 : 0);
+  const refusedRows = goldRows.filter((row) => predictions.get(row.id).refused === true);
+  const correctRefusals = refusedRows.filter((row) => row.mustRefuse === true).length;
   return {
     recallAtK: round(mean(recall)),
+    deliveredRecallAtK: round(mean(deliveredRecall)),
     hardNegativeAccuracy: round(mean(hardAccuracy)),
     mustRefuseAccuracy: round(mean(refusalAccuracy)),
+    answerableAcceptance: round(mean(answerable.map((row) => predictions.get(row.id).refused === true ? 0 : 1))),
+    refusalPrecision: round(refusedRows.length ? correctRefusals / refusedRows.length : 0),
   };
 }
 
@@ -236,9 +260,14 @@ export function receiptArgument(argument) {
     : argument;
 }
 
-function createTrial(task, population, commitment, registry, jobs, policy, outputDirectory, candidateIds) {
-  const candidates = registry.tasks[task].filter((row) => candidateIds.includes(row.id));
-  if (candidates.length !== candidateIds.length) fail(`${task} candidate selection contains an unknown or duplicate id`);
+function createTrial(task, population, commitment, registry, jobs, policy, outputDirectory, candidateIds, calibrations) {
+  const cascadeRegistry = task === 'embedding-retrieval' ? registry.retrievalCascades : [];
+  const requested = new Set(candidateIds);
+  const selectedCascades = cascadeRegistry.filter((row) => requested.has(row.id));
+  const requiredComponentIds = new Set(selectedCascades.flatMap((row) => [row.refusalGateCandidateId, row.recallCandidateId]));
+  const candidates = registry.tasks[task].filter((row) => requested.has(row.id) || requiredComponentIds.has(row.id));
+  const knownIds = new Set([...registry.tasks[task].map((row) => row.id), ...cascadeRegistry.map((row) => row.id)]);
+  if (candidateIds.some((id) => !knownIds.has(id)) || requested.size !== candidateIds.length) fail(`${task} candidate selection contains an unknown or duplicate id`);
   if (!candidates.some((row) => row.kind === 'deterministic')) fail(`${task} execution requires its deterministic control`);
   const environment = comparisonEnvironment(registry);
   const registryBytes = fs.readFileSync(path.join(SAMER_DIR, 'model-candidate-registry.json'));
@@ -254,6 +283,7 @@ function createTrial(task, population, commitment, registry, jobs, policy, outpu
   fs.mkdirSync(rawDirectory, { recursive: true });
   const executions = [];
   const trialCandidates = [];
+  const predictionsById = new Map();
   for (const candidate of candidates) {
     const workload = sanitizedWorkload(population, task, jobs, candidate.id, evaluationK);
     const workloadPath = path.join(outputDirectory, `${candidate.id}-workload.json`);
@@ -268,10 +298,10 @@ function createTrial(task, population, commitment, registry, jobs, policy, outpu
     const outputBytes = fs.readFileSync(outputPath);
     const predictions = JSON.parse(outputBytes.toString('utf8'));
     validateCandidateIdentity(candidate, predictions, task);
-    const quality = scoreCandidatePredictions(population, predictions, task, jobs, workload.k);
+    const quality = scoreCandidatePredictions(population, predictions, task, jobs, workload.k, calibrations.classification, candidate.id);
     const warmups = 3;
     const warmSamples = predictions.performance.warmLatencyMs.slice(warmups);
-    trialCandidates.push({
+    const trialCandidate = {
       id: candidate.id,
       implementationId: candidate.implementationId,
       kind: candidate.kind,
@@ -291,14 +321,63 @@ function createTrial(task, population, commitment, registry, jobs, policy, outpu
         environmentSha256: environmentSha256(environment),
         workloadSha256,
         cacheProtocolId: environment.cacheProtocolId,
+        ...(task === 'classification' ? { calibration: calibrationReceipt(calibrations.classificationPointer) } : {}),
       },
-    });
+    };
+    trialCandidates.push(trialCandidate);
+    predictionsById.set(candidate.id, predictions);
     executions.push({
       candidateId: candidate.id,
       implementationId: candidate.implementationId,
       modelId: candidate.modelId,
       revision: candidate.revision,
       command: execution.command,
+      predictionSha256: digest(outputBytes),
+    });
+  }
+  for (const cascade of selectedCascades) {
+    const lexicalPredictions = predictionsById.get(cascade.refusalGateCandidateId);
+    const recallPredictions = predictionsById.get(cascade.recallCandidateId);
+    const predictions = composeRetrievalCascade({ cascade, lexicalPredictions, recallPredictions, calibration: calibrations.retrieval });
+    const outputPath = path.join(rawDirectory, `${cascade.id}.json`);
+    fs.writeFileSync(outputPath, `${JSON.stringify(predictions, null, 2)}\n`);
+    const outputBytes = fs.readFileSync(outputPath);
+    const quality = scoreCandidatePredictions(population, predictions, task, jobs, workloadTemplate.k);
+    const recallCandidate = registry.tasks[task].find((row) => row.id === cascade.recallCandidateId);
+    const warmSamples = predictions.performance.warmLatencyMs.slice(3);
+    trialCandidates.push({
+      id: cascade.id,
+      implementationId: cascade.implementationId,
+      kind: 'composite',
+      modelId: recallCandidate.modelId,
+      components: {
+        refusalGateCandidateId: cascade.refusalGateCandidateId,
+        recallCandidateId: cascade.recallCandidateId,
+      },
+      deploymentEligible: cascade.deploymentEligible,
+      deploymentEvidence: cascade.deploymentEvidence,
+      quality,
+      performance: {
+        downloadBytes: predictions.performance.downloadBytes,
+        peakMemoryBytes: predictions.performance.peakMemoryBytes,
+        coldLoadMs: { samples: [predictions.performance.coldLoadMs] },
+        warmLatencyMs: { samples: warmSamples },
+      },
+      receipt: {
+        path: path.relative(ROOT, outputPath),
+        sha256: digest(outputBytes),
+        environmentSha256: environmentSha256(environment),
+        workloadSha256,
+        cacheProtocolId: environment.cacheProtocolId,
+        calibration: calibrationReceipt(calibrations.retrievalPointer),
+      },
+    });
+    executions.push({
+      candidateId: cascade.id,
+      implementationId: cascade.implementationId,
+      modelId: recallCandidate.modelId,
+      revision: recallCandidate.revision,
+      composition: { ...predictions.components },
       predictionSha256: digest(outputBytes),
     });
   }
@@ -321,7 +400,7 @@ function createTrial(task, population, commitment, registry, jobs, policy, outpu
   fs.writeFileSync(openingPath, `${JSON.stringify(opening, null, 2)}\n`);
   const openingBytes = fs.readFileSync(openingPath);
   return {
-    schema: 'simulatte.modelSelectionTrial.v2',
+    schema: 'simulatte.modelSelectionTrial.v3',
     task,
     population: {
       schema: population.schema,
@@ -383,14 +462,56 @@ function recordOpening(commitmentPath, commitment, openingReceipt) {
   fs.writeFileSync(commitmentPath, `${JSON.stringify(updated, null, 2)}\n`);
 }
 
+function loadRequiredCalibrations(options, privateInput, registry, jobs, candidateIds) {
+  const result = {
+    classification: null,
+    classificationPointer: null,
+    retrieval: null,
+    retrievalPointer: null,
+  };
+  const promotionPopulation = {
+    id: privateInput.population.id,
+    commitmentSha256: privateInput.commitment.populationSha256,
+  };
+  if (options.task === 'classification') {
+    if (!options.classificationCalibration) fail('classification sealed evaluation requires --classification-calibration from a disjoint split');
+    const loaded = readCalibration(options.classificationCalibration);
+    const selected = registry.tasks.classification.filter((row) => candidateIds.includes(row.id)).map((row) => row.id);
+    validateClassificationCalibration(loaded.value, jobs, selected);
+    assertCalibrationDisjoint(loaded.value, promotionPopulation, 'classification');
+    result.classification = loaded.value;
+    result.classificationPointer = loaded.pointer;
+  }
+  if (options.task === 'embedding-retrieval') {
+    const cascades = registry.retrievalCascades.filter((row) => candidateIds.includes(row.id));
+    if (!cascades.length) fail('embedding retrieval sealed evaluation requires at least one deterministic-refusal cascade');
+    if (!options.refusalCalibration) fail('embedding retrieval sealed evaluation requires --refusal-calibration from a disjoint split');
+    const loaded = readCalibration(options.refusalCalibration);
+    validateRetrievalCalibration(loaded.value, cascades);
+    assertCalibrationDisjoint(loaded.value, promotionPopulation, 'retrieval refusal');
+    result.retrieval = loaded.value;
+    result.retrievalPointer = loaded.pointer;
+  }
+  return result;
+}
+
+function calibrationReceipt(pointer) {
+  return {
+    path: receiptArgument(pointer.path),
+    sha256: pointer.sha256,
+  };
+}
+
 function parseArgs(argv) {
-  const options = { task: '', sealedDir: DEFAULT_SEALED_DIR, out: '', candidateIds: [] };
+  const options = { task: '', sealedDir: DEFAULT_SEALED_DIR, out: '', candidateIds: [], classificationCalibration: '', refusalCalibration: '' };
   for (let index = 0; index < argv.length; index += 1) {
     const key = argv[index];
     if (key === '--task') options.task = argv[++index] || '';
     else if (key === '--sealed-dir') options.sealedDir = path.resolve(argv[++index] || '');
     else if (key === '--out') options.out = path.resolve(argv[++index] || '');
     else if (key === '--candidate') options.candidateIds.push(argv[++index] || '');
+    else if (key === '--classification-calibration') options.classificationCalibration = path.resolve(argv[++index] || '');
+    else if (key === '--refusal-calibration') options.refusalCalibration = path.resolve(argv[++index] || '');
     else fail(`unknown argument ${key}`);
   }
   if (!TASKS.includes(options.task)) fail('--task must be classification, embedding-retrieval, or reranking');
@@ -408,9 +529,13 @@ function main() {
   const privateInput = readPopulation(options.task, options.sealedDir);
   const ids = options.candidateIds.length
     ? options.candidateIds
-    : registry.tasks[options.task].filter((row) => row.evaluationEligible).map((row) => row.id);
+    : [
+      ...registry.tasks[options.task].filter((row) => row.evaluationEligible).map((row) => row.id),
+      ...(options.task === 'embedding-retrieval' ? registry.retrievalCascades.filter((row) => row.evaluationEligible).map((row) => row.id) : []),
+    ];
+  const calibrations = loadRequiredCalibrations(options, privateInput, registry, jobs, ids);
   fs.mkdirSync(options.out, { recursive: true });
-  const trial = createTrial(options.task, privateInput.population, privateInput.commitment, registry, jobs, policy, options.out, ids);
+  const trial = createTrial(options.task, privateInput.population, privateInput.commitment, registry, jobs, policy, options.out, ids, calibrations);
   const trialPath = path.join(options.out, 'trial.json');
   fs.writeFileSync(trialPath, `${JSON.stringify(trial, null, 2)}\n`);
   const frontier = evaluateModelSelectionFrontier(trial, policy, jobs);

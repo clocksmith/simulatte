@@ -1,0 +1,123 @@
+{
+  "schema": "simulatte.cascadeRefusalDiagnostic.v1",
+  "trial": "embedding-retrieval-v1",
+  "createdAt": "2026-07-18T17:49:18.343Z",
+  "diagnosisOnly": true,
+  "promotionEligible": false,
+  "claimBoundary": "Reuses the already-opened embedding-retrieval-v1 population for diagnosis of a cascade design. It is not a promotion and cannot become one. Promotion requires a new unopened population and an independently calibrated refusal rule per embedding-retrieval-v1/README.",
+  "population": {
+    "path": "tools/samer/model-selection/sealed/embedding-retrieval-population-v1.json",
+    "sha256": "dbff5cf91ab5dc0066dc4ae2f21cb17a421ae5fa1cb90f1f48ee937953bbbf2f",
+    "rows": 130,
+    "mustRefuseRows": 30
+  },
+  "k": 2,
+  "selfValidation": {
+    "validated": true,
+    "note": "Recomputed standalone metrics match the published values; cascade figures are trustworthy under these definitions.",
+    "rows": [
+      {
+        "candidate": "deterministic-lexical-control",
+        "published": {
+          "recallAtK": 0.64,
+          "mustRefuseAccuracy": 1
+        },
+        "recomputed": {
+          "recallAtK": 0.64,
+          "mustRefuseAccuracy": 1
+        },
+        "deltas": {
+          "recallAtK": 0,
+          "mustRefuseAccuracy": 0
+        },
+        "matches": true
+      },
+      {
+        "candidate": "all-minilm-l6-v2-embedder",
+        "published": {
+          "recallAtK": 0.99,
+          "mustRefuseAccuracy": 0.3
+        },
+        "recomputed": {
+          "recallAtK": 0.99,
+          "mustRefuseAccuracy": 0.3
+        },
+        "deltas": {
+          "recallAtK": 0,
+          "mustRefuseAccuracy": 0
+        },
+        "matches": true
+      },
+      {
+        "candidate": "qwen3-embedding-control",
+        "published": {
+          "recallAtK": 1,
+          "mustRefuseAccuracy": 0.367
+        },
+        "recomputed": {
+          "recallAtK": 1,
+          "mustRefuseAccuracy": 0.3667
+        },
+        "deltas": {
+          "recallAtK": 0,
+          "mustRefuseAccuracy": 0.0003
+        },
+        "matches": true
+      }
+    ]
+  },
+  "standalone": {
+    "deterministic-lexical-control": {
+      "recallAtK": 0.64,
+      "deliveredRecall": 0.64,
+      "mustRefuseAccuracy": 1,
+      "hardNegativeAccuracyInformational": 0.62,
+      "answeredAnswerable": 87,
+      "overRefusedAnswerable": 13
+    },
+    "all-minilm-l6-v2-embedder": {
+      "recallAtK": 0.99,
+      "deliveredRecall": 0.96,
+      "mustRefuseAccuracy": 0.3,
+      "hardNegativeAccuracyInformational": 0.93,
+      "answeredAnswerable": 97,
+      "overRefusedAnswerable": 3
+    },
+    "qwen3-embedding-control": {
+      "recallAtK": 1,
+      "deliveredRecall": 0.98,
+      "mustRefuseAccuracy": 0.3667,
+      "hardNegativeAccuracyInformational": 0.97,
+      "answeredAnswerable": 98,
+      "overRefusedAnswerable": 2
+    }
+  },
+  "cascades": {
+    "deterministic-refusal + minilm-recall": {
+      "recallAtK": 0.86,
+      "deliveredRecall": 0.86,
+      "mustRefuseAccuracy": 1,
+      "hardNegativeAccuracyInformational": 0.84,
+      "answeredAnswerable": 87,
+      "overRefusedAnswerable": 13
+    },
+    "deterministic-refusal + qwen-recall": {
+      "recallAtK": 0.87,
+      "deliveredRecall": 0.87,
+      "mustRefuseAccuracy": 1,
+      "hardNegativeAccuracyInformational": 0.85,
+      "answeredAnswerable": 87,
+      "overRefusedAnswerable": 13
+    }
+  },
+  "finding": {
+    "complementarySplitConfirmed": true,
+    "cascadeMustRefuse": 1,
+    "cascadeAnsweredRecall": 0.87,
+    "cascadeDeliveredRecall": 0.87,
+    "qwenStandaloneDeliveredRecall": 0.98,
+    "overRefusedAnswerableRows": 13,
+    "overRefusalDeliveredRecallCost": 0.11,
+    "interpretation": "The refusal gate recovers must-refuse to 1 (from Qwen's 0.3667) and preserves answered retrieval quality at recall@2 0.87. But the current deterministic lexical gate is blunt: it over-refuses 13 answerable rows, so delivered recall is 0.87 versus Qwen's standalone 0.98, a 0.11 cost. Direction confirmed (deterministic refusal wrapper + neural recall), but the promotable version needs a calibrated, precise refusal rule rather than this over-refusing lexical gate, exactly as the trial README requires."
+  }
+}

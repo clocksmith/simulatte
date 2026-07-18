@@ -123,8 +123,10 @@
     ['id', 'requesterId', 'itemId', 'destinationNodeId', 'buildingHandoffGraphId', 'earliestAt', 'latestAt', 'riskTier', 'expiresAt']
       .forEach((key) => v.string(need[key], `$.${key}`));
     v.integer(need.quantity, '$.quantity', 1);
-    v.array(need.acceptableSubstitutionGroupIds, '$.acceptableSubstitutionGroupIds');
-    v.finite(need.maximumCompensationCents, '$.maximumCompensationCents', 0);
+    ['acceptableSubstitutionGroupIds', 'handlingConstraints', 'requiredCustodyAcknowledgements']
+      .forEach((key) => v.array(need[key], `$.${key}`));
+    ['maximumCompensationCents', 'dropoffServiceSeconds', 'maximumCarrierDetourSeconds', 'maximumCarrierDetourM']
+      .forEach((key) => v.finite(need[key], `$.${key}`, 0));
     v.oneOf(need.consentState, CONSENT_STATES, '$.consentState');
     return need;
   }
@@ -137,6 +139,7 @@
       .forEach((key) => v.string(offer[key], `$.${key}`));
     v.integer(offer.quantity, '$.quantity', 1);
     v.oneOf(offer.kind, OFFER_KINDS, '$.kind');
+    v.finite(offer.pickupServiceSeconds, '$.pickupServiceSeconds', 0);
     v.finite(offer.minimumCompensationCents, '$.minimumCompensationCents', 0);
     v.oneOf(offer.consentState, CONSENT_STATES, '$.consentState');
     return offer;
@@ -158,8 +161,15 @@
       v.finite(route.durationSeconds, `$.routes.${key}.durationSeconds`, 0);
     });
     const burden = v.object(plan.marginalBurden, '$.marginalBurden');
-    ['addedDistanceM', 'addedDurationSeconds', 'handoffWaitSeconds', 'latenessSlackSeconds', 'directSunSeconds', 'carryingLoadGrams', 'custodyRisk', 'accessibilityLoss', 'interactionBurden', 'compensationCents']
-      .forEach((key) => v.finite(burden[key], `$.marginalBurden.${key}`, ['addedDistanceM', 'addedDurationSeconds', 'latenessSlackSeconds', 'directSunSeconds'].includes(key) ? -Infinity : 0));
+    ['addedDistanceM', 'addedDurationSeconds', 'latenessSlackSeconds']
+      .forEach((key) => v.finite(burden[key], `$.marginalBurden.${key}`, -Infinity));
+    ['pickupServiceSeconds', 'dropoffServiceSeconds', 'handoffWaitSeconds', 'temporalSlackSeconds', 'temporalSlackPenaltySeconds', 'carryingLoadGrams', 'carryingLoadCm3', 'custodyRisk', 'interactionBurden', 'failureProbability', 'privacyExposureScore', 'compensationCents']
+      .forEach((key) => v.finite(burden[key], `$.marginalBurden.${key}`, 0));
+    ['directSunRealized', 'accessibilityRealized'].forEach((key) => v.boolean(burden[key], `$.marginalBurden.${key}`));
+    if (burden.directSunRealized) v.finite(burden.directSunSeconds, '$.marginalBurden.directSunSeconds', 0);
+    else if (burden.directSunSeconds !== null) v.fail('$.marginalBurden.directSunSeconds', 'null when unrealized', burden.directSunSeconds);
+    if (burden.accessibilityRealized) v.finite(burden.accessibilityLoss, '$.marginalBurden.accessibilityLoss', 0);
+    else if (burden.accessibilityLoss !== null) v.fail('$.marginalBurden.accessibilityLoss', 'null when unrealized', burden.accessibilityLoss);
     const reliability = v.object(plan.reliability, '$.reliability');
     ['onTimeProbability', 'cancellationProbability'].forEach((key) => v.finite(reliability[key], `$.reliability.${key}`, 0));
     v.array(plan.hardGates, '$.hardGates', 1).forEach((row, index) => {
@@ -191,17 +201,33 @@
       .forEach((key) => v.string(field[key], `$.${key}`));
     ['azimuthDegrees', 'elevationDegrees', 'gridResolutionM'].forEach((key) => v.finite(field[key], `$.${key}`, key === 'elevationDegrees' ? -90 : 0));
     const counts = v.object(field.counts, '$.counts');
-    ['buildingCount', 'segmentCount', 'sampleCount', 'unknownHeightCount'].forEach((key) => v.integer(counts[key], `$.counts.${key}`));
+    ['buildingCount', 'segmentCount', 'uniqueSegmentCount', 'sampleCount', 'unknownHeightCount', 'unknownSampleCount', 'nightSampleCount', 'candidateBuildingChecks']
+      .forEach((key) => v.integer(counts[key], `$.counts.${key}`));
     v.array(field.segmentRows, '$.segmentRows').forEach((row, index) => {
       v.string(row?.segmentId, `$.segmentRows[${index}].segmentId`);
-      ['travelSeconds', 'directSunSeconds', 'shadeSeconds', 'unknownSeconds'].forEach((key) => v.finite(row[key], `$.segmentRows[${index}].${key}`, 0));
+      ['travelSeconds', 'directSunSeconds', 'shadeSeconds', 'unknownSeconds', 'nightSeconds']
+        .forEach((key) => v.finite(row[key], `$.segmentRows[${index}].${key}`, 0));
     });
     if (field.timeSampling) {
       const sampling = v.object(field.timeSampling, '$.timeSampling');
       v.string(sampling.method, '$.timeSampling.method');
       v.integer(sampling.routeCandidateCount, '$.timeSampling.routeCandidateCount', 1);
       v.integer(sampling.sampledInstantCount, '$.timeSampling.sampledInstantCount', 1);
+      v.string(sampling.edgeCostModelId, '$.timeSampling.edgeCostModelId');
+      v.string(sampling.edgeCostModelVersion, '$.timeSampling.edgeCostModelVersion');
+      v.boolean(sampling.fifo, '$.timeSampling.fifo');
     }
+    const quality = v.object(field.quality, '$.quality');
+    ['knownHeightBuildingCount', 'missingHeightBuildingCount', 'buildingInteriorRingCount', 'groundElevationAvailableCount']
+      .forEach((key) => v.integer(quality[key], `$.quality.${key}`));
+    ['groundElevationApplied', 'treeCanopyApplied'].forEach((key) => v.boolean(quality[key], `$.quality.${key}`));
+    v.string(quality.atmosphere, '$.quality.atmosphere');
+    const performance = v.object(field.performance, '$.performance');
+    v.string(performance.spatialIndex, '$.performance.spatialIndex');
+    v.finite(performance.spatialIndexCellSizeM, '$.performance.spatialIndexCellSizeM', 0);
+    v.integer(performance.indexedCellCount, '$.performance.indexedCellCount');
+    v.finite(performance.maximumSceneQueryM, '$.performance.maximumSceneQueryM', 0);
+    v.string(field.claimBoundary, '$.claimBoundary');
     return field;
   }
 
@@ -273,9 +299,14 @@
       });
     }
     const policy = v.object(scenario.policy, '$.policy');
-    ['cellSizeM', 'timeBucketSeconds', 'maximumCandidates', 'softHoldSeconds', 'maximumRelayHops', 'minimumOnTimeProbability']
+    ['cellSizeM', 'timeBucketSeconds', 'maximumCandidates', 'softHoldSeconds', 'maximumRelayHops', 'minimumOnTimeProbability', 'minimumTemporalSlackSeconds']
       .forEach((key) => v.finite(policy[key], `$.policy.${key}`, 0));
     v.array(policy.compensationKinds, '$.policy.compensationKinds', 1);
+    const privacy = v.object(policy.privacyLeakageBudget, '$.policy.privacyLeakageBudget');
+    v.string(privacy.scope, '$.policy.privacyLeakageBudget.scope');
+    ['maximumExposureScore', 'coarseCorridorDisclosureScore', 'coarseTimeWindowDisclosureScore', 'exactRouteDisclosureScore', 'exactIdentityDisclosureScore']
+      .forEach((key) => v.finite(privacy[key], `$.policy.privacyLeakageBudget.${key}`, 0));
+    v.boolean(privacy.exactDisclosureRequiresAuthorization, '$.policy.privacyLeakageBudget.exactDisclosureRequiresAuthorization');
     v.string(scenario.failureInjection?.participantId, '$.failureInjection.participantId');
     v.finite(scenario.failureInjection?.delaySeconds, '$.failureInjection.delaySeconds', 0);
     return scenario;

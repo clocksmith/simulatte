@@ -11,6 +11,7 @@ const languageApi = require('../public/mission/cooperative-language-compiler.js'
 const cooperativeGpu = require('../public/app/cooperative-gpu-compute.js');
 const receipts = require('../public/runtime/canonical-receipts.js');
 const sunApi = require('../public/world/sun-exposure.js');
+const timeCostApi = require('../public/world/time-dependent-edge-cost.js');
 const worldApi = require('../public/world/world-model.js');
 const missionApi = require('../public/mission/mission-compiler.js');
 
@@ -27,6 +28,7 @@ test('cooperative artifacts use restrictive top-level schemas and validate the g
     'custody-state.schema.json',
     'relay-plan.schema.json',
     'cooperative-allocation.schema.json',
+    'multi-request-allocation.schema.json',
     'participant-intent.schema.json',
     'fulfillment-need.schema.json',
     'resource-offer.schema.json',
@@ -73,6 +75,15 @@ test('the two-AA request uses indexed compatibility and corridor matching withou
   assert.equal(snapshot.discoveryEnvelope.exactIdentityDisclosed, false);
   assert.ok(snapshot.discoveryEnvelope.corridorCells.length > 1);
   assert.equal(JSON.stringify(snapshot.discoveryEnvelope).includes('carrier-alex'), false);
+  assert.equal(snapshot.discoveryEnvelope.privacy.pass, true);
+  assert.equal(snapshot.discoveryEnvelope.privacy.exposureScore, 2);
+  assert.equal(snapshot.plan.routes.cooperative.pickupNodeId, scenario.offers.find((row) => row.id === snapshot.plan.offerId).availableNodeId);
+  assert.equal(snapshot.plan.routes.cooperative.dropoffNodeId, snapshot.request.need.destinationNodeId);
+  assert.equal(snapshot.plan.routes.cooperative.timeDependentCost.fifo, false);
+  assert.ok(snapshot.plan.marginalBurden.temporalSlackSeconds > 0);
+  assert.ok(snapshot.plan.marginalBurden.failureProbability > 0);
+  assert.equal(snapshot.plan.marginalBurden.directSunSeconds, null);
+  assert.equal(snapshot.plan.marginalBurden.directSunRealized, false);
 });
 
 test('arbitrary governed items compile from natural language and unknown meaning asks for clarification', async () => {
@@ -190,6 +201,47 @@ test('bounded relay planning allocates shared leg capacity at minimum declared c
   assert.equal(provisional.plan.optimalityProven, false);
 });
 
+test('competing requests use deterministic minimum-cost flow with shared carrier capacity', () => {
+  const result = relayApi.allocateCompetingRequests({
+    requests: [{ id: 'request-a', quantity: 1 }, { id: 'request-b', quantity: 1 }],
+    carriers: [{ id: 'carrier-one', capacity: 1 }, { id: 'carrier-two', capacity: 1 }],
+    candidates: [
+      { id: 'one-a', carrierId: 'carrier-one', requestId: 'request-a', capacity: 1, unitCost: 1 },
+      { id: 'one-b', carrierId: 'carrier-one', requestId: 'request-b', capacity: 1, unitCost: 2 },
+      { id: 'two-a', carrierId: 'carrier-two', requestId: 'request-a', capacity: 1, unitCost: 3 },
+      { id: 'two-b', carrierId: 'carrier-two', requestId: 'request-b', capacity: 1, unitCost: 100 },
+    ],
+    candidateSetComplete: true,
+  });
+  assert.equal(result.allocatedQuantity, 2);
+  assert.equal(result.totalCost, 5);
+  assert.equal(result.optimalityProven, true);
+  assert.deepEqual(result.allocations.map((row) => row.candidateId), ['two-a', 'one-b']);
+  assert.deepEqual(result.fulfilledByRequest, { 'request-a': 1, 'request-b': 1 });
+});
+
+test('available-along-journey inventory routes through its exact pickup node before dropoff', async () => {
+  const changed = structuredClone(scenario);
+  const baselineSession = await engineApi.createCooperativeSession({
+    world, routingPolicy: policy, scenario, sourceText: BATTERY_FIXTURE_REQUEST,
+  });
+  const firstSegment = world.segments.find((row) => row.id === baselineSession.snapshot().plan.routes.baseline.segmentIds[0]);
+  const offer = changed.offers.find((row) => row.id === 'offer-alex-two-aa-v1');
+  offer.kind = 'available_along_journey';
+  offer.availableNodeId = firstSegment.toNodeId;
+  offer.pickupServiceSeconds = 30;
+  changed.offers.find((row) => row.id === 'offer-jules-two-aa-v1').consentState = 'revoked';
+  const session = await engineApi.createCooperativeSession({
+    world, routingPolicy: policy, scenario: changed, sourceText: BATTERY_FIXTURE_REQUEST,
+  });
+  const plan = session.snapshot().plan;
+  assert.equal(plan.offerId, offer.id);
+  assert.equal(plan.routes.cooperative.pickupNodeId, offer.availableNodeId);
+  assert.equal(plan.routes.cooperative.viaNodeIds[0], offer.availableNodeId);
+  assert.equal(plan.marginalBurden.pickupServiceSeconds, 30);
+  assert.equal(plan.routes.cooperative.segmentIds[0], baselineSession.snapshot().plan.routes.baseline.segmentIds[0]);
+});
+
 test('cooperative candidate scoring keeps small jobs on the inspectable CPU reference', async () => {
   const features = [
     [120, 45, 0.05, 1, 0, 0.1, 200, 20],
@@ -286,6 +338,71 @@ test('sun reference geometry distinguishes occlusion, direct sun, and unknown he
   assert.equal(sunApi.pointSunState({ x: 0, y: 0 }, [{ footprint, bounds, heightM: null, heightState: 'unknown' }], sun), 'unknown');
 });
 
+test('solar position and civil-time resolution pass fixed oracle and DST boundaries', () => {
+  const nrelSpaReference = sunApi.solarPosition('2003-10-17T19:30:30Z', 39.742476, -105.1786);
+  assert.ok(Math.abs(nrelSpaReference.azimuthDegrees - 194.34024) < 0.25);
+  assert.ok(Math.abs(nrelSpaReference.elevationDegrees - 39.88838) < 0.25);
+  const summer = sunApi.zonedCivilTimeToUtc({
+    civilTime: '2026-07-14T12:00:00', timeZone: 'America/New_York',
+  });
+  assert.equal(summer.utcInstant, '2026-07-14T16:00:00.000Z');
+  assert.equal(summer.offsetMinutes, -240);
+  assert.throws(
+    () => sunApi.zonedCivilTimeToUtc({ civilTime: '2026-03-08T02:30:00', timeZone: 'America/New_York' }),
+    (error) => error.code === 'civil_time_nonexistent'
+  );
+  assert.throws(
+    () => sunApi.zonedCivilTimeToUtc({ civilTime: '2026-11-01T01:30:00', timeZone: 'America/New_York' }),
+    (error) => error.code === 'civil_time_ambiguous'
+  );
+  assert.equal(sunApi.zonedCivilTimeToUtc({
+    civilTime: '2026-11-01T01:30:00', timeZone: 'America/New_York', disambiguation: 'earlier',
+  }).utcInstant, '2026-11-01T05:30:00.000Z');
+  assert.equal(sunApi.zonedCivilTimeToUtc({
+    civilTime: '2026-11-01T01:30:00', timeZone: 'America/New_York', disambiguation: 'later',
+  }).utcInstant, '2026-11-01T06:30:00.000Z');
+});
+
+test('shadow geometry preserves courtyards, overlap, low-sun bounds, and night', () => {
+  const outer = [{ x: 10, y: -4 }, { x: 20, y: -4 }, { x: 20, y: 4 }, { x: 10, y: 4 }, { x: 10, y: -4 }];
+  const courtyard = [{ x: 10, y: -1 }, { x: 20, y: -1 }, { x: 20, y: 1 }, { x: 10, y: 1 }, { x: 10, y: -1 }];
+  const second = [{ x: 4, y: 7 }, { x: 8, y: 7 }, { x: 8, y: 11 }, { x: 4, y: 11 }, { x: 4, y: 7 }];
+  const scene = sunApi.buildBuildingScene([
+    { id: 'courtyard', footprint: outer, interiorRings: [courtyard], heightM: 30, heightState: 'known' },
+    { id: 'overlap', footprint: second, interiorRings: [], heightM: 12, heightState: 'known' },
+  ], 5);
+  const daylight = { azimuthDegrees: 90, elevationDegrees: 45 };
+  assert.equal(sunApi.pointSunState({ x: 0, y: 0 }, scene, daylight), 'direct', 'ray stays inside the open courtyard');
+  assert.equal(sunApi.pointSunState({ x: 0, y: 3 }, scene, daylight), 'shade', 'solid outer shell occludes');
+  assert.equal(sunApi.pointSunState({ x: 0, y: 9 }, scene, daylight), 'shade', 'a second overlapping candidate can occlude');
+  assert.equal(sunApi.pointSunState({ x: 0, y: 0 }, scene, { azimuthDegrees: 90, elevationDegrees: 1.5 }), 'unknown');
+  assert.equal(sunApi.pointSunState({ x: 0, y: 0 }, scene, { azimuthDegrees: 90, elevationDegrees: -2 }), 'night');
+});
+
+test('time-dependent edge costs expose FIFO traversal separately from semantic utility', () => {
+  const model = timeCostApi.defineCostModel({
+    id: 'fixed-traversal-changing-preference',
+    fifo: true,
+    claimBoundary: 'Synthetic test model.',
+    evaluate({ enteredAt }) {
+      return {
+        traversalSeconds: 10,
+        generalizedCost: new Date(enteredAt).getUTCMinutes() + 10,
+        components: { travelSeconds: 10 },
+      };
+    },
+  });
+  const segment = { id: 'edge-1' };
+  const receipt = timeCostApi.verifyFifo({
+    model,
+    segment,
+    departureInstants: ['2026-07-14T16:00:00Z', '2026-07-14T16:01:00Z'],
+  });
+  assert.equal(receipt.pass, true);
+  assert.equal(receipt.declaredFifo, true);
+  assert.equal(receipt.observedFifo, true);
+});
+
 test('shade-aware walking compares governed alternatives at their simulated arrival time', () => {
   const mission = missionApi.compileMission('Walk from Union Square to Washington Square.', world, [pedestrian]);
   const selection = sunApi.selectShadeAwareRoute({
@@ -312,4 +429,12 @@ test('shade-aware walking compares governed alternatives at their simulated arri
   assert.ok(new Set(selection.field.segmentRows.map((row) => row.midpointUtcInstant)).size > 1);
   assert.ok(selection.field.segmentRows.every((row) => row.arrivalOffsetSeconds >= 0));
   assert.match(selection.claimBoundary, /tree canopy/);
+  assert.equal(selection.traversalCostModel.fifo, true);
+  assert.ok(selection.comparison.addedTravelSeconds <= selection.detourPolicy.effectiveMaximumAddedTimeSeconds);
+  assert.ok(selection.comparison.selectedModeledBuildingShadePercent >= 0);
+  assert.ok(selection.comparison.fastestModeledBuildingShadePercent >= 0);
+  assert.deepEqual(selection.comparison.assumptions, [
+    'clear_sky_direct_sun', 'retained_building_lod', 'no_tree_canopy', 'segment_sampled_exposure',
+  ]);
+  assert.ok(selection.field.counts.candidateBuildingChecks < selection.field.counts.sampleCount * selection.field.counts.buildingCount);
 });

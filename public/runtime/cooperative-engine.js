@@ -135,7 +135,7 @@
         mutableSuffixSegmentIds: plan.routes.cooperative.segmentIds.slice(1),
       });
       await transition('executing', 'carrier_started');
-      await recordCustody('in_custody', plan.carrierId, plan.routes.cooperative.originNodeId, 'carrier_possession_acknowledged');
+      await recordCustody('in_custody', plan.carrierId, plan.routes.cooperative.pickupNodeId, 'carrier_possession_acknowledged');
       return snapshot();
     }
 
@@ -283,6 +283,7 @@
     function discoveryEnvelope() {
       const intent = scenario.intents.find((row) => row.id === plan.intentId);
       const baselineRoute = plan.routes.baseline;
+      const exposure = privacyExposure(scenario.policy, false, false);
       return {
         schema: 'simulatte.coarsePeerEnvelope.v1',
         envelopeId: `envelope-${intent.id}`,
@@ -295,6 +296,16 @@
         expiry: intent.expiresAt,
         exactRouteDisclosed: false,
         exactIdentityDisclosed: false,
+        privacy: {
+          schema: 'simulatte.cooperativePrivacyReceipt.v1',
+          scope: scenario.policy.privacyLeakageBudget.scope,
+          exposureScore: exposure.score,
+          maximumExposureScore: scenario.policy.privacyLeakageBudget.maximumExposureScore,
+          pass: exposure.score <= scenario.policy.privacyLeakageBudget.maximumExposureScore,
+          disclosedCategories: exposure.disclosedCategories,
+          exactDisclosureRequiresAuthorization: scenario.policy.privacyLeakageBudget.exactDisclosureRequiresAuthorization,
+          claimBoundary: 'The score governs the network discovery envelope. The local simulator retains exact plan data and does not prove transport-layer privacy.',
+        },
       };
     }
 
@@ -431,29 +442,54 @@
     const need = scenario.need;
     const intent = scenario.intents.find((row) => row.id === offer.intentId);
     const baseline = planLeg(intent.baselineJourney.originNodeId, intent.baselineJourney.destinationNodeId, intent.mode, worldModel, routingPolicy, routeCache);
-    const toDrop = planLeg(intent.baselineJourney.originNodeId, need.destinationNodeId, intent.mode, worldModel, routingPolicy, routeCache);
+    const pickupNodeId = offer.availableNodeId;
+    const toPickup = planLeg(intent.baselineJourney.originNodeId, pickupNodeId, intent.mode, worldModel, routingPolicy, routeCache);
+    const toDrop = planLeg(pickupNodeId, need.destinationNodeId, intent.mode, worldModel, routingPolicy, routeCache);
     const onward = planLeg(need.destinationNodeId, intent.baselineJourney.destinationNodeId, intent.mode, worldModel, routingPolicy, routeCache);
     const buildingGraph = scenario.buildingHandoffGraphs.find((row) => row.id === need.buildingHandoffGraphId);
     const buildingSeconds = buildingGraph.edges.reduce((sum, row) => sum + row.expectedTraversalSeconds, 0);
-    const cooperative = combineRoutes(toDrop, onward, buildingSeconds);
+    const cooperative = combineRoutes([toPickup, toDrop, onward], {
+      pickupServiceSeconds: offer.pickupServiceSeconds,
+      dropoffServiceSeconds: need.dropoffServiceSeconds,
+      buildingHandoffSeconds: buildingSeconds,
+    });
     const addedDistanceM = round(cooperative.distanceM - baseline.distanceM);
     const addedDurationSeconds = round(cooperative.durationSeconds - baseline.durationSeconds);
     const compensationCents = Math.max(offer.minimumCompensationCents, Math.ceil(addedDurationSeconds / 60) * 20);
-    const interactionBurden = round(2 + 2 + 1 + 2 + 2 + 1 + cooperative.durationSeconds / 1200 + addedDurationSeconds / 300);
+    const handoffWaitSeconds = buildingGraph.edges
+      .filter((row) => row.mode === 'wait' || row.mode === 'security')
+      .reduce((sum, row) => sum + row.expectedTraversalSeconds, 0);
+    const interactionBurden = round(10
+      + offer.pickupServiceSeconds / 300
+      + need.dropoffServiceSeconds / 300
+      + handoffWaitSeconds / 300);
     const latest = Date.parse(need.latestAt);
     const arrival = Date.parse(intent.baselineJourney.departureAt) + cooperative.durationSeconds * 1000;
     const latenessSlackSeconds = round((latest - arrival) / 1000);
     const onTimeProbability = round(Math.max(0, intent.reliability.onTimeProbability - Math.max(0, -latenessSlackSeconds) / 3600));
+    const temporalSlackSeconds = Math.max(0, latenessSlackSeconds);
+    const temporalSlackPenaltySeconds = Math.max(0, scenario.policy.minimumTemporalSlackSeconds - temporalSlackSeconds);
+    const failureProbability = round(1 - onTimeProbability * (1 - intent.reliability.cancellationProbability));
+    const privacy = privacyExposure(scenario.policy, false, false);
     const burden = {
       addedDistanceM,
       addedDurationSeconds,
-      handoffWaitSeconds: buildingGraph.edges.filter((row) => row.mode === 'wait' || row.mode === 'security').reduce((sum, row) => sum + row.expectedTraversalSeconds, 0),
+      pickupServiceSeconds: offer.pickupServiceSeconds,
+      dropoffServiceSeconds: need.dropoffServiceSeconds,
+      handoffWaitSeconds,
       latenessSlackSeconds,
-      directSunSeconds: 0,
+      temporalSlackSeconds,
+      temporalSlackPenaltySeconds,
+      directSunSeconds: null,
+      directSunRealized: false,
       carryingLoadGrams: round(item.massGrams * need.quantity),
+      carryingLoadCm3: round(item.volumeCm3 * need.quantity),
       custodyRisk: riskScore(need.riskTier),
-      accessibilityLoss: 0,
+      accessibilityLoss: null,
+      accessibilityRealized: false,
       interactionBurden,
+      failureProbability,
+      privacyExposureScore: privacy.score,
       compensationCents,
     };
     const gates = [
@@ -462,13 +498,16 @@
       gate('capacity_mass', burden.carryingLoadGrams <= intent.slack.carryingCapacityGrams),
       gate('capacity_volume', item.volumeCm3 * need.quantity <= intent.slack.carryingCapacityCm3),
       gate('distance_slack', addedDistanceM <= intent.slack.maximumAddedDistanceM),
+      gate('need_distance_slack', addedDistanceM <= need.maximumCarrierDetourM),
       gate('duration_slack', addedDurationSeconds <= intent.slack.maximumAddedTimeSeconds),
+      gate('need_duration_slack', addedDurationSeconds <= need.maximumCarrierDetourSeconds),
       gate('handoff_wait', burden.handoffWaitSeconds <= intent.slack.maximumHandoffWaitSeconds),
       gate('interaction_burden', interactionBurden <= intent.slack.interactionBurdenLimit),
       gate('deadline', latenessSlackSeconds >= 0),
       gate('reliability', onTimeProbability >= scenario.policy.minimumOnTimeProbability),
       gate('compensation', compensationCents <= need.maximumCompensationCents),
       gate('risk_tier', offer.riskTier === need.riskTier && item.riskTier === need.riskTier),
+      gate('privacy_leakage_budget', privacy.score <= scenario.policy.privacyLeakageBudget.maximumExposureScore),
       gate('consent', intent.consentState === 'available' && offer.consentState === 'available' && need.consentState === 'available'),
     ];
     const participantIds = [need.requesterId, offer.participantId].sort();
@@ -488,7 +527,19 @@
       carrierId: offer.participantId,
       routes: {
         baseline: { ...baseline, originNodeId: intent.baselineJourney.originNodeId, destinationNodeId: intent.baselineJourney.destinationNodeId },
-        cooperative: { ...cooperative, originNodeId: intent.baselineJourney.originNodeId, destinationNodeId: intent.baselineJourney.destinationNodeId, viaNodeId: need.destinationNodeId },
+        cooperative: {
+          ...cooperative,
+          originNodeId: intent.baselineJourney.originNodeId,
+          destinationNodeId: intent.baselineJourney.destinationNodeId,
+          pickupNodeId,
+          dropoffNodeId: need.destinationNodeId,
+          viaNodeIds: [pickupNodeId, need.destinationNodeId],
+          timeDependentCost: {
+            modelId: routingPolicy.route.timeDependentCosts.cooperativeHandoff.costModelId,
+            fifo: routingPolicy.route.timeDependentCosts.cooperativeHandoff.fifo,
+            reason: 'participant availability, pickup, and handoff windows can invalidate later departures',
+          },
+        },
       },
       marginalBurden: burden,
       reliability: {
@@ -501,7 +552,7 @@
       hardGates: gates,
       authorizationParticipantIds: [],
       searchComplete: true,
-      selectedBy: 'deterministic_pareto_burden_v1',
+      selectedBy: 'deterministic_pareto_burden_v2',
       utilityScore: planUtility(burden, intent.reliability),
     };
     contracts.validatePlan(plan);
@@ -542,15 +593,20 @@
     };
   }
 
-  function combineRoutes(first, second, buildingSeconds) {
+  function combineRoutes(routes, services) {
+    const streetDistanceM = routes.reduce((sum, route) => sum + route.distanceM, 0);
+    const streetTravelSeconds = routes.reduce((sum, route) => sum + route.durationSeconds, 0);
+    const serviceSeconds = services.pickupServiceSeconds + services.dropoffServiceSeconds + services.buildingHandoffSeconds;
     return {
-      segmentIds: [...first.segmentIds, ...second.segmentIds],
-      distanceM: round(first.distanceM + second.distanceM),
-      durationSeconds: round(first.durationSeconds + second.durationSeconds + buildingSeconds),
-      streetTravelSeconds: round(first.durationSeconds + second.durationSeconds),
-      buildingHandoffSeconds: round(buildingSeconds),
-      algorithm: 'two_leg_a_star_plus_vertical_handoff_v1',
-      evaluatedSegmentCount: first.evaluatedSegmentCount + second.evaluatedSegmentCount,
+      segmentIds: routes.flatMap((route) => route.segmentIds),
+      distanceM: round(streetDistanceM),
+      durationSeconds: round(streetTravelSeconds + serviceSeconds),
+      streetTravelSeconds: round(streetTravelSeconds),
+      pickupServiceSeconds: round(services.pickupServiceSeconds),
+      dropoffServiceSeconds: round(services.dropoffServiceSeconds),
+      buildingHandoffSeconds: round(services.buildingHandoffSeconds),
+      algorithm: 'pickup_dropoff_onward_a_star_plus_services_v2',
+      evaluatedSegmentCount: routes.reduce((sum, route) => sum + route.evaluatedSegmentCount, 0),
     };
   }
 
@@ -637,7 +693,7 @@
     return {
       schema: 'simulatte.cooperativeSelectionReceipt.v1',
       selectedPlanId: plan.id,
-      comparator: 'utilityScore then addedDurationSeconds then planId',
+      comparator: 'utilityScore including temporal slack, failure, and privacy then addedDurationSeconds then planId',
       candidates: rows.map((row) => ({
         planId: row.id,
         utilityScore: row.utilityScore,
@@ -671,7 +727,23 @@
 
   function planUtility(burden, reliability) {
     return round(burden.addedDurationSeconds + burden.addedDistanceM / 5 + burden.interactionBurden * 30
-      + reliability.cancellationProbability * 300 + burden.compensationCents / 2);
+      + burden.temporalSlackPenaltySeconds + burden.failureProbability * 300
+      + burden.privacyExposureScore * 60 + reliability.cancellationProbability * 120 + burden.compensationCents / 2);
+  }
+
+  function privacyExposure(policy, exactRouteDisclosed, exactIdentityDisclosed) {
+    const budget = policy.privacyLeakageBudget;
+    const disclosedCategories = ['coarse_corridor', 'coarse_time_window'];
+    let score = budget.coarseCorridorDisclosureScore + budget.coarseTimeWindowDisclosureScore;
+    if (exactRouteDisclosed) {
+      score += budget.exactRouteDisclosureScore;
+      disclosedCategories.push('exact_route');
+    }
+    if (exactIdentityDisclosed) {
+      score += budget.exactIdentityDisclosureScore;
+      disclosedCategories.push('exact_identity');
+    }
+    return { score: round(score), disclosedCategories };
   }
 
   function riskScore(tier) {
