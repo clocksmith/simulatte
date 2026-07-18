@@ -314,6 +314,72 @@
     return source;
   }
 
+  function validateRenderGeometry(renderGeometry, ErrorType = DataContractError) {
+    const contract = 'simulatte.autonomyWorld.v1';
+    const v = validator(ErrorType, contract);
+    v.object(renderGeometry, '$.renderGeometry');
+    v.exact(renderGeometry.schema, 'simulatte.autonomyRenderGeometry.v1', '$.renderGeometry.schema');
+    const land = v.array(renderGeometry.land, '$.renderGeometry.land', 1);
+    const parks = v.array(renderGeometry.parks, '$.renderGeometry.parks');
+    const streets = v.array(renderGeometry.streets, '$.renderGeometry.streets', 1);
+    const buildings = v.array(renderGeometry.buildings, '$.renderGeometry.buildings', 1);
+    const facilities = v.array(renderGeometry.bikeFacilities, '$.renderGeometry.bikeFacilities', 1);
+    [
+      [land, '$.renderGeometry.land'],
+      [parks, '$.renderGeometry.parks'],
+      [streets, '$.renderGeometry.streets'],
+      [buildings, '$.renderGeometry.buildings'],
+      [facilities, '$.renderGeometry.bikeFacilities'],
+    ].forEach(([rows, path]) => uniqueRows(rows, 'id', path, v));
+    land.forEach((row, index) => validatePointArray(row.outerRing, `$.renderGeometry.land[${index}].outerRing`, 4, v));
+    parks.forEach((row, index) => {
+      v.string(row.label, `$.renderGeometry.parks[${index}].label`);
+      validatePointArray(row.outerRing, `$.renderGeometry.parks[${index}].outerRing`, 4, v);
+      v.sha(row.source?.geometryWgs84Sha256, `$.renderGeometry.parks[${index}].source.geometryWgs84Sha256`);
+    });
+    streets.forEach((row, index) => {
+      v.finite(row.widthM, `$.renderGeometry.streets[${index}].widthM`, Number.MIN_VALUE);
+      validatePointArray(row.geometry, `$.renderGeometry.streets[${index}].geometry`, 2, v);
+    });
+    facilities.forEach((row, index) => validatePointArray(row.geometry, `$.renderGeometry.bikeFacilities[${index}].geometry`, 2, v));
+    buildings.forEach((row, index) => {
+      if (row.heightM === null) v.exact(row.heightState, 'source_missing', `$.renderGeometry.buildings[${index}].heightState`);
+      else v.finite(row.heightM, `$.renderGeometry.buildings[${index}].heightM`, Number.MIN_VALUE);
+      v.string(row.heightState, `$.renderGeometry.buildings[${index}].heightState`);
+      v.string(row.heightSourceUnit, `$.renderGeometry.buildings[${index}].heightSourceUnit`);
+      validatePointArray(row.footprint, `$.renderGeometry.buildings[${index}].footprint`, 4, v);
+      v.array(row.interiorRings, `$.renderGeometry.buildings[${index}].interiorRings`).forEach((ring, ringIndex) => {
+        validatePointArray(ring, `$.renderGeometry.buildings[${index}].interiorRings[${ringIndex}]`, 4, v);
+      });
+      v.integer(row.sourceInteriorRingCount, `$.renderGeometry.buildings[${index}].sourceInteriorRingCount`);
+      v.integer(row.retainedInteriorRingCount, `$.renderGeometry.buildings[${index}].retainedInteriorRingCount`);
+      v.integer(row.omittedInteriorRingCount, `$.renderGeometry.buildings[${index}].omittedInteriorRingCount`);
+      if (row.sourceInteriorRingCount !== row.retainedInteriorRingCount + row.omittedInteriorRingCount) {
+        v.fail(`$.renderGeometry.buildings[${index}]`, 'interior ring counts preserving source total', row);
+      }
+    });
+    if (renderGeometry.buildingLodReceipt !== undefined) {
+      const path = '$.renderGeometry.buildingLodReceipt';
+      const lod = v.object(renderGeometry.buildingLodReceipt, path);
+      v.integer(lod.sourceFeatureCount, `${path}.sourceFeatureCount`, 1);
+      v.integer(lod.retainedFeatureCount, `${path}.retainedFeatureCount`, 1);
+      v.integer(lod.omittedFeatureCount, `${path}.omittedFeatureCount`);
+      if (typeof lod.fullCoverageClaim !== 'boolean') v.fail(`${path}.fullCoverageClaim`, 'boolean', lod.fullCoverageClaim);
+      if (lod.retainedFeatureCount !== buildings.length || lod.sourceFeatureCount !== lod.retainedFeatureCount + lod.omittedFeatureCount) {
+        v.fail(path, 'counts matching retained geometry and source total', lod);
+      }
+    }
+    v.string(renderGeometry.claimBoundary, '$.renderGeometry.claimBoundary');
+    return renderGeometry;
+  }
+
+  function validatePointArray(points, path, minimum, v) {
+    v.array(points, path, minimum).forEach((point, index) => {
+      v.finite(point?.x, `${path}[${index}].x`);
+      v.finite(point?.y, `${path}[${index}].y`);
+    });
+  }
+
   function uniqueRows(rows, key, path, v) {
     const seen = new Set();
     rows.forEach((row, index) => {
@@ -350,6 +416,7 @@
     validatePlaceResolutionEvidence,
     validatePolicyArenaEvidence,
     validateRerankerEvidence,
+    validateRenderGeometry,
     validateRouteAmenityIndex,
     validateSafetyHistoryIndex,
     validateWorldSnapshotRegistry,

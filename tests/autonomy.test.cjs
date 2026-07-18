@@ -4,6 +4,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const test = require('node:test');
+const vm = require('node:vm');
 const { pathToFileURL } = require('node:url');
 
 const root = path.resolve(__dirname, '..');
@@ -1419,4 +1420,19 @@ test('browser audit validates explicit desktop and mobile viewport contracts', a
   assert.throws(() => audit.parseViewport('wide'), /expected WIDTHxHEIGHT/);
   assert.throws(() => audit.parseViewport('319x844'), /at least 320x480/);
   assert.throws(() => audit.parseUrl('file:///tmp/autonomy'), /expected HTTP or HTTPS/);
+
+  const failureContext = () => ({
+    document: {
+      getElementById(id) {
+        return id === 'runtime-status' ? { dataset: { kind: 'error' }, textContent: 'Stopped' } : null;
+      },
+    },
+    performance: { now: () => 0 },
+    __simulatteAutonomyRuntimeEvents: [{
+      event: 'runtime.failed',
+      details: { message: 'governed world hash mismatch' },
+    }],
+  });
+  await assert.rejects(vm.runInNewContext(audit.consentFlowExpression(), failureContext()), /runtime\.failed at consent-ready: governed world hash mismatch/);
+  await assert.rejects(vm.runInNewContext(audit.browserJourneyExpression(), failureContext()), /runtime\.failed at runtime-ready: governed world hash mismatch/);
 });

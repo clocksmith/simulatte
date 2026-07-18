@@ -587,7 +587,7 @@
       requireInteger(row.activeUntilTick, contract, `$.disruptions[${index}].activeUntilTick`);
       validateCardReferences(row.cardIds, cardIds, contract, `$.disruptions[${index}].cardIds`);
     });
-    if (world.renderGeometry !== undefined) validateRenderGeometry(world.renderGeometry, contract);
+    if (world.renderGeometry !== undefined) dataContracts.validateRenderGeometry(world.renderGeometry, AutonomyContractError);
     if (world.scenario !== undefined) {
       const scenario = requireObject(world.scenario, contract, '$.scenario');
       requireString(scenario.defaultMissionText, contract, '$.scenario.defaultMissionText');
@@ -613,59 +613,8 @@
     return world;
   }
 
-  function validateRenderGeometry(renderGeometry, contract) {
-    requireObject(renderGeometry, contract, '$.renderGeometry');
-    if (renderGeometry.schema !== 'simulatte.autonomyRenderGeometry.v1') {
-      throw new AutonomyContractError(contract, '$.renderGeometry.schema', 'simulatte.autonomyRenderGeometry.v1', renderGeometry.schema);
-    }
-    const land = requireArray(renderGeometry.land, contract, '$.renderGeometry.land', 1);
-    const parks = requireArray(renderGeometry.parks, contract, '$.renderGeometry.parks');
-    const streets = requireArray(renderGeometry.streets, contract, '$.renderGeometry.streets', 1);
-    const buildings = requireArray(renderGeometry.buildings, contract, '$.renderGeometry.buildings', 1);
-    const facilities = requireArray(renderGeometry.bikeFacilities, contract, '$.renderGeometry.bikeFacilities', 1);
-    uniqueRows(land, contract, '$.renderGeometry.land');
-    uniqueRows(parks, contract, '$.renderGeometry.parks');
-    uniqueRows(streets, contract, '$.renderGeometry.streets');
-    uniqueRows(buildings, contract, '$.renderGeometry.buildings');
-    uniqueRows(facilities, contract, '$.renderGeometry.bikeFacilities');
-    land.forEach((row, index) => validatePointArray(row.outerRing, contract, `$.renderGeometry.land[${index}].outerRing`, 4));
-    parks.forEach((row, index) => {
-      requireString(row.label, contract, `$.renderGeometry.parks[${index}].label`);
-      validatePointArray(row.outerRing, contract, `$.renderGeometry.parks[${index}].outerRing`, 4);
-      requireSha256(row.source?.geometryWgs84Sha256, contract, `$.renderGeometry.parks[${index}].source.geometryWgs84Sha256`);
-    });
-    streets.forEach((row, index) => {
-      requireFinite(row.widthM, contract, `$.renderGeometry.streets[${index}].widthM`, Number.MIN_VALUE);
-      validatePointArray(row.geometry, contract, `$.renderGeometry.streets[${index}].geometry`, 2);
-    });
-    facilities.forEach((row, index) => validatePointArray(row.geometry, contract, `$.renderGeometry.bikeFacilities[${index}].geometry`, 2));
-    buildings.forEach((row, index) => {
-      if (row.heightM === null) requireExactValue(row.heightState, 'source_missing', contract, `$.renderGeometry.buildings[${index}].heightState`);
-      else requireFinite(row.heightM, contract, `$.renderGeometry.buildings[${index}].heightM`, Number.MIN_VALUE);
-      requireString(row.heightState, contract, `$.renderGeometry.buildings[${index}].heightState`);
-      requireString(row.heightSourceUnit, contract, `$.renderGeometry.buildings[${index}].heightSourceUnit`);
-      validatePointArray(row.footprint, contract, `$.renderGeometry.buildings[${index}].footprint`, 4);
-      requireArray(row.interiorRings, contract, `$.renderGeometry.buildings[${index}].interiorRings`).forEach((ring, ringIndex) => {
-        validatePointArray(ring, contract, `$.renderGeometry.buildings[${index}].interiorRings[${ringIndex}]`, 4);
-      });
-      requireInteger(row.sourceInteriorRingCount, contract, `$.renderGeometry.buildings[${index}].sourceInteriorRingCount`);
-      requireInteger(row.retainedInteriorRingCount, contract, `$.renderGeometry.buildings[${index}].retainedInteriorRingCount`);
-      requireInteger(row.omittedInteriorRingCount, contract, `$.renderGeometry.buildings[${index}].omittedInteriorRingCount`);
-      if (row.sourceInteriorRingCount !== row.retainedInteriorRingCount + row.omittedInteriorRingCount) {
-        throw new AutonomyContractError(contract, `$.renderGeometry.buildings[${index}]`, 'interior ring counts preserving source total', row);
-      }
-    });
-    if (renderGeometry.buildingLodReceipt !== undefined) {
-      const lod = requireObject(renderGeometry.buildingLodReceipt, contract, '$.renderGeometry.buildingLodReceipt');
-      requireInteger(lod.sourceFeatureCount, contract, '$.renderGeometry.buildingLodReceipt.sourceFeatureCount', 1);
-      requireInteger(lod.retainedFeatureCount, contract, '$.renderGeometry.buildingLodReceipt.retainedFeatureCount', 1);
-      requireInteger(lod.omittedFeatureCount, contract, '$.renderGeometry.buildingLodReceipt.omittedFeatureCount');
-      requireBoolean(lod.fullCoverageClaim, contract, '$.renderGeometry.buildingLodReceipt.fullCoverageClaim');
-      if (lod.retainedFeatureCount !== buildings.length || lod.sourceFeatureCount !== lod.retainedFeatureCount + lod.omittedFeatureCount) {
-        throw new AutonomyContractError(contract, '$.renderGeometry.buildingLodReceipt', 'counts matching retained geometry and source total', lod);
-      }
-    }
-    requireString(renderGeometry.claimBoundary, contract, '$.renderGeometry.claimBoundary');
+  function pointDistance(left, right) {
+    return Math.hypot(left.x - right.x, left.y - right.y);
   }
 
   function validatePointArray(points, contract, path, minimum) {
@@ -673,10 +622,6 @@
       requireFinite(point && point.x, contract, `${path}[${index}].x`);
       requireFinite(point && point.y, contract, `${path}[${index}].y`);
     });
-  }
-
-  function pointDistance(left, right) {
-    return Math.hypot(left.x - right.x, left.y - right.y);
   }
 
   function validateCardReferences(rows, cardIds, contract, path) {

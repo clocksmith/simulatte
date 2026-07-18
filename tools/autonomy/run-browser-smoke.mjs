@@ -221,42 +221,7 @@ async function runBrowserSmoke(options) {
     await client.send('Page.navigate', { url: targetUrl });
     await loaded;
     const consentEvaluation = await client.send('Runtime.evaluate', {
-      expression: `(async () => {
-        const waitFor = async (predicate, label) => {
-          const started = performance.now();
-          while (!predicate()) {
-            if (performance.now() - started > 10000) throw new Error('timeout at ' + label);
-            await new Promise((resolve) => setTimeout(resolve, 25));
-          }
-        };
-        const toggle = document.getElementById('place-resolution-lane');
-        const dialog = document.getElementById('neural-model-dialog');
-        await waitFor(() => toggle && toggle.getAttribute('aria-checked') === 'false', 'consent-ready');
-        toggle.click();
-        await waitFor(() => dialog.open, 'consent-open');
-        const disclosed = {
-          title: dialog.querySelector('h2').textContent.trim(),
-          embedding: dialog.querySelector('[data-neural-model="embedding-size"]').textContent.trim(),
-          rerankerRowAbsent: !dialog.querySelector('[data-neural-model="reranker-size"]'),
-          total: dialog.querySelector('[data-neural-model="download-summary"]').textContent.trim(),
-          use: dialog.querySelector('[data-neural-model="surface-use"]').textContent.trim(),
-        };
-        dialog.querySelector('[data-neural-consent="cancel"]').click();
-        await waitFor(() => !dialog.open && !toggle.checked, 'consent-cancel');
-        toggle.click();
-        await waitFor(() => dialog.open, 'consent-reopen');
-        dialog.querySelector('[data-neural-consent="accept"]').click();
-        await waitFor(() => !dialog.open && toggle.checked, 'consent-accept');
-        const grantRemembered = Boolean(localStorage.getItem('simulatte.neuralModels.consent.v1'));
-        toggle.click();
-        await waitFor(() => !toggle.checked, 'consent-revoke');
-        return {
-          disclosed,
-          grantRemembered,
-          revoked: !localStorage.getItem('simulatte.neuralModels.consent.v1'),
-          finalEnabled: toggle.checked,
-        };
-      })()`,
+      expression: consentFlowExpression(),
       awaitPromise: true,
       returnByValue: true,
     });
@@ -531,13 +496,20 @@ async function stopChild(child) {
 
 function browserJourneyExpression() {
   return `(async () => {
+    const runtimeFailure = () => {
+      const status = document.getElementById('runtime-status');
+      if (status?.dataset.kind !== 'error') return null;
+      const event = [...(globalThis.__simulatteAutonomyRuntimeEvents || [])]
+        .reverse()
+        .find((row) => row.event === 'runtime.failed');
+      return event?.details?.message || status.textContent || 'unknown runtime error';
+    };
     const waitFor = async (predicate, label, limit = 60000) => {
       const started = performance.now();
       while (!predicate()) {
         const status = document.getElementById('runtime-status');
-        if (status?.dataset.kind === 'error') {
-          throw new Error('autonomy browser runtime failed at ' + label + ': ' + status.textContent);
-        }
+        const failure = runtimeFailure();
+        if (failure) throw new Error('autonomy browser runtime.failed at ' + label + ': ' + failure);
         if (performance.now() - started > limit) {
           const state = document.getElementById('metric-state');
           throw new Error('autonomy browser timeout at ' + label +
@@ -858,6 +830,55 @@ function browserJourneyExpression() {
   })()`;
 }
 
+function consentFlowExpression() {
+  return `(async () => {
+    const runtimeFailure = () => {
+      const status = document.getElementById('runtime-status');
+      if (status?.dataset.kind !== 'error') return null;
+      const event = [...(globalThis.__simulatteAutonomyRuntimeEvents || [])]
+        .reverse()
+        .find((row) => row.event === 'runtime.failed');
+      return event?.details?.message || status.textContent || 'unknown runtime error';
+    };
+    const waitFor = async (predicate, label) => {
+      const started = performance.now();
+      while (!predicate()) {
+        const failure = runtimeFailure();
+        if (failure) throw new Error('autonomy browser runtime.failed at ' + label + ': ' + failure);
+        if (performance.now() - started > 10000) throw new Error('autonomy browser timeout at ' + label);
+        await new Promise((resolve) => setTimeout(resolve, 25));
+      }
+    };
+    const toggle = document.getElementById('place-resolution-lane');
+    const dialog = document.getElementById('neural-model-dialog');
+    await waitFor(() => toggle && toggle.getAttribute('aria-checked') === 'false', 'consent-ready');
+    toggle.click();
+    await waitFor(() => dialog.open, 'consent-open');
+    const disclosed = {
+      title: dialog.querySelector('h2').textContent.trim(),
+      embedding: dialog.querySelector('[data-neural-model="embedding-size"]').textContent.trim(),
+      rerankerRowAbsent: !dialog.querySelector('[data-neural-model="reranker-size"]'),
+      total: dialog.querySelector('[data-neural-model="download-summary"]').textContent.trim(),
+      use: dialog.querySelector('[data-neural-model="surface-use"]').textContent.trim(),
+    };
+    dialog.querySelector('[data-neural-consent="cancel"]').click();
+    await waitFor(() => !dialog.open && !toggle.checked, 'consent-cancel');
+    toggle.click();
+    await waitFor(() => dialog.open, 'consent-reopen');
+    dialog.querySelector('[data-neural-consent="accept"]').click();
+    await waitFor(() => !dialog.open && toggle.checked, 'consent-accept');
+    const grantRemembered = Boolean(localStorage.getItem('simulatte.neuralModels.consent.v1'));
+    toggle.click();
+    await waitFor(() => !toggle.checked, 'consent-revoke');
+    return {
+      disclosed,
+      grantRemembered,
+      revoked: !localStorage.getItem('simulatte.neuralModels.consent.v1'),
+      finalEnabled: toggle.checked,
+    };
+  })()`;
+}
+
 async function main() {
   const options = parseArgs(process.argv.slice(2));
   const report = await runBrowserSmoke(options);
@@ -872,4 +893,4 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   });
 }
 
-export { CdpClient, actorViewExpression, browserJourneyExpression, createStaticServer, findChrome, parseUrl, parseViewport, runBrowserSmoke };
+export { CdpClient, actorViewExpression, browserJourneyExpression, consentFlowExpression, createStaticServer, findChrome, parseUrl, parseViewport, runBrowserSmoke };
