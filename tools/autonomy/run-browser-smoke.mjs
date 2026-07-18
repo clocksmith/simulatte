@@ -361,8 +361,7 @@ async function runBrowserSmoke(options) {
       && featureView.gpuParity.maximumAbsoluteError <= featureView.gpuParity.tolerance
       && featureView.shade.preferShade
       && featureView.shade.routeAlgorithm === 'governed_environment_route_v1'
-      && featureView.shade.proof.includes('direct sun')
-      && featureView.shade.proof.includes('shade')
+      && featureView.shade.proof.includes('modeled building shade')
       && result.scrollY === 0
       && !result.hasHorizontalOverflow
       && errors.length === 0
@@ -409,7 +408,16 @@ function cooperativeFeatureExpression() {
           const failure = (window.__simulatteAutonomyRuntimeEvents || []).filter((row) => row.level === 'error').at(-1);
           throw new Error(label + ': ' + status.textContent + (failure ? ' · ' + JSON.stringify(failure.details) : ''));
         }
-        if (performance.now() - started > limit) throw new Error('timeout at ' + label);
+        if (performance.now() - started > limit) {
+          const proof = document.getElementById('alternative-proof');
+          const state = document.getElementById('metric-state');
+          throw new Error('timeout at ' + label
+            + '; runtime=' + (status?.dataset.kind || 'missing') + ':' + (status?.textContent || '')
+            + '; state=' + (state?.textContent || 'missing')
+            + '; proof=' + (proof?.textContent || 'missing')
+            + '; preferShade=' + (proof?.dataset.preferShade || 'missing')
+            + '; routeAlgorithm=' + (proof?.dataset.routeAlgorithm || 'missing'));
+        }
         await new Promise((resolve) => setTimeout(resolve, 25));
       }
     };
@@ -441,7 +449,12 @@ function cooperativeFeatureExpression() {
     input.value = 'Walk from Union Square to Washington Square in the shade on a hot day.';
     input.dispatchEvent(new Event('input', { bubbles: true }));
     step.click();
-    await waitFor(() => document.getElementById('alternative-proof').textContent.includes('direct sun'), 'shade-route');
+    await waitFor(() => {
+      const proof = document.getElementById('alternative-proof');
+      return proof.dataset.preferShade === 'true'
+        && proof.dataset.routeAlgorithm === 'governed_environment_route_v1'
+        && proof.textContent.includes('modeled building shade');
+    }, 'shade-route');
     const proof = document.getElementById('alternative-proof');
     const shade = {
       preferShade: proof.dataset.preferShade === 'true',

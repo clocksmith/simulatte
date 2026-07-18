@@ -61,6 +61,7 @@
     const recordedJourneyHashes = new Set();
     let latestCounterfactual = null;
     const stepIntervalMs = 18;
+    const yieldToFrame = () => new Promise((resolve) => requestAnimationFrame(resolve));
     const neuralGate = await neuralConsentApi.createGate({
       root: document,
       lockUrl: './data/simulatte-embedder/model-runtime-lock.json',
@@ -150,6 +151,7 @@
       });
       renderPlaceResolution(elements, mission, placeResolver?.receipt() || null, data.placeResolutionEvidence);
       renderCooperation(elements, cooperativeSession?.snapshot() || null);
+      await yieldToFrame();
       const embodiment = data.embodiments.find((row) => row.id === mission.embodimentId);
       if (!embodiment) throw new Error(`Mission selected unavailable embodiment ${mission.embodimentId}`);
       const nextController = controllerApi.createAutonomyController({
@@ -217,6 +219,7 @@
       controller = nextController;
       retrievalLaneLogged = false;
       terminalJourneyLogged = false;
+      await yieldToFrame();
       renderer.reset();
       const snapshot = controller.snapshot();
       renderer.render(snapshot);

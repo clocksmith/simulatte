@@ -3134,9 +3134,9 @@
     },
     "modelRuntimeLock": {
       "id": "simulatte-doppler-qwen-runtime-lock",
-      "number": 7,
+      "number": 9,
       "path": "public/data/simulatte-embedder/model-runtime-lock.json",
-      "sha256": "828c8a98976683952554746f8ea2005358aae2a97ffe15df8caf4b909e5cfd7b"
+      "sha256": "ea8735b3197c5eb20d7eaa1124b8b64899b692d498eb5c6ceda23d53d71abc7c"
     },
     "placeSemanticSnapshot": {
       "fileCount": 9,
@@ -3148,15 +3148,15 @@
     "regionRegistry": {
       "id": "nyc-core-region-registry-v1",
       "path": "public/data/autonomy/regions/nyc-core-v1.json",
-      "sha256": "1b978a871752739179a39647b91e948d9dbef0ecbbed78f9f910dae42c00c0b9"
+      "sha256": "6b13d35e39896c0c746902c7f5e6013614dacb8be2675a70554c476f6bb994bb"
     },
     "world": {
       "id": "nyc-core-autonomy-v1",
       "path": "public/data/autonomy/worlds/nyc-core-autonomy-v1.json",
-      "sha256": "85d2f95208406050ea6b87da7e0170c66430cb372e83e712e36c35ce8fefa001"
+      "sha256": "218c6f3734815066669f57ae1bc1ce14aace261f0865ebf25f903db3880dcb3e"
     }
   },
-  "indexSha256": "d3be9b2dda9f72001db9eb5133668ff02c00924d388631dc525792235aee99a2",
+  "indexSha256": "82b96d910bd5d72083c2bf9c320f1d0775a7444bf717797e6dff6c9752e6cb1d",
   "model": {
     "embeddingMode": "last",
     "family": "qwen3-embedding",

@@ -1154,7 +1154,7 @@ test('neural place matching filters candidates by the active embodiment graph an
 
 test('neural place evaluation binds the vendored Doppler runtime named by its receipt', () => {
   const source = fs.readFileSync(path.join(root, 'tools/autonomy/neural-place-resolver-challenger.mjs'), 'utf8');
-  const evidence = readJson('public/data/autonomy/evidence/place-resolution-public-diagnostic-v1.json');
+  const evidence = readJson('public/data/autonomy/evidence/place-resolution-public-diagnostic-v2.json');
   const lock = readJson('public/data/simulatte-embedder/model-runtime-lock.json');
   const runtimePath = 'public/vendor/doppler/src/index.js';
   assert.match(source, /from '\.\.\/\.\.\/public\/vendor\/doppler\/src\/index\.js'/);

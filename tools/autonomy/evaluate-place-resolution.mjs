@@ -33,7 +33,8 @@ const TOOL_DIR = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(TOOL_DIR, '../..');
 const require = createRequire(import.meta.url);
 const missionApi = require('../../public/mission/mission-compiler.js');
-const OUTPUT = path.join(ROOT, 'public/data/autonomy/evidence/place-resolution-public-diagnostic-v1.json');
+const RECEIPT_ID = 'place-resolution-public-diagnostic-v2';
+const OUTPUT = path.join(ROOT, `public/data/autonomy/evidence/${RECEIPT_ID}.json`);
 const FLOOR_KINDS = Object.freeze(['exact', 'typo_within']);
 const MUST_REFUSE_KINDS = Object.freeze(['ambiguous', 'out_of_world']);
 const EXPECTED_CONTROL_REFUSAL_CODES = Object.freeze([
@@ -152,7 +153,7 @@ async function main() {
 
   const receipt = {
     schema: 'simulatte.placeResolutionEvaluation.v2',
-    id: 'place-resolution-public-diagnostic-v1',
+    id: RECEIPT_ID,
     contentVersion: corpus.contentVersion,
     population: {
       id: corpus.id,

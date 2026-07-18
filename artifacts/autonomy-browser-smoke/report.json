@@ -1,13 +1,13 @@
 {
   "schema": "simulatte.autonomyBrowserSmoke.v10",
   "pass": true,
-  "targetUrl": "http://127.0.0.1:58171/",
+  "targetUrl": "http://127.0.0.1:54197/",
   "viewport": {
     "width": 1440,
     "height": 1000
   },
   "browser": {
-    "product": "Chrome/150.0.7871.115",
+    "product": "Chrome/150.0.7871.125",
     "protocolVersion": "1.3",
     "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36"
   },
@@ -27,6 +27,16 @@
           "right": 104,
           "bottom": 60,
           "width": 88,
+          "height": 44
+        },
+        {
+          "id": "camera-focus-button",
+          "hidden": false,
+          "left": 1197.375,
+          "top": 17,
+          "right": 1259.125,
+          "bottom": 61,
+          "width": 61.75,
           "height": 44
         },
         {
@@ -64,17 +74,17 @@
           "hidden": false,
           "left": 341,
           "top": 914,
-          "right": 854.28125,
+          "right": 774.859375,
           "bottom": 973,
-          "width": 513.28125,
+          "width": 433.859375,
           "height": 59
         },
         {
           "id": "shuffle-button",
           "hidden": false,
-          "left": 864.28125,
+          "left": 784.859375,
           "top": 914,
-          "right": 953.5,
+          "right": 874.078125,
           "bottom": 973,
           "width": 89.21875,
           "height": 59
@@ -82,22 +92,22 @@
         {
           "id": "start-button",
           "hidden": false,
-          "left": 959.5,
+          "left": 880.078125,
           "top": 914,
-          "right": 1033.703125,
+          "right": 954.28125,
           "bottom": 973,
           "width": 74.203125,
           "height": 59
         },
         {
-          "id": "map-panel-button",
+          "id": "place-resolution-lane",
           "hidden": false,
-          "left": 16,
-          "top": 940,
-          "right": 70.328125,
-          "bottom": 984,
-          "width": 54.328125,
-          "height": 44
+          "left": 1058,
+          "top": 934.5,
+          "right": 1088,
+          "bottom": 952.5,
+          "width": 30,
+          "height": 18
         },
         {
           "id": "decisions-button",
@@ -236,7 +246,7 @@
         "visible": true,
         "projection": "orthographic_top_north_up",
         "radiusM": 420,
-        "frameCount": 78
+        "frameCount": 72
       }
     },
     "editInvalidatedController": true,
@@ -248,51 +258,51 @@
     "ambientActorCount": 13,
     "ambientActorKinds": "pedestrian,bicycle,scooter,car",
     "adapterName": "metal-3",
-    "rendererFrames": 1609,
+    "rendererFrames": 1661,
     "smoothness": {
-      "rafFrameCount": 1157,
+      "rafFrameCount": 1210,
       "frameIntervalMs": {
-        "min": 14.6,
+        "min": 15.6,
         "p50": 16.7,
-        "p95": 18.6,
-        "p99": 18.7,
-        "max": 50.3,
-        "mean": 16.6955
+        "p95": 17,
+        "p99": 17.5,
+        "max": 50,
+        "mean": 16.7217
       },
-      "over20msCount": 1,
-      "over33msCount": 1,
-      "over33msRatio": 0.0009,
+      "over20msCount": 3,
+      "over33msCount": 2,
+      "over33msRatio": 0.0017,
       "longTaskCount": 0,
       "longTaskTotalMs": 0,
       "longestTaskMs": 0,
       "phaseMarks": [
         {
           "phase": "sampling_started",
-          "at": 5664
+          "at": 5693.699999809265
         },
         {
           "phase": "camera_modes_complete",
-          "at": 8549.099999904633
+          "at": 8575.300000190735
         },
         {
           "phase": "camera_interactions_complete",
-          "at": 11071.89999961853
+          "at": 11093.400000095367
         },
         {
           "phase": "mission_edited",
-          "at": 11072.099999904633
+          "at": 11094.099999904633
         },
         {
           "phase": "start_clicked",
-          "at": 11110.89999961853
+          "at": 11117.599999904633
         },
         {
           "phase": "follow_minimap_ready",
-          "at": 11173.799999713898
+          "at": 11190.900000095367
         },
         {
           "phase": "journey_terminal",
-          "at": 24951.89999961853
+          "at": 25897.199999809265
         }
       ],
       "longTasks": []
@@ -308,11 +318,11 @@
   },
   "consentView": {
     "disclosed": {
-      "title": "Enable local Qwen models?",
+      "title": "Enable local Qwen embedding?",
       "embedding": "533 MB",
-      "reranker": "895 MB",
-      "total": "533 MB on this page; 1.39 GB across Simulatte and Blank",
-      "use": "Simulatte uses the embedder only when deterministic place matching refuses. Blank uses the reranker."
+      "rerankerRowAbsent": true,
+      "total": "533 MB for the embedding model",
+      "use": "Simulatte uses Qwen embeddings only when deterministic place matching refuses."
     },
     "grantRemembered": true,
     "revoked": true,
@@ -333,14 +343,14 @@
     "ambientActorCount": 13,
     "ambientActorKinds": "pedestrian,bicycle,scooter,car",
     "minimapVisible": true,
-    "minimapFrameCount": 1418
+    "minimapFrameCount": 1450
   },
   "featureView": {
     "cooperation": {
       "visible": true,
       "state": "executing",
       "match": "carrier-alex · 1 eligible of 6",
-      "burden": "630 m less riding · +3:12 · $1.75",
+      "burden": "630 m less riding · +3:57 · $1.75",
       "reliability": "93% on time · 4% cancellation · backup available",
       "handoff": "Street arrival · Building entrance · Security desk · Lobby · Elevator · Floor 12 · Office handoff zone",
       "itemTitle": "1 umbrella"
@@ -360,7 +370,7 @@
     "shade": {
       "preferShade": true,
       "routeAlgorithm": "governed_environment_route_v1",
-      "proof": "3 compared · 59 s direct sun · 25 s shade"
+      "proof": "6 compared · 30% modeled building shade vs 30% fastest · no added time"
     }
   },
   "errors": [],
@@ -395,19 +405,19 @@
       "status": 200
     },
     {
-      "pathname": "/runtime/canonical-receipts.js",
-      "status": 200
-    },
-    {
-      "pathname": "/world/region-pack-merger.js",
-      "status": 200
-    },
-    {
       "pathname": "/world/world-tile-manager.js",
       "status": 200
     },
     {
+      "pathname": "/runtime/canonical-receipts.js",
+      "status": 200
+    },
+    {
       "pathname": "/world/world-tile-storage.js",
+      "status": 200
+    },
+    {
+      "pathname": "/world/region-pack-merger.js",
       "status": 200
     },
     {
@@ -456,6 +466,10 @@
     },
     {
       "pathname": "/world/route-planner.js",
+      "status": 200
+    },
+    {
+      "pathname": "/world/time-dependent-edge-cost.js",
       "status": 200
     },
     {
@@ -567,7 +581,7 @@
       "status": 200
     },
     {
-      "pathname": "/data/autonomy/evidence/feature-reranker-public-diagnostic-v1.json",
+      "pathname": "/data/autonomy/evidence/feature-reranker-public-diagnostic-v2.json",
       "status": 200
     },
     {
@@ -579,7 +593,7 @@
       "status": 200
     },
     {
-      "pathname": "/data/autonomy/evidence/place-resolution-public-diagnostic-v1.json",
+      "pathname": "/data/autonomy/evidence/place-resolution-public-diagnostic-v2.json",
       "status": 200
     },
     {

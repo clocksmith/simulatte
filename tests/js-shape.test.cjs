@@ -2546,7 +2546,7 @@ test('model-backed intent retrieval uses a 1024d Qwen index and keeps the unqual
   assert.equal(rawManifest.modelRuntimeLock.id, modelRuntimeLock.id);
   assert.equal(rawManifest.modelRuntimeLock.number, modelRuntimeLock.number);
   assert.equal(modelRuntimeLock.schema, 'simulatte.modelRuntimeLock.v1');
-  assert.equal(modelRuntimeLock.number, 8);
+  assert.equal(modelRuntimeLock.number, 9);
   assert.equal(Object.hasOwn(rawManifest, 'embedModel'), false);
   assert.equal(Object.hasOwn(rawManifest, 'reranker'), false);
 	  assert.equal(Object.hasOwn(rawManifest, 'runtime'), false);
@@ -2623,7 +2623,7 @@ test('model-backed intent retrieval uses a 1024d Qwen index and keeps the unqual
   assert.doesNotMatch(manifest.embedModel.defaultModelBaseUrl, /models\/local/);
   assert.equal(manifest.embedModel.source.kind, 'huggingface-rdrr');
   assert.equal(manifest.embedModel.source.sourceCheckpointId, 'Qwen/Qwen3-Embedding-0.6B');
-  assert.equal(modelRuntimeLock.doppler.package.version, '0.4.9');
+  assert.equal(modelRuntimeLock.doppler.package.version, '0.4.10');
   assert.equal(modelRuntimeLock.doppler.development.kind, 'sibling-git-archive');
   assert.match(modelRuntimeLock.doppler.development.gitSha, /^[0-9a-f]{40}$/);
   assert.equal(manifest.runtime.moduleUrl, '../../vendor/doppler/src/index.js');

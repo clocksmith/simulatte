@@ -18,7 +18,7 @@ test('candidate registry pins concrete task-specific implementations and blocks 
     'embedding-retrieval': 3,
     reranking: 4,
   });
-  assert.equal(report.modelLockNumber, 8);
+  assert.equal(report.modelLockNumber, 9);
   const classification = registry.tasks.classification;
   assert.deepEqual(classification.map((row) => row.id), [
     'deterministic-tfidf-control',

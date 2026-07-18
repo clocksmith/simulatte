@@ -22,7 +22,7 @@ test('neural consent summary binds only enabled Qwen models and Doppler', () => 
   assert.equal(bundle.reranker, null);
   assert.equal(bundle.embedding.bytes, 558475264);
   assert.equal(bundle.totalBytes, 558475264);
-  assert.match(bundle.identity, /0\.4\.9/);
+  assert.match(bundle.identity, /0\.4\.10/);
   assert.equal(bundle.embedding.size, '533 MB');
 });
 
