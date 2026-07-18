@@ -321,7 +321,10 @@ function createTrial(task, population, commitment, registry, jobs, policy, outpu
         environmentSha256: environmentSha256(environment),
         workloadSha256,
         cacheProtocolId: environment.cacheProtocolId,
-        ...(task === 'classification' ? { calibration: calibrationReceipt(calibrations.classificationPointer) } : {}),
+        ...(task === 'classification' ? {
+          calibration: calibrationReceipt(calibrations.classificationPointer),
+          calibrationPromotionDisjointness: calibrations.classificationDisjointness,
+        } : {}),
       },
     };
     trialCandidates.push(trialCandidate);
@@ -370,6 +373,7 @@ function createTrial(task, population, commitment, registry, jobs, policy, outpu
         workloadSha256,
         cacheProtocolId: environment.cacheProtocolId,
         calibration: calibrationReceipt(calibrations.retrievalPointer),
+        calibrationPromotionDisjointness: calibrations.retrievalDisjointness,
       },
     });
     executions.push({
@@ -462,23 +466,27 @@ function recordOpening(commitmentPath, commitment, openingReceipt) {
   fs.writeFileSync(commitmentPath, `${JSON.stringify(updated, null, 2)}\n`);
 }
 
-function loadRequiredCalibrations(options, privateInput, registry, jobs, candidateIds) {
+function loadRequiredCalibrations(options, privateInput, registry, jobs, policy, candidateIds) {
   const result = {
     classification: null,
     classificationPointer: null,
     retrieval: null,
     retrievalPointer: null,
+    classificationDisjointness: null,
+    retrievalDisjointness: null,
   };
   const promotionPopulation = {
     id: privateInput.population.id,
+    task: privateInput.population.task,
+    rows: privateInput.population.rows,
     commitmentSha256: privateInput.commitment.populationSha256,
   };
   if (options.task === 'classification') {
     if (!options.classificationCalibration) fail('classification sealed evaluation requires --classification-calibration from a disjoint split');
     const loaded = readCalibration(options.classificationCalibration);
     const selected = registry.tasks.classification.filter((row) => candidateIds.includes(row.id)).map((row) => row.id);
-    validateClassificationCalibration(loaded.value, jobs, selected);
-    assertCalibrationDisjoint(loaded.value, promotionPopulation, 'classification');
+    validateClassificationCalibration(loaded.value, jobs, selected, policy);
+    result.classificationDisjointness = assertCalibrationDisjoint(loaded.value, promotionPopulation, 'classification');
     result.classification = loaded.value;
     result.classificationPointer = loaded.pointer;
   }
@@ -487,8 +495,8 @@ function loadRequiredCalibrations(options, privateInput, registry, jobs, candida
     if (!cascades.length) fail('embedding retrieval sealed evaluation requires at least one deterministic-refusal cascade');
     if (!options.refusalCalibration) fail('embedding retrieval sealed evaluation requires --refusal-calibration from a disjoint split');
     const loaded = readCalibration(options.refusalCalibration);
-    validateRetrievalCalibration(loaded.value, cascades);
-    assertCalibrationDisjoint(loaded.value, promotionPopulation, 'retrieval refusal');
+    validateRetrievalCalibration(loaded.value, cascades, policy);
+    result.retrievalDisjointness = assertCalibrationDisjoint(loaded.value, promotionPopulation, 'retrieval refusal');
     result.retrieval = loaded.value;
     result.retrievalPointer = loaded.pointer;
   }
@@ -533,7 +541,7 @@ function main() {
       ...registry.tasks[options.task].filter((row) => row.evaluationEligible).map((row) => row.id),
       ...(options.task === 'embedding-retrieval' ? registry.retrievalCascades.filter((row) => row.evaluationEligible).map((row) => row.id) : []),
     ];
-  const calibrations = loadRequiredCalibrations(options, privateInput, registry, jobs, ids);
+  const calibrations = loadRequiredCalibrations(options, privateInput, registry, jobs, policy, ids);
   fs.mkdirSync(options.out, { recursive: true });
   const trial = createTrial(options.task, privateInput.population, privateInput.commitment, registry, jobs, policy, options.out, ids, calibrations);
   const trialPath = path.join(options.out, 'trial.json');

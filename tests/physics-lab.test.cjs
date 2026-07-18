@@ -23,6 +23,7 @@ const {
   testDopplerDeviceModule,
   testDopplerStorageModule,
   manifestFacade,
+  enableQualifiedReranker,
   withIntentArtifactFetch,
   createPrototypeSpec,
   assertVisualIRCase,
@@ -70,7 +71,17 @@ test('model-backed intent retrieval cosine-normalizes query and index vectors', 
       id: 'synthetic-reranker',
       kind: 'doppler-reranker',
       phase: 3,
+      enabled: true,
       required: true,
+      loadInPhase1WhenRequired: true,
+      qualification: {
+        status: 'qualified',
+        selectedCandidateId: 'synthetic-reranker-model',
+        promotionEligible: true,
+        evidencePath: 'synthetic-reranker-frontier.json',
+        evidenceSha256: '0'.repeat(64),
+        modelNotExecutedReason: 'not-executed-until-phase1',
+      },
       maxCandidatesPerCall: 8,
       maxSlotCandidatesPerCall: 4,
       maxCandidateTermsPerDocument: 32,
@@ -125,7 +136,7 @@ test('model-backed intent retrieval cosine-normalizes query and index vectors', 
     retrieval: {
       kind: 'precomputed-primitive-index',
       artifact: './synthetic-index.json',
-      rerank: 'mandatory',
+      rerank: 'deterministic-until-qualified-model',
     },
   };
   const index = {
@@ -242,6 +253,7 @@ test('Phase 4 receipts inherit the selected runtime lock number from Phase 1', (
 
 test('Phase 1 refuses embedding and reranker handles with a nonlocked hash', async () => {
   await withIntentArtifactFetch(async ({ manifest, index }) => {
+    enableQualifiedReranker(manifest);
     const query = indexedVector(index, 'optics-bench');
     const embedder = intentEmbedder.create({
       manifestUrl: 'https://simulatte.test/data/simulatte-embedder/manifest.json',
@@ -260,6 +272,7 @@ test('Phase 1 refuses embedding and reranker handles with a nonlocked hash', asy
   });
 
   await withIntentArtifactFetch(async ({ manifest, index }) => {
+    enableQualifiedReranker(manifest);
     const query = indexedVector(index, 'optics-bench');
     const embedder = intentEmbedder.create({
       manifestUrl: 'https://simulatte.test/data/simulatte-embedder/manifest.json',
@@ -309,19 +322,25 @@ test('model-backed intent embedder ranks primitives with Qwen provenance', async
     assert.ok(result.model.surfaceCardDocuments >= 650);
     assert.equal(result.model.universeIndexId, 'simulatte-universe-multi-index-v1');
     assert.ok(result.model.universeDocuments >= 20);
-    assert.equal(result.model.reranker, 'simulatte.doppler-intent-reranker.v1');
+    assert.equal(result.model.reranker, null);
+    assert.equal(result.model.rerankerCandidateId, 'simulatte.doppler-intent-reranker.v1');
     assert.equal(result.model.rerankerKind, 'doppler-reranker');
     assert.equal(result.model.rerankerPhase, 3);
-    assert.equal(result.model.rerankerRequired, true);
-    assert.equal(result.rerank.required, true);
+    assert.equal(result.model.rerankerEnabled, false);
+    assert.equal(result.model.rerankerRequired, false);
+    assert.equal(result.model.rerankerQualificationStatus, 'blocked-no-qualified-candidate');
+    assert.equal(result.rerank.required, false);
     assert.equal(result.rerank.schema, 'simulatte.intentRerank.v1');
     assert.equal(result.rerank.phase, 3);
     assert.equal(result.rerank.phaseId, 'retrieval');
-    assert.equal(result.rerank.rerankerMode, 'doppler-reranker');
+    assert.equal(result.rerank.model, null);
+    assert.equal(result.rerank.modelCandidateId, 'simulatte.doppler-intent-reranker.v1');
+    assert.equal(result.rerank.rerankerMode, 'heuristic-fusion');
     assert.equal(result.rerank.rerankerKind, 'doppler-reranker');
     assert.equal(result.rerank.rerankerPhase, 3);
-    assert.equal(result.rerank.modelRequired, true);
-    assert.equal(result.rerank.modelReady, true);
+    assert.equal(result.rerank.modelRequired, false);
+    assert.equal(result.rerank.modelReady, false);
+    assert.equal(result.rerank.modelStatus, 'disabled');
     assert.equal(result.rerank.fallbackMode, 'heuristic-fusion');
     assert.ok(result.rerank.scoreFields.includes('modelScore'));
     assert.ok(result.rerank.scoreFields.includes('dopplerScore'));
@@ -374,12 +393,16 @@ test('Phase 1 loadModel verifies the embedding provider before runtime ready', a
     assert.ok(ready.promptRuntimeReceipt.maxDistinctProbeSimilarity < 0.9999);
     assert.equal(ready.promptRuntimeReceipt.distinctProbePairs, 3);
     assert.equal(ready.promptRuntimeReceipt.primitiveDocuments, index.documents.length);
-    assert.equal(ready.promptRuntimeReceipt.reranker, 'simulatte.doppler-intent-reranker.v1');
+    assert.equal(ready.promptRuntimeReceipt.reranker, '');
+    assert.equal(ready.promptRuntimeReceipt.rerankerCandidateId, 'simulatte.doppler-intent-reranker.v1');
     assert.equal(ready.promptRuntimeReceipt.rerankerKind, 'doppler-reranker');
     assert.equal(ready.promptRuntimeReceipt.rerankerPhase, 3);
-    assert.equal(ready.promptRuntimeReceipt.rerankerRequired, true);
-    assert.equal(ready.promptRuntimeReceipt.rerankerReady, true);
-    assert.equal(ready.promptRuntimeReceipt.rerankerStatus, 'ready');
+    assert.equal(ready.promptRuntimeReceipt.rerankerEnabled, false);
+    assert.equal(ready.promptRuntimeReceipt.rerankerRequired, false);
+    assert.equal(ready.promptRuntimeReceipt.rerankerReady, false);
+    assert.equal(ready.promptRuntimeReceipt.rerankerStatus, 'disabled');
+    assert.equal(ready.promptRuntimeReceipt.rerankerQualificationStatus, 'blocked-no-qualified-candidate');
+    assert.equal(ready.promptRuntimeReceipt.rerankerModelExecuted, false);
     assert.equal(ready.promptRuntimeReceipt.rerankerFallbackMode, 'heuristic-fusion');
     assert.equal(runtime.promptRuntimeReceipt.providerReady, true);
     assert.equal(runtime.promptRuntimeReceipt.noFallback, true);
@@ -499,11 +522,8 @@ test('Phase 1 loadModel rejects degenerate constant embedding providers', async 
 
 test('Phase 1 rejects a manifest that requires an undeclared Doppler reranker model', async () => {
   await withIntentArtifactFetch(async ({ manifest, index }) => {
-    manifest.reranker = {
-      ...manifest.reranker,
-      required: true,
-      model: null,
-    };
+    enableQualifiedReranker(manifest);
+    manifest.reranker.model = null;
     const events = [];
     const query = indexedVector(index, 'optics-bench');
     const embedder = intentEmbedder.create({
@@ -519,10 +539,7 @@ test('Phase 1 rejects a manifest that requires an undeclared Doppler reranker mo
 
 test('Phase 1 loads Doppler reranker with f16 KV runtime contract', async () => {
   await withIntentArtifactFetch(async ({ manifest, index }) => {
-    manifest.reranker = {
-      ...manifest.reranker,
-      required: true,
-    };
+    enableQualifiedReranker(manifest);
     const query = indexedVector(index, 'optics-bench');
     const loadCalls = [];
     const dopplerModule = {
@@ -1174,6 +1191,7 @@ test('Phase 1 loads Doppler embedding from the verified cached manifest source',
 
 test('Phase 1 prepares 9-shard and 14-shard sources before serialized Doppler loads', async () => {
   await withIntentArtifactFetch(async ({ manifest, index }) => {
+    enableQualifiedReranker(manifest);
     const query = indexedVector(index, 'optics-bench');
     const sourceRoles = [];
     const loadRoles = [];
@@ -1302,6 +1320,7 @@ test('Phase 1 prepares 9-shard and 14-shard sources before serialized Doppler lo
 
 test('Phase 1 preserves the preparation receipt when the second model source fails', async () => {
   await withIntentArtifactFetch(async ({ manifest }) => {
+    enableQualifiedReranker(manifest);
     let loadCalls = 0;
     let embeddingContextCloseCalls = 0;
     const embedder = intentEmbedder.create({
@@ -1351,6 +1370,7 @@ test('Phase 1 preserves the preparation receipt when the second model source fai
 
 test('Phase 1 closes each prepared model source once when embedding load fails', async () => {
   await withIntentArtifactFetch(async ({ manifest }) => {
+    enableQualifiedReranker(manifest);
     const closeCalls = new Map();
     let loadCalls = 0;
     const embedder = intentEmbedder.create({
@@ -1395,6 +1415,7 @@ test('Phase 1 closes each prepared model source once when embedding load fails',
 
 test('Phase 1 keeps Doppler embedding resident while the reranker is loaded', async () => {
   await withIntentArtifactFetch(async ({ manifest, index }) => {
+    enableQualifiedReranker(manifest);
     const query = indexedVector(index, 'optics-bench');
     const loadRoles = [];
     let activeRole = '';
@@ -1470,10 +1491,7 @@ test('Phase 1 keeps Doppler embedding resident while the reranker is loaded', as
 
 test('Phase 3 uses Doppler reranker when the required capability is present', async () => {
   await withIntentArtifactFetch(async ({ manifest, index }) => {
-    manifest.reranker = {
-      ...manifest.reranker,
-      required: true,
-    };
+    enableQualifiedReranker(manifest);
     const query = indexedVector(index, 'optics-bench');
     let rerankCalls = 0;
     const provider = probeAwareEmbedProvider({ index, targetVector: query });
@@ -1514,10 +1532,7 @@ test('Phase 3 uses Doppler reranker when the required capability is present', as
 
 test('Phase 3 keeps known visual identities local and model-ranks unresolved construction', async () => {
   await withIntentArtifactFetch(async ({ manifest, index }) => {
-    manifest.reranker = {
-      ...manifest.reranker,
-      required: true,
-    };
+    enableQualifiedReranker(manifest);
     const prompt = 'dogs and cats swimming in a lake';
     const phase1 = lab.runPhase1RuntimeGate(prompt, { allowPrototypeFallback: true });
     const phase2 = lab.runPhase2LanguageGraph(phase1);

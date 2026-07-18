@@ -3,11 +3,11 @@
   "id": "simulatte-model-backed-intent-retrieval-v1",
   "modelRuntimeLock": {
     "id": "simulatte-doppler-qwen-runtime-lock",
-    "number": 7,
+    "number": 8,
     "artifact": "./model-runtime-lock.json",
     "artifactHash": {
       "alg": "sha256",
-      "hex": "828c8a98976683952554746f8ea2005358aae2a97ffe15df8caf4b909e5cfd7b"
+      "hex": "7a7be233cc843aa004e6dcd27ec8b92ff0e7246f2cb145d9f663200d4e1bc438"
     }
   },
   "retrieval": {
@@ -18,7 +18,7 @@
       "hex": "1053238b844833b5f157f9519fdbc3a2c6aaa4581b4fd134affd30a0158fd791"
     },
     "documentSchema": "simulatte.primitiveEmbeddingIndex.v2",
-    "rerank": "mandatory",
+    "rerank": "deterministic-until-qualified-model",
     "description": "Pinned model-lock primitive index for model-backed physical intent retrieval.",
     "cards": {
       "kind": "precomputed-surface-card-index",
@@ -28,7 +28,7 @@
         "hex": "479a8f10f6fd51f40b9a692d0073dfb3772ecf540a9f6acafdc38bca632e45e9"
       },
       "documentSchema": "simulatte.surfaceCardEmbeddingIndex.v1",
-      "rerank": "mandatory",
+      "rerank": "deterministic-until-qualified-model",
       "description": "Pinned model-lock surface-card index for typed graph synthesis."
     },
     "universe": {
@@ -43,7 +43,7 @@
       "artifact": "./intent-evidence-contract-v1.json",
       "artifactHash": {
         "alg": "sha256",
-        "hex": "81cfca8505ce6994e0a93d0bee9a5e4249f2aea629b5d4c9ea9639c394ed1839"
+        "hex": "e12b46b343265ac8754e7b56da3b8b13648843998df88d487e1321b4afe3ce95"
       },
       "documentSchema": "simulatte.intentEvidenceContract.v1",
       "description": "Hand-authored evidence row contract for retrieval-grounded semantic scene forensics."

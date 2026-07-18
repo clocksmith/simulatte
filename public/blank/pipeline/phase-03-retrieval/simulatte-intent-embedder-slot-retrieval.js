@@ -783,6 +783,7 @@
           fallbackMode: raw.fallbackMode || 'heuristic-fusion',
           execution: raw.execution && typeof raw.execution === 'object' ? cloneJsonValue(raw.execution) : null,
           candidateScope: Array.isArray(raw.candidateScope) ? raw.candidateScope.slice() : [],
+          qualification: raw.qualification && typeof raw.qualification === 'object' ? cloneJsonValue(raw.qualification) : null,
           model: raw.model && typeof raw.model === 'object' ? cloneJsonValue(raw.model) : null,
           runtimeConfig: raw.runtimeConfig && typeof raw.runtimeConfig === 'object' ? cloneJsonValue(raw.runtimeConfig) : null,
         };

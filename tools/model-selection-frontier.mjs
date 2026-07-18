@@ -168,8 +168,14 @@ function validateTrial(trial, policy, jobs) {
     normalizeQuality(candidate.quality, trial.task, jobs, candidateId, trial.schema);
     normalizePerformance(candidate.performance, policy, candidateId);
     requireReceipt(candidate.receipt, `${candidateId} receipt`);
-    if (calibratedContract && trial.task === 'classification') requireReceipt(candidate.receipt.calibration, `${candidateId} calibration receipt`);
-    if (calibratedContract && candidate.kind === 'composite') requireReceipt(candidate.receipt.calibration, `${candidateId} calibration receipt`);
+    if (calibratedContract && trial.task === 'classification') {
+      requireReceipt(candidate.receipt.calibration, `${candidateId} calibration receipt`);
+      requireCalibrationDisjointness(candidate.receipt.calibrationPromotionDisjointness, population, candidateId);
+    }
+    if (calibratedContract && candidate.kind === 'composite') {
+      requireReceipt(candidate.receipt.calibration, `${candidateId} calibration receipt`);
+      requireCalibrationDisjointness(candidate.receipt.calibrationPromotionDisjointness, population, candidateId);
+    }
     if (candidate.receipt.environmentSha256 !== expectedEnvironmentHash) fail(`${candidateId} receipt environment hash differs from the trial environment`);
     if (candidate.receipt.workloadSha256 !== trial.workload.sha256) fail(`${candidateId} receipt workload hash differs from the trial workload`);
     if (candidate.receipt.cacheProtocolId !== environment.cacheProtocolId) fail(`${candidateId} receipt cache protocol differs from the trial environment`);
@@ -337,6 +343,20 @@ function requireReceipt(receipt, label) {
   requireText(receipt && receipt.path, `${label} path`);
   requireHash(receipt && receipt.sha256, `${label} hash`);
   return receipt;
+}
+
+function requireCalibrationDisjointness(receipt, promotionPopulation, candidateId) {
+  if (!receipt || receipt.schema !== 'simulatte.calibrationPromotionDisjointnessReceipt.v1') {
+    fail(`${candidateId} calibration/promotion disjointness receipt is required`);
+  }
+  requireText(receipt.calibrationPopulationId, `${candidateId} calibration population id`);
+  if (receipt.promotionPopulationId !== promotionPopulation.id) fail(`${candidateId} disjointness promotion population differs from the trial`);
+  if (receipt.fingerprintSchema !== 'simulatte.modelSelectionRowFingerprint.v1') fail(`${candidateId} disjointness fingerprint schema mismatch`);
+  requirePositiveInteger(receipt.calibrationRowCount, `${candidateId} calibration row count`);
+  if (receipt.promotionRowCount !== promotionPopulation.rowCount) fail(`${candidateId} disjointness promotion row count differs from the trial`);
+  if (receipt.overlapCount !== 0) fail(`${candidateId} calibration and promotion rows overlap`);
+  requireHash(receipt.calibrationFingerprintsSha256, `${candidateId} calibration fingerprints`);
+  requireHash(receipt.promotionFingerprintsSha256, `${candidateId} promotion fingerprints`);
 }
 
 function sampleArray(value, minimumLength, label) {

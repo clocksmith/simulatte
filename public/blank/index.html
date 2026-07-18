@@ -2314,6 +2314,10 @@
       animation: runtime-detail-heartbeat 1.2s ease-in-out infinite;
     }
 
+    .prompt-dock .intent-runtime[data-state="idle"] .intent-runtime-detail {
+      display: none;
+    }
+
     .world-model-panel {
       display: grid;
       gap: 4px;
@@ -2632,7 +2636,7 @@
   <main class="physics-stage" aria-label="Simulatte physics lab">
     <section class="physics-panel prompt-dock sim-surface" aria-label="Simulation prompt runner">
       <div class="prompt-dock-head">
-        <a class="prompt-dock-autonomy" href="/">Autonomy</a>
+        <a class="prompt-dock-autonomy" href="/">Simulatte</a>
         <button id="prompt-dock-toggle" class="prompt-dock-toggle" type="button" aria-label="Minimize prompt panel" aria-expanded="true">−</button>
       </div>
 
@@ -2648,8 +2652,8 @@
             <span class="prompt-action-icon" aria-hidden="true">↵</span>
             <span class="prompt-action-label">Run</span>
           </button>
-          <label class="neural-mode-toggle" for="blank-neural-models" title="Use local Qwen retrieval and reranking">
-            <span>Qwen</span>
+          <label class="neural-mode-toggle" for="blank-neural-models" title="Local semantic retrieval with the on-device Qwen embedding">
+            <span>Smart retrieval</span>
             <input id="blank-neural-models" type="checkbox" role="switch" aria-describedby="blank-neural-model-note">
           </label>
           <span id="blank-neural-model-note" class="sr-only">Deterministic language pipeline is active.</span>
@@ -2670,7 +2674,7 @@
         </div>
 
         <details id="prompt-more-menu" class="prompt-more-menu">
-          <summary>More</summary>
+          <summary>Advanced</summary>
           <div class="prompt-more-content">
             <div class="prompt-more-section-title">Minimize corner</div>
             <div class="prompt-corner-controls" aria-label="Minimized panel corner">
@@ -2708,11 +2712,10 @@
 
     <dialog id="neural-model-dialog" class="neural-consent-dialog" aria-labelledby="neural-model-title">
       <div class="neural-consent-body">
-        <h2 id="neural-model-title">Enable local Qwen models?</h2>
-        <p data-neural-model="surface-use">Blank uses both models to retrieve and rerank construction evidence.</p>
+        <h2 id="neural-model-title">Enable local Qwen embedding?</h2>
+        <p data-neural-model="surface-use">Blank uses Qwen embeddings for open-vocabulary retrieval. Deterministic scoring and refusal remain authoritative.</p>
         <div class="neural-model-list" aria-label="Models stored on this device">
           <div class="neural-model-row"><span data-neural-model="embedding-name">Qwen embedding</span><span data-neural-model="embedding-size">Loading size</span></div>
-          <div class="neural-model-row"><span data-neural-model="reranker-name">Qwen reranker</span><span data-neural-model="reranker-size">Loading size</span></div>
         </div>
         <p class="neural-consent-facts"><span data-neural-model="download-summary">Model sizes loading</span>. Runs locally through Doppler <span data-neural-model="doppler-version"></span>. Model files are cached on this device; prompts stay in this browser.</p>
         <div class="neural-consent-actions">

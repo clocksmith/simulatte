@@ -84,8 +84,9 @@ applies the quality-first Pareto rule.
 
 Calibration is a separate, non-promotable split. Classification calibrates an
 abstention threshold for every candidate and head. Embedding retrieval
-calibrates a deterministic refusal rule for each neural recall lane. Generate
-candidate predictions and the calibration receipt with:
+calibrates a deterministic signal gate for each neural recall lane. The gate
+consumes lexical and neural top scores and margins; it is not a lexical-only
+refusal owner. Generate candidate predictions and the calibration receipt with:
 
 ```bash
 node tools/samer/calibrate-model-selection.mjs \
@@ -101,8 +102,17 @@ node tools/samer/calibrate-model-selection.mjs \
 
 The candidate subprocesses still receive sanitized rows without calibration
 labels. The calibration evaluator alone sees those labels. A calibration
-population is always stamped `promotionEligible: false`, and its identity and
-hash must differ from the later promotion population.
+population is always stamped `promotionEligible: false`. Before fitting, the
+runner enforces a parameter-scaled row floor and creates deterministic,
+stratified development and validation partitions. Thresholds are fitted only
+on development rows and must clear their gates on validation rows before a
+sealed evaluation may start.
+
+Every calibration row also receives a content fingerprint that excludes its
+row ID. The sealed runner compares those fingerprints with the unopened
+promotion rows, so copying a calibrated row under a new ID fails closed.
+Different population IDs and file hashes remain required, but are not treated
+as proof of row-level disjointness.
 
 Running a sealed task is a one-time opening operation:
 
@@ -138,10 +148,12 @@ proof. A neural winner remains non-promotable until its exact browser artifact
 passes Doppler parity under the same sealed gates.
 
 Conditional reranking is also calibration-gated. The default remains
-always-rerank. `evaluate-rerank-skip-frontier.mjs` can promote a skip rule only
-when a sealed population shows that lexical margin, embedding margin, entropy,
-and candidate disagreement preserve winner accuracy. Each skipped call records
-the rule, signals, candidate count, and explicit model-not-executed reason.
+deterministic reranking because the current reranker frontier has no qualified
+winner. If a reranker is later promoted, `evaluate-rerank-skip-frontier.mjs`
+can promote a conditional skip rule only when a sealed population shows that
+lexical margin, embedding margin, entropy, and candidate disagreement preserve
+winner accuracy. Each skipped call records the rule, signals, candidate count,
+and explicit model-not-executed reason.
 
 Structured intent uses `evaluate-structured-intent.mjs` and
 `structured-intent-evaluation-policy.json`. Its independent gate measures

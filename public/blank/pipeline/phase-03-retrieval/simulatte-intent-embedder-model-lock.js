@@ -126,9 +126,15 @@
         }
         validatePinnedModel(lock.embedding, 'embedding', true, lock.embedding && lock.embedding.conversion);
         const reranker = lock.reranker || {};
-        if (reranker.schema !== 'simulatte.intentRerankerConfig.v1' || reranker.required !== true) {
-          throw new Error('model runtime lock requires a required simulatte.intentRerankerConfig.v1 reranker');
+        if (reranker.schema !== 'simulatte.intentRerankerConfig.v1') throw new Error('model runtime lock reranker schema mismatch');
+        if (typeof reranker.enabled !== 'boolean' || typeof reranker.required !== 'boolean' || typeof reranker.loadInPhase1WhenRequired !== 'boolean') {
+          throw new Error('model runtime lock reranker enabled, required, and Phase 1 load policy must be explicit booleans');
         }
+        if (reranker.required && !reranker.enabled) throw new Error('model runtime lock cannot require a disabled reranker');
+        if (reranker.loadInPhase1WhenRequired && (!reranker.enabled || !reranker.required)) {
+          throw new Error('model runtime lock can load the reranker in Phase 1 only when it is enabled and required');
+        }
+        validateRerankerQualification(reranker);
         requiredPositiveInteger(reranker.maxCandidatesPerCall, 'model runtime lock reranker.maxCandidatesPerCall');
         requiredPositiveInteger(reranker.maxSlotCandidatesPerCall, 'model runtime lock reranker.maxSlotCandidatesPerCall');
         requiredPositiveInteger(reranker.maxCandidateTermsPerDocument, 'model runtime lock reranker.maxCandidateTermsPerDocument');
@@ -136,6 +142,25 @@
         validatePinnedModel(reranker.model, 'reranker', false, reranker.conversion);
         if (!reranker.runtimeConfig) throw new Error('model runtime lock reranker.runtimeConfig is required');
         validateLockedRuntime(lock.runtime, lock.runtimeOrder, lock.cache, lock.embedding);
+      }
+
+      function validateRerankerQualification(reranker) {
+        const qualification = reranker.qualification || {};
+        requiredText(qualification.status, 'model runtime lock reranker.qualification.status');
+        requiredText(qualification.evidencePath, 'model runtime lock reranker.qualification.evidencePath');
+        requiredText(qualification.modelNotExecutedReason, 'model runtime lock reranker.qualification.modelNotExecutedReason');
+        if (!/^[0-9a-f]{64}$/i.test(String(qualification.evidenceSha256 || ''))) {
+          throw new Error('model runtime lock reranker.qualification.evidenceSha256 must be a SHA-256 hex digest');
+        }
+        if (!reranker.enabled) {
+          if (qualification.status !== 'blocked-no-qualified-candidate' || qualification.selectedCandidateId !== null || qualification.promotionEligible !== false) {
+            throw new Error('disabled reranker qualification must record no selected promotion candidate');
+          }
+          return;
+        }
+        if (qualification.status !== 'qualified' || !String(qualification.selectedCandidateId || '').trim() || qualification.promotionEligible !== true) {
+          throw new Error('enabled reranker qualification must record a selected promotion candidate');
+        }
       }
 
       function validatePinnedModel(model, label, requiresDimensions, conversion = null) {

@@ -207,14 +207,19 @@
             phase: 3,
             phaseId: 'retrieval',
             stage: 'span-refined',
-            required: true,
-            model: runtime ? rerankerId(runtime) : config.id,
+            required: rerankerRequired(runtime),
+            model: config.enabled ? runtime ? rerankerId(runtime) : config.id : null,
+            modelCandidateId: config.id,
             rerankerKind: config.kind,
             rerankerPhase: 3,
             rerankerMode: 'heuristic-fusion',
             modelRequired: rerankerRequired(runtime),
             modelReady: false,
-            modelStatus: 'not-available',
+            modelStatus: config.enabled ? 'not-available' : 'disabled',
+            qualificationStatus: config.qualification && config.qualification.status || '',
+            modelNotExecutedReason: !config.enabled
+              ? config.qualification && config.qualification.modelNotExecutedReason || 'reranker-disabled'
+              : 'reranker-capability-not-available',
             modelBackend: '',
             fallbackMode: config.fallbackMode,
             scoreFields: [

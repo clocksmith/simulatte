@@ -1274,7 +1274,13 @@ test('autonomy UI keeps the map primary and moves technical controls behind prog
   assert.match(html, /class="mission-dock sim-surface"/);
   assert.match(html, /id="decisions-drawer"[^>]*aria-hidden="true"/);
   assert.match(html, /id="runtime-toggle"[^>]*aria-expanded="false"/);
-  assert.match(html, /id="map-popover"[^>]*hidden/);
+  assert.match(html, /id="runtime-details"[^>]*hidden/);
+  assert.match(html, /id="runtime-details"[\s\S]*class="legend"[\s\S]*class="blank-link"/);
+  assert.doesNotMatch(html, /id="map-panel-button"|id="map-popover"/);
+  assert.match(html, /id="camera-focus-popover"[^>]*hidden/);
+  assert.match(html, /id="dock-more-menu"[^>]*hidden/);
+  assert.match(html, /id="dock-more-menu"[\s\S]*id="step-button"[\s\S]*id="reset-button"[\s\S]*id="what-if-button"/);
+  assert.match(html, /id="advanced-section"[\s\S]*<details class="evidence-section retrieval-evidence">/);
   assert.match(html, /<details class="evidence-section retrieval-evidence">/);
   assert.match(html, /<details class="evidence-section receipt-evidence">/);
   assert.match(html, /class="neural-mode-toggle"[^>]*for="place-resolution-lane"/);
@@ -1283,7 +1289,8 @@ test('autonomy UI keeps the map primary and moves technical controls behind prog
   assert.doesNotMatch(html, /id="mission-more-menu"/);
   assert.match(blankHtml, /class="neural-mode-toggle"[^>]*for="blank-neural-models"/);
   assert.match(blankHtml, /id="blank-neural-models" type="checkbox" role="switch"/);
-  assert.match(blankHtml, /Blank uses both models to retrieve and rerank construction evidence/);
+  assert.match(blankHtml, /Blank uses Qwen embeddings for open-vocabulary retrieval/);
+  assert.doesNotMatch(blankHtml, /data-neural-model="reranker-name"/);
   assert.doesNotMatch(html, /WebGPU world model|Decision engine|Route search|Prediction settlement/);
   assert.match(css, /#autonomy-canvas[\s\S]*width: 100%;[\s\S]*height: 100%/);
   assert.match(css, /@media \(max-width: 820px\)[\s\S]*translateY/);

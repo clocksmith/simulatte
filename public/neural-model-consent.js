@@ -14,20 +14,24 @@
   function summarizeLock(lock) {
     if (!lock || lock.schema !== 'simulatte.modelRuntimeLock.v1') throw new Error('Invalid Simulatte model runtime lock');
     const embedding = lock.embedding;
-    const reranker = lock.reranker && lock.reranker.model;
-    if (!embedding?.id || !embedding?.manifestHash?.hex || !reranker?.id || !reranker?.manifestHash?.hex) {
-      throw new Error('Model runtime lock is missing pinned Qwen identities');
+    const rerankerConfig = lock.reranker || {};
+    const reranker = rerankerConfig.enabled === true ? rerankerConfig.model : null;
+    if (!embedding?.id || !embedding?.manifestHash?.hex) {
+      throw new Error('Model runtime lock is missing the pinned Qwen embedding identity');
+    }
+    if (reranker && (!reranker.id || !reranker.manifestHash?.hex)) {
+      throw new Error('Enabled reranker is missing its pinned identity');
     }
     const embeddingBytes = Number(embedding.source?.sizeBytes || 0);
-    const rerankerBytes = Number(reranker.source?.sizeBytes || 0);
+    const rerankerBytes = Number(reranker?.source?.sizeBytes || 0);
     const identity = [
       lock.id,
       lock.number,
       lock.doppler?.package?.version,
       embedding.id,
       embedding.manifestHash.hex,
-      reranker.id,
-      reranker.manifestHash.hex,
+      reranker ? reranker.id : 'reranker-disabled',
+      reranker ? reranker.manifestHash.hex : rerankerConfig.qualification?.status || '',
     ].join(':');
     return {
       identity,
@@ -35,7 +39,7 @@
       lockNumber: lock.number,
       dopplerVersion: lock.doppler?.package?.version || '',
       embedding: { id: embedding.id, bytes: embeddingBytes, size: formatBytes(embeddingBytes) },
-      reranker: { id: reranker.id, bytes: rerankerBytes, size: formatBytes(rerankerBytes) },
+      reranker: reranker ? { id: reranker.id, bytes: rerankerBytes, size: formatBytes(rerankerBytes) } : null,
       totalBytes: embeddingBytes + rerankerBytes,
       totalSize: formatBytes(embeddingBytes + rerankerBytes),
     };
@@ -81,16 +85,14 @@
     const values = {
       'embedding-name': 'Qwen 3 Embedding 0.6B',
       'embedding-size': bundle.embedding.size,
-      'reranker-name': 'Qwen 3 Reranker 0.6B',
-      'reranker-size': bundle.reranker.size,
       'bundle-size': bundle.totalSize,
       'download-summary': surface === 'blank'
-        ? `${bundle.totalSize} total for both models`
-        : `${bundle.embedding.size} on this page; ${bundle.totalSize} across Simulatte and Blank`,
+        ? `${bundle.totalSize} for the embedding model`
+        : `${bundle.embedding.size} for the embedding model`,
       'doppler-version': bundle.dopplerVersion,
       'surface-use': surface === 'blank'
-        ? 'Blank uses both models to retrieve and rerank construction evidence.'
-        : 'Simulatte uses the embedder only when deterministic place matching refuses. Blank uses the reranker.',
+        ? 'Blank uses Qwen embeddings for open-vocabulary retrieval. Deterministic scoring and refusal remain authoritative.'
+        : 'Simulatte uses Qwen embeddings only when deterministic place matching refuses.',
     };
     Object.entries(values).forEach(([key, value]) => {
       const element = dialog.querySelector(`[data-neural-model="${key}"]`);

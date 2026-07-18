@@ -184,6 +184,22 @@ function manifestFacade(rawManifest, modelRuntimeLock) {
   return facade;
 }
 
+function enableQualifiedReranker(manifest) {
+  manifest.reranker = {
+    ...manifest.reranker,
+    enabled: true,
+    required: true,
+    loadInPhase1WhenRequired: true,
+    qualification: {
+      ...manifest.reranker.qualification,
+      status: 'qualified',
+      selectedCandidateId: manifest.reranker.model.id,
+      promotionEligible: true,
+      modelNotExecutedReason: 'not-executed-until-phase1',
+    },
+  };
+}
+
 async function withIntentArtifactFetch(run, options = {}) {
   const previousFetch = globalThis.fetch;
   const hadPreviousReranker = Object.hasOwn(globalThis, 'SimulatteDopplerReranker');
@@ -344,6 +360,7 @@ module.exports = {
   testDopplerDeviceModule,
   testDopplerStorageModule,
   manifestFacade,
+  enableQualifiedReranker,
   withIntentArtifactFetch,
   createPrototypeSpec,
   assertVisualIRCase,

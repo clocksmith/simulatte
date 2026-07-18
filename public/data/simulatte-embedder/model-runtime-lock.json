@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.modelRuntimeLock.v1",
   "id": "simulatte-doppler-qwen-runtime-lock",
-  "number": 7,
+  "number": 8,
   "doppler": {
     "moduleUrl": "../../vendor/doppler/src/index.js",
     "deviceModuleUrl": "../../vendor/doppler/src/tooling-exports/device.js",
@@ -10,14 +10,14 @@
     "package": {
       "name": "doppler-gpu",
       "version": "0.4.9",
-      "integrity": "sha512-2wJO8zIuLb7D57AdDq0Sxj7ABm7Pp5vJ+BwB4BHUdJgtzE1VKr1xSwi5AOC4yM+HWbQbk97OC2iZfS0vr3bHtQ==",
-      "shasum": "8bcdc8c2fcb419978614e956c8a4bc307bb5b328",
-      "fileCount": 1364
+      "integrity": "sha512-o8CMqEL414L/aR6nEsQ7NnHS7lrY+dO/uzg22oVFZBI2KwKTEbL3CAjt1Fm1qXY3pyI0RLeAUeJ3djcNBEPlMQ==",
+      "shasum": "c1c6b97fb67a371bcdf8de0c89cf99c45a6dce62",
+      "fileCount": 1366
     },
     "development": {
       "kind": "sibling-git-archive",
       "workspacePath": "../doppler",
-      "gitSha": "a6fd91ffb1adcda3e7c26cd71183743dd0370b56"
+      "gitSha": "d4c74cb5e3d8d0bbdf7f92df92e0780e24a6462f"
     }
   },
   "embedding": {
@@ -110,9 +110,9 @@
     "id": "simulatte.doppler-intent-reranker.v1",
     "kind": "doppler-reranker",
     "phase": 3,
-    "enabled": true,
-    "required": true,
-    "loadInPhase1WhenRequired": true,
+    "enabled": false,
+    "required": false,
+    "loadInPhase1WhenRequired": false,
     "executeInPhase": 3,
     "inputSchema": "simulatte.intentRerankInput.v1",
     "outputSchema": "simulatte.intentRerank.v1",
@@ -121,6 +121,14 @@
     "maxCandidateTermsPerDocument": 32,
     "scoreCacheMaxEntries": 256,
     "fallbackMode": "heuristic-fusion",
+    "qualification": {
+      "status": "blocked-no-qualified-candidate",
+      "selectedCandidateId": null,
+      "promotionEligible": false,
+      "evidencePath": "tools/samer/evidence/model-selection/reranking-v1/frontier.json",
+      "evidenceSha256": "f2991f2188a92d47f436a422be3a5dd97fdb2c572029da64ed9d5b988ee8a0a4",
+      "modelNotExecutedReason": "sealed-reranking-v1-no-candidate-cleared-quality-floors"
+    },
     "execution": {
       "selectedTokenLogits": "required",
       "prefixKvReuse": "required",
@@ -188,7 +196,7 @@
         }
       }
     },
-    "description": "Required Qwen 3 Reranker 0.6B contract for Phase 3 retrieval. Phase 1 loads and probes this Doppler model before runtime-ready."
+    "description": "Pinned Qwen 3 Reranker 0.6B candidate identity. It is disabled because the sealed reranking frontier selected no qualified candidate; Phase 1 does not load or probe it."
   },
   "runtimeOrder": [
     "doppler-browser-load",

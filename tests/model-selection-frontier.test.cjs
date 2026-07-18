@@ -87,11 +87,12 @@ function candidate(task, id, overrides = {}, kind = 'model') {
 test('v3 retrieval frontiers require a calibrated composite and gate delivered recall', async () => {
   const { evaluateModelSelectionFrontier } = await import('../tools/model-selection-frontier.mjs');
   const calibration = { path: 'calibration/retrieval.json', sha256: HASH };
+  const disjointness = calibrationDisjointness('embedding-retrieval-held-out-v1', 100);
   const det = candidate('embedding-retrieval', 'det', { quality: retrievalV3Quality(0.7) }, 'deterministic');
   const neural = candidate('embedding-retrieval', 'neural', { quality: retrievalV3Quality(0.95) });
   const cascade = candidate('embedding-retrieval', 'cascade', {
     quality: retrievalV3Quality(0.96),
-    receipt: { calibration },
+    receipt: { calibration, calibrationPromotionDisjointness: disjointness },
   });
   cascade.kind = 'composite';
   cascade.modelId = neural.modelId;
@@ -106,6 +107,10 @@ test('v3 retrieval frontiers require a calibrated composite and gate delivered r
 
   delete cascade.receipt.calibration;
   assert.throws(() => evaluateModelSelectionFrontier(evidence), /calibration receipt path/);
+
+  cascade.receipt.calibration = calibration;
+  delete cascade.receipt.calibrationPromotionDisjointness;
+  assert.throws(() => evaluateModelSelectionFrontier(evidence), /disjointness receipt/);
 });
 
 function trial(task, candidates, overrides = {}) {
@@ -139,6 +144,20 @@ function retrievalV3Quality(value) {
     mustRefuseAccuracy: 0.99,
     answerableAcceptance: value,
     refusalPrecision: 0.95,
+  };
+}
+
+function calibrationDisjointness(promotionPopulationId, promotionRowCount) {
+  return {
+    schema: 'simulatte.calibrationPromotionDisjointnessReceipt.v1',
+    calibrationPopulationId: 'calibration-v2',
+    promotionPopulationId,
+    fingerprintSchema: 'simulatte.modelSelectionRowFingerprint.v1',
+    calibrationRowCount: 100,
+    promotionRowCount,
+    overlapCount: 0,
+    calibrationFingerprintsSha256: HASH,
+    promotionFingerprintsSha256: HASH,
   };
 }
 

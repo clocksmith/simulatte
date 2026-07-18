@@ -140,11 +140,17 @@ button {
 .runtime-details {
   display: grid;
   width: min(390px, calc(100vw - 32px));
-  gap: 8px;
+  max-height: min(560px, calc(100vh - 120px));
+  gap: 10px;
   margin-top: 8px;
+  overflow: auto;
   padding: 14px;
   font-size: 11px;
   line-height: 1.5;
+}
+
+.runtime-details .sim-label:not(:first-child) {
+  margin-top: 6px;
 }
 
 #render-identity {
@@ -184,18 +190,36 @@ button {
   gap: 8px;
 }
 
-.camera-focus-label {
-  display: block;
+.camera-focus-anchor {
+  position: relative;
 }
 
-.camera-controls select {
-  width: 170px;
-  min-height: var(--sim-touch-target);
-  padding: 0 30px 0 12px;
-  background-color: var(--sim-glass);
+.camera-focus-anchor > .sim-action {
+  background: var(--sim-glass);
   box-shadow: var(--sim-shadow-small);
   backdrop-filter: var(--sim-blur);
   -webkit-backdrop-filter: var(--sim-blur);
+}
+
+.camera-focus-popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  display: grid;
+  width: min(240px, calc(100vw - 32px));
+  gap: 8px;
+  padding: 12px;
+}
+
+.camera-focus-label {
+  display: grid;
+  gap: 6px;
+}
+
+.camera-controls select {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 30px 0 12px;
 }
 
 .camera-modes button {
@@ -212,7 +236,19 @@ button {
   min-width: 300px;
   padding: 9px 12px 10px;
   transform: translateX(-50%);
-  transition: opacity var(--sim-motion) ease, transform var(--sim-motion) var(--sim-ease);
+  cursor: pointer;
+  transition: opacity var(--sim-motion) ease, transform var(--sim-motion) var(--sim-ease), box-shadow var(--sim-motion-fast) ease;
+}
+
+.journey-hud:hover,
+.journey-hud:focus-visible {
+  box-shadow: 0 18px 50px rgba(4, 12, 18, 0.28);
+  outline: none;
+}
+
+.journey-hud:focus-visible {
+  outline: 2px solid rgba(117, 190, 244, 0.74);
+  outline-offset: 2px;
 }
 
 body[data-journey-phase="loading"] .journey-hud,
@@ -276,41 +312,11 @@ body[data-journey-phase="ready"] .journey-hud {
   pointer-events: none;
 }
 
-.map-anchor {
-  position: fixed;
-  z-index: 19;
-  bottom: max(16px, env(safe-area-inset-bottom));
-  left: max(16px, env(safe-area-inset-left));
-}
-
-.map-button,
 .decisions-button {
   background: var(--sim-glass);
   box-shadow: var(--sim-shadow-small);
   backdrop-filter: var(--sim-blur);
   -webkit-backdrop-filter: var(--sim-blur);
-}
-
-.map-popover {
-  position: absolute;
-  bottom: 54px;
-  left: 0;
-  display: grid;
-  width: min(340px, calc(100vw - 32px));
-  max-height: min(560px, calc(100vh - 120px));
-  gap: 14px;
-  overflow: auto;
-  padding: 16px;
-}
-
-.map-popover-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.map-popover-head strong {
-  font-size: 14px;
 }
 
 .legend {
@@ -471,6 +477,24 @@ body[data-journey-phase="ready"] .journey-hud {
 
 .mission-actions .sim-action {
   white-space: nowrap;
+}
+
+.dock-more-anchor {
+  position: relative;
+  display: flex;
+}
+
+.dock-more-anchor > .sim-action {
+  min-width: 42px;
+  padding: 0 10px;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.dock-more-menu {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 10px);
 }
 
 .play-mark {
@@ -666,14 +690,42 @@ body[data-journey-phase="failed"] .mission-field {
   line-height: 1.45;
 }
 
-.route-evidence code {
+.journey-evidence code {
   display: block;
-  margin-top: 0;
+  margin-top: 10px;
   overflow-wrap: anywhere;
   color: #15778b;
   font-family: var(--sim-mono);
   font-size: 10px;
   line-height: 1.5;
+}
+
+.evidence-section > .sim-label {
+  display: block;
+  margin-top: 14px;
+}
+
+.evidence-section > summary + .sim-label {
+  margin-top: 0;
+}
+
+.advanced-evidence > details.evidence-section {
+  margin-right: 0;
+  margin-left: 0;
+}
+
+.advanced-evidence > details.evidence-section:first-of-type {
+  border-top: 1px solid var(--sim-line);
+}
+
+.advanced-evidence > details.evidence-section:last-child {
+  margin-bottom: 0;
+  border-bottom: 0;
+}
+
+.advanced-evidence > details.evidence-section > summary {
+  min-height: 44px;
+  font-size: 12px;
 }
 
 .component-line {
@@ -973,7 +1025,6 @@ body[data-journey-phase="failed"] .mission-field {
   .sim-surface,
   .sim-popover,
   .camera-controls select,
-  .map-button,
   .decisions-button,
   .evidence-heading {
     background-color: rgba(255, 255, 255, 0.97);
@@ -985,10 +1036,6 @@ body[data-journey-phase="failed"] .mission-field {
     top: max(12px, env(safe-area-inset-top));
     right: max(12px, env(safe-area-inset-right));
     bottom: auto;
-  }
-
-  .camera-focus-label {
-    display: none;
   }
 
   .follow-minimap {
@@ -1049,11 +1096,6 @@ body[data-journey-phase="failed"] .mission-field {
     flex: 1 1 0;
   }
 
-  .map-anchor {
-    bottom: calc(max(12px, env(safe-area-inset-bottom)) + 152px);
-    left: max(12px, env(safe-area-inset-left));
-  }
-
   .decisions-button {
     right: max(12px, env(safe-area-inset-right));
     bottom: calc(max(12px, env(safe-area-inset-bottom)) + 152px);
@@ -1065,10 +1107,6 @@ body[data-journey-phase="failed"] .mission-field {
     min-width: 170px;
   }
 
-  body[data-journey-phase="running"] .map-anchor,
-  body[data-journey-phase="paused"] .map-anchor,
-  body[data-journey-phase="completed"] .map-anchor,
-  body[data-journey-phase="failed"] .map-anchor,
   body[data-journey-phase="running"] .decisions-button,
   body[data-journey-phase="paused"] .decisions-button,
   body[data-journey-phase="completed"] .decisions-button,
@@ -1132,10 +1170,6 @@ body[data-journey-phase="failed"] .mission-field {
     bottom: auto;
   }
 
-  .camera-focus-label {
-    display: none;
-  }
-
   .camera-modes > button {
     min-width: 0;
     padding: 0 8px;
@@ -1188,25 +1222,11 @@ body[data-journey-phase="failed"] .mission-field {
     font-size: 12px;
   }
 
-  .map-anchor {
-    bottom: calc(max(10px, env(safe-area-inset-bottom)) + 152px);
-    left: max(10px, env(safe-area-inset-left));
-  }
-
   .decisions-button {
     right: max(10px, env(safe-area-inset-right));
     bottom: calc(max(10px, env(safe-area-inset-bottom)) + 152px);
-  }
-
-  .map-button,
-  .decisions-button {
     min-height: 40px;
     font-size: 11px;
-  }
-
-  .map-popover {
-    bottom: 48px;
-    max-height: calc(100dvh - 170px);
   }
 
   .component-line {

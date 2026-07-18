@@ -17,6 +17,7 @@ const CARD_INDEX_PATH = path.join(ROOT, 'public', 'data', 'simulatte-embedder', 
 const EVIDENCE_CONTRACT_PATH = path.join(ROOT, 'public', 'data', 'simulatte-embedder', 'intent-evidence-contract-v1.json');
 const INVENTORY_PATH = path.join(ROOT, 'public', 'data', 'simulatte-catalog-inventory.json');
 const STRUCTURER_MANIFEST_PATH = path.join(ROOT, 'public', 'data', 'simulatte-intent-structurer', 'manifest.json');
+const RERANKER_FRONTIER_PATH = path.join(ROOT, 'tools', 'samer', 'evidence', 'model-selection', 'reranking-v1', 'frontier.json');
 const INDEX_BUILDERS = [
   path.join(ROOT, 'tools', 'build-primitive-embedding-index.mjs'),
   path.join(ROOT, 'tools', 'build-surface-card-embedding-index.mjs'),
@@ -155,7 +156,9 @@ function main() {
 
   const reranker = lock.reranker || {};
   assertEqual(reranker.schema, 'simulatte.intentRerankerConfig.v1', 'reranker.schema');
-  assertEqual(reranker.required, true, 'reranker.required');
+  assertEqual(reranker.enabled, false, 'reranker.enabled');
+  assertEqual(reranker.required, false, 'reranker.required');
+  assertEqual(reranker.loadInPhase1WhenRequired, false, 'reranker.loadInPhase1WhenRequired');
   assertEqual(reranker.phase, 3, 'reranker.phase');
   assertEqual(reranker.executeInPhase, 3, 'reranker.executeInPhase');
   requirePositiveInteger(reranker.maxCandidatesPerCall, 'reranker.maxCandidatesPerCall');
@@ -168,6 +171,16 @@ function main() {
   const rerankerConversion = validatePinnedModel(reranker.model || {}, reranker.conversion || {}, 'reranker');
   assertEqual(rerankerConversion.inference?.supportsRerank, true, 'reranker conversion inference.supportsRerank');
   assertSubset(rerankerConversion.session, reranker.runtimeConfig?.inference?.session, 'reranker conversion session');
+  const qualification = reranker.qualification || {};
+  assertEqual(qualification.status, 'blocked-no-qualified-candidate', 'reranker.qualification.status');
+  assertEqual(qualification.selectedCandidateId, null, 'reranker.qualification.selectedCandidateId');
+  assertEqual(qualification.promotionEligible, false, 'reranker.qualification.promotionEligible');
+  assertEqual(qualification.evidencePath, 'tools/samer/evidence/model-selection/reranking-v1/frontier.json', 'reranker.qualification.evidencePath');
+  assertEqual(qualification.evidenceSha256, hashFile(RERANKER_FRONTIER_PATH), 'reranker.qualification.evidenceSha256');
+  requireText(qualification.modelNotExecutedReason, 'reranker.qualification.modelNotExecutedReason');
+  const rerankerFrontier = readJson(RERANKER_FRONTIER_PATH);
+  assertEqual(rerankerFrontier.selectedCandidateId, null, 'reranker frontier selectedCandidateId');
+  assertEqual(rerankerFrontier.promotionEligible, false, 'reranker frontier promotionEligible');
 
   const runtime = lock.runtime || {};
   const queryEmbeddingMode = requireText(runtime.queryEmbeddingMode, 'runtime.queryEmbeddingMode');
@@ -204,6 +217,8 @@ function main() {
   if (manifest.embedModel || manifest.reranker || manifest.runtime || manifest.runtimeOrder || manifest.cache) {
     fail('intent manifest must not duplicate model runtime policy from the numbered lock');
   }
+  assertEqual(manifest.retrieval?.rerank, 'deterministic-until-qualified-model', 'intent manifest primitive rerank policy');
+  assertEqual(manifest.retrieval?.cards?.rerank, 'deterministic-until-qualified-model', 'intent manifest card rerank policy');
   const evidenceContract = readJson(EVIDENCE_CONTRACT_PATH);
   assertEqual(evidenceContract.schema, 'simulatte.intentEvidenceContract.v1', 'intent evidence contract schema');
   assertLockReference(

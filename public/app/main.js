@@ -301,13 +301,23 @@
       updateButtons(elements, false, Boolean(controller), status, hasJourneyStarted);
     }
 
-    elements.startButton.addEventListener('click', async () => {
+    const startRun = async () => {
       try {
         await runLoop();
       } catch (error) {
         stopLoop();
         failRuntime(elements, error);
       }
+    };
+    elements.startButton.addEventListener('click', startRun);
+    elements.resumeButton.addEventListener('click', startRun);
+    elements.newMissionButton.addEventListener('click', () => {
+      stopLoop();
+      controller = null;
+      hasJourneyStarted = false;
+      updateButtons(elements, false, false, 'active', false);
+      setRuntimeStatus(elements, 'Ready', 'changed');
+      elements.missionInput.focus();
     });
     elements.shuffleButton.addEventListener('click', () => {
       if (isRunning) return;
@@ -483,19 +493,19 @@
 
   function collectElements() {
     const ids = [
-      'mission-input', 'mission-error', 'place-resolution-lane', 'place-lane-note', 'shuffle-button', 'start-button', 'pause-button', 'step-button', 'reset-button', 'replay-button', 'what-if-button', 'export-button',
+      'mission-input', 'mission-error', 'place-resolution-lane', 'place-lane-note', 'shuffle-button', 'start-button', 'pause-button', 'resume-button', 'step-button', 'reset-button', 'replay-button', 'new-mission-button', 'what-if-button', 'export-button',
+      'dock-more-button', 'dock-more-menu',
       'runtime-status', 'runtime-toggle', 'runtime-details', 'runtime-details-close', 'render-identity', 'autonomy-canvas', 'follow-minimap', 'decision-title', 'decision-meta',
       'bet-list', 'gate-list', 'trace-list', 'route-formula', 'route-stats', 'route-components',
       'retrieval-query', 'retrieval-candidates', 'rerank-candidates', 'retrieval-stats', 'settlement-math',
       'reranker-proof', 'place-resolution-proof',
       'occurrence-stats', 'occurrence-patterns', 'occurrence-effects',
-      'metric-state', 'metric-tick', 'metric-time', 'metric-speed', 'metric-distance', 'metric-route', 'metric-bet', 'journey-progress-fill',
-      'metric-settlement', 'metric-calibration', 'camera-focus', 'camera-follow', 'camera-bird', 'camera-top',
+      'metric-state', 'metric-tick', 'metric-time', 'metric-speed', 'metric-distance', 'metric-route', 'metric-bet', 'journey-progress-fill', 'journey-hud',
+      'metric-settlement', 'metric-calibration', 'camera-focus', 'camera-focus-button', 'camera-focus-popover', 'camera-follow', 'camera-bird', 'camera-top',
       'planning-forecast', 'accessibility-proof', 'alternative-proof', 'ledger-proof', 'policy-arena-proof',
       'counterfactual-kind', 'counterfactual-street', 'counterfactual-snapshot', 'compare-button', 'export-ledger-button',
       'counterfactual-street-wrap', 'counterfactual-snapshot-wrap', 'import-receipt-button', 'import-receipt-file', 'counterfactual-proof',
-      'decisions-button', 'decisions-drawer', 'decisions-close', 'decisions-backdrop', 'what-if-section',
-      'map-panel-button', 'map-popover', 'map-panel-close',
+      'decisions-button', 'decisions-drawer', 'decisions-close', 'decisions-backdrop', 'journey-section', 'what-if-section',
       'cooperative-chip', 'cooperative-chip-title', 'cooperative-chip-meta', 'cooperative-section', 'cooperative-state',
       'cooperative-match', 'cooperative-burden', 'cooperative-reliability', 'cooperative-handoff', 'cooperative-settlement', 'cooperative-liquidity',
     ];
@@ -559,6 +569,11 @@
 
   function wireInterfaceControls(elements) {
     let lastDrawerTrigger = null;
+    const popovers = [
+      [elements.runtimeToggle, elements.runtimeDetails],
+      [elements.cameraFocusButton, elements.cameraFocusPopover],
+      [elements.dockMoreButton, elements.dockMoreMenu],
+    ];
 
     function setPopover(button, panel, open) {
       panel.hidden = !open;
@@ -566,8 +581,9 @@
     }
 
     function closeTransientPopovers(except = null) {
-      if (except !== 'runtime') setPopover(elements.runtimeToggle, elements.runtimeDetails, false);
-      if (except !== 'map') setPopover(elements.mapPanelButton, elements.mapPopover, false);
+      popovers.forEach(([button, panel]) => {
+        if (button !== except) setPopover(button, panel, false);
+      });
     }
 
     function openDecisions(sectionId = null) {
@@ -579,7 +595,9 @@
       elements.decisionsBackdrop.hidden = false;
       if (sectionId) {
         const section = document.getElementById(sectionId);
-        if (section?.tagName === 'DETAILS') section.open = true;
+        for (let node = section; node && node !== elements.decisionsDrawer; node = node.parentElement) {
+          if (node.tagName === 'DETAILS') node.open = true;
+        }
         section?.scrollIntoView({ block: 'start' });
       }
       window.setTimeout(() => elements.decisionsClose.focus(), 0);
@@ -593,18 +611,30 @@
       if (restoreFocus && lastDrawerTrigger instanceof HTMLElement) lastDrawerTrigger.focus();
     }
 
-    elements.runtimeToggle.addEventListener('click', () => {
-      const open = elements.runtimeDetails.hidden;
-      closeTransientPopovers(open ? 'runtime' : null);
-      setPopover(elements.runtimeToggle, elements.runtimeDetails, open);
-    });
+    popovers.forEach(([button, panel]) => button.addEventListener('click', () => {
+      const open = panel.hidden;
+      closeTransientPopovers(open ? button : null);
+      setPopover(button, panel, open);
+    }));
     elements.runtimeDetailsClose.addEventListener('click', () => setPopover(elements.runtimeToggle, elements.runtimeDetails, false));
-    elements.mapPanelButton.addEventListener('click', () => {
-      const open = elements.mapPopover.hidden;
-      closeTransientPopovers(open ? 'map' : null);
-      setPopover(elements.mapPanelButton, elements.mapPopover, open);
+    elements.dockMoreMenu.addEventListener('click', (event) => {
+      if (event.target.closest('button')) setPopover(elements.dockMoreButton, elements.dockMoreMenu, false);
     });
-    elements.mapPanelClose.addEventListener('click', () => setPopover(elements.mapPanelButton, elements.mapPopover, false));
+    elements.cameraFocus.addEventListener('change', () => setPopover(elements.cameraFocusButton, elements.cameraFocusPopover, false));
+    const sections = Array.from(elements.decisionsDrawer.querySelectorAll(':scope > details.evidence-section'));
+    sections.forEach((section) => section.addEventListener('toggle', () => {
+      if (!section.open) return;
+      sections.forEach((other) => {
+        if (other !== section) other.open = false;
+      });
+    }));
+    const openJourney = () => openDecisions('journey-section');
+    elements.journeyHud.addEventListener('click', openJourney);
+    elements.journeyHud.addEventListener('keydown', (event) => {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      event.preventDefault();
+      openJourney();
+    });
     elements.decisionsButton.addEventListener('click', () => openDecisions());
     elements.decisionsClose.addEventListener('click', () => closeDecisions());
     elements.decisionsBackdrop.addEventListener('click', () => closeDecisions());
@@ -614,12 +644,9 @@
       else closeTransientPopovers();
     });
     document.addEventListener('pointerdown', (event) => {
-      if (!elements.runtimeDetails.hidden && !elements.runtimeDetails.contains(event.target) && !elements.runtimeToggle.contains(event.target)) {
-        setPopover(elements.runtimeToggle, elements.runtimeDetails, false);
-      }
-      if (!elements.mapPopover.hidden && !elements.mapPopover.contains(event.target) && !elements.mapPanelButton.contains(event.target)) {
-        setPopover(elements.mapPanelButton, elements.mapPopover, false);
-      }
+      popovers.forEach(([button, panel]) => {
+        if (!panel.hidden && !panel.contains(event.target) && !button.contains(event.target)) setPopover(button, panel, false);
+      });
     });
     return { closeDecisions, openDecisions };
   }
@@ -691,10 +718,15 @@
     elements.shuffleButton.hidden = phase !== 'ready';
     elements.startButton.hidden = phase !== 'ready';
     elements.pauseButton.hidden = !running;
+    elements.resumeButton.hidden = phase !== 'paused';
     elements.stepButton.hidden = !['running', 'paused'].includes(phase);
     elements.resetButton.hidden = !['running', 'paused'].includes(phase);
     elements.replayButton.hidden = !['completed', 'failed'].includes(phase);
+    elements.newMissionButton.hidden = !['completed', 'failed'].includes(phase);
     elements.whatIfButton.hidden = phase !== 'completed';
+    elements.dockMoreButton.hidden = !['running', 'paused', 'completed'].includes(phase);
+    elements.dockMoreMenu.hidden = true;
+    elements.dockMoreButton.setAttribute('aria-expanded', 'false');
   }
 
   function setRuntimeStatus(elements, text, kind) {

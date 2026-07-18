@@ -158,6 +158,33 @@
   outline: none;
 }
 
+.sim-menu {
+  display: grid;
+  gap: 2px;
+  min-width: 176px;
+  padding: 6px;
+}
+
+.sim-menu > button {
+  display: flex;
+  min-height: 40px;
+  align-items: center;
+  border: 0;
+  border-radius: 8px;
+  padding: 0 12px;
+  color: var(--sim-ink);
+  background: transparent;
+  font: 600 12px/1 var(--sim-font);
+  text-align: left;
+  cursor: pointer;
+}
+
+.sim-menu > button:hover,
+.sim-menu > button:focus-visible {
+  background: rgba(23, 32, 29, 0.07);
+  outline: none;
+}
+
 .sim-field {
   width: 100%;
   border: 1px solid var(--sim-line);

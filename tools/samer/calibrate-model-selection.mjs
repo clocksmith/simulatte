@@ -7,7 +7,9 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import {
   CLASSIFICATION_CALIBRATION_SCHEMA,
+  populationRowFingerprints,
   RETRIEVAL_CALIBRATION_SCHEMA,
+  validateCalibrationPopulationContract,
 } from './model-selection-calibration.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
@@ -16,7 +18,9 @@ const POLICY_PATH = path.join(ROOT, 'tools/samer/model-selection-policy.json');
 const REGISTRY_PATH = path.join(ROOT, 'tools/samer/model-candidate-registry.json');
 
 export function calibrateClassification(population, predictionsById, jobs, policy) {
-  validatePopulation(population, 'classification');
+  const partition = validateCalibrationPopulationContract(population, 'classification', policy);
+  const developmentIds = new Set(partition.development.rowIds);
+  const validationIds = new Set(partition.validation.rowIds);
   const candidates = {};
   for (const [candidateId, envelope] of Object.entries(predictionsById)) {
     validateEnvelope(envelope, candidateId, population);
@@ -25,13 +29,21 @@ export function calibrateClassification(population, predictionsById, jobs, polic
     let eligible = true;
     for (const job of jobs.jobs) {
       const rows = population.rows.filter((row) => row.headId === job.id);
-      const trials = thresholdCandidates(rows.map((row) => Number(byId.get(row.id)?.confidence || 0)))
-        .map((threshold) => classificationMetrics(rows, byId, job, threshold));
+      const developmentRows = rows.filter((row) => developmentIds.has(row.id));
+      const validationRows = rows.filter((row) => validationIds.has(row.id));
+      const trials = thresholdCandidates(developmentRows.map((row) => Number(byId.get(row.id)?.confidence || 0)))
+        .map((threshold) => classificationMetrics(developmentRows, byId, job, threshold));
       const passing = trials.filter((row) => classificationPasses(row, job.qualityFloor));
       const selected = (passing.length ? passing : trials).sort(classificationOrder)[0];
-      const clearsCalibrationGate = classificationPasses(selected, job.qualityFloor);
+      const validationMetrics = classificationMetrics(validationRows, byId, job, selected.minimumConfidence);
+      const clearsCalibrationGate = classificationPasses(validationMetrics, job.qualityFloor);
       eligible = eligible && clearsCalibrationGate;
-      heads[job.id] = { ...selected, clearsCalibrationGate };
+      heads[job.id] = {
+        minimumConfidence: selected.minimumConfidence,
+        developmentMetrics: metricValues(selected, ['minimumConfidence']),
+        validationMetrics: metricValues(validationMetrics, ['minimumConfidence']),
+        clearsCalibrationGate,
+      };
     }
     candidates[candidateId] = { eligible, heads };
   }
@@ -41,12 +53,15 @@ export function calibrateClassification(population, predictionsById, jobs, polic
     policyId: policy.id,
     createdAt: new Date().toISOString(),
     population: populationReceipt(population),
+    partition,
     candidates,
   };
 }
 
 export function calibrateRetrieval(population, predictionsById, cascades, policy) {
-  validatePopulation(population, 'embedding-retrieval');
+  const partition = validateCalibrationPopulationContract(population, 'embedding-retrieval', policy);
+  const developmentIds = new Set(partition.development.rowIds);
+  const validationIds = new Set(partition.validation.rowIds);
   const taskPolicy = policy.requiredTasks.find((row) => row.id === 'embedding-retrieval');
   const lexicalById = new Map();
   const results = {};
@@ -58,14 +73,17 @@ export function calibrateRetrieval(population, predictionsById, cascades, policy
     lexical.rows.forEach((row) => lexicalById.set(row.id, row));
     const recallById = new Map(recall.rows.map((row) => [row.id, row]));
     const signalRows = population.rows.map((gold) => ({
+      id: gold.id,
       mustRefuse: gold.mustRefuse === true,
       ...signals(lexicalById.get(gold.id), recallById.get(gold.id)),
     }));
+    const developmentRows = signalRows.filter((row) => developmentIds.has(row.id));
+    const validationRows = signalRows.filter((row) => validationIds.has(row.id));
     const grids = {
-      lexicalTop: thresholdCandidates(signalRows.map((row) => row.lexicalTopScore), 9),
-      lexicalMargin: thresholdCandidates(signalRows.map((row) => row.lexicalMargin), 9),
-      recallTop: thresholdCandidates(signalRows.map((row) => row.recallTopScore), 9),
-      recallMargin: thresholdCandidates(signalRows.map((row) => row.recallMargin), 9),
+      lexicalTop: thresholdCandidates(developmentRows.map((row) => row.lexicalTopScore), 9),
+      lexicalMargin: thresholdCandidates(developmentRows.map((row) => row.lexicalMargin), 9),
+      recallTop: thresholdCandidates(developmentRows.map((row) => row.recallTopScore), 9),
+      recallMargin: thresholdCandidates(developmentRows.map((row) => row.recallMargin), 9),
     };
     const trials = [];
     for (const minimumLexicalTopScore of grids.lexicalTop) {
@@ -73,20 +91,22 @@ export function calibrateRetrieval(population, predictionsById, cascades, policy
         for (const minimumRecallTopScore of grids.recallTop) {
           for (const minimumRecallMargin of grids.recallMargin) {
             const rule = { minimumLexicalTopScore, minimumLexicalMargin, minimumRecallTopScore, minimumRecallMargin };
-            trials.push({ ...rule, calibrationMetrics: retrievalMetrics(signalRows, rule) });
+            trials.push({ ...rule, developmentMetrics: retrievalMetrics(developmentRows, rule) });
           }
         }
       }
     }
     const floor = policy.retrievalRefusalCascade.calibrationFloor;
-    const passing = trials.filter((row) => retrievalPasses(row.calibrationMetrics, floor));
+    const passing = trials.filter((row) => retrievalPasses(row.developmentMetrics, floor));
     const selected = (passing.length ? passing : trials).sort(retrievalOrder)[0];
+    const validationMetrics = retrievalMetrics(validationRows, selected);
     results[cascade.id] = {
       id: `${cascade.id}-deterministic-refusal-rule-v1`,
       refusalGateCandidateId: cascade.refusalGateCandidateId,
       recallCandidateId: cascade.recallCandidateId,
       ...selected,
-      clearsCalibrationGate: retrievalPasses(selected.calibrationMetrics, floor),
+      calibrationMetrics: validationMetrics,
+      clearsCalibrationGate: retrievalPasses(validationMetrics, floor),
       sealedQualityFloor: { ...taskPolicy.qualityFloor },
     };
   }
@@ -96,6 +116,7 @@ export function calibrateRetrieval(population, predictionsById, cascades, policy
     policyId: policy.id,
     createdAt: new Date().toISOString(),
     population: populationReceipt(population),
+    partition,
     cascades: results,
   };
 }
@@ -217,9 +238,9 @@ function classificationOrder(left, right) {
 }
 
 function retrievalOrder(left, right) {
-  return right.calibrationMetrics.mustRefuseAccuracy - left.calibrationMetrics.mustRefuseAccuracy
-    || right.calibrationMetrics.refusalPrecision - left.calibrationMetrics.refusalPrecision
-    || right.calibrationMetrics.answerableAcceptance - left.calibrationMetrics.answerableAcceptance
+  return right.developmentMetrics.mustRefuseAccuracy - left.developmentMetrics.mustRefuseAccuracy
+    || right.developmentMetrics.refusalPrecision - left.developmentMetrics.refusalPrecision
+    || right.developmentMetrics.answerableAcceptance - left.developmentMetrics.answerableAcceptance
     || left.minimumLexicalTopScore - right.minimumLexicalTopScore
     || left.minimumRecallTopScore - right.minimumRecallTopScore;
 }
@@ -249,7 +270,13 @@ function populationReceipt(population) {
     promotionEligible: false,
     rowCount: population.rows.length,
     sha256: digest(bytes),
+    fingerprintSchema: 'simulatte.modelSelectionRowFingerprint.v1',
+    rowFingerprints: populationRowFingerprints(population, population.task).sort(),
   };
+}
+
+function metricValues(row, excluded = []) {
+  return Object.fromEntries(Object.entries(row).filter(([key]) => !excluded.includes(key)));
 }
 
 function f1(rows, label) {
@@ -304,6 +331,7 @@ function main() {
   const jobs = JSON.parse(fs.readFileSync(JOBS_PATH, 'utf8'));
   const policy = JSON.parse(fs.readFileSync(POLICY_PATH, 'utf8'));
   const registry = JSON.parse(fs.readFileSync(REGISTRY_PATH, 'utf8'));
+  validateCalibrationPopulationContract(population, options.task, policy);
   const requested = options.candidates.length
     ? options.candidates
     : registry.tasks[options.task].filter((row) => row.evaluationEligible).map((row) => row.id);

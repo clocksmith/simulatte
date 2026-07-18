@@ -25,48 +25,7 @@
           <div id="runtime-details" class="runtime-details sim-popover" hidden>
             <span class="sim-label">This device</span>
             <span id="render-identity">Waiting for renderer</span>
-            <button id="runtime-details-close" class="quiet-action" type="button">Close</button>
-          </div>
-        </div>
-
-        <div class="camera-controls" aria-label="Camera controls">
-          <label class="camera-focus-label" for="camera-focus">
-            <span class="sr-only">Map focus</span>
-            <select id="camera-focus" class="sim-field" aria-label="Map focus">
-              <option value="route">Full route</option>
-            </select>
-          </label>
-          <div class="camera-modes sim-segmented">
-            <button id="camera-follow" type="button" aria-pressed="false">Follow</button>
-            <button id="camera-bird" class="is-active" type="button" aria-pressed="true">Bird</button>
-            <button id="camera-top" type="button" aria-pressed="false">Top</button>
-          </div>
-        </div>
-
-        <section class="journey-hud sim-surface" aria-label="Journey progress">
-          <div class="journey-progress" aria-hidden="true"><span id="journey-progress-fill"></span></div>
-          <div class="journey-hud-line">
-            <strong id="metric-state">active</strong>
-            <span id="metric-distance">0 m</span>
-            <span id="metric-time">0:00</span>
-            <span id="metric-speed">0 m/s</span>
-          </div>
-          <div class="hud-contract-values sr-only" aria-hidden="true">
-            <span id="metric-tick">0</span>
-            <span id="metric-route">unplanned</span>
-            <span id="metric-bet">none</span>
-            <span id="metric-settlement">none</span>
-            <span id="metric-calibration">0 / 0</span>
-          </div>
-        </section>
-
-        <div class="map-anchor">
-          <button id="map-panel-button" class="sim-action map-button" type="button" aria-controls="map-popover" aria-expanded="false">Map</button>
-          <div id="map-popover" class="map-popover sim-popover" hidden>
-            <div class="map-popover-head">
-              <strong>Map</strong>
-              <button id="map-panel-close" class="quiet-action" type="button">Close</button>
-            </div>
+            <span class="sim-label">Map</span>
             <div class="legend" aria-label="Map legend">
               <span><i class="building"></i>Buildings</span>
               <span><i class="park"></i>Parks</span>
@@ -83,8 +42,45 @@
               <p>Park circuits follow property boundaries, not surveyed sidewalks. Traffic, signals, risk, and outcomes are simulated.</p>
             </details>
             <a class="blank-link" href="/blank/" aria-label="Open Blank world compiler">Blank</a>
+            <button id="runtime-details-close" class="quiet-action" type="button">Close</button>
           </div>
         </div>
+
+        <div class="camera-controls" aria-label="Camera controls">
+          <div class="camera-focus-anchor">
+            <button id="camera-focus-button" class="sim-action" type="button" aria-controls="camera-focus-popover" aria-expanded="false">Focus</button>
+            <div id="camera-focus-popover" class="camera-focus-popover sim-popover" hidden>
+              <label class="camera-focus-label" for="camera-focus">
+                <span class="sim-label">Map focus</span>
+                <select id="camera-focus" class="sim-field" aria-label="Map focus">
+                  <option value="route">Full route</option>
+                </select>
+              </label>
+            </div>
+          </div>
+          <div class="camera-modes sim-segmented">
+            <button id="camera-follow" type="button" aria-pressed="false">Follow</button>
+            <button id="camera-bird" class="is-active" type="button" aria-pressed="true">Bird</button>
+            <button id="camera-top" type="button" aria-pressed="false">Top</button>
+          </div>
+        </div>
+
+        <section id="journey-hud" class="journey-hud sim-surface" role="button" tabindex="0" aria-label="Journey progress. Open decision details." title="Open decision details">
+          <div class="journey-progress" aria-hidden="true"><span id="journey-progress-fill"></span></div>
+          <div class="journey-hud-line">
+            <strong id="metric-state">active</strong>
+            <span id="metric-distance">0 m</span>
+            <span id="metric-time">0:00</span>
+          </div>
+          <div class="hud-contract-values sr-only" aria-hidden="true">
+            <span id="metric-speed">0 m/s</span>
+            <span id="metric-tick">0</span>
+            <span id="metric-route">unplanned</span>
+            <span id="metric-bet">none</span>
+            <span id="metric-settlement">none</span>
+            <span id="metric-calibration">0 / 0</span>
+          </div>
+        </section>
 
         <button id="decisions-button" class="sim-action decisions-button" type="button" aria-controls="decisions-drawer" aria-expanded="false">Decisions</button>
 
@@ -102,12 +98,19 @@
             <button id="shuffle-button" class="sim-action" type="button">Shuffle<span aria-hidden="true">↻</span></button>
             <button id="start-button" class="sim-action sim-action-primary" type="button"><span class="play-mark" aria-hidden="true"></span>Start</button>
             <button id="pause-button" class="sim-action" type="button" hidden>Pause</button>
-            <button id="step-button" class="sim-action" type="button" hidden>Step</button>
-            <button id="reset-button" class="sim-action" type="button" hidden>Reset</button>
+            <button id="resume-button" class="sim-action sim-action-primary" type="button" hidden><span class="play-mark" aria-hidden="true"></span>Resume</button>
             <button id="replay-button" class="sim-action sim-action-primary" type="button" hidden>Replay</button>
-            <button id="what-if-button" class="sim-action" type="button" hidden>What if</button>
-            <label class="neural-mode-toggle" for="place-resolution-lane" title="Use local Qwen place matching">
-              <span>Qwen</span>
+            <button id="new-mission-button" class="sim-action" type="button" hidden>New mission</button>
+            <div class="dock-more-anchor">
+              <button id="dock-more-button" class="sim-action" type="button" aria-controls="dock-more-menu" aria-expanded="false" aria-label="More controls" hidden>⋯</button>
+              <div id="dock-more-menu" class="dock-more-menu sim-popover sim-menu" hidden>
+                <button id="step-button" type="button" hidden>Step one tick</button>
+                <button id="reset-button" type="button" hidden>Reset run</button>
+                <button id="what-if-button" type="button" hidden>What if</button>
+              </div>
+            </div>
+            <label class="neural-mode-toggle" for="place-resolution-lane" title="Local semantic place matching with the on-device Qwen embedding">
+              <span>Smart match</span>
               <input id="place-resolution-lane" type="checkbox" role="switch" aria-describedby="place-lane-note">
             </label>
             <span id="place-lane-note" class="sr-only">Deterministic matching is active.</span>
@@ -127,15 +130,16 @@
         <button id="decisions-close" class="drawer-close" type="button" aria-label="Close decisions">×</button>
       </header>
 
-      <details class="evidence-section journey-evidence" open>
-        <summary>Journey</summary>
+      <details id="journey-section" class="evidence-section journey-evidence" open>
+        <summary>Journey <span id="route-stats">Not planned</span></summary>
         <dl class="journey-facts">
           <div><dt>Forecast</dt><dd id="planning-forecast">Not planned</dd></div>
           <div><dt>Accessibility</dt><dd id="accessibility-proof">Not requested</dd></div>
           <div><dt>Alternative</dt><dd id="alternative-proof">Not planned</dd></div>
           <div><dt>Settled locally</dt><dd id="ledger-proof">0 trials</dd></div>
-          <div><dt>Policy</dt><dd id="policy-arena-proof">Loading evidence</dd></div>
         </dl>
+        <code id="route-formula">cost = travel + risk + preference</code>
+        <div id="route-components" class="component-line"></div>
       </details>
 
       <details id="cooperative-section" class="evidence-section cooperation-evidence" hidden open>
@@ -150,79 +154,75 @@
         </dl>
       </details>
 
-      <details class="evidence-section route-evidence" open>
-        <summary>Route <span id="route-stats">Not planned</span></summary>
-        <code id="route-formula">cost = travel + risk + preference</code>
-        <div id="route-components" class="component-line"></div>
-      </details>
-
-      <details class="evidence-section retrieval-evidence">
-        <summary>Place and feature matching <span id="retrieval-stats">No query</span></summary>
-        <div class="pipeline-row"><span>Query</span><div id="retrieval-query">Waiting for observation</div></div>
-        <div class="pipeline-row"><span>Found</span><div id="retrieval-candidates">No candidates</div></div>
-        <div class="pipeline-row"><span>Ranked</span><div id="rerank-candidates">No ranking</div></div>
-        <p id="reranker-proof" class="evidence-proof">Diagnostic comparison loading</p>
-        <p id="place-resolution-proof" class="evidence-proof">Fast place matching</p>
-      </details>
-
-      <details class="evidence-section occurrence-evidence">
-        <summary>World events <span id="occurrence-stats">No patterns evaluated</span></summary>
-        <div class="pipeline-row"><span>Active</span><div id="occurrence-patterns">No active pattern</div></div>
-        <div class="pipeline-row"><span>Effects</span><div id="occurrence-effects">No world effect</div></div>
-      </details>
-
-      <details class="evidence-section action-evidence">
-        <summary>Candidate actions</summary>
+      <details id="decision-section" class="evidence-section action-evidence">
+        <summary>Decision</summary>
+        <span class="sim-label">Candidate actions</span>
         <div id="bet-list" class="bet-list" aria-label="Candidate actions"></div>
-      </details>
-
-      <details class="evidence-section gate-evidence">
-        <summary>Safety</summary>
+        <span class="sim-label">Safety</span>
         <div id="gate-list" class="gate-list"></div>
-      </details>
-
-      <details class="evidence-section settlement-evidence">
-        <summary>Prediction check</summary>
+        <span class="sim-label">Prediction check</span>
         <div id="settlement-math" class="settlement-math">No settled prediction</div>
       </details>
 
-      <details id="what-if-section" class="evidence-section what-if-section">
-        <summary>What if</summary>
-        <div class="counterfactual-controls">
-          <label for="counterfactual-kind"><span>Change</span>
-            <select id="counterfactual-kind" class="sim-field">
-              <option value="close_street">Close a street</option>
-              <option value="historical_crash_weighting">Weight reported crashes</option>
-              <option value="world_snapshot">Replay a dated world</option>
-            </select>
-          </label>
-          <label id="counterfactual-street-wrap" for="counterfactual-street"><span>Street</span><input id="counterfactual-street" class="sim-field" value="Bedford Avenue" autocomplete="off"></label>
-          <label id="counterfactual-snapshot-wrap" for="counterfactual-snapshot" hidden><span>Date</span><input id="counterfactual-snapshot" class="sim-field" type="date" value="2019-07-13" disabled></label>
-          <button id="compare-button" class="sim-action" type="button">Compare</button>
-        </div>
-        <output id="counterfactual-proof" class="counterfactual-proof">Choose one change and compare the same mission.</output>
-      </details>
+      <details id="advanced-section" class="evidence-section advanced-evidence">
+        <summary>Advanced</summary>
+        <details class="evidence-section retrieval-evidence">
+          <summary>Place and feature matching <span id="retrieval-stats">No query</span></summary>
+          <div class="pipeline-row"><span>Query</span><div id="retrieval-query">Waiting for observation</div></div>
+          <div class="pipeline-row"><span>Found</span><div id="retrieval-candidates">No candidates</div></div>
+          <div class="pipeline-row"><span>Ranked</span><div id="rerank-candidates">No ranking</div></div>
+          <p id="reranker-proof" class="evidence-proof">Diagnostic comparison loading</p>
+          <p id="place-resolution-proof" class="evidence-proof">Fast place matching</p>
+        </details>
 
-      <details class="evidence-section receipt-evidence">
-        <summary>Receipts</summary>
-        <div class="receipt-actions">
-          <button id="export-button" class="sim-action" type="button" disabled>Export journey</button>
-          <button id="export-ledger-button" class="sim-action" type="button">Export ledger</button>
-          <button id="import-receipt-button" class="sim-action" type="button">Import</button>
-          <input id="import-receipt-file" type="file" accept="application/json,.json" hidden>
-        </div>
-        <div id="trace-list" class="trace-list" aria-live="polite"></div>
+        <details class="evidence-section occurrence-evidence">
+          <summary>World events <span id="occurrence-stats">No patterns evaluated</span></summary>
+          <div class="pipeline-row"><span>Active</span><div id="occurrence-patterns">No active pattern</div></div>
+          <div class="pipeline-row"><span>Effects</span><div id="occurrence-effects">No world effect</div></div>
+        </details>
+
+        <details class="evidence-section policy-evidence">
+          <summary>Policy arena</summary>
+          <p id="policy-arena-proof" class="evidence-proof">Loading evidence</p>
+        </details>
+
+        <details id="what-if-section" class="evidence-section what-if-section">
+          <summary>What if</summary>
+          <div class="counterfactual-controls">
+            <label for="counterfactual-kind"><span>Change</span>
+              <select id="counterfactual-kind" class="sim-field">
+                <option value="close_street">Close a street</option>
+                <option value="historical_crash_weighting">Weight reported crashes</option>
+                <option value="world_snapshot">Replay a dated world</option>
+              </select>
+            </label>
+            <label id="counterfactual-street-wrap" for="counterfactual-street"><span>Street</span><input id="counterfactual-street" class="sim-field" value="Bedford Avenue" autocomplete="off"></label>
+            <label id="counterfactual-snapshot-wrap" for="counterfactual-snapshot" hidden><span>Date</span><input id="counterfactual-snapshot" class="sim-field" type="date" value="2019-07-13" disabled></label>
+            <button id="compare-button" class="sim-action" type="button">Compare</button>
+          </div>
+          <output id="counterfactual-proof" class="counterfactual-proof">Choose one change and compare the same mission.</output>
+        </details>
+
+        <details class="evidence-section receipt-evidence">
+          <summary>Receipts</summary>
+          <div class="receipt-actions">
+            <button id="export-button" class="sim-action" type="button" disabled>Export journey</button>
+            <button id="export-ledger-button" class="sim-action" type="button">Export ledger</button>
+            <button id="import-receipt-button" class="sim-action" type="button">Import</button>
+            <input id="import-receipt-file" type="file" accept="application/json,.json" hidden>
+          </div>
+          <div id="trace-list" class="trace-list" aria-live="polite"></div>
+        </details>
       </details>
     </aside>
   </main>
 
   <dialog id="neural-model-dialog" class="neural-consent-dialog" aria-labelledby="neural-model-title">
     <div class="neural-consent-body">
-      <h2 id="neural-model-title">Enable local Qwen models?</h2>
+      <h2 id="neural-model-title">Enable local Qwen embedding?</h2>
       <p data-neural-model="surface-use">Simulatte uses the embedder only when deterministic place matching refuses.</p>
       <div class="neural-model-list" aria-label="Models stored on this device">
         <div class="neural-model-row"><span data-neural-model="embedding-name">Qwen embedding</span><span data-neural-model="embedding-size">Loading size</span></div>
-        <div class="neural-model-row"><span data-neural-model="reranker-name">Qwen reranker</span><span data-neural-model="reranker-size">Loading size</span></div>
       </div>
       <p class="neural-consent-facts"><span data-neural-model="download-summary">Model sizes loading</span>. Runs locally through Doppler <span data-neural-model="doppler-version"></span>. Model files are cached on this device; mission text stays in this browser.</p>
       <div class="neural-consent-actions">

@@ -236,8 +236,8 @@
           if (!manifest.retrieval || manifest.retrieval.kind !== 'precomputed-primitive-index') {
             throw new Error('intent manifest retrieval must be a precomputed primitive index');
           }
-          if (manifest.retrieval.rerank !== 'mandatory') {
-            throw new Error('intent manifest must require rerank');
+          if (manifest.retrieval.rerank !== 'deterministic-until-qualified-model') {
+            throw new Error('intent manifest retrieval must use deterministic reranking until a model is qualified');
           }
           const reranker = rerankerConfig(manifest);
           if (reranker.enabled && reranker.schema !== 'simulatte.intentRerankerConfig.v1') {
@@ -271,6 +271,9 @@
             }
             if (Number(manifest.retrieval.cards.dimensions) !== dimensions) {
               throw new Error('intent manifest card retrieval dimensions must match embedModel.dimensions');
+            }
+            if (manifest.retrieval.cards.rerank !== 'deterministic-until-qualified-model') {
+              throw new Error('intent manifest card retrieval must use deterministic reranking until a model is qualified');
             }
           }
           if (manifest.retrieval.universe && Number(manifest.retrieval.universe.dimensions) !== dimensions) {

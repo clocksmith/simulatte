@@ -173,7 +173,8 @@
             "environmentSha256": { "$ref": "#/$defs/hash" },
             "workloadSha256": { "$ref": "#/$defs/hash" },
             "cacheProtocolId": { "type": "string", "minLength": 1 },
-            "calibration": { "$ref": "#/$defs/receiptPointer" }
+            "calibration": { "$ref": "#/$defs/receiptPointer" },
+            "calibrationPromotionDisjointness": { "$ref": "#/$defs/calibrationDisjointness" }
           }
         }
       }
@@ -260,6 +261,32 @@
       "type": "number",
       "minimum": 0,
       "maximum": 1
+    },
+    "calibrationDisjointness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "calibrationPopulationId",
+        "promotionPopulationId",
+        "fingerprintSchema",
+        "calibrationRowCount",
+        "promotionRowCount",
+        "overlapCount",
+        "calibrationFingerprintsSha256",
+        "promotionFingerprintsSha256"
+      ],
+      "properties": {
+        "schema": { "const": "simulatte.calibrationPromotionDisjointnessReceipt.v1" },
+        "calibrationPopulationId": { "type": "string", "minLength": 1 },
+        "promotionPopulationId": { "type": "string", "minLength": 1 },
+        "fingerprintSchema": { "const": "simulatte.modelSelectionRowFingerprint.v1" },
+        "calibrationRowCount": { "type": "integer", "minimum": 1 },
+        "promotionRowCount": { "type": "integer", "minimum": 1 },
+        "overlapCount": { "const": 0 },
+        "calibrationFingerprintsSha256": { "$ref": "#/$defs/hash" },
+        "promotionFingerprintsSha256": { "$ref": "#/$defs/hash" }
+      }
     }
   }
 }

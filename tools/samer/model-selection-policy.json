@@ -105,7 +105,26 @@
     "promotionEligible": false,
     "mustBeDisjointFromPromotionPopulation": true,
     "candidateSpecificClassificationThresholds": true,
-    "sealedLabelsCannotTuneThresholds": true
+    "sealedLabelsCannotTuneThresholds": true,
+    "rowFingerprintSchema": "simulatte.modelSelectionRowFingerprint.v1",
+    "partitionSchema": "simulatte.calibrationPartitionReceipt.v1",
+    "partitionMethod": "content-fingerprint-stratified-v1",
+    "partitionSalt": "simulatte-calibration-partition-v1",
+    "validationFraction": 0.25,
+    "classification": {
+      "parameterCountPerHead": 1,
+      "minimumCalibrationRowsPerParameter": 25,
+      "minimumDevelopmentRowsPerParameter": 15,
+      "minimumValidationRowsPerParameter": 5
+    },
+    "retrievalRefusal": {
+      "parameterCount": 4,
+      "minimumCalibrationRowsPerParameter": 25,
+      "minimumDevelopmentRowsPerParameter": 15,
+      "minimumValidationRowsPerParameter": 5,
+      "minimumAnswerableRowsPerPartition": 10,
+      "minimumRefusalRowsPerPartition": 10
+    }
   },
   "retrievalRefusalCascade": {
     "promotionStatus": "blocked-until-calibrated-fresh-sealed-frontier",

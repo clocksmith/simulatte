@@ -237,7 +237,7 @@ async function runBrowserSmoke(options) {
         const disclosed = {
           title: dialog.querySelector('h2').textContent.trim(),
           embedding: dialog.querySelector('[data-neural-model="embedding-size"]').textContent.trim(),
-          reranker: dialog.querySelector('[data-neural-model="reranker-size"]').textContent.trim(),
+          rerankerRowAbsent: !dialog.querySelector('[data-neural-model="reranker-size"]'),
           total: dialog.querySelector('[data-neural-model="download-summary"]').textContent.trim(),
           use: dialog.querySelector('[data-neural-model="surface-use"]').textContent.trim(),
         };
@@ -346,11 +346,11 @@ async function runBrowserSmoke(options) {
       && result.copy.removedLabelsAbsent
       && result.copy.blankLink.href === '/blank/'
       && result.copy.blankLink.label === 'Blank'
-      && consentView.disclosed.title === 'Enable local Qwen models?'
+      && consentView.disclosed.title === 'Enable local Qwen embedding?'
       && consentView.disclosed.embedding === '533 MB'
-      && consentView.disclosed.reranker === '895 MB'
-      && consentView.disclosed.total === '533 MB on this page; 1.39 GB across Simulatte and Blank'
-      && consentView.disclosed.use.includes('embedder only')
+      && consentView.disclosed.rerankerRowAbsent
+      && consentView.disclosed.total === '533 MB for the embedding model'
+      && consentView.disclosed.use === 'Simulatte uses Qwen embeddings only when deterministic place matching refuses.'
       && consentView.grantRemembered
       && consentView.revoked
       && consentView.finalEnabled === false
@@ -554,7 +554,7 @@ function browserJourneyExpression() {
       const rect = element.getBoundingClientRect();
       return { id, hidden: element.hidden, left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom, width: rect.width, height: rect.height };
     };
-    const initialRects = ['runtime-toggle', 'camera-follow', 'camera-bird', 'camera-top', 'mission-input', 'shuffle-button', 'start-button', 'place-resolution-lane', 'map-panel-button', 'decisions-button'].map(rectFor);
+    const initialRects = ['runtime-toggle', 'camera-focus-button', 'camera-follow', 'camera-bird', 'camera-top', 'mission-input', 'shuffle-button', 'start-button', 'place-resolution-lane', 'decisions-button'].map(rectFor);
     const initialLayout = {
       viewport: viewportRect,
       rects: initialRects,

@@ -11,6 +11,8 @@ test('classification abstention is candidate/head calibrated outside the candida
   const heads = Object.fromEntries(jobs.jobs.map((job) => [job.id, {
     minimumConfidence: job.id === 'pose' ? 0.7 : 0.5,
     clearsCalibrationGate: true,
+    developmentMetrics: classificationMetricsFixture(),
+    validationMetrics: classificationMetricsFixture(),
   }]));
   const calibration = {
     schema: 'simulatte.classificationAbstentionCalibration.v1',
@@ -78,6 +80,15 @@ test('retrieval cascade keeps neural ranking while deterministic calibrated rule
 test('retrieval calibration finds a precise deterministic rule on a non-promotable split', async () => {
   const { calibrateRetrieval } = await import('../tools/samer/calibrate-model-selection.mjs');
   const policy = readJson('tools/samer/model-selection-policy.json');
+  policy.calibrationContract.retrievalRefusal = {
+    ...policy.calibrationContract.retrievalRefusal,
+    parameterCount: 1,
+    minimumCalibrationRowsPerParameter: 1,
+    minimumDevelopmentRowsPerParameter: 1,
+    minimumValidationRowsPerParameter: 1,
+    minimumAnswerableRowsPerPartition: 1,
+    minimumRefusalRowsPerPartition: 1,
+  };
   const cascades = [{ id: 'det-plus-neural', refusalGateCandidateId: 'det', recallCandidateId: 'neural' }];
   const population = {
     id: 'calibration-split',
@@ -85,10 +96,10 @@ test('retrieval calibration finds a precise deterministic rule on a non-promotab
     role: 'calibration',
     promotionEligible: false,
     rows: [
-      { id: 'answer-lexical', mustRefuse: false },
-      { id: 'answer-semantic', mustRefuse: false },
-      { id: 'refuse-one', mustRefuse: true },
-      { id: 'refuse-two', mustRefuse: true },
+      retrievalGoldRow('answer-lexical', false),
+      retrievalGoldRow('answer-semantic', false),
+      retrievalGoldRow('refuse-one', true),
+      retrievalGoldRow('refuse-two', true),
     ],
   };
   const predictions = {
@@ -151,14 +162,85 @@ test('calibration population cannot be reused as the promotion population', asyn
   );
 });
 
+test('different files cannot hide a duplicated calibration row from promotion', async () => {
+  const { assertCalibrationDisjoint, fingerprintPopulationRow } = await import('../tools/samer/model-selection-calibration.mjs');
+  const row = {
+    id: 'calibration-id',
+    query: 'find a shaded route',
+    candidates: [{ id: 'shade', text: 'shaded street', types: ['route'] }],
+    relevantIds: ['shade'],
+    hardNegativeIds: [],
+    mustRefuse: false,
+  };
+  const fingerprint = fingerprintPopulationRow(row, 'embedding-retrieval');
+  const calibration = {
+    population: {
+      id: 'calibration-file',
+      sha256: 'a'.repeat(64),
+      rowFingerprints: [fingerprint],
+    },
+  };
+  const promotion = {
+    id: 'different-file',
+    task: 'embedding-retrieval',
+    commitmentSha256: 'b'.repeat(64),
+    rows: [{ ...row, id: 'renamed-promotion-id' }],
+  };
+  assert.throws(() => assertCalibrationDisjoint(calibration, promotion, 'retrieval'), /overlap on 1 content fingerprint/);
+});
+
+test('parameter-scaled calibration floor rejects an undersized four-knob refusal fit', async () => {
+  const { validateCalibrationPopulationContract } = await import('../tools/samer/model-selection-calibration.mjs');
+  const policy = readJson('tools/samer/model-selection-policy.json');
+  const population = {
+    id: 'too-small',
+    task: 'embedding-retrieval',
+    role: 'calibration',
+    promotionEligible: false,
+    rows: [
+      retrievalGoldRow('a1', false),
+      retrievalGoldRow('a2', false),
+      retrievalGoldRow('r1', true),
+      retrievalGoldRow('r2', true),
+    ],
+  };
+  assert.throws(
+    () => validateCalibrationPopulationContract(population, 'embedding-retrieval', policy),
+    /cannot satisfy development and validation size floors|parameter-scaled size floor/
+  );
+});
+
 function calibrationPopulation(task) {
+  const rowCount = 10;
   return {
     id: `${task}-calibration`,
     task,
     role: 'calibration',
     promotionEligible: false,
-    rowCount: 10,
+    rowCount,
     sha256: 'a'.repeat(64),
+    fingerprintSchema: 'simulatte.modelSelectionRowFingerprint.v1',
+    rowFingerprints: Array.from({ length: rowCount }, (_, index) => index.toString(16).padStart(64, '0')),
+  };
+}
+
+function classificationMetricsFixture() {
+  return { macroF1: 0.95, coverage: 0.95, selectiveRisk: 0.01, expectedCalibrationError: 0.02 };
+}
+
+function retrievalGoldRow(id, mustRefuse) {
+  return {
+    id,
+    query: `query ${id}`,
+    candidates: [
+      { id: `candidate-${id}-1`, text: `candidate ${id} one`, types: [] },
+      { id: `candidate-${id}-2`, text: `candidate ${id} two`, types: [] },
+      { id: `candidate-${id}-3`, text: `candidate ${id} three`, types: [] },
+      { id: `candidate-${id}-4`, text: `candidate ${id} four`, types: [] },
+    ],
+    relevantIds: mustRefuse ? [] : [`candidate-${id}-1`],
+    hardNegativeIds: [],
+    mustRefuse,
   };
 }
 
