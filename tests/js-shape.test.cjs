@@ -2373,7 +2373,7 @@ test('Firebase hosting revalidates app lab and app JavaScript', () => {
     pkg.scripts['check:model-lock'],
     'npm run check:model-lock-references && node tools/check-model-runtime-lock.mjs && npm run check:doppler:development'
   );
-  assert.equal(pkg.scripts['check:autonomy'], 'npm run check:autonomy:derived && node tools/autonomy/check-autonomy-data.mjs && npm run samer:autonomy:check && npm run check:place-performance');
+  assert.equal(pkg.scripts['check:autonomy'], 'npm run check:autonomy:derived && npm run check:shade-data && node tools/autonomy/check-autonomy-data.mjs && npm run samer:autonomy:check && npm run check:place-performance');
   assert.equal(pkg.scripts['check:deploy'], 'npm run check:model-lock && npm run check:model-candidates && npm run check:model-populations && node tools/check-deploy-surface.mjs && npm run check:autonomy');
   assert.match(deployCheck, /public\/vendor\/doppler/);
   assert.match(deployCheck, /readModelRuntimeLock/);
@@ -2412,7 +2412,7 @@ test('Firebase hosting revalidates app lab and app JavaScript', () => {
   assert.ok(noCacheSources.has('/vendor/doppler/**'));
 });
 
-test('model-backed intent retrieval uses a 1024d Qwen index and required reranker', () => {
+test('model-backed intent retrieval uses a 1024d Qwen index and keeps the unqualified reranker disabled', () => {
   const manifestPath = path.join(root, 'public', 'data', 'simulatte-embedder', 'manifest.json');
   const indexPath = path.join(root, 'public', 'data', 'simulatte-embedder', 'primitive-index-v2.json');
   const cardIndexPath = path.join(root, 'public', 'data', 'simulatte-embedder', 'surface-card-index-qwen-v1.json');
@@ -2477,7 +2477,7 @@ test('model-backed intent retrieval uses a 1024d Qwen index and required reranke
   assert.equal(rawManifest.modelRuntimeLock.id, modelRuntimeLock.id);
   assert.equal(rawManifest.modelRuntimeLock.number, modelRuntimeLock.number);
   assert.equal(modelRuntimeLock.schema, 'simulatte.modelRuntimeLock.v1');
-  assert.equal(modelRuntimeLock.number, 7);
+  assert.equal(modelRuntimeLock.number, 8);
   assert.equal(Object.hasOwn(rawManifest, 'embedModel'), false);
   assert.equal(Object.hasOwn(rawManifest, 'reranker'), false);
 	  assert.equal(Object.hasOwn(rawManifest, 'runtime'), false);
@@ -2490,7 +2490,7 @@ test('model-backed intent retrieval uses a 1024d Qwen index and required reranke
 	    crypto.createHash('sha256').update(fs.readFileSync(indexPath)).digest('hex')
 	  );
 	  assert.equal(manifest.retrieval.dimensions, 1024);
-	  assert.equal(manifest.retrieval.rerank, 'mandatory');
+	  assert.equal(manifest.retrieval.rerank, 'deterministic-until-qualified-model');
 	  assert.equal(manifest.retrieval.cards.kind, 'precomputed-surface-card-index');
 	  assert.equal(manifest.retrieval.cards.artifact, './surface-card-index-qwen-v1.json');
 	  assert.equal(
@@ -2498,7 +2498,7 @@ test('model-backed intent retrieval uses a 1024d Qwen index and required reranke
 	    crypto.createHash('sha256').update(fs.readFileSync(cardIndexPath)).digest('hex')
 	  );
 	  assert.equal(manifest.retrieval.cards.dimensions, 1024);
-	  assert.equal(manifest.retrieval.cards.rerank, 'mandatory');
+	  assert.equal(manifest.retrieval.cards.rerank, 'deterministic-until-qualified-model');
 	  assert.equal(
 	    manifest.retrieval.intentEvidence.artifactHash.hex,
 	    crypto.createHash('sha256').update(fs.readFileSync(intentEvidencePath)).digest('hex')
@@ -2513,9 +2513,12 @@ test('model-backed intent retrieval uses a 1024d Qwen index and required reranke
   assert.equal(manifest.reranker.kind, 'doppler-reranker');
   assert.equal(manifest.reranker.phase, 3);
   assert.equal(manifest.reranker.executeInPhase, 3);
-  assert.equal(manifest.reranker.enabled, true);
-  assert.equal(manifest.reranker.required, true);
-  assert.equal(manifest.reranker.loadInPhase1WhenRequired, true);
+  assert.equal(manifest.reranker.enabled, false);
+  assert.equal(manifest.reranker.required, false);
+  assert.equal(manifest.reranker.loadInPhase1WhenRequired, false);
+  assert.equal(manifest.reranker.qualification.status, 'blocked-no-qualified-candidate');
+  assert.equal(manifest.reranker.qualification.selectedCandidateId, null);
+  assert.equal(manifest.reranker.qualification.promotionEligible, false);
   assert.equal(manifest.reranker.inputSchema, 'simulatte.intentRerankInput.v1');
   assert.equal(manifest.reranker.outputSchema, 'simulatte.intentRerank.v1');
   assert.equal(manifest.reranker.maxCandidatesPerCall, 8);
