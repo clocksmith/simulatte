@@ -10,6 +10,9 @@ tools/autonomy/data-sources/*/street-tiles/
 tools/autonomy/data-sources/*/nyc-manhattan-boundary.geojson.gz
 
 # Local credentials, dependencies, and browser state.
+# Vendored Doppler is generated from the pinned sibling package.
+# Restore with: npm run restore:doppler:development
+public/vendor/doppler/
 .env
 .env.*
 !.env.example

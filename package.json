@@ -52,6 +52,7 @@
     "sync:model-lock-references": "node tools/sync-model-runtime-lock-references.mjs --write",
     "check:model-lock-references": "node tools/sync-model-runtime-lock-references.mjs --check",
     "sync:doppler:development": "node tools/sync-doppler-development.mjs --write",
+    "restore:doppler:development": "node tools/sync-doppler-development.mjs --restore",
     "check:doppler:development": "node tools/sync-doppler-development.mjs --check",
     "check:model-lock": "npm run check:model-lock-references && node tools/check-model-runtime-lock.mjs && npm run check:doppler:development",
     "check:deploy": "npm run check:model-lock && npm run check:model-candidates && npm run check:model-populations && node tools/check-deploy-surface.mjs && npm run check:autonomy",

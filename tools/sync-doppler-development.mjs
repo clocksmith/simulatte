@@ -14,6 +14,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const VENDOR_ROOT = path.join(ROOT, 'public', 'vendor', 'doppler');
 const LIST_LIMIT = 20;
 const WRITE = process.argv.includes('--write');
+const RESTORE = process.argv.includes('--restore');
 
 function run(command, args, options = {}) {
   try {
@@ -139,7 +140,8 @@ function writeLock(lock) {
 }
 
 function main() {
-  if (WRITE && process.argv.includes('--check')) fail('choose either --write or --check');
+  const modeCount = [WRITE, RESTORE, process.argv.includes('--check')].filter(Boolean).length;
+  if (modeCount > 1) fail('choose one of --write, --restore, or --check');
   const lock = readModelRuntimeLock();
   const development = lock.doppler && lock.doppler.development || {};
   const packagePin = lock.doppler && lock.doppler.package || {};
@@ -181,7 +183,7 @@ function main() {
     run('tar', ['-xzf', path.join(packDir, entry.filename), '-C', packDir]);
     const packageRoot = path.join(packDir, 'package');
     const initial = compareTrees(packageRoot, VENDOR_ROOT);
-    if (WRITE && (initial.missing.length || initial.extra.length || initial.changed.length)) {
+    if ((WRITE || RESTORE) && (initial.missing.length || initial.extra.length || initial.changed.length)) {
       replaceVendorTree(packageRoot);
     }
     const comparison = compareTrees(packageRoot, VENDOR_ROOT);
@@ -206,7 +208,7 @@ function main() {
   } finally {
     fs.rmSync(tempDir, { recursive: true, force: true });
   }
-  const action = WRITE ? 'synced' : 'clean';
+  const action = WRITE ? 'synced' : RESTORE ? 'restored' : 'clean';
   console.log(`Doppler development source ${action}: lock #${lock.number} uses ${packagePin.name}@${packagePin.version} from ${sourceSha}.`);
 }
 
