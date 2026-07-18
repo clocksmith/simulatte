@@ -233,3 +233,6 @@
 232. Gold evaluations must bind each prompt to expected entities, counts, properties, relations, poses, environments, and a human-visible verdict.
 233. Human visual review receipts must bind the verdict to the prompt, build identity, scene packet identity, screenshot identity, and reviewer action.
 234. Optimization is complete only when the same required work passes correctness, semantic, visual, performance, and resource gates.
+235. Do not add new `with (scope)` shards or new RefactorScope globals; migrate existing scopes to explicit factory dependencies with statically visible parameters.
+236. Dependency gaps must throw during initialization; do not add silent missing-dependency returns.
+237. The refactor scope ratchet in `tests/js-shape.test.cjs` records current shard counts; counts may only decrease.

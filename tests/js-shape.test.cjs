@@ -86,6 +86,75 @@ test('public javascript keeps lines below the repository ceiling', () => {
   }
 });
 
+const REFACTOR_SCOPE_BASELINE = Object.freeze({
+  withScopeFiles: 104,
+  missingDependencyFiles: 109,
+  scopeNames: Object.freeze([
+    '__SimulatteCompositionGraphRefactorScope',
+    '__SimulatteGraphSynthesisRefactorScope',
+    '__SimulatteIntentEmbedderRefactorScope',
+    '__SimulatteLoadingCanvasRefactorScope',
+    '__SimulattePhysicsCatalogRefactorScope',
+    '__SimulattePhysicsIRRefactorScope',
+    '__SimulattePhysicsModelRefactorScope',
+    '__SimulattePhysicsRendererRefactorScope',
+    '__SimulatteReviewBridgeRefactorScope',
+    '__SimulatteRuntimeProgressRefactorScope',
+    '__SimulatteSemanticRagRefactorScope',
+    '__SimulatteWebGpuRendererRefactorScope',
+  ]),
+});
+
+test('refactor scope usage only shrinks toward explicit phase factories', () => {
+  const styleGuide = fs.readFileSync(path.join(root, 'STYLE_GUIDE.md'), 'utf8');
+
+  assert.match(styleGuide, /Do not add new `with \(scope\)` shards or new RefactorScope globals/);
+  assert.match(styleGuide, /Dependency gaps must throw during initialization/);
+
+  const files = [...new Set(publicRuntimeJsFiles())];
+  const withScopeFiles = [];
+  const missingDependencyFiles = [];
+  const scopeNames = new Set();
+
+  for (const file of files) {
+    const rel = path.relative(root, file);
+    const source = fs.readFileSync(file, 'utf8');
+    if (source.includes('with (scope)')) withScopeFiles.push(rel);
+    if (source.includes('missingDependency')) missingDependencyFiles.push(rel);
+    for (const match of source.matchAll(/__Simulatte[A-Za-z]*RefactorScope/g)) {
+      scopeNames.add(match[0]);
+    }
+  }
+
+  assert.ok(
+    withScopeFiles.length <= REFACTOR_SCOPE_BASELINE.withScopeFiles,
+    `with (scope) file count grew from ${REFACTOR_SCOPE_BASELINE.withScopeFiles} to ${withScopeFiles.length}; migrate to explicit factory dependencies instead`
+  );
+  assert.ok(
+    missingDependencyFiles.length <= REFACTOR_SCOPE_BASELINE.missingDependencyFiles,
+    `silent missingDependency guard count grew from ${REFACTOR_SCOPE_BASELINE.missingDependencyFiles} to ${missingDependencyFiles.length}; dependency gaps must throw during initialization`
+  );
+  for (const name of scopeNames) {
+    assert.ok(
+      REFACTOR_SCOPE_BASELINE.scopeNames.includes(name),
+      `new refactor scope ${name} is not allowed; use an explicit factory with named dependencies`
+    );
+  }
+});
+
+test('autonomy and shared surfaces stay free of refactor scope shards', () => {
+  const dirs = ['app', 'contracts', 'language', 'mission', 'runtime', 'verifier', 'world']
+    .map((dir) => path.join(publicDir, dir))
+    .filter((dir) => fs.existsSync(dir));
+
+  for (const file of dirs.flatMap((dir) => jsFiles(dir))) {
+    const rel = path.relative(root, file);
+    const source = fs.readFileSync(file, 'utf8');
+    assert.ok(!source.includes('with (scope)'), `${rel} uses with (scope)`);
+    assert.ok(!/__Simulatte[A-Za-z]*RefactorScope/.test(source), `${rel} registers a refactor scope`);
+  }
+});
+
 test('runtime source is owned by app, pipeline, data, and worker directories', () => {
   const expected = [
     'simulatte-physics-catalog.js',
