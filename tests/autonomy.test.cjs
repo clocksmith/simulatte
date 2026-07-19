@@ -1413,6 +1413,9 @@ test('loading mosaic loops a seven-segment snake through the clockwise grid spir
   assert.equal(tailFrames[0].transform, loadingMosaicApi.cellTransform([0, 0]));
   assert.equal(headFrames.find((frame) => frame.offset === loadingMosaicApi.TRAVEL_END).transform, loadingMosaicApi.cellTransform([3, 3]));
   assert.equal(tailFrames.find((frame) => frame.offset === loadingMosaicApi.COLLAPSE_END).transform, loadingMosaicApi.cellTransform([3, 3]));
+  assert.equal(headFrames.find((frame) => frame.offset === loadingMosaicApi.TRAVEL_END).opacity, 1);
+  assert.equal(tailFrames.find((frame) => frame.offset === loadingMosaicApi.TRAVEL_END).opacity, loadingMosaicApi.trailOpacity(6));
+  assert.deepEqual(loadingMosaicApi.TRAIL_OPACITIES, [1, 0.88, 0.76, 0.64, 0.52, 0.4, 0.3]);
   const tailTurnFrames = tailFrames.filter((frame) => frame.offset >= loadingMosaicApi.TURN_START && frame.offset <= loadingMosaicApi.TURN_END);
   assert.deepEqual(tailTurnFrames.map((frame) => frame.transform), [
     loadingMosaicApi.cellTransform([3, 3]),
@@ -1420,9 +1423,23 @@ test('loading mosaic loops a seven-segment snake through the clockwise grid spir
     loadingMosaicApi.cellTransform([1, 1]),
     loadingMosaicApi.cellTransform([0, 0]),
   ]);
+  const hopOffsets = tailTurnFrames.slice(1).map((frame) => frame.offset);
+  const hopIntervals = hopOffsets.map((offset, index) => offset - (index === 0 ? loadingMosaicApi.TURN_START : hopOffsets[index - 1]));
+  assert.ok(hopIntervals.every((interval) => Math.abs(interval - hopIntervals[0]) < Number.EPSILON));
   assert.deepEqual(loadingMosaicApi.rotationCycleKeyframes().map((frame) => frame.transform), [
     'rotate(0deg)', 'rotate(0deg)', 'rotate(-90deg)', 'rotate(-90deg)',
   ]);
+  assert.equal(loadingMosaicApi.rotationCycleKeyframes()[1].offset, loadingMosaicApi.TURN_START);
+  assert.equal(loadingMosaicApi.rotationCycleKeyframes()[2].offset, loadingMosaicApi.TURN_END);
+  const topColorFrames = loadingMosaicApi.snakeColorKeyframes(6);
+  assert.deepEqual([...topColorFrames].sort((left, right) => left.offset - right.offset), topColorFrames);
+  assert.deepEqual(topColorFrames.slice(1, 5).map((frame) => frame.color), [
+    'hsl(290 88% 62%)',
+    'hsl(210 88% 62%)',
+    'hsl(56 88% 62%)',
+    'hsl(0 88% 62%)',
+  ]);
+  assert.equal(topColorFrames[5].color, topColorFrames[6].color);
   assert.equal(headFrames.at(-1).transform, loadingMosaicApi.cellTransform([0, 0]));
   assert.equal(tailFrames.at(-1).transform, loadingMosaicApi.cellTransform([0, 0]));
 });

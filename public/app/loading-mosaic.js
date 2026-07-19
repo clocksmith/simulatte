@@ -13,10 +13,12 @@
   const CELL_GAP_PX = 2;
   const CYCLE_DURATION_MS = 5200;
   const ROYGBIV_HUES = Object.freeze([0, 28, 56, 120, 210, 250, 290]);
+  const TRAIL_OPACITIES = Object.freeze([1, 0.88, 0.76, 0.64, 0.52, 0.4, 0.3]);
   const TRAVEL_END = 0.66;
   const COLLAPSE_END = 0.75;
   const TURN_START = 0.77;
   const TURN_END = 0.92;
+  const COLOR_CYCLE_COUNT = ROYGBIV_HUES.length;
 
   function spiralCells(size) {
     if (!Number.isInteger(size) || size < 1) throw new Error(`Loading mosaic expected a positive integer size, received ${size}`);
@@ -50,6 +52,13 @@
     return `translate(calc(${x}% + ${gapX}px), calc(${y}% + ${gapY}px))`;
   }
 
+  function trailOpacity(segmentIndex) {
+    if (!Number.isInteger(segmentIndex) || segmentIndex < 0 || segmentIndex >= TRAIL_OPACITIES.length) {
+      throw new Error(`Loading mosaic expected a snake segment from 0 to ${TRAIL_OPACITIES.length - 1}, received ${segmentIndex}`);
+    }
+    return TRAIL_OPACITIES[segmentIndex];
+  }
+
   function snakeSegmentKeyframes({ path, segmentIndex, size }) {
     const lastIndex = path.length - 1;
     const center = Math.floor(size / 2);
@@ -58,6 +67,7 @@
       const pathIndex = Math.max(0, headIndex - segmentIndex);
       frames.push({
         transform: cellTransform(path[pathIndex]),
+        opacity: headIndex <= segmentIndex ? (segmentIndex === SNAKE_LENGTH - 1 ? 1 : 0) : trailOpacity(segmentIndex),
         offset: (headIndex / lastIndex) * TRAVEL_END,
         easing: 'steps(1, end)',
       });
@@ -66,20 +76,42 @@
       const pathIndex = Math.min(lastIndex, lastIndex - segmentIndex + collapseStep);
       frames.push({
         transform: cellTransform(path[pathIndex]),
+        opacity: collapseStep >= segmentIndex ? 1 : trailOpacity(segmentIndex),
         offset: TRAVEL_END + ((collapseStep / (SNAKE_LENGTH - 1)) * (COLLAPSE_END - TRAVEL_END)),
         easing: 'steps(1, end)',
       });
     }
-    frames.push({ transform: cellTransform([center, center]), offset: TURN_START, easing: 'steps(1, end)' });
+    frames.push({ transform: cellTransform([center, center]), opacity: 1, offset: TURN_START, easing: 'steps(1, end)' });
     for (let jump = 1; jump <= center; jump += 1) {
       const coordinate = center - jump;
       frames.push({
         transform: cellTransform([coordinate, coordinate]),
+        opacity: 1,
         offset: TURN_START + ((jump / center) * (TURN_END - TURN_START)),
         easing: 'steps(1, end)',
       });
     }
-    frames.push({ transform: cellTransform([0, 0]), offset: 1 });
+    frames.push({ transform: cellTransform([0, 0]), opacity: 1, offset: 1 });
+    return frames;
+  }
+
+  function colorAt(segmentIndex, cycleShift) {
+    const colorIndex = ((segmentIndex + cycleShift) % COLOR_CYCLE_COUNT + COLOR_CYCLE_COUNT) % COLOR_CYCLE_COUNT;
+    return `hsl(${ROYGBIV_HUES[colorIndex]} 88% 62%)`;
+  }
+
+  function snakeColorKeyframes(segmentIndex) {
+    const frames = [];
+    for (let cycle = 0; cycle < COLOR_CYCLE_COUNT; cycle += 1) {
+      const offset = (localOffset) => (cycle + localOffset) / COLOR_CYCLE_COUNT;
+      frames.push({ color: colorAt(segmentIndex, cycle), offset: offset(0), easing: 'steps(1, end)' });
+      frames.push({ color: colorAt(segmentIndex, cycle), offset: offset(TURN_START), easing: 'steps(1, end)' });
+      for (let jump = 1; jump <= 3; jump += 1) {
+        const jumpOffset = TURN_START + ((jump / 3) * (TURN_END - TURN_START));
+        frames.push({ color: colorAt(segmentIndex, cycle - (jump * 2)), offset: offset(jumpOffset), easing: 'steps(1, end)' });
+      }
+      frames.push({ color: colorAt(segmentIndex, cycle + 1), offset: offset(1), easing: 'steps(1, end)' });
+    }
     return frames;
   }
 
@@ -101,10 +133,11 @@
       snakeSegmentKeyframes({ path: configuration.path, segmentIndex, size: configuration.size }),
       timing
     ));
-    animations.push(grid.animate(rotationCycleKeyframes(), {
-      ...timing,
-      iterationComposite: 'accumulate',
-    }));
+    segments.forEach((segment, segmentIndex) => animations.push(segment.animate(
+      snakeColorKeyframes(segmentIndex),
+      { ...timing, duration: CYCLE_DURATION_MS * COLOR_CYCLE_COUNT }
+    )));
+    animations.push(grid.animate(rotationCycleKeyframes(), timing));
     const body = container.ownerDocument.body;
     const syncPlayback = () => {
       const method = body?.dataset?.journeyPhase === 'loading' ? 'play' : 'pause';
@@ -159,18 +192,22 @@
 
   return {
     CELL_GAP_PX,
+    COLOR_CYCLE_COUNT,
     COLLAPSE_END,
     CYCLE_DURATION_MS,
     DEFAULT_SIZE,
     ROYGBIV_HUES,
     SNAKE_LENGTH,
+    TRAIL_OPACITIES,
     TRAVEL_END,
     TURN_END,
     TURN_START,
     cellTransform,
     mount,
     rotationCycleKeyframes,
+    snakeColorKeyframes,
     snakeSegmentKeyframes,
     spiralCells,
+    trailOpacity,
   };
 });
