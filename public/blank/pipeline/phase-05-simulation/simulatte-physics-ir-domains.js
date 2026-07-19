@@ -1,7 +1,53 @@
-(function attachSimulattePhysicsIRdomains(root) {
-  const scope = root.__SimulattePhysicsIRRefactorScope;
-  if (!scope || scope.missingDependency) return;
-  with (scope) {
+(function attachSimulattePhysicsIRSupport(root) {
+  const catalog = typeof module === 'object' && module.exports
+    ? require('./simulatte-physics-catalog.js')
+    : root.SimulattePhysicsCatalog;
+  const languageLexicon = typeof module === 'object' && module.exports
+    ? require('../../../data/simulatte-language-lexicon.js')
+    : root.SimulatteLanguageLexicon;
+  const operatorStage = typeof module === 'object' && module.exports
+    ? require('./simulatte-operator-stage.js')
+    : root.SimulatteOperatorStage;
+  if (!catalog || !languageLexicon || !operatorStage) {
+    throw new Error('SimulattePhysicsIRSupport requires catalog, language lexicon, and operator stage');
+  }
+
+  const PHYSICAL_IR_SCHEMA = 'simulatte.physicalIR.v1';
+  const SCENE_COMPOSITION_LEDGER_SCHEMA = 'simulatte.sceneCompositionLedger.v1';
+  const TAU = Math.PI * 2;
+  const {
+    clamp = (value, min, max) => Math.max(min, Math.min(max, value)),
+    clamp01 = (value) => Math.max(0, Math.min(1, value)),
+    slugify = defaultSlugify,
+    uniqueList = unique,
+  } = catalog;
+  const DOMAIN_KIND_BY_HINT = Object.freeze({
+    fluid: 'fluid',
+    thermal: 'field',
+    phase: 'solid',
+    solid: 'solid',
+    fracture: 'solid',
+    rigidBody: 'rigidBody',
+    collision: 'rigidBody',
+    rotationalMechanics: 'rigidBody',
+    particles: 'particleSet',
+    field: 'field',
+    wave: 'field',
+    oscillator: 'field',
+    network: 'network',
+    control: 'network',
+    growth: 'field',
+    terrain: 'solid',
+    reaction: 'field',
+    water: 'fluid',
+    lake: 'fluid',
+    pool: 'fluid',
+    pond: 'fluid',
+    river: 'fluid',
+    ocean: 'fluid',
+    beach: 'fluid',
+  });
+
     function readoutsForIR(fields, operators, observables) {
         const readouts = [];
         for (const observable of observables || []) {
@@ -171,7 +217,18 @@
         return String(value || 'item').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'item';
       }
 
-    Object.assign(scope, {
+    const api = Object.freeze({
+      catalog,
+      languageLexicon,
+      ...operatorStage,
+      PHYSICAL_IR_SCHEMA,
+      SCENE_COMPOSITION_LEDGER_SCHEMA,
+      TAU,
+      clamp,
+      clamp01,
+      slugify,
+      uniqueList,
+      DOMAIN_KIND_BY_HINT,
       readoutsForIR,
       materialTemperature,
       materialHeatStrength,
@@ -193,5 +250,7 @@
       semanticWaterType,
       defaultSlugify,
     });
-  }
+
+  if (typeof module === 'object' && module.exports) module.exports = api;
+  root.SimulattePhysicsIRSupport = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window);

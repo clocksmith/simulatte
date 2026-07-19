@@ -67,13 +67,9 @@
   );
   const physicsIr = group(
     'pipeline/phase-05-simulation/simulatte-operator-stage.js',
-    'pipeline/phase-05-simulation/simulatte-physics-ir-dependencies.js',
-    'pipeline/phase-05-simulation/simulatte-physics-ir-constants.js',
-    'pipeline/phase-05-simulation/simulatte-physics-ir-builder.js',
     'pipeline/phase-05-simulation/simulatte-physics-ir-domains.js',
     'pipeline/phase-05-simulation/simulatte-physics-ir-behaviors.js',
-    'pipeline/phase-05-simulation/simulatte-physics-ir-operators.js',
-    'pipeline/phase-05-simulation/simulatte-physics-ir.js',
+    'pipeline/phase-05-simulation/simulatte-physics-ir-builder.js',
     'pipeline/phase-05-simulation/simulatte-physics-ir-validator.js'
   );
   const groundedIntent = group(

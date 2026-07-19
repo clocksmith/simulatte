@@ -6,7 +6,8 @@ const test = require('node:test');
 const root = path.resolve(__dirname, '..');
 const parser = require('../public/blank/pipeline/phase-02-language/simulatte-universe-parser.js');
 const lexicon = require('../public/data/simulatte-language-lexicon.js');
-require('../public/blank/pipeline/phase-05-simulation/simulatte-physics-ir.js');
+const physicsIRSupport = require('../public/blank/pipeline/phase-05-simulation/simulatte-physics-ir-domains.js');
+const createPhysicsIRBehaviors = require('../public/blank/pipeline/phase-05-simulation/simulatte-physics-ir-behaviors.js');
 
 test('catalog inventory and language lexicon coverage are a test gate', () => {
   const output = execFileSync(process.execPath, ['tools/audit-catalog-inventory.mjs'], {
@@ -29,7 +30,12 @@ test('catalog-only material and sampling concepts retain Phase 2 lexical ownersh
 test('Phase 5 behavior selection consumes the data-owned language vocabulary', () => {
   const behaviorRows = lexicon.BEHAVIOR_PROCESS_LEXICON;
   const phrases = new Set(behaviorRows.flatMap((row) => row.phrases));
-  const selector = globalThis.__SimulattePhysicsIRRefactorScope.behaviorProcessForText;
+  const selector = createPhysicsIRBehaviors({
+    ...physicsIRSupport,
+    addField() {},
+    addOperator() {},
+    addCouplingOperator() {},
+  }).behaviorProcessForText;
 
   for (const phrase of ['zoning', 'parcel', 'dispatch', 'calving', 'readout']) assert.ok(phrases.has(phrase));
   assert.equal(selector('zoning allocation across parcels'), 'network_flow');

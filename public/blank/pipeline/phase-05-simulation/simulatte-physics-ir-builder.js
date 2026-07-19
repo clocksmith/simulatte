@@ -1,7 +1,44 @@
-(function attachSimulattePhysicsIRbuilder(root) {
-  const scope = root.__SimulattePhysicsIRRefactorScope;
-  if (!scope || scope.missingDependency) return;
-  with (scope) {
+(function attachSimulattePhysicsIRBuilder(root) {
+  const support = typeof module === 'object' && module.exports
+    ? require('./simulatte-physics-ir-domains.js')
+    : root.SimulattePhysicsIRSupport;
+  const createBehaviors = typeof module === 'object' && module.exports
+    ? require('./simulatte-physics-ir-behaviors.js')
+    : root.SimulattePhysicsIRBehaviorFactory;
+  if (!support || typeof createBehaviors !== 'function') {
+    throw new Error('SimulattePhysicsIRBuilder requires support and behavior factory dependencies');
+  }
+  const {
+    PHYSICAL_IR_SCHEMA,
+    clamp,
+    clamp01,
+    slugify,
+    uniqueList,
+    DOMAIN_KIND_BY_HINT,
+    readoutsForIR,
+    materialTemperature,
+    materialMeltPoint,
+    materialViscosity,
+    materialDensity,
+    materialFromDomains,
+    boundsForField,
+    anchorValue,
+    hasTag,
+    hasOperatorHint,
+    isRotationalDomain,
+    isAnimalDomain,
+    isWaterDomain,
+    hasFieldTarget,
+    lowerCompositionLedgerForPhysics,
+    stageForOperator,
+  } = support;
+  const {
+    addBehaviorBundleFromEdge,
+    addBehaviorBundleFromPartialEdge,
+    addBehaviorBundlesFromLedger,
+    addBehaviorBundlesFromNodeActivity,
+  } = createBehaviors({ ...support, addField, addOperator, addCouplingOperator });
+
     function buildPhysicsIR(input = {}) {
         const universeGraph = input.universeGraph || { nodes: [], edges: [], unresolved: [] };
         const intentBrief = universeGraph.intentBrief || null;
@@ -869,31 +906,11 @@
         return { domainId: domain.id, kind: 'closed', value: 'normalized-canvas' };
       }
 
-    Object.assign(scope, {
+    const api = Object.freeze({
+      PHYSICAL_IR_SCHEMA,
       buildPhysicsIR,
-      emptyReceipt,
-      addIntentBriefReceipt,
-      executableStateFields,
-      entityForNode,
-      geometryForNode,
-      domainForEntity,
-      inferredDomainKind,
-      domainTagsForEntity,
-      preferredDomainKind,
-      addBaseFields,
-      addField,
-      addCouplingsFromEdges,
-      isSwimmingEdge,
-      addSwimmingBehaviorFromEdge,
-      ensureSwimmingFields,
-      ensureWaterFields,
-      addSwimmingOperator,
-      couplingOperator,
-      addCouplingOperator,
-      addOperator,
-      rigidBodyForEntity,
-      particleSetForEntity,
-      boundaryForDomain,
     });
-  }
+
+  if (typeof module === 'object' && module.exports) module.exports = api;
+  root.SimulattePhysicsIR = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window);

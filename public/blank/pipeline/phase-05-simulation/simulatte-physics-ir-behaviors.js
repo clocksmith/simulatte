@@ -1,7 +1,40 @@
-(function attachSimulattePhysicsIRbehaviors(root) {
-  const scope = root.__SimulattePhysicsIRRefactorScope;
-  if (!scope || scope.missingDependency) return;
-  with (scope) {
+(function attachSimulattePhysicsIRBehaviorFactory(root, factory) {
+  if (typeof module === 'object' && module.exports) module.exports = factory;
+  root.SimulattePhysicsIRBehaviorFactory = factory;
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createPhysicsIRBehaviors(dependencies = {}) {
+  const {
+    addField,
+    addOperator,
+    addCouplingOperator,
+    clamp,
+    clamp01,
+    unique,
+    materialTemperature,
+    materialViscosity,
+    hasTag,
+    isRotationalDomain,
+    languageLexicon,
+  } = dependencies;
+  for (const [name, dependency] of Object.entries({
+    addField,
+    addOperator,
+    addCouplingOperator,
+    clamp,
+    clamp01,
+    unique,
+    materialTemperature,
+    materialViscosity,
+    hasTag,
+    isRotationalDomain,
+  })) {
+    if (typeof dependency !== 'function') {
+      throw new Error(`SimulattePhysicsIR behaviors require ${name}`);
+    }
+  }
+  if (!languageLexicon || typeof languageLexicon !== 'object') {
+    throw new Error('SimulattePhysicsIR behaviors require languageLexicon');
+  }
+
     function addBehaviorBundleFromEdge(couplings, operators, fields, from, to, edge, params, receipt, behaviorRelations) {
         const process = behaviorProcessForText(edge.processId) ||
           behaviorProcessForText(edge.operatorType) ||
@@ -549,7 +582,7 @@
     function movingDomain(a, b) { return [a, b].find((domain) => domain && domain.kind !== 'field') || a || b; }
     function impactDomain(a, b) { return [b, a].find((domain) => domain && domain.kind !== 'fluid') || b || a; }
 
-    Object.assign(scope, {
+    return Object.freeze({
       addBehaviorBundleFromEdge,
       addBehaviorBundleFromPartialEdge,
       addBehaviorBundlesFromLedger,
@@ -557,5 +590,4 @@
       addBehaviorBundle,
       behaviorProcessForText,
     });
-  }
-})(typeof globalThis !== 'undefined' ? globalThis : window);
+});
