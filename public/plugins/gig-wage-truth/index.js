@@ -24,7 +24,7 @@
     function settle(input) { const analysis = analyze(input); return analysis.enabled === false ? null : { obligationResults: [], stateIdentity: `${analysis.grossCents}:${analysis.activeSeconds}`, losses: [], analysis }; }
     function view() {
       const analysis = sdk.state.read().analysis;
-      if (!analysis) return null;
+      if (!analysis) return { slot: 'hud', title: 'Work truth', rows: [{ label: 'Status', value: 'Complete a cooperative delivery to calculate gross modeled work rate' }], actions: [] };
       const rows = [{ label: 'Gross compensation', value: `$${(analysis.grossCents / 100).toFixed(2)}` }, { label: 'Modeled gross rate', value: `$${(analysis.grossRateCentsPerHour / 100).toFixed(2)}/h` }, { label: 'Excluded time', value: `${analysis.excludedSeconds} s` }];
       return [{ slot: 'inspector', title: 'Gross work rate', rows, actions: [] }, { slot: 'hud', title: 'Work truth', rows: rows.slice(0, 2), actions: [] }];
     }

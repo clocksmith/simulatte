@@ -46,7 +46,7 @@
       "defaultConfig": "./default-config.json",
       "entry": {
         "globalFactory": "SimulattePluginAccessibleJourney",
-        "integrity": "sha384-d28c9a4be7af48b00b67a9e26dfa4b0a97ccd66170de9bac6e4d0c56ce354d5216e3035c4b28e8d847c5fdca7c4a51ca",
+        "integrity": "sha384-a52146e07472248810fcd6d737cd09ce75d311ebe889ec0d9ca083ebc53735223c671ecbb497e953127f44a604093da4",
         "path": "./index.js"
       },
       "extensionPoints": [
@@ -114,7 +114,7 @@
       "defaultConfig": "./default-config.json",
       "entry": {
         "globalFactory": "SimulattePluginAmenityRouter",
-        "integrity": "sha384-65f62c7ccc715c20331a323067ea965ea2c563ed75be4899b1925de2b2e8429dd5d7da06c49565bca600823bc397996c",
+        "integrity": "sha384-28fd7eb9d8e5ff1589be51f4923e27deaf70ae318b94141084bac75b078d7318245d154a4a983d051d2975913f37d599",
         "path": "./index.js"
       },
       "extensionPoints": [
@@ -173,7 +173,7 @@
       "defaultConfig": "./default-config.json",
       "entry": {
         "globalFactory": "SimulattePluginCableTrader",
-        "integrity": "sha384-b6b7b68f676224906138364850872ff8e15d580ab54165e1bfa4c5d88da8d969b46fec9818274bcc69bc1e28725b4620",
+        "integrity": "sha384-47c427ccb230661865897d42d9ce5b0e77e0570ebcc6339443bbf42a54439a79024d8b84f192ff496df4ce70d1e4bca0",
         "path": "./index.js"
       },
       "extensionPoints": [
@@ -206,7 +206,7 @@
           "path": "./config.schema.json"
         },
         {
-          "integrity": "sha384-2e020480590903d10879523d82548c79bd6d7c15f1e41bdd937aaec3e00c0a7ae5227c3f3b3ae0b4bad01bc5d212dd1d",
+          "integrity": "sha384-dc1ba637355ae46d3f7fad1fd385281d70834007f4fd5b7ace8d157d4df0443d5e111fa7f91a29ee943f4f72a67fa757",
           "path": "./default-config.json"
         }
       ],
@@ -325,20 +325,20 @@
           {
             "destinationNodeId": "bike-node-261ee8be5a25",
             "id": "candidate-ren",
-            "kind": "pedestrian",
+            "kind": "bicycle",
             "label": "Ren",
             "originNodeId": "bike-node-429dcefa615d",
             "phaseOffsetM": 110,
-            "speedMps": 1.5
+            "speedMps": 4.8
           },
           {
             "destinationNodeId": "bike-node-ffea919f743c",
             "id": "candidate-sol",
-            "kind": "scooter",
+            "kind": "bicycle",
             "label": "Sol",
             "originNodeId": "bike-node-8a641140b02c",
             "phaseOffsetM": 360,
-            "speedMps": 4.3
+            "speedMps": 5.3
           }
         ],
         "hubs": [
@@ -459,7 +459,7 @@
       "defaultConfig": "./default-config.json",
       "entry": {
         "globalFactory": "SimulattePluginGigWageTruth",
-        "integrity": "sha384-264bb3ff55d4fded193e5bf5c4d026c72ccd7083ff5ce5c745cbb22625a3f154fa486bdcee484602b4fc828c79a19fc7",
+        "integrity": "sha384-c71827f1368a2534c9da05e9ab071d630ef5ed693812c36ae1a20986eb9cbc7054851c4e4d1cc9c4093310eab08e78a3",
         "path": "./index.js"
       },
       "extensionPoints": [
@@ -724,7 +724,7 @@
       "defaultConfig": "./default-config.json",
       "entry": {
         "globalFactory": "SimulattePluginSunWalker",
-        "integrity": "sha384-b7fa83d966144abad2584cab88c66cc9d94bccf52775e6bd83caa8e498257252c5b7405fb97cd8625158a0763428eebb",
+        "integrity": "sha384-b8ca33abc7bd2894e3e2b2b9b26f810181e9d9092f973a0935b70c68c71724d71fcb32a393ff0836fb3374698c5297d2",
         "path": "./index.js"
       },
       "extensionPoints": [

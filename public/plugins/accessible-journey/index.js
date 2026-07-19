@@ -36,9 +36,9 @@
       };
     }
 
-    function view() {
+    function view(context = {}) {
       const result = sdk.state.read().audit;
-      if (!result) return null;
+      if (!result) return { slot: context.compositionSize === 1 ? 'map' : 'inspector', title: 'Step-free journey', rows: [{ label: 'Activation', value: 'Add wheelchair, step-free, or accessible route to the mission' }], actions: [] };
       return [
         { slot: 'inspector', title: 'Accessibility', rows: [{ label: 'Route evidence', value: result.verdict }, { label: 'Ramp evidence', value: `${result.counts?.nodesWithRampEvidence || 0} nodes` }], actions: [] },
         { slot: 'hud', title: 'Step-free route', rows: [{ label: 'Evidence', value: result.verdict }, { label: 'Ramps checked', value: String(result.counts?.nodesWithRampEvidence || 0) }], actions: [{ id: 'focus-route', label: 'View route', command: { kind: 'camera.focus', targetId: 'accessible-route' } }] },

@@ -114,7 +114,7 @@
         renderPluginExperience({ mission: activeMissionForPlugins });
       },
     });
-    pluginUi.render(extensions.views({ mission: null }));
+    pluginUi.render(extensions.views({ mission: null, compositionSize: extensions.activePluginIds.length }));
     elements.missionInput.value = data.manifest.defaultMissionText;
     resizeMissionInput(elements.missionInput);
     const traceView = traceApi.createTraceView(elements, data.policy, data.rerankerEvidence);
@@ -156,10 +156,11 @@
     let disposal = null;
 
     function renderPluginExperience(context) {
-      pluginUi.render(extensions.views(context));
+      const pluginContext = { ...context, compositionSize: extensions.activePluginIds.length };
+      pluginUi.render(extensions.views(pluginContext));
       if (!renderer) return;
       const selected = elements.cameraFocus.value || 'route';
-      renderer.setPluginPresentations(extensions.presentations(context));
+      renderer.setPluginPresentations(extensions.presentations(pluginContext));
       populateCameraFocus(elements.cameraFocus, renderer.cameraTargets(), selected);
     }
 
@@ -950,8 +951,12 @@
   }
 
   if (typeof document !== 'undefined') {
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once: true });
-    else start();
+    const launch = () => { void start().catch((error) => {
+      try { failRuntime(collectElements(), error); }
+      catch (boundaryError) { log.error('runtime.bootstrap_failed', log.serializeError(boundaryError)); }
+    }); };
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', launch, { once: true });
+    else launch();
   }
 
   return { applicationProfileLabel, collectElements, friendlyMissionError, nextMissionExample, populateApplicationProfiles, populateCameraFocus, renderIdentity, renderPlaceResolution, renderPlanning, renderPolicyArena, runtimeLabel, selectCameraMode, start, validateImportedJourneyReceipt };

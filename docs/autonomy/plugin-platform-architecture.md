@@ -1,8 +1,9 @@
 # Simulatte plugin platform architecture
 
 Status: implemented SDK v1 and first-party plugin platform. The source
-migration is complete through P6 and the P7 compatibility removal is complete.
-Human browser review and deployed profile selection remain release gates.
+migration is complete through P7. P8 adds generic presentation, camera, and
+multi-slot UI contributions; local browser review passes and deployment
+remains the release gate.
 
 Owner contracts: `public/platform/`, `public/core/`, `public/plugins/`, and the
 thin application coordinator in `public/app/`.
@@ -67,9 +68,9 @@ Expected contributions: verified artifacts and capability-limited data catalog
 Expected receipts: unchanged simulatte.autonomyDataLoadReceipt.v2
 Human review case: Main loads, completes a journey, and displays coherent dark controls
 Validation commands: focused Autonomy tests, world-tile-manager tests, npm run check:deploy, desktop and mobile browser smoke
-Known blockers: local browser behavior completes with zero runtime errors and failed responses; the strict smoothness gate still observed one borderline 50 ms startup task in the latest run. Human product review and deployed profile selection remain release checks.
-Last completed step: added visible governed profile selection, registered plugin-owned dataset validators through the generated registry, validated the complete request-contribution shape, and connected reverse-order plugin disposal to navigation and page teardown.
-Next exact step: human-review default, cable pickup, and composed cable profiles; then rerun the strict browser/deploy gate and deploy the reviewed build.
+Known blockers: deployment has not yet been stamped and verified for the P8 presentation changes.
+Last completed step: added validated markers, paths, moving actors, camera targets, inspector/map/HUD slots, and purpose-specific first-party views. The default composed profile and Cable Trader complete locally with zero browser errors or failed responses.
+Next exact step: run the full deploy gate, stamp the build, deploy, and verify the live default and Cable Trader profiles.
 ```
 
 Current implementation paths:
@@ -268,7 +269,7 @@ The minimum manifest shape is:
   ],
   "provides": ["routing.dimension.sun-exposure.v1"],
   "consumes": [],
-  "extensionPoints": ["request", "route", "settlement", "ui"]
+  "extensionPoints": ["request", "route", "settlement", "ui", "presentation"]
 }
 ```
 
@@ -387,7 +388,30 @@ Default plugin UI is declarative:
 ```
 
 The host owns elements, layout, focus, mobile behavior, accessibility, and
-styling. A plugin receives named action messages, not DOM nodes.
+styling. Plugins may contribute to `inspector`, `map`, and `hud`. A plugin
+receives named action messages, not DOM nodes. Camera actions name one of the
+plugin's declared camera targets; the host namespaces and executes the focus.
+
+### Presentation contribution
+
+Plugins describe world presentation without receiving renderer authority:
+
+```js
+{
+  schema: "simulatte.pluginPresentation.v1",
+  markers: [{ id, label, nodeId, tone, heightM, radiusM, intensity }],
+  paths: [{ id, label, segmentIds, tone, widthM, intensity }],
+  actors: [{ id, label, kind, segmentIds, tone, speedMps, phaseOffsetM, isSelected }],
+  cameraTargets: [{ id, label, nodeIds, segmentIds, distanceM }]
+}
+```
+
+The plugin host validates bounds and allowed values. The generic presentation
+compiler resolves governed node and segment identities. Core-owned WebGPU
+geometry draws beacons, route ribbons, and actors; the core camera controller
+owns transitions and focus. Plugins never receive the canvas, GPU device,
+camera state, animation frame, or DOM. Missing world identities fail at the
+presentation boundary instead of producing misleading graphics.
 
 Arbitrary third-party UI or untrusted plugin code requires a sandboxed iframe
 or equivalent capability boundary. Same-page first-party JavaScript can be
@@ -455,10 +479,10 @@ enable themselves or choose global weights.
 | --- | --- | --- | --- | --- | --- |
 | Sun Walker | Solar position, building occlusion, exposure integration, shade preference, comparison receipt | World query, clock, routing, receipts, UI | `routing.dimension.sun-exposure.v1` | None | `public/plugins/sun-walker/` |
 | P2P Delivery | Needs, offers, journey matching, marginal burden, authorization, custody, handoffs, delivery settlement | World query, routing, events, state, receipts, UI | `fulfillment.delivery.v1`, `settlement.delivery.v1` | Optional route dimensions | `public/plugins/p2p-delivery/` |
-| Cable Trader | Cable taxonomy, hub inventory, requests, deposits, credits, reservations, exchange settlement | World query, events, state, receipts, UI | `inventory.exchange.v1`, `settlement.credit.v1` | Optional `fulfillment.delivery.v1` | `public/plugins/cable-trader/` |
+| Cable Trader | Cable taxonomy, hub inventory, requests, deposits, credits, candidate journeys, exchange settlement | World query, routing, events, state, receipts, UI | `inventory.exchange.v1`, `settlement.credit.v1` | Optional `fulfillment.delivery.v1` | `public/plugins/cable-trader/` |
 | Counterfactual Lab | Baseline/challenger pairing, declared interventions, matched differences | Routing, simulation runs, receipts, UI | `analysis.counterfactual.v1` | Optional world snapshots and plugin-specific intervention contracts | `public/plugins/counterfactual-lab/` |
 | Accessible Journey | Accessibility-profile obligations, route eligibility, evidence-bound refusal | World query, routing, datasets, receipts, UI | `routing.eligibility.accessibility.v1` | None | `public/plugins/accessible-journey/` |
-| Historical Streets | Dated world selection, snapshot availability, historical-world refusal | Datasets, world snapshot query, receipts, UI | `world.snapshot.v1` | None | `public/plugins/historical-streets/` |
+| Historical Streets | Dated world selection, snapshot availability, historical-world refusal | Datasets, events, state, UI | `world.snapshot.v1` | None | `public/plugins/historical-streets/` |
 | Safety Explorer | Historical-observation route dimension and narrow claim boundary | Routing, datasets, receipts, UI | `routing.dimension.historical-observation.v1` | None | `public/plugins/safety-explorer/` |
 | Amenity Router | Typed amenity obligations and route eligibility or distance dimensions | World query, routing, datasets, receipts, UI | `routing.eligibility.amenity.v1`, `routing.dimension.amenity-distance.v1` | None | `public/plugins/amenity-router/` |
 | Gig Wage Truth | Compensation policy, time accounting, exclusions, gross-rate settlement | Clock, events, receipts, UI | `analysis.gross-work-rate.v1` | Optional `settlement.delivery.v1` | `public/plugins/gig-wage-truth/` |
@@ -608,6 +632,19 @@ delivery when P2P Delivery is enabled, without changing either plugin package.
 
 Exit condition: the target ownership tree is true in source, not only in this
 document.
+
+### P8: Purpose-specific presentation
+
+- [x] Add a bounded `presentation` extension point to SDK v1.
+- [x] Compile plugin markers, paths, actors, and camera targets through core-owned code.
+- [x] Add host-owned `map` and `hud` UI slots beside the existing inspector.
+- [x] Make Cable Trader a four-hub, ten-family exchange network with four moving candidate journeys.
+- [x] Give P2P Delivery, Sun Walker, Accessibility, Amenity, Safety, and Counterfactual distinct evidence-backed map treatments.
+- [x] Give Historical Streets and Gig Wage Truth purpose-specific non-spatial UI without inventing spatial evidence.
+- [x] Pass local default and Cable Trader browser journeys with zero runtime errors and failed responses.
+
+Exit condition: every visual comes from validated plugin data, while the host
+alone owns WebGPU, cameras, DOM, and lifecycle.
 
 ## Work packet contract
 

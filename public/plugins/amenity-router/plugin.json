@@ -16,7 +16,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginAmenityRouter",
-    "integrity": "sha384-65f62c7ccc715c20331a323067ea965ea2c563ed75be4899b1925de2b2e8429dd5d7da06c49565bca600823bc397996c",
+    "integrity": "sha384-28fd7eb9d8e5ff1589be51f4923e27deaf70ae318b94141084bac75b078d7318245d154a4a983d051d2975913f37d599",
     "path": "./index.js"
   },
   "extensionPoints": [

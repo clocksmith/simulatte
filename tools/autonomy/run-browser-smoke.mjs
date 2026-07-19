@@ -273,7 +273,7 @@ async function runBrowserSmoke(options) {
     const expectsSunWalker = expectedPluginIds.has('sun-walker');
     const expectsCableTrader = expectedPluginIds.has('cable-trader');
     const featureViewEvaluation = await client.send('Runtime.evaluate', {
-      expression: pluginFeatureExpression({ expectsP2pDelivery, expectsSunWalker }),
+      expression: pluginFeatureExpression({ expectsP2pDelivery, expectsSunWalker, expectsCableTrader }),
       awaitPromise: true,
       returnByValue: true,
     });
@@ -296,7 +296,12 @@ async function runBrowserSmoke(options) {
       : !featureView.shade.visible;
     const featurePass = p2pDeliveryPass
       && sunWalkerPass
-      && featureView.cableTrader.visible === expectsCableTrader;
+      && (expectsCableTrader
+        ? featureView.cableTrader.visible
+          && featureView.cableTrader.requested === 'HDMI'
+          && featureView.cableTrader.markerCount === 4
+          && featureView.cableTrader.actorCount === 4
+        : !featureView.cableTrader.visible);
     const pass = result.state === 'completed'
       && result.rendererBackend === 'webgpu'
       && result.actorMeshSchema === 'simulatte.autonomyActorMesh.v1'
@@ -412,7 +417,7 @@ async function runBrowserSmoke(options) {
   }
 }
 
-function pluginFeatureExpression({ expectsP2pDelivery, expectsSunWalker }) {
+function pluginFeatureExpression({ expectsP2pDelivery, expectsSunWalker, expectsCableTrader = false }) {
   return `(async () => {
     const waitFor = async (predicate, label, limit = 10000) => {
       const started = performance.now();
@@ -482,7 +487,20 @@ function pluginFeatureExpression({ expectsP2pDelivery, expectsSunWalker }) {
         selected: shadeRows['Selected route'] || '',
       };
     }
-    const cableTrader = { visible: Boolean(document.querySelector('#plugin-inspector [data-plugin-id="cable-trader"]')) };
+    let cableTrader = { visible: Boolean(document.querySelector('#plugin-inspector [data-plugin-id="cable-trader"]')) };
+    if (${expectsCableTrader}) {
+      input.value = 'I need an HDMI cable. Find the best exchange hub.';
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      step.click();
+      await waitFor(() => {
+        const section = document.querySelector('#plugin-inspector [data-plugin-id="cable-trader"]');
+        return [...(section?.querySelectorAll('dd') || [])].some((row) => row.textContent.trim() === 'HDMI');
+      }, 'cable-trader-request');
+      const section = document.querySelector('#plugin-inspector [data-plugin-id="cable-trader"]');
+      const rows = Object.fromEntries([...section.querySelectorAll('div')].map((row) => [row.querySelector('dt')?.textContent.trim(), row.querySelector('dd')?.textContent.trim()]));
+      const canvas = document.getElementById('autonomy-canvas');
+      cableTrader = { visible: true, requested: rows.Requested || '', markerCount: Number(canvas.dataset.pluginMarkersCount || 0), actorCount: Number(canvas.dataset.pluginActorsCount || 0) };
+    }
     return { cooperation, gpuParity, shade, cableTrader };
   })()`;
 }

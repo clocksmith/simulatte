@@ -22,8 +22,8 @@
   "candidateJourneys": [
     { "id": "candidate-ava", "label": "Ava", "originNodeId": "bike-node-a3f0f4b7e7e3", "destinationNodeId": "bike-node-e25116ea05a4", "kind": "bicycle", "speedMps": 5.6, "phaseOffsetM": 0 },
     { "id": "candidate-mika", "label": "Mika", "originNodeId": "bike-node-0d9391b2bfa3", "destinationNodeId": "bike-node-7a95737b9c7d", "kind": "bicycle", "speedMps": 5.1, "phaseOffsetM": 240 },
-    { "id": "candidate-ren", "label": "Ren", "originNodeId": "bike-node-429dcefa615d", "destinationNodeId": "bike-node-261ee8be5a25", "kind": "pedestrian", "speedMps": 1.5, "phaseOffsetM": 110 },
-    { "id": "candidate-sol", "label": "Sol", "originNodeId": "bike-node-8a641140b02c", "destinationNodeId": "bike-node-ffea919f743c", "kind": "scooter", "speedMps": 4.3, "phaseOffsetM": 360 }
+    { "id": "candidate-ren", "label": "Ren", "originNodeId": "bike-node-429dcefa615d", "destinationNodeId": "bike-node-261ee8be5a25", "kind": "bicycle", "speedMps": 4.8, "phaseOffsetM": 110 },
+    { "id": "candidate-sol", "label": "Sol", "originNodeId": "bike-node-8a641140b02c", "destinationNodeId": "bike-node-ffea919f743c", "kind": "bicycle", "speedMps": 5.3, "phaseOffsetM": 360 }
   ],
   "inventory": {
     "union-square-cable-hub:usb-c-to-a": 24, "union-square-cable-hub:ethernet-rj45": 16, "union-square-cable-hub:hdmi": 12, "union-square-cable-hub:displayport": 8,

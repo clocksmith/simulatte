@@ -12,20 +12,21 @@
         worldModel,
         originNodeId: journey.originNodeId,
         destinationNodeId: journey.destinationNodeId,
-        mode: journey.kind,
+        mode: 'delivery_bike',
         tick: 0,
         mission: { constraints: { avoidStreetNames: [], lanePreference: journey.kind === 'bicycle' ? 'protected' : 'any' }, task: { type: 'point_to_point' } },
         policy: sdk.routing.policy(),
       }).segmentIds,
     }));
 
-    function contributeRequest({ sourceText }) {
+    function contributeRequest({ sourceText, mission = null }) {
       const normalized = String(sourceText || '').toLowerCase();
       const cable = config.cableTypes.find((row) => row.labels.some((label) => normalized.includes(label)));
       if (!cable || !/\b(?:need|request|trade|swap|borrow|get)\b/i.test(normalized)) return null;
       const availableHub = config.hubs
         .map((hub) => ({ ...hub, available: sdk.state.read().inventory[`${hub.id}:${cable.id}`] || 0 }))
         .sort((left, right) => right.available - left.available || left.id.localeCompare(right.id))[0];
+      if (!mission) return { recognized: true, executableSourceText: `Bike from Washington Square to ${availableHub.label}. Prefer protected lanes.`, obligations: [], unresolved: [] };
       const request = { id: `cable-request:${stableId(sourceText)}`, cableTypeId: cable.id, quantity: 1, hubIds: config.hubs.map((row) => row.id), selectedHubId: availableHub?.available ? availableHub.id : null };
       let delivery = null;
       if (sdk.capabilities && availableHub?.available) delivery = sdk.capabilities.invoke('fulfillment.delivery.v1', { ...request, itemId: cable.id, requesterId: 'cable-trader-user', destinationNodeId: availableHub.nodeId });

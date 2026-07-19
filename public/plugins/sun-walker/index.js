@@ -66,9 +66,9 @@
       };
     }
 
-    function view() {
+    function view(context = {}) {
       const selection = sdk.state.read().selection;
-      if (!selection) return null;
+      if (!selection) return { slot: context.compositionSize === 1 ? 'map' : 'inspector', title: 'Sun Walker', rows: [{ label: 'Activation', value: 'Ask for shade or less direct sun' }, { label: 'Method', value: 'Building geometry + sun position' }], actions: [] };
       const rows = [
           { label: 'Selected route', value: `${Math.round(selection.comparison.selectedModeledBuildingShadePercent)}% modeled shade` },
           { label: 'Fastest route', value: `${Math.round(selection.comparison.fastestModeledBuildingShadePercent)}% modeled shade` },

@@ -36,9 +36,9 @@
         },
       };
     }
-    function view() {
+    function view(context = {}) {
       const audit = sdk.state.read().audit;
-      if (!audit) return null;
+      if (!audit) return { slot: context.compositionSize === 1 ? 'map' : 'inspector', title: 'Amenity-aware route', rows: [{ label: 'Activation', value: 'Ask to stay within a distance of a bike rack' }], actions: [] };
       return [
         { slot: 'inspector', title: 'Route amenities', rows: [{ label: 'Bicycle-rack constraint', value: audit.pass ? 'Supported' : 'Not supported' }, { label: 'Farthest modeled distance', value: audit.maximumObservedDistanceM === null ? 'Unavailable' : `${Math.round(audit.maximumObservedDistanceM)} m` }], actions: [] },
         { slot: 'hud', title: 'Bike-rack route', rows: [{ label: 'Limit', value: `${Math.round(audit.maximumDistanceM)} m` }, { label: 'Observed', value: audit.maximumObservedDistanceM === null ? 'Unknown' : `${Math.round(audit.maximumObservedDistanceM)} m` }], actions: [{ id: 'focus-amenities', label: 'View route', command: { kind: 'camera.focus', targetId: 'amenity-route' } }] },

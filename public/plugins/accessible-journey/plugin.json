@@ -16,7 +16,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginAccessibleJourney",
-    "integrity": "sha384-d28c9a4be7af48b00b67a9e26dfa4b0a97ccd66170de9bac6e4d0c56ce354d5216e3035c4b28e8d847c5fdca7c4a51ca",
+    "integrity": "sha384-a52146e07472248810fcd6d737cd09ce75d311ebe889ec0d9ca083ebc53735223c671ecbb497e953127f44a604093da4",
     "path": "./index.js"
   },
   "extensionPoints": [

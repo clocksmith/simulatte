@@ -23,18 +23,18 @@
         ...row,
         id: namespace(row.id),
         pluginId,
-        points: Object.freeze(pointsForSegments(worldModel, pluginId, row.segmentIds)),
+        points: Object.freeze(pointsForSegments(worldModel, pluginId, row.segmentIds, row.id)),
       })));
       presentation.actors.forEach((row) => compiled.actors.push(Object.freeze({
         ...row,
         id: namespace(row.id),
         pluginId,
-        points: Object.freeze(pointsForSegments(worldModel, pluginId, row.segmentIds)),
+        points: Object.freeze(pointsForSegments(worldModel, pluginId, row.segmentIds, row.id)),
       })));
       presentation.cameraTargets.forEach((row) => {
         const points = [
           ...row.nodeIds.map((id) => clonePoint(resolveNode(worldModel, pluginId, id).position)),
-          ...pointsForSegments(worldModel, pluginId, row.segmentIds),
+          ...(row.segmentIds.length ? pointsForSegments(worldModel, pluginId, row.segmentIds, row.id) : []),
         ];
         compiled.cameraTargets.push(Object.freeze({
           id: namespace(row.id),
@@ -74,7 +74,7 @@
     }
   }
 
-  function pointsForSegments(worldModel, pluginId, segmentIds) {
+  function pointsForSegments(worldModel, pluginId, segmentIds, contributionId = null) {
     const points = [];
     segmentIds.forEach((id) => {
       resolveSegment(worldModel, pluginId, id).geometry.forEach((point) => {
@@ -82,7 +82,7 @@
         if (!previous || previous.x !== point.x || previous.y !== point.y) points.push(Object.freeze(clonePoint(point)));
       });
     });
-    if (points.length < 2) throw presentationError('plugin_presentation_path_empty', `Plugin ${pluginId} presentation path has no extent`, { pluginId, segmentIds });
+    if (points.length < 2) throw presentationError('plugin_presentation_path_empty', `Plugin ${pluginId} presentation ${contributionId || 'path'} has no extent`, { pluginId, contributionId, segmentIds });
     return points;
   }
 
