@@ -604,7 +604,7 @@ delivery when P2P Delivery is enabled, without changing either plugin package.
 - [x] Remove old script tags and compatibility globals.
 - [x] Regenerate the plugin registry and generated plugin script inventory.
 - [x] Confirm desktop and mobile local plugin selection.
-- [ ] Confirm deployed plugin selection.
+- [x] Confirm deployed plugin selection.
 
 Exit condition: the target ownership tree is true in source, not only in this
 document.

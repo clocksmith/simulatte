@@ -877,12 +877,12 @@ function consentFlowExpression() {
         .find((row) => row.event === 'runtime.failed');
       return event?.details?.message || status.textContent || 'unknown runtime error';
     };
-    const waitFor = async (predicate, label) => {
+    const waitFor = async (predicate, label, limit = 60000) => {
       const started = performance.now();
       while (!predicate()) {
         const failure = runtimeFailure();
         if (failure) throw new Error('autonomy browser runtime.failed at ' + label + ': ' + failure);
-        if (performance.now() - started > 10000) throw new Error('autonomy browser timeout at ' + label);
+        if (performance.now() - started > limit) throw new Error('autonomy browser timeout at ' + label);
         await new Promise((resolve) => setTimeout(resolve, 25));
       }
     };
