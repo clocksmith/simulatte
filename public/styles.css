@@ -61,7 +61,7 @@ body:not([data-journey-phase="loading"]) .loading-screen {
 
 .loading-mosaic {
   --mosaic-size: 7;
-  --mosaic-gap: 2px;
+  --mosaic-gap: 6px;
   position: relative;
   width: clamp(148px, 22vw, 196px);
   aspect-ratio: 1;
@@ -84,9 +84,9 @@ body:not([data-journey-phase="loading"]) .loading-screen {
 
 .loading-mosaic-grid > i {
   display: block;
+  border: 1px solid #10171c;
   border-radius: 1px;
   background: #0a0f13;
-  box-shadow: inset 0 0 0 1px rgba(164, 187, 191, 0.035);
 }
 
 .loading-mosaic-snake {
@@ -99,12 +99,11 @@ body:not([data-journey-phase="loading"]) .loading-screen {
   left: 0;
   z-index: var(--segment-layer);
   display: block;
-  width: calc((100% - 12px) / 7);
+  width: calc((100% - 36px) / 7);
   aspect-ratio: 1;
   border-radius: 1px;
   color: hsl(var(--segment-hue) 88% 62%);
   background: currentColor;
-  box-shadow: 0 0 12px currentColor;
   will-change: color, opacity, transform;
 }
 

@@ -10,7 +10,7 @@
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createLoadingMosaic() {
   const DEFAULT_SIZE = 7;
   const SNAKE_LENGTH = 7;
-  const CELL_GAP_PX = 2;
+  const CELL_GAP_PX = 6;
   const CYCLE_DURATION_MS = 4000;
   const SNAKE_TRAVEL_DURATION_MS = 2288;
   const SNAKE_COLLAPSE_DURATION_MS = 312;
@@ -108,7 +108,7 @@
     const frames = [];
     for (let cycle = 0; cycle < COLOR_CYCLE_COUNT; cycle += 1) {
       const offset = (localOffset) => (cycle + localOffset) / COLOR_CYCLE_COUNT;
-      frames.push({ color: colorAt(segmentIndex, cycle), offset: offset(0), easing: 'steps(1, end)' });
+      if (cycle === 0) frames.push({ color: colorAt(segmentIndex, cycle), offset: offset(0), easing: 'steps(1, end)' });
       frames.push({ color: colorAt(segmentIndex, cycle), offset: offset(TURN_START), easing: 'steps(1, end)' });
       for (let jump = 1; jump <= 3; jump += 1) {
         const jumpOffset = TURN_START + ((jump / 3) * (TURN_END - TURN_START));

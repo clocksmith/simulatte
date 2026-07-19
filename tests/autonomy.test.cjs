@@ -1417,6 +1417,7 @@ test('loading mosaic loops a seven-segment snake through the clockwise grid spir
   assert.equal(tailFrames.find((frame) => frame.offset === loadingMosaicApi.TRAVEL_END).opacity, loadingMosaicApi.trailOpacity(6));
   assert.deepEqual(loadingMosaicApi.TRAIL_OPACITIES, [1, 0.88, 0.76, 0.64, 0.52, 0.4, 0.3]);
   assert.equal(loadingMosaicApi.CYCLE_DURATION_MS, 4000);
+  assert.equal(loadingMosaicApi.CELL_GAP_PX, 6);
   assert.equal(loadingMosaicApi.SNAKE_TRAVEL_DURATION_MS, 2288);
   assert.equal(loadingMosaicApi.SNAKE_COLLAPSE_DURATION_MS, 312);
   assert.equal(loadingMosaicApi.ROTATION_DURATION_MS, 975);
@@ -1437,7 +1438,7 @@ test('loading mosaic loops a seven-segment snake through the clockwise grid spir
   assert.equal(loadingMosaicApi.rotationCycleKeyframes()[1].offset, loadingMosaicApi.TURN_START);
   assert.equal(loadingMosaicApi.rotationCycleKeyframes()[2].offset, loadingMosaicApi.TURN_END);
   const topColorFrames = loadingMosaicApi.snakeColorKeyframes(6);
-  assert.deepEqual([...topColorFrames].sort((left, right) => left.offset - right.offset), topColorFrames);
+  assert.ok(topColorFrames.every((frame, index) => index === 0 || frame.offset > topColorFrames[index - 1].offset));
   assert.deepEqual(topColorFrames.slice(1, 5).map((frame) => frame.color), [
     'hsl(290 88% 62%)',
     'hsl(210 88% 62%)',
