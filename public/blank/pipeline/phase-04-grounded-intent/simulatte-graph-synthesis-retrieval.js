@@ -1,7 +1,128 @@
-(function attachSimulatteGraphSynthesisretrieval(root) {
-  const scope = root.__SimulatteGraphSynthesisRefactorScope;
-  if (!scope || scope.missingDependency) return;
-  with (scope) {
+(function attachSimulatteGraphSynthesisSurfaceLibrary(root) {
+  const support = typeof module === 'object' && module.exports
+    ? require('./simulatte-graph-synthesis-support.js')
+    : root.SimulatteGraphSynthesisSupport;
+  if (!support) {
+    throw new Error('SimulatteGraphSynthesisSurfaceLibrary requires SimulatteGraphSynthesisSupport');
+  }
+  const { semantic, SURFACE_CARD_SCHEMA, uniqueList } = support;
+
+  function first(values) {
+    const list = Array.isArray(values) ? values : [];
+    return list.length ? list[0] : '';
+  }
+
+  function freezeGrounding(value) {
+    const out = {};
+    for (const [key, raw] of Object.entries(value || {})) {
+      out[key] = Array.isArray(raw) ? Object.freeze(raw.slice()) : raw;
+    }
+    return Object.freeze(out);
+  }
+
+  function card(id, type, labels, grounding, text) {
+    const normalizedLabels = uniqueList([id.replace(/_/g, ' '), ...(labels || [])]);
+    return Object.freeze({
+      schema: SURFACE_CARD_SCHEMA,
+      id,
+      type,
+      labels: normalizedLabels,
+      grounding: freezeGrounding(grounding || {}),
+      text: String(text || ''),
+    });
+  }
+
+  function mergeSurfaceLibraries(baseCards, importedCards) {
+    const byId = new Map();
+    for (const item of [...baseCards, ...importedCards]) {
+      if (!item || !item.id || byId.has(item.id)) continue;
+      byId.set(item.id, item);
+    }
+    return Array.from(byId.values());
+  }
+
+  function synthesisTypeForSemanticType(type) {
+    if (type === 'artifact') return 'assembly';
+    if (type === 'material') return 'entity';
+    if (type === 'process') return 'behavior';
+    return type || 'entity';
+  }
+
+  function normalizeIncomingCardId(value) {
+    return String(value || '')
+      .replace(/^[a-z]+(?:-[a-z]+)*\./, '')
+      .replace(/-/g, '_')
+      .replace(/[^a-zA-Z0-9_]/g, '_')
+      .replace(/^_+|_+$/g, '');
+  }
+
+  function normalizeSemanticMaterials(values) {
+    return uniqueList((values || []).map((value) => {
+      if (value === 'soft_tissue' || value === 'fur' || value === 'feather' || value === 'shell') return 'biomass';
+      return value;
+    }));
+  }
+
+  function primitiveIdsForSemanticCard(item, basisById) {
+    const ids = [];
+    for (const material of normalizeSemanticMaterials(item.materialHints || [])) ids.push(material);
+    for (const groundingId of item.groundingIds || []) {
+      if (/^(math|physics|material|component|composition|scene)\./.test(groundingId)) {
+        ids.push(groundingId.split('.').pop());
+        continue;
+      }
+      const basis = basisById.get(groundingId);
+      if (basis) ids.push(...(basis.primitives || []));
+    }
+    return uniqueList(ids);
+  }
+
+  function importedSemanticSurfaceCards(semanticApi = {}) {
+    const surfaceCards = Array.isArray(semanticApi.SEMANTIC_SURFACE_CARDS)
+      ? semanticApi.SEMANTIC_SURFACE_CARDS
+      : [];
+    const basisCards = Array.isArray(semanticApi.GROUNDING_BASIS_CARDS)
+      ? semanticApi.GROUNDING_BASIS_CARDS
+      : [];
+    const basisById = new Map(basisCards.map((item) => [item.id, item]));
+    return surfaceCards.map((item) => {
+      const id = normalizeIncomingCardId(item.id);
+      const type = synthesisTypeForSemanticType(item.type);
+      const grounding = {
+        classes: item.classHints || [],
+        shapes: item.shapeHints || [],
+        parts: item.partHints || [],
+        materials: normalizeSemanticMaterials(item.materialHints || []),
+        behaviors: item.behaviorHints || item.eventHints || [],
+        constraints: item.relationHints || [],
+        ports: uniqueList([
+          ...(item.affordanceHints || []),
+          ...(item.relationHints || []),
+          ...(item.eventHints || []),
+        ]),
+        primitiveIds: primitiveIdsForSemanticCard(item, basisById),
+        approximation: first(item.classHints) || '',
+        abstract: ['entity_class', 'assembly_class'].includes(type),
+      };
+      return card(
+        id,
+        type,
+        item.labels || [id.replace(/_/g, ' ')],
+        grounding,
+        [
+          item.description,
+          (item.classHints || []).join(' '),
+          (item.shapeHints || []).join(' '),
+          (item.partHints || []).join(' '),
+          (item.materialHints || []).join(' '),
+          (item.behaviorHints || []).join(' '),
+          (item.eventHints || []).join(' '),
+          (item.relationHints || []).join(' '),
+        ].join(' ')
+      );
+    });
+  }
+
     const STOPWORDS = new Set([
         'a', 'an', 'and', 'are', 'as', 'at', 'be', 'by', 'for', 'from', 'in', 'into',
         'is', 'it', 'of', 'on', 'or', 'the', 'to', 'with', 'within', 'another',
@@ -345,10 +466,13 @@
         importedSemanticSurfaceCards(semantic)
       ));
 
-    Object.assign(scope, {
+    const api = Object.freeze({
       STOPWORDS,
       BASE_SURFACE_CARD_LIBRARY,
       SURFACE_CARD_LIBRARY,
+      normalizeIncomingCardId,
     });
-  }
+
+  if (typeof module === 'object' && module.exports) module.exports = api;
+  root.SimulatteGraphSynthesisSurfaceLibrary = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window);

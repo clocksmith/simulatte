@@ -87,11 +87,10 @@ test('public javascript keeps lines below the repository ceiling', () => {
 });
 
 const REFACTOR_SCOPE_BASELINE = Object.freeze({
-  withScopeFiles: 88,
-  missingDependencyFiles: 93,
+  withScopeFiles: 83,
+  missingDependencyFiles: 88,
   scopeNames: Object.freeze([
     '__SimulatteCompositionGraphRefactorScope',
-    '__SimulatteGraphSynthesisRefactorScope',
     '__SimulatteIntentEmbedderRefactorScope',
     '__SimulattePhysicsCatalogRefactorScope',
     '__SimulattePhysicsIRRefactorScope',

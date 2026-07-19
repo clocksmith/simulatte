@@ -35,12 +35,9 @@
     'pipeline/phase-01-runtime/simulatte-doppler-intent.js'
   );
   const graphSynthesis = group(
-    'pipeline/phase-04-grounded-intent/simulatte-graph-synthesis-dependencies.js',
-    'pipeline/phase-04-grounded-intent/simulatte-graph-synthesis-constants.js',
-    'pipeline/phase-04-grounded-intent/simulatte-graph-synthesis-helpers.js',
-    'pipeline/phase-04-grounded-intent/simulatte-graph-synthesis-surface-cards.js',
+    'pipeline/phase-04-grounded-intent/simulatte-graph-synthesis-support.js',
     'pipeline/phase-04-grounded-intent/simulatte-graph-synthesis-retrieval.js',
-    'pipeline/phase-04-grounded-intent/simulatte-graph-synthesis.js'
+    'pipeline/phase-04-grounded-intent/simulatte-graph-synthesis-helpers.js',
   );
   const intentEmbedder = group(
     'pipeline/phase-03-retrieval/simulatte-intent-embedder-dependencies.js',
