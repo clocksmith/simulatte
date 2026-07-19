@@ -1,7 +1,35 @@
-(function attachSimulattePhysicsRendererlabcontroller(root) {
-  const scope = root.__SimulattePhysicsRendererRefactorScope;
-  if (!scope || scope.missingDependency) return;
-  with (scope) {
+(function attachSimulattePromptControllerLab(root) {
+  const support = typeof module === 'object' && module.exports
+    ? require('./prompt-controller-dependencies.js')
+    : root.SimulattePromptControllerSupport;
+  const workers = typeof module === 'object' && module.exports
+    ? require('./prompt-controller-workers.js')
+    : root.SimulattePromptControllerWorkers;
+  const training = typeof module === 'object' && module.exports
+    ? require('./prompt-controller-training.js')
+    : root.SimulattePromptControllerTraining;
+  const construction = typeof module === 'object' && module.exports
+    ? require('./prompt-controller-construction-search.js')
+    : root.SimulatteConstructionSearch;
+  if (!support || !workers || !training || !construction) {
+    throw new Error('SimulattePromptControllerLab requires support, workers, training, and construction search');
+  }
+  const {
+    model, runtimeProgressApi, EXAMPLE_INTENTS, clamp, createRenderExecutionInput,
+    createSimulationState, createSpec, createSpecFromPrompt, deserializeSpec,
+    normalizeSpec, remixSpec, serializeSpec, stepSimulation,
+  } = support;
+  const {
+    createPipelineCompiler, worldModelReceiptElements, createTrainingRunState,
+    beginTrainingRun, syncTrainingRuntime, syncTrainingPreviewArtifacts,
+    syncTrainingRankArtifacts, syncTrainingSpecArtifacts, trainingSnapshot,
+    waitForLoadingPaint, renderControls, readSpecFromUi, syncShuffleButton,
+    pickShuffleExample, readPromptParams, syncComponentStack, syncReadoutLabels,
+    syncReadouts, syncSpecPreview,
+  } = workers;
+  const { logGraphDebug, syncWorldModelReceipt } = training;
+  const { createConstructionSearchState, observeConstructionSceneProof } = construction;
+
     function createBrowserLab(root = document) {
         const canvas = root.getElementById('physics-canvas');
         if (!canvas) return null;
@@ -938,21 +966,10 @@
         return url.toString();
       }
 
-    Object.assign(scope, {
+    const api = Object.freeze({
       createBrowserLab,
-      skipInitialBuildForAudit,
-      createFpsMeter,
-      createIntentWorkerClient,
-      intentWorkerConfig,
-      cloneIntentWorkerOptions,
-      cloneWorkerValue,
-      urlParam,
-      unregisterLegacyModelCacheWorker,
-      intentTraceEnabled,
-      truthyParam,
-      appBuildVersion,
-      appendBuildVersion,
-      versionedLocalUrl,
     });
-  }
+
+  if (typeof module === 'object' && module.exports) module.exports = api;
+  root.SimulattePromptControllerLab = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window);

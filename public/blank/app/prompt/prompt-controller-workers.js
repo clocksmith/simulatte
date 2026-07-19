@@ -1,7 +1,24 @@
-(function attachSimulattePhysicsRendererworkers(root) {
-  const scope = root.__SimulattePhysicsRendererRefactorScope;
-  if (!scope || scope.missingDependency) return;
-  with (scope) {
+(function attachSimulattePromptControllerWorkers(root) {
+  const support = typeof module === 'object' && module.exports
+    ? require('./prompt-controller-dependencies.js')
+    : root.SimulattePromptControllerSupport;
+  const construction = typeof module === 'object' && module.exports
+    ? require('./prompt-controller-construction-search.js')
+    : root.SimulatteConstructionSearch;
+  if (!support || !construction) {
+    throw new Error('SimulattePromptControllerWorkers requires controller support and construction search');
+  }
+  const {
+    model,
+    EXAMPLE_INTENTS,
+    controlsForSpec,
+    readoutLabelsForSpec,
+    readoutValues,
+    stateLabel,
+    worldModelSnapshot,
+  } = support;
+  const { createConstructionSearchState } = construction;
+
     function createPipelineCompiler(root) {
         const view = root && root.defaultView;
         if (!view || typeof view.Worker !== 'function') return null;
@@ -829,39 +846,7 @@
         };
       }
 
-    function syncWorldModelReceipt(elements, spec) {
-        if (!elements || !elements.node) return;
-        const worldModel = worldModelSnapshot(spec);
-        elements.node.dataset.sceneKind = worldModel.sceneKind || '';
-        elements.node.dataset.templateId = worldModel.template || '';
-        if (elements.status) elements.status.textContent = worldModel.sceneKind || worldModel.template || 'blank';
-        if (elements.summary) elements.summary.textContent = worldModel.summary;
-        if (elements.chips) {
-          elements.chips.innerHTML = '';
-          [
-            ['spans', worldModel.languageSpans],
-            ['accepted', worldModel.acceptedActivations],
-            ['graph', `${worldModel.graphNodes}/${worldModel.graphEdges}`],
-            ['physics', worldModel.physicsOperators],
-            ['visual', `${worldModel.visualEntities}/${worldModel.visualProcesses}`],
-            ['atoms', worldModel.graphicsAtoms],
-            ['assumed', worldModel.assumptions],
-            ['unsupported', worldModel.unsupported],
-            ['wgsl', worldModel.wgslOperators],
-          ].forEach(([label, value]) => {
-            const chip = elements.node.ownerDocument.createElement('span');
-            chip.className = 'world-model-chip';
-            const labelNode = elements.node.ownerDocument.createElement('span');
-            labelNode.textContent = label;
-            const valueNode = elements.node.ownerDocument.createElement('strong');
-            valueNode.textContent = String(value);
-            chip.append(labelNode, valueNode);
-            elements.chips.appendChild(chip);
-          });
-        }
-      }
-
-    Object.assign(scope, {
+    const api = Object.freeze({
       createPipelineCompiler,
       worldModelReceiptElements,
       createTrainingRunState,
@@ -871,40 +856,18 @@
       syncTrainingRankArtifacts,
       syncTrainingSpecArtifacts,
       trainingSnapshot,
-      storeTrainingArtifact,
-      phaseOutput,
-      artifactSummary,
-      compactObject,
-      numericMetric,
-      compactCountObject,
-      rowCount,
-      idRows,
-      typeRows,
-      graphicsAtomCounts,
-      visualAcceptanceCounts,
-      visualIRRowCounts,
-      visualRenderInstanceCounts,
-      visualRejectedRows,
-      uniqueStrings,
-      semanticRenderCoverage,
-      isPromptGroundedObject,
-      renderCoverageTokens,
       waitForLoadingPaint,
       renderControls,
       readSpecFromUi,
-      sameParamValues,
-      syncTemplateButtons,
       syncShuffleButton,
       pickShuffleExample,
       readPromptParams,
-      parseParamJson,
       syncComponentStack,
       syncReadoutLabels,
       syncReadouts,
       syncSpecPreview,
-      renderProgramPreviewPlan,
-      renderProgramPreviewVisualIR,
-      syncWorldModelReceipt,
     });
-  }
+
+  if (typeof module === 'object' && module.exports) module.exports = api;
+  root.SimulattePromptControllerWorkers = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window);

@@ -2,8 +2,6 @@
   const api = factory();
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteConstructionSearch = api;
-  const scope = root.__SimulattePhysicsRendererRefactorScope;
-  if (scope && !scope.missingDependency) Object.assign(scope, api);
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createConstructionSearchApi() {
   const DEFAULT_MAX_ATTEMPTS = 5;
   const FAILURE_STATUSES = new Set(['lost', 'failed', 'wrong-identity', 'not-proven']);

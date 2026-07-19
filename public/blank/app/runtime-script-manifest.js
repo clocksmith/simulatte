@@ -174,11 +174,10 @@
   );
   const prompt = group(
     'app/prompt/prompt-controller-dependencies.js',
-    'app/prompt/prompt-controller-model-bindings.js',
     'app/prompt/prompt-controller-construction-search.js',
-    'app/prompt/prompt-controller-lab-controller.js',
     'app/prompt/prompt-controller-workers.js',
     'app/prompt/prompt-controller-training.js',
+    'app/prompt/prompt-controller-lab-controller.js',
     'app/prompt/prompt-controller.js'
   );
   const simulation = group(

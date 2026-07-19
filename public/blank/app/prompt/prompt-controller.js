@@ -1,23 +1,15 @@
 (function attachSimulattePhysicsRenderer(root) {
-  if (typeof module === 'object' && module.exports) {
-    require('./prompt-controller-dependencies.js');
-    require('./prompt-controller-model-bindings.js');
-    require('./prompt-controller-construction-search.js');
-    require('./prompt-controller-lab-controller.js');
-    require('./prompt-controller-workers.js');
-    require('./prompt-controller-training.js');
+  const lab = typeof module === 'object' && module.exports
+    ? require('./prompt-controller-lab-controller.js')
+    : root.SimulattePromptControllerLab;
+  if (!lab || typeof lab.createBrowserLab !== 'function') {
+    throw new Error('SimulattePhysicsRenderer requires the prompt controller lab');
   }
-  const scope = root.__SimulattePhysicsRendererRefactorScope = root.__SimulattePhysicsRendererRefactorScope || {};
-  if (scope.missingDependency) return;
-  let api;
-  with (scope) {
-    api = {
-    createBrowserLab,
-    start,
-  };
+  function start() {
+    if (typeof document === 'undefined') return null;
+    return lab.createBrowserLab(document);
   }
-  if (typeof module === 'object' && module.exports) {
-      module.exports = api;
-    }
+  const api = Object.freeze({ createBrowserLab: lab.createBrowserLab, start });
+  if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulattePhysicsRenderer = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window);
