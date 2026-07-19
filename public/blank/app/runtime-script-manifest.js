@@ -135,11 +135,7 @@
     'pipeline/phase-06-visual/simulatte-composition-graph.js'
   );
   const loading = group(
-    'app/loading/loading-canvas-dependencies.js',
-    'app/loading/loading-canvas-config.js',
-    'app/loading/loading-canvas-controller.js',
-    'app/loading/loading-canvas-drawing.js',
-    'app/loading/loading-canvas-pathing.js',
+    'app/loading/loading-canvas-support.js',
     'app/loading/loading-canvas.js'
   );
   const runtimeProgress = group(
