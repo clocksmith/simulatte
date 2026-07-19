@@ -139,12 +139,8 @@
     'app/loading/loading-canvas.js'
   );
   const runtimeProgress = group(
-    'app/runtime/runtime-progress-dependencies.js',
-    'app/runtime/runtime-progress-constants.js',
-    'app/runtime/runtime-progress-timing.js',
-    'app/runtime/runtime-progress-controller.js',
-    'app/runtime/runtime-progress-reducer.js',
-    'app/runtime/runtime-progress-observers.js',
+    'app/runtime/runtime-progress-support.js',
+    'app/runtime/runtime-progress-state.js',
     'app/runtime/runtime-progress.js'
   );
   const renderProof = group(
