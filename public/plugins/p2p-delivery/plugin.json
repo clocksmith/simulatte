@@ -1,0 +1,41 @@
+{
+  "configSchema": "./config.schema.json",
+  "consumes": [],
+  "datasets": [
+    {
+      "id": "battery-office-east-village-v1",
+      "required": true
+    }
+  ],
+  "defaultConfig": "./default-config.json",
+  "entry": {
+    "globalFactory": "SimulattePluginP2pDelivery",
+    "integrity": "sha384-ecb9414e46065a1baac92e8ceb26b693a26d6196179df3474f45e172998cc0acf17c404a48490ce504d9fa246b203622",
+    "path": "./index.js"
+  },
+  "extensionPoints": [
+    "request",
+    "settlement",
+    "ui"
+  ],
+  "id": "p2p-delivery",
+  "permissions": [
+    "events.propose.v1",
+    "receipts.append.v1",
+    "routing.contribute.v1",
+    "state.reduce.v1",
+    "ui.inspector.v1",
+    "world.query.v1"
+  ],
+  "provides": [
+    "fulfillment.delivery.v1",
+    "settlement.delivery.v1"
+  ],
+  "receiptSchemas": [
+    "simulatte.plugin.p2pDeliveryMatchReceipt.v1",
+    "simulatte.plugin.p2pDeliverySettlement.v1"
+  ],
+  "schema": "simulatte.pluginManifest.v1",
+  "sdkVersion": 1,
+  "version": "1.0.0"
+}

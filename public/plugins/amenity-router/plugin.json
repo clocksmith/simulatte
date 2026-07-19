@@ -1,0 +1,38 @@
+{
+  "configSchema": "./config.schema.json",
+  "consumes": [],
+  "datasets": [
+    {
+      "id": "nyc-bicycle-parking-route-amenity-v1",
+      "required": true
+    }
+  ],
+  "defaultConfig": "./default-config.json",
+  "entry": {
+    "globalFactory": "SimulattePluginAmenityRouter",
+    "integrity": "sha384-48c8ff709ad3c84ae5888f3e46369e505fdd68eabd75f0b81c2f90c46f20cb1625cbf58851b17dca6c0685045b3f1f53",
+    "path": "./index.js"
+  },
+  "extensionPoints": [
+    "route",
+    "ui"
+  ],
+  "id": "amenity-router",
+  "permissions": [
+    "events.propose.v1",
+    "receipts.append.v1",
+    "routing.contribute.v1",
+    "state.reduce.v1",
+    "ui.inspector.v1"
+  ],
+  "provides": [
+    "routing.eligibility.amenity.v1",
+    "routing.dimension.amenity-distance.v1"
+  ],
+  "receiptSchemas": [
+    "simulatte.plugin.amenityRouteAudit.v1"
+  ],
+  "schema": "simulatte.pluginManifest.v1",
+  "sdkVersion": 1,
+  "version": "1.0.0"
+}

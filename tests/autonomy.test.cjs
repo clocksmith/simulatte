@@ -10,7 +10,7 @@ const { pathToFileURL } = require('node:url');
 const root = path.resolve(__dirname, '..');
 const publicDir = path.join(root, 'public');
 const autonomyDir = publicDir;
-const autonomySourceDirs = ['app', 'contracts', 'mission', 'runtime', 'verifier', 'world'].map((name) => path.join(publicDir, name));
+const autonomySourceDirs = ['app', 'contracts', 'mission', 'platform', 'runtime', 'verifier', 'world'].map((name) => path.join(publicDir, name));
 const dataDir = path.join(publicDir, 'data', 'autonomy');
 const contracts = require('../public/contracts/contract-validator.js');
 const cooperativeContracts = require('../public/contracts/cooperative-contracts.js');
@@ -25,6 +25,9 @@ const dataLoader = require('../public/runtime/data-loader.js');
 const journeyLedgerApi = require('../public/runtime/journey-ledger.js');
 const neuralPlaceCore = require('../public/runtime/neural-place-resolution-core.js');
 const runtimeLog = require('../public/runtime/runtime-log.js');
+const browserTransportApi = require('../public/platform/transport/browser-transport.js');
+const artifactStoreApi = require('../public/platform/artifacts/governed-artifact-store.js');
+const dataCatalogApi = require('../public/platform/data-catalog/immutable-data-catalog.js');
 const featureRetrieval = require('../public/runtime/feature-retrieval.js');
 const occurrenceApi = require('../public/runtime/occurrence-engine.js');
 const cooperativeApi = require('../public/runtime/cooperative-engine.js');
@@ -83,6 +86,7 @@ function governedAssets() {
     placeEmbeddingIndex: referenced('placeEmbeddingIndex'),
     placeResolutionEvidence: referenced('placeResolutionEvidence'),
     modelRuntimeLock: referenced('modelRuntimeLock'),
+    pipelineModelSelection: referenced('pipelineModelSelection'),
     policyArenaEvidence: referenced('policyArenaEvidence'),
     cooperativeScenario: referenced('cooperativeScenario'),
   };
@@ -153,9 +157,11 @@ test('autonomy manifest pins and validates every governed asset', () => {
   contracts.validatePlaceEmbeddingIndex(rows.placeEmbeddingIndex, rows.modelRuntimeLock, rows.world, rows.manifest.world.sha256);
   contracts.validatePlaceResolutionEvidence(rows.placeResolutionEvidence, rows.placeEmbeddingIndex, rows.modelRuntimeLock);
   contracts.validateModelRuntimeLock(rows.modelRuntimeLock);
+  assert.equal(rows.pipelineModelSelection.modelRuntimeLock.id, rows.modelRuntimeLock.id);
+  assert.equal(rows.pipelineModelSelection.modelRuntimeLock.number, rows.modelRuntimeLock.number);
   contracts.validatePolicyArenaEvidence(rows.policyArenaEvidence);
   cooperativeContracts.validateScenario(rows.cooperativeScenario);
-  for (const key of ['world', 'policy', 'featureCatalog', 'occurrenceCatalog', 'rerankerEvidence', 'regionRegistry', 'accessibilityIndex', 'routeAmenityIndex', 'safetyHistoryIndex', 'curriculum', 'worldSnapshotRegistry', 'placeEmbeddingIndex', 'placeResolutionEvidence', 'modelRuntimeLock', 'policyArenaEvidence', 'cooperativeScenario']) {
+  for (const key of ['world', 'policy', 'featureCatalog', 'occurrenceCatalog', 'rerankerEvidence', 'regionRegistry', 'accessibilityIndex', 'routeAmenityIndex', 'safetyHistoryIndex', 'curriculum', 'worldSnapshotRegistry', 'placeEmbeddingIndex', 'placeResolutionEvidence', 'modelRuntimeLock', 'pipelineModelSelection', 'policyArenaEvidence', 'cooperativeScenario']) {
     const reference = rows.manifest[key];
     const file = path.resolve(dataDir, reference.path);
     assert.equal(hashFile(file), reference.sha256, `${key} raw bytes should match the manifest`);
@@ -1199,6 +1205,10 @@ test('browser loader verifies raw hashes and rejects tampered assets', async () 
   assert.equal(loaded.regionComposition.seamNodeIds.length, 98);
   assert.equal(loaded.regionRegistry.id, loaded.manifest.regionRegistry.id);
   assert.equal(loaded.regionPacks.length, 3);
+  assert.equal(loaded.dataCatalog.require(loaded.world.id), loaded.world);
+  assert.equal(loaded.dataCatalog.require(loaded.policy.id), loaded.policy);
+  assert.equal(loaded.dataCatalog.require(loaded.pipelineModelSelection.id), loaded.pipelineModelSelection);
+  assert.ok(loaded.dataCatalog.ids.includes(loaded.featureCatalog.id));
   assert.ok(requests.length > 8);
   assert.ok(requests.every((row) => row.options?.cache === 'no-cache'));
 
@@ -1239,6 +1249,57 @@ test('browser loader verifies raw hashes and rejects tampered assets', async () 
   );
 });
 
+test('platform data boundaries isolate transport, artifact verification, and declared catalog access', async () => {
+  const calls = [];
+  const value = { id: 'fixture-v1', schema: 'simulatte.fixture.v1', rows: [1, 2, 3] };
+  const text = JSON.stringify(value);
+  const sha256 = crypto.createHash('sha256').update(text).digest('hex');
+  const fetchImpl = async (url, options) => {
+    calls.push({ url, options });
+    return {
+      ok: true,
+      status: 200,
+      headers: { get: (name) => name === 'etag' ? 'fixture-etag' : null },
+      text: async () => text,
+    };
+  };
+  const transport = browserTransportApi.createBrowserTransport({ fetchImpl });
+  const store = artifactStoreApi.createGovernedArtifactStore({ transport });
+  const resolved = await store.resolve({ id: value.id, path: './fixture.json', sha256 }, {
+    baseUrl: 'https://simulatte.test/data/manifest.json',
+    key: 'fixture',
+  });
+  assert.equal(resolved.value.id, value.id);
+  assert.equal(resolved.sha256, sha256);
+  assert.equal(resolved.response.etag, 'fixture-etag');
+  assert.deepEqual(calls, [{ url: 'https://simulatte.test/data/fixture.json', options: { cache: 'no-cache' } }]);
+
+  const catalog = dataCatalogApi.createDataCatalog([{ id: value.id, value: resolved.value, receipt: { sha256 } }]);
+  const declared = catalog.createView([value.id, { id: 'optional-v1', required: false }]);
+  assert.equal(declared.require(value.id), resolved.value);
+  assert.deepEqual(declared.receipt(value.id), { sha256 });
+  assert.equal(declared.optional('optional-v1'), null);
+  assert.equal(declared.receipt('optional-v1'), null);
+  assert.throws(() => declared.require('undeclared-v1'), (error) => error.code === 'data_catalog_access_undeclared');
+  assert.throws(
+    () => dataCatalogApi.createDataCatalog([{ id: value.id, value }, { id: value.id, value }]),
+    (error) => error.code === 'data_catalog_id_duplicate'
+  );
+
+  const tamperedStore = artifactStoreApi.createGovernedArtifactStore({
+    transport: browserTransportApi.createBrowserTransport({
+      fetchImpl: async () => ({ ok: true, status: 200, text: async () => `${text}\n` }),
+    }),
+  });
+  await assert.rejects(
+    () => tamperedStore.resolve({ id: value.id, path: './fixture.json', sha256 }, {
+      baseUrl: 'https://simulatte.test/data/manifest.json',
+      key: 'fixture',
+    }),
+    (error) => error.code === 'asset_hash_mismatch'
+  );
+});
+
 test('autonomy browser surface loads every declared module and stays independent of compiler phases', () => {
   const html = fs.readFileSync(path.join(autonomyDir, 'index.html'), 'utf8');
   const compatibilityHtml = fs.readFileSync(path.join(root, 'public/autonomy/index.html'), 'utf8');
@@ -1246,6 +1307,12 @@ test('autonomy browser surface loads every declared module and stays independent
   const scripts = Array.from(html.matchAll(/<script defer src="([^"]+)"><\/script>/g))
     .map((match) => match[1].replace(/\?v=.*$/, ''));
   assert.ok(scripts.length >= 15);
+  assert.ok(scripts.indexOf('./runtime/runtime-log.js') < scripts.indexOf('./platform/transport/browser-transport.js'));
+  assert.ok(scripts.indexOf('./platform/transport/browser-transport.js') < scripts.indexOf('./platform/artifacts/governed-artifact-store.js'));
+  assert.ok(scripts.indexOf('./platform/transport/browser-transport.js') < scripts.indexOf('./world/world-tile-manager.js'));
+  assert.ok(scripts.indexOf('./platform/storage/browser-tile-storage.js') < scripts.indexOf('./world/world-tile-storage.js'));
+  assert.ok(scripts.indexOf('./platform/artifacts/governed-artifact-store.js') < scripts.indexOf('./runtime/data-loader.js'));
+  assert.ok(scripts.indexOf('./platform/data-catalog/immutable-data-catalog.js') < scripts.indexOf('./runtime/data-loader.js'));
   assert.ok(scripts.indexOf('./runtime/runtime-log.js') < scripts.indexOf('./runtime/data-loader.js'));
   assert.ok(scripts.indexOf('./world/region-pack-merger.js') < scripts.indexOf('./runtime/data-loader.js'));
   scripts.forEach((source) => assert.ok(fs.existsSync(path.resolve(autonomyDir, source)), `${source} should exist`));

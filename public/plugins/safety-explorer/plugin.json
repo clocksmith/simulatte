@@ -1,0 +1,37 @@
+{
+  "configSchema": "./config.schema.json",
+  "consumes": [],
+  "datasets": [
+    {
+      "id": "nyc-crash-history-2025-07-to-2026-07-v1",
+      "required": true
+    }
+  ],
+  "defaultConfig": "./default-config.json",
+  "entry": {
+    "globalFactory": "SimulattePluginSafetyExplorer",
+    "integrity": "sha384-675356b8bed85bdd1ca7f1786c8341a8f3a2c626c0e24cbf0795d51369e47031bb27edabd426f5f40cbda07c6bcb379a",
+    "path": "./index.js"
+  },
+  "extensionPoints": [
+    "route",
+    "ui"
+  ],
+  "id": "safety-explorer",
+  "permissions": [
+    "events.propose.v1",
+    "receipts.append.v1",
+    "routing.contribute.v1",
+    "state.reduce.v1",
+    "ui.inspector.v1"
+  ],
+  "provides": [
+    "routing.dimension.historical-observation.v1"
+  ],
+  "receiptSchemas": [
+    "simulatte.plugin.safetyExplorerRouteAudit.v1"
+  ],
+  "schema": "simulatte.pluginManifest.v1",
+  "sdkVersion": 1,
+  "version": "1.0.0"
+}

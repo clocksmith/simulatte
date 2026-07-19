@@ -1,8 +1,15 @@
 (function attachWorldTileManager(root, factory) {
-  const api = factory();
+  const browserTransport = typeof module === 'object' && module.exports
+    ? require('../platform/transport/browser-transport.js')
+    : root.SimulatteBrowserTransport;
+  const api = factory(browserTransport);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteWorldTileManager = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createWorldTileManagerModule() {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createWorldTileManagerModule(browserTransport) {
+  if (!browserTransport || typeof browserTransport.createBrowserTransport !== 'function') {
+    throw new Error('world_tile_manager_dependency_missing: browser transport is required');
+  }
+
   function createWorldTileManager(options = {}) {
     const fetchBytes = options.fetchBytes || defaultFetchBytes;
     const hashBytes = options.hashBytes || defaultHashBytes;
@@ -239,9 +246,13 @@
   }
 
   async function defaultFetchBytes(url, signal) {
-    const response = await fetch(url, { signal, cache: 'no-cache' });
-    if (!response.ok) throw tileError('tile_fetch_failed', { url, status: response.status });
-    return new Uint8Array(await response.arrayBuffer());
+    try {
+      const loaded = await browserTransport.createBrowserTransport().readBytes(url, { signal });
+      return loaded.bytes;
+    } catch (error) {
+      if (error.code === 'asset_fetch_failed') throw tileError('tile_fetch_failed', { url, status: error.evidence?.status || null });
+      throw error;
+    }
   }
 
   async function defaultHashBytes(bytes) {

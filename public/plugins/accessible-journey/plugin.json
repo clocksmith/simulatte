@@ -1,0 +1,38 @@
+{
+  "configSchema": "./config.schema.json",
+  "consumes": [],
+  "datasets": [
+    {
+      "id": "nyc-pedestrian-ramp-accessibility-v1",
+      "required": true
+    }
+  ],
+  "defaultConfig": "./default-config.json",
+  "entry": {
+    "globalFactory": "SimulattePluginAccessibleJourney",
+    "integrity": "sha384-472661db3f146ca574004614e21f65091de8db0cc471767fbafafefcb66ba934b380ee787932c0520aacd48917c53def",
+    "path": "./index.js"
+  },
+  "extensionPoints": [
+    "route",
+    "settlement",
+    "ui"
+  ],
+  "id": "accessible-journey",
+  "permissions": [
+    "events.propose.v1",
+    "receipts.append.v1",
+    "routing.contribute.v1",
+    "state.reduce.v1",
+    "ui.inspector.v1"
+  ],
+  "provides": [
+    "routing.eligibility.accessibility.v1"
+  ],
+  "receiptSchemas": [
+    "simulatte.plugin.accessibleJourneyReceipt.v1"
+  ],
+  "schema": "simulatte.pluginManifest.v1",
+  "sdkVersion": 1,
+  "version": "1.0.0"
+}

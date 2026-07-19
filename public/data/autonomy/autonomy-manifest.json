@@ -4,6 +4,11 @@
     "path": "./accessibility-index-v1.json",
     "sha256": "5a2ff2ea110f51b5d276c5c5c58c197da935b1e08a33da29aaeaeac9d5303017"
   },
+  "applicationProfile": {
+    "id": "simulatte-world-v1",
+    "path": "../application-profiles/simulatte-world-v1.json",
+    "sha256": "a595f59eccf654b5052ddbc5cf09b3a5cbce9800e319879fc7fb003eda6f33a4"
+  },
   "claimBoundary": "This manifest governs bicycle-delivery and pedestrian-loop simulations assembled from independently hashed region packs for New York City. Park circuits follow frozen property boundaries, not surveyed sidewalk centerlines. It does not claim live conditions, physical-world autonomy, or control of a real vehicle.",
   "contentVersion": "autonomy-nyc-multimodal-v1",
   "cooperativeScenario": {
@@ -74,6 +79,11 @@
     "id": "nyc-replay-patterns-v1",
     "path": "./patterns/nyc-replay-patterns-v1.json",
     "sha256": "b73df729ecf5f93e4f62d9a1565218cc078578e050eb7c5cab43e2dbd0fb8a02"
+  },
+  "pipelineModelSelection": {
+    "id": "simulatte-pipeline-model-selection-v1",
+    "path": "../pipeline-model-selection.json",
+    "sha256": "03095c3025af4f86b07bb300f6fbfa0f082c58a05c069a35460329cbed7253f0"
   },
   "placeEmbeddingIndex": {
     "id": "nyc-core-place-embedding-index-v1",

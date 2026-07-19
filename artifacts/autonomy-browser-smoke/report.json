@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.autonomyBrowserSmoke.v10",
-  "pass": true,
-  "targetUrl": "http://127.0.0.1:54197/",
+  "pass": false,
+  "targetUrl": "http://127.0.0.1:55070/",
   "viewport": {
     "width": 1440,
     "height": 1000
@@ -74,17 +74,17 @@
           "hidden": false,
           "left": 341,
           "top": 914,
-          "right": 774.859375,
+          "right": 833.234375,
           "bottom": 973,
-          "width": 433.859375,
+          "width": 492.234375,
           "height": 59
         },
         {
           "id": "shuffle-button",
           "hidden": false,
-          "left": 784.859375,
+          "left": 843.234375,
           "top": 914,
-          "right": 874.078125,
+          "right": 932.453125,
           "bottom": 973,
           "width": 89.21875,
           "height": 59
@@ -92,22 +92,22 @@
         {
           "id": "start-button",
           "hidden": false,
-          "left": 880.078125,
+          "left": 938.453125,
           "top": 914,
-          "right": 954.28125,
+          "right": 1012.65625,
           "bottom": 973,
           "width": 74.203125,
           "height": 59
         },
         {
           "id": "place-resolution-lane",
-          "hidden": false,
-          "left": 1058,
-          "top": 934.5,
-          "right": 1088,
-          "bottom": 952.5,
-          "width": 30,
-          "height": 18
+          "hidden": true,
+          "left": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0
         },
         {
           "id": "decisions-button",
@@ -121,7 +121,7 @@
         }
       ],
       "allWithinViewport": true,
-      "primaryControlsVisible": true
+      "primaryControlsVisible": false
     },
     "state": "completed",
     "tick": 442,
@@ -246,7 +246,7 @@
         "visible": true,
         "projection": "orthographic_top_north_up",
         "radiusM": 420,
-        "frameCount": 72
+        "frameCount": 70
       }
     },
     "editInvalidatedController": true,
@@ -258,54 +258,95 @@
     "ambientActorCount": 13,
     "ambientActorKinds": "pedestrian,bicycle,scooter,car",
     "adapterName": "metal-3",
-    "rendererFrames": 1661,
+    "rendererFrames": 1405,
     "smoothness": {
-      "rafFrameCount": 1210,
+      "rafFrameCount": 954,
       "frameIntervalMs": {
         "min": 15.6,
-        "p50": 16.7,
-        "p95": 17,
-        "p99": 17.5,
-        "max": 50,
-        "mean": 16.7217
+        "p50": 17,
+        "p95": 34,
+        "p99": 50,
+        "max": 83.4,
+        "mean": 21.8737
       },
-      "over20msCount": 3,
-      "over33msCount": 2,
-      "over33msRatio": 0.0017,
-      "longTaskCount": 0,
-      "longTaskTotalMs": 0,
-      "longestTaskMs": 0,
+      "over20msCount": 275,
+      "over33msCount": 122,
+      "over33msRatio": 0.1279,
+      "longTaskCount": 8,
+      "longTaskTotalMs": 570,
+      "longestTaskMs": 81,
       "phaseMarks": [
         {
           "phase": "sampling_started",
-          "at": 5693.699999809265
+          "at": 11567.599999904633
         },
         {
           "phase": "camera_modes_complete",
-          "at": 8575.300000190735
+          "at": 14451.5
         },
         {
           "phase": "camera_interactions_complete",
-          "at": 11093.400000095367
+          "at": 16969.599999904633
         },
         {
           "phase": "mission_edited",
-          "at": 11094.099999904633
+          "at": 16970.099999904633
         },
         {
           "phase": "start_clicked",
-          "at": 11117.599999904633
+          "at": 16994.900000095367
         },
         {
           "phase": "follow_minimap_ready",
-          "at": 11190.900000095367
+          "at": 17081.700000286102
         },
         {
           "phase": "journey_terminal",
-          "at": 25897.199999809265
+          "at": 32420.599999904633
         }
       ],
-      "longTasks": []
+      "longTasks": [
+        {
+          "startTime": 16995,
+          "duration": 59,
+          "phase": "start_clicked"
+        },
+        {
+          "startTime": 19109.5,
+          "duration": 55,
+          "phase": "follow_minimap_ready"
+        },
+        {
+          "startTime": 19165.1,
+          "duration": 57,
+          "phase": "follow_minimap_ready"
+        },
+        {
+          "startTime": 21387,
+          "duration": 80,
+          "phase": "follow_minimap_ready"
+        },
+        {
+          "startTime": 23512,
+          "duration": 80,
+          "phase": "follow_minimap_ready"
+        },
+        {
+          "startTime": 25827.7,
+          "duration": 80,
+          "phase": "follow_minimap_ready"
+        },
+        {
+          "startTime": 28245.3,
+          "duration": 78,
+          "phase": "follow_minimap_ready"
+        },
+        {
+          "startTime": 30811.4,
+          "duration": 81,
+          "phase": "follow_minimap_ready"
+        }
+      ]
     },
     "staticVertexCount": 547548,
     "dynamicVertexCount": 47469,
@@ -343,7 +384,7 @@
     "ambientActorCount": 13,
     "ambientActorKinds": "pedestrian,bicycle,scooter,car",
     "minimapVisible": true,
-    "minimapFrameCount": 1450
+    "minimapFrameCount": 1218
   },
   "featureView": {
     "cooperation": {
@@ -389,11 +430,11 @@
       "status": 200
     },
     {
-      "pathname": "/neural-model-consent.js",
+      "pathname": "/model-selection.css",
       "status": 200
     },
     {
-      "pathname": "/contracts/data-contract-validator.js",
+      "pathname": "/neural-model-consent.js",
       "status": 200
     },
     {
@@ -401,11 +442,15 @@
       "status": 200
     },
     {
+      "pathname": "/model-selection.js",
+      "status": 200
+    },
+    {
       "pathname": "/contracts/cooperative-contracts.js",
       "status": 200
     },
     {
-      "pathname": "/world/world-tile-manager.js",
+      "pathname": "/contracts/data-contract-validator.js",
       "status": 200
     },
     {
@@ -413,15 +458,31 @@
       "status": 200
     },
     {
-      "pathname": "/world/world-tile-storage.js",
-      "status": 200
-    },
-    {
       "pathname": "/world/region-pack-merger.js",
       "status": 200
     },
     {
+      "pathname": "/world/world-tile-manager.js",
+      "status": 200
+    },
+    {
+      "pathname": "/world/world-tile-storage.js",
+      "status": 200
+    },
+    {
       "pathname": "/runtime/runtime-log.js",
+      "status": 200
+    },
+    {
+      "pathname": "/platform/transport/browser-transport.js",
+      "status": 200
+    },
+    {
+      "pathname": "/platform/artifacts/governed-artifact-store.js",
+      "status": 200
+    },
+    {
+      "pathname": "/platform/data-catalog/immutable-data-catalog.js",
       "status": 200
     },
     {
@@ -593,7 +654,7 @@
       "status": 200
     },
     {
-      "pathname": "/data/autonomy/evidence/place-resolution-public-diagnostic-v2.json",
+      "pathname": "/data/autonomy/evidence/place-resolution-public-diagnostic-v5.json",
       "status": 200
     },
     {
@@ -629,10 +690,6 @@
       "status": 200
     },
     {
-      "pathname": "/favicon.svg",
-      "status": 200
-    },
-    {
       "pathname": "/data/autonomy/embodiments/delivery-bike-v1.json",
       "status": 200
     },
@@ -649,6 +706,10 @@
       "status": 200
     },
     {
+      "pathname": "/favicon.svg",
+      "status": 200
+    },
+    {
       "pathname": "/data/autonomy/regions/packs/manhattan-villages-v1.json",
       "status": 200
     },
@@ -662,6 +723,10 @@
     },
     {
       "pathname": "/data/simulatte-embedder/model-runtime-lock.json",
+      "status": 200
+    },
+    {
+      "pathname": "/data/pipeline-model-selection.json",
       "status": 200
     }
   ],

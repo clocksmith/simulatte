@@ -1,0 +1,10 @@
+{
+  "schema": "simulatte.plugin.sunWalkerConfig.v1",
+  "id": "sun-walker-default-v1",
+  "maximumAlternatives": 3,
+  "directSunWeight": 1,
+  "unknownWeight": 2,
+  "maximumAddedTimeSeconds": 600,
+  "maximumAddedRatio": 0.25,
+  "sampleSpacingM": 18
+}

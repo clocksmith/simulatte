@@ -14,6 +14,13 @@ consent/custody, CPU-reference shade routing, and parity-proven numeric WebGPU
 scoring are executable. Live peers, physical consent/custody, GPU shade fields,
 and live renderer adoption of atomic tile residency remain outside the claim.
 
+The target application boundary and resumable extraction sequence are defined
+in [Simulatte plugin platform architecture](plugin-platform-architecture.md).
+Blank remains a separate compiler. Sun Walker, P2P Delivery, Cable Trader,
+Counterfactual Lab, Accessible Journey, Historical Streets, Safety Explorer,
+Amenity Router, and Gig Wage Truth are defined as independently versioned
+Simulatte World plugins composed through a shared host.
+
 It is not a directions wrapper and it is not a physical-autonomy claim. Its
 distinct product is matched simulation evidence for questions such as:
 

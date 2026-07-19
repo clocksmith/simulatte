@@ -1,0 +1,40 @@
+{
+  "configSchema": "./config.schema.json",
+  "consumes": [],
+  "datasets": [
+    {
+      "id": "world.buildings.v1",
+      "required": true
+    }
+  ],
+  "defaultConfig": "./default-config.json",
+  "entry": {
+    "globalFactory": "SimulattePluginSunWalker",
+    "integrity": "sha384-cc76ff1413df02b51cfcf897f12d2bc9a5d2bccb33d562919596eb899273e1a452154d122f2c458d5a69eed88375c819",
+    "path": "./index.js"
+  },
+  "extensionPoints": [
+    "request",
+    "settlement",
+    "ui"
+  ],
+  "id": "sun-walker",
+  "permissions": [
+    "clock.read.v1",
+    "events.propose.v1",
+    "receipts.append.v1",
+    "routing.contribute.v1",
+    "state.reduce.v1",
+    "ui.inspector.v1",
+    "world.query.v1"
+  ],
+  "provides": [
+    "routing.dimension.sun-exposure.v1"
+  ],
+  "receiptSchemas": [
+    "simulatte.plugin.sunWalkerSelectionReceipt.v1"
+  ],
+  "schema": "simulatte.pluginManifest.v1",
+  "sdkVersion": 1,
+  "version": "1.0.0"
+}

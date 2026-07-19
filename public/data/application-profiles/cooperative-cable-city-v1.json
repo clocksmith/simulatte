@@ -1,0 +1,11 @@
+{
+  "schema": "simulatte.applicationProfile.v1",
+  "id": "cooperative-cable-city-v1",
+  "plugins": [
+    { "id": "cable-trader", "configId": "cable-trader-default-v1" },
+    { "id": "gig-wage-truth", "configId": "gig-wage-truth-default-v1" },
+    { "id": "p2p-delivery", "configId": "p2p-delivery-default-v1" },
+    { "id": "sun-walker", "configId": "sun-walker-default-v1" }
+  ],
+  "routeObjective": { "travelSeconds": 1, "sunExposureSeconds": 0.4, "marginalDeliverySeconds": 0.2 }
+}

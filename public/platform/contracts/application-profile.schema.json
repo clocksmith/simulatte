@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Simulatte application profile v1",
+  "type": "object",
+  "required": ["schema", "id", "plugins", "routeObjective"],
+  "additionalProperties": false,
+  "properties": {
+    "schema": { "const": "simulatte.applicationProfile.v1" },
+    "id": { "type": "string" },
+    "plugins": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "configId"],
+        "additionalProperties": false,
+        "properties": { "id": { "type": "string" }, "configId": { "type": "string" } }
+      }
+    },
+    "routeObjective": { "type": "object", "additionalProperties": { "type": "number", "minimum": 0 } }
+  }
+}

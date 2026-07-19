@@ -1,0 +1,5 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema", "title": "Gig Wage Truth configuration v1", "type": "object",
+  "required": ["schema", "id", "includeWaiting"], "additionalProperties": false,
+  "properties": { "schema": { "const": "simulatte.plugin.gigWageTruthConfig.v1" }, "id": { "type": "string" }, "includeWaiting": { "type": "boolean" } }
+}

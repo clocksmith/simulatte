@@ -1,0 +1,6 @@
+{
+  "schema": "simulatte.applicationProfile.v1",
+  "id": "cable-trader-pickup-v1",
+  "plugins": [{ "id": "cable-trader", "configId": "cable-trader-default-v1" }],
+  "routeObjective": { "travelSeconds": 1 }
+}

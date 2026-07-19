@@ -6,10 +6,10 @@
   const STREET_WORDS = Object.freeze({ avenue: 'av', ave: 'av', street: 'st', str: 'st', boulevard: 'blvd', road: 'rd', lane: 'ln', place: 'pl', square: 'sq' });
   const safetyRowsCache = new WeakMap();
 
-  function planRoute({ worldModel, originNodeId, destinationNodeId, mode, tick, mission, policy, excludedSegmentIds = [], routeAmenityIndex = null, safetyHistoryIndex = null }) {
+  function planRoute({ worldModel, originNodeId, destinationNodeId, mode, tick, mission, policy, excludedSegmentIds = [], routeAmenityIndex = null, safetyHistoryIndex = null, routeContributors = [], routeObjective = {} }) {
     const governedOverride = declaredRouteOverride({
       worldModel, originNodeId, destinationNodeId, mode, tick, mission, policy,
-      excludedSegmentIds, safetyHistoryIndex,
+      excludedSegmentIds, safetyHistoryIndex, routeContributors, routeObjective,
     });
     if (governedOverride) return governedOverride;
     const avoidedStreetNames = new Set(mission.constraints.avoidStreetNames || []);
@@ -17,10 +17,11 @@
     const excludedStreetSegmentIds = new Set();
     const candidateExcludedSegmentIds = new Set(excludedSegmentIds);
     const excludedAmenitySegmentIds = new Set();
+    const pluginRejections = [];
     const amenityRows = routeAmenityIndex ? new Map(routeAmenityIndex.segmentRows.map((row) => [row.segmentId, row])) : null;
     const safetyRows = rowsBySegment(safetyHistoryIndex);
     if (originNodeId === destinationNodeId) {
-      return routeResult([], 0, [originNodeId], 0, routeCostBreakdown([], worldModel, mission, policy, safetyHistoryIndex), 'a_star_v1', routeConstraintReceipt(avoidedStreetNames, excludedStreetSegmentIds, candidateExcludedSegmentIds, excludedAmenitySegmentIds, mission.constraints.maximumBikeRackDistanceM));
+      return routeResult([], 0, [originNodeId], 0, routeCostBreakdown([], worldModel, mission, policy, safetyHistoryIndex, routeContributors, routeObjective, tick), 'a_star_v1', { ...routeConstraintReceipt(avoidedStreetNames, excludedStreetSegmentIds, candidateExcludedSegmentIds, excludedAmenitySegmentIds, mission.constraints.maximumBikeRackDistanceM), pluginRejections });
     }
     const blocked = new Set(worldModel.blockedSegmentIds(tick));
     const maximumSpeedMps = worldModel.world.segments.reduce((maximum, segment) => segment.allowedModes.includes(mode) ? Math.max(maximum, segment.speedLimitMps) : maximum, 1);
@@ -40,9 +41,9 @@
           current.cost,
           visited,
           evaluatedSegmentCount,
-          routeCostBreakdown(current.path, worldModel, mission, policy, safetyHistoryIndex),
+          routeCostBreakdown(current.path, worldModel, mission, policy, safetyHistoryIndex, routeContributors, routeObjective, tick),
           'a_star_v1',
-          routeConstraintReceipt(avoidedStreetNames, excludedStreetSegmentIds, candidateExcludedSegmentIds, excludedAmenitySegmentIds, mission.constraints.maximumBikeRackDistanceM)
+          { ...routeConstraintReceipt(avoidedStreetNames, excludedStreetSegmentIds, candidateExcludedSegmentIds, excludedAmenitySegmentIds, mission.constraints.maximumBikeRackDistanceM), pluginRejections }
         );
       }
       for (const segment of worldModel.outgoing(current.nodeId)) {
@@ -61,7 +62,12 @@
           excludedStreetSegmentIds.add(segment.id);
           continue;
         }
-        const nextCost = current.cost + segmentCost(segment, mission, policy, safetyRows?.get(segment.id));
+        const pluginEvaluation = evaluateRouteContributors(routeContributors, { segment, worldModel, mission, policy, tick });
+        if (!pluginEvaluation.eligible) {
+          pluginRejections.push({ segmentId: segment.id, reasons: pluginEvaluation.rejectionReasons });
+          continue;
+        }
+        const nextCost = current.cost + segmentCost(segment, mission, policy, safetyRows?.get(segment.id)) + weightedContributionCost(pluginEvaluation.costDimensions, routeObjective);
         const previous = bestCost.get(segment.toNodeId);
         if (previous !== undefined && nextCost >= previous - 1e-12) continue;
         bestCost.set(segment.toNodeId, nextCost);
@@ -86,13 +92,14 @@
       excludedStreetSegmentIds: [...excludedStreetSegmentIds].sort(),
       candidateExcludedSegmentIds: [...candidateExcludedSegmentIds].sort(),
       excludedAmenitySegmentIds: [...excludedAmenitySegmentIds].sort(),
+      pluginRejections: pluginRejections.slice(0, 80),
       maximumBikeRackDistanceM: mission.constraints.maximumBikeRackDistanceM,
       visitedNodeIds: visited,
     };
     throw error;
   }
 
-  function declaredRouteOverride({ worldModel, originNodeId, destinationNodeId, mode, tick, mission, policy, excludedSegmentIds, safetyHistoryIndex }) {
+  function declaredRouteOverride({ worldModel, originNodeId, destinationNodeId, mode, tick, mission, policy, excludedSegmentIds, safetyHistoryIndex, routeContributors, routeObjective }) {
     const override = mission.constraints.routeOverride;
     if (!override || !Array.isArray(override.segmentIds) || !override.segmentIds.length || excludedSegmentIds.length) return null;
     const blocked = new Set(worldModel.blockedSegmentIds(tick));
@@ -104,8 +111,9 @@
     if (suffix.some((segment, index) => blocked.has(segment.id)
       || !segment.allowedModes.includes(mode)
       || (index > 0 && suffix[index - 1].toNodeId !== segment.fromNodeId))) return null;
+    if (suffix.some((segment) => !evaluateRouteContributors(routeContributors, { segment, worldModel, mission, policy, tick }).eligible)) return null;
     const segmentIds = suffix.map((row) => row.id);
-    const costBreakdown = routeCostBreakdown(segmentIds, worldModel, mission, policy, safetyHistoryIndex);
+    const costBreakdown = routeCostBreakdown(segmentIds, worldModel, mission, policy, safetyHistoryIndex, routeContributors, routeObjective, tick);
     return routeResult(segmentIds, costBreakdown.total, suffix.map((row) => row.fromNodeId), suffix.length, costBreakdown, override.algorithm || 'governed_environment_route_v1', {
       environmentFieldId: override.environmentFieldId,
       environmentSelectionId: override.selectionId,

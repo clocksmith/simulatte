@@ -8,8 +8,8 @@
   <meta name="description" content="A local-first WebGPU simulator for governed pedestrian, bicycle, scooter, and car journeys across the Villages and North Brooklyn.">
   <link rel="icon" type="image/svg+xml" href="./favicon.svg">
   <link rel="stylesheet" href="./design/simulatte.css">
-  <link rel="stylesheet" href="./styles.css">
   <link rel="stylesheet" href="./model-selection.css">
+  <link rel="stylesheet" href="./styles.css">
 </head>
 <body class="sim-app" data-journey-phase="loading">
   <main class="map-workspace" aria-label="Simulatte">
@@ -85,10 +85,6 @@
 
         <button id="decisions-button" class="sim-action decisions-button" type="button" aria-controls="decisions-drawer" aria-expanded="false">Decisions</button>
 
-        <button id="cooperative-chip" class="cooperative-chip sim-surface" type="button" aria-controls="decisions-drawer" hidden>
-          <strong id="cooperative-chip-title">Cooperative request</strong>
-          <span id="cooperative-chip-meta">Finding a passing carrier</span>
-        </button>
 
         <section class="mission-dock sim-surface" aria-label="Mission">
           <label class="mission-field" for="mission-input">
@@ -144,17 +140,6 @@
         <div id="route-components" class="component-line"></div>
       </details>
 
-      <details id="cooperative-section" class="evidence-section cooperation-evidence" hidden open>
-        <summary>Cooperation <span id="cooperative-state">No network request</span></summary>
-        <dl class="journey-facts">
-          <div><dt>Match</dt><dd id="cooperative-match">No cooperative plan</dd></div>
-          <div><dt>Burden</dt><dd id="cooperative-burden">Not calculated</dd></div>
-          <div><dt>Reliability</dt><dd id="cooperative-reliability">Not calculated</dd></div>
-          <div><dt>Handoff</dt><dd id="cooperative-handoff">Not planned</dd></div>
-          <div><dt>Settlement</dt><dd id="cooperative-settlement">Not settled</dd></div>
-          <div><dt>Liquidity</dt><dd id="cooperative-liquidity">Not measured</dd></div>
-        </dl>
-      </details>
 
       <details id="decision-section" class="evidence-section action-evidence">
         <summary>Decision</summary>
@@ -165,6 +150,8 @@
         <span class="sim-label">Prediction check</span>
         <div id="settlement-math" class="settlement-math">No settled prediction</div>
       </details>
+
+      <section id="plugin-inspector" aria-label="Application extensions"></section>
 
       <details id="advanced-section" class="evidence-section advanced-evidence">
         <summary>Advanced</summary>
@@ -241,9 +228,21 @@
   <script defer src="./contracts/cooperative-contracts.js?v=3492bc151306b081823309605a8d898417207cab-9de3f0089854"></script>
   <script defer src="./runtime/canonical-receipts.js?v=3492bc151306b081823309605a8d898417207cab-9de3f0089854"></script>
   <script defer src="./world/region-pack-merger.js?v=3492bc151306b081823309605a8d898417207cab-9de3f0089854"></script>
+  <script defer src="./runtime/runtime-log.js?v=3492bc151306b081823309605a8d898417207cab-9de3f0089854"></script>
+  <script defer src="./platform/contracts/schema-registry.js?v=3492bc151306b081823309605a8d898417207cab-9de3f0089854"></script>
+  <script defer src="./platform/contracts/plugin-contracts.js?v=3492bc151306b081823309605a8d898417207cab-9de3f0089854"></script>
+  <script defer src="./platform/transport/browser-transport.js?v=3492bc151306b081823309605a8d898417207cab-9de3f0089854"></script>
+  <script defer src="./platform/artifacts/governed-artifact-store.js?v=3492bc151306b081823309605a8d898417207cab-9de3f0089854"></script>
+  <script defer src="./platform/data-catalog/immutable-data-catalog.js?v=3492bc151306b081823309605a8d898417207cab-9de3f0089854"></script>
+  <script defer src="./platform/storage/browser-tile-storage.js?v=3492bc151306b081823309605a8d898417207cab-9de3f0089854"></script>
+  <script defer src="./platform/plugin-host/plugin-state-host.js?v=3492bc151306b081823309605a8d898417207cab-9de3f0089854"></script>
+  <script defer src="./platform/plugin-host/capability-graph.js?v=3492bc151306b081823309605a8d898417207cab-9de3f0089854"></script>
+  <script defer src="./platform/plugin-host/plugin-sdk.js?v=3492bc151306b081823309605a8d898417207cab-9de3f0089854"></script>
+  <script defer src="./platform/plugin-host/plugin-runtime.js?v=3492bc151306b081823309605a8d898417207cab-9de3f0089854"></script>
+  <script defer src="./platform/ui-host/declarative-ui-host.js?v=3492bc151306b081823309605a8d898417207cab-9de3f0089854"></script>
+  <script defer src="./core/simulation/civil-time.js?v=3492bc151306b081823309605a8d898417207cab-9de3f0089854"></script>
   <script defer src="./world/world-tile-manager.js?v=3492bc151306b081823309605a8d898417207cab-9de3f0089854"></script>
   <script defer src="./world/world-tile-storage.js?v=3492bc151306b081823309605a8d898417207cab-9de3f0089854"></script>
-  <script defer src="./runtime/runtime-log.js?v=3492bc151306b081823309605a8d898417207cab-9de3f0089854"></script>
   <script defer src="./runtime/data-loader.js?v=3492bc151306b081823309605a8d898417207cab-9de3f0089854"></script>
   <script defer src="./runtime/neural-place-resolution-core.js?v=3492bc151306b081823309605a8d898417207cab-9de3f0089854"></script>
   <script defer src="./runtime/neural-place-resolver.js?v=3492bc151306b081823309605a8d898417207cab-9de3f0089854"></script>
@@ -256,7 +255,9 @@
   <script defer src="./world/world-model.js?v=3492bc151306b081823309605a8d898417207cab-9de3f0089854"></script>
   <script defer src="./world/route-planner.js?v=3492bc151306b081823309605a8d898417207cab-9de3f0089854"></script>
   <script defer src="./world/time-dependent-edge-cost.js?v=3492bc151306b081823309605a8d898417207cab-9de3f0089854"></script>
+  <script defer src="./plugins/sun-walker/sun-exposure.js?v=3492bc151306b081823309605a8d898417207cab-9de3f0089854"></script>
   <script defer src="./world/sun-exposure.js?v=3492bc151306b081823309605a8d898417207cab-9de3f0089854"></script>
+  <script defer src="./plugins/accessible-journey/accessibility-audit.js?v=3492bc151306b081823309605a8d898417207cab-9de3f0089854"></script>
   <script defer src="./world/accessibility-audit.js?v=3492bc151306b081823309605a8d898417207cab-9de3f0089854"></script>
   <script defer src="./runtime/feature-retrieval.js?v=3492bc151306b081823309605a8d898417207cab-9de3f0089854"></script>
   <script defer src="./runtime/occurrence-engine.js?v=3492bc151306b081823309605a8d898417207cab-9de3f0089854"></script>
@@ -279,6 +280,16 @@
   <script defer src="./app/camera-controller.js?v=3492bc151306b081823309605a8d898417207cab-9de3f0089854"></script>
   <script defer src="./app/webgpu-renderer.js?v=3492bc151306b081823309605a8d898417207cab-9de3f0089854"></script>
   <script defer src="./app/trace-view.js?v=3492bc151306b081823309605a8d898417207cab-9de3f0089854"></script>
+  <script defer src="./plugins/accessible-journey/index.js?v=3492bc151306b081823309605a8d898417207cab-9de3f0089854"></script>
+  <script defer src="./plugins/amenity-router/index.js?v=3492bc151306b081823309605a8d898417207cab-9de3f0089854"></script>
+  <script defer src="./plugins/cable-trader/index.js?v=3492bc151306b081823309605a8d898417207cab-9de3f0089854"></script>
+  <script defer src="./plugins/counterfactual-lab/index.js?v=3492bc151306b081823309605a8d898417207cab-9de3f0089854"></script>
+  <script defer src="./plugins/gig-wage-truth/index.js?v=3492bc151306b081823309605a8d898417207cab-9de3f0089854"></script>
+  <script defer src="./plugins/historical-streets/index.js?v=3492bc151306b081823309605a8d898417207cab-9de3f0089854"></script>
+  <script defer src="./plugins/p2p-delivery/index.js?v=3492bc151306b081823309605a8d898417207cab-9de3f0089854"></script>
+  <script defer src="./plugins/safety-explorer/index.js?v=3492bc151306b081823309605a8d898417207cab-9de3f0089854"></script>
+  <script defer src="./plugins/sun-walker/index.js?v=3492bc151306b081823309605a8d898417207cab-9de3f0089854"></script>
+  <script defer src="./platform/plugin-host/generated-plugin-registry.js?v=3492bc151306b081823309605a8d898417207cab-9de3f0089854"></script>
   <script defer src="./app/main.js?v=3492bc151306b081823309605a8d898417207cab-9de3f0089854"></script>
 </body>
 </html>

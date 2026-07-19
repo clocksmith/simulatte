@@ -10,15 +10,20 @@
     root.SimulatteJourneyLedger,
     root.SimulatteCounterfactualRunner,
     root.SimulatteAutonomyReceipts,
-    root.SimulatteCooperativeEngine,
-    root.SimulatteSunExposure,
     root.SimulatteAutonomyWorld,
     root.SimulatteNeuralModelConsent,
-    root.SimulatteModelSelection
+    root.SimulatteModelSelection,
+    root.SimulattePluginRuntime,
+    root.SimulatteGeneratedPluginRegistry,
+    root.SimulatteDeclarativeUiHost,
+    root.SimulatteBrowserTransport,
+    root.SimulatteGovernedArtifactStore,
+    root.SimulatteAutonomyRoutePlanner,
+    root.SimulatteCivilTime
   );
   root.SimulatteAutonomyApp = api;
   if (typeof module === 'object' && module.exports) module.exports = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyApp(dataLoader, missionApi, controllerApi, canvasApi, traceApi, runtimeLog, neuralPlaceApi, ledgerApi, counterfactualApi, receiptsApi, cooperativeApi, sunApi, worldApi, neuralConsentApi, modelSelectionApi) {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyApp(dataLoader, missionApi, controllerApi, canvasApi, traceApi, runtimeLog, neuralPlaceApi, ledgerApi, counterfactualApi, receiptsApi, worldApi, neuralConsentApi, modelSelectionApi, pluginRuntimeApi, pluginRegistry, pluginUiApi, transportApi, artifactStoreApi, routePlannerApi, civilTimeApi) {
   const log = runtimeLog || {
     info: () => null,
     warn: () => null,
@@ -43,6 +48,45 @@
       failRuntime(elements, error);
       return null;
     }
+    const pluginArtifacts = artifactStoreApi.createGovernedArtifactStore({ transport: transportApi.createBrowserTransport({ fetchImpl: fetch.bind(globalThis) }) });
+    let activeMissionForPlugins = null;
+    let embodimentForPlugins = null;
+    const extensions = await pluginRuntimeApi.createPluginRuntime({
+      registry: pluginRegistry,
+      profile: data.applicationProfile,
+      dataCatalog: data.dataCatalog,
+      artifactStore: pluginArtifacts,
+      registryBaseUrl: document.baseURI,
+      corePorts: {
+        worldQuery: Object.freeze({ snapshot: () => data.world, model: () => worldApi.createWorldModel(data.world) }),
+        routing: Object.freeze({
+          alternatives(mission, maximumAlternatives) {
+            const embodiment = data.embodiments.find((row) => row.id === mission.embodimentId);
+            if (!embodiment) throw new Error(`Plugin routing expected embodiment ${mission.embodimentId}`);
+            return routePlannerApi.planRouteAlternatives({ worldModel: worldApi.createWorldModel(data.world), originNodeId: mission.originNodeId, destinationNodeId: mission.destinationNodeId, mode: embodiment.mode, tick: 0, mission, policy: data.policy }, maximumAlternatives);
+          },
+          modeFor(embodimentId) { return data.embodiments.find((row) => row.id === embodimentId)?.mode || null; },
+          policy: () => data.policy,
+        }),
+        clock: Object.freeze({ instantForMission: (mission) => environmentInstant(data.world, mission) }),
+        simulation: Object.freeze({
+          compare(intervention) {
+            if (!activeMissionForPlugins || !embodimentForPlugins) throw new Error('Counterfactual comparison requires an active mission');
+            return counterfactualApi.compareCounterfactual({
+              world: data.world, featureCatalog: data.featureCatalog, occurrenceCatalog: data.occurrenceCatalog,
+              accessibilityIndex: data.accessibilityIndex, routeAmenityIndex: data.routeAmenityIndex, safetyHistoryIndex: data.safetyHistoryIndex,
+              embodiment: embodimentForPlugins, policy: data.policy, mission: activeMissionForPlugins, regionComposition: data.regionComposition, intervention,
+            });
+          },
+        }),
+        ui: Object.freeze({ slot: 'inspector' }),
+      },
+    });
+    const pluginUi = pluginUiApi.createDeclarativeUiHost({
+      rootElement: elements.pluginInspector,
+      onAction: ({ pluginId, actionId }) => extensions.dispatchAction(pluginId, actionId, { mission: activeMissionForPlugins }),
+    });
+    pluginUi.render(extensions.views({ mission: null }));
     elements.missionInput.value = data.manifest.defaultMissionText;
     resizeMissionInput(elements.missionInput);
     const traceView = traceApi.createTraceView(elements, data.policy, data.rerankerEvidence);
@@ -56,7 +100,6 @@
     let terminalJourneyLogged = false;
     let hasJourneyStarted = false;
     let placeResolver = null;
-    let cooperativeSession = null;
     let shadeSelection = null;
     const journeyLedger = ledgerApi.createJourneyLedger();
     const recordedJourneyHashes = new Set();
@@ -65,7 +108,7 @@
     const yieldToFrame = () => new Promise((resolve) => requestAnimationFrame(resolve));
     const neuralGate = await neuralConsentApi.createGate({
       root: document,
-      lockUrl: './data/simulatte-embedder/model-runtime-lock.json',
+      modelRuntimeLock: data.modelRuntimeLock,
       toggle: elements.placeResolutionLane,
       dialog: document.getElementById('neural-model-dialog'),
       surface: 'autonomy',
@@ -78,7 +121,7 @@
     const modelSelection = await modelSelectionApi.createController({
       root: document,
       container: elements.modelSelectionControls,
-      configUrl: './data/pipeline-model-selection.json',
+      config: data.pipelineModelSelection,
       modelRuntimeLock: data.modelRuntimeLock,
       surfaceId: 'autonomy',
       consentGate: neuralGate,
@@ -87,16 +130,11 @@
     async function buildController({ keepMissionLocked = false } = {}) {
       clearMissionError(elements);
       const requestedSourceText = elements.missionInput.value;
-      const cooperativeRequest = cooperativeApi.recognizesCooperativeRequest(requestedSourceText);
-      cooperativeSession = cooperativeRequest
-        ? await cooperativeApi.createCooperativeSession({
-          world: data.world,
-          routingPolicy: data.policy,
-          scenario: data.cooperativeScenario,
-          sourceText: requestedSourceText,
-        })
-        : null;
       shadeSelection = null;
+      const preflightContributions = await extensions.contributeRequest({ sourceText: requestedSourceText });
+      const sourceOverrides = preflightContributions.filter((row) => row.executableSourceText);
+      if (sourceOverrides.length > 1) throw new Error(`Plugin request conflict: ${sourceOverrides.map((row) => row.pluginId).join(', ')} proposed executable source`);
+      const executableSourceText = sourceOverrides[0]?.executableSourceText || requestedSourceText;
       const placeSelection = modelSelection.selectedRuntimeRef('place-resolution');
       const useNeuralPlaces = placeSelection.kind === 'embedding';
       if (useNeuralPlaces && await modelSelection.ensureConsent() !== true) {
@@ -117,41 +155,14 @@
           },
         });
       }
-      const executableSourceText = cooperativeSession ? data.cooperativeScenario.carrierMissionText : requestedSourceText;
-      const mission = useNeuralPlaces && !cooperativeSession
+      const mission = useNeuralPlaces && sourceOverrides.length === 0
         ? await missionApi.compileMissionWithResolver(executableSourceText, data.world, data.embodiments, placeResolver)
         : missionApi.compileMission(executableSourceText, data.world, data.embodiments);
-      if (cooperativeSession) {
-        const cooperative = cooperativeSession.snapshot().plan.routes.cooperative;
-        mission.originNodeId = cooperative.originNodeId;
-        mission.destinationNodeId = cooperative.destinationNodeId;
-        mission.constraints.routeOverride = {
-          segmentIds: [...cooperative.segmentIds],
-          selectionId: cooperativeSession.snapshot().plan.id,
-          objective: cooperativeSession.snapshot().plan.utilityScore,
-          algorithm: 'governed_cooperative_route_v1',
-        };
-      }
-      if (mission.constraints.preferShade) {
-        const pedestrian = data.embodiments.find((row) => row.id === mission.embodimentId);
-        shadeSelection = sunApi.selectShadeAwareRoute({
-          world: data.world,
-          worldModel: worldApi.createWorldModel(data.world),
-          originNodeId: mission.originNodeId,
-          destinationNodeId: mission.destinationNodeId,
-          mode: pedestrian.mode,
-          mission,
-          policy: data.policy,
-          utcInstant: environmentInstant(data.world, mission),
-        });
-        mission.constraints.routeOverride = {
-          segmentIds: [...shadeSelection.selected.route.segmentIds],
-          environmentFieldId: shadeSelection.field.id,
-          selectionId: `${shadeSelection.field.id}:selected`,
-          objective: shadeSelection.selected.objective,
-        };
-      }
+      const pluginContributions = await extensions.contributeRequest({ sourceText: requestedSourceText, executableSourceText, mission });
+      applyPluginMissionContributions(mission, pluginContributions);
+      shadeSelection = pluginContributions.find((row) => row.environment)?.environment || null;
       activeMission = mission;
+      activeMissionForPlugins = mission;
       log.info('mission.compiled', {
         missionId: mission.id,
         sourceText: requestedSourceText,
@@ -164,10 +175,11 @@
         modelSelection: modelSelection.receipt(),
       });
       renderPlaceResolution(elements, mission, placeResolver?.receipt() || null, data.placeResolutionEvidence);
-      renderCooperation(elements, cooperativeSession?.snapshot() || null);
+      pluginUi.render(extensions.views({ mission }));
       await yieldToFrame();
       const embodiment = data.embodiments.find((row) => row.id === mission.embodimentId);
       if (!embodiment) throw new Error(`Mission selected unavailable embodiment ${mission.embodimentId}`);
+      embodimentForPlugins = embodiment;
       const nextController = controllerApi.createAutonomyController({
         world: data.world,
         featureCatalog: data.featureCatalog,
@@ -175,6 +187,8 @@
         accessibilityIndex: data.accessibilityIndex,
         routeAmenityIndex: data.routeAmenityIndex,
         safetyHistoryIndex: data.safetyHistoryIndex,
+        routeContributors: extensions.routeContributors({ mission }),
+        routeObjective: data.applicationProfile.routeObjective,
         embodiment,
         policy: data.policy,
         mission,
@@ -248,31 +262,15 @@
 
     async function recordJourney(targetController) {
       const receipt = await targetController.journeyReceipt();
-      if (cooperativeSession && receipt.finalState.status === 'completed' && !cooperativeSession.snapshot().settlement) {
-        await cooperativeSession.settle();
-        renderCooperation(elements, cooperativeSession.snapshot());
-      }
+      receipt.pluginSettlement = await extensions.settle({ journey: receipt });
+      receipt.pluginRuntime = extensions.runtimeReceipt();
+      pluginUi.render(extensions.views({ mission: activeMission, journey: receipt }));
       const identity = `${receipt.mission.id}:${receipt.integrity.terminalHash}:${receipt.finalState.status}`;
       if (recordedJourneyHashes.has(identity)) return receipt;
       recordedJourneyHashes.add(identity);
       await journeyLedger.append(receipt);
       await renderLedger(elements, journeyLedger, data.curriculum, data.world.contentVersion);
       return receipt;
-    }
-
-    async function authorizeCooperativeExecution() {
-      if (!cooperativeSession) return;
-      let cooperative = cooperativeSession.snapshot();
-      if (cooperative.plan.state === 'candidate') {
-        await cooperativeSession.reserve();
-        cooperative = cooperativeSession.snapshot();
-      }
-      if (cooperative.plan.state === 'soft_hold') {
-        for (const participantId of cooperative.plan.participantIds) await cooperativeSession.authorize(participantId);
-        cooperative = cooperativeSession.snapshot();
-      }
-      if (cooperative.plan.state === 'mutually_authorized') await cooperativeSession.startExecution();
-      renderCooperation(elements, cooperativeSession.snapshot());
     }
 
     async function tickFrame(timestamp) {
@@ -293,7 +291,6 @@
         updateButtons(elements, false, true, controller.snapshot().state.status, true);
         return;
       }
-      await authorizeCooperativeExecution();
       renderer.setCameraMode('follow');
       selectCameraMode(elements, 'follow');
       isRunning = true;
@@ -354,7 +351,6 @@
       try {
         stopLoop();
         if (!controller || controller.snapshot().state.status !== 'active') await buildController();
-        await authorizeCooperativeExecution();
         await controller.step();
       } catch (error) {
         failRuntime(elements, error);
@@ -381,15 +377,13 @@
       }
     });
     elements.whatIfButton.addEventListener('click', () => interfaceUi.openDecisions('what-if-section'));
-    elements.cooperativeChip.addEventListener('click', () => interfaceUi.openDecisions('cooperative-section'));
     elements.exportButton.addEventListener('click', async () => {
       if (!controller) return;
       const receipt = await controller.journeyReceipt();
       receipt.rendering = renderer.receipt();
       receipt.dataLoad = structuredClone(data.receipt);
-      receipt.cooperation = cooperativeSession ? cooperativeSession.snapshot() : null;
-      receipt.cooperationTrace = cooperativeSession ? cooperativeSession.trace() : [];
       receipt.environment = shadeSelection ? structuredClone(shadeSelection) : null;
+      receipt.pluginRuntime = extensions.runtimeReceipt();
       log.info('journey.receipt.exported', {
         missionId: receipt.mission.id,
         terminalHash: receipt.integrity.terminalHash,
@@ -524,8 +518,7 @@
       'counterfactual-kind', 'counterfactual-street', 'counterfactual-snapshot', 'compare-button', 'export-ledger-button',
       'counterfactual-street-wrap', 'counterfactual-snapshot-wrap', 'import-receipt-button', 'import-receipt-file', 'counterfactual-proof',
       'decisions-button', 'decisions-drawer', 'decisions-close', 'decisions-backdrop', 'journey-section', 'what-if-section',
-      'cooperative-chip', 'cooperative-chip-title', 'cooperative-chip-meta', 'cooperative-section', 'cooperative-state',
-      'cooperative-match', 'cooperative-burden', 'cooperative-reliability', 'cooperative-handoff', 'cooperative-settlement', 'cooperative-liquidity',
+      'plugin-inspector',
     ];
     const elements = Object.fromEntries(ids.map((id) => [camelId(id), document.getElementById(id)]));
     const missing = ids.filter((id) => !document.getElementById(id));
@@ -829,41 +822,22 @@
     elements.accessibilityProof.dataset.verdict = planning.accessibility.verdict;
   }
 
-  function renderCooperation(elements, snapshot) {
-    const visible = Boolean(snapshot);
-    elements.cooperativeSection.hidden = !visible;
-    elements.cooperativeChip.hidden = !visible;
-    if (!visible) return;
-    const plan = snapshot.plan;
-    const burden = plan.marginalBurden;
-    const state = plan.state.replaceAll('_', ' ');
-    elements.cooperativeState.textContent = state;
-    elements.cooperativeMatch.textContent = `${plan.carrierId} · ${snapshot.matching.counts.feasibleCandidates} eligible of ${snapshot.matching.counts.totalOffers}`;
-    elements.cooperativeBurden.textContent = `${signedMeters(burden.addedDistanceM)} · ${signedDuration(burden.addedDurationSeconds)} · $${(burden.compensationCents / 100).toFixed(2)}`;
-    elements.cooperativeReliability.textContent = `${Math.round(plan.reliability.onTimeProbability * 100)}% on time · ${Math.round(plan.reliability.cancellationProbability * 100)}% cancellation · backup available`;
-    elements.cooperativeHandoff.textContent = snapshot.handoff.nodeLabels.join(' · ');
-    elements.cooperativeSettlement.textContent = snapshot.settlement
-      ? `fulfilled · ${snapshot.settlement.custodyEventIds.length} custody events · dedicated trip avoided`
-      : `${snapshot.custodyState.replaceAll('_', ' ')} · awaiting outcome`;
-    elements.cooperativeLiquidity.textContent = `${snapshot.liquidity.eligibleOpportunitiesPerRequest} opportunities · ${Math.round(snapshot.liquidity.fulfillmentProbability * 100)}% modeled fulfillment`;
-    const itemSurface = snapshot.request.evidence.find((row) => row.field === 'item')?.value
-      || snapshot.request.obligations.itemLabel
-      || snapshot.request.obligations.itemId;
-    elements.cooperativeChipTitle.textContent = `${snapshot.request.obligations.quantity} ${itemSurface}`;
-    elements.cooperativeChipMeta.textContent = `${state} · ${signedDuration(burden.addedDurationSeconds)} marginal`;
-  }
-
-  function signedMeters(value) {
-    const amount = Math.round(Math.abs(value));
-    if (value < 0) return `${amount} m less riding`;
-    if (value > 0) return `+${amount} m`;
-    return 'no added distance';
-  }
-
   function signedDuration(value) {
     const seconds = Math.round(Math.abs(value));
     const text = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
     return value < 0 ? `${text} faster` : value > 0 ? `+${text}` : 'no added time';
+  }
+
+  function applyPluginMissionContributions(mission, contributions) {
+    const patches = contributions.filter((row) => row.missionPatch);
+    const routePatches = patches.filter((row) => row.missionPatch.routeOverride);
+    if (routePatches.length > 1) throw new Error(`Plugin mission conflict: ${routePatches.map((row) => row.pluginId).join(', ')} proposed route overrides`);
+    patches.forEach((row) => {
+      const keys = Object.keys(row.missionPatch);
+      if (keys.some((key) => key !== 'routeOverride')) throw new Error(`Plugin ${row.pluginId} proposed unsupported mission fields: ${keys.join(', ')}`);
+    });
+    if (routePatches.length) mission.constraints.routeOverride = structuredClone(routePatches[0].missionPatch.routeOverride);
+    return mission;
   }
 
   function environmentInstant(world, mission) {
@@ -871,7 +845,7 @@
     const localMinutes = mission.constraints.departureLocalMinutes;
     const hour = String(Math.floor(localMinutes / 60)).padStart(2, '0');
     const minute = String(localMinutes % 60).padStart(2, '0');
-    return sunApi.zonedCivilTimeToUtc({
+    return civilTimeApi.resolve({
       civilTime: `${snapshotDate}T${hour}:${minute}:00`,
       timeZone: world.scenario?.timeZone || 'America/New_York',
     }).utcInstant;

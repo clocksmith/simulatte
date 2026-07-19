@@ -1,0 +1,37 @@
+{
+  "configSchema": "./config.schema.json",
+  "consumes": [
+    {
+      "id": "settlement.delivery.v1",
+      "required": true
+    }
+  ],
+  "datasets": [],
+  "defaultConfig": "./default-config.json",
+  "entry": {
+    "globalFactory": "SimulattePluginGigWageTruth",
+    "integrity": "sha384-f089580c7f9e04909d24981bb51414c91d81af9f6957e492a723316bc50f11d2a251cd4588e10bc23a967b2b5f664dbd",
+    "path": "./index.js"
+  },
+  "extensionPoints": [
+    "settlement",
+    "ui"
+  ],
+  "id": "gig-wage-truth",
+  "permissions": [
+    "capabilities.invoke.v1",
+    "events.propose.v1",
+    "receipts.append.v1",
+    "state.reduce.v1",
+    "ui.inspector.v1"
+  ],
+  "provides": [
+    "analysis.gross-work-rate.v1"
+  ],
+  "receiptSchemas": [
+    "simulatte.plugin.gigWageTruthReceipt.v1"
+  ],
+  "schema": "simulatte.pluginManifest.v1",
+  "sdkVersion": 1,
+  "version": "1.0.0"
+}

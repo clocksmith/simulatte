@@ -30,17 +30,25 @@
   }
 
   async function sha256Hex(value) {
+    return digestHex('SHA-256', 'sha256', value);
+  }
+
+  async function sha384Hex(value) {
+    return digestHex('SHA-384', 'sha384', value);
+  }
+
+  async function digestHex(browserAlgorithm, nodeAlgorithm, value) {
     const bytes = ArrayBuffer.isView(value)
       ? new Uint8Array(value.buffer, value.byteOffset, value.byteLength)
       : value instanceof ArrayBuffer
         ? new Uint8Array(value)
         : new TextEncoder().encode(typeof value === 'string' ? value : canonicalJson(value));
     if (root.crypto && root.crypto.subtle) {
-      const digest = await root.crypto.subtle.digest('SHA-256', bytes);
+      const digest = await root.crypto.subtle.digest(browserAlgorithm, bytes);
       return Array.from(new Uint8Array(digest), (row) => row.toString(16).padStart(2, '0')).join('');
     }
-    if (nodeCrypto) return nodeCrypto.createHash('sha256').update(bytes).digest('hex');
-    throw new Error('simulatte.autonomyReceiptChain.v1 expected Web Crypto SHA-256, received no compatible provider');
+    if (nodeCrypto) return nodeCrypto.createHash(nodeAlgorithm).update(bytes).digest('hex');
+    throw new Error(`simulatte.autonomyReceiptChain.v1 expected Web Crypto ${browserAlgorithm}, received no compatible provider`);
   }
 
   function createReceiptChain() {
@@ -110,5 +118,5 @@
     return new Promise((resolve) => root.setTimeout(resolve, 0));
   }
 
-  return { canonicalJson, sha256Hex, createReceiptChain, appendReceiptEntry, verifyReceiptChain };
+  return { canonicalJson, sha256Hex, sha384Hex, createReceiptChain, appendReceiptEntry, verifyReceiptChain };
 });

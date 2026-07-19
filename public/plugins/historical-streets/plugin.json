@@ -1,0 +1,30 @@
+{
+  "configSchema": "./config.schema.json",
+  "consumes": [],
+  "datasets": [
+    {
+      "id": "nyc-world-snapshot-registry-v1",
+      "required": true
+    }
+  ],
+  "defaultConfig": "./default-config.json",
+  "entry": {
+    "globalFactory": "SimulattePluginHistoricalStreets",
+    "integrity": "sha384-22c6fa853fd8f1cdd66e4970148202a3b2a1df6ed059e8b745be468bdac4cd25877992371c9aaa6e2171bd7c082a4ee4",
+    "path": "./index.js"
+  },
+  "extensionPoints": [
+    "ui"
+  ],
+  "id": "historical-streets",
+  "permissions": [
+    "ui.inspector.v1"
+  ],
+  "provides": [
+    "world.snapshot.v1"
+  ],
+  "receiptSchemas": [],
+  "schema": "simulatte.pluginManifest.v1",
+  "sdkVersion": 1,
+  "version": "1.0.0"
+}

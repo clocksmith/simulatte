@@ -1,0 +1,5 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema", "title": "Amenity Router configuration v1", "type": "object",
+  "required": ["schema", "id"], "additionalProperties": false,
+  "properties": { "schema": { "const": "simulatte.plugin.amenityRouterConfig.v1" }, "id": { "type": "string" } }
+}

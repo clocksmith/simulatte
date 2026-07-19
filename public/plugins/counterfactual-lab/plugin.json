@@ -1,0 +1,38 @@
+{
+  "configSchema": "./config.schema.json",
+  "consumes": [
+    {
+      "id": "world.snapshot.v1",
+      "required": false
+    }
+  ],
+  "datasets": [],
+  "defaultConfig": "./default-config.json",
+  "entry": {
+    "globalFactory": "SimulattePluginCounterfactualLab",
+    "integrity": "sha384-31b683d5a356ed9cb80791f59822ee716a9d7198a8cdb51480152d9c0cdd661ae01d98918d04c6dcff03488424df2a4b",
+    "path": "./index.js"
+  },
+  "extensionPoints": [
+    "event",
+    "ui"
+  ],
+  "id": "counterfactual-lab",
+  "permissions": [
+    "capabilities.invoke.v1",
+    "events.propose.v1",
+    "receipts.append.v1",
+    "simulation.run.v1",
+    "state.reduce.v1",
+    "ui.inspector.v1"
+  ],
+  "provides": [
+    "analysis.counterfactual.v1"
+  ],
+  "receiptSchemas": [
+    "simulatte.plugin.counterfactualLabReceipt.v1"
+  ],
+  "schema": "simulatte.pluginManifest.v1",
+  "sdkVersion": 1,
+  "version": "1.0.0"
+}

@@ -1,3 +1,18 @@
+:root {
+  color-scheme: dark;
+  --sim-ink: #edf5f3;
+  --sim-ink-soft: rgba(237, 245, 243, 0.72);
+  --sim-ink-faint: rgba(237, 245, 243, 0.48);
+  --sim-paper: #071117;
+  --sim-glass: rgba(8, 20, 27, 0.92);
+  --sim-glass-soft: rgba(10, 25, 33, 0.82);
+  --sim-glass-faint: rgba(12, 30, 39, 0.62);
+  --sim-line: rgba(188, 226, 226, 0.17);
+  --sim-line-strong: rgba(188, 226, 226, 0.34);
+  --sim-shadow: 0 18px 56px rgba(0, 3, 8, 0.48), 0 2px 10px rgba(0, 3, 8, 0.34);
+  --sim-shadow-small: 0 10px 28px rgba(0, 3, 8, 0.34);
+}
+
 * {
   box-sizing: border-box;
 }
@@ -41,6 +56,55 @@ button {
   cursor: pointer;
 }
 
+.sim-action-primary {
+  background: var(--sim-glass);
+}
+
+.sim-action-primary::after {
+  background: rgba(8, 20, 27, 0.94);
+}
+
+.sim-action-primary:hover:not(:disabled)::after,
+.sim-action-primary:focus-visible::after {
+  background: rgba(14, 35, 44, 0.96);
+}
+
+.sim-segmented > button:hover,
+.sim-segmented > button:focus-visible,
+.sim-segmented > button.is-active {
+  background: rgba(29, 54, 63, 0.92);
+  box-shadow: 0 3px 12px rgba(0, 3, 8, 0.3);
+}
+
+.sim-menu > button:hover,
+.sim-menu > button:focus-visible {
+  background: rgba(188, 226, 226, 0.09);
+}
+
+.sim-field,
+.neural-mode-toggle {
+  background: rgba(8, 20, 27, 0.86);
+}
+
+.model-selection-panel {
+  border-color: var(--sim-line);
+  color: var(--sim-ink);
+  background: var(--sim-glass-soft);
+}
+
+.model-selection-controls {
+  border-color: var(--sim-line);
+  color: var(--sim-ink);
+  background: rgba(8, 20, 27, 0.98);
+  box-shadow: var(--sim-shadow);
+}
+
+.model-selection-select {
+  border-color: var(--sim-line-strong);
+  color: var(--sim-ink);
+  background: rgba(14, 34, 43, 0.96);
+}
+
 .map-workspace,
 .simulation-stage,
 .canvas-shell {
@@ -81,7 +145,7 @@ button {
   max-width: 100%;
   align-items: center;
   gap: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.44);
+  border: 1px solid var(--sim-line-strong);
   padding: 0 14px;
   text-align: left;
   cursor: pointer;
@@ -262,7 +326,7 @@ body[data-journey-phase="ready"] .journey-hud {
   height: 3px;
   overflow: hidden;
   border-radius: 2px;
-  background: rgba(23, 32, 29, 0.12);
+  background: rgba(237, 245, 243, 0.12);
 }
 
 #journey-progress-fill {
@@ -453,13 +517,13 @@ body[data-journey-phase="ready"] .journey-hud {
   border-radius: 10px;
   padding: 10px 12px;
   color: var(--sim-ink);
-  background: rgba(247, 248, 247, 0.6);
+  background: rgba(4, 14, 20, 0.72);
   font-size: 14px;
   line-height: 1.4;
 }
 
 .mission-field textarea:focus {
-  background: rgba(255, 255, 255, 0.86);
+  background: rgba(9, 25, 33, 0.96);
   box-shadow: inset 0 0 0 1px rgba(117, 190, 244, 0.68);
   outline: none;
 }
@@ -553,7 +617,7 @@ body[data-journey-phase="failed"] .mission-field {
   overflow: auto;
   transform: translateX(calc(100% + 32px));
   visibility: hidden;
-  scrollbar-color: rgba(23, 32, 29, 0.22) transparent;
+  scrollbar-color: rgba(188, 226, 226, 0.22) transparent;
   transition: transform var(--sim-motion) var(--sim-ease), visibility 0s linear var(--sim-motion);
 }
 
@@ -578,7 +642,7 @@ body[data-journey-phase="failed"] .mission-field {
   gap: 14px;
   padding: 16px;
   border-bottom: 1px solid var(--sim-line);
-  background: rgba(255, 255, 255, 0.94);
+  background: rgba(8, 20, 27, 0.96);
   backdrop-filter: var(--sim-blur);
   -webkit-backdrop-filter: var(--sim-blur);
 }
@@ -673,7 +737,7 @@ body[data-journey-phase="failed"] .mission-field {
   grid-template-columns: 7rem minmax(0, 1fr);
   gap: 8px;
   padding: 8px 0;
-  border-top: 1px solid rgba(23, 32, 29, 0.08);
+  border-top: 1px solid rgba(188, 226, 226, 0.08);
 }
 
 .journey-facts dt {
@@ -694,7 +758,7 @@ body[data-journey-phase="failed"] .mission-field {
   display: block;
   margin-top: 10px;
   overflow-wrap: anywhere;
-  color: #15778b;
+  color: #6ed1e4;
   font-family: var(--sim-mono);
   font-size: 10px;
   line-height: 1.5;
@@ -739,7 +803,7 @@ body[data-journey-phase="failed"] .mission-field {
   min-width: 0;
   padding: 7px;
   border-left: 2px solid var(--sim-line);
-  background: rgba(247, 248, 247, 0.76);
+  background: rgba(15, 35, 44, 0.76);
 }
 
 .metric-token small,
@@ -777,7 +841,7 @@ body[data-journey-phase="failed"] .mission-field {
   gap: 8px;
   align-items: start;
   padding: 8px 0;
-  border-top: 1px solid rgba(23, 32, 29, 0.08);
+  border-top: 1px solid rgba(188, 226, 226, 0.08);
 }
 
 .pipeline-row > span {
@@ -799,7 +863,7 @@ body[data-journey-phase="failed"] .mission-field {
 
 .evidence-proof {
   margin-top: 8px;
-  color: #237858;
+  color: #69d7a6;
   font: 500 9px/1.5 var(--sim-mono);
 }
 
@@ -809,17 +873,17 @@ body[data-journey-phase="failed"] .mission-field {
 .settlement-token {
   max-width: 100%;
   overflow: hidden;
-  border: 1px solid rgba(23, 32, 29, 0.1);
+  border: 1px solid rgba(188, 226, 226, 0.1);
   border-radius: 5px;
   padding: 4px 6px;
-  background: rgba(247, 248, 247, 0.74);
+  background: rgba(15, 35, 44, 0.74);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .rank-token.is-first {
   border-color: rgba(75, 201, 141, 0.55);
-  color: #237858;
+  color: #69d7a6;
 }
 
 .bet-list,
@@ -835,9 +899,9 @@ body[data-journey-phase="failed"] .mission-field {
   align-items: center;
   min-width: 0;
   padding: 8px;
-  border: 1px solid rgba(23, 32, 29, 0.1);
+  border: 1px solid rgba(188, 226, 226, 0.1);
   border-radius: 7px;
-  background: rgba(247, 248, 247, 0.64);
+  background: rgba(15, 35, 44, 0.64);
 }
 
 .bet-row.is-selected {
@@ -905,7 +969,7 @@ body[data-journey-phase="failed"] .mission-field {
   border: 1px solid rgba(75, 201, 141, 0.42);
   border-radius: 4px;
   padding: 3px;
-  color: #237858;
+  color: #69d7a6;
   font: 700 7px/1 var(--sim-mono);
   text-align: center;
 }
@@ -930,7 +994,7 @@ body[data-journey-phase="failed"] .mission-field {
 .trace-row {
   padding: 7px 8px;
   border-left: 2px solid var(--sim-line);
-  background: rgba(247, 248, 247, 0.62);
+  background: rgba(15, 35, 44, 0.62);
 }
 
 .trace-row.is-selected {
@@ -985,7 +1049,7 @@ body[data-journey-phase="failed"] .mission-field {
   padding: 10px;
   border-radius: 7px;
   color: var(--sim-ink-soft);
-  background: rgba(247, 248, 247, 0.7);
+  background: rgba(15, 35, 44, 0.7);
   font: 500 10px/1.5 var(--sim-mono);
 }
 
@@ -1027,7 +1091,7 @@ body[data-journey-phase="failed"] .mission-field {
   .camera-controls select,
   .decisions-button,
   .evidence-heading {
-    background-color: rgba(255, 255, 255, 0.97);
+    background-color: rgba(8, 20, 27, 0.97);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }
@@ -1144,7 +1208,7 @@ body[data-journey-phase="failed"] .mission-field {
     height: 4px;
     border-radius: 2px;
     content: "";
-    background: rgba(23, 32, 29, 0.18);
+    background: rgba(188, 226, 226, 0.2);
     transform: translateX(-50%);
   }
 }

@@ -56,7 +56,7 @@ function resolvePackReference(registryFile, reference) {
 }
 
 function publicAutonomyJavaScript() {
-  const roots = ['app', 'contracts', 'mission', 'runtime', 'verifier', 'world']
+  const roots = ['app', 'contracts', 'mission', 'platform', 'runtime', 'verifier', 'world']
     .map((directory) => path.join(PUBLIC, directory));
   const files = [];
   const walk = (directory) => fs.readdirSync(directory, { withFileTypes: true }).forEach((entry) => {
@@ -92,6 +92,7 @@ function main() {
   const occurrenceCatalog = resolveReference(manifest, 'occurrenceCatalog');
   const rerankerEvidence = resolveReference(manifest, 'rerankerEvidence');
   const modelRuntimeLock = resolveReference(manifest, 'modelRuntimeLock');
+  const pipelineModelSelection = resolveReference(manifest, 'pipelineModelSelection');
   const placeEmbeddingIndex = resolveReference(manifest, 'placeEmbeddingIndex');
   const placeResolutionEvidence = resolveReference(manifest, 'placeResolutionEvidence');
   const accessibilityIndex = resolveReference(manifest, 'accessibilityIndex');
@@ -123,6 +124,10 @@ function main() {
     policy: manifest.policy.sha256,
   });
   contracts.validateModelRuntimeLock(modelRuntimeLock);
+  if (pipelineModelSelection.schema !== 'simulatte.pipelineModelSelection.v1') throw new Error(`Pipeline model selection schema expected simulatte.pipelineModelSelection.v1, received ${pipelineModelSelection.schema || 'missing'}`);
+  if (pipelineModelSelection.modelRuntimeLock?.id !== modelRuntimeLock.id || Number(pipelineModelSelection.modelRuntimeLock?.number) !== Number(modelRuntimeLock.number)) {
+    throw new Error(`Pipeline model selection expected ${modelRuntimeLock.id} #${modelRuntimeLock.number}`);
+  }
   contracts.validatePlaceEmbeddingIndex(placeEmbeddingIndex, modelRuntimeLock);
   contracts.validatePlaceResolutionEvidence(placeResolutionEvidence, placeEmbeddingIndex, modelRuntimeLock);
   contracts.validateAccessibilityIndex(accessibilityIndex, world, manifest.world.sha256);

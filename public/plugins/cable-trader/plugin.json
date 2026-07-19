@@ -1,0 +1,41 @@
+{
+  "configSchema": "./config.schema.json",
+  "consumes": [
+    {
+      "id": "fulfillment.delivery.v1",
+      "required": false
+    }
+  ],
+  "datasets": [],
+  "defaultConfig": "./default-config.json",
+  "entry": {
+    "globalFactory": "SimulattePluginCableTrader",
+    "integrity": "sha384-7e21ea9c7268827eb7463c2820a5f038a22964441e185f4c40f71c04586aae426abcacabb9d7552b9cd27a992d483980",
+    "path": "./index.js"
+  },
+  "extensionPoints": [
+    "request",
+    "event",
+    "settlement",
+    "ui"
+  ],
+  "id": "cable-trader",
+  "permissions": [
+    "capabilities.invoke.v1",
+    "events.propose.v1",
+    "receipts.append.v1",
+    "state.reduce.v1",
+    "ui.inspector.v1",
+    "world.query.v1"
+  ],
+  "provides": [
+    "inventory.exchange.v1",
+    "settlement.credit.v1"
+  ],
+  "receiptSchemas": [
+    "simulatte.plugin.cableTraderRequestReceipt.v1"
+  ],
+  "schema": "simulatte.pluginManifest.v1",
+  "sdkVersion": 1,
+  "version": "1.0.0"
+}

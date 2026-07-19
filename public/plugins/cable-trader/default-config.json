@@ -1,0 +1,12 @@
+{
+  "schema": "simulatte.plugin.cableTraderConfig.v1", "id": "cable-trader-default-v1",
+  "cableTypes": [
+    { "id": "usb-c-to-a", "labels": ["usb c to a", "usb-c to usb-a", "usb c cable"] },
+    { "id": "ethernet-rj45", "labels": ["ethernet", "rj45", "network cable"] },
+    { "id": "hdmi", "labels": ["hdmi", "display cable"] },
+    { "id": "displayport", "labels": ["displayport", "display port"] },
+    { "id": "usb-c-to-c", "labels": ["usb c to c", "usb-c to usb-c"] }
+  ],
+  "hubs": [{ "id": "union-square-cable-hub", "nodeId": "bike-node-a3f0f4b7e7e3" }, { "id": "east-village-cable-hub", "nodeId": "bike-node-ffea919f743c" }],
+  "inventory": { "union-square-cable-hub:usb-c-to-a": 24, "union-square-cable-hub:ethernet-rj45": 16, "union-square-cable-hub:hdmi": 12, "east-village-cable-hub:usb-c-to-a": 18, "east-village-cable-hub:usb-c-to-c": 20 }
+}

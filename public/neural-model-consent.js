@@ -106,7 +106,9 @@
     const toggle = typeof options.toggle === 'string' ? rootNode.getElementById(options.toggle) : options.toggle;
     const dialog = typeof options.dialog === 'string' ? rootNode.getElementById(options.dialog) : options.dialog;
     if (!toggle || !dialog) throw new Error('Neural model consent UI is incomplete');
-    const bundle = await loadBundle(options.lockUrl, options.fetchImpl);
+    const bundle = options.modelRuntimeLock
+      ? summarizeLock(options.modelRuntimeLock)
+      : await loadBundle(options.lockUrl, options.fetchImpl);
     fillDialog(dialog, bundle, options.surface);
     let enabled = readGrant(storage, bundle);
     let pending = null;

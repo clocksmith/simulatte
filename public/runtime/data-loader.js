@@ -14,17 +14,32 @@
   const cooperativeContracts = typeof module === 'object' && module.exports
     ? require('../contracts/cooperative-contracts.js')
     : root.SimulatteCooperativeContracts;
-  const api = factory(contracts, receipts, regions, runtimeLog, cooperativeContracts);
+  const browserTransport = typeof module === 'object' && module.exports
+    ? require('../platform/transport/browser-transport.js')
+    : root.SimulatteBrowserTransport;
+  const artifactStore = typeof module === 'object' && module.exports
+    ? require('../platform/artifacts/governed-artifact-store.js')
+    : root.SimulatteGovernedArtifactStore;
+  const dataCatalog = typeof module === 'object' && module.exports
+    ? require('../platform/data-catalog/immutable-data-catalog.js')
+    : root.SimulatteImmutableDataCatalog;
+  const pluginContracts = typeof module === 'object' && module.exports
+    ? require('../platform/contracts/plugin-contracts.js')
+    : root.SimulattePluginContracts;
+  const api = factory(contracts, receipts, regions, runtimeLog, cooperativeContracts, browserTransport, artifactStore, dataCatalog, pluginContracts);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteAutonomyDataLoader = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyDataLoader(contracts, receipts, regions, runtimeLog, cooperativeContracts) {
-  async function loadAutonomyData(manifestUrl = '../data/autonomy/autonomy-manifest.json', fetchImpl = fetch) {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyDataLoader(contracts, receipts, regions, runtimeLog, cooperativeContracts, browserTransport, artifactStore, dataCatalog, pluginContracts) {
+  assertDependencies();
+
+  async function loadAutonomyData(manifestUrl = '../data/autonomy/autonomy-manifest.json', fetchImpl = defaultFetch()) {
     const resolvedManifestUrl = new URL(manifestUrl, documentBase()).toString();
+    const services = createDataServices(fetchImpl);
     runtimeLog.info('data.load.started', {
       manifestUrl: resolvedManifestUrl,
       cacheMode: 'no-cache',
     });
-    const manifest = await fetchJson(resolvedManifestUrl, fetchImpl);
+    const manifest = await services.artifacts.readJson(resolvedManifestUrl);
     runtimeLog.info('data.manifest.received', {
       url: resolvedManifestUrl,
       schema: manifest.value?.schema || null,
@@ -39,19 +54,20 @@
       schema: manifest.value.schema,
       missionExampleCount: manifest.value.missionExamples.length,
     });
-    const directKeys = ['policy', 'occurrenceCatalog', 'rerankerEvidence', 'regionRegistry', 'placeEmbeddingIndex', 'placeResolutionEvidence', 'modelRuntimeLock', 'accessibilityIndex', 'routeAmenityIndex', 'safetyHistoryIndex', 'curriculum', 'worldSnapshotRegistry', 'policyArenaEvidence', 'cooperativeScenario'];
-    const refs = await Promise.all(directKeys.map(async (key) => [key, await loadReference(manifest.value[key], resolvedManifestUrl, key, fetchImpl)]));
+    const directKeys = ['policy', 'occurrenceCatalog', 'rerankerEvidence', 'regionRegistry', 'placeEmbeddingIndex', 'placeResolutionEvidence', 'modelRuntimeLock', 'pipelineModelSelection', 'applicationProfile', 'accessibilityIndex', 'routeAmenityIndex', 'safetyHistoryIndex', 'curriculum', 'worldSnapshotRegistry', 'policyArenaEvidence', 'cooperativeScenario'];
+    const resolvedReferences = await services.artifacts.resolveGraph(directKeys.map((key) => ({ key, reference: manifest.value[key] })), { baseUrl: resolvedManifestUrl });
+    const refs = [...resolvedReferences.entries()];
     const loaded = Object.fromEntries(refs);
     const embodimentRows = await Promise.all(manifest.value.embodiments.map(async (reference) => ({
       reference,
-      loaded: await loadReference(reference, resolvedManifestUrl, `embodiment:${reference.id}`, fetchImpl),
+      loaded: await services.artifacts.resolve(reference, { baseUrl: resolvedManifestUrl, key: `embodiment:${reference.id}` }),
     })));
     const defaultEmbodimentRow = embodimentRows.find((row) => row.reference.id === manifest.value.defaultEmbodimentId);
     if (!defaultEmbodimentRow) throw loadError('default_embodiment_missing', `Default embodiment ${manifest.value.defaultEmbodimentId} was not loaded`, { defaultEmbodimentId: manifest.value.defaultEmbodimentId });
     const registry = loaded.regionRegistry.value;
     contracts.validateRegionRegistry(registry);
     const packRows = await Promise.all(registry.packs.map(async (reference) => {
-      const row = await loadReference(reference, loaded.regionRegistry.url, `regionPack:${reference.id}`, fetchImpl);
+      const row = await services.artifacts.resolve(reference, { baseUrl: loaded.regionRegistry.url, key: `regionPack:${reference.id}` });
       contracts.validateRegionPack(row.value, registry);
       return row;
     }));
@@ -70,6 +86,8 @@
       policy: loaded.policy.sha256,
     });
     contracts.validateModelRuntimeLock(loaded.modelRuntimeLock.value);
+    validatePipelineModelSelection(loaded.pipelineModelSelection.value, loaded.modelRuntimeLock.value);
+    pluginContracts.validateProfile(loaded.applicationProfile.value);
     contracts.validatePlaceEmbeddingIndex(loaded.placeEmbeddingIndex.value, loaded.modelRuntimeLock.value);
     contracts.validatePlaceResolutionEvidence(loaded.placeResolutionEvidence.value, loaded.placeEmbeddingIndex.value, loaded.modelRuntimeLock.value);
     contracts.validateAccessibilityIndex(loaded.accessibilityIndex.value, composition.world, worldHash);
@@ -81,28 +99,32 @@
     cooperativeContracts.validateScenario(loaded.cooperativeScenario.value);
     embodimentRows.forEach((row) => contracts.validateEmbodiment(row.loaded.value));
     contracts.validatePolicy(loaded.policy.value);
+    const catalog = createLoadedDataCatalog({ refs, embodimentRows, packRows, composition, worldHash, featureCatalogHash });
     const result = {
       schema: 'simulatte.autonomyLoadedData.v2',
       manifest: manifest.value,
-      world: composition.world,
-      embodiments: embodimentRows.map((row) => row.loaded.value),
-      defaultEmbodiment: defaultEmbodimentRow.loaded.value,
-      policy: loaded.policy.value,
-      featureCatalog: composition.featureCatalog,
-      occurrenceCatalog: loaded.occurrenceCatalog.value,
-      rerankerEvidence: loaded.rerankerEvidence.value,
-      placeEmbeddingIndex: loaded.placeEmbeddingIndex.value,
-      placeResolutionEvidence: loaded.placeResolutionEvidence.value,
-      modelRuntimeLock: loaded.modelRuntimeLock.value,
-      accessibilityIndex: loaded.accessibilityIndex.value,
-      routeAmenityIndex: loaded.routeAmenityIndex.value,
-      safetyHistoryIndex: loaded.safetyHistoryIndex.value,
-      curriculum: loaded.curriculum.value,
-      worldSnapshotRegistry: loaded.worldSnapshotRegistry.value,
-      policyArenaEvidence: loaded.policyArenaEvidence.value,
-      cooperativeScenario: loaded.cooperativeScenario.value,
-      regionRegistry: registry,
-      regionPacks: packRows.map((row) => row.value),
+      dataCatalog: catalog,
+      world: catalog.require(composition.world.id),
+      embodiments: embodimentRows.map((row) => catalog.require(row.loaded.value.id)),
+      defaultEmbodiment: catalog.require(defaultEmbodimentRow.loaded.value.id),
+      policy: catalog.require(loaded.policy.value.id),
+      featureCatalog: catalog.require(composition.featureCatalog.id),
+      occurrenceCatalog: catalog.require(loaded.occurrenceCatalog.value.id),
+      rerankerEvidence: catalog.require(loaded.rerankerEvidence.value.id),
+      placeEmbeddingIndex: catalog.require(loaded.placeEmbeddingIndex.value.id),
+      placeResolutionEvidence: catalog.require(loaded.placeResolutionEvidence.value.id),
+      modelRuntimeLock: catalog.require(loaded.modelRuntimeLock.value.id),
+      pipelineModelSelection: catalog.require(loaded.pipelineModelSelection.value.id),
+      applicationProfile: catalog.require(loaded.applicationProfile.value.id),
+      accessibilityIndex: catalog.require(loaded.accessibilityIndex.value.id),
+      routeAmenityIndex: catalog.require(loaded.routeAmenityIndex.value.id),
+      safetyHistoryIndex: catalog.require(loaded.safetyHistoryIndex.value.id),
+      curriculum: catalog.require(loaded.curriculum.value.id),
+      worldSnapshotRegistry: catalog.require(loaded.worldSnapshotRegistry.value.id),
+      policyArenaEvidence: catalog.require(loaded.policyArenaEvidence.value.id),
+      cooperativeScenario: catalog.require(loaded.cooperativeScenario.value.id),
+      regionRegistry: catalog.require(registry.id),
+      regionPacks: packRows.map((row) => catalog.require(row.value.id)),
       regionComposition: composition.receipt,
       receipt: {
         schema: 'simulatte.autonomyDataLoadReceipt.v2',
@@ -136,20 +158,7 @@
   }
 
   async function loadReference(reference, baseUrl, key, fetchImpl) {
-    const url = new URL(reference.path, baseUrl).toString();
-    const loaded = await fetchJson(url, fetchImpl);
-    const actualHash = await receipts.sha256Hex(loaded.text);
-    if (actualHash !== reference.sha256) {
-      throw loadError('asset_hash_mismatch', `${key} ${url} expected ${reference.sha256}, received ${actualHash}`, {
-        key, url, expectedSha256: reference.sha256, actualSha256: actualHash,
-      });
-    }
-    if (loaded.value.id !== reference.id) {
-      throw loadError('asset_identity_mismatch', `${key} expected ID ${reference.id}, received ${loaded.value.id || 'missing'}`, {
-        key, expectedId: reference.id, actualId: loaded.value.id || null,
-      });
-    }
-    return { ...loaded, url, sha256: actualHash };
+    return createDataServices(fetchImpl).artifacts.resolve(reference, { baseUrl, key });
   }
 
   function assertCompositionHash(key, expected, actual, receipt) {
@@ -170,45 +179,57 @@
   }
 
   async function fetchJson(url, fetchImpl) {
-    let response;
-    try {
-      response = await fetchImpl(url, { cache: 'no-cache' });
-    } catch (error) {
-      runtimeLog.error('data.asset.fetch.failed', {
-        url,
-        cacheMode: 'no-cache',
-        error: runtimeLog.serializeError(error),
-      });
-      throw loadError('asset_fetch_failed', `${url} request failed: ${error.message}`, {
-        url,
-        status: null,
-        cause: runtimeLog.serializeError(error),
-      });
+    return createDataServices(fetchImpl).artifacts.readJson(url);
+  }
+
+  function createDataServices(fetchImpl = defaultFetch()) {
+    const transport = browserTransport.createBrowserTransport({ fetchImpl });
+    return Object.freeze({
+      transport,
+      artifacts: artifactStore.createGovernedArtifactStore({ transport }),
+    });
+  }
+
+  function createLoadedDataCatalog({ refs, embodimentRows, packRows, composition, worldHash, featureCatalogHash }) {
+    const entries = [
+      ...refs.map(([, row]) => ({ id: row.value.id, value: row.value, receipt: assetReceipt(row) })),
+      ...embodimentRows.map((row) => ({ id: row.loaded.value.id, value: row.loaded.value, receipt: assetReceipt(row.loaded) })),
+      ...packRows.map((row) => ({ id: row.value.id, value: row.value, receipt: assetReceipt(row) })),
+      { id: composition.world.id, value: composition.world, receipt: { id: composition.world.id, sha256: worldHash, source: 'verified_region_composition' } },
+      { id: composition.featureCatalog.id, value: composition.featureCatalog, receipt: { id: composition.featureCatalog.id, sha256: featureCatalogHash, source: 'verified_region_composition' } },
+      { id: 'world.buildings.v1', value: composition.world, receipt: { id: composition.world.id, sha256: worldHash, source: 'verified_region_composition', view: 'buildings' } },
+      { id: 'world.graph.v1', value: composition.world, receipt: { id: composition.world.id, sha256: worldHash, source: 'verified_region_composition', view: 'routing_graph' } },
+    ];
+    return dataCatalog.createDataCatalog(entries);
+  }
+
+  function defaultFetch() {
+    return typeof fetch === 'function' ? fetch.bind(globalThis) : null;
+  }
+
+  function validatePipelineModelSelection(config, modelRuntimeLock) {
+    if (!config || config.schema !== 'simulatte.pipelineModelSelection.v1') {
+      throw loadError('pipeline_model_selection_invalid', `Expected simulatte.pipelineModelSelection.v1, received ${config?.schema || 'missing'}`, null);
     }
-    const responseMetadata = {
-      status: response?.status || null,
-      ok: Boolean(response?.ok),
-      cacheMode: 'no-cache',
-      cacheControl: responseHeader(response, 'cache-control'),
-      etag: responseHeader(response, 'etag'),
-      contentLength: responseHeader(response, 'content-length'),
-    };
-    runtimeLog.info('data.asset.fetch.completed', { url, ...responseMetadata });
-    if (!response || !response.ok) {
-      throw loadError('asset_fetch_failed', `${url} expected HTTP success, received ${response && response.status || 'no response'}`, { url, status: response && response.status || null, response: responseMetadata });
-    }
-    const text = await response.text();
-    try {
-      return { text, value: JSON.parse(text), response: responseMetadata };
-    } catch (error) {
-      throw loadError('asset_json_invalid', `${url} expected valid JSON, received ${error.message}`, { url });
+    if (config.modelRuntimeLock?.id !== modelRuntimeLock.id || Number(config.modelRuntimeLock?.number) !== Number(modelRuntimeLock.number)) {
+      throw loadError('pipeline_model_selection_lock_mismatch', `Expected ${modelRuntimeLock.id} #${modelRuntimeLock.number}, received ${config.modelRuntimeLock?.id || 'missing'} #${config.modelRuntimeLock?.number || 'missing'}`, null);
     }
   }
 
-  function responseHeader(response, name) {
-    return response?.headers && typeof response.headers.get === 'function'
-      ? response.headers.get(name)
-      : null;
+  function assertDependencies() {
+    const dependencies = [
+      ['contracts', contracts, 'validateManifest'],
+      ['receipts', receipts, 'sha256Hex'],
+      ['regions', regions, 'mergeRegionPacks'],
+      ['runtimeLog', runtimeLog, 'info'],
+      ['cooperativeContracts', cooperativeContracts, 'validateScenario'],
+      ['browserTransport', browserTransport, 'createBrowserTransport'],
+      ['artifactStore', artifactStore, 'createGovernedArtifactStore'],
+      ['dataCatalog', dataCatalog, 'createDataCatalog'],
+      ['pluginContracts', pluginContracts, 'validateProfile'],
+    ];
+    const missing = dependencies.find(([, value, method]) => !value || typeof value[method] !== 'function');
+    if (missing) throw new Error(`autonomy_data_loader_dependency_missing: ${missing[0]}.${missing[2]} is required`);
   }
 
   function documentBase() {

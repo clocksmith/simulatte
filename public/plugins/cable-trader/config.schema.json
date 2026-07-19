@@ -1,0 +1,5 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema", "title": "Cable Trader configuration v1", "type": "object",
+  "required": ["schema", "id", "cableTypes", "hubs", "inventory"], "additionalProperties": false,
+  "properties": { "schema": { "const": "simulatte.plugin.cableTraderConfig.v1" }, "id": { "type": "string" }, "cableTypes": { "type": "array" }, "hubs": { "type": "array" }, "inventory": { "type": "object" } }
+}

@@ -12,6 +12,8 @@ const MANIFEST_PATH = path.join(DATA_DIR, 'autonomy-manifest.json');
 const REFERENCE_KEYS = Object.freeze([
   'world', 'featureCatalog', 'policy', 'occurrenceCatalog', 'rerankerEvidence', 'regionRegistry',
   'placeEmbeddingIndex', 'placeResolutionEvidence', 'modelRuntimeLock', 'accessibilityIndex', 'routeAmenityIndex',
+  'pipelineModelSelection',
+  'applicationProfile',
   'safetyHistoryIndex', 'curriculum', 'worldSnapshotRegistry',
   'policyArenaEvidence',
   'cooperativeScenario',

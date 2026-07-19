@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Sun Walker configuration v1",
+  "type": "object",
+  "required": ["schema", "id", "maximumAlternatives", "directSunWeight", "unknownWeight", "maximumAddedTimeSeconds", "maximumAddedRatio", "sampleSpacingM"],
+  "additionalProperties": false,
+  "properties": {
+    "schema": { "const": "simulatte.plugin.sunWalkerConfig.v1" },
+    "id": { "type": "string" },
+    "maximumAlternatives": { "type": "integer", "minimum": 1, "maximum": 8 },
+    "directSunWeight": { "type": "number", "minimum": 0 },
+    "unknownWeight": { "type": "number", "minimum": 0 },
+    "maximumAddedTimeSeconds": { "type": "number", "minimum": 0 },
+    "maximumAddedRatio": { "type": "number", "minimum": 0 },
+    "sampleSpacingM": { "type": "number", "exclusiveMinimum": 0 }
+  }
+}
