@@ -16,7 +16,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginP2pDelivery",
-    "integrity": "sha384-207bbe87584b1ba2bf4345477953b57bbdb8270e774cedb17bac148ab256608bd6a0f6a5c0cd583dbad870e17c25c01a",
+    "integrity": "sha384-8b18c94671b0e85169c85cc0cd10c5638cba298e3efa53238a1a380ae0794af8b9ced5f9d6df7cd68ed00aaa61f2477f",
     "path": "./index.js"
   },
   "extensionPoints": [

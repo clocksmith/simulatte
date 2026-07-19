@@ -1,6 +1,15 @@
 {
   "schema": "simulatte.applicationProfile.v1",
   "id": "safety-explorer-v1",
+  "defaultMissionText": "Bike from Union Square to McCarren Park and show the route's historical crash observations.",
+  "missionExamples": [
+    "Bike from Union Square to McCarren Park and show the route's historical crash observations.",
+    "Walk from Washington Square Park to Union Square and inspect recorded crashes.",
+    "Bike from Cooper Park to McCarren Park using historical street observations.",
+    "Walk from Tompkins Square Park to Union Square and show recorded injuries.",
+    "Ride from McCarren Park to Cooper Park and inspect the historical observation score."
+  ],
+  "camera": { "initialMode": "bird", "runMode": "bird", "pluginId": "safety-explorer", "targetId": "observed-route" },
   "plugins": [{ "id": "safety-explorer", "configId": "safety-explorer-default-v1" }],
   "routeObjective": { "travelSeconds": 1, "historicalObservation": 1, "riskScore": 1 }
 }

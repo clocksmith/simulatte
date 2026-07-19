@@ -83,10 +83,10 @@
         schema: 'simulatte.pluginPresentation.v1',
         markers: config.hubs.map((hub) => {
           const stock = requestedType ? state.inventory[`${hub.id}:${requestedType}`] || 0 : inventoryAtHub(state.inventory, hub.id);
-          return { id: hub.id, label: `${hub.label}: ${stock} available`, nodeId: hub.nodeId, tone: requestedType && !stock ? 'red' : hub.id === selectedHubId ? 'green' : 'amber', heightM: hub.id === selectedHubId ? 72 : 48, radiusM: hub.id === selectedHubId ? 5 : 3.5, intensity: hub.id === selectedHubId ? 1.7 : 1.2 };
+          return { id: hub.id, label: `${hub.label}: ${stock} available`, nodeId: hub.nodeId, tone: requestedType && !stock ? 'red' : hub.id === selectedHubId ? 'green' : 'amber', heightM: hub.id === selectedHubId ? 200 : 140, radiusM: hub.id === selectedHubId ? 40 : 32, intensity: hub.id === selectedHubId ? 1.8 : 1.35 };
         }),
-        paths: candidateRoutes.map((row) => ({ id: `${row.id}-path`, label: `${row.label} journey`, segmentIds: row.segmentIds, tone: 'muted', widthM: 2.2, intensity: 0.42 })),
-        actors: candidateRoutes.map((row) => ({ id: row.id, label: row.label, kind: row.kind, segmentIds: row.segmentIds, tone: 'cyan', speedMps: row.speedMps, phaseOffsetM: row.phaseOffsetM, isSelected: false })),
+        paths: candidateRoutes.map((row, index) => ({ id: `${row.id}-path`, label: `${row.label} journey`, segmentIds: row.segmentIds, tone: ['cyan', 'blue', 'magenta', 'violet'][index % 4], widthM: 7.5, intensity: 0.78 })),
+        actors: candidateRoutes.map((row, index) => ({ id: row.id, label: row.label, kind: row.kind, segmentIds: row.segmentIds, tone: ['cyan', 'blue', 'magenta', 'violet'][index % 4], speedMps: row.speedMps, phaseOffsetM: row.phaseOffsetM, isSelected: false })),
         cameraTargets: [
           { id: 'cable-network', label: 'Cable exchange network', nodeIds: config.hubs.map((row) => row.nodeId), segmentIds: [...new Set(candidateRoutes.flatMap((row) => row.segmentIds))], distanceM: 2600 },
           ...config.hubs.map((hub) => ({ id: hub.id, label: hub.label, nodeIds: [hub.nodeId], segmentIds: [], distanceM: 620 })),

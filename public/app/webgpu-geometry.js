@@ -29,6 +29,7 @@
     signalRed: [1, 0.18, 0.22, 1],
     prediction: [1, 0.25, 0.86, 0.72],
     sensor: [0.1, 0.7, 1, 0.14],
+    sun: [1, 0.72, 0.16, 1],
   });
   const PLUGIN_TONES = Object.freeze({
     cyan: [0.14, 0.94, 1, 0.96],
@@ -38,6 +39,7 @@
     magenta: [1, 0.28, 0.78, 0.96],
     violet: [0.62, 0.4, 1, 0.96],
     blue: [0.18, 0.55, 1, 0.96],
+    shade: [0.2, 0.17, 0.56, 0.72],
     muted: [0.48, 0.62, 0.66, 0.72],
   });
 
@@ -110,12 +112,14 @@
 
   function addPluginPresentation(writer, scene, snapshot) {
     if (!scene) return;
+    scene.areas.forEach((row) => addFlatPolygon(writer, row.points, row.heightM, tone(row.tone), row.intensity));
     scene.paths.forEach((row) => addRibbon(writer, row.points, row.widthM, 0.92, tone(row.tone), row.intensity));
     scene.markers.forEach((row) => addBeacon(writer, row.point, tone(row.tone), row.heightM, row.radiusM, row.intensity));
+    if (scene.sun) addOrb(writer, scene.sun.worldPosition, scene.sun.radiusM, COLORS.sun, scene.sun.intensity);
     const elapsedSeconds = Number(snapshot.state.simulatedTimeSeconds || 0);
     scene.actors.forEach((row, index) => {
       const pose = poseAlongPath(row.points, row.phaseOffsetM + elapsedSeconds * row.speedMps);
-      if (row.isSelected) addBeacon(writer, pose.point, tone(row.tone), 2.2, 3.4, 1.5);
+      addBeacon(writer, pose.point, tone(row.tone), row.isSelected ? 36 : 24, row.isSelected ? 10 : 8, row.isSelected ? 1.6 : 1.15);
       actorGeometry.addActor(writer, {
         kind: row.kind,
         point: pose.point,
@@ -258,6 +262,20 @@
       color,
       emissive,
     });
+  }
+
+  function addOrb(writer, center, radius, color, emissive = 1.8) {
+    const [x, y, z] = center;
+    const points = [
+      [x + radius, y, z], [x - radius, y, z],
+      [x, y + radius, z], [x, y - radius, z],
+      [x, y, z + radius], [x, y, z - radius],
+    ];
+    const faces = [
+      [2, 0, 4], [2, 4, 1], [2, 1, 5], [2, 5, 0],
+      [3, 4, 0], [3, 1, 4], [3, 5, 1], [3, 0, 5],
+    ];
+    faces.forEach(([a, b, c]) => writer.triangle(points[a], points[b], points[c], faceNormal(points[a], points[b], points[c]), color, emissive, [0, 0.18]));
   }
 
   function addSensorCone(writer, point, heading, speedMps) {

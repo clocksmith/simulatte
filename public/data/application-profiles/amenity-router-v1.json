@@ -1,6 +1,15 @@
 {
   "schema": "simulatte.applicationProfile.v1",
   "id": "amenity-router-v1",
+  "defaultMissionText": "Bike from Union Square to McCarren Park within 50 meters of a bike rack.",
+  "missionExamples": [
+    "Bike from Union Square to McCarren Park within 50 meters of a bike rack.",
+    "Bike from Washington Square Park to Union Square within 30 meters of a bike rack.",
+    "Ride from Cooper Park to McCarren Park within 75 meters of a bike rack.",
+    "Bike from Tompkins Square Park to Union Square within 100 feet of a bike rack.",
+    "Ride from McCarren Park to Cooper Park within 40 meters of a bike rack."
+  ],
+  "camera": { "initialMode": "top", "runMode": "top", "pluginId": "amenity-router", "targetId": "amenity-route" },
   "plugins": [{ "id": "amenity-router", "configId": "amenity-router-default-v1" }],
   "routeObjective": { "travelSeconds": 1, "amenityDistance": 1 }
 }

@@ -180,6 +180,14 @@ async function runBrowserSmoke(options) {
   const chromePath = findChrome(options.chromePath);
   const staticHost = options.url ? null : await createStaticServer();
   const targetUrl = options.url || `http://127.0.0.1:${staticHost.port}/`;
+  const expectedProfileId = new URL(targetUrl).searchParams.get('profile') || 'simulatte-world-v1';
+  const expectedProfile = profileDefinition(expectedProfileId);
+  const expectedPluginIds = new Set(expectedProfile.plugins.map((row) => row.id));
+  const expectedRunCameraMode = expectedProfile.camera?.runMode || 'follow';
+  const expectedInitialCameraMode = expectedProfile.camera?.initialMode || 'bird';
+  const expectedInitialCameraFocus = expectedProfile.camera?.pluginId
+    ? `plugin:${expectedProfile.camera.pluginId}:${expectedProfile.camera.targetId}`
+    : 'route';
   const devtoolsPort = await freePort();
   const profileDir = fs.mkdtempSync(path.join(os.tmpdir(), 'simulatte-autonomy-browser-'));
   const chrome = spawn(chromePath, [
@@ -227,14 +235,30 @@ async function runBrowserSmoke(options) {
     });
     if (consentEvaluation.exceptionDetails) throw new Error(consentEvaluation.exceptionDetails.exception && consentEvaluation.exceptionDetails.exception.description || consentEvaluation.exceptionDetails.text);
     const consentView = consentEvaluation.result.value;
+    await client.send('Runtime.evaluate', {
+      expression: `(async () => {
+        const started = performance.now();
+        while (document.body.dataset.journeyPhase === 'loading' || document.getElementById('autonomy-canvas').dataset.cameraTransition !== 'settled') {
+          if (performance.now() - started > 5000) throw new Error('initial experience view did not settle');
+          await new Promise((resolve) => setTimeout(resolve, 50));
+        }
+        await new Promise((resolve) => setTimeout(resolve, 360));
+      })()`,
+      awaitPromise: true,
+    });
+    const initialExperienceScreenshot = await client.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false });
     const evaluated = await client.send('Runtime.evaluate', {
-      expression: browserJourneyExpression(),
+      expression: browserJourneyExpression(expectedRunCameraMode),
       awaitPromise: true,
       returnByValue: true,
     });
     if (evaluated.exceptionDetails) throw new Error(evaluated.exceptionDetails.exception && evaluated.exceptionDetails.exception.description || evaluated.exceptionDetails.text);
     const browserVersion = await client.send('Browser.getVersion');
     const overviewScreenshot = await client.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false });
+    await client.send('Runtime.evaluate', { expression: `document.getElementById('application-profile-trigger').click()` });
+    await new Promise((resolve) => setTimeout(resolve, 180));
+    const profileSelectScreenshot = await client.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false });
+    await client.send('Runtime.evaluate', { expression: `document.querySelector('#application-profile-options [aria-selected="true"]').dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))` });
     const decisionViewEvaluation = await client.send('Runtime.evaluate', {
       expression: `(async () => {
         const button = document.getElementById('decisions-button');
@@ -267,8 +291,6 @@ async function runBrowserSmoke(options) {
     if (actorViewEvaluation.exceptionDetails) throw new Error(actorViewEvaluation.exceptionDetails.exception && actorViewEvaluation.exceptionDetails.exception.description || actorViewEvaluation.exceptionDetails.text);
     const actorView = actorViewEvaluation.result.value;
     const actorScreenshot = await client.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false });
-    const expectedProfileId = new URL(targetUrl).searchParams.get('profile') || 'simulatte-world-v1';
-    const expectedPluginIds = profilePluginIds(expectedProfileId);
     const expectsP2pDelivery = expectedPluginIds.has('p2p-delivery');
     const expectsSunWalker = expectedPluginIds.has('sun-walker');
     const expectsCableTrader = expectedPluginIds.has('cable-trader');
@@ -293,6 +315,11 @@ async function runBrowserSmoke(options) {
       ? featureView.shade.visible
         && featureView.shade.routeAlgorithm === 'sun_walker_arrival_time_route_v1'
         && featureView.shade.selected.includes('modeled shade')
+        && featureView.shade.areaCount > 0
+        && featureView.shade.sunCount === 1
+        && featureView.shade.solarLighting === 'plugin'
+        && featureView.shade.sunAzimuthDegrees > 0
+        && featureView.shade.sunElevationDegrees > 2
       : !featureView.shade.visible;
     const featurePass = p2pDeliveryPass
       && sunWalkerPass
@@ -351,14 +378,23 @@ async function runBrowserSmoke(options) {
       && result.applicationProfile.enabled
       && result.applicationProfile.selectedId === expectedProfileId
       && result.applicationProfile.optionIds.length === 11
+      && result.applicationProfile.custom.enabled
+      && result.applicationProfile.custom.opened
+      && result.applicationProfile.custom.groupLabels.length === 0
+      && result.applicationProfile.custom.optionCount === 11
+      && result.applicationProfile.custom.selectedLabel.length > 0
+      && result.applicationProfile.custom.escapeClosed
       && decisionView.open
       && decisionView.hidden === 'false'
       && decisionView.expanded === 'true'
       && decisionView.summary.length > 0
-      && result.camera.startedInFollow
-      && result.camera.minimap.visible
-      && result.camera.minimap.frameCount > 0
-      && result.camera.minimap.projection === 'orthographic_top_north_up'
+      && result.camera.startedInConfiguredMode
+      && result.camera.configuredRunMode === expectedRunCameraMode
+      && result.camera.initial.mode === expectedInitialCameraMode
+      && result.camera.initial.focus === expectedInitialCameraFocus
+      && (expectedRunCameraMode === 'follow'
+        ? result.camera.minimap.visible && result.camera.minimap.frameCount > 0 && result.camera.minimap.projection === 'orthographic_top_north_up'
+        : !result.camera.minimap.visible)
       && result.camera.regionTargetCount === 3
       && result.camera.placeTargetCount === 20
       && result.camera.modeProbes.every((row) => row.began && row.noSnap && row.progressed && row.settled && row.moved)
@@ -386,7 +422,7 @@ async function runBrowserSmoke(options) {
       && errors.length === 0
       && failedResponses.length === 0;
     const report = {
-      schema: 'simulatte.autonomyBrowserSmoke.v10',
+      schema: 'simulatte.autonomyBrowserSmoke.v11',
       pass,
       targetUrl,
       viewport: options.viewport,
@@ -404,7 +440,9 @@ async function runBrowserSmoke(options) {
     if (!options.checkOnly) {
       fs.mkdirSync(options.outDir, { recursive: true });
       fs.writeFileSync(path.join(options.outDir, 'report.json'), `${JSON.stringify(report, null, 2)}\n`);
+      fs.writeFileSync(path.join(options.outDir, 'experience-initial.png'), Buffer.from(initialExperienceScreenshot.data, 'base64'));
       fs.writeFileSync(path.join(options.outDir, 'journey.png'), Buffer.from(overviewScreenshot.data, 'base64'));
+      fs.writeFileSync(path.join(options.outDir, 'application-profile-select.png'), Buffer.from(profileSelectScreenshot.data, 'base64'));
       fs.writeFileSync(path.join(options.outDir, 'decisions.png'), Buffer.from(decisionScreenshot.data, 'base64'));
       fs.writeFileSync(path.join(options.outDir, 'actor-follow.png'), Buffer.from(actorScreenshot.data, 'base64'));
     }
@@ -481,10 +519,16 @@ function pluginFeatureExpression({ expectsP2pDelivery, expectsSunWalker, expects
       const proof = document.getElementById('alternative-proof');
       const shadeSection = document.querySelector('#plugin-inspector [data-plugin-id="sun-walker"]');
       const shadeRows = Object.fromEntries([...shadeSection.querySelectorAll('div')].map((row) => [row.querySelector('dt')?.textContent.trim(), row.querySelector('dd')?.textContent.trim()]));
+      const canvas = document.getElementById('autonomy-canvas');
       shade = {
         visible: true,
         routeAlgorithm: proof.dataset.routeAlgorithm || null,
         selected: shadeRows['Selected route'] || '',
+        areaCount: Number(canvas.dataset.pluginAreasCount || 0),
+        sunCount: Number(canvas.dataset.pluginSunsCount || 0),
+        solarLighting: canvas.dataset.solarLighting || null,
+        sunAzimuthDegrees: Number(canvas.dataset.sunAzimuthDegrees),
+        sunElevationDegrees: Number(canvas.dataset.sunElevationDegrees),
       };
     }
     let cableTrader = { visible: Boolean(document.querySelector('#plugin-inspector [data-plugin-id="cable-trader"]')) };
@@ -505,14 +549,14 @@ function pluginFeatureExpression({ expectsP2pDelivery, expectsSunWalker, expects
   })()`;
 }
 
-function profilePluginIds(profileId) {
+function profileDefinition(profileId) {
   const manifest = JSON.parse(fs.readFileSync(path.join(PUBLIC, 'data', 'autonomy', 'autonomy-manifest.json'), 'utf8'));
   const references = [manifest.applicationProfile, ...(manifest.applicationProfiles || [])];
   const reference = references.find((row) => row.id === profileId);
   if (!reference) throw new Error(`Autonomy browser profile ${profileId} is not declared`);
   const profilePath = path.resolve(PUBLIC, 'data', 'autonomy', reference.path);
   const profile = JSON.parse(fs.readFileSync(profilePath, 'utf8'));
-  return new Set(profile.plugins.map((row) => row.id));
+  return profile;
 }
 
 function actorViewExpression() {
@@ -557,8 +601,9 @@ async function stopChild(child) {
   await exited;
 }
 
-function browserJourneyExpression() {
+function browserJourneyExpression(expectedRunCameraMode = 'follow') {
   return `(async () => {
+    const configuredRunMode = ${JSON.stringify(expectedRunCameraMode)};
     const runtimeFailure = () => {
       const status = document.getElementById('runtime-status');
       if (status?.dataset.kind !== 'error') return null;
@@ -589,7 +634,7 @@ function browserJourneyExpression() {
       const rect = element.getBoundingClientRect();
       return { id, hidden: element.hidden, left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom, width: rect.width, height: rect.height };
     };
-    const initialRects = ['runtime-toggle', 'application-profile', 'camera-focus-button', 'camera-follow', 'camera-bird', 'camera-top', 'mission-input', 'shuffle-button', 'start-button', 'place-resolution-lane', 'decisions-button'].map(rectFor);
+    const initialRects = ['runtime-toggle', 'application-profile-trigger', 'camera-focus-button', 'camera-follow', 'camera-bird', 'camera-top', 'mission-input', 'shuffle-button', 'start-button', 'place-resolution-lane', 'decisions-button'].map(rectFor);
     const initialLayout = {
       viewport: viewportRect,
       rects: initialRects,
@@ -620,11 +665,27 @@ function browserJourneyExpression() {
     try { longTaskObserver?.observe({ type: 'longtask', buffered: true }); } catch { /* Long Tasks API is optional. */ }
     const canvas = document.getElementById('autonomy-canvas');
     const minimap = document.getElementById('follow-minimap');
+    const initialCamera = { mode: canvas.dataset.cameraMode, focus: canvas.dataset.cameraFocus };
     const applicationProfile = document.getElementById('application-profile');
+    const applicationProfileTrigger = document.getElementById('application-profile-trigger');
+    const applicationProfileOptions = document.getElementById('application-profile-options');
     const focusSelect = document.getElementById('camera-focus');
     const missionInput = document.getElementById('mission-input');
     const shuffleButton = document.getElementById('shuffle-button');
     const startButton = document.getElementById('start-button');
+    applicationProfileTrigger.click();
+    const selectedProfileOption = applicationProfileOptions.querySelector('[role="option"][aria-selected="true"]');
+    const customProfileSelect = {
+      enabled: !applicationProfileTrigger.disabled,
+      opened: applicationProfileTrigger.getAttribute('aria-expanded') === 'true' && !applicationProfileOptions.hidden,
+      groupLabels: Array.from(applicationProfileOptions.querySelectorAll('.select-group-label'), (row) => row.textContent.trim()),
+      optionCount: applicationProfileOptions.querySelectorAll('[role="option"]').length,
+      selectedLabel: selectedProfileOption?.textContent.trim() || '',
+    };
+    selectedProfileOption?.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    customProfileSelect.escapeClosed = applicationProfileTrigger.getAttribute('aria-expanded') === 'false'
+      && applicationProfileOptions.hidden
+      && document.activeElement === applicationProfileTrigger;
     const originalMission = missionInput.value;
     shuffleButton.click();
     const shuffledMission = missionInput.value;
@@ -680,6 +741,10 @@ function browserJourneyExpression() {
     const regionOptions = [...focusSelect.options].filter((option) => option.value.startsWith('region:'));
     const placeOptions = [...focusSelect.options].filter((option) => option.value.startsWith('place:'));
     const modeProbes = [];
+    if (initialCamera.mode === 'top') {
+      document.getElementById('camera-bird').click();
+      await waitForCamera('camera-probe-reset');
+    }
     modeProbes.push(await probeMode('top'));
     modeProbes.push(await probeMode('follow'));
     const followZoomBefore = Number(canvas.dataset.cameraFollowDistance);
@@ -765,18 +830,18 @@ function browserJourneyExpression() {
     startButton.click();
     markPhase('start_clicked');
     const missionLockedDuringRun = missionInput.disabled;
-    await waitFor(() => canvas.dataset.cameraMode === 'follow'
-      && canvas.dataset.followMinimap === 'visible'
-      && !minimap.hidden
-      && Number(minimap.dataset.frameCount || 0) > 0, 'start-follow-minimap', 5000);
-    const startedInFollow = canvas.dataset.cameraMode === 'follow';
+    await waitFor(() => canvas.dataset.cameraMode === configuredRunMode
+      && (configuredRunMode !== 'follow' || (canvas.dataset.followMinimap === 'visible'
+        && !minimap.hidden
+        && Number(minimap.dataset.frameCount || 0) > 0)), 'start-configured-camera', 5000);
+    const startedInConfiguredMode = canvas.dataset.cameraMode === configuredRunMode;
     const minimapReceipt = {
       visible: canvas.dataset.followMinimap === 'visible' && !minimap.hidden,
       projection: minimap.dataset.projection,
       radiusM: Number(minimap.dataset.radiusM),
       frameCount: Number(minimap.dataset.frameCount || 0),
     };
-    markPhase('follow_minimap_ready');
+    markPhase('configured_camera_ready');
     await waitFor(() => ['completed', 'failed'].includes(document.getElementById('metric-state').textContent), 'journey-terminal');
     markPhase('journey_terminal');
     await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
@@ -817,6 +882,7 @@ function browserJourneyExpression() {
         enabled: !applicationProfile.disabled,
         selectedId: applicationProfile.value,
         optionIds: Array.from(applicationProfile.options, (option) => option.value),
+        custom: customProfileSelect,
       },
       state: document.getElementById('metric-state').textContent,
       tick: Number(document.getElementById('metric-tick').textContent),
@@ -858,7 +924,9 @@ function browserJourneyExpression() {
         followZoomBefore,
         followZoomAfter,
         returnedToRoute,
-        startedInFollow,
+        initial: initialCamera,
+        configuredRunMode,
+        startedInConfiguredMode,
         minimap: minimapReceipt,
       },
       editInvalidatedController,

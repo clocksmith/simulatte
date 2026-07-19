@@ -1,6 +1,15 @@
 {
   "schema": "simulatte.applicationProfile.v1",
   "id": "cable-trader-pickup-v1",
+  "defaultMissionText": "I need an HDMI cable. Find the exchange hub with one available.",
+  "missionExamples": [
+    "I need an HDMI cable. Find the exchange hub with one available.",
+    "Get me a USB-C to USB-A cable from the cable exchange.",
+    "I need an Ethernet cable. Find a nearby exchange hub.",
+    "Borrow a USB-C to USB-C cable from the network.",
+    "Get me a 3.5 mm audio cable from a cable hub."
+  ],
+  "camera": { "initialMode": "top", "runMode": "top", "pluginId": "cable-trader", "targetId": "cable-network" },
   "plugins": [{ "id": "cable-trader", "configId": "cable-trader-default-v1" }],
   "routeObjective": { "travelSeconds": 1 }
 }

@@ -39,16 +39,15 @@ body {
 }
 
 .loading-screen {
-  position: fixed;
-  z-index: 100;
+  position: absolute;
+  z-index: 8;
   inset: 0;
   display: grid;
   place-content: center;
   justify-items: center;
   gap: 22px;
-  background:
-    radial-gradient(circle at 50% 48%, rgba(20, 65, 75, 0.2), transparent 36%),
-    #020812;
+  background: radial-gradient(circle at 50% 48%, rgba(20, 65, 75, 0.18), transparent 42%);
+  pointer-events: none;
   opacity: 1;
   visibility: visible;
   transition: opacity 320ms ease, visibility 320ms step-end;
@@ -61,18 +60,18 @@ body:not([data-journey-phase="loading"]) .loading-screen {
 }
 
 .loading-mosaic {
-  --mosaic-size: 9;
+  --mosaic-size: 7;
   display: grid;
-  width: clamp(156px, 24vw, 216px);
+  width: clamp(148px, 22vw, 196px);
   aspect-ratio: 1;
   grid-template-columns: repeat(var(--mosaic-size), 1fr);
-  gap: clamp(2px, 0.4vw, 5px);
+  gap: clamp(1px, 0.18vw, 2px);
 }
 
 .loading-mosaic > i {
   display: block;
   border-radius: 1px;
-  background: hsl(var(--tile-hue) 54% 58%);
+  background: hsl(var(--tile-hue) 82% 62%);
   opacity: var(--tile-opacity);
   transform: scale(0.82);
   animation: loading-mosaic-spiral 3.2s ease-in-out infinite;
@@ -93,7 +92,7 @@ body:not([data-journey-phase="loading"]) .loading-screen {
   }
 
   3.5% {
-    opacity: 0.96;
+    opacity: 0.86;
     transform: scale(1);
   }
 }
@@ -222,12 +221,124 @@ button {
 }
 
 .profile-selector {
-  display: flex;
-  min-height: var(--sim-touch-target);
+  position: relative;
+  display: block;
+  width: min(230px, 42vw);
   max-width: min(230px, 42vw);
+}
+
+.profile-selector .select-trigger {
+  display: flex;
+  width: 100%;
+  min-height: var(--sim-touch-target);
   align-items: center;
+  justify-content: space-between;
+  gap: 10px;
   border: 1px solid var(--sim-line-strong);
-  padding: 0 8px;
+  padding: 0 12px;
+  color: var(--sim-ink);
+  background: var(--sim-glass);
+  font-size: 12px;
+  font-weight: 680;
+  text-align: left;
+}
+
+.profile-selector .select-trigger > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profile-selector .select-trigger::after {
+  width: 0;
+  height: 0;
+  flex: 0 0 auto;
+  border-right: 4px solid transparent;
+  border-left: 4px solid transparent;
+  border-top: 5px solid currentColor;
+  content: "";
+  opacity: 0.72;
+  transition: transform var(--sim-motion-fast) var(--sim-ease);
+}
+
+.profile-selector.open .select-trigger::after {
+  transform: rotate(180deg);
+}
+
+.profile-selector .select-trigger:hover:not(:disabled),
+.profile-selector .select-trigger:focus-visible,
+.profile-selector.open .select-trigger {
+  border-color: rgba(117, 190, 244, 0.58);
+  background: rgba(14, 34, 43, 0.97);
+  outline: none;
+}
+
+.profile-selector .select-trigger:focus-visible {
+  box-shadow: 0 0 0 3px rgba(117, 190, 244, 0.18), var(--sim-shadow-small);
+}
+
+.profile-selector .select-options {
+  position: absolute;
+  z-index: 100;
+  top: calc(100% + 6px);
+  left: 0;
+  display: grid;
+  width: min(286px, calc(100vw - 20px));
+  max-height: min(420px, calc(100vh - 92px));
+  gap: 2px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 6px;
+  background: rgba(7, 17, 23, 0.98);
+}
+
+.profile-selector .select-group-label {
+  padding: 9px 10px 5px;
+  color: var(--sim-ink-faint);
+  font: 700 9px/1 var(--sim-mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.profile-selector .select-option {
+  min-height: 38px;
+  border-radius: var(--sim-radius-small);
+  padding: 11px 10px;
+  color: var(--sim-ink-soft);
+  font-size: 12px;
+  font-weight: 620;
+  line-height: 16px;
+  cursor: pointer;
+}
+
+.profile-selector .select-option:hover,
+.profile-selector .select-option:focus-visible {
+  color: var(--sim-ink);
+  background: rgba(188, 226, 226, 0.09);
+  outline: none;
+}
+
+.profile-selector .select-option.selected {
+  color: var(--sim-ink);
+  background: rgba(117, 190, 244, 0.13);
+}
+
+.profile-selector .select-option.selected::after {
+  float: right;
+  content: "Selected";
+  color: var(--sim-ink-faint);
+  font: 700 8px/16px var(--sim-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.profile-selector .select-option[aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.42;
+}
+
+.profile-selector.is-disabled {
+  opacity: 0.62;
 }
 
 .profile-selector select {
@@ -238,15 +349,6 @@ button {
   background: transparent;
   font-size: 12px;
   font-weight: 680;
-}
-
-.profile-selector select:focus-visible {
-  outline: 2px solid rgba(117, 190, 244, 0.74);
-  outline-offset: 4px;
-}
-
-.profile-selector:has(select:disabled) {
-  opacity: 0.62;
 }
 
 .status-pill {

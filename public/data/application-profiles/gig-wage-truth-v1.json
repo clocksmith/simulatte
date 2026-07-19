@@ -1,6 +1,15 @@
 {
   "schema": "simulatte.applicationProfile.v1",
   "id": "gig-wage-truth-v1",
+  "defaultMissionText": "I need two AA batteries delivered to my East Village office. Show the courier's true gross hourly rate.",
+  "missionExamples": [
+    "I need two AA batteries delivered to my East Village office. Show the courier's true gross hourly rate.",
+    "Deliver one phone charger to the East Village office and include all working time.",
+    "Bring two AA batteries to the Greenpoint apartment and calculate the courier's gross rate.",
+    "Deliver one umbrella to the East Village office and count the full trip.",
+    "Bring one phone charger to the Greenpoint apartment and show excluded time."
+  ],
+  "camera": { "initialMode": "top", "runMode": "top", "pluginId": "p2p-delivery", "targetId": "delivery-network" },
   "plugins": [
     { "id": "gig-wage-truth", "configId": "gig-wage-truth-default-v1" },
     { "id": "p2p-delivery", "configId": "p2p-delivery-default-v1" }

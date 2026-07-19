@@ -12,15 +12,15 @@
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body class="sim-app" data-journey-phase="loading">
-  <div id="loading-screen" class="loading-screen" role="status" aria-label="Loading Simulatte">
-    <div id="loading-mosaic" class="loading-mosaic" aria-hidden="true"></div>
-    <span class="loading-wordmark" aria-hidden="true">Simulatte</span>
-  </div>
   <main class="map-workspace" aria-label="Simulatte">
     <section class="simulation-stage" aria-label="NYC mission map">
       <div class="canvas-shell">
         <canvas id="autonomy-canvas" width="1440" height="900" aria-label="Interactive WebGPU view of pedestrian, bicycle, scooter, and car missions in the Villages and North Brooklyn"></canvas>
         <canvas id="follow-minimap" class="follow-minimap" width="320" height="240" aria-label="Top view minimap centered on the active agent" hidden></canvas>
+        <div id="loading-screen" class="loading-screen" role="status" aria-label="Loading Simulatte">
+          <div id="loading-mosaic" class="loading-mosaic" aria-hidden="true"></div>
+          <span class="loading-wordmark" aria-hidden="true">Simulatte</span>
+        </div>
         <section id="plugin-map-ui" class="plugin-map-ui" aria-label="Application view"></section>
         <section id="plugin-hud-ui" class="plugin-hud-ui" aria-label="Application status"></section>
 
@@ -30,12 +30,15 @@
               <span class="status-dot" aria-hidden="true"></span>
               <strong id="runtime-status" class="runtime-status" data-kind="loading" aria-live="polite">Loading</strong>
             </button>
-            <label class="profile-selector sim-surface" for="application-profile">
-              <span class="sr-only">Application</span>
-              <select id="application-profile" class="sim-field" aria-label="Application" disabled>
+            <div id="application-profile-control" class="profile-selector select-custom">
+              <select id="application-profile" aria-label="Application" disabled hidden>
                 <option>Loading application</option>
               </select>
-            </label>
+              <button id="application-profile-trigger" class="select-trigger sim-surface" type="button" aria-label="Application" aria-haspopup="listbox" aria-controls="application-profile-options" aria-expanded="false" disabled>
+                <span id="application-profile-label">Loading application</span>
+              </button>
+              <div id="application-profile-options" class="select-options sim-popover" role="listbox" aria-label="Simulatte experiences" hidden></div>
+            </div>
           </div>
           <div id="runtime-details" class="runtime-details sim-popover" hidden>
             <span class="sim-label">This device</span>
@@ -288,6 +291,8 @@
   <script defer src="./app/camera-controller.js?v=01a5b05ef3a2c97f82230b4523fe53eec2352081-cc86632eefb0"></script>
   <script defer src="./app/webgpu-renderer.js?v=01a5b05ef3a2c97f82230b4523fe53eec2352081-cc86632eefb0"></script>
   <script defer src="./app/trace-view.js?v=01a5b05ef3a2c97f82230b4523fe53eec2352081-cc86632eefb0"></script>
+  <script defer src="./app/application-profile-select.js?v=01a5b05ef3a2c97f82230b4523fe53eec2352081-cc86632eefb0"></script>
+  <script defer src="./app/experience-camera.js?v=01a5b05ef3a2c97f82230b4523fe53eec2352081-cc86632eefb0"></script>
   <script defer src="./app/main.js?v=01a5b05ef3a2c97f82230b4523fe53eec2352081-cc86632eefb0"></script>
 </body>
 </html>

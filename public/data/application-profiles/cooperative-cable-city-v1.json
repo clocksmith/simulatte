@@ -1,6 +1,15 @@
 {
   "schema": "simulatte.applicationProfile.v1",
   "id": "cooperative-cable-city-v1",
+  "defaultMissionText": "I need an Ethernet cable. Match an exchange hub and show journeys already moving nearby.",
+  "missionExamples": [
+    "I need an Ethernet cable. Match an exchange hub and show journeys already moving nearby.",
+    "Get me an HDMI cable through the cooperative cable network.",
+    "I need a USB-C to USB-A cable from a hub near an existing journey.",
+    "Trade for a USB-C to USB-C cable and minimize the added trip.",
+    "Borrow a DisplayPort cable from the cooperative exchange."
+  ],
+  "camera": { "initialMode": "top", "runMode": "top", "pluginId": "cable-trader", "targetId": "cable-network" },
   "plugins": [
     { "id": "cable-trader", "configId": "cable-trader-default-v1" },
     { "id": "gig-wage-truth", "configId": "gig-wage-truth-default-v1" },

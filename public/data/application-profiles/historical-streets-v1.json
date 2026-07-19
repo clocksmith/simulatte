@@ -1,6 +1,15 @@
 {
   "schema": "simulatte.applicationProfile.v1",
   "id": "historical-streets-v1",
+  "defaultMissionText": "Bike from Union Square to McCarren Park and inspect the loaded street snapshot.",
+  "missionExamples": [
+    "Bike from Union Square to McCarren Park and inspect the loaded street snapshot.",
+    "Walk from Washington Square Park to Union Square in the current street world.",
+    "Bike from Cooper Park to McCarren Park and inspect the snapshot identity.",
+    "Walk from Tompkins Square Park to Union Square and inspect available street history.",
+    "Ride from McCarren Park to Cooper Park in the selected world snapshot."
+  ],
+  "camera": { "initialMode": "top", "runMode": "top" },
   "plugins": [{ "id": "historical-streets", "configId": "historical-streets-default-v1" }],
   "routeObjective": { "travelSeconds": 1, "historicalObservation": 0 }
 }

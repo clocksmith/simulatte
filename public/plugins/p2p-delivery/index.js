@@ -38,6 +38,8 @@
         if (mission) sdk.events.propose({ pluginId: 'p2p-delivery', kind: 'p2p-delivery.cleared' });
         return null;
       }
+      const compilation = engine.compileCooperativeRequest(sourceText, scenario, sdk.worldQuery.snapshot());
+      if (!compilation.obligations.itemId) return null;
       if (!mission) return { recognized: true, executableSourceText: scenario.carrierMissionText, obligations: [], unresolved: [] };
       session = await engine.createCooperativeSession({ world: sdk.worldQuery.snapshot(), routingPolicy: sdk.routing.policy(), scenario, sourceText });
       await session.reserve();

@@ -7,6 +7,19 @@
   "properties": {
     "schema": { "const": "simulatte.applicationProfile.v1" },
     "id": { "type": "string" },
+    "defaultMissionText": { "type": "string", "minLength": 1 },
+    "missionExamples": { "type": "array", "minItems": 2, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+    "camera": {
+      "type": "object",
+      "required": ["initialMode", "runMode"],
+      "additionalProperties": false,
+      "properties": {
+        "initialMode": { "enum": ["follow", "bird", "top"] },
+        "runMode": { "enum": ["follow", "bird", "top"] },
+        "pluginId": { "type": "string", "minLength": 1 },
+        "targetId": { "type": "string", "minLength": 1 }
+      }
+    },
     "plugins": {
       "type": "array",
       "items": {

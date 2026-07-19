@@ -15,7 +15,12 @@ World plugin.
 
 Simulatte World is a governed browser simulation host. It loads an immutable
 world, executes shared simulation mechanics, and composes independently
-versioned applications through a restrictive plugin SDK.
+versioned experiences through a restrictive plugin SDK.
+
+There is no application-versus-plugin product taxonomy. Every selectable
+experience sits on the same core and is composed from one or more plugins. The
+wire contract retains the historical name `applicationProfile`, but a profile
+is only an experience configuration. The UI presents one flat experience list.
 
 The boundary is complete when:
 
@@ -398,17 +403,21 @@ Plugins describe world presentation without receiving renderer authority:
 
 ```js
 {
-  schema: "simulatte.pluginPresentation.v1",
+  schema: "simulatte.pluginPresentation.v2",
   markers: [{ id, label, nodeId, tone, heightM, radiusM, intensity }],
   paths: [{ id, label, segmentIds, tone, widthM, intensity }],
   actors: [{ id, label, kind, segmentIds, tone, speedMps, phaseOffsetM, isSelected }],
+  areas: [{ id, label, points, tone, heightM, intensity }],
+  sun: { id, label, azimuthDegrees, elevationDegrees, anchorSegmentIds, distanceM, radiusM, intensity },
   cameraTargets: [{ id, label, nodeIds, segmentIds, distanceM }]
 }
 ```
 
 The plugin host validates bounds and allowed values. The generic presentation
 compiler resolves governed node and segment identities. Core-owned WebGPU
-geometry draws beacons, route ribbons, and actors; the core camera controller
+geometry draws beacons, route ribbons, actors, bounded areas, and a modeled
+sun. Solar direction may drive the core lighting vector, but the plugin still
+owns the source astronomy and shadow projection. The core camera controller
 owns transitions and focus. Plugins never receive the canvas, GPU device,
 camera state, animation frame, or DOM. Missing world identities fail at the
 presentation boundary instead of producing misleading graphics.
@@ -420,10 +429,10 @@ sandbox.
 
 ## Lifecycle and deterministic composition
 
-The host executes this lifecycle for every application profile:
+The host executes this lifecycle for every experience profile:
 
 1. Load and validate the core runtime lock.
-2. Load the application profile.
+2. Load the experience profile.
 3. Resolve enabled plugin manifests.
 4. Verify plugin code, configuration, schemas, and data identities.
 5. Resolve required and optional capability dependencies.
@@ -448,10 +457,11 @@ All contribution merge rules are explicit:
 - missing optional capabilities produce an explicit disabled receipt;
 - missing required capabilities block profile readiness.
 
-## Application profiles
+## Experience profiles
 
-An application profile selects plugins and configuration without changing
-plugin packages:
+An experience profile selects plugins, prompts, camera behavior, and
+configuration without changing plugin packages. It is not a second product
+kind beside plugins:
 
 ```json
 {
@@ -462,6 +472,13 @@ plugin packages:
     { "id": "p2p-delivery", "configId": "p2p-delivery-default-v1" },
     { "id": "sun-walker", "configId": "sun-walker-default-v1" }
   ],
+  "defaultMissionText": "I need an Ethernet cable. Match an exchange hub and show journeys already moving nearby.",
+  "camera": {
+    "initialMode": "top",
+    "runMode": "top",
+    "pluginId": "cable-trader",
+    "targetId": "cable-network"
+  },
   "routeObjective": {
     "travelSeconds": 1,
     "sunExposureSeconds": 0.4,
@@ -470,8 +487,9 @@ plugin packages:
 }
 ```
 
-Profiles own enablement and cross-dimension policy. Plugins must not silently
-enable themselves or choose global weights.
+Profiles own enablement and cross-dimension policy. Each first-party profile
+also owns distinct mission examples and camera defaults. Plugins must not
+silently enable themselves or choose global weights.
 
 ## First-party plugin definitions
 
@@ -641,6 +659,9 @@ document.
 - [x] Make Cable Trader a four-hub, ten-family exchange network with four moving candidate journeys.
 - [x] Give P2P Delivery, Sun Walker, Accessibility, Amenity, Safety, and Counterfactual distinct evidence-backed map treatments.
 - [x] Give Historical Streets and Gig Wage Truth purpose-specific non-spatial UI without inventing spatial evidence.
+- [x] Remove the application/plugin selector split and expose one experience list.
+- [x] Move initial and running camera defaults into validated experience configuration.
+- [x] Render Sun Walker's projected building shadows, solar marker, and solar lighting through presentation v2.
 - [x] Pass local default and Cable Trader browser journeys with zero runtime errors and failed responses.
 
 Exit condition: every visual comes from validated plugin data, while the host

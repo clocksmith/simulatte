@@ -10,7 +10,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginCableTrader",
-    "integrity": "sha384-47c427ccb230661865897d42d9ce5b0e77e0570ebcc6339443bbf42a54439a79024d8b84f192ff496df4ce70d1e4bca0",
+    "integrity": "sha384-27e63162a3b61d11747e8aacaf1530ae883d2324cf16e20faf0bd7b538f7e5267b2e5667731cd757b03e5f397bdb6f42",
     "path": "./index.js"
   },
   "extensionPoints": [

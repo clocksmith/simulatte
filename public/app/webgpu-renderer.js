@@ -212,6 +212,9 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       Object.entries(state.pluginScene.counts).forEach(([key, value]) => {
         canvas.dataset[`plugin${key.charAt(0).toUpperCase()}${key.slice(1)}Count`] = String(value);
       });
+      canvas.dataset.sunAzimuthDegrees = state.pluginScene.sun ? String(state.pluginScene.sun.azimuthDegrees) : '';
+      canvas.dataset.sunElevationDegrees = state.pluginScene.sun ? String(state.pluginScene.sun.elevationDegrees) : '';
+      canvas.dataset.solarLighting = state.pluginScene.sun ? 'plugin' : 'default';
       if (state.latestSnapshot) render(state.latestSnapshot, state.latestReceipt);
       return structuredClone(state.pluginScene.counts);
     }
@@ -223,7 +226,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       const camera = cameraForPose(pose, canvas);
       recordCameraDataset(canvas, pose);
       const seconds = (timestamp - state.startedAt) / 1000;
-      writeUniforms(device, uniformBuffer, camera, canvas, seconds);
+      writeUniforms(device, uniformBuffer, camera, canvas, seconds, state.pluginScene.sun);
       const encoder = device.createCommandEncoder({ label: 'autonomy-map-frame' });
       encodeScene(encoder, {
         label: 'autonomy-map-pass',
@@ -238,7 +241,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
         minimapCanvas.hidden = false;
         resizeMinimapCanvas(minimapCanvas, device, format, state);
         const minimapCamera = cameraForMinimap(state.latestSnapshot, minimapCanvas);
-        writeUniforms(device, minimapUniformBuffer, minimapCamera, minimapCanvas, seconds);
+        writeUniforms(device, minimapUniformBuffer, minimapCamera, minimapCanvas, seconds, state.pluginScene.sun);
         encodeScene(encoder, {
           label: 'autonomy-minimap-pass',
           context: minimapContext,
@@ -470,11 +473,12 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
     canvas.dataset.cameraFollowDistance = pose.followDistance.toFixed(3);
   }
 
-  function writeUniforms(device, buffer, camera, canvas, seconds) {
+  function writeUniforms(device, buffer, camera, canvas, seconds, sun = null) {
     const values = new Float32Array(32);
+    const directionToSun = sun?.directionToSun || [0.38, 0.88, 0.26];
     values.set(camera.viewProjection, 0);
     values.set([...camera.eye, 1], 16);
-    values.set([-0.38, -0.88, -0.26, 0], 20);
+    values.set(directionToSun.map((value) => -value).concat(0), 20);
     values.set([0.008, 0.025, 0.05, 0.00013], 24);
     values.set([seconds, canvas.width, canvas.height, 0], 28);
     device.queue.writeBuffer(buffer, 0, values);

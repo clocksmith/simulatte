@@ -19,11 +19,13 @@
     root.SimulatteGovernedArtifactStore,
     root.SimulatteAutonomyRoutePlanner,
     root.SimulatteCivilTime,
-    root.SimulatteUniverseParser
+    root.SimulatteUniverseParser,
+    root.SimulatteApplicationProfileSelect,
+    root.SimulatteExperienceCamera
   );
   root.SimulatteAutonomyApp = api;
   if (typeof module === 'object' && module.exports) module.exports = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyApp(dataLoader, missionApi, controllerApi, canvasApi, traceApi, runtimeLog, neuralPlaceApi, ledgerApi, receiptsApi, worldApi, neuralConsentApi, modelSelectionApi, pluginRuntimeApi, pluginRegistry, pluginUiApi, transportApi, artifactStoreApi, routePlannerApi, civilTimeApi, universeParserApi) {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyApp(dataLoader, missionApi, controllerApi, canvasApi, traceApi, runtimeLog, neuralPlaceApi, ledgerApi, receiptsApi, worldApi, neuralConsentApi, modelSelectionApi, pluginRuntimeApi, pluginRegistry, pluginUiApi, transportApi, artifactStoreApi, routePlannerApi, civilTimeApi, universeParserApi, applicationProfileSelectApi, experienceCameraApi) {
   const log = runtimeLog || {
     info: () => null,
     warn: () => null,
@@ -43,9 +45,8 @@
     'simulatte-world-v1': 'Simulatte World',
     'sun-walker-v1': 'Sun Walker',
   });
-  const APPLICATION_PROFILE_IDS = new Set(['simulatte-world-v1', 'cooperative-cable-city-v1']);
-
   async function start() {
+    if (!experienceCameraApi?.applyInitialCamera || !experienceCameraApi?.runCameraMode) throw new Error('Experience camera dependency is unavailable');
     const elements = collectElements();
     const interfaceUi = wireInterfaceControls(elements);
     setJourneyPhase('loading');
@@ -115,7 +116,8 @@
       },
     });
     pluginUi.render(extensions.views({ mission: null, compositionSize: extensions.activePluginIds.length }));
-    elements.missionInput.value = data.manifest.defaultMissionText;
+    const missionExamples = data.applicationProfile.missionExamples || data.manifest.missionExamples;
+    elements.missionInput.value = data.applicationProfile.defaultMissionText || data.manifest.defaultMissionText;
     resizeMissionInput(elements.missionInput);
     const traceView = traceApi.createTraceView(elements, data.policy, data.rerankerEvidence);
     let controller = null;
@@ -127,6 +129,7 @@
     let retrievalLaneLogged = false;
     let terminalJourneyLogged = false;
     let hasJourneyStarted = false;
+    let hasAppliedInitialCamera = false;
     let placeResolver = null;
     let buildRevision = 0;
     const journeyLedger = ledgerApi.createJourneyLedger();
@@ -154,6 +157,7 @@
       consentGate: neuralGate,
     });
     let disposal = null;
+    let profileSelectUi = null;
 
     function renderPluginExperience(context) {
       const pluginContext = { ...context, compositionSize: extensions.activePluginIds.length };
@@ -162,6 +166,12 @@
       const selected = elements.cameraFocus.value || 'route';
       renderer.setPluginPresentations(extensions.presentations(pluginContext));
       populateCameraFocus(elements.cameraFocus, renderer.cameraTargets(), selected);
+      if (!hasAppliedInitialCamera) hasAppliedInitialCamera = experienceCameraApi.applyInitialCamera({
+        configuration: data.applicationProfile.camera,
+        renderer,
+        focusSelect: elements.cameraFocus,
+        onModeSelected: (mode) => selectCameraMode(elements, mode),
+      });
     }
 
     async function disposeApplication() {
@@ -169,16 +179,28 @@
       disposal = (async () => {
         stopLoop();
         elements.applicationProfile.disabled = true;
+        profileSelectUi?.sync();
         if (placeResolver) {
           await placeResolver.unload();
           placeResolver = null;
         }
         await extensions.dispose();
+        profileSelectUi?.dispose();
       })();
       return disposal;
     }
 
     populateApplicationProfiles(elements.applicationProfile, data.manifest, data.applicationProfile.id);
+    if (!applicationProfileSelectApi?.createApplicationProfileSelect) {
+      throw new Error('Application profile select dependency is unavailable');
+    }
+    profileSelectUi = applicationProfileSelectApi.createApplicationProfileSelect({
+      select: elements.applicationProfile,
+      root: elements.applicationProfileControl,
+      trigger: elements.applicationProfileTrigger,
+      label: elements.applicationProfileLabel,
+      listbox: elements.applicationProfileOptions,
+    });
     elements.applicationProfile.addEventListener('change', async () => {
       const profileId = elements.applicationProfile.value;
       if (!profileId || profileId === data.applicationProfile.id) return;
@@ -365,8 +387,9 @@
         updateButtons(elements, false, true, controller.snapshot().state.status, true);
         return;
       }
-      renderer.setCameraMode('follow');
-      selectCameraMode(elements, 'follow');
+      const runCameraMode = experienceCameraApi.runCameraMode(data.applicationProfile.camera);
+      renderer.setCameraMode(runCameraMode);
+      selectCameraMode(elements, runCameraMode);
       isRunning = true;
       hasJourneyStarted = true;
       updateButtons(elements, true, true, 'active', true);
@@ -376,7 +399,7 @@
         missionId: activeMission.id,
         embodimentId: activeMission.embodimentId,
         taskType: snapshot.state.taskType,
-        cameraMode: 'follow',
+        cameraMode: runCameraMode,
       });
       frameRequest = requestAnimationFrame(tickFrame);
     }
@@ -410,10 +433,10 @@
     });
     elements.shuffleButton.addEventListener('click', () => {
       if (isRunning) return;
-      elements.missionInput.value = nextMissionExample(data.manifest.missionExamples, elements.missionInput.value);
+      elements.missionInput.value = nextMissionExample(missionExamples, elements.missionInput.value);
       log.info('mission.example.selected', {
         sourceText: elements.missionInput.value,
-        exampleCount: data.manifest.missionExamples.length,
+        exampleCount: missionExamples.length,
       });
       elements.missionInput.dispatchEvent(new Event('input', { bubbles: true }));
       resizeMissionInput(elements.missionInput);
@@ -547,7 +570,7 @@
     const ids = [
       'mission-input', 'mission-error', 'place-resolution-lane', 'place-lane-note', 'model-selection-controls', 'shuffle-button', 'start-button', 'pause-button', 'resume-button', 'step-button', 'reset-button', 'replay-button', 'new-mission-button', 'what-if-button', 'export-button',
       'dock-more-button', 'dock-more-menu',
-      'runtime-status', 'runtime-toggle', 'runtime-details', 'runtime-details-close', 'application-profile', 'render-identity', 'autonomy-canvas', 'follow-minimap', 'decision-title', 'decision-meta',
+      'runtime-status', 'runtime-toggle', 'runtime-details', 'runtime-details-close', 'application-profile', 'application-profile-control', 'application-profile-trigger', 'application-profile-label', 'application-profile-options', 'render-identity', 'autonomy-canvas', 'follow-minimap', 'decision-title', 'decision-meta',
       'bet-list', 'gate-list', 'trace-list', 'route-formula', 'route-stats', 'route-components',
       'retrieval-query', 'retrieval-candidates', 'rerank-candidates', 'retrieval-stats', 'settlement-math',
       'reranker-proof', 'place-resolution-proof',
@@ -567,17 +590,13 @@
 
   function populateApplicationProfiles(select, manifest, selectedId) {
     const references = [manifest.applicationProfile, ...(manifest.applicationProfiles || [])];
-    const applications = document.createElement('optgroup');
-    const plugins = document.createElement('optgroup');
-    applications.label = 'Applications';
-    plugins.label = 'Plugins';
-    references.forEach((reference) => {
+    const options = references.map((reference) => {
       const option = document.createElement('option');
       option.value = reference.id;
       option.textContent = applicationProfileLabel(reference.id);
-      (APPLICATION_PROFILE_IDS.has(reference.id) ? applications : plugins).append(option);
+      return option;
     });
-    select.replaceChildren(applications, plugins);
+    select.replaceChildren(...options);
     select.value = selectedId;
     select.disabled = false;
   }

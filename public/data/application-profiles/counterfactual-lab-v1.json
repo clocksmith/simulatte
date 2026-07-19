@@ -1,6 +1,15 @@
 {
   "schema": "simulatte.applicationProfile.v1",
   "id": "counterfactual-lab-v1",
+  "defaultMissionText": "Bike from Union Square to McCarren Park. Compare what changes if Bedford Avenue closes.",
+  "missionExamples": [
+    "Bike from Union Square to McCarren Park. Compare what changes if Bedford Avenue closes.",
+    "Walk from Washington Square Park to Union Square and compare a street closure.",
+    "Bike from Cooper Park to McCarren Park and compare historical crash weighting.",
+    "Ride from Tompkins Square Park to McCarren Park and compare a changed street.",
+    "Walk from Union Square to Washington Square Park and compare two world conditions."
+  ],
+  "camera": { "initialMode": "bird", "runMode": "bird" },
   "plugins": [{ "id": "counterfactual-lab", "configId": "counterfactual-lab-default-v1" }],
   "routeObjective": { "travelSeconds": 1 }
 }

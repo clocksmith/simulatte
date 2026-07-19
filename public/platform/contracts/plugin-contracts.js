@@ -10,7 +10,7 @@
   ]);
   const EXTENSION_POINTS = Object.freeze(['request', 'route', 'event', 'settlement', 'ui', 'presentation']);
   const UI_SLOTS = Object.freeze(['inspector', 'map', 'hud']);
-  const PRESENTATION_TONES = Object.freeze(['cyan', 'green', 'amber', 'red', 'magenta', 'violet', 'blue', 'muted']);
+  const PRESENTATION_TONES = Object.freeze(['cyan', 'green', 'amber', 'red', 'magenta', 'violet', 'blue', 'shade', 'muted']);
   const ACTOR_KINDS = Object.freeze(['pedestrian', 'bicycle', 'scooter', 'car']);
   const ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
   const INTEGRITY_PATTERN = /^sha384-[a-f0-9]{96}$/;
@@ -52,7 +52,7 @@
 
   function validateProfile(value) {
     assertObject(value, 'application_profile_invalid', 'Application profile expected an object');
-    assertExactKeys(value, ['schema', 'id', 'plugins', 'routeObjective'], `Application profile ${value.id || 'missing'}`);
+    assertAllowedKeys(value, ['schema', 'id', 'plugins', 'routeObjective', 'defaultMissionText', 'missionExamples', 'camera'], ['schema', 'id', 'plugins', 'routeObjective'], `Application profile ${value.id || 'missing'}`);
     equal(value.schema, 'simulatte.applicationProfile.v1', 'application_profile_schema_invalid', 'Application profile schema');
     text(value.id, 'application_profile_id_invalid', 'Application profile ID');
     if (!Array.isArray(value.plugins)) fail('application_profile_plugins_invalid', `Profile ${value.id} plugins expected an array`, null);
@@ -69,6 +69,22 @@
     Object.entries(value.routeObjective).forEach(([key, weight]) => {
       if (!Number.isFinite(weight) || weight < 0) fail('application_profile_weight_invalid', `Profile ${value.id} route weight ${key} expected a non-negative number`, { key, weight });
     });
+    if (value.defaultMissionText !== undefined) text(value.defaultMissionText, 'application_profile_mission_invalid', `Profile ${value.id} default mission`);
+    if (value.missionExamples !== undefined) {
+      if (!Array.isArray(value.missionExamples) || value.missionExamples.length < 2 || new Set(value.missionExamples).size !== value.missionExamples.length) fail('application_profile_examples_invalid', `Profile ${value.id} mission examples expected at least two unique rows`, null);
+      value.missionExamples.forEach((row) => text(row, 'application_profile_example_invalid', `Profile ${value.id} mission example`));
+      if (value.defaultMissionText !== undefined && !value.missionExamples.includes(value.defaultMissionText)) fail('application_profile_default_example_missing', `Profile ${value.id} examples must include its default mission`, null);
+    }
+    if (value.camera !== undefined) {
+      assertAllowedKeys(value.camera, ['initialMode', 'runMode', 'pluginId', 'targetId'], ['initialMode', 'runMode'], `Profile ${value.id} camera`);
+      if (!['follow', 'bird', 'top'].includes(value.camera.initialMode) || !['follow', 'bird', 'top'].includes(value.camera.runMode)) fail('application_profile_camera_mode_invalid', `Profile ${value.id} camera modes are invalid`, value.camera);
+      if ((value.camera.pluginId === undefined) !== (value.camera.targetId === undefined)) fail('application_profile_camera_target_invalid', `Profile ${value.id} camera expected pluginId and targetId together`, value.camera);
+      if (value.camera.pluginId !== undefined) {
+        text(value.camera.pluginId, 'application_profile_camera_target_invalid', `Profile ${value.id} camera plugin`);
+        text(value.camera.targetId, 'application_profile_camera_target_invalid', `Profile ${value.id} camera target`);
+        if (!value.plugins.some((row) => row.id === value.camera.pluginId)) fail('application_profile_camera_plugin_inactive', `Profile ${value.id} camera targets inactive plugin ${value.camera.pluginId}`, value.camera);
+      }
+    }
     return value;
   }
 
@@ -153,8 +169,35 @@
 
   function validatePresentationContribution(pluginId, value) {
     assertObject(value, 'plugin_presentation_invalid', `Plugin ${pluginId} presentation expected an object`);
-    assertExactKeys(value, ['schema', 'markers', 'paths', 'actors', 'cameraTargets'], `Plugin ${pluginId} presentation`);
-    equal(value.schema, 'simulatte.pluginPresentation.v1', 'plugin_presentation_schema_invalid', `Plugin ${pluginId} presentation schema`);
+    if (value.schema === 'simulatte.pluginPresentation.v1') {
+      assertExactKeys(value, ['schema', 'markers', 'paths', 'actors', 'cameraTargets'], `Plugin ${pluginId} presentation`);
+    } else if (value.schema === 'simulatte.pluginPresentation.v2') {
+      assertExactKeys(value, ['schema', 'markers', 'paths', 'actors', 'areas', 'sun', 'cameraTargets'], `Plugin ${pluginId} presentation`);
+      boundedRows(value.areas, 384, `Plugin ${pluginId} areas`).forEach((row) => {
+        assertExactKeys(row, ['id', 'label', 'points', 'tone', 'heightM', 'intensity'], `Plugin ${pluginId} area`);
+        validateIdentityAndTone(pluginId, row, 'area');
+        if (!Array.isArray(row.points) || row.points.length < 3 || row.points.length > 128) fail('plugin_area_points_invalid', `Plugin ${pluginId} area ${row.id} expected 3..128 points`, { count: row.points?.length ?? null });
+        row.points.forEach((point) => {
+          assertExactKeys(point, ['x', 'y'], `Plugin ${pluginId} area ${row.id} point`);
+          finiteRange(point.x, -10000000, 10000000, 'plugin_area_point_invalid', `Plugin ${pluginId} area ${row.id} point x`);
+          finiteRange(point.y, -10000000, 10000000, 'plugin_area_point_invalid', `Plugin ${pluginId} area ${row.id} point y`);
+        });
+        finiteRange(row.heightM, 0, 20, 'plugin_area_height_invalid', `Plugin ${pluginId} area ${row.id} height`);
+        finiteRange(row.intensity, 0, 2, 'plugin_area_intensity_invalid', `Plugin ${pluginId} area ${row.id} intensity`);
+      });
+      assertObject(value.sun, 'plugin_sun_invalid', `Plugin ${pluginId} sun expected an object`);
+      assertExactKeys(value.sun, ['id', 'label', 'azimuthDegrees', 'elevationDegrees', 'anchorSegmentIds', 'distanceM', 'radiusM', 'intensity'], `Plugin ${pluginId} sun`);
+      text(value.sun.id, 'plugin_sun_id_invalid', `Plugin ${pluginId} sun ID`);
+      text(value.sun.label, 'plugin_sun_label_invalid', `Plugin ${pluginId} sun label`);
+      finiteRange(value.sun.azimuthDegrees, 0, 360, 'plugin_sun_azimuth_invalid', `Plugin ${pluginId} sun azimuth`);
+      finiteRange(value.sun.elevationDegrees, -5, 90, 'plugin_sun_elevation_invalid', `Plugin ${pluginId} sun elevation`);
+      boundedIds(value.sun.anchorSegmentIds, 4096, `Plugin ${pluginId} sun anchor segments`);
+      finiteRange(value.sun.distanceM, 50, 2000, 'plugin_sun_distance_invalid', `Plugin ${pluginId} sun distance`);
+      finiteRange(value.sun.radiusM, 1, 100, 'plugin_sun_radius_invalid', `Plugin ${pluginId} sun radius`);
+      finiteRange(value.sun.intensity, 0, 2, 'plugin_sun_intensity_invalid', `Plugin ${pluginId} sun intensity`);
+    } else {
+      fail('plugin_presentation_schema_invalid', `Plugin ${pluginId} presentation schema is unsupported`, { schema: value.schema || null });
+    }
     boundedRows(value.markers, 128, `Plugin ${pluginId} markers`).forEach((row) => {
       assertExactKeys(row, ['id', 'label', 'nodeId', 'tone', 'heightM', 'radiusM', 'intensity'], `Plugin ${pluginId} marker`);
       validateIdentityAndTone(pluginId, row, 'marker');

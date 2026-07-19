@@ -1,6 +1,15 @@
 {
   "schema": "simulatte.applicationProfile.v1",
   "id": "sun-walker-v1",
+  "defaultMissionText": "Walk from Washington Square Park to Union Square using the most building shade.",
+  "missionExamples": [
+    "Walk from Washington Square Park to Union Square using the most building shade.",
+    "Find a shaded walk from McCarren Park to Cooper Park.",
+    "Avoid direct sun between Tompkins Square Park and Union Square.",
+    "Take the shadier route from Washington Square Park to Tompkins Square Park.",
+    "On this hot day, walk from Cooper Park to McCarren Park with less direct sun."
+  ],
+  "camera": { "initialMode": "bird", "runMode": "bird", "pluginId": "sun-walker", "targetId": "shade-route" },
   "plugins": [{ "id": "sun-walker", "configId": "sun-walker-default-v1" }],
   "routeObjective": { "travelSeconds": 1, "sunExposureSeconds": 0.4 }
 }

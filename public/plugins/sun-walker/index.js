@@ -8,6 +8,9 @@
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createSunWalkerPlugin(exposure) {
   async function activate({ sdk, config }) {
     sdk.state.register(reduce, { selection: null });
+    const world = sdk.worldQuery.snapshot();
+    const worldModel = sdk.worldQuery.model();
+    let presentationCache = null;
 
     function contributeRequest({ sourceText, mission }) {
       if (!mission) return null;
@@ -15,8 +18,6 @@
         sdk.events.propose({ pluginId: 'sun-walker', kind: 'sun-walker.cleared' });
         return null;
       }
-      const world = sdk.worldQuery.snapshot();
-      const worldModel = sdk.worldQuery.model();
       const selection = exposure.selectShadeAwareRoute({
         world,
         worldModel,
@@ -33,6 +34,7 @@
         maximumAddedRatio: config.maximumAddedRatio,
         sampleSpacingM: config.sampleSpacingM,
       });
+      presentationCache = buildPresentation(selection, world, worldModel);
       sdk.events.propose({ pluginId: 'sun-walker', kind: 'sun-walker.route-selected', selection });
       sdk.receipts.append({
         schema: 'simulatte.plugin.sunWalkerSelectionReceipt.v1',
@@ -72,22 +74,21 @@
       const rows = [
           { label: 'Selected route', value: `${Math.round(selection.comparison.selectedModeledBuildingShadePercent)}% modeled shade` },
           { label: 'Fastest route', value: `${Math.round(selection.comparison.fastestModeledBuildingShadePercent)}% modeled shade` },
+          { label: 'Sun', value: `${Math.round(selection.field.azimuthDegrees)}° azimuth · ${Math.round(selection.field.elevationDegrees)}° elevation` },
+          { label: 'Shadows', value: `${presentationCache?.areas.length || 0} building projections` },
           { label: 'Added travel', value: `${Math.round(selection.comparison.addedTravelSeconds)} s` },
       ];
       return [
         { slot: 'inspector', title: 'Sun exposure', rows, actions: [] },
-        { slot: 'hud', title: 'Shade route', rows: rows.slice(0, 2), actions: [{ id: 'focus-shade', label: 'View shade route', command: { kind: 'camera.focus', targetId: 'shade-route' } }] },
+        { slot: 'hud', title: 'Sun + shade', rows: [rows[0], rows[2], rows[3]], actions: [{ id: 'focus-shade', label: 'View sun and shade', command: { kind: 'camera.focus', targetId: 'shade-route' } }] },
       ];
     }
 
     function present() {
       const selection = sdk.state.read().selection;
       if (!selection) return null;
-      const selectedIds = selection.selected.route.segmentIds;
-      const fastestIds = selection.fastest.route.segmentIds;
-      const paths = [{ id: 'shade-route', label: 'Shade-selected route', segmentIds: selectedIds, tone: 'green', widthM: 8, intensity: 1.35 }];
-      if (fastestIds.join('|') !== selectedIds.join('|')) paths.unshift({ id: 'fastest-route', label: 'Fastest route', segmentIds: fastestIds, tone: 'amber', widthM: 4, intensity: 0.8 });
-      return { schema: 'simulatte.pluginPresentation.v1', markers: [], paths, actors: [], cameraTargets: [{ id: 'shade-route', label: 'Shade-selected route', nodeIds: [], segmentIds: selectedIds, distanceM: 1100 }] };
+      if (!presentationCache || presentationCache.fieldId !== selection.field.id) presentationCache = buildPresentation(selection, world, worldModel);
+      return presentationCache.value;
     }
 
     return Object.freeze({ id: 'sun-walker', contributeRequest, settle, view, present, dispose() {} });
@@ -97,6 +98,89 @@
     if (event.kind === 'sun-walker.cleared') return { ...state, selection: null };
     if (event.kind !== 'sun-walker.route-selected') return state;
     return { ...state, selection: event.selection };
+  }
+
+  function buildPresentation(selection, world, worldModel) {
+    const selectedIds = selection.selected.route.segmentIds;
+    const fastestIds = selection.fastest.route.segmentIds;
+    const paths = [{ id: 'shade-route', label: 'Shade-selected route', segmentIds: selectedIds, tone: 'green', widthM: 8, intensity: 1.35 }];
+    if (fastestIds.join('|') !== selectedIds.join('|')) paths.unshift({ id: 'fastest-route', label: 'Fastest route', segmentIds: fastestIds, tone: 'amber', widthM: 4, intensity: 0.8 });
+    const areas = projectedBuildingShadows(world, worldModel, selectedIds, selection.field);
+    return {
+      fieldId: selection.field.id,
+      areas,
+      value: {
+        schema: 'simulatte.pluginPresentation.v2',
+        markers: [],
+        paths,
+        actors: [],
+        areas,
+        sun: {
+          id: 'modeled-sun',
+          label: `Modeled sun at ${Math.round(selection.field.elevationDegrees)}° elevation`,
+          azimuthDegrees: selection.field.azimuthDegrees,
+          elevationDegrees: selection.field.elevationDegrees,
+          anchorSegmentIds: selectedIds,
+          distanceM: 260,
+          radiusM: 18,
+          intensity: 2,
+        },
+        cameraTargets: [{ id: 'shade-route', label: 'Sun and shade route', nodeIds: [], segmentIds: selectedIds, distanceM: 740 }],
+      },
+    };
+  }
+
+  function projectedBuildingShadows(world, worldModel, segmentIds, field) {
+    if (field.elevationDegrees <= 2) return [];
+    const routePoints = segmentIds.flatMap((id) => worldModel.segment(id).geometry);
+    const bounds = pointBounds(routePoints, 180);
+    const center = { x: (bounds.minimumX + bounds.maximumX) / 2, y: (bounds.minimumY + bounds.maximumY) / 2 };
+    const azimuth = field.azimuthDegrees * Math.PI / 180;
+    const elevation = field.elevationDegrees * Math.PI / 180;
+    return world.renderGeometry.buildings
+      .filter((building) => Number.isFinite(building.heightM) && building.heightM > 0 && intersectsBounds(building.footprint, bounds))
+      .sort((left, right) => distanceSquared(left.centroid, center) - distanceSquared(right.centroid, center) || left.id.localeCompare(right.id))
+      .slice(0, 320)
+      .map((building) => {
+        const length = Math.min(400, building.heightM / Math.tan(elevation));
+        const delta = { x: -Math.sin(azimuth) * length, y: -Math.cos(azimuth) * length };
+        const footprint = openRing(building.footprint);
+        const points = convexHull([...footprint, ...footprint.map((point) => ({ x: point.x + delta.x, y: point.y + delta.y }))]);
+        return { id: `shadow-${building.id}`, label: `${building.id} modeled shadow`, points, tone: 'shade', heightM: 0.72, intensity: 0.18 };
+      });
+  }
+
+  function pointBounds(points, padding = 0) {
+    return {
+      minimumX: Math.min(...points.map((row) => row.x)) - padding,
+      maximumX: Math.max(...points.map((row) => row.x)) + padding,
+      minimumY: Math.min(...points.map((row) => row.y)) - padding,
+      maximumY: Math.max(...points.map((row) => row.y)) + padding,
+    };
+  }
+
+  function intersectsBounds(points, bounds) {
+    const row = pointBounds(points);
+    return row.maximumX >= bounds.minimumX && row.minimumX <= bounds.maximumX && row.maximumY >= bounds.minimumY && row.minimumY <= bounds.maximumY;
+  }
+
+  function convexHull(points) {
+    const sorted = [...points].sort((left, right) => left.x - right.x || left.y - right.y);
+    const turn = (a, b, c) => (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
+    const half = (rows) => rows.reduce((hull, point) => {
+      while (hull.length >= 2 && turn(hull.at(-2), hull.at(-1), point) <= 0) hull.pop();
+      hull.push(point);
+      return hull;
+    }, []);
+    return [...half(sorted).slice(0, -1), ...half(sorted.reverse()).slice(0, -1)];
+  }
+
+  function openRing(points) {
+    return points.length > 1 && points[0].x === points.at(-1).x && points[0].y === points.at(-1).y ? points.slice(0, -1) : [...points];
+  }
+
+  function distanceSquared(left, right) {
+    return (left.x - right.x) ** 2 + (left.y - right.y) ** 2;
   }
 
   return Object.freeze({ activate });

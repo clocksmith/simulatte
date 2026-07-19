@@ -1,6 +1,15 @@
 {
   "schema": "simulatte.applicationProfile.v1",
   "id": "accessible-journey-v1",
+  "defaultMissionText": "Walk from Washington Square Park to Union Square on a step-free wheelchair-accessible route.",
+  "missionExamples": [
+    "Walk from Washington Square Park to Union Square on a step-free wheelchair-accessible route.",
+    "Find an accessible route from Tompkins Square Park to Union Square.",
+    "Use a mobility-device route from Cooper Park to McCarren Park.",
+    "Walk from Union Square to Washington Square Park on a step-free route.",
+    "Find a wheelchair-accessible route from McCarren Park to Cooper Park."
+  ],
+  "camera": { "initialMode": "bird", "runMode": "bird", "pluginId": "accessible-journey", "targetId": "accessible-route" },
   "plugins": [{ "id": "accessible-journey", "configId": "accessible-journey-default-v1" }],
   "routeObjective": { "travelSeconds": 1 }
 }

@@ -173,7 +173,7 @@
       "defaultConfig": "./default-config.json",
       "entry": {
         "globalFactory": "SimulattePluginCableTrader",
-        "integrity": "sha384-47c427ccb230661865897d42d9ce5b0e77e0570ebcc6339443bbf42a54439a79024d8b84f192ff496df4ce70d1e4bca0",
+        "integrity": "sha384-27e63162a3b61d11747e8aacaf1530ae883d2324cf16e20faf0bd7b538f7e5267b2e5667731cd757b03e5f397bdb6f42",
         "path": "./index.js"
       },
       "extensionPoints": [
@@ -577,7 +577,7 @@
       "defaultConfig": "./default-config.json",
       "entry": {
         "globalFactory": "SimulattePluginP2pDelivery",
-        "integrity": "sha384-207bbe87584b1ba2bf4345477953b57bbdb8270e774cedb17bac148ab256608bd6a0f6a5c0cd583dbad870e17c25c01a",
+        "integrity": "sha384-8b18c94671b0e85169c85cc0cd10c5638cba298e3efa53238a1a380ae0794af8b9ced5f9d6df7cd68ed00aaa61f2477f",
         "path": "./index.js"
       },
       "extensionPoints": [
@@ -724,7 +724,7 @@
       "defaultConfig": "./default-config.json",
       "entry": {
         "globalFactory": "SimulattePluginSunWalker",
-        "integrity": "sha384-b8ca33abc7bd2894e3e2b2b9b26f810181e9d9092f973a0935b70c68c71724d71fcb32a393ff0836fb3374698c5297d2",
+        "integrity": "sha384-fc286c09950129b66e55b61e957e72cae809dde1f534ff693894555ebd6f247a950e4e17fbc02bc7b49b018121a22ef4",
         "path": "./index.js"
       },
       "extensionPoints": [

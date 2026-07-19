@@ -6,6 +6,7 @@ const contracts = require('../public/platform/contracts/plugin-contracts.js');
 const catalogApi = require('../public/platform/data-catalog/immutable-data-catalog.js');
 const runtimeApi = require('../public/platform/plugin-host/plugin-runtime.js');
 const presentationApi = require('../public/app/plugin-presentation.js');
+const experienceCameraApi = require('../public/app/experience-camera.js');
 
 function manifest(overrides = {}) {
   return {
@@ -108,8 +109,52 @@ test('plugin presentation is validated and compiled into namespaced renderer dat
   assert.equal(compiled.markers[0].id, 'plugin:fixture-plugin:hub');
   assert.equal(compiled.actors[0].points.length, 2);
   assert.equal(compiled.cameraTargets[0].kind, 'plugin');
-  assert.deepEqual(compiled.counts, { plugins: 1, markers: 1, paths: 1, actors: 1, cameraTargets: 1 });
+  assert.deepEqual(compiled.counts, { plugins: 1, markers: 1, paths: 1, actors: 1, areas: 0, suns: 0, cameraTargets: 1 });
   assert.throws(() => contracts.validatePresentationContribution('fixture-plugin', { ...contribution, actors: [{ ...contribution.actors[0], kind: 'spaceship' }] }), /plugin_actor_kind_invalid/);
+
+  const solar = {
+    schema: 'simulatte.pluginPresentation.v2',
+    markers: [],
+    paths: [],
+    actors: [],
+    areas: [{ id: 'shadow', label: 'Building shadow', points: [{ x: 4, y: 8 }, { x: 14, y: 8 }, { x: 14, y: 18 }], tone: 'shade', heightM: 0.72, intensity: 0.08 }],
+    sun: { id: 'sun', label: 'Modeled sun', azimuthDegrees: 140, elevationDegrees: 62, anchorSegmentIds: ['segment-a'], distanceM: 420, radiusM: 24, intensity: 2 },
+    cameraTargets: [{ id: 'shade', label: 'Shade', nodeIds: [], segmentIds: ['segment-a'], distanceM: 880 }],
+  };
+  contracts.validatePresentationContribution('fixture-plugin', solar);
+  const solarCompiled = presentationApi.compile([{ pluginId: 'fixture-plugin', presentation: solar }], worldModel);
+  assert.equal(solarCompiled.areas.length, 1);
+  assert.equal(solarCompiled.sun.pluginId, 'fixture-plugin');
+  assert.equal(solarCompiled.sun.directionToSun.length, 3);
+  assert.deepEqual(solarCompiled.counts, { plugins: 1, markers: 0, paths: 0, actors: 0, areas: 1, suns: 1, cameraTargets: 1 });
+});
+
+test('experience camera configuration targets only an active plugin', () => {
+  const profile = {
+    schema: 'simulatte.applicationProfile.v1',
+    id: 'cable-experience-v1',
+    plugins: [{ id: 'cable-trader', configId: 'default' }],
+    routeObjective: { travelSeconds: 1 },
+    camera: { initialMode: 'top', runMode: 'top', pluginId: 'cable-trader', targetId: 'network' },
+  };
+  assert.equal(contracts.validateProfile(profile), profile);
+  assert.throws(() => contracts.validateProfile({ ...profile, camera: { ...profile.camera, pluginId: 'sun-walker' } }), /application_profile_camera_plugin_inactive/);
+  const calls = [];
+  const focusSelect = { value: 'route' };
+  const applied = experienceCameraApi.applyInitialCamera({
+    configuration: profile.camera,
+    renderer: {
+      cameraTargets: () => [{ id: 'plugin:cable-trader:network' }],
+      focusCameraTarget: (id) => calls.push(['focus', id]),
+      setCameraMode: (mode) => calls.push(['mode', mode]),
+    },
+    focusSelect,
+    onModeSelected: (mode) => calls.push(['selected', mode]),
+  });
+  assert.equal(applied, true);
+  assert.equal(focusSelect.value, 'plugin:cable-trader:network');
+  assert.deepEqual(calls, [['focus', 'plugin:cable-trader:network'], ['mode', 'top'], ['selected', 'top']]);
+  assert.equal(experienceCameraApi.runCameraMode(null), 'follow');
 });
 
 test('platform bootstrap has no named plugin import', () => {
@@ -121,6 +166,10 @@ test('Main exposes governed profile selection and disposes plugins on teardown',
   const main = fs.readFileSync(require.resolve('../public/app/main.js'), 'utf8');
   const html = fs.readFileSync(require.resolve('../public/index.html'), 'utf8');
   assert.match(html, /id="application-profile"/);
+  assert.match(html, /id="application-profile-trigger"[^>]*aria-haspopup="listbox"/);
+  assert.match(html, /id="application-profile-options"[^>]*role="listbox"/);
+  assert.doesNotMatch(main, /APPLICATION_PROFILE_IDS|\.label = 'Applications'|\.label = 'Plugins'/);
+  assert.match(html, /app\/application-profile-select\.js/);
   assert.match(main, /await extensions\.dispose\(\)/);
   assert.match(main, /addEventListener\('pagehide', \(\) => \{ void disposeApplication\(\); \}/);
   assert.match(main, /searchParams\.set\('profile', profileId\)/);
