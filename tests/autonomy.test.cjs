@@ -1400,33 +1400,31 @@ test('autonomy browser surface loads every declared module and stays independent
   }
 });
 
-test('loading mosaic visits every tile once in clockwise inward spiral order', () => {
+test('loading mosaic loops a seven-segment snake through the clockwise grid spiral', () => {
   assert.deepEqual(loadingMosaicApi.spiralCells(3), [
     [0, 0], [0, 1], [0, 2], [1, 2], [2, 2], [2, 1], [2, 0], [1, 0], [1, 1],
   ]);
-  const cells = loadingMosaicApi.spiralCells(9);
-  assert.equal(cells.length, 81);
-  assert.equal(new Set(cells.map((cell) => cell.join(':'))).size, 81);
-  const outerFrames = loadingMosaicApi.tileCycleKeyframes({
-    size: 3,
-    row: 0,
-    column: 0,
-    step: 0,
-    restingOpacity: 0.04,
-  });
-  assert.ok(outerFrames.some((frame) => frame.transform === 'translate(100%, 100%) scale(0.16)' && frame.opacity === 0));
-  assert.deepEqual([...outerFrames.map((frame) => frame.offset)].sort((left, right) => left - right), outerFrames.map((frame) => frame.offset));
-  const centerFrames = loadingMosaicApi.tileCycleKeyframes({
-    size: 3,
-    row: 1,
-    column: 1,
-    step: 8,
-    restingOpacity: 0.04,
-  });
-  assert.ok(centerFrames.some((frame) => frame.offset === loadingMosaicApi.TURN_START && frame.opacity === 1));
-  assert.deepEqual(loadingMosaicApi.rotationCycleKeyframes(90).map((frame) => frame.transform), [
-    'rotate(0deg)', 'rotate(0deg)', 'rotate(90deg)', 'rotate(90deg)',
+  const path = loadingMosaicApi.spiralCells(7);
+  assert.equal(path.length, 49);
+  assert.equal(new Set(path.map((cell) => cell.join(':'))).size, 49);
+  const headFrames = loadingMosaicApi.snakeSegmentKeyframes({ path, segmentIndex: 0, size: 7 });
+  const tailFrames = loadingMosaicApi.snakeSegmentKeyframes({ path, segmentIndex: 6, size: 7 });
+  assert.equal(headFrames[0].transform, loadingMosaicApi.cellTransform([0, 0]));
+  assert.equal(tailFrames[0].transform, loadingMosaicApi.cellTransform([0, 0]));
+  assert.equal(headFrames.find((frame) => frame.offset === loadingMosaicApi.TRAVEL_END).transform, loadingMosaicApi.cellTransform([3, 3]));
+  assert.equal(tailFrames.find((frame) => frame.offset === loadingMosaicApi.COLLAPSE_END).transform, loadingMosaicApi.cellTransform([3, 3]));
+  const tailTurnFrames = tailFrames.filter((frame) => frame.offset >= loadingMosaicApi.TURN_START && frame.offset <= loadingMosaicApi.TURN_END);
+  assert.deepEqual(tailTurnFrames.map((frame) => frame.transform), [
+    loadingMosaicApi.cellTransform([3, 3]),
+    loadingMosaicApi.cellTransform([2, 2]),
+    loadingMosaicApi.cellTransform([1, 1]),
+    loadingMosaicApi.cellTransform([0, 0]),
   ]);
+  assert.deepEqual(loadingMosaicApi.rotationCycleKeyframes().map((frame) => frame.transform), [
+    'rotate(0deg)', 'rotate(0deg)', 'rotate(-90deg)', 'rotate(-90deg)',
+  ]);
+  assert.equal(headFrames.at(-1).transform, loadingMosaicApi.cellTransform([0, 0]));
+  assert.equal(tailFrames.at(-1).transform, loadingMosaicApi.cellTransform([0, 0]));
 });
 
 test('every first-party plugin is selectable through a governed application profile', () => {
@@ -1472,7 +1470,7 @@ test('autonomy UI keeps the map primary and moves technical controls behind prog
   assert.doesNotMatch(blankHtml, /data-neural-model="reranker-name"/);
   assert.doesNotMatch(html, /WebGPU world model|Decision engine|Route search|Prediction settlement/);
   assert.match(css, /#autonomy-canvas[\s\S]*width: 100%;[\s\S]*height: 100%/);
-  assert.match(css, /\.loading-mosaic[\s\S]*will-change: transform/);
+  assert.match(css, /\.loading-mosaic-grid[\s\S]*will-change: transform/);
   assert.match(css, /\.sim-app \.neural-consent-dialog[\s\S]*background: rgba\(7, 17, 23, 0\.99\)/);
   assert.match(css, /@media \(max-width: 820px\)[\s\S]*translateY/);
   assert.match(design, /--sim-spectrum:/);

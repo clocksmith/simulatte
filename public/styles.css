@@ -61,22 +61,49 @@ body:not([data-journey-phase="loading"]) .loading-screen {
 
 .loading-mosaic {
   --mosaic-size: 7;
-  display: grid;
+  --mosaic-gap: 2px;
+  position: relative;
   width: clamp(148px, 22vw, 196px);
   aspect-ratio: 1;
+  transform-origin: center;
+}
+
+.loading-mosaic-grid,
+.loading-mosaic-snake {
+  position: absolute;
+  inset: 0;
+}
+
+.loading-mosaic-grid {
+  display: grid;
   grid-template-columns: repeat(var(--mosaic-size), 1fr);
-  gap: clamp(1px, 0.18vw, 2px);
+  gap: var(--mosaic-gap);
   transform-origin: center;
   will-change: transform;
 }
 
-.loading-mosaic > i {
+.loading-mosaic-grid > i {
   display: block;
   border-radius: 1px;
-  background: hsl(var(--tile-hue) 82% 62%);
-  opacity: var(--tile-opacity);
-  transform: scale(0.82);
-  will-change: opacity, transform;
+  background: rgba(164, 187, 191, 0.12);
+}
+
+.loading-mosaic-snake {
+  pointer-events: none;
+}
+
+.loading-mosaic-snake > b {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: var(--segment-layer);
+  display: block;
+  width: calc((100% - 12px) / 7);
+  aspect-ratio: 1;
+  border-radius: 1px;
+  background: hsl(var(--segment-hue) 88% 62%);
+  box-shadow: 0 0 12px hsl(var(--segment-hue) 88% 62% / 0.28);
+  will-change: transform;
 }
 
 .loading-wordmark {
