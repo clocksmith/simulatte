@@ -47,10 +47,13 @@ test('prompt controller browser layers publish the API in manifest order', () =>
   const context = vm.createContext({
     SimulattePromptControllerSupport: require(path.join(promptDir, 'prompt-controller-dependencies.js')),
     SimulatteConstructionSearch: require(path.join(promptDir, 'prompt-controller-construction-search.js')),
+    SimulatteNeuralModelConsent: require('../public/neural-model-consent.js'),
+    SimulatteModelSelection: require('../public/model-selection.js'),
   });
   for (const file of [
     'prompt-controller-workers.js',
     'prompt-controller-training.js',
+    'prompt-model-selection.js',
     'prompt-controller-lab-controller.js',
     'prompt-controller.js',
   ]) {
@@ -65,6 +68,7 @@ test('prompt controller browser layers reject missing dependencies', () => {
     'prompt-controller-dependencies.js',
     'prompt-controller-workers.js',
     'prompt-controller-training.js',
+    'prompt-model-selection.js',
     'prompt-controller-lab-controller.js',
     'prompt-controller.js',
   ]) {

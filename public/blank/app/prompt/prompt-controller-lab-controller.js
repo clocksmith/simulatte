@@ -11,8 +11,11 @@
   const construction = typeof module === 'object' && module.exports
     ? require('./prompt-controller-construction-search.js')
     : root.SimulatteConstructionSearch;
-  if (!support || !workers || !training || !construction) {
-    throw new Error('SimulattePromptControllerLab requires support, workers, training, and construction search');
+  const promptModelSelection = typeof module === 'object' && module.exports
+    ? require('./prompt-model-selection.js')
+    : root.SimulattePromptModelSelection;
+  if (!support || !workers || !training || !construction || !promptModelSelection) {
+    throw new Error('SimulattePromptControllerLab requires support, workers, training, construction search, and model selection');
   }
   const {
     model, runtimeProgressApi, EXAMPLE_INTENTS, clamp, createRenderExecutionInput,
@@ -60,23 +63,7 @@
           value: root.getElementById(`readout-${index + 1}`),
         }));
         const stateReadout = root.getElementById('lab-state');
-        const neuralToggle = root.getElementById('blank-neural-models');
-        const neuralNote = root.getElementById('blank-neural-model-note');
-        const neuralConsentApi = root.defaultView && root.defaultView.SimulatteNeuralModelConsent;
-        const neuralGateReady = neuralConsentApi
-          ? neuralConsentApi.createGate({
-            root,
-            lockUrl: '../data/simulatte-embedder/model-runtime-lock.json',
-            toggle: neuralToggle,
-            dialog: root.getElementById('neural-model-dialog'),
-            surface: 'blank',
-            status(enabled, bundle) {
-              if (neuralNote) neuralNote.textContent = enabled
-                ? `Ready to load ${bundle.totalSize} locally`
-                : 'Deterministic language pipeline is active';
-            },
-          })
-          : Promise.reject(new Error('Neural model consent runtime unavailable'));
+        const modelSelectionReady = promptModelSelection.create(root);
         const fpsMeter = createFpsMeter(root.getElementById('fps-readout'), canvas);
         const trainingRun = createTrainingRunState();
         const runtimeProgress = runtimeProgressApi.connect(root, {
@@ -289,15 +276,20 @@
             setSpec(createSpec('blank-world', { params }), { visible: false });
             return;
           }
-          let neuralGate;
+          let modelSelection;
           try {
-            neuralGate = await neuralGateReady;
+            modelSelection = await modelSelectionReady;
           } catch (error) {
             reportIntentFailure(serial, error.message);
             return;
           }
+          if (await modelSelection.ensureConsent() !== true) {
+            reportIntentFailure(serial, 'Selected model requires local model consent');
+            return;
+          }
           beginTrainingRun(trainingRun, prompt, params, serial);
-          if (neuralGate.isEnabled()) {
+          const retrievalRef = modelSelection.selectedRuntimeRef('open-vocabulary-retrieval');
+          if (retrievalRef.kind === 'embedding') {
             publishRuntime({
               state: 'active',
               stage: 'manifest',
@@ -305,9 +297,9 @@
               message: 'Loading embeddings',
               canvasLoading: true,
             });
-            resolveWithEmbedding(prompt, params, serial, true);
+            resolveWithEmbedding(prompt, params, serial, true, modelSelection);
           } else {
-            resolveDeterministically(prompt, params, serial, true);
+            resolveDeterministically(prompt, params, serial, true, modelSelection);
           }
         };
 
@@ -355,48 +347,7 @@
           }
         });
 
-        async function warmIntentRuntime(serial) {
-          if (!embedder) {
-            reportIntentFailure(serial, 'Intent model unavailable');
-            return;
-          }
-          publishRuntime({
-            state: 'active',
-            stage: 'manifest',
-            percent: 1,
-            message: 'Loading embeddings',
-            canvasLoading: true,
-          });
-          try {
-            await waitForLoadingPaint();
-            const loadedRuntime = await embedder.loadModel();
-            if (serial !== buildSerial) return;
-            const promptRuntimeReceipt = loadedRuntime && loadedRuntime.promptRuntimeReceipt || null;
-            activePromptRuntimeReceipt = promptRuntimeReceipt;
-            publishRuntime({
-              state: 'ready',
-              stage: 'runtime-ready',
-              percent: 100,
-              message: 'Prompt runtime ready',
-              canvasLoading: false,
-              promptRuntimeReceipt,
-              providerReady: promptRuntimeReceipt && promptRuntimeReceipt.providerReady === true,
-              noFallback: promptRuntimeReceipt && promptRuntimeReceipt.noFallback === true,
-              backend: promptRuntimeReceipt && promptRuntimeReceipt.providerBackend || '',
-              modelId: promptRuntimeReceipt && promptRuntimeReceipt.modelId || '',
-              modelBaseUrl: promptRuntimeReceipt && promptRuntimeReceipt.modelBaseUrl || '',
-              embeddingDim: promptRuntimeReceipt && promptRuntimeReceipt.embeddingDim || 0,
-            });
-          } catch (err) {
-            if (serial === buildSerial) {
-              const diagnostic = err && err.message ? err.message : String(err || 'intent model failed');
-              console.error('[simulatte.intent] model-backed intent warmup failed', err);
-              reportIntentFailure(serial, diagnostic);
-            }
-          }
-        }
-
-        async function resolveWithEmbedding(prompt, params, serial, showCanvasLoader = false) {
+        async function resolveWithEmbedding(prompt, params, serial, showCanvasLoader = false, modelSelection) {
           if (!String(prompt || '').trim()) return;
           if (!embedder) {
             reportIntentFailure(serial, 'Intent model unavailable');
@@ -432,6 +383,8 @@
                 spanRetrieval: result.spanRetrieval,
                 slotRetrieval: result.slotRetrieval,
                 boundedClassification: result.boundedClassification || null,
+                classificationTierId: selectedClassificationTierId(modelSelection),
+                modelSelection: modelSelection.receipt(),
                 retrievalPhase: result.retrievalPhase || 'span-refined',
                 evidenceRows: result.evidenceRows,
               }, {
@@ -471,6 +424,7 @@
               queryPlan: retrievalQueryPlan.queryPlan,
               sceneLanguageGraph: retrievalQueryPlan.sceneLanguageGraph,
               promptRuntimeReceipt,
+              classificationTierId: selectedClassificationTierId(modelSelection),
               onProgress: (event) => publishRuntime({
                 ...event,
                 canvasLoading: showCanvasLoader,
@@ -506,7 +460,7 @@
           }
         }
 
-        async function resolveDeterministically(prompt, params, serial, showCanvasLoader = false) {
+        async function resolveDeterministically(prompt, params, serial, showCanvasLoader = false, modelSelection) {
           if (!String(prompt || '').trim()) return;
           if (stateReadout) stateReadout.textContent = 'compiling intent';
           publishRuntime({
@@ -530,6 +484,8 @@
               retrievalPhase: 'deterministic-local',
               classificationTierPolicy: classification.policy,
               classificationCalibration: classification.calibration,
+              classificationTierId: selectedClassificationTierId(modelSelection),
+              modelSelection: modelSelection.receipt(),
             }, {
               stage: 'language',
               percent: 18,
@@ -580,6 +536,10 @@
           if (serial !== buildSerial) return null;
           activePromptRuntimeReceipt = loadedRuntime && loadedRuntime.promptRuntimeReceipt || null;
           return activePromptRuntimeReceipt;
+        }
+
+        function selectedClassificationTierId(modelSelection) {
+          return promptModelSelection.classificationTierId(modelSelection);
         }
 
         function retrievalQueryPlanForPrompt(prompt, params = {}, promptRuntimeReceipt = null) {
@@ -698,27 +658,25 @@
         }
 
         setSpec(spec, { visible: false });
-        neuralToggle?.addEventListener('neural-model-consent-change', (event) => {
-          if (event.detail.enabled || runtimeProgress.isBusy()) return;
+        root.getElementById('model-selection-controls')?.addEventListener('model-selection-change', () => {
+          if (runtimeProgress.isBusy()) return;
           publishRuntime({
             state: 'ready',
-            stage: 'deterministic-ready',
+            stage: 'model-selection-ready',
             percent: 100,
-            message: 'Deterministic ready',
-            detail: activePromptRuntimeReceipt
-              ? 'Qwen disabled for new runs; reload releases model memory'
-              : 'Lexical retrieval and typed rules',
+            message: 'Model selection ready',
+            detail: 'Selection applies to the next run',
             canvasLoading: false,
           });
         });
-        neuralGateReady.then((neuralGate) => {
-          if (neuralGate.isEnabled() && !skipInitialBuildForAudit(root)) warmIntentRuntime(buildSerial);
-          else publishRuntime({
+        modelSelectionReady.then((selection) => {
+          const neural = selection.selectedRuntimeRef('open-vocabulary-retrieval').kind === 'embedding';
+          publishRuntime({
             state: 'ready',
-            stage: neuralGate.isEnabled() ? 'blank' : 'deterministic-ready',
+            stage: neural ? 'model-ready' : 'deterministic-ready',
             percent: 100,
-            message: neuralGate.isEnabled() ? 'Ready' : 'Deterministic ready',
-            detail: neuralGate.isEnabled() ? '' : 'Lexical retrieval and typed rules',
+            message: 'Ready',
+            detail: neural ? 'Qwen retrieval selected for the next run' : 'Lexical retrieval and typed rules',
             canvasLoading: false,
           });
         }).catch((error) => reportIntentFailure(buildSerial, error.message));
@@ -729,17 +687,6 @@
           getTrainingSnapshot: () => trainingSnapshot(trainingRun, spec, state, canvas),
           setSpec,
         };
-      }
-
-    function skipInitialBuildForAudit(root) {
-        try {
-          const search = root && root.defaultView && root.defaultView.location
-            ? root.defaultView.location.search
-            : '';
-          return new URLSearchParams(search || '').get('auditNoInitial') === '1';
-        } catch (_err) {
-          return false;
-        }
       }
 
     function createFpsMeter(node, canvas) {
@@ -914,6 +861,7 @@
           'traceEmbeddings',
           'queryPlan',
           'sceneLanguageGraph',
+          'classificationTierId',
         ]) {
           if (options[key] !== undefined) out[key] = cloneWorkerValue(options[key]);
         }

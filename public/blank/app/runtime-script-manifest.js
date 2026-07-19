@@ -187,6 +187,7 @@
     'app/prompt/prompt-controller-construction-search.js',
     'app/prompt/prompt-controller-workers.js',
     'app/prompt/prompt-controller-training.js',
+    'app/prompt/prompt-model-selection.js',
     'app/prompt/prompt-controller-lab-controller.js',
     'app/prompt/prompt-controller.js'
   );
@@ -199,7 +200,7 @@
   );
 
   const browser = join(
-    group('../neural-model-consent.js'),
+    group('../neural-model-consent.js', '../model-selection.js'),
     phaseContracts,
     catalog,
     semanticRag,

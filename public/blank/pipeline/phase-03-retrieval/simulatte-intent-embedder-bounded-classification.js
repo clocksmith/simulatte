@@ -32,8 +32,9 @@
       options.sceneLanguageGraph || {}
     );
     return state.classificationRouter.classifyMany(requests, {
+      selectedTierId: options.classificationTierId || null,
       allowEvaluation: true,
-      allowUncalibratedDiagnostics: false,
+      allowUncalibratedDiagnostics: policy.execution && policy.execution.allowUncalibratedDiagnostics === true,
       modelConsent: true,
       calibration: options.calibration || null,
       embeddingIdentity: embeddingIdentity(runtime),

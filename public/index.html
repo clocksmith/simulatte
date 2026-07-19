@@ -3,12 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="simulatte-build" content="863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5">
+  <meta name="simulatte-build" content="6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854">
   <title>Simulatte</title>
   <meta name="description" content="A local-first WebGPU simulator for governed pedestrian, bicycle, scooter, and car journeys across the Villages and North Brooklyn.">
   <link rel="icon" type="image/svg+xml" href="./favicon.svg">
   <link rel="stylesheet" href="./design/simulatte.css">
   <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./model-selection.css">
 </head>
 <body class="sim-app" data-journey-phase="loading">
   <main class="map-workspace" aria-label="Simulatte">
@@ -109,10 +110,11 @@
                 <button id="what-if-button" type="button" hidden>What if</button>
               </div>
             </div>
-            <label class="neural-mode-toggle" for="place-resolution-lane" title="Local semantic place matching with the on-device Qwen embedding">
-              <span>Smart match</span>
-              <input id="place-resolution-lane" type="checkbox" role="switch" aria-describedby="place-lane-note">
-            </label>
+            <details class="model-selection-panel">
+              <summary>Models</summary>
+              <div id="model-selection-controls" class="model-selection-controls" aria-label="Pipeline model selection"></div>
+            </details>
+            <input id="place-resolution-lane" type="checkbox" hidden aria-describedby="place-lane-note">
             <span id="place-lane-note" class="sr-only">Deterministic matching is active.</span>
           </div>
           <output id="mission-error" class="mission-error" aria-live="polite"></output>
@@ -232,50 +234,51 @@
     </div>
   </dialog>
 
-  <script defer src="./neural-model-consent.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./contracts/data-contract-validator.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./contracts/contract-validator.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./contracts/cooperative-contracts.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./runtime/canonical-receipts.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./world/region-pack-merger.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./world/world-tile-manager.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./world/world-tile-storage.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./runtime/runtime-log.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./runtime/data-loader.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./runtime/neural-place-resolution-core.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./runtime/neural-place-resolver.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./mission/capability-matrix.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./mission/mission-compiler.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./data/simulatte-language-lexicon.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./language/simulatte-universe-parser.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./mission/cooperative-language-compiler.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./world/ambient-actors.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./world/world-model.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./world/route-planner.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./world/time-dependent-edge-cost.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./world/sun-exposure.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./world/accessibility-audit.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./runtime/feature-retrieval.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./runtime/occurrence-engine.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./runtime/observation-builder.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./runtime/reference-dynamics.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./runtime/bet-proposer.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./runtime/safety-gate.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./runtime/bet-selector.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./runtime/bet-settlement.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./verifier/journey-verifier.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./runtime/autonomy-controller.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./runtime/journey-ledger.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./runtime/counterfactual-runner.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./runtime/cooperative-engine.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./runtime/cooperative-relay-planner.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./app/cooperative-gpu-compute.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./app/webgpu-math.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./app/webgpu-actor-geometry.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./app/webgpu-geometry.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./app/camera-controller.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./app/webgpu-renderer.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./app/trace-view.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./app/main.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
+  <script defer src="./neural-model-consent.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./model-selection.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./contracts/data-contract-validator.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./contracts/contract-validator.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./contracts/cooperative-contracts.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./runtime/canonical-receipts.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./world/region-pack-merger.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./world/world-tile-manager.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./world/world-tile-storage.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./runtime/runtime-log.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./runtime/data-loader.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./runtime/neural-place-resolution-core.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./runtime/neural-place-resolver.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./mission/capability-matrix.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./mission/mission-compiler.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./data/simulatte-language-lexicon.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./language/simulatte-universe-parser.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./mission/cooperative-language-compiler.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./world/ambient-actors.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./world/world-model.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./world/route-planner.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./world/time-dependent-edge-cost.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./world/sun-exposure.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./world/accessibility-audit.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./runtime/feature-retrieval.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./runtime/occurrence-engine.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./runtime/observation-builder.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./runtime/reference-dynamics.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./runtime/bet-proposer.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./runtime/safety-gate.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./runtime/bet-selector.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./runtime/bet-settlement.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./verifier/journey-verifier.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./runtime/autonomy-controller.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./runtime/journey-ledger.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./runtime/counterfactual-runner.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./runtime/cooperative-engine.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./runtime/cooperative-relay-planner.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./app/cooperative-gpu-compute.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./app/webgpu-math.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./app/webgpu-actor-geometry.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./app/webgpu-geometry.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./app/camera-controller.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./app/webgpu-renderer.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./app/trace-view.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./app/main.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
 </body>
 </html>

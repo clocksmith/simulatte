@@ -225,6 +225,7 @@
           deterministicReady: deterministicRuntime,
           noFallback: deterministicRuntime || receipt && receipt.noFallback === true,
           promptRuntimeReceipt: receipt,
+          modelSelection: options.modelSelection || null,
           retrievalEvidence,
           retrievalPhase: options.retrievalPhase || '',
           runtimeMode: deterministicRuntime

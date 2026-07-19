@@ -49,6 +49,21 @@ test('tier router selects the cheapest calibrated candidate and receipts skipped
   assert.equal(receipt.attempts.length, 1);
 });
 
+test('tier router executes the explicitly selected browser model instead of the default order', async () => {
+  const router = routerApi.createRouter(lock.classification);
+  const receipt = await router.classify({ id: 'material:glass', headId: 'material', text: 'a clear glass lens' }, {
+    selectedTierId: 'linear-svc-tfidf-head',
+    allowEvaluation: true,
+  });
+
+  assert.equal(receipt.selectedTierId, null);
+  assert.equal(receipt.attempts.length, 1);
+  assert.equal(receipt.attempts[0].tierId, 'linear-svc-tfidf-head');
+  assert.equal(receipt.attempts[0].status, 'executed');
+  assert.equal(receipt.attempts[0].result.modelExecuted, true);
+  assert.equal(receipt.attempts[0].result.accepted, false);
+});
+
 test('conditional reranking never claims execution before the model runs', () => {
   const candidates = [
     { id: 'glass', score: 0.8, lexicalScore: 0.8, modelScore: 0.81 },

@@ -494,6 +494,7 @@
             classificationTierPolicy: options.classificationTierPolicy
               || options.promptRuntimeReceipt && options.promptRuntimeReceipt.classificationTierPolicy
               || null,
+            classificationTierId: options.classificationTierId || null,
             classificationCalibration: options.classificationCalibration
               || options.promptRuntimeReceipt && options.promptRuntimeReceipt.classificationCalibration
               || null,

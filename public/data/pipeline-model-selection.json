@@ -1,0 +1,175 @@
+{
+  "$schema": "./pipeline-model-selection.schema.json",
+  "schema": "simulatte.pipelineModelSelection.v1",
+  "id": "simulatte-pipeline-model-selection-v1",
+  "modelRuntimeLock": {
+    "id": "simulatte-doppler-qwen-runtime-lock",
+    "number": 12,
+    "path": "./simulatte-embedder/model-runtime-lock.json"
+  },
+  "options": [
+    {
+      "id": "deterministic-place-resolution",
+      "label": "Exact and typo matching",
+      "kind": "deterministic",
+      "requiresConsent": false,
+      "note": "No model download",
+      "runtimeRef": { "kind": "deterministic", "id": "deterministic-place-resolution-v1" }
+    },
+    {
+      "id": "qwen-place-resolution",
+      "label": "Qwen embedding fallback",
+      "kind": "embedding-model",
+      "requiresConsent": true,
+      "note": "Runs after deterministic refusal",
+      "runtimeRef": { "kind": "embedding", "id": "qwen-3-embedding-0-6b-q4k-ehf16-af32" }
+    },
+    {
+      "id": "deterministic-tfidf-classification",
+      "label": "Deterministic TF-IDF",
+      "kind": "deterministic",
+      "requiresConsent": false,
+      "note": "No compact label head",
+      "runtimeRef": { "kind": "deterministic", "id": "deterministic-tfidf-control" }
+    },
+    {
+      "id": "multinomial-nb-tfidf-head",
+      "label": "Multinomial NB",
+      "kind": "compact-model",
+      "requiresConsent": false,
+      "note": "Default compact diagnostic",
+      "runtimeRef": { "kind": "classification-tier", "id": "multinomial-nb-tfidf-head" }
+    },
+    {
+      "id": "complement-nb-tfidf-head",
+      "label": "Complement NB",
+      "kind": "compact-model",
+      "requiresConsent": false,
+      "note": "Compact diagnostic",
+      "runtimeRef": { "kind": "classification-tier", "id": "complement-nb-tfidf-head" }
+    },
+    {
+      "id": "linear-svc-tfidf-head",
+      "label": "LinearSVC",
+      "kind": "compact-model",
+      "requiresConsent": false,
+      "note": "Compact diagnostic",
+      "runtimeRef": { "kind": "classification-tier", "id": "linear-svc-tfidf-head" }
+    },
+    {
+      "id": "linear-tfidf-head",
+      "label": "Logistic regression",
+      "kind": "compact-model",
+      "requiresConsent": false,
+      "note": "Compact diagnostic",
+      "runtimeRef": { "kind": "classification-tier", "id": "linear-tfidf-head" }
+    },
+    {
+      "id": "sgd-modified-huber-tfidf-head",
+      "label": "SGD modified-Huber",
+      "kind": "compact-model",
+      "requiresConsent": false,
+      "note": "Compact diagnostic",
+      "runtimeRef": { "kind": "classification-tier", "id": "sgd-modified-huber-tfidf-head" }
+    },
+    {
+      "id": "nb-svm-logistic-tfidf-head",
+      "label": "NB-SVM logistic",
+      "kind": "compact-model",
+      "requiresConsent": false,
+      "note": "Compact diagnostic",
+      "runtimeRef": { "kind": "classification-tier", "id": "nb-svm-logistic-tfidf-head" }
+    },
+    {
+      "id": "qwen-embedding-classifier-control",
+      "label": "Qwen embedding labels",
+      "kind": "embedding-model",
+      "requiresConsent": true,
+      "note": "Model-backed diagnostic",
+      "runtimeRef": { "kind": "classification-tier", "id": "qwen3-embedding-classifier-control" },
+      "requiresSelections": [
+        { "slotId": "open-vocabulary-retrieval", "optionId": "qwen-embedding-retrieval" }
+      ]
+    },
+    {
+      "id": "deterministic-tfidf-retrieval",
+      "label": "TF-IDF and indexed retrieval",
+      "kind": "deterministic",
+      "requiresConsent": false,
+      "note": "No model download",
+      "runtimeRef": { "kind": "deterministic", "id": "deterministic-index-retrieval" }
+    },
+    {
+      "id": "qwen-embedding-retrieval",
+      "label": "Qwen embedding retrieval",
+      "kind": "embedding-model",
+      "requiresConsent": true,
+      "note": "Open-vocabulary retrieval",
+      "runtimeRef": { "kind": "embedding", "id": "qwen-3-embedding-0-6b-q4k-ehf16-af32" }
+    },
+    {
+      "id": "deterministic-typed-reranking",
+      "label": "Deterministic typed scoring",
+      "kind": "deterministic",
+      "requiresConsent": false,
+      "note": "Qwen reranker is not qualified",
+      "runtimeRef": { "kind": "deterministic", "id": "deterministic-typed-reranking" }
+    }
+  ],
+  "surfaces": [
+    {
+      "id": "autonomy",
+      "slots": [
+        {
+          "id": "place-resolution",
+          "jobId": "find-candidates",
+          "label": "Place matching",
+          "defaultOptionId": "deterministic-place-resolution",
+          "optionIds": ["deterministic-place-resolution", "qwen-place-resolution"]
+        },
+        {
+          "id": "feature-reranking",
+          "jobId": "find-candidates",
+          "label": "Feature ranking",
+          "defaultOptionId": "deterministic-typed-reranking",
+          "optionIds": ["deterministic-typed-reranking"]
+        }
+      ]
+    },
+    {
+      "id": "blank",
+      "slots": [
+        {
+          "id": "bounded-classification",
+          "jobId": "find-candidates",
+          "label": "Bounded labels",
+          "defaultOptionId": "multinomial-nb-tfidf-head",
+          "optionIds": [
+            "deterministic-tfidf-classification",
+            "multinomial-nb-tfidf-head",
+            "complement-nb-tfidf-head",
+            "linear-svc-tfidf-head",
+            "linear-tfidf-head",
+            "sgd-modified-huber-tfidf-head",
+            "nb-svm-logistic-tfidf-head",
+            "qwen-embedding-classifier-control"
+          ]
+        },
+        {
+          "id": "open-vocabulary-retrieval",
+          "jobId": "find-candidates",
+          "label": "Retrieval",
+          "defaultOptionId": "deterministic-tfidf-retrieval",
+          "optionIds": ["deterministic-tfidf-retrieval", "qwen-embedding-retrieval"]
+        },
+        {
+          "id": "candidate-reranking",
+          "jobId": "find-candidates",
+          "label": "Reranking",
+          "defaultOptionId": "deterministic-typed-reranking",
+          "optionIds": ["deterministic-typed-reranking"]
+        }
+      ]
+    }
+  ]
+}

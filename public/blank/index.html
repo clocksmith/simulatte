@@ -4,9 +4,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Simulatte</title>
-  <meta name="simulatte-build" content="863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5">
+  <meta name="simulatte-build" content="6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854">
   <link rel="icon" type="image/svg+xml" href="../favicon.svg">
   <link rel="stylesheet" href="../design/simulatte.css">
+  <link rel="stylesheet" href="../model-selection.css">
   <script>
     globalThis.__DOPPLER_KERNEL_BASE_PATH__ = new URL(
       '../vendor/doppler/src/gpu/kernels',
@@ -2133,12 +2134,18 @@
       right: 10px;
     }
 
-    .prompt-dock .neural-mode-toggle {
+    .prompt-dock .model-selection-panel {
       position: absolute;
       bottom: 10px;
       left: 50%;
       z-index: 2;
       min-height: 38px;
+      transform: translateX(-50%);
+    }
+
+    .prompt-dock .model-selection-panel[open] .model-selection-controls {
+      right: auto;
+      left: 50%;
       transform: translateX(-50%);
     }
 
@@ -2652,10 +2659,11 @@
             <span class="prompt-action-icon" aria-hidden="true">↵</span>
             <span class="prompt-action-label">Run</span>
           </button>
-          <label class="neural-mode-toggle" for="blank-neural-models" title="Local semantic retrieval with the on-device Qwen embedding">
-            <span>Smart retrieval</span>
-            <input id="blank-neural-models" type="checkbox" role="switch" aria-describedby="blank-neural-model-note">
-          </label>
+          <details class="model-selection-panel">
+            <summary>Models</summary>
+            <div id="model-selection-controls" class="model-selection-controls" aria-label="Pipeline model selection"></div>
+          </details>
+          <input id="blank-neural-models" type="checkbox" hidden aria-describedby="blank-neural-model-note">
           <span id="blank-neural-model-note" class="sr-only">Deterministic language pipeline is active.</span>
         </div>
 
@@ -2738,157 +2746,159 @@
     })(typeof globalThis !== 'undefined' ? globalThis : window);
   </script>
   <!-- SIMULATTE_RUNTIME_SCRIPTS_START -->
-  <script defer src="./app/runtime-script-manifest.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="../neural-model-consent.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/simulatte-phase-contracts.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-catalog-dependencies.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-catalog-constants.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-catalog-templates.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-catalog-primitive-data.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-catalog-materials.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-catalog-graph-data.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-catalog-examples.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-catalog-graph-helpers.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-catalog.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="../data/simulatte-construction-substrate.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-03-retrieval/simulatte-semantic-rag-dependencies.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-03-retrieval/simulatte-semantic-rag-constants.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-03-retrieval/simulatte-semantic-rag-helpers.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-03-retrieval/simulatte-semantic-rag-surface-cards.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-03-retrieval/simulatte-semantic-rag-grounding-cards.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-03-retrieval/simulatte-semantic-rag-lexical-construction.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-03-retrieval/simulatte-semantic-rag-retrieval.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-03-retrieval/simulatte-semantic-rag.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-01-runtime/simulatte-doppler-intent.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-04-grounded-intent/simulatte-graph-synthesis-support.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-04-grounded-intent/simulatte-graph-synthesis-retrieval.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-04-grounded-intent/simulatte-graph-synthesis-helpers.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-embedder-dependencies.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-embedder-constants.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-embedder-model-lock.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-embedder-model-cache.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-embedder-runtime-class.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-embedder-runtime-probes.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-embedder-construction-retrieval.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-embedder-span-retrieval.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-embedder-slot-retrieval.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-embedder-rerank-runtime.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-embedder-manifest-cache.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-embedder-rerank.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-embedder-vectors.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-embedder-facade-support.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-embedder.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="../data/simulatte-compact-classifiers.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-03-retrieval/simulatte-compact-classifier-runtime.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-03-retrieval/simulatte-bounded-classification-requests.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-03-retrieval/simulatte-classification-tier-router.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-embedder-bounded-classification.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-03-retrieval/simulatte-conditional-reranking.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-classifier.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="../data/simulatte-language-lexicon.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="../language/simulatte-universe-parser.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-02-language/simulatte-universe-parser.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-04-grounded-intent/simulatte-universe-grounder-graph.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-04-grounded-intent/simulatte-universe-grounder-candidates.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-04-grounded-intent/simulatte-universe-grounder.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-05-simulation/simulatte-operator-stage.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-ir-domains.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-ir-behaviors.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-ir-builder.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-ir-validator.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-04-grounded-intent/simulatte-intent-brief-schema.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-04-grounded-intent/simulatte-structured-intent-rules.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-04-grounded-intent/simulatte-causal-physics-graph.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-04-grounded-intent/simulatte-assumption-ledger.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-04-grounded-intent/simulatte-causal-visual-affordances.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-02-language/simulatte-language-evidence.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-03-retrieval/simulatte-activation-cloud.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-04-grounded-intent/simulatte-grounded-interpretation.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-04-grounded-intent/simulatte-intent-forensics.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-05-simulation/solvers/simulatte-solver-values.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-05-simulation/solvers/simulatte-solver-rigid-body-2d.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-05-simulation/solvers/simulatte-solver-particles.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-05-simulation/solvers/simulatte-solver-constraints.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-05-simulation/solvers/simulatte-solver-thermal.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-05-simulation/solvers/simulatte-solver-advection.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-05-simulation/solvers/simulatte-solver-pressure-flow-lite.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-05-simulation/solvers/simulatte-solver-wave-field.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-05-simulation/solvers/simulatte-solver-reaction-diffusion.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-05-simulation/solvers/simulatte-solver-fracture-threshold.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-05-simulation/solvers/simulatte-solver-rotational-mechanics.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-05-simulation/solvers/simulatte-solver-network-control.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-05-simulation/solvers/simulatte-solver-growth-decay.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-05-simulation/solvers/simulatte-solver-particle-deposition.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-05-simulation/simulatte-solver-registry.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-05-simulation/simulatte-solver-compiler.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-05-simulation/simulatte-render-registry.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-05-simulation/simulatte-render-ir.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-06-visual/simulatte-visual-operator-atlas.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-06-visual/simulatte-visual-operator-compiler.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-06-visual/simulatte-composition-graph-dependencies.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-06-visual/simulatte-composition-graph-constants.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-06-visual/simulatte-composition-graph-selection-layout.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-06-visual/simulatte-composition-graph-render-ir-binding.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-06-visual/simulatte-composition-graph-entity-lowering.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-06-visual/simulatte-composition-graph-visual-ir.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-06-visual/simulatte-composition-graph-materials.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-06-visual/simulatte-construction-geometry.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-06-visual/simulatte-prompt-visual-contracts.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-06-visual/simulatte-object-geometry-grammars.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-06-visual/simulatte-scene-framing.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-06-visual/simulatte-scene-animation.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-06-visual/simulatte-composition-graph-scene-packet.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-06-visual/simulatte-composition-graph-visual-genome.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-06-visual/simulatte-composition-graph-programs.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-06-visual/simulatte-composition-graph-dialects.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-06-visual/simulatte-composition-graph-constraint-layout.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-06-visual/simulatte-composition-graph-helpers.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-06-visual/simulatte-composition-graph-facade-support.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-06-visual/simulatte-composition-graph.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./app/loading/loading-canvas-support.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./app/loading/loading-canvas.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./app/runtime/runtime-progress-support.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./app/runtime/runtime-progress-state.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./app/runtime/runtime-progress.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-07-render/simulatte-render-proof.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-07-render/simulatte-webgpu-renderer-dependencies.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-07-render/simulatte-webgpu-renderer-constants.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-07-render/simulatte-webgpu-renderer-pixel-plan.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-07-render/simulatte-webgpu-renderer-scene-proof-observer.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-07-render/simulatte-webgpu-renderer-renderer-class.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-07-render/simulatte-webgpu-renderer-part-segmentation.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-07-render/simulatte-webgpu-renderer-packets.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-07-render/simulatte-webgpu-renderer-pixel-proof.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-07-render/simulatte-webgpu-renderer-gpu-data.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-07-render/simulatte-webgpu-renderer-background-shader.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-07-render/simulatte-webgpu-renderer-object-shader.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-07-render/simulatte-webgpu-renderer.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-08-scene-proof/simulatte-scene-proof.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-model-dependencies.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-model-contracts.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-model-phase-runtime-language.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-model-phase-retrieval.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-model-activation-verdicts.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-model-activation-fusion.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-model-phase-grounding.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-model-phase-simulation.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-render.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-model-state-solvers.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-model-spec-api.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-model-metrics.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-model-compatibility.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-model.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./app/prompt/prompt-controller-dependencies.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./app/prompt/prompt-controller-construction-search.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./app/prompt/prompt-controller-workers.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./app/prompt/prompt-controller-training.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./app/prompt/prompt-controller-lab-controller.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./app/prompt/prompt-controller.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./app/simulation/simulation-lab.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./app/prompt/prompt-review-bridge-store.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./app/prompt/prompt-review-bridge.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./app/main.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
-  <script defer src="./app/version-guard.js?v=863280a4635dac3ea3f8ec25f360d6d840921377-d291b66ecab5"></script>
+  <script defer src="./app/runtime-script-manifest.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="../neural-model-consent.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="../model-selection.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/simulatte-phase-contracts.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-catalog-dependencies.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-catalog-constants.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-catalog-templates.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-catalog-primitive-data.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-catalog-materials.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-catalog-graph-data.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-catalog-examples.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-catalog-graph-helpers.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-catalog.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="../data/simulatte-construction-substrate.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-03-retrieval/simulatte-semantic-rag-dependencies.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-03-retrieval/simulatte-semantic-rag-constants.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-03-retrieval/simulatte-semantic-rag-helpers.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-03-retrieval/simulatte-semantic-rag-surface-cards.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-03-retrieval/simulatte-semantic-rag-grounding-cards.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-03-retrieval/simulatte-semantic-rag-lexical-construction.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-03-retrieval/simulatte-semantic-rag-retrieval.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-03-retrieval/simulatte-semantic-rag.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-01-runtime/simulatte-doppler-intent.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-04-grounded-intent/simulatte-graph-synthesis-support.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-04-grounded-intent/simulatte-graph-synthesis-retrieval.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-04-grounded-intent/simulatte-graph-synthesis-helpers.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-embedder-dependencies.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-embedder-constants.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-embedder-model-lock.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-embedder-model-cache.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-embedder-runtime-class.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-embedder-runtime-probes.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-embedder-construction-retrieval.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-embedder-span-retrieval.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-embedder-slot-retrieval.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-embedder-rerank-runtime.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-embedder-manifest-cache.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-embedder-rerank.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-embedder-vectors.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-embedder-facade-support.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-embedder.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="../data/simulatte-compact-classifiers.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-03-retrieval/simulatte-compact-classifier-runtime.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-03-retrieval/simulatte-bounded-classification-requests.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-03-retrieval/simulatte-classification-tier-router.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-embedder-bounded-classification.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-03-retrieval/simulatte-conditional-reranking.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-classifier.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="../data/simulatte-language-lexicon.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="../language/simulatte-universe-parser.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-02-language/simulatte-universe-parser.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-04-grounded-intent/simulatte-universe-grounder-graph.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-04-grounded-intent/simulatte-universe-grounder-candidates.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-04-grounded-intent/simulatte-universe-grounder.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-operator-stage.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-ir-domains.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-ir-behaviors.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-ir-builder.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-ir-validator.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-04-grounded-intent/simulatte-intent-brief-schema.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-04-grounded-intent/simulatte-structured-intent-rules.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-04-grounded-intent/simulatte-causal-physics-graph.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-04-grounded-intent/simulatte-assumption-ledger.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-04-grounded-intent/simulatte-causal-visual-affordances.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-02-language/simulatte-language-evidence.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-03-retrieval/simulatte-activation-cloud.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-04-grounded-intent/simulatte-grounded-interpretation.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-04-grounded-intent/simulatte-intent-forensics.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-05-simulation/solvers/simulatte-solver-values.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-05-simulation/solvers/simulatte-solver-rigid-body-2d.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-05-simulation/solvers/simulatte-solver-particles.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-05-simulation/solvers/simulatte-solver-constraints.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-05-simulation/solvers/simulatte-solver-thermal.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-05-simulation/solvers/simulatte-solver-advection.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-05-simulation/solvers/simulatte-solver-pressure-flow-lite.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-05-simulation/solvers/simulatte-solver-wave-field.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-05-simulation/solvers/simulatte-solver-reaction-diffusion.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-05-simulation/solvers/simulatte-solver-fracture-threshold.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-05-simulation/solvers/simulatte-solver-rotational-mechanics.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-05-simulation/solvers/simulatte-solver-network-control.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-05-simulation/solvers/simulatte-solver-growth-decay.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-05-simulation/solvers/simulatte-solver-particle-deposition.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-solver-registry.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-solver-compiler.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-render-registry.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-render-ir.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-06-visual/simulatte-visual-operator-atlas.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-06-visual/simulatte-visual-operator-compiler.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-06-visual/simulatte-composition-graph-dependencies.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-06-visual/simulatte-composition-graph-constants.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-06-visual/simulatte-composition-graph-selection-layout.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-06-visual/simulatte-composition-graph-render-ir-binding.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-06-visual/simulatte-composition-graph-entity-lowering.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-06-visual/simulatte-composition-graph-visual-ir.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-06-visual/simulatte-composition-graph-materials.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-06-visual/simulatte-construction-geometry.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-06-visual/simulatte-prompt-visual-contracts.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-06-visual/simulatte-object-geometry-grammars.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-06-visual/simulatte-scene-framing.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-06-visual/simulatte-scene-animation.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-06-visual/simulatte-composition-graph-scene-packet.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-06-visual/simulatte-composition-graph-visual-genome.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-06-visual/simulatte-composition-graph-programs.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-06-visual/simulatte-composition-graph-dialects.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-06-visual/simulatte-composition-graph-constraint-layout.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-06-visual/simulatte-composition-graph-helpers.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-06-visual/simulatte-composition-graph-facade-support.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-06-visual/simulatte-composition-graph.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./app/loading/loading-canvas-support.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./app/loading/loading-canvas.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./app/runtime/runtime-progress-support.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./app/runtime/runtime-progress-state.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./app/runtime/runtime-progress.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-07-render/simulatte-render-proof.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-07-render/simulatte-webgpu-renderer-dependencies.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-07-render/simulatte-webgpu-renderer-constants.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-07-render/simulatte-webgpu-renderer-pixel-plan.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-07-render/simulatte-webgpu-renderer-scene-proof-observer.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-07-render/simulatte-webgpu-renderer-renderer-class.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-07-render/simulatte-webgpu-renderer-part-segmentation.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-07-render/simulatte-webgpu-renderer-packets.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-07-render/simulatte-webgpu-renderer-pixel-proof.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-07-render/simulatte-webgpu-renderer-gpu-data.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-07-render/simulatte-webgpu-renderer-background-shader.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-07-render/simulatte-webgpu-renderer-object-shader.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-07-render/simulatte-webgpu-renderer.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-08-scene-proof/simulatte-scene-proof.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-model-dependencies.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-model-contracts.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-model-phase-runtime-language.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-model-phase-retrieval.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-model-activation-verdicts.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-model-activation-fusion.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-model-phase-grounding.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-model-phase-simulation.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-render.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-model-state-solvers.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-model-spec-api.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-model-metrics.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-model-compatibility.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-model.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./app/prompt/prompt-controller-dependencies.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./app/prompt/prompt-controller-construction-search.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./app/prompt/prompt-controller-workers.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./app/prompt/prompt-controller-training.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./app/prompt/prompt-model-selection.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./app/prompt/prompt-controller-lab-controller.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./app/prompt/prompt-controller.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./app/simulation/simulation-lab.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./app/prompt/prompt-review-bridge-store.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./app/prompt/prompt-review-bridge.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./app/main.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
+  <script defer src="./app/version-guard.js?v=6153966ceec3da68596ace195bafc147d5b8dd85-9de3f0089854"></script>
   <!-- SIMULATTE_RUNTIME_SCRIPTS_END -->
   <script>
     (function initPromptDockMinimize() {

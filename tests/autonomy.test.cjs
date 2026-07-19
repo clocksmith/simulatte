@@ -1287,12 +1287,12 @@ test('autonomy UI keeps the map primary and moves technical controls behind prog
   assert.match(html, /id="advanced-section"[\s\S]*<details class="evidence-section retrieval-evidence">/);
   assert.match(html, /<details class="evidence-section retrieval-evidence">/);
   assert.match(html, /<details class="evidence-section receipt-evidence">/);
-  assert.match(html, /class="neural-mode-toggle"[^>]*for="place-resolution-lane"/);
-  assert.match(html, /id="place-resolution-lane" type="checkbox" role="switch"/);
+  assert.match(html, /class="model-selection-panel"[\s\S]*id="model-selection-controls"/);
+  assert.match(html, /id="place-resolution-lane" type="checkbox" hidden/);
   assert.match(html, /id="neural-model-dialog"/);
   assert.doesNotMatch(html, /id="mission-more-menu"/);
-  assert.match(blankHtml, /class="neural-mode-toggle"[^>]*for="blank-neural-models"/);
-  assert.match(blankHtml, /id="blank-neural-models" type="checkbox" role="switch"/);
+  assert.match(blankHtml, /class="model-selection-panel"[\s\S]*id="model-selection-controls"/);
+  assert.match(blankHtml, /id="blank-neural-models" type="checkbox" hidden/);
   assert.match(blankHtml, /Blank uses Qwen embeddings for open-vocabulary retrieval/);
   assert.doesNotMatch(blankHtml, /data-neural-model="reranker-name"/);
   assert.doesNotMatch(html, /WebGPU world model|Decision engine|Route search|Prediction settlement/);

@@ -13,11 +13,12 @@
     root.SimulatteCooperativeEngine,
     root.SimulatteSunExposure,
     root.SimulatteAutonomyWorld,
-    root.SimulatteNeuralModelConsent
+    root.SimulatteNeuralModelConsent,
+    root.SimulatteModelSelection
   );
   root.SimulatteAutonomyApp = api;
   if (typeof module === 'object' && module.exports) module.exports = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyApp(dataLoader, missionApi, controllerApi, canvasApi, traceApi, runtimeLog, neuralPlaceApi, ledgerApi, counterfactualApi, receiptsApi, cooperativeApi, sunApi, worldApi, neuralConsentApi) {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyApp(dataLoader, missionApi, controllerApi, canvasApi, traceApi, runtimeLog, neuralPlaceApi, ledgerApi, counterfactualApi, receiptsApi, cooperativeApi, sunApi, worldApi, neuralConsentApi, modelSelectionApi) {
   const log = runtimeLog || {
     info: () => null,
     warn: () => null,
@@ -70,9 +71,17 @@
       surface: 'autonomy',
       status(enabled, bundle) {
         elements.placeLaneNote.textContent = enabled
-          ? `On demand · ${bundle.embedding.size} · measured gain +0/37`
-          : 'Deterministic matching · no download';
+          ? `Model consent granted · ${bundle.embedding.size} available locally`
+          : 'No neural model consent';
       },
+    });
+    const modelSelection = await modelSelectionApi.createController({
+      root: document,
+      container: elements.modelSelectionControls,
+      configUrl: './data/pipeline-model-selection.json',
+      modelRuntimeLock: data.modelRuntimeLock,
+      surfaceId: 'autonomy',
+      consentGate: neuralGate,
     });
 
     async function buildController({ keepMissionLocked = false } = {}) {
@@ -88,7 +97,11 @@
         })
         : null;
       shadeSelection = null;
-      const useNeuralPlaces = neuralGate.isEnabled();
+      const placeSelection = modelSelection.selectedRuntimeRef('place-resolution');
+      const useNeuralPlaces = placeSelection.kind === 'embedding';
+      if (useNeuralPlaces && await modelSelection.ensureConsent() !== true) {
+        throw new Error('Selected place model requires local model consent');
+      }
       if (useNeuralPlaces && !placeResolver) {
         placeResolver = neuralPlaceApi.createPlaceResolver({
           index: data.placeEmbeddingIndex,
@@ -148,6 +161,7 @@
         constraints: mission.constraints,
         grounding: mission.grounding,
         placeResolution: mission.placeResolution,
+        modelSelection: modelSelection.receipt(),
       });
       renderPlaceResolution(elements, mission, placeResolver?.receipt() || null, data.placeResolutionEvidence);
       renderCooperation(elements, cooperativeSession?.snapshot() || null);
@@ -464,16 +478,17 @@
       event.preventDefault();
       elements.startButton.click();
     });
-    elements.placeResolutionLane.addEventListener('neural-model-consent-change', async (event) => {
+    elements.modelSelectionControls.addEventListener('model-selection-change', async (event) => {
       if (isRunning) return;
-      if (!event.detail.enabled && placeResolver) {
+      const placeSelection = event.detail.selections.find((row) => row.slotId === 'place-resolution');
+      const neural = placeSelection && placeSelection.runtimeRef.kind === 'embedding';
+      if (!neural && placeResolver) {
         await placeResolver.unload();
         placeResolver = null;
       }
       controller = null;
       hasJourneyStarted = false;
       updateButtons(elements, false, false, 'active', false);
-      const neural = event.detail.enabled;
       setRuntimeStatus(elements, 'Ready', 'changed');
       elements.placeResolutionProof.textContent = neural
         ? 'Qwen embedding after deterministic refusal · measured gain +0/37 · no neural reranker on this surface'
@@ -496,7 +511,7 @@
 
   function collectElements() {
     const ids = [
-      'mission-input', 'mission-error', 'place-resolution-lane', 'place-lane-note', 'shuffle-button', 'start-button', 'pause-button', 'resume-button', 'step-button', 'reset-button', 'replay-button', 'new-mission-button', 'what-if-button', 'export-button',
+      'mission-input', 'mission-error', 'place-resolution-lane', 'place-lane-note', 'model-selection-controls', 'shuffle-button', 'start-button', 'pause-button', 'resume-button', 'step-button', 'reset-button', 'replay-button', 'new-mission-button', 'what-if-button', 'export-button',
       'dock-more-button', 'dock-more-menu',
       'runtime-status', 'runtime-toggle', 'runtime-details', 'runtime-details-close', 'render-identity', 'autonomy-canvas', 'follow-minimap', 'decision-title', 'decision-meta',
       'bet-list', 'gate-list', 'trace-list', 'route-formula', 'route-stats', 'route-components',

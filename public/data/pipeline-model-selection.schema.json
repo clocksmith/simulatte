@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Simulatte Pipeline Model Selection",
+  "type": "object",
+  "required": [
+    "schema",
+    "id",
+    "modelRuntimeLock",
+    "options",
+    "surfaces"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "schema": {
+      "const": "simulatte.pipelineModelSelection.v1"
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "modelRuntimeLock": {
+      "type": "object",
+      "required": ["id", "number", "path"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "number": { "type": "integer", "minimum": 1 },
+        "path": { "type": "string", "minLength": 1 }
+      }
+    },
+    "options": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "label", "kind", "requiresConsent", "runtimeRef"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "label": { "type": "string", "minLength": 1 },
+          "kind": {
+            "enum": ["deterministic", "compact-model", "embedding-model"]
+          },
+          "requiresConsent": { "type": "boolean" },
+          "note": { "type": "string" },
+          "runtimeRef": {
+            "type": "object",
+            "required": ["kind", "id"],
+            "additionalProperties": false,
+            "properties": {
+              "kind": {
+                "enum": ["deterministic", "classification-tier", "embedding"]
+              },
+              "id": { "type": "string", "minLength": 1 }
+            }
+          },
+          "requiresSelections": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["slotId", "optionId"],
+              "additionalProperties": false,
+              "properties": {
+                "slotId": { "type": "string", "minLength": 1 },
+                "optionId": { "type": "string", "minLength": 1 }
+              }
+            }
+          }
+        }
+      }
+    },
+    "surfaces": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "slots"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "enum": ["autonomy", "blank"] },
+          "slots": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": ["id", "jobId", "label", "defaultOptionId", "optionIds"],
+              "additionalProperties": false,
+              "properties": {
+                "id": { "type": "string", "minLength": 1 },
+                "jobId": { "type": "string", "minLength": 1 },
+                "label": { "type": "string", "minLength": 1 },
+                "defaultOptionId": { "type": "string", "minLength": 1 },
+                "optionIds": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": { "type": "string", "minLength": 1 }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

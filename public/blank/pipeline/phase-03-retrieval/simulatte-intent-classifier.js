@@ -178,10 +178,12 @@
     }
     const policy = options.classificationTierPolicy;
     const execution = policy && policy.execution || {};
-    const modelKey = execution.defaultCompactModelKey;
-    const candidateId = execution.defaultCompactCandidateId;
+    const selectedTierId = options.classificationTierId || execution.defaultCompactCandidateId;
+    const selectedTier = policy && (policy.tiers || []).find((tier) => tier.id === selectedTierId);
+    const modelKey = selectedTier && selectedTier.modelKey || execution.defaultCompactModelKey;
+    const candidateId = selectedTier && selectedTier.candidateId || selectedTierId;
     const requests = requestApi.buildRequests(prompt, options.languageGraph, options.sceneLanguageGraph);
-    if (!policy || policy.schema !== 'simulatte.classificationTierPolicy.v1' || !modelKey || !candidateId) {
+    if (!policy || policy.schema !== 'simulatte.classificationTierPolicy.v1' || !selectedTier || selectedTier.adapter !== 'browser-compact' || !modelKey || !candidateId) {
       return Object.freeze({
         schema: 'simulatte.boundedHeadClassification.v1',
         status: 'not-configured',

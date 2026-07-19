@@ -466,6 +466,7 @@
             runtime,
             provider,
             sceneLanguageGraph: options.sceneLanguageGraph,
+            classificationTierId: options.classificationTierId || null,
             calibration: options.classificationCalibration
               || runtime.promptRuntimeReceipt && runtime.promptRuntimeReceipt.classificationCalibration
               || null,

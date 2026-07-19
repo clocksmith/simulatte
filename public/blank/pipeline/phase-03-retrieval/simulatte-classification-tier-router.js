@@ -19,7 +19,8 @@
     async function classify(request, options = {}) {
       requireText(request && request.headId, 'classification request headId');
       const attempts = [];
-      for (const tierId of policy.routing.order) {
+      const routeOrder = options.selectedTierId ? [options.selectedTierId] : policy.routing.order;
+      for (const tierId of routeOrder) {
         const tier = tiersById.get(tierId);
         if (!tier) throw new Error(`Classification routing references unknown tier ${tierId}`);
         const availability = tierAvailability(tier, providers, options, request.headId);
@@ -37,7 +38,8 @@
 
     async function classifyMany(requests, options = {}) {
       if (!Array.isArray(requests)) throw new Error('Classification requests must be an array');
-      await prewarmEmbeddingTiers(requests, policy, tiersById, providers, options, embeddingCache, embeddingCacheMaxEntries);
+      const routeOrder = options.selectedTierId ? [options.selectedTierId] : policy.routing.order;
+      await prewarmEmbeddingTiers(requests, routeOrder, tiersById, providers, options, embeddingCache, embeddingCacheMaxEntries);
       const routes = await Promise.all(requests.map((request) => classify(request, options)));
       const results = routes.map((route) => compactResult(route.result));
       return Object.freeze({
@@ -180,8 +182,8 @@
     };
   }
 
-  async function prewarmEmbeddingTiers(requests, policy, tiersById, providers, options, cache, cacheMaxEntries) {
-    for (const tierId of policy.routing.order) {
+  async function prewarmEmbeddingTiers(requests, routeOrder, tiersById, providers, options, cache, cacheMaxEntries) {
+    for (const tierId of routeOrder) {
       const tier = tiersById.get(tierId);
       if (!tier || tier.adapter !== 'embedding-labels') continue;
       const eligibleRequests = requests.filter((request) => tierAvailability(tier, providers, options, request.headId).available);
