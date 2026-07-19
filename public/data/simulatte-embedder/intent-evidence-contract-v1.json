@@ -3,11 +3,11 @@
   "id": "simulatte-qwen-intent-evidence-contract-v1",
   "modelRuntimeLock": {
     "id": "simulatte-doppler-qwen-runtime-lock",
-    "number": 11,
+    "number": 12,
     "artifact": "./model-runtime-lock.json",
     "artifactHash": {
       "alg": "sha256",
-      "hex": "cc7f7425581730c3747fb5b9d96b67115014c5be1b9ee60875af9244fdc62c7b"
+      "hex": "649bf7026ae3a99f527feca62e3b64630018348431a1ed31e11e383f2dc0e4ac"
     }
   },
   "embeddedInputs": [

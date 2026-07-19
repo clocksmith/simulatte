@@ -15,6 +15,8 @@ const MODES = new Set([
   'linear-classification',
   'linear-svc-classification',
   'multinomial-nb-classification',
+  'complement-nb-classification',
+  'nb-svm-logistic-classification',
   'sgd-modified-huber-classification',
   'nli-classification',
   'embedding-classification',

@@ -83,7 +83,7 @@
     const labels = head.labels.filter((label) => !head.scoredLabelsExclude.includes(label));
     const rows = [
       { text: String(request.text || ''), embeddingKind: 'query' },
-      ...labels.map((label) => ({ text: label.replaceAll('-', ' '), embeddingKind: 'document' })),
+      ...embeddingLabelRows(head, labels),
     ];
     const vectors = await embeddingVectors(provider, tier, rows, options, embeddingCache, embeddingCacheMaxEntries);
     if (vectors.length !== rows.length) throw new Error(`${tier.providerId} returned ${vectors.length}/${rows.length} embeddings`);
@@ -191,9 +191,10 @@
         rows.push({ text: String(request.text || ''), embeddingKind: 'query' });
         const head = compactRuntime.artifact.heads.find((row) => row.id === request.headId);
         if (!head) throw new Error(`Embedding classifier head is unknown: ${request.headId}`);
-        for (const label of head.labels.filter((id) => !head.scoredLabelsExclude.includes(id))) {
-          rows.push({ text: label.replaceAll('-', ' '), embeddingKind: 'document' });
-        }
+        rows.push(...embeddingLabelRows(
+          head,
+          head.labels.filter((id) => !head.scoredLabelsExclude.includes(id))
+        ));
       }
       await embeddingVectors(providers[tier.providerId], tier, rows, options, cache, cacheMaxEntries);
     }
@@ -229,6 +230,14 @@
 
   function embeddingCacheKey(identity, modelId, row) {
     return `${identity}\u0000${modelId}\u0000${row.embeddingKind}\u0000${String(row.text || '').trim().toLowerCase()}`;
+  }
+
+  function embeddingLabelRows(head, labels) {
+    const prototypes = new Map((head.labelPrototypes || []).map((row) => [row.id, row.text]));
+    return labels.map((label) => ({
+      text: requireText(prototypes.get(label), `${head.id}.${label} label prototype`),
+      embeddingKind: 'document',
+    }));
   }
 
   function normalizeVector(output, label) {

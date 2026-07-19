@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.modelRuntimeLock.v1",
   "id": "simulatte-doppler-qwen-runtime-lock",
-  "number": 11,
+  "number": 12,
   "doppler": {
     "moduleUrl": "../../vendor/doppler/src/index.js",
     "deviceModuleUrl": "../../vendor/doppler/src/tooling-exports/device.js",
@@ -107,13 +107,13 @@
   },
   "classification": {
     "schema": "simulatte.classificationTierPolicy.v1",
-    "id": "simulatte-blank-classification-tiers-v2",
+    "id": "simulatte-blank-classification-tiers-v3",
     "phase": 3,
     "artifact": {
       "id": "simulatte-browser-compact-classifiers-v1",
       "path": "../simulatte-compact-classifiers.js",
-      "sha256": "ca0ce50fc9c98bd11799692c2950e930df6a48e6e7314206a891465da68ab7f8",
-      "sizeBytes": 437776
+      "sha256": "1fa9fd9ee82e0f9cb881fbeddd4f62e74a55ef74a16f91b01ebff095922ea1fc",
+      "sizeBytes": 767793
     },
     "execution": {
       "defaultCompactCandidateId": "multinomial-nb-tfidf-head",
@@ -126,9 +126,11 @@
       "kind": "cheapest-qualified-first",
       "order": [
         "multinomial-nb-tfidf-head",
+        "complement-nb-tfidf-head",
         "linear-svc-tfidf-head",
         "linear-tfidf-head",
         "sgd-modified-huber-tfidf-head",
+        "nb-svm-logistic-tfidf-head",
         "minilm-nli-classifier",
         "deberta-small-nli-classifier",
         "qwen3-embedding-classifier-control"
@@ -142,6 +144,15 @@
         "candidateId": "multinomial-nb-tfidf-head",
         "adapter": "browser-compact",
         "modelKey": "multinomialNB",
+        "status": "evaluation-only",
+        "availability": "browser-ready",
+        "requiresConsent": false
+      },
+      {
+        "id": "complement-nb-tfidf-head",
+        "candidateId": "complement-nb-tfidf-head",
+        "adapter": "browser-compact",
+        "modelKey": "complementNB",
         "status": "evaluation-only",
         "availability": "browser-ready",
         "requiresConsent": false
@@ -169,6 +180,15 @@
         "candidateId": "sgd-modified-huber-tfidf-head",
         "adapter": "browser-compact",
         "modelKey": "sgdModifiedHuber",
+        "status": "evaluation-only",
+        "availability": "browser-ready",
+        "requiresConsent": false
+      },
+      {
+        "id": "nb-svm-logistic-tfidf-head",
+        "candidateId": "nb-svm-logistic-tfidf-head",
+        "adapter": "browser-compact",
+        "modelKey": "nbSvmLogistic",
         "status": "evaluation-only",
         "availability": "browser-ready",
         "requiresConsent": false

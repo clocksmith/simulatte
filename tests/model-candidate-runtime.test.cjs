@@ -14,18 +14,20 @@ test('candidate registry pins concrete task-specific implementations and blocks 
   const report = validateCandidateRegistry(registry, lock, { root });
 
   assert.deepEqual(report.taskCandidateCounts, {
-    classification: 8,
+    classification: 10,
     'embedding-retrieval': 3,
     reranking: 4,
   });
-  assert.equal(report.modelLockNumber, 11);
+  assert.equal(report.modelLockNumber, 12);
   const classification = registry.tasks.classification;
   assert.deepEqual(classification.map((row) => row.id), [
     'deterministic-tfidf-control',
     'multinomial-nb-tfidf-head',
+    'complement-nb-tfidf-head',
     'linear-tfidf-head',
     'linear-svc-tfidf-head',
     'sgd-modified-huber-tfidf-head',
+    'nb-svm-logistic-tfidf-head',
     'minilm-nli-classifier',
     'deberta-small-nli-classifier',
     'qwen3-embedding-classifier-control',
@@ -71,6 +73,54 @@ test('deterministic candidate process receives no gold and receipts no model exe
   assert.equal(receipt.rows[0].predictedLabel, 'flying');
   assert.equal(receipt.runtime.deviceId, 'cpu');
   fs.rmSync(directory, { recursive: true, force: true });
+});
+
+test('all compact screening modes execute the governed material prototypes', async () => {
+  const { classificationLabelPrototype } = await import('../tools/samer/classification-label-prototypes.mjs');
+  const jobs = readJson('tools/samer/classification-jobs-v1.json');
+  const material = jobs.jobs.find((row) => row.id === 'material');
+  const modes = [
+    'multinomial-nb-classification',
+    'complement-nb-classification',
+    'linear-svc-classification',
+    'linear-classification',
+    'sgd-modified-huber-classification',
+    'nb-svm-logistic-classification',
+  ];
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'simulatte-compact-candidates-'));
+  const input = path.join(directory, 'input.json');
+  fs.writeFileSync(input, JSON.stringify({
+    schema: 'simulatte.modelCandidateWorkload.v1',
+    id: 'compact-classification-smoke-v1',
+    candidateId: 'compact-smoke',
+    task: 'classification',
+    rows: [{
+      id: 'row-1',
+      headId: 'material',
+      text: 'a clear glass lens',
+      span: 'glass',
+      labels: ['glass', 'metal', 'water'].map((id) => ({
+        id,
+        description: classificationLabelPrototype(material, id),
+      })),
+      abstentionId: 'abstain',
+    }],
+  }));
+  try {
+    for (const mode of modes) {
+      const result = spawnSync('python3', [
+        'tools/samer/model-candidate-runtime.py',
+        '--input', input,
+        '--mode', mode,
+      ], { cwd: root, encoding: 'utf8' });
+      assert.equal(result.status, 0, `${mode}: ${result.stderr}`);
+      const receipt = JSON.parse(result.stdout);
+      assert.equal(receipt.rows[0].predictedLabel, 'glass', mode);
+      assert.equal(receipt.model.executed, true, mode);
+    }
+  } finally {
+    fs.rmSync(directory, { recursive: true, force: true });
+  }
 });
 
 test('sealed sanitizer strips evaluator labels and scorer preserves task-specific metrics', async () => {

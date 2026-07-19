@@ -68,7 +68,7 @@
   "modelRuntimeLock": {
     "id": "simulatte-doppler-qwen-runtime-lock",
     "path": "../simulatte-embedder/model-runtime-lock.json",
-    "sha256": "cc7f7425581730c3747fb5b9d96b67115014c5be1b9ee60875af9244fdc62c7b"
+    "sha256": "649bf7026ae3a99f527feca62e3b64630018348431a1ed31e11e383f2dc0e4ac"
   },
   "occurrenceCatalog": {
     "id": "nyc-replay-patterns-v1",
@@ -90,9 +90,9 @@
     "neuralDownloadBytes": 558475264
   },
   "placeResolutionEvidence": {
-    "id": "place-resolution-public-diagnostic-v4",
-    "path": "./evidence/place-resolution-public-diagnostic-v4.json",
-    "sha256": "c60c37ec57f90f65cb8f7c1f440c3215107f48dd24b730b2405ee60f655cac42"
+    "id": "place-resolution-public-diagnostic-v5",
+    "path": "./evidence/place-resolution-public-diagnostic-v5.json",
+    "sha256": "54daab0b0bdc63aec07b34b73a898b706a6f10cdbab9ffb1be953a71cda44b6a"
   },
   "policy": {
     "id": "bet-selector-v1",

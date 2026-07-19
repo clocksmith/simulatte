@@ -11,9 +11,11 @@
   const RESULT_SCHEMA = 'simulatte.compactClassificationResult.v1';
   const MODEL_KEYS = Object.freeze([
     'multinomialNB',
+    'complementNB',
     'linearSVC',
     'logisticRegression',
     'sgdModifiedHuber',
+    'nbSvmLogistic',
   ]);
   if (artifact.schema !== ARTIFACT_SCHEMA) {
     throw new Error(`Compact classifier expected ${ARTIFACT_SCHEMA}, received ${artifact.schema || 'missing'}`);

@@ -6,6 +6,10 @@
     {
       "id": "scene-domain",
       "inputUnit": "prompt",
+      "labelPrototype": {
+        "schema": "simulatte.classificationLabelPrototype.v1",
+        "template": "Scene domain: {label}. The requested simulation is primarily about {label}."
+      },
       "labels": [
         "acoustic",
         "advanced-energy",
@@ -56,6 +60,10 @@
     {
       "id": "span-entity-role",
       "inputUnit": "prompt-span",
+      "labelPrototype": {
+        "schema": "simulatte.classificationLabelPrototype.v1",
+        "template": "Span role: {label}. The selected prompt span functions as {label}."
+      },
       "labels": [
         "actor",
         "object",
@@ -84,6 +92,10 @@
     {
       "id": "relation",
       "inputUnit": "ordered-entity-pair-in-prompt",
+      "labelPrototype": {
+        "schema": "simulatte.classificationLabelPrototype.v1",
+        "template": "Entity relation: {label}. The ordered entity pair has the explicit relation {label}."
+      },
       "labels": [
         "above",
         "below",
@@ -118,6 +130,10 @@
     {
       "id": "material",
       "inputUnit": "entity-or-part-span",
+      "labelPrototype": {
+        "schema": "simulatte.classificationLabelPrototype.v1",
+        "template": "Material class: {label}. The entity or part is made of {label}."
+      },
       "labels": [
         "air",
         "biomass",
@@ -156,6 +172,10 @@
     {
       "id": "pose",
       "inputUnit": "actor-or-articulated-object-span",
+      "labelPrototype": {
+        "schema": "simulatte.classificationLabelPrototype.v1",
+        "template": "Pose or action: {label}. The actor or articulated object is {label}."
+      },
       "labels": [
         "flying",
         "standing",
@@ -188,6 +208,10 @@
     {
       "id": "obligation-support",
       "inputUnit": "typed-prompt-obligation",
+      "labelPrototype": {
+        "schema": "simulatte.classificationLabelPrototype.v1",
+        "template": "Obligation verdict: {label}. The typed prompt obligation is {label}."
+      },
       "labels": [
         "supported",
         "unsupported",

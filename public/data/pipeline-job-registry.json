@@ -107,6 +107,14 @@
       "performanceRefs": []
     },
     {
+      "id": "complement-nb-tfidf-classification",
+      "jobId": "find-candidates",
+      "label": "Complement Naive Bayes over TF-IDF",
+      "kind": "model",
+      "modelLockPath": "public/data/simulatte-embedder/model-runtime-lock.json#classification",
+      "performanceRefs": []
+    },
+    {
       "id": "linear-svc-tfidf-classification",
       "jobId": "find-candidates",
       "label": "LinearSVC over TF-IDF",
@@ -128,6 +136,14 @@
       "id": "sgd-modified-huber-tfidf-classification",
       "jobId": "find-candidates",
       "label": "SGD modified-Huber over TF-IDF",
+      "kind": "model",
+      "modelLockPath": "public/data/simulatte-embedder/model-runtime-lock.json#classification",
+      "performanceRefs": []
+    },
+    {
+      "id": "nb-svm-logistic-tfidf-classification",
+      "jobId": "find-candidates",
+      "label": "NB-SVM logistic head over TF-IDF",
       "kind": "model",
       "modelLockPath": "public/data/simulatte-embedder/model-runtime-lock.json#classification",
       "performanceRefs": []
@@ -355,9 +371,11 @@
           "surfaceStrategies": [
             { "id": "deterministic-tfidf-classification", "status": "default" },
             { "id": "multinomial-nb-tfidf-classification", "status": "evaluation-only" },
+            { "id": "complement-nb-tfidf-classification", "status": "evaluation-only" },
             { "id": "linear-svc-tfidf-classification", "status": "evaluation-only" },
             { "id": "linear-tfidf-classification", "status": "evaluation-only" },
             { "id": "sgd-modified-huber-tfidf-classification", "status": "evaluation-only" },
+            { "id": "nb-svm-logistic-tfidf-classification", "status": "evaluation-only" },
             { "id": "minilm-nli-classification", "status": "evaluation-only" },
             { "id": "deberta-nli-classification", "status": "evaluation-only" },
             { "id": "qwen-embedding-classification", "status": "evaluation-only" },

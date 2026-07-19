@@ -7,6 +7,11 @@ const routerApi = require('../public/blank/pipeline/phase-03-retrieval/simulatte
 const conditionalReranking = require('../public/blank/pipeline/phase-03-retrieval/simulatte-conditional-reranking.js');
 
 test('browser compact tiers execute but abstain without candidate-specific calibration', () => {
+  for (const head of runtime.artifact.heads) {
+    const expected = head.labels.filter((id) => !head.scoredLabelsExclude.includes(id));
+    assert.deepEqual(head.labelPrototypes.map((row) => row.id), expected, head.id);
+    assert.ok(head.labelPrototypes.every((row) => row.text !== row.id.replaceAll('-', ' ')), head.id);
+  }
   for (const modelKey of runtime.MODEL_KEYS) {
     const result = runtime.classify('material', 'a clear glass lens', { modelKey });
     assert.equal(result.modelExecuted, true, modelKey);
@@ -99,6 +104,7 @@ test('Qwen embedding classification batches and reuses fixed label vectors after
 
   assert.equal(calls.length, 1);
   assert.equal(calls[0].filter((row) => row.embeddingKind === 'query').length, 1);
+  assert.match(calls[0].find((row) => row.embeddingKind === 'document' && row.text.includes('glass')).text, /Material class:/);
   assert.equal(receipt.acceptedCount, 2);
   assert.equal(receipt.routes[0].selectedTierId, 'qwen3-embedding-classifier-control');
   assert.equal(receipt.results[0].predictedLabel, 'glass');

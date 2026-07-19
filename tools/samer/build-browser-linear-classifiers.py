@@ -4,10 +4,11 @@ import hashlib
 import json
 from pathlib import Path
 
+import numpy as np
 import sklearn
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression, SGDClassifier
-from sklearn.naive_bayes import MultinomialNB
+from sklearn.naive_bayes import ComplementNB, MultinomialNB
 from sklearn.svm import LinearSVC
 
 
@@ -24,31 +25,34 @@ def round_values(values):
     return [round(float(value), 8) for value in values]
 
 
-def label_description(label):
-    return label.replace("-", " ")
+def label_prototype(job, label):
+    readable = label.replace("-", " ")
+    prototype = job.get("labelPrototype", {})
+    if prototype.get("schema") != "simulatte.classificationLabelPrototype.v1":
+        raise ValueError(f"{job['id']} labelPrototype schema is required")
+    template = prototype.get("template", "")
+    if template.count("{label}") < 1:
+        raise ValueError(f"{job['id']} labelPrototype template must contain {{label}}")
+    return template.replace("{label}", readable)
 
 
-def training_rows(labels):
+def training_rows(job, labels):
     texts = []
     targets = []
     for label in labels:
-        description = label_description(label)
-        for template in (
-            "{description}",
-            "this request describes {description}",
-            "the grounded visual class is {description}",
-            "show {description}",
-        ):
-            texts.append(template.format(description=description))
+        readable = label.replace("-", " ")
+        prototype = label_prototype(job, label)
+        for text in (readable, prototype, f"Request evidence: {prototype}", f"Show {readable}"):
+            texts.append(text)
             targets.append(label)
     return texts, targets
 
 
-def model_row(model_id, model, score_kind, coefficients=None, intercepts=None):
+def model_row(model_id, model, score_kind, coefficients=None, intercepts=None, classes=None):
     return {
         "id": model_id,
         "scoreKind": score_kind,
-        "classes": [str(value) for value in model.classes_],
+        "classes": [str(value) for value in (classes if classes is not None else model.classes_)],
         "coefficients": round_rows(coefficients if coefficients is not None else model.coef_),
         "intercepts": round_values(intercepts if intercepts is not None else model.intercept_),
         "qualification": {
@@ -60,7 +64,7 @@ def model_row(model_id, model, score_kind, coefficients=None, intercepts=None):
 
 def build_head(job):
     labels = [label for label in job["labels"] if label not in job.get("scoredLabelsExclude", [])]
-    texts, targets = training_rows(labels)
+    texts, targets = training_rows(job, labels)
     vectorizer = TfidfVectorizer(
         lowercase=True,
         ngram_range=(1, 2),
@@ -69,6 +73,7 @@ def build_head(job):
     )
     vectors = vectorizer.fit_transform(texts)
     multinomial_nb = MultinomialNB(alpha=1.0).fit(vectors, targets)
+    complement_nb = ComplementNB(alpha=1.0).fit(vectors, targets)
     linear_svc = LinearSVC(C=1.0, random_state=17).fit(vectors, targets)
     logistic = LogisticRegression(max_iter=400, random_state=17).fit(vectors, targets)
     sgd_modified_huber = SGDClassifier(
@@ -77,12 +82,17 @@ def build_head(job):
         random_state=17,
         tol=1e-3,
     ).fit(vectors, targets)
+    nb_svm_classes, nb_svm_coefficients, nb_svm_intercepts = train_nb_svm(vectors, targets)
     vocabulary = sorted(vectorizer.vocabulary_.items(), key=lambda row: row[1])
     return {
         "id": job["id"],
         "inputUnit": job["inputUnit"],
         "labels": job["labels"],
         "scoredLabelsExclude": job.get("scoredLabelsExclude", []),
+        "labelPrototype": job["labelPrototype"],
+        "labelPrototypes": [
+            {"id": label, "text": label_prototype(job, label)} for label in labels
+        ],
         "abstention": job["abstention"],
         "vectorizer": {
             "id": "simulatte.sklearn-tfidf-word-1-2.v1",
@@ -101,6 +111,13 @@ def build_head(job):
                 coefficients=multinomial_nb.feature_log_prob_,
                 intercepts=multinomial_nb.class_log_prior_,
             ),
+            "complementNB": model_row(
+                "simulatte.browser-complement-nb-tfidf.v1",
+                complement_nb,
+                "log-joint",
+                coefficients=complement_nb.feature_log_prob_,
+                intercepts=np.zeros(len(complement_nb.classes_)),
+            ),
             "linearSVC": model_row(
                 "simulatte.browser-linear-svc-tfidf.v1",
                 linear_svc,
@@ -116,8 +133,36 @@ def build_head(job):
                 sgd_modified_huber,
                 "modified-huber-decision",
             ),
+            "nbSvmLogistic": model_row(
+                "simulatte.browser-nb-svm-logistic-tfidf.v1",
+                logistic,
+                "softmax-logit",
+                coefficients=nb_svm_coefficients,
+                intercepts=nb_svm_intercepts,
+                classes=nb_svm_classes,
+            ),
         },
     }
+
+
+def train_nb_svm(vectors, targets):
+    classes = sorted(set(targets))
+    target_array = np.asarray(targets)
+    coefficients = []
+    intercepts = []
+    for class_id in classes:
+        positive = target_array == class_id
+        negative = ~positive
+        positive_rate = (1 + np.asarray(vectors[positive].sum(axis=0)).ravel()) / (1 + positive.sum())
+        negative_rate = (1 + np.asarray(vectors[negative].sum(axis=0)).ravel()) / (1 + negative.sum())
+        log_count_ratio = np.log(positive_rate / negative_rate)
+        binary = positive.astype(int)
+        classifier = LogisticRegression(max_iter=400, random_state=17).fit(
+            vectors.multiply(log_count_ratio), binary
+        )
+        coefficients.append(classifier.coef_[0] * log_count_ratio)
+        intercepts.append(classifier.intercept_[0])
+    return classes, np.asarray(coefficients), np.asarray(intercepts)
 
 
 def build_artifact():

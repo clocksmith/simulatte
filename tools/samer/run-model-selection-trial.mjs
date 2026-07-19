@@ -7,6 +7,7 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { environmentSha256, evaluateModelSelectionFrontier } from '../model-selection-frontier.mjs';
 import { readCandidateRegistry, validateCandidateRegistry } from './check-model-candidate-registry.mjs';
+import { classificationLabelPrototype } from './classification-label-prototypes.mjs';
 import {
   applyClassificationCalibration,
   assertCalibrationDisjoint,
@@ -55,7 +56,7 @@ export function sanitizedWorkload(population, task, jobs, candidateId, evaluatio
         span: row.input.span || '',
         labels: job.labels
           .filter((id) => id !== job.abstention.label)
-          .map((id) => ({ id, description: labelDescription(id) })),
+          .map((id) => ({ id, description: classificationLabelPrototype(job, id) })),
         abstentionId: job.abstention.label,
       };
     }
@@ -226,7 +227,7 @@ function runCandidate(candidate, workloadPath, outputPath, registry, cacheRoot) 
   const entrypoint = path.resolve(ROOT, registry.comparisonEnvironment.entrypoint);
   const args = [entrypoint, '--input', workloadPath, '--out', outputPath, '--mode', candidate.mode];
   const localCompact = candidate.mode.endsWith('-classification')
-    && ['linear', 'linear-svc', 'multinomial-nb', 'sgd-modified-huber']
+    && ['linear', 'linear-svc', 'multinomial-nb', 'complement-nb', 'nb-svm-logistic', 'sgd-modified-huber']
       .some((prefix) => candidate.mode === `${prefix}-classification`);
   if (candidate.modelId && !localCompact) args.push('--model-id', candidate.modelId);
   if (candidate.revision && !localCompact) args.push('--revision', candidate.revision);
@@ -567,10 +568,6 @@ function assertNoGold(value) {
     }
   };
   visit(value);
-}
-
-function labelDescription(id) {
-  return id.replace(/-/g, ' ');
 }
 
 function mean(values) {

@@ -38,6 +38,8 @@ def parse_args() -> argparse.Namespace:
             "linear-classification",
             "linear-svc-classification",
             "multinomial-nb-classification",
+            "complement-nb-classification",
+            "nb-svm-logistic-classification",
             "sgd-modified-huber-classification",
             "nli-classification",
             "embedding-classification",
@@ -158,15 +160,44 @@ def run_deterministic(workload: dict, typed_boost: bool = False) -> tuple[list[d
 
 
 def run_compact_classification(workload: dict, classifier_kind: str) -> tuple[list[dict], dict]:
+    import numpy as np
     from sklearn.feature_extraction.text import TfidfVectorizer
     from sklearn.linear_model import LogisticRegression, SGDClassifier
-    from sklearn.naive_bayes import MultinomialNB
+    from sklearn.naive_bayes import ComplementNB, MultinomialNB
     from sklearn.svm import LinearSVC
+
+    class NbSvmLogistic:
+        def fit(self, vectors, labels):
+            self.classes_ = np.asarray(sorted(set(labels)))
+            label_array = np.asarray(labels)
+            self.models = []
+            for class_id in self.classes_:
+                positive = label_array == class_id
+                negative = ~positive
+                positive_rate = (1 + np.asarray(vectors[positive].sum(axis=0)).ravel()) / (1 + positive.sum())
+                negative_rate = (1 + np.asarray(vectors[negative].sum(axis=0)).ravel()) / (1 + negative.sum())
+                ratio = np.log(positive_rate / negative_rate)
+                classifier = LogisticRegression(max_iter=400, random_state=17).fit(
+                    vectors.multiply(ratio), positive.astype(int)
+                )
+                self.models.append((ratio, classifier))
+            return self
+
+        def predict_proba(self, vectors):
+            logits = np.column_stack([
+                classifier.decision_function(vectors.multiply(ratio))
+                for ratio, classifier in self.models
+            ])
+            logits -= logits.max(axis=1, keepdims=True)
+            probabilities = np.exp(logits)
+            return probabilities / probabilities.sum(axis=1, keepdims=True)
 
     constructors = {
         "logistic": lambda: LogisticRegression(max_iter=400, random_state=17),
         "linear-svc": lambda: LinearSVC(C=1.0, random_state=17),
         "multinomial-nb": lambda: MultinomialNB(alpha=1.0),
+        "complement-nb": lambda: ComplementNB(alpha=1.0),
+        "nb-svm-logistic": NbSvmLogistic,
         "sgd-modified-huber": lambda: SGDClassifier(
             loss="modified_huber", max_iter=1000, random_state=17, tol=1e-3
         ),
@@ -186,13 +217,9 @@ def run_compact_classification(workload: dict, classifier_kind: str) -> tuple[li
         for label in labels:
             label_id = label["id"]
             description = label.get("description") or label_id.replace("-", " ")
-            for template in (
-                "{description}",
-                "this request describes {description}",
-                "the grounded visual class is {description}",
-                "show {description}",
-            ):
-                train_texts.append(template.format(description=description))
+            readable = label_id.replace("-", " ")
+            for text in (readable, description, f"Request evidence: {description}", f"Show {readable}"):
+                train_texts.append(text)
                 train_labels.append(label_id)
         vectorizer = TfidfVectorizer(lowercase=True, ngram_range=(1, 2), analyzer="word", sublinear_tf=True)
         vectors = vectorizer.fit_transform(train_texts)
@@ -565,6 +592,16 @@ def main() -> None:
             fail("multinomial-nb-classification requires a classification workload")
         rows, performance = run_compact_classification(workload, "multinomial-nb")
         model_id = "simulatte-public-taxonomy-multinomial-nb-v1"
+    elif args.mode == "complement-nb-classification":
+        if workload["task"] != "classification":
+            fail("complement-nb-classification requires a classification workload")
+        rows, performance = run_compact_classification(workload, "complement-nb")
+        model_id = "simulatte-public-taxonomy-complement-nb-v1"
+    elif args.mode == "nb-svm-logistic-classification":
+        if workload["task"] != "classification":
+            fail("nb-svm-logistic-classification requires a classification workload")
+        rows, performance = run_compact_classification(workload, "nb-svm-logistic")
+        model_id = "simulatte-public-taxonomy-nb-svm-logistic-v1"
     elif args.mode == "sgd-modified-huber-classification":
         if workload["task"] != "classification":
             fail("sgd-modified-huber-classification requires a classification workload")
