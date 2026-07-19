@@ -39,6 +39,7 @@ const universeParser = require('../public/language/simulatte-universe-parser.js'
 const regionApi = require('../public/world/region-pack-merger.js');
 const ambientActorApi = require('../public/world/ambient-actors.js');
 const cameraApi = require('../public/app/camera-controller.js');
+const loadingMosaicApi = require('../public/app/loading-mosaic.js');
 const appApi = require('../public/app/main.js');
 const gpuMath = require('../public/app/webgpu-math.js');
 const rendererApi = require('../public/app/webgpu-renderer.js');
@@ -1379,6 +1380,8 @@ test('autonomy browser surface loads every declared module and stays independent
   assert.ok(scripts.indexOf('./world/region-pack-merger.js') < scripts.indexOf('./platform/bootstrap/application-loader.js'));
   scripts.forEach((source) => assert.ok(fs.existsSync(path.resolve(autonomyDir, source)), `${source} should exist`));
   assert.match(html, /id="autonomy-canvas"/);
+  assert.match(html, /id="loading-screen"[^>]*role="status"/);
+  assert.match(html, /src="\.\/app\/loading-mosaic\.js\?v=[^"]+"/);
   assert.match(html, /id="follow-minimap"/);
   assert.match(html, /id="shuffle-button"[^>]*>Shuffle</);
   assert.match(html, /id="start-button"[^>]*>[\s\S]*?Start<\/button>/);
@@ -1395,6 +1398,29 @@ test('autonomy browser surface loads every declared module and stays independent
   for (const file of autonomySourceDirs.flatMap(jsFiles)) {
     assert.ok(fs.readFileSync(file, 'utf8').split(/\r?\n/).length <= 999, `${path.relative(root, file)} should remain below 1,000 lines`);
   }
+});
+
+test('loading mosaic visits every tile once in clockwise inward spiral order', () => {
+  assert.deepEqual(loadingMosaicApi.spiralCells(3), [
+    [0, 0], [0, 1], [0, 2], [1, 2], [2, 2], [2, 1], [2, 0], [1, 0], [1, 1],
+  ]);
+  const cells = loadingMosaicApi.spiralCells(9);
+  assert.equal(cells.length, 81);
+  assert.equal(new Set(cells.map((cell) => cell.join(':'))).size, 81);
+});
+
+test('every first-party plugin is selectable through a governed application profile', () => {
+  const manifest = readJson('public/data/autonomy/autonomy-manifest.json');
+  const references = [manifest.applicationProfile, ...manifest.applicationProfiles];
+  const profiles = references.map((reference) => readJson(path.join('public/data/autonomy', reference.path)));
+  const selectablePluginIds = new Set(profiles.flatMap((profile) => profile.plugins.map((row) => row.id)));
+  const registeredPluginIds = fs.readdirSync(path.join(publicDir, 'plugins'), { withFileTypes: true })
+    .filter((entry) => entry.isDirectory() && fs.existsSync(path.join(publicDir, 'plugins', entry.name, 'plugin.json')))
+    .map((entry) => entry.name);
+  assert.deepEqual([...selectablePluginIds].sort(), registeredPluginIds.sort());
+  registeredPluginIds.forEach((pluginId) => {
+    assert.ok(profiles.some((profile) => profile.id.startsWith(pluginId) || (pluginId === 'cable-trader' && profile.id === 'cable-trader-pickup-v1')), `${pluginId} should have a focused profile`);
+  });
 });
 
 test('autonomy UI keeps the map primary and moves technical controls behind progressive disclosure', () => {
@@ -1426,6 +1452,8 @@ test('autonomy UI keeps the map primary and moves technical controls behind prog
   assert.doesNotMatch(blankHtml, /data-neural-model="reranker-name"/);
   assert.doesNotMatch(html, /WebGPU world model|Decision engine|Route search|Prediction settlement/);
   assert.match(css, /#autonomy-canvas[\s\S]*width: 100%;[\s\S]*height: 100%/);
+  assert.match(css, /\.loading-mosaic[\s\S]*loading-mosaic-spiral/);
+  assert.match(css, /\.sim-app \.neural-consent-dialog[\s\S]*background: rgba\(7, 17, 23, 0\.99\)/);
   assert.match(css, /@media \(max-width: 820px\)[\s\S]*translateY/);
   assert.match(design, /--sim-spectrum:/);
   assert.match(design, /prefers-reduced-motion/);

@@ -268,16 +268,19 @@ async function runBrowserSmoke(options) {
     const actorView = actorViewEvaluation.result.value;
     const actorScreenshot = await client.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false });
     const expectedProfileId = new URL(targetUrl).searchParams.get('profile') || 'simulatte-world-v1';
-    const expectsCooperativeFeatures = expectedProfileId !== 'cable-trader-pickup-v1';
+    const expectedPluginIds = profilePluginIds(expectedProfileId);
+    const expectsP2pDelivery = expectedPluginIds.has('p2p-delivery');
+    const expectsSunWalker = expectedPluginIds.has('sun-walker');
+    const expectsCableTrader = expectedPluginIds.has('cable-trader');
     const featureViewEvaluation = await client.send('Runtime.evaluate', {
-      expression: expectsCooperativeFeatures ? cooperativeFeatureExpression() : inactiveFeatureExpression(),
+      expression: pluginFeatureExpression({ expectsP2pDelivery, expectsSunWalker }),
       awaitPromise: true,
       returnByValue: true,
     });
     if (featureViewEvaluation.exceptionDetails) throw new Error(featureViewEvaluation.exceptionDetails.exception && featureViewEvaluation.exceptionDetails.exception.description || featureViewEvaluation.exceptionDetails.text);
     const featureView = featureViewEvaluation.result.value;
     const result = evaluated.result.value;
-    const featurePass = expectsCooperativeFeatures
+    const p2pDeliveryPass = expectsP2pDelivery
       ? featureView.cooperation.visible
         && featureView.cooperation.title === 'Cooperative delivery'
         && featureView.cooperation.match.length > 0
@@ -285,11 +288,15 @@ async function runBrowserSmoke(options) {
         && featureView.gpuParity.pass
         && featureView.gpuParity.candidateCount === 3
         && featureView.gpuParity.maximumAbsoluteError <= featureView.gpuParity.tolerance
-        && featureView.shade.visible
+      : !featureView.cooperation.visible && featureView.gpuParity === null;
+    const sunWalkerPass = expectsSunWalker
+      ? featureView.shade.visible
         && featureView.shade.routeAlgorithm === 'sun_walker_arrival_time_route_v1'
         && featureView.shade.selected.includes('modeled shade')
-      : !featureView.cooperation.visible && !featureView.shade.visible;
-    const expectsCableTrader = expectedProfileId !== 'simulatte-world-v1';
+      : !featureView.shade.visible;
+    const featurePass = p2pDeliveryPass
+      && sunWalkerPass
+      && featureView.cableTrader.visible === expectsCableTrader;
     const pass = result.state === 'completed'
       && result.rendererBackend === 'webgpu'
       && result.actorMeshSchema === 'simulatte.autonomyActorMesh.v1'
@@ -338,7 +345,7 @@ async function runBrowserSmoke(options) {
       && result.initialLayout.primaryControlsVisible
       && result.applicationProfile.enabled
       && result.applicationProfile.selectedId === expectedProfileId
-      && result.applicationProfile.optionIds.length === 3
+      && result.applicationProfile.optionIds.length === 11
       && decisionView.open
       && decisionView.hidden === 'false'
       && decisionView.expanded === 'true'
@@ -369,7 +376,6 @@ async function runBrowserSmoke(options) {
       && actorView.minimapVisible
       && actorView.minimapFrameCount > 0
       && featurePass
-      && featureView.cableTrader.visible === expectsCableTrader
       && result.scrollY === 0
       && !result.hasHorizontalOverflow
       && errors.length === 0
@@ -406,7 +412,7 @@ async function runBrowserSmoke(options) {
   }
 }
 
-function cooperativeFeatureExpression() {
+function pluginFeatureExpression({ expectsP2pDelivery, expectsSunWalker }) {
   return `(async () => {
     const waitFor = async (predicate, label, limit = 10000) => {
       const started = performance.now();
@@ -431,56 +437,64 @@ function cooperativeFeatureExpression() {
     };
     const input = document.getElementById('mission-input');
     const step = document.getElementById('step-button');
-    input.value = 'I need two AA batteries delivered to my East Village office. Match someone already passing nearby.';
-    input.dispatchEvent(new Event('input', { bubbles: true }));
-    step.click();
-    await waitFor(() => document.querySelector('#plugin-inspector [data-plugin-id="p2p-delivery"]'), 'cooperative-plugin');
-    const cooperationSection = document.querySelector('#plugin-inspector [data-plugin-id="p2p-delivery"]');
-    const cooperationRows = Object.fromEntries([...cooperationSection.querySelectorAll('div')].map((row) => [row.querySelector('dt')?.textContent.trim(), row.querySelector('dd')?.textContent.trim()]));
-    const cooperation = {
-      visible: Boolean(cooperationSection),
-      title: cooperationSection.querySelector('summary').textContent.trim(),
-      match: cooperationRows.Match || '',
-      compensation: cooperationRows.Compensation || '',
-      settlement: cooperationRows.Settlement || '',
-    };
-    const adapter = await navigator.gpu.requestAdapter({ powerPreference: 'high-performance' });
-    if (!adapter) throw new Error('cooperative GPU parity adapter unavailable');
-    const parityDevice = await adapter.requestDevice();
-    const gpuParity = await SimulatteCooperativeGpuCompute.verifyGpuParity(parityDevice, [
-      [120, 45, 0.05, 1, 0, 0.1, 200, 20],
-      [30, 18, 0.01, 0.5, 0, 0.02, 100, 5],
-      [240, 90, 0.2, 2, 0.5, 0.3, 400, 45],
-    ]);
-    parityDevice.destroy();
-    input.value = 'Walk from Union Square to Washington Square in the shade on a hot day.';
-    input.dispatchEvent(new Event('input', { bubbles: true }));
-    step.click();
-    await waitFor(() => {
+    let cooperation = { visible: Boolean(document.querySelector('#plugin-inspector [data-plugin-id="p2p-delivery"]')) };
+    let gpuParity = null;
+    if (${expectsP2pDelivery}) {
+      input.value = 'I need two AA batteries delivered to my East Village office. Match someone already passing nearby.';
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      step.click();
+      await waitFor(() => document.querySelector('#plugin-inspector [data-plugin-id="p2p-delivery"]'), 'cooperative-plugin');
+      const cooperationSection = document.querySelector('#plugin-inspector [data-plugin-id="p2p-delivery"]');
+      const cooperationRows = Object.fromEntries([...cooperationSection.querySelectorAll('div')].map((row) => [row.querySelector('dt')?.textContent.trim(), row.querySelector('dd')?.textContent.trim()]));
+      cooperation = {
+        visible: true,
+        title: cooperationSection.querySelector('summary').textContent.trim(),
+        match: cooperationRows.Match || '',
+        compensation: cooperationRows.Compensation || '',
+        settlement: cooperationRows.Settlement || '',
+      };
+      const adapter = await navigator.gpu.requestAdapter({ powerPreference: 'high-performance' });
+      if (!adapter) throw new Error('cooperative GPU parity adapter unavailable');
+      const parityDevice = await adapter.requestDevice();
+      gpuParity = await SimulatteCooperativeGpuCompute.verifyGpuParity(parityDevice, [
+        [120, 45, 0.05, 1, 0, 0.1, 200, 20],
+        [30, 18, 0.01, 0.5, 0, 0.02, 100, 5],
+        [240, 90, 0.2, 2, 0.5, 0.3, 400, 45],
+      ]);
+      parityDevice.destroy();
+    }
+    let shade = { visible: Boolean(document.querySelector('#plugin-inspector [data-plugin-id="sun-walker"]')) };
+    if (${expectsSunWalker}) {
+      input.value = 'Walk from Union Square to Washington Square in the shade on a hot day.';
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      step.click();
+      await waitFor(() => {
+        const proof = document.getElementById('alternative-proof');
+        return Boolean(document.querySelector('#plugin-inspector [data-plugin-id="sun-walker"]'))
+          && proof.dataset.routeAlgorithm === 'sun_walker_arrival_time_route_v1';
+      }, 'shade-route');
       const proof = document.getElementById('alternative-proof');
-      return Boolean(document.querySelector('#plugin-inspector [data-plugin-id="sun-walker"]'))
-        && proof.dataset.routeAlgorithm === 'sun_walker_arrival_time_route_v1';
-    }, 'shade-route');
-    const proof = document.getElementById('alternative-proof');
-    const shadeSection = document.querySelector('#plugin-inspector [data-plugin-id="sun-walker"]');
-    const shadeRows = Object.fromEntries([...shadeSection.querySelectorAll('div')].map((row) => [row.querySelector('dt')?.textContent.trim(), row.querySelector('dd')?.textContent.trim()]));
-    const shade = {
-      visible: Boolean(shadeSection),
-      routeAlgorithm: proof.dataset.routeAlgorithm || null,
-      selected: shadeRows['Selected route'] || '',
-    };
+      const shadeSection = document.querySelector('#plugin-inspector [data-plugin-id="sun-walker"]');
+      const shadeRows = Object.fromEntries([...shadeSection.querySelectorAll('div')].map((row) => [row.querySelector('dt')?.textContent.trim(), row.querySelector('dd')?.textContent.trim()]));
+      shade = {
+        visible: true,
+        routeAlgorithm: proof.dataset.routeAlgorithm || null,
+        selected: shadeRows['Selected route'] || '',
+      };
+    }
     const cableTrader = { visible: Boolean(document.querySelector('#plugin-inspector [data-plugin-id="cable-trader"]')) };
     return { cooperation, gpuParity, shade, cableTrader };
   })()`;
 }
 
-function inactiveFeatureExpression() {
-  return `(() => ({
-    cooperation: { visible: Boolean(document.querySelector('#plugin-inspector [data-plugin-id="p2p-delivery"]')) },
-    shade: { visible: Boolean(document.querySelector('#plugin-inspector [data-plugin-id="sun-walker"]')) },
-    cableTrader: { visible: Boolean(document.querySelector('#plugin-inspector [data-plugin-id="cable-trader"]')) },
-    gpuParity: null,
-  }))()`;
+function profilePluginIds(profileId) {
+  const manifest = JSON.parse(fs.readFileSync(path.join(PUBLIC, 'data', 'autonomy', 'autonomy-manifest.json'), 'utf8'));
+  const references = [manifest.applicationProfile, ...(manifest.applicationProfiles || [])];
+  const reference = references.find((row) => row.id === profileId);
+  if (!reference) throw new Error(`Autonomy browser profile ${profileId} is not declared`);
+  const profilePath = path.resolve(PUBLIC, 'data', 'autonomy', reference.path);
+  const profile = JSON.parse(fs.readFileSync(profilePath, 'utf8'));
+  return new Set(profile.plugins.map((row) => row.id));
 }
 
 function actorViewExpression() {

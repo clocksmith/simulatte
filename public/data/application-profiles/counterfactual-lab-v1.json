@@ -1,0 +1,6 @@
+{
+  "schema": "simulatte.applicationProfile.v1",
+  "id": "counterfactual-lab-v1",
+  "plugins": [{ "id": "counterfactual-lab", "configId": "counterfactual-lab-default-v1" }],
+  "routeObjective": { "travelSeconds": 1 }
+}

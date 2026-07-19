@@ -1,0 +1,6 @@
+{
+  "schema": "simulatte.applicationProfile.v1",
+  "id": "accessible-journey-v1",
+  "plugins": [{ "id": "accessible-journey", "configId": "accessible-journey-default-v1" }],
+  "routeObjective": { "travelSeconds": 1 }
+}

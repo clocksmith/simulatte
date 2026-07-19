@@ -1,0 +1,6 @@
+{
+  "schema": "simulatte.applicationProfile.v1",
+  "id": "p2p-delivery-v1",
+  "plugins": [{ "id": "p2p-delivery", "configId": "p2p-delivery-default-v1" }],
+  "routeObjective": { "travelSeconds": 1, "marginalDeliverySeconds": 0.2 }
+}

@@ -1,0 +1,6 @@
+{
+  "schema": "simulatte.applicationProfile.v1",
+  "id": "sun-walker-v1",
+  "plugins": [{ "id": "sun-walker", "configId": "sun-walker-default-v1" }],
+  "routeObjective": { "travelSeconds": 1, "sunExposureSeconds": 0.4 }
+}

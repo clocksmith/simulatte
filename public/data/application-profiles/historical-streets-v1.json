@@ -1,0 +1,6 @@
+{
+  "schema": "simulatte.applicationProfile.v1",
+  "id": "historical-streets-v1",
+  "plugins": [{ "id": "historical-streets", "configId": "historical-streets-default-v1" }],
+  "routeObjective": { "travelSeconds": 1, "historicalObservation": 0 }
+}

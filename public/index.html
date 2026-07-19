@@ -12,6 +12,10 @@
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body class="sim-app" data-journey-phase="loading">
+  <div id="loading-screen" class="loading-screen" role="status" aria-label="Loading Simulatte">
+    <div id="loading-mosaic" class="loading-mosaic" aria-hidden="true"></div>
+    <span class="loading-wordmark" aria-hidden="true">Simulatte</span>
+  </div>
   <main class="map-workspace" aria-label="Simulatte">
     <section class="simulation-stage" aria-label="NYC mission map">
       <div class="canvas-shell">
@@ -22,7 +26,7 @@
           <div class="runtime-toolbar">
             <button id="runtime-toggle" class="status-pill sim-surface" type="button" aria-controls="runtime-details" aria-expanded="false">
               <span class="status-dot" aria-hidden="true"></span>
-              <strong id="runtime-status" class="runtime-status" data-kind="loading" aria-live="polite">Loading map</strong>
+              <strong id="runtime-status" class="runtime-status" data-kind="loading" aria-live="polite">Loading</strong>
             </button>
             <label class="profile-selector sim-surface" for="application-profile">
               <span class="sr-only">Application</span>
@@ -211,6 +215,7 @@
     </div>
   </dialog>
 
+  <script defer src="./app/loading-mosaic.js?v=f8a2acaff3cc1dcebb0b3323e16231035877741f-68d122b30ec1"></script>
   <script defer src="./neural-model-consent.js?v=f8a2acaff3cc1dcebb0b3323e16231035877741f-68d122b30ec1"></script>
   <script defer src="./model-selection.js?v=f8a2acaff3cc1dcebb0b3323e16231035877741f-68d122b30ec1"></script>
   <script defer src="./contracts/data-contract-validator.js?v=f8a2acaff3cc1dcebb0b3323e16231035877741f-68d122b30ec1"></script>

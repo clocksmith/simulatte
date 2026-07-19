@@ -38,6 +38,81 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+.loading-screen {
+  position: fixed;
+  z-index: 100;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 22px;
+  background:
+    radial-gradient(circle at 50% 48%, rgba(20, 65, 75, 0.2), transparent 36%),
+    #020812;
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 320ms ease, visibility 320ms step-end;
+}
+
+body:not([data-journey-phase="loading"]) .loading-screen {
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+}
+
+.loading-mosaic {
+  --mosaic-size: 9;
+  display: grid;
+  width: clamp(156px, 24vw, 216px);
+  aspect-ratio: 1;
+  grid-template-columns: repeat(var(--mosaic-size), 1fr);
+  gap: clamp(2px, 0.4vw, 5px);
+}
+
+.loading-mosaic > i {
+  display: block;
+  border-radius: 1px;
+  background: hsl(var(--tile-hue) 54% 58%);
+  opacity: var(--tile-opacity);
+  transform: scale(0.82);
+  animation: loading-mosaic-spiral 3.2s ease-in-out infinite;
+  animation-delay: calc(var(--spiral-step) * 38ms);
+}
+
+.loading-wordmark {
+  color: rgba(237, 245, 243, 0.68);
+  font: 650 11px/1 var(--sim-mono);
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+
+@keyframes loading-mosaic-spiral {
+  0%, 10%, 100% {
+    opacity: var(--tile-opacity);
+    transform: scale(0.82);
+  }
+
+  3.5% {
+    opacity: 0.96;
+    transform: scale(1);
+  }
+}
+
+.sim-app .neural-consent-dialog {
+  color: var(--sim-ink);
+  background: rgba(7, 17, 23, 0.99);
+  box-shadow: 0 28px 90px rgba(0, 3, 8, 0.72);
+}
+
+.sim-app .neural-consent-dialog::backdrop {
+  background: rgba(0, 5, 10, 0.74);
+}
+
+.sim-app .neural-model-row {
+  color: var(--sim-ink);
+  background: rgba(14, 34, 43, 0.96);
+}
+
 button,
 textarea,
 input,
@@ -1338,6 +1413,12 @@ body[data-journey-phase="failed"] .mission-field {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .loading-screen,
+  .loading-mosaic > i {
+    transition: none;
+    animation: none;
+  }
+
   .journey-progress,
   .mission-dock,
   .journey-hud,

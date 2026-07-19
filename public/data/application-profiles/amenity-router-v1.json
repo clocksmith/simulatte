@@ -1,0 +1,6 @@
+{
+  "schema": "simulatte.applicationProfile.v1",
+  "id": "amenity-router-v1",
+  "plugins": [{ "id": "amenity-router", "configId": "amenity-router-default-v1" }],
+  "routeObjective": { "travelSeconds": 1, "amenityDistance": 1 }
+}

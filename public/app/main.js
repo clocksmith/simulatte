@@ -30,6 +30,20 @@
     error: () => null,
     serializeError: (error) => ({ name: error?.name || 'Error', message: error?.message || String(error) }),
   };
+  const PROFILE_LABELS = Object.freeze({
+    'accessible-journey-v1': 'Accessible Journey',
+    'amenity-router-v1': 'Amenity Router',
+    'cable-trader-pickup-v1': 'Cable Trader',
+    'cooperative-cable-city-v1': 'Cooperative Cable City',
+    'counterfactual-lab-v1': 'Counterfactual Lab',
+    'gig-wage-truth-v1': 'Gig Wage Truth',
+    'historical-streets-v1': 'Historical Streets',
+    'p2p-delivery-v1': 'P2P Delivery',
+    'safety-explorer-v1': 'Safety Explorer',
+    'simulatte-world-v1': 'Simulatte World',
+    'sun-walker-v1': 'Sun Walker',
+  });
+  const APPLICATION_PROFILE_IDS = new Set(['simulatte-world-v1', 'cooperative-cable-city-v1']);
 
   async function start() {
     const elements = collectElements();
@@ -40,7 +54,7 @@
       location: window.location.href,
       userAgent: navigator.userAgent,
     });
-    setRuntimeStatus(elements, 'Loading governed assets', 'loading');
+    setRuntimeStatus(elements, 'Loading', 'loading');
     let data;
     try {
       data = await dataLoader.loadApplication();
@@ -538,17 +552,23 @@
 
   function populateApplicationProfiles(select, manifest, selectedId) {
     const references = [manifest.applicationProfile, ...(manifest.applicationProfiles || [])];
-    select.replaceChildren(...references.map((reference) => {
+    const applications = document.createElement('optgroup');
+    const plugins = document.createElement('optgroup');
+    applications.label = 'Applications';
+    plugins.label = 'Plugins';
+    references.forEach((reference) => {
       const option = document.createElement('option');
       option.value = reference.id;
       option.textContent = applicationProfileLabel(reference.id);
-      return option;
-    }));
+      (APPLICATION_PROFILE_IDS.has(reference.id) ? applications : plugins).append(option);
+    });
+    select.replaceChildren(applications, plugins);
     select.value = selectedId;
     select.disabled = false;
   }
 
   function applicationProfileLabel(id) {
+    if (PROFILE_LABELS[id]) return PROFILE_LABELS[id];
     return String(id)
       .replace(/-v\d+$/, '')
       .split('-')

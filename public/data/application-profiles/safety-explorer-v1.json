@@ -1,0 +1,6 @@
+{
+  "schema": "simulatte.applicationProfile.v1",
+  "id": "safety-explorer-v1",
+  "plugins": [{ "id": "safety-explorer", "configId": "safety-explorer-default-v1" }],
+  "routeObjective": { "travelSeconds": 1, "historicalObservation": 1, "riskScore": 1 }
+}
