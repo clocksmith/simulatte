@@ -10,12 +10,13 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginCounterfactualLab",
-    "integrity": "sha384-bed885f6be43fa7a7580671954baaf1bbc230f43730bfd0a66e6bc2d4cd0fb909d2a8ba398245d246f98f65cb0ad2166",
+    "integrity": "sha384-b91bb1822f34888a0ed5f7cf410c2a5c940dbe0d4c4511920781bf10f970bfd234f2906e0b54a3fabb167b584d1c3948",
     "path": "./index.js"
   },
   "extensionPoints": [
     "event",
-    "ui"
+    "ui",
+    "presentation"
   ],
   "id": "counterfactual-lab",
   "permissions": [

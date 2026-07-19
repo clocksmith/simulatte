@@ -19,7 +19,7 @@
     }
     function view() {
       const comparison = sdk.state.read().comparison;
-      return {
+      const inspector = {
         slot: 'inspector',
         title: 'What if',
         rows: comparison ? [
@@ -32,6 +32,32 @@
           { id: 'value', label: 'Street, weight, or date', type: 'text', value: 'Bedford Avenue' },
         ],
         actions: [{ id: 'compare', label: 'Compare' }],
+      };
+      if (!comparison) return inspector;
+      return [inspector, {
+        slot: 'map', title: 'Route comparison',
+        rows: [{ label: 'Overlap', value: comparison.diff?.routeJaccard === null ? 'Unavailable' : `${Math.round(comparison.diff.routeJaccard * 100)}%` }, { label: 'Outcome', value: comparison.diff?.completionChanged ? 'Changed' : 'Stable' }],
+        actions: [
+          { id: 'focus-baseline', label: 'Baseline', command: { kind: 'camera.focus', targetId: 'baseline' } },
+          ...(comparison.challenger?.route?.segmentIds?.length ? [{ id: 'focus-challenger', label: 'Changed', command: { kind: 'camera.focus', targetId: 'challenger' } }] : []),
+        ],
+      }];
+    }
+    function present() {
+      const value = sdk.state.read().comparison;
+      const baseline = value?.baseline?.route?.segmentIds || [];
+      const challenger = value?.challenger?.route?.segmentIds || [];
+      if (!baseline.length) return null;
+      return {
+        schema: 'simulatte.pluginPresentation.v1', markers: [], actors: [],
+        paths: [
+          { id: 'baseline', label: 'Baseline route', segmentIds: baseline, tone: 'blue', widthM: 5, intensity: 0.9 },
+          ...(challenger.length ? [{ id: 'challenger', label: 'Changed route', segmentIds: challenger, tone: 'magenta', widthM: 7, intensity: 1.3 }] : []),
+        ],
+        cameraTargets: [
+          { id: 'baseline', label: 'Baseline route', nodeIds: [], segmentIds: baseline, distanceM: 1200 },
+          ...(challenger.length ? [{ id: 'challenger', label: 'Changed route', nodeIds: [], segmentIds: challenger, distanceM: 1200 }] : []),
+        ],
       };
     }
     async function handleAction(actionId, context) {
@@ -46,7 +72,7 @@
           : { id: `historical-${value}`, kind, historicalObservationWeight: Number(value) };
       return compare({ mission: context.mission, routeObjective: context.routeObjective || {}, change });
     }
-    return Object.freeze({ id: 'counterfactual-lab', capabilities: { 'analysis.counterfactual.v1': compare }, view, handleAction, dispose() {} });
+    return Object.freeze({ id: 'counterfactual-lab', capabilities: { 'analysis.counterfactual.v1': compare }, view, present, handleAction, dispose() {} });
   }
   function reduce(state, event) { return event.kind === 'counterfactual-lab.compared' ? { ...state, comparison: event.comparison } : state; }
   function hash32(value) { let hash = 2166136261; for (const character of String(value)) { hash ^= character.codePointAt(0); hash = Math.imul(hash, 16777619); } return hash >>> 0; }

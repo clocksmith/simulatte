@@ -16,14 +16,15 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginAmenityRouter",
-    "integrity": "sha384-002e3eb80e6ee3a16ef0f4adca13472bbd053e51eef750e26f5712aee14d1adc616e4ea5a062787b04dee713f5e698fc",
+    "integrity": "sha384-65f62c7ccc715c20331a323067ea965ea2c563ed75be4899b1925de2b2e8429dd5d7da06c49565bca600823bc397996c",
     "path": "./index.js"
   },
   "extensionPoints": [
     "request",
     "route",
     "settlement",
-    "ui"
+    "ui",
+    "presentation"
   ],
   "id": "amenity-router",
   "permissions": [

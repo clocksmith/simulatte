@@ -18,6 +18,19 @@
     });
     sdk.state.register(reduce, { snapshot: null });
     const scenario = sdk.datasets.require('battery-office-east-village-v1');
+    const worldModel = sdk.worldQuery.model();
+    const candidateRoutes = scenario.intents.map((intent) => ({
+      participantId: intent.participantId,
+      segmentIds: sdk.routing.plan({
+        worldModel,
+        originNodeId: intent.baselineJourney.originNodeId,
+        destinationNodeId: intent.baselineJourney.destinationNodeId,
+        mode: intent.mode,
+        tick: 0,
+        mission: { constraints: { avoidStreetNames: [], maximumBikeRackDistanceM: null, lanePreference: intent.mode === 'delivery_bike' ? 'protected' : 'any' }, task: { type: 'point_to_point' } },
+        policy: sdk.routing.policy(),
+      }).segmentIds,
+    }));
     let session = null;
 
     async function contributeRequest({ sourceText, mission = null }) {
@@ -59,9 +72,13 @@
 
     function view() {
       const snapshot = sdk.state.read().snapshot;
-      if (!snapshot) return null;
+      if (!snapshot) return {
+        slot: 'map', title: 'Nearby journeys',
+        rows: [{ label: 'Available carriers', value: String(candidateRoutes.length) }, { label: 'Need', value: `${scenario.need.quantity} × ${scenario.need.itemId}` }],
+        actions: [{ id: 'focus-network', label: 'View network', command: { kind: 'camera.focus', targetId: 'delivery-network' } }],
+      };
       const burden = snapshot.plan.marginalBurden;
-      return {
+      const inspector = {
         slot: 'inspector', title: 'Cooperative delivery',
         rows: [
           { label: 'Match', value: `${snapshot.plan.carrierId} · ${snapshot.matching.counts.feasibleCandidates} eligible` },
@@ -72,9 +89,36 @@
         ],
         actions: [],
       };
+      return [inspector, {
+        slot: 'map', title: 'Matched journey',
+        rows: [{ label: 'Carrier', value: snapshot.plan.carrierId }, { label: 'Detour', value: `${Math.round(burden.addedDistanceM)} m` }],
+        actions: [{ id: 'focus-match', label: 'Follow match', command: { kind: 'camera.focus', targetId: 'selected-delivery' } }],
+      }];
     }
 
-    return Object.freeze({ id: 'p2p-delivery', contributeRequest, settle, view, capabilities: { 'fulfillment.delivery.v1': fulfill, 'settlement.delivery.v1': settle }, dispose() { session = null; } });
+    function present() {
+      const snapshot = sdk.state.read().snapshot;
+      const selectedCarrierId = snapshot?.plan?.carrierId || null;
+      const selectedSegments = snapshot?.plan?.routes?.cooperative?.segmentIds || [];
+      const offer = scenario.offers.find((row) => row.id === snapshot?.plan?.offerId);
+      const markers = [
+        { id: 'delivery-destination', label: 'Delivery destination', nodeId: scenario.need.destinationNodeId, tone: 'magenta', heightM: 48, radiusM: 3.6, intensity: 1.45 },
+        ...(offer ? [{ id: 'pickup', label: 'Pickup', nodeId: offer.availableNodeId, tone: 'amber', heightM: 38, radiusM: 3.2, intensity: 1.35 }] : []),
+      ];
+      const paths = candidateRoutes.map((row, index) => ({ id: `candidate-${index + 1}`, label: `${row.participantId} baseline`, segmentIds: row.segmentIds, tone: row.participantId === selectedCarrierId ? 'green' : 'muted', widthM: row.participantId === selectedCarrierId ? 5 : 2.2, intensity: row.participantId === selectedCarrierId ? 1.1 : 0.38 }));
+      if (selectedSegments.length) paths.push({ id: 'selected-delivery', label: 'Cooperative delivery', segmentIds: selectedSegments, tone: 'cyan', widthM: 8, intensity: 1.4 });
+      const allSegments = [...new Set(candidateRoutes.flatMap((row) => row.segmentIds))];
+      return {
+        schema: 'simulatte.pluginPresentation.v1', markers, paths,
+        actors: candidateRoutes.map((row, index) => ({ id: `carrier-${index + 1}`, label: row.participantId, kind: 'bicycle', segmentIds: row.segmentIds, tone: row.participantId === selectedCarrierId ? 'green' : 'blue', speedMps: 5.4 + index * 0.35, phaseOffsetM: index * 180, isSelected: row.participantId === selectedCarrierId })),
+        cameraTargets: [
+          { id: 'delivery-network', label: 'Delivery network', nodeIds: [scenario.need.destinationNodeId], segmentIds: allSegments, distanceM: 2400 },
+          ...(selectedSegments.length ? [{ id: 'selected-delivery', label: 'Selected delivery', nodeIds: [scenario.need.destinationNodeId], segmentIds: selectedSegments, distanceM: 1400 }] : []),
+        ],
+      };
+    }
+
+    return Object.freeze({ id: 'p2p-delivery', contributeRequest, settle, view, present, capabilities: { 'fulfillment.delivery.v1': fulfill, 'settlement.delivery.v1': settle }, dispose() { session = null; } });
   }
 
   function reduce(state, event) {

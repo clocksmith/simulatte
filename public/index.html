@@ -21,6 +21,8 @@
       <div class="canvas-shell">
         <canvas id="autonomy-canvas" width="1440" height="900" aria-label="Interactive WebGPU view of pedestrian, bicycle, scooter, and car missions in the Villages and North Brooklyn"></canvas>
         <canvas id="follow-minimap" class="follow-minimap" width="320" height="240" aria-label="Top view minimap centered on the active agent" hidden></canvas>
+        <section id="plugin-map-ui" class="plugin-map-ui" aria-label="Application view"></section>
+        <section id="plugin-hud-ui" class="plugin-hud-ui" aria-label="Application status"></section>
 
         <div class="runtime-anchor">
           <div class="runtime-toolbar">
@@ -282,6 +284,7 @@
   <script defer src="./app/webgpu-math.js?v=01a5b05ef3a2c97f82230b4523fe53eec2352081-cc86632eefb0"></script>
   <script defer src="./app/webgpu-actor-geometry.js?v=01a5b05ef3a2c97f82230b4523fe53eec2352081-cc86632eefb0"></script>
   <script defer src="./app/webgpu-geometry.js?v=01a5b05ef3a2c97f82230b4523fe53eec2352081-cc86632eefb0"></script>
+  <script defer src="./app/plugin-presentation.js?v=01a5b05ef3a2c97f82230b4523fe53eec2352081-cc86632eefb0"></script>
   <script defer src="./app/camera-controller.js?v=01a5b05ef3a2c97f82230b4523fe53eec2352081-cc86632eefb0"></script>
   <script defer src="./app/webgpu-renderer.js?v=01a5b05ef3a2c97f82230b4523fe53eec2352081-cc86632eefb0"></script>
   <script defer src="./app/trace-view.js?v=01a5b05ef3a2c97f82230b4523fe53eec2352081-cc86632eefb0"></script>

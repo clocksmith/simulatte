@@ -1155,6 +1155,86 @@ body[data-journey-phase="failed"] .mission-field {
   width: fit-content;
 }
 
+.plugin-map-ui {
+  position: fixed;
+  z-index: 17;
+  top: calc(max(16px, env(safe-area-inset-top)) + 58px);
+  left: max(16px, env(safe-area-inset-left));
+  display: grid;
+  width: min(310px, calc(100vw - 32px));
+  max-height: calc(100vh - 190px);
+  gap: 8px;
+  overflow: auto;
+  pointer-events: none;
+}
+
+.plugin-map-card,
+.plugin-hud-card {
+  display: grid;
+  gap: 8px;
+  border: 1px solid var(--sim-line-strong);
+  padding: 11px 12px;
+  color: var(--sim-ink);
+  pointer-events: auto;
+}
+
+.plugin-map-card > strong,
+.plugin-hud-card > strong {
+  font-size: 12px;
+  line-height: 1.25;
+}
+
+.plugin-map-card .evidence-grid,
+.plugin-hud-card .evidence-grid {
+  margin: 0;
+  padding: 0;
+}
+
+.plugin-map-card .plugin-actions,
+.plugin-hud-card .plugin-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.plugin-map-card .sim-action,
+.plugin-hud-card .sim-action {
+  min-height: 34px;
+  padding: 0 10px;
+  font-size: 10px;
+}
+
+.plugin-hud-ui {
+  position: fixed;
+  z-index: 18;
+  right: max(16px, env(safe-area-inset-right));
+  bottom: calc(max(16px, env(safe-area-inset-bottom)) + 56px);
+  display: flex;
+  max-width: min(560px, calc(100vw - 32px));
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.plugin-hud-card {
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  min-width: 180px;
+}
+
+.plugin-hud-card > strong {
+  grid-column: 1 / -1;
+}
+
+.plugin-hud-card .evidence-grid {
+  grid-column: 1 / -1;
+}
+
+.plugin-hud-card .plugin-actions {
+  grid-column: 1 / -1;
+}
+
 .receipt-actions {
   display: flex;
   flex-wrap: wrap;
@@ -1209,6 +1289,19 @@ body[data-journey-phase="failed"] .mission-field {
     right: max(12px, env(safe-area-inset-right));
     width: 164px;
     height: 124px;
+  }
+
+  .plugin-map-ui {
+    top: calc(max(12px, env(safe-area-inset-top)) + 102px);
+    left: max(12px, env(safe-area-inset-left));
+    width: min(270px, calc(100vw - 24px));
+    max-height: 34vh;
+  }
+
+  .plugin-hud-ui {
+    right: max(12px, env(safe-area-inset-right));
+    bottom: calc(max(12px, env(safe-area-inset-bottom)) + 112px);
+    max-width: calc(100vw - 24px);
   }
 
   .journey-hud {
@@ -1371,6 +1464,17 @@ body[data-journey-phase="failed"] .mission-field {
     right: max(10px, env(safe-area-inset-right));
     width: 142px;
     height: 108px;
+  }
+
+  .plugin-map-ui {
+    top: calc(max(10px, env(safe-area-inset-top)) + 98px);
+    left: max(10px, env(safe-area-inset-left));
+    width: min(250px, calc(100vw - 20px));
+  }
+
+  .plugin-hud-ui {
+    right: max(10px, env(safe-area-inset-right));
+    bottom: calc(max(10px, env(safe-area-inset-bottom)) + 146px);
   }
 
   .mission-dock {

@@ -16,13 +16,14 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginP2pDelivery",
-    "integrity": "sha384-74ea48ad2b93bdc16cf14e4eada86695036f7e0163c86539a2ca2e0439229e4a01c8de9124bd32c6635b0e4207fa39c0",
+    "integrity": "sha384-207bbe87584b1ba2bf4345477953b57bbdb8270e774cedb17bac148ab256608bd6a0f6a5c0cd583dbad870e17c25c01a",
     "path": "./index.js"
   },
   "extensionPoints": [
     "request",
     "settlement",
-    "ui"
+    "ui",
+    "presentation"
   ],
   "id": "p2p-delivery",
   "permissions": [

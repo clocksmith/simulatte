@@ -69,19 +69,28 @@
     function view() {
       const selection = sdk.state.read().selection;
       if (!selection) return null;
-      return {
-        slot: 'inspector',
-        title: 'Sun exposure',
-        rows: [
+      const rows = [
           { label: 'Selected route', value: `${Math.round(selection.comparison.selectedModeledBuildingShadePercent)}% modeled shade` },
           { label: 'Fastest route', value: `${Math.round(selection.comparison.fastestModeledBuildingShadePercent)}% modeled shade` },
           { label: 'Added travel', value: `${Math.round(selection.comparison.addedTravelSeconds)} s` },
-        ],
-        actions: [],
-      };
+      ];
+      return [
+        { slot: 'inspector', title: 'Sun exposure', rows, actions: [] },
+        { slot: 'hud', title: 'Shade route', rows: rows.slice(0, 2), actions: [{ id: 'focus-shade', label: 'View shade route', command: { kind: 'camera.focus', targetId: 'shade-route' } }] },
+      ];
     }
 
-    return Object.freeze({ id: 'sun-walker', contributeRequest, settle, view, dispose() {} });
+    function present() {
+      const selection = sdk.state.read().selection;
+      if (!selection) return null;
+      const selectedIds = selection.selected.route.segmentIds;
+      const fastestIds = selection.fastest.route.segmentIds;
+      const paths = [{ id: 'shade-route', label: 'Shade-selected route', segmentIds: selectedIds, tone: 'green', widthM: 8, intensity: 1.35 }];
+      if (fastestIds.join('|') !== selectedIds.join('|')) paths.unshift({ id: 'fastest-route', label: 'Fastest route', segmentIds: fastestIds, tone: 'amber', widthM: 4, intensity: 0.8 });
+      return { schema: 'simulatte.pluginPresentation.v1', markers: [], paths, actors: [], cameraTargets: [{ id: 'shade-route', label: 'Shade-selected route', nodeIds: [], segmentIds: selectedIds, distanceM: 1100 }] };
+    }
+
+    return Object.freeze({ id: 'sun-walker', contributeRequest, settle, view, present, dispose() {} });
   }
 
   function reduce(state, event) {

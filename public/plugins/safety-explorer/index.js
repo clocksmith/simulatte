@@ -23,6 +23,7 @@
             schema: 'simulatte.plugin.safetyExplorerRouteAudit.v1',
             crashCount: sum(values, 'crashCount'), injuryCount: sum(values, 'injuryCount'), fatalityCount: sum(values, 'fatalityCount'),
             historicalObservationScore: sum(values, 'historicalObservationScore'), physicalSegmentsWithHistory: values.length,
+            segmentIds: [...route.segmentIds],
             indexId: index.id, claimBoundary: index.claimBoundary,
           };
           sdk.events.propose({ pluginId: 'safety-explorer', kind: 'safety-explorer.route-audited', audit });
@@ -35,9 +36,18 @@
     function view() {
       const audit = sdk.state.read().audit;
       if (!audit) return null;
-      return { slot: 'inspector', title: 'Historical street observations', rows: [{ label: 'Recorded crashes', value: String(audit.crashCount) }, { label: 'Observation score', value: audit.historicalObservationScore.toFixed(3) }], actions: [] };
+      return [
+        { slot: 'inspector', title: 'Historical street observations', rows: [{ label: 'Recorded crashes', value: String(audit.crashCount) }, { label: 'Recorded injuries', value: String(audit.injuryCount) }, { label: 'Observation score', value: audit.historicalObservationScore.toFixed(3) }], actions: [] },
+        { slot: 'hud', title: 'Historical observations', rows: [{ label: 'Crashes', value: String(audit.crashCount) }, { label: 'Score', value: audit.historicalObservationScore.toFixed(2) }], actions: [{ id: 'focus-observations', label: 'View route', command: { kind: 'camera.focus', targetId: 'observed-route' } }] },
+      ];
     }
-    return Object.freeze({ id: 'safety-explorer', createRouteContributor, view, dispose() {} });
+    function present() {
+      const audit = sdk.state.read().audit;
+      if (!audit?.segmentIds?.length) return null;
+      const tone = audit.fatalityCount ? 'red' : audit.crashCount ? 'amber' : 'green';
+      return { schema: 'simulatte.pluginPresentation.v1', markers: [], actors: [], paths: [{ id: 'observed-route', label: 'Historically observed route', segmentIds: audit.segmentIds, tone, widthM: 7, intensity: 1.25 }], cameraTargets: [{ id: 'observed-route', label: 'Historically observed route', nodeIds: [], segmentIds: audit.segmentIds, distanceM: 1100 }] };
+    }
+    return Object.freeze({ id: 'safety-explorer', createRouteContributor, view, present, dispose() {} });
   }
   function reduce(state, event) { return event.kind === 'safety-explorer.route-audited' ? { ...state, audit: event.audit } : state; }
   function sum(rows, key) { return Number(rows.reduce((total, row) => total + (row[key] || 0), 0).toFixed(6)); }

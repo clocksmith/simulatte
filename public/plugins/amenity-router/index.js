@@ -29,7 +29,7 @@
         evaluateRoute({ route }) {
           const routeRows = route.segmentIds.map((id) => rows.get(id)).filter(Boolean);
           const limiting = routeRows.slice().sort((left, right) => (right.maximumNearestRackDistanceM || 0) - (left.maximumNearestRackDistanceM || 0))[0] || null;
-          const audit = { schema: 'simulatte.plugin.amenityRouteAudit.v1', maximumDistanceM, maximumObservedDistanceM: limiting?.maximumNearestRackDistanceM ?? null, limitingRackId: limiting?.limitingRackId || null, pass: routeRows.length === route.segmentIds.length && routeRows.every((row) => row.maximumNearestRackDistanceM <= maximumDistanceM), indexId: index.id, claimBoundary: index.claimBoundary };
+          const audit = { schema: 'simulatte.plugin.amenityRouteAudit.v1', maximumDistanceM, maximumObservedDistanceM: limiting?.maximumNearestRackDistanceM ?? null, limitingRackId: limiting?.limitingRackId || null, pass: routeRows.length === route.segmentIds.length && routeRows.every((row) => row.maximumNearestRackDistanceM <= maximumDistanceM), segmentIds: [...route.segmentIds], indexId: index.id, claimBoundary: index.claimBoundary };
           sdk.events.propose({ pluginId: 'amenity-router', kind: 'amenity-router.route-audited', audit });
           sdk.receipts.append(audit);
           return audit;
@@ -39,7 +39,15 @@
     function view() {
       const audit = sdk.state.read().audit;
       if (!audit) return null;
-      return { slot: 'inspector', title: 'Route amenities', rows: [{ label: 'Bicycle-rack constraint', value: audit.pass ? 'Supported' : 'Not supported' }, { label: 'Farthest modeled distance', value: audit.maximumObservedDistanceM === null ? 'Unavailable' : `${Math.round(audit.maximumObservedDistanceM)} m` }], actions: [] };
+      return [
+        { slot: 'inspector', title: 'Route amenities', rows: [{ label: 'Bicycle-rack constraint', value: audit.pass ? 'Supported' : 'Not supported' }, { label: 'Farthest modeled distance', value: audit.maximumObservedDistanceM === null ? 'Unavailable' : `${Math.round(audit.maximumObservedDistanceM)} m` }], actions: [] },
+        { slot: 'hud', title: 'Bike-rack route', rows: [{ label: 'Limit', value: `${Math.round(audit.maximumDistanceM)} m` }, { label: 'Observed', value: audit.maximumObservedDistanceM === null ? 'Unknown' : `${Math.round(audit.maximumObservedDistanceM)} m` }], actions: [{ id: 'focus-amenities', label: 'View route', command: { kind: 'camera.focus', targetId: 'amenity-route' } }] },
+      ];
+    }
+    function present() {
+      const audit = sdk.state.read().audit;
+      if (!audit?.segmentIds?.length) return null;
+      return { schema: 'simulatte.pluginPresentation.v1', markers: [], actors: [], paths: [{ id: 'amenity-route', label: 'Bike-rack route', segmentIds: audit.segmentIds, tone: audit.pass ? 'blue' : 'amber', widthM: 6, intensity: 1.1 }], cameraTargets: [{ id: 'amenity-route', label: 'Bike-rack route', nodeIds: [], segmentIds: audit.segmentIds, distanceM: 1100 }] };
     }
     function settle({ journey }) {
       const state = sdk.state.read();
@@ -47,7 +55,7 @@
       const pass = state.audit?.pass === true && journey?.finalState?.status === 'completed';
       return { obligationResults: [{ obligationId: 'amenity-router:bicycle-rack', status: pass ? 'settled' : 'not_settled', pass }], stateIdentity: `${state.maximumDistanceM}:${state.audit?.maximumObservedDistanceM ?? 'missing'}`, losses: pass ? [] : ['amenity_proximity_not_settled'] };
     }
-    return Object.freeze({ id: 'amenity-router', contributeRequest, createRouteContributor, settle, view, dispose() {} });
+    return Object.freeze({ id: 'amenity-router', contributeRequest, createRouteContributor, settle, view, present, dispose() {} });
   }
   function reduce(state, event) {
     if (event.kind === 'amenity-router.requested') return { ...state, maximumDistanceM: event.maximumDistanceM };

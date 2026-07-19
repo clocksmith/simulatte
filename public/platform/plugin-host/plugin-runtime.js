@@ -137,9 +137,21 @@
       return Object.freeze(graph.order.flatMap((pluginId) => {
         const instance = instances.get(pluginId);
         if (typeof instance.view !== 'function') return [];
-        const view = instance.view(stateApi.freezeClone(context));
-        contracts.validateUiContribution(pluginId, view);
-        return view ? [stateApi.freezeClone({ pluginId, view })] : [];
+        const contribution = instance.view(stateApi.freezeClone(context));
+        const views = contribution === null ? [] : Array.isArray(contribution) ? contribution : [contribution];
+        views.forEach((view) => contracts.validateUiContribution(pluginId, view));
+        return views.map((view) => stateApi.freezeClone({ pluginId, view }));
+      }));
+    }
+
+    function presentations(context) {
+      return Object.freeze(graph.order.flatMap((pluginId) => {
+        const instance = instances.get(pluginId);
+        if (typeof instance.present !== 'function') return [];
+        const presentation = instance.present(stateApi.freezeClone(context));
+        if (presentation === null) return [];
+        contracts.validatePresentationContribution(pluginId, presentation);
+        return [stateApi.freezeClone({ pluginId, presentation })];
       }));
     }
 
@@ -179,7 +191,7 @@
       });
     }
 
-    return Object.freeze({ contributeRequest, routeContributors, settle, views, dispatchAction, invoke, dispose, runtimeReceipt, activePluginIds: graph.order });
+    return Object.freeze({ contributeRequest, routeContributors, settle, views, presentations, dispatchAction, invoke, dispose, runtimeReceipt, activePluginIds: graph.order });
   }
 
   async function verifyEntries(rows, artifactStore, baseUrl) {
@@ -199,7 +211,7 @@
 
   function validateDeclaredExtensions(manifest, instance) {
     const declarations = new Set(manifest.extensionPoints);
-    const methods = { request: 'contributeRequest', route: 'createRouteContributor', settlement: 'settle', ui: 'view', event: 'reduce' };
+    const methods = { request: 'contributeRequest', route: 'createRouteContributor', settlement: 'settle', ui: 'view', event: 'reduce', presentation: 'present' };
     Object.entries(methods).forEach(([extension, method]) => {
       if (typeof instance[method] === 'function' && !declarations.has(extension)) throw runtimeError('plugin_extension_undeclared', `Plugin ${manifest.id} implements ${method} without declaring ${extension}`, { pluginId: manifest.id, extension, method });
     });

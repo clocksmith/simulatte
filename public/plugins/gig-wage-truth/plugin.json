@@ -10,7 +10,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginGigWageTruth",
-    "integrity": "sha384-f089580c7f9e04909d24981bb51414c91d81af9f6957e492a723316bc50f11d2a251cd4588e10bc23a967b2b5f664dbd",
+    "integrity": "sha384-264bb3ff55d4fded193e5bf5c4d026c72ccd7083ff5ce5c745cbb22625a3f154fa486bdcee484602b4fc828c79a19fc7",
     "path": "./index.js"
   },
   "extensionPoints": [

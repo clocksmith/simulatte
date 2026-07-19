@@ -25,7 +25,8 @@
     function view() {
       const analysis = sdk.state.read().analysis;
       if (!analysis) return null;
-      return { slot: 'inspector', title: 'Gross work rate', rows: [{ label: 'Gross compensation', value: `$${(analysis.grossCents / 100).toFixed(2)}` }, { label: 'Modeled gross rate', value: `$${(analysis.grossRateCentsPerHour / 100).toFixed(2)}/h` }, { label: 'Excluded time', value: `${analysis.excludedSeconds} s` }], actions: [] };
+      const rows = [{ label: 'Gross compensation', value: `$${(analysis.grossCents / 100).toFixed(2)}` }, { label: 'Modeled gross rate', value: `$${(analysis.grossRateCentsPerHour / 100).toFixed(2)}/h` }, { label: 'Excluded time', value: `${analysis.excludedSeconds} s` }];
+      return [{ slot: 'inspector', title: 'Gross work rate', rows, actions: [] }, { slot: 'hud', title: 'Work truth', rows: rows.slice(0, 2), actions: [] }];
     }
     return Object.freeze({ id: 'gig-wage-truth', settle, view, capabilities: { 'analysis.gross-work-rate.v1': analyze }, dispose() {} });
   }

@@ -8,7 +8,10 @@
     'capabilities.invoke.v1', 'clock.read.v1', 'events.propose.v1', 'language.parse.v1', 'receipts.append.v1',
     'routing.contribute.v1', 'simulation.run.v1', 'state.reduce.v1', 'ui.inspector.v1', 'world.query.v1',
   ]);
-  const EXTENSION_POINTS = Object.freeze(['request', 'route', 'event', 'settlement', 'ui']);
+  const EXTENSION_POINTS = Object.freeze(['request', 'route', 'event', 'settlement', 'ui', 'presentation']);
+  const UI_SLOTS = Object.freeze(['inspector', 'map', 'hud']);
+  const PRESENTATION_TONES = Object.freeze(['cyan', 'green', 'amber', 'red', 'magenta', 'violet', 'blue', 'muted']);
+  const ACTOR_KINDS = Object.freeze(['pedestrian', 'bicycle', 'scooter', 'car']);
   const ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
   const INTEGRITY_PATTERN = /^sha384-[a-f0-9]{96}$/;
 
@@ -72,7 +75,7 @@
   function validatePluginInstance(pluginId, value) {
     assertObject(value, 'plugin_instance_invalid', `Plugin ${pluginId} activation expected an instance`);
     if (value.id !== pluginId) fail('plugin_instance_id_mismatch', `Plugin ${pluginId} activated as ${value.id || 'missing'}`, { expected: pluginId, actual: value.id || null });
-    ['contributeRequest', 'createRouteContributor', 'settle', 'view', 'dispose', 'reduce', 'handleAction'].forEach((method) => {
+    ['contributeRequest', 'createRouteContributor', 'settle', 'view', 'present', 'dispose', 'reduce', 'handleAction'].forEach((method) => {
       if (value[method] !== undefined && typeof value[method] !== 'function') fail('plugin_instance_method_invalid', `Plugin ${pluginId}.${method} expected a function`, { pluginId, method });
     });
     if (value.capabilities !== undefined && (!value.capabilities || typeof value.capabilities !== 'object' || Array.isArray(value.capabilities))) fail('plugin_instance_capabilities_invalid', `Plugin ${pluginId}.capabilities expected an object`, { pluginId });
@@ -117,7 +120,7 @@
     if (value === null) return null;
     assertObject(value, 'plugin_ui_invalid', `Plugin ${pluginId} UI expected an object`);
     assertAllowedKeys(value, ['slot', 'title', 'rows', 'fields', 'actions'], ['slot', 'title', 'rows', 'actions'], `Plugin ${pluginId} UI`);
-    if (value.slot !== 'inspector') fail('plugin_ui_slot_invalid', `Plugin ${pluginId} UI slot must be inspector`, { slot: value.slot });
+    if (!UI_SLOTS.includes(value.slot)) fail('plugin_ui_slot_invalid', `Plugin ${pluginId} UI slot expected ${UI_SLOTS.join(', ')}`, { slot: value.slot });
     text(value.title, 'plugin_ui_title_invalid', `Plugin ${pluginId} UI title`);
     if (!Array.isArray(value.rows) || !Array.isArray(value.actions)) fail('plugin_ui_rows_invalid', `Plugin ${pluginId} UI expected rows and actions`, null);
     value.rows.forEach((row) => { assertExactKeys(row, ['label', 'value'], `Plugin ${pluginId} UI row`); text(row.label, 'plugin_ui_label_invalid', `Plugin ${pluginId} UI row label`); text(String(row.value), 'plugin_ui_value_invalid', `Plugin ${pluginId} UI row value`); });
@@ -133,8 +136,80 @@
         row.options.forEach((option) => { assertExactKeys(option, ['value', 'label'], `Plugin ${pluginId} select option`); text(String(option.value), 'plugin_ui_field_option_invalid', `Plugin ${pluginId} select option value`); text(option.label, 'plugin_ui_field_option_invalid', `Plugin ${pluginId} select option label`); });
       } else if (row.options !== undefined) fail('plugin_ui_field_options_unexpected', `Plugin ${pluginId} field ${row.id} cannot declare options`, { pluginId, fieldId: row.id });
     });
-    value.actions.forEach((row) => { assertExactKeys(row, ['id', 'label'], `Plugin ${pluginId} UI action`); text(row.id, 'plugin_ui_action_id_invalid', `Plugin ${pluginId} UI action ID`); text(row.label, 'plugin_ui_action_label_invalid', `Plugin ${pluginId} UI action label`); });
+    value.actions.forEach((row) => {
+      assertAllowedKeys(row, ['id', 'label', 'command'], ['id', 'label'], `Plugin ${pluginId} UI action`);
+      text(row.id, 'plugin_ui_action_id_invalid', `Plugin ${pluginId} UI action ID`);
+      text(row.label, 'plugin_ui_action_label_invalid', `Plugin ${pluginId} UI action label`);
+      if (row.command !== undefined) validateUiCommand(pluginId, row.command);
+    });
     return value;
+  }
+
+  function validateUiCommand(pluginId, value) {
+    assertExactKeys(value, ['kind', 'targetId'], `Plugin ${pluginId} UI command`);
+    equal(value.kind, 'camera.focus', 'plugin_ui_command_kind_invalid', `Plugin ${pluginId} UI command kind`);
+    text(value.targetId, 'plugin_ui_command_target_invalid', `Plugin ${pluginId} UI command target`);
+  }
+
+  function validatePresentationContribution(pluginId, value) {
+    assertObject(value, 'plugin_presentation_invalid', `Plugin ${pluginId} presentation expected an object`);
+    assertExactKeys(value, ['schema', 'markers', 'paths', 'actors', 'cameraTargets'], `Plugin ${pluginId} presentation`);
+    equal(value.schema, 'simulatte.pluginPresentation.v1', 'plugin_presentation_schema_invalid', `Plugin ${pluginId} presentation schema`);
+    boundedRows(value.markers, 128, `Plugin ${pluginId} markers`).forEach((row) => {
+      assertExactKeys(row, ['id', 'label', 'nodeId', 'tone', 'heightM', 'radiusM', 'intensity'], `Plugin ${pluginId} marker`);
+      validateIdentityAndTone(pluginId, row, 'marker');
+      text(row.nodeId, 'plugin_marker_node_invalid', `Plugin ${pluginId} marker node`);
+      finiteRange(row.heightM, 0.2, 240, 'plugin_marker_height_invalid', `Plugin ${pluginId} marker height`);
+      finiteRange(row.radiusM, 0.2, 40, 'plugin_marker_radius_invalid', `Plugin ${pluginId} marker radius`);
+      finiteRange(row.intensity, 0, 2, 'plugin_marker_intensity_invalid', `Plugin ${pluginId} marker intensity`);
+    });
+    boundedRows(value.paths, 64, `Plugin ${pluginId} paths`).forEach((row) => {
+      assertExactKeys(row, ['id', 'label', 'segmentIds', 'tone', 'widthM', 'intensity'], `Plugin ${pluginId} path`);
+      validateIdentityAndTone(pluginId, row, 'path');
+      boundedIds(row.segmentIds, 4096, `Plugin ${pluginId} path ${row.id} segments`);
+      finiteRange(row.widthM, 0.2, 24, 'plugin_path_width_invalid', `Plugin ${pluginId} path width`);
+      finiteRange(row.intensity, 0, 2, 'plugin_path_intensity_invalid', `Plugin ${pluginId} path intensity`);
+    });
+    boundedRows(value.actors, 64, `Plugin ${pluginId} actors`).forEach((row) => {
+      assertExactKeys(row, ['id', 'label', 'kind', 'segmentIds', 'tone', 'speedMps', 'phaseOffsetM', 'isSelected'], `Plugin ${pluginId} actor`);
+      validateIdentityAndTone(pluginId, row, 'actor');
+      if (!ACTOR_KINDS.includes(row.kind)) fail('plugin_actor_kind_invalid', `Plugin ${pluginId} actor ${row.id} kind is invalid`, { kind: row.kind });
+      boundedIds(row.segmentIds, 4096, `Plugin ${pluginId} actor ${row.id} segments`);
+      finiteRange(row.speedMps, 0.1, 30, 'plugin_actor_speed_invalid', `Plugin ${pluginId} actor speed`);
+      finiteRange(row.phaseOffsetM, 0, 100000, 'plugin_actor_phase_invalid', `Plugin ${pluginId} actor phase`);
+      if (typeof row.isSelected !== 'boolean') fail('plugin_actor_selection_invalid', `Plugin ${pluginId} actor ${row.id} selection expected boolean`, null);
+    });
+    boundedRows(value.cameraTargets, 32, `Plugin ${pluginId} camera targets`).forEach((row) => {
+      assertExactKeys(row, ['id', 'label', 'nodeIds', 'segmentIds', 'distanceM'], `Plugin ${pluginId} camera target`);
+      text(row.id, 'plugin_camera_target_id_invalid', `Plugin ${pluginId} camera target ID`);
+      text(row.label, 'plugin_camera_target_label_invalid', `Plugin ${pluginId} camera target label`);
+      boundedIds(row.nodeIds, 128, `Plugin ${pluginId} camera target ${row.id} nodes`, true);
+      boundedIds(row.segmentIds, 4096, `Plugin ${pluginId} camera target ${row.id} segments`, true);
+      if (!row.nodeIds.length && !row.segmentIds.length) fail('plugin_camera_target_empty', `Plugin ${pluginId} camera target ${row.id} has no anchors`, null);
+      finiteRange(row.distanceM, 80, 9000, 'plugin_camera_target_distance_invalid', `Plugin ${pluginId} camera target distance`);
+    });
+    return value;
+  }
+
+  function validateIdentityAndTone(pluginId, row, kind) {
+    text(row.id, `plugin_${kind}_id_invalid`, `Plugin ${pluginId} ${kind} ID`);
+    text(row.label, `plugin_${kind}_label_invalid`, `Plugin ${pluginId} ${kind} label`);
+    if (!PRESENTATION_TONES.includes(row.tone)) fail(`plugin_${kind}_tone_invalid`, `Plugin ${pluginId} ${kind} ${row.id} tone is invalid`, { tone: row.tone });
+  }
+
+  function boundedRows(rows, maximum, label) {
+    if (!Array.isArray(rows) || rows.length > maximum) fail('plugin_presentation_rows_invalid', `${label} expected at most ${maximum} rows`, { count: rows?.length ?? null });
+    return rows;
+  }
+
+  function boundedIds(rows, maximum, label, allowEmpty = false) {
+    if (!Array.isArray(rows) || (!allowEmpty && !rows.length) || rows.length > maximum || rows.some((row) => typeof row !== 'string' || !row) || new Set(rows).size !== rows.length) {
+      fail('plugin_presentation_ids_invalid', `${label} expected unique IDs within 0..${maximum}`, { count: rows?.length ?? null });
+    }
+  }
+
+  function finiteRange(value, minimum, maximum, code, label) {
+    if (!Number.isFinite(value) || value < minimum || value > maximum) fail(code, `${label} expected ${minimum}..${maximum}`, { value });
   }
 
   function validateDeclarations(rows, label) {
@@ -194,5 +269,5 @@
     throw error;
   }
 
-  return { EXTENSION_POINTS, PERMISSIONS, SDK_VERSION, validateManifest, validateProfile, validatePluginInstance, validateRequestContribution, validateUiContribution };
+  return { EXTENSION_POINTS, PERMISSIONS, SDK_VERSION, validateManifest, validatePresentationContribution, validateProfile, validatePluginInstance, validateRequestContribution, validateUiContribution };
 });

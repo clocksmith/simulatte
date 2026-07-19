@@ -6,22 +6,27 @@
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteDeclarativeUiHost = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createDeclarativeUiHostModule(contracts) {
-  function createDeclarativeUiHost({ rootElement, onAction }) {
-    if (!rootElement || typeof rootElement.replaceChildren !== 'function') throw uiError('plugin_ui_root_invalid', 'Declarative UI host expected a root element', null);
+  function createDeclarativeUiHost({ rootElement, rootElements = null, onAction }) {
+    const roots = rootElements || { inspector: rootElement };
+    const requiredSlots = ['inspector', 'map', 'hud'];
+    if (!roots.inspector || typeof roots.inspector.replaceChildren !== 'function') throw uiError('plugin_ui_root_invalid', 'Declarative UI host expected an inspector root element', null);
+    Object.entries(roots).forEach(([slot, element]) => {
+      if (!requiredSlots.includes(slot) || !element || typeof element.replaceChildren !== 'function') throw uiError('plugin_ui_root_invalid', `Declarative UI host received an invalid ${slot} root`, null);
+    });
     if (typeof onAction !== 'function') throw uiError('plugin_ui_action_handler_missing', 'Declarative UI host expected an action handler', null);
 
     function render(contributions) {
-      const documentRef = rootElement.ownerDocument;
-      const fragment = documentRef.createDocumentFragment();
-      [...contributions].sort((left, right) => left.pluginId.localeCompare(right.pluginId)).forEach(({ pluginId, view }) => {
+      const documentRef = roots.inspector.ownerDocument;
+      const fragments = Object.fromEntries(Object.keys(roots).map((slot) => [slot, documentRef.createDocumentFragment()]));
+      [...contributions].sort((left, right) => left.view.slot.localeCompare(right.view.slot) || left.pluginId.localeCompare(right.pluginId)).forEach(({ pluginId, view }) => {
         contracts.validateUiContribution(pluginId, view);
-        if (!view) return;
-        const section = documentRef.createElement('details');
-        section.className = 'evidence-section plugin-evidence';
+        if (!view || !fragments[view.slot]) return;
+        const section = documentRef.createElement(view.slot === 'inspector' ? 'details' : 'section');
+        section.className = view.slot === 'inspector' ? 'evidence-section plugin-evidence' : `plugin-${view.slot}-card sim-surface`;
         section.dataset.pluginId = pluginId;
-        const summary = documentRef.createElement('summary');
-        summary.textContent = view.title;
-        section.append(summary);
+        const heading = documentRef.createElement(view.slot === 'inspector' ? 'summary' : 'strong');
+        heading.textContent = view.title;
+        section.append(heading);
         if (view.rows.length) {
           const rows = documentRef.createElement('dl');
           rows.className = 'evidence-grid';
@@ -72,7 +77,7 @@
             button.addEventListener('click', async () => {
               button.disabled = true;
               try {
-                await onAction({ pluginId, actionId: action.id, values: Object.fromEntries([...fields].map(([id, input]) => [id, input.value])) });
+                await onAction({ pluginId, actionId: action.id, command: action.command || null, values: Object.fromEntries([...fields].map(([id, input]) => [id, input.value])) });
               } finally {
                 button.disabled = false;
               }
@@ -81,9 +86,9 @@
           });
           section.append(actions);
         }
-        fragment.append(section);
+        fragments[view.slot].append(section);
       });
-      rootElement.replaceChildren(fragment);
+      Object.entries(roots).forEach(([slot, element]) => element.replaceChildren(fragments[slot]));
     }
 
     return Object.freeze({ render });

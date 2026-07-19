@@ -16,7 +16,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginHistoricalStreets",
-    "integrity": "sha384-22c6fa853fd8f1cdd66e4970148202a3b2a1df6ed059e8b745be468bdac4cd25877992371c9aaa6e2171bd7c082a4ee4",
+    "integrity": "sha384-ad9d933ca2b1373e59becd3155fe0e8f9615ea2441ae5aca2ad5d4155a39ef80f9a03996613c15058aaea28e5a72b2ce",
     "path": "./index.js"
   },
   "extensionPoints": [
@@ -24,6 +24,8 @@
   ],
   "id": "historical-streets",
   "permissions": [
+    "events.propose.v1",
+    "state.reduce.v1",
     "ui.inspector.v1"
   ],
   "provides": [

@@ -10,13 +10,14 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginSunWalker",
-    "integrity": "sha384-b3f57ae1bd22a7eb288e0de6a9cc12a58294d69867e30adde29733aec776109c21ae4a52f942fff7aab49f4e725dd0dd",
+    "integrity": "sha384-b7fa83d966144abad2584cab88c66cc9d94bccf52775e6bd83caa8e498257252c5b7405fb97cd8625158a0763428eebb",
     "path": "./index.js"
   },
   "extensionPoints": [
     "request",
     "settlement",
-    "ui"
+    "ui",
+    "presentation"
   ],
   "id": "sun-walker",
   "permissions": [

@@ -28,7 +28,7 @@
           return { eligible: result.verdict === 'supported', costDimensions: {}, rejectionReasons: result.verdict === 'supported' ? [] : [`accessibility_${result.verdict}`], receipt: result };
         },
         evaluateRoute({ route, worldModel }) {
-          const result = { ...auditApi.auditRouteAccessibility({ route, worldModel, index }), requestedProfile, enforced: true };
+          const result = { ...auditApi.auditRouteAccessibility({ route, worldModel, index }), requestedProfile, enforced: true, segmentIds: [...route.segmentIds] };
           sdk.events.propose({ pluginId: 'accessible-journey', kind: 'accessible-journey.route-audited', audit: result });
           sdk.receipts.append({ schema: 'simulatte.plugin.accessibleJourneyReceipt.v1', audit: result });
           return result;
@@ -39,7 +39,21 @@
     function view() {
       const result = sdk.state.read().audit;
       if (!result) return null;
-      return { slot: 'inspector', title: 'Accessibility', rows: [{ label: 'Route evidence', value: result.verdict }, { label: 'Ramp evidence', value: `${result.counts?.nodesWithRampEvidence || 0} nodes` }], actions: [] };
+      return [
+        { slot: 'inspector', title: 'Accessibility', rows: [{ label: 'Route evidence', value: result.verdict }, { label: 'Ramp evidence', value: `${result.counts?.nodesWithRampEvidence || 0} nodes` }], actions: [] },
+        { slot: 'hud', title: 'Step-free route', rows: [{ label: 'Evidence', value: result.verdict }, { label: 'Ramps checked', value: String(result.counts?.nodesWithRampEvidence || 0) }], actions: [{ id: 'focus-route', label: 'View route', command: { kind: 'camera.focus', targetId: 'accessible-route' } }] },
+      ];
+    }
+
+    function present() {
+      const result = sdk.state.read().audit;
+      if (!result?.segmentIds?.length) return null;
+      const failureNodeIds = [...new Set([...(result.failures?.missingNodeIds || []), ...(result.failures?.failedRamps || []).map((row) => row.nodeId), ...(result.failures?.unresolvedRamps || []).map((row) => row.nodeId)])];
+      return presentation({
+        paths: [{ id: 'accessible-route', label: 'Step-free route', segmentIds: result.segmentIds, tone: result.verdict === 'supported' ? 'green' : 'amber', widthM: 7, intensity: 1.25 }],
+        markers: failureNodeIds.map((nodeId, index) => ({ id: `ramp-${index}`, label: 'Ramp evidence boundary', nodeId, tone: 'red', heightM: 24, radiusM: 2.2, intensity: 1.4 })),
+        cameraTargets: [{ id: 'accessible-route', label: 'Step-free route', nodeIds: [], segmentIds: result.segmentIds, distanceM: 1100 }],
+      });
     }
 
     function settle({ journey }) {
@@ -49,13 +63,15 @@
       return { obligationResults: [{ obligationId: 'accessible-journey:route-eligibility', status: pass ? 'settled' : 'not_settled', pass }], stateIdentity: `${state.requestedProfile}:${state.audit?.verdict || 'missing'}`, losses: pass ? [] : ['accessibility_evidence_not_settled'] };
     }
 
-    return Object.freeze({ id: 'accessible-journey', contributeRequest, createRouteContributor, settle, view, dispose() {} });
+    return Object.freeze({ id: 'accessible-journey', contributeRequest, createRouteContributor, settle, view, present, dispose() {} });
   }
 
   function reduce(state, event) {
     if (event.kind === 'accessible-journey.requested') return { ...state, requestedProfile: event.requestedProfile };
     return event.kind === 'accessible-journey.route-audited' ? { ...state, audit: event.audit } : state;
   }
+
+  function presentation({ markers = [], paths = [], actors = [], cameraTargets = [] }) { return { schema: 'simulatte.pluginPresentation.v1', markers, paths, actors, cameraTargets }; }
 
   return Object.freeze({ activate });
 });

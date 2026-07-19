@@ -60,7 +60,7 @@
         "properties": { "id": { "type": "string" }, "required": { "type": "boolean" } }
       }
     },
-    "extensionPoints": { "type": "array", "uniqueItems": true, "items": { "enum": ["request", "route", "event", "settlement", "ui"] } },
+    "extensionPoints": { "type": "array", "uniqueItems": true, "items": { "enum": ["request", "route", "event", "settlement", "ui", "presentation"] } },
     "receiptSchemas": { "type": "array", "uniqueItems": true, "items": { "type": "string" } },
     "configSchema": { "type": "string" },
     "defaultConfig": { "type": "string" }

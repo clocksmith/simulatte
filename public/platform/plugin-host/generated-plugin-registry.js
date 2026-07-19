@@ -46,14 +46,15 @@
       "defaultConfig": "./default-config.json",
       "entry": {
         "globalFactory": "SimulattePluginAccessibleJourney",
-        "integrity": "sha384-f7a79e224b48b5bc5ee5623a2f6797f19d127c967e06addc00f5846b696abf507eb980bafd0277a02534c805ed15fd21",
+        "integrity": "sha384-d28c9a4be7af48b00b67a9e26dfa4b0a97ccd66170de9bac6e4d0c56ce354d5216e3035c4b28e8d847c5fdca7c4a51ca",
         "path": "./index.js"
       },
       "extensionPoints": [
         "request",
         "route",
         "settlement",
-        "ui"
+        "ui",
+        "presentation"
       ],
       "id": "accessible-journey",
       "permissions": [
@@ -113,14 +114,15 @@
       "defaultConfig": "./default-config.json",
       "entry": {
         "globalFactory": "SimulattePluginAmenityRouter",
-        "integrity": "sha384-002e3eb80e6ee3a16ef0f4adca13472bbd053e51eef750e26f5712aee14d1adc616e4ea5a062787b04dee713f5e698fc",
+        "integrity": "sha384-65f62c7ccc715c20331a323067ea965ea2c563ed75be4899b1925de2b2e8429dd5d7da06c49565bca600823bc397996c",
         "path": "./index.js"
       },
       "extensionPoints": [
         "request",
         "route",
         "settlement",
-        "ui"
+        "ui",
+        "presentation"
       ],
       "id": "amenity-router",
       "permissions": [
@@ -171,20 +173,22 @@
       "defaultConfig": "./default-config.json",
       "entry": {
         "globalFactory": "SimulattePluginCableTrader",
-        "integrity": "sha384-f7a67709f4f22f05c9800b7d69b2b354386bbec3727a8059d369daaf6245a7a3e1ea9fb2c2b176b10f95431aa636358a",
+        "integrity": "sha384-b6b7b68f676224906138364850872ff8e15d580ab54165e1bfa4c5d88da8d969b46fec9818274bcc69bc1e28725b4620",
         "path": "./index.js"
       },
       "extensionPoints": [
         "request",
         "event",
         "settlement",
-        "ui"
+        "ui",
+        "presentation"
       ],
       "id": "cable-trader",
       "permissions": [
         "capabilities.invoke.v1",
         "events.propose.v1",
         "receipts.append.v1",
+        "routing.contribute.v1",
         "state.reduce.v1",
         "ui.inspector.v1",
         "world.query.v1"
@@ -198,11 +202,11 @@
       ],
       "resources": [
         {
-          "integrity": "sha384-4a87baa8ba1f0866d74ef753ae81fd8b800db8e53aa195088ed1f622260bf4aef44cdf2de2338b40d43109ebf9456546",
+          "integrity": "sha384-93f97522307241b5c741720db0e39570c30e57a2fc345441f49dbb54eeaed7b9e1cf3a428c36fe515468dcf397cc27c4",
           "path": "./config.schema.json"
         },
         {
-          "integrity": "sha384-9f4205bb10071f5976920d8a48336c13b663a27e8356c210d2e1f2aec5400aaaafd26d175fef3d91da70c056d35ce475",
+          "integrity": "sha384-2e020480590903d10879523d82548c79bd6d7c15f1e41bdd937aaec3e00c0a7ae5227c3f3b3ae0b4bad01bc5d212dd1d",
           "path": "./default-config.json"
         }
       ],
@@ -215,6 +219,7 @@
         "cableTypes": [
           {
             "id": "usb-c-to-a",
+            "label": "USB-C to USB-A",
             "labels": [
               "usb c to a",
               "usb-c to usb-a",
@@ -222,7 +227,25 @@
             ]
           },
           {
+            "id": "usb-c-to-c",
+            "label": "USB-C to USB-C",
+            "labels": [
+              "usb c to c",
+              "usb-c to usb-c"
+            ]
+          },
+          {
+            "id": "usb-c-to-lightning",
+            "label": "USB-C to Lightning",
+            "labels": [
+              "usb c to lightning",
+              "iphone cable",
+              "lightning cable"
+            ]
+          },
+          {
             "id": "ethernet-rj45",
+            "label": "Ethernet / RJ45",
             "labels": [
               "ethernet",
               "rj45",
@@ -231,6 +254,7 @@
           },
           {
             "id": "hdmi",
+            "label": "HDMI",
             "labels": [
               "hdmi",
               "display cable"
@@ -238,36 +262,123 @@
           },
           {
             "id": "displayport",
+            "label": "DisplayPort",
             "labels": [
               "displayport",
               "display port"
             ]
           },
           {
-            "id": "usb-c-to-c",
+            "id": "mini-displayport",
+            "label": "Mini DisplayPort",
             "labels": [
-              "usb c to c",
-              "usb-c to usb-c"
+              "mini displayport",
+              "thunderbolt 2 cable"
             ]
+          },
+          {
+            "id": "micro-usb",
+            "label": "Micro-USB",
+            "labels": [
+              "micro usb",
+              "micro-usb"
+            ]
+          },
+          {
+            "id": "three-five-mm-audio",
+            "label": "3.5 mm audio",
+            "labels": [
+              "3.5 mm",
+              "aux cable",
+              "audio cable"
+            ]
+          },
+          {
+            "id": "iec-c13-power",
+            "label": "IEC C13 power",
+            "labels": [
+              "iec c13",
+              "computer power cable",
+              "monitor power cable"
+            ]
+          }
+        ],
+        "candidateJourneys": [
+          {
+            "destinationNodeId": "bike-node-e25116ea05a4",
+            "id": "candidate-ava",
+            "kind": "bicycle",
+            "label": "Ava",
+            "originNodeId": "bike-node-a3f0f4b7e7e3",
+            "phaseOffsetM": 0,
+            "speedMps": 5.6
+          },
+          {
+            "destinationNodeId": "bike-node-7a95737b9c7d",
+            "id": "candidate-mika",
+            "kind": "bicycle",
+            "label": "Mika",
+            "originNodeId": "bike-node-0d9391b2bfa3",
+            "phaseOffsetM": 240,
+            "speedMps": 5.1
+          },
+          {
+            "destinationNodeId": "bike-node-261ee8be5a25",
+            "id": "candidate-ren",
+            "kind": "pedestrian",
+            "label": "Ren",
+            "originNodeId": "bike-node-429dcefa615d",
+            "phaseOffsetM": 110,
+            "speedMps": 1.5
+          },
+          {
+            "destinationNodeId": "bike-node-ffea919f743c",
+            "id": "candidate-sol",
+            "kind": "scooter",
+            "label": "Sol",
+            "originNodeId": "bike-node-8a641140b02c",
+            "phaseOffsetM": 360,
+            "speedMps": 4.3
           }
         ],
         "hubs": [
           {
             "id": "union-square-cable-hub",
-            "nodeId": "bike-node-a3f0f4b7e7e3"
+            "label": "Union Square",
+            "nodeId": "bike-node-0d9391b2bfa3"
           },
           {
             "id": "east-village-cable-hub",
+            "label": "East Village",
             "nodeId": "bike-node-ffea919f743c"
+          },
+          {
+            "id": "greenpoint-cable-hub",
+            "label": "Greenpoint",
+            "nodeId": "bike-node-7a95737b9c7d"
+          },
+          {
+            "id": "williamsburg-cable-hub",
+            "label": "North Williamsburg",
+            "nodeId": "bike-node-e25116ea05a4"
           }
         ],
         "id": "cable-trader-default-v1",
         "inventory": {
+          "east-village-cable-hub:micro-usb": 7,
           "east-village-cable-hub:usb-c-to-a": 18,
           "east-village-cable-hub:usb-c-to-c": 20,
+          "east-village-cable-hub:usb-c-to-lightning": 14,
+          "greenpoint-cable-hub:ethernet-rj45": 11,
+          "greenpoint-cable-hub:hdmi": 9,
+          "greenpoint-cable-hub:three-five-mm-audio": 13,
+          "union-square-cable-hub:displayport": 8,
           "union-square-cable-hub:ethernet-rj45": 16,
           "union-square-cable-hub:hdmi": 12,
-          "union-square-cable-hub:usb-c-to-a": 24
+          "union-square-cable-hub:usb-c-to-a": 24,
+          "williamsburg-cable-hub:iec-c13-power": 10,
+          "williamsburg-cable-hub:mini-displayport": 6,
+          "williamsburg-cable-hub:usb-c-to-c": 17
         },
         "schema": "simulatte.plugin.cableTraderConfig.v1"
       }
@@ -286,12 +397,13 @@
       "defaultConfig": "./default-config.json",
       "entry": {
         "globalFactory": "SimulattePluginCounterfactualLab",
-        "integrity": "sha384-bed885f6be43fa7a7580671954baaf1bbc230f43730bfd0a66e6bc2d4cd0fb909d2a8ba398245d246f98f65cb0ad2166",
+        "integrity": "sha384-b91bb1822f34888a0ed5f7cf410c2a5c940dbe0d4c4511920781bf10f970bfd234f2906e0b54a3fabb167b584d1c3948",
         "path": "./index.js"
       },
       "extensionPoints": [
         "event",
-        "ui"
+        "ui",
+        "presentation"
       ],
       "id": "counterfactual-lab",
       "permissions": [
@@ -347,7 +459,7 @@
       "defaultConfig": "./default-config.json",
       "entry": {
         "globalFactory": "SimulattePluginGigWageTruth",
-        "integrity": "sha384-f089580c7f9e04909d24981bb51414c91d81af9f6957e492a723316bc50f11d2a251cd4588e10bc23a967b2b5f664dbd",
+        "integrity": "sha384-264bb3ff55d4fded193e5bf5c4d026c72ccd7083ff5ce5c745cbb22625a3f154fa486bdcee484602b4fc828c79a19fc7",
         "path": "./index.js"
       },
       "extensionPoints": [
@@ -409,7 +521,7 @@
       "defaultConfig": "./default-config.json",
       "entry": {
         "globalFactory": "SimulattePluginHistoricalStreets",
-        "integrity": "sha384-22c6fa853fd8f1cdd66e4970148202a3b2a1df6ed059e8b745be468bdac4cd25877992371c9aaa6e2171bd7c082a4ee4",
+        "integrity": "sha384-ad9d933ca2b1373e59becd3155fe0e8f9615ea2441ae5aca2ad5d4155a39ef80f9a03996613c15058aaea28e5a72b2ce",
         "path": "./index.js"
       },
       "extensionPoints": [
@@ -417,6 +529,8 @@
       ],
       "id": "historical-streets",
       "permissions": [
+        "events.propose.v1",
+        "state.reduce.v1",
         "ui.inspector.v1"
       ],
       "provides": [
@@ -463,13 +577,14 @@
       "defaultConfig": "./default-config.json",
       "entry": {
         "globalFactory": "SimulattePluginP2pDelivery",
-        "integrity": "sha384-74ea48ad2b93bdc16cf14e4eada86695036f7e0163c86539a2ca2e0439229e4a01c8de9124bd32c6635b0e4207fa39c0",
+        "integrity": "sha384-207bbe87584b1ba2bf4345477953b57bbdb8270e774cedb17bac148ab256608bd6a0f6a5c0cd583dbad870e17c25c01a",
         "path": "./index.js"
       },
       "extensionPoints": [
         "request",
         "settlement",
-        "ui"
+        "ui",
+        "presentation"
       ],
       "id": "p2p-delivery",
       "permissions": [
@@ -553,12 +668,13 @@
       "defaultConfig": "./default-config.json",
       "entry": {
         "globalFactory": "SimulattePluginSafetyExplorer",
-        "integrity": "sha384-675356b8bed85bdd1ca7f1786c8341a8f3a2c626c0e24cbf0795d51369e47031bb27edabd426f5f40cbda07c6bcb379a",
+        "integrity": "sha384-f56710217f6b79bea233d7afcc3f9b8723acfd691c6278906eb2f88bd5a35089f3f00aa1627687f2135ad2cd26390314",
         "path": "./index.js"
       },
       "extensionPoints": [
         "route",
-        "ui"
+        "ui",
+        "presentation"
       ],
       "id": "safety-explorer",
       "permissions": [
@@ -608,13 +724,14 @@
       "defaultConfig": "./default-config.json",
       "entry": {
         "globalFactory": "SimulattePluginSunWalker",
-        "integrity": "sha384-b3f57ae1bd22a7eb288e0de6a9cc12a58294d69867e30adde29733aec776109c21ae4a52f942fff7aab49f4e725dd0dd",
+        "integrity": "sha384-b7fa83d966144abad2584cab88c66cc9d94bccf52775e6bd83caa8e498257252c5b7405fb97cd8625158a0763428eebb",
         "path": "./index.js"
       },
       "extensionPoints": [
         "request",
         "settlement",
-        "ui"
+        "ui",
+        "presentation"
       ],
       "id": "sun-walker",
       "permissions": [

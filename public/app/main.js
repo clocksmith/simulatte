@@ -102,10 +102,16 @@
       },
     });
     const pluginUi = pluginUiApi.createDeclarativeUiHost({
-      rootElement: elements.pluginInspector,
-      onAction: async ({ pluginId, actionId, values }) => {
+      rootElements: { inspector: elements.pluginInspector, map: elements.pluginMapUi, hud: elements.pluginHudUi },
+      onAction: async ({ pluginId, actionId, command, values }) => {
+        if (command?.kind === 'camera.focus') {
+          const targetId = `plugin:${pluginId}:${command.targetId}`;
+          selectCameraMode(elements, renderer.focusCameraTarget(targetId));
+          elements.cameraFocus.value = targetId;
+          return;
+        }
         await extensions.dispatchAction(pluginId, actionId, { mission: activeMissionForPlugins, routeObjective: data.applicationProfile.routeObjective, values });
-        pluginUi.render(extensions.views({ mission: activeMissionForPlugins }));
+        renderPluginExperience({ mission: activeMissionForPlugins });
       },
     });
     pluginUi.render(extensions.views({ mission: null }));
@@ -148,6 +154,14 @@
       consentGate: neuralGate,
     });
     let disposal = null;
+
+    function renderPluginExperience(context) {
+      pluginUi.render(extensions.views(context));
+      if (!renderer) return;
+      const selected = elements.cameraFocus.value || 'route';
+      renderer.setPluginPresentations(extensions.presentations(context));
+      populateCameraFocus(elements.cameraFocus, renderer.cameraTargets(), selected);
+    }
 
     async function disposeApplication() {
       if (disposal) return disposal;
@@ -308,7 +322,7 @@
       activeMissionForPlugins = mission;
       traceView.renderInitial(snapshot, renderer.receipt());
       renderPlanning(elements, nextController.planning());
-      pluginUi.render(extensions.views({ mission }));
+      renderPluginExperience({ mission });
       elements.renderIdentity.textContent = renderIdentity(renderer.receipt());
       setRuntimeStatus(elements, snapshot.state.status === 'active' ? 'Ready' : runtimeLabel(snapshot.state), snapshot.state.status === 'active' ? 'ready' : 'failed');
       updateButtons(elements, keepMissionLocked, true, snapshot.state.status, hasJourneyStarted);
@@ -320,7 +334,7 @@
       const receipt = await targetController.journeyReceipt();
       receipt.pluginSettlement = await extensions.settle({ journey: receipt });
       receipt.pluginRuntime = extensions.runtimeReceipt();
-      pluginUi.render(extensions.views({ mission: activeMission, journey: receipt }));
+      renderPluginExperience({ mission: activeMission, journey: receipt });
       const identity = `${receipt.mission.id}:${receipt.integrity.terminalHash}:${receipt.finalState.status}`;
       if (recordedJourneyHashes.has(identity)) return receipt;
       recordedJourneyHashes.add(identity);
@@ -542,7 +556,7 @@
       'planning-forecast', 'alternative-proof', 'ledger-proof', 'policy-arena-proof',
       'export-ledger-button', 'import-receipt-button', 'import-receipt-file',
       'decisions-button', 'decisions-drawer', 'decisions-close', 'decisions-backdrop', 'journey-section',
-      'plugin-inspector',
+      'plugin-inspector', 'plugin-map-ui', 'plugin-hud-ui',
     ];
     const elements = Object.fromEntries(ids.map((id) => [camelId(id), document.getElementById(id)]));
     const missing = ids.filter((id) => !document.getElementById(id));
@@ -603,16 +617,18 @@
     });
   }
 
-  function populateCameraFocus(select, targets) {
+  function populateCameraFocus(select, targets, selectedId = 'route') {
     select.replaceChildren();
     const groups = new Map([
       ['route', document.createElement('optgroup')],
       ['region', document.createElement('optgroup')],
       ['place', document.createElement('optgroup')],
+      ['plugin', document.createElement('optgroup')],
     ]);
     groups.get('route').label = 'Journey';
     groups.get('region').label = 'Regions';
     groups.get('place').label = 'Places';
+    groups.get('plugin').label = 'Application';
     targets.forEach((target) => {
       const option = document.createElement('option');
       option.value = target.id;
@@ -622,7 +638,7 @@
     groups.forEach((group) => {
       if (group.children.length) select.append(group);
     });
-    select.value = 'route';
+    select.value = targets.some((row) => row.id === selectedId) ? selectedId : 'route';
   }
 
   function camelId(id) {

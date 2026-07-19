@@ -83,6 +83,22 @@
     beginTransition(state, timestamp);
   }
 
+  function replacePluginCameraTargets(state, targets, timestamp) {
+    const previousFocusId = state.focusId;
+    state.targets = [
+      ...state.targets.filter((row) => row.kind !== 'plugin'),
+      ...targets.map((row) => ({ ...row, target: [...row.target] })),
+    ];
+    if (!previousFocusId.startsWith('plugin:')) return state.targets;
+    const target = state.targets.find((row) => row.id === previousFocusId)
+      || state.targets.find((row) => row.id === 'route');
+    state.focusId = target.id;
+    state.orbitTarget = [...target.target];
+    state.distance = target.distance;
+    beginTransition(state, timestamp);
+    return state.targets;
+  }
+
   function setCameraMode(state, mode, timestamp) {
     if (!CAMERA_MODES.includes(mode)) throw cameraError('camera_mode_invalid', `Expected ${CAMERA_MODES.join(', ')}; received ${mode}`);
     if (state.mode === mode) return mode;
@@ -321,6 +337,7 @@
     focusCameraTarget,
     orbitCamera,
     panCamera,
+    replacePluginCameraTargets,
     setCameraMode,
     updateRouteTarget,
     zoomCamera,

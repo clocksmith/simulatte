@@ -30,6 +30,16 @@
     prediction: [1, 0.25, 0.86, 0.72],
     sensor: [0.1, 0.7, 1, 0.14],
   });
+  const PLUGIN_TONES = Object.freeze({
+    cyan: [0.14, 0.94, 1, 0.96],
+    green: [0.18, 1, 0.55, 0.96],
+    amber: [1, 0.7, 0.12, 0.96],
+    red: [1, 0.2, 0.24, 0.96],
+    magenta: [1, 0.28, 0.78, 0.96],
+    violet: [0.62, 0.4, 1, 0.96],
+    blue: [0.18, 0.55, 1, 0.96],
+    muted: [0.48, 0.62, 0.66, 0.72],
+  });
 
   function createStaticGeometry(world) {
     const writer = createWriter();
@@ -56,7 +66,7 @@
     return writer.finish();
   }
 
-  function createDynamicGeometry(worldModel, snapshot, tickReceipt, tracePositions, reusableWriter = null) {
+  function createDynamicGeometry(worldModel, snapshot, tickReceipt, tracePositions, reusableWriter = null, pluginScene = null) {
     const writer = reusableWriter || createWriter();
     writer.reset();
     const routeIds = snapshot.route?.segmentIds || [];
@@ -74,6 +84,7 @@
       const point = worldModel.node(signal.nodeId).position;
       addBeacon(writer, point, signal.state === 'green' ? COLORS.signalGreen : COLORS.signalRed, 28, 2.2);
     });
+    addPluginPresentation(writer, pluginScene, snapshot);
     worldModel.activeActors(snapshot.state.tick).forEach((actor, index) => {
       actorGeometry.addActor(writer, {
         kind: actor.type,
@@ -95,6 +106,52 @@
     const selected = tickReceipt?.bets?.find((row) => row.bet.id === tickReceipt.selectedBetId);
     if (selected) addRibbon(writer, [snapshot.state.position, selected.bet.prediction.endPosition], 0.85, 1.1, COLORS.prediction, 1.2);
     return writer.finish();
+  }
+
+  function addPluginPresentation(writer, scene, snapshot) {
+    if (!scene) return;
+    scene.paths.forEach((row) => addRibbon(writer, row.points, row.widthM, 0.92, tone(row.tone), row.intensity));
+    scene.markers.forEach((row) => addBeacon(writer, row.point, tone(row.tone), row.heightM, row.radiusM, row.intensity));
+    const elapsedSeconds = Number(snapshot.state.simulatedTimeSeconds || 0);
+    scene.actors.forEach((row, index) => {
+      const pose = poseAlongPath(row.points, row.phaseOffsetM + elapsedSeconds * row.speedMps);
+      if (row.isSelected) addBeacon(writer, pose.point, tone(row.tone), 2.2, 3.4, 1.5);
+      actorGeometry.addActor(writer, {
+        kind: row.kind,
+        point: pose.point,
+        heading: pose.heading,
+        motionPhase: elapsedSeconds * 3.2 + index * 1.7,
+        isPrimary: row.isSelected,
+      });
+    });
+  }
+
+  function poseAlongPath(points, distanceM) {
+    const lengths = [];
+    let total = 0;
+    for (let index = 1; index < points.length; index += 1) {
+      const length = Math.hypot(points[index].x - points[index - 1].x, points[index].y - points[index - 1].y);
+      lengths.push(length);
+      total += length;
+    }
+    let remaining = total ? ((distanceM % total) + total) % total : 0;
+    for (let index = 0; index < lengths.length; index += 1) {
+      const start = points[index];
+      const end = points[index + 1];
+      if (remaining <= lengths[index] || index === lengths.length - 1) {
+        const ratio = lengths[index] ? remaining / lengths[index] : 0;
+        return {
+          point: { x: start.x + (end.x - start.x) * ratio, y: start.y + (end.y - start.y) * ratio },
+          heading: Math.atan2(end.y - start.y, end.x - start.x),
+        };
+      }
+      remaining -= lengths[index];
+    }
+    return { point: { ...points[0] }, heading: 0 };
+  }
+
+  function tone(id) {
+    return PLUGIN_TONES[id] || PLUGIN_TONES.muted;
   }
 
   function createWriter(initialCapacity = 65536) {
@@ -194,12 +251,12 @@
     });
   }
 
-  function addBeacon(writer, point, color, height, radius) {
+  function addBeacon(writer, point, color, height, radius, emissive = 1.25) {
     addBox(writer, {
       minimum: [point.x - radius, 0.2, -point.y - radius],
       maximum: [point.x + radius, height, -point.y + radius],
       color,
-      emissive: 1.25,
+      emissive,
     });
   }
 
@@ -308,11 +365,13 @@
     DEFAULT_MATERIAL,
     FLOATS_PER_VERTEX,
     MATERIAL_MODEL: actorGeometry.MATERIAL_MODEL,
+    PLUGIN_TONES,
     SUPPORTED_ACTOR_KINDS: actorGeometry.SUPPORTED_ACTOR_KINDS,
     addRibbon,
     createDynamicGeometry,
     createStaticGeometry,
     createWriter,
+    poseAlongPath,
     triangulate,
   };
 });

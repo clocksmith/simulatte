@@ -1476,6 +1476,7 @@ test('renderer resolves the camera runtime at use time and rejects incomplete AP
     'panCamera',
     'orbitCamera',
     'zoomCamera',
+    'replacePluginCameraTargets',
   ].map((name) => [name, () => name]));
   assert.equal(rendererApi.resolveCameraController(complete), complete);
   assert.throws(

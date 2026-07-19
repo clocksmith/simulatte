@@ -16,14 +16,15 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginAccessibleJourney",
-    "integrity": "sha384-f7a79e224b48b5bc5ee5623a2f6797f19d127c967e06addc00f5846b696abf507eb980bafd0277a02534c805ed15fd21",
+    "integrity": "sha384-d28c9a4be7af48b00b67a9e26dfa4b0a97ccd66170de9bac6e4d0c56ce354d5216e3035c4b28e8d847c5fdca7c4a51ca",
     "path": "./index.js"
   },
   "extensionPoints": [
     "request",
     "route",
     "settlement",
-    "ui"
+    "ui",
+    "presentation"
   ],
   "id": "accessible-journey",
   "permissions": [

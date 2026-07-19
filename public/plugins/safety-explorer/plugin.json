@@ -16,12 +16,13 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginSafetyExplorer",
-    "integrity": "sha384-675356b8bed85bdd1ca7f1786c8341a8f3a2c626c0e24cbf0795d51369e47031bb27edabd426f5f40cbda07c6bcb379a",
+    "integrity": "sha384-f56710217f6b79bea233d7afcc3f9b8723acfd691c6278906eb2f88bd5a35089f3f00aa1627687f2135ad2cd26390314",
     "path": "./index.js"
   },
   "extensionPoints": [
     "route",
-    "ui"
+    "ui",
+    "presentation"
   ],
   "id": "safety-explorer",
   "permissions": [

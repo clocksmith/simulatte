@@ -8,10 +8,13 @@
   const cameraController = typeof module === 'object' && module.exports
     ? require('./camera-controller.js')
     : root.SimulatteAutonomyCamera;
-  const api = factory(math, geometry, cameraController);
+  const presentationCompiler = typeof module === 'object' && module.exports
+    ? require('./plugin-presentation.js')
+    : root.SimulattePluginPresentation;
+  const api = factory(math, geometry, cameraController, presentationCompiler);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteAutonomyCanvas = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyWebGpuRenderer(math, geometry, cameraController) {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyWebGpuRenderer(math, geometry, cameraController, presentationCompiler) {
   const SAMPLE_COUNT = 4;
   const MINIMAP_RADIUS_M = 420;
   const SHADER = `
@@ -164,6 +167,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       renderTargets: null,
       minimapTargets: null,
       minimapFrameCount: 0,
+      pluginScene: presentationCompiler.compile([], worldModel),
       isDestroyed: false,
     };
     const adapterInfo = readAdapterInfo(adapter);
@@ -198,8 +202,18 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       }
       const position = snapshot.state.position;
       if (position && (!state.tracePositions.length || pointDistance(position, state.tracePositions.at(-1)) > 0.15)) state.tracePositions.push({ ...position });
-      state.dynamicData = geometry.createDynamicGeometry(worldModel, snapshot, tickReceipt, state.tracePositions, state.dynamicWriter);
+      state.dynamicData = geometry.createDynamicGeometry(worldModel, snapshot, tickReceipt, state.tracePositions, state.dynamicWriter, state.pluginScene);
       ensureDynamicBuffer(device, state, state.dynamicData);
+    }
+
+    function setPluginPresentations(contributions) {
+      state.pluginScene = presentationCompiler.compile(contributions, worldModel);
+      cameraApi.replacePluginCameraTargets(state, state.pluginScene.cameraTargets, performance.now());
+      Object.entries(state.pluginScene.counts).forEach(([key, value]) => {
+        canvas.dataset[`plugin${key.charAt(0).toUpperCase()}${key.slice(1)}Count`] = String(value);
+      });
+      if (state.latestSnapshot) render(state.latestSnapshot, state.latestReceipt);
+      return structuredClone(state.pluginScene.counts);
     }
 
     function drawFrame(timestamp = performance.now()) {
@@ -351,6 +365,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
           radiusM: MINIMAP_RADIUS_M,
           frameCount: state.minimapFrameCount,
         },
+        pluginPresentation: structuredClone(state.pluginScene.counts),
       };
     }
 
@@ -369,7 +384,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
     }
 
     state.animationFrame = requestAnimationFrame(animationFrame);
-    return { render, reset, setCameraMode, focusCameraTarget, cameraTargets, receipt, destroy, device, adapterInfo };
+    return { render, reset, setCameraMode, focusCameraTarget, cameraTargets, setPluginPresentations, receipt, destroy, device, adapterInfo };
   }
 
   function createVertexBuffer(device, data, label) {
@@ -506,6 +521,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       'panCamera',
       'orbitCamera',
       'zoomCamera',
+      'replacePluginCameraTargets',
     ];
     const missingMethods = requiredMethods.filter((name) => typeof api?.[name] !== 'function');
     if (missingMethods.length) {

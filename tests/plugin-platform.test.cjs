@@ -5,6 +5,7 @@ const fs = require('node:fs');
 const contracts = require('../public/platform/contracts/plugin-contracts.js');
 const catalogApi = require('../public/platform/data-catalog/immutable-data-catalog.js');
 const runtimeApi = require('../public/platform/plugin-host/plugin-runtime.js');
+const presentationApi = require('../public/app/plugin-presentation.js');
 
 function manifest(overrides = {}) {
   return {
@@ -88,6 +89,27 @@ test('request contributions reject fields outside the versioned host contract', 
     () => contracts.validateRequestContribution('fixture-plugin', { ...valid, privatePayload: { accepted: true } }),
     /plugin_contract_keys_invalid/
   );
+});
+
+test('plugin presentation is validated and compiled into namespaced renderer data', () => {
+  const contribution = {
+    schema: 'simulatte.pluginPresentation.v1',
+    markers: [{ id: 'hub', label: 'Hub', nodeId: 'node-a', tone: 'amber', heightM: 32, radiusM: 3, intensity: 1.2 }],
+    paths: [{ id: 'journey', label: 'Journey', segmentIds: ['segment-a'], tone: 'cyan', widthM: 4, intensity: 1 }],
+    actors: [{ id: 'carrier', label: 'Carrier', kind: 'bicycle', segmentIds: ['segment-a'], tone: 'green', speedMps: 5, phaseOffsetM: 2, isSelected: true }],
+    cameraTargets: [{ id: 'network', label: 'Network', nodeIds: ['node-a'], segmentIds: ['segment-a'], distanceM: 700 }],
+  };
+  assert.equal(contracts.validatePresentationContribution('fixture-plugin', contribution), contribution);
+  const worldModel = {
+    node: (id) => id === 'node-a' ? { position: { x: 4, y: 8 } } : null,
+    segment: (id) => id === 'segment-a' ? { geometry: [{ x: 4, y: 8 }, { x: 14, y: 18 }] } : null,
+  };
+  const compiled = presentationApi.compile([{ pluginId: 'fixture-plugin', presentation: contribution }], worldModel);
+  assert.equal(compiled.markers[0].id, 'plugin:fixture-plugin:hub');
+  assert.equal(compiled.actors[0].points.length, 2);
+  assert.equal(compiled.cameraTargets[0].kind, 'plugin');
+  assert.deepEqual(compiled.counts, { plugins: 1, markers: 1, paths: 1, actors: 1, cameraTargets: 1 });
+  assert.throws(() => contracts.validatePresentationContribution('fixture-plugin', { ...contribution, actors: [{ ...contribution.actors[0], kind: 'spaceship' }] }), /plugin_actor_kind_invalid/);
 });
 
 test('platform bootstrap has no named plugin import', () => {
