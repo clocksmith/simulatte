@@ -1,0 +1,362 @@
+{
+  "$schema": "./pipeline-job-registry.schema.json",
+  "schema": "simulatte.pipelineJobRegistry.v1",
+  "id": "simulatte-shared-pipeline-jobs-v1",
+  "jobs": [
+    {
+      "id": "runtime-preparation",
+      "order": 1,
+      "label": "Runtime preparation",
+      "contract": "Prove every required runtime, governed asset, index, and optional model before work begins.",
+      "sharedStrategies": [{ "id": "governed-runtime-bootstrap", "status": "required" }]
+    },
+    {
+      "id": "understand-request",
+      "order": 2,
+      "label": "Understand request",
+      "contract": "Convert source text into typed, source-bound language evidence without committing execution meaning.",
+      "sharedStrategies": [{ "id": "deterministic-language-grammar", "status": "default" }]
+    },
+    {
+      "id": "find-candidates",
+      "order": 3,
+      "label": "Find candidates",
+      "contract": "Retrieve a bounded candidate frontier, rank it, and preserve refusal authority.",
+      "sharedStrategies": [
+        { "id": "deterministic-index-retrieval", "status": "default" },
+        { "id": "qwen-embedding-retrieval", "status": "optional" },
+        { "id": "deterministic-typed-reranking", "status": "default" },
+        { "id": "linear-tfidf-classification", "status": "evaluation-only" },
+        { "id": "minilm-nli-classification", "status": "evaluation-only" },
+        { "id": "deberta-nli-classification", "status": "evaluation-only" },
+        { "id": "qwen-cross-encoder-reranking", "status": "disabled" }
+      ]
+    },
+    {
+      "id": "commit-meaning",
+      "order": 4,
+      "label": "Commit meaning",
+      "contract": "Select grounded entities, relations, constraints, and obligations from receipted evidence.",
+      "sharedStrategies": [{ "id": "typed-grounded-commitment", "status": "required" }]
+    },
+    {
+      "id": "execute",
+      "order": 5,
+      "label": "Execute",
+      "contract": "Compile and run the selected plan under deterministic constraints and explicit state transitions.",
+      "sharedStrategies": []
+    },
+    {
+      "id": "build-visuals",
+      "order": 6,
+      "label": "Build visuals",
+      "contract": "Lower settled meaning and execution state into a bounded presentation or render contract.",
+      "sharedStrategies": []
+    },
+    {
+      "id": "render",
+      "order": 7,
+      "label": "Render",
+      "contract": "Execute the presentation contract without inventing new semantic commitments.",
+      "sharedStrategies": [{ "id": "webgpu-presentation", "status": "required" }]
+    },
+    {
+      "id": "settle-proof",
+      "order": 8,
+      "label": "Settle proof",
+      "contract": "Settle outcome obligations from execution receipts and add no new product content.",
+      "sharedStrategies": [{ "id": "receipt-obligation-settlement", "status": "required" }]
+    }
+  ],
+  "strategies": [
+    {
+      "id": "governed-runtime-bootstrap",
+      "jobId": "runtime-preparation",
+      "label": "Governed runtime and asset bootstrap",
+      "kind": "runtime",
+      "performanceRefs": []
+    },
+    {
+      "id": "deterministic-language-grammar",
+      "jobId": "understand-request",
+      "label": "Deterministic typed grammar",
+      "kind": "deterministic",
+      "performanceRefs": []
+    },
+    {
+      "id": "deterministic-index-retrieval",
+      "jobId": "find-candidates",
+      "label": "Exact, typo-bounded, and indexed retrieval",
+      "kind": "deterministic",
+      "performanceRefs": [
+        { "sourceId": "embedding-retrieval-v1", "recordType": "candidate", "recordId": "deterministic-lexical-control" },
+        { "sourceId": "autonomy-place-v2", "recordType": "lane", "recordId": "challenger" }
+      ]
+    },
+    {
+      "id": "deterministic-tfidf-classification",
+      "jobId": "find-candidates",
+      "label": "TF-IDF classification and ranking",
+      "kind": "deterministic",
+      "performanceRefs": [
+        { "sourceId": "classification-v1", "recordType": "candidate", "recordId": "deterministic-tfidf-control" }
+      ]
+    },
+    {
+      "id": "linear-tfidf-classification",
+      "jobId": "find-candidates",
+      "label": "Logistic regression over TF-IDF",
+      "kind": "model",
+      "performanceRefs": [
+        { "sourceId": "classification-v1", "recordType": "candidate", "recordId": "linear-tfidf-head" }
+      ]
+    },
+    {
+      "id": "minilm-nli-classification",
+      "jobId": "find-candidates",
+      "label": "MiniLM NLI classification",
+      "kind": "model",
+      "performanceRefs": [
+        { "sourceId": "classification-v1", "recordType": "candidate", "recordId": "minilm-nli-classifier" }
+      ]
+    },
+    {
+      "id": "deberta-nli-classification",
+      "jobId": "find-candidates",
+      "label": "DeBERTa-small NLI classification",
+      "kind": "model",
+      "performanceRefs": [
+        { "sourceId": "classification-v1", "recordType": "candidate", "recordId": "deberta-small-nli-classifier" }
+      ]
+    },
+    {
+      "id": "qwen-embedding-retrieval",
+      "jobId": "find-candidates",
+      "label": "Qwen 3 Embedding open-vocabulary retrieval",
+      "kind": "model",
+      "modelLockPath": "public/data/simulatte-embedder/model-runtime-lock.json#embedding",
+      "performanceRefs": [
+        { "sourceId": "embedding-retrieval-v1", "recordType": "candidate", "recordId": "qwen3-embedding-control" },
+        { "sourceId": "autonomy-place-v2", "recordType": "lane", "recordId": "modelCandidate" }
+      ]
+    },
+    {
+      "id": "deterministic-typed-reranking",
+      "jobId": "find-candidates",
+      "label": "Deterministic typed reranking",
+      "kind": "deterministic",
+      "performanceRefs": [
+        { "sourceId": "reranking-v1", "recordType": "candidate", "recordId": "deterministic-typed-score-control" }
+      ]
+    },
+    {
+      "id": "qwen-cross-encoder-reranking",
+      "jobId": "find-candidates",
+      "label": "Qwen 3 cross-encoder reranking",
+      "kind": "model",
+      "modelLockPath": "public/data/simulatte-embedder/model-runtime-lock.json#reranker",
+      "performanceRefs": [
+        { "sourceId": "reranking-v1", "recordType": "candidate", "recordId": "qwen3-reranker-control" }
+      ]
+    },
+    {
+      "id": "typed-grounded-commitment",
+      "jobId": "commit-meaning",
+      "label": "Typed grounded commitment",
+      "kind": "deterministic",
+      "performanceRefs": []
+    },
+    {
+      "id": "route-search-and-tick-execution",
+      "jobId": "execute",
+      "label": "A*, route costs, and tick execution",
+      "kind": "deterministic",
+      "performanceRefs": []
+    },
+    {
+      "id": "physics-ir-solver-execution",
+      "jobId": "execute",
+      "label": "PhysicsIR and solver execution",
+      "kind": "deterministic",
+      "performanceRefs": []
+    },
+    {
+      "id": "world-map-visual-contract",
+      "jobId": "build-visuals",
+      "label": "World and map visual contract",
+      "kind": "deterministic",
+      "performanceRefs": []
+    },
+    {
+      "id": "visual-ir-scene-packet",
+      "jobId": "build-visuals",
+      "label": "VisualIR and scene packet",
+      "kind": "deterministic",
+      "performanceRefs": []
+    },
+    {
+      "id": "webgpu-presentation",
+      "jobId": "render",
+      "label": "WebGPU presentation",
+      "kind": "renderer",
+      "performanceRefs": []
+    },
+    {
+      "id": "receipt-obligation-settlement",
+      "jobId": "settle-proof",
+      "label": "Receipt-backed obligation settlement",
+      "kind": "deterministic",
+      "performanceRefs": []
+    }
+  ],
+  "evidenceSources": [
+    {
+      "id": "classification-v1",
+      "kind": "frontier",
+      "path": "tools/samer/evidence/model-selection/classification-v1/frontier.json"
+    },
+    {
+      "id": "embedding-retrieval-v1",
+      "kind": "frontier",
+      "path": "tools/samer/evidence/model-selection/embedding-retrieval-v1/frontier.json"
+    },
+    {
+      "id": "reranking-v1",
+      "kind": "frontier",
+      "path": "tools/samer/evidence/model-selection/reranking-v1/frontier.json"
+    },
+    {
+      "id": "autonomy-place-v2",
+      "kind": "lane-diagnostic",
+      "path": "public/data/autonomy/evidence/place-resolution-public-diagnostic-v2.json"
+    }
+  ],
+  "surfaces": [
+    {
+      "id": "autonomy",
+      "route": "/",
+      "label": "Main / — Autonomy",
+      "bindings": [
+        {
+          "jobId": "runtime-preparation",
+          "phase": null,
+          "boundary": "App bootstrap and optional model consent",
+          "owners": ["public/app/main.js", "public/runtime/data-loader.js", "public/data/simulatte-embedder/model-runtime-lock.json"],
+          "surfaceStrategies": []
+        },
+        {
+          "jobId": "understand-request",
+          "phase": null,
+          "boundary": "Mission compiler and deterministic grammar",
+          "owners": ["public/mission/mission-compiler.js", "public/mission/cooperative-language-compiler.js"],
+          "surfaceStrategies": []
+        },
+        {
+          "jobId": "find-candidates",
+          "phase": null,
+          "boundary": "Place resolver and feature retrieval",
+          "owners": ["public/mission/mission-compiler.js", "public/runtime/feature-retrieval.js", "public/runtime/neural-place-resolver.js"],
+          "surfaceStrategies": []
+        },
+        {
+          "jobId": "commit-meaning",
+          "phase": null,
+          "boundary": "Typed mission and obligations",
+          "owners": ["public/mission/mission-compiler.js", "public/contracts/mission.schema.json"],
+          "surfaceStrategies": []
+        },
+        {
+          "jobId": "execute",
+          "phase": null,
+          "boundary": "A*, route costs, and tick simulation",
+          "owners": ["public/world/route-planner.js", "public/runtime/autonomy-controller.js", "public/world/time-dependent-edge-cost.js"],
+          "surfaceStrategies": [{ "id": "route-search-and-tick-execution", "status": "required" }]
+        },
+        {
+          "jobId": "build-visuals",
+          "phase": null,
+          "boundary": "Map and world presentation",
+          "owners": ["public/app/webgpu-geometry.js", "public/app/webgpu-actor-geometry.js"],
+          "surfaceStrategies": [{ "id": "world-map-visual-contract", "status": "required" }]
+        },
+        {
+          "jobId": "render",
+          "phase": null,
+          "boundary": "Main application renderer",
+          "owners": ["public/app/webgpu-renderer.js"],
+          "surfaceStrategies": []
+        },
+        {
+          "jobId": "settle-proof",
+          "phase": null,
+          "boundary": "Route and decision receipts",
+          "owners": ["public/runtime/canonical-receipts.js", "public/verifier/journey-verifier.js"],
+          "surfaceStrategies": []
+        }
+      ]
+    },
+    {
+      "id": "blank",
+      "route": "/blank/",
+      "label": "Blank /blank/",
+      "bindings": [
+        {
+          "jobId": "runtime-preparation",
+          "phase": 1,
+          "boundary": "Prove runtime, models, indexes, and cache",
+          "owners": ["public/blank/pipeline/phase-01-runtime", "public/data/simulatte-embedder/model-runtime-lock.json"],
+          "surfaceStrategies": []
+        },
+        {
+          "jobId": "understand-request",
+          "phase": 2,
+          "boundary": "Language graph",
+          "owners": ["public/blank/pipeline/phase-02-language"],
+          "surfaceStrategies": []
+        },
+        {
+          "jobId": "find-candidates",
+          "phase": 3,
+          "boundary": "Retrieval, ranking, and activation",
+          "owners": ["public/blank/pipeline/phase-03-retrieval"],
+          "surfaceStrategies": [{ "id": "deterministic-tfidf-classification", "status": "default" }]
+        },
+        {
+          "jobId": "commit-meaning",
+          "phase": 4,
+          "boundary": "Grounded scene contract",
+          "owners": ["public/blank/pipeline/phase-04-grounded-intent"],
+          "surfaceStrategies": []
+        },
+        {
+          "jobId": "execute",
+          "phase": 5,
+          "boundary": "PhysicsIR and solver compilation",
+          "owners": ["public/blank/pipeline/phase-05-simulation"],
+          "surfaceStrategies": [{ "id": "physics-ir-solver-execution", "status": "required" }]
+        },
+        {
+          "jobId": "build-visuals",
+          "phase": 6,
+          "boundary": "VisualIR and scene packet",
+          "owners": ["public/blank/pipeline/phase-06-visual"],
+          "surfaceStrategies": [{ "id": "visual-ir-scene-packet", "status": "required" }]
+        },
+        {
+          "jobId": "render",
+          "phase": 7,
+          "boundary": "WebGPU execution",
+          "owners": ["public/blank/pipeline/phase-07-render"],
+          "surfaceStrategies": []
+        },
+        {
+          "jobId": "settle-proof",
+          "phase": 8,
+          "boundary": "Scene-obligation proof",
+          "owners": ["public/blank/pipeline/phase-08-scene-proof"],
+          "surfaceStrategies": []
+        }
+      ]
+    }
+  ]
+}
