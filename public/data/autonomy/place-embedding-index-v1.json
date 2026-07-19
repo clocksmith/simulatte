@@ -3130,13 +3130,13 @@
   "identities": {
     "generator": {
       "path": "tools/autonomy/compile-place-embeddings.mjs",
-      "sha256": "eb2c491a137c6b52dc7bd83b3a211ee35a0e06f5d6ccda678470361197a80cec"
+      "sha256": "6e786ba183c4fc43c0b89c115f36352f0fc1a11e3aac4c0a566dffa7a5415422"
     },
     "modelRuntimeLock": {
       "id": "simulatte-doppler-qwen-runtime-lock",
-      "number": 9,
+      "number": 10,
       "path": "public/data/simulatte-embedder/model-runtime-lock.json",
-      "sha256": "ea8735b3197c5eb20d7eaa1124b8b64899b692d498eb5c6ceda23d53d71abc7c"
+      "sha256": "bef74ee3d943de0042df538afa6432827538182ce744e81ab8e21b979a86febb"
     },
     "placeSemanticSnapshot": {
       "fileCount": 9,
@@ -3156,7 +3156,7 @@
       "sha256": "218c6f3734815066669f57ae1bc1ce14aace261f0865ebf25f903db3880dcb3e"
     }
   },
-  "indexSha256": "82b96d910bd5d72083c2bf9c320f1d0775a7444bf717797e6dff6c9752e6cb1d",
+  "indexSha256": "2eb5e62456e54e6c35806b8c999b0b0b1fa1f3f261df05efbc05cd4623d8782a",
   "model": {
     "embeddingMode": "last",
     "family": "qwen3-embedding",

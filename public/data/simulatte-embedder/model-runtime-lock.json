@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.modelRuntimeLock.v1",
   "id": "simulatte-doppler-qwen-runtime-lock",
-  "number": 9,
+  "number": 10,
   "doppler": {
     "moduleUrl": "../../vendor/doppler/src/index.js",
     "deviceModuleUrl": "../../vendor/doppler/src/tooling-exports/device.js",
@@ -105,6 +105,91 @@
       }
     }
   },
+  "classification": {
+    "schema": "simulatte.classificationTierPolicy.v1",
+    "id": "simulatte-blank-classification-tiers-v1",
+    "phase": 3,
+    "artifact": {
+      "id": "simulatte-browser-compact-classifiers-v1",
+      "path": "../simulatte-compact-classifiers.js",
+      "sha256": "fee4e6a36e3a3f1a3d9c58a4d478b7435c4632f32a60db6c20ed841d70be839b",
+      "sizeBytes": 246101
+    },
+    "execution": {
+      "browserLinearCandidateId": "linear-svc-tfidf-head",
+      "browserLinearModelKey": "linearSVC",
+      "allowUncalibratedDiagnostics": true,
+      "acceptedPredictionsRequireCalibration": true
+    },
+    "routing": {
+      "kind": "cheapest-qualified-first",
+      "order": [
+        "linear-svc-tfidf-head",
+        "linear-tfidf-head",
+        "minilm-nli-classifier",
+        "deberta-small-nli-classifier",
+        "qwen3-embedding-classifier-control"
+      ],
+      "stopOnAcceptedPrediction": true,
+      "refusalOwner": "candidate-specific-calibrated-rule"
+    },
+    "tiers": [
+      {
+        "id": "linear-svc-tfidf-head",
+        "candidateId": "linear-svc-tfidf-head",
+        "adapter": "browser-linear",
+        "modelKey": "linearSVC",
+        "status": "evaluation-only",
+        "availability": "browser-ready",
+        "requiresConsent": false
+      },
+      {
+        "id": "linear-tfidf-head",
+        "candidateId": "linear-tfidf-head",
+        "adapter": "browser-linear",
+        "modelKey": "logisticRegression",
+        "status": "evaluation-only",
+        "availability": "browser-ready",
+        "requiresConsent": false
+      },
+      {
+        "id": "minilm-nli-classifier",
+        "candidateId": "minilm-nli-classifier",
+        "adapter": "sequence-classifier",
+        "providerId": "minilm-nli-classifier",
+        "modelId": "cross-encoder/nli-MiniLM2-L6-H768",
+        "status": "evaluation-only",
+        "availability": "missing-browser-artifact",
+        "requiresConsent": true
+      },
+      {
+        "id": "deberta-small-nli-classifier",
+        "candidateId": "deberta-small-nli-classifier",
+        "adapter": "sequence-classifier",
+        "providerId": "deberta-small-nli-classifier",
+        "modelId": "cross-encoder/nli-deberta-v3-small",
+        "status": "evaluation-only",
+        "availability": "missing-browser-artifact",
+        "requiresConsent": true
+      },
+      {
+        "id": "qwen3-embedding-classifier-control",
+        "candidateId": "qwen3-embedding-classifier-control",
+        "adapter": "embedding-labels",
+        "providerId": "qwen-embedding",
+        "modelId": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
+        "status": "optional",
+        "availability": "browser-ready",
+        "requiresConsent": true
+      }
+    ],
+    "calibration": {
+      "schema": "simulatte.classificationAbstentionCalibration.v1",
+      "status": "required-not-present",
+      "artifact": null,
+      "acceptedPredictionsAllowed": false
+    }
+  },
   "reranker": {
     "schema": "simulatte.intentRerankerConfig.v1",
     "id": "simulatte.doppler-intent-reranker.v1",
@@ -128,6 +213,13 @@
       "evidencePath": "tools/samer/evidence/model-selection/reranking-v1/frontier.json",
       "evidenceSha256": "f2991f2188a92d47f436a422be3a5dd97fdb2c572029da64ed9d5b988ee8a0a4",
       "modelNotExecutedReason": "sealed-reranking-v1-no-candidate-cleared-quality-floors"
+    },
+    "conditionalActivation": {
+      "schema": "simulatte.rerankSkipActivation.v1",
+      "status": "required-not-present",
+      "promotionEligible": false,
+      "selectedRuleId": null,
+      "rules": []
     },
     "execution": {
       "selectedTokenLogits": "required",

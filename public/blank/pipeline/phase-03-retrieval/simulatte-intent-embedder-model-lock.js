@@ -30,6 +30,7 @@
         const dimensions = Number(lock.embedding.dimensions);
         const manifest = clonePinnedValue(rawManifest);
         manifest.embedModel = clonePinnedValue(lock.embedding);
+        manifest.classification = clonePinnedValue(lock.classification);
         manifest.reranker = clonePinnedValue(lock.reranker);
         manifest.runtime = {
           ...clonePinnedValue(lock.runtime),
@@ -125,6 +126,7 @@
           throw new Error('model runtime lock doppler.package.fileCount must be a positive integer');
         }
         validatePinnedModel(lock.embedding, 'embedding', true, lock.embedding && lock.embedding.conversion);
+        validateClassificationPolicy(lock.classification, lock.embedding);
         const reranker = lock.reranker || {};
         if (reranker.schema !== 'simulatte.intentRerankerConfig.v1') throw new Error('model runtime lock reranker schema mismatch');
         if (typeof reranker.enabled !== 'boolean' || typeof reranker.required !== 'boolean' || typeof reranker.loadInPhase1WhenRequired !== 'boolean') {
@@ -141,7 +143,62 @@
         requiredPositiveInteger(reranker.scoreCacheMaxEntries, 'model runtime lock reranker.scoreCacheMaxEntries');
         validatePinnedModel(reranker.model, 'reranker', false, reranker.conversion);
         if (!reranker.runtimeConfig) throw new Error('model runtime lock reranker.runtimeConfig is required');
+        validateConditionalReranking(reranker);
         validateLockedRuntime(lock.runtime, lock.runtimeOrder, lock.cache, lock.embedding);
+      }
+
+      function validateClassificationPolicy(policy, embedding) {
+        if (!policy || policy.schema !== 'simulatte.classificationTierPolicy.v1') {
+          throw new Error('model runtime lock classification policy schema mismatch');
+        }
+        if (Number(policy.phase) !== 3) throw new Error('model runtime lock classification phase must be 3');
+        requiredText(policy.artifact && policy.artifact.id, 'model runtime lock classification.artifact.id');
+        requiredText(policy.artifact && policy.artifact.path, 'model runtime lock classification.artifact.path');
+        if (!/^[0-9a-f]{64}$/i.test(String(policy.artifact && policy.artifact.sha256 || ''))) {
+          throw new Error('model runtime lock classification.artifact.sha256 must be a SHA-256 digest');
+        }
+        requiredPositiveInteger(policy.artifact && policy.artifact.sizeBytes, 'model runtime lock classification.artifact.sizeBytes');
+        if (!Array.isArray(policy.tiers) || !policy.tiers.length) {
+          throw new Error('model runtime lock classification.tiers must be a non-empty array');
+        }
+        const ids = new Set();
+        for (const tier of policy.tiers) {
+          const id = requiredText(tier.id, 'model runtime lock classification tier id');
+          if (ids.has(id)) throw new Error(`model runtime lock duplicates classification tier ${id}`);
+          ids.add(id);
+          requiredText(tier.candidateId, `${id}.candidateId`);
+          requiredText(tier.adapter, `${id}.adapter`);
+          requiredText(tier.status, `${id}.status`);
+          requiredText(tier.availability, `${id}.availability`);
+          if (typeof tier.requiresConsent !== 'boolean') throw new Error(`${id}.requiresConsent must be a boolean`);
+        }
+        const order = policy.routing && policy.routing.order;
+        if (!Array.isArray(order) || !order.length || order.some((id) => !ids.has(id))) {
+          throw new Error('model runtime lock classification.routing.order must reference declared tiers');
+        }
+        const qwen = policy.tiers.find((tier) => tier.id === 'qwen3-embedding-classifier-control');
+        if (!qwen || qwen.modelId !== embedding.id) {
+          throw new Error('Qwen classification tier must reuse the locked embedding model');
+        }
+        if (policy.calibration && policy.calibration.acceptedPredictionsAllowed !== false) {
+          throw new Error('classification predictions cannot be accepted without a qualified calibration artifact');
+        }
+      }
+
+      function validateConditionalReranking(reranker) {
+        const activation = reranker.conditionalActivation;
+        if (!activation || activation.schema !== 'simulatte.rerankSkipActivation.v1') {
+          throw new Error('model runtime lock reranker conditional activation schema mismatch');
+        }
+        if (!reranker.enabled) {
+          if (activation.promotionEligible !== false || activation.selectedRuleId !== null || (activation.rules || []).length !== 0) {
+            throw new Error('disabled reranker cannot claim a conditional activation rule');
+          }
+          return;
+        }
+        if (activation.promotionEligible === true && !String(activation.selectedRuleId || '').trim()) {
+          throw new Error('qualified conditional reranking must select an activation rule');
+        }
       }
 
       function validateRerankerQualification(reranker) {

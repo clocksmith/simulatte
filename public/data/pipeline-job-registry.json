@@ -25,11 +25,7 @@
       "sharedStrategies": [
         { "id": "deterministic-index-retrieval", "status": "default" },
         { "id": "qwen-embedding-retrieval", "status": "optional" },
-        { "id": "deterministic-typed-reranking", "status": "default" },
-        { "id": "linear-tfidf-classification", "status": "evaluation-only" },
-        { "id": "minilm-nli-classification", "status": "evaluation-only" },
-        { "id": "deberta-nli-classification", "status": "evaluation-only" },
-        { "id": "qwen-cross-encoder-reranking", "status": "disabled" }
+        { "id": "deterministic-typed-reranking", "status": "default" }
       ]
     },
     {
@@ -103,10 +99,19 @@
       ]
     },
     {
+      "id": "linear-svc-tfidf-classification",
+      "jobId": "find-candidates",
+      "label": "LinearSVC over TF-IDF",
+      "kind": "model",
+      "modelLockPath": "public/data/simulatte-embedder/model-runtime-lock.json#classification",
+      "performanceRefs": []
+    },
+    {
       "id": "linear-tfidf-classification",
       "jobId": "find-candidates",
       "label": "Logistic regression over TF-IDF",
       "kind": "model",
+      "modelLockPath": "public/data/simulatte-embedder/model-runtime-lock.json#classification",
       "performanceRefs": [
         { "sourceId": "classification-v1", "recordType": "candidate", "recordId": "linear-tfidf-head" }
       ]
@@ -116,6 +121,7 @@
       "jobId": "find-candidates",
       "label": "MiniLM NLI classification",
       "kind": "model",
+      "modelLockPath": "public/data/simulatte-embedder/model-runtime-lock.json#classification",
       "performanceRefs": [
         { "sourceId": "classification-v1", "recordType": "candidate", "recordId": "minilm-nli-classifier" }
       ]
@@ -125,8 +131,19 @@
       "jobId": "find-candidates",
       "label": "DeBERTa-small NLI classification",
       "kind": "model",
+      "modelLockPath": "public/data/simulatte-embedder/model-runtime-lock.json#classification",
       "performanceRefs": [
         { "sourceId": "classification-v1", "recordType": "candidate", "recordId": "deberta-small-nli-classifier" }
+      ]
+    },
+    {
+      "id": "qwen-embedding-classification",
+      "jobId": "find-candidates",
+      "label": "Qwen 3 embedding label classification",
+      "kind": "model",
+      "modelLockPath": "public/data/simulatte-embedder/model-runtime-lock.json#classification",
+      "performanceRefs": [
+        { "sourceId": "classification-v1", "recordType": "candidate", "recordId": "qwen3-embedding-classifier-control" }
       ]
     },
     {
@@ -319,7 +336,15 @@
           "phase": 3,
           "boundary": "Retrieval, ranking, and activation",
           "owners": ["public/blank/pipeline/phase-03-retrieval"],
-          "surfaceStrategies": [{ "id": "deterministic-tfidf-classification", "status": "default" }]
+          "surfaceStrategies": [
+            { "id": "deterministic-tfidf-classification", "status": "default" },
+            { "id": "linear-svc-tfidf-classification", "status": "evaluation-only" },
+            { "id": "linear-tfidf-classification", "status": "evaluation-only" },
+            { "id": "minilm-nli-classification", "status": "evaluation-only" },
+            { "id": "deberta-nli-classification", "status": "evaluation-only" },
+            { "id": "qwen-embedding-classification", "status": "evaluation-only" },
+            { "id": "qwen-cross-encoder-reranking", "status": "disabled" }
+          ]
         },
         {
           "jobId": "commit-meaning",

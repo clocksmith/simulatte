@@ -328,6 +328,8 @@
             number: Number(manifest.modelRuntimeLock && manifest.modelRuntimeLock.number || 0),
             artifactHash: hashHex(manifest.modelRuntimeLock && manifest.modelRuntimeLock.artifactHash),
           },
+          classificationTierPolicy: manifest.classification || null,
+          classificationCalibration: null,
           modelId: runtime.index && runtime.index.embedModelId || embedModel.id || '',
           modelBaseUrl: embedModel.defaultModelBaseUrl || '',
           modelHash: hashHex(embedModel.manifestHash) || hashHex(runtime.index && runtime.index.embedModelHash),
@@ -576,11 +578,37 @@
       }) {
         const local = rerankPriors(priors, semanticRag, dopplerIntent, runtime, universeMatches);
         const config = rerankerConfig(runtime);
+        const conditionalApi = root.SimulatteConditionalReranking;
+        if (!conditionalApi || typeof conditionalApi.decide !== 'function') {
+          throw new Error('conditional reranking policy is unavailable');
+        }
+        const conditionalDecision = conditionalApi.decide({
+          candidates: local.priors.slice(0, config.maxCandidatesPerCall),
+          config,
+          activationReceipt: config.conditionalActivation || null,
+        });
+        const required = rerankerRequired(runtime);
+        if (config.enabled && conditionalDecision.action !== 'rerank') {
+          return {
+            priors: local.priors,
+            receipt: {
+              ...local.receipt,
+              stage: phaseLabel || local.receipt.stage,
+              rerankerMode: 'heuristic-fusion',
+              modelReady: false,
+              modelBackend: '',
+              modelRequired: required,
+              modelStatus: 'skipped',
+              qualificationStatus: config.qualification && config.qualification.status || '',
+              modelNotExecutedReason: conditionalDecision.reason,
+              conditionalDecision,
+            },
+          };
+        }
         const capability = resolveRerankerCapability(provider, {
           rerankProvider,
           dopplerModelHandle: null,
         });
-        const required = rerankerRequired(runtime);
         if (!config.enabled || !capability) {
           if (required) {
             throw new Error(`intent manifest requires Doppler reranker ${config.id}, but no rerank capability is available`);
@@ -599,6 +627,7 @@
               modelNotExecutedReason: !config.enabled
                 ? config.qualification && config.qualification.modelNotExecutedReason || 'reranker-disabled'
                 : 'reranker-capability-not-available',
+              conditionalDecision,
             },
           };
         }
@@ -681,6 +710,7 @@
                 executionDurationMs: row.executionDurationMs,
               })),
               ...rerankExecutionSummary(modelRows),
+              conditionalDecision,
               top: rows.slice(0, 12).map((row) => row.primitiveId),
             },
           };
@@ -697,6 +727,7 @@
               modelStatus: 'fallback',
               modelBackend: capability.backend,
               fallbackReason: err && err.message ? err.message : String(err),
+              conditionalDecision,
             },
           };
         }

@@ -122,7 +122,21 @@
         let compileSerial = 0;
         let constructionRetryPending = false;
         let activePromptRuntimeReceipt = null;
+        let classificationPolicyPromise = null;
         const pipelineCompiler = createPipelineCompiler(root);
+
+        function ensureClassificationPolicy() {
+          if (classificationPolicyPromise) return classificationPolicyPromise;
+          const policyEmbedder = createMainThreadEmbedder();
+          if (!policyEmbedder || typeof policyEmbedder.loadClassificationPolicy !== 'function') {
+            return Promise.reject(new Error('Classification policy loader unavailable'));
+          }
+          classificationPolicyPromise = policyEmbedder.loadClassificationPolicy().catch((error) => {
+            classificationPolicyPromise = null;
+            throw error;
+          });
+          return classificationPolicyPromise;
+        }
 
         handleSceneProofReport = (report) => {
           if (!report || report.final !== true || !trainingRun.runId || !trainingRun.prompt) return;
@@ -507,10 +521,14 @@
             if (serial !== buildSerial) return;
             const token = compileSerial + 1;
             compileSerial = token;
+            const classification = await ensureClassificationPolicy();
+            if (serial !== buildSerial || token !== compileSerial) return;
             const nextSpec = await compilePromptSpec(prompt, {
               params,
               deterministicRuntime: true,
               retrievalPhase: 'deterministic-local',
+              classificationTierPolicy: classification.policy,
+              classificationCalibration: classification.calibration,
             }, {
               stage: 'language',
               percent: 18,

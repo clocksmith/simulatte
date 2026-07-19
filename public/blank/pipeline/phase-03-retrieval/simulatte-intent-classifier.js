@@ -13,12 +13,16 @@
     markMissingDependency('SimulatteIntentClassifier', 'SimulattePhysicsCatalog');
     return;
   }
-  const api = factory(catalog);
+  const compactRuntime = typeof module === 'object' && module.exports
+    ? require('./simulatte-compact-classifier-runtime.js')
+    : root.SimulatteCompactClassifierRuntime;
+  if (!compactRuntime) throw new Error('SimulatteIntentClassifier requires SimulatteCompactClassifierRuntime');
+  const api = factory(catalog, compactRuntime);
   if (typeof module === 'object' && module.exports) {
     module.exports = api;
   }
   root.SimulatteIntentClassifier = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createIntentClassifier(catalog) {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createIntentClassifier(catalog, compactRuntime) {
   const {
     PHYSICAL_PRIMITIVES,
     buildIntentVector,
@@ -90,8 +94,9 @@
     const prompt = String(promptText || '').trim();
     const max = Number.isFinite(options.max) ? options.max : 36;
     if (!prompt || options.blankPromptIntent === true) {
-      return blankClassification(prompt);
+      return blankClassification(prompt, options);
     }
+    const boundedHeads = classifyBoundedHeads(prompt, options);
     const modelBackedPriors = rankedFromEmbeddingPriors(options.embeddingPriors || []);
     if (modelBackedPriors.length && options.embeddingModel && options.embeddingModel.id) {
       let ranked = mergeSemanticRag(modelBackedPriors, options.semanticRag || null);
@@ -120,6 +125,7 @@
         domainScores,
         layerFocus: topLayer(selected, layerScores),
         confidence: Number(clamp(top - next * 0.35, 0, 1).toFixed(4)),
+        boundedHeads,
       };
     }
     if (options.allowPrototypeFallback !== true && options.deterministicRuntime !== true) {
@@ -158,7 +164,103 @@
       domainScores,
       layerFocus: topLayer(selected, layerScores),
       confidence: Number(clamp(top - next * 0.35, 0, 1).toFixed(4)),
+      boundedHeads,
     };
+  }
+
+  function classifyBoundedHeads(prompt, options = {}) {
+    const policy = options.classificationTierPolicy;
+    const execution = policy && policy.execution || {};
+    const modelKey = execution.browserLinearModelKey;
+    const candidateId = execution.browserLinearCandidateId;
+    const requests = boundedHeadRequests(prompt, options.languageGraph, options.sceneLanguageGraph);
+    if (!policy || policy.schema !== 'simulatte.classificationTierPolicy.v1' || !modelKey || !candidateId) {
+      return Object.freeze({
+        schema: 'simulatte.boundedHeadClassification.v1',
+        status: 'not-configured',
+        modelExecuted: false,
+        requestCount: requests.length,
+        acceptedCount: 0,
+        results: Object.freeze([]),
+      });
+    }
+    const calibration = options.classificationCalibration || null;
+    const candidateCalibration = calibration && calibration.candidates && calibration.candidates[candidateId];
+    const calibrations = {};
+    if (candidateCalibration && candidateCalibration.eligible === true) {
+      for (const [headId, head] of Object.entries(candidateCalibration.heads || {})) {
+        if (head.clearsCalibrationGate === true) {
+          calibrations[headId] = {
+            status: 'calibrated',
+            minimumConfidence: Number(head.minimumConfidence),
+            minimumMargin: Number(head.minimumMargin || 0),
+          };
+        }
+      }
+    }
+    const results = compactRuntime.classifyRequests(requests, { modelKey, calibrations })
+      .map(compactClassificationResult);
+    return Object.freeze({
+      schema: 'simulatte.boundedHeadClassification.v1',
+      status: Object.keys(calibrations).length ? 'calibrated' : 'diagnostic-only',
+      modelExecuted: results.length > 0,
+      candidateId,
+      modelKey,
+      artifactId: compactRuntime.artifact.id,
+      calibrationId: calibration && calibration.id || null,
+      requestCount: requests.length,
+      acceptedCount: results.filter((row) => row.accepted).length,
+      results,
+    });
+  }
+
+  function compactClassificationResult(result) {
+    return Object.freeze({
+      ...result,
+      scores: Object.freeze((result.scores || []).slice(0, 5)),
+    });
+  }
+
+  function boundedHeadRequests(prompt, languageGraph = {}, sceneLanguageGraph = {}) {
+    const requests = [{ id: 'scene-domain:prompt', headId: 'scene-domain', text: prompt }];
+    const add = (headId, id, text) => {
+      const value = String(text || '').trim();
+      if (!value) return;
+      requests.push({ id: `${headId}:${id}`, headId, text: value });
+    };
+    for (const span of (languageGraph.spans || []).slice(0, 32)) {
+      add('span-entity-role', span.id || requests.length, span.text || span.normalized);
+    }
+    for (const entity of [
+      ...(sceneLanguageGraph.entities || []),
+      ...(sceneLanguageGraph.parts || []),
+      ...(sceneLanguageGraph.mediums || []),
+    ].slice(0, 24)) {
+      const text = entryText(entity, prompt);
+      add('material', entity.id || requests.length, text);
+    }
+    for (const action of (sceneLanguageGraph.actions || []).slice(0, 16)) {
+      add('pose', action.id || requests.length, entryText(action, prompt));
+    }
+    for (const relation of (sceneLanguageGraph.relations || []).slice(0, 24)) {
+      add('relation', relation.id || requests.length, entryText(relation, prompt));
+    }
+    for (const obligation of (sceneLanguageGraph.obligations || []).slice(0, 24)) {
+      add('obligation-support', obligation.id || requests.length, entryText(obligation, prompt));
+    }
+    return requests;
+  }
+
+  function entryText(entry, fallback) {
+    return entry && (
+      entry.text
+      || entry.sourceText
+      || entry.label
+      || entry.term
+      || entry.predicate
+      || entry.relation
+      || entry.type
+    ) || fallback;
   }
 
   function classificationReceipt(options = {}, mode = 'deterministic-tfidf', counts = {}) {
@@ -379,7 +481,7 @@
       .sort((a, b) => b.score - a.score || a.primitiveId.localeCompare(b.primitiveId));
   }
 
-  function blankClassification(prompt) {
+  function blankClassification(prompt, options = {}) {
     return {
       ...classificationReceipt({}, 'blank'),
       query: prompt,
@@ -388,6 +490,7 @@
       domainScores: [],
       layerFocus: 'blank',
       confidence: 1,
+      boundedHeads: classifyBoundedHeads(prompt, options),
     };
   }
 
@@ -586,6 +689,7 @@
       layerFocus: classification.layerFocus,
       priors: (classification.priors || []).slice(0, 10).map((prior) => prior.primitiveId),
       domains: uniqueList((classification.domainScores || []).slice(0, 8).map((row) => row.id)),
+      boundedHeads: classification.boundedHeads || null,
     };
   }
 
@@ -593,6 +697,7 @@
     INTENT_CLASSIFICATION_SCHEMA,
     DETERMINISTIC_TFIDF_RANKER_ID,
     classificationSummary,
+    classifyBoundedHeads,
     classifyIntentPrompt,
     rankPrimitivesForClassification,
   };

@@ -13,6 +13,7 @@ const MODES = new Set([
   'deterministic-retrieval',
   'deterministic-reranking',
   'linear-classification',
+  'linear-svc-classification',
   'nli-classification',
   'embedding-classification',
   'sentence-embedding',

@@ -56,6 +56,14 @@
     'pipeline/phase-03-retrieval/simulatte-intent-embedder-facade-support.js',
     'pipeline/phase-03-retrieval/simulatte-intent-embedder.js'
   );
+  const classificationTiers = group(
+    '../data/simulatte-compact-classifiers.js',
+    'pipeline/phase-03-retrieval/simulatte-compact-classifier-runtime.js',
+    'pipeline/phase-03-retrieval/simulatte-classification-tier-router.js'
+  );
+  const conditionalReranking = group(
+    'pipeline/phase-03-retrieval/simulatte-conditional-reranking.js'
+  );
   const languageAndGroundingEntry = group(
     'pipeline/phase-03-retrieval/simulatte-intent-classifier.js',
     '../data/simulatte-language-lexicon.js',
@@ -196,6 +204,8 @@
     dopplerIntent,
     graphSynthesis,
     intentEmbedder,
+    classificationTiers,
+    conditionalReranking,
     languageAndGroundingEntry,
     physicsIr,
     groundedIntent,
@@ -217,6 +227,8 @@
     semanticRag,
     dopplerIntent,
     graphSynthesis,
+    classificationTiers,
+    conditionalReranking,
     languageAndGroundingEntry,
     physicsIr,
     groundedIntent,
@@ -230,6 +242,7 @@
     semanticRag,
     dopplerIntent,
     group('pipeline/phase-02-language/simulatte-language-evidence.js'),
+    conditionalReranking,
     intentEmbedder
   );
 

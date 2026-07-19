@@ -36,6 +36,7 @@ def parse_args() -> argparse.Namespace:
             "deterministic-retrieval",
             "deterministic-reranking",
             "linear-classification",
+            "linear-svc-classification",
             "nli-classification",
             "embedding-classification",
             "sentence-embedding",
@@ -191,6 +192,57 @@ def run_linear_classification(workload: dict) -> tuple[list[dict], dict]:
         probabilities = classifier.predict_proba(vectorizer.transform([text]))[0]
         scores = sorted(
             ({"id": label, "score": float(score)} for label, score in zip(classifier.classes_, probabilities)),
+            key=lambda item: (-item["score"], item["id"]),
+        )
+        confidence = scores[0]["score"]
+        predicted = scores[0]["id"] if confidence >= float(row.get("minimumConfidence", 0)) else row.get("abstentionId", "abstain")
+        duration = elapsed_ms(row_started)
+        samples.append(duration)
+        predictions.append({"id": row["id"], "predictedLabel": predicted, "confidence": confidence, "scores": scores, "durationMs": duration})
+    return predictions, performance_receipt(cold_ms, samples, 0)
+
+
+def run_linear_svc_classification(workload: dict) -> tuple[list[dict], dict]:
+    from sklearn.feature_extraction.text import TfidfVectorizer
+    from sklearn.svm import LinearSVC
+
+    started = time.perf_counter()
+    grouped: dict[str, list[dict]] = {}
+    for row in workload["rows"]:
+        grouped.setdefault(row["headId"], []).append(row)
+    models = {}
+    for head_id, rows in grouped.items():
+        labels = rows[0]["labels"]
+        train_texts: list[str] = []
+        train_labels: list[str] = []
+        for label in labels:
+            label_id = label["id"]
+            description = label.get("description") or label_id.replace("-", " ")
+            for template in (
+                "{description}",
+                "this request describes {description}",
+                "the grounded visual class is {description}",
+                "show {description}",
+            ):
+                train_texts.append(template.format(description=description))
+                train_labels.append(label_id)
+        vectorizer = TfidfVectorizer(lowercase=True, ngram_range=(1, 2), analyzer="word", sublinear_tf=True)
+        vectors = vectorizer.fit_transform(train_texts)
+        classifier = LinearSVC(C=1.0, random_state=17).fit(vectors, train_labels)
+        models[head_id] = (vectorizer, classifier)
+    cold_ms = elapsed_ms(started)
+    predictions = []
+    samples = []
+    for row in workload["rows"]:
+        row_started = time.perf_counter()
+        vectorizer, classifier = models[row["headId"]]
+        text = " ".join(filter(None, (row.get("text"), row.get("span"))))
+        decision = classifier.decision_function(vectorizer.transform([text]))[0]
+        maximum = max(float(value) for value in decision)
+        exponentials = [math.exp(float(value) - maximum) for value in decision]
+        total = sum(exponentials) or 1.0
+        scores = sorted(
+            ({"id": label, "score": value / total} for label, value in zip(classifier.classes_, exponentials)),
             key=lambda item: (-item["score"], item["id"]),
         )
         confidence = scores[0]["score"]
@@ -530,6 +582,11 @@ def main() -> None:
             fail("linear-classification requires a classification workload")
         rows, performance = run_linear_classification(workload)
         model_id = "simulatte-public-taxonomy-linear-head-v1"
+    elif args.mode == "linear-svc-classification":
+        if workload["task"] != "classification":
+            fail("linear-svc-classification requires a classification workload")
+        rows, performance = run_linear_svc_classification(workload)
+        model_id = "simulatte-public-taxonomy-linear-svc-v1"
     elif args.mode == "nli-classification":
         if workload["task"] != "classification":
             fail("nli-classification requires a classification workload")

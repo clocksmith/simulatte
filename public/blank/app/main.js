@@ -11,6 +11,9 @@
   const REQUIRED_GLOBALS = [
     'SimulattePhysicsCatalog',
     'SimulatteSemanticRag',
+    'SimulatteCompactClassifierRuntime',
+    'SimulatteClassificationTierRouter',
+    'SimulatteConditionalReranking',
     'SimulatteIntentClassifier',
     'SimulatteCausalPhysicsGraph',
     'SimulatteLanguageEvidence',

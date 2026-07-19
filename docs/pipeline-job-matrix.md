@@ -10,7 +10,7 @@ The job is the stable abstraction. `/` and `/blank/` configure the same eight jo
 | --- | --- | --- | --- |
 | Runtime preparation | App bootstrap and optional model consent | Phase 1: Prove runtime, models, indexes, and cache | Governed runtime and asset bootstrap |
 | Understand request | Mission compiler and deterministic grammar | Phase 2: Language graph | Deterministic typed grammar |
-| Find candidates | Place resolver and feature retrieval | Phase 3: Retrieval, ranking, and activation | Exact, typo-bounded, and indexed retrieval; Qwen 3 Embedding open-vocabulary retrieval; Deterministic typed reranking; Logistic regression over TF-IDF; MiniLM NLI classification; DeBERTa-small NLI classification; Qwen 3 cross-encoder reranking |
+| Find candidates | Place resolver and feature retrieval | Phase 3: Retrieval, ranking, and activation | Exact, typo-bounded, and indexed retrieval; Qwen 3 Embedding open-vocabulary retrieval; Deterministic typed reranking |
 | Commit meaning | Typed mission and obligations | Phase 4: Grounded scene contract | Typed grounded commitment |
 | Execute | A*, route costs, and tick simulation | Phase 5: PhysicsIR and solver compilation | None |
 | Build visuals | Map and world presentation | Phase 6: VisualIR and scene packet | None |
@@ -25,12 +25,14 @@ The job is the stable abstraction. `/` and `/blank/` configure the same eight jo
 | Understand request | Deterministic typed grammar | deterministic | default | default |
 | Find candidates | Exact, typo-bounded, and indexed retrieval | deterministic | default | default |
 | Find candidates | TF-IDF classification and ranking | deterministic | — | default |
-| Find candidates | Logistic regression over TF-IDF | model | evaluation-only | evaluation-only |
-| Find candidates | MiniLM NLI classification | model | evaluation-only | evaluation-only |
-| Find candidates | DeBERTa-small NLI classification | model | evaluation-only | evaluation-only |
+| Find candidates | LinearSVC over TF-IDF | model | — | evaluation-only |
+| Find candidates | Logistic regression over TF-IDF | model | — | evaluation-only |
+| Find candidates | MiniLM NLI classification | model | — | evaluation-only |
+| Find candidates | DeBERTa-small NLI classification | model | — | evaluation-only |
+| Find candidates | Qwen 3 embedding label classification | model | — | evaluation-only |
 | Find candidates | Qwen 3 Embedding open-vocabulary retrieval | model | optional | optional |
 | Find candidates | Deterministic typed reranking | deterministic | default | default |
-| Find candidates | Qwen 3 cross-encoder reranking | model | disabled | disabled |
+| Find candidates | Qwen 3 cross-encoder reranking | model | — | disabled |
 | Commit meaning | Typed grounded commitment | deterministic | required | required |
 | Execute | A*, route costs, and tick execution | deterministic | required | — |
 | Execute | PhysicsIR and solver execution | deterministic | — | required |
@@ -51,6 +53,7 @@ These values are read from the referenced receipts during generation. Candidate 
 | Logistic regression over TF-IDF | simulatte-classification-sealed-v1 (276 rows; k=10) | macro f1 0; coverage 0; selective risk 1; expected calibration error 0.1087 | 0 download bytes; cold p50 8.7477 ms; warm p95 0.1564 ms | not promoted by frontier | [classification-v1](../tools/samer/evidence/model-selection/classification-v1/frontier.json) |
 | MiniLM NLI classification | simulatte-classification-sealed-v1 (276 rows; k=10) | macro f1 0; coverage 0; selective risk 1; expected calibration error 0.4971 | 315.8 MiB download; cold p50 19826.0157 ms; warm p95 87.1425 ms | not promoted by frontier | [classification-v1](../tools/samer/evidence/model-selection/classification-v1/frontier.json) |
 | DeBERTa-small NLI classification | simulatte-classification-sealed-v1 (276 rows; k=10) | macro f1 0.0812; coverage 0; selective risk 1; expected calibration error 0.4872 | 551.9 MiB download; cold p50 32005.796 ms; warm p95 140.1753 ms | not promoted by frontier | [classification-v1](../tools/samer/evidence/model-selection/classification-v1/frontier.json) |
+| Qwen 3 embedding label classification | simulatte-classification-sealed-v1 (276 rows; k=10) | macro f1 0.0439; coverage 0; selective risk 1; expected calibration error 0.5987 | 1151.5 MiB download; cold p50 59921.1884 ms; warm p95 107.9297 ms | not promoted by frontier | [classification-v1](../tools/samer/evidence/model-selection/classification-v1/frontier.json) |
 | Qwen 3 Embedding open-vocabulary retrieval | simulatte-embedding-retrieval-sealed-v1 (130 rows; k=10) | recall at k 1; hard negative accuracy 1; must refuse accuracy 0.3667 | 1151.5 MiB download; cold p50 60472.4436 ms; warm p95 275.1562 ms | not promoted by frontier | [embedding-retrieval-v1](../tools/samer/evidence/model-selection/embedding-retrieval-v1/frontier.json) |
 | Qwen 3 Embedding open-vocabulary retrieval | place-resolution-probes-v1 / hybrid-lexical-qwen-embedding-v1 | 27/37 correct; 0 wrong-place | not recorded in this diagnostic | 0 refusal violations; 0 floor misses | [autonomy-place-v2](../public/data/autonomy/evidence/place-resolution-public-diagnostic-v2.json) |
 | Deterministic typed reranking | simulatte-reranking-sealed-v1 (100 rows; k=4) | ndcg at k 0.8058; winner accuracy 0.52 | 0 download bytes; cold p50 0.0401 ms; warm p95 0.2439 ms | not promoted by frontier | [reranking-v1](../tools/samer/evidence/model-selection/reranking-v1/frontier.json) |

@@ -66,6 +66,37 @@ test('model-backed intent retrieval cosine-normalizes query and index vectors', 
       },
       runtimeConfig: { inference: {} },
     },
+    classification: {
+      schema: 'simulatte.classificationTierPolicy.v1',
+      id: 'synthetic-classification-policy',
+      phase: 3,
+      artifact: {
+        id: 'simulatte-browser-compact-classifiers-v1',
+        path: '../simulatte-compact-classifiers.js',
+        sha256: '0'.repeat(64),
+        sizeBytes: 1,
+      },
+      execution: {
+        browserLinearCandidateId: 'linear-svc-tfidf-head',
+        browserLinearModelKey: 'linearSVC',
+      },
+      routing: {
+        order: ['qwen3-embedding-classifier-control'],
+      },
+      tiers: [{
+        id: 'qwen3-embedding-classifier-control',
+        candidateId: 'qwen3-embedding-classifier-control',
+        adapter: 'embedding-labels',
+        providerId: 'qwen-embedding',
+        modelId: 'synthetic-last-pooled-transformer',
+        status: 'evaluation-only',
+        availability: 'browser-ready',
+        requiresConsent: true,
+      }],
+      calibration: {
+        acceptedPredictionsAllowed: false,
+      },
+    },
     reranker: {
       schema: 'simulatte.intentRerankerConfig.v1',
       id: 'synthetic-reranker',
@@ -90,6 +121,13 @@ test('model-backed intent retrieval cosine-normalizes query and index vectors', 
         selectedTokenLogits: 'required',
         prefixKvReuse: 'required',
         statefulPrefixReuse: 'required',
+      },
+      conditionalActivation: {
+        schema: 'simulatte.rerankSkipActivation.v1',
+        status: 'required-not-present',
+        promotionEligible: false,
+        selectedRuleId: null,
+        rules: [],
       },
       model: {
         id: 'synthetic-reranker-model',
@@ -214,6 +252,21 @@ test('Phase 1 resolves only the selected numbered model runtime lock', async () 
     });
 
     await assert.rejects(() => embedder.loadModel(), /must reference modelRuntimeLock instead of declaring model runtime policy inline/);
+  });
+});
+
+test('classification policy loads from the numbered lock without loading Qwen', async () => {
+  await withIntentArtifactFetch(async ({ modelRuntimeLock }) => {
+    const embedder = intentEmbedder.create({
+      manifestUrl: 'https://simulatte.test/data/simulatte-embedder/manifest.json',
+    });
+    const result = await embedder.loadClassificationPolicy();
+
+    assert.equal(result.lockNumber, modelRuntimeLock.number);
+    assert.equal(result.policy.id, modelRuntimeLock.classification.id);
+    assert.equal(result.artifactId, modelRuntimeLock.classification.artifact.id);
+    assert.equal(result.modelDownloaded, false);
+    assert.equal(embedder.modelPromise, null);
   });
 });
 

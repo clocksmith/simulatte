@@ -17,6 +17,7 @@ const CARD_INDEX_PATH = path.join(ROOT, 'public', 'data', 'simulatte-embedder', 
 const EVIDENCE_CONTRACT_PATH = path.join(ROOT, 'public', 'data', 'simulatte-embedder', 'intent-evidence-contract-v1.json');
 const INVENTORY_PATH = path.join(ROOT, 'public', 'data', 'simulatte-catalog-inventory.json');
 const STRUCTURER_MANIFEST_PATH = path.join(ROOT, 'public', 'data', 'simulatte-intent-structurer', 'manifest.json');
+const CLASSIFIER_ARTIFACT_PATH = path.join(ROOT, 'public', 'data', 'simulatte-compact-classifiers.js');
 const RERANKER_FRONTIER_PATH = path.join(ROOT, 'tools', 'samer', 'evidence', 'model-selection', 'reranking-v1', 'frontier.json');
 const INDEX_BUILDERS = [
   path.join(ROOT, 'tools', 'build-primitive-embedding-index.mjs'),
@@ -154,6 +155,28 @@ function main() {
   );
   assertEqual(indexEmbeddingMode, manifestPoolingMode, 'embedding.indexEmbeddingMode');
 
+  const classification = lock.classification || {};
+  assertEqual(classification.schema, 'simulatte.classificationTierPolicy.v1', 'classification.schema');
+  assertEqual(classification.phase, 3, 'classification.phase');
+  assertEqual(classification.artifact?.id, 'simulatte-browser-compact-classifiers-v1', 'classification.artifact.id');
+  requireLockedArtifact(classification.artifact?.path, 'classification.artifact.path', 'file');
+  assertEqual(classification.artifact?.sha256, hashFile(CLASSIFIER_ARTIFACT_PATH), 'classification.artifact.sha256');
+  assertEqual(classification.artifact?.sizeBytes, fs.statSync(CLASSIFIER_ARTIFACT_PATH).size, 'classification.artifact.sizeBytes');
+  assertEqual(classification.execution?.acceptedPredictionsRequireCalibration, true, 'classification.execution.acceptedPredictionsRequireCalibration');
+  assertEqual(classification.calibration?.status, 'required-not-present', 'classification.calibration.status');
+  assertEqual(classification.calibration?.artifact, null, 'classification.calibration.artifact');
+  assertEqual(classification.calibration?.acceptedPredictionsAllowed, false, 'classification.calibration.acceptedPredictionsAllowed');
+  const classificationTiers = classification.tiers || [];
+  const classificationTierIds = new Set(classificationTiers.map((tier) => tier.id));
+  if (classificationTierIds.size !== classificationTiers.length || classificationTiers.length < 5) {
+    fail('classification.tiers must contain five unique tier identities');
+  }
+  for (const tierId of classification.routing?.order || []) {
+    if (!classificationTierIds.has(tierId)) fail(`classification.routing.order references unknown tier ${tierId}`);
+  }
+  const qwenClassification = classificationTiers.find((tier) => tier.id === 'qwen3-embedding-classifier-control');
+  assertEqual(qwenClassification?.modelId, embedding.id, 'Qwen classification model identity');
+
   const reranker = lock.reranker || {};
   assertEqual(reranker.schema, 'simulatte.intentRerankerConfig.v1', 'reranker.schema');
   assertEqual(reranker.enabled, false, 'reranker.enabled');
@@ -178,6 +201,11 @@ function main() {
   assertEqual(qualification.evidencePath, 'tools/samer/evidence/model-selection/reranking-v1/frontier.json', 'reranker.qualification.evidencePath');
   assertEqual(qualification.evidenceSha256, hashFile(RERANKER_FRONTIER_PATH), 'reranker.qualification.evidenceSha256');
   requireText(qualification.modelNotExecutedReason, 'reranker.qualification.modelNotExecutedReason');
+  const activation = reranker.conditionalActivation || {};
+  assertEqual(activation.schema, 'simulatte.rerankSkipActivation.v1', 'reranker.conditionalActivation.schema');
+  assertEqual(activation.promotionEligible, false, 'reranker.conditionalActivation.promotionEligible');
+  assertEqual(activation.selectedRuleId, null, 'reranker.conditionalActivation.selectedRuleId');
+  assertEqual(Array.isArray(activation.rules) ? activation.rules.length : -1, 0, 'reranker.conditionalActivation.rules.length');
   const rerankerFrontier = readJson(RERANKER_FRONTIER_PATH);
   assertEqual(rerankerFrontier.selectedCandidateId, null, 'reranker frontier selectedCandidateId');
   assertEqual(rerankerFrontier.promotionEligible, false, 'reranker frontier promotionEligible');

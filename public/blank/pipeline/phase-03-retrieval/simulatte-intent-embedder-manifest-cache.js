@@ -24,6 +24,7 @@
           this.traceEnabled = traceEnabled(options);
           this.traceId = options.traceId || `intent-${Math.random().toString(36).slice(2, 9)}`;
           this.modelPromise = null;
+          this.manifestPromise = null;
           this.providerPromise = null;
           this.rerankerProviderPromise = null;
           this.providerReady = false;
@@ -219,6 +220,37 @@
         }
 
         async loadManifest() {
+          if (!this.manifestPromise) {
+            this.manifestPromise = this.loadManifestUncached().catch((error) => {
+              this.manifestPromise = null;
+              throw error;
+            });
+          }
+          return this.manifestPromise;
+        }
+
+        async loadClassificationPolicy() {
+          const manifest = await this.loadManifest();
+          const policy = manifest.classification;
+          if (!policy || policy.schema !== 'simulatte.classificationTierPolicy.v1') {
+            throw new Error('intent manifest classification policy is required');
+          }
+          const artifact = root.SimulatteCompactClassifierArtifact;
+          const lockedArtifact = policy.artifact || {};
+          if (!artifact || artifact.id !== lockedArtifact.id) {
+            throw new Error('loaded compact classifier artifact does not match the classification policy');
+          }
+          return Object.freeze({
+            schema: 'simulatte.classificationPolicyLoad.v1',
+            lockNumber: Number(manifest.modelRuntimeLock && manifest.modelRuntimeLock.number || 0),
+            policy,
+            calibration: null,
+            artifactId: artifact.id,
+            modelDownloaded: false,
+          });
+        }
+
+        async loadManifestUncached() {
           const rawManifest = await fetchJson(versionedAssetUrl(this.manifestUrl, this.assetVersionQuery), 'intent manifest', {
             progress: this.onProgress,
             traceEnabled: this.traceEnabled,

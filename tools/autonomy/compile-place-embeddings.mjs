@@ -3,8 +3,8 @@ import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { doppler } from '../../../doppler/src/index.js';
-import { bootstrapNodeWebGPU } from '../../../doppler/src/tooling/node-webgpu.js';
+import { doppler } from '../../public/vendor/doppler/src/index.js';
+import { bootstrapNodeWebGPU } from '../../public/vendor/doppler/src/tooling/node-webgpu.js';
 import {
   lockedEmbeddingModel,
   modelRuntimeLockHash,

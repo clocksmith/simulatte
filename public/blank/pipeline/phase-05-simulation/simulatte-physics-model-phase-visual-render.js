@@ -489,6 +489,14 @@
             deterministicRuntime,
             blankPromptIntent,
             semanticRag,
+            languageGraph,
+            sceneLanguageGraph: phase2Output.artifact.sceneLanguageGraph || null,
+            classificationTierPolicy: options.classificationTierPolicy
+              || options.promptRuntimeReceipt && options.promptRuntimeReceipt.classificationTierPolicy
+              || null,
+            classificationCalibration: options.classificationCalibration
+              || options.promptRuntimeReceipt && options.promptRuntimeReceipt.classificationCalibration
+              || null,
           })
           : null;
         const intent = {

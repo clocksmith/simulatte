@@ -52,10 +52,22 @@
         "modelId": "simulatte-public-taxonomy-linear-head-v1",
         "revision": "taxonomy-descriptions-v1",
         "mode": "linear-classification",
-        "source": "tools/samer/model-candidate-runtime.py",
+        "source": "public/data/simulatte-compact-classifiers.js#logisticRegression",
         "evaluationEligible": true,
         "deploymentEligible": false,
-        "deploymentEvidence": "Candidate-only sklearn implementation; browser serialization and parity are not yet proven."
+        "deploymentEvidence": "Browser weights and runtime exist; candidate-specific calibration, Python/browser parity, and a fresh sealed frontier remain required."
+      },
+      {
+        "id": "linear-svc-tfidf-head",
+        "kind": "model",
+        "implementationId": "simulatte.public-taxonomy-linear-svc.v1",
+        "modelId": "simulatte-public-taxonomy-linear-svc-v1",
+        "revision": "taxonomy-descriptions-v1",
+        "mode": "linear-svc-classification",
+        "source": "public/data/simulatte-compact-classifiers.js#linearSVC",
+        "evaluationEligible": true,
+        "deploymentEligible": false,
+        "deploymentEvidence": "Browser weights and runtime exist; candidate-specific calibration, Python/browser parity, and a fresh sealed frontier remain required."
       },
       {
         "id": "minilm-nli-classifier",
