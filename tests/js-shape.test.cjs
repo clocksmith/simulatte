@@ -2433,9 +2433,11 @@ test('Firebase hosting revalidates app lab and app JavaScript', () => {
   const modelLockCheck = fs.readFileSync(path.join(root, 'tools', 'check-model-runtime-lock.mjs'), 'utf8');
   const modelLockUtils = fs.readFileSync(path.join(root, 'tools', 'model-runtime-lock-utils.mjs'), 'utf8');
   const headers = config.hosting.headers;
-  assert.equal(config.hosting.predeploy, 'npm run check:deploy && npm run stamp:build');
+  assert.equal(config.hosting.predeploy, 'npm run restore:doppler:development && npm run check:deploy && npm run stamp:build');
   assert.equal(pkg.scripts['sync:doppler:development'], 'node tools/sync-doppler-development.mjs --write');
+  assert.equal(pkg.scripts['restore:doppler:development'], 'node tools/sync-doppler-development.mjs --restore');
   assert.equal(pkg.scripts['check:doppler:development'], 'node tools/sync-doppler-development.mjs --check');
+  assert.match(developmentSync, /const RESTORE = process\.argv\.includes\('--restore'\)/);
   assert.equal(pkg.scripts['sync:model-lock-references'], 'node tools/sync-model-runtime-lock-references.mjs --write');
   assert.equal(pkg.scripts['check:model-lock-references'], 'node tools/sync-model-runtime-lock-references.mjs --check');
   assert.equal(
