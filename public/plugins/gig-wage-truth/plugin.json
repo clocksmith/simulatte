@@ -31,6 +31,16 @@
   "receiptSchemas": [
     "simulatte.plugin.gigWageTruthReceipt.v1"
   ],
+  "resources": [
+    {
+      "integrity": "sha384-e83eb729b90f57024a49bfc73adc245122129665430e3944637ac7ea6c26230a1ca59b658b8ef28edb136d0fa1f70f4a",
+      "path": "./config.schema.json"
+    },
+    {
+      "integrity": "sha384-65ffa6f31a46019410bf0b5433ced995640862afc033ab1dccf405b11167376acfa92c1760570a2812862ef0e9b8842f",
+      "path": "./default-config.json"
+    }
+  ],
   "schema": "simulatte.pluginManifest.v1",
   "sdkVersion": 1,
   "version": "1.0.0"

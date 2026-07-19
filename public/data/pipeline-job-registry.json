@@ -290,14 +290,14 @@
           "jobId": "runtime-preparation",
           "phase": null,
           "boundary": "App bootstrap and optional model consent",
-          "owners": ["public/app/main.js", "public/runtime/data-loader.js", "public/data/simulatte-embedder/model-runtime-lock.json"],
+          "owners": ["public/app/main.js", "public/platform/bootstrap/application-loader.js", "public/data/simulatte-embedder/model-runtime-lock.json"],
           "surfaceStrategies": []
         },
         {
           "jobId": "understand-request",
           "phase": null,
           "boundary": "Mission compiler and deterministic grammar",
-          "owners": ["public/mission/mission-compiler.js", "public/mission/cooperative-language-compiler.js"],
+          "owners": ["public/mission/mission-compiler.js", "public/plugins/p2p-delivery/language-compiler.js"],
           "surfaceStrategies": []
         },
         {

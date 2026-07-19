@@ -39,7 +39,7 @@
     const kind = canonicalKind(options.kind);
     const frame = createFrame(options.point, options.heading || 0);
     const motionPhase = Number.isFinite(options.motionPhase) ? options.motionPhase : 0;
-    const before = writer.values.length;
+    const before = writer.length;
     if (options.isPrimary) addGroundRing(writer, frame, kind === 'car' ? 2.7 : 1.18);
     if (kind === 'pedestrian') addPerson(writer, frame, { motionPhase, gait: options.gait || 'walk' });
     else if (kind === 'bicycle') addBicycle(writer, frame, { motionPhase, hasRider: true });
@@ -49,7 +49,7 @@
       schema: ACTOR_MESH_SCHEMA,
       kind,
       materialModel: MATERIAL_MODEL,
-      vertexCount: (writer.values.length - before) / FLOATS_PER_VERTEX,
+      vertexCount: (writer.length - before) / FLOATS_PER_VERTEX,
     };
   }
 

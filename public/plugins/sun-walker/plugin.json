@@ -10,7 +10,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginSunWalker",
-    "integrity": "sha384-cc76ff1413df02b51cfcf897f12d2bc9a5d2bccb33d562919596eb899273e1a452154d122f2c458d5a69eed88375c819",
+    "integrity": "sha384-b3f57ae1bd22a7eb288e0de6a9cc12a58294d69867e30adde29733aec776109c21ae4a52f942fff7aab49f4e725dd0dd",
     "path": "./index.js"
   },
   "extensionPoints": [
@@ -33,6 +33,20 @@
   ],
   "receiptSchemas": [
     "simulatte.plugin.sunWalkerSelectionReceipt.v1"
+  ],
+  "resources": [
+    {
+      "integrity": "sha384-952fcf2aeec13cbb18a950586a862cd9af374b4565bdce1952b3175274ae3753de1a4a3dfb9f74e42d56f5d8f51dbaa2",
+      "path": "./config.schema.json"
+    },
+    {
+      "integrity": "sha384-762a79ddc5fab5f85228022263473b6efe9391bb4dd4f1612720e42e5346c76090ebd30633116397f8aaa968205e257a",
+      "path": "./default-config.json"
+    },
+    {
+      "integrity": "sha384-e625a29d6518138487f47bdf3629d56f6d9a94227f59cc36c94d9eefcc0315c3d714629ecfb0e3f20219b8a736cb2c27",
+      "path": "./sun-exposure.js"
+    }
   ],
   "schema": "simulatte.pluginManifest.v1",
   "sdkVersion": 1,

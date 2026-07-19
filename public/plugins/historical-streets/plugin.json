@@ -4,6 +4,12 @@
   "datasets": [
     {
       "id": "nyc-world-snapshot-registry-v1",
+      "reference": {
+        "id": "nyc-world-snapshot-registry-v1",
+        "path": "../../data/autonomy/world-snapshot-registry-v1.json",
+        "schemaId": "simulatte.autonomyWorldSnapshotRegistry.v1",
+        "sha256": "9d0c4d450d5a29b313ce1b3474413c9e6cca3595a13afb76997eb1119aa80038"
+      },
       "required": true
     }
   ],
@@ -24,6 +30,16 @@
     "world.snapshot.v1"
   ],
   "receiptSchemas": [],
+  "resources": [
+    {
+      "integrity": "sha384-f58a9b8a62ed3161990fca87c94c661156d61ecf96165fed0273453f89057c031a0d5a3619954695060c0409e22f71f8",
+      "path": "./config.schema.json"
+    },
+    {
+      "integrity": "sha384-d7f900111f2f6f363fcc0d74efb88e8557cf7be6890737b631b19a1418573fd1a0c0e237d17c4d8047ee9b827e9a9ff7",
+      "path": "./default-config.json"
+    }
+  ],
   "schema": "simulatte.pluginManifest.v1",
   "sdkVersion": 1,
   "version": "1.0.0"

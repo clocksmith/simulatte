@@ -13,7 +13,7 @@ const missionApi = require('../../public/mission/mission-compiler.js');
 const worldApi = require('../../public/world/world-model.js');
 const routePlanner = require('../../public/world/route-planner.js');
 const featureRetrieval = require('../../public/runtime/feature-retrieval.js');
-const OUTPUT = path.join(ROOT, 'public/data/autonomy/evidence/feature-reranker-public-diagnostic-v2.json');
+const OUTPUT = path.join(ROOT, 'public/data/autonomy/evidence/feature-reranker-public-diagnostic-v3.json');
 
 function main() {
   const files = {
@@ -36,8 +36,8 @@ function main() {
     && challenger.recallAt5 >= control.recallAt5;
   const receipt = {
     schema: 'simulatte.autonomyRerankerEvaluation.v1',
-    id: 'feature-reranker-public-diagnostic-v2',
-    contentVersion: 'feature-reranker-public-diagnostic-2026-07-18',
+    id: 'feature-reranker-public-diagnostic-v3',
+    contentVersion: 'feature-reranker-public-diagnostic-2026-07-19',
     population: { id: corpus.id, kind: corpus.population, promotionEligible: false, rowCount: corpus.missions.length },
     intervention: {
       kind: 'typed_evidence_reranker_weights',

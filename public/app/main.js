@@ -1,6 +1,6 @@
 (function attachAutonomyApp(root, factory) {
   const api = factory(
-    root.SimulatteAutonomyDataLoader,
+    root.SimulatteApplicationLoader,
     root.SimulatteAutonomyMission,
     root.SimulatteAutonomyController,
     root.SimulatteAutonomyCanvas,
@@ -8,7 +8,6 @@
     root.SimulatteAutonomyRuntimeLog,
     root.SimulatteNeuralPlaceResolver,
     root.SimulatteJourneyLedger,
-    root.SimulatteCounterfactualRunner,
     root.SimulatteAutonomyReceipts,
     root.SimulatteAutonomyWorld,
     root.SimulatteNeuralModelConsent,
@@ -19,11 +18,12 @@
     root.SimulatteBrowserTransport,
     root.SimulatteGovernedArtifactStore,
     root.SimulatteAutonomyRoutePlanner,
-    root.SimulatteCivilTime
+    root.SimulatteCivilTime,
+    root.SimulatteUniverseParser
   );
   root.SimulatteAutonomyApp = api;
   if (typeof module === 'object' && module.exports) module.exports = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyApp(dataLoader, missionApi, controllerApi, canvasApi, traceApi, runtimeLog, neuralPlaceApi, ledgerApi, counterfactualApi, receiptsApi, worldApi, neuralConsentApi, modelSelectionApi, pluginRuntimeApi, pluginRegistry, pluginUiApi, transportApi, artifactStoreApi, routePlannerApi, civilTimeApi) {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyApp(dataLoader, missionApi, controllerApi, canvasApi, traceApi, runtimeLog, neuralPlaceApi, ledgerApi, receiptsApi, worldApi, neuralConsentApi, modelSelectionApi, pluginRuntimeApi, pluginRegistry, pluginUiApi, transportApi, artifactStoreApi, routePlannerApi, civilTimeApi, universeParserApi) {
   const log = runtimeLog || {
     info: () => null,
     warn: () => null,
@@ -43,14 +43,13 @@
     setRuntimeStatus(elements, 'Loading governed assets', 'loading');
     let data;
     try {
-      data = await dataLoader.loadAutonomyData();
+      data = await dataLoader.loadApplication();
     } catch (error) {
       failRuntime(elements, error);
       return null;
     }
     const pluginArtifacts = artifactStoreApi.createGovernedArtifactStore({ transport: transportApi.createBrowserTransport({ fetchImpl: fetch.bind(globalThis) }) });
     let activeMissionForPlugins = null;
-    let embodimentForPlugins = null;
     const extensions = await pluginRuntimeApi.createPluginRuntime({
       registry: pluginRegistry,
       profile: data.applicationProfile,
@@ -60,6 +59,7 @@
       corePorts: {
         worldQuery: Object.freeze({ snapshot: () => data.world, model: () => worldApi.createWorldModel(data.world) }),
         routing: Object.freeze({
+          plan(options) { return routePlannerApi.planRoute(options); },
           alternatives(mission, maximumAlternatives) {
             const embodiment = data.embodiments.find((row) => row.id === mission.embodimentId);
             if (!embodiment) throw new Error(`Plugin routing expected embodiment ${mission.embodimentId}`);
@@ -69,14 +69,19 @@
           policy: () => data.policy,
         }),
         clock: Object.freeze({ instantForMission: (mission) => environmentInstant(data.world, mission) }),
+        language: Object.freeze({ parsePrompt: (sourceText) => universeParserApi.parsePrompt(sourceText) }),
+        receipts: Object.freeze({ createReceiptChain: receiptsApi.createReceiptChain, appendReceiptEntry: receiptsApi.appendReceiptEntry, sha256Hex: receiptsApi.sha256Hex, verifyReceiptChain: receiptsApi.verifyReceiptChain }),
         simulation: Object.freeze({
-          compare(intervention) {
-            if (!activeMissionForPlugins || !embodimentForPlugins) throw new Error('Counterfactual comparison requires an active mission');
-            return counterfactualApi.compareCounterfactual({
+          async run({ id, mission, routeObjective }) {
+            const embodiment = data.embodiments.find((row) => row.id === mission.embodimentId);
+            if (!embodiment) throw new Error(`Simulation lane expected embodiment ${mission.embodimentId}`);
+            const laneController = controllerApi.createAutonomyController({
               world: data.world, featureCatalog: data.featureCatalog, occurrenceCatalog: data.occurrenceCatalog,
-              accessibilityIndex: data.accessibilityIndex, routeAmenityIndex: data.routeAmenityIndex, safetyHistoryIndex: data.safetyHistoryIndex,
-              embodiment: embodimentForPlugins, policy: data.policy, mission: activeMissionForPlugins, regionComposition: data.regionComposition, intervention,
+              embodiment, policy: data.policy, mission, regionComposition: data.regionComposition,
+              routeContributors: extensions.routeContributors({ mission }), routeObjective,
             });
+            await laneController.run();
+            return laneController.journeyReceipt();
           },
         }),
         ui: Object.freeze({ slot: 'inspector' }),
@@ -84,7 +89,10 @@
     });
     const pluginUi = pluginUiApi.createDeclarativeUiHost({
       rootElement: elements.pluginInspector,
-      onAction: ({ pluginId, actionId }) => extensions.dispatchAction(pluginId, actionId, { mission: activeMissionForPlugins }),
+      onAction: async ({ pluginId, actionId, values }) => {
+        await extensions.dispatchAction(pluginId, actionId, { mission: activeMissionForPlugins, routeObjective: data.applicationProfile.routeObjective, values });
+        pluginUi.render(extensions.views({ mission: activeMissionForPlugins }));
+      },
     });
     pluginUi.render(extensions.views({ mission: null }));
     elements.missionInput.value = data.manifest.defaultMissionText;
@@ -100,10 +108,9 @@
     let terminalJourneyLogged = false;
     let hasJourneyStarted = false;
     let placeResolver = null;
-    let shadeSelection = null;
+    let buildRevision = 0;
     const journeyLedger = ledgerApi.createJourneyLedger();
     const recordedJourneyHashes = new Set();
-    let latestCounterfactual = null;
     const stepIntervalMs = 18;
     const yieldToFrame = () => new Promise((resolve) => requestAnimationFrame(resolve));
     const neuralGate = await neuralConsentApi.createGate({
@@ -126,12 +133,45 @@
       surfaceId: 'autonomy',
       consentGate: neuralGate,
     });
+    let disposal = null;
+
+    async function disposeApplication() {
+      if (disposal) return disposal;
+      disposal = (async () => {
+        stopLoop();
+        elements.applicationProfile.disabled = true;
+        if (placeResolver) {
+          await placeResolver.unload();
+          placeResolver = null;
+        }
+        await extensions.dispose();
+      })();
+      return disposal;
+    }
+
+    populateApplicationProfiles(elements.applicationProfile, data.manifest, data.applicationProfile.id);
+    elements.applicationProfile.addEventListener('change', async () => {
+      const profileId = elements.applicationProfile.value;
+      if (!profileId || profileId === data.applicationProfile.id) return;
+      setRuntimeStatus(elements, 'Switching application', 'loading');
+      try {
+        await disposeApplication();
+        const url = new URL(window.location.href);
+        url.searchParams.set('profile', profileId);
+        window.location.assign(url.toString());
+      } catch (error) {
+        failRuntime(elements, error);
+      }
+    });
+    window.addEventListener('pagehide', () => { void disposeApplication(); }, { once: true });
 
     async function buildController({ keepMissionLocked = false } = {}) {
+      const revision = ++buildRevision;
+      const isCurrent = () => revision === buildRevision;
       clearMissionError(elements);
       const requestedSourceText = elements.missionInput.value;
-      shadeSelection = null;
       const preflightContributions = await extensions.contributeRequest({ sourceText: requestedSourceText });
+      if (!isCurrent()) return null;
       const sourceOverrides = preflightContributions.filter((row) => row.executableSourceText);
       if (sourceOverrides.length > 1) throw new Error(`Plugin request conflict: ${sourceOverrides.map((row) => row.pluginId).join(', ')} proposed executable source`);
       const executableSourceText = sourceOverrides[0]?.executableSourceText || requestedSourceText;
@@ -158,11 +198,10 @@
       const mission = useNeuralPlaces && sourceOverrides.length === 0
         ? await missionApi.compileMissionWithResolver(executableSourceText, data.world, data.embodiments, placeResolver)
         : missionApi.compileMission(executableSourceText, data.world, data.embodiments);
+      if (!isCurrent()) return null;
       const pluginContributions = await extensions.contributeRequest({ sourceText: requestedSourceText, executableSourceText, mission });
+      if (!isCurrent()) return null;
       applyPluginMissionContributions(mission, pluginContributions);
-      shadeSelection = pluginContributions.find((row) => row.environment)?.environment || null;
-      activeMission = mission;
-      activeMissionForPlugins = mission;
       log.info('mission.compiled', {
         missionId: mission.id,
         sourceText: requestedSourceText,
@@ -175,18 +214,14 @@
         modelSelection: modelSelection.receipt(),
       });
       renderPlaceResolution(elements, mission, placeResolver?.receipt() || null, data.placeResolutionEvidence);
-      pluginUi.render(extensions.views({ mission }));
       await yieldToFrame();
+      if (!isCurrent()) return null;
       const embodiment = data.embodiments.find((row) => row.id === mission.embodimentId);
       if (!embodiment) throw new Error(`Mission selected unavailable embodiment ${mission.embodimentId}`);
-      embodimentForPlugins = embodiment;
       const nextController = controllerApi.createAutonomyController({
         world: data.world,
         featureCatalog: data.featureCatalog,
         occurrenceCatalog: data.occurrenceCatalog,
-        accessibilityIndex: data.accessibilityIndex,
-        routeAmenityIndex: data.routeAmenityIndex,
-        safetyHistoryIndex: data.safetyHistoryIndex,
         routeContributors: extensions.routeContributors({ mission }),
         routeObjective: data.applicationProfile.routeObjective,
         embodiment,
@@ -244,17 +279,24 @@
           ambientTraffic: renderReceipt.ambientTraffic,
         });
       }
-      controller = nextController;
+      if (!isCurrent()) return null;
       retrievalLaneLogged = false;
       terminalJourneyLogged = false;
       await yieldToFrame();
+      if (!isCurrent()) return null;
       renderer.reset();
-      const snapshot = controller.snapshot();
+      const snapshot = nextController.snapshot();
       renderer.render(snapshot);
+      await yieldToFrame();
+      if (!isCurrent()) return null;
+      controller = nextController;
+      activeMission = mission;
+      activeMissionForPlugins = mission;
       traceView.renderInitial(snapshot, renderer.receipt());
-      renderPlanning(elements, { ...controller.planning(), environment: shadeSelection });
+      renderPlanning(elements, nextController.planning());
+      pluginUi.render(extensions.views({ mission }));
       elements.renderIdentity.textContent = renderIdentity(renderer.receipt());
-      setRuntimeStatus(elements, snapshot.state.status === 'active' ? 'Ready' : accessibilityRuntimeLabel(controller.planning().accessibility), snapshot.state.status === 'active' ? 'ready' : 'failed');
+      setRuntimeStatus(elements, snapshot.state.status === 'active' ? 'Ready' : runtimeLabel(snapshot.state), snapshot.state.status === 'active' ? 'ready' : 'failed');
       updateButtons(elements, keepMissionLocked, true, snapshot.state.status, hasJourneyStarted);
       if (snapshot.state.status !== 'active') await recordJourney(nextController);
       return controller;
@@ -285,9 +327,12 @@
     async function runLoop() {
       clearMissionError(elements);
       updateButtons(elements, true, Boolean(controller), controller?.snapshot().state.status || 'active', true);
-      if (!controller || controller.snapshot().state.status !== 'active') await buildController({ keepMissionLocked: true });
+      if (!controller || controller.snapshot().state.status !== 'active') {
+        const built = await buildController({ keepMissionLocked: true });
+        if (!built) return;
+      }
       if (controller.snapshot().state.status !== 'active') {
-        setRuntimeStatus(elements, accessibilityRuntimeLabel(controller.planning().accessibility), 'failed');
+        setRuntimeStatus(elements, runtimeLabel(controller.snapshot().state), 'failed');
         updateButtons(elements, false, true, controller.snapshot().state.status, true);
         return;
       }
@@ -327,6 +372,7 @@
     elements.resumeButton.addEventListener('click', startRun);
     elements.newMissionButton.addEventListener('click', () => {
       stopLoop();
+      buildRevision += 1;
       controller = null;
       hasJourneyStarted = false;
       updateButtons(elements, false, false, 'active', false);
@@ -350,8 +396,9 @@
     elements.stepButton.addEventListener('click', async () => {
       try {
         stopLoop();
-        if (!controller || controller.snapshot().state.status !== 'active') await buildController();
-        await controller.step();
+        let targetController = controller;
+        if (!targetController || targetController.snapshot().state.status !== 'active') targetController = await buildController();
+        if (targetController) await targetController.step();
       } catch (error) {
         failRuntime(elements, error);
       }
@@ -376,13 +423,12 @@
         failRuntime(elements, error);
       }
     });
-    elements.whatIfButton.addEventListener('click', () => interfaceUi.openDecisions('what-if-section'));
+    elements.whatIfButton.addEventListener('click', () => interfaceUi.openDecisions('plugin-inspector'));
     elements.exportButton.addEventListener('click', async () => {
       if (!controller) return;
       const receipt = await controller.journeyReceipt();
       receipt.rendering = renderer.receipt();
       receipt.dataLoad = structuredClone(data.receipt);
-      receipt.environment = shadeSelection ? structuredClone(shadeSelection) : null;
       receipt.pluginRuntime = extensions.runtimeReceipt();
       log.info('journey.receipt.exported', {
         missionId: receipt.mission.id,
@@ -405,6 +451,7 @@
         stopLoop();
         elements.missionInput.value = imported.mission.sourceText;
         resizeMissionInput(elements.missionInput);
+        buildRevision += 1;
         controller = null;
         hasJourneyStarted = false;
         updateButtons(elements, false, false, 'active', false);
@@ -421,47 +468,11 @@
         log.error('journey.receipt.import_failed', log.serializeError(error));
       }
     });
-    elements.counterfactualKind.addEventListener('change', () => {
-      syncCounterfactualInputs(elements);
-    });
-    elements.compareButton.addEventListener('click', async () => {
-      try {
-        stopLoop();
-        if (!controller) await buildController();
-        elements.compareButton.disabled = true;
-        elements.counterfactualProof.textContent = 'Comparing the same mission under one declared change.';
-        const embodiment = data.embodiments.find((row) => row.id === activeMission.embodimentId);
-        const intervention = elements.counterfactualKind.value === 'close_street'
-          ? { id: `close-${hash32(elements.counterfactualStreet.value).toString(16)}`, kind: 'close_street', streetName: elements.counterfactualStreet.value }
-          : elements.counterfactualKind.value === 'world_snapshot'
-            ? { id: `world-${elements.counterfactualSnapshot.value}`, kind: 'world_snapshot', snapshotDate: elements.counterfactualSnapshot.value }
-            : { id: 'historical-crash-weight-1', kind: 'historical_crash_weighting', historicalObservationWeight: 1 };
-        latestCounterfactual = await counterfactualApi.compareCounterfactual({
-          world: data.world,
-          featureCatalog: data.featureCatalog,
-          occurrenceCatalog: data.occurrenceCatalog,
-          accessibilityIndex: data.accessibilityIndex,
-          routeAmenityIndex: data.routeAmenityIndex,
-          safetyHistoryIndex: data.safetyHistoryIndex,
-          embodiment,
-          policy: data.policy,
-          mission: activeMission,
-          regionComposition: data.regionComposition,
-          intervention,
-        });
-        renderCounterfactual(elements, latestCounterfactual);
-        downloadJson(`simulatte-what-if-${intervention.id}.json`, latestCounterfactual);
-      } catch (error) {
-        elements.counterfactualProof.textContent = error.message;
-        log.error('counterfactual.failed', log.serializeError(error));
-      } finally {
-        elements.compareButton.disabled = false;
-      }
-    });
     elements.missionInput.addEventListener('input', () => {
       if (isRunning) return;
       clearMissionError(elements);
       resizeMissionInput(elements.missionInput);
+      buildRevision += 1;
       controller = null;
       hasJourneyStarted = false;
       updateButtons(elements, false, false, 'active', false);
@@ -480,6 +491,7 @@
         await placeResolver.unload();
         placeResolver = null;
       }
+      buildRevision += 1;
       controller = null;
       hasJourneyStarted = false;
       updateButtons(elements, false, false, 'active', false);
@@ -493,37 +505,56 @@
     });
 
     try {
-      syncCounterfactualInputs(elements);
       renderPolicyArena(elements, data.policyArenaEvidence);
       await renderLedger(elements, journeyLedger, data.curriculum, data.world.contentVersion);
       await buildController();
     } catch (error) {
       failRuntime(elements, error);
     }
-    return { data, getController: () => controller, getRenderer: () => renderer };
+    return { data, dispose: disposeApplication, getController: () => controller, getRenderer: () => renderer };
   }
 
   function collectElements() {
     const ids = [
       'mission-input', 'mission-error', 'place-resolution-lane', 'place-lane-note', 'model-selection-controls', 'shuffle-button', 'start-button', 'pause-button', 'resume-button', 'step-button', 'reset-button', 'replay-button', 'new-mission-button', 'what-if-button', 'export-button',
       'dock-more-button', 'dock-more-menu',
-      'runtime-status', 'runtime-toggle', 'runtime-details', 'runtime-details-close', 'render-identity', 'autonomy-canvas', 'follow-minimap', 'decision-title', 'decision-meta',
+      'runtime-status', 'runtime-toggle', 'runtime-details', 'runtime-details-close', 'application-profile', 'render-identity', 'autonomy-canvas', 'follow-minimap', 'decision-title', 'decision-meta',
       'bet-list', 'gate-list', 'trace-list', 'route-formula', 'route-stats', 'route-components',
       'retrieval-query', 'retrieval-candidates', 'rerank-candidates', 'retrieval-stats', 'settlement-math',
       'reranker-proof', 'place-resolution-proof',
       'occurrence-stats', 'occurrence-patterns', 'occurrence-effects',
       'metric-state', 'metric-tick', 'metric-time', 'metric-speed', 'metric-distance', 'metric-route', 'metric-bet', 'journey-progress-fill', 'journey-hud',
       'metric-settlement', 'metric-calibration', 'camera-focus', 'camera-focus-button', 'camera-focus-popover', 'camera-follow', 'camera-bird', 'camera-top',
-      'planning-forecast', 'accessibility-proof', 'alternative-proof', 'ledger-proof', 'policy-arena-proof',
-      'counterfactual-kind', 'counterfactual-street', 'counterfactual-snapshot', 'compare-button', 'export-ledger-button',
-      'counterfactual-street-wrap', 'counterfactual-snapshot-wrap', 'import-receipt-button', 'import-receipt-file', 'counterfactual-proof',
-      'decisions-button', 'decisions-drawer', 'decisions-close', 'decisions-backdrop', 'journey-section', 'what-if-section',
+      'planning-forecast', 'alternative-proof', 'ledger-proof', 'policy-arena-proof',
+      'export-ledger-button', 'import-receipt-button', 'import-receipt-file',
+      'decisions-button', 'decisions-drawer', 'decisions-close', 'decisions-backdrop', 'journey-section',
       'plugin-inspector',
     ];
     const elements = Object.fromEntries(ids.map((id) => [camelId(id), document.getElementById(id)]));
     const missing = ids.filter((id) => !document.getElementById(id));
     if (missing.length) throw new Error(`Autonomy UI expected elements: ${missing.join(', ')}`);
     return elements;
+  }
+
+  function populateApplicationProfiles(select, manifest, selectedId) {
+    const references = [manifest.applicationProfile, ...(manifest.applicationProfiles || [])];
+    select.replaceChildren(...references.map((reference) => {
+      const option = document.createElement('option');
+      option.value = reference.id;
+      option.textContent = applicationProfileLabel(reference.id);
+      return option;
+    }));
+    select.value = selectedId;
+    select.disabled = false;
+  }
+
+  function applicationProfileLabel(id) {
+    return String(id)
+      .replace(/-v\d+$/, '')
+      .split('-')
+      .filter(Boolean)
+      .map((word, index) => index === 0 ? `${word.charAt(0).toUpperCase()}${word.slice(1)}` : word)
+      .join(' ');
   }
 
   function wireCameraControls(elements, renderer) {
@@ -667,15 +698,6 @@
     document.body.dataset.journeyPhase = allowed.has(phase) ? phase : 'ready';
   }
 
-  function syncCounterfactualInputs(elements) {
-    const street = elements.counterfactualKind.value === 'close_street';
-    const snapshot = elements.counterfactualKind.value === 'world_snapshot';
-    elements.counterfactualStreetWrap.hidden = !street;
-    elements.counterfactualStreet.disabled = !street;
-    elements.counterfactualSnapshotWrap.hidden = !snapshot;
-    elements.counterfactualSnapshot.disabled = !snapshot;
-  }
-
   function resizeMissionInput(textarea) {
     if (!textarea) return;
     textarea.style.height = 'auto';
@@ -806,26 +828,12 @@
 
   function renderPlanning(elements, planning) {
     const forecast = planning.forecast;
-    const amenity = planning.amenities?.requestedMaximumDistanceM === null
-      ? ''
-      : planning.amenities?.pass ? ` · rack ≤${Math.round(planning.amenities.maximumObservedDistanceM)} m` : ' · rack constraint blocked';
-    elements.planningForecast.textContent = `${Math.round(forecast.predictedDurationSeconds)} s · ${Math.round(forecast.distanceM).toLocaleString()} m${amenity}`;
-    const environment = planning.environment;
-    elements.alternativeProof.dataset.preferShade = String(Boolean(environment));
+    elements.planningForecast.textContent = `${Math.round(forecast.predictedDurationSeconds)} s · ${Math.round(forecast.distanceM).toLocaleString()} m`;
+    elements.alternativeProof.dataset.pluginAuditCount = String(Object.keys(planning.pluginAudits || {}).length);
     elements.alternativeProof.dataset.routeAlgorithm = planning.alternatives?.[0]?.algorithm || '';
-    elements.alternativeProof.textContent = environment
-      ? `${environment.candidates.length} compared · ${Math.round(environment.comparison.selectedModeledBuildingShadePercent)}% modeled building shade vs ${Math.round(environment.comparison.fastestModeledBuildingShadePercent)}% fastest · ${signedDuration(environment.comparison.addedTravelSeconds)}`
-      : planning.alternatives.length > 1
+    elements.alternativeProof.textContent = planning.alternatives.length > 1
       ? `${planning.alternatives.length} compared · ${(planning.alternatives[1].forecast.predictedDurationSeconds - forecast.predictedDurationSeconds).toFixed(1)} s next`
       : 'No distinct legal alternative';
-    elements.accessibilityProof.textContent = accessibilityProofLabel(planning.accessibility);
-    elements.accessibilityProof.dataset.verdict = planning.accessibility.verdict;
-  }
-
-  function signedDuration(value) {
-    const seconds = Math.round(Math.abs(value));
-    const text = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
-    return value < 0 ? `${text} faster` : value > 0 ? `+${text}` : 'no added time';
   }
 
   function applyPluginMissionContributions(mission, contributions) {
@@ -837,6 +845,9 @@
       if (keys.some((key) => key !== 'routeOverride')) throw new Error(`Plugin ${row.pluginId} proposed unsupported mission fields: ${keys.join(', ')}`);
     });
     if (routePatches.length) mission.constraints.routeOverride = structuredClone(routePatches[0].missionPatch.routeOverride);
+    mission.extensions = Object.freeze(Object.fromEntries(contributions.map((row) => [row.pluginId, structuredClone({
+      recognized: Boolean(row.recognized), obligations: row.obligations || [], unresolved: row.unresolved || [],
+    })])));
     return mission;
   }
 
@@ -849,20 +860,6 @@
       civilTime: `${snapshotDate}T${hour}:${minute}:00`,
       timeZone: world.scenario?.timeZone || 'America/New_York',
     }).utcInstant;
-  }
-
-  function accessibilityProofLabel(audit) {
-    if (!audit || audit.verdict === 'unavailable') return 'unavailable · no claim';
-    if (!audit.enforced) return `not requested · audit ${audit.verdict}`;
-    if (audit.verdict === 'supported') return `${audit.counts.nodesWithRampEvidence}/${audit.counts.routeNodes} nodes supported`;
-    const firstRamp = audit.failures?.failedRamps?.[0];
-    if (firstRamp) return `blocked at ramp ${firstRamp.rampId}: ${firstRamp.failures.join(', ')}`;
-    if (audit.counts?.topologyRowsWithoutAccessibilityProof) return `unresolved topology · ${audit.counts.topologyRowsWithoutAccessibilityProof} segment(s)`;
-    return `unresolved · ${audit.counts?.missingNodes || 0} node(s) lack ramp evidence`;
-  }
-
-  function accessibilityRuntimeLabel(audit) {
-    return `Route not executed: ${accessibilityProofLabel(audit)}`;
   }
 
   async function renderLedger(elements, ledger, curriculum = null, worldContentVersion = null) {
@@ -882,28 +879,6 @@
     elements.policyArenaProof.textContent = leader?.status === 'diagnostic_leader_only' && lane
       ? `${lane.id} · ${lane.metrics.safetyAdjustedCompletionScore.toFixed(3)} · promotion blocked`
       : 'no qualified diagnostic leader';
-  }
-
-  function renderCounterfactual(elements, receipt) {
-    const diff = receipt.diff;
-    const intervention = receipt.intervention.kind === 'close_street'
-      ? `Closed ${receipt.intervention.streetName}`
-      : receipt.intervention.kind === 'world_snapshot'
-        ? `World ${receipt.intervention.snapshotDate}`
-        : `Reported-crash weighting ${receipt.intervention.historicalObservationWeight}`;
-    if (receipt.challenger.status === 'refused') {
-      elements.counterfactualProof.textContent = `${intervention}: refused · ${receipt.challenger.terminalReason}. Baseline receipt retained.`;
-      return;
-    }
-    const duration = diff.actualDurationDeltaSeconds === null ? 'duration unresolved' : `${signed(diff.actualDurationDeltaSeconds)} s`;
-    const distance = diff.distanceDeltaM === null ? 'distance unresolved' : `${signed(diff.distanceDeltaM)} m`;
-    const risk = diff.accumulatedRiskDelta === null ? 'risk unresolved' : `${signed(diff.accumulatedRiskDelta)} assumed risk`;
-    const history = diff.historicalCrashDelta === null ? 'history unresolved' : `${signed(diff.historicalCrashDelta)} reported crashes`;
-    elements.counterfactualProof.textContent = `${intervention}: ${duration} · ${distance} · ${risk} · ${history} · route overlap ${diff.routeJaccard === null ? 'n/a' : `${Math.round(diff.routeJaccard * 100)}%`} · receipt ${receipt.integrity.payloadSha256.slice(0, 12)}`;
-  }
-
-  function signed(value) {
-    return `${value > 0 ? '+' : ''}${Number(value.toFixed(1))}`;
   }
 
   function downloadJson(filename, value) {
@@ -943,5 +918,5 @@
     else start();
   }
 
-  return { accessibilityProofLabel, collectElements, friendlyMissionError, nextMissionExample, populateCameraFocus, renderCounterfactual, renderIdentity, renderPlaceResolution, renderPlanning, renderPolicyArena, runtimeLabel, selectCameraMode, start, validateImportedJourneyReceipt };
+  return { applicationProfileLabel, collectElements, friendlyMissionError, nextMissionExample, populateApplicationProfiles, populateCameraFocus, renderIdentity, renderPlaceResolution, renderPlanning, renderPolicyArena, runtimeLabel, selectCameraMode, start, validateImportedJourneyReceipt };
 });

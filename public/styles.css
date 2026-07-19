@@ -139,6 +139,41 @@ button {
   max-width: min(520px, calc(100vw - 32px));
 }
 
+.runtime-toolbar {
+  display: flex;
+  max-width: 100%;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.profile-selector {
+  display: flex;
+  min-height: var(--sim-touch-target);
+  max-width: min(230px, 42vw);
+  align-items: center;
+  border: 1px solid var(--sim-line-strong);
+  padding: 0 8px;
+}
+
+.profile-selector select {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  color: var(--sim-ink);
+  background: transparent;
+  font-size: 12px;
+  font-weight: 680;
+}
+
+.profile-selector select:focus-visible {
+  outline: 2px solid rgba(117, 190, 244, 0.74);
+  outline-offset: 4px;
+}
+
+.profile-selector:has(select:disabled) {
+  opacity: 0.62;
+}
+
 .status-pill {
   display: flex;
   min-height: var(--sim-touch-target);
@@ -1021,36 +1056,28 @@ body[data-journey-phase="failed"] .mission-field {
   font: 500 8px/1.35 var(--sim-mono);
 }
 
-.counterfactual-controls {
+.plugin-controls,
+.plugin-actions {
   display: grid;
   gap: 10px;
 }
 
-.counterfactual-controls label {
+.plugin-controls label {
   display: grid;
   gap: 5px;
   color: var(--sim-ink-soft);
   font-size: 11px;
 }
 
-.counterfactual-controls select,
-.counterfactual-controls input {
+.plugin-controls select,
+.plugin-controls input {
   min-height: 42px;
   padding: 0 10px;
   font-size: 12px;
 }
 
-.counterfactual-controls button {
+.plugin-actions button {
   width: fit-content;
-}
-
-.counterfactual-proof {
-  display: block;
-  padding: 10px;
-  border-radius: 7px;
-  color: var(--sim-ink-soft);
-  background: rgba(15, 35, 44, 0.7);
-  font: 500 10px/1.5 var(--sim-mono);
 }
 
 .receipt-actions {
@@ -1217,6 +1244,14 @@ body[data-journey-phase="failed"] .mission-field {
   .runtime-anchor {
     top: max(10px, env(safe-area-inset-top));
     left: max(10px, env(safe-area-inset-left));
+  }
+
+  .runtime-toolbar {
+    gap: 6px;
+  }
+
+  .profile-selector {
+    max-width: min(180px, 50vw);
   }
 
   .status-pill {

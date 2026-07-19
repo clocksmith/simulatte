@@ -2,7 +2,7 @@
   const api = factory();
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteCooperativeContracts = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createCooperativeContracts() {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createP2pDeliveryContracts() {
   const HASH = /^[a-f0-9]{64}$/;
   const CONSENT_STATES = Object.freeze(['available', 'revoked']);
   const OFFER_KINDS = Object.freeze(['already_carried', 'available_along_journey']);

@@ -4,24 +4,19 @@
   root.SimulatteAutonomyRoutePlanner = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyRoutePlanner() {
   const STREET_WORDS = Object.freeze({ avenue: 'av', ave: 'av', street: 'st', str: 'st', boulevard: 'blvd', road: 'rd', lane: 'ln', place: 'pl', square: 'sq' });
-  const safetyRowsCache = new WeakMap();
-
-  function planRoute({ worldModel, originNodeId, destinationNodeId, mode, tick, mission, policy, excludedSegmentIds = [], routeAmenityIndex = null, safetyHistoryIndex = null, routeContributors = [], routeObjective = {} }) {
+  function planRoute({ worldModel, originNodeId, destinationNodeId, mode, tick, mission, policy, excludedSegmentIds = [], routeContributors = [], routeObjective = {} }) {
     const governedOverride = declaredRouteOverride({
       worldModel, originNodeId, destinationNodeId, mode, tick, mission, policy,
-      excludedSegmentIds, safetyHistoryIndex, routeContributors, routeObjective,
+      excludedSegmentIds, routeContributors, routeObjective,
     });
     if (governedOverride) return governedOverride;
     const avoidedStreetNames = new Set(mission.constraints.avoidStreetNames || []);
     const avoidedStreetKeys = new Set([...avoidedStreetNames].map(normalizeStreetName));
     const excludedStreetSegmentIds = new Set();
     const candidateExcludedSegmentIds = new Set(excludedSegmentIds);
-    const excludedAmenitySegmentIds = new Set();
     const pluginRejections = [];
-    const amenityRows = routeAmenityIndex ? new Map(routeAmenityIndex.segmentRows.map((row) => [row.segmentId, row])) : null;
-    const safetyRows = rowsBySegment(safetyHistoryIndex);
     if (originNodeId === destinationNodeId) {
-      return routeResult([], 0, [originNodeId], 0, routeCostBreakdown([], worldModel, mission, policy, safetyHistoryIndex, routeContributors, routeObjective, tick), 'a_star_v1', { ...routeConstraintReceipt(avoidedStreetNames, excludedStreetSegmentIds, candidateExcludedSegmentIds, excludedAmenitySegmentIds, mission.constraints.maximumBikeRackDistanceM), pluginRejections });
+      return routeResult([], 0, [originNodeId], 0, routeCostBreakdown([], worldModel, mission, policy, routeContributors, routeObjective, tick), 'a_star_v1', { ...routeConstraintReceipt(avoidedStreetNames, excludedStreetSegmentIds, candidateExcludedSegmentIds), pluginRejections });
     }
     const blocked = new Set(worldModel.blockedSegmentIds(tick));
     const maximumSpeedMps = worldModel.world.segments.reduce((maximum, segment) => segment.allowedModes.includes(mode) ? Math.max(maximum, segment.speedLimitMps) : maximum, 1);
@@ -41,9 +36,9 @@
           current.cost,
           visited,
           evaluatedSegmentCount,
-          routeCostBreakdown(current.path, worldModel, mission, policy, safetyHistoryIndex, routeContributors, routeObjective, tick),
+          routeCostBreakdown(current.path, worldModel, mission, policy, routeContributors, routeObjective, tick),
           'a_star_v1',
-          { ...routeConstraintReceipt(avoidedStreetNames, excludedStreetSegmentIds, candidateExcludedSegmentIds, excludedAmenitySegmentIds, mission.constraints.maximumBikeRackDistanceM), pluginRejections }
+          { ...routeConstraintReceipt(avoidedStreetNames, excludedStreetSegmentIds, candidateExcludedSegmentIds), pluginRejections }
         );
       }
       for (const segment of worldModel.outgoing(current.nodeId)) {
@@ -51,13 +46,6 @@
         if (!segment.allowedModes.includes(mode)) continue;
         if (policy.route.blockedSegmentsAreIneligible && blocked.has(segment.id)) continue;
         if (candidateExcludedSegmentIds.has(segment.id)) continue;
-        if (mission.constraints.maximumBikeRackDistanceM !== null) {
-          const amenityRow = amenityRows?.get(segment.id);
-          if (!amenityRow || amenityRow.maximumNearestRackDistanceM === null || amenityRow.maximumNearestRackDistanceM > mission.constraints.maximumBikeRackDistanceM) {
-            excludedAmenitySegmentIds.add(segment.id);
-            continue;
-          }
-        }
         if (avoidedStreetKeys.has(normalizeStreetName(segment.source?.street))) {
           excludedStreetSegmentIds.add(segment.id);
           continue;
@@ -67,7 +55,7 @@
           pluginRejections.push({ segmentId: segment.id, reasons: pluginEvaluation.rejectionReasons });
           continue;
         }
-        const nextCost = current.cost + segmentCost(segment, mission, policy, safetyRows?.get(segment.id)) + weightedContributionCost(pluginEvaluation.costDimensions, routeObjective);
+        const nextCost = current.cost + segmentCost(segment, mission, policy) + weightedContributionCost(pluginEvaluation.costDimensions, routeObjective);
         const previous = bestCost.get(segment.toNodeId);
         if (previous !== undefined && nextCost >= previous - 1e-12) continue;
         bestCost.set(segment.toNodeId, nextCost);
@@ -91,15 +79,13 @@
       avoidedStreetNames: [...avoidedStreetNames].sort(),
       excludedStreetSegmentIds: [...excludedStreetSegmentIds].sort(),
       candidateExcludedSegmentIds: [...candidateExcludedSegmentIds].sort(),
-      excludedAmenitySegmentIds: [...excludedAmenitySegmentIds].sort(),
       pluginRejections: pluginRejections.slice(0, 80),
-      maximumBikeRackDistanceM: mission.constraints.maximumBikeRackDistanceM,
       visitedNodeIds: visited,
     };
     throw error;
   }
 
-  function declaredRouteOverride({ worldModel, originNodeId, destinationNodeId, mode, tick, mission, policy, excludedSegmentIds, safetyHistoryIndex, routeContributors, routeObjective }) {
+  function declaredRouteOverride({ worldModel, originNodeId, destinationNodeId, mode, tick, mission, policy, excludedSegmentIds, routeContributors, routeObjective }) {
     const override = mission.constraints.routeOverride;
     if (!override || !Array.isArray(override.segmentIds) || !override.segmentIds.length || excludedSegmentIds.length) return null;
     const blocked = new Set(worldModel.blockedSegmentIds(tick));
@@ -113,12 +99,12 @@
       || (index > 0 && suffix[index - 1].toNodeId !== segment.fromNodeId))) return null;
     if (suffix.some((segment) => !evaluateRouteContributors(routeContributors, { segment, worldModel, mission, policy, tick }).eligible)) return null;
     const segmentIds = suffix.map((row) => row.id);
-    const costBreakdown = routeCostBreakdown(segmentIds, worldModel, mission, policy, safetyHistoryIndex, routeContributors, routeObjective, tick);
+    const costBreakdown = routeCostBreakdown(segmentIds, worldModel, mission, policy, routeContributors, routeObjective, tick);
     return routeResult(segmentIds, costBreakdown.total, suffix.map((row) => row.fromNodeId), suffix.length, costBreakdown, override.algorithm || 'governed_environment_route_v1', {
       environmentFieldId: override.environmentFieldId,
       environmentSelectionId: override.selectionId,
       environmentObjective: override.objective,
-      ...routeConstraintReceipt(new Set(), new Set(), new Set(), new Set(), mission.constraints.maximumBikeRackDistanceM),
+      ...routeConstraintReceipt(new Set(), new Set(), new Set()),
     });
   }
 
@@ -138,13 +124,11 @@
     return [...candidates.values()]
       .sort((left, right) => left.cost - right.cost || left.segmentIds.join('|').localeCompare(right.segmentIds.join('|')))
       .slice(0, maximumAlternatives)
-      .map((route, index) => ({ ...route, alternativeRank: index + 1, forecast: forecastRoute(route, args.worldModel, args.mission, args.safetyHistoryIndex) }));
+      .map((route, index) => ({ ...route, alternativeRank: index + 1, forecast: forecastRoute(route, args.worldModel, args.mission) }));
   }
 
-  function forecastRoute(route, worldModel, mission, safetyHistoryIndex = null) {
+  function forecastRoute(route, worldModel, mission) {
     const segments = route.segmentIds.map((id) => worldModel.segment(id));
-    const safetyRows = rowsBySegment(safetyHistoryIndex);
-    const historical = segments.map((segment) => safetyRows?.get(segment.id)).filter(Boolean);
     const distanceM = segments.reduce((sum, segment) => sum + segment.lengthM, 0);
     const freeFlowSeconds = segments.reduce((sum, segment) => sum + segment.lengthM / Math.min(segment.speedLimitMps, mission.constraints.maximumSpeedMps), 0);
     const protectedDistanceM = segments.filter((segment) => segment.laneType === 'protected').reduce((sum, segment) => sum + segment.lengthM, 0);
@@ -154,14 +138,9 @@
       distanceM: round(distanceM),
       predictedDurationSeconds: round(freeFlowSeconds),
       accumulatedRiskScore: round(segments.reduce((sum, segment) => sum + segment.riskScore, 0)),
-      historicalCrashCount: historical.reduce((sum, row) => sum + row.crashCount, 0),
-      historicalInjuryCount: historical.reduce((sum, row) => sum + row.injuryCount, 0),
-      historicalFatalityCount: historical.reduce((sum, row) => sum + row.fatalityCount, 0),
-      historicalObservationScore: historical.reduce((sum, row) => sum + row.historicalObservationScore, 0),
-      safetyHistoryIndexId: safetyHistoryIndex?.id || null,
       protectedDistanceRatio: distanceM ? round(protectedDistanceM / distanceM) : 0,
       assumptions: ['segment_speed_limits', 'no_signal_delay', 'no_actor_delay', 'no_unmodeled_congestion'],
-      claimBoundary: 'This is a deterministic free-flow forecast over the governed route. Historical crash observations have no exposure denominator and are descriptive, not a safest-route or live-risk claim. Settlement against executed simulated time is required before timing becomes calibration evidence.',
+      claimBoundary: 'This is a deterministic free-flow forecast over the governed route. Plugin evidence remains in named plugin audits. Settlement against executed simulated time is required before timing becomes calibration evidence.',
     };
   }
 
@@ -189,51 +168,70 @@
       segmentIds.length,
       costBreakdown,
       'declared_closed_circuit_v1',
-      { circuitId, circuitLengthM: circuit.lengthM, ...routeConstraintReceipt(new Set(), new Set(), new Set(), new Set(), null) }
+      { circuitId, circuitLengthM: circuit.lengthM, ...routeConstraintReceipt(new Set(), new Set(), new Set()) }
     );
   }
 
-  function segmentCost(segment, mission, policy, safetyRow = null) {
+  function segmentCost(segment, mission, policy) {
     const travel = segment.lengthM / segment.speedLimitMps * policy.route.travelWeight;
     const risk = segment.riskScore * policy.route.riskWeight;
-    const historical = (safetyRow?.historicalObservationScore || 0) * (policy.route.historicalObservationWeight || 0);
     const preference = mission.constraints.lanePreference === 'protected' && segment.laneType === 'shared'
       ? policy.route.unprotectedPreferencePenalty : 0;
-    return travel + risk + historical + preference;
+    return travel + risk + preference;
   }
 
-  function routeCostBreakdown(segmentIds, worldModel, mission, policy, safetyHistoryIndex = null) {
-    const safetyRows = rowsBySegment(safetyHistoryIndex);
+  function routeCostBreakdown(segmentIds, worldModel, mission, policy, routeContributors = [], routeObjective = {}, tick = 0) {
+    const pluginDimensions = {};
     const components = segmentIds.reduce((total, segmentId) => {
       const segment = worldModel.segment(segmentId);
+      const contribution = evaluateRouteContributors(routeContributors, { segment, worldModel, mission, policy, tick });
+      Object.entries(contribution.costDimensions).forEach(([id, value]) => { pluginDimensions[id] = (pluginDimensions[id] || 0) + value; });
       total.travel += segment.lengthM / segment.speedLimitMps * policy.route.travelWeight;
       total.risk += segment.riskScore * policy.route.riskWeight;
-      total.historical += (safetyRows?.get(segmentId)?.historicalObservationScore || 0) * (policy.route.historicalObservationWeight || 0);
       if (mission.constraints.lanePreference === 'protected' && segment.laneType === 'shared') {
         total.preference += policy.route.unprotectedPreferencePenalty;
       }
       return total;
-    }, { travel: 0, risk: 0, historical: 0, preference: 0 });
+    }, { travel: 0, risk: 0, preference: 0 });
+    const pluginWeighted = weightedContributionCost(pluginDimensions, routeObjective);
     return {
       travel: round(components.travel),
       risk: round(components.risk),
-      historical: round(components.historical),
       preference: round(components.preference),
-      total: round(components.travel + components.risk + components.historical + components.preference),
-      formula: 'sum(lengthM / speedLimitMps * travelWeight + riskScore * riskWeight + historicalObservationScore * historicalObservationWeight + preferencePenalty)',
+      pluginDimensions: Object.fromEntries(Object.entries(pluginDimensions).sort().map(([id, value]) => [id, round(value)])),
+      pluginWeighted: round(pluginWeighted),
+      total: round(components.travel + components.risk + components.preference + pluginWeighted),
+      formula: 'sum(core travel + core risk + preference + declared plugin dimension * application profile weight)',
       weights: {
         travelWeight: policy.route.travelWeight,
         riskWeight: policy.route.riskWeight,
-        historicalObservationWeight: policy.route.historicalObservationWeight || 0,
         unprotectedPreferencePenalty: policy.route.unprotectedPreferencePenalty,
+        ...Object.fromEntries(Object.entries(routeObjective).sort()),
       },
     };
   }
 
-  function rowsBySegment(index) {
-    if (!index) return null;
-    if (!safetyRowsCache.has(index)) safetyRowsCache.set(index, new Map(index.segmentRows.map((row) => [row.segmentId, row])));
-    return safetyRowsCache.get(index);
+  function evaluateRouteContributors(contributors, context) {
+    const costDimensions = {};
+    const rejectionReasons = [];
+    const receipts = [];
+    [...contributors].sort((left, right) => left.id.localeCompare(right.id)).forEach((contributor) => {
+      const row = contributor.evaluateSegment(context);
+      if (!row || typeof row.eligible !== 'boolean' || !row.costDimensions || typeof row.costDimensions !== 'object' || !Array.isArray(row.rejectionReasons)) {
+        throw routeError('route_contribution_invalid', `Route contributor ${contributor.id} returned an invalid segment contribution`, { contributorId: contributor.id, segmentId: context.segment.id });
+      }
+      if (!row.eligible) rejectionReasons.push(...row.rejectionReasons.map((reason) => `${contributor.id}:${reason}`));
+      Object.entries(row.costDimensions).forEach(([id, value]) => {
+        if (!Number.isFinite(value) || value < 0) throw routeError('route_contribution_cost_invalid', `Route contributor ${contributor.id} dimension ${id} expected a non-negative number`, { contributorId: contributor.id, id, value });
+        costDimensions[id] = (costDimensions[id] || 0) + value;
+      });
+      if (row.receipt) receipts.push({ contributorId: contributor.id, receipt: row.receipt });
+    });
+    return { eligible: rejectionReasons.length === 0, costDimensions, rejectionReasons, receipts };
+  }
+
+  function weightedContributionCost(dimensions, objective) {
+    return Object.entries(dimensions).reduce((total, [id, value]) => total + value * (Number(objective[id]) || 0), 0);
   }
 
   function heuristic(worldModel, fromNodeId, destinationNodeId, maximumSpeedMps = 7) {
@@ -260,13 +258,11 @@
     };
   }
 
-  function routeConstraintReceipt(avoidedStreetNames, excludedStreetSegmentIds, candidateExcludedSegmentIds = new Set(), excludedAmenitySegmentIds = new Set(), maximumBikeRackDistanceM = null) {
+  function routeConstraintReceipt(avoidedStreetNames, excludedStreetSegmentIds, candidateExcludedSegmentIds = new Set()) {
     return {
       avoidedStreetNames: [...avoidedStreetNames].sort(),
       excludedStreetSegmentIds: [...excludedStreetSegmentIds].sort(),
       candidateExcludedSegmentIds: [...candidateExcludedSegmentIds].sort(),
-      excludedAmenitySegmentIds: [...excludedAmenitySegmentIds].sort(),
-      maximumBikeRackDistanceM,
     };
   }
 
@@ -322,5 +318,5 @@
     };
   }
 
-  return { forecastRoute, normalizeStreetName, planCircuitRoute, planRoute, planRouteAlternatives, routeCostBreakdown, segmentCost };
+  return { evaluateRouteContributors, forecastRoute, normalizeStreetName, planCircuitRoute, planRoute, planRouteAlternatives, routeCostBreakdown, segmentCost, weightedContributionCost };
 });

@@ -13,7 +13,7 @@
       if (sdk.capabilities) delivery = sdk.capabilities.invoke('fulfillment.delivery.v1', { ...request, itemId: cable.id, requesterId: 'cable-trader-user', destinationNodeId: config.hubs[0].nodeId });
       sdk.events.propose({ pluginId: 'cable-trader', kind: 'cable-trader.requested', request, delivery });
       sdk.receipts.append({ schema: 'simulatte.plugin.cableTraderRequestReceipt.v1', request, delivery: delivery || { enabled: false, reason: 'pickup_only' } });
-      return { recognized: true, obligations: [{ id: request.id, kind: 'cable_exchange', required: true }], unresolved: [], cableRequest: request, delivery };
+      return { recognized: true, obligations: [{ id: request.id, kind: 'cable_exchange', required: true }], unresolved: [] };
     }
     function exchange({ cableTypeId, hubId, direction, participantId }) {
       const state = sdk.state.read();

@@ -27,24 +27,7 @@
     "historicalObservationWeight": 0,
     "unprotectedPreferencePenalty": 24,
     "blockedSegmentsAreIneligible": true,
-    "deterministicTieBreak": "segment_id_ascending",
-    "timeDependentCosts": {
-      "shade": {
-        "costModelId": "building-direct-sun-arrival-cost",
-        "fifo": true,
-        "maximumAlternatives": 6,
-        "maximumAddedTimeSeconds": 600,
-        "maximumAddedRatio": 0.25,
-        "directSunWeight": 1.5,
-        "unknownWeight": 3,
-        "sampleSpacingM": 18,
-        "minimumSolarElevationDegrees": 2
-      },
-      "cooperativeHandoff": {
-        "costModelId": "cooperative-window-handoff-cost",
-        "fifo": false
-      }
-    }
+    "deterministicTieBreak": "segment_id_ascending"
   },
   "safety": {
     "minimumPedestrianClearanceM": 5,

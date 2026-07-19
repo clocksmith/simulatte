@@ -9,8 +9,12 @@
   async function activate({ sdk, config }) {
     sdk.state.register(reduce, { selection: null });
 
-    function contributeRequest({ mission }) {
-      if (!mission?.constraints?.preferShade) return null;
+    function contributeRequest({ sourceText, mission }) {
+      if (!mission) return null;
+      if (!/\b(?:shade|shaded|shadier|less\s+direct\s+sun|avoid(?:ing)?\s+(?:the\s+)?sun|hot\s+day)\b/i.test(sourceText || '')) {
+        sdk.events.propose({ pluginId: 'sun-walker', kind: 'sun-walker.cleared' });
+        return null;
+      }
       const world = sdk.worldQuery.snapshot();
       const worldModel = sdk.worldQuery.model();
       const selection = exposure.selectShadeAwareRoute({
@@ -49,7 +53,6 @@
             algorithm: 'sun_walker_arrival_time_route_v1',
           },
         },
-        environment: selection,
       };
     }
 
@@ -82,6 +85,7 @@
   }
 
   function reduce(state, event) {
+    if (event.kind === 'sun-walker.cleared') return { ...state, selection: null };
     if (event.kind !== 'sun-walker.route-selected') return state;
     return { ...state, selection: event.selection };
   }

@@ -11,17 +11,17 @@ const DATA_DIR = path.join(ROOT, 'public/data/autonomy');
 const MANIFEST_PATH = path.join(DATA_DIR, 'autonomy-manifest.json');
 const REFERENCE_KEYS = Object.freeze([
   'world', 'featureCatalog', 'policy', 'occurrenceCatalog', 'rerankerEvidence', 'regionRegistry',
-  'placeEmbeddingIndex', 'placeResolutionEvidence', 'modelRuntimeLock', 'accessibilityIndex', 'routeAmenityIndex',
+  'placeEmbeddingIndex', 'placeResolutionEvidence', 'modelRuntimeLock',
   'pipelineModelSelection',
   'applicationProfile',
-  'safetyHistoryIndex', 'curriculum', 'worldSnapshotRegistry',
+  'curriculum',
   'policyArenaEvidence',
-  'cooperativeScenario',
 ]);
 
 function main() {
   const manifest = readJson(MANIFEST_PATH);
   REFERENCE_KEYS.forEach((key) => syncReference(manifest, key));
+  (manifest.applicationProfiles || []).forEach((reference) => syncReferenceValue(reference, `applicationProfile:${reference.id}`));
   manifest.embodiments.forEach((reference) => syncReferenceValue(reference, `embodiment:${reference.id}`));
   const registry = readJson(resolvePath(manifest.regionRegistry.path));
   if (registry.composition.worldSha256 !== manifest.world.sha256) {
@@ -31,7 +31,7 @@ function main() {
     throw new Error(`Region registry feature SHA-256 ${registry.composition.featureCatalogSha256} does not match manifest ${manifest.featureCatalog.sha256}`);
   }
   fs.writeFileSync(MANIFEST_PATH, artifactText(manifest));
-  console.log(`AUTONOMY-MANIFEST id=${manifest.id} refs=${REFERENCE_KEYS.length + manifest.embodiments.length} registry=${registry.id} status=synchronized`);
+  console.log(`AUTONOMY-MANIFEST id=${manifest.id} refs=${REFERENCE_KEYS.length + manifest.embodiments.length + (manifest.applicationProfiles || []).length} registry=${registry.id} status=synchronized`);
 }
 
 function syncReference(manifest, key) {

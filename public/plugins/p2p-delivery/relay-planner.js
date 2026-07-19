@@ -2,7 +2,7 @@
   const api = factory();
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteCooperativeRelayPlanner = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createCooperativeRelayPlanner() {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createP2pDeliveryRelayPlanner() {
   function planRelay({ request, legs, maximumCarrierLegs = 2, legSetComplete = false }) {
     validateRequest(request);
     if (!Number.isInteger(maximumCarrierLegs) || maximumCarrierLegs < 1) throw relayError('maximum_carrier_legs_invalid');

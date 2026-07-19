@@ -1,21 +1,23 @@
 {
-  "accessibilityIndex": {
-    "id": "nyc-pedestrian-ramp-accessibility-v1",
-    "path": "./accessibility-index-v1.json",
-    "sha256": "5a2ff2ea110f51b5d276c5c5c58c197da935b1e08a33da29aaeaeac9d5303017"
-  },
   "applicationProfile": {
     "id": "simulatte-world-v1",
     "path": "../application-profiles/simulatte-world-v1.json",
     "sha256": "a595f59eccf654b5052ddbc5cf09b3a5cbce9800e319879fc7fb003eda6f33a4"
   },
+  "applicationProfiles": [
+    {
+      "id": "cable-trader-pickup-v1",
+      "path": "../application-profiles/cable-trader-pickup-v1.json",
+      "sha256": "df68fdde076fe2dbfe3be8143624039d571e3511119637da90e88e9a1fb00cf3"
+    },
+    {
+      "id": "cooperative-cable-city-v1",
+      "path": "../application-profiles/cooperative-cable-city-v1.json",
+      "sha256": "92d86bf61f560accc647e688fedea0af103bd90e043b447aaf86546097906130"
+    }
+  ],
   "claimBoundary": "This manifest governs bicycle-delivery and pedestrian-loop simulations assembled from independently hashed region packs for New York City. Park circuits follow frozen property boundaries, not surveyed sidewalk centerlines. It does not claim live conditions, physical-world autonomy, or control of a real vehicle.",
   "contentVersion": "autonomy-nyc-multimodal-v1",
-  "cooperativeScenario": {
-    "id": "battery-office-east-village-v1",
-    "path": "./cooperation/battery-office-v1.json",
-    "sha256": "5eb12f2a1c53a8630246c53f16b96218945e1becf611c7a53fee2c24c5625416"
-  },
   "curriculum": {
     "id": "nyc-routing-foundations-v1",
     "path": "./curricula/nyc-routing-foundations-v1.json",
@@ -107,7 +109,7 @@
   "policy": {
     "id": "bet-selector-v1",
     "path": "./policies/bet-selector-v1.json",
-    "sha256": "0ce4b32caceb30abafd79e029c8a8cd62691b0d33ac917f5b0e15988a8c41fab"
+    "sha256": "133579888a7db259c85b7f379ba51e2327d57943f82061e56832914d4137e377"
   },
   "policyArenaEvidence": {
     "id": "policy-arena-public-diagnostic-v1",
@@ -120,14 +122,9 @@
     "sha256": "6b13d35e39896c0c746902c7f5e6013614dacb8be2675a70554c476f6bb994bb"
   },
   "rerankerEvidence": {
-    "id": "feature-reranker-public-diagnostic-v2",
-    "path": "./evidence/feature-reranker-public-diagnostic-v2.json",
-    "sha256": "0c69ecc55496ff9ba65d7700b36f691995ca069fc9acc65017a23aaef2f13731"
-  },
-  "routeAmenityIndex": {
-    "id": "nyc-bicycle-parking-route-amenity-v1",
-    "path": "./route-amenity-index-v1.json",
-    "sha256": "0a34318351d9d3e98b8d86b6ae8d3da69e9d67a59e572c1cf50f3809009634be"
+    "id": "feature-reranker-public-diagnostic-v3",
+    "path": "./evidence/feature-reranker-public-diagnostic-v3.json",
+    "sha256": "603dc668652e52a2bc236008dbc261c354ba9b23e5e5675862ecb3c3cf03391c"
   },
   "runtime": {
     "controllerSchema": "simulatte.autonomyController.v1",
@@ -135,20 +132,10 @@
     "receiptSchema": "simulatte.autonomyJourneyReceipt.v2",
     "worldLoadMode": "verified_region_composition"
   },
-  "safetyHistoryIndex": {
-    "id": "nyc-crash-history-2025-07-to-2026-07-v1",
-    "path": "./safety-history-index-v1.json",
-    "sha256": "ecebc76655c7325d0c764056137c56419001afc3a19ba4002aece4f3eb85f715"
-  },
   "schema": "simulatte.autonomyDataManifest.v3",
   "world": {
     "id": "nyc-core-autonomy-v1",
     "path": "./worlds/nyc-core-autonomy-v1.json",
     "sha256": "218c6f3734815066669f57ae1bc1ce14aace261f0865ebf25f903db3880dcb3e"
-  },
-  "worldSnapshotRegistry": {
-    "id": "nyc-world-snapshot-registry-v1",
-    "path": "./world-snapshot-registry-v1.json",
-    "sha256": "9d0c4d450d5a29b313ce1b3474413c9e6cca3595a13afb76997eb1119aa80038"
   }
 }

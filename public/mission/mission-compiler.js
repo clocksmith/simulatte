@@ -115,7 +115,7 @@
     const finalDestination = orderedStops.at(-1);
     validateStopExtent(origin, orderedStops);
     const routeTerms = compileRouteTerms(text, world);
-    const { protectedMatch, yieldMatch, avoidedStreet, deadline, compensation, accessibilityMatch, bikeRackProximity, shadeMatch, temporal } = routeTerms;
+    const { protectedMatch, yieldMatch, avoidedStreet, deadline, compensation, temporal } = routeTerms;
     const evidence = [
       evidenceRow('task', text, deliveryMatch, 'exact_lexical'),
       evidenceRow('mode', text, deliveryMode, 'exact_lexical', embodiment.id, embodiment.kind),
@@ -144,13 +144,10 @@
         mustStayOnCircuit: false,
         maximumSpeedMps: embodiment.dynamics.maximumSpeedMps,
         maximumDurationSeconds: minimumNullable(deadline?.targetDurationSeconds, temporal.maximumDurationSeconds),
-        accessibilityProfile: accessibilityMatch ? 'wheelchair' : null,
-        maximumBikeRackDistanceM: bikeRackProximity?.targetDistanceM ?? null,
         departureLocalMinutes: temporal.departureLocalMinutes,
         arrivalDeadlineLocalMinutes: temporal.arrivalDeadlineLocalMinutes,
         daylightOnly: Boolean(temporal.daylightMatch),
         daylightWindowLocalMinutes: [...temporal.daylightWindowLocalMinutes],
-        preferShade: Boolean(shadeMatch),
       },
       obligations: [
         { id: 'obligation-arrival', kind: 'arrival', required: true },
@@ -161,10 +158,7 @@
         { id: 'obligation-lane-preference', kind: 'lane_preference', required: Boolean(protectedMatch) },
         { id: 'obligation-street-avoidance', kind: 'street_avoidance', required: Boolean(avoidedStreet) },
         { id: 'obligation-arrival-deadline', kind: 'arrival_deadline', required: Boolean(deadline || temporal.arrivalMatch) },
-        { id: 'obligation-accessibility', kind: 'accessibility', required: Boolean(accessibilityMatch) },
-        { id: 'obligation-bike-rack-proximity', kind: 'bike_rack_proximity', required: Boolean(bikeRackProximity) },
         { id: 'obligation-daylight-window', kind: 'daylight_window', required: Boolean(temporal.daylightMatch) },
-        { id: 'obligation-direct-sun-exposure', kind: 'direct_sun_exposure', required: Boolean(shadeMatch) },
       ],
       economics: compensation,
       seed,
@@ -189,7 +183,7 @@
     const finalDestination = orderedStops.at(-1);
     validateStopExtent(origin, orderedStops);
     const routeTerms = compileRouteTerms(text, world);
-    const { protectedMatch, yieldMatch, avoidedStreet, deadline, accessibilityMatch, bikeRackProximity, shadeMatch, temporal } = routeTerms;
+    const { protectedMatch, yieldMatch, avoidedStreet, deadline, temporal } = routeTerms;
     const evidence = [
       evidenceRow('task', text, modeMatch, 'exact_lexical', null, 'point_to_point'),
       evidenceRow('mode', text, modeMatch, 'exact_lexical', embodiment.id, embodiment.kind),
@@ -218,13 +212,10 @@
         mustStayOnCircuit: false,
         maximumSpeedMps: embodiment.dynamics.maximumSpeedMps,
         maximumDurationSeconds: minimumNullable(deadline?.targetDurationSeconds, temporal.maximumDurationSeconds),
-        accessibilityProfile: accessibilityMatch ? 'wheelchair' : null,
-        maximumBikeRackDistanceM: bikeRackProximity?.targetDistanceM ?? null,
         departureLocalMinutes: temporal.departureLocalMinutes,
         arrivalDeadlineLocalMinutes: temporal.arrivalDeadlineLocalMinutes,
         daylightOnly: Boolean(temporal.daylightMatch),
         daylightWindowLocalMinutes: [...temporal.daylightWindowLocalMinutes],
-        preferShade: Boolean(shadeMatch),
       },
       obligations: [
         { id: 'obligation-arrival', kind: 'arrival', required: true },
@@ -234,10 +225,7 @@
         { id: 'obligation-lane-preference', kind: 'lane_preference', required: Boolean(protectedMatch) },
         { id: 'obligation-street-avoidance', kind: 'street_avoidance', required: Boolean(avoidedStreet) },
         { id: 'obligation-arrival-deadline', kind: 'arrival_deadline', required: Boolean(deadline || temporal.arrivalMatch) },
-        { id: 'obligation-accessibility', kind: 'accessibility', required: Boolean(accessibilityMatch) },
-        { id: 'obligation-bike-rack-proximity', kind: 'bike_rack_proximity', required: Boolean(bikeRackProximity) },
         { id: 'obligation-daylight-window', kind: 'daylight_window', required: Boolean(temporal.daylightMatch) },
-        { id: 'obligation-direct-sun-exposure', kind: 'direct_sun_exposure', required: Boolean(shadeMatch) },
       ],
       economics: null,
       seed,
@@ -252,9 +240,6 @@
       avoidedStreet: matchAvoidedStreet(text, world),
       deadline: matchArrivalDeadline(text),
       compensation: matchCompensation(text),
-      accessibilityMatch: lexicalMatch(lower, /\b(?:wheelchair|wheel\s+chair|accessible|step[- ]free)\b/),
-      bikeRackProximity: matchBikeRackProximity(text),
-      shadeMatch: lexicalMatch(lower, /\b(?:shade|shaded|shadier|less\s+direct\s+sun|avoid(?:ing)?\s+(?:the\s+)?sun|hot\s+day)\b/),
       temporal: compileTemporalTerms(text, world),
     };
   }
@@ -270,9 +255,6 @@
     }
     if (terms.deadline) evidence.push(evidenceRow('maximumDuration', text, terms.deadline, 'unit_conversion', null, `${terms.deadline.targetDurationSeconds} s`));
     if (terms.compensation) evidence.push(evidenceRow('compensation', text, terms.compensation.match, 'currency_conversion', null, `${terms.compensation.amountCents} cents`));
-    if (terms.accessibilityMatch) evidence.push(evidenceRow('accessibilityProfile', text, terms.accessibilityMatch, 'exact_lexical', null, 'wheelchair'));
-    if (terms.bikeRackProximity) evidence.push(evidenceRow('bikeRackProximity', text, terms.bikeRackProximity, 'unit_conversion', null, `${terms.bikeRackProximity.targetDistanceM} m`));
-    if (terms.shadeMatch) evidence.push(evidenceRow('environmentPreference', text, terms.shadeMatch, 'exact_lexical', null, 'minimize_direct_sun'));
     appendTemporalEvidence(evidence, text, terms.temporal);
   }
 
@@ -336,8 +318,6 @@
         mustStayOnCircuit: true,
         maximumSpeedMps,
         maximumDurationSeconds: temporal.maximumDurationSeconds,
-        accessibilityProfile: null,
-        maximumBikeRackDistanceM: null,
         departureLocalMinutes: temporal.departureLocalMinutes,
         arrivalDeadlineLocalMinutes: temporal.arrivalDeadlineLocalMinutes,
         daylightOnly: Boolean(temporal.daylightMatch),
@@ -509,15 +489,6 @@
       match: sourceMatch(match, {}),
       claimBoundary: 'Gross declared compensation divided by simulated journey time. This excludes waiting, expenses, taxes, platform deductions, and unpaid work unless a later batch contract includes them.',
     };
-  }
-
-  function matchBikeRackProximity(sourceText) {
-    const match = /\bwithin\s+(\d[\d,]*(?:\.\d+)?)\s*(feet|foot|ft|meters?|metres?|m|kilometers?|kilometres?|km|miles?|mi)\s+of\s+(?:a\s+|any\s+)?bike\s+rack\b/i.exec(sourceText);
-    if (!match) return null;
-    const value = Number(match[1].replaceAll(',', ''));
-    const unit = canonicalDistanceUnit(match[2]);
-    if (!(value > 0)) return null;
-    return sourceMatch(match, { kind: 'bike_rack_proximity', value, unit, targetDistanceM: round(value * METERS_PER_UNIT[unit]) });
   }
 
   function compileTemporalTerms(sourceText, world) {
@@ -865,6 +836,5 @@
     matchLapCount,
     matchArrivalDeadline,
     matchCompensation,
-    matchBikeRackProximity,
   };
 });

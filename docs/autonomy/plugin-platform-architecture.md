@@ -1,9 +1,8 @@
 # Simulatte plugin platform architecture
 
-Status: target architecture and resumable migration plan. The plugin host does
-not exist yet. Sun, cooperation, counterfactual, accessibility, amenity, and
-safety behavior currently execute through product-specific paths in the main
-application.
+Status: implemented SDK v1 and first-party plugin platform. The source
+migration is complete through P6 and the P7 compatibility removal is complete.
+Human browser review and deployed profile selection remain release gates.
 
 Owner contracts: `public/platform/`, `public/core/`, `public/plugins/`, and the
 thin application coordinator in `public/app/`.
@@ -37,17 +36,16 @@ Architectural decoupling means dependency through stable contracts, not zero
 dependency. Every plugin depends on a versioned SDK. No plugin depends on host
 implementation files.
 
-## Current coupling to remove
+## Removed coupling
 
-The current implementation proves useful behavior, but product concerns are
-wired directly into shared owners.
+The following extraction sources no longer own product behavior.
 
 | Current owner | Coupling |
 | --- | --- |
-| `public/runtime/data-loader.js` | Names cooperative, accessibility, amenity, safety, snapshot, and policy-arena artifacts directly. |
-| `public/app/main.js` | Recognizes cooperative requests, creates cooperative sessions, computes shade routes, rewrites route overrides, and renders product-specific panels. |
-| `public/runtime/autonomy-controller.js` | Accepts accessibility, amenity, and safety indexes as named controller inputs. |
-| `public/world/route-planner.js` | Contains bicycle-rack and historical-observation product rules inside A*. |
+| `public/platform/bootstrap/application-loader.js` | Resolves the selected governed application profile and plugin-declared datasets. |
+| `public/app/main.js` | Coordinates the host, generic mission contributions, declarative UI, and simulation-run port. |
+| `public/runtime/autonomy-controller.js` | Accepts generic route contributors and binds named plugin audits without interpreting them. |
+| `public/world/route-planner.js` | Runs core A* with generic hard-eligibility and named cost-dimension contributions. |
 | `public/runtime/occurrence-engine.js` | Has a narrow occurrence evaluator plugin API, not a complete application plugin contract. |
 
 These are extraction sources. They are not target plugin interfaces.
@@ -57,21 +55,21 @@ These are extraction sources. They are not target plugin interfaces.
 Updated: 2026-07-19.
 
 ```text
-Packet ID: PLATFORM-P1
-Plugin ID: none; shared platform foundation
+Packet ID: PLATFORM-P7
+Plugin ID: all first-party plugins
 Base commit: 2089abff1e48a638c13f9515d126e03e0e87d7da
-SDK version: not established
-Dependencies satisfied: P0 loader and browser baselines captured
-Allowed paths: public/platform, public/runtime/data-loader.js, Main bootstrap, Autonomy contracts and tools
-Current source owners: public/runtime/data-loader.js, public/world/world-tile-manager.js, public/world/world-tile-storage.js
+SDK version: 1
+Dependencies satisfied: P0 through P6
+Allowed paths: integration-owned platform, core, app, generated registry, contracts, tests, and documentation
+Current source owners: public/platform, public/core, public/plugins, public/app
 Input fixtures: autonomy-manifest.json and browser loader fixtures
 Expected contributions: verified artifacts and capability-limited data catalog
 Expected receipts: unchanged simulatte.autonomyDataLoadReceipt.v2
 Human review case: Main loads, completes a journey, and displays coherent dark controls
 Validation commands: focused Autonomy tests, world-tile-manager tests, npm run check:deploy, desktop and mobile browser smoke
-Known blockers: browser smoke completes with zero runtime errors but its stale visible-control assertion includes the intentionally hidden model checkbox; independent frame-jank floors also fail. The combined deploy gate is blocked before Simulatte validation because the workspace disk has less than 1 GB free and Doppler extraction cannot allocate space; the 52 GB artifacts/model-cache-profile directory was not deleted.
-Last completed step: Main now reads governed JSON and tile bytes through platform transport, storage lives under platform, and model selection plus consent reuse the single verified runtime load
-Next exact step: add the generic schema-validator registry to the artifact store, then begin P2 plugin manifest and application-profile contracts
+Known blockers: local browser behavior completes with zero runtime errors and failed responses; the strict smoothness gate still observed one borderline 50 ms startup task in the latest run. Human product review and deployed profile selection remain release checks.
+Last completed step: added visible governed profile selection, registered plugin-owned dataset validators through the generated registry, validated the complete request-contribution shape, and connected reverse-order plugin disposal to navigation and page teardown.
+Next exact step: human-review default, cable pickup, and composed cable profiles; then rerun the strict browser/deploy gate and deploy the reviewed build.
 ```
 
 Current implementation paths:
@@ -82,7 +80,7 @@ Current implementation paths:
 | `public/platform/artifacts/governed-artifact-store.js` | JSON parsing plus exact artifact hash and ID verification |
 | `public/platform/data-catalog/immutable-data-catalog.js` | Stable dataset lookup and required or optional restricted views |
 | `public/platform/storage/browser-tile-storage.js` | CacheStorage, OPFS, IndexedDB, and worker-decoder ownership |
-| `public/runtime/data-loader.js` | Compatibility coordinator over the platform layers |
+| `public/platform/bootstrap/application-loader.js` | Governed application/profile bootstrap over platform layers |
 
 Main `/` uses these layers. Blank remains unchanged and outside this migration.
 
@@ -453,17 +451,17 @@ enable themselves or choose global weights.
 
 ## First-party plugin definitions
 
-| Plugin | Owns | Core ports | Provides | Consumes | Current source to extract |
+| Plugin | Owns | Core ports | Provides | Consumes | Implemented owner |
 | --- | --- | --- | --- | --- | --- |
-| Sun Walker | Solar position, building occlusion, exposure integration, shade preference, comparison receipt | World query, clock, routing, receipts, UI | `routing.dimension.sun-exposure.v1` | None | `public/world/sun-exposure.js` and shade branches in `public/app/main.js` |
-| P2P Delivery | Needs, offers, journey matching, marginal burden, authorization, custody, handoffs, delivery settlement | World query, routing, events, state, receipts, UI | `fulfillment.delivery.v1`, `settlement.delivery.v1` | Optional route dimensions | `public/runtime/cooperative-engine.js`, relay planner, language compiler, cooperative UI |
-| Cable Trader | Cable taxonomy, hub inventory, requests, deposits, credits, reservations, exchange settlement | World query, events, state, receipts, UI | `inventory.exchange.v1`, `settlement.credit.v1` | Optional `fulfillment.delivery.v1` | New plugin |
-| Counterfactual Lab | Baseline/challenger pairing, declared interventions, matched differences | Routing, simulation runs, receipts, UI | `analysis.counterfactual.v1` | Optional world snapshots and plugin-specific intervention contracts | `public/runtime/counterfactual-runner.js` and counterfactual UI |
-| Accessible Journey | Accessibility-profile obligations, route eligibility, evidence-bound refusal | World query, routing, datasets, receipts, UI | `routing.eligibility.accessibility.v1` | None | `public/world/accessibility-audit.js` and controller accessibility branches |
-| Historical Streets | Dated world selection, snapshot availability, historical-world refusal | Datasets, world snapshot query, receipts, UI | `world.snapshot.v1` | None | World snapshot registry and dated-world handling |
-| Safety Explorer | Historical-observation route dimension and narrow claim boundary | Routing, datasets, receipts, UI | `routing.dimension.historical-observation.v1` | None | Safety-history logic in `public/world/route-planner.js` |
-| Amenity Router | Typed amenity obligations and route eligibility or distance dimensions | World query, routing, datasets, receipts, UI | `routing.eligibility.amenity.v1`, `routing.dimension.amenity-distance.v1` | None | Amenity logic in `public/world/route-planner.js` |
-| Gig Wage Truth | Compensation policy, time accounting, exclusions, gross-rate settlement | Clock, events, receipts, UI | `analysis.gross-work-rate.v1` | Optional `settlement.delivery.v1` | Mission economics and settlement presentation |
+| Sun Walker | Solar position, building occlusion, exposure integration, shade preference, comparison receipt | World query, clock, routing, receipts, UI | `routing.dimension.sun-exposure.v1` | None | `public/plugins/sun-walker/` |
+| P2P Delivery | Needs, offers, journey matching, marginal burden, authorization, custody, handoffs, delivery settlement | World query, routing, events, state, receipts, UI | `fulfillment.delivery.v1`, `settlement.delivery.v1` | Optional route dimensions | `public/plugins/p2p-delivery/` |
+| Cable Trader | Cable taxonomy, hub inventory, requests, deposits, credits, reservations, exchange settlement | World query, events, state, receipts, UI | `inventory.exchange.v1`, `settlement.credit.v1` | Optional `fulfillment.delivery.v1` | `public/plugins/cable-trader/` |
+| Counterfactual Lab | Baseline/challenger pairing, declared interventions, matched differences | Routing, simulation runs, receipts, UI | `analysis.counterfactual.v1` | Optional world snapshots and plugin-specific intervention contracts | `public/plugins/counterfactual-lab/` |
+| Accessible Journey | Accessibility-profile obligations, route eligibility, evidence-bound refusal | World query, routing, datasets, receipts, UI | `routing.eligibility.accessibility.v1` | None | `public/plugins/accessible-journey/` |
+| Historical Streets | Dated world selection, snapshot availability, historical-world refusal | Datasets, world snapshot query, receipts, UI | `world.snapshot.v1` | None | `public/plugins/historical-streets/` |
+| Safety Explorer | Historical-observation route dimension and narrow claim boundary | Routing, datasets, receipts, UI | `routing.dimension.historical-observation.v1` | None | `public/plugins/safety-explorer/` |
+| Amenity Router | Typed amenity obligations and route eligibility or distance dimensions | World query, routing, datasets, receipts, UI | `routing.eligibility.amenity.v1`, `routing.dimension.amenity-distance.v1` | None | `public/plugins/amenity-router/` |
+| Gig Wage Truth | Compensation policy, time accounting, exclusions, gross-rate settlement | Clock, events, receipts, UI | `analysis.gross-work-rate.v1` | Optional `settlement.delivery.v1` | `public/plugins/gig-wage-truth/` |
 
 P2P Delivery owns the broader cooperative relay behavior. Cooperative City is
 not counted as a second plugin. Cable relocation is Cable Trader composed with
@@ -507,7 +505,7 @@ later checkpoint while an earlier checkpoint has unresolved behavior drift.
 ### P0: Record the baseline
 
 - [x] Record current main-page script inventory and product-specific imports.
-- [ ] Record one working mission for shade, cooperation, accessibility,
+- [x] Record one working mission for shade, cooperation, accessibility,
   amenity, safety weighting, and counterfactual comparison.
 - [x] Record the current data-load receipt shape and route result shape.
 - [ ] Confirm the current combined deployment gate. The Simulatte deploy surface is clean, but the combined gate currently stops on insufficient disk while checking Doppler development bytes.
@@ -519,7 +517,7 @@ extraction. This is diagnostic evidence, not plugin proof.
 
 - [x] Move network and browser-storage mechanics into `public/platform/transport/`
   and `public/platform/storage/` for Main.
-- [ ] Move digest, schema, dependency, and cache verification into
+- [x] Move digest, schema, dependency, and cache verification into
   `public/platform/artifacts/`.
 - [x] Introduce an immutable data catalog over verified artifacts.
 - [x] Preserve the existing `loadAutonomyData` facade temporarily.
@@ -530,12 +528,12 @@ plugin candidate directly calls network or storage APIs.
 
 ### P2: Establish plugin SDK v1
 
-- [ ] Add restrictive plugin-manifest and application-profile schemas.
-- [ ] Add manifest discovery and deterministic registry generation.
-- [ ] Add capability resolution, cycle detection, permissions, and lifecycle.
-- [ ] Add namespaced state, event, error, and receipt envelopes.
-- [ ] Add declarative UI slots and action dispatch.
-- [ ] Add static checks banning transport, storage, DOM, app, and cross-plugin
+- [x] Add restrictive plugin-manifest and application-profile schemas.
+- [x] Add manifest discovery and deterministic registry generation.
+- [x] Add capability resolution, cycle detection, permissions, and lifecycle.
+- [x] Add namespaced state, event, error, and receipt envelopes.
+- [x] Add declarative UI slots and action dispatch.
+- [x] Add static checks banning transport, storage, DOM, app, and cross-plugin
   imports from plugin directories.
 
 Exit condition: a contract fixture plugin activates, contributes one receipt
@@ -543,13 +541,13 @@ and one UI row, and disposes without product-specific host code.
 
 ### P3: Generalize core extension points
 
-- [ ] Replace named amenity and safety planner arguments with generic route
+- [x] Replace named amenity and safety planner arguments with generic route
   eligibility and cost contributors.
-- [ ] Replace product-specific mission mutation with validated obligation and
+- [x] Replace product-specific mission mutation with validated obligation and
   plan contributions.
-- [ ] Replace controller-owned product indexes with granted plugin datasets.
-- [ ] Bind plugin receipts generically into journey receipts.
-- [ ] Keep graph search, deterministic ordering, execution, and rendering in
+- [x] Replace controller-owned product indexes with granted plugin datasets.
+- [x] Bind plugin receipts generically into journey receipts.
+- [x] Keep graph search, deterministic ordering, execution, and rendering in
   the core.
 
 Exit condition: the core accepts generic contributions and contains no named
@@ -557,11 +555,11 @@ candidate-plugin data input.
 
 ### P4: Extract Sun Walker reference plugin
 
-- [ ] Move solar, occlusion, exposure, request, settlement, and UI ownership
+- [x] Move solar, occlusion, exposure, request, settlement, and UI ownership
   into `public/plugins/sun-walker/`.
-- [ ] Remove shade imports and branches from the application coordinator.
-- [ ] Preserve existing route and comparison output for the baseline mission.
-- [ ] Disable the plugin through a profile and prove ordinary routing still
+- [x] Remove shade imports and branches from the application coordinator.
+- [x] Preserve existing route and comparison output for the baseline mission.
+- [x] Disable the plugin through a profile and prove ordinary routing still
   works.
 
 Exit condition: Sun Walker is the reference implementation for every SDK v1
@@ -571,12 +569,12 @@ extension point it needs. SDK v1 is then frozen for parallel extraction.
 
 The following work packets may proceed independently after P4:
 
-- [ ] WP-ACCESS: Accessible Journey.
-- [ ] WP-SAFETY: Safety Explorer.
-- [ ] WP-AMENITY: Amenity Router.
-- [ ] WP-HISTORY: Historical Streets.
-- [ ] WP-COUNTERFACTUAL: Counterfactual Lab.
-- [ ] WP-DELIVERY: P2P Delivery.
+- [x] WP-ACCESS: Accessible Journey.
+- [x] WP-SAFETY: Safety Explorer.
+- [x] WP-AMENITY: Amenity Router.
+- [x] WP-HISTORY: Historical Streets.
+- [x] WP-COUNTERFACTUAL: Counterfactual Lab.
+- [x] WP-DELIVERY: P2P Delivery.
 
 Gig Wage Truth waits for the delivery settlement capability. Cable Trader can
 build its standalone inventory and hub-pickup behavior in parallel, but its
@@ -588,24 +586,25 @@ data, route, state, or settlement branch.
 
 ### P6: Compose dependent applications
 
-- [ ] WP-WAGE: consume `settlement.delivery.v1` without importing P2P Delivery.
-- [ ] WP-CABLE: finish hub inventory, credits, requests, and pickup settlement.
-- [ ] WP-CABLE-DELIVERY: consume optional `fulfillment.delivery.v1`.
-- [ ] Add profiles exercising standalone and composed operation.
-- [ ] Prove missing optional providers disable only the dependent feature.
+- [x] WP-WAGE: consume `settlement.delivery.v1` without importing P2P Delivery.
+- [x] WP-CABLE: finish hub inventory, credits, requests, and pickup settlement.
+- [x] WP-CABLE-DELIVERY: consume optional `fulfillment.delivery.v1`.
+- [x] Add profiles exercising standalone and composed operation.
+- [x] Prove missing optional providers disable only the dependent feature.
 
 Exit condition: Cable Trader runs with hub pickup alone and gains opportunistic
 delivery when P2P Delivery is enabled, without changing either plugin package.
 
 ### P7: Remove compatibility paths
 
-- [ ] Delete the temporary data-loader facade after all callers use platform
+- [x] Delete the temporary data-loader facade after all callers use platform
   ports.
-- [ ] Delete product-specific branches from the controller, route planner, and
+- [x] Delete product-specific branches from the controller, route planner, and
   main coordinator.
-- [ ] Remove old script tags and compatibility globals.
-- [ ] Regenerate the plugin registry and deployment stamp.
-- [ ] Confirm desktop, mobile, local, and deployed plugin selection.
+- [x] Remove old script tags and compatibility globals.
+- [x] Regenerate the plugin registry and generated plugin script inventory.
+- [x] Confirm desktop and mobile local plugin selection.
+- [ ] Confirm deployed plugin selection.
 
 Exit condition: the target ownership tree is true in source, not only in this
 document.

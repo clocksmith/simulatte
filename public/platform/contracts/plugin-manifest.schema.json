@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Simulatte plugin manifest v1",
   "type": "object",
-  "required": ["schema", "id", "version", "sdkVersion", "entry", "permissions", "datasets", "provides", "consumes", "extensionPoints", "receiptSchemas", "configSchema", "defaultConfig"],
+  "required": ["schema", "id", "version", "sdkVersion", "entry", "resources", "permissions", "datasets", "provides", "consumes", "extensionPoints", "receiptSchemas", "configSchema", "defaultConfig"],
   "additionalProperties": false,
   "properties": {
     "schema": { "const": "simulatte.pluginManifest.v1" },
@@ -19,6 +19,18 @@
         "globalFactory": { "type": "string" }
       }
     },
+    "resources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path", "integrity"],
+        "additionalProperties": false,
+        "properties": {
+          "path": { "type": "string" },
+          "integrity": { "type": "string", "pattern": "^sha384-[a-f0-9]{96}$" }
+        }
+      }
+    },
     "permissions": { "type": "array", "uniqueItems": true, "items": { "type": "string" } },
     "datasets": {
       "type": "array",
@@ -26,7 +38,16 @@
         "type": "object",
         "required": ["id", "required"],
         "additionalProperties": false,
-        "properties": { "id": { "type": "string" }, "required": { "type": "boolean" } }
+        "properties": {
+          "id": { "type": "string" },
+          "required": { "type": "boolean" },
+          "reference": {
+            "type": "object",
+            "required": ["id", "path", "sha256", "schemaId"],
+            "additionalProperties": false,
+            "properties": { "id": { "type": "string" }, "path": { "type": "string" }, "sha256": { "type": "string" }, "schemaId": { "type": "string" } }
+          }
+        }
       }
     },
     "provides": { "type": "array", "uniqueItems": true, "items": { "type": "string" } },

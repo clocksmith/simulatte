@@ -1,5 +1,12 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema", "title": "P2P Delivery configuration v1", "type": "object",
-  "required": ["schema", "id"], "additionalProperties": false,
-  "properties": { "schema": { "const": "simulatte.plugin.p2pDeliveryConfig.v1" }, "id": { "type": "string" } }
+  "required": ["schema", "id", "routeCostModel"], "additionalProperties": false,
+  "properties": {
+    "schema": { "const": "simulatte.plugin.p2pDeliveryConfig.v1" },
+    "id": { "type": "string" },
+    "routeCostModel": {
+      "type": "object", "required": ["costModelId", "fifo"], "additionalProperties": false,
+      "properties": { "costModelId": { "type": "string" }, "fifo": { "type": "boolean" } }
+    }
+  }
 }

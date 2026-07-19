@@ -1,25 +1,27 @@
 (function attachCooperativeEngine(root, factory) {
-  const contracts = typeof module === 'object' && module.exports
-    ? require('../contracts/cooperative-contracts.js')
-    : root.SimulatteCooperativeContracts;
-  const worldApi = typeof module === 'object' && module.exports
-    ? require('../world/world-model.js')
-    : root.SimulatteAutonomyWorld;
-  const routePlanner = typeof module === 'object' && module.exports
-    ? require('../world/route-planner.js')
-    : root.SimulatteAutonomyRoutePlanner;
-  const receipts = typeof module === 'object' && module.exports
-    ? require('./canonical-receipts.js')
-    : root.SimulatteAutonomyReceipts;
-  const language = typeof module === 'object' && module.exports
-    ? require('../mission/cooperative-language-compiler.js')
-    : root.SimulatteCooperativeLanguage;
-  const api = factory(contracts, worldApi, routePlanner, receipts, language);
+  const api = factory();
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteCooperativeEngine = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createCooperativeEngineModule(contracts, worldApi, routePlanner, receipts, language) {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createCooperativeEngineModule() {
   const ZERO_HASH = '0'.repeat(64);
   const TRIGGERS = Object.freeze(['intent_changed', 'route_delay_changed', 'environment_field_changed', 'reservation_expired']);
+  let contracts = null;
+  let worldApi = null;
+  let routePlanner = null;
+  let receipts = null;
+  let language = null;
+  let routeCostModel = Object.freeze({ costModelId: 'cooperative-window-handoff-cost', fifo: false });
+
+  function configure(dependencies) {
+    contracts = dependencies.contracts;
+    worldApi = dependencies.worldApi;
+    routePlanner = dependencies.routePlanner;
+    receipts = dependencies.receipts;
+    language = dependencies.language;
+    routeCostModel = Object.freeze({ ...routeCostModel, ...(dependencies.routeCostModel || {}) });
+    const missing = [['contracts', contracts, 'validateScenario'], ['worldApi', worldApi, 'createWorldModel'], ['routePlanner', routePlanner, 'planRoute'], ['receipts', receipts, 'sha256Hex'], ['language', language, 'compileCooperativeLanguage']].find(([, value, method]) => !value || typeof value[method] !== 'function');
+    if (missing) throw cooperativeError('p2p_delivery_dependency_missing', `${missing[0]}.${missing[2]} is required`);
+  }
 
   function recognizesCooperativeRequest(sourceText) {
     return language.recognizesCooperativeIntent(sourceText);
@@ -535,8 +537,8 @@
           dropoffNodeId: need.destinationNodeId,
           viaNodeIds: [pickupNodeId, need.destinationNodeId],
           timeDependentCost: {
-            modelId: routingPolicy.route.timeDependentCosts.cooperativeHandoff.costModelId,
-            fifo: routingPolicy.route.timeDependentCosts.cooperativeHandoff.fifo,
+            modelId: routeCostModel.costModelId,
+            fifo: routeCostModel.fifo,
             reason: 'participant availability, pickup, and handoff windows can invalidate later departures',
           },
         },
@@ -827,5 +829,5 @@
     return error;
   }
 
-  return { compileCooperativeRequest, createCooperativeSession, recognizesCooperativeRequest };
+  return { compileCooperativeRequest, configure, createCooperativeSession, recognizesCooperativeRequest };
 });

@@ -78,6 +78,7 @@
       });
       const instance = await row.factory.activate({ sdk, config: stateApi.freezeClone(row.config), profile: stateApi.freezeClone(profile) });
       contracts.validatePluginInstance(pluginId, instance);
+      validateDeclaredExtensions(row.manifest, instance);
       instances.set(pluginId, instance);
     }
 
@@ -95,13 +96,18 @@
         const instance = instances.get(pluginId);
         if (typeof instance.contributeRequest !== 'function') continue;
         const contribution = await instance.contributeRequest(stateApi.freezeClone(context));
-        if (contribution) output.push(stateApi.freezeClone({ pluginId, ...contribution }));
+        if (contribution) {
+          contracts.validateRequestContribution(pluginId, contribution);
+          output.push(stateApi.freezeClone({ pluginId, ...contribution }));
+        }
       }
+      const obligationIds = output.flatMap((row) => row.obligations.map((obligation) => obligation.id));
+      if (new Set(obligationIds).size !== obligationIds.length) throw runtimeError('plugin_obligation_id_duplicate', 'Plugin request contributions contain duplicate obligation IDs', { obligationIds });
       return Object.freeze(output);
     }
 
     function routeContributors(context) {
-      return Object.freeze(graph.order.flatMap((pluginId) => {
+      const contributors = graph.order.flatMap((pluginId) => {
         const instance = instances.get(pluginId);
         if (typeof instance.createRouteContributor !== 'function') return [];
         const contributor = instance.createRouteContributor(stateApi.freezeClone(context));
@@ -110,7 +116,10 @@
           throw runtimeError('plugin_route_contributor_invalid', `Plugin ${pluginId} route contributor expected id and evaluateSegment`, { pluginId });
         }
         return [Object.freeze({ pluginId, ...contributor })];
-      }));
+      });
+      const ids = contributors.map((row) => row.id);
+      if (new Set(ids).size !== ids.length) throw runtimeError('plugin_route_contributor_duplicate', 'Route contributor IDs must be unique', { contributorIds: ids });
+      return Object.freeze(contributors);
     }
 
     async function settle(context) {
@@ -180,8 +189,20 @@
       const pluginBaseUrl = new URL(`./plugins/${row.manifest.id}/`, baseUrl).toString();
       const loaded = await artifactStore.resolveText({ id: row.manifest.id, ...row.manifest.entry }, { baseUrl: pluginBaseUrl, key: `plugin:${row.manifest.id}` });
       receipts.push(Object.freeze({ pluginId: row.manifest.id, integrity: loaded.integrity, url: loaded.url }));
+      for (const resource of row.manifest.resources) {
+        const verified = await artifactStore.resolveText({ id: `${row.manifest.id}:${resource.path}`, ...resource }, { baseUrl: pluginBaseUrl, key: `plugin:${row.manifest.id}:${resource.path}` });
+        receipts.push(Object.freeze({ pluginId: row.manifest.id, path: resource.path, integrity: verified.integrity, url: verified.url }));
+      }
     }
     return Object.freeze(receipts);
+  }
+
+  function validateDeclaredExtensions(manifest, instance) {
+    const declarations = new Set(manifest.extensionPoints);
+    const methods = { request: 'contributeRequest', route: 'createRouteContributor', settlement: 'settle', ui: 'view', event: 'reduce' };
+    Object.entries(methods).forEach(([extension, method]) => {
+      if (typeof instance[method] === 'function' && !declarations.has(extension)) throw runtimeError('plugin_extension_undeclared', `Plugin ${manifest.id} implements ${method} without declaring ${extension}`, { pluginId: manifest.id, extension, method });
+    });
   }
 
   function runtimeError(code, message, evidence) {

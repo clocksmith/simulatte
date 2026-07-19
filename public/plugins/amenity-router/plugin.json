@@ -4,17 +4,25 @@
   "datasets": [
     {
       "id": "nyc-bicycle-parking-route-amenity-v1",
+      "reference": {
+        "id": "nyc-bicycle-parking-route-amenity-v1",
+        "path": "../../data/autonomy/route-amenity-index-v1.json",
+        "schemaId": "simulatte.autonomyRouteAmenityIndex.v1",
+        "sha256": "0a34318351d9d3e98b8d86b6ae8d3da69e9d67a59e572c1cf50f3809009634be"
+      },
       "required": true
     }
   ],
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginAmenityRouter",
-    "integrity": "sha384-48c8ff709ad3c84ae5888f3e46369e505fdd68eabd75f0b81c2f90c46f20cb1625cbf58851b17dca6c0685045b3f1f53",
+    "integrity": "sha384-002e3eb80e6ee3a16ef0f4adca13472bbd053e51eef750e26f5712aee14d1adc616e4ea5a062787b04dee713f5e698fc",
     "path": "./index.js"
   },
   "extensionPoints": [
+    "request",
     "route",
+    "settlement",
     "ui"
   ],
   "id": "amenity-router",
@@ -31,6 +39,16 @@
   ],
   "receiptSchemas": [
     "simulatte.plugin.amenityRouteAudit.v1"
+  ],
+  "resources": [
+    {
+      "integrity": "sha384-e8340848c29a3fc775e0c48a871d424121803cfb1793a6235fbe1ffca528756bc52ce6a50bf5a2298017417fe494d11b",
+      "path": "./config.schema.json"
+    },
+    {
+      "integrity": "sha384-b53401866ccd6d182652a1f7e4bc62419ef3a28214fbf72cfe9a757ab6da320819c08a11ea5e70e892cfb88bad7aaa27",
+      "path": "./default-config.json"
+    }
   ],
   "schema": "simulatte.pluginManifest.v1",
   "sdkVersion": 1,

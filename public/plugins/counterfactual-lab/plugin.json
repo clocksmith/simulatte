@@ -10,7 +10,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginCounterfactualLab",
-    "integrity": "sha384-31b683d5a356ed9cb80791f59822ee716a9d7198a8cdb51480152d9c0cdd661ae01d98918d04c6dcff03488424df2a4b",
+    "integrity": "sha384-bed885f6be43fa7a7580671954baaf1bbc230f43730bfd0a66e6bc2d4cd0fb909d2a8ba398245d246f98f65cb0ad2166",
     "path": "./index.js"
   },
   "extensionPoints": [
@@ -24,13 +24,28 @@
     "receipts.append.v1",
     "simulation.run.v1",
     "state.reduce.v1",
-    "ui.inspector.v1"
+    "ui.inspector.v1",
+    "world.query.v1"
   ],
   "provides": [
     "analysis.counterfactual.v1"
   ],
   "receiptSchemas": [
     "simulatte.plugin.counterfactualLabReceipt.v1"
+  ],
+  "resources": [
+    {
+      "integrity": "sha384-4145fffa03bb822c915b228f3ef11118eba5de0cb0ae818cf6be2c31698b8a09c2a171fd8a5495767451074d04c43063",
+      "path": "./comparison-runner.js"
+    },
+    {
+      "integrity": "sha384-1177b8c0fcdd6cf1155d3335ce3c8117b819b796799ac4ecbfebae9e273845b28f220ea44251b00bf6cf9b8d26a32208",
+      "path": "./config.schema.json"
+    },
+    {
+      "integrity": "sha384-14a4064aa6205fb29cfa995c99491ddfd6a0fb9f15f0d7df6313283e8b1eca312f47730a8b0f1346a8b7e83367ffb962",
+      "path": "./default-config.json"
+    }
   ],
   "schema": "simulatte.pluginManifest.v1",
   "sdkVersion": 1,

@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const PLUGINS = path.join(ROOT, 'public/plugins');
 const OUTPUT = path.join(ROOT, 'public/platform/plugin-host/generated-plugin-registry.js');
+const INDEX = path.join(ROOT, 'public/index.html');
 const write = process.argv.includes('--write');
 
 const pluginIds = fs.readdirSync(PLUGINS, { withFileTypes: true })
@@ -16,6 +17,7 @@ const rows = pluginIds.map(readPlugin);
 const output = renderRegistry(rows);
 if (write) fs.writeFileSync(OUTPUT, output);
 else if (!fs.existsSync(OUTPUT) || fs.readFileSync(OUTPUT, 'utf8') !== output) fail('Generated plugin registry is stale; run npm run plugins:sync');
+syncIndexScripts(rows, write);
 console.log(`PLUGIN-REGISTRY status=${write ? 'written' : 'verified'} plugins=${rows.length} ids=${pluginIds.join(',')}`);
 
 function readPlugin(pluginId) {
@@ -31,16 +33,55 @@ function readPlugin(pluginId) {
     manifest.entry.integrity = integrity;
     fs.writeFileSync(manifestPath, `${JSON.stringify(sortValue(manifest), null, 2)}\n`);
   }
+  const resourcePaths = [manifest.configSchema, manifest.defaultConfig, ...walk(directory)
+    .filter((file) => file.endsWith('.js') && file !== entryPath)
+    .map((file) => `./${path.relative(directory, file).split(path.sep).join('/')}`)]
+    .sort();
+  const resources = resourcePaths.map((resourcePath) => ({
+    path: resourcePath,
+    integrity: `sha384-${crypto.createHash('sha384').update(fs.readFileSync(path.resolve(directory, resourcePath))).digest('hex')}`,
+  }));
+  if (JSON.stringify(sortValue(manifest.resources || [])) !== JSON.stringify(sortValue(resources))) {
+    if (!write) fail(`${pluginId} resource identities are stale`);
+    manifest.resources = resources;
+    fs.writeFileSync(manifestPath, `${JSON.stringify(sortValue(manifest), null, 2)}\n`);
+  }
   const configPath = path.resolve(directory, manifest.defaultConfig);
   const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
   return { manifest, configs: { [config.id]: config } };
 }
 
+function walk(directory) {
+  return fs.readdirSync(directory, { withFileTypes: true }).flatMap((row) => {
+    const target = path.join(directory, row.name);
+    return row.isDirectory() ? walk(target) : [target];
+  });
+}
+
 function renderRegistry(rows) {
-  const requires = rows.map((row) => `    '${row.manifest.id}': require('../../../plugins/${row.manifest.id}/index.js'),`).join('\n');
+  const requires = rows.map((row) => `    '${row.manifest.id}': require('../../plugins/${row.manifest.id}/index.js'),`).join('\n');
   const globals = rows.map((row) => `    '${row.manifest.id}': root.${row.manifest.entry.globalFactory},`).join('\n');
   const data = JSON.stringify(rows.map((row) => ({ manifest: sortValue(row.manifest), configs: sortValue(row.configs) })), null, 2);
   return `(function attachGeneratedPluginRegistry(root, factory) {\n  const factories = typeof module === 'object' && module.exports\n    ? {\n${requires}\n      }\n    : {\n${globals}\n      };\n  const api = factory(factories);\n  if (typeof module === 'object' && module.exports) module.exports = api;\n  root.SimulatteGeneratedPluginRegistry = api;\n})(typeof globalThis !== 'undefined' ? globalThis : window, function createGeneratedPluginRegistry(factories) {\n  const rows = ${data};\n  const byId = new Map(rows.map((row) => [row.manifest.id, Object.freeze({ ...row, factory: factories[row.manifest.id] })]));\n  return Object.freeze({\n    schema: 'simulatte.pluginRegistry.v1',\n    ids: Object.freeze([...byId.keys()].sort()),\n    entry(id) { return byId.get(id) || null; },\n  });\n});\n`;
+}
+
+function syncIndexScripts(rows, shouldWrite) {
+  const source = fs.readFileSync(INDEX, 'utf8');
+  const start = '  <!-- generated-plugin-scripts:start -->';
+  const end = '  <!-- generated-plugin-scripts:end -->';
+  const startIndex = source.indexOf(start);
+  const endIndex = source.indexOf(end);
+  if (startIndex < 0 || endIndex < startIndex) fail('public/index.html is missing generated plugin script markers');
+  const version = source.match(/<script defer src="[^"]+\?v=([^"]+)"/)?.[1] || 'development';
+  const paths = rows.flatMap(({ manifest }) => [
+    ...manifest.resources.filter((resource) => resource.path.endsWith('.js')).map((resource) => `./plugins/${manifest.id}/${resource.path.replace(/^\.\//, '')}`),
+    `./plugins/${manifest.id}/${manifest.entry.path.replace(/^\.\//, '')}`,
+  ]);
+  const block = [start, ...paths.map((scriptPath) => `  <script defer src="${scriptPath}?v=${version}"></script>`), end].join('\n');
+  const expected = `${source.slice(0, startIndex)}${block}${source.slice(endIndex + end.length)}`;
+  if (source === expected) return;
+  if (!shouldWrite) fail('Generated plugin script inventory is stale; run npm run plugins:sync');
+  fs.writeFileSync(INDEX, expected);
 }
 
 function sortValue(value) {

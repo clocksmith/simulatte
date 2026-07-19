@@ -4,6 +4,12 @@
   "datasets": [
     {
       "id": "nyc-crash-history-2025-07-to-2026-07-v1",
+      "reference": {
+        "id": "nyc-crash-history-2025-07-to-2026-07-v1",
+        "path": "../../data/autonomy/safety-history-index-v1.json",
+        "schemaId": "simulatte.autonomySafetyHistoryIndex.v1",
+        "sha256": "ecebc76655c7325d0c764056137c56419001afc3a19ba4002aece4f3eb85f715"
+      },
       "required": true
     }
   ],
@@ -30,6 +36,16 @@
   ],
   "receiptSchemas": [
     "simulatte.plugin.safetyExplorerRouteAudit.v1"
+  ],
+  "resources": [
+    {
+      "integrity": "sha384-1c890e5a242e3d870a02a4cb027102d16a5f5d2e3df3650a6d0a439d8f307d1f09e62e218eafd6d33f4edb1011e65cf7",
+      "path": "./config.schema.json"
+    },
+    {
+      "integrity": "sha384-f4230093f9bc9b92e7145f1da988b87b8a20fd6247e0fe13a11c4b5293272447dbf485976e560f1bd285aa8e04e16c10",
+      "path": "./default-config.json"
+    }
   ],
   "schema": "simulatte.pluginManifest.v1",
   "sdkVersion": 1,

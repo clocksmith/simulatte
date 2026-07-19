@@ -40,7 +40,7 @@
             "additionalProperties": false,
             "required": ["field", "value", "start", "end", "method", "groundedId", "canonicalValue", "editDistance"],
             "properties": {
-              "field": { "enum": ["task", "mode", "origin", "destination", "waypoint", "circuit", "targetDistance", "targetLaps", "targetDuration", "boundaryKind", "lanePreference", "pedestrianYield", "streetAvoidance", "maximumDuration", "compensation", "accessibilityProfile", "bikeRackProximity", "departureTime", "arrivalDeadlineTime", "daylightOnly"] },
+              "field": { "enum": ["task", "mode", "origin", "destination", "waypoint", "circuit", "targetDistance", "targetLaps", "targetDuration", "boundaryKind", "lanePreference", "pedestrianYield", "streetAvoidance", "maximumDuration", "compensation", "departureTime", "arrivalDeadlineTime", "daylightOnly"] },
               "value": { "type": "string", "minLength": 1 },
               "start": { "type": "integer", "minimum": 0 },
               "end": { "type": "integer", "minimum": 1 },
@@ -209,7 +209,7 @@
     "constraints": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["lanePreference", "avoidStreetNames", "mustYieldToPedestrians", "mustObeySignals", "mustStayOnCircuit", "maximumSpeedMps", "maximumDurationSeconds", "accessibilityProfile", "maximumBikeRackDistanceM", "departureLocalMinutes", "arrivalDeadlineLocalMinutes", "daylightOnly", "daylightWindowLocalMinutes"],
+      "required": ["lanePreference", "avoidStreetNames", "mustYieldToPedestrians", "mustObeySignals", "mustStayOnCircuit", "maximumSpeedMps", "maximumDurationSeconds", "departureLocalMinutes", "arrivalDeadlineLocalMinutes", "daylightOnly", "daylightWindowLocalMinutes"],
       "properties": {
         "lanePreference": { "enum": ["protected", "any"] },
         "avoidStreetNames": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
@@ -218,8 +218,6 @@
         "mustStayOnCircuit": { "type": "boolean" },
         "maximumSpeedMps": { "type": "number", "exclusiveMinimum": 0 },
         "maximumDurationSeconds": { "type": ["number", "null"], "exclusiveMinimum": 0 },
-        "accessibilityProfile": { "enum": ["wheelchair", null] },
-        "maximumBikeRackDistanceM": { "type": ["number", "null"], "exclusiveMinimum": 0 },
         "departureLocalMinutes": { "type": "integer", "minimum": 0, "maximum": 1439 },
         "arrivalDeadlineLocalMinutes": { "type": ["integer", "null"], "minimum": 0, "maximum": 1439 },
         "daylightOnly": { "type": "boolean" },
@@ -235,7 +233,7 @@
         "required": ["id", "kind", "required"],
         "properties": {
           "id": { "type": "string", "minLength": 1 },
-          "kind": { "enum": ["arrival", "payload_delivery", "ordered_stops", "signal_compliance", "pedestrian_yield", "lane_preference", "street_avoidance", "arrival_deadline", "daylight_window", "accessibility", "bike_rack_proximity", "distance_target", "laps_target", "duration_target", "closed_loop", "boundary_adherence", "lap_accounting"] },
+          "kind": { "enum": ["arrival", "payload_delivery", "ordered_stops", "signal_compliance", "pedestrian_yield", "lane_preference", "street_avoidance", "arrival_deadline", "daylight_window", "distance_target", "laps_target", "duration_target", "closed_loop", "boundary_adherence", "lap_accounting"] },
           "required": { "type": "boolean" }
         }
       }

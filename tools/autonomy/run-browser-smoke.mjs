@@ -267,14 +267,29 @@ async function runBrowserSmoke(options) {
     if (actorViewEvaluation.exceptionDetails) throw new Error(actorViewEvaluation.exceptionDetails.exception && actorViewEvaluation.exceptionDetails.exception.description || actorViewEvaluation.exceptionDetails.text);
     const actorView = actorViewEvaluation.result.value;
     const actorScreenshot = await client.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false });
+    const expectedProfileId = new URL(targetUrl).searchParams.get('profile') || 'simulatte-world-v1';
+    const expectsCooperativeFeatures = expectedProfileId !== 'cable-trader-pickup-v1';
     const featureViewEvaluation = await client.send('Runtime.evaluate', {
-      expression: cooperativeFeatureExpression(),
+      expression: expectsCooperativeFeatures ? cooperativeFeatureExpression() : inactiveFeatureExpression(),
       awaitPromise: true,
       returnByValue: true,
     });
     if (featureViewEvaluation.exceptionDetails) throw new Error(featureViewEvaluation.exceptionDetails.exception && featureViewEvaluation.exceptionDetails.exception.description || featureViewEvaluation.exceptionDetails.text);
     const featureView = featureViewEvaluation.result.value;
     const result = evaluated.result.value;
+    const featurePass = expectsCooperativeFeatures
+      ? featureView.cooperation.visible
+        && featureView.cooperation.title === 'Cooperative delivery'
+        && featureView.cooperation.match.length > 0
+        && featureView.cooperation.compensation.includes('$')
+        && featureView.gpuParity.pass
+        && featureView.gpuParity.candidateCount === 3
+        && featureView.gpuParity.maximumAbsoluteError <= featureView.gpuParity.tolerance
+        && featureView.shade.visible
+        && featureView.shade.routeAlgorithm === 'sun_walker_arrival_time_route_v1'
+        && featureView.shade.selected.includes('modeled shade')
+      : !featureView.cooperation.visible && !featureView.shade.visible;
+    const expectsCableTrader = expectedProfileId !== 'simulatte-world-v1';
     const pass = result.state === 'completed'
       && result.rendererBackend === 'webgpu'
       && result.actorMeshSchema === 'simulatte.autonomyActorMesh.v1'
@@ -321,6 +336,9 @@ async function runBrowserSmoke(options) {
       && consentView.finalEnabled === false
       && result.initialLayout.allWithinViewport
       && result.initialLayout.primaryControlsVisible
+      && result.applicationProfile.enabled
+      && result.applicationProfile.selectedId === expectedProfileId
+      && result.applicationProfile.optionIds.length === 3
       && decisionView.open
       && decisionView.hidden === 'false'
       && decisionView.expanded === 'true'
@@ -350,18 +368,8 @@ async function runBrowserSmoke(options) {
       && actorView.dynamicVertexCount > 1000
       && actorView.minimapVisible
       && actorView.minimapFrameCount > 0
-      && featureView.cooperation.visible
-      && featureView.cooperation.state === 'executing'
-      && featureView.cooperation.match.includes('eligible')
-      && featureView.cooperation.burden.includes('$')
-      && featureView.cooperation.reliability.includes('on time')
-      && featureView.cooperation.itemTitle.includes('umbrella')
-      && featureView.gpuParity.pass
-      && featureView.gpuParity.candidateCount === 3
-      && featureView.gpuParity.maximumAbsoluteError <= featureView.gpuParity.tolerance
-      && featureView.shade.preferShade
-      && featureView.shade.routeAlgorithm === 'governed_environment_route_v1'
-      && featureView.shade.proof.includes('modeled building shade')
+      && featurePass
+      && featureView.cableTrader.visible === expectsCableTrader
       && result.scrollY === 0
       && !result.hasHorizontalOverflow
       && errors.length === 0
@@ -415,7 +423,7 @@ function cooperativeFeatureExpression() {
             + '; runtime=' + (status?.dataset.kind || 'missing') + ':' + (status?.textContent || '')
             + '; state=' + (state?.textContent || 'missing')
             + '; proof=' + (proof?.textContent || 'missing')
-            + '; preferShade=' + (proof?.dataset.preferShade || 'missing')
+            + '; sunPlugin=' + Boolean(document.querySelector('#plugin-inspector [data-plugin-id="sun-walker"]'))
             + '; routeAlgorithm=' + (proof?.dataset.routeAlgorithm || 'missing'));
         }
         await new Promise((resolve) => setTimeout(resolve, 25));
@@ -423,19 +431,18 @@ function cooperativeFeatureExpression() {
     };
     const input = document.getElementById('mission-input');
     const step = document.getElementById('step-button');
-    input.value = 'I need an umbrella delivered to my East Village office. Match someone already passing nearby.';
+    input.value = 'I need two AA batteries delivered to my East Village office. Match someone already passing nearby.';
     input.dispatchEvent(new Event('input', { bubbles: true }));
     step.click();
-    await waitFor(() => !document.getElementById('cooperative-section').hidden
-      && document.getElementById('cooperative-state').textContent.trim() === 'executing', 'cooperative-execution');
+    await waitFor(() => document.querySelector('#plugin-inspector [data-plugin-id="p2p-delivery"]'), 'cooperative-plugin');
+    const cooperationSection = document.querySelector('#plugin-inspector [data-plugin-id="p2p-delivery"]');
+    const cooperationRows = Object.fromEntries([...cooperationSection.querySelectorAll('div')].map((row) => [row.querySelector('dt')?.textContent.trim(), row.querySelector('dd')?.textContent.trim()]));
     const cooperation = {
-      visible: !document.getElementById('cooperative-section').hidden && !document.getElementById('cooperative-chip').hidden,
-      state: document.getElementById('cooperative-state').textContent.trim(),
-      match: document.getElementById('cooperative-match').textContent.trim(),
-      burden: document.getElementById('cooperative-burden').textContent.trim(),
-      reliability: document.getElementById('cooperative-reliability').textContent.trim(),
-      handoff: document.getElementById('cooperative-handoff').textContent.trim(),
-      itemTitle: document.getElementById('cooperative-chip-title').textContent.trim(),
+      visible: Boolean(cooperationSection),
+      title: cooperationSection.querySelector('summary').textContent.trim(),
+      match: cooperationRows.Match || '',
+      compensation: cooperationRows.Compensation || '',
+      settlement: cooperationRows.Settlement || '',
     };
     const adapter = await navigator.gpu.requestAdapter({ powerPreference: 'high-performance' });
     if (!adapter) throw new Error('cooperative GPU parity adapter unavailable');
@@ -451,18 +458,29 @@ function cooperativeFeatureExpression() {
     step.click();
     await waitFor(() => {
       const proof = document.getElementById('alternative-proof');
-      return proof.dataset.preferShade === 'true'
-        && proof.dataset.routeAlgorithm === 'governed_environment_route_v1'
-        && proof.textContent.includes('modeled building shade');
+      return Boolean(document.querySelector('#plugin-inspector [data-plugin-id="sun-walker"]'))
+        && proof.dataset.routeAlgorithm === 'sun_walker_arrival_time_route_v1';
     }, 'shade-route');
     const proof = document.getElementById('alternative-proof');
+    const shadeSection = document.querySelector('#plugin-inspector [data-plugin-id="sun-walker"]');
+    const shadeRows = Object.fromEntries([...shadeSection.querySelectorAll('div')].map((row) => [row.querySelector('dt')?.textContent.trim(), row.querySelector('dd')?.textContent.trim()]));
     const shade = {
-      preferShade: proof.dataset.preferShade === 'true',
+      visible: Boolean(shadeSection),
       routeAlgorithm: proof.dataset.routeAlgorithm || null,
-      proof: proof.textContent.trim(),
+      selected: shadeRows['Selected route'] || '',
     };
-    return { cooperation, gpuParity, shade };
+    const cableTrader = { visible: Boolean(document.querySelector('#plugin-inspector [data-plugin-id="cable-trader"]')) };
+    return { cooperation, gpuParity, shade, cableTrader };
   })()`;
+}
+
+function inactiveFeatureExpression() {
+  return `(() => ({
+    cooperation: { visible: Boolean(document.querySelector('#plugin-inspector [data-plugin-id="p2p-delivery"]')) },
+    shade: { visible: Boolean(document.querySelector('#plugin-inspector [data-plugin-id="sun-walker"]')) },
+    cableTrader: { visible: Boolean(document.querySelector('#plugin-inspector [data-plugin-id="cable-trader"]')) },
+    gpuParity: null,
+  }))()`;
 }
 
 function actorViewExpression() {
@@ -539,14 +557,14 @@ function browserJourneyExpression() {
       const rect = element.getBoundingClientRect();
       return { id, hidden: element.hidden, left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom, width: rect.width, height: rect.height };
     };
-    const initialRects = ['runtime-toggle', 'camera-focus-button', 'camera-follow', 'camera-bird', 'camera-top', 'mission-input', 'shuffle-button', 'start-button', 'place-resolution-lane', 'decisions-button'].map(rectFor);
+    const initialRects = ['runtime-toggle', 'application-profile', 'camera-focus-button', 'camera-follow', 'camera-bird', 'camera-top', 'mission-input', 'shuffle-button', 'start-button', 'place-resolution-lane', 'decisions-button'].map(rectFor);
     const initialLayout = {
       viewport: viewportRect,
       rects: initialRects,
       allWithinViewport: initialRects.every((rect) => rect.hidden || (rect.left >= -0.5 && rect.top >= -0.5 && rect.right <= viewportRect.width + 0.5 && rect.bottom <= viewportRect.height + 0.5)),
-      primaryControlsVisible: ['mission-input', 'shuffle-button', 'start-button', 'place-resolution-lane'].every((id) => {
+      primaryControlsVisible: ['mission-input', 'shuffle-button', 'start-button'].every((id) => {
         const rect = initialRects.find((row) => row.id === id);
-        const minimum = id === 'place-resolution-lane' ? 18 : 40;
+        const minimum = 40;
         return rect && !rect.hidden && rect.width >= minimum && rect.height >= minimum;
       }),
     };
@@ -570,6 +588,7 @@ function browserJourneyExpression() {
     try { longTaskObserver?.observe({ type: 'longtask', buffered: true }); } catch { /* Long Tasks API is optional. */ }
     const canvas = document.getElementById('autonomy-canvas');
     const minimap = document.getElementById('follow-minimap');
+    const applicationProfile = document.getElementById('application-profile');
     const focusSelect = document.getElementById('camera-focus');
     const missionInput = document.getElementById('mission-input');
     const shuffleButton = document.getElementById('shuffle-button');
@@ -762,6 +781,11 @@ function browserJourneyExpression() {
     return {
       runtime: document.getElementById('runtime-status').textContent,
       initialLayout,
+      applicationProfile: {
+        enabled: !applicationProfile.disabled,
+        selectedId: applicationProfile.value,
+        optionIds: Array.from(applicationProfile.options, (option) => option.value),
+      },
       state: document.getElementById('metric-state').textContent,
       tick: Number(document.getElementById('metric-tick').textContent),
       distance: document.getElementById('metric-distance').textContent,

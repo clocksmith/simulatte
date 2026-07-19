@@ -53,13 +53,16 @@
     examples.forEach((row, index) => v.string(row, `$.missionExamples[${index}]`));
     if (new Set(examples).size !== examples.length) v.fail('$.missionExamples', 'unique mission strings', examples);
     if (!examples.includes(manifest.defaultMissionText)) v.fail('$.missionExamples', 'defaultMissionText member', manifest.defaultMissionText);
-    const keys = ['world', 'policy', 'featureCatalog', 'occurrenceCatalog', 'rerankerEvidence', 'regionRegistry', 'placeEmbeddingIndex', 'placeResolutionEvidence', 'modelRuntimeLock', 'pipelineModelSelection', 'applicationProfile', 'accessibilityIndex', 'routeAmenityIndex', 'safetyHistoryIndex', 'curriculum', 'worldSnapshotRegistry', 'policyArenaEvidence', 'cooperativeScenario'];
+    const keys = ['world', 'policy', 'featureCatalog', 'occurrenceCatalog', 'rerankerEvidence', 'regionRegistry', 'placeEmbeddingIndex', 'placeResolutionEvidence', 'modelRuntimeLock', 'pipelineModelSelection', 'applicationProfile', 'curriculum', 'policyArenaEvidence'];
     keys.forEach((key) => {
       const ref = v.object(manifest[key], `$.${key}`);
       v.string(ref.id, `$.${key}.id`);
       v.string(ref.path, `$.${key}.path`);
       v.sha(ref.sha256, `$.${key}.sha256`);
     });
+    const profiles = v.array(manifest.applicationProfiles || [], '$.applicationProfiles');
+    uniqueRows(profiles, 'id', '$.applicationProfiles', v);
+    profiles.forEach((ref, index) => { v.string(ref.path, `$.applicationProfiles[${index}].path`); v.sha(ref.sha256, `$.applicationProfiles[${index}].sha256`); });
     const embodiments = v.array(manifest.embodiments, '$.embodiments', 2);
     uniqueRows(embodiments, 'id', '$.embodiments', v);
     embodiments.forEach((ref, index) => {

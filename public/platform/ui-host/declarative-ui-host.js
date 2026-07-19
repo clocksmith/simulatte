@@ -36,6 +36,31 @@
           });
           section.append(rows);
         }
+        const fields = new Map();
+        if (view.fields?.length) {
+          const controls = documentRef.createElement('div');
+          controls.className = 'plugin-controls';
+          view.fields.forEach((field) => {
+            const label = documentRef.createElement('label');
+            const caption = documentRef.createElement('span');
+            caption.textContent = field.label;
+            const input = field.type === 'select' ? documentRef.createElement('select') : documentRef.createElement('input');
+            input.className = 'sim-field';
+            input.dataset.pluginField = field.id;
+            if (field.type === 'select') field.options.forEach((option) => {
+              const node = documentRef.createElement('option');
+              node.value = String(option.value);
+              node.textContent = option.label;
+              input.append(node);
+            });
+            else input.type = field.type;
+            input.value = String(field.value ?? '');
+            fields.set(field.id, input);
+            label.append(caption, input);
+            controls.append(label);
+          });
+          section.append(controls);
+        }
         if (view.actions.length) {
           const actions = documentRef.createElement('div');
           actions.className = 'plugin-actions';
@@ -44,7 +69,14 @@
             button.type = 'button';
             button.className = 'sim-action';
             button.textContent = action.label;
-            button.addEventListener('click', () => onAction({ pluginId, actionId: action.id }));
+            button.addEventListener('click', async () => {
+              button.disabled = true;
+              try {
+                await onAction({ pluginId, actionId: action.id, values: Object.fromEntries([...fields].map(([id, input]) => [id, input.value])) });
+              } finally {
+                button.disabled = false;
+              }
+            });
             actions.append(button);
           });
           section.append(actions);

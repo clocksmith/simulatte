@@ -154,6 +154,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       latestReceipt: null,
       tracePositions: [],
       dynamicData: new Float32Array(),
+      dynamicWriter: geometry.createWriter(1048576),
       dynamicBuffer: null,
       dynamicCapacity: 0,
       frameCount: 0,
@@ -197,9 +198,8 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       }
       const position = snapshot.state.position;
       if (position && (!state.tracePositions.length || pointDistance(position, state.tracePositions.at(-1)) > 0.15)) state.tracePositions.push({ ...position });
-      state.dynamicData = geometry.createDynamicGeometry(worldModel, snapshot, tickReceipt, state.tracePositions);
+      state.dynamicData = geometry.createDynamicGeometry(worldModel, snapshot, tickReceipt, state.tracePositions, state.dynamicWriter);
       ensureDynamicBuffer(device, state, state.dynamicData);
-      drawFrame();
     }
 
     function drawFrame(timestamp = performance.now()) {

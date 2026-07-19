@@ -10,6 +10,7 @@
     capabilities: 'capabilities.invoke.v1',
     clock: 'clock.read.v1',
     events: 'events.propose.v1',
+    language: 'language.parse.v1',
     receipts: 'receipts.append.v1',
     routing: 'routing.contribute.v1',
     simulation: 'simulation.run.v1',
@@ -31,7 +32,7 @@
       if (name === 'state') sdk.state = createStatePort(manifest.id, stateHost);
       else if (name === 'events') sdk.events = Object.freeze({ propose: (event) => stateHost.propose(manifest.id, event) });
       else if (name === 'capabilities') sdk.capabilities = Object.freeze({ invoke: capabilityInvoke });
-      else if (name === 'receipts') sdk.receipts = Object.freeze({ append: (receipt) => receiptSink(manifest.id, receipt) });
+      else if (name === 'receipts') sdk.receipts = Object.freeze({ ...(corePorts.receipts || {}), append: (receipt) => receiptSink(manifest.id, receipt) });
       else if (corePorts[name] !== undefined) sdk[name] = corePorts[name];
       else throw sdkError('plugin_sdk_port_missing', `Plugin ${manifest.id} has permission ${permission} but host port ${name} is missing`, { pluginId: manifest.id, permission, port: name });
     });

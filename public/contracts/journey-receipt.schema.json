@@ -10,7 +10,7 @@
     "identities": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["worldId", "worldContentVersion", "embodimentId", "policyId", "occurrenceCatalogId", "regionRegistryId", "regionCompositionId", "regionPackIds", "circuitId", "boundaryGeometrySha256", "safetyHistoryIndexId"],
+      "required": ["worldId", "worldContentVersion", "embodimentId", "policyId", "occurrenceCatalogId", "regionRegistryId", "regionCompositionId", "regionPackIds", "circuitId", "boundaryGeometrySha256", "routeContributorIds"],
       "properties": {
         "worldId": { "type": "string" },
         "worldContentVersion": { "type": "string" },
@@ -22,7 +22,7 @@
         "regionPackIds": { "type": "array", "items": { "type": "string" } },
         "circuitId": { "type": ["string", "null"] },
         "boundaryGeometrySha256": { "type": ["string", "null"], "pattern": "^[a-f0-9]{64}$" },
-        "safetyHistoryIndexId": { "type": ["string", "null"] }
+        "routeContributorIds": { "type": "array", "items": { "type": "string" }, "uniqueItems": true }
       }
     },
     "events": {
@@ -44,14 +44,12 @@
     "planning": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["schema", "forecast", "alternatives", "accessibility", "amenities", "safetyHistory"],
+      "required": ["schema", "forecast", "alternatives", "pluginAudits"],
       "properties": {
         "schema": { "const": "simulatte.autonomyJourneyPlanning.v1" },
         "forecast": { "type": "object" },
         "alternatives": { "type": "array", "items": { "type": "object" } },
-        "accessibility": { "type": "object" },
-        "amenities": { "type": "object" },
-        "safetyHistory": { "type": "object" }
+        "pluginAudits": { "type": "object" }
       }
     },
     "terminalState": { "type": "string", "minLength": 1 },
@@ -87,6 +85,10 @@
     },
     "trace": { "type": "array", "items": { "type": "object" } },
     "verification": { "type": "object" },
+    "pluginSettlement": { "type": "array", "items": { "type": "object" } },
+    "pluginRuntime": { "type": "object" },
+    "rendering": { "type": "object" },
+    "dataLoad": { "type": "object" },
     "integrity": {
       "type": "object",
       "additionalProperties": false,

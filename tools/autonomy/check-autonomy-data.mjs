@@ -11,8 +11,9 @@ const PUBLIC = path.join(ROOT, 'public');
 const MANIFEST_PATH = path.join(PUBLIC, 'data/autonomy/autonomy-manifest.json');
 const require = createRequire(import.meta.url);
 const contracts = require('../../public/contracts/contract-validator.js');
-const cooperativeContracts = require('../../public/contracts/cooperative-contracts.js');
+const cooperativeContracts = require('../../public/plugins/p2p-delivery/contracts.js');
 const regionApi = require('../../public/world/region-pack-merger.js');
+const pluginContracts = require('../../public/platform/contracts/plugin-contracts.js');
 
 function readJson(file) {
   return JSON.parse(fs.readFileSync(file, 'utf8'));
@@ -56,7 +57,7 @@ function resolvePackReference(registryFile, reference) {
 }
 
 function publicAutonomyJavaScript() {
-  const roots = ['app', 'contracts', 'mission', 'platform', 'runtime', 'verifier', 'world']
+  const roots = ['app', 'contracts', 'core', 'mission', 'platform', 'plugins', 'runtime', 'verifier', 'world']
     .map((directory) => path.join(PUBLIC, directory));
   const files = [];
   const walk = (directory) => fs.readdirSync(directory, { withFileTypes: true }).forEach((entry) => {
@@ -93,15 +94,11 @@ function main() {
   const rerankerEvidence = resolveReference(manifest, 'rerankerEvidence');
   const modelRuntimeLock = resolveReference(manifest, 'modelRuntimeLock');
   const pipelineModelSelection = resolveReference(manifest, 'pipelineModelSelection');
+  const applicationProfile = resolveReference(manifest, 'applicationProfile');
   const placeEmbeddingIndex = resolveReference(manifest, 'placeEmbeddingIndex');
   const placeResolutionEvidence = resolveReference(manifest, 'placeResolutionEvidence');
-  const accessibilityIndex = resolveReference(manifest, 'accessibilityIndex');
-  const routeAmenityIndex = resolveReference(manifest, 'routeAmenityIndex');
-  const safetyHistoryIndex = resolveReference(manifest, 'safetyHistoryIndex');
   const curriculum = resolveReference(manifest, 'curriculum');
-  const worldSnapshotRegistry = resolveReference(manifest, 'worldSnapshotRegistry');
   const policyArenaEvidence = resolveReference(manifest, 'policyArenaEvidence');
-  const cooperativeScenario = resolveReference(manifest, 'cooperativeScenario');
   const regionRegistry = resolveReference(manifest, 'regionRegistry');
   const registryFile = path.resolve(path.dirname(MANIFEST_PATH), manifest.regionRegistry.path);
   contracts.validateRegionRegistry(regionRegistry);
@@ -130,6 +127,13 @@ function main() {
   }
   contracts.validatePlaceEmbeddingIndex(placeEmbeddingIndex, modelRuntimeLock);
   contracts.validatePlaceResolutionEvidence(placeResolutionEvidence, placeEmbeddingIndex, modelRuntimeLock);
+  pluginContracts.validateProfile(applicationProfile);
+  const pluginDatasets = resolvePluginDatasets(applicationProfile);
+  const accessibilityIndex = pluginDatasets.get('nyc-pedestrian-ramp-accessibility-v1');
+  const routeAmenityIndex = pluginDatasets.get('nyc-bicycle-parking-route-amenity-v1');
+  const safetyHistoryIndex = pluginDatasets.get('nyc-crash-history-2025-07-to-2026-07-v1');
+  const worldSnapshotRegistry = pluginDatasets.get('nyc-world-snapshot-registry-v1');
+  const cooperativeScenario = pluginDatasets.get('battery-office-east-village-v1');
   contracts.validateAccessibilityIndex(accessibilityIndex, world, manifest.world.sha256);
   contracts.validateRouteAmenityIndex(routeAmenityIndex, world, manifest.world.sha256);
   contracts.validateSafetyHistoryIndex(safetyHistoryIndex, world, manifest.world.sha256);
@@ -143,6 +147,26 @@ function main() {
   });
   validateHtmlScripts();
   console.log(`AUTONOMY-DATA manifest=${manifest.id} world=${world.id} regions=${regionPacks.length} seams=${composition.receipt.seamNodeIds.length} embodiments=${embodiments.map((row) => row.id).join(',')} policy=${policy.id} status=verified`);
+}
+
+function resolvePluginDatasets(profile) {
+  const values = new Map();
+  profile.plugins.forEach((selection) => {
+    const directory = path.join(PUBLIC, 'plugins', selection.id);
+    const manifest = readJson(path.join(directory, 'plugin.json'));
+    pluginContracts.validateManifest(manifest);
+    manifest.datasets.filter((row) => row.reference).forEach((declaration) => {
+      const file = path.resolve(directory, declaration.reference.path);
+      if (!file.startsWith(`${PUBLIC}${path.sep}`)) throw new Error(`Plugin ${manifest.id} dataset ${declaration.id} leaves public/`);
+      if (hashFile(file) !== declaration.reference.sha256) throw new Error(`Plugin ${manifest.id} dataset ${declaration.id} SHA-256 mismatch`);
+      const value = readJson(file);
+      if (value.id !== declaration.id) throw new Error(`Plugin ${manifest.id} dataset ${declaration.id} identity mismatch`);
+      const previous = values.get(declaration.id);
+      if (previous && JSON.stringify(previous) !== JSON.stringify(value)) throw new Error(`Plugin dataset ${declaration.id} has conflicting values`);
+      values.set(declaration.id, value);
+    });
+  });
+  return values;
 }
 
 try {

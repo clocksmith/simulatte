@@ -2,7 +2,7 @@
   const api = factory();
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteCooperativeGpuCompute = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createCooperativeGpuCompute() {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createP2pDeliveryGpuCompute() {
   const FEATURE_COUNT = 8;
   const WORKGROUP_SIZE = 64;
   const DEFAULT_WEIGHTS = Object.freeze([0.004, 1, 300, 30, 50, 100, -1, 1.5]);

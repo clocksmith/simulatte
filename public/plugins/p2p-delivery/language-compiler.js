@@ -1,13 +1,12 @@
 (function attachCooperativeLanguageCompiler(root, factory) {
-  const universeParser = typeof module === 'object' && module.exports
-    ? require('../language/simulatte-universe-parser.js')
-    : root.SimulatteUniverseParser;
-  const api = factory(universeParser);
+  const api = factory();
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteCooperativeLanguage = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createCooperativeLanguageCompiler(universeParser) {
-  if (!universeParser || typeof universeParser.parsePrompt !== 'function') {
-    throw new Error('Cooperative language compilation requires the canonical Phase 2 prompt parser');
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createCooperativeLanguageCompiler() {
+  let universeParser = null;
+  function configure({ parser }) {
+    if (!parser || typeof parser.parsePrompt !== 'function') throw new Error('P2P Delivery language compilation requires the SDK language parser');
+    universeParser = parser;
   }
   const NUMBER_WORDS = Object.freeze({
     a: 1, an: 1, one: 1, two: 2, three: 3, four: 4, five: 5,
@@ -31,6 +30,7 @@
   }
 
   function compileCooperativeLanguage({ sourceText, taxonomy, destinations = [], world = null, defaults = {} }) {
+    if (!universeParser) throw new Error('P2P Delivery language compiler is not configured');
     const text = String(sourceText || '').trim();
     const languageGraph = universeParser.parsePrompt(text);
     const evidence = [];
@@ -238,5 +238,5 @@
     return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   }
 
-  return { compileCooperativeLanguage, needFromCompilation, recognizesCooperativeIntent };
+  return { compileCooperativeLanguage, configure, needFromCompilation, recognizesCooperativeIntent };
 });

@@ -4,22 +4,27 @@ const path = require('node:path');
 const test = require('node:test');
 
 const ROOT = path.resolve(__dirname, '..');
-const contracts = require('../public/contracts/cooperative-contracts.js');
-const engineApi = require('../public/runtime/cooperative-engine.js');
-const relayApi = require('../public/runtime/cooperative-relay-planner.js');
-const languageApi = require('../public/mission/cooperative-language-compiler.js');
-const cooperativeGpu = require('../public/app/cooperative-gpu-compute.js');
+const contracts = require('../public/plugins/p2p-delivery/contracts.js');
+const engineApi = require('../public/plugins/p2p-delivery/cooperative-engine.js');
+const relayApi = require('../public/plugins/p2p-delivery/relay-planner.js');
+const languageApi = require('../public/plugins/p2p-delivery/language-compiler.js');
+const cooperativeGpu = require('../public/plugins/p2p-delivery/gpu-compute.js');
 const receipts = require('../public/runtime/canonical-receipts.js');
-const sunApi = require('../public/world/sun-exposure.js');
+const sunApi = require('../public/plugins/sun-walker/sun-exposure.js');
 const timeCostApi = require('../public/world/time-dependent-edge-cost.js');
 const worldApi = require('../public/world/world-model.js');
 const missionApi = require('../public/mission/mission-compiler.js');
+const universeParser = require('../public/language/simulatte-universe-parser.js');
+const routePlanner = require('../public/world/route-planner.js');
 
 const scenario = require('../public/data/autonomy/cooperation/battery-office-v1.json');
 const world = require('../public/data/autonomy/worlds/nyc-core-autonomy-v1.json');
 const policy = require('../public/data/autonomy/policies/bet-selector-v1.json');
 const pedestrian = require('../public/data/autonomy/embodiments/pedestrian-v1.json');
 const BATTERY_FIXTURE_REQUEST = 'I need two AA batteries delivered to my East Village office.';
+
+languageApi.configure({ parser: universeParser });
+engineApi.configure({ contracts, worldApi, routePlanner, receipts, language: languageApi });
 
 test('cooperative artifacts use restrictive top-level schemas and validate the governed scenario', () => {
   const schemaFiles = [
@@ -417,6 +422,7 @@ test('shade-aware walking compares governed alternatives at their simulated arri
     maximumAlternatives: 3,
     directSunWeight: 1.5,
     unknownWeight: 3,
+    routeAlternatives: routePlanner.planRouteAlternatives,
   });
   contracts.validateEnvironmentField(selection.field);
   assert.equal(selection.modelExecution, false);

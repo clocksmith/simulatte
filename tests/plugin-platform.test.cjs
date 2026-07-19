@@ -1,5 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
 
 const contracts = require('../public/platform/contracts/plugin-contracts.js');
 const catalogApi = require('../public/platform/data-catalog/immutable-data-catalog.js');
@@ -12,6 +13,10 @@ function manifest(overrides = {}) {
     version: '1.0.0',
     sdkVersion: 1,
     entry: { path: './index.js', integrity: `sha384-${'a'.repeat(96)}`, globalFactory: 'FixturePlugin' },
+    resources: [
+      { path: './config.schema.json', integrity: `sha384-${'b'.repeat(96)}` },
+      { path: './default-config.json', integrity: `sha384-${'c'.repeat(96)}` },
+    ],
     permissions: ['receipts.append.v1', 'state.reduce.v1', 'events.propose.v1', 'ui.inspector.v1'],
     datasets: [{ id: 'fixture-data-v1', required: true }],
     provides: ['fixture.capability.v1'],
@@ -38,7 +43,7 @@ test('plugin runtime activates a least-authority fixture, sequences state, contr
         sdk.receipts.append({ schema: 'simulatte.plugin.fixtureReceipt.v1', result: 'activated' });
         return {
           id: 'fixture-plugin',
-          contributeRequest: () => ({ recognized: true, obligations: [] }),
+          contributeRequest: () => ({ recognized: true, obligations: [], unresolved: [] }),
           settle: () => ({ count: sdk.state.read().count }),
           view: () => ({ slot: 'inspector', title: 'Fixture', rows: [{ label: 'Count', value: '2' }], actions: [] }),
           dispose() { disposed = true; },
@@ -68,4 +73,33 @@ test('plugin contracts reject undeclared authority and capability cycles fail be
   const profile = { schema: 'simulatte.applicationProfile.v1', id: 'cycle-v1', plugins: [{ id: 'alpha', configId: 'default' }, { id: 'beta', configId: 'default' }], routeObjective: {} };
   const dataCatalog = catalogApi.createDataCatalog([{ id: 'fixture-data-v1', value: {} }]);
   await assert.rejects(runtimeApi.createPluginRuntime({ registry: { entry: (id) => rows.get(id) }, profile, dataCatalog }), /plugin_capability_cycle/);
+});
+
+test('request contributions reject fields outside the versioned host contract', () => {
+  const valid = {
+    recognized: true,
+    obligations: [{ id: 'fixture-plugin:result', kind: 'fixture_result', required: true }],
+    unresolved: [],
+    executableSourceText: 'Walk from A to B',
+    missionPatch: { routeOverride: { segmentIds: ['segment-a'], selectionId: 'selection-a', objective: 4, algorithm: 'fixture_v1' } },
+  };
+  assert.equal(contracts.validateRequestContribution('fixture-plugin', valid), valid);
+  assert.throws(
+    () => contracts.validateRequestContribution('fixture-plugin', { ...valid, privatePayload: { accepted: true } }),
+    /plugin_contract_keys_invalid/
+  );
+});
+
+test('platform bootstrap has no named plugin import', () => {
+  const source = fs.readFileSync(require.resolve('../public/platform/bootstrap/application-loader.js'), 'utf8');
+  assert.doesNotMatch(source, /(?:require\(['"][^'"]*\/plugins\/|SimulatteCooperativeContracts)/);
+});
+
+test('Main exposes governed profile selection and disposes plugins on teardown', () => {
+  const main = fs.readFileSync(require.resolve('../public/app/main.js'), 'utf8');
+  const html = fs.readFileSync(require.resolve('../public/index.html'), 'utf8');
+  assert.match(html, /id="application-profile"/);
+  assert.match(main, /await extensions\.dispose\(\)/);
+  assert.match(main, /addEventListener\('pagehide', \(\) => \{ void disposeApplication\(\); \}/);
+  assert.match(main, /searchParams\.set\('profile', profileId\)/);
 });

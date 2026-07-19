@@ -56,8 +56,9 @@
     return writer.finish();
   }
 
-  function createDynamicGeometry(worldModel, snapshot, tickReceipt, tracePositions) {
-    const writer = createWriter();
+  function createDynamicGeometry(worldModel, snapshot, tickReceipt, tracePositions, reusableWriter = null) {
+    const writer = reusableWriter || createWriter();
+    writer.reset();
     const routeIds = snapshot.route?.segmentIds || [];
     routeIds.forEach((id) => addRibbon(writer, worldModel.segment(id).geometry, 9, 0.68, COLORS.route, 1.35));
     if (tracePositions.length > 1) addRibbon(writer, tracePositions, 7, 0.86, COLORS.trace, 1.25);
@@ -96,15 +97,31 @@
     return writer.finish();
   }
 
-  function createWriter() {
-    const values = [];
-    const vertex = (position, normal, color, emissive = 0, material = DEFAULT_MATERIAL) => values.push(...position, ...normal, ...color, emissive, ...material);
+  function createWriter(initialCapacity = 65536) {
+    let values = new Float32Array(initialCapacity);
+    let length = 0;
+    const ensure = (additional) => {
+      if (length + additional <= values.length) return;
+      let capacity = values.length;
+      while (capacity < length + additional) capacity *= 2;
+      const grown = new Float32Array(capacity);
+      grown.set(values.subarray(0, length));
+      values = grown;
+    };
+    const vertex = (position, normal, color, emissive = 0, material = DEFAULT_MATERIAL) => {
+      ensure(FLOATS_PER_VERTEX);
+      values.set(position, length); length += 3;
+      values.set(normal, length); length += 3;
+      values.set(color, length); length += 4;
+      values[length] = emissive; length += 1;
+      values.set(material, length); length += 2;
+    };
     const triangle = (a, b, c, normal, color, emissive = 0, material = DEFAULT_MATERIAL) => {
       vertex(a, normal, color, emissive, material);
       vertex(b, normal, color, emissive, material);
       vertex(c, normal, color, emissive, material);
     };
-    return { values, vertex, triangle, finish: () => new Float32Array(values) };
+    return { get length() { return length; }, reset() { length = 0; }, vertex, triangle, finish: () => values.subarray(0, length) };
   }
 
   function addRibbon(writer, points, width, height, color, emissive = 0) {

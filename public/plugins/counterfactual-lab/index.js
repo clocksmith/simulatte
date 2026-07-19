@@ -1,26 +1,54 @@
 (function attachCounterfactualLabPlugin(root, factory) {
-  const api = factory();
+  const comparison = typeof module === 'object' && module.exports
+    ? require('./comparison-runner.js')
+    : root.SimulatteCounterfactualRunner;
+  const api = factory(comparison);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulattePluginCounterfactualLab = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createCounterfactualLabPlugin() {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createCounterfactualLabPlugin(comparisonApi) {
   async function activate({ sdk }) {
     sdk.state.register(reduce, { comparison: null });
     async function compare(intervention) {
       let snapshot = null;
       if (intervention.kind === 'world_snapshot') snapshot = sdk.capabilities.invoke('world.snapshot.v1', { date: intervention.snapshotDate });
       if (snapshot?.enabled === false) return snapshot;
-      const comparison = await sdk.simulation.compare(intervention);
-      sdk.events.propose({ pluginId: 'counterfactual-lab', kind: 'counterfactual-lab.compared', comparison });
-      sdk.receipts.append({ schema: 'simulatte.plugin.counterfactualLabReceipt.v1', comparison });
-      return comparison;
+      const result = await comparisonApi.compareCounterfactual({ sdk, mission: intervention.mission, routeObjective: intervention.routeObjective, intervention: intervention.change });
+      sdk.events.propose({ pluginId: 'counterfactual-lab', kind: 'counterfactual-lab.compared', comparison: result });
+      sdk.receipts.append({ schema: 'simulatte.plugin.counterfactualLabReceipt.v1', comparison: result });
+      return result;
     }
     function view() {
       const comparison = sdk.state.read().comparison;
-      if (!comparison) return null;
-      return { slot: 'inspector', title: 'Counterfactual', rows: [{ label: 'Intervention', value: comparison.intervention?.kind || 'Unknown' }, { label: 'Completion changed', value: comparison.diff?.completionChanged ? 'Yes' : 'No' }, { label: 'Route overlap', value: comparison.diff?.routeJaccard === null ? 'Unavailable' : `${Math.round(comparison.diff.routeJaccard * 100)}%` }], actions: [] };
+      return {
+        slot: 'inspector',
+        title: 'What if',
+        rows: comparison ? [
+          { label: 'Intervention', value: comparison.intervention?.kind || 'Unknown' },
+          { label: 'Completion changed', value: comparison.diff?.completionChanged ? 'Yes' : 'No' },
+          { label: 'Route overlap', value: comparison.diff?.routeJaccard === null ? 'Unavailable' : `${Math.round(comparison.diff.routeJaccard * 100)}%` },
+        ] : [{ label: 'Comparison', value: 'Choose one declared change' }],
+        fields: [
+          { id: 'kind', label: 'Change', type: 'select', value: 'close_street', options: [{ value: 'close_street', label: 'Close a street' }, { value: 'historical_crash_weighting', label: 'Weight reported crashes' }, { value: 'world_snapshot', label: 'Replay a dated world' }] },
+          { id: 'value', label: 'Street, weight, or date', type: 'text', value: 'Bedford Avenue' },
+        ],
+        actions: [{ id: 'compare', label: 'Compare' }],
+      };
     }
-    return Object.freeze({ id: 'counterfactual-lab', capabilities: { 'analysis.counterfactual.v1': compare }, view, dispose() {} });
+    async function handleAction(actionId, context) {
+      if (actionId !== 'compare') throw new Error(`counterfactual_action_unknown: ${actionId}`);
+      if (!context.mission) throw new Error('counterfactual_mission_missing: complete or prepare a mission before comparison');
+      const kind = context.values?.kind || 'close_street';
+      const value = context.values?.value || '';
+      const change = kind === 'close_street'
+        ? { id: `close-${hash32(value).toString(16)}`, kind, streetName: value }
+        : kind === 'world_snapshot'
+          ? { id: `world-${value}`, kind, snapshotDate: value }
+          : { id: `historical-${value}`, kind, historicalObservationWeight: Number(value) };
+      return compare({ mission: context.mission, routeObjective: context.routeObjective || {}, change });
+    }
+    return Object.freeze({ id: 'counterfactual-lab', capabilities: { 'analysis.counterfactual.v1': compare }, view, handleAction, dispose() {} });
   }
   function reduce(state, event) { return event.kind === 'counterfactual-lab.compared' ? { ...state, comparison: event.comparison } : state; }
+  function hash32(value) { let hash = 2166136261; for (const character of String(value)) { hash ^= character.codePointAt(0); hash = Math.imul(hash, 16777619); } return hash >>> 0; }
   return Object.freeze({ activate });
 });

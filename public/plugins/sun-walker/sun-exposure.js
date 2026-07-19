@@ -268,14 +268,13 @@
     routes = null,
     routeAlternatives = null,
   }) {
-    const shadePolicy = policy.route?.timeDependentCosts?.shade || {};
     const bounds = {
-      maximumAlternatives: maximumAlternatives ?? shadePolicy.maximumAlternatives ?? 3,
-      directSunWeight: directSunWeight ?? shadePolicy.directSunWeight ?? 1,
-      unknownWeight: unknownWeight ?? shadePolicy.unknownWeight ?? 2,
-      maximumAddedTimeSeconds: maximumAddedTimeSeconds ?? shadePolicy.maximumAddedTimeSeconds ?? 600,
-      maximumAddedRatio: maximumAddedRatio ?? shadePolicy.maximumAddedRatio ?? 0.25,
-      sampleSpacingM: sampleSpacingM ?? shadePolicy.sampleSpacingM ?? DEFAULT_SAMPLE_SPACING_M,
+      maximumAlternatives: maximumAlternatives ?? 3,
+      directSunWeight: directSunWeight ?? 1,
+      unknownWeight: unknownWeight ?? 2,
+      maximumAddedTimeSeconds: maximumAddedTimeSeconds ?? 600,
+      maximumAddedRatio: maximumAddedRatio ?? 0.25,
+      sampleSpacingM: sampleSpacingM ?? DEFAULT_SAMPLE_SPACING_M,
     };
     validateShadeBounds(bounds);
     const alternatives = routes || routeAlternatives?.({
@@ -287,7 +286,7 @@
       sampleSpacingM: bounds.sampleSpacingM,
       directSunWeight: bounds.directSunWeight,
       unknownWeight: bounds.unknownWeight,
-      minimumSolarElevationDegrees: shadePolicy.minimumSolarElevationDegrees ?? DEFAULT_MINIMUM_SOLAR_ELEVATION_DEGREES,
+      minimumSolarElevationDegrees: DEFAULT_MINIMUM_SOLAR_ELEVATION_DEGREES,
     });
     const fastestTravelSeconds = Math.min(...field.routeEvaluations.map((row) => row.traversalSeconds));
     const allowedAddedSeconds = Math.min(bounds.maximumAddedTimeSeconds, fastestTravelSeconds * bounds.maximumAddedRatio);

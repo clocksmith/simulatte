@@ -1,38 +1,41 @@
-(function attachAutonomyDataLoader(root, factory) {
+(function attachApplicationLoader(root, factory) {
   const contracts = typeof module === 'object' && module.exports
-    ? require('../contracts/contract-validator.js')
+    ? require('../../contracts/contract-validator.js')
     : root.SimulatteAutonomyContracts;
   const receipts = typeof module === 'object' && module.exports
-    ? require('./canonical-receipts.js')
+    ? require('../../runtime/canonical-receipts.js')
     : root.SimulatteAutonomyReceipts;
   const regions = typeof module === 'object' && module.exports
-    ? require('../world/region-pack-merger.js')
+    ? require('../../world/region-pack-merger.js')
     : root.SimulatteAutonomyRegionPacks;
   const runtimeLog = typeof module === 'object' && module.exports
-    ? require('./runtime-log.js')
+    ? require('../../runtime/runtime-log.js')
     : root.SimulatteAutonomyRuntimeLog;
-  const cooperativeContracts = typeof module === 'object' && module.exports
-    ? require('../contracts/cooperative-contracts.js')
-    : root.SimulatteCooperativeContracts;
   const browserTransport = typeof module === 'object' && module.exports
-    ? require('../platform/transport/browser-transport.js')
+    ? require('../transport/browser-transport.js')
     : root.SimulatteBrowserTransport;
   const artifactStore = typeof module === 'object' && module.exports
-    ? require('../platform/artifacts/governed-artifact-store.js')
+    ? require('../artifacts/governed-artifact-store.js')
     : root.SimulatteGovernedArtifactStore;
   const dataCatalog = typeof module === 'object' && module.exports
-    ? require('../platform/data-catalog/immutable-data-catalog.js')
+    ? require('../data-catalog/immutable-data-catalog.js')
     : root.SimulatteImmutableDataCatalog;
   const pluginContracts = typeof module === 'object' && module.exports
-    ? require('../platform/contracts/plugin-contracts.js')
+    ? require('../contracts/plugin-contracts.js')
     : root.SimulattePluginContracts;
-  const api = factory(contracts, receipts, regions, runtimeLog, cooperativeContracts, browserTransport, artifactStore, dataCatalog, pluginContracts);
+  const schemaRegistry = typeof module === 'object' && module.exports
+    ? require('../contracts/schema-registry.js')
+    : root.SimulatteSchemaRegistry;
+  const pluginRegistry = typeof module === 'object' && module.exports
+    ? require('../plugin-host/generated-plugin-registry.js')
+    : root.SimulatteGeneratedPluginRegistry;
+  const api = factory(contracts, receipts, regions, runtimeLog, browserTransport, artifactStore, dataCatalog, pluginContracts, schemaRegistry, pluginRegistry);
   if (typeof module === 'object' && module.exports) module.exports = api;
-  root.SimulatteAutonomyDataLoader = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyDataLoader(contracts, receipts, regions, runtimeLog, cooperativeContracts, browserTransport, artifactStore, dataCatalog, pluginContracts) {
+  root.SimulatteApplicationLoader = api;
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createApplicationLoader(contracts, receipts, regions, runtimeLog, browserTransport, artifactStore, dataCatalog, pluginContracts, schemaRegistry, pluginRegistry) {
   assertDependencies();
 
-  async function loadAutonomyData(manifestUrl = '../data/autonomy/autonomy-manifest.json', fetchImpl = defaultFetch()) {
+  async function loadApplication(manifestUrl = '../data/autonomy/autonomy-manifest.json', fetchImpl = defaultFetch()) {
     const resolvedManifestUrl = new URL(manifestUrl, documentBase()).toString();
     const services = createDataServices(fetchImpl);
     runtimeLog.info('data.load.started', {
@@ -54,8 +57,9 @@
       schema: manifest.value.schema,
       missionExampleCount: manifest.value.missionExamples.length,
     });
-    const directKeys = ['policy', 'occurrenceCatalog', 'rerankerEvidence', 'regionRegistry', 'placeEmbeddingIndex', 'placeResolutionEvidence', 'modelRuntimeLock', 'pipelineModelSelection', 'applicationProfile', 'accessibilityIndex', 'routeAmenityIndex', 'safetyHistoryIndex', 'curriculum', 'worldSnapshotRegistry', 'policyArenaEvidence', 'cooperativeScenario'];
-    const resolvedReferences = await services.artifacts.resolveGraph(directKeys.map((key) => ({ key, reference: manifest.value[key] })), { baseUrl: resolvedManifestUrl });
+    const directKeys = ['policy', 'occurrenceCatalog', 'rerankerEvidence', 'regionRegistry', 'placeEmbeddingIndex', 'placeResolutionEvidence', 'modelRuntimeLock', 'pipelineModelSelection', 'applicationProfile', 'curriculum', 'policyArenaEvidence'];
+    const selectedProfile = selectApplicationProfile(manifest.value);
+    const resolvedReferences = await services.artifacts.resolveGraph(directKeys.map((key) => ({ key, reference: key === 'applicationProfile' ? selectedProfile : manifest.value[key] })), { baseUrl: resolvedManifestUrl });
     const refs = [...resolvedReferences.entries()];
     const loaded = Object.fromEntries(refs);
     const embodimentRows = await Promise.all(manifest.value.embodiments.map(async (reference) => ({
@@ -90,16 +94,12 @@
     pluginContracts.validateProfile(loaded.applicationProfile.value);
     contracts.validatePlaceEmbeddingIndex(loaded.placeEmbeddingIndex.value, loaded.modelRuntimeLock.value);
     contracts.validatePlaceResolutionEvidence(loaded.placeResolutionEvidence.value, loaded.placeEmbeddingIndex.value, loaded.modelRuntimeLock.value);
-    contracts.validateAccessibilityIndex(loaded.accessibilityIndex.value, composition.world, worldHash);
-    contracts.validateRouteAmenityIndex(loaded.routeAmenityIndex.value, composition.world, worldHash);
-    contracts.validateSafetyHistoryIndex(loaded.safetyHistoryIndex.value, composition.world, worldHash);
     contracts.validateCurriculum(loaded.curriculum.value, composition.world);
-    contracts.validateWorldSnapshotRegistry(loaded.worldSnapshotRegistry.value, composition.world);
     contracts.validatePolicyArenaEvidence(loaded.policyArenaEvidence.value);
-    cooperativeContracts.validateScenario(loaded.cooperativeScenario.value);
     embodimentRows.forEach((row) => contracts.validateEmbodiment(row.loaded.value));
     contracts.validatePolicy(loaded.policy.value);
-    const catalog = createLoadedDataCatalog({ refs, embodimentRows, packRows, composition, worldHash, featureCatalogHash });
+    const pluginDatasetRows = await resolvePluginDatasets({ profile: loaded.applicationProfile.value, transport: services.transport, world: composition.world, worldHash });
+    const catalog = createLoadedDataCatalog({ refs, embodimentRows, packRows, pluginDatasetRows, composition, worldHash, featureCatalogHash });
     const result = {
       schema: 'simulatte.autonomyLoadedData.v2',
       manifest: manifest.value,
@@ -116,13 +116,8 @@
       modelRuntimeLock: catalog.require(loaded.modelRuntimeLock.value.id),
       pipelineModelSelection: catalog.require(loaded.pipelineModelSelection.value.id),
       applicationProfile: catalog.require(loaded.applicationProfile.value.id),
-      accessibilityIndex: catalog.require(loaded.accessibilityIndex.value.id),
-      routeAmenityIndex: catalog.require(loaded.routeAmenityIndex.value.id),
-      safetyHistoryIndex: catalog.require(loaded.safetyHistoryIndex.value.id),
       curriculum: catalog.require(loaded.curriculum.value.id),
-      worldSnapshotRegistry: catalog.require(loaded.worldSnapshotRegistry.value.id),
       policyArenaEvidence: catalog.require(loaded.policyArenaEvidence.value.id),
-      cooperativeScenario: catalog.require(loaded.cooperativeScenario.value.id),
       regionRegistry: catalog.require(registry.id),
       regionPacks: packRows.map((row) => catalog.require(row.value.id)),
       regionComposition: composition.receipt,
@@ -132,6 +127,7 @@
         assets: {
           ...Object.fromEntries(refs.map(([key, row]) => [key, assetReceipt(row)])),
           embodiments: embodimentRows.map((row) => assetReceipt(row.loaded)),
+          pluginDatasets: pluginDatasetRows.map(assetReceipt),
           world: { id: composition.world.id, sha256: worldHash, source: 'verified_region_composition' },
           featureCatalog: { id: composition.featureCatalog.id, sha256: featureCatalogHash, source: 'verified_region_composition' },
         },
@@ -190,17 +186,56 @@
     });
   }
 
-  function createLoadedDataCatalog({ refs, embodimentRows, packRows, composition, worldHash, featureCatalogHash }) {
+  function createLoadedDataCatalog({ refs, embodimentRows, packRows, pluginDatasetRows, composition, worldHash, featureCatalogHash }) {
     const entries = [
       ...refs.map(([, row]) => ({ id: row.value.id, value: row.value, receipt: assetReceipt(row) })),
       ...embodimentRows.map((row) => ({ id: row.loaded.value.id, value: row.loaded.value, receipt: assetReceipt(row.loaded) })),
       ...packRows.map((row) => ({ id: row.value.id, value: row.value, receipt: assetReceipt(row) })),
+      ...pluginDatasetRows.map((row) => ({ id: row.value.id, value: row.value, receipt: assetReceipt(row) })),
       { id: composition.world.id, value: composition.world, receipt: { id: composition.world.id, sha256: worldHash, source: 'verified_region_composition' } },
       { id: composition.featureCatalog.id, value: composition.featureCatalog, receipt: { id: composition.featureCatalog.id, sha256: featureCatalogHash, source: 'verified_region_composition' } },
       { id: 'world.buildings.v1', value: composition.world, receipt: { id: composition.world.id, sha256: worldHash, source: 'verified_region_composition', view: 'buildings' } },
       { id: 'world.graph.v1', value: composition.world, receipt: { id: composition.world.id, sha256: worldHash, source: 'verified_region_composition', view: 'routing_graph' } },
     ];
     return dataCatalog.createDataCatalog(entries);
+  }
+
+  async function resolvePluginDatasets({ profile, transport, world, worldHash }) {
+    const validators = schemaRegistry.createSchemaRegistry({
+      'simulatte.autonomyAccessibilityIndex.v1': (value) => contracts.validateAccessibilityIndex(value, world, worldHash),
+      'simulatte.autonomyRouteAmenityIndex.v1': (value) => contracts.validateRouteAmenityIndex(value, world, worldHash),
+      'simulatte.autonomySafetyHistoryIndex.v1': (value) => contracts.validateSafetyHistoryIndex(value, world, worldHash),
+      'simulatte.autonomyWorldSnapshotRegistry.v1': (value) => contracts.validateWorldSnapshotRegistry(value, world),
+    });
+    const store = artifactStore.createGovernedArtifactStore({ transport, schemas: validators });
+    const declarations = new Map();
+    profile.plugins.forEach((selection) => {
+      const entry = pluginRegistry.entry(selection.id);
+      const manifest = entry?.manifest;
+      if (!entry || !manifest) throw loadError('plugin_manifest_missing', `Application profile selects missing plugin ${selection.id}`, { pluginId: selection.id });
+      pluginContracts.validateManifest(manifest);
+      registerPluginDatasetValidators(validators, entry, { world, worldSha256: worldHash });
+      manifest.datasets.filter((row) => row.reference).forEach((row) => {
+        const previous = declarations.get(row.id);
+        if (previous && (previous.reference.sha256 !== row.reference.sha256 || previous.reference.path !== row.reference.path)) throw loadError('plugin_dataset_identity_conflict', `Plugins declare conflicting identities for dataset ${row.id}`, { id: row.id });
+        declarations.set(row.id, { pluginId: manifest.id, ...row });
+      });
+    });
+    const rows = [];
+    for (const declaration of [...declarations.values()].sort((left, right) => left.id.localeCompare(right.id))) {
+      const baseUrl = new URL(`./plugins/${declaration.pluginId}/plugin.json`, documentBase()).toString();
+      rows.push(await store.resolve(declaration.reference, { baseUrl, key: `pluginDataset:${declaration.pluginId}:${declaration.id}` }));
+    }
+    return rows;
+  }
+
+  function registerPluginDatasetValidators(registry, entry, context) {
+    const declaredSchemaIds = new Set(entry.manifest.datasets.flatMap((row) => row.reference ? [row.reference.schemaId] : []));
+    const validators = entry.factory?.datasetValidators || {};
+    Object.entries(validators).forEach(([schemaId, validate]) => {
+      if (!declaredSchemaIds.has(schemaId)) throw loadError('plugin_dataset_validator_undeclared', `Plugin ${entry.manifest.id} registers validator for undeclared schema ${schemaId}`, { pluginId: entry.manifest.id, schemaId });
+      registry.register(schemaId, (value) => validate(value, Object.freeze({ ...context })));
+    });
   }
 
   function defaultFetch() {
@@ -222,11 +257,12 @@
       ['receipts', receipts, 'sha256Hex'],
       ['regions', regions, 'mergeRegionPacks'],
       ['runtimeLog', runtimeLog, 'info'],
-      ['cooperativeContracts', cooperativeContracts, 'validateScenario'],
       ['browserTransport', browserTransport, 'createBrowserTransport'],
       ['artifactStore', artifactStore, 'createGovernedArtifactStore'],
       ['dataCatalog', dataCatalog, 'createDataCatalog'],
       ['pluginContracts', pluginContracts, 'validateProfile'],
+      ['schemaRegistry', schemaRegistry, 'createSchemaRegistry'],
+      ['pluginRegistry', pluginRegistry, 'entry'],
     ];
     const missing = dependencies.find(([, value, method]) => !value || typeof value[method] !== 'function');
     if (missing) throw new Error(`autonomy_data_loader_dependency_missing: ${missing[0]}.${missing[2]} is required`);
@@ -237,6 +273,14 @@
     return 'http://localhost/';
   }
 
+  function selectApplicationProfile(manifest) {
+    const requested = typeof location !== 'undefined' ? new URL(location.href).searchParams.get('profile') : null;
+    if (!requested || requested === manifest.applicationProfile.id) return manifest.applicationProfile;
+    const selected = (manifest.applicationProfiles || []).find((row) => row.id === requested);
+    if (!selected) throw loadError('application_profile_unknown', `Unknown application profile ${requested}`, { requested, available: [manifest.applicationProfile.id, ...(manifest.applicationProfiles || []).map((row) => row.id)].sort() });
+    return selected;
+  }
+
   function loadError(code, message, evidence) {
     const error = new Error(`${code}: ${message}`);
     error.name = 'AutonomyDataLoadError';
@@ -245,5 +289,5 @@
     return error;
   }
 
-  return { artifactText, loadAutonomyData, fetchJson, loadReference };
+  return { artifactText, loadApplication, fetchJson, loadReference };
 });

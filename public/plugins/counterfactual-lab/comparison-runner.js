@@ -1,35 +1,22 @@
 (function attachCounterfactualRunner(root, factory) {
-  const controllerApi = typeof module === 'object' && module.exports
-    ? require('./autonomy-controller.js')
-    : root.SimulatteAutonomyController;
-  const receipts = typeof module === 'object' && module.exports
-    ? require('./canonical-receipts.js')
-    : root.SimulatteAutonomyReceipts;
-  const routePlanner = typeof module === 'object' && module.exports
-    ? require('../world/route-planner.js')
-    : root.SimulatteAutonomyRoutePlanner;
-  const api = factory(controllerApi, receipts, routePlanner);
+  const api = factory();
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteCounterfactualRunner = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createCounterfactualApi(controllerApi, receipts, routePlanner) {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createCounterfactualApi() {
+  const STREET_WORDS = Object.freeze({ avenue: 'av', ave: 'av', street: 'st', str: 'st', boulevard: 'blvd', road: 'rd', lane: 'ln', place: 'pl', square: 'sq' });
   async function compareCounterfactual({
-    world, featureCatalog, occurrenceCatalog, accessibilityIndex, routeAmenityIndex, safetyHistoryIndex, embodiment, policy, mission, regionComposition = null,
-    intervention,
+    sdk, mission, routeObjective = {}, intervention,
   }) {
     validateIntervention(intervention);
     const baseline = await runLane({
-      id: 'baseline', world, featureCatalog, occurrenceCatalog, accessibilityIndex, routeAmenityIndex, safetyHistoryIndex, embodiment, policy, mission, regionComposition,
+      id: 'baseline', sdk, mission, routeObjective,
     });
     let changed = null;
     let challenger;
     try {
-      if (intervention.kind === 'historical_crash_weighting' && !safetyHistoryIndex) {
-        throw counterfactualError('safety_history_not_loaded', 'Historical crash weighting requires a pinned safety-history index');
-      }
-      changed = applyIntervention({ world, mission, policy, intervention });
+      changed = applyIntervention({ world: sdk.worldQuery.snapshot(), mission, routeObjective, intervention });
       challenger = await runLane({
-        id: intervention.id, world, featureCatalog, occurrenceCatalog, accessibilityIndex, routeAmenityIndex, safetyHistoryIndex, embodiment,
-        policy: changed.policy, mission: changed.mission, regionComposition,
+        id: intervention.id, sdk, mission: changed.mission, routeObjective: changed.routeObjective,
       });
     } catch (error) {
       challenger = refusedLane(intervention.id, error);
@@ -38,14 +25,11 @@
       schema: 'simulatte.counterfactualComparison.v1',
       intervention: structuredClone(intervention),
       identities: {
-        worldId: world.id,
-        worldContentVersion: world.contentVersion,
-        sourceSnapshotDate: world.provenance.snapshotDate,
-        embodimentId: embodiment.id,
-        baselinePolicyId: policy.id,
-        challengerPolicyId: changed?.policy.id || null,
+        worldId: sdk.worldQuery.snapshot().id,
+        worldContentVersion: sdk.worldQuery.snapshot().contentVersion,
+        sourceSnapshotDate: sdk.worldQuery.snapshot().provenance.snapshotDate,
+        embodimentId: mission.embodimentId,
         missionId: mission.id,
-        safetyHistoryIndexId: safetyHistoryIndex?.id || null,
       },
       baseline,
       challenger,
@@ -56,49 +40,47 @@
       ...payload,
       integrity: {
         algorithm: 'sha256-canonical-json-v1',
-        payloadSha256: await receipts.sha256Hex(payload),
+        payloadSha256: await sdk.receipts.sha256Hex(payload),
       },
     };
   }
 
-  async function runLane({ id, world, featureCatalog, occurrenceCatalog, accessibilityIndex, routeAmenityIndex, safetyHistoryIndex, embodiment, policy, mission, regionComposition }) {
+  async function runLane({ id, sdk, mission, routeObjective }) {
     try {
-      const controller = controllerApi.createAutonomyController({
-        world, featureCatalog, occurrenceCatalog, accessibilityIndex, routeAmenityIndex, safetyHistoryIndex, embodiment, policy, mission, regionComposition,
-      });
-      await controller.run();
-      const journey = await controller.journeyReceipt();
+      const journey = await sdk.simulation.run({ id, mission, routeObjective });
       return {
-        schema: 'simulatte.counterfactualLane.v1',
-        id,
-        status: journey.finalState.status,
-        terminalReason: journey.finalState.terminalReason,
-        verificationPass: journey.verification.pass,
-        route: routeSummary(journey.planning),
-        settlement: structuredClone(journey.settlement),
-        accessibility: structuredClone(journey.planning.accessibility),
-        safetyHistory: structuredClone(journey.planning.safetyHistory),
-        journeyReceiptSha256: await receipts.sha256Hex(journey),
-        journeyTerminalHash: journey.integrity.terminalHash,
+        schema: 'simulatte.counterfactualLane.v1', id, status: journey.finalState.status,
+        terminalReason: journey.finalState.terminalReason, verificationPass: journey.verification.pass,
+        route: routeSummary(journey.planning), settlement: structuredClone(journey.settlement),
+        pluginAudits: structuredClone(journey.planning.pluginAudits),
+        journeyReceiptSha256: await sdk.receipts.sha256Hex(journey), journeyTerminalHash: journey.integrity.terminalHash,
       };
     } catch (error) {
       return refusedLane(id, error);
     }
   }
 
+  function routeSummary(planning) {
+    const selected = planning.alternatives?.[0] || null;
+    return {
+      forecast: structuredClone(planning.forecast), segmentIds: selected ? [...selected.segmentIds] : [],
+      alternativeCount: planning.alternatives?.length || 0, costBreakdown: structuredClone(selected?.costBreakdown || null),
+    };
+  }
+
   function refusedLane(id, error) {
     return {
       schema: 'simulatte.counterfactualLane.v1', id, status: 'refused',
       terminalReason: error.code || 'counterfactual_runtime_failure', verificationPass: false,
-      route: null, settlement: null, accessibility: null, safetyHistory: null,
+      route: null, settlement: null, pluginAudits: null,
       journeyReceiptSha256: null, journeyTerminalHash: null,
       failure: { code: error.code || 'counterfactual_runtime_failure', message: error.message, evidence: error.evidence || null },
     };
   }
 
-  function applyIntervention({ world, mission, policy, intervention }) {
+  function applyIntervention({ world, mission, routeObjective = {}, intervention }) {
     const changedMission = structuredClone(mission);
-    const changedPolicy = structuredClone(policy);
+    const changedRouteObjective = structuredClone(routeObjective);
     if (intervention.kind === 'close_street') {
       const canonical = governedStreetName(world, intervention.streetName);
       if (!canonical) throw counterfactualError('intervention_street_not_grounded', `Street closure expected a routed street, received ${intervention.streetName}`);
@@ -108,24 +90,13 @@
       else changedMission.obligations.push({ id: 'obligation-street-avoidance-counterfactual', kind: 'street_avoidance', required: true });
       changedMission.id = `${mission.id}-closed-${hash32(canonical).toString(16)}`;
     } else if (intervention.kind === 'historical_crash_weighting') {
-      changedPolicy.route.historicalObservationWeight = intervention.historicalObservationWeight;
-      changedPolicy.id = `${policy.id}-history-${String(intervention.historicalObservationWeight).replace('.', '-')}`;
+      changedRouteObjective.historicalObservation = intervention.historicalObservationWeight;
     } else if (intervention.kind === 'world_snapshot') {
       if (intervention.snapshotDate !== world.provenance.snapshotDate) {
         throw counterfactualError('snapshot_not_loaded', `Loaded world is ${world.provenance.snapshotDate}; ${intervention.snapshotDate} requires a separately pinned world pack`);
       }
     }
-    return { mission: changedMission, policy: changedPolicy };
-  }
-
-  function routeSummary(planning) {
-    const baseline = planning.alternatives[0] || null;
-    return {
-      forecast: structuredClone(planning.forecast),
-      segmentIds: baseline ? [...baseline.segmentIds] : [],
-      alternativeCount: planning.alternatives.length,
-      costBreakdown: structuredClone(baseline?.costBreakdown || null),
-    };
+    return { mission: changedMission, routeObjective: changedRouteObjective };
   }
 
   function outcomeDiff(baseline, challenger) {
@@ -140,19 +111,29 @@
       actualDurationDeltaSeconds: numericDelta(baseline.settlement?.actualDurationSeconds, challenger.settlement?.actualDurationSeconds),
       distanceDeltaM: numericDelta(baseline.settlement?.actualDistanceM, challenger.settlement?.actualDistanceM),
       accumulatedRiskDelta: numericDelta(baseline.route?.forecast?.accumulatedRiskScore, challenger.route?.forecast?.accumulatedRiskScore),
-      historicalCrashDelta: numericDelta(baseline.route?.forecast?.historicalCrashCount, challenger.route?.forecast?.historicalCrashCount),
-      historicalInjuryDelta: numericDelta(baseline.route?.forecast?.historicalInjuryCount, challenger.route?.forecast?.historicalInjuryCount),
-      historicalObservationScoreDelta: numericDelta(baseline.route?.forecast?.historicalObservationScore, challenger.route?.forecast?.historicalObservationScore),
+      historicalCrashDelta: numericDelta(auditValue(baseline, 'crashCount'), auditValue(challenger, 'crashCount')),
+      historicalInjuryDelta: numericDelta(auditValue(baseline, 'injuryCount'), auditValue(challenger, 'injuryCount')),
+      historicalObservationScoreDelta: numericDelta(auditValue(baseline, 'historicalObservationScore'), auditValue(challenger, 'historicalObservationScore')),
       routeJaccard: union ? Number((shared / union).toFixed(9)) : null,
       baselineOnlySegmentIds: [...baselineSegments].filter((id) => !challengerSegments.has(id)).sort(),
       challengerOnlySegmentIds: [...challengerSegments].filter((id) => !baselineSegments.has(id)).sort(),
     };
   }
 
+  function auditValue(lane, key) {
+    const rows = Object.values(lane.pluginAudits || {});
+    const audit = rows.find((row) => Number.isFinite(row?.[key]));
+    return audit?.[key] ?? null;
+  }
+
   function governedStreetName(world, requested) {
-    const key = routePlanner.normalizeStreetName(requested);
+    const key = normalizeStreetName(requested);
     return [...new Set(world.segments.map((segment) => segment.source?.street).filter(Boolean))]
-      .sort().find((name) => routePlanner.normalizeStreetName(name) === key) || null;
+      .sort().find((name) => normalizeStreetName(name) === key) || null;
+  }
+
+  function normalizeStreetName(value) {
+    return String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim().split(/\s+/).filter(Boolean).map((word) => STREET_WORDS[word] || word).join(' ');
   }
 
   function validateIntervention(intervention) {

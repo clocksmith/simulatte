@@ -669,16 +669,6 @@
     requireInteger(policy.rollout.horizonTicks, contract, '$.rollout.horizonTicks', 1);
     requireInteger(policy.runtime.maximumTicks, contract, '$.runtime.maximumTicks', 1);
     requireInteger(policy.runtime.maximumCandidatesPerTick, contract, '$.runtime.maximumCandidatesPerTick', 1);
-    const timeDependentCosts = requireObject(policy.route.timeDependentCosts, contract, '$.route.timeDependentCosts');
-    const shadeCost = requireObject(timeDependentCosts.shade, contract, '$.route.timeDependentCosts.shade');
-    requireExactValue(shadeCost.costModelId, 'building-direct-sun-arrival-cost', contract, '$.route.timeDependentCosts.shade.costModelId');
-    requireBoolean(shadeCost.fifo, contract, '$.route.timeDependentCosts.shade.fifo');
-    requireInteger(shadeCost.maximumAlternatives, contract, '$.route.timeDependentCosts.shade.maximumAlternatives', 1);
-    ['maximumAddedTimeSeconds', 'maximumAddedRatio', 'directSunWeight', 'unknownWeight', 'sampleSpacingM', 'minimumSolarElevationDegrees']
-      .forEach((key) => requireFinite(shadeCost[key], contract, `$.route.timeDependentCosts.shade.${key}`, key === 'sampleSpacingM' ? Number.MIN_VALUE : 0));
-    const handoffCost = requireObject(timeDependentCosts.cooperativeHandoff, contract, '$.route.timeDependentCosts.cooperativeHandoff');
-    requireString(handoffCost.costModelId, contract, '$.route.timeDependentCosts.cooperativeHandoff.costModelId');
-    requireBoolean(handoffCost.fifo, contract, '$.route.timeDependentCosts.cooperativeHandoff.fifo');
     ['minimumPedestrianClearanceM', 'nearbyActorRadiusM', 'maximumSpeedToleranceMps']
       .forEach((key) => requireFinite(policy.safety[key], contract, `$.safety.${key}`, 0));
     requireInteger(policy.safety.lookaheadTicks, contract, '$.safety.lookaheadTicks', 1);
@@ -788,16 +778,6 @@
     requireBoolean(mission.constraints.mustStayOnCircuit, contract, '$.constraints.mustStayOnCircuit');
     requireFinite(mission.constraints.maximumSpeedMps, contract, '$.constraints.maximumSpeedMps', Number.MIN_VALUE);
     if (mission.constraints.maximumDurationSeconds !== null) requireFinite(mission.constraints.maximumDurationSeconds, contract, '$.constraints.maximumDurationSeconds', Number.MIN_VALUE);
-    if (![null, 'wheelchair'].includes(mission.constraints.accessibilityProfile)) {
-      throw new AutonomyContractError(contract, '$.constraints.accessibilityProfile', 'null or wheelchair', mission.constraints.accessibilityProfile);
-    }
-    if (mission.constraints.accessibilityProfile && embodiment.kind !== 'pedestrian') {
-      throw new AutonomyContractError(contract, '$.constraints.accessibilityProfile', 'pedestrian embodiment', embodiment.kind);
-    }
-    if (mission.constraints.maximumBikeRackDistanceM !== null) {
-      requireFinite(mission.constraints.maximumBikeRackDistanceM, contract, '$.constraints.maximumBikeRackDistanceM', Number.MIN_VALUE);
-      if (embodiment.kind !== 'bicycle') throw new AutonomyContractError(contract, '$.constraints.maximumBikeRackDistanceM', 'bicycle embodiment', embodiment.kind);
-    }
     requireInteger(mission.constraints.departureLocalMinutes, contract, '$.constraints.departureLocalMinutes');
     if (mission.constraints.departureLocalMinutes >= 1440) throw new AutonomyContractError(contract, '$.constraints.departureLocalMinutes', 'minute in local day', mission.constraints.departureLocalMinutes);
     if (mission.constraints.arrivalDeadlineLocalMinutes !== null) {

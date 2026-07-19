@@ -151,8 +151,7 @@
       etaErrorSeconds: journey.settlement.etaErrorSeconds,
       actualDistanceM: journey.settlement.actualDistanceM,
       economics: structuredClone(journey.settlement.economics),
-      accessibility: structuredClone(journey.planning.accessibility),
-      amenities: structuredClone(journey.planning.amenities),
+      pluginAudits: structuredClone(journey.planning.pluginAudits || {}),
       requiredFailureIds: [...journey.verification.requiredFailureIds],
       claimBoundary: 'A local summary bound to the full journey receipt hash. The full trace remains in the exported journey receipt; this ledger does not claim physical-world outcomes.',
     };
