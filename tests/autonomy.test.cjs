@@ -1416,6 +1416,11 @@ test('loading mosaic loops a seven-segment snake through the clockwise grid spir
   assert.equal(headFrames.find((frame) => frame.offset === loadingMosaicApi.TRAVEL_END).opacity, 1);
   assert.equal(tailFrames.find((frame) => frame.offset === loadingMosaicApi.TRAVEL_END).opacity, loadingMosaicApi.trailOpacity(6));
   assert.deepEqual(loadingMosaicApi.TRAIL_OPACITIES, [1, 0.88, 0.76, 0.64, 0.52, 0.4, 0.3]);
+  assert.equal(loadingMosaicApi.CYCLE_DURATION_MS, 4000);
+  assert.equal(loadingMosaicApi.SNAKE_TRAVEL_DURATION_MS, 2288);
+  assert.equal(loadingMosaicApi.SNAKE_COLLAPSE_DURATION_MS, 312);
+  assert.equal(loadingMosaicApi.ROTATION_DURATION_MS, 975);
+  assert.ok(Math.abs(((loadingMosaicApi.TURN_END - loadingMosaicApi.TURN_START) * loadingMosaicApi.CYCLE_DURATION_MS) - loadingMosaicApi.ROTATION_DURATION_MS) < 0.001);
   const tailTurnFrames = tailFrames.filter((frame) => frame.offset >= loadingMosaicApi.TURN_START && frame.offset <= loadingMosaicApi.TURN_END);
   assert.deepEqual(tailTurnFrames.map((frame) => frame.transform), [
     loadingMosaicApi.cellTransform([3, 3]),
