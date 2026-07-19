@@ -21,23 +21,23 @@
           <div id="loading-mosaic" class="loading-mosaic" aria-hidden="true"></div>
           <span class="loading-wordmark" aria-hidden="true">Simulatte</span>
         </div>
-        <section id="plugin-map-ui" class="plugin-map-ui" aria-label="Application view"></section>
-        <section id="plugin-hud-ui" class="plugin-hud-ui" aria-label="Application status"></section>
+        <section id="plugin-map-ui" class="plugin-map-ui" aria-label="Experience view"></section>
+        <section id="plugin-hud-ui" class="plugin-hud-ui" aria-label="Experience status"></section>
 
         <div class="runtime-anchor">
           <div class="runtime-toolbar">
-            <button id="runtime-toggle" class="status-pill sim-surface" type="button" aria-controls="runtime-details" aria-expanded="false">
+            <button id="runtime-toggle" class="status-pill sim-surface" type="button" aria-label="Runtime status and details" aria-controls="runtime-details" aria-expanded="false">
               <span class="status-dot" aria-hidden="true"></span>
               <strong id="runtime-status" class="runtime-status" data-kind="loading" aria-live="polite">Loading</strong>
             </button>
-            <div id="application-profile-control" class="profile-selector select-custom">
-              <select id="application-profile" aria-label="Application" disabled hidden>
-                <option>Loading application</option>
+            <div id="application-profile-control" class="profile-selector">
+              <select id="application-profile" aria-label="Experience" disabled hidden>
+                <option>Loading experience</option>
               </select>
-              <button id="application-profile-trigger" class="select-trigger sim-surface" type="button" aria-label="Application" aria-haspopup="listbox" aria-controls="application-profile-options" aria-expanded="false" disabled>
-                <span id="application-profile-label">Loading application</span>
+              <button id="application-profile-trigger" class="select-trigger" type="button" aria-label="Switch experience" aria-haspopup="listbox" aria-controls="application-profile-options" aria-expanded="false" disabled>
+                <span id="application-profile-label">Loading experience</span>
               </button>
-              <div id="application-profile-options" class="select-options sim-popover" role="listbox" aria-label="Simulatte experiences" hidden></div>
+              <div id="application-profile-options" class="select-options" role="listbox" aria-label="Simulatte experiences" hidden></div>
             </div>
           </div>
           <div id="runtime-details" class="runtime-details sim-popover" hidden>
@@ -167,7 +167,7 @@
         <div id="settlement-math" class="settlement-math">No settled prediction</div>
       </details>
 
-      <section id="plugin-inspector" aria-label="Application extensions"></section>
+      <section id="plugin-inspector" aria-label="Experience extensions"></section>
 
       <details id="advanced-section" class="evidence-section advanced-evidence">
         <summary>Advanced</summary>

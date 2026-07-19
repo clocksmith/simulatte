@@ -58,7 +58,7 @@
 
     function syncSelection() {
       const selected = optionElements.find((option) => option.dataset.value === select.value) || optionElements[0];
-      label.textContent = selected?.textContent || select.selectedOptions?.[0]?.textContent || 'Choose application';
+      label.textContent = selected?.textContent || select.selectedOptions?.[0]?.textContent || 'Choose experience';
       optionElements.forEach((option) => {
         const isSelected = option === selected;
         option.classList.toggle('selected', isSelected);

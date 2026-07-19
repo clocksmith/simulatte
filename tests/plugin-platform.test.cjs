@@ -168,6 +168,9 @@ test('Main exposes governed profile selection and disposes plugins on teardown',
   assert.match(html, /id="application-profile"/);
   assert.match(html, /id="application-profile-trigger"[^>]*aria-haspopup="listbox"/);
   assert.match(html, /id="application-profile-options"[^>]*role="listbox"/);
+  assert.match(html, /id="application-profile-trigger" class="select-trigger"[^>]*aria-label="Switch experience"/);
+  assert.doesNotMatch(html, /id="application-profile-trigger"[^>]*sim-surface/);
+  assert.doesNotMatch(html, /id="application-profile-options"[^>]*sim-popover/);
   assert.doesNotMatch(main, /APPLICATION_PROFILE_IDS|\.label = 'Applications'|\.label = 'Plugins'/);
   assert.match(html, /app\/application-profile-select\.js/);
   assert.match(main, /await extensions\.dispose\(\)/);

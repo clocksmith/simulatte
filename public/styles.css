@@ -66,6 +66,8 @@ body:not([data-journey-phase="loading"]) .loading-screen {
   aspect-ratio: 1;
   grid-template-columns: repeat(var(--mosaic-size), 1fr);
   gap: clamp(1px, 0.18vw, 2px);
+  transform-origin: center;
+  will-change: transform;
 }
 
 .loading-mosaic > i {
@@ -74,8 +76,7 @@ body:not([data-journey-phase="loading"]) .loading-screen {
   background: hsl(var(--tile-hue) 82% 62%);
   opacity: var(--tile-opacity);
   transform: scale(0.82);
-  animation: loading-mosaic-spiral 3.2s ease-in-out infinite;
-  animation-delay: calc(var(--spiral-step) * 38ms);
+  will-change: opacity, transform;
 }
 
 .loading-wordmark {
@@ -83,18 +84,6 @@ body:not([data-journey-phase="loading"]) .loading-screen {
   font: 650 11px/1 var(--sim-mono);
   letter-spacing: 0.24em;
   text-transform: uppercase;
-}
-
-@keyframes loading-mosaic-spiral {
-  0%, 10%, 100% {
-    opacity: var(--tile-opacity);
-    transform: scale(0.82);
-  }
-
-  3.5% {
-    opacity: 0.86;
-    transform: scale(1);
-  }
 }
 
 .sim-app .neural-consent-dialog {
@@ -216,31 +205,34 @@ button {
 .runtime-toolbar {
   display: flex;
   max-width: 100%;
-  align-items: stretch;
+  align-items: center;
   gap: 8px;
 }
 
 .profile-selector {
   position: relative;
   display: block;
-  width: min(230px, 42vw);
-  max-width: min(230px, 42vw);
+  width: auto;
+  max-width: min(300px, 52vw);
 }
 
 .profile-selector .select-trigger {
   display: flex;
-  width: 100%;
+  width: auto;
+  max-width: 100%;
   min-height: var(--sim-touch-target);
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  border: 1px solid var(--sim-line-strong);
-  padding: 0 12px;
+  gap: 8px;
+  border: 0;
+  padding: 0 4px;
   color: var(--sim-ink);
-  background: var(--sim-glass);
-  font-size: 12px;
-  font-weight: 680;
+  background: transparent;
+  box-shadow: none;
+  font-size: 15px;
+  font-weight: 720;
+  letter-spacing: -0.012em;
   text-align: left;
+  text-shadow: 0 1px 8px rgba(0, 3, 8, 0.72);
 }
 
 .profile-selector .select-trigger > span {
@@ -257,7 +249,7 @@ button {
   border-left: 4px solid transparent;
   border-top: 5px solid currentColor;
   content: "";
-  opacity: 0.72;
+  opacity: 0.58;
   transition: transform var(--sim-motion-fast) var(--sim-ease);
 }
 
@@ -268,28 +260,33 @@ button {
 .profile-selector .select-trigger:hover:not(:disabled),
 .profile-selector .select-trigger:focus-visible,
 .profile-selector.open .select-trigger {
-  border-color: rgba(117, 190, 244, 0.58);
-  background: rgba(14, 34, 43, 0.97);
+  color: #ffffff;
+  background: transparent;
   outline: none;
 }
 
 .profile-selector .select-trigger:focus-visible {
-  box-shadow: 0 0 0 3px rgba(117, 190, 244, 0.18), var(--sim-shadow-small);
+  outline: 1px solid rgba(117, 190, 244, 0.82);
+  outline-offset: 3px;
 }
 
 .profile-selector .select-options {
   position: absolute;
   z-index: 100;
-  top: calc(100% + 6px);
+  top: calc(100% + 2px);
   left: 0;
   display: grid;
-  width: min(286px, calc(100vw - 20px));
+  width: min(270px, calc(100vw - 20px));
   max-height: min(420px, calc(100vh - 92px));
-  gap: 2px;
+  gap: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: 6px;
-  background: rgba(7, 17, 23, 0.98);
+  border: 1px solid rgba(188, 226, 226, 0.16);
+  border-radius: 2px;
+  padding: 5px 0;
+  background: rgba(5, 13, 18, 0.97);
+  box-shadow: 0 18px 46px rgba(0, 3, 8, 0.58);
+  backdrop-filter: blur(16px);
 }
 
 .profile-selector .select-group-label {
@@ -301,13 +298,16 @@ button {
 }
 
 .profile-selector .select-option {
+  display: flex;
   min-height: 38px;
-  border-radius: var(--sim-radius-small);
-  padding: 11px 10px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 12px;
   color: var(--sim-ink-soft);
   font-size: 12px;
-  font-weight: 620;
-  line-height: 16px;
+  font-weight: 600;
+  line-height: 18px;
   cursor: pointer;
 }
 
@@ -319,17 +319,16 @@ button {
 }
 
 .profile-selector .select-option.selected {
-  color: var(--sim-ink);
-  background: rgba(117, 190, 244, 0.13);
+  color: #ffffff;
+  background: transparent;
+  font-weight: 720;
 }
 
 .profile-selector .select-option.selected::after {
-  float: right;
-  content: "Selected";
-  color: var(--sim-ink-faint);
-  font: 700 8px/16px var(--sim-mono);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  flex: 0 0 auto;
+  content: "✓";
+  color: var(--sim-blue);
+  font: 700 12px/1 var(--sim-font);
 }
 
 .profile-selector .select-option[aria-disabled="true"] {
@@ -1517,21 +1516,38 @@ body[data-journey-phase="failed"] .mission-field {
   }
 
   .runtime-toolbar {
-    gap: 6px;
+    align-items: center;
+    gap: 7px;
   }
 
   .profile-selector {
-    max-width: min(180px, 50vw);
+    max-width: max(64px, calc(100vw - 260px));
+  }
+
+  .profile-selector .select-trigger {
+    min-height: 40px;
+    padding: 0 2px;
+    font-size: 13px;
   }
 
   .status-pill {
+    position: relative;
+    width: 36px;
+    min-width: 36px;
     min-height: 40px;
-    max-width: calc(100vw - 180px);
-    padding: 0 11px;
+    justify-content: center;
+    padding: 0;
   }
 
   .runtime-status {
-    font-size: 11px;
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
 
   .camera-controls {

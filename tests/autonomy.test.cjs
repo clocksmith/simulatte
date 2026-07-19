@@ -1407,6 +1407,26 @@ test('loading mosaic visits every tile once in clockwise inward spiral order', (
   const cells = loadingMosaicApi.spiralCells(9);
   assert.equal(cells.length, 81);
   assert.equal(new Set(cells.map((cell) => cell.join(':'))).size, 81);
+  const outerFrames = loadingMosaicApi.tileCycleKeyframes({
+    size: 3,
+    row: 0,
+    column: 0,
+    step: 0,
+    restingOpacity: 0.04,
+  });
+  assert.ok(outerFrames.some((frame) => frame.transform === 'translate(100%, 100%) scale(0.16)' && frame.opacity === 0));
+  assert.deepEqual([...outerFrames.map((frame) => frame.offset)].sort((left, right) => left - right), outerFrames.map((frame) => frame.offset));
+  const centerFrames = loadingMosaicApi.tileCycleKeyframes({
+    size: 3,
+    row: 1,
+    column: 1,
+    step: 8,
+    restingOpacity: 0.04,
+  });
+  assert.ok(centerFrames.some((frame) => frame.offset === loadingMosaicApi.TURN_START && frame.opacity === 1));
+  assert.deepEqual(loadingMosaicApi.rotationCycleKeyframes(90).map((frame) => frame.transform), [
+    'rotate(0deg)', 'rotate(0deg)', 'rotate(90deg)', 'rotate(90deg)',
+  ]);
 });
 
 test('every first-party plugin is selectable through a governed application profile', () => {
@@ -1452,7 +1472,7 @@ test('autonomy UI keeps the map primary and moves technical controls behind prog
   assert.doesNotMatch(blankHtml, /data-neural-model="reranker-name"/);
   assert.doesNotMatch(html, /WebGPU world model|Decision engine|Route search|Prediction settlement/);
   assert.match(css, /#autonomy-canvas[\s\S]*width: 100%;[\s\S]*height: 100%/);
-  assert.match(css, /\.loading-mosaic[\s\S]*loading-mosaic-spiral/);
+  assert.match(css, /\.loading-mosaic[\s\S]*will-change: transform/);
   assert.match(css, /\.sim-app \.neural-consent-dialog[\s\S]*background: rgba\(7, 17, 23, 0\.99\)/);
   assert.match(css, /@media \(max-width: 820px\)[\s\S]*translateY/);
   assert.match(design, /--sim-spectrum:/);
