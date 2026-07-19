@@ -225,8 +225,11 @@ function rankOf(ranking, id) {
 function runCandidate(candidate, workloadPath, outputPath, registry, cacheRoot) {
   const entrypoint = path.resolve(ROOT, registry.comparisonEnvironment.entrypoint);
   const args = [entrypoint, '--input', workloadPath, '--out', outputPath, '--mode', candidate.mode];
-  if (candidate.modelId && candidate.mode !== 'linear-classification') args.push('--model-id', candidate.modelId);
-  if (candidate.revision && candidate.mode !== 'linear-classification') args.push('--revision', candidate.revision);
+  const localCompact = candidate.mode.endsWith('-classification')
+    && ['linear', 'linear-svc', 'multinomial-nb', 'sgd-modified-huber']
+      .some((prefix) => candidate.mode === `${prefix}-classification`);
+  if (candidate.modelId && !localCompact) args.push('--model-id', candidate.modelId);
+  if (candidate.revision && !localCompact) args.push('--revision', candidate.revision);
   if (candidate.pooling) args.push('--pooling', candidate.pooling);
   if (candidate.instruction) args.push('--instruction', candidate.instruction);
   const candidateCache = path.join(cacheRoot, candidate.id);

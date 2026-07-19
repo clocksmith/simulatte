@@ -535,6 +535,33 @@
       return 1 / (1 + Math.exp(-Number(value || 0)));
     }
 
+    function managedRerankProvider(owner, runtime, config, options, handle, modelBaseUrl) {
+      let activeHandle = handle;
+      let activeProvider = rerankProviderFromModelHandle(
+        activeHandle, runtime, config, 'doppler-reranker-load', modelBaseUrl
+      );
+      return {
+        backend: 'doppler-reranker-load',
+        rerank: async (input) => {
+          if (!owner.dopplerRerankerHandle) {
+            const reloaded = await owner.loadDopplerRerankerModel(runtime, options);
+            return reloaded.rerank(input);
+          }
+          if (owner.dopplerRerankerHandle !== activeHandle) {
+            activeHandle = owner.dopplerRerankerHandle;
+            activeProvider = rerankProviderFromModelHandle(
+              activeHandle,
+              runtime,
+              config,
+              'doppler-reranker-load',
+              owner.dopplerRerankerModelBaseUrl || modelBaseUrl
+            );
+          }
+          return activeProvider.rerank(input);
+        },
+      };
+    }
+
     Object.assign(scope, {
       rerankProviderFromModelHandle,
       selectedTokenRuntimeForHandle,
@@ -551,6 +578,7 @@
       writeRerankScoreCache,
       rerankExecutionSummary,
       rerankProgressDetails,
+      managedRerankProvider,
       sigmoid,
     });
   }

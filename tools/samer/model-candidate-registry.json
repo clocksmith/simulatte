@@ -46,6 +46,18 @@
         "deploymentEvidence": "The screening adapter is Python while production is JavaScript; exact prediction and performance parity have not been receipted."
       },
       {
+        "id": "multinomial-nb-tfidf-head",
+        "kind": "model",
+        "implementationId": "simulatte.public-taxonomy-multinomial-nb.v1",
+        "modelId": "simulatte-public-taxonomy-multinomial-nb-v1",
+        "revision": "taxonomy-descriptions-v1",
+        "mode": "multinomial-nb-classification",
+        "source": "public/data/simulatte-compact-classifiers.js#multinomialNB",
+        "evaluationEligible": true,
+        "deploymentEligible": false,
+        "deploymentEvidence": "Browser weights and runtime exist; candidate-specific calibration, Python/browser parity, and a fresh sealed frontier remain required."
+      },
+      {
         "id": "linear-tfidf-head",
         "kind": "model",
         "implementationId": "simulatte.public-taxonomy-linear-head.v1",
@@ -65,6 +77,18 @@
         "revision": "taxonomy-descriptions-v1",
         "mode": "linear-svc-classification",
         "source": "public/data/simulatte-compact-classifiers.js#linearSVC",
+        "evaluationEligible": true,
+        "deploymentEligible": false,
+        "deploymentEvidence": "Browser weights and runtime exist; candidate-specific calibration, Python/browser parity, and a fresh sealed frontier remain required."
+      },
+      {
+        "id": "sgd-modified-huber-tfidf-head",
+        "kind": "model",
+        "implementationId": "simulatte.public-taxonomy-sgd-modified-huber.v1",
+        "modelId": "simulatte-public-taxonomy-sgd-modified-huber-v1",
+        "revision": "taxonomy-descriptions-v1",
+        "mode": "sgd-modified-huber-classification",
+        "source": "public/data/simulatte-compact-classifiers.js#sgdModifiedHuber",
         "evaluationEligible": true,
         "deploymentEligible": false,
         "deploymentEvidence": "Browser weights and runtime exist; candidate-specific calibration, Python/browser parity, and a fresh sealed frontier remain required."

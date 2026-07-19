@@ -265,6 +265,21 @@
       await Promise.allSettled(sources.map((source) => closeDopplerCachedSource(source)));
     }
 
+    async function releaseDopplerResources(owner) {
+      const handles = [...new Set([
+        owner.dopplerEmbedHandle,
+        owner.dopplerRerankerHandle,
+      ].filter(Boolean))];
+      owner.dopplerEmbedHandle = null;
+      owner.dopplerRerankerHandle = null;
+      owner.activeDopplerModelRole = '';
+      await Promise.allSettled(handles.map((handle) => (
+        typeof handle.unload === 'function' ? handle.unload() : Promise.resolve()
+      )));
+      await closePreparedDopplerModelSources(owner);
+      resetDopplerModelPreparation(owner);
+    }
+
     function emitDopplerCacheProgress(event = {}, context = {}) {
       const range = context.progressRange || { start: 20, end: 42 };
       const fraction = Math.max(0, Math.min(1, Number(event.percent || 0) / 100));
@@ -339,6 +354,7 @@
       scheduleDopplerModelLoad,
       resetDopplerModelPreparation,
       closePreparedDopplerModelSources,
+      releaseDopplerResources,
       emitDopplerCacheProgress,
       closeDopplerCachedSource,
       disposeFailedDopplerLoad,

@@ -3128,15 +3128,29 @@
   "encoding": "float32_little_endian_base64",
   "id": "nyc-core-place-embedding-index-v1",
   "identities": {
+    "embeddingRuntime": {
+      "dopplerPackage": {
+        "integrity": "sha512-5fr6M/wFXtbJl7XOQU45Xfry/qwBlgXCRVGb1VbtH8mww30Si6aoQhPbeqdoF4jzGgISw64mkQb7BSSGy74g/A==",
+        "name": "doppler-gpu",
+        "shasum": "02541140c8138334f948b277ff47473d93e7f434",
+        "version": "0.4.10"
+      },
+      "dopplerSourceGitSha": "2853452e34a14271a66e59cd520420a3cbd10b61",
+      "model": {
+        "dimensions": 1024,
+        "embeddingMode": "last",
+        "id": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
+        "manifestSha256": "aa8b96509f17ba0c949aee6891abd0459883d0c4be761f666242240a97e9d979",
+        "sourceCheckpointId": "Qwen/Qwen3-Embedding-0.6B",
+        "sourceRevision": "049000f49325dca7db2ed2c9de2c8881bd0f4603"
+      },
+      "schema": "simulatte.embeddingRuntimeIdentity.v1",
+      "sha256": "b9eb9e8ddafa5e684844c3ffe5fe053af5c1450786712310895d937d284c4c8d",
+      "sourceLockPath": "public/data/simulatte-embedder/model-runtime-lock.json"
+    },
     "generator": {
       "path": "tools/autonomy/compile-place-embeddings.mjs",
-      "sha256": "6e786ba183c4fc43c0b89c115f36352f0fc1a11e3aac4c0a566dffa7a5415422"
-    },
-    "modelRuntimeLock": {
-      "id": "simulatte-doppler-qwen-runtime-lock",
-      "number": 10,
-      "path": "public/data/simulatte-embedder/model-runtime-lock.json",
-      "sha256": "bef74ee3d943de0042df538afa6432827538182ce744e81ab8e21b979a86febb"
+      "sha256": "0e7f597d8f18b818a365aa261ef711eda1e0a874b275365e0b70dcb62fbb3d01"
     },
     "placeSemanticSnapshot": {
       "fileCount": 9,
@@ -3156,7 +3170,7 @@
       "sha256": "218c6f3734815066669f57ae1bc1ce14aace261f0865ebf25f903db3880dcb3e"
     }
   },
-  "indexSha256": "2eb5e62456e54e6c35806b8c999b0b0b1fa1f3f261df05efbc05cd4623d8782a",
+  "indexSha256": "d299eb126c607ea31db39d7afa1c556cbba450dd0142d37b6f3dc94f5597d26d",
   "model": {
     "embeddingMode": "last",
     "family": "qwen3-embedding",

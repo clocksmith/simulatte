@@ -17,12 +17,16 @@
     ? require('./simulatte-compact-classifier-runtime.js')
     : root.SimulatteCompactClassifierRuntime;
   if (!compactRuntime) throw new Error('SimulatteIntentClassifier requires SimulatteCompactClassifierRuntime');
-  const api = factory(catalog, compactRuntime);
+  const requestApi = typeof module === 'object' && module.exports
+    ? require('./simulatte-bounded-classification-requests.js')
+    : root.SimulatteBoundedClassificationRequests;
+  if (!requestApi) throw new Error('SimulatteIntentClassifier requires bounded classification requests');
+  const api = factory(catalog, compactRuntime, requestApi);
   if (typeof module === 'object' && module.exports) {
     module.exports = api;
   }
   root.SimulatteIntentClassifier = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createIntentClassifier(catalog, compactRuntime) {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createIntentClassifier(catalog, compactRuntime, requestApi) {
   const {
     PHYSICAL_PRIMITIVES,
     buildIntentVector,
@@ -169,11 +173,14 @@
   }
 
   function classifyBoundedHeads(prompt, options = {}) {
+    if (options.boundedClassification && options.boundedClassification.schema === 'simulatte.boundedHeadClassification.v1') {
+      return options.boundedClassification;
+    }
     const policy = options.classificationTierPolicy;
     const execution = policy && policy.execution || {};
-    const modelKey = execution.browserLinearModelKey;
-    const candidateId = execution.browserLinearCandidateId;
-    const requests = boundedHeadRequests(prompt, options.languageGraph, options.sceneLanguageGraph);
+    const modelKey = execution.defaultCompactModelKey;
+    const candidateId = execution.defaultCompactCandidateId;
+    const requests = requestApi.buildRequests(prompt, options.languageGraph, options.sceneLanguageGraph);
     if (!policy || policy.schema !== 'simulatte.classificationTierPolicy.v1' || !modelKey || !candidateId) {
       return Object.freeze({
         schema: 'simulatte.boundedHeadClassification.v1',
@@ -219,48 +226,6 @@
       ...result,
       scores: Object.freeze((result.scores || []).slice(0, 5)),
     });
-  }
-
-  function boundedHeadRequests(prompt, languageGraph = {}, sceneLanguageGraph = {}) {
-    const requests = [{ id: 'scene-domain:prompt', headId: 'scene-domain', text: prompt }];
-    const add = (headId, id, text) => {
-      const value = String(text || '').trim();
-      if (!value) return;
-      requests.push({ id: `${headId}:${id}`, headId, text: value });
-    };
-    for (const span of (languageGraph.spans || []).slice(0, 32)) {
-      add('span-entity-role', span.id || requests.length, span.text || span.normalized);
-    }
-    for (const entity of [
-      ...(sceneLanguageGraph.entities || []),
-      ...(sceneLanguageGraph.parts || []),
-      ...(sceneLanguageGraph.mediums || []),
-    ].slice(0, 24)) {
-      const text = entryText(entity, prompt);
-      add('material', entity.id || requests.length, text);
-    }
-    for (const action of (sceneLanguageGraph.actions || []).slice(0, 16)) {
-      add('pose', action.id || requests.length, entryText(action, prompt));
-    }
-    for (const relation of (sceneLanguageGraph.relations || []).slice(0, 24)) {
-      add('relation', relation.id || requests.length, entryText(relation, prompt));
-    }
-    for (const obligation of (sceneLanguageGraph.obligations || []).slice(0, 24)) {
-      add('obligation-support', obligation.id || requests.length, entryText(obligation, prompt));
-    }
-    return requests;
-  }
-
-  function entryText(entry, fallback) {
-    return entry && (
-      entry.text
-      || entry.sourceText
-      || entry.label
-      || entry.term
-      || entry.predicate
-      || entry.relation
-      || entry.type
-    ) || fallback;
   }
 
   function classificationReceipt(options = {}, mode = 'deterministic-tfidf', counts = {}) {

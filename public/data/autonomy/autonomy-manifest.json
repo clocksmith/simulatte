@@ -68,7 +68,7 @@
   "modelRuntimeLock": {
     "id": "simulatte-doppler-qwen-runtime-lock",
     "path": "../simulatte-embedder/model-runtime-lock.json",
-    "sha256": "bef74ee3d943de0042df538afa6432827538182ce744e81ab8e21b979a86febb"
+    "sha256": "cc7f7425581730c3747fb5b9d96b67115014c5be1b9ee60875af9244fdc62c7b"
   },
   "occurrenceCatalog": {
     "id": "nyc-replay-patterns-v1",
@@ -78,7 +78,7 @@
   "placeEmbeddingIndex": {
     "id": "nyc-core-place-embedding-index-v1",
     "path": "./place-embedding-index-v1.json",
-    "sha256": "363ef45037e6272971c9ac209f5bbe687f1a6f648525c3b1480bf44553bca3fb"
+    "sha256": "2a5fec178be5d5a3001ff2cb809298c3dc1b98a7868441d738b8cba46be3c54d"
   },
   "placeResolution": {
     "claimBoundary": "The Qwen lane is explicit and local after model download. It may select only a governed place node and fails closed when model, index, or thresholds do not validate.",
@@ -90,9 +90,9 @@
     "neuralDownloadBytes": 558475264
   },
   "placeResolutionEvidence": {
-    "id": "place-resolution-public-diagnostic-v3",
-    "path": "./evidence/place-resolution-public-diagnostic-v3.json",
-    "sha256": "1475ad0904016eb4c826a94fe0568c4bf0df1c745fdba4ca908292fabee8e96d"
+    "id": "place-resolution-public-diagnostic-v4",
+    "path": "./evidence/place-resolution-public-diagnostic-v4.json",
+    "sha256": "c60c37ec57f90f65cb8f7c1f440c3215107f48dd24b730b2405ee60f655cac42"
   },
   "policy": {
     "id": "bet-selector-v1",

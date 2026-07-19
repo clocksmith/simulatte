@@ -14,6 +14,8 @@ const MODES = new Set([
   'deterministic-reranking',
   'linear-classification',
   'linear-svc-classification',
+  'multinomial-nb-classification',
+  'sgd-modified-huber-classification',
   'nli-classification',
   'embedding-classification',
   'sentence-embedding',

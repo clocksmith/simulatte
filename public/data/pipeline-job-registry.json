@@ -99,6 +99,14 @@
       ]
     },
     {
+      "id": "multinomial-nb-tfidf-classification",
+      "jobId": "find-candidates",
+      "label": "Multinomial Naive Bayes over TF-IDF",
+      "kind": "model",
+      "modelLockPath": "public/data/simulatte-embedder/model-runtime-lock.json#classification",
+      "performanceRefs": []
+    },
+    {
       "id": "linear-svc-tfidf-classification",
       "jobId": "find-candidates",
       "label": "LinearSVC over TF-IDF",
@@ -115,6 +123,14 @@
       "performanceRefs": [
         { "sourceId": "classification-v1", "recordType": "candidate", "recordId": "linear-tfidf-head" }
       ]
+    },
+    {
+      "id": "sgd-modified-huber-tfidf-classification",
+      "jobId": "find-candidates",
+      "label": "SGD modified-Huber over TF-IDF",
+      "kind": "model",
+      "modelLockPath": "public/data/simulatte-embedder/model-runtime-lock.json#classification",
+      "performanceRefs": []
     },
     {
       "id": "minilm-nli-classification",
@@ -338,8 +354,10 @@
           "owners": ["public/blank/pipeline/phase-03-retrieval"],
           "surfaceStrategies": [
             { "id": "deterministic-tfidf-classification", "status": "default" },
+            { "id": "multinomial-nb-tfidf-classification", "status": "evaluation-only" },
             { "id": "linear-svc-tfidf-classification", "status": "evaluation-only" },
             { "id": "linear-tfidf-classification", "status": "evaluation-only" },
+            { "id": "sgd-modified-huber-tfidf-classification", "status": "evaluation-only" },
             { "id": "minilm-nli-classification", "status": "evaluation-only" },
             { "id": "deberta-nli-classification", "status": "evaluation-only" },
             { "id": "qwen-embedding-classification", "status": "evaluation-only" },

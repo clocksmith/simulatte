@@ -25,8 +25,10 @@ The job is the stable abstraction. `/` and `/blank/` configure the same eight jo
 | Understand request | Deterministic typed grammar | deterministic | default | default |
 | Find candidates | Exact, typo-bounded, and indexed retrieval | deterministic | default | default |
 | Find candidates | TF-IDF classification and ranking | deterministic | — | default |
+| Find candidates | Multinomial Naive Bayes over TF-IDF | model | — | evaluation-only |
 | Find candidates | LinearSVC over TF-IDF | model | — | evaluation-only |
 | Find candidates | Logistic regression over TF-IDF | model | — | evaluation-only |
+| Find candidates | SGD modified-Huber over TF-IDF | model | — | evaluation-only |
 | Find candidates | MiniLM NLI classification | model | — | evaluation-only |
 | Find candidates | DeBERTa-small NLI classification | model | — | evaluation-only |
 | Find candidates | Qwen 3 embedding label classification | model | — | evaluation-only |

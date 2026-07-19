@@ -7,7 +7,6 @@ import { doppler } from '../../public/vendor/doppler/src/index.js';
 import { bootstrapNodeWebGPU } from '../../public/vendor/doppler/src/tooling/node-webgpu.js';
 import {
   lockedEmbeddingModel,
-  modelRuntimeLockHash,
   readModelRuntimeLock,
 } from '../model-runtime-lock-utils.mjs';
 
@@ -90,12 +89,7 @@ async function loadInputs() {
     identities: {
       world: identity(WORLD_PATH, JSON.parse(worldText).id, Buffer.from(worldText)),
       regionRegistry: identity(REGION_REGISTRY_PATH, JSON.parse(regionRegistryText).id, Buffer.from(regionRegistryText)),
-      modelRuntimeLock: {
-        path: MODEL_LOCK_PATH,
-        id: modelLock.id,
-        number: modelLock.number,
-        sha256: modelRuntimeLockHash(),
-      },
+      embeddingRuntime: embeddingRuntimeIdentity(modelLock),
       generator: {
         path: path.relative(ROOT, fileURLToPath(import.meta.url)),
         sha256: sha256Hex(generatorBytes),
@@ -415,6 +409,29 @@ function pointSegmentDistance(point, start, end) {
 
 function identity(filePath, id, bytes) {
   return { path: filePath, id, sha256: sha256Hex(bytes) };
+}
+
+function embeddingRuntimeIdentity(modelLock) {
+  const identity = {
+    schema: 'simulatte.embeddingRuntimeIdentity.v1',
+    sourceLockPath: MODEL_LOCK_PATH,
+    dopplerPackage: {
+      name: modelLock.doppler.package.name,
+      version: modelLock.doppler.package.version,
+      integrity: modelLock.doppler.package.integrity,
+      shasum: modelLock.doppler.package.shasum,
+    },
+    dopplerSourceGitSha: modelLock.doppler.development.gitSha,
+    model: {
+      id: modelLock.embedding.id,
+      dimensions: modelLock.embedding.dimensions,
+      embeddingMode: modelLock.embedding.indexEmbeddingMode,
+      manifestSha256: modelLock.embedding.manifestHash.hex,
+      sourceCheckpointId: modelLock.embedding.source.sourceCheckpointId,
+      sourceRevision: modelLock.embedding.source.revision,
+    },
+  };
+  return { ...identity, sha256: sha256Hex(Buffer.from(stableStringify(identity), 'utf8')) };
 }
 
 function indexHash(index) {

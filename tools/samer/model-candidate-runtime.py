@@ -37,6 +37,8 @@ def parse_args() -> argparse.Namespace:
             "deterministic-reranking",
             "linear-classification",
             "linear-svc-classification",
+            "multinomial-nb-classification",
+            "sgd-modified-huber-classification",
             "nli-classification",
             "embedding-classification",
             "sentence-embedding",
@@ -155,56 +157,22 @@ def run_deterministic(workload: dict, typed_boost: bool = False) -> tuple[list[d
     return predictions, performance_receipt(elapsed_ms(started) - sum(samples), samples, 0)
 
 
-def run_linear_classification(workload: dict) -> tuple[list[dict], dict]:
+def run_compact_classification(workload: dict, classifier_kind: str) -> tuple[list[dict], dict]:
     from sklearn.feature_extraction.text import TfidfVectorizer
-    from sklearn.linear_model import LogisticRegression
-
-    started = time.perf_counter()
-    grouped: dict[str, list[dict]] = {}
-    for row in workload["rows"]:
-        grouped.setdefault(row["headId"], []).append(row)
-    models = {}
-    for head_id, rows in grouped.items():
-        labels = rows[0]["labels"]
-        train_texts: list[str] = []
-        train_labels: list[str] = []
-        for label in labels:
-            label_id = label["id"]
-            description = label.get("description") or label_id.replace("-", " ")
-            for template in (
-                "{description}",
-                "this request describes {description}",
-                "the grounded visual class is {description}",
-            ):
-                train_texts.append(template.format(description=description))
-                train_labels.append(label_id)
-        vectorizer = TfidfVectorizer(lowercase=True, ngram_range=(1, 2), analyzer="word", sublinear_tf=True)
-        vectors = vectorizer.fit_transform(train_texts)
-        classifier = LogisticRegression(max_iter=400, random_state=17).fit(vectors, train_labels)
-        models[head_id] = (vectorizer, classifier)
-    cold_ms = elapsed_ms(started)
-    predictions = []
-    samples = []
-    for row in workload["rows"]:
-        row_started = time.perf_counter()
-        vectorizer, classifier = models[row["headId"]]
-        text = " ".join(filter(None, (row.get("text"), row.get("span"))))
-        probabilities = classifier.predict_proba(vectorizer.transform([text]))[0]
-        scores = sorted(
-            ({"id": label, "score": float(score)} for label, score in zip(classifier.classes_, probabilities)),
-            key=lambda item: (-item["score"], item["id"]),
-        )
-        confidence = scores[0]["score"]
-        predicted = scores[0]["id"] if confidence >= float(row.get("minimumConfidence", 0)) else row.get("abstentionId", "abstain")
-        duration = elapsed_ms(row_started)
-        samples.append(duration)
-        predictions.append({"id": row["id"], "predictedLabel": predicted, "confidence": confidence, "scores": scores, "durationMs": duration})
-    return predictions, performance_receipt(cold_ms, samples, 0)
-
-
-def run_linear_svc_classification(workload: dict) -> tuple[list[dict], dict]:
-    from sklearn.feature_extraction.text import TfidfVectorizer
+    from sklearn.linear_model import LogisticRegression, SGDClassifier
+    from sklearn.naive_bayes import MultinomialNB
     from sklearn.svm import LinearSVC
+
+    constructors = {
+        "logistic": lambda: LogisticRegression(max_iter=400, random_state=17),
+        "linear-svc": lambda: LinearSVC(C=1.0, random_state=17),
+        "multinomial-nb": lambda: MultinomialNB(alpha=1.0),
+        "sgd-modified-huber": lambda: SGDClassifier(
+            loss="modified_huber", max_iter=1000, random_state=17, tol=1e-3
+        ),
+    }
+    if classifier_kind not in constructors:
+        fail(f"unsupported compact classifier kind: {classifier_kind}")
 
     started = time.perf_counter()
     grouped: dict[str, list[dict]] = {}
@@ -228,7 +196,7 @@ def run_linear_svc_classification(workload: dict) -> tuple[list[dict], dict]:
                 train_labels.append(label_id)
         vectorizer = TfidfVectorizer(lowercase=True, ngram_range=(1, 2), analyzer="word", sublinear_tf=True)
         vectors = vectorizer.fit_transform(train_texts)
-        classifier = LinearSVC(C=1.0, random_state=17).fit(vectors, train_labels)
+        classifier = constructors[classifier_kind]().fit(vectors, train_labels)
         models[head_id] = (vectorizer, classifier)
     cold_ms = elapsed_ms(started)
     predictions = []
@@ -237,12 +205,17 @@ def run_linear_svc_classification(workload: dict) -> tuple[list[dict], dict]:
         row_started = time.perf_counter()
         vectorizer, classifier = models[row["headId"]]
         text = " ".join(filter(None, (row.get("text"), row.get("span"))))
-        decision = classifier.decision_function(vectorizer.transform([text]))[0]
-        maximum = max(float(value) for value in decision)
-        exponentials = [math.exp(float(value) - maximum) for value in decision]
-        total = sum(exponentials) or 1.0
+        vector = vectorizer.transform([text])
+        if hasattr(classifier, "predict_proba"):
+            probabilities = classifier.predict_proba(vector)[0]
+        else:
+            decision = classifier.decision_function(vector)[0]
+            maximum = max(float(value) for value in decision)
+            exponentials = [math.exp(float(value) - maximum) for value in decision]
+            total = sum(exponentials) or 1.0
+            probabilities = [value / total for value in exponentials]
         scores = sorted(
-            ({"id": label, "score": value / total} for label, value in zip(classifier.classes_, exponentials)),
+            ({"id": label, "score": float(score)} for label, score in zip(classifier.classes_, probabilities)),
             key=lambda item: (-item["score"], item["id"]),
         )
         confidence = scores[0]["score"]
@@ -580,13 +553,23 @@ def main() -> None:
     elif args.mode == "linear-classification":
         if workload["task"] != "classification":
             fail("linear-classification requires a classification workload")
-        rows, performance = run_linear_classification(workload)
+        rows, performance = run_compact_classification(workload, "logistic")
         model_id = "simulatte-public-taxonomy-linear-head-v1"
     elif args.mode == "linear-svc-classification":
         if workload["task"] != "classification":
             fail("linear-svc-classification requires a classification workload")
-        rows, performance = run_linear_svc_classification(workload)
+        rows, performance = run_compact_classification(workload, "linear-svc")
         model_id = "simulatte-public-taxonomy-linear-svc-v1"
+    elif args.mode == "multinomial-nb-classification":
+        if workload["task"] != "classification":
+            fail("multinomial-nb-classification requires a classification workload")
+        rows, performance = run_compact_classification(workload, "multinomial-nb")
+        model_id = "simulatte-public-taxonomy-multinomial-nb-v1"
+    elif args.mode == "sgd-modified-huber-classification":
+        if workload["task"] != "classification":
+            fail("sgd-modified-huber-classification requires a classification workload")
+        rows, performance = run_compact_classification(workload, "sgd-modified-huber")
+        model_id = "simulatte-public-taxonomy-sgd-modified-huber-v1"
     elif args.mode == "nli-classification":
         if workload["task"] != "classification":
             fail("nli-classification requires a classification workload")

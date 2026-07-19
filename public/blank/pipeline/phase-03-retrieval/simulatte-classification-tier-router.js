@@ -13,6 +13,8 @@
   function createRouter(policy, providers = {}) {
     validatePolicy(policy);
     const tiersById = new Map(policy.tiers.map((tier) => [tier.id, tier]));
+    const embeddingCache = new Map();
+    const embeddingCacheMaxEntries = Number(policy.execution && policy.execution.embeddingLabelCacheMaxEntries);
 
     async function classify(request, options = {}) {
       requireText(request && request.headId, 'classification request headId');
@@ -25,7 +27,7 @@
           attempts.push(attemptReceipt(tier, 'skipped', availability.reason));
           continue;
         }
-        const result = await executeTier(tier, request, providers, options);
+        const result = await executeTier(tier, request, providers, options, embeddingCache, embeddingCacheMaxEntries);
         const calibrated = applyCalibration(result, tier, request.headId, options.calibration);
         attempts.push(attemptReceipt(tier, 'executed', calibrated.accepted ? null : calibrated.refusalReason, calibrated));
         if (calibrated.accepted) return routeReceipt(request, calibrated, attempts, tier.id);
@@ -33,11 +35,31 @@
       return routeReceipt(request, abstentionResult(request), attempts, null);
     }
 
-    return Object.freeze({ policy, classify });
+    async function classifyMany(requests, options = {}) {
+      if (!Array.isArray(requests)) throw new Error('Classification requests must be an array');
+      await prewarmEmbeddingTiers(requests, policy, tiersById, providers, options, embeddingCache, embeddingCacheMaxEntries);
+      const routes = await Promise.all(requests.map((request) => classify(request, options)));
+      const results = routes.map((route) => compactResult(route.result));
+      return Object.freeze({
+        schema: 'simulatte.boundedHeadClassification.v1',
+        status: results.some((result) => result.accepted) ? 'calibrated' : 'diagnostic-only',
+        modelExecuted: routes.some(routeExecutedModel),
+        candidateId: null,
+        modelKey: null,
+        artifactId: compactRuntime.artifact.id,
+        calibrationId: options.calibration && options.calibration.id || null,
+        requestCount: requests.length,
+        acceptedCount: results.filter((result) => result.accepted).length,
+        results: Object.freeze(results),
+        routes: Object.freeze(routes),
+      });
+    }
+
+    return Object.freeze({ policy, classify, classifyMany });
   }
 
-  async function executeTier(tier, request, providers, options) {
-    if (tier.adapter === 'browser-linear') {
+  async function executeTier(tier, request, providers, options, embeddingCache, embeddingCacheMaxEntries) {
+    if (tier.adapter === 'browser-compact') {
       return compactRuntime.classify(request.headId, request.text, {
         modelKey: tier.modelKey,
         calibration: calibrationFor(options.calibration, tier.candidateId, request.headId),
@@ -50,18 +72,21 @@
       return normalizeProviderResult(await provider.classify(request), tier, request);
     }
     if (tier.adapter === 'embedding-labels') {
-      return classifyWithEmbeddings(provider, tier, request, options);
+      return classifyWithEmbeddings(provider, tier, request, options, embeddingCache, embeddingCacheMaxEntries);
     }
     throw new Error(`Classification tier ${tier.id} adapter is unsupported: ${tier.adapter}`);
   }
 
-  async function classifyWithEmbeddings(provider, tier, request, options) {
+  async function classifyWithEmbeddings(provider, tier, request, options, embeddingCache, embeddingCacheMaxEntries) {
     const head = compactRuntime.artifact.heads.find((row) => row.id === request.headId);
     if (!head) throw new Error(`Embedding classifier head is unknown: ${request.headId}`);
     const labels = head.labels.filter((label) => !head.scoredLabelsExclude.includes(label));
-    const texts = [String(request.text || ''), ...labels.map((label) => label.replaceAll('-', ' '))];
-    const vectors = await embedTexts(provider, texts, options);
-    if (vectors.length !== texts.length) throw new Error(`${tier.providerId} returned ${vectors.length}/${texts.length} embeddings`);
+    const rows = [
+      { text: String(request.text || ''), embeddingKind: 'query' },
+      ...labels.map((label) => ({ text: label.replaceAll('-', ' '), embeddingKind: 'document' })),
+    ];
+    const vectors = await embeddingVectors(provider, tier, rows, options, embeddingCache, embeddingCacheMaxEntries);
+    if (vectors.length !== rows.length) throw new Error(`${tier.providerId} returned ${vectors.length}/${rows.length} embeddings`);
     const scores = labels.map((id, index) => ({
       id,
       score: cosine(vectors[0], vectors[index + 1]),
@@ -120,12 +145,15 @@
       return { available: false, reason: 'evaluation-tier-not-enabled' };
     }
     if (tier.requiresConsent && options.modelConsent !== true) return { available: false, reason: 'model-consent-required' };
-    if (tier.adapter !== 'browser-linear'
+    if (tier.adapter !== 'browser-compact'
       && !calibrationFor(options.calibration, tier.candidateId, headId)
       && options.allowUncalibratedDiagnostics !== true) {
       return { available: false, reason: 'candidate-specific-calibration-required' };
     }
-    if (tier.adapter !== 'browser-linear' && !providers[tier.providerId]) {
+    if (tier.adapter === 'embedding-labels' && !String(options.embeddingIdentity || '').trim()) {
+      return { available: false, reason: 'embedding-compatibility-identity-required' };
+    }
+    if (tier.adapter !== 'browser-compact' && !providers[tier.providerId]) {
       return { available: false, reason: 'provider-unavailable' };
     }
     return { available: true, reason: null };
@@ -152,10 +180,63 @@
     };
   }
 
-  async function embedTexts(provider, texts, options) {
-    if (typeof provider.embedBatch === 'function') return provider.embedBatch(texts, options);
-    if (typeof provider.embed !== 'function') throw new Error('Embedding classification provider must expose embed() or embedBatch()');
-    return Promise.all(texts.map((text) => provider.embed(text, options)));
+  async function prewarmEmbeddingTiers(requests, policy, tiersById, providers, options, cache, cacheMaxEntries) {
+    for (const tierId of policy.routing.order) {
+      const tier = tiersById.get(tierId);
+      if (!tier || tier.adapter !== 'embedding-labels') continue;
+      const eligibleRequests = requests.filter((request) => tierAvailability(tier, providers, options, request.headId).available);
+      if (!eligibleRequests.length) continue;
+      const rows = [];
+      for (const request of eligibleRequests) {
+        rows.push({ text: String(request.text || ''), embeddingKind: 'query' });
+        const head = compactRuntime.artifact.heads.find((row) => row.id === request.headId);
+        if (!head) throw new Error(`Embedding classifier head is unknown: ${request.headId}`);
+        for (const label of head.labels.filter((id) => !head.scoredLabelsExclude.includes(id))) {
+          rows.push({ text: label.replaceAll('-', ' '), embeddingKind: 'document' });
+        }
+      }
+      await embeddingVectors(providers[tier.providerId], tier, rows, options, cache, cacheMaxEntries);
+    }
+  }
+
+  async function embeddingVectors(provider, tier, rows, options, cache, cacheMaxEntries) {
+    if (!provider || typeof provider.embedTexts !== 'function') {
+      throw new Error('Embedding classification provider must expose embedTexts(rows)');
+    }
+    const identity = requireText(options.embeddingIdentity, 'embedding compatibility identity');
+    const keys = rows.map((row) => embeddingCacheKey(identity, tier.modelId, row));
+    const misses = [];
+    const missKeys = [];
+    const pendingKeys = new Set();
+    keys.forEach((key, index) => {
+      if (cache.has(key) || pendingKeys.has(key)) return;
+      pendingKeys.add(key);
+      misses.push(rows[index]);
+      missKeys.push(key);
+    });
+    if (misses.length) {
+      const outputs = await provider.embedTexts(misses, options);
+      if (!Array.isArray(outputs) || outputs.length !== misses.length) {
+        throw new Error(`${tier.providerId} returned ${outputs && outputs.length || 0}/${misses.length} embedding vectors`);
+      }
+      outputs.forEach((output, index) => {
+        cache.set(missKeys[index], normalizeVector(output, `${tier.providerId}[${index}]`));
+        while (cache.size > cacheMaxEntries) cache.delete(cache.keys().next().value);
+      });
+    }
+    return keys.map((key) => cache.get(key));
+  }
+
+  function embeddingCacheKey(identity, modelId, row) {
+    return `${identity}\u0000${modelId}\u0000${row.embeddingKind}\u0000${String(row.text || '').trim().toLowerCase()}`;
+  }
+
+  function normalizeVector(output, label) {
+    const vector = output && output.embedding || output;
+    if (!vector || typeof vector.length !== 'number' || vector.length < 1) throw new Error(`${label} returned no embedding vector`);
+    const normalized = Float32Array.from(vector, Number);
+    if (!normalized.every(Number.isFinite)) throw new Error(`${label} returned a non-finite embedding vector`);
+    return normalized;
   }
 
   function routeReceipt(request, result, attempts, selectedTierId) {
@@ -172,6 +253,17 @@
 
   function attemptReceipt(tier, status, reason, result = null) {
     return Object.freeze({ tierId: tier.id, candidateId: tier.candidateId, status, reason, result });
+  }
+
+  function routeExecutedModel(route) {
+    return (route.attempts || []).some((attempt) => attempt.result && attempt.result.modelExecuted === true);
+  }
+
+  function compactResult(result) {
+    return Object.freeze({
+      ...result,
+      scores: Object.freeze((result.scores || []).slice(0, 5)),
+    });
   }
 
   function abstentionResult(request) {
@@ -211,6 +303,10 @@
     if (!Array.isArray(policy.tiers) || !policy.tiers.length) throw new Error('Classification tier policy requires tiers');
     if (!Array.isArray(policy.routing && policy.routing.order) || !policy.routing.order.length) {
       throw new Error('Classification tier policy requires routing.order');
+    }
+    if (!Number.isInteger(Number(policy.execution && policy.execution.embeddingLabelCacheMaxEntries))
+      || Number(policy.execution.embeddingLabelCacheMaxEntries) < 1) {
+      throw new Error('Classification tier policy requires a positive embeddingLabelCacheMaxEntries');
     }
   }
 

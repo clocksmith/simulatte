@@ -163,17 +163,32 @@ function main() {
   assertEqual(classification.artifact?.sha256, hashFile(CLASSIFIER_ARTIFACT_PATH), 'classification.artifact.sha256');
   assertEqual(classification.artifact?.sizeBytes, fs.statSync(CLASSIFIER_ARTIFACT_PATH).size, 'classification.artifact.sizeBytes');
   assertEqual(classification.execution?.acceptedPredictionsRequireCalibration, true, 'classification.execution.acceptedPredictionsRequireCalibration');
+  requirePositiveInteger(
+    classification.execution?.embeddingLabelCacheMaxEntries,
+    'classification.execution.embeddingLabelCacheMaxEntries'
+  );
   assertEqual(classification.calibration?.status, 'required-not-present', 'classification.calibration.status');
   assertEqual(classification.calibration?.artifact, null, 'classification.calibration.artifact');
   assertEqual(classification.calibration?.acceptedPredictionsAllowed, false, 'classification.calibration.acceptedPredictionsAllowed');
   const classificationTiers = classification.tiers || [];
   const classificationTierIds = new Set(classificationTiers.map((tier) => tier.id));
   if (classificationTierIds.size !== classificationTiers.length || classificationTiers.length < 5) {
-    fail('classification.tiers must contain five unique tier identities');
+    fail('classification.tiers must contain at least five unique tier identities');
   }
   for (const tierId of classification.routing?.order || []) {
     if (!classificationTierIds.has(tierId)) fail(`classification.routing.order references unknown tier ${tierId}`);
   }
+  const defaultCompactCandidateId = requireText(
+    classification.execution?.defaultCompactCandidateId,
+    'classification.execution.defaultCompactCandidateId'
+  );
+  const defaultCompactTier = classificationTiers.find((tier) => tier.id === defaultCompactCandidateId);
+  assertEqual(defaultCompactTier?.adapter, 'browser-compact', 'default compact tier adapter');
+  assertEqual(
+    defaultCompactTier?.modelKey,
+    requireText(classification.execution?.defaultCompactModelKey, 'classification.execution.defaultCompactModelKey'),
+    'default compact tier model key'
+  );
   const qwenClassification = classificationTiers.find((tier) => tier.id === 'qwen3-embedding-classifier-control');
   assertEqual(qwenClassification?.modelId, embedding.id, 'Qwen classification model identity');
 

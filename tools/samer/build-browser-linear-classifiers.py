@@ -6,7 +6,8 @@ from pathlib import Path
 
 import sklearn
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.linear_model import LogisticRegression
+from sklearn.linear_model import LogisticRegression, SGDClassifier
+from sklearn.naive_bayes import MultinomialNB
 from sklearn.svm import LinearSVC
 
 
@@ -43,13 +44,13 @@ def training_rows(labels):
     return texts, targets
 
 
-def model_row(model_id, model, score_kind):
+def model_row(model_id, model, score_kind, coefficients=None, intercepts=None):
     return {
         "id": model_id,
         "scoreKind": score_kind,
         "classes": [str(value) for value in model.classes_],
-        "coefficients": round_rows(model.coef_),
-        "intercepts": round_values(model.intercept_),
+        "coefficients": round_rows(coefficients if coefficients is not None else model.coef_),
+        "intercepts": round_values(intercepts if intercepts is not None else model.intercept_),
         "qualification": {
             "status": "evaluation-only-uncalibrated",
             "promotionEligible": False,
@@ -67,8 +68,15 @@ def build_head(job):
         sublinear_tf=True,
     )
     vectors = vectorizer.fit_transform(texts)
+    multinomial_nb = MultinomialNB(alpha=1.0).fit(vectors, targets)
     linear_svc = LinearSVC(C=1.0, random_state=17).fit(vectors, targets)
     logistic = LogisticRegression(max_iter=400, random_state=17).fit(vectors, targets)
+    sgd_modified_huber = SGDClassifier(
+        loss="modified_huber",
+        max_iter=1000,
+        random_state=17,
+        tol=1e-3,
+    ).fit(vectors, targets)
     vocabulary = sorted(vectorizer.vocabulary_.items(), key=lambda row: row[1])
     return {
         "id": job["id"],
@@ -86,6 +94,13 @@ def build_head(job):
             "idf": round_values(vectorizer.idf_),
         },
         "models": {
+            "multinomialNB": model_row(
+                "simulatte.browser-multinomial-nb-tfidf.v1",
+                multinomial_nb,
+                "log-joint",
+                coefficients=multinomial_nb.feature_log_prob_,
+                intercepts=multinomial_nb.class_log_prior_,
+            ),
             "linearSVC": model_row(
                 "simulatte.browser-linear-svc-tfidf.v1",
                 linear_svc,
@@ -95,6 +110,11 @@ def build_head(job):
                 "simulatte.browser-logistic-tfidf.v1",
                 logistic,
                 "softmax-logit",
+            ),
+            "sgdModifiedHuber": model_row(
+                "simulatte.browser-sgd-modified-huber-tfidf.v1",
+                sgd_modified_huber,
+                "modified-huber-decision",
             ),
         },
     }
@@ -140,10 +160,10 @@ def main():
         current = OUTPUT.read_text() if OUTPUT.exists() else ""
         if current != rendered:
             raise SystemExit("public/data/simulatte-compact-classifiers.js is stale")
-        print("Browser linear classifier artifact is synchronized.")
+        print("Browser compact classifier artifact is synchronized.")
         return
     OUTPUT.write_text(rendered)
-    print("Wrote public/data/simulatte-compact-classifiers.js.")
+    print("Wrote browser compact classifier artifact.")
 
 
 if __name__ == "__main__":

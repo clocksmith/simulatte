@@ -158,6 +158,10 @@
           throw new Error('model runtime lock classification.artifact.sha256 must be a SHA-256 digest');
         }
         requiredPositiveInteger(policy.artifact && policy.artifact.sizeBytes, 'model runtime lock classification.artifact.sizeBytes');
+        requiredPositiveInteger(
+          policy.execution && policy.execution.embeddingLabelCacheMaxEntries,
+          'model runtime lock classification.execution.embeddingLabelCacheMaxEntries'
+        );
         if (!Array.isArray(policy.tiers) || !policy.tiers.length) {
           throw new Error('model runtime lock classification.tiers must be a non-empty array');
         }
@@ -175,6 +179,19 @@
         const order = policy.routing && policy.routing.order;
         if (!Array.isArray(order) || !order.length || order.some((id) => !ids.has(id))) {
           throw new Error('model runtime lock classification.routing.order must reference declared tiers');
+        }
+        const defaultCompactCandidateId = requiredText(
+          policy.execution && policy.execution.defaultCompactCandidateId,
+          'model runtime lock classification.execution.defaultCompactCandidateId'
+        );
+        const defaultCompactModelKey = requiredText(
+          policy.execution && policy.execution.defaultCompactModelKey,
+          'model runtime lock classification.execution.defaultCompactModelKey'
+        );
+        const defaultCompactTier = policy.tiers.find((tier) => tier.id === defaultCompactCandidateId);
+        if (!defaultCompactTier || defaultCompactTier.adapter !== 'browser-compact'
+          || defaultCompactTier.modelKey !== defaultCompactModelKey) {
+          throw new Error('default compact classification execution must reference a browser-compact tier and model key');
         }
         const qwen = policy.tiers.find((tier) => tier.id === 'qwen3-embedding-classifier-control');
         if (!qwen || qwen.modelId !== embedding.id) {

@@ -342,7 +342,27 @@
         const scores = new Float32Array(readBuffer.getMappedRange().slice(0));
         readBuffer.unmap();
         return Array.from(scores);
+    }
+
+    async function rankWithOwnerGpu(owner, dimensions, queryVector, candidateVectors) {
+      if (!candidateVectors.length) return null;
+      if (!owner.dopplerDevicePromise && (typeof navigator === 'undefined' || !navigator.gpu)) return null;
+      if (!owner.dopplerDevicePromise && !owner.gpuPromise) {
+        owner.gpuPromise = navigator.gpu
+          .requestAdapter({ powerPreference: 'high-performance' })
+          .then((adapter) => adapter ? adapter.requestDevice() : null)
+          .catch(() => null);
       }
+      const device = owner.dopplerDevicePromise
+        ? await owner.dopplerDevicePromise
+        : await owner.gpuPromise;
+      if (!device) return null;
+      try {
+        return await rankWebGpu(device, dimensions, queryVector, candidateVectors);
+      } catch (_error) {
+        return null;
+      }
+    }
 
     function gpuBuffer(device, data, usage) {
         const buffer = device.createBuffer({
@@ -457,6 +477,7 @@
       mergeRagScores,
       rankCpu,
       rankWebGpu,
+      rankWithOwnerGpu,
       gpuBuffer,
       rankShader,
       dot,

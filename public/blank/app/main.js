@@ -12,6 +12,7 @@
     'SimulattePhysicsCatalog',
     'SimulatteSemanticRag',
     'SimulatteCompactClassifierRuntime',
+    'SimulatteBoundedClassificationRequests',
     'SimulatteClassificationTierRouter',
     'SimulatteConditionalReranking',
     'SimulatteIntentClassifier',

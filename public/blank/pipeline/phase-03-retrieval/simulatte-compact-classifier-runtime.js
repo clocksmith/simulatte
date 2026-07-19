@@ -9,7 +9,12 @@
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createCompactClassifierRuntime(artifact) {
   const ARTIFACT_SCHEMA = 'simulatte.browserCompactClassifierArtifact.v1';
   const RESULT_SCHEMA = 'simulatte.compactClassificationResult.v1';
-  const MODEL_KEYS = Object.freeze(['linearSVC', 'logisticRegression']);
+  const MODEL_KEYS = Object.freeze([
+    'multinomialNB',
+    'linearSVC',
+    'logisticRegression',
+    'sgdModifiedHuber',
+  ]);
   if (artifact.schema !== ARTIFACT_SCHEMA) {
     throw new Error(`Compact classifier expected ${ARTIFACT_SCHEMA}, received ${artifact.schema || 'missing'}`);
   }
@@ -23,9 +28,7 @@
     const model = head.models[modelKey];
     const vector = vectorize(text, head.vectorizer);
     const rawScores = scoreRows(vector, model.coefficients, model.intercepts);
-    const probabilities = model.scoreKind === 'softmax-logit'
-      ? softmax(rawScores)
-      : softmax(centerScores(rawScores));
+    const probabilities = scoreProbabilities(rawScores, model.scoreKind);
     const scores = model.classes.map((id, index) => ({
       id,
       score: round(probabilities[index]),
@@ -108,6 +111,16 @@
   function centerScores(scores) {
     const mean = scores.reduce((sum, value) => sum + value, 0) / Math.max(1, scores.length);
     return scores.map((value) => value - mean);
+  }
+
+  function scoreProbabilities(scores, scoreKind) {
+    if (scoreKind === 'modified-huber-decision') {
+      const clipped = scores.map((value) => Math.max(0, Math.min(1, (value + 1) / 2)));
+      const total = clipped.reduce((sum, value) => sum + value, 0);
+      return total ? clipped.map((value) => value / total) : clipped.map(() => 1 / Math.max(1, clipped.length));
+    }
+    if (scoreKind === 'decision-function') return softmax(centerScores(scores));
+    return softmax(scores);
   }
 
   function softmax(values) {

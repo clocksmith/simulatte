@@ -14,15 +14,18 @@ test('candidate registry pins concrete task-specific implementations and blocks 
   const report = validateCandidateRegistry(registry, lock, { root });
 
   assert.deepEqual(report.taskCandidateCounts, {
-    classification: 5,
+    classification: 8,
     'embedding-retrieval': 3,
     reranking: 4,
   });
-  assert.equal(report.modelLockNumber, 9);
+  assert.equal(report.modelLockNumber, 11);
   const classification = registry.tasks.classification;
   assert.deepEqual(classification.map((row) => row.id), [
     'deterministic-tfidf-control',
+    'multinomial-nb-tfidf-head',
     'linear-tfidf-head',
+    'linear-svc-tfidf-head',
+    'sgd-modified-huber-tfidf-head',
     'minilm-nli-classifier',
     'deberta-small-nli-classifier',
     'qwen3-embedding-classifier-control',

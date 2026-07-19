@@ -431,6 +431,7 @@
                 universeMatches: result.universeMatches,
                 spanRetrieval: result.spanRetrieval,
                 slotRetrieval: result.slotRetrieval,
+                boundedClassification: result.boundedClassification || null,
                 retrievalPhase: result.retrievalPhase || 'span-refined',
                 evidenceRows: result.evidenceRows,
               }, {

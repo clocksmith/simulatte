@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.modelRuntimeLock.v1",
   "id": "simulatte-doppler-qwen-runtime-lock",
-  "number": 10,
+  "number": 11,
   "doppler": {
     "moduleUrl": "../../vendor/doppler/src/index.js",
     "deviceModuleUrl": "../../vendor/doppler/src/tooling-exports/device.js",
@@ -107,25 +107,28 @@
   },
   "classification": {
     "schema": "simulatte.classificationTierPolicy.v1",
-    "id": "simulatte-blank-classification-tiers-v1",
+    "id": "simulatte-blank-classification-tiers-v2",
     "phase": 3,
     "artifact": {
       "id": "simulatte-browser-compact-classifiers-v1",
       "path": "../simulatte-compact-classifiers.js",
-      "sha256": "fee4e6a36e3a3f1a3d9c58a4d478b7435c4632f32a60db6c20ed841d70be839b",
-      "sizeBytes": 246101
+      "sha256": "ca0ce50fc9c98bd11799692c2950e930df6a48e6e7314206a891465da68ab7f8",
+      "sizeBytes": 437776
     },
     "execution": {
-      "browserLinearCandidateId": "linear-svc-tfidf-head",
-      "browserLinearModelKey": "linearSVC",
+      "defaultCompactCandidateId": "multinomial-nb-tfidf-head",
+      "defaultCompactModelKey": "multinomialNB",
+      "embeddingLabelCacheMaxEntries": 256,
       "allowUncalibratedDiagnostics": true,
       "acceptedPredictionsRequireCalibration": true
     },
     "routing": {
       "kind": "cheapest-qualified-first",
       "order": [
+        "multinomial-nb-tfidf-head",
         "linear-svc-tfidf-head",
         "linear-tfidf-head",
+        "sgd-modified-huber-tfidf-head",
         "minilm-nli-classifier",
         "deberta-small-nli-classifier",
         "qwen3-embedding-classifier-control"
@@ -135,9 +138,18 @@
     },
     "tiers": [
       {
+        "id": "multinomial-nb-tfidf-head",
+        "candidateId": "multinomial-nb-tfidf-head",
+        "adapter": "browser-compact",
+        "modelKey": "multinomialNB",
+        "status": "evaluation-only",
+        "availability": "browser-ready",
+        "requiresConsent": false
+      },
+      {
         "id": "linear-svc-tfidf-head",
         "candidateId": "linear-svc-tfidf-head",
-        "adapter": "browser-linear",
+        "adapter": "browser-compact",
         "modelKey": "linearSVC",
         "status": "evaluation-only",
         "availability": "browser-ready",
@@ -146,8 +158,17 @@
       {
         "id": "linear-tfidf-head",
         "candidateId": "linear-tfidf-head",
-        "adapter": "browser-linear",
+        "adapter": "browser-compact",
         "modelKey": "logisticRegression",
+        "status": "evaluation-only",
+        "availability": "browser-ready",
+        "requiresConsent": false
+      },
+      {
+        "id": "sgd-modified-huber-tfidf-head",
+        "candidateId": "sgd-modified-huber-tfidf-head",
+        "adapter": "browser-compact",
+        "modelKey": "sgdModifiedHuber",
         "status": "evaluation-only",
         "availability": "browser-ready",
         "requiresConsent": false
@@ -159,7 +180,7 @@
         "providerId": "minilm-nli-classifier",
         "modelId": "cross-encoder/nli-MiniLM2-L6-H768",
         "status": "evaluation-only",
-        "availability": "missing-browser-artifact",
+        "availability": "blocked-runtime-family-unsupported",
         "requiresConsent": true
       },
       {
@@ -169,7 +190,7 @@
         "providerId": "deberta-small-nli-classifier",
         "modelId": "cross-encoder/nli-deberta-v3-small",
         "status": "evaluation-only",
-        "availability": "missing-browser-artifact",
+        "availability": "blocked-runtime-family-unsupported",
         "requiresConsent": true
       },
       {

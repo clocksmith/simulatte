@@ -6,17 +6,14 @@ const runtime = require('../public/blank/pipeline/phase-03-retrieval/simulatte-c
 const routerApi = require('../public/blank/pipeline/phase-03-retrieval/simulatte-classification-tier-router.js');
 const conditionalReranking = require('../public/blank/pipeline/phase-03-retrieval/simulatte-conditional-reranking.js');
 
-test('browser linear tiers execute but abstain without candidate-specific calibration', () => {
-  const svc = runtime.classify('material', 'a clear glass lens', { modelKey: 'linearSVC' });
-  const logistic = runtime.classify('material', 'a clear glass lens', { modelKey: 'logisticRegression' });
-
-  assert.equal(svc.modelExecuted, true);
-  assert.equal(svc.candidateLabel, 'glass');
-  assert.equal(svc.predictedLabel, 'abstain');
-  assert.equal(svc.refusalReason, 'candidate-specific-calibration-required');
-  assert.equal(logistic.modelExecuted, true);
-  assert.equal(logistic.candidateLabel, 'glass');
-  assert.equal(logistic.predictedLabel, 'abstain');
+test('browser compact tiers execute but abstain without candidate-specific calibration', () => {
+  for (const modelKey of runtime.MODEL_KEYS) {
+    const result = runtime.classify('material', 'a clear glass lens', { modelKey });
+    assert.equal(result.modelExecuted, true, modelKey);
+    assert.equal(result.candidateLabel, 'glass', modelKey);
+    assert.equal(result.predictedLabel, 'abstain', modelKey);
+    assert.equal(result.refusalReason, 'candidate-specific-calibration-required', modelKey);
+  }
 });
 
 test('tier router selects the cheapest calibrated candidate and receipts skipped tiers', async () => {
@@ -24,12 +21,12 @@ test('tier router selects the cheapest calibrated candidate and receipts skipped
   const calibration = {
     id: 'classification-calibration-fixture',
     candidates: {
-      'linear-svc-tfidf-head': {
+      'multinomial-nb-tfidf-head': {
         eligible: true,
         heads: {
           material: {
             clearsCalibrationGate: true,
-            minimumConfidence: 0.2,
+            minimumConfidence: 0.15,
             minimumMargin: 0.1,
           },
         },
@@ -42,7 +39,7 @@ test('tier router selects the cheapest calibrated candidate and receipts skipped
   });
 
   assert.equal(receipt.accepted, true);
-  assert.equal(receipt.selectedTierId, 'linear-svc-tfidf-head');
+  assert.equal(receipt.selectedTierId, 'multinomial-nb-tfidf-head');
   assert.equal(receipt.result.predictedLabel, 'glass');
   assert.equal(receipt.attempts.length, 1);
 });
@@ -63,4 +60,46 @@ test('conditional reranking never claims execution before the model runs', () =>
   assert.equal(required.action, 'rerank');
   assert.equal(required.modelExecutionRequired, true);
   assert.equal(required.modelExecuted, false);
+});
+
+test('Qwen embedding classification batches and reuses fixed label vectors after linear tiers abstain', async () => {
+  const calls = [];
+  const provider = {
+    async embedTexts(rows) {
+      calls.push(rows.map((row) => ({ ...row })));
+      return rows.map((row) => String(row.text).includes('glass')
+        ? Float32Array.from([1, 0])
+        : Float32Array.from([0, 1]));
+    },
+  };
+  const router = routerApi.createRouter(lock.classification, { 'qwen-embedding': provider });
+  const calibration = {
+    id: 'qwen-classification-calibration-fixture',
+    candidates: {
+      'qwen3-embedding-classifier-control': {
+        eligible: true,
+        heads: {
+          material: {
+            clearsCalibrationGate: true,
+            minimumConfidence: 0.9,
+            minimumMargin: 0.5,
+          },
+        },
+      },
+    },
+  };
+  const receipt = await router.classifyMany([
+    { id: 'material:first', headId: 'material', text: 'glass object' },
+    { id: 'material:second', headId: 'material', text: 'glass object' },
+  ], {
+    calibration,
+    embeddingIdentity: 'qwen-test-identity',
+    modelConsent: true,
+  });
+
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].filter((row) => row.embeddingKind === 'query').length, 1);
+  assert.equal(receipt.acceptedCount, 2);
+  assert.equal(receipt.routes[0].selectedTierId, 'qwen3-embedding-classifier-control');
+  assert.equal(receipt.results[0].predictedLabel, 'glass');
 });

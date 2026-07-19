@@ -365,8 +365,11 @@ function loadOrRunPredictions(entries, population, task, jobs, registry) {
       fs.writeFileSync(inputPath, `${JSON.stringify(workload, null, 2)}\n`);
       const runtime = path.resolve(ROOT, registry.comparisonEnvironment.entrypoint);
       const args = [runtime, '--input', inputPath, '--out', outputPath, '--mode', candidate.mode];
-      if (candidate.modelId && candidate.mode !== 'linear-classification') args.push('--model-id', candidate.modelId);
-      if (candidate.revision && candidate.mode !== 'linear-classification') args.push('--revision', candidate.revision);
+      const localCompact = candidate.mode.endsWith('-classification')
+        && ['linear', 'linear-svc', 'multinomial-nb', 'sgd-modified-huber']
+          .some((prefix) => candidate.mode === `${prefix}-classification`);
+      if (candidate.modelId && !localCompact) args.push('--model-id', candidate.modelId);
+      if (candidate.revision && !localCompact) args.push('--revision', candidate.revision);
       if (candidate.pooling) args.push('--pooling', candidate.pooling);
       if (candidate.instruction) args.push('--instruction', candidate.instruction);
       const result = spawnSync('python3', args, { cwd: ROOT, encoding: 'utf8', maxBuffer: 16 * 1024 * 1024 });

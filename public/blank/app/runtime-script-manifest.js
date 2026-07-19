@@ -59,7 +59,9 @@
   const classificationTiers = group(
     '../data/simulatte-compact-classifiers.js',
     'pipeline/phase-03-retrieval/simulatte-compact-classifier-runtime.js',
-    'pipeline/phase-03-retrieval/simulatte-classification-tier-router.js'
+    'pipeline/phase-03-retrieval/simulatte-bounded-classification-requests.js',
+    'pipeline/phase-03-retrieval/simulatte-classification-tier-router.js',
+    'pipeline/phase-03-retrieval/simulatte-intent-embedder-bounded-classification.js'
   );
   const conditionalReranking = group(
     'pipeline/phase-03-retrieval/simulatte-conditional-reranking.js'
@@ -242,6 +244,7 @@
     semanticRag,
     dopplerIntent,
     group('pipeline/phase-02-language/simulatte-language-evidence.js'),
+    classificationTiers,
     conditionalReranking,
     intentEmbedder
   );

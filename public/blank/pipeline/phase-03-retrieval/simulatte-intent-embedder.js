@@ -1,6 +1,10 @@
 (function attachSimulatteIntentEmbedder(root) {
   if (typeof module === 'object' && module.exports) {
     require('../../../data/simulatte-compact-classifiers.js');
+    require('./simulatte-compact-classifier-runtime.js');
+    require('./simulatte-bounded-classification-requests.js');
+    require('./simulatte-classification-tier-router.js');
+    require('./simulatte-intent-embedder-bounded-classification.js');
     require('./simulatte-conditional-reranking.js');
     require('./simulatte-intent-embedder-dependencies.js');
     require('./simulatte-intent-embedder-constants.js');

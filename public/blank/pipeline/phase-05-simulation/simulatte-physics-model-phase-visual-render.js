@@ -497,6 +497,7 @@
             classificationCalibration: options.classificationCalibration
               || options.promptRuntimeReceipt && options.promptRuntimeReceipt.classificationCalibration
               || null,
+            boundedClassification: options.boundedClassification || null,
           })
           : null;
         const intent = {

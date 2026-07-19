@@ -2,10 +2,11 @@
   const scope = root.__SimulatteIntentEmbedderRefactorScope;
   if (!scope || scope.missingDependency) return;
   with (scope) {
-    const createRerankProviderFromHandle = scope.rerankProviderFromModelHandle;
-    if (typeof createRerankProviderFromHandle !== 'function') {
+    if (typeof managedRerankProvider !== 'function') {
       throw new Error('Doppler reranker runtime must load before the model-backed embedder');
     }
+    const boundedHeadClassifier = root.SimulatteIntentEmbedderBoundedClassification;
+    if (!boundedHeadClassifier) throw new Error('Phase 3 bounded classification runtime must load before the embedder');
     class ModelBackedIntentEmbedder {
         constructor(options = {}) {
           assertPinnedRuntimeOptions(options);
@@ -38,6 +39,8 @@
           this.rerankerCacheReceipt = null;
           this.providerRequestCount = 0;
           this.rankSerial = 0;
+          this.classificationRouter = null;
+          this.classificationRouterPolicyId = '';
           this.gpuPromise = null;
           this.dopplerDevicePromise = null;
           this.dopplerApiPromise = null;
@@ -203,7 +206,7 @@
                 return runtime;
               })
               .catch(async (error) => {
-                await this.releaseDopplerHandles();
+                await releaseDopplerResources(this);
                 this.modelPromise = null;
                 this.providerReady = false;
                 throw error;
@@ -422,7 +425,7 @@
           });
           const candidateVectors = vectorsFor(runtime.index, candidates);
           const rankVectorStarted = nowMs();
-          const gpuScores = await this.tryRankWebGpu(runtime.index.embeddingDim, queryVector, candidateVectors);
+          const gpuScores = await rankWithOwnerGpu(this, runtime.index.embeddingDim, queryVector, candidateVectors);
           const scores = gpuScores || rankCpu(queryVector, candidateVectors);
           const cardMatches = rankSurfaceCards(runtime.cardIndex, queryVector, options);
           const universeMatches = rankUniverseIndexes(runtime.universe, promptText, queryVector, options);
@@ -456,6 +459,18 @@
             .filter((prior) => !nonRetrievableIds.has(prior.primitiveId))
             .sort((a, b) => b.score - a.score || a.primitiveId.localeCompare(b.primitiveId));
           const languageEvidence = spanLanguageEvidence(promptText, options);
+          const boundedClassification = await boundedHeadClassifier.classify({
+            state: this,
+            promptText,
+            languageEvidence,
+            runtime,
+            provider,
+            sceneLanguageGraph: options.sceneLanguageGraph,
+            calibration: options.classificationCalibration
+              || runtime.promptRuntimeReceipt && runtime.promptRuntimeReceipt.classificationCalibration
+              || null,
+            validateEmbedding: (result) => validateQueryEmbedding(result, runtime.index),
+          });
           const activeRerankProvider = await this.resolveRerankProvider(runtime, provider, options);
           const previewRerank = rerankPriors(basePriors, null, null, runtime, universeMatches);
           const previewSpanRetrieval = emptySpanRetrieval([], spanConfigFor(runtime, options, this.spanLevelEmbedding), 'prompt-preview');
@@ -490,7 +505,7 @@
             options,
             embedCache: this.spanEmbeddingCache,
             instanceConfig: this.spanLevelEmbedding,
-            rankGpu: (vector) => this.tryRankWebGpu(runtime.index.embeddingDim, vector, candidateVectors),
+            rankGpu: (vector) => rankWithOwnerGpu(this, runtime.index.embeddingDim, vector, candidateVectors),
             progress,
             traceEnabled: trace,
             traceId: this.traceId,
@@ -506,7 +521,7 @@
             promptText,
             options,
             rerankProvider: activeRerankProvider,
-            rankGpu: (vector) => this.tryRankWebGpu(runtime.index.embeddingDim, vector, candidateVectors),
+            rankGpu: (vector) => rankWithOwnerGpu(this, runtime.index.embeddingDim, vector, candidateVectors),
             progress,
             traceEnabled: trace,
             traceId: this.traceId,
@@ -554,6 +569,7 @@
             backend: provider.backend || 'doppler-embedding',
             rankBackend: gpuScores ? 'webgpu' : 'cpu',
             promptRuntimeReceipt: runtime.promptRuntimeReceipt || null,
+            boundedClassification,
             priors: rerank.priors.slice(0, max),
             cardMatches,
             universeMatches,
@@ -936,74 +952,8 @@
           return this.createDopplerRerankerProvider(runtime, config, options, handle, modelBaseUrl);
         }
 
-        async releaseDopplerHandles() {
-          const handles = [...new Set([
-            this.dopplerEmbedHandle,
-            this.dopplerRerankerHandle,
-          ].filter(Boolean))];
-          this.dopplerEmbedHandle = null;
-          this.dopplerRerankerHandle = null;
-          this.activeDopplerModelRole = '';
-          await Promise.allSettled(handles.map((handle) => (
-            typeof handle.unload === 'function' ? handle.unload() : Promise.resolve()
-          )));
-          await closePreparedDopplerModelSources(this);
-          resetDopplerModelPreparation(this);
-        }
-
         createDopplerRerankerProvider(runtime, config, options, handle, modelBaseUrl) {
-          let activeHandle = handle;
-          let activeProvider = createRerankProviderFromHandle(
-            activeHandle,
-            runtime,
-            config,
-            'doppler-reranker-load',
-            modelBaseUrl
-          );
-          return {
-            backend: 'doppler-reranker-load',
-            rerank: async (input) => {
-              if (!this.dopplerRerankerHandle) {
-                const reloaded = await this.loadDopplerRerankerModel(runtime, options);
-                return reloaded.rerank(input);
-              }
-              if (this.dopplerRerankerHandle !== activeHandle) {
-                activeHandle = this.dopplerRerankerHandle;
-                activeProvider = createRerankProviderFromHandle(
-                  activeHandle,
-                  runtime,
-                  config,
-                  'doppler-reranker-load',
-                  this.dopplerRerankerModelBaseUrl || modelBaseUrl
-                );
-              }
-              return activeProvider.rerank(input);
-            },
-          };
-        }
-
-        async gpuDevice() {
-          if (this.dopplerDevicePromise) {
-            return this.dopplerDevicePromise;
-          }
-          if (typeof navigator === 'undefined' || !navigator.gpu) return null;
-          if (!this.gpuPromise) {
-            this.gpuPromise = navigator.gpu
-              .requestAdapter({ powerPreference: 'high-performance' })
-              .then((adapter) => adapter ? adapter.requestDevice() : null)
-              .catch(() => null);
-          }
-          return this.gpuPromise;
-        }
-
-        async tryRankWebGpu(dimensions, queryVector, candidateVectors) {
-          const device = await this.gpuDevice();
-          if (!device || !candidateVectors.length) return null;
-          try {
-            return await rankWebGpu(device, dimensions, queryVector, candidateVectors);
-          } catch (_err) {
-            return null;
-          }
+          return managedRerankProvider(this, runtime, config, options, handle, modelBaseUrl);
         }
       }
 
