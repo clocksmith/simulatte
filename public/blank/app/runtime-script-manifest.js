@@ -192,11 +192,7 @@
     'app/simulation/simulation-lab.js'
   );
   const review = group(
-    'app/prompt/prompt-review-bridge-dependencies.js',
-    'app/prompt/prompt-review-bridge-state.js',
-    'app/prompt/prompt-review-bridge-panel.js',
-    'app/prompt/prompt-review-bridge-feedback.js',
-    'app/prompt/prompt-review-bridge-sync.js',
+    'app/prompt/prompt-review-bridge-store.js',
     'app/prompt/prompt-review-bridge.js'
   );
 

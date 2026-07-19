@@ -87,8 +87,8 @@ test('public javascript keeps lines below the repository ceiling', () => {
 });
 
 const REFACTOR_SCOPE_BASELINE = Object.freeze({
-  withScopeFiles: 93,
-  missingDependencyFiles: 98,
+  withScopeFiles: 88,
+  missingDependencyFiles: 93,
   scopeNames: Object.freeze([
     '__SimulatteCompositionGraphRefactorScope',
     '__SimulatteGraphSynthesisRefactorScope',
@@ -97,7 +97,6 @@ const REFACTOR_SCOPE_BASELINE = Object.freeze({
     '__SimulattePhysicsIRRefactorScope',
     '__SimulattePhysicsModelRefactorScope',
     '__SimulattePhysicsRendererRefactorScope',
-    '__SimulatteReviewBridgeRefactorScope',
     '__SimulatteSemanticRagRefactorScope',
     '__SimulatteWebGpuRendererRefactorScope',
   ]),
@@ -240,6 +239,7 @@ test('app product boundaries use loading prompt simulation and pipeline director
   assert.ok(fs.existsSync(path.join(loadingRoot, 'loading-canvas.js')));
   assert.ok(fs.existsSync(path.join(runtimeRoot, 'runtime-progress.js')));
   assert.ok(fs.existsSync(path.join(promptRoot, 'prompt-controller.js')));
+  assert.ok(fs.existsSync(path.join(promptRoot, 'prompt-review-bridge-store.js')));
   assert.ok(fs.existsSync(path.join(promptRoot, 'prompt-review-bridge.js')));
   assert.ok(fs.existsSync(path.join(simulationRoot, 'simulation-lab.js')));
   assert.ok(fs.existsSync(path.join(pipelineRoot, 'phase-07-render', 'simulatte-webgpu-renderer.js')));
@@ -252,6 +252,7 @@ test('app product boundaries use loading prompt simulation and pipeline director
   assert.match(html, /src="\.\/app\/runtime\/runtime-progress\.js\?v=[^"]+"/);
   assert.match(html, /src="\.\/app\/prompt\/prompt-controller\.js\?v=[^"]+"/);
   assert.match(html, /src="\.\/app\/simulation\/simulation-lab\.js\?v=[^"]+"/);
+  assert.match(html, /src="\.\/app\/prompt\/prompt-review-bridge-store\.js\?v=[^"]+"/);
   assert.match(html, /src="\.\/app\/prompt\/prompt-review-bridge\.js\?v=[^"]+"/);
   assert.match(html, /src="\.\/app\/main\.js\?v=[^"]+"/);
   assert.match(html, /src="\.\/app\/version-guard\.js\?v=[^"]+"/);
