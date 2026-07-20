@@ -104,13 +104,18 @@
 
 
         <section class="mission-dock sim-surface" aria-label="Mission">
-          <label class="mission-field" for="mission-input">
+          <label id="mission-field" class="mission-field" for="mission-input">
             <span class="sr-only">Describe a mission</span>
             <textarea id="mission-input" rows="2" spellcheck="false" aria-describedby="mission-error" placeholder="Where should the agent go?"></textarea>
           </label>
+          <div id="scenario-field" class="scenario-field" hidden>
+            <span id="scenario-label" class="scenario-label"></span>
+            <span id="scenario-description" class="scenario-description"></span>
+            <span id="scenario-seed" class="scenario-seed"></span>
+          </div>
           <div class="mission-actions" aria-label="Mission actions">
-            <button id="shuffle-button" class="sim-action" type="button">Shuffle<span aria-hidden="true">↻</span></button>
-            <button id="start-button" class="sim-action sim-action-primary" type="button"><span class="play-mark" aria-hidden="true"></span>Start</button>
+            <button id="shuffle-button" class="sim-action" type="button"><span id="shuffle-label">Shuffle</span><span aria-hidden="true">↻</span></button>
+            <button id="start-button" class="sim-action sim-action-primary" type="button"><span class="play-mark" aria-hidden="true"></span><span id="start-label">Start</span></button>
             <button id="pause-button" class="sim-action" type="button" hidden>Pause</button>
             <button id="resume-button" class="sim-action sim-action-primary" type="button" hidden><span class="play-mark" aria-hidden="true"></span>Resume</button>
             <button id="replay-button" class="sim-action sim-action-primary" type="button" hidden>Replay</button>

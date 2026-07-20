@@ -1,13 +1,13 @@
 {
-  "schema": "simulatte.applicationProfile.v1",
+  "schema": "simulatte.applicationProfile.v2",
   "id": "p2p-delivery-v1",
-  "defaultMissionText": "I need two AA batteries delivered to my East Village office. Match someone already passing nearby.",
-  "missionExamples": [
-    "I need two AA batteries delivered to my East Village office. Match someone already passing nearby.",
-    "Bring one phone charger to the East Village office with the smallest added trip.",
-    "I need one umbrella delivered to the Greenpoint apartment by someone already going that way.",
-    "Deliver two AA batteries to the Greenpoint apartment within a small detour.",
-    "Bring one phone charger to my East Village office through a nearby journey."
+  "interaction": { "mode": "request", "startLabel": "Match", "shuffleLabel": "Shuffle request" },
+  "defaultSeedId": "battery-east-village",
+  "seeds": [
+    { "id": "battery-east-village", "label": "AA batteries to East Village", "description": "Match two batteries to a journey already passing nearby.", "seed": "delivery-battery-east-village-0719", "missionText": "I need two AA batteries delivered to my East Village office. Match someone already passing nearby." },
+    { "id": "charger-east-village", "label": "Charger to East Village", "description": "Minimize the added trip for one phone charger.", "seed": "delivery-charger-east-village-2048", "missionText": "Bring one phone charger to the East Village office with the smallest added trip." },
+    { "id": "umbrella-greenpoint", "label": "Umbrella to Greenpoint", "description": "Match an umbrella request to an existing nearby journey.", "seed": "delivery-umbrella-greenpoint-4096", "missionText": "I need one umbrella delivered to the Greenpoint apartment by someone already going that way." },
+    { "id": "battery-greenpoint", "label": "Batteries to Greenpoint", "description": "Keep the cooperative detour within a small budget.", "seed": "delivery-battery-greenpoint-8192", "missionText": "Deliver two AA batteries to the Greenpoint apartment within a small detour." }
   ],
   "camera": { "initialMode": "top", "runMode": "top", "pluginId": "p2p-delivery", "targetId": "delivery-network" },
   "plugins": [{ "id": "p2p-delivery", "configId": "p2p-delivery-default-v1" }],

@@ -1,13 +1,13 @@
 {
-  "schema": "simulatte.applicationProfile.v1",
+  "schema": "simulatte.applicationProfile.v2",
   "id": "accessible-journey-v1",
-  "defaultMissionText": "Walk from Washington Square Park to Union Square on a step-free wheelchair-accessible route.",
-  "missionExamples": [
-    "Walk from Washington Square Park to Union Square on a step-free wheelchair-accessible route.",
-    "Find an accessible route from Tompkins Square Park to Union Square.",
-    "Use a mobility-device route from Cooper Park to McCarren Park.",
-    "Walk from Union Square to Washington Square Park on a step-free route.",
-    "Find a wheelchair-accessible route from McCarren Park to Cooper Park."
+  "interaction": { "mode": "explorer", "startLabel": "Run audit", "shuffleLabel": "Shuffle corridor" },
+  "defaultSeedId": "village-audit",
+  "seeds": [
+    { "id": "village-audit", "label": "Village to Union Square", "description": "Audit ramp and topology evidence; unresolved segments are not claimed step-free.", "seed": "accessible-village-union-0719", "missionText": "Walk from Washington Square Park to Union Square and run an accessibility evidence audit." },
+    { "id": "east-village-access", "label": "East Village audit", "description": "Inspect accessibility evidence from Tompkins Square Park.", "seed": "accessible-east-village-2048", "missionText": "Walk from Tompkins Square Park to Union Square and run an accessibility audit." },
+    { "id": "brooklyn-mobility", "label": "Brooklyn evidence audit", "description": "Audit known ramps and unresolved topology between Brooklyn parks.", "seed": "accessible-brooklyn-4096", "missionText": "Walk from Cooper Park to McCarren Park and run an accessibility evidence audit." },
+    { "id": "return-audit", "label": "Union Square return audit", "description": "Inspect the reverse route without implying accessibility compliance.", "seed": "accessible-return-8192", "missionText": "Walk from Union Square to Washington Square Park and run an accessibility audit." }
   ],
   "camera": { "initialMode": "bird", "runMode": "bird", "pluginId": "accessible-journey", "targetId": "accessible-route" },
   "plugins": [{ "id": "accessible-journey", "configId": "accessible-journey-default-v1" }],

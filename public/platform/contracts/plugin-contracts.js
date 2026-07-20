@@ -52,8 +52,15 @@
 
   function validateProfile(value) {
     assertObject(value, 'application_profile_invalid', 'Application profile expected an object');
-    assertAllowedKeys(value, ['schema', 'id', 'plugins', 'routeObjective', 'defaultMissionText', 'missionExamples', 'camera'], ['schema', 'id', 'plugins', 'routeObjective'], `Application profile ${value.id || 'missing'}`);
-    equal(value.schema, 'simulatte.applicationProfile.v1', 'application_profile_schema_invalid', 'Application profile schema');
+    const isV2 = value.schema === 'simulatte.applicationProfile.v2';
+    const allowedKeys = isV2
+      ? ['schema', 'id', 'plugins', 'routeObjective', 'camera', 'interaction', 'defaultSeedId', 'seeds']
+      : ['schema', 'id', 'plugins', 'routeObjective', 'defaultMissionText', 'missionExamples', 'camera'];
+    const requiredKeys = isV2
+      ? ['schema', 'id', 'plugins', 'routeObjective', 'interaction', 'defaultSeedId', 'seeds']
+      : ['schema', 'id', 'plugins', 'routeObjective'];
+    assertAllowedKeys(value, allowedKeys, requiredKeys, `Application profile ${value.id || 'missing'}`);
+    if (!['simulatte.applicationProfile.v1', 'simulatte.applicationProfile.v2'].includes(value.schema)) fail('application_profile_schema_invalid', `Application profile schema ${value.schema || 'missing'} is unsupported`, null);
     text(value.id, 'application_profile_id_invalid', 'Application profile ID');
     if (!Array.isArray(value.plugins)) fail('application_profile_plugins_invalid', `Profile ${value.id} plugins expected an array`, null);
     const ids = new Set();
@@ -69,12 +76,13 @@
     Object.entries(value.routeObjective).forEach(([key, weight]) => {
       if (!Number.isFinite(weight) || weight < 0) fail('application_profile_weight_invalid', `Profile ${value.id} route weight ${key} expected a non-negative number`, { key, weight });
     });
-    if (value.defaultMissionText !== undefined) text(value.defaultMissionText, 'application_profile_mission_invalid', `Profile ${value.id} default mission`);
-    if (value.missionExamples !== undefined) {
+    if (!isV2 && value.defaultMissionText !== undefined) text(value.defaultMissionText, 'application_profile_mission_invalid', `Profile ${value.id} default mission`);
+    if (!isV2 && value.missionExamples !== undefined) {
       if (!Array.isArray(value.missionExamples) || value.missionExamples.length < 2 || new Set(value.missionExamples).size !== value.missionExamples.length) fail('application_profile_examples_invalid', `Profile ${value.id} mission examples expected at least two unique rows`, null);
       value.missionExamples.forEach((row) => text(row, 'application_profile_example_invalid', `Profile ${value.id} mission example`));
       if (value.defaultMissionText !== undefined && !value.missionExamples.includes(value.defaultMissionText)) fail('application_profile_default_example_missing', `Profile ${value.id} examples must include its default mission`, null);
     }
+    if (isV2) validateProfileInteraction(value);
     if (value.camera !== undefined) {
       assertAllowedKeys(value.camera, ['initialMode', 'runMode', 'pluginId', 'targetId'], ['initialMode', 'runMode'], `Profile ${value.id} camera`);
       if (!['follow', 'bird', 'top'].includes(value.camera.initialMode) || !['follow', 'bird', 'top'].includes(value.camera.runMode)) fail('application_profile_camera_mode_invalid', `Profile ${value.id} camera modes are invalid`, value.camera);
@@ -91,11 +99,31 @@
   function validatePluginInstance(pluginId, value) {
     assertObject(value, 'plugin_instance_invalid', `Plugin ${pluginId} activation expected an instance`);
     if (value.id !== pluginId) fail('plugin_instance_id_mismatch', `Plugin ${pluginId} activated as ${value.id || 'missing'}`, { expected: pluginId, actual: value.id || null });
-    ['contributeRequest', 'createRouteContributor', 'settle', 'view', 'present', 'dispose', 'reduce', 'handleAction'].forEach((method) => {
+    ['contributeRequest', 'createRouteContributor', 'settle', 'view', 'present', 'dispose', 'reduce', 'handleAction', 'setScenario'].forEach((method) => {
       if (value[method] !== undefined && typeof value[method] !== 'function') fail('plugin_instance_method_invalid', `Plugin ${pluginId}.${method} expected a function`, { pluginId, method });
     });
     if (value.capabilities !== undefined && (!value.capabilities || typeof value.capabilities !== 'object' || Array.isArray(value.capabilities))) fail('plugin_instance_capabilities_invalid', `Plugin ${pluginId}.capabilities expected an object`, { pluginId });
     return value;
+  }
+
+  function validateProfileInteraction(value) {
+    assertObject(value.interaction, 'application_profile_interaction_invalid', `Profile ${value.id} interaction expected an object`);
+    assertExactKeys(value.interaction, ['mode', 'startLabel', 'shuffleLabel'], `Profile ${value.id} interaction`);
+    if (!['explorer', 'form', 'playback', 'request', 'route'].includes(value.interaction.mode)) fail('application_profile_interaction_mode_invalid', `Profile ${value.id} interaction mode is invalid`, value.interaction);
+    text(value.interaction.startLabel, 'application_profile_interaction_label_invalid', `Profile ${value.id} start label`);
+    text(value.interaction.shuffleLabel, 'application_profile_interaction_label_invalid', `Profile ${value.id} shuffle label`);
+    if (!Array.isArray(value.seeds) || value.seeds.length < 2) fail('application_profile_seeds_invalid', `Profile ${value.id} expected at least two seeds`, null);
+    const ids = new Set();
+    const seeds = new Set();
+    value.seeds.forEach((row, index) => {
+      assertObject(row, 'application_profile_seed_invalid', `Profile ${value.id} seed ${index} expected an object`);
+      assertExactKeys(row, ['id', 'label', 'description', 'seed', 'missionText'], `Profile ${value.id} seed ${index}`);
+      ['id', 'label', 'description', 'seed', 'missionText'].forEach((key) => text(row[key], 'application_profile_seed_invalid', `Profile ${value.id} seed ${index} ${key}`));
+      if (ids.has(row.id) || seeds.has(row.seed)) fail('application_profile_seed_duplicate', `Profile ${value.id} seed IDs and values must be unique`, { id: row.id, seed: row.seed });
+      ids.add(row.id); seeds.add(row.seed);
+    });
+    text(value.defaultSeedId, 'application_profile_default_seed_invalid', `Profile ${value.id} default seed`);
+    if (!ids.has(value.defaultSeedId)) fail('application_profile_default_seed_missing', `Profile ${value.id} default seed is not declared`, { defaultSeedId: value.defaultSeedId });
   }
 
   function validateRequestContribution(pluginId, value) {

@@ -46,7 +46,7 @@
       "defaultConfig": "./default-config.json",
       "entry": {
         "globalFactory": "SimulattePluginAccessibleJourney",
-        "integrity": "sha384-a52146e07472248810fcd6d737cd09ce75d311ebe889ec0d9ca083ebc53735223c671ecbb497e953127f44a604093da4",
+        "integrity": "sha384-3c1972358288804d102b65a34706999cc1893bfb0442697d86875f5688c395451a895f758db552bf93bcecd74cb84ec3",
         "path": "./index.js"
       },
       "extensionPoints": [
@@ -173,7 +173,7 @@
       "defaultConfig": "./default-config.json",
       "entry": {
         "globalFactory": "SimulattePluginCableTrader",
-        "integrity": "sha384-f0dfedf4bc5c259247db627ea20fed952caeaeece87f8ecd3dd134a57a51434565f14636bb813bf795bcd48838cb2e84",
+        "integrity": "sha384-dee092baf1e86d162f63570052d8188e7d37f3c2017f5ae666e38477d4e887f2e11e7eafa629553b4451790b086728f4",
         "path": "./index.js"
       },
       "extensionPoints": [

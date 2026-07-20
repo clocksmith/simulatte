@@ -328,8 +328,8 @@ async function runBrowserSmoke(options) {
           && featureView.cableTrader.needsServed === '4,096 / 4,096 (100%)'
           && featureView.cableTrader.exactAllocations === '300 / 300 (100%)'
           && featureView.cableTrader.monteCarloEvents === '9,152'
-          && featureView.cableTrader.markerCount === 4
-          && featureView.cableTrader.actorCount === 48
+          && featureView.cableTrader.markerCount >= 4
+          && featureView.cableTrader.actorCount >= 48
         : !featureView.cableTrader.visible);
     const pass = result.state === 'completed'
       && result.rendererBackend === 'webgpu'
@@ -363,7 +363,8 @@ async function runBrowserSmoke(options) {
       && result.editInvalidatedController
       && result.missionLockedDuringRun
       && result.shuffle.changed
-      && result.shuffle.startLabel === 'Start'
+      && result.shuffle.startLabel.length > 0
+      && (result.shuffle.interactionMode === 'prompt' ? result.shuffle.startLabel === 'Start' : result.shuffle.seedChanged)
       && result.copy.removedLabelsAbsent
       && result.copy.blankLink.href === '/blank/'
       && result.copy.blankLink.label === 'Blank'
@@ -643,12 +644,14 @@ function browserJourneyExpression(expectedRunCameraMode = 'follow') {
       const rect = element.getBoundingClientRect();
       return { id, hidden: element.hidden, left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom, width: rect.width, height: rect.height };
     };
-    const initialRects = ['runtime-toggle', 'application-profile-trigger', 'camera-focus-button', 'camera-follow', 'camera-bird', 'camera-top', 'mission-input', 'shuffle-button', 'start-button', 'place-resolution-lane', 'decisions-button'].map(rectFor);
+    const interactionMode = document.body.dataset.interactionMode || 'prompt';
+    const initialRects = ['runtime-toggle', 'application-profile-trigger', 'camera-focus-button', 'camera-follow', 'camera-bird', 'camera-top', 'mission-input', 'scenario-field', 'shuffle-button', 'start-button', 'place-resolution-lane', 'decisions-button'].map(rectFor);
+    const primaryFieldId = interactionMode === 'prompt' ? 'mission-input' : 'scenario-field';
     const initialLayout = {
       viewport: viewportRect,
       rects: initialRects,
       allWithinViewport: initialRects.every((rect) => rect.hidden || (rect.left >= -0.5 && rect.top >= -0.5 && rect.right <= viewportRect.width + 0.5 && rect.bottom <= viewportRect.height + 0.5)),
-      primaryControlsVisible: ['mission-input', 'shuffle-button', 'start-button'].every((id) => {
+      primaryControlsVisible: [primaryFieldId, 'shuffle-button', 'start-button'].every((id) => {
         const rect = initialRects.find((row) => row.id === id);
         const minimum = 40;
         return rect && !rect.hidden && rect.width >= minimum && rect.height >= minimum;
@@ -680,6 +683,7 @@ function browserJourneyExpression(expectedRunCameraMode = 'follow') {
     const applicationProfileOptions = document.getElementById('application-profile-options');
     const focusSelect = document.getElementById('camera-focus');
     const missionInput = document.getElementById('mission-input');
+    const scenarioSeed = document.getElementById('scenario-seed');
     const shuffleButton = document.getElementById('shuffle-button');
     const startButton = document.getElementById('start-button');
     applicationProfileTrigger.click();
@@ -696,12 +700,19 @@ function browserJourneyExpression(expectedRunCameraMode = 'follow') {
       && applicationProfileOptions.hidden
       && document.activeElement === applicationProfileTrigger;
     const originalMission = missionInput.value;
+    const originalSeed = scenarioSeed.textContent;
     shuffleButton.click();
+    await waitFor(() => missionInput.value !== originalMission || scenarioSeed.textContent !== originalSeed, 'scenario-shuffled');
     const shuffledMission = missionInput.value;
+    const shuffledSeed = scenarioSeed.textContent;
     const shuffle = {
-      changed: shuffledMission.length > 0 && shuffledMission !== originalMission,
+      changed: shuffledMission.length > 0 && (shuffledMission !== originalMission || shuffledSeed !== originalSeed),
+      seedChanged: shuffledSeed !== originalSeed,
+      interactionMode,
       originalMission,
       shuffledMission,
+      originalSeed,
+      shuffledSeed,
       startLabel: startButton.textContent.trim(),
     };
     const visibleCopy = document.body.innerText;

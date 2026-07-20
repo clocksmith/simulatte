@@ -1,13 +1,13 @@
 {
-  "schema": "simulatte.applicationProfile.v1",
+  "schema": "simulatte.applicationProfile.v2",
   "id": "historical-streets-v1",
-  "defaultMissionText": "Bike from Union Square to McCarren Park and inspect the loaded street snapshot.",
-  "missionExamples": [
-    "Bike from Union Square to McCarren Park and inspect the loaded street snapshot.",
-    "Walk from Washington Square Park to Union Square in the current street world.",
-    "Bike from Cooper Park to McCarren Park and inspect the snapshot identity.",
-    "Walk from Tompkins Square Park to Union Square and inspect available street history.",
-    "Ride from McCarren Park to Cooper Park in the selected world snapshot."
+  "interaction": { "mode": "explorer", "startLabel": "Inspect route", "shuffleLabel": "Shuffle corridor" },
+  "defaultSeedId": "union-mccarren",
+  "seeds": [
+    { "id": "union-mccarren", "label": "Union Square to McCarren", "description": "Inspect the selected street snapshot along a bike corridor.", "seed": "history-union-mccarren-0719", "missionText": "Bike from Union Square to McCarren Park and inspect the loaded street snapshot." },
+    { "id": "village-union", "label": "Village to Union Square", "description": "Walking corridor in the currently selected world snapshot.", "seed": "history-village-union-2048", "missionText": "Walk from Washington Square Park to Union Square in the current street world." },
+    { "id": "cooper-mccarren", "label": "Cooper to McCarren", "description": "Brooklyn corridor with explicit snapshot identity.", "seed": "history-cooper-mccarren-4096", "missionText": "Bike from Cooper Park to McCarren Park and inspect the snapshot identity." },
+    { "id": "tompkins-union", "label": "Tompkins to Union", "description": "East Village corridor against available street history.", "seed": "history-tompkins-union-8192", "missionText": "Walk from Tompkins Square Park to Union Square and inspect available street history." }
   ],
   "camera": { "initialMode": "top", "runMode": "top" },
   "plugins": [{ "id": "historical-streets", "configId": "historical-streets-default-v1" }],

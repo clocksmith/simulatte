@@ -63,11 +63,15 @@
       failRuntime(elements, error);
       return null;
     }
+    if (!applicationProfileSelectApi?.resolveInteraction || !applicationProfileSelectApi?.renderInteraction) throw new Error('Application interaction dependency is unavailable');
+    const interaction = applicationProfileSelectApi.resolveInteraction(data.applicationProfile, data.manifest);
+    let activeScenario = interaction.defaultScenario;
     const pluginArtifacts = artifactStoreApi.createGovernedArtifactStore({ transport: transportApi.createBrowserTransport({ fetchImpl: fetch.bind(globalThis) }) });
     let activeMissionForPlugins = null;
     const extensions = await pluginRuntimeApi.createPluginRuntime({
       registry: pluginRegistry,
       profile: data.applicationProfile,
+      scenario: activeScenario,
       dataCatalog: data.dataCatalog,
       artifactStore: pluginArtifacts,
       registryBaseUrl: document.baseURI,
@@ -116,8 +120,7 @@
       },
     });
     pluginUi.render(extensions.views({ mission: null, compositionSize: extensions.activePluginIds.length }));
-    const missionExamples = data.applicationProfile.missionExamples || data.manifest.missionExamples;
-    elements.missionInput.value = data.applicationProfile.defaultMissionText || data.manifest.defaultMissionText;
+    applicationProfileSelectApi.renderInteraction(interaction, activeScenario, elements);
     resizeMissionInput(elements.missionInput);
     const traceView = traceApi.createTraceView(elements, data.policy, data.rerankerEvidence);
     let controller = null;
@@ -429,17 +432,21 @@
       hasJourneyStarted = false;
       updateButtons(elements, false, false, 'active', false);
       setRuntimeStatus(elements, 'Ready', 'changed');
-      elements.missionInput.focus();
+      applicationProfileSelectApi.focusPrimary(interaction, elements);
     });
-    elements.shuffleButton.addEventListener('click', () => {
+    elements.shuffleButton.addEventListener('click', async () => {
       if (isRunning) return;
-      elements.missionInput.value = nextMissionExample(missionExamples, elements.missionInput.value);
-      log.info('mission.example.selected', {
-        sourceText: elements.missionInput.value,
-        exampleCount: missionExamples.length,
+      activeScenario = applicationProfileSelectApi.nextScenario(interaction, activeScenario.id);
+      await extensions.setScenario(activeScenario);
+      applicationProfileSelectApi.renderInteraction(interaction, activeScenario, elements);
+      log.info('application.scenario.selected', {
+        scenarioId: activeScenario.id,
+        seed: activeScenario.seed,
+        interactionMode: interaction.mode,
       });
       elements.missionInput.dispatchEvent(new Event('input', { bubbles: true }));
       resizeMissionInput(elements.missionInput);
+      renderPluginExperience({ mission: null });
     });
     elements.pauseButton.addEventListener('click', () => {
       stopLoop();
@@ -568,7 +575,7 @@
 
   function collectElements() {
     const ids = [
-      'mission-input', 'mission-error', 'place-resolution-lane', 'place-lane-note', 'model-selection-controls', 'shuffle-button', 'start-button', 'pause-button', 'resume-button', 'step-button', 'reset-button', 'replay-button', 'new-mission-button', 'what-if-button', 'export-button',
+      'mission-field', 'scenario-field', 'scenario-label', 'scenario-description', 'scenario-seed', 'mission-input', 'mission-error', 'place-resolution-lane', 'place-lane-note', 'model-selection-controls', 'shuffle-button', 'shuffle-label', 'start-button', 'start-label', 'pause-button', 'resume-button', 'step-button', 'reset-button', 'replay-button', 'new-mission-button', 'what-if-button', 'export-button',
       'dock-more-button', 'dock-more-menu',
       'runtime-status', 'runtime-toggle', 'runtime-details', 'runtime-details-close', 'application-profile', 'application-profile-control', 'application-profile-trigger', 'application-profile-label', 'application-profile-options', 'render-identity', 'autonomy-canvas', 'follow-minimap', 'decision-title', 'decision-meta',
       'bet-list', 'gate-list', 'trace-list', 'route-formula', 'route-stats', 'route-components',
@@ -845,23 +852,6 @@
     return 'Running';
   }
 
-  function nextMissionExample(examples, currentText) {
-    const rows = [...new Set((examples || []).map((row) => String(row).trim()).filter(Boolean))]
-      .sort((left, right) => hash32(left) - hash32(right) || left.localeCompare(right));
-    if (rows.length < 2) throw new Error('Mission shuffle expected at least two governed examples');
-    const currentIndex = rows.indexOf(String(currentText || '').trim());
-    return rows[(currentIndex + 1 + rows.length) % rows.length];
-  }
-
-  function hash32(value) {
-    let hash = 2166136261;
-    for (const character of String(value)) {
-      hash ^= character.codePointAt(0);
-      hash = Math.imul(hash, 16777619);
-    }
-    return hash >>> 0;
-  }
-
   function renderIdentity(receipt) {
     const adapter = receipt.adapter.description || receipt.adapter.device || receipt.adapter.architecture || 'adapter';
     return `${adapter} | ${receipt.buildingCount} buildings | ${receipt.ambientTraffic.actorCount} moving actors | ${receipt.staticVertexCount.toLocaleString()} static vertices`;
@@ -978,5 +968,5 @@
     else launch();
   }
 
-  return { applicationProfileLabel, collectElements, friendlyMissionError, nextMissionExample, populateApplicationProfiles, populateCameraFocus, renderIdentity, renderPlaceResolution, renderPlanning, renderPolicyArena, runtimeLabel, selectCameraMode, start, validateImportedJourneyReceipt };
+  return { applicationProfileLabel, collectElements, friendlyMissionError, populateApplicationProfiles, populateCameraFocus, renderIdentity, renderPlaceResolution, renderPlanning, renderPolicyArena, runtimeLabel, selectCameraMode, start, validateImportedJourneyReceipt };
 });

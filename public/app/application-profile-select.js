@@ -161,5 +161,60 @@
     });
   }
 
-  return { createApplicationProfileSelect };
+  function resolveInteraction(profile, manifest) {
+    if (profile?.schema === 'simulatte.applicationProfile.v2') {
+      const scenarios = profile.seeds.map((row) => Object.freeze({ ...row }));
+      return Object.freeze({
+        mode: profile.interaction.mode,
+        startLabel: profile.interaction.startLabel,
+        shuffleLabel: profile.interaction.shuffleLabel,
+        scenarios: Object.freeze(scenarios),
+        defaultScenario: scenarios.find((row) => row.id === profile.defaultSeedId),
+      });
+    }
+    const examples = profile?.missionExamples || manifest?.missionExamples || [];
+    const defaultText = profile?.defaultMissionText || manifest?.defaultMissionText || examples[0] || '';
+    const rows = [...new Set([defaultText, ...examples].map((row) => String(row || '').trim()).filter(Boolean))];
+    const scenarios = rows.map((missionText, index) => Object.freeze({
+      id: `prompt-${index + 1}`,
+      label: `Prompt ${index + 1}`,
+      description: missionText,
+      seed: `prompt-${hash32(missionText).toString(16)}`,
+      missionText,
+    }));
+    return Object.freeze({
+      mode: 'prompt', startLabel: 'Start', shuffleLabel: 'Shuffle',
+      scenarios: Object.freeze(scenarios),
+      defaultScenario: scenarios.find((row) => row.missionText === defaultText) || scenarios[0],
+    });
+  }
+
+  function nextScenario(interaction, currentId) {
+    const index = interaction.scenarios.findIndex((row) => row.id === currentId);
+    return interaction.scenarios[(index + 1 + interaction.scenarios.length) % interaction.scenarios.length];
+  }
+
+  function renderInteraction(interaction, scenario, elements) {
+    document.body.dataset.interactionMode = interaction.mode;
+    elements.missionField.hidden = interaction.mode !== 'prompt';
+    elements.scenarioField.hidden = interaction.mode === 'prompt';
+    elements.scenarioLabel.textContent = scenario.label;
+    elements.scenarioDescription.textContent = scenario.description;
+    elements.scenarioSeed.textContent = `Seed ${scenario.seed}`;
+    elements.missionInput.value = scenario.missionText;
+    elements.shuffleLabel.textContent = interaction.shuffleLabel;
+    elements.startLabel.textContent = interaction.startLabel;
+  }
+
+  function focusPrimary(interaction, elements) {
+    (interaction.mode === 'prompt' ? elements.missionInput : elements.shuffleButton).focus();
+  }
+
+  function hash32(value) {
+    let hash = 2166136261;
+    for (const character of String(value)) { hash ^= character.codePointAt(0); hash = Math.imul(hash, 16777619); }
+    return hash >>> 0;
+  }
+
+  return { createApplicationProfileSelect, focusPrimary, nextScenario, renderInteraction, resolveInteraction };
 });

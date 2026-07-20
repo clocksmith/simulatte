@@ -1,13 +1,13 @@
 {
-  "schema": "simulatte.applicationProfile.v1",
+  "schema": "simulatte.applicationProfile.v2",
   "id": "cable-trader-pickup-v1",
-  "defaultMissionText": "Show the predefined 30-day cable network and its optimal allocation.",
-  "missionExamples": [
-    "Show the predefined 30-day cable network and its optimal allocation.",
-    "Show which cable hubs absorb the most demand this month.",
-    "Show all cross-hub transfers in the optimal cable allocation.",
-    "Show how 4,096 seeded cable needs are fulfilled.",
-    "Show the Monte Carlo cable inventory baseline."
+  "interaction": { "mode": "playback", "startLabel": "Play month", "shuffleLabel": "Shuffle seed" },
+  "defaultSeedId": "july-baseline",
+  "seeds": [
+    { "id": "july-baseline", "label": "July baseline", "description": "4,096 needs across four hubs and ten cable families.", "seed": "cable-city-month-2026-07", "missionText": "Show the predefined 30-day cable network and its optimal allocation." },
+    { "id": "campus-return-wave", "label": "Campus return wave", "description": "A return-heavy month with demand redistributed across hubs.", "seed": "cable-city-campus-return-731", "missionText": "Show the predefined 30-day cable network and its optimal allocation." },
+    { "id": "display-cable-surge", "label": "Display cable surge", "description": "A different deterministic event ordering and transfer frontier.", "seed": "cable-city-display-surge-4096", "missionText": "Show the predefined 30-day cable network and its optimal allocation." },
+    { "id": "brooklyn-rebalance", "label": "Brooklyn rebalance", "description": "A seeded month emphasizing cross-river inventory movement.", "seed": "cable-city-brooklyn-rebalance-8192", "missionText": "Show the predefined 30-day cable network and its optimal allocation." }
   ],
   "camera": { "initialMode": "top", "runMode": "top", "pluginId": "cable-trader", "targetId": "cable-network" },
   "plugins": [{ "id": "cable-trader", "configId": "cable-trader-network-v2" }],

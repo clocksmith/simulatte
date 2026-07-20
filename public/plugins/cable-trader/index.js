@@ -6,7 +6,7 @@
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulattePluginCableTrader = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createCableTraderPlugin(network) {
-  async function activate({ sdk, config }) {
+  async function activate({ sdk, config, scenario = null }) {
     const worldModel = sdk.worldQuery.model();
     const transferRoutes = config.hubs.flatMap((sourceHub) => config.hubs
       .filter((destinationHub) => destinationHub.id !== sourceHub.id)
@@ -28,17 +28,32 @@
           costUnits: Math.max(1, route.segmentIds.length),
         });
       }));
-    const simulation = network.simulateNetwork(config, transferRoutes);
+    const simulationFor = (nextScenario) => network.simulateNetwork({
+      ...config,
+      simulation: { ...config.simulation, seed: nextScenario?.seed || config.simulation.seed },
+    }, transferRoutes);
+    const simulation = simulationFor(scenario);
     sdk.state.register(reduce, { simulation, inventory: simulation.endingInventory, credits: {}, lastExchange: null });
-    sdk.receipts.append({
-      schema: 'simulatte.plugin.cableTraderNetworkReceipt.v1',
-      simulationId: simulation.id,
-      seed: simulation.seed,
-      durationDays: simulation.durationDays,
-      summary: simulation.summary,
-      solver: simulation.solver,
-      claimBoundary: simulation.claimBoundary,
-    });
+    appendNetworkReceipt(simulation);
+
+    function appendNetworkReceipt(result) {
+      sdk.receipts.append({
+        schema: 'simulatte.plugin.cableTraderNetworkReceipt.v1',
+        simulationId: result.id,
+        seed: result.seed,
+        durationDays: result.durationDays,
+        summary: result.summary,
+        solver: result.solver,
+        claimBoundary: result.claimBoundary,
+      });
+    }
+
+    function setScenario(nextScenario) {
+      const nextSimulation = simulationFor(nextScenario);
+      sdk.events.propose({ pluginId: 'cable-trader', kind: 'cable-trader.scenario-selected', simulation: nextSimulation });
+      appendNetworkReceipt(nextSimulation);
+      return nextSimulation.summary;
+    }
 
     function contributeRequest({ sourceText, mission = null }) {
       if (!/\b(?:cable|hub|inventory|allocation|monte\s+carlo|exchange\s+network)\b/i.test(sourceText || '')) return null;
@@ -162,12 +177,14 @@
       contributeRequest,
       view,
       present,
+      setScenario,
       capabilities: { 'inventory.exchange.v1': exchange, 'settlement.credit.v1': exchange },
       dispose() {},
     });
   }
 
   function reduce(state, event) {
+    if (event.kind === 'cable-trader.scenario-selected') return { ...state, simulation: event.simulation, inventory: event.simulation.endingInventory, lastExchange: null };
     if (event.kind !== 'cable-trader.exchanged') return state;
     const key = `${event.hubId}:${event.cableTypeId}`;
     const inventory = { ...state.inventory, [key]: (state.inventory[key] || 0) + (event.direction === 'deposit' ? 1 : -1) };

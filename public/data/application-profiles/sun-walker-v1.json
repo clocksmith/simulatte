@@ -1,13 +1,13 @@
 {
-  "schema": "simulatte.applicationProfile.v1",
+  "schema": "simulatte.applicationProfile.v2",
   "id": "sun-walker-v1",
-  "defaultMissionText": "Walk from Washington Square Park to Union Square using the most building shade.",
-  "missionExamples": [
-    "Walk from Washington Square Park to Union Square using the most building shade.",
-    "Find a shaded walk from McCarren Park to Cooper Park.",
-    "Avoid direct sun between Tompkins Square Park and Union Square.",
-    "Take the shadier route from Washington Square Park to Tompkins Square Park.",
-    "On this hot day, walk from Cooper Park to McCarren Park with less direct sun."
+  "interaction": { "mode": "route", "startLabel": "Find shade", "shuffleLabel": "Shuffle walk" },
+  "defaultSeedId": "village-union-shade",
+  "seeds": [
+    { "id": "village-union-shade", "label": "Village to Union Square", "description": "Prefer building shade along the complete walk.", "seed": "shade-village-union-0719", "missionText": "Walk from Washington Square Park to Union Square using the most building shade." },
+    { "id": "mccarren-cooper-shade", "label": "McCarren to Cooper", "description": "Find the shadier Brooklyn walking route.", "seed": "shade-mccarren-cooper-2048", "missionText": "Find a shaded walk from McCarren Park to Cooper Park." },
+    { "id": "tompkins-union-sun", "label": "Tompkins to Union", "description": "Minimize direct sun on an East Village walk.", "seed": "shade-tompkins-union-4096", "missionText": "Avoid direct sun between Tompkins Square Park and Union Square." },
+    { "id": "village-tompkins-hot", "label": "Hot-day crosstown", "description": "Compare shade exposure from Washington Square to Tompkins Square.", "seed": "shade-village-tompkins-8192", "missionText": "Take the shadier route from Washington Square Park to Tompkins Square Park." }
   ],
   "camera": { "initialMode": "bird", "runMode": "bird", "pluginId": "sun-walker", "targetId": "shade-route" },
   "plugins": [{ "id": "sun-walker", "configId": "sun-walker-default-v1" }],

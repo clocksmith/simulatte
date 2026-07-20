@@ -1,13 +1,13 @@
 {
-  "schema": "simulatte.applicationProfile.v1",
+  "schema": "simulatte.applicationProfile.v2",
   "id": "counterfactual-lab-v1",
-  "defaultMissionText": "Bike from Union Square to McCarren Park. Compare what changes if Bedford Avenue closes.",
-  "missionExamples": [
-    "Bike from Union Square to McCarren Park. Compare what changes if Bedford Avenue closes.",
-    "Walk from Washington Square Park to Union Square and compare a street closure.",
-    "Bike from Cooper Park to McCarren Park and compare historical crash weighting.",
-    "Ride from Tompkins Square Park to McCarren Park and compare a changed street.",
-    "Walk from Union Square to Washington Square Park and compare two world conditions."
+  "interaction": { "mode": "explorer", "startLabel": "Prepare comparison", "shuffleLabel": "Shuffle scenario" },
+  "defaultSeedId": "bedford-closure",
+  "seeds": [
+    { "id": "bedford-closure", "label": "Bedford Avenue closure", "description": "Compare the baseline bike route with a declared street closure.", "seed": "counterfactual-bedford-closure-0719", "missionText": "Bike from Union Square to McCarren Park. Compare what changes if Bedford Avenue closes." },
+    { "id": "village-closure", "label": "Village closure", "description": "Prepare a walking baseline for a street intervention.", "seed": "counterfactual-village-closure-2048", "missionText": "Walk from Washington Square Park to Union Square and compare a street closure." },
+    { "id": "crash-weighting", "label": "Crash weighting", "description": "Compare the same Brooklyn trip under historical-observation cost.", "seed": "counterfactual-crash-weight-4096", "missionText": "Bike from Cooper Park to McCarren Park and compare historical crash weighting." },
+    { "id": "east-river-change", "label": "East River change", "description": "Prepare a cross-neighborhood route for a declared change.", "seed": "counterfactual-east-river-8192", "missionText": "Ride from Tompkins Square Park to McCarren Park and compare a changed street." }
   ],
   "camera": { "initialMode": "bird", "runMode": "bird" },
   "plugins": [{ "id": "counterfactual-lab", "configId": "counterfactual-lab-default-v1" }],

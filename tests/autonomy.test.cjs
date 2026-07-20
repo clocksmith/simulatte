@@ -41,6 +41,7 @@ const ambientActorApi = require('../public/world/ambient-actors.js');
 const cameraApi = require('../public/app/camera-controller.js');
 const loadingMosaicApi = require('../public/app/loading-mosaic.js');
 const appApi = require('../public/app/main.js');
+const interactionApi = require('../public/app/application-profile-select.js');
 const gpuMath = require('../public/app/webgpu-math.js');
 const rendererApi = require('../public/app/webgpu-renderer.js');
 const actorGeometry = require('../public/app/webgpu-actor-geometry.js');
@@ -458,7 +459,7 @@ test('follow minimap uses a finite north-up orthographic camera centered on the 
   assert.equal(rendererApi.MINIMAP_RADIUS_M, 420);
 });
 
-test('mission shuffle cycles deterministic governed examples that all compile', () => {
+test('legacy prompt profile resolves governed examples that all compile', () => {
   const rows = governedAssets();
   assert.ok(rows.manifest.missionExamples.length >= 4);
   assert.ok(rows.manifest.missionExamples.includes(rows.manifest.defaultMissionText));
@@ -470,16 +471,14 @@ test('mission shuffle cycles deterministic governed examples that all compile', 
     const mission = missionApi.compileMission(sourceText, rows.world, rows.embodiments);
     assert.ok(['delivery', 'point_to_point', 'loop'].includes(mission.task.type), sourceText);
   });
+  const interaction = interactionApi.resolveInteraction({}, rows.manifest);
   const visited = [];
-  let current = rows.manifest.defaultMissionText;
-  for (let index = 0; index < rows.manifest.missionExamples.length; index += 1) {
-    const next = appApi.nextMissionExample(rows.manifest.missionExamples, current);
-    assert.notEqual(next, current);
-    visited.push(next);
-    current = next;
+  let current = interaction.defaultScenario;
+  for (let index = 0; index < interaction.scenarios.length; index += 1) {
+    current = interactionApi.nextScenario(interaction, current.id);
+    visited.push(current.id);
   }
-  assert.equal(new Set(visited).size, rows.manifest.missionExamples.length);
-  assert.equal(appApi.nextMissionExample(rows.manifest.missionExamples, rows.manifest.defaultMissionText), visited[0]);
+  assert.equal(new Set(visited).size, interaction.scenarios.length);
 });
 
 test('one actor mesh contract renders realistic pedestrian, bicycle, scooter, and car geometry', () => {
@@ -1102,6 +1101,12 @@ test('amenity and accessibility plugins use pinned evidence and fail closed with
   await runtime.contributeRequest({ sourceText: wheelchair.sourceText, mission: wheelchair });
   assert.throws(() => makeController(rows, wheelchair, { routeContributors: runtime.routeContributors({ mission: wheelchair }) }),
     (error) => error.code === 'route_not_found' && error.evidence.pluginRejections.some((row) => row.reasons.some((reason) => reason.includes('accessibility_'))));
+  const accessibilityAudit = missionApi.compileMission('Walk from Union Square to Washington Square and run an accessibility audit.', rows.world, rows.embodiments);
+  await runtime.contributeRequest({ sourceText: accessibilityAudit.sourceText, mission: accessibilityAudit });
+  const auditController = makeController(rows, accessibilityAudit, { routeContributors: runtime.routeContributors({ mission: accessibilityAudit }) });
+  await auditController.run();
+  const auditResult = runtime.views({}).find((row) => row.pluginId === 'accessible-journey').view;
+  assert.match(JSON.stringify(auditResult), /blocked|unresolved/);
   await runtime.dispose();
 });
 
@@ -1383,8 +1388,8 @@ test('autonomy browser surface loads every declared module and stays independent
   assert.match(html, /id="loading-screen"[^>]*role="status"/);
   assert.match(html, /src="\.\/app\/loading-mosaic\.js\?v=[^"]+"/);
   assert.match(html, /id="follow-minimap"/);
-  assert.match(html, /id="shuffle-button"[^>]*>Shuffle</);
-  assert.match(html, /id="start-button"[^>]*>[\s\S]*?Start<\/button>/);
+  assert.match(html, /id="shuffle-button"[^>]*>[\s\S]*?id="shuffle-label">Shuffle<\/span>/);
+  assert.match(html, /id="start-button"[^>]*>[\s\S]*?id="start-label">Start<\/span>/);
   assert.match(html, /class="blank-link" href="\/blank\/"[^>]*>Blank<\/a>/);
   assert.match(compatibilityHtml, /location\.replace/);
   assert.match(compatibilityHtml, /rel="canonical" href="\/"/);

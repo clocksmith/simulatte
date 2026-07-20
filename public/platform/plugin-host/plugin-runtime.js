@@ -15,7 +15,7 @@
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulattePluginRuntime = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createPluginRuntimeModule(contracts, graphApi, stateApi, sdkApi) {
-  async function createPluginRuntime({ registry, profile, dataCatalog, artifactStore = null, registryBaseUrl = null, corePorts = {} }) {
+  async function createPluginRuntime({ registry, profile, scenario = null, dataCatalog, artifactStore = null, registryBaseUrl = null, corePorts = {} }) {
     contracts.validateProfile(profile);
     if (!registry || typeof registry.entry !== 'function') throw runtimeError('plugin_registry_invalid', 'Plugin runtime expected a registry entry function', null);
     if (!dataCatalog || typeof dataCatalog.createView !== 'function') throw runtimeError('plugin_catalog_invalid', 'Plugin runtime expected an immutable data catalog', null);
@@ -76,7 +76,7 @@
         capabilityInvoke: (capabilityId, input) => invokeCapability(pluginId, capabilityId, input),
         receiptSink: appendReceipt,
       });
-      const instance = await row.factory.activate({ sdk, config: stateApi.freezeClone(row.config), profile: stateApi.freezeClone(profile) });
+      const instance = await row.factory.activate({ sdk, config: stateApi.freezeClone(row.config), profile: stateApi.freezeClone(profile), scenario: stateApi.freezeClone(scenario) });
       contracts.validatePluginInstance(pluginId, instance);
       validateDeclaredExtensions(row.manifest, instance);
       instances.set(pluginId, instance);
@@ -178,10 +178,20 @@
       instances.clear();
     }
 
+    async function setScenario(nextScenario) {
+      scenario = stateApi.freezeClone(nextScenario);
+      for (const pluginId of graph.order) {
+        const instance = instances.get(pluginId);
+        if (typeof instance.setScenario === 'function') await instance.setScenario(scenario);
+      }
+      return scenario;
+    }
+
     function runtimeReceipt() {
       return stateApi.freezeClone({
         schema: 'simulatte.pluginRuntimeReceipt.v1',
         profileId: profile.id,
+        scenario,
         sdkVersion: 1,
         activationOrder: graph.order,
         sourceReceipts,
@@ -191,7 +201,7 @@
       });
     }
 
-    return Object.freeze({ contributeRequest, routeContributors, settle, views, presentations, dispatchAction, invoke, dispose, runtimeReceipt, activePluginIds: graph.order });
+    return Object.freeze({ contributeRequest, routeContributors, settle, views, presentations, dispatchAction, invoke, setScenario, dispose, runtimeReceipt, activePluginIds: graph.order });
   }
 
   async function verifyEntries(rows, artifactStore, baseUrl) {

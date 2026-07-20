@@ -48,6 +48,11 @@ test('predefined cable month serves thousands of needs with exact optimal alloca
 test('Cable Trader profile queries the predefined network instead of creating one-off cable requests', () => {
   const profile = JSON.parse(fs.readFileSync(path.join(root, 'public/data/application-profiles/cable-trader-pickup-v1.json'), 'utf8'));
   assert.equal(profile.plugins[0].configId, 'cable-trader-network-v2');
-  assert.match(profile.defaultMissionText, /predefined 30-day cable network/i);
-  assert.ok(profile.missionExamples.every((row) => !/\bI need\b|\bGet me\b|\bBorrow\b/i.test(row)));
+  assert.equal(profile.interaction.mode, 'playback');
+  assert.equal(profile.interaction.shuffleLabel, 'Shuffle seed');
+  assert.ok(profile.seeds.length >= 4);
+  assert.ok(profile.seeds.every((row) => !/\bI need\b|\bGet me\b|\bBorrow\b/i.test(row.missionText)));
+  const results = profile.seeds.slice(0, 2).map((row) => network.simulateNetwork({ ...config, simulation: { ...config.simulation, seed: row.seed } }, completeRoutes()));
+  assert.notEqual(results[0].id, results[1].id);
+  assert.ok(results.every((row) => row.summary.fulfillmentPercent === 100 && row.summary.optimalityPercent === 100));
 });

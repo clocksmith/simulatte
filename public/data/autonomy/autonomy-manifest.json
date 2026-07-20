@@ -8,52 +8,52 @@
     {
       "id": "accessible-journey-v1",
       "path": "../application-profiles/accessible-journey-v1.json",
-      "sha256": "34a59e99d2432c6c34b7b12dbfd162c125b36705de6909ff58ebdb2155d6494f"
+      "sha256": "f5814defa5bec8bf6f6a388443b7aaf76bf2eab08a7fcb79899bba30d3487d5d"
     },
     {
       "id": "amenity-router-v1",
       "path": "../application-profiles/amenity-router-v1.json",
-      "sha256": "84251bc73339dca76554cd7c41dfea6c5425130537c22eb3bb87da5f34653cee"
+      "sha256": "796526ed93612aeca2770720be2f97839c98da4f5691c2e669296835a0616354"
     },
     {
       "id": "cable-trader-pickup-v1",
       "path": "../application-profiles/cable-trader-pickup-v1.json",
-      "sha256": "38cbd80a9a4afc71a7e75d239892f8edc04ec40293803e4a247f0e693ce2a374"
+      "sha256": "d223a350cbbb47974e295467d58cc0db07f03cee53c3bf7353b13039c6e0ac59"
     },
     {
       "id": "cooperative-cable-city-v1",
       "path": "../application-profiles/cooperative-cable-city-v1.json",
-      "sha256": "9f435708199ca9db8d60db48090b0a401723772016919dd83ae0c9796e878020"
+      "sha256": "b1d9c9ae25a6f092b457a1be2e88d55e93cc2532052bcb3fdcc9b7e9a5de0287"
     },
     {
       "id": "counterfactual-lab-v1",
       "path": "../application-profiles/counterfactual-lab-v1.json",
-      "sha256": "309a54567fc9931c81ee4ac79ebe2e70c4c31f3212ea949f3b305c74dda2c119"
+      "sha256": "4ab448800d3e3c6b577f5b2e41085809abcf92a06ed1d3143608f7b33ff3d053"
     },
     {
       "id": "gig-wage-truth-v1",
       "path": "../application-profiles/gig-wage-truth-v1.json",
-      "sha256": "f31ac001dcb52d316ff89d486aa888d1323a5b0da34873f7736a078f325773b9"
+      "sha256": "e3ab226ff1fd5986796edec7fca4b996b96f536f1e1214d8797ea3db3e8d573e"
     },
     {
       "id": "historical-streets-v1",
       "path": "../application-profiles/historical-streets-v1.json",
-      "sha256": "c2315024b912f313dea35aea7e4727f245ab69ff96065b193e56789f63bb268c"
+      "sha256": "ad172cca3ded70fce1386f76bf37cdb89091c182b1eede0247cab60129304c8e"
     },
     {
       "id": "p2p-delivery-v1",
       "path": "../application-profiles/p2p-delivery-v1.json",
-      "sha256": "523180353339c39693f3a02002be34bfd7261eea4bfdeef76b5315cc4e1e3add"
+      "sha256": "2d4b868762becec7a9266945d899bd486e6a3dca1080f39986921fbd961ee8a4"
     },
     {
       "id": "safety-explorer-v1",
       "path": "../application-profiles/safety-explorer-v1.json",
-      "sha256": "b5f3709e25ddce76612d215c886970720806bc5802340b140c5402cf7af529ad"
+      "sha256": "fee83fa309c7228487a279b59c0fffa64eed6bdf86c77d9fbc2718538e0be5a5"
     },
     {
       "id": "sun-walker-v1",
       "path": "../application-profiles/sun-walker-v1.json",
-      "sha256": "0acca464b1ce5cd1ad1126fabcb2f00d5f35a7c1b46e5bac5bb7905519435b34"
+      "sha256": "5492b3cae31bc609fa667aa369df3a885292d0ec2aa7da43bfc1f4b5b1ab6226"
     }
   ],
   "claimBoundary": "This manifest governs bicycle-delivery and pedestrian-loop simulations assembled from independently hashed region packs for New York City. Park circuits follow frozen property boundaries, not surveyed sidewalk centerlines. It does not claim live conditions, physical-world autonomy, or control of a real vehicle.",

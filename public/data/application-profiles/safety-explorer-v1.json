@@ -1,13 +1,13 @@
 {
-  "schema": "simulatte.applicationProfile.v1",
+  "schema": "simulatte.applicationProfile.v2",
   "id": "safety-explorer-v1",
-  "defaultMissionText": "Bike from Union Square to McCarren Park and show the route's historical crash observations.",
-  "missionExamples": [
-    "Bike from Union Square to McCarren Park and show the route's historical crash observations.",
-    "Walk from Washington Square Park to Union Square and inspect recorded crashes.",
-    "Bike from Cooper Park to McCarren Park using historical street observations.",
-    "Walk from Tompkins Square Park to Union Square and show recorded injuries.",
-    "Ride from McCarren Park to Cooper Park and inspect the historical observation score."
+  "interaction": { "mode": "explorer", "startLabel": "Inspect route", "shuffleLabel": "Shuffle corridor" },
+  "defaultSeedId": "union-mccarren",
+  "seeds": [
+    { "id": "union-mccarren", "label": "Union Square to McCarren", "description": "Recorded crash and injury observations along a bike route.", "seed": "safety-union-mccarren-0719", "missionText": "Bike from Union Square to McCarren Park and show the route's historical crash observations." },
+    { "id": "village-union", "label": "Village walking corridor", "description": "Inspect recorded crashes on a walking route.", "seed": "safety-village-union-2048", "missionText": "Walk from Washington Square Park to Union Square and inspect recorded crashes." },
+    { "id": "cooper-mccarren", "label": "Brooklyn bike corridor", "description": "Route with historical street observations included in cost.", "seed": "safety-cooper-mccarren-4096", "missionText": "Bike from Cooper Park to McCarren Park using historical street observations." },
+    { "id": "tompkins-union", "label": "East Village injuries", "description": "Inspect recorded injuries along a walking route.", "seed": "safety-tompkins-union-8192", "missionText": "Walk from Tompkins Square Park to Union Square and show recorded injuries." }
   ],
   "camera": { "initialMode": "bird", "runMode": "bird", "pluginId": "safety-explorer", "targetId": "observed-route" },
   "plugins": [{ "id": "safety-explorer", "configId": "safety-explorer-default-v1" }],

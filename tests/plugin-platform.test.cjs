@@ -7,6 +7,7 @@ const catalogApi = require('../public/platform/data-catalog/immutable-data-catal
 const runtimeApi = require('../public/platform/plugin-host/plugin-runtime.js');
 const presentationApi = require('../public/app/plugin-presentation.js');
 const experienceCameraApi = require('../public/app/experience-camera.js');
+const interactionApi = require('../public/app/application-profile-select.js');
 
 function manifest(overrides = {}) {
   return {
@@ -64,6 +65,31 @@ test('plugin runtime activates a least-authority fixture, sequences state, contr
   assert.equal(runtime.runtimeReceipt().pluginReceipts.length, 1);
   await runtime.dispose();
   assert.equal(disposed, true);
+});
+
+test('application interactions expose governed seeds without presenting mission prose as input', () => {
+  const profile = JSON.parse(fs.readFileSync(require.resolve('../public/data/application-profiles/cable-trader-pickup-v1.json'), 'utf8'));
+  assert.equal(contracts.validateProfile(profile), profile);
+  const interaction = interactionApi.resolveInteraction(profile, {});
+  assert.equal(interaction.mode, 'playback');
+  assert.equal(interaction.defaultScenario.id, 'july-baseline');
+  assert.equal(interaction.scenarios.length, 4);
+  assert.notEqual(interactionApi.nextScenario(interaction, interaction.defaultScenario.id).seed, interaction.defaultScenario.seed);
+});
+
+test('plugin runtime forwards scenario changes through the generic lifecycle', async () => {
+  const seen = [];
+  const row = {
+    manifest: manifest({ extensionPoints: [] }),
+    configs: { 'fixture-default-v1': { schema: 'fixture.config.v1', id: 'fixture-default-v1' } },
+    factory: { async activate({ scenario }) { seen.push(scenario.seed); return { id: 'fixture-plugin', setScenario(next) { seen.push(next.seed); }, dispose() {} }; } },
+  };
+  const profile = { schema: 'simulatte.applicationProfile.v1', id: 'fixture-profile-v1', plugins: [{ id: 'fixture-plugin', configId: 'fixture-default-v1' }], routeObjective: {} };
+  const dataCatalog = catalogApi.createDataCatalog([{ id: 'fixture-data-v1', value: { answer: 42 } }]);
+  const runtime = await runtimeApi.createPluginRuntime({ registry: { entry: () => row }, profile, scenario: { seed: 'first' }, dataCatalog, corePorts: { ui: Object.freeze({ slot: 'inspector' }) } });
+  await runtime.setScenario({ seed: 'second' });
+  assert.deepEqual(seen, ['first', 'second']);
+  assert.equal(runtime.runtimeReceipt().scenario.seed, 'second');
 });
 
 test('plugin contracts reject undeclared authority and capability cycles fail before activation', async () => {

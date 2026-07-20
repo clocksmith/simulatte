@@ -1,9 +1,10 @@
 # Simulatte plugin platform architecture
 
 Status: implemented SDK v1 and first-party plugin platform. The source
-migration is complete through P7. P8 adds generic presentation, camera, and
-multi-slot UI contributions; local browser review passes and deployment
-remains the release gate.
+migration is complete through P9. P8 adds generic presentation, camera, and
+multi-slot UI contributions. P9 replaces inappropriate free-text prompts with
+governed, shuffleable scenarios while retaining the open-ended root prompt.
+Local browser review passes and deployment remains the release gate.
 
 Owner contracts: `public/platform/`, `public/core/`, `public/plugins/`, and the
 thin application coordinator in `public/app/`.
@@ -459,20 +460,41 @@ All contribution merge rules are explicit:
 
 ## Experience profiles
 
-An experience profile selects plugins, prompts, camera behavior, and
-configuration without changing plugin packages. It is not a second product
-kind beside plugins:
+An experience profile selects plugins, interaction behavior, governed
+scenarios, camera behavior, and configuration without changing plugin
+packages. It is not a second product kind beside plugins:
 
 ```json
 {
-  "schema": "simulatte.applicationProfile.v1",
+  "schema": "simulatte.applicationProfile.v2",
   "id": "cooperative-cable-city-v1",
+  "interaction": {
+    "mode": "playback",
+    "startLabel": "Play city",
+    "shuffleLabel": "Shuffle seed"
+  },
+  "defaultSeedId": "cooperative-baseline",
+  "seeds": [
+    {
+      "id": "cooperative-baseline",
+      "label": "Cooperative baseline",
+      "description": "Cable inventory, journeys, wages, and shade together.",
+      "seed": "cooperative-cable-city-baseline-0719",
+      "missionText": "Show the predefined cooperative cable network and every optimal cross-hub flow."
+    },
+    {
+      "id": "commuter-density",
+      "label": "Commuter density",
+      "description": "Alternative participant and cable-event ordering.",
+      "seed": "cooperative-cable-city-commuters-2048",
+      "missionText": "Show the predefined cooperative cable network and every optimal cross-hub flow."
+    }
+  ],
   "plugins": [
-    { "id": "cable-trader", "configId": "cable-trader-default-v1" },
+    { "id": "cable-trader", "configId": "cable-trader-network-v2" },
     { "id": "p2p-delivery", "configId": "p2p-delivery-default-v1" },
     { "id": "sun-walker", "configId": "sun-walker-default-v1" }
   ],
-  "defaultMissionText": "I need an Ethernet cable. Match an exchange hub and show journeys already moving nearby.",
   "camera": {
     "initialMode": "top",
     "runMode": "top",
@@ -487,9 +509,13 @@ kind beside plugins:
 }
 ```
 
-Profiles own enablement and cross-dimension policy. Each first-party profile
-also owns distinct mission examples and camera defaults. Plugins must not
-silently enable themselves or choose global weights.
+Profiles own enablement, cross-dimension policy, interaction mode, scenario
+identity, and camera defaults. A scenario contains human-facing copy, the
+compiler input, and a stable seed. Shuffling changes the governed scenario;
+plugins with stochastic state receive that seed through `setScenario` and
+rebuild their state. The selected scenario is bound into the runtime receipt.
+Only the open-ended root profile retains the legacy prompt interaction.
+Plugins must not silently enable themselves or choose global weights.
 
 ## First-party plugin definitions
 
@@ -666,6 +692,24 @@ document.
 
 Exit condition: every visual comes from validated plugin data, while the host
 alone owns WebGPU, cameras, DOM, and lifecycle.
+
+### P9: Governed interaction and seeded scenarios
+
+- [x] Add a versioned profile interaction contract for explorer, form,
+  playback, request, and route experiences.
+- [x] Give all ten specialized profiles four named, identity-bearing scenarios.
+- [x] Keep the root world prompt-first for open-ended mission compilation.
+- [x] Pass the active scenario to plugin activation and scenario changes to an
+  optional `setScenario` lifecycle method.
+- [x] Rebuild Cable Trader's complete 30-day network when its seed changes.
+- [x] Replace unsupported step-free presets with honest accessibility audits;
+  explicit wheelchair requests still fail closed without sufficient evidence.
+- [x] Verify root, every specialized profile, composed Cable City, and mobile
+  Cable Trader in the browser with zero runtime errors.
+
+Exit condition: the shared shell expresses each experience's real interaction
+instead of presenting every plugin as an NLP prompt, and a seed change affects
+the simulation wherever the plugin owns stochastic state.
 
 ## Work packet contract
 
