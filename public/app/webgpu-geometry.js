@@ -7,6 +7,7 @@
   root.SimulatteAutonomyGpuGeometry = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyWebGpuGeometry(actorGeometry) {
   const FLOATS_PER_VERTEX = actorGeometry.FLOATS_PER_VERTEX;
+  const DENSE_PLUGIN_ACTOR_THRESHOLD = 12;
   const DEFAULT_MATERIAL = Object.freeze([0.02, 0.78]);
   const COLORS = Object.freeze({
     water: [0.014, 0.042, 0.078, 1],
@@ -117,9 +118,11 @@
     scene.markers.forEach((row) => addBeacon(writer, row.point, tone(row.tone), row.heightM, row.radiusM, row.intensity));
     if (scene.sun) addOrb(writer, scene.sun.worldPosition, scene.sun.radiusM, COLORS.sun, scene.sun.intensity);
     const elapsedSeconds = Number(snapshot.state.simulatedTimeSeconds || 0);
+    const usesDenseActorSignals = scene.actors.length > DENSE_PLUGIN_ACTOR_THRESHOLD;
     scene.actors.forEach((row, index) => {
       const pose = poseAlongPath(row.points, row.phaseOffsetM + elapsedSeconds * row.speedMps);
-      addBeacon(writer, pose.point, tone(row.tone), row.isSelected ? 36 : 24, row.isSelected ? 10 : 8, row.isSelected ? 1.6 : 1.15);
+      addBeacon(writer, pose.point, tone(row.tone), row.isSelected ? 12 : 5, row.isSelected ? 3.2 : 1.8, row.isSelected ? 1.2 : 0.72);
+      if (usesDenseActorSignals && !row.isSelected) return;
       actorGeometry.addActor(writer, {
         kind: row.kind,
         point: pose.point,
