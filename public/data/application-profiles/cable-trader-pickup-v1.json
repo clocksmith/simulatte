@@ -1,15 +1,15 @@
 {
   "schema": "simulatte.applicationProfile.v1",
   "id": "cable-trader-pickup-v1",
-  "defaultMissionText": "I need an HDMI cable. Find the exchange hub with one available.",
+  "defaultMissionText": "Show the predefined 30-day cable network and its optimal allocation.",
   "missionExamples": [
-    "I need an HDMI cable. Find the exchange hub with one available.",
-    "Get me a USB-C to USB-A cable from the cable exchange.",
-    "I need an Ethernet cable. Find a nearby exchange hub.",
-    "Borrow a USB-C to USB-C cable from the network.",
-    "Get me a 3.5 mm audio cable from a cable hub."
+    "Show the predefined 30-day cable network and its optimal allocation.",
+    "Show which cable hubs absorb the most demand this month.",
+    "Show all cross-hub transfers in the optimal cable allocation.",
+    "Show how 4,096 seeded cable needs are fulfilled.",
+    "Show the Monte Carlo cable inventory baseline."
   ],
   "camera": { "initialMode": "top", "runMode": "top", "pluginId": "cable-trader", "targetId": "cable-network" },
-  "plugins": [{ "id": "cable-trader", "configId": "cable-trader-default-v1" }],
+  "plugins": [{ "id": "cable-trader", "configId": "cable-trader-network-v2" }],
   "routeObjective": { "travelSeconds": 1 }
 }

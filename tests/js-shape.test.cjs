@@ -2611,7 +2611,7 @@ test('model-backed intent retrieval uses a 1024d Qwen index and keeps the unqual
   assert.equal(manifest.embedModel.family, 'qwen3-embedding');
   assert.equal(manifest.embedModel.modelType, 'embedding');
   assert.equal(manifest.embedModel.dimensions, 1024);
-  assert.match(manifest.embedModel.defaultModelBaseUrl, /^https:\/\/huggingface\.co\/Clocksmith\/rdrr\/resolve\//);
+  assert.match(manifest.embedModel.defaultModelBaseUrl, /^https:\/\/huggingface\.co\/clocksmith\/rdrr\/resolve\//);
   assert.match(manifest.embedModel.defaultModelBaseUrl, /049000f49325dca7db2ed2c9de2c8881bd0f4603\/models\/qwen-3-embedding-0-6b-q4k-ehf16-af32$/);
   assert.doesNotMatch(manifest.embedModel.defaultModelBaseUrl, /models\/local/);
   assert.equal(manifest.embedModel.source.kind, 'huggingface-rdrr');

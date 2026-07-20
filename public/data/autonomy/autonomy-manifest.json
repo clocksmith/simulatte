@@ -18,12 +18,12 @@
     {
       "id": "cable-trader-pickup-v1",
       "path": "../application-profiles/cable-trader-pickup-v1.json",
-      "sha256": "211c72b871b756ffc851b2d287a253f82d76b724b3f019a2d39cc7dbfa5cae5b"
+      "sha256": "38cbd80a9a4afc71a7e75d239892f8edc04ec40293803e4a247f0e693ce2a374"
     },
     {
       "id": "cooperative-cable-city-v1",
       "path": "../application-profiles/cooperative-cable-city-v1.json",
-      "sha256": "9a8ecb4effdd7da8f896c037149b1c2b7e3252dc1d903771693bb602506a02c1"
+      "sha256": "9f435708199ca9db8d60db48090b0a401723772016919dd83ae0c9796e878020"
     },
     {
       "id": "counterfactual-lab-v1",
@@ -115,7 +115,7 @@
   "modelRuntimeLock": {
     "id": "simulatte-doppler-qwen-runtime-lock",
     "path": "../simulatte-embedder/model-runtime-lock.json",
-    "sha256": "649bf7026ae3a99f527feca62e3b64630018348431a1ed31e11e383f2dc0e4ac"
+    "sha256": "967ba04e0c036cb2ee1df98843e0d47365b72460cd84e91992a28f82fa5f626f"
   },
   "occurrenceCatalog": {
     "id": "nyc-replay-patterns-v1",

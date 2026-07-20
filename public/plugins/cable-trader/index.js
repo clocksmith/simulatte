@@ -1,38 +1,60 @@
 (function attachCableTraderPlugin(root, factory) {
-  const api = factory();
+  const network = typeof module === 'object' && module.exports
+    ? require('./network-simulation.js')
+    : root.SimulatteCableTraderNetwork;
+  const api = factory(network);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulattePluginCableTrader = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createCableTraderPlugin() {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createCableTraderPlugin(network) {
   async function activate({ sdk, config }) {
-    sdk.state.register(reduce, { inventory: config.inventory, credits: {}, activeRequest: null, delivery: null, lastExchange: null });
     const worldModel = sdk.worldQuery.model();
-    const candidateRoutes = config.candidateJourneys.map((journey) => ({
-      ...journey,
-      segmentIds: sdk.routing.plan({
-        worldModel,
-        originNodeId: journey.originNodeId,
-        destinationNodeId: journey.destinationNodeId,
-        mode: 'delivery_bike',
-        tick: 0,
-        mission: { constraints: { avoidStreetNames: [], lanePreference: journey.kind === 'bicycle' ? 'protected' : 'any' }, task: { type: 'point_to_point' } },
-        policy: sdk.routing.policy(),
-      }).segmentIds,
-    }));
+    const transferRoutes = config.hubs.flatMap((sourceHub) => config.hubs
+      .filter((destinationHub) => destinationHub.id !== sourceHub.id)
+      .map((destinationHub) => {
+        const route = sdk.routing.plan({
+          worldModel,
+          originNodeId: sourceHub.nodeId,
+          destinationNodeId: destinationHub.nodeId,
+          mode: 'delivery_bike',
+          tick: 0,
+          mission: { constraints: { avoidStreetNames: [], lanePreference: 'protected' }, task: { type: 'point_to_point' } },
+          policy: sdk.routing.policy(),
+        });
+        return Object.freeze({
+          id: `transfer-${sourceHub.id}-${destinationHub.id}`,
+          sourceHubId: sourceHub.id,
+          destinationHubId: destinationHub.id,
+          segmentIds: route.segmentIds,
+          costUnits: Math.max(1, route.segmentIds.length),
+        });
+      }));
+    const simulation = network.simulateNetwork(config, transferRoutes);
+    sdk.state.register(reduce, { simulation, inventory: simulation.endingInventory, credits: {}, lastExchange: null });
+    sdk.receipts.append({
+      schema: 'simulatte.plugin.cableTraderNetworkReceipt.v1',
+      simulationId: simulation.id,
+      seed: simulation.seed,
+      durationDays: simulation.durationDays,
+      summary: simulation.summary,
+      solver: simulation.solver,
+      claimBoundary: simulation.claimBoundary,
+    });
 
     function contributeRequest({ sourceText, mission = null }) {
-      const normalized = String(sourceText || '').toLowerCase();
-      const cable = config.cableTypes.find((row) => row.labels.some((label) => normalized.includes(label)));
-      if (!cable || !/\b(?:need|request|trade|swap|borrow|get)\b/i.test(normalized)) return null;
-      const availableHub = config.hubs
-        .map((hub) => ({ ...hub, available: sdk.state.read().inventory[`${hub.id}:${cable.id}`] || 0 }))
-        .sort((left, right) => right.available - left.available || left.id.localeCompare(right.id))[0];
-      if (!mission) return { recognized: true, executableSourceText: `Bike from Washington Square to ${availableHub.label}. Prefer protected lanes.`, obligations: [], unresolved: [] };
-      const request = { id: `cable-request:${stableId(sourceText)}`, cableTypeId: cable.id, quantity: 1, hubIds: config.hubs.map((row) => row.id), selectedHubId: availableHub?.available ? availableHub.id : null };
-      let delivery = null;
-      if (sdk.capabilities && availableHub?.available) delivery = sdk.capabilities.invoke('fulfillment.delivery.v1', { ...request, itemId: cable.id, requesterId: 'cable-trader-user', destinationNodeId: availableHub.nodeId });
-      sdk.events.propose({ pluginId: 'cable-trader', kind: 'cable-trader.requested', request, delivery });
-      sdk.receipts.append({ schema: 'simulatte.plugin.cableTraderRequestReceipt.v1', request, delivery: delivery || { enabled: false, reason: availableHub?.available ? 'pickup_only' : 'inventory_unavailable' } });
-      return { recognized: true, obligations: [{ id: request.id, kind: 'cable_exchange', required: true }], unresolved: availableHub?.available ? [] : [`inventory:${cable.id}`] };
+      if (!/\b(?:cable|hub|inventory|allocation|monte\s+carlo|exchange\s+network)\b/i.test(sourceText || '')) return null;
+      if (!mission) {
+        return {
+          recognized: true,
+          executableSourceText: `Bike from ${config.hubs[0].label} to ${config.hubs.at(-1).label}. Prefer protected lanes.`,
+          obligations: [],
+          unresolved: [],
+        };
+      }
+      return {
+        recognized: true,
+        obligations: [{ id: simulation.id, kind: 'optimal_cable_network', required: true }],
+        unresolved: [],
+      };
     }
 
     function exchange({ cableTypeId, hubId, direction, participantId }) {
@@ -49,61 +71,103 @@
 
     function view() {
       const state = sdk.state.read();
-      const cable = config.cableTypes.find((row) => row.id === state.activeRequest?.cableTypeId) || config.cableTypes[0];
-      const available = config.hubs.reduce((total, hub) => total + (state.inventory[`${hub.id}:${cable.id}`] || 0), 0);
-      const inspector = {
-        slot: 'inspector', title: 'Cable exchange',
+      const result = state.simulation;
+      const busiestHub = [...result.hubStats].sort((left, right) => right.needs - left.needs || left.id.localeCompare(right.id))[0];
+      const busiestCable = [...result.typeStats].sort((left, right) => right.needs - left.needs || left.id.localeCompare(right.id))[0];
+      const crossHubTransfers = result.flows.filter((flow) => flow.sourceHubId !== flow.destinationHubId).reduce((total, flow) => total + flow.quantity, 0);
+      return [{
+        slot: 'inspector',
+        title: 'Optimal cable network',
         rows: [
-          { label: 'Catalog', value: `${config.cableTypes.length} cable families` },
-          { label: 'Requested', value: state.activeRequest ? cable.label : 'No active request' },
-          { label: 'Network inventory', value: `${available} available` },
-          ...(state.lastExchange ? [{ label: 'Last exchange', value: `${state.lastExchange.direction} · ${state.lastExchange.hubId}` }] : []),
+          { label: 'Seeded month', value: `${result.durationDays} days · ${result.seed}` },
+          { label: 'Needs served', value: `${format(result.summary.fulfilledNeeds)} / ${format(result.summary.needs)} (${result.summary.fulfillmentPercent}%)` },
+          { label: 'Monte Carlo events', value: format(result.summary.randomEvents) },
+          { label: 'Exact allocations', value: `${result.summary.optimalAllocations} / ${result.summary.allocations} (${result.summary.optimalityPercent}%)` },
+          { label: 'Inventory', value: `${format(result.summary.startingInventory)} → ${format(result.summary.endingInventory)}` },
+          { label: 'Busiest hub', value: `${busiestHub.label} · ${format(busiestHub.needs)} needs` },
+          { label: 'Top cable', value: `${busiestCable.label} · ${format(busiestCable.needs)} needs` },
+          ...(state.lastExchange ? [{ label: 'Last live exchange', value: `${state.lastExchange.direction} · ${state.lastExchange.hubId}` }] : []),
         ],
-        fields: [
-          { id: 'cableTypeId', label: 'Cable', type: 'select', value: cable.id, options: config.cableTypes.map((row) => ({ value: row.id, label: row.label })) },
-          { id: 'hubId', label: 'Exchange hub', type: 'select', value: state.activeRequest?.selectedHubId || config.hubs[0].id, options: config.hubs.map((row) => ({ value: row.id, label: row.label })) },
+        actions: [],
+      }, {
+        slot: 'map',
+        title: '30-day cable city',
+        rows: [
+          { label: 'Synthetic participants', value: format(result.summary.participants) },
+          { label: 'Rendered sample', value: String(config.simulation.renderedActorCount) },
+          { label: 'Cross-hub transfers', value: format(crossHubTransfers) },
+          { label: 'Solver', value: 'Exact min-cost maximum-flow' },
         ],
-        actions: [{ id: 'withdraw', label: 'Take for 1 credit' }, { id: 'deposit', label: 'Drop off +1 credit' }],
-      };
-      return [inspector, {
-        slot: 'map', title: state.activeRequest ? `${cable.label} exchange` : 'Cable exchange network',
-        rows: [{ label: 'Hubs', value: String(config.hubs.length) }, { label: 'Nearby journeys', value: String(candidateRoutes.length) }, { label: 'Available', value: String(available) }],
         actions: [
-          { id: 'focus-network', label: 'All hubs', command: { kind: 'camera.focus', targetId: 'cable-network' } },
+          { id: 'focus-network', label: 'Whole network', command: { kind: 'camera.focus', targetId: 'cable-network' } },
           ...config.hubs.map((hub) => ({ id: `focus-${hub.id}`, label: hub.label, command: { kind: 'camera.focus', targetId: hub.id } })),
         ],
       }];
     }
 
     function present() {
-      const state = sdk.state.read();
-      const requestedType = state.activeRequest?.cableTypeId || null;
-      const selectedHubId = state.activeRequest?.selectedHubId || null;
+      const result = sdk.state.read().simulation;
+      const routeByPair = new Map(transferRoutes.map((route) => [`${route.sourceHubId}:${route.destinationHubId}`, route]));
+      const activeFlows = result.flows.filter((flow) => flow.sourceHubId !== flow.destinationHubId && flow.quantity > 0);
+      const maximumFlow = Math.max(...activeFlows.map((flow) => flow.quantity), 1);
+      const maximumNeeds = Math.max(...result.hubStats.map((hub) => hub.needs), 1);
+      const paths = activeFlows.map((flow, index) => {
+        const route = routeByPair.get(`${flow.sourceHubId}:${flow.destinationHubId}`);
+        return {
+          id: route.id,
+          label: `${format(flow.quantity)} optimal transfers`,
+          segmentIds: route.segmentIds,
+          tone: flowTone(index),
+          widthM: 2.5 + ((flow.quantity / maximumFlow) * 8),
+          intensity: 0.45 + ((flow.quantity / maximumFlow) * 1.25),
+        };
+      });
+      const actors = Array.from({ length: config.simulation.renderedActorCount }, (_, index) => {
+        const flow = selectFlow(activeFlows, index, config.simulation.renderedActorCount);
+        const route = routeByPair.get(`${flow.sourceHubId}:${flow.destinationHubId}`);
+        return {
+          id: `cable-participant-${index + 1}`,
+          label: `Participant ${index + 1}`,
+          kind: index % 5 === 0 ? 'scooter' : 'bicycle',
+          segmentIds: route.segmentIds,
+          tone: flowTone(activeFlows.indexOf(flow)),
+          speedMps: 4.4 + ((index % 7) * 0.24),
+          phaseOffsetM: (index * 173) % 2400,
+          isSelected: false,
+        };
+      });
+      const allSegments = [...new Set(transferRoutes.flatMap((route) => route.segmentIds))];
       return {
         schema: 'simulatte.pluginPresentation.v1',
-        markers: config.hubs.map((hub) => {
-          const stock = requestedType ? state.inventory[`${hub.id}:${requestedType}`] || 0 : inventoryAtHub(state.inventory, hub.id);
-          return { id: hub.id, label: `${hub.label}: ${stock} available`, nodeId: hub.nodeId, tone: requestedType && !stock ? 'red' : hub.id === selectedHubId ? 'green' : 'amber', heightM: hub.id === selectedHubId ? 200 : 140, radiusM: hub.id === selectedHubId ? 40 : 32, intensity: hub.id === selectedHubId ? 1.8 : 1.35 };
-        }),
-        paths: candidateRoutes.map((row, index) => ({ id: `${row.id}-path`, label: `${row.label} journey`, segmentIds: row.segmentIds, tone: ['cyan', 'blue', 'magenta', 'violet'][index % 4], widthM: 7.5, intensity: 0.78 })),
-        actors: candidateRoutes.map((row, index) => ({ id: row.id, label: row.label, kind: row.kind, segmentIds: row.segmentIds, tone: ['cyan', 'blue', 'magenta', 'violet'][index % 4], speedMps: row.speedMps, phaseOffsetM: row.phaseOffsetM, isSelected: false })),
+        markers: result.hubStats.map((hub) => ({
+          id: hub.id,
+          label: `${hub.label}: ${format(hub.fulfilled)} served · ${format(hub.endingInventory)} stock`,
+          nodeId: config.hubs.find((row) => row.id === hub.id).nodeId,
+          tone: hub.needs === maximumNeeds ? 'green' : 'amber',
+          heightM: 100 + ((hub.needs / maximumNeeds) * 120),
+          radiusM: 20 + ((hub.needs / maximumNeeds) * 20),
+          intensity: 0.8 + ((hub.needs / maximumNeeds) * 1.2),
+        })),
+        paths,
+        actors,
         cameraTargets: [
-          { id: 'cable-network', label: 'Cable exchange network', nodeIds: config.hubs.map((row) => row.nodeId), segmentIds: [...new Set(candidateRoutes.flatMap((row) => row.segmentIds))], distanceM: 2600 },
+          { id: 'cable-network', label: 'Cable exchange network', nodeIds: config.hubs.map((hub) => hub.nodeId), segmentIds: allSegments, distanceM: 3000 },
           ...config.hubs.map((hub) => ({ id: hub.id, label: hub.label, nodeIds: [hub.nodeId], segmentIds: [], distanceM: 620 })),
         ],
       };
     }
 
-    function handleAction(actionId, context) {
-      if (!['deposit', 'withdraw'].includes(actionId)) throw new Error(`cable_trader_action_unknown: ${actionId}`);
-      return exchange({ cableTypeId: context.values?.cableTypeId, hubId: context.values?.hubId, direction: actionId, participantId: 'local-participant' });
-    }
-
-    return Object.freeze({ id: 'cable-trader', contributeRequest, view, present, handleAction, capabilities: { 'inventory.exchange.v1': exchange, 'settlement.credit.v1': exchange }, dispose() {} });
+    return Object.freeze({
+      id: 'cable-trader',
+      contributeRequest,
+      view,
+      present,
+      capabilities: { 'inventory.exchange.v1': exchange, 'settlement.credit.v1': exchange },
+      dispose() {},
+    });
   }
 
   function reduce(state, event) {
-    if (event.kind === 'cable-trader.requested') return { ...state, activeRequest: event.request, delivery: event.delivery };
     if (event.kind !== 'cable-trader.exchanged') return state;
     const key = `${event.hubId}:${event.cableTypeId}`;
     const inventory = { ...state.inventory, [key]: (state.inventory[key] || 0) + (event.direction === 'deposit' ? 1 : -1) };
@@ -111,7 +175,14 @@
     return { ...state, inventory, credits, lastExchange: { cableTypeId: event.cableTypeId, hubId: event.hubId, direction: event.direction } };
   }
 
-  function inventoryAtHub(inventory, hubId) { return Object.entries(inventory).reduce((total, [key, count]) => total + (key.startsWith(`${hubId}:`) ? count : 0), 0); }
-  function stableId(value) { let hash = 2166136261; for (const character of String(value)) { hash ^= character.codePointAt(0); hash = Math.imul(hash, 16777619); } return (hash >>> 0).toString(16); }
+  function selectFlow(flows, index, count) {
+    const total = flows.reduce((sum, flow) => sum + flow.quantity, 0);
+    let target = ((index + 0.5) / count) * total;
+    for (const flow of flows) { target -= flow.quantity; if (target <= 0) return flow; }
+    return flows.at(-1);
+  }
+
+  function flowTone(index) { return ['cyan', 'blue', 'magenta', 'violet', 'green', 'amber'][index % 6]; }
+  function format(value) { return Number(value).toLocaleString('en-US'); }
   return Object.freeze({ activate });
 });

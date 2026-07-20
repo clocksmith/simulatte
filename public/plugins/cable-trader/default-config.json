@@ -1,17 +1,17 @@
 {
-  "schema": "simulatte.plugin.cableTraderConfig.v1",
-  "id": "cable-trader-default-v1",
+  "schema": "simulatte.plugin.cableTraderConfig.v2",
+  "id": "cable-trader-network-v2",
   "cableTypes": [
-    { "id": "usb-c-to-a", "label": "USB-C to USB-A", "labels": ["usb c to a", "usb-c to usb-a", "usb c cable"] },
-    { "id": "usb-c-to-c", "label": "USB-C to USB-C", "labels": ["usb c to c", "usb-c to usb-c"] },
-    { "id": "usb-c-to-lightning", "label": "USB-C to Lightning", "labels": ["usb c to lightning", "iphone cable", "lightning cable"] },
-    { "id": "ethernet-rj45", "label": "Ethernet / RJ45", "labels": ["ethernet", "rj45", "network cable"] },
-    { "id": "hdmi", "label": "HDMI", "labels": ["hdmi", "display cable"] },
-    { "id": "displayport", "label": "DisplayPort", "labels": ["displayport", "display port"] },
-    { "id": "mini-displayport", "label": "Mini DisplayPort", "labels": ["mini displayport", "thunderbolt 2 cable"] },
-    { "id": "micro-usb", "label": "Micro-USB", "labels": ["micro usb", "micro-usb"] },
-    { "id": "three-five-mm-audio", "label": "3.5 mm audio", "labels": ["3.5 mm", "aux cable", "audio cable"] },
-    { "id": "iec-c13-power", "label": "IEC C13 power", "labels": ["iec c13", "computer power cable", "monitor power cable"] }
+    { "id": "usb-c-to-a", "label": "USB-C to USB-A", "labels": ["usb c to a", "usb-c to usb-a", "usb c cable"], "demandWeight": 18 },
+    { "id": "usb-c-to-c", "label": "USB-C to USB-C", "labels": ["usb c to c", "usb-c to usb-c"], "demandWeight": 18 },
+    { "id": "usb-c-to-lightning", "label": "USB-C to Lightning", "labels": ["usb c to lightning", "iphone cable", "lightning cable"], "demandWeight": 10 },
+    { "id": "ethernet-rj45", "label": "Ethernet / RJ45", "labels": ["ethernet", "rj45", "network cable"], "demandWeight": 12 },
+    { "id": "hdmi", "label": "HDMI", "labels": ["hdmi", "display cable"], "demandWeight": 12 },
+    { "id": "displayport", "label": "DisplayPort", "labels": ["displayport", "display port"], "demandWeight": 8 },
+    { "id": "mini-displayport", "label": "Mini DisplayPort", "labels": ["mini displayport", "thunderbolt 2 cable"], "demandWeight": 4 },
+    { "id": "micro-usb", "label": "Micro-USB", "labels": ["micro usb", "micro-usb"], "demandWeight": 5 },
+    { "id": "three-five-mm-audio", "label": "3.5 mm audio", "labels": ["3.5 mm", "aux cable", "audio cable"], "demandWeight": 7 },
+    { "id": "iec-c13-power", "label": "IEC C13 power", "labels": ["iec c13", "computer power cable", "monitor power cable"], "demandWeight": 6 }
   ],
   "hubs": [
     { "id": "union-square-cable-hub", "label": "Union Square", "nodeId": "bike-node-0d9391b2bfa3" },
@@ -19,16 +19,14 @@
     { "id": "greenpoint-cable-hub", "label": "Greenpoint", "nodeId": "bike-node-7a95737b9c7d" },
     { "id": "williamsburg-cable-hub", "label": "North Williamsburg", "nodeId": "bike-node-e25116ea05a4" }
   ],
-  "candidateJourneys": [
-    { "id": "candidate-ava", "label": "Ava", "originNodeId": "bike-node-a3f0f4b7e7e3", "destinationNodeId": "bike-node-e25116ea05a4", "kind": "bicycle", "speedMps": 5.6, "phaseOffsetM": 0 },
-    { "id": "candidate-mika", "label": "Mika", "originNodeId": "bike-node-0d9391b2bfa3", "destinationNodeId": "bike-node-7a95737b9c7d", "kind": "bicycle", "speedMps": 5.1, "phaseOffsetM": 240 },
-    { "id": "candidate-ren", "label": "Ren", "originNodeId": "bike-node-429dcefa615d", "destinationNodeId": "bike-node-261ee8be5a25", "kind": "bicycle", "speedMps": 4.8, "phaseOffsetM": 110 },
-    { "id": "candidate-sol", "label": "Sol", "originNodeId": "bike-node-8a641140b02c", "destinationNodeId": "bike-node-ffea919f743c", "kind": "bicycle", "speedMps": 5.3, "phaseOffsetM": 360 }
-  ],
-  "inventory": {
-    "union-square-cable-hub:usb-c-to-a": 24, "union-square-cable-hub:ethernet-rj45": 16, "union-square-cable-hub:hdmi": 12, "union-square-cable-hub:displayport": 8,
-    "east-village-cable-hub:usb-c-to-a": 18, "east-village-cable-hub:usb-c-to-c": 20, "east-village-cable-hub:usb-c-to-lightning": 14, "east-village-cable-hub:micro-usb": 7,
-    "greenpoint-cable-hub:ethernet-rj45": 11, "greenpoint-cable-hub:hdmi": 9, "greenpoint-cable-hub:three-five-mm-audio": 13,
-    "williamsburg-cable-hub:usb-c-to-c": 17, "williamsburg-cable-hub:mini-displayport": 6, "williamsburg-cable-hub:iec-c13-power": 10
+  "simulation": {
+    "seed": "cable-city-month-2026-07",
+    "durationDays": 30,
+    "needCount": 4096,
+    "returnCount": 4096,
+    "journeyEventCount": 960,
+    "participantCount": 2048,
+    "renderedActorCount": 48,
+    "initialInventoryPerHubType": 8
   }
 }

@@ -173,7 +173,7 @@
       "defaultConfig": "./default-config.json",
       "entry": {
         "globalFactory": "SimulattePluginCableTrader",
-        "integrity": "sha384-27e63162a3b61d11747e8aacaf1530ae883d2324cf16e20faf0bd7b538f7e5267b2e5667731cd757b03e5f397bdb6f42",
+        "integrity": "sha384-df01a1c3404b7f99b63d59d4a9892ac42238d0decdd7cd4517d2921a8ebe36b71103d43023a0fdd60aeadf1a15a22073",
         "path": "./index.js"
       },
       "extensionPoints": [
@@ -198,26 +198,31 @@
         "settlement.credit.v1"
       ],
       "receiptSchemas": [
-        "simulatte.plugin.cableTraderRequestReceipt.v1"
+        "simulatte.plugin.cableTraderNetworkReceipt.v1"
       ],
       "resources": [
         {
-          "integrity": "sha384-93f97522307241b5c741720db0e39570c30e57a2fc345441f49dbb54eeaed7b9e1cf3a428c36fe515468dcf397cc27c4",
+          "integrity": "sha384-868234e3acf6755df1b640e4b67f55b9e577c670d6713210dc87dbff423d85243146ffee1d3e9f4ae9798fa899eb8790",
           "path": "./config.schema.json"
         },
         {
-          "integrity": "sha384-dc1ba637355ae46d3f7fad1fd385281d70834007f4fd5b7ace8d157d4df0443d5e111fa7f91a29ee943f4f72a67fa757",
+          "integrity": "sha384-68f86d68b72a9a0116a2f33e1830acb6a60c026d675f6b5a9b9565d2b396fa8d1ceaedd63c962f610725047d5f83df5d",
           "path": "./default-config.json"
+        },
+        {
+          "integrity": "sha384-77ff3b5dc7d56cc1364af2427a73d00f4b82617f6edef88912cd07d94b1ecc647ca2835baf537d0ec87788f8e81f07f8",
+          "path": "./network-simulation.js"
         }
       ],
       "schema": "simulatte.pluginManifest.v1",
       "sdkVersion": 1,
-      "version": "1.0.0"
+      "version": "2.0.0"
     },
     "configs": {
-      "cable-trader-default-v1": {
+      "cable-trader-network-v2": {
         "cableTypes": [
           {
+            "demandWeight": 18,
             "id": "usb-c-to-a",
             "label": "USB-C to USB-A",
             "labels": [
@@ -227,6 +232,7 @@
             ]
           },
           {
+            "demandWeight": 18,
             "id": "usb-c-to-c",
             "label": "USB-C to USB-C",
             "labels": [
@@ -235,6 +241,7 @@
             ]
           },
           {
+            "demandWeight": 10,
             "id": "usb-c-to-lightning",
             "label": "USB-C to Lightning",
             "labels": [
@@ -244,6 +251,7 @@
             ]
           },
           {
+            "demandWeight": 12,
             "id": "ethernet-rj45",
             "label": "Ethernet / RJ45",
             "labels": [
@@ -253,6 +261,7 @@
             ]
           },
           {
+            "demandWeight": 12,
             "id": "hdmi",
             "label": "HDMI",
             "labels": [
@@ -261,6 +270,7 @@
             ]
           },
           {
+            "demandWeight": 8,
             "id": "displayport",
             "label": "DisplayPort",
             "labels": [
@@ -269,6 +279,7 @@
             ]
           },
           {
+            "demandWeight": 4,
             "id": "mini-displayport",
             "label": "Mini DisplayPort",
             "labels": [
@@ -277,6 +288,7 @@
             ]
           },
           {
+            "demandWeight": 5,
             "id": "micro-usb",
             "label": "Micro-USB",
             "labels": [
@@ -285,6 +297,7 @@
             ]
           },
           {
+            "demandWeight": 7,
             "id": "three-five-mm-audio",
             "label": "3.5 mm audio",
             "labels": [
@@ -294,6 +307,7 @@
             ]
           },
           {
+            "demandWeight": 6,
             "id": "iec-c13-power",
             "label": "IEC C13 power",
             "labels": [
@@ -301,44 +315,6 @@
               "computer power cable",
               "monitor power cable"
             ]
-          }
-        ],
-        "candidateJourneys": [
-          {
-            "destinationNodeId": "bike-node-e25116ea05a4",
-            "id": "candidate-ava",
-            "kind": "bicycle",
-            "label": "Ava",
-            "originNodeId": "bike-node-a3f0f4b7e7e3",
-            "phaseOffsetM": 0,
-            "speedMps": 5.6
-          },
-          {
-            "destinationNodeId": "bike-node-7a95737b9c7d",
-            "id": "candidate-mika",
-            "kind": "bicycle",
-            "label": "Mika",
-            "originNodeId": "bike-node-0d9391b2bfa3",
-            "phaseOffsetM": 240,
-            "speedMps": 5.1
-          },
-          {
-            "destinationNodeId": "bike-node-261ee8be5a25",
-            "id": "candidate-ren",
-            "kind": "bicycle",
-            "label": "Ren",
-            "originNodeId": "bike-node-429dcefa615d",
-            "phaseOffsetM": 110,
-            "speedMps": 4.8
-          },
-          {
-            "destinationNodeId": "bike-node-ffea919f743c",
-            "id": "candidate-sol",
-            "kind": "bicycle",
-            "label": "Sol",
-            "originNodeId": "bike-node-8a641140b02c",
-            "phaseOffsetM": 360,
-            "speedMps": 5.3
           }
         ],
         "hubs": [
@@ -363,24 +339,18 @@
             "nodeId": "bike-node-e25116ea05a4"
           }
         ],
-        "id": "cable-trader-default-v1",
-        "inventory": {
-          "east-village-cable-hub:micro-usb": 7,
-          "east-village-cable-hub:usb-c-to-a": 18,
-          "east-village-cable-hub:usb-c-to-c": 20,
-          "east-village-cable-hub:usb-c-to-lightning": 14,
-          "greenpoint-cable-hub:ethernet-rj45": 11,
-          "greenpoint-cable-hub:hdmi": 9,
-          "greenpoint-cable-hub:three-five-mm-audio": 13,
-          "union-square-cable-hub:displayport": 8,
-          "union-square-cable-hub:ethernet-rj45": 16,
-          "union-square-cable-hub:hdmi": 12,
-          "union-square-cable-hub:usb-c-to-a": 24,
-          "williamsburg-cable-hub:iec-c13-power": 10,
-          "williamsburg-cable-hub:mini-displayport": 6,
-          "williamsburg-cable-hub:usb-c-to-c": 17
-        },
-        "schema": "simulatte.plugin.cableTraderConfig.v1"
+        "id": "cable-trader-network-v2",
+        "schema": "simulatte.plugin.cableTraderConfig.v2",
+        "simulation": {
+          "durationDays": 30,
+          "initialInventoryPerHubType": 8,
+          "journeyEventCount": 960,
+          "needCount": 4096,
+          "participantCount": 2048,
+          "renderedActorCount": 48,
+          "returnCount": 4096,
+          "seed": "cable-city-month-2026-07"
+        }
       }
     }
   },

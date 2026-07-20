@@ -325,9 +325,11 @@ async function runBrowserSmoke(options) {
       && sunWalkerPass
       && (expectsCableTrader
         ? featureView.cableTrader.visible
-          && featureView.cableTrader.requested === 'HDMI'
+          && featureView.cableTrader.needsServed === '4,096 / 4,096 (100%)'
+          && featureView.cableTrader.exactAllocations === '300 / 300 (100%)'
+          && featureView.cableTrader.monteCarloEvents === '9,152'
           && featureView.cableTrader.markerCount === 4
-          && featureView.cableTrader.actorCount === 4
+          && featureView.cableTrader.actorCount === 48
         : !featureView.cableTrader.visible);
     const pass = result.state === 'completed'
       && result.rendererBackend === 'webgpu'
@@ -533,17 +535,24 @@ function pluginFeatureExpression({ expectsP2pDelivery, expectsSunWalker, expects
     }
     let cableTrader = { visible: Boolean(document.querySelector('#plugin-inspector [data-plugin-id="cable-trader"]')) };
     if (${expectsCableTrader}) {
-      input.value = 'I need an HDMI cable. Find the best exchange hub.';
+      input.value = 'Show the predefined 30-day cable network and its optimal allocation.';
       input.dispatchEvent(new Event('input', { bubbles: true }));
       step.click();
       await waitFor(() => {
         const section = document.querySelector('#plugin-inspector [data-plugin-id="cable-trader"]');
-        return [...(section?.querySelectorAll('dd') || [])].some((row) => row.textContent.trim() === 'HDMI');
-      }, 'cable-trader-request');
+        return [...(section?.querySelectorAll('dd') || [])].some((row) => row.textContent.trim() === '300 / 300 (100%)');
+      }, 'cable-trader-network');
       const section = document.querySelector('#plugin-inspector [data-plugin-id="cable-trader"]');
       const rows = Object.fromEntries([...section.querySelectorAll('div')].map((row) => [row.querySelector('dt')?.textContent.trim(), row.querySelector('dd')?.textContent.trim()]));
       const canvas = document.getElementById('autonomy-canvas');
-      cableTrader = { visible: true, requested: rows.Requested || '', markerCount: Number(canvas.dataset.pluginMarkersCount || 0), actorCount: Number(canvas.dataset.pluginActorsCount || 0) };
+      cableTrader = {
+        visible: true,
+        needsServed: rows['Needs served'] || '',
+        exactAllocations: rows['Exact allocations'] || '',
+        monteCarloEvents: rows['Monte Carlo events'] || '',
+        markerCount: Number(canvas.dataset.pluginMarkersCount || 0),
+        actorCount: Number(canvas.dataset.pluginActorsCount || 0),
+      };
     }
     return { cooperation, gpuParity, shade, cableTrader };
   })()`;

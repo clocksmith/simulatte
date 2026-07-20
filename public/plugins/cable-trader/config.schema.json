@@ -1,24 +1,57 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Cable Trader configuration v1",
+  "title": "Cable Trader configuration v2",
   "type": "object",
-  "required": ["schema", "id", "cableTypes", "hubs", "candidateJourneys", "inventory"],
+  "required": ["schema", "id", "cableTypes", "hubs", "simulation"],
   "additionalProperties": false,
   "properties": {
-    "schema": { "const": "simulatte.plugin.cableTraderConfig.v1" },
+    "schema": { "const": "simulatte.plugin.cableTraderConfig.v2" },
     "id": { "type": "string", "minLength": 1 },
     "cableTypes": {
-      "type": "array", "minItems": 1, "maxItems": 128,
-      "items": { "type": "object", "required": ["id", "label", "labels"], "additionalProperties": false, "properties": { "id": { "type": "string" }, "label": { "type": "string" }, "labels": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string" } } } }
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 128,
+      "items": {
+        "type": "object",
+        "required": ["id", "label", "labels", "demandWeight"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string" },
+          "label": { "type": "string" },
+          "labels": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string" } },
+          "demandWeight": { "type": "number", "exclusiveMinimum": 0 }
+        }
+      }
     },
     "hubs": {
-      "type": "array", "minItems": 1, "maxItems": 32,
-      "items": { "type": "object", "required": ["id", "label", "nodeId"], "additionalProperties": false, "properties": { "id": { "type": "string" }, "label": { "type": "string" }, "nodeId": { "type": "string" } } }
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 16,
+      "items": {
+        "type": "object",
+        "required": ["id", "label", "nodeId"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string" },
+          "label": { "type": "string" },
+          "nodeId": { "type": "string" }
+        }
+      }
     },
-    "candidateJourneys": {
-      "type": "array", "minItems": 1, "maxItems": 64,
-      "items": { "type": "object", "required": ["id", "label", "originNodeId", "destinationNodeId", "kind", "speedMps", "phaseOffsetM"], "additionalProperties": false, "properties": { "id": { "type": "string" }, "label": { "type": "string" }, "originNodeId": { "type": "string" }, "destinationNodeId": { "type": "string" }, "kind": { "enum": ["pedestrian", "bicycle", "scooter", "car"] }, "speedMps": { "type": "number", "exclusiveMinimum": 0 }, "phaseOffsetM": { "type": "number", "minimum": 0 } } }
-    },
-    "inventory": { "type": "object", "additionalProperties": { "type": "integer", "minimum": 0 } }
+    "simulation": {
+      "type": "object",
+      "required": ["seed", "durationDays", "needCount", "returnCount", "journeyEventCount", "participantCount", "renderedActorCount", "initialInventoryPerHubType"],
+      "additionalProperties": false,
+      "properties": {
+        "seed": { "type": "string", "minLength": 1 },
+        "durationDays": { "type": "integer", "minimum": 1, "maximum": 365 },
+        "needCount": { "type": "integer", "minimum": 1000, "maximum": 100000 },
+        "returnCount": { "type": "integer", "minimum": 0, "maximum": 100000 },
+        "journeyEventCount": { "type": "integer", "minimum": 0, "maximum": 100000 },
+        "participantCount": { "type": "integer", "minimum": 1000, "maximum": 100000 },
+        "renderedActorCount": { "type": "integer", "minimum": 1, "maximum": 64 },
+        "initialInventoryPerHubType": { "type": "integer", "minimum": 1, "maximum": 100000 }
+      }
+    }
   }
 }
