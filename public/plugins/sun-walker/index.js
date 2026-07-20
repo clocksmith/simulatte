@@ -18,6 +18,15 @@
         sdk.events.propose({ pluginId: 'sun-walker', kind: 'sun-walker.cleared' });
         return null;
       }
+      const policy = sdk.routing.policy() || {};
+      const routeObjective = policy.routeObjective || {};
+      if (routeObjective.sunExposureSeconds > 0) {
+        return {
+          recognized: true,
+          obligations: [{ id: 'sun-walker:direct-sun-exposure', kind: 'direct_sun_exposure', required: true }],
+          unresolved: [],
+        };
+      }
       const selection = exposure.selectShadeAwareRoute({
         world,
         worldModel,
@@ -25,7 +34,7 @@
         destinationNodeId: mission.destinationNodeId,
         mode: sdk.routing.modeFor(mission.embodimentId),
         mission,
-        policy: sdk.routing.policy(),
+        policy,
         utcInstant: sdk.clock.instantForMission(mission),
         routes: sdk.routing.alternatives(mission, config.maximumAlternatives),
         directSunWeight: config.directSunWeight,
@@ -54,6 +63,111 @@
             objective: selection.selected.objective,
             algorithm: 'sun_walker_arrival_time_route_v1',
           },
+        },
+      };
+    }
+
+    function createRouteContributor({ mission }) {
+      const origin = exposure.worldOrigin(world);
+      const buildings = exposure.compiledBuildings(world);
+      return {
+        id: 'sun-walker:sun-exposure',
+        evaluateSegment({ segment }) {
+          const utcInstant = sdk.clock.instantForMission(mission);
+          const sun = exposure.solarPosition(utcInstant, origin.lat, origin.lon);
+          const row = exposure.segmentExposureRow({
+            segment,
+            buildings,
+            sun,
+            sampleSpacingM: config.sampleSpacingM || 18,
+            minimumSolarElevationDegrees: 2,
+          });
+          return {
+            eligible: true,
+            costDimensions: {
+              sunExposureSeconds: row.output.directSunSeconds,
+            },
+            rejectionReasons: [],
+            receipt: row.output,
+          };
+        },
+        evaluateRoute({ route }) {
+          const utcInstant = sdk.clock.instantForMission(mission);
+          const sun = exposure.solarPosition(utcInstant, origin.lat, origin.lon);
+          const evaluation = exposure.evaluateRoute({
+            model: exposure.createShadeCostModel({
+              world,
+              buildings,
+              latitudeDegrees: origin.lat,
+              longitudeDegrees: origin.lon,
+              sampleSpacingM: config.sampleSpacingM || 18,
+              directSunWeight: config.directSunWeight || 1,
+              unknownWeight: config.unknownWeight || 2,
+            }),
+            segmentIds: route.segmentIds,
+            worldModel,
+            departureAt: utcInstant,
+            routeCandidateId: 'sun-walker-selected',
+          });
+          const totalShadeSeconds = evaluation.edgeRows.reduce((sum, row) => sum + row.components.shadeSeconds, 0);
+          const totalLitSeconds = evaluation.edgeRows.reduce((sum, row) => sum + row.components.directSunSeconds, 0) + totalShadeSeconds;
+          const selection = {
+            schema: 'simulatte.shadeRouteSelection.v1',
+            selected: {
+              route,
+              exposure: evaluation.edgeRows.reduce((sum, row) => {
+                Object.entries(row.components).forEach(([key, value]) => { sum[key] = (sum[key] || 0) + value; });
+                return sum;
+              }, {}),
+              objective: evaluation.generalizedCost,
+              addedTimeSeconds: 0,
+              detourRatio: 0,
+              withinDetourBound: true,
+            },
+            fastest: null,
+            candidates: [],
+            field: {
+              id: `sun-field-${utcInstant.replace(/[:.-]/g, '')}`,
+              azimuthDegrees: sun.azimuthDegrees,
+              elevationDegrees: sun.elevationDegrees,
+              claimBoundary: 'clear-sky direct sun',
+            },
+            comparison: {
+              schema: 'simulatte.comparativeShadeReceipt.v1',
+              selectedRouteId: route.segmentIds.join('|'),
+              fastestRouteId: route.segmentIds.join('|'),
+              selectedModeledBuildingShadePercent: totalLitSeconds ? Math.round(totalShadeSeconds / totalLitSeconds * 100) : 0,
+              fastestModeledBuildingShadePercent: totalLitSeconds ? Math.round(totalShadeSeconds / totalLitSeconds * 100) : 0,
+              selectedDirectSunSeconds: evaluation.edgeRows.reduce((sum, row) => sum + row.components.directSunSeconds, 0),
+              fastestDirectSunSeconds: evaluation.edgeRows.reduce((sum, row) => sum + row.components.directSunSeconds, 0),
+              selectedShadeSeconds: totalShadeSeconds,
+              fastestShadeSeconds: totalShadeSeconds,
+              addedTravelSeconds: 0,
+              detourPercent: 0,
+              withinDetourBound: true,
+            },
+            weights: { travelSeconds: 1, directSunSeconds: config.directSunWeight || 1, unknownSeconds: config.unknownWeight || 2 },
+            detourPolicy: {
+              maximumAddedTimeSeconds: config.maximumAddedTimeSeconds || 600,
+              maximumAddedRatio: config.maximumAddedRatio || 0.25,
+              effectiveMaximumAddedTimeSeconds: config.maximumAddedTimeSeconds || 600,
+            },
+            traversalCostModel: null,
+            selectionAuthority: 'inspectable_javascript',
+            modelExecution: false,
+            searchComplete: true,
+            claimBoundary: 'clear-sky direct sun',
+          };
+          selection.fastest = selection.selected;
+          presentationCache = buildPresentation(selection, world, worldModel);
+          sdk.events.propose({ pluginId: 'sun-walker', kind: 'sun-walker.route-selected', selection });
+          sdk.receipts.append({
+            schema: 'simulatte.plugin.sunWalkerSelectionReceipt.v1',
+            fieldId: selection.field.id,
+            selectedSegmentIds: route.segmentIds,
+            comparison: selection.comparison,
+          });
+          return evaluation;
         },
       };
     }
@@ -91,7 +205,7 @@
       return presentationCache.value;
     }
 
-    return Object.freeze({ id: 'sun-walker', contributeRequest, settle, view, present, dispose() {} });
+    return Object.freeze({ id: 'sun-walker', contributeRequest, createRouteContributor, settle, view, present, dispose() {} });
   }
 
   function reduce(state, event) {

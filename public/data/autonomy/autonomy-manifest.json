@@ -2,48 +2,13 @@
   "applicationProfile": {
     "id": "simulatte-world-v1",
     "path": "../application-profiles/simulatte-world-v1.json",
-    "sha256": "a595f59eccf654b5052ddbc5cf09b3a5cbce9800e319879fc7fb003eda6f33a4"
+    "sha256": "cf44ee5dcd1e70c6f1d2ce9fa5765fe6235678b50262143c11bd02c5dd7c112c"
   },
   "applicationProfiles": [
-    {
-      "id": "accessible-journey-v1",
-      "path": "../application-profiles/accessible-journey-v1.json",
-      "sha256": "f5814defa5bec8bf6f6a388443b7aaf76bf2eab08a7fcb79899bba30d3487d5d"
-    },
-    {
-      "id": "amenity-router-v1",
-      "path": "../application-profiles/amenity-router-v1.json",
-      "sha256": "796526ed93612aeca2770720be2f97839c98da4f5691c2e669296835a0616354"
-    },
     {
       "id": "cable-trader-pickup-v1",
       "path": "../application-profiles/cable-trader-pickup-v1.json",
       "sha256": "d223a350cbbb47974e295467d58cc0db07f03cee53c3bf7353b13039c6e0ac59"
-    },
-    {
-      "id": "cooperative-cable-city-v1",
-      "path": "../application-profiles/cooperative-cable-city-v1.json",
-      "sha256": "b1d9c9ae25a6f092b457a1be2e88d55e93cc2532052bcb3fdcc9b7e9a5de0287"
-    },
-    {
-      "id": "counterfactual-lab-v1",
-      "path": "../application-profiles/counterfactual-lab-v1.json",
-      "sha256": "4ab448800d3e3c6b577f5b2e41085809abcf92a06ed1d3143608f7b33ff3d053"
-    },
-    {
-      "id": "gig-wage-truth-v1",
-      "path": "../application-profiles/gig-wage-truth-v1.json",
-      "sha256": "e3ab226ff1fd5986796edec7fca4b996b96f536f1e1214d8797ea3db3e8d573e"
-    },
-    {
-      "id": "historical-streets-v1",
-      "path": "../application-profiles/historical-streets-v1.json",
-      "sha256": "ad172cca3ded70fce1386f76bf37cdb89091c182b1eede0247cab60129304c8e"
-    },
-    {
-      "id": "p2p-delivery-v1",
-      "path": "../application-profiles/p2p-delivery-v1.json",
-      "sha256": "2d4b868762becec7a9266945d899bd486e6a3dca1080f39986921fbd961ee8a4"
     },
     {
       "id": "safety-explorer-v1",
@@ -99,8 +64,6 @@
     "Ride a scooter from Union Square to North Williamsburg.",
     "Drive from Union Square to North Williamsburg.",
     "Deliver the parcel by bike from Union Square to East Village, then Tompkins Square, then return to Union Square for $25.",
-    "Bike from Union Square to Washington Square and keep me within 200 meters of a bike rack.",
-    "Roll in a wheelchair from Union Square to Washington Square.",
     "Deliver the parcel by bike from East Village to North Williamsburg. Avoid Kent Avenue and yield to pedestrians.",
     "Run 5 laps around Union Square Park perimeter.",
     "Run around McCarren Park perimeter for 2 miles.",
@@ -109,8 +72,7 @@
     "Walk from Tompkins Square to Washington Square starting at 4 pm and arrive by 5 pm, only in daylight.",
     "Deliver the parcel by bike from West Village to Greenpoint for $18 within 30 minutes.",
     "Run in circles around Union Squatre Park parimeter until you've run 5000 feet.",
-    "Walk from Union Square to Washington Square in the shade on a hot day.",
-    "I need two AA batteries delivered to my East Village office. Match someone already passing nearby."
+    "Walk from Union Square to Washington Square in the shade on a hot day."
   ],
   "modelRuntimeLock": {
     "id": "simulatte-doppler-qwen-runtime-lock",

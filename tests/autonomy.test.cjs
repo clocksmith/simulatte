@@ -13,14 +13,12 @@ const autonomyDir = publicDir;
 const autonomySourceDirs = ['app', 'contracts', 'core', 'mission', 'platform', 'plugins', 'runtime', 'verifier', 'world'].map((name) => path.join(publicDir, name));
 const dataDir = path.join(publicDir, 'data', 'autonomy');
 const contracts = require('../public/contracts/contract-validator.js');
-const cooperativeContracts = require('../public/plugins/p2p-delivery/contracts.js');
 const receipts = require('../public/runtime/canonical-receipts.js');
 const missionApi = require('../public/mission/mission-compiler.js');
 const capabilityApi = require('../public/mission/capability-matrix.js');
 const worldApi = require('../public/world/world-model.js');
 const routePlanner = require('../public/world/route-planner.js');
 const controllerApi = require('../public/runtime/autonomy-controller.js');
-const counterfactualApi = require('../public/plugins/counterfactual-lab/comparison-runner.js');
 const dataLoader = require('../public/platform/bootstrap/application-loader.js');
 const journeyLedgerApi = require('../public/runtime/journey-ledger.js');
 const neuralPlaceCore = require('../public/runtime/neural-place-resolution-core.js');
@@ -33,8 +31,6 @@ const pluginContracts = require('../public/platform/contracts/plugin-contracts.j
 const pluginRuntimeApi = require('../public/platform/plugin-host/plugin-runtime.js');
 const featureRetrieval = require('../public/runtime/feature-retrieval.js');
 const occurrenceApi = require('../public/runtime/occurrence-engine.js');
-const cooperativeApi = require('../public/plugins/p2p-delivery/cooperative-engine.js');
-const cooperativeLanguage = require('../public/plugins/p2p-delivery/language-compiler.js');
 const universeParser = require('../public/language/simulatte-universe-parser.js');
 const regionApi = require('../public/world/region-pack-merger.js');
 const ambientActorApi = require('../public/world/ambient-actors.js');
@@ -49,8 +45,7 @@ const gpuGeometry = require('../public/app/webgpu-geometry.js');
 const SYNTHETIC_MISSION = 'Deliver the parcel by bike from Canal Depot to East Market. Prefer protected lanes and yield to pedestrians.';
 const UNION_SQUARE_LOOP = 'run in circles around union squatre park parimeter until youve ran 5000 feet';
 
-cooperativeLanguage.configure({ parser: universeParser });
-cooperativeApi.configure({ contracts: cooperativeContracts, worldApi, routePlanner, receipts, language: cooperativeLanguage });
+
 
 function readJson(file) {
   return JSON.parse(fs.readFileSync(path.join(root, file), 'utf8'));
@@ -95,18 +90,14 @@ function governedAssets() {
     occurrenceCatalog: readJson(`public/data/autonomy/${manifest.occurrenceCatalog.path.replace(/^\.\//, '')}`),
     rerankerEvidence: readJson(`public/data/autonomy/${manifest.rerankerEvidence.path.replace(/^\.\//, '')}`),
     regionRegistry: readJson(`public/data/autonomy/${manifest.regionRegistry.path.replace(/^\.\//, '')}`),
-    accessibilityIndex: pluginDataset('nyc-pedestrian-ramp-accessibility-v1'),
-    routeAmenityIndex: pluginDataset('nyc-bicycle-parking-route-amenity-v1'),
     safetyHistoryIndex: pluginDataset('nyc-crash-history-2025-07-to-2026-07-v1'),
     curriculum: readJson(`public/data/autonomy/${manifest.curriculum.path.replace(/^\.\//, '')}`),
-    worldSnapshotRegistry: pluginDataset('nyc-world-snapshot-registry-v1'),
     placeEmbeddingIndex: referenced('placeEmbeddingIndex'),
     placeResolutionEvidence: referenced('placeResolutionEvidence'),
     modelRuntimeLock: referenced('modelRuntimeLock'),
     pipelineModelSelection: referenced('pipelineModelSelection'),
     applicationProfile: referenced('applicationProfile'),
     policyArenaEvidence: referenced('policyArenaEvidence'),
-    cooperativeScenario: pluginDataset('battery-office-east-village-v1'),
   };
 }
 
@@ -191,18 +182,14 @@ test('autonomy manifest pins and validates every governed asset', () => {
   assert.equal(crypto.createHash('sha256').update(dataLoader.artifactText(composition.world)).digest('hex'), rows.manifest.world.sha256);
   assert.equal(crypto.createHash('sha256').update(dataLoader.artifactText(composition.featureCatalog)).digest('hex'), rows.manifest.featureCatalog.sha256);
   assert.equal(composition.receipt.seamNodeIds.length, 98);
-  contracts.validateAccessibilityIndex(rows.accessibilityIndex, rows.world, rows.manifest.world.sha256);
-  contracts.validateRouteAmenityIndex(rows.routeAmenityIndex, rows.world, rows.manifest.world.sha256);
   contracts.validateSafetyHistoryIndex(rows.safetyHistoryIndex, rows.world, rows.manifest.world.sha256);
   contracts.validateCurriculum(rows.curriculum, rows.world);
-  contracts.validateWorldSnapshotRegistry(rows.worldSnapshotRegistry, rows.world);
   contracts.validatePlaceEmbeddingIndex(rows.placeEmbeddingIndex, rows.modelRuntimeLock, rows.world, rows.manifest.world.sha256);
   contracts.validatePlaceResolutionEvidence(rows.placeResolutionEvidence, rows.placeEmbeddingIndex, rows.modelRuntimeLock);
   contracts.validateModelRuntimeLock(rows.modelRuntimeLock);
   assert.equal(rows.pipelineModelSelection.modelRuntimeLock.id, rows.modelRuntimeLock.id);
   assert.equal(rows.pipelineModelSelection.modelRuntimeLock.number, rows.modelRuntimeLock.number);
   contracts.validatePolicyArenaEvidence(rows.policyArenaEvidence);
-  cooperativeContracts.validateScenario(rows.cooperativeScenario);
   pluginContracts.validateProfile(rows.applicationProfile);
   for (const key of ['world', 'policy', 'featureCatalog', 'occurrenceCatalog', 'rerankerEvidence', 'regionRegistry', 'curriculum', 'placeEmbeddingIndex', 'placeResolutionEvidence', 'modelRuntimeLock', 'pipelineModelSelection', 'applicationProfile', 'policyArenaEvidence']) {
     const reference = rows.manifest[key];
@@ -464,10 +451,6 @@ test('legacy prompt profile resolves governed examples that all compile', () => 
   assert.ok(rows.manifest.missionExamples.length >= 4);
   assert.ok(rows.manifest.missionExamples.includes(rows.manifest.defaultMissionText));
   rows.manifest.missionExamples.forEach((sourceText) => {
-    if (cooperativeApi.recognizesCooperativeRequest(sourceText)) {
-      cooperativeContracts.validateScenario(rows.cooperativeScenario);
-      return;
-    }
     const mission = missionApi.compileMission(sourceText, rows.world, rows.embodiments);
     assert.ok(['delivery', 'point_to_point', 'loop'].includes(mission.task.type), sourceText);
   });
@@ -1073,92 +1056,7 @@ test('ordered stops, return trips, timing, and gig compensation settle as typed 
   assert.equal(inWindowReceipt.verification.obligations.find((row) => row.kind === 'daylight_window').pass, true);
 });
 
-test('amenity and accessibility plugins use pinned evidence and fail closed with exact blockers', async () => {
-  const rows = governedAssets();
-  const runtime = await createTestPluginRuntime(rows, ['accessible-journey', 'amenity-router']);
-  const rackMission = missionApi.compileMission(
-    'Bike from Union Square to Washington Square and keep me within 200 meters of a bike rack.',
-    rows.world,
-    rows.embodiments
-  );
-  await runtime.contributeRequest({ sourceText: rackMission.sourceText, mission: rackMission });
-  const rackPlanning = makeController(rows, rackMission, { routeContributors: runtime.routeContributors({ mission: rackMission }) }).planning();
-  const rackAudit = rackPlanning.pluginAudits['amenity-router'];
-  assert.equal(rackAudit.pass, true);
-  assert.equal(rackAudit.maximumDistanceM, 200);
-  assert.ok(rackAudit.maximumObservedDistanceM <= 200);
-  assert.equal(rackAudit.indexId, rows.routeAmenityIndex.id);
-  const impossibleRackMission = missionApi.compileMission(
-    'Bike from Union Square to Washington Square and keep me within 1 meter of a bike rack.',
-    rows.world,
-    rows.embodiments
-  );
-  await runtime.contributeRequest({ sourceText: impossibleRackMission.sourceText, mission: impossibleRackMission });
-  assert.throws(() => makeController(rows, impossibleRackMission, { routeContributors: runtime.routeContributors({ mission: impossibleRackMission }) }),
-    (error) => error.code === 'route_not_found' && error.evidence.pluginRejections.some((row) => row.reasons.some((reason) => reason.includes('bicycle_rack_distance_exceeded'))));
 
-  const wheelchair = missionApi.compileMission('Roll in a wheelchair from Union Square to Washington Square.', rows.world, rows.embodiments);
-  await runtime.contributeRequest({ sourceText: wheelchair.sourceText, mission: wheelchair });
-  assert.throws(() => makeController(rows, wheelchair, { routeContributors: runtime.routeContributors({ mission: wheelchair }) }),
-    (error) => error.code === 'route_not_found' && error.evidence.pluginRejections.some((row) => row.reasons.some((reason) => reason.includes('accessibility_'))));
-  const accessibilityAudit = missionApi.compileMission('Walk from Union Square to Washington Square and run an accessibility audit.', rows.world, rows.embodiments);
-  await runtime.contributeRequest({ sourceText: accessibilityAudit.sourceText, mission: accessibilityAudit });
-  const auditController = makeController(rows, accessibilityAudit, { routeContributors: runtime.routeContributors({ mission: accessibilityAudit }) });
-  await auditController.run();
-  const auditResult = runtime.views({}).find((row) => row.pluginId === 'accessible-journey').view;
-  assert.match(JSON.stringify(auditResult), /blocked|unresolved/);
-  await runtime.dispose();
-});
-
-test('historical crash weighting produces a matched counterfactual without becoming a safest-route claim', async () => {
-  const rows = governedAssets();
-  const mission = missionApi.compileMission('Drive from Union Square to North Williamsburg.', rows.world, rows.embodiments);
-  const runtime = await createTestPluginRuntime(rows, ['safety-explorer']);
-  const routeContributors = runtime.routeContributors({ mission });
-  const sdk = {
-    worldQuery: { snapshot: () => rows.world },
-    receipts: { sha256Hex: receipts.sha256Hex },
-    simulation: {
-      async run({ mission: laneMission, routeObjective }) {
-        const controller = makeController(rows, laneMission, { routeContributors, routeObjective });
-        await controller.run();
-        return controller.journeyReceipt();
-      },
-    },
-  };
-  const receipt = await counterfactualApi.compareCounterfactual({
-    sdk, mission, routeObjective: { historicalObservation: 0 },
-    intervention: { id: 'history-weight-test', kind: 'historical_crash_weighting', historicalObservationWeight: 1 },
-  });
-  assert.equal(receipt.baseline.status, 'completed');
-  assert.equal(receipt.challenger.status, 'completed');
-  assert.equal(receipt.baseline.route.costBreakdown.weights.historicalObservation, 0);
-  assert.equal(receipt.challenger.route.costBreakdown.weights.historicalObservation, 1);
-  assert.ok(receipt.diff.historicalCrashDelta < 0);
-  assert.ok(receipt.diff.routeJaccard < 1);
-  assert.match(receipt.claimBoundary, /does not predict live traffic/i);
-  await runtime.dispose();
-  assert.match(receipt.challenger.pluginAudits['safety-explorer'].claimBoundary, /does not prove causality/i);
-  assert.match(receipt.integrity.payloadSha256, /^[a-f0-9]{64}$/);
-});
-
-test('unloaded dated worlds retain baseline evidence and emit a named refusal', async () => {
-  const rows = assets();
-  const mission = compileDefaultMission(rows);
-  const sdk = {
-    worldQuery: { snapshot: () => rows.world }, receipts: { sha256Hex: receipts.sha256Hex },
-    simulation: { async run({ mission: laneMission, routeObjective }) { const controller = makeController(rows, laneMission, { routeObjective }); await controller.run(); return controller.journeyReceipt(); } },
-  };
-  const receipt = await counterfactualApi.compareCounterfactual({
-    sdk, mission,
-    intervention: { id: 'world-2019-test', kind: 'world_snapshot', snapshotDate: '2019-07-13' },
-  });
-  assert.equal(receipt.baseline.status, 'completed');
-  assert.equal(receipt.challenger.status, 'refused');
-  assert.equal(receipt.challenger.terminalReason, 'snapshot_not_loaded');
-  assert.ok(receipt.baseline.journeyReceiptSha256);
-  assert.equal(receipt.diff.actualDurationDeltaSeconds, null);
-});
 
 test('local settlement ledger, receipt import, and curriculum progress verify hashes before reuse', async () => {
   const rows = assets();

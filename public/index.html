@@ -10,12 +10,14 @@
   <link rel="stylesheet" href="./design/simulatte.css">
   <link rel="stylesheet" href="./model-selection.css">
   <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./world-tiers.css">
 </head>
 <body class="sim-app" data-journey-phase="loading">
   <main class="map-workspace" aria-label="Simulatte">
     <section class="simulation-stage" aria-label="NYC mission map">
       <div class="canvas-shell">
         <canvas id="autonomy-canvas" width="1440" height="900" aria-label="Interactive WebGPU view of pedestrian, bicycle, scooter, and car missions in the Villages and North Brooklyn"></canvas>
+        <canvas id="overlay-canvas" width="1440" height="900" aria-label="Interactive visual overlay for world scales" hidden></canvas>
         <canvas id="follow-minimap" class="follow-minimap" width="320" height="240" aria-label="Top view minimap centered on the active agent" hidden></canvas>
         <div id="loading-screen" class="loading-screen" role="status" aria-label="Loading Simulatte">
           <div id="loading-mosaic" class="loading-mosaic" aria-hidden="true"></div>
@@ -30,6 +32,18 @@
               <span class="status-dot" aria-hidden="true"></span>
               <strong id="runtime-status" class="runtime-status" data-kind="loading" aria-live="polite">Loading</strong>
             </button>
+            <div id="world-tier-control" class="profile-selector">
+              <button id="world-tier-trigger" class="select-trigger" type="button" aria-label="Switch world scale" aria-haspopup="listbox" aria-controls="world-tier-options" aria-expanded="false">
+                <span id="world-tier-label">Select scale</span>
+              </button>
+              <div id="world-tier-options" class="select-options" role="listbox" aria-label="Simulatte world scales" hidden>
+                <div class="select-option" data-value="city" role="option">City</div>
+                <div class="select-option" data-value="country" role="option">Country</div>
+                <div class="select-option" data-value="world" role="option">Planet</div>
+                <div class="select-option" data-value="solar-system" role="option">Solar System</div>
+                <div class="select-option" data-value="star-chart" role="option">Universe</div>
+              </div>
+            </div>
             <div id="application-profile-control" class="profile-selector">
               <select id="application-profile" aria-label="Experience" disabled hidden>
                 <option>Loading experience</option>
@@ -210,6 +224,8 @@
     </aside>
   </main>
 
+  <a class="blank-link" href="/blank" style="position: fixed; left: max(16px, env(safe-area-inset-left)); bottom: max(16px, env(safe-area-inset-bottom)); z-index: 20;">Blank</a>
+
   <dialog id="neural-model-dialog" class="neural-consent-dialog" aria-labelledby="neural-model-title">
     <div class="neural-consent-body">
       <h2 id="neural-model-title">Enable local Qwen embedding?</h2>
@@ -246,21 +262,8 @@
   <script defer src="./platform/ui-host/declarative-ui-host.js?v=f2dd26c7a4a0c5644cfcac8f512f910cbd9d55d6-389286a1ee76"></script>
   <script defer src="./core/simulation/civil-time.js?v=f2dd26c7a4a0c5644cfcac8f512f910cbd9d55d6-389286a1ee76"></script>
   <!-- generated-plugin-scripts:start -->
-  <script defer src="./plugins/accessible-journey/accessibility-audit.js?v=f2dd26c7a4a0c5644cfcac8f512f910cbd9d55d6-389286a1ee76"></script>
-  <script defer src="./plugins/accessible-journey/index.js?v=f2dd26c7a4a0c5644cfcac8f512f910cbd9d55d6-389286a1ee76"></script>
-  <script defer src="./plugins/amenity-router/index.js?v=f2dd26c7a4a0c5644cfcac8f512f910cbd9d55d6-389286a1ee76"></script>
   <script defer src="./plugins/cable-trader/network-simulation.js?v=f2dd26c7a4a0c5644cfcac8f512f910cbd9d55d6-389286a1ee76"></script>
   <script defer src="./plugins/cable-trader/index.js?v=f2dd26c7a4a0c5644cfcac8f512f910cbd9d55d6-389286a1ee76"></script>
-  <script defer src="./plugins/counterfactual-lab/comparison-runner.js?v=f2dd26c7a4a0c5644cfcac8f512f910cbd9d55d6-389286a1ee76"></script>
-  <script defer src="./plugins/counterfactual-lab/index.js?v=f2dd26c7a4a0c5644cfcac8f512f910cbd9d55d6-389286a1ee76"></script>
-  <script defer src="./plugins/gig-wage-truth/index.js?v=f2dd26c7a4a0c5644cfcac8f512f910cbd9d55d6-389286a1ee76"></script>
-  <script defer src="./plugins/historical-streets/index.js?v=f2dd26c7a4a0c5644cfcac8f512f910cbd9d55d6-389286a1ee76"></script>
-  <script defer src="./plugins/p2p-delivery/contracts.js?v=f2dd26c7a4a0c5644cfcac8f512f910cbd9d55d6-389286a1ee76"></script>
-  <script defer src="./plugins/p2p-delivery/cooperative-engine.js?v=f2dd26c7a4a0c5644cfcac8f512f910cbd9d55d6-389286a1ee76"></script>
-  <script defer src="./plugins/p2p-delivery/gpu-compute.js?v=f2dd26c7a4a0c5644cfcac8f512f910cbd9d55d6-389286a1ee76"></script>
-  <script defer src="./plugins/p2p-delivery/language-compiler.js?v=f2dd26c7a4a0c5644cfcac8f512f910cbd9d55d6-389286a1ee76"></script>
-  <script defer src="./plugins/p2p-delivery/relay-planner.js?v=f2dd26c7a4a0c5644cfcac8f512f910cbd9d55d6-389286a1ee76"></script>
-  <script defer src="./plugins/p2p-delivery/index.js?v=f2dd26c7a4a0c5644cfcac8f512f910cbd9d55d6-389286a1ee76"></script>
   <script defer src="./plugins/safety-explorer/index.js?v=f2dd26c7a4a0c5644cfcac8f512f910cbd9d55d6-389286a1ee76"></script>
   <script defer src="./plugins/sun-walker/sun-exposure.js?v=f2dd26c7a4a0c5644cfcac8f512f910cbd9d55d6-389286a1ee76"></script>
   <script defer src="./plugins/sun-walker/index.js?v=f2dd26c7a4a0c5644cfcac8f512f910cbd9d55d6-389286a1ee76"></script>
@@ -299,6 +302,46 @@
   <script defer src="./app/trace-view.js?v=f2dd26c7a4a0c5644cfcac8f512f910cbd9d55d6-389286a1ee76"></script>
   <script defer src="./app/application-profile-select.js?v=f2dd26c7a4a0c5644cfcac8f512f910cbd9d55d6-389286a1ee76"></script>
   <script defer src="./app/experience-camera.js?v=f2dd26c7a4a0c5644cfcac8f512f910cbd9d55d6-389286a1ee76"></script>
+  <script defer src="./app/multi-tier-visualizer.js?v=f2dd26c7a4a0c5644cfcac8f512f910cbd9d55d6-389286a1ee76"></script>
   <script defer src="./app/main.js?v=f2dd26c7a4a0c5644cfcac8f512f910cbd9d55d6-389286a1ee76"></script>
+
+  <!-- World Tiers Landing Page Selector -->
+  <div id="world-tiers-landing-page">
+    <canvas id="symmetry-canvas"></canvas>
+    <header class="landing-header">
+      <h1 class="landing-title">Simulatte Autonomy</h1>
+      <p class="landing-subtitle">Explore and simulate autonomous behaviors across scales—from local street networks to the stars.</p>
+    </header>
+    <div class="tier-cards-grid">
+      <div class="tier-card" data-tier="city">
+        <div class="tier-icon">🏙️</div>
+        <h2 class="tier-name">City</h2>
+        <p class="tier-desc">Local WebGPU street routing, building shadows, and cooperative agents in NYC.</p>
+      </div>
+      <div class="tier-card" data-tier="country">
+        <div class="tier-icon">🏔️</div>
+        <h2 class="tier-name">Country</h2>
+        <p class="tier-desc">Broad transit networks and cross-region routing graphs across Liechtenstein.</p>
+      </div>
+      <div class="tier-card" data-tier="world">
+        <div class="tier-icon">🌍</div>
+        <h2 class="tier-name">Planet</h2>
+        <p class="tier-desc">Global country boundaries, major cities, and coordinate systems.</p>
+      </div>
+      <div class="tier-card" data-tier="solar-system">
+        <div class="tier-icon">🪐</div>
+        <h2 class="tier-name">Solar System</h2>
+        <p class="tier-desc">Heliocentric planetary orbits, distances, and velocities from JPL Horizons.</p>
+      </div>
+      <div class="tier-card" data-tier="star-chart">
+        <div class="tier-icon">✨</div>
+        <h2 class="tier-name">Universe</h2>
+        <p class="tier-desc">3D stellar charts and spectral color classifications of Hipparcos stars.</p>
+      </div>
+    </div>
+    <footer class="landing-footer">
+      <button class="landing-skip-btn" type="button">Enter Simulator</button>
+    </footer>
+  </div>
 </body>
 </html>

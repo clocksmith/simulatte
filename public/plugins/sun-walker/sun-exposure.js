@@ -734,10 +734,14 @@
     buildBuildingScene,
     buildEnvironmentField,
     buildTimeVaryingEnvironmentField,
+    compiledBuildings,
     createShadeCostModel,
+    evaluateRoute,
     pointSunState,
+    segmentExposureRow,
     selectShadeAwareRoute,
     solarPosition,
+    worldOrigin,
     zonedCivilTimeToUtc,
   };
 });

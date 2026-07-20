@@ -1,5 +1,0 @@
-{
-  "$schema": "https://json-schema.org/draft/2020-12/schema", "title": "Historical Streets configuration v1", "type": "object",
-  "required": ["schema", "id"], "additionalProperties": false,
-  "properties": { "schema": { "const": "simulatte.plugin.historicalStreetsConfig.v1" }, "id": { "type": "string" } }
-}

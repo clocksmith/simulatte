@@ -1,8 +1,0 @@
-{
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Accessible Journey configuration v1",
-  "type": "object",
-  "required": ["schema", "id"],
-  "additionalProperties": false,
-  "properties": { "schema": { "const": "simulatte.plugin.accessibleJourneyConfig.v1" }, "id": { "type": "string" } }
-}

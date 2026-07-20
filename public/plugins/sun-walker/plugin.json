@@ -10,11 +10,12 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginSunWalker",
-    "integrity": "sha384-fc286c09950129b66e55b61e957e72cae809dde1f534ff693894555ebd6f247a950e4e17fbc02bc7b49b018121a22ef4",
+    "integrity": "sha384-cad94e25c5786f5f7b07452906a3ff0d236b619523f264a708026d468b677f9dcc91d538222a40174eedbf37670f9a0a",
     "path": "./index.js"
   },
   "extensionPoints": [
     "request",
+    "route",
     "settlement",
     "ui",
     "presentation"
@@ -45,7 +46,7 @@
       "path": "./default-config.json"
     },
     {
-      "integrity": "sha384-e625a29d6518138487f47bdf3629d56f6d9a94227f59cc36c94d9eefcc0315c3d714629ecfb0e3f20219b8a736cb2c27",
+      "integrity": "sha384-e5026d70e0796b87fb3c0383866e56ccb1b9428396e7cde74496806062bdff060cd7294b20942228e66d586f7b8bf185",
       "path": "./sun-exposure.js"
     }
   ],

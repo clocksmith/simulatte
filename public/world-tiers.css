@@ -1,0 +1,300 @@
+/* Simulatte World Tiers Stylesheet */
+/* Monochrome black base + retro-green primary accent + per-tier rainbow identity. */
+/* All colors route through --sim-* / --tier-* tokens defined in styles.css. */
+
+#world-tiers-landing-page {
+  position: absolute;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at 50% 50%, rgba(14, 14, 14, 0.96), #000 100%);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  color: var(--sim-ink);
+  padding: 40px;
+  overflow-y: auto;
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 600ms cubic-bezier(0.16, 1, 0.3, 1), visibility 600ms step-end;
+}
+
+#world-tiers-landing-page.hidden {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+#symmetry-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.landing-header {
+  text-align: center;
+  margin-bottom: 50px;
+  max-width: 650px;
+  z-index: 5;
+  animation: fadeInDown 800ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.landing-title {
+  font-size: 2.8rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  margin: 0 0 12px 0;
+  /* Rainbow spectrum wash across the wordmark */
+  background: var(--sim-spectrum);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  text-shadow: 0 4px 30px var(--sim-accent-glow);
+}
+
+.landing-subtitle {
+  font-size: 1.15rem;
+  color: var(--sim-ink-soft);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.tier-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 220px);
+  gap: 24px;
+  max-width: 1250px;
+  justify-content: center;
+  z-index: 5;
+  animation: fadeInUp 900ms cubic-bezier(0.16, 1, 0.3, 1) 100ms both;
+}
+
+@media (max-width: 1250px) {
+  .tier-cards-grid {
+    grid-template-columns: repeat(3, 220px);
+  }
+}
+
+@media (max-width: 768px) {
+  .tier-cards-grid {
+    grid-template-columns: repeat(2, 220px);
+  }
+}
+
+@media (max-width: 500px) {
+  .tier-cards-grid {
+    grid-template-columns: 240px;
+  }
+}
+
+/* Each tier exposes its own rainbow hue via --tier for cards + active chrome. */
+.tier-card[data-tier="city"] { --tier: var(--tier-city); }
+.tier-card[data-tier="country"] { --tier: var(--tier-country); }
+.tier-card[data-tier="world"] { --tier: var(--tier-world); }
+.tier-card[data-tier="solar-system"] { --tier: var(--tier-solar-system); }
+.tier-card[data-tier="star-chart"] { --tier: var(--tier-star-chart); }
+
+.tier-card {
+  --tier: var(--sim-accent);
+  position: relative;
+  background: var(--sim-glass-soft);
+  border: 1px solid var(--sim-line);
+  border-top: 2px solid var(--tier);
+  border-radius: 20px;
+  padding: 28px 24px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  transition: all 400ms cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+}
+
+.tier-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), color-mix(in srgb, var(--tier) 24%, transparent) 0%, transparent 60%);
+  opacity: 0;
+  transition: opacity 300ms ease;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.tier-card:hover::before {
+  opacity: 1;
+}
+
+.tier-card:hover {
+  transform: translateY(-8px);
+  background: var(--sim-glass);
+  border-color: var(--tier);
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.55), 0 0 24px color-mix(in srgb, var(--tier) 35%, transparent);
+}
+
+.tier-icon {
+  font-size: 2.5rem;
+  margin-bottom: 20px;
+  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.5));
+  transition: transform 400ms cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 2;
+}
+
+.tier-card:hover .tier-icon {
+  transform: scale(1.2) rotate(6deg);
+}
+
+.tier-name {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0 0 10px 0;
+  color: var(--sim-ink);
+  transition: color 300ms ease;
+  z-index: 2;
+}
+
+.tier-card:hover .tier-name {
+  color: var(--tier);
+}
+
+.tier-desc {
+  font-size: 0.88rem;
+  color: var(--sim-ink-faint);
+  line-height: 1.45;
+  margin: 0;
+  z-index: 2;
+}
+
+.landing-footer {
+  margin-top: 50px;
+  z-index: 5;
+  animation: fadeInUp 900ms cubic-bezier(0.16, 1, 0.3, 1) 200ms both;
+}
+
+.landing-skip-btn {
+  background: transparent;
+  border: 1px solid var(--sim-line-strong);
+  color: var(--sim-ink-soft);
+  padding: 12px 28px;
+  border-radius: 30px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 300ms ease;
+  backdrop-filter: blur(8px);
+}
+
+.landing-skip-btn:hover {
+  border-color: var(--sim-accent-line);
+  color: var(--sim-accent);
+  background: var(--sim-accent-soft);
+  box-shadow: 0 4px 15px var(--sim-accent-glow);
+}
+
+/* Overlay canvas styles */
+#overlay-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 4;
+  pointer-events: auto;
+}
+
+/* Custom visualizer controls overlay */
+.visualizer-hud {
+  position: absolute;
+  top: 80px;
+  left: 20px;
+  z-index: 5;
+  background: var(--sim-glass);
+  border: 1px solid var(--sim-line);
+  border-radius: 12px;
+  padding: 16px;
+  max-width: 320px;
+  pointer-events: auto;
+  box-shadow: var(--sim-shadow);
+  animation: fadeInLeft 400ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.visualizer-hud h3 {
+  margin: 0 0 6px 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--sim-ink);
+}
+
+.visualizer-hud p {
+  margin: 0 0 12px 0;
+  font-size: 0.85rem;
+  color: var(--sim-ink-soft);
+  line-height: 1.4;
+}
+
+.visualizer-hud .hud-stat {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.82rem;
+  margin-bottom: 6px;
+  border-bottom: 1px dashed var(--sim-line);
+  padding-bottom: 4px;
+}
+
+.visualizer-hud .hud-stat span:first-child {
+  color: var(--sim-ink-faint);
+}
+
+.visualizer-hud .hud-stat span:last-child {
+  font-weight: 500;
+  color: var(--sim-accent);
+}
+
+.visualizer-hud .hud-help {
+  font-size: 0.78rem;
+  color: var(--sim-ink-faint);
+  margin-top: 10px;
+  display: block;
+}
+
+/* Animations */
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}

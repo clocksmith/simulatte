@@ -101,6 +101,8 @@
           { label: 'Inventory', value: `${format(result.summary.startingInventory)} → ${format(result.summary.endingInventory)}` },
           { label: 'Busiest hub', value: `${busiestHub.label} · ${format(busiestHub.needs)} needs` },
           { label: 'Top cable', value: `${busiestCable.label} · ${format(busiestCable.needs)} needs` },
+          { label: 'System efficiency', value: `${(result.summary.fulfillmentPercent * (result.summary.optimalAllocations / result.summary.allocations)).toFixed(1)}%` },
+          { label: 'Average transport cost', value: `${(result.summary.totalBurden / (result.summary.fulfilledNeeds || 1)).toFixed(2)} cost units` },
           ...(state.lastExchange ? [{ label: 'Last live exchange', value: `${state.lastExchange.direction} · ${state.lastExchange.hubId}` }] : []),
         ],
         actions: [],
