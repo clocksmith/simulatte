@@ -33,22 +33,14 @@
     serializeError: (error) => ({ name: error?.name || 'Error', message: error?.message || String(error) }),
   };
   const PROFILE_LABELS = Object.freeze({
-    'accessible-journey-v1': 'Accessible Journey',
-    'amenity-router-v1': 'Amenity Router',
-    'cable-trader-pickup-v1': 'Cable Trader',
-    'cooperative-cable-city-v1': 'Cooperative Cable City',
-    'counterfactual-lab-v1': 'Counterfactual Lab',
-    'gig-wage-truth-v1': 'Gig Wage Truth',
-    'historical-streets-v1': 'Historical Streets',
-    'p2p-delivery-v1': 'P2P Delivery',
-    'safety-explorer-v1': 'Safety Explorer',
     'simulatte-world-v1': 'Simulatte World',
+    'cable-trader-pickup-v1': 'Cable Trader',
+    'safety-explorer-v1': 'Safety Explorer',
     'sun-walker-v1': 'Sun Walker',
   });
   // Owns the landing page + symmetry animation and gates asset loading: nothing in
   // start() runs until the visitor picks a tier here.
   let landingAnimator = null;
-  let bootStarted = false;
 
   async function start(initialTier = 'city') {
     if (!experienceCameraApi?.applyInitialCamera || !experienceCameraApi?.runCameraMode) throw new Error('Experience camera dependency is unavailable');
@@ -576,87 +568,15 @@
       await renderLedger(elements, journeyLedger, data.curriculum, data.world.contentVersion);
       await buildController();
 
-      // Initialize the interactive tier visualizer (overlay canvas for non-city scales).
-      // The landing page + symmetry animation are owned by bootLanding(); by the time
-      // start() runs, a tier has already been chosen and we route straight to it below.
+      // Init the tier visualizer + wire the toolbar dropdown (SimulatteWorldTiersBoot owns landing).
       tierVisualizer = SimulatteMultiTierVisualizer.createTierVisualizer(elements.overlayCanvas, 'world-tier-control');
-
-      // Dropdown UI wiring (reusing standard listbox behavior)
-      elements.worldTierTrigger.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const isOpen = elements.worldTierControl.classList.contains('open');
-        if (isOpen) {
-          closeWorldTierDropdown();
-        } else {
-          elements.worldTierControl.classList.add('open');
-          elements.worldTierTrigger.setAttribute('aria-expanded', 'true');
-          elements.worldTierOptions.hidden = false;
-        }
+      const selectWorldTier = SimulatteWorldTiersBoot.wireTierControls({
+        elements,
+        stopLoop,
+        tierVisualizer,
+        profileSelectUi,
+        getLandingAnimator: () => landingAnimator,
       });
-
-      function closeWorldTierDropdown() {
-        elements.worldTierControl.classList.remove('open');
-        elements.worldTierTrigger.setAttribute('aria-expanded', 'false');
-        elements.worldTierOptions.hidden = true;
-      }
-
-      window.addEventListener('click', () => {
-        closeWorldTierDropdown();
-      });
-
-      const tierOptions = elements.worldTierOptions.querySelectorAll('.select-option');
-      tierOptions.forEach(opt => {
-        opt.addEventListener('click', async (e) => {
-          e.stopPropagation();
-          const val = opt.dataset.value;
-          await selectWorldTier(val);
-          closeWorldTierDropdown();
-        });
-      });
-
-      async function selectWorldTier(tier) {
-        // 1. Hide landing page if visible
-        elements.worldTiersLandingPage.classList.add('hidden');
-        landingAnimator?.stop();
-
-        // 2. Stop city loop if selecting non-city tier
-        if (tier !== 'city') {
-          stopLoop();
-        }
-
-        // 3. Sync select options and labels
-        tierOptions.forEach(opt => {
-          const selected = opt.dataset.value === tier;
-          opt.classList.toggle('selected', selected);
-        });
-
-        const labelMap = {
-          city: 'City',
-          country: 'Country',
-          world: 'Planet',
-          'solar-system': 'Solar System',
-          'star-chart': 'Universe'
-        };
-        elements.worldTierLabel.textContent = labelMap[tier] || 'Select scale';
-
-        // 4. Scope the secondary "plugins" dropdown to the active world. Every current
-        //    plugin is a City plugin, so other scales show a disabled "none yet" state.
-        const cityPlugins = tier === 'city';
-        elements.applicationProfileControl.classList.toggle('is-empty', !cityPlugins);
-        elements.applicationProfileTrigger.disabled = !cityPlugins;
-        elements.applicationProfileTrigger.setAttribute('aria-disabled', String(!cityPlugins));
-        if (cityPlugins) {
-          profileSelectUi?.sync();
-        } else {
-          elements.applicationProfileControl.classList.remove('open');
-          elements.applicationProfileTrigger.setAttribute('aria-expanded', 'false');
-          elements.applicationProfileOptions.hidden = true;
-          elements.applicationProfileLabel.textContent = 'No plugins for this scale';
-        }
-
-        // 5. Load active tier visualization
-        await tierVisualizer.loadTier(tier);
-      }
 
       // Route to the tier chosen on the landing page. Assets load now — on selection,
       // never on page load.
@@ -1054,44 +974,12 @@
     return verification;
   }
 
-  // Show the tier selector immediately and only load a tier's assets once the visitor
-  // picks one (landing card or toolbar). The symmetry animation is the only thing that
-  // runs before a selection.
-  async function bootLanding() {
-    const landing = document.getElementById('world-tiers-landing-page');
-    const symmetryCanvas = document.getElementById('symmetry-canvas');
-    if (!landing || !symmetryCanvas) { await start('city'); return; }
-
-    landingAnimator = SimulatteMultiTierVisualizer.createSymmetryAnimator(symmetryCanvas);
-    landingAnimator.start();
-
-    let chosen = false;
-    const chooseTier = async (tier) => {
-      if (chosen) return;
-      chosen = true;
-      landing.classList.add('hidden');
-      landingAnimator?.stop();
-      if (!bootStarted) {
-        bootStarted = true;
-        await start(tier);
-      }
-    };
-
-    landing.querySelectorAll('.tier-card').forEach((card) => {
-      card.addEventListener('mousemove', (event) => {
-        const rect = card.getBoundingClientRect();
-        card.style.setProperty('--mouse-x', `${event.clientX - rect.left}px`);
-        card.style.setProperty('--mouse-y', `${event.clientY - rect.top}px`);
-      });
-      card.addEventListener('mouseenter', () => landingAnimator?.setHoveredTier(card.dataset.tier));
-      card.addEventListener('mouseleave', () => landingAnimator?.setHoveredTier(null));
-      card.addEventListener('click', () => { void chooseTier(card.dataset.tier); });
-    });
-    landing.querySelector('.landing-skip-btn')?.addEventListener('click', () => { void chooseTier('city'); });
-  }
-
   if (typeof document !== 'undefined') {
-    const launch = () => { void bootLanding().catch((error) => {
+    const launch = () => { void SimulatteWorldTiersBoot.bootLanding({
+      MultiTier: SimulatteMultiTierVisualizer,
+      startApp: start,
+      setLandingAnimator: (animator) => { landingAnimator = animator; },
+    }).catch((error) => {
       try { failRuntime(collectElements(), error); }
       catch (boundaryError) { log.error('runtime.bootstrap_failed', log.serializeError(boundaryError)); }
     }); };

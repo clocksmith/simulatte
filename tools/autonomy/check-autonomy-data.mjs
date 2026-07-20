@@ -11,7 +11,6 @@ const PUBLIC = path.join(ROOT, 'public');
 const MANIFEST_PATH = path.join(PUBLIC, 'data/autonomy/autonomy-manifest.json');
 const require = createRequire(import.meta.url);
 const contracts = require('../../public/contracts/contract-validator.js');
-const cooperativeContracts = require('../../public/plugins/p2p-delivery/contracts.js');
 const regionApi = require('../../public/world/region-pack-merger.js');
 const pluginContracts = require('../../public/platform/contracts/plugin-contracts.js');
 
@@ -129,18 +128,10 @@ function main() {
   contracts.validatePlaceResolutionEvidence(placeResolutionEvidence, placeEmbeddingIndex, modelRuntimeLock);
   pluginContracts.validateProfile(applicationProfile);
   const pluginDatasets = resolvePluginDatasets(applicationProfile);
-  const accessibilityIndex = pluginDatasets.get('nyc-pedestrian-ramp-accessibility-v1');
-  const routeAmenityIndex = pluginDatasets.get('nyc-bicycle-parking-route-amenity-v1');
   const safetyHistoryIndex = pluginDatasets.get('nyc-crash-history-2025-07-to-2026-07-v1');
-  const worldSnapshotRegistry = pluginDatasets.get('nyc-world-snapshot-registry-v1');
-  const cooperativeScenario = pluginDatasets.get('battery-office-east-village-v1');
-  contracts.validateAccessibilityIndex(accessibilityIndex, world, manifest.world.sha256);
-  contracts.validateRouteAmenityIndex(routeAmenityIndex, world, manifest.world.sha256);
   contracts.validateSafetyHistoryIndex(safetyHistoryIndex, world, manifest.world.sha256);
   contracts.validateCurriculum(curriculum, world);
-  contracts.validateWorldSnapshotRegistry(worldSnapshotRegistry, world);
   contracts.validatePolicyArenaEvidence(policyArenaEvidence);
-  cooperativeContracts.validateScenario(cooperativeScenario);
   publicAutonomyJavaScript().forEach((file) => {
     const lineCount = fs.readFileSync(file, 'utf8').split(/\r?\n/).length;
     if (lineCount > 999) throw new Error(`${path.relative(ROOT, file)} has ${lineCount} lines; maximum is 999`);

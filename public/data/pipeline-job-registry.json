@@ -297,7 +297,7 @@
           "jobId": "understand-request",
           "phase": null,
           "boundary": "Mission compiler and deterministic grammar",
-          "owners": ["public/mission/mission-compiler.js", "public/plugins/p2p-delivery/language-compiler.js"],
+          "owners": ["public/mission/mission-compiler.js"],
           "surfaceStrategies": []
         },
         {

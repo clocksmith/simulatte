@@ -155,14 +155,10 @@ public/
     receipts/
   plugins/
     sun-walker/
-    p2p-delivery/
     cable-trader/
-    counterfactual-lab/
-    accessible-journey/
-    historical-streets/
     safety-explorer/
-    amenity-router/
-    gig-wage-truth/
+
+  # Additional plugin directories are deferred to later lanes.
   app/
     main.js
 ```
@@ -467,33 +463,31 @@ packages. It is not a second product kind beside plugins:
 ```json
 {
   "schema": "simulatte.applicationProfile.v2",
-  "id": "cooperative-cable-city-v1",
+  "id": "cable-trader-pickup-v1",
   "interaction": {
     "mode": "playback",
-    "startLabel": "Play city",
+    "startLabel": "Play cable city",
     "shuffleLabel": "Shuffle seed"
   },
-  "defaultSeedId": "cooperative-baseline",
+  "defaultSeedId": "july-baseline",
   "seeds": [
     {
-      "id": "cooperative-baseline",
-      "label": "Cooperative baseline",
-      "description": "Cable inventory, journeys, wages, and shade together.",
-      "seed": "cooperative-cable-city-baseline-0719",
+      "id": "july-baseline",
+      "label": "July baseline",
+      "description": "Cable inventory, routes, and pickup settlement.",
+      "seed": "cable-city-month-2026-07",
       "missionText": "Show the predefined cooperative cable network and every optimal cross-hub flow."
     },
     {
-      "id": "commuter-density",
-      "label": "Commuter density",
-      "description": "Alternative participant and cable-event ordering.",
-      "seed": "cooperative-cable-city-commuters-2048",
+      "id": "campus-return-wave",
+      "label": "Campus return wave",
+      "description": "A return-heavy month with redistributed demand across hubs.",
+      "seed": "cable-city-campus-return-731",
       "missionText": "Show the predefined cooperative cable network and every optimal cross-hub flow."
     }
   ],
   "plugins": [
-    { "id": "cable-trader", "configId": "cable-trader-network-v2" },
-    { "id": "p2p-delivery", "configId": "p2p-delivery-default-v1" },
-    { "id": "sun-walker", "configId": "sun-walker-default-v1" }
+    { "id": "cable-trader", "configId": "cable-trader-network-v2" }
   ],
   "camera": {
     "initialMode": "top",
@@ -522,18 +516,11 @@ Plugins must not silently enable themselves or choose global weights.
 | Plugin | Owns | Core ports | Provides | Consumes | Implemented owner |
 | --- | --- | --- | --- | --- | --- |
 | Sun Walker | Solar position, building occlusion, exposure integration, shade preference, comparison receipt | World query, clock, routing, receipts, UI | `routing.dimension.sun-exposure.v1` | None | `public/plugins/sun-walker/` |
-| P2P Delivery | Needs, offers, journey matching, marginal burden, authorization, custody, handoffs, delivery settlement | World query, routing, events, state, receipts, UI | `fulfillment.delivery.v1`, `settlement.delivery.v1` | Optional route dimensions | `public/plugins/p2p-delivery/` |
 | Cable Trader | Cable taxonomy, hub inventory, requests, deposits, credits, candidate journeys, exchange settlement | World query, routing, events, state, receipts, UI | `inventory.exchange.v1`, `settlement.credit.v1` | Optional `fulfillment.delivery.v1` | `public/plugins/cable-trader/` |
-| Counterfactual Lab | Baseline/challenger pairing, declared interventions, matched differences | Routing, simulation runs, receipts, UI | `analysis.counterfactual.v1` | Optional world snapshots and plugin-specific intervention contracts | `public/plugins/counterfactual-lab/` |
-| Accessible Journey | Accessibility-profile obligations, route eligibility, evidence-bound refusal | World query, routing, datasets, receipts, UI | `routing.eligibility.accessibility.v1` | None | `public/plugins/accessible-journey/` |
-| Historical Streets | Dated world selection, snapshot availability, historical-world refusal | Datasets, events, state, UI | `world.snapshot.v1` | None | `public/plugins/historical-streets/` |
 | Safety Explorer | Historical-observation route dimension and narrow claim boundary | Routing, datasets, receipts, UI | `routing.dimension.historical-observation.v1` | None | `public/plugins/safety-explorer/` |
-| Amenity Router | Typed amenity obligations and route eligibility or distance dimensions | World query, routing, datasets, receipts, UI | `routing.eligibility.amenity.v1`, `routing.dimension.amenity-distance.v1` | None | `public/plugins/amenity-router/` |
-| Gig Wage Truth | Compensation policy, time accounting, exclusions, gross-rate settlement | Clock, events, receipts, UI | `analysis.gross-work-rate.v1` | Optional `settlement.delivery.v1` | `public/plugins/gig-wage-truth/` |
-
-P2P Delivery owns the broader cooperative relay behavior. Cooperative City is
-not counted as a second plugin. Cable relocation is Cable Trader composed with
-P2P Delivery, not a third delivery plugin.
+The current shipped set is:
+`sun-walker`, `cable-trader`, and `safety-explorer`.
+Other plugin families are deferred to later lanes.
 
 ## Parallel work rules
 

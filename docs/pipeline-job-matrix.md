@@ -68,7 +68,7 @@ These values are read from the referenced receipts during generation. Candidate 
 | Job | Main `/` owners | Blank `/blank/` owners |
 | --- | --- | --- |
 | Runtime preparation | `public/app/main.js`<br>`public/platform/bootstrap/application-loader.js`<br>`public/data/simulatte-embedder/model-runtime-lock.json` | `public/blank/pipeline/phase-01-runtime`<br>`public/data/simulatte-embedder/model-runtime-lock.json` |
-| Understand request | `public/mission/mission-compiler.js`<br>`public/plugins/p2p-delivery/language-compiler.js` | `public/blank/pipeline/phase-02-language` |
+| Understand request | `public/mission/mission-compiler.js` | `public/blank/pipeline/phase-02-language` |
 | Find candidates | `public/mission/mission-compiler.js`<br>`public/runtime/feature-retrieval.js`<br>`public/runtime/neural-place-resolver.js` | `public/blank/pipeline/phase-03-retrieval` |
 | Commit meaning | `public/mission/mission-compiler.js`<br>`public/contracts/mission.schema.json` | `public/blank/pipeline/phase-04-grounded-intent` |
 | Execute | `public/world/route-planner.js`<br>`public/runtime/autonomy-controller.js`<br>`public/world/time-dependent-edge-cost.js` | `public/blank/pipeline/phase-05-simulation` |
