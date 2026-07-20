@@ -7,7 +7,7 @@
     "artifact": "./model-runtime-lock.json",
     "artifactHash": {
       "alg": "sha256",
-      "hex": "649bf7026ae3a99f527feca62e3b64630018348431a1ed31e11e383f2dc0e4ac"
+      "hex": "967ba04e0c036cb2ee1df98843e0d47365b72460cd84e91992a28f82fa5f626f"
     }
   },
   "retrieval": {
@@ -43,7 +43,7 @@
       "artifact": "./intent-evidence-contract-v1.json",
       "artifactHash": {
         "alg": "sha256",
-        "hex": "ab4984b10bf6fc59e2f0b2d0abbf0fe2871ce97ccb501d5e21fe559c467920e6"
+        "hex": "c3c7118cb03e02877d63fedb133b53fdef109d7dfe5665513b3cbdbfbc974545"
       },
       "documentSchema": "simulatte.intentEvidenceContract.v1",
       "description": "Hand-authored evidence row contract for retrieval-grounded semantic scene forensics."

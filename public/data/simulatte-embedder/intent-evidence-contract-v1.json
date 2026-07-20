@@ -7,7 +7,7 @@
     "artifact": "./model-runtime-lock.json",
     "artifactHash": {
       "alg": "sha256",
-      "hex": "649bf7026ae3a99f527feca62e3b64630018348431a1ed31e11e383f2dc0e4ac"
+      "hex": "967ba04e0c036cb2ee1df98843e0d47365b72460cd84e91992a28f82fa5f626f"
     }
   },
   "embeddedInputs": [
