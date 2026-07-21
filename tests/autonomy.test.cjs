@@ -1319,7 +1319,7 @@ test('loading mosaic loops a seven-segment snake through the clockwise grid spir
   assert.equal(headFrames.find((frame) => frame.offset === loadingMosaicApi.TRAVEL_END).opacity, 1);
   assert.equal(tailFrames.find((frame) => frame.offset === loadingMosaicApi.TRAVEL_END).opacity, loadingMosaicApi.trailOpacity(6));
   assert.deepEqual(loadingMosaicApi.TRAIL_OPACITIES, [1, 0.88, 0.76, 0.64, 0.52, 0.4, 0.3]);
-  assert.equal(loadingMosaicApi.CYCLE_DURATION_MS, 2000);
+  assert.equal(loadingMosaicApi.CYCLE_DURATION_MS, 2200);
   assert.equal(loadingMosaicApi.CELL_GAP_PX, 6);
   assert.equal(loadingMosaicApi.SNAKE_TRAVEL_DURATION_MS, 1200);
   assert.equal(loadingMosaicApi.SNAKE_COLLAPSE_DURATION_MS, 150);
@@ -1328,9 +1328,9 @@ test('loading mosaic loops a seven-segment snake through the clockwise grid spir
   const tailTurnFrames = tailFrames.filter((frame) => frame.offset >= loadingMosaicApi.TURN_START && frame.offset <= loadingMosaicApi.TURN_END);
   assert.deepEqual(tailTurnFrames.map((frame) => frame.transform), [
     loadingMosaicApi.cellTransform([3, 3]),
-    loadingMosaicApi.cellTransform([2, 2]),
-    loadingMosaicApi.cellTransform([1, 1]),
-    loadingMosaicApi.cellTransform([0, 0]),
+    loadingMosaicApi.cellTransform([2, 4]),
+    loadingMosaicApi.cellTransform([1, 5]),
+    loadingMosaicApi.cellTransform([0, 6]),
   ]);
   const hopOffsets = tailTurnFrames.slice(1).map((frame) => frame.offset);
   const hopIntervals = hopOffsets.map((offset, index) => offset - (index === 0 ? loadingMosaicApi.TURN_START : hopOffsets[index - 1]));
@@ -1339,7 +1339,7 @@ test('loading mosaic loops a seven-segment snake through the clockwise grid spir
   assert.equal(loadingMosaicApi.ROTATION_STEP_DEG, 30);
   const rotation = loadingMosaicApi.rotationCycleKeyframes();
   assert.deepEqual(rotation.map((frame) => frame.transform), [
-    'rotate(0deg)', 'rotate(0deg)', 'rotate(30deg)', 'rotate(60deg)', 'rotate(90deg)', 'rotate(90deg)',
+    'rotate(0deg)', 'rotate(0deg)', 'rotate(-30deg)', 'rotate(-60deg)', 'rotate(-90deg)', 'rotate(-90deg)',
   ]);
   assert.ok(rotation.every((frame) => frame.offset === 1 || frame.easing === 'steps(1, end)'));
   assert.equal(rotation[1].offset, loadingMosaicApi.TURN_START);
@@ -1368,8 +1368,8 @@ test('loading mosaic loops a seven-segment snake through the clockwise grid spir
   assert.equal(loadingMosaicApi.completedHopsAt(loadingMosaicApi.TURN_START), 0);
   assert.equal(loadingMosaicApi.completedHopsAt(loadingMosaicApi.TURN_END), 3);
   assert.equal(loadingMosaicApi.completedHopsAt(1), 3);
-  assert.equal(headFrames.at(-1).transform, loadingMosaicApi.cellTransform([0, 0]));
-  assert.equal(tailFrames.at(-1).transform, loadingMosaicApi.cellTransform([0, 0]));
+  assert.equal(headFrames.at(-1).transform, loadingMosaicApi.cellTransform([0, 6]));
+  assert.equal(tailFrames.at(-1).transform, loadingMosaicApi.cellTransform([0, 6]));
 });
 
 test('every first-party plugin is selectable through a governed application profile', () => {

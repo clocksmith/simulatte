@@ -158,7 +158,9 @@
         this.updateHudContent('Universe', 'Loading stellar catalog database...', {}, '');
         try {
           const res = await fetch('./data/autonomy/cache/space/star-chart.json');
-          this.data = await res.json();
+          const parsed = await res.json();
+          // The catalog is { schema, count, stars: [...] }; the renderer wants the array.
+          this.data = Array.isArray(parsed) ? parsed : (parsed.stars || []);
           this.updateHudContent('Universe', 'Hipparcos/Yale/Gliese 3D celestial coordinates color-coded by spectral class.', {
             'Catalog': 'HYG Star Database',
             'Visible Stars Loaded': this.data.length,
@@ -314,7 +316,9 @@
       };
 
       // Draw planetary paths and positions
-      for (const [name, ephemeris] of Object.entries(data)) {
+      for (const [name, body] of Object.entries(data)) {
+        // Each body is { id, ephemeris: [...] }; tolerate a bare array too.
+        const ephemeris = Array.isArray(body) ? body : body?.ephemeris;
         if (!ephemeris || ephemeris.length === 0) continue;
         const style = planetStyle[name] || { color: '#33ff66', r: 4 };
 
@@ -324,7 +328,7 @@
           // Parse RA and Dec to draw circular orbital approximation coordinates
           const raHours = pt.ra.split(' ').map(Number);
           const raRad = ((raHours[0] + raHours[1]/60 + raHours[2]/3600) * 15 * Math.PI) / 180;
-          const dist = pt.distanceAu * zoom;
+          const dist = pt.distanceAU * zoom;
 
           const px = panX + Math.cos(raRad) * dist;
           const py = panY + Math.sin(raRad) * dist;
@@ -341,7 +345,7 @@
         const currentPt = ephemeris[0];
         const raHours = currentPt.ra.split(' ').map(Number);
         const raRad = ((raHours[0] + raHours[1]/60 + raHours[2]/3600) * 15 * Math.PI) / 180;
-        const dist = currentPt.distanceAu * zoom;
+        const dist = currentPt.distanceAU * zoom;
 
         const px = panX + Math.cos(raRad) * dist;
         const py = panY + Math.sin(raRad) * dist;

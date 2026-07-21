@@ -579,8 +579,7 @@
       // never on page load.
       await selectWorldTier(initialTier);
     } catch (error) {
-      // Fallback: a failed ?profile= experience drops the profile and reloads the
-      // default city view once, so it degrades to a working view, not a dead screen.
+      // Fallback: a failed ?profile= experience drops the profile and reloads default city once.
       try {
         const url = new URL(window.location.href);
         if (url.searchParams.has('profile') && !url.searchParams.has('profile-fallback')) {
@@ -985,7 +984,8 @@
 
   if (typeof document !== 'undefined') {
     const launch = () => { void SimulatteWorldTiersBoot.bootLanding({
-      startApp: start,
+      startApp: start, collectElements, setJourneyPhase, setRuntimeStatus,
+      createTierVisualizer: SimulatteMultiTierVisualizer.createTierVisualizer,
     }).catch((error) => {
       try { failRuntime(collectElements(), error); }
       catch (boundaryError) { log.error('runtime.bootstrap_failed', log.serializeError(boundaryError)); }

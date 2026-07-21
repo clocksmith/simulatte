@@ -188,8 +188,16 @@
   // Break the long synchronous load into cooperative chunks so the main thread stays
   // responsive (the loading animation keeps running) through merge and validation.
   function yieldToHost() {
-    if (typeof globalThis.requestAnimationFrame === 'function') {
-      return new Promise((resolve) => globalThis.requestAnimationFrame(() => resolve()));
+    // Yield via MessageChannel, not requestAnimationFrame: rAF is frozen in hidden
+    // tabs, which would stall the data load whenever the tab is backgrounded. A
+    // MessageChannel task still runs at full rate in the background, so the load keeps
+    // making progress and resumes cleanly when the tab is refocused.
+    if (typeof MessageChannel === 'function') {
+      return new Promise((resolve) => {
+        const channel = new MessageChannel();
+        channel.port1.onmessage = () => { channel.port1.close(); resolve(); };
+        channel.port2.postMessage(0);
+      });
     }
     if (typeof globalThis.setTimeout === 'function') {
       return new Promise((resolve) => globalThis.setTimeout(resolve, 0));

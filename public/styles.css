@@ -85,6 +85,14 @@ body:not([data-journey-phase="loading"]) .loading-screen {
   will-change: transform;
 }
 
+/* Standalone world explorer (non-City scales): hide the City-only gameplay chrome. */
+.world-explorer .mission-dock,
+.world-explorer #journey-hud,
+.world-explorer #decisions-button,
+.world-explorer .camera-controls {
+  display: none !important;
+}
+
 .loading-mosaic {
   --mosaic-size: 7;
   --mosaic-gap: 6px;

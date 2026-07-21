@@ -12,11 +12,14 @@
   const CENTER = Math.floor(DEFAULT_SIZE / 2);
   const SNAKE_LENGTH = 7;
   const CELL_GAP_PX = 6;
-  const CYCLE_DURATION_MS = 2000;
   const SNAKE_TRAVEL_DURATION_MS = 1200;
   const SNAKE_COLLAPSE_DURATION_MS = 150;
   const TURN_DELAY_MS = 50;
   const ROTATION_DURATION_MS = 500;
+  // Hold at the top-left corner after the diagonal shift before the cycle repeats.
+  const CORNER_PAUSE_MS = 300;
+  const CYCLE_DURATION_MS = SNAKE_TRAVEL_DURATION_MS + SNAKE_COLLAPSE_DURATION_MS
+    + TURN_DELAY_MS + ROTATION_DURATION_MS + CORNER_PAUSE_MS;
   const ROTATION_STEP_DEG = 90 / CENTER;
   // Seven hues evenly spaced around the full 360° color wheel (360 / 7 ≈ 51.43° apart),
   // so the palette sweeps the whole spectrum in even steps rather than bunched named colors.
@@ -93,16 +96,18 @@
       });
     }
     frames.push({ transform: cellTransform([center, center]), opacity: 1, offset: TURN_START, easing: 'steps(1, end)' });
+    // Diagonal shift along the anti-diagonal toward local [0, size-1]. Combined with the
+    // -90° emblem rotation this lands the cell at the VISUAL top-left corner, and it stays
+    // top-left across the loop (rotation resets while the cell returns to [0,0]).
     for (let jump = 1; jump <= center; jump += 1) {
-      const coordinate = center - jump;
       frames.push({
-        transform: cellTransform([coordinate, coordinate]),
+        transform: cellTransform([center - jump, center + jump]),
         opacity: 1,
         offset: TURN_START + ((jump / center) * (TURN_END - TURN_START)),
         easing: 'steps(1, end)',
       });
     }
-    frames.push({ transform: cellTransform([0, 0]), opacity: 1, offset: 1 });
+    frames.push({ transform: cellTransform([0, 2 * center]), opacity: 1, offset: 1 });
     return frames;
   }
 
@@ -143,12 +148,12 @@
     ];
     for (let hop = 1; hop <= CENTER; hop += 1) {
       frames.push({
-        transform: `rotate(${ROTATION_STEP_DEG * hop}deg)`,
+        transform: `rotate(${-ROTATION_STEP_DEG * hop}deg)`,
         offset: TURN_START + ((hop / CENTER) * (TURN_END - TURN_START)),
         easing: 'steps(1, end)',
       });
     }
-    frames.push({ transform: 'rotate(90deg)', offset: 1 });
+    frames.push({ transform: 'rotate(-90deg)', offset: 1 });
     return frames;
   }
 
@@ -250,7 +255,7 @@
       tileCount: cells.length,
       snakeLength: segments.length,
       direction: 'clockwise-inward',
-      rotationDegrees: 90,
+      rotationDegrees: -90,
       dispose: cycle.dispose,
     });
     container.loadingMosaicController = controller;
