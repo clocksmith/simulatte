@@ -1,0 +1,612 @@
+{
+  "schema": "simulatte.sealedPlacePopulation.v1",
+  "id": "sealed-place-population-v1",
+  "population": "sealed_promotion",
+  "excludedClasses": [
+    "paraphrase"
+  ],
+  "exclusionReason": "Machine generation cannot author landmark paraphrases without transiting the tuning session; paraphrase promotion needs a custodian-authored set.",
+  "probes": [
+    {
+      "probeId": "sealed-001",
+      "kind": "typo_within",
+      "role": "destination",
+      "sourceText": "Deliver the parcel by bike from McCarren Park to Eass Village.",
+      "gold": {
+        "outcome": "resolve",
+        "placeLabel": "East Village"
+      },
+      "mutationDepth": 1,
+      "operators": [
+        "substitute"
+      ]
+    },
+    {
+      "probeId": "sealed-002",
+      "kind": "typo_beyond",
+      "role": "destination",
+      "sourceText": "Deliver the parcel by bike from Williamsburg Bridge to Elst Villoge.",
+      "gold": {
+        "outcome": "resolve",
+        "placeLabel": "East Village"
+      },
+      "mutationDepth": 2,
+      "operators": [
+        "substitute",
+        "substitute"
+      ]
+    },
+    {
+      "probeId": "sealed-003",
+      "kind": "typo_beyond",
+      "role": "destination",
+      "sourceText": "Deliver the parcel by bike from McCarren Park to EastVilllgae.",
+      "gold": {
+        "outcome": "resolve",
+        "placeLabel": "East Village"
+      },
+      "mutationDepth": 3,
+      "operators": [
+        "transpose",
+        "double_char",
+        "drop_space"
+      ]
+    },
+    {
+      "probeId": "sealed-004",
+      "kind": "typo_within",
+      "role": "destination",
+      "sourceText": "Deliver the parcel by bike from Washington Square to Gerenpoint.",
+      "gold": {
+        "outcome": "resolve",
+        "placeLabel": "Greenpoint"
+      },
+      "mutationDepth": 1,
+      "operators": [
+        "transpose"
+      ]
+    },
+    {
+      "probeId": "sealed-005",
+      "kind": "typo_beyond",
+      "role": "destination",
+      "sourceText": "Deliver the parcel by bike from Williamsburg Bridge to Greeenpoint.",
+      "gold": {
+        "outcome": "resolve",
+        "placeLabel": "Greenpoint"
+      },
+      "mutationDepth": 2,
+      "operators": [
+        "double_char"
+      ]
+    },
+    {
+      "probeId": "sealed-006",
+      "kind": "typo_beyond",
+      "role": "destination",
+      "sourceText": "Deliver the parcel by bike from Tompkins Square to Greefpoit.",
+      "gold": {
+        "outcome": "resolve",
+        "placeLabel": "Greenpoint"
+      },
+      "mutationDepth": 3,
+      "operators": [
+        "delete_char",
+        "substitute"
+      ]
+    },
+    {
+      "probeId": "sealed-007",
+      "kind": "case_variant",
+      "role": "destination",
+      "sourceText": "Deliver the parcel by bike from Union Square to greenpoint.",
+      "gold": {
+        "outcome": "resolve",
+        "placeLabel": "Greenpoint"
+      }
+    },
+    {
+      "probeId": "sealed-008",
+      "kind": "typo_within",
+      "role": "destination",
+      "sourceText": "Deliver the parcel by bike from Greenpoint to McCarren aPrk.",
+      "gold": {
+        "outcome": "resolve",
+        "placeLabel": "McCarren Park"
+      },
+      "mutationDepth": 1,
+      "operators": [
+        "transpose"
+      ]
+    },
+    {
+      "probeId": "sealed-009",
+      "kind": "typo_beyond",
+      "role": "destination",
+      "sourceText": "Deliver the parcel by bike from East Village to McCarrrenPark.",
+      "gold": {
+        "outcome": "resolve",
+        "placeLabel": "McCarren Park"
+      },
+      "mutationDepth": 2,
+      "operators": [
+        "delete_char",
+        "double_char"
+      ]
+    },
+    {
+      "probeId": "sealed-010",
+      "kind": "typo_beyond",
+      "role": "destination",
+      "sourceText": "Deliver the parcel by bike from Union Square to Mcarrben Park.",
+      "gold": {
+        "outcome": "resolve",
+        "placeLabel": "McCarren Park"
+      },
+      "mutationDepth": 3,
+      "operators": [
+        "double_char",
+        "delete_char",
+        "substitute"
+      ]
+    },
+    {
+      "probeId": "sealed-011",
+      "kind": "case_variant",
+      "role": "destination",
+      "sourceText": "Deliver the parcel by bike from Washington Square to mccarren park.",
+      "gold": {
+        "outcome": "resolve",
+        "placeLabel": "McCarren Park"
+      }
+    },
+    {
+      "probeId": "sealed-012",
+      "kind": "typo_within",
+      "role": "destination",
+      "sourceText": "Deliver the parcel by bike from Williamsburg Bridge to North Williamsubrg.",
+      "gold": {
+        "outcome": "resolve",
+        "placeLabel": "North Williamsburg"
+      },
+      "mutationDepth": 1,
+      "operators": [
+        "transpose"
+      ]
+    },
+    {
+      "probeId": "sealed-013",
+      "kind": "typo_beyond",
+      "role": "destination",
+      "sourceText": "Deliver the parcel by bike from Washington Square to North Wlliamsurg.",
+      "gold": {
+        "outcome": "resolve",
+        "placeLabel": "North Williamsburg"
+      },
+      "mutationDepth": 2,
+      "operators": [
+        "delete_char",
+        "delete_char"
+      ]
+    },
+    {
+      "probeId": "sealed-014",
+      "kind": "typo_beyond",
+      "role": "destination",
+      "sourceText": "Deliver the parcel by bike from Union Square to NorthWiliamsburg.",
+      "gold": {
+        "outcome": "resolve",
+        "placeLabel": "North Williamsburg"
+      },
+      "mutationDepth": 3,
+      "operators": [
+        "drop_space",
+        "delete_char"
+      ]
+    },
+    {
+      "probeId": "sealed-015",
+      "kind": "typo_within",
+      "role": "destination",
+      "sourceText": "Deliver the parcel by bike from East Village to Tompkins Squre.",
+      "gold": {
+        "outcome": "resolve",
+        "placeLabel": "Tompkins Square"
+      },
+      "mutationDepth": 1,
+      "operators": [
+        "delete_char"
+      ]
+    },
+    {
+      "probeId": "sealed-016",
+      "kind": "typo_beyond",
+      "role": "destination",
+      "sourceText": "Deliver the parcel by bike from East Village to Tompkkins Suare.",
+      "gold": {
+        "outcome": "resolve",
+        "placeLabel": "Tompkins Square"
+      },
+      "mutationDepth": 2,
+      "operators": [
+        "delete_char",
+        "double_char"
+      ]
+    },
+    {
+      "probeId": "sealed-017",
+      "kind": "typo_beyond",
+      "role": "destination",
+      "sourceText": "Deliver the parcel by bike from West Village to TommpkiinsSquare.",
+      "gold": {
+        "outcome": "resolve",
+        "placeLabel": "Tompkins Square"
+      },
+      "mutationDepth": 3,
+      "operators": [
+        "double_char",
+        "double_char",
+        "drop_space"
+      ]
+    },
+    {
+      "probeId": "sealed-018",
+      "kind": "case_variant",
+      "role": "destination",
+      "sourceText": "Deliver the parcel by bike from Union Square to tompkins square.",
+      "gold": {
+        "outcome": "resolve",
+        "placeLabel": "Tompkins Square"
+      }
+    },
+    {
+      "probeId": "sealed-019",
+      "kind": "typo_within",
+      "role": "destination",
+      "sourceText": "Deliver the parcel by bike from North Williamsburg to UnionSquare.",
+      "gold": {
+        "outcome": "resolve",
+        "placeLabel": "Union Square"
+      },
+      "mutationDepth": 1,
+      "operators": [
+        "drop_space"
+      ]
+    },
+    {
+      "probeId": "sealed-020",
+      "kind": "typo_beyond",
+      "role": "destination",
+      "sourceText": "Deliver the parcel by bike from Williamsburg Waterfront to Union Sqpire.",
+      "gold": {
+        "outcome": "resolve",
+        "placeLabel": "Union Square"
+      },
+      "mutationDepth": 2,
+      "operators": [
+        "substitute",
+        "substitute"
+      ]
+    },
+    {
+      "probeId": "sealed-021",
+      "kind": "typo_beyond",
+      "role": "destination",
+      "sourceText": "Deliver the parcel by bike from East Village to Union Soquare.",
+      "gold": {
+        "outcome": "resolve",
+        "placeLabel": "Union Square"
+      },
+      "mutationDepth": 3,
+      "operators": [
+        "double_char",
+        "substitute",
+        "transpose"
+      ]
+    },
+    {
+      "probeId": "sealed-022",
+      "kind": "typo_within",
+      "role": "destination",
+      "sourceText": "Deliver the parcel by bike from East Village to Washingron Square.",
+      "gold": {
+        "outcome": "resolve",
+        "placeLabel": "Washington Square"
+      },
+      "mutationDepth": 1,
+      "operators": [
+        "substitute"
+      ]
+    },
+    {
+      "probeId": "sealed-023",
+      "kind": "typo_beyond",
+      "role": "destination",
+      "sourceText": "Deliver the parcel by bike from West Village to Washpngtonn Square.",
+      "gold": {
+        "outcome": "resolve",
+        "placeLabel": "Washington Square"
+      },
+      "mutationDepth": 2,
+      "operators": [
+        "double_char",
+        "substitute"
+      ]
+    },
+    {
+      "probeId": "sealed-024",
+      "kind": "typo_beyond",
+      "role": "destination",
+      "sourceText": "Deliver the parcel by bike from West Village to WashingttonqSuare.",
+      "gold": {
+        "outcome": "resolve",
+        "placeLabel": "Washington Square"
+      },
+      "mutationDepth": 3,
+      "operators": [
+        "drop_space",
+        "double_char",
+        "transpose"
+      ]
+    },
+    {
+      "probeId": "sealed-025",
+      "kind": "case_variant",
+      "role": "destination",
+      "sourceText": "Deliver the parcel by bike from West Village to washington square.",
+      "gold": {
+        "outcome": "resolve",
+        "placeLabel": "Washington Square"
+      }
+    },
+    {
+      "probeId": "sealed-026",
+      "kind": "typo_within",
+      "role": "destination",
+      "sourceText": "Deliver the parcel by bike from Williamsburg Waterfront to Wets Village.",
+      "gold": {
+        "outcome": "resolve",
+        "placeLabel": "West Village"
+      },
+      "mutationDepth": 1,
+      "operators": [
+        "transpose"
+      ]
+    },
+    {
+      "probeId": "sealed-027",
+      "kind": "typo_beyond",
+      "role": "destination",
+      "sourceText": "Deliver the parcel by bike from Williamsburg Bridge to Wes tVVillage.",
+      "gold": {
+        "outcome": "resolve",
+        "placeLabel": "West Village"
+      },
+      "mutationDepth": 2,
+      "operators": [
+        "transpose",
+        "double_char"
+      ]
+    },
+    {
+      "probeId": "sealed-028",
+      "kind": "typo_beyond",
+      "role": "destination",
+      "sourceText": "Deliver the parcel by bike from Greenpoint to WesVtillage.",
+      "gold": {
+        "outcome": "resolve",
+        "placeLabel": "West Village"
+      },
+      "mutationDepth": 3,
+      "operators": [
+        "drop_space",
+        "transpose"
+      ]
+    },
+    {
+      "probeId": "sealed-029",
+      "kind": "typo_within",
+      "role": "destination",
+      "sourceText": "Deliver the parcel by bike from North Williamsburg to Williambsurg Bridge.",
+      "gold": {
+        "outcome": "resolve",
+        "placeLabel": "Williamsburg Bridge"
+      },
+      "mutationDepth": 1,
+      "operators": [
+        "transpose"
+      ]
+    },
+    {
+      "probeId": "sealed-030",
+      "kind": "typo_beyond",
+      "role": "destination",
+      "sourceText": "Deliver the parcel by bike from Tompkins Square to WiliamsburglBridge.",
+      "gold": {
+        "outcome": "resolve",
+        "placeLabel": "Williamsburg Bridge"
+      },
+      "mutationDepth": 2,
+      "operators": [
+        "substitute",
+        "delete_char"
+      ]
+    },
+    {
+      "probeId": "sealed-031",
+      "kind": "typo_beyond",
+      "role": "destination",
+      "sourceText": "Deliver the parcel by bike from McCarren Park to Williiamsburg Britgge.",
+      "gold": {
+        "outcome": "resolve",
+        "placeLabel": "Williamsburg Bridge"
+      },
+      "mutationDepth": 3,
+      "operators": [
+        "double_char",
+        "substitute",
+        "double_char"
+      ]
+    },
+    {
+      "probeId": "sealed-032",
+      "kind": "case_variant",
+      "role": "destination",
+      "sourceText": "Deliver the parcel by bike from Greenpoint to williamsburg bridge.",
+      "gold": {
+        "outcome": "resolve",
+        "placeLabel": "Williamsburg Bridge"
+      }
+    },
+    {
+      "probeId": "sealed-033",
+      "kind": "typo_within",
+      "role": "destination",
+      "sourceText": "Deliver the parcel by bike from Tompkins Square to Williamsburg Waetrfront.",
+      "gold": {
+        "outcome": "resolve",
+        "placeLabel": "Williamsburg Waterfront"
+      },
+      "mutationDepth": 1,
+      "operators": [
+        "transpose"
+      ]
+    },
+    {
+      "probeId": "sealed-034",
+      "kind": "typo_beyond",
+      "role": "destination",
+      "sourceText": "Deliver the parcel by bike from Greenpoint to WilliamsburgWtaerfront.",
+      "gold": {
+        "outcome": "resolve",
+        "placeLabel": "Williamsburg Waterfront"
+      },
+      "mutationDepth": 2,
+      "operators": [
+        "transpose",
+        "drop_space"
+      ]
+    },
+    {
+      "probeId": "sealed-035",
+      "kind": "typo_beyond",
+      "role": "destination",
+      "sourceText": "Deliver the parcel by bike from North Williamsburg to WxlliamsburgWatrefront.",
+      "gold": {
+        "outcome": "resolve",
+        "placeLabel": "Williamsburg Waterfront"
+      },
+      "mutationDepth": 3,
+      "operators": [
+        "drop_space",
+        "substitute",
+        "transpose"
+      ]
+    },
+    {
+      "probeId": "sealed-036",
+      "kind": "case_variant",
+      "role": "destination",
+      "sourceText": "Deliver the parcel by bike from East Village to williamsburg waterfront.",
+      "gold": {
+        "outcome": "resolve",
+        "placeLabel": "Williamsburg Waterfront"
+      }
+    },
+    {
+      "probeId": "sealed-037",
+      "kind": "ambiguous",
+      "role": "destination",
+      "sourceText": "Deliver the parcel by bike from North Williamsburg to Village.",
+      "gold": {
+        "outcome": "refuse",
+        "candidates": [
+          "East Village",
+          "West Village"
+        ]
+      }
+    },
+    {
+      "probeId": "sealed-038",
+      "kind": "ambiguous",
+      "role": "destination",
+      "sourceText": "Deliver the parcel by bike from McCarren Park to Williamsburg.",
+      "gold": {
+        "outcome": "refuse",
+        "candidates": [
+          "North Williamsburg",
+          "Williamsburg Bridge",
+          "Williamsburg Waterfront"
+        ]
+      }
+    },
+    {
+      "probeId": "sealed-039",
+      "kind": "ambiguous",
+      "role": "destination",
+      "sourceText": "Deliver the parcel by bike from Williamsburg Bridge to Square.",
+      "gold": {
+        "outcome": "refuse",
+        "candidates": [
+          "Tompkins Square",
+          "Union Square",
+          "Washington Square"
+        ]
+      }
+    },
+    {
+      "probeId": "sealed-040",
+      "kind": "out_of_world",
+      "role": "destination",
+      "sourceText": "Deliver the parcel by bike from West Village to Times Square.",
+      "gold": {
+        "outcome": "refuse"
+      }
+    },
+    {
+      "probeId": "sealed-041",
+      "kind": "out_of_world",
+      "role": "destination",
+      "sourceText": "Deliver the parcel by bike from Union Square to Prospect Park.",
+      "gold": {
+        "outcome": "refuse"
+      }
+    },
+    {
+      "probeId": "sealed-042",
+      "kind": "out_of_world",
+      "role": "destination",
+      "sourceText": "Deliver the parcel by bike from Williamsburg Waterfront to DUMBO.",
+      "gold": {
+        "outcome": "refuse"
+      }
+    },
+    {
+      "probeId": "sealed-043",
+      "kind": "out_of_world",
+      "role": "destination",
+      "sourceText": "Deliver the parcel by bike from McCarren Park to Coney Island.",
+      "gold": {
+        "outcome": "refuse"
+      }
+    },
+    {
+      "probeId": "sealed-044",
+      "kind": "out_of_world",
+      "role": "destination",
+      "sourceText": "Deliver the parcel by bike from East Village to Bryant Park.",
+      "gold": {
+        "outcome": "refuse"
+      }
+    },
+    {
+      "probeId": "sealed-045",
+      "kind": "out_of_world",
+      "role": "destination",
+      "sourceText": "Deliver the parcel by bike from Union Square to Red Hook.",
+      "gold": {
+        "outcome": "refuse"
+      }
+    }
+  ]
+}

@@ -28,7 +28,7 @@
         ]
       },
       {
-        "source": "/app/**",
+        "source": "/simulatte/**",
         "headers": [
           {
             "key": "Cache-Control",
@@ -37,7 +37,7 @@
         ]
       },
       {
-        "source": "/contracts/**",
+        "source": "/shared/**",
         "headers": [
           {
             "key": "Cache-Control",
@@ -46,52 +46,7 @@
         ]
       },
       {
-        "source": "/mission/**",
-        "headers": [
-          {
-            "key": "Cache-Control",
-            "value": "no-cache"
-          }
-        ]
-      },
-      {
-        "source": "/runtime/**",
-        "headers": [
-          {
-            "key": "Cache-Control",
-            "value": "no-cache"
-          }
-        ]
-      },
-      {
-        "source": "/verifier/**",
-        "headers": [
-          {
-            "key": "Cache-Control",
-            "value": "no-cache"
-          }
-        ]
-      },
-      {
-        "source": "/world/**",
-        "headers": [
-          {
-            "key": "Cache-Control",
-            "value": "no-cache"
-          }
-        ]
-      },
-      {
-        "source": "/autonomy/**",
-        "headers": [
-          {
-            "key": "Cache-Control",
-            "value": "no-cache"
-          }
-        ]
-      },
-      {
-        "source": "/data/autonomy/**",
+        "source": "/data/simulatte/**",
         "headers": [
           {
             "key": "Cache-Control",

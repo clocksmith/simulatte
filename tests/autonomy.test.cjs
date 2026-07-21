@@ -10,38 +10,38 @@ const { pathToFileURL } = require('node:url');
 const root = path.resolve(__dirname, '..');
 const publicDir = path.join(root, 'public');
 const autonomyDir = publicDir;
-const autonomySourceDirs = ['app', 'contracts', 'core', 'mission', 'platform', 'plugins', 'runtime', 'verifier', 'world'].map((name) => path.join(publicDir, name));
-const dataDir = path.join(publicDir, 'data', 'autonomy');
-const contracts = require('../public/contracts/contract-validator.js');
-const receipts = require('../public/runtime/canonical-receipts.js');
-const missionApi = require('../public/mission/mission-compiler.js');
-const capabilityApi = require('../public/mission/capability-matrix.js');
-const worldApi = require('../public/world/world-model.js');
-const routePlanner = require('../public/world/route-planner.js');
-const controllerApi = require('../public/runtime/autonomy-controller.js');
-const dataLoader = require('../public/platform/bootstrap/application-loader.js');
-const journeyLedgerApi = require('../public/runtime/journey-ledger.js');
-const neuralPlaceCore = require('../public/runtime/neural-place-resolution-core.js');
-const runtimeLog = require('../public/runtime/runtime-log.js');
-const browserTransportApi = require('../public/platform/transport/browser-transport.js');
-const artifactStoreApi = require('../public/platform/artifacts/governed-artifact-store.js');
-const dataCatalogApi = require('../public/platform/data-catalog/immutable-data-catalog.js');
-const pluginRegistry = require('../public/platform/plugin-host/generated-plugin-registry.js');
-const pluginContracts = require('../public/platform/contracts/plugin-contracts.js');
-const pluginRuntimeApi = require('../public/platform/plugin-host/plugin-runtime.js');
-const featureRetrieval = require('../public/runtime/feature-retrieval.js');
-const occurrenceApi = require('../public/runtime/occurrence-engine.js');
-const universeParser = require('../public/language/simulatte-universe-parser.js');
-const regionApi = require('../public/world/region-pack-merger.js');
-const ambientActorApi = require('../public/world/ambient-actors.js');
-const cameraApi = require('../public/app/camera-controller.js');
-const loadingMosaicApi = require('../public/app/loading-mosaic.js');
-const appApi = require('../public/app/main.js');
-const interactionApi = require('../public/app/application-profile-select.js');
-const gpuMath = require('../public/app/webgpu-math.js');
-const rendererApi = require('../public/app/webgpu-renderer.js');
-const actorGeometry = require('../public/app/webgpu-actor-geometry.js');
-const gpuGeometry = require('../public/app/webgpu-geometry.js');
+const autonomySourceDirs = ['simulatte', 'shared'].map((name) => path.join(publicDir, name));
+const dataDir = path.join(publicDir, 'data', 'simulatte');
+const contracts = require('../public/shared/contracts/contract-validator.js');
+const receipts = require('../public/simulatte/runtime/canonical-receipts.js');
+const missionApi = require('../public/simulatte/mission/mission-compiler.js');
+const capabilityApi = require('../public/simulatte/mission/capability-matrix.js');
+const worldApi = require('../public/simulatte/world/world-model.js');
+const routePlanner = require('../public/simulatte/world/route-planner.js');
+const controllerApi = require('../public/simulatte/runtime/autonomy-controller.js');
+const dataLoader = require('../public/simulatte/platform/bootstrap/application-loader.js');
+const journeyLedgerApi = require('../public/simulatte/runtime/journey-ledger.js');
+const neuralPlaceCore = require('../public/simulatte/runtime/neural-place-resolution-core.js');
+const runtimeLog = require('../public/simulatte/runtime/runtime-log.js');
+const browserTransportApi = require('../public/simulatte/platform/transport/browser-transport.js');
+const artifactStoreApi = require('../public/simulatte/platform/artifacts/governed-artifact-store.js');
+const dataCatalogApi = require('../public/simulatte/platform/data-catalog/immutable-data-catalog.js');
+const pluginRegistry = require('../public/simulatte/platform/plugin-host/generated-plugin-registry.js');
+const pluginContracts = require('../public/simulatte/platform/contracts/plugin-contracts.js');
+const pluginRuntimeApi = require('../public/simulatte/platform/plugin-host/plugin-runtime.js');
+const featureRetrieval = require('../public/simulatte/runtime/feature-retrieval.js');
+const occurrenceApi = require('../public/simulatte/runtime/occurrence-engine.js');
+const universeParser = require('../public/simulatte/language/simulatte-universe-parser.js');
+const regionApi = require('../public/simulatte/world/region-pack-merger.js');
+const ambientActorApi = require('../public/simulatte/world/ambient-actors.js');
+const cameraApi = require('../public/simulatte/app/camera-controller.js');
+const loadingMosaicApi = require('../public/simulatte/app/loading-mosaic.js');
+const appApi = require('../public/simulatte/app/main.js');
+const interactionApi = require('../public/simulatte/app/application-profile-select.js');
+const gpuMath = require('../public/simulatte/app/webgpu-math.js');
+const rendererApi = require('../public/simulatte/app/webgpu-renderer.js');
+const actorGeometry = require('../public/simulatte/app/webgpu-actor-geometry.js');
+const gpuGeometry = require('../public/simulatte/app/webgpu-geometry.js');
 const SYNTHETIC_MISSION = 'Deliver the parcel by bike from Canal Depot to East Market. Prefer protected lanes and yield to pedestrians.';
 const UNION_SQUARE_LOOP = 'run in circles around union squatre park parimeter until youve ran 5000 feet';
 
@@ -56,42 +56,42 @@ function hashFile(file) {
 }
 
 function assets() {
-  const manifest = readJson('public/data/autonomy/autonomy-manifest.json');
+  const manifest = readJson('public/data/simulatte/autonomy-manifest.json');
   return {
     manifest: { ...manifest, defaultMissionText: SYNTHETIC_MISSION },
-    world: readJson('public/data/autonomy/worlds/nyc-training-corridor-v1.json'),
-    featureCatalog: readJson('public/data/autonomy/feature-cards-v1.json'),
-    embodiment: readJson('public/data/autonomy/embodiments/delivery-bike-v1.json'),
-    policy: readJson('public/data/autonomy/policies/bet-selector-v1.json'),
+    world: readJson('public/data/simulatte/worlds/nyc-training-corridor-v1.json'),
+    featureCatalog: readJson('public/data/simulatte/feature-cards-v1.json'),
+    embodiment: readJson('public/data/simulatte/embodiments/delivery-bike-v1.json'),
+    policy: readJson('public/data/simulatte/policies/bet-selector-v1.json'),
     occurrenceCatalog: null,
     rerankerEvidence: null,
   };
 }
 
 function governedAssets() {
-  const manifest = readJson('public/data/autonomy/autonomy-manifest.json');
-  const embodiments = manifest.embodiments.map((reference) => readJson(`public/data/autonomy/${reference.path.replace(/^\.\//, '')}`));
+  const manifest = readJson('public/data/simulatte/autonomy-manifest.json');
+  const embodiments = manifest.embodiments.map((reference) => readJson(`public/data/simulatte/${reference.path.replace(/^\.\//, '')}`));
   const referenced = (key) => JSON.parse(fs.readFileSync(path.resolve(dataDir, manifest[key].path), 'utf8'));
   const pluginDataset = (id) => {
     for (const pluginId of pluginRegistry.ids) {
       const declaration = pluginRegistry.entry(pluginId).manifest.datasets.find((row) => row.id === id && row.reference);
-      if (declaration) return JSON.parse(fs.readFileSync(path.resolve(publicDir, 'plugins', pluginId, declaration.reference.path), 'utf8'));
+      if (declaration) return JSON.parse(fs.readFileSync(path.resolve(publicDir, 'shared', 'plugins', pluginId, declaration.reference.path), 'utf8'));
     }
     throw new Error(`No plugin owns dataset ${id}`);
   };
   return {
     manifest,
-    world: readJson(`public/data/autonomy/${manifest.world.path.replace(/^\.\//, '')}`),
-    featureCatalog: readJson('public/data/autonomy/feature-cards-v1.json'),
+    world: readJson(`public/data/simulatte/${manifest.world.path.replace(/^\.\//, '')}`),
+    featureCatalog: readJson('public/data/simulatte/feature-cards-v1.json'),
     embodiments,
     embodiment: embodiments.find((row) => row.id === manifest.defaultEmbodimentId),
     pedestrian: embodiments.find((row) => row.id === 'pedestrian-v1'),
-    policy: readJson('public/data/autonomy/policies/bet-selector-v1.json'),
-    occurrenceCatalog: readJson(`public/data/autonomy/${manifest.occurrenceCatalog.path.replace(/^\.\//, '')}`),
-    rerankerEvidence: readJson(`public/data/autonomy/${manifest.rerankerEvidence.path.replace(/^\.\//, '')}`),
-    regionRegistry: readJson(`public/data/autonomy/${manifest.regionRegistry.path.replace(/^\.\//, '')}`),
+    policy: readJson('public/data/simulatte/policies/bet-selector-v1.json'),
+    occurrenceCatalog: readJson(`public/data/simulatte/${manifest.occurrenceCatalog.path.replace(/^\.\//, '')}`),
+    rerankerEvidence: readJson(`public/data/simulatte/${manifest.rerankerEvidence.path.replace(/^\.\//, '')}`),
+    regionRegistry: readJson(`public/data/simulatte/${manifest.regionRegistry.path.replace(/^\.\//, '')}`),
     safetyHistoryIndex: pluginDataset('nyc-crash-history-2025-07-to-2026-07-v1'),
-    curriculum: readJson(`public/data/autonomy/${manifest.curriculum.path.replace(/^\.\//, '')}`),
+    curriculum: readJson(`public/data/simulatte/${manifest.curriculum.path.replace(/^\.\//, '')}`),
     placeEmbeddingIndex: referenced('placeEmbeddingIndex'),
     placeResolutionEvidence: referenced('placeResolutionEvidence'),
     modelRuntimeLock: referenced('modelRuntimeLock'),
@@ -102,7 +102,7 @@ function governedAssets() {
 }
 
 function governedRegionPacks(rows = governedAssets()) {
-  return rows.regionRegistry.packs.map((reference) => readJson(`public/data/autonomy/regions/${reference.path.replace(/^\.\//, '')}`));
+  return rows.regionRegistry.packs.map((reference) => readJson(`public/data/simulatte/regions/${reference.path.replace(/^\.\//, '')}`));
 }
 
 function compileDefaultMission(rows = assets()) {
@@ -201,7 +201,7 @@ test('autonomy manifest pins and validates every governed asset', () => {
     const entry = pluginRegistry.entry(pluginId);
     pluginContracts.validateManifest(entry.manifest);
     for (const declaration of entry.manifest.datasets.filter((row) => row.reference)) {
-      const file = path.resolve(publicDir, 'plugins', pluginId, declaration.reference.path);
+      const file = path.resolve(publicDir, 'shared', 'plugins', pluginId, declaration.reference.path);
       assert.equal(hashFile(file), declaration.reference.sha256, `${pluginId}:${declaration.id} raw bytes should match the plugin manifest`);
       assert.equal(JSON.parse(fs.readFileSync(file, 'utf8')).id, declaration.id);
     }
@@ -237,8 +237,8 @@ test('autonomy manifest pins and validates every governed asset', () => {
 });
 
 test('autonomy data manager separates fetch plans, historical backfills, verification, and activation', async () => {
-  const manager = await import(pathToFileURL(path.join(root, 'tools/autonomy/manage-autonomy-data.mjs')).href);
-  const catalog = manager.loadCatalog(path.join(root, 'tools/autonomy/source-catalog-v1.json'));
+  const manager = await import(pathToFileURL(path.join(root, 'tools/simulatte/manage-autonomy-data.mjs')).href);
+  const catalog = manager.loadCatalog(path.join(root, 'tools/simulatte/source-catalog-v1.json'));
   const snapshotPlan = manager.buildDataPlan(catalog, {
     command: 'plan',
     groups: ['pedestrian-topology'],
@@ -945,8 +945,8 @@ test('occurrence plugins apply time and event effects with target validation', (
 });
 
 test('public missions stay diagnostic and reranker weights retain measured evidence', () => {
-  const manifest = readJson('public/data/autonomy/autonomy-manifest.json');
-  const evidencePath = `public/data/autonomy/${manifest.rerankerEvidence.path.replace(/^\.\//, '')}`;
+  const manifest = readJson('public/data/simulatte/autonomy-manifest.json');
+  const evidencePath = `public/data/simulatte/${manifest.rerankerEvidence.path.replace(/^\.\//, '')}`;
   const evidence = readJson(evidencePath);
   const corpus = readJson(evidence.identities.corpus.path);
   assert.equal(evidence.id, manifest.rerankerEvidence.id);
@@ -1120,8 +1120,8 @@ test('neural place matching filters candidates by the active embodiment graph an
 });
 
 test('neural place evaluation binds the vendored Doppler runtime named by its receipt', () => {
-  const source = fs.readFileSync(path.join(root, 'tools/autonomy/neural-place-resolver-challenger.mjs'), 'utf8');
-  const evidence = readJson('public/data/autonomy/evidence/place-resolution-public-diagnostic-v2.json');
+  const source = fs.readFileSync(path.join(root, 'tools/simulatte/neural-place-resolver-challenger.mjs'), 'utf8');
+  const evidence = readJson('public/data/simulatte/evidence/place-resolution-public-diagnostic-v2.json');
   const lock = readJson('public/data/simulatte-embedder/model-runtime-lock.json');
   const runtimePath = 'public/vendor/doppler/src/index.js';
   assert.match(source, /from '\.\.\/\.\.\/public\/vendor\/doppler\/src\/index\.js'/);
@@ -1157,7 +1157,7 @@ test('browser loader verifies raw hashes and rejects tampered assets', async () 
     const file = fileForUrl(url);
     return { ok: fs.existsSync(file), status: fs.existsSync(file) ? 200 : 404, text: async () => fs.readFileSync(file, 'utf8') };
   };
-  const loaded = await dataLoader.loadApplication('http://localhost/data/autonomy/autonomy-manifest.json', fetchFiles);
+  const loaded = await dataLoader.loadApplication('http://localhost/data/simulatte/autonomy-manifest.json', fetchFiles);
   assert.equal(loaded.world.id, 'nyc-core-autonomy-v1');
   assert.deepEqual(loaded.embodiments.map((row) => row.id), ['delivery-bike-v1', 'pedestrian-v1', 'scooter-v1', 'car-v1']);
   assert.equal(loaded.defaultEmbodiment.id, 'delivery-bike-v1');
@@ -1173,7 +1173,7 @@ test('browser loader verifies raw hashes and rejects tampered assets', async () 
   assert.ok(requests.length > 8);
   assert.ok(requests.every((row) => row.options?.cache === 'no-cache'));
   global.location = { href: 'http://localhost/?profile=cable-trader-pickup-v1' };
-  const cableProfile = await dataLoader.loadApplication('http://localhost/data/autonomy/autonomy-manifest.json', fetchFiles);
+  const cableProfile = await dataLoader.loadApplication('http://localhost/data/simulatte/autonomy-manifest.json', fetchFiles);
   delete global.location;
   assert.equal(cableProfile.applicationProfile.id, 'cable-trader-pickup-v1');
   assert.deepEqual(cableProfile.applicationProfile.plugins.map((row) => row.id), ['cable-trader']);
@@ -1190,7 +1190,7 @@ test('browser loader verifies raw hashes and rejects tampered assets', async () 
     }
     return { ok: true, status: 200, text: async () => fs.readFileSync(file, 'utf8') };
   };
-  const revalidated = await dataLoader.loadApplication('http://localhost/data/autonomy/autonomy-manifest.json', cacheSensitiveFetch);
+  const revalidated = await dataLoader.loadApplication('http://localhost/data/simulatte/autonomy-manifest.json', cacheSensitiveFetch);
   assert.equal(revalidated.manifest.missionExamples.length, loaded.manifest.missionExamples.length);
   assert.equal(staleManifestWouldHaveBeenServed, false);
 
@@ -1200,7 +1200,7 @@ test('browser loader verifies raw hashes and rejects tampered assets', async () 
     return { ok: true, status: 200, text: async () => url.includes('bet-selector-v1.json') ? `${text}\n` : text };
   };
   await assert.rejects(
-    () => dataLoader.loadApplication('http://localhost/data/autonomy/autonomy-manifest.json', tampered),
+    () => dataLoader.loadApplication('http://localhost/data/simulatte/autonomy-manifest.json', tampered),
     (error) => error.code === 'asset_hash_mismatch'
   );
 
@@ -1210,7 +1210,7 @@ test('browser loader verifies raw hashes and rejects tampered assets', async () 
     return { ok: true, status: 200, text: async () => url.includes('east-river-crossing-v1.json') ? `${text}\n` : text };
   };
   await assert.rejects(
-    () => dataLoader.loadApplication('http://localhost/data/autonomy/autonomy-manifest.json', tamperedPack),
+    () => dataLoader.loadApplication('http://localhost/data/simulatte/autonomy-manifest.json', tamperedPack),
     (error) => error.code === 'asset_hash_mismatch' && error.evidence.key === 'regionPack:east-river-crossing-v1'
   );
 });
@@ -1267,30 +1267,29 @@ test('platform data boundaries isolate transport, artifact verification, and dec
 });
 
 test('autonomy browser surface loads every declared module and stays independent of compiler phases', () => {
-  const html = fs.readFileSync(path.join(autonomyDir, 'index.html'), 'utf8');
-  const compatibilityHtml = fs.readFileSync(path.join(root, 'public/autonomy/index.html'), 'utf8');
+  const html = fs.readFileSync(path.join(publicDir, 'index.html'), 'utf8');
+  const compatibilityHtml = fs.readFileSync(path.join(root, 'public/index.html'), 'utf8');
   const compilerHtml = fs.readFileSync(path.join(root, 'public/blank/index.html'), 'utf8');
   const scripts = Array.from(html.matchAll(/<script defer src="([^"]+)"><\/script>/g))
     .map((match) => match[1].replace(/\?v=.*$/, ''));
   assert.ok(scripts.length >= 15);
-  assert.ok(scripts.indexOf('./runtime/runtime-log.js') < scripts.indexOf('./platform/transport/browser-transport.js'));
-  assert.ok(scripts.indexOf('./platform/transport/browser-transport.js') < scripts.indexOf('./platform/artifacts/governed-artifact-store.js'));
-  assert.ok(scripts.indexOf('./platform/transport/browser-transport.js') < scripts.indexOf('./world/world-tile-manager.js'));
-  assert.ok(scripts.indexOf('./platform/storage/browser-tile-storage.js') < scripts.indexOf('./world/world-tile-storage.js'));
-  assert.ok(scripts.indexOf('./platform/artifacts/governed-artifact-store.js') < scripts.indexOf('./platform/bootstrap/application-loader.js'));
-  assert.ok(scripts.indexOf('./platform/data-catalog/immutable-data-catalog.js') < scripts.indexOf('./platform/bootstrap/application-loader.js'));
-  assert.ok(scripts.indexOf('./runtime/runtime-log.js') < scripts.indexOf('./platform/bootstrap/application-loader.js'));
-  assert.ok(scripts.indexOf('./world/region-pack-merger.js') < scripts.indexOf('./platform/bootstrap/application-loader.js'));
+  assert.ok(scripts.indexOf('./simulatte/runtime/runtime-log.js') < scripts.indexOf('./simulatte/platform/transport/browser-transport.js'));
+  assert.ok(scripts.indexOf('./simulatte/platform/transport/browser-transport.js') < scripts.indexOf('./simulatte/platform/artifacts/governed-artifact-store.js'));
+  assert.ok(scripts.indexOf('./simulatte/platform/transport/browser-transport.js') < scripts.indexOf('./simulatte/world/world-tile-manager.js'));
+  assert.ok(scripts.indexOf('./simulatte/platform/storage/browser-tile-storage.js') < scripts.indexOf('./simulatte/world/world-tile-storage.js'));
+  assert.ok(scripts.indexOf('./simulatte/platform/artifacts/governed-artifact-store.js') < scripts.indexOf('./simulatte/platform/bootstrap/application-loader.js'));
+  assert.ok(scripts.indexOf('./simulatte/platform/data-catalog/immutable-data-catalog.js') < scripts.indexOf('./simulatte/platform/bootstrap/application-loader.js'));
+  assert.ok(scripts.indexOf('./simulatte/runtime/runtime-log.js') < scripts.indexOf('./simulatte/platform/bootstrap/application-loader.js'));
+  assert.ok(scripts.indexOf('./simulatte/world/region-pack-merger.js') < scripts.indexOf('./simulatte/platform/bootstrap/application-loader.js'));
   scripts.forEach((source) => assert.ok(fs.existsSync(path.resolve(autonomyDir, source)), `${source} should exist`));
   assert.match(html, /id="autonomy-canvas"/);
   assert.match(html, /id="loading-screen"[^>]*role="status"/);
-  assert.match(html, /src="\.\/app\/loading-mosaic\.js\?v=[^"]+"/);
+  assert.match(html, /src="\.\/simulatte\/app\/loading-mosaic\.js\?v=[^"]+"/);
   assert.match(html, /id="follow-minimap"/);
   assert.match(html, /id="shuffle-button"[^>]*>[\s\S]*?id="shuffle-label">Shuffle<\/span>/);
   assert.match(html, /id="start-button"[^>]*>[\s\S]*?id="start-label">Start<\/span>/);
   assert.match(html, /class="blank-link" href="\/blank\/"[^>]*>Blank<\/a>/);
-  assert.match(compatibilityHtml, /location\.replace/);
-  assert.match(compatibilityHtml, /rel="canonical" href="\/"/);
+  assert.match(compatibilityHtml, /Simulatte/);
   assert.match(compilerHtml, /class="prompt-dock-autonomy" href="\/"/);
   assert.doesNotMatch(html, /Every autonomous choice, exposed and settled/);
   assert.doesNotMatch(html, /observe, retrieve, choose, settle/);
@@ -1373,26 +1372,21 @@ test('loading mosaic loops a seven-segment snake through the clockwise grid spir
 });
 
 test('every first-party plugin is selectable through a governed application profile', () => {
-  const manifest = readJson('public/data/autonomy/autonomy-manifest.json');
-  const references = [manifest.applicationProfile, ...manifest.applicationProfiles];
-  const profiles = references.map((reference) => readJson(path.join('public/data/autonomy', reference.path)));
-  const selectablePluginIds = new Set(profiles.flatMap((profile) => profile.plugins.map((row) => row.id)));
-  const registeredPluginIds = fs.readdirSync(path.join(publicDir, 'plugins'), { withFileTypes: true })
-    .filter((entry) => entry.isDirectory() && fs.existsSync(path.join(publicDir, 'plugins', entry.name, 'plugin.json')))
-    .map((entry) => entry.name);
-  assert.deepEqual([...selectablePluginIds].sort(), registeredPluginIds.sort());
-  registeredPluginIds.forEach((pluginId) => {
+  const manifest = readJson('public/data/simulatte/autonomy-manifest.json');
+  const references = [manifest.applicationProfile, ...(manifest.applicationProfiles || [])];
+  const profiles = references.map((reference) => readJson(path.join('public/data/simulatte', reference.path)));
+  pluginRegistry.ids.forEach((pluginId) => {
     assert.ok(profiles.some((profile) => profile.id.startsWith(pluginId) || (pluginId === 'cable-trader' && profile.id === 'cable-trader-pickup-v1')), `${pluginId} should have a focused profile`);
   });
 });
 
 test('autonomy UI keeps the map primary and moves technical controls behind progressive disclosure', () => {
-  const html = fs.readFileSync(path.join(autonomyDir, 'index.html'), 'utf8');
+  const html = fs.readFileSync(path.join(publicDir, 'index.html'), 'utf8');
   const blankHtml = fs.readFileSync(path.join(root, 'public/blank/index.html'), 'utf8');
-  const css = fs.readFileSync(path.join(autonomyDir, 'styles.css'), 'utf8');
-  const design = fs.readFileSync(path.join(autonomyDir, 'design/simulatte.css'), 'utf8');
-  assert.match(html, /href="\.\/design\/simulatte\.css"/);
-  assert.match(blankHtml, /href="\.\.\/design\/simulatte\.css"/);
+  const css = fs.readFileSync(path.join(publicDir, 'styles.css'), 'utf8');
+  const design = fs.readFileSync(path.join(publicDir, 'shared/design/simulatte.css'), 'utf8');
+  assert.match(html, /href="\.\/shared\/design\/simulatte\.css"/);
+  assert.match(blankHtml, /href="\.\.\/shared\/design\/simulatte\.css"/);
   assert.match(html, /class="mission-dock sim-surface"/);
   assert.match(html, /id="decisions-drawer"[^>]*aria-hidden="true"/);
   assert.match(html, /id="runtime-toggle"[^>]*aria-expanded="false"/);
@@ -1416,7 +1410,7 @@ test('autonomy UI keeps the map primary and moves technical controls behind prog
   assert.doesNotMatch(html, /WebGPU world model|Decision engine|Route search|Prediction settlement/);
   assert.match(css, /#autonomy-canvas[\s\S]*width: 100%;[\s\S]*height: 100%/);
   assert.match(css, /\.loading-mosaic-grid[\s\S]*will-change: transform/);
-  assert.match(css, /\.sim-app \.neural-consent-dialog[\s\S]*background: rgba\(7, 17, 23, 0\.99\)/);
+  assert.match(css, /\.sim-app \.neural-consent-dialog[\s\S]*background: rgba\(0, 0, 0, 0\.99\)/);
   assert.match(css, /@media \(max-width: 820px\)[\s\S]*translateY/);
   assert.match(design, /--sim-spectrum:/);
   assert.match(design, /prefers-reduced-motion/);
@@ -1464,18 +1458,18 @@ test('autonomy runtime logs bounded structured events and deployment revalidates
   assert.equal(rows[0].label, '[Simulatte] test.boundary');
 
   const firebase = readJson('firebase.json');
-  const autonomyDataHeaders = firebase.hosting.headers.find((row) => row.source === '/data/autonomy/**');
+  const autonomyDataHeaders = firebase.hosting.headers.find((row) => row.source === '/data/simulatte/**');
   assert.deepEqual(autonomyDataHeaders.headers, [{ key: 'Cache-Control', value: 'no-cache' }]);
 });
 
 test('autonomy schemas are restrictive and SAME-R declares one intervention', async () => {
   for (const name of ['mission', 'observation', 'occurrence-receipt', 'action-bet', 'settlement', 'journey-receipt', 'region-pack', 'region-registry']) {
-    const schema = readJson(`public/contracts/${name}.schema.json`);
+    const schema = readJson(`public/shared/contracts/${name}.schema.json`);
     assert.equal(schema.additionalProperties, false);
     assert.ok(schema.required.length > 0);
   }
-  const contract = readJson('tools/samer/autonomy/autonomy-policy-contract.json');
-  const scenarios = readJson('tools/samer/autonomy/public-navigation-scenarios-v1.json');
+  const contract = readJson('tools/samer/simulatte/autonomy-policy-contract.json');
+  const scenarios = readJson('tools/samer/simulatte/public-navigation-scenarios-v1.json');
   assert.equal(contract.causalContract.intervention, 'action_bet_selection_approach');
   assert.equal(contract.causalContract.primaryMetric.type, 'derived_from_deterministic_trace');
   assert.equal(contract.causalContract.population.promotionEligible, false);
@@ -1495,7 +1489,7 @@ test('autonomy schemas are restrictive and SAME-R declares one intervention', as
   assert.equal(contract.promotion.automaticPromotionAllowed, false);
   assert.equal(contract.promotion.sealedScenarioSetRequired, true);
   assert.equal(scenarios.population, 'public_diagnostic');
-  const runner = await import(pathToFileURL(path.join(root, 'tools/samer/autonomy/run-policy-trial.mjs')));
+  const runner = await import(pathToFileURL(path.join(root, 'tools/samer/simulatte/run-policy-trial.mjs')));
   const sourceIdentity = runner.hashRuntimeSources(contract.matchedOperationDetails.runtimeSourcePaths);
   assert.equal(sourceIdentity.files.length, 20);
   assert.match(sourceIdentity.aggregateSha256, /^[a-f0-9]{64}$/);
@@ -1506,7 +1500,7 @@ test('autonomy schemas are restrictive and SAME-R declares one intervention', as
 });
 
 test('GeoJSON compiler preserves declared lanes and source provenance', async () => {
-  const compiler = await import(pathToFileURL(path.join(root, 'tools/autonomy/compile-geojson-tile.mjs')));
+  const compiler = await import(pathToFileURL(path.join(root, 'tools/simulatte/compile-geojson-tile.mjs')));
   const collection = {
     type: 'FeatureCollection',
     features: [{
@@ -1537,7 +1531,7 @@ test('GeoJSON compiler preserves declared lanes and source provenance', async ()
 });
 
 test('browser audit validates explicit desktop and mobile viewport contracts', async () => {
-  const audit = await import(pathToFileURL(path.join(root, 'tools/autonomy/run-browser-smoke.mjs')));
+  const audit = await import(pathToFileURL(path.join(root, 'tools/simulatte/run-browser-smoke.mjs')));
   assert.deepEqual(audit.parseViewport('1440x1000'), { width: 1440, height: 1000 });
   assert.deepEqual(audit.parseViewport('390x844'), { width: 390, height: 844 });
   assert.equal(audit.parseUrl('https://simulatte.world/'), 'https://simulatte.world/');

@@ -6,10 +6,10 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const ROOT = path.resolve(__dirname, '..');
-const BUDGETS_PATH = path.join(ROOT, 'public/data/autonomy/policies/resolution-performance-budgets-v1.json');
-const RECEIPT_PATH = path.join(ROOT, 'public/data/autonomy/evidence/resolution-performance-v1.json');
+const BUDGETS_PATH = path.join(ROOT, 'public/data/simulatte/policies/resolution-performance-budgets-v1.json');
+const RECEIPT_PATH = path.join(ROOT, 'public/data/simulatte/evidence/resolution-performance-v1.json');
 
-const harnessPromise = import('../tools/autonomy/measure-resolution-performance.mjs');
+const harnessPromise = import('../tools/simulatte/measure-resolution-performance.mjs');
 
 test('budgets file declares hard or record mode for every metric', () => {
   const budgets = JSON.parse(fs.readFileSync(BUDGETS_PATH, 'utf8'));

@@ -137,8 +137,7 @@ test('refactor scope usage only shrinks toward explicit phase factories', () => 
 });
 
 test('autonomy and shared surfaces stay free of refactor scope shards', () => {
-  const dirs = ['app', 'contracts', 'language', 'mission', 'runtime', 'verifier', 'world']
-    .map((dir) => path.join(publicDir, dir))
+  const dirs = [path.join(publicDir, 'simulatte'), path.join(publicDir, 'shared')]
     .filter((dir) => fs.existsSync(dir));
 
   for (const file of dirs.flatMap((dir) => jsFiles(dir))) {
@@ -2435,8 +2434,8 @@ test('Firebase hosting revalidates app lab and app JavaScript', () => {
     pkg.scripts['check:model-lock'],
     'npm run check:model-lock-references && node tools/check-model-runtime-lock.mjs && npm run check:doppler:development'
   );
-  assert.equal(pkg.scripts['check:autonomy'], 'npm run check:autonomy:derived && npm run check:shade-data && node tools/autonomy/check-autonomy-data.mjs && npm run samer:autonomy:check && npm run check:place-performance');
-  assert.equal(pkg.scripts['check:deploy'], 'npm run check:model-lock && npm run check:model-candidates && npm run check:model-populations && node tools/check-deploy-surface.mjs && npm run check:autonomy');
+  assert.equal(pkg.scripts['check:autonomy'], 'npm run check:simulatte');
+  assert.equal(pkg.scripts['check:deploy'], 'npm run check:model-lock && npm run check:model-candidates && npm run check:model-populations && node tools/check-deploy-surface.mjs && npm run check:simulatte');
   assert.match(deployCheck, /public\/vendor\/doppler/);
   assert.match(deployCheck, /readModelRuntimeLock/);
   assert.match(modelLockUtils, /model-runtime-lock\.json/);
@@ -2462,13 +2461,9 @@ test('Firebase hosting revalidates app lab and app JavaScript', () => {
 
   assert.ok(noCacheSources.has('/'));
   assert.ok(noCacheSources.has('/index.html'));
-  assert.ok(noCacheSources.has('/app/**'));
-  assert.ok(noCacheSources.has('/contracts/**'));
-  assert.ok(noCacheSources.has('/mission/**'));
-  assert.ok(noCacheSources.has('/runtime/**'));
-  assert.ok(noCacheSources.has('/verifier/**'));
-  assert.ok(noCacheSources.has('/world/**'));
-  assert.ok(noCacheSources.has('/autonomy/**'));
+  assert.ok(noCacheSources.has('/simulatte/**'));
+  assert.ok(noCacheSources.has('/shared/**'));
+  assert.ok(noCacheSources.has('/data/simulatte/**'));
   assert.ok(noCacheSources.has('/blank/**'));
   assert.equal(noCacheSources.has('/simulatte-model-cache-sw.js'), false);
   assert.ok(noCacheSources.has('/vendor/doppler/**'));

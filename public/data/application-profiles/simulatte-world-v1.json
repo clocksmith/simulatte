@@ -3,7 +3,8 @@
   "id": "simulatte-world-v1",
   "plugins": [
     { "id": "safety-explorer", "configId": "safety-explorer-default-v1" },
-    { "id": "sun-walker", "configId": "sun-walker-default-v1" }
+    { "id": "sun-walker", "configId": "sun-walker-default-v1" },
+    { "id": "cable-trader", "configId": "cable-trader-network-v2" }
   ],
   "routeObjective": {
     "travelSeconds": 1,

@@ -1,0 +1,21 @@
+[
+  {"id":"dc","name":"Washington","state":"DC","lat":38.9072,"lon":-77.0369,"population":689545},
+  {"id":"nyc","name":"New York","state":"NY","lat":40.7128,"lon":-74.0060,"population":8336817},
+  {"id":"la","name":"Los Angeles","state":"CA","lat":34.0522,"lon":-118.2437,"population":3898747},
+  {"id":"chi","name":"Chicago","state":"IL","lat":41.8781,"lon":-87.6298,"population":2670400},
+  {"id":"phila","name":"Philadelphia","state":"PA","lat":39.9526,"lon":-75.1652,"population":1567000},
+  {"id":"phx","name":"Phoenix","state":"AZ","lat":33.4484,"lon":-112.0740,"population":1701000},
+  {"id":"sfo","name":"San Francisco","state":"CA","lat":37.7749,"lon":-122.4194,"population":808988},
+  {"id":"dal","name":"Dallas","state":"TX","lat":32.7767,"lon":-96.7970,"population":1340000},
+  {"id":"hou","name":"Houston","state":"TX","lat":29.7604,"lon":-95.3698,"population":2328000},
+  {"id":"mia","name":"Miami","state":"FL","lat":25.7617,"lon":-80.1918,"population":470914},
+  {"id":"atl","name":"Atlanta","state":"GA","lat":33.7490,"lon":-84.3880,"population":498700},
+  {"id":"den","name":"Denver","state":"CO","lat":39.7392,"lon":-104.9903,"population":715000},
+  {"id":"sea","name":"Seattle","state":"WA","lat":47.6062,"lon":-122.3321,"population":749256},
+  {"id":"boston","name":"Boston","state":"MA","lat":42.3601,"lon":-71.0589,"population":675000},
+  {"id":"det","name":"Detroit","state":"MI","lat":42.3314,"lon":-83.0458,"population":639000},
+  {"id":"lv","name":"Las Vegas","state":"NV","lat":36.1699,"lon":-115.1398,"population":641100},
+  {"id":"sa","name":"San Antonio","state":"TX","lat":29.4241,"lon":-98.4936,"population":1547000},
+  {"id":"sd","name":"San Diego","state":"CA","lat":32.7157,"lon":-117.1611,"population":1387000},
+  {"id":"stl","name":"St. Louis","state":"MO","lat":38.6270,"lon":-90.1994,"population":301000}
+]

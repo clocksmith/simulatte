@@ -2,7 +2,7 @@ const assert = require('node:assert/strict');
 const crypto = require('node:crypto');
 const test = require('node:test');
 
-const tiles = require('../public/world/world-tile-manager.js');
+const tiles = require('../public/simulatte/world/world-tile-manager.js');
 
 function bytes(value) {
   return new TextEncoder().encode(JSON.stringify(value));

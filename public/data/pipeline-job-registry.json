@@ -277,7 +277,7 @@
     {
       "id": "autonomy-place-v2",
       "kind": "lane-diagnostic",
-      "path": "public/data/autonomy/evidence/place-resolution-public-diagnostic-v2.json"
+      "path": "public/data/simulatte/evidence/place-resolution-public-diagnostic-v2.json"
     }
   ],
   "surfaces": [
@@ -290,56 +290,56 @@
           "jobId": "runtime-preparation",
           "phase": null,
           "boundary": "App bootstrap and optional model consent",
-          "owners": ["public/app/main.js", "public/platform/bootstrap/application-loader.js", "public/data/simulatte-embedder/model-runtime-lock.json"],
+          "owners": ["public/simulatte/app/main.js", "public/simulatte/platform/bootstrap/application-loader.js", "public/data/simulatte-embedder/model-runtime-lock.json"],
           "surfaceStrategies": []
         },
         {
           "jobId": "understand-request",
           "phase": null,
           "boundary": "Mission compiler and deterministic grammar",
-          "owners": ["public/mission/mission-compiler.js"],
+          "owners": ["public/simulatte/mission/mission-compiler.js"],
           "surfaceStrategies": []
         },
         {
           "jobId": "find-candidates",
           "phase": null,
           "boundary": "Place resolver and feature retrieval",
-          "owners": ["public/mission/mission-compiler.js", "public/runtime/feature-retrieval.js", "public/runtime/neural-place-resolver.js"],
+          "owners": ["public/simulatte/mission/mission-compiler.js", "public/simulatte/runtime/feature-retrieval.js", "public/simulatte/runtime/neural-place-resolver.js"],
           "surfaceStrategies": []
         },
         {
           "jobId": "commit-meaning",
           "phase": null,
           "boundary": "Typed mission and obligations",
-          "owners": ["public/mission/mission-compiler.js", "public/contracts/mission.schema.json"],
+          "owners": ["public/simulatte/mission/mission-compiler.js", "public/shared/contracts/mission.schema.json"],
           "surfaceStrategies": []
         },
         {
           "jobId": "execute",
           "phase": null,
           "boundary": "A*, route costs, and tick simulation",
-          "owners": ["public/world/route-planner.js", "public/runtime/autonomy-controller.js", "public/world/time-dependent-edge-cost.js"],
+          "owners": ["public/simulatte/world/route-planner.js", "public/simulatte/runtime/autonomy-controller.js", "public/simulatte/world/time-dependent-edge-cost.js"],
           "surfaceStrategies": [{ "id": "route-search-and-tick-execution", "status": "required" }]
         },
         {
           "jobId": "build-visuals",
           "phase": null,
           "boundary": "Map and world presentation",
-          "owners": ["public/app/webgpu-geometry.js", "public/app/webgpu-actor-geometry.js"],
+          "owners": ["public/simulatte/app/webgpu-geometry.js", "public/simulatte/app/webgpu-actor-geometry.js"],
           "surfaceStrategies": [{ "id": "world-map-visual-contract", "status": "required" }]
         },
         {
           "jobId": "render",
           "phase": null,
           "boundary": "Main application renderer",
-          "owners": ["public/app/webgpu-renderer.js"],
+          "owners": ["public/simulatte/app/webgpu-renderer.js"],
           "surfaceStrategies": []
         },
         {
           "jobId": "settle-proof",
           "phase": null,
           "boundary": "Route and decision receipts",
-          "owners": ["public/runtime/canonical-receipts.js", "public/verifier/journey-verifier.js"],
+          "owners": ["public/simulatte/runtime/canonical-receipts.js", "public/simulatte/verifier/journey-verifier.js"],
           "surfaceStrategies": []
         }
       ]

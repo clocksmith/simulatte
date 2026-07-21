@@ -1,0 +1,49 @@
+{
+  "schema": "simulatte.solarSystemFacts.v1",
+  "source": "https://science.nasa.gov/solar-system/solar-system-facts/",
+  "updated": "2026-07-21",
+  "facts": {
+    "sun": {
+      "massKg": 1.98892e30,
+      "solarMasses": 333000,
+      "massSharePercent": 99,
+      "role": "dominant"
+    },
+    "bodies": {
+      "planets": 8,
+      "officiallyNamedDwarfPlanets": 5,
+      "knownMoons": "hundreds",
+      "knownAsteroidsAndComets": "thousands"
+    },
+    "ageBillionYears": 4.6,
+    "outerBoundary": {
+      "source": "Oort Cloud",
+      "distanceAU": {
+        "min": 5000,
+        "max": 100000
+      }
+    },
+    "MilkyWayOrbit": {
+      "periodYears": 230000000,
+      "speedMph": 515000
+    },
+    "planetProperties": [
+      { "name": "Mercury", "diameterKm": 4880, "meanDistanceKm": 58000000 },
+      { "name": "Venus", "diameterKm": 12104, "meanDistanceKm": 108000000 },
+      { "name": "Earth", "diameterKm": 12756, "meanDistanceKm": 149700000 },
+      { "name": "Mars", "diameterKm": 6792, "meanDistanceKm": 227900000 },
+      { "name": "Jupiter", "diameterKm": 142984, "meanDistanceKm": 778000000 },
+      { "name": "Saturn", "diameterKm": 120536, "meanDistanceKm": 1430000000 },
+      { "name": "Uranus", "diameterKm": 51118, "meanDistanceKm": 2900000000 },
+      { "name": "Neptune", "diameterKm": 49528, "meanDistanceKm": 4500000000 },
+      { "name": "Pluto", "diameterKm": 2377, "meanDistanceKm": 5900000000 }
+    ],
+    "dwarfPlanets": ["Ceres", "Pluto", "Eris", "Haumea", "Makemake"]
+  },
+  "references": [
+    "https://science.nasa.gov/solar-system/solar-system-facts/",
+    "https://science.nasa.gov/solar-system/planet-sizes-and-locations-in-our-solar-system/",
+    "https://science.nasa.gov/learn/basics-of-space-flight/chapter1-1/",
+    "https://science.nasa.gov/solar-system/oort-cloud/facts/"
+  ]
+}

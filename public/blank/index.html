@@ -4,10 +4,19 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Simulatte</title>
-  <meta name="simulatte-build" content="18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49">
+  <meta name="simulatte-build" content="db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b">
   <link rel="icon" type="image/svg+xml" href="../favicon.svg">
-  <link rel="stylesheet" href="../design/simulatte.css">
+  <link rel="stylesheet" href="../shared/design/simulatte.css">
   <link rel="stylesheet" href="../model-selection.css">
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-LS3SFGCZSL"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-LS3SFGCZSL');
+  </script>
   <script>
     globalThis.__DOPPLER_KERNEL_BASE_PATH__ = new URL(
       '../vendor/doppler/src/gpu/kernels',
@@ -24,12 +33,12 @@
       --text: var(--sim-ink);
       --dim: var(--sim-ink-soft);
       --muted: var(--sim-ink-faint);
-      --accent: #b8d8f6;
-      --accent-ink: #20242b;
-      --teal: #b8d8f6;
-      --gold: #d9a431;
-      --risk: #e7725f;
-      --ok: #8f949c;
+      --accent: var(--sim-blue);
+      --accent-ink: var(--sim-ink);
+      --teal: var(--sim-blue);
+      --gold: var(--sim-green);
+      --risk: var(--sim-blue);
+      --ok: var(--sim-green);
       --shadow: var(--sim-shadow);
       color-scheme: light;
       accent-color: var(--accent);
@@ -37,7 +46,7 @@
 
     * {
       box-sizing: border-box;
-      -webkit-tap-highlight-color: rgba(184, 216, 246, 0.18);
+      -webkit-tap-highlight-color: rgba(255, 0, 255, 0.18);
     }
 
     html,
@@ -55,13 +64,13 @@
 
     body {
       background:
-        radial-gradient(circle at 18% 12%, rgba(184, 216, 246, 0.08), transparent 32%),
-        radial-gradient(circle at 84% 78%, rgba(217, 164, 49, 0.06), transparent 34%),
-        #ffffff;
+        radial-gradient(circle at 18% 12%, rgba(255, 0, 255, 0.08), transparent 32%),
+        radial-gradient(circle at 84% 78%, rgba(255, 255, 255, 0.06), transparent 34%),
+        var(--sim-paper);
     }
 
     ::selection {
-      background: rgba(184, 216, 246, 0.22);
+      background: rgba(255, 0, 255, 0.22);
       color: var(--text);
     }
 
@@ -208,7 +217,7 @@
     input[type="range"]::-webkit-slider-runnable-track {
       height: 6px;
       border-radius: 999px;
-      background: rgba(26, 49, 47, 0.12);
+      background: rgba(0, 0, 0, 0.12);
     }
 
     input[type="range"]::-webkit-slider-thumb {
@@ -218,7 +227,7 @@
       border: 2px solid rgba(255, 255, 255, 0.95);
       border-radius: 999px;
       background: var(--accent);
-      box-shadow: 0 6px 18px rgba(184, 216, 246, 0.25);
+      box-shadow: 0 6px 18px rgba(255, 255, 255, 0.25);
       appearance: none;
       -webkit-appearance: none;
     }
@@ -226,7 +235,7 @@
     input[type="range"]::-moz-range-track {
       height: 6px;
       border-radius: 999px;
-      background: rgba(26, 49, 47, 0.12);
+      background: rgba(0, 0, 0, 0.12);
     }
 
     input[type="range"]::-moz-range-thumb {
@@ -235,14 +244,14 @@
       border: 2px solid rgba(255, 255, 255, 0.95);
       border-radius: 999px;
       background: var(--accent);
-      box-shadow: 0 6px 18px rgba(184, 216, 246, 0.25);
+      box-shadow: 0 6px 18px rgba(255, 255, 255, 0.25);
     }
 
     textarea:focus,
     input:focus,
     select:focus {
       border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(184, 216, 246, 0.18);
+      box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.18);
     }
 
     button,
@@ -261,7 +270,7 @@
       background: var(--accent);
       border-color: var(--accent);
       color: var(--accent-ink);
-      box-shadow: 0 10px 24px rgba(80, 86, 96, 0.14);
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.14);
       transform: translateY(-1px);
     }
 
@@ -272,8 +281,8 @@
 
     .primary-action {
       background: rgba(255, 255, 255, 0.72);
-      border-color: rgba(34, 34, 38, 0.18);
-      color: #20242b;
+      border-color: rgba(0, 0, 0, 0.18);
+      color: var(--sim-ink);
     }
 
     .primary-action:hover:not(:disabled) {
@@ -330,23 +339,23 @@
     }
 
     .object-chip[data-kind="actor"] {
-      border-color: rgba(184, 216, 246, 0.32);
+      border-color: rgba(255, 255, 255, 0.32);
     }
 
     .object-chip[data-kind="resource"] {
-      border-color: rgba(184, 216, 246, 0.34);
+      border-color: rgba(255, 255, 255, 0.34);
     }
 
     .object-chip[data-kind="shock"] {
-      border-color: rgba(231, 114, 95, 0.38);
+      border-color: rgba(255, 255, 255, 0.38);
     }
 
     .object-chip[data-kind="goal"] {
-      border-color: rgba(217, 164, 49, 0.36);
+      border-color: rgba(255, 255, 255, 0.36);
     }
 
     .object-chip.is-active {
-      background: rgba(184, 216, 246, 0.16);
+      background: rgba(255, 255, 255, 0.16);
       border-color: var(--accent);
       color: var(--text);
     }
@@ -468,10 +477,10 @@
       margin: 0;
       overflow: auto;
       padding: 8px;
-      border: 1px solid rgba(26, 49, 47, 0.1);
+      border: 1px solid rgba(0, 0, 0, 0.1);
       border-radius: 6px;
       background: rgba(255, 255, 255, 0.52);
-      color: rgba(23, 32, 29, 0.68);
+      color: rgba(0, 0, 0, 0.68);
       font: 10px/1.42 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
       white-space: pre-wrap;
     }
@@ -567,7 +576,7 @@
     }
 
     .replay-item {
-      border-left: 1px solid rgba(184, 216, 246, 0.42);
+      border-left: 1px solid rgba(255, 255, 255, 0.42);
       padding-left: 7px;
       cursor: pointer;
     }
@@ -603,7 +612,7 @@
       left: 14px;
       bottom: 10px;
       z-index: 3;
-      color: rgba(243, 243, 236, 0.42);
+      color: rgba(255, 255, 255, 0.42);
       font-size: 10px;
       letter-spacing: 0.08em;
       pointer-events: none;
@@ -662,9 +671,9 @@
       grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
       min-height: 100vh;
       background:
-        radial-gradient(circle at 14% 10%, rgba(184, 216, 246, 0.08), transparent 34%),
-        radial-gradient(circle at 86% 82%, rgba(217, 164, 49, 0.06), transparent 36%),
-        #ffffff;
+        radial-gradient(circle at 14% 10%, rgba(255, 0, 255, 0.08), transparent 34%),
+        radial-gradient(circle at 86% 82%, rgba(255, 255, 255, 0.06), transparent 36%),
+        var(--sim-paper);
     }
 
     .physics-panel {
@@ -675,9 +684,9 @@
       gap: 10px;
       overflow: auto;
       padding: 16px;
-      border-right: 1px solid rgba(26, 49, 47, 0.1);
+      border-right: 1px solid rgba(0, 0, 0, 0.1);
       background: rgba(255, 255, 255, 0.76);
-      box-shadow: 18px 0 70px rgba(43, 66, 57, 0.11);
+      box-shadow: 18px 0 70px rgba(0, 0, 0, 0.11);
       backdrop-filter: blur(22px) saturate(1.08);
       -webkit-backdrop-filter: blur(22px) saturate(1.08);
       animation: surface-in 0.42s ease both;
@@ -738,11 +747,11 @@
       padding: 0 11px;
       border-radius: 999px;
       background: rgba(255, 255, 255, 0.72);
-      border: 1px solid rgba(26, 49, 47, 0.12);
+      border: 1px solid rgba(0, 0, 0, 0.12);
       color: var(--text);
       font-size: 12px;
       font-weight: 680;
-      box-shadow: 0 8px 24px rgba(45, 67, 60, 0.055);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.055);
     }
 
     .example-chip {
@@ -755,8 +764,8 @@
     }
 
     .example-chip.is-active {
-      background: rgba(184, 216, 246, 0.18);
-      border-color: rgba(184, 216, 246, 0.42);
+      background: rgba(255, 255, 255, 0.18);
+      border-color: rgba(255, 255, 255, 0.42);
     }
 
     .component-stack {
@@ -768,52 +777,52 @@
       display: inline-flex;
       align-items: center;
       min-height: 28px;
-      color: rgba(23, 32, 29, 0.68);
+      color: rgba(0, 0, 0, 0.68);
       font-size: 11px;
       box-shadow: none;
     }
 
     .component-chip.is-domain {
-      color: rgba(55, 65, 81, 0.86);
-      background: rgba(184, 216, 246, 0.1);
-      border-color: rgba(184, 216, 246, 0.18);
+      color: rgba(255, 255, 255, 0.86);
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.18);
     }
 
     .component-chip.is-source {
-      background: rgba(184, 216, 246, 0.12);
-      border-color: rgba(184, 216, 246, 0.2);
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.2);
     }
 
     .component-chip.is-controller,
     .component-chip.is-sensor,
     .component-chip.is-process {
-      background: rgba(108, 143, 236, 0.11);
-      border-color: rgba(108, 143, 236, 0.2);
-      color: rgba(45, 71, 145, 0.72);
+      background: rgba(255, 255, 255, 0.11);
+      border-color: rgba(255, 255, 255, 0.2);
+      color: rgba(0, 0, 0, 0.72);
     }
 
     .component-chip.is-field,
     .component-chip.is-material {
-      background: rgba(174, 122, 238, 0.1);
-      border-color: rgba(174, 122, 238, 0.18);
-      color: rgba(91, 58, 139, 0.7);
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.18);
+      color: rgba(0, 0, 0, 0.7);
     }
 
     .component-chip.is-actor {
-      background: rgba(246, 176, 82, 0.13);
-      border-color: rgba(246, 176, 82, 0.22);
-      color: rgba(118, 77, 20, 0.72);
+      background: rgba(255, 255, 255, 0.13);
+      border-color: rgba(255, 255, 255, 0.22);
+      color: rgba(0, 0, 0, 0.72);
     }
 
     .component-chip.is-sink,
     .component-chip.is-loss {
-      background: rgba(231, 114, 95, 0.1);
-      border-color: rgba(231, 114, 95, 0.18);
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.18);
     }
 
     .component-chip.is-empty {
       border-style: dashed;
-      color: rgba(23, 32, 29, 0.46);
+      color: rgba(0, 0, 0, 0.46);
     }
 
     .template-chip {
@@ -821,8 +830,8 @@
       padding: 8px;
       text-align: left;
       background: rgba(255, 255, 255, 0.7);
-      border-color: rgba(26, 49, 47, 0.12);
-      box-shadow: 0 10px 26px rgba(45, 67, 60, 0.06);
+      border-color: rgba(0, 0, 0, 0.12);
+      box-shadow: 0 10px 26px rgba(0, 0, 0, 0.06);
     }
 
     .template-chip strong,
@@ -847,51 +856,51 @@
     }
 
     .template-chip.is-active {
-      background: rgba(184, 216, 246, 0.14);
-      border-color: rgba(184, 216, 246, 0.46);
+      background: rgba(255, 255, 255, 0.14);
+      border-color: rgba(255, 255, 255, 0.46);
     }
 
     .template-chip[data-template-id="magnetic-wheel"] {
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.78), rgba(184, 216, 246, 0.08));
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.78), rgba(255, 0, 255, 0.08));
     }
 
     .template-chip[data-template-id="fluid-vortex"] {
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.78), rgba(184, 216, 246, 0.11));
-      border-color: rgba(184, 216, 246, 0.18);
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.11));
+      border-color: rgba(255, 255, 255, 0.18);
     }
 
     .template-chip[data-template-id="reaction-diffusion"] {
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.78), rgba(217, 164, 49, 0.1));
-      border-color: rgba(217, 164, 49, 0.18);
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.1));
+      border-color: rgba(255, 255, 255, 0.18);
     }
 
     .template-chip[data-template-id="blank-world"] {
       background:
-        linear-gradient(90deg, rgba(142, 146, 154, 0.06) 1px, transparent 1px),
-        linear-gradient(rgba(142, 146, 154, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+        linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
         rgba(255, 255, 255, 0.78);
       background-size: 14px 14px, 14px 14px, auto;
       border-style: dashed;
-      border-color: rgba(142, 146, 154, 0.28);
+      border-color: rgba(255, 255, 255, 0.28);
     }
 
     .template-chip[data-template-id="fluid-vortex"].is-active {
-      background: linear-gradient(135deg, rgba(184, 216, 246, 0.16), rgba(255, 255, 255, 0.78));
-      border-color: rgba(184, 216, 246, 0.46);
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.78));
+      border-color: rgba(255, 255, 255, 0.46);
     }
 
     .template-chip[data-template-id="reaction-diffusion"].is-active {
-      background: linear-gradient(135deg, rgba(217, 164, 49, 0.16), rgba(255, 255, 255, 0.78));
-      border-color: rgba(217, 164, 49, 0.42);
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.78));
+      border-color: rgba(255, 255, 255, 0.42);
     }
 
     .template-chip[data-template-id="blank-world"].is-active {
       background:
-        linear-gradient(90deg, rgba(142, 146, 154, 0.08) 1px, transparent 1px),
-        linear-gradient(rgba(142, 146, 154, 0.07) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+        linear-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px),
         rgba(255, 255, 255, 0.86);
       background-size: 12px 12px, 12px 12px, auto;
-      border-color: rgba(142, 146, 154, 0.46);
+      border-color: rgba(255, 255, 255, 0.46);
     }
 
     .physics-name {
@@ -929,7 +938,7 @@
       display: grid;
       gap: 6px;
       padding: 9px;
-      border: 1px solid rgba(26, 49, 47, 0.1);
+      border: 1px solid rgba(0, 0, 0, 0.1);
       border-radius: 8px;
       background: rgba(255, 255, 255, 0.58);
     }
@@ -939,8 +948,8 @@
     }
 
     .intent-runtime[data-state="error"] {
-      border-color: rgba(231, 114, 95, 0.32);
-      background: rgba(231, 114, 95, 0.08);
+      border-color: rgba(255, 255, 255, 0.32);
+      background: rgba(255, 255, 255, 0.08);
     }
 
     .intent-runtime-head,
@@ -950,7 +959,7 @@
       justify-content: space-between;
       gap: 10px;
       min-width: 0;
-      color: rgba(23, 32, 29, 0.58);
+      color: rgba(0, 0, 0, 0.58);
       font-size: 11px;
       line-height: 1.2;
     }
@@ -965,7 +974,7 @@
 
     .intent-runtime-percent {
       flex: 0 0 auto;
-      color: rgba(55, 65, 81, 0.84);
+      color: rgba(0, 0, 0, 0.84);
       font-weight: 760;
     }
 
@@ -973,7 +982,7 @@
       height: 6px;
       overflow: hidden;
       border-radius: 999px;
-      background: rgba(26, 49, 47, 0.09);
+      background: rgba(0, 0, 0, 0.09);
     }
 
     .intent-runtime-fill {
@@ -983,11 +992,11 @@
       border-radius: inherit;
       background: linear-gradient(
         90deg,
-        rgba(255, 141, 178, 0.82),
-        rgba(255, 205, 133, 0.76),
-        rgba(184, 216, 246, 0.78),
-        rgba(117, 190, 255, 0.76),
-        rgba(178, 151, 255, 0.78)
+        rgba(255, 0, 255, 0.82),
+        rgba(255, 255, 255, 0.76),
+        rgba(255, 255, 255, 0.78),
+        rgba(0, 0, 0, 0.76),
+        rgba(255, 255, 255, 0.78)
       );
       transition: width 0.22s ease;
     }
@@ -1074,8 +1083,8 @@
     .physics-footer {
       margin-top: auto;
       padding-top: 10px;
-      border-top: 1px solid rgba(26, 49, 47, 0.08);
-      color: rgba(23, 32, 29, 0.42);
+      border-top: 1px solid rgba(0, 0, 0, 0.08);
+      color: rgba(0, 0, 0, 0.42);
       font-size: 11px;
       line-height: 1.3;
     }
@@ -1094,7 +1103,7 @@
     .physics-footer a:hover {
       background: transparent;
       box-shadow: none;
-      color: rgba(55, 65, 81, 0.88);
+      color: rgba(0, 0, 0, 0.88);
       transform: none;
     }
 
@@ -1115,7 +1124,7 @@
 
     .physics-note {
       margin: 0;
-      color: rgba(243, 243, 236, 0.56);
+      color: rgba(255, 255, 255, 0.56);
       font-size: 11px;
       line-height: 1.45;
     }
@@ -1134,7 +1143,7 @@
     }
 
     .intent-details summary {
-      color: rgba(23, 32, 29, 0.54);
+      color: rgba(0, 0, 0, 0.54);
       font-size: 12px;
       font-weight: 680;
       letter-spacing: 0;
@@ -1142,23 +1151,23 @@
     }
 
     .physics-stage {
-      --mosaic-pink: rgba(255, 141, 178, 0.2);
-      --mosaic-apricot: rgba(255, 205, 133, 0.18);
-      --mosaic-mint: rgba(184, 216, 246, 0.18);
-      --mosaic-sky: rgba(117, 190, 255, 0.16);
-      --mosaic-lilac: rgba(178, 151, 255, 0.18);
-      --mosaic-ink: #221f2d;
-      --mosaic-muted: rgba(34, 31, 45, 0.58);
-      --mosaic-line: rgba(74, 58, 92, 0.12);
+      --mosaic-pink: rgba(255, 0, 255, 0.2);
+      --mosaic-apricot: rgba(255, 255, 255, 0.18);
+      --mosaic-mint: rgba(0, 255, 0, 0.18);
+      --mosaic-sky: rgba(0, 0, 0, 0.16);
+      --mosaic-lilac: rgba(255, 255, 255, 0.18);
+      --mosaic-ink: var(--sim-ink);
+      --mosaic-muted: rgba(0, 0, 0, 0.58);
+      --mosaic-line: rgba(255, 255, 255, 0.12);
       --mosaic-cell: 20px;
       --mosaic-surface: rgba(255, 255, 255, 0.82);
-      --mosaic-tile-soft: rgba(178, 151, 255, 0.08);
-      --mosaic-tile-warm: rgba(255, 205, 133, 0.08);
-      background-color: #fffdfc;
+      --mosaic-tile-soft: rgba(255, 255, 255, 0.08);
+      --mosaic-tile-warm: rgba(255, 0, 255, 0.08);
+      background-color: var(--sim-paper);
       background-image:
-        linear-gradient(135deg, rgba(255, 141, 178, 0.08), transparent 35%),
-        linear-gradient(225deg, rgba(184, 216, 246, 0.07), transparent 38%),
-        linear-gradient(180deg, #fffdfc 0%, #f7fdff 54%, #fffaf5 100%);
+        linear-gradient(135deg, rgba(255, 255, 255, 0.08), transparent 35%),
+        linear-gradient(225deg, rgba(255, 255, 255, 0.07), transparent 38%),
+        linear-gradient(180deg, var(--sim-paper) 0%, var(--sim-paper) 54%, var(--sim-paper) 100%);
       background-size:
         auto,
         auto,
@@ -1173,17 +1182,17 @@
         linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(255, 255, 255, 0.84)),
         conic-gradient(
           from 90deg,
-          rgba(255, 141, 178, 0.07) 0 25%,
-          rgba(255, 205, 133, 0.055) 0 50%,
-          rgba(184, 216, 246, 0.06) 0 75%,
-          rgba(178, 151, 255, 0.06) 0
+          rgba(255, 255, 255, 0.07) 0 25%,
+          rgba(255, 255, 255, 0.055) 0 50%,
+          rgba(255, 255, 255, 0.06) 0 75%,
+          rgba(255, 255, 255, 0.06) 0
         );
       background-size: auto, 28px 28px;
       box-shadow:
-        14px 0 48px rgba(83, 72, 107, 0.12),
+        14px 0 48px rgba(0, 0, 0, 0.12),
         inset -1px 0 0 rgba(255, 255, 255, 0.72);
       color: var(--mosaic-ink);
-      scrollbar-color: rgba(178, 151, 255, 0.45) transparent;
+      scrollbar-color: rgba(255, 255, 255, 0.45) transparent;
     }
 
     .physics-brand {
@@ -1193,19 +1202,19 @@
       gap: 12px;
       min-height: 42px;
       padding: 10px;
-      border: 1px solid rgba(74, 58, 92, 0.14);
+      border: 1px solid rgba(0, 0, 0, 0.14);
       border-radius: 8px;
       background:
         linear-gradient(90deg, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.48)),
         repeating-linear-gradient(
           90deg,
-          rgba(255, 141, 178, 0.16) 0 10px,
-          rgba(255, 205, 133, 0.13) 10px 20px,
-          rgba(184, 216, 246, 0.14) 20px 30px,
-          rgba(117, 190, 255, 0.12) 30px 40px,
-          rgba(178, 151, 255, 0.13) 40px 50px
+          rgba(255, 255, 255, 0.16) 0 10px,
+          rgba(255, 255, 255, 0.13) 10px 20px,
+          rgba(255, 255, 255, 0.14) 20px 30px,
+          rgba(255, 255, 255, 0.12) 30px 40px,
+          rgba(255, 255, 255, 0.13) 40px 50px
         );
-      box-shadow: 0 12px 32px rgba(83, 72, 107, 0.08);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
     }
 
     .physics-brand h1 {
@@ -1223,15 +1232,15 @@
       place-items: center;
       width: 18px;
       height: 18px;
-      border: 1px solid rgba(74, 58, 92, 0.16);
+      border: 1px solid rgba(0, 0, 0, 0.16);
       border-radius: 999px;
       background:
         radial-gradient(circle at 38% 32%, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.58) 62%, rgba(255, 255, 255, 0.18)),
-        linear-gradient(135deg, rgba(255, 141, 178, 0.68), rgba(184, 216, 246, 0.62) 48%, rgba(178, 151, 255, 0.66));
+        linear-gradient(135deg, rgba(255, 255, 255, 0.68), rgba(255, 255, 255, 0.62) 48%, rgba(255, 255, 255, 0.66));
       box-shadow:
         0 0 0 3px rgba(255, 255, 255, 0.58),
-        0 7px 18px rgba(83, 72, 107, 0.14);
-      color: rgba(53, 42, 69, 0.86);
+        0 7px 18px rgba(0, 0, 0, 0.14);
+      color: rgba(0, 0, 0, 0.86);
       font-family: Georgia, "Times New Roman", serif;
       font-size: 19px;
       font-weight: 700;
@@ -1242,7 +1251,7 @@
     .example-row {
       grid-template-columns: repeat(6, minmax(0, 1fr));
       padding: 2px;
-      border: 1px solid rgba(74, 58, 92, 0.1);
+      border: 1px solid rgba(0, 0, 0, 0.1);
       border-radius: 8px;
       background: rgba(255, 255, 255, 0.46);
     }
@@ -1255,12 +1264,12 @@
       isolation: isolate;
       overflow: hidden;
       border-radius: 8px;
-      border-color: rgba(74, 58, 92, 0.16);
+      border-color: rgba(0, 0, 0, 0.16);
       color: var(--mosaic-ink);
       background-color: rgba(255, 255, 255, 0.78);
       background-image:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(236, 237, 240, 0.62));
-      box-shadow: 0 10px 24px rgba(83, 72, 107, 0.075);
+        linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(255, 255, 255, 0.62));
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.075);
     }
 
     .example-chip::before,
@@ -1279,11 +1288,11 @@
       border-radius: 999px;
       background-image: linear-gradient(
         90deg,
-        rgba(255, 181, 200, 0.82),
-        rgba(246, 211, 161, 0.78),
-        rgba(245, 230, 168, 0.74),
-        rgba(184, 216, 246, 0.78),
-        rgba(203, 188, 244, 0.8)
+        rgba(255, 255, 255, 0.82),
+        rgba(255, 255, 255, 0.78),
+        rgba(255, 255, 255, 0.74),
+        rgba(255, 255, 255, 0.78),
+        rgba(255, 255, 255, 0.8)
       );
     }
 
@@ -1314,14 +1323,14 @@
 
     .example-chip.is-active,
     .example-chip:hover:not(:disabled) {
-      border-color: rgba(117, 190, 255, 0.52);
-      color: #1d2845;
+      border-color: rgba(255, 255, 255, 0.52);
+      color: var(--sim-ink);
       background-color: rgba(255, 255, 255, 0.86);
       background-image:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(239, 241, 245, 0.68));
+        linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(255, 255, 255, 0.68));
       box-shadow:
         0 0 0 2px rgba(255, 255, 255, 0.78),
-        0 14px 28px rgba(83, 72, 107, 0.11);
+        0 14px 28px rgba(0, 0, 0, 0.11);
     }
 
     .builder-row {
@@ -1331,16 +1340,16 @@
     .builder-row textarea {
       min-height: 132px;
       border-radius: 8px;
-      border-color: rgba(74, 58, 92, 0.18);
+      border-color: rgba(0, 0, 0, 0.18);
       background-color: rgba(255, 255, 255, 0.82);
       background-image:
         linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.82)),
-        linear-gradient(90deg, rgba(178, 151, 255, 0.045) 1px, transparent 1px),
-        linear-gradient(rgba(142, 146, 154, 0.04) 1px, transparent 1px);
+        linear-gradient(90deg, rgba(255, 255, 255, 0.045) 1px, transparent 1px),
+        linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px);
       background-size: auto, 18px 18px, 18px 18px;
       box-shadow:
         inset 0 1px 0 rgba(255, 255, 255, 0.84),
-        0 12px 30px rgba(83, 72, 107, 0.07);
+        0 12px 30px rgba(0, 0, 0, 0.07);
       color: var(--mosaic-ink);
       font-weight: 660;
     }
@@ -1348,26 +1357,26 @@
     textarea:focus,
     input:focus,
     select:focus {
-      border-color: rgba(117, 190, 255, 0.62);
+      border-color: rgba(255, 255, 255, 0.62);
       box-shadow:
-        0 0 0 3px rgba(117, 190, 255, 0.15),
-        0 12px 30px rgba(83, 72, 107, 0.08);
+        0 0 0 3px rgba(255, 255, 255, 0.15),
+        0 12px 30px rgba(0, 0, 0, 0.08);
     }
 
     .primary-action {
       min-height: 40px;
-      border-color: rgba(74, 58, 92, 0.2);
+      border-color: rgba(0, 0, 0, 0.2);
       background-color: rgba(255, 255, 255, 0.72);
-      color: #252038;
+      color: var(--sim-ink);
       font-weight: 760;
     }
 
     button:hover:not(:disabled),
     a:hover {
-      border-color: rgba(117, 190, 255, 0.5);
+      border-color: rgba(255, 255, 255, 0.5);
       background: rgba(255, 255, 255, 0.88);
-      color: #1d2845;
-      box-shadow: 0 14px 28px rgba(83, 72, 107, 0.11);
+      color: var(--sim-ink);
+      box-shadow: 0 14px 28px rgba(0, 0, 0, 0.11);
       transform: translateY(-1px);
     }
 
@@ -1393,12 +1402,12 @@
       overflow: hidden;
       gap: 8px;
       padding: 11px;
-      border: 1px solid rgba(74, 58, 92, 0.14);
+      border: 1px solid rgba(0, 0, 0, 0.14);
       border-radius: 8px;
       background-color: rgba(255, 255, 255, 0.68);
       background-image:
         linear-gradient(180deg, rgba(255, 255, 255, 0.84), rgba(255, 255, 255, 0.58));
-      box-shadow: 0 12px 30px rgba(83, 72, 107, 0.08);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
       transition:
         opacity 180ms ease,
         border-color 180ms ease,
@@ -1418,19 +1427,19 @@
     }
 
     .intent-runtime[data-state="error"] {
-      border-color: rgba(238, 115, 136, 0.42);
+      border-color: rgba(255, 255, 255, 0.42);
       background-image:
-        linear-gradient(180deg, rgba(255, 250, 252, 0.9), rgba(255, 236, 242, 0.62)),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.62)),
         repeating-linear-gradient(
           90deg,
-          rgba(238, 115, 136, 0.16) 0 12px,
-          rgba(255, 205, 133, 0.1) 12px 24px
+          rgba(255, 255, 255, 0.16) 0 12px,
+          rgba(255, 255, 255, 0.1) 12px 24px
         );
     }
 
     .intent-runtime-head,
     .intent-runtime-meta {
-      color: rgba(34, 31, 45, 0.56);
+      color: rgba(0, 0, 0, 0.56);
     }
 
     .intent-runtime-head strong {
@@ -1444,7 +1453,7 @@
     }
 
     .intent-runtime-percent {
-      color: rgba(105, 89, 174, 0.86);
+      color: rgba(0, 0, 0, 0.86);
       font-variant-numeric: tabular-nums;
     }
 
@@ -1452,7 +1461,7 @@
       position: relative;
       height: 18px;
       overflow: hidden;
-      border: 1px solid rgba(74, 58, 92, 0.12);
+      border: 1px solid rgba(0, 0, 0, 0.12);
       border-radius: 6px;
       background:
         rgba(255, 255, 255, 0.46);
@@ -1466,15 +1475,15 @@
       background:
         linear-gradient(
           90deg,
-          rgba(255, 141, 178, 0.82),
-          rgba(255, 205, 133, 0.76),
-          rgba(184, 216, 246, 0.78),
-          rgba(117, 190, 255, 0.76),
-          rgba(178, 151, 255, 0.78)
+          rgba(255, 0, 255, 0.82),
+          rgba(255, 255, 255, 0.76),
+          rgba(255, 255, 255, 0.78),
+          rgba(0, 0, 0, 0.76),
+          rgba(255, 255, 255, 0.78)
         );
       box-shadow:
         inset 0 1px 0 rgba(255, 255, 255, 0.6),
-        0 0 18px rgba(178, 151, 255, 0.18);
+        0 0 18px rgba(255, 255, 255, 0.18);
     }
 
     .intent-runtime[data-state="active"] .intent-runtime-fill {
@@ -1482,10 +1491,10 @@
     }
 
     .intent-runtime[data-state="active"] {
-      border-color: rgba(184, 216, 246, 0.28);
+      border-color: rgba(255, 255, 255, 0.28);
       box-shadow:
         inset 0 1px 0 rgba(255, 255, 255, 0.62),
-        0 12px 28px rgba(52, 87, 113, 0.11);
+        0 12px 28px rgba(0, 0, 0, 0.11);
     }
 
     .intent-runtime-head {
@@ -1501,22 +1510,22 @@
     }
 
     .intent-runtime[data-stage="prompt-runtime"] .intent-runtime-fill {
-      background: linear-gradient(90deg, rgba(117, 190, 255, 0.8), rgba(178, 151, 255, 0.8));
+      background: linear-gradient(90deg, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.8));
     }
 
     .intent-runtime[data-stage="retrieval"] .intent-runtime-fill,
     .intent-runtime[data-stage="activation-cloud"] .intent-runtime-fill {
-      background: linear-gradient(90deg, rgba(184, 216, 246, 0.84), rgba(117, 190, 255, 0.78));
+      background: linear-gradient(90deg, rgba(255, 255, 255, 0.84), rgba(255, 255, 255, 0.78));
     }
 
     .intent-runtime[data-stage="grounded-intent"] .intent-runtime-fill,
     .intent-runtime[data-stage="simulation-compile"] .intent-runtime-fill {
-      background: linear-gradient(90deg, rgba(255, 205, 133, 0.84), rgba(184, 216, 246, 0.78));
+      background: linear-gradient(90deg, rgba(255, 255, 255, 0.84), rgba(255, 255, 255, 0.78));
     }
 
     .intent-runtime[data-stage="visual-ir"] .intent-runtime-fill,
     .intent-runtime[data-stage="webgpu-ready"] .intent-runtime-fill {
-      background: linear-gradient(90deg, rgba(255, 141, 178, 0.78), rgba(178, 151, 255, 0.8));
+      background: linear-gradient(90deg, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.8));
     }
 
     .component-stack {
@@ -1531,13 +1540,13 @@
         linear-gradient(180deg, rgba(255, 255, 255, 0.68), rgba(255, 255, 255, 0.42)),
         conic-gradient(
           from 90deg,
-          rgba(255, 141, 178, 0.18) 0 25%,
-          rgba(255, 205, 133, 0.15) 0 50%,
-          rgba(184, 216, 246, 0.16) 0 75%,
-          rgba(178, 151, 255, 0.15) 0
+          rgba(255, 255, 255, 0.18) 0 25%,
+          rgba(255, 255, 255, 0.15) 0 50%,
+          rgba(255, 255, 255, 0.16) 0 75%,
+          rgba(255, 255, 255, 0.15) 0
         );
       background-size: auto, 16px 16px;
-      color: rgba(34, 31, 45, 0.66);
+      color: rgba(0, 0, 0, 0.66);
     }
 
     .component-chip::before {
@@ -1558,10 +1567,10 @@
         linear-gradient(180deg, rgba(255, 255, 255, 0.58), rgba(255, 255, 255, 0.34)),
         conic-gradient(
           from 90deg,
-          rgba(255, 141, 178, 0.2) 0 25%,
-          rgba(255, 205, 133, 0.18) 0 50%,
-          rgba(184, 216, 246, 0.18) 0 75%,
-          rgba(178, 151, 255, 0.18) 0
+          rgba(255, 255, 255, 0.2) 0 25%,
+          rgba(255, 255, 255, 0.18) 0 50%,
+          rgba(255, 255, 255, 0.18) 0 75%,
+          rgba(255, 255, 255, 0.18) 0
         );
       background-size: auto, 16px 16px;
     }
@@ -1597,51 +1606,51 @@
     .readout {
       min-height: 58px;
       padding: 9px;
-      border: 1px solid rgba(74, 58, 92, 0.12);
+      border: 1px solid rgba(0, 0, 0, 0.12);
       border-radius: 8px;
       background:
         linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.5)),
         conic-gradient(
           from 90deg,
-          rgba(255, 141, 178, 0.08) 0 25%,
-          rgba(255, 205, 133, 0.07) 0 50%,
-          rgba(184, 216, 246, 0.08) 0 75%,
-          rgba(117, 190, 255, 0.07) 0
+          rgba(255, 255, 255, 0.08) 0 25%,
+          rgba(255, 255, 255, 0.07) 0 50%,
+          rgba(255, 0, 255, 0.08) 0 75%,
+          rgba(255, 255, 255, 0.07) 0
         );
       background-size: auto, 18px 18px;
     }
 
     .readout strong {
-      color: rgba(34, 31, 45, 0.5);
+      color: rgba(0, 0, 0, 0.5);
       letter-spacing: 0.08em;
       text-transform: uppercase;
     }
 
     .readout span {
-      color: rgba(105, 89, 174, 0.92);
+      color: rgba(0, 0, 0, 0.92);
     }
 
     .physics-control {
       gap: 7px;
       padding: 8px;
-      border: 1px solid rgba(74, 58, 92, 0.1);
+      border: 1px solid rgba(0, 0, 0, 0.1);
       border-radius: 8px;
       background: rgba(255, 255, 255, 0.5);
-      color: rgba(34, 31, 45, 0.58);
+      color: rgba(0, 0, 0, 0.58);
     }
 
     input[type="range"]::-webkit-slider-runnable-track {
       height: 10px;
-      border: 1px solid rgba(74, 58, 92, 0.12);
+      border: 1px solid rgba(0, 0, 0, 0.12);
       border-radius: 5px;
       background:
         repeating-linear-gradient(
           90deg,
-          rgba(255, 141, 178, 0.52) 0 16px,
-          rgba(255, 205, 133, 0.46) 16px 32px,
-          rgba(184, 216, 246, 0.46) 32px 48px,
-          rgba(117, 190, 255, 0.44) 48px 64px,
-          rgba(178, 151, 255, 0.46) 64px 80px
+          rgba(255, 255, 255, 0.52) 0 16px,
+          rgba(255, 255, 255, 0.46) 16px 32px,
+          rgba(255, 255, 255, 0.46) 32px 48px,
+          rgba(255, 255, 255, 0.44) 48px 64px,
+          rgba(255, 255, 255, 0.46) 64px 80px
         );
     }
 
@@ -1651,24 +1660,24 @@
       margin-top: -6px;
       border: 2px solid rgba(255, 255, 255, 0.96);
       border-radius: 6px;
-      background: #ffffff;
+      background: var(--sim-paper);
       box-shadow:
-        0 0 0 1px rgba(74, 58, 92, 0.18),
-        0 8px 18px rgba(83, 72, 107, 0.18);
+        0 0 0 1px rgba(0, 0, 0, 0.18),
+        0 8px 18px rgba(0, 0, 0, 0.18);
     }
 
     input[type="range"]::-moz-range-track {
       height: 10px;
-      border: 1px solid rgba(74, 58, 92, 0.12);
+      border: 1px solid rgba(0, 0, 0, 0.12);
       border-radius: 5px;
       background:
         repeating-linear-gradient(
           90deg,
-          rgba(255, 141, 178, 0.52) 0 16px,
-          rgba(255, 205, 133, 0.46) 16px 32px,
-          rgba(184, 216, 246, 0.46) 32px 48px,
-          rgba(117, 190, 255, 0.44) 48px 64px,
-          rgba(178, 151, 255, 0.46) 64px 80px
+          rgba(255, 255, 255, 0.52) 0 16px,
+          rgba(255, 255, 255, 0.46) 16px 32px,
+          rgba(255, 255, 255, 0.46) 32px 48px,
+          rgba(255, 255, 255, 0.44) 48px 64px,
+          rgba(255, 255, 255, 0.46) 64px 80px
         );
     }
 
@@ -1677,39 +1686,39 @@
       height: 20px;
       border: 2px solid rgba(255, 255, 255, 0.96);
       border-radius: 6px;
-      background: #ffffff;
+      background: var(--sim-paper);
       box-shadow:
-        0 0 0 1px rgba(74, 58, 92, 0.18),
-        0 8px 18px rgba(83, 72, 107, 0.18);
+        0 0 0 1px rgba(0, 0, 0, 0.18),
+        0 8px 18px rgba(0, 0, 0, 0.18);
     }
 
     .intent-details {
-      border-top: 1px solid rgba(74, 58, 92, 0.12);
+      border-top: 1px solid rgba(0, 0, 0, 0.12);
       padding-top: 10px;
     }
 
     .intent-details summary {
       width: max-content;
       padding: 5px 9px;
-      border: 1px solid rgba(74, 58, 92, 0.12);
+      border: 1px solid rgba(0, 0, 0, 0.12);
       border-radius: 7px;
       background: rgba(255, 255, 255, 0.56);
-      color: rgba(34, 31, 45, 0.62);
+      color: rgba(0, 0, 0, 0.62);
     }
 
     .spec-preview {
-      border-color: rgba(74, 58, 92, 0.12);
+      border-color: rgba(0, 0, 0, 0.12);
       border-radius: 8px;
       background:
         linear-gradient(180deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.52)),
-        linear-gradient(90deg, rgba(178, 151, 255, 0.08) 1px, transparent 1px);
+        linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
       background-size: auto, 14px 14px;
-      color: rgba(34, 31, 45, 0.68);
+      color: rgba(0, 0, 0, 0.68);
     }
 
     .physics-footer {
-      border-top-color: rgba(74, 58, 92, 0.12);
-      color: rgba(34, 31, 45, 0.46);
+      border-top-color: rgba(0, 0, 0, 0.12);
+      color: rgba(0, 0, 0, 0.46);
     }
 
     .physics-panel {
@@ -1723,11 +1732,11 @@
         linear-gradient(90deg, rgba(255, 255, 255, 0.86), rgba(255, 255, 255, 0.58)),
         repeating-linear-gradient(
           90deg,
-          rgba(255, 141, 178, 0.07) 0 10px,
-          rgba(255, 205, 133, 0.06) 10px 20px,
-          rgba(184, 216, 246, 0.065) 20px 30px,
-          rgba(117, 190, 255, 0.055) 30px 40px,
-          rgba(178, 151, 255, 0.06) 40px 50px
+          rgba(255, 255, 255, 0.07) 0 10px,
+          rgba(255, 255, 255, 0.06) 10px 20px,
+          rgba(255, 255, 255, 0.065) 20px 30px,
+          rgba(255, 255, 255, 0.055) 30px 40px,
+          rgba(255, 255, 255, 0.06) 40px 50px
         );
     }
 
@@ -1816,9 +1825,9 @@
       background:
         linear-gradient(
           90deg,
-          rgba(255, 141, 178, 0.42),
-          rgba(184, 216, 246, 0.48),
-          rgba(178, 151, 255, 0.42)
+          rgba(255, 255, 255, 0.42),
+          rgba(255, 255, 255, 0.48),
+          rgba(255, 255, 255, 0.42)
         );
     }
 
@@ -1831,11 +1840,11 @@
       background:
         repeating-linear-gradient(
           90deg,
-          rgba(255, 141, 178, 0.2) 0 16px,
-          rgba(255, 205, 133, 0.16) 16px 32px,
-          rgba(184, 216, 246, 0.18) 32px 48px,
-          rgba(117, 190, 255, 0.16) 48px 64px,
-          rgba(178, 151, 255, 0.17) 64px 80px
+          rgba(255, 255, 255, 0.2) 0 16px,
+          rgba(255, 255, 255, 0.16) 16px 32px,
+          rgba(255, 255, 255, 0.18) 32px 48px,
+          rgba(255, 255, 255, 0.16) 48px 64px,
+          rgba(255, 255, 255, 0.17) 64px 80px
         );
     }
 
@@ -1843,11 +1852,11 @@
       background:
         repeating-linear-gradient(
           90deg,
-          rgba(255, 141, 178, 0.2) 0 16px,
-          rgba(255, 205, 133, 0.16) 16px 32px,
-          rgba(184, 216, 246, 0.18) 32px 48px,
-          rgba(117, 190, 255, 0.16) 48px 64px,
-          rgba(178, 151, 255, 0.17) 64px 80px
+          rgba(255, 255, 255, 0.2) 0 16px,
+          rgba(255, 255, 255, 0.16) 16px 32px,
+          rgba(255, 255, 255, 0.18) 32px 48px,
+          rgba(255, 255, 255, 0.16) 48px 64px,
+          rgba(255, 255, 255, 0.17) 64px 80px
         );
     }
 
@@ -1933,16 +1942,16 @@
       border: 1px solid rgba(255, 255, 255, 0.42);
       background:
         linear-gradient(135deg, rgba(255, 255, 255, 0.26), rgba(255, 255, 255, 0.08)),
-        linear-gradient(180deg, rgba(255, 141, 178, 0.06), rgba(117, 190, 255, 0.06));
+        linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.06));
       backdrop-filter: blur(30px) saturate(1.48);
       -webkit-backdrop-filter: blur(30px) saturate(1.48);
       display: grid;
       gap: 8px;
       animation: none;
       box-shadow:
-        0 24px 70px rgba(11, 13, 17, 0.14),
+        0 24px 70px rgba(0, 0, 0, 0.14),
         inset 0 1px 0 rgba(255, 255, 255, 0.42),
-        inset 0 -1px 0 rgba(74, 58, 92, 0.08);
+        inset 0 -1px 0 rgba(0, 0, 0, 0.08);
       user-select: none;
     }
 
@@ -1969,7 +1978,7 @@
       border-radius: inherit;
       background:
         radial-gradient(circle at 10% 0%, rgba(255, 255, 255, 0.42), transparent 42%),
-        radial-gradient(circle at 88% 100%, rgba(117, 190, 255, 0.18), transparent 46%);
+        radial-gradient(circle at 88% 100%, rgba(255, 255, 255, 0.18), transparent 46%);
       pointer-events: none;
     }
 
@@ -1986,10 +1995,10 @@
       opacity: 0.88;
       background:
         linear-gradient(135deg, rgba(255, 255, 255, 0.38), rgba(255, 255, 255, 0.16)),
-        linear-gradient(90deg, rgba(255, 141, 178, 0.08), rgba(117, 190, 255, 0.1));
+        linear-gradient(90deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.1));
       border-color: rgba(255, 255, 255, 0.28);
       box-shadow:
-        0 14px 42px rgba(11, 13, 17, 0.12),
+        0 14px 42px rgba(0, 0, 0, 0.12),
         inset 0 1px 0 rgba(255, 255, 255, 0.32);
       backdrop-filter: blur(18px) saturate(1.3);
       -webkit-backdrop-filter: blur(18px) saturate(1.3);
@@ -2050,7 +2059,7 @@
     .prompt-dock-autonomy {
       border: 0;
       background: transparent;
-      color: rgba(34, 31, 45, 0.66);
+      color: rgba(0, 0, 0, 0.66);
       font-size: 10px;
       font-weight: 700;
       letter-spacing: 0.08em;
@@ -2060,7 +2069,7 @@
 
     .prompt-dock-autonomy:hover,
     .prompt-dock-autonomy:focus-visible {
-      color: rgba(34, 31, 45, 0.94);
+      color: rgba(0, 0, 0, 0.94);
       text-decoration: underline;
       text-underline-offset: 3px;
     }
@@ -2070,15 +2079,15 @@
       min-width: 34px;
       border-radius: 8px;
       padding: 0 8px;
-      border: 1px solid rgba(74, 58, 92, 0.14);
+      border: 1px solid rgba(0, 0, 0, 0.14);
       background: rgba(255, 255, 255, 0.6);
-      color: rgba(34, 31, 45, 0.72);
+      color: rgba(0, 0, 0, 0.72);
       font-size: 15px;
       line-height: 1;
     }
 
     .prompt-dock[data-collapsed="true"] .prompt-dock-toggle {
-      color: rgba(55, 65, 81, 0.94);
+      color: rgba(0, 0, 0, 0.94);
     }
 
     .prompt-dock-core {
@@ -2120,8 +2129,8 @@
       align-items: center;
       gap: 8px;
       background: rgba(255, 255, 255, 0.72);
-      border-color: rgba(74, 58, 92, 0.16);
-      box-shadow: 0 9px 24px rgba(45, 67, 60, 0.08);
+      border-color: rgba(0, 0, 0, 0.16);
+      box-shadow: 0 9px 24px rgba(0, 0, 0, 0.08);
       backdrop-filter: blur(14px) saturate(1.12);
       -webkit-backdrop-filter: blur(14px) saturate(1.12);
     }
@@ -2197,10 +2206,10 @@
       background:
         repeating-linear-gradient(
           90deg,
-          rgba(132, 120, 154, 0.2) 0 7px,
-          rgba(132, 120, 154, 0.05) 7px 10px
+          rgba(255, 255, 255, 0.2) 0 7px,
+          rgba(255, 255, 255, 0.05) 7px 10px
         ),
-        rgba(132, 120, 154, 0.11);
+        rgba(255, 255, 255, 0.11);
       box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.62);
     }
 
@@ -2220,14 +2229,14 @@
         ),
         linear-gradient(
           90deg,
-          rgba(255, 159, 189, 0.92),
-          rgba(255, 201, 139, 0.88),
-          rgba(246, 232, 153, 0.86),
-          rgba(189, 236, 161, 0.84),
-          rgba(158, 232, 207, 0.86),
-          rgba(155, 220, 255, 0.9),
-          rgba(184, 181, 255, 0.9),
-          rgba(215, 168, 255, 0.92)
+          rgba(255, 255, 255, 0.92),
+          rgba(255, 255, 255, 0.88),
+          rgba(255, 255, 255, 0.86),
+          rgba(255, 255, 255, 0.84),
+          rgba(255, 255, 255, 0.86),
+          rgba(255, 255, 255, 0.9),
+          rgba(255, 255, 255, 0.9),
+          rgba(255, 255, 255, 0.92)
         );
       background-size: 12px 100%, 220% 100%;
       background-blend-mode: screen, normal;
@@ -2262,7 +2271,7 @@
       display: block;
       min-width: 0;
       overflow: hidden;
-      color: rgba(34, 31, 45, 0.82);
+      color: rgba(0, 0, 0, 0.82);
       font-size: 11px;
       font-weight: 760;
       letter-spacing: 0;
@@ -2279,15 +2288,15 @@
       height: 5px;
       margin-left: 6px;
       border-radius: 999px;
-      background: rgba(155, 220, 255, 0.95);
-      box-shadow: 0 0 10px rgba(215, 168, 255, 0.5);
+      background: rgba(255, 255, 255, 0.95);
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
       vertical-align: 1px;
       animation: runtime-heartbeat-pulse 0.9s ease-in-out infinite;
     }
 
     .prompt-dock .intent-runtime-percent {
       display: block;
-      color: rgba(74, 58, 92, 0.58);
+      color: rgba(0, 0, 0, 0.58);
       font-size: 10px;
       font-variant-numeric: tabular-nums;
       font-weight: 760;
@@ -2306,7 +2315,7 @@
       min-width: 0;
       margin-top: 2px;
       overflow: hidden;
-      color: rgba(74, 58, 92, 0.52);
+      color: rgba(0, 0, 0, 0.52);
       font-size: 9px;
       font-variant-numeric: tabular-nums;
       font-weight: 680;
@@ -2344,7 +2353,7 @@
     }
 
     .world-model-head strong {
-      color: rgba(34, 31, 45, 0.76);
+      color: rgba(0, 0, 0, 0.76);
       font-size: 10px;
       letter-spacing: 0.03em;
       text-transform: uppercase;
@@ -2353,7 +2362,7 @@
     .world-model-status {
       max-width: 48%;
       overflow: hidden;
-      color: rgba(55, 65, 81, 0.8);
+      color: rgba(0, 0, 0, 0.8);
       font-size: 9px;
       text-overflow: ellipsis;
       text-transform: uppercase;
@@ -2363,7 +2372,7 @@
     .world-model-summary {
       min-height: 1.3em;
       overflow: hidden;
-      color: rgba(34, 31, 45, 0.66);
+      color: rgba(0, 0, 0, 0.66);
       font-size: 10px;
       line-height: 1.3;
       text-overflow: ellipsis;
@@ -2381,10 +2390,10 @@
       min-height: 28px;
       width: fit-content;
       padding: 0 9px;
-      border: 1px solid rgba(74, 58, 92, 0.12);
+      border: 1px solid rgba(0, 0, 0, 0.12);
       border-radius: 8px;
       background: rgba(255, 255, 255, 0.42);
-      color: rgba(34, 31, 45, 0.66);
+      color: rgba(0, 0, 0, 0.66);
       cursor: pointer;
       font-size: 10px;
       letter-spacing: 0.04em;
@@ -2431,7 +2440,7 @@
     }
 
     .prompt-corner-controls button.is-active {
-      border-color: rgba(117, 190, 255, 0.52);
+      border-color: rgba(255, 255, 255, 0.52);
       background: rgba(255, 255, 255, 0.84);
     }
 
@@ -2459,7 +2468,7 @@
     .world-model-chip {
       min-width: 0;
       padding: 5px 6px;
-      border: 1px solid rgba(74, 58, 92, 0.1);
+      border: 1px solid rgba(0, 0, 0, 0.1);
       border-radius: 7px;
       background: rgba(255, 255, 255, 0.34);
     }
@@ -2474,20 +2483,20 @@
     }
 
     .world-model-chip span {
-      color: rgba(34, 31, 45, 0.46);
+      color: rgba(0, 0, 0, 0.46);
       font-size: 8px;
       letter-spacing: 0.07em;
       text-transform: uppercase;
     }
 
     .world-model-chip strong {
-      color: rgba(34, 31, 45, 0.78);
+      color: rgba(0, 0, 0, 0.78);
       font-size: 11px;
       line-height: 1.25;
     }
 
     .prompt-more-section-title {
-      color: rgba(34, 31, 45, 0.46);
+      color: rgba(0, 0, 0, 0.46);
       font-size: 9px;
       letter-spacing: 0.07em;
       text-transform: uppercase;
@@ -2502,7 +2511,7 @@
       display: block;
       min-width: 0;
       overflow: hidden;
-      color: rgba(34, 31, 45, 0.48);
+      color: rgba(0, 0, 0, 0.48);
       font-size: 9px;
       line-height: 1.2;
       text-overflow: ellipsis;
@@ -2564,7 +2573,7 @@
     }
 
     .prompt-dock .physics-status {
-      color: rgba(74, 58, 92, 0.68);
+      color: rgba(0, 0, 0, 0.68);
       font-size: 11px;
       letter-spacing: 0.06em;
       text-transform: uppercase;
@@ -2572,7 +2581,7 @@
 
     .physics-fps {
       min-width: 48px;
-      color: rgba(74, 58, 92, 0.68);
+      color: rgba(0, 0, 0, 0.68);
       font-size: 11px;
       font-variant-numeric: tabular-nums;
       letter-spacing: 0.04em;
@@ -2582,11 +2591,11 @@
     }
 
     .physics-fps[data-perf="low"] {
-      color: rgba(198, 73, 73, 0.9);
+      color: rgba(0, 0, 0, 0.9);
     }
 
     .physics-fps[data-perf="warn"] {
-      color: rgba(173, 112, 34, 0.9);
+      color: rgba(0, 0, 0, 0.9);
     }
 
     .prompt-dock .physics-brand,
@@ -2746,159 +2755,159 @@
     })(typeof globalThis !== 'undefined' ? globalThis : window);
   </script>
   <!-- SIMULATTE_RUNTIME_SCRIPTS_START -->
-  <script defer src="./app/runtime-script-manifest.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="../neural-model-consent.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="../model-selection.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/simulatte-phase-contracts.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-catalog-dependencies.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-catalog-constants.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-catalog-templates.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-catalog-primitive-data.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-catalog-materials.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-catalog-graph-data.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-catalog-examples.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-catalog-graph-helpers.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-catalog.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="../data/simulatte-construction-substrate.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-03-retrieval/simulatte-semantic-rag-dependencies.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-03-retrieval/simulatte-semantic-rag-constants.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-03-retrieval/simulatte-semantic-rag-helpers.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-03-retrieval/simulatte-semantic-rag-surface-cards.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-03-retrieval/simulatte-semantic-rag-grounding-cards.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-03-retrieval/simulatte-semantic-rag-lexical-construction.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-03-retrieval/simulatte-semantic-rag-retrieval.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-03-retrieval/simulatte-semantic-rag.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-01-runtime/simulatte-doppler-intent.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-04-grounded-intent/simulatte-graph-synthesis-support.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-04-grounded-intent/simulatte-graph-synthesis-retrieval.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-04-grounded-intent/simulatte-graph-synthesis-helpers.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-embedder-dependencies.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-embedder-constants.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-embedder-model-lock.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-embedder-model-cache.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-embedder-runtime-class.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-embedder-runtime-probes.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-embedder-construction-retrieval.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-embedder-span-retrieval.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-embedder-slot-retrieval.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-embedder-rerank-runtime.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="../data/simulatte-compact-classifiers.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-03-retrieval/simulatte-compact-classifier-runtime.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-03-retrieval/simulatte-bounded-classification-requests.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-03-retrieval/simulatte-classification-tier-router.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-embedder-bounded-classification.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-embedder-manifest-cache.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-embedder-rerank.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-embedder-vectors.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-embedder-facade-support.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-embedder.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-03-retrieval/simulatte-conditional-reranking.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-classifier.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="../data/simulatte-language-lexicon.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="../language/simulatte-universe-parser.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-02-language/simulatte-universe-parser.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-04-grounded-intent/simulatte-universe-grounder-graph.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-04-grounded-intent/simulatte-universe-grounder-candidates.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-04-grounded-intent/simulatte-universe-grounder.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-05-simulation/simulatte-operator-stage.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-ir-domains.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-ir-behaviors.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-ir-builder.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-ir-validator.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-04-grounded-intent/simulatte-intent-brief-schema.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-04-grounded-intent/simulatte-structured-intent-rules.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-04-grounded-intent/simulatte-causal-physics-graph.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-04-grounded-intent/simulatte-assumption-ledger.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-04-grounded-intent/simulatte-causal-visual-affordances.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-02-language/simulatte-language-evidence.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-03-retrieval/simulatte-activation-cloud.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-04-grounded-intent/simulatte-grounded-interpretation.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-04-grounded-intent/simulatte-intent-forensics.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-05-simulation/solvers/simulatte-solver-values.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-05-simulation/solvers/simulatte-solver-rigid-body-2d.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-05-simulation/solvers/simulatte-solver-particles.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-05-simulation/solvers/simulatte-solver-constraints.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-05-simulation/solvers/simulatte-solver-thermal.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-05-simulation/solvers/simulatte-solver-advection.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-05-simulation/solvers/simulatte-solver-pressure-flow-lite.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-05-simulation/solvers/simulatte-solver-wave-field.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-05-simulation/solvers/simulatte-solver-reaction-diffusion.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-05-simulation/solvers/simulatte-solver-fracture-threshold.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-05-simulation/solvers/simulatte-solver-rotational-mechanics.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-05-simulation/solvers/simulatte-solver-network-control.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-05-simulation/solvers/simulatte-solver-growth-decay.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-05-simulation/solvers/simulatte-solver-particle-deposition.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-05-simulation/simulatte-solver-registry.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-05-simulation/simulatte-solver-compiler.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-05-simulation/simulatte-render-registry.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-05-simulation/simulatte-render-ir.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-06-visual/simulatte-visual-operator-atlas.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-06-visual/simulatte-visual-operator-compiler.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-06-visual/simulatte-composition-graph-dependencies.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-06-visual/simulatte-composition-graph-constants.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-06-visual/simulatte-composition-graph-selection-layout.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-06-visual/simulatte-composition-graph-render-ir-binding.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-06-visual/simulatte-composition-graph-entity-lowering.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-06-visual/simulatte-composition-graph-visual-ir.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-06-visual/simulatte-composition-graph-materials.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-06-visual/simulatte-construction-geometry.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-06-visual/simulatte-prompt-visual-contracts.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-06-visual/simulatte-object-geometry-grammars.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-06-visual/simulatte-scene-framing.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-06-visual/simulatte-scene-animation.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-06-visual/simulatte-composition-graph-scene-packet.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-06-visual/simulatte-composition-graph-visual-genome.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-06-visual/simulatte-composition-graph-programs.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-06-visual/simulatte-composition-graph-dialects.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-06-visual/simulatte-composition-graph-constraint-layout.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-06-visual/simulatte-composition-graph-helpers.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-06-visual/simulatte-composition-graph-facade-support.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-06-visual/simulatte-composition-graph.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./app/loading/loading-canvas-support.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./app/loading/loading-canvas.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./app/runtime/runtime-progress-support.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./app/runtime/runtime-progress-state.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./app/runtime/runtime-progress.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-07-render/simulatte-render-proof.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-07-render/simulatte-webgpu-renderer-dependencies.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-07-render/simulatte-webgpu-renderer-constants.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-07-render/simulatte-webgpu-renderer-pixel-plan.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-07-render/simulatte-webgpu-renderer-scene-proof-observer.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-07-render/simulatte-webgpu-renderer-renderer-class.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-07-render/simulatte-webgpu-renderer-part-segmentation.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-07-render/simulatte-webgpu-renderer-packets.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-07-render/simulatte-webgpu-renderer-pixel-proof.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-07-render/simulatte-webgpu-renderer-gpu-data.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-07-render/simulatte-webgpu-renderer-background-shader.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-07-render/simulatte-webgpu-renderer-object-shader.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-07-render/simulatte-webgpu-renderer.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-08-scene-proof/simulatte-scene-proof.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-model-dependencies.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-model-contracts.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-model-phase-runtime-language.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-model-phase-retrieval.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-model-activation-verdicts.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-model-activation-fusion.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-model-phase-grounding.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-model-phase-simulation.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-render.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-model-state-solvers.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-model-spec-api.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-model-metrics.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-model-compatibility.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-model.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./app/prompt/prompt-controller-dependencies.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./app/prompt/prompt-controller-construction-search.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./app/prompt/prompt-controller-workers.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./app/prompt/prompt-controller-training.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./app/prompt/prompt-model-selection.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./app/prompt/prompt-controller-lab-controller.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./app/prompt/prompt-controller.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./app/simulation/simulation-lab.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./app/prompt/prompt-review-bridge-store.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./app/prompt/prompt-review-bridge.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./app/main.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
-  <script defer src="./app/version-guard.js?v=18e047a2a08d39e8f2ab50ac7da320a82082ce53-2b165f1e7e49"></script>
+  <script defer src="./app/runtime-script-manifest.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="../neural-model-consent.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="../model-selection.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/simulatte-phase-contracts.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-catalog-dependencies.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-catalog-constants.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-catalog-templates.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-catalog-primitive-data.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-catalog-materials.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-catalog-graph-data.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-catalog-examples.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-catalog-graph-helpers.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-catalog.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="../data/simulatte-construction-substrate.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-03-retrieval/simulatte-semantic-rag-dependencies.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-03-retrieval/simulatte-semantic-rag-constants.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-03-retrieval/simulatte-semantic-rag-helpers.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-03-retrieval/simulatte-semantic-rag-surface-cards.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-03-retrieval/simulatte-semantic-rag-grounding-cards.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-03-retrieval/simulatte-semantic-rag-lexical-construction.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-03-retrieval/simulatte-semantic-rag-retrieval.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-03-retrieval/simulatte-semantic-rag.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-01-runtime/simulatte-doppler-intent.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-04-grounded-intent/simulatte-graph-synthesis-support.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-04-grounded-intent/simulatte-graph-synthesis-retrieval.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-04-grounded-intent/simulatte-graph-synthesis-helpers.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-embedder-dependencies.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-embedder-constants.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-embedder-model-lock.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-embedder-model-cache.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-embedder-runtime-class.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-embedder-runtime-probes.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-embedder-construction-retrieval.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-embedder-span-retrieval.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-embedder-slot-retrieval.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-embedder-rerank-runtime.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-embedder-manifest-cache.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-embedder-rerank.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-embedder-vectors.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-embedder-facade-support.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-embedder.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="../data/simulatte-compact-classifiers.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-03-retrieval/simulatte-compact-classifier-runtime.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-03-retrieval/simulatte-bounded-classification-requests.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-03-retrieval/simulatte-classification-tier-router.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-embedder-bounded-classification.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-03-retrieval/simulatte-conditional-reranking.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-03-retrieval/simulatte-intent-classifier.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="../data/simulatte-language-lexicon.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="../simulatte/language/simulatte-universe-parser.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-02-language/simulatte-universe-parser.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-04-grounded-intent/simulatte-universe-grounder-graph.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-04-grounded-intent/simulatte-universe-grounder-candidates.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-04-grounded-intent/simulatte-universe-grounder.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-operator-stage.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-ir-domains.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-ir-behaviors.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-ir-builder.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-ir-validator.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-04-grounded-intent/simulatte-intent-brief-schema.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-04-grounded-intent/simulatte-structured-intent-rules.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-04-grounded-intent/simulatte-causal-physics-graph.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-04-grounded-intent/simulatte-assumption-ledger.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-04-grounded-intent/simulatte-causal-visual-affordances.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-02-language/simulatte-language-evidence.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-03-retrieval/simulatte-activation-cloud.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-04-grounded-intent/simulatte-grounded-interpretation.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-04-grounded-intent/simulatte-intent-forensics.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-05-simulation/solvers/simulatte-solver-values.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-05-simulation/solvers/simulatte-solver-rigid-body-2d.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-05-simulation/solvers/simulatte-solver-particles.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-05-simulation/solvers/simulatte-solver-constraints.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-05-simulation/solvers/simulatte-solver-thermal.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-05-simulation/solvers/simulatte-solver-advection.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-05-simulation/solvers/simulatte-solver-pressure-flow-lite.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-05-simulation/solvers/simulatte-solver-wave-field.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-05-simulation/solvers/simulatte-solver-reaction-diffusion.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-05-simulation/solvers/simulatte-solver-fracture-threshold.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-05-simulation/solvers/simulatte-solver-rotational-mechanics.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-05-simulation/solvers/simulatte-solver-network-control.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-05-simulation/solvers/simulatte-solver-growth-decay.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-05-simulation/solvers/simulatte-solver-particle-deposition.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-solver-registry.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-solver-compiler.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-render-registry.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-render-ir.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-06-visual/simulatte-visual-operator-atlas.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-06-visual/simulatte-visual-operator-compiler.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-06-visual/simulatte-composition-graph-dependencies.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-06-visual/simulatte-composition-graph-constants.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-06-visual/simulatte-composition-graph-selection-layout.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-06-visual/simulatte-composition-graph-render-ir-binding.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-06-visual/simulatte-composition-graph-entity-lowering.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-06-visual/simulatte-composition-graph-visual-ir.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-06-visual/simulatte-composition-graph-materials.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-06-visual/simulatte-construction-geometry.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-06-visual/simulatte-prompt-visual-contracts.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-06-visual/simulatte-object-geometry-grammars.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-06-visual/simulatte-scene-framing.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-06-visual/simulatte-scene-animation.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-06-visual/simulatte-composition-graph-scene-packet.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-06-visual/simulatte-composition-graph-visual-genome.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-06-visual/simulatte-composition-graph-programs.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-06-visual/simulatte-composition-graph-dialects.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-06-visual/simulatte-composition-graph-constraint-layout.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-06-visual/simulatte-composition-graph-helpers.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-06-visual/simulatte-composition-graph-facade-support.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-06-visual/simulatte-composition-graph.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./app/loading/loading-canvas-support.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./app/loading/loading-canvas.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./app/runtime/runtime-progress-support.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./app/runtime/runtime-progress-state.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./app/runtime/runtime-progress.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-07-render/simulatte-render-proof.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-07-render/simulatte-webgpu-renderer-dependencies.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-07-render/simulatte-webgpu-renderer-constants.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-07-render/simulatte-webgpu-renderer-pixel-plan.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-07-render/simulatte-webgpu-renderer-scene-proof-observer.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-07-render/simulatte-webgpu-renderer-renderer-class.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-07-render/simulatte-webgpu-renderer-part-segmentation.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-07-render/simulatte-webgpu-renderer-packets.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-07-render/simulatte-webgpu-renderer-pixel-proof.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-07-render/simulatte-webgpu-renderer-gpu-data.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-07-render/simulatte-webgpu-renderer-background-shader.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-07-render/simulatte-webgpu-renderer-object-shader.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-07-render/simulatte-webgpu-renderer.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-08-scene-proof/simulatte-scene-proof.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-model-dependencies.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-model-contracts.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-model-phase-runtime-language.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-model-phase-retrieval.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-model-activation-verdicts.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-model-activation-fusion.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-model-phase-grounding.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-model-phase-simulation.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-render.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-model-state-solvers.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-model-spec-api.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-model-metrics.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-model-compatibility.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./pipeline/phase-05-simulation/simulatte-physics-model.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./app/prompt/prompt-controller-dependencies.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./app/prompt/prompt-controller-construction-search.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./app/prompt/prompt-controller-workers.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./app/prompt/prompt-controller-training.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./app/prompt/prompt-model-selection.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./app/prompt/prompt-controller-lab-controller.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./app/prompt/prompt-controller.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./app/simulation/simulation-lab.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./app/prompt/prompt-review-bridge-store.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./app/prompt/prompt-review-bridge.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./app/main.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
+  <script defer src="./app/version-guard.js?v=db720a398baa5be2b0edfd938de00d532d3c1171-affd0f55532b"></script>
   <!-- SIMULATTE_RUNTIME_SCRIPTS_END -->
   <script>
     (function initPromptDockMinimize() {

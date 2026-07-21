@@ -1,0 +1,347 @@
+{
+  "accepted": true,
+  "challenger": {
+    "judgmentCount": 40,
+    "meanReciprocalRank": 0.75,
+    "recallAt5": 1
+  },
+  "claimBoundary": "This receipt supports retaining the declared deterministic reranker weights on the exposed diagnostic missions. It does not establish model quality, generalization, or promotion eligibility.",
+  "contentVersion": "feature-reranker-public-diagnostic-2026-07-19",
+  "control": {
+    "judgmentCount": 40,
+    "meanReciprocalRank": 0.725,
+    "recallAt5": 1
+  },
+  "deltas": {
+    "meanReciprocalRank": 0.025,
+    "recallAt5": 0
+  },
+  "id": "feature-reranker-public-diagnostic-v3",
+  "identities": {
+    "corpus": {
+      "path": "tools/samer/simulatte/public-navigation-missions-v2.json",
+      "sha256": "3b273092a0d9bd8e9b4a68ce298bfefc9be4212fb0b221b6aba595516d93e453"
+    },
+    "embodiment": {
+      "path": "public/data/simulatte/embodiments/delivery-bike-v1.json",
+      "sha256": "7db2ebdc5e89bbc47c798e5e85e817f3f96945c623c8da6f195cfb9ed3977fba"
+    },
+    "featureCatalog": {
+      "path": "public/data/simulatte/feature-cards-v1.json",
+      "sha256": "2ce6bee15a7e61c1371cd1839ed65d774290ce61d07fd9f2304b502ba9298dbe"
+    },
+    "policy": {
+      "path": "public/data/simulatte/policies/bet-selector-v1.json",
+      "sha256": "133579888a7db259c85b7f379ba51e2327d57943f82061e56832914d4137e377"
+    },
+    "runtime": {
+      "path": "public/simulatte/runtime/feature-retrieval.js",
+      "sha256": "5d74ea7d68398d7b2ad25bc71e1200382d20f04a51c9ee54daf89bed5d169616"
+    },
+    "world": {
+      "path": "public/data/simulatte/worlds/nyc-core-autonomy-v1.json",
+      "sha256": "218c6f3734815066669f57ae1bc1ce14aace261f0865ebf25f903db3880dcb3e"
+    }
+  },
+  "intervention": {
+    "challenger": "typed-evidence-reranker-v1",
+    "control": "lexical_overlap_plus_exact_reference",
+    "frozenMetric": "mean_reciprocal_rank",
+    "guardrail": "recall_at_5_non_regression",
+    "kind": "typed_evidence_reranker_weights",
+    "weights": {
+      "constraintMatch": 1.5,
+      "exactReference": 3,
+      "kindMatch": 2
+    }
+  },
+  "judgments": [
+    {
+      "challengerRank": 1,
+      "controlRank": 1,
+      "missionId": "public-mission-01",
+      "queryId": "route-segment",
+      "relevantCardId": "network.bike-30ee92829e72-tf"
+    },
+    {
+      "challengerRank": 2,
+      "controlRank": 3,
+      "missionId": "public-mission-01",
+      "queryId": "mission",
+      "relevantCardId": "scenario.delivery-arrival"
+    },
+    {
+      "challengerRank": 1,
+      "controlRank": 1,
+      "missionId": "public-mission-02",
+      "queryId": "route-segment",
+      "relevantCardId": "network.bike-5bc633d32761-tf"
+    },
+    {
+      "challengerRank": 2,
+      "controlRank": 2,
+      "missionId": "public-mission-02",
+      "queryId": "mission",
+      "relevantCardId": "scenario.delivery-arrival"
+    },
+    {
+      "challengerRank": 1,
+      "controlRank": 1,
+      "missionId": "public-mission-03",
+      "queryId": "route-segment",
+      "relevantCardId": "network.bike-30ee92829e72-tf"
+    },
+    {
+      "challengerRank": 2,
+      "controlRank": 3,
+      "missionId": "public-mission-03",
+      "queryId": "mission",
+      "relevantCardId": "scenario.delivery-arrival"
+    },
+    {
+      "challengerRank": 1,
+      "controlRank": 1,
+      "missionId": "public-mission-04",
+      "queryId": "route-segment",
+      "relevantCardId": "network.bike-bc5707edfa14-ft"
+    },
+    {
+      "challengerRank": 2,
+      "controlRank": 2,
+      "missionId": "public-mission-04",
+      "queryId": "mission",
+      "relevantCardId": "scenario.delivery-arrival"
+    },
+    {
+      "challengerRank": 1,
+      "controlRank": 1,
+      "missionId": "public-mission-05",
+      "queryId": "route-segment",
+      "relevantCardId": "network.bike-30ee92829e72-tf"
+    },
+    {
+      "challengerRank": 2,
+      "controlRank": 3,
+      "missionId": "public-mission-05",
+      "queryId": "mission",
+      "relevantCardId": "scenario.delivery-arrival"
+    },
+    {
+      "challengerRank": 1,
+      "controlRank": 1,
+      "missionId": "public-mission-06",
+      "queryId": "route-segment",
+      "relevantCardId": "network.bike-2824173a7a8e-ft"
+    },
+    {
+      "challengerRank": 2,
+      "controlRank": 2,
+      "missionId": "public-mission-06",
+      "queryId": "mission",
+      "relevantCardId": "scenario.delivery-arrival"
+    },
+    {
+      "challengerRank": 1,
+      "controlRank": 1,
+      "missionId": "public-mission-07",
+      "queryId": "route-segment",
+      "relevantCardId": "network.bike-bc5707edfa14-ft"
+    },
+    {
+      "challengerRank": 2,
+      "controlRank": 2,
+      "missionId": "public-mission-07",
+      "queryId": "mission",
+      "relevantCardId": "scenario.delivery-arrival"
+    },
+    {
+      "challengerRank": 1,
+      "controlRank": 1,
+      "missionId": "public-mission-08",
+      "queryId": "route-segment",
+      "relevantCardId": "network.bike-525b89419eaa-ft"
+    },
+    {
+      "challengerRank": 2,
+      "controlRank": 2,
+      "missionId": "public-mission-08",
+      "queryId": "mission",
+      "relevantCardId": "scenario.delivery-arrival"
+    },
+    {
+      "challengerRank": 1,
+      "controlRank": 1,
+      "missionId": "public-mission-09",
+      "queryId": "route-segment",
+      "relevantCardId": "network.bike-30ee92829e72-tf"
+    },
+    {
+      "challengerRank": 2,
+      "controlRank": 3,
+      "missionId": "public-mission-09",
+      "queryId": "mission",
+      "relevantCardId": "scenario.delivery-arrival"
+    },
+    {
+      "challengerRank": 1,
+      "controlRank": 1,
+      "missionId": "public-mission-10",
+      "queryId": "route-segment",
+      "relevantCardId": "network.bike-bb2677d5568d-ft"
+    },
+    {
+      "challengerRank": 2,
+      "controlRank": 3,
+      "missionId": "public-mission-10",
+      "queryId": "mission",
+      "relevantCardId": "scenario.delivery-arrival"
+    },
+    {
+      "challengerRank": 1,
+      "controlRank": 1,
+      "missionId": "public-mission-11",
+      "queryId": "route-segment",
+      "relevantCardId": "network.bike-cadb6da5d98d-ft"
+    },
+    {
+      "challengerRank": 2,
+      "controlRank": 2,
+      "missionId": "public-mission-11",
+      "queryId": "mission",
+      "relevantCardId": "scenario.delivery-arrival"
+    },
+    {
+      "challengerRank": 1,
+      "controlRank": 1,
+      "missionId": "public-mission-12",
+      "queryId": "route-segment",
+      "relevantCardId": "network.bike-e2c1b08cca63-tf"
+    },
+    {
+      "challengerRank": 2,
+      "controlRank": 2,
+      "missionId": "public-mission-12",
+      "queryId": "mission",
+      "relevantCardId": "scenario.delivery-arrival"
+    },
+    {
+      "challengerRank": 1,
+      "controlRank": 1,
+      "missionId": "public-mission-13",
+      "queryId": "route-segment",
+      "relevantCardId": "network.bike-cadb6da5d98d-ft"
+    },
+    {
+      "challengerRank": 2,
+      "controlRank": 2,
+      "missionId": "public-mission-13",
+      "queryId": "mission",
+      "relevantCardId": "scenario.delivery-arrival"
+    },
+    {
+      "challengerRank": 1,
+      "controlRank": 1,
+      "missionId": "public-mission-14",
+      "queryId": "route-segment",
+      "relevantCardId": "network.bike-21a25ccf6628-ft"
+    },
+    {
+      "challengerRank": 2,
+      "controlRank": 2,
+      "missionId": "public-mission-14",
+      "queryId": "mission",
+      "relevantCardId": "scenario.delivery-arrival"
+    },
+    {
+      "challengerRank": 1,
+      "controlRank": 1,
+      "missionId": "public-mission-15",
+      "queryId": "route-segment",
+      "relevantCardId": "network.bike-6925b5ebf41e-ft"
+    },
+    {
+      "challengerRank": 2,
+      "controlRank": 2,
+      "missionId": "public-mission-15",
+      "queryId": "mission",
+      "relevantCardId": "scenario.delivery-arrival"
+    },
+    {
+      "challengerRank": 1,
+      "controlRank": 1,
+      "missionId": "public-mission-16",
+      "queryId": "route-segment",
+      "relevantCardId": "network.bike-cadb6da5d98d-ft"
+    },
+    {
+      "challengerRank": 2,
+      "controlRank": 2,
+      "missionId": "public-mission-16",
+      "queryId": "mission",
+      "relevantCardId": "scenario.delivery-arrival"
+    },
+    {
+      "challengerRank": 1,
+      "controlRank": 1,
+      "missionId": "public-mission-17",
+      "queryId": "route-segment",
+      "relevantCardId": "network.bike-dc4df7aa5145-tf"
+    },
+    {
+      "challengerRank": 2,
+      "controlRank": 2,
+      "missionId": "public-mission-17",
+      "queryId": "mission",
+      "relevantCardId": "scenario.delivery-arrival"
+    },
+    {
+      "challengerRank": 1,
+      "controlRank": 1,
+      "missionId": "public-mission-18",
+      "queryId": "route-segment",
+      "relevantCardId": "network.bike-30ee92829e72-tf"
+    },
+    {
+      "challengerRank": 2,
+      "controlRank": 3,
+      "missionId": "public-mission-18",
+      "queryId": "mission",
+      "relevantCardId": "scenario.delivery-arrival"
+    },
+    {
+      "challengerRank": 1,
+      "controlRank": 1,
+      "missionId": "public-mission-19",
+      "queryId": "route-segment",
+      "relevantCardId": "network.bike-f8a15271364c-ft"
+    },
+    {
+      "challengerRank": 2,
+      "controlRank": 2,
+      "missionId": "public-mission-19",
+      "queryId": "mission",
+      "relevantCardId": "scenario.delivery-arrival"
+    },
+    {
+      "challengerRank": 1,
+      "controlRank": 1,
+      "missionId": "public-mission-20",
+      "queryId": "route-segment",
+      "relevantCardId": "network.bike-55dee1ed7c4d-tf"
+    },
+    {
+      "challengerRank": 2,
+      "controlRank": 2,
+      "missionId": "public-mission-20",
+      "queryId": "mission",
+      "relevantCardId": "scenario.delivery-arrival"
+    }
+  ],
+  "population": {
+    "id": "public-navigation-missions-v2",
+    "kind": "public_diagnostic",
+    "promotionEligible": false,
+    "rowCount": 20
+  },
+  "schema": "simulatte.autonomyRerankerEvaluation.v1"
+}

@@ -4,8 +4,8 @@ const path = require('node:path');
 const test = require('node:test');
 
 const root = path.resolve(__dirname, '..');
-const network = require('../public/plugins/cable-trader/network-simulation.js');
-const config = JSON.parse(fs.readFileSync(path.join(root, 'public/plugins/cable-trader/default-config.json'), 'utf8'));
+const network = require('../public/shared/plugins/cable-trader/network-simulation.js');
+const config = JSON.parse(fs.readFileSync(path.join(root, 'public/shared/plugins/cable-trader/default-config.json'), 'utf8'));
 
 function completeRoutes() {
   return config.hubs.flatMap((source, sourceIndex) => config.hubs

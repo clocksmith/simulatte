@@ -4,8 +4,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-const PLUGINS = path.join(ROOT, 'public/plugins');
-const OUTPUT = path.join(ROOT, 'public/platform/plugin-host/generated-plugin-registry.js');
+const PLUGINS = path.join(ROOT, 'public/shared/plugins');
+const OUTPUT = path.join(ROOT, 'public/simulatte/platform/plugin-host/generated-plugin-registry.js');
 const INDEX = path.join(ROOT, 'public/index.html');
 const write = process.argv.includes('--write');
 
@@ -59,7 +59,7 @@ function walk(directory) {
 }
 
 function renderRegistry(rows) {
-  const requires = rows.map((row) => `    '${row.manifest.id}': require('../../plugins/${row.manifest.id}/index.js'),`).join('\n');
+  const requires = rows.map((row) => `    '${row.manifest.id}': require('../../../shared/plugins/${row.manifest.id}/index.js'),`).join('\n');
   const globals = rows.map((row) => `    '${row.manifest.id}': root.${row.manifest.entry.globalFactory},`).join('\n');
   const data = JSON.stringify(rows.map((row) => ({ manifest: sortValue(row.manifest), configs: sortValue(row.configs) })), null, 2);
   return `(function attachGeneratedPluginRegistry(root, factory) {\n  const factories = typeof module === 'object' && module.exports\n    ? {\n${requires}\n      }\n    : {\n${globals}\n      };\n  const api = factory(factories);\n  if (typeof module === 'object' && module.exports) module.exports = api;\n  root.SimulatteGeneratedPluginRegistry = api;\n})(typeof globalThis !== 'undefined' ? globalThis : window, function createGeneratedPluginRegistry(factories) {\n  const rows = ${data};\n  const byId = new Map(rows.map((row) => [row.manifest.id, Object.freeze({ ...row, factory: factories[row.manifest.id] })]));\n  return Object.freeze({\n    schema: 'simulatte.pluginRegistry.v1',\n    ids: Object.freeze([...byId.keys()].sort()),\n    entry(id) { return byId.get(id) || null; },\n  });\n});\n`;
@@ -74,8 +74,8 @@ function syncIndexScripts(rows, shouldWrite) {
   if (startIndex < 0 || endIndex < startIndex) fail('public/index.html is missing generated plugin script markers');
   const version = source.match(/<script defer src="[^"]+\?v=([^"]+)"/)?.[1] || 'development';
   const paths = rows.flatMap(({ manifest }) => [
-    ...manifest.resources.filter((resource) => resource.path.endsWith('.js')).map((resource) => `./plugins/${manifest.id}/${resource.path.replace(/^\.\//, '')}`),
-    `./plugins/${manifest.id}/${manifest.entry.path.replace(/^\.\//, '')}`,
+    ...manifest.resources.filter((resource) => resource.path.endsWith('.js')).map((resource) => `./shared/plugins/${manifest.id}/${resource.path.replace(/^\.\//, '')}`),
+    `./shared/plugins/${manifest.id}/${manifest.entry.path.replace(/^\.\//, '')}`,
   ]);
   const block = [start, ...paths.map((scriptPath) => `  <script defer src="${scriptPath}?v=${version}"></script>`), end].join('\n');
   const expected = `${source.slice(0, startIndex)}${block}${source.slice(endIndex + end.length)}`;

@@ -3,7 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-const PLUGINS = path.join(ROOT, 'public/plugins');
+const PLUGINS = path.join(ROOT, 'public/shared/plugins');
 const errors = [];
 const files = walk(PLUGINS).filter((file) => file.endsWith('.js'));
 for (const file of files) {
@@ -12,8 +12,8 @@ for (const file of files) {
   check(relative, source, /\bfetch\s*\(/, 'network fetch');
   check(relative, source, /\b(?:caches|indexedDB|localStorage|sessionStorage)\b/, 'browser storage');
   check(relative, source, /\bdocument\s*\.|\bquerySelector\s*\(|\bgetElementById\s*\(/, 'DOM access');
-  check(relative, source, /require\(['"]\.\.\/\.\.\/(?:app|runtime|world|platform)\//, 'host implementation import');
-  const pluginId = relative.split(path.sep)[2];
+  check(relative, source, /require\(['"]\.\.\/\.\.\/(?:simulatte|shared)\//, 'host implementation import');
+  const pluginId = relative.split(path.sep)[3];
   const crossPlugin = [...source.matchAll(/require\(['"]\.\.\/([^/'"]+)\//g)].map((match) => match[1]).filter((id) => id !== pluginId);
   crossPlugin.forEach((id) => errors.push(`${relative}: cross-plugin import ${id}`));
 }

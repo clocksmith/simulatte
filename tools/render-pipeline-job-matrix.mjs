@@ -8,7 +8,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const REGISTRY_PATH = path.join(ROOT, 'public', 'data', 'pipeline-job-registry.json');
 const OUTPUT_PATH = path.join(ROOT, 'docs', 'pipeline-job-matrix.md');
 const require = createRequire(import.meta.url);
-const jobInterface = require('../public/contracts/pipeline-job-interface.js');
+const jobInterface = require('../public/shared/contracts/pipeline-job-interface.js');
 
 export function renderPipelineJobMatrix(registry, options = {}) {
   const root = options.root || ROOT;

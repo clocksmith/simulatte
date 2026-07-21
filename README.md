@@ -14,7 +14,7 @@ Pick a scale on load, then explore. The choice lives in the URL (`?tier=`), so i
 
 | Scale | What it is |
 | --- | --- |
-| **City** | Local-first WebGPU autonomy simulator for NYC — pedestrian, bicycle, scooter, and car journeys with governed routes, safety gates, and exportable receipts. |
+| **City** | Local-first WebGPU world simulator for NYC — pedestrian, bicycle, scooter, and car journeys with governed routes, safety gates, and exportable receipts. |
 | **Country** | US regional transit and highway routing graph. |
 | **Planet** | Global country boundaries (Natural Earth). |
 | **Solar System** | Heliocentric orbits from NASA JPL Horizons. |
@@ -22,7 +22,7 @@ Pick a scale on load, then explore. The choice lives in the URL (`?tier=`), so i
 
 City runs the full engine; the other scales are lightweight explorers that load only their own small dataset — no WebGPU, no NYC data.
 
-The City engine answers *"what would happen if?"* — it compiles a natural-language mission into a grounded route, records every autonomous decision, simulates the outcome, and returns a verifiable in-browser SHA-256 receipt chain:
+The City engine answers *"what would happen if?"* — it compiles a natural-language mission into a grounded route, records every simulation decision, simulates the outcome, and returns a verifiable in-browser SHA-256 receipt chain:
 
 ```text
 language -> grounded mission -> candidate routes -> action bets -> safety gates
@@ -48,7 +48,7 @@ Both products run the same shape of pipeline and emit a receipt at every stage:
 
 **NLP language analysis** (tokens, spans, clauses, predicates, quantities, negation) → **evidence retrieval** (inverted-index lexical + optional neural embedding) → **typed-rule reranking** → **lightweight classification** → **typed graph composition** (one semantic node per concept, typed edges) → routing / simulation / render.
 
-The models are pinned but **interchangeable** behind the [model-runtime lock](public/data/simulatte-embedder/model-runtime-lock.json): a zero-download lexical / TF-IDF control lane and a neural lane (Qwen 3 embedding + reranker, run locally through [Doppler](public/vendor/doppler/)) satisfy the same typed contracts, so a lane can be swapped without changing the pipeline or its guarantees. Routing and every autonomous decision stay deterministic regardless of which lane resolves language.
+The models are pinned but **interchangeable** behind the [model-runtime lock](public/data/simulatte-embedder/model-runtime-lock.json): a zero-download lexical / TF-IDF control lane and a neural lane (Qwen 3 embedding + reranker, run locally through [Doppler](public/vendor/doppler/)) satisfy the same typed contracts, so a lane can be swapped without changing the pipeline or its guarantees. Routing and every simulation decision stay deterministic regardless of which lane resolves language.
 
 ## Run locally
 

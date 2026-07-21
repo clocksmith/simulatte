@@ -52,14 +52,14 @@ These values are read from the referenced receipts during generation. Candidate 
 | Strategy | Population or lane | Quality | Runtime | Gate | Source |
 | --- | --- | --- | --- | --- | --- |
 | Exact, typo-bounded, and indexed retrieval | simulatte-embedding-retrieval-sealed-v1 (130 rows; k=10) | recall at k 1; hard negative accuracy 0.66; must refuse accuracy 1 | 0 download bytes; cold p50 0.0549 ms; warm p95 0.2297 ms | not promoted by frontier | [embedding-retrieval-v1](../tools/samer/evidence/model-selection/embedding-retrieval-v1/frontier.json) |
-| Exact, typo-bounded, and indexed retrieval | place-resolution-probes-v1 / mission-compiler-extended-typo-v2 | 27/37 correct; 0 wrong-place | not recorded in this diagnostic | 0 refusal violations; 0 floor misses | [autonomy-place-v2](../public/data/autonomy/evidence/place-resolution-public-diagnostic-v2.json) |
+| Exact, typo-bounded, and indexed retrieval | place-resolution-probes-v1 / mission-compiler-extended-typo-v2 | 27/37 correct; 0 wrong-place | not recorded in this diagnostic | 0 refusal violations; 0 floor misses | [autonomy-place-v2](../public/data/simulatte/evidence/place-resolution-public-diagnostic-v2.json) |
 | TF-IDF classification and ranking | simulatte-classification-sealed-v1 (276 rows; k=10) | macro f1 0; coverage 0; selective risk 1; expected calibration error 0.1687 | 0 download bytes; cold p50 0.1083 ms; warm p95 1.4326 ms | not promoted by frontier | [classification-v1](../tools/samer/evidence/model-selection/classification-v1/frontier.json) |
 | Logistic regression over TF-IDF | simulatte-classification-sealed-v1 (276 rows; k=10) | macro f1 0; coverage 0; selective risk 1; expected calibration error 0.1087 | 0 download bytes; cold p50 8.7477 ms; warm p95 0.1564 ms | not promoted by frontier | [classification-v1](../tools/samer/evidence/model-selection/classification-v1/frontier.json) |
 | MiniLM NLI classification | simulatte-classification-sealed-v1 (276 rows; k=10) | macro f1 0; coverage 0; selective risk 1; expected calibration error 0.4971 | 315.8 MiB download; cold p50 19826.0157 ms; warm p95 87.1425 ms | not promoted by frontier | [classification-v1](../tools/samer/evidence/model-selection/classification-v1/frontier.json) |
 | DeBERTa-small NLI classification | simulatte-classification-sealed-v1 (276 rows; k=10) | macro f1 0.0812; coverage 0; selective risk 1; expected calibration error 0.4872 | 551.9 MiB download; cold p50 32005.796 ms; warm p95 140.1753 ms | not promoted by frontier | [classification-v1](../tools/samer/evidence/model-selection/classification-v1/frontier.json) |
 | Qwen 3 embedding label classification | simulatte-classification-sealed-v1 (276 rows; k=10) | macro f1 0.0439; coverage 0; selective risk 1; expected calibration error 0.5987 | 1151.5 MiB download; cold p50 59921.1884 ms; warm p95 107.9297 ms | not promoted by frontier | [classification-v1](../tools/samer/evidence/model-selection/classification-v1/frontier.json) |
 | Qwen 3 Embedding open-vocabulary retrieval | simulatte-embedding-retrieval-sealed-v1 (130 rows; k=10) | recall at k 1; hard negative accuracy 1; must refuse accuracy 0.3667 | 1151.5 MiB download; cold p50 60472.4436 ms; warm p95 275.1562 ms | not promoted by frontier | [embedding-retrieval-v1](../tools/samer/evidence/model-selection/embedding-retrieval-v1/frontier.json) |
-| Qwen 3 Embedding open-vocabulary retrieval | place-resolution-probes-v1 / hybrid-lexical-qwen-embedding-v1 | 27/37 correct; 0 wrong-place | not recorded in this diagnostic | 0 refusal violations; 0 floor misses | [autonomy-place-v2](../public/data/autonomy/evidence/place-resolution-public-diagnostic-v2.json) |
+| Qwen 3 Embedding open-vocabulary retrieval | place-resolution-probes-v1 / hybrid-lexical-qwen-embedding-v1 | 27/37 correct; 0 wrong-place | not recorded in this diagnostic | 0 refusal violations; 0 floor misses | [autonomy-place-v2](../public/data/simulatte/evidence/place-resolution-public-diagnostic-v2.json) |
 | Deterministic typed reranking | simulatte-reranking-sealed-v1 (100 rows; k=4) | ndcg at k 0.8058; winner accuracy 0.52 | 0 download bytes; cold p50 0.0401 ms; warm p95 0.2439 ms | not promoted by frontier | [reranking-v1](../tools/samer/evidence/model-selection/reranking-v1/frontier.json) |
 | Qwen 3 cross-encoder reranking | simulatte-reranking-sealed-v1 (100 rows; k=4) | ndcg at k 0.9063; winner accuracy 0.76 | 1151.5 MiB download; cold p50 57841.5553 ms; warm p95 635.4582 ms | not promoted by frontier | [reranking-v1](../tools/samer/evidence/model-selection/reranking-v1/frontier.json) |
 
@@ -67,14 +67,14 @@ These values are read from the referenced receipts during generation. Candidate 
 
 | Job | Main `/` owners | Blank `/blank/` owners |
 | --- | --- | --- |
-| Runtime preparation | `public/app/main.js`<br>`public/platform/bootstrap/application-loader.js`<br>`public/data/simulatte-embedder/model-runtime-lock.json` | `public/blank/pipeline/phase-01-runtime`<br>`public/data/simulatte-embedder/model-runtime-lock.json` |
-| Understand request | `public/mission/mission-compiler.js` | `public/blank/pipeline/phase-02-language` |
-| Find candidates | `public/mission/mission-compiler.js`<br>`public/runtime/feature-retrieval.js`<br>`public/runtime/neural-place-resolver.js` | `public/blank/pipeline/phase-03-retrieval` |
-| Commit meaning | `public/mission/mission-compiler.js`<br>`public/contracts/mission.schema.json` | `public/blank/pipeline/phase-04-grounded-intent` |
-| Execute | `public/world/route-planner.js`<br>`public/runtime/autonomy-controller.js`<br>`public/world/time-dependent-edge-cost.js` | `public/blank/pipeline/phase-05-simulation` |
-| Build visuals | `public/app/webgpu-geometry.js`<br>`public/app/webgpu-actor-geometry.js` | `public/blank/pipeline/phase-06-visual` |
-| Render | `public/app/webgpu-renderer.js` | `public/blank/pipeline/phase-07-render` |
-| Settle proof | `public/runtime/canonical-receipts.js`<br>`public/verifier/journey-verifier.js` | `public/blank/pipeline/phase-08-scene-proof` |
+| Runtime preparation | `public/simulatte/app/main.js`<br>`public/simulatte/platform/bootstrap/application-loader.js`<br>`public/data/simulatte-embedder/model-runtime-lock.json` | `public/blank/pipeline/phase-01-runtime`<br>`public/data/simulatte-embedder/model-runtime-lock.json` |
+| Understand request | `public/simulatte/mission/mission-compiler.js` | `public/blank/pipeline/phase-02-language` |
+| Find candidates | `public/simulatte/mission/mission-compiler.js`<br>`public/simulatte/runtime/feature-retrieval.js`<br>`public/simulatte/runtime/neural-place-resolver.js` | `public/blank/pipeline/phase-03-retrieval` |
+| Commit meaning | `public/simulatte/mission/mission-compiler.js`<br>`public/shared/contracts/mission.schema.json` | `public/blank/pipeline/phase-04-grounded-intent` |
+| Execute | `public/simulatte/world/route-planner.js`<br>`public/simulatte/runtime/autonomy-controller.js`<br>`public/simulatte/world/time-dependent-edge-cost.js` | `public/blank/pipeline/phase-05-simulation` |
+| Build visuals | `public/simulatte/app/webgpu-geometry.js`<br>`public/simulatte/app/webgpu-actor-geometry.js` | `public/blank/pipeline/phase-06-visual` |
+| Render | `public/simulatte/app/webgpu-renderer.js` | `public/blank/pipeline/phase-07-render` |
+| Settle proof | `public/simulatte/runtime/canonical-receipts.js`<br>`public/simulatte/verifier/journey-verifier.js` | `public/blank/pipeline/phase-08-scene-proof` |
 
 ## Updating the matrix
 

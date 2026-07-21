@@ -1,6 +1,6 @@
 (function attachSimulatteUniverseParserPhase2Facade(root) {
   if (typeof module === 'object' && module.exports) {
-    module.exports = require('../../../language/simulatte-universe-parser.js');
+    module.exports = require('../../../simulatte/language/simulatte-universe-parser.js');
     return;
   }
   if (!root.SimulatteUniverseParser) {

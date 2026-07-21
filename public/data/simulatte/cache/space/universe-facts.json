@@ -1,0 +1,26 @@
+{
+  "schema": "simulatte.universeFacts.v1",
+  "source": "https://science.nasa.gov/exoplanets/what-is-the-universe/",
+  "updated": "2026-07-21",
+  "facts": {
+    "universeAgeBillionYears": 13.8,
+    "solarSystemAgeBillionYears": 4.6,
+    "milkyWay": {
+      "estimatedStars": "at least 100 billion",
+      "nearestMajorGalaxy": {
+        "name": "Andromeda",
+        "distanceMillionLy": 2.5
+      }
+    },
+    "galaxies": {
+      "estimatedObservableCount": "at least 100 billion"
+    },
+    "observableUniverseSizeLy": 92000000000,
+    "sizeContext": "model-dependent and explicit uncertain/expanding-space estimate"
+  },
+  "references": [
+    "https://science.nasa.gov/exoplanets/what-is-the-universe/",
+    "https://science.nasa.gov/mission/hubble/science/explore-the-night-sky/hubble-messier-catalog/messier-31/",
+    "https://www.nasa.gov/science-research/astrophysics/how-big-is-space-we-asked-a-nasa-expert-episode-61/"
+  ]
+}

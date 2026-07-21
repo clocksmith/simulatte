@@ -69,7 +69,7 @@
   const languageAndGroundingEntry = group(
     'pipeline/phase-03-retrieval/simulatte-intent-classifier.js',
     '../data/simulatte-language-lexicon.js',
-    '../language/simulatte-universe-parser.js',
+    '../simulatte/language/simulatte-universe-parser.js',
     'pipeline/phase-02-language/simulatte-universe-parser.js',
     'pipeline/phase-04-grounded-intent/simulatte-universe-grounder-graph.js',
     'pipeline/phase-04-grounded-intent/simulatte-universe-grounder-candidates.js',

@@ -2,12 +2,12 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 
-const contracts = require('../public/platform/contracts/plugin-contracts.js');
-const catalogApi = require('../public/platform/data-catalog/immutable-data-catalog.js');
-const runtimeApi = require('../public/platform/plugin-host/plugin-runtime.js');
-const presentationApi = require('../public/app/plugin-presentation.js');
-const experienceCameraApi = require('../public/app/experience-camera.js');
-const interactionApi = require('../public/app/application-profile-select.js');
+const contracts = require('../public/simulatte/platform/contracts/plugin-contracts.js');
+const catalogApi = require('../public/simulatte/platform/data-catalog/immutable-data-catalog.js');
+const runtimeApi = require('../public/simulatte/platform/plugin-host/plugin-runtime.js');
+const presentationApi = require('../public/simulatte/app/plugin-presentation.js');
+const experienceCameraApi = require('../public/simulatte/app/experience-camera.js');
+const interactionApi = require('../public/simulatte/app/application-profile-select.js');
 
 function manifest(overrides = {}) {
   return {
@@ -184,12 +184,12 @@ test('experience camera configuration targets only an active plugin', () => {
 });
 
 test('platform bootstrap has no named plugin import', () => {
-  const source = fs.readFileSync(require.resolve('../public/platform/bootstrap/application-loader.js'), 'utf8');
+  const source = fs.readFileSync(require.resolve('../public/simulatte/platform/bootstrap/application-loader.js'), 'utf8');
   assert.doesNotMatch(source, /(?:require\(['"][^'"]*\/plugins\/|SimulatteCooperativeContracts)/);
 });
 
 test('Main exposes governed profile selection and disposes plugins on teardown', () => {
-  const main = fs.readFileSync(require.resolve('../public/app/main.js'), 'utf8');
+  const main = fs.readFileSync(require.resolve('../public/simulatte/app/main.js'), 'utf8');
   const html = fs.readFileSync(require.resolve('../public/index.html'), 'utf8');
   assert.match(html, /id="application-profile"/);
   assert.match(html, /id="application-profile-trigger"[^>]*aria-haspopup="listbox"/);

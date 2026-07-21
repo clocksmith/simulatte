@@ -8,7 +8,7 @@ test('generated autonomy evidence cannot overwrite an existing identity', async 
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'simulatte-autonomy-artifact-'));
   t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
   const file = path.join(directory, 'evidence-v1.json');
-  const { writeImmutableGeneratedArtifact } = await import('../tools/autonomy/immutable-generated-artifact.mjs');
+  const { writeImmutableGeneratedArtifact } = await import('../tools/simulatte/immutable-generated-artifact.mjs');
 
   assert.equal(writeImmutableGeneratedArtifact(file, '{"value":1}\n', 'evidence-v1'), 'created');
   assert.equal(writeImmutableGeneratedArtifact(file, '{"value":1}\n', 'evidence-v1'), 'unchanged');
