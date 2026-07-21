@@ -1339,7 +1339,7 @@ test('loading mosaic loops a seven-segment snake through the clockwise grid spir
   assert.equal(loadingMosaicApi.ROTATION_STEP_DEG, 30);
   const rotation = loadingMosaicApi.rotationCycleKeyframes();
   assert.deepEqual(rotation.map((frame) => frame.transform), [
-    'rotate(0deg)', 'rotate(0deg)', 'rotate(-30deg)', 'rotate(-60deg)', 'rotate(-90deg)', 'rotate(-90deg)',
+    'rotate(0deg)', 'rotate(0deg)', 'rotate(30deg)', 'rotate(60deg)', 'rotate(90deg)', 'rotate(90deg)',
   ]);
   assert.ok(rotation.every((frame) => frame.offset === 1 || frame.easing === 'steps(1, end)'));
   assert.equal(rotation[1].offset, loadingMosaicApi.TURN_START);

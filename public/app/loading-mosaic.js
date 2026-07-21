@@ -143,12 +143,12 @@
     ];
     for (let hop = 1; hop <= CENTER; hop += 1) {
       frames.push({
-        transform: `rotate(${-ROTATION_STEP_DEG * hop}deg)`,
+        transform: `rotate(${ROTATION_STEP_DEG * hop}deg)`,
         offset: TURN_START + ((hop / CENTER) * (TURN_END - TURN_START)),
         easing: 'steps(1, end)',
       });
     }
-    frames.push({ transform: 'rotate(-90deg)', offset: 1 });
+    frames.push({ transform: 'rotate(90deg)', offset: 1 });
     return frames;
   }
 
@@ -250,7 +250,7 @@
       tileCount: cells.length,
       snakeLength: segments.length,
       direction: 'clockwise-inward',
-      rotationDegrees: -90,
+      rotationDegrees: 90,
       dispose: cycle.dispose,
     });
     container.loadingMosaicController = controller;

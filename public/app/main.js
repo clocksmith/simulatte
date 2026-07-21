@@ -579,6 +579,18 @@
       // never on page load.
       await selectWorldTier(initialTier);
     } catch (error) {
+      // Fallback: a failed ?profile= experience drops the profile and reloads the
+      // default city view once, so it degrades to a working view, not a dead screen.
+      try {
+        const url = new URL(window.location.href);
+        if (url.searchParams.has('profile') && !url.searchParams.has('profile-fallback')) {
+          log.error('runtime.profile_fallback', log.serializeError(error));
+          url.searchParams.delete('profile');
+          url.searchParams.set('profile-fallback', '1');
+          window.location.assign(url.toString());
+          return { data, dispose: disposeApplication, getController: () => controller, getRenderer: () => renderer };
+        }
+      } catch (_fallbackError) { /* fall through to the normal failure surface */ }
       failRuntime(elements, error);
     }
     return { data, dispose: disposeApplication, getController: () => controller, getRenderer: () => renderer };

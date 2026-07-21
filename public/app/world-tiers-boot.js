@@ -78,9 +78,21 @@
   async function bootLanding(ctx) {
     const { startApp } = ctx;
     const landing = document.getElementById('world-tiers-landing-page');
-    if (!landing) { await startApp('city'); return; }
+    const view = (landing && landing.ownerDocument.defaultView) || (typeof window !== 'undefined' ? window : null);
 
-    const view = landing.ownerDocument.defaultView || window;
+    // If the visitor already has a specific experience selected (?profile=...) — e.g.
+    // after switching the application-profile dropdown, which reloads the page — skip
+    // the scale picker and boot the city app in place, so it loads the experience
+    // instead of bouncing back to the landing screen. Same fallback if the landing
+    // markup is missing for any reason.
+    let hasProfile = false;
+    try { hasProfile = view ? new URL(view.location.href).searchParams.has('profile') : false; }
+    catch (_error) { hasProfile = false; }
+    if (!landing || hasProfile) {
+      if (landing) landing.classList.add('hidden');
+      await startApp('city');
+      return;
+    }
     let chosen = false;
     const chooseTier = async (tier) => {
       if (chosen) return;
