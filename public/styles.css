@@ -148,6 +148,30 @@ body:not([data-journey-phase="loading"]) .loading-screen {
   text-transform: uppercase;
 }
 
+.loading-progress {
+  width: clamp(148px, 22vw, 196px);
+  height: 3px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+#loading-progress-bar {
+  display: block;
+  height: 100%;
+  width: 6%;
+  background: var(--sim-accent);
+  border-radius: 2px;
+  transition: width 500ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.loading-status {
+  color: rgba(237, 245, 243, 0.5);
+  font: 600 10px/1 var(--sim-mono);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
 .sim-app .neural-consent-dialog {
   color: var(--sim-ink);
   background: rgba(7, 17, 23, 0.99);
