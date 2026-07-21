@@ -29,6 +29,16 @@
     } catch (_error) { /* URL sync is best-effort */ }
   }
 
+  // Reflect the active scale in the toolbar label immediately on boot — before the
+  // heavy City load — so the dropdown matches the URL instead of sitting on the
+  // "Select scale" placeholder for the whole load (selectWorldTier only runs at the end).
+  function setTierLabel(tier) {
+    try {
+      const label = document.getElementById('world-tier-label');
+      if (label && TIER_LABELS[tier]) label.textContent = TIER_LABELS[tier];
+    } catch (_error) { /* best-effort */ }
+  }
+
   // Wire the toolbar tier dropdown and build the selectWorldTier router onto an
   // already-started app. Returns selectWorldTier so the caller can route to the
   // initial tier. `ctx` supplies the start() closure dependencies.
@@ -140,6 +150,7 @@
     if (!landing || urlTier || hasProfile) {
       const tier = urlTier || 'city';
       if (view) writeTierParam(view, tier);
+      setTierLabel(tier);
       if (landing) landing.classList.add('hidden');
       await routeTier(tier);
       return;
@@ -150,6 +161,7 @@
       chosen = true;
       // Record the chosen scale in the URL so the dropdown and reloads stay in sync.
       if (view) writeTierParam(view, tier);
+      setTierLabel(tier);
       // Fade the splash out fast (CSS ~120ms) and let it fully clear BEFORE kicking off
       // the heavy asset load. Otherwise the load blocks the main thread mid-fade and the
       // loading screen behind bleeds through a half-faded splash.

@@ -206,16 +206,22 @@
 
   async function verifyEntries(rows, artifactStore, baseUrl) {
     if (!artifactStore || !baseUrl) return Object.freeze([]);
-    const receipts = [];
+    // Fetch + verify every plugin entry and resource concurrently. Serially awaiting
+    // each file made plugin loading scale with the sum of network round-trips, which
+    // dominated boot on slower connections; the receipts keep their declaration order.
+    const tasks = [];
     for (const row of rows) {
       const pluginBaseUrl = new URL(`./plugins/${row.manifest.id}/`, baseUrl).toString();
-      const loaded = await artifactStore.resolveText({ id: row.manifest.id, ...row.manifest.entry }, { baseUrl: pluginBaseUrl, key: `plugin:${row.manifest.id}` });
-      receipts.push(Object.freeze({ pluginId: row.manifest.id, integrity: loaded.integrity, url: loaded.url }));
+      tasks.push(artifactStore
+        .resolveText({ id: row.manifest.id, ...row.manifest.entry }, { baseUrl: pluginBaseUrl, key: `plugin:${row.manifest.id}` })
+        .then((loaded) => ({ pluginId: row.manifest.id, integrity: loaded.integrity, url: loaded.url })));
       for (const resource of row.manifest.resources) {
-        const verified = await artifactStore.resolveText({ id: `${row.manifest.id}:${resource.path}`, ...resource }, { baseUrl: pluginBaseUrl, key: `plugin:${row.manifest.id}:${resource.path}` });
-        receipts.push(Object.freeze({ pluginId: row.manifest.id, path: resource.path, integrity: verified.integrity, url: verified.url }));
+        tasks.push(artifactStore
+          .resolveText({ id: `${row.manifest.id}:${resource.path}`, ...resource }, { baseUrl: pluginBaseUrl, key: `plugin:${row.manifest.id}:${resource.path}` })
+          .then((verified) => ({ pluginId: row.manifest.id, path: resource.path, integrity: verified.integrity, url: verified.url })));
       }
     }
+    const receipts = (await Promise.all(tasks)).map((receipt) => Object.freeze(receipt));
     return Object.freeze(receipts);
   }
 
