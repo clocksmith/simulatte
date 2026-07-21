@@ -139,7 +139,7 @@ function numberOrNull(value) {
 }
 
 const index = compileAccessibilityIndex();
-const text = `${JSON.stringify(index, null, 2)}\n`;
+const text = `${JSON.stringify(index)}\n`;
 if (process.argv.includes('--check')) {
   if (!fs.existsSync(OUTPUT_FILE) || fs.readFileSync(OUTPUT_FILE, 'utf8') !== text) throw new Error('Accessibility index is stale; run compile-accessibility-index.mjs');
   console.log(`AUTONOMY-ACCESSIBILITY status=verified nodes=${index.nodeRows.length} sourceRamps=${index.counts.sourceRamps}`);

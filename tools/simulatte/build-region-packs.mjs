@@ -43,14 +43,27 @@ function main() {
   const compilation = compileRegionPacks({ config, world, featureCatalog, worldPath: options.world, featurePath: options.features });
   const packDirectory = path.join(path.dirname(options.registry), 'packs');
   fs.mkdirSync(packDirectory, { recursive: true });
+  // Render geometry is written to a per-pack sidecar so the shipped routing pack stays
+  // small; the composition hash is still computed over the full reassembled world below,
+  // so the world identity (manifest.world.sha256 and every artifact pinned to it) is
+  // unchanged. geometryByPackId feeds the full-world merge for hashing and validation.
+  const geometryByPackId = {};
+  const routingPacks = [];
   const packReferences = compilation.packs.map((pack) => {
+    const { renderGeometry, ...routingPack } = pack;
+    geometryByPackId[pack.id] = renderGeometry;
+    routingPacks.push(routingPack);
     const file = path.join(packDirectory, `${pack.id}.json`);
-    const text = downloadText(pack);
+    const text = downloadText(routingPack);
     fs.writeFileSync(file, text);
+    const geometryFile = path.join(packDirectory, `${pack.id}.geometry.json`);
+    const geometryText = downloadText({ schema: 'simulatte.autonomyRegionGeometry.v1', id: pack.id, renderGeometry });
+    fs.writeFileSync(geometryFile, geometryText);
     return {
       id: pack.id,
       path: `./packs/${pack.id}.json`,
       sha256: sha256(text),
+      geometry: { path: `./packs/${pack.id}.geometry.json`, sha256: sha256(geometryText) },
       boundsWgs84: structuredClone(pack.boundsWgs84),
       neighborIds: [...pack.neighborIds],
       counts: structuredClone(pack.counts),
@@ -58,10 +71,10 @@ function main() {
   });
   const registry = buildRegistry({ ...compilation, config, world, featureCatalog, packReferences, worldPath: options.world, featurePath: options.features });
   contracts.validateRegionRegistry(registry);
-  compilation.packs.forEach((pack) => contracts.validateRegionPack(pack, registry));
+  routingPacks.forEach((pack) => contracts.validateRegionPack(pack, registry));
   const registryText = downloadText(registry);
   fs.writeFileSync(options.registry, registryText);
-  const merged = regionApi.mergeRegionPacks(registry, compilation.packs);
+  const merged = regionApi.mergeRegionPacks(registry, routingPacks, geometryByPackId);
   contracts.validateWorld(merged.world, merged.featureCatalog);
   contracts.validateFeatureCatalog(merged.featureCatalog);
   assertHash('world composition', registry.composition.worldSha256, sha256(artifactText(merged.world)));

@@ -19,7 +19,6 @@
   --sim-accent-line: rgba(0, 255, 0, 0.45);
   --sim-accent-glow: rgba(0, 255, 0, 0.28);
   /* Route legacy accent tokens through the retro green so all chrome recolors DRY */
-  --sim-blue: var(--sim-accent);
   --sim-green: var(--sim-accent);
 
   /* Per-tier rainbow identity, City -> Universe */
@@ -413,7 +412,7 @@ button {
 .profile-selector .select-option.selected::after {
   flex: 0 0 auto;
   content: "✓";
-  color: var(--sim-blue);
+  color: var(--sim-accent);
   font: 700 12px/1 var(--sim-font);
 }
 
@@ -465,7 +464,7 @@ button {
   height: 9px;
   flex: 0 0 9px;
   border-radius: 50%;
-  background: var(--sim-gold);
+  background: var(--sim-magenta);
   box-shadow: 0 0 0 4px rgba(0, 255, 0, 0.14);
 }
 
@@ -476,7 +475,7 @@ button {
 }
 
 .status-pill:has(.runtime-status[data-kind="active"]) .status-dot {
-  background: var(--sim-blue);
+  background: var(--sim-accent);
   box-shadow: 0 0 0 4px rgba(255, 0, 255, 0.18);
 }
 
@@ -701,13 +700,13 @@ body[data-journey-phase="ready"] .journey-hud {
   background: rgba(255, 255, 255, 0.30);
 }
 
-.legend i.building { height: 8px; background: var(--sim-blue); }
+.legend i.building { height: 8px; background: var(--sim-accent); }
 .legend i.park { height: 7px; background: var(--sim-green); }
 .legend i.protected { background: var(--sim-green); }
-.legend i.shared { background: var(--sim-blue); }
-.legend i.route { background: var(--sim-blue); }
+.legend i.shared { background: var(--sim-accent); }
+.legend i.route { background: var(--sim-accent); }
 .legend i.trace { background: var(--sim-green); }
-.legend i.prediction { background: var(--sim-blue); }
+.legend i.prediction { background: var(--sim-accent); }
 
 .map-hint,
 .map-data-details,
@@ -1160,7 +1159,7 @@ body[data-journey-phase="failed"] .scenario-field {
 }
 
 .metric-token.is-total {
-  border-left-color: var(--sim-blue);
+  border-left-color: var(--sim-accent);
 }
 
 .metric-token.is-total strong {
@@ -1239,7 +1238,7 @@ body[data-journey-phase="failed"] .scenario-field {
 .bet-row.is-selected {
   border-color: rgba(255, 0, 255, 0.70);
   background: rgba(255, 0, 255, 0.1);
-  box-shadow: inset 2px 0 var(--sim-blue);
+  box-shadow: inset 2px 0 var(--sim-accent);
 }
 
 .bet-row.is-rejected {
@@ -1330,7 +1329,7 @@ body[data-journey-phase="failed"] .scenario-field {
 }
 
 .trace-row.is-selected {
-  border-left-color: var(--sim-blue);
+  border-left-color: var(--sim-accent);
 }
 
 .trace-row.is-failure {

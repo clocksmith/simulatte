@@ -8,7 +8,7 @@
         "id": "nyc-crash-history-2025-07-to-2026-07-v1",
         "path": "../../../data/simulatte/safety-history-index-v1.json",
         "schemaId": "simulatte.autonomySafetyHistoryIndex.v1",
-        "sha256": "ecebc76655c7325d0c764056137c56419001afc3a19ba4002aece4f3eb85f715"
+        "sha256": "3b7aee9ec349c558f32778c3797f87a8c39d34dbb8f3d42cc1ed47079f5bc602"
       },
       "required": true
     }

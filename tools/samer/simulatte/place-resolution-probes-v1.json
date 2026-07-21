@@ -6,7 +6,7 @@
   "claimBoundary": "Exposed diagnostic probes for language-to-place resolution. Results on this set cannot promote a resolver or support a generalization claim. A promotion decision needs an unmounted holdout population.",
   "worldPath": "public/data/simulatte/worlds/nyc-core-autonomy-v1.json",
   "grammar": "Each sourceText is a full mission sentence for mission-compiler compileMission. The probed reference sits in the role field; the other role uses a verbatim governed label.",
-  "controlLane": "Constrained resolution in public/mission/mission-compiler.js: exact_world_label or constrained_fuzzy_place within the shipped edit-distance bound; everything else refuses with origin_not_grounded or destination_not_grounded.",
+  "controlLane": "Constrained resolution in public/simulatte/mission/mission-compiler.js: exact_world_label or constrained_fuzzy_place within the shipped edit-distance bound; everything else refuses with origin_not_grounded or destination_not_grounded.",
   "kinds": {
     "exact": "Verbatim governed label. Control must resolve. Regression floor for any challenger.",
     "typo_within": "Misspelling inside the constrained edit-distance bound. Measured against the shipped compiler: single-character deletions resolve via constrained_fuzzy_place.",

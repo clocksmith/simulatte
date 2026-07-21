@@ -12,7 +12,12 @@
     }
   }
 
-  function mergeRegionPacks(registry, packs) {
+  // Render geometry (buildings/streets/parks/land/bikeFacilities) ships in separate
+  // per-pack sidecar assets so the boot-critical pack download and parse carry only the
+  // routing graph. Pass `geometryByPackId` (packId -> renderGeometry) to reassemble the
+  // full world — the offline validator, the hash anchors, and the renderer use that path.
+  // Omit it for the boot routing world; geometry attaches later via attachRenderGeometry.
+  function mergeRegionPacks(registry, packs, geometryByPackId = null) {
     const expectedIds = registry.composition.defaultPackIds;
     assertExactIdentities(expectedIds, packs.map((pack) => pack.id), 'region_pack_set_mismatch');
     const packById = new Map(packs.map((pack) => [pack.id, pack]));
@@ -22,11 +27,6 @@
     const signalMerge = mergeRows('signals', ordered, registry.sharedWorldRows.signals || []);
     const actorMerge = mergeRows('actors', ordered, registry.sharedWorldRows.actors || []);
     const disruptionMerge = mergeRows('disruptions', ordered, registry.sharedWorldRows.disruptions || []);
-    const landMerge = mergeRenderRows('land', ordered, registry.sharedWorldRows.renderGeometry.land || []);
-    const parkMerge = mergeRenderRows('parks', ordered, registry.sharedWorldRows.renderGeometry.parks || []);
-    const streetMerge = mergeRenderRows('streets', ordered, registry.sharedWorldRows.renderGeometry.streets || []);
-    const buildingMerge = mergeRenderRows('buildings', ordered, registry.sharedWorldRows.renderGeometry.buildings || []);
-    const facilityMerge = mergeRenderRows('bikeFacilities', ordered, registry.sharedWorldRows.renderGeometry.bikeFacilities || []);
     const cardMerge = mergeRows('featureCards', ordered, registry.sharedFeatureRows.cards || []);
     const world = {
       ...structuredClone(registry.worldTemplate),
@@ -35,14 +35,7 @@
       signals: signalMerge.rows,
       actors: actorMerge.rows,
       disruptions: disruptionMerge.rows,
-      renderGeometry: {
-        ...structuredClone(registry.worldTemplate.renderGeometry),
-        land: landMerge.rows,
-        parks: parkMerge.rows,
-        streets: streetMerge.rows,
-        buildings: buildingMerge.rows,
-        bikeFacilities: facilityMerge.rows,
-      },
+      renderGeometry: composeRenderGeometry(registry, ordered, geometryByPackId),
     };
     const featureCatalog = {
       ...structuredClone(registry.featureCatalogTemplate),
@@ -52,7 +45,7 @@
     const actualSeamNodeIds = nodeMerge.duplicateIds;
     assertExactIdentities(registry.composition.seamNodeIds, actualSeamNodeIds, 'region_seam_set_mismatch');
     validatePackSeams(ordered);
-    assertCounts(registry.composition.expectedCounts, { world, featureCatalog });
+    assertCounts(registry.composition.expectedCounts, { world, featureCatalog }, geometryByPackId !== null);
     return {
       world,
       featureCatalog,
@@ -97,9 +90,42 @@
     return deduplicateRows(collection, rows);
   }
 
-  function mergeRenderRows(collection, packs, sharedRows) {
+  // Boot (geometryByPackId === null): only the small shared land layer; the per-pack
+  // buildings/streets/parks/bikeFacilities stay empty until their sidecars load. Full
+  // (geometryByPackId provided): reassemble every layer from the sidecars + shared rows.
+  function composeRenderGeometry(registry, ordered, geometryByPackId) {
+    const shared = registry.sharedWorldRows.renderGeometry;
+    const template = structuredClone(registry.worldTemplate.renderGeometry);
+    if (geometryByPackId === null) {
+      return {
+        ...template,
+        land: deduplicateRows('renderGeometry.land', [...(shared.land || [])]).rows,
+        parks: [], streets: [], buildings: [], bikeFacilities: [],
+      };
+    }
+    const layer = (collection) => mergeRenderRows(collection, ordered, shared[collection] || [], geometryByPackId).rows;
+    return {
+      ...template,
+      land: layer('land'), parks: layer('parks'), streets: layer('streets'),
+      buildings: layer('buildings'), bikeFacilities: layer('bikeFacilities'),
+    };
+  }
+
+  // Reassemble the full render geometry from loaded sidecars and attach it to an already
+  // composed routing world in place — the runtime lazy-load path after first paint.
+  function attachRenderGeometry(world, registry, geometryByPackId) {
+    const ordered = registry.composition.defaultPackIds.map((id) => ({ id }));
+    world.renderGeometry = composeRenderGeometry(registry, ordered, geometryByPackId);
+    return world;
+  }
+
+  function mergeRenderRows(collection, packs, sharedRows, geometryByPackId) {
     const rows = [...sharedRows];
-    packs.forEach((pack) => rows.push(...(pack.renderGeometry[collection] || [])));
+    packs.forEach((pack) => {
+      const geometry = geometryByPackId[pack.id];
+      if (!geometry) throw new RegionPackMergeError('region_pack_geometry_missing', `renderGeometry sidecar missing for pack ${pack.id}`, { packId: pack.id });
+      rows.push(...(geometry[collection] || []));
+    });
     return deduplicateRows(`renderGeometry.${collection}`, rows);
   }
 
@@ -157,7 +183,8 @@
       .map(([key, ids]) => [key, [...ids].sort()]));
   }
 
-  function assertCounts(expected, { world, featureCatalog }) {
+  function assertCounts(expected, { world, featureCatalog }, hasGeometry = true) {
+    const geometryKeys = new Set(['land', 'parks', 'streets', 'buildings', 'bikeFacilities']);
     const actual = {
       nodes: world.nodes.length,
       segments: world.segments.length,
@@ -172,6 +199,7 @@
       featureCards: featureCatalog.cards.length,
     };
     Object.entries(expected).forEach(([key, value]) => {
+      if (!hasGeometry && geometryKeys.has(key)) return;
       if (actual[key] !== value) throw new RegionPackMergeError('region_composition_count_mismatch', `${key} expected ${value}, received ${actual[key]}`, { key, expected: value, actual: actual[key] });
     });
   }
@@ -198,5 +226,5 @@
     return left.id.localeCompare(right.id);
   }
 
-  return { RegionPackMergeError, canonicalJson, mergeRegionPacks, sortValue };
+  return { RegionPackMergeError, canonicalJson, mergeRegionPacks, attachRenderGeometry, sortValue };
 });

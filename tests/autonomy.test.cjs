@@ -105,6 +105,11 @@ function governedRegionPacks(rows = governedAssets()) {
   return rows.regionRegistry.packs.map((reference) => readJson(`public/data/simulatte/regions/${reference.path.replace(/^\.\//, '')}`));
 }
 
+function governedRegionGeometry(rows = governedAssets()) {
+  return Object.fromEntries(rows.regionRegistry.packs.map((reference) =>
+    [reference.id, readJson(`public/data/simulatte/regions/${reference.geometry.path.replace(/^\.\//, '')}`).renderGeometry]));
+}
+
 function compileDefaultMission(rows = assets()) {
   return missionApi.compileMission(rows.manifest.defaultMissionText, rows.world, rows.embodiment);
 }
@@ -178,7 +183,7 @@ test('autonomy manifest pins and validates every governed asset', () => {
   contracts.validateRegionRegistry(rows.regionRegistry);
   const regionPacks = governedRegionPacks(rows);
   regionPacks.forEach((pack) => contracts.validateRegionPack(pack, rows.regionRegistry));
-  const composition = regionApi.mergeRegionPacks(rows.regionRegistry, regionPacks);
+  const composition = regionApi.mergeRegionPacks(rows.regionRegistry, regionPacks, governedRegionGeometry(rows));
   assert.equal(crypto.createHash('sha256').update(dataLoader.artifactText(composition.world)).digest('hex'), rows.manifest.world.sha256);
   assert.equal(crypto.createHash('sha256').update(dataLoader.artifactText(composition.featureCatalog)).digest('hex'), rows.manifest.featureCatalog.sha256);
   assert.equal(composition.receipt.seamNodeIds.length, 98);

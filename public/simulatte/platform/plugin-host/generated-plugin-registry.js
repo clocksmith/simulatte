@@ -28,7 +28,7 @@
       "defaultConfig": "./default-config.json",
       "entry": {
         "globalFactory": "SimulattePluginCableTrader",
-          "integrity": "sha384-21e46dbb89d58bd79fc68a9d4aa97a639160f637a3bfcca0946d80a7ee008c5ee077ea57c1265644628216ed58e80f7f",
+        "integrity": "sha384-21e46dbb89d58bd79fc68a9d4aa97a639160f637a3bfcca0946d80a7ee008c5ee077ea57c1265644628216ed58e80f7f",
         "path": "./index.js"
       },
       "extensionPoints": [
@@ -220,7 +220,7 @@
             "id": "nyc-crash-history-2025-07-to-2026-07-v1",
             "path": "../../../data/simulatte/safety-history-index-v1.json",
             "schemaId": "simulatte.autonomySafetyHistoryIndex.v1",
-            "sha256": "ecebc76655c7325d0c764056137c56419001afc3a19ba4002aece4f3eb85f715"
+            "sha256": "3b7aee9ec349c558f32778c3797f87a8c39d34dbb8f3d42cc1ed47079f5bc602"
           },
           "required": true
         }

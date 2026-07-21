@@ -167,6 +167,9 @@
     packs.forEach((pack, index) => {
       requireString(pack.path, contract, `$.packs[${index}].path`);
       requireSha256(pack.sha256, contract, `$.packs[${index}].sha256`);
+      const geometry = requireObject(pack.geometry, contract, `$.packs[${index}].geometry`);
+      requireString(geometry.path, contract, `$.packs[${index}].geometry.path`);
+      requireSha256(geometry.sha256, contract, `$.packs[${index}].geometry.sha256`);
       validateBoundsWgs84(pack.boundsWgs84, contract, `$.packs[${index}].boundsWgs84`);
       requireExactStringSet(pack.neighborIds, [...new Set(pack.neighborIds || [])], contract, `$.packs[${index}].neighborIds`);
       Object.entries(requireObject(pack.counts, contract, `$.packs[${index}].counts`))
@@ -242,8 +245,11 @@
       validatePointArray(segment.geometry, contract, `$.segments[${index}].geometry`, 2);
     });
     ['signals', 'actors', 'disruptions'].forEach((key) => uniqueRows(requireArray(pack[key], contract, `$.${key}`), contract, `$.${key}`));
-    const render = requireObject(pack.renderGeometry, contract, '$.renderGeometry');
-    ['land', 'parks', 'streets', 'buildings', 'bikeFacilities'].forEach((key) => uniqueRows(requireArray(render[key], contract, `$.renderGeometry.${key}`), contract, `$.renderGeometry.${key}`));
+    // Render geometry ships in a separate sidecar asset; a routing-only pack omits it.
+    if (pack.renderGeometry !== undefined) {
+      const render = requireObject(pack.renderGeometry, contract, '$.renderGeometry');
+      ['land', 'parks', 'streets', 'buildings', 'bikeFacilities'].forEach((key) => uniqueRows(requireArray(render[key], contract, `$.renderGeometry.${key}`), contract, `$.renderGeometry.${key}`));
+    }
     const cards = requireArray(pack.featureCards, contract, '$.featureCards');
     const cardIds = uniqueRows(cards, contract, '$.featureCards');
     const featureIndex = requireObject(pack.featureIndex, contract, '$.featureIndex');
@@ -292,10 +298,17 @@
     const counts = requireObject(pack.counts, contract, '$.counts');
     const actual = {
       nodes: pack.nodes.length, segments: pack.segments.length, signals: pack.signals.length,
-      actors: pack.actors.length, disruptions: pack.disruptions.length, streets: pack.renderGeometry.streets.length,
-      parks: pack.renderGeometry.parks.length, buildings: pack.renderGeometry.buildings.length, bikeFacilities: pack.renderGeometry.bikeFacilities.length,
+      actors: pack.actors.length, disruptions: pack.disruptions.length,
       featureCards: pack.featureCards.length, seams: pack.seams.length,
     };
+    // Geometry counts are only self-checkable when the pack carries its render geometry;
+    // for a routing-only pack the sidecar owns them and $.counts still pins the values.
+    if (pack.renderGeometry !== undefined) {
+      Object.assign(actual, {
+        streets: pack.renderGeometry.streets.length, parks: pack.renderGeometry.parks.length,
+        buildings: pack.renderGeometry.buildings.length, bikeFacilities: pack.renderGeometry.bikeFacilities.length,
+      });
+    }
     Object.entries(actual).forEach(([key, value]) => {
       requireInteger(counts[key], contract, `$.counts.${key}`);
       if (counts[key] !== value) throw new AutonomyContractError(contract, `$.counts.${key}`, `exact count ${value}`, counts[key]);

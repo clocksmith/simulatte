@@ -144,7 +144,7 @@ function round(value) {
 }
 
 const index = compileRouteAmenityIndex();
-const text = `${JSON.stringify(index, null, 2)}\n`;
+const text = `${JSON.stringify(index)}\n`;
 if (process.argv.includes('--check')) {
   if (!fs.existsSync(OUTPUT_FILE) || fs.readFileSync(OUTPUT_FILE, 'utf8') !== text) throw new Error('Route-amenity index is stale; run compile-route-amenity-index.mjs');
   console.log(`AUTONOMY-AMENITIES status=verified racks=${index.counts.sourceRacks} segments=${index.counts.routeSegments}`);

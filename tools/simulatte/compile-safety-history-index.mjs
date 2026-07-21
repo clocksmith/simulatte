@@ -221,7 +221,7 @@ function round(value) {
 }
 
 const index = compileSafetyHistoryIndex();
-const text = `${JSON.stringify(index, null, 2)}\n`;
+const text = `${JSON.stringify(index)}\n`;
 if (process.argv.includes('--check')) {
   if (!fs.existsSync(OUTPUT_FILE) || fs.readFileSync(OUTPUT_FILE, 'utf8') !== text) throw new Error('Safety-history index is stale; run compile-safety-history-index.mjs');
   console.log(`AUTONOMY-SAFETY-HISTORY status=verified crashes=${index.counts.sourceCrashes} joined=${index.counts.joinedCrashes} segments=${index.counts.directedSegmentsWithHistory}`);

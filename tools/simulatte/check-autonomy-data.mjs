@@ -55,6 +55,20 @@ function resolvePackReference(registryFile, reference) {
   return value;
 }
 
+function resolveGeometryReference(registryFile, reference) {
+  const geometry = reference.geometry;
+  if (!geometry || !geometry.path) throw new Error(`Region pack ${reference.id} missing geometry sidecar reference`);
+  const file = path.resolve(path.dirname(registryFile), geometry.path);
+  const relative = path.relative(PUBLIC, file);
+  if (relative.startsWith('..') || path.isAbsolute(relative)) throw new Error(`Region geometry path leaves public/: ${geometry.path}`);
+  if (!fs.existsSync(file)) throw new Error(`Region geometry path does not exist: ${geometry.path}`);
+  const hash = hashFile(file);
+  if (hash !== geometry.sha256) throw new Error(`Region geometry ${reference.id} SHA-256 expected ${geometry.sha256}, received ${hash}`);
+  const value = readJson(file);
+  if (value.id !== reference.id) throw new Error(`Region geometry ID expected ${reference.id}, received ${value.id || 'missing'}`);
+  return value;
+}
+
 function publicAutonomyJavaScript() {
   const roots = ['simulatte', 'shared']
     .map((directory) => path.join(PUBLIC, directory));
@@ -103,7 +117,8 @@ function main() {
   contracts.validateRegionRegistry(regionRegistry);
   const regionPacks = regionRegistry.packs.map((reference) => resolvePackReference(registryFile, reference));
   regionPacks.forEach((pack) => contracts.validateRegionPack(pack, regionRegistry));
-  const composition = regionApi.mergeRegionPacks(regionRegistry, regionPacks);
+  const geometryByPackId = Object.fromEntries(regionRegistry.packs.map((reference) => [reference.id, resolveGeometryReference(registryFile, reference).renderGeometry]));
+  const composition = regionApi.mergeRegionPacks(regionRegistry, regionPacks, geometryByPackId);
   const composedWorldHash = crypto.createHash('sha256').update(`${JSON.stringify(regionApi.sortValue(composition.world), null, 2)}\n`).digest('hex');
   const composedFeatureHash = crypto.createHash('sha256').update(`${JSON.stringify(regionApi.sortValue(composition.featureCatalog), null, 2)}\n`).digest('hex');
   if (composedWorldHash !== manifest.world.sha256) throw new Error(`Region-composed world SHA-256 expected ${manifest.world.sha256}, received ${composedWorldHash}`);

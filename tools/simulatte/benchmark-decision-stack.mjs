@@ -239,9 +239,9 @@ async function main() {
       corpus: { path: 'tools/samer/autonomy/public-navigation-missions-v2.json', sha256: hashFile('tools/samer/autonomy/public-navigation-missions-v2.json') },
       world: { id: assets.world.id, path: 'public/data/simulatte/worlds/nyc-core-autonomy-v1.json', sha256: hashFile('public/data/simulatte/worlds/nyc-core-autonomy-v1.json') },
       policy: { id: assets.policy.id, path: 'public/data/simulatte/policies/bet-selector-v1.json', sha256: hashFile('public/data/simulatte/policies/bet-selector-v1.json') },
-      compiler: { path: 'public/mission/mission-compiler.js', sha256: hashFile('public/mission/mission-compiler.js') },
-      router: { path: 'public/world/route-planner.js', sha256: hashFile('public/world/route-planner.js') },
-      controller: { path: 'public/runtime/autonomy-controller.js', sha256: hashFile('public/runtime/autonomy-controller.js') },
+      compiler: { path: 'public/simulatte/mission/mission-compiler.js', sha256: hashFile('public/simulatte/mission/mission-compiler.js') },
+      router: { path: 'public/simulatte/world/route-planner.js', sha256: hashFile('public/simulatte/world/route-planner.js') },
+      controller: { path: 'public/simulatte/runtime/autonomy-controller.js', sha256: hashFile('public/simulatte/runtime/autonomy-controller.js') },
     },
     workload: {
       missionCount: corpus.missions.length,

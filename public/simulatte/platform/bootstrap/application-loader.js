@@ -78,8 +78,18 @@
       contracts.validateRegionPack(row.value, registry);
       return row;
     }));
+    // Render geometry ships in per-pack sidecars so the routing packs above stay small.
+    // Loaded and hash-verified in parallel here, then reassembled into the full world.
+    // (Deferring the sidecars past first paint is a follow-up renderer change; the world
+    // model, ambient actors, camera, and static GPU buffer all derive from this geometry.)
+    const geometryByPackId = Object.fromEntries(await Promise.all(registry.packs.map(async (reference) => {
+      const row = await services.artifacts.resolve(
+        { id: reference.id, path: reference.geometry.path, sha256: reference.geometry.sha256, schemaId: reference.geometry.schemaId || null },
+        { baseUrl: loaded.regionRegistry.url, key: `regionGeometry:${reference.id}` });
+      return [reference.id, row.value.renderGeometry];
+    })));
     await yieldToHost();
-    const composition = regions.mergeRegionPacks(registry, packRows.map((row) => row.value));
+    const composition = regions.mergeRegionPacks(registry, packRows.map((row) => row.value), geometryByPackId);
     // Integrity without re-hashing the composed world on the main thread. Every region
     // pack is already sha256-verified on download against the (also verified) registry,
     // and mergeRegionPacks structurally validates the composition (exact pack ids, seam

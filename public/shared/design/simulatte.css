@@ -13,9 +13,8 @@
   --sim-glass-faint: rgba(255, 255, 255, 0.54);
   --sim-line: rgba(0, 0, 0, 0.14);
   --sim-line-strong: rgba(0, 0, 0, 0.28);
-  --sim-blue: #ff00ff;
+  --sim-magenta: #ff00ff;
   --sim-green: #00ff00;
-  --sim-gold: #ff00ff;
   --sim-red: #00ff00;
   --sim-spectrum: linear-gradient(122deg, #ff00ff, #00ff00 30%, #ffffff 50%, #000000 70%, #ff00ff);
   --sim-font: Inter, "Avenir Next", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
