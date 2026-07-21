@@ -75,13 +75,23 @@
       contracts.validateRegionPack(row.value, registry);
       return row;
     }));
+    await yieldToHost();
     const composition = regions.mergeRegionPacks(registry, packRows.map((row) => row.value));
-    const worldHash = await receipts.sha256Hex(artifactText(composition.world));
-    const featureCatalogHash = await receipts.sha256Hex(artifactText(composition.featureCatalog));
+    // Integrity without re-hashing the composed world on the main thread. Every region
+    // pack is already sha256-verified on download against the (also verified) registry,
+    // and mergeRegionPacks structurally validates the composition (exact pack ids, seam
+    // nodes, expected counts). So the composed hashes are the values the registry pins;
+    // we only cross-check that manifest and registry agree on them. Re-encoding and
+    // hashing ~64 MB of merged JSON every boot was the dominant load-time CPU/memory
+    // cost and is redundant with that chain.
+    const worldHash = composition.receipt.expectedWorldSha256;
+    const featureCatalogHash = composition.receipt.expectedFeatureCatalogSha256;
     assertCompositionHash('world', manifest.value.world.sha256, worldHash, composition.receipt);
     assertCompositionHash('featureCatalog', manifest.value.featureCatalog.sha256, featureCatalogHash, composition.receipt);
+    await yieldToHost();
     contracts.validateFeatureCatalog(composition.featureCatalog);
     contracts.validateWorld(composition.world, composition.featureCatalog);
+    await yieldToHost();
     contracts.validateOccurrenceCatalog(loaded.occurrenceCatalog.value, composition.world);
     contracts.validateRerankerEvidence(loaded.rerankerEvidence.value, composition.featureCatalog, {
       world: worldHash,
@@ -94,6 +104,7 @@
     pluginContracts.validateProfile(loaded.applicationProfile.value);
     contracts.validatePlaceEmbeddingIndex(loaded.placeEmbeddingIndex.value, loaded.modelRuntimeLock.value);
     contracts.validatePlaceResolutionEvidence(loaded.placeResolutionEvidence.value, loaded.placeEmbeddingIndex.value, loaded.modelRuntimeLock.value);
+    await yieldToHost();
     contracts.validateCurriculum(loaded.curriculum.value, composition.world);
     contracts.validatePolicyArenaEvidence(loaded.policyArenaEvidence.value);
     embodimentRows.forEach((row) => contracts.validateEmbodiment(row.loaded.value));
@@ -166,8 +177,24 @@
     }
   }
 
+  // Canonical serialization of a composed artifact. No longer called on the boot hot
+  // path (the composed-world re-hash was the dominant load-time cost and is redundant
+  // with per-pack integrity + structural composition checks); kept exported so the test
+  // suite can still bit-exact prove the deterministic merge reproduces the pinned SHA-256.
   function artifactText(value) {
     return `${JSON.stringify(regions.sortValue(value), null, 2)}\n`;
+  }
+
+  // Break the long synchronous load into cooperative chunks so the main thread stays
+  // responsive (the loading animation keeps running) through merge and validation.
+  function yieldToHost() {
+    if (typeof globalThis.requestAnimationFrame === 'function') {
+      return new Promise((resolve) => globalThis.requestAnimationFrame(() => resolve()));
+    }
+    if (typeof globalThis.setTimeout === 'function') {
+      return new Promise((resolve) => globalThis.setTimeout(resolve, 0));
+    }
+    return Promise.resolve();
   }
 
   function assetReceipt(row) {

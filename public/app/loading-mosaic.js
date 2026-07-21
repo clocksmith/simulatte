@@ -9,14 +9,18 @@
   }
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createLoadingMosaic() {
   const DEFAULT_SIZE = 7;
+  const CENTER = Math.floor(DEFAULT_SIZE / 2);
   const SNAKE_LENGTH = 7;
   const CELL_GAP_PX = 6;
-  const CYCLE_DURATION_MS = 4000;
-  const SNAKE_TRAVEL_DURATION_MS = 2288;
-  const SNAKE_COLLAPSE_DURATION_MS = 312;
-  const TURN_DELAY_MS = 100;
-  const ROTATION_DURATION_MS = 975;
-  const ROYGBIV_HUES = Object.freeze([0, 28, 56, 120, 210, 250, 290]);
+  const CYCLE_DURATION_MS = 2000;
+  const SNAKE_TRAVEL_DURATION_MS = 1200;
+  const SNAKE_COLLAPSE_DURATION_MS = 150;
+  const TURN_DELAY_MS = 50;
+  const ROTATION_DURATION_MS = 500;
+  const ROTATION_STEP_DEG = 90 / CENTER;
+  // Seven hues evenly spaced around the full 360° color wheel (360 / 7 ≈ 51.43° apart),
+  // so the palette sweeps the whole spectrum in even steps rather than bunched named colors.
+  const ROYGBIV_HUES = Object.freeze([0, 51, 103, 154, 206, 257, 309]);
   const TRAIL_OPACITIES = Object.freeze([1, 0.88, 0.76, 0.64, 0.52, 0.4, 0.3]);
   const TRAVEL_END = SNAKE_TRAVEL_DURATION_MS / CYCLE_DURATION_MS;
   const COLLAPSE_END = (SNAKE_TRAVEL_DURATION_MS + SNAKE_COLLAPSE_DURATION_MS) / CYCLE_DURATION_MS;
@@ -67,11 +71,14 @@
     const lastIndex = path.length - 1;
     const center = Math.floor(size / 2);
     const frames = [];
+    // Travel: each segment lags the head by its index and holds a constant per-cell
+    // opacity, so the body always reads as a clean fade from the bright head to the
+    // faint tail — no segment ever blinks to zero.
     for (let headIndex = 0; headIndex <= lastIndex; headIndex += 1) {
       const pathIndex = Math.max(0, headIndex - segmentIndex);
       frames.push({
         transform: cellTransform(path[pathIndex]),
-        opacity: headIndex <= segmentIndex ? (segmentIndex === SNAKE_LENGTH - 1 ? 1 : 0) : trailOpacity(segmentIndex),
+        opacity: trailOpacity(segmentIndex),
         offset: (headIndex / lastIndex) * TRAVEL_END,
         easing: 'steps(1, end)',
       });
@@ -99,53 +106,108 @@
     return frames;
   }
 
-  function colorAt(segmentIndex, cycleShift) {
-    const colorIndex = ((segmentIndex + cycleShift) % COLOR_CYCLE_COUNT + COLOR_CYCLE_COUNT) % COLOR_CYCLE_COUNT;
-    return `hsl(${ROYGBIV_HUES[colorIndex]} 88% 62%)`;
+  function colorAt(hueIndex) {
+    const wrapped = ((hueIndex % COLOR_CYCLE_COUNT) + COLOR_CYCLE_COUNT) % COLOR_CYCLE_COUNT;
+    return `hsl(${ROYGBIV_HUES[wrapped]} 88% 62%)`;
   }
 
-  function snakeColorKeyframes(segmentIndex) {
-    const frames = [];
-    for (let cycle = 0; cycle < COLOR_CYCLE_COUNT; cycle += 1) {
-      const offset = (localOffset) => (cycle + localOffset) / COLOR_CYCLE_COUNT;
-      if (cycle === 0) frames.push({ color: colorAt(segmentIndex, cycle), offset: offset(0), easing: 'steps(1, end)' });
-      frames.push({ color: colorAt(segmentIndex, cycle), offset: offset(TURN_START), easing: 'steps(1, end)' });
-      for (let jump = 1; jump <= 3; jump += 1) {
-        const jumpOffset = TURN_START + ((jump / 3) * (TURN_END - TURN_START));
-        frames.push({ color: colorAt(segmentIndex, cycle - (jump * 2)), offset: offset(jumpOffset), easing: 'steps(1, end)' });
-      }
-      frames.push({ color: colorAt(segmentIndex, cycle + 1), offset: offset(1), easing: 'steps(1, end)' });
+  // Deterministic color, indexed into the ordered ROYGBIV palette — no timeline to
+  // sample. The crawl is a FIXED rainbow: segment 0 (the head) always leads with hue 0
+  // and the body fades back to the tail, unchanged from iteration to iteration. The
+  // palette iteration lives entirely on the diagonal shift: while the snake is gathered
+  // for the turn only the top z-layer is on screen, and that single cell carries the
+  // color. Its start hue advances +1 per iteration and it steps -2 per completed hop —
+  // -2 * CENTER = -(N-1) === +1 (mod N) — so the shift walks cleanly through every hue
+  // across iterations while the head stays put.
+  function segmentColor(segmentIndex, iteration, completedHops, inTurn) {
+    if (inTurn && segmentIndex === SNAKE_LENGTH - 1) {
+      return colorAt(segmentIndex + iteration - (2 * completedHops));
     }
-    return frames;
+    return colorAt(segmentIndex);
   }
 
+  // How many diagonal hops have been completed at a given cycle phase (0..1). The
+  // thresholds match the position keyframes exactly, so color and geometry step together.
+  function completedHopsAt(phase) {
+    if (phase <= TURN_START) return 0;
+    return Math.min(CENTER, Math.floor(((phase - TURN_START) / (TURN_END - TURN_START)) * CENTER));
+  }
+
+  // The grid turns in lock step with the diagonal cell: it holds still through the
+  // crawl, then jumps ROTATION_STEP_DEG (90 / CENTER = 30°) at each diagonal hop, so
+  // one hop == one 30° step. steps(1, end) makes each turn snap exactly on the hop.
   function rotationCycleKeyframes() {
-    return [
-      { transform: 'rotate(0deg)', offset: 0 },
-      { transform: 'rotate(0deg)', offset: TURN_START, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' },
-      { transform: 'rotate(-90deg)', offset: TURN_END },
-      { transform: 'rotate(-90deg)', offset: 1 },
+    const frames = [
+      { transform: 'rotate(0deg)', offset: 0, easing: 'steps(1, end)' },
+      { transform: 'rotate(0deg)', offset: TURN_START, easing: 'steps(1, end)' },
     ];
+    for (let hop = 1; hop <= CENTER; hop += 1) {
+      frames.push({
+        transform: `rotate(${-ROTATION_STEP_DEG * hop}deg)`,
+        offset: TURN_START + ((hop / CENTER) * (TURN_END - TURN_START)),
+        easing: 'steps(1, end)',
+      });
+    }
+    frames.push({ transform: 'rotate(-90deg)', offset: 1 });
+    return frames;
   }
 
   function animateCycle(container, grid, segments, configuration) {
     const view = container.ownerDocument.defaultView;
     const reducedMotion = view?.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true;
+    const paint = (iteration, completedHops, inTurn) => {
+      segments.forEach((segment, segmentIndex) => {
+        const color = segmentColor(segmentIndex, iteration, completedHops, inTurn);
+        if (segment.dataset.hue !== color) {
+          segment.style.color = color;
+          segment.dataset.hue = color;
+        }
+      });
+    };
+    // Static fallback: paint the fixed rainbow so the snake is never blank.
+    paint(0, 0, false);
     if (reducedMotion || typeof grid.animate !== 'function') return { animations: [], dispose() {} };
+
     const timing = { duration: CYCLE_DURATION_MS, iterations: Infinity, fill: 'both' };
     const animations = segments.map((segment, segmentIndex) => segment.animate(
       snakeSegmentKeyframes({ path: configuration.path, segmentIndex, size: configuration.size }),
       timing
     ));
-    segments.forEach((segment, segmentIndex) => animations.push(segment.animate(
-      snakeColorKeyframes(segmentIndex),
-      { ...timing, duration: CYCLE_DURATION_MS * COLOR_CYCLE_COUNT }
-    )));
-    animations.push(grid.animate(rotationCycleKeyframes(), timing));
+    // Rotate the whole emblem — grid, snake, and the wordmark beneath it — as one unit,
+    // so the diagonal cell and the label turn in lock step with the tiles. Falls back to
+    // the mosaic itself if the stage wrapper is absent.
+    const rotationTarget = container.closest('.loading-mosaic-stage') || container;
+    animations.push(rotationTarget.animate(rotationCycleKeyframes(), timing));
+    const clock = animations[0];
+
+    // Advance color by counting hops, not by sampling a timeline: read the geometry
+    // clock only to derive the integer (iteration, completedHops) state, and repaint
+    // solely when that state changes.
+    let rafId = null;
+    let lastKey = '';
+    const tick = () => {
+      const time = Number(clock.currentTime) || 0;
+      const iteration = Math.floor(time / CYCLE_DURATION_MS);
+      const phase = (time % CYCLE_DURATION_MS) / CYCLE_DURATION_MS;
+      const inTurn = phase >= TURN_START;
+      const completedHops = completedHopsAt(phase);
+      const key = `${iteration}:${completedHops}:${inTurn ? 1 : 0}`;
+      if (key !== lastKey) {
+        lastKey = key;
+        paint(iteration, completedHops, inTurn);
+      }
+      rafId = view.requestAnimationFrame(tick);
+    };
     const body = container.ownerDocument.body;
     const syncPlayback = () => {
-      const method = body?.dataset?.journeyPhase === 'loading' ? 'play' : 'pause';
-      animations.forEach((animation) => animation[method]());
+      const playing = body?.dataset?.journeyPhase === 'loading';
+      animations.forEach((animation) => animation[playing ? 'play' : 'pause']());
+      if (playing && rafId === null && typeof view.requestAnimationFrame === 'function') {
+        rafId = view.requestAnimationFrame(tick);
+      } else if (!playing && rafId !== null) {
+        view.cancelAnimationFrame(rafId);
+        rafId = null;
+      }
     };
     const observer = typeof MutationObserver === 'function' && body
       ? new MutationObserver(syncPlayback)
@@ -156,6 +218,7 @@
       animations,
       dispose() {
         observer?.disconnect();
+        if (rafId !== null) view.cancelAnimationFrame(rafId);
         animations.forEach((animation) => animation.cancel());
       },
     };
@@ -201,6 +264,7 @@
     CYCLE_DURATION_MS,
     DEFAULT_SIZE,
     ROTATION_DURATION_MS,
+    ROTATION_STEP_DEG,
     ROYGBIV_HUES,
     SNAKE_COLLAPSE_DURATION_MS,
     SNAKE_LENGTH,
@@ -211,9 +275,11 @@
     TURN_DELAY_MS,
     TURN_START,
     cellTransform,
+    colorAt,
+    completedHopsAt,
     mount,
     rotationCycleKeyframes,
-    snakeColorKeyframes,
+    segmentColor,
     snakeSegmentKeyframes,
     spiralCells,
     trailOpacity,

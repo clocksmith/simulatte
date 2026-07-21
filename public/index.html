@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="simulatte-build" content="4b2b24ea3c60446445ac0dec6c37b7a114927c92-597e56b11773">
+  <meta name="simulatte-build" content="8332ea7c1f4f2248ad3c513ba72b767d393dd396-57c2378b78b3">
   <title>Simulatte</title>
   <meta name="description" content="A local-first WebGPU simulator for governed pedestrian, bicycle, scooter, and car journeys across the Villages and North Brooklyn.">
   <link rel="icon" type="image/svg+xml" href="./favicon.svg">
@@ -20,8 +20,10 @@
         <canvas id="overlay-canvas" width="1440" height="900" aria-label="Interactive visual overlay for world scales" hidden></canvas>
         <canvas id="follow-minimap" class="follow-minimap" width="320" height="240" aria-label="Top view minimap centered on the active agent" hidden></canvas>
         <div id="loading-screen" class="loading-screen" role="status" aria-label="Loading Simulatte">
-          <div id="loading-mosaic" class="loading-mosaic" aria-hidden="true"></div>
-          <span class="loading-wordmark" aria-hidden="true">Simulatte</span>
+          <div class="loading-mosaic-stage">
+            <div id="loading-mosaic" class="loading-mosaic" aria-hidden="true"></div>
+            <span class="loading-wordmark" aria-hidden="true">Simulatte</span>
+          </div>
         </div>
         <section id="plugin-map-ui" class="plugin-map-ui" aria-label="Experience view"></section>
         <section id="plugin-hud-ui" class="plugin-hud-ui" aria-label="Experience status"></section>
@@ -241,108 +243,121 @@
     </div>
   </dialog>
 
-  <script defer src="./app/loading-mosaic.js?v=4b2b24ea3c60446445ac0dec6c37b7a114927c92-597e56b11773"></script>
-  <script defer src="./neural-model-consent.js?v=4b2b24ea3c60446445ac0dec6c37b7a114927c92-597e56b11773"></script>
-  <script defer src="./model-selection.js?v=4b2b24ea3c60446445ac0dec6c37b7a114927c92-597e56b11773"></script>
-  <script defer src="./contracts/data-contract-validator.js?v=4b2b24ea3c60446445ac0dec6c37b7a114927c92-597e56b11773"></script>
-  <script defer src="./contracts/contract-validator.js?v=4b2b24ea3c60446445ac0dec6c37b7a114927c92-597e56b11773"></script>
-  <script defer src="./runtime/canonical-receipts.js?v=4b2b24ea3c60446445ac0dec6c37b7a114927c92-597e56b11773"></script>
-  <script defer src="./world/region-pack-merger.js?v=4b2b24ea3c60446445ac0dec6c37b7a114927c92-597e56b11773"></script>
-  <script defer src="./runtime/runtime-log.js?v=4b2b24ea3c60446445ac0dec6c37b7a114927c92-597e56b11773"></script>
-  <script defer src="./platform/contracts/schema-registry.js?v=4b2b24ea3c60446445ac0dec6c37b7a114927c92-597e56b11773"></script>
-  <script defer src="./platform/contracts/plugin-contracts.js?v=4b2b24ea3c60446445ac0dec6c37b7a114927c92-597e56b11773"></script>
-  <script defer src="./platform/transport/browser-transport.js?v=4b2b24ea3c60446445ac0dec6c37b7a114927c92-597e56b11773"></script>
-  <script defer src="./platform/artifacts/governed-artifact-store.js?v=4b2b24ea3c60446445ac0dec6c37b7a114927c92-597e56b11773"></script>
-  <script defer src="./platform/data-catalog/immutable-data-catalog.js?v=4b2b24ea3c60446445ac0dec6c37b7a114927c92-597e56b11773"></script>
-  <script defer src="./platform/storage/browser-tile-storage.js?v=4b2b24ea3c60446445ac0dec6c37b7a114927c92-597e56b11773"></script>
-  <script defer src="./platform/plugin-host/plugin-state-host.js?v=4b2b24ea3c60446445ac0dec6c37b7a114927c92-597e56b11773"></script>
-  <script defer src="./platform/plugin-host/capability-graph.js?v=4b2b24ea3c60446445ac0dec6c37b7a114927c92-597e56b11773"></script>
-  <script defer src="./platform/plugin-host/plugin-sdk.js?v=4b2b24ea3c60446445ac0dec6c37b7a114927c92-597e56b11773"></script>
-  <script defer src="./platform/plugin-host/plugin-runtime.js?v=4b2b24ea3c60446445ac0dec6c37b7a114927c92-597e56b11773"></script>
-  <script defer src="./platform/ui-host/declarative-ui-host.js?v=4b2b24ea3c60446445ac0dec6c37b7a114927c92-597e56b11773"></script>
-  <script defer src="./core/simulation/civil-time.js?v=4b2b24ea3c60446445ac0dec6c37b7a114927c92-597e56b11773"></script>
+  <script defer src="./app/loading-mosaic.js?v=8332ea7c1f4f2248ad3c513ba72b767d393dd396-57c2378b78b3"></script>
+  <script defer src="./neural-model-consent.js?v=8332ea7c1f4f2248ad3c513ba72b767d393dd396-57c2378b78b3"></script>
+  <script defer src="./model-selection.js?v=8332ea7c1f4f2248ad3c513ba72b767d393dd396-57c2378b78b3"></script>
+  <script defer src="./contracts/data-contract-validator.js?v=8332ea7c1f4f2248ad3c513ba72b767d393dd396-57c2378b78b3"></script>
+  <script defer src="./contracts/contract-validator.js?v=8332ea7c1f4f2248ad3c513ba72b767d393dd396-57c2378b78b3"></script>
+  <script defer src="./runtime/canonical-receipts.js?v=8332ea7c1f4f2248ad3c513ba72b767d393dd396-57c2378b78b3"></script>
+  <script defer src="./world/region-pack-merger.js?v=8332ea7c1f4f2248ad3c513ba72b767d393dd396-57c2378b78b3"></script>
+  <script defer src="./runtime/runtime-log.js?v=8332ea7c1f4f2248ad3c513ba72b767d393dd396-57c2378b78b3"></script>
+  <script defer src="./platform/contracts/schema-registry.js?v=8332ea7c1f4f2248ad3c513ba72b767d393dd396-57c2378b78b3"></script>
+  <script defer src="./platform/contracts/plugin-contracts.js?v=8332ea7c1f4f2248ad3c513ba72b767d393dd396-57c2378b78b3"></script>
+  <script defer src="./platform/transport/browser-transport.js?v=8332ea7c1f4f2248ad3c513ba72b767d393dd396-57c2378b78b3"></script>
+  <script defer src="./platform/artifacts/governed-artifact-store.js?v=8332ea7c1f4f2248ad3c513ba72b767d393dd396-57c2378b78b3"></script>
+  <script defer src="./platform/data-catalog/immutable-data-catalog.js?v=8332ea7c1f4f2248ad3c513ba72b767d393dd396-57c2378b78b3"></script>
+  <script defer src="./platform/storage/browser-tile-storage.js?v=8332ea7c1f4f2248ad3c513ba72b767d393dd396-57c2378b78b3"></script>
+  <script defer src="./platform/plugin-host/plugin-state-host.js?v=8332ea7c1f4f2248ad3c513ba72b767d393dd396-57c2378b78b3"></script>
+  <script defer src="./platform/plugin-host/capability-graph.js?v=8332ea7c1f4f2248ad3c513ba72b767d393dd396-57c2378b78b3"></script>
+  <script defer src="./platform/plugin-host/plugin-sdk.js?v=8332ea7c1f4f2248ad3c513ba72b767d393dd396-57c2378b78b3"></script>
+  <script defer src="./platform/plugin-host/plugin-runtime.js?v=8332ea7c1f4f2248ad3c513ba72b767d393dd396-57c2378b78b3"></script>
+  <script defer src="./platform/ui-host/declarative-ui-host.js?v=8332ea7c1f4f2248ad3c513ba72b767d393dd396-57c2378b78b3"></script>
+  <script defer src="./core/simulation/civil-time.js?v=8332ea7c1f4f2248ad3c513ba72b767d393dd396-57c2378b78b3"></script>
   <!-- generated-plugin-scripts:start -->
-  <script defer src="./plugins/cable-trader/network-simulation.js?v=4b2b24ea3c60446445ac0dec6c37b7a114927c92-597e56b11773"></script>
-  <script defer src="./plugins/cable-trader/index.js?v=4b2b24ea3c60446445ac0dec6c37b7a114927c92-597e56b11773"></script>
-  <script defer src="./plugins/safety-explorer/index.js?v=4b2b24ea3c60446445ac0dec6c37b7a114927c92-597e56b11773"></script>
-  <script defer src="./plugins/sun-walker/sun-exposure.js?v=4b2b24ea3c60446445ac0dec6c37b7a114927c92-597e56b11773"></script>
-  <script defer src="./plugins/sun-walker/index.js?v=4b2b24ea3c60446445ac0dec6c37b7a114927c92-597e56b11773"></script>
+  <script defer src="./plugins/cable-trader/network-simulation.js?v=8332ea7c1f4f2248ad3c513ba72b767d393dd396-57c2378b78b3"></script>
+  <script defer src="./plugins/cable-trader/index.js?v=8332ea7c1f4f2248ad3c513ba72b767d393dd396-57c2378b78b3"></script>
+  <script defer src="./plugins/safety-explorer/index.js?v=8332ea7c1f4f2248ad3c513ba72b767d393dd396-57c2378b78b3"></script>
+  <script defer src="./plugins/sun-walker/sun-exposure.js?v=8332ea7c1f4f2248ad3c513ba72b767d393dd396-57c2378b78b3"></script>
+  <script defer src="./plugins/sun-walker/index.js?v=8332ea7c1f4f2248ad3c513ba72b767d393dd396-57c2378b78b3"></script>
   <!-- generated-plugin-scripts:end -->
-  <script defer src="./platform/plugin-host/generated-plugin-registry.js?v=4b2b24ea3c60446445ac0dec6c37b7a114927c92-597e56b11773"></script>
-  <script defer src="./world/world-tile-manager.js?v=4b2b24ea3c60446445ac0dec6c37b7a114927c92-597e56b11773"></script>
-  <script defer src="./world/world-tile-storage.js?v=4b2b24ea3c60446445ac0dec6c37b7a114927c92-597e56b11773"></script>
-  <script defer src="./platform/bootstrap/application-loader.js?v=4b2b24ea3c60446445ac0dec6c37b7a114927c92-597e56b11773"></script>
-  <script defer src="./runtime/neural-place-resolution-core.js?v=4b2b24ea3c60446445ac0dec6c37b7a114927c92-597e56b11773"></script>
-  <script defer src="./runtime/neural-place-resolver.js?v=4b2b24ea3c60446445ac0dec6c37b7a114927c92-597e56b11773"></script>
-  <script defer src="./mission/capability-matrix.js?v=4b2b24ea3c60446445ac0dec6c37b7a114927c92-597e56b11773"></script>
-  <script defer src="./mission/mission-compiler.js?v=4b2b24ea3c60446445ac0dec6c37b7a114927c92-597e56b11773"></script>
-  <script defer src="./data/simulatte-language-lexicon.js?v=4b2b24ea3c60446445ac0dec6c37b7a114927c92-597e56b11773"></script>
-  <script defer src="./language/simulatte-universe-parser.js?v=4b2b24ea3c60446445ac0dec6c37b7a114927c92-597e56b11773"></script>
-  <script defer src="./world/ambient-actors.js?v=4b2b24ea3c60446445ac0dec6c37b7a114927c92-597e56b11773"></script>
-  <script defer src="./world/world-model.js?v=4b2b24ea3c60446445ac0dec6c37b7a114927c92-597e56b11773"></script>
-  <script defer src="./world/route-planner.js?v=4b2b24ea3c60446445ac0dec6c37b7a114927c92-597e56b11773"></script>
-  <script defer src="./world/time-dependent-edge-cost.js?v=4b2b24ea3c60446445ac0dec6c37b7a114927c92-597e56b11773"></script>
-  <script defer src="./runtime/feature-retrieval.js?v=4b2b24ea3c60446445ac0dec6c37b7a114927c92-597e56b11773"></script>
-  <script defer src="./runtime/occurrence-engine.js?v=4b2b24ea3c60446445ac0dec6c37b7a114927c92-597e56b11773"></script>
-  <script defer src="./runtime/observation-builder.js?v=4b2b24ea3c60446445ac0dec6c37b7a114927c92-597e56b11773"></script>
-  <script defer src="./runtime/reference-dynamics.js?v=4b2b24ea3c60446445ac0dec6c37b7a114927c92-597e56b11773"></script>
-  <script defer src="./runtime/bet-proposer.js?v=4b2b24ea3c60446445ac0dec6c37b7a114927c92-597e56b11773"></script>
-  <script defer src="./runtime/safety-gate.js?v=4b2b24ea3c60446445ac0dec6c37b7a114927c92-597e56b11773"></script>
-  <script defer src="./runtime/bet-selector.js?v=4b2b24ea3c60446445ac0dec6c37b7a114927c92-597e56b11773"></script>
-  <script defer src="./runtime/bet-settlement.js?v=4b2b24ea3c60446445ac0dec6c37b7a114927c92-597e56b11773"></script>
-  <script defer src="./verifier/journey-verifier.js?v=4b2b24ea3c60446445ac0dec6c37b7a114927c92-597e56b11773"></script>
-  <script defer src="./runtime/autonomy-controller.js?v=4b2b24ea3c60446445ac0dec6c37b7a114927c92-597e56b11773"></script>
-  <script defer src="./runtime/journey-ledger.js?v=4b2b24ea3c60446445ac0dec6c37b7a114927c92-597e56b11773"></script>
-  <script defer src="./app/webgpu-math.js?v=4b2b24ea3c60446445ac0dec6c37b7a114927c92-597e56b11773"></script>
-  <script defer src="./app/webgpu-actor-geometry.js?v=4b2b24ea3c60446445ac0dec6c37b7a114927c92-597e56b11773"></script>
-  <script defer src="./app/webgpu-geometry.js?v=4b2b24ea3c60446445ac0dec6c37b7a114927c92-597e56b11773"></script>
-  <script defer src="./app/plugin-presentation.js?v=4b2b24ea3c60446445ac0dec6c37b7a114927c92-597e56b11773"></script>
-  <script defer src="./app/camera-controller.js?v=4b2b24ea3c60446445ac0dec6c37b7a114927c92-597e56b11773"></script>
-  <script defer src="./app/webgpu-renderer.js?v=4b2b24ea3c60446445ac0dec6c37b7a114927c92-597e56b11773"></script>
-  <script defer src="./app/trace-view.js?v=4b2b24ea3c60446445ac0dec6c37b7a114927c92-597e56b11773"></script>
-  <script defer src="./app/application-profile-select.js?v=4b2b24ea3c60446445ac0dec6c37b7a114927c92-597e56b11773"></script>
-  <script defer src="./app/experience-camera.js?v=4b2b24ea3c60446445ac0dec6c37b7a114927c92-597e56b11773"></script>
-  <script defer src="./app/multi-tier-visualizer.js?v=4b2b24ea3c60446445ac0dec6c37b7a114927c92-597e56b11773"></script>
-  <script defer src="./app/world-tiers-boot.js?v=4b2b24ea3c60446445ac0dec6c37b7a114927c92-597e56b11773"></script>
-  <script defer src="./app/main.js?v=4b2b24ea3c60446445ac0dec6c37b7a114927c92-597e56b11773"></script>
+  <script defer src="./platform/plugin-host/generated-plugin-registry.js?v=8332ea7c1f4f2248ad3c513ba72b767d393dd396-57c2378b78b3"></script>
+  <script defer src="./world/world-tile-manager.js?v=8332ea7c1f4f2248ad3c513ba72b767d393dd396-57c2378b78b3"></script>
+  <script defer src="./world/world-tile-storage.js?v=8332ea7c1f4f2248ad3c513ba72b767d393dd396-57c2378b78b3"></script>
+  <script defer src="./platform/bootstrap/application-loader.js?v=8332ea7c1f4f2248ad3c513ba72b767d393dd396-57c2378b78b3"></script>
+  <script defer src="./runtime/neural-place-resolution-core.js?v=8332ea7c1f4f2248ad3c513ba72b767d393dd396-57c2378b78b3"></script>
+  <script defer src="./runtime/neural-place-resolver.js?v=8332ea7c1f4f2248ad3c513ba72b767d393dd396-57c2378b78b3"></script>
+  <script defer src="./mission/capability-matrix.js?v=8332ea7c1f4f2248ad3c513ba72b767d393dd396-57c2378b78b3"></script>
+  <script defer src="./mission/mission-compiler.js?v=8332ea7c1f4f2248ad3c513ba72b767d393dd396-57c2378b78b3"></script>
+  <script defer src="./data/simulatte-language-lexicon.js?v=8332ea7c1f4f2248ad3c513ba72b767d393dd396-57c2378b78b3"></script>
+  <script defer src="./language/simulatte-universe-parser.js?v=8332ea7c1f4f2248ad3c513ba72b767d393dd396-57c2378b78b3"></script>
+  <script defer src="./world/ambient-actors.js?v=8332ea7c1f4f2248ad3c513ba72b767d393dd396-57c2378b78b3"></script>
+  <script defer src="./world/world-model.js?v=8332ea7c1f4f2248ad3c513ba72b767d393dd396-57c2378b78b3"></script>
+  <script defer src="./world/route-planner.js?v=8332ea7c1f4f2248ad3c513ba72b767d393dd396-57c2378b78b3"></script>
+  <script defer src="./world/time-dependent-edge-cost.js?v=8332ea7c1f4f2248ad3c513ba72b767d393dd396-57c2378b78b3"></script>
+  <script defer src="./runtime/feature-retrieval.js?v=8332ea7c1f4f2248ad3c513ba72b767d393dd396-57c2378b78b3"></script>
+  <script defer src="./runtime/occurrence-engine.js?v=8332ea7c1f4f2248ad3c513ba72b767d393dd396-57c2378b78b3"></script>
+  <script defer src="./runtime/observation-builder.js?v=8332ea7c1f4f2248ad3c513ba72b767d393dd396-57c2378b78b3"></script>
+  <script defer src="./runtime/reference-dynamics.js?v=8332ea7c1f4f2248ad3c513ba72b767d393dd396-57c2378b78b3"></script>
+  <script defer src="./runtime/bet-proposer.js?v=8332ea7c1f4f2248ad3c513ba72b767d393dd396-57c2378b78b3"></script>
+  <script defer src="./runtime/safety-gate.js?v=8332ea7c1f4f2248ad3c513ba72b767d393dd396-57c2378b78b3"></script>
+  <script defer src="./runtime/bet-selector.js?v=8332ea7c1f4f2248ad3c513ba72b767d393dd396-57c2378b78b3"></script>
+  <script defer src="./runtime/bet-settlement.js?v=8332ea7c1f4f2248ad3c513ba72b767d393dd396-57c2378b78b3"></script>
+  <script defer src="./verifier/journey-verifier.js?v=8332ea7c1f4f2248ad3c513ba72b767d393dd396-57c2378b78b3"></script>
+  <script defer src="./runtime/autonomy-controller.js?v=8332ea7c1f4f2248ad3c513ba72b767d393dd396-57c2378b78b3"></script>
+  <script defer src="./runtime/journey-ledger.js?v=8332ea7c1f4f2248ad3c513ba72b767d393dd396-57c2378b78b3"></script>
+  <script defer src="./app/webgpu-math.js?v=8332ea7c1f4f2248ad3c513ba72b767d393dd396-57c2378b78b3"></script>
+  <script defer src="./app/webgpu-actor-geometry.js?v=8332ea7c1f4f2248ad3c513ba72b767d393dd396-57c2378b78b3"></script>
+  <script defer src="./app/webgpu-geometry.js?v=8332ea7c1f4f2248ad3c513ba72b767d393dd396-57c2378b78b3"></script>
+  <script defer src="./app/plugin-presentation.js?v=8332ea7c1f4f2248ad3c513ba72b767d393dd396-57c2378b78b3"></script>
+  <script defer src="./app/camera-controller.js?v=8332ea7c1f4f2248ad3c513ba72b767d393dd396-57c2378b78b3"></script>
+  <script defer src="./app/webgpu-renderer.js?v=8332ea7c1f4f2248ad3c513ba72b767d393dd396-57c2378b78b3"></script>
+  <script defer src="./app/trace-view.js?v=8332ea7c1f4f2248ad3c513ba72b767d393dd396-57c2378b78b3"></script>
+  <script defer src="./app/application-profile-select.js?v=8332ea7c1f4f2248ad3c513ba72b767d393dd396-57c2378b78b3"></script>
+  <script defer src="./app/experience-camera.js?v=8332ea7c1f4f2248ad3c513ba72b767d393dd396-57c2378b78b3"></script>
+  <script defer src="./app/multi-tier-visualizer.js?v=8332ea7c1f4f2248ad3c513ba72b767d393dd396-57c2378b78b3"></script>
+  <script defer src="./app/world-tiers-boot.js?v=8332ea7c1f4f2248ad3c513ba72b767d393dd396-57c2378b78b3"></script>
+  <script defer src="./app/main.js?v=8332ea7c1f4f2248ad3c513ba72b767d393dd396-57c2378b78b3"></script>
 
   <!-- World Tiers Landing Page Selector -->
   <div id="world-tiers-landing-page">
-    <canvas id="symmetry-canvas"></canvas>
     <header class="landing-header">
-      <h1 class="landing-title">Simulatte Autonomy</h1>
-      <p class="landing-subtitle">Explore and simulate autonomous behaviors across scales—from local street networks to the stars.</p>
+      <h1 class="landing-title" aria-label="SIMULATTE">
+        <svg class="landing-title-svg" viewBox="0 0 760 200" role="img" aria-hidden="true">
+          <line class="landing-title-line" x1="180" y1="28" x2="580" y2="28"></line>
+          <line class="landing-title-line" x1="215" y1="44" x2="545" y2="44"></line>
+          <line class="landing-title-line" x1="250" y1="60" x2="510" y2="60"></line>
+          <text x="50%" y="132" text-anchor="middle" dominant-baseline="middle">SIMULATTE</text>
+        </svg>
+      </h1>
+      <p class="landing-subtitle">Explore autonomous behavior across scales,<br />from local street networks to the stars.</p>
     </header>
     <div class="tier-cards-grid">
       <div class="tier-card" data-tier="city">
-        <div class="tier-icon">🏙️</div>
+        <div class="tier-icon">
+          <span class="tier-icon-mark">C</span>
+        </div>
         <h2 class="tier-name">City</h2>
         <p class="tier-desc">Local WebGPU street routing, building shadows, and cooperative agents in NYC.</p>
       </div>
       <div class="tier-card" data-tier="country">
-        <div class="tier-icon">🏔️</div>
+        <div class="tier-icon">
+          <span class="tier-icon-mark">R</span>
+        </div>
         <h2 class="tier-name">Country</h2>
-        <p class="tier-desc">Broad transit networks and cross-region routing graphs across Liechtenstein.</p>
+        <p class="tier-desc">Broad transit networks and cross-region routing graphs across the United States.</p>
       </div>
       <div class="tier-card" data-tier="world">
-        <div class="tier-icon">🌍</div>
+        <div class="tier-icon">
+          <span class="tier-icon-mark">P</span>
+        </div>
         <h2 class="tier-name">Planet</h2>
         <p class="tier-desc">Global country boundaries, major cities, and coordinate systems.</p>
       </div>
       <div class="tier-card" data-tier="solar-system">
-        <div class="tier-icon">🪐</div>
+        <div class="tier-icon">
+          <span class="tier-icon-mark">S</span>
+        </div>
         <h2 class="tier-name">Solar System</h2>
         <p class="tier-desc">Heliocentric planetary orbits, distances, and velocities from JPL Horizons.</p>
       </div>
       <div class="tier-card" data-tier="star-chart">
-        <div class="tier-icon">✨</div>
+        <div class="tier-icon">
+          <span class="tier-icon-mark">U</span>
+        </div>
         <h2 class="tier-name">Universe</h2>
         <p class="tier-desc">3D stellar charts and spectral color classifications of Hipparcos stars.</p>
       </div>
     </div>
-    <footer class="landing-footer">
-      <button class="landing-skip-btn" type="button">Enter Simulator</button>
-    </footer>
   </div>
 </body>
 </html>

@@ -64,7 +64,7 @@ body {
   place-content: center;
   justify-items: center;
   gap: 22px;
-  background: radial-gradient(circle at 50% 48%, rgba(20, 65, 75, 0.18), transparent 42%);
+  background: #000;
   pointer-events: none;
   opacity: 1;
   visibility: visible;
@@ -75,6 +75,14 @@ body:not([data-journey-phase="loading"]) .loading-screen {
   pointer-events: none;
   opacity: 0;
   visibility: hidden;
+}
+
+.loading-mosaic-stage {
+  display: grid;
+  justify-items: center;
+  gap: 22px;
+  transform-origin: center;
+  will-change: transform;
 }
 
 .loading-mosaic {
@@ -102,9 +110,9 @@ body:not([data-journey-phase="loading"]) .loading-screen {
 
 .loading-mosaic-grid > i {
   display: block;
-  border: 1px solid #10171c;
-  border-radius: 1px;
-  background: #0a0f13;
+  border: 0;
+  border-radius: 2px;
+  background: #101010;
 }
 
 .loading-mosaic-snake {
@@ -225,7 +233,7 @@ button {
 
 .canvas-shell {
   overflow: hidden;
-  background: #020812;
+  background: #000;
 }
 
 #autonomy-canvas {
@@ -411,7 +419,6 @@ button {
 
 .status-pill:hover,
 .status-pill:focus-visible {
-  transform: translateY(-1px);
   box-shadow: 0 18px 50px rgba(4, 12, 18, 0.28);
   outline: none;
 }
@@ -628,7 +635,7 @@ body[data-journey-phase="ready"] .journey-hud {
   height: min(210px, 18vw);
   border: 1px solid rgba(255, 255, 255, 0.7);
   border-radius: var(--sim-radius);
-  background: #020812;
+  background: #000;
   box-shadow: var(--sim-shadow);
   pointer-events: none;
 }

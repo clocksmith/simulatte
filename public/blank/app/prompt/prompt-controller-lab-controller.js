@@ -31,7 +31,10 @@
     syncReadouts, syncSpecPreview,
   } = workers;
   const { logGraphDebug, syncWorldModelReceipt } = training;
-  const { createConstructionSearchState, observeConstructionSceneProof } = construction;
+  const {
+    createConstructionSearchState, observeConstructionSceneProof,
+    syncConstructionSearchDataset, constructionSearchSpec,
+  } = construction;
 
     function createBrowserLab(root = document) {
         const canvas = root.getElementById('physics-canvas');

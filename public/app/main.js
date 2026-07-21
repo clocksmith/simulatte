@@ -38,9 +38,8 @@
     'safety-explorer-v1': 'Safety Explorer',
     'sun-walker-v1': 'Sun Walker',
   });
-  // Owns the landing page + symmetry animation and gates asset loading: nothing in
-  // start() runs until the visitor picks a tier here.
-  let landingAnimator = null;
+  // Owns the landing page and gates asset loading: nothing in start() runs until
+  // the visitor picks a tier here.
 
   async function start(initialTier = 'city') {
     if (!experienceCameraApi?.applyInitialCamera || !experienceCameraApi?.runCameraMode) throw new Error('Experience camera dependency is unavailable');
@@ -185,7 +184,6 @@
           await placeResolver.unload();
           placeResolver = null;
         }
-        landingAnimator?.stop();
         tierVisualizer?.stop();
         await extensions.dispose();
         profileSelectUi?.dispose();
@@ -575,7 +573,6 @@
         stopLoop,
         tierVisualizer,
         profileSelectUi,
-        getLandingAnimator: () => landingAnimator,
       });
 
       // Route to the tier chosen on the landing page. Assets load now — on selection,
@@ -592,7 +589,7 @@
       'mission-field', 'scenario-field', 'scenario-label', 'scenario-description', 'scenario-seed', 'mission-input', 'mission-error', 'place-resolution-lane', 'place-lane-note', 'model-selection-controls', 'shuffle-button', 'shuffle-label', 'start-button', 'start-label', 'pause-button', 'resume-button', 'step-button', 'reset-button', 'replay-button', 'new-mission-button', 'what-if-button', 'export-button',
       'dock-more-button', 'dock-more-menu',
       'runtime-status', 'runtime-toggle', 'runtime-details', 'runtime-details-close', 'application-profile', 'application-profile-control', 'application-profile-trigger', 'application-profile-label', 'application-profile-options', 'render-identity', 'autonomy-canvas', 'follow-minimap', 'decision-title', 'decision-meta',
-      'world-tier-control', 'world-tier-trigger', 'world-tier-label', 'world-tier-options', 'overlay-canvas', 'world-tiers-landing-page', 'symmetry-canvas',
+      'world-tier-control', 'world-tier-trigger', 'world-tier-label', 'world-tier-options', 'overlay-canvas', 'world-tiers-landing-page',
       'bet-list', 'gate-list', 'trace-list', 'route-formula', 'route-stats', 'route-components',
       'retrieval-query', 'retrieval-candidates', 'rerank-candidates', 'retrieval-stats', 'settlement-math',
       'reranker-proof', 'place-resolution-proof',
@@ -976,9 +973,7 @@
 
   if (typeof document !== 'undefined') {
     const launch = () => { void SimulatteWorldTiersBoot.bootLanding({
-      MultiTier: SimulatteMultiTierVisualizer,
       startApp: start,
-      setLandingAnimator: (animator) => { landingAnimator = animator; },
     }).catch((error) => {
       try { failRuntime(collectElements(), error); }
       catch (boundaryError) { log.error('runtime.bootstrap_failed', log.serializeError(boundaryError)); }

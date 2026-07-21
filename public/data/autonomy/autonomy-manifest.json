@@ -77,7 +77,7 @@
   "modelRuntimeLock": {
     "id": "simulatte-doppler-qwen-runtime-lock",
     "path": "../simulatte-embedder/model-runtime-lock.json",
-    "sha256": "967ba04e0c036cb2ee1df98843e0d47365b72460cd84e91992a28f82fa5f626f"
+    "sha256": "fe25520f306c8858f0baeefe8f4705341fc9b347c797dbde58f9a5754a63689f"
   },
   "occurrenceCatalog": {
     "id": "nyc-replay-patterns-v1",

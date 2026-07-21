@@ -5,157 +5,6 @@
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createMultiTierVisualizer() {
 
   // =========================================================================
-  // 1. RECURSIVE SYMMETRY LANDING PAGE ANIMATOR
-  // =========================================================================
-  class SymmetryAnimator {
-    constructor(canvas) {
-      this.canvas = canvas;
-      this.ctx = canvas.getContext('2d');
-      this.active = false;
-      this.time = 0;
-      this.hoveredTier = null;
-      this.animationFrame = null;
-      this.width = 0;
-      this.height = 0;
-
-      // Base parameters that morph depending on active hover
-      this.params = {
-        symmetry: 5,
-        branches: 4,
-        scale: 0.62,
-        speed: 0.008,
-        colorAngle: 180,
-        glowIntensity: 12
-      };
-
-      this.resize();
-      window.addEventListener('resize', () => this.resize());
-    }
-
-    resize() {
-      const rect = this.canvas.getBoundingClientRect();
-      this.width = this.canvas.width = rect.width || window.innerWidth;
-      this.height = this.canvas.height = rect.height || window.innerHeight;
-    }
-
-    start() {
-      if (this.active) return;
-      this.active = true;
-      this.loop();
-    }
-
-    stop() {
-      this.active = false;
-      if (this.animationFrame) {
-        cancelAnimationFrame(this.animationFrame);
-        this.animationFrame = null;
-      }
-    }
-
-    setHoveredTier(tier) {
-      this.hoveredTier = tier;
-    }
-
-    loop() {
-      if (!this.active) return;
-      this.time += 1;
-      this.updateParams();
-      this.draw();
-      this.animationFrame = requestAnimationFrame(() => this.loop());
-    }
-
-    updateParams() {
-      // Smoothly interpolate parameters based on hovered tier
-      let target = {
-        symmetry: 5,
-        branches: 4,
-        scale: 0.62,
-        speed: 0.006,
-        colorAngle: 200,
-        glowIntensity: 8
-      };
-
-      switch (this.hoveredTier) {
-        case 'city':
-          target = { symmetry: 4, branches: 5, scale: 0.58, speed: 0.004, colorAngle: 160, glowIntensity: 12 };
-          break;
-        case 'country':
-          target = { symmetry: 6, branches: 4, scale: 0.65, speed: 0.008, colorAngle: 120, glowIntensity: 10 };
-          break;
-        case 'world':
-          target = { symmetry: 8, branches: 3, scale: 0.68, speed: 0.005, colorAngle: 220, glowIntensity: 15 };
-          break;
-        case 'solar-system':
-          target = { symmetry: 5, branches: 6, scale: 0.60, speed: 0.012, colorAngle: 40, glowIntensity: 18 };
-          break;
-        case 'star-chart':
-          target = { symmetry: 12, branches: 3, scale: 0.70, speed: 0.003, colorAngle: 280, glowIntensity: 25 };
-          break;
-      }
-
-      const ease = 0.08;
-      for (const key in this.params) {
-        this.params[key] += (target[key] - this.params[key]) * ease;
-      }
-    }
-
-    draw() {
-      const { ctx, width, height, time, params } = this;
-      ctx.clearRect(0, 0, width, height);
-
-      const cx = width / 2;
-      const cy = height / 2;
-      const baseRadius = Math.min(width, height) * 0.28;
-
-      ctx.lineWidth = 1.2;
-      ctx.lineCap = 'round';
-      ctx.shadowBlur = params.glowIntensity;
-
-      const sym = Math.round(params.symmetry);
-      const angleStep = (2 * Math.PI) / sym;
-
-      for (let s = 0; s < sym; s++) {
-        ctx.save();
-        ctx.translate(cx, cy);
-        // Add a rotating coordinate space per symmetry slice
-        ctx.rotate(s * angleStep + time * params.speed);
-
-        // Map colors smoothly based on parameter settings
-        const hue = (params.colorAngle + s * (360 / sym) + time * 0.1) % 360;
-        ctx.strokeStyle = `hsla(${hue}, 85%, 65%, 0.45)`;
-        ctx.shadowColor = `hsla(${hue}, 90%, 60%, 0.8)`;
-
-        this.drawRecursiveBranch(ctx, 0, 0, baseRadius, time, params.branches, params.scale);
-
-        ctx.restore();
-      }
-    }
-
-    drawRecursiveBranch(ctx, x, y, len, time, depth, scale) {
-      if (depth <= 0 || len < 6) return;
-
-      ctx.beginPath();
-      // Draw dynamic loop arcs
-      const theta = time * 0.015;
-      const endX = x + Math.cos(theta) * len;
-      const endY = y + Math.sin(theta) * len;
-
-      ctx.moveTo(x, y);
-      ctx.quadraticCurveTo(
-        x + Math.cos(theta + 0.5) * len * 0.5,
-        y + Math.sin(theta - 0.5) * len * 0.5,
-        endX,
-        endY
-      );
-      ctx.stroke();
-
-      const nextLen = len * scale;
-      // Draw sub branches
-      this.drawRecursiveBranch(ctx, endX, endY, nextLen, time, depth - 1, scale);
-    }
-  }
-
-  // =========================================================================
   // 2. INTERACTIVE Scales VISUALIZER (Solar, Universe, World, Country)
   // =========================================================================
   class TierVisualizer {
@@ -336,10 +185,10 @@
       } else if (tierName === 'country') {
         this.zoom = 60.0;
         this.updateHudContent('Country', 'Rendering regional highway networks...', {}, '');
-        // For country scale, render a gorgeous topological graph simulation of Liechtenstein / Andorra regional routing
+        // For country scale, render a gorgeous topological graph simulation of United States regional routing
         this.data = this.generateRegionalGraph();
         this.updateHudContent('Country', 'Transit network and highway graph traversal paths across regional bounds.', {
-          'Target extract': 'Liechtenstein PBF extract',
+          'Target extract': 'United States PBF extract',
           'Graph Nodes': this.data.nodes.length,
           'Graph Links': this.data.links.length,
           'Autonomous Fleet': '250 agents'
@@ -718,13 +567,9 @@
   }
 
   // --- API DECLARATION ---
-  function createSymmetryAnimator(canvas) {
-    return new SymmetryAnimator(canvas);
-  }
-
   function createTierVisualizer(canvas, containerId) {
     return new TierVisualizer(canvas, containerId);
   }
 
-  return { createSymmetryAnimator, createTierVisualizer };
+  return { createTierVisualizer };
 });

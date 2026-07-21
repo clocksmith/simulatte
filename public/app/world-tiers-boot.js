@@ -15,7 +15,7 @@
   // already-started app. Returns selectWorldTier so the caller can route to the
   // initial tier. `ctx` supplies the start() closure dependencies.
   function wireTierControls(ctx) {
-    const { elements, stopLoop, tierVisualizer, profileSelectUi, getLandingAnimator } = ctx;
+    const { elements, stopLoop, tierVisualizer, profileSelectUi } = ctx;
 
     function closeWorldTierDropdown() {
       elements.worldTierControl.classList.remove('open');
@@ -45,9 +45,8 @@
     });
 
     async function selectWorldTier(tier) {
-      // Hide the landing page and stop the symmetry animation if still visible.
+      // Hide the landing page if still visible.
       elements.worldTiersLandingPage.classList.add('hidden');
-      getLandingAnimator()?.stop();
       // Stop the city loop when routing to a non-city scale.
       if (tier !== 'city') stopLoop();
       tierOptions.forEach((opt) => opt.classList.toggle('selected', opt.dataset.value === tier));
@@ -75,37 +74,51 @@
   }
 
   // Show the tier selector immediately and gate asset loading until the visitor
-  // picks a tier. The symmetry animation is the only thing that runs before a pick.
+  // picks a tier. Hovering the tier cards parallaxes the wordmark + accent lines.
   async function bootLanding(ctx) {
-    const { MultiTier, startApp, setLandingAnimator } = ctx;
+    const { startApp } = ctx;
     const landing = document.getElementById('world-tiers-landing-page');
-    const symmetryCanvas = document.getElementById('symmetry-canvas');
-    if (!landing || !symmetryCanvas) { await startApp('city'); return; }
+    if (!landing) { await startApp('city'); return; }
 
-    const landingAnimator = MultiTier.createSymmetryAnimator(symmetryCanvas);
-    setLandingAnimator(landingAnimator);
-    landingAnimator.start();
-
+    const view = landing.ownerDocument.defaultView || window;
     let chosen = false;
     const chooseTier = async (tier) => {
       if (chosen) return;
       chosen = true;
+      // Fade the splash out fast (CSS ~120ms) and let it fully clear BEFORE kicking off
+      // the heavy asset load. Otherwise the load blocks the main thread mid-fade and the
+      // loading screen behind bleeds through a half-faded splash.
       landing.classList.add('hidden');
-      landingAnimator.stop();
+      await new Promise((resolve) => view.setTimeout(resolve, 160));
       await startApp(tier);
     };
 
-    landing.querySelectorAll('.tier-card').forEach((card) => {
-      card.addEventListener('mousemove', (event) => {
-        const rect = card.getBoundingClientRect();
-        card.style.setProperty('--mouse-x', `${event.clientX - rect.left}px`);
-        card.style.setProperty('--mouse-y', `${event.clientY - rect.top}px`);
+    // Parallax: track the pointer across the tier grid and hand a normalized
+    // offset (-1..1 on each axis) to the wordmark via CSS custom properties.
+    // The header layers translate by different magnitudes for a depth effect.
+    const grid = landing.querySelector('.tier-cards-grid');
+    const cards = Array.from(landing.querySelectorAll('.tier-card'));
+    const setParallax = (px, py) => {
+      landing.style.setProperty('--parallax-x', px.toFixed(3));
+      landing.style.setProperty('--parallax-y', py.toFixed(3));
+    };
+    if (grid) {
+      grid.addEventListener('mousemove', (event) => {
+        const rect = grid.getBoundingClientRect();
+        const px = ((event.clientX - rect.left) / rect.width - 0.5) * 2;
+        const py = ((event.clientY - rect.top) / rect.height - 0.5) * 2;
+        landing.classList.add('is-parallax');
+        setParallax(px, py);
       });
-      card.addEventListener('mouseenter', () => landingAnimator.setHoveredTier(card.dataset.tier));
-      card.addEventListener('mouseleave', () => landingAnimator.setHoveredTier(null));
+      grid.addEventListener('mouseleave', () => {
+        landing.classList.remove('is-parallax');
+        setParallax(0, 0);
+      });
+    }
+
+    cards.forEach((card) => {
       card.addEventListener('click', () => { void chooseTier(card.dataset.tier); });
     });
-    landing.querySelector('.landing-skip-btn')?.addEventListener('click', () => { void chooseTier('city'); });
   }
 
   return { wireTierControls, bootLanding };

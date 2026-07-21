@@ -8,7 +8,7 @@
     "artifact": "./simulatte-embedder/model-runtime-lock.json",
     "artifactHash": {
       "alg": "sha256",
-      "hex": "967ba04e0c036cb2ee1df98843e0d47365b72460cd84e91992a28f82fa5f626f"
+      "hex": "fe25520f306c8858f0baeefe8f4705341fc9b347c797dbde58f9a5754a63689f"
     }
   },
   "staticCatalogs": [

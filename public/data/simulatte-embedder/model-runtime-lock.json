@@ -112,8 +112,8 @@
     "artifact": {
       "id": "simulatte-browser-compact-classifiers-v1",
       "path": "../simulatte-compact-classifiers.js",
-      "sha256": "1fa9fd9ee82e0f9cb881fbeddd4f62e74a55ef74a16f91b01ebff095922ea1fc",
-      "sizeBytes": 767793
+      "sha256": "ea3f89e658691090fe92e09aa5ee6f9a1b975a571edbfdf263f8198cf5a6270a",
+      "sizeBytes": 767938
     },
     "execution": {
       "defaultCompactCandidateId": "multinomial-nb-tfidf-head",

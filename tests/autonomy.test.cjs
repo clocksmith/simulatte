@@ -1319,11 +1319,11 @@ test('loading mosaic loops a seven-segment snake through the clockwise grid spir
   assert.equal(headFrames.find((frame) => frame.offset === loadingMosaicApi.TRAVEL_END).opacity, 1);
   assert.equal(tailFrames.find((frame) => frame.offset === loadingMosaicApi.TRAVEL_END).opacity, loadingMosaicApi.trailOpacity(6));
   assert.deepEqual(loadingMosaicApi.TRAIL_OPACITIES, [1, 0.88, 0.76, 0.64, 0.52, 0.4, 0.3]);
-  assert.equal(loadingMosaicApi.CYCLE_DURATION_MS, 4000);
+  assert.equal(loadingMosaicApi.CYCLE_DURATION_MS, 2000);
   assert.equal(loadingMosaicApi.CELL_GAP_PX, 6);
-  assert.equal(loadingMosaicApi.SNAKE_TRAVEL_DURATION_MS, 2288);
-  assert.equal(loadingMosaicApi.SNAKE_COLLAPSE_DURATION_MS, 312);
-  assert.equal(loadingMosaicApi.ROTATION_DURATION_MS, 975);
+  assert.equal(loadingMosaicApi.SNAKE_TRAVEL_DURATION_MS, 1200);
+  assert.equal(loadingMosaicApi.SNAKE_COLLAPSE_DURATION_MS, 150);
+  assert.equal(loadingMosaicApi.ROTATION_DURATION_MS, 500);
   assert.ok(Math.abs(((loadingMosaicApi.TURN_END - loadingMosaicApi.TURN_START) * loadingMosaicApi.CYCLE_DURATION_MS) - loadingMosaicApi.ROTATION_DURATION_MS) < 0.001);
   const tailTurnFrames = tailFrames.filter((frame) => frame.offset >= loadingMosaicApi.TURN_START && frame.offset <= loadingMosaicApi.TURN_END);
   assert.deepEqual(tailTurnFrames.map((frame) => frame.transform), [
@@ -1335,20 +1335,39 @@ test('loading mosaic loops a seven-segment snake through the clockwise grid spir
   const hopOffsets = tailTurnFrames.slice(1).map((frame) => frame.offset);
   const hopIntervals = hopOffsets.map((offset, index) => offset - (index === 0 ? loadingMosaicApi.TURN_START : hopOffsets[index - 1]));
   assert.ok(hopIntervals.every((interval) => Math.abs(interval - hopIntervals[0]) < Number.EPSILON));
-  assert.deepEqual(loadingMosaicApi.rotationCycleKeyframes().map((frame) => frame.transform), [
-    'rotate(0deg)', 'rotate(0deg)', 'rotate(-90deg)', 'rotate(-90deg)',
+  // Rotation turns in lock step with the diagonal: 30° per hop, snapping on the same offsets.
+  assert.equal(loadingMosaicApi.ROTATION_STEP_DEG, 30);
+  const rotation = loadingMosaicApi.rotationCycleKeyframes();
+  assert.deepEqual(rotation.map((frame) => frame.transform), [
+    'rotate(0deg)', 'rotate(0deg)', 'rotate(-30deg)', 'rotate(-60deg)', 'rotate(-90deg)', 'rotate(-90deg)',
   ]);
-  assert.equal(loadingMosaicApi.rotationCycleKeyframes()[1].offset, loadingMosaicApi.TURN_START);
-  assert.equal(loadingMosaicApi.rotationCycleKeyframes()[2].offset, loadingMosaicApi.TURN_END);
-  const topColorFrames = loadingMosaicApi.snakeColorKeyframes(6);
-  assert.ok(topColorFrames.every((frame, index) => index === 0 || frame.offset > topColorFrames[index - 1].offset));
-  assert.deepEqual(topColorFrames.slice(1, 5).map((frame) => frame.color), [
-    'hsl(290 88% 62%)',
-    'hsl(210 88% 62%)',
-    'hsl(56 88% 62%)',
+  assert.ok(rotation.every((frame) => frame.offset === 1 || frame.easing === 'steps(1, end)'));
+  assert.equal(rotation[1].offset, loadingMosaicApi.TURN_START);
+  assert.deepEqual(rotation.slice(2, 5).map((frame) => frame.offset), hopOffsets);
+  assert.equal(rotation[4].offset, loadingMosaicApi.TURN_END);
+  // The crawl is a fixed rainbow: the head leads with the same hue every iteration,
+  // and the whole body is invariant to iteration and hop count.
+  assert.equal(loadingMosaicApi.segmentColor(0, 0, 0, false), 'hsl(0 88% 62%)');
+  assert.equal(loadingMosaicApi.segmentColor(0, 5, 0, false), 'hsl(0 88% 62%)');
+  assert.equal(loadingMosaicApi.segmentColor(6, 3, 0, false), 'hsl(309 88% 62%)');
+  // The palette iteration lives on the diagonal shift: the single visible cell steps
+  // -2 hues per completed hop, indexed into the ordered palette.
+  assert.deepEqual([0, 1, 2, 3].map((hops) => loadingMosaicApi.segmentColor(6, 0, hops, true)), [
+    'hsl(309 88% 62%)',
+    'hsl(206 88% 62%)',
+    'hsl(103 88% 62%)',
     'hsl(0 88% 62%)',
   ]);
-  assert.equal(topColorFrames[5].color, topColorFrames[6].color);
+  // The shift's start hue advances +1 per iteration, so it walks cleanly through every hue.
+  assert.equal(loadingMosaicApi.segmentColor(6, 1, 0, true), 'hsl(0 88% 62%)');
+  assert.equal(loadingMosaicApi.segmentColor(6, 2, 0, true), 'hsl(51 88% 62%)');
+  // -2 per hop over CENTER hops is -(N-1) === +1 (mod N): the shift ends where the next one starts.
+  assert.equal(loadingMosaicApi.segmentColor(6, 0, 3, true), loadingMosaicApi.segmentColor(6, 1, 0, true));
+  // Hop counting is deterministic on cycle phase and clamps to CENTER after the turn.
+  assert.equal(loadingMosaicApi.completedHopsAt(0), 0);
+  assert.equal(loadingMosaicApi.completedHopsAt(loadingMosaicApi.TURN_START), 0);
+  assert.equal(loadingMosaicApi.completedHopsAt(loadingMosaicApi.TURN_END), 3);
+  assert.equal(loadingMosaicApi.completedHopsAt(1), 3);
   assert.equal(headFrames.at(-1).transform, loadingMosaicApi.cellTransform([0, 0]));
   assert.equal(tailFrames.at(-1).transform, loadingMosaicApi.cellTransform([0, 0]));
 });
