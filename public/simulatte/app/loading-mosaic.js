@@ -16,7 +16,8 @@
   const SNAKE_COLLAPSE_DURATION_MS = 150;
   const TURN_DELAY_MS = 50;
   const ROTATION_DURATION_MS = 500;
-  const TURN_PAUSE_FRACTION = 0.76;
+  const TURN_ANIMATION_MS = 50;
+  const TURN_PAUSE_FRACTION = 1 - (TURN_ANIMATION_MS / (ROTATION_DURATION_MS / CENTER));
   // Hold at the top-left corner after the diagonal shift before the cycle repeats.
   const CORNER_PAUSE_MS = 850;
   const CYCLE_DURATION_MS = SNAKE_TRAVEL_DURATION_MS + SNAKE_COLLAPSE_DURATION_MS
