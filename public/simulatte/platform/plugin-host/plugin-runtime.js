@@ -220,10 +220,18 @@
     const tasks = [];
     for (const row of rows) {
       const pluginBaseUrl = pluginPaths.pluginBaseUrl(baseUrl, row.manifest.id);
-      tasks.push(artifactStore
-        .resolveText({ id: row.manifest.id, ...row.manifest.entry }, { baseUrl: pluginBaseUrl, key: `plugin:${row.manifest.id}` })
-        .then((loaded) => ({ pluginId: row.manifest.id, integrity: loaded.integrity, url: loaded.url })));
+      // Plugin .js load as <script> tags carrying a Subresource Integrity hash, so the
+      // browser refuses to execute any tampered module (fail-closed: the global never
+      // registers and activation fails). We therefore trust the declared integrity here
+      // instead of re-fetching the same bytes, which halved plugin boot round-trips and
+      // lets /shared plugin .js be cached immutably. Non-.js resources are not script
+      // tags, so they are still fetched and hashed.
+      tasks.push(Promise.resolve({ pluginId: row.manifest.id, integrity: row.manifest.entry.integrity, url: new URL(row.manifest.entry.path, pluginBaseUrl).toString() }));
       for (const resource of row.manifest.resources) {
+        if (resource.path.endsWith('.js')) {
+          tasks.push(Promise.resolve({ pluginId: row.manifest.id, path: resource.path, integrity: resource.integrity, url: new URL(resource.path, pluginBaseUrl).toString() }));
+          continue;
+        }
         tasks.push(artifactStore
           .resolveText({ id: `${row.manifest.id}:${resource.path}`, ...resource }, { baseUrl: pluginBaseUrl, key: `plugin:${row.manifest.id}:${resource.path}` })
           .then((verified) => ({ pluginId: row.manifest.id, path: resource.path, integrity: verified.integrity, url: verified.url })));

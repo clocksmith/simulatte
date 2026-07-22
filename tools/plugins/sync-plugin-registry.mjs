@@ -77,11 +77,19 @@ function syncIndexScripts(rows, shouldWrite) {
     ...manifest.resources.filter((resource) => resource.path.endsWith('.js')).map((resource) => `./shared/plugins/${manifest.id}/${resource.path.replace(/^\.\//, '')}`),
     `./shared/plugins/${manifest.id}/${manifest.entry.path.replace(/^\.\//, '')}`,
   ]);
-  const block = [start, ...paths.map((scriptPath) => `  <script defer src="${scriptPath}?v=${version}"></script>`), end].join('\n');
+  const block = [start, ...paths.map((scriptPath) => `  <script defer src="${scriptPath}?v=${version}" integrity="${subresourceIntegrity(scriptPath)}"></script>`), end].join('\n');
   const expected = `${source.slice(0, startIndex)}${block}${source.slice(endIndex + end.length)}`;
   if (source === expected) return;
   if (!shouldWrite) fail('Generated plugin script inventory is stale; run npm run plugins:sync');
   fs.writeFileSync(INDEX, expected);
+}
+
+// Base64 SHA-384 for the <script> integrity attribute (SRI needs base64; the manifest
+// stores the same hash in hex). The browser enforces this on load, so verifyEntries no
+// longer re-fetches plugin .js and /shared plugin .js can be cached immutably.
+function subresourceIntegrity(scriptPath) {
+  const filePath = path.join(ROOT, 'public', scriptPath.replace(/^\.\//, ''));
+  return `sha384-${crypto.createHash('sha384').update(fs.readFileSync(filePath)).digest('base64')}`;
 }
 
 function sortValue(value) {
