@@ -839,14 +839,14 @@
       if (data.boundary && data.boundary.geometry) {
         const geometry = data.boundary.geometry;
         const rings = geometry.type === 'MultiPolygon'
-          ? geometry.coordinates.map((polygon) => polygon[0]).flat(1)
+          ? geometry.coordinates.flat(1)
           : geometry.type === 'Polygon'
             ? geometry.coordinates
             : [];
         if (rings.length > 0) {
-          ctx.strokeStyle = 'rgba(51, 255, 102, 0.35)';
+          ctx.strokeStyle = 'rgba(51, 255, 102, 0.55)';
           ctx.fillStyle = 'rgba(24, 24, 24, 0.65)';
-          ctx.lineWidth = 1.2;
+          ctx.lineWidth = 1.4;
           rings.forEach((ring) => {
             if (!Array.isArray(ring) || ring.length < 3) return;
             ctx.beginPath();
@@ -867,12 +867,12 @@
 
       // 2. Draw state boundaries
       if (Array.isArray(data.stateBoundaries) && data.stateBoundaries.length > 0) {
-        ctx.strokeStyle = 'rgba(173, 214, 255, 0.35)';
-        ctx.lineWidth = 0.7;
+        ctx.strokeStyle = 'rgba(173, 214, 255, 0.55)';
+        ctx.lineWidth = 1;
         ctx.setLineDash([5, 4]);
         data.stateBoundaries.forEach((geometry) => {
           const rings = geometry.type === 'MultiPolygon'
-            ? geometry.coordinates.map((polygon) => polygon[0]).flat(1)
+            ? geometry.coordinates.flat(1)
             : geometry.type === 'Polygon'
               ? geometry.coordinates
               : geometry.type === 'LineString'
