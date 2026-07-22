@@ -4,7 +4,7 @@
   const dataCatalog = typeof module === 'object' && module.exports ? require('../data-catalog/immutable-data-catalog.js') : root.SimulatteImmutableDataCatalog;
   const pluginContracts = typeof module === 'object' && module.exports ? require('../contracts/plugin-contracts.js') : root.SimulattePluginContracts;
   const schemaRegistry = typeof module === 'object' && module.exports ? require('../contracts/schema-registry.js') : root.SimulatteSchemaRegistry;
-  const pluginRegistry = typeof module === 'object' && module.exports ? require('../plugin-host/generated-plugin-registry.js') : root.SimulatteGeneratedPluginRegistry;
+  const pluginRegistry = typeof module === 'object' && module.exports ? require('../plugin-host/generated-plugin-registry.js') : (root.SimulatteGeneratedPluginRegistry || root.SimulattePluginRegistry);
   const pluginPaths = typeof module === 'object' && module.exports ? require('../plugin-host/plugin-asset-paths.js') : root.SimulattePluginAssetPaths;
   const receipts = typeof module === 'object' && module.exports ? require('../../runtime/canonical-receipts.js') : root.SimulatteAutonomyReceipts;
   const api = factory(browserTransport, artifactStore, dataCatalog, pluginContracts, schemaRegistry, pluginRegistry, pluginPaths, receipts);

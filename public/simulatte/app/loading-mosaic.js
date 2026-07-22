@@ -134,10 +134,11 @@
   // walks cleanly through every hue across iterations while the active head remains
   // readable.
   function segmentColor(segmentIndex, iteration, completedHops, inTurn) {
-    if (inTurn && segmentIndex === SNAKE_LENGTH - 1) {
-      return colorAt(segmentIndex + iteration + (HEAD_HUE_HOP_STEP * completedHops));
+    const baseIndex = segmentIndex + iteration;
+    if (inTurn && segmentIndex === 0) {
+      return colorAt(baseIndex + (HEAD_HUE_HOP_STEP * completedHops));
     }
-    return colorAt(segmentIndex);
+    return colorAt(baseIndex);
   }
 
   // How many diagonal hops have been completed at a given cycle phase (0..1). The

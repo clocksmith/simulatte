@@ -25,6 +25,20 @@
       "description": "Compare a bounded short-duration Earth-to-Moon transfer scenario.",
       "seed": "orbital-earth-moon-002",
       "scenarioId": "earth-moon-cargo"
+    },
+    {
+      "id": "earth-venus-window",
+      "label": "Earth to Venus launch window",
+      "description": "Search a bounded Earth-to-Venus departure and time-of-flight grid on the pinned JPL Horizons vectors.",
+      "seed": "orbital-earth-venus-003",
+      "scenarioId": "earth-venus-window"
+    },
+    {
+      "id": "earth-jupiter-window",
+      "label": "Earth to Jupiter transfer window",
+      "description": "Search a bounded direct Earth-to-Jupiter two-body transfer; no gravity assist is modeled.",
+      "seed": "orbital-earth-jupiter-004",
+      "scenarioId": "earth-jupiter-window"
     }
   ],
   "plugins": [

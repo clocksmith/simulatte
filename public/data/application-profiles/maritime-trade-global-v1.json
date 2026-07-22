@@ -39,6 +39,13 @@
       "description": "Pinned severe-weather slowdown and port queue scenario.",
       "seed": "maritime-cyclone-004",
       "scenarioId": "north-atlantic-cyclone"
+    },
+    {
+      "id": "panama-capacity-restriction",
+      "label": "Panama Canal capacity restriction",
+      "description": "Transpacific service under a Panama Canal draft/capacity restriction modeled as a queue-and-speed disruption; the governed corridor set has no Panama-transiting lane.",
+      "seed": "maritime-panama-005",
+      "scenarioId": "transpacific-panama-restriction"
     }
   ],
   "plugins": [

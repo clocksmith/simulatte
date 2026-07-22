@@ -1371,21 +1371,21 @@ test('loading mosaic loops a seven-segment snake through the clockwise grid spir
   // The body remains static; during the gathered turn the active head advances
   // through the palette in increments of +2 per completed hop.
   assert.equal(loadingMosaicApi.segmentColor(0, 0, 0, false), 'hsl(0 88% 62%)');
-  assert.equal(loadingMosaicApi.segmentColor(0, 5, 0, false), 'hsl(0 88% 62%)');
-  assert.equal(loadingMosaicApi.segmentColor(6, 3, 0, false), 'hsl(309 88% 62%)');
+  assert.equal(loadingMosaicApi.segmentColor(0, 1, 0, false), 'hsl(51 88% 62%)');
+  assert.equal(loadingMosaicApi.segmentColor(6, 0, 0, false), 'hsl(309 88% 62%)');
   // The palette iteration lives on the diagonal shift: the single visible cell steps
-  // +2 hues per completed hop, indexed into the ordered palette.
-  assert.deepStrictEqual([0, 1, 2, 3].map((hop) => loadingMosaicApi.segmentColor(6, 0, hop, true)), [
-    'hsl(309 88% 62%)',
-    'hsl(206 88% 62%)',
-    'hsl(103 88% 62%)',
+  // +5 hues per completed hop, indexed into the ordered palette.
+  assert.deepStrictEqual([0, 1, 2, 3].map((hop) => loadingMosaicApi.segmentColor(0, 0, hop, true)), [
     'hsl(0 88% 62%)',
+    'hsl(257 88% 62%)',
+    'hsl(154 88% 62%)',
+    'hsl(51 88% 62%)',
   ]);
-  // The shift's start hue advances +1 per iteration, so it walks cleanly through every hue.
-  assert.equal(loadingMosaicApi.segmentColor(6, 1, 0, true), 'hsl(0 88% 62%)');
-  assert.equal(loadingMosaicApi.segmentColor(6, 2, 0, true), 'hsl(51 88% 62%)');
-  // +2 per hop over CENTER hops is +(N-1) === -1 (mod N): the shift ends where the next one starts.
-  assert.equal(loadingMosaicApi.segmentColor(6, 0, 3, true), loadingMosaicApi.segmentColor(6, 1, 0, true));
+  // The spiral head hue advances +1 per iteration, so it starts on the hop 3 hue of the previous iteration.
+  assert.equal(loadingMosaicApi.segmentColor(0, 1, 0, false), 'hsl(51 88% 62%)');
+  assert.equal(loadingMosaicApi.segmentColor(0, 2, 0, false), 'hsl(103 88% 62%)');
+  // Hop 3 of iteration 0 matches the spiral head of iteration 1.
+  assert.equal(loadingMosaicApi.segmentColor(0, 0, 3, true), loadingMosaicApi.segmentColor(0, 1, 0, false));
   // Hop counting is deterministic on cycle phase and clamps to CENTER after the turn.
   assert.equal(loadingMosaicApi.completedHopsAt(0), 0);
   assert.equal(loadingMosaicApi.completedHopsAt(loadingMosaicApi.TURN_START), 0);

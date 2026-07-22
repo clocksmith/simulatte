@@ -24,7 +24,7 @@
         {
           "id": "orbital-transfer-planner-v1",
           "path": "../application-profiles/orbital-transfer-planner-v1.json",
-          "sha256": "f5fc19e8eb1e9b8f5d0bc40da6657430aff56ee1227b6b9ce6db608676d7ad8d"
+          "sha256": "0091dced08a3358e68fd03f058aa88f1ea78ebb009cda22adbeafefd72cc1016"
         }
       ],
       "world": {
@@ -54,7 +54,7 @@
         {
           "id": "maritime-trade-global-v1",
           "path": "../application-profiles/maritime-trade-global-v1.json",
-          "sha256": "d0222cdf847d7b659719eb1ec9b033d09ea191be2bba07ee2e8b0f0d6218e7d4"
+          "sha256": "93d7eb97e4f342b62478fbb57805d1ea3893af6d796785cf000f6b8204824b0a"
         }
       ],
       "world": {
