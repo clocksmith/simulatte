@@ -560,11 +560,11 @@ function pluginFeatureExpression({ expectsP2pDelivery, expectsSunWalker, expects
 }
 
 function profileDefinition(profileId) {
-  const manifest = JSON.parse(fs.readFileSync(path.join(PUBLIC, 'data', 'autonomy', 'autonomy-manifest.json'), 'utf8'));
+  const manifest = JSON.parse(fs.readFileSync(path.join(PUBLIC, 'data', 'simulatte', 'autonomy-manifest.json'), 'utf8'));
   const references = [manifest.applicationProfile, ...(manifest.applicationProfiles || [])];
   const reference = references.find((row) => row.id === profileId);
   if (!reference) throw new Error(`Autonomy browser profile ${profileId} is not declared`);
-  const profilePath = path.resolve(PUBLIC, 'data', 'autonomy', reference.path);
+  const profilePath = path.resolve(PUBLIC, 'data', 'simulatte', reference.path);
   const profile = JSON.parse(fs.readFileSync(profilePath, 'utf8'));
   return profile;
 }
