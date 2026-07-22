@@ -1,0 +1,53 @@
+{
+  "schema": "simulatte.interstellarScenarioNetwork.v1",
+  "id": "interstellar.scenario.network.v1",
+  "title": "Interstellar Store-and-Forward Optical Relay Scenarios",
+  "scenarios": [
+    {
+      "id": "sol-proxima-direct",
+      "name": "Sol-Proxima Direct Optical Link",
+      "sourceId": "gaia-sol",
+      "targetId": "gaia-proxima",
+      "relayHops": [
+        "gaia-sol",
+        "gaia-proxima"
+      ],
+      "transceiverId": "sol-primary-gateway"
+    },
+    {
+      "id": "sol-alpha-centauri-relay",
+      "name": "Sol-Alpha Centauri Multi-Hop Relay",
+      "sourceId": "gaia-sol",
+      "targetId": "gaia-alpha-cen-a",
+      "relayHops": [
+        "gaia-sol",
+        "gaia-proxima",
+        "gaia-alpha-cen-a"
+      ],
+      "transceiverId": "proxima-relay-buoy"
+    },
+    {
+      "id": "nearest-ten-star-store-forward",
+      "name": "Nearest Ten Stars Store-and-Forward Constellation",
+      "sourceId": "gaia-sol",
+      "targetId": "gaia-barnard",
+      "relayHops": [
+        "gaia-sol",
+        "gaia-alpha-cen-a",
+        "gaia-barnard"
+      ],
+      "transceiverId": "sol-primary-gateway"
+    },
+    {
+      "id": "sirius-high-power-link",
+      "name": "Sirius High-Power Deep Space Trunk",
+      "sourceId": "gaia-sol",
+      "targetId": "gaia-sirius-a",
+      "relayHops": [
+        "gaia-sol",
+        "gaia-sirius-a"
+      ],
+      "transceiverId": "sirius-high-power-array"
+    }
+  ]
+}

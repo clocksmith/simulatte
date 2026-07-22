@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Simulatte multi-scale tier plugin presentation",
+  "type": "object",
+  "required": ["schema", "coordinateSystem"],
+  "additionalProperties": false,
+  "properties": {
+    "schema": { "const": "simulatte.pluginPresentation.v3" },
+    "coordinateSystem": {
+      "enum": [
+        "wgs84",
+        "equirectangular-planar",
+        "heliocentric-ecliptic-au",
+        "icrs-cartesian-pc"
+      ]
+    },
+    "epoch": { "type": "string" },
+    "markers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "position"],
+        "properties": {
+          "id": { "type": "string" },
+          "position": { "type": "array", "items": { "type": "number" } },
+          "label": { "type": "string" },
+          "tone": { "type": "string" },
+          "radius": { "type": "number" }
+        }
+      }
+    },
+    "paths": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "coordinates"],
+        "properties": {
+          "id": { "type": "string" },
+          "coordinates": { "type": "array", "items": { "type": "array", "items": { "type": "number" } } },
+          "tone": { "type": "string" },
+          "width": { "type": "number" }
+        }
+      }
+    },
+    "actors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "position"],
+        "properties": {
+          "id": { "type": "string" },
+          "position": { "type": "array", "items": { "type": "number" } },
+          "label": { "type": "string" },
+          "tone": { "type": "string" }
+        }
+      }
+    },
+    "areas": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "coordinates"],
+        "properties": {
+          "id": { "type": "string" },
+          "coordinates": { "type": "array" },
+          "tone": { "type": "string" }
+        }
+      }
+    },
+    "cameraTargets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "center"],
+        "properties": {
+          "id": { "type": "string" },
+          "center": { "type": "array", "items": { "type": "number" } }
+        }
+      }
+    }
+  }
+}

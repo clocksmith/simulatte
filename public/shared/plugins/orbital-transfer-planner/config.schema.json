@@ -1,0 +1,10 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Orbital Transfer Planner Config",
+  "type": "object",
+  "required": ["defaultArchetype", "defaultDepotId"],
+  "properties": {
+    "defaultArchetype": { "type": "string" },
+    "defaultDepotId": { "type": "string" }
+  }
+}

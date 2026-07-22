@@ -16,8 +16,9 @@
   const SNAKE_COLLAPSE_DURATION_MS = 150;
   const TURN_DELAY_MS = 50;
   const ROTATION_DURATION_MS = 500;
+  const TURN_PAUSE_FRACTION = 0.76;
   // Hold at the top-left corner after the diagonal shift before the cycle repeats.
-  const CORNER_PAUSE_MS = 300;
+  const CORNER_PAUSE_MS = 850;
   const CYCLE_DURATION_MS = SNAKE_TRAVEL_DURATION_MS + SNAKE_COLLAPSE_DURATION_MS
     + TURN_DELAY_MS + ROTATION_DURATION_MS + CORNER_PAUSE_MS;
   const ROTATION_STEP_DEG = 90 / CENTER;
@@ -30,6 +31,7 @@
   const TURN_START = (SNAKE_TRAVEL_DURATION_MS + SNAKE_COLLAPSE_DURATION_MS + TURN_DELAY_MS) / CYCLE_DURATION_MS;
   const TURN_END = (SNAKE_TRAVEL_DURATION_MS + SNAKE_COLLAPSE_DURATION_MS + TURN_DELAY_MS + ROTATION_DURATION_MS) / CYCLE_DURATION_MS;
   const COLOR_CYCLE_COUNT = ROYGBIV_HUES.length;
+  const HEAD_HUE_HOP_STEP = 5;
 
   function spiralCells(size) {
     if (!Number.isInteger(size) || size < 1) throw new Error(`Loading mosaic expected a positive integer size, received ${size}`);
@@ -125,14 +127,14 @@
   // Deterministic color, indexed into the ordered ROYGBIV palette — no timeline to
   // sample. The crawl is a FIXED rainbow: segment 0 (the head) always leads with hue 0
   // and the body fades back to the tail, unchanged from iteration to iteration. The
-  // palette iteration lives entirely on the diagonal shift: while the snake is gathered
-  // for the turn only the top z-layer is on screen, and that single cell carries the
-  // color. Its start hue advances +1 per iteration and it steps -2 per completed hop —
-  // -2 * CENTER = -(N-1) === +1 (mod N) — so the shift walks cleanly through every hue
-  // across iterations while the head stays put.
+  // palette iteration lives on the diagonal shift: while the snake is gathered for the
+  // turn only the top z-layer is on screen, and that single cell carries the color. Its
+  // start hue advances +1 per iteration and advances +2 per completed hop — so the shift
+  // walks cleanly through every hue across iterations while the active head remains
+  // readable.
   function segmentColor(segmentIndex, iteration, completedHops, inTurn) {
     if (inTurn && segmentIndex === SNAKE_LENGTH - 1) {
-      return colorAt(segmentIndex + iteration - (2 * completedHops));
+      return colorAt(segmentIndex + iteration + (HEAD_HUE_HOP_STEP * completedHops));
     }
     return colorAt(segmentIndex);
   }
@@ -144,19 +146,32 @@
     return Math.min(CENTER, Math.floor(((phase - TURN_START) / (TURN_END - TURN_START)) * CENTER));
   }
 
-  // The grid turns in lock step with the diagonal cell: it holds still through the
-  // crawl, then jumps ROTATION_STEP_DEG (90 / CENTER = 30°) at each diagonal hop, so
-  // one hop == one 30° step. steps(1, end) makes each turn snap exactly on the hop.
+  // The grid turns in lock step with the diagonal cell: it holds during each hop and then
+  // quickly rotates by ROTATION_STEP_DEG (90 / CENTER = 30°). This makes the turn feel
+  // staged while preserving the existing hop timing envelope.
   function rotationCycleKeyframes() {
     const frames = [
       { transform: 'rotate(0deg)', offset: 0, easing: 'steps(1, end)' },
       { transform: 'rotate(0deg)', offset: TURN_START, easing: 'steps(1, end)' },
     ];
+    const turnSpan = TURN_END - TURN_START;
+    const hopSpan = turnSpan / CENTER;
+    const pauseSpan = hopSpan * TURN_PAUSE_FRACTION;
     for (let hop = 1; hop <= CENTER; hop += 1) {
+      const fromHopAngle = -ROTATION_STEP_DEG * (hop - 1);
+      const toHopAngle = -ROTATION_STEP_DEG * hop;
+      const hopStart = TURN_START + ((hop - 1) * hopSpan);
+      const hopPause = hopStart + pauseSpan;
+      const hopEnd = TURN_START + (hop * hopSpan);
       frames.push({
-        transform: `rotate(${-ROTATION_STEP_DEG * hop}deg)`,
-        offset: TURN_START + ((hop / CENTER) * (TURN_END - TURN_START)),
+        transform: `rotate(${fromHopAngle}deg)`,
+        offset: hopPause,
         easing: 'steps(1, end)',
+      });
+      frames.push({
+        transform: `rotate(${toHopAngle}deg)`,
+        offset: hopEnd,
+        easing: 'cubic-bezier(0.12, 0, 0.16, 1)',
       });
     }
     frames.push({ transform: 'rotate(-90deg)', offset: 1 });
@@ -278,8 +293,10 @@
     COLLAPSE_END,
     CYCLE_DURATION_MS,
     DEFAULT_SIZE,
+    HEAD_HUE_HOP_STEP,
     ROTATION_DURATION_MS,
     ROTATION_STEP_DEG,
+    TURN_PAUSE_FRACTION,
     ROYGBIV_HUES,
     SNAKE_COLLAPSE_DURATION_MS,
     SNAKE_LENGTH,

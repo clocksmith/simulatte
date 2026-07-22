@@ -1,0 +1,54 @@
+{
+  "schema": "simulatte.maritimeDataManifest.v1",
+  "generatedAt": "2026-07-22",
+  "datasets": [
+    {
+      "datasetId": "global-port-registry-wpi-v1",
+      "schemaId": "simulatte.maritimePortRegistry.v1",
+      "path": "../../../data/maritime-trade-global/port-registry-wpi-v1.json",
+      "sha256": "89942e9fdf92d721710718c3d821927fb73053248928f5793b0213fb99dfe515"
+    },
+    {
+      "datasetId": "global-location-codes-unlocode-v1",
+      "schemaId": "simulatte.unlocodeRegistry.v1",
+      "path": "../../../data/maritime-trade-global/location-codes-unlocode-v1.json",
+      "sha256": "0656256e9e237f3373a1c8647bdf5794e1516a2be7e897b9b602e302907c7906"
+    },
+    {
+      "datasetId": "global-maritime-corridors-v1",
+      "schemaId": "simulatte.maritimeCorridors.v1",
+      "path": "../../../data/maritime-trade-global/maritime-corridors-v1.json",
+      "sha256": "719fe4125465a1daf7f23136ed5cd1a75f87e71df07a720b854317453092b108"
+    },
+    {
+      "datasetId": "global-canal-service-models-v1",
+      "schemaId": "simulatte.canalServiceModels.v1",
+      "path": "../../../data/maritime-trade-global/canal-service-models-v1.json",
+      "sha256": "c131c1a9e251ff56e2c3dfc7c047e5c135820d5ac7290223dc2e9dd8837f4746"
+    },
+    {
+      "datasetId": "ibtracs-v04r01-scenario-tracks-v1",
+      "schemaId": "simulatte.ibtracsScenarioTracks.v1",
+      "path": "../../../data/maritime-trade-global/ibtracs-scenario-tracks-v1.json",
+      "sha256": "8e34061a7635a2f7478b1a77abda17e69f96d3d9f073861f11a3a00649533835"
+    },
+    {
+      "datasetId": "container-port-performance-v1",
+      "schemaId": "simulatte.containerPortPerformance.v1",
+      "path": "../../../data/maritime-trade-global/container-port-performance-v1.json",
+      "sha256": "247b56901147f366612c3ebee27dac832d63c80f041133ae3b55be982b695afc"
+    },
+    {
+      "datasetId": "maritime-vessel-archetypes-v1",
+      "schemaId": "simulatte.maritimeVesselArchetypes.v1",
+      "path": "../../../data/maritime-trade-global/vessel-archetypes-v1.json",
+      "sha256": "bc321fffbc1861e095331e25e47f329780a2cbf063b6748245c35f4e2550a368"
+    },
+    {
+      "datasetId": "maritime-emissions-model-v1",
+      "schemaId": "simulatte.maritimeEmissionsModel.v1",
+      "path": "../../../data/maritime-trade-global/emissions-model-v1.json",
+      "sha256": "948b76b802fc4f957c5c3ead5276275ab509b30d0909a575598d6408c7c5b500"
+    }
+  ]
+}

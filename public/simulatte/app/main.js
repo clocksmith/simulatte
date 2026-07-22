@@ -1,9 +1,12 @@
 (function attachAutonomyApp(root, factory) {
   const api = factory(
-    root.SimulatteDataLoader, root.SimulatteAutonomyMission, root.SimulatteAutonomyController,
-    root.SimulatteAutonomyCanvas, root.SimulatteMissionTrace, root.SimulatteRuntimeLog,
-    root.SimulatteNeuralPlaceResolver, root.SimulatteSettlementLedger, root.SimulatteCanonicalReceipts,
-    root.SimulatteAutonomyWorld, root.SimulatteNeuralConsent, root.SimulatteModelSelection,
+    // Accept both the original and the in-progress renamed global names so the app boots
+    // whichever the module files currently register under (the multi-tier refactor renamed
+    // these references before the module registrations were renamed to match).
+    (root.SimulatteApplicationLoader || root.SimulatteDataLoader), root.SimulatteAutonomyMission, root.SimulatteAutonomyController,
+    root.SimulatteAutonomyCanvas, (root.SimulatteAutonomyTraceView || root.SimulatteMissionTrace), (root.SimulatteAutonomyRuntimeLog || root.SimulatteRuntimeLog),
+    root.SimulatteNeuralPlaceResolver, (root.SimulatteJourneyLedger || root.SimulatteSettlementLedger), (root.SimulatteAutonomyReceipts || root.SimulatteCanonicalReceipts),
+    root.SimulatteAutonomyWorld, (root.SimulatteNeuralModelConsent || root.SimulatteNeuralConsent), root.SimulatteModelSelection,
     root.SimulattePluginRuntime, root.SimulatteGeneratedPluginRegistry, root.SimulatteDeclarativeUiHost,
     root.SimulatteBrowserTransport, root.SimulatteGovernedArtifactStore, root.SimulatteAutonomyRoutePlanner,
     root.SimulatteCivilTime, root.SimulatteUniverseParser, root.SimulatteApplicationProfileSelect,
@@ -21,11 +24,10 @@
     serializeError: (error) => ({ name: error?.name || 'Error', message: error?.message || String(error) }),
   };
   const PROFILE_LABELS = Object.freeze({
-    'simulatte-world-v1': 'Simulatte World',
-    'cable-trader-pickup-v1': 'Cable Trader',
-    'safety-explorer-v1': 'Safety Explorer',
-    'sun-walker-v1': 'Sun Walker',
-    'food-recall-us-v1': 'Food Recall (US)',
+    'simulatte-world-v1': 'Simulatte World', 'cable-trader-pickup-v1': 'Cable Trader',
+    'safety-explorer-v1': 'Safety Explorer', 'sun-walker-v1': 'Sun Walker',
+    'food-recall-us-v1': 'Food Recall (US)', 'maritime-trade-global-v1': 'Maritime Trade (Global)',
+    'orbital-transfer-planner-v1': 'Orbital Transfer Planner', 'interstellar-relay-network-v1': 'Interstellar Relay Network',
   });
   // Owns the landing page and gates asset loading: nothing in start() runs until
   // the visitor picks a tier here.
@@ -850,6 +852,7 @@
   }
 
   function failRuntime(elements, error) {
+    try { if (typeof window !== 'undefined') window.__simulatteLastFailError = { code: error?.code || null, name: error?.name || null, message: error?.message || String(error), evidence: error?.evidence || null, stack: typeof error?.stack === 'string' ? error.stack.split('\n').slice(0, 6).join('\n') : null }; } catch (_e) { /* diagnostic only */ }
     log.error('runtime.failed', log.serializeError(error));
     if (isMissionInputError(error)) {
       elements.missionError.textContent = friendlyMissionError(error);

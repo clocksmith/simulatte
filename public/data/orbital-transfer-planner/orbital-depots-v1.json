@@ -1,0 +1,37 @@
+{
+  "schema": "simulatte.orbitalDepots.v1",
+  "id": "orbital.depots.v1",
+  "title": "Governed Orbital Propellant & Consumable Depots",
+  "depots": [
+    {
+      "id": "depot-earth-l1",
+      "name": "Earth-Moon L1 Gateway Depot",
+      "positionAu": [
+        1.00257,
+        0,
+        0
+      ],
+      "inventory": {
+        "methaloxKg": 120000,
+        "waterKg": 45000,
+        "foodKg": 15000,
+        "sparesKg": 8000
+      }
+    },
+    {
+      "id": "depot-mars-phobos",
+      "name": "Phobos Station Depot",
+      "positionAu": [
+        1.523679,
+        0,
+        0
+      ],
+      "inventory": {
+        "methaloxKg": 65000,
+        "waterKg": 22000,
+        "foodKg": 8000,
+        "sparesKg": 4000
+      }
+    }
+  ]
+}

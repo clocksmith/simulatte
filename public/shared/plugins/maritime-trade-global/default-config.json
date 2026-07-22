@@ -1,0 +1,7 @@
+{
+  "schema": "simulatte.plugin.maritimeTradeConfig.v1",
+  "id": "maritime-trade-global-config-v1",
+  "defaultVesselClass": "ultra-large-container-v1",
+  "defaultCorridor": "route-asia-europe",
+  "defaultScenarioId": "transpacific-baseline"
+}

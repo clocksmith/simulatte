@@ -1,0 +1,23 @@
+{
+  "schema": "simulatte.spacecraftArchetypes.v1",
+  "id": "spacecraft.archetypes.v1",
+  "title": "Spacecraft Archetypes & Propulsion Parameters",
+  "archetypes": {
+    "cargo-freighter-v1": {
+      "name": "Heavy Cargo Freighter",
+      "dryMassKg": 45000,
+      "maxPropellantKg": 180000,
+      "ispSeconds": 380,
+      "maxPayloadKg": 60000,
+      "radiationShieldingGcm2": 15
+    },
+    "crew-ship-v1": {
+      "name": "Interplanetary Crew Transport",
+      "dryMassKg": 65000,
+      "maxPropellantKg": 220000,
+      "ispSeconds": 450,
+      "maxPayloadKg": 25000,
+      "radiationShieldingGcm2": 35
+    }
+  }
+}

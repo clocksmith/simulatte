@@ -24,6 +24,7 @@
     compute: 'compute.worker.v1',
     environment: 'environment.read.v1',
     geography: 'geography.project.v1',
+    tier: 'tier.query.v1',
   });
 
   function createPluginSdk({ manifest, datasets, corePorts, stateHost, capabilityInvoke, receiptSink }) {

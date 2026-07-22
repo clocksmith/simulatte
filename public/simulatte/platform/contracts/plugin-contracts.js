@@ -13,7 +13,7 @@
     'routing.contribute.v1', 'simulation.run.v1', 'state.reduce.v1', 'ui.inspector.v1', 'world.query.v1',
     // SDK v2 simulation-substrate ports.
     'random.stream.v1', 'simulation.schedule.v1', 'compute.worker.v1', 'environment.read.v1',
-    'geography.project.v1', 'ui.geospatial.v1',
+    'geography.project.v1', 'ui.geospatial.v1', 'tier.query.v1',
   ]);
   const EXTENSION_POINTS = Object.freeze(['request', 'route', 'event', 'settlement', 'ui', 'presentation']);
   const UI_SLOTS = Object.freeze(['inspector', 'map', 'hud']);
@@ -25,7 +25,7 @@
   function validateManifest(value) {
     assertObject(value, 'plugin_manifest_invalid', 'Plugin manifest expected an object');
     assertExactKeys(value, ['schema', 'id', 'version', 'sdkVersion', 'entry', 'resources', 'permissions', 'datasets', 'provides', 'consumes', 'extensionPoints', 'receiptSchemas', 'configSchema', 'defaultConfig'], `Plugin manifest ${value.id || 'missing'}`);
-    equal(value.schema, 'simulatte.pluginManifest.v1', 'plugin_manifest_schema_invalid', 'Plugin manifest schema');
+    if (!['simulatte.pluginManifest.v1', 'simulatte.pluginManifest.v2'].includes(value.schema)) fail('plugin_manifest_schema_invalid', `Plugin manifest schema ${value.schema || 'missing'} is invalid`, null);
     if (!ID_PATTERN.test(value.id || '')) fail('plugin_manifest_id_invalid', `Plugin manifest ID ${value.id || 'missing'} is invalid`, { id: value.id || null });
     if (!/^\d+\.\d+\.\d+$/.test(value.version || '')) fail('plugin_manifest_version_invalid', `Plugin ${value.id} version is invalid`, { version: value.version });
     if (!SUPPORTED_SDK_VERSIONS.includes(value.sdkVersion)) fail('plugin_sdk_version_unsupported', `Plugin ${value.id} SDK version ${value.sdkVersion ?? 'missing'} is unsupported`, { supported: SUPPORTED_SDK_VERSIONS, sdkVersion: value.sdkVersion ?? null });
@@ -138,20 +138,19 @@
 
   function validateProfileScenarioInteraction(value) {
     assertObject(value.interaction, 'application_profile_interaction_invalid', `Profile ${value.id} interaction expected an object`);
-    assertExactKeys(value.interaction, ['mode', 'simulationOwnerPluginId', 'startLabel', 'shuffleLabel', 'missionRequired'], `Profile ${value.id} interaction`);
-    equal(value.interaction.mode, 'scenario', 'application_profile_interaction_mode_invalid', `Profile ${value.id} interaction mode`);
-    text(value.interaction.simulationOwnerPluginId, 'application_profile_interaction_owner_invalid', `Profile ${value.id} simulation owner`);
-    if (!value.plugins.some((row) => row.id === value.interaction.simulationOwnerPluginId)) fail('application_profile_interaction_owner_inactive', `Profile ${value.id} simulation owner ${value.interaction.simulationOwnerPluginId} is not an active plugin`, { owner: value.interaction.simulationOwnerPluginId });
+    if (!['scenario', 'simulation'].includes(value.interaction.mode)) fail('application_profile_interaction_mode_invalid', `Profile ${value.id} interaction mode is invalid`, value.interaction);
     text(value.interaction.startLabel, 'application_profile_interaction_label_invalid', `Profile ${value.id} start label`);
     text(value.interaction.shuffleLabel, 'application_profile_interaction_label_invalid', `Profile ${value.id} shuffle label`);
-    if (typeof value.interaction.missionRequired !== 'boolean') fail('application_profile_interaction_mission_required_invalid', `Profile ${value.id} missionRequired expected a boolean`, { value: value.interaction.missionRequired });
-    if (!Array.isArray(value.seeds) || value.seeds.length < 1) fail('application_profile_seeds_invalid', `Profile ${value.id} expected at least one scenario seed`, null);
+    if (value.interaction.simulationOwnerPluginId !== undefined) {
+      text(value.interaction.simulationOwnerPluginId, 'application_profile_interaction_owner_invalid', `Profile ${value.id} simulation owner`);
+      if (!value.plugins.some((row) => row.id === value.interaction.simulationOwnerPluginId)) fail('application_profile_interaction_owner_inactive', `Profile ${value.id} simulation owner ${value.interaction.simulationOwnerPluginId} is not an active plugin`, { owner: value.interaction.simulationOwnerPluginId });
+    }
+    if (!Array.isArray(value.seeds) || value.seeds.length < 1) fail('application_profile_seeds_invalid', `Profile ${value.id} expected at least one seed`, null);
     const ids = new Set();
     const seeds = new Set();
     value.seeds.forEach((row, index) => {
       assertObject(row, 'application_profile_seed_invalid', `Profile ${value.id} seed ${index} expected an object`);
-      assertExactKeys(row, ['id', 'label', 'description', 'seed', 'scenarioId'], `Profile ${value.id} seed ${index}`);
-      ['id', 'label', 'description', 'seed', 'scenarioId'].forEach((key) => text(row[key], 'application_profile_seed_invalid', `Profile ${value.id} seed ${index} ${key}`));
+      ['id', 'label', 'description', 'seed'].forEach((key) => text(row[key], 'application_profile_seed_invalid', `Profile ${value.id} seed ${index} ${key}`));
       if (ids.has(row.id) || seeds.has(row.seed)) fail('application_profile_seed_duplicate', `Profile ${value.id} seed IDs and values must be unique`, { id: row.id, seed: row.seed });
       ids.add(row.id); seeds.add(row.seed);
     });

@@ -1,0 +1,39 @@
+{
+  "schema": "simulatte.applicationProfile.v3",
+  "id": "maritime-trade-global-v1",
+  "tier": "world",
+  "worldModelId": "earth-global-topology-v1",
+  "interaction": {
+    "mode": "simulation",
+    "startLabel": "Simulate shipping lanes",
+    "shuffleLabel": "Change route"
+  },
+  "defaultSeedId": "asia-europe-mainline",
+  "seeds": [
+    {
+      "id": "asia-europe-mainline",
+      "label": "Shanghai to Rotterdam",
+      "description": "Asia-Europe trade corridor via Malacca Strait, Bab-el-Mandeb, and Suez Canal.",
+      "seed": "maritime-asia-europe-001",
+      "scenarioId": "asia-europe-mainline"
+    },
+    {
+      "id": "transpacific-eastbound",
+      "label": "Shanghai to Los Angeles",
+      "description": "Transpacific Container Line crossing North Pacific weather zones.",
+      "seed": "maritime-transpacific-002",
+      "scenarioId": "transpacific-eastbound"
+    }
+  ],
+  "plugins": [
+    {
+      "id": "maritime-trade-global",
+      "configId": "maritime-trade-global-config-v1"
+    }
+  ],
+  "routeObjective": {
+    "fuelConsTons": 1.0,
+    "co2Tons": 0.8,
+    "timeOfFlightDays": 0.5
+  }
+}

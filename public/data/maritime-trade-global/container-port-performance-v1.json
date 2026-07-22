@@ -1,0 +1,155 @@
+{
+  "schema": "simulatte.containerPortPerformance.v1",
+  "source": "World Bank CPPI (relative service priors; documented mapping model required before literal queue times)",
+  "claimBoundary": "Relative port-service priors, not a literal queue-time guarantee.",
+  "rows": [
+    {
+      "portId": "port:cnsha",
+      "unlocode": "CNSHA",
+      "medianHoursInPort": 22.4,
+      "relativeServiceIndex": 1.241
+    },
+    {
+      "portId": "port:sgsin",
+      "unlocode": "SGSIN",
+      "medianHoursInPort": 35.5,
+      "relativeServiceIndex": 0.74
+    },
+    {
+      "portId": "port:cnngb",
+      "unlocode": "CNNGB",
+      "medianHoursInPort": 28.5,
+      "relativeServiceIndex": 1.191
+    },
+    {
+      "portId": "port:cnszn",
+      "unlocode": "CNSZN",
+      "medianHoursInPort": 33.5,
+      "relativeServiceIndex": 0.899
+    },
+    {
+      "portId": "port:krpus",
+      "unlocode": "KRPUS",
+      "medianHoursInPort": 25.5,
+      "relativeServiceIndex": 1.14
+    },
+    {
+      "portId": "port:cntao",
+      "unlocode": "CNTAO",
+      "medianHoursInPort": 33,
+      "relativeServiceIndex": 1
+    },
+    {
+      "portId": "port:hkhkg",
+      "unlocode": "HKHKG",
+      "medianHoursInPort": 29.2,
+      "relativeServiceIndex": 1.161
+    },
+    {
+      "portId": "port:nlrtm",
+      "unlocode": "NLRTM",
+      "medianHoursInPort": 30,
+      "relativeServiceIndex": 1.14
+    },
+    {
+      "portId": "port:uslax",
+      "unlocode": "USLAX",
+      "medianHoursInPort": 36.1,
+      "relativeServiceIndex": 1.274
+    },
+    {
+      "portId": "port:uslgb",
+      "unlocode": "USLGB",
+      "medianHoursInPort": 22.8,
+      "relativeServiceIndex": 1.291
+    },
+    {
+      "portId": "port:beanr",
+      "unlocode": "BEANR",
+      "medianHoursInPort": 33.3,
+      "relativeServiceIndex": 1.005
+    },
+    {
+      "portId": "port:deham",
+      "unlocode": "DEHAM",
+      "medianHoursInPort": 35.2,
+      "relativeServiceIndex": 0.934
+    },
+    {
+      "portId": "port:usnyc",
+      "unlocode": "USNYC",
+      "medianHoursInPort": 22.2,
+      "relativeServiceIndex": 0.723
+    },
+    {
+      "portId": "port:aejea",
+      "unlocode": "AEJEA",
+      "medianHoursInPort": 31.3,
+      "relativeServiceIndex": 0.838
+    },
+    {
+      "portId": "port:mytpp",
+      "unlocode": "MYTPP",
+      "medianHoursInPort": 40.4,
+      "relativeServiceIndex": 1.136
+    },
+    {
+      "portId": "port:twkhh",
+      "unlocode": "TWKHH",
+      "medianHoursInPort": 47.4,
+      "relativeServiceIndex": 0.756
+    },
+    {
+      "portId": "port:lkcmb",
+      "unlocode": "LKCMB",
+      "medianHoursInPort": 36.3,
+      "relativeServiceIndex": 1.026
+    },
+    {
+      "portId": "port:esvlc",
+      "unlocode": "ESVLC",
+      "medianHoursInPort": 43.3,
+      "relativeServiceIndex": 0.895
+    },
+    {
+      "portId": "port:grpir",
+      "unlocode": "GRPIR",
+      "medianHoursInPort": 42.9,
+      "relativeServiceIndex": 0.732
+    },
+    {
+      "portId": "port:brssz",
+      "unlocode": "BRSSZ",
+      "medianHoursInPort": 34.7,
+      "relativeServiceIndex": 0.879
+    },
+    {
+      "portId": "port:ussav",
+      "unlocode": "USSAV",
+      "medianHoursInPort": 40.9,
+      "relativeServiceIndex": 1.144
+    },
+    {
+      "portId": "port:jptyo",
+      "unlocode": "JPTYO",
+      "medianHoursInPort": 38.9,
+      "relativeServiceIndex": 0.95
+    },
+    {
+      "portId": "port:phmnl",
+      "unlocode": "PHMNL",
+      "medianHoursInPort": 43.1,
+      "relativeServiceIndex": 0.947
+    },
+    {
+      "portId": "port:zadur",
+      "unlocode": "ZADUR",
+      "medianHoursInPort": 47.1,
+      "relativeServiceIndex": 0.836
+    }
+  ],
+  "datasetId": "container-port-performance-v1",
+  "datasetSchemaId": "simulatte.containerPortPerformance.v1",
+  "generatedBy": "tools/simulatte/build-maritime-data.mjs",
+  "generatorVersion": "maritime-data-1.0.0"
+}

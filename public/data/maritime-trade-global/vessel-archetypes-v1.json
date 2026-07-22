@@ -1,0 +1,46 @@
+{
+  "schema": "simulatte.maritimeVesselArchetypes.v1",
+  "claimBoundary": "Synthetic aggregate data anchored to official port and performance datasets. Ports and codes are public reference data; schedules, queues, corridors, and vessels are statistically generated, never observed AIS positions or carrier schedules. Not a live tracking or ETA system.",
+  "archetypes": [
+    {
+      "id": "ulcv-24k",
+      "label": "Ultra Large Container Vessel",
+      "teu": 24000,
+      "serviceSpeedKn": 18,
+      "maxSpeedKn": 22.5,
+      "mainEnginePowerKw": 62000,
+      "sfocGPerKwh": 170
+    },
+    {
+      "id": "neopanamax-14k",
+      "label": "Neo-Panamax",
+      "teu": 14000,
+      "serviceSpeedKn": 19,
+      "maxSpeedKn": 23,
+      "mainEnginePowerKw": 45000,
+      "sfocGPerKwh": 172
+    },
+    {
+      "id": "panamax-5k",
+      "label": "Panamax",
+      "teu": 5000,
+      "serviceSpeedKn": 20,
+      "maxSpeedKn": 24,
+      "mainEnginePowerKw": 36000,
+      "sfocGPerKwh": 178
+    },
+    {
+      "id": "feeder-2k",
+      "label": "Regional Feeder",
+      "teu": 2000,
+      "serviceSpeedKn": 17,
+      "maxSpeedKn": 20,
+      "mainEnginePowerKw": 15000,
+      "sfocGPerKwh": 185
+    }
+  ],
+  "datasetId": "maritime-vessel-archetypes-v1",
+  "datasetSchemaId": "simulatte.maritimeVesselArchetypes.v1",
+  "generatedBy": "tools/simulatte/build-maritime-data.mjs",
+  "generatorVersion": "maritime-data-1.0.0"
+}

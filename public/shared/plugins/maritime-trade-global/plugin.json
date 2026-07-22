@@ -1,0 +1,121 @@
+{
+  "configSchema": "./config.schema.json",
+  "consumes": [],
+  "datasets": [
+    {
+      "id": "world.ports.wpi.v1",
+      "reference": {
+        "id": "world.ports.wpi.v1",
+        "path": "../../../data/maritime-trade-global/world-ports-wpi-v1.json",
+        "schemaId": "simulatte.worldPortsWpi.v1",
+        "sha256": "bde86b8797a1be3d2512fe8910957af2439f875eed1737d0e17458b60fc29e8b"
+      },
+      "required": true
+    },
+    {
+      "id": "maritime.vessel.classes.v1",
+      "reference": {
+        "id": "maritime.vessel.classes.v1",
+        "path": "../../../data/maritime-trade-global/maritime-vessel-classes-v1.json",
+        "schemaId": "simulatte.maritimeVesselClasses.v1",
+        "sha256": "f6c7d86134ba982b8c063890527bedd5faf3378e6f6a36a465e1a7621b56ab65"
+      },
+      "required": true
+    },
+    {
+      "id": "ocean.chokepoints.v1",
+      "reference": {
+        "id": "ocean.chokepoints.v1",
+        "path": "../../../data/maritime-trade-global/ocean-chokepoints-v1.json",
+        "schemaId": "simulatte.oceanChokepoints.v1",
+        "sha256": "399651396e4fd7d1e6eb34b69ed4e9467ab9591e31bf1bae6ee0903a2ef4238d"
+      },
+      "required": false
+    },
+    {
+      "id": "shipping.lane.routes.v1",
+      "reference": {
+        "id": "shipping.lane.routes.v1",
+        "path": "../../../data/maritime-trade-global/shipping-lane-routes-v1.json",
+        "schemaId": "simulatte.shippingLaneRoutes.v1",
+        "sha256": "b898d9dbe9f203799b7408683b5914d17207ee872aaaed55adb6ae8ce2f2666d"
+      },
+      "required": true
+    },
+    {
+      "id": "maritime.weather.snapshot.v1",
+      "reference": {
+        "id": "maritime.weather.snapshot.v1",
+        "path": "../../../data/maritime-trade-global/maritime-weather-snapshot-v1.json",
+        "schemaId": "simulatte.maritimeWeatherSnapshot.v1",
+        "sha256": "f09d938e4f8d816a78a21b2533e8378bbcfdefc53747150a594f1c8ddff6ed77"
+      },
+      "required": false
+    }
+  ],
+  "defaultConfig": "./default-config.json",
+  "entry": {
+    "globalFactory": "SimulattePluginMaritimeTradeGlobal",
+    "integrity": "sha384-900dccd98aa07f3c5ea29e637a5cd252439293e027c57804c4ae52cfe99fcc1535ae8d7b6556b8838f55bfe7ce07a986",
+    "path": "./index.js"
+  },
+  "extensionPoints": [
+    "event",
+    "settlement",
+    "ui",
+    "presentation"
+  ],
+  "id": "maritime-trade-global",
+  "permissions": [
+    "tier.query.v1",
+    "clock.read.v1",
+    "random.stream.v1",
+    "simulation.schedule.v1",
+    "events.propose.v1",
+    "receipts.append.v1",
+    "state.reduce.v1",
+    "ui.inspector.v1",
+    "capabilities.invoke.v1",
+    "ui.geospatial.v1"
+  ],
+  "provides": [
+    "simulation.maritime-trade.v1",
+    "field.maritime-emissions.v1"
+  ],
+  "receiptSchemas": [
+    "simulatte.plugin.maritimeVoyageReceipt.v1"
+  ],
+  "resources": [
+    {
+      "integrity": "sha384-bd06736834e90cc8e40458481f2545f2823d6366879f459ce0d792b071f8b58ec32fb15b943efa78edc47d18f81baa8a",
+      "path": "./config.schema.json"
+    },
+    {
+      "integrity": "sha384-9c2c58cd56c16efe0f1eea9656fbbccf5a7c9d35322873c9478f7f7fe65e077730b117ed32f0b53c5e5a3b59be500660",
+      "path": "./default-config.json"
+    },
+    {
+      "integrity": "sha384-4c98694c5c189c82a4375fa9b8764bc0266ce327d6286b194253527018248c4f629b2d035c503edc8cfde0f16c1e41b6",
+      "path": "./emissions.js"
+    },
+    {
+      "integrity": "sha384-35c2b508297cfef9e71f4c931c909df3715ec400cb2d5d7b7017296921440cec67d026d792d3bb1080ba70736040b2e5",
+      "path": "./ports.js"
+    },
+    {
+      "integrity": "sha384-7f1a5cf7fb7ff6970bcb89ae69b6101669a75c9b5a9b1b07fed338e3a5e7ed5852494ffbf8ac5c23984d407086170133",
+      "path": "./presentation.js"
+    },
+    {
+      "integrity": "sha384-da07fbba831ed4f5fa16e910f3263d5a364419cf7451c191297171f3f74eaf3183c816dd316fb9fba892efbf8e08be32",
+      "path": "./routing.js"
+    },
+    {
+      "integrity": "sha384-981936c3f75224385a42c9a37e9f5d28adc240235ceedcdd4ec006486ecc6139d497b6a63c2fcd812d1f954833cd666e",
+      "path": "./vessels.js"
+    }
+  ],
+  "schema": "simulatte.pluginManifest.v2",
+  "sdkVersion": 2,
+  "version": "1.0.0"
+}

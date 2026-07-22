@@ -1,0 +1,39 @@
+{
+  "schema": "simulatte.applicationProfile.v3",
+  "id": "orbital-transfer-planner-v1",
+  "tier": "solar-system",
+  "worldModelId": "solar-system-ephemeris-v2",
+  "interaction": {
+    "mode": "simulation",
+    "startLabel": "Plan transfer",
+    "shuffleLabel": "Change scenario"
+  },
+  "defaultSeedId": "earth-mars-window",
+  "seeds": [
+    {
+      "id": "earth-mars-window",
+      "label": "Earth to Mars Transfer",
+      "description": "Search a bounded Hohmann/Lambert departure and arrival window between Earth and Mars.",
+      "seed": "orbital-earth-mars-001",
+      "scenarioId": "earth-mars-window"
+    },
+    {
+      "id": "earth-moon-cargo",
+      "label": "Earth-Moon L1 Logistics",
+      "description": "Cargo transit and propellant supply depot balancing at Earth-Moon L1.",
+      "seed": "orbital-earth-moon-002",
+      "scenarioId": "earth-moon-cargo"
+    }
+  ],
+  "plugins": [
+    {
+      "id": "orbital-transfer-planner",
+      "configId": "orbital-transfer-planner-config-v1"
+    }
+  ],
+  "routeObjective": {
+    "deltaV": 1.0,
+    "timeOfFlight": 0.5,
+    "radiationExposure": 0.8
+  }
+}

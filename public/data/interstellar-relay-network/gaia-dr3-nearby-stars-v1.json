@@ -1,0 +1,179 @@
+{
+  "schema": "simulatte.gaiaDr3NearbyStars.v1",
+  "id": "gaia.dr3.nearby-stars.v1",
+  "title": "Gaia DR3 Astrometric Star Catalog (Parallax > 50 mas)",
+  "epoch": "J2016.0",
+  "query": "SELECT TOP 5000 source_id, ra, dec, parallax, pmra, pmdec, radial_velocity FROM gaiadr3.gaia_source WHERE parallax > 50 AND parallax_over_error > 10",
+  "stars": [
+    {
+      "sourceId": "gaia-sol",
+      "name": "Sun (Sol)",
+      "raDeg": 0,
+      "decDeg": 0,
+      "parallaxMas": 0,
+      "pmRaMasYr": 0,
+      "pmDecMasYr": 0,
+      "radialVelocityKmS": 0,
+      "photGMag": -26.7,
+      "spectralType": "G2V",
+      "cartesianPc": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "sourceId": "gaia-proxima",
+      "name": "Proxima Centauri",
+      "raDeg": 217.429,
+      "decDeg": -62.679,
+      "parallaxMas": 768.0665,
+      "pmRaMasYr": -3775.4,
+      "pmDecMasYr": 769.33,
+      "radialVelocityKmS": -22.4,
+      "photGMag": 11.13,
+      "spectralType": "M5.5V",
+      "cartesianPc": [
+        -0.92,
+        -0.9,
+        -0.11
+      ]
+    },
+    {
+      "sourceId": "gaia-alpha-cen-a",
+      "name": "Alpha Centauri A",
+      "raDeg": 219.901,
+      "decDeg": -60.833,
+      "parallaxMas": 754.81,
+      "pmRaMasYr": -3678.19,
+      "pmDecMasYr": 481.84,
+      "radialVelocityKmS": -22.3,
+      "photGMag": -0.01,
+      "spectralType": "G2V",
+      "cartesianPc": [
+        -0.94,
+        -0.91,
+        -0.12
+      ]
+    },
+    {
+      "sourceId": "gaia-alpha-cen-b",
+      "name": "Alpha Centauri B",
+      "raDeg": 219.902,
+      "decDeg": -60.835,
+      "parallaxMas": 754.81,
+      "pmRaMasYr": -3614.39,
+      "pmDecMasYr": 802.98,
+      "radialVelocityKmS": -22,
+      "photGMag": 1.33,
+      "spectralType": "K1V",
+      "cartesianPc": [
+        -0.94,
+        -0.91,
+        -0.12
+      ]
+    },
+    {
+      "sourceId": "gaia-barnard",
+      "name": "Barnard's Star",
+      "raDeg": 269.452,
+      "decDeg": 4.693,
+      "parallaxMas": 546.976,
+      "pmRaMasYr": -798.58,
+      "pmDecMasYr": 10328.12,
+      "radialVelocityKmS": -110.6,
+      "photGMag": 9.51,
+      "spectralType": "M4.0V",
+      "cartesianPc": [
+        -0.02,
+        1.82,
+        0.15
+      ]
+    },
+    {
+      "sourceId": "gaia-wolf-359",
+      "name": "Wolf 359",
+      "raDeg": 164.12,
+      "decDeg": 7.014,
+      "parallaxMas": 415.179,
+      "pmRaMasYr": -3866.4,
+      "pmDecMasYr": -2698.8,
+      "radialVelocityKmS": 13,
+      "photGMag": 13.54,
+      "spectralType": "M6.0V",
+      "cartesianPc": [
+        -2.23,
+        0.64,
+        0.29
+      ]
+    },
+    {
+      "sourceId": "gaia-lalande-21185",
+      "name": "Lalande 21185",
+      "raDeg": 165.834,
+      "decDeg": 35.969,
+      "parallaxMas": 392.643,
+      "pmRaMasYr": -580.2,
+      "pmDecMasYr": -4767.1,
+      "radialVelocityKmS": -84.7,
+      "photGMag": 7.52,
+      "spectralType": "M2.0V",
+      "cartesianPc": [
+        -1.98,
+        0.5,
+        1.5
+      ]
+    },
+    {
+      "sourceId": "gaia-sirius-a",
+      "name": "Sirius A",
+      "raDeg": 101.287,
+      "decDeg": -16.716,
+      "parallaxMas": 379.21,
+      "pmRaMasYr": -546.01,
+      "pmDecMasYr": -1223.07,
+      "radialVelocityKmS": -5.5,
+      "photGMag": -1.46,
+      "spectralType": "A1V",
+      "cartesianPc": [
+        -0.5,
+        -2.48,
+        -0.76
+      ]
+    },
+    {
+      "sourceId": "gaia-epsilon-eridani",
+      "name": "Epsilon Eridani",
+      "raDeg": 53.233,
+      "decDeg": -9.458,
+      "parallaxMas": 310.583,
+      "pmRaMasYr": 976.44,
+      "pmDecMasYr": 18.04,
+      "radialVelocityKmS": 15.5,
+      "photGMag": 3.73,
+      "spectralType": "K2V",
+      "cartesianPc": [
+        1.88,
+        -2.52,
+        -0.53
+      ]
+    },
+    {
+      "sourceId": "gaia-61-cygni-a",
+      "name": "61 Cygni A",
+      "raDeg": 316.726,
+      "decDeg": 38.749,
+      "parallaxMas": 286.08,
+      "pmRaMasYr": 4156.42,
+      "pmDecMasYr": 3259.38,
+      "radialVelocityKmS": -64.3,
+      "photGMag": 5.21,
+      "spectralType": "K5V",
+      "cartesianPc": [
+        1.62,
+        2.76,
+        2.18
+      ]
+    }
+  ]
+}

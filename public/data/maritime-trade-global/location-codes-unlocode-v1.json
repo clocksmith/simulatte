@@ -1,0 +1,251 @@
+{
+  "schema": "simulatte.unlocodeRegistry.v1",
+  "source": "UN/LOCODE (public reference)",
+  "claimBoundary": "Synthetic aggregate data anchored to official port and performance datasets. Ports and codes are public reference data; schedules, queues, corridors, and vessels are statistically generated, never observed AIS positions or carrier schedules. Not a live tracking or ETA system.",
+  "codes": [
+    {
+      "unlocode": "CNSHA",
+      "country": "CN",
+      "name": "Shanghai",
+      "portId": "port:cnsha",
+      "coordinates": {
+        "longitude": 121.47,
+        "latitude": 31.23
+      }
+    },
+    {
+      "unlocode": "SGSIN",
+      "country": "SG",
+      "name": "Singapore",
+      "portId": "port:sgsin",
+      "coordinates": {
+        "longitude": 103.85,
+        "latitude": 1.29
+      }
+    },
+    {
+      "unlocode": "CNNGB",
+      "country": "CN",
+      "name": "Ningbo-Zhoushan",
+      "portId": "port:cnngb",
+      "coordinates": {
+        "longitude": 121.55,
+        "latitude": 29.87
+      }
+    },
+    {
+      "unlocode": "CNSZN",
+      "country": "CN",
+      "name": "Shenzhen",
+      "portId": "port:cnszn",
+      "coordinates": {
+        "longitude": 114.06,
+        "latitude": 22.54
+      }
+    },
+    {
+      "unlocode": "KRPUS",
+      "country": "KR",
+      "name": "Busan",
+      "portId": "port:krpus",
+      "coordinates": {
+        "longitude": 129.04,
+        "latitude": 35.1
+      }
+    },
+    {
+      "unlocode": "CNTAO",
+      "country": "CN",
+      "name": "Qingdao",
+      "portId": "port:cntao",
+      "coordinates": {
+        "longitude": 120.38,
+        "latitude": 36.07
+      }
+    },
+    {
+      "unlocode": "HKHKG",
+      "country": "HK",
+      "name": "Hong Kong",
+      "portId": "port:hkhkg",
+      "coordinates": {
+        "longitude": 114.17,
+        "latitude": 22.3
+      }
+    },
+    {
+      "unlocode": "NLRTM",
+      "country": "NL",
+      "name": "Rotterdam",
+      "portId": "port:nlrtm",
+      "coordinates": {
+        "longitude": 4.14,
+        "latitude": 51.95
+      }
+    },
+    {
+      "unlocode": "USLAX",
+      "country": "US",
+      "name": "Los Angeles",
+      "portId": "port:uslax",
+      "coordinates": {
+        "longitude": -118.27,
+        "latitude": 33.74
+      }
+    },
+    {
+      "unlocode": "USLGB",
+      "country": "US",
+      "name": "Long Beach",
+      "portId": "port:uslgb",
+      "coordinates": {
+        "longitude": -118.19,
+        "latitude": 33.75
+      }
+    },
+    {
+      "unlocode": "BEANR",
+      "country": "BE",
+      "name": "Antwerp",
+      "portId": "port:beanr",
+      "coordinates": {
+        "longitude": 4.4,
+        "latitude": 51.26
+      }
+    },
+    {
+      "unlocode": "DEHAM",
+      "country": "DE",
+      "name": "Hamburg",
+      "portId": "port:deham",
+      "coordinates": {
+        "longitude": 9.93,
+        "latitude": 53.53
+      }
+    },
+    {
+      "unlocode": "USNYC",
+      "country": "US",
+      "name": "New York/New Jersey",
+      "portId": "port:usnyc",
+      "coordinates": {
+        "longitude": -74.04,
+        "latitude": 40.67
+      }
+    },
+    {
+      "unlocode": "AEJEA",
+      "country": "AE",
+      "name": "Jebel Ali (Dubai)",
+      "portId": "port:aejea",
+      "coordinates": {
+        "longitude": 55.06,
+        "latitude": 25.01
+      }
+    },
+    {
+      "unlocode": "MYTPP",
+      "country": "MY",
+      "name": "Tanjung Pelepas",
+      "portId": "port:mytpp",
+      "coordinates": {
+        "longitude": 103.55,
+        "latitude": 1.36
+      }
+    },
+    {
+      "unlocode": "TWKHH",
+      "country": "TW",
+      "name": "Kaohsiung",
+      "portId": "port:twkhh",
+      "coordinates": {
+        "longitude": 120.28,
+        "latitude": 22.61
+      }
+    },
+    {
+      "unlocode": "LKCMB",
+      "country": "LK",
+      "name": "Colombo",
+      "portId": "port:lkcmb",
+      "coordinates": {
+        "longitude": 79.84,
+        "latitude": 6.94
+      }
+    },
+    {
+      "unlocode": "ESVLC",
+      "country": "ES",
+      "name": "Valencia",
+      "portId": "port:esvlc",
+      "coordinates": {
+        "longitude": -0.32,
+        "latitude": 39.44
+      }
+    },
+    {
+      "unlocode": "GRPIR",
+      "country": "GR",
+      "name": "Piraeus",
+      "portId": "port:grpir",
+      "coordinates": {
+        "longitude": 23.64,
+        "latitude": 37.94
+      }
+    },
+    {
+      "unlocode": "BRSSZ",
+      "country": "BR",
+      "name": "Santos",
+      "portId": "port:brssz",
+      "coordinates": {
+        "longitude": -46.33,
+        "latitude": -23.96
+      }
+    },
+    {
+      "unlocode": "USSAV",
+      "country": "US",
+      "name": "Savannah",
+      "portId": "port:ussav",
+      "coordinates": {
+        "longitude": -81.09,
+        "latitude": 32.08
+      }
+    },
+    {
+      "unlocode": "JPTYO",
+      "country": "JP",
+      "name": "Tokyo",
+      "portId": "port:jptyo",
+      "coordinates": {
+        "longitude": 139.78,
+        "latitude": 35.62
+      }
+    },
+    {
+      "unlocode": "PHMNL",
+      "country": "PH",
+      "name": "Manila",
+      "portId": "port:phmnl",
+      "coordinates": {
+        "longitude": 120.97,
+        "latitude": 14.6
+      }
+    },
+    {
+      "unlocode": "ZADUR",
+      "country": "ZA",
+      "name": "Durban",
+      "portId": "port:zadur",
+      "coordinates": {
+        "longitude": 31.03,
+        "latitude": -29.87
+      }
+    }
+  ],
+  "datasetId": "global-location-codes-unlocode-v1",
+  "datasetSchemaId": "simulatte.unlocodeRegistry.v1",
+  "generatedBy": "tools/simulatte/build-maritime-data.mjs",
+  "generatorVersion": "maritime-data-1.0.0"
+}

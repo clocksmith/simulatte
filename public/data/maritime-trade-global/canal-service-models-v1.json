@@ -1,0 +1,48 @@
+{
+  "schema": "simulatte.canalServiceModels.v1",
+  "claimBoundary": "Canal service and capacity are modeled from published transit statistics, not a live reservation system.",
+  "models": [
+    {
+      "id": "canal:suez",
+      "name": "Suez Canal",
+      "connects": "Mediterranean-Red Sea",
+      "location": {
+        "longitude": 32.34,
+        "latitude": 30.6
+      },
+      "serviceHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 2.7,
+          "sigma": 0.35
+        }
+      },
+      "dailyTransitCapacity": 90,
+      "queueDisciplineFifo": true,
+      "provenanceKind": "synthetic_canal_service_model"
+    },
+    {
+      "id": "canal:panama",
+      "name": "Panama Canal",
+      "connects": "Atlantic-Pacific",
+      "location": {
+        "longitude": -79.68,
+        "latitude": 9.08
+      },
+      "serviceHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 2.4,
+          "sigma": 0.35
+        }
+      },
+      "dailyTransitCapacity": 36,
+      "queueDisciplineFifo": true,
+      "provenanceKind": "synthetic_canal_service_model"
+    }
+  ],
+  "datasetId": "global-canal-service-models-v1",
+  "datasetSchemaId": "simulatte.canalServiceModels.v1",
+  "generatedBy": "tools/simulatte/build-maritime-data.mjs",
+  "generatorVersion": "maritime-data-1.0.0"
+}

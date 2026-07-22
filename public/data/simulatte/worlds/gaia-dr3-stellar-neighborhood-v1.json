@@ -1,0 +1,19 @@
+{
+  "schema": "simulatte.worldModel.v1",
+  "id": "gaia-dr3-stellar-neighborhood-v1",
+  "tier": "star-chart",
+  "title": "Gaia DR3 Local Stellar Neighborhood (20 Light Years)",
+  "coordinateSystem": "icrs-cartesian-pc",
+  "bounds": {
+    "xPcMin": -5.0,
+    "xPcMax": 5.0,
+    "yPcMin": -5.0,
+    "yPcMax": 5.0,
+    "zPcMin": -5.0,
+    "zPcMax": 5.0
+  },
+  "provenance": {
+    "source": "Gaia DR3 Astrometric Catalog",
+    "snapshotDate": "2026-07-21"
+  }
+}

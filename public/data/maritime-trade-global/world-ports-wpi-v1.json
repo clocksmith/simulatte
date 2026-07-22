@@ -1,0 +1,87 @@
+{
+  "schema": "simulatte.worldPortsWpi.v1",
+  "id": "world.ports.wpi.v1",
+  "title": "NGA World Port Index Major Shipping Hubs",
+  "ports": [
+    {
+      "id": "port-singapore",
+      "name": "Port of Singapore",
+      "wpiNumber": 49910,
+      "lat": 1.264,
+      "lon": 103.84,
+      "country": "SG",
+      "berths": 67,
+      "maxDraftM": 16
+    },
+    {
+      "id": "port-shanghai",
+      "name": "Port of Shanghai",
+      "wpiNumber": 62450,
+      "lat": 31.23,
+      "lon": 121.47,
+      "country": "CN",
+      "berths": 125,
+      "maxDraftM": 15.5
+    },
+    {
+      "id": "port-rotterdam",
+      "name": "Port of Rotterdam",
+      "wpiNumber": 10840,
+      "lat": 51.95,
+      "lon": 4.14,
+      "country": "NL",
+      "berths": 84,
+      "maxDraftM": 24
+    },
+    {
+      "id": "port-los-angeles",
+      "name": "Port of Los Angeles",
+      "wpiNumber": 56320,
+      "lat": 33.74,
+      "lon": -118.27,
+      "country": "US",
+      "berths": 45,
+      "maxDraftM": 16.5
+    },
+    {
+      "id": "port-suez-north",
+      "name": "Port Said (Suez North)",
+      "wpiNumber": 44920,
+      "lat": 31.26,
+      "lon": 32.3,
+      "country": "EG",
+      "berths": 22,
+      "maxDraftM": 20.1
+    },
+    {
+      "id": "port-panama-colon",
+      "name": "Port of Colón (Panama)",
+      "wpiNumber": 15480,
+      "lat": 9.36,
+      "lon": -79.9,
+      "country": "PA",
+      "berths": 18,
+      "maxDraftM": 15.2
+    },
+    {
+      "id": "port-santos",
+      "name": "Port of Santos",
+      "wpiNumber": 18690,
+      "lat": -23.96,
+      "lon": -46.3,
+      "country": "BR",
+      "berths": 32,
+      "maxDraftM": 14.5
+    },
+    {
+      "id": "port-busan",
+      "name": "Port of Busan",
+      "wpiNumber": 60110,
+      "lat": 35.1,
+      "lon": 129.04,
+      "country": "KR",
+      "berths": 56,
+      "maxDraftM": 16
+    }
+  ]
+}

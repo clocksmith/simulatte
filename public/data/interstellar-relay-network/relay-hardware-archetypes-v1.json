@@ -1,0 +1,31 @@
+{
+  "schema": "simulatte.relayHardwareArchetypes.v1",
+  "id": "relay.hardware.archetypes.v1",
+  "title": "Interstellar Optical Relay Node Specifications",
+  "archetypes": {
+    "sol-primary-gateway": {
+      "name": "Sol Deep Space Primary Optical Gateway",
+      "laserPowerW": 250000,
+      "apertureDiameterM": 10,
+      "wavelengthNm": 1550,
+      "pointingJitterArcsec": 0.002,
+      "maxDataRateGbps": 1000
+    },
+    "proxima-relay-buoy": {
+      "name": "Proxima Centauri Autonomous Relay Buoy",
+      "laserPowerW": 25000,
+      "apertureDiameterM": 3.5,
+      "wavelengthNm": 1550,
+      "pointingJitterArcsec": 0.005,
+      "maxDataRateGbps": 100
+    },
+    "sirius-high-power-array": {
+      "name": "Sirius Optical Backbone Terminal",
+      "laserPowerW": 1000000,
+      "apertureDiameterM": 15,
+      "wavelengthNm": 1550,
+      "pointingJitterArcsec": 0.001,
+      "maxDataRateGbps": 10000
+    }
+  }
+}

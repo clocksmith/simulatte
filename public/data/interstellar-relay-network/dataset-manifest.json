@@ -1,0 +1,36 @@
+{
+  "schema": "simulatte.interstellarDatasetManifest.v1",
+  "generatedAt": "2026-07-22T04:06:48.943Z",
+  "datasets": [
+    {
+      "id": "gaia.dr3.nearby-stars.v1",
+      "filename": "gaia-dr3-nearby-stars-v1.json",
+      "schemaId": "simulatte.gaiaDr3NearbyStars.v1",
+      "sha256": "8f8a17b120029c54b26edfc35e28447deef62e91b7384e483b951378e8e665f8"
+    },
+    {
+      "id": "stellar.name.crosswalk.v1",
+      "filename": "stellar-name-crosswalk-v1.json",
+      "schemaId": "simulatte.stellarNameCrosswalk.v1",
+      "sha256": "a66a976ad2c8809e7e0e1512c11567d37ac6dd2210d9678e3da5dc10de0d64f6"
+    },
+    {
+      "id": "nasa.exoplanet.hosts.v1",
+      "filename": "nasa-exoplanet-hosts-v1.json",
+      "schemaId": "simulatte.nasaExoplanetHosts.v1",
+      "sha256": "40cb88731407e5794611e0c042c3626fc99851879debcc33c18f33bc4e3c63f6"
+    },
+    {
+      "id": "relay.hardware.archetypes.v1",
+      "filename": "relay-hardware-archetypes-v1.json",
+      "schemaId": "simulatte.relayHardwareArchetypes.v1",
+      "sha256": "b82b9b790427d649488011a8432e85a680c7fedab827f414a2b8f553b528b162"
+    },
+    {
+      "id": "interstellar.scenario.network.v1",
+      "filename": "interstellar-scenario-network-v1.json",
+      "schemaId": "simulatte.interstellarScenarioNetwork.v1",
+      "sha256": "ab4905d973e6cb92a515fadb2c9e4cc00882213e1d315fc265f85fb7753b53a7"
+    }
+  ]
+}

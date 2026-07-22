@@ -1,0 +1,23 @@
+{
+  "schema": "simulatte.laserRelayTransceivers.v1",
+  "id": "laser.relay.transceivers.v1",
+  "title": "Coherent Optical Deep Space Transceivers",
+  "transceivers": {
+    "deep-space-node-v1": {
+      "name": "Class-1 Deep Space Laser Gateway",
+      "laserPowerKw": 50,
+      "apertureDiameterM": 5,
+      "wavelengthNm": 1550,
+      "peakDataRateGbps": 100,
+      "pointingPrecisionArcsec": 0.005
+    },
+    "relay-probe-v1": {
+      "name": "Interstellar Probe Laser Terminal",
+      "laserPowerKw": 5,
+      "apertureDiameterM": 1.5,
+      "wavelengthNm": 1550,
+      "peakDataRateGbps": 10,
+      "pointingPrecisionArcsec": 0.02
+    }
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "schema": "simulatte.maritimeWeatherSnapshot.v1",
+  "id": "maritime.weather.snapshot.v1",
+  "title": "Global Ocean Sea State & Meteorological Snapshot",
+  "retrievedAt": "2026-07-21T00:00:00Z",
+  "zones": [
+    {
+      "zoneId": "north-atlantic",
+      "avgWaveHeightM": 3.4,
+      "windSpeedKnots": 22,
+      "currentSpeedKnots": 1.2
+    },
+    {
+      "zoneId": "indian-ocean",
+      "avgWaveHeightM": 2.1,
+      "windSpeedKnots": 14,
+      "currentSpeedKnots": 0.8
+    },
+    {
+      "zoneId": "north-pacific",
+      "avgWaveHeightM": 4.2,
+      "windSpeedKnots": 28,
+      "currentSpeedKnots": 1.5
+    }
+  ]
+}

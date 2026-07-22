@@ -1,0 +1,8 @@
+{
+  "schema": "simulatte.interstellarDustAttenuation.v1",
+  "id": "interstellar.dust.attenuation.v1",
+  "title": "Local Interstellar Cloud Dust & Electron Density",
+  "localCloudDensityAtomsCm3": 0.1,
+  "extinctionMagPerPc": 0.0002,
+  "dispersionMeasurePcCm3": 0.05
+}

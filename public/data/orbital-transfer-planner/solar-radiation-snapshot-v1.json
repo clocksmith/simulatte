@@ -1,0 +1,28 @@
+{
+  "schema": "simulatte.solarRadiationSnapshot.v1",
+  "id": "solar.radiation.snapshot.v1",
+  "title": "SWPC Solar Proton Flux & Radiation Snapshot",
+  "retrievedAt": "2026-07-21T00:00:00Z",
+  "baselineFluxPfu": 0.85,
+  "flareEvents": [
+    {
+      "day": 42,
+      "durationHours": 18,
+      "peakFluxPfu": 450,
+      "class": "M8.4"
+    },
+    {
+      "day": 185,
+      "durationHours": 36,
+      "peakFluxPfu": 3200,
+      "class": "X2.1"
+    },
+    {
+      "day": 310,
+      "durationHours": 12,
+      "peakFluxPfu": 120,
+      "class": "M4.1"
+    }
+  ],
+  "shieldingAttenuationFactor": 0.12
+}

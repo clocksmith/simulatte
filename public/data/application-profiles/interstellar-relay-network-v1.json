@@ -1,0 +1,39 @@
+{
+  "schema": "simulatte.applicationProfile.v3",
+  "id": "interstellar-relay-network-v1",
+  "tier": "star-chart",
+  "worldModelId": "gaia-dr3-stellar-neighborhood-v1",
+  "interaction": {
+    "mode": "simulation",
+    "startLabel": "Compute optical relay graph",
+    "shuffleLabel": "Change link target"
+  },
+  "defaultSeedId": "sol-proxima-link",
+  "seeds": [
+    {
+      "id": "sol-proxima-link",
+      "label": "Sol to Proxima Centauri",
+      "description": "Coherent laser relay link across 1.30 parsecs (4.24 light years).",
+      "seed": "relay-sol-proxima-001",
+      "scenarioId": "sol-proxima-link"
+    },
+    {
+      "id": "sol-sirius-link",
+      "label": "Sol to Sirius A",
+      "description": "High-capacity optical backbone across 2.64 parsecs (8.60 light years).",
+      "seed": "relay-sol-sirius-002",
+      "scenarioId": "sol-sirius-link"
+    }
+  ],
+  "plugins": [
+    {
+      "id": "interstellar-relay-network",
+      "configId": "interstellar-relay-network-config-v1"
+    }
+  ],
+  "routeObjective": {
+    "latencyYears": 1.0,
+    "bandwidthGbps": 0.8,
+    "bitErrorRate": 0.01
+  }
+}

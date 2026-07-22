@@ -1,0 +1,61 @@
+{
+  "schema": "simulatte.solarSystemGmConstants.v1",
+  "id": "solar.system.gm-constants-de440.v1",
+  "title": "DE440 Gravitational Parameters",
+  "units": {
+    "gmAuD2": "AU^3 / day^2",
+    "gmM3S2": "m^3 / s^2"
+  },
+  "bodies": {
+    "sun": {
+      "name": "Sun",
+      "gmM3S2": 132712440018000000000,
+      "gmAuD2": 0.0002959122082855911
+    },
+    "mercury": {
+      "name": "Mercury",
+      "gmM3S2": 22032090000000,
+      "gmAuD2": 4.912547e-11
+    },
+    "venus": {
+      "name": "Venus",
+      "gmM3S2": 324858592000000,
+      "gmAuD2": 7.243593e-10
+    },
+    "earth": {
+      "name": "Earth",
+      "gmM3S2": 398600441800000,
+      "gmAuD2": 8.887692e-10
+    },
+    "moon": {
+      "name": "Moon",
+      "gmM3S2": 4902800066000,
+      "gmAuD2": 1.093189e-11
+    },
+    "mars": {
+      "name": "Mars",
+      "gmM3S2": 42828375214000,
+      "gmAuD2": 9.549539e-11
+    },
+    "jupiter": {
+      "name": "Jupiter",
+      "gmM3S2": 126686534000000000,
+      "gmAuD2": 2.82476e-7
+    },
+    "saturn": {
+      "name": "Saturn",
+      "gmM3S2": 37931187000000000,
+      "gmAuD2": 8.455953e-8
+    },
+    "uranus": {
+      "name": "Uranus",
+      "gmM3S2": 5793939000000000,
+      "gmAuD2": 1.291724e-8
+    },
+    "neptune": {
+      "name": "Neptune",
+      "gmM3S2": 6836529000000000,
+      "gmAuD2": 1.524317e-8
+    }
+  }
+}

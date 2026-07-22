@@ -1,0 +1,323 @@
+{
+  "schema": "simulatte.maritimePortRegistry.v1",
+  "source": "NGA World Port Index (public reference)",
+  "claimBoundary": "Synthetic aggregate data anchored to official port and performance datasets. Ports and codes are public reference data; schedules, queues, corridors, and vessels are statistically generated, never observed AIS positions or carrier schedules. Not a live tracking or ETA system.",
+  "ports": [
+    {
+      "id": "port:cnsha",
+      "name": "Shanghai",
+      "unlocode": "CNSHA",
+      "country": "CN",
+      "location": {
+        "longitude": 121.47,
+        "latitude": 31.23
+      },
+      "harborSize": "L",
+      "berthCount": 20,
+      "provenanceKind": "public_reference_port"
+    },
+    {
+      "id": "port:sgsin",
+      "name": "Singapore",
+      "unlocode": "SGSIN",
+      "country": "SG",
+      "location": {
+        "longitude": 103.85,
+        "latitude": 1.29
+      },
+      "harborSize": "L",
+      "berthCount": 8,
+      "provenanceKind": "public_reference_port"
+    },
+    {
+      "id": "port:cnngb",
+      "name": "Ningbo-Zhoushan",
+      "unlocode": "CNNGB",
+      "country": "CN",
+      "location": {
+        "longitude": 121.55,
+        "latitude": 29.87
+      },
+      "harborSize": "L",
+      "berthCount": 15,
+      "provenanceKind": "public_reference_port"
+    },
+    {
+      "id": "port:cnszn",
+      "name": "Shenzhen",
+      "unlocode": "CNSZN",
+      "country": "CN",
+      "location": {
+        "longitude": 114.06,
+        "latitude": 22.54
+      },
+      "harborSize": "L",
+      "berthCount": 17,
+      "provenanceKind": "public_reference_port"
+    },
+    {
+      "id": "port:krpus",
+      "name": "Busan",
+      "unlocode": "KRPUS",
+      "country": "KR",
+      "location": {
+        "longitude": 129.04,
+        "latitude": 35.1
+      },
+      "harborSize": "L",
+      "berthCount": 16,
+      "provenanceKind": "public_reference_port"
+    },
+    {
+      "id": "port:cntao",
+      "name": "Qingdao",
+      "unlocode": "CNTAO",
+      "country": "CN",
+      "location": {
+        "longitude": 120.38,
+        "latitude": 36.07
+      },
+      "harborSize": "L",
+      "berthCount": 16,
+      "provenanceKind": "public_reference_port"
+    },
+    {
+      "id": "port:hkhkg",
+      "name": "Hong Kong",
+      "unlocode": "HKHKG",
+      "country": "HK",
+      "location": {
+        "longitude": 114.17,
+        "latitude": 22.3
+      },
+      "harborSize": "L",
+      "berthCount": 11,
+      "provenanceKind": "public_reference_port"
+    },
+    {
+      "id": "port:nlrtm",
+      "name": "Rotterdam",
+      "unlocode": "NLRTM",
+      "country": "NL",
+      "location": {
+        "longitude": 4.14,
+        "latitude": 51.95
+      },
+      "harborSize": "L",
+      "berthCount": 10,
+      "provenanceKind": "public_reference_port"
+    },
+    {
+      "id": "port:uslax",
+      "name": "Los Angeles",
+      "unlocode": "USLAX",
+      "country": "US",
+      "location": {
+        "longitude": -118.27,
+        "latitude": 33.74
+      },
+      "harborSize": "L",
+      "berthCount": 17,
+      "provenanceKind": "public_reference_port"
+    },
+    {
+      "id": "port:uslgb",
+      "name": "Long Beach",
+      "unlocode": "USLGB",
+      "country": "US",
+      "location": {
+        "longitude": -118.19,
+        "latitude": 33.75
+      },
+      "harborSize": "L",
+      "berthCount": 10,
+      "provenanceKind": "public_reference_port"
+    },
+    {
+      "id": "port:beanr",
+      "name": "Antwerp",
+      "unlocode": "BEANR",
+      "country": "BE",
+      "location": {
+        "longitude": 4.4,
+        "latitude": 51.26
+      },
+      "harborSize": "L",
+      "berthCount": 10,
+      "provenanceKind": "public_reference_port"
+    },
+    {
+      "id": "port:deham",
+      "name": "Hamburg",
+      "unlocode": "DEHAM",
+      "country": "DE",
+      "location": {
+        "longitude": 9.93,
+        "latitude": 53.53
+      },
+      "harborSize": "M",
+      "berthCount": 7,
+      "provenanceKind": "public_reference_port"
+    },
+    {
+      "id": "port:usnyc",
+      "name": "New York/New Jersey",
+      "unlocode": "USNYC",
+      "country": "US",
+      "location": {
+        "longitude": -74.04,
+        "latitude": 40.67
+      },
+      "harborSize": "L",
+      "berthCount": 16,
+      "provenanceKind": "public_reference_port"
+    },
+    {
+      "id": "port:aejea",
+      "name": "Jebel Ali (Dubai)",
+      "unlocode": "AEJEA",
+      "country": "AE",
+      "location": {
+        "longitude": 55.06,
+        "latitude": 25.01
+      },
+      "harborSize": "L",
+      "berthCount": 11,
+      "provenanceKind": "public_reference_port"
+    },
+    {
+      "id": "port:mytpp",
+      "name": "Tanjung Pelepas",
+      "unlocode": "MYTPP",
+      "country": "MY",
+      "location": {
+        "longitude": 103.55,
+        "latitude": 1.36
+      },
+      "harborSize": "M",
+      "berthCount": 6,
+      "provenanceKind": "public_reference_port"
+    },
+    {
+      "id": "port:twkhh",
+      "name": "Kaohsiung",
+      "unlocode": "TWKHH",
+      "country": "TW",
+      "location": {
+        "longitude": 120.28,
+        "latitude": 22.61
+      },
+      "harborSize": "M",
+      "berthCount": 5,
+      "provenanceKind": "public_reference_port"
+    },
+    {
+      "id": "port:lkcmb",
+      "name": "Colombo",
+      "unlocode": "LKCMB",
+      "country": "LK",
+      "location": {
+        "longitude": 79.84,
+        "latitude": 6.94
+      },
+      "harborSize": "M",
+      "berthCount": 6,
+      "provenanceKind": "public_reference_port"
+    },
+    {
+      "id": "port:esvlc",
+      "name": "Valencia",
+      "unlocode": "ESVLC",
+      "country": "ES",
+      "location": {
+        "longitude": -0.32,
+        "latitude": 39.44
+      },
+      "harborSize": "M",
+      "berthCount": 4,
+      "provenanceKind": "public_reference_port"
+    },
+    {
+      "id": "port:grpir",
+      "name": "Piraeus",
+      "unlocode": "GRPIR",
+      "country": "GR",
+      "location": {
+        "longitude": 23.64,
+        "latitude": 37.94
+      },
+      "harborSize": "M",
+      "berthCount": 7,
+      "provenanceKind": "public_reference_port"
+    },
+    {
+      "id": "port:brssz",
+      "name": "Santos",
+      "unlocode": "BRSSZ",
+      "country": "BR",
+      "location": {
+        "longitude": -46.33,
+        "latitude": -23.96
+      },
+      "harborSize": "M",
+      "berthCount": 6,
+      "provenanceKind": "public_reference_port"
+    },
+    {
+      "id": "port:ussav",
+      "name": "Savannah",
+      "unlocode": "USSAV",
+      "country": "US",
+      "location": {
+        "longitude": -81.09,
+        "latitude": 32.08
+      },
+      "harborSize": "M",
+      "berthCount": 8,
+      "provenanceKind": "public_reference_port"
+    },
+    {
+      "id": "port:jptyo",
+      "name": "Tokyo",
+      "unlocode": "JPTYO",
+      "country": "JP",
+      "location": {
+        "longitude": 139.78,
+        "latitude": 35.62
+      },
+      "harborSize": "M",
+      "berthCount": 7,
+      "provenanceKind": "public_reference_port"
+    },
+    {
+      "id": "port:phmnl",
+      "name": "Manila",
+      "unlocode": "PHMNL",
+      "country": "PH",
+      "location": {
+        "longitude": 120.97,
+        "latitude": 14.6
+      },
+      "harborSize": "M",
+      "berthCount": 3,
+      "provenanceKind": "public_reference_port"
+    },
+    {
+      "id": "port:zadur",
+      "name": "Durban",
+      "unlocode": "ZADUR",
+      "country": "ZA",
+      "location": {
+        "longitude": 31.03,
+        "latitude": -29.87
+      },
+      "harborSize": "M",
+      "berthCount": 8,
+      "provenanceKind": "public_reference_port"
+    }
+  ],
+  "datasetId": "global-port-registry-wpi-v1",
+  "datasetSchemaId": "simulatte.maritimePortRegistry.v1",
+  "generatedBy": "tools/simulatte/build-maritime-data.mjs",
+  "generatorVersion": "maritime-data-1.0.0"
+}

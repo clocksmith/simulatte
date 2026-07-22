@@ -1,0 +1,43 @@
+{
+  "schema": "simulatte.nasaExoplanetHosts.v1",
+  "id": "nasa.exoplanet.hosts.v1",
+  "title": "NASA Exoplanet Archive Confirmed Planetary Systems",
+  "retrievedAt": "2026-07-21T00:00:00Z",
+  "hosts": [
+    {
+      "sourceId": "gaia-proxima",
+      "hostName": "Proxima Centauri",
+      "planetCount": 2,
+      "planets": [
+        {
+          "name": "Proxima Centauri b",
+          "periodDays": 11.186,
+          "massEarth": 1.17,
+          "semiMajorAu": 0.0485,
+          "isHabitableZone": true
+        },
+        {
+          "name": "Proxima Centauri d",
+          "periodDays": 5.122,
+          "massEarth": 0.26,
+          "semiMajorAu": 0.0288,
+          "isHabitableZone": false
+        }
+      ]
+    },
+    {
+      "sourceId": "gaia-epsilon-eridani",
+      "hostName": "Epsilon Eridani",
+      "planetCount": 1,
+      "planets": [
+        {
+          "name": "Epsilon Eridani b",
+          "periodDays": 2692,
+          "massJupiter": 0.78,
+          "semiMajorAu": 3.48,
+          "isHabitableZone": false
+        }
+      ]
+    }
+  ]
+}

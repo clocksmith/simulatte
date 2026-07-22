@@ -1,0 +1,49 @@
+{
+  "schema": "simulatte.stellarNameCrosswalk.v1",
+  "id": "stellar.name.crosswalk.v1",
+  "title": "Stellar Identifier Crosswalk (Gaia / HIP / HD / Bayer)",
+  "crosswalk": [
+    {
+      "sourceId": "gaia-sol",
+      "bayerName": "Sol",
+      "hdNumber": null,
+      "hipNumber": null
+    },
+    {
+      "sourceId": "gaia-proxima",
+      "bayerName": "V645 Centauri",
+      "hdNumber": null,
+      "hipNumber": 70890
+    },
+    {
+      "sourceId": "gaia-alpha-cen-a",
+      "bayerName": "Alpha Centauri A",
+      "hdNumber": 128620,
+      "hipNumber": 71683
+    },
+    {
+      "sourceId": "gaia-alpha-cen-b",
+      "bayerName": "Alpha Centauri B",
+      "hdNumber": 128621,
+      "hipNumber": 71681
+    },
+    {
+      "sourceId": "gaia-barnard",
+      "bayerName": "Barnard's Star",
+      "hdNumber": null,
+      "hipNumber": 87937
+    },
+    {
+      "sourceId": "gaia-sirius-a",
+      "bayerName": "Alpha Canis Majoris",
+      "hdNumber": 48915,
+      "hipNumber": 32349
+    },
+    {
+      "sourceId": "gaia-epsilon-eridani",
+      "bayerName": "Epsilon Eridani",
+      "hdNumber": 22049,
+      "hipNumber": 16537
+    }
+  ]
+}

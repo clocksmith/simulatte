@@ -93,7 +93,7 @@
       elements.worldTierLabel.textContent = TIER_LABELS[tier] || 'Select scale';
 
       // Scope the secondary "plugins" dropdown to the active world.
-      const supportedScale = tier === 'city' || tier === 'country';
+      const supportedScale = true;
       elements.applicationProfileControl.classList.toggle('is-empty', !supportedScale);
       elements.applicationProfileTrigger.disabled = !supportedScale;
       elements.applicationProfileTrigger.setAttribute('aria-disabled', String(!supportedScale));
@@ -134,10 +134,8 @@
 
   async function bootLanding(ctx) {
     const { startApp } = ctx;
-    // A non-City scale boots the lightweight explorer instead of the full City engine.
-    const routeTier = (tier) => (tier !== 'city' && ctx.createTierVisualizer
-      ? bootWorldExplorer(ctx, tier)
-      : startApp(tier));
+    // All scales now boot their governed plugin runtime via startApp.
+    const routeTier = (tier) => startApp(tier);
     const landing = document.getElementById('world-tiers-landing-page');
     const view = (landing && landing.ownerDocument.defaultView) || (typeof window !== 'undefined' ? window : null);
 
@@ -157,10 +155,16 @@
         if (!url.searchParams.has('world')) {
           if (tier === 'city') url.searchParams.set('world', 'nyc-core-autonomy-v1');
           else if (tier === 'country') url.searchParams.set('world', 'us-food-network-v1');
+          else if (tier === 'world') url.searchParams.set('world', 'earth-global-topology-v1');
+          else if (tier === 'solar-system') url.searchParams.set('world', 'solar-system-ephemeris-v2');
+          else if (tier === 'star-chart') url.searchParams.set('world', 'gaia-dr3-stellar-neighborhood-v1');
         }
         if (!url.searchParams.has('profile')) {
           if (tier === 'city') url.searchParams.set('profile', 'simulatte-world-v1');
           else if (tier === 'country') url.searchParams.set('profile', 'food-recall-us-v1');
+          else if (tier === 'world') url.searchParams.set('profile', 'maritime-trade-global-v1');
+          else if (tier === 'solar-system') url.searchParams.set('profile', 'orbital-transfer-planner-v1');
+          else if (tier === 'star-chart') url.searchParams.set('profile', 'interstellar-relay-network-v1');
         }
         view.history.replaceState(view.history.state, '', url.toString());
       }
@@ -182,6 +186,15 @@
         } else if (tier === 'country') {
           url.searchParams.set('world', 'us-food-network-v1');
           url.searchParams.set('profile', 'food-recall-us-v1');
+        } else if (tier === 'world') {
+          url.searchParams.set('world', 'earth-global-topology-v1');
+          url.searchParams.set('profile', 'maritime-trade-global-v1');
+        } else if (tier === 'solar-system') {
+          url.searchParams.set('world', 'solar-system-ephemeris-v2');
+          url.searchParams.set('profile', 'orbital-transfer-planner-v1');
+        } else if (tier === 'star-chart') {
+          url.searchParams.set('world', 'gaia-dr3-stellar-neighborhood-v1');
+          url.searchParams.set('profile', 'interstellar-relay-network-v1');
         }
         view.history.replaceState(view.history.state, '', url.toString());
       }

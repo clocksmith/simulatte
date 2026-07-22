@@ -1,0 +1,28 @@
+{
+  "schema": "simulatte.maritimeVesselClasses.v1",
+  "id": "maritime.vessel.classes.v1",
+  "title": "Global Merchant Vessel Classes & Performance",
+  "classes": {
+    "ultra-large-container-v1": {
+      "name": "Ultra Large Container Vessel (ULCV)",
+      "teuCapacity": 24000,
+      "designSpeedKnots": 21.5,
+      "fuelConsTonsDay": 185,
+      "co2TonsPerNm": 0.042
+    },
+    "panamax-bulk-v1": {
+      "name": "Panamax Dry Bulk Carrier",
+      "dwtTons": 75000,
+      "designSpeedKnots": 14,
+      "fuelConsTonsDay": 32,
+      "co2TonsPerNm": 0.028
+    },
+    "vlcc-tanker-v1": {
+      "name": "Very Large Crude Carrier (VLCC)",
+      "dwtTons": 300000,
+      "designSpeedKnots": 15.5,
+      "fuelConsTonsDay": 80,
+      "co2TonsPerNm": 0.065
+    }
+  }
+}

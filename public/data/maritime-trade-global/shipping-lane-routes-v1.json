@@ -1,0 +1,73 @@
+{
+  "schema": "simulatte.shippingLaneRoutes.v1",
+  "id": "shipping.lane.routes.v1",
+  "title": "Major Intercontinental Maritime Trade Corridors",
+  "corridors": [
+    {
+      "id": "route-asia-europe",
+      "name": "Asia-Europe Mainline",
+      "originPort": "port-shanghai",
+      "destinationPort": "port-rotterdam",
+      "distanceNm": 10500,
+      "waypoints": [
+        [
+          31.23,
+          121.47
+        ],
+        [
+          22.3,
+          114.1
+        ],
+        [
+          1.26,
+          103.84
+        ],
+        [
+          6,
+          80
+        ],
+        [
+          12.5,
+          43.3
+        ],
+        [
+          30.5,
+          32.3
+        ],
+        [
+          36,
+          -5.3
+        ],
+        [
+          51.95,
+          4.14
+        ]
+      ]
+    },
+    {
+      "id": "route-transpacific",
+      "name": "Transpacific Eastbound",
+      "originPort": "port-shanghai",
+      "destinationPort": "port-los-angeles",
+      "distanceNm": 5700,
+      "waypoints": [
+        [
+          31.23,
+          121.47
+        ],
+        [
+          35,
+          140
+        ],
+        [
+          45,
+          -160
+        ],
+        [
+          33.74,
+          -118.27
+        ]
+      ]
+    }
+  ]
+}

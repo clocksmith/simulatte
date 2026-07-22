@@ -1,0 +1,17 @@
+{
+  "schema": "simulatte.worldModel.v1",
+  "id": "earth-global-topology-v1",
+  "tier": "world",
+  "title": "Earth Global Marine Topology & Trade Corridors",
+  "coordinateSystem": "wgs84",
+  "bounds": {
+    "latMin": -90.0,
+    "latMax": 90.0,
+    "lonMin": -180.0,
+    "lonMax": 180.0
+  },
+  "provenance": {
+    "source": "NGA World Port Index & Natural Earth",
+    "snapshotDate": "2026-07-21"
+  }
+}

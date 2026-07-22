@@ -1,0 +1,265 @@
+{
+  "schema": "simulatte.ibtracsScenarioTracks.v1",
+  "source": "NOAA IBTrACS v04r01 (scenario-shaped, synthetic tracks)",
+  "claimBoundary": "Synthetic cyclone tracks shaped to IBTrACS climatology for disruption scenarios; not a forecast or observed storm.",
+  "tracks": [
+    {
+      "id": "cyclone:scenario-0",
+      "basin": "north-atlantic",
+      "category": "scenario",
+      "points": [
+        {
+          "hour": 0,
+          "longitude": -44.69,
+          "latitude": 13.69,
+          "maxWindKt": 129
+        },
+        {
+          "hour": 6,
+          "longitude": -44.48,
+          "latitude": 14.77,
+          "maxWindKt": 131
+        },
+        {
+          "hour": 12,
+          "longitude": -42.62,
+          "latitude": 15.65,
+          "maxWindKt": 71
+        },
+        {
+          "hour": 18,
+          "longitude": -42.07,
+          "latitude": 16.91,
+          "maxWindKt": 68
+        },
+        {
+          "hour": 24,
+          "longitude": -39.69,
+          "latitude": 17.5,
+          "maxWindKt": 118
+        },
+        {
+          "hour": 30,
+          "longitude": -38.98,
+          "latitude": 18.9,
+          "maxWindKt": 45
+        },
+        {
+          "hour": 36,
+          "longitude": -37.98,
+          "latitude": 19.51,
+          "maxWindKt": 54
+        },
+        {
+          "hour": 42,
+          "longitude": -36.55,
+          "latitude": 20.21,
+          "maxWindKt": 58
+        },
+        {
+          "hour": 48,
+          "longitude": -34.81,
+          "latitude": 21.42,
+          "maxWindKt": 117
+        },
+        {
+          "hour": 54,
+          "longitude": -33.82,
+          "latitude": 21.75,
+          "maxWindKt": 113
+        },
+        {
+          "hour": 60,
+          "longitude": -32.93,
+          "latitude": 22.84,
+          "maxWindKt": 91
+        },
+        {
+          "hour": 66,
+          "longitude": -32.17,
+          "latitude": 24.29,
+          "maxWindKt": 59
+        },
+        {
+          "hour": 72,
+          "longitude": -31.59,
+          "latitude": 24.38,
+          "maxWindKt": 87
+        },
+        {
+          "hour": 78,
+          "longitude": -29.87,
+          "latitude": 25.8,
+          "maxWindKt": 64
+        },
+        {
+          "hour": 84,
+          "longitude": -27.81,
+          "latitude": 26.13,
+          "maxWindKt": 63
+        },
+        {
+          "hour": 90,
+          "longitude": -27.39,
+          "latitude": 27.62,
+          "maxWindKt": 57
+        },
+        {
+          "hour": 96,
+          "longitude": -25.72,
+          "latitude": 28.2,
+          "maxWindKt": 125
+        },
+        {
+          "hour": 102,
+          "longitude": -23.62,
+          "latitude": 28.83,
+          "maxWindKt": 64
+        },
+        {
+          "hour": 108,
+          "longitude": -22.64,
+          "latitude": 29.81,
+          "maxWindKt": 93
+        },
+        {
+          "hour": 114,
+          "longitude": -21.97,
+          "latitude": 31.37,
+          "maxWindKt": 123
+        }
+      ]
+    },
+    {
+      "id": "cyclone:scenario-1",
+      "basin": "western-pacific",
+      "category": "scenario",
+      "points": [
+        {
+          "hour": 0,
+          "longitude": 140.16,
+          "latitude": 11.99,
+          "maxWindKt": 124
+        },
+        {
+          "hour": 6,
+          "longitude": 137.71,
+          "latitude": 12.43,
+          "maxWindKt": 100
+        },
+        {
+          "hour": 12,
+          "longitude": 138.29,
+          "latitude": 13.27,
+          "maxWindKt": 59
+        },
+        {
+          "hour": 18,
+          "longitude": 135.59,
+          "latitude": 13.63,
+          "maxWindKt": 75
+        },
+        {
+          "hour": 24,
+          "longitude": 135.36,
+          "latitude": 14.67,
+          "maxWindKt": 73
+        },
+        {
+          "hour": 30,
+          "longitude": 132.89,
+          "latitude": 15.87,
+          "maxWindKt": 47
+        },
+        {
+          "hour": 36,
+          "longitude": 132.44,
+          "latitude": 16.13,
+          "maxWindKt": 121
+        },
+        {
+          "hour": 42,
+          "longitude": 130.48,
+          "latitude": 16.62,
+          "maxWindKt": 116
+        },
+        {
+          "hour": 48,
+          "longitude": 130.47,
+          "latitude": 17.31,
+          "maxWindKt": 87
+        },
+        {
+          "hour": 54,
+          "longitude": 129.12,
+          "latitude": 17.91,
+          "maxWindKt": 127
+        },
+        {
+          "hour": 60,
+          "longitude": 127.63,
+          "latitude": 18.81,
+          "maxWindKt": 47
+        },
+        {
+          "hour": 66,
+          "longitude": 126.56,
+          "latitude": 19.66,
+          "maxWindKt": 116
+        },
+        {
+          "hour": 72,
+          "longitude": 124.11,
+          "latitude": 20.77,
+          "maxWindKt": 57
+        },
+        {
+          "hour": 78,
+          "longitude": 123.56,
+          "latitude": 20.69,
+          "maxWindKt": 112
+        },
+        {
+          "hour": 84,
+          "longitude": 121.12,
+          "latitude": 21.76,
+          "maxWindKt": 117
+        },
+        {
+          "hour": 90,
+          "longitude": 121.12,
+          "latitude": 22.72,
+          "maxWindKt": 123
+        },
+        {
+          "hour": 96,
+          "longitude": 119.26,
+          "latitude": 23.09,
+          "maxWindKt": 88
+        },
+        {
+          "hour": 102,
+          "longitude": 117.08,
+          "latitude": 24.38,
+          "maxWindKt": 123
+        },
+        {
+          "hour": 108,
+          "longitude": 115.68,
+          "latitude": 24.36,
+          "maxWindKt": 46
+        },
+        {
+          "hour": 114,
+          "longitude": 115.46,
+          "latitude": 25.26,
+          "maxWindKt": 47
+        }
+      ]
+    }
+  ],
+  "datasetId": "ibtracs-v04r01-scenario-tracks-v1",
+  "datasetSchemaId": "simulatte.ibtracsScenarioTracks.v1",
+  "generatedBy": "tools/simulatte/build-maritime-data.mjs",
+  "generatorVersion": "maritime-data-1.0.0"
+}

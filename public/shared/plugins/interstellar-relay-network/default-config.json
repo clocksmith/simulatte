@@ -1,0 +1,7 @@
+{
+  "schema": "simulatte.plugin.interstellarRelayConfig.v1",
+  "id": "interstellar-relay-network-config-v1",
+  "defaultTransceiver": "deep-space-node-v1",
+  "defaultTargetStarId": "star-proxima-centauri",
+  "defaultScenarioId": "sol-proxima-direct"
+}

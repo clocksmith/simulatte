@@ -1,0 +1,33 @@
+{
+  "schema": "simulatte.oceanChokepoints.v1",
+  "id": "ocean.chokepoints.v1",
+  "title": "Critical Strategic Maritime Passages",
+  "chokepoints": [
+    {
+      "id": "choke-suez",
+      "name": "Suez Canal",
+      "lat": 30.5,
+      "lon": 32.3,
+      "maxDraftM": 20.1,
+      "dailyCapacityVessels": 106,
+      "feeUsdPerTeu": 95
+    },
+    {
+      "id": "choke-malacca",
+      "name": "Strait of Malacca",
+      "lat": 2.5,
+      "lon": 101.5,
+      "minWidthNm": 1.5,
+      "dailyCapacityVessels": 250
+    },
+    {
+      "id": "choke-panama",
+      "name": "Panama Canal (Neopanamax)",
+      "lat": 9.1,
+      "lon": -79.7,
+      "maxDraftM": 15.2,
+      "dailyCapacityVessels": 36,
+      "feeUsdPerTeu": 140
+    }
+  ]
+}

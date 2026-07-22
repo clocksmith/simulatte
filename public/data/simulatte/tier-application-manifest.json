@@ -1,0 +1,43 @@
+{
+  "schema": "simulatte.tierApplicationManifest.v1",
+  "tiers": {
+    "city": {
+      "defaultProfileId": "simulatte-world-v1",
+      "worldModelId": "nyc-core-autonomy-v1",
+      "profiles": [
+        { "id": "simulatte-world-v1", "path": "./application-profiles/simulatte-world-v1.json" },
+        { "id": "cable-trader-pickup-v1", "path": "./application-profiles/cable-trader-pickup-v1.json" },
+        { "id": "safety-explorer-v1", "path": "./application-profiles/safety-explorer-v1.json" },
+        { "id": "sun-walker-v1", "path": "./application-profiles/sun-walker-v1.json" }
+      ]
+    },
+    "country": {
+      "defaultProfileId": "food-recall-us-v1",
+      "worldModelId": "us-food-network-v1",
+      "profiles": [
+        { "id": "food-recall-us-v1", "path": "./application-profiles/food-recall-us-v1.json" }
+      ]
+    },
+    "world": {
+      "defaultProfileId": "maritime-trade-global-v1",
+      "worldModelId": "earth-global-topology-v1",
+      "profiles": [
+        { "id": "maritime-trade-global-v1", "path": "./application-profiles/maritime-trade-global-v1.json" }
+      ]
+    },
+    "solar-system": {
+      "defaultProfileId": "orbital-transfer-planner-v1",
+      "worldModelId": "solar-system-ephemeris-v2",
+      "profiles": [
+        { "id": "orbital-transfer-planner-v1", "path": "./application-profiles/orbital-transfer-planner-v1.json" }
+      ]
+    },
+    "star-chart": {
+      "defaultProfileId": "interstellar-relay-network-v1",
+      "worldModelId": "gaia-dr3-stellar-neighborhood-v1",
+      "profiles": [
+        { "id": "interstellar-relay-network-v1", "path": "./application-profiles/interstellar-relay-network-v1.json" }
+      ]
+    }
+  }
+}

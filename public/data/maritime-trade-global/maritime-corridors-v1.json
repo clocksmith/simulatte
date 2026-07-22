@@ -1,0 +1,310 @@
+{
+  "schema": "simulatte.maritimeCorridors.v1",
+  "claimBoundary": "Synthetic aggregate data anchored to official port and performance datasets. Ports and codes are public reference data; schedules, queues, corridors, and vessels are statistically generated, never observed AIS positions or carrier schedules. Not a live tracking or ETA system.",
+  "corridors": [
+    {
+      "id": "corridor:cnsha-sgsin",
+      "fromPortId": "port:cnsha",
+      "toPortId": "port:sgsin",
+      "canalId": null,
+      "distanceKm": 3810.1,
+      "serviceSpeedKn": 17.4,
+      "sailingDays": 4.94,
+      "provenanceKind": "synthetic_aggregate_corridor"
+    },
+    {
+      "id": "corridor:sgsin-lkcmb",
+      "fromPortId": "port:sgsin",
+      "toPortId": "port:lkcmb",
+      "canalId": null,
+      "distanceKm": 2734.8,
+      "serviceSpeedKn": 19.5,
+      "sailingDays": 3.16,
+      "provenanceKind": "synthetic_aggregate_corridor"
+    },
+    {
+      "id": "corridor:lkcmb-aejea",
+      "fromPortId": "port:lkcmb",
+      "toPortId": "port:aejea",
+      "canalId": null,
+      "distanceKm": 3312.6,
+      "serviceSpeedKn": 17.4,
+      "sailingDays": 4.27,
+      "provenanceKind": "synthetic_aggregate_corridor"
+    },
+    {
+      "id": "corridor:aejea-grpir",
+      "fromPortId": "port:aejea",
+      "toPortId": "port:grpir",
+      "canalId": "canal:suez",
+      "distanceKm": 3286.8,
+      "serviceSpeedKn": 18,
+      "sailingDays": 4.11,
+      "provenanceKind": "synthetic_aggregate_corridor"
+    },
+    {
+      "id": "corridor:sgsin-nlrtm",
+      "fromPortId": "port:sgsin",
+      "toPortId": "port:nlrtm",
+      "canalId": "canal:suez",
+      "distanceKm": 10557.4,
+      "serviceSpeedKn": 18.6,
+      "sailingDays": 12.75,
+      "provenanceKind": "synthetic_aggregate_corridor"
+    },
+    {
+      "id": "corridor:sgsin-grpir",
+      "fromPortId": "port:sgsin",
+      "toPortId": "port:grpir",
+      "canalId": "canal:suez",
+      "distanceKm": 9061.7,
+      "serviceSpeedKn": 19.3,
+      "sailingDays": 10.59,
+      "provenanceKind": "synthetic_aggregate_corridor"
+    },
+    {
+      "id": "corridor:grpir-esvlc",
+      "fromPortId": "port:grpir",
+      "toPortId": "port:esvlc",
+      "canalId": null,
+      "distanceKm": 2080.1,
+      "serviceSpeedKn": 19,
+      "sailingDays": 2.46,
+      "provenanceKind": "synthetic_aggregate_corridor"
+    },
+    {
+      "id": "corridor:esvlc-nlrtm",
+      "fromPortId": "port:esvlc",
+      "toPortId": "port:nlrtm",
+      "canalId": null,
+      "distanceKm": 1432.8,
+      "serviceSpeedKn": 21.3,
+      "sailingDays": 1.51,
+      "provenanceKind": "synthetic_aggregate_corridor"
+    },
+    {
+      "id": "corridor:nlrtm-beanr",
+      "fromPortId": "port:nlrtm",
+      "toPortId": "port:beanr",
+      "canalId": null,
+      "distanceKm": 78.8,
+      "serviceSpeedKn": 16.2,
+      "sailingDays": 0.11,
+      "provenanceKind": "synthetic_aggregate_corridor"
+    },
+    {
+      "id": "corridor:nlrtm-deham",
+      "fromPortId": "port:nlrtm",
+      "toPortId": "port:deham",
+      "canalId": null,
+      "distanceKm": 427.4,
+      "serviceSpeedKn": 20.6,
+      "sailingDays": 0.47,
+      "provenanceKind": "synthetic_aggregate_corridor"
+    },
+    {
+      "id": "corridor:nlrtm-usnyc",
+      "fromPortId": "port:nlrtm",
+      "toPortId": "port:usnyc",
+      "canalId": null,
+      "distanceKm": 5836.2,
+      "serviceSpeedKn": 20.7,
+      "sailingDays": 6.33,
+      "provenanceKind": "synthetic_aggregate_corridor"
+    },
+    {
+      "id": "corridor:usnyc-ussav",
+      "fromPortId": "port:usnyc",
+      "toPortId": "port:ussav",
+      "canalId": null,
+      "distanceKm": 1143.9,
+      "serviceSpeedKn": 20.4,
+      "sailingDays": 1.26,
+      "provenanceKind": "synthetic_aggregate_corridor"
+    },
+    {
+      "id": "corridor:cnsha-uslax",
+      "fromPortId": "port:cnsha",
+      "toPortId": "port:uslax",
+      "canalId": null,
+      "distanceKm": 10456.1,
+      "serviceSpeedKn": 16.3,
+      "sailingDays": 14.39,
+      "provenanceKind": "synthetic_aggregate_corridor"
+    },
+    {
+      "id": "corridor:cnngb-uslgb",
+      "fromPortId": "port:cnngb",
+      "toPortId": "port:uslgb",
+      "canalId": null,
+      "distanceKm": 10560.2,
+      "serviceSpeedKn": 17.1,
+      "sailingDays": 13.87,
+      "provenanceKind": "synthetic_aggregate_corridor"
+    },
+    {
+      "id": "corridor:krpus-uslax",
+      "fromPortId": "port:krpus",
+      "toPortId": "port:uslax",
+      "canalId": null,
+      "distanceKm": 9644.6,
+      "serviceSpeedKn": 20.9,
+      "sailingDays": 10.37,
+      "provenanceKind": "synthetic_aggregate_corridor"
+    },
+    {
+      "id": "corridor:jptyo-uslax",
+      "fromPortId": "port:jptyo",
+      "toPortId": "port:uslax",
+      "canalId": null,
+      "distanceKm": 8831.7,
+      "serviceSpeedKn": 19.8,
+      "sailingDays": 10.04,
+      "provenanceKind": "synthetic_aggregate_corridor"
+    },
+    {
+      "id": "corridor:cnsha-krpus",
+      "fromPortId": "port:cnsha",
+      "toPortId": "port:krpus",
+      "canalId": null,
+      "distanceKm": 825.2,
+      "serviceSpeedKn": 17,
+      "sailingDays": 1.09,
+      "provenanceKind": "synthetic_aggregate_corridor"
+    },
+    {
+      "id": "corridor:cnsha-cnngb",
+      "fromPortId": "port:cnsha",
+      "toPortId": "port:cnngb",
+      "canalId": null,
+      "distanceKm": 151.4,
+      "serviceSpeedKn": 19.6,
+      "sailingDays": 0.17,
+      "provenanceKind": "synthetic_aggregate_corridor"
+    },
+    {
+      "id": "corridor:cnszn-hkhkg",
+      "fromPortId": "port:cnszn",
+      "toPortId": "port:hkhkg",
+      "canalId": null,
+      "distanceKm": 29,
+      "serviceSpeedKn": 16.2,
+      "sailingDays": 0.04,
+      "provenanceKind": "synthetic_aggregate_corridor"
+    },
+    {
+      "id": "corridor:hkhkg-sgsin",
+      "fromPortId": "port:hkhkg",
+      "toPortId": "port:sgsin",
+      "canalId": null,
+      "distanceKm": 2589.1,
+      "serviceSpeedKn": 16.4,
+      "sailingDays": 3.54,
+      "provenanceKind": "synthetic_aggregate_corridor"
+    },
+    {
+      "id": "corridor:twkhh-cnsha",
+      "fromPortId": "port:twkhh",
+      "toPortId": "port:cnsha",
+      "canalId": null,
+      "distanceKm": 965.7,
+      "serviceSpeedKn": 17.9,
+      "sailingDays": 1.21,
+      "provenanceKind": "synthetic_aggregate_corridor"
+    },
+    {
+      "id": "corridor:phmnl-hkhkg",
+      "fromPortId": "port:phmnl",
+      "toPortId": "port:hkhkg",
+      "canalId": null,
+      "distanceKm": 1116.4,
+      "serviceSpeedKn": 17.9,
+      "sailingDays": 1.4,
+      "provenanceKind": "synthetic_aggregate_corridor"
+    },
+    {
+      "id": "corridor:mytpp-sgsin",
+      "fromPortId": "port:mytpp",
+      "toPortId": "port:sgsin",
+      "canalId": null,
+      "distanceKm": 34.2,
+      "serviceSpeedKn": 21.6,
+      "sailingDays": 0.04,
+      "provenanceKind": "synthetic_aggregate_corridor"
+    },
+    {
+      "id": "corridor:cntao-krpus",
+      "fromPortId": "port:cntao",
+      "toPortId": "port:krpus",
+      "canalId": null,
+      "distanceKm": 790.2,
+      "serviceSpeedKn": 19.6,
+      "sailingDays": 0.91,
+      "provenanceKind": "synthetic_aggregate_corridor"
+    },
+    {
+      "id": "corridor:uslgb-usnyc",
+      "fromPortId": "port:uslgb",
+      "toPortId": "port:usnyc",
+      "canalId": "canal:panama",
+      "distanceKm": 3942.4,
+      "serviceSpeedKn": 18,
+      "sailingDays": 4.93,
+      "provenanceKind": "synthetic_aggregate_corridor"
+    },
+    {
+      "id": "corridor:ussav-uslax",
+      "fromPortId": "port:ussav",
+      "toPortId": "port:uslax",
+      "canalId": "canal:panama",
+      "distanceKm": 3456.9,
+      "serviceSpeedKn": 16.6,
+      "sailingDays": 4.68,
+      "provenanceKind": "synthetic_aggregate_corridor"
+    },
+    {
+      "id": "corridor:brssz-uslgb",
+      "fromPortId": "port:brssz",
+      "toPortId": "port:uslgb",
+      "canalId": "canal:panama",
+      "distanceKm": 9937.8,
+      "serviceSpeedKn": 17.7,
+      "sailingDays": 12.61,
+      "provenanceKind": "synthetic_aggregate_corridor"
+    },
+    {
+      "id": "corridor:brssz-usnyc",
+      "fromPortId": "port:brssz",
+      "toPortId": "port:usnyc",
+      "canalId": null,
+      "distanceKm": 7736.5,
+      "serviceSpeedKn": 22,
+      "sailingDays": 7.92,
+      "provenanceKind": "synthetic_aggregate_corridor"
+    },
+    {
+      "id": "corridor:zadur-sgsin",
+      "fromPortId": "port:zadur",
+      "toPortId": "port:sgsin",
+      "canalId": null,
+      "distanceKm": 8431.5,
+      "serviceSpeedKn": 16,
+      "sailingDays": 11.82,
+      "provenanceKind": "synthetic_aggregate_corridor"
+    },
+    {
+      "id": "corridor:zadur-nlrtm",
+      "fromPortId": "port:zadur",
+      "toPortId": "port:nlrtm",
+      "canalId": null,
+      "distanceKm": 9468.6,
+      "serviceSpeedKn": 19.2,
+      "sailingDays": 11.09,
+      "provenanceKind": "synthetic_aggregate_corridor"
+    }
+  ],
+  "datasetId": "global-maritime-corridors-v1",
+  "datasetSchemaId": "simulatte.maritimeCorridors.v1",
+  "generatedBy": "tools/simulatte/build-maritime-data.mjs",
+  "generatorVersion": "maritime-data-1.0.0"
+}

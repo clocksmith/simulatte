@@ -61,7 +61,7 @@ function walk(directory) {
 function renderRegistry(rows) {
   const requires = rows.map((row) => `    '${row.manifest.id}': require('../../../shared/plugins/${row.manifest.id}/index.js'),`).join('\n');
   const globals = rows.map((row) => `    '${row.manifest.id}': root.${row.manifest.entry.globalFactory},`).join('\n');
-  const data = JSON.stringify(rows.map((row) => ({ manifest: sortValue(row.manifest), configs: sortValue(row.configs) })), null, 2);
+  const data = JSON.stringify(rows.map((row) => ({ manifest: sortValue(row.manifest), configs: sortValue(row.configs) })));
   return `(function attachGeneratedPluginRegistry(root, factory) {\n  const factories = typeof module === 'object' && module.exports\n    ? {\n${requires}\n      }\n    : {\n${globals}\n      };\n  const api = factory(factories);\n  if (typeof module === 'object' && module.exports) module.exports = api;\n  root.SimulatteGeneratedPluginRegistry = api;\n})(typeof globalThis !== 'undefined' ? globalThis : window, function createGeneratedPluginRegistry(factories) {\n  const rows = ${data};\n  const byId = new Map(rows.map((row) => [row.manifest.id, Object.freeze({ ...row, factory: factories[row.manifest.id] })]));\n  return Object.freeze({\n    schema: 'simulatte.pluginRegistry.v1',\n    ids: Object.freeze([...byId.keys()].sort()),\n    entry(id) { return byId.get(id) || null; },\n  });\n});\n`;
 }
 

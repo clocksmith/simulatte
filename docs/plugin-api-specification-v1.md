@@ -1,7 +1,7 @@
-# Simulatte Plugin API v1
+# Simulatte Plugin API v1 & v2
 
 **Status:** implemented first-party plugin API  
-**Runtime:** browser JavaScript, SDK version `1`  
+**Runtime:** browser JavaScript, SDK versions `1` and `2`  
 **Package root:** `public/shared/plugins/<plugin-id>/`
 
 ## 1. Scope and trust model
@@ -44,7 +44,7 @@ Every manifest has the exact schema `simulatte.pluginManifest.v1`. All top-level
   "schema": "simulatte.pluginManifest.v1",
   "id": "example-plugin",
   "version": "1.0.0",
-  "sdkVersion": 1,
+  "sdkVersion": 2,
 
   "entry": {
     "path": "./index.js",
@@ -62,7 +62,13 @@ Every manifest has the exact schema `simulatte.pluginManifest.v1`. All top-level
     "events.propose.v1",
     "receipts.append.v1",
     "state.reduce.v1",
-    "ui.inspector.v1"
+    "ui.inspector.v1",
+    "random.stream.v1",
+    "simulation.schedule.v1",
+    "environment.read.v1",
+    "geography.project.v1",
+    "compute.worker.v1",
+    "ui.geospatial.v1"
   ],
 
   "datasets": [
@@ -75,7 +81,7 @@ Every manifest has the exact schema `simulatte.pluginManifest.v1`. All top-level
     { "id": "other.capability.v1", "required": false }
   ],
 
-  "extensionPoints": ["event", "ui"],
+  "extensionPoints": ["event", "ui", "presentation"],
 
   "receiptSchemas": [
     "simulatte.plugin.exampleReceipt.v1"
@@ -92,11 +98,11 @@ Every manifest has the exact schema `simulatte.pluginManifest.v1`. All top-level
 |---|---|
 | `id` | Lowercase kebab case: `^[a-z0-9]+(?:-[a-z0-9]+)*$` |
 | `version` | Numeric `major.minor.patch` |
-| `sdkVersion` | Must equal `1` |
+| `sdkVersion` | Must equal `1` or `2` |
 | `entry` | Exact keys: `path`, `integrity`, `globalFactory` |
 | `integrity` | Lowercase SHA-384: `sha384-` plus 96 hex characters |
 | `resources` | Unique paths; must include `configSchema` and `defaultConfig` |
-| `permissions` | Unique values from the SDK v1 permission list |
+| `permissions` | Unique values from the SDK v1 (`events.propose.v1`, `receipts.append.v1`, `state.reduce.v1`, `ui.inspector.v1`, `capabilities.consume.v1`) or SDK v2 permission list (`random.stream.v1`, `simulation.schedule.v1`, `environment.read.v1`, `geography.project.v1`, `compute.worker.v1`, `ui.geospatial.v1`) |
 | `datasets` | `{ id, required }`, optionally with a governed `reference` |
 | `provides` | Unique capability IDs |
 | `consumes` | Unique `{ id, required }` declarations |
@@ -405,7 +411,74 @@ Rules:
 - provider inputs are cloned and frozen;
 - a declared provider function is checked when invoked.
 
-## 8. Extension contracts
+### 7.5 SDK v2 Substrate Ports (`sdkVersion: 2`)
+
+Plugins with `sdkVersion: 2` can request permission-gated access to five deterministic simulation ports:
+
+#### `sdk.random` (`random.stream.v1`)
+Named, splittable, deterministic RNG streams powered by `cyrb128` seeding and the `sfc32` generator. Stream draw state is derived purely from identity strings:
+```javascript
+const rng = sdk.random.stream('lot-partition');
+const fraction = rng.float(); // 0..1
+const count = rng.integer(1, 100);
+const coin = rng.bool(0.5);
+const choice = rng.pick(['apple', 'banana', 'orange']);
+const sample = rng.normal(mean, std);
+const childRng = rng.stream('child-substream');
+```
+
+#### `sdk.scheduler` (`simulation.schedule.v1`)
+Discrete-event queue ordered strictly by `(time, priority, sequence)` with deterministic budget enforcement:
+```javascript
+sdk.scheduler.schedule({
+  time: 120.0,
+  priority: 1,
+  payload: { kind: 'reefer.failure', facilityId: 'fac-01' }
+});
+sdk.scheduler.drain((event) => { processEvent(event); }, { maxEvents: 1000 });
+```
+
+#### `sdk.environment` (`environment.read.v1`)
+Spatially and temporally queryable environment samples over pinned snapshots:
+```javascript
+const sample = sdk.environment.sample({
+  latitude: 40.7128,
+  longitude: -74.0060,
+  timestamp: 1776000000
+});
+// returns simulatte.environmentSample.v1
+```
+
+#### `sdk.geography` (`geography.project.v1`)
+WGS84 ↔ Planar Equirectangular projection and haversine distance calculations:
+```javascript
+const planar = sdk.geography.project({ latitude: 40.7128, longitude: -74.0060 });
+const wgs84 = sdk.geography.unproject(planar.x, planar.y);
+const distMeters = sdk.geography.distanceMeters(posA, posB);
+```
+
+#### `sdk.compute` (`compute.worker.v1`)
+Worker-backed or inline cooperative ensemble execution:
+```javascript
+const result = await sdk.compute.runEnsemble({
+  replicates: 24,
+  runReplicate: (repIndex) => runSimulation(repIndex),
+  reduce: (results) => summarizeP50P95(results)
+});
+```
+
+#### Presentation v3 (`ui.geospatial.v1`)
+Enables national/global geospatial primitive rendering via `geoMarkers`, `geoPaths`, `geoAreas`, `choropleths`, and `geoCameraTargets`:
+```javascript
+function present() {
+  return {
+    schema: 'simulatte.pluginPresentation.v3',
+    geoMarkers: [...],
+    geoPaths: [...],
+    choropleths: [...]
+  };
+}
+```
 
 ## 8.1 Request contribution
 

@@ -1,0 +1,20 @@
+{
+  "schema": "simulatte.maritimeEmissionsModel.v1",
+  "claimBoundary": "Illustrative, versioned speed-power and emission coefficients. Numerical values are declared, not derived from a single global aggregate. Consistent with IMO decarbonization context, not an audited inventory.",
+  "version": "maritime-emissions-1.0.0",
+  "speedPower": {
+    "exponent": 3,
+    "referenceLoadFraction": 0.75
+  },
+  "fuel": {
+    "hfoCo2eFactorTPerT": 3.114,
+    "mgoCo2eFactorTPerT": 3.206,
+    "defaultFuel": "vlsfo",
+    "vlsfoCo2eFactorTPerT": 3.151
+  },
+  "idleQueueLoadFraction": 0.12,
+  "datasetId": "maritime-emissions-model-v1",
+  "datasetSchemaId": "simulatte.maritimeEmissionsModel.v1",
+  "generatedBy": "tools/simulatte/build-maritime-data.mjs",
+  "generatorVersion": "maritime-data-1.0.0"
+}

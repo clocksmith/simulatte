@@ -1,0 +1,7 @@
+{
+  "schema": "simulatte.plugin.orbitalTransferConfig.v1",
+  "id": "orbital-transfer-planner-config-v1",
+  "defaultArchetype": "cargo-freighter-v1",
+  "defaultDepotId": "depot-earth-l1",
+  "defaultScenarioId": "earth-mars-hohmann"
+}

@@ -1323,7 +1323,7 @@ test('loading mosaic loops a seven-segment snake through the clockwise grid spir
   assert.equal(headFrames.find((frame) => frame.offset === loadingMosaicApi.TRAVEL_END).opacity, 1);
   assert.equal(tailFrames.find((frame) => frame.offset === loadingMosaicApi.TRAVEL_END).opacity, loadingMosaicApi.trailOpacity(6));
   assert.deepEqual(loadingMosaicApi.TRAIL_OPACITIES, [1, 0.88, 0.76, 0.64, 0.52, 0.4, 0.3]);
-  assert.equal(loadingMosaicApi.CYCLE_DURATION_MS, 2200);
+  assert.equal(loadingMosaicApi.CYCLE_DURATION_MS, 2750);
   assert.equal(loadingMosaicApi.CELL_GAP_PX, 6);
   assert.equal(loadingMosaicApi.SNAKE_TRAVEL_DURATION_MS, 1200);
   assert.equal(loadingMosaicApi.SNAKE_COLLAPSE_DURATION_MS, 150);
@@ -1339,24 +1339,43 @@ test('loading mosaic loops a seven-segment snake through the clockwise grid spir
   const hopOffsets = tailTurnFrames.slice(1).map((frame) => frame.offset);
   const hopIntervals = hopOffsets.map((offset, index) => offset - (index === 0 ? loadingMosaicApi.TURN_START : hopOffsets[index - 1]));
   assert.ok(hopIntervals.every((interval) => Math.abs(interval - hopIntervals[0]) < Number.EPSILON));
-  // Rotation turns in lock step with the diagonal: 30° per hop, snapping on the same offsets.
+  // Rotation turns in lock step with the diagonal: 30° per hop, pausing then moving quickly.
   assert.equal(loadingMosaicApi.ROTATION_STEP_DEG, 30);
   const rotation = loadingMosaicApi.rotationCycleKeyframes();
   assert.deepEqual(rotation.map((frame) => frame.transform), [
-    'rotate(0deg)', 'rotate(0deg)', 'rotate(-30deg)', 'rotate(-60deg)', 'rotate(-90deg)', 'rotate(-90deg)',
+    'rotate(0deg)',
+    'rotate(0deg)',
+    'rotate(0deg)',
+    'rotate(-30deg)',
+    'rotate(-30deg)',
+    'rotate(-60deg)',
+    'rotate(-60deg)',
+    'rotate(-90deg)',
+    'rotate(-90deg)',
   ]);
-  assert.ok(rotation.every((frame) => frame.offset === 1 || frame.easing === 'steps(1, end)'));
+  assert.equal(rotation[0].easing, 'steps(1, end)');
+  assert.equal(rotation[1].easing, 'steps(1, end)');
+  assert.equal(rotation[2].easing, 'steps(1, end)');
+  assert.equal(rotation[3].easing, 'cubic-bezier(0.12, 0, 0.16, 1)');
+  assert.equal(rotation[4].easing, 'steps(1, end)');
+  assert.equal(rotation[5].easing, 'cubic-bezier(0.12, 0, 0.16, 1)');
+  assert.equal(rotation[6].easing, 'steps(1, end)');
+  assert.equal(rotation[7].easing, 'cubic-bezier(0.12, 0, 0.16, 1)');
+  assert.equal(rotation[8].easing, undefined);
   assert.equal(rotation[1].offset, loadingMosaicApi.TURN_START);
-  assert.deepEqual(rotation.slice(2, 5).map((frame) => frame.offset), hopOffsets);
-  assert.equal(rotation[4].offset, loadingMosaicApi.TURN_END);
-  // The crawl is a fixed rainbow: the head leads with the same hue every iteration,
-  // and the whole body is invariant to iteration and hop count.
+  const turnSpan = loadingMosaicApi.TURN_END - loadingMosaicApi.TURN_START;
+  const hopSpan = turnSpan / (90 / loadingMosaicApi.ROTATION_STEP_DEG);
+  assert.equal(rotation[2].offset, loadingMosaicApi.TURN_START + (hopSpan * loadingMosaicApi.TURN_PAUSE_FRACTION));
+  assert.deepEqual([rotation[3].offset, rotation[5].offset, rotation[7].offset], hopOffsets);
+  assert.equal(rotation[7].offset, loadingMosaicApi.TURN_END);
+  // The body remains static; during the gathered turn the active head advances
+  // through the palette in increments of +2 per completed hop.
   assert.equal(loadingMosaicApi.segmentColor(0, 0, 0, false), 'hsl(0 88% 62%)');
   assert.equal(loadingMosaicApi.segmentColor(0, 5, 0, false), 'hsl(0 88% 62%)');
   assert.equal(loadingMosaicApi.segmentColor(6, 3, 0, false), 'hsl(309 88% 62%)');
   // The palette iteration lives on the diagonal shift: the single visible cell steps
-  // -2 hues per completed hop, indexed into the ordered palette.
-  assert.deepEqual([0, 1, 2, 3].map((hops) => loadingMosaicApi.segmentColor(6, 0, hops, true)), [
+  // +2 hues per completed hop, indexed into the ordered palette.
+  assert.deepStrictEqual([0, 1, 2, 3].map((hop) => loadingMosaicApi.segmentColor(6, 0, hop, true)), [
     'hsl(309 88% 62%)',
     'hsl(206 88% 62%)',
     'hsl(103 88% 62%)',
@@ -1365,7 +1384,7 @@ test('loading mosaic loops a seven-segment snake through the clockwise grid spir
   // The shift's start hue advances +1 per iteration, so it walks cleanly through every hue.
   assert.equal(loadingMosaicApi.segmentColor(6, 1, 0, true), 'hsl(0 88% 62%)');
   assert.equal(loadingMosaicApi.segmentColor(6, 2, 0, true), 'hsl(51 88% 62%)');
-  // -2 per hop over CENTER hops is -(N-1) === +1 (mod N): the shift ends where the next one starts.
+  // +2 per hop over CENTER hops is +(N-1) === -1 (mod N): the shift ends where the next one starts.
   assert.equal(loadingMosaicApi.segmentColor(6, 0, 3, true), loadingMosaicApi.segmentColor(6, 1, 0, true));
   // Hop counting is deterministic on cycle phase and clamps to CENTER after the turn.
   assert.equal(loadingMosaicApi.completedHopsAt(0), 0);

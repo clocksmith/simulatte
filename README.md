@@ -19,15 +19,15 @@ The city tier contains the full autonomy runtime: mission grounding, route plann
 
 Select a tier with `?tier=<value>`.
 
-| Tier | Query value | Scope |
+| Tier | Query value | Scope & Plugin Experiences |
 | --- | --- | --- |
-| **City** | `city` | New York City journeys with WebGPU rendering, pedestrian/bicycle/scooter/car dynamics, safety gates, and receipt verification |
-| **Country** | `country` | United States regional transit and freight exploration |
-| **Planet** | `world` | Earth-scale border topology derived from Natural Earth |
-| **Solar System** | `solar-system` | Heliocentric orbit visualization using NASA JPL Horizons data |
-| **Universe** | `star-chart` | Three-dimensional Hipparcos stellar chart grouped by spectral class |
+| **City** | `city` | New York City autonomy runtime with WebGPU rendering, pedestrian/bicycle/scooter/car dynamics, safety gates, and receipt verification. Plugins: **Sun Walker**, **Cable Trader**, **Safety Explorer** |
+| **Country** | `country` | National food-supply and agricultural logistics simulation across U.S. regions. Plugin: **Food Recall (US)** |
+| **Planet** | `world` | Global container shipping routes, port queues, ocean chokepoints, and emissions engine. Plugin: **Maritime Trade (Global)** |
+| **Solar System** | `solar-system` | Heliocentric orbit ephemeris, Hohmann/Lambert transfer planning, and solar radiation dose calculations. Plugin: **Orbital Transfer Planner** |
+| **Universe** | `star-chart` | Three-dimensional Gaia DR3 ICRS stellar neighborhood, store-and-forward optical laser comms, and light-time delay queues. Plugin: **Interstellar Relay Network** |
 
-The city tier runs the complete mission engine. Larger scales use lighter data and interaction paths.
+All five scale tiers run governed plugin runtimes through versioned SDK contracts, deterministic RNG stream partitioning, and append-only cryptographic receipt chains.
 
 ## City runtime
 

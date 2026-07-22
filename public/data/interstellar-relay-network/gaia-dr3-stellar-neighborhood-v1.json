@@ -1,0 +1,128 @@
+{
+  "schema": "simulatte.gaiaDr3StellarNeighborhood.v1",
+  "id": "gaia.dr3.stellar-neighborhood.v1",
+  "title": "Gaia DR3 Astrometric Neighborhood (20 Light Years)",
+  "epoch": "J2016.0",
+  "stars": [
+    {
+      "id": "star-sun",
+      "name": "Sun (Sol)",
+      "raDeg": 0,
+      "decDeg": 0,
+      "parallaxMas": 0,
+      "distPc": 0,
+      "posPc": [
+        0,
+        0,
+        0
+      ],
+      "spectralClass": "G2V",
+      "absMag": 4.83
+    },
+    {
+      "id": "star-alpha-centauri-a",
+      "name": "Alpha Centauri A",
+      "raDeg": 219.9,
+      "decDeg": -60.83,
+      "parallaxMas": 754.81,
+      "distPc": 1.325,
+      "posPc": [
+        -0.94,
+        -0.91,
+        -0.12
+      ],
+      "spectralClass": "G2V",
+      "absMag": 4.38
+    },
+    {
+      "id": "star-proxima-centauri",
+      "name": "Proxima Centauri",
+      "raDeg": 217.43,
+      "decDeg": -62.68,
+      "parallaxMas": 768.07,
+      "distPc": 1.302,
+      "posPc": [
+        -0.92,
+        -0.9,
+        -0.11
+      ],
+      "spectralClass": "M5.5V",
+      "absMag": 15.6
+    },
+    {
+      "id": "star-barnard",
+      "name": "Barnard's Star",
+      "raDeg": 269.45,
+      "decDeg": 4.69,
+      "parallaxMas": 546.98,
+      "distPc": 1.828,
+      "posPc": [
+        -0.02,
+        1.82,
+        0.15
+      ],
+      "spectralClass": "M4.0V",
+      "absMag": 13.25
+    },
+    {
+      "id": "star-wolf-359",
+      "name": "Wolf 359",
+      "raDeg": 164.12,
+      "decDeg": 7.01,
+      "parallaxMas": 415.18,
+      "distPc": 2.409,
+      "posPc": [
+        -2.23,
+        0.64,
+        0.29
+      ],
+      "spectralClass": "M6.0V",
+      "absMag": 16.55
+    },
+    {
+      "id": "star-lalande-21185",
+      "name": "Lalande 21185",
+      "raDeg": 165.83,
+      "decDeg": 35.97,
+      "parallaxMas": 392.64,
+      "distPc": 2.547,
+      "posPc": [
+        -1.98,
+        0.5,
+        1.5
+      ],
+      "spectralClass": "M2.0V",
+      "absMag": 10.44
+    },
+    {
+      "id": "star-sirius-a",
+      "name": "Sirius A",
+      "raDeg": 101.28,
+      "decDeg": -16.72,
+      "parallaxMas": 379.21,
+      "distPc": 2.637,
+      "posPc": [
+        -0.5,
+        -2.48,
+        -0.76
+      ],
+      "spectralClass": "A1V",
+      "absMag": 1.42
+    },
+    {
+      "id": "star-epsilon-eridani",
+      "name": "Epsilon Eridani",
+      "raDeg": 53.23,
+      "decDeg": -9.46,
+      "parallaxMas": 310.58,
+      "distPc": 3.219,
+      "posPc": [
+        1.88,
+        -2.52,
+        -0.53
+      ],
+      "spectralClass": "K2V",
+      "absMag": 6.19
+    }
+  ]
+}
