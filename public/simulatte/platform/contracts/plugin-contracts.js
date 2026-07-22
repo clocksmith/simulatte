@@ -4,9 +4,16 @@
   root.SimulattePluginContracts = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createPluginContractsModule() {
   const SDK_VERSION = 1;
+  // SDK v2 is additive: it unlocks the simulation-substrate ports (random streams,
+  // scheduler, compute, environment, geography) plus geospatial presentation. v1
+  // manifests remain valid and see none of the new ports.
+  const SUPPORTED_SDK_VERSIONS = Object.freeze([1, 2]);
   const PERMISSIONS = Object.freeze([
     'capabilities.invoke.v1', 'clock.read.v1', 'events.propose.v1', 'language.parse.v1', 'receipts.append.v1',
     'routing.contribute.v1', 'simulation.run.v1', 'state.reduce.v1', 'ui.inspector.v1', 'world.query.v1',
+    // SDK v2 simulation-substrate ports.
+    'random.stream.v1', 'simulation.schedule.v1', 'compute.worker.v1', 'environment.read.v1',
+    'geography.project.v1', 'ui.geospatial.v1',
   ]);
   const EXTENSION_POINTS = Object.freeze(['request', 'route', 'event', 'settlement', 'ui', 'presentation']);
   const UI_SLOTS = Object.freeze(['inspector', 'map', 'hud']);
@@ -21,7 +28,7 @@
     equal(value.schema, 'simulatte.pluginManifest.v1', 'plugin_manifest_schema_invalid', 'Plugin manifest schema');
     if (!ID_PATTERN.test(value.id || '')) fail('plugin_manifest_id_invalid', `Plugin manifest ID ${value.id || 'missing'} is invalid`, { id: value.id || null });
     if (!/^\d+\.\d+\.\d+$/.test(value.version || '')) fail('plugin_manifest_version_invalid', `Plugin ${value.id} version is invalid`, { version: value.version });
-    equal(value.sdkVersion, SDK_VERSION, 'plugin_sdk_version_unsupported', `Plugin ${value.id} SDK version`);
+    if (!SUPPORTED_SDK_VERSIONS.includes(value.sdkVersion)) fail('plugin_sdk_version_unsupported', `Plugin ${value.id} SDK version ${value.sdkVersion ?? 'missing'} is unsupported`, { supported: SUPPORTED_SDK_VERSIONS, sdkVersion: value.sdkVersion ?? null });
     assertObject(value.entry, 'plugin_entry_invalid', `Plugin ${value.id} entry expected an object`);
     assertExactKeys(value.entry, ['path', 'integrity', 'globalFactory'], `Plugin ${value.id} entry`);
     text(value.entry.path, 'plugin_entry_path_invalid', `Plugin ${value.id} entry path`);
@@ -53,14 +60,16 @@
   function validateProfile(value) {
     assertObject(value, 'application_profile_invalid', 'Application profile expected an object');
     const isV2 = value.schema === 'simulatte.applicationProfile.v2';
-    const allowedKeys = isV2
+    const isV3 = value.schema === 'simulatte.applicationProfile.v3';
+    const isSeeded = isV2 || isV3;
+    const allowedKeys = isSeeded
       ? ['schema', 'id', 'plugins', 'routeObjective', 'camera', 'interaction', 'defaultSeedId', 'seeds']
       : ['schema', 'id', 'plugins', 'routeObjective', 'defaultMissionText', 'missionExamples', 'camera'];
-    const requiredKeys = isV2
+    const requiredKeys = isSeeded
       ? ['schema', 'id', 'plugins', 'routeObjective', 'interaction', 'defaultSeedId', 'seeds']
       : ['schema', 'id', 'plugins', 'routeObjective'];
     assertAllowedKeys(value, allowedKeys, requiredKeys, `Application profile ${value.id || 'missing'}`);
-    if (!['simulatte.applicationProfile.v1', 'simulatte.applicationProfile.v2'].includes(value.schema)) fail('application_profile_schema_invalid', `Application profile schema ${value.schema || 'missing'} is unsupported`, null);
+    if (!['simulatte.applicationProfile.v1', 'simulatte.applicationProfile.v2', 'simulatte.applicationProfile.v3'].includes(value.schema)) fail('application_profile_schema_invalid', `Application profile schema ${value.schema || 'missing'} is unsupported`, null);
     text(value.id, 'application_profile_id_invalid', 'Application profile ID');
     if (!Array.isArray(value.plugins)) fail('application_profile_plugins_invalid', `Profile ${value.id} plugins expected an array`, null);
     const ids = new Set();
@@ -82,7 +91,8 @@
       value.missionExamples.forEach((row) => text(row, 'application_profile_example_invalid', `Profile ${value.id} mission example`));
       if (value.defaultMissionText !== undefined && !value.missionExamples.includes(value.defaultMissionText)) fail('application_profile_default_example_missing', `Profile ${value.id} examples must include its default mission`, null);
     }
-    if (isV2) validateProfileInteraction(value);
+    if (isV3) validateProfileScenarioInteraction(value);
+    else if (isV2) validateProfileInteraction(value);
     if (value.camera !== undefined) {
       assertAllowedKeys(value.camera, ['initialMode', 'runMode', 'pluginId', 'targetId'], ['initialMode', 'runMode'], `Profile ${value.id} camera`);
       if (!['follow', 'bird', 'top'].includes(value.camera.initialMode) || !['follow', 'bird', 'top'].includes(value.camera.runMode)) fail('application_profile_camera_mode_invalid', `Profile ${value.id} camera modes are invalid`, value.camera);
@@ -119,6 +129,29 @@
       assertObject(row, 'application_profile_seed_invalid', `Profile ${value.id} seed ${index} expected an object`);
       assertExactKeys(row, ['id', 'label', 'description', 'seed', 'missionText'], `Profile ${value.id} seed ${index}`);
       ['id', 'label', 'description', 'seed', 'missionText'].forEach((key) => text(row[key], 'application_profile_seed_invalid', `Profile ${value.id} seed ${index} ${key}`));
+      if (ids.has(row.id) || seeds.has(row.seed)) fail('application_profile_seed_duplicate', `Profile ${value.id} seed IDs and values must be unique`, { id: row.id, seed: row.seed });
+      ids.add(row.id); seeds.add(row.seed);
+    });
+    text(value.defaultSeedId, 'application_profile_default_seed_invalid', `Profile ${value.id} default seed`);
+    if (!ids.has(value.defaultSeedId)) fail('application_profile_default_seed_missing', `Profile ${value.id} default seed is not declared`, { defaultSeedId: value.defaultSeedId });
+  }
+
+  function validateProfileScenarioInteraction(value) {
+    assertObject(value.interaction, 'application_profile_interaction_invalid', `Profile ${value.id} interaction expected an object`);
+    assertExactKeys(value.interaction, ['mode', 'simulationOwnerPluginId', 'startLabel', 'shuffleLabel', 'missionRequired'], `Profile ${value.id} interaction`);
+    equal(value.interaction.mode, 'scenario', 'application_profile_interaction_mode_invalid', `Profile ${value.id} interaction mode`);
+    text(value.interaction.simulationOwnerPluginId, 'application_profile_interaction_owner_invalid', `Profile ${value.id} simulation owner`);
+    if (!value.plugins.some((row) => row.id === value.interaction.simulationOwnerPluginId)) fail('application_profile_interaction_owner_inactive', `Profile ${value.id} simulation owner ${value.interaction.simulationOwnerPluginId} is not an active plugin`, { owner: value.interaction.simulationOwnerPluginId });
+    text(value.interaction.startLabel, 'application_profile_interaction_label_invalid', `Profile ${value.id} start label`);
+    text(value.interaction.shuffleLabel, 'application_profile_interaction_label_invalid', `Profile ${value.id} shuffle label`);
+    if (typeof value.interaction.missionRequired !== 'boolean') fail('application_profile_interaction_mission_required_invalid', `Profile ${value.id} missionRequired expected a boolean`, { value: value.interaction.missionRequired });
+    if (!Array.isArray(value.seeds) || value.seeds.length < 1) fail('application_profile_seeds_invalid', `Profile ${value.id} expected at least one scenario seed`, null);
+    const ids = new Set();
+    const seeds = new Set();
+    value.seeds.forEach((row, index) => {
+      assertObject(row, 'application_profile_seed_invalid', `Profile ${value.id} seed ${index} expected an object`);
+      assertExactKeys(row, ['id', 'label', 'description', 'seed', 'scenarioId'], `Profile ${value.id} seed ${index}`);
+      ['id', 'label', 'description', 'seed', 'scenarioId'].forEach((key) => text(row[key], 'application_profile_seed_invalid', `Profile ${value.id} seed ${index} ${key}`));
       if (ids.has(row.id) || seeds.has(row.seed)) fail('application_profile_seed_duplicate', `Profile ${value.id} seed IDs and values must be unique`, { id: row.id, seed: row.seed });
       ids.add(row.id); seeds.add(row.seed);
     });
@@ -223,6 +256,48 @@
       finiteRange(value.sun.distanceM, 50, 2000, 'plugin_sun_distance_invalid', `Plugin ${pluginId} sun distance`);
       finiteRange(value.sun.radiusM, 1, 100, 'plugin_sun_radius_invalid', `Plugin ${pluginId} sun radius`);
       finiteRange(value.sun.intensity, 0, 2, 'plugin_sun_intensity_invalid', `Plugin ${pluginId} sun intensity`);
+    } else if (value.schema === 'simulatte.pluginPresentation.v3') {
+      // Geospatial presentation. Geo primitives carry WGS84 longitude/latitude and are
+      // projected by the host geography port against the active world, so a plugin can
+      // present national geography without minting fake world node IDs. The world-node
+      // primitives (markers/paths/actors) remain available and empty-by-default.
+      assertExactKeys(value, ['schema', 'markers', 'paths', 'actors', 'geoMarkers', 'geoPaths', 'geoAreas', 'choropleths', 'geoCameraTargets', 'cameraTargets'], `Plugin ${pluginId} presentation`);
+      boundedRows(value.geoMarkers, 1024, `Plugin ${pluginId} geo markers`).forEach((row) => {
+        assertExactKeys(row, ['id', 'label', 'longitude', 'latitude', 'tone', 'heightM', 'radiusM', 'intensity'], `Plugin ${pluginId} geo marker`);
+        validateIdentityAndTone(pluginId, row, 'geo_marker');
+        validateLngLat(pluginId, row, 'geo marker');
+        finiteRange(row.heightM, 0, 400, 'plugin_geo_marker_height_invalid', `Plugin ${pluginId} geo marker height`);
+        finiteRange(row.radiusM, 0.2, 40000, 'plugin_geo_marker_radius_invalid', `Plugin ${pluginId} geo marker radius`);
+        finiteRange(row.intensity, 0, 2, 'plugin_geo_marker_intensity_invalid', `Plugin ${pluginId} geo marker intensity`);
+      });
+      boundedRows(value.geoPaths, 512, `Plugin ${pluginId} geo paths`).forEach((row) => {
+        assertExactKeys(row, ['id', 'label', 'coordinates', 'tone', 'widthM', 'intensity'], `Plugin ${pluginId} geo path`);
+        validateIdentityAndTone(pluginId, row, 'geo_path');
+        validateCoordinateRing(pluginId, row.coordinates, 2, 4096, `Plugin ${pluginId} geo path ${row.id}`);
+        finiteRange(row.widthM, 0.2, 40000, 'plugin_geo_path_width_invalid', `Plugin ${pluginId} geo path width`);
+        finiteRange(row.intensity, 0, 2, 'plugin_geo_path_intensity_invalid', `Plugin ${pluginId} geo path intensity`);
+      });
+      boundedRows(value.geoAreas, 1024, `Plugin ${pluginId} geo areas`).forEach((row) => {
+        assertExactKeys(row, ['id', 'label', 'ring', 'tone', 'heightM', 'intensity'], `Plugin ${pluginId} geo area`);
+        validateIdentityAndTone(pluginId, row, 'geo_area');
+        validateCoordinateRing(pluginId, row.ring, 3, 512, `Plugin ${pluginId} geo area ${row.id}`);
+        finiteRange(row.heightM, 0, 400, 'plugin_geo_area_height_invalid', `Plugin ${pluginId} geo area height`);
+        finiteRange(row.intensity, 0, 2, 'plugin_geo_area_intensity_invalid', `Plugin ${pluginId} geo area intensity`);
+      });
+      boundedRows(value.choropleths, 1024, `Plugin ${pluginId} choropleths`).forEach((row) => {
+        assertExactKeys(row, ['id', 'label', 'ring', 'value', 'tone', 'intensity'], `Plugin ${pluginId} choropleth`);
+        validateIdentityAndTone(pluginId, row, 'choropleth');
+        validateCoordinateRing(pluginId, row.ring, 3, 512, `Plugin ${pluginId} choropleth ${row.id}`);
+        if (!Number.isFinite(row.value)) fail('plugin_choropleth_value_invalid', `Plugin ${pluginId} choropleth ${row.id} value expected a finite number`, { value: row.value });
+        finiteRange(row.intensity, 0, 2, 'plugin_choropleth_intensity_invalid', `Plugin ${pluginId} choropleth intensity`);
+      });
+      boundedRows(value.geoCameraTargets, 32, `Plugin ${pluginId} geo camera targets`).forEach((row) => {
+        assertExactKeys(row, ['id', 'label', 'longitude', 'latitude', 'distanceM'], `Plugin ${pluginId} geo camera target`);
+        text(row.id, 'plugin_geo_camera_target_id_invalid', `Plugin ${pluginId} geo camera target ID`);
+        text(row.label, 'plugin_geo_camera_target_label_invalid', `Plugin ${pluginId} geo camera target label`);
+        validateLngLat(pluginId, row, 'geo camera target');
+        finiteRange(row.distanceM, 80, 5000000, 'plugin_geo_camera_target_distance_invalid', `Plugin ${pluginId} geo camera target distance`);
+      });
     } else {
       fail('plugin_presentation_schema_invalid', `Plugin ${pluginId} presentation schema is unsupported`, { schema: value.schema || null });
     }
@@ -266,6 +341,22 @@
     text(row.id, `plugin_${kind}_id_invalid`, `Plugin ${pluginId} ${kind} ID`);
     text(row.label, `plugin_${kind}_label_invalid`, `Plugin ${pluginId} ${kind} label`);
     if (!PRESENTATION_TONES.includes(row.tone)) fail(`plugin_${kind}_tone_invalid`, `Plugin ${pluginId} ${kind} ${row.id} tone is invalid`, { tone: row.tone });
+  }
+
+  function validateLngLat(pluginId, row, label) {
+    finiteRange(row.longitude, -180, 180, 'plugin_geo_longitude_invalid', `Plugin ${pluginId} ${label} longitude`);
+    finiteRange(row.latitude, -90, 90, 'plugin_geo_latitude_invalid', `Plugin ${pluginId} ${label} latitude`);
+  }
+
+  function validateCoordinateRing(pluginId, coordinates, minimum, maximum, label) {
+    if (!Array.isArray(coordinates) || coordinates.length < minimum || coordinates.length > maximum) {
+      fail('plugin_geo_ring_invalid', `${label} expected ${minimum}..${maximum} coordinates`, { count: coordinates?.length ?? null });
+    }
+    coordinates.forEach((point) => {
+      assertExactKeys(point, ['longitude', 'latitude'], `${label} coordinate`);
+      finiteRange(point.longitude, -180, 180, 'plugin_geo_longitude_invalid', `${label} coordinate longitude`);
+      finiteRange(point.latitude, -90, 90, 'plugin_geo_latitude_invalid', `${label} coordinate latitude`);
+    });
   }
 
   function boundedRows(rows, maximum, label) {
@@ -340,5 +431,5 @@
     throw error;
   }
 
-  return { EXTENSION_POINTS, PERMISSIONS, SDK_VERSION, validateManifest, validatePresentationContribution, validateProfile, validatePluginInstance, validateRequestContribution, validateUiContribution };
+  return { EXTENSION_POINTS, PERMISSIONS, SDK_VERSION, SUPPORTED_SDK_VERSIONS, validateManifest, validatePresentationContribution, validateProfile, validatePluginInstance, validateRequestContribution, validateUiContribution };
 });

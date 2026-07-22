@@ -17,6 +17,13 @@
     state: 'state.reduce.v1',
     ui: 'ui.inspector.v1',
     worldQuery: 'world.query.v1',
+    // SDK v2 simulation-substrate ports. A host port exposing forPlugin(pluginId) is
+    // bound per plugin so its identity (e.g. RNG stream seeding) includes the plugin id.
+    random: 'random.stream.v1',
+    scheduler: 'simulation.schedule.v1',
+    compute: 'compute.worker.v1',
+    environment: 'environment.read.v1',
+    geography: 'geography.project.v1',
   });
 
   function createPluginSdk({ manifest, datasets, corePorts, stateHost, capabilityInvoke, receiptSink }) {
@@ -33,7 +40,12 @@
       else if (name === 'events') sdk.events = Object.freeze({ propose: (event) => stateHost.propose(manifest.id, event) });
       else if (name === 'capabilities') sdk.capabilities = Object.freeze({ invoke: capabilityInvoke });
       else if (name === 'receipts') sdk.receipts = Object.freeze({ ...(corePorts.receipts || {}), append: (receipt) => receiptSink(manifest.id, receipt) });
-      else if (corePorts[name] !== undefined) sdk[name] = corePorts[name];
+      else if (corePorts[name] !== undefined) {
+        const port = corePorts[name];
+        // Per-plugin ports (random, scheduler, compute, environment, geography) expose
+        // forPlugin(pluginId); bind them so their identity includes this plugin.
+        sdk[name] = (port && typeof port.forPlugin === 'function') ? port.forPlugin(manifest.id) : port;
+      }
       else throw sdkError('plugin_sdk_port_missing', `Plugin ${manifest.id} has permission ${permission} but host port ${name} is missing`, { pluginId: manifest.id, permission, port: name });
     });
     return stateApi.deepFreeze(sdk);

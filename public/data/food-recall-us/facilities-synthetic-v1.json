@@ -1,0 +1,1095 @@
+{
+  "id": "us.food.facilities.synthetic.v1",
+  "datasetId": "us.food.facilities.synthetic.v1",
+  "datasetSchemaId": "simulatte.usFoodFacilityCatalog.v1",
+  "schema": "simulatte.usFoodFacilityCatalog.v1",
+  "claimBoundary": "Synthetic aggregate data generated from public priors. Facilities, lots, shipments, and consumer zones are statistically generated, never observed commercial records. This is not a live recall alert, regulatory classification, or a representation of a real supply chain.",
+  "facilities": [
+    {
+      "schema": "simulatte.usFoodFacility.v1",
+      "id": "facility:synthetic:ca:grower:0000",
+      "label": "Synthetic CA grower 1",
+      "provenanceKind": "synthetic",
+      "facilityKind": "grower",
+      "jurisdiction": "FDA",
+      "location": {
+        "longitude": -121.582,
+        "latitude": 36.4778,
+        "state": "CA"
+      },
+      "capabilities": [
+        "harvesting",
+        "cooling"
+      ],
+      "traceability": {
+        "supportedCtes": [
+          "harvesting",
+          "cooling"
+        ],
+        "recordCompletenessPrior": 0.837,
+        "notificationDelayHours": {
+          "distribution": "lognormal",
+          "parameters": {
+            "mu": 1.6,
+            "sigma": 0.5
+          }
+        }
+      },
+      "coldStorage": {
+        "capacityKg": 422560,
+        "setpointC": 4.32,
+        "thermalTimeConstantHours": 3.21
+      }
+    },
+    {
+      "schema": "simulatte.usFoodFacility.v1",
+      "id": "facility:synthetic:ca:grower:0001",
+      "label": "Synthetic CA grower 2",
+      "provenanceKind": "synthetic",
+      "facilityKind": "grower",
+      "jurisdiction": "FDA",
+      "location": {
+        "longitude": -121.5987,
+        "latitude": 36.4866,
+        "state": "CA"
+      },
+      "capabilities": [
+        "harvesting",
+        "cooling"
+      ],
+      "traceability": {
+        "supportedCtes": [
+          "harvesting",
+          "cooling"
+        ],
+        "recordCompletenessPrior": 0.957,
+        "notificationDelayHours": {
+          "distribution": "lognormal",
+          "parameters": {
+            "mu": 1.6,
+            "sigma": 0.5
+          }
+        }
+      },
+      "coldStorage": {
+        "capacityKg": 91929,
+        "setpointC": 2.88,
+        "thermalTimeConstantHours": 5.86
+      }
+    },
+    {
+      "schema": "simulatte.usFoodFacility.v1",
+      "id": "facility:synthetic:ca:initial_packer:0002",
+      "label": "Synthetic CA initial packer 1",
+      "provenanceKind": "synthetic",
+      "facilityKind": "initial_packer",
+      "jurisdiction": "FDA",
+      "location": {
+        "longitude": -121.6848,
+        "latitude": 36.6138,
+        "state": "CA"
+      },
+      "capabilities": [
+        "cooling",
+        "initial_packing"
+      ],
+      "traceability": {
+        "supportedCtes": [
+          "cooling",
+          "initial_packing"
+        ],
+        "recordCompletenessPrior": 0.923,
+        "notificationDelayHours": {
+          "distribution": "lognormal",
+          "parameters": {
+            "mu": 1.6,
+            "sigma": 0.5
+          }
+        }
+      },
+      "coldStorage": {
+        "capacityKg": 200699,
+        "setpointC": 4.26,
+        "thermalTimeConstantHours": 3.15
+      }
+    },
+    {
+      "schema": "simulatte.usFoodFacility.v1",
+      "id": "facility:synthetic:ca:processor:0003",
+      "label": "Synthetic CA processor 1",
+      "provenanceKind": "synthetic",
+      "facilityKind": "processor",
+      "jurisdiction": "FDA",
+      "location": {
+        "longitude": -118.4323,
+        "latitude": 33.8506,
+        "state": "CA"
+      },
+      "capabilities": [
+        "transformation",
+        "fresh_cut_transformation",
+        "storage"
+      ],
+      "traceability": {
+        "supportedCtes": [
+          "transformation",
+          "fresh_cut_transformation",
+          "storage"
+        ],
+        "recordCompletenessPrior": 0.873,
+        "notificationDelayHours": {
+          "distribution": "lognormal",
+          "parameters": {
+            "mu": 1.6,
+            "sigma": 0.5
+          }
+        }
+      },
+      "coldStorage": {
+        "capacityKg": 78594,
+        "setpointC": 4.18,
+        "thermalTimeConstantHours": 4.85
+      }
+    },
+    {
+      "schema": "simulatte.usFoodFacility.v1",
+      "id": "facility:synthetic:ca:distributor:0004",
+      "label": "Synthetic CA distributor 1",
+      "provenanceKind": "synthetic",
+      "facilityKind": "distributor",
+      "jurisdiction": "FDA",
+      "location": {
+        "longitude": -118.3177,
+        "latitude": 33.918,
+        "state": "CA"
+      },
+      "capabilities": [
+        "storage",
+        "shipping"
+      ],
+      "traceability": {
+        "supportedCtes": [
+          "storage",
+          "shipping"
+        ],
+        "recordCompletenessPrior": 0.896,
+        "notificationDelayHours": {
+          "distribution": "lognormal",
+          "parameters": {
+            "mu": 1.6,
+            "sigma": 0.5
+          }
+        }
+      },
+      "coldStorage": {
+        "capacityKg": 240942,
+        "setpointC": 4.07,
+        "thermalTimeConstantHours": 6.07
+      }
+    },
+    {
+      "schema": "simulatte.usFoodFacility.v1",
+      "id": "facility:synthetic:az:grower:0005",
+      "label": "Synthetic AZ grower 1",
+      "provenanceKind": "synthetic",
+      "facilityKind": "grower",
+      "jurisdiction": "FDA",
+      "location": {
+        "longitude": -114.7623,
+        "latitude": 32.818,
+        "state": "AZ"
+      },
+      "capabilities": [
+        "harvesting",
+        "cooling"
+      ],
+      "traceability": {
+        "supportedCtes": [
+          "harvesting",
+          "cooling"
+        ],
+        "recordCompletenessPrior": 0.847,
+        "notificationDelayHours": {
+          "distribution": "lognormal",
+          "parameters": {
+            "mu": 1.6,
+            "sigma": 0.5
+          }
+        }
+      },
+      "coldStorage": {
+        "capacityKg": 272910,
+        "setpointC": 4.29,
+        "thermalTimeConstantHours": 4.33
+      }
+    },
+    {
+      "schema": "simulatte.usFoodFacility.v1",
+      "id": "facility:synthetic:az:grower:0006",
+      "label": "Synthetic AZ grower 2",
+      "provenanceKind": "synthetic",
+      "facilityKind": "grower",
+      "jurisdiction": "FDA",
+      "location": {
+        "longitude": -114.4468,
+        "latitude": 32.5972,
+        "state": "AZ"
+      },
+      "capabilities": [
+        "harvesting",
+        "cooling"
+      ],
+      "traceability": {
+        "supportedCtes": [
+          "harvesting",
+          "cooling"
+        ],
+        "recordCompletenessPrior": 0.908,
+        "notificationDelayHours": {
+          "distribution": "lognormal",
+          "parameters": {
+            "mu": 1.6,
+            "sigma": 0.5
+          }
+        }
+      },
+      "coldStorage": {
+        "capacityKg": 210162,
+        "setpointC": 3.72,
+        "thermalTimeConstantHours": 5.56
+      }
+    },
+    {
+      "schema": "simulatte.usFoodFacility.v1",
+      "id": "facility:synthetic:az:initial_packer:0007",
+      "label": "Synthetic AZ initial packer 1",
+      "provenanceKind": "synthetic",
+      "facilityKind": "initial_packer",
+      "jurisdiction": "FDA",
+      "location": {
+        "longitude": -114.8619,
+        "latitude": 32.5287,
+        "state": "AZ"
+      },
+      "capabilities": [
+        "cooling",
+        "initial_packing"
+      ],
+      "traceability": {
+        "supportedCtes": [
+          "cooling",
+          "initial_packing"
+        ],
+        "recordCompletenessPrior": 0.824,
+        "notificationDelayHours": {
+          "distribution": "lognormal",
+          "parameters": {
+            "mu": 1.6,
+            "sigma": 0.5
+          }
+        }
+      },
+      "coldStorage": {
+        "capacityKg": 268308,
+        "setpointC": 2.85,
+        "thermalTimeConstantHours": 3.83
+      }
+    },
+    {
+      "schema": "simulatte.usFoodFacility.v1",
+      "id": "facility:synthetic:tx:processor:0008",
+      "label": "Synthetic TX processor 1",
+      "provenanceKind": "synthetic",
+      "facilityKind": "processor",
+      "jurisdiction": "FDA",
+      "location": {
+        "longitude": -96.8075,
+        "latitude": 32.7742,
+        "state": "TX"
+      },
+      "capabilities": [
+        "transformation",
+        "fresh_cut_transformation",
+        "storage"
+      ],
+      "traceability": {
+        "supportedCtes": [
+          "transformation",
+          "fresh_cut_transformation",
+          "storage"
+        ],
+        "recordCompletenessPrior": 0.915,
+        "notificationDelayHours": {
+          "distribution": "lognormal",
+          "parameters": {
+            "mu": 1.6,
+            "sigma": 0.5
+          }
+        }
+      },
+      "coldStorage": {
+        "capacityKg": 206886,
+        "setpointC": 3.67,
+        "thermalTimeConstantHours": 4.39
+      }
+    },
+    {
+      "schema": "simulatte.usFoodFacility.v1",
+      "id": "facility:synthetic:tx:distributor:0009",
+      "label": "Synthetic TX distributor 1",
+      "provenanceKind": "synthetic",
+      "facilityKind": "distributor",
+      "jurisdiction": "FDA",
+      "location": {
+        "longitude": -96.9004,
+        "latitude": 32.64,
+        "state": "TX"
+      },
+      "capabilities": [
+        "storage",
+        "shipping"
+      ],
+      "traceability": {
+        "supportedCtes": [
+          "storage",
+          "shipping"
+        ],
+        "recordCompletenessPrior": 0.859,
+        "notificationDelayHours": {
+          "distribution": "lognormal",
+          "parameters": {
+            "mu": 1.6,
+            "sigma": 0.5
+          }
+        }
+      },
+      "coldStorage": {
+        "capacityKg": 152866,
+        "setpointC": 4.32,
+        "thermalTimeConstantHours": 5.54
+      }
+    },
+    {
+      "schema": "simulatte.usFoodFacility.v1",
+      "id": "facility:synthetic:il:processor:0010",
+      "label": "Synthetic IL processor 1",
+      "provenanceKind": "synthetic",
+      "facilityKind": "processor",
+      "jurisdiction": "FDA",
+      "location": {
+        "longitude": -87.5531,
+        "latitude": 41.7118,
+        "state": "IL"
+      },
+      "capabilities": [
+        "transformation",
+        "fresh_cut_transformation",
+        "storage"
+      ],
+      "traceability": {
+        "supportedCtes": [
+          "transformation",
+          "fresh_cut_transformation",
+          "storage"
+        ],
+        "recordCompletenessPrior": 0.924,
+        "notificationDelayHours": {
+          "distribution": "lognormal",
+          "parameters": {
+            "mu": 1.6,
+            "sigma": 0.5
+          }
+        }
+      },
+      "coldStorage": {
+        "capacityKg": 436081,
+        "setpointC": 2.94,
+        "thermalTimeConstantHours": 6.78
+      }
+    },
+    {
+      "schema": "simulatte.usFoodFacility.v1",
+      "id": "facility:synthetic:il:distributor:0011",
+      "label": "Synthetic IL distributor 1",
+      "provenanceKind": "synthetic",
+      "facilityKind": "distributor",
+      "jurisdiction": "FDA",
+      "location": {
+        "longitude": -87.8828,
+        "latitude": 41.8653,
+        "state": "IL"
+      },
+      "capabilities": [
+        "storage",
+        "shipping"
+      ],
+      "traceability": {
+        "supportedCtes": [
+          "storage",
+          "shipping"
+        ],
+        "recordCompletenessPrior": 0.973,
+        "notificationDelayHours": {
+          "distribution": "lognormal",
+          "parameters": {
+            "mu": 1.6,
+            "sigma": 0.5
+          }
+        }
+      },
+      "coldStorage": {
+        "capacityKg": 162905,
+        "setpointC": 3,
+        "thermalTimeConstantHours": 4.68
+      }
+    },
+    {
+      "schema": "simulatte.usFoodFacility.v1",
+      "id": "facility:synthetic:ga:processor:0012",
+      "label": "Synthetic GA processor 1",
+      "provenanceKind": "synthetic",
+      "facilityKind": "processor",
+      "jurisdiction": "FDA",
+      "location": {
+        "longitude": -84.1387,
+        "latitude": 33.8696,
+        "state": "GA"
+      },
+      "capabilities": [
+        "transformation",
+        "fresh_cut_transformation",
+        "storage"
+      ],
+      "traceability": {
+        "supportedCtes": [
+          "transformation",
+          "fresh_cut_transformation",
+          "storage"
+        ],
+        "recordCompletenessPrior": 0.949,
+        "notificationDelayHours": {
+          "distribution": "lognormal",
+          "parameters": {
+            "mu": 1.6,
+            "sigma": 0.5
+          }
+        }
+      },
+      "coldStorage": {
+        "capacityKg": 144514,
+        "setpointC": 3.96,
+        "thermalTimeConstantHours": 5.56
+      }
+    },
+    {
+      "schema": "simulatte.usFoodFacility.v1",
+      "id": "facility:synthetic:ga:distributor:0013",
+      "label": "Synthetic GA distributor 1",
+      "provenanceKind": "synthetic",
+      "facilityKind": "distributor",
+      "jurisdiction": "FDA",
+      "location": {
+        "longitude": -84.2567,
+        "latitude": 33.9365,
+        "state": "GA"
+      },
+      "capabilities": [
+        "storage",
+        "shipping"
+      ],
+      "traceability": {
+        "supportedCtes": [
+          "storage",
+          "shipping"
+        ],
+        "recordCompletenessPrior": 0.904,
+        "notificationDelayHours": {
+          "distribution": "lognormal",
+          "parameters": {
+            "mu": 1.6,
+            "sigma": 0.5
+          }
+        }
+      },
+      "coldStorage": {
+        "capacityKg": 178349,
+        "setpointC": 4.44,
+        "thermalTimeConstantHours": 3.78
+      }
+    },
+    {
+      "schema": "simulatte.usFoodFacility.v1",
+      "id": "facility:synthetic:co:processor:0014",
+      "label": "Synthetic CO processor 1",
+      "provenanceKind": "synthetic",
+      "facilityKind": "processor",
+      "jurisdiction": "FDA",
+      "location": {
+        "longitude": -105.1401,
+        "latitude": 39.9394,
+        "state": "CO"
+      },
+      "capabilities": [
+        "transformation",
+        "fresh_cut_transformation",
+        "storage"
+      ],
+      "traceability": {
+        "supportedCtes": [
+          "transformation",
+          "fresh_cut_transformation",
+          "storage"
+        ],
+        "recordCompletenessPrior": 0.875,
+        "notificationDelayHours": {
+          "distribution": "lognormal",
+          "parameters": {
+            "mu": 1.6,
+            "sigma": 0.5
+          }
+        }
+      },
+      "coldStorage": {
+        "capacityKg": 93350,
+        "setpointC": 2.78,
+        "thermalTimeConstantHours": 6.32
+      }
+    },
+    {
+      "schema": "simulatte.usFoodFacility.v1",
+      "id": "facility:synthetic:co:distributor:0015",
+      "label": "Synthetic CO distributor 1",
+      "provenanceKind": "synthetic",
+      "facilityKind": "distributor",
+      "jurisdiction": "FDA",
+      "location": {
+        "longitude": -105.2167,
+        "latitude": 39.7536,
+        "state": "CO"
+      },
+      "capabilities": [
+        "storage",
+        "shipping"
+      ],
+      "traceability": {
+        "supportedCtes": [
+          "storage",
+          "shipping"
+        ],
+        "recordCompletenessPrior": 0.977,
+        "notificationDelayHours": {
+          "distribution": "lognormal",
+          "parameters": {
+            "mu": 1.6,
+            "sigma": 0.5
+          }
+        }
+      },
+      "coldStorage": {
+        "capacityKg": 362263,
+        "setpointC": 3.85,
+        "thermalTimeConstantHours": 4.73
+      }
+    },
+    {
+      "schema": "simulatte.usFoodFacility.v1",
+      "id": "facility:synthetic:mo:processor:0016",
+      "label": "Synthetic MO processor 1",
+      "provenanceKind": "synthetic",
+      "facilityKind": "processor",
+      "jurisdiction": "FDA",
+      "location": {
+        "longitude": -94.4118,
+        "latitude": 38.9028,
+        "state": "MO"
+      },
+      "capabilities": [
+        "transformation",
+        "fresh_cut_transformation",
+        "storage"
+      ],
+      "traceability": {
+        "supportedCtes": [
+          "transformation",
+          "fresh_cut_transformation",
+          "storage"
+        ],
+        "recordCompletenessPrior": 0.965,
+        "notificationDelayHours": {
+          "distribution": "lognormal",
+          "parameters": {
+            "mu": 1.6,
+            "sigma": 0.5
+          }
+        }
+      },
+      "coldStorage": {
+        "capacityKg": 285701,
+        "setpointC": 3.6,
+        "thermalTimeConstantHours": 6.35
+      }
+    },
+    {
+      "schema": "simulatte.usFoodFacility.v1",
+      "id": "facility:synthetic:mo:distributor:0017",
+      "label": "Synthetic MO distributor 1",
+      "provenanceKind": "synthetic",
+      "facilityKind": "distributor",
+      "jurisdiction": "FDA",
+      "location": {
+        "longitude": -94.4962,
+        "latitude": 39.2515,
+        "state": "MO"
+      },
+      "capabilities": [
+        "storage",
+        "shipping"
+      ],
+      "traceability": {
+        "supportedCtes": [
+          "storage",
+          "shipping"
+        ],
+        "recordCompletenessPrior": 0.878,
+        "notificationDelayHours": {
+          "distribution": "lognormal",
+          "parameters": {
+            "mu": 1.6,
+            "sigma": 0.5
+          }
+        }
+      },
+      "coldStorage": {
+        "capacityKg": 375309,
+        "setpointC": 4.15,
+        "thermalTimeConstantHours": 5.49
+      }
+    },
+    {
+      "schema": "simulatte.usFoodFacility.v1",
+      "id": "facility:synthetic:ny:retailer:0018",
+      "label": "Synthetic NY retailer 1",
+      "provenanceKind": "synthetic",
+      "facilityKind": "retailer",
+      "jurisdiction": "FDA",
+      "location": {
+        "longitude": -73.9687,
+        "latitude": 40.5694,
+        "state": "NY"
+      },
+      "capabilities": [
+        "retail_sale",
+        "storage"
+      ],
+      "traceability": {
+        "supportedCtes": [
+          "retail_sale",
+          "storage"
+        ],
+        "recordCompletenessPrior": 0.871,
+        "notificationDelayHours": {
+          "distribution": "lognormal",
+          "parameters": {
+            "mu": 1.6,
+            "sigma": 0.5
+          }
+        }
+      },
+      "coldStorage": {
+        "capacityKg": 343633,
+        "setpointC": 3.98,
+        "thermalTimeConstantHours": 5.76
+      }
+    },
+    {
+      "schema": "simulatte.usFoodFacility.v1",
+      "id": "facility:synthetic:ny:retailer:0019",
+      "label": "Synthetic NY retailer 2",
+      "provenanceKind": "synthetic",
+      "facilityKind": "retailer",
+      "jurisdiction": "FDA",
+      "location": {
+        "longitude": -74.2144,
+        "latitude": 40.6369,
+        "state": "NY"
+      },
+      "capabilities": [
+        "retail_sale",
+        "storage"
+      ],
+      "traceability": {
+        "supportedCtes": [
+          "retail_sale",
+          "storage"
+        ],
+        "recordCompletenessPrior": 0.898,
+        "notificationDelayHours": {
+          "distribution": "lognormal",
+          "parameters": {
+            "mu": 1.6,
+            "sigma": 0.5
+          }
+        }
+      },
+      "coldStorage": {
+        "capacityKg": 108802,
+        "setpointC": 3.71,
+        "thermalTimeConstantHours": 6.14
+      }
+    },
+    {
+      "schema": "simulatte.usFoodFacility.v1",
+      "id": "facility:synthetic:ny:restaurant:0020",
+      "label": "Synthetic NY restaurant 1",
+      "provenanceKind": "synthetic",
+      "facilityKind": "restaurant",
+      "jurisdiction": "FDA",
+      "location": {
+        "longitude": -73.7213,
+        "latitude": 40.8221,
+        "state": "NY"
+      },
+      "capabilities": [
+        "food_service_sale"
+      ],
+      "traceability": {
+        "supportedCtes": [
+          "food_service_sale"
+        ],
+        "recordCompletenessPrior": 0.96,
+        "notificationDelayHours": {
+          "distribution": "lognormal",
+          "parameters": {
+            "mu": 1.6,
+            "sigma": 0.5
+          }
+        }
+      },
+      "coldStorage": {
+        "capacityKg": 92521,
+        "setpointC": 3.68,
+        "thermalTimeConstantHours": 3.38
+      }
+    },
+    {
+      "schema": "simulatte.usFoodFacility.v1",
+      "id": "facility:synthetic:pa:retailer:0021",
+      "label": "Synthetic PA retailer 1",
+      "provenanceKind": "synthetic",
+      "facilityKind": "retailer",
+      "jurisdiction": "FDA",
+      "location": {
+        "longitude": -74.9325,
+        "latitude": 39.8308,
+        "state": "PA"
+      },
+      "capabilities": [
+        "retail_sale",
+        "storage"
+      ],
+      "traceability": {
+        "supportedCtes": [
+          "retail_sale",
+          "storage"
+        ],
+        "recordCompletenessPrior": 0.837,
+        "notificationDelayHours": {
+          "distribution": "lognormal",
+          "parameters": {
+            "mu": 1.6,
+            "sigma": 0.5
+          }
+        }
+      },
+      "coldStorage": {
+        "capacityKg": 194514,
+        "setpointC": 4.5,
+        "thermalTimeConstantHours": 5.8
+      }
+    },
+    {
+      "schema": "simulatte.usFoodFacility.v1",
+      "id": "facility:synthetic:pa:retailer:0022",
+      "label": "Synthetic PA retailer 2",
+      "provenanceKind": "synthetic",
+      "facilityKind": "retailer",
+      "jurisdiction": "FDA",
+      "location": {
+        "longitude": -75.2158,
+        "latitude": 40.021,
+        "state": "PA"
+      },
+      "capabilities": [
+        "retail_sale",
+        "storage"
+      ],
+      "traceability": {
+        "supportedCtes": [
+          "retail_sale",
+          "storage"
+        ],
+        "recordCompletenessPrior": 0.888,
+        "notificationDelayHours": {
+          "distribution": "lognormal",
+          "parameters": {
+            "mu": 1.6,
+            "sigma": 0.5
+          }
+        }
+      },
+      "coldStorage": {
+        "capacityKg": 206177,
+        "setpointC": 3.91,
+        "thermalTimeConstantHours": 3.53
+      }
+    },
+    {
+      "schema": "simulatte.usFoodFacility.v1",
+      "id": "facility:synthetic:pa:restaurant:0023",
+      "label": "Synthetic PA restaurant 1",
+      "provenanceKind": "synthetic",
+      "facilityKind": "restaurant",
+      "jurisdiction": "FDA",
+      "location": {
+        "longitude": -75.1592,
+        "latitude": 40.1165,
+        "state": "PA"
+      },
+      "capabilities": [
+        "food_service_sale"
+      ],
+      "traceability": {
+        "supportedCtes": [
+          "food_service_sale"
+        ],
+        "recordCompletenessPrior": 0.946,
+        "notificationDelayHours": {
+          "distribution": "lognormal",
+          "parameters": {
+            "mu": 1.6,
+            "sigma": 0.5
+          }
+        }
+      },
+      "coldStorage": {
+        "capacityKg": 212165,
+        "setpointC": 2.94,
+        "thermalTimeConstantHours": 6.57
+      }
+    },
+    {
+      "schema": "simulatte.usFoodFacility.v1",
+      "id": "facility:synthetic:fl:retailer:0024",
+      "label": "Synthetic FL retailer 1",
+      "provenanceKind": "synthetic",
+      "facilityKind": "retailer",
+      "jurisdiction": "FDA",
+      "location": {
+        "longitude": -80.3099,
+        "latitude": 25.5723,
+        "state": "FL"
+      },
+      "capabilities": [
+        "retail_sale",
+        "storage"
+      ],
+      "traceability": {
+        "supportedCtes": [
+          "retail_sale",
+          "storage"
+        ],
+        "recordCompletenessPrior": 0.847,
+        "notificationDelayHours": {
+          "distribution": "lognormal",
+          "parameters": {
+            "mu": 1.6,
+            "sigma": 0.5
+          }
+        }
+      },
+      "coldStorage": {
+        "capacityKg": 282945,
+        "setpointC": 3.18,
+        "thermalTimeConstantHours": 3.59
+      }
+    },
+    {
+      "schema": "simulatte.usFoodFacility.v1",
+      "id": "facility:synthetic:fl:retailer:0025",
+      "label": "Synthetic FL retailer 2",
+      "provenanceKind": "synthetic",
+      "facilityKind": "retailer",
+      "jurisdiction": "FDA",
+      "location": {
+        "longitude": -80.1154,
+        "latitude": 25.6424,
+        "state": "FL"
+      },
+      "capabilities": [
+        "retail_sale",
+        "storage"
+      ],
+      "traceability": {
+        "supportedCtes": [
+          "retail_sale",
+          "storage"
+        ],
+        "recordCompletenessPrior": 0.836,
+        "notificationDelayHours": {
+          "distribution": "lognormal",
+          "parameters": {
+            "mu": 1.6,
+            "sigma": 0.5
+          }
+        }
+      },
+      "coldStorage": {
+        "capacityKg": 110548,
+        "setpointC": 3.6,
+        "thermalTimeConstantHours": 3.02
+      }
+    },
+    {
+      "schema": "simulatte.usFoodFacility.v1",
+      "id": "facility:synthetic:fl:restaurant:0026",
+      "label": "Synthetic FL restaurant 1",
+      "provenanceKind": "synthetic",
+      "facilityKind": "restaurant",
+      "jurisdiction": "FDA",
+      "location": {
+        "longitude": -80.2157,
+        "latitude": 25.5724,
+        "state": "FL"
+      },
+      "capabilities": [
+        "food_service_sale"
+      ],
+      "traceability": {
+        "supportedCtes": [
+          "food_service_sale"
+        ],
+        "recordCompletenessPrior": 0.958,
+        "notificationDelayHours": {
+          "distribution": "lognormal",
+          "parameters": {
+            "mu": 1.6,
+            "sigma": 0.5
+          }
+        }
+      },
+      "coldStorage": {
+        "capacityKg": 405553,
+        "setpointC": 4.21,
+        "thermalTimeConstantHours": 6.93
+      }
+    },
+    {
+      "schema": "simulatte.usFoodFacility.v1",
+      "id": "facility:synthetic:wa:retailer:0027",
+      "label": "Synthetic WA retailer 1",
+      "provenanceKind": "synthetic",
+      "facilityKind": "retailer",
+      "jurisdiction": "FDA",
+      "location": {
+        "longitude": -122.5785,
+        "latitude": 47.4654,
+        "state": "WA"
+      },
+      "capabilities": [
+        "retail_sale",
+        "storage"
+      ],
+      "traceability": {
+        "supportedCtes": [
+          "retail_sale",
+          "storage"
+        ],
+        "recordCompletenessPrior": 0.898,
+        "notificationDelayHours": {
+          "distribution": "lognormal",
+          "parameters": {
+            "mu": 1.6,
+            "sigma": 0.5
+          }
+        }
+      },
+      "coldStorage": {
+        "capacityKg": 90306,
+        "setpointC": 2.8,
+        "thermalTimeConstantHours": 5.26
+      }
+    },
+    {
+      "schema": "simulatte.usFoodFacility.v1",
+      "id": "facility:synthetic:wa:retailer:0028",
+      "label": "Synthetic WA retailer 2",
+      "provenanceKind": "synthetic",
+      "facilityKind": "retailer",
+      "jurisdiction": "FDA",
+      "location": {
+        "longitude": -122.4781,
+        "latitude": 47.4281,
+        "state": "WA"
+      },
+      "capabilities": [
+        "retail_sale",
+        "storage"
+      ],
+      "traceability": {
+        "supportedCtes": [
+          "retail_sale",
+          "storage"
+        ],
+        "recordCompletenessPrior": 0.923,
+        "notificationDelayHours": {
+          "distribution": "lognormal",
+          "parameters": {
+            "mu": 1.6,
+            "sigma": 0.5
+          }
+        }
+      },
+      "coldStorage": {
+        "capacityKg": 364311,
+        "setpointC": 2.96,
+        "thermalTimeConstantHours": 4.5
+      }
+    },
+    {
+      "schema": "simulatte.usFoodFacility.v1",
+      "id": "facility:synthetic:wa:restaurant:0029",
+      "label": "Synthetic WA restaurant 1",
+      "provenanceKind": "synthetic",
+      "facilityKind": "restaurant",
+      "jurisdiction": "FDA",
+      "location": {
+        "longitude": -122.5382,
+        "latitude": 47.456,
+        "state": "WA"
+      },
+      "capabilities": [
+        "food_service_sale"
+      ],
+      "traceability": {
+        "supportedCtes": [
+          "food_service_sale"
+        ],
+        "recordCompletenessPrior": 0.945,
+        "notificationDelayHours": {
+          "distribution": "lognormal",
+          "parameters": {
+            "mu": 1.6,
+            "sigma": 0.5
+          }
+        }
+      },
+      "coldStorage": {
+        "capacityKg": 337036,
+        "setpointC": 3.39,
+        "thermalTimeConstantHours": 4.47
+      }
+    }
+  ],
+  "generatedBy": "tools/food-recall-us/build-food-data.mjs",
+  "generatorVersion": "food-recall-data-1.0.0"
+}

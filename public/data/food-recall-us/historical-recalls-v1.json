@@ -1,0 +1,44 @@
+{
+  "id": "us.food.historical-recalls.v1",
+  "datasetId": "us.food.historical-recalls.v1",
+  "datasetSchemaId": "simulatte.usFoodHistoricalRecalls.v1",
+  "schema": "simulatte.usFoodHistoricalRecalls.v1",
+  "claimBoundary": "Normalized public enforcement records. openFDA warns it is not a recall-lifecycle tracker; facility-level distribution paths are not reconstructed. Records marked observed=true are public facts; all network topology remains synthetic.",
+  "records": [
+    {
+      "id": "recall:hist:2018-leafy-green",
+      "regulator": "FDA",
+      "class": "I",
+      "commodity": "leafy_greens",
+      "hazard": "ecoli-o157",
+      "reportedIllnesses": 210,
+      "states": 36,
+      "observed": true,
+      "distributionPattern": "nationwide"
+    },
+    {
+      "id": "recall:hist:2010-shell-eggs",
+      "regulator": "FDA",
+      "class": "I",
+      "commodity": "shell_eggs",
+      "hazard": "salmonella",
+      "reportedIllnesses": 1900,
+      "states": 22,
+      "observed": true,
+      "distributionPattern": "nationwide"
+    },
+    {
+      "id": "recall:hist:2011-cantaloupe",
+      "regulator": "FDA",
+      "class": "I",
+      "commodity": "ready_to_eat_dairy",
+      "hazard": "listeria-monocytogenes",
+      "reportedIllnesses": 147,
+      "states": 28,
+      "observed": true,
+      "distributionPattern": "multistate"
+    }
+  ],
+  "generatedBy": "tools/food-recall-us/build-food-data.mjs",
+  "generatorVersion": "food-recall-data-1.0.0"
+}

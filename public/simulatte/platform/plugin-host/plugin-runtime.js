@@ -156,6 +156,9 @@
         const presentation = instance.present(stateApi.freezeClone(context));
         if (presentation === null) return [];
         contracts.validatePresentationContribution(pluginId, presentation);
+        if (presentation.schema === 'simulatte.pluginPresentation.v3' && !rowsById.get(pluginId).manifest.permissions.includes('ui.geospatial.v1')) {
+          throw runtimeError('plugin_presentation_geospatial_undeclared', `Plugin ${pluginId} emitted geospatial presentation without ui.geospatial.v1`, { pluginId });
+        }
         return [stateApi.freezeClone({ pluginId, presentation })];
       }));
     }
@@ -260,7 +263,9 @@
     }
 
     function pluginBaseUrl(sharedRoot, pluginId) {
-      return new URL(`./plugins/${pluginId}/`, sharedRoot).toString();
+      const rootUrl = String(sharedRoot || '');
+      const base = rootUrl.endsWith('/') ? rootUrl : `${rootUrl}/`;
+      return new URL(`plugins/${pluginId}/`, base).toString();
     }
 
     function pluginBaseFromDocument(documentBaseUrl, pluginId) {

@@ -1,31 +1,19 @@
 (function attachAutonomyApp(root, factory) {
   const api = factory(
-    root.SimulatteApplicationLoader,
-    root.SimulatteAutonomyMission,
-    root.SimulatteAutonomyController,
-    root.SimulatteAutonomyCanvas,
-    root.SimulatteAutonomyTraceView,
-    root.SimulatteAutonomyRuntimeLog,
-    root.SimulatteNeuralPlaceResolver,
-    root.SimulatteJourneyLedger,
-    root.SimulatteAutonomyReceipts,
-    root.SimulatteAutonomyWorld,
-    root.SimulatteNeuralModelConsent,
-    root.SimulatteModelSelection,
-    root.SimulattePluginRuntime,
-    root.SimulatteGeneratedPluginRegistry,
-    root.SimulatteDeclarativeUiHost,
-    root.SimulatteBrowserTransport,
-    root.SimulatteGovernedArtifactStore,
-    root.SimulatteAutonomyRoutePlanner,
-    root.SimulatteCivilTime,
-    root.SimulatteUniverseParser,
-    root.SimulatteApplicationProfileSelect,
-    root.SimulatteExperienceCamera, root.SimulattePluginAssetPaths
+    root.SimulatteDataLoader, root.SimulatteAutonomyMission, root.SimulatteAutonomyController,
+    root.SimulatteAutonomyCanvas, root.SimulatteMissionTrace, root.SimulatteRuntimeLog,
+    root.SimulatteNeuralPlaceResolver, root.SimulatteSettlementLedger, root.SimulatteCanonicalReceipts,
+    root.SimulatteAutonomyWorld, root.SimulatteNeuralConsent, root.SimulatteModelSelection,
+    root.SimulattePluginRuntime, root.SimulatteGeneratedPluginRegistry, root.SimulatteDeclarativeUiHost,
+    root.SimulatteBrowserTransport, root.SimulatteGovernedArtifactStore, root.SimulatteAutonomyRoutePlanner,
+    root.SimulatteCivilTime, root.SimulatteUniverseParser, root.SimulatteApplicationProfileSelect,
+    root.SimulatteExperienceCamera, root.SimulattePluginAssetPaths, root.SimulattePluginRandom,
+    root.SimulattePluginScheduler, root.SimulattePluginEnvironment, root.SimulattePluginGeography,
+    root.SimulattePluginCompute
   );
   root.SimulatteAutonomyApp = api;
   if (typeof module === 'object' && module.exports) module.exports = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyApp(dataLoader, missionApi, controllerApi, canvasApi, traceApi, runtimeLog, neuralPlaceApi, ledgerApi, receiptsApi, worldApi, neuralConsentApi, modelSelectionApi, pluginRuntimeApi, pluginRegistry, pluginUiApi, transportApi, artifactStoreApi, routePlannerApi, civilTimeApi, universeParserApi, applicationProfileSelectApi, experienceCameraApi, pluginAssetPathsApi) {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyApp(dataLoader, missionApi, controllerApi, canvasApi, traceApi, runtimeLog, neuralPlaceApi, ledgerApi, receiptsApi, worldApi, neuralConsentApi, modelSelectionApi, pluginRuntimeApi, pluginRegistry, pluginUiApi, transportApi, artifactStoreApi, routePlannerApi, civilTimeApi, universeParserApi, applicationProfileSelectApi, experienceCameraApi, pluginAssetPathsApi, pluginRandomApi, pluginSchedulerApi, pluginEnvironmentApi, pluginGeographyApi, pluginComputeApi) {
   const log = runtimeLog || {
     info: () => null,
     warn: () => null,
@@ -37,6 +25,7 @@
     'cable-trader-pickup-v1': 'Cable Trader',
     'safety-explorer-v1': 'Safety Explorer',
     'sun-walker-v1': 'Sun Walker',
+    'food-recall-us-v1': 'Food Recall (US)',
   });
   // Owns the landing page and gates asset loading: nothing in start() runs until
   // the visitor picks a tier here.
@@ -100,6 +89,11 @@
           },
         }),
         ui: Object.freeze({ slot: 'inspector' }),
+        random: pluginRandomApi ? pluginRandomApi.createRandomPort({ rootSeed: data.applicationProfile.id, scenarioId: null }) : undefined,
+        scheduler: pluginSchedulerApi ? pluginSchedulerApi.createSchedulerPort({}) : undefined,
+        environment: pluginEnvironmentApi ? pluginEnvironmentApi.createEnvironmentPort({ snapshots: {} }) : undefined,
+        geography: pluginGeographyApi ? pluginGeographyApi.createGeographyPort({ world: data.world }) : undefined,
+        compute: pluginComputeApi ? pluginComputeApi.createComputePort({ workerPool: null }) : undefined,
       },
     });
     const pluginUi = pluginUiApi.createDeclarativeUiHost({
@@ -210,6 +204,7 @@
         await disposeApplication();
         const url = new URL(window.location.href);
         url.searchParams.set('profile', profileId);
+        if (data.world?.id) url.searchParams.set('world', data.world.id);
         window.location.assign(url.toString());
       } catch (error) {
         failRuntime(elements, error);

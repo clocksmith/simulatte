@@ -1,0 +1,145 @@
+{
+  "configSchema": "./config.schema.json",
+  "consumes": [
+    {
+      "id": "field.weather.v1",
+      "required": false
+    },
+    {
+      "id": "field.logistics-service.v1",
+      "required": false
+    }
+  ],
+  "datasets": [
+    {
+      "id": "us.food.facilities.synthetic.v1",
+      "reference": {
+        "id": "us.food.facilities.synthetic.v1",
+        "path": "../../../data/food-recall-us/facilities-synthetic-v1.json",
+        "schemaId": "simulatte.usFoodFacilityCatalog.v1",
+        "sha256": "6c01b650c42f02956f5b3bbaed8218af7a8ac8c679e4354316c27c60143f5e4c"
+      },
+      "required": true
+    },
+    {
+      "id": "us.food.freight-corridors.v1",
+      "reference": {
+        "id": "us.food.freight-corridors.v1",
+        "path": "../../../data/food-recall-us/freight-corridors-v1.json",
+        "schemaId": "simulatte.usFoodFreightCorridors.v1",
+        "sha256": "12c63da2930d624bd38ad172f8cf0c5013c6dd2c5f2af86fbedf3ca9553eee18"
+      },
+      "required": true
+    },
+    {
+      "id": "us.food.commodity-profiles.v1",
+      "reference": {
+        "id": "us.food.commodity-profiles.v1",
+        "path": "../../../data/food-recall-us/commodity-profiles-v1.json",
+        "schemaId": "simulatte.usFoodCommodityProfiles.v1",
+        "sha256": "36c7812f124d6f95beb01d72a0a3289755b6a832165f62e149d4343fb55b4dd3"
+      },
+      "required": true
+    },
+    {
+      "id": "us.food.hazard-model-registry.v1",
+      "reference": {
+        "id": "us.food.hazard-model-registry.v1",
+        "path": "../../../data/food-recall-us/hazard-model-registry-v1.json",
+        "schemaId": "simulatte.usFoodHazardRegistry.v1",
+        "sha256": "be5cc9de33a64318a7650cdf6697d654de95760b26373ce8dc24282fb2f78af8"
+      },
+      "required": true
+    },
+    {
+      "id": "us.food.consumer-zones.v1",
+      "reference": {
+        "id": "us.food.consumer-zones.v1",
+        "path": "../../../data/food-recall-us/consumer-zones-v1.json",
+        "schemaId": "simulatte.usFoodConsumerZones.v1",
+        "sha256": "67437acbab680fba61490f5cae0e004d3096fe733c629eb1ad1a7f9b07a6c94c"
+      },
+      "required": true
+    },
+    {
+      "id": "us.food.historical-recalls.v1",
+      "reference": {
+        "id": "us.food.historical-recalls.v1",
+        "path": "../../../data/food-recall-us/historical-recalls-v1.json",
+        "schemaId": "simulatte.usFoodHistoricalRecalls.v1",
+        "sha256": "72dc09d545d4c68a471554181bdb740e55e19e810eb032b57eb9cd379d52fd21"
+      },
+      "required": false
+    },
+    {
+      "id": "us.environment.snapshot.v1",
+      "reference": {
+        "id": "us.environment.snapshot.v1",
+        "path": "../../../data/food-recall-us/environment-snapshot-v1.json",
+        "schemaId": "simulatte.usEnvironmentSnapshot.v1",
+        "sha256": "3d607232ffc3874bdb1b5ad430c36b75793ca9f76bc40a16e0cadeb669392661"
+      },
+      "required": false
+    }
+  ],
+  "defaultConfig": "./default-config.json",
+  "entry": {
+    "globalFactory": "SimulattePluginFoodRecallUs",
+    "integrity": "sha384-1621cc53081e3684b391bcf0421376a7f7a0041eb379ababe220e53c7588dd2d7debe6a97b2dfba78034af20781c7dbc",
+    "path": "./index.js"
+  },
+  "extensionPoints": [
+    "request",
+    "event",
+    "settlement",
+    "ui",
+    "presentation"
+  ],
+  "id": "food-recall-us",
+  "permissions": [
+    "capabilities.invoke.v1",
+    "events.propose.v1",
+    "receipts.append.v1",
+    "state.reduce.v1",
+    "ui.inspector.v1",
+    "ui.geospatial.v1",
+    "random.stream.v1",
+    "simulation.schedule.v1",
+    "compute.worker.v1",
+    "environment.read.v1",
+    "geography.project.v1"
+  ],
+  "provides": [
+    "simulation.food-recall.v2",
+    "traceability.lookup.v1",
+    "field.food-contamination.v1"
+  ],
+  "receiptSchemas": [
+    "simulatte.plugin.foodRecallScenarioReceipt.v2",
+    "simulatte.plugin.foodRecallEventChainReceipt.v1",
+    "simulatte.plugin.foodRecallInterventionReceipt.v1",
+    "simulatte.plugin.foodRecallTracebackReceipt.v1",
+    "simulatte.plugin.foodRecallOutcomeReceipt.v1"
+  ],
+  "resources": [
+    {
+      "integrity": "sha384-35a24dc37cc678cb3a1676dba9e6148651f4633a9d9ada45c4ef00bda469cdc3b2ca663e06fbddfbf2ac1017982653c9",
+      "path": "./config.schema.json"
+    },
+    {
+      "integrity": "sha384-1cb29046157dab2b4b1ac99efc76d27fe1d76822d8910fe8c85fc81102967cb9230f529a4a4b59ec9aea6bcaa6ff1f4c",
+      "path": "./default-config.json"
+    },
+    {
+      "integrity": "sha384-42311c00bf7a7a6480e9ce58fedceab2eddda8bd5eacb57945c765d057f5a8c3ddfb2a2f64a7937d90e4c382a12a793e",
+      "path": "./food-engine.js"
+    },
+    {
+      "integrity": "sha384-5139a2cb232543d039a068c786f7660439cf5a7f438892ca53f0bbb4264fd384ae6255ed20a6f12cad1f8224d97d08fe",
+      "path": "./food-presentation.js"
+    }
+  ],
+  "schema": "simulatte.pluginManifest.v1",
+  "sdkVersion": 2,
+  "version": "2.0.0"
+}

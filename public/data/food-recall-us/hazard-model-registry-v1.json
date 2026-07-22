@@ -1,0 +1,182 @@
+{
+  "id": "us.food.hazard-model-registry.v1",
+  "datasetId": "us.food.hazard-model-registry.v1",
+  "datasetSchemaId": "simulatte.usFoodHazardRegistry.v1",
+  "schema": "simulatte.usFoodHazardRegistry.v1",
+  "version": "food-recall-hazard-registry-1.0.0",
+  "claimBoundary": "Illustrative parameter sets drawn from published predictive-microbiology and QMRA ranges. Not a validated regulatory model. Dose-response is stratified by pathogen, food category, endpoint, and population.",
+  "hazards": [
+    {
+      "id": "ecoli-o157",
+      "family": "microbial_pathogen",
+      "label": "E. coli O157:H7",
+      "growth": {
+        "model": "ratkowsky_sqrt",
+        "tMinC": 3.5,
+        "bPerSqrtC": 0.023,
+        "nMaxLog10CfuPerG": 9,
+        "lagHours": 6
+      },
+      "thermal": {
+        "dRefMin": 0.35,
+        "tRefC": 60,
+        "zC": 5.6
+      },
+      "doseResponse": [
+        {
+          "foodCategory": "leafy_greens",
+          "populationStratum": "general",
+          "endpoint": "illness",
+          "modelFamily": "beta_poisson",
+          "parameters": {
+            "alpha": 0.49,
+            "beta": 150000
+          },
+          "validDoseRangeCfu": {
+            "min": 1,
+            "max": 1000000000
+          }
+        }
+      ]
+    },
+    {
+      "id": "salmonella",
+      "family": "microbial_pathogen",
+      "label": "Salmonella spp.",
+      "growth": {
+        "model": "ratkowsky_sqrt",
+        "tMinC": 5.2,
+        "bPerSqrtC": 0.03,
+        "nMaxLog10CfuPerG": 9,
+        "lagHours": 4
+      },
+      "thermal": {
+        "dRefMin": 0.6,
+        "tRefC": 60,
+        "zC": 5
+      },
+      "doseResponse": [
+        {
+          "foodCategory": "shell_eggs",
+          "populationStratum": "general",
+          "endpoint": "illness",
+          "modelFamily": "beta_poisson",
+          "parameters": {
+            "alpha": 0.3126,
+            "beta": 2884
+          },
+          "validDoseRangeCfu": {
+            "min": 1,
+            "max": 1000000000
+          }
+        }
+      ]
+    },
+    {
+      "id": "listeria-monocytogenes",
+      "family": "microbial_pathogen",
+      "label": "Listeria monocytogenes",
+      "growth": {
+        "model": "ratkowsky_sqrt",
+        "tMinC": -1.5,
+        "bPerSqrtC": 0.025,
+        "nMaxLog10CfuPerG": 8,
+        "lagHours": 12
+      },
+      "thermal": {
+        "dRefMin": 2,
+        "tRefC": 60,
+        "zC": 6
+      },
+      "doseResponse": [
+        {
+          "foodCategory": "ready_to_eat_dairy",
+          "populationStratum": "older-or-immunocompromised",
+          "endpoint": "invasive-listeriosis",
+          "modelFamily": "exponential",
+          "parameters": {
+            "r": 1.06e-12
+          },
+          "validDoseRangeCfu": {
+            "min": 1,
+            "max": 100000000000
+          }
+        },
+        {
+          "foodCategory": "ready_to_eat_dairy",
+          "populationStratum": "general",
+          "endpoint": "invasive-listeriosis",
+          "modelFamily": "exponential",
+          "parameters": {
+            "r": 2.37e-14
+          },
+          "validDoseRangeCfu": {
+            "min": 1,
+            "max": 100000000000
+          }
+        }
+      ]
+    },
+    {
+      "id": "undeclared-peanut",
+      "family": "undeclared_allergen",
+      "label": "Undeclared peanut",
+      "allergen": {
+        "susceptibleFraction": 0.011,
+        "reactionThresholdMg": 1.5,
+        "severeReactionFraction": 0.08
+      }
+    }
+  ],
+  "surveillanceStages": {
+    "incubationHours": {
+      "distribution": "lognormal",
+      "parameters": {
+        "mu": 4,
+        "sigma": 0.5
+      }
+    },
+    "onsetToCareHours": {
+      "distribution": "lognormal",
+      "parameters": {
+        "mu": 3.4,
+        "sigma": 0.6
+      }
+    },
+    "careToSpecimenHours": {
+      "distribution": "lognormal",
+      "parameters": {
+        "mu": 3,
+        "sigma": 0.5
+      }
+    },
+    "specimenToSequenceHours": {
+      "distribution": "lognormal",
+      "parameters": {
+        "mu": 5,
+        "sigma": 0.4
+      }
+    },
+    "sequenceToClusterHours": {
+      "distribution": "lognormal",
+      "parameters": {
+        "mu": 4.3,
+        "sigma": 0.5
+      }
+    },
+    "clusterToTracebackHours": {
+      "distribution": "lognormal",
+      "parameters": {
+        "mu": 4.6,
+        "sigma": 0.5
+      }
+    },
+    "observationProbabilities": {
+      "care": 0.64,
+      "sample": 0.45,
+      "report": 0.9
+    }
+  },
+  "generatedBy": "tools/food-recall-us/build-food-data.mjs",
+  "generatorVersion": "food-recall-data-1.0.0"
+}

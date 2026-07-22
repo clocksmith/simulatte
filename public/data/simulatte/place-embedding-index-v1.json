@@ -3162,7 +3162,7 @@
     "regionRegistry": {
       "id": "nyc-core-region-registry-v1",
       "path": "public/data/simulatte/regions/nyc-core-v1.json",
-      "sha256": "6b13d35e39896c0c746902c7f5e6013614dacb8be2675a70554c476f6bb994bb"
+      "sha256": "bcfee7789ca384767b323e60d991daa483057ee2adf826aae6d1eafc54ddf38a"
     },
     "world": {
       "id": "nyc-core-autonomy-v1",
@@ -3170,7 +3170,7 @@
       "sha256": "218c6f3734815066669f57ae1bc1ce14aace261f0865ebf25f903db3880dcb3e"
     }
   },
-  "indexSha256": "6361dd6d9c18f57a198b8855eef064ecc073d199f7002ddeef4389066708c73c",
+  "indexSha256": "e34fb923fa70a38e6f81d48f8b6929fbeab37a307537de005121493f215c6245",
   "model": {
     "embeddingMode": "last",
     "family": "qwen3-embedding",

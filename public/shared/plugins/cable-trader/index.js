@@ -28,10 +28,13 @@
           costUnits: Math.max(1, route.segmentIds.length),
         });
       }));
-    const simulationFor = (nextScenario) => network.simulateNetwork({
-      ...config,
-      simulation: { ...config.simulation, seed: nextScenario?.seed || config.simulation.seed },
-    }, transferRoutes);
+    const simulationFor = (nextScenario) => {
+      const seed = nextScenario?.seed || config.simulation.seed;
+      // v3: draw from a named sdk.random stream keyed by the scenario seed, so a seed
+      // change reshuffles Cable Trader without disturbing any other plugin's sequence.
+      const rng = sdk.random ? sdk.random.stream(`cable-trader:network:${seed}`) : null;
+      return network.simulateNetwork({ ...config, simulation: { ...config.simulation, seed } }, transferRoutes, rng ? { rng } : {});
+    };
     const simulation = simulationFor(scenario);
     sdk.state.register(reduce, { simulation, inventory: simulation.endingInventory, credits: {}, lastExchange: null });
     appendNetworkReceipt(simulation);
@@ -202,7 +205,29 @@
       view,
       present,
       setScenario,
-      capabilities: { 'inventory.exchange.v1': exchange, 'settlement.credit.v1': exchange },
+      capabilities: {
+        'inventory.exchange.v1': exchange,
+        'settlement.credit.v1': exchange,
+        // Generic logistics-service field (§17/§18). Food Recall consumes this rather
+        // than reaching into Cable Trader's internal state: it returns a transit-delay
+        // and availability prior derived from the current allocation, with a claim
+        // boundary. Dependency direction stays one-way (logistics -> food recall).
+        'field.logistics-service.v1': (input) => {
+          const result = sdk.state.read().simulation;
+          const summary = result.summary;
+          const fulfillmentRate = summary.needs ? summary.fulfilledNeeds / summary.needs : 1;
+          const meanTransferCost = summary.totalBurden / (summary.fulfilledNeeds || 1);
+          return {
+            schema: 'field.logistics-service.v1',
+            value: Number((meanTransferCost).toFixed(2)), units: 'transfer_cost_units',
+            fulfillmentRate: Number(fulfillmentRate.toFixed(3)),
+            availabilityPrior: Number(fulfillmentRate.toFixed(3)),
+            transitDelayHoursPrior: Number((6 + meanTransferCost * 2).toFixed(2)),
+            providerId: 'cable-trader', requested: input || null,
+            claimBoundary: 'Synthetic logistics-service prior from a seeded exchange-network simulation, not observed carrier performance.',
+          };
+        },
+      },
       dispose() {},
     });
   }

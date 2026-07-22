@@ -1,0 +1,572 @@
+{
+  "id": "us.food.consumer-zones.v1",
+  "datasetId": "us.food.consumer-zones.v1",
+  "datasetSchemaId": "simulatte.usFoodConsumerZones.v1",
+  "schema": "simulatte.usFoodConsumerZones.v1",
+  "claimBoundary": "Synthetic aggregate data generated from public priors. Facilities, lots, shipments, and consumer zones are statistically generated, never observed commercial records. This is not a live recall alert, regulatory classification, or a representation of a real supply chain.",
+  "zones": [
+    {
+      "id": "zone:al",
+      "state": "AL",
+      "location": {
+        "longitude": -86.8,
+        "latitude": 32.8
+      },
+      "population": 8385583,
+      "highRiskFraction": 0.168,
+      "provenanceKind": "synthetic_from_public_priors"
+    },
+    {
+      "id": "zone:ak",
+      "state": "AK",
+      "location": {
+        "longitude": -152.5,
+        "latitude": 63.6
+      },
+      "population": 2836385,
+      "highRiskFraction": 0.135,
+      "provenanceKind": "synthetic_from_public_priors"
+    },
+    {
+      "id": "zone:az",
+      "state": "AZ",
+      "location": {
+        "longitude": -111.7,
+        "latitude": 34.2
+      },
+      "population": 2890514,
+      "highRiskFraction": 0.161,
+      "provenanceKind": "synthetic_from_public_priors"
+    },
+    {
+      "id": "zone:ar",
+      "state": "AR",
+      "location": {
+        "longitude": -92.4,
+        "latitude": 34.9
+      },
+      "population": 8382984,
+      "highRiskFraction": 0.135,
+      "provenanceKind": "synthetic_from_public_priors"
+    },
+    {
+      "id": "zone:ca",
+      "state": "CA",
+      "location": {
+        "longitude": -119.4,
+        "latitude": 37.2
+      },
+      "population": 1067447,
+      "highRiskFraction": 0.17,
+      "provenanceKind": "synthetic_from_public_priors"
+    },
+    {
+      "id": "zone:co",
+      "state": "CO",
+      "location": {
+        "longitude": -105.5,
+        "latitude": 39
+      },
+      "population": 542777,
+      "highRiskFraction": 0.217,
+      "provenanceKind": "synthetic_from_public_priors"
+    },
+    {
+      "id": "zone:ct",
+      "state": "CT",
+      "location": {
+        "longitude": -72.7,
+        "latitude": 41.6
+      },
+      "population": 8250570,
+      "highRiskFraction": 0.217,
+      "provenanceKind": "synthetic_from_public_priors"
+    },
+    {
+      "id": "zone:de",
+      "state": "DE",
+      "location": {
+        "longitude": -75.5,
+        "latitude": 39
+      },
+      "population": 5846301,
+      "highRiskFraction": 0.16,
+      "provenanceKind": "synthetic_from_public_priors"
+    },
+    {
+      "id": "zone:dc",
+      "state": "DC",
+      "location": {
+        "longitude": -77,
+        "latitude": 38.9
+      },
+      "population": 3321861,
+      "highRiskFraction": 0.216,
+      "provenanceKind": "synthetic_from_public_priors"
+    },
+    {
+      "id": "zone:fl",
+      "state": "FL",
+      "location": {
+        "longitude": -82.4,
+        "latitude": 28.6
+      },
+      "population": 9244643,
+      "highRiskFraction": 0.208,
+      "provenanceKind": "synthetic_from_public_priors"
+    },
+    {
+      "id": "zone:ga",
+      "state": "GA",
+      "location": {
+        "longitude": -83.4,
+        "latitude": 32.6
+      },
+      "population": 1260566,
+      "highRiskFraction": 0.146,
+      "provenanceKind": "synthetic_from_public_priors"
+    },
+    {
+      "id": "zone:hi",
+      "state": "HI",
+      "location": {
+        "longitude": -156.4,
+        "latitude": 20.3
+      },
+      "population": 3587630,
+      "highRiskFraction": 0.215,
+      "provenanceKind": "synthetic_from_public_priors"
+    },
+    {
+      "id": "zone:id",
+      "state": "ID",
+      "location": {
+        "longitude": -114.6,
+        "latitude": 44.4
+      },
+      "population": 3510835,
+      "highRiskFraction": 0.192,
+      "provenanceKind": "synthetic_from_public_priors"
+    },
+    {
+      "id": "zone:il",
+      "state": "IL",
+      "location": {
+        "longitude": -89.2,
+        "latitude": 40
+      },
+      "population": 7570101,
+      "highRiskFraction": 0.213,
+      "provenanceKind": "synthetic_from_public_priors"
+    },
+    {
+      "id": "zone:in",
+      "state": "IN",
+      "location": {
+        "longitude": -86.3,
+        "latitude": 39.9
+      },
+      "population": 4500065,
+      "highRiskFraction": 0.19,
+      "provenanceKind": "synthetic_from_public_priors"
+    },
+    {
+      "id": "zone:ia",
+      "state": "IA",
+      "location": {
+        "longitude": -93.5,
+        "latitude": 42
+      },
+      "population": 2903631,
+      "highRiskFraction": 0.21,
+      "provenanceKind": "synthetic_from_public_priors"
+    },
+    {
+      "id": "zone:ks",
+      "state": "KS",
+      "location": {
+        "longitude": -98.4,
+        "latitude": 38.5
+      },
+      "population": 5432840,
+      "highRiskFraction": 0.136,
+      "provenanceKind": "synthetic_from_public_priors"
+    },
+    {
+      "id": "zone:ky",
+      "state": "KY",
+      "location": {
+        "longitude": -85.3,
+        "latitude": 37.5
+      },
+      "population": 2507366,
+      "highRiskFraction": 0.214,
+      "provenanceKind": "synthetic_from_public_priors"
+    },
+    {
+      "id": "zone:la",
+      "state": "LA",
+      "location": {
+        "longitude": -92,
+        "latitude": 31
+      },
+      "population": 4150656,
+      "highRiskFraction": 0.169,
+      "provenanceKind": "synthetic_from_public_priors"
+    },
+    {
+      "id": "zone:me",
+      "state": "ME",
+      "location": {
+        "longitude": -69.2,
+        "latitude": 45.4
+      },
+      "population": 1230177,
+      "highRiskFraction": 0.138,
+      "provenanceKind": "synthetic_from_public_priors"
+    },
+    {
+      "id": "zone:md",
+      "state": "MD",
+      "location": {
+        "longitude": -76.8,
+        "latitude": 39
+      },
+      "population": 703880,
+      "highRiskFraction": 0.174,
+      "provenanceKind": "synthetic_from_public_priors"
+    },
+    {
+      "id": "zone:ma",
+      "state": "MA",
+      "location": {
+        "longitude": -71.8,
+        "latitude": 42.3
+      },
+      "population": 3655023,
+      "highRiskFraction": 0.135,
+      "provenanceKind": "synthetic_from_public_priors"
+    },
+    {
+      "id": "zone:mi",
+      "state": "MI",
+      "location": {
+        "longitude": -85.4,
+        "latitude": 44.3
+      },
+      "population": 3674803,
+      "highRiskFraction": 0.178,
+      "provenanceKind": "synthetic_from_public_priors"
+    },
+    {
+      "id": "zone:mn",
+      "state": "MN",
+      "location": {
+        "longitude": -94.3,
+        "latitude": 46.3
+      },
+      "population": 6552564,
+      "highRiskFraction": 0.163,
+      "provenanceKind": "synthetic_from_public_priors"
+    },
+    {
+      "id": "zone:ms",
+      "state": "MS",
+      "location": {
+        "longitude": -89.7,
+        "latitude": 32.7
+      },
+      "population": 2688042,
+      "highRiskFraction": 0.196,
+      "provenanceKind": "synthetic_from_public_priors"
+    },
+    {
+      "id": "zone:mo",
+      "state": "MO",
+      "location": {
+        "longitude": -92.5,
+        "latitude": 38.4
+      },
+      "population": 2350620,
+      "highRiskFraction": 0.181,
+      "provenanceKind": "synthetic_from_public_priors"
+    },
+    {
+      "id": "zone:mt",
+      "state": "MT",
+      "location": {
+        "longitude": -109.6,
+        "latitude": 47
+      },
+      "population": 6741412,
+      "highRiskFraction": 0.177,
+      "provenanceKind": "synthetic_from_public_priors"
+    },
+    {
+      "id": "zone:ne",
+      "state": "NE",
+      "location": {
+        "longitude": -99.8,
+        "latitude": 41.5
+      },
+      "population": 4980158,
+      "highRiskFraction": 0.159,
+      "provenanceKind": "synthetic_from_public_priors"
+    },
+    {
+      "id": "zone:nv",
+      "state": "NV",
+      "location": {
+        "longitude": -116.6,
+        "latitude": 39.3
+      },
+      "population": 8563916,
+      "highRiskFraction": 0.197,
+      "provenanceKind": "synthetic_from_public_priors"
+    },
+    {
+      "id": "zone:nh",
+      "state": "NH",
+      "location": {
+        "longitude": -71.6,
+        "latitude": 43.7
+      },
+      "population": 6166044,
+      "highRiskFraction": 0.217,
+      "provenanceKind": "synthetic_from_public_priors"
+    },
+    {
+      "id": "zone:nj",
+      "state": "NJ",
+      "location": {
+        "longitude": -74.7,
+        "latitude": 40.1
+      },
+      "population": 9099289,
+      "highRiskFraction": 0.159,
+      "provenanceKind": "synthetic_from_public_priors"
+    },
+    {
+      "id": "zone:nm",
+      "state": "NM",
+      "location": {
+        "longitude": -106.1,
+        "latitude": 34.4
+      },
+      "population": 7005837,
+      "highRiskFraction": 0.214,
+      "provenanceKind": "synthetic_from_public_priors"
+    },
+    {
+      "id": "zone:ny",
+      "state": "NY",
+      "location": {
+        "longitude": -75.5,
+        "latitude": 42.9
+      },
+      "population": 4140207,
+      "highRiskFraction": 0.165,
+      "provenanceKind": "synthetic_from_public_priors"
+    },
+    {
+      "id": "zone:nc",
+      "state": "NC",
+      "location": {
+        "longitude": -79.4,
+        "latitude": 35.5
+      },
+      "population": 1046961,
+      "highRiskFraction": 0.133,
+      "provenanceKind": "synthetic_from_public_priors"
+    },
+    {
+      "id": "zone:nd",
+      "state": "ND",
+      "location": {
+        "longitude": -100.5,
+        "latitude": 47.4
+      },
+      "population": 2805937,
+      "highRiskFraction": 0.139,
+      "provenanceKind": "synthetic_from_public_priors"
+    },
+    {
+      "id": "zone:oh",
+      "state": "OH",
+      "location": {
+        "longitude": -82.8,
+        "latitude": 40.3
+      },
+      "population": 6077111,
+      "highRiskFraction": 0.122,
+      "provenanceKind": "synthetic_from_public_priors"
+    },
+    {
+      "id": "zone:ok",
+      "state": "OK",
+      "location": {
+        "longitude": -97.5,
+        "latitude": 35.6
+      },
+      "population": 4849930,
+      "highRiskFraction": 0.142,
+      "provenanceKind": "synthetic_from_public_priors"
+    },
+    {
+      "id": "zone:or",
+      "state": "OR",
+      "location": {
+        "longitude": -120.5,
+        "latitude": 44
+      },
+      "population": 5304727,
+      "highRiskFraction": 0.149,
+      "provenanceKind": "synthetic_from_public_priors"
+    },
+    {
+      "id": "zone:pa",
+      "state": "PA",
+      "location": {
+        "longitude": -77.8,
+        "latitude": 40.9
+      },
+      "population": 3006313,
+      "highRiskFraction": 0.128,
+      "provenanceKind": "synthetic_from_public_priors"
+    },
+    {
+      "id": "zone:ri",
+      "state": "RI",
+      "location": {
+        "longitude": -71.5,
+        "latitude": 41.7
+      },
+      "population": 2088618,
+      "highRiskFraction": 0.206,
+      "provenanceKind": "synthetic_from_public_priors"
+    },
+    {
+      "id": "zone:sc",
+      "state": "SC",
+      "location": {
+        "longitude": -80.9,
+        "latitude": 33.9
+      },
+      "population": 7297533,
+      "highRiskFraction": 0.165,
+      "provenanceKind": "synthetic_from_public_priors"
+    },
+    {
+      "id": "zone:sd",
+      "state": "SD",
+      "location": {
+        "longitude": -100.2,
+        "latitude": 44.4
+      },
+      "population": 8946034,
+      "highRiskFraction": 0.157,
+      "provenanceKind": "synthetic_from_public_priors"
+    },
+    {
+      "id": "zone:tn",
+      "state": "TN",
+      "location": {
+        "longitude": -86.4,
+        "latitude": 35.9
+      },
+      "population": 8817125,
+      "highRiskFraction": 0.148,
+      "provenanceKind": "synthetic_from_public_priors"
+    },
+    {
+      "id": "zone:tx",
+      "state": "TX",
+      "location": {
+        "longitude": -99.3,
+        "latitude": 31.5
+      },
+      "population": 8701106,
+      "highRiskFraction": 0.199,
+      "provenanceKind": "synthetic_from_public_priors"
+    },
+    {
+      "id": "zone:ut",
+      "state": "UT",
+      "location": {
+        "longitude": -111.7,
+        "latitude": 39.3
+      },
+      "population": 4302598,
+      "highRiskFraction": 0.176,
+      "provenanceKind": "synthetic_from_public_priors"
+    },
+    {
+      "id": "zone:vt",
+      "state": "VT",
+      "location": {
+        "longitude": -72.7,
+        "latitude": 44
+      },
+      "population": 3883897,
+      "highRiskFraction": 0.201,
+      "provenanceKind": "synthetic_from_public_priors"
+    },
+    {
+      "id": "zone:va",
+      "state": "VA",
+      "location": {
+        "longitude": -78.9,
+        "latitude": 37.5
+      },
+      "population": 8261009,
+      "highRiskFraction": 0.215,
+      "provenanceKind": "synthetic_from_public_priors"
+    },
+    {
+      "id": "zone:wa",
+      "state": "WA",
+      "location": {
+        "longitude": -120.4,
+        "latitude": 47.4
+      },
+      "population": 8237354,
+      "highRiskFraction": 0.174,
+      "provenanceKind": "synthetic_from_public_priors"
+    },
+    {
+      "id": "zone:wv",
+      "state": "WV",
+      "location": {
+        "longitude": -80.6,
+        "latitude": 38.6
+      },
+      "population": 8448284,
+      "highRiskFraction": 0.144,
+      "provenanceKind": "synthetic_from_public_priors"
+    },
+    {
+      "id": "zone:wi",
+      "state": "WI",
+      "location": {
+        "longitude": -89.9,
+        "latitude": 44.6
+      },
+      "population": 3395658,
+      "highRiskFraction": 0.212,
+      "provenanceKind": "synthetic_from_public_priors"
+    },
+    {
+      "id": "zone:wy",
+      "state": "WY",
+      "location": {
+        "longitude": -107.5,
+        "latitude": 43
+      },
+      "population": 5766731,
+      "highRiskFraction": 0.209,
+      "provenanceKind": "synthetic_from_public_priors"
+    }
+  ],
+  "generatedBy": "tools/food-recall-us/build-food-data.mjs",
+  "generatorVersion": "food-recall-data-1.0.0"
+}

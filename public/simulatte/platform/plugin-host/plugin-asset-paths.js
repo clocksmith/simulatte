@@ -25,7 +25,9 @@
   // The base URL for one plugin's package directory, given the shared root. Entry and
   // resource paths from the manifest resolve relative to this.
   function pluginBaseUrl(sharedRoot, pluginId) {
-    return new URL(`./plugins/${pluginId}/`, sharedRoot).toString();
+    const rootUrl = String(sharedRoot || '');
+    const base = rootUrl.endsWith('/') ? rootUrl : `${rootUrl}/`;
+    return new URL(`plugins/${pluginId}/`, base).toString();
   }
 
   // Convenience join for callers that only hold the document base.

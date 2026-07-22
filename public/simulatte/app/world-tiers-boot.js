@@ -20,11 +20,14 @@
     } catch (_error) { return null; }
   }
 
-  function writeTierParam(view, tier) {
+  function writeTierParam(view, tier, worldId = null) {
     try {
       const url = new URL(view.location.href);
-      if (url.searchParams.get('tier') === tier) return;
+      const currentTier = url.searchParams.get('tier');
+      const currentWorld = url.searchParams.get('world');
+      if (currentTier === tier && (!worldId || currentWorld === worldId)) return;
       url.searchParams.set('tier', tier);
+      if (worldId) url.searchParams.set('world', worldId);
       view.history.replaceState(view.history.state, '', url.toString());
     } catch (_error) { /* URL sync is best-effort */ }
   }
@@ -89,13 +92,12 @@
       tierOptions.forEach((opt) => opt.classList.toggle('selected', opt.dataset.value === tier));
       elements.worldTierLabel.textContent = TIER_LABELS[tier] || 'Select scale';
 
-      // Scope the secondary "plugins" dropdown to the active world. Every current
-      // plugin is a City plugin, so other scales show a disabled "none yet" state.
-      const cityPlugins = tier === 'city';
-      elements.applicationProfileControl.classList.toggle('is-empty', !cityPlugins);
-      elements.applicationProfileTrigger.disabled = !cityPlugins;
-      elements.applicationProfileTrigger.setAttribute('aria-disabled', String(!cityPlugins));
-      if (cityPlugins) {
+      // Scope the secondary "plugins" dropdown to the active world.
+      const supportedScale = tier === 'city' || tier === 'country';
+      elements.applicationProfileControl.classList.toggle('is-empty', !supportedScale);
+      elements.applicationProfileTrigger.disabled = !supportedScale;
+      elements.applicationProfileTrigger.setAttribute('aria-disabled', String(!supportedScale));
+      if (supportedScale) {
         profileSelectUi?.sync();
       } else {
         elements.applicationProfileControl.classList.remove('open');
@@ -149,7 +151,19 @@
     const urlTier = view ? readTierFromUrl(view) : null;
     if (!landing || urlTier || hasProfile) {
       const tier = urlTier || 'city';
-      if (view) writeTierParam(view, tier);
+      if (view) {
+        const url = new URL(view.location.href);
+        url.searchParams.set('tier', tier);
+        if (!url.searchParams.has('world')) {
+          if (tier === 'city') url.searchParams.set('world', 'nyc-core-autonomy-v1');
+          else if (tier === 'country') url.searchParams.set('world', 'us-food-network-v1');
+        }
+        if (!url.searchParams.has('profile')) {
+          if (tier === 'city') url.searchParams.set('profile', 'simulatte-world-v1');
+          else if (tier === 'country') url.searchParams.set('profile', 'food-recall-us-v1');
+        }
+        view.history.replaceState(view.history.state, '', url.toString());
+      }
       setTierLabel(tier);
       if (landing) landing.classList.add('hidden');
       await routeTier(tier);
@@ -159,12 +173,19 @@
     const chooseTier = async (tier) => {
       if (chosen) return;
       chosen = true;
-      // Record the chosen scale in the URL so the dropdown and reloads stay in sync.
-      if (view) writeTierParam(view, tier);
+      if (view) {
+        const url = new URL(view.location.href);
+        url.searchParams.set('tier', tier);
+        if (tier === 'city') {
+          url.searchParams.set('world', 'nyc-core-autonomy-v1');
+          url.searchParams.set('profile', 'simulatte-world-v1');
+        } else if (tier === 'country') {
+          url.searchParams.set('world', 'us-food-network-v1');
+          url.searchParams.set('profile', 'food-recall-us-v1');
+        }
+        view.history.replaceState(view.history.state, '', url.toString());
+      }
       setTierLabel(tier);
-      // Fade the splash out fast (CSS ~120ms) and let it fully clear BEFORE kicking off
-      // the heavy asset load. Otherwise the load blocks the main thread mid-fade and the
-      // loading screen behind bleeds through a half-faded splash.
       landing.classList.add('hidden');
       await new Promise((resolve) => view.setTimeout(resolve, 160));
       await routeTier(tier);

@@ -116,6 +116,12 @@
     scene.areas.forEach((row) => addFlatPolygon(writer, row.points, row.heightM, tone(row.tone), row.intensity));
     scene.paths.forEach((row) => addRibbon(writer, row.points, row.widthM, 0.92, tone(row.tone), row.intensity));
     scene.markers.forEach((row) => addBeacon(writer, row.point, tone(row.tone), row.heightM, row.radiusM, row.intensity));
+    // Geospatial (v3) primitives are already projected into planar scene points by the
+    // presentation compiler, so they draw with the same beacon/ribbon/polygon builders.
+    (scene.choropleths || []).forEach((row) => addFlatPolygon(writer, row.points, 3, tone(row.tone), row.intensity));
+    (scene.geoAreas || []).forEach((row) => addFlatPolygon(writer, row.points, row.heightM, tone(row.tone), row.intensity));
+    (scene.geoPaths || []).forEach((row) => addRibbon(writer, row.points, row.widthM, 0.92, tone(row.tone), row.intensity));
+    (scene.geoMarkers || []).forEach((row) => addBeacon(writer, row.point, tone(row.tone), row.heightM, row.radiusM, row.intensity));
     if (scene.sun) addOrb(writer, scene.sun.worldPosition, scene.sun.radiusM, COLORS.sun, scene.sun.intensity);
     const elapsedSeconds = Number(snapshot.state.simulatedTimeSeconds || 0);
     const usesDenseActorSignals = scene.actors.length > DENSE_PLUGIN_ACTOR_THRESHOLD;

@@ -3,10 +3,13 @@
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteCableTraderNetwork = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createCableTraderNetwork() {
-  function simulateNetwork(config, transferRoutes) {
+  function simulateNetwork(config, transferRoutes, options = {}) {
     validateInputs(config, transferRoutes);
     const { cableTypes, hubs, simulation } = config;
-    const random = createRandom(simulation.seed);
+    // v3: prefer a host-provided named RNG stream (sdk.random) so Cable Trader's
+    // randomness participates in platform-wide receipts and stays independent of other
+    // plugins' draws. Falls back to the private seedable generator for standalone use.
+    const random = options.rng || createRandom(simulation.seed);
     const needCounts = createCube(simulation.durationDays, cableTypes.length, hubs.length);
     const returnCounts = createCube(simulation.durationDays, cableTypes.length, hubs.length);
     const journeyPenalties = createCube(simulation.durationDays, hubs.length, hubs.length);

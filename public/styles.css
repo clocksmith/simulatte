@@ -15,19 +15,19 @@
 
   /* Retro phosphor green = the single primary interactive accent */
   --sim-accent: #00ff00;
-  --sim-accent-soft: rgba(0, 255, 0, 0.14);
-  --sim-accent-line: rgba(0, 255, 0, 0.45);
-  --sim-accent-glow: rgba(0, 255, 0, 0.28);
+  --sim-accent-soft: rgba(0, 255, 0, 0.06);
+  --sim-accent-line: rgba(0, 255, 0, 0.25);
+  --sim-accent-glow: rgba(0, 255, 0, 0.04);
   /* Route legacy accent tokens through the retro green so all chrome recolors DRY */
   --sim-green: var(--sim-accent);
 
-  /* Per-tier rainbow identity, City -> Universe */
-  --tier-city: #ff00ff;
+  /* Green + monochrome control identity */
+  --tier-city: #00ff00;
   --tier-country: #00ff00;
   --tier-world: var(--sim-ink);
   --tier-solar-system: #00ff00;
-  --tier-star-chart: #ff00ff;
-  --sim-spectrum: linear-gradient(122deg, var(--tier-city), var(--tier-country) 26%, var(--tier-world) 50%, var(--tier-solar-system) 74%, var(--tier-star-chart));
+  --tier-star-chart: #ffffff;
+  --sim-spectrum: linear-gradient(122deg, #00ff00, #ffffff 50%, #00ff00);
 }
 
 * {
@@ -174,7 +174,7 @@ body:not([data-journey-phase="loading"]) .loading-screen {
 .sim-app .neural-consent-dialog {
   color: var(--sim-ink);
   background: rgba(0, 0, 0, 0.99);
-  box-shadow: 0 28px 90px rgba(255, 255, 255, 0.72);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
 }
 
 .sim-app .neural-consent-dialog::backdrop {
@@ -317,7 +317,7 @@ button {
   font-weight: 720;
   letter-spacing: -0.012em;
   text-align: left;
-  text-shadow: 0 1px 8px rgba(255, 255, 255, 0.72);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
 }
 
 .profile-selector .select-trigger > span {
@@ -351,7 +351,7 @@ button {
 }
 
 .profile-selector .select-trigger:focus-visible {
-  outline: 1px solid rgba(255, 0, 255, 0.82);
+  outline: 1px solid rgba(0, 255, 0, 0.82);
   outline-offset: 3px;
 }
 
@@ -370,7 +370,7 @@ button {
   border-radius: 2px;
   padding: 5px 0;
   background: rgba(0, 0, 0, 0.97);
-  box-shadow: 0 18px 46px rgba(255, 255, 255, 0.58);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(16px);
 }
 
@@ -455,7 +455,7 @@ button {
 }
 
 .status-pill:focus-visible {
-  outline: 2px solid rgba(255, 0, 255, 0.74);
+  outline: 2px solid rgba(0, 255, 0, 0.74);
   outline-offset: 2px;
 }
 
@@ -464,25 +464,25 @@ button {
   height: 9px;
   flex: 0 0 9px;
   border-radius: 50%;
-  background: var(--sim-magenta);
-  box-shadow: 0 0 0 4px rgba(0, 255, 0, 0.14);
+  background: var(--sim-accent);
+  box-shadow: 0 0 0 2px rgba(0, 255, 0, 0.10);
 }
 
 .status-pill:has(.runtime-status[data-kind="ready"]) .status-dot,
 .status-pill:has(.runtime-status[data-kind="completed"]) .status-dot {
   background: var(--sim-green);
-  box-shadow: 0 0 0 4px rgba(0, 255, 0, 0.15);
+  box-shadow: 0 0 0 2px rgba(0, 255, 0, 0.10);
 }
 
 .status-pill:has(.runtime-status[data-kind="active"]) .status-dot {
   background: var(--sim-accent);
-  box-shadow: 0 0 0 4px rgba(255, 0, 255, 0.18);
+  box-shadow: 0 0 0 2px rgba(0, 255, 0, 0.12);
 }
 
 .status-pill:has(.runtime-status[data-kind="error"]) .status-dot,
 .status-pill:has(.runtime-status[data-kind="failed"]) .status-dot {
   background: var(--sim-red);
-  box-shadow: 0 0 0 4px rgba(0, 255, 0, 0.16);
+  box-shadow: 0 0 0 2px rgba(0, 255, 0, 0.10);
 }
 
 .runtime-status {

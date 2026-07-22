@@ -172,6 +172,18 @@
         defaultScenario: scenarios.find((row) => row.id === profile.defaultSeedId),
       });
     }
+    if (profile?.schema === 'simulatte.applicationProfile.v3') {
+      // v3 "scenario" mode is plugin-owned simulation with no compiled mission. It reuses
+      // the playback seed-cycling control: Start runs the scenario, Shuffle changes seed.
+      const scenarios = profile.seeds.map((row) => Object.freeze({ ...row, missionText: '' }));
+      return Object.freeze({
+        mode: 'playback',
+        startLabel: profile.interaction.startLabel,
+        shuffleLabel: profile.interaction.shuffleLabel,
+        scenarios: Object.freeze(scenarios),
+        defaultScenario: scenarios.find((row) => row.id === profile.defaultSeedId) || scenarios[0],
+      });
+    }
     const examples = profile?.missionExamples || manifest?.missionExamples || [];
     const defaultText = profile?.defaultMissionText || manifest?.defaultMissionText || examples[0] || '';
     const rows = [...new Set([defaultText, ...examples].map((row) => String(row || '').trim()).filter(Boolean))];

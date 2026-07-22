@@ -13,10 +13,10 @@
   --sim-glass-faint: rgba(255, 255, 255, 0.54);
   --sim-line: rgba(0, 0, 0, 0.14);
   --sim-line-strong: rgba(0, 0, 0, 0.28);
-  --sim-magenta: #ff00ff;
+  --sim-accent: #00ff00;
   --sim-green: #00ff00;
   --sim-red: #00ff00;
-  --sim-spectrum: linear-gradient(122deg, #ff00ff, #00ff00 30%, #ffffff 50%, #000000 70%, #ff00ff);
+  --sim-spectrum: linear-gradient(122deg, #00ff00, #ffffff 50%, #00ff00);
   --sim-font: Inter, "Avenir Next", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   --sim-mono: "SFMono-Regular", "Cascadia Code", "Roboto Mono", monospace;
   --sim-space-1: 4px;
@@ -72,7 +72,7 @@
 }
 
 .sim-action:focus-visible {
-  outline: 2px solid rgba(255, 0, 255, 0.72);
+  outline: 2px solid rgba(0, 255, 0, 0.72);
   outline-offset: 2px;
 }
 
@@ -194,8 +194,8 @@
 }
 
 .sim-field:focus {
-  border-color: rgba(255, 0, 255, 0.8);
-  box-shadow: 0 0 0 3px rgba(255, 0, 255, 0.18);
+  border-color: rgba(0, 255, 0, 0.8);
+  box-shadow: 0 0 0 3px rgba(0, 255, 0, 0.18);
   outline: none;
 }
 
@@ -243,8 +243,8 @@
 }
 
 .neural-mode-toggle:focus-within {
-  border-color: rgba(255, 0, 255, 0.8);
-  box-shadow: 0 0 0 3px rgba(255, 0, 255, 0.18);
+  border-color: rgba(0, 255, 0, 0.8);
+  box-shadow: 0 0 0 3px rgba(0, 255, 0, 0.18);
 }
 
 .neural-mode-toggle input {

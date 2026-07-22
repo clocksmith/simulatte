@@ -1,0 +1,2187 @@
+{
+  "id": "us.food.freight-corridors.v1",
+  "datasetId": "us.food.freight-corridors.v1",
+  "datasetSchemaId": "simulatte.usFoodFreightCorridors.v1",
+  "schema": "simulatte.usFoodFreightCorridors.v1",
+  "claimBoundary": "Synthetic aggregate data generated from public priors. Facilities, lots, shipments, and consumer zones are statistically generated, never observed commercial records. This is not a live recall alert, regulatory classification, or a representation of a real supply chain.",
+  "corridors": [
+    {
+      "id": "corridor:facility:synthetic:ca:grower:0000->facility:synthetic:ca:initial_packer:0002",
+      "fromFacilityId": "facility:synthetic:ca:grower:0000",
+      "toFacilityId": "facility:synthetic:ca:initial_packer:0002",
+      "refrigerated": true,
+      "meanTransitHours": 47.56,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 1.904,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.000771,
+      "ambientTempC": 23.01,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:ca:grower:0000->facility:synthetic:az:initial_packer:0007",
+      "fromFacilityId": "facility:synthetic:ca:grower:0000",
+      "toFacilityId": "facility:synthetic:az:initial_packer:0007",
+      "refrigerated": true,
+      "meanTransitHours": 37.8,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 2.144,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.000789,
+      "ambientTempC": 17.85,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:ca:grower:0001->facility:synthetic:ca:initial_packer:0002",
+      "fromFacilityId": "facility:synthetic:ca:grower:0001",
+      "toFacilityId": "facility:synthetic:ca:initial_packer:0002",
+      "refrigerated": true,
+      "meanTransitHours": 23.66,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 2.794,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.000886,
+      "ambientTempC": 26.57,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:ca:grower:0001->facility:synthetic:az:initial_packer:0007",
+      "fromFacilityId": "facility:synthetic:ca:grower:0001",
+      "toFacilityId": "facility:synthetic:az:initial_packer:0007",
+      "refrigerated": true,
+      "meanTransitHours": 42.06,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 3.237,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.000838,
+      "ambientTempC": 30.99,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:az:grower:0005->facility:synthetic:ca:initial_packer:0002",
+      "fromFacilityId": "facility:synthetic:az:grower:0005",
+      "toFacilityId": "facility:synthetic:ca:initial_packer:0002",
+      "refrigerated": true,
+      "meanTransitHours": 10.26,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 3.632,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.000705,
+      "ambientTempC": 16.88,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:az:grower:0005->facility:synthetic:az:initial_packer:0007",
+      "fromFacilityId": "facility:synthetic:az:grower:0005",
+      "toFacilityId": "facility:synthetic:az:initial_packer:0007",
+      "refrigerated": true,
+      "meanTransitHours": 57.67,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 3.422,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.001281,
+      "ambientTempC": 15.22,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:az:grower:0006->facility:synthetic:ca:initial_packer:0002",
+      "fromFacilityId": "facility:synthetic:az:grower:0006",
+      "toFacilityId": "facility:synthetic:ca:initial_packer:0002",
+      "refrigerated": true,
+      "meanTransitHours": 61.34,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 2.327,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.001131,
+      "ambientTempC": 15.55,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:az:grower:0006->facility:synthetic:az:initial_packer:0007",
+      "fromFacilityId": "facility:synthetic:az:grower:0006",
+      "toFacilityId": "facility:synthetic:az:initial_packer:0007",
+      "refrigerated": true,
+      "meanTransitHours": 54.03,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 3.637,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.00067,
+      "ambientTempC": 21.18,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:ca:initial_packer:0002->facility:synthetic:ca:processor:0003",
+      "fromFacilityId": "facility:synthetic:ca:initial_packer:0002",
+      "toFacilityId": "facility:synthetic:ca:processor:0003",
+      "refrigerated": true,
+      "meanTransitHours": 59.43,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 3.033,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.000952,
+      "ambientTempC": 18.73,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:ca:initial_packer:0002->facility:synthetic:tx:processor:0008",
+      "fromFacilityId": "facility:synthetic:ca:initial_packer:0002",
+      "toFacilityId": "facility:synthetic:tx:processor:0008",
+      "refrigerated": true,
+      "meanTransitHours": 22.3,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 2.83,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.00048,
+      "ambientTempC": 25.6,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:ca:initial_packer:0002->facility:synthetic:il:processor:0010",
+      "fromFacilityId": "facility:synthetic:ca:initial_packer:0002",
+      "toFacilityId": "facility:synthetic:il:processor:0010",
+      "refrigerated": true,
+      "meanTransitHours": 18.87,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 3.641,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.0011,
+      "ambientTempC": 24.59,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:ca:initial_packer:0002->facility:synthetic:ga:processor:0012",
+      "fromFacilityId": "facility:synthetic:ca:initial_packer:0002",
+      "toFacilityId": "facility:synthetic:ga:processor:0012",
+      "refrigerated": true,
+      "meanTransitHours": 9.88,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 2.196,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.000501,
+      "ambientTempC": 27.28,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:ca:initial_packer:0002->facility:synthetic:co:processor:0014",
+      "fromFacilityId": "facility:synthetic:ca:initial_packer:0002",
+      "toFacilityId": "facility:synthetic:co:processor:0014",
+      "refrigerated": true,
+      "meanTransitHours": 9.7,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 3.763,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.001452,
+      "ambientTempC": 18.3,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:ca:initial_packer:0002->facility:synthetic:mo:processor:0016",
+      "fromFacilityId": "facility:synthetic:ca:initial_packer:0002",
+      "toFacilityId": "facility:synthetic:mo:processor:0016",
+      "refrigerated": true,
+      "meanTransitHours": 39.05,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 3.777,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.000434,
+      "ambientTempC": 16.89,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:az:initial_packer:0007->facility:synthetic:ca:processor:0003",
+      "fromFacilityId": "facility:synthetic:az:initial_packer:0007",
+      "toFacilityId": "facility:synthetic:ca:processor:0003",
+      "refrigerated": true,
+      "meanTransitHours": 12.61,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 3.012,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.000855,
+      "ambientTempC": 14.75,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:az:initial_packer:0007->facility:synthetic:tx:processor:0008",
+      "fromFacilityId": "facility:synthetic:az:initial_packer:0007",
+      "toFacilityId": "facility:synthetic:tx:processor:0008",
+      "refrigerated": true,
+      "meanTransitHours": 15.47,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 3.725,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.000969,
+      "ambientTempC": 27.68,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:az:initial_packer:0007->facility:synthetic:il:processor:0010",
+      "fromFacilityId": "facility:synthetic:az:initial_packer:0007",
+      "toFacilityId": "facility:synthetic:il:processor:0010",
+      "refrigerated": true,
+      "meanTransitHours": 57.71,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 3.362,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.001245,
+      "ambientTempC": 23.59,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:az:initial_packer:0007->facility:synthetic:ga:processor:0012",
+      "fromFacilityId": "facility:synthetic:az:initial_packer:0007",
+      "toFacilityId": "facility:synthetic:ga:processor:0012",
+      "refrigerated": true,
+      "meanTransitHours": 40.78,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 3.528,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.001192,
+      "ambientTempC": 22.55,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:az:initial_packer:0007->facility:synthetic:co:processor:0014",
+      "fromFacilityId": "facility:synthetic:az:initial_packer:0007",
+      "toFacilityId": "facility:synthetic:co:processor:0014",
+      "refrigerated": true,
+      "meanTransitHours": 29.93,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 3.444,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.000863,
+      "ambientTempC": 26.15,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:az:initial_packer:0007->facility:synthetic:mo:processor:0016",
+      "fromFacilityId": "facility:synthetic:az:initial_packer:0007",
+      "toFacilityId": "facility:synthetic:mo:processor:0016",
+      "refrigerated": true,
+      "meanTransitHours": 17.85,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 2.898,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.001226,
+      "ambientTempC": 29.58,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:ca:processor:0003->facility:synthetic:ca:distributor:0004",
+      "fromFacilityId": "facility:synthetic:ca:processor:0003",
+      "toFacilityId": "facility:synthetic:ca:distributor:0004",
+      "refrigerated": true,
+      "meanTransitHours": 46.28,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 3.667,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.000531,
+      "ambientTempC": 18.04,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:ca:processor:0003->facility:synthetic:tx:distributor:0009",
+      "fromFacilityId": "facility:synthetic:ca:processor:0003",
+      "toFacilityId": "facility:synthetic:tx:distributor:0009",
+      "refrigerated": true,
+      "meanTransitHours": 18.04,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 2.377,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.000497,
+      "ambientTempC": 17.99,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:ca:processor:0003->facility:synthetic:il:distributor:0011",
+      "fromFacilityId": "facility:synthetic:ca:processor:0003",
+      "toFacilityId": "facility:synthetic:il:distributor:0011",
+      "refrigerated": true,
+      "meanTransitHours": 27.18,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 3.412,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.000489,
+      "ambientTempC": 14.23,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:ca:processor:0003->facility:synthetic:ga:distributor:0013",
+      "fromFacilityId": "facility:synthetic:ca:processor:0003",
+      "toFacilityId": "facility:synthetic:ga:distributor:0013",
+      "refrigerated": true,
+      "meanTransitHours": 38.43,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 2.606,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.001078,
+      "ambientTempC": 19.86,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:ca:processor:0003->facility:synthetic:co:distributor:0015",
+      "fromFacilityId": "facility:synthetic:ca:processor:0003",
+      "toFacilityId": "facility:synthetic:co:distributor:0015",
+      "refrigerated": true,
+      "meanTransitHours": 34.02,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 3.757,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.000703,
+      "ambientTempC": 29.23,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:ca:processor:0003->facility:synthetic:mo:distributor:0017",
+      "fromFacilityId": "facility:synthetic:ca:processor:0003",
+      "toFacilityId": "facility:synthetic:mo:distributor:0017",
+      "refrigerated": true,
+      "meanTransitHours": 25.99,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 1.988,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.001015,
+      "ambientTempC": 17.7,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:tx:processor:0008->facility:synthetic:ca:distributor:0004",
+      "fromFacilityId": "facility:synthetic:tx:processor:0008",
+      "toFacilityId": "facility:synthetic:ca:distributor:0004",
+      "refrigerated": true,
+      "meanTransitHours": 54.64,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 3.457,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.001392,
+      "ambientTempC": 19.53,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:tx:processor:0008->facility:synthetic:tx:distributor:0009",
+      "fromFacilityId": "facility:synthetic:tx:processor:0008",
+      "toFacilityId": "facility:synthetic:tx:distributor:0009",
+      "refrigerated": true,
+      "meanTransitHours": 13.84,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 3.297,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.001423,
+      "ambientTempC": 24.9,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:tx:processor:0008->facility:synthetic:il:distributor:0011",
+      "fromFacilityId": "facility:synthetic:tx:processor:0008",
+      "toFacilityId": "facility:synthetic:il:distributor:0011",
+      "refrigerated": true,
+      "meanTransitHours": 48.52,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 3.008,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.00103,
+      "ambientTempC": 14.86,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:tx:processor:0008->facility:synthetic:ga:distributor:0013",
+      "fromFacilityId": "facility:synthetic:tx:processor:0008",
+      "toFacilityId": "facility:synthetic:ga:distributor:0013",
+      "refrigerated": true,
+      "meanTransitHours": 53.48,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 3.673,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.000421,
+      "ambientTempC": 17.92,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:tx:processor:0008->facility:synthetic:co:distributor:0015",
+      "fromFacilityId": "facility:synthetic:tx:processor:0008",
+      "toFacilityId": "facility:synthetic:co:distributor:0015",
+      "refrigerated": true,
+      "meanTransitHours": 49.48,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 3.529,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.00087,
+      "ambientTempC": 28.13,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:tx:processor:0008->facility:synthetic:mo:distributor:0017",
+      "fromFacilityId": "facility:synthetic:tx:processor:0008",
+      "toFacilityId": "facility:synthetic:mo:distributor:0017",
+      "refrigerated": true,
+      "meanTransitHours": 36.06,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 3.773,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.000629,
+      "ambientTempC": 15.05,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:il:processor:0010->facility:synthetic:ca:distributor:0004",
+      "fromFacilityId": "facility:synthetic:il:processor:0010",
+      "toFacilityId": "facility:synthetic:ca:distributor:0004",
+      "refrigerated": true,
+      "meanTransitHours": 36.45,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 3.438,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.001338,
+      "ambientTempC": 30.04,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:il:processor:0010->facility:synthetic:tx:distributor:0009",
+      "fromFacilityId": "facility:synthetic:il:processor:0010",
+      "toFacilityId": "facility:synthetic:tx:distributor:0009",
+      "refrigerated": true,
+      "meanTransitHours": 29.32,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 3.282,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.001475,
+      "ambientTempC": 18.32,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:il:processor:0010->facility:synthetic:il:distributor:0011",
+      "fromFacilityId": "facility:synthetic:il:processor:0010",
+      "toFacilityId": "facility:synthetic:il:distributor:0011",
+      "refrigerated": true,
+      "meanTransitHours": 14.5,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 2.853,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.000808,
+      "ambientTempC": 23.46,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:il:processor:0010->facility:synthetic:ga:distributor:0013",
+      "fromFacilityId": "facility:synthetic:il:processor:0010",
+      "toFacilityId": "facility:synthetic:ga:distributor:0013",
+      "refrigerated": true,
+      "meanTransitHours": 21.56,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 3.416,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.000603,
+      "ambientTempC": 26.45,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:il:processor:0010->facility:synthetic:co:distributor:0015",
+      "fromFacilityId": "facility:synthetic:il:processor:0010",
+      "toFacilityId": "facility:synthetic:co:distributor:0015",
+      "refrigerated": true,
+      "meanTransitHours": 64.25,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 2.955,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.000693,
+      "ambientTempC": 15.76,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:il:processor:0010->facility:synthetic:mo:distributor:0017",
+      "fromFacilityId": "facility:synthetic:il:processor:0010",
+      "toFacilityId": "facility:synthetic:mo:distributor:0017",
+      "refrigerated": true,
+      "meanTransitHours": 8.69,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 2.689,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.000993,
+      "ambientTempC": 24.46,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:ga:processor:0012->facility:synthetic:ca:distributor:0004",
+      "fromFacilityId": "facility:synthetic:ga:processor:0012",
+      "toFacilityId": "facility:synthetic:ca:distributor:0004",
+      "refrigerated": true,
+      "meanTransitHours": 9.42,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 3.725,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.001256,
+      "ambientTempC": 14.98,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:ga:processor:0012->facility:synthetic:tx:distributor:0009",
+      "fromFacilityId": "facility:synthetic:ga:processor:0012",
+      "toFacilityId": "facility:synthetic:tx:distributor:0009",
+      "refrigerated": true,
+      "meanTransitHours": 42.7,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 3.673,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.001198,
+      "ambientTempC": 31.13,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:ga:processor:0012->facility:synthetic:il:distributor:0011",
+      "fromFacilityId": "facility:synthetic:ga:processor:0012",
+      "toFacilityId": "facility:synthetic:il:distributor:0011",
+      "refrigerated": true,
+      "meanTransitHours": 23.84,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 3.351,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.000671,
+      "ambientTempC": 22.1,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:ga:processor:0012->facility:synthetic:ga:distributor:0013",
+      "fromFacilityId": "facility:synthetic:ga:processor:0012",
+      "toFacilityId": "facility:synthetic:ga:distributor:0013",
+      "refrigerated": true,
+      "meanTransitHours": 20.93,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 2.283,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.000465,
+      "ambientTempC": 15.41,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:ga:processor:0012->facility:synthetic:co:distributor:0015",
+      "fromFacilityId": "facility:synthetic:ga:processor:0012",
+      "toFacilityId": "facility:synthetic:co:distributor:0015",
+      "refrigerated": true,
+      "meanTransitHours": 6.88,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 2.483,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.000988,
+      "ambientTempC": 20.87,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:ga:processor:0012->facility:synthetic:mo:distributor:0017",
+      "fromFacilityId": "facility:synthetic:ga:processor:0012",
+      "toFacilityId": "facility:synthetic:mo:distributor:0017",
+      "refrigerated": true,
+      "meanTransitHours": 12.68,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 3.398,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.001043,
+      "ambientTempC": 28.44,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:co:processor:0014->facility:synthetic:ca:distributor:0004",
+      "fromFacilityId": "facility:synthetic:co:processor:0014",
+      "toFacilityId": "facility:synthetic:ca:distributor:0004",
+      "refrigerated": true,
+      "meanTransitHours": 30.59,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 3.544,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.000442,
+      "ambientTempC": 17.04,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:co:processor:0014->facility:synthetic:tx:distributor:0009",
+      "fromFacilityId": "facility:synthetic:co:processor:0014",
+      "toFacilityId": "facility:synthetic:tx:distributor:0009",
+      "refrigerated": true,
+      "meanTransitHours": 48.49,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 3.435,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.001116,
+      "ambientTempC": 19.85,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:co:processor:0014->facility:synthetic:il:distributor:0011",
+      "fromFacilityId": "facility:synthetic:co:processor:0014",
+      "toFacilityId": "facility:synthetic:il:distributor:0011",
+      "refrigerated": true,
+      "meanTransitHours": 51.42,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 2.249,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.000707,
+      "ambientTempC": 21.54,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:co:processor:0014->facility:synthetic:ga:distributor:0013",
+      "fromFacilityId": "facility:synthetic:co:processor:0014",
+      "toFacilityId": "facility:synthetic:ga:distributor:0013",
+      "refrigerated": true,
+      "meanTransitHours": 51.83,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 2.656,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.001469,
+      "ambientTempC": 28.33,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:co:processor:0014->facility:synthetic:co:distributor:0015",
+      "fromFacilityId": "facility:synthetic:co:processor:0014",
+      "toFacilityId": "facility:synthetic:co:distributor:0015",
+      "refrigerated": true,
+      "meanTransitHours": 9.27,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 3.504,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.001236,
+      "ambientTempC": 23.93,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:co:processor:0014->facility:synthetic:mo:distributor:0017",
+      "fromFacilityId": "facility:synthetic:co:processor:0014",
+      "toFacilityId": "facility:synthetic:mo:distributor:0017",
+      "refrigerated": true,
+      "meanTransitHours": 20.46,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 3.346,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.001288,
+      "ambientTempC": 16,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:mo:processor:0016->facility:synthetic:ca:distributor:0004",
+      "fromFacilityId": "facility:synthetic:mo:processor:0016",
+      "toFacilityId": "facility:synthetic:ca:distributor:0004",
+      "refrigerated": true,
+      "meanTransitHours": 41.01,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 2.681,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.001341,
+      "ambientTempC": 24.97,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:mo:processor:0016->facility:synthetic:tx:distributor:0009",
+      "fromFacilityId": "facility:synthetic:mo:processor:0016",
+      "toFacilityId": "facility:synthetic:tx:distributor:0009",
+      "refrigerated": true,
+      "meanTransitHours": 38.17,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 2.455,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.001011,
+      "ambientTempC": 15.4,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:mo:processor:0016->facility:synthetic:il:distributor:0011",
+      "fromFacilityId": "facility:synthetic:mo:processor:0016",
+      "toFacilityId": "facility:synthetic:il:distributor:0011",
+      "refrigerated": true,
+      "meanTransitHours": 37.54,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 3.391,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.001497,
+      "ambientTempC": 23.97,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:mo:processor:0016->facility:synthetic:ga:distributor:0013",
+      "fromFacilityId": "facility:synthetic:mo:processor:0016",
+      "toFacilityId": "facility:synthetic:ga:distributor:0013",
+      "refrigerated": true,
+      "meanTransitHours": 42.48,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 2.07,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.001043,
+      "ambientTempC": 15.1,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:mo:processor:0016->facility:synthetic:co:distributor:0015",
+      "fromFacilityId": "facility:synthetic:mo:processor:0016",
+      "toFacilityId": "facility:synthetic:co:distributor:0015",
+      "refrigerated": true,
+      "meanTransitHours": 27.51,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 3.768,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.001503,
+      "ambientTempC": 22.86,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:mo:processor:0016->facility:synthetic:mo:distributor:0017",
+      "fromFacilityId": "facility:synthetic:mo:processor:0016",
+      "toFacilityId": "facility:synthetic:mo:distributor:0017",
+      "refrigerated": true,
+      "meanTransitHours": 48.98,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 2.956,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.001419,
+      "ambientTempC": 20.62,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:ca:distributor:0004->facility:synthetic:ny:retailer:0018",
+      "fromFacilityId": "facility:synthetic:ca:distributor:0004",
+      "toFacilityId": "facility:synthetic:ny:retailer:0018",
+      "refrigerated": true,
+      "meanTransitHours": 7.4,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 2.734,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.001176,
+      "ambientTempC": 21.94,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:ca:distributor:0004->facility:synthetic:ny:retailer:0019",
+      "fromFacilityId": "facility:synthetic:ca:distributor:0004",
+      "toFacilityId": "facility:synthetic:ny:retailer:0019",
+      "refrigerated": true,
+      "meanTransitHours": 7.98,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 3.019,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.000624,
+      "ambientTempC": 30.78,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:ca:distributor:0004->facility:synthetic:pa:retailer:0021",
+      "fromFacilityId": "facility:synthetic:ca:distributor:0004",
+      "toFacilityId": "facility:synthetic:pa:retailer:0021",
+      "refrigerated": true,
+      "meanTransitHours": 59.49,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 3.602,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.000637,
+      "ambientTempC": 31.73,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:ca:distributor:0004->facility:synthetic:pa:retailer:0022",
+      "fromFacilityId": "facility:synthetic:ca:distributor:0004",
+      "toFacilityId": "facility:synthetic:pa:retailer:0022",
+      "refrigerated": true,
+      "meanTransitHours": 6.03,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 3.577,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.000439,
+      "ambientTempC": 29.4,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:ca:distributor:0004->facility:synthetic:fl:retailer:0024",
+      "fromFacilityId": "facility:synthetic:ca:distributor:0004",
+      "toFacilityId": "facility:synthetic:fl:retailer:0024",
+      "refrigerated": true,
+      "meanTransitHours": 49.2,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 2.421,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.000485,
+      "ambientTempC": 19.53,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:ca:distributor:0004->facility:synthetic:fl:retailer:0025",
+      "fromFacilityId": "facility:synthetic:ca:distributor:0004",
+      "toFacilityId": "facility:synthetic:fl:retailer:0025",
+      "refrigerated": true,
+      "meanTransitHours": 43.19,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 2.318,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.000707,
+      "ambientTempC": 26.84,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:ca:distributor:0004->facility:synthetic:wa:retailer:0027",
+      "fromFacilityId": "facility:synthetic:ca:distributor:0004",
+      "toFacilityId": "facility:synthetic:wa:retailer:0027",
+      "refrigerated": true,
+      "meanTransitHours": 58.41,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 2.654,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.001497,
+      "ambientTempC": 20.5,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:ca:distributor:0004->facility:synthetic:wa:retailer:0028",
+      "fromFacilityId": "facility:synthetic:ca:distributor:0004",
+      "toFacilityId": "facility:synthetic:wa:retailer:0028",
+      "refrigerated": true,
+      "meanTransitHours": 18.19,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 3.552,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.00131,
+      "ambientTempC": 29.17,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:tx:distributor:0009->facility:synthetic:ny:retailer:0018",
+      "fromFacilityId": "facility:synthetic:tx:distributor:0009",
+      "toFacilityId": "facility:synthetic:ny:retailer:0018",
+      "refrigerated": true,
+      "meanTransitHours": 37.68,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 3.048,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.000555,
+      "ambientTempC": 31.38,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:tx:distributor:0009->facility:synthetic:ny:retailer:0019",
+      "fromFacilityId": "facility:synthetic:tx:distributor:0009",
+      "toFacilityId": "facility:synthetic:ny:retailer:0019",
+      "refrigerated": true,
+      "meanTransitHours": 29.69,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 3.643,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.000464,
+      "ambientTempC": 20.62,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:tx:distributor:0009->facility:synthetic:pa:retailer:0021",
+      "fromFacilityId": "facility:synthetic:tx:distributor:0009",
+      "toFacilityId": "facility:synthetic:pa:retailer:0021",
+      "refrigerated": true,
+      "meanTransitHours": 27.58,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 2.639,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.001428,
+      "ambientTempC": 30.15,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:tx:distributor:0009->facility:synthetic:pa:retailer:0022",
+      "fromFacilityId": "facility:synthetic:tx:distributor:0009",
+      "toFacilityId": "facility:synthetic:pa:retailer:0022",
+      "refrigerated": true,
+      "meanTransitHours": 43.87,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 2.624,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.001337,
+      "ambientTempC": 28.22,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:tx:distributor:0009->facility:synthetic:fl:retailer:0024",
+      "fromFacilityId": "facility:synthetic:tx:distributor:0009",
+      "toFacilityId": "facility:synthetic:fl:retailer:0024",
+      "refrigerated": true,
+      "meanTransitHours": 43.48,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 2.98,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.001148,
+      "ambientTempC": 18.39,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:tx:distributor:0009->facility:synthetic:fl:retailer:0025",
+      "fromFacilityId": "facility:synthetic:tx:distributor:0009",
+      "toFacilityId": "facility:synthetic:fl:retailer:0025",
+      "refrigerated": true,
+      "meanTransitHours": 37.94,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 2.414,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.00095,
+      "ambientTempC": 21.29,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:tx:distributor:0009->facility:synthetic:wa:retailer:0027",
+      "fromFacilityId": "facility:synthetic:tx:distributor:0009",
+      "toFacilityId": "facility:synthetic:wa:retailer:0027",
+      "refrigerated": true,
+      "meanTransitHours": 25.19,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 3.622,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.001136,
+      "ambientTempC": 30.74,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:tx:distributor:0009->facility:synthetic:wa:retailer:0028",
+      "fromFacilityId": "facility:synthetic:tx:distributor:0009",
+      "toFacilityId": "facility:synthetic:wa:retailer:0028",
+      "refrigerated": true,
+      "meanTransitHours": 45.55,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 3.368,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.000761,
+      "ambientTempC": 14.39,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:il:distributor:0011->facility:synthetic:ny:retailer:0018",
+      "fromFacilityId": "facility:synthetic:il:distributor:0011",
+      "toFacilityId": "facility:synthetic:ny:retailer:0018",
+      "refrigerated": true,
+      "meanTransitHours": 22.27,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 3.691,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.001455,
+      "ambientTempC": 20.01,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:il:distributor:0011->facility:synthetic:ny:retailer:0019",
+      "fromFacilityId": "facility:synthetic:il:distributor:0011",
+      "toFacilityId": "facility:synthetic:ny:retailer:0019",
+      "refrigerated": true,
+      "meanTransitHours": 8.39,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 1.868,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.00054,
+      "ambientTempC": 24.09,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:il:distributor:0011->facility:synthetic:pa:retailer:0021",
+      "fromFacilityId": "facility:synthetic:il:distributor:0011",
+      "toFacilityId": "facility:synthetic:pa:retailer:0021",
+      "refrigerated": true,
+      "meanTransitHours": 43.64,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 3.083,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.00072,
+      "ambientTempC": 27.26,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:il:distributor:0011->facility:synthetic:pa:retailer:0022",
+      "fromFacilityId": "facility:synthetic:il:distributor:0011",
+      "toFacilityId": "facility:synthetic:pa:retailer:0022",
+      "refrigerated": true,
+      "meanTransitHours": 61.99,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 3.332,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.00098,
+      "ambientTempC": 14.39,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:il:distributor:0011->facility:synthetic:fl:retailer:0024",
+      "fromFacilityId": "facility:synthetic:il:distributor:0011",
+      "toFacilityId": "facility:synthetic:fl:retailer:0024",
+      "refrigerated": true,
+      "meanTransitHours": 39.68,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 3.578,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.001068,
+      "ambientTempC": 31.41,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:il:distributor:0011->facility:synthetic:fl:retailer:0025",
+      "fromFacilityId": "facility:synthetic:il:distributor:0011",
+      "toFacilityId": "facility:synthetic:fl:retailer:0025",
+      "refrigerated": true,
+      "meanTransitHours": 20.45,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 2.944,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.001158,
+      "ambientTempC": 29.11,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:il:distributor:0011->facility:synthetic:wa:retailer:0027",
+      "fromFacilityId": "facility:synthetic:il:distributor:0011",
+      "toFacilityId": "facility:synthetic:wa:retailer:0027",
+      "refrigerated": true,
+      "meanTransitHours": 6.72,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 3.793,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.001438,
+      "ambientTempC": 17.54,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:il:distributor:0011->facility:synthetic:wa:retailer:0028",
+      "fromFacilityId": "facility:synthetic:il:distributor:0011",
+      "toFacilityId": "facility:synthetic:wa:retailer:0028",
+      "refrigerated": true,
+      "meanTransitHours": 64.8,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 3.648,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.001547,
+      "ambientTempC": 22.47,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:ga:distributor:0013->facility:synthetic:ny:retailer:0018",
+      "fromFacilityId": "facility:synthetic:ga:distributor:0013",
+      "toFacilityId": "facility:synthetic:ny:retailer:0018",
+      "refrigerated": true,
+      "meanTransitHours": 53.85,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 3.574,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.000917,
+      "ambientTempC": 24.28,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:ga:distributor:0013->facility:synthetic:ny:retailer:0019",
+      "fromFacilityId": "facility:synthetic:ga:distributor:0013",
+      "toFacilityId": "facility:synthetic:ny:retailer:0019",
+      "refrigerated": true,
+      "meanTransitHours": 58.11,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 2.099,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.000619,
+      "ambientTempC": 25.11,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:ga:distributor:0013->facility:synthetic:pa:retailer:0021",
+      "fromFacilityId": "facility:synthetic:ga:distributor:0013",
+      "toFacilityId": "facility:synthetic:pa:retailer:0021",
+      "refrigerated": true,
+      "meanTransitHours": 26.31,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 3.227,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.001443,
+      "ambientTempC": 16.66,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:ga:distributor:0013->facility:synthetic:pa:retailer:0022",
+      "fromFacilityId": "facility:synthetic:ga:distributor:0013",
+      "toFacilityId": "facility:synthetic:pa:retailer:0022",
+      "refrigerated": true,
+      "meanTransitHours": 36.24,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 2.437,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.001599,
+      "ambientTempC": 16.99,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:ga:distributor:0013->facility:synthetic:fl:retailer:0024",
+      "fromFacilityId": "facility:synthetic:ga:distributor:0013",
+      "toFacilityId": "facility:synthetic:fl:retailer:0024",
+      "refrigerated": true,
+      "meanTransitHours": 65.65,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 2.985,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.001025,
+      "ambientTempC": 24.38,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:ga:distributor:0013->facility:synthetic:fl:retailer:0025",
+      "fromFacilityId": "facility:synthetic:ga:distributor:0013",
+      "toFacilityId": "facility:synthetic:fl:retailer:0025",
+      "refrigerated": true,
+      "meanTransitHours": 50.52,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 3.193,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.001181,
+      "ambientTempC": 28.87,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:ga:distributor:0013->facility:synthetic:wa:retailer:0027",
+      "fromFacilityId": "facility:synthetic:ga:distributor:0013",
+      "toFacilityId": "facility:synthetic:wa:retailer:0027",
+      "refrigerated": true,
+      "meanTransitHours": 34.67,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 3.598,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.001257,
+      "ambientTempC": 26.64,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:ga:distributor:0013->facility:synthetic:wa:retailer:0028",
+      "fromFacilityId": "facility:synthetic:ga:distributor:0013",
+      "toFacilityId": "facility:synthetic:wa:retailer:0028",
+      "refrigerated": true,
+      "meanTransitHours": 38.87,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 3.603,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.000884,
+      "ambientTempC": 19.28,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:co:distributor:0015->facility:synthetic:ny:retailer:0018",
+      "fromFacilityId": "facility:synthetic:co:distributor:0015",
+      "toFacilityId": "facility:synthetic:ny:retailer:0018",
+      "refrigerated": true,
+      "meanTransitHours": 60.38,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 2.708,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.000927,
+      "ambientTempC": 20.91,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:co:distributor:0015->facility:synthetic:ny:retailer:0019",
+      "fromFacilityId": "facility:synthetic:co:distributor:0015",
+      "toFacilityId": "facility:synthetic:ny:retailer:0019",
+      "refrigerated": true,
+      "meanTransitHours": 16.97,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 3.085,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.001201,
+      "ambientTempC": 16.07,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:co:distributor:0015->facility:synthetic:pa:retailer:0021",
+      "fromFacilityId": "facility:synthetic:co:distributor:0015",
+      "toFacilityId": "facility:synthetic:pa:retailer:0021",
+      "refrigerated": true,
+      "meanTransitHours": 23.83,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 2.264,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.000941,
+      "ambientTempC": 15.42,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:co:distributor:0015->facility:synthetic:pa:retailer:0022",
+      "fromFacilityId": "facility:synthetic:co:distributor:0015",
+      "toFacilityId": "facility:synthetic:pa:retailer:0022",
+      "refrigerated": true,
+      "meanTransitHours": 38.84,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 1.945,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.000766,
+      "ambientTempC": 22.3,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:co:distributor:0015->facility:synthetic:fl:retailer:0024",
+      "fromFacilityId": "facility:synthetic:co:distributor:0015",
+      "toFacilityId": "facility:synthetic:fl:retailer:0024",
+      "refrigerated": true,
+      "meanTransitHours": 57.58,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 2.747,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.001219,
+      "ambientTempC": 19.94,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:co:distributor:0015->facility:synthetic:fl:retailer:0025",
+      "fromFacilityId": "facility:synthetic:co:distributor:0015",
+      "toFacilityId": "facility:synthetic:fl:retailer:0025",
+      "refrigerated": true,
+      "meanTransitHours": 51.19,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 2.672,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.001462,
+      "ambientTempC": 15.15,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:co:distributor:0015->facility:synthetic:wa:retailer:0027",
+      "fromFacilityId": "facility:synthetic:co:distributor:0015",
+      "toFacilityId": "facility:synthetic:wa:retailer:0027",
+      "refrigerated": true,
+      "meanTransitHours": 8.78,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 2.954,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.00093,
+      "ambientTempC": 18.75,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:co:distributor:0015->facility:synthetic:wa:retailer:0028",
+      "fromFacilityId": "facility:synthetic:co:distributor:0015",
+      "toFacilityId": "facility:synthetic:wa:retailer:0028",
+      "refrigerated": true,
+      "meanTransitHours": 40.39,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 3.523,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.001108,
+      "ambientTempC": 22.46,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:mo:distributor:0017->facility:synthetic:ny:retailer:0018",
+      "fromFacilityId": "facility:synthetic:mo:distributor:0017",
+      "toFacilityId": "facility:synthetic:ny:retailer:0018",
+      "refrigerated": true,
+      "meanTransitHours": 44.21,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 3.39,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.001168,
+      "ambientTempC": 17.83,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:mo:distributor:0017->facility:synthetic:ny:retailer:0019",
+      "fromFacilityId": "facility:synthetic:mo:distributor:0017",
+      "toFacilityId": "facility:synthetic:ny:retailer:0019",
+      "refrigerated": true,
+      "meanTransitHours": 42.81,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 2.071,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.001544,
+      "ambientTempC": 17.02,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:mo:distributor:0017->facility:synthetic:pa:retailer:0021",
+      "fromFacilityId": "facility:synthetic:mo:distributor:0017",
+      "toFacilityId": "facility:synthetic:pa:retailer:0021",
+      "refrigerated": true,
+      "meanTransitHours": 9.23,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 3.345,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.001123,
+      "ambientTempC": 25.72,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:mo:distributor:0017->facility:synthetic:pa:retailer:0022",
+      "fromFacilityId": "facility:synthetic:mo:distributor:0017",
+      "toFacilityId": "facility:synthetic:pa:retailer:0022",
+      "refrigerated": true,
+      "meanTransitHours": 20.93,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 2.908,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.001474,
+      "ambientTempC": 19.89,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:mo:distributor:0017->facility:synthetic:fl:retailer:0024",
+      "fromFacilityId": "facility:synthetic:mo:distributor:0017",
+      "toFacilityId": "facility:synthetic:fl:retailer:0024",
+      "refrigerated": true,
+      "meanTransitHours": 44.93,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 3.079,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.000496,
+      "ambientTempC": 31.01,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:mo:distributor:0017->facility:synthetic:fl:retailer:0025",
+      "fromFacilityId": "facility:synthetic:mo:distributor:0017",
+      "toFacilityId": "facility:synthetic:fl:retailer:0025",
+      "refrigerated": true,
+      "meanTransitHours": 59.62,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 2.804,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.001351,
+      "ambientTempC": 16.31,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:mo:distributor:0017->facility:synthetic:wa:retailer:0027",
+      "fromFacilityId": "facility:synthetic:mo:distributor:0017",
+      "toFacilityId": "facility:synthetic:wa:retailer:0027",
+      "refrigerated": true,
+      "meanTransitHours": 55.69,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 2.556,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.000542,
+      "ambientTempC": 30.63,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:mo:distributor:0017->facility:synthetic:wa:retailer:0028",
+      "fromFacilityId": "facility:synthetic:mo:distributor:0017",
+      "toFacilityId": "facility:synthetic:wa:retailer:0028",
+      "refrigerated": true,
+      "meanTransitHours": 18.51,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 3.31,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.00107,
+      "ambientTempC": 25.79,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:ca:distributor:0004->facility:synthetic:ny:restaurant:0020",
+      "fromFacilityId": "facility:synthetic:ca:distributor:0004",
+      "toFacilityId": "facility:synthetic:ny:restaurant:0020",
+      "refrigerated": true,
+      "meanTransitHours": 30.18,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 2.6,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.001535,
+      "ambientTempC": 22.95,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:ca:distributor:0004->facility:synthetic:pa:restaurant:0023",
+      "fromFacilityId": "facility:synthetic:ca:distributor:0004",
+      "toFacilityId": "facility:synthetic:pa:restaurant:0023",
+      "refrigerated": true,
+      "meanTransitHours": 12.2,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 2.6,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.001005,
+      "ambientTempC": 17.16,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:ca:distributor:0004->facility:synthetic:fl:restaurant:0026",
+      "fromFacilityId": "facility:synthetic:ca:distributor:0004",
+      "toFacilityId": "facility:synthetic:fl:restaurant:0026",
+      "refrigerated": true,
+      "meanTransitHours": 28.84,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 2.6,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.000695,
+      "ambientTempC": 30.62,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:ca:distributor:0004->facility:synthetic:wa:restaurant:0029",
+      "fromFacilityId": "facility:synthetic:ca:distributor:0004",
+      "toFacilityId": "facility:synthetic:wa:restaurant:0029",
+      "refrigerated": true,
+      "meanTransitHours": 31.99,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 2.6,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.000761,
+      "ambientTempC": 16.42,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:tx:distributor:0009->facility:synthetic:ny:restaurant:0020",
+      "fromFacilityId": "facility:synthetic:tx:distributor:0009",
+      "toFacilityId": "facility:synthetic:ny:restaurant:0020",
+      "refrigerated": true,
+      "meanTransitHours": 28.78,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 2.6,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.001246,
+      "ambientTempC": 18.37,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:tx:distributor:0009->facility:synthetic:pa:restaurant:0023",
+      "fromFacilityId": "facility:synthetic:tx:distributor:0009",
+      "toFacilityId": "facility:synthetic:pa:restaurant:0023",
+      "refrigerated": true,
+      "meanTransitHours": 26.46,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 2.6,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.00117,
+      "ambientTempC": 20.94,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:tx:distributor:0009->facility:synthetic:fl:restaurant:0026",
+      "fromFacilityId": "facility:synthetic:tx:distributor:0009",
+      "toFacilityId": "facility:synthetic:fl:restaurant:0026",
+      "refrigerated": true,
+      "meanTransitHours": 9.42,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 2.6,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.001477,
+      "ambientTempC": 27.96,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:tx:distributor:0009->facility:synthetic:wa:restaurant:0029",
+      "fromFacilityId": "facility:synthetic:tx:distributor:0009",
+      "toFacilityId": "facility:synthetic:wa:restaurant:0029",
+      "refrigerated": true,
+      "meanTransitHours": 22.9,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 2.6,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.001188,
+      "ambientTempC": 20.62,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:il:distributor:0011->facility:synthetic:ny:restaurant:0020",
+      "fromFacilityId": "facility:synthetic:il:distributor:0011",
+      "toFacilityId": "facility:synthetic:ny:restaurant:0020",
+      "refrigerated": true,
+      "meanTransitHours": 47.4,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 2.6,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.000749,
+      "ambientTempC": 31.27,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:il:distributor:0011->facility:synthetic:pa:restaurant:0023",
+      "fromFacilityId": "facility:synthetic:il:distributor:0011",
+      "toFacilityId": "facility:synthetic:pa:restaurant:0023",
+      "refrigerated": true,
+      "meanTransitHours": 42.94,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 2.6,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.00045,
+      "ambientTempC": 16.73,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:il:distributor:0011->facility:synthetic:fl:restaurant:0026",
+      "fromFacilityId": "facility:synthetic:il:distributor:0011",
+      "toFacilityId": "facility:synthetic:fl:restaurant:0026",
+      "refrigerated": true,
+      "meanTransitHours": 29.45,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 2.6,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.000573,
+      "ambientTempC": 23.94,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:il:distributor:0011->facility:synthetic:wa:restaurant:0029",
+      "fromFacilityId": "facility:synthetic:il:distributor:0011",
+      "toFacilityId": "facility:synthetic:wa:restaurant:0029",
+      "refrigerated": true,
+      "meanTransitHours": 33.37,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 2.6,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.001209,
+      "ambientTempC": 28.34,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:ga:distributor:0013->facility:synthetic:ny:restaurant:0020",
+      "fromFacilityId": "facility:synthetic:ga:distributor:0013",
+      "toFacilityId": "facility:synthetic:ny:restaurant:0020",
+      "refrigerated": true,
+      "meanTransitHours": 28.38,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 2.6,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.00058,
+      "ambientTempC": 27.35,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:ga:distributor:0013->facility:synthetic:pa:restaurant:0023",
+      "fromFacilityId": "facility:synthetic:ga:distributor:0013",
+      "toFacilityId": "facility:synthetic:pa:restaurant:0023",
+      "refrigerated": true,
+      "meanTransitHours": 27.63,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 2.6,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.000643,
+      "ambientTempC": 18.03,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:ga:distributor:0013->facility:synthetic:fl:restaurant:0026",
+      "fromFacilityId": "facility:synthetic:ga:distributor:0013",
+      "toFacilityId": "facility:synthetic:fl:restaurant:0026",
+      "refrigerated": true,
+      "meanTransitHours": 18.43,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 2.6,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.001393,
+      "ambientTempC": 28.46,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:ga:distributor:0013->facility:synthetic:wa:restaurant:0029",
+      "fromFacilityId": "facility:synthetic:ga:distributor:0013",
+      "toFacilityId": "facility:synthetic:wa:restaurant:0029",
+      "refrigerated": true,
+      "meanTransitHours": 46.34,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 2.6,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.000449,
+      "ambientTempC": 18.91,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:co:distributor:0015->facility:synthetic:ny:restaurant:0020",
+      "fromFacilityId": "facility:synthetic:co:distributor:0015",
+      "toFacilityId": "facility:synthetic:ny:restaurant:0020",
+      "refrigerated": true,
+      "meanTransitHours": 24.09,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 2.6,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.001172,
+      "ambientTempC": 25.5,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:co:distributor:0015->facility:synthetic:pa:restaurant:0023",
+      "fromFacilityId": "facility:synthetic:co:distributor:0015",
+      "toFacilityId": "facility:synthetic:pa:restaurant:0023",
+      "refrigerated": true,
+      "meanTransitHours": 25.24,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 2.6,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.001076,
+      "ambientTempC": 26.68,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:co:distributor:0015->facility:synthetic:fl:restaurant:0026",
+      "fromFacilityId": "facility:synthetic:co:distributor:0015",
+      "toFacilityId": "facility:synthetic:fl:restaurant:0026",
+      "refrigerated": true,
+      "meanTransitHours": 28.98,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 2.6,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.001404,
+      "ambientTempC": 30.65,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:co:distributor:0015->facility:synthetic:wa:restaurant:0029",
+      "fromFacilityId": "facility:synthetic:co:distributor:0015",
+      "toFacilityId": "facility:synthetic:wa:restaurant:0029",
+      "refrigerated": true,
+      "meanTransitHours": 16.31,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 2.6,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.001272,
+      "ambientTempC": 23.47,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:mo:distributor:0017->facility:synthetic:ny:restaurant:0020",
+      "fromFacilityId": "facility:synthetic:mo:distributor:0017",
+      "toFacilityId": "facility:synthetic:ny:restaurant:0020",
+      "refrigerated": true,
+      "meanTransitHours": 25.74,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 2.6,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.000617,
+      "ambientTempC": 21.68,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:mo:distributor:0017->facility:synthetic:pa:restaurant:0023",
+      "fromFacilityId": "facility:synthetic:mo:distributor:0017",
+      "toFacilityId": "facility:synthetic:pa:restaurant:0023",
+      "refrigerated": true,
+      "meanTransitHours": 8.42,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 2.6,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.000416,
+      "ambientTempC": 16.09,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:mo:distributor:0017->facility:synthetic:fl:restaurant:0026",
+      "fromFacilityId": "facility:synthetic:mo:distributor:0017",
+      "toFacilityId": "facility:synthetic:fl:restaurant:0026",
+      "refrigerated": true,
+      "meanTransitHours": 34.82,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 2.6,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.000847,
+      "ambientTempC": 17.94,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor:facility:synthetic:mo:distributor:0017->facility:synthetic:wa:restaurant:0029",
+      "fromFacilityId": "facility:synthetic:mo:distributor:0017",
+      "toFacilityId": "facility:synthetic:wa:restaurant:0029",
+      "refrigerated": true,
+      "meanTransitHours": 47.21,
+      "transitHours": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 2.6,
+          "sigma": 0.4
+        }
+      },
+      "reeferFailureRatePerHour": 0.000525,
+      "ambientTempC": 21.26,
+      "provenanceKind": "synthetic_aggregate"
+    }
+  ],
+  "generatedBy": "tools/food-recall-us/build-food-data.mjs",
+  "generatorVersion": "food-recall-data-1.0.0"
+}

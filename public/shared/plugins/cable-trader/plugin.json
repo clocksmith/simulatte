@@ -10,7 +10,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginCableTrader",
-    "integrity": "sha384-21e46dbb89d58bd79fc68a9d4aa97a639160f637a3bfcca0946d80a7ee008c5ee077ea57c1265644628216ed58e80f7f",
+    "integrity": "sha384-1a09d0a3791501c40ac9bc5c745820936f5733a794445cfdef72b206c133a8f360f8465cce6274d8d6ec3d4a110671eb",
     "path": "./index.js"
   },
   "extensionPoints": [
@@ -24,6 +24,7 @@
   "permissions": [
     "capabilities.invoke.v1",
     "events.propose.v1",
+    "random.stream.v1",
     "receipts.append.v1",
     "routing.contribute.v1",
     "state.reduce.v1",
@@ -32,7 +33,8 @@
   ],
   "provides": [
     "inventory.exchange.v1",
-    "settlement.credit.v1"
+    "settlement.credit.v1",
+    "field.logistics-service.v1"
   ],
   "receiptSchemas": [
     "simulatte.plugin.cableTraderNetworkReceipt.v1"
@@ -47,11 +49,11 @@
       "path": "./default-config.json"
     },
     {
-      "integrity": "sha384-77ff3b5dc7d56cc1364af2427a73d00f4b82617f6edef88912cd07d94b1ecc647ca2835baf537d0ec87788f8e81f07f8",
+      "integrity": "sha384-a096540bc1ea2eff20592af247cc642d24a327cb6b4e979f05eacde0c28f55c7b992e2ab56b3cb95829fd6666f2a6913",
       "path": "./network-simulation.js"
     }
   ],
   "schema": "simulatte.pluginManifest.v1",
-  "sdkVersion": 1,
+  "sdkVersion": 2,
   "version": "2.0.0"
 }

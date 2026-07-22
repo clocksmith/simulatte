@@ -35,9 +35,9 @@
       },
       "placeEmbeddingIndex": {
         "id": "nyc-core-place-embedding-index-v1",
-        "indexSha256": "6361dd6d9c18f57a198b8855eef064ecc073d199f7002ddeef4389066708c73c",
-        "path": "public/data/autonomy/place-embedding-index-v1.json",
-        "sha256": "0423bfe2cc3af6261aea0e313c85825cf483c17dc40495316cc062c18f71c294"
+        "indexSha256": "e34fb923fa70a38e6f81d48f8b6929fbeab37a307537de005121493f215c6245",
+        "path": "public/data/simulatte/place-embedding-index-v1.json",
+        "sha256": "b78f10aee16c90496e0e747b6a9eb5146bee9c47eeff4d7299757f196c35e538"
       },
       "semanticSnapshot": {
         "fileCount": 9,

@@ -205,7 +205,32 @@
       return presentationCache.value;
     }
 
-    return Object.freeze({ id: 'sun-walker', contributeRequest, createRouteContributor, settle, view, present, dispose() {} });
+    // v2 (§17): separate direct-sun routing from thermal comfort. This neutral field
+    // combines the pinned environment sample (air temperature + solar elevation) into a
+    // clear-sky mean-radiant-temperature proxy and a thermal dose from the selected
+    // route's direct-sun seconds, rather than silently relabelling sun exposure as heat.
+    const capabilities = {
+      'field.thermal-comfort.v1': (input) => {
+        if (!sdk.environment) return { enabled: false, reason: 'environment_unavailable' };
+        if (!input || !Number.isFinite(input.longitude) || !Number.isFinite(input.latitude)) return { value: null, reason: 'coordinate_required' };
+        const instant = input.instant || '2026-07-01T17:00:00Z';
+        const sample = sdk.environment.sample({ instant, longitude: input.longitude, latitude: input.latitude, fields: ['airTemperatureC', 'solarElevationDegrees'] });
+        const solarRad = Math.max(0, Math.sin((sample.values.solarElevationDegrees * Math.PI) / 180));
+        // Clear-sky MRT proxy: air temperature plus a bounded radiant load from the sun.
+        const meanRadiantTemperatureC = Number((sample.values.airTemperatureC + 18 * solarRad).toFixed(2));
+        const selection = sdk.state.read().selection;
+        const directSunSeconds = selection?.summary?.selectedDirectSunSeconds ?? 0;
+        return {
+          schema: 'field.thermal-comfort.v1',
+          value: meanRadiantTemperatureC, units: 'mean_radiant_temperature_c_proxy',
+          airTemperatureC: sample.values.airTemperatureC,
+          thermalDoseSunSeconds: directSunSeconds,
+          providerId: 'sun-walker', sourceSnapshotIds: sample.sourceSnapshotIds,
+          claimBoundary: 'Clear-sky mean-radiant-temperature proxy from a pinned environment snapshot and modeled direct-sun exposure; not a measured thermal-comfort observation.',
+        };
+      },
+    };
+    return Object.freeze({ id: 'sun-walker', contributeRequest, createRouteContributor, settle, view, present, capabilities, dispose() {} });
   }
 
   function reduce(state, event) {

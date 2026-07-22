@@ -1,0 +1,109 @@
+{
+  "id": "us.food.commodity-profiles.v1",
+  "datasetId": "us.food.commodity-profiles.v1",
+  "datasetSchemaId": "simulatte.usFoodCommodityProfiles.v1",
+  "schema": "simulatte.usFoodCommodityProfiles.v1",
+  "claimBoundary": "Synthetic aggregate data generated from public priors. Facilities, lots, shipments, and consumer zones are statistically generated, never observed commercial records. This is not a live recall alert, regulatory classification, or a representation of a real supply chain.",
+  "products": [
+    {
+      "schema": "simulatte.usFoodProduct.v1",
+      "id": "product:fresh-romaine",
+      "commodity": "leafy_greens",
+      "form": "fresh",
+      "isFtlFood": true,
+      "defaultUnitMassKg": 0.34,
+      "shelfLifeDays": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 2.4,
+          "sigma": 0.3
+        }
+      },
+      "preparationProfiles": [
+        {
+          "id": "raw-no-kill-step",
+          "probability": 1,
+          "logReduction": 0
+        }
+      ]
+    },
+    {
+      "schema": "simulatte.usFoodProduct.v1",
+      "id": "product:shell-eggs",
+      "commodity": "shell_eggs",
+      "form": "fresh",
+      "isFtlFood": true,
+      "defaultUnitMassKg": 0.6,
+      "shelfLifeDays": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 3.4,
+          "sigma": 0.2
+        }
+      },
+      "preparationProfiles": [
+        {
+          "id": "cooked",
+          "probability": 0.75,
+          "logReduction": 6
+        },
+        {
+          "id": "undercooked",
+          "probability": 0.2,
+          "logReduction": 2
+        },
+        {
+          "id": "raw",
+          "probability": 0.05,
+          "logReduction": 0
+        }
+      ]
+    },
+    {
+      "schema": "simulatte.usFoodProduct.v1",
+      "id": "product:rte-soft-cheese",
+      "commodity": "ready_to_eat_dairy",
+      "form": "ready_to_eat",
+      "isFtlFood": true,
+      "defaultUnitMassKg": 0.2,
+      "shelfLifeDays": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 3.7,
+          "sigma": 0.4
+        }
+      },
+      "preparationProfiles": [
+        {
+          "id": "ready-to-eat-no-kill-step",
+          "probability": 1,
+          "logReduction": 0
+        }
+      ]
+    },
+    {
+      "schema": "simulatte.usFoodProduct.v1",
+      "id": "product:packaged-cookie",
+      "commodity": "packaged_bakery",
+      "form": "shelf_stable",
+      "isFtlFood": false,
+      "defaultUnitMassKg": 0.3,
+      "shelfLifeDays": {
+        "distribution": "lognormal",
+        "parameters": {
+          "mu": 4.6,
+          "sigma": 0.3
+        }
+      },
+      "preparationProfiles": [
+        {
+          "id": "ready-to-eat-no-kill-step",
+          "probability": 1,
+          "logReduction": 0
+        }
+      ]
+    }
+  ],
+  "generatedBy": "tools/food-recall-us/build-food-data.mjs",
+  "generatorVersion": "food-recall-data-1.0.0"
+}

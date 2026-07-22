@@ -16,7 +16,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginSafetyExplorer",
-    "integrity": "sha384-f56710217f6b79bea233d7afcc3f9b8723acfd691c6278906eb2f88bd5a35089f3f00aa1627687f2135ad2cd26390314",
+    "integrity": "sha384-6a31e6a21438cb44757065c7bc5c5ff5a95dc95761aab645383081177010b48e67f719f27532f471f3bc9df6fe85d32f",
     "path": "./index.js"
   },
   "extensionPoints": [
@@ -33,7 +33,9 @@
     "ui.inspector.v1"
   ],
   "provides": [
-    "routing.dimension.historical-observation.v1"
+    "routing.dimension.historical-observation.v1",
+    "routing.dimension.historical-observation.v2",
+    "field.mobility-risk.v1"
   ],
   "receiptSchemas": [
     "simulatte.plugin.safetyExplorerRouteAudit.v1"

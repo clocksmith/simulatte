@@ -10,7 +10,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginSunWalker",
-    "integrity": "sha384-cad94e25c5786f5f7b07452906a3ff0d236b619523f264a708026d468b677f9dcc91d538222a40174eedbf37670f9a0a",
+    "integrity": "sha384-5293268556ed27afb86d948b20f2664bb42040651bcad9a73361c0922e5753b3288506403ee72de0f00679f023f67e57",
     "path": "./index.js"
   },
   "extensionPoints": [
@@ -23,6 +23,7 @@
   "id": "sun-walker",
   "permissions": [
     "clock.read.v1",
+    "environment.read.v1",
     "events.propose.v1",
     "receipts.append.v1",
     "routing.contribute.v1",
@@ -31,7 +32,9 @@
     "world.query.v1"
   ],
   "provides": [
-    "routing.dimension.sun-exposure.v1"
+    "routing.dimension.sun-exposure.v1",
+    "routing.dimension.mean-radiant-temperature-dose.v1",
+    "field.thermal-comfort.v1"
   ],
   "receiptSchemas": [
     "simulatte.plugin.sunWalkerSelectionReceipt.v1"
@@ -51,6 +54,6 @@
     }
   ],
   "schema": "simulatte.pluginManifest.v1",
-  "sdkVersion": 1,
-  "version": "1.0.0"
+  "sdkVersion": 2,
+  "version": "2.0.0"
 }

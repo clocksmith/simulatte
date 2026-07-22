@@ -1,0 +1,22 @@
+{
+  "id": "us.environment.snapshot.v1",
+  "datasetId": "us.environment.snapshot.v1",
+  "datasetSchemaId": "simulatte.usEnvironmentSnapshot.v1",
+  "schema": "simulatte.usEnvironmentSnapshot.v1",
+  "claimBoundary": "Pinned analytic environment field seeded for reproducibility. Not observed NOAA weather. A live mode would require the host to capture and hash all returned observations.",
+  "sourceSnapshotIds": [
+    "noaa-environment-2026-07-21-analytic-v1",
+    "traffic-scenario-baseline-v1"
+  ],
+  "fields": [
+    "airTemperatureC",
+    "precipitationMmHr",
+    "windSpeedMps",
+    "solarElevationDegrees",
+    "trafficMultiplier"
+  ],
+  "spatialResolutionKm": 25,
+  "temporalResolutionMinutes": 60,
+  "generatedBy": "tools/food-recall-us/build-food-data.mjs",
+  "generatorVersion": "food-recall-data-1.0.0"
+}

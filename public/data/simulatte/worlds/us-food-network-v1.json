@@ -1,0 +1,1485 @@
+{
+  "schema": "simulatte.autonomyWorld.v1",
+  "id": "us-food-network-v1",
+  "label": "United States food-supply national world",
+  "contentVersion": "us-food-network-2026-07-21",
+  "coordinateSystem": {
+    "kind": "local_cartesian_meters",
+    "originLabel": "39.8283,-98.5795",
+    "originWgs84": {
+      "latitude": 39.8283,
+      "longitude": -98.5795
+    },
+    "projection": {
+      "kind": "equirectangular",
+      "originLongitude": -98.5795,
+      "originLatitude": 39.8283,
+      "referenceLatitude": 39.8283,
+      "metersPerUnit": 1000,
+      "yAxis": "north-up"
+    },
+    "bounds": {
+      "minimumX": -4943.0812,
+      "maximumX": 2511.6569,
+      "minimumY": -2173.8904,
+      "maximumY": 2646.2656
+    }
+  },
+  "nodes": [
+    {
+      "id": "state-al",
+      "kind": "region_centroid",
+      "label": "AL",
+      "position": {
+        "x": 1007.0308,
+        "y": -782.3904
+      },
+      "positionWgs84": {
+        "latitude": 32.8,
+        "longitude": -86.8
+      }
+    },
+    {
+      "id": "state-ak",
+      "kind": "region_centroid",
+      "label": "AK",
+      "position": {
+        "x": -4609.6698,
+        "y": 2646.2656
+      },
+      "positionWgs84": {
+        "latitude": 63.6,
+        "longitude": -152.5
+      }
+    },
+    {
+      "id": "state-az",
+      "kind": "region_centroid",
+      "label": "AZ",
+      "position": {
+        "x": -1121.6731,
+        "y": -626.5424
+      },
+      "positionWgs84": {
+        "latitude": 34.2,
+        "longitude": -111.7
+      }
+    },
+    {
+      "id": "state-ar",
+      "kind": "region_centroid",
+      "label": "AR",
+      "position": {
+        "x": 528.2862,
+        "y": -548.6184
+      },
+      "positionWgs84": {
+        "latitude": 34.9,
+        "longitude": -92.4
+      }
+    },
+    {
+      "id": "state-ca",
+      "kind": "region_centroid",
+      "label": "CA",
+      "position": {
+        "x": -1779.947,
+        "y": -292.5824
+      },
+      "positionWgs84": {
+        "latitude": 37.2,
+        "longitude": -119.4
+      }
+    },
+    {
+      "id": "state-co",
+      "kind": "region_centroid",
+      "label": "CO",
+      "position": {
+        "x": -591.6343,
+        "y": -92.2064
+      },
+      "positionWgs84": {
+        "latitude": 39,
+        "longitude": -105.5
+      }
+    },
+    {
+      "id": "state-ct",
+      "kind": "region_centroid",
+      "label": "CT",
+      "position": {
+        "x": 2212.4414,
+        "y": 197.2256
+      },
+      "positionWgs84": {
+        "latitude": 41.6,
+        "longitude": -72.7
+      }
+    },
+    {
+      "id": "state-de",
+      "kind": "region_centroid",
+      "label": "DE",
+      "position": {
+        "x": 1973.0691,
+        "y": -92.2064
+      },
+      "positionWgs84": {
+        "latitude": 39,
+        "longitude": -75.5
+      }
+    },
+    {
+      "id": "state-dc",
+      "kind": "region_centroid",
+      "label": "DC",
+      "position": {
+        "x": 1844.8339,
+        "y": -103.3384
+      },
+      "positionWgs84": {
+        "latitude": 38.9,
+        "longitude": -77
+      }
+    },
+    {
+      "id": "state-fl",
+      "kind": "region_centroid",
+      "label": "FL",
+      "position": {
+        "x": 1383.1873,
+        "y": -1249.9344
+      },
+      "positionWgs84": {
+        "latitude": 28.6,
+        "longitude": -82.4
+      }
+    },
+    {
+      "id": "state-ga",
+      "kind": "region_centroid",
+      "label": "GA",
+      "position": {
+        "x": 1297.6972,
+        "y": -804.6544
+      },
+      "positionWgs84": {
+        "latitude": 32.6,
+        "longitude": -83.4
+      }
+    },
+    {
+      "id": "state-hi",
+      "kind": "region_centroid",
+      "label": "HI",
+      "position": {
+        "x": -4943.0812,
+        "y": -2173.8904
+      },
+      "positionWgs84": {
+        "latitude": 20.3,
+        "longitude": -156.4
+      }
+    },
+    {
+      "id": "state-id",
+      "kind": "region_centroid",
+      "label": "ID",
+      "position": {
+        "x": -1369.5944,
+        "y": 508.9216
+      },
+      "positionWgs84": {
+        "latitude": 44.4,
+        "longitude": -114.6
+      }
+    },
+    {
+      "id": "state-il",
+      "kind": "region_centroid",
+      "label": "IL",
+      "position": {
+        "x": 801.8545,
+        "y": 19.1136
+      },
+      "positionWgs84": {
+        "latitude": 40,
+        "longitude": -89.2
+      }
+    },
+    {
+      "id": "state-in",
+      "kind": "region_centroid",
+      "label": "IN",
+      "position": {
+        "x": 1049.7759,
+        "y": 7.9816
+      },
+      "positionWgs84": {
+        "latitude": 39.9,
+        "longitude": -86.3
+      }
+    },
+    {
+      "id": "state-ia",
+      "kind": "region_centroid",
+      "label": "IA",
+      "position": {
+        "x": 434.247,
+        "y": 241.7536
+      },
+      "positionWgs84": {
+        "latitude": 42,
+        "longitude": -93.5
+      }
+    },
+    {
+      "id": "state-ks",
+      "kind": "region_centroid",
+      "label": "KS",
+      "position": {
+        "x": 15.3455,
+        "y": -147.8664
+      },
+      "positionWgs84": {
+        "latitude": 38.5,
+        "longitude": -98.4
+      }
+    },
+    {
+      "id": "state-ky",
+      "kind": "region_centroid",
+      "label": "KY",
+      "position": {
+        "x": 1135.266,
+        "y": -259.1864
+      },
+      "positionWgs84": {
+        "latitude": 37.5,
+        "longitude": -85.3
+      }
+    },
+    {
+      "id": "state-la",
+      "kind": "region_centroid",
+      "label": "LA",
+      "position": {
+        "x": 562.4822,
+        "y": -982.7664
+      },
+      "positionWgs84": {
+        "latitude": 31,
+        "longitude": -92
+      }
+    },
+    {
+      "id": "state-me",
+      "kind": "region_centroid",
+      "label": "ME",
+      "position": {
+        "x": 2511.6569,
+        "y": 620.2416
+      },
+      "positionWgs84": {
+        "latitude": 45.4,
+        "longitude": -69.2
+      }
+    },
+    {
+      "id": "state-md",
+      "kind": "region_centroid",
+      "label": "MD",
+      "position": {
+        "x": 1861.932,
+        "y": -92.2064
+      },
+      "positionWgs84": {
+        "latitude": 39,
+        "longitude": -76.8
+      }
+    },
+    {
+      "id": "state-ma",
+      "kind": "region_centroid",
+      "label": "MA",
+      "position": {
+        "x": 2289.3825,
+        "y": 275.1496
+      },
+      "positionWgs84": {
+        "latitude": 42.3,
+        "longitude": -71.8
+      }
+    },
+    {
+      "id": "state-mi",
+      "kind": "region_centroid",
+      "label": "MI",
+      "position": {
+        "x": 1126.717,
+        "y": 497.7896
+      },
+      "positionWgs84": {
+        "latitude": 44.3,
+        "longitude": -85.4
+      }
+    },
+    {
+      "id": "state-mn",
+      "kind": "region_centroid",
+      "label": "MN",
+      "position": {
+        "x": 365.8549,
+        "y": 720.4296
+      },
+      "positionWgs84": {
+        "latitude": 46.3,
+        "longitude": -94.3
+      }
+    },
+    {
+      "id": "state-ms",
+      "kind": "region_centroid",
+      "label": "MS",
+      "position": {
+        "x": 759.1095,
+        "y": -793.5224
+      },
+      "positionWgs84": {
+        "latitude": 32.7,
+        "longitude": -89.7
+      }
+    },
+    {
+      "id": "state-mo",
+      "kind": "region_centroid",
+      "label": "MO",
+      "position": {
+        "x": 519.7372,
+        "y": -158.9984
+      },
+      "positionWgs84": {
+        "latitude": 38.4,
+        "longitude": -92.5
+      }
+    },
+    {
+      "id": "state-mt",
+      "kind": "region_centroid",
+      "label": "MT",
+      "position": {
+        "x": -942.1438,
+        "y": 798.3536
+      },
+      "positionWgs84": {
+        "latitude": 47,
+        "longitude": -109.6
+      }
+    },
+    {
+      "id": "state-ne",
+      "kind": "region_centroid",
+      "label": "NE",
+      "position": {
+        "x": -104.3407,
+        "y": 186.0936
+      },
+      "positionWgs84": {
+        "latitude": 41.5,
+        "longitude": -99.8
+      }
+    },
+    {
+      "id": "state-nv",
+      "kind": "region_centroid",
+      "label": "NV",
+      "position": {
+        "x": -1540.5746,
+        "y": -58.8104
+      },
+      "positionWgs84": {
+        "latitude": 39.3,
+        "longitude": -116.6
+      }
+    },
+    {
+      "id": "state-nh",
+      "kind": "region_centroid",
+      "label": "NH",
+      "position": {
+        "x": 2306.4806,
+        "y": 430.9976
+      },
+      "positionWgs84": {
+        "latitude": 43.7,
+        "longitude": -71.6
+      }
+    },
+    {
+      "id": "state-nj",
+      "kind": "region_centroid",
+      "label": "NJ",
+      "position": {
+        "x": 2041.4612,
+        "y": 30.2456
+      },
+      "positionWgs84": {
+        "latitude": 40.1,
+        "longitude": -74.7
+      }
+    },
+    {
+      "id": "state-nm",
+      "kind": "region_centroid",
+      "label": "NM",
+      "position": {
+        "x": -642.9284,
+        "y": -604.2784
+      },
+      "positionWgs84": {
+        "latitude": 34.4,
+        "longitude": -106.1
+      }
+    },
+    {
+      "id": "state-ny",
+      "kind": "region_centroid",
+      "label": "NY",
+      "position": {
+        "x": 1973.0691,
+        "y": 341.9416
+      },
+      "positionWgs84": {
+        "latitude": 42.9,
+        "longitude": -75.5
+      }
+    },
+    {
+      "id": "state-nc",
+      "kind": "region_centroid",
+      "label": "NC",
+      "position": {
+        "x": 1639.6577,
+        "y": -481.8264
+      },
+      "positionWgs84": {
+        "latitude": 35.5,
+        "longitude": -79.4
+      }
+    },
+    {
+      "id": "state-nd",
+      "kind": "region_centroid",
+      "label": "ND",
+      "position": {
+        "x": -164.1838,
+        "y": 842.8816
+      },
+      "positionWgs84": {
+        "latitude": 47.4,
+        "longitude": -100.5
+      }
+    },
+    {
+      "id": "state-oh",
+      "kind": "region_centroid",
+      "label": "OH",
+      "position": {
+        "x": 1348.9913,
+        "y": 52.5096
+      },
+      "positionWgs84": {
+        "latitude": 40.3,
+        "longitude": -82.8
+      }
+    },
+    {
+      "id": "state-ok",
+      "kind": "region_centroid",
+      "label": "OK",
+      "position": {
+        "x": 92.2866,
+        "y": -470.6944
+      },
+      "positionWgs84": {
+        "latitude": 35.6,
+        "longitude": -97.5
+      }
+    },
+    {
+      "id": "state-or",
+      "kind": "region_centroid",
+      "label": "OR",
+      "position": {
+        "x": -1873.9861,
+        "y": 464.3936
+      },
+      "positionWgs84": {
+        "latitude": 44,
+        "longitude": -120.5
+      }
+    },
+    {
+      "id": "state-pa",
+      "kind": "region_centroid",
+      "label": "PA",
+      "position": {
+        "x": 1776.4419,
+        "y": 119.3016
+      },
+      "positionWgs84": {
+        "latitude": 40.9,
+        "longitude": -77.8
+      }
+    },
+    {
+      "id": "state-ri",
+      "kind": "region_centroid",
+      "label": "RI",
+      "position": {
+        "x": 2315.0296,
+        "y": 208.3576
+      },
+      "positionWgs84": {
+        "latitude": 41.7,
+        "longitude": -71.5
+      }
+    },
+    {
+      "id": "state-sc",
+      "kind": "region_centroid",
+      "label": "SC",
+      "position": {
+        "x": 1511.4225,
+        "y": -659.9384
+      },
+      "positionWgs84": {
+        "latitude": 33.9,
+        "longitude": -80.9
+      }
+    },
+    {
+      "id": "state-sd",
+      "kind": "region_centroid",
+      "label": "SD",
+      "position": {
+        "x": -138.5367,
+        "y": 508.9216
+      },
+      "positionWgs84": {
+        "latitude": 44.4,
+        "longitude": -100.2
+      }
+    },
+    {
+      "id": "state-tn",
+      "kind": "region_centroid",
+      "label": "TN",
+      "position": {
+        "x": 1041.2269,
+        "y": -437.2984
+      },
+      "positionWgs84": {
+        "latitude": 35.9,
+        "longitude": -86.4
+      }
+    },
+    {
+      "id": "state-tx",
+      "kind": "region_centroid",
+      "label": "TX",
+      "position": {
+        "x": -61.5956,
+        "y": -927.1064
+      },
+      "positionWgs84": {
+        "latitude": 31.5,
+        "longitude": -99.3
+      }
+    },
+    {
+      "id": "state-ut",
+      "kind": "region_centroid",
+      "label": "UT",
+      "position": {
+        "x": -1121.6731,
+        "y": -58.8104
+      },
+      "positionWgs84": {
+        "latitude": 39.3,
+        "longitude": -111.7
+      }
+    },
+    {
+      "id": "state-vt",
+      "kind": "region_centroid",
+      "label": "VT",
+      "position": {
+        "x": 2212.4414,
+        "y": 464.3936
+      },
+      "positionWgs84": {
+        "latitude": 44,
+        "longitude": -72.7
+      }
+    },
+    {
+      "id": "state-va",
+      "kind": "region_centroid",
+      "label": "VA",
+      "position": {
+        "x": 1682.4027,
+        "y": -259.1864
+      },
+      "positionWgs84": {
+        "latitude": 37.5,
+        "longitude": -78.9
+      }
+    },
+    {
+      "id": "state-wa",
+      "kind": "region_centroid",
+      "label": "WA",
+      "position": {
+        "x": -1865.4371,
+        "y": 842.8816
+      },
+      "positionWgs84": {
+        "latitude": 47.4,
+        "longitude": -120.4
+      }
+    },
+    {
+      "id": "state-wv",
+      "kind": "region_centroid",
+      "label": "WV",
+      "position": {
+        "x": 1537.0695,
+        "y": -136.7344
+      },
+      "positionWgs84": {
+        "latitude": 38.6,
+        "longitude": -80.6
+      }
+    },
+    {
+      "id": "state-wi",
+      "kind": "region_centroid",
+      "label": "WI",
+      "position": {
+        "x": 742.0115,
+        "y": 531.1856
+      },
+      "positionWgs84": {
+        "latitude": 44.6,
+        "longitude": -89.9
+      }
+    },
+    {
+      "id": "state-wy",
+      "kind": "region_centroid",
+      "label": "WY",
+      "position": {
+        "x": -762.6146,
+        "y": 353.0736
+      },
+      "positionWgs84": {
+        "latitude": 43,
+        "longitude": -107.5
+      }
+    },
+    {
+      "id": "hub-salinas-ca",
+      "kind": "distribution_hub",
+      "label": "Salinas Valley, CA",
+      "position": {
+        "x": -1972.7272,
+        "y": -350.8027
+      },
+      "positionWgs84": {
+        "latitude": 36.677,
+        "longitude": -121.655
+      }
+    },
+    {
+      "id": "hub-los-angeles-ca",
+      "kind": "distribution_hub",
+      "label": "Los Angeles, CA",
+      "position": {
+        "x": -1681.6333,
+        "y": -643.2404
+      },
+      "positionWgs84": {
+        "latitude": 34.05,
+        "longitude": -118.25
+      }
+    },
+    {
+      "id": "hub-yuma-az",
+      "kind": "distribution_hub",
+      "label": "Yuma, AZ",
+      "position": {
+        "x": -1372.1591,
+        "y": -794.6356
+      },
+      "positionWgs84": {
+        "latitude": 32.69,
+        "longitude": -114.63
+      }
+    },
+    {
+      "id": "hub-dallas-tx",
+      "kind": "distribution_hub",
+      "label": "Dallas, TX",
+      "position": {
+        "x": 152.1297,
+        "y": -784.6168
+      },
+      "positionWgs84": {
+        "latitude": 32.78,
+        "longitude": -96.8
+      }
+    },
+    {
+      "id": "hub-chicago-il",
+      "kind": "distribution_hub",
+      "label": "Chicago, IL",
+      "position": {
+        "x": 934.3642,
+        "y": 225.0556
+      },
+      "positionWgs84": {
+        "latitude": 41.85,
+        "longitude": -87.65
+      }
+    },
+    {
+      "id": "hub-atlanta-ga",
+      "kind": "distribution_hub",
+      "label": "Atlanta, GA",
+      "position": {
+        "x": 1213.062,
+        "y": -676.6364
+      },
+      "positionWgs84": {
+        "latitude": 33.75,
+        "longitude": -84.39
+      }
+    },
+    {
+      "id": "hub-denver-co",
+      "kind": "distribution_hub",
+      "label": "Denver, CO",
+      "position": {
+        "x": -548.0344,
+        "y": -9.8296
+      },
+      "positionWgs84": {
+        "latitude": 39.74,
+        "longitude": -104.99
+      }
+    },
+    {
+      "id": "hub-kansas-city-mo",
+      "kind": "distribution_hub",
+      "label": "Kansas City, MO",
+      "position": {
+        "x": 341.9177,
+        "y": -81.0744
+      },
+      "positionWgs84": {
+        "latitude": 39.1,
+        "longitude": -94.58
+      }
+    },
+    {
+      "id": "hub-newyork-ny",
+      "kind": "distribution_hub",
+      "label": "New York, NY",
+      "position": {
+        "x": 2101.3043,
+        "y": 98.1508
+      },
+      "positionWgs84": {
+        "latitude": 40.71,
+        "longitude": -74
+      }
+    },
+    {
+      "id": "hub-philadelphia-pa",
+      "kind": "distribution_hub",
+      "label": "Philadelphia, PA",
+      "position": {
+        "x": 2002.1358,
+        "y": 13.5476
+      },
+      "positionWgs84": {
+        "latitude": 39.95,
+        "longitude": -75.16
+      }
+    },
+    {
+      "id": "hub-miami-fl",
+      "kind": "distribution_hub",
+      "label": "Miami, FL",
+      "position": {
+        "x": 1572.1205,
+        "y": -1566.0832
+      },
+      "positionWgs84": {
+        "latitude": 25.76,
+        "longitude": -80.19
+      }
+    },
+    {
+      "id": "hub-seattle-wa",
+      "kind": "distribution_hub",
+      "label": "Seattle, WA",
+      "position": {
+        "x": -2030.433,
+        "y": 866.2588
+      },
+      "positionWgs84": {
+        "latitude": 47.61,
+        "longitude": -122.33
+      }
+    }
+  ],
+  "segments": [
+    {
+      "id": "corridor-000-tf",
+      "fromNodeId": "hub-salinas-ca",
+      "toNodeId": "hub-los-angeles-ca",
+      "allowedModes": [
+        "freight_truck"
+      ],
+      "laneType": "freight_corridor",
+      "geometry": [
+        {
+          "x": -1972.7272,
+          "y": -350.8027
+        },
+        {
+          "x": -1681.6333,
+          "y": -643.2404
+        }
+      ],
+      "lengthM": 424.983,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor-000-ft",
+      "fromNodeId": "hub-los-angeles-ca",
+      "toNodeId": "hub-salinas-ca",
+      "allowedModes": [
+        "freight_truck"
+      ],
+      "laneType": "freight_corridor",
+      "geometry": [
+        {
+          "x": -1681.6333,
+          "y": -643.2404
+        },
+        {
+          "x": -1972.7272,
+          "y": -350.8027
+        }
+      ],
+      "lengthM": 424.983,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor-001-tf",
+      "fromNodeId": "hub-salinas-ca",
+      "toNodeId": "hub-denver-co",
+      "allowedModes": [
+        "freight_truck"
+      ],
+      "laneType": "freight_corridor",
+      "geometry": [
+        {
+          "x": -1972.7272,
+          "y": -350.8027
+        },
+        {
+          "x": -548.0344,
+          "y": -9.8296
+        }
+      ],
+      "lengthM": 1492.9711,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor-001-ft",
+      "fromNodeId": "hub-denver-co",
+      "toNodeId": "hub-salinas-ca",
+      "allowedModes": [
+        "freight_truck"
+      ],
+      "laneType": "freight_corridor",
+      "geometry": [
+        {
+          "x": -548.0344,
+          "y": -9.8296
+        },
+        {
+          "x": -1972.7272,
+          "y": -350.8027
+        }
+      ],
+      "lengthM": 1492.9711,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor-002-tf",
+      "fromNodeId": "hub-yuma-az",
+      "toNodeId": "hub-los-angeles-ca",
+      "allowedModes": [
+        "freight_truck"
+      ],
+      "laneType": "freight_corridor",
+      "geometry": [
+        {
+          "x": -1372.1591,
+          "y": -794.6356
+        },
+        {
+          "x": -1681.6333,
+          "y": -643.2404
+        }
+      ],
+      "lengthM": 368.5803,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor-002-ft",
+      "fromNodeId": "hub-los-angeles-ca",
+      "toNodeId": "hub-yuma-az",
+      "allowedModes": [
+        "freight_truck"
+      ],
+      "laneType": "freight_corridor",
+      "geometry": [
+        {
+          "x": -1681.6333,
+          "y": -643.2404
+        },
+        {
+          "x": -1372.1591,
+          "y": -794.6356
+        }
+      ],
+      "lengthM": 368.5803,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor-003-tf",
+      "fromNodeId": "hub-los-angeles-ca",
+      "toNodeId": "hub-dallas-tx",
+      "allowedModes": [
+        "freight_truck"
+      ],
+      "laneType": "freight_corridor",
+      "geometry": [
+        {
+          "x": -1681.6333,
+          "y": -643.2404
+        },
+        {
+          "x": 152.1297,
+          "y": -784.6168
+        }
+      ],
+      "lengthM": 1992.2362,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor-003-ft",
+      "fromNodeId": "hub-dallas-tx",
+      "toNodeId": "hub-los-angeles-ca",
+      "allowedModes": [
+        "freight_truck"
+      ],
+      "laneType": "freight_corridor",
+      "geometry": [
+        {
+          "x": 152.1297,
+          "y": -784.6168
+        },
+        {
+          "x": -1681.6333,
+          "y": -643.2404
+        }
+      ],
+      "lengthM": 1992.2362,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor-004-tf",
+      "fromNodeId": "hub-denver-co",
+      "toNodeId": "hub-kansas-city-mo",
+      "allowedModes": [
+        "freight_truck"
+      ],
+      "laneType": "freight_corridor",
+      "geometry": [
+        {
+          "x": -548.0344,
+          "y": -9.8296
+        },
+        {
+          "x": 341.9177,
+          "y": -81.0744
+        }
+      ],
+      "lengthM": 896.5309,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor-004-ft",
+      "fromNodeId": "hub-kansas-city-mo",
+      "toNodeId": "hub-denver-co",
+      "allowedModes": [
+        "freight_truck"
+      ],
+      "laneType": "freight_corridor",
+      "geometry": [
+        {
+          "x": 341.9177,
+          "y": -81.0744
+        },
+        {
+          "x": -548.0344,
+          "y": -9.8296
+        }
+      ],
+      "lengthM": 896.5309,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor-005-tf",
+      "fromNodeId": "hub-kansas-city-mo",
+      "toNodeId": "hub-chicago-il",
+      "allowedModes": [
+        "freight_truck"
+      ],
+      "laneType": "freight_corridor",
+      "geometry": [
+        {
+          "x": 341.9177,
+          "y": -81.0744
+        },
+        {
+          "x": 934.3642,
+          "y": 225.0556
+        }
+      ],
+      "lengthM": 660.8454,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor-005-ft",
+      "fromNodeId": "hub-chicago-il",
+      "toNodeId": "hub-kansas-city-mo",
+      "allowedModes": [
+        "freight_truck"
+      ],
+      "laneType": "freight_corridor",
+      "geometry": [
+        {
+          "x": 934.3642,
+          "y": 225.0556
+        },
+        {
+          "x": 341.9177,
+          "y": -81.0744
+        }
+      ],
+      "lengthM": 660.8454,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor-006-tf",
+      "fromNodeId": "hub-dallas-tx",
+      "toNodeId": "hub-atlanta-ga",
+      "allowedModes": [
+        "freight_truck"
+      ],
+      "laneType": "freight_corridor",
+      "geometry": [
+        {
+          "x": 152.1297,
+          "y": -784.6168
+        },
+        {
+          "x": 1213.062,
+          "y": -676.6364
+        }
+      ],
+      "lengthM": 1158.1386,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor-006-ft",
+      "fromNodeId": "hub-atlanta-ga",
+      "toNodeId": "hub-dallas-tx",
+      "allowedModes": [
+        "freight_truck"
+      ],
+      "laneType": "freight_corridor",
+      "geometry": [
+        {
+          "x": 1213.062,
+          "y": -676.6364
+        },
+        {
+          "x": 152.1297,
+          "y": -784.6168
+        }
+      ],
+      "lengthM": 1158.1386,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor-007-tf",
+      "fromNodeId": "hub-chicago-il",
+      "toNodeId": "hub-newyork-ny",
+      "allowedModes": [
+        "freight_truck"
+      ],
+      "laneType": "freight_corridor",
+      "geometry": [
+        {
+          "x": 934.3642,
+          "y": 225.0556
+        },
+        {
+          "x": 2101.3043,
+          "y": 98.1508
+        }
+      ],
+      "lengthM": 1146.4163,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor-007-ft",
+      "fromNodeId": "hub-newyork-ny",
+      "toNodeId": "hub-chicago-il",
+      "allowedModes": [
+        "freight_truck"
+      ],
+      "laneType": "freight_corridor",
+      "geometry": [
+        {
+          "x": 2101.3043,
+          "y": 98.1508
+        },
+        {
+          "x": 934.3642,
+          "y": 225.0556
+        }
+      ],
+      "lengthM": 1146.4163,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor-008-tf",
+      "fromNodeId": "hub-chicago-il",
+      "toNodeId": "hub-philadelphia-pa",
+      "allowedModes": [
+        "freight_truck"
+      ],
+      "laneType": "freight_corridor",
+      "geometry": [
+        {
+          "x": 934.3642,
+          "y": 225.0556
+        },
+        {
+          "x": 2002.1358,
+          "y": 13.5476
+        }
+      ],
+      "lengthM": 1069.7677,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor-008-ft",
+      "fromNodeId": "hub-philadelphia-pa",
+      "toNodeId": "hub-chicago-il",
+      "allowedModes": [
+        "freight_truck"
+      ],
+      "laneType": "freight_corridor",
+      "geometry": [
+        {
+          "x": 2002.1358,
+          "y": 13.5476
+        },
+        {
+          "x": 934.3642,
+          "y": 225.0556
+        }
+      ],
+      "lengthM": 1069.7677,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor-009-tf",
+      "fromNodeId": "hub-atlanta-ga",
+      "toNodeId": "hub-miami-fl",
+      "allowedModes": [
+        "freight_truck"
+      ],
+      "laneType": "freight_corridor",
+      "geometry": [
+        {
+          "x": 1213.062,
+          "y": -676.6364
+        },
+        {
+          "x": 1572.1205,
+          "y": -1566.0832
+        }
+      ],
+      "lengthM": 976.3084,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor-009-ft",
+      "fromNodeId": "hub-miami-fl",
+      "toNodeId": "hub-atlanta-ga",
+      "allowedModes": [
+        "freight_truck"
+      ],
+      "laneType": "freight_corridor",
+      "geometry": [
+        {
+          "x": 1572.1205,
+          "y": -1566.0832
+        },
+        {
+          "x": 1213.062,
+          "y": -676.6364
+        }
+      ],
+      "lengthM": 976.3084,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor-010-tf",
+      "fromNodeId": "hub-atlanta-ga",
+      "toNodeId": "hub-philadelphia-pa",
+      "allowedModes": [
+        "freight_truck"
+      ],
+      "laneType": "freight_corridor",
+      "geometry": [
+        {
+          "x": 1213.062,
+          "y": -676.6364
+        },
+        {
+          "x": 2002.1358,
+          "y": 13.5476
+        }
+      ],
+      "lengthM": 1071.2078,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor-010-ft",
+      "fromNodeId": "hub-philadelphia-pa",
+      "toNodeId": "hub-atlanta-ga",
+      "allowedModes": [
+        "freight_truck"
+      ],
+      "laneType": "freight_corridor",
+      "geometry": [
+        {
+          "x": 2002.1358,
+          "y": 13.5476
+        },
+        {
+          "x": 1213.062,
+          "y": -676.6364
+        }
+      ],
+      "lengthM": 1071.2078,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor-011-tf",
+      "fromNodeId": "hub-los-angeles-ca",
+      "toNodeId": "hub-seattle-wa",
+      "allowedModes": [
+        "freight_truck"
+      ],
+      "laneType": "freight_corridor",
+      "geometry": [
+        {
+          "x": -1681.6333,
+          "y": -643.2404
+        },
+        {
+          "x": -2030.433,
+          "y": 866.2588
+        }
+      ],
+      "lengthM": 1545.8002,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor-011-ft",
+      "fromNodeId": "hub-seattle-wa",
+      "toNodeId": "hub-los-angeles-ca",
+      "allowedModes": [
+        "freight_truck"
+      ],
+      "laneType": "freight_corridor",
+      "geometry": [
+        {
+          "x": -2030.433,
+          "y": 866.2588
+        },
+        {
+          "x": -1681.6333,
+          "y": -643.2404
+        }
+      ],
+      "lengthM": 1545.8002,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor-012-tf",
+      "fromNodeId": "hub-denver-co",
+      "toNodeId": "hub-chicago-il",
+      "allowedModes": [
+        "freight_truck"
+      ],
+      "laneType": "freight_corridor",
+      "geometry": [
+        {
+          "x": -548.0344,
+          "y": -9.8296
+        },
+        {
+          "x": 934.3642,
+          "y": 225.0556
+        }
+      ],
+      "lengthM": 1475.8,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor-012-ft",
+      "fromNodeId": "hub-chicago-il",
+      "toNodeId": "hub-denver-co",
+      "allowedModes": [
+        "freight_truck"
+      ],
+      "laneType": "freight_corridor",
+      "geometry": [
+        {
+          "x": 934.3642,
+          "y": 225.0556
+        },
+        {
+          "x": -548.0344,
+          "y": -9.8296
+        }
+      ],
+      "lengthM": 1475.8,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor-013-tf",
+      "fromNodeId": "hub-kansas-city-mo",
+      "toNodeId": "hub-dallas-tx",
+      "allowedModes": [
+        "freight_truck"
+      ],
+      "laneType": "freight_corridor",
+      "geometry": [
+        {
+          "x": 341.9177,
+          "y": -81.0744
+        },
+        {
+          "x": 152.1297,
+          "y": -784.6168
+        }
+      ],
+      "lengthM": 730.5464,
+      "provenanceKind": "synthetic_aggregate"
+    },
+    {
+      "id": "corridor-013-ft",
+      "fromNodeId": "hub-dallas-tx",
+      "toNodeId": "hub-kansas-city-mo",
+      "allowedModes": [
+        "freight_truck"
+      ],
+      "laneType": "freight_corridor",
+      "geometry": [
+        {
+          "x": 152.1297,
+          "y": -784.6168
+        },
+        {
+          "x": 341.9177,
+          "y": -81.0744
+        }
+      ],
+      "lengthM": 730.5464,
+      "provenanceKind": "synthetic_aggregate"
+    }
+  ],
+  "signals": [],
+  "actors": [],
+  "disruptions": [],
+  "circuits": [],
+  "renderGeometry": {
+    "nationalBounds": {
+      "minimumX": -4943.0812,
+      "maximumX": 2511.6569,
+      "minimumY": -2173.8904,
+      "maximumY": 2646.2656
+    },
+    "stateCentroidCount": 51,
+    "hubCount": 12
+  },
+  "scenario": {
+    "daylightMethod": "not_applicable_national_aggregate",
+    "defaultMissionText": "Run a national food-supply scenario.",
+    "cameraBounds": {
+      "minimumX": -4943.0812,
+      "maximumX": 2511.6569,
+      "minimumY": -2173.8904,
+      "maximumY": 2646.2656
+    }
+  },
+  "provenance": {
+    "compiler": "tools/food-recall-us/build-national-world.mjs",
+    "sourceId": "us-food-network-synthetic-v1",
+    "sourceKind": "synthetic_national_reference",
+    "snapshotDate": "2026-07-21",
+    "claimBoundary": "State centroids and hub cities are public aggregate reference geography. Freight corridors are a synthesised aggregate network derived from published regional freight-flow priors, not observed commercial shipments. This world is a national presentation substrate, not a map of any real supply chain.",
+    "sources": {
+      "stateCentroids": {
+        "authority": "US Census Bureau reference geography (approximate)",
+        "kind": "public_reference"
+      },
+      "hubs": {
+        "authority": "Public metropolitan reference coordinates",
+        "kind": "public_reference"
+      },
+      "corridors": {
+        "authority": "FHWA Freight Analysis Framework priors (aggregate)",
+        "kind": "synthetic_from_public_priors"
+      }
+    },
+    "contentSha256": "31e1fa74454f728ecb7e534a89ad67f116de15f33b56562cd1a41ca2e47e28aa"
+  }
+}
