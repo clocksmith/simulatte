@@ -25,7 +25,11 @@
       const sequence = events.length;
       const row = freezeClone({ schema: 'simulatte.pluginEvent.v1', sequence, ...event });
       const reducer = reducers.get(pluginId);
-      if (reducer) states.set(pluginId, freezeClone(reducer(states.get(pluginId), row)));
+      if (reducer) {
+        const nextState = reducer(states.get(pluginId), row);
+        if (!nextState || typeof nextState !== 'object' || Array.isArray(nextState)) throw stateError('plugin_reducer_state_invalid', `Plugin ${pluginId} reducer expected a plain state object`, { pluginId, receivedType: Array.isArray(nextState) ? 'array' : typeof nextState });
+        states.set(pluginId, freezeClone(nextState));
+      }
       events.push(row);
       return row;
     }

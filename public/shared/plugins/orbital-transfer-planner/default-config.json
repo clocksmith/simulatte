@@ -3,5 +3,5 @@
   "id": "orbital-transfer-planner-config-v1",
   "defaultArchetype": "cargo-freighter-v1",
   "defaultDepotId": "depot-earth-l1",
-  "defaultScenarioId": "earth-mars-hohmann"
+  "defaultScenarioId": "earth-mars-window"
 }

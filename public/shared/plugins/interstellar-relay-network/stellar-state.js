@@ -3,51 +3,43 @@
   root.InterstellarStellarState = api;
   if (typeof module === 'object' && module.exports) module.exports = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createStellarStateModule() {
+  const MAS_TO_RAD = Math.PI / (180 * 3600 * 1000);
+  const KM_S_TO_PC_YR = 1.0227121650537077e-6;
+
   function convertEquatorialToCartesianPc(star, targetEpochYears = 2026.5) {
-    if (!star) throw new Error('Stellar state conversion requires a star object');
-
-    // Sol is origin
+    if (!star) throw stellarError('stellar_state_missing', 'Stellar state conversion requires a star object');
     if (star.sourceId === 'gaia-sol' || star.parallaxMas === 0) {
-      return { sourceId: star.sourceId, name: star.name, positionPc: [0, 0, 0], hasRadialVelocity: true };
+      return Object.freeze({ schema: 'simulatte.stellarState.v1', sourceId: star.sourceId, name: star.name || 'Sol', epochYear: targetEpochYears, positionPc: Object.freeze([0,0,0]), velocityPcYr: Object.freeze([0,0,0]), hasRadialVelocity: true, distancePc: 0, propagation: 'solar_origin' });
     }
-
-    const distPc = 1000.0 / star.parallaxMas;
-    const raRad = (star.raDeg * Math.PI) / 180.0;
-    const decRad = (star.decDeg * Math.PI) / 180.0;
-
-    // Unit direction vector
-    const uX = Math.cos(decRad) * Math.cos(raRad);
-    const uY = Math.cos(decRad) * Math.sin(raRad);
-    const uZ = Math.sin(decRad);
-
-    const xPc = distPc * uX;
-    const yPc = distPc * uY;
-    const zPc = distPc * uZ;
-
-    // Proper motion & radial velocity propagation if epoch offset
-    const dtYears = targetEpochYears - 2016.0;
-    const hasRv = typeof star.radialVelocityKmS === 'number' && !Number.isNaN(star.radialVelocityKmS);
-
-    // Convert proper motion from mas/yr to rad/yr
-    const masToRad = Math.PI / (180.0 * 3600.0 * 1000.0);
-    const pmRaRad = (star.pmRaMasYr || 0) * masToRad;
-    const pmDecRad = (star.pmDecMasYr || 0) * masToRad;
-
-    // Tangential velocities in pc/yr (1 km/s = 1.0227e-6 pc/yr)
-    const kmSToPcYr = 1.0227121655e-6;
-    const vX = (-uY * pmRaRad - uZ * Math.cos(raRad) * pmDecRad) * distPc + (hasRv ? uX * star.radialVelocityKmS * kmSToPcYr * 31557600 : 0);
-    const vY = (uX * pmRaRad - uZ * Math.sin(raRad) * pmDecRad) * distPc + (hasRv ? uY * star.radialVelocityKmS * kmSToPcYr * 31557600 : 0);
-    const vZ = (Math.cos(decRad) * pmDecRad) * distPc + (hasRv ? uZ * star.radialVelocityKmS * kmSToPcYr * 31557600 : 0);
-
-    return {
-      sourceId: star.sourceId,
-      name: star.name,
-      positionPc: [xPc + vX * dtYears, yPc + vY * dtYears, zPc + vZ * dtYears],
-      velocityPcYr: [vX, vY, vZ],
-      hasRadialVelocity: hasRv,
-      distancePc: distPc
-    };
+    if (!(star.parallaxMas > 0) || !Number.isFinite(star.raDeg) || !Number.isFinite(star.decDeg)) {
+      throw stellarError('stellar_astrometry_invalid', `Star ${star.sourceId || 'unknown'} has invalid RA, DEC, or parallax`, { sourceId: star.sourceId || null });
+    }
+    const distancePc = 1000 / star.parallaxMas;
+    const ra = star.raDeg * Math.PI / 180;
+    const dec = star.decDeg * Math.PI / 180;
+    const cosDec = Math.cos(dec);
+    const sinDec = Math.sin(dec);
+    const cosRa = Math.cos(ra);
+    const sinRa = Math.sin(ra);
+    const radialUnit = [cosDec*cosRa, cosDec*sinRa, sinDec];
+    const raUnit = [-sinRa, cosRa, 0];
+    const decUnit = [-sinDec*cosRa, -sinDec*sinRa, cosDec];
+    const position = radialUnit.map((value) => value * distancePc);
+    const pmRa = Number(star.pmRaMasYr || 0) * MAS_TO_RAD;
+    const pmDec = Number(star.pmDecMasYr || 0) * MAS_TO_RAD;
+    const tangential = radialUnit.map((_, index) => distancePc * (pmRa * raUnit[index] + pmDec * decUnit[index]));
+    const hasRadialVelocity = Number.isFinite(star.radialVelocityKmS);
+    const radialSpeedPcYr = hasRadialVelocity ? star.radialVelocityKmS * KM_S_TO_PC_YR : 0;
+    const velocity = tangential.map((value, index) => value + radialSpeedPcYr * radialUnit[index]);
+    const dtYears = targetEpochYears - Number(star.referenceEpochYear || 2016.0);
+    const propagated = position.map((value, index) => value + velocity[index] * dtYears);
+    return Object.freeze({
+      schema: 'simulatte.stellarState.v1', sourceId: star.sourceId, name: star.name || star.sourceId,
+      epochYear: targetEpochYears, positionPc: Object.freeze(propagated), velocityPcYr: Object.freeze(velocity),
+      hasRadialVelocity, distancePc, propagation: 'linear_space_motion_v1',
+      astrometricQuality: Object.freeze({ parallaxMas: star.parallaxMas, parallaxErrorMas: star.parallaxErrorMas ?? null, radialVelocityMissing: !hasRadialVelocity }),
+    });
   }
-
-  return Object.freeze({ convertEquatorialToCartesianPc });
+  function stellarError(code, message, evidence = null) { const error = new Error(`${code}: ${message}`); error.name = 'InterstellarStellarStateError'; error.code = code; error.evidence = evidence; return error; }
+  return Object.freeze({ MAS_TO_RAD, KM_S_TO_PC_YR, convertEquatorialToCartesianPc, stellarError });
 });

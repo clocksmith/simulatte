@@ -1,68 +1,429 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Simulatte application profile",
-  "type": "object",
-  "required": ["schema", "id", "plugins", "routeObjective"],
-  "additionalProperties": false,
-  "properties": {
-    "schema": { "enum": ["simulatte.applicationProfile.v1", "simulatte.applicationProfile.v2"] },
-    "id": { "type": "string", "minLength": 1 },
-    "defaultMissionText": { "type": "string", "minLength": 1 },
-    "missionExamples": { "type": "array", "minItems": 2, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
-    "interaction": {
+  "oneOf": [
+    {
+      "$ref": "#/$defs/v1"
+    },
+    {
+      "$ref": "#/$defs/v2"
+    },
+    {
+      "$ref": "#/$defs/v3"
+    }
+  ],
+  "$defs": {
+    "v1": {
       "type": "object",
-      "required": ["mode", "startLabel", "shuffleLabel"],
+      "required": [
+        "schema",
+        "id",
+        "plugins",
+        "routeObjective"
+      ],
       "additionalProperties": false,
       "properties": {
-        "mode": { "enum": ["explorer", "form", "playback", "request", "route"] },
-        "startLabel": { "type": "string", "minLength": 1 },
-        "shuffleLabel": { "type": "string", "minLength": 1 }
-      }
-    },
-    "defaultSeedId": { "type": "string", "minLength": 1 },
-    "seeds": {
-      "type": "array",
-      "minItems": 2,
-      "items": {
-        "type": "object",
-        "required": ["id", "label", "description", "seed", "missionText"],
-        "additionalProperties": false,
-        "properties": {
-          "id": { "type": "string", "minLength": 1 },
-          "label": { "type": "string", "minLength": 1 },
-          "description": { "type": "string", "minLength": 1 },
-          "seed": { "type": "string", "minLength": 1 },
-          "missionText": { "type": "string", "minLength": 1 }
+        "schema": {
+          "const": "simulatte.applicationProfile.v1"
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "plugins": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "configId"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "configId": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "routeObjective": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "number",
+            "minimum": 0
+          }
+        },
+        "camera": {
+          "type": "object",
+          "required": [
+            "initialMode",
+            "runMode"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "initialMode": {
+              "enum": [
+                "follow",
+                "bird",
+                "top"
+              ]
+            },
+            "runMode": {
+              "enum": [
+                "follow",
+                "bird",
+                "top"
+              ]
+            },
+            "pluginId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "targetId": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "defaultMissionText": {
+          "type": "string",
+          "minLength": 1
+        },
+        "missionExamples": {
+          "type": "array",
+          "minItems": 2,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
         }
       }
     },
-    "camera": {
+    "v2": {
       "type": "object",
-      "required": ["initialMode", "runMode"],
+      "required": [
+        "schema",
+        "id",
+        "plugins",
+        "routeObjective",
+        "interaction",
+        "defaultSeedId",
+        "seeds"
+      ],
       "additionalProperties": false,
       "properties": {
-        "initialMode": { "enum": ["follow", "bird", "top"] },
-        "runMode": { "enum": ["follow", "bird", "top"] },
-        "pluginId": { "type": "string", "minLength": 1 },
-        "targetId": { "type": "string", "minLength": 1 }
+        "schema": {
+          "const": "simulatte.applicationProfile.v2"
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "plugins": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "configId"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "configId": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "routeObjective": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "number",
+            "minimum": 0
+          }
+        },
+        "camera": {
+          "type": "object",
+          "required": [
+            "initialMode",
+            "runMode"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "initialMode": {
+              "enum": [
+                "follow",
+                "bird",
+                "top"
+              ]
+            },
+            "runMode": {
+              "enum": [
+                "follow",
+                "bird",
+                "top"
+              ]
+            },
+            "pluginId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "targetId": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "interaction": {
+          "type": "object",
+          "required": [
+            "mode",
+            "startLabel",
+            "shuffleLabel"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "mode": {
+              "enum": [
+                "explorer",
+                "form",
+                "playback",
+                "request",
+                "route"
+              ]
+            },
+            "startLabel": {
+              "type": "string",
+              "minLength": 1
+            },
+            "shuffleLabel": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "defaultSeedId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "seeds": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "label",
+              "description",
+              "seed",
+              "missionText"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1
+              },
+              "description": {
+                "type": "string",
+                "minLength": 1
+              },
+              "seed": {
+                "type": "string",
+                "minLength": 1
+              },
+              "missionText": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
       }
     },
-    "plugins": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "required": ["id", "configId"],
-        "additionalProperties": false,
-        "properties": { "id": { "type": "string" }, "configId": { "type": "string" } }
+    "v3": {
+      "type": "object",
+      "required": [
+        "schema",
+        "id",
+        "tier",
+        "worldModelId",
+        "plugins",
+        "routeObjective",
+        "interaction",
+        "defaultSeedId",
+        "seeds"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "schema": {
+          "const": "simulatte.applicationProfile.v3"
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "plugins": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "configId"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "configId": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "routeObjective": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "number",
+            "minimum": 0
+          }
+        },
+        "camera": {
+          "type": "object",
+          "required": [
+            "initialMode",
+            "runMode"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "initialMode": {
+              "enum": [
+                "follow",
+                "bird",
+                "top"
+              ]
+            },
+            "runMode": {
+              "enum": [
+                "follow",
+                "bird",
+                "top"
+              ]
+            },
+            "pluginId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "targetId": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "tier": {
+          "enum": [
+            "country",
+            "world",
+            "solar-system",
+            "star-chart"
+          ]
+        },
+        "worldModelId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "interaction": {
+          "type": "object",
+          "required": [
+            "mode",
+            "startLabel",
+            "shuffleLabel"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "mode": {
+              "enum": [
+                "scenario",
+                "simulation"
+              ]
+            },
+            "startLabel": {
+              "type": "string",
+              "minLength": 1
+            },
+            "shuffleLabel": {
+              "type": "string",
+              "minLength": 1
+            },
+            "simulationOwnerPluginId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "missionRequired": {
+              "type": "boolean"
+            }
+          }
+        },
+        "defaultSeedId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "seeds": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "label",
+              "description",
+              "seed",
+              "scenarioId"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1
+              },
+              "description": {
+                "type": "string",
+                "minLength": 1
+              },
+              "seed": {
+                "type": "string",
+                "minLength": 1
+              },
+              "scenarioId": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
       }
-    },
-    "routeObjective": { "type": "object", "additionalProperties": { "type": "number", "minimum": 0 } }
-  },
-  "allOf": [
-    {
-      "if": { "properties": { "schema": { "const": "simulatte.applicationProfile.v2" } } },
-      "then": { "required": ["interaction", "defaultSeedId", "seeds"] },
-      "else": { "not": { "anyOf": [{ "required": ["interaction"] }, { "required": ["defaultSeedId"] }, { "required": ["seeds"] }] } }
     }
-  ]
+  }
 }

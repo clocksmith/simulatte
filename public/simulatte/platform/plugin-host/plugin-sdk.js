@@ -30,9 +30,9 @@
   function createPluginSdk({ manifest, datasets, corePorts, stateHost, capabilityInvoke, receiptSink }) {
     const permissions = new Set(manifest.permissions);
     const sdk = {
-      schema: 'simulatte.pluginSdk.v1',
+      schema: `simulatte.pluginSdk.v${manifest.sdkVersion}`,
       pluginId: manifest.id,
-      sdkVersion: 1,
+      sdkVersion: manifest.sdkVersion,
       datasets,
     };
     Object.entries(PORT_PERMISSION).forEach(([name, permission]) => {

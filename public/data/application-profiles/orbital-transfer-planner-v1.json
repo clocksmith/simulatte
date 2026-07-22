@@ -5,22 +5,24 @@
   "worldModelId": "solar-system-ephemeris-v2",
   "interaction": {
     "mode": "simulation",
+    "simulationOwnerPluginId": "orbital-transfer-planner",
+    "missionRequired": false,
     "startLabel": "Plan transfer",
-    "shuffleLabel": "Change scenario"
+    "shuffleLabel": "Change mission"
   },
   "defaultSeedId": "earth-mars-window",
   "seeds": [
     {
       "id": "earth-mars-window",
-      "label": "Earth to Mars Transfer",
-      "description": "Search a bounded Hohmann/Lambert departure and arrival window between Earth and Mars.",
+      "label": "Earth to Mars launch window",
+      "description": "Search a bounded Earth-to-Mars departure and time-of-flight grid.",
       "seed": "orbital-earth-mars-001",
       "scenarioId": "earth-mars-window"
     },
     {
       "id": "earth-moon-cargo",
-      "label": "Earth-Moon L1 Logistics",
-      "description": "Cargo transit and propellant supply depot balancing at Earth-Moon L1.",
+      "label": "Earth to Moon cargo",
+      "description": "Compare a bounded short-duration Earth-to-Moon transfer scenario.",
       "seed": "orbital-earth-moon-002",
       "scenarioId": "earth-moon-cargo"
     }
@@ -33,7 +35,6 @@
   ],
   "routeObjective": {
     "deltaV": 1.0,
-    "timeOfFlight": 0.5,
-    "radiationExposure": 0.8
+    "timeOfFlight": 0.01
   }
 }

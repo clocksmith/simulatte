@@ -56,10 +56,11 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginOrbitalTransferPlanner",
-    "integrity": "sha384-f4eace652de2258439d7eab17fadc3dac5a3ccd0ac0b6b793dcf923b86c1b575129d8869aa3a83f4ab9daf6f7b8093a6",
+    "integrity": "sha384-28621b9c12380e2cd55a16de7fd494231fc16f0353a2dae026554833d742d2a6294cd0031e6bf54bde6edc88bdf88e77",
     "path": "./index.js"
   },
   "extensionPoints": [
+    "request",
     "event",
     "settlement",
     "ui",
@@ -67,16 +68,16 @@
   ],
   "id": "orbital-transfer-planner",
   "permissions": [
-    "tier.query.v1",
-    "clock.read.v1",
-    "random.stream.v1",
-    "simulation.schedule.v1",
-    "events.propose.v1",
-    "receipts.append.v1",
-    "state.reduce.v1",
-    "ui.inspector.v1",
     "capabilities.invoke.v1",
-    "ui.geospatial.v1"
+    "clock.read.v1",
+    "events.propose.v1",
+    "random.stream.v1",
+    "receipts.append.v1",
+    "simulation.schedule.v1",
+    "state.reduce.v1",
+    "tier.query.v1",
+    "ui.geospatial.v1",
+    "ui.inspector.v1"
   ],
   "provides": [
     "field.solar-radiation.v1",
@@ -84,15 +85,17 @@
     "simulation.orbital-kinetics.v1"
   ],
   "receiptSchemas": [
-    "simulatte.plugin.orbitalTransferReceipt.v1"
+    "simulatte.plugin.ephemerisIdentityReceipt.v1",
+    "simulatte.plugin.orbitalTransferReceipt.v1",
+    "simulatte.plugin.orbitalCounterfactualReceipt.v1"
   ],
   "resources": [
     {
-      "integrity": "sha384-b3a203a8caa90fc788fc0d2c0a649c9b8617b48802198e22d7e4c9ce070df1278203f14ab9c55191069ecf1b0fc9a94b",
+      "integrity": "sha384-97dc6a5083bf3138e06a17d71f1416aca599786d9873899bf79bb278b7943b34c413e652f09af7955f32dae7bec364cb",
       "path": "./config.schema.json"
     },
     {
-      "integrity": "sha384-c52c66d2b07e2f19a961e9599bff6f7e4928e8d957e0edc7009dec7bf8f6996cce95a55bb5b1573dea5c30afcf4bfd36",
+      "integrity": "sha384-7d479f08ac2de050da3597582fcc76514072517b46f64542e536ead61601a357abafa5afd9f698f7007ab094280d0e3a",
       "path": "./default-config.json"
     },
     {
@@ -100,7 +103,7 @@
       "path": "./depot-ledger.js"
     },
     {
-      "integrity": "sha384-b1a64384908ea5dc793fd80234a31046f9b70c5376f39f4b958362fa3aa992a3dd245cb22ca8fdd79a5798b0c12b0025",
+      "integrity": "sha384-15d5e62a7f019827c0c90c64bd237d9be36f2984c947a07792829d000f40068550967dd6a76d333272dfaeebb3b7d2bb",
       "path": "./ephemeris.js"
     },
     {
@@ -108,11 +111,23 @@
       "path": "./hohmann.js"
     },
     {
-      "integrity": "sha384-4f71903cc36e0b5a0530fc4d7da74289255f64303ba9420c08494393ba1a7884da05937f5f2ed96c9f1d874e66c4be7a",
+      "integrity": "sha384-68cdcdf0f11eb51fad20dea2a6af75760f0be6f750987c95c4fec0cef5740da20109ea3c29c683bb7fa7960394f7c8ef",
       "path": "./lambert.js"
     },
     {
-      "integrity": "sha384-2e9c4594f80e19483f6d24a0caccd07e06ced4265105b32481facc52544b25f304d611aa2e342f3c4e1001a2ed99d7f8",
+      "integrity": "sha384-c423b484c13d88a0d452ff7ad13158c2f7658025bf9a85a99e639e79374eb3f9f4c2ea19f4ac23b64ebf01b93964f932",
+      "path": "./launch-window.js"
+    },
+    {
+      "integrity": "sha384-0e6bfe2f477c6da97fc716f6b8cab34be2abd2266e87ad16497c2451c26031a31475151d82edba7939d7cd793d13708c",
+      "path": "./metrics.js"
+    },
+    {
+      "integrity": "sha384-5affb8b76b2310416f6c7ff2b3e2746b1ed2925b8f4d75b0d6862dc172cb4cf2089b5400be6cf8a41b145ce00d5f5561",
+      "path": "./patched-conic.js"
+    },
+    {
+      "integrity": "sha384-1681a82e378b44912afbc33d4214024eb23971d6fdb175631553d7d12eb071b904e2006cd2ca30540be15749f07fda94",
       "path": "./presentation.js"
     },
     {

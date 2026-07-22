@@ -91,7 +91,7 @@
           },
         }),
         ui: Object.freeze({ slot: 'inspector' }),
-        random: pluginRandomApi ? pluginRandomApi.createRandomPort({ rootSeed: data.applicationProfile.id, scenarioId: null }) : undefined,
+        random: pluginRandomApi ? pluginRandomApi.createRandomPort({ rootSeed: activeScenario?.seed || data.applicationProfile.id, scenarioId: activeScenario?.id || null }) : undefined,
         scheduler: pluginSchedulerApi ? pluginSchedulerApi.createSchedulerPort({}) : undefined,
         environment: pluginEnvironmentApi ? pluginEnvironmentApi.createEnvironmentPort({ snapshots: {} }) : undefined,
         geography: pluginGeographyApi ? pluginGeographyApi.createGeographyPort({ world: data.world }) : undefined,

@@ -56,10 +56,11 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginMaritimeTradeGlobal",
-    "integrity": "sha384-900dccd98aa07f3c5ea29e637a5cd252439293e027c57804c4ae52cfe99fcc1535ae8d7b6556b8838f55bfe7ce07a986",
+    "integrity": "sha384-2ee8a442529b442744ba01c4e472bf4a349a244afa445e5b483d51ca40622e647be6faccb1292c0a55d7ef006206f837",
     "path": "./index.js"
   },
   "extensionPoints": [
+    "request",
     "event",
     "settlement",
     "ui",
@@ -67,44 +68,75 @@
   ],
   "id": "maritime-trade-global",
   "permissions": [
-    "tier.query.v1",
-    "clock.read.v1",
-    "random.stream.v1",
-    "simulation.schedule.v1",
-    "events.propose.v1",
-    "receipts.append.v1",
-    "state.reduce.v1",
-    "ui.inspector.v1",
     "capabilities.invoke.v1",
-    "ui.geospatial.v1"
+    "clock.read.v1",
+    "events.propose.v1",
+    "random.stream.v1",
+    "receipts.append.v1",
+    "simulation.schedule.v1",
+    "state.reduce.v1",
+    "tier.query.v1",
+    "ui.geospatial.v1",
+    "ui.inspector.v1"
   ],
   "provides": [
+    "simulation.maritime-logistics.v1",
+    "field.ocean-freight.v1",
     "simulation.maritime-trade.v1",
     "field.maritime-emissions.v1"
   ],
   "receiptSchemas": [
-    "simulatte.plugin.maritimeVoyageReceipt.v1"
+    "simulatte.plugin.maritimeScenarioReceipt.v1",
+    "simulatte.plugin.maritimeVoyageReceipt.v1",
+    "simulatte.plugin.maritimeQueueReceipt.v1",
+    "simulatte.plugin.containerLineageReceipt.v1",
+    "simulatte.plugin.maritimeEmissionsReceipt.v1",
+    "simulatte.plugin.maritimeCounterfactualReceipt.v1"
   ],
   "resources": [
     {
-      "integrity": "sha384-bd06736834e90cc8e40458481f2545f2823d6366879f459ce0d792b071f8b58ec32fb15b943efa78edc47d18f81baa8a",
+      "integrity": "sha384-84173f2c202d89c64f04e8db8a57b291bb6cab89fdffe09518a114bd4d0bad4f6eba690ba0042712252bf2e5110cbe67",
       "path": "./config.schema.json"
     },
     {
-      "integrity": "sha384-9c2c58cd56c16efe0f1eea9656fbbccf5a7c9d35322873c9478f7f7fe65e077730b117ed32f0b53c5e5a3b59be500660",
+      "integrity": "sha384-79d9e0c8859261c20c54bad3607afb4bcca834fd4a567a623c7beaad4c3e3b4f2a910cfac6d9967a735b805ec1644d80",
+      "path": "./container-ledger.js"
+    },
+    {
+      "integrity": "sha384-097ed36546e832d0dcd8538c879aa7260f456b05bb76d39bbd12fc8d07ce5f8b8b1fdcce683a30cce85e17bd7df7fd66",
       "path": "./default-config.json"
+    },
+    {
+      "integrity": "sha384-fa0296e5d52bf5100178748ad5b694b8728ba5fe0b6970edeb3d144f66098eabe4178dbcea058f69f52ab8fcb95ee53d",
+      "path": "./emissions-model.js"
     },
     {
       "integrity": "sha384-4c98694c5c189c82a4375fa9b8764bc0266ce327d6286b194253527018248c4f629b2d035c503edc8cfde0f16c1e41b6",
       "path": "./emissions.js"
     },
     {
+      "integrity": "sha384-23224c4fc45339e9e138a13d5ab7261996f4a45170e274fb50533d706bfeffe05f12aceea55efd3d53e648765cf466f4",
+      "path": "./maritime-engine.js"
+    },
+    {
+      "integrity": "sha384-eac7d4e9e62051e560b2421d21d1e44e40d8bf133a903d680449fcfe1e6643ed60a5155c9bee2b8e0597fd417a55c00b",
+      "path": "./metrics.js"
+    },
+    {
+      "integrity": "sha384-101c422e95ba1b11e9074543a8b4821280905d27449bcdd20768fec4c97109d7b5082738d3a632bea85603fa0aa61b8b",
+      "path": "./network-router.js"
+    },
+    {
       "integrity": "sha384-35c2b508297cfef9e71f4c931c909df3715ec400cb2d5d7b7017296921440cec67d026d792d3bb1080ba70736040b2e5",
       "path": "./ports.js"
     },
     {
-      "integrity": "sha384-7f1a5cf7fb7ff6970bcb89ae69b6101669a75c9b5a9b1b07fed338e3a5e7ed5852494ffbf8ac5c23984d407086170133",
+      "integrity": "sha384-e023e48f7019f66a0f9d8ac072a543da800016eb8507e2d751edc795650510761eae642149ae77f01060384e20bc77b4",
       "path": "./presentation.js"
+    },
+    {
+      "integrity": "sha384-900da54f3f99a3492d9368881b276ba3a6aaabeeaf9fa10ea42725d4a5e106f6bc4ff46c74be6b0dc82659307cac4837",
+      "path": "./queue-engine.js"
     },
     {
       "integrity": "sha384-da07fbba831ed4f5fa16e910f3263d5a364419cf7451c191297171f3f74eaf3183c816dd316fb9fba892efbf8e08be32",
@@ -113,6 +145,10 @@
     {
       "integrity": "sha384-981936c3f75224385a42c9a37e9f5d28adc240235ceedcdd4ec006486ecc6139d497b6a63c2fcd812d1f954833cd666e",
       "path": "./vessels.js"
+    },
+    {
+      "integrity": "sha384-85b6586c59fd27ed31046e85fec5cee0eecb49eb562257c9edfda528e353121e8866e93c9f6898dbfc4f254f27a72886",
+      "path": "./weather-disruption.js"
     }
   ],
   "schema": "simulatte.pluginManifest.v2",

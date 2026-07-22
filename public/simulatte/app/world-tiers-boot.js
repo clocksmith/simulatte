@@ -1,236 +1,116 @@
 (function attachWorldTiersBoot(root, factory) {
-  const api = factory();
+  const api = factory(root);
   root.SimulatteWorldTiersBoot = api;
   if (typeof module === 'object' && module.exports) module.exports = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createWorldTiersBoot() {
-  const TIER_LABELS = {
-    city: 'City',
-    country: 'Country',
-    world: 'Planet',
-    'solar-system': 'Solar System',
-    'star-chart': 'Universe',
-  };
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createWorldTiersBoot(root) {
+  const TIER_LABELS = Object.freeze({ city:'City', country:'Country', world:'Planet', 'solar-system':'Solar System', 'star-chart':'Universe' });
+  const PROFILE_TIER = Object.freeze({
+    'food-recall-us-v1':'country', 'maritime-trade-global-v1':'world',
+    'orbital-transfer-planner-v1':'solar-system', 'interstellar-relay-network-v1':'star-chart',
+  });
 
-  // The URL is the source of truth for the active scale. ?tier=<key> drives the boot
-  // and keeps the toolbar dropdown in sync; changing the dropdown rewrites it in place.
   function readTierFromUrl(view) {
-    try {
-      const tier = new URL(view.location.href).searchParams.get('tier');
-      return tier && TIER_LABELS[tier] ? tier : null;
-    } catch (_error) { return null; }
+    try { const tier=new URL(view.location.href).searchParams.get('tier'); return tier&&TIER_LABELS[tier]?tier:null; } catch(_error){ return null; }
   }
+  function readProfileFromUrl(view) { try { return new URL(view.location.href).searchParams.get('profile'); } catch(_error){ return null; } }
+  function writeTierParam(view,tier) { try { const url=new URL(view.location.href); url.searchParams.set('tier',tier); view.history.replaceState(view.history.state,'',url.toString()); } catch(_error){} }
+  function setTierLabel(tier) { try { const label=document.getElementById('world-tier-label'); if(label&&TIER_LABELS[tier])label.textContent=TIER_LABELS[tier]; } catch(_error){} }
+  function navigateTier(view,tier) { const url=new URL(view.location.href); url.searchParams.set('tier',tier); url.searchParams.delete('profile'); view.location.assign(url.toString()); }
 
-  function writeTierParam(view, tier, worldId = null) {
-    try {
-      const url = new URL(view.location.href);
-      const currentTier = url.searchParams.get('tier');
-      const currentWorld = url.searchParams.get('world');
-      if (currentTier === tier && (!worldId || currentWorld === worldId)) return;
-      url.searchParams.set('tier', tier);
-      if (worldId) url.searchParams.set('world', worldId);
-      view.history.replaceState(view.history.state, '', url.toString());
-    } catch (_error) { /* URL sync is best-effort */ }
-  }
-
-  // Reflect the active scale in the toolbar label immediately on boot — before the
-  // heavy City load — so the dropdown matches the URL instead of sitting on the
-  // "Select scale" placeholder for the whole load (selectWorldTier only runs at the end).
-  function setTierLabel(tier) {
-    try {
-      const label = document.getElementById('world-tier-label');
-      if (label && TIER_LABELS[tier]) label.textContent = TIER_LABELS[tier];
-    } catch (_error) { /* best-effort */ }
-  }
-
-  // Wire the toolbar tier dropdown and build the selectWorldTier router onto an
-  // already-started app. Returns selectWorldTier so the caller can route to the
-  // initial tier. `ctx` supplies the start() closure dependencies.
   function wireTierControls(ctx) {
-    const { elements, stopLoop, tierVisualizer, profileSelectUi, reloadForCity = false } = ctx;
-
-    function closeWorldTierDropdown() {
-      elements.worldTierControl.classList.remove('open');
-      elements.worldTierTrigger.setAttribute('aria-expanded', 'false');
-      elements.worldTierOptions.hidden = true;
-    }
-
-    elements.worldTierTrigger.addEventListener('click', (event) => {
-      event.stopPropagation();
-      if (elements.worldTierControl.classList.contains('open')) {
-        closeWorldTierDropdown();
-      } else {
-        elements.worldTierControl.classList.add('open');
-        elements.worldTierTrigger.setAttribute('aria-expanded', 'true');
-        elements.worldTierOptions.hidden = false;
-      }
-    });
-    window.addEventListener('click', () => closeWorldTierDropdown());
-
-    const tierOptions = elements.worldTierOptions.querySelectorAll('.select-option');
-    tierOptions.forEach((opt) => {
-      opt.addEventListener('click', async (event) => {
-        event.stopPropagation();
-        writeTierParam(window, opt.dataset.value);
-        await selectWorldTier(opt.dataset.value);
-        closeWorldTierDropdown();
-      });
-    });
-
-    async function selectWorldTier(tier) {
-      // In the lightweight world-explorer, the full City engine was never loaded, so
-      // switching to City reloads into the URL-driven full boot instead of a blank canvas.
-      if (reloadForCity && tier === 'city') {
-        const url = new URL(window.location.href);
-        url.searchParams.set('tier', 'city');
-        window.location.assign(url.toString());
-        return;
-      }
-      // Hide the landing page if still visible.
-      elements.worldTiersLandingPage.classList.add('hidden');
-      // Stop the city loop when routing to a non-city scale.
-      if (tier !== 'city') stopLoop();
-      tierOptions.forEach((opt) => opt.classList.toggle('selected', opt.dataset.value === tier));
-      elements.worldTierLabel.textContent = TIER_LABELS[tier] || 'Select scale';
-
-      // Scope the secondary "plugins" dropdown to the active world.
-      const supportedScale = true;
-      elements.applicationProfileControl.classList.toggle('is-empty', !supportedScale);
-      elements.applicationProfileTrigger.disabled = !supportedScale;
-      elements.applicationProfileTrigger.setAttribute('aria-disabled', String(!supportedScale));
-      if (supportedScale) {
-        profileSelectUi?.sync();
-      } else {
-        elements.applicationProfileControl.classList.remove('open');
-        elements.applicationProfileTrigger.setAttribute('aria-expanded', 'false');
-        elements.applicationProfileOptions.hidden = true;
-        elements.applicationProfileLabel.textContent = 'No plugins for this scale';
-      }
-
-      await tierVisualizer.loadTier(tier);
-    }
-
-    return selectWorldTier;
+    const { elements, tierVisualizer, profileSelectUi } = ctx;
+    const activeTier = ctx.activeTier || readTierFromUrl(window) || 'city';
+    function close() { elements.worldTierControl.classList.remove('open'); elements.worldTierTrigger.setAttribute('aria-expanded','false'); elements.worldTierOptions.hidden=true; }
+    elements.worldTierTrigger.addEventListener('click',(event)=>{event.stopPropagation();const open=!elements.worldTierControl.classList.contains('open');elements.worldTierControl.classList.toggle('open',open);elements.worldTierTrigger.setAttribute('aria-expanded',String(open));elements.worldTierOptions.hidden=!open;});
+    window.addEventListener('click',close);
+    const options=[...elements.worldTierOptions.querySelectorAll('.select-option')];
+    options.forEach((option)=>option.addEventListener('click',(event)=>{event.stopPropagation();const tier=option.dataset.value;close();if(tier!==activeTier){ctx.beforeTierChange?.();navigateTier(window,tier);} }));
+    options.forEach((option)=>option.classList.toggle('selected',option.dataset.value===activeTier));
+    elements.worldTierLabel.textContent=TIER_LABELS[activeTier]||'Select scale';
+    const hasProfiles=ctx.hasProfiles!==false;
+    elements.applicationProfileControl.classList.toggle('is-empty',!hasProfiles);
+    elements.applicationProfileTrigger.disabled=!hasProfiles;
+    elements.applicationProfileTrigger.setAttribute('aria-disabled',String(!hasProfiles));
+    if(hasProfiles)profileSelectUi?.sync(); else elements.applicationProfileLabel.textContent='No experiences for this scale';
+    return async function selectWorldTier(tier){ if(tier!==activeTier){navigateTier(window,tier);return;} if(tierVisualizer)await tierVisualizer.loadTier(tier); };
   }
 
-  // Show the tier selector immediately and gate asset loading until the visitor
-  // picks a tier. Hovering the tier cards parallaxes the wordmark + accent lines.
-  // Lightweight standalone explorer for the non-City scales: it renders the tier's own
-  // 2D visualizer straight onto the overlay canvas with just that tier's small dataset,
-  // skipping the ~80 MB City load and the WebGPU renderer entirely.
-  async function bootWorldExplorer(ctx, tier) {
-    const { collectElements, setJourneyPhase, setRuntimeStatus, createTierVisualizer } = ctx;
-    const elements = collectElements();
+  async function bootGovernedTierExplorer(ctx,tier) {
+    const required=['SimulatteTierApplicationLoader','SimulattePluginRuntime','SimulatteGeneratedPluginRegistry','SimulatteDeclarativeUiHost','SimulatteApplicationProfileSelect','SimulattePluginRandom','SimulattePluginScheduler','SimulattePluginCompute','SimulattePluginEnvironment','SimulattePluginGeography','SimulatteAutonomyReceipts'];
+    const missing=required.find((name)=>!root[name]);
+    if(missing)throw new Error(`tier_boot_dependency_missing: ${missing}`);
+    const elements=ctx.collectElements();
     document.body.classList.add('world-explorer');
-    setJourneyPhase('loading');
-    setRuntimeStatus?.(elements, 'Loading world', 'loading');
-    const tierVisualizer = createTierVisualizer(elements.overlayCanvas, 'world-tier-control');
-    const selectWorldTier = wireTierControls({
-      elements, stopLoop: () => {}, tierVisualizer, profileSelectUi: null, reloadForCity: true,
-    });
-    await selectWorldTier(tier);
-    setJourneyPhase('ready');
-    setRuntimeStatus?.(elements, 'Ready', 'active');
-  }
+    ctx.setJourneyPhase?.('loading'); ctx.setRuntimeStatus?.(elements,'Loading experience','loading');
+    const requestedProfileId=readProfileFromUrl(window);
+    const data=await root.SimulatteTierApplicationLoader.loadTierApplication({tier,requestedProfileId});
+    const tierVisualizer=ctx.createTierVisualizer(elements.overlayCanvas,'world-tier-control');
+    await tierVisualizer.loadTier(tier);
+    populateProfiles(elements.applicationProfile,data.profileEntries,data.applicationProfile.id);
+    const profileSelectUi=root.SimulatteApplicationProfileSelect.createApplicationProfileSelect({select:elements.applicationProfile,root:elements.applicationProfileControl,trigger:elements.applicationProfileTrigger,label:elements.applicationProfileLabel,listbox:elements.applicationProfileOptions});
+    elements.applicationProfile.disabled=false; elements.applicationProfileTrigger.disabled=false; profileSelectUi.sync();
+    elements.applicationProfile.addEventListener('change',()=>{const url=new URL(window.location.href);url.searchParams.set('tier',tier);url.searchParams.set('profile',elements.applicationProfile.value);window.location.assign(url.toString());});
+    wireTierControls({elements,tierVisualizer,profileSelectUi,activeTier:tier,hasProfiles:true,beforeTierChange:()=>{void runtime?.dispose();}});
 
-  async function bootLanding(ctx) {
-    const { startApp } = ctx;
-    // All scales now boot their governed plugin runtime via startApp.
-    const routeTier = (tier) => startApp(tier);
-    const landing = document.getElementById('world-tiers-landing-page');
-    const view = (landing && landing.ownerDocument.defaultView) || (typeof window !== 'undefined' ? window : null);
+    const interaction=root.SimulatteApplicationProfileSelect.resolveInteraction(data.applicationProfile,{});
+    let activeScenario=interaction.defaultScenario;
+    let runtime=null;
+    let pluginUi=null;
 
-    // The URL decides whether to show the picker: if it already selects a scale
-    // (?tier=) or an experience (?profile=, which implies the city scale), skip the
-    // landing and boot that scale in place. The dropdowns then reflect the same URL
-    // state. Same direct-boot fallback if the landing markup is missing.
-    let hasProfile = false;
-    try { hasProfile = view ? new URL(view.location.href).searchParams.has('profile') : false; }
-    catch (_error) { hasProfile = false; }
-    const urlTier = view ? readTierFromUrl(view) : null;
-    if (!landing || urlTier || hasProfile) {
-      const tier = urlTier || 'city';
-      if (view) {
-        const url = new URL(view.location.href);
-        url.searchParams.set('tier', tier);
-        if (!url.searchParams.has('world')) {
-          if (tier === 'city') url.searchParams.set('world', 'nyc-core-autonomy-v1');
-          else if (tier === 'country') url.searchParams.set('world', 'us-food-network-v1');
-          else if (tier === 'world') url.searchParams.set('world', 'earth-global-topology-v1');
-          else if (tier === 'solar-system') url.searchParams.set('world', 'solar-system-ephemeris-v2');
-          else if (tier === 'star-chart') url.searchParams.set('world', 'gaia-dr3-stellar-neighborhood-v1');
-        }
-        if (!url.searchParams.has('profile')) {
-          if (tier === 'city') url.searchParams.set('profile', 'simulatte-world-v1');
-          else if (tier === 'country') url.searchParams.set('profile', 'food-recall-us-v1');
-          else if (tier === 'world') url.searchParams.set('profile', 'maritime-trade-global-v1');
-          else if (tier === 'solar-system') url.searchParams.set('profile', 'orbital-transfer-planner-v1');
-          else if (tier === 'star-chart') url.searchParams.set('profile', 'interstellar-relay-network-v1');
-        }
-        view.history.replaceState(view.history.state, '', url.toString());
-      }
-      setTierLabel(tier);
-      if (landing) landing.classList.add('hidden');
-      await routeTier(tier);
-      return;
-    }
-    let chosen = false;
-    const chooseTier = async (tier) => {
-      if (chosen) return;
-      chosen = true;
-      if (view) {
-        const url = new URL(view.location.href);
-        url.searchParams.set('tier', tier);
-        if (tier === 'city') {
-          url.searchParams.set('world', 'nyc-core-autonomy-v1');
-          url.searchParams.set('profile', 'simulatte-world-v1');
-        } else if (tier === 'country') {
-          url.searchParams.set('world', 'us-food-network-v1');
-          url.searchParams.set('profile', 'food-recall-us-v1');
-        } else if (tier === 'world') {
-          url.searchParams.set('world', 'earth-global-topology-v1');
-          url.searchParams.set('profile', 'maritime-trade-global-v1');
-        } else if (tier === 'solar-system') {
-          url.searchParams.set('world', 'solar-system-ephemeris-v2');
-          url.searchParams.set('profile', 'orbital-transfer-planner-v1');
-        } else if (tier === 'star-chart') {
-          url.searchParams.set('world', 'gaia-dr3-stellar-neighborhood-v1');
-          url.searchParams.set('profile', 'interstellar-relay-network-v1');
-        }
-        view.history.replaceState(view.history.state, '', url.toString());
-      }
-      setTierLabel(tier);
-      landing.classList.add('hidden');
-      await new Promise((resolve) => view.setTimeout(resolve, 160));
-      await routeTier(tier);
-    };
-
-    // Parallax: track the pointer across the tier grid and hand a normalized
-    // offset (-1..1 on each axis) to the wordmark via CSS custom properties.
-    // The header layers translate by different magnitudes for a depth effect.
-    const grid = landing.querySelector('.tier-cards-grid');
-    const cards = Array.from(landing.querySelectorAll('.tier-card'));
-    const setParallax = (px, py) => {
-      landing.style.setProperty('--parallax-x', px.toFixed(3));
-      landing.style.setProperty('--parallax-y', py.toFixed(3));
-    };
-    if (grid) {
-      grid.addEventListener('mousemove', (event) => {
-        const rect = grid.getBoundingClientRect();
-        const px = ((event.clientX - rect.left) / rect.width - 0.5) * 2;
-        const py = ((event.clientY - rect.top) / rect.height - 0.5) * 2;
-        landing.classList.add('is-parallax');
-        setParallax(px, py);
-      });
-      grid.addEventListener('mouseleave', () => {
-        landing.classList.remove('is-parallax');
-        setParallax(0, 0);
+    function environmentSnapshots(){ const ids=['us.environment.snapshot.v1']; return Object.fromEntries(ids.flatMap((id)=>{try{const value=data.dataCatalog.optional(id);return value?[[id,value]]:[];}catch(_error){return[];}})); }
+    function createCorePorts(scenario){
+      return Object.freeze({
+        tier:Object.freeze({schema:'simulatte.tierQuery.v1',id:tier,worldId:data.world.id,profileId:data.applicationProfile.id,snapshot:()=>data.world}),
+        ui:Object.freeze({slot:'inspector'}),
+        receipts:Object.freeze({createReceiptChain:root.SimulatteAutonomyReceipts.createReceiptChain,appendReceiptEntry:root.SimulatteAutonomyReceipts.appendReceiptEntry,sha256Hex:root.SimulatteAutonomyReceipts.sha256Hex,verifyReceiptChain:root.SimulatteAutonomyReceipts.verifyReceiptChain}),
+        random:root.SimulattePluginRandom.createRandomPort({rootSeed:scenario.seed,scenarioId:scenario.id}),
+        scheduler:root.SimulattePluginScheduler.createSchedulerPort({}),
+        compute:root.SimulattePluginCompute.createComputePort({workerPool:null}),
+        environment:root.SimulattePluginEnvironment.createEnvironmentPort({snapshots:environmentSnapshots()}),
+        geography:root.SimulattePluginGeography.createGeographyPort({world:data.world}),
       });
     }
 
-    cards.forEach((card) => {
-      card.addEventListener('click', () => { void chooseTier(card.dataset.tier); });
-    });
+    async function activateScenario(scenario){
+      if(runtime)await runtime.dispose();
+      runtime=await root.SimulattePluginRuntime.createPluginRuntime({registry:root.SimulatteGeneratedPluginRegistry,profile:data.applicationProfile,scenario,dataCatalog:data.dataCatalog,artifactStore:data.artifactStore,registryBaseUrl:data.registryBaseUrl,corePorts:createCorePorts(scenario)});
+      pluginUi=root.SimulatteDeclarativeUiHost.createDeclarativeUiHost({rootElements:{inspector:elements.pluginInspector,map:elements.pluginMapUi,hud:elements.pluginHudUi},onAction:async({pluginId,actionId,command,values})=>{
+        if(command?.kind==='camera.focus'){tierVisualizer.focusPluginTarget?.(`plugin:${pluginId}:${command.targetId}`);return;}
+        await runtime.dispatchAction(pluginId,actionId,{values,scenario:activeScenario,routeObjective:data.applicationProfile.routeObjective});
+        renderPlugins();
+      }});
+      renderPlugins();
+    }
+    function renderPlugins(){ if(!runtime)return;pluginUi.render(runtime.views({scenario:activeScenario,compositionSize:runtime.activePluginIds.length}));tierVisualizer.setPluginPresentations?.(runtime.presentations({scenario:activeScenario})); }
+    function renderScenario(){root.SimulatteApplicationProfileSelect.renderInteraction(interaction,activeScenario,elements);elements.missionField.hidden=true;elements.scenarioField.hidden=false;elements.startButton.hidden=false;elements.shuffleButton.hidden=interaction.scenarios.length<2;elements.pauseButton.hidden=true;elements.resumeButton.hidden=true;elements.replayButton.hidden=true;elements.newMissionButton.hidden=true;elements.modelSelectionControls?.replaceChildren();}
+    renderScenario();
+    await activateScenario(activeScenario);
+    const owner=data.applicationProfile.interaction.simulationOwnerPluginId||runtime.activePluginIds[0];
+    elements.startButton.addEventListener('click',async()=>{try{elements.startButton.disabled=true;ctx.setJourneyPhase?.('running');ctx.setRuntimeStatus?.(elements,'Running scenario','active');const actionResult=await runtime.dispatchAction(owner,'scenario.run',{scenario:activeScenario,values:{}});if(!actionResult||actionResult.status!=='settled')throw new Error(`tier_scenario_action_refused: ${owner} returned ${actionResult?.status||'missing'}`);const settlement=await runtime.settle({scenario:activeScenario,actionResult});root.__simulatteTierRunReceipt=Object.freeze({schema:'simulatte.tierRunReceipt.v1',tier,profileId:data.applicationProfile.id,scenario:activeScenario,actionResult,settlement,pluginRuntime:runtime.runtimeReceipt(),loadReceipt:data.receipt});renderPlugins();ctx.setJourneyPhase?.('completed');ctx.setRuntimeStatus?.(elements,'Complete','ready');}catch(error){ctx.setJourneyPhase?.('failed');ctx.setRuntimeStatus?.(elements,'Stopped','error');throw error;}finally{elements.startButton.disabled=false;}});
+    elements.shuffleButton.addEventListener('click',async()=>{activeScenario=root.SimulatteApplicationProfileSelect.nextScenario(interaction,activeScenario.id);renderScenario();await activateScenario(activeScenario);});
+    window.addEventListener('pagehide',()=>{void runtime?.dispose();profileSelectUi.dispose();tierVisualizer.stop();},{once:true});
+    ctx.setJourneyPhase?.('ready');ctx.setRuntimeStatus?.(elements,'Ready','ready');
   }
 
-  return { wireTierControls, bootLanding };
+  function populateProfiles(select,entries,selectedId){select.replaceChildren(...entries.map((entry)=>{const option=document.createElement('option');option.value=entry.id;option.textContent=labelForProfile(entry.id);option.selected=entry.id===selectedId;return option;}));select.value=selectedId;}
+  function labelForProfile(id){return id.split('-').map((part)=>part==='v1'?'':part.charAt(0).toUpperCase()+part.slice(1)).filter(Boolean).join(' ');}
+
+  async function bootLanding(ctx){
+    const landing=document.getElementById('world-tiers-landing-page');
+    const view=(landing&&landing.ownerDocument.defaultView)||(typeof window!=='undefined'?window:null);
+    const profile=view?readProfileFromUrl(view):null;
+    let tier=view?readTierFromUrl(view):null;
+    if(!tier&&profile&&PROFILE_TIER[profile])tier=PROFILE_TIER[profile];
+    const routeTier=async(selected)=>{ if(selected==='city')return ctx.startApp('city'); if(!ctx.createTierVisualizer)throw new Error('tier_visualizer_missing'); return bootGovernedTierExplorer(ctx,selected); };
+    if(!landing||tier||profile){tier=tier||'city';if(view)writeTierParam(view,tier);setTierLabel(tier);landing?.classList.add('hidden');await routeTier(tier);return;}
+    let chosen=false;
+    const choose=async(selected)=>{if(chosen)return;chosen=true;if(view)writeTierParam(view,selected);setTierLabel(selected);landing.classList.add('hidden');await new Promise((resolve)=>view.setTimeout(resolve,160));await routeTier(selected);};
+    const grid=landing.querySelector('.tier-cards-grid');
+    const setParallax=(x,y)=>{landing.style.setProperty('--parallax-x',x.toFixed(3));landing.style.setProperty('--parallax-y',y.toFixed(3));};
+    grid?.addEventListener('mousemove',(event)=>{const rect=grid.getBoundingClientRect();landing.classList.add('is-parallax');setParallax(((event.clientX-rect.left)/rect.width-.5)*2,((event.clientY-rect.top)/rect.height-.5)*2);});
+    grid?.addEventListener('mouseleave',()=>{landing.classList.remove('is-parallax');setParallax(0,0);});
+    [...landing.querySelectorAll('.tier-card')].forEach((card)=>card.addEventListener('click',()=>{void choose(card.dataset.tier);}));
+  }
+
+  return Object.freeze({ TIER_LABELS, readTierFromUrl, writeTierParam, wireTierControls, bootGovernedTierExplorer, bootLanding });
 });

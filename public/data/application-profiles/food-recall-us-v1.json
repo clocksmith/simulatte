@@ -1,23 +1,57 @@
 {
   "schema": "simulatte.applicationProfile.v3",
   "id": "food-recall-us-v1",
+  "tier": "country",
+  "worldModelId": "us-food-network-v1",
   "interaction": {
-    "mode": "scenario",
+    "mode": "simulation",
     "simulationOwnerPluginId": "food-recall-us",
+    "missionRequired": false,
     "startLabel": "Run scenario",
-    "shuffleLabel": "Change seed",
-    "missionRequired": false
+    "shuffleLabel": "Change seed"
   },
   "defaultSeedId": "leafy-green-baseline",
   "seeds": [
-    { "id": "leafy-green-baseline", "label": "Leafy green traceback", "description": "Synthetic California production lots distributed to multiple U.S. regions.", "seed": "food-recall-leafy-green-001", "scenarioId": "scenario:leafy-green-baseline" },
-    { "id": "egg-cold-chain", "label": "Egg cold-chain disruption", "description": "Synthetic processing and distribution delay with targeted recall.", "seed": "food-recall-eggs-002", "scenarioId": "scenario:egg-cold-chain" },
-    { "id": "listeria-rte", "label": "Listeria in ready-to-eat food", "description": "Long shelf-life exposure and high-risk population scenario.", "seed": "food-recall-listeria-003", "scenarioId": "scenario:listeria-rte" },
-    { "id": "allergen-label", "label": "Undeclared allergen", "description": "Lot-specific labeling failure without microbial kinetics.", "seed": "food-recall-allergen-004", "scenarioId": "scenario:allergen-label" }
+    {
+      "id": "leafy-green-baseline",
+      "label": "Leafy green traceback",
+      "description": "Synthetic California production lots distributed to multiple U.S. regions.",
+      "seed": "food-recall-leafy-green-001",
+      "scenarioId": "scenario:leafy-green-baseline"
+    },
+    {
+      "id": "egg-cold-chain",
+      "label": "Egg cold-chain disruption",
+      "description": "Synthetic processing and distribution delay with targeted recall.",
+      "seed": "food-recall-eggs-002",
+      "scenarioId": "scenario:egg-cold-chain"
+    },
+    {
+      "id": "listeria-rte",
+      "label": "Listeria in ready-to-eat food",
+      "description": "Long shelf-life exposure and high-risk population scenario.",
+      "seed": "food-recall-listeria-003",
+      "scenarioId": "scenario:listeria-rte"
+    },
+    {
+      "id": "allergen-label",
+      "label": "Undeclared allergen",
+      "description": "Lot-specific labeling failure without microbial kinetics.",
+      "seed": "food-recall-allergen-004",
+      "scenarioId": "scenario:allergen-label"
+    }
   ],
-  "camera": { "initialMode": "top", "runMode": "top", "pluginId": "food-recall-us", "targetId": "us-food-network" },
+  "camera": {
+    "initialMode": "top",
+    "runMode": "top",
+    "pluginId": "food-recall-us",
+    "targetId": "us-food-network"
+  },
   "plugins": [
-    { "id": "food-recall-us", "configId": "food-recall-us-default-v2" }
+    {
+      "id": "food-recall-us",
+      "configId": "food-recall-us-default-v2"
+    }
   ],
   "routeObjective": {}
 }

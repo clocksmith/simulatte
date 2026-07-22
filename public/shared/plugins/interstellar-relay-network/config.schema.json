@@ -1,10 +1,40 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Interstellar Relay Network Config",
+  "title": "Interstellar Relay Network configuration",
   "type": "object",
-  "required": ["defaultTransceiver", "defaultTargetStarId"],
+  "required": [
+    "schema",
+    "id",
+    "defaultTransceiver",
+    "defaultTargetStarId",
+    "defaultScenarioId",
+    "processingDelayHours"
+  ],
+  "additionalProperties": false,
   "properties": {
-    "defaultTransceiver": { "type": "string" },
-    "defaultTargetStarId": { "type": "string" }
+    "schema": {
+      "const": "simulatte.plugin.interstellarRelayConfig.v1"
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "defaultTransceiver": {
+      "type": "string",
+      "minLength": 1
+    },
+    "defaultTargetStarId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "defaultScenarioId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "processingDelayHours": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 8760
+    }
   }
 }

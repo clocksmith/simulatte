@@ -2,10 +2,11 @@
   const tierFacts = typeof module === 'object' && module.exports
     ? require('./tier-facts.js')
     : root.SimulatteTierFacts;
-  const api = factory(tierFacts);
+  const tierPresentation = typeof module === 'object' && module.exports ? require('./tier-plugin-presentation.js') : root.SimulatteTierPluginPresentation;
+  const api = factory(tierFacts, tierPresentation);
   root.SimulatteMultiTierVisualizer = api;
   if (typeof module === 'object' && module.exports) module.exports = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createMultiTierVisualizer(tierFacts) {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createMultiTierVisualizer(tierFacts, tierPresentation) {
   const TIER_CACHE_BASE_URL = tierCacheBaseUrl();
 
   // =========================================================================
@@ -40,6 +41,10 @@
       this.height = 0;
 
       this.hudElement = null;
+      this.pluginLayer = tierPresentation?.createLayer({
+        width: () => this.width, height: () => this.height, pan: (dx, dy) => { this.panX += dx; this.panY += dy; },
+        view: () => ({ panX: this.panX, panY: this.panY, zoom: this.zoom, currentTier: this.currentTier, bounds: this.data?.bounds, projectCountry: (x, y, bounds) => this.projectCountryPoint(x, y, bounds) }),
+      });
 
       this.setupEvents();
       this.resize();
@@ -557,6 +562,14 @@
       return 2 * earthRadius * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     }
 
+    setPluginPresentations(contributions) {
+      return this.pluginLayer ? this.pluginLayer.set(contributions) : Object.freeze([]);
+    }
+
+    focusPluginTarget(id) {
+      return this.pluginLayer ? this.pluginLayer.focus(id) : false;
+    }
+
     stop() {
       this.active = false;
       if (this.animationFrame) {
@@ -598,6 +611,7 @@
           break;
       }
 
+      if (this.pluginLayer) this.pluginLayer.render(ctx);
       ctx.restore();
     }
 
@@ -932,9 +946,10 @@
           // Set new waypoint path node
           const links = data.links.filter(l => l.source === agent.node);
           if (links.length > 0) {
-            agent.node = links[Math.floor(Math.random() * links.length)].target;
+            agent.routeCursor = (agent.routeCursor || 0) + 1;
+            agent.node = links[agent.routeCursor % links.length].target;
           } else {
-            agent.node = Math.floor(Math.random() * data.nodes.length);
+            agent.node = (agent.node + 1) % data.nodes.length;
           }
         }
 

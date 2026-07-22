@@ -1,17 +1,62 @@
 {
-  "schema": "simulatte.worldModel.v1",
+  "schema": "simulatte.tierWorldModel.v1",
   "id": "earth-global-topology-v1",
   "tier": "world",
-  "title": "Earth Global Marine Topology & Trade Corridors",
-  "coordinateSystem": "wgs84",
+  "label": "Earth global maritime topology and trade corridors",
+  "contentVersion": "earth-maritime-2026-07-v2",
+  "coordinateSystem": {
+    "kind": "wgs84",
+    "referenceFrame": "WGS84",
+    "units": "degrees",
+    "positionTuple": [
+      "longitude",
+      "latitude",
+      "altitudeKm"
+    ]
+  },
   "bounds": {
-    "latMin": -90.0,
-    "latMax": 90.0,
-    "lonMin": -180.0,
-    "lonMax": 180.0
+    "longitude": [
+      -180,
+      180
+    ],
+    "latitude": [
+      -90,
+      90
+    ],
+    "cameraDistanceDegrees": 230
+  },
+  "datasets": {
+    "boundaries": "natural-earth-admin0-110m",
+    "ports": "world.ports.wpi.v1",
+    "vesselClasses": "maritime.vessel.classes.v1",
+    "corridors": "shipping.lane.routes.v1"
+  },
+  "simulationTopology": {
+    "nodeKinds": [
+      "port",
+      "canal",
+      "strait",
+      "weather-zone"
+    ],
+    "edgeKinds": [
+      "declared-corridor",
+      "declared-detour"
+    ],
+    "queueKinds": [
+      "anchorage",
+      "berth",
+      "canal-transit"
+    ],
+    "lineageEntity": "container-lot"
   },
   "provenance": {
-    "source": "NGA World Port Index & Natural Earth",
-    "snapshotDate": "2026-07-21"
+    "sourceKind": "governed_maritime_descriptor",
+    "sources": [
+      "NGA World Port Index",
+      "Natural Earth",
+      "plugin-declared corridor artifacts"
+    ],
+    "snapshotDate": "2026-07-21",
+    "claimBoundary": "A governed presentation and simulation descriptor over declared ports and corridors; not live AIS, navigation, bookings, or commercial ETA data."
   }
 }

@@ -1,43 +1,67 @@
 {
-  "schema": "simulatte.tierApplicationManifest.v1",
+  "generatedAt": "2026-07-22T00:00:00Z",
+  "id": "simulatte-tier-applications-v2",
+  "schema": "simulatte.tierApplicationManifest.v2",
   "tiers": {
-    "city": {
-      "defaultProfileId": "simulatte-world-v1",
-      "worldModelId": "nyc-core-autonomy-v1",
-      "profiles": [
-        { "id": "simulatte-world-v1", "path": "./application-profiles/simulatte-world-v1.json" },
-        { "id": "cable-trader-pickup-v1", "path": "./application-profiles/cable-trader-pickup-v1.json" },
-        { "id": "safety-explorer-v1", "path": "./application-profiles/safety-explorer-v1.json" },
-        { "id": "sun-walker-v1", "path": "./application-profiles/sun-walker-v1.json" }
-      ]
-    },
     "country": {
       "defaultProfileId": "food-recall-us-v1",
-      "worldModelId": "us-food-network-v1",
       "profiles": [
-        { "id": "food-recall-us-v1", "path": "./application-profiles/food-recall-us-v1.json" }
-      ]
-    },
-    "world": {
-      "defaultProfileId": "maritime-trade-global-v1",
-      "worldModelId": "earth-global-topology-v1",
-      "profiles": [
-        { "id": "maritime-trade-global-v1", "path": "./application-profiles/maritime-trade-global-v1.json" }
-      ]
+        {
+          "id": "food-recall-us-v1",
+          "path": "../application-profiles/food-recall-us-v1.json",
+          "sha256": "43ec577d7f319962dc98e053d2436a9e8b3c9ee894b2174df6885f6a6ded840f"
+        }
+      ],
+      "world": {
+        "id": "us-food-network-v1",
+        "path": "./worlds/us-food-network-v1.json",
+        "sha256": "bbe232fe794b039d5c508b2b9813f6a8cefbc53dca419bdb0250de1f1baa74fb"
+      }
     },
     "solar-system": {
       "defaultProfileId": "orbital-transfer-planner-v1",
-      "worldModelId": "solar-system-ephemeris-v2",
       "profiles": [
-        { "id": "orbital-transfer-planner-v1", "path": "./application-profiles/orbital-transfer-planner-v1.json" }
-      ]
+        {
+          "id": "orbital-transfer-planner-v1",
+          "path": "../application-profiles/orbital-transfer-planner-v1.json",
+          "sha256": "f5fc19e8eb1e9b8f5d0bc40da6657430aff56ee1227b6b9ce6db608676d7ad8d"
+        }
+      ],
+      "world": {
+        "id": "solar-system-ephemeris-v2",
+        "path": "./worlds/solar-system-ephemeris-v2.json",
+        "sha256": "1ba4288adbd70c08fddfef352a306f67bd831d6fcc2121e3485370cb5c8ddaa8"
+      }
     },
     "star-chart": {
       "defaultProfileId": "interstellar-relay-network-v1",
-      "worldModelId": "gaia-dr3-stellar-neighborhood-v1",
       "profiles": [
-        { "id": "interstellar-relay-network-v1", "path": "./application-profiles/interstellar-relay-network-v1.json" }
-      ]
+        {
+          "id": "interstellar-relay-network-v1",
+          "path": "../application-profiles/interstellar-relay-network-v1.json",
+          "sha256": "d416d816020e23d871fb32a0a68aa4203a93e4f94e416f17ecadb1797cc40dfc"
+        }
+      ],
+      "world": {
+        "id": "gaia-dr3-stellar-neighborhood-v1",
+        "path": "./worlds/gaia-dr3-stellar-neighborhood-v1.json",
+        "sha256": "93696af57c73e09f3bdcf831a813f3e6c88d29fec5ee2630abd186e5777a547c"
+      }
+    },
+    "world": {
+      "defaultProfileId": "maritime-trade-global-v1",
+      "profiles": [
+        {
+          "id": "maritime-trade-global-v1",
+          "path": "../application-profiles/maritime-trade-global-v1.json",
+          "sha256": "d0222cdf847d7b659719eb1ec9b033d09ea191be2bba07ee2e8b0f0d6218e7d4"
+        }
+      ],
+      "world": {
+        "id": "earth-global-topology-v1",
+        "path": "./worlds/earth-global-topology-v1.json",
+        "sha256": "c1ec7a5f834ec24e32284b2c195cf52d93e0406a96b8ffca0c344ba9f00327d4"
+      }
     }
   }
 }

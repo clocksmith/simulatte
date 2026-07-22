@@ -110,6 +110,11 @@
 
     function handleAction(actionId, context = {}) {
       const values = context.values || {};
+      if (actionId === 'scenario.run') {
+        const state = sdk.state.read();
+        sdk.events.propose({ pluginId: PLUGIN_ID, kind: `${PLUGIN_ID}.scenario-run`, scenarioId: activeSpec.id, run: state.run, ambientC: state.ambientC });
+        return { status: 'settled', scenarioId: activeSpec.id, run: state.run };
+      }
       if (actionId === 'recall.issue') {
         const intervention = {
           dayOffset: Number(values.recallDay ?? activeSpec.defaultIntervention.dayOffset),

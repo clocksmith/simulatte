@@ -1,19 +1,57 @@
 {
-  "schema": "simulatte.worldModel.v1",
+  "schema": "simulatte.tierWorldModel.v1",
   "id": "gaia-dr3-stellar-neighborhood-v1",
   "tier": "star-chart",
-  "title": "Gaia DR3 Local Stellar Neighborhood (20 Light Years)",
-  "coordinateSystem": "icrs-cartesian-pc",
+  "label": "Gaia DR3 local stellar neighborhood",
+  "contentVersion": "gaia-local-2026-07-v2",
+  "coordinateSystem": {
+    "kind": "icrs-cartesian-pc",
+    "referenceFrame": "ICRS",
+    "referenceEpoch": "J2016.0",
+    "units": "parsec",
+    "positionTuple": [
+      "xPc",
+      "yPc",
+      "zPc"
+    ]
+  },
   "bounds": {
-    "xPcMin": -5.0,
-    "xPcMax": 5.0,
-    "yPcMin": -5.0,
-    "yPcMax": 5.0,
-    "zPcMin": -5.0,
-    "zPcMax": 5.0
+    "minimumPc": [
+      -6,
+      -6,
+      -6
+    ],
+    "maximumPc": [
+      6,
+      6,
+      6
+    ],
+    "cameraDistancePc": 12
+  },
+  "datasets": {
+    "astrometry": "gaia.dr3.nearby-stars.v1",
+    "names": "stellar.name.crosswalk.v1",
+    "relayHardware": "relay.hardware.archetypes.v1",
+    "scenarios": "interstellar.scenario.network.v1"
+  },
+  "simulationTopology": {
+    "nodeKinds": [
+      "star-system",
+      "hypothetical-relay"
+    ],
+    "edgeKinds": [
+      "optical-link"
+    ],
+    "queueKind": "store-and-forward-packet",
+    "propagation": "finite-light-speed"
   },
   "provenance": {
-    "source": "Gaia DR3 Astrometric Catalog",
-    "snapshotDate": "2026-07-21"
+    "sourceKind": "governed_stellar_descriptor",
+    "sources": [
+      "Gaia DR3 astrometry",
+      "plugin-declared hypothetical relay scenarios"
+    ],
+    "snapshotDate": "2026-07-21",
+    "claimBoundary": "Measured stellar astrometry with hypothetical communication infrastructure; no interstellar relay is asserted to exist."
   }
 }

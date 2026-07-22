@@ -5,24 +5,40 @@
   "worldModelId": "earth-global-topology-v1",
   "interaction": {
     "mode": "simulation",
+    "simulationOwnerPluginId": "maritime-trade-global",
+    "missionRequired": false,
     "startLabel": "Simulate shipping lanes",
-    "shuffleLabel": "Change route"
+    "shuffleLabel": "Change scenario"
   },
   "defaultSeedId": "asia-europe-mainline",
   "seeds": [
     {
       "id": "asia-europe-mainline",
       "label": "Shanghai to Rotterdam",
-      "description": "Asia-Europe trade corridor via Malacca Strait, Bab-el-Mandeb, and Suez Canal.",
+      "description": "Asia\u2013Europe baseline via Malacca, Bab-el-Mandeb, and Suez.",
       "seed": "maritime-asia-europe-001",
       "scenarioId": "asia-europe-mainline"
     },
     {
       "id": "transpacific-eastbound",
       "label": "Shanghai to Los Angeles",
-      "description": "Transpacific Container Line crossing North Pacific weather zones.",
+      "description": "Transpacific eastbound container service.",
       "seed": "maritime-transpacific-002",
       "scenarioId": "transpacific-eastbound"
+    },
+    {
+      "id": "suez-closure-cape-reroute",
+      "label": "Suez closure",
+      "description": "Asia\u2013Europe service rerouted around the Cape of Good Hope.",
+      "seed": "maritime-suez-003",
+      "scenarioId": "suez-closure-cape-reroute"
+    },
+    {
+      "id": "north-atlantic-cyclone",
+      "label": "North Atlantic cyclone",
+      "description": "Pinned severe-weather slowdown and port queue scenario.",
+      "seed": "maritime-cyclone-004",
+      "scenarioId": "north-atlantic-cyclone"
     }
   ],
   "plugins": [
@@ -32,8 +48,8 @@
     }
   ],
   "routeObjective": {
-    "fuelConsTons": 1.0,
+    "fuelTons": 1.0,
     "co2Tons": 0.8,
-    "timeOfFlightDays": 0.5
+    "totalTransitDays": 0.5
   }
 }

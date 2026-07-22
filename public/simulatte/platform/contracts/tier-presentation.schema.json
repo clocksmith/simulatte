@@ -1,11 +1,21 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Simulatte multi-scale tier plugin presentation",
+  "title": "Simulatte coordinate-native tier presentation v3",
   "type": "object",
-  "required": ["schema", "coordinateSystem"],
+  "required": [
+    "schema",
+    "coordinateSystem",
+    "markers",
+    "paths",
+    "actors",
+    "areas",
+    "cameraTargets"
+  ],
   "additionalProperties": false,
   "properties": {
-    "schema": { "const": "simulatte.pluginPresentation.v3" },
+    "schema": {
+      "const": "simulatte.pluginPresentation.v3"
+    },
     "coordinateSystem": {
       "enum": [
         "wgs84",
@@ -14,67 +24,188 @@
         "icrs-cartesian-pc"
       ]
     },
-    "epoch": { "type": "string" },
+    "epoch": {
+      "type": "string",
+      "minLength": 1
+    },
     "markers": {
       "type": "array",
+      "maxItems": 4096,
       "items": {
         "type": "object",
-        "required": ["id", "position"],
+        "required": [
+          "id",
+          "position"
+        ],
+        "additionalProperties": false,
         "properties": {
-          "id": { "type": "string" },
-          "position": { "type": "array", "items": { "type": "number" } },
-          "label": { "type": "string" },
-          "tone": { "type": "string" },
-          "radius": { "type": "number" }
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "position": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 3,
+            "items": {
+              "type": "number"
+            }
+          },
+          "label": {
+            "type": "string"
+          },
+          "tone": {
+            "type": "string"
+          },
+          "radius": {
+            "type": "number",
+            "minimum": 0
+          }
         }
       }
     },
     "paths": {
       "type": "array",
+      "maxItems": 1024,
       "items": {
         "type": "object",
-        "required": ["id", "coordinates"],
+        "required": [
+          "id",
+          "coordinates"
+        ],
+        "additionalProperties": false,
         "properties": {
-          "id": { "type": "string" },
-          "coordinates": { "type": "array", "items": { "type": "array", "items": { "type": "number" } } },
-          "tone": { "type": "string" },
-          "width": { "type": "number" }
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "coordinates": {
+            "type": "array",
+            "minItems": 2,
+            "items": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 3,
+              "items": {
+                "type": "number"
+              }
+            }
+          },
+          "label": {
+            "type": "string"
+          },
+          "tone": {
+            "type": "string"
+          },
+          "width": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          }
         }
       }
     },
     "actors": {
       "type": "array",
+      "maxItems": 1024,
       "items": {
         "type": "object",
-        "required": ["id", "position"],
+        "required": [
+          "id",
+          "position"
+        ],
+        "additionalProperties": false,
         "properties": {
-          "id": { "type": "string" },
-          "position": { "type": "array", "items": { "type": "number" } },
-          "label": { "type": "string" },
-          "tone": { "type": "string" }
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "position": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 3,
+            "items": {
+              "type": "number"
+            }
+          },
+          "label": {
+            "type": "string"
+          },
+          "tone": {
+            "type": "string"
+          },
+          "radius": {
+            "type": "number",
+            "minimum": 0
+          }
         }
       }
     },
     "areas": {
       "type": "array",
+      "maxItems": 512,
       "items": {
         "type": "object",
-        "required": ["id", "coordinates"],
+        "required": [
+          "id",
+          "coordinates"
+        ],
+        "additionalProperties": false,
         "properties": {
-          "id": { "type": "string" },
-          "coordinates": { "type": "array" },
-          "tone": { "type": "string" }
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "coordinates": {
+            "type": "array",
+            "minItems": 3,
+            "items": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 3,
+              "items": {
+                "type": "number"
+              }
+            }
+          },
+          "label": {
+            "type": "string"
+          },
+          "tone": {
+            "type": "string"
+          }
         }
       }
     },
     "cameraTargets": {
       "type": "array",
+      "maxItems": 128,
       "items": {
         "type": "object",
-        "required": ["id", "center"],
+        "required": [
+          "id",
+          "center"
+        ],
+        "additionalProperties": false,
         "properties": {
-          "id": { "type": "string" },
-          "center": { "type": "array", "items": { "type": "number" } }
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "center": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 3,
+            "items": {
+              "type": "number"
+            }
+          },
+          "label": {
+            "type": "string"
+          },
+          "distance": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          }
         }
       }
     }

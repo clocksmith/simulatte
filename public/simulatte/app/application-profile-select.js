@@ -213,7 +213,7 @@
     elements.scenarioLabel.textContent = scenario.label;
     elements.scenarioDescription.textContent = scenario.description;
     elements.scenarioSeed.textContent = `Seed ${scenario.seed}`;
-    elements.missionInput.value = scenario.missionText;
+    elements.missionInput.value = scenario.missionText || '';
     elements.shuffleLabel.textContent = interaction.shuffleLabel;
     elements.startLabel.textContent = interaction.startLabel;
   }

@@ -1,68 +1,250 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Simulatte plugin manifest v1",
+  "title": "Simulatte plugin manifest",
   "type": "object",
-  "required": ["schema", "id", "version", "sdkVersion", "entry", "resources", "permissions", "datasets", "provides", "consumes", "extensionPoints", "receiptSchemas", "configSchema", "defaultConfig"],
+  "required": [
+    "schema",
+    "id",
+    "version",
+    "sdkVersion",
+    "entry",
+    "resources",
+    "permissions",
+    "datasets",
+    "provides",
+    "consumes",
+    "extensionPoints",
+    "receiptSchemas",
+    "configSchema",
+    "defaultConfig"
+  ],
   "additionalProperties": false,
   "properties": {
-    "schema": { "const": "simulatte.pluginManifest.v1" },
-    "id": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
-    "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
-    "sdkVersion": { "const": 1 },
+    "schema": {
+      "enum": [
+        "simulatte.pluginManifest.v1",
+        "simulatte.pluginManifest.v2"
+      ]
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "sdkVersion": {
+      "enum": [
+        1,
+        2
+      ]
+    },
     "entry": {
       "type": "object",
-      "required": ["path", "integrity", "globalFactory"],
+      "required": [
+        "path",
+        "integrity",
+        "globalFactory"
+      ],
       "additionalProperties": false,
       "properties": {
-        "path": { "type": "string" },
-        "integrity": { "type": "string", "pattern": "^sha384-[a-f0-9]{96}$" },
-        "globalFactory": { "type": "string" }
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "integrity": {
+          "type": "string",
+          "pattern": "^sha384-[a-f0-9]{96}$"
+        },
+        "globalFactory": {
+          "type": "string",
+          "minLength": 1
+        }
       }
     },
     "resources": {
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["path", "integrity"],
+        "required": [
+          "path",
+          "integrity"
+        ],
         "additionalProperties": false,
         "properties": {
-          "path": { "type": "string" },
-          "integrity": { "type": "string", "pattern": "^sha384-[a-f0-9]{96}$" }
-        }
-      }
-    },
-    "permissions": { "type": "array", "uniqueItems": true, "items": { "type": "string" } },
-    "datasets": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "required": ["id", "required"],
-        "additionalProperties": false,
-        "properties": {
-          "id": { "type": "string" },
-          "required": { "type": "boolean" },
-          "reference": {
-            "type": "object",
-            "required": ["id", "path", "sha256", "schemaId"],
-            "additionalProperties": false,
-            "properties": { "id": { "type": "string" }, "path": { "type": "string" }, "sha256": { "type": "string" }, "schemaId": { "type": "string" } }
+          "path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "integrity": {
+            "type": "string",
+            "pattern": "^sha384-[a-f0-9]{96}$"
           }
         }
       }
     },
-    "provides": { "type": "array", "uniqueItems": true, "items": { "type": "string" } },
+    "permissions": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "capabilities.invoke.v1",
+          "clock.read.v1",
+          "events.propose.v1",
+          "language.parse.v1",
+          "receipts.append.v1",
+          "routing.contribute.v1",
+          "simulation.run.v1",
+          "state.reduce.v1",
+          "ui.inspector.v1",
+          "world.query.v1",
+          "random.stream.v1",
+          "simulation.schedule.v1",
+          "compute.worker.v1",
+          "environment.read.v1",
+          "geography.project.v1",
+          "ui.geospatial.v1",
+          "tier.query.v1"
+        ]
+      }
+    },
+    "datasets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "required"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "reference": {
+            "type": "object",
+            "required": [
+              "id",
+              "path",
+              "sha256",
+              "schemaId"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "path": {
+                "type": "string",
+                "minLength": 1
+              },
+              "sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "schemaId": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      }
+    },
+    "provides": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
     "consumes": {
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["id", "required"],
+        "required": [
+          "id",
+          "required"
+        ],
         "additionalProperties": false,
-        "properties": { "id": { "type": "string" }, "required": { "type": "boolean" } }
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "required": {
+            "type": "boolean"
+          }
+        }
       }
     },
-    "extensionPoints": { "type": "array", "uniqueItems": true, "items": { "enum": ["request", "route", "event", "settlement", "ui", "presentation"] } },
-    "receiptSchemas": { "type": "array", "uniqueItems": true, "items": { "type": "string" } },
-    "configSchema": { "type": "string" },
-    "defaultConfig": { "type": "string" }
-  }
+    "extensionPoints": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "request",
+          "route",
+          "event",
+          "settlement",
+          "ui",
+          "presentation"
+        ]
+      }
+    },
+    "receiptSchemas": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "configSchema": {
+      "type": "string",
+      "minLength": 1
+    },
+    "defaultConfig": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "sdkVersion": {
+            "const": 1
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "permissions": {
+            "items": {
+              "enum": [
+                "capabilities.invoke.v1",
+                "clock.read.v1",
+                "events.propose.v1",
+                "language.parse.v1",
+                "receipts.append.v1",
+                "routing.contribute.v1",
+                "simulation.run.v1",
+                "state.reduce.v1",
+                "ui.inspector.v1",
+                "world.query.v1"
+              ]
+            }
+          }
+        }
+      }
+    }
+  ]
 }

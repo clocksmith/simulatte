@@ -85,7 +85,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginFoodRecallUs",
-    "integrity": "sha384-1621cc53081e3684b391bcf0421376a7f7a0041eb379ababe220e53c7588dd2d7debe6a97b2dfba78034af20781c7dbc",
+    "integrity": "sha384-e279bc894571d747fc6661b8bf1bef683a06d739029b66b87da784fca448fcb34c2fe8a6df4e78c8a515ed2587b0e84f",
     "path": "./index.js"
   },
   "extensionPoints": [

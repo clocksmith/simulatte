@@ -61,13 +61,16 @@
     assertObject(value, 'application_profile_invalid', 'Application profile expected an object');
     const isV2 = value.schema === 'simulatte.applicationProfile.v2';
     const isV3 = value.schema === 'simulatte.applicationProfile.v3';
-    const isSeeded = isV2 || isV3;
-    const allowedKeys = isSeeded
-      ? ['schema', 'id', 'plugins', 'routeObjective', 'camera', 'interaction', 'defaultSeedId', 'seeds']
-      : ['schema', 'id', 'plugins', 'routeObjective', 'defaultMissionText', 'missionExamples', 'camera'];
-    const requiredKeys = isSeeded
-      ? ['schema', 'id', 'plugins', 'routeObjective', 'interaction', 'defaultSeedId', 'seeds']
-      : ['schema', 'id', 'plugins', 'routeObjective'];
+    const allowedKeys = isV3
+      ? ['schema', 'id', 'tier', 'worldModelId', 'plugins', 'routeObjective', 'camera', 'interaction', 'defaultSeedId', 'seeds']
+      : isV2
+        ? ['schema', 'id', 'plugins', 'routeObjective', 'camera', 'interaction', 'defaultSeedId', 'seeds']
+        : ['schema', 'id', 'plugins', 'routeObjective', 'defaultMissionText', 'missionExamples', 'camera'];
+    const requiredKeys = isV3
+      ? ['schema', 'id', 'tier', 'worldModelId', 'plugins', 'routeObjective', 'interaction', 'defaultSeedId', 'seeds']
+      : isV2
+        ? ['schema', 'id', 'plugins', 'routeObjective', 'interaction', 'defaultSeedId', 'seeds']
+        : ['schema', 'id', 'plugins', 'routeObjective'];
     assertAllowedKeys(value, allowedKeys, requiredKeys, `Application profile ${value.id || 'missing'}`);
     if (!['simulatte.applicationProfile.v1', 'simulatte.applicationProfile.v2', 'simulatte.applicationProfile.v3'].includes(value.schema)) fail('application_profile_schema_invalid', `Application profile schema ${value.schema || 'missing'} is unsupported`, null);
     text(value.id, 'application_profile_id_invalid', 'Application profile ID');
@@ -81,6 +84,10 @@
       if (ids.has(row.id)) fail('application_profile_plugin_duplicate', `Profile ${value.id} duplicates plugin ${row.id}`, { pluginId: row.id });
       ids.add(row.id);
     });
+    if (isV3) {
+      if (!['country', 'world', 'solar-system', 'star-chart'].includes(value.tier)) fail('application_profile_tier_invalid', `Profile ${value.id} tier ${value.tier || 'missing'} is invalid`, { tier: value.tier || null });
+      text(value.worldModelId, 'application_profile_world_invalid', `Profile ${value.id} world model ID`);
+    }
     assertObject(value.routeObjective, 'application_profile_objective_invalid', `Profile ${value.id} route objective expected an object`);
     Object.entries(value.routeObjective).forEach(([key, weight]) => {
       if (!Number.isFinite(weight) || weight < 0) fail('application_profile_weight_invalid', `Profile ${value.id} route weight ${key} expected a non-negative number`, { key, weight });
@@ -106,13 +113,19 @@
     return value;
   }
 
-  function validatePluginInstance(pluginId, value) {
+  function validatePluginInstance(pluginId, value, manifest = null) {
     assertObject(value, 'plugin_instance_invalid', `Plugin ${pluginId} activation expected an instance`);
     if (value.id !== pluginId) fail('plugin_instance_id_mismatch', `Plugin ${pluginId} activated as ${value.id || 'missing'}`, { expected: pluginId, actual: value.id || null });
     ['contributeRequest', 'createRouteContributor', 'settle', 'view', 'present', 'dispose', 'reduce', 'handleAction', 'setScenario'].forEach((method) => {
       if (value[method] !== undefined && typeof value[method] !== 'function') fail('plugin_instance_method_invalid', `Plugin ${pluginId}.${method} expected a function`, { pluginId, method });
     });
     if (value.capabilities !== undefined && (!value.capabilities || typeof value.capabilities !== 'object' || Array.isArray(value.capabilities))) fail('plugin_instance_capabilities_invalid', `Plugin ${pluginId}.capabilities expected an object`, { pluginId });
+    if (manifest) {
+      const declared = new Set((manifest.provides || []).filter((id) => !id.startsWith('routing.dimension.')));
+      const implemented = Object.keys(value.capabilities || {});
+      implemented.forEach((id) => { if (!declared.has(id)) fail('plugin_capability_implementation_undeclared', `Plugin ${pluginId} implements undeclared capability ${id}`, { pluginId, capabilityId: id }); });
+      if (manifest.sdkVersion >= 2) declared.forEach((id) => { if (typeof value.capabilities?.[id] !== 'function') fail('plugin_capability_implementation_missing', `Plugin ${pluginId} must implement declared capability ${id}`, { pluginId, capabilityId: id }); });
+    }
     return value;
   }
 
@@ -138,6 +151,8 @@
 
   function validateProfileScenarioInteraction(value) {
     assertObject(value.interaction, 'application_profile_interaction_invalid', `Profile ${value.id} interaction expected an object`);
+    assertAllowedKeys(value.interaction, ['mode', 'simulationOwnerPluginId', 'missionRequired', 'startLabel', 'shuffleLabel'], ['mode', 'startLabel', 'shuffleLabel'], `Profile ${value.id} interaction`);
+    if (value.interaction.missionRequired !== undefined && typeof value.interaction.missionRequired !== 'boolean') fail('application_profile_interaction_mission_required_invalid', `Profile ${value.id} missionRequired expected a boolean`, value.interaction);
     if (!['scenario', 'simulation'].includes(value.interaction.mode)) fail('application_profile_interaction_mode_invalid', `Profile ${value.id} interaction mode is invalid`, value.interaction);
     text(value.interaction.startLabel, 'application_profile_interaction_label_invalid', `Profile ${value.id} start label`);
     text(value.interaction.shuffleLabel, 'application_profile_interaction_label_invalid', `Profile ${value.id} shuffle label`);
@@ -150,7 +165,8 @@
     const seeds = new Set();
     value.seeds.forEach((row, index) => {
       assertObject(row, 'application_profile_seed_invalid', `Profile ${value.id} seed ${index} expected an object`);
-      ['id', 'label', 'description', 'seed'].forEach((key) => text(row[key], 'application_profile_seed_invalid', `Profile ${value.id} seed ${index} ${key}`));
+      assertExactKeys(row, ['id', 'label', 'description', 'seed', 'scenarioId'], `Profile ${value.id} seed ${index}`);
+      ['id', 'label', 'description', 'seed', 'scenarioId'].forEach((key) => text(row[key], 'application_profile_seed_invalid', `Profile ${value.id} seed ${index} ${key}`));
       if (ids.has(row.id) || seeds.has(row.seed)) fail('application_profile_seed_duplicate', `Profile ${value.id} seed IDs and values must be unique`, { id: row.id, seed: row.seed });
       ids.add(row.id); seeds.add(row.seed);
     });
@@ -177,6 +193,22 @@
     if (!Array.isArray(value.unresolved) || value.unresolved.some((row) => typeof row !== 'string' || !row)) fail('plugin_request_unresolved_invalid', `Plugin ${pluginId} unresolved expected non-empty strings`, { pluginId });
     if (value.executableSourceText !== undefined) text(value.executableSourceText, 'plugin_executable_source_invalid', `Plugin ${pluginId} executable source`);
     if (value.missionPatch !== undefined) validateMissionPatch(pluginId, value.missionPatch);
+    return value;
+  }
+
+  function validateSettlementContribution(pluginId, value) {
+    assertObject(value, 'plugin_settlement_invalid', `Plugin ${pluginId} settlement expected an object`);
+    if (!Array.isArray(value.obligationResults)) fail('plugin_settlement_results_invalid', `Plugin ${pluginId} obligationResults expected an array`, { pluginId });
+    const ids = new Set();
+    value.obligationResults.forEach((row, index) => {
+      assertAllowedKeys(row, ['obligationId', 'status', 'evidence'], ['obligationId', 'status'], `Plugin ${pluginId} settlement result ${index}`);
+      text(row.obligationId, 'plugin_settlement_obligation_invalid', `Plugin ${pluginId} settlement obligation ID`);
+      if (ids.has(row.obligationId)) fail('plugin_settlement_obligation_duplicate', `Plugin ${pluginId} duplicates settlement obligation ${row.obligationId}`, { pluginId, obligationId: row.obligationId });
+      ids.add(row.obligationId);
+      if (!['settled', 'not_settled', 'unmet'].includes(row.status)) fail('plugin_settlement_status_invalid', `Plugin ${pluginId} settlement status ${row.status} is invalid`, { pluginId, status: row.status });
+    });
+    if (value.stateIdentity !== null && value.stateIdentity !== undefined && typeof value.stateIdentity !== 'string') fail('plugin_settlement_identity_invalid', `Plugin ${pluginId} stateIdentity expected text or null`, { pluginId });
+    if (!Array.isArray(value.losses)) fail('plugin_settlement_losses_invalid', `Plugin ${pluginId} losses expected an array`, { pluginId });
     return value;
   }
 
@@ -229,6 +261,7 @@
 
   function validatePresentationContribution(pluginId, value) {
     assertObject(value, 'plugin_presentation_invalid', `Plugin ${pluginId} presentation expected an object`);
+    if (value.schema === 'simulatte.pluginPresentation.v3' && Object.hasOwn(value, 'coordinateSystem')) return validateTierPresentationContribution(pluginId, value);
     if (value.schema === 'simulatte.pluginPresentation.v1') {
       assertExactKeys(value, ['schema', 'markers', 'paths', 'actors', 'cameraTargets'], `Plugin ${pluginId} presentation`);
     } else if (value.schema === 'simulatte.pluginPresentation.v2') {
@@ -336,6 +369,23 @@
     return value;
   }
 
+  function validateTierPresentationContribution(pluginId, value) {
+    assertAllowedKeys(value, ['schema', 'coordinateSystem', 'epoch', 'markers', 'paths', 'actors', 'areas', 'cameraTargets'], ['schema', 'coordinateSystem', 'markers', 'paths', 'actors', 'areas', 'cameraTargets'], `Plugin ${pluginId} tier presentation`);
+    if (!['wgs84', 'equirectangular-planar', 'heliocentric-ecliptic-au', 'icrs-cartesian-pc'].includes(value.coordinateSystem)) fail('plugin_tier_coordinate_system_invalid', `Plugin ${pluginId} coordinate system ${value.coordinateSystem} is invalid`, { pluginId, coordinateSystem: value.coordinateSystem });
+    if (value.epoch !== undefined) text(value.epoch, 'plugin_tier_epoch_invalid', `Plugin ${pluginId} tier epoch`);
+    boundedRows(value.markers, 4096, `Plugin ${pluginId} tier markers`).forEach((row) => { assertAllowedKeys(row, ['id', 'position', 'label', 'tone', 'radius'], ['id', 'position'], `Plugin ${pluginId} tier marker`); text(row.id, 'plugin_tier_marker_id_invalid', `Plugin ${pluginId} tier marker ID`); validateTierTuple(row.position, value.coordinateSystem, `Plugin ${pluginId} tier marker ${row.id}`); if (row.tone !== undefined && !PRESENTATION_TONES.includes(row.tone)) fail('plugin_tier_tone_invalid', `Plugin ${pluginId} tier marker tone is invalid`, { tone: row.tone }); if (row.radius !== undefined) finiteRange(row.radius, 0, 1000000, 'plugin_tier_radius_invalid', `Plugin ${pluginId} tier marker radius`); });
+    boundedRows(value.paths, 1024, `Plugin ${pluginId} tier paths`).forEach((row) => { assertAllowedKeys(row, ['id', 'coordinates', 'label', 'tone', 'width'], ['id', 'coordinates'], `Plugin ${pluginId} tier path`); text(row.id, 'plugin_tier_path_id_invalid', `Plugin ${pluginId} tier path ID`); if (!Array.isArray(row.coordinates) || row.coordinates.length < 2 || row.coordinates.length > 10000) fail('plugin_tier_path_coordinates_invalid', `Plugin ${pluginId} tier path ${row.id} expected 2..10000 coordinates`, null); row.coordinates.forEach((point) => validateTierTuple(point, value.coordinateSystem, `Plugin ${pluginId} tier path ${row.id}`)); if (row.width !== undefined) finiteRange(row.width, 0.1, 1000, 'plugin_tier_width_invalid', `Plugin ${pluginId} tier path width`); });
+    boundedRows(value.actors, 1024, `Plugin ${pluginId} tier actors`).forEach((row) => { assertAllowedKeys(row, ['id', 'position', 'label', 'tone', 'radius'], ['id', 'position'], `Plugin ${pluginId} tier actor`); text(row.id, 'plugin_tier_actor_id_invalid', `Plugin ${pluginId} tier actor ID`); validateTierTuple(row.position, value.coordinateSystem, `Plugin ${pluginId} tier actor ${row.id}`); });
+    boundedRows(value.areas, 512, `Plugin ${pluginId} tier areas`).forEach((row) => { assertAllowedKeys(row, ['id', 'coordinates', 'label', 'tone'], ['id', 'coordinates'], `Plugin ${pluginId} tier area`); if (!Array.isArray(row.coordinates) || row.coordinates.length < 3) fail('plugin_tier_area_invalid', `Plugin ${pluginId} tier area expected at least three coordinates`, null); row.coordinates.forEach((point) => validateTierTuple(point, value.coordinateSystem, `Plugin ${pluginId} tier area`)); });
+    boundedRows(value.cameraTargets, 128, `Plugin ${pluginId} tier camera targets`).forEach((row) => { assertAllowedKeys(row, ['id', 'center', 'label', 'distance'], ['id', 'center'], `Plugin ${pluginId} tier camera target`); text(row.id, 'plugin_tier_camera_id_invalid', `Plugin ${pluginId} tier camera ID`); validateTierTuple(row.center, value.coordinateSystem, `Plugin ${pluginId} tier camera ${row.id}`); if (row.distance !== undefined) finiteRange(row.distance, 0.01, 1000000000, 'plugin_tier_camera_distance_invalid', `Plugin ${pluginId} tier camera distance`); });
+    return value;
+  }
+
+  function validateTierTuple(value, coordinateSystem, label) {
+    if (!Array.isArray(value) || value.length < 2 || value.length > 3 || value.some((row) => !Number.isFinite(row))) fail('plugin_tier_position_invalid', `${label} expected two or three finite values`, { value });
+    if (coordinateSystem === 'wgs84' && (value[0] < -180 || value[0] > 180 || value[1] < -90 || value[1] > 90)) fail('plugin_tier_wgs84_invalid', `${label} is outside WGS84 bounds`, { value });
+  }
+
   function validateIdentityAndTone(pluginId, row, kind) {
     text(row.id, `plugin_${kind}_id_invalid`, `Plugin ${pluginId} ${kind} ID`);
     text(row.label, `plugin_${kind}_label_invalid`, `Plugin ${pluginId} ${kind} label`);
@@ -430,5 +480,5 @@
     throw error;
   }
 
-  return { EXTENSION_POINTS, PERMISSIONS, SDK_VERSION, SUPPORTED_SDK_VERSIONS, validateManifest, validatePresentationContribution, validateProfile, validatePluginInstance, validateRequestContribution, validateUiContribution };
+  return { EXTENSION_POINTS, PERMISSIONS, SDK_VERSION, SUPPORTED_SDK_VERSIONS, validateManifest, validatePresentationContribution, validateProfile, validatePluginInstance, validateRequestContribution, validateSettlementContribution, validateUiContribution };
 });

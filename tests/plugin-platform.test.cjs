@@ -47,7 +47,7 @@ test('plugin runtime activates a least-authority fixture, sequences state, contr
         return {
           id: 'fixture-plugin',
           contributeRequest: () => ({ recognized: true, obligations: [], unresolved: [] }),
-          settle: () => ({ count: sdk.state.read().count }),
+          settle: () => ({ obligationResults: [], stateIdentity: null, losses: [], count: sdk.state.read().count }),
           view: () => ({ slot: 'inspector', title: 'Fixture', rows: [{ label: 'Count', value: '2' }], actions: [] }),
           dispose() { disposed = true; },
         };
@@ -135,7 +135,7 @@ test('plugin presentation is validated and compiled into namespaced renderer dat
   assert.equal(compiled.markers[0].id, 'plugin:fixture-plugin:hub');
   assert.equal(compiled.actors[0].points.length, 2);
   assert.equal(compiled.cameraTargets[0].kind, 'plugin');
-  assert.deepEqual(compiled.counts, { plugins: 1, markers: 1, paths: 1, actors: 1, areas: 0, suns: 0, cameraTargets: 1 });
+  assert.deepEqual(compiled.counts, { plugins: 1, markers: 1, paths: 1, actors: 1, areas: 0, suns: 0, cameraTargets: 1, geoMarkers: 0, geoPaths: 0, geoAreas: 0, choropleths: 0 });
   assert.throws(() => contracts.validatePresentationContribution('fixture-plugin', { ...contribution, actors: [{ ...contribution.actors[0], kind: 'spaceship' }] }), /plugin_actor_kind_invalid/);
 
   const solar = {
@@ -152,7 +152,7 @@ test('plugin presentation is validated and compiled into namespaced renderer dat
   assert.equal(solarCompiled.areas.length, 1);
   assert.equal(solarCompiled.sun.pluginId, 'fixture-plugin');
   assert.equal(solarCompiled.sun.directionToSun.length, 3);
-  assert.deepEqual(solarCompiled.counts, { plugins: 1, markers: 0, paths: 0, actors: 0, areas: 1, suns: 1, cameraTargets: 1 });
+  assert.deepEqual(solarCompiled.counts, { plugins: 1, markers: 0, paths: 0, actors: 0, areas: 1, suns: 1, cameraTargets: 1, geoMarkers: 0, geoPaths: 0, geoAreas: 0, choropleths: 0 });
 });
 
 test('experience camera configuration targets only an active plugin', () => {

@@ -82,7 +82,7 @@
         receiptSink: appendReceipt,
       });
       const instance = await row.factory.activate({ sdk, config: stateApi.freezeClone(row.config), profile: stateApi.freezeClone(profile), scenario: stateApi.freezeClone(scenario) });
-      contracts.validatePluginInstance(pluginId, instance);
+      contracts.validatePluginInstance(pluginId, instance, row.manifest);
       validateDeclaredExtensions(row.manifest, instance);
       instances.set(pluginId, instance);
     }
@@ -133,7 +133,7 @@
         const instance = instances.get(pluginId);
         if (typeof instance.settle !== 'function') continue;
         const contribution = await instance.settle(stateApi.freezeClone(context));
-        if (contribution) output.push(stateApi.freezeClone({ pluginId, ...contribution }));
+        if (contribution) { contracts.validateSettlementContribution(pluginId, contribution); output.push(stateApi.freezeClone({ pluginId, ...contribution })); }
       }
       return Object.freeze(output);
     }
@@ -200,7 +200,7 @@
         schema: 'simulatte.pluginRuntimeReceipt.v1',
         profileId: profile.id,
         scenario,
-        sdkVersion: 1,
+        sdkVersion: Math.max(1, ...[...rowsById.values()].map((row) => row.manifest.sdkVersion)),
         activationOrder: graph.order,
         sourceReceipts,
         disabledOptionalCapabilities: graph.disabledOptional,
