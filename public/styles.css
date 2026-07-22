@@ -125,8 +125,8 @@ body:not([data-journey-phase="loading"]) .loading-screen {
 .loading-mosaic-grid > i {
   display: block;
   border: 0;
-  border-radius: 2px;
-  background: var(--sim-ink);
+  border-radius: 0;
+  background: #080808;
 }
 
 .loading-mosaic-snake {
@@ -141,7 +141,7 @@ body:not([data-journey-phase="loading"]) .loading-screen {
   display: block;
   width: calc((100% - 36px) / 7);
   aspect-ratio: 1;
-  border-radius: 1px;
+  border-radius: 0;
   color: hsl(var(--segment-hue), 88%, 62%);
   background: currentColor;
   will-change: color, opacity, transform;
