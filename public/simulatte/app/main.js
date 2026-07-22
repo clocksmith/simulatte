@@ -443,6 +443,7 @@
       elements.missionInput.dispatchEvent(new Event('input', { bubbles: true }));
       resizeMissionInput(elements.missionInput);
       renderPluginExperience({ mission: null });
+      if (hasJourneyStarted) { try { stopLoop(); hasJourneyStarted = false; await buildController(); } catch (e) { failRuntime(elements, e); } } // tier-flow parity: rebuild after a run so Shuffle re-loads cleanly
     });
     elements.pauseButton.addEventListener('click', () => {
       stopLoop();
@@ -832,7 +833,7 @@
     elements.stepButton.disabled = false;
     elements.resetButton.disabled = false;
     elements.exportButton.disabled = !hasController;
-    elements.shuffleButton.hidden = phase !== 'ready';
+    elements.shuffleButton.hidden = !['ready', 'completed', 'failed'].includes(phase);
     elements.startButton.hidden = phase !== 'ready';
     elements.pauseButton.hidden = !running;
     elements.resumeButton.hidden = phase !== 'paused';
