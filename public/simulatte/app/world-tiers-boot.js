@@ -60,6 +60,9 @@
     function environmentSnapshots(){ const ids=['us.environment.snapshot.v1']; return Object.fromEntries(ids.flatMap((id)=>{try{const value=data.dataCatalog.optional(id);return value?[[id,value]]:[];}catch(_error){return[];}})); }
     function createCorePorts(scenario){
       return Object.freeze({
+        clock:Object.freeze({instantForMission:()=>scenario?.epochStart||new Date().toISOString(),now:()=>Date.now(),iso:()=>new Date().toISOString()}),
+        worldQuery:Object.freeze({query:()=>data.world}),
+        routing:Object.freeze({contribute:()=>{}}),
         tier:Object.freeze({schema:'simulatte.tierQuery.v1',id:tier,worldId:data.world.id,profileId:data.applicationProfile.id,snapshot:()=>data.world}),
         ui:Object.freeze({slot:'inspector'}),
         receipts:Object.freeze({createReceiptChain:root.SimulatteAutonomyReceipts.createReceiptChain,appendReceiptEntry:root.SimulatteAutonomyReceipts.appendReceiptEntry,sha256Hex:root.SimulatteAutonomyReceipts.sha256Hex,verifyReceiptChain:root.SimulatteAutonomyReceipts.verifyReceiptChain}),
