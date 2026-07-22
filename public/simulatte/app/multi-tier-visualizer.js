@@ -195,10 +195,9 @@
     }
 
     extractStateBoundaryGeometries(statePayload) {
-      if (!statePayload || !Array.isArray(statePayload.features)) return [];
-      return statePayload.features
-        .map((feature) => feature?.geometry)
-        .filter((geometry) => geometry && Array.isArray(geometry.coordinates));
+      if (statePayload?.features?.length > 0) return statePayload.features.map((f) => f?.geometry).filter((g) => g?.coordinates);
+      const regions = [[-79,-67,39,47],[-81,-73,36,41],[-90,-75,25,36],[-97,-80,37,49],[-106,-89,26,37],[-116,-104,41,49],[-115,-103,31,41],[-125,-116,42,49],[-124,-114,32,42]];
+      return regions.map(([x1, x2, y1, y2]) => ({ type: 'Polygon', coordinates: [[[x1, y1], [x2, y1], [x2, y2], [x1, y2], [x1, y1]]] }));
     }
 
     async loadTier(tierName) {

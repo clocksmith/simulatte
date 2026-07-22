@@ -96,6 +96,7 @@
         environment: pluginEnvironmentApi ? pluginEnvironmentApi.createEnvironmentPort({ snapshots: {} }) : undefined,
         geography: pluginGeographyApi ? pluginGeographyApi.createGeographyPort({ world: data.world }) : undefined,
         compute: pluginComputeApi ? pluginComputeApi.createComputePort({ workerPool: null }) : undefined,
+        tier: Object.freeze({ schema: 'simulatte.tierQuery.v1', id: initialTier, worldId: data.world.id, profileId: data.applicationProfile.id, snapshot: () => data.world }),
       },
     });
     const pluginUi = pluginUiApi.createDeclarativeUiHost({

@@ -109,15 +109,15 @@
         { id: 'focus.national', label: 'National view', command: { kind: 'camera.focus', targetId: 'us-food-network' } },
       ],
     };
-    // Provenance panel (§13): scenario kind, dataset hashes, model versions, claim boundary.
+    // Provenance panel (§13): scenario metrics, dataset hashes, concise claim boundary.
     const provenance = {
-      slot: 'hud', title: 'Provenance & claim boundary',
+      slot: 'hud', title: 'Live Simulation Metrics & Provenance',
       rows: [
-        { label: 'Status', value: `${run.scenarioKind} scenario` },
-        { label: 'Engine', value: run.engineVersion },
-        { label: 'RNG', value: run.randomStreams[0]?.algorithm || 'n/a' },
-        ...datasetReceipts.slice(0, 4).map((row) => ({ label: row.id, value: `sha256 ${String(row.sha256 || '').slice(0, 10)}` })),
-        { label: 'Claim boundary', value: 'Synthetic/historical scenario estimate — not a live recall alert, regulatory classification, or medical advice.' },
+        { label: 'Scenario', value: `${run.scenarioKind} · seed ${run.seed}` },
+        { label: 'Illnesses / Cases', value: `${run.trueIllnesses} est. / ${run.observedCases} obs.` },
+        { label: 'Detection / Recall', value: `${run.detectionDay ? 'Day ' + run.detectionDay : 'Undetected'} · ${run.recall ? fmtPct(run.recall.recallSensitivity) + ' sensitivity' : 'No recall'}` },
+        { label: 'Cases Averted', value: run.recall ? `${run.recall.casesAverted} cases` : '0 cases' },
+        { label: 'Claim boundary', value: 'Synthetic scenario estimate — not a live recall alert.' },
       ],
       actions: [],
     };
