@@ -135,7 +135,7 @@
       "path": "./food-engine.js"
     },
     {
-      "integrity": "sha384-5139a2cb232543d039a068c786f7660439cf5a7f438892ca53f0bbb4264fd384ae6255ed20a6f12cad1f8224d97d08fe",
+      "integrity": "sha384-e1add701905ad484d17a4be12f7403c6f296fce88191736a8dfe83cabe17684ae23b73b3b4810f54cb5ebbee55a417ac",
       "path": "./food-presentation.js"
     }
   ],
