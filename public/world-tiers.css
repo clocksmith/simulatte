@@ -173,6 +173,10 @@
   box-shadow: var(--sim-shadow-small);
 }
 
+.tier-card * {
+  pointer-events: none;
+}
+
 .tier-card:hover {
   background: #101010;
   border-color: var(--sim-line-strong);

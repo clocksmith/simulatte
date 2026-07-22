@@ -4,6 +4,7 @@ artifacts/simulatte-pipeline-audit/live-webgpu/
 artifacts/simulatte-pipeline-audit/live-score/
 artifacts/simulatte-pipeline-audit/runs/*/
 artifacts/samer/
+artifacts/tier-browser-smoke/
 artifacts/samer-gold-*/
 tools/autonomy/data-sources/*/osm-api-tiles/
 tools/autonomy/data-sources/*/street-tiles/

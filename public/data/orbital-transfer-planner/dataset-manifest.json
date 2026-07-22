@@ -1,18 +1,20 @@
 {
   "schema": "simulatte.orbitalTransferDatasetManifest.v1",
-  "generatedAt": "2026-07-22T03:45:16.710Z",
+  "generatedAt": "2026-07-22T14:54:24.077Z",
   "datasets": [
-    {
-      "id": "solar.system.gm-constants-de440.v1",
-      "filename": "gm-constants-de440-v1.json",
-      "schemaId": "simulatte.solarSystemGmConstants.v1",
-      "sha256": "54e129096f6aa63fec28ddd0fbcd4e70f1ba54fddd8435f0f3faf7041197bbd0"
-    },
     {
       "id": "jpl.horizons.heliocentric-vectors.v1",
       "filename": "jpl-horizons-heliocentric-vectors-v1.json",
       "schemaId": "simulatte.jplHorizonsHeliocentricVectors.v1",
-      "sha256": "e984f07b0926b390de4721b64ddea1995c33bec91ca17b7801129b6f464f210d"
+      "sha256": "dae6f914e45a5692b127dc122d9861c6f76770316979fd4c822ba8c83ae25020",
+      "sourceKind": "observed_jpl_horizons_vectors",
+      "retrievedAt": "2026-07-22T14:54:24.077Z"
+    },
+    {
+      "id": "orbital.depots.v1",
+      "filename": "orbital-depots-v1.json",
+      "schemaId": "simulatte.orbitalDepots.v1",
+      "sha256": "a2720a78cef373a127473c8950ba804dba7449d3507e89dd0605e437a0c373de"
     },
     {
       "id": "solar.radiation.snapshot.v1",
@@ -21,10 +23,10 @@
       "sha256": "7033f000b18639dff8a548fc2481a679cdfc9b4b763722c5e3b120c1ea2f759f"
     },
     {
-      "id": "orbital.depots.v1",
-      "filename": "orbital-depots-v1.json",
-      "schemaId": "simulatte.orbitalDepots.v1",
-      "sha256": "a2720a78cef373a127473c8950ba804dba7449d3507e89dd0605e437a0c373de"
+      "id": "solar.system.gm-constants-de440.v1",
+      "filename": "gm-constants-de440-v1.json",
+      "schemaId": "simulatte.solarSystemGmConstants.v1",
+      "sha256": "54e129096f6aa63fec28ddd0fbcd4e70f1ba54fddd8435f0f3faf7041197bbd0"
     },
     {
       "id": "spacecraft.archetypes.v1",

@@ -30,7 +30,7 @@
       "world": {
         "id": "solar-system-ephemeris-v2",
         "path": "./worlds/solar-system-ephemeris-v2.json",
-        "sha256": "1ba4288adbd70c08fddfef352a306f67bd831d6fcc2121e3485370cb5c8ddaa8"
+        "sha256": "a493d60b797e73502684e47915921c86b6cef8bf252112110169e0be2d689326"
       }
     },
     "star-chart": {

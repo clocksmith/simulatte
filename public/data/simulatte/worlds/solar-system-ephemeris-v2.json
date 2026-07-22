@@ -3,7 +3,7 @@
   "id": "solar-system-ephemeris-v2",
   "tier": "solar-system",
   "label": "Solar System heliocentric ephemeris world",
-  "contentVersion": "solar-system-ephemeris-2030-v2",
+  "contentVersion": "solar-system-2030-09-15-dae6f914e45a-v2",
   "coordinateSystem": {
     "kind": "heliocentric-ecliptic-au",
     "referenceFrame": "ICRF/J2000 ecliptic",
@@ -17,126 +17,147 @@
   },
   "epoch": {
     "start": "2030-09-15T00:00:00Z",
-    "end": "2032-09-13T00:00:00.000Z",
+    "end": "2032-09-14T00:00:00.000Z",
     "stepDays": 1,
-    "epochCount": 730
+    "epochCount": 731
   },
   "bounds": {
     "minAu": [
-      -33.121,
-      -33.121,
-      -33.121
+      -32.83798,
+      -32.83798,
+      -32.83798
     ],
     "maxAu": [
-      33.121,
-      33.121,
-      33.121
+      32.83798,
+      32.83798,
+      32.83798
     ],
-    "cameraDistanceAu": 46.369
+    "cameraDistanceAu": 45.973172
   },
   "bodies": [
     {
-      "id": "sun",
-      "name": "Sun",
-      "semiMajorAu": 0,
-      "radiusAu": 0.00465,
-      "periodDays": 1,
-      "color": "#ffaa33",
-      "kind": "star"
-    },
-    {
-      "id": "mercury",
-      "name": "Mercury",
-      "semiMajorAu": 0.387098,
-      "radiusAu": 0.0000163,
-      "periodDays": 87.969,
-      "color": "#aaaaaa",
-      "kind": "planet"
-    },
-    {
-      "id": "venus",
-      "name": "Venus",
-      "semiMajorAu": 0.723332,
-      "radiusAu": 0.0000405,
-      "periodDays": 224.701,
-      "color": "#eebb88",
-      "kind": "planet"
-    },
-    {
       "id": "earth",
       "name": "Earth",
-      "semiMajorAu": 1,
-      "radiusAu": 0.0000426,
+      "referenceRadiusAu": 1.000267329,
+      "minimumRadiusAu": 0.983247024,
+      "maximumRadiusAu": 1.016750239,
+      "radiusAu": 0.00004264,
       "periodDays": 365.256,
       "color": "#44aaff",
       "kind": "planet"
     },
     {
-      "id": "moon",
-      "name": "Moon",
-      "semiMajorAu": 1.00257,
-      "radiusAu": 0.0000116,
-      "periodDays": 365.256,
-      "color": "#888888",
-      "kind": "moon"
-    },
-    {
-      "id": "mars",
-      "name": "Mars",
-      "semiMajorAu": 1.523679,
-      "radiusAu": 0.0000227,
-      "periodDays": 686.98,
-      "color": "#ff5533",
-      "kind": "planet"
-    },
-    {
       "id": "jupiter",
       "name": "Jupiter",
-      "semiMajorAu": 5.2044,
-      "radiusAu": 0.000477,
+      "referenceRadiusAu": 5.248621407,
+      "minimumRadiusAu": 5.117601038,
+      "maximumRadiusAu": 5.364767926,
+      "radiusAu": 0.00047789,
       "periodDays": 4332.59,
       "color": "#eeddaa",
       "kind": "planet"
     },
     {
+      "id": "mars",
+      "name": "Mars",
+      "referenceRadiusAu": 1.550695366,
+      "minimumRadiusAu": 1.381446609,
+      "maximumRadiusAu": 1.666006857,
+      "radiusAu": 0.00002266,
+      "periodDays": 686.98,
+      "color": "#ff5533",
+      "kind": "planet"
+    },
+    {
+      "id": "mercury",
+      "name": "Mercury",
+      "referenceRadiusAu": 0.399231534,
+      "minimumRadiusAu": 0.307497868,
+      "maximumRadiusAu": 0.466701994,
+      "radiusAu": 0.00001631,
+      "periodDays": 87.9691,
+      "color": "#aaaaaa",
+      "kind": "planet"
+    },
+    {
+      "id": "moon",
+      "name": "Moon",
+      "referenceRadiusAu": 1.000541865,
+      "minimumRadiusAu": 0.981100279,
+      "maximumRadiusAu": 1.019063463,
+      "radiusAu": 0.00001161,
+      "periodDays": 27.3217,
+      "color": "#888888",
+      "kind": "moon"
+    },
+    {
+      "id": "neptune",
+      "name": "Neptune",
+      "referenceRadiusAu": 29.849107598,
+      "minimumRadiusAu": 29.846043723,
+      "maximumRadiusAu": 29.852709442,
+      "radiusAu": 0.00016554,
+      "periodDays": 60189,
+      "color": "#5588ff",
+      "kind": "planet"
+    },
+    {
       "id": "saturn",
       "name": "Saturn",
-      "semiMajorAu": 9.5826,
-      "radiusAu": 0.000402,
+      "referenceRadiusAu": 9.034338045,
+      "minimumRadiusAu": 9.015495827,
+      "maximumRadiusAu": 9.078552975,
+      "radiusAu": 0.00040287,
       "periodDays": 10759.22,
       "color": "#eacc99",
       "kind": "planet"
     },
     {
+      "id": "sun",
+      "name": "Sun",
+      "referenceRadiusAu": 0,
+      "minimumRadiusAu": 0,
+      "maximumRadiusAu": 0,
+      "radiusAu": 0.00465047,
+      "periodDays": null,
+      "color": "#ffaa33",
+      "kind": "star"
+    },
+    {
       "id": "uranus",
       "name": "Uranus",
-      "semiMajorAu": 19.2184,
-      "radiusAu": 0.000171,
+      "referenceRadiusAu": 19.10390895,
+      "minimumRadiusAu": 19.037083191,
+      "maximumRadiusAu": 19.171819636,
+      "radiusAu": 0.00017085,
       "periodDays": 30685.4,
       "color": "#aaddff",
       "kind": "planet"
     },
     {
-      "id": "neptune",
-      "name": "Neptune",
-      "semiMajorAu": 30.1104,
-      "radiusAu": 0.000166,
-      "periodDays": 60189,
-      "color": "#5588ff",
+      "id": "venus",
+      "name": "Venus",
+      "referenceRadiusAu": 0.723006492,
+      "minimumRadiusAu": 0.71844142,
+      "maximumRadiusAu": 0.728223003,
+      "radiusAu": 0.00004045,
+      "periodDays": 224.701,
+      "color": "#eebb88",
       "kind": "planet"
     }
   ],
   "datasets": {
-    "ephemeris": "jpl-horizons-heliocentric-vectors-v1",
-    "gravitationalConstants": "gm-constants-de440-v1",
-    "depots": "orbital-depots-v1"
+    "ephemeris": "jpl.horizons.heliocentric-vectors.v1",
+    "gravitationalConstants": "solar.system.gm-constants-de440.v1",
+    "depots": "orbital.depots.v1"
   },
   "provenance": {
     "compiler": "tools/simulatte/build-solar-system-world.mjs",
     "derivedFrom": "jpl.horizons.heliocentric-vectors.v1",
-    "sourceKind": "governed_ephemeris_descriptor",
-    "snapshotDate": "2026-07-21",
-    "claimBoundary": "A governed descriptor of the pinned JPL Horizons heliocentric vector snapshot: coordinate frame, epoch window, AU camera bounds, and body reference orbits. It is a mission-design presentation substrate, not spacecraft navigation, flight dynamics, or an operational ephemeris service.",
-    "contentSha256": "eac576af3a1debeb375fe9a9eeacdd3d4812ca78a6958062c80a0f5ca08a761d"
+    "sourceDatasetSha256": "dae6f914e45a5692b127dc122d9861c6f76770316979fd4c822ba8c83ae25020",
+    "sourceKind": "governed_observed_ephemeris_descriptor",
+    "snapshotDate": "2026-07-22",
+    "claimBoundary": "A governed descriptor of a pinned JPL Horizons heliocentric vector snapshot. It is a mission-design presentation substrate, not spacecraft navigation, flight dynamics, or an operational ephemeris service.",
+    "contentSha256": "0bb3c58902059a2e53b69b59955bccac97345d102ac8352103f084a025a75970"
   }
 }

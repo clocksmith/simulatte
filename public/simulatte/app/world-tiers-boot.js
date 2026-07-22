@@ -108,7 +108,7 @@
     const grid=landing.querySelector('.tier-cards-grid');
     const setParallax=(x,y)=>{landing.style.setProperty('--parallax-x',x.toFixed(3));landing.style.setProperty('--parallax-y',y.toFixed(3));};
     grid?.addEventListener('mousemove',(event)=>{const rect=grid.getBoundingClientRect();landing.classList.add('is-parallax');setParallax(((event.clientX-rect.left)/rect.width-.5)*2,((event.clientY-rect.top)/rect.height-.5)*2);});
-    grid?.addEventListener('mouseleave',()=>{landing.classList.remove('is-parallax');setParallax(0,0);});
+    landing.addEventListener('click', (event) => { const card = event.target && event.target.closest && event.target.closest('.tier-card'); if (card && card.dataset.tier) void choose(card.dataset.tier); });
     [...landing.querySelectorAll('.tier-card')].forEach((card)=>card.addEventListener('click',()=>{void choose(card.dataset.tier);}));
   }
 

@@ -8,7 +8,7 @@
         "id": "jpl.horizons.heliocentric-vectors.v1",
         "path": "../../../data/orbital-transfer-planner/jpl-horizons-heliocentric-vectors-v1.json",
         "schemaId": "simulatte.jplHorizonsHeliocentricVectors.v1",
-        "sha256": "0edfe24305d7e79244186980a6db603e037331e361cfe93af904ff5862c512ee"
+        "sha256": "dae6f914e45a5692b127dc122d9861c6f76770316979fd4c822ba8c83ae25020"
       },
       "required": true
     },

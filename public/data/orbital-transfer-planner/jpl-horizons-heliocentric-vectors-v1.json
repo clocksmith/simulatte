@@ -8,14 +8,14 @@
   "sourceKind": "observed_jpl_horizons_vectors",
   "provenance": {
     "source": "NASA/JPL Horizons API",
-    "retrievedAt": "2026-07-22T14:19:35.577Z",
+    "retrievedAt": "2026-07-22T14:54:24.077Z",
     "query": {
       "center": "500@10",
-      "ephemType": "VECTORS",
-      "vecTable": 2,
-      "outUnits": "AU-D",
-      "refPlane": "ECLIPTIC",
-      "refSystem": "ICRF",
+      "ephemerisType": "VECTORS",
+      "vectorTable": 2,
+      "outputUnits": "AU-D",
+      "referencePlane": "ECLIPTIC",
+      "referenceSystem": "ICRF",
       "start": "2030-09-15",
       "stop": "2032-09-14",
       "step": "1 d"
@@ -26,6 +26,9 @@
     "sun": {
       "name": "Sun",
       "command": "10",
+      "color": "#ffaa33",
+      "radiusAu": 0.00465047,
+      "periodDays": null,
       "vectors": [
         {
           "day": 0,
@@ -10997,6 +11000,9 @@
     "mercury": {
       "name": "Mercury",
       "command": "199",
+      "color": "#aaaaaa",
+      "radiusAu": 0.00001631,
+      "periodDays": 87.9691,
       "vectors": [
         {
           "day": 0,
@@ -21968,6 +21974,9 @@
     "venus": {
       "name": "Venus",
       "command": "299",
+      "color": "#eebb88",
+      "radiusAu": 0.00004045,
+      "periodDays": 224.701,
       "vectors": [
         {
           "day": 0,
@@ -32939,6 +32948,9 @@
     "earth": {
       "name": "Earth",
       "command": "399",
+      "color": "#44aaff",
+      "radiusAu": 0.00004264,
+      "periodDays": 365.256,
       "vectors": [
         {
           "day": 0,
@@ -43910,6 +43922,9 @@
     "moon": {
       "name": "Moon",
       "command": "301",
+      "color": "#888888",
+      "radiusAu": 0.00001161,
+      "periodDays": 27.3217,
       "vectors": [
         {
           "day": 0,
@@ -54881,6 +54896,9 @@
     "mars": {
       "name": "Mars",
       "command": "499",
+      "color": "#ff5533",
+      "radiusAu": 0.00002266,
+      "periodDays": 686.98,
       "vectors": [
         {
           "day": 0,
@@ -65852,6 +65870,9 @@
     "jupiter": {
       "name": "Jupiter",
       "command": "599",
+      "color": "#eeddaa",
+      "radiusAu": 0.00047789,
+      "periodDays": 4332.59,
       "vectors": [
         {
           "day": 0,
@@ -76823,6 +76844,9 @@
     "saturn": {
       "name": "Saturn",
       "command": "699",
+      "color": "#eacc99",
+      "radiusAu": 0.00040287,
+      "periodDays": 10759.22,
       "vectors": [
         {
           "day": 0,
@@ -87794,6 +87818,9 @@
     "uranus": {
       "name": "Uranus",
       "command": "799",
+      "color": "#aaddff",
+      "radiusAu": 0.00017085,
+      "periodDays": 30685.4,
       "vectors": [
         {
           "day": 0,
@@ -98765,6 +98792,9 @@
     "neptune": {
       "name": "Neptune",
       "command": "899",
+      "color": "#5588ff",
+      "radiusAu": 0.00016554,
+      "periodDays": 60189,
       "vectors": [
         {
           "day": 0,
