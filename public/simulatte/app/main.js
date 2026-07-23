@@ -32,10 +32,14 @@
   // Owns the landing page and gates asset loading: nothing in start() runs until
   // the visitor picks a tier here.
 
-  async function start(initialTier = 'city') {
+  async function start(initialTier = 'city', requestedProfileId = null, hooks = {}) {
     if (!experienceCameraApi?.applyInitialCamera || !experienceCameraApi?.runCameraMode) throw new Error('Experience camera dependency is unavailable');
     const elements = collectElements();
-    const interfaceUi = wireInterfaceControls(elements);
+    // Every listener binds through `on` scoped to `lifecycle`, so disposeApplication()'s abort drops
+    // them all — letting the shell re-boot this app in place without double-binding the persistent DOM.
+    const lifecycle = new AbortController();
+    const on = (target, type, handler, options) => target.addEventListener(type, handler, { ...(options || {}), signal: lifecycle.signal });
+    const interfaceUi = wireInterfaceControls(elements, lifecycle.signal);
     setJourneyPhase('loading');
     log.info('app.boot.started', {
       build: document.querySelector('meta[name="simulatte-build"]')?.content || null,
@@ -45,10 +49,11 @@
     setRuntimeStatus(elements, 'Loading', 'loading');
     let data;
     try {
-      data = await dataLoader.loadApplication();
+      data = await dataLoader.loadApplication(undefined, undefined, { requestedProfileId });
     } catch (error) {
-      failRuntime(elements, error);
-      return null;
+      // Abort listeners bound before the load and throw; the shell retries the default or surfaces it.
+      lifecycle.abort();
+      throw error;
     }
     if (!applicationProfileSelectApi?.resolveInteraction || !applicationProfileSelectApi?.renderInteraction) throw new Error('Application interaction dependency is unavailable');
     const interaction = applicationProfileSelectApi.resolveInteraction(data.applicationProfile, data.manifest);
@@ -175,6 +180,7 @@
       if (disposal) return disposal;
       disposal = (async () => {
         stopLoop();
+        lifecycle.abort();
         elements.applicationProfile.disabled = true;
         profileSelectUi?.sync();
         if (placeResolver) {
@@ -182,6 +188,7 @@
           placeResolver = null;
         }
         tierVisualizer?.stop();
+        try { renderer?.destroy(); } catch (_error) { /* GPU teardown is best-effort */ }
         await extensions.dispose();
         profileSelectUi?.dispose();
       })();
@@ -199,21 +206,13 @@
       label: elements.applicationProfileLabel,
       listbox: elements.applicationProfileOptions,
     });
-    elements.applicationProfile.addEventListener('change', async () => {
+    on(elements.applicationProfile, 'change', () => {
       const profileId = elements.applicationProfile.value;
       if (!profileId || profileId === data.applicationProfile.id) return;
-      setRuntimeStatus(elements, 'Switching application', 'loading');
-      try {
-        await disposeApplication();
-        const url = new URL(window.location.href);
-        url.searchParams.set('profile', profileId);
-        if (data.world?.id) url.searchParams.set('world', data.world.id);
-        window.location.assign(url.toString());
-      } catch (error) {
-        failRuntime(elements, error);
-      }
+      // URL is the source of truth: push /city/<profileId>; the shell re-boots this app in place.
+      hooks.navigate?.({ tier: 'city', experience: profileId });
     });
-    window.addEventListener('pagehide', () => { void disposeApplication(); }, { once: true });
+    on(window, 'pagehide', () => { void disposeApplication(); }, { once: true });
 
     async function buildController({ keepMissionLocked = false } = {}) {
       const revision = ++buildRevision;
@@ -319,7 +318,7 @@
             failRuntime(elements, error);
           },
         });
-        wireCameraControls(elements, renderer);
+        wireCameraControls(elements, renderer, lifecycle.signal);
         const renderReceipt = renderer.receipt();
         log.info('renderer.ready', {
           backend: renderReceipt.backend,
@@ -419,9 +418,9 @@
         failRuntime(elements, error);
       }
     };
-    elements.startButton.addEventListener('click', startRun);
-    elements.resumeButton.addEventListener('click', startRun);
-    elements.newMissionButton.addEventListener('click', () => {
+    on(elements.startButton, 'click', startRun);
+    on(elements.resumeButton, 'click', startRun);
+    on(elements.newMissionButton, 'click', () => {
       stopLoop();
       buildRevision += 1;
       controller = null;
@@ -430,7 +429,7 @@
       setRuntimeStatus(elements, 'Ready', 'changed');
       applicationProfileSelectApi.focusPrimary(interaction, elements);
     });
-    elements.shuffleButton.addEventListener('click', async () => {
+    on(elements.shuffleButton, 'click', async () => {
       if (isRunning) return;
       activeScenario = applicationProfileSelectApi.nextScenario(interaction, activeScenario.id);
       await extensions.setScenario(activeScenario);
@@ -445,11 +444,11 @@
       renderPluginExperience({ mission: null });
       if (hasJourneyStarted) { try { stopLoop(); hasJourneyStarted = false; await buildController(); } catch (e) { failRuntime(elements, e); } } // tier-flow parity: rebuild after a run so Shuffle re-loads cleanly
     });
-    elements.pauseButton.addEventListener('click', () => {
+    on(elements.pauseButton, 'click', () => {
       stopLoop();
       setRuntimeStatus(elements, 'Paused', 'paused');
     });
-    elements.stepButton.addEventListener('click', async () => {
+    on(elements.stepButton, 'click', async () => {
       try {
         stopLoop();
         let targetController = controller;
@@ -459,7 +458,7 @@
         failRuntime(elements, error);
       }
     });
-    elements.resetButton.addEventListener('click', async () => {
+    on(elements.resetButton, 'click', async () => {
       stopLoop();
       try {
         hasJourneyStarted = false;
@@ -468,7 +467,7 @@
         failRuntime(elements, error);
       }
     });
-    elements.replayButton.addEventListener('click', async () => {
+    on(elements.replayButton, 'click', async () => {
       try {
         stopLoop();
         hasJourneyStarted = false;
@@ -479,8 +478,8 @@
         failRuntime(elements, error);
       }
     });
-    elements.whatIfButton.addEventListener('click', () => interfaceUi.openDecisions('plugin-inspector'));
-    elements.exportButton.addEventListener('click', async () => {
+    on(elements.whatIfButton, 'click', () => interfaceUi.openDecisions('plugin-inspector'));
+    on(elements.exportButton, 'click', async () => {
       if (!controller) return;
       const receipt = await controller.journeyReceipt();
       receipt.rendering = renderer.receipt();
@@ -493,11 +492,11 @@
       });
       downloadJson(`simulatte-autonomy-${receipt.mission.id}.json`, receipt);
     });
-    elements.exportLedgerButton.addEventListener('click', async () => {
+    on(elements.exportLedgerButton, 'click', async () => {
       downloadJson('simulatte-local-settlement-ledger.json', await journeyLedger.exportLedger());
     });
-    elements.importReceiptButton.addEventListener('click', () => elements.importReceiptFile.click());
-    elements.importReceiptFile.addEventListener('change', async () => {
+    on(elements.importReceiptButton, 'click', () => elements.importReceiptFile.click());
+    on(elements.importReceiptFile, 'change', async () => {
       const [file] = elements.importReceiptFile.files || [];
       elements.importReceiptFile.value = '';
       if (!file) return;
@@ -524,7 +523,7 @@
         log.error('journey.receipt.import_failed', log.serializeError(error));
       }
     });
-    elements.missionInput.addEventListener('input', () => {
+    on(elements.missionInput, 'input', () => {
       if (isRunning) return;
       clearMissionError(elements);
       resizeMissionInput(elements.missionInput);
@@ -534,12 +533,12 @@
       updateButtons(elements, false, false, 'active', false);
       setRuntimeStatus(elements, 'Ready', 'changed');
     });
-    elements.missionInput.addEventListener('keydown', (event) => {
+    on(elements.missionInput, 'keydown', (event) => {
       if (event.key !== 'Enter' || event.shiftKey || event.isComposing) return;
       event.preventDefault();
       elements.startButton.click();
     });
-    elements.modelSelectionControls.addEventListener('model-selection-change', async (event) => {
+    on(elements.modelSelectionControls, 'model-selection-change', async (event) => {
       if (isRunning) return;
       const placeSelection = event.detail.selections.find((row) => row.slotId === 'place-resolution');
       const neural = placeSelection && placeSelection.runtimeRef.kind === 'embedding';
@@ -556,7 +555,7 @@
         ? 'Qwen embedding after deterministic refusal · measured gain +0/37 · no neural reranker on this surface'
         : 'Deterministic place matching · 27/37 diagnostic · no model execution';
     });
-    window.addEventListener('resize', () => {
+    on(window, 'resize', () => {
       if (renderer && controller) renderer.render(controller.snapshot());
     });
 
@@ -569,29 +568,23 @@
       tierVisualizer = SimulatteMultiTierVisualizer.createTierVisualizer(elements.overlayCanvas, 'world-tier-control');
       const selectWorldTier = SimulatteWorldTiersBoot.wireTierControls({
         elements,
-        stopLoop,
         tierVisualizer,
         profileSelectUi,
+        activeTier: 'city',
+        signal: lifecycle.signal,
+        onSelectTier: (tier) => hooks.navigate?.({ tier, experience: null }),
       });
 
-      // Route to the tier chosen on the landing page. Assets load now — on selection,
-      // never on page load.
+      // Load the city tier visualizer for this mount. Tier/experience switches are URL-driven and
+      // re-boot in place through the shell — no page reload.
       await selectWorldTier(initialTier);
     } catch (error) {
-      // Fallback: a failed ?profile= experience drops the profile and reloads default city once.
-      try {
-        const url = new URL(window.location.href);
-        if (url.searchParams.has('profile') && !url.searchParams.has('profile-fallback')) {
-          log.error('runtime.profile_fallback', log.serializeError(error));
-          url.searchParams.delete('profile');
-          url.searchParams.set('profile-fallback', '1');
-          window.location.assign(url.toString());
-          return { data, dispose: disposeApplication, getController: () => controller, getRenderer: () => renderer };
-        }
-      } catch (_fallbackError) { /* fall through to the normal failure surface */ }
-      failRuntime(elements, error);
+      // Tear this boot down cleanly (abort listeners, release GPU) and throw so the shell can retry
+      // the tier default or surface the failure. No location.assign, no landing bounce.
+      await disposeApplication();
+      throw error;
     }
-    return { data, dispose: disposeApplication, getController: () => controller, getRenderer: () => renderer };
+    return { tier: 'city', experience: data.applicationProfile.id, data, dispose: disposeApplication, getController: () => controller, getRenderer: () => renderer };
   }
 
   function collectElements() {
@@ -640,18 +633,19 @@
       .join(' ');
   }
 
-  function wireCameraControls(elements, renderer) {
+  function wireCameraControls(elements, renderer, signal) {
+    const on = (target, type, handler, options) => target.addEventListener(type, handler, { ...(options || {}), signal });
     const controls = [
       [elements.cameraFollow, 'follow'],
       [elements.cameraBird, 'bird'],
       [elements.cameraTop, 'top'],
     ];
     populateCameraFocus(elements.cameraFocus, renderer.cameraTargets());
-    controls.forEach(([button, mode]) => button.addEventListener('click', () => {
+    controls.forEach(([button, mode]) => on(button, 'click', () => {
       renderer.setCameraMode(mode);
       selectCameraMode(elements, mode);
     }));
-    elements.cameraFocus.addEventListener('change', () => selectCameraMode(elements, renderer.focusCameraTarget(elements.cameraFocus.value)));
+    on(elements.cameraFocus, 'change', () => selectCameraMode(elements, renderer.focusCameraTarget(elements.cameraFocus.value)));
   }
 
   function selectCameraMode(elements, mode) {
@@ -694,7 +688,8 @@
     return id.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
   }
 
-  function wireInterfaceControls(elements) {
+  function wireInterfaceControls(elements, signal) {
+    const on = (target, type, handler, options) => target.addEventListener(type, handler, { ...(options || {}), signal });
     let lastDrawerTrigger = null;
     const popovers = [
       [elements.runtimeToggle, elements.runtimeDetails],
@@ -738,39 +733,39 @@
       if (restoreFocus && lastDrawerTrigger instanceof HTMLElement) lastDrawerTrigger.focus();
     }
 
-    popovers.forEach(([button, panel]) => button.addEventListener('click', () => {
+    popovers.forEach(([button, panel]) => on(button, 'click', () => {
       const open = panel.hidden;
       closeTransientPopovers(open ? button : null);
       setPopover(button, panel, open);
     }));
-    elements.runtimeDetailsClose.addEventListener('click', () => setPopover(elements.runtimeToggle, elements.runtimeDetails, false));
-    elements.dockMoreMenu.addEventListener('click', (event) => {
+    on(elements.runtimeDetailsClose, 'click', () => setPopover(elements.runtimeToggle, elements.runtimeDetails, false));
+    on(elements.dockMoreMenu, 'click', (event) => {
       if (event.target.closest('button')) setPopover(elements.dockMoreButton, elements.dockMoreMenu, false);
     });
-    elements.cameraFocus.addEventListener('change', () => setPopover(elements.cameraFocusButton, elements.cameraFocusPopover, false));
+    on(elements.cameraFocus, 'change', () => setPopover(elements.cameraFocusButton, elements.cameraFocusPopover, false));
     const sections = Array.from(elements.decisionsDrawer.querySelectorAll(':scope > details.evidence-section'));
-    sections.forEach((section) => section.addEventListener('toggle', () => {
+    sections.forEach((section) => on(section, 'toggle', () => {
       if (!section.open) return;
       sections.forEach((other) => {
         if (other !== section) other.open = false;
       });
     }));
     const openJourney = () => openDecisions('journey-section');
-    elements.journeyHud.addEventListener('click', openJourney);
-    elements.journeyHud.addEventListener('keydown', (event) => {
+    on(elements.journeyHud, 'click', openJourney);
+    on(elements.journeyHud, 'keydown', (event) => {
       if (event.key !== 'Enter' && event.key !== ' ') return;
       event.preventDefault();
       openJourney();
     });
-    elements.decisionsButton.addEventListener('click', () => openDecisions());
-    elements.decisionsClose.addEventListener('click', () => closeDecisions());
-    elements.decisionsBackdrop.addEventListener('click', () => closeDecisions());
-    document.addEventListener('keydown', (event) => {
+    on(elements.decisionsButton, 'click', () => openDecisions());
+    on(elements.decisionsClose, 'click', () => closeDecisions());
+    on(elements.decisionsBackdrop, 'click', () => closeDecisions());
+    on(document, 'keydown', (event) => {
       if (event.key !== 'Escape') return;
       if (elements.decisionsDrawer.classList.contains('is-open')) closeDecisions();
       else closeTransientPopovers();
     });
-    document.addEventListener('pointerdown', (event) => {
+    on(document, 'pointerdown', (event) => {
       popovers.forEach(([button, panel]) => {
         if (!panel.hidden && !panel.contains(event.target) && !button.contains(event.target)) setPopover(button, panel, false);
       });
@@ -983,13 +978,18 @@
   }
 
   if (typeof document !== 'undefined') {
-    const launch = () => { void SimulatteWorldTiersBoot.bootLanding({
-      startApp: start, collectElements, setJourneyPhase, setRuntimeStatus,
-      createTierVisualizer: SimulatteMultiTierVisualizer.createTierVisualizer,
-    }).catch((error) => {
-      try { failRuntime(collectElements(), error); }
-      catch (boundaryError) { log.error('runtime.bootstrap_failed', log.serializeError(boundaryError)); }
-    }); };
+    const launch = () => {
+      // Single URL dispatcher: the path names the tier; city boots the mission app, every other
+      // scale the governed explorer. Both return { tier, experience, dispose } to the shell.
+      const router = SimulatteRouter.createRouter(window);
+      const navigate = (route) => router.navigate(route);
+      const governedCtx = { collectElements, setJourneyPhase, setRuntimeStatus, createTierVisualizer: SimulatteMultiTierVisualizer.createTierVisualizer, navigate, onSelectTier: (tier) => navigate({ tier, experience: null }) };
+      const boot = (tier, experience) => tier === 'city' ? start('city', experience, { navigate }) : SimulatteWorldTiersBoot.bootGovernedTierExplorer(governedCtx, tier, experience);
+      const shell = SimulatteWorldTiersBoot.createAppShell({ router, boot, landing: document.getElementById('world-tiers-landing-page') });
+      void Promise.resolve(shell.start()).catch((error) => {
+        try { failRuntime(collectElements(), error); } catch (boundaryError) { log.error('runtime.bootstrap_failed', log.serializeError(boundaryError)); }
+      });
+    };
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', launch, { once: true });
     else launch();
   }

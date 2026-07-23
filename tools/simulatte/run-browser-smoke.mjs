@@ -83,14 +83,20 @@ async function createStaticServer() {
       response.writeHead(403).end('Forbidden');
       return;
     }
-    if (!fs.existsSync(file) || !fs.statSync(file).isFile()) {
-      requests.push({ pathname, status: 404 });
-      response.writeHead(404).end('Not found');
-      return;
+    let servedFile = file;
+    if (!fs.existsSync(servedFile) || !fs.statSync(servedFile).isFile()) {
+      // Mirror firebase.json rewrites: the /tier/experience routes have no file, so serve the SPA
+      // entry and let client-side routing boot; only genuine asset requests (with an extension) 404.
+      if (path.extname(pathname)) {
+        requests.push({ pathname, status: 404 });
+        response.writeHead(404).end('Not found');
+        return;
+      }
+      servedFile = path.resolve(PUBLIC, pathname.startsWith('/blank/') ? 'blank/index.html' : 'index.html');
     }
     requests.push({ pathname, status: 200 });
-    response.writeHead(200, { 'Content-Type': contentType(file), 'Cache-Control': 'no-store' });
-    fs.createReadStream(file).pipe(response);
+    response.writeHead(200, { 'Content-Type': contentType(servedFile), 'Cache-Control': 'no-store' });
+    fs.createReadStream(servedFile).pipe(response);
   });
   await new Promise((resolve, reject) => server.listen(0, '127.0.0.1', resolve).once('error', reject));
   return { server, port: server.address().port, requests };
@@ -179,8 +185,9 @@ async function runBrowserSmoke(options) {
   if (typeof WebSocket !== 'function') throw new Error('Autonomy browser smoke requires a Node runtime with WebSocket support');
   const chromePath = findChrome(options.chromePath);
   const staticHost = options.url ? null : await createStaticServer();
-  const targetUrl = options.url || `http://127.0.0.1:${staticHost.port}/`;
-  const expectedProfileId = new URL(targetUrl).searchParams.get('profile') || 'simulatte-world-v1';
+  const targetUrl = options.url || `http://127.0.0.1:${staticHost.port}/city`;
+  const pathSegments = new URL(targetUrl).pathname.split('/').filter(Boolean);
+  const expectedProfileId = (pathSegments[0] === 'city' ? pathSegments[1] : null) || 'simulatte-world-v1';
   const expectedProfile = profileDefinition(expectedProfileId);
   const expectedPluginIds = new Set(expectedProfile.plugins.map((row) => row.id));
   const expectedRunCameraMode = expectedProfile.camera?.runMode || 'follow';

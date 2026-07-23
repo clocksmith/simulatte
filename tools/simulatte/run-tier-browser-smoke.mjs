@@ -71,9 +71,16 @@ function startStaticServer(port) {
       filePath = path.join(filePath, 'index.html');
     }
     if (!fs.existsSync(filePath)) {
-      res.writeHead(404, { 'Content-Type': 'text/plain' });
-      res.end('404 Not Found');
-      return;
+      // Mirror firebase.json rewrites: extensionless/unknown paths (the /tier/experience routes)
+      // serve the SPA entry so client-side routing can boot; /blank/** serves its own entry.
+      if (path.extname(safeUrl.pathname)) {
+        res.writeHead(404, { 'Content-Type': 'text/plain' });
+        res.end('404 Not Found');
+        return;
+      }
+      filePath = safeUrl.pathname.startsWith('/blank/')
+        ? path.join(PUBLIC, 'blank', 'index.html')
+        : path.join(PUBLIC, 'index.html');
     }
     const ext = path.extname(filePath).toLowerCase();
     const mimeTypes = {
@@ -164,7 +171,7 @@ async function auditTier(chromePath, baseUrl, item) {
     await client.send('Runtime.enable');
     await client.send('Page.enable');
     client.on('Runtime.exceptionThrown', (params) => report.errors.push(params?.exceptionDetails?.exception?.description || params?.exceptionDetails?.text || 'exception'));
-    const url = new URL(baseUrl); url.searchParams.set('tier', item.tier); url.searchParams.set('profile', item.profileId);
+    const url = new URL(baseUrl); url.pathname = `/${item.tier}/${item.profileId}`; url.search = '';
     await client.send('Page.navigate', { url: url.toString() });
     const probe = async () => (await client.send('Runtime.evaluate', { expression: STATE_PROBE, returnByValue: true })).result.value;
     await waitFor(probe, (state) => state.status === 'Ready', 'tier-ready', 45000);

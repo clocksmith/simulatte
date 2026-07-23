@@ -1177,9 +1177,7 @@ test('browser loader verifies raw hashes and rejects tampered assets', async () 
   assert.ok(loaded.dataCatalog.ids.includes(loaded.featureCatalog.id));
   assert.ok(requests.length > 8);
   assert.ok(requests.every((row) => row.options?.cache === 'no-cache'));
-  global.location = { href: 'http://localhost/?profile=cable-trader-pickup-v1' };
-  const cableProfile = await dataLoader.loadApplication('http://localhost/data/simulatte/autonomy-manifest.json', fetchFiles);
-  delete global.location;
+  const cableProfile = await dataLoader.loadApplication('http://localhost/data/simulatte/autonomy-manifest.json', fetchFiles, { requestedProfileId: 'cable-trader-pickup-v1' });
   assert.equal(cableProfile.applicationProfile.id, 'cable-trader-pickup-v1');
   assert.deepEqual(cableProfile.applicationProfile.plugins.map((row) => row.id), ['cable-trader']);
 

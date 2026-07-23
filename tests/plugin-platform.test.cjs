@@ -200,6 +200,6 @@ test('Main exposes governed profile selection and disposes plugins on teardown',
   assert.doesNotMatch(main, /APPLICATION_PROFILE_IDS|\.label = 'Applications'|\.label = 'Plugins'/);
   assert.match(html, /app\/application-profile-select\.js/);
   assert.match(main, /await extensions\.dispose\(\)/);
-  assert.match(main, /addEventListener\('pagehide', \(\) => \{ void disposeApplication\(\); \}/);
-  assert.match(main, /searchParams\.set\('profile', profileId\)/);
+  assert.match(main, /on\(window, 'pagehide', \(\) => \{ void disposeApplication\(\); \}/);
+  assert.match(main, /hooks\.navigate\?\.\(\{ tier: 'city', experience: profileId \}\)/);
 });

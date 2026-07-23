@@ -38,7 +38,7 @@
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createApplicationLoader(contracts, receipts, regions, runtimeLog, browserTransport, artifactStore, dataCatalog, pluginContracts, schemaRegistry, pluginRegistry, pluginPaths) {
   assertDependencies();
 
-  async function loadApplication(manifestUrl = '../data/simulatte/autonomy-manifest.json', fetchImpl = defaultFetch()) {
+  async function loadApplication(manifestUrl = '../data/simulatte/autonomy-manifest.json', fetchImpl = defaultFetch(), { requestedProfileId = null } = {}) {
     const resolvedManifestUrl = new URL(manifestUrl, documentBase()).toString();
     const services = createDataServices(fetchImpl);
     runtimeLog.info('data.load.started', {
@@ -61,7 +61,7 @@
       missionExampleCount: manifest.value.missionExamples.length,
     });
     const directKeys = ['policy', 'occurrenceCatalog', 'rerankerEvidence', 'regionRegistry', 'placeEmbeddingIndex', 'placeResolutionEvidence', 'modelRuntimeLock', 'pipelineModelSelection', 'applicationProfile', 'curriculum', 'policyArenaEvidence'];
-    const selectedProfile = selectApplicationProfile(manifest.value);
+    const selectedProfile = selectApplicationProfile(manifest.value, requestedProfileId);
     const resolvedReferences = await services.artifacts.resolveGraph(directKeys.map((key) => ({ key, reference: key === 'applicationProfile' ? selectedProfile : manifest.value[key] })), { baseUrl: resolvedManifestUrl });
     const refs = [...resolvedReferences.entries()];
     const loaded = Object.fromEntries(refs);
@@ -322,8 +322,8 @@
     return 'http://localhost/';
   }
 
-  function selectApplicationProfile(manifest) {
-    const requested = typeof location !== 'undefined' ? new URL(location.href).searchParams.get('profile') : null;
+  function selectApplicationProfile(manifest, requestedProfileId = null) {
+    const requested = requestedProfileId || null;
     if (!requested || requested === manifest.applicationProfile.id) return manifest.applicationProfile;
     const selected = (manifest.applicationProfiles || []).find((row) => row.id === requested);
     if (!selected) throw loadError('application_profile_unknown', `Unknown application profile ${requested}`, { requested, available: [manifest.applicationProfile.id, ...(manifest.applicationProfiles || []).map((row) => row.id)].sort() });

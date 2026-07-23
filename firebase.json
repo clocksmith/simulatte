@@ -8,6 +8,16 @@
       "**/.*",
       "**/node_modules/**"
     ],
+    "rewrites": [
+      {
+        "source": "/blank/**",
+        "destination": "/blank/index.html"
+      },
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ],
     "headers": [
       {
         "source": "/",
