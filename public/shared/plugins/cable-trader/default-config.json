@@ -26,7 +26,7 @@
     "returnCount": 4096,
     "journeyEventCount": 960,
     "participantCount": 2048,
-    "renderedActorCount": 2048,
+    "renderedActorCount": 64,
     "initialInventoryPerHubType": 8
   }
 }

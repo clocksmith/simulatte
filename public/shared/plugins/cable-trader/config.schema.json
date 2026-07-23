@@ -49,7 +49,7 @@
         "returnCount": { "type": "integer", "minimum": 0, "maximum": 100000 },
         "journeyEventCount": { "type": "integer", "minimum": 0, "maximum": 100000 },
         "participantCount": { "type": "integer", "minimum": 1000, "maximum": 100000 },
-        "renderedActorCount": { "type": "integer", "minimum": 1, "maximum": 4096 },
+        "renderedActorCount": { "type": "integer", "minimum": 1, "maximum": 64, "description": "Maximum number of sampled participants emitted as pluginPresentation.v1 actor rows." },
         "initialInventoryPerHubType": { "type": "integer", "minimum": 1, "maximum": 100000 }
       }
     }

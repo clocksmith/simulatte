@@ -5,6 +5,8 @@ const test = require('node:test');
 
 const root = path.resolve(__dirname, '..');
 const network = require('../public/shared/plugins/cable-trader/network-simulation.js');
+const plugin = require('../public/shared/plugins/cable-trader/index.js');
+const contracts = require('../public/simulatte/platform/contracts/plugin-contracts.js');
 const config = JSON.parse(fs.readFileSync(path.join(root, 'public/shared/plugins/cable-trader/default-config.json'), 'utf8'));
 
 function completeRoutes() {
@@ -55,4 +57,44 @@ test('Cable Trader profile queries the predefined network instead of creating on
   const results = profile.seeds.slice(0, 2).map((row) => network.simulateNetwork({ ...config, simulation: { ...config.simulation, seed: row.seed } }, completeRoutes()));
   assert.notEqual(results[0].id, results[1].id);
   assert.ok(results.every((row) => row.summary.fulfillmentPercent === 100 && row.summary.optimalityPercent === 100));
+});
+
+function stubSdk() {
+  let reducer = null;
+  let state = null;
+  return {
+    worldQuery: { model() { return {}; } },
+    routing: {
+      plan({ originNodeId, destinationNodeId }) { return { segmentIds: [`segment-${originNodeId}-${destinationNodeId}`] }; },
+      policy() { return {}; },
+    },
+    state: {
+      register(nextReducer, initialState) { reducer = nextReducer; state = structuredClone(initialState); },
+      read() { return state; },
+    },
+    events: { propose(event) { state = reducer(state, event); return event; } },
+    receipts: { append(receipt) { return receipt; } },
+  };
+}
+
+test('Cable Trader presents at most 64 sampled actors while retaining 2048 simulated participants', async () => {
+  const instance = await plugin.activate({ sdk: stubSdk(), config, scenario: { id: 'actor-budget-regression', seed: 'actor-budget-regression' } });
+  const presentation = instance.present();
+  assert.equal(config.simulation.participantCount, 2048, 'simulation population must remain unchanged');
+  assert.equal(config.simulation.renderedActorCount, 64, 'governed config must request no more than the host actor budget');
+  assert.equal(presentation.actors.length, 64, 'presentation must contain exactly the configured sample');
+  assert.doesNotThrow(() => contracts.validatePresentationContribution('cable-trader', presentation));
+});
+
+test('Cable Trader config schema matches the presentation actor budget', () => {
+  const schema = JSON.parse(fs.readFileSync(path.join(root, 'public/shared/plugins/cable-trader/config.schema.json'), 'utf8'));
+  assert.equal(schema.properties.simulation.properties.renderedActorCount.maximum, 64);
+});
+
+test('Cable Trader clamps an over-budget rendered sample down to the host cap', async () => {
+  const overBudget = { ...config, simulation: { ...config.simulation, renderedActorCount: 2048 } };
+  const instance = await plugin.activate({ sdk: stubSdk(), config: overBudget, scenario: { id: 'clamp-regression', seed: 'clamp-regression' } });
+  const presentation = instance.present();
+  assert.equal(presentation.actors.length, 64, 'a stale/hand-built config above the cap must still emit at most 64 actors');
+  assert.doesNotThrow(() => contracts.validatePresentationContribution('cable-trader', presentation));
 });

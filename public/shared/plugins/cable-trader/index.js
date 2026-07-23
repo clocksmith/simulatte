@@ -6,7 +6,13 @@
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulattePluginCableTrader = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createCableTraderPlugin(network) {
+  // pluginPresentation.v1 caps actor rows at 64 (see plugin-contracts boundedRows). The simulation
+  // keeps its full participantCount; only the visual sample is bounded here so a large, valid
+  // population never overflows the shared host contract.
+  const MAX_PRESENTATION_ACTORS = 64;
+
   async function activate({ sdk, config, scenario = null }) {
+    const renderedActorCount = resolveRenderedActorCount(config.simulation.renderedActorCount);
     const worldModel = sdk.worldQuery.model();
     const transferRoutes = config.hubs.flatMap((sourceHub) => config.hubs
       .filter((destinationHub) => destinationHub.id !== sourceHub.id)
@@ -114,7 +120,7 @@
         title: '30-day cable city',
         rows: [
           { label: 'Synthetic participants', value: format(result.summary.participants) },
-          { label: 'Rendered sample', value: String(config.simulation.renderedActorCount) },
+          { label: 'Rendered sample', value: `${format(renderedActorCount)} of ${format(result.summary.participants)} participants` },
           { label: 'Cross-hub transfers', value: format(crossHubTransfers) },
           { label: 'Solver', value: 'Exact min-cost maximum-flow' },
         ],
@@ -163,8 +169,8 @@
           intensity: 0.45 + ((flow.quantity / maximumFlow) * 1.25),
         };
       }).filter(Boolean);
-      const actors = Array.from({ length: config.simulation.renderedActorCount }, (_, index) => {
-        const flow = selectFlow(activeFlows, index, config.simulation.renderedActorCount);
+      const actors = Array.from({ length: renderedActorCount }, (_, index) => {
+        const flow = selectFlow(activeFlows, index, renderedActorCount);
         const route = routeByPair.get(`${flow.sourceHubId}:${flow.destinationHubId}`);
         if (!route) return null;
         return {
@@ -239,6 +245,13 @@
     const inventory = { ...state.inventory, [key]: (state.inventory[key] || 0) + (event.direction === 'deposit' ? 1 : -1) };
     const credits = { ...state.credits, [event.participantId]: (state.credits[event.participantId] || 0) + event.creditDelta };
     return { ...state, inventory, credits, lastExchange: { cableTypeId: event.cableTypeId, hubId: event.hubId, direction: event.direction } };
+  }
+
+  function resolveRenderedActorCount(value) {
+    if (!Number.isInteger(value) || value < 1) {
+      throw new Error(`Cable Trader renderedActorCount expected a positive integer, received ${value}`);
+    }
+    return Math.min(value, MAX_PRESENTATION_ACTORS);
   }
 
   function selectFlow(flows, index, count) {

@@ -70,18 +70,26 @@
     function createRouteContributor({ mission }) {
       const origin = exposure.worldOrigin(world);
       const buildings = exposure.compiledBuildings(world);
+      // The sun position is constant for the mission instant, and a segment's shade exposure is a
+      // deterministic function of (segment, sun, buildings). A* evaluates the same segments across
+      // many candidate searches, so computing the sun once and memoizing each segment's building
+      // shadow trace by segment.id turns an O(searches x segments x buildings) main-thread stall
+      // into one trace per unique segment — same values, no per-edge ray-tracing in the hot loop.
+      const utcInstant = sdk.clock.instantForMission(mission);
+      const sun = exposure.solarPosition(utcInstant, origin.lat, origin.lon);
+      const exposureBySegmentId = new Map();
+      const segmentExposure = (segment) => {
+        let row = exposureBySegmentId.get(segment.id);
+        if (!row) {
+          row = exposure.segmentExposureRow({ segment, buildings, sun, sampleSpacingM: config.sampleSpacingM || 18, minimumSolarElevationDegrees: 2 });
+          exposureBySegmentId.set(segment.id, row);
+        }
+        return row;
+      };
       return {
         id: 'sun-walker:sun-exposure',
         evaluateSegment({ segment }) {
-          const utcInstant = sdk.clock.instantForMission(mission);
-          const sun = exposure.solarPosition(utcInstant, origin.lat, origin.lon);
-          const row = exposure.segmentExposureRow({
-            segment,
-            buildings,
-            sun,
-            sampleSpacingM: config.sampleSpacingM || 18,
-            minimumSolarElevationDegrees: 2,
-          });
+          const row = segmentExposure(segment);
           return {
             eligible: true,
             costDimensions: {

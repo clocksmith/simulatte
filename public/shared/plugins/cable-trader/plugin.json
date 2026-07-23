@@ -10,7 +10,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginCableTrader",
-    "integrity": "sha384-1a09d0a3791501c40ac9bc5c745820936f5733a794445cfdef72b206c133a8f360f8465cce6274d8d6ec3d4a110671eb",
+    "integrity": "sha384-45fde7be773da61b509a2a8215cfc52a8a36d155fe1b3484ad1450ac3b4fe63beff0b2bfd762810573898e893b407253",
     "path": "./index.js"
   },
   "extensionPoints": [
@@ -41,11 +41,11 @@
   ],
   "resources": [
     {
-      "integrity": "sha384-085ba7a059504b8130be369289a492bd5afeb33ed8e9defe15c4df42a796d011c394d5d2eeffabba7b90362939069db7",
+      "integrity": "sha384-065cd3ff3d0d9b05b7049313a446f6373a0b4a5e21d3809acf3e782b9726a2e0cf428dfe8eb4278eade2b0a4923eedf2",
       "path": "./config.schema.json"
     },
     {
-      "integrity": "sha384-f614b805288d97105a5ec668e2b7b6f1edfb046a3c89001be0af814fc2875f694ddfadb77b33837de18509480cd51614",
+      "integrity": "sha384-b32b7d0b2e1d36e5876fb247a42df2497063b4572e18d1c10ce5bdef59c3086a24a2475089284b5471136dbb03151ae8",
       "path": "./default-config.json"
     },
     {
@@ -55,5 +55,5 @@
   ],
   "schema": "simulatte.pluginManifest.v1",
   "sdkVersion": 2,
-  "version": "2.0.0"
+  "version": "2.0.1"
 }

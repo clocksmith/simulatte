@@ -39,6 +39,10 @@
       await teardown();
       if (generationAtStart !== generation) return;
       landing?.classList.add('hidden');
+      // The URL already decided the tier, so drive the toolbar from it synchronously — before the
+      // async load — so the scale/experience controls never disagree with the address bar (e.g.
+      // "/city" must never show "Select scale" while loading).
+      reflectRoute(route);
       let booted;
       try {
         booted = await boot(route.tier, route.experience || null);
@@ -53,6 +57,16 @@
       if (generationAtStart !== generation) { try { await booted.dispose?.(); } catch (_error) { /* superseded */ } return; }
       current = { tier: booted.tier, experience: booted.experience, dispose: booted.dispose };
       router.canonicalize({ tier: booted.tier, experience: booted.experience });
+    }
+
+    function reflectRoute(route) {
+      try {
+        const label = document.getElementById('world-tier-label');
+        if (label && TIER_LABELS[route.tier]) label.textContent = TIER_LABELS[route.tier];
+        document.querySelectorAll('#world-tier-options .select-option').forEach((option) => option.classList.toggle('selected', option.dataset.value === route.tier));
+        const experienceLabel = document.getElementById('application-profile-label');
+        if (experienceLabel) experienceLabel.textContent = route.experience ? labelForProfile(route.experience) : 'Loading experience';
+      } catch (_error) { /* toolbar not present yet */ }
     }
 
     function wireLanding() {

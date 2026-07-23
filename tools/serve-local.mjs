@@ -119,7 +119,13 @@ const server = http.createServer(async (req, res) => {
 
   const url = new URL(req.url || '/', `http://${host}:${port}`);
   const { baseDir, relativePath } = resolveRequestPath(url.pathname);
-  const filePath = await resolveFilePath(baseDir, relativePath);
+  let filePath = await resolveFilePath(baseDir, relativePath);
+  if (!filePath && baseDir === publicRoot && !path.extname(url.pathname)) {
+    // SPA rewrites (mirror firebase.json): extensionless app routes like /city or
+    // /world/maritime-trade-global-v1 have no file, so serve the entry document and let the
+    // client-side router boot. /blank/** serves its own entry; only asset requests 404.
+    filePath = await resolveFilePath(publicRoot, url.pathname.startsWith('/blank/') ? 'blank/index.html' : 'index.html');
+  }
   if (!filePath) {
     send(res, 404, 'Not Found', { 'Content-Type': 'text/plain; charset=utf-8' });
     return;
