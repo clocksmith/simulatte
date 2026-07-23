@@ -35,7 +35,6 @@ const universeParser = require('../public/simulatte/language/simulatte-universe-
 const regionApi = require('../public/simulatte/world/region-pack-merger.js');
 const ambientActorApi = require('../public/simulatte/world/ambient-actors.js');
 const cameraApi = require('../public/simulatte/app/camera-controller.js');
-const loadingMosaicApi = require('../public/simulatte/app/loading-mosaic.js');
 const appApi = require('../public/simulatte/app/main.js');
 const interactionApi = require('../public/simulatte/app/application-profile-select.js');
 const gpuMath = require('../public/simulatte/app/webgpu-math.js');
@@ -1287,7 +1286,6 @@ test('autonomy browser surface loads every declared module and stays independent
   scripts.forEach((source) => assert.ok(fs.existsSync(path.resolve(autonomyDir, source)), `${source} should exist`));
   assert.match(html, /id="autonomy-canvas"/);
   assert.match(html, /id="loading-screen"[^>]*role="status"/);
-  assert.match(html, /src="\.\/simulatte\/app\/loading-mosaic\.js\?v=[^"]+"/);
   assert.match(html, /id="follow-minimap"/);
   assert.match(html, /id="shuffle-button"[^>]*>[\s\S]*?id="shuffle-label">Shuffle<\/span>/);
   assert.match(html, /id="start-button"[^>]*>[\s\S]*?id="start-label">Start<\/span>/);
@@ -1303,94 +1301,6 @@ test('autonomy browser surface loads every declared module and stays independent
   for (const file of autonomySourceDirs.flatMap(jsFiles)) {
     assert.ok(fs.readFileSync(file, 'utf8').split(/\r?\n/).length <= 999, `${path.relative(root, file)} should remain below 1,000 lines`);
   }
-});
-
-test('loading mosaic loops a seven-segment snake through the clockwise grid spiral', () => {
-  assert.deepEqual(loadingMosaicApi.spiralCells(3), [
-    [0, 0], [0, 1], [0, 2], [1, 2], [2, 2], [2, 1], [2, 0], [1, 0], [1, 1],
-  ]);
-  const path = loadingMosaicApi.spiralCells(7);
-  assert.equal(path.length, 49);
-  assert.equal(new Set(path.map((cell) => cell.join(':'))).size, 49);
-  const headFrames = loadingMosaicApi.snakeSegmentKeyframes({ path, segmentIndex: 0, size: 7 });
-  const tailFrames = loadingMosaicApi.snakeSegmentKeyframes({ path, segmentIndex: 6, size: 7 });
-  assert.equal(headFrames[0].transform, loadingMosaicApi.cellTransform([0, 0]));
-  assert.equal(tailFrames[0].transform, loadingMosaicApi.cellTransform([0, 0]));
-  assert.equal(headFrames.find((frame) => frame.offset === loadingMosaicApi.TRAVEL_END).transform, loadingMosaicApi.cellTransform([3, 3]));
-  assert.equal(tailFrames.find((frame) => frame.offset === loadingMosaicApi.COLLAPSE_END).transform, loadingMosaicApi.cellTransform([3, 3]));
-  assert.equal(headFrames.find((frame) => frame.offset === loadingMosaicApi.TRAVEL_END).opacity, 1);
-  assert.equal(tailFrames.find((frame) => frame.offset === loadingMosaicApi.TRAVEL_END).opacity, loadingMosaicApi.trailOpacity(6));
-  assert.deepEqual(loadingMosaicApi.TRAIL_OPACITIES, [1, 0.88, 0.76, 0.64, 0.52, 0.4, 0.3]);
-  assert.equal(loadingMosaicApi.CYCLE_DURATION_MS, 2750);
-  assert.equal(loadingMosaicApi.CELL_GAP_PX, 6);
-  assert.equal(loadingMosaicApi.SNAKE_TRAVEL_DURATION_MS, 1200);
-  assert.equal(loadingMosaicApi.SNAKE_COLLAPSE_DURATION_MS, 150);
-  assert.equal(loadingMosaicApi.ROTATION_DURATION_MS, 500);
-  assert.ok(Math.abs(((loadingMosaicApi.TURN_END - loadingMosaicApi.TURN_START) * loadingMosaicApi.CYCLE_DURATION_MS) - loadingMosaicApi.ROTATION_DURATION_MS) < 0.001);
-  const tailTurnFrames = tailFrames.filter((frame) => frame.offset >= loadingMosaicApi.TURN_START && frame.offset <= loadingMosaicApi.TURN_END);
-  assert.deepEqual(tailTurnFrames.map((frame) => frame.transform), [
-    loadingMosaicApi.cellTransform([3, 3]),
-    loadingMosaicApi.cellTransform([2, 4]),
-    loadingMosaicApi.cellTransform([1, 5]),
-    loadingMosaicApi.cellTransform([0, 6]),
-  ]);
-  const hopOffsets = tailTurnFrames.slice(1).map((frame) => frame.offset);
-  const hopIntervals = hopOffsets.map((offset, index) => offset - (index === 0 ? loadingMosaicApi.TURN_START : hopOffsets[index - 1]));
-  assert.ok(hopIntervals.every((interval) => Math.abs(interval - hopIntervals[0]) < Number.EPSILON));
-  // Rotation turns in lock step with the diagonal: 30° per hop, pausing then moving quickly.
-  assert.equal(loadingMosaicApi.ROTATION_STEP_DEG, 30);
-  const rotation = loadingMosaicApi.rotationCycleKeyframes();
-  assert.deepEqual(rotation.map((frame) => frame.transform), [
-    'rotate(0deg)',
-    'rotate(0deg)',
-    'rotate(0deg)',
-    'rotate(-30deg)',
-    'rotate(-30deg)',
-    'rotate(-60deg)',
-    'rotate(-60deg)',
-    'rotate(-90deg)',
-    'rotate(-90deg)',
-  ]);
-  assert.equal(rotation[0].easing, 'steps(1, end)');
-  assert.equal(rotation[1].easing, 'steps(1, end)');
-  assert.equal(rotation[2].easing, 'steps(1, end)');
-  assert.equal(rotation[3].easing, 'cubic-bezier(0.12, 0, 0.16, 1)');
-  assert.equal(rotation[4].easing, 'steps(1, end)');
-  assert.equal(rotation[5].easing, 'cubic-bezier(0.12, 0, 0.16, 1)');
-  assert.equal(rotation[6].easing, 'steps(1, end)');
-  assert.equal(rotation[7].easing, 'cubic-bezier(0.12, 0, 0.16, 1)');
-  assert.equal(rotation[8].easing, undefined);
-  assert.equal(rotation[1].offset, loadingMosaicApi.TURN_START);
-  const turnSpan = loadingMosaicApi.TURN_END - loadingMosaicApi.TURN_START;
-  const hopSpan = turnSpan / (90 / loadingMosaicApi.ROTATION_STEP_DEG);
-  assert.equal(rotation[2].offset, loadingMosaicApi.TURN_START + (hopSpan * loadingMosaicApi.TURN_PAUSE_FRACTION));
-  assert.deepEqual([rotation[3].offset, rotation[5].offset, rotation[7].offset], hopOffsets);
-  assert.equal(rotation[7].offset, loadingMosaicApi.TURN_END);
-  // The body remains static; during the gathered turn the active head advances
-  // through the palette in increments of +2 per completed hop.
-  assert.equal(loadingMosaicApi.segmentColor(0, 0, 0, false), 'hsl(0 88% 62%)');
-  assert.equal(loadingMosaicApi.segmentColor(0, 1, 0, false), 'hsl(51 88% 62%)');
-  assert.equal(loadingMosaicApi.segmentColor(6, 0, 0, false), 'hsl(309 88% 62%)');
-  // The palette iteration lives on the diagonal shift: the single visible cell steps
-  // +5 hues per completed hop, indexed into the ordered palette.
-  assert.deepStrictEqual([0, 1, 2, 3].map((hop) => loadingMosaicApi.segmentColor(0, 0, hop, true)), [
-    'hsl(0 88% 62%)',
-    'hsl(257 88% 62%)',
-    'hsl(154 88% 62%)',
-    'hsl(51 88% 62%)',
-  ]);
-  // The spiral head hue advances +1 per iteration, so it starts on the hop 3 hue of the previous iteration.
-  assert.equal(loadingMosaicApi.segmentColor(0, 1, 0, false), 'hsl(51 88% 62%)');
-  assert.equal(loadingMosaicApi.segmentColor(0, 2, 0, false), 'hsl(103 88% 62%)');
-  // Hop 3 of iteration 0 matches the spiral head of iteration 1.
-  assert.equal(loadingMosaicApi.segmentColor(0, 0, 3, true), loadingMosaicApi.segmentColor(0, 1, 0, false));
-  // Hop counting is deterministic on cycle phase and clamps to CENTER after the turn.
-  assert.equal(loadingMosaicApi.completedHopsAt(0), 0);
-  assert.equal(loadingMosaicApi.completedHopsAt(loadingMosaicApi.TURN_START), 0);
-  assert.equal(loadingMosaicApi.completedHopsAt(loadingMosaicApi.TURN_END), 3);
-  assert.equal(loadingMosaicApi.completedHopsAt(1), 3);
-  assert.equal(headFrames.at(-1).transform, loadingMosaicApi.cellTransform([0, 6]));
-  assert.equal(tailFrames.at(-1).transform, loadingMosaicApi.cellTransform([0, 6]));
 });
 
 test('every first-party plugin is selectable through a governed application profile', () => {
@@ -1431,7 +1341,6 @@ test('autonomy UI keeps the map primary and moves technical controls behind prog
   assert.doesNotMatch(blankHtml, /data-neural-model="reranker-name"/);
   assert.doesNotMatch(html, /WebGPU world model|Decision engine|Route search|Prediction settlement/);
   assert.match(css, /#autonomy-canvas[\s\S]*width: 100%;[\s\S]*height: 100%/);
-  assert.match(css, /\.loading-mosaic-grid[\s\S]*will-change: transform/);
   assert.match(css, /\.sim-app \.neural-consent-dialog[\s\S]*background: rgba\(0, 0, 0, 0\.99\)/);
   assert.match(css, /@media \(max-width: 820px\)[\s\S]*translateY/);
   assert.match(design, /--sim-spectrum:/);

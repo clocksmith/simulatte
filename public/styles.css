@@ -76,75 +76,12 @@ body:not([data-journey-phase="loading"]) .loading-screen {
   visibility: hidden;
 }
 
-.loading-mosaic-stage {
-  display: grid;
-  justify-items: center;
-  gap: 22px;
-  transform-origin: center;
-  will-change: transform;
-}
-
 /* Standalone world explorer (non-City scales): hide the City-only gameplay chrome. */
 .world-explorer .mission-dock,
 .world-explorer #journey-hud,
 .world-explorer #decisions-button,
 .world-explorer .camera-controls {
   display: none !important;
-}
-
-.loading-mosaic {
-  --mosaic-size: 7;
-  --mosaic-gap: 6px;
-  position: relative;
-  width: clamp(148px, 22vw, 196px);
-  aspect-ratio: 1;
-  transform-origin: center;
-}
-
-.loading-mosaic-shell {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 1;
-  transform-origin: center;
-}
-
-.loading-mosaic-grid,
-.loading-mosaic-snake {
-  position: absolute;
-  inset: 0;
-}
-
-.loading-mosaic-grid {
-  display: grid;
-  grid-template-columns: repeat(var(--mosaic-size), 1fr);
-  gap: var(--mosaic-gap);
-  transform-origin: center;
-  will-change: transform;
-}
-
-.loading-mosaic-grid > i {
-  display: block;
-  border: 0;
-  border-radius: 0;
-  background: #080808;
-}
-
-.loading-mosaic-snake {
-  pointer-events: none;
-}
-
-.loading-mosaic-snake > b {
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: auto;
-  display: block;
-  width: calc((100% - 36px) / 7);
-  aspect-ratio: 1;
-  border-radius: 0;
-  color: hsl(var(--segment-hue), 88%, 62%);
-  background: currentColor;
-  will-change: color, opacity, transform;
 }
 
 .loading-progress {
@@ -1755,8 +1692,7 @@ body[data-journey-phase="failed"] .scenario-field {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .loading-screen,
-  .loading-mosaic > i {
+  .loading-screen {
     transition: none;
     animation: none;
   }
