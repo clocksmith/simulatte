@@ -1303,12 +1303,21 @@ test('autonomy browser surface loads every declared module and stays independent
   }
 });
 
-test('every first-party plugin is selectable through a governed application profile', () => {
-  const manifest = readJson('public/data/simulatte/autonomy-manifest.json');
-  const references = [manifest.applicationProfile, ...(manifest.applicationProfiles || [])];
-  const profiles = references.map((reference) => readJson(path.join('public/data/simulatte', reference.path)));
+test('every first-party plugin is selectable through a governed profile scoped to its own world', () => {
+  const cityManifest = readJson('public/data/simulatte/autonomy-manifest.json');
+  const tierManifest = readJson('public/data/simulatte/tier-application-manifest.json');
+  const cityRefs = [cityManifest.applicationProfile, ...(cityManifest.applicationProfiles || [])];
+  const cityProfiles = cityRefs.map((reference) => readJson(path.join('public/data/simulatte', reference.path)));
+  const tierProfiles = Object.values(tierManifest.tiers).flatMap((row) => row.profiles.map((reference) => readJson(path.join('public/data/simulatte', reference.path))));
+  const profiles = [...cityProfiles, ...tierProfiles];
+  // Each plugin must have a focused profile SOMEWHERE (union of the city + governed-tier manifests).
   pluginRegistry.ids.forEach((pluginId) => {
     assert.ok(profiles.some((profile) => profile.id.startsWith(pluginId) || (pluginId === 'cable-trader' && profile.id === 'cable-trader-pickup-v1')), `${pluginId} should have a focused profile`);
+  });
+  // The experience dropdown is scoped by world, so the city manifest must list only city
+  // experiences — never another tier's governed profile (which the city app cannot run).
+  cityProfiles.forEach((profile) => {
+    assert.ok(!profile.tier || profile.tier === 'city', `city manifest must not list ${profile.id} (tier ${profile.tier})`);
   });
 });
 

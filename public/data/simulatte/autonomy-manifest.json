@@ -19,26 +19,6 @@
       "id": "sun-walker-v1",
       "path": "../application-profiles/sun-walker-v1.json",
       "sha256": "5492b3cae31bc609fa667aa369df3a885292d0ec2aa7da43bfc1f4b5b1ab6226"
-    },
-    {
-      "id": "food-recall-us-v1",
-      "path": "../application-profiles/food-recall-us-v1.json",
-      "sha256": "ca862169761203ea124b9d993949604b2ebf33156c6bbb435b75ae9ed0d2f9ea"
-    },
-    {
-      "id": "orbital-transfer-planner-v1",
-      "path": "../application-profiles/orbital-transfer-planner-v1.json",
-      "sha256": "d40e04bc22f50e0b7a353b87ca442b63fc2ebb51a4ba9c9c08a10d3ac97687f0"
-    },
-    {
-      "id": "maritime-trade-global-v1",
-      "path": "../application-profiles/maritime-trade-global-v1.json",
-      "sha256": "d2f3aa8b9eb52da98eadb2628cc6c694f88572a670ef101c3f94f4f786e83cf8"
-    },
-    {
-      "id": "interstellar-relay-network-v1",
-      "path": "../application-profiles/interstellar-relay-network-v1.json",
-      "sha256": "c2b797fd17daceddd4928625efeacfe8e595be89bc0aff9b04f12cac014118d4"
     }
   ],
   "claimBoundary": "This manifest governs bicycle-delivery and pedestrian-loop simulations assembled from independently hashed region packs for New York City. Park circuits follow frozen property boundaries, not surveyed sidewalk centerlines. It does not claim live conditions, physical-world autonomy, or control of a real vehicle.",
