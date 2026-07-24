@@ -1,11 +1,12 @@
 #!/usr/bin/env node
 import fs from 'node:fs';
-import http from 'node:http';
 import net from 'node:net';
 import os from 'node:os';
 import path from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { createStaticSiteServer } from './static-site-server.mjs';
+import { CdpClient } from './browser-harness.mjs';
 
 const TOOL_DIR = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(TOOL_DIR, '../..');
@@ -73,38 +74,12 @@ async function freePort() {
 
 async function createStaticServer() {
   const requests = [];
-  const server = http.createServer((request, response) => {
-    const requestUrl = new URL(request.url || '/', 'http://127.0.0.1');
-    let pathname = decodeURIComponent(requestUrl.pathname);
-    if (pathname.endsWith('/')) pathname += 'index.html';
-    const file = path.resolve(PUBLIC, `.${pathname}`);
-    if (file !== PUBLIC && !file.startsWith(`${PUBLIC}${path.sep}`)) {
-      requests.push({ pathname, status: 403 });
-      response.writeHead(403).end('Forbidden');
-      return;
-    }
-    let servedFile = file;
-    if (!fs.existsSync(servedFile) || !fs.statSync(servedFile).isFile()) {
-      // Mirror firebase.json rewrites: the /tier/experience routes have no file, so serve the SPA
-      // entry and let client-side routing boot; only genuine asset requests (with an extension) 404.
-      if (path.extname(pathname)) {
-        requests.push({ pathname, status: 404 });
-        response.writeHead(404).end('Not found');
-        return;
-      }
-      servedFile = path.resolve(PUBLIC, pathname.startsWith('/blank/') ? 'blank/index.html' : 'index.html');
-    }
-    requests.push({ pathname, status: 200 });
-    response.writeHead(200, { 'Content-Type': contentType(servedFile), 'Cache-Control': 'no-store' });
-    fs.createReadStream(servedFile).pipe(response);
+  const server = createStaticSiteServer({
+    publicRoot: PUBLIC,
+    onRequest: ({ pathname, status }) => requests.push({ pathname, status }),
   });
   await new Promise((resolve, reject) => server.listen(0, '127.0.0.1', resolve).once('error', reject));
   return { server, port: server.address().port, requests };
-}
-
-function contentType(file) {
-  const extension = path.extname(file);
-  return ({ '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.json': 'application/json; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png' })[extension] || 'application/octet-stream';
 }
 
 async function waitForDevtools(port, child) {
@@ -126,60 +101,7 @@ async function waitForDevtools(port, child) {
   throw new Error(`Chrome DevTools did not become ready on port ${port}`);
 }
 
-class CdpClient {
-  constructor(url) {
-    this.url = url;
-    this.socket = null;
-    this.nextId = 1;
-    this.pending = new Map();
-    this.listeners = new Map();
-  }
 
-  async connect() {
-    this.socket = new WebSocket(this.url);
-    await new Promise((resolve, reject) => {
-      this.socket.onopen = resolve;
-      this.socket.onerror = reject;
-    });
-    this.socket.onmessage = ({ data }) => this.receive(JSON.parse(data));
-  }
-
-  receive(message) {
-    if (message.id && this.pending.has(message.id)) {
-      const pending = this.pending.get(message.id);
-      this.pending.delete(message.id);
-      if (message.error) pending.reject(new Error(JSON.stringify(message.error)));
-      else pending.resolve(message.result);
-    }
-    for (const listener of this.listeners.get(message.method) || []) listener(message.params);
-  }
-
-  send(method, params = {}) {
-    return new Promise((resolve, reject) => {
-      const id = this.nextId++;
-      this.pending.set(id, { resolve, reject });
-      this.socket.send(JSON.stringify({ id, method, params }));
-    });
-  }
-
-  once(method) {
-    return new Promise((resolve) => {
-      const callback = (params) => {
-        this.listeners.set(method, (this.listeners.get(method) || []).filter((row) => row !== callback));
-        resolve(params);
-      };
-      this.listeners.set(method, [...(this.listeners.get(method) || []), callback]);
-    });
-  }
-
-  on(method, callback) {
-    this.listeners.set(method, [...(this.listeners.get(method) || []), callback]);
-  }
-
-  close() {
-    if (this.socket) this.socket.close();
-  }
-}
 
 async function runBrowserSmoke(options) {
   if (typeof WebSocket !== 'function') throw new Error('Autonomy browser smoke requires a Node runtime with WebSocket support');
@@ -189,6 +111,7 @@ async function runBrowserSmoke(options) {
   const pathSegments = new URL(targetUrl).pathname.split('/').filter(Boolean);
   const expectedProfileId = (pathSegments[0] === 'city' ? pathSegments[1] : null) || 'simulatte-world-v1';
   const expectedProfile = profileDefinition(expectedProfileId);
+  const expectedProfileIds = cityProfileIds();
   const expectedPluginIds = new Set(expectedProfile.plugins.map((row) => row.id));
   const expectedRunCameraMode = expectedProfile.camera?.runMode || 'follow';
   const expectedInitialCameraMode = expectedProfile.camera?.initialMode || 'bird';
@@ -387,11 +310,12 @@ async function runBrowserSmoke(options) {
       && result.initialLayout.primaryControlsVisible
       && result.applicationProfile.enabled
       && result.applicationProfile.selectedId === expectedProfileId
-      && result.applicationProfile.optionIds.length === 11
+      && result.applicationProfile.optionIds.length === expectedProfileIds.length
+      && result.applicationProfile.optionIds.every((id, index) => id === expectedProfileIds[index])
       && result.applicationProfile.custom.enabled
       && result.applicationProfile.custom.opened
       && result.applicationProfile.custom.groupLabels.length === 0
-      && result.applicationProfile.custom.optionCount === 11
+      && result.applicationProfile.custom.optionCount === expectedProfileIds.length
       && result.applicationProfile.custom.selectedLabel.length > 0
       && result.applicationProfile.custom.escapeClosed
       && decisionView.open
@@ -431,6 +355,34 @@ async function runBrowserSmoke(options) {
       && !result.hasHorizontalOverflow
       && errors.length === 0
       && failedResponses.length === 0;
+    const diagnostics = Object.freeze({
+      performance: result.smoothness.rafFrameCount >= 120
+        && result.smoothness.frameIntervalMs.p95 <= 20
+        && result.smoothness.over33msRatio <= 0.01
+        && result.smoothness.longTaskCount === 0,
+      profileScope: result.applicationProfile.selectedId === expectedProfileId
+        && result.applicationProfile.optionIds.length === expectedProfileIds.length
+        && result.applicationProfile.optionIds.every((id, index) => id === expectedProfileIds[index])
+        && result.applicationProfile.custom.optionCount === expectedProfileIds.length,
+      visualRuntime: result.state === 'completed'
+        && result.rendererBackend === 'webgpu'
+        && result.rendererFrames > 0
+        && result.staticVertexCount > 10000,
+      evidence: result.runtimeLog.requiredEventsPresent
+        && result.runtimeLog.failureCount === 0
+        && result.traceRows > 0
+        && result.selectedRows === 1,
+      layout: result.initialLayout.allWithinViewport
+        && result.initialLayout.primaryControlsVisible
+        && !result.hasHorizontalOverflow,
+      camera: result.camera.startedInConfiguredMode
+        && result.camera.modeProbes.every((row) => row.began && row.noSnap && row.progressed && row.settled && row.moved)
+        && result.camera.regionFocus.settled
+        && result.camera.returnedToRoute,
+      plugins: featurePass,
+      browserErrors: errors.length === 0 && failedResponses.length === 0,
+    });
+    const failedDiagnostics = Object.entries(diagnostics).filter(([, passed]) => !passed).map(([id]) => id);
     const report = {
       schema: 'simulatte.autonomyBrowserSmoke.v11',
       pass,
@@ -444,6 +396,8 @@ async function runBrowserSmoke(options) {
       featureView,
       errors,
       failedResponses,
+      diagnostics,
+      failedDiagnostics,
       requests: staticHost ? staticHost.requests : [],
       claimBoundary: 'This smoke proves the checked-in static browser journey executed in the named browser. It does not establish physical-world autonomy.',
     };
@@ -574,6 +528,11 @@ function profileDefinition(profileId) {
   const profilePath = path.resolve(PUBLIC, 'data', 'simulatte', reference.path);
   const profile = JSON.parse(fs.readFileSync(profilePath, 'utf8'));
   return profile;
+}
+
+function cityProfileIds() {
+  const manifest = JSON.parse(fs.readFileSync(path.join(PUBLIC, 'data', 'simulatte', 'autonomy-manifest.json'), 'utf8'));
+  return [manifest.applicationProfile, ...(manifest.applicationProfiles || [])].map((row) => row.id);
 }
 
 function actorViewExpression() {
@@ -1047,6 +1006,7 @@ async function main() {
   const options = parseArgs(process.argv.slice(2));
   const report = await runBrowserSmoke(options);
   console.log(`AUTONOMY-BROWSER state=${report.result.state} tick=${report.result.tick} trace=${report.result.traceRows} errors=${report.errors.length} failedResponses=${report.failedResponses.length} status=${report.pass ? 'pass' : 'fail'}`);
+  if (report.failedDiagnostics.length) console.log(`AUTONOMY-BROWSER failedChecks=${report.failedDiagnostics.join(',')}`);
   if (!report.pass) process.exitCode = 1;
 }
 

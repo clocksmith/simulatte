@@ -88,6 +88,8 @@
       };
       return {
         id: 'sun-walker:sun-exposure',
+        costDimensionIds: Object.freeze(['sunExposureSeconds']),
+        canRejectSegments: false,
         evaluateSegment({ segment }) {
           const row = segmentExposure(segment);
           return {

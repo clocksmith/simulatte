@@ -23,7 +23,8 @@
         : nearbyActorSummary;
       renderMetrics(elements, snapshot, selected, receipt);
       const drawerOpen = elements.decisionsDrawer?.classList.contains('is-open');
-      const refreshEvidence = drawerOpen || snapshot.state.status !== 'active' || receipt.tick % 8 === 0;
+      const evidenceCadence = drawerOpen ? 4 : 8;
+      const refreshEvidence = snapshot.state.status !== 'active' || receipt.tick % evidenceCadence === 0;
       if (refreshEvidence) {
         elements.betList.replaceChildren(...receipt.bets.map((row) => betRow(row, receipt.selectedBetId)));
         renderRoute(elements, receipt.observation.route);

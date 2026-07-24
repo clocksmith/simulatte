@@ -5,9 +5,11 @@
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyRoutePlanner() {
   const STREET_WORDS = Object.freeze({ avenue: 'av', ave: 'av', street: 'st', str: 'st', boulevard: 'blvd', road: 'rd', lane: 'ln', place: 'pl', square: 'sq' });
   function planRoute({ worldModel, originNodeId, destinationNodeId, mode, tick, mission, policy, excludedSegmentIds = [], routeContributors = [], routeObjective = {} }) {
+    const activeRouteContributors = contributorsForObjective(routeContributors, routeObjective);
+    const contributorExecution = routeContributorExecution(routeContributors, activeRouteContributors);
     const governedOverride = declaredRouteOverride({
       worldModel, originNodeId, destinationNodeId, mode, tick, mission, policy,
-      excludedSegmentIds, routeContributors, routeObjective,
+      excludedSegmentIds, routeContributors: activeRouteContributors, routeObjective, contributorExecution,
     });
     if (governedOverride) return governedOverride;
     const avoidedStreetNames = new Set(mission.constraints.avoidStreetNames || []);
@@ -16,7 +18,7 @@
     const candidateExcludedSegmentIds = new Set(excludedSegmentIds);
     const pluginRejections = [];
     if (originNodeId === destinationNodeId) {
-      return routeResult([], 0, [originNodeId], 0, routeCostBreakdown([], worldModel, mission, policy, routeContributors, routeObjective, tick), 'a_star_v1', { ...routeConstraintReceipt(avoidedStreetNames, excludedStreetSegmentIds, candidateExcludedSegmentIds), pluginRejections });
+      return routeResult([], 0, [originNodeId], 0, routeCostBreakdown([], worldModel, mission, policy, activeRouteContributors, routeObjective, tick), 'a_star_v1', { ...routeConstraintReceipt(avoidedStreetNames, excludedStreetSegmentIds, candidateExcludedSegmentIds), ...contributorExecution, pluginRejections });
     }
     const blocked = new Set(worldModel.blockedSegmentIds(tick));
     const maximumSpeedMps = worldModel.world.segments.reduce((maximum, segment) => segment.allowedModes.includes(mode) ? Math.max(maximum, segment.speedLimitMps) : maximum, 1);
@@ -36,9 +38,9 @@
           current.cost,
           visited,
           evaluatedSegmentCount,
-          routeCostBreakdown(current.path, worldModel, mission, policy, routeContributors, routeObjective, tick),
+          routeCostBreakdown(current.path, worldModel, mission, policy, activeRouteContributors, routeObjective, tick),
           'a_star_v1',
-          { ...routeConstraintReceipt(avoidedStreetNames, excludedStreetSegmentIds, candidateExcludedSegmentIds), pluginRejections }
+          { ...routeConstraintReceipt(avoidedStreetNames, excludedStreetSegmentIds, candidateExcludedSegmentIds), ...contributorExecution, pluginRejections }
         );
       }
       for (const segment of worldModel.outgoing(current.nodeId)) {
@@ -50,7 +52,7 @@
           excludedStreetSegmentIds.add(segment.id);
           continue;
         }
-        const pluginEvaluation = evaluateRouteContributors(routeContributors, { segment, worldModel, mission, policy, tick });
+        const pluginEvaluation = evaluateRouteContributors(activeRouteContributors, { segment, worldModel, mission, policy, tick });
         if (!pluginEvaluation.eligible) {
           pluginRejections.push({ segmentId: segment.id, reasons: pluginEvaluation.rejectionReasons });
           continue;
@@ -80,12 +82,13 @@
       excludedStreetSegmentIds: [...excludedStreetSegmentIds].sort(),
       candidateExcludedSegmentIds: [...candidateExcludedSegmentIds].sort(),
       pluginRejections: pluginRejections.slice(0, 80),
+      ...contributorExecution,
       visitedNodeIds: visited,
     };
     throw error;
   }
 
-  function declaredRouteOverride({ worldModel, originNodeId, destinationNodeId, mode, tick, mission, policy, excludedSegmentIds, routeContributors, routeObjective }) {
+  function declaredRouteOverride({ worldModel, originNodeId, destinationNodeId, mode, tick, mission, policy, excludedSegmentIds, routeContributors, routeObjective, contributorExecution }) {
     const override = mission.constraints.routeOverride;
     if (!override || !Array.isArray(override.segmentIds) || !override.segmentIds.length || excludedSegmentIds.length) return null;
     const blocked = new Set(worldModel.blockedSegmentIds(tick));
@@ -105,6 +108,7 @@
       environmentSelectionId: override.selectionId,
       environmentObjective: override.objective,
       ...routeConstraintReceipt(new Set(), new Set(), new Set()),
+      ...contributorExecution,
     });
   }
 
@@ -230,6 +234,22 @@
     return { eligible: rejectionReasons.length === 0, costDimensions, rejectionReasons, receipts };
   }
 
+  function contributorsForObjective(contributors, objective = {}) {
+    return [...contributors].filter((contributor) => {
+      if (contributor.canRejectSegments !== false) return true;
+      if (!Array.isArray(contributor.costDimensionIds) || !contributor.costDimensionIds.length) return true;
+      return contributor.costDimensionIds.some((id) => (Number(objective[id]) || 0) !== 0);
+    });
+  }
+
+  function routeContributorExecution(allContributors, activeContributors) {
+    const activeIds = new Set(activeContributors.map((row) => row.id));
+    return Object.freeze({
+      activeRouteContributorIds: Object.freeze(activeContributors.map((row) => row.id).sort()),
+      skippedRouteContributorIds: Object.freeze(allContributors.map((row) => row.id).filter((id) => !activeIds.has(id)).sort()),
+    });
+  }
+
   function weightedContributionCost(dimensions, objective) {
     return Object.entries(dimensions).reduce((total, [id, value]) => total + value * (Number(objective[id]) || 0), 0);
   }
@@ -318,5 +338,5 @@
     };
   }
 
-  return { evaluateRouteContributors, forecastRoute, normalizeStreetName, planCircuitRoute, planRoute, planRouteAlternatives, routeCostBreakdown, segmentCost, weightedContributionCost };
+  return { contributorsForObjective, evaluateRouteContributors, forecastRoute, normalizeStreetName, planCircuitRoute, planRoute, planRouteAlternatives, routeCostBreakdown, segmentCost, weightedContributionCost };
 });

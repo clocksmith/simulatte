@@ -1,11 +1,12 @@
 #!/usr/bin/env node
 import fs from 'node:fs';
-import http from 'node:http';
 import net from 'node:net';
 import os from 'node:os';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { createStaticSiteServer } from './static-site-server.mjs';
+import { CdpClient } from './browser-harness.mjs';
 
 const TOOL_DIR = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(TOOL_DIR, '../..');
@@ -64,63 +65,12 @@ async function findAvailablePort() {
 }
 
 function startStaticServer(port) {
-  const server = http.createServer((req, res) => {
-    const safeUrl = new URL(req.url, `http://127.0.0.1:${port}`);
-    let filePath = path.join(PUBLIC, safeUrl.pathname);
-    if (fs.existsSync(filePath) && fs.statSync(filePath).isDirectory()) {
-      filePath = path.join(filePath, 'index.html');
-    }
-    if (!fs.existsSync(filePath)) {
-      // Mirror firebase.json rewrites: extensionless/unknown paths (the /tier/experience routes)
-      // serve the SPA entry so client-side routing can boot; /blank/** serves its own entry.
-      if (path.extname(safeUrl.pathname)) {
-        res.writeHead(404, { 'Content-Type': 'text/plain' });
-        res.end('404 Not Found');
-        return;
-      }
-      filePath = safeUrl.pathname.startsWith('/blank/')
-        ? path.join(PUBLIC, 'blank', 'index.html')
-        : path.join(PUBLIC, 'index.html');
-    }
-    const ext = path.extname(filePath).toLowerCase();
-    const mimeTypes = {
-      '.html': 'text/html; charset=utf-8',
-      '.js': 'application/javascript; charset=utf-8',
-      '.css': 'text/css; charset=utf-8',
-      '.json': 'application/json; charset=utf-8',
-      '.png': 'image/png',
-      '.jpg': 'image/jpeg',
-      '.svg': 'image/svg+xml',
-      '.wasm': 'application/wasm',
-    };
-    res.writeHead(200, { 'Content-Type': mimeTypes[ext] || 'application/octet-stream' });
-    fs.createReadStream(filePath).pipe(res);
-  });
+  const server = createStaticSiteServer({ publicRoot: PUBLIC });
   return new Promise((resolve) => server.listen(port, '127.0.0.1', () => resolve(server)));
 }
 
 // Minimal Chrome DevTools Protocol client over the debugger WebSocket.
-class CdpClient {
-  constructor(url) { this.url = url; this.nextId = 1; this.pending = new Map(); this.listeners = new Map(); }
-  async connect() {
-    this.socket = new WebSocket(this.url);
-    await new Promise((resolve, reject) => { this.socket.onopen = resolve; this.socket.onerror = reject; });
-    this.socket.onmessage = ({ data }) => this.receive(JSON.parse(data));
-  }
-  receive(message) {
-    if (message.id && this.pending.has(message.id)) {
-      const pending = this.pending.get(message.id); this.pending.delete(message.id);
-      if (message.error) pending.reject(new Error(JSON.stringify(message.error))); else pending.resolve(message.result);
-    }
-    for (const listener of this.listeners.get(message.method) || []) listener(message.params);
-  }
-  send(method, params = {}) {
-    const id = this.nextId++;
-    return new Promise((resolve, reject) => { this.pending.set(id, { resolve, reject }); this.socket.send(JSON.stringify({ id, method, params })); });
-  }
-  on(method, listener) { if (!this.listeners.has(method)) this.listeners.set(method, []); this.listeners.get(method).push(listener); }
-  close() { try { this.socket.close(); } catch { /* already closed */ } }
-}
+
 
 async function waitForDevtools(port, child) {
   for (let attempt = 0; attempt < 200; attempt += 1) {
@@ -142,6 +92,7 @@ const STATE_PROBE = `(() => {
   const match = text.match(/\\b(Loading experience|Ready|Running scenario|Complete|Stopped)\\b/);
   return {
     status: match ? match[1] : '',
+    error: window.__simulatteLastFailError?.message || '',
     receipt: receipt ? { actionStatus: receipt.actionResult && receipt.actionResult.status, obligations: (receipt.settlement && receipt.settlement[0] && receipt.settlement[0].obligationResults || []).length } : null,
   };
 })()`;
@@ -150,7 +101,7 @@ async function waitFor(probe, predicate, label, timeoutMs) {
   const started = Date.now();
   for (;;) {
     const state = await probe();
-    if (state.status === 'Stopped') throw new Error(`${label}: runtime error (Stopped)`);
+    if (state.status === 'Stopped') throw new Error(`${label}: runtime error (${state.error || 'Stopped'})`);
     if (predicate(state)) return state;
     if (Date.now() - started > timeoutMs) throw new Error(`${label}: timeout after ${timeoutMs}ms (status=${state.status || 'unknown'})`);
     await new Promise((resolve) => setTimeout(resolve, 100));
@@ -171,6 +122,10 @@ async function auditTier(chromePath, baseUrl, item) {
     await client.send('Runtime.enable');
     await client.send('Page.enable');
     client.on('Runtime.exceptionThrown', (params) => report.errors.push(params?.exceptionDetails?.exception?.description || params?.exceptionDetails?.text || 'exception'));
+    client.on('Runtime.consoleAPICalled', (params) => {
+      if (params?.type !== 'error') return;
+      report.errors.push((params.args || []).map((arg) => arg.value || arg.description || '').filter(Boolean).join(' '));
+    });
     const url = new URL(baseUrl); url.pathname = `/${item.tier}/${item.profileId}`; url.search = '';
     await client.send('Page.navigate', { url: url.toString() });
     const probe = async () => (await client.send('Runtime.evaluate', { expression: STATE_PROBE, returnByValue: true })).result.value;

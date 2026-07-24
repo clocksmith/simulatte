@@ -16,7 +16,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginSafetyExplorer",
-    "integrity": "sha384-6a31e6a21438cb44757065c7bc5c5ff5a95dc95761aab645383081177010b48e67f719f27532f471f3bc9df6fe85d32f",
+    "integrity": "sha384-bf7ca780d0c389bf003ef09b2e7f35a4939bb79dc99509e17d8679594835e7d8df8a89c8e850976037a3f94262a282a1",
     "path": "./index.js"
   },
   "extensionPoints": [

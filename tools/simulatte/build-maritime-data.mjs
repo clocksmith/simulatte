@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Governed data generation for maritime-trade-global (TODO spec §A "Governed datasets").
+// Governed data generation for the maritime-trade-global application profile.
 //
 // Global schedules are synthetic scenarios anchored to official port and performance
 // datasets, not invented "live" ships. Every dataset is deterministic (seeded RNG), each

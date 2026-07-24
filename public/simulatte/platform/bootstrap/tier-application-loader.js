@@ -7,18 +7,20 @@
   const pluginRegistry = typeof module === 'object' && module.exports ? require('../plugin-host/generated-plugin-registry.js') : (root.SimulatteGeneratedPluginRegistry || root.SimulattePluginRegistry);
   const pluginPaths = typeof module === 'object' && module.exports ? require('../plugin-host/plugin-asset-paths.js') : root.SimulattePluginAssetPaths;
   const receipts = typeof module === 'object' && module.exports ? require('../../runtime/canonical-receipts.js') : root.SimulatteAutonomyReceipts;
-  const api = factory(browserTransport, artifactStore, dataCatalog, pluginContracts, schemaRegistry, pluginRegistry, pluginPaths, receipts);
+  const loadContext = typeof module === 'object' && module.exports ? require('./application-load-context.js') : root.SimulatteApplicationLoadContext;
+  const api = factory(browserTransport, artifactStore, dataCatalog, pluginContracts, schemaRegistry, pluginRegistry, pluginPaths, receipts, loadContext);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteTierApplicationLoader = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createTierApplicationLoader(transportApi, artifactStoreApi, dataCatalogApi, contracts, schemaRegistryApi, registry, pluginPaths, receipts) {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createTierApplicationLoader(transportApi, artifactStoreApi, dataCatalogApi, contracts, schemaRegistryApi, registry, pluginPaths, receipts, loadContext) {
   const DEFAULT_MANIFEST = './data/simulatte/tier-application-manifest.json';
 
   async function loadTierApplication({ tier, requestedProfileId = null, manifestUrl = DEFAULT_MANIFEST, fetchImpl = defaultFetch() } = {}) {
     assertDependencies();
     if (typeof tier !== 'string' || !tier) throw loadError('tier_missing', 'Tier application load expected a tier');
     const resolvedManifestUrl = new URL(manifestUrl, documentBase()).toString();
-    const transport = transportApi.createBrowserTransport({ fetchImpl });
-    const untypedStore = artifactStoreApi.createGovernedArtifactStore({ transport });
+    const services = loadContext.createDataServices({ fetchImpl, transportApi, artifactStoreApi });
+    const transport = services.transport;
+    const untypedStore = services.artifacts;
     const manifestLoaded = await untypedStore.readJson(resolvedManifestUrl);
     const manifest = validateTierManifest(manifestLoaded.value);
     const tierRow = manifest.tiers[tier];
@@ -119,9 +121,9 @@
     return value;
   }
   function validateReference(row, label) { if (!row || typeof row.id !== 'string' || typeof row.path !== 'string' || (row.sha256 !== undefined && !/^[a-f0-9]{64}$/.test(row.sha256))) throw loadError('tier_reference_invalid', `${label} expected id, path, and optional SHA-256`, row); }
-  function assertDependencies() { const rows = [['transport',transportApi,'createBrowserTransport'],['artifactStore',artifactStoreApi,'createGovernedArtifactStore'],['dataCatalog',dataCatalogApi,'createDataCatalog'],['contracts',contracts,'validateProfile'],['schemaRegistry',schemaRegistryApi,'createSchemaRegistry'],['registry',registry,'entry'],['paths',pluginPaths,'pluginBaseFromDocument'],['receipts',receipts,'sha256Hex']]; const missing=rows.find(([,value,method])=>!value||typeof value[method]!=='function'); if(missing) throw loadError('tier_loader_dependency_missing', `${missing[0]}.${missing[2]} is required`, null); }
-  function defaultFetch() { return typeof fetch === 'function' ? fetch.bind(globalThis) : null; }
-  function documentBase() { return typeof document !== 'undefined' && document.baseURI ? document.baseURI : 'http://localhost/'; }
-  function loadError(code, message, evidence) { const error = new Error(`${code}: ${message}`); error.name = 'SimulatteTierLoadError'; error.code = code; error.evidence = evidence; return error; }
+  function assertDependencies() { const rows = [['transport',transportApi,'createBrowserTransport'],['artifactStore',artifactStoreApi,'createGovernedArtifactStore'],['dataCatalog',dataCatalogApi,'createDataCatalog'],['contracts',contracts,'validateProfile'],['schemaRegistry',schemaRegistryApi,'createSchemaRegistry'],['registry',registry,'entry'],['paths',pluginPaths,'pluginBaseFromDocument'],['receipts',receipts,'sha256Hex'],['loadContext',loadContext,'createDataServices']]; loadContext.assertDependencies(rows, (message) => loadError('tier_loader_dependency_missing', message, null)); }
+  function defaultFetch() { return loadContext.defaultFetch(); }
+  function documentBase() { return loadContext.documentBase(); }
+  function loadError(code, message, evidence) { return loadContext.createLoadError('SimulatteTierLoadError', code, message, evidence); }
   return Object.freeze({ DEFAULT_MANIFEST, loadTierApplication, resolveProfileForTier, validateTierManifest });
 });

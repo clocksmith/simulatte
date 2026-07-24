@@ -120,6 +120,16 @@
         if (typeof contributor.id !== 'string' || !contributor.id || typeof contributor.evaluateSegment !== 'function') {
           throw runtimeError('plugin_route_contributor_invalid', `Plugin ${pluginId} route contributor expected id and evaluateSegment`, { pluginId });
         }
+        if (contributor.costDimensionIds !== undefined && (
+          !Array.isArray(contributor.costDimensionIds)
+          || !contributor.costDimensionIds.length
+          || contributor.costDimensionIds.some((id) => typeof id !== 'string' || !id.trim())
+        )) {
+          throw runtimeError('plugin_route_contributor_dimensions_invalid', `Plugin ${pluginId} route contributor expected non-empty cost dimension IDs`, { pluginId });
+        }
+        if (contributor.canRejectSegments !== undefined && typeof contributor.canRejectSegments !== 'boolean') {
+          throw runtimeError('plugin_route_contributor_rejection_contract_invalid', `Plugin ${pluginId} route contributor expected a boolean rejection contract`, { pluginId });
+        }
         return [Object.freeze({ pluginId, ...contributor })];
       });
       const ids = contributors.map((row) => row.id);

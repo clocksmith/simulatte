@@ -20,6 +20,8 @@
     function createRouteContributor() {
       return {
         id: 'safety-explorer:historical-observation',
+        costDimensionIds: Object.freeze(['historicalObservation', 'severityWeightedObservation']),
+        canRejectSegments: false,
         evaluateSegment({ segment }) {
           const row = rows.get(segment.id);
           return {

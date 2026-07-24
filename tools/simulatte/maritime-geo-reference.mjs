@@ -1,4 +1,4 @@
-// Pinned public reference geography for the maritime-trade-global tier (TODO spec §A).
+// Pinned public reference geography for the governed maritime-trade-global tier.
 // Major container ports (public coordinates + UN/LOCODE), major trade corridors, and the
 // two principal ship canals. These are public aggregate reference points, never observed
 // vessel positions or carrier schedules. Shared by the data generator, the world builder,

@@ -1,34 +1,53 @@
 (function attachAutonomyApp(root, factory) {
-  const api = factory(
-    // Accept both the original and the in-progress renamed global names so the app boots
+  const api = factory(Object.freeze({
+    dataLoader: // Accept both the original and the in-progress renamed global names so the app boots
     // whichever the module files currently register under (the multi-tier refactor renamed
     // these references before the module registrations were renamed to match).
-    (root.SimulatteApplicationLoader || root.SimulatteDataLoader), root.SimulatteAutonomyMission, root.SimulatteAutonomyController,
-    root.SimulatteAutonomyCanvas, (root.SimulatteAutonomyTraceView || root.SimulatteMissionTrace), (root.SimulatteAutonomyRuntimeLog || root.SimulatteRuntimeLog),
-    root.SimulatteNeuralPlaceResolver, (root.SimulatteJourneyLedger || root.SimulatteSettlementLedger), (root.SimulatteAutonomyReceipts || root.SimulatteCanonicalReceipts),
-    root.SimulatteAutonomyWorld, (root.SimulatteNeuralModelConsent || root.SimulatteNeuralConsent), root.SimulatteModelSelection,
-    root.SimulattePluginRuntime, root.SimulatteGeneratedPluginRegistry, root.SimulatteDeclarativeUiHost,
-    root.SimulatteBrowserTransport, root.SimulatteGovernedArtifactStore, root.SimulatteAutonomyRoutePlanner,
-    root.SimulatteCivilTime, root.SimulatteUniverseParser, root.SimulatteApplicationProfileSelect,
-    root.SimulatteExperienceCamera, root.SimulattePluginAssetPaths, root.SimulattePluginRandom,
-    root.SimulattePluginScheduler, root.SimulattePluginEnvironment, root.SimulattePluginGeography,
-    root.SimulattePluginCompute
-  );
+    (root.SimulatteApplicationLoader || root.SimulatteDataLoader),
+    missionApi: root.SimulatteAutonomyMission,
+    controllerApi: root.SimulatteAutonomyController,
+    canvasApi: root.SimulatteAutonomyCanvas,
+    traceApi: (root.SimulatteAutonomyTraceView || root.SimulatteMissionTrace),
+    runtimeLog: (root.SimulatteAutonomyRuntimeLog || root.SimulatteRuntimeLog),
+    neuralPlaceApi: root.SimulatteNeuralPlaceResolver,
+    ledgerApi: (root.SimulatteJourneyLedger || root.SimulatteSettlementLedger),
+    receiptsApi: (root.SimulatteAutonomyReceipts || root.SimulatteCanonicalReceipts),
+    worldApi: root.SimulatteAutonomyWorld,
+    neuralConsentApi: (root.SimulatteNeuralModelConsent || root.SimulatteNeuralConsent),
+    modelSelectionApi: root.SimulatteModelSelection,
+    pluginRuntimeApi: root.SimulattePluginRuntime,
+    pluginRegistry: root.SimulatteGeneratedPluginRegistry,
+    pluginUiApi: root.SimulatteDeclarativeUiHost,
+    transportApi: root.SimulatteBrowserTransport,
+    artifactStoreApi: root.SimulatteGovernedArtifactStore,
+    routePlannerApi: root.SimulatteAutonomyRoutePlanner,
+    civilTimeApi: root.SimulatteCivilTime,
+    universeParserApi: root.SimulatteUniverseParser,
+    applicationProfileSelectApi: root.SimulatteApplicationProfileSelect,
+    experienceCameraApi: root.SimulatteExperienceCamera,
+    pluginAssetPathsApi: root.SimulattePluginAssetPaths,
+    pluginRandomApi: root.SimulattePluginRandom,
+    pluginSchedulerApi: root.SimulattePluginScheduler,
+    pluginEnvironmentApi: root.SimulattePluginEnvironment,
+    pluginGeographyApi: root.SimulattePluginGeography,
+    pluginComputeApi: root.SimulattePluginCompute,
+    mountLifecycleApi: root.SimulatteMountLifecycle,
+    cityInterfaceApi: typeof module === 'object' && module.exports
+      ? require('./city-interface.js')
+      : root.SimulatteCityInterface
+  }));
   root.SimulatteAutonomyApp = api;
   if (typeof module === 'object' && module.exports) module.exports = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyApp(dataLoader, missionApi, controllerApi, canvasApi, traceApi, runtimeLog, neuralPlaceApi, ledgerApi, receiptsApi, worldApi, neuralConsentApi, modelSelectionApi, pluginRuntimeApi, pluginRegistry, pluginUiApi, transportApi, artifactStoreApi, routePlannerApi, civilTimeApi, universeParserApi, applicationProfileSelectApi, experienceCameraApi, pluginAssetPathsApi, pluginRandomApi, pluginSchedulerApi, pluginEnvironmentApi, pluginGeographyApi, pluginComputeApi) {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyApp(dependencies) {
+  const { dataLoader, missionApi, controllerApi, canvasApi, traceApi, runtimeLog, neuralPlaceApi, ledgerApi, receiptsApi, worldApi, neuralConsentApi, modelSelectionApi, pluginRuntimeApi, pluginRegistry, pluginUiApi, transportApi, artifactStoreApi, routePlannerApi, civilTimeApi, universeParserApi, applicationProfileSelectApi, experienceCameraApi, pluginAssetPathsApi, pluginRandomApi, pluginSchedulerApi, pluginEnvironmentApi, pluginGeographyApi, pluginComputeApi, mountLifecycleApi, cityInterfaceApi } = dependencies;
+  if (!cityInterfaceApi) throw new Error('simulatte_city_interface_dependency_missing');
+  const { wireCameraControls, selectCameraMode, populateCameraFocus, wireInterfaceControls, setJourneyPhase, resizeMissionInput, clearMissionError, isMissionInputError, friendlyMissionError, updateButtons } = cityInterfaceApi;
   const log = runtimeLog || {
     info: () => null,
     warn: () => null,
     error: () => null,
     serializeError: (error) => ({ name: error?.name || 'Error', message: error?.message || String(error) }),
   };
-  const PROFILE_LABELS = Object.freeze({
-    'simulatte-world-v1': 'Simulatte World', 'cable-trader-pickup-v1': 'Cable Trader',
-    'safety-explorer-v1': 'Safety Explorer', 'sun-walker-v1': 'Sun Walker',
-    'food-recall-us-v1': 'Food Recall (US)', 'maritime-trade-global-v1': 'Maritime Trade (Global)',
-    'orbital-transfer-planner-v1': 'Orbital Transfer Planner', 'interstellar-relay-network-v1': 'Interstellar Relay Network',
-  });
   // Owns the landing page and gates asset loading: nothing in start() runs until
   // the visitor picks a tier here.
 
@@ -37,30 +56,66 @@
     const elements = collectElements();
     // Every listener binds through `on` scoped to `lifecycle`, so disposeApplication()'s abort drops
     // them all — letting the shell re-boot this app in place without double-binding the persistent DOM.
-    const lifecycle = new AbortController();
-    const on = (target, type, handler, options) => target.addEventListener(type, handler, { ...(options || {}), signal: lifecycle.signal });
-    const interfaceUi = wireInterfaceControls(elements, lifecycle.signal);
-    setJourneyPhase('loading');
-    log.info('app.boot.started', {
-      build: document.querySelector('meta[name="simulatte-build"]')?.content || null,
-      location: window.location.href,
-      userAgent: navigator.userAgent,
-    });
-    setRuntimeStatus(elements, 'Loading', 'loading');
-    let data;
-    try {
-      data = await dataLoader.loadApplication(undefined, undefined, { requestedProfileId });
-    } catch (error) {
-      // Abort listeners bound before the load and throw; the shell retries the default or surfaces it.
-      lifecycle.abort();
-      throw error;
+    const lifecycle = mountLifecycleApi.create(hooks.signal);
+    const on = lifecycle.on;
+    let extensions = null;
+    let profileSelectUi = null;
+    let tierVisualizer = null;
+    let renderer = null;
+    let placeResolver = null;
+    let frameRequest = null;
+    let isRunning = false;
+    let disposal = null;
+
+    async function disposeApplication() {
+      if (disposal) return disposal;
+      disposal = (async () => {
+        isRunning = false;
+        if (frameRequest !== null) cancelAnimationFrame(frameRequest);
+        frameRequest = null;
+        lifecycle.abort();
+        elements.applicationProfile.disabled = true;
+        const resources = {
+          profileSelectUi, placeResolver, tierVisualizer, renderer, extensions,
+        };
+        profileSelectUi = null;
+        placeResolver = null;
+        tierVisualizer = null;
+        renderer = null;
+        extensions = null;
+        await mountLifecycleApi.disposeAll([
+          { resource: 'profile-select-sync', dispose: () => resources.profileSelectUi?.sync() },
+          { resource: 'place-resolver', dispose: () => resources.placeResolver?.unload() },
+          { resource: 'tier-visualizer', dispose: () => resources.tierVisualizer?.destroy() },
+          { resource: 'renderer', dispose: () => resources.renderer?.destroy() },
+          { resource: 'plugin-runtime', dispose: () => resources.extensions?.dispose() },
+          { resource: 'profile-select', dispose: () => resources.profileSelectUi?.dispose() },
+        ], ({ resource, error }) => log.warn('app.dispose.resource_failed', {
+          resource,
+          error: log.serializeError(error),
+        }));
+      })();
+      return disposal;
     }
+
+    try {
+      const interfaceUi = wireInterfaceControls(elements, lifecycle.signal);
+      setJourneyPhase('loading');
+      log.info('app.boot.started', {
+        build: document.querySelector('meta[name="simulatte-build"]')?.content || null,
+        location: window.location.href,
+        userAgent: navigator.userAgent,
+      });
+      setRuntimeStatus(elements, 'Loading', 'loading');
+      let data;
+      data = await dataLoader.loadApplication(undefined, lifecycle.fetch, { requestedProfileId });
+      lifecycle.throwIfAborted();
     if (!applicationProfileSelectApi?.resolveInteraction || !applicationProfileSelectApi?.renderInteraction) throw new Error('Application interaction dependency is unavailable');
     const interaction = applicationProfileSelectApi.resolveInteraction(data.applicationProfile, data.manifest);
     let activeScenario = interaction.defaultScenario;
-    const pluginArtifacts = artifactStoreApi.createGovernedArtifactStore({ transport: transportApi.createBrowserTransport({ fetchImpl: fetch.bind(globalThis) }) });
+    const pluginArtifacts = artifactStoreApi.createGovernedArtifactStore({ transport: transportApi.createBrowserTransport({ fetchImpl: lifecycle.fetch }) });
     let activeMissionForPlugins = null;
-    const extensions = await pluginRuntimeApi.createPluginRuntime({
+    extensions = await pluginRuntimeApi.createPluginRuntime({
       registry: pluginRegistry,
       profile: data.applicationProfile,
       scenario: activeScenario,
@@ -104,6 +159,7 @@
         tier: Object.freeze({ schema: 'simulatte.tierQuery.v1', id: initialTier, worldId: data.world.id, profileId: data.applicationProfile.id, snapshot: () => data.world }),
       },
     });
+    lifecycle.throwIfAborted();
     const pluginUi = pluginUiApi.createDeclarativeUiHost({
       rootElements: { inspector: elements.pluginInspector, map: elements.pluginMapUi, hud: elements.pluginHudUi },
       onAction: async ({ pluginId, actionId, command, values }) => {
@@ -123,15 +179,11 @@
     const traceView = traceApi.createTraceView(elements, data.policy, data.rerankerEvidence);
     let controller = null;
     let activeMission = null;
-    let renderer = null;
-    let isRunning = false;
-    let frameRequest = null;
     let lastStepAt = 0;
     let retrievalLaneLogged = false;
     let terminalJourneyLogged = false;
     let hasJourneyStarted = false;
     let hasAppliedInitialCamera = false;
-    let placeResolver = null;
     let buildRevision = 0;
     const journeyLedger = ledgerApi.createJourneyLedger();
     const recordedJourneyHashes = new Set();
@@ -157,10 +209,6 @@
       surfaceId: 'autonomy',
       consentGate: neuralGate,
     });
-    let disposal = null;
-    let profileSelectUi = null;
-    let tierVisualizer = null;
-
     function renderPluginExperience(context) {
       const pluginContext = { ...context, compositionSize: extensions.activePluginIds.length };
       pluginUi.render(extensions.views(pluginContext));
@@ -174,25 +222,6 @@
         focusSelect: elements.cameraFocus,
         onModeSelected: (mode) => selectCameraMode(elements, mode),
       });
-    }
-
-    async function disposeApplication() {
-      if (disposal) return disposal;
-      disposal = (async () => {
-        stopLoop();
-        lifecycle.abort();
-        elements.applicationProfile.disabled = true;
-        profileSelectUi?.sync();
-        if (placeResolver) {
-          await placeResolver.unload();
-          placeResolver = null;
-        }
-        tierVisualizer?.stop();
-        try { renderer?.destroy(); } catch (_error) { /* GPU teardown is best-effort */ }
-        await extensions.dispose();
-        profileSelectUi?.dispose();
-      })();
-      return disposal;
     }
 
     populateApplicationProfiles(elements.applicationProfile, data.manifest, data.applicationProfile.id);
@@ -584,7 +613,11 @@
       await disposeApplication();
       throw error;
     }
-    return { tier: 'city', experience: data.applicationProfile.id, data, dispose: disposeApplication, getController: () => controller, getRenderer: () => renderer };
+      return { tier: 'city', experience: data.applicationProfile.id, data, dispose: disposeApplication, getController: () => controller, getRenderer: () => renderer };
+    } catch (error) {
+      await disposeApplication();
+      throw error;
+    }
   }
 
   function collectElements() {
@@ -612,234 +645,16 @@
 
   function populateApplicationProfiles(select, manifest, selectedId) {
     const references = [manifest.applicationProfile, ...(manifest.applicationProfiles || [])];
-    const options = references.map((reference) => {
-      const option = document.createElement('option');
-      option.value = reference.id;
-      option.textContent = applicationProfileLabel(reference.id);
-      return option;
-    });
-    select.replaceChildren(...options);
-    select.value = selectedId;
+    SimulatteWorldTiersBoot.populateProfileSelect(select, references, selectedId);
     select.disabled = false;
   }
 
   function applicationProfileLabel(id) {
-    if (PROFILE_LABELS[id]) return PROFILE_LABELS[id];
-    return String(id)
-      .replace(/-v\d+$/, '')
-      .split('-')
-      .filter(Boolean)
-      .map((word, index) => index === 0 ? `${word.charAt(0).toUpperCase()}${word.slice(1)}` : word)
-      .join(' ');
-  }
-
-  function wireCameraControls(elements, renderer, signal) {
-    const on = (target, type, handler, options) => target.addEventListener(type, handler, { ...(options || {}), signal });
-    const controls = [
-      [elements.cameraFollow, 'follow'],
-      [elements.cameraBird, 'bird'],
-      [elements.cameraTop, 'top'],
-    ];
-    populateCameraFocus(elements.cameraFocus, renderer.cameraTargets());
-    controls.forEach(([button, mode]) => on(button, 'click', () => {
-      renderer.setCameraMode(mode);
-      selectCameraMode(elements, mode);
-    }));
-    on(elements.cameraFocus, 'change', () => selectCameraMode(elements, renderer.focusCameraTarget(elements.cameraFocus.value)));
-  }
-
-  function selectCameraMode(elements, mode) {
-    [
-      [elements.cameraFollow, 'follow'],
-      [elements.cameraBird, 'bird'],
-      [elements.cameraTop, 'top'],
-    ].forEach(([button, buttonMode]) => {
-      const active = buttonMode === mode;
-      button.classList.toggle('is-active', active);
-      button.setAttribute('aria-pressed', String(active));
-    });
-  }
-
-  function populateCameraFocus(select, targets, selectedId = 'route') {
-    select.replaceChildren();
-    const groups = new Map([
-      ['route', document.createElement('optgroup')],
-      ['region', document.createElement('optgroup')],
-      ['place', document.createElement('optgroup')],
-      ['plugin', document.createElement('optgroup')],
-    ]);
-    groups.get('route').label = 'Journey';
-    groups.get('region').label = 'Regions';
-    groups.get('place').label = 'Places';
-    groups.get('plugin').label = 'Application';
-    targets.forEach((target) => {
-      const option = document.createElement('option');
-      option.value = target.id;
-      option.textContent = target.label;
-      groups.get(target.kind).append(option);
-    });
-    groups.forEach((group) => {
-      if (group.children.length) select.append(group);
-    });
-    select.value = targets.some((row) => row.id === selectedId) ? selectedId : 'route';
+    return SimulatteWorldTiersBoot.labelForProfile(id);
   }
 
   function camelId(id) {
     return id.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
-  }
-
-  function wireInterfaceControls(elements, signal) {
-    const on = (target, type, handler, options) => target.addEventListener(type, handler, { ...(options || {}), signal });
-    let lastDrawerTrigger = null;
-    const popovers = [
-      [elements.runtimeToggle, elements.runtimeDetails],
-      [elements.cameraFocusButton, elements.cameraFocusPopover],
-      [elements.dockMoreButton, elements.dockMoreMenu],
-    ];
-
-    function setPopover(button, panel, open) {
-      panel.hidden = !open;
-      button.setAttribute('aria-expanded', String(open));
-    }
-
-    function closeTransientPopovers(except = null) {
-      popovers.forEach(([button, panel]) => {
-        if (button !== except) setPopover(button, panel, false);
-      });
-    }
-
-    function openDecisions(sectionId = null) {
-      closeTransientPopovers();
-      lastDrawerTrigger = document.activeElement;
-      elements.decisionsDrawer.classList.add('is-open');
-      elements.decisionsDrawer.setAttribute('aria-hidden', 'false');
-      elements.decisionsButton.setAttribute('aria-expanded', 'true');
-      elements.decisionsBackdrop.hidden = false;
-      if (sectionId) {
-        const section = document.getElementById(sectionId);
-        for (let node = section; node && node !== elements.decisionsDrawer; node = node.parentElement) {
-          if (node.tagName === 'DETAILS') node.open = true;
-        }
-        section?.scrollIntoView({ block: 'start' });
-      }
-      window.setTimeout(() => elements.decisionsClose.focus(), 0);
-    }
-
-    function closeDecisions({ restoreFocus = true } = {}) {
-      elements.decisionsDrawer.classList.remove('is-open');
-      elements.decisionsDrawer.setAttribute('aria-hidden', 'true');
-      elements.decisionsButton.setAttribute('aria-expanded', 'false');
-      elements.decisionsBackdrop.hidden = true;
-      if (restoreFocus && lastDrawerTrigger instanceof HTMLElement) lastDrawerTrigger.focus();
-    }
-
-    popovers.forEach(([button, panel]) => on(button, 'click', () => {
-      const open = panel.hidden;
-      closeTransientPopovers(open ? button : null);
-      setPopover(button, panel, open);
-    }));
-    on(elements.runtimeDetailsClose, 'click', () => setPopover(elements.runtimeToggle, elements.runtimeDetails, false));
-    on(elements.dockMoreMenu, 'click', (event) => {
-      if (event.target.closest('button')) setPopover(elements.dockMoreButton, elements.dockMoreMenu, false);
-    });
-    on(elements.cameraFocus, 'change', () => setPopover(elements.cameraFocusButton, elements.cameraFocusPopover, false));
-    const sections = Array.from(elements.decisionsDrawer.querySelectorAll(':scope > details.evidence-section'));
-    sections.forEach((section) => on(section, 'toggle', () => {
-      if (!section.open) return;
-      sections.forEach((other) => {
-        if (other !== section) other.open = false;
-      });
-    }));
-    const openJourney = () => openDecisions('journey-section');
-    on(elements.journeyHud, 'click', openJourney);
-    on(elements.journeyHud, 'keydown', (event) => {
-      if (event.key !== 'Enter' && event.key !== ' ') return;
-      event.preventDefault();
-      openJourney();
-    });
-    on(elements.decisionsButton, 'click', () => openDecisions());
-    on(elements.decisionsClose, 'click', () => closeDecisions());
-    on(elements.decisionsBackdrop, 'click', () => closeDecisions());
-    on(document, 'keydown', (event) => {
-      if (event.key !== 'Escape') return;
-      if (elements.decisionsDrawer.classList.contains('is-open')) closeDecisions();
-      else closeTransientPopovers();
-    });
-    on(document, 'pointerdown', (event) => {
-      popovers.forEach(([button, panel]) => {
-        if (!panel.hidden && !panel.contains(event.target) && !button.contains(event.target)) setPopover(button, panel, false);
-      });
-    });
-    return { closeDecisions, openDecisions };
-  }
-
-  function setJourneyPhase(phase) {
-    const allowed = new Set(['loading', 'ready', 'running', 'paused', 'completed', 'failed']);
-    document.body.dataset.journeyPhase = allowed.has(phase) ? phase : 'ready';
-  }
-
-  function resizeMissionInput(textarea) {
-    if (!textarea) return;
-    textarea.style.height = 'auto';
-    textarea.style.height = `${Math.min(150, Math.max(58, textarea.scrollHeight))}px`;
-  }
-
-  function clearMissionError(elements) {
-    elements.missionError.textContent = '';
-    elements.missionInput.removeAttribute('aria-invalid');
-  }
-
-  function isMissionInputError(error) {
-    if (error?.name === 'AutonomyMissionError') return true;
-    return /(_not_grounded|_ambiguous|_not_positive|source_text_missing|route_has_no_extent|ordered_stop_repeated|clock_time_invalid|arrival_deadline_precedes_departure)$/.test(String(error?.code || ''));
-  }
-
-  function friendlyMissionError(error) {
-    const messages = {
-      source_text_missing: 'Describe a supported trip or loop before starting.',
-      task_not_grounded: 'Describe a trip between places or a loop around a declared circuit.',
-      loop_task_not_grounded: 'For a loop, say around, circle, lap, or loop.',
-      mode_not_grounded: 'Say whether to walk, run, bike, scooter, or drive.',
-      origin_not_grounded: 'I cannot identify the starting place in the loaded regions.',
-      destination_not_grounded: 'I cannot identify the destination in the loaded regions.',
-      neural_place_not_grounded: 'Semantic matching could not identify that place safely.',
-      circuit_not_grounded: 'I cannot identify a registered loop boundary for that place.',
-      termination_not_grounded: 'Add a distance, lap count, or duration for this loop.',
-      street_avoidance_not_grounded: 'I cannot identify that street in the loaded regions.',
-      embodiment_not_available: 'That travel mode is not available in the loaded world.',
-      route_has_no_extent: 'Choose different starting and ending places.',
-    };
-    if (messages[error?.code]) return messages[error.code];
-    if (String(error?.code || '').includes('ambiguous')) return 'That place matches more than one loaded location. Be more specific.';
-    return 'I could not ground this mission in the loaded map. Try a named place and a clear travel goal.';
-  }
-
-  function updateButtons(elements, running, hasController, status = 'active', hasJourneyStarted = false) {
-    const completed = status === 'completed';
-    const failed = status === 'failed';
-    const paused = !running && hasJourneyStarted && status === 'active';
-    const phase = running ? 'running' : completed ? 'completed' : failed ? 'failed' : paused ? 'paused' : 'ready';
-    setJourneyPhase(phase);
-    elements.missionInput.disabled = running;
-    elements.placeResolutionLane.disabled = running;
-    elements.shuffleButton.disabled = running;
-    elements.startButton.disabled = running;
-    elements.pauseButton.disabled = false;
-    elements.stepButton.disabled = false;
-    elements.resetButton.disabled = false;
-    elements.exportButton.disabled = !hasController;
-    elements.shuffleButton.hidden = !['ready', 'completed', 'failed'].includes(phase);
-    elements.startButton.hidden = phase !== 'ready';
-    elements.pauseButton.hidden = !running;
-    elements.resumeButton.hidden = phase !== 'paused';
-    elements.stepButton.hidden = !['running', 'paused'].includes(phase);
-    elements.resetButton.hidden = !['running', 'paused'].includes(phase);
-    elements.replayButton.hidden = !['completed', 'failed'].includes(phase);
-    elements.newMissionButton.hidden = !['completed', 'failed'].includes(phase);
-    elements.whatIfButton.hidden = phase !== 'completed';
-    elements.dockMoreButton.hidden = !['running', 'paused', 'completed'].includes(phase);
-    elements.dockMoreMenu.hidden = true;
-    elements.dockMoreButton.setAttribute('aria-expanded', 'false');
   }
 
   function setRuntimeStatus(elements, text, kind) {
@@ -984,7 +799,9 @@
       const router = SimulatteRouter.createRouter(window);
       const navigate = (route) => router.navigate(route);
       const governedCtx = { collectElements, setJourneyPhase, setRuntimeStatus, createTierVisualizer: SimulatteMultiTierVisualizer.createTierVisualizer, navigate, onSelectTier: (tier) => navigate({ tier, experience: null }) };
-      const boot = (tier, experience) => tier === 'city' ? start('city', experience, { navigate }) : SimulatteWorldTiersBoot.bootGovernedTierExplorer(governedCtx, tier, experience);
+      const boot = (tier, experience, options) => tier === 'city'
+        ? start('city', experience, { navigate, signal: options?.signal })
+        : SimulatteWorldTiersBoot.bootGovernedTierExplorer(governedCtx, tier, experience, options);
       const shell = SimulatteWorldTiersBoot.createAppShell({ router, boot, landing: document.getElementById('world-tiers-landing-page') });
       void Promise.resolve(shell.start()).catch((error) => {
         try { failRuntime(collectElements(), error); } catch (boundaryError) { log.error('runtime.bootstrap_failed', log.serializeError(boundaryError)); }

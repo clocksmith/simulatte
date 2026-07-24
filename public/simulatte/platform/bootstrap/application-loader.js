@@ -32,10 +32,13 @@
   const pluginPaths = typeof module === 'object' && module.exports
     ? require('../plugin-host/plugin-asset-paths.js')
     : root.SimulattePluginAssetPaths;
-  const api = factory(contracts, receipts, regions, runtimeLog, browserTransport, artifactStore, dataCatalog, pluginContracts, schemaRegistry, pluginRegistry, pluginPaths);
+  const loadContext = typeof module === 'object' && module.exports
+    ? require('./application-load-context.js')
+    : root.SimulatteApplicationLoadContext;
+  const api = factory(contracts, receipts, regions, runtimeLog, browserTransport, artifactStore, dataCatalog, pluginContracts, schemaRegistry, pluginRegistry, pluginPaths, loadContext);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteApplicationLoader = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createApplicationLoader(contracts, receipts, regions, runtimeLog, browserTransport, artifactStore, dataCatalog, pluginContracts, schemaRegistry, pluginRegistry, pluginPaths) {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createApplicationLoader(contracts, receipts, regions, runtimeLog, browserTransport, artifactStore, dataCatalog, pluginContracts, schemaRegistry, pluginRegistry, pluginPaths, loadContext) {
   assertDependencies();
 
   async function loadApplication(manifestUrl = '../data/simulatte/autonomy-manifest.json', fetchImpl = defaultFetch(), { requestedProfileId = null } = {}) {
@@ -227,11 +230,7 @@
   }
 
   function createDataServices(fetchImpl = defaultFetch()) {
-    const transport = browserTransport.createBrowserTransport({ fetchImpl });
-    return Object.freeze({
-      transport,
-      artifacts: artifactStore.createGovernedArtifactStore({ transport }),
-    });
+    return loadContext.createDataServices({ fetchImpl, transportApi: browserTransport, artifactStoreApi: artifactStore });
   }
 
   function createLoadedDataCatalog({ refs, embodimentRows, packRows, pluginDatasetRows, composition, worldHash, featureCatalogHash }) {
@@ -287,7 +286,7 @@
   }
 
   function defaultFetch() {
-    return typeof fetch === 'function' ? fetch.bind(globalThis) : null;
+    return loadContext.defaultFetch();
   }
 
   function validatePipelineModelSelection(config, modelRuntimeLock) {
@@ -312,14 +311,13 @@
       ['schemaRegistry', schemaRegistry, 'createSchemaRegistry'],
       ['pluginRegistry', pluginRegistry, 'entry'],
       ['pluginAssetPaths', pluginPaths, 'pluginBaseFromDocument'],
+      ['loadContext', loadContext, 'createDataServices'],
     ];
-    const missing = dependencies.find(([, value, method]) => !value || typeof value[method] !== 'function');
-    if (missing) throw new Error(`autonomy_data_loader_dependency_missing: ${missing[0]}.${missing[2]} is required`);
+    loadContext.assertDependencies(dependencies, (message) => new Error(`autonomy_data_loader_dependency_missing: ${message}`));
   }
 
   function documentBase() {
-    if (typeof document !== 'undefined' && document.baseURI) return document.baseURI;
-    return 'http://localhost/';
+    return loadContext.documentBase();
   }
 
   function selectApplicationProfile(manifest, requestedProfileId = null) {
@@ -331,11 +329,7 @@
   }
 
   function loadError(code, message, evidence) {
-    const error = new Error(`${code}: ${message}`);
-    error.name = 'AutonomyDataLoadError';
-    error.code = code;
-    error.evidence = evidence;
-    return error;
+    return loadContext.createLoadError('AutonomyDataLoadError', code, message, evidence);
   }
 
   return { artifactText, loadApplication, fetchJson, loadReference };

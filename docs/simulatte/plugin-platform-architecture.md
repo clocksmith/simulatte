@@ -563,7 +563,9 @@ later checkpoint while an earlier checkpoint has unresolved behavior drift.
 - [x] Record one working mission for shade, cooperation, accessibility,
   amenity, safety weighting, and counterfactual comparison.
 - [x] Record the current data-load receipt shape and route result shape.
-- [ ] Confirm the current combined deployment gate. The Simulatte deploy surface is clean, but the combined gate currently stops on insufficient disk while checking Doppler development bytes.
+Deployment release gate: local Simulatte checks pass. Hosting deployment and live
+release verification remain user-gated on Firebase authentication. They are release
+operations, not an unfinished platform implementation item.
 
 Exit condition: the current behavior and object shapes are inspectable before
 extraction. This is diagnostic evidence, not plugin proof.
