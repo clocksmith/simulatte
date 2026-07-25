@@ -43,7 +43,7 @@
   }
 
   function cacheBusted(src, token) {
-    const url = new URL(src, root.location.href);
+    const url = new URL(src, root.document.baseURI || root.location.href);
     url.searchParams.set('simulatte-retry', token);
     return url.href;
   }

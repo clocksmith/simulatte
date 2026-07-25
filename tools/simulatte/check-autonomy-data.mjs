@@ -108,6 +108,12 @@ function main() {
   const modelRuntimeLock = resolveReference(manifest, 'modelRuntimeLock');
   const pipelineModelSelection = resolveReference(manifest, 'pipelineModelSelection');
   const applicationProfile = resolveReference(manifest, 'applicationProfile');
+  const applicationProfiles = [
+    applicationProfile,
+    ...(manifest.applicationProfiles || []).map((reference) => (
+      resolveReferenceValue(reference, `applicationProfile:${reference.id}`)
+    )),
+  ];
   const placeEmbeddingIndex = resolveReference(manifest, 'placeEmbeddingIndex');
   const placeResolutionEvidence = resolveReference(manifest, 'placeResolutionEvidence');
   const curriculum = resolveReference(manifest, 'curriculum');
@@ -141,8 +147,17 @@ function main() {
   }
   contracts.validatePlaceEmbeddingIndex(placeEmbeddingIndex, modelRuntimeLock);
   contracts.validatePlaceResolutionEvidence(placeResolutionEvidence, placeEmbeddingIndex, modelRuntimeLock);
-  pluginContracts.validateProfile(applicationProfile);
-  const pluginDatasets = resolvePluginDatasets(applicationProfile);
+  applicationProfiles.forEach((profile) => pluginContracts.validateProfile(profile));
+  const pluginDatasets = new Map();
+  applicationProfiles.forEach((profile) => {
+    for (const [id, value] of resolvePluginDatasets(profile)) {
+      const previous = pluginDatasets.get(id);
+      if (previous && JSON.stringify(previous) !== JSON.stringify(value)) {
+        throw new Error(`Plugin dataset ${id} has conflicting values across application profiles`);
+      }
+      pluginDatasets.set(id, value);
+    }
+  });
   const safetyHistoryIndex = pluginDatasets.get('nyc-crash-history-2025-07-to-2026-07-v1');
   contracts.validateSafetyHistoryIndex(safetyHistoryIndex, world, manifest.world.sha256);
   contracts.validateCurriculum(curriculum, world);

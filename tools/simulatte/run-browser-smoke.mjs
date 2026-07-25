@@ -109,7 +109,7 @@ async function runBrowserSmoke(options) {
   const staticHost = options.url ? null : await createStaticServer();
   const targetUrl = options.url || `http://127.0.0.1:${staticHost.port}/city`;
   const pathSegments = new URL(targetUrl).pathname.split('/').filter(Boolean);
-  const expectedProfileId = (pathSegments[0] === 'city' ? pathSegments[1] : null) || 'simulatte-world-v1';
+  const expectedProfileId = (pathSegments[0] === 'city' ? pathSegments[1] : null) || defaultCityProfileId();
   const expectedProfile = profileDefinition(expectedProfileId);
   const expectedProfileIds = cityProfileIds();
   const expectedPluginIds = new Set(expectedProfile.plugins.map((row) => row.id));
@@ -296,8 +296,8 @@ async function runBrowserSmoke(options) {
       && result.shuffle.startLabel.length > 0
       && (result.shuffle.interactionMode === 'prompt' ? result.shuffle.startLabel === 'Start' : result.shuffle.seedChanged)
       && result.copy.removedLabelsAbsent
-      && result.copy.blankLink.href === '/blank/'
-      && result.copy.blankLink.label === 'Blank'
+      && result.copy.blankLink.href === 'https://create.simulatte.world/'
+      && result.copy.blankLink.label === 'Create'
       && consentView.disclosed.title === 'Enable local Qwen embedding?'
       && consentView.disclosed.embedding === '533 MB'
       && consentView.disclosed.rerankerRowAbsent
@@ -521,7 +521,7 @@ function pluginFeatureExpression({ expectsP2pDelivery, expectsSunWalker, expects
 }
 
 function profileDefinition(profileId) {
-  const manifest = JSON.parse(fs.readFileSync(path.join(PUBLIC, 'data', 'simulatte', 'autonomy-manifest.json'), 'utf8'));
+  const manifest = cityManifest();
   const references = [manifest.applicationProfile, ...(manifest.applicationProfiles || [])];
   const reference = references.find((row) => row.id === profileId);
   if (!reference) throw new Error(`Autonomy browser profile ${profileId} is not declared`);
@@ -530,9 +530,17 @@ function profileDefinition(profileId) {
   return profile;
 }
 
+function defaultCityProfileId() {
+  return cityManifest().applicationProfile.id;
+}
+
 function cityProfileIds() {
-  const manifest = JSON.parse(fs.readFileSync(path.join(PUBLIC, 'data', 'simulatte', 'autonomy-manifest.json'), 'utf8'));
+  const manifest = cityManifest();
   return [manifest.applicationProfile, ...(manifest.applicationProfiles || [])].map((row) => row.id);
+}
+
+function cityManifest() {
+  return JSON.parse(fs.readFileSync(path.join(PUBLIC, 'data', 'simulatte', 'autonomy-manifest.json'), 'utf8'));
 }
 
 function actorViewExpression() {

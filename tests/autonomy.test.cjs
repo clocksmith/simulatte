@@ -1176,9 +1176,14 @@ test('browser loader verifies raw hashes and rejects tampered assets', async () 
   assert.ok(loaded.dataCatalog.ids.includes(loaded.featureCatalog.id));
   assert.ok(requests.length > 8);
   assert.ok(requests.every((row) => row.options?.cache === 'no-cache'));
-  const cableProfile = await dataLoader.loadApplication('http://localhost/data/simulatte/autonomy-manifest.json', fetchFiles, { requestedProfileId: 'cable-trader-pickup-v1' });
-  assert.equal(cableProfile.applicationProfile.id, 'cable-trader-pickup-v1');
-  assert.deepEqual(cableProfile.applicationProfile.plugins.map((row) => row.id), ['cable-trader']);
+  assert.equal(loaded.applicationProfile.id, 'cable-trader-pickup-v1');
+  assert.deepEqual(loaded.applicationProfile.plugins.map((row) => row.id), ['cable-trader']);
+  assert.deepEqual(loaded.manifest.applicationProfiles.map((row) => row.id), ['safety-explorer-v1', 'sun-walker-v1']);
+  assert.equal(fs.existsSync(path.join(root, 'public/data/application-profiles/simulatte-world-v1.json')), false);
+
+  const safetyProfile = await dataLoader.loadApplication('http://localhost/data/simulatte/autonomy-manifest.json', fetchFiles, { requestedProfileId: 'safety-explorer-v1' });
+  assert.equal(safetyProfile.applicationProfile.id, 'safety-explorer-v1');
+  assert.deepEqual(safetyProfile.applicationProfile.plugins.map((row) => row.id), ['safety-explorer']);
 
   const staleManifest = structuredClone(loaded.manifest);
   delete staleManifest.missionExamples;
@@ -1289,9 +1294,9 @@ test('autonomy browser surface loads every declared module and stays independent
   assert.match(html, /id="follow-minimap"/);
   assert.match(html, /id="shuffle-button"[^>]*>[\s\S]*?id="shuffle-label">Shuffle<\/span>/);
   assert.match(html, /id="start-button"[^>]*>[\s\S]*?id="start-label">Start<\/span>/);
-  assert.match(html, /class="blank-link" href="\/blank\/"[^>]*>Blank<\/a>/);
+  assert.match(html, /class="blank-link" href="https:\/\/create\.simulatte\.world\/"[^>]*>Create<\/a>/);
   assert.match(compatibilityHtml, /Simulatte/);
-  assert.match(compilerHtml, /class="prompt-dock-autonomy" href="\/"/);
+  assert.match(compilerHtml, /class="prompt-dock-autonomy" href="https:\/\/simulatte\.world\/"/);
   assert.doesNotMatch(html, /Every autonomous choice, exposed and settled/);
   assert.doesNotMatch(html, /observe, retrieve, choose, settle/);
   assert.doesNotMatch(html, /Mission compiler/);
@@ -1398,7 +1403,8 @@ test('autonomy runtime logs bounded structured events and deployment revalidates
   assert.equal(rows[0].label, '[Simulatte] test.boundary');
 
   const firebase = readJson('firebase.json');
-  const autonomyDataHeaders = firebase.hosting.headers.find((row) => row.source === '/data/simulatte/**');
+  const worldHosting = firebase.hosting.find((entry) => entry.target === 'world');
+  const autonomyDataHeaders = worldHosting.headers.find((row) => row.source === '/data/simulatte/**');
   assert.deepEqual(autonomyDataHeaders.headers, [{ key: 'Cache-Control', value: 'no-cache' }]);
 });
 

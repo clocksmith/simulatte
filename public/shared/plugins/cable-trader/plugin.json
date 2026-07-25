@@ -37,7 +37,8 @@
     "field.logistics-service.v1"
   ],
   "receiptSchemas": [
-    "simulatte.plugin.cableTraderNetworkReceipt.v1"
+    "simulatte.plugin.cableTraderNetworkReceipt.v1",
+    "simulatte.plugin.cableTraderPlaybackReceipt.v1"
   ],
   "resources": [
     {
@@ -55,5 +56,5 @@
   ],
   "schema": "simulatte.pluginManifest.v1",
   "sdkVersion": 2,
-  "version": "2.0.1"
+  "version": "2.1.0"
 }

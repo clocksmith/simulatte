@@ -13,6 +13,7 @@
     const needCounts = createCube(simulation.durationDays, cableTypes.length, hubs.length);
     const returnCounts = createCube(simulation.durationDays, cableTypes.length, hubs.length);
     const journeyPenalties = createCube(simulation.durationDays, hubs.length, hubs.length);
+    const journeyEventCounts = Array(simulation.durationDays).fill(0);
     const needSamples = [];
     const needEvents = [];
     const weightedTypes = cableTypes.map((type) => type.demandWeight);
@@ -34,6 +35,7 @@
       let destination = random.integer(hubs.length - 1);
       if (destination >= source) destination += 1;
       journeyPenalties[day][source][destination] += 1 + random.integer(4);
+      journeyEventCounts[day] += 1;
     }
     const routeByPair = new Map(transferRoutes.map((route) => [`${route.sourceHubId}:${route.destinationHubId}`, route]));
     const inventory = Object.fromEntries(hubs.flatMap((hub) => cableTypes.map((type) => [`${hub.id}:${type.id}`, simulation.initialInventoryPerHubType])));
@@ -41,18 +43,42 @@
     const typeStats = cableTypes.map((type) => ({ id: type.id, label: type.label, needs: 0, fulfilled: 0, burden: 0 }));
     const flows = new Map();
     const daily = [];
+    const snapshots = [];
     let totalBurden = 0;
     let fulfilledNeeds = 0;
     let optimalAllocations = 0;
+    let processedNeeds = 0;
+    let processedReturns = 0;
+    let processedJourneyEvents = 0;
+    const startingInventory = hubs.length * cableTypes.length * simulation.initialInventoryPerHubType;
+    snapshots.push(createSnapshot({
+      day: 0,
+      durationDays: simulation.durationDays,
+      inventory,
+      hubStats,
+      typeStats,
+      flows,
+      needs: 0,
+      fulfilledNeeds: 0,
+      returns: 0,
+      journeyEvents: 0,
+      participants: simulation.participantCount,
+      startingInventory,
+      totalBurden: 0,
+      allocations: 0,
+      optimalAllocations: 0,
+    }));
     for (let day = 0; day < simulation.durationDays; day += 1) {
       let dayNeeds = 0;
       let dayFulfilled = 0;
       let dayBurden = 0;
+      let dayReturns = 0;
       for (let type = 0; type < cableTypes.length; type += 1) {
         hubs.forEach((hub, source) => {
           const returned = returnCounts[day][type][source];
           inventory[`${hub.id}:${cableTypes[type].id}`] += returned;
           hubStats[source].returns += returned;
+          dayReturns += returned;
         });
         const supplies = hubs.map((hub) => inventory[`${hub.id}:${cableTypes[type].id}`]);
         const demands = needCounts[day][type];
@@ -85,9 +111,28 @@
       }
       fulfilledNeeds += dayFulfilled;
       totalBurden += dayBurden;
+      processedNeeds += dayNeeds;
+      processedReturns += dayReturns;
+      processedJourneyEvents += journeyEventCounts[day];
       daily.push(Object.freeze({ day: day + 1, needs: dayNeeds, fulfilled: dayFulfilled, burden: dayBurden, optimalityProven: true }));
+      snapshots.push(createSnapshot({
+        day: day + 1,
+        durationDays: simulation.durationDays,
+        inventory,
+        hubStats,
+        typeStats,
+        flows,
+        needs: processedNeeds,
+        fulfilledNeeds,
+        returns: processedReturns,
+        journeyEvents: processedJourneyEvents,
+        participants: simulation.participantCount,
+        startingInventory,
+        totalBurden,
+        allocations: (day + 1) * cableTypes.length,
+        optimalAllocations,
+      }));
     }
-    const startingInventory = hubs.length * cableTypes.length * simulation.initialInventoryPerHubType;
     const endingInventory = Object.values(inventory).reduce((total, quantity) => total + quantity, 0);
     const allocations = simulation.durationDays * cableTypes.length;
     const summary = Object.freeze({
@@ -113,6 +158,7 @@
       durationDays: simulation.durationDays,
       summary,
       daily: Object.freeze(daily),
+      snapshots: Object.freeze(snapshots),
       hubStats: Object.freeze(hubStats.map((row) => Object.freeze({ ...row, endingInventory: inventoryAtHub(inventory, row.id) }))),
       typeStats: Object.freeze(typeStats.map(Object.freeze)),
       flows: Object.freeze([...flows.values()].map(Object.freeze).sort((left, right) => right.quantity - left.quantity || `${left.sourceHubId}:${left.destinationHubId}`.localeCompare(`${right.sourceHubId}:${right.destinationHubId}`))),
@@ -120,6 +166,50 @@
       needSamples: Object.freeze(needSamples),
       solver: Object.freeze({ algorithm: 'exact_min_cost_maximum_flow', completeCandidateGraph: true, allocationUnit: 'day_cable_family', optimalityProven: true }),
       claimBoundary: 'Exact optimum over every modeled day, cable family, hub, inventory unit, and complete inter-hub route set. Seeded events model possible demand and journey costs; they are not forecasts of real people.',
+    });
+  }
+
+  function createSnapshot({
+    day,
+    durationDays,
+    inventory,
+    hubStats,
+    typeStats,
+    flows,
+    needs,
+    fulfilledNeeds,
+    returns,
+    journeyEvents,
+    participants,
+    startingInventory,
+    totalBurden,
+    allocations,
+    optimalAllocations,
+  }) {
+    const endingInventory = Object.values(inventory).reduce((total, quantity) => total + quantity, 0);
+    return Object.freeze({
+      day,
+      durationDays,
+      summary: Object.freeze({
+        needs,
+        fulfilledNeeds,
+        fulfillmentPercent: percentage(fulfilledNeeds, needs),
+        randomEvents: needs + returns + journeyEvents,
+        returns,
+        journeyEvents,
+        participants,
+        startingInventory,
+        endingInventory,
+        totalBurden,
+        allocations,
+        optimalAllocations,
+        optimalityPercent: percentage(optimalAllocations, allocations),
+        optimalityProven: optimalAllocations === allocations,
+      }),
+      hubStats: Object.freeze(hubStats.map((row) => Object.freeze({ ...row, endingInventory: inventoryAtHub(inventory, row.id) }))),
+      typeStats: Object.freeze(typeStats.map((row) => Object.freeze({ ...row }))),
+      flows: Object.freeze([...flows.values()].map((row) => Object.freeze({ ...row })).sort((left, right) => right.quantity - left.quantity || `${left.sourceHubId}:${left.destinationHubId}`.localeCompare(`${right.sourceHubId}:${right.destinationHubId}`))),
+      inventory: Object.freeze({ ...inventory }),
     });
   }
 

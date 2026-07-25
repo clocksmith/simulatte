@@ -36,7 +36,8 @@
         function ensureWorker() {
           if (worker) return worker;
           if (failed) throw new Error('Pipeline worker unavailable');
-          const url = new URL('./app/workers/simulatte-pipeline-worker.js', view.location.href);
+          const baseUrl = (view.document && view.document.baseURI) || view.location.href;
+          const url = new URL('./app/workers/simulatte-pipeline-worker.js', baseUrl);
           appendBuildVersion(url, view);
           try {
             worker = new view.Worker(url);

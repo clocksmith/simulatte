@@ -127,7 +127,6 @@
     'simulatte/app/main.js',
   ]);
   const PROFILE_PLUGINS = Object.freeze({
-    'simulatte-world-v1': Object.freeze(['safety-explorer', 'sun-walker', 'cable-trader']),
     'cable-trader-pickup-v1': Object.freeze(['cable-trader']),
     'safety-explorer-v1': Object.freeze(['safety-explorer']),
     'sun-walker-v1': Object.freeze(['sun-walker']),
@@ -137,7 +136,7 @@
     'interstellar-relay-network-v1': Object.freeze(['interstellar-relay-network']),
   });
   const TIER_DEFAULT_PROFILE = Object.freeze({
-    city: 'simulatte-world-v1',
+    city: 'cable-trader-pickup-v1',
     country: 'food-recall-us-v1',
     world: 'maritime-trade-global-v1',
     'solar-system': 'orbital-transfer-planner-v1',

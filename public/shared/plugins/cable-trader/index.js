@@ -10,6 +10,7 @@
   // keeps its full participantCount; only the visual sample is bounded here so a large, valid
   // population never overflows the shared host contract.
   const MAX_PRESENTATION_ACTORS = 64;
+  const PLAYBACK_STEP_DELAY_MS = 80;
 
   async function activate({ sdk, config, scenario = null }) {
     const renderedActorCount = resolveRenderedActorCount(config.simulation.renderedActorCount);
@@ -42,7 +43,13 @@
       return network.simulateNetwork({ ...config, simulation: { ...config.simulation, seed } }, transferRoutes, rng ? { rng } : {});
     };
     const simulation = simulationFor(scenario);
-    sdk.state.register(reduce, { simulation, inventory: simulation.endingInventory, credits: {}, lastExchange: null });
+    sdk.state.register(reduce, {
+      simulation,
+      inventory: simulation.snapshots[0].inventory,
+      credits: {},
+      lastExchange: null,
+      playback: { status: 'ready', day: 0 },
+    });
     appendNetworkReceipt(simulation);
 
     function appendNetworkReceipt(result) {
@@ -95,22 +102,24 @@
 
     function view() {
       const state = sdk.state.read();
-      const result = state.simulation;
+      const result = visibleResult(state);
       const busiestHub = [...result.hubStats].sort((left, right) => right.needs - left.needs || left.id.localeCompare(right.id))[0];
       const busiestCable = [...result.typeStats].sort((left, right) => right.needs - left.needs || left.id.localeCompare(right.id))[0];
       const crossHubTransfers = result.flows.filter((flow) => flow.sourceHubId !== flow.destinationHubId).reduce((total, flow) => total + flow.quantity, 0);
+      const allocationRate = result.summary.allocations ? result.summary.optimalAllocations / result.summary.allocations : 1;
       return [{
         slot: 'inspector',
         title: 'Optimal cable network',
         rows: [
-          { label: 'Seeded month', value: `${result.durationDays} days · ${result.seed}` },
-          { label: 'Needs served', value: `${format(result.summary.fulfilledNeeds)} / ${format(result.summary.needs)} (${result.summary.fulfillmentPercent}%)` },
+          { label: 'Playback', value: `Day ${result.day} of ${result.durationDays} · ${state.playback.status}` },
+          { label: 'Seeded month', value: `${state.simulation.durationDays} days · ${state.simulation.seed}` },
+          { label: 'Needs served', value: result.summary.needs ? `${format(result.summary.fulfilledNeeds)} / ${format(result.summary.needs)} (${result.summary.fulfillmentPercent}%)` : '0 / 0 (not started)' },
           { label: 'Monte Carlo events', value: format(result.summary.randomEvents) },
-          { label: 'Exact allocations', value: `${result.summary.optimalAllocations} / ${result.summary.allocations} (${result.summary.optimalityPercent}%)` },
+          { label: 'Exact allocations', value: result.summary.allocations ? `${result.summary.optimalAllocations} / ${result.summary.allocations} (${result.summary.optimalityPercent}%)` : '0 / 0 (not started)' },
           { label: 'Inventory', value: `${format(result.summary.startingInventory)} → ${format(result.summary.endingInventory)}` },
           { label: 'Busiest hub', value: `${busiestHub.label} · ${format(busiestHub.needs)} needs` },
           { label: 'Top cable', value: `${busiestCable.label} · ${format(busiestCable.needs)} needs` },
-          { label: 'System efficiency', value: `${(result.summary.fulfillmentPercent * (result.summary.optimalAllocations / result.summary.allocations)).toFixed(1)}%` },
+          { label: 'System efficiency', value: result.summary.needs ? `${(result.summary.fulfillmentPercent * allocationRate).toFixed(1)}%` : 'not started' },
           { label: 'Average transport cost', value: `${(result.summary.totalBurden / (result.summary.fulfilledNeeds || 1)).toFixed(2)} cost units` },
           ...(state.lastExchange ? [{ label: 'Last live exchange', value: `${state.lastExchange.direction} · ${state.lastExchange.hubId}` }] : []),
         ],
@@ -132,7 +141,8 @@
     }
 
     function present() {
-      const result = sdk.state.read().simulation;
+      const state = sdk.state.read();
+      const result = visibleResult(state);
       const routeByPair = new Map(transferRoutes.map((route) => [`${route.sourceHubId}:${route.destinationHubId}`, route]));
       const activeFlows = result.flows.filter((flow) => flow.sourceHubId !== flow.destinationHubId && flow.quantity > 0);
       const maximumNeeds = Math.max(...result.hubStats.map((hub) => hub.needs), 1);
@@ -144,8 +154,8 @@
             label: `${hub.label}: ${format(hub.fulfilled)} served · ${format(hub.endingInventory)} stock`,
             nodeId: config.hubs.find((row) => row.id === hub.id).nodeId,
             tone: hub.needs === maximumNeeds ? 'green' : 'amber',
-            heightM: 24 + ((hub.needs / maximumNeeds) * 28),
-            radiusM: 7 + ((hub.needs / maximumNeeds) * 5),
+            heightM: 16 + (Math.sqrt(hub.needs / maximumNeeds) * 20),
+            radiusM: 4 + (Math.sqrt(hub.needs / maximumNeeds) * 3),
             intensity: 0.7 + ((hub.needs / maximumNeeds) * 0.8),
           })),
           paths: [],
@@ -165,12 +175,13 @@
           label: `${format(flow.quantity)} optimal transfers`,
           segmentIds: route.segmentIds,
           tone: flowTone(index),
-          widthM: 2.5 + ((flow.quantity / maximumFlow) * 8),
+          widthM: 1.2 + (Math.sqrt(flow.quantity / maximumFlow) * 3.2),
           intensity: 0.45 + ((flow.quantity / maximumFlow) * 1.25),
         };
       }).filter(Boolean);
-      const actors = Array.from({ length: renderedActorCount }, (_, index) => {
-        const flow = selectFlow(activeFlows, index, renderedActorCount);
+      const visibleActorCount = Math.ceil(renderedActorCount * (result.day / result.durationDays));
+      const actors = Array.from({ length: visibleActorCount }, (_, index) => {
+        const flow = selectFlow(activeFlows, index, visibleActorCount);
         const route = routeByPair.get(`${flow.sourceHubId}:${flow.destinationHubId}`);
         if (!route) return null;
         return {
@@ -192,8 +203,8 @@
           label: `${hub.label}: ${format(hub.fulfilled)} served · ${format(hub.endingInventory)} stock`,
           nodeId: config.hubs.find((row) => row.id === hub.id).nodeId,
           tone: hub.needs === maximumNeeds ? 'green' : 'amber',
-          heightM: 24 + ((hub.needs / maximumNeeds) * 28),
-          radiusM: 7 + ((hub.needs / maximumNeeds) * 5),
+          heightM: 16 + (Math.sqrt(hub.needs / maximumNeeds) * 20),
+          radiusM: 4 + (Math.sqrt(hub.needs / maximumNeeds) * 3),
           intensity: 0.7 + ((hub.needs / maximumNeeds) * 0.8),
         })),
         paths,
@@ -202,6 +213,61 @@
           { id: 'cable-network', label: 'Cable exchange network', nodeIds: config.hubs.map((hub) => hub.nodeId), segmentIds: allSegments, distanceM: 3000 },
           ...config.hubs.map((hub) => ({ id: hub.id, label: hub.label, nodeIds: [hub.nodeId], segmentIds: [], distanceM: 620 })),
         ],
+      };
+    }
+
+    function handleAction(actionId, context = {}) {
+      if (actionId !== 'scenario.run') return { status: 'refused', reason: 'unknown_action', actionId };
+      const phase = context.values?.phase;
+      const state = sdk.state.read();
+      if (phase === 'start') {
+        sdk.events.propose({ pluginId: 'cable-trader', kind: 'cable-trader.playback-started' });
+        return playbackAction(sdk.state.read());
+      }
+      if (phase === 'step') {
+        if (state.playback.status !== 'running') return { status: 'refused', reason: 'playback_not_running' };
+        const day = Math.min(state.simulation.durationDays, state.playback.day + 1);
+        sdk.events.propose({ pluginId: 'cable-trader', kind: 'cable-trader.playback-advanced', day });
+        const nextState = sdk.state.read();
+        if (nextState.playback.status === 'settled') {
+          sdk.receipts.append({
+            schema: 'simulatte.plugin.cableTraderPlaybackReceipt.v1',
+            simulationId: nextState.simulation.id,
+            seed: nextState.simulation.seed,
+            completedDays: nextState.playback.day,
+            durationDays: nextState.simulation.durationDays,
+            endingInventory: nextState.simulation.summary.endingInventory,
+            fulfillmentPercent: nextState.simulation.summary.fulfillmentPercent,
+            optimalityProven: nextState.simulation.summary.optimalityProven,
+            claimBoundary: nextState.simulation.claimBoundary,
+          });
+        }
+        return playbackAction(nextState);
+      }
+      return { status: 'refused', reason: 'scenario_phase_invalid', phase: phase || null };
+    }
+
+    function settle() {
+      const state = sdk.state.read();
+      const completed = state.playback.status === 'settled' && state.playback.day === state.simulation.durationDays;
+      return {
+        obligationResults: [
+          {
+            obligationId: `cable-trader:month:${state.simulation.id}`,
+            status: completed ? 'settled' : 'unmet',
+            evidence: { completedDays: state.playback.day, durationDays: state.simulation.durationDays },
+          },
+          {
+            obligationId: `cable-trader:optimality:${state.simulation.id}`,
+            status: completed && state.simulation.summary.optimalityProven ? 'settled' : 'unmet',
+            evidence: {
+              optimalAllocations: state.simulation.summary.optimalAllocations,
+              allocations: state.simulation.summary.allocations,
+            },
+          },
+        ],
+        stateIdentity: `${state.simulation.id}:day-${state.playback.day}:${state.playback.status}`,
+        losses: completed ? [] : [{ kind: 'playback_incomplete', completedDays: state.playback.day, durationDays: state.simulation.durationDays }],
       };
     }
 
@@ -234,12 +300,41 @@
           };
         },
       },
+      handleAction,
+      settle,
       dispose() {},
     });
   }
 
   function reduce(state, event) {
-    if (event.kind === 'cable-trader.scenario-selected') return { ...state, simulation: event.simulation, inventory: event.simulation.endingInventory, lastExchange: null };
+    if (event.kind === 'cable-trader.scenario-selected') {
+      return {
+        ...state,
+        simulation: event.simulation,
+        inventory: event.simulation.snapshots[0].inventory,
+        lastExchange: null,
+        playback: { status: 'ready', day: 0 },
+      };
+    }
+    if (event.kind === 'cable-trader.playback-started') {
+      return {
+        ...state,
+        inventory: state.simulation.snapshots[0].inventory,
+        lastExchange: null,
+        playback: { status: 'running', day: 0 },
+      };
+    }
+    if (event.kind === 'cable-trader.playback-advanced') {
+      const snapshot = state.simulation.snapshots[event.day];
+      return {
+        ...state,
+        inventory: snapshot.inventory,
+        playback: {
+          status: event.day === state.simulation.durationDays ? 'settled' : 'running',
+          day: event.day,
+        },
+      };
+    }
     if (event.kind !== 'cable-trader.exchanged') return state;
     const key = `${event.hubId}:${event.cableTypeId}`;
     const inventory = { ...state.inventory, [key]: (state.inventory[key] || 0) + (event.direction === 'deposit' ? 1 : -1) };
@@ -252,6 +347,22 @@
       throw new Error(`Cable Trader renderedActorCount expected a positive integer, received ${value}`);
     }
     return Math.min(value, MAX_PRESENTATION_ACTORS);
+  }
+
+  function visibleResult(state) {
+    return state.simulation.snapshots[state.playback.day];
+  }
+
+  function playbackAction(state) {
+    const status = state.playback.status === 'settled' ? 'settled' : 'running';
+    return {
+      status,
+      currentStep: state.playback.day,
+      totalSteps: state.simulation.durationDays,
+      nextStepDelayMs: status === 'running' ? PLAYBACK_STEP_DELAY_MS : undefined,
+      simulationId: state.simulation.id,
+      summary: visibleResult(state).summary,
+    };
   }
 
   function selectFlow(flows, index, count) {

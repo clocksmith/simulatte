@@ -2008,7 +2008,7 @@ test('visual audit auto-judges prompt fidelity and motion with a rubric', () => 
   assert.match(packageJson.scripts['audit:visual'], /--profile-dir artifacts\/model-cache-profile/);
   assert.match(packageJson.scripts['audit:visual:model'], /--intent-mode model/);
   assert.match(packageJson.scripts['audit:visual:model'], /--profile-dir artifacts\/model-cache-profile/);
-  assert.match(packageJson.scripts['eval:live'], /--url https:\/\/simulatte-world\.web\.app/);
+  assert.match(packageJson.scripts['eval:live'], /--url https:\/\/create\.simulatte\.world\//);
   assert.match(packageJson.scripts['eval:live'], /--out artifacts\/live-visual-eval/);
   assert.equal(packageJson.scripts['eval:live:summary'], 'node tools/summarize-live-visual-eval.mjs artifacts/live-visual-eval/report.json');
   assert.match(packageJson.scripts['eval:live:model'], /--intent-mode model/);
@@ -2492,8 +2492,18 @@ test('Firebase hosting revalidates app lab and app JavaScript', () => {
   const developmentSync = fs.readFileSync(path.join(root, 'tools', 'sync-doppler-development.mjs'), 'utf8');
   const modelLockCheck = fs.readFileSync(path.join(root, 'tools', 'check-model-runtime-lock.mjs'), 'utf8');
   const modelLockUtils = fs.readFileSync(path.join(root, 'tools', 'model-runtime-lock-utils.mjs'), 'utf8');
-  const headers = config.hosting.headers;
-  assert.equal(config.hosting.predeploy, 'npm run restore:doppler:development && npm run check:deploy && npm run stamp:build');
+  const worldHosting = config.hosting.find((entry) => entry.target === 'world');
+  const createHosting = config.hosting.find((entry) => entry.target === 'create');
+  const headers = worldHosting.headers;
+  assert.equal(worldHosting.predeploy, 'npm run prepare:hosting');
+  assert.equal(createHosting.predeploy, 'npm run prepare:hosting');
+  assert.equal(worldHosting.public, '.firebase-hosting/world');
+  assert.equal(createHosting.public, '.firebase-hosting/create');
+  assert.deepEqual(worldHosting.redirects, [{
+    source: '/blank{,/**}',
+    destination: 'https://create.simulatte.world',
+    type: 301,
+  }]);
   assert.equal(pkg.scripts['sync:doppler:development'], 'node tools/sync-doppler-development.mjs --write');
   assert.equal(pkg.scripts['restore:doppler:development'], 'node tools/sync-doppler-development.mjs --restore');
   assert.equal(pkg.scripts['check:doppler:development'], 'node tools/sync-doppler-development.mjs --check');
@@ -2505,7 +2515,7 @@ test('Firebase hosting revalidates app lab and app JavaScript', () => {
     'npm run check:model-lock-references && node tools/check-model-runtime-lock.mjs && npm run check:doppler:development'
   );
   assert.equal(pkg.scripts['check:autonomy'], 'npm run check:simulatte');
-  assert.equal(pkg.scripts['check:deploy'], 'npm run simulatte:tiers:check && npm run check:model-lock && npm run check:model-candidates && npm run check:model-populations && npm run check:runtime-entrypoint && npm run check:world-entrypoint && npm run check:artifacts && node tools/check-deploy-surface.mjs && npm run check:simulatte');
+  assert.equal(pkg.scripts['check:deploy'], 'npm run simulatte:tiers:check && npm run check:model-lock && npm run check:model-candidates && npm run check:model-populations && npm run check:runtime-entrypoint && npm run check:world-entrypoint && npm run check:artifacts && npm run check:hosting && node tools/check-deploy-surface.mjs && npm run check:simulatte');
   assert.match(deployCheck, /public\/vendor\/doppler/);
   assert.match(deployCheck, /readModelRuntimeLock/);
   assert.match(modelLockUtils, /model-runtime-lock\.json/);
@@ -2534,9 +2544,17 @@ test('Firebase hosting revalidates app lab and app JavaScript', () => {
   assert.ok(noCacheSources.has('/simulatte/**'));
   assert.ok(noCacheSources.has('/shared/**'));
   assert.ok(noCacheSources.has('/data/simulatte/**'));
-  assert.ok(noCacheSources.has('/blank/**'));
+  assert.equal(noCacheSources.has('/blank/**'), false);
   assert.equal(noCacheSources.has('/simulatte-model-cache-sw.js'), false);
   assert.ok(noCacheSources.has('/vendor/doppler/**'));
+  const createNoCacheSources = new Set(createHosting.headers
+    .filter((entry) => entry.headers.some((header) => (
+      header.key === 'Cache-Control' && header.value === 'no-cache'
+    )))
+    .map((entry) => entry.source));
+  assert.ok(createNoCacheSources.has('/'));
+  assert.ok(createNoCacheSources.has('/index.html'));
+  assert.ok(createNoCacheSources.has('/blank/**'));
 });
 
 test('model-backed intent retrieval uses a 1024d Qwen index and keeps the unqualified reranker disabled', () => {

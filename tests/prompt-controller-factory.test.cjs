@@ -53,6 +53,27 @@ test('prompt controller keeps its public CommonJS API', () => {
   assert.equal(api.start(), null);
 });
 
+test('prompt controller resolves root-hosted workers against Blank asset base', () => {
+  const runtime = require(path.join(promptDir, 'prompt-controller-runtime.js'));
+  const view = {
+    document: {
+      baseURI: 'https://create.simulatte.world/blank/',
+      querySelector() {
+        return null;
+      },
+    },
+    location: {
+      href: 'https://create.simulatte.world/',
+      origin: 'https://create.simulatte.world',
+    },
+  };
+  assert.equal(runtime.documentBaseUrl(view), 'https://create.simulatte.world/blank/');
+  assert.equal(
+    runtime.versionedLocalUrl('./app/workers/simulatte-intent-worker.js', view),
+    'https://create.simulatte.world/blank/app/workers/simulatte-intent-worker.js'
+  );
+});
+
 test('prompt controller browser layers publish the API in manifest order', () => {
   const context = vm.createContext({
     SimulattePromptControllerSupport: require(path.join(promptDir, 'prompt-controller-dependencies.js')),

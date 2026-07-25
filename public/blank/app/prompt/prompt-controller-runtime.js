@@ -70,7 +70,7 @@
         function ensureWorker() {
           if (worker) return worker;
           if (failed) throw new Error('Intent worker unavailable');
-          const url = new URL('./app/workers/simulatte-intent-worker.js', view.location.href);
+          const url = new URL('./app/workers/simulatte-intent-worker.js', documentBaseUrl(view));
           appendBuildVersion(url, view);
           try {
             worker = new view.Worker(url, { name: 'simulatte-intent-worker' });
@@ -242,11 +242,14 @@
       }
 
     function versionedLocalUrl(value, view) {
-        const url = new URL(value, view.location.href);
-        appendBuildVersion(url, view);
-        return url.toString();
-      }
+      const url = new URL(value, documentBaseUrl(view));
+      appendBuildVersion(url, view);
+      return url.toString();
+    }
 
+    function documentBaseUrl(view) {
+      return (view && view.document && view.document.baseURI) || view.location.href;
+    }
 
   return Object.freeze({
     createFpsMeter,
@@ -261,5 +264,6 @@
     appBuildVersion,
     appendBuildVersion,
     versionedLocalUrl,
+    documentBaseUrl,
   });
 });

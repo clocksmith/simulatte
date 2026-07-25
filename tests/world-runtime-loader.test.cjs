@@ -46,10 +46,13 @@ test('World runtime selections load only the chosen profile plugin bundle', asyn
 });
 
 test('World optional model scripts remain outside every pre-consent selection', () => {
+  assert.equal(manifest.tierDefaultProfile.city, 'cable-trader-pickup-v1');
+  assert.equal('simulatte-world-v1' in manifest.profilePlugins, false);
+  assert.deepEqual(manifest.pluginIdsForSelection({ tierId: 'city' }), ['cable-trader']);
   for (const profileId of Object.keys(manifest.profilePlugins)) {
     const selected = manifest.forSelection({ profileId });
     assert.ok(manifest.stages.optionalModel.every((path) => !selected.includes(path)));
   }
-  const consented = manifest.forSelection({ profileId: 'simulatte-world-v1', includeOptionalModel: true });
+  const consented = manifest.forSelection({ profileId: 'cable-trader-pickup-v1', includeOptionalModel: true });
   assert.ok(manifest.stages.optionalModel.every((path) => consented.includes(path)));
 });

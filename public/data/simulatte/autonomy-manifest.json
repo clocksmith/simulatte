@@ -1,15 +1,10 @@
 {
   "applicationProfile": {
-    "id": "simulatte-world-v1",
-    "path": "../application-profiles/simulatte-world-v1.json",
-    "sha256": "b86d1c9eca0c1cd5e43b5c5e26a809681032775adbb8f2a1a6dd903d1faeaa5f"
+    "id": "cable-trader-pickup-v1",
+    "path": "../application-profiles/cable-trader-pickup-v1.json",
+    "sha256": "d223a350cbbb47974e295467d58cc0db07f03cee53c3bf7353b13039c6e0ac59"
   },
   "applicationProfiles": [
-    {
-      "id": "cable-trader-pickup-v1",
-      "path": "../application-profiles/cable-trader-pickup-v1.json",
-      "sha256": "d223a350cbbb47974e295467d58cc0db07f03cee53c3bf7353b13039c6e0ac59"
-    },
     {
       "id": "safety-explorer-v1",
       "path": "../application-profiles/safety-explorer-v1.json",

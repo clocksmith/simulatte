@@ -64,7 +64,7 @@ function sha256(value) {
 }
 
 function artifactText(value) {
-  return `${JSON.stringify(sortValue(value))}\n`;
+  return `${JSON.stringify(sortValue(value), null, 2)}\n`;
 }
 
 function sortValue(value) {

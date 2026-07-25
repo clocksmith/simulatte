@@ -19,6 +19,7 @@ public/vendor/doppler/
 !.env.example
 firebase-debug.log
 .firebase/
+.firebase-hosting/
 node_modules/
 artifacts/model-cache-profile/
 artifacts/simulatte-train/*.log

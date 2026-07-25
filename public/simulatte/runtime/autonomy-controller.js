@@ -136,8 +136,9 @@
         const tickReceipt = buildTickReceipt({ tick, observation, route: activeRoute, selection, transition, settlement, violations, state, emittedEvents, lapCompleted });
         if (state.currentSegmentId) state.routeReason = 'continued';
         const entry = await receipts.appendReceiptEntry(receiptChain, tickReceipt);
-        if (typeof onTick === 'function') onTick({ entry, snapshot: snapshot() });
-        return snapshot();
+        const currentSnapshot = snapshot();
+        if (typeof onTick === 'function') onTick({ entry, snapshot: currentSnapshot });
+        return currentSnapshot;
       } catch (error) {
         state.status = 'failed';
         state.terminalReason = error.code || 'runtime_failure';
@@ -149,8 +150,9 @@
           evidence: error.evidence || null,
         };
         await receipts.appendReceiptEntry(receiptChain, failure);
-        if (typeof onTick === 'function') onTick({ entry: receiptChain.entries.at(-1), snapshot: snapshot() });
-        return snapshot();
+        const currentSnapshot = snapshot();
+        if (typeof onTick === 'function') onTick({ entry: receiptChain.entries.at(-1), snapshot: currentSnapshot });
+        return currentSnapshot;
       }
     }
 

@@ -1,5 +1,17 @@
 {
   "projects": {
     "default": "simulatte-world"
+  },
+  "targets": {
+    "simulatte-world": {
+      "hosting": {
+        "create": [
+          "simulatte-create"
+        ],
+        "world": [
+          "simulatte-world"
+        ]
+      }
+    }
   }
 }

@@ -518,9 +518,11 @@ Plugins must not silently enable themselves or choose global weights.
 | Sun Walker | Solar position, building occlusion, exposure integration, shade preference, comparison receipt | World query, clock, routing, receipts, UI | `routing.dimension.sun-exposure.v1` | None | `public/plugins/sun-walker/` |
 | Cable Trader | Cable taxonomy, hub inventory, requests, deposits, credits, candidate journeys, exchange settlement | World query, routing, events, state, receipts, UI | `inventory.exchange.v1`, `settlement.credit.v1` | Optional `fulfillment.delivery.v1` | `public/plugins/cable-trader/` |
 | Safety Explorer | Historical-observation route dimension and narrow claim boundary | Routing, datasets, receipts, UI | `routing.dimension.historical-observation.v1` | None | `public/plugins/safety-explorer/` |
-The current shipped set is:
-`sun-walker`, `cable-trader`, and `safety-explorer`.
-Other plugin families are deferred to later lanes.
+The current shipped set is `cable-trader`, `safety-explorer`, `sun-walker`,
+`food-recall-us`, `maritime-trade-global`, `orbital-transfer-planner`, and
+`interstellar-relay-network`. Cable Trader is the primary City experience.
+Safety Explorer and Sun Walker remain focused optional City experiences; City
+does not ship a combined all-plugin profile.
 
 ## Parallel work rules
 

@@ -74,13 +74,16 @@ async function main() {
   process.once('SIGTERM', handleSigterm);
 
   const worker = async () => {
-    while (cursor < files.length && !controller.signal.aborted) {
+    while (!controller.signal.aborted) {
+      // Reserve the slot before the fingerprint await. Otherwise concurrent
+      // workers can all observe the same final cursor value and overrun files.
+      const index = cursor++;
+      if (index >= files.length) return;
       if (await worktreeFingerprint() !== initialFingerprint) {
         worktreeError = new Error('worktree changed while tests were running; refusing mixed-revision results');
         controller.abort();
         return;
       }
-      const index = cursor++;
       const file = files[index];
       const name = path.basename(file);
       const override = policy.overrides && policy.overrides[name] || {};

@@ -12,7 +12,6 @@
   if (!tierRegistry) throw new Error('world_tiers_boot_tier_registry_missing');
   const TIER_LABELS = tierRegistry.TIER_LABELS;
   const PROFILE_LABELS = Object.freeze({
-    'simulatte-world-v1': 'Simulatte World',
     'cable-trader-pickup-v1': 'Cable Trader',
     'safety-explorer-v1': 'Safety Explorer',
     'sun-walker-v1': 'Sun Walker',
