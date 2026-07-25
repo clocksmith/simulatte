@@ -1,6 +1,6 @@
 {
-  "schema": "simulatte.plugin.cableTraderConfig.v2",
-  "id": "cable-trader-network-v2",
+  "schema": "simulatte.plugin.cableTraderConfig.v3",
+  "id": "cable-trader-network-v3",
   "cableTypes": [
     { "id": "usb-c-to-a", "label": "USB-C to USB-A", "labels": ["usb c to a", "usb-c to usb-a", "usb c cable"], "demandWeight": 18 },
     { "id": "usb-c-to-c", "label": "USB-C to USB-C", "labels": ["usb c to c", "usb-c to usb-c"], "demandWeight": 18 },
@@ -18,6 +18,48 @@
     { "id": "east-village-cable-hub", "label": "East Village", "nodeId": "bike-node-ffea919f743c" },
     { "id": "greenpoint-cable-hub", "label": "Greenpoint", "nodeId": "bike-node-7a95737b9c7d" },
     { "id": "williamsburg-cable-hub", "label": "North Williamsburg", "nodeId": "bike-node-e25116ea05a4" }
+  ],
+  "scenarioModifiers": [
+    {
+      "id": "july-baseline",
+      "demandTypeMultipliers": {},
+      "demandHubMultipliers": {},
+      "returnHubMultipliers": {}
+    },
+    {
+      "id": "campus-return-wave",
+      "demandTypeMultipliers": {},
+      "demandHubMultipliers": {
+        "union-square-cable-hub": 1.35,
+        "east-village-cable-hub": 1.5
+      },
+      "returnHubMultipliers": {
+        "union-square-cable-hub": 1.6,
+        "east-village-cable-hub": 1.8
+      }
+    },
+    {
+      "id": "display-cable-surge",
+      "demandTypeMultipliers": {
+        "hdmi": 2,
+        "displayport": 2.25,
+        "mini-displayport": 1.5
+      },
+      "demandHubMultipliers": {},
+      "returnHubMultipliers": {}
+    },
+    {
+      "id": "brooklyn-rebalance",
+      "demandTypeMultipliers": {},
+      "demandHubMultipliers": {
+        "greenpoint-cable-hub": 1.8,
+        "williamsburg-cable-hub": 2
+      },
+      "returnHubMultipliers": {
+        "union-square-cable-hub": 1.7,
+        "east-village-cable-hub": 1.5
+      }
+    }
   ],
   "simulation": {
     "seed": "cable-city-month-2026-07",

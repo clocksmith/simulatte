@@ -5,12 +5,22 @@
     {
       "id": "world.buildings.v1",
       "required": true
+    },
+    {
+      "id": "sun-walker.model-governance.v1",
+      "reference": {
+        "id": "sun-walker.model-governance.v1",
+        "path": "../../../data/sun-walker/sun-walker-model-governance-v1.json",
+        "schemaId": "simulatte.sunWalkerModelGovernance.v1",
+        "sha256": "54367eab7494a68dda74d17af0a5415647f3605884bc0b37b8bdf2c072a1964e"
+      },
+      "required": true
     }
   ],
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginSunWalker",
-    "integrity": "sha384-5a9b268e7db8dd6e5761c7a42f15f3d4ea2eb7dddc03a251750b2130375caa006c4140ee0444e24011d02f7c6164c2b9",
+    "integrity": "sha384-93b8065ea0c7dfccdf240559fa942c6581e6ecdf42ae3fe9f83119847c5c94e774da999d314ce98ff835867e911759db",
     "path": "./index.js"
   },
   "extensionPoints": [
@@ -37,23 +47,40 @@
     "field.thermal-comfort.v1"
   ],
   "receiptSchemas": [
-    "simulatte.plugin.sunWalkerSelectionReceipt.v1"
+    "simulatte.plugin.sunWalkerSelectionReceipt.v2",
+    "simulatte.plugin.sunWalkerPlaybackReceipt.v1"
   ],
   "resources": [
     {
-      "integrity": "sha384-952fcf2aeec13cbb18a950586a862cd9af374b4565bdce1952b3175274ae3753de1a4a3dfb9f74e42d56f5d8f51dbaa2",
+      "integrity": "sha384-2bd26f7cd970c1c182ac1218075ee44130c6ac00c371a9ab12ae1ce70b00e12b87255ce440561611b073b1b2fd516d53",
       "path": "./config.schema.json"
     },
     {
-      "integrity": "sha384-762a79ddc5fab5f85228022263473b6efe9391bb4dd4f1612720e42e5346c76090ebd30633116397f8aaa968205e257a",
+      "integrity": "sha384-f3af3c4ffa38eb740c864fb0ab0461f0b01bd19d1d65b6cb273d6c2f8237fa03269b136cce49c9460b37df1371c8bcd5",
       "path": "./default-config.json"
     },
     {
-      "integrity": "sha384-e5026d70e0796b87fb3c0383866e56ccb1b9428396e7cde74496806062bdff060cd7294b20942228e66d586f7b8bf185",
+      "integrity": "sha384-7c0954555144864b3c3c42d6928a925c010b0304beb73dd0fb7ca8c38fc4679dc2fa40353f3f6419b7f21f313264a36f",
       "path": "./sun-exposure.js"
+    },
+    {
+      "integrity": "sha384-355ea2422776d67e84725171d74f8273bb9cc2967bc19867a80e29abf82ba984868c9596ed725da5fba3bd2303b7cd97",
+      "path": "./truth.js"
+    },
+    {
+      "integrity": "sha384-89c17e7e596c74713db540573d0e19c0c94a45b66f24e6678241a7c295f102c5b200fca62ac505734912746f698f7315",
+      "path": "./sun-route-simulation.js"
+    },
+    {
+      "integrity": "sha384-96a796998c4c2c5b548bb1e8102741e4cb32f03e692a877767fca8e0bd1a4c07bce5ded5f560b5e53bb636d671e03454",
+      "path": "./presentation.js"
+    },
+    {
+      "integrity": "sha384-51b1e2c099d0e4b042296c9be3148402353f3fea94300887ebc0d87400a08b7809766eb03f222739c369a14be712972f",
+      "path": "./compatibility-adapter.js"
     }
   ],
-  "schema": "simulatte.pluginManifest.v1",
+  "schema": "simulatte.pluginManifest.v2",
   "sdkVersion": 2,
-  "version": "2.0.0"
+  "version": "3.0.0"
 }

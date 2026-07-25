@@ -1,72 +1,55 @@
 {
-  "configSchema": "./config.schema.json",
-  "consumes": [],
-  "datasets": [
+  "schema": "simulatte.pluginManifest.v2",
+  "id": "maritime-trade-global",
+  "version": "2.0.0",
+  "sdkVersion": 2,
+  "entry": {
+    "path": "./index.js",
+    "integrity": "sha384-45cb39f35ec24e8176b887b0cc7d8c594a4959dae8b9a380f80cec812bcdbbee521742886c7c7f85008a8ee93321ef30",
+    "globalFactory": "SimulattePluginMaritimeTradeGlobal"
+  },
+  "resources": [
     {
-      "id": "world.ports.wpi.v1",
-      "reference": {
-        "id": "world.ports.wpi.v1",
-        "path": "../../../data/maritime-trade-global/world-ports-wpi-v1.json",
-        "schemaId": "simulatte.worldPortsWpi.v1",
-        "sha256": "bde86b8797a1be3d2512fe8910957af2439f875eed1737d0e17458b60fc29e8b"
-      },
-      "required": true
+      "path": "./config.schema.json",
+      "integrity": "sha384-1258e5276078f4808d386cfbea5dba5f90e2d3a62c8528d039ee82e943a4e097f5754aad4d54606c59fc16be2b83ef0a"
     },
     {
-      "id": "maritime.vessel.classes.v1",
-      "reference": {
-        "id": "maritime.vessel.classes.v1",
-        "path": "../../../data/maritime-trade-global/maritime-vessel-classes-v1.json",
-        "schemaId": "simulatte.maritimeVesselClasses.v1",
-        "sha256": "f6c7d86134ba982b8c063890527bedd5faf3378e6f6a36a465e1a7621b56ab65"
-      },
-      "required": true
+      "path": "./container-ledger.js",
+      "integrity": "sha384-6d1db485fa453ab506c78e825b6b5cc48cacf003e752c6995c7e8184d0616667c4e1f4ea9b9a01a7e9093ea0622bceff"
     },
     {
-      "id": "ocean.chokepoints.v1",
-      "reference": {
-        "id": "ocean.chokepoints.v1",
-        "path": "../../../data/maritime-trade-global/ocean-chokepoints-v1.json",
-        "schemaId": "simulatte.oceanChokepoints.v1",
-        "sha256": "399651396e4fd7d1e6eb34b69ed4e9467ab9591e31bf1bae6ee0903a2ef4238d"
-      },
-      "required": false
+      "path": "./default-config.json",
+      "integrity": "sha384-93f6808b4ced76a23b49773c694fb697aaa4a635a61973423cf43833e450e43913e1867fdf577eba513ba48bfbc480ee"
     },
     {
-      "id": "shipping.lane.routes.v1",
-      "reference": {
-        "id": "shipping.lane.routes.v1",
-        "path": "../../../data/maritime-trade-global/shipping-lane-routes-v1.json",
-        "schemaId": "simulatte.shippingLaneRoutes.v1",
-        "sha256": "b898d9dbe9f203799b7408683b5914d17207ee872aaaed55adb6ae8ce2f2666d"
-      },
-      "required": true
+      "path": "./emissions-model.js",
+      "integrity": "sha384-ed619d7738bf6a4a4afcc1a406d0df0d690581a12f08f536d1d7d393720737acb2b74de7037028c3e3645c57e829b1b9"
     },
     {
-      "id": "maritime.weather.snapshot.v1",
-      "reference": {
-        "id": "maritime.weather.snapshot.v1",
-        "path": "../../../data/maritime-trade-global/maritime-weather-snapshot-v1.json",
-        "schemaId": "simulatte.maritimeWeatherSnapshot.v1",
-        "sha256": "f09d938e4f8d816a78a21b2533e8378bbcfdefc53747150a594f1c8ddff6ed77"
-      },
-      "required": false
+      "path": "./maritime-engine.js",
+      "integrity": "sha384-25502fb46642673d0670b8d2f9a6315163332414da47a075370baecccf62304d435504be57a55f2d5d3785513d33c4e7"
+    },
+    {
+      "path": "./metrics.js",
+      "integrity": "sha384-09cffba4907234db58325e3f916003edaaf7f2e94277446c485075489717b43a2a4c193c57f7a7e3012f5e4035ebecff"
+    },
+    {
+      "path": "./network-router.js",
+      "integrity": "sha384-d87350a1a1e1c5786892193961b985cf1a295cc4160fc9be49ed2a3761c36f2fa193235cc447cc650d26a5823983a24f"
+    },
+    {
+      "path": "./presentation.js",
+      "integrity": "sha384-d14473446c483303c0b7669f7acf9503934111321a7e01e029f54cf0949bfe9174409fca8b884f7f7c1e9007fbda5e10"
+    },
+    {
+      "path": "./queue-engine.js",
+      "integrity": "sha384-0bd7d6b7476706f07b7ee3f0e4e5986db15f5de3a35facca275afe5951b238744076bf81cf0b35382f278826a7c56d2f"
+    },
+    {
+      "path": "./weather-disruption.js",
+      "integrity": "sha384-df0f38aa68adb2e7608ac3dab6d14f0e24ab599174ed9d9f7f6de44d6af241c8045519e5ba305f2d449404ccecc99cb5"
     }
   ],
-  "defaultConfig": "./default-config.json",
-  "entry": {
-    "globalFactory": "SimulattePluginMaritimeTradeGlobal",
-    "integrity": "sha384-2ee8a442529b442744ba01c4e472bf4a349a244afa445e5b483d51ca40622e647be6faccb1292c0a55d7ef006206f837",
-    "path": "./index.js"
-  },
-  "extensionPoints": [
-    "request",
-    "event",
-    "settlement",
-    "ui",
-    "presentation"
-  ],
-  "id": "maritime-trade-global",
   "permissions": [
     "capabilities.invoke.v1",
     "clock.read.v1",
@@ -79,11 +62,111 @@
     "ui.geospatial.v1",
     "ui.inspector.v1"
   ],
+  "datasets": [
+    {
+      "id": "global-port-registry-wpi-v1",
+      "required": true,
+      "reference": {
+        "id": "global-port-registry-wpi-v1",
+        "path": "../../../data/maritime-trade-global/port-registry-wpi-v1.json",
+        "schemaId": "simulatte.maritimePortRegistry.v1",
+        "sha256": "89942e9fdf92d721710718c3d821927fb73053248928f5793b0213fb99dfe515"
+      }
+    },
+    {
+      "id": "global-maritime-corridors-v1",
+      "required": true,
+      "reference": {
+        "id": "global-maritime-corridors-v1",
+        "path": "../../../data/maritime-trade-global/maritime-corridors-v1.json",
+        "schemaId": "simulatte.maritimeCorridors.v1",
+        "sha256": "719fe4125465a1daf7f23136ed5cd1a75f87e71df07a720b854317453092b108"
+      }
+    },
+    {
+      "id": "global-canal-service-models-v1",
+      "required": true,
+      "reference": {
+        "id": "global-canal-service-models-v1",
+        "path": "../../../data/maritime-trade-global/canal-service-models-v1.json",
+        "schemaId": "simulatte.canalServiceModels.v1",
+        "sha256": "c131c1a9e251ff56e2c3dfc7c047e5c135820d5ac7290223dc2e9dd8837f4746"
+      }
+    },
+    {
+      "id": "container-port-performance-v1",
+      "required": true,
+      "reference": {
+        "id": "container-port-performance-v1",
+        "path": "../../../data/maritime-trade-global/container-port-performance-v1.json",
+        "schemaId": "simulatte.containerPortPerformance.v1",
+        "sha256": "247b56901147f366612c3ebee27dac832d63c80f041133ae3b55be982b695afc"
+      }
+    },
+    {
+      "id": "ibtracs-v04r01-scenario-tracks-v1",
+      "required": true,
+      "reference": {
+        "id": "ibtracs-v04r01-scenario-tracks-v1",
+        "path": "../../../data/maritime-trade-global/ibtracs-scenario-tracks-v1.json",
+        "schemaId": "simulatte.ibtracsScenarioTracks.v1",
+        "sha256": "8e34061a7635a2f7478b1a77abda17e69f96d3d9f073861f11a3a00649533835"
+      }
+    },
+    {
+      "id": "maritime-vessel-archetypes-v1",
+      "required": true,
+      "reference": {
+        "id": "maritime-vessel-archetypes-v1",
+        "path": "../../../data/maritime-trade-global/vessel-archetypes-v1.json",
+        "schemaId": "simulatte.maritimeVesselArchetypes.v1",
+        "sha256": "bc321fffbc1861e095331e25e47f329780a2cbf063b6748245c35f4e2550a368"
+      }
+    },
+    {
+      "id": "maritime-emissions-model-v1",
+      "required": true,
+      "reference": {
+        "id": "maritime-emissions-model-v1",
+        "path": "../../../data/maritime-trade-global/emissions-model-v1.json",
+        "schemaId": "simulatte.maritimeEmissionsModel.v1",
+        "sha256": "948b76b802fc4f957c5c3ead5276275ab509b30d0909a575598d6408c7c5b500"
+      }
+    },
+    {
+      "id": "maritime.voyage.scenarios.v1",
+      "required": true,
+      "reference": {
+        "id": "maritime.voyage.scenarios.v1",
+        "path": "../../../data/maritime-trade-global/voyage-scenarios-v1.json",
+        "schemaId": "simulatte.maritimeVoyageScenarios.v1",
+        "sha256": "d62701631179036eef23a64423012a2665b58fbe25e1a38e2fdbb6a85ef3a532"
+      }
+    },
+    {
+      "id": "maritime.provenance.registry.v1",
+      "required": true,
+      "reference": {
+        "id": "maritime.provenance.registry.v1",
+        "path": "../../../data/maritime-trade-global/provenance-registry-v1.json",
+        "schemaId": "simulatte.maritimeProvenanceRegistry.v1",
+        "sha256": "134a1ff3a0953bab0ab0273c2a3ba9dd060a3716480c9b74cecbfb7d3cf3a3d1"
+      }
+    }
+  ],
   "provides": [
     "simulation.maritime-logistics.v1",
     "field.ocean-freight.v1",
     "simulation.maritime-trade.v1",
     "field.maritime-emissions.v1"
+  ],
+  "consumes": [],
+  "extensionPoints": [
+    "request",
+    "event",
+    "settlement",
+    "ui",
+    "presentation"
   ],
   "receiptSchemas": [
     "simulatte.plugin.maritimeScenarioReceipt.v1",
@@ -91,67 +174,15 @@
     "simulatte.plugin.maritimeQueueReceipt.v1",
     "simulatte.plugin.containerLineageReceipt.v1",
     "simulatte.plugin.maritimeEmissionsReceipt.v1",
-    "simulatte.plugin.maritimeCounterfactualReceipt.v1"
+    "simulatte.plugin.maritimeCounterfactualReceipt.v1",
+    "simulatte.plugin.maritimeScenarioReceipt.v2",
+    "simulatte.plugin.maritimeProvenanceCoverageReceipt.v1",
+    "simulatte.plugin.maritimeVoyageReceipt.v2",
+    "simulatte.plugin.maritimeQueueReceipt.v2",
+    "simulatte.plugin.containerLineageReceipt.v2",
+    "simulatte.plugin.maritimeEmissionsReceipt.v2",
+    "simulatte.plugin.maritimeComparisonReceipt.v2"
   ],
-  "resources": [
-    {
-      "integrity": "sha384-84173f2c202d89c64f04e8db8a57b291bb6cab89fdffe09518a114bd4d0bad4f6eba690ba0042712252bf2e5110cbe67",
-      "path": "./config.schema.json"
-    },
-    {
-      "integrity": "sha384-79d9e0c8859261c20c54bad3607afb4bcca834fd4a567a623c7beaad4c3e3b4f2a910cfac6d9967a735b805ec1644d80",
-      "path": "./container-ledger.js"
-    },
-    {
-      "integrity": "sha384-097ed36546e832d0dcd8538c879aa7260f456b05bb76d39bbd12fc8d07ce5f8b8b1fdcce683a30cce85e17bd7df7fd66",
-      "path": "./default-config.json"
-    },
-    {
-      "integrity": "sha384-fa0296e5d52bf5100178748ad5b694b8728ba5fe0b6970edeb3d144f66098eabe4178dbcea058f69f52ab8fcb95ee53d",
-      "path": "./emissions-model.js"
-    },
-    {
-      "integrity": "sha384-4c98694c5c189c82a4375fa9b8764bc0266ce327d6286b194253527018248c4f629b2d035c503edc8cfde0f16c1e41b6",
-      "path": "./emissions.js"
-    },
-    {
-      "integrity": "sha384-23224c4fc45339e9e138a13d5ab7261996f4a45170e274fb50533d706bfeffe05f12aceea55efd3d53e648765cf466f4",
-      "path": "./maritime-engine.js"
-    },
-    {
-      "integrity": "sha384-eac7d4e9e62051e560b2421d21d1e44e40d8bf133a903d680449fcfe1e6643ed60a5155c9bee2b8e0597fd417a55c00b",
-      "path": "./metrics.js"
-    },
-    {
-      "integrity": "sha384-101c422e95ba1b11e9074543a8b4821280905d27449bcdd20768fec4c97109d7b5082738d3a632bea85603fa0aa61b8b",
-      "path": "./network-router.js"
-    },
-    {
-      "integrity": "sha384-35c2b508297cfef9e71f4c931c909df3715ec400cb2d5d7b7017296921440cec67d026d792d3bb1080ba70736040b2e5",
-      "path": "./ports.js"
-    },
-    {
-      "integrity": "sha384-e023e48f7019f66a0f9d8ac072a543da800016eb8507e2d751edc795650510761eae642149ae77f01060384e20bc77b4",
-      "path": "./presentation.js"
-    },
-    {
-      "integrity": "sha384-900da54f3f99a3492d9368881b276ba3a6aaabeeaf9fa10ea42725d4a5e106f6bc4ff46c74be6b0dc82659307cac4837",
-      "path": "./queue-engine.js"
-    },
-    {
-      "integrity": "sha384-da07fbba831ed4f5fa16e910f3263d5a364419cf7451c191297171f3f74eaf3183c816dd316fb9fba892efbf8e08be32",
-      "path": "./routing.js"
-    },
-    {
-      "integrity": "sha384-981936c3f75224385a42c9a37e9f5d28adc240235ceedcdd4ec006486ecc6139d497b6a63c2fcd812d1f954833cd666e",
-      "path": "./vessels.js"
-    },
-    {
-      "integrity": "sha384-85b6586c59fd27ed31046e85fec5cee0eecb49eb562257c9edfda528e353121e8866e93c9f6898dbfc4f254f27a72886",
-      "path": "./weather-disruption.js"
-    }
-  ],
-  "schema": "simulatte.pluginManifest.v2",
-  "sdkVersion": 2,
-  "version": "1.0.0"
+  "configSchema": "./config.schema.json",
+  "defaultConfig": "./default-config.json"
 }

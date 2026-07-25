@@ -1,0 +1,253 @@
+{
+  "schema": "simulatte.gaiaDr3NearbyStars.v2",
+  "id": "gaia.dr3.nearby-stars.v2",
+  "title": "Governed Gaia DR3 astrometry for relay scenario systems",
+  "contentVersion": "2026-07-25",
+  "epoch": "J2016.0",
+  "provenance": {
+    "publisher": "European Space Agency Gaia Archive",
+    "dataset": "Gaia Data Release 3 gaia_source",
+    "sourceUrl": "https://gea.esac.esa.int/archive/",
+    "serviceUrl": "https://gea.esac.esa.int/tap-server/tap/sync",
+    "retrievalAt": "2026-07-25T00:00:00Z",
+    "queryLanguage": "ADQL",
+    "query": "SELECT source_id,ra,ra_error,dec,dec_error,parallax,parallax_error,pmra,pmra_error,pmdec,pmdec_error,radial_velocity,radial_velocity_error,phot_g_mean_mag,ruwe,ref_epoch FROM gaiadr3.gaia_source WHERE source_id IN (5853498713190525696,4472832130942575872,3864972938605115520,762815470562110464,5164707970261890560,1872046609345556480)",
+    "license": {
+      "id": "Gaia-archive-acknowledgement-and-data-use",
+      "url": "https://www.cosmos.esa.int/web/gaia-users/credits"
+    },
+    "coverage": {
+      "kind": "selected-nearby-systems",
+      "rowCount": 6,
+      "catalogEpochYear": 2016,
+      "selection": "Exact source IDs used by checked-in relay scenarios."
+    }
+  },
+  "stars": [
+    {
+      "sourceId": "gaia-sol",
+      "sourceRowId": "scenario-origin:solar-system-barycenter",
+      "catalogSourceId": null,
+      "name": "Sol",
+      "referenceEpochYear": 2016,
+      "raDeg": 0,
+      "raErrorMas": 0,
+      "decDeg": 0,
+      "decErrorMas": 0,
+      "parallaxMas": 0,
+      "parallaxErrorMas": 0,
+      "pmRaMasYr": 0,
+      "pmRaErrorMasYr": 0,
+      "pmDecMasYr": 0,
+      "pmDecErrorMasYr": 0,
+      "radialVelocityKmS": 0,
+      "radialVelocityErrorKmS": 0,
+      "photGMag": -26.74,
+      "ruwe": null,
+      "truth": {
+        "origin": "scenario",
+        "temporalStatus": "snapshot",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Coordinate-system origin, not a Gaia source row."
+          }
+        }
+      }
+    },
+    {
+      "sourceId": "gaia-proxima",
+      "sourceRowId": "gaiadr3.gaia_source:5853498713190525696",
+      "catalogSourceId": "5853498713190525696",
+      "name": "Proxima Centauri",
+      "referenceEpochYear": 2016,
+      "raDeg": 217.39232147200883,
+      "raErrorMas": 0.023999203,
+      "decDeg": -62.67607511676666,
+      "decErrorMas": 0.03443618,
+      "parallaxMas": 768.0665391873573,
+      "parallaxErrorMas": 0.049872905,
+      "pmRaMasYr": -3781.741008265163,
+      "pmRaErrorMasYr": 0.031386077,
+      "pmDecMasYr": 769.4650146478623,
+      "pmDecErrorMasYr": 0.050524533,
+      "radialVelocityKmS": -21.942726,
+      "radialVelocityErrorKmS": 0.21612652,
+      "photGMag": 8.984749,
+      "ruwe": 0.97145325,
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "distribution",
+          "value": {
+            "family": "catalog-reported-standard-errors",
+            "correlation": "not-loaded"
+          }
+        }
+      }
+    },
+    {
+      "sourceId": "gaia-barnard",
+      "sourceRowId": "gaiadr3.gaia_source:4472832130942575872",
+      "catalogSourceId": "4472832130942575872",
+      "name": "Barnard's Star",
+      "referenceEpochYear": 2016,
+      "raDeg": 269.44850252543836,
+      "raErrorMas": 0.026238997,
+      "decDeg": 4.739420051112412,
+      "decErrorMas": 0.029043527,
+      "parallaxMas": 546.975939730948,
+      "parallaxErrorMas": 0.040116355,
+      "pmRaMasYr": -801.5509783684709,
+      "pmRaErrorMasYr": 0.031820867,
+      "pmDecMasYr": 10362.394206546573,
+      "pmDecErrorMasYr": 0.036070455,
+      "radialVelocityKmS": -110.46822,
+      "radialVelocityErrorKmS": 0.13125522,
+      "photGMag": 8.1939745,
+      "ruwe": 1.0848505,
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "distribution",
+          "value": {
+            "family": "catalog-reported-standard-errors",
+            "correlation": "not-loaded"
+          }
+        }
+      }
+    },
+    {
+      "sourceId": "gaia-wolf-359",
+      "sourceRowId": "gaiadr3.gaia_source:3864972938605115520",
+      "catalogSourceId": "3864972938605115520",
+      "name": "Wolf 359",
+      "referenceEpochYear": 2016,
+      "raDeg": 164.10319030755974,
+      "raErrorMas": 0.06683743,
+      "decDeg": 7.002726940984864,
+      "decErrorMas": 0.051524777,
+      "parallaxMas": 415.17941567802137,
+      "parallaxErrorMas": 0.06837086,
+      "pmRaMasYr": -3866.3382751436793,
+      "pmRaErrorMasYr": 0.08130645,
+      "pmDecMasYr": -2699.214987679166,
+      "pmDecErrorMasYr": 0.06910815,
+      "radialVelocityKmS": null,
+      "radialVelocityErrorKmS": null,
+      "photGMag": 11.038391,
+      "ruwe": 0.8353354,
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "field": "radialVelocityKmS",
+            "propagationAssumption": "zero-radial-velocity",
+            "measuredFields": "catalog-reported-standard-errors"
+          }
+        }
+      }
+    },
+    {
+      "sourceId": "gaia-lalande-21185",
+      "sourceRowId": "gaiadr3.gaia_source:762815470562110464",
+      "catalogSourceId": "762815470562110464",
+      "name": "Lalande 21185",
+      "referenceEpochYear": 2016,
+      "raDeg": 165.83095967577933,
+      "raErrorMas": 0.024125582,
+      "decDeg": 35.948653032660104,
+      "decErrorMas": 0.029372523,
+      "parallaxMas": 392.75294543876464,
+      "parallaxErrorMas": 0.03206665,
+      "pmRaMasYr": -580.0570872139048,
+      "pmRaErrorMasYr": 0.025565954,
+      "pmDecMasYr": -4776.588719443488,
+      "pmDecErrorMasYr": 0.030034095,
+      "radialVelocityKmS": -85.11064,
+      "radialVelocityErrorKmS": 0.13100341,
+      "photGMag": 6.551172,
+      "ruwe": 0.9638494,
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "distribution",
+          "value": {
+            "family": "catalog-reported-standard-errors",
+            "correlation": "not-loaded"
+          }
+        }
+      }
+    },
+    {
+      "sourceId": "gaia-epsilon-eridani",
+      "sourceRowId": "gaiadr3.gaia_source:5164707970261890560",
+      "catalogSourceId": "5164707970261890560",
+      "name": "Epsilon Eridani",
+      "referenceEpochYear": 2016,
+      "raDeg": 53.22829341517546,
+      "raErrorMas": 0.12144193,
+      "decDeg": -9.458168216292322,
+      "decErrorMas": 0.09303789,
+      "parallaxMas": 310.5772928005821,
+      "parallaxErrorMas": 0.13549915,
+      "pmRaMasYr": -974.758145249517,
+      "pmRaErrorMasYr": 0.15972257,
+      "pmDecMasYr": 20.875840089774208,
+      "pmDecErrorMasYr": 0.120366044,
+      "radialVelocityKmS": null,
+      "radialVelocityErrorKmS": null,
+      "photGMag": 3.465752,
+      "ruwe": 2.7166147,
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "field": "radialVelocityKmS",
+            "propagationAssumption": "zero-radial-velocity",
+            "measuredFields": "catalog-reported-standard-errors"
+          }
+        }
+      }
+    },
+    {
+      "sourceId": "gaia-61-cygni-a",
+      "sourceRowId": "gaiadr3.gaia_source:1872046609345556480",
+      "catalogSourceId": "1872046609345556480",
+      "name": "61 Cygni A",
+      "referenceEpochYear": 2016,
+      "raDeg": 316.7484792940004,
+      "raErrorMas": 0.03876041,
+      "decDeg": 38.76386244649797,
+      "decErrorMas": 0.048496146,
+      "parallaxMas": 285.99494829578117,
+      "parallaxErrorMas": 0.05989728,
+      "pmRaMasYr": 4164.2086922846665,
+      "pmRaErrorMasYr": 0.055289943,
+      "pmDecMasYr": 3249.613883848584,
+      "pmDecErrorMasYr": 0.055022996,
+      "radialVelocityKmS": -65.97495,
+      "radialVelocityErrorKmS": 0.11701901,
+      "photGMag": 4.766713,
+      "ruwe": 1.2043179,
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "distribution",
+          "value": {
+            "family": "catalog-reported-standard-errors",
+            "correlation": "not-loaded"
+          }
+        }
+      }
+    }
+  ]
+}

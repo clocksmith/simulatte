@@ -23,7 +23,9 @@
     const start = Date.UTC(date.getUTCFullYear(), 0, 0);
     const day = Math.floor((date.getTime() - start) / 86_400_000);
     const hour = date.getUTCHours() + date.getUTCMinutes() / 60 + date.getUTCSeconds() / 3600;
-    const gamma = 2 * Math.PI / 365 * (day - 1 + (hour - 12) / 24);
+    const year = date.getUTCFullYear();
+    const daysInYear = new Date(Date.UTC(year, 1, 29)).getUTCDate() === 29 ? 366 : 365;
+    const gamma = 2 * Math.PI / daysInYear * (day - 1 + (hour - 12) / 24);
     const equationMinutes = 229.18 * (0.000075 + 0.001868 * Math.cos(gamma) - 0.032077 * Math.sin(gamma)
       - 0.014615 * Math.cos(2 * gamma) - 0.040849 * Math.sin(2 * gamma));
     const declination = 0.006918 - 0.399912 * Math.cos(gamma) + 0.070257 * Math.sin(gamma)
@@ -738,6 +740,7 @@
     createShadeCostModel,
     evaluateRoute,
     pointSunState,
+    pointSunStateDetailed,
     segmentExposureRow,
     selectShadeAwareRoute,
     solarPosition,

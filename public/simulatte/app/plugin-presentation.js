@@ -2,10 +2,13 @@
   const geographyApi = typeof module === 'object' && module.exports
     ? require('../platform/plugin-host/plugin-geography.js')
     : root.SimulattePluginGeography;
-  const api = factory(geographyApi);
+  const compositorApi = typeof module === 'object' && module.exports
+    ? require('../platform/render/semantic-compositor.js')
+    : root.SimulatteSemanticCompositor;
+  const api = factory(geographyApi, compositorApi);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulattePluginPresentation = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createPluginPresentationCompiler(geographyApi) {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createPluginPresentationCompiler(geographyApi, compositorApi) {
   const SCHEMA = 'simulatte.compiledPluginPresentation.v1';
 
   function projectionForWorld(worldModel) {
@@ -24,6 +27,10 @@
     const compiled = { schema: SCHEMA, markers: [], paths: [], actors: [], areas: [], sun: null, cameraTargets: [], geoMarkers: [], geoPaths: [], geoAreas: [], choropleths: [] };
     rows.forEach(({ pluginId, presentation }) => {
       const namespace = (id) => `plugin:${pluginId}:${id}`;
+      if (presentation.schema === 'simulatte.pluginPresentation.v4') {
+        compileSemantic(compiled, presentation, pluginId, namespace, projection, worldModel);
+        return;
+      }
       if (presentation.schema === 'simulatte.pluginPresentation.v3') {
         compileGeospatial(compiled, presentation, pluginId, namespace, projection);
       }
@@ -106,6 +113,115 @@
     });
     Object.keys(compiled).filter((key) => Array.isArray(compiled[key])).forEach((key) => Object.freeze(compiled[key]));
     return Object.freeze(compiled);
+  }
+
+  function compileSemantic(compiled, presentation, pluginId, namespace, projection, worldModel) {
+    const layerPoints = new Map();
+    presentation.layers.forEach((layer) => {
+      const points = resolveSemanticGeometry(layer.geometry, worldModel, pluginId, projection, layer.id);
+      layerPoints.set(layer.id, points);
+      const style = compositorApi.styleForLayer(layer);
+      const common = Object.freeze({
+        id: namespace(layer.id),
+        sourceId: layer.id,
+        pluginId,
+        label: layer.label,
+        tone: originTone(layer.provenance.axes.origin),
+        style,
+        provenance: layer.provenance,
+        intensity: style.strokeOpacity,
+      });
+      if (['point', 'label'].includes(layer.kind)) {
+        compiled.markers.push(Object.freeze({
+          ...common,
+          point: points[0],
+          radiusM: style.radiusPx || 4,
+          heightM: style.radiusPx ? style.radiusPx * 2 : 8,
+        }));
+      } else if (layer.kind === 'actor') {
+        compiled.markers.push(Object.freeze({
+          ...common,
+          point: points[0],
+          radiusM: style.radiusPx || 5,
+          heightM: 10,
+        }));
+      } else if (layer.kind === 'path') {
+        compiled.paths.push(Object.freeze({
+          ...common,
+          points: Object.freeze(points),
+          widthM: style.widthPx || 1,
+        }));
+      } else if (['area', 'field'].includes(layer.kind)) {
+        compiled.areas.push(Object.freeze({
+          ...common,
+          points: Object.freeze(points),
+          heightM: 0.35,
+        }));
+      }
+    });
+    presentation.viewIntents.forEach((intent) => {
+      const points = intent.targetIds.flatMap((id) => layerPoints.get(id) || []);
+      if (!points.length) return;
+      compiled.cameraTargets.push(Object.freeze({
+        id: namespace(intent.id),
+        sourceId: intent.id,
+        pluginId,
+        kind: 'plugin',
+        label: intent.id,
+        target: Object.freeze(centerForPoints(points)),
+        distance: distanceForPoints(points),
+        viewMode: intent.mode,
+        priority: intent.priority,
+        reasonEventId: intent.reasonEventId,
+      }));
+      intent.targetIds.forEach((targetId) => {
+        if (compiled.cameraTargets.some((row) => row.id === namespace(targetId))) return;
+        const targetPoints = layerPoints.get(targetId) || [];
+        if (!targetPoints.length) return;
+        compiled.cameraTargets.push(Object.freeze({
+          id: namespace(targetId),
+          sourceId: targetId,
+          pluginId,
+          kind: 'plugin',
+          label: presentation.layers.find((layer) => layer.id === targetId)?.label || targetId,
+          target: Object.freeze(centerForPoints(targetPoints)),
+          distance: distanceForPoints(targetPoints),
+          viewMode: intent.mode,
+          priority: intent.priority,
+          reasonEventId: intent.reasonEventId,
+        }));
+      });
+    });
+  }
+
+  function resolveSemanticGeometry(geometry, worldModel, pluginId, projection, layerId) {
+    if (geometry.kind === 'node') return [Object.freeze(clonePoint(resolveNode(worldModel, pluginId, geometry.nodeIds[0]).position))];
+    if (geometry.kind === 'node-path') return geometry.nodeIds.map((id) => Object.freeze(clonePoint(resolveNode(worldModel, pluginId, id).position)));
+    if (geometry.kind === 'segments') return pointsForSegments(worldModel, pluginId, geometry.segmentIds, layerId);
+    if (geometry.coordinateSystem === 'wgs84') {
+      if (!projection) throw presentationError('plugin_presentation_projection_missing', `Plugin ${pluginId} emitted WGS84 semantic geometry without a world projection`);
+      return geometry.coordinates.map((coordinate) => {
+        const point = projection.project({ longitude: coordinate[0], latitude: coordinate[1] });
+        return Object.freeze({ x: point.x, y: point.y });
+      });
+    }
+    return geometry.coordinates.map((coordinate) => Object.freeze({ x: coordinate[0], y: coordinate[1] }));
+  }
+
+  function distanceForPoints(points) {
+    const spanX = Math.max(...points.map((row) => row.x)) - Math.min(...points.map((row) => row.x));
+    const spanY = Math.max(...points.map((row) => row.y)) - Math.min(...points.map((row) => row.y));
+    return Math.max(150, Math.hypot(spanX, spanY) * 1.4);
+  }
+
+  function originTone(origin) {
+    return {
+      observed: 'green',
+      derived: 'blue',
+      modeled: 'violet',
+      simulated: 'amber',
+      scenario: 'magenta',
+    }[origin] || 'muted';
   }
 
   // Project WGS84 geo primitives into planar world metres. cameraTargets/centerForPoints

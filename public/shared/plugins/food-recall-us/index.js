@@ -1,10 +1,11 @@
 (function attachFoodRecallPlugin(root, factory) {
   const engine = typeof module === 'object' && module.exports ? require('./food-engine.js') : root.SimulatteFoodRecallEngine;
   const presentation = typeof module === 'object' && module.exports ? require('./food-presentation.js') : root.SimulatteFoodRecallPresentation;
-  const api = factory(engine, presentation);
+  const v4 = typeof module === 'object' && module.exports ? require('./v4-contribution.js') : root.SimulatteFoodRecallV4;
+  const api = factory(engine, presentation, v4);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulattePluginFoodRecallUs = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createFoodRecallPlugin(engine, presentation) {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createFoodRecallPlugin(engine, presentation, v4) {
   const PLUGIN_ID = 'food-recall-us';
   const SCENARIO_DATE = Date.parse('2026-07-01T12:00:00Z');
 
@@ -184,6 +185,19 @@
       return presentation.buildPresentation({ run: state.run, facilities, corridors, consumerZones: consumerZones.zones });
     }
 
+    function contributeV4() {
+      const state = sdk.state.read();
+      return v4.createContribution({
+        run: state.run,
+        scenario: activeSpec,
+        facilities,
+        corridors,
+        consumerZones: consumerZones.zones,
+        datasetReceipts,
+        activeIntervention,
+      });
+    }
+
     // ---- Capabilities (cross-plugin fields, §17/§18) ------------------------------
     const capabilities = {
       'simulation.food-recall.v2': (input) => ({ scenarioId: activeSpec.id, run: sdk.state.read().run, requested: input }),
@@ -212,7 +226,7 @@
       },
     };
 
-    return Object.freeze({ id: PLUGIN_ID, contributeRequest, setScenario, handleAction, settle, view, present, reduce, capabilities, dispose() {} });
+    return Object.freeze({ id: PLUGIN_ID, contributeRequest, contributeV4, setScenario, handleAction, settle, view, present, reduce, capabilities, dispose() {} });
   }
 
   function reduce(state, event) {

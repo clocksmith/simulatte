@@ -1,0 +1,120 @@
+{
+  "schema": "simulatte.interstellarRelayModelCatalog.v1",
+  "id": "interstellar.relay.models.v1",
+  "title": "Interstellar relay equations and assumptions",
+  "contentVersion": "2026-07-25",
+  "models": [
+    {
+      "id": "linear-space-motion-v2",
+      "kind": "astrometric-propagation",
+      "equation": "r(t) = r0 + v * (t - referenceEpoch)",
+      "citation": {
+        "title": "Gaia DR3 astrometric source parameters",
+        "url": "https://gea.esac.esa.int/archive/documentation/GDR3/Gaia_archive/chap_datamodel/sec_dm_main_source_catalogue/ssec_dm_gaia_source.html"
+      },
+      "assumptions": [
+        "Constant barycentric velocity",
+        "Zero radial velocity when catalog value is missing"
+      ],
+      "validation": {
+        "id": "analytic-fixtures-v1",
+        "status": "tested"
+      },
+      "truth": {
+        "origin": "modeled",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "interval",
+          "value": {
+            "method": "first-order catalog-error propagation",
+            "covariance": "not-loaded"
+          }
+        }
+      }
+    },
+    {
+      "id": "finite-light-time-v2",
+      "kind": "signal-propagation",
+      "equation": "t_light = distance / 299792458 m s^-1",
+      "citation": {
+        "title": "SI exact speed of light",
+        "url": "https://physics.nist.gov/cgi-bin/cuu/Value?c"
+      },
+      "assumptions": [
+        "Euclidean barycentric separation",
+        "No relativistic gravitational delay"
+      ],
+      "validation": {
+        "id": "one-parsec-light-time-fixture-v1",
+        "status": "tested"
+      },
+      "truth": {
+        "origin": "derived",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "interval",
+          "value": {
+            "method": "endpoint-distance interval"
+          }
+        }
+      }
+    },
+    {
+      "id": "diffraction-photon-budget-v2",
+      "kind": "optical-link-budget",
+      "equation": "Pr = Pt * eta * Gt * Gr * (lambda / 4 pi R)^2 * Lpoint; photonRate = Pr / (h c / lambda)",
+      "citation": {
+        "title": "NASA Deep Space Optical Communications",
+        "url": "https://www.nasa.gov/mission/deep-space-optical-communications-dsoc/"
+      },
+      "assumptions": [
+        "Diffraction-limited circular apertures",
+        "Declared pointing jitter",
+        "Fixed background photon rate",
+        "No acquisition outage"
+      ],
+      "validation": {
+        "id": "inverse-square-and-aperture-monotonicity-v1",
+        "status": "tested"
+      },
+      "truth": {
+        "origin": "modeled",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "interval",
+          "value": {
+            "method": "declared efficiency and pointing bounds"
+          }
+        }
+      }
+    },
+    {
+      "id": "deterministic-store-forward-v2",
+      "kind": "discrete-event-network",
+      "equation": "receive = transmit + packetBits / bitrate + lightTime; nextTransmit = receive + processingDelay",
+      "citation": {
+        "title": "CCSDS Bundle Protocol Specification",
+        "url": "https://public.ccsds.org/Pubs/734x2b1.pdf"
+      },
+      "assumptions": [
+        "Continuous contact availability",
+        "No retransmission during nominal run",
+        "Causal store-and-forward ordering"
+      ],
+      "validation": {
+        "id": "causal-event-order-and-conservation-v1",
+        "status": "tested"
+      },
+      "truth": {
+        "origin": "simulated",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "No measured interstellar network traffic exists."
+          }
+        }
+      }
+    }
+  ]
+}

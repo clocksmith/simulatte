@@ -2,66 +2,93 @@
   const exposure = typeof module === 'object' && module.exports
     ? require('./sun-exposure.js')
     : root.SimulatteSunExposure;
-  const api = factory(exposure);
+  const routeSimulation = typeof module === 'object' && module.exports
+    ? require('./sun-route-simulation.js')
+    : root.SimulatteSunWalkerRouteSimulation;
+  const presentation = typeof module === 'object' && module.exports
+    ? require('./presentation.js')
+    : root.SimulatteSunWalkerPresentation;
+  const compatibility = typeof module === 'object' && module.exports
+    ? require('./compatibility-adapter.js')
+    : root.SimulatteSunWalkerCompatibility;
+  const api = factory(exposure, routeSimulation, presentation, compatibility);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulattePluginSunWalker = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createSunWalkerPlugin(exposure) {
-  async function activate({ sdk, config }) {
-    sdk.state.register(reduce, { selection: null });
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createSunWalkerPlugin(
+  exposure,
+  routeSimulation,
+  presentationApi,
+  compatibilityApi
+) {
+  const GOVERNANCE_DATASET_ID = 'sun-walker.model-governance.v1';
+
+  async function activate({ sdk, config, scenario = null }) {
     const world = sdk.worldQuery.snapshot();
     const worldModel = sdk.worldQuery.model();
-    let presentationCache = null;
+    const governance = sdk.datasets.require(GOVERNANCE_DATASET_ID);
+    const governanceReceipt = sdk.datasets.receipt(GOVERNANCE_DATASET_ID);
+    const buildingReceipt = sdk.datasets.receipt('world.buildings.v1');
+    let activeScenario = scenario;
+    sdk.state.register(reduce, {
+      simulation: null,
+      playback: { status: 'idle', step: 0 },
+      scenario: activeScenario,
+    });
+
+    function simulateMission(mission) {
+      if (!mission) throw pluginError('sun_mission_required', 'Sun Walker requires a resolved route mission');
+      const routes = sdk.routing.alternatives(mission, config.maximumAlternatives);
+      const departureAt = sdk.clock.instantForMission(mission);
+      const simulation = routeSimulation.simulate({
+        world,
+        worldModel,
+        routes,
+        departureAt,
+        config,
+        seed: activeScenario?.seed || config.seed,
+        buildingReceipt,
+        governance,
+        governanceReceipt,
+      });
+      sdk.events.propose({ pluginId: 'sun-walker', kind: 'sun-walker.simulation-created', simulation });
+      appendSelectionReceipt(simulation);
+      return simulation;
+    }
+
+    function appendSelectionReceipt(simulation) {
+      const selected = candidate(simulation, simulation.selectedCandidateId);
+      sdk.receipts.append({
+        schema: 'simulatte.plugin.sunWalkerSelectionReceipt.v2',
+        simulationId: simulation.id,
+        seed: simulation.seed,
+        dataReceiptId: simulation.dataReceipt.id,
+        modelReceiptId: simulation.modelReceipt.id,
+        selectedSegmentIds: selected.route.segmentIds,
+        comparison: simulation.comparison,
+        uncertainty: simulation.modelReceipt.uncertainty,
+        claimBoundary: simulation.claimBoundary,
+      });
+    }
 
     function contributeRequest({ sourceText, mission }) {
       if (!mission) return null;
-      if (!/\b(?:shade|shaded|shadier|less\s+direct\s+sun|avoid(?:ing)?\s+(?:the\s+)?sun|hot\s+day)\b/i.test(sourceText || '')) {
+      if (!recognizesSunIntent(sourceText)) {
         sdk.events.propose({ pluginId: 'sun-walker', kind: 'sun-walker.cleared' });
         return null;
       }
-      const policy = sdk.routing.policy() || {};
-      const routeObjective = policy.routeObjective || {};
-      if (routeObjective.sunExposureSeconds > 0) {
-        return {
-          recognized: true,
-          obligations: [{ id: 'sun-walker:direct-sun-exposure', kind: 'direct_sun_exposure', required: true }],
-          unresolved: [],
-        };
-      }
-      const selection = exposure.selectShadeAwareRoute({
-        world,
-        worldModel,
-        originNodeId: mission.originNodeId,
-        destinationNodeId: mission.destinationNodeId,
-        mode: sdk.routing.modeFor(mission.embodimentId),
-        mission,
-        policy,
-        utcInstant: sdk.clock.instantForMission(mission),
-        routes: sdk.routing.alternatives(mission, config.maximumAlternatives),
-        directSunWeight: config.directSunWeight,
-        unknownWeight: config.unknownWeight,
-        maximumAddedTimeSeconds: config.maximumAddedTimeSeconds,
-        maximumAddedRatio: config.maximumAddedRatio,
-        sampleSpacingM: config.sampleSpacingM,
-      });
-      presentationCache = buildPresentation(selection, world, worldModel);
-      sdk.events.propose({ pluginId: 'sun-walker', kind: 'sun-walker.route-selected', selection });
-      sdk.receipts.append({
-        schema: 'simulatte.plugin.sunWalkerSelectionReceipt.v1',
-        fieldId: selection.field.id,
-        selectedSegmentIds: selection.selected.route.segmentIds,
-        comparison: selection.comparison,
-      });
+      const simulation = simulateMission(mission);
+      const selected = candidate(simulation, simulation.selectedCandidateId);
       return {
         recognized: true,
         obligations: [{ id: 'sun-walker:direct-sun-exposure', kind: 'direct_sun_exposure', required: true }],
         unresolved: [],
         missionPatch: {
           routeOverride: {
-            segmentIds: [...selection.selected.route.segmentIds],
-            environmentFieldId: selection.field.id,
-            selectionId: `${selection.field.id}:selected`,
-            objective: selection.selected.objective,
-            algorithm: 'sun_walker_arrival_time_route_v1',
+            segmentIds: [...selected.route.segmentIds],
+            environmentFieldId: simulation.dataReceipt.id,
+            selectionId: simulation.id,
+            objective: selected.metrics.objective,
+            algorithm: 'sun_walker_arrival_sample_route_v2',
           },
         },
       };
@@ -70,267 +97,296 @@
     function createRouteContributor({ mission }) {
       const origin = exposure.worldOrigin(world);
       const buildings = exposure.compiledBuildings(world);
-      // The sun position is constant for the mission instant, and a segment's shade exposure is a
-      // deterministic function of (segment, sun, buildings). A* evaluates the same segments across
-      // many candidate searches, so computing the sun once and memoizing each segment's building
-      // shadow trace by segment.id turns an O(searches x segments x buildings) main-thread stall
-      // into one trace per unique segment — same values, no per-edge ray-tracing in the hot loop.
       const utcInstant = sdk.clock.instantForMission(mission);
       const sun = exposure.solarPosition(utcInstant, origin.lat, origin.lon);
       const exposureBySegmentId = new Map();
-      const segmentExposure = (segment) => {
-        let row = exposureBySegmentId.get(segment.id);
-        if (!row) {
-          row = exposure.segmentExposureRow({ segment, buildings, sun, sampleSpacingM: config.sampleSpacingM || 18, minimumSolarElevationDegrees: 2 });
-          exposureBySegmentId.set(segment.id, row);
-        }
-        return row;
-      };
       return {
         id: 'sun-walker:sun-exposure',
         costDimensionIds: Object.freeze(['sunExposureSeconds']),
         canRejectSegments: false,
         evaluateSegment({ segment }) {
-          const row = segmentExposure(segment);
+          let row = exposureBySegmentId.get(segment.id);
+          if (!row) {
+            row = exposure.segmentExposureRow({
+              segment,
+              buildings,
+              sun,
+              sampleSpacingM: config.sampleSpacingM,
+              minimumSolarElevationDegrees: config.minimumSolarElevationDegrees,
+            });
+            exposureBySegmentId.set(segment.id, row);
+          }
           return {
             eligible: true,
-            costDimensions: {
-              sunExposureSeconds: row.output.directSunSeconds,
-            },
+            costDimensions: { sunExposureSeconds: row.output.directSunSeconds },
             rejectionReasons: [],
-            receipt: row.output,
+            receipt: {
+              ...row.output,
+              modelId: 'fixed-departure-routing-approximation-v1',
+              claimBoundary: 'This routing contribution uses departure-time sun as a search approximation. Final selection is recomputed at every simulated sample arrival.',
+            },
           };
-        },
-        evaluateRoute({ route }) {
-          const utcInstant = sdk.clock.instantForMission(mission);
-          const sun = exposure.solarPosition(utcInstant, origin.lat, origin.lon);
-          const evaluation = exposure.evaluateRoute({
-            model: exposure.createShadeCostModel({
-              world,
-              buildings,
-              latitudeDegrees: origin.lat,
-              longitudeDegrees: origin.lon,
-              sampleSpacingM: config.sampleSpacingM || 18,
-              directSunWeight: config.directSunWeight || 1,
-              unknownWeight: config.unknownWeight || 2,
-            }),
-            segmentIds: route.segmentIds,
-            worldModel,
-            departureAt: utcInstant,
-            routeCandidateId: 'sun-walker-selected',
-          });
-          const totalShadeSeconds = evaluation.edgeRows.reduce((sum, row) => sum + row.components.shadeSeconds, 0);
-          const totalLitSeconds = evaluation.edgeRows.reduce((sum, row) => sum + row.components.directSunSeconds, 0) + totalShadeSeconds;
-          const selection = {
-            schema: 'simulatte.shadeRouteSelection.v1',
-            selected: {
-              route,
-              exposure: evaluation.edgeRows.reduce((sum, row) => {
-                Object.entries(row.components).forEach(([key, value]) => { sum[key] = (sum[key] || 0) + value; });
-                return sum;
-              }, {}),
-              objective: evaluation.generalizedCost,
-              addedTimeSeconds: 0,
-              detourRatio: 0,
-              withinDetourBound: true,
-            },
-            fastest: null,
-            candidates: [],
-            field: {
-              id: `sun-field-${utcInstant.replace(/[:.-]/g, '')}`,
-              azimuthDegrees: sun.azimuthDegrees,
-              elevationDegrees: sun.elevationDegrees,
-              claimBoundary: 'clear-sky direct sun',
-            },
-            comparison: {
-              schema: 'simulatte.comparativeShadeReceipt.v1',
-              selectedRouteId: route.segmentIds.join('|'),
-              fastestRouteId: route.segmentIds.join('|'),
-              selectedModeledBuildingShadePercent: totalLitSeconds ? Math.round(totalShadeSeconds / totalLitSeconds * 100) : 0,
-              fastestModeledBuildingShadePercent: totalLitSeconds ? Math.round(totalShadeSeconds / totalLitSeconds * 100) : 0,
-              selectedDirectSunSeconds: evaluation.edgeRows.reduce((sum, row) => sum + row.components.directSunSeconds, 0),
-              fastestDirectSunSeconds: evaluation.edgeRows.reduce((sum, row) => sum + row.components.directSunSeconds, 0),
-              selectedShadeSeconds: totalShadeSeconds,
-              fastestShadeSeconds: totalShadeSeconds,
-              addedTravelSeconds: 0,
-              detourPercent: 0,
-              withinDetourBound: true,
-            },
-            weights: { travelSeconds: 1, directSunSeconds: config.directSunWeight || 1, unknownSeconds: config.unknownWeight || 2 },
-            detourPolicy: {
-              maximumAddedTimeSeconds: config.maximumAddedTimeSeconds || 600,
-              maximumAddedRatio: config.maximumAddedRatio || 0.25,
-              effectiveMaximumAddedTimeSeconds: config.maximumAddedTimeSeconds || 600,
-            },
-            traversalCostModel: null,
-            selectionAuthority: 'inspectable_javascript',
-            modelExecution: false,
-            searchComplete: true,
-            claimBoundary: 'clear-sky direct sun',
-          };
-          selection.fastest = selection.selected;
-          presentationCache = buildPresentation(selection, world, worldModel);
-          sdk.events.propose({ pluginId: 'sun-walker', kind: 'sun-walker.route-selected', selection });
-          sdk.receipts.append({
-            schema: 'simulatte.plugin.sunWalkerSelectionReceipt.v1',
-            fieldId: selection.field.id,
-            selectedSegmentIds: route.segmentIds,
-            comparison: selection.comparison,
-          });
-          return evaluation;
         },
       };
     }
 
-    function settle({ journey }) {
-      const selection = sdk.state.read().selection;
-      if (!selection) return null;
-      return {
-        obligationResults: [{ obligationId: 'sun-walker:direct-sun-exposure', status: journey?.finalState?.status === 'completed' ? 'settled' : 'not_settled' }],
-        stateIdentity: selection.field.id,
-        losses: [],
-      };
+    function setScenario(nextScenario) {
+      activeScenario = nextScenario;
+      sdk.events.propose({ pluginId: 'sun-walker', kind: 'sun-walker.scenario-selected', scenario: nextScenario });
+      return { status: 'ready', seed: activeScenario?.seed || config.seed };
     }
 
-    function view(context = {}) {
-      const selection = sdk.state.read().selection;
-      if (!selection) return { slot: context.compositionSize === 1 ? 'map' : 'inspector', title: 'Sun Walker', rows: [{ label: 'Activation', value: 'Ask for shade or less direct sun' }, { label: 'Method', value: 'Building geometry + sun position' }], actions: [] };
-      const rows = [
-          { label: 'Selected route', value: `${Math.round(selection.comparison.selectedModeledBuildingShadePercent)}% modeled shade` },
-          { label: 'Fastest route', value: `${Math.round(selection.comparison.fastestModeledBuildingShadePercent)}% modeled shade` },
-          { label: 'Sun', value: `${Math.round(selection.field.azimuthDegrees)}° azimuth · ${Math.round(selection.field.elevationDegrees)}° elevation` },
-          { label: 'Shadows', value: `${presentationCache?.areas.length || 0} building projections` },
-          { label: 'Added travel', value: `${Math.round(selection.comparison.addedTravelSeconds)} s` },
-      ];
-      return [
-        { slot: 'inspector', title: 'Sun exposure', rows, actions: [] },
-        { slot: 'hud', title: 'Sun + shade', rows: [rows[0], rows[2], rows[3]], actions: [{ id: 'focus-shade', label: 'View sun and shade', command: { kind: 'camera.focus', targetId: 'shade-route' } }] },
-      ];
+    function handleAction(actionId, context = {}) {
+      if (actionId === 'sun-walker.select-control') {
+        return {
+          status: 'deferred',
+          reason: 'shared_branching_runtime_required',
+          acceptedValues: context.values || {},
+          controlDefinitions: sdk.state.read().simulation?.controls || [],
+        };
+      }
+      if (actionId !== 'scenario.run') return { status: 'refused', reason: 'unknown_action', actionId };
+      const phase = context.values?.phase;
+      const state = sdk.state.read();
+      if (!state.simulation) return { status: 'refused', reason: 'simulation_missing' };
+      if (phase === 'start') {
+        sdk.events.propose({ pluginId: 'sun-walker', kind: 'sun-walker.playback-started' });
+        return playbackAction(sdk.state.read());
+      }
+      if (phase === 'step') {
+        if (state.playback.status !== 'running') return { status: 'refused', reason: 'playback_not_running' };
+        const finalStep = state.simulation.timeline.snapshots.length - 1;
+        const step = Math.min(finalStep, state.playback.step + 1);
+        sdk.events.propose({ pluginId: 'sun-walker', kind: 'sun-walker.playback-advanced', step });
+        const nextState = sdk.state.read();
+        if (nextState.playback.status === 'settled') appendPlaybackReceipt(nextState);
+        return playbackAction(nextState);
+      }
+      return { status: 'refused', reason: 'scenario_phase_invalid', phase: phase || null };
+    }
+
+    function appendPlaybackReceipt(state) {
+      const finalSnapshot = state.simulation.timeline.snapshots.at(-1);
+      sdk.receipts.append({
+        schema: 'simulatte.plugin.sunWalkerPlaybackReceipt.v1',
+        simulationId: state.simulation.id,
+        completedEvents: state.simulation.timeline.eventCount,
+        finalState: finalSnapshot.state,
+        comparisonId: state.simulation.comparison.id,
+        dataReceiptId: state.simulation.dataReceipt.id,
+        modelReceiptId: state.simulation.modelReceipt.id,
+        claimBoundary: state.simulation.claimBoundary,
+      });
+    }
+
+    function semanticPresentation() {
+      const state = sdk.state.read();
+      if (!state.simulation) return null;
+      return presentationApi.semanticPresentation(state.simulation, state.playback.step);
     }
 
     function present() {
-      const selection = sdk.state.read().selection;
-      if (!selection) return null;
-      if (!presentationCache || presentationCache.fieldId !== selection.field.id) presentationCache = buildPresentation(selection, world, worldModel);
-      return presentationCache.value;
+      const state = sdk.state.read();
+      if (!state.simulation) return null;
+      return compatibilityApi.legacyPresentation({
+        simulation: state.simulation,
+        step: state.playback.step,
+        world,
+      });
     }
 
-    // v2 (§17): separate direct-sun routing from thermal comfort. This neutral field
-    // combines the pinned environment sample (air temperature + solar elevation) into a
-    // clear-sky mean-radiant-temperature proxy and a thermal dose from the selected
-    // route's direct-sun seconds, rather than silently relabelling sun exposure as heat.
-    const capabilities = {
-      'field.thermal-comfort.v1': (input) => {
-        if (!sdk.environment) return { enabled: false, reason: 'environment_unavailable' };
-        if (!input || !Number.isFinite(input.longitude) || !Number.isFinite(input.latitude)) return { value: null, reason: 'coordinate_required' };
-        const instant = input.instant || '2026-07-01T17:00:00Z';
-        const sample = sdk.environment.sample({ instant, longitude: input.longitude, latitude: input.latitude, fields: ['airTemperatureC', 'solarElevationDegrees'] });
-        const solarRad = Math.max(0, Math.sin((sample.values.solarElevationDegrees * Math.PI) / 180));
-        // Clear-sky MRT proxy: air temperature plus a bounded radiant load from the sun.
-        const meanRadiantTemperatureC = Number((sample.values.airTemperatureC + 18 * solarRad).toFixed(2));
-        const selection = sdk.state.read().selection;
-        const directSunSeconds = selection?.summary?.selectedDirectSunSeconds ?? 0;
+    function view(context = {}) {
+      const state = sdk.state.read();
+      if (!state.simulation) {
         return {
-          schema: 'field.thermal-comfort.v1',
-          value: meanRadiantTemperatureC, units: 'mean_radiant_temperature_c_proxy',
-          airTemperatureC: sample.values.airTemperatureC,
-          thermalDoseSunSeconds: directSunSeconds,
-          providerId: 'sun-walker', sourceSnapshotIds: sample.sourceSnapshotIds,
-          claimBoundary: 'Clear-sky mean-radiant-temperature proxy from a pinned environment snapshot and modeled direct-sun exposure; not a measured thermal-comfort observation.',
+          slot: context.compositionSize === 1 ? 'map' : 'inspector',
+          title: 'Sun Walker',
+          rows: [
+            { label: 'Activation', value: 'Ask for shade or less direct sun' },
+            { label: 'Inputs', value: 'Governed buildings + modeled solar position' },
+            { label: 'Boundary', value: 'Clear sky; no trees or weather' },
+          ],
+          actions: [],
         };
-      },
+      }
+      const simulation = state.simulation;
+      const selected = candidate(simulation, simulation.selectedCandidateId);
+      const fastest = candidate(simulation, simulation.fastestCandidateId);
+      const snapshot = simulation.timeline.snapshots[state.playback.step];
+      const latestSample = selected.samples[Math.max(0, snapshot.state.completedSamples - 1)];
+      const rows = [
+        { label: 'Simulation', value: `${snapshot.state.status} · ${snapshot.state.completedSamples}/${snapshot.state.totalSamples} samples` },
+        { label: 'Shade-selected', value: `${Math.round(selected.metrics.modeledBuildingShadePercent)}% modeled building shade` },
+        { label: 'Fastest', value: `${Math.round(fastest.metrics.modeledBuildingShadePercent)}% modeled building shade` },
+        { label: 'Direct sun', value: `${Math.round(snapshot.state.directSunSeconds)} of ${Math.round(selected.metrics.directSunSeconds)} s` },
+        { label: 'Added travel', value: `${Math.round(simulation.comparison.metrics.travelSeconds.difference)} s` },
+        {
+          label: 'Sun',
+          value: `${Math.round(latestSample.solarPosition.azimuthDegrees)}° azimuth · ${Math.round(latestSample.solarPosition.elevationDegrees)}° elevation`,
+        },
+        { label: 'Data', value: `${simulation.dataReceipt.datasets[0].sourceRowIds.length.toLocaleString('en-US')} governed building rows` },
+        { label: 'Uncertainty', value: 'Trees, weather, awnings, diffuse light missing' },
+      ];
+      return [
+        { slot: 'inspector', title: 'Arrival-time sun exposure', rows, actions: [] },
+        {
+          slot: 'hud',
+          title: 'Sun + shade',
+          rows: [rows[0], rows[1], rows[3]],
+          actions: [],
+        },
+      ];
+    }
+
+    function settle() {
+      const state = sdk.state.read();
+      if (!state.simulation) return null;
+      const finalStep = state.simulation.timeline.snapshots.length - 1;
+      const completed = state.playback.status === 'settled' && state.playback.step === finalStep;
+      return {
+        obligationResults: [{
+          obligationId: 'sun-walker:direct-sun-exposure',
+          status: completed ? 'settled' : 'not_settled',
+          evidence: {
+            simulationId: state.simulation.id,
+            completedEvents: state.playback.step,
+            requiredEvents: finalStep,
+            comparisonId: state.simulation.comparison.id,
+          },
+        }],
+        stateIdentity: `${state.simulation.id}:step-${state.playback.step}:${state.playback.status}`,
+        losses: completed
+          ? Object.entries(state.simulation.modelReceipt.uncertainty.value)
+            .filter(([, value]) => value)
+            .map(([kind, value]) => ({ kind: `uncertainty_${kind}`, value }))
+          : [{ kind: 'simulation_incomplete', completedEvents: state.playback.step, requiredEvents: finalStep }],
+      };
+    }
+
+    const capabilities = {
+      'field.thermal-comfort.v1': (input) => thermalComfortField(input, sdk),
     };
-    return Object.freeze({ id: 'sun-walker', contributeRequest, createRouteContributor, settle, view, present, capabilities, dispose() {} });
+    return Object.freeze({
+      id: 'sun-walker',
+      contributeRequest,
+      createRouteContributor,
+      setScenario,
+      handleAction,
+      settle,
+      view,
+      present,
+      semanticPresentation,
+      simulationState: () => sdk.state.read().simulation
+        ? sdk.state.read().simulation.timeline.snapshots[sdk.state.read().playback.step]
+        : null,
+      eventTimeline: () => sdk.state.read().simulation?.timeline || null,
+      comparisonModel: () => sdk.state.read().simulation?.comparison || null,
+      controlModel: () => sdk.state.read().simulation?.controls || [],
+      capabilities,
+      dispose() {},
+    });
   }
 
   function reduce(state, event) {
-    if (event.kind === 'sun-walker.cleared') return { ...state, selection: null };
-    if (event.kind !== 'sun-walker.route-selected') return state;
-    return { ...state, selection: event.selection };
-  }
-
-  function buildPresentation(selection, world, worldModel) {
-    const selectedIds = selection.selected.route.segmentIds;
-    const fastestIds = selection.fastest.route.segmentIds;
-    const paths = [{ id: 'shade-route', label: 'Shade-selected route', segmentIds: selectedIds, tone: 'green', widthM: 8, intensity: 1.35 }];
-    if (fastestIds.join('|') !== selectedIds.join('|')) paths.unshift({ id: 'fastest-route', label: 'Fastest route', segmentIds: fastestIds, tone: 'amber', widthM: 4, intensity: 0.8 });
-    const areas = projectedBuildingShadows(world, worldModel, selectedIds, selection.field);
-    return {
-      fieldId: selection.field.id,
-      areas,
-      value: {
-        schema: 'simulatte.pluginPresentation.v2',
-        markers: [],
-        paths,
-        actors: [],
-        areas,
-        sun: {
-          id: 'modeled-sun',
-          label: `Modeled sun at ${Math.round(selection.field.elevationDegrees)}° elevation`,
-          azimuthDegrees: selection.field.azimuthDegrees,
-          elevationDegrees: selection.field.elevationDegrees,
-          anchorSegmentIds: selectedIds,
-          distanceM: 260,
-          radiusM: 18,
-          intensity: 2,
+    if (event.kind === 'sun-walker.cleared') {
+      return { ...state, simulation: null, playback: { status: 'idle', step: 0 } };
+    }
+    if (event.kind === 'sun-walker.scenario-selected') {
+      return { ...state, scenario: event.scenario, simulation: null, playback: { status: 'idle', step: 0 } };
+    }
+    if (event.kind === 'sun-walker.simulation-created') {
+      return { ...state, simulation: event.simulation, playback: { status: 'ready', step: 0 } };
+    }
+    if (event.kind === 'sun-walker.playback-started') {
+      return { ...state, playback: { status: 'running', step: 0 } };
+    }
+    if (event.kind === 'sun-walker.playback-advanced') {
+      const finalStep = state.simulation.timeline.snapshots.length - 1;
+      return {
+        ...state,
+        playback: {
+          status: event.step === finalStep ? 'settled' : 'running',
+          step: event.step,
         },
-        cameraTargets: [{ id: 'shade-route', label: 'Sun and shade route', nodeIds: [], segmentIds: selectedIds, distanceM: 740 }],
-      },
-    };
+      };
+    }
+    return state;
   }
 
-  function projectedBuildingShadows(world, worldModel, segmentIds, field) {
-    if (field.elevationDegrees <= 2) return [];
-    const routePoints = segmentIds.flatMap((id) => worldModel.segment(id).geometry);
-    const bounds = pointBounds(routePoints, 180);
-    const center = { x: (bounds.minimumX + bounds.maximumX) / 2, y: (bounds.minimumY + bounds.maximumY) / 2 };
-    const azimuth = field.azimuthDegrees * Math.PI / 180;
-    const elevation = field.elevationDegrees * Math.PI / 180;
-    return world.renderGeometry.buildings
-      .filter((building) => Number.isFinite(building.heightM) && building.heightM > 0 && intersectsBounds(building.footprint, bounds))
-      .sort((left, right) => distanceSquared(left.centroid, center) - distanceSquared(right.centroid, center) || left.id.localeCompare(right.id))
-      .slice(0, 320)
-      .map((building) => {
-        const length = Math.min(400, building.heightM / Math.tan(elevation));
-        const delta = { x: -Math.sin(azimuth) * length, y: -Math.cos(azimuth) * length };
-        const footprint = openRing(building.footprint);
-        const points = convexHull([...footprint, ...footprint.map((point) => ({ x: point.x + delta.x, y: point.y + delta.y }))]);
-        return { id: `shadow-${building.id}`, label: `${building.id} modeled shadow`, points, tone: 'shade', heightM: 0.72, intensity: 0.18 };
-      });
-  }
-
-  function pointBounds(points, padding = 0) {
+  function playbackAction(state) {
+    const finalStep = state.simulation.timeline.snapshots.length - 1;
     return {
-      minimumX: Math.min(...points.map((row) => row.x)) - padding,
-      maximumX: Math.max(...points.map((row) => row.x)) + padding,
-      minimumY: Math.min(...points.map((row) => row.y)) - padding,
-      maximumY: Math.max(...points.map((row) => row.y)) + padding,
+      status: state.playback.status === 'settled' ? 'settled' : 'running',
+      currentStep: state.playback.step,
+      totalSteps: finalStep,
+      simulationId: state.simulation.id,
+      state: state.simulation.timeline.snapshots[state.playback.step],
+      viewIntents: presentationApi.semanticPresentation(state.simulation, state.playback.step).viewIntents,
     };
   }
 
-  function intersectsBounds(points, bounds) {
-    const row = pointBounds(points);
-    return row.maximumX >= bounds.minimumX && row.minimumX <= bounds.maximumX && row.maximumY >= bounds.minimumY && row.minimumY <= bounds.maximumY;
+  function thermalComfortField(input, sdk) {
+    if (!sdk.environment) return { enabled: false, reason: 'environment_unavailable' };
+    if (!input || !Number.isFinite(input.longitude) || !Number.isFinite(input.latitude)) {
+      return { value: null, reason: 'coordinate_required' };
+    }
+    const instant = input.instant || '2026-07-01T17:00:00Z';
+    const sample = sdk.environment.sample({
+      instant,
+      longitude: input.longitude,
+      latitude: input.latitude,
+      fields: ['airTemperatureC', 'solarElevationDegrees'],
+    });
+    const solarRad = Math.max(0, Math.sin(sample.values.solarElevationDegrees * Math.PI / 180));
+    const meanRadiantTemperatureC = Number((sample.values.airTemperatureC + 18 * solarRad).toFixed(2));
+    const state = sdk.state.read();
+    const visible = state.simulation?.timeline.snapshots[state.playback.step]?.state;
+    return {
+      schema: 'field.thermal-comfort.v1',
+      value: meanRadiantTemperatureC,
+      units: 'mean_radiant_temperature_c_proxy',
+      airTemperatureC: sample.values.airTemperatureC,
+      thermalDoseSunSeconds: visible?.directSunSeconds || 0,
+      providerId: 'sun-walker',
+      sourceSnapshotIds: sample.sourceSnapshotIds,
+      truth: {
+        origin: 'modeled',
+        temporalStatus: 'snapshot',
+        uncertainty: { kind: 'missing', value: { physiologicalCalibration: true, humidity: true, wind: true } },
+      },
+      claimBoundary: 'Clear-sky mean-radiant-temperature proxy from a pinned environment snapshot and modeled direct-sun exposure. It is not measured thermal comfort.',
+    };
   }
 
-  function convexHull(points) {
-    const sorted = [...points].sort((left, right) => left.x - right.x || left.y - right.y);
-    const turn = (a, b, c) => (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
-    const half = (rows) => rows.reduce((hull, point) => {
-      while (hull.length >= 2 && turn(hull.at(-2), hull.at(-1), point) <= 0) hull.pop();
-      hull.push(point);
-      return hull;
-    }, []);
-    return [...half(sorted).slice(0, -1), ...half(sorted.reverse()).slice(0, -1)];
+  function validateGovernance(value) {
+    if (!value || value.schema !== 'simulatte.sunWalkerModelGovernance.v1' || value.id !== GOVERNANCE_DATASET_ID) {
+      throw pluginError('sun_governance_schema_invalid', value?.schema || 'missing');
+    }
+    if (!Array.isArray(value.sources) || value.sources.length < 2 || !Array.isArray(value.models) || !value.models.length) {
+      throw pluginError('sun_governance_content_invalid', value.id);
+    }
+    return value;
   }
 
-  function openRing(points) {
-    return points.length > 1 && points[0].x === points.at(-1).x && points[0].y === points.at(-1).y ? points.slice(0, -1) : [...points];
+  function recognizesSunIntent(value) {
+    return /\b(?:shade|shaded|shadier|less\s+direct\s+sun|avoid(?:ing)?\s+(?:the\s+)?sun|hot\s+day)\b/i.test(value || '');
   }
 
-  function distanceSquared(left, right) {
-    return (left.x - right.x) ** 2 + (left.y - right.y) ** 2;
+  function candidate(simulation, id) {
+    return simulation.candidates.find((row) => row.id === id);
   }
 
-  return Object.freeze({ activate });
+  function pluginError(code, message) {
+    const error = new Error(`${code}: ${message}`);
+    error.name = 'SunWalkerPluginError';
+    error.code = code;
+    return error;
+  }
+
+  return Object.freeze({
+    activate,
+    datasetValidators: Object.freeze({
+      'simulatte.sunWalkerModelGovernance.v1': validateGovernance,
+    }),
+  });
 });

@@ -1,0 +1,107 @@
+{
+  "schema": "simulatte.sunWalkerModelGovernance.v1",
+  "id": "sun-walker.model-governance.v1",
+  "contentVersion": "2026-07-25",
+  "owner": "sun-walker",
+  "retrievedAt": "2026-07-25T00:00:00Z",
+  "license": "Source equations and public dataset descriptions remain under their respective publishers' terms; this registry contains citations and model declarations only.",
+  "sources": [
+    {
+      "id": "noaa-general-solar-position-calculations",
+      "publisher": "NOAA Global Monitoring Laboratory",
+      "title": "General Solar Position Calculations",
+      "url": "https://gml.noaa.gov/grad/solcalc/solareqns.PDF",
+      "retrievedAt": "2026-07-25T00:00:00Z",
+      "coverage": "Fractional year, equation of time, solar declination, hour angle, zenith, elevation, and azimuth equations",
+      "limitations": "The plugin uses the compact fractional-year reference rather than a high-precision ephemeris and does not apply atmospheric refraction."
+    },
+    {
+      "id": "nyc-building-footprints-description",
+      "publisher": "New York City",
+      "title": "Citywide Data Sharing: Building Footprints",
+      "url": "https://www.nyc.gov/content/oti/pages/data-analytics/citywide-data-sharing",
+      "retrievedAt": "2026-07-25T00:00:00Z",
+      "coverage": "Public building and historical building footprint GIS layers",
+      "limitations": "The active Simulatte world is a frozen governed subset. This citation does not replace the active world's content hash or source-row receipt."
+    }
+  ],
+  "models": [
+    {
+      "id": "noaa_fractional_year_reference_v1",
+      "kind": "solar-position",
+      "equations": [
+        "fractional-year",
+        "equation-of-time",
+        "solar-declination",
+        "true-solar-time",
+        "hour-angle",
+        "solar-zenith",
+        "solar-azimuth"
+      ],
+      "parameters": {
+        "longitudeConvention": "degrees east positive",
+        "azimuthConvention": "degrees clockwise from true north",
+        "atmosphericRefraction": false
+      }
+    },
+    {
+      "id": "arrival_time_building_occlusion_v2",
+      "kind": "deterministic-geometric-simulation",
+      "equations": [
+        "sampleArrivalTime = segmentEntryTime + sampleDistance / walkingSpeed",
+        "maximumShadowDistance = buildingHeight / tan(solarElevation)",
+        "state = shade when the sunward ray intersects a known-height building prism before maximumShadowDistance"
+      ],
+      "parameters": {
+        "unknownHeightPolicy": "propagate unknown when the sunward ray intersects a footprint without a retained height",
+        "groundElevationApplied": false,
+        "treeCanopyApplied": false,
+        "weatherApplied": false
+      }
+    },
+    {
+      "id": "bounded_alternative_route_selection_v2",
+      "kind": "deterministic-optimization",
+      "equations": [
+        "generalizedCost = travelSeconds + directSunSeconds * directSunWeight + unknownSeconds * unknownWeight",
+        "eligibleDetour = addedTravelSeconds <= min(maximumAddedTimeSeconds, fastestTravelSeconds * maximumAddedRatio)"
+      ],
+      "parameters": {
+        "tieBreakOrder": [
+          "generalizedCost",
+          "travelSeconds",
+          "lexicographicSegmentIdentity"
+        ]
+      }
+    }
+  ],
+  "validation": {
+    "solarReferenceChecks": [
+      "summer-noon elevation is positive in New York City",
+      "nighttime elevation is below the horizon",
+      "azimuth remains in [0, 360)"
+    ],
+    "geometricChecks": [
+      "known prism occlusion produces shade",
+      "missing height propagates unknown",
+      "low solar elevation below the configured floor propagates unknown"
+    ],
+    "determinismChecks": [
+      "same world, route candidates, controls, departure instant, and seed produce byte-equivalent event and state identities"
+    ]
+  },
+  "truth": {
+    "origin": "derived",
+    "temporalStatus": "snapshot",
+    "uncertainty": {
+      "kind": "missing",
+      "value": {
+        "empiricalStreetCalibration": true,
+        "treeCanopy": true,
+        "cloudAndWeather": true,
+        "awningsAndFacadeDetail": true,
+        "diffuseAndReflectedRadiation": true
+      }
+    }
+  }
+}

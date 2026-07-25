@@ -6,6 +6,8 @@
   function simulateNetwork(config, transferRoutes, options = {}) {
     validateInputs(config, transferRoutes);
     const { cableTypes, hubs, simulation } = config;
+    const scenarioModifier = config.scenarioModifiers.find((row) => row.id === simulation.scenarioId)
+      || config.scenarioModifiers[0];
     // v3: prefer a host-provided named RNG stream (sdk.random) so Cable Trader's
     // randomness participates in platform-wide receipts and stays independent of other
     // plugins' draws. Falls back to the private seedable generator for standalone use.
@@ -16,18 +18,20 @@
     const journeyEventCounts = Array(simulation.durationDays).fill(0);
     const needSamples = [];
     const needEvents = [];
-    const weightedTypes = cableTypes.map((type) => type.demandWeight);
+    const weightedTypes = cableTypes.map((type) => type.demandWeight * (scenarioModifier.demandTypeMultipliers[type.id] || 1));
+    const weightedDemandHubs = hubs.map((hub) => scenarioModifier.demandHubMultipliers[hub.id] || 1);
+    const weightedReturnHubs = hubs.map((hub) => scenarioModifier.returnHubMultipliers[hub.id] || 1);
     for (let index = 0; index < simulation.needCount; index += 1) {
       const day = random.integer(simulation.durationDays);
       const cableType = random.weightedIndex(weightedTypes);
-      const destination = random.integer(hubs.length);
+      const destination = random.weightedIndex(weightedDemandHubs);
       needCounts[day][cableType][destination] += 1;
       needEvents.push({ day, cableType });
       if (needSamples.length < 16) needSamples.push(Object.freeze({ id: `need-${index + 1}`, day: day + 1, cableTypeId: cableTypes[cableType].id, destinationHubId: hubs[destination].id }));
     }
     for (let index = 0; index < simulation.returnCount; index += 1) {
       const pairedNeed = needEvents[index % needEvents.length];
-      returnCounts[pairedNeed.day][pairedNeed.cableType][random.integer(hubs.length)] += 1;
+      returnCounts[pairedNeed.day][pairedNeed.cableType][random.weightedIndex(weightedReturnHubs)] += 1;
     }
     for (let index = 0; index < simulation.journeyEventCount; index += 1) {
       const day = random.integer(simulation.durationDays);
@@ -44,6 +48,7 @@
     const flows = new Map();
     const daily = [];
     const snapshots = [];
+    const events = [];
     let totalBurden = 0;
     let fulfilledNeeds = 0;
     let optimalAllocations = 0;
@@ -114,7 +119,15 @@
       processedNeeds += dayNeeds;
       processedReturns += dayReturns;
       processedJourneyEvents += journeyEventCounts[day];
-      daily.push(Object.freeze({ day: day + 1, needs: dayNeeds, fulfilled: dayFulfilled, burden: dayBurden, optimalityProven: true }));
+      daily.push(Object.freeze({
+        day: day + 1,
+        needs: dayNeeds,
+        fulfilled: dayFulfilled,
+        returns: dayReturns,
+        journeyEvents: journeyEventCounts[day],
+        burden: dayBurden,
+        optimalityProven: true,
+      }));
       snapshots.push(createSnapshot({
         day: day + 1,
         durationDays: simulation.durationDays,
@@ -131,6 +144,49 @@
         totalBurden,
         allocations: (day + 1) * cableTypes.length,
         optimalAllocations,
+      }));
+      const before = snapshots[day];
+      const after = snapshots[day + 1];
+      events.push(Object.freeze({
+        schema: 'simulatte.SimulationEvent.v4-draft',
+        id: `cable-trader:event:day-${day + 1}`,
+        kind: 'cable-trader.daily-allocation-settled',
+        timestamp: Object.freeze({ value: day + 1, units: 'simulation_day' }),
+        causalParentIds: Object.freeze(day ? [`cable-trader:event:day-${day}`] : []),
+        affectedEntityIds: Object.freeze([
+          ...hubs.map((row) => `hub:${row.id}`),
+          ...cableTypes.map((row) => `cable-type:${row.id}`),
+        ]),
+        beforeState: Object.freeze({
+          id: `snapshot:day-${day}`,
+          needs: before.summary.needs,
+          fulfilledNeeds: before.summary.fulfilledNeeds,
+          endingInventory: before.summary.endingInventory,
+        }),
+        afterState: Object.freeze({
+          id: `snapshot:day-${day + 1}`,
+          needs: after.summary.needs,
+          fulfilledNeeds: after.summary.fulfilledNeeds,
+          endingInventory: after.summary.endingInventory,
+        }),
+        measures: Object.freeze({
+          arrivingNeeds: dayNeeds,
+          returns: dayReturns,
+          journeyCostEvents: journeyEventCounts[day],
+          fulfilledNeeds: dayFulfilled,
+          transportBurden: dayBurden,
+        }),
+        evidenceReferences: Object.freeze([
+          'cable-trader:data:authored-scenario',
+          'cable-trader:model:event-generator',
+          'cable-trader:model:min-cost-flow',
+        ]),
+        origin: 'simulated',
+        temporalStatus: 'forecast',
+        uncertainty: Object.freeze({
+          kind: 'distribution',
+          value: Object.freeze({ ensembleSize: 1, seed: simulation.seed, intervalStatus: 'not_computed' }),
+        }),
       }));
     }
     const endingInventory = Object.values(inventory).reduce((total, quantity) => total + quantity, 0);
@@ -153,12 +209,14 @@
     });
     return Object.freeze({
       schema: 'simulatte.plugin.cableTraderSimulation.v1',
-      id: `cable-network-${stableId(`${simulation.seed}:${simulation.needCount}:${totalBurden}`)}`,
+      id: `cable-network-${stableId(`${scenarioModifier.id}:${simulation.seed}:${simulation.needCount}:${totalBurden}`)}`,
       seed: simulation.seed,
+      scenarioId: scenarioModifier.id,
       durationDays: simulation.durationDays,
       summary,
       daily: Object.freeze(daily),
       snapshots: Object.freeze(snapshots),
+      events: Object.freeze(events),
       hubStats: Object.freeze(hubStats.map((row) => Object.freeze({ ...row, endingInventory: inventoryAtHub(inventory, row.id) }))),
       typeStats: Object.freeze(typeStats.map(Object.freeze)),
       flows: Object.freeze([...flows.values()].map(Object.freeze).sort((left, right) => right.quantity - left.quantity || `${left.sourceHubId}:${left.destinationHubId}`.localeCompare(`${right.sourceHubId}:${right.destinationHubId}`))),
@@ -312,6 +370,19 @@
   function validateInputs(config, routes) {
     if (!config?.simulation || config.hubs.length < 2 || !config.cableTypes.length) throw new Error('Cable network expected simulation, hubs, and cable types');
     if (config.cableTypes.some((type) => !Number.isFinite(type.demandWeight) || type.demandWeight <= 0)) throw new Error('Cable network demand weights must be positive');
+    if (!Array.isArray(config.scenarioModifiers) || !config.scenarioModifiers.length) throw new Error('Cable network expected scenario modifiers');
+    const cableTypeIds = new Set(config.cableTypes.map((row) => row.id));
+    const hubIds = new Set(config.hubs.map((row) => row.id));
+    const scenarioIds = new Set();
+    config.scenarioModifiers.forEach((modifier) => {
+      if (!modifier?.id) throw new Error('Cable network scenario modifier expected an ID');
+      if (scenarioIds.has(modifier.id)) throw new Error(`Cable network duplicates scenario modifier ${modifier.id}`);
+      scenarioIds.add(modifier.id);
+      const invalidTypeId = Object.keys(modifier.demandTypeMultipliers || {}).find((id) => !cableTypeIds.has(id));
+      const invalidHubId = [...Object.keys(modifier.demandHubMultipliers || {}), ...Object.keys(modifier.returnHubMultipliers || {})].find((id) => !hubIds.has(id));
+      if (invalidTypeId) throw new Error(`Cable network scenario modifier ${modifier.id} references unknown cable type ${invalidTypeId}`);
+      if (invalidHubId) throw new Error(`Cable network scenario modifier ${modifier.id} references unknown hub ${invalidHubId}`);
+    });
     const expectedPairs = config.hubs.length * (config.hubs.length - 1);
     if (!Array.isArray(routes) || routes.length !== expectedPairs) throw new Error(`Cable network expected ${expectedPairs} complete directed transfer routes, received ${routes?.length ?? 'missing'}`);
   }

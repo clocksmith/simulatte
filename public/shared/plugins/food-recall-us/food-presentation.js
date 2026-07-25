@@ -106,7 +106,7 @@
         { id: 'recall.issue', label: 'Issue recall' },
         { id: 'counterfactual.compare', label: 'Compare vs baseline' },
         { id: 'ensemble.run', label: 'Run ensemble' },
-        { id: 'focus.national', label: 'National view', command: { kind: 'camera.focus', targetId: 'us-food-network' } },
+        { id: 'focus.national', label: 'National view', command: { kind: 'camera.focus', targetId: 'food-network-overview' } },
       ],
     };
     // Provenance panel (§13): scenario metrics, dataset hashes, concise claim boundary.

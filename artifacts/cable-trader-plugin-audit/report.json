@@ -1,0 +1,68 @@
+{
+  "schema": "simulatte.cableTraderPluginAudit.v1",
+  "pass": true,
+  "identities": {
+    "simulationId": "cable-network-b84583c5",
+    "scenarioId": "july-baseline",
+    "seed": "cable-city-month-2026-07",
+    "worldId": "nyc-core-autonomy-v1",
+    "compatibilityDataset": {
+      "id": "cable-compatibility-priors-v1",
+      "path": "../../../data/cable-trader/cable-compatibility-priors-v1.json",
+      "sha256": "5b06038f025546f1dc3b5be7827925820e6a8ddbbdc5a8e72c92af419297627c",
+      "schemaId": "simulatte.cableCompatibilityPriors.v1"
+    }
+  },
+  "simulation": {
+    "durationDays": 30,
+    "eventCount": 30,
+    "snapshotCount": 31,
+    "needs": 4096,
+    "fulfilledNeeds": 4096,
+    "allocations": 300,
+    "optimalAllocations": 300,
+    "randomEvents": 9152
+  },
+  "semanticPresentation": {
+    "layerTypes": [
+      "inventory-hubs",
+      "directed-inventory-flow"
+    ],
+    "hubCount": 4,
+    "flowCount": 10,
+    "routeSegmentReferenceCount": 262,
+    "finalStyleFieldsAbsent": [
+      "widthM",
+      "tone",
+      "color",
+      "opacity",
+      "animationRate"
+    ]
+  },
+  "controls": [
+    "seed",
+    "durationDays",
+    "initialInventoryPerHubType",
+    "cableTypeIds"
+  ],
+  "comparisons": [
+    {
+      "id": "optimized-vs-local-only",
+      "status": "requires_core_branch_runtime"
+    }
+  ],
+  "viewIntents": [
+    {
+      "schema": "simulatte.ViewIntent.v4-draft",
+      "id": "cable-network:settled",
+      "mode": "overview",
+      "targetIds": [
+        "cable-network"
+      ],
+      "transitionReason": "simulation_progress",
+      "priority": "normal",
+      "expiresOnEventId": null
+    }
+  ],
+  "claimBoundary": "Exact optimum over every modeled day, cable family, hub, inventory unit, and complete inter-hub route set. Seeded events model possible demand and journey costs; they are not forecasts of real people."
+}

@@ -3,66 +3,411 @@
   root.MaritimeTradeEngine = api;
   if (typeof module === 'object' && module.exports) module.exports = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createMaritimeEngine(root) {
-  function dep(globalName, path) { return typeof module === 'object' && module.exports ? require(path) : root[globalName]; }
+  function dep(globalName, path) {
+    return typeof module === 'object' && module.exports ? require(path) : root[globalName];
+  }
 
-  function runScenario({ datasets, scenario, config, random, scheduler }) {
+  function runScenario({ datasets, scenario, config, random, scheduler, routeObjective = {} }) {
     const router = dep('MaritimeNetworkRouter', './network-router.js');
     const disruptionApi = dep('MaritimeWeatherDisruption', './weather-disruption.js');
     const emissionsApi = dep('MaritimeEmissionsModel', './emissions-model.js');
     const queueApi = dep('MaritimeQueueEngine', './queue-engine.js');
     const ledgerApi = dep('MaritimeContainerLedger', './container-ledger.js');
     const metricsApi = dep('MaritimeMetrics', './metrics.js');
-    if (![router, disruptionApi, emissionsApi, queueApi, ledgerApi, metricsApi].every(Boolean)) throw new Error('maritime_engine_dependency_missing');
+    if (![router, disruptionApi, emissionsApi, queueApi, ledgerApi, metricsApi].every(Boolean)) {
+      throw new Error('maritime_engine_dependency_missing');
+    }
 
-    const scenarioId = scenario?.scenarioId || scenario?.id || config?.defaultScenarioId || 'asia-europe-mainline';
-    const seed = scenario?.seed || scenarioId;
-    const disruption = disruptionApi.resolveDisruption(scenarioId, datasets.weather);
-    const corridorId = router.routeIdForScenario(scenarioId);
-    const vesselClassId = config?.defaultVesselClass || 'ultra-large-container-v1';
-    const vessel = datasets.vesselClasses.classes[vesselClassId] || Object.values(datasets.vesselClasses.classes)[0];
-    const route = router.planRoute({ lanes: datasets.lanes, vesselClasses: datasets.vesselClasses, corridorId, vesselClassId, disruption });
-    const portById = new Map((datasets.ports.ports || []).map((row) => [row.id, row]));
-    const destination = portById.get(route.destinationPort) || datasets.ports.ports?.[0];
-    const queueRandom = random?.stream('maritime:queue', destination?.id || 'destination');
-    const arrivalRandom = random?.stream('maritime:arrivals', route.id);
-    const arrivalCount = 18 + (arrivalRandom?.integer(16) || 0);
-    const queue = queueApi.simulatePortQueue({
-      portId: destination?.id || route.destinationPort,
-      arrivalCount,
-      serverCount: Math.max(1, Math.min(8, Math.round((destination?.berths || 18) / 12))),
-      arrivalRatePerHour: disruption.id === 'baseline' ? 0.45 : 0.7,
-      serviceMeanHours: 7.5,
+    const spec = normalizeSpec(scenario, config);
+    const vessel = vesselFor(datasets.vessels, spec.vesselClassId);
+    const disruption = disruptionApi.resolveDisruption(spec.scenarioId, datasets);
+    const route = router.planRoute({
+      ports: datasets.ports,
+      corridors: datasets.corridors,
+      scenarioCatalog: datasets.scenarioCatalog,
+      vessel,
+      scenarioId: spec.scenarioId,
+      speedPolicy: spec.speedPolicy,
+      disruption,
+      routeObjective,
+    });
+    const destination = (datasets.ports.ports || []).find((row) => row.id === route.destinationPort);
+    if (!destination) throw new Error(`maritime_destination_missing: ${route.destinationPort}`);
+    const servicePrior = servicePriorFor(datasets.portPerformance, destination);
+    const randomStreams = [];
+    const queueEnsemble = queueApi.simulateQueueEnsemble({
+      portId: destination.id,
+      replicates: spec.ensembleReplicates,
+      arrivalCount: spec.queueArrivalCount,
+      serverCount: Math.max(1, Math.min(8, Math.round(Number(destination.berthCount || 6) / 3))),
+      arrivalRatePerHour: spec.arrivalRatePerHour,
+      serviceMeanHours: Math.max(4, Math.min(24, Number(servicePrior.medianHoursInPort) / 2)),
+      serviceSigma: spec.serviceSigma,
       disruptionMultiplier: disruption.queueMultiplier,
-      random: queueRandom,
+      randomForReplicate(index) {
+        const stream = random?.stream(`maritime:queue:${spec.seed}`, `${destination.id}:${index}`) || null;
+        if (stream) randomStreams.push(stream);
+        return stream;
+      },
     });
-    let ledger = ledgerApi.createContainerLedger({
-      scenarioId, containerCount: Number(config?.containerCount || 1200),
-      originPort: route.originPort, destinationPort: route.destinationPort,
+    const initialLedger = ledgerApi.createContainerLedger({
+      scenarioId: spec.scenarioId,
+      containerCount: spec.containerCount,
+      originPort: route.originPort,
+      destinationPort: route.destinationPort,
     });
-    const timeline = scheduler.create({ maxEvents: 20000 });
-    timeline.schedule({ time: 0, priority: 0, kind: 'maritime.voyage-departed', payload: { routeId: route.id } });
-    timeline.schedule({ time: route.sailingDays * 24, priority: 10, kind: 'maritime.voyage-arrived', payload: { portId: route.destinationPort } });
-    timeline.schedule({ time: route.sailingDays * 24 + queue.averageWaitHours, priority: 20, kind: 'maritime.berth-started', payload: { portId: route.destinationPort } });
-    timeline.schedule({ time: route.sailingDays * 24 + queue.averageWaitHours + 8, priority: 30, kind: 'maritime.container-delivered', payload: { portId: route.destinationPort } });
-    const eventTrace = [];
-    timeline.drain((event) => {
-      eventTrace.push(Object.freeze({ id: event.id, timeHours: event.time, kind: event.kind, payload: event.payload }));
-      if (event.kind === 'maritime.voyage-departed') ledger = ledgerApi.applyEvent(ledger, { kind: 'loaded', location: route.originPort, time: event.time });
-      if (event.kind === 'maritime.voyage-arrived') ledger = ledgerApi.applyEvent(ledger, { kind: 'discharged', location: route.destinationPort, time: event.time });
-      if (event.kind === 'maritime.container-delivered') ledger = ledgerApi.applyEvent(ledger, { kind: 'delivered', location: route.destinationPort, time: event.time });
+    const progression = buildProgression({
+      route,
+      queueEnsemble,
+      ledger: initialLedger,
+      ledgerApi,
+      scheduler,
+      scenarioId: spec.scenarioId,
+      seed: spec.seed,
     });
     const emissions = emissionsApi.evaluate({
-      vessel, distanceNm: route.distanceNm, speedKnots: route.speedKnots, sailingDays: route.sailingDays,
-      queueHours: queue.averageWaitHours, cargoTeu: ledger.totalContainers,
-      emissionsFactors: datasets.emissions,
+      vessel,
+      distanceNm: route.distanceNm,
+      speedKnots: route.speedKnots,
+      sailingDays: route.sailingDays,
+      queueHours: queueEnsemble.p50WaitHours,
+      cargoTeu: spec.cargoTeu,
+      model: datasets.emissionsModel,
     });
-    const metrics = metricsApi.summarize({ route, queue, ledger, emissions, eventTrace });
-    return Object.freeze({
-      schema: 'simulatte.maritimeScenarioResult.v1', scenarioId, seed, route, disruption, queue, ledger, emissions, metrics,
-      eventTrace: Object.freeze(eventTrace), schedulerReceipt: timeline.receipt(),
-      randomReceipts: Object.freeze([queueRandom?.receipt(), arrivalRandom?.receipt()].filter(Boolean)),
-      claimBoundary: 'Synthetic deterministic maritime logistics scenario over governed port and corridor artifacts; not live AIS, booking, navigation, or ETA data.',
+    const metrics = metricsApi.summarize({
+      route,
+      queueEnsemble,
+      ledger: progression.ledger,
+      emissions,
+      eventTrace: progression.events,
+    });
+    const result = {
+      schema: 'simulatte.maritimeScenarioResult.v2',
+      scenarioId: spec.scenarioId,
+      seed: spec.seed,
+      parameters: spec,
+      route,
+      vessel,
+      disruption,
+      queueEnsemble,
+      ledger: progression.ledger,
+      emissions,
+      metrics,
+      eventTrace: progression.events,
+      snapshots: progression.snapshots,
+      schedulerReceipt: progression.schedulerReceipt,
+      randomReceipts: Object.freeze(randomStreams.map((stream) => stream.receipt())),
+      dataReceipts: datasets.dataReceipts,
+      modelReceipts: modelReceipts(spec, route, queueEnsemble, emissions),
+      comparisons: comparisonDefinitions(spec),
+      controls: controlDefinitions(datasets.vessels, spec),
+      claimBoundary: 'Deterministic, seeded maritime logistics forecast over observed port identities and modeled corridors, queues, vessel archetypes, cargo, weather scenarios, and emissions. It is not AIS, a booking system, hydrographic navigation, or an operational ETA.',
+    };
+    return deepFreeze(result);
+  }
+
+  function buildProgression({ route, queueEnsemble, ledger, ledgerApi, scheduler, scenarioId, seed }) {
+    const timeline = scheduler.create({ maxEvents: 256 });
+    const scheduled = [];
+    const schedule = (time, priority, kind, payload, parentIds, evidenceRefs) => {
+      const id = timeline.schedule({
+        time,
+        priority,
+        kind,
+        payload: {
+          ...payload,
+          causalParentIds: parentIds,
+          evidenceRefs,
+        },
+      });
+      scheduled.push(id);
+      return id;
+    };
+    const configuredId = schedule(0, 0, 'maritime.scenario-configured', {
+      scenarioId,
+    }, [], ['model:maritime-causal-event-log-v2']);
+    let previousId = schedule(0, 10, 'maritime.voyage-departed', {
+      portId: route.originPort,
+      progressFraction: 0,
+      position: route.waypoints[0],
+    }, [configuredId], [route.evidenceRefs[0], 'model:container-lineage-state-machine-v2']);
+    let elapsedHours = 0;
+    route.legs.forEach((leg, index) => {
+      elapsedHours += leg.sailingHours;
+      previousId = schedule(elapsedHours, 20, 'maritime.leg-completed', {
+        legId: leg.id,
+        portId: leg.toPortId,
+        legIndex: index,
+        progressFraction: (index + 1) / route.legs.length,
+        position: route.waypoints[index + 1],
+      }, [previousId], [`row:global-maritime-corridors-v1:${leg.id}`, 'model:governed-corridor-dijkstra-v2']);
+    });
+    const arrivedId = schedule(elapsedHours, 30, 'maritime.voyage-arrived', {
+      portId: route.destinationPort,
+      progressFraction: 1,
+      position: route.waypoints.at(-1),
+    }, [previousId], route.evidenceRefs);
+    const queueId = schedule(elapsedHours, 40, 'maritime.queue-entered', {
+      portId: route.destinationPort,
+      expectedWaitHours: queueEnsemble.p50WaitHours,
+      progressFraction: 1,
+      position: route.waypoints.at(-1),
+    }, [arrivedId], queueEnsemble.evidenceRefs);
+    const berthId = schedule(elapsedHours + queueEnsemble.p50WaitHours, 50, 'maritime.berth-started', {
+      portId: route.destinationPort,
+      progressFraction: 1,
+      position: route.waypoints.at(-1),
+    }, [queueId], queueEnsemble.evidenceRefs);
+    const dischargedId = schedule(elapsedHours + queueEnsemble.p50WaitHours + 8, 60, 'maritime.cargo-discharged', {
+      portId: route.destinationPort,
+      progressFraction: 1,
+      position: route.waypoints.at(-1),
+    }, [berthId], ['model:terminal-handling-v1', 'model:container-lineage-state-machine-v2']);
+    schedule(elapsedHours + queueEnsemble.p50WaitHours + 18, 70, 'maritime.container-delivered', {
+      portId: route.destinationPort,
+      progressFraction: 1,
+      position: route.waypoints.at(-1),
+    }, [dischargedId], ['model:terminal-handling-v1', 'model:container-lineage-state-machine-v2']);
+
+    let currentLedger = ledger;
+    let state = snapshotState({
+      status: 'configured',
+      position: route.waypoints[0],
+      progressFraction: 0,
+      timeHours: 0,
+      eventId: null,
+      ledger: currentLedger,
+      seed,
+    });
+    const events = [];
+    const snapshots = [deepFreeze({ cursor: 0, ...state })];
+    timeline.drain((event) => {
+      const before = state;
+      const nextStatus = statusForEvent(event.kind, before.status);
+      if (event.kind === 'maritime.voyage-departed') {
+        currentLedger = ledgerApi.applyEvent(currentLedger, lineageInput(event, 'loaded', route.originPort));
+      }
+      if (event.kind === 'maritime.cargo-discharged') {
+        currentLedger = ledgerApi.applyEvent(currentLedger, lineageInput(event, 'discharged', route.destinationPort));
+      }
+      if (event.kind === 'maritime.container-delivered') {
+        currentLedger = ledgerApi.applyEvent(currentLedger, lineageInput(event, 'delivered', route.destinationPort));
+      }
+      state = snapshotState({
+        status: nextStatus,
+        position: event.payload.position || before.position,
+        progressFraction: event.payload.progressFraction ?? before.progressFraction,
+        timeHours: event.time,
+        eventId: event.id,
+        ledger: currentLedger,
+        seed,
+      });
+      const semanticEvent = deepFreeze({
+        schema: 'simulatte.simulationEvent.v4',
+        id: event.id,
+        timestamp: event.time,
+        timeUnits: 'hour_since_scenario_start',
+        kind: event.kind,
+        causalParentIds: Object.freeze([...(event.payload.causalParentIds || [])]),
+        affectedEntityIds: Object.freeze([
+          `voyage:${scenarioId}`,
+          ...(event.payload.portId ? [event.payload.portId] : []),
+          ...(event.payload.legId ? [event.payload.legId] : []),
+        ]),
+        before,
+        after: state,
+        evidenceRefs: Object.freeze([...(event.payload.evidenceRefs || [])]),
+        truth: truth('simulated', 'forecast', {
+          kind: 'distribution',
+          value: event.kind.includes('queue')
+            ? queueEnsemble.truth.uncertainty.value
+            : { family: 'deterministic_given_parameters', seed },
+        }),
+      });
+      events.push(semanticEvent);
+      snapshots.push(deepFreeze({ cursor: snapshots.length, ...state }));
+    });
+    if (timeline.receipt().processedCount !== scheduled.length) {
+      throw new Error('maritime_event_trace_incomplete');
+    }
+    return deepFreeze({
+      events,
+      snapshots,
+      ledger: currentLedger,
+      schedulerReceipt: timeline.receipt(),
     });
   }
-  return Object.freeze({ runScenario });
+
+  function normalizeSpec(scenario, config) {
+    const scenarioId = scenario?.scenarioId || scenario?.id || config.defaultScenarioId;
+    const value = {
+      scenarioId,
+      seed: scenario?.seed || scenarioId,
+      vesselClassId: scenario?.vesselClassId || config.defaultVesselClass,
+      speedPolicy: scenario?.speedPolicy || config.defaultSpeedPolicy,
+      cargoTeu: numberWithin(scenario?.cargoTeu ?? config.cargoTeu, 100, 24000, 'cargoTeu'),
+      containerCount: integerWithin(config.containerCount, 1, 100000, 'containerCount'),
+      ensembleReplicates: integerWithin(scenario?.ensembleReplicates ?? config.ensembleReplicates, 2, 512, 'ensembleReplicates'),
+      queueArrivalCount: integerWithin(config.queueArrivalCount, 2, 1000, 'queueArrivalCount'),
+      arrivalRatePerHour: numberWithin(config.arrivalRatePerHour, 0.01, 20, 'arrivalRatePerHour'),
+      serviceSigma: numberWithin(config.serviceSigma, 0, 2, 'serviceSigma'),
+    };
+    return deepFreeze(value);
+  }
+
+  function vesselFor(dataset, vesselClassId) {
+    const vessel = (dataset?.archetypes || []).find((row) => row.id === vesselClassId);
+    if (!vessel) throw new Error(`maritime_vessel_missing: ${vesselClassId}`);
+    return vessel;
+  }
+
+  function servicePriorFor(dataset, port) {
+    return (dataset?.rows || []).find((row) => row.portId === port.id || row.unlocode === port.unlocode)
+      || { portId: port.id, medianHoursInPort: 30, relativeServiceIndex: 1 };
+  }
+
+  function snapshotState({ status, position, progressFraction, timeHours, eventId, ledger, seed }) {
+    const deliveredCount = ledger.containers.filter((row) => row.status === 'delivered').length;
+    const atTerminalCount = ledger.containers.filter((row) => row.status === 'at-terminal').length;
+    return deepFreeze({
+      status,
+      position: Object.freeze([...(position || [0, 0, 0])]),
+      progressFraction,
+      timeHours,
+      currentEventId: eventId,
+      representativeContainers: Object.freeze({
+        total: ledger.totalContainers,
+        atTerminal: atTerminalCount,
+        delivered: deliveredCount,
+      }),
+      truth: truth('simulated', 'forecast', {
+        kind: 'distribution',
+        value: {
+          family: 'deterministic_given_parameters',
+          seed,
+        },
+      }),
+      evidenceRefs: Object.freeze([
+        'model:maritime-causal-event-log-v2',
+        'model:container-lineage-state-machine-v2',
+        ...(eventId ? [`event:${eventId}`] : []),
+      ]),
+    });
+  }
+
+  function lineageInput(event, kind, location) {
+    return {
+      eventId: event.id,
+      kind,
+      location,
+      time: event.time,
+      causalParentIds: event.payload.causalParentIds,
+      evidenceRefs: event.payload.evidenceRefs,
+    };
+  }
+
+  function statusForEvent(kind, current) {
+    return ({
+      'maritime.scenario-configured': 'configured',
+      'maritime.voyage-departed': 'sailing',
+      'maritime.leg-completed': 'sailing',
+      'maritime.voyage-arrived': 'arrived',
+      'maritime.queue-entered': 'queued',
+      'maritime.berth-started': 'berthing',
+      'maritime.cargo-discharged': 'discharged',
+      'maritime.container-delivered': 'settled',
+    })[kind] || current;
+  }
+
+  function modelReceipts(spec, route, queue, emissions) {
+    return Object.freeze([
+      modelReceipt('model:governed-corridor-dijkstra-v2', route.algorithm, route.objective, route.evidenceRefs, route.truth.uncertainty, spec.seed),
+      modelReceipt('model:fcfs-multi-server-queue-v2', 'FCFS multi-server discrete-event queue with exponential arrivals and lognormal service', queue.selectedReplicate.parameters, queue.evidenceRefs, queue.truth.uncertainty, spec.seed),
+      modelReceipt('model:maritime-emissions-v2', emissions.method, emissions.parameters, emissions.evidenceRefs, emissions.truth.uncertainty, spec.seed),
+      modelReceipt('model:container-lineage-state-machine-v2', 'Event-sourced booked, loaded, discharged, delivered state machine', { representativeContainerCount: spec.containerCount }, ['model:maritime-causal-event-log-v2'], {
+        kind: 'missing',
+        value: { reason: 'Synthetic representative container identities.' },
+      }, spec.seed),
+      modelReceipt('model:maritime-causal-event-log-v2', 'Stable scheduler ordering by timestamp, priority, and sequence', { maximumEvents: 256 }, [], {
+        kind: 'missing',
+        value: { reason: 'Ordering is exact for the modeled run.' },
+      }, spec.seed),
+      modelReceipt('model:terminal-handling-v1', 'Declared eight-hour discharge and ten-hour delivery handling stages', { dischargeHours: 8, deliveryAfterDischargeHours: 10 }, [], {
+        kind: 'interval',
+        value: { relativeMinimum: -0.5, relativeMaximum: 0.5, basis: 'Declared scenario sensitivity.' },
+      }, spec.seed),
+    ]);
+  }
+
+  function modelReceipt(id, algorithm, parameters, evidenceRefs, uncertainty, seed) {
+    return deepFreeze({
+      schema: 'simulatte.modelReceipt.v4',
+      id,
+      algorithm,
+      equations: id === 'model:maritime-emissions-v2'
+        ? Object.freeze(['P/P_ref = (v/v_ref)^3', 'fuel = P × load × time × SFOC', 'CO2e = fuel × factor'])
+        : Object.freeze([]),
+      parameters,
+      calibration: Object.freeze({ evidenceRefs: Object.freeze([...(evidenceRefs || [])]) }),
+      seed,
+      uncertainty,
+      validation: Object.freeze({
+        status: 'structural',
+        results: Object.freeze(['finite outputs', 'causal ordering', 'container conservation', 'deterministic replay']),
+      }),
+    });
+  }
+
+  function controlDefinitions(vessels, spec) {
+    return deepFreeze([
+      { id: 'vesselClassId', type: 'select', value: spec.vesselClassId, options: vessels.archetypes.map((row) => ({ value: row.id, label: row.label })), provenance: 'dataset:maritime-vessel-archetypes-v1' },
+      { id: 'speedPolicy', type: 'select', value: spec.speedPolicy, options: [{ value: 'slow', label: 'Slow steaming' }, { value: 'service', label: 'Service speed' }, { value: 'fast', label: 'Fast recovery' }], provenance: 'model:governed-corridor-dijkstra-v2' },
+      { id: 'cargoTeu', type: 'number', value: spec.cargoTeu, minimum: 100, maximum: 24000, provenance: 'scenario:cargo-load' },
+      { id: 'ensembleReplicates', type: 'number', value: spec.ensembleReplicates, minimum: 2, maximum: 512, provenance: 'model:fcfs-multi-server-queue-v2' },
+    ]);
+  }
+
+  function comparisonDefinitions(spec) {
+    return deepFreeze([
+      {
+        id: 'selected-vs-undisrupted',
+        baseline: { scenarioId: baselineScenario(spec.scenarioId), seed: spec.seed },
+        intervention: { scenarioId: spec.scenarioId, seed: spec.seed },
+        synchronizedClock: true,
+        metrics: ['totalTransitDays', 'queueWaitHours', 'fuelTons', 'co2Tons'],
+      },
+    ]);
+  }
+
+  function baselineScenario(scenarioId) {
+    if (scenarioId === 'suez-closure-cape-reroute') return 'asia-europe-mainline';
+    if (scenarioId === 'north-atlantic-cyclone') return 'north-atlantic-baseline';
+    if (scenarioId === 'transpacific-panama-restriction') return 'panama-baseline';
+    return scenarioId;
+  }
+
+  function numberWithin(value, minimum, maximum, label) {
+    const number = Number(value);
+    if (!Number.isFinite(number) || number < minimum || number > maximum) throw new Error(`maritime_parameter_invalid: ${label}`);
+    return number;
+  }
+
+  function integerWithin(value, minimum, maximum, label) {
+    const number = Number(value);
+    if (!Number.isInteger(number) || number < minimum || number > maximum) throw new Error(`maritime_parameter_invalid: ${label}`);
+    return number;
+  }
+
+  function truth(origin, temporalStatus, uncertainty) {
+    return deepFreeze({ origin, temporalStatus, uncertainty });
+  }
+
+  function deepFreeze(value, seen = new Set()) {
+    if (!value || typeof value !== 'object' || seen.has(value)) return value;
+    seen.add(value);
+    Object.values(value).forEach((row) => deepFreeze(row, seen));
+    return Object.freeze(value);
+  }
+
+  return Object.freeze({ runScenario, baselineScenario });
 });

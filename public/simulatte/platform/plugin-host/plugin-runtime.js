@@ -14,11 +14,33 @@
   const pluginPaths = typeof module === 'object' && module.exports
     ? require('./plugin-asset-paths.js')
     : root.SimulattePluginAssetPaths;
+  const v4Contracts = typeof module === 'object' && module.exports
+    ? require('../contracts/plugin-v4-contracts.js')
+    : root.SimulattePluginV4Contracts;
+  const v4Adapters = typeof module === 'object' && module.exports
+    ? require('../contracts/plugin-v4-adapters.js')
+    : root.SimulattePluginV4Adapters;
+  const timelineApi = typeof module === 'object' && module.exports
+    ? require('../runtime/simulation-timeline.js')
+    : root.SimulatteSimulationTimeline;
+  const provenanceApi = typeof module === 'object' && module.exports
+    ? require('../runtime/provenance-registry.js')
+    : root.SimulatteProvenanceRegistry;
   const pluginAssetPaths = pluginPaths || createDefaultPluginAssetPaths();
-  const api = factory(contracts, graphApi, stateApi, sdkApi, pluginAssetPaths);
+  const api = factory(contracts, graphApi, stateApi, sdkApi, pluginAssetPaths, v4Contracts, v4Adapters, timelineApi, provenanceApi);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulattePluginRuntime = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createPluginRuntimeModule(contracts, graphApi, stateApi, sdkApi, pluginPaths) {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createPluginRuntimeModule(
+  contracts,
+  graphApi,
+  stateApi,
+  sdkApi,
+  pluginPaths,
+  v4Contracts,
+  v4Adapters,
+  timelineApi,
+  provenanceApi
+) {
   async function createPluginRuntime({ registry, profile, scenario = null, dataCatalog, artifactStore = null, registryBaseUrl = null, corePorts = {} }) {
     const effectiveRegistryBaseUrl = registryBaseUrl || pluginPaths.sharedRootUrl(documentBase());
     contracts.validateProfile(profile);
@@ -173,6 +195,59 @@
       }));
     }
 
+    function contributionsV4(context) {
+      const legacyEvents = stateHost.trace();
+      return Object.freeze(graph.order.flatMap((pluginId) => {
+        const instance = instances.get(pluginId);
+        if (typeof instance.contributeV4 === 'function') {
+          const contribution = instance.contributeV4(stateApi.freezeClone(context));
+          if (contribution === null) return [];
+          if (contribution.schema === 'simulatte.pluginContribution.v4') {
+            v4Contracts.validateContribution(contribution, `Plugin ${pluginId} v4 contribution`);
+            return [stateApi.freezeClone(contribution)];
+          }
+        }
+        if (typeof instance.present !== 'function') return [];
+        const presentation = instance.present(stateApi.freezeClone(context));
+        if (presentation === null) return [];
+        const viewContribution = typeof instance.view === 'function'
+          ? instance.view(stateApi.freezeClone(context))
+          : [];
+        return [v4Adapters.normalizeContribution({
+          pluginId,
+          presentation,
+          views: viewContribution === null ? [] : viewContribution,
+          events: legacyEvents.filter((event) => event.pluginId === pluginId),
+        })];
+      }));
+    }
+
+    function platformV4(context) {
+      const contributions = contributionsV4(context);
+      const registry = provenanceApi.createProvenanceRegistry();
+      contributions.forEach((contribution) => {
+        contribution.provenanceRecords.forEach(registry.register);
+        bindContributionProvenance(registry, contribution);
+      });
+      const timeline = timelineApi.createTimeline({
+        id: `${profile.id}:${scenario?.id || 'default'}`,
+        events: contributions.flatMap((contribution) => contribution.events),
+      });
+      return Object.freeze({
+        schema: 'simulatte.pluginPlatform.v4',
+        contributions,
+        timeline,
+        provenance: registry,
+        receipt: stateApi.freezeClone({
+          schema: 'simulatte.pluginPlatformReceipt.v4',
+          profileId: profile.id,
+          pluginIds: contributions.map((contribution) => contribution.pluginId),
+          timeline: timeline.receipt(),
+          provenance: registry.receipt(),
+        }),
+      });
+    }
+
     async function dispatchAction(pluginId, actionId, context = {}) {
       const instance = instances.get(pluginId);
       if (!instance) throw runtimeError('plugin_action_plugin_missing', `Action targets inactive plugin ${pluginId}`, { pluginId, actionId });
@@ -219,7 +294,31 @@
       });
     }
 
-    return Object.freeze({ contributeRequest, routeContributors, settle, views, presentations, dispatchAction, invoke, setScenario, dispose, runtimeReceipt, activePluginIds: graph.order });
+    return Object.freeze({
+      contributeRequest,
+      contributionsV4,
+      dispatchAction,
+      dispose,
+      invoke,
+      platformV4,
+      presentations,
+      routeContributors,
+      runtimeReceipt,
+      setScenario,
+      settle,
+      views,
+      activePluginIds: graph.order,
+    });
+  }
+
+  function bindContributionProvenance(registry, contribution) {
+    contribution.presentation.layers.forEach((row) => registry.bind(`${contribution.pluginId}:layer:${row.id}`, row.provenance.evidenceRefs));
+    contribution.events.forEach((row) => registry.bind(`${contribution.pluginId}:event:${row.id}`, row.provenance.evidenceRefs));
+    if (contribution.state) registry.bind(`${contribution.pluginId}:state:${contribution.state.id}`, contribution.state.provenance.evidenceRefs);
+    contribution.controls.controls.forEach((row) => registry.bind(`${contribution.pluginId}:control:${row.id}`, row.provenance.evidenceRefs));
+    contribution.inspections.forEach((inspection) => inspection.fields.forEach((field) => {
+      registry.bind(`${contribution.pluginId}:inspection:${inspection.id}:${field.id}`, field.provenance.evidenceRefs);
+    }));
   }
 
   async function verifyEntries(rows, artifactStore, baseUrl) {

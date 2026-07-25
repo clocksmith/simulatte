@@ -1,0 +1,308 @@
+{
+  "schema": "simulatte.maritimeProvenanceRegistry.v1",
+  "id": "maritime.provenance.registry.v1",
+  "generatedAt": "2026-07-25",
+  "truthDimensions": {
+    "origin": [
+      "observed",
+      "derived",
+      "modeled",
+      "simulated",
+      "scenario"
+    ],
+    "temporalStatus": [
+      "historical",
+      "snapshot",
+      "forecast",
+      "live"
+    ]
+  },
+  "sources": [
+    {
+      "id": "source:nga-wpi",
+      "title": "NGA World Port Index",
+      "url": "https://msi.nga.mil/Publications/WPI",
+      "retrievedAt": "2026-07-22",
+      "license": "Source terms apply; Simulatte makes no additional license assertion.",
+      "coverage": "Pinned reference identities and coordinates for 24 major ports.",
+      "resolution": "Port record",
+      "limitations": "Berth counts are modeled archetype inputs and are not attributed to WPI source rows."
+    },
+    {
+      "id": "source:un-locode",
+      "title": "UN/LOCODE",
+      "url": "https://unece.org/trade/cefact/unlocode-code-list-country-and-territory",
+      "retrievedAt": "2026-07-22",
+      "license": "Source terms apply; Simulatte makes no additional license assertion.",
+      "coverage": "Pinned location codes for modeled corridor endpoints.",
+      "resolution": "Location code",
+      "limitations": "Codes identify places; they do not provide vessel schedules, corridor demand, or queue observations."
+    },
+    {
+      "id": "source:world-bank-cppi",
+      "title": "World Bank Container Port Performance Index",
+      "url": "https://data360.worldbank.org/en/dataset/WB_CPPI",
+      "retrievedAt": "2026-07-22",
+      "license": "Source terms apply; Simulatte makes no additional license assertion.",
+      "coverage": "Methodological anchor for relative port-service priors.",
+      "resolution": "Port-year index",
+      "limitations": "The checked-in service values are modeled priors, not copied CPPI observations or guaranteed queue times."
+    },
+    {
+      "id": "source:noaa-ibtracs-v04r01",
+      "title": "NOAA IBTrACS v04r01",
+      "url": "https://www.ncei.noaa.gov/products/international-best-track-archive",
+      "retrievedAt": "2026-07-22",
+      "license": "Publicly available NOAA dataset; source terms and citation guidance apply.",
+      "coverage": "Climatological shape reference for two synthetic disruption tracks.",
+      "resolution": "Six-hour best-track point in the source product",
+      "limitations": "The checked-in tracks are generated scenarios, not observed storms or forecasts."
+    },
+    {
+      "id": "source:imo-fourth-ghg-study",
+      "title": "IMO Fourth Greenhouse Gas Study 2020",
+      "url": "https://www.imo.org/en/ourwork/environment/pages/fourth-imo-greenhouse-gas-study-2020.aspx",
+      "retrievedAt": "2026-07-25",
+      "license": "IMO copyright and source terms apply.",
+      "coverage": "Methodological context for voyage phases, speed-power behavior, auxiliary loads, fuel use, and emissions.",
+      "resolution": "Fleet and vessel-category study",
+      "limitations": "Simulatte coefficients are modeled archetypes and do not reproduce an audited vessel inventory."
+    }
+  ],
+  "datasets": [
+    {
+      "id": "global-port-registry-wpi-v1",
+      "path": "port-registry-wpi-v1.json",
+      "schemaId": "simulatte.maritimePortRegistry.v1",
+      "sha256": "89942e9fdf92d721710718c3d821927fb73053248928f5793b0213fb99dfe515",
+      "sourceIds": [
+        "source:nga-wpi",
+        "source:un-locode"
+      ],
+      "rowIdentity": "port.id and port.unlocode",
+      "transformations": [
+        "pinned_port_subset_v1",
+        "modeled_berth_count_v1"
+      ],
+      "fieldTruth": {
+        "id,name,unlocode,country,location": {
+          "origin": "observed",
+          "temporalStatus": "snapshot",
+          "uncertainty": {
+            "kind": "missing",
+            "value": {
+              "reason": "Source row uncertainty is not published in this artifact."
+            }
+          }
+        },
+        "harborSize,berthCount": {
+          "origin": "modeled",
+          "temporalStatus": "snapshot",
+          "uncertainty": {
+            "kind": "interval",
+            "value": {
+              "basis": "Declared archetype range, not a confidence interval."
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "global-maritime-corridors-v1",
+      "path": "maritime-corridors-v1.json",
+      "schemaId": "simulatte.maritimeCorridors.v1",
+      "sha256": "719fe4125465a1daf7f23136ed5cd1a75f87e71df07a720b854317453092b108",
+      "sourceIds": [
+        "source:nga-wpi",
+        "source:un-locode"
+      ],
+      "rowIdentity": "corridor.id",
+      "transformations": [
+        "haversine_endpoint_distance_v1",
+        "seeded_service_speed_v1"
+      ],
+      "fieldTruth": {
+        "fromPortId,toPortId,canalId": {
+          "origin": "scenario",
+          "temporalStatus": "snapshot",
+          "uncertainty": {
+            "kind": "missing",
+            "value": {
+              "reason": "Aggregate scenario topology has no statistical confidence model."
+            }
+          }
+        },
+        "distanceKm,sailingDays,serviceSpeedKn": {
+          "origin": "modeled",
+          "temporalStatus": "snapshot",
+          "uncertainty": {
+            "kind": "interval",
+            "value": {
+              "relativeMinimum": -0.1,
+              "relativeMaximum": 0.1,
+              "basis": "Coarse endpoint geometry omits navigational track detail."
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "global-canal-service-models-v1",
+      "path": "canal-service-models-v1.json",
+      "schemaId": "simulatte.canalServiceModels.v1",
+      "sha256": "c131c1a9e251ff56e2c3dfc7c047e5c135820d5ac7290223dc2e9dd8837f4746",
+      "sourceIds": [],
+      "rowIdentity": "model.id",
+      "transformations": [
+        "declared_lognormal_canal_service_v1"
+      ],
+      "fieldTruth": {
+        "*": {
+          "origin": "modeled",
+          "temporalStatus": "snapshot",
+          "uncertainty": {
+            "kind": "distribution",
+            "value": {
+              "family": "lognormal",
+              "parameters": "model.serviceHours.parameters"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "container-port-performance-v1",
+      "path": "container-port-performance-v1.json",
+      "schemaId": "simulatte.containerPortPerformance.v1",
+      "sha256": "247b56901147f366612c3ebee27dac832d63c80f041133ae3b55be982b695afc",
+      "sourceIds": [
+        "source:world-bank-cppi"
+      ],
+      "rowIdentity": "row.portId",
+      "transformations": [
+        "seeded_relative_service_prior_v1"
+      ],
+      "fieldTruth": {
+        "*": {
+          "origin": "modeled",
+          "temporalStatus": "snapshot",
+          "uncertainty": {
+            "kind": "interval",
+            "value": {
+              "relativeMinimum": -0.25,
+              "relativeMaximum": 0.25,
+              "basis": "Illustrative prior range; not a CPPI sampling interval."
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "ibtracs-v04r01-scenario-tracks-v1",
+      "path": "ibtracs-scenario-tracks-v1.json",
+      "schemaId": "simulatte.ibtracsScenarioTracks.v1",
+      "sha256": "8e34061a7635a2f7478b1a77abda17e69f96d3d9f073861f11a3a00649533835",
+      "sourceIds": [
+        "source:noaa-ibtracs-v04r01"
+      ],
+      "rowIdentity": "track.id and point.hour",
+      "transformations": [
+        "seeded_climatology_shaped_track_v1"
+      ],
+      "fieldTruth": {
+        "*": {
+          "origin": "scenario",
+          "temporalStatus": "forecast",
+          "uncertainty": {
+            "kind": "missing",
+            "value": {
+              "reason": "Scenario track is not a forecast ensemble."
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "maritime-vessel-archetypes-v1",
+      "path": "vessel-archetypes-v1.json",
+      "schemaId": "simulatte.maritimeVesselArchetypes.v1",
+      "sha256": "bc321fffbc1861e095331e25e47f329780a2cbf063b6748245c35f4e2550a368",
+      "sourceIds": [
+        "source:imo-fourth-ghg-study"
+      ],
+      "rowIdentity": "archetype.id",
+      "transformations": [
+        "declared_vessel_archetype_v1"
+      ],
+      "fieldTruth": {
+        "*": {
+          "origin": "modeled",
+          "temporalStatus": "snapshot",
+          "uncertainty": {
+            "kind": "interval",
+            "value": {
+              "relativeMinimum": -0.2,
+              "relativeMaximum": 0.2,
+              "basis": "Archetype sensitivity range, not vessel-specific measurement error."
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "maritime-emissions-model-v1",
+      "path": "emissions-model-v1.json",
+      "schemaId": "simulatte.maritimeEmissionsModel.v1",
+      "sha256": "948b76b802fc4f957c5c3ead5276275ab509b30d0909a575598d6408c7c5b500",
+      "sourceIds": [
+        "source:imo-fourth-ghg-study"
+      ],
+      "rowIdentity": "version",
+      "transformations": [
+        "speed_power_fuel_emissions_v1"
+      ],
+      "fieldTruth": {
+        "*": {
+          "origin": "modeled",
+          "temporalStatus": "snapshot",
+          "uncertainty": {
+            "kind": "interval",
+            "value": {
+              "relativeMinimum": -0.2,
+              "relativeMaximum": 0.2,
+              "basis": "Declared model sensitivity consistent with reported container-ship intensity variability."
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "maritime.voyage.scenarios.v1",
+      "path": "voyage-scenarios-v1.json",
+      "schemaId": "simulatte.maritimeVoyageScenarios.v1",
+      "sha256": "d62701631179036eef23a64423012a2665b58fbe25e1a38e2fdbb6a85ef3a532",
+      "sourceIds": [
+        "source:nga-wpi",
+        "source:un-locode",
+        "source:noaa-ibtracs-v04r01"
+      ],
+      "rowIdentity": "scenario.id",
+      "transformations": [
+        "declared_voyage_scenario_v1",
+        "aggregate_distance_calibration_v1"
+      ],
+      "fieldTruth": {
+        "*": {
+          "origin": "scenario",
+          "temporalStatus": "forecast",
+          "uncertainty": {
+            "kind": "interval",
+            "value": {
+              "basis": "Each scenario row declares its own aggregate distance sensitivity."
+            }
+          }
+        }
+      }
+    }
+  ]
+}

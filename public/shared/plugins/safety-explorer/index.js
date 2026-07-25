@@ -1,8 +1,11 @@
 (function attachSafetyExplorerPlugin(root, factory) {
-  const api = factory();
+  const v4 = typeof module === 'object' && module.exports
+    ? require('./v4-contribution.js')
+    : root.SimulatteSafetyExplorerV4;
+  const api = factory(v4);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulattePluginSafetyExplorer = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createSafetyExplorerPlugin() {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createSafetyExplorerPlugin(v4) {
   async function activate({ sdk }) {
     sdk.state.register(reduce, { audit: null });
     const index = sdk.datasets.require('nyc-crash-history-2025-07-to-2026-07-v1');
@@ -67,6 +70,13 @@
       const tone = audit.fatalityCount ? 'red' : audit.crashCount ? 'amber' : 'green';
       return { schema: 'simulatte.pluginPresentation.v1', markers: [], actors: [], paths: [{ id: 'observed-route', label: 'Historically observed route', segmentIds: audit.segmentIds, tone, widthM: 7, intensity: 1.25 }], cameraTargets: [{ id: 'observed-route', label: 'Historically observed route', nodeIds: [], segmentIds: audit.segmentIds, distanceM: 1100 }] };
     }
+    function contributeV4() {
+      return v4.createContribution({
+        audit: sdk.state.read().audit,
+        index,
+        datasetReceipt: sdk.datasets.receipt('nyc-crash-history-2025-07-to-2026-07-v1'),
+      });
+    }
     // Neutral mobility-risk field (§18): shrunk severity-weighted observation for a
     // segment plus evidence coverage. Preserves the observed-vs-simulated distinction.
     const capabilities = {
@@ -82,7 +92,7 @@
         };
       },
     };
-    return Object.freeze({ id: 'safety-explorer', createRouteContributor, view, present, capabilities, dispose() {} });
+    return Object.freeze({ id: 'safety-explorer', contributeV4, createRouteContributor, view, present, capabilities, dispose() {} });
   }
   function reduce(state, event) { return event.kind === 'safety-explorer.route-audited' ? { ...state, audit: event.audit } : state; }
   function sum(rows, key) { return Number(rows.reduce((total, row) => total + (row[key] || 0), 0).toFixed(6)); }

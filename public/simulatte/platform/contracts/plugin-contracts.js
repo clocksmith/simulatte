@@ -116,7 +116,7 @@
   function validatePluginInstance(pluginId, value, manifest = null) {
     assertObject(value, 'plugin_instance_invalid', `Plugin ${pluginId} activation expected an instance`);
     if (value.id !== pluginId) fail('plugin_instance_id_mismatch', `Plugin ${pluginId} activated as ${value.id || 'missing'}`, { expected: pluginId, actual: value.id || null });
-    ['contributeRequest', 'createRouteContributor', 'settle', 'view', 'present', 'dispose', 'reduce', 'handleAction', 'setScenario'].forEach((method) => {
+    ['contributeRequest', 'contributeV4', 'createRouteContributor', 'settle', 'view', 'present', 'dispose', 'reduce', 'handleAction', 'setScenario'].forEach((method) => {
       if (value[method] !== undefined && typeof value[method] !== 'function') fail('plugin_instance_method_invalid', `Plugin ${pluginId}.${method} expected a function`, { pluginId, method });
     });
     if (value.capabilities !== undefined && (!value.capabilities || typeof value.capabilities !== 'object' || Array.isArray(value.capabilities))) fail('plugin_instance_capabilities_invalid', `Plugin ${pluginId}.capabilities expected an object`, { pluginId });

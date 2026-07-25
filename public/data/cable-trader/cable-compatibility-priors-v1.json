@@ -1,0 +1,90 @@
+{
+  "schema": "simulatte.cableCompatibilityPriors.v1",
+  "id": "cable-compatibility-priors-v1",
+  "contentVersion": "2026-07-25",
+  "retrievedAt": "2026-07-25T00:00:00Z",
+  "claimBoundary": "This catalog governs connector-family identity and compatibility context only. It contains no observed hub demand, inventory, participant, exchange, failure-rate, or product-lifetime measurements.",
+  "sources": [
+    {
+      "id": "usb-if-type-c-cable-connector",
+      "authority": "USB Implementers Forum",
+      "url": "https://www.usb.org/usb-type-cr-cable-and-connector-specification",
+      "retrievedAt": "2026-07-25T00:00:00Z",
+      "license": "Reference metadata only; specification license terms apply at the source.",
+      "coverage": "USB Type-C connector ecosystem and cable assemblies"
+    },
+    {
+      "id": "usb-if-cables-connectors",
+      "authority": "USB Implementers Forum",
+      "url": "https://www.usb.org/cable_connector",
+      "retrievedAt": "2026-07-25T00:00:00Z",
+      "license": "Reference metadata only; source terms apply.",
+      "coverage": "USB cable capability and compliance categories"
+    },
+    {
+      "id": "hdmi-la-cable-overview",
+      "authority": "HDMI Licensing Administrator",
+      "url": "https://www.hdmi.org/resource/cables",
+      "retrievedAt": "2026-07-25T00:00:00Z",
+      "license": "Reference metadata only; source terms apply.",
+      "coverage": "HDMI cable identity and capability categories"
+    },
+    {
+      "id": "iec-60320-1-2021",
+      "authority": "International Electrotechnical Commission",
+      "url": "https://webstore.iec.ch/en/publication/64901",
+      "retrievedAt": "2026-07-25T00:00:00Z",
+      "license": "Reference metadata only; IEC copyright applies.",
+      "coverage": "General appliance-coupler requirements; connector-sheet details are outside this catalog"
+    }
+  ],
+  "rows": [
+    {
+      "id": "usb-c-to-a",
+      "connectorFamilyIds": ["usb-type-c", "usb-standard-a"],
+      "sourceIds": ["usb-if-type-c-cable-connector", "usb-if-cables-connectors"],
+      "origin": "derived",
+      "temporalStatus": "snapshot",
+      "uncertainty": { "kind": "missing", "value": { "fields": ["marketShare", "failureRate", "lifetime", "localDemand"] } }
+    },
+    {
+      "id": "usb-c-to-c",
+      "connectorFamilyIds": ["usb-type-c", "usb-type-c"],
+      "sourceIds": ["usb-if-type-c-cable-connector", "usb-if-cables-connectors"],
+      "origin": "derived",
+      "temporalStatus": "snapshot",
+      "uncertainty": { "kind": "missing", "value": { "fields": ["powerRating", "dataRate", "marketShare", "failureRate", "lifetime", "localDemand"] } }
+    },
+    {
+      "id": "usb-c-to-lightning",
+      "connectorFamilyIds": ["usb-type-c", "lightning"],
+      "sourceIds": ["usb-if-type-c-cable-connector"],
+      "origin": "derived",
+      "temporalStatus": "snapshot",
+      "uncertainty": { "kind": "missing", "value": { "fields": ["lightningSpecificationProvenance", "marketShare", "failureRate", "lifetime", "localDemand"] } }
+    },
+    {
+      "id": "hdmi",
+      "connectorFamilyIds": ["hdmi"],
+      "sourceIds": ["hdmi-la-cable-overview"],
+      "origin": "observed",
+      "temporalStatus": "snapshot",
+      "uncertainty": { "kind": "missing", "value": { "fields": ["certificationClass", "marketShare", "failureRate", "lifetime", "localDemand"] } }
+    },
+    {
+      "id": "iec-c13-power",
+      "connectorFamilyIds": ["iec-60320-c13"],
+      "sourceIds": ["iec-60320-1-2021"],
+      "origin": "derived",
+      "temporalStatus": "snapshot",
+      "uncertainty": { "kind": "missing", "value": { "fields": ["connectorSheetVerification", "marketShare", "failureRate", "lifetime", "localDemand"] } }
+    }
+  ],
+  "scenarioOnlyCableTypeIds": [
+    "ethernet-rj45",
+    "displayport",
+    "mini-displayport",
+    "micro-usb",
+    "three-five-mm-audio"
+  ]
+}

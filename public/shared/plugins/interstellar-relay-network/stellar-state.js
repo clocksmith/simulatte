@@ -5,11 +5,30 @@
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createStellarStateModule() {
   const MAS_TO_RAD = Math.PI / (180 * 3600 * 1000);
   const KM_S_TO_PC_YR = 1.0227121650537077e-6;
+  const MODEL_ID = 'linear-space-motion-v2';
 
   function convertEquatorialToCartesianPc(star, targetEpochYears = 2026.5) {
     if (!star) throw stellarError('stellar_state_missing', 'Stellar state conversion requires a star object');
     if (star.sourceId === 'gaia-sol' || star.parallaxMas === 0) {
-      return Object.freeze({ schema: 'simulatte.stellarState.v1', sourceId: star.sourceId, name: star.name || 'Sol', epochYear: targetEpochYears, positionPc: Object.freeze([0,0,0]), velocityPcYr: Object.freeze([0,0,0]), hasRadialVelocity: true, distancePc: 0, propagation: 'solar_origin' });
+      return Object.freeze({
+        schema: 'simulatte.stellarState.v2',
+        sourceId: star.sourceId,
+        sourceRowIds: Object.freeze([star.sourceRowId || 'scenario-origin:solar-system-barycenter']),
+        name: star.name || 'Sol',
+        epochYear: targetEpochYears,
+        positionPc: Object.freeze([0, 0, 0]),
+        velocityPcYr: Object.freeze([0, 0, 0]),
+        hasRadialVelocity: true,
+        distancePc: 0,
+        propagation: 'solar_origin',
+        modelReceipt: Object.freeze({
+          modelId: MODEL_ID,
+          transformationIds: Object.freeze(['solar-barycentric-origin']),
+          parameters: Object.freeze({ targetEpochYears }),
+        }),
+        truth: star.truth || scenarioTruth('Coordinate-system origin'),
+        uncertainty: Object.freeze({ kind: 'missing', value: Object.freeze({ reason: 'Scenario coordinate origin has no catalog covariance.' }) }),
+      });
     }
     if (!(star.parallaxMas > 0) || !Number.isFinite(star.raDeg) || !Number.isFinite(star.decDeg)) {
       throw stellarError('stellar_astrometry_invalid', `Star ${star.sourceId || 'unknown'} has invalid RA, DEC, or parallax`, { sourceId: star.sourceId || null });
@@ -33,11 +52,66 @@
     const velocity = tangential.map((value, index) => value + radialSpeedPcYr * radialUnit[index]);
     const dtYears = targetEpochYears - Number(star.referenceEpochYear || 2016.0);
     const propagated = position.map((value, index) => value + velocity[index] * dtYears);
+    const distanceStandardErrorPc = Number.isFinite(star.parallaxErrorMas)
+      ? (1000 * star.parallaxErrorMas) / Math.pow(star.parallaxMas, 2)
+      : null;
+    const uncertainty = hasRadialVelocity
+      ? Object.freeze({
+        kind: 'interval',
+        value: Object.freeze({
+          confidence: 'approximately-1-sigma',
+          distancePc: Object.freeze([
+            Math.max(0, distancePc - (distanceStandardErrorPc || 0)),
+            distancePc + (distanceStandardErrorPc || 0),
+          ]),
+          covariance: 'not-loaded',
+          catalogRuwe: Number.isFinite(star.ruwe) ? star.ruwe : null,
+        }),
+      })
+      : Object.freeze({
+        kind: 'missing',
+        value: Object.freeze({
+          field: 'radialVelocityKmS',
+          appliedAssumption: 'zero-radial-velocity',
+          distanceStandardErrorPc,
+          covariance: 'not-loaded',
+        }),
+      });
     return Object.freeze({
-      schema: 'simulatte.stellarState.v1', sourceId: star.sourceId, name: star.name || star.sourceId,
-      epochYear: targetEpochYears, positionPc: Object.freeze(propagated), velocityPcYr: Object.freeze(velocity),
-      hasRadialVelocity, distancePc, propagation: 'linear_space_motion_v1',
-      astrometricQuality: Object.freeze({ parallaxMas: star.parallaxMas, parallaxErrorMas: star.parallaxErrorMas ?? null, radialVelocityMissing: !hasRadialVelocity }),
+      schema: 'simulatte.stellarState.v2',
+      sourceId: star.sourceId,
+      sourceRowIds: Object.freeze([star.sourceRowId || `unresolved:${star.sourceId}`]),
+      name: star.name || star.sourceId,
+      epochYear: targetEpochYears,
+      positionPc: Object.freeze(propagated),
+      velocityPcYr: Object.freeze(velocity),
+      hasRadialVelocity,
+      distancePc,
+      propagation: MODEL_ID,
+      astrometricQuality: Object.freeze({
+        parallaxMas: star.parallaxMas,
+        parallaxErrorMas: star.parallaxErrorMas ?? null,
+        radialVelocityMissing: !hasRadialVelocity,
+        ruwe: star.ruwe ?? null,
+      }),
+      modelReceipt: Object.freeze({
+        modelId: MODEL_ID,
+        transformationIds: Object.freeze(['inverse-parallax-distance', 'icrs-spherical-to-cartesian', 'linear-space-motion']),
+        parameters: Object.freeze({
+          referenceEpochYear: Number(star.referenceEpochYear || 2016),
+          targetEpochYears,
+          radialVelocityAssumption: hasRadialVelocity ? 'catalog-value' : 'zero',
+        }),
+      }),
+      truth: Object.freeze({ origin: 'derived', temporalStatus: 'forecast', uncertainty }),
+      uncertainty,
+    });
+  }
+  function scenarioTruth(reason) {
+    return Object.freeze({
+      origin: 'scenario',
+      temporalStatus: 'snapshot',
+      uncertainty: Object.freeze({ kind: 'missing', value: Object.freeze({ reason }) }),
     });
   }
   function stellarError(code, message, evidence = null) { const error = new Error(`${code}: ${message}`); error.name = 'InterstellarStellarStateError'; error.code = code; error.evidence = evidence; return error; }

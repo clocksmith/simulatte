@@ -1,0 +1,136 @@
+{
+  "schema": "simulatte.interstellarScenarioNetwork.v2",
+  "id": "interstellar.scenario.network.v2",
+  "title": "Deterministic interstellar store-and-forward experiments",
+  "contentVersion": "2026-07-25",
+  "provenance": {
+    "truth": {
+      "origin": "scenario",
+      "temporalStatus": "forecast",
+      "uncertainty": {
+        "kind": "missing",
+        "value": {
+          "reason": "No operating interstellar relay infrastructure exists in the governed inputs."
+        }
+      }
+    },
+    "claimBoundary": "Every relay node, packet, and terminal is hypothetical. Stellar inputs are governed separately."
+  },
+  "scenarios": [
+    {
+      "id": "sol-proxima-direct",
+      "name": "Sol to Proxima direct link",
+      "sourceId": "gaia-sol",
+      "targetId": "gaia-proxima",
+      "relayHops": [
+        "gaia-sol",
+        "gaia-proxima"
+      ],
+      "baselineRelayHops": [
+        "gaia-sol",
+        "gaia-proxima"
+      ],
+      "transceiverId": "sol-primary-gateway",
+      "baselineTransceiverId": "autonomous-relay-node",
+      "packetBytes": 1048576,
+      "relayPolicy": "direct",
+      "truth": {
+        "origin": "scenario",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "No operating interstellar relay infrastructure exists in the governed inputs."
+          }
+        }
+      }
+    },
+    {
+      "id": "sol-proxima-barnard-relay",
+      "name": "Sol to Barnard via Proxima",
+      "sourceId": "gaia-sol",
+      "targetId": "gaia-barnard",
+      "relayHops": [
+        "gaia-sol",
+        "gaia-proxima",
+        "gaia-barnard"
+      ],
+      "baselineRelayHops": [
+        "gaia-sol",
+        "gaia-barnard"
+      ],
+      "transceiverId": "autonomous-relay-node",
+      "baselineTransceiverId": "autonomous-relay-node",
+      "packetBytes": 1048576,
+      "relayPolicy": "store-and-forward",
+      "truth": {
+        "origin": "scenario",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "No operating interstellar relay infrastructure exists in the governed inputs."
+          }
+        }
+      }
+    },
+    {
+      "id": "nearby-star-store-forward",
+      "name": "Sol to Lalande 21185 via Proxima and Wolf 359",
+      "sourceId": "gaia-sol",
+      "targetId": "gaia-lalande-21185",
+      "relayHops": [
+        "gaia-sol",
+        "gaia-proxima",
+        "gaia-wolf-359",
+        "gaia-lalande-21185"
+      ],
+      "baselineRelayHops": [
+        "gaia-sol",
+        "gaia-lalande-21185"
+      ],
+      "transceiverId": "autonomous-relay-node",
+      "baselineTransceiverId": "autonomous-relay-node",
+      "packetBytes": 262144,
+      "relayPolicy": "store-and-forward",
+      "truth": {
+        "origin": "scenario",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "No operating interstellar relay infrastructure exists in the governed inputs."
+          }
+        }
+      }
+    },
+    {
+      "id": "61-cygni-high-power-link",
+      "name": "Sol to 61 Cygni A high-power link",
+      "sourceId": "gaia-sol",
+      "targetId": "gaia-61-cygni-a",
+      "relayHops": [
+        "gaia-sol",
+        "gaia-61-cygni-a"
+      ],
+      "baselineRelayHops": [
+        "gaia-sol",
+        "gaia-61-cygni-a"
+      ],
+      "transceiverId": "high-power-array",
+      "baselineTransceiverId": "sol-primary-gateway",
+      "packetBytes": 1048576,
+      "relayPolicy": "direct",
+      "truth": {
+        "origin": "scenario",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "No operating interstellar relay infrastructure exists in the governed inputs."
+          }
+        }
+      }
+    }
+  ]
+}

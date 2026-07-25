@@ -1,11 +1,11 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Cable Trader configuration v2",
+  "title": "Cable Trader configuration v3",
   "type": "object",
-  "required": ["schema", "id", "cableTypes", "hubs", "simulation"],
+  "required": ["schema", "id", "cableTypes", "hubs", "scenarioModifiers", "simulation"],
   "additionalProperties": false,
   "properties": {
-    "schema": { "const": "simulatte.plugin.cableTraderConfig.v2" },
+    "schema": { "const": "simulatte.plugin.cableTraderConfig.v3" },
     "id": { "type": "string", "minLength": 1 },
     "cableTypes": {
       "type": "array",
@@ -35,6 +35,31 @@
           "id": { "type": "string" },
           "label": { "type": "string" },
           "nodeId": { "type": "string" }
+        }
+      }
+    },
+    "scenarioModifiers": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "required": ["id", "demandTypeMultipliers", "demandHubMultipliers", "returnHubMultipliers"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "demandTypeMultipliers": {
+            "type": "object",
+            "additionalProperties": { "type": "number", "exclusiveMinimum": 0 }
+          },
+          "demandHubMultipliers": {
+            "type": "object",
+            "additionalProperties": { "type": "number", "exclusiveMinimum": 0 }
+          },
+          "returnHubMultipliers": {
+            "type": "object",
+            "additionalProperties": { "type": "number", "exclusiveMinimum": 0 }
+          }
         }
       }
     },

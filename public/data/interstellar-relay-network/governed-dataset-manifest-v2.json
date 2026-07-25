@@ -1,0 +1,39 @@
+{
+  "schema": "simulatte.interstellarDatasetManifest.v2",
+  "generatedAt": "2026-07-25T00:00:00Z",
+  "generator": "node tools/interstellar-relay/build-governed-relay-data.mjs",
+  "datasets": [
+    {
+      "id": "gaia.dr3.nearby-stars.v2",
+      "filename": "gaia-dr3-nearby-stars-v2.json",
+      "schemaId": "simulatte.gaiaDr3NearbyStars.v2",
+      "sha256": "3851cad4094acc14cb90e04973d23eecca8708a604e973689a46e60c93c6e7bd",
+      "contentVersion": "2026-07-25",
+      "validationCommand": "node --test tests/interstellar-relay-network-v4.test.cjs"
+    },
+    {
+      "id": "relay.hardware.archetypes.v2",
+      "filename": "relay-hardware-archetypes-v2.json",
+      "schemaId": "simulatte.relayHardwareArchetypes.v2",
+      "sha256": "4c0d721c5b6e25c04008f8b289ebf647ebdb85eb69630c814b2208493b39e846",
+      "contentVersion": "2026-07-25",
+      "validationCommand": "node --test tests/interstellar-relay-network-v4.test.cjs"
+    },
+    {
+      "id": "interstellar.scenario.network.v2",
+      "filename": "interstellar-scenario-network-v2.json",
+      "schemaId": "simulatte.interstellarScenarioNetwork.v2",
+      "sha256": "d5b3aff26171d22ff4b3a961821d6543e087d7c83b0b815cd60b0ce767da7ec0",
+      "contentVersion": "2026-07-25",
+      "validationCommand": "node --test tests/interstellar-relay-network-v4.test.cjs"
+    },
+    {
+      "id": "interstellar.relay.models.v1",
+      "filename": "interstellar-relay-models-v1.json",
+      "schemaId": "simulatte.interstellarRelayModelCatalog.v1",
+      "sha256": "b190f2c419a9e19e48cc838ab647e11ee3c52b0624c5b97f4307d924ae1fc030",
+      "contentVersion": "2026-07-25",
+      "validationCommand": "node --test tests/interstellar-relay-network-v4.test.cjs"
+    }
+  ]
+}

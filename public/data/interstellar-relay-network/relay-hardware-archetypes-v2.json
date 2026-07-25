@@ -1,0 +1,113 @@
+{
+  "schema": "simulatte.relayHardwareArchetypes.v2",
+  "id": "relay.hardware.archetypes.v2",
+  "title": "Scenario optical relay terminal archetypes",
+  "contentVersion": "2026-07-25",
+  "provenance": {
+    "truth": {
+      "origin": "scenario",
+      "temporalStatus": "forecast",
+      "uncertainty": {
+        "kind": "missing",
+        "value": {
+          "reason": "No operating interstellar relay infrastructure exists in the governed inputs."
+        }
+      }
+    },
+    "sourceUrl": "https://public.ccsds.org/Pubs/142x0b2.pdf",
+    "citation": "CCSDS 142.0-B-2 Optical Communications Coding and Synchronization",
+    "claimBoundary": "Parameters are engineering scenarios informed by optical-link equations. They are not observed or deployed terminals."
+  },
+  "archetypes": {
+    "sol-primary-gateway": {
+      "id": "sol-primary-gateway",
+      "name": "Scenario 10 m primary gateway",
+      "laserPowerW": 250000,
+      "transmitApertureDiameterM": 10,
+      "receiveApertureDiameterM": 10,
+      "wavelengthNm": 1550,
+      "pointingJitterArcsec": 0.002,
+      "pointingJitterUncertaintyPercent": 25,
+      "opticalEfficiency": 0.55,
+      "opticalEfficiencyInterval": [
+        0.45,
+        0.65
+      ],
+      "requiredDetectedPhotonsPerInformationBit": 40,
+      "codeRate": 0.5,
+      "backgroundPhotonRateHz": 2000,
+      "maxDataRateGbps": 1000,
+      "minimumOperationalGbps": 0.000001,
+      "truth": {
+        "origin": "scenario",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "No operating interstellar relay infrastructure exists in the governed inputs."
+          }
+        }
+      }
+    },
+    "autonomous-relay-node": {
+      "id": "autonomous-relay-node",
+      "name": "Scenario 3.5 m autonomous relay node",
+      "laserPowerW": 25000,
+      "transmitApertureDiameterM": 3.5,
+      "receiveApertureDiameterM": 3.5,
+      "wavelengthNm": 1550,
+      "pointingJitterArcsec": 0.005,
+      "pointingJitterUncertaintyPercent": 30,
+      "opticalEfficiency": 0.48,
+      "opticalEfficiencyInterval": [
+        0.35,
+        0.58
+      ],
+      "requiredDetectedPhotonsPerInformationBit": 55,
+      "codeRate": 0.4,
+      "backgroundPhotonRateHz": 500,
+      "maxDataRateGbps": 100,
+      "minimumOperationalGbps": 1e-7,
+      "truth": {
+        "origin": "scenario",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "No operating interstellar relay infrastructure exists in the governed inputs."
+          }
+        }
+      }
+    },
+    "high-power-array": {
+      "id": "high-power-array",
+      "name": "Scenario 15 m high-power array",
+      "laserPowerW": 1000000,
+      "transmitApertureDiameterM": 15,
+      "receiveApertureDiameterM": 15,
+      "wavelengthNm": 1550,
+      "pointingJitterArcsec": 0.001,
+      "pointingJitterUncertaintyPercent": 20,
+      "opticalEfficiency": 0.62,
+      "opticalEfficiencyInterval": [
+        0.5,
+        0.7
+      ],
+      "requiredDetectedPhotonsPerInformationBit": 30,
+      "codeRate": 0.6,
+      "backgroundPhotonRateHz": 1500,
+      "maxDataRateGbps": 10000,
+      "minimumOperationalGbps": 0.00001,
+      "truth": {
+        "origin": "scenario",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "No operating interstellar relay infrastructure exists in the governed inputs."
+          }
+        }
+      }
+    }
+  }
+}

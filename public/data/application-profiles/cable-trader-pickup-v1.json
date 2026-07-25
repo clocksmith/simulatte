@@ -5,11 +5,11 @@
   "defaultSeedId": "july-baseline",
   "seeds": [
     { "id": "july-baseline", "label": "July baseline", "description": "4,096 needs across four hubs and ten cable families.", "seed": "cable-city-month-2026-07", "missionText": "Show the predefined 30-day cable network and its optimal allocation." },
-    { "id": "campus-return-wave", "label": "Campus return wave", "description": "A return-heavy month with demand redistributed across hubs.", "seed": "cable-city-campus-return-731", "missionText": "Show the predefined 30-day cable network and its optimal allocation." },
-    { "id": "display-cable-surge", "label": "Display cable surge", "description": "A different deterministic event ordering and transfer frontier.", "seed": "cable-city-display-surge-4096", "missionText": "Show the predefined 30-day cable network and its optimal allocation." },
-    { "id": "brooklyn-rebalance", "label": "Brooklyn rebalance", "description": "A seeded month emphasizing cross-river inventory movement.", "seed": "cable-city-brooklyn-rebalance-8192", "missionText": "Show the predefined 30-day cable network and its optimal allocation." }
+    { "id": "campus-return-wave", "label": "Campus return wave", "description": "Higher Manhattan need and return weights around Union Square and the East Village.", "seed": "cable-city-campus-return-731", "missionText": "Show the predefined 30-day cable network and its optimal allocation." },
+    { "id": "display-cable-surge", "label": "Display cable surge", "description": "Higher modeled demand for HDMI and DisplayPort-family cables.", "seed": "cable-city-display-surge-4096", "missionText": "Show the predefined 30-day cable network and its optimal allocation." },
+    { "id": "brooklyn-rebalance", "label": "Brooklyn rebalance", "description": "Higher Brooklyn need weights paired with higher Manhattan return weights.", "seed": "cable-city-brooklyn-rebalance-8192", "missionText": "Show the predefined 30-day cable network and its optimal allocation." }
   ],
   "camera": { "initialMode": "top", "runMode": "top", "pluginId": "cable-trader", "targetId": "cable-network" },
-  "plugins": [{ "id": "cable-trader", "configId": "cable-trader-network-v2" }],
+  "plugins": [{ "id": "cable-trader", "configId": "cable-trader-network-v3" }],
   "routeObjective": { "travelSeconds": 1 }
 }

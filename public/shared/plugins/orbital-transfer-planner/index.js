@@ -19,6 +19,7 @@
     const radiationApi = dependency('OrbitalTransferRadiation', './radiation.js');
     const presentationApi = dependency('OrbitalTransferPresentation', './presentation.js');
     const hohmannApi = dependency('OrbitalTransferHohmann', './hohmann.js');
+    const v4 = dependency('OrbitalTransferV4', './v4-contribution.js');
 
     const ephemerisData = sdk.datasets.require('jpl.horizons.heliocentric-vectors.v1');
     const gmData = sdk.datasets.require('solar.system.gm-constants-de440.v1');
@@ -199,13 +200,33 @@
       return presentationApi.createPresentation(ephemerisData, { trajectory, selectedBodyIds: ['earth', result.targetBodyId] });
     }
 
+    function contributeV4() {
+      const datasetIds = [
+        'jpl.horizons.heliocentric-vectors.v1',
+        'solar.system.gm-constants-de440.v1',
+        'solar.radiation.snapshot.v1',
+        'orbital.depots.v1',
+        'spacecraft.archetypes.v1',
+      ];
+      return v4.createContribution({
+        result: sdk.state.read().result,
+        ephemerisData,
+        profileWeights,
+        datasetReceipts: datasetIds.map((id) => ({
+          id,
+          receipt: sdk.datasets.receipt(id),
+          value: sdk.datasets.optional(id),
+        })),
+      });
+    }
+
     const capabilities = Object.freeze({
       'simulation.orbital-transfer.v1': () => sdk.state.read().result,
       'simulation.orbital-kinetics.v1': () => sdk.state.read().result,
       'field.solar-radiation.v1': () => sdk.state.read().result.radiation,
     });
 
-    return Object.freeze({ id: PLUGIN_ID, contributeRequest, setScenario, handleAction, settle, view, present, reduce, capabilities, dispose() {} });
+    return Object.freeze({ id: PLUGIN_ID, contributeRequest, contributeV4, setScenario, handleAction, settle, view, present, reduce, capabilities, dispose() {} });
   }
 
   function normalizeScenario(value, config) {

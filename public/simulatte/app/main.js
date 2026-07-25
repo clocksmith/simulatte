@@ -32,6 +32,8 @@
     pluginEnvironmentApi: root.SimulattePluginEnvironment,
     pluginGeographyApi: root.SimulattePluginGeography,
     pluginComputeApi: root.SimulattePluginCompute,
+    simulationClockApi: root.SimulatteSimulationClock,
+    viewDirectorApi: root.SimulatteViewDirector,
     mountLifecycleApi: root.SimulatteMountLifecycle,
     mainViewApi: typeof module === 'object' && module.exports
       ? require('./main-view.js')
@@ -43,7 +45,7 @@
   root.SimulatteAutonomyApp = api;
   if (typeof module === 'object' && module.exports) module.exports = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyApp(dependencies) {
-  const { dataLoader, missionApi, controllerApi, canvasApi, traceApi, runtimeLog, neuralPlaceApi, ledgerApi, receiptsApi, worldApi, neuralConsentApi, modelSelectionApi, runtimeLoaderApi, pluginRuntimeApi, pluginRegistry, pluginUiApi, transportApi, artifactStoreApi, routePlannerApi, civilTimeApi, universeParserApi, applicationProfileSelectApi, experienceCameraApi, pluginAssetPathsApi, pluginRandomApi, pluginSchedulerApi, pluginEnvironmentApi, pluginGeographyApi, pluginComputeApi, mountLifecycleApi, mainViewApi, cityInterfaceApi } = dependencies;
+  const { dataLoader, missionApi, controllerApi, canvasApi, traceApi, runtimeLog, neuralPlaceApi, ledgerApi, receiptsApi, worldApi, neuralConsentApi, modelSelectionApi, runtimeLoaderApi, pluginRuntimeApi, pluginRegistry, pluginUiApi, transportApi, artifactStoreApi, routePlannerApi, civilTimeApi, universeParserApi, applicationProfileSelectApi, experienceCameraApi, pluginAssetPathsApi, pluginRandomApi, pluginSchedulerApi, pluginEnvironmentApi, pluginGeographyApi, pluginComputeApi, simulationClockApi, viewDirectorApi, mountLifecycleApi, mainViewApi, cityInterfaceApi } = dependencies;
   if (!cityInterfaceApi || !mainViewApi) throw new Error('simulatte_app_view_dependency_missing');
   const { collectElements, populateApplicationProfiles, applicationProfileLabel, setRuntimeStatus, runtimeLabel, renderIdentity, renderPlaceResolution, renderPlanning } = mainViewApi;
   const { wireCameraControls, selectCameraMode, populateCameraFocus, wireInterfaceControls, setJourneyPhase, resizeMissionInput, clearMissionError, isMissionInputError, friendlyMissionError, updateButtons } = cityInterfaceApi;
@@ -69,6 +71,8 @@
     let renderer = null;
     let placeResolver = null;
     let frameRequest = null;
+    let pluginClock = null;
+    let pluginViewDirector = null;
     let isRunning = false;
     let disposal = null;
 
@@ -76,6 +80,7 @@
       if (disposal) return disposal;
       disposal = (async () => {
         isRunning = false;
+        pluginClock?.pause();
         if (frameRequest !== null) cancelAnimationFrame(frameRequest);
         frameRequest = null;
         lifecycle.abort();
@@ -219,10 +224,27 @@
     });
     function renderPluginExperience(context) {
       const pluginContext = { ...context, compositionSize: extensions.activePluginIds.length };
-      pluginUi.render(extensions.views(pluginContext));
+      const platform = extensions.platformV4(pluginContext);
+      pluginUi.render(extensions.views(pluginContext), platform.contributions);
       if (!renderer) return;
       const selected = elements.cameraFocus.value || 'route';
-      renderer.setPluginPresentations(extensions.presentations(pluginContext));
+      const semanticPresentations = platform.contributions.map((contribution) => ({
+        pluginId: contribution.pluginId,
+        presentation: contribution.presentation,
+      }));
+      renderer.setPluginPresentations(semanticPresentations);
+      const platformTime = Math.max(0, ...platform.contributions.map((contribution) => contribution.state?.simulationTimeMs || 0));
+      if (!pluginClock) pluginClock = simulationClockApi.createClock({ timeline: platform.timeline });
+      pluginClock.useTimeline(platform.timeline, { atMs: platformTime });
+      pluginViewDirector = viewDirectorApi.createViewDirector();
+      platform.contributions.forEach((contribution) => {
+        contribution.presentation.viewIntents.forEach((intent) => pluginViewDirector.submit(intent, { source: contribution.pluginId }));
+      });
+      root.__simulattePluginPlatformV4 = Object.freeze({
+        receipt: platform.receipt,
+        clock: pluginClock.receipt(),
+        view: pluginViewDirector.receipt(),
+      });
       populateCameraFocus(elements.cameraFocus, renderer.cameraTargets(), selected);
       if (!hasAppliedInitialCamera) hasAppliedInitialCamera = experienceCameraApi.applyInitialCamera({
         configuration: data.applicationProfile.camera,

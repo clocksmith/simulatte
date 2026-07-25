@@ -151,7 +151,7 @@
   }
 
   async function bootGovernedTierExplorer(ctx,tier,requestedProfileId,options={}) {
-    const required=['SimulatteTierApplicationLoader','SimulattePluginRuntime','SimulatteGeneratedPluginRegistry','SimulatteDeclarativeUiHost','SimulatteApplicationProfileSelect','SimulattePluginRandom','SimulattePluginScheduler','SimulattePluginCompute','SimulattePluginEnvironment','SimulattePluginGeography','SimulatteAutonomyReceipts'];
+    const required=['SimulatteTierApplicationLoader','SimulattePluginRuntime','SimulatteGeneratedPluginRegistry','SimulatteDeclarativeUiHost','SimulatteApplicationProfileSelect','SimulattePluginRandom','SimulattePluginScheduler','SimulattePluginCompute','SimulattePluginEnvironment','SimulattePluginGeography','SimulatteSimulationClock','SimulatteViewDirector','SimulatteAutonomyReceipts'];
     const missing=required.find((name)=>!root[name]);
     if(missing)throw new Error(`tier_boot_dependency_missing: ${missing}`);
     const elements=ctx.collectElements();
@@ -164,11 +164,14 @@
     let activeScenario=null;
     let runtime=null;
     let pluginUi=null;
+    let simulationClock=null;
+    let viewDirector=null;
     let disposed=false;
 
     async function dispose(){
       if(disposed)return;
       disposed=true;
+      simulationClock?.pause();
       lifecycle.abort();
       const resources={runtime,pluginUi,profileSelectUi,tierVisualizer};
       runtime=null;pluginUi=null;profileSelectUi=null;tierVisualizer=null;
@@ -208,7 +211,19 @@
       }});
       renderPlugins();
     }
-    function renderPlugins(){ if(!runtime)return;pluginUi.render(runtime.views({scenario:activeScenario,compositionSize:runtime.activePluginIds.length}));tierVisualizer.setPluginPresentations?.(runtime.presentations({scenario:activeScenario})); }
+    function renderPlugins(){
+      if(!runtime)return;
+      const context={scenario:activeScenario,compositionSize:runtime.activePluginIds.length};
+      const platform=runtime.platformV4(context);
+      pluginUi.render(runtime.views(context),platform.contributions);
+      tierVisualizer.setPluginPresentations?.(platform.contributions.map((contribution)=>({pluginId:contribution.pluginId,presentation:contribution.presentation})));
+      const simulationTimeMs=Math.max(0,...platform.contributions.map((contribution)=>contribution.state?.simulationTimeMs||0));
+      if(!simulationClock)simulationClock=root.SimulatteSimulationClock.createClock({timeline:platform.timeline});
+      simulationClock.useTimeline(platform.timeline,{atMs:simulationTimeMs});
+      viewDirector=root.SimulatteViewDirector.createViewDirector();
+      platform.contributions.forEach((contribution)=>contribution.presentation.viewIntents.forEach((intent)=>viewDirector.submit(intent,{source:contribution.pluginId})));
+      root.__simulattePluginPlatformV4=Object.freeze({receipt:platform.receipt,clock:simulationClock.receipt(),view:viewDirector.receipt()});
+    }
     function renderScenario(){root.SimulatteApplicationProfileSelect.renderInteraction(interaction,activeScenario,elements);elements.missionField.hidden=true;elements.scenarioField.hidden=false;elements.startButton.hidden=false;elements.shuffleButton.hidden=interaction.scenarios.length<2;elements.pauseButton.hidden=true;elements.resumeButton.hidden=true;elements.replayButton.hidden=true;elements.newMissionButton.hidden=true;elements.modelSelectionControls?.replaceChildren();}
     try {
       document.body.classList.add('world-explorer');

@@ -8,7 +8,7 @@
     "simulationOwnerPluginId": "interstellar-relay-network",
     "missionRequired": false,
     "startLabel": "Transmit packet",
-    "shuffleLabel": "Change relay path"
+    "shuffleLabel": "Change experiment"
   },
   "defaultSeedId": "sol-proxima-direct",
   "seeds": [
@@ -20,25 +20,25 @@
       "scenarioId": "sol-proxima-direct"
     },
     {
-      "id": "sol-alpha-centauri-relay",
-      "label": "Sol\u2013Proxima\u2013Alpha Centauri",
-      "description": "Store-and-forward relay through Proxima Centauri.",
-      "seed": "relay-alpha-002",
-      "scenarioId": "sol-alpha-centauri-relay"
+      "id": "sol-proxima-barnard-relay",
+      "label": "Sol\u2013Proxima\u2013Barnard",
+      "description": "Hypothetical store-and-forward path over governed Gaia DR3 astrometry.",
+      "seed": "relay-barnard-002",
+      "scenarioId": "sol-proxima-barnard-relay"
     },
     {
-      "id": "nearest-ten-star-store-forward",
-      "label": "Nearby-star relay chain",
-      "description": "Multi-hop store-and-forward scenario through the local stellar neighborhood.",
+      "id": "nearby-star-store-forward",
+      "label": "Four-system relay chain",
+      "description": "Sol to Lalande 21185 through hypothetical Proxima and Wolf 359 relays.",
       "seed": "relay-nearest-003",
-      "scenarioId": "nearest-ten-star-store-forward"
+      "scenarioId": "nearby-star-store-forward"
     },
     {
-      "id": "sirius-high-power-link",
-      "label": "Sol to Sirius A",
-      "description": "High-power direct optical trunk to Sirius A.",
-      "seed": "relay-sirius-004",
-      "scenarioId": "sirius-high-power-link"
+      "id": "61-cygni-high-power-link",
+      "label": "Sol to 61 Cygni A",
+      "description": "High-power terminal scenario using a governed Gaia DR3 target row.",
+      "seed": "relay-61-cygni-004",
+      "scenarioId": "61-cygni-high-power-link"
     }
   ],
   "plugins": [

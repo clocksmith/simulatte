@@ -7,7 +7,7 @@
     "mode": "simulation",
     "simulationOwnerPluginId": "maritime-trade-global",
     "missionRequired": false,
-    "startLabel": "Simulate shipping lanes",
+    "startLabel": "Run modeled voyage",
     "shuffleLabel": "Change scenario"
   },
   "defaultSeedId": "asia-europe-mainline",
@@ -36,14 +36,14 @@
     {
       "id": "north-atlantic-cyclone",
       "label": "North Atlantic cyclone",
-      "description": "Pinned severe-weather slowdown and port queue scenario.",
+      "description": "Rotterdam to New York/New Jersey with a synthetic North Atlantic cyclone disruption shaped to IBTrACS climatology.",
       "seed": "maritime-cyclone-004",
       "scenarioId": "north-atlantic-cyclone"
     },
     {
       "id": "panama-capacity-restriction",
-      "label": "Panama Canal capacity restriction",
-      "description": "Transpacific service under a Panama Canal draft/capacity restriction modeled as a queue-and-speed disruption; the governed corridor set has no Panama-transiting lane.",
+      "label": "Panama Canal restriction",
+      "description": "Long Beach to New York/New Jersey through a governed Panama corridor with a modeled canal queue restriction.",
       "seed": "maritime-panama-005",
       "scenarioId": "transpacific-panama-restriction"
     }

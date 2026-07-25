@@ -1,8 +1,9 @@
 {
-  "schema": "simulatte.plugin.interstellarRelayConfig.v1",
+  "schema": "simulatte.plugin.interstellarRelayConfig.v2",
   "id": "interstellar-relay-network-config-v1",
-  "defaultTransceiver": "deep-space-node-v1",
-  "defaultTargetStarId": "gaia-proxima",
+  "defaultTransceiver": "sol-primary-gateway",
   "defaultScenarioId": "sol-proxima-direct",
-  "processingDelayHours": 8
+  "processingDelayHours": 8,
+  "startEpochIso": "2026-07-25T00:00:00Z",
+  "targetEpochYear": 2026.5
 }

@@ -113,15 +113,15 @@
 
   function addPluginPresentation(writer, scene, snapshot) {
     if (!scene) return;
-    scene.areas.forEach((row) => addFlatPolygon(writer, row.points, row.heightM, tone(row.tone), row.intensity));
-    scene.paths.forEach((row) => addRibbon(writer, row.points, row.widthM, 0.92, tone(row.tone), row.intensity));
-    scene.markers.forEach((row) => addBeacon(writer, row.point, tone(row.tone), row.heightM, row.radiusM, row.intensity));
+    scene.areas.forEach((row) => addFlatPolygon(writer, row.points, row.heightM, semanticColor(row), row.intensity));
+    scene.paths.forEach((row) => addRibbon(writer, row.points, row.widthM, 0.92, semanticColor(row), row.intensity));
+    scene.markers.forEach((row) => addBeacon(writer, row.point, semanticColor(row), row.heightM, row.radiusM, row.intensity));
     // Geospatial (v3) primitives are already projected into planar scene points by the
     // presentation compiler, so they draw with the same beacon/ribbon/polygon builders.
-    (scene.choropleths || []).forEach((row) => addFlatPolygon(writer, row.points, 3, tone(row.tone), row.intensity));
-    (scene.geoAreas || []).forEach((row) => addFlatPolygon(writer, row.points, row.heightM, tone(row.tone), row.intensity));
-    (scene.geoPaths || []).forEach((row) => addRibbon(writer, row.points, row.widthM, 0.92, tone(row.tone), row.intensity));
-    (scene.geoMarkers || []).forEach((row) => addBeacon(writer, row.point, tone(row.tone), row.heightM, row.radiusM, row.intensity));
+    (scene.choropleths || []).forEach((row) => addFlatPolygon(writer, row.points, 3, semanticColor(row), row.intensity));
+    (scene.geoAreas || []).forEach((row) => addFlatPolygon(writer, row.points, row.heightM, semanticColor(row), row.intensity));
+    (scene.geoPaths || []).forEach((row) => addRibbon(writer, row.points, row.widthM, 0.92, semanticColor(row), row.intensity));
+    (scene.geoMarkers || []).forEach((row) => addBeacon(writer, row.point, semanticColor(row), row.heightM, row.radiusM, row.intensity));
     if (scene.sun) addOrb(writer, scene.sun.worldPosition, scene.sun.radiusM, COLORS.sun, scene.sun.intensity);
     const elapsedSeconds = Number(snapshot.state.simulatedTimeSeconds || 0);
     const usesDenseActorSignals = scene.actors.length > DENSE_PLUGIN_ACTOR_THRESHOLD;
@@ -165,6 +165,17 @@
 
   function tone(id) {
     return PLUGIN_TONES[id] || PLUGIN_TONES.muted;
+  }
+
+  function semanticColor(row) {
+    const value = row.style?.color;
+    if (typeof value !== 'string' || !/^#[a-f0-9]{6}$/i.test(value)) return tone(row.tone);
+    return Object.freeze([
+      Number.parseInt(value.slice(1, 3), 16) / 255,
+      Number.parseInt(value.slice(3, 5), 16) / 255,
+      Number.parseInt(value.slice(5, 7), 16) / 255,
+      Number(row.style.strokeOpacity ?? 1),
+    ]);
   }
 
   function createWriter(initialCapacity = 65536) {

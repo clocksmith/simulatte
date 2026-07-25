@@ -3,52 +3,42 @@
   "consumes": [],
   "datasets": [
     {
-      "id": "gaia.dr3.nearby-stars.v1",
+      "id": "gaia.dr3.nearby-stars.v2",
       "reference": {
-        "id": "gaia.dr3.nearby-stars.v1",
-        "path": "../../../data/interstellar-relay-network/gaia-dr3-nearby-stars-v1.json",
-        "schemaId": "simulatte.gaiaDr3NearbyStars.v1",
-        "sha256": "8f8a17b120029c54b26edfc35e28447deef62e91b7384e483b951378e8e665f8"
+        "id": "gaia.dr3.nearby-stars.v2",
+        "path": "../../../data/interstellar-relay-network/gaia-dr3-nearby-stars-v2.json",
+        "schemaId": "simulatte.gaiaDr3NearbyStars.v2",
+        "sha256": "3851cad4094acc14cb90e04973d23eecca8708a604e973689a46e60c93c6e7bd"
       },
       "required": true
     },
     {
-      "id": "stellar.name.crosswalk.v1",
+      "id": "relay.hardware.archetypes.v2",
       "reference": {
-        "id": "stellar.name.crosswalk.v1",
-        "path": "../../../data/interstellar-relay-network/stellar-name-crosswalk-v1.json",
-        "schemaId": "simulatte.stellarNameCrosswalk.v1",
-        "sha256": "a66a976ad2c8809e7e0e1512c11567d37ac6dd2210d9678e3da5dc10de0d64f6"
-      },
-      "required": false
-    },
-    {
-      "id": "nasa.exoplanet.hosts.v1",
-      "reference": {
-        "id": "nasa.exoplanet.hosts.v1",
-        "path": "../../../data/interstellar-relay-network/nasa-exoplanet-hosts-v1.json",
-        "schemaId": "simulatte.nasaExoplanetHosts.v1",
-        "sha256": "40cb88731407e5794611e0c042c3626fc99851879debcc33c18f33bc4e3c63f6"
-      },
-      "required": false
-    },
-    {
-      "id": "relay.hardware.archetypes.v1",
-      "reference": {
-        "id": "relay.hardware.archetypes.v1",
-        "path": "../../../data/interstellar-relay-network/relay-hardware-archetypes-v1.json",
-        "schemaId": "simulatte.relayHardwareArchetypes.v1",
-        "sha256": "b82b9b790427d649488011a8432e85a680c7fedab827f414a2b8f553b528b162"
+        "id": "relay.hardware.archetypes.v2",
+        "path": "../../../data/interstellar-relay-network/relay-hardware-archetypes-v2.json",
+        "schemaId": "simulatte.relayHardwareArchetypes.v2",
+        "sha256": "4c0d721c5b6e25c04008f8b289ebf647ebdb85eb69630c814b2208493b39e846"
       },
       "required": true
     },
     {
-      "id": "interstellar.scenario.network.v1",
+      "id": "interstellar.scenario.network.v2",
       "reference": {
-        "id": "interstellar.scenario.network.v1",
-        "path": "../../../data/interstellar-relay-network/interstellar-scenario-network-v1.json",
-        "schemaId": "simulatte.interstellarScenarioNetwork.v1",
-        "sha256": "ab4905d973e6cb92a515fadb2c9e4cc00882213e1d315fc265f85fb7753b53a7"
+        "id": "interstellar.scenario.network.v2",
+        "path": "../../../data/interstellar-relay-network/interstellar-scenario-network-v2.json",
+        "schemaId": "simulatte.interstellarScenarioNetwork.v2",
+        "sha256": "d5b3aff26171d22ff4b3a961821d6543e087d7c83b0b815cd60b0ce767da7ec0"
+      },
+      "required": true
+    },
+    {
+      "id": "interstellar.relay.models.v1",
+      "reference": {
+        "id": "interstellar.relay.models.v1",
+        "path": "../../../data/interstellar-relay-network/interstellar-relay-models-v1.json",
+        "schemaId": "simulatte.interstellarRelayModelCatalog.v1",
+        "sha256": "b190f2c419a9e19e48cc838ab647e11ee3c52b0624c5b97f4307d924ae1fc030"
       },
       "required": true
     }
@@ -56,7 +46,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginInterstellarRelayNetwork",
-    "integrity": "sha384-69ae6685f0719d45109cac5a168ef955a6456a1e0818698d1767c5c734f53d0fbc0bafbc6d25294bc62dc2387df0656f",
+    "integrity": "sha384-81620b82de117c2d5c6ff3c947dbed54ccac1e68ca2b88f753b85765f2d30982df8195efbbd83a763bdebccaaf1ad47a",
     "path": "./index.js"
   },
   "extensionPoints": [
@@ -82,31 +72,37 @@
   "provides": [
     "field.stellar-flux.v1",
     "simulation.light-delay-queue.v1",
-    "simulation.interstellar-communications.v1"
+    "simulation.interstellar-communications.v1",
+    "simulation.interstellar-relay.v4",
+    "presentation.semantic.v4",
+    "view.intents.v1",
+    "comparison.interstellar-relay.v1"
   ],
   "receiptSchemas": [
+    "simulatte.dataReceipt.v1",
+    "simulatte.modelReceipt.v1",
     "simulatte.plugin.interstellarScenarioReceipt.v1",
+    "simulatte.plugin.interstellarScenarioReceipt.v2",
     "simulatte.interstellarPacketReceipt.v1",
+    "simulatte.interstellarPacketReceipt.v2",
     "simulatte.plugin.interstellarContactScheduleReceipt.v1",
     "simulatte.plugin.opticalLinkBudgetReceipt.v1",
     "simulatte.plugin.interstellarIntegrityReceipt.v1",
-    "simulatte.plugin.interstellarCounterfactualReceipt.v1"
+    "simulatte.plugin.interstellarCounterfactualReceipt.v1",
+    "simulatte.plugin.interstellarRunReceipt.v2",
+    "simulatte.plugin.interstellarCounterfactualReceipt.v2"
   ],
   "resources": [
     {
-      "integrity": "sha384-4290d62bcb1138de7858df96d0c578fa92c95637d560b022e56a5b62210cadb66331d8b61b83f9e5162f569b4c9173a5",
-      "path": "./astrometry.js"
-    },
-    {
-      "integrity": "sha384-f4eb73170cb746782e7efb61f3d3324a6374d2f592154e2d49ddd10c504d308caea34432ed4827f9a5dedc523cb9e367",
-      "path": "./config.schema.json"
-    },
-    {
-      "integrity": "sha384-7e93c82b04f31b9beee656ecf9aa487996d55bdaec85b614422f72837b2bd7d262ca2b3650402d284cf35f519e4aacf3",
+      "integrity": "sha384-ec435ff2e5cca3512b53a5ea1da34c43541f1b81c054c78422b15792625d6eceb208980924eba71910a04a16889a0323",
       "path": "./contact-scheduler.js"
     },
     {
-      "integrity": "sha384-013ee092724ec9e60db40f29b97e97dc1921a2d6b07a6d4385b8d2f157751d49949cc6a179cff74818d0a8449d0b010d",
+      "integrity": "sha384-8ecbe3a3c7e5b47c777cfba3a2162b68c43476c225f8f3c55eff5e1df8c9549a70aad46aca045768696bd4917377f9bd",
+      "path": "./config.schema.json"
+    },
+    {
+      "integrity": "sha384-a9ec46be31be84ec9f16e432e646a6ab749e84b7f4818b4a0355254fc3e55c0ed794416ca584a72b1c01d6af28ab423c",
       "path": "./default-config.json"
     },
     {
@@ -114,39 +110,31 @@
       "path": "./integrity.js"
     },
     {
-      "integrity": "sha384-0bbe63ef830aaf7558dd7d86dcea1960ff52762e84a5a29bcefaff68822f1d2170949c2eae4b3a19623b81bcceb4d5f2",
+      "integrity": "sha384-81ff891d9909ea0983b6ff9d6d8a6306f52c2dec95dfe4a178d9b9eee293fd6919b74eead73f7aadc49eef45ef4502bc",
       "path": "./light-time.js"
     },
     {
-      "integrity": "sha384-45a4cf9a6aacc8a87f6ade0a333e0b4fce32816bb2b9ca6561942d1a291a8519ed7605332fbeebe21b8b125970678f03",
+      "integrity": "sha384-cae6463362babcd364481190c1fad39d39ed34f524ef447fcf133ec6b89efe58229f019432aaad5dc0b33f20a23a27ce",
       "path": "./metrics.js"
     },
     {
-      "integrity": "sha384-ca0ec927195bda025006bd701b3bb65aa24cb7ef1e0d8208bc2e154bab1da12959965f6941ab29d7af7acaceb72f09e5",
-      "path": "./network.js"
-    },
-    {
-      "integrity": "sha384-420962b9b1cfabe23a35a88d47ada006bb42840e3c9282b6dea88c718b9fddfb59797ca96b1e0aee908a6d1346c07ea6",
+      "integrity": "sha384-e20f28cbeec3f335d83b74648528635d0ec0f2fe209af4d6e775c58abf7ea5c9d8996fd646fd0fde21d3c29750d913b9",
       "path": "./optical-link-budget.js"
     },
     {
-      "integrity": "sha384-0dc619a25609212eb104b6e2fd32a239f02677d7381d97238636e3c28e4a7b73f8a379f7c59461f18be18e179eae1e2d",
+      "integrity": "sha384-e4495ea53f2222d9416614fb135203f36b942dfff7f34c77bba3eca5355675190d95f73883c66db127c9687b4453cd70",
       "path": "./packet-queue.js"
     },
     {
-      "integrity": "sha384-c52554e9caba9de771f98acddfe2737d0caa0dbb62935ee8ef5c553d9b3d0d53d77c3af6526b8bce7b42130b8948cbfa",
+      "integrity": "sha384-605fdc2bbfb473e458a170647f01b818e807ae776063d93346cc6f9ebfd8f06ae5394837a8afddbe8ba6ba2677e8477b",
       "path": "./presentation.js"
     },
     {
-      "integrity": "sha384-7e06e1d8083899ab05c0865a5a949c769fe489d1ace6e9c29edc4294f52b11d470e8e9942f0905e9c8de3d0f5e82a0c5",
-      "path": "./propagation.js"
-    },
-    {
-      "integrity": "sha384-cd6e5966c80d301d0959691e361332b55d1c4c71e6bb4575e74d4e5a5b404cbcd6a056e6ec164b802f960e4bfe774c93",
+      "integrity": "sha384-9f7d8d6414f30fa1ee83cc3ce1db6c1bdcfa224f7dc3b574121e30d837a077059af13625746d1abd10b74edb6067eb0c",
       "path": "./stellar-state.js"
     }
   ],
   "schema": "simulatte.pluginManifest.v2",
   "sdkVersion": 2,
-  "version": "1.0.0"
+  "version": "2.0.0"
 }

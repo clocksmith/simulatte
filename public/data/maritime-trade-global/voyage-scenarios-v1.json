@@ -1,0 +1,134 @@
+{
+  "schema": "simulatte.maritimeVoyageScenarios.v1",
+  "datasetId": "maritime.voyage.scenarios.v1",
+  "claimBoundary": "Scenario routes, distance calibrations, disruptions, cargo, and departure epoch are declared modeling inputs. They are not observed carrier services, live schedules, or navigational tracks.",
+  "scenarios": [
+    {
+      "id": "asia-europe-mainline",
+      "label": "Shanghai to Rotterdam",
+      "originPortId": "port:cnsha",
+      "destinationPortId": "port:nlrtm",
+      "distanceCalibrationNm": 10500,
+      "requiredCanalIds": [
+        "canal:suez"
+      ],
+      "blockedCanalIds": [
+        "canal:panama"
+      ],
+      "departureEpoch": "2030-01-01T00:00:00Z",
+      "truth": {
+        "origin": "scenario",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "interval",
+          "value": {
+            "relativeMinimum": -0.05,
+            "relativeMaximum": 0.05,
+            "basis": "Aggregate service-distance sensitivity, not navigational uncertainty."
+          }
+        }
+      }
+    },
+    {
+      "id": "transpacific-eastbound",
+      "label": "Shanghai to Los Angeles",
+      "originPortId": "port:cnsha",
+      "destinationPortId": "port:uslax",
+      "distanceCalibrationNm": 5700,
+      "requiredCanalIds": [],
+      "blockedCanalIds": [
+        "canal:suez",
+        "canal:panama"
+      ],
+      "departureEpoch": "2030-01-01T00:00:00Z",
+      "truth": {
+        "origin": "scenario",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "interval",
+          "value": {
+            "relativeMinimum": -0.05,
+            "relativeMaximum": 0.05,
+            "basis": "Aggregate service-distance sensitivity, not navigational uncertainty."
+          }
+        }
+      }
+    },
+    {
+      "id": "suez-closure-cape-reroute",
+      "label": "Shanghai to Rotterdam via Cape reroute",
+      "originPortId": "port:cnsha",
+      "destinationPortId": "port:nlrtm",
+      "distanceCalibrationNm": 14700,
+      "requiredCanalIds": [],
+      "blockedCanalIds": [
+        "canal:suez",
+        "canal:panama"
+      ],
+      "departureEpoch": "2030-01-01T00:00:00Z",
+      "truth": {
+        "origin": "scenario",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "interval",
+          "value": {
+            "relativeMinimum": -0.06,
+            "relativeMaximum": 0.06,
+            "basis": "Aggregate Cape service-distance sensitivity, not navigational uncertainty."
+          }
+        }
+      }
+    },
+    {
+      "id": "north-atlantic-cyclone",
+      "label": "Rotterdam to New York/New Jersey",
+      "originPortId": "port:nlrtm",
+      "destinationPortId": "port:usnyc",
+      "distanceCalibrationNm": 3400,
+      "requiredCanalIds": [],
+      "blockedCanalIds": [
+        "canal:suez",
+        "canal:panama"
+      ],
+      "departureEpoch": "2030-01-01T00:00:00Z",
+      "truth": {
+        "origin": "scenario",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "interval",
+          "value": {
+            "relativeMinimum": -0.08,
+            "relativeMaximum": 0.12,
+            "basis": "Weather-routing distance sensitivity; the cyclone track is not a forecast."
+          }
+        }
+      }
+    },
+    {
+      "id": "transpacific-panama-restriction",
+      "label": "Long Beach to New York/New Jersey via Panama",
+      "originPortId": "port:uslgb",
+      "destinationPortId": "port:usnyc",
+      "distanceCalibrationNm": 5200,
+      "requiredCanalIds": [
+        "canal:panama"
+      ],
+      "blockedCanalIds": [
+        "canal:suez"
+      ],
+      "departureEpoch": "2030-01-01T00:00:00Z",
+      "truth": {
+        "origin": "scenario",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "interval",
+          "value": {
+            "relativeMinimum": -0.06,
+            "relativeMaximum": 0.06,
+            "basis": "Aggregate canal-service distance sensitivity, not navigational uncertainty."
+          }
+        }
+      }
+    }
+  ]
+}

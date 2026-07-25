@@ -2,16 +2,90 @@
   const deterministicValues = typeof module === 'object' && module.exports
     ? require('../../shared/deterministic-values.js')
     : root.SimulatteDeterministicValues;
-  const api = factory(deterministicValues);
+  const compositorApi = typeof module === 'object' && module.exports
+    ? require('../platform/render/semantic-compositor.js')
+    : root.SimulatteSemanticCompositor;
+  const api = factory(deterministicValues, compositorApi);
   root.SimulatteTierPluginPresentation = api;
   if (typeof module === 'object' && module.exports) module.exports = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createTierPluginPresentationApi(deterministicValues) {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createTierPluginPresentationApi(deterministicValues, compositorApi) {
   const COLORS = Object.freeze({ cyan:'#4de8ff',green:'#33ff66',amber:'#ffb347',red:'#ff5c66',magenta:'#ff4fd8',violet:'#a98cff',blue:'#6da8ff',shade:'#5e7389',muted:'rgba(237,245,243,0.28)' });
 
   function compileTierPresentation(pluginPresentation, fallbackCoordinateSystem = 'wgs84') {
+    if (pluginPresentation?.schema === 'simulatte.pluginPresentation.v4') return compileSemantic(pluginPresentation);
     if (!pluginPresentation || pluginPresentation.schema !== 'simulatte.pluginPresentation.v3') return null;
     if (pluginPresentation.coordinateSystem) return compileCoordinateNative(pluginPresentation, fallbackCoordinateSystem);
     return compileGeospatial(pluginPresentation);
+  }
+
+  function compileSemantic(value) {
+    const markers = [];
+    const paths = [];
+    const actors = [];
+    const areas = [];
+    const choropleths = [];
+    const pointsById = new Map();
+    value.layers.forEach((layer) => {
+      const coordinates = layer.geometry.coordinates || [];
+      if (!coordinates.length) return;
+      pointsById.set(layer.id, coordinates);
+      const style = compositorApi.styleForLayer(layer);
+      const row = freezeRow({
+        id: layer.id,
+        label: layer.label,
+        style,
+        provenance: layer.provenance,
+        intensity: style.strokeOpacity,
+      });
+      if (['point', 'label'].includes(layer.kind)) markers.push(freezeRow({
+        ...row,
+        position: normalizeTuple(coordinates[0], value.coordinateSystem),
+        radius: style.radiusPx || 4,
+      }));
+      else if (layer.kind === 'actor') actors.push(freezeRow({
+        ...row,
+        position: normalizeTuple(coordinates[0], value.coordinateSystem),
+        radius: style.radiusPx || 5,
+      }));
+      else if (layer.kind === 'path') paths.push(freezeRow({
+        ...row,
+        coordinates: Object.freeze(coordinates.map((point) => Object.freeze(normalizeTuple(point, value.coordinateSystem)))),
+        width: style.widthPx || 1,
+      }));
+      else if (layer.kind === 'field') choropleths.push(freezeRow({
+        ...row,
+        coordinates: Object.freeze(coordinates.map((point) => Object.freeze(normalizeTuple(point, value.coordinateSystem)))),
+        value: layer.quantity?.value || 0,
+      }));
+      else if (layer.kind === 'area') areas.push(freezeRow({
+        ...row,
+        coordinates: Object.freeze(coordinates.map((point) => Object.freeze(normalizeTuple(point, value.coordinateSystem)))),
+      }));
+    });
+    const cameraTargets = value.viewIntents.flatMap((intent) => {
+      const points = intent.targetIds.flatMap((id) => pointsById.get(id) || []);
+      if (!points.length) return [];
+      return [freezeRow({
+        id: intent.id,
+        label: intent.id,
+        center: center(points),
+        distance: 0,
+        viewMode: intent.mode,
+        priority: intent.priority,
+        reasonEventId: intent.reasonEventId,
+      })];
+    });
+    return Object.freeze({
+      schema: value.schema,
+      coordinateSystem: value.coordinateSystem,
+      epoch: value.epoch,
+      markers: Object.freeze(markers),
+      paths: Object.freeze(paths),
+      actors: Object.freeze(actors),
+      areas: Object.freeze(areas),
+      choropleths: Object.freeze(choropleths),
+      cameraTargets: Object.freeze(cameraTargets),
+    });
   }
 
   function compileCoordinateNative(value, fallback) {
@@ -97,9 +171,9 @@
     const timeSeconds = Number(options.timeSeconds || 0);
     contributions.forEach((presentation) => {
       const projection = (position) => project(position, presentation.coordinateSystem);
-      presentation.areas.forEach((area) => drawPolygon(ctx, area.coordinates, projection, area.tone, area.intensity));
-      presentation.choropleths.forEach((area) => drawPolygon(ctx, area.coordinates, projection, area.tone, Math.min(1.6, Number(area.intensity || 0.5))));
-      presentation.paths.forEach((path) => drawPath(ctx, path.coordinates, projection, path.tone, path.width));
+      presentation.areas.forEach((area) => drawPolygon(ctx, area.coordinates, projection, area));
+      presentation.choropleths.forEach((area) => drawPolygon(ctx, area.coordinates, projection, area));
+      presentation.paths.forEach((path) => drawPath(ctx, path.coordinates, projection, path));
       presentation.markers.forEach((marker) => drawMarker(ctx, projection(marker.position), marker, false));
       presentation.actors.forEach((actor) => {
         const pulse = 0.85 + Math.sin(timeSeconds * 2 + hash(actor.id)) * 0.15;
@@ -108,24 +182,33 @@
     });
   }
 
-  function drawPath(ctx, coordinates, project, tone, width) {
+  function drawPath(ctx, coordinates, project, path) {
     if (!coordinates || coordinates.length < 2) return;
     ctx.beginPath();
     coordinates.forEach((coordinate, index) => { const point=project(coordinate); if(index===0)ctx.moveTo(point.x,point.y); else ctx.lineTo(point.x,point.y); });
-    ctx.strokeStyle = color(tone, 0.8); ctx.lineWidth = Math.max(1, Math.min(8, Number(width || 2))); ctx.stroke();
+    ctx.strokeStyle = color(path.tone, path.style?.strokeOpacity ?? 0.8, path.style?.color);
+    ctx.lineWidth = Math.max(1, Math.min(4, Number(path.style?.widthPx || path.width || 2)));
+    ctx.setLineDash(path.style?.dash || []);
+    ctx.stroke();
+    ctx.setLineDash([]);
   }
-  function drawPolygon(ctx, coordinates, project, tone, intensity) {
+  function drawPolygon(ctx, coordinates, project, area) {
     if (!coordinates || coordinates.length < 3) return;
     ctx.beginPath();
     coordinates.forEach((coordinate,index)=>{const point=project(coordinate);if(index===0)ctx.moveTo(point.x,point.y);else ctx.lineTo(point.x,point.y);});
-    ctx.closePath(); ctx.fillStyle=color(tone,Math.max(0.06,Math.min(0.36,Number(intensity||0.4)*0.15))); ctx.strokeStyle=color(tone,0.55); ctx.fill(); ctx.stroke();
+    ctx.closePath();
+    ctx.fillStyle=color(area.tone,area.style?.fillOpacity ?? Math.max(0.06,Math.min(0.36,Number(area.intensity||0.4)*0.15)),area.style?.color);
+    ctx.strokeStyle=color(area.tone,area.style?.strokeOpacity ?? 0.55,area.style?.color);
+    ctx.fill();
+    ctx.stroke();
   }
   function drawMarker(ctx, point, marker, actor) {
     const radius = Math.max(2, Math.min(12, Number(marker.radius || marker.radiusM || (actor?4:5))));
-    ctx.beginPath(); ctx.arc(point.x, point.y, radius, 0, Math.PI*2); ctx.fillStyle=color(marker.tone,0.95); ctx.shadowBlur=actor?12:8; ctx.shadowColor=color(marker.tone,0.9); ctx.fill(); ctx.shadowBlur=0;
+    ctx.beginPath(); ctx.arc(point.x, point.y, radius, 0, Math.PI*2); ctx.fillStyle=color(marker.tone,marker.style?.fillOpacity??0.95,marker.style?.color); ctx.shadowBlur=actor?12:8; ctx.shadowColor=color(marker.tone,marker.style?.strokeOpacity??0.9,marker.style?.color); ctx.fill(); ctx.shadowBlur=0;
     if (marker.label && radius >= 4) { ctx.fillStyle='rgba(237,245,243,0.78)'; ctx.font='10px sans-serif'; ctx.fillText(marker.label,point.x+radius+3,point.y+3); }
   }
-  function color(tone, alpha) { const value=COLORS[tone]||COLORS.muted; if(value.startsWith('rgba')) return value; const a=Math.max(0,Math.min(1,alpha)); return `${value}${Math.round(a*255).toString(16).padStart(2,'0')}`; }
+  function color(tone, alpha, semantic = null) { const value=semantic||COLORS[tone]||COLORS.muted; if(value.startsWith('rgba')) return value; const a=Math.max(0,Math.min(1,alpha)); return `${value}${Math.round(a*255).toString(16).padStart(2,'0')}`; }
+  function center(points) { const xs=points.map((row)=>row[0]);const ys=points.map((row)=>row[1]);return Object.freeze([(Math.min(...xs)+Math.max(...xs))/2,(Math.min(...ys)+Math.max(...ys))/2,0]); }
   function normalizeTuple(value, system) { if(!Array.isArray(value)||value.length<2||value.length>3||value.some((row)=>!Number.isFinite(row))) throw new Error(`tier_presentation_position_invalid: ${system}`); return Object.freeze([Number(value[0]),Number(value[1]),Number(value[2]||0)]); }
   function freezeRow(value) { return Object.freeze(value); }
   function hash(value) { return deterministicValues.fnv1a32CodePoints(value) / 4294967296 * Math.PI * 2; }
