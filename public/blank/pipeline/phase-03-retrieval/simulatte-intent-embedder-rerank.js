@@ -1,7 +1,6 @@
 (function attachSimulatteIntentEmbedderrerank(root) {
-  const scope = root.__SimulatteIntentEmbedderRefactorScope;
-  if (!scope || scope.missingDependency) return;
-  with (scope) {
+  const scope = root.SimulattePhaseModuleRegistry.family('intentEmbedder');
+
     function cloneJsonValue(value) {
         if (value == null) return null;
         return JSON.parse(JSON.stringify(value));
@@ -15,7 +14,7 @@
         if (!rawModuleUrl) throw new Error('model runtime lock did not provide a Doppler module URL');
         const moduleUrl = typeof location === 'undefined'
           ? rawModuleUrl
-          : resolveUrl(rawModuleUrl, location.href);
+          : scope.resolveUrl(rawModuleUrl, location.href);
         try {
           const mod = await import(moduleUrl);
           return mod.doppler || mod.default || mod;
@@ -30,7 +29,7 @@
         if (!rawPath) throw new Error('model runtime lock did not provide a Doppler kernel base path');
         const resolvedPath = typeof location === 'undefined'
           ? rawPath
-          : resolveUrl(rawPath, location.href);
+          : scope.resolveUrl(rawPath, location.href);
         const existing = globalThis.__DOPPLER_KERNEL_BASE_PATH__;
         if (typeof existing === 'string' && existing.trim()) {
           if (existing.replace(/\/+$/, '') !== resolvedPath.replace(/\/+$/, '')) {
@@ -52,9 +51,9 @@
       }
 
     async function verifyPromptRuntimeProvider(runtime, provider, options = {}) {
-        const started = nowMs();
-        const probes = PROMPT_RUNTIME_PROBES;
-        emitRuntimeProgress(options.progress || null, Boolean(options.trace), {
+        const started = scope.nowMs();
+        const probes = scope.PROMPT_RUNTIME_PROBES;
+        scope.emitRuntimeProgress(options.progress || null, Boolean(options.trace), {
           source: 'simulatte-intent-embedder',
           stage: 'model-probe',
           percent: 94,
@@ -72,7 +71,7 @@
             text: probe.text,
             nowIso: options.nowIso || new Date().toISOString(),
           });
-          const vector = validateQueryEmbedding(result, runtime.index);
+          const vector = scope.validateQueryEmbedding(result, runtime.index);
           rows.push({
             id: probe.id,
             text: probe.text,
@@ -80,7 +79,7 @@
             vector,
             hash: embeddingVectorHash(vector),
           });
-          emitRuntimeProgress(options.progress || null, Boolean(options.trace), {
+          scope.emitRuntimeProgress(options.progress || null, Boolean(options.trace), {
             source: 'simulatte-intent-embedder',
             stage: 'model-probe',
             percent: 94 + (i + 1) / Math.max(1, probes.length) * 0.6,
@@ -96,30 +95,30 @@
           text: probes[0].text,
           nowIso: options.nowIso || new Date().toISOString(),
         });
-        const repeatVector = validateQueryEmbedding(repeatResult, runtime.index);
+        const repeatVector = scope.validateQueryEmbedding(repeatResult, runtime.index);
         const stabilitySimilarity = unclampedDot(rows[0].vector, repeatVector);
-        if (stabilitySimilarity < PROMPT_RUNTIME_STABILITY_THRESHOLD) {
-          throw new Error(`prompt runtime embedding probe is unstable (${stabilitySimilarity.toFixed(6)} < ${PROMPT_RUNTIME_STABILITY_THRESHOLD})`);
+        if (stabilitySimilarity < scope.PROMPT_RUNTIME_STABILITY_THRESHOLD) {
+          throw new Error(`prompt runtime embedding probe is unstable (${stabilitySimilarity.toFixed(6)} < ${scope.PROMPT_RUNTIME_STABILITY_THRESHOLD})`);
         }
         const diversity = promptRuntimeProbeDiversity(rows.map((row) => row.vector));
-        if (diversity.maxSimilarity > PROMPT_RUNTIME_DIVERSITY_THRESHOLD) {
-          throw new Error(`prompt runtime embedding provider returned degenerate probe embeddings (${diversity.maxSimilarity.toFixed(6)} > ${PROMPT_RUNTIME_DIVERSITY_THRESHOLD})`);
+        if (diversity.maxSimilarity > scope.PROMPT_RUNTIME_DIVERSITY_THRESHOLD) {
+          throw new Error(`prompt runtime embedding provider returned degenerate probe embeddings (${diversity.maxSimilarity.toFixed(6)} > ${scope.PROMPT_RUNTIME_DIVERSITY_THRESHOLD})`);
         }
         const probe = {
           ok: true,
-          durationMs: elapsedMsSince(started),
+          durationMs: scope.elapsedMsSince(started),
           embeddingDim: rows[0] ? rows[0].embeddingDim : runtime.index.embeddingDim,
           probeCount: rows.length,
           probeIds: rows.map((row) => row.id),
           probeHashes: rows.map((row) => row.hash),
           repeatedProbeId: probes[0] && probes[0].id || '',
           stabilitySimilarity: Number(stabilitySimilarity.toFixed(6)),
-          stabilityThreshold: PROMPT_RUNTIME_STABILITY_THRESHOLD,
+          stabilityThreshold: scope.PROMPT_RUNTIME_STABILITY_THRESHOLD,
           maxDistinctProbeSimilarity: Number(diversity.maxSimilarity.toFixed(6)),
-          diversityThreshold: PROMPT_RUNTIME_DIVERSITY_THRESHOLD,
+          diversityThreshold: scope.PROMPT_RUNTIME_DIVERSITY_THRESHOLD,
           distinctProbePairs: diversity.pairCount,
         };
-        emitRuntimeProgress(options.progress || null, Boolean(options.trace), {
+        scope.emitRuntimeProgress(options.progress || null, Boolean(options.trace), {
           source: 'simulatte-intent-embedder',
           stage: 'model-probe',
           percent: 95,
@@ -139,8 +138,8 @@
       }
 
     async function verifyPromptRuntimeReranker(runtime, provider, options = {}) {
-        const config = rerankerConfig(runtime);
-        const required = rerankerRequired(runtime);
+        const config = scope.rerankerConfig(runtime);
+        const required = scope.rerankerRequired(runtime);
         const capability = resolveRerankerCapability(provider, options);
         const base = {
           schema: 'simulatte.promptRuntimeRerankerReceipt.v1',
@@ -176,8 +175,8 @@
         if (!capability) {
           throw new Error(`intent manifest requires Doppler reranker ${config.id}, but no rerank capability is available`);
         }
-        const started = nowMs();
-        emitRuntimeProgress(options.progress || null, Boolean(options.trace), {
+        const started = scope.nowMs();
+        scope.emitRuntimeProgress(options.progress || null, Boolean(options.trace), {
           source: 'simulatte-intent-embedder',
           stage: 'model-rerank-probe',
           percent: 95.2,
@@ -190,11 +189,11 @@
         });
         const input = rerankerProbeInput(options.nowIso);
         const result = await capability.rerank(input);
-        const rows = normalizeRerankerRows(result);
+        const rows = scope.normalizeRerankerRows(result);
         if (!rows.length) {
           throw new Error(`intent manifest requires Doppler reranker ${config.id}, but the probe returned no ranked candidates`);
         }
-        emitRuntimeProgress(options.progress || null, Boolean(options.trace), {
+        scope.emitRuntimeProgress(options.progress || null, Boolean(options.trace), {
           source: 'simulatte-intent-embedder',
           stage: 'model-rerank-probe',
           percent: 95.8,
@@ -204,7 +203,7 @@
           backend: capability.backend,
           reranker: config.id,
           rerankerPhase: 3,
-          durationMs: elapsedMsSince(started),
+          durationMs: scope.elapsedMsSince(started),
           probeCandidateCount: input.candidates.length,
           probeOutputCount: rows.length,
         });
@@ -214,7 +213,7 @@
           modelExecuted: true,
           modelNotExecutedReason: null,
           status: 'ready',
-          durationMs: elapsedMsSince(started),
+          durationMs: scope.elapsedMsSince(started),
           probeCount: 1,
           probeCandidateCount: input.candidates.length,
           probeOutputCount: rows.length,
@@ -255,7 +254,7 @@
           { backend: 'global-doppler-reranker', target: globalReranker },
         ];
         for (const candidate of candidates) {
-          const rerank = rerankFunctionForTarget(candidate.target);
+          const rerank = scope.rerankFunctionForTarget(candidate.target);
           if (rerank) {
             return {
               backend: candidate.backend,
@@ -307,7 +306,7 @@
         const embedModel = manifest.embedModel || {};
         const probe = details.probe || {};
         const rerankerProbe = details.rerankerProbe || {};
-        const reranker = rerankerConfig(runtime);
+        const reranker = scope.rerankerConfig(runtime);
         const embeddingCache = details.embeddingCache || null;
         const rerankerCache = details.rerankerCache || null;
         const cacheReceipts = [embeddingCache, rerankerCache].filter(Boolean);
@@ -326,13 +325,13 @@
           modelRuntimeLock: {
             id: manifest.modelRuntimeLock && manifest.modelRuntimeLock.id || '',
             number: Number(manifest.modelRuntimeLock && manifest.modelRuntimeLock.number || 0),
-            artifactHash: hashHex(manifest.modelRuntimeLock && manifest.modelRuntimeLock.artifactHash),
+            artifactHash: scope.hashHex(manifest.modelRuntimeLock && manifest.modelRuntimeLock.artifactHash),
           },
           classificationTierPolicy: manifest.classification || null,
           classificationCalibration: null,
           modelId: runtime.index && runtime.index.embedModelId || embedModel.id || '',
           modelBaseUrl: embedModel.defaultModelBaseUrl || '',
-          modelHash: hashHex(embedModel.manifestHash) || hashHex(runtime.index && runtime.index.embedModelHash),
+          modelHash: scope.hashHex(embedModel.manifestHash) || scope.hashHex(runtime.index && runtime.index.embedModelHash),
           embeddingDim: runtime.index && runtime.index.embeddingDim || probe.embeddingDim || 0,
           primitiveIndexId: runtime.index && runtime.index.id || '',
           primitiveIndexHash: runtime.index && runtime.index.indexHash || '',
@@ -345,7 +344,7 @@
           reranker: reranker.enabled ? reranker.id : '',
           rerankerCandidateId: reranker.id,
           rerankerModelId: reranker.enabled && reranker.model && reranker.model.id || '',
-          rerankerModelHash: reranker.enabled ? hashHex(reranker.model && reranker.model.manifestHash) : '',
+          rerankerModelHash: reranker.enabled ? scope.hashHex(reranker.model && reranker.model.manifestHash) : '',
           rerankerKind: reranker.kind,
           rerankerPhase: 3,
           rerankerEnabled: reranker.enabled === true,
@@ -382,9 +381,9 @@
           probeHashes: probe.probeHashes || [],
           repeatedProbeId: probe.repeatedProbeId || '',
           stabilitySimilarity: probe.stabilitySimilarity || 0,
-          stabilityThreshold: probe.stabilityThreshold || PROMPT_RUNTIME_STABILITY_THRESHOLD,
+          stabilityThreshold: probe.stabilityThreshold || scope.PROMPT_RUNTIME_STABILITY_THRESHOLD,
           maxDistinctProbeSimilarity: probe.maxDistinctProbeSimilarity || 0,
-          diversityThreshold: probe.diversityThreshold || PROMPT_RUNTIME_DIVERSITY_THRESHOLD,
+          diversityThreshold: probe.diversityThreshold || scope.PROMPT_RUNTIME_DIVERSITY_THRESHOLD,
           distinctProbePairs: probe.distinctProbePairs || 0,
           durationMs: Number(details.durationMs || 0),
           providerLoadMs: Number(details.providerLoadMs || 0),
@@ -425,7 +424,7 @@
       }
 
     function modelSummary(runtime, query, provider) {
-        const reranker = rerankerConfig(runtime);
+        const reranker = scope.rerankerConfig(runtime);
         return {
           id: runtime.index.embedModelId,
           family: runtime.manifest.embedModel.family || 'local-model',
@@ -458,7 +457,7 @@
       }
 
     function blankResult(runtime) {
-        const reranker = rerankerConfig(runtime);
+        const reranker = scope.rerankerConfig(runtime);
         return {
           model: {
             id: runtime.index.embedModelId,
@@ -487,19 +486,19 @@
           promptRuntimeReceipt: runtime.promptRuntimeReceipt || null,
           priors: [],
           cardMatches: [],
-          universeMatches: rankUniverseIndexes(runtime.universe, '', null, {}),
+          universeMatches: scope.rankUniverseIndexes(runtime.universe, '', null, {}),
           rerank: {
             schema: 'simulatte.intentRerank.v1',
             phase: 3,
             phaseId: 'retrieval',
             stage: 'blank',
-            required: rerankerRequired(runtime),
+            required: scope.rerankerRequired(runtime),
             model: reranker.enabled ? reranker.id : null,
             modelCandidateId: reranker.id,
             rerankerKind: reranker.kind,
             rerankerPhase: 3,
             rerankerMode: 'heuristic-fusion',
-            modelRequired: rerankerRequired(runtime),
+            modelRequired: scope.rerankerRequired(runtime),
             modelReady: false,
             modelStatus: 'blank',
             qualificationStatus: reranker.qualification && reranker.qualification.status || '',
@@ -516,17 +515,17 @@
           },
           semanticRag: null,
           dopplerIntent: null,
-          spanRetrieval: emptySpanRetrieval([], spanConfigFor(runtime, {}, null), 'blank'),
+          spanRetrieval: scope.emptySpanRetrieval([], scope.spanConfigFor(runtime, {}, null), 'blank'),
           evidenceRows: [],
           retrievalPhase: 'blank',
         };
       }
 
     function primitivePriorFromScore(primitive, rawScore) {
-        const modelScore = clamp01(Number(rawScore || 0));
+        const modelScore = scope.clamp01(Number(rawScore || 0));
         return {
           primitiveId: primitive.id,
-          layer: canonicalLayer(primitive.layer || primitive.type),
+          layer: scope.canonicalLayer(primitive.layer || primitive.type),
           rawLayer: primitive.layer || primitive.type || 'component',
           type: primitive.type,
           domains: primitive.domains || [],
@@ -576,8 +575,8 @@
         traceId,
         rankId,
       }) {
-        const local = rerankPriors(priors, semanticRag, dopplerIntent, runtime, universeMatches);
-        const config = rerankerConfig(runtime);
+        const local = scope.rerankPriors(priors, semanticRag, dopplerIntent, runtime, universeMatches);
+        const config = scope.rerankerConfig(runtime);
         const conditionalApi = root.SimulatteConditionalReranking;
         if (!conditionalApi || typeof conditionalApi.decide !== 'function') {
           throw new Error('conditional reranking policy is unavailable');
@@ -587,7 +586,7 @@
           config,
           activationReceipt: config.conditionalActivation || null,
         });
-        const required = rerankerRequired(runtime);
+        const required = scope.rerankerRequired(runtime);
         if (config.enabled && conditionalDecision.action !== 'rerank') {
           return {
             priors: local.priors,
@@ -643,7 +642,7 @@
             phaseLabel,
           });
           if (typeof progress === 'function') {
-            input.onProgress = (row = {}) => emitRuntimeProgress(progress, trace === true, {
+            input.onProgress = (row = {}) => scope.emitRuntimeProgress(progress, trace === true, {
               source: 'simulatte-intent-embedder',
               stage: 'model-rerank',
               percent: 95.6,
@@ -669,11 +668,11 @@
             input.onProgress({ completed: 0, total: input.candidates.length });
           }
           const result = await capability.rerank(input);
-          const modelRows = normalizeRerankerRows(result);
+          const modelRows = scope.normalizeRerankerRows(result);
           if (!modelRows.length) {
             throw new Error(`Doppler reranker ${config.id} returned no ranked candidates`);
           }
-          const rows = applyModelRerank(local.priors, modelRows, input.candidates);
+          const rows = scope.applyModelRerank(local.priors, modelRows, input.candidates);
           return {
             priors: rows,
             receipt: {
@@ -681,7 +680,7 @@
               stage: phaseLabel || local.receipt.stage,
               model: config.id,
               rerankerModelId: config.model && config.model.id || '',
-              rerankerModelHash: hashHex(config.model && config.model.manifestHash),
+              rerankerModelHash: scope.hashHex(config.model && config.model.manifestHash),
               rerankerKind: config.kind,
               rerankerMode: 'doppler-reranker',
               modelReady: true,
@@ -709,7 +708,7 @@
                 scoringPath: row.scoringPath,
                 executionDurationMs: row.executionDurationMs,
               })),
-              ...rerankExecutionSummary(modelRows),
+              ...scope.rerankExecutionSummary(modelRows),
               conditionalDecision,
               top: rows.slice(0, 12).map((row) => row.primitiveId),
             },
@@ -743,7 +742,7 @@
         runtime,
         phaseLabel,
       }) {
-        const config = rerankerConfig(runtime);
+        const config = scope.rerankerConfig(runtime);
         const limit = config.maxCandidatesPerCall;
         const selection = selectEvidenceBackedRerankPriors(priors, slotRetrieval, limit);
         const selectedPriors = selection.priors;
@@ -752,7 +751,7 @@
           phase: 3,
           phaseId: 'retrieval',
           stage: phaseLabel || 'span-refined',
-          reranker: rerankerId(runtime),
+          reranker: scope.rerankerId(runtime),
           selection: {
             mode: selection.mode,
             candidateBudgetPolicy: selection.candidateBudgetPolicy,
@@ -803,7 +802,7 @@
     function selectEvidenceBackedRerankPriors(priors = [], slotRetrieval = null, limit = 0) {
       const maximum = Math.max(0, Number(limit || 0));
       const byId = new Map(priors.map((row) => [row.primitiveId, row]));
-      const groups = (slotRetrieval && slotRetrieval.bySlot || []).map((slot) => uniqueStrings(
+      const groups = (slotRetrieval && slotRetrieval.bySlot || []).map((slot) => scope.uniqueStrings(
         (slot.constructionCandidates || []).flatMap((candidate) => (
           candidate.construction && candidate.construction.primitiveHints || []
         ))
@@ -842,7 +841,7 @@
       };
     }
 
-    Object.assign(scope, {
+    root.SimulattePhaseModuleRegistry.define('intentEmbedder', 'simulatte-intent-embedder-rerank.js', {
       cloneJsonValue,
       resolveDopplerApi,
       ensureDopplerKernelBasePath,
@@ -866,5 +865,5 @@
       buildRerankInput,
       selectEvidenceBackedRerankPriors,
     });
-  }
+
 })(typeof globalThis !== 'undefined' ? globalThis : window);

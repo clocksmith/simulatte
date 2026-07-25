@@ -1,118 +1,117 @@
 (function attachSimulattePhysicsModelactivationfusion(root) {
-  const scope = root.__SimulattePhysicsModelRefactorScope;
-  if (!scope || scope.missingDependency) return;
-  with (scope) {
+  const scope = root.SimulattePhaseModuleRegistry.family('physicsModel');
+
     function phase3SlotEvidenceStatus(slot = {}, acceptedCandidates = [], supportOnlyCandidates = []) {
-    		    if (slot.slotRole === 'visual') return 'pending';
-    		    if (acceptedCandidates.length > 0) {
-    		      return slot.slotRole === 'medium' && slot.inferred === true ? 'expanded' : 'preserved';
-    		    }
-    		    if (supportOnlyCandidates.length > 0) return 'pending';
-    	    return slot.required === false ? 'unsupported' : 'lost';
-    	  }
+            if (slot.slotRole === 'visual') return 'pending';
+            if (acceptedCandidates.length > 0) {
+              return slot.slotRole === 'medium' && slot.inferred === true ? 'expanded' : 'preserved';
+            }
+            if (supportOnlyCandidates.length > 0) return 'pending';
+          return slot.required === false ? 'unsupported' : 'lost';
+        }
 
     function phase3CandidateType(row = {}) {
-    	    if (row.cardId || row.visualHints || row.shapeHints) return 'surface-card';
-    	    if (row.canonicalId || row.conceptId) return 'universe-row';
-    	    if (row.operatorType || row.operatorTypes) return 'operator';
-    	    return 'primitive';
-    	  }
+          if (row.cardId || row.visualHints || row.shapeHints) return 'surface-card';
+          if (row.canonicalId || row.conceptId) return 'universe-row';
+          if (row.operatorType || row.operatorTypes) return 'operator';
+          return 'primitive';
+        }
 
     function phase3AcceptedCandidatesBySlot(slotEvidence = []) {
-    	    return Object.fromEntries((slotEvidence || [])
-    	      .filter((slot) => (slot.acceptedCandidates || []).length > 0)
-    	      .map((slot) => [
-    	        slot.slotId,
-    	        (slot.acceptedCandidates || []).slice(),
-    	      ]));
-    	  }
+          return Object.fromEntries((slotEvidence || [])
+            .filter((slot) => (slot.acceptedCandidates || []).length > 0)
+            .map((slot) => [
+              slot.slotId,
+              (slot.acceptedCandidates || []).slice(),
+            ]));
+        }
 
     function phase3SupportOnlyCandidates(primitiveCuration = {}, slotEvidence = []) {
-    	    return uniqueById([
-    	      ...(primitiveCuration.supportPrimitives || []).map((row) => phase3EvidenceBucketRow(row)),
-    	      ...(slotEvidence || []).flatMap((slot) => (slot.candidates || [])
-    	        .filter((candidate) => candidate.supportOnly === true)
-    	        .map((candidate) => ({
-    	          id: candidate.candidateId,
-    	          label: candidate.candidateText,
-    	          slotId: slot.slotId,
-    	          slotRole: slot.slotRole,
-    	          supportOnly: true,
-    	          reason: candidate.reason,
-    	        }))),
-    	    ]);
-    	  }
+          return scope.uniqueById([
+            ...(primitiveCuration.supportPrimitives || []).map((row) => scope.phase3EvidenceBucketRow(row)),
+            ...(slotEvidence || []).flatMap((slot) => (slot.candidates || [])
+              .filter((candidate) => candidate.supportOnly === true)
+              .map((candidate) => ({
+                id: candidate.candidateId,
+                label: candidate.candidateText,
+                slotId: slot.slotId,
+                slotRole: slot.slotRole,
+                supportOnly: true,
+                reason: candidate.reason,
+              }))),
+          ]);
+        }
 
     function phase3RejectedGenericCandidates(primitiveCuration = {}, typedEvidenceBuckets = {}) {
-    	    const buckets = typedEvidenceBuckets.buckets || {};
-    	    return uniqueById([
-    	      ...(primitiveCuration.rejectedSupportPrimitives || []).filter(phase3SupportRowIsGeneric).map((row) => phase3EvidenceBucketRow(row)),
-    	      ...(buckets.rejectedGenericEvidence || []),
-    	    ]);
-    	  }
+          const buckets = typedEvidenceBuckets.buckets || {};
+          return scope.uniqueById([
+            ...(primitiveCuration.rejectedSupportPrimitives || []).filter(scope.phase3SupportRowIsGeneric).map((row) => scope.phase3EvidenceBucketRow(row)),
+            ...(buckets.rejectedGenericEvidence || []),
+          ]);
+        }
 
     function phase3MissingRequiredSlots(queryPlan = {}, acceptedCandidatesBySlot = {}) {
-    	    return (queryPlan.slots || []).filter((slot) => {
-    	      if (slot.required === false) return false;
-    	      if (slot.slotRole === 'visual') return false;
-    	      return !(acceptedCandidatesBySlot[slot.slotId] || []).length;
-    	    }).map((slot) => phaseCarryObject({
-    	      schema: 'simulatte.phase3MissingRequiredSlot.v1',
-    	      id: slot.slotId || slot.entryId || '',
-    	      slotId: slot.slotId || '',
-    	      slotRole: slot.slotRole || '',
-    	      entryId: slot.entryId || '',
-    	      required: true,
-    	      status: 'lost',
-    	      reason: 'required retrieval slot had no literal candidate evidence',
-    	    }));
-    	  }
+          return (queryPlan.slots || []).filter((slot) => {
+            if (slot.required === false) return false;
+            if (slot.slotRole === 'visual') return false;
+            return !(acceptedCandidatesBySlot[slot.slotId] || []).length;
+          }).map((slot) => phaseCarryObject({
+            schema: 'simulatte.phase3MissingRequiredSlot.v1',
+            id: slot.slotId || slot.entryId || '',
+            slotId: slot.slotId || '',
+            slotRole: slot.slotRole || '',
+            entryId: slot.entryId || '',
+            required: true,
+            status: 'lost',
+            reason: 'required retrieval slot had no literal candidate evidence',
+          }));
+        }
 
     function phase3RerankReceipt(sourceReceipt = null, queryPlan = {}, slotEvidence = [], missingRequiredSlots = [], slotRetrieval = null) {
         const hasModelSlotRetrieval = slotRetrieval && Number(
           slotRetrieval.modelEvidenceSlotCount || slotRetrieval.embeddedSlotCount || 0
         ) > 0;
-    		    return phaseCarryObject({
-    		      schema: 'simulatte.phase3SlotAwareRerankReceipt.v1',
-    		      sourceSchema: sourceReceipt && sourceReceipt.schema || '',
-    		      sourceBackend: sourceReceipt && (sourceReceipt.backend || sourceReceipt.modelBackend) || '',
-    		      sourceModelId: sourceReceipt && (sourceReceipt.modelId || sourceReceipt.rerankerModelId) || '',
-    		      mode: hasModelSlotRetrieval ? 'model-slot-aware-rerank' : 'slot-aware-retrieval-gate',
-    		      queryPlanSchema: queryPlan.schema || '',
-    		      slotRetrievalSchema: slotRetrieval && slotRetrieval.schema || '',
-    		      embeddedSlotCount: slotRetrieval && Number(slotRetrieval.embeddedSlotCount || 0) || 0,
+            return phaseCarryObject({
+              schema: 'simulatte.phase3SlotAwareRerankReceipt.v1',
+              sourceSchema: sourceReceipt && sourceReceipt.schema || '',
+              sourceBackend: sourceReceipt && (sourceReceipt.backend || sourceReceipt.modelBackend) || '',
+              sourceModelId: sourceReceipt && (sourceReceipt.modelId || sourceReceipt.rerankerModelId) || '',
+              mode: hasModelSlotRetrieval ? 'model-slot-aware-rerank' : 'slot-aware-retrieval-gate',
+              queryPlanSchema: queryPlan.schema || '',
+              slotRetrievalSchema: slotRetrieval && slotRetrieval.schema || '',
+              embeddedSlotCount: slotRetrieval && Number(slotRetrieval.embeddedSlotCount || 0) || 0,
               promptEmbeddingSlotCount: slotRetrieval && Number(slotRetrieval.promptEmbeddingSlotCount || 0) || 0,
               modelEvidenceSlotCount: slotRetrieval && Number(slotRetrieval.modelEvidenceSlotCount || 0) || 0,
               slotEmbeddingDurationMs: slotRetrieval && Number(slotRetrieval.slotEmbeddingDurationMs || 0) || 0,
-    		      slotRerankCallCount: slotRetrieval && Number(slotRetrieval.rerankCallCount || 0) || 0,
-    		      slotRetrievalCandidateCount: slotRetrieval && Number(slotRetrieval.candidateCount || 0) || 0,
-    		      slotCount: slotEvidence.length,
-    	      requiredSlotCount: queryPlan.summary && queryPlan.summary.requiredSlotCount || 0,
-    	      satisfiedSlotCount: (slotEvidence || []).filter((row) => row.acceptedCount > 0).length,
-    	      supportOnlySlotCount: (slotEvidence || []).filter((row) => row.acceptedCount === 0 && row.supportOnlyCount > 0).length,
-    	      missingRequiredSlotCount: missingRequiredSlots.length,
-    	      missingRequiredSlotIds: missingRequiredSlots.map((row) => row.slotId).filter(Boolean),
-    	      source: sourceReceipt || null,
-    	    });
-    	  }
+              slotRerankCallCount: slotRetrieval && Number(slotRetrieval.rerankCallCount || 0) || 0,
+              slotRetrievalCandidateCount: slotRetrieval && Number(slotRetrieval.candidateCount || 0) || 0,
+              slotCount: slotEvidence.length,
+            requiredSlotCount: queryPlan.summary && queryPlan.summary.requiredSlotCount || 0,
+            satisfiedSlotCount: (slotEvidence || []).filter((row) => row.acceptedCount > 0).length,
+            supportOnlySlotCount: (slotEvidence || []).filter((row) => row.acceptedCount === 0 && row.supportOnlyCount > 0).length,
+            missingRequiredSlotCount: missingRequiredSlots.length,
+            missingRequiredSlotIds: missingRequiredSlots.map((row) => row.slotId).filter(Boolean),
+            source: sourceReceipt || null,
+          });
+        }
 
     function phase3CompositionLedger(
-    	    typedEvidenceBuckets = {},
-    	    languageGraph = {},
-    	    sourceLedger = null,
-    	    queryPlan = {},
-    	    acceptedCandidatesBySlot = {},
-    	    missingRequiredSlots = []
-    	  ) {
-    	    const buckets = typedEvidenceBuckets.buckets || {};
-    	    const sourceObligations = sourceLedger && Array.isArray(sourceLedger.obligations) ? sourceLedger.obligations : [];
-    	    const obligations = sourceObligations.map((row) => ({
-    	      ...row,
-    	      status: phase3ObligationStatus(row, acceptedCandidatesBySlot, missingRequiredSlots),
-    	      phase: 3,
-    	      receiptId: 'phase3-retrieval-rerank',
-    	    }));
-    	    const add = (row) => obligations.push(phaseCarryObject(row));
+          typedEvidenceBuckets = {},
+          languageGraph = {},
+          sourceLedger = null,
+          queryPlan = {},
+          acceptedCandidatesBySlot = {},
+          missingRequiredSlots = []
+        ) {
+          const buckets = typedEvidenceBuckets.buckets || {};
+          const sourceObligations = sourceLedger && Array.isArray(sourceLedger.obligations) ? sourceLedger.obligations : [];
+          const obligations = sourceObligations.map((row) => ({
+            ...row,
+            status: phase3ObligationStatus(row, acceptedCandidatesBySlot, missingRequiredSlots),
+            phase: 3,
+            receiptId: 'phase3-retrieval-rerank',
+          }));
+          const add = (row) => obligations.push(phaseCarryObject(row));
         const bucketRowsBySlotRole = {
           actor: buckets.literalPromptObjects || [],
           object: buckets.literalPromptObjects || [],
@@ -134,7 +133,7 @@
           if (!kind || !slot.entryId) continue;
           const target = String(slot.entryId).replace(/^[a-z]+:/, '');
           if (!target) continue;
-          const evidenceRows = phase3FilterRowsForEntry(bucketRowsBySlotRole[slot.slotRole] || [], slot.entryId);
+          const evidenceRows = scope.phase3FilterRowsForEntry(bucketRowsBySlotRole[slot.slotRole] || [], slot.entryId);
           const accepted = (acceptedCandidatesBySlot[slot.slotId] || []).length > 0;
           const row = {
             id: slot.entryId,
@@ -189,37 +188,37 @@
             phase: 3,
           });
         }
-    	    const losses = (missingRequiredSlots || []).map((slot) => ({
-    	      id: `loss:${slot.slotId}`,
-    	      phase: 3,
-    	      entryId: slot.entryId || '',
-    	      reason: slot.reason || 'required slot missing',
-    	      sourceReceiptId: 'phase3-retrieval-rerank',
-    	      nextRequiredAction: 'add slot evidence or mark unsupported',
-    	    }));
-    	    return normalizeCompositionLedger(sourceLedger || {}, {
-    	      sourcePhase: sourceLedger && sourceLedger.sourcePhase || 2,
-    	      currentPhase: 3,
-    	      obligations: uniqueById(obligations),
-    	      phaseDeltas: (queryPlan.slots || []).map((slot) => ({
-    	        phase: 3,
-    	        entryId: slot.entryId || '',
-    	        operation: (acceptedCandidatesBySlot[slot.slotId] || []).length ? 'preserved' : 'lost',
-    	        receiptId: 'phase3-retrieval-rerank',
-    	      })),
-    	      losses,
-    	    });
-    	  }
+          const losses = (missingRequiredSlots || []).map((slot) => ({
+            id: `loss:${slot.slotId}`,
+            phase: 3,
+            entryId: slot.entryId || '',
+            reason: slot.reason || 'required slot missing',
+            sourceReceiptId: 'phase3-retrieval-rerank',
+            nextRequiredAction: 'add slot evidence or mark unsupported',
+          }));
+          return scope.normalizeCompositionLedger(sourceLedger || {}, {
+            sourcePhase: sourceLedger && sourceLedger.sourcePhase || 2,
+            currentPhase: 3,
+            obligations: scope.uniqueById(obligations),
+            phaseDeltas: (queryPlan.slots || []).map((slot) => ({
+              phase: 3,
+              entryId: slot.entryId || '',
+              operation: (acceptedCandidatesBySlot[slot.slotId] || []).length ? 'preserved' : 'lost',
+              receiptId: 'phase3-retrieval-rerank',
+            })),
+            losses,
+          });
+        }
 
     function phase3ObligationStatus(row = {}, acceptedCandidatesBySlot = {}, missingRequiredSlots = []) {
-    	    if (row.status === 'pending' || row.kind === 'visual') return row.status || 'pending';
-    	    const missing = (missingRequiredSlots || []).some((slot) => slot.entryId === row.id);
-    	    if (missing) return 'lost';
-    	    const suffix = row.id ? row.id.replace(/^[a-z]+:/, '') : '';
-    	    const slotId = Object.keys(acceptedCandidatesBySlot || {}).find((key) => key.endsWith(suffix));
-    	    if (slotId && (acceptedCandidatesBySlot[slotId] || []).length) return 'preserved';
-    	    return row.status || 'preserved';
-    	  }
+          if (row.status === 'pending' || row.kind === 'visual') return row.status || 'pending';
+          const missing = (missingRequiredSlots || []).some((slot) => slot.entryId === row.id);
+          if (missing) return 'lost';
+          const suffix = row.id ? row.id.replace(/^[a-z]+:/, '') : '';
+          const slotId = Object.keys(acceptedCandidatesBySlot || {}).find((key) => key.endsWith(suffix));
+          if (slotId && (acceptedCandidatesBySlot[slotId] || []).length) return 'preserved';
+          return row.status || 'preserved';
+        }
 
     function phase3SpanTextById(languageGraph = {}, id = '') {
         const span = (languageGraph.spans || []).find((row) => row.id === id);
@@ -351,7 +350,7 @@
       }
 
     function phase3GenericPromptMatchValue(value = '') {
-        return PHASE3_GENERIC_PROMPT_MATCH_VALUES.has(normalizeForEvidence(value));
+        return scope.PHASE3_GENERIC_PROMPT_MATCH_VALUES.has(normalizeForEvidence(value));
       }
 
     function phase3LanguageImpliesWater(prompt = '', predicates = [], relations = []) {
@@ -371,15 +370,15 @@
       }
 
     function retrievalGroundingEvidence(
-    	    retrievalEvidence = {},
-    	    primitiveCuration = {},
-    	    typedEvidenceBuckets = null,
-    	    compositionLedger = null,
-    	    languageGraph = {},
-    	    queryPlan = null,
-    	    slotEvidence = [],
-    	    acceptedCandidatesBySlot = {},
-    	    missingRequiredSlots = []
+          retrievalEvidence = {},
+          primitiveCuration = {},
+          typedEvidenceBuckets = null,
+          compositionLedger = null,
+          languageGraph = {},
+          queryPlan = null,
+          slotEvidence = [],
+          acceptedCandidatesBySlot = {},
+          missingRequiredSlots = []
       ) {
         const components = phase3GroundingComponents(retrievalEvidence.components, primitiveCuration, languageGraph);
         const acceptedComponentIds = new Set(components
@@ -403,16 +402,16 @@
           visualSource: phaseCarryObject(retrievalEvidence.visualSource || null),
           params: phaseCarryObject(retrievalEvidence.params || {}),
           languageEvidence: null,
-    	      typedEvidenceBuckets: phaseCarryObject(typedEvidenceBuckets || null),
-    	      slotRetrieval: phaseCarryObject(retrievalEvidence.slotRetrieval || null),
-    	      compositionLedger: phaseCarryObject(compositionLedger || null),
-    	      languageGraph: phaseCarryObject(languageGraph || null),
-    	      queryPlan: phaseCarryObject(queryPlan || null),
-    	      slotEvidence: phaseCarryObject(slotEvidence || []),
-    	      acceptedCandidatesBySlot: phaseCarryObject(acceptedCandidatesBySlot || {}),
-    	      missingRequiredSlots: phaseCarryObject(missingRequiredSlots || []),
-    	    };
-    	  }
+            typedEvidenceBuckets: phaseCarryObject(typedEvidenceBuckets || null),
+            slotRetrieval: phaseCarryObject(retrievalEvidence.slotRetrieval || null),
+            compositionLedger: phaseCarryObject(compositionLedger || null),
+            languageGraph: phaseCarryObject(languageGraph || null),
+            queryPlan: phaseCarryObject(queryPlan || null),
+            slotEvidence: phaseCarryObject(slotEvidence || []),
+            acceptedCandidatesBySlot: phaseCarryObject(acceptedCandidatesBySlot || {}),
+            missingRequiredSlots: phaseCarryObject(missingRequiredSlots || []),
+          };
+        }
 
     function phase3GroundingComponents(components = [], primitiveCuration = {}, languageGraph = {}) {
         const rows = Array.isArray(components) ? components : [];
@@ -495,9 +494,9 @@
 
     function phase3BehaviorProcessForText(text = '') {
         const value = normalizeForEvidence(text);
-        const rows = languageLexicon && (
-          languageLexicon.BEHAVIOR_PROCESS_LEXICON ||
-          languageLexicon.LANGUAGE_LEXICON && languageLexicon.LANGUAGE_LEXICON.behaviorProcessLexicon
+        const rows = scope.languageLexicon && (
+          scope.languageLexicon.BEHAVIOR_PROCESS_LEXICON ||
+          scope.languageLexicon.LANGUAGE_LEXICON && scope.languageLexicon.LANGUAGE_LEXICON.behaviorProcessLexicon
         ) || [];
         for (const row of rows) {
           if ((row.phrases || []).some((phrase) => phase3PhraseInPrompt(phrase, value))) return row.process || '';
@@ -515,7 +514,7 @@
       }
 
     function phaseCarryObject(value) {
-        return stripForbiddenCarryFields(value, new Set(PHASE_CARRY_FORBIDDEN_FIELD_NAMES));
+        return stripForbiddenCarryFields(value, new Set(scope.PHASE_CARRY_FORBIDDEN_FIELD_NAMES));
       }
 
     function stripForbiddenCarryFields(value, forbiddenNames) {
@@ -535,13 +534,13 @@
         const intentBrief = groundingEvidence.intentBrief || {};
         const languageEvidence = languageEvidenceFromPhase3Artifact(artifact, intentBrief, groundingEvidence);
         const candidateEvidence = normalizedEvidenceRowsFromPhase3(retrievalRerankResult, intentBrief);
-        const builtActivations = buildActivationCloud
-          ? buildActivationCloud({ languageEvidence, evidenceRows: candidateEvidence })
+        const builtActivations = scope.buildActivationCloud
+          ? scope.buildActivationCloud({ languageEvidence, evidenceRows: candidateEvidence })
           : [];
         const fallbackActivations = activationRowsFromIntentBrief(intentBrief);
         const weightedActivations = builtActivations.length ? builtActivations : fallbackActivations;
-        const summary = summarizeActivationCloud
-          ? summarizeActivationCloud(weightedActivations)
+        const summary = scope.summarizeActivationCloud
+          ? scope.summarizeActivationCloud(weightedActivations)
           : {
             schema: 'simulatte.activationCloudSummary.v1',
             activationCount: weightedActivations.length,
@@ -552,62 +551,62 @@
           retrievedEvidence: Array.isArray(intentBrief.retrievedEvidence) && intentBrief.retrievedEvidence.length
             ? intentBrief.retrievedEvidence
             : candidateEvidence,
-    	      activationSummary: intentBrief.activationSummary || summary,
-    	      typedEvidenceBuckets: intentBrief.typedEvidenceBuckets || retrievalRerankResult.typedEvidenceBuckets || null,
-    	      compositionLedger: intentBrief.compositionLedger || retrievalRerankResult.compositionLedger || null,
-    	      queryPlan: intentBrief.queryPlan || retrievalRerankResult.queryPlan || null,
-    	      slotEvidence: intentBrief.slotEvidence || retrievalRerankResult.slotEvidence || [],
-    	      acceptedCandidatesBySlot: intentBrief.acceptedCandidatesBySlot || retrievalRerankResult.acceptedCandidatesBySlot || {},
-    	      missingRequiredSlots: intentBrief.missingRequiredSlots || retrievalRerankResult.missingRequiredSlots || [],
-    	    };
-    	    const negativeEvidence = negativeEvidenceRows(artifact.languageGraph || {}, artifact.sceneLanguageGraph || {});
-    	    const allObligationVerdicts = obligationVerdictRows({
-    	      compositionLedger: retrievalRerankResult.compositionLedger || null,
-    	      acceptedCandidatesBySlot: retrievalRerankResult.acceptedCandidatesBySlot || {},
-    	      slotEvidence: retrievalRerankResult.slotEvidence || [],
-    	      negativeEvidence,
-    	    });
-    	    const obligationVerdicts = allObligationVerdicts.filter((row) => row.verdict !== 'negated');
-    	    const evidenceConflicts = evidenceConflictRows(allObligationVerdicts, retrievalRerankResult.slotEvidence || []);
-    	    const slotActivations = slotActivationsFromSlotEvidence(retrievalRerankResult.slotEvidence || []);
-    	    const relationActivations = slotActivations.filter((row) => row.slotRole === 'relation');
-    	    const supportActivations = supportActivationsFromRetrieval(retrievalRerankResult);
-    	    return {
-    	      schema: ACTIVATION_CLOUD_SCHEMA,
-    	      languageEvidence: phaseCarryObject(languageEvidence),
-    	      candidateEvidence: candidateEvidence.map((row) => phaseCarryObject(row)),
-    	      weightedActivations,
-    	      slotActivations,
-    	      relationActivations,
-    		      supportActivations,
-    		      queryPlan: phaseCarryObject(retrievalRerankResult.queryPlan || groundingEvidence.queryPlan || null),
-    		      slotEvidence: phaseCarryObject(retrievalRerankResult.slotEvidence || groundingEvidence.slotEvidence || []),
-    		      acceptedCandidatesBySlot: phaseCarryObject(
-    		        retrievalRerankResult.acceptedCandidatesBySlot ||
-    		        groundingEvidence.acceptedCandidatesBySlot ||
-    		        {}
-    		      ),
-    		      missingRequiredSlots: phaseCarryObject(
-    		        retrievalRerankResult.missingRequiredSlots ||
-    		        groundingEvidence.missingRequiredSlots ||
-    		        []
-    		      ),
-    		      typedEvidenceBuckets: phaseCarryObject(retrievalRerankResult.typedEvidenceBuckets || groundingEvidence.typedEvidenceBuckets || null),
-    		      compositionLedger: phaseCarryObject(retrievalRerankResult.compositionLedger || groundingEvidence.compositionLedger || null),
-    	      coverageBySlot: slotCoverageBySlot(retrievalRerankResult.queryPlan || {}, retrievalRerankResult.acceptedCandidatesBySlot || {}),
-    	      coverageByObligation: coverageByObligation(
-    	        retrievalRerankResult.compositionLedger || null,
-    	        retrievalRerankResult.acceptedCandidatesBySlot || {}
-    	      ),
-    	      obligationVerdicts,
-    	      negativeEvidence,
-    	      conflictsBySlot: conflictsBySlotRows(evidenceConflicts, retrievalRerankResult.slotEvidence || []),
-    	      evidenceConflicts,
-    	      rejectedBySlot: rejectedBySlot(retrievalRerankResult.slotEvidence || []),
-    	      coverage: activationCoverage(intentBriefWithEvidence, summary, languageEvidence, candidateEvidence),
-    	      conflicts: uniqueByJson([
-    	        ...(intentBrief.coverageGaps || []),
-    	        ...(intentBrief.causalQuestions || []),
+            activationSummary: intentBrief.activationSummary || summary,
+            typedEvidenceBuckets: intentBrief.typedEvidenceBuckets || retrievalRerankResult.typedEvidenceBuckets || null,
+            compositionLedger: intentBrief.compositionLedger || retrievalRerankResult.compositionLedger || null,
+            queryPlan: intentBrief.queryPlan || retrievalRerankResult.queryPlan || null,
+            slotEvidence: intentBrief.slotEvidence || retrievalRerankResult.slotEvidence || [],
+            acceptedCandidatesBySlot: intentBrief.acceptedCandidatesBySlot || retrievalRerankResult.acceptedCandidatesBySlot || {},
+            missingRequiredSlots: intentBrief.missingRequiredSlots || retrievalRerankResult.missingRequiredSlots || [],
+          };
+          const negativeEvidence = scope.negativeEvidenceRows(artifact.languageGraph || {}, artifact.sceneLanguageGraph || {});
+          const allObligationVerdicts = scope.obligationVerdictRows({
+            compositionLedger: retrievalRerankResult.compositionLedger || null,
+            acceptedCandidatesBySlot: retrievalRerankResult.acceptedCandidatesBySlot || {},
+            slotEvidence: retrievalRerankResult.slotEvidence || [],
+            negativeEvidence,
+          });
+          const obligationVerdicts = allObligationVerdicts.filter((row) => row.verdict !== 'negated');
+          const evidenceConflicts = scope.evidenceConflictRows(allObligationVerdicts, retrievalRerankResult.slotEvidence || []);
+          const slotActivations = slotActivationsFromSlotEvidence(retrievalRerankResult.slotEvidence || []);
+          const relationActivations = slotActivations.filter((row) => row.slotRole === 'relation');
+          const supportActivations = supportActivationsFromRetrieval(retrievalRerankResult);
+          return {
+            schema: scope.ACTIVATION_CLOUD_SCHEMA,
+            languageEvidence: phaseCarryObject(languageEvidence),
+            candidateEvidence: candidateEvidence.map((row) => phaseCarryObject(row)),
+            weightedActivations,
+            slotActivations,
+            relationActivations,
+              supportActivations,
+              queryPlan: phaseCarryObject(retrievalRerankResult.queryPlan || groundingEvidence.queryPlan || null),
+              slotEvidence: phaseCarryObject(retrievalRerankResult.slotEvidence || groundingEvidence.slotEvidence || []),
+              acceptedCandidatesBySlot: phaseCarryObject(
+                retrievalRerankResult.acceptedCandidatesBySlot ||
+                groundingEvidence.acceptedCandidatesBySlot ||
+                {}
+              ),
+              missingRequiredSlots: phaseCarryObject(
+                retrievalRerankResult.missingRequiredSlots ||
+                groundingEvidence.missingRequiredSlots ||
+                []
+              ),
+              typedEvidenceBuckets: phaseCarryObject(retrievalRerankResult.typedEvidenceBuckets || groundingEvidence.typedEvidenceBuckets || null),
+              compositionLedger: phaseCarryObject(retrievalRerankResult.compositionLedger || groundingEvidence.compositionLedger || null),
+            coverageBySlot: slotCoverageBySlot(retrievalRerankResult.queryPlan || {}, retrievalRerankResult.acceptedCandidatesBySlot || {}),
+            coverageByObligation: coverageByObligation(
+              retrievalRerankResult.compositionLedger || null,
+              retrievalRerankResult.acceptedCandidatesBySlot || {}
+            ),
+            obligationVerdicts,
+            negativeEvidence,
+            conflictsBySlot: scope.conflictsBySlotRows(evidenceConflicts, retrievalRerankResult.slotEvidence || []),
+            evidenceConflicts,
+            rejectedBySlot: scope.rejectedBySlot(retrievalRerankResult.slotEvidence || []),
+            coverage: activationCoverage(intentBriefWithEvidence, summary, languageEvidence, candidateEvidence),
+            conflicts: scope.uniqueByJson([
+              ...(intentBrief.coverageGaps || []),
+              ...(intentBrief.causalQuestions || []),
           ]),
           rejectedMatches: intentBrief.alternatives || retrievalRerankResult.rejectedMatches || [],
           evidenceBySpan: evidenceBySpanRows(intentBriefWithEvidence, languageEvidence, candidateEvidence),
@@ -615,81 +614,81 @@
           groundingEvidence: phaseCarryObject({
             ...groundingEvidence,
             intentBrief: intentBriefWithEvidence,
-    	        languageEvidence,
-    	        typedEvidenceBuckets: retrievalRerankResult.typedEvidenceBuckets || groundingEvidence.typedEvidenceBuckets || null,
-    	        compositionLedger: retrievalRerankResult.compositionLedger || groundingEvidence.compositionLedger || null,
-    		        queryPlan: retrievalRerankResult.queryPlan || groundingEvidence.queryPlan || null,
-    		        slotEvidence: retrievalRerankResult.slotEvidence || groundingEvidence.slotEvidence || [],
-    		        acceptedCandidatesBySlot: retrievalRerankResult.acceptedCandidatesBySlot || groundingEvidence.acceptedCandidatesBySlot || {},
-    		        missingRequiredSlots: retrievalRerankResult.missingRequiredSlots || groundingEvidence.missingRequiredSlots || [],
-    		      }),
-    		    };
-    		  }
+              languageEvidence,
+              typedEvidenceBuckets: retrievalRerankResult.typedEvidenceBuckets || groundingEvidence.typedEvidenceBuckets || null,
+              compositionLedger: retrievalRerankResult.compositionLedger || groundingEvidence.compositionLedger || null,
+                queryPlan: retrievalRerankResult.queryPlan || groundingEvidence.queryPlan || null,
+                slotEvidence: retrievalRerankResult.slotEvidence || groundingEvidence.slotEvidence || [],
+                acceptedCandidatesBySlot: retrievalRerankResult.acceptedCandidatesBySlot || groundingEvidence.acceptedCandidatesBySlot || {},
+                missingRequiredSlots: retrievalRerankResult.missingRequiredSlots || groundingEvidence.missingRequiredSlots || [],
+              }),
+            };
+          }
 
     function slotActivationsFromSlotEvidence(slotEvidence = []) {
-    	    return (slotEvidence || []).flatMap((slot) => (slot.candidates || [])
-    	      .filter((candidate) => candidate.decision === 'accept')
-    	      .map((candidate, index) => phaseCarryObject({
-    	        id: `activation.${slot.slotId || 'slot'}.${index + 1}`,
-    	        slotId: slot.slotId || '',
-    	        slotRole: slot.slotRole || '',
-    	        entryId: slot.entryId || '',
-    	        relationIds: slot.relationIds || [],
-    	        candidateId: candidate.candidateId || '',
-    	        candidateKind: candidate.candidateType || '',
-    	        candidateLabel: candidate.candidateText || '',
-    	        score: Number(candidate.score || 0),
-    	        source: 'phase3-slot-evidence',
-    	        supportOnly: false,
-    	      })));
-    	  }
+          return (slotEvidence || []).flatMap((slot) => (slot.candidates || [])
+            .filter((candidate) => candidate.decision === 'accept')
+            .map((candidate, index) => phaseCarryObject({
+              id: `activation.${slot.slotId || 'slot'}.${index + 1}`,
+              slotId: slot.slotId || '',
+              slotRole: slot.slotRole || '',
+              entryId: slot.entryId || '',
+              relationIds: slot.relationIds || [],
+              candidateId: candidate.candidateId || '',
+              candidateKind: candidate.candidateType || '',
+              candidateLabel: candidate.candidateText || '',
+              score: Number(candidate.score || 0),
+              source: 'phase3-slot-evidence',
+              supportOnly: false,
+            })));
+        }
 
     function supportActivationsFromRetrieval(retrievalRerankResult = {}) {
-    	    return (retrievalRerankResult.supportOnlyCandidates || []).map((row, index) => phaseCarryObject({
-    	      id: `support.activation.${index + 1}`,
-    	      slotId: row.slotId || 'support',
-    	      slotRole: row.slotRole || 'support',
-    	      candidateId: row.id || row.candidateId || '',
-    	      candidateLabel: row.label || row.candidateText || '',
-    	      source: 'phase3-support-only',
-    	      supportOnly: true,
-    	      reason: row.reason || row.supportReason || '',
-    	    }));
-    	  }
+          return (retrievalRerankResult.supportOnlyCandidates || []).map((row, index) => phaseCarryObject({
+            id: `support.activation.${index + 1}`,
+            slotId: row.slotId || 'support',
+            slotRole: row.slotRole || 'support',
+            candidateId: row.id || row.candidateId || '',
+            candidateLabel: row.label || row.candidateText || '',
+            source: 'phase3-support-only',
+            supportOnly: true,
+            reason: row.reason || row.supportReason || '',
+          }));
+        }
 
     function slotCoverageBySlot(queryPlan = {}, acceptedCandidatesBySlot = {}) {
-    	    return Object.fromEntries((queryPlan.slots || []).map((slot) => {
-    	      const accepted = acceptedCandidatesBySlot[slot.slotId] || [];
-    	      return [slot.slotId, {
-    	        slotRole: slot.slotRole || '',
-    	        entryId: slot.entryId || '',
-    	        required: slot.required !== false,
-    	        status: accepted.length ? 'covered' : slot.required === false ? 'optional' : 'missing',
-    	        candidateIds: accepted.map((candidate) => candidate.id || candidate.candidateId || '').filter(Boolean),
-    	      }];
-    	    }));
-    	  }
+          return Object.fromEntries((queryPlan.slots || []).map((slot) => {
+            const accepted = acceptedCandidatesBySlot[slot.slotId] || [];
+            return [slot.slotId, {
+              slotRole: slot.slotRole || '',
+              entryId: slot.entryId || '',
+              required: slot.required !== false,
+              status: accepted.length ? 'covered' : slot.required === false ? 'optional' : 'missing',
+              candidateIds: accepted.map((candidate) => candidate.id || candidate.candidateId || '').filter(Boolean),
+            }];
+          }));
+        }
 
     function coverageByObligation(compositionLedger = null, acceptedCandidatesBySlot = {}) {
-    	    const obligations = compositionLedger && Array.isArray(compositionLedger.obligations)
-    	      ? compositionLedger.obligations
-    	      : [];
-    	    const acceptedSlotIds = Object.keys(acceptedCandidatesBySlot || {});
-    	    return Object.fromEntries(obligations.map((row) => {
-    	      const obligationId = String(row.obligationId || row.id || '');
-    	      const suffix = obligationId.replace(/^[a-z]+:/, '');
-    	      const slotId = acceptedSlotIds.find((key) => suffix && key.endsWith(suffix));
-    	      const evidenceCount = slotId ? (acceptedCandidatesBySlot[slotId] || []).length : 0;
-    	      return [obligationId, phaseCarryObject({
-    	        kind: row.kind || '',
-    	        required: row.required === true,
-    	        status: row.status || '',
-    	        covered: evidenceCount > 0,
-    	        evidenceCount,
-    	        slotId: slotId || '',
-    	      })];
-    	    }));
-    	  }
+          const obligations = compositionLedger && Array.isArray(compositionLedger.obligations)
+            ? compositionLedger.obligations
+            : [];
+          const acceptedSlotIds = Object.keys(acceptedCandidatesBySlot || {});
+          return Object.fromEntries(obligations.map((row) => {
+            const obligationId = String(row.obligationId || row.id || '');
+            const suffix = obligationId.replace(/^[a-z]+:/, '');
+            const slotId = acceptedSlotIds.find((key) => suffix && key.endsWith(suffix));
+            const evidenceCount = slotId ? (acceptedCandidatesBySlot[slotId] || []).length : 0;
+            return [obligationId, phaseCarryObject({
+              kind: row.kind || '',
+              required: row.required === true,
+              status: row.status || '',
+              covered: evidenceCount > 0,
+              evidenceCount,
+              slotId: slotId || '',
+            })];
+          }));
+        }
 
     function activationRowsFromIntentBrief(intentBrief = {}) {
         const grounded = intentBrief.groundedInterpretation || {};
@@ -772,7 +771,7 @@
           semanticRole: span.semanticRole || '',
           visualArchetype: span.visualArchetype || '',
           materialHint: span.materialHint || '',
-          shapeHints: arrayClone(span.shapeHints || []),
+          shapeHints: scope.arrayClone(span.shapeHints || []),
         })).filter((span) => span.text);
         const spanById = new Map(spans.map((span) => [span.id, span]));
         const predicateFrames = (languageGraph.clauses || []).map((clause, index) => {
@@ -864,14 +863,14 @@
           row.primitiveId ||
           row.cardId ||
           row.canonicalId ||
-          `${source}.${slugify(label) || index + 1}`
+          `${source}.${scope.slugify(label) || index + 1}`
         );
         const score = Number(row.score || row.confidence || row.similarity || row.finalScore || row.weight || 0.35);
         return phaseCarryObject({
           id,
           label,
           sourceLabel: row.sourceLabel || '',
-          aliases: arrayClone(row.aliases),
+          aliases: scope.arrayClone(row.aliases),
           canonicalId: row.canonicalId || row.conceptId || row.primitiveId || row.cardId || id,
           semanticType: row.semanticType || row.type || row.kind || row.category || '',
           semanticClass: row.semanticClass || '',
@@ -879,17 +878,17 @@
           identityEvidence: row.identityEvidence === true,
           indexName: row.indexName || row.source || source,
           score: Number((Number.isFinite(score) ? score : 0.35).toFixed(4)),
-          domains: arrayClone(row.domains || row.modules),
+          domains: scope.arrayClone(row.domains || row.modules),
           materialId: row.materialId || row.material || '',
-          materialIds: arrayClone(row.materialIds || (row.materialId || row.material ? [row.materialId || row.material] : [])),
-          operatorHints: uniqueList([...(row.operatorHints || []), ...(row.operatorTypes || [])]).slice(0, 12),
-          operatorTypes: uniqueList([...(row.operatorTypes || []), ...(row.operatorHints || [])]).slice(0, 12),
-          primitiveHints: uniqueList([row.primitiveId, ...(row.primitiveHints || [])].filter(Boolean)).slice(0, 12),
-          visualHints: uniqueList([...(row.visualHints || []), ...(row.shapeHints || []), ...(row.sceneHints || [])]).slice(0, 12),
-          shapeHints: arrayClone(row.shapeHints),
-          sceneHints: arrayClone(row.sceneHints),
-          conceptIds: arrayClone(row.conceptIds || (row.canonicalId ? [row.canonicalId] : [])),
-          evidence: arrayClone(row.evidence || [id]),
+          materialIds: scope.arrayClone(row.materialIds || (row.materialId || row.material ? [row.materialId || row.material] : [])),
+          operatorHints: scope.uniqueList([...(row.operatorHints || []), ...(row.operatorTypes || [])]).slice(0, 12),
+          operatorTypes: scope.uniqueList([...(row.operatorTypes || []), ...(row.operatorHints || [])]).slice(0, 12),
+          primitiveHints: scope.uniqueList([row.primitiveId, ...(row.primitiveHints || [])].filter(Boolean)).slice(0, 12),
+          visualHints: scope.uniqueList([...(row.visualHints || []), ...(row.shapeHints || []), ...(row.sceneHints || [])]).slice(0, 12),
+          shapeHints: scope.arrayClone(row.shapeHints),
+          sceneHints: scope.arrayClone(row.sceneHints),
+          conceptIds: scope.arrayClone(row.conceptIds || (row.canonicalId ? [row.canonicalId] : [])),
+          evidence: scope.arrayClone(row.evidence || [id]),
           source,
           retrievalRole: row.retrievalRole || '',
           supportOnly: row.supportOnly === true,
@@ -912,7 +911,7 @@
         return String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
       }
 
-    Object.assign(scope, {
+    root.SimulattePhaseModuleRegistry.define('physicsModel', 'simulatte-physics-model-activation-fusion.js', {
       phase3SlotEvidenceStatus,
       phase3CandidateType,
       phase3AcceptedCandidatesBySlot,
@@ -954,5 +953,5 @@
       uniqueEvidenceRows,
       normalizeForEvidence,
     });
-  }
+
 })(typeof globalThis !== 'undefined' ? globalThis : window);

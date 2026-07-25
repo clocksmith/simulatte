@@ -1,7 +1,6 @@
 (function attachSimulattePhysicsModelactivationverdicts(root) {
-  const scope = root.__SimulattePhysicsModelRefactorScope;
-  if (!scope || scope.missingDependency) return;
-  with (scope) {
+  const scope = root.SimulattePhaseModuleRegistry.family('physicsModel');
+
     const OBLIGATION_VERDICTS = Object.freeze([
       'strongly-supported',
       'supported',
@@ -43,7 +42,7 @@
         else if (supportStrength >= 0.62) verdict = 'strongly-supported';
         else if (supportStrength > 0) verdict = 'supported';
         else if (obligation.required === false || obligation.status === 'pending') verdict = 'pending';
-        return phaseCarryObject({
+        return scope.phaseCarryObject({
           schema: 'simulatte.obligationVerdict.v1',
           obligationId,
           kind: obligation.kind || '',
@@ -60,18 +59,18 @@
 
     function candidatesForObligation(obligation = {}, acceptedCandidatesBySlot = {}, slotEvidence = []) {
       const obligationId = String(obligation.obligationId || obligation.id || '');
-      const suffix = normalizeForEvidence(obligationId.replace(/^[a-z]+:/, ''));
+      const suffix = scope.normalizeForEvidence(obligationId.replace(/^[a-z]+:/, ''));
       const slotRows = (slotEvidence || []).filter((slot) => {
-        const entry = normalizeForEvidence(slot.entryId || '');
-        const slotId = normalizeForEvidence(slot.slotId || '');
-        return entry === normalizeForEvidence(obligationId) ||
+        const entry = scope.normalizeForEvidence(slot.entryId || '');
+        const slotId = scope.normalizeForEvidence(slot.slotId || '');
+        return entry === scope.normalizeForEvidence(obligationId) ||
           (suffix && (entry.endsWith(suffix) || slotId.endsWith(suffix)));
       });
       const direct = slotRows.flatMap((slot) => slot.acceptedCandidates || []);
       const fromMap = Object.entries(acceptedCandidatesBySlot || {})
-        .filter(([slotId]) => suffix && normalizeForEvidence(slotId).endsWith(suffix))
+        .filter(([slotId]) => suffix && scope.normalizeForEvidence(slotId).endsWith(suffix))
         .flatMap(([, rows]) => rows || []);
-      return uniqueByJson([...direct, ...fromMap]);
+      return scope.uniqueByJson([...direct, ...fromMap]);
     }
 
     function candidateSupportStrength(candidate = {}) {
@@ -86,11 +85,11 @@
     }
 
     function obligationHasNegativeEvidence(obligation = {}, negativeEvidence = []) {
-      const obligationId = normalizeForEvidence(obligation.obligationId || obligation.id || '');
-      const target = normalizeForEvidence(obligation.target || obligation.label || obligationId.replace(/^[a-z]+:/, ''));
+      const obligationId = scope.normalizeForEvidence(obligation.obligationId || obligation.id || '');
+      const target = scope.normalizeForEvidence(obligation.target || obligation.label || obligationId.replace(/^[a-z]+:/, ''));
       return (negativeEvidence || []).some((row) => {
-        const entry = normalizeForEvidence(row.entryId || '');
-        const label = normalizeForEvidence(row.label || row.text || '');
+        const entry = scope.normalizeForEvidence(row.entryId || '');
+        const label = scope.normalizeForEvidence(row.label || row.text || '');
         return (obligationId && entry === obligationId) ||
           (target && (entry.endsWith(target) || label === target || label.endsWith(target)));
       });
@@ -99,7 +98,7 @@
     function evidenceConflictRows(verdicts = [], slotEvidence = []) {
       const negationConflicts = (verdicts || [])
         .filter((row) => row.negationConflict === true)
-        .map((row) => phaseCarryObject({
+        .map((row) => scope.phaseCarryObject({
           schema: 'simulatte.evidenceConflict.v1',
           kind: 'negation-vs-evidence',
           obligationId: row.obligationId || '',
@@ -114,7 +113,7 @@
         if (candidates.length < 2) return null;
         const scoreMargin = Number(Math.abs(candidates[0].supportStrength - candidates[1].supportStrength).toFixed(4));
         if (scoreMargin > 0.05) return null;
-        return phaseCarryObject({
+        return scope.phaseCarryObject({
           schema: 'simulatte.evidenceConflict.v1',
           kind: 'slot-ambiguity',
           slotId: slot.slotId || '',
@@ -138,56 +137,56 @@
     }
 
     function slotIdForObligationId(obligationId = '', slotEvidence = []) {
-      const target = normalizeForEvidence(obligationId);
+      const target = scope.normalizeForEvidence(obligationId);
       if (!target) return '';
-      const suffix = normalizeForEvidence(String(obligationId || '').replace(/^[a-z]+:/, ''));
+      const suffix = scope.normalizeForEvidence(String(obligationId || '').replace(/^[a-z]+:/, ''));
       const slot = (slotEvidence || []).find((row) => {
-        const entry = normalizeForEvidence(row.entryId || '');
-        const slotId = normalizeForEvidence(row.slotId || '');
+        const entry = scope.normalizeForEvidence(row.entryId || '');
+        const slotId = scope.normalizeForEvidence(row.slotId || '');
         return entry === target || (suffix && (entry.endsWith(suffix) || slotId.endsWith(suffix)));
       });
       return slot && slot.slotId || '';
     }
 
     function negativeEvidenceRows(languageGraph = {}, sceneLanguageGraph = {}) {
-    	    const rows = [];
-    	    for (const negation of languageGraph.negations || []) {
-    	      rows.push(phaseCarryObject({
-    	        id: negation.id || `negation:${rows.length + 1}`,
-    	        kind: 'negation',
-    	        text: negation.text || '',
-    	        source: 'language-graph',
-    	      }));
-    	    }
-	    const negatedEntries = [
-	      ...(sceneLanguageGraph.entities || []),
-	      ...(sceneLanguageGraph.concepts || []),
-	      ...(sceneLanguageGraph.parts || []),
-	      ...(sceneLanguageGraph.actions || []),
-	      ...(sceneLanguageGraph.attributes || []),
-	      ...(sceneLanguageGraph.environments || []),
-    	      ...(sceneLanguageGraph.mediums || []),
-    	    ].filter((entry) => entry.negated === true);
-    	    for (const entry of negatedEntries) {
-    	      rows.push(phaseCarryObject({
-    	        id: `negated:${entry.id || rows.length + 1}`,
-    	        kind: 'negated-entry',
-    	        entryId: entry.id || '',
-    	        label: entry.label || '',
-    	        source: 'scene-language-graph',
-    	      }));
-    	    }
-    	    return rows;
-    	  }
+          const rows = [];
+          for (const negation of languageGraph.negations || []) {
+            rows.push(scope.phaseCarryObject({
+              id: negation.id || `negation:${rows.length + 1}`,
+              kind: 'negation',
+              text: negation.text || '',
+              source: 'language-graph',
+            }));
+          }
+      const negatedEntries = [
+        ...(sceneLanguageGraph.entities || []),
+        ...(sceneLanguageGraph.concepts || []),
+        ...(sceneLanguageGraph.parts || []),
+        ...(sceneLanguageGraph.actions || []),
+        ...(sceneLanguageGraph.attributes || []),
+        ...(sceneLanguageGraph.environments || []),
+            ...(sceneLanguageGraph.mediums || []),
+          ].filter((entry) => entry.negated === true);
+          for (const entry of negatedEntries) {
+            rows.push(scope.phaseCarryObject({
+              id: `negated:${entry.id || rows.length + 1}`,
+              kind: 'negated-entry',
+              entryId: entry.id || '',
+              label: entry.label || '',
+              source: 'scene-language-graph',
+            }));
+          }
+          return rows;
+        }
 
     function rejectedBySlot(slotEvidence = []) {
-    	    return Object.fromEntries((slotEvidence || []).map((slot) => [
-    	      slot.slotId,
-    	      (slot.rejectedCandidateIds || []).slice(),
-    	    ]));
-    	  }
+          return Object.fromEntries((slotEvidence || []).map((slot) => [
+            slot.slotId,
+            (slot.rejectedCandidateIds || []).slice(),
+          ]));
+        }
 
-    Object.assign(scope, {
+    root.SimulattePhaseModuleRegistry.define('physicsModel', 'simulatte-physics-model-activation-verdicts.js', {
       OBLIGATION_VERDICTS,
       obligationVerdictRows,
       candidatesForObligation,
@@ -199,5 +198,5 @@
       negativeEvidenceRows,
       rejectedBySlot,
     });
-  }
+
 })(typeof globalThis !== 'undefined' ? globalThis : window);

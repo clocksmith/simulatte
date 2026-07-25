@@ -1,9 +1,8 @@
 (function attachSimulatteSemanticRagsurfacecards(root) {
-  const scope = root.__SimulatteSemanticRagRefactorScope;
-  if (!scope || scope.missingDependency) return;
-  with (scope) {
+  const scope = root.SimulattePhaseModuleRegistry.family('semanticRag');
+
     function synthesizeEvents(prompt, nodes, eventCards) {
-        const hints = uniqueList(eventCards.flatMap((match) => match.card.eventHints || []));
+        const hints = scope.uniqueList(eventCards.flatMap((match) => match.card.eventHints || []));
         const promptLower = String(prompt || '').toLowerCase();
         const events = [];
         if (hints.includes('collision') || /\b(crash|crashes|crashing|collision|collide|collides|impact|hit|smash)\b/.test(promptLower)) {
@@ -93,7 +92,7 @@
           }))
           .sort((a, b) => b.score - a.score || a.primitiveId.localeCompare(b.primitiveId));
         const openComponents = nodes.map((node, index) => surfaceOpenComponent(node, index, relations, events, basisById));
-        return { groundedPrimitives, openComponents, unresolved: uniqueList(unresolved).slice(0, 12) };
+        return { groundedPrimitives, openComponents, unresolved: scope.uniqueList(unresolved).slice(0, 12) };
       }
 
     function surfaceOpenComponent(node, index, relations, events, basisById) {
@@ -102,7 +101,7 @@
         const assembly = assemblyForSurfaceNode(node);
         const material = node.materialHints[0] || materialForText(phrase, visualRegime);
         const basisIds = node.groundingIds.filter((id) => basisById.has(id));
-        const basisParts = uniqueList(basisIds.flatMap((id) => (basisById.get(id).parts || []))).slice(0, 10);
+        const basisParts = scope.uniqueList(basisIds.flatMap((id) => (basisById.get(id).parts || []))).slice(0, 10);
         const id = `surface-${slug(node.id)}`;
         return {
           id,
@@ -221,7 +220,7 @@
       }
 
     function domainsForSurfaceNode(node, visual) {
-        return uniqueList([
+        return scope.uniqueList([
           visual,
           node.type,
           ...node.classHints.map((item) => item.replace(/_/g, '-')),
@@ -231,7 +230,7 @@
       }
 
     function domainsForCard(card) {
-        return uniqueList([
+        return scope.uniqueList([
           card.type,
           ...((card.classHints || []).map((item) => item.replace(/_/g, '-'))),
           ...((card.materialHints || []).map((item) => item.replace(/_/g, '-'))),
@@ -246,7 +245,7 @@
         const labelScores = (labels || []).map(labelSpecificity);
         const specificity = labelScores.length ? Math.max(...labelScores) : 0.35;
         const primarySpecificity = labels.length ? labelSpecificity(labels[0]) : specificity;
-        const groundingDepth = uniqueList([
+        const groundingDepth = scope.uniqueList([
           ...(hints.classHints || []),
           ...(hints.shapeHints || []),
           ...(hints.partHints || []),
@@ -258,9 +257,9 @@
           ...(hints.groundingIds || []),
         ]).length;
         const generic = primarySpecificity < 0.42 || /\b(class|system|thing|object|world|field)\b/.test(String(id || ''));
-        const groundingScore = clamp(groundingDepth / 12, 0, 1);
+        const groundingScore = scope.clamp(groundingDepth / 12, 0, 1);
         const typeWeight = type === 'relation' || type === 'event' ? 0.74 : type === 'environment' ? 0.8 : 0.88;
-        const priority = clamp(specificity * 0.58 + groundingScore * 0.3 + typeWeight * 0.12 - (generic ? 0.14 : 0), 0, 1);
+        const priority = scope.clamp(specificity * 0.58 + groundingScore * 0.3 + typeWeight * 0.12 - (generic ? 0.14 : 0), 0, 1);
         return Object.freeze({
           schema: 'simulatte.semanticCardCuration.v1',
           specificity: Number(specificity.toFixed(4)),
@@ -343,7 +342,7 @@
         for (let i = 0; i < tokens.length; i += 1) {
           for (let width = 3; width >= 1; width -= 1) {
             const span = tokens.slice(i, i + width);
-            if (span.length !== width || span.some((token) => STOPS.has(token.root))) continue;
+            if (span.length !== width || span.some((token) => scope.STOPS.has(token.root))) continue;
             const phrase = span.map((token) => token.value).join(' ');
             const range = { index: tokens[i].index, end: span[span.length - 1].end };
             if (!openPhraseAlignsWithTypedSpans(range, typedSpans, suppressObservableOpenComponents)) continue;
@@ -512,7 +511,7 @@
         return common.concat([{ kind: 'particle', count: 18, alpha: 0.08 }]);
       }
 
-    function buildSemanticFeatureVector(text, dim = FEATURE_DIM) {
+    function buildSemanticFeatureVector(text, dim = scope.FEATURE_DIM) {
         const out = new Float32Array(dim);
         const roots = tokens(text);
         for (const token of roots) {
@@ -529,21 +528,21 @@
         const out = [];
         const lower = String(text || '').toLowerCase();
         let match;
-        while ((match = TOKEN_RE.exec(lower))) {
+        while ((match = scope.TOKEN_RE.exec(lower))) {
           const token = normalizeToken(match[0]);
-          if (!token || STOPS.has(token)) continue;
+          if (!token || scope.STOPS.has(token)) continue;
           out.push(token);
-          const syn = TOKEN_SYNONYMS && TOKEN_SYNONYMS[token];
+          const syn = scope.TOKEN_SYNONYMS && scope.TOKEN_SYNONYMS[token];
           if (Array.isArray(syn)) for (const item of syn) out.push(normalizeToken(item));
         }
-        return uniqueList(out);
+        return scope.uniqueList(out);
       }
 
     function tokensWithPositions(text) {
         const out = [];
         const lower = String(text || '').toLowerCase();
         let match;
-        while ((match = TOKEN_RE.exec(lower))) {
+        while ((match = scope.TOKEN_RE.exec(lower))) {
           const value = match[0].replace(/'/g, '');
           const root = normalizeToken(value);
           if (!root) continue;
@@ -554,7 +553,7 @@
 
     function visualRegimeForText(text) {
         const roots = new Set(tokens(text));
-        for (const item of VISUAL_RULES) {
+        for (const item of scope.VISUAL_RULES) {
           if ([...roots].some((token) => item.words.has(token))) return item.id;
         }
         return 'generic';
@@ -562,7 +561,7 @@
 
     function assemblyForText(text) {
         const roots = new Set(tokens(text));
-        for (const item of ASSEMBLY_RULES) {
+        for (const item of scope.ASSEMBLY_RULES) {
           if ([...roots].some((token) => item.words.has(token) || token.endsWith(item.id))) return item.id;
         }
         return 'sample';
@@ -606,7 +605,7 @@
         if (/market|demand|queue|backlog|traffic/.test(lower)) domains.push('queue', 'operations');
         if (/sensor|feedback|control|controller/.test(lower)) domains.push('control', 'signal');
         if (/data|audit|trace|ledger/.test(lower)) domains.push('data', 'audit');
-        return uniqueList(domains.filter(Boolean));
+        return scope.uniqueList(domains.filter(Boolean));
       }
 
     function layerForAssembly(assembly, visual) {
@@ -631,11 +630,11 @@
           atomic: ['atomicMass', 'bondStrength', 'ionization'],
           network: ['queueBacklog', 'serviceRate', 'networkLatency'],
         };
-        return uniqueList([...(controls[visual] || []), ...(assembly === 'source' ? ['energyInput'] : [])]);
+        return scope.uniqueList([...(controls[visual] || []), ...(assembly === 'source' ? ['energyInput'] : [])]);
       }
 
     function paramsForVisual(visual, assembly, index) {
-        const n = hashNoise(index + 31, String(visual).length + String(assembly).length);
+        const n = scope.hashNoise(index + 31, String(visual).length + String(assembly).length);
         const base = { complexity: 0.42 + n * 0.22 };
         if (visual === 'fluid') return { ...base, flowRate: 0.36 + n * 0.48, viscosity: 0.08 + n * 0.3 };
         if (visual === 'thermal') return { ...base, heatTransfer: 0.42 + n * 0.44, combustibility: 0.34 + n * 0.5 };
@@ -678,7 +677,7 @@
       }
 
     function knownPhysicalToken(token) {
-        return VISUAL_RULES.some((item) => item.words.has(token)) || ASSEMBLY_RULES.some((item) => item.words.has(token));
+        return scope.VISUAL_RULES.some((item) => item.words.has(token)) || scope.ASSEMBLY_RULES.some((item) => item.words.has(token));
       }
 
     function addFeature(out, feature, value = 1) {
@@ -721,13 +720,7 @@
       }
 
     function hashString(str) {
-        const text = String(str);
-        let h = 2166136261;
-        for (let i = 0; i < text.length; i += 1) {
-          h ^= text.charCodeAt(i);
-          h = Math.imul(h, 16777619);
-        }
-        return h >>> 0;
+        return scope.fnv1a32(str);
       }
 
     function slug(value) {
@@ -738,7 +731,7 @@
           .slice(0, 48) || 'primitive';
       }
 
-    Object.assign(scope, {
+    root.SimulattePhaseModuleRegistry.define('semanticRag', 'simulatte-semantic-rag-surface-cards.js', {
       synthesizeEvents,
       eventFor,
       groundSurfaceGraph,
@@ -786,5 +779,5 @@
       hashString,
       slug,
     });
-  }
+
 })(typeof globalThis !== 'undefined' ? globalThis : window);

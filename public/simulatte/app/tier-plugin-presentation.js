@@ -1,8 +1,11 @@
 (function attachTierPluginPresentation(root, factory) {
-  const api = factory();
+  const deterministicValues = typeof module === 'object' && module.exports
+    ? require('../../shared/deterministic-values.js')
+    : root.SimulatteDeterministicValues;
+  const api = factory(deterministicValues);
   root.SimulatteTierPluginPresentation = api;
   if (typeof module === 'object' && module.exports) module.exports = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createTierPluginPresentationApi() {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createTierPluginPresentationApi(deterministicValues) {
   const COLORS = Object.freeze({ cyan:'#4de8ff',green:'#33ff66',amber:'#ffb347',red:'#ff5c66',magenta:'#ff4fd8',violet:'#a98cff',blue:'#6da8ff',shade:'#5e7389',muted:'rgba(237,245,243,0.28)' });
 
   function compileTierPresentation(pluginPresentation, fallbackCoordinateSystem = 'wgs84') {
@@ -125,6 +128,6 @@
   function color(tone, alpha) { const value=COLORS[tone]||COLORS.muted; if(value.startsWith('rgba')) return value; const a=Math.max(0,Math.min(1,alpha)); return `${value}${Math.round(a*255).toString(16).padStart(2,'0')}`; }
   function normalizeTuple(value, system) { if(!Array.isArray(value)||value.length<2||value.length>3||value.some((row)=>!Number.isFinite(row))) throw new Error(`tier_presentation_position_invalid: ${system}`); return Object.freeze([Number(value[0]),Number(value[1]),Number(value[2]||0)]); }
   function freezeRow(value) { return Object.freeze(value); }
-  function hash(value) { let h=2166136261; for(const c of String(value)){h^=c.codePointAt(0);h=Math.imul(h,16777619);} return (h>>>0)/4294967296*Math.PI*2; }
+  function hash(value) { return deterministicValues.fnv1a32CodePoints(value) / 4294967296 * Math.PI * 2; }
   return Object.freeze({ compileTierPresentation, compileContributions, draw, projectPoint, focusDelta, createLayer });
 });

@@ -1,20 +1,19 @@
 (function attachSimulatteWebGpuRendererPixelPlan(root) {
-  const scope = root.__SimulatteWebGpuRendererRefactorScope;
-  if (!scope || scope.missingDependency) return;
-  with (scope) {
+  const scope = root.SimulattePhaseModuleRegistry.family('webGpuRenderer');
+
     function phase7ProjectedObjectPartPoints(renderData = {}, obligation = {}, time = 0) {
-      const target = normalizeForProof(obligation.targetIdentity || obligation.target || '');
+      const target = scope.normalizeForProof(obligation.targetIdentity || obligation.target || '');
       const entityId = String(obligation.targetEntityId || '');
-      const role = normalizeForProof(obligation.expectedPartRole || '');
+      const role = scope.normalizeForProof(obligation.expectedPartRole || '');
       const candidates = (renderData.objectParts || []).filter((part) => {
         const entityMatches = entityId
           ? String(part.entityId || '') === entityId || String(part.entityId || '').startsWith(`${entityId}:instance:`)
           : true;
         const identityMatches = target ? (
-          normalizeForProof(part.id).includes(target) ||
-          normalizeForProof(part.identityType).includes(target)
+          scope.normalizeForProof(part.id).includes(target) ||
+          scope.normalizeForProof(part.identityType).includes(target)
         ) : true;
-        const roleMatches = role ? normalizeForProof(part.constructionRole) === role : true;
+        const roleMatches = role ? scope.normalizeForProof(part.constructionRole) === role : true;
         return entityMatches && identityMatches && roleMatches;
       }).sort((a, b) => (
         Number(a.constructionRoleIndex || 0) - Number(b.constructionRoleIndex || 0) ||
@@ -63,7 +62,7 @@
         x += Math.cos(time * 0.38 + phase) * 0.022;
         y += Math.sin(time * 0.38 + phase) * 0.022;
       }
-      return { x: clamp01((x + 1) * 0.5), y: clamp01((1 - y) * 0.5) };
+      return { x: scope.clamp01((x + 1) * 0.5), y: scope.clamp01((1 - y) * 0.5) };
     }
 
     function phase7PixelReadbackPlan(renderData = null, sceneRenderPacket = {}, renderExecutionInput = null, canvas = null) {
@@ -81,7 +80,7 @@
       const requiredSampleCount = obligations.reduce((total, obligation) => (
         total + phase7ObligationPixelSampleCount(obligation)
       ), 0);
-      if (requiredSampleCount > PHASE7_PIXEL_READBACK_SAMPLE_LIMIT) {
+      if (requiredSampleCount > scope.PHASE7_PIXEL_READBACK_SAMPLE_LIMIT) {
         return phase7UnrenderablePixelPlan(
           renderData,
           width,
@@ -93,14 +92,14 @@
       }
       const drawables = Array.isArray(renderData.drawables) && renderData.drawables.length
         ? renderData.drawables
-        : scenePacketUniformDrawables(sceneRenderPacket, renderData.sceneKind || '');
+        : scope.scenePacketUniformDrawables(sceneRenderPacket, renderData.sceneKind || '');
       const samples = [];
       const unmatchedObligationIds = [];
       for (const obligation of obligations) {
         const expectedSamples = phase7ObligationPixelSampleCount(obligation);
         const before = samples.length;
         if (obligation.constraintKind === 'environment' || obligation.targetIdentity === 'sunset') {
-          samples.push(pixelSampleForEnvironmentObligation(obligation, width, height));
+          samples.push(scope.pixelSampleForEnvironmentObligation(obligation, width, height));
         } else {
           appendPixelSamplesForObligation(
             samples,
@@ -151,7 +150,7 @@
         )).slice(0, expectedSamples);
         const drawable = matched[0];
         for (const projected of projectedParts) {
-          const sample = drawable && pixelSampleForDrawable(
+          const sample = drawable && scope.pixelSampleForDrawable(
             drawable,
             obligation,
             width,
@@ -166,7 +165,7 @@
         return;
       }
       for (const drawable of matched) {
-        const sample = pixelSampleForDrawable(
+        const sample = scope.pixelSampleForDrawable(
           drawable,
           obligation,
           width,
@@ -216,8 +215,8 @@
     }
 
     function applyProjectedPixelSample(sample, projected, width, height, obligation = {}) {
-      sample.x = clampInt(Math.round(projected.x * (width - 1)), 0, width - 1);
-      sample.y = clampInt(Math.round(projected.y * (height - 1)), 0, height - 1);
+      sample.x = scope.clampInt(Math.round(projected.x * (width - 1)), 0, width - 1);
+      sample.y = scope.clampInt(Math.round(projected.y * (height - 1)), 0, height - 1);
       sample.uv = [Number(projected.x.toFixed(5)), Number(projected.y.toFixed(5))];
       sample.constructionRole = projected.part && projected.part.constructionRole || '';
       sample.constructionPartId = projected.part && projected.part.constructionPartId || '';
@@ -274,14 +273,14 @@
     function phase7VisualRelationIdentities(obligation = {}) {
       const id = String(obligation.obligationId || obligation.id || '');
       const match = id.match(/:(?:entity|environment|medium)-([^:]+):[^:]+:(?:entity|environment|medium)-([^:]+)$/);
-      return match ? [normalizeForProof(match[1]), normalizeForProof(match[2])] : [];
+      return match ? [scope.normalizeForProof(match[1]), scope.normalizeForProof(match[2])] : [];
     }
 
     function appendRelationPixelSamples(samples, drawables, renderData, obligation, width, height) {
       for (const identity of phase7VisualRelationIdentities(obligation)) {
         const drawable = drawables.find((row) => pixelDrawableMatchesIdentity(row, identity));
         if (!drawable) continue;
-        const sample = pixelSampleForDrawable(
+        const sample = scope.pixelSampleForDrawable(
           drawable,
           obligation,
           width,
@@ -307,12 +306,12 @@
         row.identity && row.identity.label,
         row.identity && row.identity.sourceLabel,
         ...(row.representedEntityIds || []),
-      ].map(normalizeForProof).filter(Boolean);
+      ].map(scope.normalizeForProof).filter(Boolean);
       return values.some((value) => value === identity || value.includes(identity) || identity.includes(value));
     }
 
     function drawablesForPixelObligation(drawables = [], obligation = {}) {
-      const obligationText = normalizeForProof([
+      const obligationText = scope.normalizeForProof([
         obligation.obligationId,
         obligation.id,
         obligation.target,
@@ -328,14 +327,14 @@
     }
 
     function pixelObligationDrawableScore(row = {}, obligationText = '', obligation = {}) {
-      const targetEntityId = normalizeForProof(obligation.targetEntityId || '');
-      const targetIdentity = normalizeForProof(obligation.targetIdentity || obligation.target || '');
-      const rowId = normalizeForProof(row.id || '');
-      const representedIds = (row.representedEntityIds || []).map(normalizeForProof);
+      const targetEntityId = scope.normalizeForProof(obligation.targetEntityId || '');
+      const targetIdentity = scope.normalizeForProof(obligation.targetIdentity || obligation.target || '');
+      const rowId = scope.normalizeForProof(row.id || '');
+      const representedIds = (row.representedEntityIds || []).map(scope.normalizeForProof);
       const actionOwnerIds = obligation.sourceKind === 'action'
         ? Array.from(new Set([...(obligation.evidence || []), ...(obligation.visualEvidence || [])]
           .map((value) => String(value || '').match(/^phase6:entity:(.+)$/))
-          .filter(Boolean).map((match) => normalizeForProof(match[1]))))
+          .filter(Boolean).map((match) => scope.normalizeForProof(match[1]))))
         : [];
       const actionOwnerMatch = actionOwnerIds.some((id) => (
         rowId === id || rowId.startsWith(`${id} instance`) || representedIds.includes(id)
@@ -347,8 +346,8 @@
         row.identity && row.identity.sourceLabel,
         row.identity && row.identity.type,
         ...representedIds,
-      ].map(normalizeForProof).filter(Boolean);
-      const rowText = normalizeForProof(JSON.stringify({
+      ].map(scope.normalizeForProof).filter(Boolean);
+      const rowText = scope.normalizeForProof(JSON.stringify({
         id: row.id,
         label: row.label,
         layerSlot: row.layerSlot,
@@ -392,7 +391,7 @@
       return score;
     }
 
-    Object.assign(scope, {
+    root.SimulattePhaseModuleRegistry.define('webGpuRenderer', 'simulatte-webgpu-renderer-pixel-plan.js', {
       phase7ProjectedObjectPartPoints,
       phase7ProjectedObjectPartPoint,
       phase7PixelReadbackPlan,
@@ -404,5 +403,5 @@
       drawablesForPixelObligation,
       pixelObligationDrawableScore,
     });
-  }
+
 })(typeof globalThis !== 'undefined' ? globalThis : window);

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import crypto from 'node:crypto';
 import { spawn } from 'node:child_process';
+import { once } from 'node:events';
 import { createServer } from 'node:http';
 import { createReadStream } from 'node:fs';
 import fs from 'node:fs/promises';
@@ -160,6 +161,8 @@ function parseArgs(argv) {
     localPort: 4173,
     goldSetPath: '',
     goldAdjudicationPath: '',
+    machineOnlyGold: false,
+    chromePath: '',
   };
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
@@ -174,7 +177,9 @@ function parseArgs(argv) {
     else if (key === '--out') options.outDir = path.resolve(readValue() || options.outDir);
     else if (key === '--gold-set') options.goldSetPath = path.resolve(readValue() || '');
     else if (key === '--gold-adjudication') options.goldAdjudicationPath = path.resolve(readValue() || '');
-    else if (key === '--width') options.width = Math.max(640, Number(readValue() || options.width));
+    else if (key === '--machine-only-gold') options.machineOnlyGold = true;
+    else if (key === '--chrome') options.chromePath = path.resolve(readValue() || '');
+    else if (key === '--width') options.width = Math.max(320, Number(readValue() || options.width));
     else if (key === '--height') options.height = Math.max(480, Number(readValue() || options.height));
     else if (key === '--timeout-ms') options.timeoutMs = Math.max(1000, Number(readValue() || options.timeoutMs));
     else if (key === '--prompt-timeout-ms') options.promptTimeoutMs = Math.max(1000, Number(readValue() || 0));
@@ -197,7 +202,7 @@ function parseArgs(argv) {
       options.intentMode = mode === 'model' ? 'model' : 'local';
     }
     else if (key === '--help') {
-      console.log('usage: node tools/audit-intent-scene-screenshots.mjs [--url URL] [--curated N] [--broad N] [--prompt TEXT] [--gold-set PATH] [--gold-adjudication PATH] [--four N] [--eighty N] [--seed N] [--out DIR] [--intent-mode local|model] [--timeout-ms N] [--prompt-timeout-ms N] [--frame-delay-ms N] [--profile-dir DIR] [--local-port PORT]');
+      console.log('usage: node tools/audit-intent-scene-screenshots.mjs [--url URL] [--chrome PATH] [--curated N] [--broad N] [--prompt TEXT] [--gold-set PATH] [--gold-adjudication PATH] [--machine-only-gold] [--four N] [--eighty N] [--seed N] [--out DIR] [--intent-mode local|model] [--timeout-ms N] [--prompt-timeout-ms N] [--frame-delay-ms N] [--profile-dir DIR] [--local-port PORT]');
       process.exit(0);
     }
   }
@@ -443,8 +448,8 @@ async function existsExecutable(candidate) {
   return null;
 }
 
-async function resolveChrome() {
-  for (const candidate of CHROME_CANDIDATES) {
+async function resolveChrome(explicitPath = '') {
+  for (const candidate of [explicitPath, ...CHROME_CANDIDATES].filter(Boolean)) {
     const executable = await existsExecutable(candidate);
     if (executable) return executable;
   }
@@ -460,6 +465,22 @@ async function freePort() {
     });
     server.on('error', reject);
   });
+}
+
+async function stopChildProcess(child, graceMs = 2000) {
+  if (!child || child.exitCode !== null || child.signalCode) return;
+  child.kill('SIGTERM');
+  const exited = once(child, 'exit').then(() => true);
+  const graceful = await Promise.race([
+    exited,
+    new Promise((resolve) => setTimeout(() => resolve(false), graceMs)),
+  ]);
+  if (graceful || child.exitCode !== null || child.signalCode) return;
+  child.kill('SIGKILL');
+  await Promise.race([
+    exited,
+    new Promise((resolve) => setTimeout(resolve, 500)),
+  ]);
 }
 
 function startStaticServer(port = 0) {
@@ -1042,6 +1063,9 @@ async function runPrompt(cdp, entry, index, outDir, options) {
     const fieldCanvas = document.getElementById('field-canvas');
     const runtime = document.getElementById('intent-runtime');
     const message = document.getElementById('intent-runtime-message');
+    const phaseRailShell = document.querySelector('.phase-rail-shell');
+    const phaseRailDetails = document.getElementById('phase-details');
+    const phaseRailRect = phaseRailShell && phaseRailShell.getBoundingClientRect();
     const runtimeHealth = window.SimulatteIntentRuntimeHealth || (() => {
       try { return runtime && runtime.dataset.health ? JSON.parse(runtime.dataset.health) : null; }
       catch (_err) { return null; }
@@ -1201,6 +1225,18 @@ async function runPrompt(cdp, entry, index, outDir, options) {
     return {
       buildId: document.querySelector('meta[name="simulatte-build"]')?.content || '',
       runtimeState: runtime ? runtime.dataset.state || '' : '',
+      viewportWidth: window.innerWidth,
+      viewportHeight: window.innerHeight,
+      phaseRailLayout: phaseRailRect ? {
+        left: phaseRailRect.left,
+        top: phaseRailRect.top,
+        right: phaseRailRect.right,
+        bottom: phaseRailRect.bottom,
+        width: phaseRailRect.width,
+        height: phaseRailRect.height,
+        buttonCount: phaseRailShell.querySelectorAll('.phase-rail-step').length,
+        detail: phaseRailDetails ? phaseRailDetails.textContent || '' : '',
+      } : null,
       renderInputSerial: Number(canvas && canvas.dataset && canvas.dataset.renderInputSerial || 0),
       compiledPrompt,
       compiledSourcePromptHash,
@@ -1879,7 +1915,10 @@ function visualRubricForResult(result, prompt) {
     clamp01(Number(result.canvasFrameMeanAbsolutePixelDelta || 0) / 3),
     clamp01(Number(result.canvasFrameChangedPixelRatio || 0) / 0.04)
   );
-  const dynamic = dynamicMagnitude >= 0.18 ? 1 : 0;
+  // This is a whole-canvas ratio: compact moving subjects occupy far less of the
+  // frame than fluid fields or crowds. The floor stays above static-frame noise while
+  // accepting motion backed by a measurable pixel delta from a small rendered object.
+  const dynamic = dynamicMagnitude >= 0.08 ? 1 : 0;
   const dynamicRequired = promptRequiresVisibleDynamics(prompt);
   const dynamicPass = dynamicRequired ? dynamic : 1;
   const genericPenalty = /^(generic|literal-composite|blank)$/.test(String(result.rendererSceneKind || result.visualIRSceneKind || '')) ? 0.18 : 0;
@@ -2101,6 +2140,21 @@ function analyze(results, options = {}) {
     }
     if (result.runtimeState !== 'ready') failures.push(`${result.index}: runtime not ready`);
     if (!result.canvasWidth || !result.canvasHeight) failures.push(`${result.index}: missing canvas`);
+    const phaseRail = result.phaseRailLayout;
+    if (!phaseRail || phaseRail.buttonCount !== 8) {
+      failures.push(`${result.index}: eight-phase rail is missing or incomplete`);
+    } else {
+      if (phaseRail.left < 0 || phaseRail.top < 0 ||
+          phaseRail.right > result.viewportWidth || phaseRail.bottom > result.viewportHeight) {
+        failures.push(`${result.index}: eight-phase rail overflows the viewport`);
+      }
+      if (phaseRail.height > result.viewportHeight * 0.25) {
+        failures.push(`${result.index}: eight-phase rail obstructs more than 25% of the canvas`);
+      }
+      if (!/input (?!—)/.test(phaseRail.detail) || !/output (?!—)/.test(phaseRail.detail)) {
+        failures.push(`${result.index}: selected phase does not expose input or output identity`);
+      }
+    }
     const phase7Input = result.phase7RenderExecutionInput || result.phase7Input || result.renderExecutionInput || '';
     const scenePacketInput = result.phase7SceneRenderPacketInput || '';
     if (result.renderExecutionInput !== 'simulatte.renderExecutionInput.v1') {
@@ -2512,7 +2566,7 @@ async function main() {
   options.goldAdjudication = options.goldAdjudicationPath
     ? loadGoldAdjudication(options.goldAdjudicationPath)
     : null;
-  const chromePath = await resolveChrome();
+  const chromePath = await resolveChrome(options.chromePath);
   const prompts = buildAuditPrompts(options);
   if (!prompts.length) throw new Error('No audit prompts selected');
   await fs.rm(options.outDir, { recursive: true, force: true });
@@ -2592,11 +2646,16 @@ async function main() {
         for (const failure of row.machine.failures) {
           analyzed.failures.push(`gold ${row.goldRowId}: ${failure.id}: ${failure.reason}`);
         }
-        for (const failure of row.human.failures) {
-          analyzed.failures.push(`gold ${row.goldRowId}: ${failure}`);
+        if (!options.machineOnlyGold) {
+          for (const failure of row.human.failures) {
+            analyzed.failures.push(`gold ${row.goldRowId}: ${failure}`);
+          }
         }
       }
       analyzed.ok = analyzed.failures.length === 0;
+      analyzed.goldGate = options.machineOnlyGold
+        ? 'machine-phase8-pixel-and-scene-proof'
+        : 'machine-and-human-recognizability';
     }
     const gpuValidationFailures = webGpuValidationFailures(browserEvents);
     if (gpuValidationFailures.length > 0) {
@@ -2609,6 +2668,9 @@ async function main() {
       createdAt: new Date().toISOString(),
       chromePath,
       intentMode: options.intentMode,
+      goldGate: options.machineOnlyGold
+        ? 'machine-phase8-pixel-and-scene-proof'
+        : 'machine-and-human-recognizability',
       target: options.url ? 'live-url' : 'local-public',
       url: pageUrl,
       profileDir,
@@ -2644,7 +2706,7 @@ async function main() {
     throw error;
   } finally {
     if (cdp) cdp.close();
-    chrome.kill('SIGTERM');
+    await stopChildProcess(chrome);
     if (local.server) local.server.close();
     if (!options.profileDir && !options.keepProfile) {
       await fs.rm(profileDir, { recursive: true, force: true }).catch(() => {});

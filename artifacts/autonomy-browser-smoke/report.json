@@ -1,10 +1,10 @@
 {
   "schema": "simulatte.autonomyBrowserSmoke.v11",
   "pass": false,
-  "targetUrl": "http://127.0.0.1:63359/city",
+  "targetUrl": "http://127.0.0.1:60505/city",
   "viewport": {
     "width": 1440,
-    "height": 1000
+    "height": 900
   },
   "browser": {
     "product": "Chrome/150.0.7871.186",
@@ -16,7 +16,7 @@
     "initialLayout": {
       "viewport": {
         "width": 1440,
-        "height": 1000
+        "height": 900
       },
       "rects": [
         {
@@ -83,9 +83,9 @@
           "id": "mission-input",
           "hidden": false,
           "left": 341,
-          "top": 914,
+          "top": 814,
           "right": 833.234375,
-          "bottom": 973,
+          "bottom": 873,
           "width": 492.234375,
           "height": 59
         },
@@ -103,9 +103,9 @@
           "id": "shuffle-button",
           "hidden": false,
           "left": 843.234375,
-          "top": 914,
+          "top": 814,
           "right": 932.453125,
-          "bottom": 973,
+          "bottom": 873,
           "width": 89.21875,
           "height": 59
         },
@@ -113,9 +113,9 @@
           "id": "start-button",
           "hidden": false,
           "left": 938.453125,
-          "top": 914,
+          "top": 814,
           "right": 1012.65625,
-          "bottom": 973,
+          "bottom": 873,
           "width": 74.203125,
           "height": 59
         },
@@ -133,9 +133,9 @@
           "id": "decisions-button",
           "hidden": false,
           "left": 1337.453125,
-          "top": 940,
+          "top": 840,
           "right": 1424,
-          "bottom": 984,
+          "bottom": 884,
           "width": 86.546875,
           "height": 44
         }
@@ -300,7 +300,7 @@
         "visible": true,
         "projection": "orthographic_top_north_up",
         "radiusM": 420,
-        "frameCount": 71
+        "frameCount": 72
       }
     },
     "editInvalidatedController": true,
@@ -312,59 +312,90 @@
     "ambientActorCount": 13,
     "ambientActorKinds": "pedestrian,bicycle,scooter,car",
     "adapterName": "metal-3",
-    "rendererFrames": 1258,
+    "rendererFrames": 1026,
     "smoothness": {
-      "rafFrameCount": 1218,
+      "rafFrameCount": 986,
       "frameIntervalMs": {
         "min": 15.6,
-        "p50": 16.7,
-        "p95": 17.6,
-        "p99": 17.7,
-        "max": 33.9,
-        "mean": 16.6944
+        "p50": 16.8,
+        "p95": 34.2,
+        "p99": 50.4,
+        "max": 99.9,
+        "mean": 21.5678
       },
-      "over20msCount": 2,
-      "over33msCount": 1,
-      "over33msRatio": 0.0008,
-      "longTaskCount": 0,
-      "longTaskTotalMs": 0,
-      "longestTaskMs": 0,
+      "over20msCount": 240,
+      "over33msCount": 126,
+      "over33msRatio": 0.1278,
+      "longTaskCount": 6,
+      "longTaskTotalMs": 429,
+      "longestTaskMs": 99,
       "phaseMarks": [
         {
           "phase": "sampling_started",
-          "at": 12879.60000038147
+          "at": 17895.599999904633
         },
         {
           "phase": "camera_modes_complete",
-          "at": 15805.200000286102
+          "at": 20830.599999904633
         },
         {
           "phase": "camera_interactions_complete",
-          "at": 18367
+          "at": 23365.39999961853
         },
         {
           "phase": "mission_edited",
-          "at": 18367.300000190735
+          "at": 23365.799999713898
         },
         {
           "phase": "start_clicked",
-          "at": 18367.5
+          "at": 23366.099999904633
         },
         {
           "phase": "configured_camera_ready",
-          "at": 18488.10000038147
+          "at": 23560.5
         },
         {
           "phase": "journey_terminal",
-          "at": 33200.5
+          "at": 39152.2999997139
         }
       ],
-      "longTasks": []
+      "longTasks": [
+        {
+          "startTime": 23384,
+          "duration": 61,
+          "phase": "start_clicked"
+        },
+        {
+          "startTime": 23920.9,
+          "duration": 75,
+          "phase": "configured_camera_ready"
+        },
+        {
+          "startTime": 28009,
+          "duration": 70,
+          "phase": "configured_camera_ready"
+        },
+        {
+          "startTime": 32574,
+          "duration": 69,
+          "phase": "configured_camera_ready"
+        },
+        {
+          "startTime": 37528.3,
+          "duration": 99,
+          "phase": "configured_camera_ready"
+        },
+        {
+          "startTime": 39077.3,
+          "duration": 55,
+          "phase": "configured_camera_ready"
+        }
+      ]
     },
     "staticVertexCount": 547548,
     "dynamicVertexCount": 58719,
     "canvasWidth": 1440,
-    "canvasHeight": 1000,
+    "canvasHeight": 900,
     "viewportWidth": 1440,
     "documentWidth": 1440,
     "scrollY": 0,
@@ -397,7 +428,7 @@
     "ambientActorCount": 13,
     "ambientActorKinds": "pedestrian,bicycle,scooter,car",
     "minimapVisible": true,
-    "minimapFrameCount": 1034
+    "minimapFrameCount": 826
   },
   "featureView": {
     "cooperation": {
@@ -425,6 +456,19 @@
   },
   "errors": [],
   "failedResponses": [],
+  "diagnostics": {
+    "performance": false,
+    "profileScope": true,
+    "visualRuntime": true,
+    "evidence": true,
+    "layout": true,
+    "camera": true,
+    "plugins": true,
+    "browserErrors": true
+  },
+  "failedDiagnostics": [
+    "performance"
+  ],
   "requests": [
     {
       "pathname": "/city",
@@ -447,6 +491,10 @@
       "status": 200
     },
     {
+      "pathname": "/simulatte/app/world-runtime-script-manifest.js",
+      "status": 200
+    },
+    {
       "pathname": "/neural-model-consent.js",
       "status": 200
     },
@@ -455,7 +503,27 @@
       "status": 200
     },
     {
+      "pathname": "/shared/deterministic-values.js",
+      "status": 200
+    },
+    {
+      "pathname": "/shared/language/positive-language.js",
+      "status": 200
+    },
+    {
+      "pathname": "/shared/streets/street-name.js",
+      "status": 200
+    },
+    {
+      "pathname": "/shared/contracts/contract-validation-primitives.js",
+      "status": 200
+    },
+    {
       "pathname": "/shared/contracts/data-contract-validator.js",
+      "status": 200
+    },
+    {
+      "pathname": "/shared/contracts/contract-runtime-validator.js",
       "status": 200
     },
     {
@@ -551,6 +619,10 @@
       "status": 200
     },
     {
+      "pathname": "/simulatte/app/world-runtime-loader.js",
+      "status": 200
+    },
+    {
       "pathname": "/simulatte/app/tier-plugin-presentation.js",
       "status": 200
     },
@@ -563,178 +635,6 @@
       "status": 200
     },
     {
-      "pathname": "/shared/plugins/cable-trader/network-simulation.js",
-      "status": 200
-    },
-    {
-      "pathname": "/shared/plugins/cable-trader/index.js",
-      "status": 200
-    },
-    {
-      "pathname": "/shared/plugins/food-recall-us/food-engine.js",
-      "status": 200
-    },
-    {
-      "pathname": "/shared/plugins/food-recall-us/food-presentation.js",
-      "status": 200
-    },
-    {
-      "pathname": "/shared/plugins/food-recall-us/index.js",
-      "status": 200
-    },
-    {
-      "pathname": "/shared/plugins/interstellar-relay-network/astrometry.js",
-      "status": 200
-    },
-    {
-      "pathname": "/shared/plugins/interstellar-relay-network/contact-scheduler.js",
-      "status": 200
-    },
-    {
-      "pathname": "/shared/plugins/interstellar-relay-network/integrity.js",
-      "status": 200
-    },
-    {
-      "pathname": "/shared/plugins/interstellar-relay-network/light-time.js",
-      "status": 200
-    },
-    {
-      "pathname": "/shared/plugins/interstellar-relay-network/metrics.js",
-      "status": 200
-    },
-    {
-      "pathname": "/shared/plugins/interstellar-relay-network/network.js",
-      "status": 200
-    },
-    {
-      "pathname": "/shared/plugins/interstellar-relay-network/optical-link-budget.js",
-      "status": 200
-    },
-    {
-      "pathname": "/shared/plugins/interstellar-relay-network/packet-queue.js",
-      "status": 200
-    },
-    {
-      "pathname": "/shared/plugins/interstellar-relay-network/presentation.js",
-      "status": 200
-    },
-    {
-      "pathname": "/shared/plugins/interstellar-relay-network/propagation.js",
-      "status": 200
-    },
-    {
-      "pathname": "/shared/plugins/interstellar-relay-network/stellar-state.js",
-      "status": 200
-    },
-    {
-      "pathname": "/shared/plugins/interstellar-relay-network/index.js",
-      "status": 200
-    },
-    {
-      "pathname": "/shared/plugins/maritime-trade-global/container-ledger.js",
-      "status": 200
-    },
-    {
-      "pathname": "/shared/plugins/maritime-trade-global/emissions-model.js",
-      "status": 200
-    },
-    {
-      "pathname": "/shared/plugins/maritime-trade-global/emissions.js",
-      "status": 200
-    },
-    {
-      "pathname": "/shared/plugins/maritime-trade-global/maritime-engine.js",
-      "status": 200
-    },
-    {
-      "pathname": "/shared/plugins/maritime-trade-global/metrics.js",
-      "status": 200
-    },
-    {
-      "pathname": "/shared/plugins/maritime-trade-global/network-router.js",
-      "status": 200
-    },
-    {
-      "pathname": "/shared/plugins/maritime-trade-global/ports.js",
-      "status": 200
-    },
-    {
-      "pathname": "/shared/plugins/maritime-trade-global/presentation.js",
-      "status": 200
-    },
-    {
-      "pathname": "/shared/plugins/maritime-trade-global/queue-engine.js",
-      "status": 200
-    },
-    {
-      "pathname": "/shared/plugins/maritime-trade-global/routing.js",
-      "status": 200
-    },
-    {
-      "pathname": "/shared/plugins/maritime-trade-global/vessels.js",
-      "status": 200
-    },
-    {
-      "pathname": "/shared/plugins/maritime-trade-global/weather-disruption.js",
-      "status": 200
-    },
-    {
-      "pathname": "/shared/plugins/maritime-trade-global/index.js",
-      "status": 200
-    },
-    {
-      "pathname": "/shared/plugins/orbital-transfer-planner/depot-ledger.js",
-      "status": 200
-    },
-    {
-      "pathname": "/shared/plugins/orbital-transfer-planner/ephemeris.js",
-      "status": 200
-    },
-    {
-      "pathname": "/shared/plugins/orbital-transfer-planner/hohmann.js",
-      "status": 200
-    },
-    {
-      "pathname": "/shared/plugins/orbital-transfer-planner/lambert.js",
-      "status": 200
-    },
-    {
-      "pathname": "/shared/plugins/orbital-transfer-planner/launch-window.js",
-      "status": 200
-    },
-    {
-      "pathname": "/shared/plugins/orbital-transfer-planner/metrics.js",
-      "status": 200
-    },
-    {
-      "pathname": "/shared/plugins/orbital-transfer-planner/patched-conic.js",
-      "status": 200
-    },
-    {
-      "pathname": "/shared/plugins/orbital-transfer-planner/presentation.js",
-      "status": 200
-    },
-    {
-      "pathname": "/shared/plugins/orbital-transfer-planner/radiation.js",
-      "status": 200
-    },
-    {
-      "pathname": "/shared/plugins/orbital-transfer-planner/index.js",
-      "status": 200
-    },
-    {
-      "pathname": "/shared/plugins/safety-explorer/index.js",
-      "status": 200
-    },
-    {
-      "pathname": "/shared/plugins/sun-walker/sun-exposure.js",
-      "status": 200
-    },
-    {
-      "pathname": "/shared/plugins/sun-walker/index.js",
-      "status": 200
-    },
-    {
       "pathname": "/simulatte/world/world-tile-manager.js",
       "status": 200
     },
@@ -744,14 +644,6 @@
     },
     {
       "pathname": "/simulatte/platform/bootstrap/application-loader.js",
-      "status": 200
-    },
-    {
-      "pathname": "/simulatte/runtime/neural-place-resolution-core.js",
-      "status": 200
-    },
-    {
-      "pathname": "/simulatte/runtime/neural-place-resolver.js",
       "status": 200
     },
     {
@@ -827,11 +719,11 @@
       "status": 200
     },
     {
-      "pathname": "/simulatte/runtime/journey-ledger.js",
+      "pathname": "/simulatte/app/webgpu-math.js",
       "status": 200
     },
     {
-      "pathname": "/simulatte/app/webgpu-math.js",
+      "pathname": "/simulatte/runtime/journey-ledger.js",
       "status": 200
     },
     {
@@ -879,6 +771,10 @@
       "status": 200
     },
     {
+      "pathname": "/simulatte/app/tier-registry.js",
+      "status": 200
+    },
+    {
       "pathname": "/simulatte/app/multi-tier-visualizer.js",
       "status": 200
     },
@@ -899,7 +795,31 @@
       "status": 200
     },
     {
+      "pathname": "/simulatte/app/main-view.js",
+      "status": 200
+    },
+    {
       "pathname": "/simulatte/app/main.js",
+      "status": 200
+    },
+    {
+      "pathname": "/shared/plugins/safety-explorer/index.js",
+      "status": 200
+    },
+    {
+      "pathname": "/shared/plugins/sun-walker/sun-exposure.js",
+      "status": 200
+    },
+    {
+      "pathname": "/shared/plugins/sun-walker/index.js",
+      "status": 200
+    },
+    {
+      "pathname": "/shared/plugins/cable-trader/network-simulation.js",
+      "status": 200
+    },
+    {
+      "pathname": "/shared/plugins/cable-trader/index.js",
       "status": 200
     },
     {
@@ -979,6 +899,10 @@
       "status": 200
     },
     {
+      "pathname": "/favicon.svg",
+      "status": 200
+    },
+    {
       "pathname": "/data/simulatte/regions/packs/manhattan-villages-v1.geometry.json",
       "status": 200
     },
@@ -988,10 +912,6 @@
     },
     {
       "pathname": "/data/simulatte/regions/packs/north-brooklyn-v1.geometry.json",
-      "status": 200
-    },
-    {
-      "pathname": "/favicon.svg",
       "status": 200
     },
     {

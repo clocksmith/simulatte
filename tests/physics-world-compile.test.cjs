@@ -11,6 +11,7 @@ const {
   graphSynthesis,
   dopplerIntent,
   intentForensics,
+  phaseFamily,
   root,
   loadEmbeddingIndex,
   indexedVector,
@@ -919,7 +920,7 @@ test('direct prompt objects outrank inferred scene tags and remain peer-scale be
 });
 
 test('prompt-owned scene evidence outranks an unrelated residual optics fallback', () => {
-  const scope = globalThis.__SimulatteCompositionGraphRefactorScope;
+  const scope = phaseFamily('compositionGraph');
   const renderIR = {
     prompt: 'an octopus holding a teapot',
     sceneHint: 'optics',

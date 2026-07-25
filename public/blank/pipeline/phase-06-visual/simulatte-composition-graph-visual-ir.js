@@ -1,18 +1,17 @@
 (function attachSimulatteCompositionGraphvisualir(root) {
-  const scope = root.__SimulatteCompositionGraphRefactorScope;
-  if (!scope || scope.missingDependency) return;
-  with (scope) {
+  const scope = root.SimulattePhaseModuleRegistry.family('compositionGraph');
+
     function wakeFieldRowsForSwimmingAgents(agents = []) {
         return (agents || []).map((entity, index) => {
-          const pose = entity.pose || swimmingAgentPose(entity, index, agents.length, swimmingAgentSpecies(entity));
-          const species = swimmingAgentSpecies(entity) || 'animal';
+          const pose = entity.pose || scope.swimmingAgentPose(entity, index, agents.length, scope.swimmingAgentSpecies(entity));
+          const species = scope.swimmingAgentSpecies(entity) || 'animal';
           const radius = species === 'dog' ? 0.145 : 0.105;
           const center = [
-            clamp(Number(pose.x || 0.5) - Number(pose.w || 0.14) * 0.36, 0.08, 0.92),
-            clamp(Number(pose.y || 0.62) + Number(pose.h || 0.08) * 0.12, 0.08, 0.92),
+            scope.clamp(Number(pose.x || 0.5) - Number(pose.w || 0.14) * 0.36, 0.08, 0.92),
+            scope.clamp(Number(pose.y || 0.62) + Number(pose.h || 0.08) * 0.12, 0.08, 0.92),
           ];
           return {
-            id: `visual:wake:${visualSafeId(entity.id)}`,
+            id: `visual:wake:${scope.visualSafeId(entity.id)}`,
             kind: 'wake-ripple-field',
             channel: entity.stateBindings && entity.stateBindings.wake || `wake:${entity.id}`,
             visualEncoding: 'agent-wake-ripple-trail',
@@ -25,7 +24,7 @@
             materialId: 'wake-ripple',
             sourceGraphId: entity.sourceGraphId || entity.id,
             affects: [entity.id],
-            evidence: uniqueList([
+            evidence: scope.uniqueList([
               `agent:${entity.id}`,
               `species:${species}`,
               'visual-obligation:wake-ripples',
@@ -41,10 +40,10 @@
     function swimmingEffectRowsForAgents(agents = []) {
         const rows = [];
         for (const [index, entity] of (agents || []).entries()) {
-          const pose = entity.pose || swimmingAgentPose(entity, index, agents.length, swimmingAgentSpecies(entity));
-          const species = swimmingAgentSpecies(entity) || 'animal';
+          const pose = entity.pose || scope.swimmingAgentPose(entity, index, agents.length, scope.swimmingAgentSpecies(entity));
+          const species = scope.swimmingAgentSpecies(entity) || 'animal';
           rows.push({
-            id: `visual:swim-pose:${visualSafeId(entity.id)}`,
+            id: `visual:swim-pose:${scope.visualSafeId(entity.id)}`,
             family: 'swimming-pose',
             operator: 'swim-stroke-silhouette',
             motion: 'swim-cycle',
@@ -53,9 +52,9 @@
               points: swimmingPosePath(pose, species),
               rotation: Number(pose.rotation || 0),
             },
-            materialId: speciesSwimMaterialId(species),
+            materialId: scope.speciesSwimMaterialId(species),
             sourceGraphId: entity.sourceGraphId || entity.id,
-            evidence: uniqueList([
+            evidence: scope.uniqueList([
               `agent:${entity.id}`,
               `species:${species}`,
               'visual-obligation:swimming-pose',
@@ -67,7 +66,7 @@
             reason: 'swimming pose effect lowered from fluid locomotion behavior',
           });
           rows.push({
-            id: `visual:submersion:${visualSafeId(entity.id)}`,
+            id: `visual:submersion:${scope.visualSafeId(entity.id)}`,
             family: 'partial-submersion',
             operator: 'submersion-mask',
             motion: 'waterline-mask-lock',
@@ -78,7 +77,7 @@
             },
             materialId: 'submersion-mask',
             sourceGraphId: entity.sourceGraphId || entity.id,
-            evidence: uniqueList([
+            evidence: scope.uniqueList([
               `agent:${entity.id}`,
               `species:${species}`,
               'visual-obligation:partial-submersion',
@@ -101,9 +100,9 @@
         const h = Number(pose.h || 0.08);
         const reach = species === 'dog' ? 0.74 : 0.58;
         return [
-          [clamp(x - w * reach, 0.05, 0.95), clamp(y + h * 0.08, 0.05, 0.95)],
-          [clamp(x, 0.05, 0.95), clamp(y - h * 0.12, 0.05, 0.95)],
-          [clamp(x + w * 0.62, 0.05, 0.95), clamp(y + h * 0.1, 0.05, 0.95)],
+          [scope.clamp(x - w * reach, 0.05, 0.95), scope.clamp(y + h * 0.08, 0.05, 0.95)],
+          [scope.clamp(x, 0.05, 0.95), scope.clamp(y - h * 0.12, 0.05, 0.95)],
+          [scope.clamp(x + w * 0.62, 0.05, 0.95), scope.clamp(y + h * 0.1, 0.05, 0.95)],
         ];
       }
 
@@ -113,16 +112,16 @@
         const w = Number(pose.w || 0.14);
         const h = Number(pose.h || 0.08);
         return [
-          clamp(x - w * 0.58, 0.02, 0.96),
-          clamp(y, 0.02, 0.96),
-          clamp(w * 1.16, 0.04, 0.5),
-          clamp(h * 0.56, 0.025, 0.24),
+          scope.clamp(x - w * 0.58, 0.02, 0.96),
+          scope.clamp(y, 0.02, 0.96),
+          scope.clamp(w * 1.16, 0.04, 0.5),
+          scope.clamp(h * 0.56, 0.025, 0.24),
         ];
       }
 
     function isSwimmingWaterEntity(entity = {}, sceneKind = '', spec = {}) {
         if (!hasSwimmingSceneSignal(spec, sceneKind)) return false;
-        if (swimmingAgentSpecies(entity)) return false;
+        if (scope.swimmingAgentSpecies(entity)) return false;
         const text = swimmingWaterEntityText(entity);
         if (/\bwater|lake|pool|pond|river|ocean|fluid|fluid-volume/.test(text)) return true;
         return entity.kind === 'medium' &&
@@ -156,7 +155,7 @@
       }
 
     function lowerSwimmingWaterEntity(entity = {}) {
-        const text = swimmingEntityText(entity);
+        const text = scope.swimmingEntityText(entity);
         const isLake = /\blake/.test(text);
         return {
           ...entity,
@@ -172,12 +171,12 @@
             h: isLake ? 0.34 : 0.3,
             rotation: 0,
           },
-          geometryConstraints: uniqueList([
+          geometryConstraints: scope.uniqueList([
             ...(entity.geometryConstraints || []),
             'contains-swimming-agents',
             'waterline-overlap',
           ]),
-          evidence: uniqueList([
+          evidence: scope.uniqueList([
             ...(entity.evidence || []),
             'visual-obligation:partial-submersion',
             'visual-obligation:wake-ripples',
@@ -193,7 +192,7 @@
           schema: 'simulatte.phaseReceipt.v1',
           agentCount: agents.length,
           agentIds: agents.map((row) => row.id).slice(0, 12),
-          species: uniqueList(agents.map(swimmingAgentSpecies).filter(Boolean)),
+          species: scope.uniqueList(agents.map(scope.swimmingAgentSpecies).filter(Boolean)),
           materialIds: materials.map((row) => row.id).slice(0, 12),
           wakeFieldIds: fields.map((row) => row.id).slice(0, 12),
           effectIds: processes.map((row) => row.id).slice(0, 12),
@@ -241,34 +240,34 @@
         ].join(' ').toLowerCase();
         const behaviorOperators = new Set((spec.renderIR && spec.renderIR.behaviorRelations || [])
           .flatMap((row) => row.operators || []));
-        const dogMaterialIds = uniqueList((renderInstances || [])
+        const dogMaterialIds = scope.uniqueList((renderInstances || [])
           .filter((row) => row.type === 'geometry' &&
             row.layerSlot === 'biological-agent' &&
             row.identity &&
             row.identity.type === 'dog')
           .map((row) => row.materialId || row.material && row.material.id)
-          .filter((id) => id === speciesSwimMaterialId('dog')));
-        const catMaterialIds = uniqueList((renderInstances || [])
+          .filter((id) => id === scope.speciesSwimMaterialId('dog')));
+        const catMaterialIds = scope.uniqueList((renderInstances || [])
           .filter((row) => row.type === 'geometry' &&
             row.layerSlot === 'biological-agent' &&
             row.identity &&
             row.identity.type === 'cat')
           .map((row) => row.materialId || row.material && row.material.id)
-          .filter((id) => id === speciesSwimMaterialId('cat')));
-        const swimRows = uniqueList((renderInstances || [])
+          .filter((id) => id === scope.speciesSwimMaterialId('cat')));
+        const swimRows = scope.uniqueList((renderInstances || [])
           .filter((row) => /visual:swim-pose|visual-swim-pose/.test([
             row.id,
             row.processId,
           ].filter(Boolean).join(' ').toLowerCase()))
           .map((row) => row.processId || row.id)
           .filter(Boolean));
-        const wakeRows = uniqueList([
+        const wakeRows = scope.uniqueList([
           ...(fields || [])
             .filter((row) => /^visual:wake:/.test(String(row.id || '')) ||
               /agent-wake-ripple-trail/.test(String(row.visualEncoding || '')))
             .map((row) => row.id),
         ].filter(Boolean));
-        const submersionRows = uniqueList([
+        const submersionRows = scope.uniqueList([
           ...(processes || [])
             .filter((row) => /^visual:submersion:/.test(String(row.id || '')) ||
               /submersion-mask/.test(String(row.operator || '')))
@@ -297,7 +296,7 @@
           wakeRows,
           submersionRows,
           genericEvidenceByObligation,
-          promptVisualSettlements: promptVisualObligationSettlements(
+          promptVisualSettlements: scope.promptVisualObligationSettlements(
             sourceObligations, entities, spec.renderIR && spec.renderIR.environmentPrograms || []
           ),
         };
@@ -314,44 +313,44 @@
           const visualEvidence = sceneVisualRow ? [`phase6:${sceneVisualRow.source}:${sceneVisualRow.id}`] : [];
           obligations.push({ id: 'visual:compiled-scene-packet', kind: 'visual', ownedByPhase: 6, target: sceneVisualTarget, required: true, status: visualEvidence.length ? 'preserved' : 'lost', phase: 6, visualEvidence });
         }
-    	    return {
-    	      ...(sourceLedger || {}),
-    	      schema: SCENE_COMPOSITION_LEDGER_SCHEMA,
-    	      sourcePhase: sourceLedger && sourceLedger.sourcePhase || 3,
-    	      currentPhase: 7,
-    	      entries: sourceLedger && sourceLedger.entries || [],
-    	      relations: sourceLedger && sourceLedger.relations || [],
-    	      obligations,
-    	      phaseDeltas: [
-    	        ...(sourceLedger && sourceLedger.phaseDeltas || []),
-    	        ...obligations.map((row) => ({
-    	          phase: 6,
-    	          entryId: row.id,
-    	          operation: row.status === 'lost' ? 'lost' : 'preserved',
-    	          receiptId: 'phase6-visual-compile',
-    	        })),
-    	      ],
-    	      losses: [
-    	        ...(sourceLedger && sourceLedger.losses || []),
-    	        ...obligations.filter((row) => row.status === 'lost').map((row) => ({
-    	          id: `loss:phase6:${row.id}`,
-    	          phase: 6,
-    	          entryId: row.id,
-    	          reason: 'visual obligation not present in scene packet',
-    	          sourceReceiptId: 'phase6-visual-compile',
-    	          nextRequiredAction: 'compile required visual identity or mark unsupported',
-    	        })),
-    	      ],
-    	      unsupported: sourceLedger && sourceLedger.unsupported || [],
-    	      facts,
-    	      summary: {
-    	        obligationCount: obligations.length,
-    	        preservedCount: obligations.filter((row) => row.status === 'preserved').length,
-    	        loweredCount: obligations.filter((row) => row.status === 'lowered').length,
-    	        failedCount: obligations.filter((row) => row.status === 'lost' || row.status === 'failed').length,
-    	      },
-    	    };
-    	  }
+          return {
+            ...(sourceLedger || {}),
+            schema: scope.SCENE_COMPOSITION_LEDGER_SCHEMA,
+            sourcePhase: sourceLedger && sourceLedger.sourcePhase || 3,
+            currentPhase: 7,
+            entries: sourceLedger && sourceLedger.entries || [],
+            relations: sourceLedger && sourceLedger.relations || [],
+            obligations,
+            phaseDeltas: [
+              ...(sourceLedger && sourceLedger.phaseDeltas || []),
+              ...obligations.map((row) => ({
+                phase: 6,
+                entryId: row.id,
+                operation: row.status === 'lost' ? 'lost' : 'preserved',
+                receiptId: 'phase6-visual-compile',
+              })),
+            ],
+            losses: [
+              ...(sourceLedger && sourceLedger.losses || []),
+              ...obligations.filter((row) => row.status === 'lost').map((row) => ({
+                id: `loss:phase6:${row.id}`,
+                phase: 6,
+                entryId: row.id,
+                reason: 'visual obligation not present in scene packet',
+                sourceReceiptId: 'phase6-visual-compile',
+                nextRequiredAction: 'compile required visual identity or mark unsupported',
+              })),
+            ],
+            unsupported: sourceLedger && sourceLedger.unsupported || [],
+            facts,
+            summary: {
+              obligationCount: obligations.length,
+              preservedCount: obligations.filter((row) => row.status === 'preserved').length,
+              loweredCount: obligations.filter((row) => row.status === 'lowered').length,
+              failedCount: obligations.filter((row) => row.status === 'lost' || row.status === 'failed').length,
+            },
+          };
+        }
 
     function visualObligationStatus(row = {}, facts = {}) {
         const promptSettlement = facts.promptVisualSettlements && facts.promptVisualSettlements[row.id];
@@ -463,16 +462,16 @@
             ? visualEvidenceForLedgerAction(subjectTarget, rows, sourceEntries)
             : visualEvidenceForTarget(subjectTarget, rows);
           const object = visualEvidenceForTarget(objectTarget, rows);
-          if (relationType === 'occurs-in') return subject.length && object.length ? uniqueList([...subject, ...object]) : [];
+          if (relationType === 'occurs-in') return subject.length && object.length ? scope.uniqueList([...subject, ...object]) : [];
           const normalizedId = normalizeVisualEvidenceText(id);
           const constraint = rows.filter((candidate) => candidate.evidenceText.includes(normalizedId))
             .map((candidate) => `phase6:${candidate.source}:${candidate.id}`);
           return subject.length && object.length && constraint.length
-            ? uniqueList([...subject, ...object, ...constraint, `layout-relation:${id}`])
+            ? scope.uniqueList([...subject, ...object, ...constraint, `layout-relation:${id}`])
             : [];
         }
         if (id === 'action:coexists') {
-          return uniqueList((sourceObligations || [])
+          return scope.uniqueList((sourceObligations || [])
             .filter((candidate) => String(candidate.id || '').split(':')[2] === 'coexists')
             .flatMap((candidate) => genericVisualEvidence(candidate, rows, [], sourceEntries, sourceRelations)));
         }
@@ -483,7 +482,7 @@
           const object = target === 'world' ? ['scene:world'] : visualEvidenceForTarget(target, rows);
           const exact = rows.filter((candidate) => candidate.evidenceText.includes(normalizeVisualEvidenceText(id)))
             .map((candidate) => `phase6:${candidate.source}:${candidate.id}`);
-          if (subject.length && object.length && exact.length) return uniqueList([...subject, ...exact, ...object]);
+          if (subject.length && object.length && exact.length) return scope.uniqueList([...subject, ...exact, ...object]);
           const sourceRelation = sourceRelations.find((candidate) => candidate.id === id);
           const spatial = sourceRelation && sourceRelations.find((candidate) => (
             candidate !== sourceRelation && candidate.kind === 'spatial-constraint' &&
@@ -492,10 +491,10 @@
           ));
           if (spatial) {
             const spatialEvidence = genericVisualEvidence({ ...row, id: spatial.id }, rows, sourceObligations, sourceEntries, sourceRelations);
-            if (spatialEvidence.length) return uniqueList([...spatialEvidence, `relation-source:${id}`]);
+            if (spatialEvidence.length) return scope.uniqueList([...spatialEvidence, `relation-source:${id}`]);
           }
           return subject.length && object.length && (!process.length ? parts[2] === 'coexists' : true)
-            ? uniqueList([...subject, ...process, ...object])
+            ? scope.uniqueList([...subject, ...process, ...object])
             : [];
         }
         if (row.kind === 'action') {
@@ -525,7 +524,7 @@
           normalizeVisualEvidenceText(entry.label || String(entry.id || '').replace(/^action:/, '')) === normalized);
         if (!predicate) return [];
         const spanIds = new Set(predicate.sourceSpanIds || []);
-        return uniqueList((sourceEntries || []).filter((entry) => entry && entry.kind === 'action' && entry.source === 'prompt' &&
+        return scope.uniqueList((sourceEntries || []).filter((entry) => entry && entry.kind === 'action' && entry.source === 'prompt' &&
           (entry.sourceSpanIds || []).some((id) => spanIds.has(id))).flatMap((entry) => visualEvidenceForTarget(entry.label || entry.id, rows, true)));
       }
 
@@ -571,7 +570,7 @@
           'and', 'the', 'with', 'from', 'into', 'over', 'under', 'across', 'through',
           'between', 'within', 'without', 'around', 'near', 'onto', 'that', 'this',
         ]);
-        return uniqueList(normalizeVisualEvidenceText(value)
+        return scope.uniqueList(normalizeVisualEvidenceText(value)
           .split(' ')
           .filter((term) => term.length > 2 && !ignored.has(term))
           .map((term) => visualEvidenceStem(term)));
@@ -636,8 +635,8 @@
       }
 
     function visualGraphicsAtomsForIR(context) {
-        if (visualOperatorCompiler && typeof visualOperatorCompiler.compileVisualGraphicsAtoms === 'function') {
-          return visualOperatorCompiler.compileVisualGraphicsAtoms(context);
+        if (scope.visualOperatorCompiler && typeof scope.visualOperatorCompiler.compileVisualGraphicsAtoms === 'function') {
+          return scope.visualOperatorCompiler.compileVisualGraphicsAtoms(context);
         }
         return {
           schema: 'simulatte.graphicsAtomPlan.v1',
@@ -667,7 +666,7 @@
     function visualMaterialsForGraphicsAtoms(atoms = []) {
         return (atoms || []).map((atom, index) => {
           const family = materialFamilyForGraphicsAtom(atom.id);
-          const hue = hashProgram(atom.id || index) % 360;
+          const hue = scope.hashProgram(atom.id || index) % 360;
           return {
             id: `atom:${atom.id}`,
             family,
@@ -675,7 +674,7 @@
             fill: `hsl(${hue}, 70%, 62%)`,
             stroke: `hsl(${hue}, 58%, 30%)`,
             opacity: /transparent|vapor|fluid|glass/.test(atom.id) ? 0.34 : 0.52,
-            roughness: materialRoughness(family),
+            roughness: scope.materialRoughness(family),
             emissive: /emissive|hot|flame|plasma|signal|spectral/.test(atom.id),
             evidence: [`graphics-atom:${atom.id}`, ...(atom.evidence || [])],
             status: 'accepted',
@@ -704,7 +703,7 @@
         if (/caustic|transparent|glass|crystal/.test(text)) return 'atom-refractive-caustic';
         if (/signal|charged|trace|monitor/.test(text)) return 'atom-signal-trace';
         if (/fracture|deformed/.test(text)) return 'atom-stress-material';
-        return shaderForMaterialFamily(family);
+        return scope.shaderForMaterialFamily(family);
       }
 
     function visualFieldsForGraphicsAtoms(atoms = [], sceneKind = '') {
@@ -716,8 +715,8 @@
             kind,
             channel: atom.id,
             visualEncoding: fieldEncodingForGraphicsAtom(atom.id, sceneKind),
-            strength: Number((0.56 + (hashProgram(atom.id) % 31) / 100).toFixed(2)),
-            geometry: visualFieldGeometry({ id, kind }, kind),
+            strength: Number((0.56 + (scope.hashProgram(atom.id) % 31) / 100).toFixed(2)),
+            geometry: scope.visualFieldGeometry({ id, kind }, kind),
             evidence: [`graphics-atom:${atom.id}`, ...(atom.evidence || [])],
             atomId: atom.id,
             status: 'accepted',
@@ -786,7 +785,7 @@
     function affectedEntitiesForGraphicsAtom(id, objects) {
         const text = String(id || '').toLowerCase();
         return (objects || []).filter((object) => {
-          const row = renderObjectText(object);
+          const row = scope.renderObjectText(object);
           if (/heat|thermal|phase|flame/.test(text)) return /heat|fire|lava|air|metal|steam|ice/.test(row);
           if (/flow|pressure|transport/.test(text)) return /flow|fluid|water|air|pipe|river|coolant/.test(row);
           if (/network|queue|control|feedback|measurement/.test(text)) return /sensor|network|queue|server|controller|agent/.test(row);
@@ -797,13 +796,13 @@
       }
 
     function motionGrammarForGraphicsAtom(id, sceneKind) {
-        return motionForProcessFamily(id, sceneKind);
+        return scope.motionForProcessFamily(id, sceneKind);
       }
 
     function visualGeometryForGraphicsAtoms(atoms = [], sceneKind = '') {
         return (atoms || []).map((atom, index) => ({
-          id: `geometry:atom:${visualSafeId(atom.id)}`,
-          entityId: `graphics-atom:${visualSafeId(atom.id)}`,
+          id: `geometry:atom:${scope.visualSafeId(atom.id)}`,
+          entityId: `graphics-atom:${scope.visualSafeId(atom.id)}`,
           primitive: geometryPrimitiveForGraphicsAtom(atom.id, sceneKind),
           sceneKind,
           label: atom.label || atom.id,
@@ -839,11 +838,11 @@
 
     function visualMotionForGraphicsAtoms(atoms = [], visualGenome = {}, sceneKind = '') {
         return (atoms || []).map((atom, index) => ({
-          id: `motion:atom:${visualSafeId(atom.id)}`,
+          id: `motion:atom:${scope.visualSafeId(atom.id)}`,
           processId: `atom-process:${atom.id}`,
           grammar: motionGrammarForGraphicsAtom(atom.id, sceneKind),
           phase: index / Math.max(1, atoms.length),
-          speed: motionSpeedForScene(sceneKind, atom.id),
+          speed: scope.motionSpeedForScene(sceneKind, atom.id),
           density: Math.max(24, visualGenome && visualGenome.morphology
             ? visualGenome.morphology.particleDensity || 24
             : 24),
@@ -869,8 +868,8 @@
 
     function visualGeometryForCausalAffordances(affordances, sceneKind) {
         return (affordances || []).map((row, index) => ({
-          id: `geometry:causal:${visualSafeId(row.id || `affordance-${index + 1}`)}`,
-          entityId: `affordance:${visualSafeId(row.id || `affordance-${index + 1}`)}`,
+          id: `geometry:causal:${scope.visualSafeId(row.id || `affordance-${index + 1}`)}`,
+          entityId: `affordance:${scope.visualSafeId(row.id || `affordance-${index + 1}`)}`,
           primitive: geometryPrimitiveForAffordance(row, sceneKind),
           sceneKind: row.sceneKind || sceneKind,
           label: row.id || `causal affordance ${index + 1}`,
@@ -950,7 +949,7 @@
         return { ...(receipts || {}), intentBrief: row };
       }
 
-    Object.assign(scope, {
+    root.SimulattePhaseModuleRegistry.define('compositionGraph', 'simulatte-composition-graph-visual-ir.js', {
       wakeFieldRowsForSwimmingAgents,
       swimmingEffectRowsForAgents,
       swimmingPosePath,
@@ -985,5 +984,5 @@
       geometryPrimitiveForAffordance,
       augmentVisualReceiptsWithIntentBrief,
     });
-  }
+
 })(typeof globalThis !== 'undefined' ? globalThis : window);

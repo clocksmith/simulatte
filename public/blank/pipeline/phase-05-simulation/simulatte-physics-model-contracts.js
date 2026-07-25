@@ -1,7 +1,6 @@
 (function attachSimulattePhysicsModelcontracts(root) {
-  const scope = root.__SimulattePhysicsModelRefactorScope;
-  if (!scope || scope.missingDependency) return;
-  with (scope) {
+  const scope = root.SimulattePhaseModuleRegistry.family('physicsModel');
+
     const {
         CONTROL_LIBRARY,
         DEFAULT_PARAMS,
@@ -37,14 +36,14 @@
         vectorScore,
         withPrimitiveDependencies,
         wrapAngle,
-      } = catalog;
+      } = scope.catalog;
 
     const {
         COMPOSITION_SCHEMA,
         RENDER_PROGRAM_SCHEMA,
         buildCompositionGraph,
         compileCompositionToRenderProgram,
-      } = composer || {};
+      } = scope.composer || {};
 
     const {
         INTENT_CLASSIFICATION_SCHEMA,
@@ -52,44 +51,44 @@
         classificationSummary,
         classifyIntentPrompt,
         rankPrimitivesForClassification,
-      } = classifier || {};
+      } = scope.classifier || {};
 
     const {
         SEMANTIC_RAG_SCHEMA,
         buildPrimitiveProgram,
         createSemanticRag,
-      } = semantic || {};
+      } = scope.semantic || {};
 
     const {
         DOPPLER_INTENT_SCHEMA,
         normalizeDopplerIntent,
-      } = doppler || {};
+      } = scope.doppler || {};
 
     const {
         SYNTHESIS_SCHEMA,
         groundedPrimitiveRows,
         synthesizeWorldIntent,
-      } = graphSynthesis || {};
+      } = scope.graphSynthesis || {};
 
     const {
         PROMPT_PARSE_SCHEMA,
         parsePrompt,
-      } = universeParser || {};
+      } = scope.universeParser || {};
 
     const {
         UNIVERSE_GRAPH_SCHEMA,
         groundUniverseGraph,
-      } = universeGrounder || {};
+      } = scope.universeGrounder || {};
 
     const {
         PHYSICAL_IR_SCHEMA,
         buildPhysicsIR,
-      } = physicsIR || {};
+      } = scope.physicsIR || {};
 
     const {
         VALIDATION_RECEIPT_SCHEMA,
         validatePhysicsIR,
-      } = physicsIRValidator || {};
+      } = scope.physicsIRValidator || {};
 
     const {
         SOLVER_GRAPH_SCHEMA,
@@ -106,32 +105,47 @@
         applyGridBoundaryFlux,
         buildGridGhostLayer,
         deriveChannelSummary,
-      } = solverCompiler || {};
+      } = scope.solverCompiler || {};
 
     const {
         RENDER_IR_SCHEMA,
         compileRenderIR,
-      } = renderIR || {};
+      } = scope.renderIR || {};
 
     const {
         INTENT_BRIEF_SCHEMA,
         buildIntentForensics,
-      } = intentForensics || {};
+      } = scope.intentForensics || {};
 
     const {
         buildActivationCloud,
         summarizeActivationCloud,
-      } = activationModule || {};
+      } = scope.activationModule || {};
 
     const {
         buildGroundedInterpretation,
-      } = groundedModule || {};
+      } = scope.groundedModule || {};
 
     const {
       PHASE_CONTRACTS,
       PHASE_OUTPUT_SCHEMAS,
       PHASE_ZERO_INPUT_SCHEMA,
-    } = phaseContracts || {};
+      phaseOutputSchema,
+      createPhaseEnvelope,
+      assertPhaseEnvelope,
+      forbiddenFieldPresent,
+      dottedPathPresent,
+      fieldNamePresent,
+      validatePhaseEnvelope,
+      validatePhase1RuntimeReady,
+      validatePhase2LanguageGraph,
+      validatePhase3RetrievalRerank,
+      validatePhase4GroundedIntent,
+      validatePhase5SimulationCompile,
+      validatePhase6VisualCompile,
+      validatePhase7RenderExecution,
+      validatePhase8SceneProof,
+    } = scope.phaseContracts || {};
     if (!PHASE_CONTRACTS || !PHASE_OUTPUT_SCHEMAS || !PHASE_ZERO_INPUT_SCHEMA) {
       throw new Error('Simulatte phase contract module unavailable');
     }
@@ -165,7 +179,7 @@
     const NEGATION_RE = scope.universeParser && scope.universeParser.NEGATION_RE ||
       /\b(?:no|not|never|without|none|cannot|can't|wont|won't)\b/;
 
-    Object.assign(scope, {
+    root.SimulattePhaseModuleRegistry.define('physicsModel', 'simulatte-physics-model-contracts.js', {
       CONTROL_LIBRARY,
       DEFAULT_PARAMS,
       EXAMPLE_INTENTS,
@@ -248,6 +262,21 @@
       buildGroundedInterpretation,
       PHASE_CONTRACTS,
       PHASE_ZERO_INPUT_SCHEMA,
+      phaseOutputSchema,
+      createPhaseEnvelope,
+      assertPhaseEnvelope,
+      forbiddenFieldPresent,
+      dottedPathPresent,
+      fieldNamePresent,
+      validatePhaseEnvelope,
+      validatePhase1RuntimeReady,
+      validatePhase2LanguageGraph,
+      validatePhase3RetrievalRerank,
+      validatePhase4GroundedIntent,
+      validatePhase5SimulationCompile,
+      validatePhase6VisualCompile,
+      validatePhase7RenderExecution,
+      validatePhase8SceneProof,
       PHASE_OUTPUT_SCHEMAS,
       RENDER_EXECUTION_INPUT_SCHEMA,
       SCENE_COMPOSITION_LEDGER_SCHEMA,
@@ -264,5 +293,5 @@
       SWIMMING_RE,
       NEGATION_RE,
     });
-  }
+
 })(typeof globalThis !== 'undefined' ? globalThis : window);

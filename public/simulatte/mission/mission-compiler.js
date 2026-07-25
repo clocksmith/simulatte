@@ -8,11 +8,19 @@
   const placeResolution = typeof module === 'object' && module.exports
     ? require('../runtime/neural-place-resolution-core.js')
     : root.SimulatteNeuralPlaceResolutionCore;
-  const api = factory(contracts, capabilities, placeResolution);
+  const streetNames = typeof module === 'object' && module.exports
+    ? require('../../shared/streets/street-name.js')
+    : root.SimulatteStreetNames;
+  const deterministicValues = typeof module === 'object' && module.exports
+    ? require('../../shared/deterministic-values.js')
+    : root.SimulatteDeterministicValues;
+  const api = factory(contracts, capabilities, placeResolution, streetNames, deterministicValues);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteAutonomyMission = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyMissionCompiler(contracts, capabilities, placeResolution) {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyMissionCompiler(contracts, capabilities, placeResolution, streetNames, deterministicValues) {
   const CLAIM_BOUNDARY = 'Known point-to-point and registered closed-circuit tasks only. Places, routed streets, and circuits resolve against governed artifacts. Optional model-backed place resolution can select only an existing governed node and cannot create a place, route, or capability.';
+  const hash32 = deterministicValues.fnv1a32;
+  const round = deterministicValues.round9;
   const METERS_PER_UNIT = Object.freeze({ foot: 0.3048, meter: 1, kilometer: 1000, mile: 1609.344 });
   const SECONDS_PER_UNIT = Object.freeze({ second: 1, minute: 60, hour: 3600 });
   const DELIVERY_MODES = Object.freeze([
@@ -27,10 +35,6 @@
     { kind: 'scooter', pattern: /\b(?:scooter|scooting)\b/ },
     { kind: 'car', pattern: /\b(?:car|automobile|drive|driving)\b/ },
   ]);
-  const STREET_WORDS = Object.freeze({
-    avenue: 'av', ave: 'av', av: 'av', street: 'st', str: 'st', st: 'st', boulevard: 'blvd', blvd: 'blvd',
-    road: 'rd', rd: 'rd', lane: 'ln', ln: 'ln', place: 'pl', pl: 'pl', square: 'sq', sq: 'sq',
-  });
   const modeNodeCache = new WeakMap();
 
   function compileMission(sourceText, world, embodimentInput, options = {}) {
@@ -754,7 +758,7 @@
   }
 
   function normalizedStreetWords(value) {
-    return normalizedWords(value).map((word) => STREET_WORDS[word] || word);
+    return streetNames.normalizeStreetWords(value, { omitArticles: true });
   }
 
   function lexicalMatch(text, pattern) {
@@ -799,19 +803,6 @@
       previous.splice(0, previous.length, ...current);
     }
     return previous[right.length];
-  }
-
-  function hash32(value) {
-    let hash = 2166136261;
-    for (let index = 0; index < value.length; index += 1) {
-      hash ^= value.charCodeAt(index);
-      hash = Math.imul(hash, 16777619);
-    }
-    return hash >>> 0;
-  }
-
-  function round(value) {
-    return Number(value.toFixed(9));
   }
 
   function missionError(code, message, evidence = null) {

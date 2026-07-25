@@ -1,17 +1,16 @@
 (function attachSimulatteIntentEmbeddermanifestcache(root) {
-  const scope = root.__SimulatteIntentEmbedderRefactorScope;
-  if (!scope || scope.missingDependency) return;
-  with (scope) {
-    if (typeof managedRerankProvider !== 'function') {
+  const scope = root.SimulattePhaseModuleRegistry.family('intentEmbedder');
+
+    if (typeof scope.managedRerankProvider !== 'function') {
       throw new Error('Doppler reranker runtime must load before the model-backed embedder');
     }
     const boundedHeadClassifier = root.SimulatteIntentEmbedderBoundedClassification;
     if (!boundedHeadClassifier) throw new Error('Phase 3 bounded classification runtime must load before the embedder');
     class ModelBackedIntentEmbedder {
         constructor(options = {}) {
-          assertPinnedRuntimeOptions(options);
-          this.manifestUrl = options.manifestUrl || DEFAULT_MANIFEST_URL;
-          this.assetVersionQuery = normalizeAssetVersionQuery(options.assetVersionQuery || defaultAssetVersionQuery());
+          scope.assertPinnedRuntimeOptions(options);
+          this.manifestUrl = options.manifestUrl || scope.DEFAULT_MANIFEST_URL;
+          this.assetVersionQuery = scope.normalizeAssetVersionQuery(options.assetVersionQuery || scope.defaultAssetVersionQuery());
           this.catalog = options.catalog || null;
           this.onProgress = typeof options.onProgress === 'function' ? options.onProgress : null;
           this.embedProvider = options.embedProvider || null;
@@ -22,7 +21,7 @@
           this.dopplerStorageModule = options.dopplerStorageModule || null;
           this.spanLevelEmbedding = options.spanLevelEmbedding;
           this.spanEmbeddingCache = options.spanEmbeddingCache || new Map();
-          this.traceEnabled = traceEnabled(options);
+          this.traceEnabled = scope.traceEnabled(options);
           this.traceId = options.traceId || `intent-${Math.random().toString(36).slice(2, 9)}`;
           this.modelPromise = null;
           this.manifestPromise = null;
@@ -48,10 +47,10 @@
         }
 
         async loadModel(options = {}) {
-          const progress = progressHandler(options, this.onProgress);
-          const trace = this.traceEnabled || traceEnabled(options);
+          const progress = scope.progressHandler(options, this.onProgress);
+          const trace = this.traceEnabled || scope.traceEnabled(options);
           const emitLoadProgress = (stage, percent, message, extra = {}) => {
-            emitRuntimeProgress(progress, trace, {
+            scope.emitRuntimeProgress(progress, trace, {
               source: 'simulatte-intent-embedder',
               stage,
               percent,
@@ -61,7 +60,7 @@
             });
           };
           if (!this.modelPromise) {
-            const loadStarted = nowMs();
+            const loadStarted = scope.nowMs();
             emitLoadProgress('manifest', 3, 'Loading intent manifest', {
               timing: 'start',
               manifestUrl: this.manifestUrl,
@@ -71,7 +70,7 @@
               .then(async (manifest) => {
                 emitLoadProgress('manifest', 6, 'Intent manifest ready', {
                   timing: 'end',
-                  durationMs: elapsedMsSince(loadStarted),
+                  durationMs: scope.elapsedMsSince(loadStarted),
                   modelId: manifest.embedModel && manifest.embedModel.id || '',
                   modelBaseUrl: manifest.embedModel && manifest.embedModel.defaultModelBaseUrl || '',
                   sourceSizeBytes: manifest.embedModel && manifest.embedModel.source && manifest.embedModel.source.sizeBytes || 0,
@@ -88,28 +87,28 @@
                   traceId: this.traceId,
                 };
                 const hasInjectedEmbedding = options.embedProvider || this.embedProvider ||
-                  options.dopplerModelHandle || this.dopplerModelHandle || globalModelHandle();
+                  options.dopplerModelHandle || this.dopplerModelHandle || scope.globalModelHandle();
                 const hasInjectedReranker = options.rerankProvider || options.rerankerProvider || this.rerankProvider ||
                   typeof globalThis !== 'undefined' && (globalThis.SimulatteDopplerReranker || globalThis.DopplerReranker);
                 const runtimeConfig = manifest.runtime || {};
                 if (!hasInjectedEmbedding && !this.dopplerApiPromise && runtimeConfig.moduleUrl) {
-                  this.dopplerApiPromise = resolveDopplerApi({
+                  this.dopplerApiPromise = scope.resolveDopplerApi({
                     dopplerModule: options.dopplerModule || this.dopplerModule,
                     moduleUrl: runtimeConfig.moduleUrl,
                     kernelBasePath: runtimeConfig.kernelBasePath,
                   });
                   this.dopplerApiPromise.catch(() => { this.dopplerApiPromise = null; });
                 }
-                const eagerReranker = rerankerConfig(manifest);
+                const eagerReranker = scope.rerankerConfig(manifest);
                 const sourceModels = {
                   embedding: !hasInjectedEmbedding ? manifest.embedModel : null,
                   reranker: !hasInjectedReranker && eagerReranker.enabled && eagerReranker.required
                     ? eagerReranker.model : null,
                 };
                 const sourcePreparation = sourceModels.embedding || sourceModels.reranker
-                  ? prepareDopplerModelSources(this, prefetchRuntime, sourceModels, {
-                    embedding: { ...prefetchOptions, progressRange: EMBEDDING_CACHE_PROGRESS, resourceKind: 'embedding-model' },
-                    reranker: { ...prefetchOptions, progressRange: RERANKER_CACHE_PROGRESS, resourceKind: 'reranker-model' },
+                  ? scope.prepareDopplerModelSources(this, prefetchRuntime, sourceModels, {
+                    embedding: { ...prefetchOptions, progressRange: scope.EMBEDDING_CACHE_PROGRESS, resourceKind: 'embedding-model' },
+                    reranker: { ...prefetchOptions, progressRange: scope.RERANKER_CACHE_PROGRESS, resourceKind: 'reranker-model' },
                   })
                   : null;
                 const devicePreparation = sourcePreparation ? this.ensureDopplerDevice(prefetchRuntime, options) : null;
@@ -125,7 +124,7 @@
                 const cardIndexUrl = cardRetrieval.artifact || '';
                 const universeRetrieval = retrieval.universe || {};
                 const universeManifestUrl = universeRetrieval.artifact || '';
-                const indexesStarted = nowMs();
+                const indexesStarted = scope.nowMs();
                 emitLoadProgress('indexes', 8, 'Loading primitive, surface, and universe indexes', {
                   timing: 'start',
                 });
@@ -136,63 +135,63 @@
                   assetVersionQuery: this.assetVersionQuery,
                 };
                 const [index, cardIndex, universe] = await Promise.all([
-    	              fetchJson(versionedAssetUrl(resolveUrl(indexUrl, this.manifestUrl), this.assetVersionQuery), 'primitive embedding index', {
-    	                ...fetchTelemetry,
-    	                stage: 'index-fetch',
-    	                percent: 10,
-    	                resourceKind: 'primitive-index',
-    	                expectedHash: retrieval.artifactHash || retrieval.hash || null,
-    	              }),
-    	              cardIndexUrl
-    	                ? fetchJson(versionedAssetUrl(resolveUrl(cardIndexUrl, this.manifestUrl), this.assetVersionQuery), 'surface card embedding index', {
-    	                  ...fetchTelemetry,
-    	                  stage: 'index-fetch',
-    	                  percent: 12,
-    	                  resourceKind: 'surface-card-index',
-    	                  expectedHash: cardRetrieval.artifactHash || cardRetrieval.hash || null,
-    	                })
+                    scope.fetchJson(scope.versionedAssetUrl(scope.resolveUrl(indexUrl, this.manifestUrl), this.assetVersionQuery), 'primitive embedding index', {
+                      ...fetchTelemetry,
+                      stage: 'index-fetch',
+                      percent: 10,
+                      resourceKind: 'primitive-index',
+                      expectedHash: retrieval.artifactHash || retrieval.hash || null,
+                    }),
+                    cardIndexUrl
+                      ? scope.fetchJson(scope.versionedAssetUrl(scope.resolveUrl(cardIndexUrl, this.manifestUrl), this.assetVersionQuery), 'surface card embedding index', {
+                        ...fetchTelemetry,
+                        stage: 'index-fetch',
+                        percent: 12,
+                        resourceKind: 'surface-card-index',
+                        expectedHash: cardRetrieval.artifactHash || cardRetrieval.hash || null,
+                      })
                     : Promise.resolve(null),
                   universeManifestUrl
-                    ? loadUniverseIndexes(versionedAssetUrl(resolveUrl(universeManifestUrl, this.manifestUrl), this.assetVersionQuery), fetchTelemetry)
+                    ? scope.loadUniverseIndexes(scope.versionedAssetUrl(scope.resolveUrl(universeManifestUrl, this.manifestUrl), this.assetVersionQuery), fetchTelemetry)
                     : Promise.resolve(null),
                 ]);
-                const runtime = normalizeModelBackedRuntime(manifest, index, cardIndex, universe);
+                const runtime = scope.normalizeModelBackedRuntime(manifest, index, cardIndex, universe);
                 const preparation = preparationBarrier ? await preparationBarrier : null;
                 if (preparation && preparation.error) throw preparation.error;
                 emitLoadProgress('indexes', 16, 'Embedding indexes ready', {
                   timing: 'end',
-                  durationMs: elapsedMsSince(indexesStarted),
+                  durationMs: scope.elapsedMsSince(indexesStarted),
                   primitiveDocuments: runtime.index && runtime.index.documentCount || 0,
                   surfaceCardDocuments: runtime.cardIndex && runtime.cardIndex.documentCount || 0,
                   universeDocuments: runtime.universe && runtime.universe.documentCount || 0,
                 });
-                const providerStarted = nowMs();
+                const providerStarted = scope.nowMs();
                 const providerOptions = {
                   ...options,
                   onProgress: progress,
                   traceEmbeddings: trace,
                 };
                 const provider = await this.resolveEmbedProvider(runtime, providerOptions);
-                const probe = await verifyPromptRuntimeProvider(runtime, provider, {
+                const probe = await scope.verifyPromptRuntimeProvider(runtime, provider, {
                   progress,
                   trace,
                   traceId: this.traceId,
                   nowIso: options.nowIso,
                 });
                 const rerankProvider = await this.resolveRerankProvider(runtime, provider, providerOptions);
-                const rerankerProbe = await verifyPromptRuntimeReranker(runtime, provider, {
+                const rerankerProbe = await scope.verifyPromptRuntimeReranker(runtime, provider, {
                   progress,
                   trace,
                   traceId: this.traceId,
                   nowIso: options.nowIso,
                   rerankProvider,
-                  dopplerModelHandle: options.dopplerModelHandle || this.dopplerModelHandle || globalModelHandle(),
+                  dopplerModelHandle: options.dopplerModelHandle || this.dopplerModelHandle || scope.globalModelHandle(),
                 });
-                const receipt = promptRuntimeReceipt(runtime, provider, {
-                  durationMs: elapsedMsSince(loadStarted),
+                const receipt = scope.promptRuntimeReceipt(runtime, provider, {
+                  durationMs: scope.elapsedMsSince(loadStarted),
                   firstLoad: true,
                   manifestUrl: this.manifestUrl,
-                  providerLoadMs: elapsedMsSince(providerStarted),
+                  providerLoadMs: scope.elapsedMsSince(providerStarted),
                   traceId: this.traceId,
                   probe,
                   rerankerProbe,
@@ -202,11 +201,11 @@
                 });
                 runtime.promptRuntimeReranker = rerankerProbe;
                 runtime.promptRuntimeReceipt = receipt;
-                emitLoadProgress('runtime-ready', 96, 'Prompt runtime ready', promptRuntimeReceiptProgress(receipt));
+                emitLoadProgress('runtime-ready', 96, 'Prompt runtime ready', scope.promptRuntimeReceiptProgress(receipt));
                 return runtime;
               })
               .catch(async (error) => {
-                await releaseDopplerResources(this);
+                await scope.releaseDopplerResources(this);
                 this.modelPromise = null;
                 this.providerReady = false;
                 throw error;
@@ -254,7 +253,7 @@
         }
 
         async loadManifestUncached() {
-          const rawManifest = await fetchJson(versionedAssetUrl(this.manifestUrl, this.assetVersionQuery), 'intent manifest', {
+          const rawManifest = await scope.fetchJson(scope.versionedAssetUrl(this.manifestUrl, this.assetVersionQuery), 'intent manifest', {
             progress: this.onProgress,
             traceEnabled: this.traceEnabled,
             traceId: this.traceId,
@@ -262,7 +261,7 @@
             percent: 4,
             resourceKind: 'intent-manifest',
           });
-          const manifest = await resolvePinnedModelManifest(rawManifest, this.manifestUrl, {
+          const manifest = await scope.resolvePinnedModelManifest(rawManifest, this.manifestUrl, {
             progress: this.onProgress,
             traceEnabled: this.traceEnabled,
             traceId: this.traceId,
@@ -274,7 +273,7 @@
           if (manifest.retrieval.rerank !== 'deterministic-until-qualified-model') {
             throw new Error('intent manifest retrieval must use deterministic reranking until a model is qualified');
           }
-          const reranker = rerankerConfig(manifest);
+          const reranker = scope.rerankerConfig(manifest);
           if (reranker.enabled && reranker.schema !== 'simulatte.intentRerankerConfig.v1') {
             throw new Error('intent manifest reranker schema mismatch; expected simulatte.intentRerankerConfig.v1');
           }
@@ -317,7 +316,7 @@
           if (!manifest.embedModel.defaultModelBaseUrl) {
             throw new Error('intent manifest embedModel.defaultModelBaseUrl is required');
           }
-          if (!hashHex(manifest.embedModel.manifestHash)) {
+          if (!scope.hashHex(manifest.embedModel.manifestHash)) {
             throw new Error('intent manifest embedModel.manifestHash is required');
           }
           if (!manifest.runtime || !manifest.runtime.runtimeConfig) {
@@ -338,7 +337,7 @@
           }
           if (reranker.enabled && reranker.required && reranker.loadInPhase1WhenRequired !== false) {
             const model = reranker.model || {};
-            if (!model.id || !model.defaultModelBaseUrl || !hashHex(model.manifestHash)) {
+            if (!model.id || !model.defaultModelBaseUrl || !scope.hashHex(model.manifestHash)) {
               throw new Error('required intent reranker must declare model.id, defaultModelBaseUrl, and manifestHash');
             }
           }
@@ -347,14 +346,14 @@
 
         async rankPrompt(prompt, primitives, options = {}) {
           const promptText = String(prompt || '').trim();
-          const progress = progressHandler(options, this.onProgress);
-          const trace = this.traceEnabled || traceEnabled(options);
+          const progress = scope.progressHandler(options, this.onProgress);
+          const trace = this.traceEnabled || scope.traceEnabled(options);
           const rankId = ++this.rankSerial;
-          const rankStarted = nowMs();
+          const rankStarted = scope.nowMs();
           if (!promptText) {
-            return blankResult(await this.loadModel(options));
+            return scope.blankResult(await this.loadModel(options));
           }
-          emitRuntimeProgress(progress, trace, {
+          scope.emitRuntimeProgress(progress, trace, {
             source: 'simulatte-intent-embedder',
             stage: 'retrieval-start',
             percent: 2,
@@ -368,37 +367,37 @@
             ? primitives
             : this.catalog && this.catalog.PHYSICAL_PRIMITIVES || [];
           const max = Number.isFinite(options.max) ? options.max : 36;
-          emitRuntimeProgress(progress, trace, {
+          scope.emitRuntimeProgress(progress, trace, {
             source: 'simulatte-intent-embedder',
             stage: 'model',
             percent: 18,
-            message: `Preparing local ${modelLabel(runtime.manifest)}`,
+            message: `Preparing local ${scope.modelLabel(runtime.manifest)}`,
             traceId: this.traceId,
             rankId,
             modelId: runtime.manifest && runtime.manifest.embedModel && runtime.manifest.embedModel.id || '',
             modelBaseUrl: runtime.manifest && runtime.manifest.embedModel && runtime.manifest.embedModel.defaultModelBaseUrl || '',
             candidateCount: candidates.length,
           });
-          const providerStarted = nowMs();
+          const providerStarted = scope.nowMs();
           const providerWasReady = this.providerReady;
           const provider = await this.resolveEmbedProvider(runtime, {
             ...options,
             onProgress: progress,
             traceEmbeddings: trace,
           });
-          emitRuntimeProgress(progress, trace, {
+          scope.emitRuntimeProgress(progress, trace, {
             source: 'simulatte-intent-embedder',
             stage: 'model-ready',
             percent: 80,
             message: 'Embedding provider ready',
             traceId: this.traceId,
             rankId,
-            durationMs: elapsedMsSince(providerStarted),
+            durationMs: scope.elapsedMsSince(providerStarted),
             backend: provider.backend || 'doppler-embedding',
             reuse: providerWasReady,
           });
-          const embedStarted = nowMs();
-          emitRuntimeProgress(progress, trace, {
+          const embedStarted = scope.nowMs();
+          scope.emitRuntimeProgress(progress, trace, {
             source: 'simulatte-intent-embedder',
             stage: 'prompt-embed',
             percent: 82,
@@ -410,8 +409,8 @@
             promptChars: promptText.length,
           });
           const query = await provider.embed({ text: promptText, nowIso: options.nowIso || new Date().toISOString() });
-          const queryVector = validateQueryEmbedding(query, runtime.index);
-          emitRuntimeProgress(progress, trace, {
+          const queryVector = scope.validateQueryEmbedding(query, runtime.index);
+          scope.emitRuntimeProgress(progress, trace, {
             source: 'simulatte-intent-embedder',
             stage: 'prompt-embed',
             percent: 84,
@@ -419,37 +418,37 @@
             timing: 'end',
             traceId: this.traceId,
             rankId,
-            durationMs: elapsedMsSince(embedStarted),
+            durationMs: scope.elapsedMsSince(embedStarted),
             backend: provider.backend || 'doppler-embedding',
             embeddingDim: queryVector.length,
           });
-          const candidateVectors = vectorsFor(runtime.index, candidates);
-          const rankVectorStarted = nowMs();
-          const gpuScores = await rankWithOwnerGpu(this, runtime.index.embeddingDim, queryVector, candidateVectors);
-          const scores = gpuScores || rankCpu(queryVector, candidateVectors);
-          const cardMatches = rankSurfaceCards(runtime.cardIndex, queryVector, options);
-          const universeMatches = rankUniverseIndexes(runtime.universe, promptText, queryVector, options);
-          emitRuntimeProgress(progress, trace, {
+          const candidateVectors = scope.vectorsFor(runtime.index, candidates);
+          const rankVectorStarted = scope.nowMs();
+          const gpuScores = await scope.rankWithOwnerGpu(this, runtime.index.embeddingDim, queryVector, candidateVectors);
+          const scores = gpuScores || scope.rankCpu(queryVector, candidateVectors);
+          const cardMatches = scope.rankSurfaceCards(runtime.cardIndex, queryVector, options);
+          const universeMatches = scope.rankUniverseIndexes(runtime.universe, promptText, queryVector, options);
+          scope.emitRuntimeProgress(progress, trace, {
             source: 'simulatte-intent-embedder',
             stage: 'rank',
             percent: 86,
             message: 'Primitive, surface, and universe scores ranked',
             traceId: this.traceId,
             rankId,
-            durationMs: elapsedMsSince(rankVectorStarted),
+            durationMs: scope.elapsedMsSince(rankVectorStarted),
             rankBackend: gpuScores ? 'webgpu' : 'cpu',
             candidateCount: candidates.length,
             cardMatchCount: cardMatches.length,
             universeCandidateCount: universeMatches && universeMatches.candidates && universeMatches.candidates.length || 0,
           });
-          const promptTermSet = new Set(fallbackFeatureTokens(promptText));
+          const promptTermSet = new Set(scope.fallbackFeatureTokens(promptText));
           const nonRetrievableIds = new Set(candidates
             .filter((primitive) => primitive && primitive.isRetrievable === false)
             .map((primitive) => primitive.id));
           const basePriors = candidates
             .map((primitive, index) => {
-              const prior = primitivePriorFromScore(primitive, scores[index]);
-              const symbolic = symbolicPromptMatch(promptText, promptTermSet, primitive);
+              const prior = scope.primitivePriorFromScore(primitive, scores[index]);
+              const symbolic = scope.symbolicPromptMatch(promptText, promptTermSet, primitive);
               return {
                 ...prior,
                 symbolicBoost: symbolic.score,
@@ -458,7 +457,7 @@
             })
             .filter((prior) => !nonRetrievableIds.has(prior.primitiveId))
             .sort((a, b) => b.score - a.score || a.primitiveId.localeCompare(b.primitiveId));
-          const languageEvidence = spanLanguageEvidence(promptText, options);
+          const languageEvidence = scope.spanLanguageEvidence(promptText, options);
           const boundedClassification = await boundedHeadClassifier.classify({
             state: this,
             promptText,
@@ -470,12 +469,12 @@
             calibration: options.classificationCalibration
               || runtime.promptRuntimeReceipt && runtime.promptRuntimeReceipt.classificationCalibration
               || null,
-            validateEmbedding: (result) => validateQueryEmbedding(result, runtime.index),
+            validateEmbedding: (result) => scope.validateQueryEmbedding(result, runtime.index),
           });
           const activeRerankProvider = await this.resolveRerankProvider(runtime, provider, options);
-          const previewRerank = rerankPriors(basePriors, null, null, runtime, universeMatches);
-          const previewSpanRetrieval = emptySpanRetrieval([], spanConfigFor(runtime, options, this.spanLevelEmbedding), 'prompt-preview');
-          const previewEvidenceRows = buildIntentEvidenceRows({
+          const previewRerank = scope.rerankPriors(basePriors, null, null, runtime, universeMatches);
+          const previewSpanRetrieval = scope.emptySpanRetrieval([], scope.spanConfigFor(runtime, options, this.spanLevelEmbedding), 'prompt-preview');
+          const previewEvidenceRows = scope.buildIntentEvidenceRows({
             basePriors,
             cardMatches,
             universeMatches,
@@ -483,8 +482,8 @@
             semanticRag: null,
             dopplerIntent: null,
           });
-          emitIntentPreview(options, {
-            model: modelSummary(runtime, query, provider),
+          scope.emitIntentPreview(options, {
+            model: scope.modelSummary(runtime, query, provider),
             backend: provider.backend || 'doppler-embedding',
             rankBackend: gpuScores ? 'webgpu' : 'cpu',
             priors: previewRerank.priors.slice(0, max),
@@ -497,7 +496,7 @@
             evidenceRows: previewEvidenceRows,
             retrievalPhase: 'prompt-preview',
           });
-          const spanRetrieval = await rankPromptSpans({
+          const spanRetrieval = await scope.rankPromptSpans({
             provider,
             runtime,
             candidates,
@@ -506,13 +505,13 @@
             options,
             embedCache: this.spanEmbeddingCache,
             instanceConfig: this.spanLevelEmbedding,
-            rankGpu: (vector) => rankWithOwnerGpu(this, runtime.index.embeddingDim, vector, candidateVectors),
+            rankGpu: (vector) => scope.rankWithOwnerGpu(this, runtime.index.embeddingDim, vector, candidateVectors),
             progress,
             traceEnabled: trace,
             traceId: this.traceId,
             rankId,
           });
-          const slotRetrieval = await rankQueryPlanSlots({
+          const slotRetrieval = await scope.rankQueryPlanSlots({
             provider,
             runtime,
             candidates,
@@ -522,16 +521,16 @@
             promptText,
             options,
             rerankProvider: activeRerankProvider,
-            rankGpu: (vector) => rankWithOwnerGpu(this, runtime.index.embeddingDim, vector, candidateVectors),
+            rankGpu: (vector) => scope.rankWithOwnerGpu(this, runtime.index.embeddingDim, vector, candidateVectors),
             progress,
             traceEnabled: trace,
             traceId: this.traceId,
             rankId,
           });
-          const fusedBasePriors = fuseSpanPrimitiveScores(basePriors, spanRetrieval);
-          const semanticRag = createRag(promptText, candidates, fusedBasePriors, runtime.index, queryVector, options);
-          const dopplerIntent = await analyzeDopplerIntent(promptText, candidates, options);
-          const rerank = await rerankIntentPriors({
+          const fusedBasePriors = scope.fuseSpanPrimitiveScores(basePriors, spanRetrieval);
+          const semanticRag = scope.createRag(promptText, candidates, fusedBasePriors, runtime.index, queryVector, options);
+          const dopplerIntent = await scope.analyzeDopplerIntent(promptText, candidates, options);
+          const rerank = await scope.rerankIntentPriors({
             priors: fusedBasePriors,
             semanticRag,
             dopplerIntent,
@@ -547,7 +546,7 @@
             traceId: this.traceId,
             rankId,
           });
-          const evidenceRows = buildIntentEvidenceRows({
+          const evidenceRows = scope.buildIntentEvidenceRows({
             basePriors: fusedBasePriors,
             cardMatches,
             universeMatches,
@@ -556,17 +555,17 @@
             semanticRag,
             dopplerIntent,
           });
-          emitRuntimeProgress(progress, trace, {
+          scope.emitRuntimeProgress(progress, trace, {
             source: 'simulatte-intent-embedder',
             stage: 'classification',
             percent: 96,
             message: 'Intent graph ranked',
             traceId: this.traceId,
             rankId,
-            durationMs: elapsedMsSince(rankStarted),
+            durationMs: scope.elapsedMsSince(rankStarted),
           });
           return {
-            model: modelSummary(runtime, query, provider),
+            model: scope.modelSummary(runtime, query, provider),
             backend: provider.backend || 'doppler-embedding',
             rankBackend: gpuScores ? 'webgpu' : 'cpu',
             promptRuntimeReceipt: runtime.promptRuntimeReceipt || null,
@@ -585,12 +584,12 @@
         }
 
         async resolveEmbedProvider(runtime, options = {}) {
-          const progress = progressHandler(options, this.onProgress);
-          const trace = this.traceEnabled || traceEnabled(options);
+          const progress = scope.progressHandler(options, this.onProgress);
+          const trace = this.traceEnabled || scope.traceEnabled(options);
           if (options.embedProvider) {
-            const provider = normalizeEmbedProvider(options.embedProvider, runtime, 'injected-provider');
+            const provider = scope.normalizeEmbedProvider(options.embedProvider, runtime, 'injected-provider');
             this.providerReady = true;
-            emitRuntimeProgress(progress, trace, {
+            scope.emitRuntimeProgress(progress, trace, {
               source: 'simulatte-intent-embedder',
               stage: 'model-ready',
               percent: 78,
@@ -604,9 +603,9 @@
             return provider;
           }
           if (this.embedProvider) {
-            const provider = normalizeEmbedProvider(this.embedProvider, runtime, 'configured-provider');
+            const provider = scope.normalizeEmbedProvider(this.embedProvider, runtime, 'configured-provider');
             this.providerReady = true;
-            emitRuntimeProgress(progress, trace, {
+            scope.emitRuntimeProgress(progress, trace, {
               source: 'simulatte-intent-embedder',
               stage: 'model-ready',
               percent: 78,
@@ -619,11 +618,11 @@
             });
             return provider;
           }
-          const handle = options.dopplerModelHandle || this.dopplerModelHandle || globalModelHandle();
+          const handle = options.dopplerModelHandle || this.dopplerModelHandle || scope.globalModelHandle();
           if (handle) {
-            const provider = providerFromModelHandle(handle, runtime, 'injected-doppler-model');
+            const provider = scope.providerFromModelHandle(handle, runtime, 'injected-doppler-model');
             this.providerReady = true;
-            emitRuntimeProgress(progress, trace, {
+            scope.emitRuntimeProgress(progress, trace, {
               source: 'simulatte-intent-embedder',
               stage: 'model-ready',
               percent: 78,
@@ -650,7 +649,7 @@
                 throw error;
               });
           } else {
-            emitRuntimeProgress(progress, trace, {
+            scope.emitRuntimeProgress(progress, trace, {
               source: 'simulatte-intent-embedder',
               stage: 'model-reuse',
               percent: this.providerReady ? 78 : 32,
@@ -669,7 +668,7 @@
 
         async loadDopplerModel(runtime, options = {}) {
           const loaded = await this.loadDopplerEmbeddingHandle(runtime, options);
-          return providerFromModelHandle(
+          return scope.providerFromModelHandle(
             loaded.handle,
             runtime,
             'doppler-browser-load',
@@ -681,7 +680,7 @@
         async ensureDopplerDevice(runtime, options = {}) {
           if (!this.dopplerDevicePromise) {
             const runtimeConfig = runtime.manifest.runtime || {};
-            this.dopplerDevicePromise = resolveDopplerDeviceApi({
+            this.dopplerDevicePromise = scope.resolveDopplerDeviceApi({
               dopplerDeviceModule: options.dopplerDeviceModule || this.dopplerDeviceModule,
               deviceModuleUrl: runtimeConfig.deviceModuleUrl,
             }).then((deviceApi) => {
@@ -706,12 +705,12 @@
         }
 
         async loadDopplerEmbeddingHandle(runtime, options = {}) {
-          const progress = progressHandler(options, this.onProgress);
-          const trace = this.traceEnabled || traceEnabled(options);
+          const progress = scope.progressHandler(options, this.onProgress);
+          const trace = this.traceEnabled || scope.traceEnabled(options);
           const moduleUrl = runtime.manifest.runtime && runtime.manifest.runtime.moduleUrl;
           if (!moduleUrl) throw new Error('model runtime lock did not resolve a Doppler module URL');
-          const moduleStarted = nowMs();
-          emitRuntimeProgress(progress, trace, {
+          const moduleStarted = scope.nowMs();
+          scope.emitRuntimeProgress(progress, trace, {
             source: 'simulatte-intent-embedder',
             stage: 'model-module',
             percent: 19,
@@ -720,19 +719,19 @@
             traceId: this.traceId,
             moduleUrl,
           });
-          const api = await (this.dopplerApiPromise || resolveDopplerApi({
+          const api = await (this.dopplerApiPromise || scope.resolveDopplerApi({
             dopplerModule: options.dopplerModule || this.dopplerModule,
             moduleUrl,
             kernelBasePath: runtime.manifest.runtime && runtime.manifest.runtime.kernelBasePath,
           }));
-          emitRuntimeProgress(progress, trace, {
+          scope.emitRuntimeProgress(progress, trace, {
             source: 'simulatte-intent-embedder',
             stage: 'model-module',
             percent: 20,
             message: 'Doppler browser runtime ready',
             timing: 'end',
             traceId: this.traceId,
-            durationMs: elapsedMsSince(moduleStarted),
+            durationMs: scope.elapsedMsSince(moduleStarted),
             moduleUrl,
           });
           const load = api && (api.load || api.doppler && api.doppler.load);
@@ -744,17 +743,17 @@
           const model = runtime.manifest.embedModel || {};
           const modelBaseUrl = model.defaultModelBaseUrl;
           if (!modelBaseUrl) throw new Error('model-backed intent requires embed model base URL');
-          const runtimeConfig = cloneJsonValue(runtime.manifest.runtime && runtime.manifest.runtime.runtimeConfig);
+          const runtimeConfig = scope.cloneJsonValue(runtime.manifest.runtime && runtime.manifest.runtime.runtimeConfig);
           if (!runtimeConfig) {
             throw new Error('model-backed intent manifest missing Doppler runtimeConfig');
           }
           await this.ensureDopplerDevice(runtime, options);
-          const cachedSource = preparedDopplerModelSource(this, 'embedding');
-          const dopplerStarted = nowMs();
-          emitRuntimeProgress(progress, trace, {
+          const cachedSource = scope.preparedDopplerModelSource(this, 'embedding');
+          const dopplerStarted = scope.nowMs();
+          scope.emitRuntimeProgress(progress, trace, {
             source: 'simulatte-intent-embedder',
             stage: 'model-load',
-            percent: EMBEDDING_LOAD_PROGRESS.start,
+            percent: scope.EMBEDDING_LOAD_PROGRESS.start,
             message: 'Doppler loading embedding model files',
             timing: 'start',
             traceId: this.traceId,
@@ -767,13 +766,13 @@
             isolatedLoader: true,
             runtimeConfig,
             onProgress: (event) => {
-              emitRuntimeProgress(progress, trace, normalizeDopplerProgress(event, {
+              scope.emitRuntimeProgress(progress, trace, scope.normalizeDopplerProgress(event, {
                 traceId: this.traceId,
                 modelBaseUrl,
                 modelId: model.id || '',
                 startedAtMs: dopplerStarted,
-                progressStart: EMBEDDING_LOAD_PROGRESS.start,
-                progressEnd: EMBEDDING_LOAD_PROGRESS.end,
+                progressStart: scope.EMBEDDING_LOAD_PROGRESS.start,
+                progressEnd: scope.EMBEDDING_LOAD_PROGRESS.end,
                 stagePrefix: 'model-load',
                 resourceKind: 'embedding-model',
               }));
@@ -782,25 +781,25 @@
           };
           let handle;
           try {
-            handle = await scheduleDopplerModelLoad(
+            handle = await scope.scheduleDopplerModelLoad(
               this, 'embedding', model.id, () => load(cachedSource.modelSource, loadOptions)
             );
-            assertPinnedModelHandle(handle, model, 'embedding', modelBaseUrl);
+            scope.assertPinnedModelHandle(handle, model, 'embedding', modelBaseUrl);
           } catch (error) {
-            await disposeFailedDopplerLoad(handle, cachedSource);
+            await scope.disposeFailedDopplerLoad(handle, cachedSource);
             throw error;
           }
           this.activeDopplerModelRole = 'embedding';
           this.dopplerEmbedHandle = handle;
           this.dopplerEmbedModelBaseUrl = modelBaseUrl;
-          emitRuntimeProgress(progress, trace, {
+          scope.emitRuntimeProgress(progress, trace, {
             source: 'simulatte-intent-embedder',
             stage: 'model-ready',
-            percent: EMBEDDING_LOAD_PROGRESS.end,
+            percent: scope.EMBEDDING_LOAD_PROGRESS.end,
             message: 'Doppler embedding model ready',
             timing: 'end',
             traceId: this.traceId,
-            durationMs: elapsedMsSince(dopplerStarted),
+            durationMs: scope.elapsedMsSince(dopplerStarted),
             artifactMode: 'verified-opfs',
             modelBaseUrl,
             backend: 'doppler-browser-load',
@@ -814,7 +813,7 @@
         }
 
         shouldStartPhase1RerankerLoad(runtime, options = {}) {
-          const config = rerankerConfig(runtime);
+          const config = scope.rerankerConfig(runtime);
           if (!config.enabled || !config.required || !config.model || config.loadInPhase1WhenRequired === false) {
             return false;
           }
@@ -825,13 +824,13 @@
             !this.embedProvider &&
             !options.dopplerModelHandle &&
             !this.dopplerModelHandle &&
-            !globalModelHandle();
+            !scope.globalModelHandle();
         }
 
         async resolveRerankProvider(runtime, provider, options = {}) {
           const explicit = options.rerankProvider || options.rerankerProvider;
           if (explicit) {
-            this.rerankProvider = normalizeRerankProvider(explicit, 'injected-rerank-provider');
+            this.rerankProvider = scope.normalizeRerankProvider(explicit, 'injected-rerank-provider');
             this.rerankerReady = true;
             return this.rerankProvider;
           }
@@ -839,7 +838,7 @@
             this.rerankerReady = true;
             return this.rerankProvider;
           }
-          const providerCapability = resolveRerankerCapability(provider, {});
+          const providerCapability = scope.resolveRerankerCapability(provider, {});
           if (providerCapability) {
             this.rerankProvider = {
               backend: providerCapability.backend,
@@ -848,7 +847,7 @@
             this.rerankerReady = true;
             return this.rerankProvider;
           }
-          const config = rerankerConfig(runtime);
+          const config = scope.rerankerConfig(runtime);
           if (!config.enabled || !config.model || config.loadInPhase1WhenRequired === false) {
             this.rerankerReady = false;
             return null;
@@ -864,7 +863,7 @@
               .catch((error) => {
                 this.rerankerReady = false;
                 this.rerankerProviderPromise = null;
-                if (rerankerRequired(runtime)) throw error;
+                if (scope.rerankerRequired(runtime)) throw error;
                 return null;
               });
           }
@@ -872,13 +871,13 @@
         }
 
         async loadDopplerRerankerModel(runtime, options = {}) {
-          const config = rerankerConfig(runtime);
+          const config = scope.rerankerConfig(runtime);
           const model = config.model || {};
-          const progress = progressHandler(options, this.onProgress);
-          const trace = this.traceEnabled || traceEnabled(options);
+          const progress = scope.progressHandler(options, this.onProgress);
+          const trace = this.traceEnabled || scope.traceEnabled(options);
           const moduleUrl = runtime.manifest.runtime && runtime.manifest.runtime.moduleUrl;
           if (!moduleUrl) throw new Error('model runtime lock did not resolve a Doppler module URL');
-          const api = await (this.dopplerApiPromise || resolveDopplerApi({
+          const api = await (this.dopplerApiPromise || scope.resolveDopplerApi({
             dopplerModule: options.dopplerModule || this.dopplerModule,
             moduleUrl,
             kernelBasePath: runtime.manifest.runtime && runtime.manifest.runtime.kernelBasePath,
@@ -890,12 +889,12 @@
           const modelBaseUrl = model.defaultModelBaseUrl;
           if (!modelBaseUrl) throw new Error(`intent reranker ${config.id} requires model.defaultModelBaseUrl`);
           await this.ensureDopplerDevice(runtime, options);
-          const cachedSource = preparedDopplerModelSource(this, 'reranker');
-          const started = nowMs();
-          emitRuntimeProgress(progress, trace, {
+          const cachedSource = scope.preparedDopplerModelSource(this, 'reranker');
+          const started = scope.nowMs();
+          scope.emitRuntimeProgress(progress, trace, {
             source: 'simulatte-intent-embedder',
             stage: 'reranker-load',
-            percent: RERANKER_LOAD_PROGRESS.start,
+            percent: scope.RERANKER_LOAD_PROGRESS.start,
             message: 'Doppler loading reranker from verified OPFS cache',
             timing: 'start',
             traceId: this.traceId,
@@ -909,40 +908,40 @@
           const loadOptions = {
             isolatedLoader: true,
             onProgress: (event) => {
-              emitRuntimeProgress(progress, trace, normalizeDopplerProgress(event, {
+              scope.emitRuntimeProgress(progress, trace, scope.normalizeDopplerProgress(event, {
                 traceId: this.traceId,
                 modelBaseUrl,
                 modelId: model.id || '',
                 startedAtMs: started,
-                progressStart: RERANKER_LOAD_PROGRESS.start,
-                progressEnd: RERANKER_LOAD_PROGRESS.end,
+                progressStart: scope.RERANKER_LOAD_PROGRESS.start,
+                progressEnd: scope.RERANKER_LOAD_PROGRESS.end,
                 stagePrefix: 'reranker-load',
                 resourceKind: 'reranker-model',
               }));
             },
           };
-          if (config.runtimeConfig) loadOptions.runtimeConfig = cloneJsonValue(config.runtimeConfig);
+          if (config.runtimeConfig) loadOptions.runtimeConfig = scope.cloneJsonValue(config.runtimeConfig);
           let handle;
           try {
-            handle = await scheduleDopplerModelLoad(
+            handle = await scope.scheduleDopplerModelLoad(
               this, 'reranker', model.id, () => load(cachedSource.modelSource, loadOptions)
             );
-            assertPinnedModelHandle(handle, model, 'reranker', modelBaseUrl);
+            scope.assertPinnedModelHandle(handle, model, 'reranker', modelBaseUrl);
           } catch (error) {
-            await disposeFailedDopplerLoad(handle, cachedSource);
+            await scope.disposeFailedDopplerLoad(handle, cachedSource);
             throw error;
           }
           this.activeDopplerModelRole = 'reranker';
           this.dopplerRerankerHandle = handle;
           this.dopplerRerankerModelBaseUrl = modelBaseUrl;
-          emitRuntimeProgress(progress, trace, {
+          scope.emitRuntimeProgress(progress, trace, {
             source: 'simulatte-intent-embedder',
             stage: 'reranker-ready',
-            percent: RERANKER_LOAD_PROGRESS.end,
+            percent: scope.RERANKER_LOAD_PROGRESS.end,
             message: 'Doppler reranker ready',
             timing: 'end',
             traceId: this.traceId,
-            durationMs: elapsedMsSince(started),
+            durationMs: scope.elapsedMsSince(started),
             reranker: config.id,
             modelId: model.id || '',
             modelBaseUrl,
@@ -954,12 +953,12 @@
         }
 
         createDopplerRerankerProvider(runtime, config, options, handle, modelBaseUrl) {
-          return managedRerankProvider(this, runtime, config, options, handle, modelBaseUrl);
+          return scope.managedRerankProvider(this, runtime, config, options, handle, modelBaseUrl);
         }
       }
 
-    Object.assign(scope, {
+    root.SimulattePhaseModuleRegistry.define('intentEmbedder', 'simulatte-intent-embedder-manifest-cache.js', {
       ModelBackedIntentEmbedder,
     });
-  }
+
 })(typeof globalThis !== 'undefined' ? globalThis : window);

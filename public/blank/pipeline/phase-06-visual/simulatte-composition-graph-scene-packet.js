@@ -1,7 +1,6 @@
 (function attachSimulatteCompositionGraphscenepacket(root) {
-  const scope = root.__SimulatteCompositionGraphRefactorScope;
-  if (!scope || scope.missingDependency) return;
-  with (scope) {
+  const scope = root.SimulattePhaseModuleRegistry.family('compositionGraph');
+
     const COMPILED_SHAPE_IDENTITIES = Object.freeze({
       wheel: ['wheel', 'machine'], hammer: ['hammer', 'artifact'], turbine: ['turbine', 'machine'],
       slider: ['slider', 'machine'], panel: ['panel', 'artifact'], meter: ['meter', 'instrument'],
@@ -93,14 +92,14 @@
       }
 
     function scenePacketEntity({ entity, geometry, material, instance, motion, sceneKind, index, total }) {
-        if (!entity || !visualRowAccepted(entity)) return null;
+        if (!entity || !scope.visualRowAccepted(entity)) return null;
         const initialTransform = scenePacketTransform(entity.pose, index, total, sceneKind);
         const layerSlot = instance && instance.layerSlot ||
-          renderInstanceLayerSlot('geometry', geometry || {}, entity, null, sceneKind);
+          scope.renderInstanceLayerSlot('geometry', geometry || {}, entity, null, sceneKind);
         const identity = scenePacketEntityIdentity(entity, geometry, layerSlot);
-        const geometryProgram = objectGeometryProgramForIdentity(identity, geometry || {}, entity, layerSlot);
-        const transform = scenePacketReadableTransform(initialTransform, geometryProgram, entity);
-        const animation = scenePacketAnimation({
+        const geometryProgram = scope.objectGeometryProgramForIdentity(identity, geometry || {}, entity, layerSlot);
+        const transform = scope.scenePacketReadableTransform(initialTransform, geometryProgram, entity);
+        const animation = scope.scenePacketAnimation({
           layerSlot,
           entity,
           motion,
@@ -118,7 +117,7 @@
           index,
         });
         const bounds = scenePacketBounds(transform);
-        const renderCodes = scenePacketRenderCodes({
+        const renderCodes = scope.scenePacketRenderCodes({
           id: entity.id,
           label: identity.label || entity.label || entity.id,
           sourceGraphId: entity.sourceGraphId || entity.sourceObject || entity.id || '',
@@ -140,7 +139,7 @@
           supportOnly: entity.supportOnly === true,
           layoutConstraints: (entity.layoutConstraints || []).slice(),
           layoutRelationRoles: (entity.layoutRelationRoles || []).slice(),
-          representedEntityIds: uniqueList([
+          representedEntityIds: scope.uniqueList([
             ...(entity.representedEntityIds || []),
             ...(entity.sourceIds || []),
             entity.sourceGraphId,
@@ -158,8 +157,8 @@
             primitive: geometry && geometry.primitive || entity.shape || 'procedural-silhouette',
             bounds,
             program: geometryProgram,
-            coverage: objectGeometryProgramCoverage(geometryProgram),
-            instancing: geometry && geometry.instancing || instancingForEntity(entity),
+            coverage: scope.objectGeometryProgramCoverage(geometryProgram),
+            instancing: geometry && geometry.instancing || scope.instancingForEntity(entity),
             constraints: geometry && geometry.constraints || [],
           },
           material: scenePacketMaterial(material, entity, layerSlot),
@@ -171,14 +170,14 @@
             pickId: entity.id,
             selectable: true,
           },
-          renderPriority: scenePacketDrawablePriority({
+          renderPriority: scope.scenePacketDrawablePriority({
             packetKind: 'entity',
             layerSlot,
             identity,
             confidence: entity.confidence || instance && instance.confidence || 0.72,
           }, sceneKind),
           drawOrder: Number(instance && instance.drawOrder || index),
-          evidence: uniqueList([
+          evidence: scope.uniqueList([
             ...(entity.evidence || []),
             ...(geometry && geometry.evidence || []),
             ...(material && material.evidence || []),
@@ -212,7 +211,7 @@
         let type = 'object';
         let category = 'object';
         const directIdentity = scenePacketDirectEntityIdentity(entity, layerSlot);
-        const literalPromptType = scenePacketPromptIdentityType(entity.sourceLabel || entity.label || '');
+        const literalPromptType = scope.scenePacketPromptIdentityType(entity.sourceLabel || entity.label || '');
         if (directIdentity && (!isNetworkLayer || literalPromptType || entity.visualArchetype)) {
           type = directIdentity.type;
           category = directIdentity.category;
@@ -293,7 +292,7 @@
           schema: 'simulatte.sceneEntityIdentity.v1',
           type,
           category,
-          label: directIdentity && directIdentity.label || scenePacketIdentityLabel(type, entity),
+          label: directIdentity && directIdentity.label || scope.scenePacketIdentityLabel(type, entity),
           renderClass: layerSlot || '',
           role: entity.role || '',
           sourceLabel: entity.sourceLabel || entity.label || '',
@@ -310,12 +309,12 @@
 
     function scenePacketDirectEntityIdentity(entity = {}, layerSlot = '') {
         const promptType = entity.directlyGrounded === true
-          ? scenePacketPromptIdentityType(entity.sourceLabel || entity.label || '')
+          ? scope.scenePacketPromptIdentityType(entity.sourceLabel || entity.label || '')
           : '';
         if (promptType) {
           return {
             type: promptType,
-            category: scenePacketGroundedIdentityCategory(promptType),
+            category: scope.scenePacketGroundedIdentityCategory(promptType),
             label: entity.sourceLabel || entity.label || promptType,
             visualArchetype: entity.visualArchetype || promptType,
           };
@@ -326,12 +325,12 @@
           const visualArchetype = String(entity.visualArchetype || '').trim().toLowerCase();
           const generic = /^(?:agent|biological-agent|body|containing-environment|entity|environment|fluid-medium|material|medium|object|part|term|visual-effect)$/;
           const sourceType = sourceLabel.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-          const type = scenePacketPromptIdentityType(sourceLabel) ||
+          const type = scope.scenePacketPromptIdentityType(sourceLabel) ||
             (!generic.test(semanticClass) ? semanticClass : '') || sourceType || visualArchetype;
           if (type) {
             return {
               type,
-              category: scenePacketGroundedIdentityCategory(type),
+              category: scope.scenePacketGroundedIdentityCategory(type),
               label: sourceLabel || type,
               visualArchetype: visualArchetype || type,
             };
@@ -368,7 +367,7 @@
         if (groundedType) {
           return {
             type: groundedType[0],
-            category: scenePacketGroundedIdentityCategory(groundedType[0]),
+            category: scope.scenePacketGroundedIdentityCategory(groundedType[0]),
             label: entity.sourceLabel || entity.label || groundedType[0],
             visualArchetype: groundedType[0],
           };
@@ -437,11 +436,11 @@
       }
 
     function scenePacketField({ field, instance, sceneKind, index }) {
-        if (!field || !visualRowAccepted(field)) return null;
+        if (!field || !scope.visualRowAccepted(field)) return null;
         const layerSlot = instance && instance.layerSlot ||
-          renderInstanceLayerSlot('field', field, null, null, sceneKind);
+          scope.renderInstanceLayerSlot('field', field, null, null, sceneKind);
         const domain = scenePacketFieldDomain(field.geometry, index);
-        const animation = scenePacketAnimation({
+        const animation = scope.scenePacketAnimation({
           layerSlot,
           field,
           text: `${field.id || ''} ${field.kind || ''} ${field.channel || ''} ${field.visualEncoding || ''}`,
@@ -460,7 +459,7 @@
           semanticRef: field.semanticRef || '',
           physicalRef: field.physicalRef || '',
         };
-        const renderCodes = scenePacketRenderCodes({
+        const renderCodes = scope.scenePacketRenderCodes({
           id: field.id || `field-${index + 1}`,
           label: identity.label,
           sourceGraphId: field.sourceGraphId || field.domainId || field.id || '',
@@ -488,7 +487,7 @@
           },
           animation,
           renderCodes,
-          renderPriority: scenePacketDrawablePriority({
+          renderPriority: scope.scenePacketDrawablePriority({
             packetKind: 'field',
             layerSlot,
             identity,
@@ -502,12 +501,12 @@
       }
 
     function scenePacketEffect({ row, kind, instance, sceneKind, index }) {
-        if (!row || !visualRowAccepted(row)) return null;
+        if (!row || !scope.visualRowAccepted(row)) return null;
         const process = kind === 'process' ? row : null;
         const layerSlot = instance && instance.layerSlot ||
-          renderInstanceLayerSlot(kind, row, null, process, sceneKind);
+          scope.renderInstanceLayerSlot(kind, row, null, process, sceneKind);
         const domain = scenePacketEffectDomain(row, index);
-        const animation = scenePacketAnimation({
+        const animation = scope.scenePacketAnimation({
           layerSlot,
           process: kind === 'process' ? row : null,
           motion: kind === 'motion' ? row : null,
@@ -527,7 +526,7 @@
           semanticRef: row.semanticRef || '',
           physicalRef: row.physicalRef || '',
         };
-        const renderCodes = scenePacketRenderCodes({
+        const renderCodes = scope.scenePacketRenderCodes({
           id: row.id || `${kind}-${index + 1}`,
           label: identity.label,
           sourceGraphId: row.sourceGraphId || row.processId || row.id || '',
@@ -549,7 +548,7 @@
           material: scenePacketMaterial(row, null, layerSlot),
           animation,
           renderCodes,
-          renderPriority: scenePacketDrawablePriority({
+          renderPriority: scope.scenePacketDrawablePriority({
             packetKind: 'effect',
             layerSlot,
             identity,
@@ -590,8 +589,8 @@
         const explicitDepth = pose.z != null && Number.isFinite(Number(pose.z)) ? Number(pose.z) : null;
         const path = Array.isArray(pose.points) && pose.points.length
           ? pose.points.map((point) => [
-            scenePacketClamp01(point && point[0], 0.5),
-            scenePacketClamp01(point && point[1], 0.5),
+            scope.scenePacketClamp01(point && point[0], 0.5),
+            scope.scenePacketClamp01(point && point[1], 0.5),
           ])
           : null;
         const hasSolvedBox = [pose.x, pose.y, pose.w || pose.width, pose.h || pose.height]
@@ -608,10 +607,10 @@
           };
         }
         const fallback = scenePacketFallbackPose(index, total, sceneKind);
-        const x = scenePacketClamp01(pose.x, fallback.x);
-        const y = scenePacketClamp01(pose.y, fallback.y);
-        const w = scenePacketSize(pose.w || pose.width || pose.r && pose.r * 2, fallback.w);
-        const h = scenePacketSize(pose.h || pose.height || pose.r && pose.r * 2, fallback.h);
+        const x = scope.scenePacketClamp01(pose.x, fallback.x);
+        const y = scope.scenePacketClamp01(pose.y, fallback.y);
+        const w = scope.scenePacketSize(pose.w || pose.width || pose.r && pose.r * 2, fallback.w);
+        const h = scope.scenePacketSize(pose.h || pose.height || pose.r && pose.r * 2, fallback.h);
         return {
           position: [x, y, explicitDepth == null ? scenePacketDepth(index, total) : explicitDepth],
           rotation: [0, 0, Number(pose.rotation || pose.angle || 0)],
@@ -628,8 +627,8 @@
         const x = 0.2 + column * 0.2 + (row % 2) * 0.06;
         const yBase = /water|watershed|ocean|restoration|cryosphere/.test(sceneKind) ? 0.62 : 0.36;
         return {
-          x: scenePacketClamp01(x, 0.5),
-          y: scenePacketClamp01(yBase + row * 0.12, 0.5),
+          x: scope.scenePacketClamp01(x, 0.5),
+          y: scope.scenePacketClamp01(yBase + row * 0.12, 0.5),
           w: 0.14,
           h: 0.1,
         };
@@ -642,13 +641,13 @@
     function scenePacketBounds(transform) {
         const position = transform.position || [0.5, 0.5, 0];
         const scale = transform.scale || [0.12, 0.1, 1];
-        const x = scenePacketClamp01(position[0] - scale[0] * 0.5, 0);
-        const y = scenePacketClamp01(position[1] - scale[1] * 0.5, 0);
+        const x = scope.scenePacketClamp01(position[0] - scale[0] * 0.5, 0);
+        const y = scope.scenePacketClamp01(position[1] - scale[1] * 0.5, 0);
         return [
           x,
           y,
-          scenePacketClamp01(scale[0], 0.12),
-          scenePacketClamp01(scale[1], 0.1),
+          scope.scenePacketClamp01(scale[0], 0.12),
+          scope.scenePacketClamp01(scale[1], 0.1),
         ];
       }
 
@@ -672,12 +671,12 @@
         );
         const materialId = constructionMaterial || baseMaterialId;
         const materialFamily = constructionMaterial
-          ? materialFamilyForVisualMaterial(constructionMaterial, entity && entity.visualRegime)
+          ? scope.materialFamilyForVisualMaterial(constructionMaterial, entity && entity.visualRegime)
           : row.materialId
-          ? materialFamilyForVisualMaterial(row.materialId, entity && entity.visualRegime)
-          : row.family || materialFamilyForVisualMaterial(entity && entity.material, entity && entity.visualRegime);
+          ? scope.materialFamilyForVisualMaterial(row.materialId, entity && entity.visualRegime)
+          : row.family || scope.materialFamilyForVisualMaterial(entity && entity.material, entity && entity.visualRegime);
         if (layerSlot === 'node-graph' || layerSlot === 'network-flow') {
-          const style = MATERIAL_STYLES.signal || MATERIAL_STYLES.light || MATERIAL_STYLES.matte;
+          const style = scope.MATERIAL_STYLES.signal || scope.MATERIAL_STYLES.light || scope.MATERIAL_STYLES.matte;
           return {
             id: layerSlot === 'network-flow' ? 'packet-signal' : 'network-node',
             kind: 'network',
@@ -694,11 +693,11 @@
         return {
           id: materialId,
           kind: materialFamily,
-          shader: row.shader || shaderForMaterialFamily(materialFamily || 'matte'),
+          shader: row.shader || scope.shaderForMaterialFamily(materialFamily || 'matte'),
           fill: row.fill || '',
           stroke: row.stroke || '',
           opacity: Number.isFinite(Number(row.opacity)) ? Number(row.opacity) : 0.7,
-          roughness: Number.isFinite(Number(row.roughness)) ? Number(row.roughness) : materialRoughness(materialFamily),
+          roughness: Number.isFinite(Number(row.roughness)) ? Number(row.roughness) : scope.materialRoughness(materialFamily),
           metallic: Number.isFinite(Number(row.metallic)) ? Number(row.metallic) : materialFamily === 'metal' ? 0.82 : 0,
           emissive: row.emissive === true,
           emissiveStrength: row.emissive === true ? 0.42 : 0,
@@ -719,23 +718,23 @@
           const to = Array.isArray(geometry.to) ? geometry.to : [0.84, 0.76];
           return {
             kind: 'directed-field',
-            from: [scenePacketClamp01(from[0], 0.12), scenePacketClamp01(from[1], 0.2)],
-            to: [scenePacketClamp01(to[0], 0.84), scenePacketClamp01(to[1], 0.76)],
+            from: [scope.scenePacketClamp01(from[0], 0.12), scope.scenePacketClamp01(from[1], 0.2)],
+            to: [scope.scenePacketClamp01(to[0], 0.84), scope.scenePacketClamp01(to[1], 0.76)],
             bounds: pointsBounds([from, to]),
           };
         }
         if (geometry && geometry.kind === 'radial-field') {
           const center = Array.isArray(geometry.center) ? geometry.center : [0.5, 0.5];
-          const radius = scenePacketSize(geometry.radius, 0.32);
+          const radius = scope.scenePacketSize(geometry.radius, 0.32);
           return {
             kind: 'radial-field',
-            center: [scenePacketClamp01(center[0], 0.5), scenePacketClamp01(center[1], 0.5)],
+            center: [scope.scenePacketClamp01(center[0], 0.5), scope.scenePacketClamp01(center[1], 0.5)],
             radius,
             bounds: [
-              scenePacketClamp01(center[0] - radius, 0.18),
-              scenePacketClamp01(center[1] - radius, 0.18),
-              scenePacketClamp01(radius * 2, 0.64),
-              scenePacketClamp01(radius * 2, 0.64),
+              scope.scenePacketClamp01(center[0] - radius, 0.18),
+              scope.scenePacketClamp01(center[1] - radius, 0.18),
+              scope.scenePacketClamp01(radius * 2, 0.64),
+              scope.scenePacketClamp01(radius * 2, 0.64),
             ],
           };
         }
@@ -771,8 +770,8 @@
             kind: geometry.kind || 'path-effect',
             bounds: scenePacketDomainBounds(pointsBounds(row.pose.points), [0.2, 0.24, 0.6, 0.42]),
             path: row.pose.points.map((point) => [
-              scenePacketClamp01(point && point[0], 0.5),
-              scenePacketClamp01(point && point[1], 0.5),
+              scope.scenePacketClamp01(point && point[0], 0.5),
+              scope.scenePacketClamp01(point && point[1], 0.5),
             ]),
           };
         }
@@ -785,10 +784,10 @@
 
     function scenePacketDomainBounds(bounds = [], fallback = [0.12, 0.12, 0.76, 0.76]) {
         return [
-          scenePacketClamp01(bounds[0], fallback[0]),
-          scenePacketClamp01(bounds[1], fallback[1]),
-          scenePacketSize(bounds[2], fallback[2]),
-          scenePacketSize(bounds[3], fallback[3]),
+          scope.scenePacketClamp01(bounds[0], fallback[0]),
+          scope.scenePacketClamp01(bounds[1], fallback[1]),
+          scope.scenePacketSize(bounds[2], fallback[2]),
+          scope.scenePacketSize(bounds[3], fallback[3]),
         ];
       }
 
@@ -839,7 +838,7 @@
           compiler: 'simulatte.visual-ir.scene-render-packet.uniforms.v1',
           phase: 6,
           source: 'sceneRenderPacket.renderCodes',
-          sceneId: scenePacketSceneId(sceneKind),
+          sceneId: scope.scenePacketSceneId(sceneKind),
           atomUniforms: scenePacketAtomUniforms(graphicsAtoms),
           sceneMix: scenePacketSceneMixVector(sceneKind, entities, fields, effects),
           visualLayers: scenePacketVisualLayerVector(entities, fields, effects),
@@ -852,20 +851,20 @@
         const hue = Number.isFinite(Number(palette.hue)) ? Number(palette.hue) : 180;
         const accentHue = Number.isFinite(Number(palette.accentHue)) ? Number(palette.accentHue) : hue + 96;
         const shadowHue = Number.isFinite(Number(palette.shadowHue)) ? Number(palette.shadowHue) : hue + 210;
-        const contrast = scenePacketClamp01(palette.contrast, 0.68);
-        const lightness = scenePacketClamp01(palette.lightness, 0.54);
+        const contrast = scope.scenePacketClamp01(palette.contrast, 0.68);
+        const lightness = scope.scenePacketClamp01(palette.lightness, 0.54);
         return [
           ...scenePacketHslToRgb(hue, 0.18 + contrast * 0.24, Math.max(0.05, lightness * 0.32)), 1,
           ...scenePacketHslToRgb(hue, 0.44 + contrast * 0.3, lightness), 1,
           ...scenePacketHslToRgb(shadowHue, 0.32 + contrast * 0.22, 0.1 + lightness * 0.22), 1,
           ...scenePacketHslToRgb(accentHue, 0.54 + contrast * 0.28, 0.48 + lightness * 0.24), 1,
-        ].map((value) => Number(clamp(Number(value || 0), 0, 1).toFixed(4)));
+        ].map((value) => Number(scope.clamp(Number(value || 0), 0, 1).toFixed(4)));
       }
 
     function scenePacketHslToRgb(hue, saturation, lightness) {
         const h = (((hue % 360) + 360) % 360) / 360;
-        const s = scenePacketClamp01(saturation, 0.6);
-        const l = scenePacketClamp01(lightness, 0.5);
+        const s = scope.scenePacketClamp01(saturation, 0.6);
+        const l = scope.scenePacketClamp01(lightness, 0.5);
         if (s === 0) return [l, l, l];
         const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
         const p = 2 * l - q;
@@ -886,33 +885,33 @@
           : [];
         const out = new Array(24).fill(0);
         for (let i = 0; i < Math.min(out.length, values.length); i += 1) {
-          out[i] = Number(clamp(Number(values[i] || 0), 0, 1).toFixed(4));
+          out[i] = Number(scope.clamp(Number(values[i] || 0), 0, 1).toFixed(4));
         }
         return out;
       }
 
     function scenePacketSceneMixVector(sceneKind = '', entities = [], fields = [], effects = []) {
-        const vector = new Array(SCENE_MIX_SLOTS.length).fill(0);
-        scenePacketAddSceneKindMix(vector, sceneKind, 0.58);
+        const vector = new Array(scope.SCENE_MIX_SLOTS.length).fill(0);
+        scope.scenePacketAddSceneKindMix(vector, sceneKind, 0.58);
         for (const row of [...entities, ...fields, ...effects]) {
-          scenePacketAddLayerSceneMix(vector, row.layerSlot, row.renderCodes && row.renderCodes.categoryCode || 0);
+          scope.scenePacketAddLayerSceneMix(vector, row.layerSlot, row.renderCodes && row.renderCodes.categoryCode || 0);
         }
-        return scenePacketCompressVector(vector, 0.08, 8);
+        return scope.scenePacketCompressVector(vector, 0.08, 8);
       }
 
     function scenePacketVisualLayerVector(entities = [], fields = [], effects = []) {
-        const vector = new Array(VISUAL_IR_LAYER_SLOTS.length).fill(0);
+        const vector = new Array(scope.VISUAL_IR_LAYER_SLOTS.length).fill(0);
         const add = (row, value) => {
-          const index = VISUAL_IR_LAYER_SLOTS.indexOf(String(row && row.layerSlot || ''));
-          if (index >= 0) vector[index] = clamp(vector[index] + value, 0, 1);
+          const index = scope.VISUAL_IR_LAYER_SLOTS.indexOf(String(row && row.layerSlot || ''));
+          if (index >= 0) vector[index] = scope.clamp(vector[index] + value, 0, 1);
         };
         for (const row of entities || []) add(row, 0.96);
         for (const row of fields || []) add(row, 0.72);
         for (const row of effects || []) add(row, 0.58);
-        return scenePacketCompressVector(vector, 0.06, 12);
+        return scope.scenePacketCompressVector(vector, 0.06, 12);
       }
 
-    Object.assign(scope, {
+    root.SimulattePhaseModuleRegistry.define('compositionGraph', 'simulatte-composition-graph-scene-packet.js', {
       scenePacketRowIdentity,
       assertScenePacketIdentityPreserved,
       renderInstanceLookup,
@@ -929,9 +928,6 @@
       scenePacketBounds,
       pointsBounds,
       scenePacketMaterial,
-      scenePacketAnimation,
-      animationSpeedForKind,
-      animationAmplitudeForKind,
       scenePacketColliderKind,
       scenePacketFieldDomain,
       scenePacketEffectDomain,
@@ -944,5 +940,5 @@
       scenePacketSceneMixVector,
       scenePacketVisualLayerVector,
     });
-  }
+
 })(typeof globalThis !== 'undefined' ? globalThis : window);

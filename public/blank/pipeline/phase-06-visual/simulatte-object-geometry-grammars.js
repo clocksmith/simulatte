@@ -1,7 +1,6 @@
 (function attachSimulatteObjectGeometryGrammars(root) {
-  const scope = root.__SimulatteCompositionGraphRefactorScope;
-  if (!scope || scope.missingDependency) return;
-  with (scope) {
+  const scope = root.SimulattePhaseModuleRegistry.family('compositionGraph');
+
     const OBJECT_GEOMETRY_PROGRAM_SCHEMA = 'simulatte.objectGeometryProgram.v1';
 
     const OBJECT_GEOMETRY_GRAMMARS = Object.freeze({
@@ -629,12 +628,12 @@
         ? 'sitting'
         : '');
       const visualArchetype = String(identity.visualArchetype || '').toLowerCase();
-      const promptKey = promptGeometryGrammarKey(identityType, entity, pose);
+      const promptKey = scope.promptGeometryGrammarKey(identityType, entity, pose);
       const selectedKey = promptKey || (/^(?:seated|sitting)$/.test(pose)
         ? 'person-sitting'
         : OBJECT_GEOMETRY_GRAMMARS[visualArchetype] ? visualArchetype : identityType);
       const categoryKey = objectGeometryCategoryGrammarKey(identityType);
-      const candidateKeys = uniqueList([promptKey, selectedKey, visualArchetype, identityType, categoryKey]);
+      const candidateKeys = scope.uniqueList([promptKey, selectedKey, visualArchetype, identityType, categoryKey]);
       const explicitCandidates = candidateKeys.map((key) => ({ key, grammar: OBJECT_GEOMETRY_GRAMMARS[key] }))
         .filter((row) => Boolean(row.grammar));
       const explicit = explicitCandidates[0] || null;
@@ -661,14 +660,14 @@
         constructionReceipt,
         selectionRole: 'identity-catalog',
       }));
-      const constructedPrograms = constructionGeometryCandidatesForEntity(
+      const constructedPrograms = scope.constructionGeometryCandidatesForEntity(
         { ...identity, type: semanticIdentityType, visualArchetype: visualArchetype || identityType },
         geometry,
         entity
       );
       const constructionCandidates = uniqueGeometryPrograms([...catalogPrograms, ...constructedPrograms]);
       if (constructionCandidates.length) {
-        return selectPromptGeometryProgram(constructionCandidates, entity);
+        return scope.selectPromptGeometryProgram(constructionCandidates, entity);
       }
       const semantic = !explicit && promptIdentityCanOwnSemanticGeometry(identity, entity)
         ? semanticGeometryGrammarForLayer(layerSlot)
@@ -677,7 +676,7 @@
       const semanticGrammarId = semantic
         ? `object-grammar.semantic.${semantic.id}.${objectGeometrySafeId(identityType)}`
         : '';
-      return applyPromptGeometryContracts({
+      return scope.applyPromptGeometryContracts({
         schema: OBJECT_GEOMETRY_PROGRAM_SCHEMA,
         grammarId: semanticGrammarId || `object-grammar.${selected.id}`,
         identityType,
@@ -861,8 +860,8 @@
         scale[0] = Math.min(scale[0], 0.15);
         scale[1] = Math.min(scale[1], 0.13);
       }
-      position[0] = clamp(Number(position[0] || 0.5), scale[0] * 0.52, 1 - scale[0] * 0.52);
-      position[1] = clamp(Number(position[1] || 0.5), scale[1] * 0.52, 1 - scale[1] * 0.52);
+      position[0] = scope.clamp(Number(position[0] || 0.5), scale[0] * 0.52, 1 - scale[0] * 0.52);
+      position[1] = scope.clamp(Number(position[1] || 0.5), scale[1] * 0.52, 1 - scale[1] * 0.52);
       return { ...transform, position, scale };
     }
 
@@ -881,7 +880,7 @@
       };
     }
 
-    Object.assign(scope, {
+    root.SimulattePhaseModuleRegistry.define('compositionGraph', 'simulatte-object-geometry-grammars.js', {
       OBJECT_GEOMETRY_PROGRAM_SCHEMA,
       OBJECT_GEOMETRY_GRAMMARS,
       SEMANTIC_LAYER_GEOMETRY_GRAMMARS,
@@ -890,5 +889,5 @@
       scenePacketReadableTransform,
       objectGeometryProgramCoverage,
     });
-  }
+
 })(typeof globalThis !== 'undefined' ? globalThis : window);

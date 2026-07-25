@@ -1,7 +1,29 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const test = require('node:test');
+const nodeTest = require('node:test');
+
+const SELECTED_PHYSICAL_GROUP = process.env.SIMULATTE_PHYSICAL_TEST_GROUP;
+const PHYSICAL_GROUPS = new Set(['language-grounding', 'simulation-visual', 'render-proof', 'solvers']);
+if (!PHYSICAL_GROUPS.has(SELECTED_PHYSICAL_GROUP)) {
+  throw new Error('physical compiler suite requires a focused SIMULATTE_PHYSICAL_TEST_GROUP');
+}
+
+function physicalTestGroup(name) {
+  if (/solver|integrator|checkpoint|grid boundaries|energy discrepancy|primitive retrieval/i.test(name)) {
+    return 'solvers';
+  }
+  if (/Phase 7|WebGPU|pixel proof|phase envelopes/i.test(name)) return 'render-proof';
+  if (/Phase [56]|VisualIR|render|construction|geometry|framing|part-|part scoped|identity|cardinality|fields skip|common-world|celestial|cryosphere|laborator|orbital process/i.test(name)) {
+    return 'simulation-visual';
+  }
+  return 'language-grounding';
+}
+
+function test(name, ...args) {
+  if (physicalTestGroup(name) !== SELECTED_PHYSICAL_GROUP) return undefined;
+  return nodeTest(name, ...args);
+}
 
 const lab = require('../public/blank/app/simulation/simulation-lab.js');
 const compositionGraph = require('../public/blank/pipeline/phase-06-visual/simulatte-composition-graph.js');
@@ -14,9 +36,10 @@ require('../public/blank/pipeline/phase-08-scene-proof/simulatte-scene-proof.js'
 const universeParser = require('../public/blank/pipeline/phase-02-language/simulatte-universe-parser.js');
 const grounderGraph = require('../public/blank/pipeline/phase-04-grounded-intent/simulatte-universe-grounder-graph.js');
 require('../public/blank/pipeline/phase-03-retrieval/simulatte-intent-embedder.js');
-const webgpuRendererScope = globalThis.__SimulatteWebGpuRendererRefactorScope;
-const compositionGraphScope = globalThis.__SimulatteCompositionGraphRefactorScope;
-const intentEmbedderScope = globalThis.__SimulatteIntentEmbedderRefactorScope;
+const { phaseFamily } = require('./phase-module-fixture.cjs');
+const webgpuRendererScope = phaseFamily('webGpuRenderer');
+const compositionGraphScope = phaseFamily('compositionGraph');
+const intentEmbedderScope = phaseFamily('intentEmbedder');
 
 function runtimeSourceFromFile(file, seen = new Set()) {
   if (seen.has(file)) return '';
@@ -966,7 +989,7 @@ test('Phase 2 keeps an agentive participle attached across spatial furniture phr
 test('Phase 3 treats a synthesized context phrase as support, not object identity', () => {
   const prompt = 'warehouse fire with smoke';
   const spans = [{ id: 'span.fire', text: 'fire', kind: 'entity' }];
-  const modelScope = globalThis.__SimulattePhysicsModelRefactorScope;
+  const modelScope = phaseFamily('physicsModel');
   const decision = modelScope.phase3PrimitiveCandidateDecision({
     id: 'rocket-a',
     role: 'rocket',
@@ -3369,5 +3392,5 @@ test('primitive retrieval uses catalog retrievability policy without hardcoded e
     path.join(__dirname, '..', 'public', 'blank', 'pipeline', 'phase-05-simulation', 'simulatte-physics-catalog.js')
   );
   assert.doesNotMatch(catalogSource, /primitive\.id !== 'energy-ledger'/);
-  assert.match(catalogSource, /\.filter\(\(primitive\) => isRetrievablePrimitive\(primitive\)\)/);
+  assert.match(catalogSource, /\.filter\(\(primitive\) => scope\.isRetrievablePrimitive\(primitive\)\)/);
 });

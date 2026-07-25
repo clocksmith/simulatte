@@ -1,7 +1,6 @@
 (function attachSimulatteIntentEmbedderModelLock(root) {
-  const scope = root.__SimulatteIntentEmbedderRefactorScope;
-  if (!scope || scope.missingDependency) return;
-  with (scope) {
+  const scope = root.SimulattePhaseModuleRegistry.family('intentEmbedder');
+
     const EMBEDDER_MANIFEST_SCHEMA = 'simulatte.modelBackedEmbedderManifest.v3';
     const MODEL_RUNTIME_LOCK_SCHEMA = 'simulatte.modelRuntimeLock.v1';
 
@@ -15,11 +14,11 @@
         const lockNumber = requiredLockNumber(reference.number, 'intent manifest modelRuntimeLock.number');
         const artifact = requiredText(reference.artifact, 'intent manifest modelRuntimeLock.artifact');
         const artifactHash = reference.artifactHash || null;
-        if (!hashHex(artifactHash)) {
+        if (!scope.hashHex(artifactHash)) {
           throw new Error('intent manifest modelRuntimeLock.artifactHash is required');
         }
-        const lockUrl = versionedAssetUrl(resolveUrl(artifact, manifestUrl), telemetry.assetVersionQuery);
-        const lock = await fetchJson(lockUrl, 'model runtime lock', {
+        const lockUrl = scope.versionedAssetUrl(scope.resolveUrl(artifact, manifestUrl), telemetry.assetVersionQuery);
+        const lock = await scope.fetchJson(lockUrl, 'model runtime lock', {
           ...telemetry,
           stage: 'lock-fetch',
           percent: 5,
@@ -34,10 +33,10 @@
         manifest.reranker = clonePinnedValue(lock.reranker);
         manifest.runtime = {
           ...clonePinnedValue(lock.runtime),
-          moduleUrl: resolveUrl(lock.doppler.moduleUrl, lockUrl),
-          deviceModuleUrl: resolveUrl(lock.doppler.deviceModuleUrl, lockUrl),
-          storageModuleUrl: resolveUrl(lock.doppler.storageModuleUrl, lockUrl),
-          kernelBasePath: resolveUrl(lock.doppler.kernelBasePath, lockUrl),
+          moduleUrl: scope.resolveUrl(lock.doppler.moduleUrl, lockUrl),
+          deviceModuleUrl: scope.resolveUrl(lock.doppler.deviceModuleUrl, lockUrl),
+          storageModuleUrl: scope.resolveUrl(lock.doppler.storageModuleUrl, lockUrl),
+          kernelBasePath: scope.resolveUrl(lock.doppler.kernelBasePath, lockUrl),
           runtimeConfig: clonePinnedValue(lock.embedding.runtimeConfig),
         };
         manifest.runtimeOrder = clonePinnedValue(lock.runtimeOrder);
@@ -75,11 +74,11 @@
         const rawHash = handle && handle.manifestHash || manifest.modelHash || manifest.manifestHash ||
           manifest.hash || manifest.meta && manifest.meta.hash || null;
         const expectedId = requiredText(expectedModel && expectedModel.id, `model runtime lock ${label}.id`);
-        const expectedHash = hashHex(expectedModel && expectedModel.manifestHash);
+        const expectedHash = scope.hashHex(expectedModel && expectedModel.manifestHash);
         const expectedSource = normalizePinnedSource(expectedModel && expectedModel.defaultModelBaseUrl);
         const actualSource = normalizePinnedSource(modelBaseUrl);
         if (!expectedHash) throw new Error(`model runtime lock ${label}.manifestHash is required`);
-        if (!rawHash || hashHex(rawHash) !== expectedHash) {
+        if (!rawHash || scope.hashHex(rawHash) !== expectedHash) {
           throw new Error(`${label} model handle manifest hash does not match the model runtime lock`);
         }
         if (actualSource && actualSource !== expectedSource) {
@@ -238,7 +237,7 @@
       }
 
       function validatePinnedModel(model, label, requiresDimensions, conversion = null) {
-        if (!model || !model.id || !model.defaultModelBaseUrl || !model.source || !hashHex(model.manifestHash)) {
+        if (!model || !model.id || !model.defaultModelBaseUrl || !model.source || !scope.hashHex(model.manifestHash)) {
           throw new Error(`model runtime lock ${label} model id, URL, source, and manifest hash are required`);
         }
         if (requiresDimensions && (!Number.isFinite(Number(model.dimensions)) || Number(model.dimensions) <= 0)) {
@@ -327,12 +326,12 @@
         return String(value || '').trim().replace(/\/+$/, '');
       }
 
-    Object.assign(scope, {
+    root.SimulattePhaseModuleRegistry.define('intentEmbedder', 'simulatte-intent-embedder-model-lock.js', {
       EMBEDDER_MANIFEST_SCHEMA,
       MODEL_RUNTIME_LOCK_SCHEMA,
       resolvePinnedModelManifest,
       assertPinnedRuntimeOptions,
       assertPinnedModelHandle,
     });
-  }
+
 })(typeof globalThis !== 'undefined' ? globalThis : window);

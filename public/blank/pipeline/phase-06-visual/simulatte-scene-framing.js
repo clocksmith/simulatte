@@ -1,7 +1,6 @@
 (function attachSimulatteSceneFraming(root) {
-  const scope = root.__SimulatteCompositionGraphRefactorScope;
-  if (!scope || scope.missingDependency) return;
-  with (scope) {
+  const scope = root.SimulattePhaseModuleRegistry.family('compositionGraph');
+
     const SCENE_FRAME_BOUNDS = Object.freeze([0.1, 0.12, 0.8, 0.72]);
 
     function frameScenePacketEntities(entities = []) {
@@ -73,7 +72,7 @@
           scale: (row.transform && row.transform.scale || [0.16, 0.14, 1]).slice(),
         },
       }));
-      const constraintIds = uniqueList(rows.flatMap((row) => row.layoutConstraints || []));
+      const constraintIds = scope.uniqueList(rows.flatMap((row) => row.layoutConstraints || []));
       const constraints = [];
       for (const constraintId of constraintIds) {
         const members = rows.filter((row) => (row.layoutConstraints || []).includes(constraintId));
@@ -129,9 +128,9 @@
       outerBounds = sceneEntityVisibleBounds(outer);
       const center = [innerBounds[0] + innerBounds[2] * 0.5, innerBounds[1] + innerBounds[3] * 0.5];
       const desired = [
-        clamp(center[0], outerBounds[0] + margin + innerBounds[2] * 0.5,
+        scope.clamp(center[0], outerBounds[0] + margin + innerBounds[2] * 0.5,
           outerBounds[0] + outerBounds[2] - margin - innerBounds[2] * 0.5),
-        clamp(center[1], outerBounds[1] + margin + innerBounds[3] * 0.5,
+        scope.clamp(center[1], outerBounds[1] + margin + innerBounds[3] * 0.5,
           outerBounds[1] + outerBounds[3] - margin - innerBounds[3] * 0.5),
       ];
       inner.transform.position[0] += desired[0] - center[0];
@@ -141,7 +140,7 @@
 
     function enforcePacketBetween(entities = []) {
       const rows = entities.slice();
-      const constraintIds = uniqueList(rows.flatMap((row) => row.layoutConstraints || []));
+      const constraintIds = scope.uniqueList(rows.flatMap((row) => row.layoutConstraints || []));
       for (const constraintId of constraintIds) {
         const members = rows.filter((row) => (row.layoutConstraints || []).includes(constraintId));
         const source = members.find((row) => (row.layoutRelationRoles || []).includes('between:source'));
@@ -171,7 +170,7 @@
     function enforcePacketGraspContacts(entities = []) {
       const rows = entities.slice();
       const contacts = [];
-      const constraintIds = uniqueList(rows.flatMap((row) => row.layoutConstraints || []));
+      const constraintIds = scope.uniqueList(rows.flatMap((row) => row.layoutConstraints || []));
       for (const constraintId of constraintIds) {
         const members = rows.filter((row) => (row.layoutConstraints || []).includes(constraintId));
         const holder = members.find((row) => (row.layoutRelationRoles || []).includes('holding:source'));
@@ -283,7 +282,7 @@
         size: [Math.min(1.4, length / Math.max(0.001, Number(scale[0] || 0.16))), Number(part.size && part.size[1] || 0.08)],
         rotation: -Math.atan2(end[1] - start[1], end[0] - start[0]) - parentRotation,
         interactionDepthPosition: targetDepthPosition - 0.08,
-        interactionConstraintIds: uniqueList([...(part.interactionConstraintIds || []), constraintId]),
+        interactionConstraintIds: scope.uniqueList([...(part.interactionConstraintIds || []), constraintId]),
       };
     }
 
@@ -317,7 +316,7 @@
     function enforcePacketSurfaceContacts(entities = []) {
       const rows = entities.slice();
       const contacts = [];
-      const constraintIds = uniqueList(rows.flatMap((row) => row.layoutConstraints || []));
+      const constraintIds = scope.uniqueList(rows.flatMap((row) => row.layoutConstraints || []));
       for (const constraintId of constraintIds) {
         const members = rows.filter((row) => (row.layoutConstraints || []).includes(constraintId));
         const source = members.find((row) => (row.layoutRelationRoles || []).some((role) => (
@@ -412,13 +411,13 @@
       const framedTransform = {
         ...transform,
         position: [
-          clamp(targetCenter[0] + (Number(position[0] || 0.5) - sourceCenter[0]) * factor, 0.02, 0.98),
-          clamp(targetCenter[1] + (Number(position[1] || 0.5) - sourceCenter[1]) * factor, 0.02, 0.98),
+          scope.clamp(targetCenter[0] + (Number(position[0] || 0.5) - sourceCenter[0]) * factor, 0.02, 0.98),
+          scope.clamp(targetCenter[1] + (Number(position[1] || 0.5) - sourceCenter[1]) * factor, 0.02, 0.98),
           Number(position[2] || 0),
         ],
         scale: [
-          clamp(Number(scale[0] || 0.16) * factor, 0.04, 0.88),
-          clamp(Number(scale[1] || 0.14) * factor, 0.04, 0.82),
+          scope.clamp(Number(scale[0] || 0.16) * factor, 0.04, 0.88),
+          scope.clamp(Number(scale[1] || 0.14) * factor, 0.04, 0.82),
           Number(scale[2] || 1),
         ],
       };
@@ -444,10 +443,10 @@
       const position = transform.position || [0.5, 0.5, 0];
       const scale = transform.scale || [0.16, 0.14, 1];
       return [
-        clamp(Number(position[0] || 0.5) - Number(scale[0] || 0.16) * 0.5, 0, 1),
-        clamp(Number(position[1] || 0.5) - Number(scale[1] || 0.14) * 0.5, 0, 1),
-        clamp(Number(scale[0] || 0.16), 0.01, 1),
-        clamp(Number(scale[1] || 0.14), 0.01, 1),
+        scope.clamp(Number(position[0] || 0.5) - Number(scale[0] || 0.16) * 0.5, 0, 1),
+        scope.clamp(Number(position[1] || 0.5) - Number(scale[1] || 0.14) * 0.5, 0, 1),
+        scope.clamp(Number(scale[0] || 0.16), 0.01, 1),
+        scope.clamp(Number(scale[1] || 0.14), 0.01, 1),
       ];
     }
 
@@ -464,7 +463,7 @@
       };
     }
 
-    Object.assign(scope, {
+    root.SimulattePhaseModuleRegistry.define('compositionGraph', 'simulatte-scene-framing.js', {
       SCENE_FRAME_BOUNDS,
       frameScenePacketEntities,
       sceneEntityGroupBounds,
@@ -474,5 +473,5 @@
       sceneEntityVisibleBounds,
       sceneEntityPartProjection,
     });
-  }
+
 })(typeof globalThis !== 'undefined' ? globalThis : window);

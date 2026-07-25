@@ -2,11 +2,15 @@
   const lifecycle = typeof module === 'object' && module.exports
     ? require('./mount-lifecycle.js')
     : root.SimulatteMountLifecycle;
-  const api = factory(root, lifecycle);
+  const tierRegistry = typeof module === 'object' && module.exports
+    ? require('./tier-registry.js')
+    : root.SimulatteTierRegistry;
+  const api = factory(root, lifecycle, tierRegistry);
   root.SimulatteWorldTiersBoot = api;
   if (typeof module === 'object' && module.exports) module.exports = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createWorldTiersBoot(root, lifecycleApi) {
-  const TIER_LABELS = Object.freeze({ city:'City', country:'Country', world:'Planet', 'solar-system':'Solar System', 'star-chart':'Universe' });
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createWorldTiersBoot(root, lifecycleApi, tierRegistry) {
+  if (!tierRegistry) throw new Error('world_tiers_boot_tier_registry_missing');
+  const TIER_LABELS = tierRegistry.TIER_LABELS;
   const PROFILE_LABELS = Object.freeze({
     'simulatte-world-v1': 'Simulatte World',
     'cable-trader-pickup-v1': 'Cable Trader',
@@ -211,6 +215,9 @@
       document.body.classList.add('world-explorer');
       ctx.setJourneyPhase?.('loading');
       ctx.setRuntimeStatus?.(elements,'Loading experience','loading');
+      if(!root.SimulatteWorldRuntimeLoader?.loadSelectedProduct)throw new Error('tier_boot_runtime_loader_missing');
+      await root.SimulatteWorldRuntimeLoader.loadSelectedProduct({tierId:tier,profileId:requestedProfileId||null});
+      lifecycle.throwIfAborted();
       data=await root.SimulatteTierApplicationLoader.loadTierApplication({tier,requestedProfileId:requestedProfileId||null,fetchImpl:lifecycle.fetch});
       lifecycle.throwIfAborted();
       tierVisualizer=ctx.createTierVisualizer(elements.overlayCanvas,'world-tier-control');

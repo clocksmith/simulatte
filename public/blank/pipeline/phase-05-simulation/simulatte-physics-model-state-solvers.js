@@ -1,16 +1,15 @@
 (function attachSimulattePhysicsModelstatesolvers(root) {
-  const scope = root.__SimulattePhysicsModelRefactorScope;
-  if (!scope || scope.missingDependency) return;
-  with (scope) {
+  const scope = root.SimulattePhaseModuleRegistry.family('physicsModel');
+
     function addSynthesisComponents(synthesis, addDomain, addComponent, intent = null) {
         if (!synthesis || !synthesis.synthGraph) return;
         for (const node of synthesis.synthGraph.nodes || []) {
-          const componentId = slugify(node.id);
+          const componentId = scope.slugify(node.id);
           const matchedSpan = node.match && String(node.match.span || '').trim();
           const componentPhrase = matchedSpan && matchedSpan !== String(synthesis.prompt || '').trim()
             ? matchedSpan
             : node.label;
-          const domains = uniqueList([
+          const domains = scope.uniqueList([
             'synth',
             node.nodeType,
             node.class,
@@ -62,8 +61,8 @@
           }
         }
         for (const event of synthesis.synthGraph.events || []) {
-          const componentId = slugify(event.id);
-          const domains = uniqueList(['synth', 'event', event.type, ...(event.physics || [])]);
+          const componentId = scope.slugify(event.id);
+          const domains = scope.uniqueList(['synth', 'event', event.type, ...(event.physics || [])]);
           addDomain(...domains);
           addComponent(
             componentId,
@@ -104,8 +103,8 @@
         }
         for (const environment of synthesis.synthGraph.environment || []) {
           const label = environment.label || environment.id || 'environment';
-          const componentId = `environment-${slugify(environment.id || label)}`;
-          const domains = uniqueList(['synth', 'environment', slugify(label)].filter(Boolean));
+          const componentId = `environment-${scope.slugify(environment.id || label)}`;
+          const domains = scope.uniqueList(['synth', 'environment', scope.slugify(label)].filter(Boolean));
           addDomain(...domains);
           const environmentRegime = visualRegimeForSynthesisText(label);
           addComponent(
@@ -161,7 +160,7 @@
         if (materials.includes('glass_material')) return 'glass';
         if (materials.includes('water_material')) return 'water';
         if (materials.includes('air_material')) return 'air';
-        return materials.find((material) => primitiveById(material)) || '';
+        return materials.find((material) => scope.primitiveById(material)) || '';
       }
 
     function visualRegimeForSynthesisNode(node) {
@@ -201,8 +200,8 @@
       }
 
     function synthesisPrimitiveRows(synthesis) {
-        if (!synthesis || typeof groundedPrimitiveRows !== 'function') return [];
-        return groundedPrimitiveRows(synthesis, catalog);
+        if (!synthesis || typeof scope.groundedPrimitiveRows !== 'function') return [];
+        return scope.groundedPrimitiveRows(synthesis, scope.catalog);
       }
 
     function shouldPreferSynthGraph(promptText, synthesis) {
@@ -229,7 +228,7 @@
     function synthesisReceipt(synthesis) {
         if (!synthesis) return null;
         return {
-          schema: synthesis.schema || SYNTHESIS_SCHEMA || '',
+          schema: synthesis.schema || scope.SYNTHESIS_SCHEMA || '',
           model: synthesis.model ? synthesis.model.id : '',
           retriever: synthesis.model ? synthesis.model.retriever : '',
           planner: synthesis.model ? synthesis.model.planner : '',
@@ -259,7 +258,7 @@
           phrase: component.phrase || '',
           source: component.source || 'open-semantic-rag',
           primitiveProgram: component.primitiveProgram || (
-            buildPrimitiveProgram ? buildPrimitiveProgram(component) : null
+            scope.buildPrimitiveProgram ? scope.buildPrimitiveProgram(component) : null
           ),
           recipe: [],
           text: component.phrase || component.role || '',
@@ -279,26 +278,26 @@
             const phrase = String(span.text).trim();
             const visualRegime = visualRegimeForSynthesisText(`${span.kind} ${phrase}`);
             const assembly = span.kind === 'environment' ? 'field' : span.kind === 'material' ? 'material' : span.kind === 'process' ? 'effect' : 'component';
-            const id = `language-${slugify(phrase)}-${slugify(span.id || index + 1)}`;
+            const id = `language-${scope.slugify(phrase)}-${scope.slugify(span.id || index + 1)}`;
             return {
               id,
               type: assembly,
               role: phrase,
               layer: 'language-anchor',
-              domains: uniqueList(['phase2-language-anchor', span.kind, visualRegime]),
+              domains: scope.uniqueList(['phase2-language-anchor', span.kind, visualRegime]),
               params: {},
               controls: [],
               // These rows preserve otherwise-unmapped prompt language for visual compilation.
               // They deliberately rank below catalog and grounded retrieval evidence so they
               // cannot replace an authoritative Phase 4 concept for the same span.
               score: 0.52,
-              material: span.kind === 'material' ? slugify(phrase) : '',
+              material: span.kind === 'material' ? scope.slugify(phrase) : '',
               visualRegime,
               assembly,
               phrase,
               source: 'phase2-language-anchor',
               pinned: true,
-              primitiveProgram: buildPrimitiveProgram ? buildPrimitiveProgram({
+              primitiveProgram: scope.buildPrimitiveProgram ? scope.buildPrimitiveProgram({
                 id,
                 phrase,
                 visualRegime,
@@ -330,7 +329,7 @@
         if (!hints.length) return [];
         const rows = hints
           .map((hint) => {
-            const primitive = primitiveById(hint.primitiveId);
+            const primitive = scope.primitiveById(hint.primitiveId);
             if (!primitive) return null;
             return {
               ...primitive,
@@ -340,7 +339,7 @@
             };
           })
           .filter(Boolean);
-        return withPrimitiveDependencies(rows, promptText)
+        return scope.withPrimitiveDependencies(rows, promptText)
           .map((primitive) => {
             const hint = hints.find((item) => item.primitiveId === primitive.id);
             return {
@@ -362,7 +361,7 @@
             return phrase.length > 4 && prompt.includes(phrase);
           })
           .map((prior) => {
-            const primitive = primitiveById(prior.primitiveId);
+            const primitive = scope.primitiveById(prior.primitiveId);
             if (!primitive) return null;
             return {
               ...primitive,
@@ -375,7 +374,7 @@
           .filter(Boolean);
         const ensure = (primitiveId, score, phrase) => {
           if (rows.some((row) => row.id === primitiveId)) return;
-          const primitive = primitiveById(primitiveId);
+          const primitive = scope.primitiveById(primitiveId);
           if (!primitive) return;
           rows.push({
             ...primitive,
@@ -463,13 +462,13 @@
     function resolveIntentToSpec(intentInput, overrides = {}) {
         const intent = intentInput && intentInput.schema === 'simulatte.intent.v1'
           ? intentInput
-          : createIntentFromPrompt('');
+          : scope.createIntentFromPrompt('');
         const overrideParams = overrides && overrides.params && typeof overrides.params === 'object'
           ? overrides.params
           : {};
         if (intent.domains.includes('blank')) {
           const plane = intent.components.find((component) => component.id === 'canvas');
-          return createSpec('blank-world', {
+          return scope.createSpec('blank-world', {
             name: intent.title || 'Blank Construction Plane',
             description: intent.prompt ? `Intent: ${intent.prompt}` : 'Empty 2d construction surface.',
             params: { ...(plane ? plane.params : {}), ...overrideParams },
@@ -482,18 +481,18 @@
         const modules = ['mechanics', 'field', 'energy-ledger'];
         const objects = [];
         const controls = ['energyInput', 'fieldStrength', 'damping', 'complexity'];
-        const params = { ...templateById('custom-world').params };
+        const params = { ...scope.templateById('custom-world').params };
         const contract = intent.resolution && intent.resolution.contract
           ? intent.resolution.contract
           : null;
         const addControl = (key) => {
-          if (CONTROL_LIBRARY[key] && !controls.includes(key)) controls.push(key);
+          if (scope.CONTROL_LIBRARY[key] && !controls.includes(key)) controls.push(key);
         };
         for (const domain of intent.domains) {
           if (!modules.includes(domain)) modules.push(domain);
         }
         for (const component of intent.components) {
-          const graphNode = graphNodeForSpec(contract, component.id);
+          const graphNode = scope.graphNodeForSpec(contract, component.id);
           objects.push({
             id: component.id,
             type: component.type,
@@ -518,8 +517,8 @@
             addControl(key);
           }
         }
-        applyContractDefaults(params, contract);
-        applyCompiledParameterHints(parameterHintTextForIntent(intent, contract), params, addControl);
+        scope.applyContractDefaults(params, contract);
+        scope.applyCompiledParameterHints(scope.parameterHintTextForIntent(intent, contract), params, addControl);
 
         const exactMachine = intent.title === 'Solar Magnetic Perpetual Motion Machine';
         if (exactMachine) {
@@ -535,9 +534,9 @@
           addControl(key);
         }
         if (contract && contract.graph) {
-          contract.graph.units = unitsForParams(params);
+          contract.graph.units = scope.unitsForParams(params);
         }
-        return createSpec('custom-world', {
+        return scope.createSpec('custom-world', {
           name: exactMachine ? 'Solar Magnetic Perpetual Motion Machine' : intent.title || 'Custom Physics World',
           description: intent.prompt ? `Intent: ${intent.prompt}` : 'Prompt resolved into 2d simulation components.',
           modules,
@@ -552,7 +551,7 @@
       }
 
     function createSpecFromPrompt(promptText = '', overrides = {}) {
-        return resolveIntentToSpec(createIntentFromPrompt(promptText, overrides), overrides);
+        return resolveIntentToSpec(scope.createIntentFromPrompt(promptText, overrides), overrides);
       }
 
     function titleFromPrompt(words) {
@@ -563,17 +562,11 @@
       }
 
     function seedFromString(text) {
-        let hash = 2166136261;
-        const str = String(text || '');
-        for (let i = 0; i < str.length; i += 1) {
-          hash ^= str.charCodeAt(i);
-          hash = Math.imul(hash, 16777619);
-        }
-        return (hash >>> 0) % 100000;
+        return scope.fnv1a32(text || '') % 100000;
       }
 
     function remixSpec(inputSpec, overrides = {}) {
-        const spec = normalizeSpec(inputSpec);
+        const spec = scope.normalizeSpec(inputSpec);
         const params = { ...spec.params };
         // Reproducible remix: seed from an explicit override when provided, otherwise
         // from the spec identity. No wall-clock entropy on the compute path, so the
@@ -587,16 +580,16 @@
           overrides.name || '',
         ].join(':'));
         let keyIndex = 0;
-        for (const [key, , min, max] of controlsForSpec(spec)) {
+        for (const [key, , min, max] of scope.controlsForSpec(spec)) {
           const span = Number(max) - Number(min);
-          const drift = span * (hashNoise(seed + keyIndex, key.length + spec.id.length) - 0.5) * 0.12;
-          params[key] = clamp(Number(params[key]) + drift, Number(min), Number(max));
+          const drift = span * (scope.hashNoise(seed + keyIndex, key.length + spec.id.length) - 0.5) * 0.12;
+          params[key] = scope.clamp(Number(params[key]) + drift, Number(min), Number(max));
           keyIndex += 1;
         }
-        return createSpec(spec.templateId, {
+        return scope.createSpec(spec.templateId, {
           ...spec,
           ...overrides,
-          id: overrides.id || `${slugify(overrides.name || spec.name)}-remix-${remixIdentity.toString(36)}`,
+          id: overrides.id || `${scope.slugify(overrides.name || spec.name)}-remix-${remixIdentity.toString(36)}`,
           name: overrides.name || `${spec.name} Remix`,
           modules: overrides.modules || spec.modules,
           objects: overrides.objects || spec.objects,
@@ -607,33 +600,33 @@
       }
 
     function serializeSpec(spec) {
-        return JSON.stringify(normalizeSpec(spec), null, 2);
+        return JSON.stringify(scope.normalizeSpec(spec), null, 2);
       }
 
     function deserializeSpec(text) {
-        return normalizeSpec(JSON.parse(String(text || '{}')));
+        return scope.normalizeSpec(JSON.parse(String(text || '{}')));
       }
 
     function createSimulationState(spec) {
-        const normalized = normalizeSpec(spec);
-        if (normalized.templateId === 'blank-world') return createBlankState(normalized);
-        if (normalized.templateId === 'custom-world') return createCustomState(normalized);
+        const normalized = scope.normalizeSpec(spec);
+        if (normalized.templateId === 'blank-world') return scope.createBlankState(normalized);
+        if (normalized.templateId === 'custom-world') return scope.createCustomState(normalized);
         if (normalized.templateId === 'fluid-vortex') return createFluidState(normalized.params);
-        if (normalized.templateId === 'reaction-diffusion') return createReactionState(normalized.params);
+        if (normalized.templateId === 'reaction-diffusion') return scope.createReactionState(normalized.params);
         return createState(normalized.params);
       }
 
     function stepSimulation(inputState, spec, dt) {
-        const normalized = normalizeSpec(spec);
-        if (normalized.templateId === 'blank-world') return stepBlankState(inputState, normalized, dt);
-        if (normalized.templateId === 'custom-world') return stepCustomState(inputState, normalized, dt);
+        const normalized = scope.normalizeSpec(spec);
+        if (normalized.templateId === 'blank-world') return scope.stepBlankState(inputState, normalized, dt);
+        if (normalized.templateId === 'custom-world') return scope.stepCustomState(inputState, normalized, dt);
         if (normalized.templateId === 'fluid-vortex') return stepFluidState(inputState, normalized.params, dt);
-        if (normalized.templateId === 'reaction-diffusion') return stepReactionState(inputState, normalized.params, dt);
+        if (normalized.templateId === 'reaction-diffusion') return scope.stepReactionState(inputState, normalized.params, dt);
         return stepState(inputState, normalized.params, dt);
       }
 
     function solarPower(params) {
-        return Math.max(0, params.irradiance) * Math.max(0, params.panelArea) * clamp(params.panelEfficiency, 0, 1);
+        return Math.max(0, params.irradiance) * Math.max(0, params.panelArea) * scope.clamp(params.panelEfficiency, 0, 1);
       }
 
     function magnetPosition(angle, radius) {
@@ -644,7 +637,7 @@
       }
 
     function createState(params = {}) {
-        const next = { ...DEFAULT_PARAMS, ...params };
+        const next = { ...scope.DEFAULT_PARAMS, ...params };
         return {
           kind: 'magnetic-wheel',
           t: 0,
@@ -676,7 +669,7 @@
         let torque = 0;
         for (let i = 0; i < wheelMagnets; i += 1) {
           const pole = i % 2 === 0 ? 1 : -1;
-          const angle = state.theta + (i / wheelMagnets) * TAU;
+          const angle = state.theta + (i / wheelMagnets) * scope.TAU;
           const rotor = magnetPosition(angle, wheelRadius);
           const dx = rotor.x - stator.x;
           const dy = rotor.y - stator.y;
@@ -686,39 +679,39 @@
           const tangentialForce = (dx * tangent.x + dy * tangent.y) * forceScale;
           torque += tangentialForce * wheelRadius;
         }
-        return clamp(torque, -2.8, 2.8);
+        return scope.clamp(torque, -2.8, 2.8);
       }
 
     function sliderTargetAngle(state, params) {
         const sunCycle = Math.sin(state.t * 0.42);
-        const commutation = state.theta + params.sliderPhase * TAU;
-        return wrapAngle(commutation + sunCycle * params.sliderAmplitude);
+        const commutation = state.theta + params.sliderPhase * scope.TAU;
+        return scope.wrapAngle(commutation + sunCycle * params.sliderAmplitude);
       }
 
     function stepState(inputState, inputParams, dtInput) {
         const params = { ...inputState.params, ...inputParams };
         const state = { ...inputState, params };
-        const dt = clamp(Number(dtInput || 0.016), 0.001, 0.05);
+        const dt = scope.clamp(Number(dtInput || 0.016), 0.001, 0.05);
         const sunPower = solarPower(params);
         state.solarInputJ += sunPower * dt;
         state.solarBufferJ += sunPower * dt;
 
         const target = sliderTargetAngle(state, params);
-        const sliderError = shortestAngle(state.sliderAngle, target);
-        const desiredVelocity = clamp(sliderError * 8, -3.6, 3.6);
+        const sliderError = scope.shortestAngle(state.sliderAngle, target);
+        const desiredVelocity = scope.clamp(sliderError * 8, -3.6, 3.6);
         const velocityDelta = desiredVelocity - state.sliderVelocity;
         const actuatorPowerRequest = Math.abs(velocityDelta) * 9.5 + Math.abs(desiredVelocity) * 1.2;
         const actuatorPower = Math.min(state.solarBufferJ / dt, actuatorPowerRequest);
         const actuatorScale = actuatorPowerRequest > 0 ? actuatorPower / actuatorPowerRequest : 1;
-        state.sliderVelocity += velocityDelta * actuatorScale * clamp(params.actuatorEfficiency, 0.05, 1);
+        state.sliderVelocity += velocityDelta * actuatorScale * scope.clamp(params.actuatorEfficiency, 0.05, 1);
         state.sliderVelocity *= 0.92;
-        state.sliderAngle = wrapAngle(state.sliderAngle + state.sliderVelocity * dt);
+        state.sliderAngle = scope.wrapAngle(state.sliderAngle + state.sliderVelocity * dt);
         state.solarBufferJ = Math.max(0, state.solarBufferJ - actuatorPower * dt);
         state.actuatorWorkJ += actuatorPower * dt;
 
         let magTorque = magneticTorque(state, params);
         const predictedOmega = state.omega + (magTorque / Math.max(0.05, params.wheelInertia)) * dt;
-        const fieldPowerRequest = Math.max(0, magTorque * predictedOmega) / clamp(params.actuatorEfficiency, 0.05, 1);
+        const fieldPowerRequest = Math.max(0, magTorque * predictedOmega) / scope.clamp(params.actuatorEfficiency, 0.05, 1);
         const fieldPower = Math.min(state.solarBufferJ / dt, fieldPowerRequest);
         const fieldScale = fieldPowerRequest > 0 ? fieldPower / fieldPowerRequest : 1;
         magTorque *= fieldScale;
@@ -730,7 +723,7 @@
         const alpha = netTorque / Math.max(0.05, params.wheelInertia);
         state.omega += alpha * dt;
         state.omega *= 0.999;
-        state.theta = wrapAngle(state.theta + state.omega * dt);
+        state.theta = scope.wrapAngle(state.theta + state.omega * dt);
 
         const magneticPower = magTorque * state.omega;
         const loadPower = Math.max(0, loadTorque * state.omega);
@@ -765,7 +758,7 @@
           generatorLossJ: state.generatorLossJ,
           solarBufferJ: state.solarBufferJ,
           balanceErrorJ: state.solarInputJ - spent,
-          rpm: state.omega * 60 / TAU,
+          rpm: state.omega * 60 / scope.TAU,
           torqueNm: state.lastTorque,
           magneticTorqueNm: state.lastMagneticTorque,
           solarPowerW: state.lastSolarPower,
@@ -775,13 +768,13 @@
       }
 
     function createFluidState(params = {}) {
-        const next = { ...templateById('fluid-vortex').params, ...params };
+        const next = { ...scope.templateById('fluid-vortex').params, ...params };
         const particles = Array.from({ length: 360 }, (_, index) => ({
-          x: hashNoise(3, index),
-          y: hashNoise(7, index),
+          x: scope.hashNoise(3, index),
+          y: scope.hashNoise(7, index),
           vx: 0,
           vy: 0,
-          age: hashNoise(11, index),
+          age: scope.hashNoise(11, index),
         }));
         return {
           kind: 'fluid-vortex',
@@ -798,7 +791,7 @@
 
     function stepFluidState(inputState, inputParams, dtInput) {
         const params = { ...inputState.params, ...inputParams };
-        const dt = clamp(Number(dtInput || 0.016), 0.001, 0.05);
+        const dt = scope.clamp(Number(dtInput || 0.016), 0.001, 0.05);
         const state = {
           ...inputState,
           params,
@@ -817,7 +810,7 @@
           const ny = dy / dist;
           const wake = Math.exp(-dist / Math.max(0.04, obstacle.r * 2.8));
           const swirl = params.vortexStrength * wake;
-          const noise = (hashNoise(Math.floor(state.t * 30), i) - 0.5) * params.turbulence;
+          const noise = (scope.hashNoise(Math.floor(state.t * 30), i) - 0.5) * params.turbulence;
           p.vx += (params.inletFlow * 0.55 + -ny * swirl + noise) * dt;
           p.vy += (nx * swirl + params.gravity + noise * 0.35) * dt;
           p.vx *= 1 - params.viscosity * dt * 1.8;
@@ -833,13 +826,13 @@
           }
           if (p.x > 1.04 || p.y < -0.04 || p.y > 1.04) {
             p.x = -0.03;
-            p.y = hashNoise(i, Math.floor(state.t * 10));
+            p.y = scope.hashNoise(i, Math.floor(state.t * 10));
             p.vx = params.inletFlow;
             p.vy = 0;
             p.age = 0;
           }
           if (p.x < -0.06) p.x = 1.03;
-          p.age = clamp01(p.age + dt * 0.08);
+          p.age = scope.clamp01(p.age + dt * 0.08);
           vorticity += Math.abs(p.vx * ny - p.vy * nx);
           mixing += p.age * (1 - Math.abs(p.y - 0.5) * 1.2);
         }
@@ -847,13 +840,13 @@
         state.t += dt;
         state.vorticity = vorticity / count;
         state.pressure = pressure / count * 100;
-        state.mixing = clamp01(mixing / count);
+        state.mixing = scope.clamp01(mixing / count);
         state.flowInputJ += Math.max(0, params.inletFlow) * dt * 12;
         state.dragLossJ += state.vorticity * params.viscosity * dt * 7;
         return state;
       }
 
-    Object.assign(scope, {
+    root.SimulattePhaseModuleRegistry.define('physicsModel', 'simulatte-physics-model-state-solvers.js', {
       addSynthesisComponents,
       materialForSynthesisNode,
       visualRegimeForSynthesisNode,
@@ -887,5 +880,5 @@
       createFluidState,
       stepFluidState,
     });
-  }
+
 })(typeof globalThis !== 'undefined' ? globalThis : window);

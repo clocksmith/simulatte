@@ -1,7 +1,6 @@
 (function attachSimulatteWebGpuRendererSceneProofObserver(root) {
-  const scope = root.__SimulatteWebGpuRendererRefactorScope;
-  if (!scope || scope.missingDependency) return;
-  with (scope) {
+  const scope = root.SimulattePhaseModuleRegistry.family('webGpuRenderer');
+
     function notifyRendererSceneProof(renderer) {
       if (!renderer || !renderer.phase8Output) return null;
       const renderData = renderer.renderData || {};
@@ -18,6 +17,7 @@
         phase7Output: renderer.phase7Output,
         phase8Output: renderer.phase8Output,
         sceneRenderPacket: renderer.sceneRenderPacket,
+        durationMs: Number(renderer.lastSceneProofMs || 0),
         pixelSampleSource: renderData.pixelSampleSource || suppliedSamples && suppliedSamples.source || '',
         pixelReadbackReceipt: renderer.lastPixelReadbackReceipt || null,
       };
@@ -29,6 +29,6 @@
       return report;
     }
 
-    Object.assign(scope, { notifyRendererSceneProof });
-  }
+    root.SimulattePhaseModuleRegistry.define('webGpuRenderer', 'simulatte-webgpu-renderer-scene-proof-observer.js', { notifyRendererSceneProof });
+
 })(typeof globalThis !== 'undefined' ? globalThis : window);

@@ -1,7 +1,6 @@
 (function attachSimulatteWebGpuRendererBackgroundShader(root) {
-  const scope = root.__SimulatteWebGpuRendererRefactorScope;
-  if (!scope || scope.missingDependency) return;
-  with (scope) {
+  const scope = root.SimulattePhaseModuleRegistry.family('webGpuRenderer');
+
     const WEBGPU_BACKGROUND_SHADER = `
 struct BackgroundUniforms {
   viewport: vec4f,
@@ -114,6 +113,6 @@ fn backgroundFs(input: BackgroundVsOut) -> @location(0) vec4f {
 }
 `;
 
-    Object.assign(scope, { WEBGPU_BACKGROUND_SHADER });
-  }
+    root.SimulattePhaseModuleRegistry.define('webGpuRenderer', 'simulatte-webgpu-renderer-background-shader.js', { WEBGPU_BACKGROUND_SHADER });
+
 })(typeof globalThis !== 'undefined' ? globalThis : window);

@@ -11,6 +11,7 @@ const {
   graphSynthesis,
   dopplerIntent,
   intentForensics,
+  phaseFamily,
   root,
   loadEmbeddingIndex,
   indexedVector,
@@ -677,7 +678,7 @@ test('Phase 1 loads Doppler reranker with f16 KV runtime contract', async () => 
 });
 
 test('Doppler reranker fallback caps candidates and resets state around every prefill', async () => {
-  const scope = globalThis.__SimulatteIntentEmbedderRefactorScope;
+  const scope = phaseFamily('intentEmbedder');
   let sequenceLength = 7;
   let resetCount = 0;
   let prefillCount = 0;
@@ -732,7 +733,7 @@ test('Doppler reranker fallback caps candidates and resets state around every pr
 });
 
 test('Doppler reranker uses selected-token logits with one reusable token-exact KV prefix', async () => {
-  const scope = globalThis.__SimulatteIntentEmbedderRefactorScope;
+  const scope = phaseFamily('intentEmbedder');
   let resetCount = 0;
   let prefixCount = 0;
   let prefixResetCount = 0;
@@ -884,7 +885,7 @@ test('Doppler reranker uses selected-token logits with one reusable token-exact 
 });
 
 test('bounded retrieval heaps preserve full-sort surface and universe ranking', () => {
-  const scope = globalThis.__SimulatteIntentEmbedderRefactorScope;
+  const scope = phaseFamily('intentEmbedder');
   const query = Float32Array.from([0.8, 0.4, 0.2, 0.1]);
   const surfaceDocuments = Array.from({ length: 17 }, (_, index) => ({
     cardId: `card-${String(index).padStart(2, '0')}`,
@@ -922,7 +923,7 @@ test('bounded retrieval heaps preserve full-sort surface and universe ranking', 
 });
 
 test('required selected-token reranking fails closed on an incomplete Doppler handle', () => {
-  const scope = globalThis.__SimulatteIntentEmbedderRefactorScope;
+  const scope = phaseFamily('intentEmbedder');
   assert.throws(() => scope.rerankProviderFromModelHandle({
     resetGenerationState() {},
     advanced: {
@@ -944,7 +945,7 @@ test('required selected-token reranking fails closed on an incomplete Doppler ha
 });
 
 test('model-backed embedder captures its reranker factory when the ordered runtime modules load', () => {
-  const scope = globalThis.__SimulatteIntentEmbedderRefactorScope;
+  const scope = phaseFamily('intentEmbedder');
   const factory = scope.rerankProviderFromModelHandle;
   const handle = { rerank: () => [] };
   const embedder = new scope.ModelBackedIntentEmbedder();
@@ -963,7 +964,7 @@ test('model-backed embedder captures its reranker factory when the ordered runti
 });
 
 test('contrastive top-k reranking retains local scores for unevaluated candidates', () => {
-  const scope = globalThis.__SimulatteIntentEmbedderRefactorScope;
+  const scope = phaseFamily('intentEmbedder');
   const localPriors = [
     { primitiveId: 'evaluated', score: 0.9, modelScore: 0.9 },
     { primitiveId: 'literal-tail', score: 0.8, modelScore: 0.8 },
@@ -994,7 +995,7 @@ test('contrastive top-k reranking retains local scores for unevaluated candidate
 });
 
 test('slot lexical evidence separates local identity from model construction work', () => {
-  const scope = globalThis.__SimulatteIntentEmbedderRefactorScope;
+  const scope = phaseFamily('intentEmbedder');
   const slot = {
     slotId: 'slot.actor.cat',
     slotRole: 'actor',
@@ -1128,7 +1129,7 @@ test('slot lexical evidence separates local identity from model construction wor
 });
 
 test('data-owned local construction ids resolve to concrete Phase 6 grammars', () => {
-  const grammars = globalThis.__SimulatteCompositionGraphRefactorScope.OBJECT_GEOMETRY_GRAMMARS;
+  const grammars = phaseFamily('compositionGraph').OBJECT_GEOMETRY_GRAMMARS;
   const rows = languageLexicon.ENTITY_PHRASES.filter(([, , metadata]) => metadata?.localGeometryGrammarId);
 
   assert.ok(rows.length > 0);
@@ -1140,7 +1141,7 @@ test('data-owned local construction ids resolve to concrete Phase 6 grammars', (
 });
 
 test('reranker order stays inside the local evidence score band', () => {
-  const scope = globalThis.__SimulatteIntentEmbedderRefactorScope;
+  const scope = phaseFamily('intentEmbedder');
   const local = [
     { primitiveId: 'a', score: 0.9, modelScore: 0.9 },
     { primitiveId: 'b', score: 0.85, modelScore: 0.85 },
@@ -1160,7 +1161,7 @@ test('reranker order stays inside the local evidence score band', () => {
 });
 
 test('reranker documents are compact and its score cache is bounded across queries', () => {
-  const scope = globalThis.__SimulatteIntentEmbedderRefactorScope;
+  const scope = phaseFamily('intentEmbedder');
   const text = scope.compactRerankCandidateText(
     'simulatte surface card cat type entity labels cat feline materials biomass description cat feline agile mammal',
     5
@@ -1180,7 +1181,7 @@ test('reranker documents are compact and its score cache is bounded across queri
 });
 
 test('prompt reranking covers construction evidence before unrelated local-score candidates', () => {
-  const scope = globalThis.__SimulatteIntentEmbedderRefactorScope;
+  const scope = phaseFamily('intentEmbedder');
   const priors = ['noise', 'soft-body', 'gravity', 'collision', 'radiation', 'friction']
     .map((primitiveId, index) => ({ primitiveId, score: 1 - index * 0.01 }));
   const selection = scope.selectEvidenceBackedRerankPriors(priors, {

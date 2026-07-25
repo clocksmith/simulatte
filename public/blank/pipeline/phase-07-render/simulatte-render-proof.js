@@ -1,8 +1,15 @@
 (function attachSimulatteRenderProof(root, factory) {
-  const api = factory();
+  const objectRealization = typeof module === 'object' && module.exports
+    ? require('./simulatte-object-realization.js')
+    : root.SimulatteObjectRealization;
+  const api = factory(objectRealization);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteRenderProof = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createRenderProofApi() {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createRenderProofApi(objectRealization = {}) {
+  const objectRealizationForScenePacket = objectRealization.objectRealizationForScenePacket;
+  if (typeof objectRealizationForScenePacket !== 'function') {
+    throw new Error('SimulatteRenderProof requires SimulatteObjectRealization');
+  }
   function scenePacketIdentitySummary(sceneRenderPacket = {}) {
     return Array.from(new Set((sceneRenderPacket.entities || [])
       .flatMap((row) => {
@@ -224,58 +231,6 @@
       optimizationPath: optimization && optimization.path || '',
       livePixelAudit,
       literalRealization,
-    };
-  }
-
-  function objectRealizationForScenePacket(sceneRenderPacket = {}) {
-    const rows = (sceneRenderPacket.entities || []).map((row) => {
-      const program = row && row.geometry && row.geometry.program || {};
-      const parts = Array.isArray(program.parts) ? program.parts : [];
-      const scale = row && row.transform && row.transform.scale || [];
-      const projectedArea = Number((Number(scale[0] || 0) * Number(scale[1] || 0)).toFixed(5));
-      const semanticFit = program.source === 'phase6-data-owned-part-graph' || Boolean(
-        program.constructionReceipt && (
-          program.constructionReceipt.literalSlotMatch === true ||
-          program.constructionReceipt.exactTargetMatch === true ||
-          program.constructionReceipt.targetIdentityBound === true &&
-            program.constructionReceipt.modelEvaluated === true
-        )
-      );
-      const topologyVerified = program.source === 'phase6-data-owned-part-graph'
-        ? parts.length >= 2
-        : parts.length >= 3 && new Set(parts.map((part) => part.primitive).filter(Boolean)).size >= 2;
-      const readable = projectedArea >= 0.008;
-      return {
-        schema: 'simulatte.objectRenderRealization.v1',
-        entityId: row.id || '',
-        identityType: row.identity && row.identity.type || program.identityType || '',
-        identityLabels: [
-          row.id,
-          row.label,
-          row.identity && row.identity.label,
-          row.identity && row.identity.sourceLabel,
-          row.identity && row.identity.type,
-          program.constructionReceipt && program.constructionReceipt.targetEntryId,
-          ...(row.representedEntityIds || []),
-        ].filter(Boolean),
-        grammarId: program.grammarId || '',
-        literal: program.literal === true,
-        partCount: parts.length,
-        primitiveCount: new Set(parts.map((part) => part.primitive).filter(Boolean)).size,
-        projectedArea,
-        semanticFit,
-        topologyVerified,
-        readable,
-        realized: program.literal === true && semanticFit && topologyVerified && readable,
-      };
-    });
-    return {
-      schema: 'simulatte.objectRenderRealizationSummary.v1',
-      entityCount: rows.length,
-      literalCount: rows.filter((row) => row.literal).length,
-      realizedCount: rows.filter((row) => row.realized).length,
-      unprovenEntityIds: rows.filter((row) => !row.realized).map((row) => row.entityId),
-      rows,
     };
   }
 

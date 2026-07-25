@@ -2,12 +2,18 @@
   const atlas = typeof module === 'object' && module.exports
     ? require('./simulatte-visual-operator-atlas.js')
     : root.SimulatteVisualOperatorAtlas;
-  const api = factory(atlas);
+  const deterministicValues = typeof module === 'object' && module.exports
+    ? require('../../../shared/deterministic-values.js')
+    : root.SimulatteDeterministicValues;
+  const positiveLanguage = typeof module === 'object' && module.exports
+    ? require('../../../shared/language/positive-language.js')
+    : root.SimulattePositiveLanguage;
+  const api = factory(atlas, deterministicValues, positiveLanguage);
   if (typeof module === 'object' && module.exports) {
     module.exports = api;
   }
   root.SimulatteVisualOperatorCompiler = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createVisualOperatorCompilerApi(atlas = {}) {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createVisualOperatorCompilerApi(atlas = {}, deterministicValues = {}, positiveLanguage = {}) {
   const VISUAL_OPERATOR_COMPILER_SCHEMA = 'simulatte.visualOperatorCompiler.v1';
   const GRAPHICS_ATOM_PLAN_SCHEMA = atlas.GRAPHICS_ATOM_PLAN_SCHEMA || 'simulatte.graphicsAtomPlan.v1';
   const GRAPHICS_ATOM_UNIFORMS_SCHEMA = atlas.GRAPHICS_ATOM_UNIFORMS_SCHEMA || 'simulatte.graphicsAtomUniforms.v1';
@@ -621,12 +627,7 @@
   }
 
   function positiveLanguageText(value = '') {
-    let text = String(value || '');
-    const word = "[a-z0-9]+(?:[-'][a-z0-9]+)*";
-    const stop = '(?:and|with|while|where|when|because|but|however|though|although|unless|inside|outside|near|around|between|against|across|during|through|then|so)';
-    const negated = new RegExp(`\\b(?:no|not|never|none|without|cannot|can't|wont|won't|avoid|exclude|except)\\b(?:\\s+(?:a|an|the|any))?(?:\\s+(?!\\b${stop}\\b)${word}){1,6}`, 'gi');
-    text = text.replace(negated, ' ');
-    return text.replace(/\s+/g, ' ').trim();
+    return positiveLanguage.positiveLanguageText(value);
   }
 
   function containsNegation(value = '') {
@@ -733,12 +734,7 @@
   }
 
   function stableContextHash(text) {
-    let hash = 2166136261;
-    for (let i = 0; i < String(text || '').length; i += 1) {
-      hash ^= text.charCodeAt(i);
-      hash = Math.imul(hash, 16777619);
-    }
-    return `fnv1a32:${(hash >>> 0).toString(16).padStart(8, '0')}`;
+    return `fnv1a32:${deterministicValues.fnv1a32(text || '').toString(16).padStart(8, '0')}`;
   }
 
   function normalizeText(value) {

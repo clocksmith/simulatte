@@ -1,30 +1,24 @@
 (function attachSimulatteWebGpuRendererpixelproof(root) {
-  const scope = root.__SimulatteWebGpuRendererRefactorScope;
-  if (!scope || scope.missingDependency) return;
-  with (scope) {
+  const scope = root.SimulattePhaseModuleRegistry.family('webGpuRenderer');
+
     function scenePacketVariantCode(row = {}) {
         const text = `${row.id || ''}:${row.label || ''}:${row.sourceGraphId || ''}`;
-        let hash = 2166136261;
-        for (let i = 0; i < text.length; i += 1) {
-          hash ^= text.charCodeAt(i);
-          hash = Math.imul(hash, 16777619);
-        }
-        return (hash >>> 0) / 4294967295;
+        return scope.inclusiveUnitInterval(text);
       }
 
     function scenePacketIdentityLabel(row = {}) {
-    	    const identity = row.identity || {};
-    	    return identity.sourceLabel || identity.label || identity.type || row.label || row.id || row.layerSlot || 'object';
-    	  }
+          const identity = row.identity || {};
+          return identity.sourceLabel || identity.label || identity.type || row.label || row.id || row.layerSlot || 'object';
+        }
 
     function scenePacketCompactIdentitySummary(packet, sceneKind = '') {
-        const drawables = scenePacketUniformDrawables(packet, sceneKind).slice(0, SCENE_PACKET_OBJECT_SLOTS);
+        const drawables = scope.scenePacketUniformDrawables(packet, sceneKind).slice(0, scope.SCENE_PACKET_OBJECT_SLOTS);
         return scenePacketIdentitySummaryForDrawables(drawables);
       }
 
     function scenePacketIdentitySummaryForDrawables(drawables = []) {
         return drawables.map((row, index) => {
-          const transform = scenePacketDrawableTransform(row, index, drawables.length);
+          const transform = scope.scenePacketDrawableTransform(row, index, drawables.length);
           const identity = row.identity || {};
           return [
             `${index}:${scenePacketIdentityLabel(row)}`,
@@ -36,18 +30,18 @@
       }
 
     function sceneObjectUniformSummary(vector, packet = null, sceneKind = '') {
-        const drawables = packet ? scenePacketUniformDrawables(packet, sceneKind).slice(0, SCENE_PACKET_OBJECT_SLOTS) : [];
+        const drawables = packet ? scope.scenePacketUniformDrawables(packet, sceneKind).slice(0, scope.SCENE_PACKET_OBJECT_SLOTS) : [];
         return sceneObjectUniformSummaryForDrawables(vector, drawables);
       }
 
     function sceneObjectUniformSummaryForDrawables(vector, drawables = []) {
         const rows = [];
-        for (let i = 0; i < SCENE_PACKET_OBJECT_SLOTS; i += 1) {
-          const styleOffset = SCENE_PACKET_OBJECT_SLOTS * 4 + i * 4;
-          const identityOffset = SCENE_PACKET_OBJECT_SLOTS * 8 + i * 4;
+        for (let i = 0; i < scope.SCENE_PACKET_OBJECT_SLOTS; i += 1) {
+          const styleOffset = scope.SCENE_PACKET_OBJECT_SLOTS * 4 + i * 4;
+          const identityOffset = scope.SCENE_PACKET_OBJECT_SLOTS * 8 + i * 4;
           const layerCode = vector && vector[styleOffset] || 0;
           if (layerCode <= 0) continue;
-          const layer = VISUAL_IR_LAYER_SLOTS[Math.max(0, Math.floor(layerCode) - 1)] || 'unknown';
+          const layer = scope.VISUAL_IR_LAYER_SLOTS[Math.max(0, Math.floor(layerCode) - 1)] || 'unknown';
           const semanticCode = vector && vector[identityOffset] || 0;
           const label = drawables[i] ? scenePacketIdentityLabel(drawables[i]) : `semantic-${Number(semanticCode || 0).toFixed(0)}`;
           rows.push(`${i}:${label}:${layer}@${Number(vector[i * 4] || 0).toFixed(2)},${Number(vector[i * 4 + 1] || 0).toFixed(2)}`);
@@ -61,26 +55,26 @@
           if (!row || !row.layerSlot) return;
           addVisualIrLayerSlot(vector, row.layerSlot, strength);
         };
-        for (const row of scenePacketRows(packet, 'entities')) addRow(row, 0.96);
-        for (const row of scenePacketRows(packet, 'fields')) addRow(row, 0.72);
-        for (const row of scenePacketRows(packet, 'effects')) addRow(row, 0.58);
+        for (const row of scope.scenePacketRows(packet, 'entities')) addRow(row, 0.96);
+        for (const row of scope.scenePacketRows(packet, 'fields')) addRow(row, 0.72);
+        for (const row of scope.scenePacketRows(packet, 'effects')) addRow(row, 0.58);
       }
 
     function visualIrLayerVector(packet) {
-        const vector = scenePacketUniformVector(packet, 'visualLayers', VISUAL_IR_LAYER_SLOTS.length);
+        const vector = scope.scenePacketUniformVector(packet, 'visualLayers', scope.VISUAL_IR_LAYER_SLOTS.length);
         if (activeVisualIrLayerSlots(vector)) return compressVisualIrLayerVector(vector);
         addScenePacketLayers(vector, packet);
         return compressVisualIrLayerVector(vector);
       }
 
     function addVisualIrLayerSlot(vector, slot, value) {
-        const index = VISUAL_IR_LAYER_SLOTS.indexOf(slot);
+        const index = scope.VISUAL_IR_LAYER_SLOTS.indexOf(slot);
         if (index < 0) return;
         vector[index] = clamp01(vector[index] + value);
       }
 
     function compressVisualIrLayerVector(input) {
-        const vector = new Float32Array(VISUAL_IR_LAYER_SLOTS.length);
+        const vector = new Float32Array(scope.VISUAL_IR_LAYER_SLOTS.length);
         const ranked = Array.from(input || []).map((value, index) => ({
           index,
           value: clamp01(value),
@@ -95,7 +89,7 @@
 
     function visualIrLayerSummary(vector) {
         return Array.from(vector || [])
-          .map((value, index) => ({ slot: VISUAL_IR_LAYER_SLOTS[index], value: clamp01(value) }))
+          .map((value, index) => ({ slot: scope.VISUAL_IR_LAYER_SLOTS[index], value: clamp01(value) }))
           .filter((entry) => entry.value >= 0.06)
           .sort((a, b) => b.value - a.value || a.slot.localeCompare(b.slot))
           .slice(0, 10)
@@ -107,62 +101,14 @@
         return Array.from(vector || []).filter((value) => clamp01(value) >= 0.06).length;
       }
 
-    function addSceneKindMix(vector, sceneKind, strength = 0.32) {
-        const value = String(sceneKind || '').toLowerCase();
-        if (!value) return;
-        if (/thermal|fire|plume|weather/.test(value)) addSceneMixSlot(vector, 'thermal', strength);
-        if (/watershed|ocean|fluid|restoration|cryosphere/.test(value)) addSceneMixSlot(vector, 'water', strength);
-        if (/mechanical|structural|sport/.test(value)) addSceneMixSlot(vector, 'mechanical', strength);
-        if (/magnetic|ferrofluid/.test(value)) addSceneMixSlot(vector, 'magnetic', strength);
-        if (/optics|thin-film|quantum/.test(value)) addSceneMixSlot(vector, 'optical', strength);
-        if (/acoustic/.test(value)) addSceneMixSlot(vector, 'acoustic', strength);
-        if (/biology|ecology|clinical|agro|molecular/.test(value)) addSceneMixSlot(vector, 'biological', strength);
-        if (/chemistry|material|cultural/.test(value)) addSceneMixSlot(vector, 'chemical', strength);
-        if (/planetary|space|atomic/.test(value)) addSceneMixSlot(vector, 'orbital', strength);
-        if (/digital|city|civic|venue|network|grid/.test(value)) addSceneMixSlot(vector, 'network', strength);
-        if (/energy|grid|advanced|plasma/.test(value)) addSceneMixSlot(vector, 'energy', strength);
-        if (/robot|manufacturing|factory/.test(value)) addSceneMixSlot(vector, 'robotic', strength);
-        if (/granular/.test(value)) addSceneMixSlot(vector, 'granular', strength);
-        if (/instrument|particle|detector/.test(value)) addSceneMixSlot(vector, 'instrument', strength);
-        if (/phase|thin-film|cryosphere/.test(value)) addSceneMixSlot(vector, 'phase', strength * 0.8);
-        if (/hazard|storm|wildfire|tsunami|earthquake/.test(value)) addSceneMixSlot(vector, 'hazard', strength);
-      }
-
-    function addSceneMixSlot(vector, slot, value) {
-        const index = SCENE_MIX_SLOTS.indexOf(slot);
-        if (index < 0) return;
-        vector[index] = clamp01(vector[index] + value);
-      }
-
-    function compressSceneMixVector(input) {
-        const vector = new Float32Array(SCENE_MIX_SLOTS.length);
-        const ranked = Array.from(input || []).map((value, index) => ({
-          index,
-          value: clamp01(value),
-        })).sort((a, b) => b.value - a.value || a.index - b.index);
-        ranked.forEach((entry, rank) => {
-          if (entry.value < 0.08) return;
-          const gain = rank === 0 ? 1 : rank < 4 ? 0.92 : rank < 8 ? 0.76 : 0.54;
-          vector[entry.index] = clamp01(entry.value * gain);
-        });
-        if (!ranked.length || ranked[0].value < 0.08) {
-          addSceneMixSlot(vector, 'mechanical', 0.42);
-        }
-        return vector;
-      }
-
     function sceneMixSummary(vector) {
         return Array.from(vector || [])
-          .map((value, index) => ({ slot: SCENE_MIX_SLOTS[index], value: clamp01(value) }))
+          .map((value, index) => ({ slot: scope.SCENE_MIX_SLOTS[index], value: clamp01(value) }))
           .filter((entry) => entry.value >= 0.08)
           .sort((a, b) => b.value - a.value || a.slot.localeCompare(b.slot))
           .slice(0, 8)
           .map((entry) => `${entry.slot}:${entry.value.toFixed(2)}`)
           .join(',');
-      }
-
-    function activeSceneMixSlots(vector) {
-        return Array.from(vector || []).filter((value) => clamp01(value) >= 0.08).length;
       }
 
     function featureStrength(features) {
@@ -172,10 +118,10 @@
       }
 
     function metricsForScenePacket(packet) {
-        const layers = new Set(scenePacketLayerList(packet));
-        const entityCount = scenePacketEntityCount(packet);
-        const fieldCount = scenePacketFieldCount(packet);
-        const effectCount = scenePacketEffectCount(packet);
+        const layers = new Set(scope.scenePacketLayerList(packet));
+        const entityCount = scope.scenePacketEntityCount(packet);
+        const fieldCount = scope.scenePacketFieldCount(packet);
+        const effectCount = scope.scenePacketEffectCount(packet);
         return {
           heat: layers.has('thermal-field') || layers.has('phase-boundary') ? 0.72 : 0.35,
           flow: layers.has('water-volume') || layers.has('flow-field') || layers.has('network-flow') ? 0.66 : 0.42,
@@ -189,39 +135,39 @@
         const compiled = paletteVectorToVec4(compiledPalette);
         if (compiled) return compiled;
         const dominant = dominantAtomSlot(atoms);
-        if (dominant === 'quantum') return paletteToVec4(PALETTES.quantum);
-        if (dominant === 'robotic') return paletteToVec4(PALETTES.robot);
-        if (dominant === 'network' || dominant === 'feedback') return paletteToVec4(PALETTES.network);
-        if (dominant === 'optical') return paletteToVec4(PALETTES.optics);
-        if (dominant === 'orbital') return paletteToVec4(PALETTES.space);
-        if (dominant === 'chemical') return paletteToVec4(PALETTES.chemistry);
-        if (dominant === 'biological') return paletteToVec4(PALETTES.bio);
-        if (dominant === 'acoustic') return paletteToVec4(PALETTES.acoustic);
-        if (dominant === 'granular') return paletteToVec4(PALETTES.cultural);
-        if (dominant === 'thermal' || dominant === 'combustion') return paletteToVec4(PALETTES.thermal);
-        if (dominant === 'fluid') return paletteToVec4(PALETTES.water);
-        if (dominant === 'stress') return paletteToVec4(PALETTES.factory);
-        if (dominant === 'electromagnetic') return paletteToVec4(PALETTES.magnet);
-        if (sceneKind === 'thin-film') return paletteToVec4(PALETTES.optics);
-        if (sceneKind === 'magnetic-machine') return paletteToVec4(PALETTES.magnet);
-        if (sceneKind === 'fire') return paletteToVec4(PALETTES.thermal);
-        if (sceneKind === 'ocean' || sceneKind === 'ocean-cryosphere') return paletteToVec4(PALETTES.water);
-        if (sceneKind === 'structural-mechanics') return paletteToVec4(PALETTES.factory);
-        if (sceneKind === 'material-tray') return paletteToVec4(PALETTES.factory);
-        if (sceneKind === 'evolution-ecology' || sceneKind === 'restoration-water') return paletteToVec4(PALETTES.bio);
-        if (sceneKind === 'city' || sceneKind === 'civic-market' || sceneKind === 'venue-crowd') return paletteToVec4(PALETTES.network);
-        if (sceneKind === 'particle-instrument' || sceneKind === 'space-instrument') return paletteToVec4(PALETTES.instrument);
-        if (sceneKind === 'hazard-atmosphere') return paletteToVec4(PALETTES.weather);
-        if (sceneKind === 'advanced-energy') return paletteToVec4(PALETTES.plasma);
-        if (sceneKind === 'thermal-plume') return paletteToVec4(PALETTES.thermal);
-        if (sceneKind === 'grid-energy') return paletteToVec4(PALETTES.grid);
-        if (sceneKind === 'robotics-control') return paletteToVec4(PALETTES.robot);
-        if (sceneKind === 'manufacturing-line') return paletteToVec4(PALETTES.factory);
-        if (sceneKind === 'quantum-instrument') return paletteToVec4(PALETTES.quantum);
-        if (sceneKind === 'agro-waste-loop') return paletteToVec4(PALETTES.agro);
-        if (sceneKind === 'sport-motion') return paletteToVec4(PALETTES.sport);
-        if (sceneKind === 'cultural-material') return paletteToVec4(PALETTES.cultural);
-        return paletteToVec4(PALETTES.machine);
+        if (dominant === 'quantum') return paletteToVec4(scope.PALETTES.quantum);
+        if (dominant === 'robotic') return paletteToVec4(scope.PALETTES.robot);
+        if (dominant === 'network' || dominant === 'feedback') return paletteToVec4(scope.PALETTES.network);
+        if (dominant === 'optical') return paletteToVec4(scope.PALETTES.optics);
+        if (dominant === 'orbital') return paletteToVec4(scope.PALETTES.space);
+        if (dominant === 'chemical') return paletteToVec4(scope.PALETTES.chemistry);
+        if (dominant === 'biological') return paletteToVec4(scope.PALETTES.bio);
+        if (dominant === 'acoustic') return paletteToVec4(scope.PALETTES.acoustic);
+        if (dominant === 'granular') return paletteToVec4(scope.PALETTES.cultural);
+        if (dominant === 'thermal' || dominant === 'combustion') return paletteToVec4(scope.PALETTES.thermal);
+        if (dominant === 'fluid') return paletteToVec4(scope.PALETTES.water);
+        if (dominant === 'stress') return paletteToVec4(scope.PALETTES.factory);
+        if (dominant === 'electromagnetic') return paletteToVec4(scope.PALETTES.magnet);
+        if (sceneKind === 'thin-film') return paletteToVec4(scope.PALETTES.optics);
+        if (sceneKind === 'magnetic-machine') return paletteToVec4(scope.PALETTES.magnet);
+        if (sceneKind === 'fire') return paletteToVec4(scope.PALETTES.thermal);
+        if (sceneKind === 'ocean' || sceneKind === 'ocean-cryosphere') return paletteToVec4(scope.PALETTES.water);
+        if (sceneKind === 'structural-mechanics') return paletteToVec4(scope.PALETTES.factory);
+        if (sceneKind === 'material-tray') return paletteToVec4(scope.PALETTES.factory);
+        if (sceneKind === 'evolution-ecology' || sceneKind === 'restoration-water') return paletteToVec4(scope.PALETTES.bio);
+        if (sceneKind === 'city' || sceneKind === 'civic-market' || sceneKind === 'venue-crowd') return paletteToVec4(scope.PALETTES.network);
+        if (sceneKind === 'particle-instrument' || sceneKind === 'space-instrument') return paletteToVec4(scope.PALETTES.instrument);
+        if (sceneKind === 'hazard-atmosphere') return paletteToVec4(scope.PALETTES.weather);
+        if (sceneKind === 'advanced-energy') return paletteToVec4(scope.PALETTES.plasma);
+        if (sceneKind === 'thermal-plume') return paletteToVec4(scope.PALETTES.thermal);
+        if (sceneKind === 'grid-energy') return paletteToVec4(scope.PALETTES.grid);
+        if (sceneKind === 'robotics-control') return paletteToVec4(scope.PALETTES.robot);
+        if (sceneKind === 'manufacturing-line') return paletteToVec4(scope.PALETTES.factory);
+        if (sceneKind === 'quantum-instrument') return paletteToVec4(scope.PALETTES.quantum);
+        if (sceneKind === 'agro-waste-loop') return paletteToVec4(scope.PALETTES.agro);
+        if (sceneKind === 'sport-motion') return paletteToVec4(scope.PALETTES.sport);
+        if (sceneKind === 'cultural-material') return paletteToVec4(scope.PALETTES.cultural);
+        return paletteToVec4(scope.PALETTES.machine);
       }
 
     function paletteVectorToVec4(values = null) {
@@ -246,7 +192,7 @@
           if (atoms[i] > best.value) best = { index: i, value: atoms[i] };
         }
         if (best.value < 0.18) return '';
-        return ATOM_UNIFORM_SLOTS[best.index] || '';
+        return scope.ATOM_UNIFORM_SLOTS[best.index] || '';
       }
 
     function paletteToVec4(colors) {
@@ -272,7 +218,7 @@
 
     async function requestWebGpuDevice(adapter) {
         const available = adapterFeatureList(adapter);
-        const optional = WEBGPU_OPTIONAL_FEATURES.filter((feature) => adapterFeatureHas(adapter, feature));
+        const optional = scope.WEBGPU_OPTIONAL_FEATURES.filter((feature) => adapterFeatureHas(adapter, feature));
         const attempts = [
           optional,
           optional.filter((feature) => !feature.startsWith('chromium-')),
@@ -295,7 +241,7 @@
                 enabled: features,
                 failed: failures,
                 used: ['uniform-fullscreen-fallback'],
-                unsupportedNativeFeatures: WEBGPU_NATIVE_ONLY_FEATURES.slice(),
+                unsupportedNativeFeatures: scope.WEBGPU_NATIVE_ONLY_FEATURES.slice(),
               },
             };
           } catch (err) {
@@ -337,15 +283,10 @@
     function seedForScenePacket(packet, spatialHash = '', summary = '') {
         const text = [
           packet && packet.sceneKind,
-          spatialHash || scenePacketSpatialHash(packet),
-          summary || sceneRenderPacketSummary(packet),
+          spatialHash || scope.scenePacketSpatialHash(packet),
+          summary || scope.sceneRenderPacketSummary(packet),
         ].filter(Boolean).join('|');
-        let hash = 2166136261;
-        for (let i = 0; i < text.length; i += 1) {
-          hash ^= text.charCodeAt(i);
-          hash = Math.imul(hash, 16777619);
-        }
-        return (hash >>> 0) / 4294967295;
+        return scope.inclusiveUnitInterval(text);
       }
 
     function clamp(value, min, max) {
@@ -362,7 +303,7 @@
         return Math.max(min, Math.min(max, parsed));
       }
 
-    Object.assign(scope, {
+    root.SimulattePhaseModuleRegistry.define('webGpuRenderer', 'simulatte-webgpu-renderer-pixel-proof.js', {
       scenePacketVariantCode,
       scenePacketIdentityLabel,
       scenePacketCompactIdentitySummary,
@@ -375,11 +316,7 @@
       compressVisualIrLayerVector,
       visualIrLayerSummary,
       activeVisualIrLayerSlots,
-      addSceneKindMix,
-      addSceneMixSlot,
-      compressSceneMixVector,
       sceneMixSummary,
-      activeSceneMixSlots,
       featureStrength,
       metricsForScenePacket,
       paletteForScene,
@@ -397,5 +334,5 @@
       clamp01,
       clampInt,
     });
-  }
+
 })(typeof globalThis !== 'undefined' ? globalThis : window);

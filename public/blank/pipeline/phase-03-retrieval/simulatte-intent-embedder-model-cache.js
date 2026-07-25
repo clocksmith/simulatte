@@ -1,7 +1,6 @@
 (function attachSimulatteIntentEmbedderModelCache(root) {
-  const scope = root.__SimulatteIntentEmbedderRefactorScope;
-  if (!scope || scope.missingDependency) return;
-  with (scope) {
+  const scope = root.SimulattePhaseModuleRegistry.family('intentEmbedder');
+
     const storageApiPromises = new Map();
     const deviceApiPromises = new Map();
     const sourceClosePromises = new WeakMap();
@@ -58,8 +57,8 @@
       const trace = Boolean(options.trace);
       const progressRange = options.progressRange || { start: 20, end: 42 };
       const resourceKind = options.resourceKind || 'model';
-      const started = nowMs();
-      emitRuntimeProgress(progress, trace, {
+      const started = scope.nowMs();
+      scope.emitRuntimeProgress(progress, trace, {
         source: 'doppler',
         stage: 'cache-read',
         percent: progressRange.start,
@@ -110,9 +109,9 @@
         state: cache.cacheState || (cache.fromCache ? 'verified-hit' : 'imported'),
         fromCache: cache.fromCache === true,
         totalBytes,
-        durationMs: elapsedMsSince(started),
+        durationMs: scope.elapsedMsSince(started),
       };
-      emitRuntimeProgress(progress, trace, {
+      scope.emitRuntimeProgress(progress, trace, {
         source: 'doppler',
         stage: cache.fromCache ? 'cache-hit' : 'cache-ready',
         percent: progressRange.end,
@@ -132,7 +131,7 @@
         cacheBackends: cachePolicy.storage || ['Doppler', 'OPFS'],
       });
       return {
-        modelSource: dopplerModelSource(modelBaseUrl, cache),
+        modelSource: scope.dopplerModelSource(modelBaseUrl, cache),
         receipt,
         storageContext: cache.storageContext,
       };
@@ -160,7 +159,7 @@
     function prepareDopplerModelSources(owner, runtime, models = {}, options = {}) {
       if (owner.dopplerSourcePreparationPromise) return owner.dopplerSourcePreparationPromise;
       const roles = ['embedding', 'reranker'].filter((role) => models[role]);
-      const started = nowMs();
+      const started = scope.nowMs();
       owner.dopplerModelPreparationReceipt = {
         schema: 'simulatte.dopplerModelPreparationReceipt.v1',
         policy: 'prepare-all-sources-then-load-embedding-before-reranker',
@@ -172,7 +171,7 @@
         const sources = {};
         owner.dopplerPreparedModelSources = sources;
         for (const [index, role] of roles.entries()) {
-          const queuedAt = nowMs();
+          const queuedAt = scope.nowMs();
           const roleOptions = options[role] || {};
           const receipt = owner.dopplerModelPreparationReceipt;
           receipt.sourceOrder.push(role);
@@ -198,7 +197,7 @@
             if (error && typeof error === 'object') error.modelPreparationReceipt = receipt;
             throw error;
           } finally {
-            row.durationMs = elapsedMsSince(queuedAt);
+            row.durationMs = scope.elapsedMsSince(queuedAt);
             owner.dopplerActiveSourcePreparations -= 1;
           }
           if (role === 'embedding') owner.embeddingCacheReceipt = sources[role].receipt;
@@ -219,10 +218,10 @@
     }
 
     function scheduleDopplerModelLoad(owner, role, modelId, load) {
-      const queuedAt = nowMs();
+      const queuedAt = scope.nowMs();
       const previous = owner.dopplerModelLoadQueue || Promise.resolve();
       const task = previous.catch(() => {}).then(async () => {
-        const started = nowMs();
+        const started = scope.nowMs();
         const loadOrder = owner.dopplerModelPreparationReceipt.loadOrder;
         const row = {
           role,
@@ -244,7 +243,7 @@
           row.error = error instanceof Error ? error.message : String(error);
           throw error;
         } finally {
-          row.durationMs = elapsedMsSince(started);
+          row.durationMs = scope.elapsedMsSince(started);
           owner.dopplerActiveModelLoads -= 1;
         }
       });
@@ -293,7 +292,7 @@
             : 'cache-storage';
       const totalBytes = Number(event.totalBytes || context.sourceSizeBytes || 0);
       const completedBytes = Number(event.downloadedBytes || (stage === 'cache-hit' ? totalBytes : 0));
-      emitRuntimeProgress(context.progress || null, Boolean(context.trace), {
+      scope.emitRuntimeProgress(context.progress || null, Boolean(context.trace), {
         source: 'doppler',
         stage,
         percent: range.start + fraction * Math.max(0, range.end - range.start),
@@ -343,7 +342,7 @@
       await closeDopplerCachedSource(cachedSource);
     }
 
-    Object.assign(scope, {
+    root.SimulattePhaseModuleRegistry.define('intentEmbedder', 'simulatte-intent-embedder-model-cache.js', {
       resolveDopplerStorageApi,
       resolveDopplerDeviceApi,
       prepareDopplerCachedModelSource,
@@ -359,5 +358,5 @@
       closeDopplerCachedSource,
       disposeFailedDopplerLoad,
     });
-  }
+
 })(typeof globalThis !== 'undefined' ? globalThis : window);

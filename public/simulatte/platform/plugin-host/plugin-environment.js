@@ -1,8 +1,11 @@
 (function attachPluginEnvironment(root, factory) {
-  const api = factory();
+  const deterministicValues = typeof module === 'object' && module.exports
+    ? require('../../../shared/deterministic-values.js')
+    : root.SimulatteDeterministicValues;
+  const api = factory(deterministicValues);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulattePluginEnvironment = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createPluginEnvironmentModule() {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createPluginEnvironmentModule(deterministicValues) {
   // Spatially/temporally queryable environment samples over pinned snapshots.
   //
   // For a reproducible run this must query a pinned, hashed snapshot rather than live
@@ -16,12 +19,7 @@
   ]);
 
   function hashText(seedText) {
-    let hash = 2166136261;
-    for (let index = 0; index < seedText.length; index += 1) {
-      hash ^= seedText.charCodeAt(index);
-      hash = Math.imul(hash, 16777619);
-    }
-    return (hash >>> 0) / 4294967296;
+    return deterministicValues.unitInterval(seedText);
   }
 
   function instantToHours(instant) {

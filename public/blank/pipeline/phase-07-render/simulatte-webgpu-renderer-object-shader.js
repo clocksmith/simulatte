@@ -1,7 +1,6 @@
 (function attachSimulatteWebGpuRendererObjectShader(root) {
-  const scope = root.__SimulatteWebGpuRendererRefactorScope;
-  if (!scope || scope.missingDependency) return;
-  with (scope) {
+  const scope = root.SimulattePhaseModuleRegistry.family('webGpuRenderer');
+
     const WEBGPU_OBJECT_SHADER = `
 struct ObjectUniforms {
   viewport: vec4f,
@@ -226,6 +225,6 @@ fn objectFs(input: ObjectVsOut) -> @location(0) vec4f {
 }
 `;
 
-    Object.assign(scope, { WEBGPU_OBJECT_SHADER });
-  }
+    root.SimulattePhaseModuleRegistry.define('webGpuRenderer', 'simulatte-webgpu-renderer-object-shader.js', { WEBGPU_OBJECT_SHADER });
+
 })(typeof globalThis !== 'undefined' ? globalThis : window);

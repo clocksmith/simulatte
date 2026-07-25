@@ -1,0 +1,151 @@
+{
+  "schema": "simulatte.generatedArtifactInventory.v1",
+  "id": "simulatte-generated-artifacts-v1",
+  "claimBoundary": "Reference inventory only. Canonical artifact details remain owned by each referenced manifest or governed cache payload.",
+  "artifacts": [
+    {
+      "artifactId": "autonomy-world",
+      "owner": "simulatte-world",
+      "schema": "simulatte.autonomyDataManifest.v3",
+      "generatorCommand": "npm run build:simulatte:data",
+      "inputIdentities": [
+        {
+          "manifestRef": "public/data/simulatte/autonomy-manifest.json"
+        }
+      ],
+      "output": {
+        "path": "public/data/simulatte/autonomy-manifest.json",
+        "sha256": "746aa3cfa115bc05bb221c6512ff1644409a7851653c892b0e39bb1bc5f4b6f4"
+      },
+      "contentVersion": "autonomy-nyc-multimodal-v1",
+      "activationState": "active",
+      "validationCommand": "npm run check:simulatte"
+    },
+    {
+      "artifactId": "tier-applications",
+      "owner": "simulatte-world",
+      "schema": "simulatte.tierApplicationManifest.v2",
+      "generatorCommand": "npm run simulatte:tiers:sync",
+      "inputIdentities": [
+        {
+          "manifestRef": "public/data/simulatte/tier-application-manifest.json"
+        }
+      ],
+      "output": {
+        "path": "public/data/simulatte/tier-application-manifest.json",
+        "sha256": "c0b07efd4dab9c2208c3cb49e52b01f0ba3d66db95c3669e3ab76a8b2c27b5be"
+      },
+      "contentVersion": "simulatte-tier-applications-v2",
+      "activationState": "active",
+      "validationCommand": "npm run simulatte:tiers:check"
+    },
+    {
+      "artifactId": "model-runtime",
+      "owner": "blank-runtime",
+      "schema": "simulatte.modelBackedEmbedderManifest.v3",
+      "generatorCommand": "npm run sync:model-lock-references",
+      "inputIdentities": [
+        {
+          "manifestRef": "public/data/simulatte-embedder/manifest.json"
+        }
+      ],
+      "output": {
+        "path": "public/data/simulatte-embedder/manifest.json",
+        "sha256": "c07cf07aa2b7ab8017a94799bac6959f209d064141e1d71d2db944754395cce3"
+      },
+      "contentVersion": "simulatte-model-backed-intent-retrieval-v1",
+      "activationState": "active",
+      "validationCommand": "npm run check:model-lock"
+    },
+    {
+      "artifactId": "semantic-universe",
+      "owner": "blank-retrieval",
+      "schema": "simulatte.universeManifest.v1",
+      "generatorCommand": "npm run build:universe",
+      "inputIdentities": [
+        {
+          "manifestRef": "public/data/simulatte-universe/manifest.json"
+        }
+      ],
+      "output": {
+        "path": "public/data/simulatte-universe/manifest.json",
+        "sha256": "4294475925127888c6acb6af8f50fc77aeb7881868898cc0f36257af5ed823dc"
+      },
+      "contentVersion": "simulatte-universe-multi-index-v1",
+      "activationState": "active",
+      "validationCommand": "npm run validate:universe"
+    },
+    {
+      "artifactId": "visual-cards",
+      "owner": "blank-visual",
+      "schema": "simulatte.visualCardManifest.v1",
+      "generatorCommand": "npm run build:visual-cards",
+      "inputIdentities": [
+        {
+          "manifestRef": "public/data/simulatte-visual-cards/manifest.json"
+        }
+      ],
+      "output": {
+        "path": "public/data/simulatte-visual-cards/manifest.json",
+        "sha256": "82dff90c25963d436154b55a69d2f5b2db45cc1192ce923e5b7ea83f9cd4556e"
+      },
+      "contentVersion": "simulatte-visual-cards-v1",
+      "activationState": "active",
+      "validationCommand": "npm run validate:visual-cards"
+    },
+    {
+      "artifactId": "pipeline-jobs",
+      "owner": "shared-pipeline",
+      "schema": "simulatte.pipelineJobRegistry.v1",
+      "generatorCommand": "npm run pipeline:matrix:sync",
+      "inputIdentities": [
+        {
+          "manifestRef": "public/data/pipeline-job-registry.json"
+        }
+      ],
+      "output": {
+        "path": "public/data/pipeline-job-registry.json",
+        "sha256": "d3740d14d8daabfa48d66ea0b06f67edd1bda2338433f1553a815dbf25c69690"
+      },
+      "contentVersion": "simulatte-shared-pipeline-jobs-v1",
+      "activationState": "active",
+      "validationCommand": "npm run pipeline:matrix:check"
+    },
+    {
+      "artifactId": "us-major-cities",
+      "owner": "world-tiers",
+      "schema": "simulatte.countryCityCache.v1",
+      "generatorCommand": "curated fixture",
+      "inputIdentities": [
+        {
+          "manifestRef": "public/data/simulatte/cache/country/us-cities-v1.json"
+        }
+      ],
+      "output": {
+        "path": "public/data/simulatte/cache/country/us-cities-v1.json",
+        "sha256": "ad726d12d7bbd0b4599c9f782ddabd6ea6fe2894eb4b2a9c74332ab6aa836d10"
+      },
+      "contentVersion": "1.0.0",
+      "activationState": "active-fixture",
+      "validationCommand": "npm run check:artifacts"
+    },
+    {
+      "artifactId": "solar-system-cache",
+      "owner": "world-tiers",
+      "schema": "unpopulated",
+      "generatorCommand": "npm run simulatte:fetch:solar-system",
+      "inputIdentities": [
+        {
+          "manifestRef": "public/data/simulatte/cache/space/solar-system.json"
+        }
+      ],
+      "output": {
+        "path": "public/data/simulatte/cache/space/solar-system.json",
+        "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+      },
+      "contentVersion": "unpopulated",
+      "activationState": "inactive-empty-placeholder",
+      "validationCommand": "npm run check:artifacts"
+    }
+  ]
+}

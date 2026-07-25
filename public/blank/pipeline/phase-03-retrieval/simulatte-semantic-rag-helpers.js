@@ -1,7 +1,6 @@
 (function attachSimulatteSemanticRaghelpers(root) {
-  const scope = root.__SimulatteSemanticRagRefactorScope;
-  if (!scope || scope.missingDependency) return;
-  with (scope) {
+  const scope = root.SimulattePhaseModuleRegistry.family('semanticRag');
+
     const LOCAL_PRIMITIVE_DOC_CACHE = new Map();
     const LOCAL_PRIMITIVE_DOC_CACHE_LIMIT = 4096;
     const SEMANTIC_CARD_DOC_CACHE = new WeakMap();
@@ -49,20 +48,20 @@
         return rows.map((row) => surfaceCard(row[0], row[1], row[2], row[3], row[4]));
       }
 
-    function createSemanticRag(promptText = '', primitives = PHYSICAL_PRIMITIVES, options = {}) {
+    function createSemanticRag(promptText = '', primitives = scope.PHYSICAL_PRIMITIVES, options = {}) {
         const prompt = String(promptText || '').trim();
         const indexDocs = indexedPrimitiveDocs(options.primitiveIndex);
         const modelPromptVector = options.promptVector
           ? Float32Array.from(options.promptVector)
           : null;
-        const localPromptVector = buildSemanticFeatureVector(prompt);
-        const featureDim = localPromptVector.length || FEATURE_DIM;
+        const localPromptVector = scope.buildSemanticFeatureVector(prompt);
+        const featureDim = localPromptVector.length || scope.FEATURE_DIM;
         const candidateDocs = (primitives || []).map((primitive, index) => {
           const indexed = indexDocs.get(primitive.id);
           return indexed ? primitiveDocFromIndex(primitive, indexed, index) : primitiveDoc(primitive, index, featureDim);
         });
-        const surfaceDocs = SEMANTIC_SURFACE_CARDS.map((card, index) => semanticCardDoc(card, index, 'semantic-surface', featureDim));
-        const groundingDocs = GROUNDING_BASIS_CARDS.map((card, index) => semanticCardDoc(card, index, 'grounding-basis', featureDim));
+        const surfaceDocs = scope.SEMANTIC_SURFACE_CARDS.map((card, index) => semanticCardDoc(card, index, 'semantic-surface', featureDim));
+        const groundingDocs = scope.GROUNDING_BASIS_CARDS.map((card, index) => semanticCardDoc(card, index, 'grounding-basis', featureDim));
         const modelPriors = new Map((options.modelPriors || []).map((prior) => [prior.primitiveId, prior]));
         const retrieved = candidateDocs
           .map((doc) => scoreDocument({ modelPromptVector, localPromptVector }, prompt, doc, modelPriors.get(doc.primitiveId)))
@@ -80,7 +79,7 @@
           .filter((doc) => doc.score > 0.06 || doc.directMatch)
           .sort((a, b) => b.score - a.score || a.cardId.localeCompare(b.cardId))
           .slice(0, Number.isFinite(options.maxGroundingDocuments) ? options.maxGroundingDocuments : 64);
-        const synthGraph = synthesizeSurfaceGraph(prompt, primitives || PHYSICAL_PRIMITIVES, {
+        const synthGraph = synthesizeSurfaceGraph(prompt, primitives || scope.PHYSICAL_PRIMITIVES, {
           surfaceRetrieved,
           groundingRetrieved,
           primitiveRetrieved: retrieved,
@@ -88,20 +87,20 @@
           typedSpans,
         });
         const openLimit = Number.isFinite(options.maxOpenComponents) ? options.maxOpenComponents : 12;
-        const openComponents = mergeOpenComponents(
+        const openComponents = scope.mergeOpenComponents(
           synthGraph.openComponents,
-          extractOpenComponents(prompt, retrieved, typedSpans, options.suppressObservableOpenComponents === true),
+          scope.extractOpenComponents(prompt, retrieved, typedSpans, options.suppressObservableOpenComponents === true),
           openLimit
         );
-        const domains = dominantDomains(retrieved, openComponents);
+        const domains = scope.dominantDomains(retrieved, openComponents);
         return {
-          schema: SEMANTIC_RAG_SCHEMA,
+          schema: scope.SEMANTIC_RAG_SCHEMA,
           model: {
             id: 'simulatte-grid-style-semantic-rag.v1',
             family: indexDocs.size ? 'shipped-index-open-primitive-rag' : 'hashed-embedding-open-primitive-rag',
             featureDim,
-            queryVectorSpace: modelPromptVector ? MODEL_VECTOR_SPACE : LOCAL_VECTOR_SPACE,
-            localVectorSpace: LOCAL_VECTOR_SPACE,
+            queryVectorSpace: modelPromptVector ? scope.MODEL_VECTOR_SPACE : scope.LOCAL_VECTOR_SPACE,
+            localVectorSpace: scope.LOCAL_VECTOR_SPACE,
             indexId: options.primitiveIndex && options.primitiveIndex.id || '',
             surfaceIndex: 'simulatte-semantic-surface-cards.v1',
             groundingIndex: 'simulatte-grounding-basis-cards.v1',
@@ -126,23 +125,23 @@
       }
 
     function surfaceCard(id, type, labels, description, hints = {}) {
-        const normalizedLabels = uniqueList(labels || []);
+        const normalizedLabels = scope.uniqueList(labels || []);
         return Object.freeze({
           id,
           type,
           labels: normalizedLabels,
           description: String(description || ''),
-          classHints: uniqueList(hints.classHints || []),
-          shapeHints: uniqueList(hints.shapeHints || []),
-          partHints: uniqueList(hints.partHints || []),
-          materialHints: uniqueList(hints.materialHints || []),
-          behaviorHints: uniqueList(hints.behaviorHints || []),
-          affordanceHints: uniqueList(hints.affordanceHints || []),
-          relationHints: uniqueList(hints.relationHints || []),
-          eventHints: uniqueList(hints.eventHints || []),
-          scaleHints: uniqueList(hints.scaleHints || []),
-          groundingIds: uniqueList(hints.groundingIds || []),
-          curation: cardCuration(id, type, normalizedLabels, hints),
+          classHints: scope.uniqueList(hints.classHints || []),
+          shapeHints: scope.uniqueList(hints.shapeHints || []),
+          partHints: scope.uniqueList(hints.partHints || []),
+          materialHints: scope.uniqueList(hints.materialHints || []),
+          behaviorHints: scope.uniqueList(hints.behaviorHints || []),
+          affordanceHints: scope.uniqueList(hints.affordanceHints || []),
+          relationHints: scope.uniqueList(hints.relationHints || []),
+          eventHints: scope.uniqueList(hints.eventHints || []),
+          scaleHints: scope.uniqueList(hints.scaleHints || []),
+          groundingIds: scope.uniqueList(hints.groundingIds || []),
+          curation: scope.cardCuration(id, type, normalizedLabels, hints),
         });
       }
 
@@ -150,14 +149,14 @@
         return Object.freeze({
           id,
           type,
-          labels: uniqueList([id.replace(/^ground\./, '').replace(/-/g, ' '), ...(spec.labels || [])]),
+          labels: scope.uniqueList([id.replace(/^ground\./, '').replace(/-/g, ' '), ...(spec.labels || [])]),
           description: String(description || ''),
-          parts: uniqueList(spec.parts || []),
-          materials: uniqueList(spec.materials || []),
-          physics: uniqueList(spec.physics || []),
-          math: uniqueList(spec.math || []),
-          primitives: uniqueList(spec.primitives || []),
-          ports: uniqueList(spec.ports || []),
+          parts: scope.uniqueList(spec.parts || []),
+          materials: scope.uniqueList(spec.materials || []),
+          physics: scope.uniqueList(spec.physics || []),
+          math: scope.uniqueList(spec.math || []),
+          primitives: scope.uniqueList(spec.primitives || []),
+          ports: scope.uniqueList(spec.ports || []),
         });
       }
 
@@ -383,11 +382,11 @@
       }
 
     function constructionTopologySurfaceCards() {
-        const topologies = constructionSubstrate.CONSTRUCTION_TOPOLOGIES || [];
+        const topologies = scope.constructionSubstrate.CONSTRUCTION_TOPOLOGIES || [];
         return topologies.map((topology) => surfaceCard(
           `construction.${topology.id}`,
           'construction-topology',
-          uniqueList([topology.id.replace(/-/g, ' '), ...(topology.cues || [])]),
+          scope.uniqueList([topology.id.replace(/-/g, ' '), ...(topology.cues || [])]),
           `reusable part graph with ${(topology.nodes || []).reduce((sum, row) => sum + Number(row.count || 0), 0)} typed parts and ${(topology.edges || []).length} spatial constraints`,
           {
             classHints: ['construction_topology', topology.id],
@@ -406,11 +405,11 @@
         return entries.map((entry) => {
           const labels = Array.isArray(entry) ? entry : [entry];
           const head = String(labels[0] || '').trim();
-          const id = `${namespace}.${slug(head)}`;
+          const id = `${namespace}.${scope.slug(head)}`;
           const entryHints = type === 'material'
             ? {
                 ...shared,
-                materialHints: uniqueList([...(shared.materialHints || []), slug(head)]),
+                materialHints: scope.uniqueList([...(shared.materialHints || []), scope.slug(head)]),
               }
             : shared;
           return surfaceCard(id, type, labels, `${head}: ${shared.description}`, entryHints);
@@ -426,14 +425,14 @@
         return Array.from(byId.values());
       }
 
-    function primitiveDoc(primitive, index, dim = FEATURE_DIM) {
+    function primitiveDoc(primitive, index, dim = scope.FEATURE_DIM) {
         const text = [
           primitive.id,
           primitive.layer,
           primitive.type,
           primitive.role,
           (primitive.domains || []).join(' '),
-          primitiveText ? primitiveText(primitive) : '',
+          scope.primitiveText ? scope.primitiveText(primitive) : '',
           (primitive.recipe || []).join(' '),
           (primitive.controls || []).join(' '),
         ].join(' ');
@@ -446,8 +445,8 @@
           type: primitive.type || 'component',
           domains: primitive.domains || [],
           text,
-          vector: buildSemanticFeatureVector(text, dim),
-          vectorSpace: LOCAL_VECTOR_SPACE,
+          vector: scope.buildSemanticFeatureVector(text, dim),
+          vectorSpace: scope.LOCAL_VECTOR_SPACE,
         };
         if (LOCAL_PRIMITIVE_DOC_CACHE.size >= LOCAL_PRIMITIVE_DOC_CACHE_LIMIT) {
           LOCAL_PRIMITIVE_DOC_CACHE.delete(LOCAL_PRIMITIVE_DOC_CACHE.keys().next().value);
@@ -468,7 +467,7 @@
           primitive.type,
           primitive.role,
           (primitive.domains || []).join(' '),
-          primitiveText ? primitiveText(primitive) : '',
+          scope.primitiveText ? scope.primitiveText(primitive) : '',
           (primitive.recipe || []).join(' '),
           (primitive.controls || []).join(' '),
         ].join(' ');
@@ -481,14 +480,14 @@
           vector: indexed.vector instanceof Float32Array
             ? indexed.vector
             : Float32Array.from(indexed.vector || []),
-          vectorSpace: MODEL_VECTOR_SPACE,
+          vectorSpace: scope.MODEL_VECTOR_SPACE,
           indexed: true,
           textHash: indexed.textHash || '',
           index,
         };
       }
 
-    function semanticCardDoc(card, index, kind, dim = FEATURE_DIM) {
+    function semanticCardDoc(card, index, kind, dim = scope.FEATURE_DIM) {
         const cacheKey = `${kind}:${dim}`;
         const variants = SEMANTIC_CARD_DOC_CACHE.get(card) || new Map();
         let cached = variants.get(cacheKey);
@@ -499,10 +498,10 @@
           kind,
           type: card.type,
           labels: card.labels || [],
-          domains: domainsForCard(card),
+          domains: scope.domainsForCard(card),
           text,
-          vector: buildSemanticFeatureVector(text, dim),
-          vectorSpace: LOCAL_VECTOR_SPACE,
+          vector: scope.buildSemanticFeatureVector(text, dim),
+          vectorSpace: scope.LOCAL_VECTOR_SPACE,
           card,
         };
         variants.set(cacheKey, cached);
@@ -540,17 +539,17 @@
       }
 
     function scoreDocument(vectors = {}, prompt, doc, modelPrior = null) {
-        const usesModelVector = doc.vectorSpace === MODEL_VECTOR_SPACE &&
+        const usesModelVector = doc.vectorSpace === scope.MODEL_VECTOR_SPACE &&
           vectors.modelPromptVector &&
           doc.vector &&
           vectors.modelPromptVector.length === doc.vector.length;
-        const usesLocalVector = doc.vectorSpace === LOCAL_VECTOR_SPACE &&
+        const usesLocalVector = doc.vectorSpace === scope.LOCAL_VECTOR_SPACE &&
           vectors.localPromptVector &&
           doc.vector &&
           vectors.localPromptVector.length === doc.vector.length;
-        const semantic = usesModelVector ? cosineDense(vectors.modelPromptVector, doc.vector) : 0;
-        const localFeature = usesLocalVector ? cosineDense(vectors.localPromptVector, doc.vector) : 0;
-        const lexical = lexicalOverlap(prompt, doc.text);
+        const semantic = usesModelVector ? scope.cosineDense(vectors.modelPromptVector, doc.vector) : 0;
+        const localFeature = usesLocalVector ? scope.cosineDense(vectors.localPromptVector, doc.vector) : 0;
+        const lexical = scope.lexicalOverlap(prompt, doc.text);
         const modelScore = modelPrior ? Number(modelPrior.score || 0) : 0;
         const score = usesModelVector
           ? semantic * 0.48 + lexical * 0.22 + modelScore * 0.3
@@ -560,26 +559,26 @@
           layer: doc.layer,
           type: doc.type,
           domains: doc.domains,
-          score: Number(clamp(score, 0, 1).toFixed(4)),
-          semanticScore: Number(clamp(semantic, 0, 1).toFixed(4)),
-          featureScore: Number(clamp(localFeature, 0, 1).toFixed(4)),
-          semanticVectorSpace: usesModelVector ? MODEL_VECTOR_SPACE : '',
-          featureVectorSpace: usesLocalVector ? LOCAL_VECTOR_SPACE : '',
-          lexicalScore: Number(clamp(lexical, 0, 1).toFixed(4)),
-          modelScore: Number(clamp(modelScore, 0, 1).toFixed(4)),
-          matchedTerms: matchedTerms(prompt, doc.text).slice(0, 8),
+          score: Number(scope.clamp(score, 0, 1).toFixed(4)),
+          semanticScore: Number(scope.clamp(semantic, 0, 1).toFixed(4)),
+          featureScore: Number(scope.clamp(localFeature, 0, 1).toFixed(4)),
+          semanticVectorSpace: usesModelVector ? scope.MODEL_VECTOR_SPACE : '',
+          featureVectorSpace: usesLocalVector ? scope.LOCAL_VECTOR_SPACE : '',
+          lexicalScore: Number(scope.clamp(lexical, 0, 1).toFixed(4)),
+          modelScore: Number(scope.clamp(modelScore, 0, 1).toFixed(4)),
+          matchedTerms: scope.matchedTerms(prompt, doc.text).slice(0, 8),
           source: 'primitive-document',
         };
       }
 
     function scoreSemanticCard(localPromptVector, prompt, doc) {
         const feature = localPromptVector && doc.vector && localPromptVector.length === doc.vector.length
-          ? cosineDense(localPromptVector, doc.vector)
+          ? scope.cosineDense(localPromptVector, doc.vector)
           : 0;
-        const lexical = lexicalOverlap(prompt, doc.text);
-        const direct = directLabelMatch(prompt, doc.labels);
-        const curation = doc.card && doc.card.curation || cardCuration(doc.cardId, doc.type, doc.labels, {});
-        const typeFit = promptTypeFit(prompt, doc.type);
+        const lexical = scope.lexicalOverlap(prompt, doc.text);
+        const direct = scope.directLabelMatch(prompt, doc.labels);
+        const curation = doc.card && doc.card.curation || scope.cardCuration(doc.cardId, doc.type, doc.labels, {});
+        const typeFit = scope.promptTypeFit(prompt, doc.type);
         const score = feature * 0.18 + lexical * 0.36 + direct * 0.36 + curation.priority * 0.08 + typeFit * 0.02;
         return {
           cardId: doc.cardId,
@@ -587,17 +586,17 @@
           type: doc.type,
           labels: doc.labels,
           domains: doc.domains,
-          score: Number(clamp(score, 0, 1).toFixed(4)),
+          score: Number(scope.clamp(score, 0, 1).toFixed(4)),
           semanticScore: 0,
-          featureScore: Number(clamp(feature, 0, 1).toFixed(4)),
+          featureScore: Number(scope.clamp(feature, 0, 1).toFixed(4)),
           semanticVectorSpace: '',
-          featureVectorSpace: LOCAL_VECTOR_SPACE,
-          lexicalScore: Number(clamp(lexical, 0, 1).toFixed(4)),
-          directScore: Number(clamp(direct, 0, 1).toFixed(4)),
+          featureVectorSpace: scope.LOCAL_VECTOR_SPACE,
+          lexicalScore: Number(scope.clamp(lexical, 0, 1).toFixed(4)),
+          directScore: Number(scope.clamp(direct, 0, 1).toFixed(4)),
           directMatch: direct > 0,
           curation,
           typeFit: Number(typeFit.toFixed(4)),
-          matchedTerms: matchedTerms(prompt, doc.text).slice(0, 10),
+          matchedTerms: scope.matchedTerms(prompt, doc.text).slice(0, 10),
           source: doc.kind,
           card: doc.card,
         };
@@ -605,7 +604,7 @@
 
     function synthesizeSurfaceGraph(prompt, primitives, context) {
         const primitiveIds = new Set((primitives || []).map((primitive) => primitive.id));
-        const basisById = new Map(GROUNDING_BASIS_CARDS.map((card) => [card.id, card]));
+        const basisById = new Map(scope.GROUNDING_BASIS_CARDS.map((card) => [card.id, card]));
         const directMatches = directSurfaceMatches(prompt, context.typedSpans || []);
         const retrievedMatches = (context.surfaceRetrieved || [])
           .filter((doc) => shouldUseRetrievedSurfaceNode(doc, directMatches))
@@ -643,10 +642,10 @@
           })),
         ];
         const relations = synthesizeRelations(prompt, nodes, relationCards);
-        const events = synthesizeEvents(prompt, nodes, eventCards);
-        const grounding = groundSurfaceGraph(nodes, relations, events, primitiveIds, basisById);
+        const events = scope.synthesizeEvents(prompt, nodes, eventCards);
+        const grounding = scope.groundSurfaceGraph(nodes, relations, events, primitiveIds, basisById);
         return {
-          schema: SYNTH_GRAPH_SCHEMA,
+          schema: scope.SYNTH_GRAPH_SCHEMA,
           compiler: 'simulatte.embedding-guided-symbolic-graph-synth.v1',
           prompt,
           nodes,
@@ -666,14 +665,14 @@
     function directSurfaceMatches(prompt, typedSpans = []) {
         const lower = String(prompt || '').toLowerCase();
         const matches = [];
-        for (const card of SEMANTIC_SURFACE_CARDS) {
+        for (const card of scope.SEMANTIC_SURFACE_CARDS) {
           const labels = (card.labels || []).slice().sort((a, b) => b.length - a.length || a.localeCompare(b));
           for (const label of labels) {
             const normalized = String(label || '').toLowerCase().trim();
             if (!normalized) continue;
-            const specificity = labelSpecificity(normalized);
+            const specificity = scope.labelSpecificity(normalized);
             if (specificity < 0.18) continue;
-            for (const match of labelOccurrences(lower, normalized)) {
+            for (const match of scope.labelOccurrences(lower, normalized)) {
               if (!surfaceOccurrenceAlignsWithTypedSpans(match, typedSpans)) continue;
               matches.push({
                 card,
@@ -691,7 +690,7 @@
 
     function surfaceCardAlignsWithTypedSpans(prompt, labels = [], typedSpans = []) {
         if (!typedSpans.length) return true;
-        const occurrences = (labels || []).flatMap((label) => labelOccurrences(prompt, label));
+        const occurrences = (labels || []).flatMap((label) => scope.labelOccurrences(prompt, label));
         if (!occurrences.length) return true;
         return occurrences.some((match) => surfaceOccurrenceAlignsWithTypedSpans(match, typedSpans));
       }
@@ -738,7 +737,7 @@
     function shouldUseRetrievedSurfaceNode(doc, directMatches) {
         if (['relation', 'event', 'construction-topology'].includes(doc.type)) return false;
         if (directMatches.some((match) => match.card.id === doc.cardId)) return false;
-        const curation = doc.curation || doc.card && doc.card.curation || cardCuration(doc.cardId, doc.type, doc.labels, {});
+        const curation = doc.curation || doc.card && doc.card.curation || scope.cardCuration(doc.cardId, doc.type, doc.labels, {});
         const floor = curation.generic ? 0.42 : 0.31;
         if ((doc.score || 0) < floor) return false;
         if (!doc.directMatch && curation.specificity < 0.42 && (doc.lexicalScore || 0) < 0.18) return false;
@@ -760,7 +759,7 @@
     function materializeSurfaceNodes(matches) {
         const counts = new Map();
         return matches.map((match) => {
-          const base = slug(match.card.labels[0] || match.card.id.split('.').pop());
+          const base = scope.slug(match.card.labels[0] || match.card.id.split('.').pop());
           const next = (counts.get(base) || 0) + 1;
           counts.set(base, next);
           return {
@@ -793,11 +792,11 @@
 
     function synthesizeRelations(prompt, nodes, relationCards) {
         const relations = [];
-        const relationHints = uniqueList(relationCards.flatMap((match) => match.card.relationHints || []));
+        const relationHints = scope.uniqueList(relationCards.flatMap((match) => match.card.relationHints || []));
         const promptLower = String(prompt || '').toLowerCase();
         if (relationHints.includes('inside') || /\b(in|inside|within|contained in)\b/.test(promptLower)) {
           for (const entity of nodes.filter((node) => node.type === 'entity')) {
-            const container = nearestContainer(entity, nodes);
+            const container = scope.nearestContainer(entity, nodes);
             if (container) {
               relations.push({
                 id: `rel_${entity.id}_inside_${container.id}`,
@@ -811,18 +810,18 @@
           }
         }
         if (relationHints.includes('attached_to') || /\b(attached|connected|hinged|mounted)\b/.test(promptLower)) {
-          const pair = nearestPair(nodes);
+          const pair = scope.nearestPair(nodes);
           if (pair) relations.push(relation('attached_to', pair[0], pair[1], ['ground.mechanical-joint'], 0.68));
         }
         if (relationHints.includes('through') || /\b(through|across|along)\b/.test(promptLower)) {
-          const pair = nearestPair(nodes);
+          const pair = scope.nearestPair(nodes);
           if (pair) relations.push(relation('through', pair[0], pair[1], ['ground.path-coupling'], 0.64));
         }
         if (relationHints.includes('drives') || /\b(pushes|pulls|drives|powers)\b/.test(promptLower)) {
-          const pair = nearestPair(nodes);
+          const pair = scope.nearestPair(nodes);
           if (pair) relations.push(relation('drives', pair[0], pair[1], ['ground.force-coupling'], 0.7));
         }
-        return uniqueRelations(relations);
+        return scope.uniqueRelations(relations);
       }
 
     function relation(type, from, to, groundingIds, score) {
@@ -836,7 +835,7 @@
         };
       }
 
-    Object.assign(scope, {
+    root.SimulattePhaseModuleRegistry.define('semanticRag', 'simulatte-semantic-rag-helpers.js', {
       rule,
       curatedUniverseSurfaceCards,
       createSemanticRag,
@@ -862,5 +861,5 @@
       synthesizeRelations,
       relation,
     });
-  }
+
 })(typeof globalThis !== 'undefined' ? globalThis : window);

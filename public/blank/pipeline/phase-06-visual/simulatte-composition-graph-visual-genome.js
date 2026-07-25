@@ -1,104 +1,5 @@
 (function attachSimulatteCompositionGraphvisualgenome(root) {
-  const scope = root.__SimulatteCompositionGraphRefactorScope;
-  if (!scope || scope.missingDependency) return;
-  with (scope) {
-    function scenePacketAddSceneKindMix(vector, sceneKind, strength = 0.32) {
-        const value = String(sceneKind || '').toLowerCase();
-        if (!value) return;
-        const add = (slot, amount = strength) => scenePacketAddSlot(vector, SCENE_MIX_SLOTS, slot, amount);
-        if (/thermal|fire|plume|weather/.test(value)) add('thermal');
-        if (/watershed|ocean|fluid|restoration|cryosphere/.test(value)) add('water');
-        if (/mechanical|structural|sport/.test(value)) add('mechanical');
-        if (/magnetic|ferrofluid/.test(value)) add('magnetic');
-        if (/optics|thin-film|quantum/.test(value)) add('optical');
-        if (/acoustic/.test(value)) add('acoustic');
-        if (/biology|ecology|clinical|agro|molecular/.test(value)) add('biological');
-        if (/chemistry|material|cultural/.test(value)) add('chemical');
-        if (/planetary|space|atomic/.test(value)) add('orbital');
-        if (/digital|city|civic|venue|network|grid/.test(value)) add('network');
-        if (/energy|grid|advanced|plasma/.test(value)) add('energy');
-        if (/robot|manufacturing|factory/.test(value)) add('robotic');
-        if (/granular/.test(value)) add('granular');
-        if (/instrument|particle|detector/.test(value)) add('instrument');
-        if (/phase|thin-film|cryosphere/.test(value)) add('phase', strength * 0.8);
-        if (/hazard|storm|wildfire|tsunami|earthquake/.test(value)) add('hazard');
-      }
-
-    function scenePacketAddLayerSceneMix(vector, layerSlot = '', categoryCode = 0) {
-        const add = (slot, value) => scenePacketAddSlot(vector, SCENE_MIX_SLOTS, slot, value);
-        switch (String(layerSlot || '')) {
-          case 'biological-agent':
-          case 'organic-matrix':
-            add('biological', 0.72);
-            break;
-          case 'water-volume':
-          case 'flow-field':
-          case 'bubble-volume':
-            add('water', 0.64);
-            break;
-          case 'detector-geometry':
-          case 'readout-panel':
-          case 'track-line':
-            add('instrument', 0.72);
-            break;
-          case 'node-graph':
-          case 'network-flow':
-            add('network', 0.72);
-            break;
-          case 'thermal-field':
-            add('thermal', 0.7);
-            break;
-          case 'optical-field':
-            add('optical', 0.68);
-            break;
-          case 'chemical-front':
-            add('chemical', 0.66);
-            break;
-          case 'robot-armature':
-            add('robotic', 0.68);
-            break;
-          case 'granular-strata':
-            add('granular', 0.66);
-            break;
-          case 'orbital-body':
-            add('orbital', 0.68);
-            break;
-          case 'acoustic-waveguide':
-            add('acoustic', 0.68);
-            break;
-          case 'phase-boundary':
-            add('phase', 0.64);
-            break;
-          case 'particle-swarm':
-            add('instrument', 0.38);
-            break;
-          default:
-            break;
-        }
-        if (categoryCode === 5) add('instrument', 0.32);
-        if (categoryCode === 6) add('network', 0.32);
-        if (categoryCode === 9) add('biological', 0.32);
-      }
-
-    function scenePacketAddSlot(vector, slots, slot, value) {
-        const index = slots.indexOf(slot);
-        if (index < 0) return;
-        vector[index] = clamp(vector[index] + value, 0, 1);
-      }
-
-    function scenePacketCompressVector(input, threshold, maxSlots) {
-        const ranked = (input || []).map((value, index) => ({
-          index,
-          value: clamp(Number(value || 0), 0, 1),
-        })).sort((a, b) => b.value - a.value || a.index - b.index);
-        const out = new Array(input.length).fill(0);
-        ranked.slice(0, maxSlots).forEach((entry, rank) => {
-          if (entry.value < threshold) return;
-          const gain = rank === 0 ? 1 : rank < 4 ? 0.92 : rank < 8 ? 0.76 : 0.54;
-          out[entry.index] = Number(clamp(entry.value * gain, 0, 1).toFixed(4));
-        });
-        return out;
-      }
+  const scope = root.SimulattePhaseModuleRegistry.family('compositionGraph');
 
     function scenePacketRenderCodes({ id = '', label = '', sourceGraphId = '', layerSlot = '', identity = {}, animation = {}, packetKind = '' }) {
         return {
@@ -113,7 +14,7 @@
       }
 
     function scenePacketLayerCode(layerSlot) {
-        const index = VISUAL_IR_LAYER_SLOTS.indexOf(String(layerSlot || ''));
+        const index = scope.VISUAL_IR_LAYER_SLOTS.indexOf(String(layerSlot || ''));
         return index >= 0 ? index + 1 : 0;
       }
 
@@ -216,12 +117,7 @@
       }
 
     function scenePacketHashUnit(text) {
-        let hash = 2166136261;
-        for (let i = 0; i < text.length; i += 1) {
-          hash ^= text.charCodeAt(i);
-          hash = Math.imul(hash, 16777619);
-        }
-        return Number(((hash >>> 0) / 4294967295).toFixed(6));
+        return Number(scope.inclusiveUnitInterval(text).toFixed(6));
       }
 
     function scenePacketDrawablePriority(row = {}, sceneKind = '') {
@@ -239,66 +135,18 @@
         if (layer === 'organic-matrix' || layer === 'bubble-volume') score += 5;
         if (layer === 'thermal-field' || layer === 'phase-boundary') score += 4;
         if (layer === 'field-sheet' || layer === 'flow-field') score += 2;
-        score += clamp(Number(row.confidence || 0), 0, 1) * 2;
+        score += scope.clamp(Number(row.confidence || 0), 0, 1) * 2;
         return Number(score.toFixed(3));
-      }
-
-    function scenePacketSceneId(sceneKind = '') {
-        const ids = {
-          'thermal-plume': 0,
-          fire: 33,
-          'weather-atmosphere': 1,
-          watershed: 2,
-          ocean: 23,
-          'mechanical-fluid': 3,
-          mechanical: 3,
-          'structural-mechanics': 24,
-          ferrofluid: 4,
-          'magnetic-machine': 4,
-          optics: 5,
-          'optics-thermal': 5,
-          'thin-film': 34,
-          acoustic: 6,
-          biology: 7,
-          ecology: 25,
-          'evolution-ecology': 25,
-          'restoration-water': 26,
-          'agro-waste-loop': 20,
-          'chemistry-lab': 8,
-          'material-tray': 35,
-          cryosphere: 27,
-          'ocean-cryosphere': 27,
-          'planetary-space': 10,
-          'digital-network': 11,
-          city: 28,
-          'civic-market': 29,
-          'venue-crowd': 30,
-          'advanced-energy': 12,
-          'grid-energy': 16,
-          'molecular-biology': 13,
-          'clinical-control': 14,
-          'particle-instrument': 15,
-          'quantum-instrument': 19,
-          atomic: 19,
-          'robotics-control': 17,
-          'manufacturing-line': 18,
-          granular: 22,
-          'sport-motion': 21,
-          'cultural-material': 36,
-          'hazard-atmosphere': 31,
-          'space-instrument': 32,
-        };
-        return ids[String(sceneKind || '')] ?? 3;
       }
 
     function scenePacketClamp01(value, fallback = 0) {
         const numeric = Number(value);
-        return Number.isFinite(numeric) ? clamp(numeric, 0, 1) : fallback;
+        return Number.isFinite(numeric) ? scope.clamp(numeric, 0, 1) : fallback;
       }
 
     function scenePacketSize(value, fallback = 0.1) {
         const numeric = Number(value);
-        return Number.isFinite(numeric) && numeric > 0 ? clamp(numeric, 0.01, 1) : fallback;
+        return Number.isFinite(numeric) && numeric > 0 ? scope.clamp(numeric, 0.01, 1) : fallback;
       }
 
     function renderInstanceLayerSlot(type, row = {}, entity = null, process = null, sceneKind = '') {
@@ -522,7 +370,7 @@
             count: renderInstances.length,
             acceptedCount: renderInstances.filter(visualRowAccepted).length,
             instanceIds: renderInstances.map((row) => row.id).slice(0, 16),
-            layerSlots: uniqueList(renderInstances.map((row) => row.layerSlot).filter(Boolean)).slice(0, 16),
+            layerSlots: scope.uniqueList(renderInstances.map((row) => row.layerSlot).filter(Boolean)).slice(0, 16),
           },
           {
             id: 'receipt:operators',
@@ -541,9 +389,9 @@
             reason: `${(causalAffordances || []).length} causal affordance rows compiled into visual program hints`,
             count: (causalAffordances || []).length,
             affordanceIds: (causalAffordances || []).map((row) => row.id).slice(0, 12),
-            causalRelationIds: uniqueList((causalAffordances || []).map((row) => row.causalRelationId).filter(Boolean)).slice(0, 12),
-            shaderHints: uniqueList((causalAffordances || []).flatMap((row) => row.shaderHints || [])).slice(0, 16),
-            motionHints: uniqueList((causalAffordances || []).flatMap((row) => row.motionHints || [])).slice(0, 16),
+            causalRelationIds: scope.uniqueList((causalAffordances || []).map((row) => row.causalRelationId).filter(Boolean)).slice(0, 12),
+            shaderHints: scope.uniqueList((causalAffordances || []).flatMap((row) => row.shaderHints || [])).slice(0, 16),
+            motionHints: scope.uniqueList((causalAffordances || []).flatMap((row) => row.motionHints || [])).slice(0, 16),
           },
           {
             id: 'receipt:graphics-atoms',
@@ -629,7 +477,7 @@
     function visualGenomeForComposition(graph, objects, fields, solverPlan, spec, sceneKind) {
         const genomeObjects = genomeSourceObjects(objects);
         const compiledText = compiledVisualGenomeText(graph, genomeObjects, fields, solverPlan, spec, sceneKind);
-        const objectSignature = uniqueList((genomeObjects || []).map((object) => [
+        const objectSignature = scope.uniqueList((genomeObjects || []).map((object) => [
           object.id,
           object.shape,
           object.material,
@@ -638,15 +486,15 @@
           object.assembly,
           object.visualRegime,
         ].filter(Boolean).join(':'))).join('|');
-        const fieldSignature = uniqueList((fields || []).map((field) => field.kind || field.channel)).join('|');
-        const solverSignature = uniqueList([
+        const fieldSignature = scope.uniqueList((fields || []).map((field) => field.kind || field.channel)).join('|');
+        const solverSignature = scope.uniqueList([
           ...((solverPlan && solverPlan.executableSteps) || []),
           ...((solverPlan && solverPlan.steps) || []),
         ]).join('|');
         const seedText = [compiledText, sceneKind, objectSignature, fieldSignature, solverSignature].join('|');
-        const seed = hashProgram(seedText) || 1;
-        const directObjectSignature = uniqueList((genomeObjects || [])
-          .filter(isPromptGroundedGenomeObject)
+        const seed = scope.hashProgram(seedText) || 1;
+        const directObjectSignature = scope.uniqueList((genomeObjects || [])
+          .filter(scope.isPromptGroundedGenomeObject)
           .map((object) => [
             object.id,
             object.shape,
@@ -659,9 +507,9 @@
         const motifText = `${compiledText} ${directObjectSignature}`.toLowerCase();
         const tokens = compiledTokensForGenome(compiledText);
         const visualDna = compiledDnaForGenome(compiledText, seed);
-        const motifs = genomeMotifs(motifText, sceneKind, genomeObjects, fields);
+        const motifs = scope.genomeMotifs(motifText, sceneKind, genomeObjects, fields);
         const semanticVisuals = semanticVisualsForGenome(compiledText, genomeObjects, fields, sceneKind, seed, tokens);
-        const dialectPlan = visualDialectPlanForGenome({
+        const dialectPlan = scope.visualDialectPlanForGenome({
           sceneKind,
           objects: genomeObjects,
           fields,
@@ -672,13 +520,13 @@
         const compositionTopology = dialectPlan.compositionTopology;
         const scaleTier = dialectPlan.scaleTier;
         const cameraArchetype = dialectPlan.cameraArchetype;
-        const palette = genomePalette(sceneKind, motifs, seed, dialectPlan.paletteAnchor);
-        const morphology = genomeMorphology(sceneKind, motifs, seed, genomeObjects, fields, visualDna, semanticVisuals, compositionTopology);
+        const palette = scope.genomePalette(sceneKind, motifs, seed, dialectPlan.paletteAnchor);
+        const morphology = scope.genomeMorphology(sceneKind, motifs, seed, genomeObjects, fields, visualDna, semanticVisuals, compositionTopology);
         return {
-          schema: VISUAL_GENOME_SCHEMA,
+          schema: scope.VISUAL_GENOME_SCHEMA,
           id: `vg_${seed.toString(36).padStart(6, '0')}`,
           seed,
-          sourceHash: hashProgram(compiledText),
+          sourceHash: scope.hashProgram(compiledText),
           source: 'compiled-artifact-seeded-procedural',
           sceneKind,
           visualDialect,
@@ -698,8 +546,8 @@
           tokens,
           visualDna,
           semanticVisuals,
-          objectSignature: hashProgram(objectSignature),
-          fieldSignature: hashProgram(fieldSignature),
+          objectSignature: scope.hashProgram(objectSignature),
+          fieldSignature: scope.hashProgram(fieldSignature),
           stochastic: {
             mode: 'deterministic-compiled-artifact-seeded',
             sampler: 'hash-noise',
@@ -727,7 +575,7 @@
       }
 
     function compiledVisualGenomeText(graph, objects, fields, solverPlan, spec, sceneKind) {
-        const visualAffordances = causalAffordancesFromSpec(spec, sceneKind);
+        const visualAffordances = scope.causalAffordancesFromSpec(spec, sceneKind);
         const compositionLedger = spec && spec.renderIR && spec.renderIR.compositionLedger ||
           spec && spec.physicsIR && spec.physicsIR.compositionLedger || {};
         return [
@@ -779,7 +627,7 @@
           'process', 'physics', 'sample', 'field', 'domain', 'state', 'visual',
           'render', 'body', 'catalog', 'prompt', 'derived', 'generic',
         ]);
-        return uniqueList(String(value || '')
+        return scope.uniqueList(String(value || '')
           .toLowerCase()
           .replace(/[^a-z0-9\s-]+/g, ' ')
           .split(/\s+/)
@@ -797,7 +645,7 @@
         for (let n = 1; n <= 3; n += 1) {
           for (let index = 0; index <= sourceTokens.length - n; index += 1) {
             const text = sourceTokens.slice(index, index + n).join(' ');
-            const hash = hashProgram(`${n}:${index}:${text}:${seed}`);
+            const hash = scope.hashProgram(`${n}:${index}:${text}:${seed}`);
             ngrams.push({
               text,
               n,
@@ -805,45 +653,45 @@
               hash,
               lane: hash % 7,
               mark: hash % 9,
-              hue: normalizeHue(hash % 360),
-              weight: Number((0.42 + unitFromSeed(hash, n + index + 1) * 0.58).toFixed(3)),
+              hue: scope.normalizeHue(hash % 360),
+              weight: Number((0.42 + scope.unitFromSeed(hash, n + index + 1) * 0.58).toFixed(3)),
             });
           }
         }
         const selected = ngrams
           .sort((a, b) => a.index - b.index || b.n - a.n || a.text.localeCompare(b.text))
           .slice(0, 32);
-        const hash = hashProgram(selected.map((row) => `${row.n}:${row.index}:${row.text}:${row.hash}`).join('|'));
+        const hash = scope.hashProgram(selected.map((row) => `${row.n}:${row.index}:${row.text}:${row.hash}`).join('|'));
         return {
           schema: 'simulatte.compiledVisualDna.v1',
-          catalog: PROCEDURAL_VISUAL_BASE && PROCEDURAL_VISUAL_BASE.schema || 'simulatte.proceduralVisualBase.v1',
+          catalog: scope.PROCEDURAL_VISUAL_BASE && scope.PROCEDURAL_VISUAL_BASE.schema || 'simulatte.proceduralVisualBase.v1',
           hash,
           tokenCount: sourceTokens.length,
           ngramCount: ngrams.length,
           ngrams: selected,
-          paletteShift: Math.round(unitFromSeed(hash || seed, 41) * 160) - 80,
-          densityBias: Number((0.72 + unitFromSeed(hash || seed, 43) * 1.1).toFixed(3)),
-          laneBias: Math.round(unitFromSeed(hash || seed, 47) * 6),
+          paletteShift: Math.round(scope.unitFromSeed(hash || seed, 41) * 160) - 80,
+          densityBias: Number((0.72 + scope.unitFromSeed(hash || seed, 43) * 1.1).toFixed(3)),
+          laneBias: Math.round(scope.unitFromSeed(hash || seed, 47) * 6),
         };
       }
 
     function semanticVisualsForGenome(compiledText, objects, fields, sceneKind, seed, tokens) {
         const text = String(compiledText || '').toLowerCase();
         const sourceTokens = tokens && tokens.length ? tokens : compiledTokensForGenome(compiledText);
-        const archetypes = semanticVisualRows(text, seed, SEMANTIC_ARCHETYPE_RULES, 'archetype', sourceTokens);
-        const materials = semanticVisualRows(text, seed, SEMANTIC_MATERIAL_RULES, 'material', sourceTokens);
-        const processes = semanticVisualRows(text, seed, SEMANTIC_PROCESS_RULES, 'process', sourceTokens);
-        const overlayIds = uniqueList([
+        const archetypes = scope.semanticVisualRows(text, seed, scope.SEMANTIC_ARCHETYPE_RULES, 'archetype', sourceTokens);
+        const materials = scope.semanticVisualRows(text, seed, scope.SEMANTIC_MATERIAL_RULES, 'material', sourceTokens);
+        const processes = scope.semanticVisualRows(text, seed, scope.SEMANTIC_PROCESS_RULES, 'process', sourceTokens);
+        const overlayIds = scope.uniqueList([
           ...archetypes.map((row) => row.overlay),
           ...materials.map((row) => row.shader),
           ...processes.map((row) => row.overlay),
         ].filter(Boolean)).slice(0, 18);
-        const matchedTokens = uniqueList([
+        const matchedTokens = scope.uniqueList([
           ...archetypes.flatMap((row) => row.matchedTokens || []),
           ...materials.flatMap((row) => row.matchedTokens || []),
           ...processes.flatMap((row) => row.matchedTokens || []),
         ]);
-        const addressableTokens = atlasAddressableTokens(sourceTokens);
+        const addressableTokens = scope.atlasAddressableTokens(sourceTokens);
         const coverage = addressableTokens.length
           ? Number((matchedTokens.filter((token) => addressableTokens.includes(token)).length / addressableTokens.length).toFixed(3))
           : 1;
@@ -856,8 +704,8 @@
         ].join('|');
         return {
           schema: 'simulatte.semanticVisualPlan.v1',
-          atlas: SEMANTIC_VISUAL_ATLAS && SEMANTIC_VISUAL_ATLAS.schema || 'simulatte.semanticVisualAtlas.v1',
-          signature: hashProgram(signatureText),
+          atlas: scope.SEMANTIC_VISUAL_ATLAS && scope.SEMANTIC_VISUAL_ATLAS.schema || 'simulatte.semanticVisualAtlas.v1',
+          signature: scope.hashProgram(signatureText),
           sceneKind,
           archetypes,
           materials,
@@ -874,11 +722,7 @@
         };
       }
 
-    Object.assign(scope, {
-      scenePacketAddSceneKindMix,
-      scenePacketAddLayerSceneMix,
-      scenePacketAddSlot,
-      scenePacketCompressVector,
+    root.SimulattePhaseModuleRegistry.define('compositionGraph', 'simulatte-composition-graph-visual-genome.js', {
       scenePacketRenderCodes,
       scenePacketLayerCode,
       scenePacketAnimationCode,
@@ -887,7 +731,6 @@
       scenePacketKindCode,
       scenePacketVariantCode,
       scenePacketDrawablePriority,
-      scenePacketSceneId,
       scenePacketClamp01,
       scenePacketSize,
       renderInstanceLayerSlot,
@@ -910,5 +753,5 @@
       compiledDnaForGenome,
       semanticVisualsForGenome,
     });
-  }
+
 })(typeof globalThis !== 'undefined' ? globalThis : window);

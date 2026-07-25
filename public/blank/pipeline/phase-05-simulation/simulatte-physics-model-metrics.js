@@ -1,7 +1,6 @@
 (function attachSimulattePhysicsModelmetrics(root) {
-  const scope = root.__SimulattePhysicsModelRefactorScope;
-  if (!scope || scope.missingDependency) return;
-  with (scope) {
+  const scope = root.SimulattePhaseModuleRegistry.family('physicsModel');
+
     function stateLabel(state, spec) {
         if (spec.templateId === 'blank-world') {
           return 'blank construction plane';
@@ -19,15 +18,15 @@
           if (sceneKind === 'acoustic') return 'composed wave world';
           if (sceneKind === 'granular') return 'granular physics world';
           if (sceneKind === 'ferrofluid') return 'magnetic fluid world';
-    	      if (sceneKind === 'thermal-plume') return 'thermal plume world';
-    	      if (sceneKind === 'mechanical') return 'mechanical constraint world';
-    	      if (sceneKind === 'weather-atmosphere') return 'weather atmosphere volume';
-    	      if (sceneKind === 'ocean-cryosphere') return 'ocean cryosphere system';
-    	      if (sceneKind === 'grid-energy') return 'energy grid stability field';
-    	      if (sceneKind === 'robotics-control') return 'robotics control workspace';
-    	      if (sceneKind === 'manufacturing-line') return 'manufacturing line field';
-    	      if (sceneKind === 'quantum-instrument') return 'quantum instrument field';
-    	      if (sceneKind === 'chemistry-lab') return 'oscillating chemistry lab';
+            if (sceneKind === 'thermal-plume') return 'thermal plume world';
+            if (sceneKind === 'mechanical') return 'mechanical constraint world';
+            if (sceneKind === 'weather-atmosphere') return 'weather atmosphere volume';
+            if (sceneKind === 'ocean-cryosphere') return 'ocean cryosphere system';
+            if (sceneKind === 'grid-energy') return 'energy grid stability field';
+            if (sceneKind === 'robotics-control') return 'robotics control workspace';
+            if (sceneKind === 'manufacturing-line') return 'manufacturing line field';
+            if (sceneKind === 'quantum-instrument') return 'quantum instrument field';
+            if (sceneKind === 'chemistry-lab') return 'oscillating chemistry lab';
           if (sceneKind === 'cultural-material') return 'cultural material conservation';
           if (sceneKind === 'venue-crowd') return 'crowd venue field';
           if (sceneKind === 'sport-motion') return 'sport trajectory world';
@@ -41,24 +40,24 @@
           if (sceneKind === 'clinical-control') return 'clinical control field';
           if (sceneKind === 'restoration-water') return 'restoration water system';
           if (sceneKind === 'advanced-energy') return 'advanced energy chemistry';
-          if (hasModule(spec, 'terrain') && hasModule(spec, 'logistics')) return 'composed terrain market';
-          if (hasModule(spec, 'phase-change') && hasModule(spec, 'network')) return 'composed phase network';
-          if (hasModule(spec, 'biology') && hasModule(spec, 'control')) return 'composed control biology';
-          if (hasModule(spec, 'atomic') && hasModule(spec, 'metal')) return 'atomic material world';
-          if (hasModule(spec, 'fire') && hasModule(spec, 'water')) return 'elemental reaction world';
-          if (hasModule(spec, 'glass') && hasModule(spec, 'magnetic')) return 'raw material optics';
-          if (hasModule(spec, 'rock') || hasModule(spec, 'wood') || hasModule(spec, 'metal')) return 'raw material world';
-          if (hasModule(spec, 'chemistry') && hasModule(spec, 'fluid')) return 'composed fluid chemistry';
-          if (hasModule(spec, 'electromagnetism') && hasModule(spec, 'solar')) return 'composed magnetic machine';
-          if (hasModule(spec, 'queue') || hasModule(spec, 'network')) return 'composed operations network';
-          if (hasModule(spec, 'optics') && hasModule(spec, 'plasma')) return 'prismatic plasma world';
-          if (hasModule(spec, 'optics')) return 'composed optics world';
-          if (hasModule(spec, 'plasma') || hasModule(spec, 'electricity')) return 'charged plasma world';
-          if (hasModule(spec, 'acoustics') || hasModule(spec, 'wave')) return 'composed wave world';
-          if (hasModule(spec, 'granular')) return 'granular physics world';
-          if (hasModule(spec, 'elasticity') || hasModule(spec, 'collision')) return 'mechanical constraint world';
-          if (hasModule(spec, 'fluid')) return 'composed flow world';
-          if (hasModule(spec, 'chemistry')) return 'composed reaction world';
+          if (scope.hasModule(spec, 'terrain') && scope.hasModule(spec, 'logistics')) return 'composed terrain market';
+          if (scope.hasModule(spec, 'phase-change') && scope.hasModule(spec, 'network')) return 'composed phase network';
+          if (scope.hasModule(spec, 'biology') && scope.hasModule(spec, 'control')) return 'composed control biology';
+          if (scope.hasModule(spec, 'atomic') && scope.hasModule(spec, 'metal')) return 'atomic material world';
+          if (scope.hasModule(spec, 'fire') && scope.hasModule(spec, 'water')) return 'elemental reaction world';
+          if (scope.hasModule(spec, 'glass') && scope.hasModule(spec, 'magnetic')) return 'raw material optics';
+          if (scope.hasModule(spec, 'rock') || scope.hasModule(spec, 'wood') || scope.hasModule(spec, 'metal')) return 'raw material world';
+          if (scope.hasModule(spec, 'chemistry') && scope.hasModule(spec, 'fluid')) return 'composed fluid chemistry';
+          if (scope.hasModule(spec, 'electromagnetism') && scope.hasModule(spec, 'solar')) return 'composed magnetic machine';
+          if (scope.hasModule(spec, 'queue') || scope.hasModule(spec, 'network')) return 'composed operations network';
+          if (scope.hasModule(spec, 'optics') && scope.hasModule(spec, 'plasma')) return 'prismatic plasma world';
+          if (scope.hasModule(spec, 'optics')) return 'composed optics world';
+          if (scope.hasModule(spec, 'plasma') || scope.hasModule(spec, 'electricity')) return 'charged plasma world';
+          if (scope.hasModule(spec, 'acoustics') || scope.hasModule(spec, 'wave')) return 'composed wave world';
+          if (scope.hasModule(spec, 'granular')) return 'granular physics world';
+          if (scope.hasModule(spec, 'elasticity') || scope.hasModule(spec, 'collision')) return 'mechanical constraint world';
+          if (scope.hasModule(spec, 'fluid')) return 'composed flow world';
+          if (scope.hasModule(spec, 'chemistry')) return 'composed reaction world';
           return 'composed physics world';
         }
         if (spec.templateId === 'fluid-vortex') {
@@ -67,7 +66,7 @@
         if (spec.templateId === 'reaction-diffusion') {
           return state.front > 0.0004 ? 'reaction front active' : 'diffusing';
         }
-        const ledger = energyLedger(state);
+        const ledger = scope.energyLedger(state);
         return Math.abs(state.omega) < 0.05 && state.t > 2
           ? 'stalled'
           : ledger.loadPowerW > 0.2
@@ -75,8 +74,8 @@
             : 'seeking torque';
       }
 
-    Object.assign(scope, {
+    root.SimulattePhaseModuleRegistry.define('physicsModel', 'simulatte-physics-model-metrics.js', {
       stateLabel,
     });
-  }
+
 })(typeof globalThis !== 'undefined' ? globalThis : window);

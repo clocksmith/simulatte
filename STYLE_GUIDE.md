@@ -203,6 +203,7 @@
 202. A required obligation without render evidence is a surfaced loss or an explicit not-proven receipt, never a silent pass.
 203. JavaScript source files have a strict 999-line limit.
 204. Split any JavaScript file before it reaches 1,000 lines.
+205. Treat 750 lines as a proactive source-size warning and split by cohesive ownership before the hard ceiling.
 205. This guide is mandatory for Simulatte edits and supplements `AGENTS.md`.
 206. The product win condition is faithful natural language compiled into recognizable, obligation-proven pixels.
 207. Preserve required entities, counts, attributes, part bindings, materials, relations, poses, actions, environments, and negation from Phase 2 through Phase 8.
@@ -233,6 +234,6 @@
 232. Gold evaluations must bind each prompt to expected entities, counts, properties, relations, poses, environments, and a human-visible verdict.
 233. Human visual review receipts must bind the verdict to the prompt, build identity, scene packet identity, screenshot identity, and reviewer action.
 234. Optimization is complete only when the same required work passes correctness, semantic, visual, performance, and resource gates.
-235. Do not add new `with (scope)` shards or new RefactorScope globals; migrate existing scopes to explicit factory dependencies with statically visible parameters.
+235. Do not add `with (scope)` shards or RefactorScope globals; phase shards use the narrow `SimulattePhaseModuleRegistry` family named by their dependency root, and every cross-shard reference is statically visible as `scope.<name>`.
 236. Dependency gaps must throw during initialization; do not add silent missing-dependency returns.
-237. The refactor scope ratchet in `tests/js-shape.test.cjs` records current shard counts; counts may only decrease.
+237. The refactor-scope guard in the focused `tests/js-shape-*.test.cjs` lanes requires zero implicit-scope files, zero silent missing-dependency guards, and zero RefactorScope globals.

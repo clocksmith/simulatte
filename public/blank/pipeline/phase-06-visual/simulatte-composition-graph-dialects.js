@@ -1,7 +1,6 @@
 (function attachSimulatteCompositionGraphDialects(root) {
-  const scope = root.__SimulatteCompositionGraphRefactorScope;
-  if (!scope || scope.missingDependency) return;
-  with (scope) {
+  const scope = root.SimulattePhaseModuleRegistry.family('compositionGraph');
+
     const DIALECT_DEFAULTS = Object.freeze({
       biology: ['biology/specimen', 'specimen', 'microscope-cutaway', 'microscopic'],
       'civic-market': ['civic-market/network-ledger', 'lattice', 'aerial-map', 'landscape'],
@@ -63,15 +62,15 @@
       }
 
     function visualDialectEvidence(objects = [], fields = [], solverPlan = null, semanticVisuals = null) {
-        const grounded = (objects || []).filter((row) => isPromptGroundedGenomeObject(row));
+        const grounded = (objects || []).filter((row) => scope.isPromptGroundedGenomeObject(row));
         const sourceObjects = grounded.length ? grounded : (objects || []);
-        const solverSteps = uniqueList([
+        const solverSteps = scope.uniqueList([
           ...((solverPlan && solverPlan.executableSteps) || []),
           ...((solverPlan && solverPlan.steps) || []).map((row) => (
             typeof row === 'string' ? row : row && (row.operatorType || row.type || row.id)
           )),
         ].filter(Boolean));
-        const semanticRows = uniqueList([
+        const semanticRows = scope.uniqueList([
           ...((semanticVisuals && semanticVisuals.archetypes) || []).map((row) => row.id),
           ...((semanticVisuals && semanticVisuals.materials) || []).map((row) => row.id),
           ...((semanticVisuals && semanticVisuals.processes) || []).map((row) => row.id),
@@ -245,7 +244,7 @@
           (scaleTier === 'orbital' || compositionTopology === 'orbit' ? 'orbital-wide' : 'instrument-panel');
       }
 
-    Object.assign(scope, {
+    root.SimulattePhaseModuleRegistry.define('compositionGraph', 'simulatte-composition-graph-dialects.js', {
       DIALECT_DEFAULTS,
       visualDialectPlanForGenome,
       visualDialectEvidence,
@@ -256,5 +255,5 @@
       genomeScaleTier,
       genomeCameraArchetype,
     });
-  }
+
 })(typeof globalThis !== 'undefined' ? globalThis : window);

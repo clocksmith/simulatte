@@ -1,10 +1,17 @@
 (function attachAutonomyJourneyVerifier(root, factory) {
-  const api = factory();
+  const streetNames = typeof module === 'object' && module.exports
+    ? require('../../shared/streets/street-name.js')
+    : root.SimulatteStreetNames;
+  const deterministicValues = typeof module === 'object' && module.exports
+    ? require('../../shared/deterministic-values.js')
+    : root.SimulatteDeterministicValues;
+  const api = factory(streetNames, deterministicValues);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteAutonomyJourneyVerifier = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyJourneyVerifier() {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyJourneyVerifier(streetNames, deterministicValues) {
   const DISTANCE_TOLERANCE_M = 0.000001;
-  const STREET_WORDS = Object.freeze({ avenue: 'av', ave: 'av', street: 'st', str: 'st', boulevard: 'blvd', road: 'rd', lane: 'ln', place: 'pl', square: 'sq' });
+  const normalizeStreetName = streetNames.normalizeStreetName;
+  const round = deterministicValues.round9;
 
   function verifyJourney({ mission, state, receiptChain, worldModel }) {
     const ticks = receiptChain.entries.map((entry) => entry.payload).filter((row) => row.schema === 'simulatte.autonomyTickReceipt.v2');
@@ -225,14 +232,6 @@
 
   function sameRows(left, right) {
     return left.length === right.length && left.every((row, index) => row === right[index]);
-  }
-
-  function normalizeStreetName(value) {
-    return String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim().split(/\s+/).filter(Boolean).map((word) => STREET_WORDS[word] || word).join(' ');
-  }
-
-  function round(value) {
-    return Number(value.toFixed(9));
   }
 
   return { DISTANCE_TOLERANCE_M, verifyJourney };

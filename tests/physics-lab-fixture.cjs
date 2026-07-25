@@ -11,6 +11,7 @@ const semanticRagApi = require('../public/blank/pipeline/phase-03-retrieval/simu
 const graphSynthesis = require('../public/blank/pipeline/phase-04-grounded-intent/simulatte-graph-synthesis.js');
 const dopplerIntent = require('../public/blank/pipeline/phase-01-runtime/simulatte-doppler-intent.js');
 const intentForensics = require('../public/blank/pipeline/phase-04-grounded-intent/simulatte-intent-forensics.js');
+const { phaseFamily } = require('./phase-module-fixture.cjs');
 const root = path.resolve(__dirname, '..');
 let embeddingFixture = null;
 
@@ -348,6 +349,7 @@ module.exports = {
   graphSynthesis,
   dopplerIntent,
   intentForensics,
+  phaseFamily,
   root,
   loadEmbeddingIndex,
   indexedVector,

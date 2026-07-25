@@ -1,12 +1,13 @@
 (function initSimulattePhysicsModelDependencies(root) {
-  const scope = root.__SimulattePhysicsModelRefactorScope = root.__SimulattePhysicsModelRefactorScope || {};
+  const moduleRegistry = typeof module === 'object' && module.exports
+    ? require('../../app/runtime/phase-module-registry.js')
+    : root.SimulattePhaseModuleRegistry;
+  const scope = moduleRegistry.family('physicsModel');
   if (scope.initialized) return;
-  function markMissingDependency(moduleName, dependencyName) {
-      const state = root.SimulatteBoot = root.SimulatteBoot || { failedScripts: [] };
-      state.missingDependencies = state.missingDependencies || [];
-      state.missingDependencies.push({ moduleName, dependencyName });
-      console.warn(`[simulatte.boot] ${moduleName} waiting for ${dependencyName}`);
-    }
+  const dependencyApi = typeof module === 'object' && module.exports
+      ? require('../../app/runtime/require-runtime-dependency.js')
+      : root.SimulatteRuntimeDependency;
+  const requireRuntimeDependency = dependencyApi.requireRuntimeDependency;
   const catalog = typeof module === 'object' && module.exports
       ? require('./simulatte-physics-catalog.js')
       : root.SimulattePhysicsCatalog;
@@ -61,28 +62,42 @@
   const renderProof = typeof module === 'object' && module.exports
       ? require('../phase-07-render/simulatte-render-proof.js')
       : root.SimulatteRenderProof;
-  if (!catalog) {
-      markMissingDependency('SimulattePhysicsModel', 'SimulattePhysicsCatalog');
-      scope.missingDependency = true; return;
-    }
-  scope.root = root;
-  scope.catalog = catalog;
-  scope.composer = composer;
-  scope.classifier = classifier;
-  scope.semantic = semantic;
-  scope.doppler = doppler;
-  scope.graphSynthesis = graphSynthesis;
-  scope.universeParser = universeParser;
-  scope.universeGrounder = universeGrounder;
-  scope.physicsIR = physicsIR;
-  scope.physicsIRValidator = physicsIRValidator;
-  scope.solverCompiler = solverCompiler;
-  scope.renderIR = renderIR;
-  scope.intentForensics = intentForensics;
-  scope.activationModule = activationModule;
-  scope.groundedModule = groundedModule;
-  scope.languageLexicon = languageLexicon;
-  scope.phaseContracts = phaseContracts;
-  Object.assign(scope, renderProof || {});
-  scope.initialized = true;
+  const deterministicValues = typeof module === 'object' && module.exports
+      ? require('../../../shared/deterministic-values.js')
+      : root.SimulatteDeterministicValues;
+  requireRuntimeDependency({
+    root,
+    moduleName: 'SimulattePhysicsModel',
+    dependencyName: 'SimulattePhysicsCatalog',
+    value: catalog,
+  });
+  requireRuntimeDependency({
+    root,
+    moduleName: 'SimulattePhysicsModel',
+    dependencyName: 'SimulatteDeterministicValues',
+    value: deterministicValues,
+  });
+  moduleRegistry.define('physicsModel', 'simulatte-physics-model-dependencies.js', {
+    root,
+    catalog,
+    composer,
+    classifier,
+    semantic,
+    doppler,
+    graphSynthesis,
+    universeParser,
+    universeGrounder,
+    physicsIR,
+    physicsIRValidator,
+    solverCompiler,
+    renderIR,
+    intentForensics,
+    activationModule,
+    groundedModule,
+    languageLexicon,
+    phaseContracts,
+    ...deterministicValues,
+    ...(renderProof || {}),
+    initialized: true,
+  });
 })(typeof globalThis !== 'undefined' ? globalThis : window);

@@ -1,7 +1,6 @@
 (function attachSimulattePhysicsCataloggraphhelpers(root) {
-  const scope = root.__SimulattePhysicsCatalogRefactorScope;
-  if (!scope || scope.missingDependency) return;
-  with (scope) {
+  const scope = root.SimulattePhaseModuleRegistry.family('physicsCatalog');
+
     const HANDWRITTEN_EXAMPLE_PROMPTS = Object.freeze([
         "laser heats ferrofluid lens over copper coil",
         "supernova",
@@ -266,15 +265,15 @@
         groupId: 'handwritten',
         label: `Example ${index + 1}`,
         prompt,
-        params: paramsForHandwrittenPrompt(index, prompt),
+        params: scope.paramsForHandwrittenPrompt(index, prompt),
       })));
 
-    const DEFAULT_PARAMS = Object.freeze({ ...TEMPLATE_LIBRARY[0].params });
+    const DEFAULT_PARAMS = Object.freeze({ ...scope.TEMPLATE_LIBRARY[0].params });
 
-    Object.assign(scope, {
+    root.SimulattePhaseModuleRegistry.define('physicsCatalog', 'simulatte-physics-catalog-graph-helpers.js', {
       HANDWRITTEN_EXAMPLE_PROMPTS,
       EXAMPLE_INTENTS,
       DEFAULT_PARAMS,
     });
-  }
+
 })(typeof globalThis !== 'undefined' ? globalThis : window);

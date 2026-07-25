@@ -7,6 +7,9 @@
     require('./simulatte-composition-graph-entity-lowering.js');
     require('./simulatte-composition-graph-visual-ir.js');
     require('./simulatte-composition-graph-materials.js');
+    require('./simulatte-construction-evidence.js');
+    require('./simulatte-construction-placement.js');
+    require('./simulatte-construction-parts.js');
     require('./simulatte-construction-geometry.js');
     require('./simulatte-prompt-visual-contracts.js');
     require('./simulatte-object-geometry-grammars.js');
@@ -20,18 +23,18 @@
     require('./simulatte-composition-graph-helpers.js');
     require('./simulatte-composition-graph-facade-support.js');
   }
-  const scope = root.__SimulatteCompositionGraphRefactorScope = root.__SimulatteCompositionGraphRefactorScope || {};
-  if (scope.missingDependency) return;
-  let api;
-  with (scope) {
-    api = {
-    COMPOSITION_SCHEMA,
-    MATERIAL_STYLES,
-    RENDER_PROGRAM_SCHEMA,
-    buildCompositionGraph,
-    compileCompositionToRenderProgram,
+  const scope = root.SimulattePhaseModuleRegistry.family('compositionGraph');
+  const api = {
+    COMPOSITION_SCHEMA: scope.COMPOSITION_SCHEMA,
+    MATERIAL_STYLES: scope.MATERIAL_STYLES,
+    RENDER_PROGRAM_SCHEMA: scope.RENDER_PROGRAM_SCHEMA,
+    buildCompositionGraph: scope.buildCompositionGraph,
+    compileCompositionToRenderProgram: scope.compileCompositionToRenderProgram,
   };
-  }
+  root.SimulattePhaseModuleRegistry.finalize('compositionGraph', {
+    requiredExports: Object.keys(api),
+  });
+  Object.freeze(api);
   if (typeof module === 'object' && module.exports) {
       module.exports = api;
     }

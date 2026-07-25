@@ -1,13 +1,12 @@
 (function attachSimulatteCompositionGraphrenderirbinding(root) {
-  const scope = root.__SimulatteCompositionGraphRefactorScope;
-  if (!scope || scope.missingDependency) return;
-  with (scope) {
+  const scope = root.SimulattePhaseModuleRegistry.family('compositionGraph');
+
     function sceneKindForRenderIR(renderIR, solverGraph, graph, graphObjects, spec) {
         const sceneHint = normalizedSceneHint(renderIR.sceneHint);
         const directScene = directSceneKindForRenderIR(renderIR, spec);
         const promptText = directPromptSceneText(renderIR, spec);
         const promptTerrain = (graphObjects || []).some((object) => (
-          isPromptGroundedComponent(object, promptText) && hasDirectTerrainSignal([
+          scope.isPromptGroundedComponent(object, promptText) && hasDirectTerrainSignal([
             object.id,
             object.role,
             object.phrase,
@@ -43,10 +42,10 @@
         if (sceneHint && sceneHint !== 'literal-composite') return sceneHint;
         const signalScene = sceneKindFromRenderIRSignals(renderIR, solverGraph, spec);
         if (signalScene && signalScene !== 'literal-composite') return signalScene;
-        const fallbackScene = sceneKindForComposition(
+        const fallbackScene = scope.sceneKindForComposition(
           graph,
           graphObjects,
-          fieldsForComposition(graph, spec),
+          scope.fieldsForComposition(graph, spec),
           spec
         );
         if (fallbackScene && fallbackScene !== 'generic') return fallbackScene;
@@ -110,7 +109,7 @@
           (renderIR.fields || []).map((field) => `${field.name} ${field.channel} ${field.domainId}`).join(' '),
           (solverGraph.steps || []).map((step) => `${step.operatorType} ${step.solverId}`).join(' '),
         ].join(' ').toLowerCase();
-        const expanded = expandedSceneKindForText(text);
+        const expanded = scope.expandedSceneKindForText(text);
         if (expanded) return expanded;
         if (hasRoboticsSignal(text)) return 'robotics-control';
         if (hasChemistryLabSignal(text)) return 'chemistry-lab';
@@ -152,7 +151,7 @@
       }
 
     function directRenderIRSceneText(renderIR, spec) {
-        return positiveLanguageText([
+        return scope.positiveLanguageText([
           directPromptSceneText(renderIR, spec),
           ...((renderIR && renderIR.objects || []).map((object) => [
             object.label,
@@ -176,7 +175,7 @@
           object.directlyGrounded === true ||
           /^prompt\./.test(String(object.semanticRef || object.physicalRef || ''))
         ));
-        return positiveLanguageText([
+        return scope.positiveLanguageText([
           renderIR && renderIR.prompt,
           universeGraph.prompt,
           physicsIR.prompt,
@@ -234,17 +233,11 @@
       }
 
     function hasRoboticsSignal(text = '') {
-        const positive = positiveLanguageText(text);
+        const positive = scope.positiveLanguageText(text);
         return /\b(robot|robotic|gripper|servo|workcell|manipulator|pick-place|pick and place|contact force)\b/.test(positive) &&
           /\b(robot|robotic|gripper|servo|manipulator|workcell)\b/.test(positive);
       }
 
-    function positiveLanguageText(value = '') {
-        const word = "[a-z0-9]+(?:[-'][a-z0-9]+)*";
-        const stop = '(?:and|with|while|where|when|because|but|however|though|although|unless|inside|outside|near|around|between|against|across|during|through|then|so)';
-        const negated = new RegExp(`\\b(?:no|not|never|none|without|cannot|can't|wont|won't|avoid|exclude|except)\\b(?:\\s+(?:a|an|the|any))?(?:\\s+(?!\\b${stop}\\b)${word}){1,6}`, 'gi');
-        return String(value || '').toLowerCase().replace(negated, ' ').replace(/\s+/g, ' ').trim();
-      }
 
     function hasChemistryLabSignal(text = '') {
         return /\b(microfluidic|droplet|droplets|channel junction|meniscus|reagent|reaction vessel|catalyst|dose|insulin pump)\b/.test(text) &&
@@ -261,7 +254,7 @@
       }
 
     function hasThinFilmSignal(text = '') {
-        const positive = positiveLanguageText(text);
+        const positive = scope.positiveLanguageText(text);
         return /\b(thin-film|thin film|soap|wire-loop|wire loop|surface_tension|iridescen)\b/.test(positive) ||
           (/\b(air bubble|air bubbles|bubble|bubbles)\b/.test(positive) &&
             /\b(soap|film|wire|loop|iridescen|surface tension|surface_tension)\b/.test(positive));
@@ -278,7 +271,7 @@
             object.semanticRef,
             object.physicalRef,
           ].join(' ')).join(' '),
-          specificGraphObjects(graphObjects).map(renderObjectText).join(' '),
+          specificGraphObjects(graphObjects).map(scope.renderObjectText).join(' '),
         ].join(' ').toLowerCase();
       }
 
@@ -297,7 +290,7 @@
           ].join(' ')).join(' '),
           (renderIR.fields || []).map((field) => `${field.name} ${field.channel} ${field.domainId}`).join(' '),
           (solverGraph.steps || []).map((step) => `${step.operatorType} ${step.solverId}`).join(' '),
-          specificGraphObjects(graphObjects).map(renderObjectText).join(' '),
+          specificGraphObjects(graphObjects).map(scope.renderObjectText).join(' '),
         ].join(' ').toLowerCase();
       }
 
@@ -319,8 +312,8 @@
         if (sceneKind === 'literal-composite') return /lava|turbine|ice|castle|storm|bridge|wetland|volcano|rocket|submarine/.test(text);
         if (sceneKind === 'biology') return /algae|wetland|swamp|nutrient|growth|membrane|plant/.test(text);
         if (sceneKind === 'acoustic') return /wave|storm|bridge|cable|pressure|resonance|tube/.test(text);
-        const expandedPriority = typeof expandedSceneObjectPriority === 'function'
-          ? expandedSceneObjectPriority(text, { source: 'render-ir' }, sceneKind)
+        const expandedPriority = typeof scope.expandedSceneObjectPriority === 'function'
+          ? scope.expandedSceneObjectPriority(text, { source: 'render-ir' }, sceneKind)
           : null;
         if (Number.isFinite(expandedPriority)) return expandedPriority >= 0;
         return false;
@@ -480,32 +473,32 @@
       }
 
     function renderObjectForNode(node, spec) {
-        const pose = poseForNode(node, spec);
+        const pose = scope.poseForNode(node, spec);
         return {
           id: node.primitiveId,
           kind: node.type,
           material: node.material,
           role: node.role,
           shape: node.shape,
-          visualRegime: visualRegimeForNode(node),
+          visualRegime: scope.visualRegimeForNode(node),
           assembly: node.assembly || '',
           phrase: node.phrase || '',
           source: node.source || '',
           pose,
           dynamics: { ...(node.state || {}), ...(node.params || {}) },
-          primitiveProgram: node.primitiveProgram || primitiveProgramForNode(node),
+          primitiveProgram: node.primitiveProgram || scope.primitiveProgramForNode(node),
           required: true,
         };
       }
 
     function rendererPlanForComposition(graph, objects, fields, solverPlan, spec, forcedSceneKind = '') {
-        const sceneKind = forcedSceneKind || sceneKindForComposition(graph, objects, fields, spec);
-        const dominantRegime = dominantRegimeForScene(sceneKind, objects);
-        const fieldKinds = uniqueList((fields || []).map((field) => field.kind));
-        const solverFamilies = uniqueList((solverPlan && solverPlan.families) || []);
-        const shapeSignature = uniqueList((objects || []).map((object) => object.shape)).join('+');
-        const materialSignature = uniqueList((objects || []).map((object) => object.material)).join('+');
-        const visualGenome = visualGenomeForComposition(graph, objects, fields, solverPlan, spec, sceneKind);
+        const sceneKind = forcedSceneKind || scope.sceneKindForComposition(graph, objects, fields, spec);
+        const dominantRegime = scope.dominantRegimeForScene(sceneKind, objects);
+        const fieldKinds = scope.uniqueList((fields || []).map((field) => field.kind));
+        const solverFamilies = scope.uniqueList((solverPlan && solverPlan.families) || []);
+        const shapeSignature = scope.uniqueList((objects || []).map((object) => object.shape)).join('+');
+        const materialSignature = scope.uniqueList((objects || []).map((object) => object.material)).join('+');
+        const visualGenome = scope.visualGenomeForComposition(graph, objects, fields, solverPlan, spec, sceneKind);
         const visualIdentity = {
           schema: 'simulatte.visualIdentity.v1',
           sceneKind,
@@ -523,7 +516,7 @@
           scaleTier: visualGenome.scaleTier || '',
           motifs: visualGenome.motifs,
         };
-        const registry = renderRegistryRef();
+        const registry = scope.renderRegistryRef();
         const visualRecipe = registry && typeof registry.recipeForScene === 'function'
           ? registry.recipeForScene(sceneKind)
           : null;
@@ -532,7 +525,7 @@
           renderer: `simulatte.regime.${sceneKind}.v1`,
           sceneKind,
           dominantRegime,
-          passOrder: renderPassOrder(sceneKind, solverFamilies),
+          passOrder: scope.renderPassOrder(sceneKind, solverFamilies),
           visualRecipe,
           visualIdentity,
           visualGenome,
@@ -542,12 +535,12 @@
     function visualIRForRenderProgram(graph, objects, fields, solverPlan, spec, rendererPlan, sceneKind) {
         const baseVisualGenome = rendererPlan && rendererPlan.visualGenome || {};
         const environmentPrograms = spec && spec.renderIR && spec.renderIR.environmentPrograms || [];
-        const visualGenome = applyPromptEnvironmentVisualGenome(baseVisualGenome, environmentPrograms);
+        const visualGenome = scope.applyPromptEnvironmentVisualGenome(baseVisualGenome, environmentPrograms);
         const constructionApproach = spec && spec.renderIR && spec.renderIR.constructionApproach || {};
         const recipe = rendererPlan && rendererPlan.visualRecipe || null;
         const semantic = visualGenome.semanticVisuals || {};
-        const causalAffordances = causalAffordancesFromSpec(spec, sceneKind);
-        const graphicsAtoms = visualGraphicsAtomsForIR({
+        const causalAffordances = scope.causalAffordancesFromSpec(spec, sceneKind);
+        const graphicsAtoms = scope.visualGraphicsAtomsForIR({
           sceneKind,
           objects,
           fields,
@@ -558,37 +551,37 @@
           visualGenome,
           recipe,
         });
-        const baseVisualEntities = filterPromptPartSupportEntities(
-          (objects || []).map((object, index) => visualEntityForObject(object, index, sceneKind, constructionApproach)),
+        const baseVisualEntities = scope.filterPromptPartSupportEntities(
+          (objects || []).map((object, index) => scope.visualEntityForObject(object, index, sceneKind, constructionApproach)),
           spec && spec.renderIR && spec.renderIR.objects || []
         );
         const swimmingVisualLowering = lowerSwimmingVisualObligations(spec, baseVisualEntities, sceneKind);
         const visualEntities = swimmingVisualLowering.entities;
-        const materialRows = uniqueVisualRows([
+        const materialRows = scope.uniqueVisualRows([
           ...swimmingVisualLowering.materials,
-          ...visualMaterialsForObjects(objects, visualGenome, recipe, causalAffordances),
-          ...visualMaterialsForGraphicsAtoms(graphicsAtoms.materials),
+          ...scope.visualMaterialsForObjects(objects, visualGenome, recipe, causalAffordances),
+          ...scope.visualMaterialsForGraphicsAtoms(graphicsAtoms.materials),
         ]);
-        const fieldRows = uniqueVisualRows([
+        const fieldRows = scope.uniqueVisualRows([
           ...swimmingVisualLowering.fields,
-          ...(fields || []).map((field, index) => visualFieldForField(field, index, sceneKind)),
-          ...visualFieldsForGraphicsAtoms(graphicsAtoms.fields, sceneKind),
+          ...(fields || []).map((field, index) => scope.visualFieldForField(field, index, sceneKind)),
+          ...scope.visualFieldsForGraphicsAtoms(graphicsAtoms.fields, sceneKind),
         ]);
-        const processRows = uniqueVisualRows([
+        const processRows = scope.uniqueVisualRows([
           ...swimmingVisualLowering.processes,
-          ...visualProcessesForPlan(objects, solverPlan, semantic, sceneKind, causalAffordances),
-          ...visualProcessesForGraphicsAtoms(graphicsAtoms.processes, objects, sceneKind),
+          ...scope.visualProcessesForPlan(objects, solverPlan, semantic, sceneKind, causalAffordances),
+          ...scope.visualProcessesForGraphicsAtoms(graphicsAtoms.processes, objects, sceneKind),
         ]);
         const geometryRows = [
-          ...visualEntities.map((entity) => visualGeometryForEntity(entity, sceneKind)),
-          ...visualGeometryForCausalAffordances(causalAffordances, sceneKind),
-          ...visualGeometryForGraphicsAtoms(graphicsAtoms.geometry, sceneKind),
+          ...visualEntities.map((entity) => scope.visualGeometryForEntity(entity, sceneKind)),
+          ...scope.visualGeometryForCausalAffordances(causalAffordances, sceneKind),
+          ...scope.visualGeometryForGraphicsAtoms(graphicsAtoms.geometry, sceneKind),
         ];
-        const motionRows = uniqueVisualRows([
-          ...visualMotionForProcesses(processRows, visualGenome, sceneKind, causalAffordances),
-          ...visualMotionForGraphicsAtoms(graphicsAtoms.motion, visualGenome, sceneKind),
+        const motionRows = scope.uniqueVisualRows([
+          ...scope.visualMotionForProcesses(processRows, visualGenome, sceneKind, causalAffordances),
+          ...scope.visualMotionForGraphicsAtoms(graphicsAtoms.motion, visualGenome, sceneKind),
         ]);
-        const renderInstances = visualRenderInstancesForIR(
+        const renderInstances = scope.visualRenderInstancesForIR(
           visualEntities,
           geometryRows,
           materialRows,
@@ -597,8 +590,8 @@
           motionRows,
           sceneKind
         );
-        const baseCompositionLedger = visualCompositionLedgerForSpec(spec, visualEntities, renderInstances, processRows, fieldRows);
-        const operators = visualOperatorsForIR(
+        const baseCompositionLedger = scope.visualCompositionLedgerForSpec(spec, visualEntities, renderInstances, processRows, fieldRows);
+        const operators = scope.visualOperatorsForIR(
           visualEntities,
           materialRows,
           fieldRows,
@@ -610,14 +603,14 @@
           graphicsAtoms
         );
         const camera = {
-          ...visualCameraForScene(sceneKind, recipe, visualEntities, visualGenome),
+          ...scope.visualCameraForScene(sceneKind, recipe, visualEntities, visualGenome),
           atoms: graphicsAtoms.camera,
         };
-        const lighting = applyPromptEnvironmentLighting(
-          visualLightingForScene(sceneKind, recipe, visualGenome),
+        const lighting = scope.applyPromptEnvironmentLighting(
+          scope.visualLightingForScene(sceneKind, recipe, visualGenome),
           environmentPrograms
         );
-        const sceneRenderPacket = sceneRenderPacketForVisualIR({
+        const sceneRenderPacket = scope.sceneRenderPacketForVisualIR({
           sceneKind,
           camera,
           lighting,
@@ -632,16 +625,16 @@
           compositionLedger: baseCompositionLedger,
           visualGenome,
         });
-        const compositionLedger = mergeConstructionVisualObligations(baseCompositionLedger, sceneRenderPacket);
+        const compositionLedger = scope.mergeConstructionVisualObligations(baseCompositionLedger, sceneRenderPacket);
         sceneRenderPacket.compositionLedger = compositionLedger;
-        assertScenePacketIdentityPreserved(sceneRenderPacket);
+        scope.assertScenePacketIdentityPreserved(sceneRenderPacket);
         return {
-          schema: VISUAL_IR_SCHEMA,
+          schema: scope.VISUAL_IR_SCHEMA,
           compiler: 'simulatte.visual-ir.compiler.v1',
           intentText: graph && graph.intentText || '',
           sceneKind,
           painterKind: recipe && recipe.painterKind || sceneKind,
-          scale: visualScaleForScene(sceneKind, visualEntities),
+          scale: scope.visualScaleForScene(sceneKind, visualEntities),
           scaleTier: visualGenome.scaleTier || '',
           visualDialect: visualGenome.visualDialect || '',
           compositionTopology: visualGenome.compositionTopology || '',
@@ -656,12 +649,12 @@
           renderInstances,
           sceneRenderPacket,
           compositionLedger,
-          rejectedRows: visualRejectedRowsForIR(rendererPlan, graphicsAtoms),
+          rejectedRows: scope.visualRejectedRowsForIR(rendererPlan, graphicsAtoms),
           graphicsAtoms,
           operators,
           causalAffordances,
-          receipts: augmentVisualReceiptsWithIntentBrief(
-            visualReceiptsForIR(
+          receipts: scope.augmentVisualReceiptsWithIntentBrief(
+            scope.visualReceiptsForIR(
               visualEntities,
               materialRows,
               fieldRows,
@@ -675,7 +668,7 @@
             ),
             spec,
             sceneKind
-          ).concat([visualCompositionLedgerReceipt(compositionLedger), swimmingVisualLowering.receipt]),
+          ).concat([scope.visualCompositionLedgerReceipt(compositionLedger), swimmingVisualLowering.receipt]),
         };
       }
 
@@ -687,7 +680,7 @@
             materials: [],
             fields: [],
             processes: [],
-            receipt: swimmingVisualLoweringReceipt([], [], [], []),
+            receipt: scope.swimmingVisualLoweringReceipt([], [], [], []),
           };
         }
         const agentIds = new Set(agents.map((entity) => entity.id));
@@ -698,21 +691,21 @@
             agentIndex += 1;
             return lowered;
           }
-          if (isSwimmingWaterEntity(entity, sceneKind, spec)) {
-            return lowerSwimmingWaterEntity(entity);
+          if (scope.isSwimmingWaterEntity(entity, sceneKind, spec)) {
+            return scope.lowerSwimmingWaterEntity(entity);
           }
           return entity;
         });
         const loweredAgents = loweredEntities.filter((entity) => agentIds.has(entity.id));
         const materials = speciesMaterialRowsForSwimmingAgents(loweredAgents);
-        const fields = wakeFieldRowsForSwimmingAgents(loweredAgents);
-        const processes = swimmingEffectRowsForAgents(loweredAgents);
+        const fields = scope.wakeFieldRowsForSwimmingAgents(loweredAgents);
+        const processes = scope.swimmingEffectRowsForAgents(loweredAgents);
         return {
           entities: loweredEntities,
           materials,
           fields,
           processes,
-          receipt: swimmingVisualLoweringReceipt(loweredAgents, materials, fields, processes),
+          receipt: scope.swimmingVisualLoweringReceipt(loweredAgents, materials, fields, processes),
         };
       }
 
@@ -731,7 +724,7 @@
           const species = swimmingAgentSpecies(entity);
           return species === 'dog' || species === 'cat';
         });
-        return uniqueVisualRows(specific.length ? specific : rows).slice(0, 6);
+        return scope.uniqueVisualRows(specific.length ? specific : rows).slice(0, 6);
       }
 
     function entityHasSwimmingCue(entity = {}) {
@@ -811,7 +804,7 @@
             swimPose: species === 'dog' ? 'forelegs-paddle-head-up' : 'compact-paddle-tail-line',
             waterlineMask: true,
           },
-          geometryConstraints: uniqueList([
+          geometryConstraints: scope.uniqueList([
             ...(entity.geometryConstraints || []),
             'species-distinct-silhouette',
             'swim-waterline',
@@ -824,7 +817,7 @@
             wake: entity.stateBindings && entity.stateBindings.wake || `wake:${entity.id}`,
             submersion: entity.stateBindings && entity.stateBindings.submersion || `submersion:${entity.id}`,
           },
-          physicsOperators: uniqueList([
+          physicsOperators: scope.uniqueList([
             ...(entity.physicsOperators || []),
             'fluid_locomotion',
             'buoyancy',
@@ -833,7 +826,7 @@
             'body_water_contact',
             'partial_submersion',
           ]),
-          evidence: uniqueList([
+          evidence: scope.uniqueList([
             ...(entity.evidence || []),
             'visual-obligation:species-distinct-silhouettes',
             'visual-obligation:swimming-pose',
@@ -848,9 +841,9 @@
         const count = Math.max(1, total);
         const baseX = count === 1 ? 0.5 : 0.36 + (index / Math.max(1, count - 1)) * 0.28;
         const speciesOffset = species === 'dog' ? -0.035 : species === 'cat' ? 0.035 : 0;
-        const seed = hashProgram(`${sceneKind}:${entity.id}:${species}`) || 1;
-        const x = clamp(baseX + speciesOffset + unitFromSeed(seed, 3) * 0.025 - 0.0125, 0.16, 0.84);
-        const y = clamp(0.625 + index * 0.045 + unitFromSeed(seed, 5) * 0.025, 0.54, 0.74);
+        const seed = scope.hashProgram(`${sceneKind}:${entity.id}:${species}`) || 1;
+        const x = scope.clamp(baseX + speciesOffset + scope.unitFromSeed(seed, 3) * 0.025 - 0.0125, 0.16, 0.84);
+        const y = scope.clamp(0.625 + index * 0.045 + scope.unitFromSeed(seed, 5) * 0.025, 0.54, 0.74);
         const size = species === 'dog' ? [0.18, 0.085] : species === 'cat' ? [0.135, 0.07] : [0.15, 0.075];
         return {
           ...(entity.pose || {}),
@@ -870,7 +863,7 @@
       }
 
     function speciesMaterialRowsForSwimmingAgents(agents = []) {
-        const species = uniqueList((agents || []).map(swimmingAgentSpecies).filter(Boolean));
+        const species = scope.uniqueList((agents || []).map(swimmingAgentSpecies).filter(Boolean));
         const rows = species.map((name) => {
           const style = speciesSwimMaterialStyle(name);
           return {
@@ -926,7 +919,7 @@
         return { fill: '#b68b6a', stroke: '#5b3e2f', opacity: 0.82 };
       }
 
-    Object.assign(scope, {
+    root.SimulattePhaseModuleRegistry.define('compositionGraph', 'simulatte-composition-graph-render-ir-binding.js', {
       sceneKindForRenderIR,
       directSceneKindForRenderIR,
       directSceneKindForText,
@@ -942,7 +935,6 @@
       hasDirectMechanicalRigSignal,
       hasDirectOpticsSignal,
       hasRoboticsSignal,
-      positiveLanguageText,
       hasChemistryLabSignal,
       hasGranularCombustionSignal,
       hasThinFilmSignal,
@@ -972,5 +964,5 @@
       speciesMaterialRowsForSwimmingAgents,
       speciesSwimMaterialStyle,
     });
-  }
+
 })(typeof globalThis !== 'undefined' ? globalThis : window);

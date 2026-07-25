@@ -1,7 +1,6 @@
 (function attachSimulatteSemanticRagLexicalConstruction(root) {
-  const scope = root.__SimulatteSemanticRagRefactorScope;
-  if (!scope || scope.missingDependency) return;
-  with (scope) {
+  const scope = root.SimulattePhaseModuleRegistry.family('semanticRag');
+
     const PROTOTYPE_CONSTRUCTION_ROLES = new Set([
       'actor', 'concept', 'object', 'part', 'environment',
     ]);
@@ -310,10 +309,10 @@
 
     function lexicalConstructionIndex() {
       if (lexicalConstructionIndexCache) return lexicalConstructionIndexCache;
-      const basisById = new Map((GROUNDING_BASIS_CARDS || []).map((card) => [card.id, card]));
+      const basisById = new Map((scope.GROUNDING_BASIS_CARDS || []).map((card) => [card.id, card]));
       const exactLabels = new Map();
       const postings = new Map();
-      const docs = (SEMANTIC_SURFACE_CARDS || []).map((card, index) => {
+      const docs = (scope.SEMANTIC_SURFACE_CARDS || []).map((card, index) => {
         const normalizedLabels = uniqueConstructionStrings((card.labels || []).map(normalizeConstructionPhrase));
         const labelTokens = new Set(normalizedLabels.flatMap(constructionTokens));
         const tokens = new Set(constructionTokens([
@@ -394,11 +393,11 @@
       return Array.from(new Set(values.filter(Boolean).map((value) => String(value))));
     }
 
-    Object.assign(scope, {
+    root.SimulattePhaseModuleRegistry.define('semanticRag', 'simulatte-semantic-rag-lexical-construction.js', {
       createDeterministicSlotRetrieval,
       createPrototypeSlotRetrieval,
       lexicalConstructionIndex,
       normalizeConstructionPhrase,
     });
-  }
+
 })(typeof globalThis !== 'undefined' ? globalThis : window);

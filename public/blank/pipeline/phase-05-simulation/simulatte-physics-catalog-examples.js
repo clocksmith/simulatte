@@ -1,7 +1,6 @@
 (function attachSimulattePhysicsCatalogexamples(root) {
-  const scope = root.__SimulattePhysicsCatalogRefactorScope;
-  if (!scope || scope.missingDependency) return;
-  with (scope) {
+  const scope = root.SimulattePhaseModuleRegistry.family('physicsCatalog');
+
     const MATERIAL_PRIMITIVE_LIBRARY = Object.freeze([
         { id: 'water', type: 'material', controls: ['viscosity', 'moisture'], recipe: ['pressure', 'fluid-advection', 'phase-change'], text: 'water liquid wet river lake droplet' },
         { id: 'air', type: 'material', controls: ['pressure', 'windSpeed'], recipe: ['pressure', 'fluid-advection', 'diffusion'], text: 'air gas atmosphere wind pressure' },
@@ -117,11 +116,11 @@
         { id: 'ink', type: 'material', controls: ['viscosity', 'opacity'], recipe: ['diffusion', 'capillary-action', 'adsorption'], text: 'ink dye pigment liquid capillary staining print' },
         { id: 'dust', type: 'material', controls: ['density', 'turbulence'], recipe: ['granular-contact', 'fluid-advection', 'diffusion'], text: 'dust fine particles aerosol powder settled airborne' },
         { id: 'ash', type: 'material', controls: ['granularFriction', 'opacity'], recipe: ['combustion', 'granular-contact', 'diffusion'], text: 'ash combustion residue powder soot mineral particles' },
-      ].map((item) => toCatalogItem('material', item)));
+      ].map((item) => scope.toCatalogItem('material', item)));
 
-    const PRIMITIVE_LIBRARY = uniqueCatalogItems(
-        MATH_PRIMITIVE_LIBRARY,
-        PHYSICS_PRIMITIVE_LIBRARY,
+    const PRIMITIVE_LIBRARY = scope.uniqueCatalogItems(
+        scope.MATH_PRIMITIVE_LIBRARY,
+        scope.PHYSICS_PRIMITIVE_LIBRARY,
         MATERIAL_PRIMITIVE_LIBRARY
       );
 
@@ -186,7 +185,7 @@
         { id: 'microphone', recipe: ['membrane', 'copper', 'magnetized-metal', 'plastic'], text: 'microphone diaphragm sound pressure signal transducer' },
         { id: 'speaker', recipe: ['magnetized-metal', 'copper', 'membrane', 'plastic'], text: 'speaker coil magnet diaphragm acoustic vibration output' },
         { id: 'antenna', recipe: ['copper', 'aluminum', 'silicon', 'plastic'], text: 'antenna electromagnetic signal radiation reception network' },
-      ].map((item) => toCatalogItem('component', { ...item, type: 'component' })));
+      ].map((item) => scope.toCatalogItem('component', { ...item, type: 'component' })));
 
     const COMPOSITION_LIBRARY = Object.freeze([
         { id: 'forest-fire', recipe: ['flame', 'wind-field-component', 'river', 'rock-wall'], text: 'forest fire wood flame smoke wind spread' },
@@ -223,7 +222,7 @@
         { id: 'heat-exchanger-loop', recipe: ['heat-exchanger', 'pump', 'valve', 'sensor'], text: 'heat exchanger loop coolant flow thermal control' },
         { id: 'audio-feedback-room', recipe: ['microphone', 'speaker', 'controller', 'sensor'], text: 'audio feedback room acoustic resonance signal loop' },
         { id: 'battery-circuit', recipe: ['electrode', 'battery', 'antenna', 'sensor'], text: 'battery circuit electrochemical current signal load' },
-      ].map((item) => toCatalogItem('composition', { ...item, type: 'composition' })));
+      ].map((item) => scope.toCatalogItem('composition', { ...item, type: 'composition' })));
 
     const SCENE_LIBRARY = Object.freeze([
         { id: 'lab-bench', recipe: ['optics-bench', 'chemical-reactor'], text: 'lab bench instruments glass reactor optics' },
@@ -252,7 +251,7 @@
         { id: 'acoustic-room', recipe: ['audio-feedback-room', 'sensor-network'], text: 'acoustic room sound reflection microphone speaker feedback' },
         { id: 'electronics-bench', recipe: ['battery-circuit', 'sensor-network'], text: 'electronics bench battery circuit antenna sensors signals' },
         { id: 'ecology-pond', recipe: ['reef-ecosystem', 'soil-hydrology'], text: 'ecology pond plankton algae water soil nutrients' },
-      ].map((item) => toCatalogItem('scene', { ...item, type: 'scene' })));
+      ].map((item) => scope.toCatalogItem('scene', { ...item, type: 'scene' })));
 
     const MATERIAL_PROPERTY_SCHEMA = Object.freeze([
         ['density', 0.5],
@@ -649,19 +648,19 @@
         { id: 'failure-recovery', when: ['queue'], trigger: 'backlog saturates then service catches up', outputs: ['delay', 'throughput'] },
       ]);
 
-    const LAYERED_PRIMITIVES = uniqueCatalogItems(
+    const LAYERED_PRIMITIVES = scope.uniqueCatalogItems(
         PRIMITIVE_LIBRARY,
         COMPONENT_LIBRARY,
         COMPOSITION_LIBRARY,
         SCENE_LIBRARY
       );
 
-    const PHYSICAL_PRIMITIVES = uniqueCatalogItems(
+    const PHYSICAL_PRIMITIVES = scope.uniqueCatalogItems(
         LAYERED_PRIMITIVES,
-        BASE_CATALOG_ITEMS
+        scope.BASE_CATALOG_ITEMS
       );
 
-    Object.assign(scope, {
+    root.SimulattePhaseModuleRegistry.define('physicsCatalog', 'simulatte-physics-catalog-examples.js', {
       MATERIAL_PRIMITIVE_LIBRARY,
       PRIMITIVE_LIBRARY,
       COMPONENT_LIBRARY,
@@ -692,5 +691,5 @@
       LAYERED_PRIMITIVES,
       PHYSICAL_PRIMITIVES,
     });
-  }
+
 })(typeof globalThis !== 'undefined' ? globalThis : window);

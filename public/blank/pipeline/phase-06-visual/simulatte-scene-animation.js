@@ -1,7 +1,6 @@
 (function attachSimulatteSceneAnimation(root) {
-  const scope = root.__SimulatteCompositionGraphRefactorScope;
-  if (!scope || scope.missingDependency) return;
-  with (scope) {
+  const scope = root.SimulattePhaseModuleRegistry.family('compositionGraph');
+
     function scenePacketAnimation({ layerSlot, entity = null, field = null, process = null, motion = null, text = '', index = 0 }) {
       const value = `${layerSlot || ''} ${text || ''}`.toLowerCase();
       const behaviorProcesses = ((entity && entity.behavior && entity.behavior.processes) || [])
@@ -16,7 +15,7 @@
       const pose = String(entity && entity.poseHint && entity.poseHint.pose || '').toLowerCase();
       const promptIdentity = entity && (entity.directlyGrounded === true || entity.visualArchetype ||
         /^prompt\./.test(String(entity.semanticRef || entity.physicalRef || '')));
-      const promptOwnedLayer = promptOwnedLayerSlotForEntity(entity);
+      const promptOwnedLayer = scope.promptOwnedLayerSlotForEntity(entity);
       const naturallyDynamicMedium = promptOwnedLayer
         ? /water-volume|flow-field/.test(promptOwnedLayer)
         : /water-volume|watershed|ocean|river|fluid/.test(value);
@@ -56,7 +55,7 @@
         speed,
         amplitude: animationAmplitudeForKind(kind),
         phase: Number(((index % 17) / 17).toFixed(3)),
-        affects: uniqueList([
+        affects: scope.uniqueList([
           entity && entity.id,
           field && field.id,
           process && process.id,
@@ -112,10 +111,10 @@
       return 0.035;
     }
 
-    Object.assign(scope, {
+    root.SimulattePhaseModuleRegistry.define('compositionGraph', 'simulatte-scene-animation.js', {
       scenePacketAnimation,
       animationSpeedForKind,
       animationAmplitudeForKind,
     });
-  }
+
 })(typeof globalThis !== 'undefined' ? globalThis : window);

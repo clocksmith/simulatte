@@ -1,10 +1,13 @@
 (function attachSimulatteRenderRegistry(root, factory) {
-  const api = factory();
+  const positiveLanguage = typeof module === 'object' && module.exports
+    ? require('../../../shared/language/positive-language.js')
+    : root.SimulattePositiveLanguage;
+  const api = factory(positiveLanguage);
   if (typeof module === 'object' && module.exports) {
     module.exports = api;
   }
   root.SimulatteRenderRegistry = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createRenderRegistryApi() {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createRenderRegistryApi(positiveLanguage) {
   const RENDER_REGISTRY_SCHEMA = 'simulatte.renderRegistry.v1';
 
   const MATERIAL_STYLES = Object.freeze({
@@ -368,10 +371,7 @@
   }
 
   function positiveLanguageText(value = '') {
-    const word = "[a-z0-9]+(?:[-'][a-z0-9]+)*";
-    const stop = '(?:and|with|while|where|when|because|but|however|though|although|unless|inside|outside|near|around|between|against|across|during|through|then|so)';
-    const negated = new RegExp(`\\b(?:no|not|never|none|without|cannot|can't|wont|won't|avoid|exclude|except)\\b(?:\\s+(?:a|an|the|any))?(?:\\s+(?!\\b${stop}\\b)${word}){1,6}`, 'gi');
-    return String(value || '').toLowerCase().replace(negated, ' ').replace(/\s+/g, ' ').trim();
+    return positiveLanguage.positiveLanguageText(value, { lowercase: true });
   }
 
   function painterKindForScene(sceneKind = '') {

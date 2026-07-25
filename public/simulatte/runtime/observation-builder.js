@@ -5,10 +5,14 @@
   const retrieval = typeof module === 'object' && module.exports
     ? require('./feature-retrieval.js')
     : root.SimulatteAutonomyFeatureRetrieval;
-  const api = factory(contracts, retrieval);
+  const deterministicValues = typeof module === 'object' && module.exports
+    ? require('../../shared/deterministic-values.js')
+    : root.SimulatteDeterministicValues;
+  const api = factory(contracts, retrieval, deterministicValues);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteAutonomyObservationBuilder = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyObservationBuilder(contracts, retrieval) {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyObservationBuilder(contracts, retrieval, deterministicValues) {
+  const round = deterministicValues.round9;
   function buildObservation({ mission, state, route, worldModel, policyMemory, policy, featureCatalog, occurrenceReceipt }) {
     const position = worldModel.agentPosition(state);
     const nearbyActors = worldModel.nearbyActors(position, state.tick, policy.safety.nearbyActorRadiusM).map((actor) => ({
@@ -73,10 +77,6 @@
 
   function roundPoint(point) {
     return { x: round(point.x), y: round(point.y) };
-  }
-
-  function round(value) {
-    return Number(value.toFixed(9));
   }
 
   function boundedIdentities(rows, maximum) {

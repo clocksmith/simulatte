@@ -1,7 +1,6 @@
 (function attachSimulattePhysicsCatalogmaterials(root) {
-  const scope = root.__SimulattePhysicsCatalogRefactorScope;
-  if (!scope || scope.missingDependency) return;
-  with (scope) {
+  const scope = root.SimulattePhaseModuleRegistry.family('physicsCatalog');
+
     const PROCEDURAL_VISUAL_BASE = Object.freeze({
         schema: 'simulatte.proceduralVisualBase.v1',
         markFamilies: Object.freeze(['rectilinear', 'ring', 'triad', 'zigzag', 'lens', 'cross', 'spline', 'spoke', 'solid-cell']),
@@ -419,7 +418,7 @@
         swimming: SWIMMING_VISUAL_SLOT_TARGETS,
       });
 
-    Object.assign(scope, {
+    root.SimulattePhaseModuleRegistry.define('physicsCatalog', 'simulatte-physics-catalog-materials.js', {
       PROCEDURAL_VISUAL_BASE,
       SEMANTIC_VISUAL_ATLAS,
       TEMPLATE_LIBRARY,
@@ -429,5 +428,5 @@
       SWIMMING_VISUAL_SLOT_TARGETS,
       ACTION_VISUAL_SLOT_TARGETS,
     });
-  }
+
 })(typeof globalThis !== 'undefined' ? globalThis : window);

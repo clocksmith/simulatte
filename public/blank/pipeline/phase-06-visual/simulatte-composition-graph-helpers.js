@@ -1,13 +1,12 @@
 (function attachSimulatteCompositionGraphhelpers(root) {
-  const scope = root.__SimulatteCompositionGraphRefactorScope;
-  if (!scope || scope.missingDependency) return;
-  with (scope) {
+  const scope = root.SimulattePhaseModuleRegistry.family('compositionGraph');
+
     function sceneKindFromSemantics(graph, objects, fields, spec) {
-        const direct = normalizedSceneHint(spec && spec.renderIR && spec.renderIR.sceneHint);
+        const direct = scope.normalizedSceneHint(spec && spec.renderIR && spec.renderIR.sceneHint);
         if (direct && direct !== 'literal-composite') return direct;
-        const registry = renderRegistryRef();
+        const registry = scope.renderRegistryRef();
         if (registry && typeof registry.sceneHintForObjects === 'function') {
-          const hint = normalizedSceneHint(registry.sceneHintForObjects(
+          const hint = scope.normalizedSceneHint(registry.sceneHintForObjects(
             objects || [],
             (spec && spec.physicsIR) || {},
             (spec && spec.solverGraph) || {}
@@ -19,10 +18,10 @@
 
     function resolveSceneKind(graph, objects, fields, spec) {
         const semantic = sceneKindFromSemantics(graph, objects, fields, spec);
-        const promptText = directPromptSceneText((spec && spec.renderIR) || {}, spec || {});
-        const objectText = (objects || []).map(renderObjectText).join(' ');
-        const directScene = directSceneKindForText([promptText, objectText].join(' '), promptText);
-        if (directScene && broadSceneHintCanYieldToDirectLanguage(semantic)) return directScene;
+        const promptText = scope.directPromptSceneText((spec && spec.renderIR) || {}, spec || {});
+        const objectText = (objects || []).map(scope.renderObjectText).join(' ');
+        const directScene = scope.directSceneKindForText([promptText, objectText].join(' '), promptText);
+        if (directScene && scope.broadSceneHintCanYieldToDirectLanguage(semantic)) return directScene;
         if (semantic && semantic !== 'generic') return semantic;
         return sceneKindForComposition(graph, objects, fields, spec);
       }
@@ -45,7 +44,7 @@
         if (/ferrofluid|copper coil|pulsing current|magnetic spikes/.test(promptText)) {
           return 'ferrofluid';
         }
-        if (hasThinFilmSignal(promptText)) {
+        if (scope.hasThinFilmSignal(promptText)) {
           return 'thin-film';
         }
         if (hasAcousticWaveSignal(promptText)) {
@@ -91,12 +90,12 @@
         if (operatorIds.has('growthDecay')) {
           return 'biology';
         }
-        if (hasRoboticsSignal(text)) return 'robotics-control';
-        if (hasChemistryLabSignal(text)) return 'chemistry-lab';
-        if (hasGranularCombustionSignal(text)) return 'granular';
+        if (scope.hasRoboticsSignal(text)) return 'robotics-control';
+        if (scope.hasChemistryLabSignal(text)) return 'chemistry-lab';
+        if (scope.hasGranularCombustionSignal(text)) return 'granular';
         if (/thermal plume|cooling fin|heat plume/.test(text)) return 'thermal-plume';
         if (/ferrofluid|coil|current|copper conductor|magnetic spikes/.test(text)) return 'ferrofluid';
-        if (hasThinFilmSignal(text)) return 'thin-film';
+        if (scope.hasThinFilmSignal(text)) return 'thin-film';
         if (hasAcousticWaveSignal(text)) return 'acoustic';
         if (/granular|grain-bed|bead|sieve|avalanche|powder/.test(text)) return 'granular';
         if (/flame|fuel-bed|fire-front|smoke|combust/.test(text)) return 'fire';
@@ -115,7 +114,7 @@
         const universeGraph = spec.universeGraph || {};
         const physicsIR = spec.physicsIR || {};
         const promptParse = spec.promptParse || {};
-        return positiveLanguageText([
+        return scope.positiveLanguageText([
           renderIR.prompt,
           universeGraph.prompt,
           physicsIR.prompt,
@@ -126,7 +125,7 @@
       }
 
     function hasAcousticWaveSignal(text = '') {
-        const positive = positiveLanguageText(text);
+        const positive = scope.positiveLanguageText(text);
         return /\b(acoustic|sound|standing wave|standing waves|pressure wave|pressure waves|waveguide|resonance|resonator|levitator|speaker|brass tube)\b/.test(positive) ||
           (/\b(dust|particle|particles)\b/.test(positive) &&
             /\b(levitate|levitator|standing|pressure|acoustic|sound|wave|tube|brass)\b/.test(positive));
@@ -138,7 +137,7 @@
             /^(?:phase|amplitude)$/.test(field.kind) ? { ...field, kind: 'force-field' } : field
           ))
           : fields || [];
-        const registry = renderRegistryRef();
+        const registry = scope.renderRegistryRef();
         const recipe = registry && typeof registry.recipeForScene === 'function'
           ? registry.recipeForScene(sceneKind)
           : null;
@@ -170,7 +169,7 @@
       }
 
     function dominantRegimeForScene(sceneKind, objects) {
-        const registry = renderRegistryRef();
+        const registry = scope.renderRegistryRef();
         const recipe = registry && typeof registry.recipeForScene === 'function'
           ? registry.recipeForScene(sceneKind)
           : null;
@@ -204,7 +203,7 @@
       }
 
     function renderPassOrder(sceneKind, solverFamilies) {
-        const registry = renderRegistryRef();
+        const registry = scope.renderRegistryRef();
         const recipe = registry && typeof registry.recipeForScene === 'function'
           ? registry.recipeForScene(sceneKind)
           : null;
@@ -224,7 +223,7 @@
         if (sceneKind === 'mechanical') return ['clear', 'constraint-space', 'bodies', 'contacts', 'impulse-ledger'];
         if (sceneKind === 'literal-composite') return ['clear', 'environment', 'literal-objects', 'contacts', 'fields'];
         if (sceneKind === 'acoustic') return ['clear', 'waveguide', 'pressure-fronts', 'resonators', 'objects'];
-        return uniqueList([...shared, ...(solverFamilies || [])]);
+        return scope.uniqueList([...shared, ...(solverFamilies || [])]);
       }
 
     function refineSolverPlanForScene(plan, sceneKind) {
@@ -246,14 +245,14 @@
           ], ['particle-advection']);
         }
         if (sceneKind !== 'mechanical') return plan;
-        const families = uniqueList([
+        const families = scope.uniqueList([
           'constraint-dynamics',
           ...(plan.families || []).filter((family) => family === 'membrane-relaxation'),
         ]);
         return {
           ...plan,
           families,
-          state: uniqueList([
+          state: scope.uniqueList([
             ...(plan.state || []),
             'contact-manifold',
             'impulse',
@@ -264,12 +263,12 @@
 
     function solverPlanWithSceneFamilies(plan, allowedFamilies, fallbackFamilies) {
         const allowed = new Set(allowedFamilies);
-        const families = uniqueList((plan.families || []).filter((family) => allowed.has(family)));
+        const families = scope.uniqueList((plan.families || []).filter((family) => allowed.has(family)));
         const finalFamilies = families.length ? families : fallbackFamilies.slice();
         return {
           ...plan,
           families: finalFamilies,
-          state: uniqueList(finalFamilies.flatMap(stateTexturesForFamily)),
+          state: scope.uniqueList(finalFamilies.flatMap(stateTexturesForFamily)),
         };
       }
 
@@ -287,9 +286,9 @@
       }
 
     function expandedSceneKindForText(value) {
-        const registry = renderRegistryRef();
+        const registry = scope.renderRegistryRef();
         if (!registry || typeof registry.sceneHintForText !== 'function') return '';
-        const scene = normalizedSceneHint(registry.sceneHintForText(value));
+        const scene = scope.normalizedSceneHint(registry.sceneHintForText(value));
         return scene && scene !== 'generic' ? scene : '';
       }
 
@@ -326,7 +325,7 @@
       }
 
     function sizeForNode(node, spec) {
-        const density = clamp(Number(spec.params && spec.params.complexity || 0.5), 0, 1);
+        const density = scope.clamp(Number(spec.params && spec.params.complexity || 0.5), 0, 1);
         if (node.shape === 'wheel') return [0.24, 0.24];
         if (node.shape === 'animal-body') return [0.16, 0.1];
         if (node.shape === 'coil') return [0.16, 0.12];
@@ -424,8 +423,8 @@
           schema: 'simulatte.solverPlan.v1',
           integrator: 'mixed-semi-implicit',
           operatorIds: Array.from(operatorIds),
-          families: uniqueList(families),
-          state: uniqueList(families.flatMap(stateTexturesForFamily)),
+          families: scope.uniqueList(families),
+          state: scope.uniqueList(families.flatMap(stateTexturesForFamily)),
         };
       }
 
@@ -467,12 +466,12 @@
         if (['wave_field', 'oscillator'].some((type) => types.has(type))) families.push('wave-equation');
         if (types.has('network_flow')) families.push('network-flow');
         if (types.has('particle_deposition')) families.push('granular-settling');
-        return uniqueList(families);
+        return scope.uniqueList(families);
       }
 
     function solverStateForExecutableSteps(solverGraph = {}, steps = []) {
         void solverGraph;
-        return uniqueList([
+        return scope.uniqueList([
           ...steps.flatMap((step) => [
             ...(step.reads || step.inputs || []),
             ...(step.writes || step.outputs || []),
@@ -833,15 +832,10 @@
       }
 
     function hashProgram(value) {
-        let h = 2166136261;
-        for (let i = 0; i < String(value).length; i += 1) {
-          h ^= String(value).charCodeAt(i);
-          h = Math.imul(h, 16777619);
-        }
-        return h >>> 0;
+        return scope.fnv1a32(value);
       }
 
-    Object.assign(scope, {
+    root.SimulattePhaseModuleRegistry.define('compositionGraph', 'simulatte-composition-graph-helpers.js', {
       sceneKindFromSemantics,
       resolveSceneKind,
       sceneKindForComposition,
@@ -878,5 +872,5 @@
       part,
       hashProgram,
     });
-  }
+
 })(typeof globalThis !== 'undefined' ? globalThis : window);

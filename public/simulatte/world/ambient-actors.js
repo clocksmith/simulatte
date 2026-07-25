@@ -1,8 +1,11 @@
 (function attachAutonomyAmbientActors(root, factory) {
-  const api = factory();
+  const deterministicValues = typeof module === 'object' && module.exports
+    ? require('../../shared/deterministic-values.js')
+    : root.SimulatteDeterministicValues;
+  const api = factory(deterministicValues);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteAutonomyAmbientActors = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyAmbientActors() {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyAmbientActors(deterministicValues) {
   const SCHEMA = 'simulatte.autonomyAmbientActorCompilation.v1';
   const ACTIVE_UNTIL_TICK = 1000000000;
   const CONFIG = Object.freeze({
@@ -148,12 +151,7 @@
   }
 
   function stableSuffix(value) {
-    let hash = 2166136261;
-    for (const character of String(value)) {
-      hash ^= character.codePointAt(0);
-      hash = Math.imul(hash, 16777619);
-    }
-    return (hash >>> 0).toString(16).padStart(8, '0');
+    return deterministicValues.fnv1a32CodePoints(value).toString(16).padStart(8, '0');
   }
 
   return { ACTIVE_UNTIL_TICK, CONFIG, SCHEMA, compileAmbientActors, insetClosedPath, polylineLength };

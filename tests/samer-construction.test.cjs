@@ -8,6 +8,7 @@ const { pathToFileURL } = require('node:url');
 const lab = require('../public/blank/app/simulation/simulation-lab.js');
 require('../public/blank/pipeline/phase-07-render/simulatte-webgpu-renderer.js');
 const constructionSearch = require('../public/blank/app/prompt/prompt-controller-construction-search.js');
+const { phaseFamily } = require('./phase-module-fixture.cjs');
 const root = path.resolve(__dirname, '..');
 const goldSetPath = path.join(root, 'tools/samer/simulatte-public-gold-v1.json');
 const contractPath = path.join(root, 'tools/samer/simulatte-construction-contract.json');
@@ -171,7 +172,7 @@ test('renderer scene proof reports only become final after required pixel eviden
     canvas: { dataset: {} },
     onSceneProof: (report) => reports.push(report),
   };
-  const notify = globalThis.__SimulatteWebGpuRendererRefactorScope.notifyRendererSceneProof;
+  const notify = phaseFamily('webGpuRenderer').notifyRendererSceneProof;
   assert.equal(notify(renderer).final, false);
   renderer.renderData.livePixelSamples = {
     schema: 'simulatte.phase7PixelSampleSet.v1',
@@ -218,7 +219,7 @@ test('playing with creates a shared pose and relation while flight stays on the 
   assert.ok(octopus.animation.speed > 0 && octopus.animation.amplitude > 0);
   assert.ok(teapot.transform.scale[0] <= octopus.transform.scale[0] * 0.6);
   assert.ok(teapot.transform.scale[1] <= octopus.transform.scale[1] * 0.6);
-  const renderedHoldParts = globalThis.__SimulatteWebGpuRendererRefactorScope.scenePacketObjectParts(holdPacket);
+  const renderedHoldParts = phaseFamily('webGpuRenderer').scenePacketObjectParts(holdPacket);
   const octopusParts = renderedHoldParts.filter((row) => row.entityId === octopus.id);
   const renderedTentacles = octopusParts.filter((row) => row.constructionRole === 'appendage');
   assert.equal(renderedTentacles.length, 16, 'eight semantic tentacles render as two joined segments each');
@@ -249,7 +250,7 @@ test('playing with creates a shared pose and relation while flight stays on the 
 test('Phase 7 accepts standing-leg and seated-thigh person topologies', () => {
   const standing = lab.createSpecFromPrompt('3 dogs playing with 7 people', { allowPrototypeFallback: true });
   const seated = lab.createSpecFromPrompt('a person sitting at a table', { allowPrototypeFallback: true });
-  const rendererScope = globalThis.__SimulatteWebGpuRendererRefactorScope;
+  const rendererScope = phaseFamily('webGpuRenderer');
   const standingData = rendererScope.compileSceneRenderData(
     standing.phaseArtifacts.phase6.artifact.visualCompile.sceneRenderPacket
   );

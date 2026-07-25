@@ -1,8 +1,12 @@
 (function attachAutonomyReferenceDynamics(root, factory) {
-  const api = factory();
+  const deterministicValues = typeof module === 'object' && module.exports
+    ? require('../../shared/deterministic-values.js')
+    : root.SimulatteDeterministicValues;
+  const api = factory(deterministicValues);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteAutonomyDynamics = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyReferenceDynamics() {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyReferenceDynamics(deterministicValues) {
+  const round = deterministicValues.round9;
   function simulateAction({ state, action, worldModel, embodiment, mission, policy }) {
     const before = structuredClone(state);
     const next = structuredClone(state);
@@ -121,10 +125,6 @@
 
   function clamp(value, minimum, maximum) {
     return Math.max(minimum, Math.min(maximum, value));
-  }
-
-  function round(value) {
-    return Number(value.toFixed(9));
   }
 
   function roundPoint(point) {

@@ -1,7 +1,6 @@
 (function attachSimulatteIntentEmbedderfacadesupport(root) {
-  const scope = root.__SimulatteIntentEmbedderRefactorScope;
-  if (!scope || scope.missingDependency) return;
-  with (scope) {
+  const scope = root.SimulattePhaseModuleRegistry.family('intentEmbedder');
+
     const EMBEDDING_CACHE_PROGRESS = Object.freeze({ start: 20, end: 42 });
 
     const EMBEDDING_LOAD_PROGRESS = Object.freeze({ start: 42, end: 72 });
@@ -32,7 +31,7 @@
         universeScore: 0.12,
       });
 
-    Object.assign(scope, {
+    root.SimulattePhaseModuleRegistry.define('intentEmbedder', 'simulatte-intent-embedder-facade-support.js', {
       EMBEDDING_CACHE_PROGRESS,
       EMBEDDING_LOAD_PROGRESS,
       RERANKER_CACHE_PROGRESS,
@@ -41,5 +40,5 @@
       PROMPT_RUNTIME_PROBES,
       HEURISTIC_FUSION_WEIGHTS,
     });
-  }
+
 })(typeof globalThis !== 'undefined' ? globalThis : window);

@@ -5,12 +5,15 @@
   const operatorStage = typeof module === 'object' && module.exports
     ? require('./simulatte-operator-stage.js')
     : root.SimulatteOperatorStage;
-  const api = factory(registryApi || {}, operatorStage || {});
+  const deterministicValues = typeof module === 'object' && module.exports
+    ? require('../../../shared/deterministic-values.js')
+    : root.SimulatteDeterministicValues;
+  const api = factory(registryApi || {}, operatorStage || {}, deterministicValues || {});
   if (typeof module === 'object' && module.exports) {
     module.exports = api;
   }
   root.SimulatteSolverCompiler = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createSolverCompilerApi(registryApi = {}, operatorStage = {}) {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createSolverCompilerApi(registryApi = {}, operatorStage = {}, deterministicValues = {}) {
   const SOLVER_GRAPH_SCHEMA = 'simulatte.solverGraph.v1';
   const ENERGY_LEDGER_SCHEMA = 'simulatte.energyLedger.v1';
   const CHECKPOINT_SCHEMA = 'simulatte.checkpoint.v1';
@@ -466,12 +469,7 @@
 
   function canonicalHash(value) {
     const source = JSON.stringify(canonicalValue(value));
-    let hash = 2166136261;
-    for (let index = 0; index < source.length; index += 1) {
-      hash ^= source.charCodeAt(index);
-      hash = Math.imul(hash, 16777619);
-    }
-    return `fnv1a32:${(hash >>> 0).toString(16).padStart(8, '0')}`;
+    return `fnv1a32:${deterministicValues.fnv1a32(source).toString(16).padStart(8, '0')}`;
   }
 
   function canonicalValue(value) {

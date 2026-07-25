@@ -1,7 +1,6 @@
 (function attachSimulatteWebGpuRendererPartSegmentation(root) {
-  const scope = root.__SimulatteWebGpuRendererRefactorScope;
-  if (!scope || scope.missingDependency) return;
-  with (scope) {
+  const scope = root.SimulattePhaseModuleRegistry.family('webGpuRenderer');
+
     function scenePacketConstructionParts(program = {}) {
       const parts = Array.isArray(program.parts) ? program.parts : [];
       if (program.constructionReceipt?.topologyId !== 'cephalopod') return parts;
@@ -72,9 +71,9 @@
       return Math.hypot(left[0] - right[0], left[1] - right[1]);
     }
 
-    Object.assign(scope, {
+    root.SimulattePhaseModuleRegistry.define('webGpuRenderer', 'simulatte-webgpu-renderer-part-segmentation.js', {
       scenePacketConstructionParts,
       cephalopodTentacleSegments,
     });
-  }
+
 })(typeof globalThis !== 'undefined' ? globalThis : window);

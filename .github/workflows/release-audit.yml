@@ -19,8 +19,18 @@ jobs:
           node-version: '22'
           cache: 'npm'
 
+      - name: Setup classifier generator Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: 'pip'
+          cache-dependency-path: tools/samer/requirements-compact-classifiers.txt
+
       - name: Install dependencies
-        run: npm ci || npm install
+        run: npm ci
+
+      - name: Install pinned classifier generator
+        run: python -m pip install -r tools/samer/requirements-compact-classifiers.txt
 
       - name: Verify plugin boundaries and generated registry
         run: npm run plugins:check
@@ -48,7 +58,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci || npm install
+        run: npm ci
 
       - name: Install Chrome
         run: |
@@ -57,6 +67,15 @@ jobs:
 
       - name: Run City autonomy browser audit
         run: npm run audit:simulatte:browser -- --check --chrome /usr/bin/google-chrome-stable
+
+      - name: Run City autonomy mobile browser audit
+        run: npm run audit:simulatte:browser -- --check --viewport 390x844 --chrome /usr/bin/google-chrome-stable
+
+      - name: Run Blank Phase 8 gold browser audit
+        run: npm run audit:blank:gold:desktop -- --chrome /usr/bin/google-chrome-stable
+
+      - name: Run Blank mobile Phase 8 gold browser audit
+        run: npm run audit:blank:gold:mobile -- --chrome /usr/bin/google-chrome-stable
 
       - name: Run non-city 4-tier browser smoke audit
         run: node tools/simulatte/run-tier-browser-smoke.mjs --check --chrome /usr/bin/google-chrome-stable

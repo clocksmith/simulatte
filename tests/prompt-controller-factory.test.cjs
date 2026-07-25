@@ -6,16 +6,26 @@ const vm = require('node:vm');
 
 const root = path.resolve(__dirname, '..');
 const promptDir = path.join(root, 'public', 'blank', 'app', 'prompt');
+const runtimeManifest = require('../public/blank/app/runtime-script-manifest.js');
+
+test('bounded classification loads before the model-backed embedder', () => {
+  const bounded = 'pipeline/phase-03-retrieval/simulatte-intent-embedder-bounded-classification.js';
+  const embedder = 'pipeline/phase-03-retrieval/simulatte-intent-embedder-manifest-cache.js';
+  assert.ok(runtimeManifest.browser.indexOf(bounded) < runtimeManifest.browser.indexOf(embedder));
+  assert.ok(runtimeManifest.intentWorker.indexOf(bounded) < runtimeManifest.intentWorker.indexOf(embedder));
+});
 
 test('prompt controller keeps its public CommonJS API', () => {
   const api = require(path.join(promptDir, 'prompt-controller.js'));
   const support = require(path.join(promptDir, 'prompt-controller-dependencies.js'));
   const workers = require(path.join(promptDir, 'prompt-controller-workers.js'));
   const training = require(path.join(promptDir, 'prompt-controller-training.js'));
+  const runtime = require(path.join(promptDir, 'prompt-controller-runtime.js'));
   const lab = require(path.join(promptDir, 'prompt-controller-lab-controller.js'));
   assert.deepEqual(Object.keys(api), ['createBrowserLab', 'start']);
   assert.deepEqual(Object.keys(lab), ['createBrowserLab']);
   assert.deepEqual(Object.keys(training), ['logGraphDebug', 'syncWorldModelReceipt']);
+  assert.equal(typeof runtime.createIntentWorkerClient, 'function');
   assert.deepEqual(Object.keys(workers), [
     'createPipelineCompiler',
     'worldModelReceiptElements',
@@ -49,11 +59,13 @@ test('prompt controller browser layers publish the API in manifest order', () =>
     SimulatteConstructionSearch: require(path.join(promptDir, 'prompt-controller-construction-search.js')),
     SimulatteNeuralModelConsent: require('../public/neural-model-consent.js'),
     SimulatteModelSelection: require('../public/model-selection.js'),
+    SimulatteRunViewModel: require('../public/blank/app/runtime/run-view-model.js'),
   });
   for (const file of [
     'prompt-controller-workers.js',
     'prompt-controller-training.js',
     'prompt-model-selection.js',
+    'prompt-controller-runtime.js',
     'prompt-controller-lab-controller.js',
     'prompt-controller.js',
   ]) {

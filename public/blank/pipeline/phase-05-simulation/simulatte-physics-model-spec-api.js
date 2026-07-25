@@ -1,10 +1,9 @@
 (function attachSimulattePhysicsModelspecapi(root) {
-  const scope = root.__SimulattePhysicsModelRefactorScope;
-  if (!scope || scope.missingDependency) return;
-  with (scope) {
+  const scope = root.SimulattePhaseModuleRegistry.family('physicsModel');
+
     function createReactionState(params = {}) {
-        const next = { ...templateById('reaction-diffusion').params, ...params };
-        const size = FIELD_GRID;
+        const next = { ...scope.templateById('reaction-diffusion').params, ...params };
+        const size = scope.FIELD_GRID;
         const a = new Float32Array(size * size).fill(1);
         const b = new Float32Array(size * size);
         const heat = new Float32Array(size * size);
@@ -12,7 +11,7 @@
         for (let y = 0; y < size; y += 1) {
           for (let x = 0; x < size; x += 1) {
             const dist = Math.hypot(x - center, y - center);
-            if (dist < size * 0.12 || hashNoise(x, y) > 0.986) {
+            if (dist < size * 0.12 || scope.hashNoise(x, y) > 0.986) {
               const idx = y * size + x;
               b[idx] = 0.9;
               a[idx] = 0.25;
@@ -50,8 +49,8 @@
 
     function stepReactionState(inputState, inputParams, dtInput) {
         const params = { ...inputState.params, ...inputParams };
-        const dt = clamp(Number(dtInput || 0.016), 0.001, 0.05);
-        const size = inputState.size || FIELD_GRID;
+        const dt = scope.clamp(Number(dtInput || 0.016), 0.001, 0.05);
+        const size = inputState.size || scope.FIELD_GRID;
         const a = new Float32Array(inputState.a);
         const b = new Float32Array(inputState.b);
         const heat = new Float32Array(inputState.heat);
@@ -70,14 +69,14 @@
             const reaction = av * bv * bv * (0.75 + params.catalyst * 0.45);
             const da = params.diffusionA * laplace(a, size, x, y) - reaction + params.feedRate * (1 - av);
             const db = params.diffusionB * laplace(b, size, x, y) + reaction - (params.killRate + params.feedRate) * bv;
-            const nvA = clamp(av + da * scale, 0, 1);
-            const nvB = clamp(bv + db * scale, 0, 1);
+            const nvA = scope.clamp(av + da * scale, 0, 1);
+            const nvB = scope.clamp(bv + db * scale, 0, 1);
             nextA[idx] = nvA;
             nextB[idx] = nvB;
-            nextHeat[idx] = clamp(heat[idx] + reaction * scale * 0.22 - params.cooling * heat[idx] * dt, 0, 1);
+            nextHeat[idx] = scope.clamp(heat[idx] + reaction * scale * 0.22 - params.cooling * heat[idx] * dt, 0, 1);
             massB += nvB;
             front += Math.abs(nvB - bv);
-            const local = clamp01(nvB);
+            const local = scope.clamp01(nvB);
             entropy += local > 0 && local < 1 ? -local * Math.log(local) : 0;
           }
         }
@@ -100,14 +99,14 @@
         return {
           kind: 'blank-world',
           t: 0,
-          params: { ...templateById('blank-world').params, ...spec.params },
+          params: { ...scope.templateById('blank-world').params, ...spec.params },
           modules: [],
           objects: [],
         };
       }
 
     function stepBlankState(inputState, spec, dtInput) {
-        const dt = clamp(Number(dtInput || 0.016), 0.001, 0.05);
+        const dt = scope.clamp(Number(dtInput || 0.016), 0.001, 0.05);
         return {
           ...inputState,
           t: inputState.t + dt,
@@ -125,13 +124,13 @@
       }
 
     function createCustomParticles(spec) {
-        const count = 120 + Math.round(clamp(spec.params.complexity ?? 0.5, 0, 1) * 220) + (spec.objects || []).length * 16;
+        const count = 120 + Math.round(scope.clamp(spec.params.complexity ?? 0.5, 0, 1) * 220) + (spec.objects || []).length * 16;
         return Array.from({ length: count }, (_, index) => ({
-          x: hashNoise(19, index),
-          y: hashNoise(23, index),
-          vx: (hashNoise(29, index) - 0.5) * 0.08,
-          vy: (hashNoise(31, index) - 0.5) * 0.08,
-          phase: hashNoise(37, index),
+          x: scope.hashNoise(19, index),
+          y: scope.hashNoise(23, index),
+          vx: (scope.hashNoise(29, index) - 0.5) * 0.08,
+          vy: (scope.hashNoise(31, index) - 0.5) * 0.08,
+          phase: scope.hashNoise(37, index),
           kind: index % Math.max(1, (spec.objects || []).length),
         }));
       }
@@ -150,8 +149,8 @@
 
     function stepComponentStates(inputStates, spec, params, dt) {
         const next = {};
-        const interactions = interactionTotals(spec.contract);
-        const operators = operatorTotals(spec.contract);
+        const interactions = scope.interactionTotals(spec.contract);
+        const operators = scope.operatorTotals(spec.contract);
         const heatDelta = ((params.heatTransfer || 0) * 0.02 + (operators.heat || 0)) * dt;
         const moistureDelta = ((params.moisture || 0) * 0.01 + Math.min(0, interactions.fire || 0) * 0.02) * dt;
         for (const object of spec.objects || []) {
@@ -160,16 +159,16 @@
           const isQueue = /queue|market|traffic/.test(object.id);
           const isWater = /water|river|lake/.test(object.id);
           next[object.id] = {
-            temperature: clamp01((previous.temperature ?? 0.5) + heatDelta + (isFire ? 0.018 : 0)),
-            moisture: clamp01((previous.moisture ?? 0) + moistureDelta + (isWater ? 0.006 : -0.002) * dt),
-            charge: clamp((previous.charge ?? 0) + (params.electricField || 0) * dt * 0.01, -1, 1),
-            pressure: clamp01((previous.pressure ?? 0) + (params.pressure || 0) * dt * 0.01),
-            backlog: clamp01((previous.backlog ?? 0) + (isQueue ? (params.queueBacklog || 0) * dt * 0.02 : 0)),
-            fuel: clamp01((previous.fuel ?? 0) - (isFire ? Math.max(0, params.combustibility || 0) * dt * 0.008 : 0)),
+            temperature: scope.clamp01((previous.temperature ?? 0.5) + heatDelta + (isFire ? 0.018 : 0)),
+            moisture: scope.clamp01((previous.moisture ?? 0) + moistureDelta + (isWater ? 0.006 : -0.002) * dt),
+            charge: scope.clamp((previous.charge ?? 0) + (params.electricField || 0) * dt * 0.01, -1, 1),
+            pressure: scope.clamp01((previous.pressure ?? 0) + (params.pressure || 0) * dt * 0.01),
+            backlog: scope.clamp01((previous.backlog ?? 0) + (isQueue ? (params.queueBacklog || 0) * dt * 0.02 : 0)),
+            fuel: scope.clamp01((previous.fuel ?? 0) - (isFire ? Math.max(0, params.combustibility || 0) * dt * 0.008 : 0)),
             mass: Math.max(0, (previous.mass ?? 0.2) - (isFire ? dt * 0.001 : 0)),
-            velocity: clamp01((previous.velocity ?? 0) + (params.flowRate || params.windSpeed || 0) * dt * 0.02),
-            health: clamp01((previous.health ?? 1) - Math.max(0, params.infectionRate || 0) * dt * 0.006),
-            inventory: clamp01((previous.inventory ?? 0) + (isQueue ? (params.marketDemand || 0) * dt * 0.012 : 0)),
+            velocity: scope.clamp01((previous.velocity ?? 0) + (params.flowRate || params.windSpeed || 0) * dt * 0.02),
+            health: scope.clamp01((previous.health ?? 1) - Math.max(0, params.infectionRate || 0) * dt * 0.006),
+            inventory: scope.clamp01((previous.inventory ?? 0) + (isQueue ? (params.marketDemand || 0) * dt * 0.012 : 0)),
           };
         }
         return next;
@@ -229,10 +228,10 @@
             channelMagnitude(channels[`angularVelocity:${object.physicalRef}`]) +
             channelMagnitude(channels[`damage:${object.physicalRef}`]);
           for (let i = 0; i < 8; i += 1) {
-            const phase = hashNoise(objectIndex + 43, i + 11);
+            const phase = scope.hashNoise(objectIndex + 43, i + 11);
             rows.push({
-              x: clamp(position.x + (phase - 0.5) * 0.16 + velocity.x * 0.02, 0.02, 0.98),
-              y: clamp(position.y + (hashNoise(i + 17, objectIndex + 5) - 0.5) * 0.12 + velocity.y * 0.02, 0.02, 0.98),
+              x: scope.clamp(position.x + (phase - 0.5) * 0.16 + velocity.x * 0.02, 0.02, 0.98),
+              y: scope.clamp(position.y + (scope.hashNoise(i + 17, objectIndex + 5) - 0.5) * 0.12 + velocity.y * 0.02, 0.02, 0.98),
               vx: velocity.x * 0.04,
               vy: velocity.y * 0.04,
               phase,
@@ -245,8 +244,8 @@
       }
 
     function deriveSolverSummary(solverState, spec) {
-        if (deriveChannelSummary && solverState && solverState.channels) {
-          return deriveChannelSummary(
+        if (scope.deriveChannelSummary && solverState && solverState.channels) {
+          return scope.deriveChannelSummary(
             solverState.channels,
             spec.solverGraph ? spec.solverGraph.channelMetadata || {} : {}
           );
@@ -289,9 +288,9 @@
       }
 
     function createCustomState(spec) {
-        const params = { ...templateById('custom-world').params, ...spec.params };
-        const solverState = spec.solverGraph && createSolverState
-          ? createSolverState(spec.solverGraph)
+        const params = { ...scope.templateById('custom-world').params, ...spec.params };
+        const solverState = spec.solverGraph && scope.createSolverState
+          ? scope.createSolverState(spec.solverGraph)
           : null;
         if (solverState) {
           const summary = solverState.summary || deriveSolverSummary(solverState, spec);
@@ -324,8 +323,8 @@
           objects: spec.objects,
           componentStates: createComponentStates(spec),
           particles: createCustomParticles({ ...spec, params }),
-          machine: isMagneticMachine(spec) ? createState(params) : null,
-          fluid: hasModule(spec, 'fluid') ? createFluidState({
+          machine: isMagneticMachine(spec) ? scope.createState(params) : null,
+          fluid: hasModule(spec, 'fluid') ? scope.createFluidState({
             ...params,
             inletFlow: params.inletFlow ?? params.flowRate,
             vortexStrength: params.vortexStrength ?? params.fieldStrength,
@@ -342,12 +341,12 @@
 
     function stepCustomState(inputState, spec, dtInput) {
         const params = { ...inputState.params, ...spec.params };
-        if (spec.solverGraph && stepSolverState) {
+        if (spec.solverGraph && scope.stepSolverState) {
           const sourceState = inputState.solverState || (
-            createSolverState ? createSolverState(spec.solverGraph) : null
+            scope.createSolverState ? scope.createSolverState(spec.solverGraph) : null
           );
           if (sourceState) {
-            const solverState = stepSolverState(sourceState, spec.solverGraph, dtInput);
+            const solverState = scope.stepSolverState(sourceState, spec.solverGraph, dtInput);
             const summary = solverState.summary || deriveSolverSummary(solverState, spec);
             return {
               ...inputState,
@@ -372,9 +371,9 @@
           }
         }
         const contract = spec.contract || null;
-        const interactions = interactionTotals(contract);
-        const operatorEffect = operatorTotals(contract);
-        const dt = clamp(Number(dtInput || 0.016), 0.001, 0.05);
+        const interactions = scope.interactionTotals(contract);
+        const operatorEffect = scope.operatorTotals(contract);
+        const dt = scope.clamp(Number(dtInput || 0.016), 0.001, 0.05);
         const state = {
           ...inputState,
           params,
@@ -383,9 +382,9 @@
           componentStates: stepComponentStates(inputState.componentStates, spec, params, dt),
           particles: inputState.particles.map((particle) => ({ ...particle })),
         };
-        if (state.machine) state.machine = stepState(state.machine, params, dt);
+        if (state.machine) state.machine = scope.stepState(state.machine, params, dt);
         if (state.fluid) {
-          state.fluid = stepFluidState(state.fluid, {
+          state.fluid = scope.stepFluidState(state.fluid, {
             ...params,
             inletFlow: params.inletFlow ?? params.flowRate,
             vortexStrength: params.vortexStrength ?? params.fieldStrength,
@@ -399,43 +398,43 @@
           (interactions.field || 0) * 0.25 +
           (operatorEffect.field || 0) +
           (hasModule(spec, 'gravity') ? Math.abs(params.gravity || 0) : 0);
-        const drive = (params.energyInput || 0) + solarPower({ ...DEFAULT_PARAMS, ...params }) / 900;
+        const drive = (params.energyInput || 0) + scope.solarPower({ ...scope.DEFAULT_PARAMS, ...params }) / 900;
         const swirl = (params.turbulence || 0) + (params.vortexStrength || 0) * 0.28;
-        const damping = clamp(params.damping ?? params.friction ?? 0.08, 0, 0.95);
-        const spring = hasModule(spec, 'elasticity') ? clamp(params.springConstant || 0, 0, 1.6) : 0;
-        const thermal = hasModule(spec, 'thermal') ? clamp(params.thermalFlux || params.heatTransfer || 0, 0, 1.5) : 0;
-        const wave = hasModule(spec, 'wave') || hasModule(spec, 'acoustics') ? clamp(params.waveAmplitude || 0, 0, 1.2) : 0;
-        const acoustic = hasModule(spec, 'acoustics') ? clamp(params.soundFrequency || 0.42, 0.05, 1.4) : 0;
-        const buoyancy = hasModule(spec, 'buoyancy') ? clamp(params.buoyancy || 0, -0.4, 1.2) : 0;
-        const wind = hasModule(spec, 'fluid') ? clamp(params.windSpeed || 0, -1.2, 1.2) : 0;
-        const charge = hasModule(spec, 'electricity') || hasModule(spec, 'plasma') ? clamp(params.charge || params.electricField || 0, -1.2, 1.2) : 0;
-        const granular = hasModule(spec, 'granular') ? clamp(params.granularFriction || 0.38, 0, 1) : 0;
-        const restitution = hasModule(spec, 'collision') ? clamp(params.restitution || 0.72, 0, 1) : 0;
-        const control = hasModule(spec, 'control') ? clamp(params.controlGain || 0, 0, 1.5) : 0;
-        const signalNoise = hasModule(spec, 'signal') || hasModule(spec, 'noise') ? clamp(params.signalNoise || 0, 0, 1) : 0;
-        const latency = hasModule(spec, 'network') ? clamp(params.networkLatency || params.signalDelay || 0, 0, 1.5) : 0;
-        const queue = hasModule(spec, 'queue') ? clamp(params.queueBacklog || 0, 0, 1) : 0;
-        const service = hasModule(spec, 'queue') || hasModule(spec, 'logistics') ? clamp(params.serviceRate || 0.5, 0.05, 1.5) : 0;
-        const terrain = hasModule(spec, 'terrain') ? clamp(params.terrainSlope || 0, -1, 1) : 0;
-        const erosion = hasModule(spec, 'erosion') ? clamp(params.erosionRate || 0, 0, 1) : 0;
-        const biology = hasModule(spec, 'biology') ? clamp(params.populationGrowth || 0, 0, 1.4) : 0;
-        const infection = hasModule(spec, 'biology') || hasModule(spec, 'diffusion') ? clamp(params.infectionRate || 0, 0, 1.2) : 0;
-        const adhesion = hasModule(spec, 'surface') ? clamp(params.adhesion || 0, 0, 1.2) : 0;
-        const cohesion = hasModule(spec, 'cohesion') || hasModule(spec, 'material') ? clamp(params.cohesion || 0, 0, 1.2) : 0;
-        const phase = hasModule(spec, 'phase-change') ? clamp(params.phaseThreshold || 0.5, 0, 1) : 0;
-        const latentHeat = hasModule(spec, 'phase-change') ? clamp(params.latentHeat || 0, 0, 1.4) : 0;
-        const market = hasModule(spec, 'economics') || hasModule(spec, 'market') ? clamp(params.marketDemand || 0, 0, 1.5) : 0;
-        const elasticity = hasModule(spec, 'economics') || hasModule(spec, 'market') ? clamp(params.priceElasticity || 0, 0, 1.2) : 0;
-        const solarRadiation = hasModule(spec, 'radiation') ? clamp((params.irradiance || 0) / 1200, 0, 1.5) : 0;
-        const fire = hasModule(spec, 'fire') ? clamp((params.combustibility || 0) + (interactions.fire || 0) * 0.3, 0, 1.2) : 0;
-        const water = hasModule(spec, 'water') || hasModule(spec, 'liquid') ? clamp(params.moisture || 0.5, 0, 1) : 0;
-        const solid = hasModule(spec, 'solid') || hasModule(spec, 'rock') || hasModule(spec, 'wood') ? clamp(params.hardness || 0, 0, 1.5) : 0;
-        const metal = hasModule(spec, 'metal') ? clamp(params.conductivity || 0, 0, 1.5) : 0;
-        const magneticMaterial = hasModule(spec, 'magnetic') ? clamp(params.magnetization || params.magneticStrength || 0, 0, 1.5) : 0;
-        const glass = hasModule(spec, 'glass') ? clamp(1 - (params.opacity || 0), 0, 1) : 0;
-        const atomic = hasModule(spec, 'atomic') ? clamp((params.atomicMass || 28) / 120, 0, 2) : 0;
-        const bond = hasModule(spec, 'atomic') || hasModule(spec, 'cohesion') ? clamp(params.bondStrength || 0, 0, 1.5) : 0;
-        const ionization = hasModule(spec, 'atomic') || hasModule(spec, 'plasma') ? clamp(params.ionization || 0, 0, 1.5) : 0;
+        const damping = scope.clamp(params.damping ?? params.friction ?? 0.08, 0, 0.95);
+        const spring = hasModule(spec, 'elasticity') ? scope.clamp(params.springConstant || 0, 0, 1.6) : 0;
+        const thermal = hasModule(spec, 'thermal') ? scope.clamp(params.thermalFlux || params.heatTransfer || 0, 0, 1.5) : 0;
+        const wave = hasModule(spec, 'wave') || hasModule(spec, 'acoustics') ? scope.clamp(params.waveAmplitude || 0, 0, 1.2) : 0;
+        const acoustic = hasModule(spec, 'acoustics') ? scope.clamp(params.soundFrequency || 0.42, 0.05, 1.4) : 0;
+        const buoyancy = hasModule(spec, 'buoyancy') ? scope.clamp(params.buoyancy || 0, -0.4, 1.2) : 0;
+        const wind = hasModule(spec, 'fluid') ? scope.clamp(params.windSpeed || 0, -1.2, 1.2) : 0;
+        const charge = hasModule(spec, 'electricity') || hasModule(spec, 'plasma') ? scope.clamp(params.charge || params.electricField || 0, -1.2, 1.2) : 0;
+        const granular = hasModule(spec, 'granular') ? scope.clamp(params.granularFriction || 0.38, 0, 1) : 0;
+        const restitution = hasModule(spec, 'collision') ? scope.clamp(params.restitution || 0.72, 0, 1) : 0;
+        const control = hasModule(spec, 'control') ? scope.clamp(params.controlGain || 0, 0, 1.5) : 0;
+        const signalNoise = hasModule(spec, 'signal') || hasModule(spec, 'noise') ? scope.clamp(params.signalNoise || 0, 0, 1) : 0;
+        const latency = hasModule(spec, 'network') ? scope.clamp(params.networkLatency || params.signalDelay || 0, 0, 1.5) : 0;
+        const queue = hasModule(spec, 'queue') ? scope.clamp(params.queueBacklog || 0, 0, 1) : 0;
+        const service = hasModule(spec, 'queue') || hasModule(spec, 'logistics') ? scope.clamp(params.serviceRate || 0.5, 0.05, 1.5) : 0;
+        const terrain = hasModule(spec, 'terrain') ? scope.clamp(params.terrainSlope || 0, -1, 1) : 0;
+        const erosion = hasModule(spec, 'erosion') ? scope.clamp(params.erosionRate || 0, 0, 1) : 0;
+        const biology = hasModule(spec, 'biology') ? scope.clamp(params.populationGrowth || 0, 0, 1.4) : 0;
+        const infection = hasModule(spec, 'biology') || hasModule(spec, 'diffusion') ? scope.clamp(params.infectionRate || 0, 0, 1.2) : 0;
+        const adhesion = hasModule(spec, 'surface') ? scope.clamp(params.adhesion || 0, 0, 1.2) : 0;
+        const cohesion = hasModule(spec, 'cohesion') || hasModule(spec, 'material') ? scope.clamp(params.cohesion || 0, 0, 1.2) : 0;
+        const phase = hasModule(spec, 'phase-change') ? scope.clamp(params.phaseThreshold || 0.5, 0, 1) : 0;
+        const latentHeat = hasModule(spec, 'phase-change') ? scope.clamp(params.latentHeat || 0, 0, 1.4) : 0;
+        const market = hasModule(spec, 'economics') || hasModule(spec, 'market') ? scope.clamp(params.marketDemand || 0, 0, 1.5) : 0;
+        const elasticity = hasModule(spec, 'economics') || hasModule(spec, 'market') ? scope.clamp(params.priceElasticity || 0, 0, 1.2) : 0;
+        const solarRadiation = hasModule(spec, 'radiation') ? scope.clamp((params.irradiance || 0) / 1200, 0, 1.5) : 0;
+        const fire = hasModule(spec, 'fire') ? scope.clamp((params.combustibility || 0) + (interactions.fire || 0) * 0.3, 0, 1.2) : 0;
+        const water = hasModule(spec, 'water') || hasModule(spec, 'liquid') ? scope.clamp(params.moisture || 0.5, 0, 1) : 0;
+        const solid = hasModule(spec, 'solid') || hasModule(spec, 'rock') || hasModule(spec, 'wood') ? scope.clamp(params.hardness || 0, 0, 1.5) : 0;
+        const metal = hasModule(spec, 'metal') ? scope.clamp(params.conductivity || 0, 0, 1.5) : 0;
+        const magneticMaterial = hasModule(spec, 'magnetic') ? scope.clamp(params.magnetization || params.magneticStrength || 0, 0, 1.5) : 0;
+        const glass = hasModule(spec, 'glass') ? scope.clamp(1 - (params.opacity || 0), 0, 1) : 0;
+        const atomic = hasModule(spec, 'atomic') ? scope.clamp((params.atomicMass || 28) / 120, 0, 2) : 0;
+        const bond = hasModule(spec, 'atomic') || hasModule(spec, 'cohesion') ? scope.clamp(params.bondStrength || 0, 0, 1.5) : 0;
+        const ionization = hasModule(spec, 'atomic') || hasModule(spec, 'plasma') ? scope.clamp(params.ionization || 0, 0, 1.5) : 0;
         let motionSum = 0;
         for (let i = 0; i < state.particles.length; i += 1) {
           const p = state.particles[i];
@@ -444,14 +443,14 @@
           const radius = Math.max(0.03, Math.hypot(cx, cy));
           const tangentX = -cy / radius;
           const tangentY = cx / radius;
-          const noise = hashNoise(Math.floor(state.t * 24), i) - 0.5;
-          const phase = state.t * (1.8 + acoustic * 4.2) + p.phase * TAU;
+          const noise = scope.hashNoise(Math.floor(state.t * 24), i) - 0.5;
+          const phase = state.t * (1.8 + acoustic * 4.2) + p.phase * scope.TAU;
           const waveForce = Math.sin(p.x * 10 + phase) * wave;
           const springForceX = -cx * spring * 0.42;
           const springForceY = -cy * spring * 0.42;
           const electricForce = charge / Math.max(0.08, radius * radius);
           const controlPull = control * (0.5 - radius) * 0.08;
-          const queuePulse = queue * Math.sin(state.t * (1.2 + service) + p.phase * TAU) * 0.06;
+          const queuePulse = queue * Math.sin(state.t * (1.2 + service) + p.phase * scope.TAU) * 0.06;
           const terrainPush = terrain * (0.22 + erosion * 0.18);
           const biologyPush = biology * Math.sin(p.x * 7 + state.t * 0.9) * 0.035;
           const infectionPush = infection * Math.cos(p.y * 9 - state.t * 1.1) * 0.03;
@@ -497,11 +496,11 @@
           p.y += p.vy * dt;
           if (restitution > 0) {
             if (p.x < 0.04 || p.x > 0.96) {
-              p.x = clamp(p.x, 0.04, 0.96);
+              p.x = scope.clamp(p.x, 0.04, 0.96);
               p.vx *= -restitution;
             }
             if (p.y < 0.06 || p.y > 0.94) {
-              p.y = clamp(p.y, 0.06, 0.94);
+              p.y = scope.clamp(p.y, 0.06, 0.94);
               p.vy *= -restitution;
             }
           } else {
@@ -513,7 +512,7 @@
           motionSum += Math.hypot(p.vx, p.vy);
         }
 
-        const machineLedger = state.machine ? energyLedger(state.machine) : null;
+        const machineLedger = state.machine ? scope.energyLedger(state.machine) : null;
         const chemistryHeat = state.reaction ? maxField(state.reaction.heat) : 0;
         const fluidMotion = state.fluid ? state.fluid.vorticity : 0;
         state.t += dt;
@@ -546,7 +545,7 @@
           (params.plasmaTemperature || 0) * 0.22 +
           latentHeat * Math.max(0, state.heat - phase * 0.1) +
           (machineLedger ? Math.max(0, machineLedger.actuatorPowerW) / 600 : 0);
-        state.stability = clamp01(1 -
+        state.stability = scope.clamp01(1 -
           Math.abs(state.field - drive) * 0.14 -
           swirl * 0.11 -
           chemistryHeat * 0.08 -
@@ -623,7 +622,7 @@
             time: formatMetric(state.t, 1),
           };
         }
-        const ledger = energyLedger(state);
+        const ledger = scope.energyLedger(state);
         return {
           rpm: formatMetric(ledger.rpm, 1),
           torque: formatMetric(ledger.torqueNm, 2),
@@ -642,7 +641,7 @@
 
     function readoutLabelsForSpec(spec) {
         if (spec.templateId === 'custom-world') {
-          if (!hasCompiledSpecArtifacts(spec)) return templateById(spec.templateId).readouts;
+          if (!hasCompiledSpecArtifacts(spec)) return scope.templateById(spec.templateId).readouts;
           const contract = spec.contract || null;
           if (contract && Array.isArray(contract.readouts) && contract.readouts.length) {
             return contract.readouts.slice(0, 6);
@@ -655,9 +654,9 @@
               String(readout.label || readout.channel || 'readout').replace(/([A-Z])/g, ' $1').trim()
             ));
           }
-          return templateById(spec.templateId).readouts;
+          return scope.templateById(spec.templateId).readouts;
         }
-        return templateById(spec.templateId).readouts;
+        return scope.templateById(spec.templateId).readouts;
       }
 
     function customSpecHasContractReadouts(spec) {
@@ -695,7 +694,7 @@
 
     function contextualReadoutValue(label, state, spec, generic) {
         const params = spec.params || {};
-        const ledger = state.machine ? energyLedger(state.machine) : null;
+        const ledger = state.machine ? scope.energyLedger(state.machine) : null;
         switch (label) {
           case 'fuel load':
             return formatMetric((params.combustibility || 0) * (1 - (params.moisture || 0) * 0.35) * 100, 0);
@@ -752,7 +751,7 @@
         }
       }
 
-    Object.assign(scope, {
+    root.SimulattePhaseModuleRegistry.define('physicsModel', 'simulatte-physics-model-spec-api.js', {
       createReactionState,
       laplace,
       stepReactionState,
@@ -781,5 +780,5 @@
       channelReadoutValues,
       contextualReadoutValue,
     });
-  }
+
 })(typeof globalThis !== 'undefined' ? globalThis : window);

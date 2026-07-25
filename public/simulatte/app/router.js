@@ -1,15 +1,19 @@
 (function attachSimulatteRouter(root, factory) {
-  const api = factory();
+  const tierRegistry = typeof module === 'object' && module.exports
+    ? require('./tier-registry.js')
+    : root.SimulatteTierRegistry;
+  const api = factory(tierRegistry);
   root.SimulatteRouter = api;
   if (typeof module === 'object' && module.exports) module.exports = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createSimulatteRouterModule() {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createSimulatteRouterModule(tierRegistry) {
   // The URL path is the single source of truth for {world scale (tier), experience (profile id)}.
   //   /                                 -> landing (no tier chosen)
   //   /world                            -> planet scale, default experience (canonicalized in place)
   //   /world/maritime-trade-global-v1   -> planet scale + that experience
   // Tier ids are already URL-safe, so they double as the first path segment; the experience
   // segment is the full application-profile id. No query params, no page reloads.
-  const TIERS = Object.freeze(['city', 'country', 'world', 'solar-system', 'star-chart']);
+  if (!tierRegistry) throw new Error('simulatte_router_tier_registry_missing');
+  const TIERS = tierRegistry.TIER_IDS;
   const TIER_SET = new Set(TIERS);
 
   function decodeSegment(segment) {

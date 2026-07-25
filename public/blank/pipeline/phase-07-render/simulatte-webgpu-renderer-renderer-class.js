@@ -1,16 +1,15 @@
 (function attachSimulatteWebGpuRendererrendererclass(root) {
-  const scope = root.__SimulatteWebGpuRendererRefactorScope;
-  if (!scope || scope.missingDependency) return;
-  with (scope) {
+  const scope = root.SimulattePhaseModuleRegistry.family('webGpuRenderer');
+
     function makeDefaultWebGpuFeatureReceipt() {
         return {
-          schema: DEFAULT_WEBGPU_FEATURE_RECEIPT.schema,
+          schema: scope.DEFAULT_WEBGPU_FEATURE_RECEIPT.schema,
           available: [],
           requested: [],
           enabled: [],
           failed: [],
-          used: DEFAULT_WEBGPU_FEATURE_RECEIPT.used.slice(),
-          unsupportedNativeFeatures: DEFAULT_WEBGPU_FEATURE_RECEIPT.unsupportedNativeFeatures.slice(),
+          used: scope.DEFAULT_WEBGPU_FEATURE_RECEIPT.used.slice(),
+          unsupportedNativeFeatures: scope.DEFAULT_WEBGPU_FEATURE_RECEIPT.unsupportedNativeFeatures.slice(),
         };
       }
 
@@ -33,12 +32,12 @@
           this.status = 'initializing WebGPU renderer';
           this.sceneKind = 'mechanical';
           this.sceneId = 3;
-          this.uniforms = new Float32Array(UNIFORM_FLOAT_COUNT);
+          this.uniforms = new Float32Array(scope.UNIFORM_FLOAT_COUNT);
           this.features = new Float32Array(48);
           this.atomUniforms = new Float32Array(24);
-          this.sceneMix = new Float32Array(SCENE_MIX_SLOTS.length);
-          this.sceneMix[SCENE_MIX_SLOTS.indexOf('mechanical')] = 1;
-          this.visualIrLayers = new Float32Array(VISUAL_IR_LAYER_SLOTS.length);
+          this.sceneMix = new Float32Array(scope.SCENE_MIX_SLOTS.length);
+          this.sceneMix[scope.SCENE_MIX_SLOTS.indexOf('mechanical')] = 1;
+          this.visualIrLayers = new Float32Array(scope.VISUAL_IR_LAYER_SLOTS.length);
           this.sceneRenderPacket = null;
           this.sceneRenderPacketKey = '';
           this.renderExecutionInput = null;
@@ -48,14 +47,15 @@
           this.phase7Output = null;
           this.phase7OutputPacketKey = '';
           this.phase8Output = null;
+          this.lastSceneProofMs = 0;
           this.pixelReadbackSerial = 0;
           this.pendingPixelReadbackPromise = null;
           this.pendingPixelReadbackPacketKey = '';
           this.lastPixelReadbackReceipt = null;
-          this.sceneObjectUniforms = new Float32Array(SCENE_PACKET_FLOATS);
+          this.sceneObjectUniforms = new Float32Array(scope.SCENE_PACKET_FLOATS);
           this.sceneInstanceCount = 0;
-          this.objectPartData = new Float32Array(GPU_OBJECT_PART_CAPACITY * GPU_OBJECT_PART_FLOATS);
-          this.objectUniforms = new Float32Array(GPU_OBJECT_UNIFORM_FLOATS);
+          this.objectPartData = new Float32Array(scope.GPU_OBJECT_PART_CAPACITY * scope.GPU_OBJECT_PART_FLOATS);
+          this.objectUniforms = new Float32Array(scope.GPU_OBJECT_UNIFORM_FLOATS);
           this.cameraState = {};
           this.lightState = {};
           this.rendererConsumption = null;
@@ -63,7 +63,7 @@
           this.objectPartBufferDirty = true;
           this.gpuScenePath = 'background-plus-instanced-object-parts';
           this.webgpuFeatureReceipt = makeDefaultWebGpuFeatureReceipt();
-          this.palette = paletteToVec4(PALETTES.machine);
+          this.palette = scope.paletteToVec4(scope.PALETTES.machine);
           this.metrics = { heat: 0.35, flow: 0.45, density: 0.48, bloom: 0.56, motion: 0.42 };
           this.seed = 1;
           this.lastSizeKey = '';
@@ -77,7 +77,7 @@
           try {
             const adapter = await navigator.gpu.requestAdapter({ powerPreference: 'high-performance' });
             if (!adapter) throw new Error('WebGPU adapter unavailable');
-            const deviceRequest = await requestWebGpuDevice(adapter);
+            const deviceRequest = await scope.requestWebGpuDevice(adapter);
             this.device = deviceRequest.device;
             this.webgpuFeatureReceipt = deviceRequest.receipt;
             this.device.addEventListener('uncapturederror', (event) => {
@@ -101,7 +101,7 @@
               usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
             });
             this.objectPartBuffer = this.device.createBuffer({
-              size: GPU_OBJECT_PART_CAPACITY * GPU_OBJECT_PART_BYTES,
+              size: scope.GPU_OBJECT_PART_CAPACITY * scope.GPU_OBJECT_PART_BYTES,
               usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
             });
             this.objectUniformBuffer = this.device.createBuffer({
@@ -113,7 +113,7 @@
                 { binding: 0, visibility: GPUShaderStage.FRAGMENT, buffer: { type: 'uniform' } },
               ],
             });
-            const shader = this.device.createShaderModule({ code: WEBGPU_BACKGROUND_SHADER });
+            const shader = this.device.createShaderModule({ code: scope.WEBGPU_BACKGROUND_SHADER });
             this.pipeline = this.device.createRenderPipeline({
               layout: this.device.createPipelineLayout({ bindGroupLayouts: [this.bindGroupLayout] }),
               vertex: { module: shader, entryPoint: 'backgroundVs' },
@@ -144,7 +144,7 @@
             this.canvas.dataset.renderer = 'webgpu';
             this.canvas.dataset.visualTier = 'webgpu-depth-lit-2-5d';
             this.canvas.dataset.rendererStatus = this.status;
-            this.canvas.dataset.webgpuFeatureFlags = webgpuFeatureSummary(this.webgpuFeatureReceipt);
+            this.canvas.dataset.webgpuFeatureFlags = scope.webgpuFeatureSummary(this.webgpuFeatureReceipt);
             this.canvas.dataset.webgpuOptimizationPath = this.gpuScenePath;
           } catch (err) {
             this.ready = false;
@@ -166,7 +166,7 @@
               { binding: 1, visibility: GPUShaderStage.VERTEX, buffer: { type: 'read-only-storage' } },
             ],
           });
-          const shader = this.device.createShaderModule({ code: WEBGPU_OBJECT_SHADER });
+          const shader = this.device.createShaderModule({ code: scope.WEBGPU_OBJECT_SHADER });
           this.objectPipeline = this.device.createRenderPipeline({
             layout: this.device.createPipelineLayout({ bindGroupLayouts: [this.objectBindGroupLayout] }),
             vertex: { module: shader, entryPoint: 'objectVs' },
@@ -234,14 +234,14 @@
               ? this.renderExecutionInput.visualObligations.length
               : 0
           );
-          const packet = scenePacket || emptySceneRenderPacket();
+          const packet = scenePacket || scope.emptySceneRenderPacket();
           const sceneKind = packet.sceneKind || '';
           if (this.renderData && packet === this.sceneRenderPacket) {
             this.sceneKind = sceneKind;
             this.applyPixelSampleOptions(renderExecutionInput);
             return;
           }
-          const packetKey = sceneRenderPacketRenderDataKey(packet, sceneKind);
+          const packetKey = scope.sceneRenderPacketRenderDataKey(packet, sceneKind);
           if (this.renderData && packetKey === this.sceneRenderPacketKey) {
             this.sceneRenderPacket = packet;
             this.sceneKind = sceneKind;
@@ -252,7 +252,7 @@
           this.sceneKind = sceneKind;
           this.sceneRenderPacketKey = packetKey;
           this.resetPixelReadbackForPacket(packetKey);
-          this.renderData = compileSceneRenderData(packet, sceneKind, packetKey);
+          this.renderData = scope.compileSceneRenderData(packet, sceneKind, packetKey);
           this.applyPixelSampleOptions(renderExecutionInput);
           this.applyRenderData(this.renderData, scenePacket !== null);
         }
@@ -265,7 +265,7 @@
           if (!this.renderData) return;
           const proof = renderExecutionInput && renderExecutionInput.phase7PixelProof || {};
           const auditRequiresProof = this.canvas && this.canvas.dataset && this.canvas.dataset.auditRequirePixelProof === 'true';
-          const requiredObligationIds = phase7RequiredVisualObligationIds(renderExecutionInput, this.sceneRenderPacket);
+          const requiredObligationIds = scope.phase7RequiredVisualObligationIds(renderExecutionInput, this.sceneRenderPacket);
           this.renderData.requireLivePixelSamples = renderExecutionInput && renderExecutionInput.requireLivePixelSamples === true ||
             proof.required === true ||
             auditRequiresProof ||
@@ -346,7 +346,7 @@
         refreshPhase7Output(renderCount = this.renderCount, frameMs = this.lastFrameMs) {
           const packetKey = this.renderData && this.renderData.packetKey || '';
           if (!this.phase7Output || packetKey !== this.phase7OutputPacketKey) {
-            this.phase7Output = phase7OutputEnvelope(
+            this.phase7Output = scope.phase7OutputEnvelope(
               this.renderExecutionInput,
               this.sceneRenderPacket,
               renderCount,
@@ -370,6 +370,7 @@
         }
 
         settleSceneProof() {
+          const proofStartedAt = typeof performance !== 'undefined' ? performance.now() : Date.now();
           const api = typeof globalThis !== 'undefined' ? globalThis.SimulatteSceneProof : null;
           if (!api || typeof api.settleSceneProof !== 'function' || !this.phase7Output) {
             this.phase8Output = null;
@@ -401,14 +402,16 @@
             this.canvas.dataset.sceneProofRequiredNotProvenIds = '[]';
             this.canvas.dataset.sceneProofRequiredFailures = '[]';
           }
-          notifyRendererSceneProof(this);
+          const proofFinishedAt = typeof performance !== 'undefined' ? performance.now() : Date.now();
+          this.lastSceneProofMs = Math.max(0, proofFinishedAt - proofStartedAt);
+          scope.notifyRendererSceneProof(this);
           return this.phase8Output;
         }
 
         encodePixelReadback(encoder, frameTexture) {
           const packetKey = this.renderData && this.renderData.packetKey || '';
           if (packetKey && this.pendingPixelReadbackPacketKey === packetKey) return null;
-          const plan = phase7PixelReadbackPlan(
+          const plan = scope.phase7PixelReadbackPlan(
             this.renderData,
             this.sceneRenderPacket,
             this.renderExecutionInput,
@@ -431,7 +434,7 @@
           this.canvas.dataset.phase7PixelReadbackPlan = `${plan.samples.length}/${plan.requiredSampleCount}`;
           if (!this.device || typeof this.device.createBuffer !== 'function') return null;
           if (!encoder || typeof encoder.copyTextureToBuffer !== 'function') return null;
-          const size = Math.max(PIXEL_READBACK_BYTES_PER_ROW, plan.samples.length * PIXEL_READBACK_BYTES_PER_ROW);
+          const size = Math.max(scope.PIXEL_READBACK_BYTES_PER_ROW, plan.samples.length * scope.PIXEL_READBACK_BYTES_PER_ROW);
           const buffer = this.device.createBuffer({
             size,
             usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
@@ -444,8 +447,8 @@
               },
               {
                 buffer,
-                offset: index * PIXEL_READBACK_BYTES_PER_ROW,
-                bytesPerRow: PIXEL_READBACK_BYTES_PER_ROW,
+                offset: index * scope.PIXEL_READBACK_BYTES_PER_ROW,
+                bytesPerRow: scope.PIXEL_READBACK_BYTES_PER_ROW,
                 rowsPerImage: 1,
               },
               { width: 1, height: 1, depthOrArrayLayers: 1 }
@@ -457,7 +460,7 @@
             packetKey: this.renderData && this.renderData.packetKey || '',
             plan,
             buffer,
-            bytesPerRow: PIXEL_READBACK_BYTES_PER_ROW,
+            bytesPerRow: scope.PIXEL_READBACK_BYTES_PER_ROW,
           };
           this.renderData.livePixelReadbackAttemptCount =
             Number(this.renderData.livePixelReadbackAttemptCount || 0) + 1;
@@ -629,15 +632,15 @@
           this.lightState = renderData.lightState || {};
           this.rendererConsumption = renderData.rendererConsumption || null;
           this.objectPartBufferDirty = true;
-          this.palette = paletteForScene(this.sceneKind, this.atomUniforms, renderData.palette);
+          this.palette = scope.paletteForScene(this.sceneKind, this.atomUniforms, renderData.palette);
           this.metrics = renderData.metrics;
           this.seed = renderData.seed;
           this.canvas.dataset.sceneKind = this.sceneKind;
           this.canvas.dataset.sceneId = String(this.sceneId);
-          this.canvas.dataset.sceneMix = sceneMixSummary(this.sceneMix);
-          this.canvas.dataset.sceneMixSlots = String(activeSceneMixSlots(this.sceneMix));
-          this.canvas.dataset.visualIrLayers = visualIrLayerSummary(this.visualIrLayers);
-          this.canvas.dataset.visualIrLayerSlots = String(activeVisualIrLayerSlots(this.visualIrLayers));
+          this.canvas.dataset.sceneMix = scope.sceneMixSummary(this.sceneMix);
+          this.canvas.dataset.sceneMixSlots = String(scope.activeSceneMixSlots(this.sceneMix));
+          this.canvas.dataset.visualIrLayers = scope.visualIrLayerSummary(this.visualIrLayers);
+          this.canvas.dataset.visualIrLayerSlots = String(scope.activeVisualIrLayerSlots(this.visualIrLayers));
           this.canvas.dataset.phase7Input = this.renderExecutionInput
             ? this.renderExecutionInput.schema
             : 'missing-renderExecutionInput';
@@ -656,14 +659,14 @@
           this.canvas.dataset.sceneObjectUniforms = renderData.sceneObjectUniformSummary;
           this.canvas.dataset.sceneObjectIdentities = renderData.sceneObjectIdentitySummary;
           this.canvas.dataset.webgpuOptimizationPath = this.gpuScenePath;
-          this.canvas.dataset.webgpuSceneInstanceCapacity = String(GPU_OBJECT_PART_CAPACITY);
+          this.canvas.dataset.webgpuSceneInstanceCapacity = String(scope.GPU_OBJECT_PART_CAPACITY);
           this.canvas.dataset.webgpuSceneInstanceCount = String(renderData.objectPartCount);
           this.canvas.dataset.webgpuSceneInstances = renderData.objectPartSummary;
-          this.canvas.dataset.webgpuObjectPartCapacity = String(GPU_OBJECT_PART_CAPACITY);
+          this.canvas.dataset.webgpuObjectPartCapacity = String(scope.GPU_OBJECT_PART_CAPACITY);
           this.canvas.dataset.webgpuObjectPartCount = String(renderData.objectPartCount);
           this.canvas.dataset.webgpuObjectParts = renderData.objectPartSummary;
           this.canvas.dataset.webgpuObjectRealization = JSON.stringify(renderData.objectRealization);
-          this.canvas.dataset.webgpuStorageBytes = String(GPU_OBJECT_PART_CAPACITY * GPU_OBJECT_PART_BYTES);
+          this.canvas.dataset.webgpuStorageBytes = String(scope.GPU_OBJECT_PART_CAPACITY * scope.GPU_OBJECT_PART_BYTES);
           this.canvas.dataset.phase7RendererConsumption = JSON.stringify(this.rendererConsumption || {});
           this.canvas.dataset.phase7CameraConsumed = this.rendererConsumption && this.rendererConsumption.cameraConsumed ? 'true' : 'false';
           this.canvas.dataset.phase7LightCountConsumed = String(this.rendererConsumption && this.rendererConsumption.lightCountConsumed || 0);
@@ -696,7 +699,7 @@
 
         writeObjectUniforms(nowMs = 0) {
           if (!this.objectUniformBuffer) return;
-          this.objectUniforms = scenePacketCameraLightUniformVector(
+          this.objectUniforms = scope.scenePacketCameraLightUniformVector(
             this.cameraState,
             this.lightState,
             this.canvas.dataset.auditFreezeFrame === 'true' ? 0 : nowMs * 0.001,
@@ -717,15 +720,15 @@
             schema: 'simulatte.phase7.webgpuOptimization.v1',
             path: this.gpuScenePath,
             computeSceneReady: false,
-            instanceCapacity: GPU_OBJECT_PART_CAPACITY,
+            instanceCapacity: scope.GPU_OBJECT_PART_CAPACITY,
             instanceCount: this.objectPartCount,
-            objectPartCapacity: GPU_OBJECT_PART_CAPACITY,
+            objectPartCapacity: scope.GPU_OBJECT_PART_CAPACITY,
             objectPartCount: this.objectPartCount,
-            storageBytes: GPU_OBJECT_PART_CAPACITY * GPU_OBJECT_PART_BYTES,
+            storageBytes: scope.GPU_OBJECT_PART_CAPACITY * scope.GPU_OBJECT_PART_BYTES,
             indirectDraw: 'not-used-direct-instancing',
             drawCalls: this.objectPartCount > 0 ? 2 : 1,
-            translatedTechniques: WEBGPU_TRANSLATED_TECHNIQUES.slice(),
-            unsupportedNativeFeatures: WEBGPU_NATIVE_ONLY_FEATURES.slice(),
+            translatedTechniques: scope.WEBGPU_TRANSLATED_TECHNIQUES.slice(),
+            unsupportedNativeFeatures: scope.WEBGPU_NATIVE_ONLY_FEATURES.slice(),
             features: this.webgpuFeatureReceipt,
             pixelReadback: this.lastPixelReadbackReceipt,
             rendererConsumption: this.rendererConsumption,
@@ -758,9 +761,9 @@
           u[1] = this.canvas.height;
           u[2] = this.canvas.dataset.auditFreezeFrame === 'true' ? 0 : nowMs * 0.001;
           u[3] = this.sceneId;
-          u[4] = dynamicMetric(this.metrics.heat, state, 'heat');
-          u[5] = dynamicMetric(this.metrics.flow, state, 'motion');
-          u[6] = dynamicMetric(this.metrics.density, state, 'matter');
+          u[4] = scope.dynamicMetric(this.metrics.heat, state, 'heat');
+          u[5] = scope.dynamicMetric(this.metrics.flow, state, 'motion');
+          u[6] = scope.dynamicMetric(this.metrics.density, state, 'matter');
           u[7] = this.metrics.bloom;
           u[8] = this.metrics.motion;
           u[9] = this.quality;
@@ -769,7 +772,7 @@
           u[12] = 0;
           u[13] = 1;
           u[14] = 0;
-          u[15] = featureStrength(this.features);
+          u[15] = scope.featureStrength(this.features);
           let offset = 16;
           for (const color of this.palette) {
             u.set(color, offset);
@@ -783,15 +786,15 @@
             u[offset + i] = this.atomUniforms[i] || 0;
           }
           offset += 24;
-          for (let i = 0; i < SCENE_MIX_SLOTS.length; i += 1) {
+          for (let i = 0; i < scope.SCENE_MIX_SLOTS.length; i += 1) {
             u[offset + i] = this.sceneMix[i] || 0;
           }
-          offset += SCENE_MIX_SLOTS.length;
-          for (let i = 0; i < VISUAL_IR_LAYER_SLOTS.length; i += 1) {
+          offset += scope.SCENE_MIX_SLOTS.length;
+          for (let i = 0; i < scope.VISUAL_IR_LAYER_SLOTS.length; i += 1) {
             u[offset + i] = this.visualIrLayers[i] || 0;
           }
-          offset += VISUAL_IR_LAYER_SLOTS.length;
-          for (let i = 0; i < SCENE_PACKET_FLOATS; i += 1) {
+          offset += scope.VISUAL_IR_LAYER_SLOTS.length;
+          for (let i = 0; i < scope.SCENE_PACKET_FLOATS; i += 1) {
             u[offset + i] = this.sceneObjectUniforms[i] || 0;
           }
         }
@@ -813,11 +816,11 @@
         if (renderExecutionInput.schema === 'simulatte.sceneRenderPacket.v1') {
           throw new Error('Phase 7 expected simulatte.renderExecutionInput.v1, received bare simulatte.sceneRenderPacket.v1');
         }
-        if (renderExecutionInput.schema !== RENDER_EXECUTION_INPUT_SCHEMA) {
-          throw new Error(`Phase 7 expected ${RENDER_EXECUTION_INPUT_SCHEMA}, received ${renderExecutionInput.schema || typeof renderExecutionInput}`);
+        if (renderExecutionInput.schema !== scope.RENDER_EXECUTION_INPUT_SCHEMA) {
+          throw new Error(`Phase 7 expected ${scope.RENDER_EXECUTION_INPUT_SCHEMA}, received ${renderExecutionInput.schema || typeof renderExecutionInput}`);
         }
-        if (renderExecutionInput.inputSchema !== PHASE6_OUTPUT_SCHEMA) {
-          throw new Error(`Phase 7 expected inputSchema ${PHASE6_OUTPUT_SCHEMA}, received ${renderExecutionInput.inputSchema || 'missing'}`);
+        if (renderExecutionInput.inputSchema !== scope.PHASE6_OUTPUT_SCHEMA) {
+          throw new Error(`Phase 7 expected inputSchema ${scope.PHASE6_OUTPUT_SCHEMA}, received ${renderExecutionInput.inputSchema || 'missing'}`);
         }
         const packet = renderExecutionInput && renderExecutionInput.sceneRenderPacket || null;
         if (!packet || packet.schema !== 'simulatte.sceneRenderPacket.v1') {
@@ -826,12 +829,12 @@
         return packet;
       }
 
-    Object.assign(scope, {
+    root.SimulattePhaseModuleRegistry.define('webGpuRenderer', 'simulatte-webgpu-renderer-renderer-class.js', {
       makeDefaultWebGpuFeatureReceipt,
       create,
       WebGpuRenderer,
       canvasTextureUsage,
       sceneRenderPacketFromExecutionInput,
     });
-  }
+
 })(typeof globalThis !== 'undefined' ? globalThis : window);

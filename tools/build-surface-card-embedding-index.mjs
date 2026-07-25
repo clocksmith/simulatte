@@ -1,4 +1,3 @@
-import crypto from 'node:crypto';
 import { spawn } from 'node:child_process';
 import fs from 'node:fs/promises';
 import os from 'node:os';
@@ -7,6 +6,15 @@ import { createRequire } from 'node:module';
 import { doppler } from '../../doppler/src/index.js';
 import { bootstrapNodeWebGPU } from '../../doppler/src/tooling/node-webgpu.js';
 import { lockedEmbeddingModel } from './model-runtime-lock-utils.mjs';
+import {
+  dopplerLoadSource,
+  expectedEmbeddingDim,
+  finiteFloat32Array,
+  indexHash,
+  loadModelManifest,
+  sha256HexText,
+  stableStringify,
+} from './simulatte/embedding-index-support.mjs';
 
 const require = createRequire(import.meta.url);
 
@@ -31,33 +39,6 @@ const EMBED_BATCH_SIZE = Math.max(
   Math.min(128, Number.parseInt(process.env.SIMULATTE_SURFACE_CARD_EMBED_BATCH_SIZE || '24', 10) || 24)
 );
 
-function stableStringify(value) {
-  return JSON.stringify(sortStable(value), null, 2);
-}
-
-function sortStable(value) {
-  if (Array.isArray(value)) return value.map(sortStable);
-  if (!value || typeof value !== 'object') return value;
-  return Object.keys(value).sort().reduce((out, key) => {
-    out[key] = sortStable(value[key]);
-    return out;
-  }, {});
-}
-
-function sha256HexBytes(bytes) {
-  return crypto.createHash('sha256').update(bytes).digest('hex');
-}
-
-function sha256HexText(text) {
-  return sha256HexBytes(Buffer.from(String(text), 'utf8'));
-}
-
-function indexHash(index) {
-  const stable = { ...index };
-  delete stable.indexHash;
-  return { alg: 'sha256', hex: sha256HexText(stableStringify(stable)) };
-}
-
 function surfaceCardEmbeddingText(doc) {
   const grounding = doc.grounding || {};
   return [
@@ -76,42 +57,6 @@ function surfaceCardEmbeddingText(doc) {
   ].join('\n').replace(/[ \t]+/g, ' ').trim();
 }
 
-async function loadModelManifest() {
-  if (MODEL_BASE_URL) {
-    const response = await fetch(`${MODEL_BASE_URL}/manifest.json`);
-    if (!response.ok) throw new Error(`Failed to fetch model manifest: ${response.status}`);
-    const manifestText = await response.text();
-    return { manifestText, manifest: JSON.parse(manifestText) };
-  }
-  const manifestPath = path.join(MODEL_DIR, 'manifest.json');
-  const manifestText = await fs.readFile(manifestPath, 'utf8');
-  return { manifestText, manifest: JSON.parse(manifestText) };
-}
-
-function dopplerLoadSource(manifest) {
-  if (MODEL_BASE_URL) return { url: MODEL_BASE_URL };
-  return { manifest, baseUrl: MODEL_DIR };
-}
-
-function finiteFloat32Array(value, label) {
-  const vector = value instanceof Float32Array ? value : null;
-  if (!vector) throw new Error(`${label}: expected Float32Array`);
-  for (let i = 0; i < vector.length; i += 1) {
-    if (!Number.isFinite(vector[i])) {
-      throw new Error(`${label}: non-finite value at dim ${i}`);
-    }
-  }
-  return vector;
-}
-
-function expectedEmbeddingDim(manifest) {
-  return Number(
-    manifest?.inference?.output?.embeddingPostprocessor?.outputSize
-    || manifest?.architecture?.hiddenSize
-    || 0
-  );
-}
-
 async function loadInputs() {
   const graphSynthesis = require('../public/blank/pipeline/phase-04-grounded-intent/simulatte-graph-synthesis.js');
   const semanticRag = require('../public/blank/pipeline/phase-03-retrieval/simulatte-semantic-rag.js');
@@ -121,7 +66,10 @@ async function loadInputs() {
   );
   if (!cards.length) throw new Error('No Simulatte surface cards found');
 
-  const { manifestText, manifest } = await loadModelManifest();
+  const { manifestText, manifest } = await loadModelManifest({
+    modelBaseUrl: MODEL_BASE_URL,
+    modelDir: MODEL_DIR,
+  });
   const manifestHash = { alg: 'sha256', hex: sha256HexText(manifestText) };
   const embedModelHash = EMBEDDING_MODEL.manifestHash;
   if (manifest.modelId !== MODEL_ID) {
@@ -206,7 +154,10 @@ async function writeChildChunk({ manifest, documents }) {
   }
 
   console.log(`loading ${manifest.modelId}`);
-  const model = await doppler.load(dopplerLoadSource(manifest), {
+  const model = await doppler.load(dopplerLoadSource(manifest, {
+    modelBaseUrl: MODEL_BASE_URL,
+    modelDir: MODEL_DIR,
+  }), {
     onProgress: (event) => {
       const phase = String(event?.phase || '');
       if (phase === 'ready' || phase === 'load') {

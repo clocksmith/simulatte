@@ -1,7 +1,6 @@
 (function attachSimulatteIntentEmbeddervectors(root) {
-  const scope = root.__SimulatteIntentEmbedderRefactorScope;
-  if (!scope || scope.missingDependency) return;
-  with (scope) {
+  const scope = root.SimulattePhaseModuleRegistry.family('intentEmbedder');
+
     function normalizeRerankerRows(result) {
         const rows = Array.isArray(result)
           ? result
@@ -138,7 +137,7 @@
       }
 
     function rerankPriors(priors, semanticRag, dopplerIntent, runtime = null, universeMatches = null) {
-        const config = rerankerConfig(runtime || {});
+        const config = scope.rerankerConfig(runtime || {});
         const byId = new Map((priors || []).map((prior) => [prior.primitiveId, {
           ...prior,
           modelScore: Number(prior.modelScore ?? prior.score ?? 0),
@@ -153,7 +152,7 @@
           if (!existing) continue;
           const ragScore = Number(doc.score || 0);
           existing.ragScore = Number(ragScore.toFixed(4));
-          existing.matchedTerms = uniqueStrings([...(existing.matchedTerms || []), ...(doc.matchedTerms || [])]);
+          existing.matchedTerms = scope.uniqueStrings([...(existing.matchedTerms || []), ...(doc.matchedTerms || [])]);
           byId.set(doc.primitiveId, existing);
         }
         for (const hint of dopplerIntent && dopplerIntent.primitives || []) {
@@ -165,7 +164,7 @@
         }
         let universePrimitiveHintCount = 0;
         for (const candidate of universeMatches && universeMatches.candidates || []) {
-          const hints = uniqueStrings(candidate.primitiveHints || []);
+          const hints = scope.uniqueStrings(candidate.primitiveHints || []);
           for (const primitiveId of hints) {
             const existing = byId.get(primitiveId);
             if (!existing) continue;
@@ -183,12 +182,12 @@
         }
         const rows = Array.from(byId.values()).map((prior) => {
           const lexical = Math.min(1, (prior.matchedTerms || []).length / 5);
-          const score = prior.modelScore * HEURISTIC_FUSION_WEIGHTS.modelScore
-            + prior.ragScore * HEURISTIC_FUSION_WEIGHTS.ragScore
-            + lexical * HEURISTIC_FUSION_WEIGHTS.lexicalScore
-            + prior.symbolicBoost * HEURISTIC_FUSION_WEIGHTS.symbolicBoost
-            + prior.dopplerScore * HEURISTIC_FUSION_WEIGHTS.dopplerScore
-            + prior.universeScore * HEURISTIC_FUSION_WEIGHTS.universeScore;
+          const score = prior.modelScore * scope.HEURISTIC_FUSION_WEIGHTS.modelScore
+            + prior.ragScore * scope.HEURISTIC_FUSION_WEIGHTS.ragScore
+            + lexical * scope.HEURISTIC_FUSION_WEIGHTS.lexicalScore
+            + prior.symbolicBoost * scope.HEURISTIC_FUSION_WEIGHTS.symbolicBoost
+            + prior.dopplerScore * scope.HEURISTIC_FUSION_WEIGHTS.dopplerScore
+            + prior.universeScore * scope.HEURISTIC_FUSION_WEIGHTS.universeScore;
           return {
             ...prior,
             lexicalScore: Number(lexical.toFixed(4)),
@@ -207,13 +206,13 @@
             phase: 3,
             phaseId: 'retrieval',
             stage: 'span-refined',
-            required: rerankerRequired(runtime),
-            model: config.enabled ? runtime ? rerankerId(runtime) : config.id : null,
+            required: scope.rerankerRequired(runtime),
+            model: config.enabled ? runtime ? scope.rerankerId(runtime) : config.id : null,
             modelCandidateId: config.id,
             rerankerKind: config.kind,
             rerankerPhase: 3,
             rerankerMode: 'heuristic-fusion',
-            modelRequired: rerankerRequired(runtime),
+            modelRequired: scope.rerankerRequired(runtime),
             modelReady: false,
             modelStatus: config.enabled ? 'not-available' : 'disabled',
             qualificationStatus: config.qualification && config.qualification.status || '',
@@ -245,9 +244,9 @@
     function symbolicPromptMatch(promptText, promptTerms, primitive) {
         const prompt = ` ${String(promptText || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ')} `;
         const idPhrase = String(primitive.id || '').toLowerCase().replace(/[-_]+/g, ' ').trim();
-        const idTerms = fallbackFeatureTokens(String(primitive.id || '').replace(/[-_]+/g, ' '));
-        const domainTerms = fallbackFeatureTokens((primitive.domains || []).join(' '));
-        const textTerms = fallbackFeatureTokens([
+        const idTerms = scope.fallbackFeatureTokens(String(primitive.id || '').replace(/[-_]+/g, ' '));
+        const domainTerms = scope.fallbackFeatureTokens((primitive.domains || []).join(' '));
+        const textTerms = scope.fallbackFeatureTokens([
           primitive.role || '',
           primitive.text || '',
           (primitive.recipe || []).join(' '),
@@ -284,7 +283,7 @@
         score += Math.min(0.18, textHits * 0.035);
         return {
           score: Number(Math.min(0.76, score).toFixed(4)),
-          terms: uniqueStrings(matched).slice(0, 10),
+          terms: scope.uniqueStrings(matched).slice(0, 10),
         };
       }
 
@@ -467,7 +466,7 @@
         }
       }
 
-    Object.assign(scope, {
+    root.SimulattePhaseModuleRegistry.define('intentEmbedder', 'simulatte-intent-embedder-vectors.js', {
       normalizeRerankerRows,
       rerankerRankBand,
       applyRankBandRerank,
@@ -490,5 +489,5 @@
       versionedAssetUrl,
       urlValue,
     });
-  }
+
 })(typeof globalThis !== 'undefined' ? globalThis : window);

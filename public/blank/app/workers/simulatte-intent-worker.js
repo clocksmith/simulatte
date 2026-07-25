@@ -1,16 +1,10 @@
 (function attachSimulatteIntentWorker(root) {
-  const WORKER_SEARCH = root && root.location && root.location.search || '';
-  let manifestLoadError = null;
-  try {
-    if (typeof importScripts !== 'function') throw new Error('Worker importScripts unavailable');
-    importScripts(versionedScriptPath('../runtime-script-manifest.js'));
-  } catch (error) {
-    manifestLoadError = error;
-  }
-  const runtimeManifest = root.SimulatteRuntimeScriptManifest;
-  const SCRIPT_ORDER = Object.freeze(runtimeManifest
-    ? runtimeManifest.intentWorker.map((src) => `../../${src}`)
-    : []);
+  importScripts(`./simulatte-worker-bootstrap.js${root.location && root.location.search || ''}`);
+  const workerBootstrap = root.SimulatteWorkerBootstrap;
+  const runtimeLoader = workerBootstrap.createRuntimeLoader({
+    workerName: 'Intent worker',
+    manifestEntry: 'intentWorker',
+  });
 
   let embedder = null;
   let embedderConfigKey = '';
@@ -18,11 +12,6 @@
   let loadedRuntime = null;
   let loadError = null;
   let activeRequestId = 0;
-
-  function errorMessage(error) {
-    if (!error) return 'Intent worker failed';
-    return error && error.message ? error.message : String(error);
-  }
 
   function post(type, id, payload = {}) {
     root.postMessage({
@@ -69,14 +58,8 @@
     if (!embedderConfigKey) embedderConfigKey = configKey;
     if (embedder) return embedder;
     if (loadError) throw loadError;
-    if (typeof importScripts !== 'function') {
-      loadError = new Error('Intent worker importScripts unavailable');
-      throw loadError;
-    }
     try {
-      if (manifestLoadError) throw manifestLoadError;
-      if (!SCRIPT_ORDER.length) throw new Error('Intent worker script manifest unavailable');
-      importScripts(...versionedScriptOrder());
+      runtimeLoader.loadScripts();
       if (!root.SimulatteIntentEmbedder || typeof root.SimulatteIntentEmbedder.create !== 'function') {
         throw new Error('SimulatteIntentEmbedder unavailable in intent worker');
       }
@@ -135,16 +118,6 @@
     return loadPromise;
   }
 
-  function versionedScriptOrder() {
-    return SCRIPT_ORDER.map((script) => versionedScriptPath(script));
-  }
-
-  function versionedScriptPath(script) {
-    if (!WORKER_SEARCH || WORKER_SEARCH === '?') return script;
-    const suffix = WORKER_SEARCH.startsWith('?') ? WORKER_SEARCH : `?${WORKER_SEARCH}`;
-    return `${script}${suffix}`;
-  }
-
   async function handleLoad(data = {}) {
     activeRequestId = data.id;
     try {
@@ -157,7 +130,10 @@
         },
       });
     } catch (error) {
-      post('simulatte:intent-worker:result', data.id, { ok: false, error: errorMessage(error) });
+      post('simulatte:intent-worker:result', data.id, {
+        ok: false,
+        error: workerBootstrap.errorMessage(error, 'Intent worker failed'),
+      });
     } finally {
       if (activeRequestId === data.id) activeRequestId = 0;
     }
@@ -178,7 +154,10 @@
       });
       post('simulatte:intent-worker:result', data.id, { ok: true, result });
     } catch (error) {
-      post('simulatte:intent-worker:result', data.id, { ok: false, error: errorMessage(error) });
+      post('simulatte:intent-worker:result', data.id, {
+        ok: false,
+        error: workerBootstrap.errorMessage(error, 'Intent worker failed'),
+      });
     } finally {
       if (activeRequestId === data.id) activeRequestId = 0;
     }

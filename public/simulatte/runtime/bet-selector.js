@@ -1,8 +1,13 @@
 (function attachAutonomyBetSelector(root, factory) {
-  const api = factory();
+  const deterministicValues = typeof module === 'object' && module.exports
+    ? require('../../shared/deterministic-values.js')
+    : root.SimulatteDeterministicValues;
+  const api = factory(deterministicValues);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteAutonomyBetSelector = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyBetSelector() {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyBetSelector(deterministicValues) {
+  const hash32 = deterministicValues.fnv1a32;
+  const round = deterministicValues.round9;
   function selectActionBet(gatedRows, policy) {
     const approach = policy.selection.approach;
     const scored = gatedRows.map((row) => {
@@ -52,15 +57,6 @@
     return utilityComponents(bet, policy, approach).total;
   }
 
-  function hash32(value) {
-    let hash = 2166136261;
-    for (let index = 0; index < value.length; index += 1) {
-      hash ^= value.charCodeAt(index);
-      hash = Math.imul(hash, 16777619);
-    }
-    return hash >>> 0;
-  }
-
   function utility(bet, policy) {
     return utilityComponents(bet, policy, 'evidence_scored').total;
   }
@@ -90,10 +86,6 @@
       total: round(progress + clearance + confidence + arrival + maneuver),
       formula: 'progress * weight + clearance * weight + confidence * weight + arrival bonus + maneuver adjustment',
     };
-  }
-
-  function round(value) {
-    return Number(value.toFixed(9));
   }
 
   return { selectActionBet, chooseEligible, utilityForApproach, utilityComponents, utility, hash32 };

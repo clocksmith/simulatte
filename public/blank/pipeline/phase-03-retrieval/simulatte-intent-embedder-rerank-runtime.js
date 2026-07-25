@@ -1,10 +1,9 @@
 (function attachSimulatteIntentEmbedderRerankRuntime(root) {
-  const scope = root.__SimulatteIntentEmbedderRefactorScope;
-  if (!scope || scope.missingDependency) return;
-  with (scope) {
+  const scope = root.SimulattePhaseModuleRegistry.family('intentEmbedder');
+
     function rerankProviderFromModelHandle(handle, runtime, config, backend, modelBaseUrl = '') {
-      const direct = rerankFunctionForTarget(handle)
-        || rerankFunctionForTarget(handle && handle.advanced);
+      const direct = scope.rerankFunctionForTarget(handle)
+        || scope.rerankFunctionForTarget(handle && handle.advanced);
       if (direct) {
         return {
           backend,
@@ -61,14 +60,14 @@
       return {
         backend,
         async rerank(input) {
-          const rerankStarted = nowMs();
+          const rerankStarted = scope.nowMs();
           const rows = rerankRequestRows(input, runtime, config, scoringConfig);
           const scored = [];
           let prefixPreparationDurationMs = 0;
           let prefixTokenizationDurationMs = 0;
           let prefixResetDurationMs = 0;
           try {
-            const prefixStarted = nowMs();
+            const prefixStarted = scope.nowMs();
             const prefix = await prepareRerankPrefix(
               rows,
               handle,
@@ -77,13 +76,13 @@
               scoringConfig,
               activePrefix
             );
-            prefixPreparationDurationMs = elapsedMsSince(prefixStarted);
+            prefixPreparationDurationMs = scope.elapsedMsSince(prefixStarted);
             prefixTokenizationDurationMs = Number(prefix && prefix.tokenizationDurationMs || 0);
             prefixResetDurationMs = Number(prefix && prefix.resetDurationMs || 0);
             activePrefix = prefix;
             for (let i = 0; i < rows.length; i += 1) {
               const row = rows[i];
-              const executionStarted = nowMs();
+              const executionStarted = scope.nowMs();
               const cachedScore = readRerankScoreCache(scoreCache, row.prompt);
               if (cachedScore) {
                 scored.push({
@@ -98,7 +97,7 @@
                   prefixPrimingDurationMs: 0,
                 });
                 emitRerankProgress(input, row, i + 1, rows.length, {
-                  ...rerankProgressDetails(cachedScore, elapsedMsSince(executionStarted)),
+                  ...rerankProgressDetails(cachedScore, scope.elapsedMsSince(executionStarted)),
                   scoreCacheHit: true,
                 });
                 continue;
@@ -123,7 +122,7 @@
                 }
                 if (!prefixStateReused) {
                   prefix.primed = true;
-                  prefixPrimingDurationMs = elapsedMsSince(executionStarted);
+                  prefixPrimingDurationMs = scope.elapsedMsSince(executionStarted);
                 }
               } else {
                 await resetRerankerHandle(handle, selectedRuntime.target, config);
@@ -146,7 +145,7 @@
                 prefixTokenCount: prefix ? prefix.length : 0,
                 prefixStateReused,
               });
-              scoredRow.executionDurationMs = elapsedMsSince(executionStarted);
+              scoredRow.executionDurationMs = scope.elapsedMsSince(executionStarted);
               scoredRow.prefixPreparationDurationMs = prefixPreparationDurationMs;
               scoredRow.prefixTokenizationDurationMs = prefixTokenizationDurationMs;
               scoredRow.prefixResetDurationMs = prefixResetDurationMs;
@@ -164,7 +163,7 @@
             await resetRerankerHandle(handle, selectedRuntime.target, config);
             throw error;
           }
-          const rerankCallDurationMs = elapsedMsSince(rerankStarted);
+          const rerankCallDurationMs = scope.elapsedMsSince(rerankStarted);
           return rankedRerankRows(scored).map((row) => ({
             ...row,
             prefixPreparationDurationMs,
@@ -178,7 +177,7 @@
 
     async function prepareRerankPrefix(rows, handle, runtime, config, scoringConfig, activePrefix = null) {
       if (rows.length < 2 || typeof runtime.tokenizeText !== 'function') return null;
-      const tokenizationStarted = nowMs();
+      const tokenizationStarted = scope.nowMs();
       const tokenRows = rows.map((row) => {
         const tokens = runtime.tokenizeText.call(runtime.target, row.prompt);
         if (!Array.isArray(tokens) || !tokens.length) {
@@ -200,11 +199,11 @@
       const tokenIds = [scoringConfig.trueTokenId, scoringConfig.falseTokenId];
       const prefixTokens = tokenRows[0].slice(0, length);
       const key = prefixTokens.join(',');
-      const tokenizationDurationMs = elapsedMsSince(tokenizationStarted);
+      const tokenizationDurationMs = scope.elapsedMsSince(tokenizationStarted);
       if (activePrefix && activePrefix.key === key && activePrefix.length === length && activePrefix.primed) {
         return { ...activePrefix, tokenIds, cacheHit: true, tokenizationDurationMs, resetDurationMs: 0 };
       }
-      const resetStarted = nowMs();
+      const resetStarted = scope.nowMs();
       await resetRerankerHandle(handle, runtime.target, config);
       return {
         key,
@@ -213,7 +212,7 @@
         cacheHit: false,
         primed: false,
         tokenizationDurationMs,
-        resetDurationMs: elapsedMsSince(resetStarted),
+        resetDurationMs: scope.elapsedMsSince(resetStarted),
       };
     }
 
@@ -245,12 +244,12 @@
       return {
         backend,
         async rerank(input) {
-          const rerankStarted = nowMs();
+          const rerankStarted = scope.nowMs();
           const rows = rerankRequestRows(input, runtime, config, scoringConfig);
           const scored = [];
           for (let i = 0; i < rows.length; i += 1) {
             const row = rows[i];
-            const executionStarted = nowMs();
+            const executionStarted = scope.nowMs();
             await resetRerankerHandle(handle, target, config);
             let result;
             try {
@@ -266,14 +265,14 @@
               modelBaseUrl,
               scoringPath: 'full-logits',
             });
-            scoredRow.executionDurationMs = elapsedMsSince(executionStarted);
+            scoredRow.executionDurationMs = scope.elapsedMsSince(executionStarted);
             scored.push(scoredRow);
             emitRerankProgress(input, row, i + 1, rows.length, {
               ...rerankProgressDetails(scoredRow, scoredRow.executionDurationMs),
               scoreCacheHit: false,
             });
           }
-          const rerankCallDurationMs = elapsedMsSince(rerankStarted);
+          const rerankCallDurationMs = scope.elapsedMsSince(rerankStarted);
           return rankedRerankRows(scored).map((row) => ({
             ...row,
             prefixPreparationDurationMs: 0,
@@ -509,7 +508,7 @@
         'simulatte', 'surface', 'card', 'type', 'label', 'class', 'part', 'shape',
         'material', 'behavior', 'constraint', 'port', 'primitive', 'description',
       ]);
-      const terms = fallbackFeatureTokens(value).filter((term) => !metadataTerms.has(term));
+      const terms = scope.fallbackFeatureTokens(value).filter((term) => !metadataTerms.has(term));
       return terms.slice(0, limit).join(' ');
     }
 
@@ -562,7 +561,7 @@
       };
     }
 
-    Object.assign(scope, {
+    root.SimulattePhaseModuleRegistry.define('intentEmbedder', 'simulatte-intent-embedder-rerank-runtime.js', {
       rerankProviderFromModelHandle,
       selectedTokenRuntimeForHandle,
       prepareRerankPrefix,
@@ -581,5 +580,5 @@
       managedRerankProvider,
       sigmoid,
     });
-  }
+
 })(typeof globalThis !== 'undefined' ? globalThis : window);

@@ -3,10 +3,25 @@
     ? require('./tier-facts.js')
     : root.SimulatteTierFacts;
   const tierPresentation = typeof module === 'object' && module.exports ? require('./tier-plugin-presentation.js') : root.SimulatteTierPluginPresentation;
-  const api = factory(tierFacts, tierPresentation, root.SimulatteTierRenderers, root.SimulatteTierDataLoader);
+  const tierRegistry = typeof module === 'object' && module.exports
+    ? require('./tier-registry.js')
+    : root.SimulatteTierRegistry;
+  const api = factory(
+    tierFacts,
+    tierPresentation,
+    root.SimulatteTierRenderers,
+    root.SimulatteTierDataLoader,
+    tierRegistry
+  );
   root.SimulatteMultiTierVisualizer = api;
   if (typeof module === 'object' && module.exports) module.exports = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createMultiTierVisualizer(tierFacts, tierPresentation, tierRenderers, tierDataLoaderApi) {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createMultiTierVisualizer(
+  tierFacts,
+  tierPresentation,
+  tierRenderers,
+  tierDataLoaderApi,
+  tierRegistry
+) {
   const TIER_CACHE_BASE_URL = tierCacheBaseUrl();
 
   // =========================================================================
@@ -215,7 +230,9 @@
     async loadTier(tierName) {
       this.stop();
       this.currentTier = tierName;
-      this.canvas.hidden = (tierName === 'city');
+      const tier = tierRegistry.tierDefinition(tierName);
+      if (!tier) throw new Error(`simulatte_unknown_tier: ${tierName}`);
+      this.canvas.hidden = !tier.canvasVisible;
 
       if (tierName === 'city') {
         this.removeHud();
@@ -226,12 +243,11 @@
       this.createHud();
 
       // Reset transforms
-      this.zoom = 1.0;
+      this.zoom = Number(tier.initialZoom || 1);
       this.panX = this.width / 2;
       this.panY = this.height / 2;
 
       if (tierName === 'solar-system') {
-        this.zoom = 140.0;
         this.updateHudContent('Solar System', 'Loading NASA JPL Horizons orbital data...', {}, '');
         try {
           const [payload, facts] = await Promise.all([
@@ -261,7 +277,6 @@
           this.updateHudContent('Solar System', 'Error loading ephemerides data. Run "solar-system" fetch command first.', {}, '');
         }
       } else if (tierName === 'star-chart') {
-        this.zoom = 280.0;
         this.rotX = 0.3;
         this.rotY = -0.5;
         this.updateHudContent('Universe', 'Loading stellar catalog database...', {}, '');
@@ -293,7 +308,6 @@
           this.updateHudContent('Universe', 'Error loading star catalog. Run "star-chart" fetch command first.', {}, '');
         }
       } else if (tierName === 'world') {
-        this.zoom = 1.4;
         this.updateHudContent('Planet', 'Loading global administrative boundaries...', {}, '');
         try {
           const res = await this.dataLoader.fetch(cacheUrl('world/countries.geojson'));
@@ -311,7 +325,6 @@
           this.updateHudContent('Planet', 'Error loading world outline GeoJSON. Run "world" fetch command first.', {}, '');
         }
       } else if (tierName === 'country') {
-        this.zoom = 8.0;
         this.updateHudContent('Country', 'Loading U.S. geography and major cities...', {}, '');
         try {
           const [worldRes, cityRes] = await Promise.all([
@@ -368,10 +381,11 @@
         return TierVisualizer.FALLBACK_US_CITIES;
       }
       const parsed = await response.json();
-      if (!Array.isArray(parsed)) {
+      const cities = Array.isArray(parsed) ? parsed : parsed?.cities;
+      if (!Array.isArray(cities) || (!Array.isArray(parsed) && parsed.schema !== 'simulatte.countryCityCache.v1')) {
         return TierVisualizer.FALLBACK_US_CITIES;
       }
-      const cities = parsed.filter((city) => {
+      const normalized = cities.filter((city) => {
         return city && Number.isFinite(city.lat) && Number.isFinite(city.lon) && city.name;
       }).map((city, index) => {
         return {
@@ -383,7 +397,7 @@
           population: city.population || 0
         };
       });
-      return cities.length ? cities : TierVisualizer.FALLBACK_US_CITIES;
+      return normalized.length ? normalized : TierVisualizer.FALLBACK_US_CITIES;
     }
 
     buildCountryTierData(countryFeature, cities, statePayload = null) {
@@ -593,20 +607,14 @@
       if (!this.data) return;
 
       ctx.save();
-      
-      switch (this.currentTier) {
-        case 'solar-system':
-          this.drawSolarSystem();
-          break;
-        case 'star-chart':
-          this.drawStarChart();
-          break;
-        case 'world':
-          this.drawWorld();
-          break;
-        case 'country':
-          this.drawCountry();
-          break;
+
+      const rendererMethod = tierRegistry.tierDefinition(this.currentTier)?.rendererMethod;
+      if (rendererMethod) {
+        const renderer = tierRenderers[rendererMethod];
+        if (typeof renderer !== 'function') {
+          throw new Error(`simulatte_tier_renderer_missing: ${rendererMethod}`);
+        }
+        renderer(this);
       }
 
       if (this.pluginLayer) this.pluginLayer.render(ctx);

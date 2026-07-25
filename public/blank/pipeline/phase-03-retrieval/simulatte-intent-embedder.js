@@ -21,15 +21,15 @@
     require('./simulatte-intent-embedder-vectors.js');
     require('./simulatte-intent-embedder-facade-support.js');
   }
-  const scope = root.__SimulatteIntentEmbedderRefactorScope = root.__SimulatteIntentEmbedderRefactorScope || {};
-  if (scope.missingDependency) return;
-  let api;
-  with (scope) {
-    api = {
-    create,
-    mergeRagScores,
+  const scope = root.SimulattePhaseModuleRegistry.family('intentEmbedder');
+  const api = {
+    create: scope.create,
+    mergeRagScores: scope.mergeRagScores,
   };
-  }
+  root.SimulattePhaseModuleRegistry.finalize('intentEmbedder', {
+    requiredExports: Object.keys(api),
+  });
+  Object.freeze(api);
   if (typeof module === 'object' && module.exports) {
       module.exports = api;
     }

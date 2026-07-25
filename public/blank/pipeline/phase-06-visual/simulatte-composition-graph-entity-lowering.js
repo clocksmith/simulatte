@@ -1,9 +1,8 @@
 (function attachSimulatteCompositionGraphEntityLowering(root) {
-  const scope = root.__SimulatteCompositionGraphRefactorScope;
-  if (!scope || scope.missingDependency) return;
-  with (scope) {
+  const scope = root.SimulattePhaseModuleRegistry.family('compositionGraph');
+
     function visualEntityForObject(object, index, sceneKind, constructionApproach = {}) {
-      const text = renderObjectText(object);
+      const text = scope.renderObjectText(object);
       return {
         id: object.id || `entity-${index + 1}`,
         sourceObject: object.id || '',
@@ -19,7 +18,7 @@
           object.geometry && object.geometry.constructionHypotheses
         ),
         constructionProvenance: object.constructionProvenance || [],
-        constructionApproachId: constructionApproach.id || CONSTRUCTION_APPROACH_IDS.targeted,
+        constructionApproachId: constructionApproach.id || scope.CONSTRUCTION_APPROACH_IDS.targeted,
         constructionApproachSeed: Number(constructionApproach.seed || 0),
         constructionApproachAttempt: Number(constructionApproach.attempt || 0),
         constructionApproachRejectedGrammarIds: (constructionApproach.rejectedGrammarIds || []).slice(0, 64),
@@ -44,7 +43,7 @@
         physicalRef: object.physicalRef || '',
         sourceGraphId: object.visualSourceGraphId || object.id || '',
         sourceKind: object.visualSourceKind || object.source || 'compiled-object',
-        sourceIds: object.visualSourceIds || uniqueList([object.id, object.semanticRef, object.physicalRef].filter(Boolean)),
+        sourceIds: object.visualSourceIds || scope.uniqueList([object.id, object.semanticRef, object.physicalRef].filter(Boolean)),
         behavior: object.behavior || null,
         physicsOperators: object.physicsOperators || [],
         stateBindings: object.stateBindings || {},
@@ -88,7 +87,7 @@
     }
 
     function visualEvidenceForObject(object, text) {
-      return uniqueList([
+      return scope.uniqueList([
         ...(object.evidence || []),
         object.source || 'compiled-object',
         object.shape ? `shape:${object.shape}` : '',
@@ -146,7 +145,7 @@
       return entity.label || entity.id || type || 'object';
     }
 
-    Object.assign(scope, {
+    root.SimulattePhaseModuleRegistry.define('compositionGraph', 'simulatte-composition-graph-entity-lowering.js', {
       visualEntityForObject,
       mergeConstructionEvidenceRows,
       visualEntityKind,
@@ -156,5 +155,5 @@
       scenePacketGroundedIdentityCategory,
       scenePacketIdentityLabel,
     });
-  }
+
 })(typeof globalThis !== 'undefined' ? globalThis : window);

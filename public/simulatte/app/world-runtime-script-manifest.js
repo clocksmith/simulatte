@@ -1,0 +1,181 @@
+(function attachSimulatteWorldRuntimeScriptManifest(root, factory) {
+  const api = factory();
+  if (typeof module === 'object' && module.exports) module.exports = api;
+  root.SimulatteWorldRuntimeScriptManifest = api;
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createWorldRuntimeScriptManifest() {
+  const browser = Object.freeze([
+    'neural-model-consent.js',
+    'model-selection.js',
+    'shared/deterministic-values.js',
+    'shared/language/positive-language.js',
+    'shared/streets/street-name.js',
+    'shared/contracts/data-contract-validator.js',
+    'shared/contracts/contract-validation-primitives.js',
+    'shared/contracts/contract-runtime-validator.js',
+    'shared/contracts/contract-validator.js',
+    'simulatte/runtime/canonical-receipts.js',
+    'simulatte/world/region-pack-merger.js',
+    'simulatte/runtime/runtime-log.js',
+    'simulatte/platform/contracts/schema-registry.js',
+    'simulatte/platform/contracts/plugin-contracts.js',
+    'simulatte/platform/transport/browser-transport.js',
+    'simulatte/platform/artifacts/governed-artifact-store.js',
+    'simulatte/platform/data-catalog/immutable-data-catalog.js',
+    'simulatte/platform/storage/browser-tile-storage.js',
+    'simulatte/platform/plugin-host/plugin-state-host.js',
+    'simulatte/platform/plugin-host/capability-graph.js',
+    'simulatte/platform/plugin-host/plugin-sdk.js',
+    'simulatte/platform/plugin-host/plugin-asset-paths.js',
+    'simulatte/platform/plugin-host/plugin-runtime.js',
+    'simulatte/platform/plugin-host/plugin-random.js',
+    'simulatte/platform/plugin-host/plugin-scheduler.js',
+    'simulatte/platform/plugin-host/plugin-environment.js',
+    'simulatte/platform/plugin-host/plugin-geography.js',
+    'simulatte/platform/plugin-host/plugin-compute.js',
+    'simulatte/platform/plugin-host/generated-plugin-registry.js',
+    'simulatte/platform/bootstrap/application-load-context.js',
+    'simulatte/platform/bootstrap/tier-application-loader.js',
+    'simulatte/app/tier-plugin-presentation.js',
+    'simulatte/platform/ui-host/declarative-ui-host.js',
+    'shared/core/simulation/civil-time.js',
+    'shared/plugins/cable-trader/network-simulation.js',
+    'shared/plugins/cable-trader/index.js',
+    'shared/plugins/food-recall-us/food-engine.js',
+    'shared/plugins/food-recall-us/food-presentation.js',
+    'shared/plugins/food-recall-us/index.js',
+    'shared/plugins/interstellar-relay-network/astrometry.js',
+    'shared/plugins/interstellar-relay-network/contact-scheduler.js',
+    'shared/plugins/interstellar-relay-network/integrity.js',
+    'shared/plugins/interstellar-relay-network/light-time.js',
+    'shared/plugins/interstellar-relay-network/metrics.js',
+    'shared/plugins/interstellar-relay-network/network.js',
+    'shared/plugins/interstellar-relay-network/optical-link-budget.js',
+    'shared/plugins/interstellar-relay-network/packet-queue.js',
+    'shared/plugins/interstellar-relay-network/presentation.js',
+    'shared/plugins/interstellar-relay-network/propagation.js',
+    'shared/plugins/interstellar-relay-network/stellar-state.js',
+    'shared/plugins/interstellar-relay-network/index.js',
+    'shared/plugins/maritime-trade-global/container-ledger.js',
+    'shared/plugins/maritime-trade-global/emissions-model.js',
+    'shared/plugins/maritime-trade-global/emissions.js',
+    'shared/plugins/maritime-trade-global/maritime-engine.js',
+    'shared/plugins/maritime-trade-global/metrics.js',
+    'shared/plugins/maritime-trade-global/network-router.js',
+    'shared/plugins/maritime-trade-global/ports.js',
+    'shared/plugins/maritime-trade-global/presentation.js',
+    'shared/plugins/maritime-trade-global/queue-engine.js',
+    'shared/plugins/maritime-trade-global/routing.js',
+    'shared/plugins/maritime-trade-global/vessels.js',
+    'shared/plugins/maritime-trade-global/weather-disruption.js',
+    'shared/plugins/maritime-trade-global/index.js',
+    'shared/plugins/orbital-transfer-planner/depot-ledger.js',
+    'shared/plugins/orbital-transfer-planner/ephemeris.js',
+    'shared/plugins/orbital-transfer-planner/hohmann.js',
+    'shared/plugins/orbital-transfer-planner/lambert.js',
+    'shared/plugins/orbital-transfer-planner/launch-window.js',
+    'shared/plugins/orbital-transfer-planner/metrics.js',
+    'shared/plugins/orbital-transfer-planner/patched-conic.js',
+    'shared/plugins/orbital-transfer-planner/presentation.js',
+    'shared/plugins/orbital-transfer-planner/radiation.js',
+    'shared/plugins/orbital-transfer-planner/index.js',
+    'shared/plugins/safety-explorer/index.js',
+    'shared/plugins/sun-walker/sun-exposure.js',
+    'shared/plugins/sun-walker/index.js',
+    'simulatte/world/world-tile-manager.js',
+    'simulatte/world/world-tile-storage.js',
+    'simulatte/platform/bootstrap/application-loader.js',
+    'simulatte/runtime/neural-place-resolution-core.js',
+    'simulatte/runtime/neural-place-resolver.js',
+    'simulatte/mission/capability-matrix.js',
+    'simulatte/mission/mission-compiler.js',
+    'data/simulatte-language-lexicon.js',
+    'simulatte/language/simulatte-universe-parser.js',
+    'simulatte/world/ambient-actors.js',
+    'simulatte/world/world-model.js',
+    'simulatte/world/route-planner.js',
+    'simulatte/world/time-dependent-edge-cost.js',
+    'simulatte/runtime/feature-retrieval.js',
+    'simulatte/runtime/occurrence-engine.js',
+    'simulatte/runtime/observation-builder.js',
+    'simulatte/runtime/reference-dynamics.js',
+    'simulatte/runtime/bet-proposer.js',
+    'simulatte/runtime/safety-gate.js',
+    'simulatte/runtime/bet-selector.js',
+    'simulatte/runtime/bet-settlement.js',
+    'simulatte/verifier/journey-verifier.js',
+    'simulatte/runtime/autonomy-controller.js',
+    'simulatte/runtime/journey-ledger.js',
+    'simulatte/app/webgpu-math.js',
+    'simulatte/app/webgpu-actor-geometry.js',
+    'simulatte/app/webgpu-geometry.js',
+    'simulatte/app/plugin-presentation.js',
+    'simulatte/app/camera-controller.js',
+    'simulatte/app/webgpu-renderer.js',
+    'simulatte/app/trace-view.js',
+    'simulatte/app/application-profile-select.js',
+    'simulatte/app/experience-camera.js',
+    'simulatte/app/tier-facts.js',
+    'simulatte/app/tier-data-loader.js',
+    'simulatte/app/tier-renderers.js',
+    'simulatte/app/tier-registry.js',
+    'simulatte/app/multi-tier-visualizer.js',
+    'simulatte/app/mount-lifecycle.js',
+    'simulatte/app/world-tiers-boot.js',
+    'simulatte/app/router.js',
+    'simulatte/app/city-interface.js',
+    'simulatte/app/main-view.js',
+    'simulatte/app/main.js',
+  ]);
+  const PROFILE_PLUGINS = Object.freeze({
+    'simulatte-world-v1': Object.freeze(['safety-explorer', 'sun-walker', 'cable-trader']),
+    'cable-trader-pickup-v1': Object.freeze(['cable-trader']),
+    'safety-explorer-v1': Object.freeze(['safety-explorer']),
+    'sun-walker-v1': Object.freeze(['sun-walker']),
+    'food-recall-us-v1': Object.freeze(['food-recall-us']),
+    'maritime-trade-global-v1': Object.freeze(['maritime-trade-global']),
+    'orbital-transfer-planner-v1': Object.freeze(['orbital-transfer-planner']),
+    'interstellar-relay-network-v1': Object.freeze(['interstellar-relay-network']),
+  });
+  const TIER_DEFAULT_PROFILE = Object.freeze({
+    city: 'simulatte-world-v1',
+    country: 'food-recall-us-v1',
+    world: 'maritime-trade-global-v1',
+    'solar-system': 'orbital-transfer-planner-v1',
+    'star-chart': 'interstellar-relay-network-v1',
+  });
+  const pluginPath = (path) => path.startsWith('shared/plugins/');
+  const optionalModelPath = (path) => /simulatte\/runtime\/neural-place-(?:resolution-core|resolver)\.js$/.test(path);
+  const pageShellPath = (path) => /^(neural-model-consent|model-selection|shared\/(?:deterministic-values|language|streets|contracts)|simulatte\/(?:runtime\/(?:canonical-receipts|runtime-log)|platform))/.test(path);
+  const requiredDataPath = (path) => /^(?:data\/|shared\/core\/|simulatte\/(?:world|mission|language)\/)/.test(path);
+  const stages = Object.freeze({
+    pageShell: Object.freeze(browser.filter((path) => !pluginPath(path) && !optionalModelPath(path) && pageShellPath(path))),
+    selectedProduct: Object.freeze(browser.filter(pluginPath)),
+    requiredContractsAndData: Object.freeze(browser.filter((path) => !pluginPath(path) && !optionalModelPath(path) && !pageShellPath(path) && requiredDataPath(path))),
+    selectedRuntime: Object.freeze(browser.filter((path) => !pluginPath(path) && !optionalModelPath(path) && !pageShellPath(path) && !requiredDataPath(path))),
+    optionalModel: Object.freeze(browser.filter(optionalModelPath)),
+  });
+  const eager = Object.freeze(browser.filter((path) => !pluginPath(path) && !optionalModelPath(path)));
+  function pluginIdsForSelection(options = {}) {
+    if (Array.isArray(options.pluginIds)) return Object.freeze([...new Set(options.pluginIds)].sort());
+    const profileId = options.profileId || TIER_DEFAULT_PROFILE[options.tierId || 'city'];
+    return Object.freeze([...(PROFILE_PLUGINS[profileId] || [])]);
+  }
+  function forSelection(options = {}) {
+    const pluginIds = new Set(pluginIdsForSelection(options));
+    const includeOptionalModel = options.includeOptionalModel === true;
+    return Object.freeze(browser.filter((path) => {
+      if (optionalModelPath(path)) return includeOptionalModel;
+      if (!pluginPath(path)) return true;
+      return [...pluginIds].some((pluginId) => path.startsWith(`shared/plugins/${pluginId}/`));
+    }));
+  }
+  return Object.freeze({
+    browser,
+    eager,
+    stages,
+    profilePlugins: PROFILE_PLUGINS,
+    tierDefaultProfile: TIER_DEFAULT_PROFILE,
+    pluginIdsForSelection,
+    forSelection,
+  });
+});

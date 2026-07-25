@@ -1,13 +1,12 @@
 (function attachSimulatteIntentEmbedderruntimeclass(root) {
-  const scope = root.__SimulatteIntentEmbedderRefactorScope;
-  if (!scope || scope.missingDependency) return;
-  with (scope) {
+  const scope = root.SimulattePhaseModuleRegistry.family('intentEmbedder');
+
     function create(options = {}) {
-        return new ModelBackedIntentEmbedder(options);
+        return new scope.ModelBackedIntentEmbedder(options);
       }
 
-    Object.assign(scope, {
+    root.SimulattePhaseModuleRegistry.define('intentEmbedder', 'simulatte-intent-embedder-runtime-class.js', {
       create,
     });
-  }
+
 })(typeof globalThis !== 'undefined' ? globalThis : window);

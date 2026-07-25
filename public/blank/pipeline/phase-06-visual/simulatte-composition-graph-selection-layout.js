@@ -1,7 +1,6 @@
 (function attachSimulatteCompositionGraphselectionlayout(root) {
-  const scope = root.__SimulatteCompositionGraphRefactorScope;
-  if (!scope || scope.missingDependency) return;
-  with (scope) {
+  const scope = root.SimulattePhaseModuleRegistry.family('compositionGraph');
+
     function style(fill, stroke, alpha) {
         return { fill, stroke, alpha };
       }
@@ -16,9 +15,9 @@
           compositionNode(component, index, selected.length, spec, contract, priors)
         ));
         const relations = compositionRelations(nodes, graph, universeGraph, spec);
-        const operators = compositionOperatorsForSpec(spec, graph);
+        const operators = scope.compositionOperatorsForSpec(spec, graph);
         return {
-          schema: COMPOSITION_SCHEMA,
+          schema: scope.COMPOSITION_SCHEMA,
           graphId: `${spec.id || 'sim'}-cg`,
           intentText: compiledIntentText(universeGraph, spec),
           nodes,
@@ -143,11 +142,11 @@
       }
 
     function selectionSceneKindForSpec(spec = {}, promptText = '') {
-        const prompt = positiveLanguageText(promptText);
-        const direct = nonFallbackSceneKind(spec && spec.renderIR && (spec.renderIR.sceneKind || spec.renderIR.sceneHint));
+        const prompt = scope.positiveLanguageText(promptText);
+        const direct = scope.nonFallbackSceneKind(spec && spec.renderIR && (spec.renderIR.sceneKind || spec.renderIR.sceneHint));
         if (direct) return direct;
-        if (hasDirectSwimmingSignal(prompt)) return 'watershed';
-        return baseSceneKindForPromptText(prompt) || expandedSceneKindForText(prompt) || '';
+        if (scope.hasDirectSwimmingSignal(prompt)) return 'watershed';
+        return scope.baseSceneKindForPromptText(prompt) || scope.expandedSceneKindForText(prompt) || '';
       }
 
     function shouldSelectPriorComponent(component, selected, promptText, sceneKind) {
@@ -197,7 +196,7 @@
         if (source !== 'catalog') return true;
         const text = componentSelectionText(component);
         const prompt = String(promptText || '').toLowerCase();
-        if (GENERIC_CATALOG_SUPPORT_IDS.has(component.id) && !catalogSupportIsPrompted(component, prompt)) {
+        if (scope.GENERIC_CATALOG_SUPPORT_IDS.has(component.id) && !catalogSupportIsPrompted(component, prompt)) {
           return false;
         }
         if (sceneKind === 'fire' || sceneKind === 'thermal-plume') {
@@ -278,8 +277,8 @@
       }
 
     function phraseMatchesPrompt(phrase, promptText) {
-        const phraseText = positiveLanguageText(phrase);
-        const prompt = positiveLanguageText(promptText);
+        const phraseText = scope.positiveLanguageText(phrase);
+        const prompt = scope.positiveLanguageText(promptText);
         if (!phraseText || !prompt) return false;
         if (prompt.includes(phraseText)) return true;
         const stop = new Set([
@@ -320,11 +319,11 @@
           nodeId: `cg${index + 1}`,
           primitiveId: component.id,
           type: component.type || 'body',
-          layer: component.layer || inferLayer(component),
+          layer: component.layer || scope.inferLayer(component),
           role: component.role || component.id,
           score: prior.score || component.score || 0,
-          material: materialForComponent(component),
-          shape: shapeForComponent(component),
+          material: scope.materialForComponent(component),
+          shape: scope.shapeForComponent(component),
           visualRegime: component.visualRegime || '',
           assembly: component.assembly || '',
           phrase: component.phrase || '',
@@ -435,14 +434,14 @@
           'prompt', 'semantic', 'surface', 'generated', 'synth',
           'an', 'and', 'at', 'in', 'is', 'of', 'on', 'the', 'to', 'with',
         ]);
-        return uniqueList(String(value || '').toLowerCase().split(/[^a-z0-9]+/)
+        return scope.uniqueList(String(value || '').toLowerCase().split(/[^a-z0-9]+/)
           .filter((token) => token.length > 1 && !ignored.has(token))
           .map((token) => token.length > 3 && token.endsWith('s') ? token.slice(0, -1) : token));
       }
 
     function placementFor(component, index, total, spec, contract) {
         const grammar = contract && contract.layout ? contract.layout.grammar : 'freeform';
-        const phase = hashNoise((spec.id || '').length + 17, index);
+        const phase = scope.hashNoise((spec.id || '').length + 17, index);
         const radial = radialPlacement(index, total, phase);
         if (grammar === 'bench') return linePlacement(index, total, 0.18, 0.46, 0.74);
         if (grammar === 'orthogonal network' || grammar === 'route graph' || grammar === 'network') {
@@ -461,7 +460,7 @@
       }
 
     function clampAnchor(anchor) {
-        return [clamp(anchor[0], 0.08, 0.92), clamp(anchor[1], 0.1, 0.9)];
+        return [scope.clamp(anchor[0], 0.08, 0.92), scope.clamp(anchor[1], 0.1, 0.9)];
       }
 
     function radialPlacement(index, total, phase) {
@@ -500,35 +499,35 @@
       }
 
     function compileCompositionToRenderProgram(graph = null, spec = {}) {
-        if (!graph || graph.schema !== COMPOSITION_SCHEMA) return null;
+        if (!graph || graph.schema !== scope.COMPOSITION_SCHEMA) return null;
         if (spec && spec.renderIR && spec.solverGraph) {
           return renderProgramFromRenderIR(graph, spec);
         }
-        const initialObjects = graph.nodes.map((node) => renderObjectForNode(node, spec));
+        const initialObjects = graph.nodes.map((node) => scope.renderObjectForNode(node, spec));
         const relations = graph.relations.map((relation) => ({
           ...relation,
           reason: relation.channel,
         }));
         const fields = [];
-        const sceneKind = resolveSceneKind(graph, initialObjects, fields, spec);
-        const layoutSolverPlan = solverPlanForExecutableGraph(spec.solverGraph || {});
-        const layoutGenome = visualGenomeForComposition(graph, initialObjects, fields, layoutSolverPlan, spec, sceneKind);
-        const laidOutObjects = layoutObjectsForScene(prioritizeObjectsForScene(initialObjects, sceneKind), sceneKind, spec, layoutGenome);
-        const objectLedger = visualObjectAcceptanceLedger(laidOutObjects, sceneKind, spec);
+        const sceneKind = scope.resolveSceneKind(graph, initialObjects, fields, spec);
+        const layoutSolverPlan = scope.solverPlanForExecutableGraph(spec.solverGraph || {});
+        const layoutGenome = scope.visualGenomeForComposition(graph, initialObjects, fields, layoutSolverPlan, spec, sceneKind);
+        const laidOutObjects = scope.layoutObjectsForScene(scope.prioritizeObjectsForScene(initialObjects, sceneKind), sceneKind, spec, layoutGenome);
+        const objectLedger = scope.visualObjectAcceptanceLedger(laidOutObjects, sceneKind, spec);
         const objects = objectLedger.accepted;
-        const visualRegimes = uniqueList(objects.map((object) => object.visualRegime));
-        const emitters = emittersForComposition(graph);
+        const visualRegimes = scope.uniqueList(objects.map((object) => object.visualRegime));
+        const emitters = scope.emittersForComposition(graph);
         const solverPlan = layoutSolverPlan;
         const rendererPlan = {
-          ...rendererPlanForComposition(graph, objects, fields, solverPlan, spec, sceneKind),
+          ...scope.rendererPlanForComposition(graph, objects, fields, solverPlan, spec, sceneKind),
           visualObjectLedger: objectLedger.summary,
         };
-        const visualIR = visualIRForRenderProgram(graph, objects, fields, solverPlan, spec, rendererPlan, sceneKind);
+        const visualIR = scope.visualIRForRenderProgram(graph, objects, fields, solverPlan, spec, rendererPlan, sceneKind);
         const program = {
-          schema: RENDER_PROGRAM_SCHEMA,
+          schema: scope.RENDER_PROGRAM_SCHEMA,
           sourceGraphId: graph.graphId,
           intentText: graph.intentText,
-          materials: { ...MATERIAL_STYLES },
+          materials: { ...scope.MATERIAL_STYLES },
           objects,
           supportObjects: objectLedger.rejected,
           visualAcceptance: objectLedger.receipts,
@@ -552,7 +551,7 @@
             visualIdentity: rendererPlan.visualIdentity,
             visualGenome: rendererPlan.visualGenome,
             visualObjectLedger: objectLedger.summary,
-            signature: uniqueList(graph.nodes.map((node) => node.shape)).join('+'),
+            signature: scope.uniqueList(graph.nodes.map((node) => node.shape)).join('+'),
           },
         };
         return program;
@@ -573,7 +572,7 @@
           };
         });
         const fields = program.fields || [];
-        const solverFamilies = uniqueList([
+        const solverFamilies = scope.uniqueList([
           ...((program.solverPlan && program.solverPlan.families) || []),
           ...((spec.solverGraph.steps || []).map((step) => step.solverId)),
         ]);
@@ -585,7 +584,7 @@
           solverPlan: {
             ...(program.solverPlan || {}),
             families: solverFamilies,
-            state: uniqueList([
+            state: scope.uniqueList([
               ...((program.solverPlan && program.solverPlan.state) || []),
               ...Object.keys(spec.solverGraph.channels || {}),
             ]),
@@ -610,7 +609,7 @@
       }
 
     function renderBindingKeys(object) {
-        return uniqueList([
+        return scope.uniqueList([
           object.physicalRef,
           object.semanticRef,
           object.id,
@@ -624,7 +623,7 @@
 
     function bestRenderBindingKey(object, bindingByText) {
         const keys = Array.from(bindingByText.keys());
-        const strongKeys = uniqueList([
+        const strongKeys = scope.uniqueList([
           object.id,
           object.physicalRef,
           object.semanticRef,
@@ -635,7 +634,7 @@
         for (const key of keys) {
           if (strongKeys.some((candidate) => renderBindingRefMatches(key, candidate))) return key;
         }
-        const roleKeys = uniqueList([
+        const roleKeys = scope.uniqueList([
           object.role,
           object.label,
         ].flatMap(renderBindingAliases)).filter((key) => key && !genericRenderBindingKey(key));
@@ -690,7 +689,7 @@
       }
 
     function genericRenderBindingKey(key = '') {
-        return GENERIC_RENDER_BINDING_KEYS.has(renderBindingNormalize(key));
+        return scope.GENERIC_RENDER_BINDING_KEYS.has(renderBindingNormalize(key));
       }
 
     function renderBindingRefMatches(key = '', candidate = '') {
@@ -722,7 +721,7 @@
           kind: object.glyph === 'field' ? 'field' : 'body',
           material: object.materialId || 'metal',
           role: object.label || object.semanticRef || object.id,
-          shape: shapeForRenderGlyph(object.glyph, object),
+          shape: scope.shapeForRenderGlyph(object.glyph, object),
           visualRegime: object.visualRegime || '',
           assembly: object.semanticRef || '',
           phrase: object.label || '',
@@ -732,7 +731,7 @@
           visualArchetype: object.visualArchetype || '',
           shapeHints: object.shapeHints || [],
           construction: object.construction || object.geometry && object.geometry.construction || null,
-          constructionHypotheses: mergeConstructionEvidenceRows(
+          constructionHypotheses: scope.mergeConstructionEvidenceRows(
             object.constructionHypotheses,
             object.geometry && object.geometry.constructionHypotheses
           ),
@@ -745,7 +744,7 @@
           domainTags: object.domainTags || [],
           evidence: object.evidence || [],
           source: 'render-ir',
-          pose: poseForRenderObject(object, index, renderIR.objects.length),
+          pose: scope.poseForRenderObject(object, index, renderIR.objects.length),
           dynamics: {},
           stateBindings: object.stateBindings || {},
           behavior: object.behavior || null,
@@ -755,66 +754,66 @@
           required: true,
         }));
         const graphObjects = (graph.nodes || [])
-          .map((node) => renderObjectForNode(node, spec))
+          .map((node) => scope.renderObjectForNode(node, spec))
           .map((object) => bindRenderIRToObject(object, bindingByText));
-        const sceneKind = sceneKindForRenderIR(renderIR, solverGraph, graph, graphObjects, spec);
-        const irFields = executableRenderIRFields(renderIR.fields, solverGraph).map((field) => ({
+        const sceneKind = scope.sceneKindForRenderIR(renderIR, solverGraph, graph, graphObjects, spec);
+        const irFields = scope.executableRenderIRFields(renderIR.fields, solverGraph).map((field) => ({
           id: field.id,
-          kind: fieldKindForRenderIRField(field, sceneKind),
+          kind: scope.fieldKindForRenderIRField(field, sceneKind),
           channel: field.channel,
           stateBinding: field.channel,
           domainId: field.domainId,
           strength: 0.7,
         }));
         const irContext = unmatchedRenderIRObjects(graphObjects, irObjects, sceneKind);
-        const layoutFields = focusFieldsForScene(uniqueFieldsByKind(irFields), sceneKind);
-        const layoutSolverPlan = solverPlanForExecutableGraph(solverGraph);
-        const layoutGenome = visualGenomeForComposition(graph, graphObjects, layoutFields, layoutSolverPlan, spec, sceneKind);
-        const groundedObjects = canonicalVisualObjects(uniqueObjectsById([
+        const layoutFields = scope.focusFieldsForScene(scope.uniqueFieldsByKind(irFields), sceneKind);
+        const layoutSolverPlan = scope.solverPlanForExecutableGraph(solverGraph);
+        const layoutGenome = scope.visualGenomeForComposition(graph, graphObjects, layoutFields, layoutSolverPlan, spec, sceneKind);
+        const groundedObjects = scope.canonicalVisualObjects(scope.uniqueObjectsById([
           ...graphObjects,
           ...irContext,
         ]));
-        const prioritizedObjects = prioritizeObjectsForScene(groundedObjects, sceneKind);
+        const prioritizedObjects = scope.prioritizeObjectsForScene(groundedObjects, sceneKind);
         const promptRenderFallbacks = irObjects.filter((object) => (
           object.directlyGrounded === true &&
-          !prioritizedObjects.some((row) => visualObjectsShareConcept(row, object))
+          !prioritizedObjects.some((row) => scope.visualObjectsShareConcept(row, object))
         ));
-        let laidOutObjects = preservePromptGroundedSurfaceObjects(layoutObjectsForScene(
-          uniqueObjectsById([...promptRenderFallbacks, ...prioritizedObjects]).slice(0, 24),
+        let laidOutObjects = preservePromptGroundedSurfaceObjects(scope.layoutObjectsForScene(
+          scope.uniqueObjectsById([...promptRenderFallbacks, ...prioritizedObjects]).slice(0, 24),
           sceneKind,
           spec,
           layoutGenome
         ), graphObjects, spec, sceneKind);
-        let objectLedger = visualObjectAcceptanceLedger(laidOutObjects, sceneKind, spec);
+        let objectLedger = scope.visualObjectAcceptanceLedger(laidOutObjects, sceneKind, spec);
         const acceptanceFallbacks = directlyGroundedRenderFallbacks(irObjects, objectLedger.accepted);
         if (acceptanceFallbacks.length) {
-          laidOutObjects = preservePromptGroundedSurfaceObjects(layoutObjectsForScene(
-            uniqueObjectsById([...acceptanceFallbacks, ...laidOutObjects]).slice(0, 24),
+          laidOutObjects = preservePromptGroundedSurfaceObjects(scope.layoutObjectsForScene(
+            scope.uniqueObjectsById([...acceptanceFallbacks, ...laidOutObjects]).slice(0, 24),
             sceneKind,
             spec,
             layoutGenome
           ), graphObjects, spec, sceneKind);
-          objectLedger = visualObjectAcceptanceLedger(laidOutObjects, sceneKind, spec);
+          objectLedger = scope.visualObjectAcceptanceLedger(laidOutObjects, sceneKind, spec);
         }
         const objects = objectLedger.accepted;
         const fields = layoutFields;
         const solverPlan = layoutSolverPlan;
         const rendererPlan = {
-          ...rendererPlanForComposition(graph, objects, fields, solverPlan, spec, sceneKind),
+          ...scope.rendererPlanForComposition(graph, objects, fields, solverPlan, spec, sceneKind),
           visualObjectLedger: objectLedger.summary,
         };
-        const visualIR = visualIRForRenderProgram(graph, objects, fields, solverPlan, spec, rendererPlan, sceneKind);
+        const visualIR = scope.visualIRForRenderProgram(graph, objects, fields, solverPlan, spec, rendererPlan, sceneKind);
         return {
-          schema: RENDER_PROGRAM_SCHEMA,
+          schema: scope.RENDER_PROGRAM_SCHEMA,
           sourceGraphId: graph.graphId,
           intentText: graph.intentText,
-          materials: { ...MATERIAL_STYLES },
+          materials: { ...scope.MATERIAL_STYLES },
           objects,
           supportObjects: objectLedger.rejected,
           visualAcceptance: objectLedger.receipts,
-          relations: relationsFromPhysicsIR(spec),
+          relations: scope.relationsFromPhysicsIR(spec),
           fields,
-          emitters: emittersForComposition(graph),
+          emitters: scope.emittersForComposition(graph),
           solverPlan,
           rendererPlan,
           visualGenome: rendererPlan.visualGenome,
@@ -827,13 +826,13 @@
             nodeCount: objects.length,
             relationCount: spec.physicsIR ? (spec.physicsIR.couplings || []).length : 0,
             operatorCount: solverGraph.steps ? solverGraph.steps.length : 0,
-            visualRegimes: uniqueList(objects.map((object) => object.visualRegime)),
+            visualRegimes: scope.uniqueList(objects.map((object) => object.visualRegime)),
             dominantRegime: rendererPlan.dominantRegime,
             sceneKind,
             visualIdentity: rendererPlan.visualIdentity,
             visualGenome: rendererPlan.visualGenome,
             visualObjectLedger: objectLedger.summary,
-            signature: uniqueList(objects.map((object) => object.shape)).join('+'),
+            signature: scope.uniqueList(objects.map((object) => object.shape)).join('+'),
             renderIR: renderIR.schema,
             solverGraph: solverGraph.schema,
           },
@@ -844,7 +843,7 @@
         return (irObjects || []).filter((object) => (
           object && object.directlyGrounded === true &&
           /^prompt[.-]/.test(String(object.semanticRef || object.physicalRef || '')) &&
-          !(acceptedObjects || []).some((row) => visualObjectsShareConcept(row, object))
+          !(acceptedObjects || []).some((row) => scope.visualObjectsShareConcept(row, object))
         ));
       }
 
@@ -852,7 +851,7 @@
         const key = bestRenderBindingKey(object, bindingByText);
         const binding = key ? bindingByText.get(key) : null;
         if (!binding) return object;
-        const bindingShape = shapeForRenderGlyph(binding.glyph, binding);
+        const bindingShape = scope.shapeForRenderGlyph(binding.glyph, binding);
         const bindingOwnsShape = /^(?:lava|volcano|bridge|tower|castle|ice|lens|prism|mirror|flame|smoke|storm|wetland|rocket|submarine|instrument|network|organism)$/.test(
           String(binding.glyph || '')
         ) || (binding.glyph === 'turbine' && bindingShape === 'wheel') ||
@@ -864,7 +863,7 @@
           material: binding.materialId || object.material,
           stateBindings: binding.stateBindings || {},
           behavior: binding.behavior || object.behavior || null,
-          physicsOperators: uniqueList([...(object.physicsOperators || []), ...(binding.physicsOperators || [])]),
+          physicsOperators: scope.uniqueList([...(object.physicsOperators || []), ...(binding.physicsOperators || [])]),
           physicalRef: binding.physicalRef || object.physicalRef || '',
           semanticRef: binding.semanticRef || object.semanticRef || '',
           sourceLabel: binding.sourceLabel || binding.label || object.sourceLabel || '',
@@ -873,11 +872,11 @@
           visualArchetype: binding.visualArchetype || object.visualArchetype || '',
           shapeHints: binding.shapeHints || object.shapeHints || [],
           construction: binding.construction || object.construction || null,
-          constructionHypotheses: mergeConstructionEvidenceRows(
+          constructionHypotheses: scope.mergeConstructionEvidenceRows(
             binding.constructionHypotheses,
             object.constructionHypotheses
           ),
-          constructionProvenance: mergeConstructionProvenanceRows(
+          constructionProvenance: scope.mergeConstructionProvenanceRows(
             binding.constructionProvenance,
             object.constructionProvenance
           ),
@@ -887,7 +886,7 @@
           poseHint: binding.poseHint || object.poseHint || null,
           directlyGrounded: binding.directlyGrounded === true || object.directlyGrounded === true,
           domainTags: binding.domainTags || object.domainTags || [],
-          evidence: uniqueList([...(object.evidence || []), ...(binding.evidence || [])]),
+          evidence: scope.uniqueList([...(object.evidence || []), ...(binding.evidence || [])]),
         };
       }
 
@@ -895,20 +894,20 @@
         const promptText = compiledPromptTextForSelection(spec);
         const existing = new Set((objects || []).map((object) => object.id));
         const directSurface = (graphObjects || []).filter((object) => {
-          if (!object || existing.has(object.id) || (objects || []).some((row) => visualObjectsShareConcept(row, object))) return false;
+          if (!object || existing.has(object.id) || (objects || []).some((row) => scope.visualObjectsShareConcept(row, object))) return false;
           if (object.source !== 'semantic-surface-grounder') return false;
           if (!isPromptGroundedComponent(object, promptText)) return false;
-          return sceneObjectPriority(object, sceneKind) >= 0;
+          return scope.sceneObjectPriority(object, sceneKind) >= 0;
         });
         if (!directSurface.length) return objects;
-        return uniqueObjectsById([...objects, ...directSurface]).slice(0, 24);
+        return scope.uniqueObjectsById([...objects, ...directSurface]).slice(0, 24);
       }
 
     function unmatchedRenderIRObjects(graphObjects, irObjects, _sceneKind) {
         const graphRows = graphObjects || [];
         return (irObjects || [])
           .filter((object) => {
-            const text = renderObjectText(object);
+            const text = scope.renderObjectText(object);
             const identityKeys = new Set([object.id, object.physicalRef]
               .map((value) => String(value || '').toLowerCase()).filter(Boolean));
             const matches = graphRows.filter((row) => [row.id, row.physicalRef]
@@ -924,7 +923,7 @@
           .slice(0, 16);
       }
 
-    Object.assign(scope, {
+    root.SimulattePhaseModuleRegistry.define('compositionGraph', 'simulatte-composition-graph-selection-layout.js', {
       style,
       buildCompositionGraph,
       compiledIntentText,
@@ -971,5 +970,5 @@
       preservePromptGroundedSurfaceObjects,
       unmatchedRenderIRObjects,
     });
-  }
+
 })(typeof globalThis !== 'undefined' ? globalThis : window);

@@ -1,7 +1,6 @@
 (function attachSimulatteIntentEmbedderruntimeprobes(root) {
-  const scope = root.__SimulatteIntentEmbedderRefactorScope;
-  if (!scope || scope.missingDependency) return;
-  with (scope) {
+  const scope = root.SimulattePhaseModuleRegistry.family('intentEmbedder');
+
     async function fetchJson(url, label, telemetry = {}) {
         const started = nowMs();
         const progress = telemetry.progress || null;
@@ -39,16 +38,16 @@
           });
           throw new Error(`${label} fetch failed: ${response.status}`);
         }
-    	    const body = await readJsonResponseWithProgress(response, label, {
-    	      ...telemetry,
-    	      startPercent,
-    	      endPercent,
+          const body = await readJsonResponseWithProgress(response, label, {
+            ...telemetry,
+            startPercent,
+            endPercent,
           progress,
           trace,
-    	      resourceUrl: String(url || ''),
-    	    });
-    	    const verifiedHash = await assertJsonResourceHash(label, url, body.bytes, telemetry);
-    	    emitRuntimeProgress(progress, trace, {
+            resourceUrl: String(url || ''),
+          });
+          const verifiedHash = await assertJsonResourceHash(label, url, body.bytes, telemetry);
+          emitRuntimeProgress(progress, trace, {
           source: 'simulatte-intent-embedder',
           stage: telemetry.stage || 'resource-fetch',
           percent: endPercent,
@@ -61,22 +60,22 @@
           status: response.status,
           byteLength: body.byteLength,
           completedBytes: body.byteLength,
-    	      totalBytes: body.totalBytes,
-    	      verifiedHash,
-    	      cacheMode: 'force-cache',
-    	    });
-    	    return body.value;
-    	  }
+            totalBytes: body.totalBytes,
+            verifiedHash,
+            cacheMode: 'force-cache',
+          });
+          return body.value;
+        }
 
     async function assertJsonResourceHash(label, url, bytes, telemetry = {}) {
-    	    const expectedHash = telemetry.expectedHash || telemetry.hash || telemetry.integrity || null;
-    	    if (!artifactHashHex(expectedHash)) return '';
-    	    return assertArtifactBytesHash({
-    	      path: String(url || label || 'json-resource'),
-    	      hash: expectedHash,
-    	      hashAlgorithm: artifactHashAlgorithm(expectedHash) || telemetry.hashAlgorithm || 'sha256',
-    	    }, bytes);
-    	  }
+          const expectedHash = telemetry.expectedHash || telemetry.hash || telemetry.integrity || null;
+          if (!artifactHashHex(expectedHash)) return '';
+          return assertArtifactBytesHash({
+            path: String(url || label || 'json-resource'),
+            hash: expectedHash,
+            hashAlgorithm: artifactHashAlgorithm(expectedHash) || telemetry.hashAlgorithm || 'sha256',
+          }, bytes);
+        }
 
     async function readJsonResponseWithProgress(response, label, telemetry = {}) {
         const contentLength = Number(response.headers && response.headers.get('Content-Length') || 0);
@@ -97,23 +96,23 @@
             if (reader.releaseLock) reader.releaseLock();
           }
           const bytes = concatChunks(chunks, received);
-    	      return {
-    	        value: JSON.parse(new TextDecoder().decode(bytes)),
-    	        bytes,
-    	        byteLength: bytes.byteLength,
-    	        totalBytes: contentLength || bytes.byteLength,
-    	      };
-    	    }
-    	    const text = await response.text();
-    	    const bytes = new TextEncoder().encode(text);
-    	    const byteLength = bytes.byteLength;
-    	    emitFetchJsonProgress(label, telemetry, byteLength, contentLength || byteLength);
-    	    return {
-    	      value: JSON.parse(text),
-    	      bytes,
-    	      byteLength,
-    	      totalBytes: contentLength || byteLength,
-    	    };
+            return {
+              value: JSON.parse(new TextDecoder().decode(bytes)),
+              bytes,
+              byteLength: bytes.byteLength,
+              totalBytes: contentLength || bytes.byteLength,
+            };
+          }
+          const text = await response.text();
+          const bytes = new TextEncoder().encode(text);
+          const byteLength = bytes.byteLength;
+          emitFetchJsonProgress(label, telemetry, byteLength, contentLength || byteLength);
+          return {
+            value: JSON.parse(text),
+            bytes,
+            byteLength,
+            totalBytes: contentLength || byteLength,
+          };
       }
 
     function emitFetchJsonProgress(label, telemetry = {}, completedBytes = 0, totalBytes = 0) {
@@ -187,7 +186,7 @@
         if (options.traceEmbeddings === true || options.debugTimings === true || options.logTimings === true) {
           return true;
         }
-        return TRACE_URL_FLAGS.some((name) => truthyValue(urlValue(name)));
+        return scope.TRACE_URL_FLAGS.some((name) => truthyValue(scope.urlValue(name)));
       }
 
     function truthyValue(value) {
@@ -373,20 +372,20 @@
         if (globalThis.blake3 && typeof globalThis.blake3.createHasher === 'function') {
           return globalThis.blake3;
         }
-        if (!blake3ModulePromise) {
-          blake3ModulePromise = import(blake3ModuleUrl()).then((mod) => {
+        if (!scope.blake3ModulePromise) {
+          scope.blake3ModulePromise = import(blake3ModuleUrl()).then((mod) => {
             if (!mod || typeof mod.createHasher !== 'function') {
               throw new Error('BLAKE3 model artifact verifier failed to load');
             }
             return mod;
           });
         }
-        return blake3ModulePromise;
+        return scope.blake3ModulePromise;
       }
 
     function blake3ModuleUrl() {
         if (typeof location !== 'undefined' && location.href) {
-          return resolveUrl('../vendor/doppler/src/storage/blake3.js', location.href);
+          return scope.resolveUrl('../vendor/doppler/src/storage/blake3.js', location.href);
         }
         if (typeof require === 'function' && typeof __dirname !== 'undefined') {
           const path = require('node:path');
@@ -428,13 +427,13 @@
         const indexes = {};
         await Promise.all(entries.map(async ([name, config]) => {
           if (!config || !config.artifact) throw new Error(`universe index ${name} missing artifact`);
-    	      indexes[name] = await fetchJson(versionedAssetUrl(resolveUrl(config.artifact, manifestUrl), telemetry.assetVersionQuery), `universe ${name} index`, {
-    	        ...telemetry,
-    	        stage: 'index-fetch',
-    	        percent: 14,
-    	        resourceKind: `universe-${name}-index`,
-    	        expectedHash: config.artifactHash || config.hash || null,
-    	      });
+            indexes[name] = await fetchJson(scope.versionedAssetUrl(scope.resolveUrl(config.artifact, manifestUrl), telemetry.assetVersionQuery), `universe ${name} index`, {
+              ...telemetry,
+              stage: 'index-fetch',
+              percent: 14,
+              resourceKind: `universe-${name}-index`,
+              expectedHash: config.artifactHash || config.hash || null,
+            });
         }));
         return { manifest, indexes };
       }
@@ -446,7 +445,7 @@
           index: normalizedIndex,
           cardIndex: normalizeSurfaceCardIndex(cardIndex, manifest, normalizedIndex),
           universe: normalizeUniverseIndexes(universe, manifest),
-          reranker: rerankerConfig(manifest),
+          reranker: scope.rerankerConfig(manifest),
         };
       }
 
@@ -460,7 +459,7 @@
         if (
           universeLock.id !== runtimeLock.id ||
           Number(universeLock.number) !== Number(runtimeLock.number) ||
-          hashHex(universeLock.artifactHash) !== hashHex(runtimeLock.artifactHash)
+          scope.hashHex(universeLock.artifactHash) !== scope.hashHex(runtimeLock.artifactHash)
         ) {
           throw new Error('universe modelRuntimeLock must match the resolved intent model runtime lock');
         }
@@ -491,7 +490,7 @@
             : null;
           if (packedFeatures) {
             const featureModelId = String(index.featureModelId || '');
-            const expectedFeatureModelId = runtimeFeatureModelId();
+            const expectedFeatureModelId = scope.runtimeFeatureModelId();
             if (featureModelId !== expectedFeatureModelId) {
               throw new Error(
                 `universe index ${name} featureModelId mismatch (${featureModelId || 'missing'} !== ${expectedFeatureModelId}); rebuild the index or align the runtime feature builder`
@@ -548,8 +547,8 @@
         if (index.embedModelId !== manifest.embedModel.id) {
           throw new Error(`primitive embedding index model mismatch (${index.embedModelId} !== ${manifest.embedModel.id})`);
         }
-        const modelHash = hashHex(index.embedModelHash);
-        const manifestHash = hashHex(manifest.embedModel.manifestHash);
+        const modelHash = scope.hashHex(index.embedModelHash);
+        const manifestHash = scope.hashHex(manifest.embedModel.manifestHash);
         if (!modelHash || !manifestHash || modelHash !== manifestHash) {
           throw new Error('primitive embedding index embedModelHash must match manifest embedModel.manifestHash');
         }
@@ -594,8 +593,8 @@
         if (index.embedModelId !== manifest.embedModel.id || index.embedModelId !== primitiveIndex.embedModelId) {
           throw new Error(`surface card embedding index model mismatch (${index.embedModelId} !== ${manifest.embedModel.id})`);
         }
-        const modelHash = hashHex(index.embedModelHash);
-        const manifestHash = hashHex(manifest.embedModel.manifestHash);
+        const modelHash = scope.hashHex(index.embedModelHash);
+        const manifestHash = scope.hashHex(manifest.embedModel.manifestHash);
         if (!modelHash || !manifestHash || modelHash !== manifestHash) {
           throw new Error('surface card embedding index embedModelHash must match manifest embedModel.manifestHash');
         }
@@ -699,14 +698,14 @@
             primitiveHints: row.primitiveHints || (row.primitiveId ? [row.primitiveId] : []),
             conceptIds: row.conceptIds || row.concepts || [],
             candidateText: row.candidateText || row.text || '',
-    	        spanId: row.spanId || '',
-    	        spanKind: row.spanKind || '',
-    	        spanText: row.spanText || '',
-    	        slotId: row.slotId || '',
-    	        slotRole: row.slotRole || '',
-    	        entryId: row.entryId || '',
-    	        retrievalKind: row.retrievalKind || '',
-    	        evidence: row.evidence || [String(id)],
+              spanId: row.spanId || '',
+              spanKind: row.spanKind || '',
+              spanText: row.spanText || '',
+              slotId: row.slotId || '',
+              slotRole: row.slotRole || '',
+              entryId: row.entryId || '',
+              retrievalKind: row.retrievalKind || '',
+              evidence: row.evidence || [String(id)],
           });
         };
         for (const row of payload.basePriors || []) add(row, 'embedding-primitive-prior');
@@ -718,21 +717,21 @@
         for (const row of payload.semanticRag && payload.semanticRag.openComponents || []) add(row, 'semantic-rag-component');
         for (const row of payload.semanticRag && payload.semanticRag.surfaceRetrieved || []) add(row, 'semantic-rag-surface');
         for (const row of payload.dopplerIntent && payload.dopplerIntent.primitives || []) add(row, 'doppler-intent');
-        for (const row of spanEvidenceRows(payload.spanRetrieval)) add(row, row.source || 'span-embedding-retrieval');
-    	    for (const row of slotRetrievalEvidenceRows(payload.slotRetrieval)) add(row, row.source || 'slot-embedding-retrieval');
-    	    const seen = new Set();
-    	    const sortedRows = rows
-    	      .filter((row) => {
-    	        const key = `${row.id}:${row.source}`;
-    	        if (seen.has(key)) return false;
-    	        seen.add(key);
-    	        return true;
-    	      })
-    	      .sort((a, b) => b.score - a.score || a.id.localeCompare(b.id));
-    	    const slotRows = sortedRows.filter((row) => row.retrievalKind === 'slot-retrieval');
-    	    const otherRows = sortedRows.filter((row) => row.retrievalKind !== 'slot-retrieval');
-    	    return [...slotRows, ...otherRows].slice(0, 260);
-    	  }
+        for (const row of scope.spanEvidenceRows(payload.spanRetrieval)) add(row, row.source || 'span-embedding-retrieval');
+          for (const row of scope.slotRetrievalEvidenceRows(payload.slotRetrieval)) add(row, row.source || 'slot-embedding-retrieval');
+          const seen = new Set();
+          const sortedRows = rows
+            .filter((row) => {
+              const key = `${row.id}:${row.source}`;
+              if (seen.has(key)) return false;
+              seen.add(key);
+              return true;
+            })
+            .sort((a, b) => b.score - a.score || a.id.localeCompare(b.id));
+          const slotRows = sortedRows.filter((row) => row.retrievalKind === 'slot-retrieval');
+          const otherRows = sortedRows.filter((row) => row.retrievalKind !== 'slot-retrieval');
+          return [...slotRows, ...otherRows].slice(0, 260);
+        }
 
     function spanConfigFor(runtime, options = {}, instanceConfig = undefined) {
         const manifestConfig = runtime && runtime.manifest && runtime.manifest.retrieval && runtime.manifest.retrieval.spanLevel || {};
@@ -761,30 +760,30 @@
           ...instance,
           ...optionConfig,
         };
-        const urlMode = urlValue('spanLevelEmbedding') || urlValue('spanEmbedding');
+        const urlMode = scope.urlValue('spanLevelEmbedding') || scope.urlValue('spanEmbedding');
         if (/^(0|false|off|disabled|none)$/i.test(urlMode)) merged.enabled = false;
         if (/^(1|true|on|enabled)$/i.test(urlMode)) merged.enabled = true;
-        const urlMax = Number(urlValue('spanMax') || urlValue('maxSpanEmbeddings'));
+        const urlMax = Number(scope.urlValue('spanMax') || scope.urlValue('maxSpanEmbeddings'));
         if (Number.isFinite(urlMax) && urlMax >= 0) merged.maxSpans = urlMax;
-        const urlPrimitiveMax = Number(urlValue('spanPrimitiveMax'));
+        const urlPrimitiveMax = Number(scope.urlValue('spanPrimitiveMax'));
         if (Number.isFinite(urlPrimitiveMax) && urlPrimitiveMax >= 0) merged.perSpanPrimitiveMax = urlPrimitiveMax;
-        const urlCardMax = Number(urlValue('spanCardMax'));
+        const urlCardMax = Number(scope.urlValue('spanCardMax'));
         if (Number.isFinite(urlCardMax) && urlCardMax >= 0) merged.perSpanCardMax = urlCardMax;
-        const urlUniverseMax = Number(urlValue('spanUniverseMax'));
+        const urlUniverseMax = Number(scope.urlValue('spanUniverseMax'));
         if (Number.isFinite(urlUniverseMax) && urlUniverseMax >= 0) merged.perSpanUniverseMax = urlUniverseMax;
-        const rankBackend = String(urlValue('spanPrimitiveRankBackend') || merged.primitiveRankBackend || 'cpu').toLowerCase();
+        const rankBackend = String(scope.urlValue('spanPrimitiveRankBackend') || merged.primitiveRankBackend || 'cpu').toLowerCase();
         merged.primitiveRankBackend = ['cpu', 'webgpu', 'auto'].includes(rankBackend) ? rankBackend : 'cpu';
-        merged.maxSpans = boundedInteger(merged.maxSpans, 0, 80, 18);
-        merged.minChars = boundedInteger(merged.minChars, 1, 64, 3);
-        merged.maxChars = boundedInteger(merged.maxChars, merged.minChars, 512, 180);
-        merged.perSpanPrimitiveMax = boundedInteger(merged.perSpanPrimitiveMax, 0, 64, 8);
-        merged.perSpanCardMax = boundedInteger(merged.perSpanCardMax, 0, 64, 6);
-        merged.perSpanUniverseMax = boundedInteger(merged.perSpanUniverseMax, 0, 80, 10);
-        merged.perSpanCandidateMax = boundedInteger(merged.perSpanCandidateMax, 0, 160, 22);
-        merged.primitiveScoreFloor = boundedNumber(merged.primitiveScoreFloor, 0, 1, 0.18);
-        merged.surfaceScoreFloor = boundedNumber(merged.surfaceScoreFloor, 0, 1, 0.22);
-        merged.universeScoreFloor = boundedNumber(merged.universeScoreFloor, 0, 1, 0.14);
-        merged.includeKinds = normalizeStringList(merged.includeKinds);
+        merged.maxSpans = scope.boundedInteger(merged.maxSpans, 0, 80, 18);
+        merged.minChars = scope.boundedInteger(merged.minChars, 1, 64, 3);
+        merged.maxChars = scope.boundedInteger(merged.maxChars, merged.minChars, 512, 180);
+        merged.perSpanPrimitiveMax = scope.boundedInteger(merged.perSpanPrimitiveMax, 0, 64, 8);
+        merged.perSpanCardMax = scope.boundedInteger(merged.perSpanCardMax, 0, 64, 6);
+        merged.perSpanUniverseMax = scope.boundedInteger(merged.perSpanUniverseMax, 0, 80, 10);
+        merged.perSpanCandidateMax = scope.boundedInteger(merged.perSpanCandidateMax, 0, 160, 22);
+        merged.primitiveScoreFloor = scope.boundedNumber(merged.primitiveScoreFloor, 0, 1, 0.18);
+        merged.surfaceScoreFloor = scope.boundedNumber(merged.surfaceScoreFloor, 0, 1, 0.22);
+        merged.universeScoreFloor = scope.boundedNumber(merged.universeScoreFloor, 0, 1, 0.14);
+        merged.includeKinds = scope.normalizeStringList(merged.includeKinds);
         merged.enabled = Boolean(merged.enabled);
         merged.batchEmbedding = merged.batchEmbedding !== false;
         merged.cache = merged.cache !== false;
@@ -799,7 +798,7 @@
         return {};
       }
 
-    Object.assign(scope, {
+    root.SimulattePhaseModuleRegistry.define('intentEmbedder', 'simulatte-intent-embedder-runtime-probes.js', {
       fetchJson,
       assertJsonResourceHash,
       readJsonResponseWithProgress,
@@ -842,5 +841,5 @@
       spanConfigFor,
       normalizeSpanOption,
     });
-  }
+
 })(typeof globalThis !== 'undefined' ? globalThis : window);

@@ -1,7 +1,6 @@
 (function attachSimulattePhysicsModelphasesimulation(root) {
-  const scope = root.__SimulattePhysicsModelRefactorScope;
-  if (!scope || scope.missingDependency) return;
-  with (scope) {
+  const scope = root.SimulattePhaseModuleRegistry.family('physicsModel');
+
     const normalizedSimulationSpecs = new WeakSet();
 
     function reportCompilePhaseProgress(options = {}, stage = '', taskPercent = 0, message = '') {
@@ -17,12 +16,12 @@
       }
 
     function createSpec(templateId = 'magnetic-wheel', overrides = {}) {
-        const template = templateById(templateId);
+        const template = scope.templateById(templateId);
         const name = String(overrides.name || template.name).trim() || template.name;
-        const controls = (overrides.controls || template.controls || []).map(normalizeControl);
-        const modules = uniqueList(overrides.modules || template.modules || []);
-        const objects = normalizeObjects(overrides.objects, template.objects || []);
-        const params = normalizeParams(template, overrides.params, controls);
+        const controls = (overrides.controls || template.controls || []).map(scope.normalizeControl);
+        const modules = scope.uniqueList(overrides.modules || template.modules || []);
+        const objects = scope.normalizeObjects(overrides.objects, template.objects || []);
+        const params = scope.normalizeParams(template, overrides.params, controls);
         const spec = {
           schema: 'simulatte.simulationSpec.v1',
           id: overrides.id || deterministicSpecId(template.id, name, modules, objects, params),
@@ -46,7 +45,7 @@
           validationReceipt: overrides.validationReceipt || null,
           solverGraph: overrides.solverGraph || null,
           renderIR: overrides.renderIR || null,
-          phaseArtifacts: mergePhaseArtifacts(
+          phaseArtifacts: scope.mergePhaseArtifacts(
             overrides.phaseArtifacts,
             overrides.intent && overrides.intent.phaseArtifacts
           ),
@@ -58,9 +57,9 @@
           Object.assign(spec, compileCompilerArtifacts(spec, overrides));
         }
         if (spec.phaseArtifacts && spec.phaseArtifacts.phase4 && !spec.phaseArtifacts.phase5) {
-          const phase5 = runPhase5SimulationCompile(spec.phaseArtifacts.phase4, runtimeContextFromPhase(spec.phaseArtifacts.phase4));
+          const phase5 = scope.runPhase5SimulationCompile(spec.phaseArtifacts.phase4, scope.runtimeContextFromPhase(spec.phaseArtifacts.phase4));
           const simulationCompile = phase5.artifact && phase5.artifact.simulationCompile || {};
-          spec.phaseArtifacts = mergePhaseArtifacts(spec.phaseArtifacts, phaseArtifactSet(null, phase5));
+          spec.phaseArtifacts = scope.mergePhaseArtifacts(spec.phaseArtifacts, scope.phaseArtifactSet(null, phase5));
           spec.physicsIR = spec.physicsIR || simulationCompile.physicsIR || null;
           spec.validationReceipt = spec.validationReceipt || simulationCompile.validationReceipt || null;
           spec.solverGraph = spec.solverGraph || simulationCompile.solverGraph || null;
@@ -71,21 +70,21 @@
         }
         if (spec.phaseArtifacts && spec.phaseArtifacts.phase5) {
           reportCompilePhaseProgress(overrides, 'visual', 0, 'Building VisualIR');
-          const phase6Compiled = compilePhase6VisualProgram(spec.phaseArtifacts.phase5, overrides.compositionGraph || null);
+          const phase6Compiled = scope.compilePhase6VisualProgram(spec.phaseArtifacts.phase5, overrides.compositionGraph || null);
           spec.compositionGraph = phase6Compiled.compositionGraph;
           spec.renderProgram = phase6Compiled.visualProgram;
           spec.phaseArtifacts = {
             ...spec.phaseArtifacts,
-            phase6: createVisualCompileEnvelopeFromCompiled(spec.phaseArtifacts.phase5, phase6Compiled),
+            phase6: scope.createVisualCompileEnvelopeFromCompiled(spec.phaseArtifacts.phase5, phase6Compiled),
           };
           reportCompilePhaseProgress(overrides, 'visual', 100, 'VisualIR ready');
         } else {
           spec.compositionGraph = overrides.compositionGraph || (
-            buildCompositionGraph && spec.templateId === 'custom-world' ? buildCompositionGraph(spec) : null
+            scope.buildCompositionGraph && spec.templateId === 'custom-world' ? scope.buildCompositionGraph(spec) : null
           );
           spec.renderProgram = overrides.renderProgram || (
-            spec.compositionGraph && compileCompositionToRenderProgram
-              ? compileCompositionToRenderProgram(spec.compositionGraph, spec)
+            spec.compositionGraph && scope.compileCompositionToRenderProgram
+              ? scope.compileCompositionToRenderProgram(spec.compositionGraph, spec)
               : null
           );
         }
@@ -98,162 +97,13 @@
 
     function deterministicSpecId(templateId, name, modules, objects, params) {
         const source = JSON.stringify({ templateId, name, modules, objects, params });
-        let hash = 2166136261;
-        for (let index = 0; index < source.length; index += 1) {
-          hash ^= source.charCodeAt(index);
-          hash = Math.imul(hash, 16777619);
-        }
-        return `${slugify(name)}-${(hash >>> 0).toString(36)}`;
-      }
-
-    function refineRenderProgramSceneKind(renderProgram, spec) {
-        const current = renderProgram.rendererPlan && renderProgram.rendererPlan.sceneKind || '';
-        const authoritative = authoritativeVisualSceneKind(renderProgram);
-        const sceneKind = authoritative || fineSceneKindFromSpec(spec, current);
-        const visualIR = renderProgram.visualIR
-          ? {
-            ...renderProgram.visualIR,
-            sceneKind,
-            painterKind: renderProgram.visualIR.painterKind === 'generic' ||
-              renderProgram.visualIR.painterKind === 'literal-composite'
-              ? sceneKind
-              : renderProgram.visualIR.painterKind,
-          }
-          : renderProgram.visualIR;
-        return {
-          ...renderProgram,
-          rendererPlan: {
-            ...(renderProgram.rendererPlan || {}),
-            sceneKind,
-          },
-          visualIR,
-          provenance: {
-            ...(renderProgram.provenance || {}),
-            sceneKind,
-          },
-        };
-      }
-
-    function authoritativeVisualSceneKind(renderProgram) {
-        const candidates = [
-          renderProgram && renderProgram.visualIR && renderProgram.visualIR.sceneKind,
-          renderProgram && renderProgram.rendererPlan &&
-            renderProgram.rendererPlan.visualIdentity &&
-            renderProgram.rendererPlan.visualIdentity.sceneKind,
-          renderProgram && renderProgram.rendererPlan &&
-            renderProgram.rendererPlan.visualRecipe &&
-            renderProgram.rendererPlan.visualRecipe.sceneKind,
-          renderProgram && renderProgram.provenance &&
-            renderProgram.provenance.visualIdentity &&
-            renderProgram.provenance.visualIdentity.sceneKind,
-        ];
-        return candidates
-          .map((value) => String(value || '').trim())
-          .find((value) => value && value !== 'generic' && value !== 'literal-composite') || '';
-      }
-
-    function positiveLanguageText(value = '') {
-        const word = "[a-z0-9]+(?:[-'][a-z0-9]+)*";
-        const stop = '(?:and|with|while|where|when|because|but|however|though|although|unless|inside|outside|near|around|between|against|across|during|through|then|so)';
-        const negated = new RegExp(`\\b(?:no|not|never|none|without|cannot|can't|wont|won't|avoid|exclude|except)\\b(?:\\s+(?:a|an|the|any))?(?:\\s+(?!\\b${stop}\\b)${word}){1,6}`, 'gi');
-        return String(value || '').toLowerCase().replace(negated, ' ').replace(/\s+/g, ' ').trim();
-      }
-
-    function fineSceneKindFromSpec(spec, current = '') {
-        const authoritative = authoritativeVisualSceneKind(spec && spec.renderProgram);
-        if (authoritative) return authoritative;
-        const renderIR = spec && spec.renderIR || {};
-        const renderText = [
-          renderIR.sceneHint,
-          ...(renderIR.objects || []).map((object) => [
-            object.id,
-            object.label,
-            object.glyph,
-            object.materialId,
-            object.visualRegime,
-            object.semanticRef,
-            object.physicalRef,
-          ].filter(Boolean).join(' ')),
-          ...(renderIR.fields || []).map((field) => [
-            field.id,
-            field.name,
-            field.channel,
-            field.domainId,
-          ].filter(Boolean).join(' ')),
-          ...(renderIR.causalAffordances || []).map((row) => [
-            row.id,
-            row.causalRelationId,
-            row.sceneKind,
-            row.geometry,
-            ...(row.shaderHints || []),
-            ...(row.motionHints || []),
-          ].filter(Boolean).join(' ')),
-        ].join(' ');
-        const objectText = (spec.objects || []).map((object) => [
-          object.id,
-          object.type,
-          object.role,
-          object.layer,
-          object.material,
-          object.visualRegime,
-          object.assembly,
-          object.phrase,
-          ...(object.domains || []),
-          ...(object.slots || []),
-        ].filter(Boolean).join(' ')).join(' ');
-        const moduleText = (spec.modules || []).join(' ');
-        const text = positiveLanguageText(`${renderText} ${objectText} ${moduleText}`);
-        if (/\b(supercell|thunderstorm|hail|cloud microphysics|monsoon|atmospheric river|jetstream|storm cell|rain band|convection)\b/.test(text)) return 'weather-atmosphere';
-        if (/\b(glacier calving|fjord|sea ice|ice shelf|iceberg|internal ocean wave|internal ocean waves|kelp canopy|ocean mixing|plankton bloom|thermocline)\b/.test(text)) return 'ocean-cryosphere';
-        if (/\b(microgrid|battery inverter|inverter|transformer overload|substation|power flow|load shedding|frequency control|grid storage|voltage sag)\b/.test(text)) return 'grid-energy';
-        if (/\b(warehouse robot|warehouse robots|robot arm|robot arms|robotic gripper|robot gripper|servo gripper|servo loop|drone swarm|autopilot|path planner|pick and place|pick-and-place|mobile robot|robot sorts|robot sort|contact force workcell|robotic workcell)\b/.test(text)) return 'robotics-control';
-        if (/\b(injection molding|steel tooling|assembly line|conveyor belt|conveyor belts|cnc|extruder|cooling die|factory line|pick station)\b/.test(text)) return 'manufacturing-line';
-        if (/\b(qubit|quantum chip|phase readout|microwave resonator|superconducting circuit|ion trap|spin lattice|photonic chip|wavefunction|electron microscope)\b/.test(text)) return 'quantum-instrument';
-        if (/\b(compost|greenhouse crop|greenhouse crops|anaerobic digester|organic waste|nutrient loop|crop rotation|fish farm|soil nutrients|algae bioreactor)\b/.test(text)) return 'agro-waste-loop';
-        if (/\b(neutrino|muon|particle collider|calorimeter|phototube|detector slice|water tank detector|underground water tank|cherenkov|photon cone)\b/.test(text)) return 'particle-instrument';
-        if (/\b(protein folding|protein fold|bond constraint|energy minimization|molecular chain|amino acid|ligand|fermentation|sourdough|gluten|dough matrix|yeast|microbial fermentation)\b/.test(text)) return 'molecular-biology';
-        if (/\b(chemical clock|belousov|polymer|epoxy|crosslink|electroplat|nickel|crystal nucleation|supersaturated|catalyst|ammonia|electrolyzer|hydrogen|reactor|reaction dish|microfluidic|droplet|droplets|channel junction|acidity gradient|acid gradient)\b/.test(text)) return 'chemistry-lab';
-        if (/\b(museum preservation|archive preservation|oil paint aging|paint drying|pigment film|varnish aging|ceramic glaze|manuscript humidity|conservation lab)\b/.test(text)) return 'cultural-material';
-        if (/\b(festival|stadium|restaurant|hotel|elevator|crowd|fan agents|guests|order queue|concourse|venue)\b/.test(text)) return 'venue-crowd';
-        if (/\b(skate|skateboard|ski|surf|sailing|regatta|archery|fairground|mountain bike|rider|sports|trajectory transfer|centripetal|curved bowl|friction loss)\b/.test(text)) return 'sport-motion';
-        if (/\b(bridge resonance|vortex shedding|wind vortex|bridge cable|bridge cables|structural mode|modal vibration|aeroelastic|flutter)\b/.test(text)) return 'structural-mechanics';
-        if (/\b(radio telescope|telescope array|radio dishes|deep space network|microwave|beamforming|probe|link budget|baseline|antenna)\b/.test(text)) return 'space-instrument';
-        if (/\b(heat|thermal|cooling|battery runaway|reentry|lava|magma|molten|volcano)\b/.test(text)) return 'thermal-plume';
-        if (/\b(asteroid|mining|mars|venus|europa|titan|interstellar|comet|planetary ring|planetary rings|shepherd moon|moon resonance|orbital resonance|dark matter|galaxy cluster|exoplanet|magnetosphere|aurora|solar flare|cosmic ray|neutrino|black hole|singularity)\b/.test(text)) return 'planetary-space';
-        if (/\b(population genetics|allele|ecological succession|predator|prey|pollinator|fish school|bird flock|animal trail|bee agents|plant cohorts|flower visitation)\b/.test(text)) return 'evolution-ecology';
-        if (/\b(crop rotation|greenhouse|fish farm|algae bioreactor|compost|landfill|recycling|soil nutrients|oxygen water|organic waste|mixed materials)\b/.test(text)) return 'agro-waste-loop';
-        if (/\b(tunnel boring|mine ventilation|earthquake|tsunami|hurricane|tornado|urban heat|noise pollution|light pollution|air quality|desertification|fault|hazard)\b/.test(text)) return 'hazard-atmosphere';
-        if (/\b(housing market|power market|carbon credit|supply demand|bullwhip|transit priority|bike network|emergency response|policy|audit ledger)\b/.test(text)) return 'civic-market';
-        if (/\b(cyber|blockchain|mempool|recommendation|search engine|index shard|query routing|service graph|network packet|attack propagation|embedding space|server rack|cooling aisle)\b/.test(text)) return 'digital-network';
-        if (/\b(robot surgery|prosthetic|rehab|vaccine|hospital|patient|clinical|tissue mesh|sensor skin|muscle activation|bedflow|triage|kidney|liver|cochlea|eye aqueous|lymph|insulin|wound|dna|crispr|ribosome|mitochondria)\b/.test(text)) return 'clinical-control';
-        if (/\b(water treatment|peatland|oyster reef|living breakwater|restoration|rewetting|nitrification|biofilm media|water table|shell beds)\b/.test(text)) return 'restoration-water';
-        if (/\b(nuclear waste|stellarator|fusion|plasma ribbon|magnetic twist|canister|geologic repository|membrane stack)\b/.test(text)) return 'advanced-energy';
-        if (/\b(compiler|database|logic|neural network|tensor|activation|boolean|chip|wafer|semiconductor|server rack|data center)\b/.test(text)) return 'digital-network';
-        if (/\b(mangrove|kelp|coral|plankton|ocean|river|delta|aquifer|storm sewer|dam sediment|bridge scour|groundwater|estuary|glacier|permafrost|lake|sea ice)\b/.test(text)) return 'watershed';
-        if (/\b(qubit|quantum|electron microscope|photonic|metamaterial|laser cavity|telescope|lens|mirror|wavefront|light|optics)\b/.test(text)) return 'optics';
-        if (/\b(acoustic|sound|violin|speaker|cochlea|echolocation|granular synthesis|music)\b/.test(text)) return 'acoustic';
-        if (/\b(bio|cell|neuron|organ|microbe|plant|root|phloem|chloroplast|gut|immune|bone|protein|enzyme|fermentation|sourdough|gluten|dough|yeast)\b/.test(text)) return 'biology';
-        if (/\b(fire|wildfire|flame|combustion|burn|smoke)\b/.test(text)) return 'fire';
-        if (/\b(grain|powder|sand|dune|granular|sediment core|snowpack|avalanche)\b/.test(text)) return 'granular';
-        if (/\b(magnet|ferrofluid|coil|plasma confinement|field)\b/.test(text)) return 'ferrofluid';
-        if (/\b(robot|vehicle|bridge|cable|exoskeleton|drivetrain|compressor|turbine|bearing|collision|fracture|pendulum|mechanical|wheel)\b/.test(text)) return 'mechanical';
-        if (/\b(queue|network|agent|market|traffic|subway|port|grid|water network|dispatch|scheduling)\b/.test(text)) return 'city';
-        if (current && current !== 'generic' && current !== 'literal-composite') return current;
-        if (hasModule(spec, 'network') || hasModule(spec, 'queue')) return 'city';
-        if (hasModule(spec, 'chemistry')) return 'chemistry-lab';
-        if (hasModule(spec, 'biology')) return 'biology';
-        if (hasModule(spec, 'fluid')) return 'watershed';
-        if (hasModule(spec, 'acoustics') || hasModule(spec, 'wave')) return 'acoustic';
-        if (hasModule(spec, 'optics')) return 'optics';
-        if (hasModule(spec, 'thermal')) return 'thermal-plume';
-        if (hasModule(spec, 'granular')) return 'granular';
-        return 'mechanical';
+        return `${scope.slugify(name)}-${scope.fnv1a32(source).toString(36)}`;
       }
 
     function normalizeSpec(raw) {
         if (!raw || typeof raw !== 'object') return createSpec('magnetic-wheel');
         if (normalizedSimulationSpecs.has(raw)) return raw;
-        const template = templateById(raw.templateId);
+        const template = scope.templateById(raw.templateId);
         return createSpec(template.id, {
           id: raw.id || '',
           name: raw.name || template.name,
@@ -281,7 +131,7 @@
 
     function compileCompilerArtifacts(spec, overrides = {}) {
         const intent = spec.intent || {};
-        const phaseArtifacts = mergePhaseArtifacts(
+        const phaseArtifacts = scope.mergePhaseArtifacts(
           spec.phaseArtifacts,
           intent.phaseArtifacts,
           overrides.phaseArtifacts
@@ -292,15 +142,15 @@
         const groundedIntent = phase4Output && phase4Output.artifact && phase4Output.artifact.groundedIntent || {};
         const prompt = languageGraph.sourceText || spec.name || '';
         const promptParse = overrides.promptParse || spec.promptParse || intent.promptParse || (
-          parsePrompt ? parsePrompt(prompt) : null
+          scope.parsePrompt ? scope.parsePrompt(prompt) : null
         );
         const selectedUniverseGraph = overrides.universeGraph ||
           spec.universeGraph ||
           groundedIntent.acceptedGraph ||
           intent.universeGraph ||
           (
-          groundUniverseGraph && promptParse
-            ? groundUniverseGraph({
+          scope.groundUniverseGraph && promptParse
+            ? scope.groundUniverseGraph({
               prompt,
               promptParse,
               components: spec.objects || [],
@@ -314,8 +164,8 @@
           );
         const universeGraph = mergeUniverseGraphIntentBrief(selectedUniverseGraph, intent.intentBrief || null);
         let nextIR = overrides.physicsIR || spec.physicsIR || null;
-        if (!nextIR && buildPhysicsIR && universeGraph) {
-          nextIR = buildPhysicsIR({
+        if (!nextIR && scope.buildPhysicsIR && universeGraph) {
+          nextIR = scope.buildPhysicsIR({
             universeGraph,
             objects: spec.objects || [],
             params: spec.params || {},
@@ -323,7 +173,7 @@
           });
         }
         const validationReceipt = overrides.validationReceipt || spec.validationReceipt || (
-          nextIR && validatePhysicsIR ? validatePhysicsIR(nextIR) : null
+          nextIR && scope.validatePhysicsIR ? scope.validatePhysicsIR(nextIR) : null
         );
         if (nextIR && validationReceipt) {
           nextIR = {
@@ -337,22 +187,22 @@
           };
         }
         const solverGraph = overrides.solverGraph || spec.solverGraph || (
-          nextIR && compileSolverGraph ? compileSolverGraph(nextIR, validationReceipt) : null
+          nextIR && scope.compileSolverGraph ? scope.compileSolverGraph(nextIR, validationReceipt) : null
         );
         const nextRenderIR = overrides.renderIR || spec.renderIR || (
-          nextIR && solverGraph && compileRenderIR
-            ? attachRenderIRPhaseInputs(compileRenderIR(nextIR, solverGraph, universeGraph), universeGraph)
+          nextIR && solverGraph && scope.compileRenderIR
+            ? attachRenderIRPhaseInputs(scope.compileRenderIR(nextIR, solverGraph, universeGraph), universeGraph)
             : null
         );
         const nextIntent = intent && promptParse && universeGraph
           ? { ...intent, promptParse, universeGraph }
           : intent;
         let generatedPhaseArtifacts = {};
-        let runtimeContext = phase4Output ? runtimeContextFromPhase(phase4Output) : runtimeContextFromOptions({});
+        let runtimeContext = phase4Output ? scope.runtimeContextFromPhase(phase4Output) : scope.runtimeContextFromOptions({});
         let nextPhase4 = phase4Output || null;
         if (!nextPhase4) {
-          const compatibilityPhase1 = withPhase1RetrievalEvidence(
-            phaseArtifacts.phase1 || runPhase1RuntimeGate(prompt, { allowPrototypeFallback: true }),
+          const compatibilityPhase1 = scope.withPhase1RetrievalEvidence(
+            phaseArtifacts.phase1 || scope.runPhase1RuntimeGate(prompt, { allowPrototypeFallback: true }),
             {
               semanticRag: intent.semanticRag,
               universeMatches: intent.universeMatches || [],
@@ -372,19 +222,19 @@
               },
             }
           );
-          runtimeContext = runtimeContextFromPhase(compatibilityPhase1);
-          const compatibilityPhase2 = phaseArtifacts.phase2 || runPhase2LanguageGraph(compatibilityPhase1);
-          const compatibilityPhase3 = runPhase3Retrieval(compatibilityPhase2, runtimeContext);
-          nextPhase4 = runPhase4GroundedIntent(compatibilityPhase3, runtimeContext);
-          generatedPhaseArtifacts = phaseArtifactSet(
+          runtimeContext = scope.runtimeContextFromPhase(compatibilityPhase1);
+          const compatibilityPhase2 = phaseArtifacts.phase2 || scope.runPhase2LanguageGraph(compatibilityPhase1);
+          const compatibilityPhase3 = scope.runPhase3Retrieval(compatibilityPhase2, runtimeContext);
+          nextPhase4 = scope.runPhase4GroundedIntent(compatibilityPhase3, runtimeContext);
+          generatedPhaseArtifacts = scope.phaseArtifactSet(
             compatibilityPhase1,
             compatibilityPhase2,
             compatibilityPhase3,
             nextPhase4
           );
         }
-        nextPhase4 = mergePhase4IntentBrief(nextPhase4, intent.intentBrief || null);
-        const nextPhase5 = phaseArtifacts.phase5 || runPhase5SimulationCompile(nextPhase4, runtimeContext);
+        nextPhase4 = scope.mergePhase4IntentBrief(nextPhase4, intent.intentBrief || null);
+        const nextPhase5 = phaseArtifacts.phase5 || scope.runPhase5SimulationCompile(nextPhase4, runtimeContext);
         const simulationCompile = nextPhase5.artifact && nextPhase5.artifact.simulationCompile || {};
         return {
           intent: nextIntent,
@@ -394,7 +244,7 @@
           validationReceipt: simulationCompile.validationReceipt || validationReceipt,
           solverGraph: simulationCompile.solverGraph || solverGraph,
           renderIR: simulationCompile.renderIR || nextRenderIR,
-          phaseArtifacts: mergePhaseArtifacts(phaseArtifacts, generatedPhaseArtifacts, phaseArtifactSet(nextPhase4, nextPhase5)),
+          phaseArtifacts: scope.mergePhaseArtifacts(phaseArtifacts, generatedPhaseArtifacts, scope.phaseArtifactSet(nextPhase4, nextPhase5)),
         };
       }
 
@@ -406,7 +256,7 @@
             ? universeGraph.visualAffordances.slice(0, 8).map((row) => ({ ...row }))
             : [],
           intentBriefReceipt: universeGraph && universeGraph.intentBrief
-            ? intentBriefReceipt(universeGraph.intentBrief)
+            ? scope.intentBriefReceipt(universeGraph.intentBrief)
             : null,
           phaseInputs: {
             ...(renderIR.phaseInputs || {}),
@@ -419,7 +269,7 @@
     function compilePhysicalSpec(spec) {
         const graph = spec.contract && spec.contract.graph || {};
         const renderProgram = spec.renderProgram || {};
-        const solverPlan = renderProgram.solverPlan || solverPlanForGraph(graph);
+        const solverPlan = renderProgram.solverPlan || scope.solverPlanForGraph(graph);
         const solverGraph = spec.solverGraph || null;
         const solverChannels = solverGraph ? Object.keys(solverGraph.channels || {}) : [];
         const solverSteps = solverGraph ? solverGraph.steps || [] : [];
@@ -427,19 +277,19 @@
         // Prefer the executable solverGraph channels as the source of truth for state
         // hints; fall back to the legacy solverPlan only when no solverGraph compiled.
         // This keeps visual hints from desyncing with the authoritative execution graph.
-        const visualStateHints = uniqueList([
+        const visualStateHints = scope.uniqueList([
           ...(solverGraph ? solverChannels : (solverPlan.state || [])),
           ...nodes.flatMap((node) => node.solverRequirements || []),
         ]);
         const intentBrief = spec.universeGraph && spec.universeGraph.intentBrief || null;
-        const intentBriefLedger = intentBriefLedgerCounts(intentBrief);
-        const visualPassHints = renderPassesForSolverPlan(solverPlan);
+        const intentBriefLedger = scope.intentBriefLedgerCounts(intentBrief);
+        const visualPassHints = scope.renderPassesForSolverPlan(solverPlan);
         const nodeIdsByType = (type) => nodes.filter((node) => node.nodeType === type).map((node) => node.id);
         return {
           schema: 'simulatte.physicalSpec.v1',
           sourceGraph: graph.schema || '',
           prompt: spec.renderIR && spec.renderIR.prompt || spec.universeGraph && spec.universeGraph.prompt || spec.name,
-          materials: graphMaterialMap(nodes),
+          materials: scope.graphMaterialMap(nodes),
           operators: spec.physicsIR && spec.physicsIR.operators ? spec.physicsIR.operators : graph.operators || [],
           executionSource: solverGraph ? 'solverGraph' : 'solverPlan',
           executableSolverGraph: solverGraph ? {
@@ -465,22 +315,22 @@
           boundaries: nodeIdsByType('boundary'),
           sensors: nodeIdsByType('sensor'),
           controllers: nodeIdsByType('controller'),
-          particles: particlePlansForNodes(nodes),
+          particles: scope.particlePlansForNodes(nodes),
           fields: renderProgram.fields || [],
           readouts: spec.contract && spec.contract.readouts || [],
-          renderPasses: solverGraph ? renderPassesForSolverGraph(solverGraph) : visualPassHints,
+          renderPasses: solverGraph ? scope.renderPassesForSolverGraph(solverGraph) : visualPassHints,
           visualPassHints: solverGraph ? visualPassHints : [],
-          debugViews: debugViewsForGraph(graph),
+          debugViews: scope.debugViewsForGraph(graph),
           quality: graph.quality || { score: 1, residualTerms: [] },
           receipt: {
             classifier: spec.intent && spec.intent.classification ? spec.intent.classification.id : '',
             classification: spec.intent && spec.intent.classification
-              ? classificationSummary(spec.intent.classification)
+              ? scope.classificationSummary(spec.intent.classification)
               : null,
             rerank: spec.intent && spec.intent.rerank ? spec.intent.rerank : null,
             rag: spec.intent && spec.intent.semanticRag ? spec.intent.semanticRag.model.id : '',
-            doppler: dopplerReceipt(spec.intent && spec.intent.dopplerIntent),
-            synthesis: synthesisReceipt(spec.intent && spec.intent.synthesis),
+            doppler: scope.dopplerReceipt(spec.intent && spec.intent.dopplerIntent),
+            synthesis: scope.synthesisReceipt(spec.intent && spec.intent.synthesis),
             renderer: renderProgram.rendererPlan ? renderProgram.rendererPlan.renderer : '',
             visualIdentity: renderProgram.provenance ? renderProgram.provenance.visualIdentity || null : null,
             visualGenome: renderProgram.provenance ? renderProgram.provenance.visualGenome || null : null,
@@ -492,7 +342,7 @@
             assumptionCount: intentBriefLedger.assumptionCount,
             unsupportedCount: intentBriefLedger.unsupportedCount,
             degradedCount: intentBriefLedger.degradedCount,
-            intentBrief: intentBriefReceipt(intentBrief),
+            intentBrief: scope.intentBriefReceipt(intentBrief),
             physicsIR: spec.physicsIR ? spec.physicsIR.schema : '',
             solverGraph: spec.solverGraph ? spec.solverGraph.schema : '',
             renderIR: spec.renderIR ? spec.renderIR.schema : '',
@@ -504,7 +354,7 @@
         if (!universeGraph || typeof universeGraph !== 'object') return universeGraph;
         if (!authoritativeBrief || typeof authoritativeBrief !== 'object') return universeGraph;
         const current = universeGraph.intentBrief || null;
-        const authoritativeReceipt = intentBriefReceipt(authoritativeBrief);
+        const authoritativeReceipt = scope.intentBriefReceipt(authoritativeBrief);
         if (!authoritativeReceipt) return universeGraph;
         return {
           ...universeGraph,
@@ -533,18 +383,14 @@
         };
       }
 
-    Object.assign(scope, {
+    root.SimulattePhaseModuleRegistry.define('physicsModel', 'simulatte-physics-model-phase-simulation.js', {
       reportCompilePhaseProgress,
       createSpec,
-      refineRenderProgramSceneKind,
-      authoritativeVisualSceneKind,
-      positiveLanguageText,
-      fineSceneKindFromSpec,
       normalizeSpec,
       compileCompilerArtifacts,
       attachRenderIRPhaseInputs,
       compilePhysicalSpec,
       mergeUniverseGraphIntentBrief,
     });
-  }
+
 })(typeof globalThis !== 'undefined' ? globalThis : window);

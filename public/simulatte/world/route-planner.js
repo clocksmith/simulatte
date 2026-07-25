@@ -1,9 +1,16 @@
 (function attachAutonomyRoutePlanner(root, factory) {
-  const api = factory();
+  const streetNames = typeof module === 'object' && module.exports
+    ? require('../../shared/streets/street-name.js')
+    : root.SimulatteStreetNames;
+  const deterministicValues = typeof module === 'object' && module.exports
+    ? require('../../shared/deterministic-values.js')
+    : root.SimulatteDeterministicValues;
+  const api = factory(streetNames, deterministicValues);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteAutonomyRoutePlanner = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyRoutePlanner() {
-  const STREET_WORDS = Object.freeze({ avenue: 'av', ave: 'av', street: 'st', str: 'st', boulevard: 'blvd', road: 'rd', lane: 'ln', place: 'pl', square: 'sq' });
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyRoutePlanner(streetNames, deterministicValues) {
+  const normalizeStreetName = streetNames.normalizeStreetName;
+  const round = deterministicValues.round9;
   function planRoute({ worldModel, originNodeId, destinationNodeId, mode, tick, mission, policy, excludedSegmentIds = [], routeContributors = [], routeObjective = {} }) {
     const activeRouteContributors = contributorsForObjective(routeContributors, routeObjective);
     const contributorExecution = routeContributorExecution(routeContributors, activeRouteContributors);
@@ -292,14 +299,6 @@
     error.code = code;
     error.evidence = evidence;
     return error;
-  }
-
-  function round(value) {
-    return Number(value.toFixed(9));
-  }
-
-  function normalizeStreetName(value) {
-    return String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim().split(/\s+/).filter(Boolean).map((word) => STREET_WORDS[word] || word).join(' ');
   }
 
   function createMinHeap(compare) {

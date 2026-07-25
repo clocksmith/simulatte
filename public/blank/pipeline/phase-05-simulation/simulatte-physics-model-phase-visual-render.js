@@ -1,14 +1,13 @@
 (function attachSimulattePhysicsModelphasevisualrender(root) {
-  const scope = root.__SimulattePhysicsModelRefactorScope;
-  if (!scope || scope.missingDependency) return;
-  with (scope) {
+  const scope = root.SimulattePhaseModuleRegistry.family('physicsModel');
+
     function mergePhase4IntentBrief(phase4Output = null, authoritativeBrief = null) {
         if (!phase4Output || !authoritativeBrief || typeof phase4Output !== 'object') return phase4Output;
         const artifact = phase4Output.artifact || {};
         const groundedIntent = artifact.groundedIntent || {};
         const acceptedGraph = groundedIntent.acceptedGraph || null;
         if (!acceptedGraph) return phase4Output;
-        const mergedAcceptedGraph = mergeUniverseGraphIntentBrief(acceptedGraph, authoritativeBrief);
+        const mergedAcceptedGraph = scope.mergeUniverseGraphIntentBrief(acceptedGraph, authoritativeBrief);
         return {
           ...phase4Output,
           artifact: {
@@ -141,7 +140,7 @@
         if (regimes.has('acoustic')) families.push('wave-equation');
         if (regimes.has('phase')) families.push('phase-boundary');
         if (!families.length) families.push('scalar-coupled-state');
-        return { families, state: uniqueList((graph.nodes || []).flatMap((node) => node.solverRequirements || [])) };
+        return { families, state: scope.uniqueList((graph.nodes || []).flatMap((node) => node.solverRequirements || [])) };
       }
 
     function renderPassesForSolverGraph(solverGraph) {
@@ -168,7 +167,7 @@
           body_water_contact: 'body-water-contact-solve',
           partial_submersion: 'partial-submersion-solve',
         };
-        return uniqueList(solverGraph.steps.map((step) => names[step.operatorType] || `${step.operatorType || 'operator'}-solve`));
+        return scope.uniqueList(solverGraph.steps.map((step) => names[step.operatorType] || `${step.operatorType || 'operator'}-solve`));
       }
 
     function particlePlansForNodes(nodes) {
@@ -184,7 +183,7 @@
 
     function renderPassesForSolverPlan(plan) {
         const families = plan.families || [];
-        return uniqueList([
+        return scope.uniqueList([
           'state-upload',
           ...families.map((family) => `${family}-solve`),
           'material-field-render',
@@ -195,7 +194,7 @@
       }
 
     function debugViewsForGraph(graph) {
-        return uniqueList([
+        return scope.uniqueList([
           'coverage',
           'physical-graph',
           ...(graph.quality && graph.quality.residualTerms && graph.quality.residualTerms.length ? ['residual-terms'] : []),
@@ -206,7 +205,7 @@
     function dopplerReceipt(dopplerIntent) {
         if (!dopplerIntent) return null;
         return {
-          schema: DOPPLER_INTENT_SCHEMA || 'simulatte.dopplerIntentHints.v1',
+          schema: scope.DOPPLER_INTENT_SCHEMA || 'simulatte.dopplerIntentHints.v1',
           source: dopplerIntent.source || 'doppler-residual-intent',
           model: dopplerIntent.model ? dopplerIntent.model.id : '',
           primitiveCount: (dopplerIntent.primitives || []).length,
@@ -287,7 +286,7 @@
         const material = averageMaterialProperties(contract.materials);
         const interactions = interactionTotals(contract);
         const use = (key, value) => {
-          if (Number.isFinite(value)) params[key] = clamp01(Number(value));
+          if (Number.isFinite(value)) params[key] = scope.clamp01(Number(value));
         };
         use('density', material.density);
         use('hardness', material.hardness);
@@ -296,19 +295,19 @@
         use('moisture', material.moisture);
         use('opacity', material.opacity);
         if (Number.isFinite(material.refractiveIndex)) {
-          params.refractiveIndex = clamp(material.refractiveIndex, 1, 2.6);
+          params.refractiveIndex = scope.clamp(material.refractiveIndex, 1, 2.6);
         }
         use('magnetization', material.magnetization);
         use('viscosity', material.viscosity);
         use('phaseThreshold', material.phasePoint);
         if (Number.isFinite(interactions.heat)) {
-          params.heatTransfer = clamp01((params.heatTransfer || 0) + interactions.heat);
+          params.heatTransfer = scope.clamp01((params.heatTransfer || 0) + interactions.heat);
         }
         if (Number.isFinite(interactions.field)) {
-          params.fieldStrength = clamp01((params.fieldStrength || 0) + interactions.field);
+          params.fieldStrength = scope.clamp01((params.fieldStrength || 0) + interactions.field);
         }
         if (Number.isFinite(interactions.matter)) {
-          params.complexity = clamp01((params.complexity || 0.5) + interactions.matter * 0.25);
+          params.complexity = scope.clamp01((params.complexity || 0.5) + interactions.matter * 0.25);
         }
       }
 
@@ -438,21 +437,21 @@
       }
 
     function createIntentFromPrompt(promptText = '', options = {}) {
-        const phase1Output = runPhase1RuntimeGate(promptText, options);
-        reportCompilePhaseProgress(options, 'language', 0, 'Parsing language');
-        const phase2Output = runPhase2LanguageGraph(phase1Output);
-        reportCompilePhaseProgress(options, 'language', 100, 'Language graph ready');
-        reportCompilePhaseProgress(options, 'retrieval-start', 0, 'Building retrieval evidence');
-        const runtimeContext = runtimeContextFromPhase(phase1Output);
+        const phase1Output = scope.runPhase1RuntimeGate(promptText, options);
+        scope.reportCompilePhaseProgress(options, 'language', 0, 'Parsing language');
+        const phase2Output = scope.runPhase2LanguageGraph(phase1Output);
+        scope.reportCompilePhaseProgress(options, 'language', 100, 'Language graph ready');
+        scope.reportCompilePhaseProgress(options, 'retrieval-start', 0, 'Building retrieval evidence');
+        const runtimeContext = scope.runtimeContextFromPhase(phase1Output);
         const languageGraph = phase2Output.artifact.languageGraph;
         const sourceText = languageGraph.sourceText;
         const prompt = String(sourceText || '').toLowerCase();
         const words = prompt.split(/[^a-z0-9]+/).filter(Boolean);
-        const title = titleFromPrompt(words);
+        const title = scope.titleFromPrompt(words);
         const promptParse = phase2Output.artifact.promptParse || null;
         const semanticRag = options.semanticRag || (
-          createSemanticRag && prompt.trim()
-            ? createSemanticRag(sourceText, PHYSICAL_PRIMITIVES, {
+          scope.createSemanticRag && prompt.trim()
+            ? scope.createSemanticRag(sourceText, scope.PHYSICAL_PRIMITIVES, {
               maxDocuments: 72,
               maxOpenComponents: 12,
               typedSpans: promptParse && promptParse.spans || [],
@@ -462,8 +461,8 @@
             : null
         );
         const universeMatches = options.universeMatches || null;
-        const dopplerIntent = normalizeDopplerIntent
-          ? normalizeDopplerIntent(options.dopplerIntent || options.dopplerHints, PHYSICAL_PRIMITIVES)
+        const dopplerIntent = scope.normalizeDopplerIntent
+          ? scope.normalizeDopplerIntent(options.dopplerIntent || options.dopplerHints, scope.PHYSICAL_PRIMITIVES)
           : null;
         const hasModelBackedSelection = Array.isArray(options.embeddingPriors)
           && options.embeddingPriors.length
@@ -472,7 +471,7 @@
         const allowPrototypeFallback = options.allowPrototypeFallback === true;
         const deterministicRuntime = options.deterministicRuntime === true;
         const blankPromptIntent = options.blankPromptIntent === true;
-        const shouldClassify = classifyIntentPrompt && (
+        const shouldClassify = scope.classifyIntentPrompt && (
           hasModelBackedSelection ||
           deterministicRuntime ||
           allowPrototypeFallback ||
@@ -480,7 +479,7 @@
           blankPromptIntent
         );
         const classification = shouldClassify
-          ? classifyIntentPrompt(sourceText, {
+          ? scope.classifyIntentPrompt(sourceText, {
             max: 36,
             embeddingPriors: options.embeddingPriors || [],
             embeddingModel: options.embeddingModel || null,
@@ -517,7 +516,7 @@
           dopplerIntent,
           spanRetrieval: options.spanRetrieval || null,
           intentBrief: null,
-          phaseArtifacts: phaseArtifactSet(phase1Output, phase2Output),
+          phaseArtifacts: scope.phaseArtifactSet(phase1Output, phase2Output),
           resolution: {
             mode: '2d',
             integrator: 'semi-implicit-euler',
@@ -525,7 +524,7 @@
             ranker: classification ? classification.id : 'simulatte-physical-primitives-v1',
             classifier: classification ? classification.id : 'simulatte-physical-primitives-v1',
             embedding: classification && classification.runtime ? classification.runtime : null,
-            classification: classification ? classificationSummary(classification) : null,
+            classification: classification ? scope.classificationSummary(classification) : null,
             rerank: options.intentRerank || options.rerank || null,
             doppler: dopplerIntent ? dopplerReceipt(dopplerIntent) : null,
             retrievalPhase: options.retrievalPhase || '',
@@ -544,7 +543,7 @@
             type,
             role,
             params,
-            controls: uniqueList(controls),
+            controls: scope.uniqueList(controls),
             score: Number(score || 0),
             ...meta,
           });
@@ -555,8 +554,8 @@
           addDomain('blank');
           intent.resolution.integrator = 'none';
           addComponent('canvas', 'plane', 'empty 2d construction surface', { guideDensity: 0.42, canvasScale: 0.62 });
-          if (groundUniverseGraph && promptParse) {
-            intent.universeGraph = groundUniverseGraph({
+          if (scope.groundUniverseGraph && promptParse) {
+            intent.universeGraph = scope.groundUniverseGraph({
               prompt,
               promptParse,
               components: intent.components,
@@ -565,7 +564,7 @@
               synthesis: null,
             });
           }
-          const phase1WithRetrieval = withPhase1RetrievalEvidence(phase1Output, {
+          const phase1WithRetrieval = scope.withPhase1RetrievalEvidence(phase1Output, {
             rankedPrimitives: [],
             rankedCards: options.cardMatches || options.surfaceCardMatches || [],
             rankedUniverseRows: Array.isArray(universeMatches) ? universeMatches : [],
@@ -586,32 +585,32 @@
               contract: intent.resolution.contract || null,
             },
           });
-          const retrievalRuntimeContext = runtimeContextFromPhase(phase1WithRetrieval);
-          const phase3Output = runPhase3Retrieval(phase2Output, retrievalRuntimeContext);
-          reportCompilePhaseProgress(options, 'retrieval-start', 100, 'Retrieval and activation fused');
-          reportCompilePhaseProgress(options, 'grounding', 0, 'Grounding intent');
-          const phase4Output = runPhase4GroundedIntent(phase3Output, retrievalRuntimeContext);
-          reportCompilePhaseProgress(options, 'grounding', 100, 'Grounded intent ready');
-          intent.phaseArtifacts = phaseArtifactSet(phase1WithRetrieval, phase2Output, phase3Output, phase4Output);
+          const retrievalRuntimeContext = scope.runtimeContextFromPhase(phase1WithRetrieval);
+          const phase3Output = scope.runPhase3Retrieval(phase2Output, retrievalRuntimeContext);
+          scope.reportCompilePhaseProgress(options, 'retrieval-start', 100, 'Retrieval and activation fused');
+          scope.reportCompilePhaseProgress(options, 'grounding', 0, 'Grounding intent');
+          const phase4Output = scope.runPhase4GroundedIntent(phase3Output, retrievalRuntimeContext);
+          scope.reportCompilePhaseProgress(options, 'grounding', 100, 'Grounded intent ready');
+          intent.phaseArtifacts = scope.phaseArtifactSet(phase1WithRetrieval, phase2Output, phase3Output, phase4Output);
           return intent;
         }
 
-        const synthesis = synthesizeWorldIntent
-          ? synthesizeWorldIntent(sourceText, {
+        const synthesis = scope.synthesizeWorldIntent
+          ? scope.synthesizeWorldIntent(sourceText, {
             cardMatches: options.cardMatches || options.surfaceCardMatches || [],
             primitivePriors: options.embeddingPriors || [],
             embeddingModel: options.embeddingModel || null,
             semanticRag,
             dopplerIntent,
-          }, catalog)
+          }, scope.catalog)
           : null;
         if (synthesis) {
           intent.synthesis = synthesis;
-          intent.resolution.synthesis = synthesisReceipt(synthesis);
+          intent.resolution.synthesis = scope.synthesisReceipt(synthesis);
         }
 
-        const intentBrief = buildIntentForensics
-          ? buildIntentForensics({
+        const intentBrief = scope.buildIntentForensics
+          ? scope.buildIntentForensics({
             prompt: sourceText,
             promptParse,
             semanticRag,
@@ -630,7 +629,7 @@
         if (intentBrief) {
           intent.intentBrief = intentBrief;
           intent.resolution.intentBrief = {
-            schema: intentBrief.schema || INTENT_BRIEF_SCHEMA || 'simulatte.intentBrief.v1',
+            schema: intentBrief.schema || scope.INTENT_BRIEF_SCHEMA || 'simulatte.intentBrief.v1',
             evidenceCount: (intentBrief.retrievedEvidence || []).length,
             causalEdgeCount: (intentBrief.causalGraph || []).length,
             assumptionCount: (intentBrief.assumptions || []).length,
@@ -639,28 +638,28 @@
           };
         }
 
-        const baseCatalogRanked = classification && rankPrimitivesForClassification
-          ? rankPrimitivesForClassification(classification, { max: 40 })
-          : withPrimitiveDependencies(rankPhysicalPrimitives(sourceText), sourceText);
-        const synthRows = synthesisPrimitiveRows(synthesis);
-        const preferSynthGraph = shouldPreferSynthGraph(sourceText, synthesis);
+        const baseCatalogRanked = classification && scope.rankPrimitivesForClassification
+          ? scope.rankPrimitivesForClassification(classification, { max: 40 })
+          : scope.withPrimitiveDependencies(scope.rankPhysicalPrimitives(sourceText), sourceText);
+        const synthRows = scope.synthesisPrimitiveRows(synthesis);
+        const preferSynthGraph = scope.shouldPreferSynthGraph(sourceText, synthesis);
         const catalogRanked = preferSynthGraph ? [] : baseCatalogRanked;
-        const semanticRows = preferSynthGraph ? [] : semanticOpenPrimitives(semanticRag);
-        const languageAnchorRows = lexicalSpanPrimitives(promptParse, semanticRag);
-        const explicitRows = explicitPromptPrimitiveRows(classification, sourceText);
-        const ranked = mergeRankedPrimitives(
+        const semanticRows = preferSynthGraph ? [] : scope.semanticOpenPrimitives(semanticRag);
+        const languageAnchorRows = scope.lexicalSpanPrimitives(promptParse, semanticRag);
+        const explicitRows = scope.explicitPromptPrimitiveRows(classification, sourceText);
+        const ranked = scope.mergeRankedPrimitives(
           catalogRanked,
           synthRows,
           semanticRows,
           languageAnchorRows,
-          dopplerHintPrimitives(dopplerIntent, sourceText),
+          scope.dopplerHintPrimitives(dopplerIntent, sourceText),
           explicitRows
         );
-        const contract = contractSummaryForPrimitives(ranked, sourceText);
+        const contract = scope.contractSummaryForPrimitives(ranked, sourceText);
         if (classification) {
           contract.layerFocus = classification.layerFocus;
-          contract.classification = classificationSummary
-            ? classificationSummary(classification)
+          contract.classification = scope.classificationSummary
+            ? scope.classificationSummary(classification)
             : {
               id: classification.id,
               kind: classification.kind,
@@ -684,7 +683,7 @@
         }
         if (synthesis) {
           contract.synthesis = {
-            schema: synthesis.schema || SYNTHESIS_SCHEMA || '',
+            schema: synthesis.schema || scope.SYNTHESIS_SCHEMA || '',
             model: synthesis.model,
             valid: synthesis.validation ? synthesis.validation.valid : false,
             nodes: synthesis.synthGraph ? synthesis.synthGraph.nodes.length : 0,
@@ -746,9 +745,9 @@
             source: primitive.source || 'catalog',
           });
         }
-        addSynthesisComponents(synthesis, addDomain, addComponent, intent);
-        if (groundUniverseGraph && promptParse) {
-          intent.universeGraph = groundUniverseGraph({
+        scope.addSynthesisComponents(synthesis, addDomain, addComponent, intent);
+        if (scope.groundUniverseGraph && promptParse) {
+          intent.universeGraph = scope.groundUniverseGraph({
             prompt,
             promptParse,
             components: intent.components,
@@ -760,7 +759,7 @@
           });
         }
 
-        const phase1WithRetrieval = withPhase1RetrievalEvidence(phase1Output, {
+        const phase1WithRetrieval = scope.withPhase1RetrievalEvidence(phase1Output, {
           rankedPrimitives: ranked,
           rankedCards: options.cardMatches || options.surfaceCardMatches || [],
           rankedUniverseRows: Array.isArray(universeMatches) ? universeMatches : [],
@@ -783,17 +782,17 @@
             contract,
           },
         });
-        const retrievalRuntimeContext = runtimeContextFromPhase(phase1WithRetrieval);
-        const phase3Output = runPhase3Retrieval(phase2Output, retrievalRuntimeContext);
-        reportCompilePhaseProgress(options, 'retrieval-start', 100, 'Retrieval and activation fused');
-        reportCompilePhaseProgress(options, 'grounding', 0, 'Grounding intent');
-        const phase4Output = runPhase4GroundedIntent(phase3Output, retrievalRuntimeContext);
-        reportCompilePhaseProgress(options, 'grounding', 100, 'Grounded intent ready');
-        intent.phaseArtifacts = phaseArtifactSet(phase1WithRetrieval, phase2Output, phase3Output, phase4Output);
+        const retrievalRuntimeContext = scope.runtimeContextFromPhase(phase1WithRetrieval);
+        const phase3Output = scope.runPhase3Retrieval(phase2Output, retrievalRuntimeContext);
+        scope.reportCompilePhaseProgress(options, 'retrieval-start', 100, 'Retrieval and activation fused');
+        scope.reportCompilePhaseProgress(options, 'grounding', 0, 'Grounding intent');
+        const phase4Output = scope.runPhase4GroundedIntent(phase3Output, retrievalRuntimeContext);
+        scope.reportCompilePhaseProgress(options, 'grounding', 100, 'Grounded intent ready');
+        intent.phaseArtifacts = scope.phaseArtifactSet(phase1WithRetrieval, phase2Output, phase3Output, phase4Output);
         return intent;
       }
 
-    Object.assign(scope, {
+    root.SimulattePhaseModuleRegistry.define('physicsModel', 'simulatte-physics-model-phase-visual-render.js', {
       mergePhase4IntentBrief,
       intentBriefLedgerCounts,
       intentBriefReceipt,
@@ -817,5 +816,5 @@
       graphNodeForSpec,
       createIntentFromPrompt,
     });
-  }
+
 })(typeof globalThis !== 'undefined' ? globalThis : window);

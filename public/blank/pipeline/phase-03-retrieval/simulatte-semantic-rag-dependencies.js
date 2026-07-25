@@ -1,28 +1,45 @@
 (function initSimulatteSemanticRagDependencies(root) {
-  const scope = root.__SimulatteSemanticRagRefactorScope = root.__SimulatteSemanticRagRefactorScope || {};
+  const moduleRegistry = typeof module === 'object' && module.exports
+    ? require('../../app/runtime/phase-module-registry.js')
+    : root.SimulattePhaseModuleRegistry;
+  const scope = moduleRegistry.family('semanticRag');
   if (scope.initialized) return;
-  function markMissingDependency(moduleName, dependencyName) {
-      const state = root.SimulatteBoot = root.SimulatteBoot || { failedScripts: [] };
-      state.missingDependencies = state.missingDependencies || [];
-      state.missingDependencies.push({ moduleName, dependencyName });
-      console.warn(`[simulatte.boot] ${moduleName} waiting for ${dependencyName}`);
-    }
+  const dependencyApi = typeof module === 'object' && module.exports
+      ? require('../../app/runtime/require-runtime-dependency.js')
+      : root.SimulatteRuntimeDependency;
+  const requireRuntimeDependency = dependencyApi.requireRuntimeDependency;
   const catalog = typeof module === 'object' && module.exports
       ? require('../phase-05-simulation/simulatte-physics-catalog.js')
       : root.SimulattePhysicsCatalog;
   const constructionSubstrate = typeof module === 'object' && module.exports
       ? require('../../../data/simulatte-construction-substrate.js')
       : root.SimulatteConstructionSubstrate;
-  if (!catalog) {
-      markMissingDependency('SimulatteSemanticRag', 'SimulattePhysicsCatalog');
-      scope.missingDependency = true; return;
-  }
-  if (!constructionSubstrate) {
-      markMissingDependency('SimulatteSemanticRag', 'SimulatteConstructionSubstrate');
-      scope.missingDependency = true; return;
-    }
-  scope.root = root;
-  scope.catalog = catalog;
-  scope.constructionSubstrate = constructionSubstrate;
-  scope.initialized = true;
+  const deterministicValues = typeof module === 'object' && module.exports
+      ? require('../../../shared/deterministic-values.js')
+      : root.SimulatteDeterministicValues;
+  requireRuntimeDependency({
+    root,
+    moduleName: 'SimulatteSemanticRag',
+    dependencyName: 'SimulattePhysicsCatalog',
+    value: catalog,
+  });
+  requireRuntimeDependency({
+    root,
+    moduleName: 'SimulatteSemanticRag',
+    dependencyName: 'SimulatteConstructionSubstrate',
+    value: constructionSubstrate,
+  });
+  requireRuntimeDependency({
+    root,
+    moduleName: 'SimulatteSemanticRag',
+    dependencyName: 'SimulatteDeterministicValues',
+    value: deterministicValues,
+  });
+  moduleRegistry.define('semanticRag', 'simulatte-semantic-rag-dependencies.js', {
+    root,
+    catalog,
+    constructionSubstrate,
+    ...deterministicValues,
+    initialized: true,
+  });
 })(typeof globalThis !== 'undefined' ? globalThis : window);

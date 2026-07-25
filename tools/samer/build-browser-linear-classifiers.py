@@ -15,6 +15,7 @@ from sklearn.svm import LinearSVC
 ROOT = Path(__file__).resolve().parents[2]
 SOURCE = ROOT / "tools/samer/classification-jobs-v1.json"
 OUTPUT = ROOT / "public/data/simulatte-compact-classifiers.js"
+EXPECTED_SKLEARN_VERSION = "1.9.0"
 
 
 def round_rows(rows):
@@ -200,6 +201,12 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--check", action="store_true")
     args = parser.parse_args()
+    if sklearn.__version__ != EXPECTED_SKLEARN_VERSION:
+        raise SystemExit(
+            "compact classifier generation requires "
+            f"scikit-learn {EXPECTED_SKLEARN_VERSION}, found {sklearn.__version__}; "
+            "install tools/samer/requirements-compact-classifiers.txt"
+        )
     rendered = render(build_artifact())
     if args.check:
         current = OUTPUT.read_text() if OUTPUT.exists() else ""

@@ -1,7 +1,6 @@
 (function attachSimulattePhysicsCataloggraphdata(root) {
-  const scope = root.__SimulattePhysicsCatalogRefactorScope;
-  if (!scope || scope.missingDependency) return;
-  with (scope) {
+  const scope = root.SimulattePhaseModuleRegistry.family('physicsCatalog');
+
     const BASE_CATALOG_ITEMS = Object.freeze([
         {
           id: 'energy-ledger',
@@ -631,7 +630,7 @@
         { id: 'multichannel-field', type: 'field', text: 'multichannel field stacked variables coupled state raster tensor' },
         { id: 'control-graph', type: 'process', text: 'control graph feedback loops sensors actuators gains stability' },
         { id: 'constraint-jacobian', type: 'constraint', text: 'constraint jacobian solver matrix derivatives joints contacts' },
-      ].map((item) => toCatalogItem('math', item)));
+      ].map((item) => scope.toCatalogItem('math', item)));
 
     const PHYSICS_PRIMITIVE_LIBRARY = Object.freeze([
         { id: 'rigid-body', type: 'body', controls: ['density'], recipe: ['vector', 'matrix-tensor', 'constraint', 'time-step'], text: 'rigid body inertia rotation contact momentum' },
@@ -699,9 +698,9 @@
         { id: 'resource-flow', type: 'process', controls: ['serviceRate', 'networkLatency'], recipe: ['graph-network', 'queue', 'conservation-ledger', 'time-step'], text: 'resource flow network supply demand inventory service routing' },
         { id: 'structural-buckling', type: 'constraint', controls: ['pressure', 'hardness'], recipe: ['constraint-graph', 'threshold', 'curve-path', 'time-step'], text: 'structural buckling column beam load instability collapse' },
         { id: 'diffusion-reaction-front', type: 'process', controls: ['reactionRate', 'diffusionA'], recipe: ['multichannel-field', 'laplacian', 'threshold', 'time-step'], text: 'diffusion reaction front pattern activator inhibitor chemical wave' },
-      ].map((item) => toCatalogItem('physics', item)));
+      ].map((item) => scope.toCatalogItem('physics', item)));
 
-    Object.assign(scope, {
+    root.SimulattePhaseModuleRegistry.define('physicsCatalog', 'simulatte-physics-catalog-graph-data.js', {
       BASE_CATALOG_ITEMS,
       LAYER_STACK,
       LAYER_INDEX,
@@ -709,5 +708,5 @@
       MATH_PRIMITIVE_LIBRARY,
       PHYSICS_PRIMITIVE_LIBRARY,
     });
-  }
+
 })(typeof globalThis !== 'undefined' ? globalThis : window);

@@ -12,12 +12,12 @@
     require('./simulatte-webgpu-renderer-background-shader.js');
     require('./simulatte-webgpu-renderer-object-shader.js');
   }
-  const scope = root.__SimulatteWebGpuRendererRefactorScope = root.__SimulatteWebGpuRendererRefactorScope || {};
-  if (scope.missingDependency) return;
-  let api;
-  with (scope) {
-    api = { create };
-  }
+  const scope = root.SimulattePhaseModuleRegistry.family('webGpuRenderer');
+  const api = { create: scope.create };
+  root.SimulattePhaseModuleRegistry.finalize('webGpuRenderer', {
+    requiredExports: Object.keys(api),
+  });
+  Object.freeze(api);
   if (typeof module === 'object' && module.exports) {
       module.exports = api;
     }

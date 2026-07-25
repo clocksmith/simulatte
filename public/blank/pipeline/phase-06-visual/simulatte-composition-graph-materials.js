@@ -1,7 +1,6 @@
 (function attachSimulatteCompositionGraphmaterials(root) {
-  const scope = root.__SimulatteCompositionGraphRefactorScope;
-  if (!scope || scope.missingDependency) return;
-  with (scope) {
+  const scope = root.SimulattePhaseModuleRegistry.family('compositionGraph');
+
     function visualMaterialsForObjects(objects, visualGenome, recipe, causalAffordances = []) {
         const seen = new Set();
         const rows = [];
@@ -9,7 +8,7 @@
           const id = object.material || 'matte';
           if (seen.has(id)) continue;
           seen.add(id);
-          const style = MATERIAL_STYLES[id] || MATERIAL_STYLES.matte || MATERIAL_STYLES.light;
+          const style = scope.MATERIAL_STYLES[id] || scope.MATERIAL_STYLES.matte || scope.MATERIAL_STYLES.light;
           const family = materialFamilyForVisualMaterial(id, object.visualRegime, recipe);
           rows.push({
             id,
@@ -94,7 +93,7 @@
       }
 
     function affordanceHue(row, hint) {
-        const seed = hashProgram(`${row && row.id || ''}:${hint || ''}`);
+        const seed = scope.hashProgram(`${row && row.id || ''}:${hint || ''}`);
         return seed % 360;
       }
 
@@ -171,7 +170,7 @@
       }
 
     function visualProcessesForPlan(objects, solverPlan, semantic, sceneKind, causalAffordances = []) {
-        const families = uniqueList([
+        const families = scope.uniqueList([
           ...((solverPlan && solverPlan.families) || []),
           ...semanticRowsFromPlan(semantic, 'processes').map((row) => row.family),
         ]).filter((family) => sceneAllowsProcessFamily(sceneKind, family))
@@ -210,7 +209,7 @@
       }
 
     function visualProcessHasExecutionEvidence(family = '', solverPlan = {}) {
-        const execution = uniqueList([
+        const execution = scope.uniqueList([
           ...(solverPlan.steps || []),
           ...(solverPlan.executableSteps || []),
         ]).join(' ').toLowerCase().replace(/[_-]/g, ' ');
@@ -278,7 +277,7 @@
         const relationText = `${row && row.causalRelationId || ''} ${row && row.geometry || ''}`.toLowerCase();
         return (objects || [])
           .filter((object) => {
-            const text = renderObjectText(object);
+            const text = scope.renderObjectText(object);
             return triggerText.split(/\s+/).some((term) => term && text.includes(term)) ||
               relationText.split(/[^a-z0-9]+/).some((term) => term && text.includes(term));
           })
@@ -311,7 +310,7 @@
         const text = String(family || '').toLowerCase();
         return (objects || [])
           .filter((object) => {
-            const row = renderObjectText(object);
+            const row = scope.renderObjectText(object);
             if (/heat|thermal|burn/.test(text)) return /fire|heat|smoke|metal|air|lava|plasma/.test(row);
             if (/flow|fluid|advection/.test(text)) return /water|flow|river|air|pipe|pump|channel/.test(row);
             if (/network|queue/.test(text)) return /queue|network|agent|sensor|ledger|route/.test(row);
@@ -417,7 +416,7 @@
       }
 
     function geometryConstraintsForEntity(entity) {
-        return uniqueList([
+        return scope.uniqueList([
           ...(entity.geometryConstraints || []),
           entity.role === 'constraint' ? 'boundary' : '',
           entity.role === 'path' ? 'path-continuity' : '',
@@ -432,7 +431,7 @@
           processId: process.id,
           grammar: process.motion,
           phase: index / Math.max(1, processes.length),
-          speed: motionSpeedForScene(sceneKind, process.family),
+          speed: scope.motionSpeedForScene(sceneKind, process.family),
           density: visualGenome && visualGenome.morphology
             ? visualGenome.morphology.particleDensity || 32
             : 32,
@@ -444,11 +443,11 @@
         for (const row of causalAffordances || []) {
           const family = causalAffordanceProcessFamily(row);
           rows.push({
-            id: `motion:causal:${visualSafeId(row.id || family)}`,
+            id: `motion:causal:${scope.visualSafeId(row.id || family)}`,
             processId: `process:${family}`,
             grammar: (row.motionHints || []).join('+') || 'causal-state-transition',
             phase: rows.length / Math.max(1, rows.length + 1),
-            speed: motionSpeedForScene(row.sceneKind || sceneKind, `${family} ${(row.motionHints || []).join(' ')}`),
+            speed: scope.motionSpeedForScene(row.sceneKind || sceneKind, `${family} ${(row.motionHints || []).join(' ')}`),
             density: Math.max(36, visualGenome && visualGenome.morphology
               ? visualGenome.morphology.particleDensity || 36
               : 36),
@@ -479,9 +478,9 @@
         const processById = new Map((processes || []).map((row) => [row.id, row]));
         const instances = [];
         for (const row of geometry || []) {
-          if (!visualRowAccepted(row)) continue;
+          if (!scope.visualRowAccepted(row)) continue;
           const entity = entityById.get(row.entityId) || null;
-          if (entity && !visualRowAccepted(entity)) continue;
+          if (entity && !scope.visualRowAccepted(entity)) continue;
           const material = materialById.get(entity && entity.material || '') ||
             materialById.get(row.materialId || '') ||
             materials && materials[0] ||
@@ -496,7 +495,7 @@
           }));
         }
         for (const row of fields || []) {
-          if (!visualRowAccepted(row)) continue;
+          if (!scope.visualRowAccepted(row)) continue;
           instances.push(visualRenderInstance({
             type: 'field',
             row,
@@ -505,7 +504,7 @@
           }));
         }
         for (const row of processes || []) {
-          if (!visualRowAccepted(row)) continue;
+          if (!scope.visualRowAccepted(row)) continue;
           instances.push(visualRenderInstance({
             type: 'process',
             row,
@@ -514,7 +513,7 @@
           }));
         }
         for (const row of motion || []) {
-          if (!visualRowAccepted(row)) continue;
+          if (!scope.visualRowAccepted(row)) continue;
           instances.push(visualRenderInstance({
             type: 'motion',
             row,
@@ -530,7 +529,7 @@
 
     function visualRenderInstance({ type, row, entity = null, material = null, process = null, sceneKind, drawOrder }) {
         const sourceGraphId = row.sourceGraphId || entity && (entity.sourceGraphId || entity.sourceObject) || row.entityId || row.id || '';
-        const sourceIds = uniqueList([
+        const sourceIds = scope.uniqueList([
           sourceGraphId,
           ...(row.sourceIds || []),
           ...(entity && entity.sourceIds || []),
@@ -538,16 +537,16 @@
           row.processId,
           row.fieldId,
         ].filter(Boolean)).slice(0, 8);
-        const layerSlot = renderInstanceLayerSlot(type, row, entity, process, sceneKind);
+        const layerSlot = scope.renderInstanceLayerSlot(type, row, entity, process, sceneKind);
         const transform = renderInstanceTransform({ type, row, entity, process, sceneKind, drawOrder });
         const geometry = renderInstanceGeometry({ type, row, entity, layerSlot, transform });
         const instanceMaterial = renderInstanceMaterial({ row, entity, material, layerSlot });
         const animation = renderInstanceAnimation({ type, row, entity, process, layerSlot, sceneKind, drawOrder });
         const collider = renderInstanceCollider({ row, entity, layerSlot, geometry, transform });
-        const identity = entity ? scenePacketEntityIdentity(entity, row, layerSlot) : scenePacketRowIdentity(row, process, layerSlot);
+        const identity = entity ? scope.scenePacketEntityIdentity(entity, row, layerSlot) : scope.scenePacketRowIdentity(row, process, layerSlot);
         return {
           schema: 'simulatte.renderInstance.v1',
-          id: `instance:${type}:${visualSafeId(row.id || row.entityId || row.processId || sourceGraphId || 'row')}`,
+          id: `instance:${type}:${scope.visualSafeId(row.id || row.entityId || row.processId || sourceGraphId || 'row')}`,
           type,
           sceneKind,
           layerSlot,
@@ -575,7 +574,7 @@
           ).toFixed(3)),
           reason: row.reason || entity && entity.reason || `accepted ${type} render instance`,
           drawOrder,
-          evidence: uniqueList([
+          evidence: scope.uniqueList([
             ...(row.evidence || []),
             ...(entity && entity.evidence || []),
             ...(material && material.evidence || []),
@@ -585,14 +584,14 @@
 
     function renderInstanceTransform({ type, row = {}, entity = null, process = null, sceneKind = '', drawOrder = 0 }) {
         const pose = renderInstancePose(type, row, entity, process, sceneKind, drawOrder);
-        return scenePacketTransform(pose, renderInstanceIndex(row, entity, process, drawOrder), 29, sceneKind);
+        return scope.scenePacketTransform(pose, renderInstanceIndex(row, entity, process, drawOrder), 29, sceneKind);
       }
 
     function renderInstancePose(type, row = {}, entity = null, process = null, sceneKind = '', drawOrder = 0) {
         if (row.pose && typeof row.pose === 'object') return row.pose;
         if (entity && entity.pose && typeof entity.pose === 'object') return entity.pose;
         if (Array.isArray(row.points) && row.points.length) return { points: row.points, rotation: row.rotation || 0 };
-        const layerSlot = renderInstanceLayerSlot(type, row, entity, process, sceneKind);
+        const layerSlot = scope.renderInstanceLayerSlot(type, row, entity, process, sceneKind);
         const seedText = [
           type,
           layerSlot,
@@ -605,43 +604,43 @@
           sceneKind,
           drawOrder,
         ].filter(Boolean).join(':');
-        const seed = hashProgram(seedText) || 1;
-        const jitterX = unitFromSeed(seed, 7) * 0.12 - 0.06;
-        const jitterY = unitFromSeed(seed, 11) * 0.1 - 0.05;
+        const seed = scope.hashProgram(seedText) || 1;
+        const jitterX = scope.unitFromSeed(seed, 7) * 0.12 - 0.06;
+        const jitterY = scope.unitFromSeed(seed, 11) * 0.1 - 0.05;
         if (type === 'field' || /field|water-volume|organic-matrix|thermal-field|optical-field|chemical-front/.test(layerSlot)) {
           return {
-            x: clamp(0.5 + jitterX * 0.35, 0.16, 0.84),
-            y: clamp((/water|ocean|watershed|cryosphere/.test(sceneKind) ? 0.6 : 0.48) + jitterY * 0.35, 0.16, 0.84),
+            x: scope.clamp(0.5 + jitterX * 0.35, 0.16, 0.84),
+            y: scope.clamp((/water|ocean|watershed|cryosphere/.test(sceneKind) ? 0.6 : 0.48) + jitterY * 0.35, 0.16, 0.84),
             w: 0.72,
             h: /thermal|plume|optical/.test(layerSlot) ? 0.62 : 0.46,
-            rotation: unitFromSeed(seed, 13) * 0.12 - 0.06,
+            rotation: scope.unitFromSeed(seed, 13) * 0.12 - 0.06,
           };
         }
         if (type === 'process' || type === 'motion' || /process|network-flow|track-line|causal/.test(layerSlot)) {
-          const fromX = clamp(0.18 + unitFromSeed(seed, 17) * 0.24, 0.08, 0.44);
-          const fromY = clamp(0.28 + unitFromSeed(seed, 19) * 0.42, 0.12, 0.78);
-          const toX = clamp(0.58 + unitFromSeed(seed, 23) * 0.28, 0.48, 0.92);
-          const toY = clamp(0.22 + unitFromSeed(seed, 29) * 0.5, 0.1, 0.86);
+          const fromX = scope.clamp(0.18 + scope.unitFromSeed(seed, 17) * 0.24, 0.08, 0.44);
+          const fromY = scope.clamp(0.28 + scope.unitFromSeed(seed, 19) * 0.42, 0.12, 0.78);
+          const toX = scope.clamp(0.58 + scope.unitFromSeed(seed, 23) * 0.28, 0.48, 0.92);
+          const toY = scope.clamp(0.22 + scope.unitFromSeed(seed, 29) * 0.5, 0.1, 0.86);
           return {
             points: [
               [fromX, fromY],
-              [clamp((fromX + toX) * 0.5 + jitterX, 0.08, 0.92), clamp((fromY + toY) * 0.5 + jitterY, 0.1, 0.86)],
+              [scope.clamp((fromX + toX) * 0.5 + jitterX, 0.08, 0.92), scope.clamp((fromY + toY) * 0.5 + jitterY, 0.1, 0.86)],
               [toX, toY],
             ],
             rotation: 0,
           };
         }
         return {
-          x: clamp(0.16 + unitFromSeed(seed, 31) * 0.68, 0.08, 0.92),
-          y: clamp((/water|ocean|watershed|cryosphere/.test(sceneKind) ? 0.54 : 0.26) + unitFromSeed(seed, 37) * 0.38, 0.1, 0.9),
+          x: scope.clamp(0.16 + scope.unitFromSeed(seed, 31) * 0.68, 0.08, 0.92),
+          y: scope.clamp((/water|ocean|watershed|cryosphere/.test(sceneKind) ? 0.54 : 0.26) + scope.unitFromSeed(seed, 37) * 0.38, 0.1, 0.9),
           w: /readout|detector|robot|orbital|node/.test(layerSlot) ? 0.16 : 0.13,
           h: /readout|detector|robot|orbital|node/.test(layerSlot) ? 0.12 : 0.1,
-          rotation: unitFromSeed(seed, 41) * 0.24 - 0.12,
+          rotation: scope.unitFromSeed(seed, 41) * 0.24 - 0.12,
         };
       }
 
     function renderInstanceIndex(row = {}, entity = null, process = null, drawOrder = 0) {
-        const seed = hashProgram([
+        const seed = scope.hashProgram([
           row.id,
           row.entityId,
           row.processId,
@@ -654,9 +653,9 @@
       }
 
     function renderInstanceGeometry({ type, row = {}, entity = null, layerSlot = '', transform }) {
-        const bounds = scenePacketBounds(transform);
+        const bounds = scope.scenePacketBounds(transform);
         return {
-          id: type === 'geometry' ? row.id || `geometry:${entity && entity.id || visualSafeId(layerSlot)}` : row.geometryId || `geometry:${visualSafeId(row.id || layerSlot || type)}`,
+          id: type === 'geometry' ? row.id || `geometry:${entity && entity.id || scope.visualSafeId(layerSlot)}` : row.geometryId || `geometry:${scope.visualSafeId(row.id || layerSlot || type)}`,
           kind: row.layout || row.kind || (type === 'field' ? 'field-layer' : type === 'process' || type === 'motion' ? 'path-layer' : 'anchored'),
           primitive: row.primitive || row.visualEncoding || row.grammar || entity && entity.shape || layerSlot || 'procedural-instance',
           bounds,
@@ -666,7 +665,7 @@
       }
 
     function renderInstanceMaterial({ row = {}, entity = null, material = null, layerSlot = '' }) {
-        const packetMaterial = scenePacketMaterial(material || row, entity, layerSlot);
+        const packetMaterial = scope.scenePacketMaterial(material || row, entity, layerSlot);
         return {
           ...packetMaterial,
           id: packetMaterial.id || row.materialId || entity && entity.material || 'matte',
@@ -675,7 +674,7 @@
       }
 
     function renderInstanceAnimation({ type, row = {}, entity = null, process = null, layerSlot = '', sceneKind = '', drawOrder = 0 }) {
-        return scenePacketAnimation({
+        return scope.scenePacketAnimation({
           layerSlot,
           entity,
           field: type === 'field' ? row : null,
@@ -701,8 +700,8 @@
 
     function renderInstanceCollider({ row = {}, entity = null, layerSlot = '', geometry = {}, transform }) {
         return {
-          kind: scenePacketColliderKind(layerSlot, entity, geometry),
-          bounds: scenePacketBounds(transform),
+          kind: scope.scenePacketColliderKind(layerSlot, entity, geometry),
+          bounds: scope.scenePacketBounds(transform),
           pickId: row.entityId || row.id || entity && entity.id || '',
           selectable: Boolean(row.entityId || entity && entity.id),
         };
@@ -710,61 +709,61 @@
 
     function sceneRenderPacketForVisualIR(context = {}) {
         const sceneKind = context.sceneKind || 'generic';
-        const entities = (context.entities || []).filter(visualRowAccepted);
-        const materials = (context.materials || []).filter(visualRowAccepted);
-        const fields = (context.fields || []).filter(visualRowAccepted);
-        const processes = (context.processes || []).filter(visualRowAccepted);
-        const motion = (context.motion || []).filter(visualRowAccepted);
-        const geometry = (context.geometry || []).filter(visualRowAccepted);
-        const renderInstances = (context.renderInstances || []).filter(visualRowAccepted);
+        const entities = (context.entities || []).filter(scope.visualRowAccepted);
+        const materials = (context.materials || []).filter(scope.visualRowAccepted);
+        const fields = (context.fields || []).filter(scope.visualRowAccepted);
+        const processes = (context.processes || []).filter(scope.visualRowAccepted);
+        const motion = (context.motion || []).filter(scope.visualRowAccepted);
+        const geometry = (context.geometry || []).filter(scope.visualRowAccepted);
+        const renderInstances = (context.renderInstances || []).filter(scope.visualRowAccepted);
         const geometryByEntity = new Map(geometry.map((row) => [row.entityId, row]));
         const materialById = new Map(materials.map((row) => [row.id, row]));
-        const instancesByEntity = renderInstanceLookup(renderInstances, 'entityId');
-        const instancesByField = renderInstanceLookup(renderInstances, 'fieldId');
-        const instancesByProcess = renderInstanceLookup(renderInstances, 'processId');
+        const instancesByEntity = scope.renderInstanceLookup(renderInstances, 'entityId');
+        const instancesByField = scope.renderInstanceLookup(renderInstances, 'fieldId');
+        const instancesByProcess = scope.renderInstanceLookup(renderInstances, 'processId');
         const processById = new Map(processes.map((row) => [row.id, row]));
         const motionByProcess = new Map(motion.map((row) => [row.processId, row]));
-        const rawPacketEntities = expandPromptCardinalityPackets(entities
-          .map((entity, index) => scenePacketEntity({
+        const rawPacketEntities = scope.expandPromptCardinalityPackets(entities
+          .map((entity, index) => scope.scenePacketEntity({
             entity,
             geometry: geometryByEntity.get(entity.id),
             material: materialById.get(entity.material),
-            instance: firstLookup(instancesByEntity, entity.id),
-            motion: motionForEntity(entity, processById, motionByProcess),
+            instance: scope.firstLookup(instancesByEntity, entity.id),
+            motion: scope.motionForEntity(entity, processById, motionByProcess),
             sceneKind,
             index,
             total: entities.length,
           }))
           .filter(Boolean)
         ).slice(0, 32);
-        const sceneFraming = frameScenePacketEntities(rawPacketEntities);
+        const sceneFraming = scope.frameScenePacketEntities(rawPacketEntities);
         const packetEntities = sceneFraming.entities;
         const packetFields = fields
-          .map((field, index) => scenePacketField({
+          .map((field, index) => scope.scenePacketField({
             field,
-            instance: firstLookup(instancesByField, field.id || field.fieldId),
+            instance: scope.firstLookup(instancesByField, field.id || field.fieldId),
             sceneKind,
             index,
           }))
           .filter(Boolean)
           .slice(0, 16);
         const packetEffects = [
-          ...processes.map((process, index) => scenePacketEffect({
+          ...processes.map((process, index) => scope.scenePacketEffect({
             row: process,
             kind: 'process',
-            instance: firstLookup(instancesByProcess, process.id),
+            instance: scope.firstLookup(instancesByProcess, process.id),
             sceneKind,
             index,
           })),
-          ...motion.map((row, index) => scenePacketEffect({
+          ...motion.map((row, index) => scope.scenePacketEffect({
             row,
             kind: 'motion',
-            instance: firstLookup(instancesByProcess, row.processId),
+            instance: scope.firstLookup(instancesByProcess, row.processId),
             sceneKind,
             index,
           })),
         ].filter(Boolean).slice(0, 24);
-        const uniforms = scenePacketUniformsForVisualIR({
+        const uniforms = scope.scenePacketUniformsForVisualIR({
           sceneKind,
           entities: packetEntities,
           fields: packetFields,
@@ -773,7 +772,7 @@
           visualGenome: context.visualGenome || {},
         });
         return {
-          schema: SCENE_RENDER_PACKET_SCHEMA,
+          schema: scope.SCENE_RENDER_PACKET_SCHEMA,
           compiler: 'simulatte.visual-ir.scene-render-packet.compiler.v1',
           sceneKind,
           visualDialect: context.visualGenome && context.visualGenome.visualDialect || '',
@@ -793,14 +792,14 @@
             ...(context.camera || {}),
             coordinateSystem: 'normalized-canvas',
           },
-          lights: scenePacketLights(context.lighting, sceneKind),
+          lights: scope.scenePacketLights(context.lighting, sceneKind),
           environmentProgram: context.lighting && context.lighting.environmentProgram || null,
           entities: packetEntities,
           fields: packetFields,
           effects: packetEffects,
           compositionLedger: context.compositionLedger || null,
           uniforms,
-          passes: scenePacketPasses(packetEntities, packetFields, packetEffects),
+          passes: scope.scenePacketPasses(packetEntities, packetFields, packetEffects),
           receipts: {
             entityCount: packetEntities.length,
             fieldCount: packetFields.length,
@@ -808,22 +807,22 @@
             source: 'visualIR.acceptedRows',
             primaryArtifact: 'sceneRenderPacket',
             renderCodeCount: packetEntities.length + packetFields.length + packetEffects.length,
-	          visualDialect: context.visualGenome && context.visualGenome.visualDialect || '',
-	          compositionTopology: context.visualGenome && context.visualGenome.compositionTopology || '',
-	          cameraArchetype: context.visualGenome && context.visualGenome.cameraArchetype || '',
-	          scaleTier: context.visualGenome && context.visualGenome.scaleTier || '',
-	          framing: sceneFraming.receipt,
-	        compositionLedger: context.compositionLedger ? {
-    	          schema: context.compositionLedger.schema || SCENE_COMPOSITION_LEDGER_SCHEMA,
-    	          obligationCount: (context.compositionLedger.obligations || []).length,
-    	          preservedCount: (context.compositionLedger.obligations || []).filter((row) => row.status === 'preserved').length,
-    	          failedCount: (context.compositionLedger.obligations || []).filter((row) => row.status === 'lost' || row.status === 'failed').length,
+            visualDialect: context.visualGenome && context.visualGenome.visualDialect || '',
+            compositionTopology: context.visualGenome && context.visualGenome.compositionTopology || '',
+            cameraArchetype: context.visualGenome && context.visualGenome.cameraArchetype || '',
+            scaleTier: context.visualGenome && context.visualGenome.scaleTier || '',
+            framing: sceneFraming.receipt,
+          compositionLedger: context.compositionLedger ? {
+                schema: context.compositionLedger.schema || scope.SCENE_COMPOSITION_LEDGER_SCHEMA,
+                obligationCount: (context.compositionLedger.obligations || []).length,
+                preservedCount: (context.compositionLedger.obligations || []).filter((row) => row.status === 'preserved').length,
+                failedCount: (context.compositionLedger.obligations || []).filter((row) => row.status === 'lost' || row.status === 'failed').length,
             } : null,
           },
         };
       }
 
-    Object.assign(scope, {
+    root.SimulattePhaseModuleRegistry.define('compositionGraph', 'simulatte-composition-graph-materials.js', {
       visualMaterialsForObjects,
       materialFamilyForAffordanceHint,
       shaderForAffordanceHint,
@@ -861,5 +860,5 @@
       renderInstanceCollider,
       sceneRenderPacketForVisualIR,
     });
-  }
+
 })(typeof globalThis !== 'undefined' ? globalThis : window);

@@ -1,6 +1,5 @@
 (function attachSimulatteIntentEmbedderConstructionRetrieval(root) {
-  const scope = root.__SimulatteIntentEmbedderRefactorScope;
-  if (!scope || scope.missingDependency) return;
+  const scope = root.SimulattePhaseModuleRegistry.family('intentEmbedder');
   const semanticRag = typeof module === 'object' && module.exports
     ? require('./simulatte-semantic-rag.js')
     : root.SimulatteSemanticRag;
@@ -19,7 +18,7 @@
     }
   }
 
-  with (scope) {
+
     function slotNeedsModelConstructionEvidence(slot = {}) {
       const role = String(slot.slotRole || '');
       const semanticClass = String(slot.semanticClass || '').toLowerCase();
@@ -50,7 +49,7 @@
 
     function promptOwnedLocalCandidate(slot = {}) {
       const role = String(slot.slotRole || 'object');
-      const target = normalizeSpanText(String(slot.entryId || '')
+      const target = scope.normalizeSpanText(String(slot.entryId || '')
         .replace(/^[a-z]+:/, '').replace(/[_:]+/g, ' '));
       const id = `prompt.${role}.${target.replace(/\s+/g, '-')}`;
       const semanticType = ({
@@ -97,7 +96,7 @@
         slotRole: candidate.slotRole,
         entryId: slot.entryId || '',
         required: slot.required !== false,
-        queryText: slotQueryText(slot, promptText),
+        queryText: scope.slotQueryText(slot, promptText),
         vectorHash: '',
         primitiveRankBackend: 'prompt-owned-local-evidence',
         rerankerMode: 'not-run-local-identity',
@@ -122,7 +121,7 @@
 
     function constructionQueryText(slot = {}, promptText = '') {
       const role = String(slot.slotRole || 'object');
-      const target = normalizeSpanText(String(slot.entryId || '').replace(/^[a-z]+:/, ''));
+      const target = scope.normalizeSpanText(String(slot.entryId || '').replace(/^[a-z]+:/, ''));
       const relationText = (slot.relationIds || []).join(' ');
       const constructionMode = slotNeedsModelConstructionEvidence(slot);
       return [
@@ -139,7 +138,7 @@
       if (!slotNeedsModelConstructionEvidence(slot)) return null;
       const candidateId = row.cardId || row.candidateId || row.id || '';
       const target = evidenceTerm(String(slot.entryId || '').replace(/^[a-z]+:/, ''));
-      const labelTerms = uniqueStrings([
+      const labelTerms = scope.uniqueStrings([
         candidateId,
         row.canonicalId,
         row.label,
@@ -149,58 +148,58 @@
       const targetCards = surfaceByLabel.get(target) || [];
       const card = surfaceById.get(candidateId) || exactCards[0] ||
         (row.literalSlotMatch === true ? targetCards[0] : null) || null;
-      const directBasisIds = uniqueStrings([
+      const directBasisIds = scope.uniqueStrings([
         candidateId,
         row.canonicalId,
         ...(row.primitiveHints || []),
       ]).filter((id) => groundingById.has(id));
-      const groundingIds = uniqueStrings([
+      const groundingIds = scope.uniqueStrings([
         ...(card && card.groundingIds || []),
         ...(row.groundingIds || []),
         ...directBasisIds,
       ]);
       const bases = groundingIds.map((id) => groundingById.get(id)).filter(Boolean);
       if (!constructionCandidateCanOwnPhysicalShape(card, row, candidateId, bases)) return null;
-      const sourcePartHints = uniqueStrings([
+      const sourcePartHints = scope.uniqueStrings([
         ...(card && card.partHints || []),
         ...(row.partHints || []),
       ]);
-      const basisPartHints = uniqueStrings([
+      const basisPartHints = scope.uniqueStrings([
         ...bases.flatMap((basis) => basis.parts || []),
       ]);
-      const partHints = uniqueStrings([...sourcePartHints, ...basisPartHints]);
-      const shapeHints = uniqueStrings([
+      const partHints = scope.uniqueStrings([...sourcePartHints, ...basisPartHints]);
+      const shapeHints = scope.uniqueStrings([
         ...(card && card.shapeHints || []),
         ...(row.shapeHints || []),
       ]);
-      const classHints = uniqueStrings([
+      const classHints = scope.uniqueStrings([
         ...(card && card.classHints || []),
         ...(row.classHints || []),
         ...(row.domains || []),
       ]);
-      const materialHints = uniqueStrings([
+      const materialHints = scope.uniqueStrings([
         ...(card && card.materialHints || []),
         ...(row.materialHints || []),
         ...bases.flatMap((basis) => basis.materials || []),
       ]);
-      const behaviorHints = uniqueStrings([
+      const behaviorHints = scope.uniqueStrings([
         ...(card && card.behaviorHints || []),
         ...(row.behaviorHints || []),
       ]);
-      const affordanceHints = uniqueStrings([
+      const affordanceHints = scope.uniqueStrings([
         ...(card && card.affordanceHints || []),
         ...(row.affordanceHints || []),
       ]);
-      const relationHints = uniqueStrings([
+      const relationHints = scope.uniqueStrings([
         ...(card && card.relationHints || []),
         ...(row.relationHints || []),
         ...(slot.relationIds || []),
       ]);
-      const scaleHints = uniqueStrings([
+      const scaleHints = scope.uniqueStrings([
         ...(card && card.scaleHints || []),
         ...(row.scaleHints || []),
       ]);
-      const primitiveHints = uniqueStrings([
+      const primitiveHints = scope.uniqueStrings([
         ...(row.primitiveHints || []),
         ...bases.flatMap((basis) => basis.primitives || []),
       ]);
@@ -234,16 +233,16 @@
       const targetIdentity = evidenceTerm(
         String(slot.entryId || '').replace(/^[a-z]+:/, ' ').replace(/[-_]+/g, ' ')
       );
-      const targetTokens = uniqueStrings(fallbackFeatureTokens(
+      const targetTokens = scope.uniqueStrings(scope.fallbackFeatureTokens(
         String(slot.entryId || '').replace(/^[a-z]+:/, ' ').replace(/[-_]+/g, ' ')
       ));
-      const primaryIdentities = uniqueStrings([
+      const primaryIdentities = scope.uniqueStrings([
         row.label,
         card && card.labels && card.labels[0],
         String(row.candidateId || '').split('.').pop(),
         String(card && card.id || '').split('.').pop(),
       ].map(evidenceTerm));
-      const identityTokens = new Set(fallbackFeatureTokens([
+      const identityTokens = new Set(scope.fallbackFeatureTokens([
         row.candidateId,
         row.cardId,
         row.canonicalId,
@@ -382,10 +381,10 @@
 
     function promptVectorExactConstructionCandidates(slot = {}, runtime = {}, vector = null, config = {}, options = {}) {
       if (!vector || !slotNeedsModelConstructionEvidence(slot) ||
-          !slotAllowsCandidateType(slot, 'surface-card')) return [];
-      const cardMax = slotCandidateBudget(slot, 'surfaceCard', config.perSlotCardMax);
+          !scope.slotAllowsCandidateType(slot, 'surface-card')) return [];
+      const cardMax = scope.slotCandidateBudget(slot, 'surfaceCard', config.perSlotCardMax);
       if (cardMax <= 0) return [];
-      const rows = rankSurfaceCardsForSlot(
+      const rows = scope.rankSurfaceCardsForSlot(
         runtime.cardIndex, slot, vector, { ...config, perSlotCardMax: cardMax }, options
       );
       return constructionCandidatesForSlot(slot, rows, 3).filter((row) => (
@@ -394,7 +393,7 @@
     }
 
     function promptVectorConstructionSlotRow(slot = {}, rows = [], vector = null, config = {}, promptText = '') {
-      const constructionRows = rows.slice().sort(slotCandidateSort);
+      const constructionRows = rows.slice().sort(scope.slotCandidateSort);
       const localIdentity = slotHasPromptOwnedVisualIdentity(slot)
         ? promptOwnedLocalCandidate(slot)
         : null;
@@ -406,7 +405,7 @@
         entryId: slot.entryId || '',
         required: slot.required !== false,
         queryText: 'prompt embedding reused for exact construction',
-        vectorHash: embeddingVectorHash(vector),
+        vectorHash: scope.embeddingVectorHash(vector),
         primitiveRankBackend: 'prompt-embedding-surface-card-index',
         rerankerMode: 'not-run-exact-prompt-embedding-construction',
         rerankerModelReady: false,
@@ -462,7 +461,7 @@
       };
     }
 
-    Object.assign(scope, {
+    root.SimulattePhaseModuleRegistry.define('intentEmbedder', 'simulatte-intent-embedder-construction-retrieval.js', {
       slotNeedsModelConstructionEvidence,
       slotNeedsModelRetrievalEvidence,
       slotUsesPromptOwnedLocalEvidence,
@@ -481,5 +480,5 @@
       promptVectorConstructionSlotRow,
       slotRerankSummary,
     });
-  }
+
 })(typeof globalThis !== 'undefined' ? globalThis : window);

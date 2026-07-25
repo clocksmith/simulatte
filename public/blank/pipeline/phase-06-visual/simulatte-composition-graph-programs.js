@@ -1,7 +1,6 @@
 (function attachSimulatteCompositionGraphprograms(root) {
-  const scope = root.__SimulatteCompositionGraphRefactorScope;
-  if (!scope || scope.missingDependency) return;
-  with (scope) {
+  const scope = root.SimulattePhaseModuleRegistry.family('compositionGraph');
+
     function semanticVisualRows(text, seed, rules, kind, tokens) {
         return rules
           .map((rule, index) => {
@@ -29,11 +28,11 @@
 
     function atlasAddressableTokens(tokens) {
         const terms = new Set([
-          ...SEMANTIC_ARCHETYPE_RULES.flatMap((rule) => rule.terms),
-          ...SEMANTIC_MATERIAL_RULES.flatMap((rule) => rule.terms),
-          ...SEMANTIC_PROCESS_RULES.flatMap((rule) => rule.terms),
+          ...scope.SEMANTIC_ARCHETYPE_RULES.flatMap((rule) => rule.terms),
+          ...scope.SEMANTIC_MATERIAL_RULES.flatMap((rule) => rule.terms),
+          ...scope.SEMANTIC_PROCESS_RULES.flatMap((rule) => rule.terms),
         ]);
-        return uniqueList((tokens || []).filter((token) => terms.has(token)));
+        return scope.uniqueList((tokens || []).filter((token) => terms.has(token)));
       }
 
     function semanticRule(id, family, label, pattern, terms, overlay, hue, weight, salt) {
@@ -122,12 +121,12 @@
           (/queue|traffic|market|network|grid|sensor|ledger|power|subway/.test(text) || sceneKind === 'city')) {
           add('route-weave', 'signal-ticks', 'node-ledger');
         }
-        const fieldKinds = uniqueList((fields || []).map((field) => field.kind)).join(' ');
+        const fieldKinds = scope.uniqueList((fields || []).map((field) => field.kind)).join(' ');
         if (/reaction|combustion/.test(fieldKinds)) add('reaction-front');
         if (/optical/.test(fieldKinds)) add('ray-stack');
         if (/network/.test(fieldKinds)) add('route-weave');
         if (!motifs.length) {
-          const regimes = uniqueList((objects || []).map((object) => object.visualRegime)).filter(Boolean);
+          const regimes = scope.uniqueList((objects || []).map((object) => object.visualRegime)).filter(Boolean);
           add(...regimes.slice(0, 3).map((regime) => `${regime}-field`));
         }
         return motifs.slice(0, 9);
@@ -291,7 +290,7 @@
       }
 
     function unitFromSeed(seed, salt) {
-        return hashProgram(`${seed}:${salt}`) / 4294967295;
+        return scope.hashProgram(`${seed}:${salt}`) / 4294967295;
       }
 
     function prioritizeObjectsForScene(objects, sceneKind) {
@@ -309,7 +308,7 @@
       }
 
     function visualObjectAcceptanceLedger(objects, sceneKind, spec) {
-        const promptText = compiledPromptTextForSelection(spec);
+        const promptText = scope.compiledPromptTextForSelection(spec);
         const rows = (objects || []).map((object, index) => {
           const receipt = visualObjectAcceptanceReceipt(object, sceneKind, promptText, index);
           return { object, index, ...receipt };
@@ -394,7 +393,7 @@
           id: object && object.id || `object-${index + 1}`,
           sourceGraphId: object && object.id || '',
           sourceKind: source || 'compiled-object',
-          sourceIds: uniqueList([
+          sourceIds: scope.uniqueList([
             object && object.id,
             object && object.semanticRef,
             object && object.physicalRef,
@@ -419,17 +418,17 @@
             object.phrase,
             object.role,
             ...(object.aliases || []),
-          ].filter(Boolean).some((value) => phraseMatchesPrompt(value, promptText));
+          ].filter(Boolean).some((value) => scope.phraseMatchesPrompt(value, promptText));
         }
-        if (source === 'semantic-surface-grounder') return phraseMatchesPrompt(phrase, promptText);
-        if (source === 'prompt-family') return phraseMatchesPrompt(phrase, promptText);
-        if (/^embedding-guided-synth-environment/.test(source) && phrase && !phraseMatchesPrompt(phrase, promptText)) {
+        if (source === 'semantic-surface-grounder') return scope.phraseMatchesPrompt(phrase, promptText);
+        if (source === 'prompt-family') return scope.phraseMatchesPrompt(phrase, promptText);
+        if (/^embedding-guided-synth-environment/.test(source) && phrase && !scope.phraseMatchesPrompt(phrase, promptText)) {
           return false;
         }
         if (/^embedding-guided-synth/.test(source) && phrase) {
-          return object.directlyGrounded === true && phraseMatchesPrompt(phrase, promptText);
+          return object.directlyGrounded === true && scope.phraseMatchesPrompt(phrase, promptText);
         }
-        return isPromptGroundedComponent(object, promptText);
+        return scope.isPromptGroundedComponent(object, promptText);
       }
 
     function visualObjectAcceptanceDecision(
@@ -445,7 +444,7 @@
     ) {
         const source = String(object && object.source || '');
         const phrase = object && (object.phrase || object.role || object.id) || '';
-        const phraseMatched = phraseMatchesPrompt(phrase, promptText);
+        const phraseMatched = scope.phraseMatchesPrompt(phrase, promptText);
         const promptGrounded = !/\b(?:without|no|not|never|exclude|avoid)\b/i.test(phrase) && visualPromptGroundedObject(object, promptText);
         const domainTags = (object.domainTags || []).map((value) => String(value || '').toLowerCase());
         const hasConstructedForm = Boolean(
@@ -560,7 +559,7 @@
               supportOnly: true,
             };
           }
-          if (catalogSupportIsPrompted(object, promptText)) {
+          if (scope.catalogSupportIsPrompted(object, promptText)) {
             return {
               status: 'accepted',
               reason: 'catalog seed is the only prompt-addressable visual object',
@@ -579,7 +578,7 @@
             promptGrounded: true,
           };
         }
-        if (!/\b(?:without|no|not|never|exclude|avoid)\b/i.test(phrase) && sceneCompatibleSupportComponent(object, sceneKind, promptText)) {
+        if (!/\b(?:without|no|not|never|exclude|avoid)\b/i.test(phrase) && scope.sceneCompatibleSupportComponent(object, sceneKind, promptText)) {
           return hasPromptGrounded
             ? {
               status: 'rejected',
@@ -607,7 +606,7 @@
       }
 
     function visualObjectConceptIds(object = {}) {
-      return uniqueList([object.id, object.phrase, object.role, object.sourceLabel]
+      return scope.uniqueList([object.id, object.phrase, object.role, object.sourceLabel]
         .map((value) => String(value || '').replace(/-\d+$/, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim())
         .filter(Boolean));
     }
@@ -671,7 +670,7 @@
         if (/^embedding-guided-synth/.test(object.source || '')) return 12;
         const expandedPriority = expandedSceneObjectPriority(text, object, sceneKind);
         if (Number.isFinite(expandedPriority)) return expandedPriority;
-        if (isPromptGroundedComponent(object)) return promptGroundedScenePriority(text, object, sceneKind);
+        if (scope.isPromptGroundedComponent(object)) return promptGroundedScenePriority(text, object, sceneKind);
         if (sceneKind === 'fire') {
           if (/optic|prism|lens|mirror|queue|traffic|network|river|water|erosion|sediment|terrain|growth-decay|population/.test(text)) return -1;
           if (/flame|fire|smoke|fuel|wood|thermal|heat|plume|pine|wind|air|ridge/.test(text)) return 8;
@@ -851,7 +850,7 @@
       }
 
     function layoutObjectsForScene(objects, sceneKind, spec, visualGenome = null) {
-        return constraintLayoutObjects(objects, sceneKind, spec, visualGenome);
+        return scope.constraintLayoutObjects(objects, sceneKind, spec, visualGenome);
       }
 
     function renderObjectText(object) {
@@ -891,7 +890,7 @@
         const scope = typeof globalThis !== 'undefined' ? globalThis : window;
         return (scope && scope.SimulatteRenderRegistry) || null;
       }
-    Object.assign(scope, {
+    root.SimulattePhaseModuleRegistry.define('compositionGraph', 'simulatte-composition-graph-programs.js', {
       semanticVisualRows,
       atlasAddressableTokens,
       semanticRule,
@@ -920,5 +919,5 @@
       withPathPose,
       renderRegistryRef,
     });
-  }
+
 })(typeof globalThis !== 'undefined' ? globalThis : window);

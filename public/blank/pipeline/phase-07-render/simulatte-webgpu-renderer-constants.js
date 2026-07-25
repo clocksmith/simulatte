@@ -1,7 +1,6 @@
 (function attachSimulatteWebGpuRendererconstants(root) {
-  const scope = root.__SimulatteWebGpuRendererRefactorScope;
-  if (!scope || scope.missingDependency) return;
-  with (scope) {
+  const scope = root.SimulattePhaseModuleRegistry.family('webGpuRenderer');
+
     const SCENE_PACKET_OBJECT_SLOTS = 8;
 
     const SCENE_PACKET_FLOATS = SCENE_PACKET_OBJECT_SLOTS * 12;
@@ -30,7 +29,7 @@
 
     const PHASE6_OUTPUT_SCHEMA = 'simulatte.phase6.output.v2';
 
-    Object.assign(scope, {
+    root.SimulattePhaseModuleRegistry.define('webGpuRenderer', 'simulatte-webgpu-renderer-constants.js', {
       SCENE_PACKET_OBJECT_SLOTS,
       SCENE_PACKET_FLOATS,
       GPU_OBJECT_PART_CAPACITY,
@@ -46,5 +45,5 @@
       RENDER_DATA_SCHEMA,
       PHASE6_OUTPUT_SCHEMA,
     });
-  }
+
 })(typeof globalThis !== 'undefined' ? globalThis : window);

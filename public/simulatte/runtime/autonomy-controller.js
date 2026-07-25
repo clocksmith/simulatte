@@ -35,7 +35,10 @@
   const verifier = typeof module === 'object' && module.exports
     ? require('../verifier/journey-verifier.js')
     : root.SimulatteAutonomyJourneyVerifier;
-  const api = factory(contracts, worldApi, routePlanner, observations, occurrences, proposer, safety, selector, dynamics, settlementApi, receipts, verifier);
+  const deterministicValues = typeof module === 'object' && module.exports
+    ? require('../../shared/deterministic-values.js')
+    : root.SimulatteDeterministicValues;
+  const api = factory(contracts, worldApi, routePlanner, observations, occurrences, proposer, safety, selector, dynamics, settlementApi, receipts, verifier, deterministicValues);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteAutonomyController = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createControllerModule(
@@ -50,12 +53,14 @@
   dynamics,
   settlementApi,
   receipts,
-  verifier
+  verifier,
+  deterministicValues
 ) {
   // Loaded governed assets are hash-verified and remain immutable for their
   // object lifetime. Rebuilding a controller must not rescan the full render
   // geometry on the UI thread.
   const staticValidationCache = new WeakMap();
+  const round = deterministicValues.round9;
 
   function createAutonomyController({ world, featureCatalog, occurrenceCatalog = null, routeContributors = [], routeObjective = {}, embodiment, policy, mission, regionComposition = null, onTick = null }) {
     validateStaticInputs(world, featureCatalog, occurrenceCatalog);
@@ -418,10 +423,10 @@
     const targetDistanceM = termination?.targetDistanceM ?? null;
     const targetLaps = termination?.targetLaps ?? null;
     const targetDurationSeconds = termination?.targetDurationSeconds ?? null;
-    const distanceErrorM = targetDistanceM === null ? null : Number((state.distanceTraveledM - targetDistanceM).toFixed(9));
-    const durationErrorSeconds = targetDurationSeconds === null ? null : Number((state.simulatedTimeSeconds - targetDurationSeconds).toFixed(9));
+    const distanceErrorM = targetDistanceM === null ? null : round(state.distanceTraveledM - targetDistanceM);
+    const durationErrorSeconds = targetDurationSeconds === null ? null : round(state.simulatedTimeSeconds - targetDurationSeconds);
     const predictedDurationSeconds = forecast?.predictedDurationSeconds ?? null;
-    const etaErrorSeconds = predictedDurationSeconds === null ? null : Number((state.simulatedTimeSeconds - predictedDurationSeconds).toFixed(9));
+    const etaErrorSeconds = predictedDurationSeconds === null ? null : round(state.simulatedTimeSeconds - predictedDurationSeconds);
     const amountCents = mission.economics?.amountCents ?? null;
     const grossHourlyCents = amountCents === null || state.simulatedTimeSeconds <= 0 ? null : Math.round(amountCents * 3600 / state.simulatedTimeSeconds);
     return {
@@ -687,10 +692,6 @@
   function loopCompletionReason(mission) {
     const kind = mission.task.termination.kind;
     return kind === 'distance' ? 'distance_target_reached' : kind === 'laps' ? 'lap_target_reached' : 'duration_target_reached';
-  }
-
-  function round(value) {
-    return Number(Number(value).toFixed(9));
   }
 
   return { buildJourneyPlanning, buildJourneySettlement, createAutonomyController, currentTargetNodeId, evaluateOccurrences, initialState, ensureRoute, loopCompletionReason, missionIsComplete, recordCircuitProgress, recordOrderedStopProgress, transitionEvents, transitionViolations };

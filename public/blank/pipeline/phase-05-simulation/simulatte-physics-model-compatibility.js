@@ -1,7 +1,6 @@
 (function attachSimulattePhysicsModelcompatibility(root) {
-  const scope = root.__SimulattePhysicsModelRefactorScope;
-  if (!scope || scope.missingDependency) return;
-  with (scope) {
+  const scope = root.SimulattePhaseModuleRegistry.family('physicsModel');
+
     const LEDGER_FAILURE_STATUSES = Object.freeze(new Set(['lost', 'failed', 'wrong-identity', 'not-proven']));
 
     const PHASE_CARRY_FORBIDDEN_FIELD_NAMES = Object.freeze([
@@ -29,10 +28,10 @@
         'process',
       ]));
 
-    Object.assign(scope, {
+    root.SimulattePhaseModuleRegistry.define('physicsModel', 'simulatte-physics-model-compatibility.js', {
       LEDGER_FAILURE_STATUSES,
       PHASE_CARRY_FORBIDDEN_FIELD_NAMES,
       PHASE3_GENERIC_PROMPT_MATCH_VALUES,
     });
-  }
+
 })(typeof globalThis !== 'undefined' ? globalThis : window);

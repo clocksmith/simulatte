@@ -1,8 +1,12 @@
 (function attachApplicationProfileSelect(root, factory) {
-  const api = factory();
+  const deterministicValues = typeof module === 'object' && module.exports
+    ? require('../../shared/deterministic-values.js')
+    : root.SimulatteDeterministicValues;
+  const api = factory(deterministicValues);
   root.SimulatteApplicationProfileSelect = api;
   if (typeof module === 'object' && module.exports) module.exports = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createApplicationProfileSelectApi() {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createApplicationProfileSelectApi(deterministicValues) {
+  const hash32 = deterministicValues.fnv1a32CodePoints;
   function createApplicationProfileSelect({ select, root, trigger, label, listbox }) {
     if (!select || !root || !trigger || !label || !listbox) {
       throw new Error('Application profile select requires select, root, trigger, label, and listbox elements');
@@ -220,12 +224,6 @@
 
   function focusPrimary(interaction, elements) {
     (interaction.mode === 'prompt' ? elements.missionInput : elements.shuffleButton).focus();
-  }
-
-  function hash32(value) {
-    let hash = 2166136261;
-    for (const character of String(value)) { hash ^= character.codePointAt(0); hash = Math.imul(hash, 16777619); }
-    return hash >>> 0;
   }
 
   return { createApplicationProfileSelect, focusPrimary, nextScenario, renderInteraction, resolveInteraction };

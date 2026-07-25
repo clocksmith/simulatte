@@ -1,0 +1,4 @@
+# Exact generator environment for public/data/simulatte-compact-classifiers.js.
+numpy==2.2.3
+scipy==1.15.2
+scikit-learn==1.9.0

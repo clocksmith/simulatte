@@ -3,8 +3,9 @@ const test = require('node:test');
 
 const lab = require('../public/blank/pipeline/phase-05-simulation/simulatte-physics-model.js');
 require('../public/blank/pipeline/phase-07-render/simulatte-webgpu-renderer.js');
+const { phaseFamily } = require('./phase-module-fixture.cjs');
 
-const rendererScope = globalThis.__SimulatteWebGpuRendererRefactorScope;
+const rendererScope = phaseFamily('webGpuRenderer');
 
 function glacierReadbackFixture() {
   const spec = lab.createSpecFromPrompt('glacier calving into fjord with sea ice waves', {

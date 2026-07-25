@@ -1,14 +1,13 @@
 (function attachSimulatteCompositionGraphconstants(root) {
-  const scope = root.__SimulatteCompositionGraphRefactorScope;
-  if (!scope || scope.missingDependency) return;
-  with (scope) {
+  const scope = root.SimulattePhaseModuleRegistry.family('compositionGraph');
+
     const {
         clamp,
         hashNoise,
         PROCEDURAL_VISUAL_BASE,
         SEMANTIC_VISUAL_ATLAS,
         uniqueList,
-      } = catalog;
+      } = scope.catalog;
 
     const COMPOSITION_SCHEMA = 'simulatte.compositionGraph.v1';
 
@@ -22,7 +21,7 @@
 
     const VISUAL_GENOME_SCHEMA = 'simulatte.visualGenome.v1';
 
-    Object.assign(scope, {
+    root.SimulattePhaseModuleRegistry.define('compositionGraph', 'simulatte-composition-graph-constants.js', {
       clamp,
       hashNoise,
       PROCEDURAL_VISUAL_BASE,
@@ -35,5 +34,5 @@
       SCENE_COMPOSITION_LEDGER_SCHEMA,
       VISUAL_GENOME_SCHEMA,
     });
-  }
+
 })(typeof globalThis !== 'undefined' ? globalThis : window);

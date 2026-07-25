@@ -1,7 +1,6 @@
 (function attachSimulatteSemanticRagconstants(root) {
-  const scope = root.__SimulatteSemanticRagRefactorScope;
-  if (!scope || scope.missingDependency) return;
-  with (scope) {
+  const scope = root.SimulattePhaseModuleRegistry.family('semanticRag');
+
     const {
         PHYSICAL_PRIMITIVES,
         TOKEN_SYNONYMS,
@@ -9,7 +8,7 @@
         hashNoise,
         primitiveText,
         uniqueList,
-      } = catalog;
+      } = scope.catalog;
 
     const SEMANTIC_RAG_SCHEMA = 'simulatte.semanticRag.v1';
 
@@ -25,7 +24,7 @@
 
     const TOKEN_RE = /[a-z0-9][a-z0-9'-]*/g;
 
-    Object.assign(scope, {
+    root.SimulattePhaseModuleRegistry.define('semanticRag', 'simulatte-semantic-rag-constants.js', {
       PHYSICAL_PRIMITIVES,
       TOKEN_SYNONYMS,
       clamp,
@@ -40,5 +39,5 @@
       LOCAL_VECTOR_SPACE,
       TOKEN_RE,
     });
-  }
+
 })(typeof globalThis !== 'undefined' ? globalThis : window);

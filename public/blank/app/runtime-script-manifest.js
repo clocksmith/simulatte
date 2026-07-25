@@ -6,6 +6,12 @@
   const group = (...paths) => Object.freeze(paths);
   const join = (...groups) => Object.freeze(groups.flat());
 
+  const runtimeFoundation = group(
+    '../shared/deterministic-values.js',
+    '../shared/language/positive-language.js',
+    'app/runtime/phase-module-registry.js',
+    'app/runtime/require-runtime-dependency.js'
+  );
   const phaseContracts = group(
     'pipeline/simulatte-phase-contracts.js'
   );
@@ -116,6 +122,7 @@
   const visualCompile = group(
     'pipeline/phase-06-visual/simulatte-visual-operator-atlas.js',
     'pipeline/phase-06-visual/simulatte-visual-operator-compiler.js',
+    'pipeline/phase-06-visual/simulatte-scene-packet-contract.js',
     'pipeline/phase-06-visual/simulatte-composition-graph-dependencies.js',
     'pipeline/phase-06-visual/simulatte-composition-graph-constants.js',
     'pipeline/phase-06-visual/simulatte-composition-graph-selection-layout.js',
@@ -123,6 +130,9 @@
     'pipeline/phase-06-visual/simulatte-composition-graph-entity-lowering.js',
     'pipeline/phase-06-visual/simulatte-composition-graph-visual-ir.js',
     'pipeline/phase-06-visual/simulatte-composition-graph-materials.js',
+    'pipeline/phase-06-visual/simulatte-construction-evidence.js',
+    'pipeline/phase-06-visual/simulatte-construction-placement.js',
+    'pipeline/phase-06-visual/simulatte-construction-parts.js',
     'pipeline/phase-06-visual/simulatte-construction-geometry.js',
     'pipeline/phase-06-visual/simulatte-prompt-visual-contracts.js',
     'pipeline/phase-06-visual/simulatte-object-geometry-grammars.js',
@@ -144,9 +154,11 @@
   const runtimeProgress = group(
     'app/runtime/runtime-progress-support.js',
     'app/runtime/runtime-progress-state.js',
-    'app/runtime/runtime-progress.js'
+    'app/runtime/runtime-progress.js',
+    'app/runtime/run-view-model.js'
   );
   const renderProof = group(
+    'pipeline/phase-07-render/simulatte-object-realization.js',
     'pipeline/phase-07-render/simulatte-render-proof.js'
   );
   const webGpuRenderer = group(
@@ -188,6 +200,7 @@
     'app/prompt/prompt-controller-workers.js',
     'app/prompt/prompt-controller-training.js',
     'app/prompt/prompt-model-selection.js',
+    'app/prompt/prompt-controller-runtime.js',
     'app/prompt/prompt-controller-lab-controller.js',
     'app/prompt/prompt-controller.js'
   );
@@ -200,14 +213,18 @@
   );
 
   const browser = join(
-    group('../neural-model-consent.js', '../model-selection.js'),
+    group(
+      '../neural-model-consent.js',
+      '../model-selection.js'
+    ),
+    runtimeFoundation,
     phaseContracts,
     catalog,
     semanticRag,
     dopplerIntent,
     graphSynthesis,
-    intentEmbedder,
     classificationTiers,
+    intentEmbedder,
     conditionalReranking,
     languageAndGroundingEntry,
     physicsIr,
@@ -225,6 +242,7 @@
     review
   );
   const pipelineWorker = join(
+    runtimeFoundation,
     phaseContracts,
     catalog,
     semanticRag,
@@ -241,6 +259,7 @@
     physicsModel
   );
   const intentWorker = join(
+    runtimeFoundation,
     catalog,
     semanticRag,
     dopplerIntent,

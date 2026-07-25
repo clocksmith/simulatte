@@ -2,10 +2,14 @@
   const contracts = typeof module === 'object' && module.exports
     ? require('../../shared/contracts/contract-validator.js')
     : root.SimulatteAutonomyContracts;
-  const api = factory(contracts);
+  const deterministicValues = typeof module === 'object' && module.exports
+    ? require('../../shared/deterministic-values.js')
+    : root.SimulatteDeterministicValues;
+  const api = factory(contracts, deterministicValues);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteAutonomyBetSettlement = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyBetSettlement(contracts) {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyBetSettlement(contracts, deterministicValues) {
+  const round = deterministicValues.round9;
   function settleSelectedBet(bet, transition, policy, memory) {
     const prediction = {
       progressDeltaM: bet.prediction.progressDeltaM,
@@ -51,10 +55,6 @@
     ));
     memory.settledBetCount += 1;
     if (verdict === 'won') memory.wonBetCount += 1;
-  }
-
-  function round(value) {
-    return Number(value.toFixed(9));
   }
 
   return { settleSelectedBet, updateMemory };

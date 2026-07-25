@@ -8,6 +8,7 @@ export function runCommandWithWatchdog({
   stallTimeoutMs,
   terminationGraceMs,
   onOutput = null,
+  signal = null,
 }) {
   if (!Number.isFinite(stallTimeoutMs) || stallTimeoutMs <= 0) {
     throw new Error('test process watchdog requires a positive stallTimeoutMs');
@@ -27,13 +28,21 @@ export function runCommandWithWatchdog({
     let stalled = false;
     let killTimer = null;
     let stallTimer = null;
+    let settled = false;
+
+    const terminate = () => {
+      if (settled || child.exitCode !== null || child.signalCode !== null) return;
+      child.kill('SIGTERM');
+      clearTimeout(killTimer);
+      killTimer = setTimeout(() => child.kill('SIGKILL'), terminationGraceMs);
+    };
+    const abort = () => terminate();
 
     const armWatchdog = () => {
       clearTimeout(stallTimer);
       stallTimer = setTimeout(() => {
         stalled = true;
-        child.kill('SIGTERM');
-        killTimer = setTimeout(() => child.kill('SIGKILL'), terminationGraceMs);
+        terminate();
       }, stallTimeoutMs);
     };
     const capture = (stream, chunk) => {
@@ -46,15 +55,19 @@ export function runCommandWithWatchdog({
     child.stdout.on('data', (chunk) => capture('stdout', chunk));
     child.stderr.on('data', (chunk) => capture('stderr', chunk));
     child.once('error', (error) => {
+      settled = true;
       clearTimeout(stallTimer);
       clearTimeout(killTimer);
+      signal?.removeEventListener('abort', abort);
       reject(error);
     });
     child.once('exit', (code, signal) => {
+      settled = true;
       clearTimeout(stallTimer);
       clearTimeout(killTimer);
+      optionsSignal?.removeEventListener('abort', abort);
       resolve({
-        status: stalled ? 'stalled' : code === 0 ? 'passed' : 'failed',
+        status: stalled ? 'stalled' : optionsSignal?.aborted ? 'cancelled' : code === 0 ? 'passed' : 'failed',
         code,
         signal,
         durationMs: Date.now() - startedAt,
@@ -62,6 +75,9 @@ export function runCommandWithWatchdog({
         stderr: output.filter((row) => row.stream === 'stderr').map((row) => row.text).join(''),
       });
     });
+    const optionsSignal = signal;
+    optionsSignal?.addEventListener('abort', abort, { once: true });
+    if (optionsSignal?.aborted) abort();
     armWatchdog();
   });
 }

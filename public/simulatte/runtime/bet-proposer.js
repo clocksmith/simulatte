@@ -5,10 +5,14 @@
   const dynamics = typeof module === 'object' && module.exports
     ? require('./reference-dynamics.js')
     : root.SimulatteAutonomyDynamics;
-  const api = factory(contracts, dynamics);
+  const deterministicValues = typeof module === 'object' && module.exports
+    ? require('../../shared/deterministic-values.js')
+    : root.SimulatteDeterministicValues;
+  const api = factory(contracts, dynamics, deterministicValues);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteAutonomyBetProposer = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyBetProposer(contracts, dynamics) {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyBetProposer(contracts, dynamics, deterministicValues) {
+  const round = deterministicValues.round9;
   function proposeActionBets({ mission, observation, state, route, worldModel, embodiment, policy, policyMemory }) {
     const actions = candidateActions({ state, route, worldModel, embodiment, mission });
     if (actions.length > policy.runtime.maximumCandidatesPerTick) {
@@ -123,10 +127,6 @@
     const row = memory.calibrationByManeuver[maneuver] || { wins: 0, trials: 0 };
     const confidence = (policy.confidence.priorWins + row.wins) / (policy.confidence.priorTrials + row.trials);
     return round(Math.max(policy.confidence.minimum, Math.min(policy.confidence.maximum, confidence)));
-  }
-
-  function round(value) {
-    return Number(value.toFixed(9));
   }
 
   return { proposeActionBets, candidateActions, maneuverConfidence, simulateSafetyLookahead };

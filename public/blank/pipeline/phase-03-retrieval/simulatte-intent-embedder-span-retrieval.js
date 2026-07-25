@@ -1,7 +1,6 @@
 (function attachSimulatteIntentEmbedderspanretrieval(root) {
-  const scope = root.__SimulatteIntentEmbedderRefactorScope;
-  if (!scope || scope.missingDependency) return;
-  with (scope) {
+  const scope = root.SimulattePhaseModuleRegistry.family('intentEmbedder');
+
     function spanReceiptConfig(config = {}) {
         return {
           enabled: Boolean(config.enabled),
@@ -26,7 +25,7 @@
       }
     function normalizeStringList(value) {
         if (!Array.isArray(value)) return [];
-        return uniqueStrings(value.map((item) => String(item || '').trim()).filter(Boolean));
+        return scope.uniqueStrings(value.map((item) => String(item || '').trim()).filter(Boolean));
       }
     function boundedInteger(value, min, max, fallback) {
         const parsed = Math.floor(Number(value));
@@ -48,11 +47,11 @@
         const trace = Boolean(payload.traceEnabled);
         const traceId = payload.traceId || '';
         const rankId = payload.rankId || 0;
-        const started = nowMs();
+        const started = scope.nowMs();
         const cacheKeyFor = (span) => [
           payload.runtime && payload.runtime.index && payload.runtime.index.embedModelHash || '',
           payload.runtime && payload.runtime.index && payload.runtime.index.embeddingDim || '',
-          normalizeSpanText(span.text),
+          scope.normalizeSpanText(span.text),
         ].join(':');
         const pending = [];
         const rows = spans.map((span) => {
@@ -64,7 +63,7 @@
           return row;
         });
         const cacheHitCount = rows.length - pending.length;
-        emitRuntimeProgress(progress, trace, {
+        scope.emitRuntimeProgress(progress, trace, {
           source: 'simulatte-intent-embedder',
           stage: 'span-cache',
           percent: 89,
@@ -75,7 +74,7 @@
           cacheHitCount,
           cacheMissCount: pending.length,
           cacheEnabled: Boolean(cache),
-          durationMs: elapsedMsSince(started),
+          durationMs: scope.elapsedMsSince(started),
         });
         if (!pending.length) return rows;
         const requestRows = pending.map((row) => ({
@@ -84,8 +83,8 @@
           spanId: row.span.id,
           spanKind: row.span.kind,
         }));
-        const embedStarted = nowMs();
-        emitRuntimeProgress(progress, trace, {
+        const embedStarted = scope.nowMs();
+        scope.emitRuntimeProgress(progress, trace, {
           source: 'simulatte-intent-embedder',
           stage: 'span-embed',
           percent: 90,
@@ -105,7 +104,7 @@
             row.query = batchResult[index];
             if (cache) cache.set(row.cacheKey, row.query);
           });
-          emitRuntimeProgress(progress, trace, {
+          scope.emitRuntimeProgress(progress, trace, {
             source: 'simulatte-intent-embedder',
             stage: 'span-embed',
             percent: 92,
@@ -118,7 +117,7 @@
             cacheHitCount,
             cacheMissCount: pending.length,
             batchEmbedding: true,
-            durationMs: elapsedMsSince(embedStarted),
+            durationMs: scope.elapsedMsSince(embedStarted),
           });
           return rows;
         }
@@ -131,7 +130,7 @@
           });
           if (cache) cache.set(row.cacheKey, row.query);
         }
-        emitRuntimeProgress(progress, trace, {
+        scope.emitRuntimeProgress(progress, trace, {
           source: 'simulatte-intent-embedder',
           stage: 'span-embed',
           percent: 92,
@@ -144,7 +143,7 @@
           cacheHitCount,
           cacheMissCount: pending.length,
           batchEmbedding: false,
-          durationMs: elapsedMsSince(embedStarted),
+          durationMs: scope.elapsedMsSince(embedStarted),
         });
         return rows;
       }
@@ -177,14 +176,14 @@
         const provider = payload.provider;
         const candidates = payload.candidates || [];
         const candidateVectors = payload.candidateVectors || [];
-        const config = spanConfigFor(runtime, payload.options || {}, payload.instanceConfig);
-        const spans = usefulRetrievalSpans(payload.languageEvidence, config);
+        const config = scope.spanConfigFor(runtime, payload.options || {}, payload.instanceConfig);
+        const spans = scope.usefulRetrievalSpans(payload.languageEvidence, config);
         const bySpan = [];
         if (!config.enabled || !spans.length || !runtime || !provider || typeof provider.embed !== 'function') {
           return emptySpanRetrieval(spans, config, config.enabled ? 'empty' : 'disabled');
         }
-        const started = nowMs();
-        emitRuntimeProgress(payload.progress, payload.traceEnabled, {
+        const started = scope.nowMs();
+        scope.emitRuntimeProgress(payload.progress, payload.traceEnabled, {
           source: 'simulatte-intent-embedder',
           stage: 'span-retrieval',
           percent: 88,
@@ -205,26 +204,26 @@
           traceId: payload.traceId || '',
           rankId: payload.rankId || 0,
         });
-        const rankStarted = nowMs();
+        const rankStarted = scope.nowMs();
         for (const item of queries) {
           if (!item || !item.span || !item.query) continue;
           const span = item.span;
-          const vector = validateQueryEmbedding(item.query, runtime.index);
+          const vector = scope.validateQueryEmbedding(item.query, runtime.index);
           const gpuScores = config.primitiveRankBackend === 'webgpu' || config.primitiveRankBackend === 'auto'
             ? await safeSpanGpuRank(payload.rankGpu, vector)
             : null;
-          const scores = gpuScores || rankCpu(vector, candidateVectors);
+          const scores = gpuScores || scope.rankCpu(vector, candidateVectors);
           const primitiveMatches = candidates
-            .map((primitive, index) => spanPrimitiveMatch(span, primitive, scores[index]))
+            .map((primitive, index) => scope.spanPrimitiveMatch(span, primitive, scores[index]))
             .filter((row) => row.score >= config.primitiveScoreFloor)
             .sort((a, b) => b.score - a.score || a.primitiveId.localeCompare(b.primitiveId))
             .slice(0, config.perSpanPrimitiveMax);
-          const cardMatches = rankSurfaceCards(runtime.cardIndex, vector, {
+          const cardMatches = scope.rankSurfaceCards(runtime.cardIndex, vector, {
             ...payload.options,
             maxCards: config.perSpanCardMax,
             minCardScore: config.surfaceScoreFloor,
-          }).slice(0, config.perSpanCardMax).map((row) => annotateSpanCandidate(row, span, 'span-surface-card'));
-          const universeMatches = rankUniverseIndexes(runtime.universe, span.text, vector, {
+          }).slice(0, config.perSpanCardMax).map((row) => scope.annotateSpanCandidate(row, span, 'span-surface-card'));
+          const universeMatches = scope.rankUniverseIndexes(runtime.universe, span.text, vector, {
             ...payload.options,
             maxUniverse: config.perSpanUniverseMax,
             minUniverseScore: config.universeScoreFloor,
@@ -233,29 +232,29 @@
             spanId: span.id,
             spanKind: span.kind,
             spanText: span.text,
-            vectorHash: embeddingVectorHash(vector),
+            vectorHash: scope.embeddingVectorHash(vector),
             cacheHit: Boolean(item.cacheHit),
             primitiveRankBackend: gpuScores ? 'webgpu' : 'cpu',
             candidates: [
               ...primitiveMatches,
               ...cardMatches,
-              ...spanUniverseCandidates(universeMatches, span, config.perSpanUniverseMax),
+              ...scope.spanUniverseCandidates(universeMatches, span, config.perSpanUniverseMax),
             ].slice(0, config.perSpanCandidateMax),
           });
         }
-        emitRuntimeProgress(payload.progress, payload.traceEnabled, {
+        scope.emitRuntimeProgress(payload.progress, payload.traceEnabled, {
           source: 'simulatte-intent-embedder',
           stage: 'span-rank',
           percent: 94,
           message: 'Span retrieval ranked',
           traceId: payload.traceId || '',
           rankId: payload.rankId || 0,
-          durationMs: elapsedMsSince(rankStarted),
+          durationMs: scope.elapsedMsSince(rankStarted),
           spanCount: spans.length,
           embeddedSpanCount: bySpan.length,
           cachedSpanCount: bySpan.filter((row) => row.cacheHit).length,
         });
-        const evidenceRows = spanEvidenceRows({ bySpan });
+        const evidenceRows = scope.spanEvidenceRows({ bySpan });
         return {
           schema: 'simulatte.spanEmbeddingRetrieval.v1',
           model: runtime.manifest && runtime.manifest.embedModel && runtime.manifest.embedModel.id || '',
@@ -263,7 +262,7 @@
           spanCount: spans.length,
           embeddedSpanCount: bySpan.length,
           cachedSpanCount: bySpan.filter((row) => row.cacheHit).length,
-          durationMs: elapsedMsSince(started),
+          durationMs: scope.elapsedMsSince(started),
           bySpan,
           evidenceRows,
           candidateCount: bySpan.reduce((sum, row) => sum + row.candidates.length, 0),
@@ -295,22 +294,22 @@
         if (!config.enabled || !slots.length || !runtime || !provider || typeof provider.embed !== 'function') {
           return emptySlotRetrieval(slots, config, config.enabled ? 'empty' : 'disabled', payload.queryPlan);
         }
-        const started = nowMs();
+        const started = scope.nowMs();
         const bySlot = [];
-        const promptConstructionBySlot = new Map(slots.filter((slot) => !slotUsesPromptOwnedLocalEvidence(slot))
-          .map((slot) => [slot.slotId, promptVectorExactConstructionCandidates(
+        const promptConstructionBySlot = new Map(slots.filter((slot) => !scope.slotUsesPromptOwnedLocalEvidence(slot))
+          .map((slot) => [slot.slotId, scope.promptVectorExactConstructionCandidates(
             slot, runtime, payload.promptVector, config, payload.options
           )]).filter(([, rows]) => rows.length));
         const localSlotIds = new Set(slots.filter((slot) => (
-          slotUsesPromptOwnedLocalEvidence(slot) ||
-          (slotHasPromptOwnedVisualIdentity(slot) && !promptConstructionBySlot.has(slot.slotId))
+          scope.slotUsesPromptOwnedLocalEvidence(slot) ||
+          (scope.slotHasPromptOwnedVisualIdentity(slot) && !promptConstructionBySlot.has(slot.slotId))
         )).map((slot) => slot.slotId));
         const localSlots = slots.filter((slot) => localSlotIds.has(slot.slotId));
         const modelSlots = slots.filter((slot) => (
           !localSlotIds.has(slot.slotId) && !promptConstructionBySlot.has(slot.slotId)
         ));
         let rerankCallCount = 0;
-        emitRuntimeProgress(payload.progress, payload.traceEnabled, {
+        scope.emitRuntimeProgress(payload.progress, payload.traceEnabled, {
           source: 'simulatte-intent-embedder',
           stage: 'slot-retrieval',
           percent: 94.1,
@@ -323,26 +322,26 @@
         });
         const nowIso = payload.options && payload.options.nowIso || new Date().toISOString();
         const slotRequests = modelSlots.map((slot) => ({
-          text: constructionQueryText(slot, payload.promptText),
+          text: scope.constructionQueryText(slot, payload.promptText),
           nowIso,
           slotId: slot.slotId || '',
           slotRole: slot.slotRole || '',
         }));
-        const slotEmbedStarted = nowMs();
+        const slotEmbedStarted = scope.nowMs();
         const batchedSlotQueries = slotRequests.length && typeof provider.embedMany === 'function'
           ? await provider.embedMany(slotRequests)
           : [];
-        const slotEmbeddingDurationMs = slotRequests.length ? elapsedMsSince(slotEmbedStarted) : 0;
+        const slotEmbeddingDurationMs = slotRequests.length ? scope.elapsedMsSince(slotEmbedStarted) : 0;
         const useBatchedSlotQueries = Array.isArray(batchedSlotQueries) && batchedSlotQueries.length === modelSlots.length;
         let modelSlotIndex = 0;
         for (let i = 0; i < slots.length; i += 1) {
           const slot = slots[i];
           if (localSlotIds.has(slot.slotId)) {
-            bySlot.push(promptOwnedLocalSlotRow(slot, payload.promptText));
+            bySlot.push(scope.promptOwnedLocalSlotRow(slot, payload.promptText));
             continue;
           }
           if (promptConstructionBySlot.has(slot.slotId)) {
-            bySlot.push(promptVectorConstructionSlotRow(
+            bySlot.push(scope.promptVectorConstructionSlotRow(
               slot, promptConstructionBySlot.get(slot.slotId), payload.promptVector, config, payload.promptText
             ));
             continue;
@@ -353,29 +352,29 @@
             ? batchedSlotQueries[modelSlotIndex]
             : await provider.embed(request);
           modelSlotIndex += 1;
-          const vector = validateQueryEmbedding(query, runtime.index);
+          const vector = scope.validateQueryEmbedding(query, runtime.index);
           const gpuScores = config.primitiveRankBackend === 'webgpu' || config.primitiveRankBackend === 'auto'
             ? await safeSpanGpuRank(payload.rankGpu, vector)
             : null;
-          const scores = gpuScores || rankCpu(vector, candidateVectors);
-          const primitiveMax = slotCandidateBudget(slot, 'primitive', config.perSlotPrimitiveMax);
-          const cardMax = slotCandidateBudget(slot, 'surfaceCard', config.perSlotCardMax);
-          const universeMax = slotCandidateBudget(slot, 'universe', config.perSlotUniverseMax);
-          const primitiveMatches = slotAllowsCandidateType(slot, 'primitive') && primitiveMax > 0
+          const scores = gpuScores || scope.rankCpu(vector, candidateVectors);
+          const primitiveMax = scope.slotCandidateBudget(slot, 'primitive', config.perSlotPrimitiveMax);
+          const cardMax = scope.slotCandidateBudget(slot, 'surfaceCard', config.perSlotCardMax);
+          const universeMax = scope.slotCandidateBudget(slot, 'universe', config.perSlotUniverseMax);
+          const primitiveMatches = scope.slotAllowsCandidateType(slot, 'primitive') && primitiveMax > 0
             ? candidates
-              .map((primitive, index) => annotateConstructionCandidate(
+              .map((primitive, index) => scope.annotateConstructionCandidate(
                 slot, slotPrimitiveMatch(slot, primitive, scores[index], config)
               ))
               .filter((row) => row.score >= config.primitiveScoreFloor || row.lexicalScore > 0)
               .sort(slotCandidateSort)
               .slice(0, primitiveMax)
             : [];
-          const cardMatches = slotAllowsCandidateType(slot, 'surface-card') && cardMax > 0
+          const cardMatches = scope.slotAllowsCandidateType(slot, 'surface-card') && cardMax > 0
             ? rankSurfaceCardsForSlot(runtime.cardIndex, slot, vector, { ...config, perSlotCardMax: cardMax }, payload.options)
             : [];
-          const universeAllowed = slotAllowsCandidateType(slot, 'universe-row') && universeMax > 0;
+          const universeAllowed = scope.slotAllowsCandidateType(slot, 'universe-row') && universeMax > 0;
           const universeMatches = universeAllowed
-            ? rankUniverseIndexes(runtime.universe, queryText, vector, {
+            ? scope.rankUniverseIndexes(runtime.universe, queryText, vector, {
               ...payload.options,
               maxUniverse: universeMax,
               minUniverseScore: config.universeScoreFloor,
@@ -383,7 +382,7 @@
             : { candidates: [] };
           const universeRows = universeAllowed
             ? slotUniverseCandidates(
-              slot, constructionUniverseMatches(slot, universeMatches, universeMax), universeMax
+              slot, scope.constructionUniverseMatches(slot, universeMatches, universeMax), universeMax
             )
             : [];
           const ranked = uniqueSlotCandidates([
@@ -404,11 +403,11 @@
             rankId: payload.rankId,
             slotIndex: i,
             slotCount: slots.length,
-            constructionMode: slotNeedsModelConstructionEvidence(slot),
+            constructionMode: scope.slotNeedsModelConstructionEvidence(slot),
           });
           if (reranked.rerankCall) rerankCallCount += 1;
-          const localIdentity = slotHasPromptOwnedVisualIdentity(slot)
-            ? promptOwnedLocalCandidate(slot)
+          const localIdentity = scope.slotHasPromptOwnedVisualIdentity(slot)
+            ? scope.promptOwnedLocalCandidate(slot)
             : null;
           const rankedCandidates = localIdentity
             ? [localIdentity, ...reranked.candidates]
@@ -420,18 +419,18 @@
             entryId: slot.entryId || '',
             required: slot.required !== false,
             queryText,
-            vectorHash: embeddingVectorHash(vector),
+            vectorHash: scope.embeddingVectorHash(vector),
             primitiveRankBackend: gpuScores ? 'webgpu' : 'cpu',
             rerankerMode: reranked.receipt.rerankerMode,
             rerankerModelReady: reranked.receipt.modelReady,
             candidates: rankedCandidates,
             acceptedCandidates: rankedCandidates.filter((row) => row.supportOnly !== true)
               .slice(0, config.perSlotAcceptedMax),
-            constructionCandidates: constructionCandidatesForSlot(slot, reranked.candidates, 3),
+            constructionCandidates: scope.constructionCandidatesForSlot(slot, reranked.candidates, 3),
             supportOnlyCandidates: reranked.candidates.filter((row) => row.supportOnly === true),
             receipt: reranked.receipt,
           });
-          emitRuntimeProgress(payload.progress, payload.traceEnabled, {
+          scope.emitRuntimeProgress(payload.progress, payload.traceEnabled, {
             source: 'simulatte-intent-embedder',
             stage: 'slot-rank',
             percent: 94.1 + (i + 1) / Math.max(1, slots.length) * 1.3,
@@ -456,10 +455,10 @@
           localEvidenceSlotCount: localSlots.length,
           slotEmbeddingDurationMs: Number(slotEmbeddingDurationMs.toFixed(3)),
           rerankCallCount,
-          ...slotRerankSummary(bySlot),
-          durationMs: elapsedMsSince(started),
+          ...scope.slotRerankSummary(bySlot),
+          durationMs: scope.elapsedMsSince(started),
           bySlot,
-          evidenceRows: slotRetrievalEvidenceRows({ bySlot }),
+          evidenceRows: scope.slotRetrievalEvidenceRows({ bySlot }),
           candidateCount: bySlot.reduce((sum, row) => sum + row.candidates.length, 0),
           acceptedCandidateCount: bySlot.reduce((sum, row) => sum + row.acceptedCandidates.length, 0),
         };
@@ -559,7 +558,7 @@
           ...(primitive.domains || []),
         ].filter(Boolean).join(' ');
         const lexicalScore = slotLexicalScore(slot, candidateText);
-        const modelScore = clamp01(Number(rawScore || 0));
+        const modelScore = scope.clamp01(Number(rawScore || 0));
         const literalSlotBoost = lexicalScore > 0 && slot.slotRole !== 'support' ? 0.35 : 0;
         const literalSlotMatch = slotCandidateLiteralMatch(slot, {
           candidateId: primitive.id,
@@ -567,7 +566,7 @@
         });
         const score = literalSlotMatch
           ? 0.99
-          : clamp01(modelScore * 0.45 + lexicalScore * 0.35 + literalSlotBoost);
+          : scope.clamp01(modelScore * 0.45 + lexicalScore * 0.35 + literalSlotBoost);
         const supportOnly = slot.slotRole !== 'support' && phase3SupportLikePrimitiveId(primitive.id);
         return {
           id: primitive.id,
@@ -587,7 +586,7 @@
           modelScore: Number(modelScore.toFixed(4)),
           lexicalScore: Number(lexicalScore.toFixed(4)),
           literalSlotMatch,
-          slotRolePriority: slotCandidateRolePriority(slot, {
+          slotRolePriority: scope.slotCandidateRolePriority(slot, {
             candidateId: primitive.id,
             candidateType: 'primitive',
           }),
@@ -612,13 +611,13 @@
           reason: 'surface card ranked for typed scene slot',
           retrievalKind: 'slot-retrieval',
         };
-        candidate.slotRolePriority = slotCandidateRolePriority(slot, candidate);
-        return annotateConstructionCandidate(slot, candidate);
+        candidate.slotRolePriority = scope.slotCandidateRolePriority(slot, candidate);
+        return scope.annotateConstructionCandidate(slot, candidate);
       }
 
     function rankSurfaceCardsForSlot(cardIndex, slot = {}, vector = null, config = {}, options = {}) {
         if (!cardIndex) return [];
-        const scores = vector ? surfaceCardScores(cardIndex, vector) : [];
+        const scores = vector ? scope.surfaceCardScores(cardIndex, vector) : [];
         const lexicalRows = [], modelOnlyRows = [];
         for (let index = 0; index < (cardIndex.documents || []).length; index += 1) {
           const doc = cardIndex.documents[index];
@@ -627,13 +626,13 @@
             .filter(Boolean).join(' ');
           const lexicalScore = slotLexicalScore(slot, lexicalText);
           const literalSlotBoost = lexicalScore > 0 && slot.slotRole !== 'support' ? 0.35 : 0;
-          const score = clamp01(modelScore * 0.45 + lexicalScore * 0.35 + literalSlotBoost);
+          const score = scope.clamp01(modelScore * 0.45 + lexicalScore * 0.35 + literalSlotBoost);
           const candidate = slotSurfaceCandidate(slot, {
             cardId: doc.cardId, type: doc.type || '',
             labels: Array.isArray(doc.labels) ? doc.labels.slice(0, 5) : [],
             score: Number(score.toFixed(4)), modelScore: Number(modelScore.toFixed(4)),
             lexicalScore: Number(lexicalScore.toFixed(4)), semanticScore: Number(modelScore.toFixed(4)),
-            source: `${modelSlug(cardIndex.embedModelId)}-surface-card-slot-index`,
+            source: `${scope.modelSlug(cardIndex.embedModelId)}-surface-card-slot-index`,
             indexId: cardIndex.id, textHash: doc.textHash || null,
             candidateText: doc.candidateText || '',
           });
@@ -652,17 +651,17 @@
           }
         }
         const exactRows = lexicalRows.filter((row) => slotCandidateLiteralMatch(slot, row));
-        return reserveConstructionTopologyCandidates(slot, uniqueSlotCandidates([
+        return scope.reserveConstructionTopologyCandidates(slot, uniqueSlotCandidates([
           ...exactRows.sort(slotCandidateSort),
           ...lexicalRows.sort(slotCandidateSort),
           ...modelOnlyRows.sort(slotCandidateSort),
         ]), config.perSlotCardMax);
       }
     function slotCandidateLiteralMatch(slot = {}, row = {}) {
-        const target = normalizeSpanText(String(slot.entryId || '').replace(/^[a-z]+:/, '').replace(/[-_]+/g, ' '));
+        const target = scope.normalizeSpanText(String(slot.entryId || '').replace(/^[a-z]+:/, '').replace(/[-_]+/g, ' '));
         if (!target) return false;
-        const targetTokens = fallbackFeatureTokens(target);
-        const tokens = new Set(fallbackFeatureTokens(normalizeSpanText([
+        const targetTokens = scope.fallbackFeatureTokens(target);
+        const tokens = new Set(scope.fallbackFeatureTokens(scope.normalizeSpanText([
           row.candidateId,
           row.cardId,
           row.id,
@@ -687,12 +686,12 @@
             reason: 'universe row ranked for typed scene slot',
             retrievalKind: 'slot-retrieval',
           };
-          const modelScore = clamp01(Math.max(
+          const modelScore = scope.clamp01(Math.max(
             Number(row.modelScore || 0),
             Number(row.semanticScore || 0),
             Number(row.score || 0)
           ));
-          const lexicalScore = slotFocusLexicalScore(slot, [
+          const lexicalScore = scope.slotFocusLexicalScore(slot, [
             candidate.candidateId,
             candidate.label,
             candidate.edgeType,
@@ -703,24 +702,24 @@
           const literalSlotBoost = lexicalScore > 0 && slot.slotRole !== 'support' ? 0.35 : 0;
           candidate.modelScore = Number(modelScore.toFixed(4));
           candidate.lexicalScore = Number(lexicalScore.toFixed(4));
-          candidate.score = Number(clamp01(
+          candidate.score = Number(scope.clamp01(
             modelScore * 0.45 + lexicalScore * 0.35 + literalSlotBoost
           ).toFixed(4));
           candidate.literalSlotMatch = slotCandidateLiteralMatch(slot, candidate);
-          candidate.slotRolePriority = slotCandidateRolePriority(slot, candidate);
+          candidate.slotRolePriority = scope.slotCandidateRolePriority(slot, candidate);
           if (candidate.literalSlotMatch) candidate.score = Math.max(Number(candidate.score || 0), 0.99);
-          return annotateConstructionCandidate(slot, candidate);
+          return scope.annotateConstructionCandidate(slot, candidate);
         });
       }
 
     async function rerankSlotCandidates(payload = {}) {
         const rows = payload.candidates || [];
-        const config = rerankerConfig(payload.runtime);
-        const capability = resolveRerankerCapability(payload.provider, {
+        const config = scope.rerankerConfig(payload.runtime);
+        const capability = scope.resolveRerankerCapability(payload.provider, {
           rerankProvider: payload.rerankProvider,
           dopplerModelHandle: null,
         });
-        const required = rerankerRequired(payload.runtime);
+        const required = scope.rerankerRequired(payload.runtime);
         if (!rows.length || !config.enabled || !capability) {
           if (required && config.enabled && !capability) {
             throw new Error(`intent manifest requires Doppler reranker ${config.id}, but no slot rerank capability is available`);
@@ -767,7 +766,7 @@
             candidates: rows,
             runtime: payload.runtime,
           });
-          input.onProgress = (row = {}) => emitRuntimeProgress(payload.progress, payload.traceEnabled, {
+          input.onProgress = (row = {}) => scope.emitRuntimeProgress(payload.progress, payload.traceEnabled, {
             source: 'simulatte-intent-embedder',
             stage: 'slot-model-rerank',
             percent: 94.1 + (Number(payload.slotIndex || 0) + 0.5) /
@@ -794,7 +793,7 @@
           });
           input.onProgress({ completed: 0, total: input.candidates.length });
           const result = await capability.rerank(input);
-          const modelRows = normalizeRerankerRows(result);
+          const modelRows = scope.normalizeRerankerRows(result);
           if (!modelRows.length) throw new Error(`Doppler reranker ${config.id} returned no slot candidates`);
           return {
             candidates: applySlotModelRerank(rows, modelRows, input.candidates),
@@ -824,7 +823,7 @@
                 scoringPath: row.scoringPath,
                 executionDurationMs: row.executionDurationMs,
               })),
-              ...rerankExecutionSummary(modelRows),
+              ...scope.rerankExecutionSummary(modelRows),
             },
           };
         } catch (err) {
@@ -848,8 +847,8 @@
       }
 
     function buildSlotRerankInput({ promptText, slot, candidates, runtime }) {
-        const config = rerankerConfig(runtime);
-        const constructionRows = constructionCandidatesForSlot(
+        const config = scope.rerankerConfig(runtime);
+        const constructionRows = scope.constructionCandidatesForSlot(
           slot, candidates, config.maxSlotCandidatesPerCall
         );
         const selectedCandidates = (constructionRows.length ? constructionRows : candidates || [])
@@ -859,8 +858,8 @@
           schema: 'simulatte.intentSlotRerankInput.v1',
           phase: 3,
           phaseId: 'retrieval',
-          stage: slotNeedsModelConstructionEvidence(slot) ? 'construction-hypothesis-rerank' : 'typed-slot-retrieval',
-          reranker: rerankerId(runtime),
+          stage: scope.slotNeedsModelConstructionEvidence(slot) ? 'construction-hypothesis-rerank' : 'typed-slot-retrieval',
+          reranker: scope.rerankerId(runtime),
           prompt: slotRerankQuery(promptText, slot),
           slot: {
             slotId: slot && slot.slotId || '',
@@ -869,7 +868,7 @@
             required: !slot || slot.required !== false,
             queries: slot && slot.queries || [],
             relationIds: slot && slot.relationIds || [],
-            constructionMode: slotNeedsModelConstructionEvidence(slot),
+            constructionMode: scope.slotNeedsModelConstructionEvidence(slot),
           },
           candidates: selectedCandidates.map((candidate, order) => ({
             primitiveId: candidate.candidateId || candidate.primitiveId || candidate.id,
@@ -891,7 +890,7 @@
 
     function slotRerankQuery(promptText = '', slot = {}) {
         const role = String(slot && slot.slotRole || 'scene').trim();
-        const target = slotQueryText(slot);
+        const target = scope.slotQueryText(slot);
         return [
           `Scene prompt: ${String(promptText || '').trim()}`,
           `Required ${role} evidence: ${target}`,
@@ -900,10 +899,10 @@
 
     function slotRerankSkipReason(slot = {}, candidates = [], constructionMode = false) {
       if (constructionMode) {
-          if (exactConstructionCandidate(slot, candidates)) {
+          if (scope.exactConstructionCandidate(slot, candidates)) {
             return 'exact-model-indexed-construction';
           }
-          const constructionRows = constructionCandidatesForSlot(slot, candidates, 3);
+          const constructionRows = scope.constructionCandidatesForSlot(slot, candidates, 3);
           if (constructionRows.length === 1 && constructionRows[0].construction.targetIdentityBound === true) {
             return 'data-owned-target-construction';
           }
@@ -913,14 +912,14 @@
         if ((candidates || []).some((candidate) => candidate.literalSlotMatch === true)) {
           return 'literal-slot-identity';
         }
-        if (slotUsesPromptOwnedLocalEvidence(slot)) {
+        if (scope.slotUsesPromptOwnedLocalEvidence(slot)) {
           return 'prompt-owned-slot-local-evidence';
         }
         return '';
       }
 
     function applySlotModelRerank(localRows, modelRows, evaluatedRows = modelRows) {
-        return applyRankBandRerank(localRows, modelRows, evaluatedRows, slotCandidateSort);
+        return scope.applyRankBandRerank(localRows, modelRows, evaluatedRows, slotCandidateSort);
       }
 
     function uniqueSlotCandidates(rows = []) {
@@ -946,22 +945,22 @@
       }
 
     function slotLexicalScore(slot = {}, text = '') {
-        const haystack = new Set(fallbackFeatureTokens(text));
-        const terms = slotQueryTerms([
+        const haystack = new Set(scope.fallbackFeatureTokens(text));
+        const terms = scope.slotQueryTerms([
           slot.entryId,
           ...(slot.relationIds || []),
           ...((slot.queries || []).map((query) => query && query.text || '')),
         ].filter(Boolean).join(' '));
         if (!terms.length || !haystack.size) return 0;
         const matched = terms.filter((term) => haystack.has(term));
-        return clamp01(matched.length / Math.max(1, Math.min(4, terms.length)));
+        return scope.clamp01(matched.length / Math.max(1, Math.min(4, terms.length)));
       }
 
     function phase3SupportLikePrimitiveId(id = '') {
         return /\b(biomass|collision|elasticity|friction|gel|membrane|soft-body|diffusion|growth-decay|kernel|gradient|constraint|population-field|particle-set|state-vector|adaptive-tree|adjacency-matrix|sampling|relation-table)\b/.test(String(id || ''));
       }
 
-    Object.assign(scope, {
+    root.SimulattePhaseModuleRegistry.define('intentEmbedder', 'simulatte-intent-embedder-span-retrieval.js', {
       spanReceiptConfig,
       normalizeStringList,
       boundedInteger,
@@ -992,5 +991,5 @@
       slotLexicalScore,
       phase3SupportLikePrimitiveId,
     });
-  }
+
 })(typeof globalThis !== 'undefined' ? globalThis : window);

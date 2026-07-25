@@ -1,97 +1,5 @@
 (function attachSimulatteWebGpuRenderergpudata(root) {
-  const scope = root.__SimulatteWebGpuRendererRefactorScope;
-  if (!scope || scope.missingDependency) return;
-  with (scope) {
-    const SCENE_IDS = Object.freeze({
-        'thermal-plume': 0,
-        fire: 33,
-        'weather-atmosphere': 1,
-        watershed: 2,
-        ocean: 23,
-        'mechanical-fluid': 3,
-        mechanical: 3,
-        'structural-mechanics': 24,
-        ferrofluid: 4,
-        'magnetic-machine': 4,
-        optics: 5,
-        'optics-thermal': 5,
-        'thin-film': 34,
-        acoustic: 6,
-        biology: 7,
-        ecology: 25,
-        'evolution-ecology': 25,
-        'restoration-water': 26,
-        'agro-waste-loop': 20,
-        'chemistry-lab': 8,
-        'material-tray': 35,
-        cryosphere: 27,
-        'ocean-cryosphere': 27,
-        'planetary-space': 10,
-        'digital-network': 11,
-        city: 28,
-        'civic-market': 29,
-        'venue-crowd': 30,
-        'advanced-energy': 12,
-        'grid-energy': 16,
-        'molecular-biology': 13,
-        'clinical-control': 14,
-        'particle-instrument': 15,
-        'quantum-instrument': 19,
-        atomic: 19,
-        'robotics-control': 17,
-        'manufacturing-line': 18,
-        granular: 22,
-        'sport-motion': 21,
-        'cultural-material': 36,
-        'hazard-atmosphere': 31,
-        'space-instrument': 32,
-      });
-
-    const SCENE_MIX_SLOTS = Object.freeze([
-        'thermal',
-        'water',
-        'mechanical',
-        'magnetic',
-        'optical',
-        'acoustic',
-        'biological',
-        'chemical',
-        'orbital',
-        'network',
-        'energy',
-        'robotic',
-        'granular',
-        'instrument',
-        'phase',
-        'hazard',
-      ]);
-
-    const VISUAL_IR_LAYER_SLOTS = Object.freeze([
-        'biological-agent',
-        'water-volume',
-        'detector-geometry',
-        'node-graph',
-        'readout-panel',
-        'track-line',
-        'field-sheet',
-        'flow-field',
-        'thermal-field',
-        'optical-field',
-        'network-flow',
-        'material-surface',
-        'organic-matrix',
-        'bubble-volume',
-        'constraint-surface',
-        'causal-affordance',
-        'process-pulse',
-        'particle-swarm',
-        'robot-armature',
-        'granular-strata',
-        'orbital-body',
-        'acoustic-waveguide',
-        'chemical-front',
-        'phase-boundary',
-      ]);
+  const scope = root.SimulattePhaseModuleRegistry.family('webGpuRenderer');
 
     const WEBGPU_OPTIONAL_FEATURES = Object.freeze([]);
 
@@ -170,10 +78,7 @@
         'surface',
       ]);
 
-    Object.assign(scope, {
-      SCENE_IDS,
-      SCENE_MIX_SLOTS,
-      VISUAL_IR_LAYER_SLOTS,
+    root.SimulattePhaseModuleRegistry.define('webGpuRenderer', 'simulatte-webgpu-renderer-gpu-data.js', {
       WEBGPU_OPTIONAL_FEATURES,
       WEBGPU_NATIVE_ONLY_FEATURES,
       WEBGPU_TRANSLATED_TECHNIQUES,
@@ -181,5 +86,5 @@
       PALETTES,
       ATOM_UNIFORM_SLOTS,
     });
-  }
+
 })(typeof globalThis !== 'undefined' ? globalThis : window);

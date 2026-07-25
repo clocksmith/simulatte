@@ -1,12 +1,11 @@
 (function attachSimulattePhysicsCatalogtemplates(root) {
-  const scope = root.__SimulattePhysicsCatalogRefactorScope;
-  if (!scope || scope.missingDependency) return;
-  with (scope) {
+  const scope = root.SimulattePhaseModuleRegistry.family('physicsCatalog');
+
     function visualSlotTargetsForAction(actionEntry = {}) {
-        const bySemanticClass = ACTION_VISUAL_SLOT_TARGETS[String(actionEntry.semanticClass || '')];
+        const bySemanticClass = scope.ACTION_VISUAL_SLOT_TARGETS[String(actionEntry.semanticClass || '')];
         if (bySemanticClass) return bySemanticClass;
         const target = String(actionEntry.id || '').replace(/^action:/, '') || String(actionEntry.label || '');
-        return ACTION_VISUAL_SLOT_TARGETS[target] || [];
+        return scope.ACTION_VISUAL_SLOT_TARGETS[target] || [];
       }
 
     function toCatalogItem(layer, item) {
@@ -51,22 +50,22 @@
         if (id === 'blood') return { density: 0.58, heatCapacity: 0.72, moisture: 0.94, opacity: 0.82, viscosity: 0.34 };
         if (id === 'tendon') return { density: 0.4, hardness: 0.18, heatCapacity: 0.46, moisture: 0.48, viscosity: 0.18 };
         if (id === 'cartilage') return { density: 0.36, hardness: 0.1, heatCapacity: 0.48, moisture: 0.72, viscosity: 0.34 };
-        if (METAL_MATERIAL_IDS.has(id)) {
+        if (scope.METAL_MATERIAL_IDS.has(id)) {
           return { density: 0.82, hardness: 0.64, heatCapacity: 0.3, conductivity: 0.82, opacity: 1 };
         }
-        if (GAS_MATERIAL_IDS.has(id)) {
+        if (scope.GAS_MATERIAL_IDS.has(id)) {
           return { density: 0.08, heatCapacity: 0.22, opacity: 0.05, viscosity: 0.05 };
         }
-        if (MINERAL_MATERIAL_IDS.has(id)) {
+        if (scope.MINERAL_MATERIAL_IDS.has(id)) {
           return { density: 0.74, hardness: 0.82, heatCapacity: 0.32, opacity: 0.92, refractiveIndex: 1.38 };
         }
-        if (ORGANIC_MATERIAL_IDS.has(id)) {
+        if (scope.ORGANIC_MATERIAL_IDS.has(id)) {
           return { density: 0.36, hardness: 0.16, heatCapacity: 0.48, combustibility: 0.62, viscosity: 0.28 };
         }
-        if (POLYMER_MATERIAL_IDS.has(id)) {
+        if (scope.POLYMER_MATERIAL_IDS.has(id)) {
           return { density: 0.3, hardness: 0.22, heatCapacity: 0.44, combustibility: 0.34, viscosity: 0.4 };
         }
-        if (BIO_MOLECULE_MATERIAL_IDS.has(id)) {
+        if (scope.BIO_MOLECULE_MATERIAL_IDS.has(id)) {
           return { density: 0.22, hardness: 0.04, heatCapacity: 0.52, moisture: 0.68, viscosity: 0.55 };
         }
         if (id === 'graphene') return { density: 0.36, hardness: 0.68, conductivity: 0.98, opacity: 0.24 };
@@ -138,14 +137,14 @@
       }
 
     function wrapAngle(angle) {
-        const wrapped = angle % TAU;
-        return wrapped < 0 ? wrapped + TAU : wrapped;
+        const wrapped = angle % scope.TAU;
+        return wrapped < 0 ? wrapped + scope.TAU : wrapped;
       }
 
     function shortestAngle(from, to) {
         let delta = wrapAngle(to) - wrapAngle(from);
-        if (delta > Math.PI) delta -= TAU;
-        if (delta < -Math.PI) delta += TAU;
+        if (delta > Math.PI) delta -= scope.TAU;
+        if (delta < -Math.PI) delta += scope.TAU;
         return delta;
       }
 
@@ -163,12 +162,12 @@
       }
 
     function templateById(templateId) {
-        return TEMPLATE_LIBRARY.find((template) => template.id === templateId) || TEMPLATE_LIBRARY[0];
+        return scope.TEMPLATE_LIBRARY.find((template) => template.id === templateId) || scope.TEMPLATE_LIBRARY[0];
       }
 
     function normalizeControl(control) {
         if (Array.isArray(control)) return control;
-        if (typeof control === 'string') return CONTROL_LIBRARY[control] || [control, labelize(control), 0, 1, 0.01];
+        if (typeof control === 'string') return scope.CONTROL_LIBRARY[control] || [control, labelize(control), 0, 1, 0.01];
         if (control && control.key) {
           return [
             control.key,
@@ -239,12 +238,12 @@
         const raw = String(text || '')
           .toLowerCase()
           .split(/[^a-z0-9]+/)
-          .filter((token) => token && token.length > 1 && !SEMANTIC_STOPWORDS.has(token));
+          .filter((token) => token && token.length > 1 && !scope.SEMANTIC_STOPWORDS.has(token));
         const out = [];
         for (const token of raw) {
           const singular = token.length > 3 && token.endsWith('s') ? token.slice(0, -1) : token;
           out.push(singular);
-          for (const synonym of TOKEN_SYNONYMS[singular] || TOKEN_SYNONYMS[token] || []) {
+          for (const synonym of scope.TOKEN_SYNONYMS[singular] || scope.TOKEN_SYNONYMS[token] || []) {
             out.push(synonym);
           }
         }
@@ -290,7 +289,7 @@
       }
 
     function primitiveById(id) {
-        return PHYSICAL_PRIMITIVES.find((primitive) => primitive.id === id) || null;
+        return scope.PHYSICAL_PRIMITIVES.find((primitive) => primitive.id === id) || null;
       }
 
     function isRetrievablePrimitive(primitiveOrId) {
@@ -298,19 +297,19 @@
         return Boolean(primitive) && primitive.isRetrievable !== false;
       }
 
-    function layerForId(id, primitives = LAYERED_PRIMITIVES) {
+    function layerForId(id, primitives = scope.LAYERED_PRIMITIVES) {
         const primitive = (primitives || []).find((item) => item.id === id);
         return primitive ? primitive.layer : null;
       }
 
     function lowerLayerFor(layerId) {
-        const index = LAYER_INDEX[layerId];
+        const index = scope.LAYER_INDEX[layerId];
         if (!index || index <= 1) return null;
-        const lower = LAYER_STACK.find((layer) => layer.index === index - 1);
+        const lower = scope.LAYER_STACK.find((layer) => layer.index === index - 1);
         return lower ? lower.id : null;
       }
 
-    function validateLayerAdjacency(primitives = LAYERED_PRIMITIVES) {
+    function validateLayerAdjacency(primitives = scope.LAYERED_PRIMITIVES) {
         const byId = new Map((primitives || []).map((primitive) => [primitive.id, primitive]));
         const errors = [];
         for (const primitive of primitives || []) {
@@ -353,12 +352,12 @@
         return {
           schema: 'simulatte.layerAdjacency.v1',
           valid: errors.length === 0,
-          layerStack: LAYER_STACK.map((layer) => ({
+          layerStack: scope.LAYER_STACK.map((layer) => ({
             id: layer.id,
             index: layer.index,
             composes: layer.composes.slice(),
           })),
-          compilerInputPlane: COMPILER_INPUT_PLANE.id,
+          compilerInputPlane: scope.COMPILER_INPUT_PLANE.id,
           checked: (primitives || []).length,
           errors,
         };
@@ -370,24 +369,24 @@
 
     function materialPropertiesForId(id) {
         return {
-          ...MATERIAL_PROPERTY_DEFAULTS,
+          ...scope.MATERIAL_PROPERTY_DEFAULTS,
           ...generatedMaterialPropertiesForId(id),
-          ...(MATERIAL_PROFILES[id] || {}),
+          ...(scope.MATERIAL_PROFILES[id] || {}),
         };
       }
 
     function geometryForPrimitive(primitive) {
-        if (!primitive) return GEOMETRY_PROFILES.body;
+        if (!primitive) return scope.GEOMETRY_PROFILES.body;
         return {
-          ...(GEOMETRY_PROFILES[primitive.type] || GEOMETRY_PROFILES.body),
-          ...(GEOMETRY_OVERRIDES[primitive.id] || {}),
+          ...(scope.GEOMETRY_PROFILES[primitive.type] || scope.GEOMETRY_PROFILES.body),
+          ...(scope.GEOMETRY_OVERRIDES[primitive.id] || {}),
         };
       }
 
     function portsForPrimitive(primitive) {
         if (!primitive) return { accepts: [], outputs: [] };
-        const base = PORT_PROFILES[primitive.type] || { accepts: [], outputs: [] };
-        const override = PORT_PROFILES[primitive.id] || {};
+        const base = scope.PORT_PROFILES[primitive.type] || { accepts: [], outputs: [] };
+        const override = scope.PORT_PROFILES[primitive.id] || {};
         return {
           accepts: uniqueList([...(base.accepts || []), ...(override.accepts || [])]),
           outputs: uniqueList([...(base.outputs || []), ...(override.outputs || [])]),
@@ -395,7 +394,7 @@
       }
 
     function recipeSlotsForId(id) {
-        return (RECIPE_SLOT_LIBRARY[id] || []).map((slot) => ({
+        return (scope.RECIPE_SLOT_LIBRARY[id] || []).map((slot) => ({
           slot: slot.slot,
           accepts: uniqueList(slot.accepts || []),
           required: Boolean(slot.required),
@@ -415,7 +414,7 @@
 
     function matchingInteractionRules(primitives) {
         const tokens = primitiveTokenSet(primitives);
-        return INTERACTION_RULES
+        return scope.INTERACTION_RULES
           .filter((rule) => (rule.when || []).every((token) => tokens.has(token)))
           .map((rule) => ({
             id: rule.id,
@@ -428,13 +427,13 @@
     function unitsForParams(params = {}) {
         return Object.fromEntries(Object.keys(params).sort().map((key) => [
           key,
-          PARAM_UNIT_SCHEMA[key] || { dimension: 'dimensionless', unit: '1' },
+          scope.PARAM_UNIT_SCHEMA[key] || { dimension: 'dimensionless', unit: '1' },
         ]));
       }
 
     function conservationForPrimitives(primitives) {
         const tokens = primitiveTokenSet(primitives);
-        return CONSERVATION_RULES
+        return scope.CONSERVATION_RULES
           .filter((rule) => (rule.when || []).every((token) => tokens.has(token)))
           .map((rule) => ({
             id: rule.id,
@@ -450,9 +449,9 @@
         for (const primitive of primitives || []) {
           const keys = uniqueList([primitive.id, primitive.type, primitive.layer, ...(primitive.domains || [])]);
           for (const key of keys) {
-            const operatorId = OPERATOR_MATCHES[key];
+            const operatorId = scope.OPERATOR_MATCHES[key];
             if (!operatorId || seen.has(operatorId)) continue;
-            const operator = OPERATOR_REGISTRY[operatorId];
+            const operator = scope.OPERATOR_REGISTRY[operatorId];
             if (!operator) continue;
             seen.add(operatorId);
             out.push({
@@ -630,7 +629,7 @@
 
     function temporalEventsForPrimitives(primitives) {
         const tokens = primitiveTokenSet(primitives);
-        return TEMPORAL_GRAMMAR
+        return scope.TEMPORAL_GRAMMAR
           .filter((event) => (event.when || []).every((token) => tokens.has(token)))
           .map((event) => ({
             id: event.id,
@@ -774,20 +773,20 @@
     function layoutForPrimitives(primitives) {
         const ids = new Set((primitives || []).map((primitive) => primitive.id));
         for (const id of ids) {
-          if (SCENE_LAYOUTS[id]) return { id, ...SCENE_LAYOUTS[id] };
+          if (scope.SCENE_LAYOUTS[id]) return { id, ...scope.SCENE_LAYOUTS[id] };
         }
-        if (ids.has('forest-fire')) return { id: 'forest', ...SCENE_LAYOUTS.forest };
-        if (ids.has('river-erosion')) return { id: 'mountain-watershed', ...SCENE_LAYOUTS['mountain-watershed'] };
-        if (ids.has('optics-bench')) return { id: 'lab-bench', ...SCENE_LAYOUTS['lab-bench'] };
-        if (ids.has('power-grid') || ids.has('traffic-system')) return { id: 'city-grid', ...SCENE_LAYOUTS['city-grid'] };
+        if (ids.has('forest-fire')) return { id: 'forest', ...scope.SCENE_LAYOUTS.forest };
+        if (ids.has('river-erosion')) return { id: 'mountain-watershed', ...scope.SCENE_LAYOUTS['mountain-watershed'] };
+        if (ids.has('optics-bench')) return { id: 'lab-bench', ...scope.SCENE_LAYOUTS['lab-bench'] };
+        if (ids.has('power-grid') || ids.has('traffic-system')) return { id: 'city-grid', ...scope.SCENE_LAYOUTS['city-grid'] };
         return { id: 'freeform', grammar: 'radial assembly', zones: ['source', 'field', 'matter'], camera: 'plan' };
       }
 
     function readoutsForPrimitives(primitives) {
         const tokens = primitiveTokenSet(primitives);
-        const rule = CONTEXTUAL_READOUT_RULES.find((item) => (
+        const rule = scope.CONTEXTUAL_READOUT_RULES.find((item) => (
           item.when.length && item.when.every((token) => tokens.has(token))
-        )) || CONTEXTUAL_READOUT_RULES.find((item) => item.id === 'generic');
+        )) || scope.CONTEXTUAL_READOUT_RULES.find((item) => item.id === 'generic');
         return [...rule.labels];
       }
 
@@ -798,7 +797,7 @@
           id: primitive.id,
           layer: primitive.layer || '',
           geometry: geometryForPrimitive(primitive),
-          material: primitive.layer === 'material' || MATERIAL_PROFILES[materialId] || primitive.material
+          material: primitive.layer === 'material' || scope.MATERIAL_PROFILES[materialId] || primitive.material
             ? materialPropertiesForId(materialId)
             : null,
           ports: portsForPrimitive(primitive),
@@ -806,7 +805,7 @@
         };
       }
 
-    Object.assign(scope, {
+    root.SimulattePhaseModuleRegistry.define('physicsCatalog', 'simulatte-physics-catalog-templates.js', {
       visualSlotTargetsForAction,
       toCatalogItem,
       uniqueCatalogItems,
@@ -866,5 +865,5 @@
       readoutsForPrimitives,
       contractForPrimitive,
     });
-  }
+
 })(typeof globalThis !== 'undefined' ? globalThis : window);

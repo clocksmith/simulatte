@@ -1,18 +1,166 @@
 {
-  "schema": "simulatte.autonomyBrowserSmoke.v7",
-  "pass": true,
-  "targetUrl": "http://127.0.0.1:61116/",
+  "schema": "simulatte.autonomyBrowserSmoke.v11",
+  "pass": false,
+  "targetUrl": "http://127.0.0.1:60241/city",
   "viewport": {
     "width": 390,
     "height": 844
   },
   "browser": {
-    "product": "Chrome/150.0.7871.115",
+    "product": "Chrome/150.0.7871.186",
     "protocolVersion": "1.3",
     "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36"
   },
   "result": {
-    "runtime": "Loop complete: 1524.0 m | 2 full lap(s) | 442.0 s",
+    "runtime": "Complete",
+    "initialLayout": {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "rects": [
+        {
+          "id": "runtime-toggle",
+          "hidden": false,
+          "left": 10,
+          "top": 10,
+          "right": 46,
+          "bottom": 50,
+          "width": 36,
+          "height": 40
+        },
+        {
+          "id": "application-profile-trigger",
+          "hidden": false,
+          "left": 106.609375,
+          "top": 10,
+          "right": 233.265625,
+          "bottom": 50,
+          "width": 126.65625,
+          "height": 40
+        },
+        {
+          "id": "camera-focus-button",
+          "hidden": false,
+          "left": 177.953125,
+          "top": 13,
+          "right": 239.703125,
+          "bottom": 57,
+          "width": 61.75,
+          "height": 44
+        },
+        {
+          "id": "camera-follow",
+          "hidden": false,
+          "left": 251.703125,
+          "top": 16,
+          "right": 300.5625,
+          "bottom": 54,
+          "width": 48.859375,
+          "height": 38
+        },
+        {
+          "id": "camera-bird",
+          "hidden": false,
+          "left": 302.5625,
+          "top": 16,
+          "right": 339.078125,
+          "bottom": 54,
+          "width": 36.515625,
+          "height": 38
+        },
+        {
+          "id": "camera-top",
+          "hidden": false,
+          "left": 341.078125,
+          "top": 16,
+          "right": 376,
+          "bottom": 54,
+          "width": 34.921875,
+          "height": 38
+        },
+        {
+          "id": "mission-input",
+          "hidden": false,
+          "left": 19,
+          "top": 663,
+          "right": 371,
+          "bottom": 738,
+          "width": 352,
+          "height": 75
+        },
+        {
+          "id": "scenario-field",
+          "hidden": true,
+          "left": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0
+        },
+        {
+          "id": "shuffle-button",
+          "hidden": false,
+          "left": 19,
+          "top": 745,
+          "right": 132.328125,
+          "bottom": 787,
+          "width": 113.328125,
+          "height": 42
+        },
+        {
+          "id": "start-button",
+          "hidden": false,
+          "left": 138.328125,
+          "top": 745,
+          "right": 251.65625,
+          "bottom": 787,
+          "width": 113.328125,
+          "height": 42
+        },
+        {
+          "id": "place-resolution-lane",
+          "hidden": true,
+          "left": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0
+        },
+        {
+          "id": "decisions-button",
+          "hidden": false,
+          "left": 302.765625,
+          "top": 642,
+          "right": 380,
+          "bottom": 682,
+          "width": 77.234375,
+          "height": 40
+        }
+      ],
+      "allWithinViewport": true,
+      "primaryControlsVisible": true
+    },
+    "applicationProfile": {
+      "enabled": true,
+      "selectedId": "simulatte-world-v1",
+      "optionIds": [
+        "simulatte-world-v1",
+        "cable-trader-pickup-v1",
+        "safety-explorer-v1",
+        "sun-walker-v1"
+      ],
+      "custom": {
+        "enabled": true,
+        "opened": true,
+        "groupLabels": [],
+        "optionCount": 4,
+        "selectedLabel": "Simulatte World",
+        "escapeClosed": true
+      }
+    },
     "state": "completed",
     "tick": 442,
     "distance": "1524 m",
@@ -30,7 +178,7 @@
     "retrievalLaneLabel": "Lexical + typed rules · 13185 cards · 374 found · 5 selected",
     "rerankerProof": "Public diagnostic · MRR 0.725 → 0.750 · Δ +0.025",
     "runtimeLog": {
-      "eventCount": 33,
+      "eventCount": 41,
       "eventNames": [
         "app.boot.started",
         "data.load.started",
@@ -57,17 +205,25 @@
         "data.asset.fetch.completed",
         "data.asset.fetch.completed",
         "data.asset.fetch.completed",
+        "data.asset.fetch.completed",
+        "data.asset.fetch.completed",
         "data.load.ready",
+        "data.asset.fetch.completed",
+        "data.asset.fetch.completed",
+        "data.asset.fetch.completed",
+        "data.asset.fetch.completed",
+        "data.asset.fetch.completed",
+        "data.asset.fetch.completed",
         "mission.compiled",
         "renderer.ready",
-        "mission.example.selected",
+        "application.scenario.selected",
         "mission.compiled",
         "journey.started",
         "retrieval.lane.executed",
         "journey.terminal"
       ],
       "requiredEventsPresent": true,
-      "manifestMissionExampleCount": 15,
+      "manifestMissionExampleCount": 14,
       "manifestCacheMode": "no-cache",
       "embeddingExecuted": false,
       "neuralRerankerExecuted": false,
@@ -75,8 +231,12 @@
     },
     "shuffle": {
       "changed": true,
+      "seedChanged": true,
+      "interactionMode": "prompt",
       "originalMission": "Deliver the parcel by bike from Union Square to North Williamsburg. Prefer protected lanes and yield to pedestrians.",
-      "shuffledMission": "Drive from Union Square to North Williamsburg.",
+      "shuffledMission": "Walk from Union Square to Washington Square.",
+      "originalSeed": "Seed prompt-125fe5da",
+      "shuffledSeed": "Seed prompt-59231774",
       "startLabel": "Start"
     },
     "copy": {
@@ -130,12 +290,17 @@
       "followZoomBefore": 62,
       "followZoomAfter": 48.771,
       "returnedToRoute": true,
-      "startedInFollow": true,
+      "initial": {
+        "mode": "bird",
+        "focus": "route"
+      },
+      "configuredRunMode": "follow",
+      "startedInConfiguredMode": true,
       "minimap": {
         "visible": true,
         "projection": "orthographic_top_north_up",
         "radiusM": 420,
-        "frameCount": 75
+        "frameCount": 71
       }
     },
     "editInvalidatedController": true,
@@ -147,80 +312,164 @@
     "ambientActorCount": 13,
     "ambientActorKinds": "pedestrian,bicycle,scooter,car",
     "adapterName": "metal-3",
-    "rendererFrames": 1622,
+    "rendererFrames": 1160,
     "smoothness": {
-      "rafFrameCount": 1170,
+      "rafFrameCount": 1123,
       "frameIntervalMs": {
-        "min": 14.5,
+        "min": 15.6,
         "p50": 16.7,
-        "p95": 18.7,
-        "p99": 18.8,
-        "max": 52,
-        "mean": 16.8364
+        "p95": 33.3,
+        "p99": 34.2,
+        "max": 83,
+        "mean": 18.2986
       },
-      "over20msCount": 11,
-      "over33msCount": 5,
-      "over33msRatio": 0.0043,
-      "longTaskCount": 0,
-      "longTaskTotalMs": 0,
-      "longestTaskMs": 0,
+      "over20msCount": 101,
+      "over33msCount": 52,
+      "over33msRatio": 0.0463,
+      "longTaskCount": 4,
+      "longTaskTotalMs": 241,
+      "longestTaskMs": 64,
       "phaseMarks": [
         {
           "phase": "sampling_started",
-          "at": 5662.699999809265
+          "at": 18321.599999904633
         },
         {
           "phase": "camera_modes_complete",
-          "at": 8550
+          "at": 21259.699999809265
         },
         {
           "phase": "camera_interactions_complete",
-          "at": 11079
+          "at": 23774.400000095367
         },
         {
           "phase": "mission_edited",
-          "at": 11079.099999904633
+          "at": 23774.799999713898
         },
         {
           "phase": "start_clicked",
-          "at": 11116.699999809265
+          "at": 23775.099999904633
         },
         {
-          "phase": "follow_minimap_ready",
-          "at": 11172.099999904633
+          "phase": "configured_camera_ready",
+          "at": 23951.900000095367
         },
         {
           "phase": "journey_terminal",
-          "at": 25333.599999904633
+          "at": 38851.199999809265
         }
       ],
-      "longTasks": []
+      "longTasks": [
+        {
+          "startTime": 23792.9,
+          "duration": 55,
+          "phase": "start_clicked"
+        },
+        {
+          "startTime": 23991.4,
+          "duration": 64,
+          "phase": "configured_camera_ready"
+        },
+        {
+          "startTime": 33306.9,
+          "duration": 58,
+          "phase": "configured_camera_ready"
+        },
+        {
+          "startTime": 36457.3,
+          "duration": 64,
+          "phase": "configured_camera_ready"
+        }
+      ]
     },
     "staticVertexCount": 547548,
-    "dynamicVertexCount": 47469,
-    "canvasWidth": 370,
-    "canvasHeight": 520,
+    "dynamicVertexCount": 58719,
+    "canvasWidth": 390,
+    "canvasHeight": 844,
     "viewportWidth": 390,
     "documentWidth": 390,
     "scrollY": 0,
     "hasHorizontalOverflow": false
   },
+  "consentView": {
+    "disclosed": {
+      "title": "Enable local Qwen embedding?",
+      "embedding": "533 MB",
+      "rerankerRowAbsent": true,
+      "total": "533 MB for the embedding model",
+      "use": "Simulatte uses Qwen embeddings only when deterministic place matching refuses."
+    },
+    "grantRemembered": true,
+    "revoked": true,
+    "finalEnabled": false
+  },
+  "decisionView": {
+    "open": true,
+    "hidden": "false",
+    "expanded": "true",
+    "summary": "Accelerate on the selected route"
+  },
   "actorView": {
     "mode": "follow",
     "transition": "settled",
     "followDistance": 5,
-    "dynamicVertexCount": 47469,
+    "dynamicVertexCount": 58719,
     "actorMeshSchema": "simulatte.autonomyActorMesh.v1",
     "ambientActorCount": 13,
     "ambientActorKinds": "pedestrian,bicycle,scooter,car",
     "minimapVisible": true,
-    "minimapFrameCount": 1382
+    "minimapFrameCount": 940
+  },
+  "featureView": {
+    "cooperation": {
+      "visible": false
+    },
+    "gpuParity": null,
+    "shade": {
+      "visible": true,
+      "routeAlgorithm": "sun_walker_arrival_time_route_v1",
+      "selected": "30% modeled shade",
+      "areaCount": 320,
+      "sunCount": 1,
+      "solarLighting": "plugin",
+      "sunAzimuthDegrees": 140.719011,
+      "sunElevationDegrees": 67.1563
+    },
+    "cableTrader": {
+      "visible": true,
+      "needsServed": "4,096 / 4,096 (100%)",
+      "exactAllocations": "300 / 300 (100%)",
+      "monteCarloEvents": "9,152",
+      "markerCount": 4,
+      "actorCount": 64
+    }
   },
   "errors": [],
   "failedResponses": [],
+  "diagnostics": {
+    "performance": false,
+    "profileScope": true,
+    "visualRuntime": true,
+    "evidence": true,
+    "layout": true,
+    "camera": true,
+    "plugins": true,
+    "browserErrors": true
+  },
+  "failedDiagnostics": [
+    "performance"
+  ],
   "requests": [
     {
-      "pathname": "/index.html",
+      "pathname": "/city",
+      "status": 200
+    },
+    {
+      "pathname": "/shared/design/simulatte.css",
+      "status": 200
+    },
+    {
+      "pathname": "/model-selection.css",
       "status": 200
     },
     {
@@ -228,167 +477,367 @@
       "status": 200
     },
     {
-      "pathname": "/contracts/data-contract-validator.js",
+      "pathname": "/world-tiers.css",
       "status": 200
     },
     {
-      "pathname": "/contracts/contract-validator.js",
+      "pathname": "/simulatte/app/world-runtime-script-manifest.js",
       "status": 200
     },
     {
-      "pathname": "/runtime/canonical-receipts.js",
+      "pathname": "/neural-model-consent.js",
       "status": 200
     },
     {
-      "pathname": "/runtime/data-loader.js",
+      "pathname": "/model-selection.js",
       "status": 200
     },
     {
-      "pathname": "/runtime/neural-place-resolution-core.js",
+      "pathname": "/shared/deterministic-values.js",
       "status": 200
     },
     {
-      "pathname": "/world/region-pack-merger.js",
+      "pathname": "/shared/language/positive-language.js",
       "status": 200
     },
     {
-      "pathname": "/runtime/runtime-log.js",
+      "pathname": "/shared/streets/street-name.js",
       "status": 200
     },
     {
-      "pathname": "/runtime/neural-place-resolver.js",
+      "pathname": "/shared/contracts/data-contract-validator.js",
       "status": 200
     },
     {
-      "pathname": "/mission/capability-matrix.js",
+      "pathname": "/shared/contracts/contract-validation-primitives.js",
       "status": 200
     },
     {
-      "pathname": "/mission/mission-compiler.js",
+      "pathname": "/shared/contracts/contract-runtime-validator.js",
       "status": 200
     },
     {
-      "pathname": "/world/ambient-actors.js",
+      "pathname": "/shared/contracts/contract-validator.js",
       "status": 200
     },
     {
-      "pathname": "/world/world-model.js",
+      "pathname": "/simulatte/runtime/canonical-receipts.js",
       "status": 200
     },
     {
-      "pathname": "/world/route-planner.js",
+      "pathname": "/simulatte/world/region-pack-merger.js",
       "status": 200
     },
     {
-      "pathname": "/world/accessibility-audit.js",
+      "pathname": "/simulatte/runtime/runtime-log.js",
       "status": 200
     },
     {
-      "pathname": "/runtime/feature-retrieval.js",
+      "pathname": "/simulatte/platform/contracts/schema-registry.js",
       "status": 200
     },
     {
-      "pathname": "/runtime/occurrence-engine.js",
+      "pathname": "/simulatte/platform/contracts/plugin-contracts.js",
       "status": 200
     },
     {
-      "pathname": "/runtime/observation-builder.js",
+      "pathname": "/simulatte/platform/transport/browser-transport.js",
       "status": 200
     },
     {
-      "pathname": "/runtime/reference-dynamics.js",
+      "pathname": "/simulatte/platform/artifacts/governed-artifact-store.js",
       "status": 200
     },
     {
-      "pathname": "/runtime/bet-proposer.js",
+      "pathname": "/simulatte/platform/data-catalog/immutable-data-catalog.js",
       "status": 200
     },
     {
-      "pathname": "/runtime/safety-gate.js",
+      "pathname": "/simulatte/platform/storage/browser-tile-storage.js",
       "status": 200
     },
     {
-      "pathname": "/runtime/bet-selector.js",
+      "pathname": "/simulatte/platform/plugin-host/plugin-state-host.js",
       "status": 200
     },
     {
-      "pathname": "/runtime/bet-settlement.js",
+      "pathname": "/simulatte/platform/plugin-host/capability-graph.js",
       "status": 200
     },
     {
-      "pathname": "/verifier/journey-verifier.js",
+      "pathname": "/simulatte/platform/plugin-host/plugin-sdk.js",
       "status": 200
     },
     {
-      "pathname": "/runtime/autonomy-controller.js",
+      "pathname": "/simulatte/platform/plugin-host/plugin-asset-paths.js",
       "status": 200
     },
     {
-      "pathname": "/runtime/journey-ledger.js",
+      "pathname": "/simulatte/platform/plugin-host/plugin-runtime.js",
       "status": 200
     },
     {
-      "pathname": "/runtime/counterfactual-runner.js",
+      "pathname": "/simulatte/platform/plugin-host/plugin-random.js",
       "status": 200
     },
     {
-      "pathname": "/app/webgpu-math.js",
+      "pathname": "/simulatte/platform/plugin-host/plugin-scheduler.js",
       "status": 200
     },
     {
-      "pathname": "/app/webgpu-actor-geometry.js",
+      "pathname": "/simulatte/platform/plugin-host/plugin-environment.js",
       "status": 200
     },
     {
-      "pathname": "/app/webgpu-geometry.js",
+      "pathname": "/simulatte/platform/plugin-host/plugin-geography.js",
       "status": 200
     },
     {
-      "pathname": "/app/camera-controller.js",
+      "pathname": "/simulatte/platform/plugin-host/plugin-compute.js",
       "status": 200
     },
     {
-      "pathname": "/app/webgpu-renderer.js",
+      "pathname": "/simulatte/platform/plugin-host/generated-plugin-registry.js",
       "status": 200
     },
     {
-      "pathname": "/app/trace-view.js",
+      "pathname": "/simulatte/platform/bootstrap/application-load-context.js",
       "status": 200
     },
     {
-      "pathname": "/app/main.js",
+      "pathname": "/simulatte/app/world-runtime-loader.js",
       "status": 200
     },
     {
-      "pathname": "/data/autonomy/autonomy-manifest.json",
+      "pathname": "/simulatte/app/tier-plugin-presentation.js",
       "status": 200
     },
     {
-      "pathname": "/favicon.svg",
+      "pathname": "/simulatte/platform/ui-host/declarative-ui-host.js",
       "status": 200
     },
     {
-      "pathname": "/data/autonomy/policies/bet-selector-v1.json",
+      "pathname": "/simulatte/platform/bootstrap/tier-application-loader.js",
       "status": 200
     },
     {
-      "pathname": "/data/autonomy/patterns/nyc-replay-patterns-v1.json",
+      "pathname": "/shared/core/simulation/civil-time.js",
       "status": 200
     },
     {
-      "pathname": "/data/autonomy/evidence/feature-reranker-public-diagnostic-v1.json",
+      "pathname": "/simulatte/world/world-tile-manager.js",
       "status": 200
     },
     {
-      "pathname": "/data/autonomy/regions/nyc-core-v1.json",
+      "pathname": "/simulatte/world/world-tile-storage.js",
       "status": 200
     },
     {
-      "pathname": "/data/autonomy/place-embedding-index-v1.json",
+      "pathname": "/simulatte/platform/bootstrap/application-loader.js",
       "status": 200
     },
     {
-      "pathname": "/data/autonomy/evidence/place-resolution-public-diagnostic-v1.json",
+      "pathname": "/simulatte/mission/capability-matrix.js",
+      "status": 200
+    },
+    {
+      "pathname": "/simulatte/mission/mission-compiler.js",
+      "status": 200
+    },
+    {
+      "pathname": "/data/simulatte-language-lexicon.js",
+      "status": 200
+    },
+    {
+      "pathname": "/simulatte/language/simulatte-universe-parser.js",
+      "status": 200
+    },
+    {
+      "pathname": "/simulatte/world/ambient-actors.js",
+      "status": 200
+    },
+    {
+      "pathname": "/simulatte/world/world-model.js",
+      "status": 200
+    },
+    {
+      "pathname": "/simulatte/world/route-planner.js",
+      "status": 200
+    },
+    {
+      "pathname": "/simulatte/world/time-dependent-edge-cost.js",
+      "status": 200
+    },
+    {
+      "pathname": "/simulatte/runtime/feature-retrieval.js",
+      "status": 200
+    },
+    {
+      "pathname": "/simulatte/runtime/occurrence-engine.js",
+      "status": 200
+    },
+    {
+      "pathname": "/simulatte/runtime/observation-builder.js",
+      "status": 200
+    },
+    {
+      "pathname": "/simulatte/runtime/reference-dynamics.js",
+      "status": 200
+    },
+    {
+      "pathname": "/simulatte/runtime/bet-proposer.js",
+      "status": 200
+    },
+    {
+      "pathname": "/simulatte/runtime/safety-gate.js",
+      "status": 200
+    },
+    {
+      "pathname": "/simulatte/runtime/bet-selector.js",
+      "status": 200
+    },
+    {
+      "pathname": "/simulatte/runtime/bet-settlement.js",
+      "status": 200
+    },
+    {
+      "pathname": "/simulatte/verifier/journey-verifier.js",
+      "status": 200
+    },
+    {
+      "pathname": "/simulatte/runtime/autonomy-controller.js",
+      "status": 200
+    },
+    {
+      "pathname": "/simulatte/runtime/journey-ledger.js",
+      "status": 200
+    },
+    {
+      "pathname": "/simulatte/app/webgpu-math.js",
+      "status": 200
+    },
+    {
+      "pathname": "/simulatte/app/webgpu-actor-geometry.js",
+      "status": 200
+    },
+    {
+      "pathname": "/simulatte/app/webgpu-geometry.js",
+      "status": 200
+    },
+    {
+      "pathname": "/simulatte/app/plugin-presentation.js",
+      "status": 200
+    },
+    {
+      "pathname": "/simulatte/app/camera-controller.js",
+      "status": 200
+    },
+    {
+      "pathname": "/simulatte/app/webgpu-renderer.js",
+      "status": 200
+    },
+    {
+      "pathname": "/simulatte/app/trace-view.js",
+      "status": 200
+    },
+    {
+      "pathname": "/simulatte/app/application-profile-select.js",
+      "status": 200
+    },
+    {
+      "pathname": "/simulatte/app/experience-camera.js",
+      "status": 200
+    },
+    {
+      "pathname": "/simulatte/app/tier-facts.js",
+      "status": 200
+    },
+    {
+      "pathname": "/simulatte/app/tier-data-loader.js",
+      "status": 200
+    },
+    {
+      "pathname": "/simulatte/app/tier-renderers.js",
+      "status": 200
+    },
+    {
+      "pathname": "/simulatte/app/tier-registry.js",
+      "status": 200
+    },
+    {
+      "pathname": "/simulatte/app/multi-tier-visualizer.js",
+      "status": 200
+    },
+    {
+      "pathname": "/simulatte/app/mount-lifecycle.js",
+      "status": 200
+    },
+    {
+      "pathname": "/simulatte/app/world-tiers-boot.js",
+      "status": 200
+    },
+    {
+      "pathname": "/simulatte/app/router.js",
+      "status": 200
+    },
+    {
+      "pathname": "/simulatte/app/city-interface.js",
+      "status": 200
+    },
+    {
+      "pathname": "/simulatte/app/main-view.js",
+      "status": 200
+    },
+    {
+      "pathname": "/simulatte/app/main.js",
+      "status": 200
+    },
+    {
+      "pathname": "/shared/plugins/safety-explorer/index.js",
+      "status": 200
+    },
+    {
+      "pathname": "/shared/plugins/sun-walker/sun-exposure.js",
+      "status": 200
+    },
+    {
+      "pathname": "/shared/plugins/sun-walker/index.js",
+      "status": 200
+    },
+    {
+      "pathname": "/shared/plugins/cable-trader/network-simulation.js",
+      "status": 200
+    },
+    {
+      "pathname": "/shared/plugins/cable-trader/index.js",
+      "status": 200
+    },
+    {
+      "pathname": "/data/simulatte/autonomy-manifest.json",
+      "status": 200
+    },
+    {
+      "pathname": "/data/simulatte/policies/bet-selector-v1.json",
+      "status": 200
+    },
+    {
+      "pathname": "/data/simulatte/patterns/nyc-replay-patterns-v1.json",
+      "status": 200
+    },
+    {
+      "pathname": "/data/simulatte/evidence/feature-reranker-public-diagnostic-v3.json",
+      "status": 200
+    },
+    {
+      "pathname": "/data/simulatte/regions/nyc-core-v1.json",
+      "status": 200
+    },
+    {
+      "pathname": "/data/simulatte/place-embedding-index-v1.json",
+      "status": 200
+    },
+    {
+      "pathname": "/data/simulatte/evidence/place-resolution-public-diagnostic-v2.json",
       "status": 200
     },
     {
@@ -396,55 +845,91 @@
       "status": 200
     },
     {
-      "pathname": "/data/autonomy/accessibility-index-v1.json",
+      "pathname": "/data/pipeline-model-selection.json",
       "status": 200
     },
     {
-      "pathname": "/data/autonomy/route-amenity-index-v1.json",
+      "pathname": "/data/application-profiles/simulatte-world-v1.json",
       "status": 200
     },
     {
-      "pathname": "/data/autonomy/safety-history-index-v1.json",
+      "pathname": "/data/simulatte/curricula/nyc-routing-foundations-v1.json",
       "status": 200
     },
     {
-      "pathname": "/data/autonomy/curricula/nyc-routing-foundations-v1.json",
+      "pathname": "/data/simulatte/evidence/policy-arena-public-diagnostic-v1/report.json",
       "status": 200
     },
     {
-      "pathname": "/data/autonomy/world-snapshot-registry-v1.json",
+      "pathname": "/data/simulatte/embodiments/delivery-bike-v1.json",
       "status": 200
     },
     {
-      "pathname": "/data/autonomy/evidence/policy-arena-public-diagnostic-v1/report.json",
+      "pathname": "/data/simulatte/embodiments/pedestrian-v1.json",
       "status": 200
     },
     {
-      "pathname": "/data/autonomy/embodiments/delivery-bike-v1.json",
+      "pathname": "/data/simulatte/embodiments/scooter-v1.json",
       "status": 200
     },
     {
-      "pathname": "/data/autonomy/embodiments/pedestrian-v1.json",
+      "pathname": "/data/simulatte/embodiments/car-v1.json",
       "status": 200
     },
     {
-      "pathname": "/data/autonomy/embodiments/scooter-v1.json",
+      "pathname": "/data/simulatte/regions/packs/manhattan-villages-v1.json",
       "status": 200
     },
     {
-      "pathname": "/data/autonomy/embodiments/car-v1.json",
+      "pathname": "/data/simulatte/regions/packs/east-river-crossing-v1.json",
       "status": 200
     },
     {
-      "pathname": "/data/autonomy/regions/packs/manhattan-villages-v1.json",
+      "pathname": "/data/simulatte/regions/packs/north-brooklyn-v1.json",
       "status": 200
     },
     {
-      "pathname": "/data/autonomy/regions/packs/east-river-crossing-v1.json",
+      "pathname": "/favicon.svg",
       "status": 200
     },
     {
-      "pathname": "/data/autonomy/regions/packs/north-brooklyn-v1.json",
+      "pathname": "/data/simulatte/regions/packs/manhattan-villages-v1.geometry.json",
+      "status": 200
+    },
+    {
+      "pathname": "/data/simulatte/regions/packs/east-river-crossing-v1.geometry.json",
+      "status": 200
+    },
+    {
+      "pathname": "/data/simulatte/regions/packs/north-brooklyn-v1.geometry.json",
+      "status": 200
+    },
+    {
+      "pathname": "/data/simulatte/safety-history-index-v1.json",
+      "status": 200
+    },
+    {
+      "pathname": "/shared/plugins/safety-explorer/config.schema.json",
+      "status": 200
+    },
+    {
+      "pathname": "/shared/plugins/safety-explorer/default-config.json",
+      "status": 200
+    },
+    {
+      "pathname": "/shared/plugins/sun-walker/config.schema.json",
+      "status": 200
+    },
+    {
+      "pathname": "/shared/plugins/sun-walker/default-config.json",
+      "status": 200
+    },
+    {
+      "pathname": "/shared/plugins/cable-trader/config.schema.json",
+      "status": 200
+    },
+    {
+      "pathname": "/shared/plugins/cable-trader/default-config.json",
       "status": 200
     }
   ],

@@ -1,12 +1,11 @@
 (function attachSimulattePromptVisualContracts(root) {
-  const scope = root.__SimulatteCompositionGraphRefactorScope;
-  if (!scope || scope.missingDependency) return;
+  const scope = root.SimulattePhaseModuleRegistry.family('compositionGraph');
   const lexiconApi = typeof module === 'object' && module.exports
     ? require('../../../data/simulatte-language-lexicon.js')
     : root.SimulatteLanguageLexicon || {};
   const languageLexicon = lexiconApi.LANGUAGE_LEXICON || {};
   const materialVisualValues = languageLexicon.materialVisualValues || {};
-  with (scope) {
+
     const CONSTRUCTION_APPROACH_IDS = Object.freeze({
       anchor: 'category-catalog',
       targeted: 'prompt-obligation-coverage',
@@ -89,7 +88,7 @@
       if (!Number.isInteger(attempt) || attempt < 0) {
         throw new Error(`Phase 6 construction approach attempt expected a non-negative integer, received ${entity.constructionApproachAttempt}`);
       }
-      const rejectedGrammarIds = uniqueList(entity.constructionApproachRejectedGrammarIds || [])
+      const rejectedGrammarIds = scope.uniqueList(entity.constructionApproachRejectedGrammarIds || [])
         .map((value) => String(value || '').trim()).filter(Boolean).slice(0, 64);
       return { id: requested, seed, attempt, rejectedGrammarIds };
     }
@@ -105,12 +104,7 @@
 
     function promptConstructionControlScore(program = {}, entity = {}, seed = 0, index = 0) {
       const text = `${seed}:${entity.id || entity.sourceObject || 'entity'}:${program.grammarId || index}`;
-      let hash = 2166136261;
-      for (let offset = 0; offset < text.length; offset += 1) {
-        hash ^= text.charCodeAt(offset);
-        hash = Math.imul(hash, 16777619);
-      }
-      return Number(((hash >>> 0) / 4294967295).toFixed(9));
+      return Number(scope.inclusiveUnitInterval(text).toFixed(9));
     }
 
     function promptGeometryCandidateScore(program = {}, entity = {}) {
@@ -168,7 +162,7 @@
       const construction = entity.construction || {};
       const hints = construction.partHints || [];
       const receipted = Number(program.constructionReceipt && program.constructionReceipt.evidencePartCoverage);
-      if (Number.isFinite(receipted)) return clamp(receipted, 0, 1);
+      if (Number.isFinite(receipted)) return scope.clamp(receipted, 0, 1);
       if (!hints.length) return 0;
       const partTerms = (program.parts || []).flatMap((row) => [
         row.id, row.constructionRole, row.sourceHint,
@@ -658,9 +652,9 @@
       scale[1] = sourceHeight * fit;
       const spacingX = Number(scale[0] || 0.16) * 1.12;
       const spacingY = Number(scale[1] || 0.14) * 1.12;
-      position[0] = clamp(Number(position[0] || 0.5) + (column - (columns - 1) / 2) * spacingX, 0.04, 0.96);
-      position[1] = clamp(Number(position[1] || 0.5) + (line - (rows - 1) / 2) * spacingY, 0.04, 0.96);
-      const bounds = scenePacketBounds({ ...transform, position, scale });
+      position[0] = scope.clamp(Number(position[0] || 0.5) + (column - (columns - 1) / 2) * spacingX, 0.04, 0.96);
+      position[1] = scope.clamp(Number(position[1] || 0.5) + (line - (rows - 1) / 2) * spacingY, 0.04, 0.96);
+      const bounds = scope.scenePacketBounds({ ...transform, position, scale });
       return {
         ...row,
         id: `${row.id}:instance:${index + 1}`,
@@ -671,7 +665,7 @@
           instanceIndex: index + 1,
           instanceCount: count,
         },
-        representedEntityIds: uniqueList([...(row.representedEntityIds || []), row.id]),
+        representedEntityIds: scope.uniqueList([...(row.representedEntityIds || []), row.id]),
         transform: { ...transform, position, scale },
         animation: row.animation ? {
           ...row.animation,
@@ -710,7 +704,7 @@
       return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     }
 
-    Object.assign(scope, {
+    root.SimulattePhaseModuleRegistry.define('compositionGraph', 'simulatte-prompt-visual-contracts.js', {
       CONSTRUCTION_APPROACH_IDS,
       promptGeometryGrammarKey,
       selectPromptGeometryProgram,
@@ -723,5 +717,5 @@
       filterPromptPartSupportEntities,
       expandPromptCardinalityPackets,
     });
-  }
+
 })(typeof globalThis !== 'undefined' ? globalThis : window);

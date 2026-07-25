@@ -1,7 +1,6 @@
 (function attachSimulatteCompositionGraphConstraintLayout(root) {
-  const scope = root.__SimulatteCompositionGraphRefactorScope;
-  if (!scope || scope.missingDependency) return;
-  with (scope) {
+  const scope = root.SimulattePhaseModuleRegistry.family('compositionGraph');
+
     const SPATIAL_CONSTRAINTS = Object.freeze(new Set([
       'in', 'inside', 'into', 'within', 'on', 'onto', 'at', 'over', 'above', 'under',
       'below', 'beside', 'near', 'outside', 'around', 'behind', 'in-front-of',
@@ -23,12 +22,12 @@
         states.forEach(clampLayoutState);
       }
       return states.map((state) => {
-        const relationIds = uniqueList(applied.get(state.object.id) || []);
-        const relationPredicates = uniqueList(relations
+        const relationIds = scope.uniqueList(applied.get(state.object.id) || []);
+        const relationPredicates = scope.uniqueList(relations
           .filter((relation) => relationIds.includes(relation.id))
           .map((relation) => relation.predicate)
           .filter(Boolean));
-        const evidence = uniqueList([
+        const evidence = scope.uniqueList([
           ...(state.object.evidence || []),
           ...relationIds.map((id) => `layout-relation:${id}`),
           ...relationPredicates.map((predicate) => `layout-predicate:${predicate}`),
@@ -72,13 +71,13 @@
           output.push({ ...object });
           continue;
         }
-        existing.evidence = uniqueList([...(existing.evidence || []), ...(object.evidence || [])]);
-        existing.sourceIds = uniqueList([...(existing.sourceIds || []), ...(object.sourceIds || []), object.id]);
-        existing.aliases = uniqueList([...(existing.aliases || []), ...(object.aliases || []), object.sourceLabel, object.role]);
-        existing.physicsOperators = uniqueList([...(existing.physicsOperators || []), ...(object.physicsOperators || [])]);
+        existing.evidence = scope.uniqueList([...(existing.evidence || []), ...(object.evidence || [])]);
+        existing.sourceIds = scope.uniqueList([...(existing.sourceIds || []), ...(object.sourceIds || []), object.id]);
+        existing.aliases = scope.uniqueList([...(existing.aliases || []), ...(object.aliases || []), object.sourceLabel, object.role]);
+        existing.physicsOperators = scope.uniqueList([...(existing.physicsOperators || []), ...(object.physicsOperators || [])]);
         existing.behavior = existing.behavior || object.behavior || null;
         mergeSpecificVisualFields(existing, object);
-        existing.constructionHypotheses = mergeConstructionEvidenceRows(
+        existing.constructionHypotheses = scope.mergeConstructionEvidenceRows(
           existing.constructionHypotheses,
           object.constructionHypotheses,
           existing.construction ? [existing.construction] : [],
@@ -579,25 +578,20 @@
         'artifact', 'body', 'component', 'entity', 'environment', 'medium', 'object',
         'primitive', 'prompt', 'render', 'surface',
       ]);
-      return uniqueList(String(value || '').toLowerCase().split(/[^a-z0-9]+/)
+      return scope.uniqueList(String(value || '').toLowerCase().split(/[^a-z0-9]+/)
         .filter((token) => (token.length > 2 || /^\d+$/.test(token)) && !ignored.has(token))
         .map((token) => token.length > 3 && token.endsWith('s') ? token.slice(0, -1) : token));
     }
 
     function stableLayoutHash(value = '') {
-      let hash = 2166136261;
-      for (const character of String(value || '')) {
-        hash ^= character.charCodeAt(0);
-        hash = Math.imul(hash, 16777619);
-      }
-      return hash >>> 0;
+      return scope.fnv1a32(value || '');
     }
 
     function clampLayoutNumber(value, minimum, maximum) {
       return Math.max(minimum, Math.min(maximum, Number(value) || 0));
     }
 
-    Object.assign(scope, {
+    root.SimulattePhaseModuleRegistry.define('compositionGraph', 'simulatte-composition-graph-constraint-layout.js', {
       SPATIAL_CONSTRAINTS,
       constraintLayoutObjects,
       canonicalVisualObjects,
@@ -606,5 +600,5 @@
       layoutRelationsForSpec,
       layoutObjectForReference,
     });
-  }
+
 })(typeof globalThis !== 'undefined' ? globalThis : window);

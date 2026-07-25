@@ -1,12 +1,11 @@
 (function attachSimulattePhysicsCatalogprimitivedata(root) {
-  const scope = root.__SimulattePhysicsCatalogRefactorScope;
-  if (!scope || scope.missingDependency) return;
-  with (scope) {
+  const scope = root.SimulattePhaseModuleRegistry.family('physicsCatalog');
+
     function contractSummaryForPrimitives(primitives, promptText = '') {
         const rows = primitives || [];
-        const layerFocus = classifyPromptLayer(promptText, rows);
-        const topLevel = topLevelPrimitivesForLayer(rows, layerFocus);
-        const contracts = rows.map(contractForPrimitive).filter(Boolean);
+        const layerFocus = scope.classifyPromptLayer(promptText, rows);
+        const topLevel = scope.topLevelPrimitivesForLayer(rows, layerFocus);
+        const contracts = rows.map(scope.contractForPrimitive).filter(Boolean);
         const materials = Object.fromEntries(contracts
           .filter((contract) => contract.material)
           .map((contract) => [contract.id, contract.material]));
@@ -17,36 +16,36 @@
           .map((contract) => [contract.id, contract.slots]));
         const summary = {
           schema: 'simulatte.layerContract.v1',
-          layerStack: LAYER_STACK.map((layer) => ({
+          layerStack: scope.LAYER_STACK.map((layer) => ({
             id: layer.id,
             index: layer.index,
             composes: layer.composes.slice(),
             role: layer.role,
           })),
           compilerInputPlane: {
-            id: COMPILER_INPUT_PLANE.id,
-            role: COMPILER_INPUT_PLANE.role,
-            targetLayers: COMPILER_INPUT_PLANE.targetLayers.slice(),
+            id: scope.COMPILER_INPUT_PLANE.id,
+            role: scope.COMPILER_INPUT_PLANE.role,
+            targetLayers: scope.COMPILER_INPUT_PLANE.targetLayers.slice(),
           },
-          adjacency: validateLayerAdjacency(),
+          adjacency: scope.validateLayerAdjacency(),
           layerFocus,
           topLevel: topLevel.map((primitive) => primitive.id),
           materials,
-          interactions: matchingInteractionRules(rows),
+          interactions: scope.matchingInteractionRules(rows),
           ports,
           geometry,
           recipeSlots,
-          layout: layoutForPrimitives(rows),
-          readouts: readoutsForPrimitives(rows),
+          layout: scope.layoutForPrimitives(rows),
+          readouts: scope.readoutsForPrimitives(rows),
         };
-        summary.graph = compileGraphIR(rows, promptText, summary);
+        summary.graph = scope.compileGraphIR(rows, promptText, summary);
         return summary;
       }
 
     function explicitPrimitiveScore(prompt, primitive) {
         const text = ` ${String(prompt || '').toLowerCase()} `;
-        const terms = meaningfulTokens(primitiveText(primitive));
-        const promptTerms = new Set(meaningfulTokens(prompt));
+        const terms = scope.meaningfulTokens(scope.primitiveText(primitive));
+        const promptTerms = new Set(scope.meaningfulTokens(prompt));
         const uniqueTerms = Array.from(new Set(terms)).filter((term) => term.length > 3);
         let hits = 0;
         for (const term of uniqueTerms) {
@@ -63,12 +62,12 @@
         const prompt = String(promptText || '').trim();
         if (!prompt) return [];
         const max = Number.isFinite(options.max) ? options.max : 32;
-    	    const intentVector = buildIntentVector(prompt);
-    	    const ranked = PHYSICAL_PRIMITIVES
-    	      .filter((primitive) => isRetrievablePrimitive(primitive))
-    	      .map((primitive) => {
-            const candidateVector = buildIntentVector(primitiveText(primitive));
-            const score = vectorScore(intentVector, candidateVector) + explicitPrimitiveScore(prompt, primitive);
+          const intentVector = scope.buildIntentVector(prompt);
+          const ranked = scope.PHYSICAL_PRIMITIVES
+            .filter((primitive) => scope.isRetrievablePrimitive(primitive))
+            .map((primitive) => {
+            const candidateVector = scope.buildIntentVector(scope.primitiveText(primitive));
+            const score = scope.vectorScore(intentVector, candidateVector) + explicitPrimitiveScore(prompt, primitive);
             return { ...primitive, score: Number(score.toFixed(4)) };
           })
           .sort((a, b) => b.score - a.score || a.id.localeCompare(b.id));
@@ -80,7 +79,7 @@
 
     function withPrimitiveDependencies(rankedPrimitives, promptText = '') {
         const prompt = String(promptText || '').toLowerCase();
-        const byId = new Map(PHYSICAL_PRIMITIVES.map((primitive) => [primitive.id, primitive]));
+        const byId = new Map(scope.PHYSICAL_PRIMITIVES.map((primitive) => [primitive.id, primitive]));
         const rows = [];
         const rowsById = new Map();
         const seen = new Set();
@@ -336,11 +335,11 @@
           .slice(0, 40);
       }
 
-    Object.assign(scope, {
+    root.SimulattePhaseModuleRegistry.define('physicsCatalog', 'simulatte-physics-catalog-primitive-data.js', {
       contractSummaryForPrimitives,
       explicitPrimitiveScore,
       rankPhysicalPrimitives,
       withPrimitiveDependencies,
     });
-  }
+
 })(typeof globalThis !== 'undefined' ? globalThis : window);

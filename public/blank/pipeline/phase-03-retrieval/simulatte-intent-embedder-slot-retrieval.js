@@ -1,7 +1,6 @@
 (function attachSimulatteIntentEmbedderslotretrieval(root) {
-  const scope = root.__SimulatteIntentEmbedderRefactorScope;
-  if (!scope || scope.missingDependency) return;
-  with (scope) {
+  const scope = root.SimulattePhaseModuleRegistry.family('intentEmbedder');
+
     const universeSearchTermCache = new WeakMap();
     const surfaceCardScoreCache = new WeakMap();
     function slotRetrievalEvidenceRows(slotRetrieval = {}) {
@@ -67,8 +66,8 @@
       }
 
     function spanPrimitiveMatch(span, primitive, rawScore) {
-        const lexical = symbolicPromptMatch(span.text, new Set(fallbackFeatureTokens(span.text)), primitive);
-        const score = clamp01(Number(rawScore || 0) * 0.82 + lexical.score * 0.22);
+        const lexical = scope.symbolicPromptMatch(span.text, new Set(fallbackFeatureTokens(span.text)), primitive);
+        const score = scope.clamp01(Number(rawScore || 0) * 0.82 + lexical.score * 0.22);
         return {
           id: `span:${span.id}:${primitive.id}`,
           primitiveId: primitive.id,
@@ -80,7 +79,7 @@
           spanKind: span.kind,
           spanText: span.text,
           score: Number(score.toFixed(4)),
-          modelScore: Number(clamp01(rawScore).toFixed(4)),
+          modelScore: Number(scope.clamp01(rawScore).toFixed(4)),
           lexicalScore: Number(lexical.score.toFixed(4)),
           matchedTerms: lexical.terms,
           primitiveHints: [primitive.id],
@@ -121,7 +120,7 @@
             ]);
             for (const primitiveId of primitiveIds) {
               const current = best.get(primitiveId) || { score: 0, spans: [] };
-              const score = clamp01(Number(candidate.score || 0));
+              const score = scope.clamp01(Number(candidate.score || 0));
               if (score > current.score) current.score = score;
               current.spans.push({
                 spanId: span.spanId,
@@ -142,7 +141,7 @@
             ...prior,
             spanScore,
             spanEvidence: support.spans.slice(0, 6),
-            score: Number(clamp01(Number(prior.score || 0) + spanScore * 0.18).toFixed(4)),
+            score: Number(scope.clamp01(Number(prior.score || 0) + spanScore * 0.18).toFixed(4)),
           };
         }).sort((a, b) => b.score - a.score || a.primitiveId.localeCompare(b.primitiveId));
       }
@@ -222,7 +221,7 @@
     function surfaceCardScores(cardIndex, queryVector) {
         const cached = surfaceCardScoreCache.get(queryVector);
         if (cached && cached.cardIndex === cardIndex) return cached.scores;
-        const scores = Float32Array.from(cardIndex.documents, (doc) => clamp01(dot(queryVector, doc.vector)));
+        const scores = Float32Array.from(cardIndex.documents, (doc) => scope.clamp01(scope.dot(queryVector, doc.vector)));
         surfaceCardScoreCache.set(queryVector, { cardIndex, scores });
         return scores;
       }
@@ -325,15 +324,15 @@
           const phrase = label.replace(/[^a-z0-9]+/g, ' ').trim();
           return phrase.length > 2 && tokenText.includes(` ${phrase} `);
         });
-        const lexicalScore = clamp01(tokenHits.length / Math.max(2, tokens.length) + (phraseHit ? 0.42 : 0));
+        const lexicalScore = scope.clamp01(tokenHits.length / Math.max(2, tokens.length) + (phraseHit ? 0.42 : 0));
         const modelScore = ranking.queryVector && doc.vector && ranking.queryVector.length === doc.vector.length
-          ? clamp01(dot(ranking.queryVector, doc.vector))
+          ? scope.clamp01(scope.dot(ranking.queryVector, doc.vector))
           : 0;
         const featureScore = ranking.featureQuery && doc.featureVector && ranking.featureQuery.length === doc.featureVector.length
-          ? clamp01(dot(ranking.featureQuery, doc.featureVector))
+          ? scope.clamp01(scope.dot(ranking.featureQuery, doc.featureVector))
           : 0;
         const semanticScore = Math.max(modelScore, featureScore);
-        const score = clamp01(Math.max(lexicalScore, semanticScore * 0.88 + lexicalScore * 0.18));
+        const score = scope.clamp01(Math.max(lexicalScore, semanticScore * 0.88 + lexicalScore * 0.18));
         return { lexicalScore, modelScore, featureScore, semanticScore, score, phraseHit, tokenHits };
       }
 
@@ -411,7 +410,7 @@
 
     function runtimeFeatureModelId() {
         const ragApi = typeof globalThis !== 'undefined' ? globalThis.SimulatteSemanticRag : null;
-        return ragApi && ragApi.FEATURE_MODEL_ID || FEATURE_MODEL_ID;
+        return ragApi && ragApi.FEATURE_MODEL_ID || scope.FEATURE_MODEL_ID;
       }
 
     function fallbackSemanticFeatureVector(text, dim) {
@@ -425,7 +424,7 @@
         for (let i = 0; i < roots.length - 1; i += 1) {
           addFeature(out, `b:${roots[i]}_${roots[i + 1]}`, 1.35);
         }
-        return normalizeEmbeddingVector(out, 'universe query feature');
+        return scope.normalizeEmbeddingVector(out, 'universe query feature');
       }
 
     function fallbackFeatureTokens(text) {
@@ -470,13 +469,7 @@
       }
 
     function hashString(str) {
-        let hash = 2166136261;
-        const value = String(str || '');
-        for (let i = 0; i < value.length; i += 1) {
-          hash ^= value.charCodeAt(i);
-          hash = Math.imul(hash, 16777619);
-        }
-        return hash >>> 0;
+        return scope.fnv1a32(str || '');
       }
 
     function validateQueryEmbedding(result, index) {
@@ -493,12 +486,12 @@
         if (String(result.embedModelId || '') !== index.embedModelId) {
           throw new Error(`query embedModelId mismatch (${result.embedModelId || ''} !== ${index.embedModelId})`);
         }
-        const queryHash = hashHex(result.embedModelHash);
-        const indexHash = hashHex(index.embedModelHash);
+        const queryHash = scope.hashHex(result.embedModelHash);
+        const indexHash = scope.hashHex(index.embedModelHash);
         if (!queryHash || queryHash !== indexHash) {
           throw new Error(`query embedModelHash mismatch (${queryHash || ''} !== ${indexHash})`);
         }
-        return normalizeEmbeddingVector(embedding, 'query');
+        return scope.normalizeEmbeddingVector(embedding, 'query');
       }
 
     function rerankFunctionForTarget(target) {
@@ -713,7 +706,7 @@
         const rawHash = handle && handle.manifestHash || handleManifest.modelHash ||
           handleManifest.manifestHash || handleManifest.hash ||
           handleManifest.meta && handleManifest.meta.hash || null;
-        assertPinnedModelHandle(handle, runtime.manifest.embedModel, 'embedding', modelBaseUrl);
+        scope.assertPinnedModelHandle(handle, runtime.manifest.embedModel, 'embedding', modelBaseUrl);
         return normalizeEmbeddingModelProvenance(rawModelId, rawHash, runtime, modelBaseUrl);
       }
 
@@ -724,7 +717,7 @@
         const expectedSource = normalizeModelSource(expectedModel.defaultModelBaseUrl);
         const rawSourceMatches = normalizedSource && expectedSource && normalizedSource === expectedSource;
         const rawIdMatches = String(rawModelId || '') === expectedModel.id;
-        const rawHashMatches = hashHex(rawHash) === hashHex(expectedHash);
+        const rawHashMatches = scope.hashHex(rawHash) === scope.hashHex(expectedHash);
         if (rawHashMatches && (!rawModelId || rawSourceMatches || rawIdMatches)) {
           return {
             embedModelId: expectedModel.id,
@@ -781,11 +774,11 @@
           maxCandidateTermsPerDocument: Math.max(1, Number(raw.maxCandidateTermsPerDocument || 1)),
           scoreCacheMaxEntries: Math.max(1, Number(raw.scoreCacheMaxEntries || 1)),
           fallbackMode: raw.fallbackMode || 'heuristic-fusion',
-          execution: raw.execution && typeof raw.execution === 'object' ? cloneJsonValue(raw.execution) : null,
+          execution: raw.execution && typeof raw.execution === 'object' ? scope.cloneJsonValue(raw.execution) : null,
           candidateScope: Array.isArray(raw.candidateScope) ? raw.candidateScope.slice() : [],
-          qualification: raw.qualification && typeof raw.qualification === 'object' ? cloneJsonValue(raw.qualification) : null,
-          model: raw.model && typeof raw.model === 'object' ? cloneJsonValue(raw.model) : null,
-          runtimeConfig: raw.runtimeConfig && typeof raw.runtimeConfig === 'object' ? cloneJsonValue(raw.runtimeConfig) : null,
+          qualification: raw.qualification && typeof raw.qualification === 'object' ? scope.cloneJsonValue(raw.qualification) : null,
+          model: raw.model && typeof raw.model === 'object' ? scope.cloneJsonValue(raw.model) : null,
+          runtimeConfig: raw.runtimeConfig && typeof raw.runtimeConfig === 'object' ? scope.cloneJsonValue(raw.runtimeConfig) : null,
         };
       }
 
@@ -879,7 +872,7 @@
         const terms = slotFocusTerms(slot);
         const tokens = new Set(fallbackFeatureTokens(text));
         if (!terms.length || !tokens.size) return 0;
-        return clamp01(terms.filter((term) => tokens.has(term)).length / terms.length);
+        return scope.clamp01(terms.filter((term) => tokens.has(term)).length / terms.length);
       }
 
     function slotCandidateRolePriority(slot = {}, row = {}) {
@@ -896,7 +889,7 @@
         return 0;
       }
 
-    Object.assign(scope, {
+    root.SimulattePhaseModuleRegistry.define('intentEmbedder', 'simulatte-intent-embedder-slot-retrieval.js', {
       slotRetrievalEvidenceRows,
       usefulRetrievalSpans,
       dedupeSpanRows,
@@ -952,5 +945,5 @@
       slotFocusLexicalScore,
       slotCandidateRolePriority,
     });
-  }
+
 })(typeof globalThis !== 'undefined' ? globalThis : window);

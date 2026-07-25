@@ -1,13 +1,12 @@
 (function attachSimulatteWebGpuRendererpackets(root) {
-  const scope = root.__SimulatteWebGpuRendererRefactorScope;
-  if (!scope || scope.missingDependency) return;
-  with (scope) {
+  const scope = root.SimulattePhaseModuleRegistry.family('webGpuRenderer');
+
     const OBJECT_PART_DEPTH_BIAS = Object.freeze({ field: 0.006, appendage: 0.003, support: 0.003, core: 0, head: -0.001, panel: -0.001, path: -0.001, opening: -0.002, joint: -0.002, detail: -0.003, sensor: -0.004 });
     function pixelSampleForDrawable(row = {}, obligation = {}, width = 0, height = 0, index = 0, total = 1) {
         const point = phase7DrawableSamplePoint(row, index, total, obligation);
         if (!point) return null;
-        const x = clampInt(Math.round(point.x * (width - 1)), 0, Math.max(0, width - 1));
-        const y = clampInt(Math.round(point.y * (height - 1)), 0, Math.max(0, height - 1));
+        const x = scope.clampInt(Math.round(point.x * (width - 1)), 0, Math.max(0, width - 1));
+        const y = scope.clampInt(Math.round(point.y * (height - 1)), 0, Math.max(0, height - 1));
         const obligationId = obligation.obligationId || obligation.id || '';
         return {
           schema: 'simulatte.phase7PixelSample.v1',
@@ -43,13 +42,13 @@
           const dx = Number(center[0] || 0) * Number(scale[0] || 0.16);
           const dy = Number(center[1] || 0) * Number(scale[1] || 0.14);
           return {
-            x: clamp01(Number(position[0] || 0.5) + dx * Math.cos(rotation) - dy * Math.sin(rotation)),
-            y: clamp01(Number(position[1] || 0.5) + dx * Math.sin(rotation) + dy * Math.cos(rotation)),
+            x: scope.clamp01(Number(position[0] || 0.5) + dx * Math.cos(rotation) - dy * Math.sin(rotation)),
+            y: scope.clamp01(Number(position[1] || 0.5) + dx * Math.sin(rotation) + dy * Math.cos(rotation)),
           };
         }
         const domain = row.domain || {};
         if (Array.isArray(domain.center) && domain.center.length >= 2) {
-          return { x: clamp01(domain.center[0]), y: clamp01(domain.center[1]) };
+          return { x: scope.clamp01(domain.center[0]), y: scope.clamp01(domain.center[1]) };
         }
         if (Array.isArray(domain.bounds) && domain.bounds.length >= 4) {
           const fieldLike = row.packetKind === 'field' || /field|volume|region/.test(String(domain.kind || ''));
@@ -63,12 +62,12 @@
             ? fieldOffsets[Math.abs(Math.floor(index || 0)) % fieldOffsets.length]
             : [0.5, 0.5];
           return {
-            x: clamp01(domain.bounds[0] + domain.bounds[2] * offset[0]),
-            y: clamp01(domain.bounds[1] + domain.bounds[3] * offset[1]),
+            x: scope.clamp01(domain.bounds[0] + domain.bounds[2] * offset[0]),
+            y: scope.clamp01(domain.bounds[1] + domain.bounds[3] * offset[1]),
           };
         }
         const transform = scenePacketDrawableTransform(row, index, total);
-        return { x: clamp01(transform.x), y: clamp01(transform.y) };
+        return { x: scope.clamp01(transform.x), y: scope.clamp01(transform.y) };
       }
 
     function pixelSampleForEnvironmentObligation(obligation = {}, width = 0, height = 0) {
@@ -81,8 +80,8 @@
           label: obligation.target || 'environment',
           drawableId: 'background',
           layerSlot: 'background',
-          x: clampInt(Math.round(width * 0.82), 0, Math.max(0, width - 1)),
-          y: clampInt(Math.round(height * 0.18), 0, Math.max(0, height - 1)),
+          x: scope.clampInt(Math.round(width * 0.82), 0, Math.max(0, width - 1)),
+          y: scope.clampInt(Math.round(height * 0.18), 0, Math.max(0, height - 1)),
           uv: [0.82, 0.18],
           backgroundRgba: [250, 250, 255, 255],
           constraintKind: obligation.constraintKind || '',
@@ -99,55 +98,56 @@
         renderData = null,
         optimization = null
       ) {
-    	    const compositionLedger = renderExecutionInput && renderExecutionInput.compositionLedger ||
-    	      sceneRenderPacket && sceneRenderPacket.compositionLedger ||
-    	      null;
-    	    const visualObligationProof = renderObligationProof(
-    	      sceneRenderPacket,
-    	      renderExecutionInput && renderExecutionInput.visualObligations || [],
-    	      compositionLedger,
-    	      true,
-    	      renderData
-    	    );
-    	    const visualObligationProofSummary = summarizeRenderObligationProof(visualObligationProof);
-    	    const pixelAudit = renderPixelAudit(sceneRenderPacket, renderData, canvas, visualObligationProofSummary, optimization);
-    	    return {
-    	      schema: PHASE7_OUTPUT_SCHEMA,
+          const compositionLedger = renderExecutionInput && renderExecutionInput.compositionLedger ||
+            sceneRenderPacket && sceneRenderPacket.compositionLedger ||
+            null;
+          const visualObligationProof = scope.renderObligationProof(
+            sceneRenderPacket,
+            renderExecutionInput && renderExecutionInput.visualObligations || [],
+            compositionLedger,
+            true,
+            renderData
+          );
+          const visualObligationProofSummary = scope.summarizeRenderObligationProof(visualObligationProof);
+          const pixelAudit = scope.renderPixelAudit(sceneRenderPacket, renderData, canvas, visualObligationProofSummary, optimization);
+          return {
+            schema: scope.PHASE7_OUTPUT_SCHEMA,
           phase: 7,
           inputSchema: renderExecutionInput && renderExecutionInput.inputSchema || 'simulatte.phase6.output.v2',
-    	      runtimeReceiptId: renderExecutionInput && renderExecutionInput.runtimeReceiptId || 'runtime:unknown',
-    	      artifact: {
-    	        renderExecution: {
-    	          schema: RENDER_EXECUTION_SCHEMA,
-    	          renderExecutionInputSchema: renderExecutionInput && renderExecutionInput.schema || '',
-    	          sceneRenderPacketSchema: sceneRenderPacket && sceneRenderPacket.schema || '',
-    	          renderDataSchema: renderData && renderData.schema || '',
-    	          renderDataKey: renderData && renderData.packetKey || '',
-    	          renderPath: renderData && renderData.path || '',
+            runtimeReceiptId: renderExecutionInput && renderExecutionInput.runtimeReceiptId || 'runtime:unknown',
+            artifact: {
+              renderExecution: {
+                schema: scope.RENDER_EXECUTION_SCHEMA,
+                renderExecutionInputSchema: renderExecutionInput && renderExecutionInput.schema || '',
+                sceneRenderPacketSchema: sceneRenderPacket && sceneRenderPacket.schema || '',
+                renderDataSchema: renderData && renderData.schema || '',
+                renderDataKey: renderData && renderData.packetKey || '',
+                renderPath: renderData && renderData.path || '',
               drawCount: renderData && renderData.drawCount || 0,
-              drawSlots: SCENE_PACKET_OBJECT_SLOTS,
-              sceneInstanceCapacity: GPU_OBJECT_PART_CAPACITY,
-		          sceneInstanceCount: renderData && renderData.objectPartCount || 0,
-    		          optimization,
-    		          rendered: true,
-	          packetIdentitySummary: scenePacketIdentitySummary(sceneRenderPacket),
-	          environmentProgram: sceneRenderPacket && sceneRenderPacket.environmentProgram || null,
-		          objectRealization: renderData && renderData.objectRealization || objectRealizationForScenePacket(sceneRenderPacket),
-		          rendererConsumption: renderData && renderData.rendererConsumption || null,
-    		          visualObligationProof,
-    		          visualObligationProofSummary,
-    		          shaderPath: renderData && renderData.path || '',
-    		          pixelAudit,
-    		          compositionLedger,
-    		          renderCount: Number(renderCount || 0),
-    	          frameMs: Number(frameMs || 0),
-    	          canvas: {
-    	            width: canvas && Number(canvas.width || 0) || 0,
-    	            height: canvas && Number(canvas.height || 0) || 0,
-    	          },
-    	        },
-    		        compositionLedger,
-    		      },
+              drawSlots: scope.SCENE_PACKET_OBJECT_SLOTS,
+              sceneInstanceCapacity: scope.GPU_OBJECT_PART_CAPACITY,
+              sceneInstanceCount: renderData && renderData.objectPartCount || 0,
+                  optimization,
+                  rendered: true,
+            packetIdentitySummary: scope.scenePacketIdentitySummary(sceneRenderPacket),
+            environmentProgram: sceneRenderPacket && sceneRenderPacket.environmentProgram || null,
+              objectRealization: renderData && renderData.objectRealization ||
+                scope.objectRealizationForScenePacket(sceneRenderPacket),
+              rendererConsumption: renderData && renderData.rendererConsumption || null,
+                  visualObligationProof,
+                  visualObligationProofSummary,
+                  shaderPath: renderData && renderData.path || '',
+                  pixelAudit,
+                  compositionLedger,
+                  renderCount: Number(renderCount || 0),
+                frameMs: Number(frameMs || 0),
+                canvas: {
+                  width: canvas && Number(canvas.width || 0) || 0,
+                  height: canvas && Number(canvas.height || 0) || 0,
+                },
+              },
+                compositionLedger,
+              },
           receipts: [
             {
               id: 'phase7-webgpu-render',
@@ -157,22 +157,22 @@
               fieldCount: scenePacketFieldCount(sceneRenderPacket),
               effectCount: scenePacketEffectCount(sceneRenderPacket),
               drawCount: renderData && renderData.drawCount || 0,
-    		          renderDataKey: renderData && renderData.packetKey || '',
-    		          optimizationPath: optimization && optimization.path || 'uniform-fullscreen',
-    		          sceneInstanceCount: optimization && optimization.instanceCount || 0,
-		          indirectDraw: optimization && optimization.indirectDraw || 'not-used-direct-instancing',
-    		          visualObligationProofs: visualObligationProofSummary.proofCount,
-    		          failedObligations: visualObligationProofSummary.failCount,
-    		          unprovenObligations: visualObligationProofSummary.notProvenCount,
-		          pixelAuditStatus: pixelAudit.status,
-		          cameraConsumed: renderData && renderData.rendererConsumption && renderData.rendererConsumption.cameraConsumed === true,
-		          lightCountConsumed: renderData && renderData.rendererConsumption && renderData.rendererConsumption.lightCountConsumed || 0,
-		          materialCountConsumed: renderData && renderData.rendererConsumption && renderData.rendererConsumption.materialCountConsumed || 0,
-		          depthEnabled: renderData && renderData.rendererConsumption && renderData.rendererConsumption.depthEnabled === true,
-    		        },
-    	      ],
-    	    };
-    	  }
+                  renderDataKey: renderData && renderData.packetKey || '',
+                  optimizationPath: optimization && optimization.path || 'uniform-fullscreen',
+                  sceneInstanceCount: optimization && optimization.instanceCount || 0,
+              indirectDraw: optimization && optimization.indirectDraw || 'not-used-direct-instancing',
+                  visualObligationProofs: visualObligationProofSummary.proofCount,
+                  failedObligations: visualObligationProofSummary.failCount,
+                  unprovenObligations: visualObligationProofSummary.notProvenCount,
+              pixelAuditStatus: pixelAudit.status,
+              cameraConsumed: renderData && renderData.rendererConsumption && renderData.rendererConsumption.cameraConsumed === true,
+              lightCountConsumed: renderData && renderData.rendererConsumption && renderData.rendererConsumption.lightCountConsumed || 0,
+              materialCountConsumed: renderData && renderData.rendererConsumption && renderData.rendererConsumption.materialCountConsumed || 0,
+              depthEnabled: renderData && renderData.rendererConsumption && renderData.rendererConsumption.depthEnabled === true,
+                },
+            ],
+          };
+        }
 
     function emptySceneRenderPacket(sceneKind = '') {
         return {
@@ -187,10 +187,10 @@
           effects: [],
           uniforms: {
             schema: 'simulatte.sceneRenderPacketUniforms.v1',
-            sceneId: SCENE_IDS[sceneKind] ?? 3,
+            sceneId: scope.SCENE_IDS[sceneKind] ?? 3,
             atomUniforms: new Array(24).fill(0),
-            sceneMix: new Array(SCENE_MIX_SLOTS.length).fill(0),
-            visualLayers: new Array(VISUAL_IR_LAYER_SLOTS.length).fill(0),
+            sceneMix: new Array(scope.SCENE_MIX_SLOTS.length).fill(0),
+            visualLayers: new Array(scope.VISUAL_IR_LAYER_SLOTS.length).fill(0),
           },
           passes: ['background'],
           receipts: { source: 'missing-compiled-scene-packet' },
@@ -199,21 +199,21 @@
 
     function compileSceneRenderData(packet, sceneKind = '', packetKey = '') {
         const drawables = scenePacketUniformDrawables(packet, sceneKind);
-        const uniformDrawables = drawables.slice(0, SCENE_PACKET_OBJECT_SLOTS);
+        const uniformDrawables = drawables.slice(0, scope.SCENE_PACKET_OBJECT_SLOTS);
         const sceneObjectUniforms = scenePacketObjectUniformVectorFromDrawables(uniformDrawables);
-        const objectParts = scenePacketObjectParts(packet).slice(0, GPU_OBJECT_PART_CAPACITY);
+        const objectParts = scenePacketObjectParts(packet).slice(0, scope.GPU_OBJECT_PART_CAPACITY);
         const objectPartData = scenePacketObjectPartStorageVector(objectParts);
         const cameraState = scenePacketCameraState(packet);
         const lightState = scenePacketLightState(packet);
-        const objectRealization = scenePacketObjectRealization(packet, objectParts);
+        const objectRealization = scope.scenePacketObjectRealization(packet, objectParts);
         const spatialHash = scenePacketSpatialHash(packet);
         const summary = sceneRenderPacketSummary(packet);
         return {
-          schema: RENDER_DATA_SCHEMA,
+          schema: scope.RENDER_DATA_SCHEMA,
           path: 'depth-lit-storage-object-parts-with-uniform-fallback',
           packetKey: packetKey || sceneRenderPacketRenderDataKey(packet, sceneKind),
           sceneKind,
-          sceneId: scenePacketSceneId(packet, sceneKind),
+          sceneId: scenePacketResolvedSceneId(packet, sceneKind),
           entityCount: scenePacketEntityCount(packet),
           fieldCount: scenePacketFieldCount(packet),
           effectCount: scenePacketEffectCount(packet),
@@ -221,32 +221,32 @@
           drawCallCount: objectParts.length ? 2 : 1,
           semanticDrawableCount: drawables.length,
           uniformDrawCount: uniformDrawables.length,
-          sceneInstanceCapacity: GPU_OBJECT_PART_CAPACITY,
+          sceneInstanceCapacity: scope.GPU_OBJECT_PART_CAPACITY,
           sceneInstanceCount: objectParts.length,
           drawables,
           features: scenePacketFeatureVector(packet),
           atomUniforms: scenePacketAtomUniformVector(packet),
           sceneMix: scenePacketSceneMixVector(packet, sceneKind),
-          visualIrLayers: visualIrLayerVector(packet),
+          visualIrLayers: scope.visualIrLayerVector(packet),
           palette: scenePacketPaletteVector(packet),
           sceneObjectUniforms,
-          semanticDrawableSummary: scenePacketIdentitySummaryForDrawables(drawables),
+          semanticDrawableSummary: scope.scenePacketIdentitySummaryForDrawables(drawables),
           sceneInstanceSummary: scenePacketObjectPartSummary(objectParts),
           objectParts,
           objectPartData,
           objectPartCount: objectParts.length,
-          objectPartCapacity: GPU_OBJECT_PART_CAPACITY,
+          objectPartCapacity: scope.GPU_OBJECT_PART_CAPACITY,
           objectPartSummary: scenePacketObjectPartSummary(objectParts),
           cameraState,
           lightState,
           rendererConsumption: scenePacketRendererConsumption(packet, objectParts, cameraState, lightState),
           objectRealization,
-          sceneObjectUniformSummary: sceneObjectUniformSummaryForDrawables(sceneObjectUniforms, uniformDrawables),
-          sceneObjectIdentitySummary: scenePacketIdentitySummaryForDrawables(uniformDrawables),
+          sceneObjectUniformSummary: scope.sceneObjectUniformSummaryForDrawables(sceneObjectUniforms, uniformDrawables),
+          sceneObjectIdentitySummary: scope.scenePacketIdentitySummaryForDrawables(uniformDrawables),
           spatialHash,
           summary,
-          metrics: metricsForScenePacket(packet),
-          seed: seedForScenePacket(packet, spatialHash, summary),
+          metrics: scope.metricsForScenePacket(packet),
+          seed: scope.seedForScenePacket(packet, spatialHash, summary),
         };
       }
 
@@ -261,19 +261,6 @@
       spiral: 8,
       wave: 9,
     });
-    const OBJECT_GRAMMAR_PART_REQUIREMENTS = Object.freeze({
-      dog: ['body', 'head', 'leg', 'tail'], cat: ['body', 'head', 'leg', 'tail'],
-      animal: ['body', 'head', 'leg'], person: ['head', 'torso', 'arm', ['leg', 'thigh']],
-      tree: ['trunk', 'branch', 'crown'], flower: ['stem', 'petal', 'center'],
-      building: ['shell', 'roof', 'door', 'window'], table: ['top', 'leg'],
-      chair: ['back', 'seat', 'leg'], television: ['frame', 'screen', 'stand'],
-      robot: ['base', 'arm', 'joint', 'gripper'], conveyor: ['belt', 'roller'],
-      parcel: ['carton', 'top', 'tape', 'label'], galaxy: ['halo', 'spiral', 'core'],
-      mountain: ['peak', 'snow'], 'server-rack': ['cabinet', 'server', 'status'],
-      train: ['locomotive', 'car', 'wheel', 'rail'], 'rail-signal': ['post', 'signal', 'base'],
-      'railway-platform': ['platform', 'track', 'canopy', 'support'], 'data-center': ['facility', 'rack', 'cooling', 'status'],
-    });
-
     function scenePacketObjectParts(packet = {}) {
         const rows = scenePacketRows(packet, 'entities')
           .filter((row) => row && row.geometry && row.geometry.program)
@@ -285,7 +272,7 @@
         const parts = [];
         for (const row of rows) {
           const program = row.geometry.program || {};
-          for (const sourcePart of scenePacketConstructionParts(program)) {
+          for (const sourcePart of scope.scenePacketConstructionParts(program)) {
             const transformed = scenePacketObjectPartTransform(row, sourcePart);
             const fill = scenePacketObjectPartColor(sourcePart.fill);
             const materialOpacity = Number(row.material && row.material.opacity || 0.72);
@@ -306,24 +293,24 @@
               size: transformed.size,
               rotation: transformed.rotation,
               fill,
-              opacity: clamp01(Number(sourcePart.opacity == null ? 1 : sourcePart.opacity) * literalOpacity),
+              opacity: scope.clamp01(Number(sourcePart.opacity == null ? 1 : sourcePart.opacity) * literalOpacity),
               semanticCode: scenePacketSemanticCode(row),
               animationCode: scenePacketAnimationCode(row.animation && row.animation.kind),
               animationSpeed: Math.max(0, Number(row.animation && row.animation.speed || 0)),
               animationAmplitude: Math.max(0, Number(row.animation && row.animation.amplitude || 0)),
-              animationPhase: clamp01(Number(row.animation && row.animation.phase || 0)),
-              variantCode: Number(row.renderCodes && row.renderCodes.variantCode || scenePacketVariantCode(row)),
+              animationPhase: scope.clamp01(Number(row.animation && row.animation.phase || 0)),
+              variantCode: Number(row.renderCodes && row.renderCodes.variantCode || scope.scenePacketVariantCode(row)),
               zOrder: Number(program.zOrder || 0) + Number(sourcePart.order || 0) * 0.001,
               depth: scenePacketObjectDepth(row, program, sourcePart),
-              roughness: clamp01(Number(sourcePart.roughness != null ? sourcePart.roughness :
+              roughness: scope.clamp01(Number(sourcePart.roughness != null ? sourcePart.roughness :
                 row.material && row.material.roughness != null ? row.material.roughness : 0.56)),
-              metallic: clamp01(Number(sourcePart.metallic != null ? sourcePart.metallic :
+              metallic: scope.clamp01(Number(sourcePart.metallic != null ? sourcePart.metallic :
                 row.material && row.material.metallic || 0)),
-              emissive: clamp01(Number(sourcePart.emissive != null ? sourcePart.emissive :
+              emissive: scope.clamp01(Number(sourcePart.emissive != null ? sourcePart.emissive :
                 row.material && row.material.emissiveStrength || (row.material && row.material.emissive === true ? 0.42 : 0))),
               literal: program.literal === true,
             });
-            if (parts.length >= GPU_OBJECT_PART_CAPACITY) return parts;
+            if (parts.length >= scope.GPU_OBJECT_PART_CAPACITY) return parts;
           }
         }
         return parts;
@@ -335,10 +322,10 @@
         const explicit = Number.isFinite(partDepthPosition) ? partDepthPosition : Number(position[2]);
         const roleBias = Number(OBJECT_PART_DEPTH_BIAS[String(part.constructionRole || '')] || 0);
         if (Number.isFinite(explicit) && Math.abs(explicit) > 0.0001) {
-          return clamp(explicit * 0.25 + 0.5 + roleBias, 0.04, 0.94);
+          return scope.clamp(explicit * 0.25 + 0.5 + roleBias, 0.04, 0.94);
         }
         const zOrder = Number(program.zOrder || 0) + Number(part.order || 0) * 0.001;
-        return clamp(0.84 - clamp(zOrder / 64, 0, 1) * 0.66 + roleBias, 0.04, 0.94);
+        return scope.clamp(0.84 - scope.clamp(zOrder / 64, 0, 1) * 0.66 + roleBias, 0.04, 0.94);
       }
 
     function scenePacketObjectPartTransform(row = {}, part = {}) {
@@ -359,8 +346,8 @@
         const scaleY = Number(scale[1] || 0.14);
         return {
           center: [
-            clamp01(Number(position[0] || 0.5) + dx * cosine - dy * sine),
-            clamp01(Number(position[1] || 0.5) + dx * sine + dy * cosine),
+            scope.clamp01(Number(position[0] || 0.5) + dx * cosine - dy * sine),
+            scope.clamp01(Number(position[1] || 0.5) + dx * sine + dy * cosine),
           ],
           size: [
             Math.max(0.004, Number(localSize[0] || 0.8) * Math.hypot(localCosine * scaleX, localSine * scaleY)),
@@ -386,9 +373,9 @@
       }
 
     function scenePacketObjectPartStorageVector(parts = []) {
-        const vector = new Float32Array(GPU_OBJECT_PART_CAPACITY * GPU_OBJECT_PART_FLOATS);
-        parts.slice(0, GPU_OBJECT_PART_CAPACITY).forEach((row, index) => {
-          const offset = index * GPU_OBJECT_PART_FLOATS;
+        const vector = new Float32Array(scope.GPU_OBJECT_PART_CAPACITY * scope.GPU_OBJECT_PART_FLOATS);
+        parts.slice(0, scope.GPU_OBJECT_PART_CAPACITY).forEach((row, index) => {
+          const offset = index * scope.GPU_OBJECT_PART_FLOATS;
           vector[offset] = Number(row.center && row.center[0] || 0.5);
           vector[offset + 1] = Number(row.center && row.center[1] || 0.5);
           vector[offset + 2] = Number(row.size && row.size[0] || 0.1);
@@ -415,92 +402,6 @@
           vector[offset + 23] = 0;
         });
         return vector;
-      }
-
-    function scenePacketObjectRealization(packet = {}, renderedParts = null) {
-        const submittedParts = Array.isArray(renderedParts) ? renderedParts : scenePacketObjectParts(packet);
-        const rows = scenePacketRows(packet, 'entities').map((row) => {
-          const program = row && row.geometry && row.geometry.program || {};
-          const coverage = row && row.geometry && row.geometry.coverage || {};
-          const scale = row && row.transform && row.transform.scale || [];
-          const projectedArea = Number((Number(scale[0] || 0) * Number(scale[1] || 0)).toFixed(5));
-          const submittedEntityParts = submittedParts.filter((part) => part.entityId === row.id);
-          const submittedPartCount = submittedEntityParts.length;
-          const expectedPartCount = Array.isArray(program.parts) ? program.parts.length : 0;
-          const expectedPartIds = new Set((program.parts || []).map((part) => part.id).filter(Boolean));
-          const submittedSemanticPartIds = new Set(submittedEntityParts
-            .map((part) => part.constructionPartId).filter(Boolean));
-          const submittedSemanticPartCount = Array.from(expectedPartIds)
-            .filter((partId) => submittedSemanticPartIds.has(partId)).length;
-          const submitted = expectedPartCount > 0 && submittedSemanticPartCount === expectedPartCount;
-          const topologyVerified = scenePacketObjectTopologyVerified(program);
-          const semanticFit = program.source === 'phase6-data-owned-part-graph' &&
-            /^(?:category-catalog|identity-catalog|prompt-specialized)$/.test(String(program.selectionRole || '')) ||
-            Boolean(program.constructionReceipt && program.constructionReceipt.topologyTargetFit === true &&
-              program.constructionReceipt.targetIdentityBound === true &&
-              (program.constructionReceipt.modelEvaluated === true || program.constructionReceipt.literalSlotMatch === true));
-          const readable = projectedArea >= 0.008;
-          return {
-            schema: 'simulatte.objectRenderRealization.v1',
-            entityId: row.id || '',
-            identityType: row.identity && row.identity.type || '',
-            identityLabels: [
-              row.id,
-              row.label,
-              row.identity && row.identity.label,
-              row.identity && row.identity.sourceLabel,
-              row.identity && row.identity.type,
-              program.constructionReceipt && program.constructionReceipt.targetEntryId,
-              ...(row.representedEntityIds || []),
-            ].filter(Boolean),
-            grammarId: program.grammarId || '',
-            renderArchetype: program.visualArchetype || program.identityType || '',
-            literal: program.literal === true,
-            partCount: expectedPartCount,
-            submittedPartCount,
-            submittedSemanticPartCount,
-            submitted,
-            primitiveCount: Number(coverage.primitiveCount || 0),
-            projectedArea,
-            topologyVerified,
-            semanticFit,
-            readable,
-            realized: program.literal === true && topologyVerified && semanticFit && readable && submitted,
-            constructionSource: Boolean(program.constructionReceipt),
-            modelEvaluatedConstruction: program.constructionReceipt && program.constructionReceipt.modelEvaluated === true,
-            rerankEvaluatedConstruction: program.constructionReceipt && program.constructionReceipt.rerankEvaluated === true,
-          };
-        });
-        const framing = packet && packet.receipts && packet.receipts.framing || {};
-        return {
-          schema: 'simulatte.objectRenderRealizationSummary.v1',
-          entityCount: rows.length,
-          realizedCount: rows.filter((row) => row.realized).length,
-          literalCount: rows.filter((row) => row.literal).length,
-          constructionProgramCount: rows.filter((row) => row.constructionSource).length,
-          modelEvaluatedConstructionCount: rows.filter((row) => row.modelEvaluatedConstruction).length,
-          topologyVerifiedCount: rows.filter((row) => row.topologyVerified).length,
-          semanticFitCount: rows.filter((row) => row.semanticFit).length,
-          readableCount: rows.filter((row) => row.readable).length,
-          projectedArea: Number(rows.reduce((sum, row) => sum + row.projectedArea, 0).toFixed(5)),
-          framingPass: framing.pass === true,
-          framing,
-          unprovenEntityIds: rows.filter((row) => !row.realized).map((row) => row.entityId),
-          rows,
-        };
-      }
-
-    function scenePacketObjectTopologyVerified(program = {}) {
-        const parts = Array.isArray(program.parts) ? program.parts : [];
-        const ids = parts.map((part) => String(part.id || '').toLowerCase());
-        const grammar = String(program.grammarId || '').replace(/^object-grammar\./, '').replace(/-sitting$/, '');
-        const required = OBJECT_GRAMMAR_PART_REQUIREMENTS[grammar];
-        if (required) return required.every((token) => (
-          (Array.isArray(token) ? token : [token]).some((candidate) => ids.some((id) => id.includes(candidate)))
-        ));
-        if (program.source === 'phase6-data-owned-part-graph') return parts.length >= 2;
-        return Boolean(program.constructionReceipt) && parts.length >= 3 &&
-          new Set(parts.map((part) => part.primitive).filter(Boolean)).size >= 2;
       }
 
     function scenePacketCameraState(packet = {}) {
@@ -534,16 +435,16 @@
           schema: 'simulatte.phase7LightState.v1',
           direction,
           keyColor,
-          keyIntensity: clamp01(Number(key.intensity || 0.86)),
+          keyIntensity: scope.clamp01(Number(key.intensity || 0.86)),
           ambientColor,
-          ambientIntensity: clamp01(Number(ambient.intensity || 0.34)),
+          ambientIntensity: scope.clamp01(Number(ambient.intensity || 0.34)),
           sourceLightCount: lights.length,
           consumed: lights.length > 0,
         };
       }
 
     function scenePacketCameraLightUniformVector(cameraState = {}, lightState = {}, timeSeconds = 0, width = 0, height = 0) {
-        const vector = new Float32Array(GPU_OBJECT_UNIFORM_FLOATS);
+        const vector = new Float32Array(scope.GPU_OBJECT_UNIFORM_FLOATS);
         vector.set([width, height, timeSeconds, 0], 0);
         vector.set([
           Number(cameraState.perspective || 0), Number(cameraState.zoom || 1),
@@ -607,7 +508,7 @@
           : [];
         return palette.slice(0, 16).map((value) => {
           const numeric = Number(value || 0);
-          return Number.isFinite(numeric) ? clamp01(numeric) : 0;
+          return Number.isFinite(numeric) ? scope.clamp01(numeric) : 0;
         });
       }
 
@@ -621,10 +522,10 @@
         ].join(':');
       }
 
-    function scenePacketSceneId(packet, sceneKind = '') {
+    function scenePacketResolvedSceneId(packet, sceneKind = '') {
         const value = Number(packet && packet.uniforms && packet.uniforms.sceneId);
         if (Number.isFinite(value)) return value;
-        return SCENE_IDS[sceneKind] ?? 3;
+        return scope.SCENE_IDS[sceneKind] ?? 3;
       }
 
     function scenePacketFeatureVector(_packet) {
@@ -636,13 +537,13 @@
       }
 
     function scenePacketSceneMixVector(packet, sceneKind = '') {
-        const vector = scenePacketUniformVector(packet, 'sceneMix', SCENE_MIX_SLOTS.length);
-        if (activeSceneMixSlots(vector)) return compressSceneMixVector(vector);
-        addSceneKindMix(vector, sceneKind, 0.52);
+        const vector = scenePacketUniformVector(packet, 'sceneMix', scope.SCENE_MIX_SLOTS.length);
+        if (scope.activeSceneMixSlots(vector)) return scope.compressSceneMixVector(vector);
+        scope.addSceneKindMix(vector, sceneKind, 0.52);
         for (const row of scenePacketDrawableRows(packet)) {
-          addScenePacketLayerMix(vector, row.layerSlot, row.renderCodes && row.renderCodes.categoryCode || 0);
+          scope.addScenePacketLayerMix(vector, row.layerSlot, row.renderCodes && row.renderCodes.categoryCode || 0);
         }
-        return compressSceneMixVector(vector);
+        return scope.compressSceneMixVector(vector);
       }
 
     function scenePacketUniformVector(packet, key, length) {
@@ -651,7 +552,7 @@
           : [];
         const vector = new Float32Array(length);
         for (let i = 0; i < Math.min(length, values.length); i += 1) {
-          vector[i] = clamp01(values[i]);
+          vector[i] = scope.clamp01(values[i]);
         }
         return vector;
       }
@@ -662,62 +563,6 @@
           ...scenePacketRows(packet, 'fields').map((row) => ({ ...row, packetKind: 'field' })),
           ...scenePacketRows(packet, 'effects').map((row) => ({ ...row, packetKind: 'effect' })),
         ];
-      }
-
-    function addScenePacketLayerMix(vector, layerSlot = '', categoryCode = 0) {
-        const add = (slot, value) => addSceneMixSlot(vector, slot, value);
-        switch (String(layerSlot || '')) {
-          case 'biological-agent':
-          case 'organic-matrix':
-            add('biological', 0.72);
-            break;
-          case 'water-volume':
-          case 'flow-field':
-          case 'bubble-volume':
-            add('water', 0.64);
-            break;
-          case 'detector-geometry':
-          case 'readout-panel':
-          case 'track-line':
-            add('instrument', 0.72);
-            break;
-          case 'node-graph':
-          case 'network-flow':
-            add('network', 0.72);
-            break;
-          case 'thermal-field':
-            add('thermal', 0.7);
-            break;
-          case 'optical-field':
-            add('optical', 0.68);
-            break;
-          case 'chemical-front':
-            add('chemical', 0.66);
-            break;
-          case 'robot-armature':
-            add('robotic', 0.68);
-            break;
-          case 'granular-strata':
-            add('granular', 0.66);
-            break;
-          case 'orbital-body':
-            add('orbital', 0.68);
-            break;
-          case 'acoustic-waveguide':
-            add('acoustic', 0.68);
-            break;
-          case 'phase-boundary':
-            add('phase', 0.64);
-            break;
-          case 'particle-swarm':
-            add('instrument', 0.38);
-            break;
-          default:
-            break;
-        }
-        if (categoryCode === 5) add('instrument', 0.32);
-        if (categoryCode === 6) add('network', 0.32);
-        if (categoryCode === 9) add('biological', 0.32);
       }
 
     function scenePacketEntityCount(packet) {
@@ -766,12 +611,7 @@
           ...scenePacketRows(packet, 'fields').map((row) => scenePacketRowHashText(row)),
           ...scenePacketRows(packet, 'effects').map((row) => scenePacketRowHashText(row)),
         ].join('|');
-        let hash = 2166136261;
-        for (let i = 0; i < text.length; i += 1) {
-          hash ^= text.charCodeAt(i);
-          hash = Math.imul(hash, 16777619);
-        }
-        return (hash >>> 0).toString(16).padStart(8, '0');
+        return scope.fnv1a32(text).toString(16).padStart(8, '0');
       }
 
     function scenePacketRowHashText(row = {}) {
@@ -796,12 +636,12 @@
       }
 
     function scenePacketObjectUniformVector(packet, sceneKind = '') {
-        const drawables = scenePacketUniformDrawables(packet, sceneKind).slice(0, SCENE_PACKET_OBJECT_SLOTS);
+        const drawables = scenePacketUniformDrawables(packet, sceneKind).slice(0, scope.SCENE_PACKET_OBJECT_SLOTS);
         return scenePacketObjectUniformVectorFromDrawables(drawables);
       }
 
     function scenePacketObjectUniformVectorFromDrawables(drawables = []) {
-        const vector = new Float32Array(SCENE_PACKET_FLOATS);
+        const vector = new Float32Array(scope.SCENE_PACKET_FLOATS);
         drawables.forEach((row, index) => {
           const transform = scenePacketDrawableTransform(row, index, drawables.length);
           const codes = row.renderCodes || {};
@@ -811,8 +651,8 @@
           const categoryCode = Number(codes.categoryCode || scenePacketCategoryCode(row));
           const packetKindCode = Number(codes.packetKindCode || scenePacketKindCode(row.packetKind));
           const objectOffset = index * 4;
-          const styleOffset = SCENE_PACKET_OBJECT_SLOTS * 4 + index * 4;
-          const identityOffset = SCENE_PACKET_OBJECT_SLOTS * 8 + index * 4;
+          const styleOffset = scope.SCENE_PACKET_OBJECT_SLOTS * 4 + index * 4;
+          const identityOffset = scope.SCENE_PACKET_OBJECT_SLOTS * 8 + index * 4;
           vector[objectOffset] = transform.x;
           vector[objectOffset + 1] = transform.y;
           vector[objectOffset + 2] = transform.w;
@@ -820,10 +660,10 @@
           vector[styleOffset] = layerCode;
           vector[styleOffset + 1] = transform.rotation;
           vector[styleOffset + 2] = animationCode;
-          vector[styleOffset + 3] = clamp01(row.confidence || row.material && row.material.opacity || 0.72);
+          vector[styleOffset + 3] = scope.clamp01(row.confidence || row.material && row.material.opacity || 0.72);
           vector[identityOffset] = identityCode;
           vector[identityOffset + 1] = categoryCode;
-          vector[identityOffset + 2] = Number(codes.variantCode ?? scenePacketVariantCode(row));
+          vector[identityOffset + 2] = Number(codes.variantCode ?? scope.scenePacketVariantCode(row));
           vector[identityOffset + 3] = packetKindCode;
         });
         return vector;
@@ -844,7 +684,7 @@
         if (Number.isFinite(explicit)) return explicit;
         const layerCode = Number(row && row.renderCodes && row.renderCodes.layerCode || scenePacketLayerCode(row && row.layerSlot));
         const kindCode = Number(row && row.renderCodes && row.renderCodes.packetKindCode || scenePacketKindCode(row && row.packetKind));
-        return kindCode * 4 + layerCode * 0.1 + clamp01(row && row.confidence || 0);
+        return kindCode * 4 + layerCode * 0.1 + scope.clamp01(row && row.confidence || 0);
       }
 
     function scenePacketDrawableTransform(row, index = 0, total = 1) {
@@ -854,8 +694,8 @@
         const rotation = Array.isArray(transform.rotation) ? Number(transform.rotation[2] || 0) : 0;
         if (position && scale) {
           return {
-            x: clamp01(position[0]),
-            y: clamp01(position[1]),
+            x: scope.clamp01(position[0]),
+            y: scope.clamp01(position[1]),
             w: scenePacketSize(scale[0], 0.12),
             h: scenePacketSize(scale[1], 0.1),
             rotation,
@@ -864,8 +704,8 @@
         const domain = row && row.domain || {};
         if (Array.isArray(domain.bounds)) {
           return {
-            x: clamp01(domain.bounds[0] + domain.bounds[2] * 0.5),
-            y: clamp01(domain.bounds[1] + domain.bounds[3] * 0.5),
+            x: scope.clamp01(domain.bounds[0] + domain.bounds[2] * 0.5),
+            y: scope.clamp01(domain.bounds[1] + domain.bounds[3] * 0.5),
             w: scenePacketSize(domain.bounds[2], 0.42),
             h: scenePacketSize(domain.bounds[3], 0.32),
             rotation: 0,
@@ -874,8 +714,8 @@
         if (Array.isArray(row && row.geometry && row.geometry.bounds)) {
           const bounds = row.geometry.bounds;
           return {
-            x: clamp01(bounds[0] + bounds[2] * 0.5),
-            y: clamp01(bounds[1] + bounds[3] * 0.5),
+            x: scope.clamp01(bounds[0] + bounds[2] * 0.5),
+            y: scope.clamp01(bounds[1] + bounds[3] * 0.5),
             w: scenePacketSize(bounds[2], 0.12),
             h: scenePacketSize(bounds[3], 0.1),
             rotation,
@@ -883,8 +723,8 @@
         }
         const angle = total <= 1 ? 0 : index / Math.max(1, total) * Math.PI * 2;
         return {
-          x: clamp01(0.5 + Math.cos(angle) * 0.24),
-          y: clamp01(0.52 + Math.sin(angle) * 0.18),
+          x: scope.clamp01(0.5 + Math.cos(angle) * 0.24),
+          y: scope.clamp01(0.52 + Math.sin(angle) * 0.18),
           w: 0.13,
           h: 0.1,
           rotation: 0,
@@ -894,11 +734,11 @@
     function scenePacketSize(value, fallback) {
         const numeric = Number(value);
         if (!Number.isFinite(numeric) || numeric <= 0) return fallback;
-        return clamp(numeric, 0.01, 1);
+        return scope.clamp(numeric, 0.01, 1);
       }
 
     function scenePacketLayerCode(layerSlot) {
-        const index = VISUAL_IR_LAYER_SLOTS.indexOf(String(layerSlot || ''));
+        const index = scope.VISUAL_IR_LAYER_SLOTS.indexOf(String(layerSlot || ''));
         return index >= 0 ? index + 1 : 0;
       }
 
@@ -918,12 +758,7 @@
       }
 
     function scenePacketHashUnit(text) {
-        let hash = 2166136261;
-        for (let i = 0; i < text.length; i += 1) {
-          hash ^= text.charCodeAt(i);
-          hash = Math.imul(hash, 16777619);
-        }
-        return (hash >>> 0) / 4294967295;
+        return scope.inclusiveUnitInterval(text);
       }
 
     function scenePacketSemanticCode(row = {}) {
@@ -944,7 +779,7 @@
         return 0;
       }
 
-    Object.assign(scope, {
+    root.SimulattePhaseModuleRegistry.define('webGpuRenderer', 'simulatte-webgpu-renderer-packets.js', {
       pixelSampleForDrawable,
       pixelSampleForEnvironmentObligation,
       phase7DrawableSamplePoint,
@@ -952,13 +787,12 @@
       emptySceneRenderPacket,
       compileSceneRenderData,
       sceneRenderPacketRenderDataKey,
-      scenePacketSceneId,
+      scenePacketResolvedSceneId,
       scenePacketFeatureVector,
       scenePacketAtomUniformVector,
       scenePacketSceneMixVector,
       scenePacketUniformVector,
       scenePacketDrawableRows,
-      addScenePacketLayerMix,
       scenePacketEntityCount,
       scenePacketFieldCount,
       scenePacketEffectCount,
@@ -983,7 +817,6 @@
       scenePacketObjectPartTransform,
       scenePacketObjectPartColor,
       scenePacketObjectPartStorageVector,
-      scenePacketObjectRealization,
       scenePacketObjectPartSummary,
       scenePacketObjectDepth,
       scenePacketCameraState,
@@ -991,5 +824,5 @@
       scenePacketCameraLightUniformVector,
       scenePacketRendererConsumption,
     });
-  }
+
 })(typeof globalThis !== 'undefined' ? globalThis : window);
