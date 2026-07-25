@@ -10,7 +10,7 @@ const config = readJson('public/shared/plugins/cable-trader/default-config.json'
 const world = readJson('public/data/simulatte/worlds/nyc-core-autonomy-v1.json');
 const policy = readJson('public/data/simulatte/policies/bet-selector-v1.json');
 const network = require(path.join(ROOT, 'public/shared/plugins/cable-trader/network-simulation.js'));
-const adapter = require(path.join(ROOT, 'public/shared/plugins/cable-trader/v4-adapter.js'));
+const contributionApi = require(path.join(ROOT, 'public/shared/plugins/cable-trader/v4-contribution.js'));
 const worldApi = require(path.join(ROOT, 'public/simulatte/world/world-model.js'));
 const routing = require(path.join(ROOT, 'public/simulatte/world/route-planner.js'));
 const outputPath = resolveOutput(process.argv.slice(2));
@@ -42,7 +42,7 @@ const simulation = network.simulateNetwork({
   ...config,
   simulation: { ...config.simulation, scenarioId: 'july-baseline' },
 }, transferRoutes);
-const contribution = adapter.createContribution({
+const contribution = contributionApi.createContribution({
   config,
   simulation,
   transferRoutes,
@@ -51,7 +51,8 @@ const contribution = adapter.createContribution({
     playback: { status: 'settled', day: simulation.durationDays },
   },
 });
-const flowLayer = contribution.presentation.layers.find((row) => row.semanticLayerType === 'directed-inventory-flow');
+const flowLayers = contribution.presentation.layers.filter((row) => row.id.startsWith('flow:'));
+const hubLayers = contribution.presentation.layers.filter((row) => row.id.startsWith('hub:'));
 const styleFields = ['widthM', 'tone', 'color', 'opacity', 'animationRate'];
 const report = {
   schema: 'simulatte.cableTraderPluginAudit.v1',
@@ -59,10 +60,14 @@ const report = {
     && simulation.snapshots.length === simulation.durationDays + 1
     && simulation.summary.optimalityProven
     && simulation.summary.fulfilledNeeds === simulation.summary.needs
-    && contribution.dataReceipts.every((row) => row.origin && row.temporalStatus && row.uncertainty)
-    && contribution.modelReceipts.every((row) => row.algorithmIds.length && row.validation)
-    && flowLayer.rows.length > 0
-    && flowLayer.rows.every((row) => row.routeSegmentIds.length > 0)
+    && contribution.schema === 'simulatte.pluginContribution.v4'
+    && contribution.provenanceRecords.some((row) => row.kind === 'dataset')
+    && contribution.provenanceRecords.some((row) => row.kind === 'model')
+    && contribution.presentation.layers.every((row) => row.provenance.axes.origin
+      && row.provenance.axes.temporalStatus
+      && row.provenance.axes.uncertainty)
+    && flowLayers.length > 0
+    && flowLayers.every((row) => row.geometry.segmentIds.length > 0)
     && contribution.presentation.layers.every((layer) => styleFields.every((field) => !(field in layer))),
   identities: {
     simulationId: simulation.id,
@@ -82,16 +87,20 @@ const report = {
     randomEvents: simulation.summary.randomEvents,
   },
   semanticPresentation: {
-    layerTypes: contribution.presentation.layers.map((row) => row.semanticLayerType),
-    hubCount: contribution.presentation.layers.find((row) => row.semanticLayerType === 'inventory-hubs').rows.length,
-    flowCount: flowLayer.rows.length,
-    routeSegmentReferenceCount: new Set(flowLayer.rows.flatMap((row) => row.routeSegmentIds)).size,
+    schema: contribution.presentation.schema,
+    layerKinds: [...new Set(contribution.presentation.layers.map((row) => row.kind))],
+    hubCount: hubLayers.length,
+    flowCount: flowLayers.length,
+    routeSegmentReferenceCount: new Set(flowLayers.flatMap((row) => row.geometry.segmentIds)).size,
     finalStyleFieldsAbsent: styleFields,
   },
-  controls: contribution.controls.map((row) => row.id),
-  comparisons: contribution.comparisons.map((row) => ({ id: row.id, status: row.status })),
-  viewIntents: contribution.viewIntents,
-  claimBoundary: contribution.claimBoundary,
+  controls: contribution.controls.controls.map((row) => row.id),
+  comparisons: contribution.controls.comparisons.map((row) => ({
+    id: row.id,
+    synchronizedClock: row.synchronizedClock,
+  })),
+  viewIntents: contribution.presentation.viewIntents,
+  claimBoundary: simulation.claimBoundary,
 };
 
 fs.mkdirSync(path.dirname(outputPath), { recursive: true });

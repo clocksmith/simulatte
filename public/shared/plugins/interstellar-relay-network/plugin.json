@@ -46,7 +46,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginInterstellarRelayNetwork",
-    "integrity": "sha384-81620b82de117c2d5c6ff3c947dbed54ccac1e68ca2b88f753b85765f2d30982df8195efbbd83a763bdebccaaf1ad47a",
+    "integrity": "sha384-87a4076959b0daaadf6d3707986cdffd28c5a19f131ebd9475f1abe478fd82a6a229c4f95c20d9719dbcc91f51da0b96",
     "path": "./index.js"
   },
   "extensionPoints": [
@@ -94,12 +94,12 @@
   ],
   "resources": [
     {
-      "integrity": "sha384-ec435ff2e5cca3512b53a5ea1da34c43541f1b81c054c78422b15792625d6eceb208980924eba71910a04a16889a0323",
-      "path": "./contact-scheduler.js"
-    },
-    {
       "integrity": "sha384-8ecbe3a3c7e5b47c777cfba3a2162b68c43476c225f8f3c55eff5e1df8c9549a70aad46aca045768696bd4917377f9bd",
       "path": "./config.schema.json"
+    },
+    {
+      "integrity": "sha384-ec435ff2e5cca3512b53a5ea1da34c43541f1b81c054c78422b15792625d6eceb208980924eba71910a04a16889a0323",
+      "path": "./contact-scheduler.js"
     },
     {
       "integrity": "sha384-a9ec46be31be84ec9f16e432e646a6ab749e84b7f4818b4a0355254fc3e55c0ed794416ca584a72b1c01d6af28ab423c",
@@ -132,6 +132,10 @@
     {
       "integrity": "sha384-9f7d8d6414f30fa1ee83cc3ce1db6c1bdcfa224f7dc3b574121e30d837a077059af13625746d1abd10b74edb6067eb0c",
       "path": "./stellar-state.js"
+    },
+    {
+      "integrity": "sha384-f7c8a76f6caa79503d5b98ab960a706ad3393576217ebf6e0dac9af230699e7bad96d029fbd44b83ef0686dd4d3a1d7c",
+      "path": "./v4-contribution.js"
     }
   ],
   "schema": "simulatte.pluginManifest.v2",

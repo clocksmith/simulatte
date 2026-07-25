@@ -37,7 +37,7 @@ contribution records this as distribution uncertainty with `ensembleSize: 1`.
 
 ## Events and state
 
-The simulation emits:
+The domain simulation emits:
 
 - 31 immutable progressive snapshots, from day 0 through day 30;
 - 30 chronological `simulatte.SimulationEvent.v4-draft` daily allocation events;
@@ -52,15 +52,17 @@ for v1-v3 hosts.
 
 ## Semantic contribution
 
-`v4-adapter.js` exposes `contributeV4()` with:
+`v4-contribution.js` exposes `contributeV4()` through the shared v4 builder with:
 
-- draft DataReceipt and ModelReceipt rows;
+- `simulatte.pluginContribution.v4`, `pluginPresentation.v4`,
+  `pluginEvent.v4`, and `progressiveState.v4`;
+- dataset, source-row, and model provenance records with closed evidence references;
 - the complete event timeline and current progressive state;
-- inventory-hub and directed-flow semantic layers;
-- raw quantity, burden, node, and route-segment fields without final styles;
-- parameter controls and hub inventory inspection models;
-- an optimized-versus-local-only comparison definition;
-- advisory overview and dominant-flow ViewIntent rows.
+- one semantic point per inventory hub and one semantic path per active transfer;
+- raw quantity, node, and route-segment fields without final styles;
+- duration and starting-inventory controls plus hub inventory inspection models;
+- a synchronized optimized-versus-local-only comparison definition;
+- advisory Overview and dominant-flow Follow ViewIntent rows.
 
 The current `present()` method remains a v1 compatibility projection. Its tones,
 world-space widths, actors, and `camera.focus` UI actions are not the intended v4
@@ -68,14 +70,15 @@ authority boundary.
 
 ## Required core integration
 
-- Load `v4-adapter.js` as a selected plugin resource.
-- Normalize `contributeV4()` into the final v4 contract.
+- Load `v4-contribution.js` after `plugin-v4-builder.js` as a selected plugin resource.
 - Let the shared clock call `scenario.run` start and step phases.
 - Map flow quantity to bounded screen-space styling in the compositor.
 - Replace compatibility `camera.focus` actions with ViewIntent arbitration.
 - Run the declared comparison through synchronized deterministic branches.
 - Add the compatibility-prior dataset to the shared provenance registry.
 - Regenerate the global plugin registry after all four parallel lanes settle.
+- Add a final multi-select control shape before exposing selected cable families; the
+  current shared v4 contract does not yet support multi-select.
 
 Until that integration lands, the current City v2 host still treats Play as a route
 journey and cannot provide truthful progressive browser evidence for this plugin.

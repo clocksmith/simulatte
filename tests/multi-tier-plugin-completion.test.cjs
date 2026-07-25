@@ -10,7 +10,9 @@ const randomApi = require('../public/simulatte/platform/plugin-host/plugin-rando
 const schedulerApi = require('../public/simulatte/platform/plugin-host/plugin-scheduler.js');
 const stellar = require('../public/shared/plugins/interstellar-relay-network/stellar-state.js');
 const contact = require('../public/shared/plugins/interstellar-relay-network/contact-scheduler.js');
+const optical = require('../public/shared/plugins/interstellar-relay-network/optical-link-budget.js');
 const integrity = require('../public/shared/plugins/interstellar-relay-network/integrity.js');
+const relayHardware = require('../public/data/interstellar-relay-network/relay-hardware-archetypes-v2.json');
 const receipts = require('../public/simulatte/runtime/canonical-receipts.js');
 const contracts = require('../public/simulatte/platform/contracts/plugin-contracts.js');
 const stateHostApi = require('../public/simulatte/platform/plugin-host/plugin-state-host.js');
@@ -66,11 +68,23 @@ test('stellar propagation does not multiply radial velocity by seconds twice', (
 });
 
 test('contact scheduler orders every relay event and reproduces finite light time', () => {
+  const packetBits = 8192;
   const states = new Map([
-    ['sol', { positionPc: [0, 0, 0] }],
-    ['target', { positionPc: [1, 0, 0] }],
+    ['sol', { positionPc: [0, 0, 0], velocityPcYr: [0, 0, 0], sourceRowIds: ['gaia:sol'] }],
+    ['target', { positionPc: [1, 0, 0], velocityPcYr: [0, 0, 0], sourceRowIds: ['gaia:target'] }],
   ]);
-  const schedule = contact.scheduleRelay({ relayPath: ['sol', 'target'], statesById: states, scheduler: schedulerApi.createSchedulerPort({}).forPlugin('relay') });
+  const transceiver = relayHardware.archetypes['sol-primary-gateway'];
+  const linkBudget = optical.computeLinkBudget(3.08567758149137e16, transceiver, {
+    packetBits,
+    sourceRowIds: ['gaia:sol', 'gaia:target'],
+  });
+  const schedule = contact.scheduleRelay({
+    relayPath: ['sol', 'target'],
+    statesById: states,
+    linkBudgets: [linkBudget],
+    packetBits,
+    scheduler: schedulerApi.createSchedulerPort({}).forPlugin('relay'),
+  });
   assert.equal(schedule.hops.length, 1);
   assert.ok(Math.abs(schedule.totalLatencyYears - 3.26156) < 0.001);
   assert.equal(schedule.schedulerReceipt.processedCount, schedule.trace.length);

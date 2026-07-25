@@ -121,14 +121,17 @@ Remove this adapter after core consumes semantic presentation v4.
 
 The owning integrator must:
 
-1. Add `truth.js`, `sun-route-simulation.js`, `presentation.js`, and
-   `compatibility-adapter.js` before `index.js` in the shared runtime script
-   inventory.
-2. Regenerate the plugin registry from `plugin.json`; do not hand-edit it.
+1. Keep the current runtime inventory ordering: shared v4 builder, `truth.js`,
+   `sun-route-simulation.js`, `presentation.js`, `compatibility-adapter.js`,
+   `v4-contribution.js`, then `index.js`.
+2. Regenerate the plugin registry from `plugin.json`; do not hand-edit it. The
+   checked-in generated registry is still stale.
 3. Let the shared simulation clock call `scenario.run` start/step without taking a
    delay from the plugin.
-4. Consume `semanticPresentation`, `eventTimeline`, `simulationState`,
-   `controlModel`, and `comparisonModel` through the v4 adapter.
+4. Consume `contributeV4()` directly as `simulatte.pluginContribution.v4`; retain
+   the richer domain `semanticPresentation`, `eventTimeline`, `simulationState`,
+   `controlModel`, and `comparisonModel` only where the final v4 contract has no
+   equivalent yet.
 5. Let the View Director arbitrate view intents and manual camera override.
 6. Replace the compatibility projection when the compositor accepts the semantic
    layer set.

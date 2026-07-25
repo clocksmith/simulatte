@@ -19,6 +19,7 @@
     const packetApi = dependency('InterstellarPacketQueue', './packet-queue.js');
     const metricsApi = dependency('InterstellarMetrics', './metrics.js');
     const presentationApi = dependency('InterstellarRelayPresentation', './presentation.js');
+    const v4Api = dependency('InterstellarRelayV4', './v4-contribution.js');
 
     const starsData = sdk.datasets.require('gaia.dr3.nearby-stars.v2');
     const hardwareData = sdk.datasets.require('relay.hardware.archetypes.v2');
@@ -425,6 +426,10 @@
       const state = sdk.state.read();
       return presentationApi.createSemanticPresentation(starsData, state.result, state.progressive);
     }
+    function contributeV4() {
+      const state = sdk.state.read();
+      return v4Api.createContribution({ result: state.result, progressive: state.progressive });
+    }
     function viewIntents() {
       const state = sdk.state.read();
       return presentationApi.createViewIntents(state.result, state.progressive);
@@ -464,6 +469,7 @@
       view,
       present,
       semanticPresentation,
+      contributeV4,
       viewIntents,
       reduce,
       capabilities,

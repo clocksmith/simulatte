@@ -24,9 +24,10 @@
     "randomEvents": 9152
   },
   "semanticPresentation": {
-    "layerTypes": [
-      "inventory-hubs",
-      "directed-inventory-flow"
+    "schema": "simulatte.pluginPresentation.v4",
+    "layerKinds": [
+      "point",
+      "path"
     ],
     "hubCount": 4,
     "flowCount": 10,
@@ -40,28 +41,29 @@
     ]
   },
   "controls": [
-    "seed",
     "durationDays",
-    "initialInventoryPerHubType",
-    "cableTypeIds"
+    "initialInventoryPerHubType"
   ],
   "comparisons": [
     {
       "id": "optimized-vs-local-only",
-      "status": "requires_core_branch_runtime"
+      "synchronizedClock": true
     }
   ],
   "viewIntents": [
     {
-      "schema": "simulatte.ViewIntent.v4-draft",
-      "id": "cable-network:settled",
+      "schema": "simulatte.viewIntent.v4",
+      "id": "cable-network-overview",
       "mode": "overview",
       "targetIds": [
-        "cable-network"
+        "hub:union-square-cable-hub",
+        "hub:east-village-cable-hub",
+        "hub:greenpoint-cable-hub",
+        "hub:williamsburg-cable-hub"
       ],
-      "transitionReason": "simulation_progress",
-      "priority": "normal",
-      "expiresOnEventId": null
+      "reasonEventId": "cable-trader:event:day-30",
+      "priority": 45,
+      "transition": "ease"
     }
   ],
   "claimBoundary": "Exact optimum over every modeled day, cable family, hub, inventory unit, and complete inter-hub route set. Seeded events model possible demand and journey costs; they are not forecasts of real people."

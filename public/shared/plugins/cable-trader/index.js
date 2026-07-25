@@ -2,13 +2,13 @@
   const network = typeof module === 'object' && module.exports
     ? require('./network-simulation.js')
     : root.SimulatteCableTraderNetwork;
-  const v4Adapter = typeof module === 'object' && module.exports
-    ? require('./v4-adapter.js')
-    : root.SimulatteCableTraderV4Adapter;
-  const api = factory(network, v4Adapter);
+  const v4Contribution = typeof module === 'object' && module.exports
+    ? require('./v4-contribution.js')
+    : root.SimulatteCableTraderV4Contribution;
+  const api = factory(network, v4Contribution);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulattePluginCableTrader = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createCableTraderPlugin(network, v4Adapter) {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createCableTraderPlugin(network, v4Contribution) {
   // pluginPresentation.v1 caps actor rows at 64 (see plugin-contracts boundedRows). The simulation
   // keeps its full participantCount; only the visual sample is bounded here so a large, valid
   // population never overflows the shared host contract.
@@ -300,10 +300,10 @@
     }
 
     function contributeV4() {
-      if (!v4Adapter?.createContribution) {
-        throw new Error('cable_trader_v4_adapter_unavailable: core must load ./v4-adapter.js before requesting the v4 contribution');
+      if (!v4Contribution?.createContribution) {
+        throw new Error('cable_trader_v4_contribution_unavailable: core must load ./v4-contribution.js before requesting the v4 contribution');
       }
-      return v4Adapter.createContribution({
+      return v4Contribution.createContribution({
         config,
         simulation: sdk.state.read().simulation,
         state: sdk.state.read(),

@@ -2,7 +2,7 @@
   "applicationProfile": {
     "id": "cable-trader-pickup-v1",
     "path": "../application-profiles/cable-trader-pickup-v1.json",
-    "sha256": "d223a350cbbb47974e295467d58cc0db07f03cee53c3bf7353b13039c6e0ac59"
+    "sha256": "f736008665573886d3a1acda631148e98546bf163418f3e78f9bf5ca3426da88"
   },
   "applicationProfiles": [
     {
@@ -13,7 +13,7 @@
     {
       "id": "sun-walker-v1",
       "path": "../application-profiles/sun-walker-v1.json",
-      "sha256": "5492b3cae31bc609fa667aa369df3a885292d0ec2aa7da43bfc1f4b5b1ab6226"
+      "sha256": "4f0739b06c62bf10fc55739806ebd53ca8931104e2c5b5ba5effc4000782ae00"
     }
   ],
   "claimBoundary": "This manifest governs bicycle-delivery and pedestrian-loop simulations assembled from independently hashed region packs for New York City. Park circuits follow frozen property boundaries, not surveyed sidewalk centerlines. It does not claim live conditions, physical-world autonomy, or control of a real vehicle.",

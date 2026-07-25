@@ -38,13 +38,19 @@ Strict file ownership prohibited regenerating it in this lane. Browser loading
 will therefore reject or omit the v2 lane until the integration owner runs the
 canonical plugin-registry generator.
 
+The shared runtime script inventory now loads `v4-contribution.js`, but still names
+the removed legacy `astrometry.js`, `network.js`, and `propagation.js` modules.
+Remove those three entries before browser proof.
+
 The legacy shared test
 `tests/multi-tier-plugin-completion.test.cjs` calls `scheduleRelay` without the
 now-required `packetBits` and `linkBudgets`. The scheduler intentionally fails
 closed with `relay_link_budget_count_invalid`. Update the shared fixture to
 provide a governed budget and packet size.
 
-Core should normalize:
+Core should consume `contributeV4()` directly as
+`simulatte.pluginContribution.v4`. The following richer domain accessors remain
+available only where the final shared contract needs an extension:
 
 - `simulatte.semanticPresentation.v4-draft`;
 - `simulatte.viewIntent.v1`;

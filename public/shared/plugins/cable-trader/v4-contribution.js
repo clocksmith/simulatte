@@ -1,11 +1,11 @@
-(function attachCableTraderV4Adapter(root, factory) {
+(function attachCableTraderV4Contribution(root, factory) {
   const builder = typeof module === 'object' && module.exports
     ? require('../../core/simulation/plugin-v4-builder.js')
     : root.SimulattePluginV4Builder;
   const api = factory(builder);
   if (typeof module === 'object' && module.exports) module.exports = api;
-  root.SimulatteCableTraderV4Adapter = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createCableTraderV4Adapter(builder) {
+  root.SimulatteCableTraderV4Contribution = api;
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createCableTraderV4Contribution(builder) {
   const PLUGIN_ID = 'cable-trader';
   const DATASET_REFERENCE = Object.freeze({
     id: 'cable-compatibility-priors-v1',

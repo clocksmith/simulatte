@@ -21,7 +21,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginCableTrader",
-    "integrity": "sha384-6711b6ce5883f0e77c2cd072e62f36087aac932aabaf11373bae3e53eff0a9efa3b59eb6b5e8b2853d5f7618bcdf9f66",
+    "integrity": "sha384-6f91e3f72dc838cef3c71731ae83f94677ac34305d7e17f34716ca29409aa3e205e09e5568ecb421c6553661e71ad1a2",
     "path": "./index.js"
   },
   "extensionPoints": [
@@ -65,8 +65,8 @@
       "path": "./network-simulation.js"
     },
     {
-      "integrity": "sha384-df26efc437653f0e5c7a8466ada0bdc2b196b354be28fbd9f360ce6d4646a66dfb5605b987900045b32a139cd8eb33c6",
-      "path": "./v4-adapter.js"
+      "integrity": "sha384-05254c120ee37e5b36e7f30470e41e564dcae50e290d686d86b022f8de9f437cd92fad1058c59a2adf58af29a19db499",
+      "path": "./v4-contribution.js"
     }
   ],
   "schema": "simulatte.pluginManifest.v1",

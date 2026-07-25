@@ -20,7 +20,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginSunWalker",
-    "integrity": "sha384-93b8065ea0c7dfccdf240559fa942c6581e6ecdf42ae3fe9f83119847c5c94e774da999d314ce98ff835867e911759db",
+    "integrity": "sha384-f6a7e4261d6e2421d234eed83f6db3d45693de2b5ca6de61ae068f918351d05a686ebb288b1ab9aecb5a66ff5bfd3d0c",
     "path": "./index.js"
   },
   "extensionPoints": [
@@ -52,6 +52,10 @@
   ],
   "resources": [
     {
+      "integrity": "sha384-51b1e2c099d0e4b042296c9be3148402353f3fea94300887ebc0d87400a08b7809766eb03f222739c369a14be712972f",
+      "path": "./compatibility-adapter.js"
+    },
+    {
       "integrity": "sha384-2bd26f7cd970c1c182ac1218075ee44130c6ac00c371a9ab12ae1ce70b00e12b87255ce440561611b073b1b2fd516d53",
       "path": "./config.schema.json"
     },
@@ -60,24 +64,24 @@
       "path": "./default-config.json"
     },
     {
-      "integrity": "sha384-7c0954555144864b3c3c42d6928a925c010b0304beb73dd0fb7ca8c38fc4679dc2fa40353f3f6419b7f21f313264a36f",
-      "path": "./sun-exposure.js"
+      "integrity": "sha384-96a796998c4c2c5b548bb1e8102741e4cb32f03e692a877767fca8e0bd1a4c07bce5ded5f560b5e53bb636d671e03454",
+      "path": "./presentation.js"
     },
     {
-      "integrity": "sha384-355ea2422776d67e84725171d74f8273bb9cc2967bc19867a80e29abf82ba984868c9596ed725da5fba3bd2303b7cd97",
-      "path": "./truth.js"
+      "integrity": "sha384-7c0954555144864b3c3c42d6928a925c010b0304beb73dd0fb7ca8c38fc4679dc2fa40353f3f6419b7f21f313264a36f",
+      "path": "./sun-exposure.js"
     },
     {
       "integrity": "sha384-89c17e7e596c74713db540573d0e19c0c94a45b66f24e6678241a7c295f102c5b200fca62ac505734912746f698f7315",
       "path": "./sun-route-simulation.js"
     },
     {
-      "integrity": "sha384-96a796998c4c2c5b548bb1e8102741e4cb32f03e692a877767fca8e0bd1a4c07bce5ded5f560b5e53bb636d671e03454",
-      "path": "./presentation.js"
+      "integrity": "sha384-355ea2422776d67e84725171d74f8273bb9cc2967bc19867a80e29abf82ba984868c9596ed725da5fba3bd2303b7cd97",
+      "path": "./truth.js"
     },
     {
-      "integrity": "sha384-51b1e2c099d0e4b042296c9be3148402353f3fea94300887ebc0d87400a08b7809766eb03f222739c369a14be712972f",
-      "path": "./compatibility-adapter.js"
+      "integrity": "sha384-fad995633aed6c4a0a06b9d51260ccb9003f7564ad3bae60a8da304ac1062c2c85c43813779c142fba598610631ac710",
+      "path": "./v4-contribution.js"
     }
   ],
   "schema": "simulatte.pluginManifest.v2",

@@ -39,7 +39,7 @@
         {
           "id": "interstellar-relay-network-v1",
           "path": "../application-profiles/interstellar-relay-network-v1.json",
-          "sha256": "d416d816020e23d871fb32a0a68aa4203a93e4f94e416f17ecadb1797cc40dfc"
+          "sha256": "46fa2899b700907ef20f82531509c8901fc9488f2499157d3ea604b81a611c76"
         }
       ],
       "world": {
@@ -54,7 +54,7 @@
         {
           "id": "maritime-trade-global-v1",
           "path": "../application-profiles/maritime-trade-global-v1.json",
-          "sha256": "93d7eb97e4f342b62478fbb57805d1ea3893af6d796785cf000f6b8204824b0a"
+          "sha256": "58879d087b94a7b8c7b365df6f6630b77ab55a2c87c9b522c50c15259543cbdd"
         }
       ],
       "world": {

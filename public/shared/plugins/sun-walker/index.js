@@ -11,14 +11,18 @@
   const compatibility = typeof module === 'object' && module.exports
     ? require('./compatibility-adapter.js')
     : root.SimulatteSunWalkerCompatibility;
-  const api = factory(exposure, routeSimulation, presentation, compatibility);
+  const v4 = typeof module === 'object' && module.exports
+    ? require('./v4-contribution.js')
+    : root.SimulatteSunWalkerV4;
+  const api = factory(exposure, routeSimulation, presentation, compatibility, v4);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulattePluginSunWalker = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createSunWalkerPlugin(
   exposure,
   routeSimulation,
   presentationApi,
-  compatibilityApi
+  compatibilityApi,
+  v4Api
 ) {
   const GOVERNANCE_DATASET_ID = 'sun-walker.model-governance.v1';
 
@@ -185,6 +189,17 @@
       return presentationApi.semanticPresentation(state.simulation, state.playback.step);
     }
 
+    function contributeV4() {
+      const state = sdk.state.read();
+      if (!state.simulation) return null;
+      return v4Api.createContribution({
+        simulation: state.simulation,
+        step: state.playback.step,
+        buildingReceipt,
+        governanceReceipt,
+      });
+    }
+
     function present() {
       const state = sdk.state.read();
       if (!state.simulation) return null;
@@ -276,6 +291,7 @@
       view,
       present,
       semanticPresentation,
+      contributeV4,
       simulationState: () => sdk.state.read().simulation
         ? sdk.state.read().simulation.timeline.snapshots[sdk.state.read().playback.step]
         : null,

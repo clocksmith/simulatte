@@ -13,9 +13,18 @@ for (const file of files) {
   check(relative, source, /\b(?:caches|indexedDB|localStorage|sessionStorage)\b/, 'browser storage');
   check(relative, source, /\bdocument\s*\.|\bquerySelector\s*\(|\bgetElementById\s*\(/, 'DOM access');
   check(relative, source, /require\(['"]\.\.\/\.\.\/(?:simulatte|shared)\//, 'host implementation import');
-  const pluginId = relative.split(path.sep)[3];
-  const crossPlugin = [...source.matchAll(/require\(['"]\.\.\/([^/'"]+)\//g)].map((match) => match[1]).filter((id) => id !== pluginId);
-  crossPlugin.forEach((id) => errors.push(`${relative}: cross-plugin import ${id}`));
+  const importerDirectory = path.dirname(file);
+  const pluginId = path.relative(PLUGINS, file).split(path.sep)[0];
+  const imports = [...source.matchAll(/require\(['"]([^'"]+)['"]\)/g)].map((match) => match[1]);
+  imports.filter((specifier) => specifier.startsWith('.')).forEach((specifier) => {
+    const resolved = path.resolve(importerDirectory, specifier);
+    const relativeToPlugins = path.relative(PLUGINS, resolved);
+    if (relativeToPlugins.startsWith('..') || path.isAbsolute(relativeToPlugins)) return;
+    const importedPluginId = relativeToPlugins.split(path.sep)[0];
+    if (importedPluginId !== pluginId) {
+      errors.push(`${relative}: cross-plugin import ${importedPluginId}`);
+    }
+  });
 }
 if (errors.length) {
   errors.forEach((error) => console.error(`PLUGIN-BOUNDARY ${error}`));

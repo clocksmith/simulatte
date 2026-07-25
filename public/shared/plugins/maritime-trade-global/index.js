@@ -24,6 +24,7 @@
     const engine = dep('MaritimeTradeEngine', './maritime-engine.js');
     const metricsApi = dep('MaritimeMetrics', './metrics.js');
     const presentationApi = dep('MaritimeTradePresentation', './presentation.js');
+    const v4Api = dep('MaritimeTradeV4', './v4-contribution.js');
     if (![engine, metricsApi, presentationApi].every(Boolean)) throw new Error('maritime_plugin_dependency_missing');
     const datasets = loadDatasets(sdk);
     const routeObjective = profile?.routeObjective || {};
@@ -348,6 +349,16 @@
       return presentationApi.createSemanticPresentation(datasets.ports, state.result, snapshot(state));
     }
 
+    function contributeV4() {
+      const state = sdk.state.read();
+      return v4Api.createContribution({
+        portsData: datasets.ports,
+        result: state.result,
+        snapshot: snapshot(state),
+        dataReceipts: datasets.dataReceipts,
+      });
+    }
+
     const capabilities = Object.freeze({
       'simulation.maritime-logistics.v1': (input = {}) => capabilityResult(input),
       'field.ocean-freight.v1': () => {
@@ -389,6 +400,7 @@
       settle,
       view,
       present,
+      contributeV4,
       reduce,
       capabilities,
       dispose() {},

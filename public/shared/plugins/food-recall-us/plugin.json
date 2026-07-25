@@ -85,7 +85,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginFoodRecallUs",
-    "integrity": "sha384-e279bc894571d747fc6661b8bf1bef683a06d739029b66b87da784fca448fcb34c2fe8a6df4e78c8a515ed2587b0e84f",
+    "integrity": "sha384-38fbaca56c44d34d4234fdf307e3d78922e455eeac6ddd1b7d28bda1094c4b8f9f399d2036f8ff316fb7a7df638ea798",
     "path": "./index.js"
   },
   "extensionPoints": [
@@ -135,8 +135,12 @@
       "path": "./food-engine.js"
     },
     {
-      "integrity": "sha384-e1add701905ad484d17a4be12f7403c6f296fce88191736a8dfe83cabe17684ae23b73b3b4810f54cb5ebbee55a417ac",
+      "integrity": "sha384-c4f293a493ea2309472805251bba30c50aa4f01d913b918943b562d597a3414fbbddb2872fefb81733586074edbe572d",
       "path": "./food-presentation.js"
+    },
+    {
+      "integrity": "sha384-a6a141ba2aaae1cccf367f712a9e61190d33f1ff76c2d3977e252ef41d63907993205b28a002f54944635c9ff49cf023",
+      "path": "./v4-contribution.js"
     }
   ],
   "schema": "simulatte.pluginManifest.v1",

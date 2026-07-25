@@ -173,13 +173,13 @@ test('Cable Trader v4 contribution separates truth axes and semantic quantities'
 });
 
 test('Cable Trader compatibility provenance binds the exact governed dataset bytes', () => {
-  const adapter = require('../public/shared/plugins/cable-trader/v4-adapter.js');
+  const contributionApi = require('../public/shared/plugins/cable-trader/v4-contribution.js');
   const datasetPath = path.join(root, 'public/data/cable-trader/cable-compatibility-priors-v1.json');
   const dataset = JSON.parse(fs.readFileSync(datasetPath, 'utf8'));
   const sha256 = crypto.createHash('sha256').update(fs.readFileSync(datasetPath)).digest('hex');
   const manifest = JSON.parse(fs.readFileSync(path.join(root, 'public/shared/plugins/cable-trader/plugin.json'), 'utf8'));
   const declaration = manifest.datasets.find((row) => row.id === dataset.id);
-  assert.equal(sha256, adapter.DATASET_REFERENCE.sha256);
+  assert.equal(sha256, contributionApi.DATASET_REFERENCE.sha256);
   assert.equal(declaration.reference.sha256, sha256);
   assert.match(dataset.claimBoundary, /no observed hub demand/i);
   assert.ok(dataset.rows.every((row) => row.origin && row.temporalStatus && row.uncertainty));

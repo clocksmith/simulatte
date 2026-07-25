@@ -16,7 +16,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginSafetyExplorer",
-    "integrity": "sha384-bf7ca780d0c389bf003ef09b2e7f35a4939bb79dc99509e17d8679594835e7d8df8a89c8e850976037a3f94262a282a1",
+    "integrity": "sha384-69a2237b97dd8e541b690d15e3d61b7b9b0817819728e3b6e5bbd4f2ef4372af8a2ee5ad14c30e0ac2796530ed1baeda",
     "path": "./index.js"
   },
   "extensionPoints": [
@@ -48,6 +48,10 @@
     {
       "integrity": "sha384-f4230093f9bc9b92e7145f1da988b87b8a20fd6247e0fe13a11c4b5293272447dbf485976e560f1bd285aa8e04e16c10",
       "path": "./default-config.json"
+    },
+    {
+      "integrity": "sha384-27de7b15489e7fac7b7155c88df5225592ed624eb4dba4444fe6744222aa191ae0fb600be570f9353ac92061b86d7e8f",
+      "path": "./v4-contribution.js"
     }
   ],
   "schema": "simulatte.pluginManifest.v1",

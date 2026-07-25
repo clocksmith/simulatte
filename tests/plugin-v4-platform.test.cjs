@@ -1,4 +1,6 @@
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
 const test = require('node:test');
 
 const contracts = require('../public/simulatte/platform/contracts/plugin-v4-contracts.js');
@@ -11,6 +13,7 @@ const viewDirectorModule = require('../public/simulatte/platform/view/view-direc
 const safetyV4 = require('../public/shared/plugins/safety-explorer/v4-contribution.js');
 const foodV4 = require('../public/shared/plugins/food-recall-us/v4-contribution.js');
 const orbitalV4 = require('../public/shared/plugins/orbital-transfer-planner/v4-contribution.js');
+const runtimeManifest = require('../public/simulatte/app/world-runtime-script-manifest.js');
 
 const HASH = 'a'.repeat(64);
 const OBSERVED = contracts.createProvenance({
@@ -380,4 +383,40 @@ test('Orbital v4 separates pinned state vectors from forecast transfer modeling'
   assert.equal(contribution.presentation.layers.find((row) => row.id === 'body:earth').provenance.axes.origin, 'modeled');
   assert.equal(contribution.presentation.layers.find((row) => row.id === 'transfer-trajectory').provenance.axes.temporalStatus, 'forecast');
   assert.equal(contribution.controls.comparisons[0].baselineScenarioId, 'earth-mars-circular-hohmann');
+});
+
+test('the seven shipped experiences each load one native v4 contribution and City is only the substrate', () => {
+  const expectedProfiles = [
+    'cable-trader-pickup-v1',
+    'food-recall-us-v1',
+    'interstellar-relay-network-v1',
+    'maritime-trade-global-v1',
+    'orbital-transfer-planner-v1',
+    'safety-explorer-v1',
+    'sun-walker-v1',
+  ];
+  assert.deepEqual(Object.keys(runtimeManifest.profilePlugins).sort(), expectedProfiles);
+  assert.equal(Object.hasOwn(runtimeManifest.profilePlugins, 'simulatte-world-v1'), false);
+
+  const profilesDirectory = path.join(__dirname, '../public/data/application-profiles');
+  const profileFiles = fs.readdirSync(profilesDirectory).filter((name) => name.endsWith('.json')).sort();
+  assert.deepEqual(profileFiles, expectedProfiles.map((id) => `${id}.json`));
+  profileFiles.forEach((fileName) => {
+    const profile = JSON.parse(fs.readFileSync(path.join(profilesDirectory, fileName), 'utf8'));
+    assert.equal(profile.plugins.length, 1, `${profile.id} should declare one experience plugin`);
+    const pluginId = profile.plugins[0].id;
+    assert.deepEqual(runtimeManifest.profilePlugins[profile.id], [pluginId]);
+    const pluginDirectory = path.join(__dirname, `../public/shared/plugins/${pluginId}`);
+    const manifest = JSON.parse(fs.readFileSync(path.join(pluginDirectory, 'plugin.json'), 'utf8'));
+    assert.equal(
+      manifest.resources.some((resource) => resource.path === './v4-contribution.js'),
+      true,
+      `${pluginId} should integrity-lock its native v4 contribution`,
+    );
+    assert.match(
+      fs.readFileSync(path.join(pluginDirectory, 'index.js'), 'utf8'),
+      /\bcontributeV4\b/,
+      `${pluginId} should expose contributeV4`,
+    );
+  });
 });

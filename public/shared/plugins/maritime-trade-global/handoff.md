@@ -147,8 +147,8 @@ The plugin does not modify shared runtime files. Integration owns these deltas:
    `routing.js`, `emissions.js`, `ports.js`, and `vessels.js`; remove those entries
    when the shared inventory owner is ready.
 3. Drive `phase: "start"` and `phase: "step"` from the shared simulation clock.
-4. Normalize `semanticPresentation.v4` through the shared compositor and remove
-   `adaptSemanticToV3`.
+4. Consume `contributeV4()` as `simulatte.pluginContribution.v4` through the shared
+   runtime and compositor, then remove `adaptSemanticToV3`.
 5. Consume `viewIntent.v4` through the View Director and remove v3 camera targets.
 6. Move common-seed baseline execution to the synchronized branch runtime.
 7. Store and expose the causal timeline through the shared replay and scrubber.
