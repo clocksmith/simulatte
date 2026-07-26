@@ -1484,6 +1484,25 @@ test('browser audit validates explicit desktop and mobile viewport contracts', a
   assert.throws(() => audit.parseViewport('wide'), /expected WIDTHxHEIGHT/);
   assert.throws(() => audit.parseViewport('319x844'), /at least 320x480/);
   assert.throws(() => audit.parseUrl('file:///tmp/autonomy'), /expected HTTP or HTTPS/);
+  assert.deepEqual(audit.semanticCameraExpectation({
+    source: 'cable-trader',
+    intentId: 'cable-trader:cable-network-overview',
+    mode: 'overview',
+    targetIds: ['hub:union-square'],
+  }), {
+    mode: 'bird',
+    focusId: 'plugin:cable-trader:cable-network-overview',
+  });
+  assert.deepEqual(audit.semanticCameraExpectation({
+    source: 'sun-walker',
+    intentId: 'sun-walker:street-preview',
+    mode: 'follow',
+    targetIds: ['shade-selected-route'],
+  }), {
+    mode: 'follow',
+    focusId: 'plugin:sun-walker:shade-selected-route',
+  });
+  assert.equal(audit.semanticCameraExpectation({ source: 'core-fallback', mode: 'free' }), null);
 
   const failureContext = () => ({
     document: {

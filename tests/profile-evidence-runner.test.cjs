@@ -132,7 +132,16 @@ async function fixture() {
       path: 'native-v4',
       profileId: run.profileId,
       clockReceipt: { schema: 'simulatte.simulationClockReceipt.v4' },
-      viewReceipt: { schema: 'simulatte.viewDirectorReceipt.v4' },
+      viewReceipt: {
+        schema: 'simulatte.viewDirectorReceipt.v4',
+        state: {
+          decision: {
+            source: run.pluginIds[0],
+            intentId: `${run.pluginIds[0]}:overview`,
+            mode: 'overview',
+          },
+        },
+      },
       compositorReceipts: [{ schema: 'simulatte.compositorReceipt.v4' }],
       datasetEvidence: [{ id: 'dataset:test', artifactSha256s: ['d'.repeat(64)] }],
       contributionSources: run.pluginIds.map((pluginId) => ({ pluginId, source: 'native-v4' })),
@@ -148,6 +157,19 @@ async function fixture() {
       performance: { frameCount: 2, elapsedMs: 5 },
       screenshot: { sha256: 'c'.repeat(64), path: 'screenshots/c.png' },
       pixelReadback: { status: 'pass', sampleCount: 256, distinctColorCount: 4 },
+      visual: {
+        schema: 'simulatte.renderedEvidence.v1',
+        canvas: { x: 0, y: 0, width: run.viewport.width, height: run.viewport.height },
+        overlays: [],
+        obstructionRatio: 0,
+        largestOverlayRatio: 0,
+        camera: {
+          mode: 'bird',
+          focusId: `plugin:${run.pluginIds[0]}:overview`,
+          transition: 'settled',
+          expectedFocusId: `plugin:${run.pluginIds[0]}:overview`,
+        },
+      },
       lifecycle: [...run.interactionPath],
       reload: {
         attempted: true,
@@ -193,6 +215,31 @@ test('complete native browser evidence settles its profile claim', async () => {
   assert.equal(validation.pass, true);
   assert.deepEqual(validation.failures, []);
   assert.ok(validation.claimResults.every((row) => row.pass));
+});
+
+test('rendered evidence fails closed on missing visuals, dominant overlays, and camera mismatch', async () => {
+  const { claims, contract, receipt, run, sourceIdentity } = await fixture();
+  receipt.evidence.visual = null;
+  let validation = contract.validateReceipt({ receipt, run, sourceIdentity, claims });
+  assert.ok(validation.failures.includes('visual_evidence_missing'));
+
+  receipt.evidence.visual = {
+    schema: 'simulatte.renderedEvidence.v1',
+    canvas: { x: 0, y: 0, width: run.viewport.width, height: run.viewport.height },
+    overlays: [],
+    obstructionRatio: 0.6,
+    largestOverlayRatio: 0.4,
+    camera: {
+      mode: 'bird',
+      focusId: 'plugin:cable-trader:wrong-target',
+      transition: 'settled',
+      expectedFocusId: `plugin:${run.pluginIds[0]}:overview`,
+    },
+  };
+  validation = contract.validateReceipt({ receipt, run, sourceIdentity, claims });
+  assert.ok(validation.failures.includes('plugin_overlay_obstruction_excessive'));
+  assert.ok(validation.failures.includes('plugin_overlay_dominant'));
+  assert.ok(validation.failures.includes('visual_camera_intent_mismatch'));
 });
 
 test('comparison evidence requires an executed settled receipt, never definition metadata', async () => {
@@ -342,6 +389,30 @@ test('content-addressed receipts are canonical and immutable by identity', async
     assert.equal(first.path, second.path);
     assert.equal(path.basename(first.path), `${first.sha256}.json`);
     assert.equal(contract.sha256Bytes(fs.readFileSync(first.path)), first.sha256);
+  } finally {
+    fs.rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+test('capture preparation removes only managed evidence outputs', async () => {
+  const runner = await import(RUNNER_URL);
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'simulatte-profile-evidence-cleanup-'));
+  try {
+    fs.mkdirSync(path.join(directory, 'receipts', 'sha256'), { recursive: true });
+    fs.mkdirSync(path.join(directory, 'screenshots', 'sha256'), { recursive: true });
+    fs.writeFileSync(path.join(directory, 'receipts', 'sha256', 'stale.json'), '{}');
+    fs.writeFileSync(path.join(directory, 'screenshots', 'sha256', 'stale.png'), 'stale');
+    fs.writeFileSync(path.join(directory, 'index.json'), '{}');
+    fs.writeFileSync(path.join(directory, 'summary.md'), 'stale');
+    fs.writeFileSync(path.join(directory, 'keep.txt'), 'preserved');
+
+    runner.prepareCaptureDirectory(directory);
+
+    assert.equal(fs.existsSync(path.join(directory, 'receipts')), false);
+    assert.equal(fs.existsSync(path.join(directory, 'screenshots')), false);
+    assert.equal(fs.existsSync(path.join(directory, 'index.json')), false);
+    assert.equal(fs.existsSync(path.join(directory, 'summary.md')), false);
+    assert.equal(fs.readFileSync(path.join(directory, 'keep.txt'), 'utf8'), 'preserved');
   } finally {
     fs.rmSync(directory, { recursive: true, force: true });
   }

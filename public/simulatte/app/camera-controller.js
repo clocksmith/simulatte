@@ -85,6 +85,7 @@
 
   function replacePluginCameraTargets(state, targets, timestamp) {
     const previousFocusId = state.focusId;
+    const previousTarget = state.targets.find((row) => row.id === previousFocusId) || null;
     state.targets = [
       ...state.targets.filter((row) => row.kind !== 'plugin'),
       ...targets.map((row) => ({ ...row, target: [...row.target] })),
@@ -93,6 +94,11 @@
     const target = state.targets.find((row) => row.id === previousFocusId)
       || state.targets.find((row) => row.id === 'route');
     state.focusId = target.id;
+    const targetChanged = !previousTarget
+      || target.id !== previousTarget.id
+      || Math.abs(target.distance - previousTarget.distance) > 0.001
+      || target.target.some((value, index) => Math.abs(value - previousTarget.target[index]) > 0.001);
+    if (!targetChanged) return state.targets;
     state.orbitTarget = [...target.target];
     state.distance = target.distance;
     beginTransition(state, timestamp);

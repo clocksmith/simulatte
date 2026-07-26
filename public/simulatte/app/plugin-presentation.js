@@ -188,11 +188,17 @@
           heightM: radiusM * 2,
         }));
       } else if (primitive.kind === 'path') {
-        compiled.paths.push(Object.freeze({
+        const pathParts = primitive.geometry.kind === 'segments'
+          ? primitive.geometry.segmentIds.map((segmentId) => (
+            resolveSegment(worldModel, pluginId, segmentId).geometry.map((point) => Object.freeze(clonePoint(point)))
+          ))
+          : [points];
+        pathParts.forEach((pathPoints, index) => compiled.paths.push(Object.freeze({
           ...common,
-          points: Object.freeze(points),
+          id: pathParts.length === 1 ? common.id : `${common.id}:part-${index + 1}`,
+          points: Object.freeze(pathPoints),
           widthM: screenPixelsToWorld(style.widthPx || 1, worldUnitsPerPixel),
-        }));
+        })));
       } else if (['area', 'field'].includes(primitive.kind)) {
         compiled.areas.push(Object.freeze({
           ...common,
@@ -280,7 +286,8 @@
     const spanY = Math.max(...points.map((row) => row.y)) - Math.min(...points.map((row) => row.y));
     const horizontalPixels = Math.max(1, viewport.width - Math.min(48, viewport.width / 4));
     const verticalPixels = Math.max(1, viewport.height - Math.min(48, viewport.height / 4));
-    return Math.max(0.5, spanX / horizontalPixels, spanY / verticalPixels);
+    const perspectiveFitScale = Math.hypot(spanX, spanY) * 1.2 / verticalPixels;
+    return Math.max(0.5, spanX / horizontalPixels, spanY / verticalPixels, perspectiveFitScale);
   }
 
   function screenPixelsToWorld(value, worldUnitsPerPixel) {

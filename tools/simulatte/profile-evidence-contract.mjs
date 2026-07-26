@@ -440,6 +440,38 @@ function validateReceipt({ receipt, run, sourceIdentity, claims }) {
   } else if (!receipt.runtime.compositorReceipts.every((row) => row?.schema === 'simulatte.compositorReceipt.v4')) {
     failures.push('platform_compositor_receipt_invalid');
   }
+  const visual = receipt.evidence?.visual;
+  if (
+    visual?.schema !== 'simulatte.renderedEvidence.v1'
+    || !(visual.canvas?.width > 0)
+    || !(visual.canvas?.height > 0)
+  ) {
+    failures.push('visual_evidence_missing');
+  } else {
+    if (!(visual.obstructionRatio >= 0) || visual.obstructionRatio > 0.5) {
+      failures.push('plugin_overlay_obstruction_excessive');
+    }
+    if (!(visual.largestOverlayRatio >= 0) || visual.largestOverlayRatio > 0.36) {
+      failures.push('plugin_overlay_dominant');
+    }
+    if (
+      visual.camera?.expectedFocusId
+      && visual.camera.focusId !== visual.camera.expectedFocusId
+    ) {
+      failures.push('visual_camera_intent_mismatch');
+    }
+    if (
+      run.tier === 'city'
+      &&
+      ['overview', 'compare'].includes(receipt.runtime?.viewReceipt?.state?.decision?.mode)
+      && visual.camera?.mode !== 'bird'
+    ) {
+      failures.push('visual_camera_mode_mismatch');
+    }
+    if (run.tier === 'city' && visual.camera?.transition !== 'settled') {
+      failures.push('visual_camera_transition_unsettled');
+    }
+  }
   if (!Array.isArray(receipt.evidence?.comparisons) || !receipt.evidence.comparisons.length) {
     failures.push('comparison_execution_receipt_missing');
   } else if (!receipt.evidence.comparisons.every(isSettledComparisonExecutionReceipt)) {

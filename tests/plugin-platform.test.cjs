@@ -203,4 +203,8 @@ test('Main exposes governed profile selection and disposes plugins on teardown',
   assert.match(main, /mountLifecycleApi\.disposeAll/);
   assert.match(main, /on\(window, 'pagehide', \(\) => \{ void disposeApplication\(\); \}/);
   assert.match(main, /hooks\.navigate\?\.\(\{ tier: 'city', experience: profileId \}\)/);
+  assert.ok(
+    main.indexOf('experienceCameraApi.applyInitialCamera') < main.indexOf('pluginViewRuntime.sync'),
+    'the declarative View Director must arbitrate after legacy profile camera initialization'
+  );
 });

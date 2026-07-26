@@ -265,6 +265,13 @@
         selectedIds: [selected],
         provenanceReceipts: platform.provenanceReceipts,
       });
+      populateCameraFocus(elements.cameraFocus, renderer.cameraTargets(), selected);
+      if (!hasAppliedInitialCamera) hasAppliedInitialCamera = experienceCameraApi.applyInitialCamera({
+        configuration: data.applicationProfile.camera,
+        renderer,
+        focusSelect: elements.cameraFocus,
+        onModeSelected: (mode) => selectCameraMode(elements, mode),
+      });
       if (!pluginClock) pluginClock = simulationClockApi.createClock({ timeline: platform.timeline });
       const clockState = pluginClock.snapshot();
       const timelineReceipt = platform.timeline.receipt();
@@ -309,13 +316,6 @@
         clock: pluginClock.receipt(),
         view: viewReceipt,
         compositor: renderer.receipt().pluginCompositor,
-      });
-      populateCameraFocus(elements.cameraFocus, renderer.cameraTargets(), selected);
-      if (!hasAppliedInitialCamera) hasAppliedInitialCamera = experienceCameraApi.applyInitialCamera({
-        configuration: data.applicationProfile.camera,
-        renderer,
-        focusSelect: elements.cameraFocus,
-        onModeSelected: (mode) => selectCameraMode(elements, mode),
       });
     }
 

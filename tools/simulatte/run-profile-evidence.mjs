@@ -105,6 +105,7 @@ function failedReceipt(run, sourceIdentity, claims, error) {
       performance: { frameCount: 0, elapsedMs: null },
       screenshot: null,
       pixelReadback: { status: 'fail' },
+      visual: null,
       lifecycle: [],
       reload: { attempted: false, restored: false, reason: 'capture_failed' },
     },
@@ -134,6 +135,15 @@ function writePlan(outputDirectory, plan, inventory) {
   };
   fs.writeFileSync(path.join(outputDirectory, 'plan.json'), `${JSON.stringify(output, null, 2)}\n`);
   return output;
+}
+
+function prepareCaptureDirectory(outputDirectory) {
+  for (const relativePath of ['receipts', 'screenshots']) {
+    fs.rmSync(path.join(outputDirectory, relativePath), { recursive: true, force: true });
+  }
+  for (const relativePath of ['index.json', 'summary.md']) {
+    fs.rmSync(path.join(outputDirectory, relativePath), { force: true });
+  }
 }
 
 function relativeArtifactLink(outputDirectory, filePath) {
@@ -316,6 +326,7 @@ async function main() {
   const inventory = readJson(INVENTORY_PATH);
   const claims = expandClaims(ROOT, inventory);
   const identity = buildIdentity();
+  if (options.capture) prepareCaptureDirectory(options.outputDirectory);
   writePlan(options.outputDirectory, plan, inventory);
   if (options.planOnly) {
     console.log(`PROFILE-EVIDENCE plan profiles=${plan.profileIds.length} runs=${plan.runCount} claims=${claims.length}`);
@@ -343,4 +354,13 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   );
 }
 
-export { attemptSourceIdentity, buildIdentity, failedReceipt, parseArgs, profileClosureMatrix, validateIndex, worktreeSha256 };
+export {
+  attemptSourceIdentity,
+  buildIdentity,
+  failedReceipt,
+  parseArgs,
+  prepareCaptureDirectory,
+  profileClosureMatrix,
+  validateIndex,
+  worktreeSha256,
+};

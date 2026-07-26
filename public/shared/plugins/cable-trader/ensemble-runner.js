@@ -37,7 +37,10 @@
       });
       assertMatchedMember(baseline, intervention);
       members.push(createMember(index, baseSeed, baseline, intervention));
-      if ((index + 1) % 2 === 0 && index + 1 < config.simulation.ensembleSeeds.length) {
+      // Each member runs both allocation branches. Yield between every member so
+      // browser scenario changes never combine two complete paired simulations
+      // into one main-thread long task.
+      if (index + 1 < config.simulation.ensembleSeeds.length) {
         await yieldBrowserTask();
       }
     }

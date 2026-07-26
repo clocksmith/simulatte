@@ -252,6 +252,10 @@ function browserProbeExpression(run, seedIndex) {
       await waitFor(() => document.body.dataset.journeyPhase === 'completed', 'replay');
       lifecycle.push('replay');
     }
+    await waitFor(() => {
+      const transition = document.getElementById('autonomy-canvas')?.dataset.cameraTransition;
+      return !transition || transition === 'settled';
+    }, 'camera-settled', 5000);
     const tierReceipt = globalThis.__simulatteTierRunReceipt || null;
     const pluginRunReceipt = globalThis.__simulattePluginRunReceipt || null;
     const runReceipt = tierReceipt || pluginRunReceipt;
@@ -298,6 +302,47 @@ function browserProbeExpression(run, seedIndex) {
     const settlements = tierReceipt?.settlement
       ? (Array.isArray(tierReceipt.settlement) ? tierReceipt.settlement.flat() : [tierReceipt.settlement])
       : pluginRunReceipt?.settlements || [];
+    const canvas = document.getElementById('autonomy-canvas');
+    const canvasRect = canvas?.getBoundingClientRect() || null;
+    const visibleRect = (element) => {
+      if (!element) return null;
+      const style = getComputedStyle(element);
+      const rect = element.getBoundingClientRect();
+      if (
+        style.display === 'none'
+        || style.visibility === 'hidden'
+        || Number(style.opacity) === 0
+        || rect.width <= 0
+        || rect.height <= 0
+      ) return null;
+      return {
+        id: element.id || element.className || element.tagName.toLowerCase(),
+        x: rect.x,
+        y: rect.y,
+        width: rect.width,
+        height: rect.height,
+      };
+    };
+    const overlays = [
+      visibleRect(document.querySelector('.visualizer-hud')),
+      visibleRect(document.getElementById('plugin-map-ui')),
+      visibleRect(document.getElementById('plugin-hud-ui')),
+    ].filter(Boolean);
+    const clippedArea = (rect, bounds) => {
+      if (!bounds) return 0;
+      const width = Math.max(0, Math.min(rect.x + rect.width, bounds.right) - Math.max(rect.x, bounds.left));
+      const height = Math.max(0, Math.min(rect.y + rect.height, bounds.bottom) - Math.max(rect.y, bounds.top));
+      return width * height;
+    };
+    const canvasArea = canvasRect ? canvasRect.width * canvasRect.height : 0;
+    const overlayAreas = overlays.map((rect) => clippedArea(rect, canvasRect));
+    const viewDecision = platform?.view?.state?.decision || null;
+    const sourceIntentId = viewDecision?.intentId?.startsWith(viewDecision.source + ':')
+      ? viewDecision.intentId.slice(viewDecision.source.length + 1)
+      : null;
+    const expectedFocusId = ${JSON.stringify(run.tier === 'city')} && sourceIntentId && ['overview', 'compare'].includes(viewDecision.mode)
+      ? 'plugin:' + viewDecision.source + ':' + sourceIntentId
+      : null;
     return {
       runtime: {
         path: native ? 'native-v4' : contributionSources.some((row) => row.source === 'legacy-adapter') ? 'legacy-adapter' : 'unproven-v4',
@@ -318,6 +363,28 @@ function browserProbeExpression(run, seedIndex) {
         settlements,
         reload: null,
         lifecycle,
+        visual: {
+          schema: 'simulatte.renderedEvidence.v1',
+          canvas: canvasRect ? {
+            x: canvasRect.x,
+            y: canvasRect.y,
+            width: canvasRect.width,
+            height: canvasRect.height,
+          } : null,
+          overlays,
+          obstructionRatio: canvasArea > 0
+            ? overlayAreas.reduce((sum, area) => sum + area, 0) / canvasArea
+            : 1,
+          largestOverlayRatio: canvasArea > 0
+            ? Math.max(0, ...overlayAreas) / canvasArea
+            : 1,
+          camera: {
+            mode: canvas?.dataset.cameraMode || null,
+            focusId: canvas?.dataset.cameraFocus || null,
+            transition: canvas?.dataset.cameraTransition || null,
+            expectedFocusId,
+          },
+        },
         performance: {
           frameCount: Number(document.getElementById('autonomy-canvas')?.dataset.frameCount || progressiveStates.length),
           elapsedMs: performance.now() - started,

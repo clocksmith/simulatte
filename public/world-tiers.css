@@ -290,6 +290,35 @@
   display: block;
 }
 
+@media (max-width: 560px) {
+  .visualizer-hud {
+    top: 64px;
+    left: 10px;
+    max-width: 240px;
+    max-height: 200px;
+    overflow: auto;
+    padding: 10px 12px;
+  }
+
+  .visualizer-hud h3 {
+    font-size: 0.95rem;
+  }
+
+  .visualizer-hud p {
+    margin-bottom: 8px;
+    font-size: 0.75rem;
+  }
+
+  .visualizer-hud .hud-stat {
+    margin-bottom: 4px;
+    font-size: 0.72rem;
+  }
+
+  .visualizer-hud .hud-help {
+    display: none;
+  }
+}
+
 /* Animations */
 @keyframes fadeInDown {
   from {

@@ -1569,16 +1569,29 @@ body[data-journey-phase="failed"] .scenario-field {
 @media (max-width: 560px) {
   .runtime-anchor {
     top: max(10px, env(safe-area-inset-top));
+    right: max(10px, env(safe-area-inset-right));
     left: max(10px, env(safe-area-inset-left));
+    max-width: none;
   }
 
   .runtime-toolbar {
+    width: 100%;
     align-items: center;
     gap: 7px;
   }
 
+  #world-tier-control {
+    flex: 0 0 auto;
+    max-width: 112px;
+  }
+
+  #application-profile-control {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
   .profile-selector {
-    max-width: max(64px, calc(100vw - 330px));
+    max-width: none;
   }
 
   .profile-selector .select-trigger {
@@ -1652,6 +1665,20 @@ body[data-journey-phase="failed"] .scenario-field {
   .plugin-hud-ui {
     right: max(10px, env(safe-area-inset-right));
     bottom: calc(max(10px, env(safe-area-inset-bottom)) + 146px);
+    max-width: min(280px, calc(100vw - 20px));
+  }
+
+  .plugin-hud-card {
+    max-height: min(28dvh, 220px);
+    overflow: auto;
+  }
+
+  .world-explorer .plugin-map-ui {
+    top: calc(max(10px, env(safe-area-inset-top)) + 48px);
+  }
+
+  .world-explorer .plugin-hud-ui {
+    bottom: max(10px, env(safe-area-inset-bottom));
   }
 
   .mission-dock {

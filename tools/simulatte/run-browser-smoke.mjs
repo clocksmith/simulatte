@@ -49,6 +49,22 @@ function parseViewport(value) {
   return viewport;
 }
 
+function semanticCameraExpectation(decision) {
+  if (!decision || typeof decision.source !== 'string' || typeof decision.mode !== 'string') return null;
+  const sourceIntentId = decision.intentId?.startsWith(`${decision.source}:`)
+    ? decision.intentId.slice(decision.source.length + 1)
+    : null;
+  const aggregateFocusId = sourceIntentId ? `plugin:${decision.source}:${sourceIntentId}` : null;
+  const subjectFocusId = decision.targetIds?.[0] ? `plugin:${decision.source}:${decision.targetIds[0]}` : null;
+  if (['overview', 'compare'].includes(decision.mode)) {
+    return aggregateFocusId ? { mode: 'bird', focusId: aggregateFocusId } : null;
+  }
+  if (['follow', 'pov'].includes(decision.mode)) {
+    return subjectFocusId ? { mode: 'follow', focusId: subjectFocusId } : null;
+  }
+  return null;
+}
+
 function findChrome(explicitPath) {
   const candidates = [
     explicitPath,
@@ -114,10 +130,6 @@ async function runBrowserSmoke(options) {
   const expectedProfileIds = cityProfileIds();
   const expectedPluginIds = new Set(expectedProfile.plugins.map((row) => row.id));
   const expectedRunCameraMode = expectedProfile.camera?.runMode || 'follow';
-  const expectedInitialCameraMode = expectedProfile.camera?.initialMode || 'bird';
-  const expectedInitialCameraFocus = expectedProfile.camera?.pluginId
-    ? `plugin:${expectedProfile.camera.pluginId}:${expectedProfile.camera.targetId}`
-    : 'route';
   const devtoolsPort = await freePort();
   const profileDir = fs.mkdtempSync(path.join(os.tmpdir(), 'simulatte-autonomy-browser-'));
   const chrome = spawn(chromePath, [
@@ -191,7 +203,26 @@ async function runBrowserSmoke(options) {
     await client.send('Runtime.evaluate', {
       expression: `(async () => {
         const started = performance.now();
-        while (document.body.dataset.journeyPhase === 'loading' || document.getElementById('autonomy-canvas').dataset.cameraTransition !== 'settled') {
+        const canvas = document.getElementById('autonomy-canvas');
+        const expectation = () => {
+          const decision = globalThis.__simulattePluginPlatformV4?.view?.state?.decision;
+          if (!decision || decision.source === 'core-fallback') return null;
+          const sourceIntentId = decision.intentId?.startsWith(decision.source + ':')
+            ? decision.intentId.slice(decision.source.length + 1)
+            : null;
+          if (!sourceIntentId || !['overview', 'compare'].includes(decision.mode)) return null;
+          return {
+            mode: 'bird',
+            focusId: 'plugin:' + decision.source + ':' + sourceIntentId,
+          };
+        };
+        while (
+          document.body.dataset.journeyPhase === 'loading'
+          || !expectation()
+          || canvas.dataset.cameraTransition !== 'settled'
+          || canvas.dataset.cameraMode !== expectation().mode
+          || canvas.dataset.cameraFocus !== expectation().focusId
+        ) {
           if (performance.now() - started > 5000) throw new Error('initial experience view did not settle');
           await new Promise((resolve) => setTimeout(resolve, 50));
         }
@@ -287,6 +318,13 @@ async function runBrowserSmoke(options) {
           && featureView.cableTrader.pathCount >= 1
         : !featureView.cableTrader.visible);
     const isPluginPlayback = expectedProfile.interaction?.mode === 'playback';
+    const initialViewExpectation = semanticCameraExpectation(result.camera.initial.decision);
+    const initialViewPass = Boolean(
+      initialViewExpectation
+      && expectedPluginIds.has(result.camera.initial.decision.source)
+      && result.camera.initial.mode === initialViewExpectation.mode
+      && result.camera.initial.focus === initialViewExpectation.focusId
+    );
     const autonomyProofPassed = isPluginPlayback
       ? result.pluginPlayback?.schema === 'simulatte.pluginPlaybackRunReceipt.v1'
         && result.pluginPlayback.settlements?.every((row) => row.obligationResults.every((obligation) => obligation.status === 'settled'))
@@ -354,8 +392,7 @@ async function runBrowserSmoke(options) {
       && decisionView.summary.length > 0
       && result.camera.startedInConfiguredMode
       && result.camera.configuredRunMode === expectedRunCameraMode
-      && result.camera.initial.mode === expectedInitialCameraMode
-      && result.camera.initial.focus === expectedInitialCameraFocus
+      && initialViewPass
       && (expectedRunCameraMode === 'follow'
         ? result.camera.minimap.visible && result.camera.minimap.frameCount > 0 && result.camera.minimap.projection === 'orthographic_top_north_up'
         : !result.camera.minimap.visible)
@@ -412,6 +449,7 @@ async function runBrowserSmoke(options) {
         && result.camera.modeProbes.every((row) => row.began && row.noSnap && row.progressed && row.settled && row.moved)
         && result.camera.regionFocus.settled
         && result.camera.returnedToRoute,
+      initialView: initialViewPass,
       plugins: featurePass,
       browserErrors: errors.length === 0 && failedResponses.length === 0,
     });
@@ -694,7 +732,11 @@ function browserJourneyExpression(expectedRunCameraMode = 'follow', expectsPlugi
     try { longTaskObserver?.observe({ type: 'longtask', buffered: true }); } catch { /* Long Tasks API is optional. */ }
     const canvas = document.getElementById('autonomy-canvas');
     const minimap = document.getElementById('follow-minimap');
-    const initialCamera = { mode: canvas.dataset.cameraMode, focus: canvas.dataset.cameraFocus };
+    const initialCamera = {
+      mode: canvas.dataset.cameraMode,
+      focus: canvas.dataset.cameraFocus,
+      decision: globalThis.__simulattePluginPlatformV4?.view?.state?.decision || null,
+    };
     const applicationProfile = document.getElementById('application-profile');
     const applicationProfileTrigger = document.getElementById('application-profile-trigger');
     const applicationProfileOptions = document.getElementById('application-profile-options');
@@ -1082,4 +1124,15 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   );
 }
 
-export { CdpClient, actorViewExpression, browserJourneyExpression, consentFlowExpression, createStaticServer, findChrome, parseUrl, parseViewport, runBrowserSmoke };
+export {
+  CdpClient,
+  actorViewExpression,
+  browserJourneyExpression,
+  consentFlowExpression,
+  createStaticServer,
+  findChrome,
+  parseUrl,
+  parseViewport,
+  runBrowserSmoke,
+  semanticCameraExpectation,
+};

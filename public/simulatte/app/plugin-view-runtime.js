@@ -56,23 +56,29 @@
       if (state.manualOverride || state.decision.source === 'core-fallback') return state;
       const decision = state.decision;
       const key = JSON.stringify([decision.source, decision.intentId, decision.mode, decision.targetIds]);
-      if (key === appliedDecision) return state;
       const sourceIntentId = decision.intentId?.slice(`${decision.source}:`.length) || null;
-      const candidates = [
-        ...decision.targetIds.map((id) => `plugin:${decision.source}:${id}`),
-        sourceIntentId ? `plugin:${decision.source}:${sourceIntentId}` : null,
-      ].filter(Boolean);
+      const intentTargetId = sourceIntentId ? `plugin:${decision.source}:${sourceIntentId}` : null;
+      const subjectTargetIds = decision.targetIds.map((id) => `plugin:${decision.source}:${id}`);
+      const candidates = ['overview', 'compare'].includes(decision.mode)
+        ? [intentTargetId, ...subjectTargetIds].filter(Boolean)
+        : [...subjectTargetIds, intentTargetId].filter(Boolean);
       const targetId = candidates.find((id) => renderer.cameraTargets().some((row) => row.id === id));
-      if (targetId) {
-        if (focusSelect) focusSelect.value = targetId;
-        renderer.focusCameraTarget(targetId);
-      }
       const cameraMode = ['follow', 'pov'].includes(decision.mode)
         ? 'follow'
         : ['overview', 'compare'].includes(decision.mode)
           ? 'bird'
           : null;
-      if (cameraMode) {
+      const cameraState = renderer.cameraState?.() || null;
+      if (
+        key === appliedDecision
+        && (!targetId || cameraState?.focusId === targetId)
+        && (!cameraMode || cameraState?.mode === cameraMode)
+      ) return state;
+      if (targetId && cameraState?.focusId !== targetId) {
+        if (focusSelect) focusSelect.value = targetId;
+        renderer.focusCameraTarget(targetId);
+      }
+      if (cameraMode && cameraState?.mode !== cameraMode) {
         renderer.setCameraMode(cameraMode);
         onModeSelected?.(cameraMode);
       }

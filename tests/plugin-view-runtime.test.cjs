@@ -92,7 +92,10 @@ test('plugin view runtime applies declarative intents through renderer-owned cam
   const focusSelect = { value: '' };
   const coordinator = viewRuntimeApi.createCoordinator({
     renderer: {
-      cameraTargets: () => [{ id: 'plugin:fixture:route' }],
+      cameraTargets: () => [
+        { id: 'plugin:fixture:active-view' },
+        { id: 'plugin:fixture:route' },
+      ],
       focusCameraTarget: (id) => calls.push(['focus', id]),
       setCameraMode: (mode) => calls.push(['mode', mode]),
     },
@@ -102,11 +105,64 @@ test('plugin view runtime applies declarative intents through renderer-owned cam
   const receipt = coordinator.sync([contribution('fixture')], [provenanceReceipt('fixture')]);
   assert.equal(receipt.state.decision.intentId, 'fixture:active-view');
   assert.deepEqual(receipt.provenance.resolvedTargetIds, ['route']);
-  assert.equal(focusSelect.value, 'plugin:fixture:route');
+  assert.equal(focusSelect.value, 'plugin:fixture:active-view');
   assert.deepEqual(calls, [
-    ['focus', 'plugin:fixture:route'],
+    ['focus', 'plugin:fixture:active-view'],
     ['mode', 'bird'],
     ['selected', 'bird'],
+  ]);
+});
+
+test('overview frames the aggregate intent while follow targets the active subject', () => {
+  const calls = [];
+  const coordinator = viewRuntimeApi.createCoordinator({
+    renderer: {
+      cameraTargets: () => [
+        { id: 'plugin:fixture:active-view' },
+        { id: 'plugin:fixture:route' },
+      ],
+      focusCameraTarget: (id) => calls.push(['focus', id]),
+      setCameraMode: (mode) => calls.push(['mode', mode]),
+    },
+  });
+  coordinator.sync([contribution('fixture', 'overview')], [provenanceReceipt('fixture')]);
+  coordinator.sync([contribution('fixture', 'follow')], [provenanceReceipt('fixture')]);
+  assert.deepEqual(calls, [
+    ['focus', 'plugin:fixture:active-view'],
+    ['mode', 'bird'],
+    ['focus', 'plugin:fixture:route'],
+    ['mode', 'follow'],
+  ]);
+});
+
+test('synchronization reapplies an unchanged semantic decision after renderer state refresh', () => {
+  const calls = [];
+  const camera = { mode: 'bird', focusId: 'route' };
+  const coordinator = viewRuntimeApi.createCoordinator({
+    renderer: {
+      cameraTargets: () => [
+        { id: 'plugin:fixture:active-view' },
+        { id: 'plugin:fixture:route' },
+      ],
+      focusCameraTarget: (id) => {
+        camera.focusId = id;
+        calls.push(['focus', id]);
+      },
+      setCameraMode: (mode) => {
+        camera.mode = mode;
+        calls.push(['mode', mode]);
+      },
+      cameraState: () => ({ ...camera }),
+    },
+  });
+  const active = contribution('fixture', 'overview');
+  const provenance = provenanceReceipt('fixture');
+  coordinator.sync([active], [provenance]);
+  camera.focusId = 'route';
+  coordinator.sync([active], [provenance]);
+  assert.deepEqual(calls, [
+    ['focus', 'plugin:fixture:active-view'],
+    ['focus', 'plugin:fixture:active-view'],
   ]);
 });
 

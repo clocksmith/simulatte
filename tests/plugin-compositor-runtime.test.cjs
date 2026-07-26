@@ -157,6 +157,55 @@ test('City renderer converts compositor pixels into visible world dimensions', (
   assert.equal(compiled.compositorReceipts[0].policies.screenSpaceWidths, true);
 });
 
+test('City segment-set paths render independently without invented connector geometry', () => {
+  const presentation = {
+    ...semanticPresentation(),
+    coordinateSystem: 'city-segment-id',
+    layers: [{
+      ...semanticPresentation().layers[0],
+      geometry: {
+        kind: 'segments',
+        coordinateSystem: 'city-segment-id',
+        segmentIds: ['segment-a', 'segment-b'],
+      },
+    }],
+    viewIntents: [{
+      schema: 'simulatte.viewIntent.v4',
+      id: 'overview',
+      mode: 'overview',
+      targetIds: ['flow'],
+      reasonEventId: null,
+      priority: 50,
+      transition: 'ease',
+    }],
+  };
+  const segments = new Map([
+    ['segment-a', { geometry: [{ x: 0, y: 0 }, { x: 10, y: 0 }] }],
+    ['segment-b', { geometry: [{ x: 1000, y: 1000 }, { x: 1010, y: 1000 }] }],
+  ]);
+  const compiled = cityPresentation.compile([{
+    pluginId: 'fixture',
+    presentation,
+  }], {
+    world: {},
+    node() { throw new Error('unused'); },
+    segment(id) { return segments.get(id); },
+  }, {
+    viewport: { width: 400, height: 300 },
+    provenanceReceipts: [provenanceReceipt(presentation)],
+  });
+  assert.equal(compiled.paths.length, 2);
+  assert.deepEqual(compiled.paths.map((row) => row.points), [
+    segments.get('segment-a').geometry,
+    segments.get('segment-b').geometry,
+  ]);
+  assert.ok(compiled.paths.every((row) => row.memberIds.includes('flow')));
+  assert.ok(
+    compiled.paths.every((row) => row.widthM >= row.style.widthPx * Math.hypot(1010, 1000) * 1.2 / 252 * 0.999),
+    'semantic widths must account for the fitted perspective camera, not only axis-aligned extent'
+  );
+});
+
 test('governed tier presentation consumes the same compositor contract', () => {
   const presentation = semanticPresentation();
   const compiled = tierPresentation.compileTierPresentation(

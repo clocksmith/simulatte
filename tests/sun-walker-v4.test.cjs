@@ -247,7 +247,14 @@ test('plugin lifecycle advances the modeled walk without owning playback delay o
   assert.ok(receipts.some((row) => row.schema === 'simulatte.plugin.sunWalkerSelectionReceipt.v2'));
   assert.ok(receipts.some((row) => row.schema === 'simulatte.plugin.sunWalkerPlaybackReceipt.v1'));
   assert.ok(proposed.some((row) => row.kind === 'sun-walker.playback-advanced'));
-  assert.deepEqual(instance.view()[1].actions, []);
+  const views = instance.view();
+  assert.deepEqual(views[1].actions, []);
+  const simulation = instance.simulationState();
+  const directSun = views[1].rows.find((row) => row.label === 'Direct sun');
+  assert.equal(
+    directSun.value,
+    `${Math.round(simulation.state.directSunSeconds)} of ${Math.round(instance.comparisonModel().metrics.travelSeconds.intervention)} s`
+  );
 });
 
 test('solar reference keeps nighttime distinct from missing geometric evidence', () => {

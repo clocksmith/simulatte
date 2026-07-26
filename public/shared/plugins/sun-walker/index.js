@@ -266,7 +266,7 @@
         { label: 'Shade-selected', value: `${Math.round(selected.metrics.modeledBuildingShadePercent)}% modeled building shade` },
         { label: 'Canopy', value: `${Math.round(selected.metrics.modeledCanopyShadePercent)}% modeled historical-canopy shade` },
         { label: 'Fastest', value: `${Math.round(fastest.metrics.modeledBuildingShadePercent)}% modeled building shade` },
-        { label: 'Direct sun', value: `${Math.round(snapshot.state.directSunSeconds)} of ${Math.round(selected.metrics.directSunSeconds)} s` },
+        { label: 'Direct sun', value: `${Math.round(snapshot.state.directSunSeconds)} of ${Math.round(selected.metrics.travelSeconds)} s` },
         { label: 'Added travel', value: `${Math.round(simulation.comparison.metrics.travelSeconds.difference)} s` },
         {
           label: 'Sun',

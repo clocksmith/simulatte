@@ -8,7 +8,7 @@
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createSemanticCompositorModule(contracts) {
   const ORIGIN_COLORS = Object.freeze({
     observed: '#64d8cb',
-    derived: '#7ab8ff',
+    derived: '#35e7ff',
     modeled: '#c39bff',
     simulated: '#ffb45c',
     scenario: '#ff7c9c',
@@ -127,7 +127,7 @@
     return deepFreeze({
       color: ORIGIN_COLORS[layer.provenance.axes.origin],
       widthPx: layer.kind === 'path'
-        ? round(clamp(1 + normalized * 1.6 + roleWeight * 0.4 + (selected ? 0.8 : 0), 1, 4))
+        ? round(clamp(2.2 + normalized * 0.9 + roleWeight * 0.6 + (selected ? 0.6 : 0), 2.2, 4))
         : null,
       radiusPx: ['point', 'actor'].includes(layer.kind)
         ? round(clamp(3 + normalized * 5 + (selected ? 2 : 0), 3, 10))

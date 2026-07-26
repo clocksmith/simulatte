@@ -133,10 +133,9 @@
       appendNetworkReceipt(nextSimulation);
       if (activeComparisonSimulationId !== nextSimulation.id) {
         await yieldBrowserTask();
-        [activeComparisonRun, activeEnsembleRun] = await Promise.all([
-          executeComparison(nextSimulation),
-          executeEnsemble(),
-        ]);
+        activeComparisonRun = await executeComparison(nextSimulation);
+        await yieldBrowserTask();
+        activeEnsembleRun = await executeEnsemble();
         activeComparisonSimulationId = nextSimulation.id;
       }
       return nextSimulation.summary;

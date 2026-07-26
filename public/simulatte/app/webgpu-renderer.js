@@ -334,6 +334,14 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       return structuredClone(state.targets);
     }
 
+    function cameraState() {
+      return Object.freeze({
+        mode: state.mode,
+        focusId: state.focusId,
+        transition: state.transition ? 'active' : 'settled',
+      });
+    }
+
     function receipt() {
       return {
         schema: 'simulatte.autonomyWebGpuRenderReceipt.v5',
@@ -400,7 +408,19 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
     }
 
     state.animationFrame = requestAnimationFrame(animationFrame);
-    return { render, reset, setCameraMode, focusCameraTarget, cameraTargets, setPluginPresentations, receipt, destroy, device, adapterInfo };
+    return {
+      render,
+      reset,
+      setCameraMode,
+      focusCameraTarget,
+      cameraTargets,
+      cameraState,
+      setPluginPresentations,
+      receipt,
+      destroy,
+      device,
+      adapterInfo,
+    };
   }
 
   function createVertexBuffer(device, data, label) {
