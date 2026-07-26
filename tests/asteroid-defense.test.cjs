@@ -103,6 +103,18 @@ test('all five scenarios replay deterministically and keep frequency separate fr
     assert.equal(first.baselineEncounter.probabilityClaimAllowed, false);
     assert.match(first.baselineEncounter.interpretation, /not an impact probability/i);
     assert.equal(first.ensembleReceipt.samples.length, parameters.ensembleSize);
+    assert.equal(first.snapshots[4].baselineEncounter.schema, 'simulatte.asteroidEncounterSummary.v1');
+    assert.equal(Object.hasOwn(first.snapshots[4].baselineEncounter, 'members'), false);
+    assert.ok(first.baselineEncounter.members.every((member) => (
+      member.propagationReceipts.every((receipt) => (
+        !Object.hasOwn(receipt, 'trajectory')
+        && receipt.trajectorySummary.sampleCount > 0
+      ))
+    )));
+    assert.ok(
+      Buffer.byteLength(JSON.stringify(first)) < 8 * 1024 * 1024,
+      'a governed Asteroid result must fit within the runtime serialization budget',
+    );
   }
 });
 

@@ -1,0 +1,76 @@
+{
+  "schema": "simulatte.interstellarOperationsModels.v1",
+  "id": "interstellar.operations.models.v1",
+  "contentVersion": "2026-07-26",
+  "provenance": {
+    "publisher": "Simulatte",
+    "retrievalAt": "2026-07-26T00:00:00Z",
+    "license": {
+      "id": "CC-BY-4.0",
+      "url": "https://creativecommons.org/licenses/by/4.0/"
+    },
+    "coverage": {
+      "kind": "scenario-parameter-catalog",
+      "scope": "Hypothetical autonomous interstellar relay operations"
+    },
+    "truth": {
+      "origin": "scenario",
+      "temporalStatus": "forecast",
+      "uncertainty": {
+        "kind": "distribution",
+        "value": {
+          "family": "declared-operational-profiles",
+          "reason": "No operating interstellar terminal population exists for calibration."
+        }
+      }
+    }
+  },
+  "profiles": [
+    {
+      "id": "nominal-autonomous",
+      "label": "Nominal autonomous operations",
+      "acquisitionMeanHours": 12,
+      "dutyCycle": 0.99,
+      "meanTimeBetweenFailuresHours": 87600,
+      "meanRepairHours": 48,
+      "maintenanceIntervalHours": 43800,
+      "maintenanceDurationHours": 24,
+      "retryLimit": 3,
+      "queueMeanDelayHours": 2,
+      "dustExtinctionMagPerPc": 0.0002,
+      "plasmaLossDbPerPc": 0.002,
+      "detectorNoiseScale": 1
+    },
+    {
+      "id": "stressed-autonomous",
+      "label": "Stressed autonomous operations",
+      "acquisitionMeanHours": 72,
+      "dutyCycle": 0.9,
+      "meanTimeBetweenFailuresHours": 17520,
+      "meanRepairHours": 720,
+      "maintenanceIntervalHours": 8760,
+      "maintenanceDurationHours": 168,
+      "retryLimit": 5,
+      "queueMeanDelayHours": 48,
+      "dustExtinctionMagPerPc": 0.001,
+      "plasmaLossDbPerPc": 0.02,
+      "detectorNoiseScale": 5
+    },
+    {
+      "id": "severe-disruption",
+      "label": "Severe disruption ensemble",
+      "acquisitionMeanHours": 720,
+      "dutyCycle": 0.55,
+      "meanTimeBetweenFailuresHours": 4380,
+      "meanRepairHours": 8760,
+      "maintenanceIntervalHours": 4380,
+      "maintenanceDurationHours": 720,
+      "retryLimit": 8,
+      "queueMeanDelayHours": 720,
+      "dustExtinctionMagPerPc": 0.005,
+      "plasmaLossDbPerPc": 0.1,
+      "detectorNoiseScale": 25
+    }
+  ],
+  "claimBoundary": "All acquisition, outage, maintenance, repair, retry, queue, dust, plasma, and detector-noise parameters are declared scenarios rather than observed interstellar operations."
+}

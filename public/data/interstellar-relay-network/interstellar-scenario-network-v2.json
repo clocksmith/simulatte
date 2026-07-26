@@ -69,8 +69,8 @@
         "gaia-sol",
         "gaia-barnard"
       ],
-      "transceiverId": "autonomous-relay-node",
-      "baselineTransceiverId": "autonomous-relay-node",
+      "transceiverId": "high-power-array",
+      "baselineTransceiverId": "sol-primary-gateway",
       "packetBytes": 1048576,
       "relayPolicy": "store-and-forward",
       "truth": {
@@ -99,8 +99,8 @@
         "gaia-sol",
         "gaia-lalande-21185"
       ],
-      "transceiverId": "autonomous-relay-node",
-      "baselineTransceiverId": "autonomous-relay-node",
+      "transceiverId": "high-power-array",
+      "baselineTransceiverId": "sol-primary-gateway",
       "packetBytes": 262144,
       "relayPolicy": "store-and-forward",
       "truth": {

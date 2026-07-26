@@ -1,6 +1,6 @@
 {
   "schema": "simulatte.interstellarDatasetManifest.v2",
-  "generatedAt": "2026-07-25T00:00:00Z",
+  "generatedAt": "2026-07-26T00:00:00Z",
   "generator": "node tools/interstellar-relay/build-governed-relay-data.mjs",
   "sources": [
     {
@@ -24,6 +24,14 @@
       "validationCommand": "node --test tests/interstellar-relay-network-v4.test.cjs"
     },
     {
+      "id": "hyg.visible-stars.v1",
+      "filename": "../simulatte/cache/space/star-chart.json",
+      "schemaId": "simulatte.starCatalog.v1",
+      "sha256": "7ec4d4806499e8d853f32851459409d7cc7e3c2b7bbf7924386c2343c666943b",
+      "contentVersion": "2026-07-20",
+      "validationCommand": "node --test tests/interstellar-relay-network-v4.test.cjs"
+    },
+    {
       "id": "relay.hardware.archetypes.v2",
       "filename": "relay-hardware-archetypes-v2.json",
       "schemaId": "simulatte.relayHardwareArchetypes.v2",
@@ -35,7 +43,7 @@
       "id": "interstellar.scenario.network.v2",
       "filename": "interstellar-scenario-network-v2.json",
       "schemaId": "simulatte.interstellarScenarioNetwork.v2",
-      "sha256": "507c7c7d6f797beb124e222af40dbd5e9b96402ec55d84e5b41d70278508ddc1",
+      "sha256": "4a68933d87212815ee9b3f4450578313f40b33aea071fe379b134a0f1c4ec912",
       "contentVersion": "2026-07-25",
       "validationCommand": "node --test tests/interstellar-relay-network-v4.test.cjs"
     },
@@ -45,6 +53,22 @@
       "schemaId": "simulatte.interstellarRelayModelCatalog.v1",
       "sha256": "1c12642b8048d4f6b820e7714ddf1f70005459bf10bf2e45c98e448171adc184",
       "contentVersion": "2026-07-25",
+      "validationCommand": "node --test tests/interstellar-relay-network-v4.test.cjs"
+    },
+    {
+      "id": "interstellar.operations.models.v1",
+      "filename": "interstellar-operations-models-v1.json",
+      "schemaId": "simulatte.interstellarOperationsModels.v1",
+      "sha256": "3809e2fcc9062f9130b634e08123c68b028c36d54dfe873a2c1e398bda800fbb",
+      "contentVersion": "2026-07-26",
+      "validationCommand": "node --test tests/interstellar-relay-network-v4.test.cjs"
+    },
+    {
+      "id": "interstellar.advanced.channels.v1",
+      "filename": "interstellar-advanced-channels-v1.json",
+      "schemaId": "simulatte.interstellarAdvancedChannels.v1",
+      "sha256": "32aa6fbf6a9c5114eda80399eaafc205d65bd4eeb5eb88fc3a9d5c3a487f8630",
+      "contentVersion": "2026-07-26",
       "validationCommand": "node --test tests/interstellar-relay-network-v4.test.cjs"
     }
   ]

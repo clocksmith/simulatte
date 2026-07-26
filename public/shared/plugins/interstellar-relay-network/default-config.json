@@ -3,6 +3,13 @@
   "id": "interstellar-relay-network-config-v1",
   "defaultTransceiver": "sol-primary-gateway",
   "defaultScenarioId": "sol-proxima-direct",
+  "defaultRoutingMode": "automatic",
+  "defaultRouteObjective": "balanced",
+  "defaultChannelMode": "classical-optical",
+  "defaultOperationsProfileId": "nominal-autonomous",
+  "maxHops": 6,
+  "maxHopDistancePc": 20,
+  "ensembleSize": 64,
   "processingDelayHours": 8,
   "startEpochIso": "2026-07-25T00:00:00Z",
   "targetEpochYear": 2026.5

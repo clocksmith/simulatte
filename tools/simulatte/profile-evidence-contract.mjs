@@ -42,6 +42,8 @@ const TIER_INTERACTIONS = Object.freeze([
   'reload',
 ]);
 
+const MAX_PROFILE_EVIDENCE_RECEIPT_BYTES = 8 * 1024 * 1024;
+
 function canonicalize(value) {
   if (Array.isArray(value)) return value.map(canonicalize);
   if (!value || typeof value !== 'object') return value;
@@ -350,9 +352,35 @@ function pluginPlaybackIdentity(value) {
   };
 }
 
+function isContentAddressedReference(value, schema) {
+  return value?.schema === schema
+    && /^[a-f0-9]{64}$/i.test(value.contentSha256 || '')
+    && Number.isSafeInteger(value.byteLength)
+    && value.byteLength > 0;
+}
+
 function isRestoredRunEvidence(value, run) {
   if (!value || value.attempted !== true || value.restored !== true) return false;
   if (run.tier === 'city') {
+    if (
+      isContentAddressedReference(value.beforeReceipt, 'simulatte.profileEvidenceRunReceiptRef.v1')
+      && isContentAddressedReference(value.afterReceipt, 'simulatte.profileEvidenceRunReceiptRef.v1')
+    ) {
+      const before = value.beforeReceipt;
+      const after = value.afterReceipt;
+      return Boolean(
+        before.originalSchema === 'simulatte.pluginPlaybackRunReceipt.v1'
+        && after.originalSchema === 'simulatte.pluginPlaybackRunReceipt.v1'
+        && before.status === 'settled'
+        && after.status === 'settled'
+        && before.scenario?.id === run.seedId
+        && after.scenario?.id === run.seedId
+        && before.scenario?.seed === run.seed
+        && after.scenario?.seed === run.seed
+        && before.restorationIdentitySha256
+        && before.restorationIdentitySha256 === after.restorationIdentitySha256
+      );
+    }
     const before = pluginPlaybackIdentity(value.beforeReceipt);
     const after = pluginPlaybackIdentity(value.afterReceipt);
     return Boolean(before
@@ -427,6 +455,10 @@ function validateSourceIdentity(receipt, expectedSource) {
 
 function validateReceipt({ receipt, run, sourceIdentity, claims }) {
   const failures = [];
+  const receiptByteLength = Buffer.byteLength(canonicalJson(receipt));
+  if (receiptByteLength > MAX_PROFILE_EVIDENCE_RECEIPT_BYTES) {
+    failures.push('receipt_size_budget_exceeded');
+  }
   if (receipt.schema !== 'simulatte.profileEvidenceReceipt.v1') failures.push('receipt_schema_invalid');
   if (receipt.run?.id !== run.id) failures.push('run_identity_mismatch');
   if (receipt.run?.profileId !== run.profileId) failures.push('profile_identity_mismatch');
@@ -486,6 +518,18 @@ function validateReceipt({ receipt, run, sourceIdentity, claims }) {
   } else if (!receipt.evidence.settlements.every(isSettledEvidenceReceipt)) {
     failures.push('settlement_receipt_invalid');
   }
+  const eventReferences = (receipt.evidence?.events || []).filter((event) => (
+    event?.schema === 'simulatte.profileEvidenceEventRef.v1'
+  ));
+  if (eventReferences.some((event) => !isContentAddressedReference(event, 'simulatte.profileEvidenceEventRef.v1'))) {
+    failures.push('event_reference_invalid');
+  }
+  if (
+    receipt.runtime?.runReceipt?.schema === 'simulatte.profileEvidenceRunReceiptRef.v1'
+    && !isContentAddressedReference(receipt.runtime.runReceipt, 'simulatte.profileEvidenceRunReceiptRef.v1')
+  ) {
+    failures.push('run_receipt_reference_invalid');
+  }
   if (!isRestoredRunEvidence(receipt.evidence?.reload, run)) {
     failures.push(run.tier === 'city' ? 'plugin_playback_reload_not_restored' : 'run_reload_not_restored');
   }
@@ -524,6 +568,7 @@ function storeReceipt(storeDirectory, receipt) {
 }
 
 export {
+  MAX_PROFILE_EVIDENCE_RECEIPT_BYTES,
   PROFILE_IDS,
   VIEWPORTS,
   addressReceipt,
@@ -533,6 +578,7 @@ export {
   currentSourceIdentity,
   expandClaims,
   isRestoredRunEvidence,
+  isContentAddressedReference,
   isSettledEvidenceReceipt,
   isSettledComparisonExecutionReceipt,
   loadProfiles,

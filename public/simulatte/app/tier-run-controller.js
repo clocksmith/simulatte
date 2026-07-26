@@ -73,7 +73,7 @@
         if (generation !== runGeneration) return snapshot();
         scenarioResult = result;
         render();
-        if (result?.status === 'settled') await complete(generation);
+        if (isTerminalResult(result)) await complete(generation);
         else if (result?.status === 'running') schedule(generation);
         else throw controllerError(
           'tier_scenario_action_refused',
@@ -161,7 +161,7 @@
       if (generation !== runGeneration) return;
       scenarioResult = result;
       render();
-      if (result?.status === 'settled') await complete(generation);
+      if (isTerminalResult(result)) await complete(generation);
       else if (result?.status !== 'running') {
         throw controllerError(
           'tier_scenario_step_refused',
@@ -228,6 +228,10 @@
         'scenario.run',
         { scenario, values: { ...parameterValues, ...values } }
       );
+    }
+
+    function isTerminalResult(result) {
+      return result?.status === 'settled' || result?.status === 'failed';
     }
 
     function schedule(generation) {

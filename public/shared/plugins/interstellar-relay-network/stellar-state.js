@@ -52,10 +52,21 @@
     const velocity = tangential.map((value, index) => value + radialSpeedPcYr * radialUnit[index]);
     const dtYears = targetEpochYears - Number(star.referenceEpochYear || 2016.0);
     const propagated = position.map((value, index) => value + velocity[index] * dtYears);
+    const staticSnapshot = star.catalogDatasetId === 'hyg.visible-stars.v1';
     const distanceStandardErrorPc = Number.isFinite(star.parallaxErrorMas)
       ? (1000 * star.parallaxErrorMas) / Math.pow(star.parallaxMas, 2)
       : null;
-    const uncertainty = hasRadialVelocity
+    const uncertainty = staticSnapshot
+      ? Object.freeze({
+        kind: 'missing',
+        value: Object.freeze({
+          fields: Object.freeze(['pmRaMasYr', 'pmDecMasYr', 'radialVelocityKmS', 'covariance']),
+          appliedAssumption: 'static-catalog-position-with-zero-space-motion',
+          distanceStandardErrorPc,
+          catalogDatasetId: star.catalogDatasetId,
+        }),
+      })
+      : hasRadialVelocity
       ? Object.freeze({
         kind: 'interval',
         value: Object.freeze({
@@ -101,6 +112,7 @@
           referenceEpochYear: Number(star.referenceEpochYear || 2016),
           targetEpochYears,
           radialVelocityAssumption: hasRadialVelocity ? 'catalog-value' : 'zero',
+          motionSource: staticSnapshot ? 'unavailable-static-snapshot' : 'catalog-fields',
         }),
       }),
       truth: Object.freeze({ origin: 'derived', temporalStatus: 'forecast', uncertainty }),

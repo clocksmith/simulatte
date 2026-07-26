@@ -25,9 +25,14 @@ Select a tier with `?tier=<value>`.
 | **Country** | `country` | National food-supply and agricultural logistics simulation across U.S. regions. Plugin: **Food Recall (US)** |
 | **Planet** | `world` | Global container shipping routes, port queues, ocean chokepoints, and emissions engine. Plugin: **Maritime Trade (Global)** |
 | **Solar System** | `solar-system` | Heliocentric orbit ephemeris, Hohmann/Lambert transfer planning, and solar radiation dose calculations. Plugin: **Orbital Transfer Planner** |
-| **Universe** | `star-chart` | Three-dimensional Gaia DR3 ICRS stellar neighborhood, store-and-forward optical laser comms, and light-time delay queues. Plugin: **Interstellar Relay Network** |
+| **Universe** | `star-chart` | Three-dimensional visible-star catalog with arbitrary endpoints, Gaia-default bounded relay routing, operational disruptions, quantum-assisted optical links, and explicitly speculative spacetime metric lanes. Plugin: **Interstellar Relay Network** |
 
 All five scale tiers run governed plugin runtimes through versioned SDK contracts, deterministic RNG stream partitioning, and append-only cryptographic receipt chains.
+
+See the [canonical experience index](docs/simulatte/experiences/README.md) for
+the consistent product, controls, data-truth, simulation, comparison, claim,
+verification, and implementation description of every registered profile and
+proposal.
 
 ## City runtime
 

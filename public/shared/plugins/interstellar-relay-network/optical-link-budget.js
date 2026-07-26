@@ -16,7 +16,9 @@
     const jitterArcsec = Number(options.pointingJitterArcsec ?? transceiver.pointingJitterArcsec);
     const photonsPerBit = Number(transceiver.requiredDetectedPhotonsPerInformationBit);
     const codeRate = Number(transceiver.codeRate);
-    const backgroundPhotonRateHz = Number(transceiver.backgroundPhotonRateHz);
+    const backgroundPhotonRateHz = Number(
+      options.backgroundPhotonRateHz ?? transceiver.backgroundPhotonRateHz,
+    );
     const declaredAttenuation = Number(options.attenuationFactor ?? 1);
     const txGain = Math.pow(Math.PI * txApertureM / wavelengthM, 2);
     const rxGain = Math.pow(Math.PI * rxApertureM / wavelengthM, 2);
@@ -86,26 +88,18 @@
         modelId: 'diffraction-photon-budget-v2',
         parameterSourceIds: Object.freeze([`relay.hardware.archetypes.v2:${transceiver.id}`]),
         omissionIds: Object.freeze([
-          'acquisition-not-modeled',
-          'maintenance-not-modeled',
-          'plasma-not-modeled',
           'detector-background-noise-incomplete',
-          'retries-not-modeled',
           'infrastructure-not-observed',
-          'continuous-contact-assumed',
         ]),
         reliabilityScope: Object.freeze({
-          conditionalOn: Object.freeze(['continuous-contact-assumed', 'infrastructure-not-observed']),
+          conditionalOn: Object.freeze(['declared-attenuation-profile', 'infrastructure-not-observed']),
           excludes: Object.freeze([
-            'acquisition-not-modeled',
-            'maintenance-not-modeled',
-            'plasma-not-modeled',
             'detector-background-noise-incomplete',
-            'retries-not-modeled',
           ]),
         }),
         parameters: Object.freeze({
           attenuationFactor: declaredAttenuation,
+          backgroundPhotonRateHz,
           packetBits,
           codeRate,
           requiredDetectedPhotonsPerInformationBit: photonsPerBit,
@@ -125,19 +119,14 @@
             achievableDataRateGbps: Object.freeze([rateForPower(lowerPower), rateForPower(upperPower)]),
             sources: Object.freeze(['opticalEfficiencyInterval', 'pointingJitterUncertaintyPercent', 'astrometricDistanceInterval']),
             omissionIds: Object.freeze([
-              'acquisition-not-modeled',
-              'maintenance-not-modeled',
-              'plasma-not-modeled',
               'detector-background-noise-incomplete',
-              'retries-not-modeled',
               'infrastructure-not-observed',
-              'continuous-contact-assumed',
             ]),
-            continuousContactAssumed: true,
+            operationalAvailabilityModeledSeparately: true,
           }),
         }),
       }),
-      claimBoundary: 'Idealized diffraction-limited optical link over governed astrometry and scenario terminals. Acquisition outages, maintenance, interstellar plasma, and complete detector noise are not modeled.',
+      claimBoundary: 'Idealized diffraction-limited optical link over governed astrometry and scenario terminals. Declared dust/plasma attenuation and a background scalar are applied; a complete detector and spectral propagation model is not.',
     });
   }
 

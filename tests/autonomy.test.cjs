@@ -1299,6 +1299,8 @@ test('autonomy browser surface loads every declared module and stays independent
   assert.match(html, /id="shuffle-button"[^>]*>[\s\S]*?id="shuffle-label">Shuffle<\/span>/);
   assert.match(html, /id="start-button"[^>]*>[\s\S]*?id="start-label">Start<\/span>/);
   assert.match(html, /class="blank-link" href="https:\/\/create\.simulatte\.world\/"[^>]*>Create<\/a>/);
+  assert.equal((html.match(/class="blank-link"/g) || []).length, 1);
+  assert.doesNotMatch(html, /class="blank-link"[^>]*position:\s*fixed/);
   assert.match(compatibilityHtml, /Simulatte/);
   assert.match(compilerHtml, /class="prompt-dock-autonomy" href="https:\/\/simulatte\.world\/"/);
   assert.doesNotMatch(html, /Every autonomous choice, exposed and settled/);
