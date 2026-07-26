@@ -11,23 +11,60 @@
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createWorldTiersBoot(root, lifecycleApi, tierRegistry) {
   if (!tierRegistry) throw new Error('world_tiers_boot_tier_registry_missing');
   const TIER_LABELS = tierRegistry.TIER_LABELS;
+  const GITHUB_EXPERIENCE_DOC_BASE_URL = 'https://github.com/clocksmith/simulatte/blob/main/docs/simulatte/experiences/';
+  const EXPERIENCE_DOC_PATHS = Object.freeze({
+    'cable-trader-pickup-v1': 'cable-trader.md',
+    'neighborhood-bulk-pool-v1': 'neighborhood-bulk-pool.md',
+    'safety-explorer-v1': 'safety-explorer.md',
+    'sun-walker-v1': 'sun-walker.md',
+    'food-recall-us-v1': 'food-recall.md',
+    'grid-resilience-us-v1': 'grid-resilience.md',
+    'maritime-trade-global-v1': 'maritime-trade.md',
+    'subsea-network-global-v1': 'subsea-network.md',
+    'orbital-transfer-planner-v1': 'orbital-transfer-planner.md',
+    'asteroid-defense-v1': 'asteroid-defense.md',
+    'interstellar-relay-network-v1': 'interstellar-relay-network.md',
+  });
   const PROFILE_LABELS = Object.freeze({
     'cable-trader-pickup-v1': 'Cable Trader',
     'neighborhood-bulk-pool-v1': 'Neighborhood Bulk Pool',
     'safety-explorer-v1': 'Safety Explorer',
     'sun-walker-v1': 'Sun Walker',
     'food-recall-us-v1': 'Food Recall (US)',
+    'grid-resilience-us-v1': 'Grid Resilience',
     'maritime-trade-global-v1': 'Maritime Trade (Global)',
+    'subsea-network-global-v1': 'Subsea Network',
     'orbital-transfer-planner-v1': 'Orbital Transfer Planner',
+    'asteroid-defense-v1': 'Asteroid Defense',
     'interstellar-relay-network-v1': 'Interstellar Relay Network',
   });
+
+  function experienceDocUrl(profileId) {
+    const path = EXPERIENCE_DOC_PATHS[String(profileId || '')];
+    return path ? `${GITHUB_EXPERIENCE_DOC_BASE_URL}${path}` : null;
+  }
+
+  function updateExperienceDocLink(link, profileId) {
+    if (!link) return null;
+    const url = experienceDocUrl(profileId);
+    link.hidden = !url;
+    if (!url) {
+      link.removeAttribute?.('href');
+      return null;
+    }
+    const label = labelForProfile(profileId);
+    link.href = url;
+    link.setAttribute?.('aria-label', `Open ${label} documentation on GitHub`);
+    link.title = `Read how ${label} works`;
+    return url;
+  }
 
   // The app shell is the single owner of "which app is mounted". The router hands it a route
   // parsed from the URL path; the shell tears down whatever is mounted and boots the app the
   // route names — never a page reload. boot(tier, experience) -> { tier, experience, dispose }
   // dispatches to the city app or the governed tier explorer. Experience may be null, in which
   // case the loader resolves the tier's default and the shell canonicalizes the URL to match.
-  function createAppShell({ router, boot, landing }) {
+  function createAppShell({ router, boot, landing, documentationLink = null }) {
     let current = null; // { tier, experience, dispose }
     let pending = null;
     let generation = 0;
@@ -46,6 +83,7 @@
 
     function showLanding() {
       landing?.classList.remove('hidden');
+      updateExperienceDocLink(documentationLink, null);
       try { document.body.classList.remove('world-explorer'); } catch (_error) { /* no document */ }
     }
 
@@ -105,10 +143,12 @@
         return;
       }
       current = { tier: booted.tier, experience: booted.experience, dispose: booted.dispose };
+      reflectRoute(current);
       router.canonicalize({ tier: booted.tier, experience: booted.experience });
     }
 
     function reflectRoute(route) {
+      updateExperienceDocLink(documentationLink, route.experience);
       try {
         const label = document.getElementById('world-tier-label');
         if (label && TIER_LABELS[route.tier]) label.textContent = TIER_LABELS[route.tier];
@@ -153,12 +193,13 @@
   }
 
   async function bootGovernedTierExplorer(ctx,tier,requestedProfileId,options={}) {
-    const required=['SimulatteTierApplicationLoader','SimulattePluginRuntime','SimulatteGeneratedPluginRegistry','SimulatteDeclarativeUiHost','SimulatteApplicationProfileSelect','SimulattePluginRandom','SimulattePluginScheduler','SimulattePluginCompute','SimulattePluginEnvironment','SimulattePluginGeography','SimulatteSimulationClock','SimulatteViewDirector','SimulatteAutonomyReceipts','SimulatteTierRunController'];
+    const required=['SimulatteTierApplicationLoader','SimulattePluginRuntime','SimulatteGeneratedPluginRegistry','SimulatteDeclarativeUiHost','SimulatteApplicationProfileSelect','SimulatteCityInterface','SimulattePluginRandom','SimulattePluginScheduler','SimulattePluginCompute','SimulattePluginEnvironment','SimulattePluginGeography','SimulatteSimulationClock','SimulatteViewDirector','SimulatteAutonomyReceipts','SimulatteTierRunController'];
     const missing=required.find((name)=>!root[name]);
     if(missing)throw new Error(`tier_boot_dependency_missing: ${missing}`);
     const elements=ctx.collectElements();
     const lifecycle=lifecycleApi.create(options.signal);
     const on=lifecycle.on;
+    root.SimulatteCityInterface.wireInterfaceControls(elements,lifecycle.signal);
     let data=null;
     let tierVisualizer=null;
     let profileSelectUi=null;
@@ -186,7 +227,7 @@
         {resource:'plugin-runtime',dispose:()=>resources.runtime?.dispose()},
         {resource:'plugin-ui',dispose:()=>resources.pluginUi?.dispose?.()},
         {resource:'profile-select',dispose:()=>resources.profileSelectUi?.dispose()},
-        {resource:'tier-visualizer',dispose:()=>resources.tierVisualizer?.stop()},
+        {resource:'tier-visualizer',dispose:()=>resources.tierVisualizer?.destroy()},
         {resource:'body-state',dispose:()=>document.body.classList.remove('world-explorer')},
       ]);
     }
@@ -224,6 +265,14 @@
       const context={scenario:activeScenario,compositionSize:runtime.activePluginIds.length};
       const platform=runtime.platformV4(context);
       pluginUi.render(runtime.views(context),platform.contributions);
+      const controlCount=platform.contributions.reduce((total,contribution)=>total+contribution.controls.controls.length,0);
+      elements.decisionsButton.textContent=controlCount?`Controls (${controlCount})`:'Evidence';
+      tierVisualizer.setExperienceSummary?.(experienceHudSummary({
+        profileId:data.applicationProfile.id,
+        profileLabel:elements.applicationProfileLabel.textContent,
+        scenario:activeScenario,
+        contributions:platform.contributions,
+      }));
       const simulationTimeMs=Math.max(0,...platform.contributions.map((contribution)=>contribution.state?.simulationTimeMs||0));
       tierVisualizer.setPluginPresentations?.(platform.contributions.map((contribution)=>({pluginId:contribution.pluginId,presentation:contribution.presentation})),{simulationTimeMs,provenanceReceipts:platform.provenanceReceipts});
       if(!simulationClock)simulationClock=root.SimulatteSimulationClock.createClock({timeline:platform.timeline});
@@ -364,6 +413,38 @@
 
   function populateProfileSelect(select,entries,selectedId){select.replaceChildren(...entries.map((entry)=>{const option=document.createElement('option');option.value=entry.id;option.textContent=labelForProfile(entry.id);option.selected=entry.id===selectedId;return option;}));select.value=selectedId;}
   function labelForProfile(id){if(PROFILE_LABELS[id])return PROFILE_LABELS[id];return String(id).replace(/-v\d+$/,'').split('-').filter(Boolean).map((part)=>part.charAt(0).toUpperCase()+part.slice(1)).join(' ');}
+  function experienceHudSummary({profileId,profileLabel,scenario,contributions=[]}) {
+    const primary=contributions.find((contribution)=>contribution.state?.measures?.length)||contributions[0]||null;
+    const measures=(primary?.state?.measures||[]).filter((measure)=>measure.kind!=='progress').slice(0,5);
+    const controls=contributions.reduce((total,contribution)=>total+(contribution.controls?.controls?.length||0),0);
+    const stats=Object.fromEntries(measures.map((measure)=>[hudLabel(measure.kind),hudValue(measure)]));
+    if(!measures.length)stats.Controls=controls;
+    return Object.freeze({
+      experienceId:profileId,
+      title:profileLabel||labelForProfile(profileId),
+      description:[scenario?.label,hudLabel(primary?.state?.status||'ready')].filter(Boolean).join(' · '),
+      stats:Object.freeze(stats),
+      help:'Active experiment metrics. Change Controls, then Start to recompute.',
+    });
+  }
+  function hudLabel(value){return String(value||'').split(/[-_]/).filter(Boolean).map((part)=>part.charAt(0).toUpperCase()+part.slice(1)).join(' ');}
+  function hudValue(measure){
+    const value=Number(measure.value);
+    const formatted=!Number.isFinite(value)?String(measure.value):value!==0&&Math.abs(value)<0.001?value.toExponential(2):value.toLocaleString('en-US',{maximumFractionDigits:3});
+    return measure.unit?`${formatted} ${measure.unit}`:formatted;
+  }
 
-  return Object.freeze({ TIER_LABELS, PROFILE_LABELS, createAppShell, wireTierControls, bootGovernedTierExplorer, labelForProfile, populateProfileSelect });
+  return Object.freeze({
+    TIER_LABELS,
+    PROFILE_LABELS,
+    EXPERIENCE_DOC_PATHS,
+    experienceDocUrl,
+    updateExperienceDocLink,
+    createAppShell,
+    wireTierControls,
+    bootGovernedTierExplorer,
+    experienceHudSummary,
+    labelForProfile,
+    populateProfileSelect,
+  });
 });

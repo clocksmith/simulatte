@@ -81,6 +81,7 @@
     let pluginClock = null;
     let pluginViewRuntime = null;
     let pluginPlayback = null;
+    let pluginUi = null;
     let isRunning = false;
     let disposal = null;
 
@@ -94,19 +95,21 @@
         lifecycle.abort();
         elements.applicationProfile.disabled = true;
         const resources = {
-          profileSelectUi, placeResolver, tierVisualizer, renderer, extensions,
+          profileSelectUi, placeResolver, tierVisualizer, renderer, extensions, pluginUi,
         };
         profileSelectUi = null;
         placeResolver = null;
         tierVisualizer = null;
         renderer = null;
         extensions = null;
+        pluginUi = null;
         await mountLifecycleApi.disposeAll([
           { resource: 'profile-select-sync', dispose: () => resources.profileSelectUi?.sync() },
           { resource: 'place-resolver', dispose: () => resources.placeResolver?.unload() },
           { resource: 'tier-visualizer', dispose: () => resources.tierVisualizer?.destroy() },
           { resource: 'renderer', dispose: () => resources.renderer?.destroy() },
           { resource: 'plugin-runtime', dispose: () => resources.extensions?.dispose() },
+          { resource: 'plugin-ui', dispose: () => resources.pluginUi?.dispose() },
           { resource: 'plugin-playback', dispose: () => pluginPlayback?.dispose() },
           { resource: 'profile-select', dispose: () => resources.profileSelectUi?.dispose() },
         ], ({ resource, error }) => log.warn('app.dispose.resource_failed', {
@@ -199,7 +202,7 @@
       },
     });
     lifecycle.throwIfAborted();
-    const pluginUi = pluginUiApi.createDeclarativeUiHost({
+    pluginUi = pluginUiApi.createDeclarativeUiHost({
       rootElements: { inspector: elements.pluginInspector, map: elements.pluginMapUi, hud: elements.pluginHudUi },
       onAction: async ({ pluginId, actionId, command, values }) => {
         if (command?.kind === 'camera.focus') {
@@ -253,6 +256,16 @@
       const pluginContext = { ...context, compositionSize: extensions.activePluginIds.length };
       const platform = extensions.platformV4(pluginContext);
       pluginUi.render(extensions.views(pluginContext), platform.contributions);
+      const controlCount = platform.contributions.reduce((total, contribution) => total + contribution.controls.controls.length, 0);
+      elements.decisionsButton.textContent = controlCount ? `Controls (${controlCount})` : 'Evidence';
+      if (tierVisualizer && !elements.pluginMapUi.childElementCount) {
+        tierVisualizer.setExperienceSummary?.(hostRoot.SimulatteWorldTiersBoot.experienceHudSummary({
+          profileId: data.applicationProfile.id,
+          profileLabel: elements.applicationProfileLabel.textContent,
+          scenario: activeScenario,
+          contributions: platform.contributions,
+        }));
+      }
       if (!renderer) return;
       const selected = elements.cameraFocus.value || 'route';
       const semanticPresentations = platform.contributions.map((contribution) => ({
@@ -829,6 +842,7 @@
       // Load the city tier visualizer for this mount. Tier/experience switches are URL-driven and
       // re-boot in place through the shell — no page reload.
       await selectWorldTier(initialTier);
+      renderPluginExperience({ mission: activeMissionForPlugins });
     } catch (error) {
       // Tear this boot down cleanly (abort listeners, release GPU) and throw so the shell can retry
       // the tier default or surface the failure. No location.assign, no landing bounce.
@@ -946,7 +960,12 @@
       const boot = (tier, experience, options) => tier === 'city'
         ? start('city', experience, { navigate, signal: options?.signal })
         : SimulatteWorldTiersBoot.bootGovernedTierExplorer(governedCtx, tier, experience, options);
-      const shell = SimulatteWorldTiersBoot.createAppShell({ router, boot, landing: document.getElementById('world-tiers-landing-page') });
+      const shell = SimulatteWorldTiersBoot.createAppShell({
+        router,
+        boot,
+        landing: document.getElementById('world-tiers-landing-page'),
+        documentationLink: document.getElementById('experience-doc-link'),
+      });
       void Promise.resolve(shell.start()).catch((error) => {
         try { failRuntime(collectElements(), error); } catch (boundaryError) { log.error('runtime.bootstrap_failed', log.serializeError(boundaryError)); }
       });

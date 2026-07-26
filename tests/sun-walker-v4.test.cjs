@@ -209,6 +209,7 @@ test('plugin lifecycle advances the modeled walk without owning playback delay o
     routing: {
       alternatives: () => rows.routes,
       policy: () => ({ routeObjective: { travelSeconds: 1, sunExposureSeconds: 0.4 } }),
+      resolveMission: () => ({ originNodeId: 'a', destinationNodeId: 'b', embodimentId: 'pedestrian' }),
     },
     clock: { instantForMission: () => '2026-07-19T17:00:00Z' },
     state: {
@@ -226,8 +227,9 @@ test('plugin lifecycle advances the modeled walk without owning playback delay o
   const instance = await plugin.activate({
     sdk,
     config: { ...config, directSunWeight: 4 },
-    scenario: { seed: 'lifecycle-seed' },
+    scenario: { seed: 'lifecycle-seed', missionText: 'Take the shadier walk' },
   });
+  assert.ok(instance.contributeV4().controls.controls.length >= 7);
   const contribution = instance.contributeRequest({
     sourceText: 'Take the shadier walk',
     mission: { originNodeId: 'a', destinationNodeId: 'b', embodimentId: 'pedestrian' },

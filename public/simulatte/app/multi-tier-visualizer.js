@@ -162,6 +162,7 @@
 
     destroy() {
       this.stop();
+      this.removeHud();
       this.lifecycle.abort();
     }
 
@@ -187,6 +188,12 @@
       }
       html += `<span class="hud-help">${help}</span>`;
       this.hudElement.innerHTML = html;
+    }
+
+    setExperienceSummary(summary) {
+      if (!summary) return;
+      this.updateHudContent(summary.title, summary.description, summary.stats, summary.help);
+      this.hudElement.dataset.experienceId = summary.experienceId;
     }
 
     async loadTierCache(relativePath, { required = true, context = 'cache', parser = null, fallback = null } = {}) {

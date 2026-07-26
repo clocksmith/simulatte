@@ -1,5 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
 
 const lifecycleApi = require('../public/simulatte/app/mount-lifecycle.js');
 const routerApi = require('../public/simulatte/app/router.js');
@@ -11,6 +13,43 @@ function deferred() {
   return { promise, resolve };
 }
 
+function fakeLink() {
+  return {
+    hidden: true,
+    href: '',
+    title: '',
+    setAttribute(name, value) { this[name] = value; },
+    removeAttribute(name) { delete this[name]; },
+  };
+}
+
+test('experience HUD summary binds the active profile, scenario, and V4 state measures', () => {
+  const summary = bootApi.experienceHudSummary({
+    profileId: 'grid-resilience-us-v1',
+    profileLabel: 'Grid Resilience',
+    scenario: { label: 'Heat demand peak' },
+    contributions: [{
+      controls: { controls: [{ id: 'policy' }] },
+      state: {
+        status: 'ready',
+        measures: [
+          { kind: 'progress', value: 0, unit: 'ratio' },
+          { kind: 'modeled-unserved-energy', value: 377766.206936, unit: 'MWh' },
+          { kind: 'minimum-reserve-margin', value: -0.12, unit: 'ratio' },
+        ],
+      },
+    }],
+  });
+
+  assert.equal(summary.experienceId, 'grid-resilience-us-v1');
+  assert.equal(summary.title, 'Grid Resilience');
+  assert.equal(summary.description, 'Heat demand peak · Ready');
+  assert.deepEqual(summary.stats, {
+    'Modeled Unserved Energy': '377,766.207 MWh',
+    'Minimum Reserve Margin': '-0.12 ratio',
+  });
+});
+
 test('router paths preserve the governed tier and full experience id', () => {
   assert.deepEqual(routerApi.parsePath('/world/maritime-trade-global-v1'), {
     tier: 'world',
@@ -18,6 +57,40 @@ test('router paths preserve the governed tier and full experience id', () => {
   });
   assert.equal(routerApi.hrefFor({ tier: 'solar-system', experience: 'orbital-transfer-planner-v1' }), '/solar-system/orbital-transfer-planner-v1');
   assert.deepEqual(routerApi.parsePath('/unknown/profile-v1'), { tier: null, experience: null });
+});
+
+test('every registered experience resolves to its canonical GitHub Markdown preview', () => {
+  const root = path.resolve(__dirname, '..');
+  const claimInventory = JSON.parse(fs.readFileSync(
+    path.join(root, 'public/data/application-profiles/profile-claim-inventory-v1.json'),
+    'utf8',
+  ));
+  assert.deepEqual(
+    Object.keys(bootApi.EXPERIENCE_DOC_PATHS).sort(),
+    [...claimInventory.profileIds].sort(),
+  );
+  for (const profileId of claimInventory.profileIds) {
+    const filename = bootApi.EXPERIENCE_DOC_PATHS[profileId];
+    assert.ok(fs.existsSync(path.join(root, 'docs/simulatte/experiences', filename)), profileId);
+    assert.equal(
+      bootApi.experienceDocUrl(profileId),
+      `https://github.com/clocksmith/simulatte/blob/main/docs/simulatte/experiences/${filename}`,
+    );
+  }
+  assert.equal(bootApi.experienceDocUrl('unknown-profile-v1'), null);
+});
+
+test('experience documentation link updates and fails closed for unknown profiles', () => {
+  const link = fakeLink();
+  const url = bootApi.updateExperienceDocLink(link, 'cable-trader-pickup-v1');
+  assert.equal(url, bootApi.experienceDocUrl('cable-trader-pickup-v1'));
+  assert.equal(link.href, url);
+  assert.equal(link.hidden, false);
+  assert.equal(link.target, undefined);
+  assert.match(link['aria-label'], /Cable Trader documentation on GitHub/);
+  bootApi.updateExperienceDocLink(link, null);
+  assert.equal(link.hidden, true);
+  assert.equal(link.href, undefined);
 });
 
 test('mount lifecycle links parent cancellation to listeners and fetches', async () => {
@@ -70,6 +143,7 @@ test('app shell aborts and disposes a superseded boot before mounting the latest
     querySelector() { return null; },
     addEventListener() {},
   };
+  const documentationLink = fakeLink();
   const boot = (tier, experience, { signal }) => {
     const gate = deferred();
     const mounted = { tier, experience, signal, gate, disposeCount: 0 };
@@ -80,7 +154,7 @@ test('app shell aborts and disposes a superseded boot before mounting the latest
       dispose: async () => { mounted.disposeCount += 1; },
     }));
   };
-  const shell = bootApi.createAppShell({ router, boot, landing });
+  const shell = bootApi.createAppShell({ router, boot, landing, documentationLink });
 
   const firstRender = shell.renderRoute({ tier: 'city', experience: 'sun-walker-v1' });
   await Promise.resolve();
@@ -96,6 +170,8 @@ test('app shell aborts and disposes a superseded boot before mounting the latest
 
   assert.equal(pendingBoots[0].disposeCount, 1);
   assert.equal(pendingBoots[1].disposeCount, 0);
+  assert.equal(documentationLink.href, bootApi.experienceDocUrl('maritime-trade-global-v1'));
+  assert.equal(documentationLink.hidden, false);
   assert.deepEqual(canonicalRoutes, [{
     tier: 'world',
     experience: 'maritime-trade-global-v1',

@@ -103,6 +103,7 @@ test('declarative UI renders v4 experiment controls and returns typed edited val
   policy.value = 'fast';
   policy.dispatch('change');
   const families = find(inspector, (node) => node.dataset?.pluginControl === 'families');
+  assert.equal(families.size, 2);
   families.children.forEach((option) => { option.selected = option.value === 'hdmi'; });
   families.dispatch('change');
   const departureAt = find(inspector, (node) => node.dataset?.pluginControl === 'departureAt');
@@ -124,4 +125,63 @@ test('declarative UI renders v4 experiment controls and returns typed edited val
     policy: 'fast',
     families: ['hdmi'],
   });
+});
+
+test('declarative UI renders controls first without deleting dynamic evidence or provenance inspections', () => {
+  const documentRef = fakeDocument();
+  const roots = {
+    inspector: new FakeNode('inspector', documentRef),
+    map: new FakeNode('map', documentRef),
+    hud: new FakeNode('hud', documentRef),
+  };
+  const host = uiHost.createDeclarativeUiHost({ rootElements: roots, onAction() {} });
+  host.render([{
+    pluginId: 'fixture',
+    view: {
+      slot: 'inspector',
+      title: 'Legacy evidence',
+      rows: [{ label: 'Exact allocations', value: '300 / 300 (100%)' }],
+      fields: [],
+      actions: [],
+    },
+  }], [{
+    pluginId: 'fixture',
+    controls: { controls: [control('days', 'number', 3)] },
+    inspections: [{
+      id: 'inspection:fixture',
+      label: 'Detailed evidence',
+      targetIds: [],
+      fields: [{
+        id: 'fulfilled',
+        label: 'Fulfilled',
+        value: 300,
+        unit: 'items',
+        provenance: {
+          axes: {
+            origin: 'simulated',
+            temporalStatus: 'forecast',
+            uncertainty: null,
+          },
+          evidenceRefs: [{ id: 'simulation:fixture' }],
+        },
+      }],
+    }],
+  }]);
+
+  const inspectorFragment = roots.inspector.children[0];
+  assert.equal(inspectorFragment.children[0].dataset.controlCount, '1');
+  assert.equal(inspectorFragment.children[0].children[0].textContent, 'Experiment parameters (1)');
+  assert.equal(inspectorFragment.children.length, 3);
+  const allocation = find(roots.inspector, (node) => node.tagName === 'dd' && node.textContent === '300 / 300 (100%)');
+  const inspection = find(roots.inspector, (node) => node.tagName === 'dd' && node.textContent === '300 items');
+  assert.ok(allocation);
+  assert.equal(inspection.dataset.origin, 'simulated');
+  assert.equal(inspection.dataset.temporalStatus, 'forecast');
+  assert.equal(inspection.dataset.evidenceIds, 'simulation:fixture');
+
+  host.dispose();
+  assert.deepEqual(roots.inspector.children, []);
+  assert.deepEqual(roots.map.children, []);
+  assert.deepEqual(roots.hud.children, []);
+  assert.deepEqual(host.values('fixture'), {});
 });

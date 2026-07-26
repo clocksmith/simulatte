@@ -191,15 +191,24 @@ test('platform bootstrap has no named plugin import', () => {
 test('Main exposes governed profile selection and disposes plugins on teardown', () => {
   const main = fs.readFileSync(require.resolve('../public/simulatte/app/main.js'), 'utf8');
   const html = fs.readFileSync(require.resolve('../public/index.html'), 'utf8');
+  const styles = fs.readFileSync(require.resolve('../public/styles.css'), 'utf8');
   assert.match(html, /id="application-profile"/);
   assert.match(html, /id="application-profile-trigger"[^>]*aria-haspopup="listbox"/);
   assert.match(html, /id="application-profile-options"[^>]*role="listbox"/);
   assert.match(html, /id="application-profile-trigger" class="select-trigger"[^>]*aria-label="Switch experience"/);
   assert.doesNotMatch(html, /id="application-profile-trigger"[^>]*sim-surface/);
   assert.doesNotMatch(html, /id="application-profile-options"[^>]*sim-popover/);
+  assert.doesNotMatch(styles, /\.world-explorer \.mission-dock/);
+  assert.doesNotMatch(styles, /\.world-explorer #decisions-button/);
+  assert.match(html, /id="decisions-button"[^>]*>Controls<\/button>/);
+  assert.ok(
+    html.indexOf('id="plugin-inspector"') < html.indexOf('id="journey-section"'),
+    'experiment controls must precede generic journey evidence'
+  );
   assert.doesNotMatch(main, /APPLICATION_PROFILE_IDS|\.label = 'Applications'|\.label = 'Plugins'/);
   assert.match(html, /app\/application-profile-select\.js/);
   assert.match(main, /resource:\s*'plugin-runtime'/);
+  assert.match(main, /resource:\s*'plugin-ui'/);
   assert.match(main, /mountLifecycleApi\.disposeAll/);
   assert.match(main, /on\(window, 'pagehide', \(\) => \{ void disposeApplication\(\); \}/);
   assert.match(main, /hooks\.navigate\?\.\(\{ tier: 'city', experience: profileId \}\)/);
