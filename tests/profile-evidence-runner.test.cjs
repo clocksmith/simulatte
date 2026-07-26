@@ -187,11 +187,11 @@ async function fixture() {
   return { buildIdentity, claims, contract, plan, receipt, run, sourceIdentity };
 }
 
-test('profile evidence plan enumerates seven profiles, twenty-nine seeds, and two required viewports', async () => {
+test('profile evidence plan enumerates nine profiles, thirty-seven seeds, and two required viewports', async () => {
   const { plan } = await fixture();
-  assert.equal(plan.profileIds.length, 7);
-  assert.equal(new Set(plan.runs.map((run) => `${run.profileId}:${run.seedId}`)).size, 29);
-  assert.equal(plan.runCount, 58);
+  assert.equal(plan.profileIds.length, 10);
+  assert.equal(new Set(plan.runs.map((run) => `${run.profileId}:${run.seedId}`)).size, 42);
+  assert.equal(plan.runCount, 84);
   assert.deepEqual([...new Set(plan.runs.map((run) => run.viewport.id))], [
     'desktop-1440x1000',
     'mobile-390x844',
@@ -203,7 +203,7 @@ test('profile evidence plan enumerates seven profiles, twenty-nine seeds, and tw
 
 test('claim inventory assigns one stable claim ID to every published seed description', async () => {
   const { claims } = await fixture();
-  assert.equal(claims.length, 29);
+  assert.equal(claims.length, 42);
   assert.equal(new Set(claims.map((claim) => claim.id)).size, claims.length);
   assert.ok(claims.every((claim) => claim.sentence.length > 0));
   assert.ok(claims.every((claim) => claim.source.path.startsWith('public/data/application-profiles/')));

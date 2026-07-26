@@ -12,6 +12,7 @@
     scenario,
     clock,
     render,
+    getControlValues = () => ({}),
     onPhase,
     onSettled,
     onError,
@@ -27,6 +28,7 @@
     }
     let activeScenario = scenario;
     let actionResult = null;
+    let parameterValues = {};
     let phase = 'ready';
     let actionQueue = Promise.resolve();
     const unsubscribe = clock.subscribe((message) => {
@@ -37,6 +39,7 @@
     async function start() {
       if (phase === 'running') return snapshot();
       if (phase === 'completed' || phase === 'failed') await reset(activeScenario);
+      parameterValues = normalizedValues(getControlValues(ownerPluginId));
       setPhase('running');
       actionResult = await dispatch('start');
       if (actionResult.status !== 'running' && actionResult.status !== 'settled') {
@@ -84,6 +87,7 @@
       clock.pause();
       setPhase('running');
       activeScenario = receipt.scenario;
+      parameterValues = normalizedValues(receipt.parameterValues);
       await runtime.setScenario(activeScenario);
       actionResult = await dispatch('start');
       const targetStep = receipt.actionResult.currentStep;
@@ -178,6 +182,7 @@
         schema: 'simulatte.pluginPlaybackRunReceipt.v1',
         ownerPluginId,
         scenario: activeScenario,
+        parameterValues,
         actionResult,
         settlements,
         comparisonExecutionReceipt,
@@ -191,7 +196,7 @@
     function dispatch(nextPhase) {
       return runtime.dispatchAction(ownerPluginId, 'scenario.run', {
         scenario: activeScenario,
-        values: { phase: nextPhase },
+        values: { ...parameterValues, phase: nextPhase },
       });
     }
 
@@ -244,6 +249,14 @@
     if (!Number.isFinite(value.clock?.state?.currentMs) || !Array.isArray(value.settlements)) {
       throw playbackError('plugin_playback_restore_evidence_invalid', 'Stored playback receipt is missing clock or settlement evidence');
     }
+    if (value.parameterValues !== undefined && (!value.parameterValues || typeof value.parameterValues !== 'object' || Array.isArray(value.parameterValues))) {
+      throw playbackError('plugin_playback_restore_parameters_invalid', 'Stored playback receipt has invalid parameter values');
+    }
+  }
+
+  function normalizedValues(value) {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
+    return Object.fromEntries(Object.entries(value).map(([key, entry]) => [key, Array.isArray(entry) ? [...entry] : entry]));
   }
 
   function storageKey(profileId) {

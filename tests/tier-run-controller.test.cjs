@@ -42,7 +42,7 @@ function memoryStorage() {
   };
 }
 
-function fakeRuntime({ progressive = true } = {}) {
+function fakeRuntime({ progressive = true, dispatchedValues = [] } = {}) {
   let step = 0;
   const contribution = {
     pluginId: 'fixture',
@@ -64,6 +64,7 @@ function fakeRuntime({ progressive = true } = {}) {
           },
         };
       }
+      dispatchedValues.push(structuredClone(context.values));
       if (!progressive) return { status: 'settled', result: 'terminal' };
       if (context.values.phase === 'start') {
         step = 0;
@@ -81,20 +82,22 @@ function fakeRuntime({ progressive = true } = {}) {
   };
 }
 
-function create(runtime, storage, states, receipts) {
+function create(runtime, storage, states, receipts, controlValues = {}) {
   const scenario = { id: 'fixture-scenario', seed: 'fixture-seed' };
   return controllerApi.createController({
     getRuntime: () => runtime,
     ownerPluginId: 'fixture',
     scenario,
     profileId: 'fixture-profile',
+    getControlValues: () => controlValues,
     render() {},
     async resetRuntime() {},
-    buildReceipt({ actionResult, settlement }) {
+    buildReceipt({ actionResult, settlement, parameterValues }) {
       return {
         schema: 'simulatte.tierRunReceipt.v1',
         profileId: 'fixture-profile',
         scenario,
+        parameterValues,
         actionResult,
         settlement,
       };
@@ -137,4 +140,21 @@ test('tier controller reconstructs a matching terminal receipt after reload', as
   assert.equal(await restored.restore(), true);
   assert.equal(restored.snapshot().state, 'settled');
   assert.equal(restoredReceipts.length, 1);
+});
+
+test('tier controller applies experiment parameters to start and step phases and persists them', async () => {
+  const dispatchedValues = [];
+  const storage = memoryStorage();
+  const parameters = { cargoTeu: 1200, speedPolicy: 'slow' };
+  const controller = create(fakeRuntime({ dispatchedValues }), storage, [], [], parameters);
+  await controller.start();
+  controller.pause();
+  await controller.step();
+  await controller.step();
+  assert.deepEqual(dispatchedValues, [
+    { ...parameters, phase: 'start' },
+    { ...parameters, phase: 'step' },
+    { ...parameters, phase: 'step' },
+  ]);
+  assert.deepEqual(controller.receipt().parameterValues, parameters);
 });

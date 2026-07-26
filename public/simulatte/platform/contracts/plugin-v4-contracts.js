@@ -10,7 +10,7 @@
   const LAYER_KINDS = Object.freeze(['point', 'path', 'area', 'actor', 'field', 'label']);
   const SEMANTIC_ROLES = Object.freeze(['primary', 'context', 'comparison', 'uncertainty', 'event']);
   const VIEW_MODES = Object.freeze(['overview', 'follow', 'pov', 'compare', 'free']);
-  const CONTROL_KINDS = Object.freeze(['number', 'range', 'select', 'multiselect', 'toggle', 'time']);
+  const CONTROL_KINDS = Object.freeze(['number', 'range', 'select', 'multiselect', 'toggle', 'time', 'date', 'datetime-local']);
   const PROVENANCE_SUBJECT_KINDS = Object.freeze([
     'dataset',
     'row',

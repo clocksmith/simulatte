@@ -375,6 +375,15 @@
       }
       if (actionId !== 'scenario.run') return { status: 'refused', reason: 'unknown_action', actionId };
       const phase = context.values?.phase;
+      if (phase === 'start' && hasParameterValues(context.values)) {
+        const prior = sdk.state.read().simulation;
+        applyParameterValues(context.values || {});
+        return setScenario({
+          id: context.scenario?.id || prior.scenarioProfileId,
+          seed: context.scenario?.seed || prior.baseSeed,
+          selectedCableFamilyIds: activeConfig.simulation.selectedCableFamilyIds,
+        }).then(() => startPlayback());
+      }
       const state = sdk.state.read();
       const identity = {
         scenarioId: state.simulation.scenarioId,
@@ -390,8 +399,7 @@
         return { ...playbackAction(sdk.state.read()), compatibilityMode: 'eager_v1_v3_host' };
       }
       if (phase === 'start') {
-        sdk.events.propose({ pluginId: 'cable-trader', kind: 'cable-trader.playback-started', ...identity });
-        return playbackAction(sdk.state.read());
+        return startPlayback();
       }
       if (phase === 'step') {
         if (state.playback.status !== 'running') return { status: 'refused', reason: 'playback_not_running' };
@@ -402,6 +410,40 @@
         return playbackAction(nextState);
       }
       return { status: 'refused', reason: 'scenario_phase_invalid', phase: phase || null };
+    }
+
+    function startPlayback() {
+      const state = sdk.state.read();
+      sdk.events.propose({
+        pluginId: 'cable-trader',
+        kind: 'cable-trader.playback-started',
+        scenarioId: state.simulation.scenarioId,
+        configurationHash: state.simulation.configurationHash,
+        selectedCableFamilyIds: state.simulation.selectedCableFamilyIds,
+      });
+      return playbackAction(sdk.state.read());
+    }
+
+    function applyParameterValues(values) {
+      const selectedCableFamilyIds = network.normalizeCableFamilyIds(
+        activeConfig.cableTypes,
+        values.selectedCableFamilyIds ?? activeConfig.simulation.selectedCableFamilyIds
+      );
+      activeConfig = {
+        ...activeConfig,
+        simulation: {
+          ...activeConfig.simulation,
+          selectedCableFamilyIds,
+          durationDays: integerBetween(values.durationDays, activeConfig.simulation.durationDays, 1, 365, 'durationDays'),
+          initialInventoryPerHubType: integerBetween(
+            values.initialInventoryPerHubType,
+            activeConfig.simulation.initialInventoryPerHubType,
+            1,
+            100000,
+            'initialInventoryPerHubType'
+          ),
+        },
+      };
     }
 
     function settle() {
@@ -563,6 +605,20 @@
       throw new Error(`Cable Trader renderedRequestCount expected a positive integer, received ${value}`);
     }
     return Math.min(value, MAX_PRESENTATION_ACTORS);
+  }
+
+  function integerBetween(value, fallback, minimum, maximum, label) {
+    if (value === undefined || value === null || value === '') return fallback;
+    const parsed = Number(value);
+    if (!Number.isInteger(parsed) || parsed < minimum || parsed > maximum) {
+      throw new Error(`cable_trader_control_invalid: ${label} must be an integer from ${minimum} to ${maximum}`);
+    }
+    return parsed;
+  }
+
+  function hasParameterValues(values) {
+    return ['selectedCableFamilyIds', 'durationDays', 'initialInventoryPerHubType']
+      .some((key) => Object.prototype.hasOwnProperty.call(values || {}, key));
   }
 
   function visibleResult(state) {

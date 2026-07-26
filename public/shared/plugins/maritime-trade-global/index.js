@@ -103,20 +103,30 @@
 
     function handleAction(actionId, context = {}) {
       const values = context.values || {};
-      if (actionId === 'scenario.run') return runPlayback(values.phase);
+      if (actionId === 'scenario.run') {
+        if (values.phase === 'start') setScenario(configuredScenario(values));
+        return runPlayback(values.phase);
+      }
       if (actionId === 'simulate.corridor') {
-        const nextScenario = normalizeScenario({
-          ...activeScenario,
-          vesselClassId: values.vesselClassId || activeScenario.vesselClassId,
-          speedPolicy: values.speedPolicy || activeScenario.speedPolicy,
-          cargoTeu: numberOr(values.cargoTeu, activeScenario.cargoTeu),
-          ensembleReplicates: numberOr(values.ensembleReplicates, activeScenario.ensembleReplicates),
-        }, config);
-        setScenario(nextScenario);
+        setScenario(configuredScenario(values));
         return runPlayback(null);
       }
       if (actionId === 'counterfactual.compare') return compareBaseline();
       return { status: 'refused', reason: 'unknown_action', actionId };
+    }
+
+    function configuredScenario(values) {
+      const vesselClassId = values.vesselClassId || activeScenario.vesselClassId;
+      if (!datasets.vessels.archetypes.some((row) => row.id === vesselClassId)) {
+        throw new Error(`maritime_control_invalid: unknown vesselClassId ${vesselClassId}`);
+      }
+      const speedPolicy = values.speedPolicy || activeScenario.speedPolicy;
+      if (!['slow', 'service', 'fast'].includes(speedPolicy)) {
+        throw new Error(`maritime_control_invalid: unknown speedPolicy ${speedPolicy}`);
+      }
+      const cargoTeu = integerControl(values.cargoTeu, activeScenario.cargoTeu, 100, 24000, 'cargoTeu');
+      const ensembleReplicates = integerControl(values.ensembleReplicates, activeScenario.ensembleReplicates, 2, 512, 'ensembleReplicates');
+      return normalizeScenario({ ...activeScenario, vesselClassId, speedPolicy, cargoTeu, ensembleReplicates }, config);
     }
 
     function runPlayback(phase) {
@@ -379,10 +389,7 @@
             { id: 'cargoTeu', label: 'Scenario cargo TEU', type: 'number', value: state.result.parameters.cargoTeu },
             { id: 'ensembleReplicates', label: 'Queue ensemble runs', type: 'number', value: state.result.parameters.ensembleReplicates },
           ],
-          actions: [
-            { id: 'simulate.corridor', label: 'Run configured voyage' },
-            { id: 'counterfactual.compare', label: 'Compare undisrupted baseline' },
-          ],
+          actions: [],
         },
         {
           slot: 'hud',
@@ -660,6 +667,14 @@
 
   function numberOr(value, fallback) {
     return value === undefined || value === null || value === '' ? fallback : Number(value);
+  }
+
+  function integerControl(value, fallback, minimum, maximum, label) {
+    const parsed = numberOr(value, fallback);
+    if (!Number.isInteger(parsed) || parsed < minimum || parsed > maximum) {
+      throw new Error(`maritime_control_invalid: ${label} must be an integer from ${minimum} to ${maximum}`);
+    }
+    return parsed;
   }
 
   function missing(reason) {

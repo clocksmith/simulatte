@@ -170,12 +170,11 @@
       numericControl('crashWeight', 'Crash weight', methodReceipt.severityWeights.crash, 0, 100, 1, estimate),
       numericControl('injuryWeight', 'Injury weight', methodReceipt.severityWeights.injury, 0, 100, 1, estimate),
       numericControl('fatalityWeight', 'Fatality weight', methodReceipt.severityWeights.fatality, 0, 100, 1, estimate),
-      numericControl('joinRadiusM', 'Join-radius sensitivity', index.method.maximumJoinDistanceM, 1, index.method.maximumJoinDistanceM, 1, observation),
     ], [{
       id: 'fixed-shrinkage-k-sensitivity',
-      label: 'K=4 baseline vs K=8 sensitivity',
-      baselineScenarioId: `${PLUGIN_ID}:k-4`,
-      variantScenarioId: `${PLUGIN_ID}:k-8`,
+      label: `K=${methodReceipt.k} baseline vs K=${comparisonK(methodReceipt.k)} sensitivity`,
+      baselineScenarioId: `${PLUGIN_ID}:k-${methodReceipt.k}`,
+      variantScenarioId: `${PLUGIN_ID}:k-${comparisonK(methodReceipt.k)}`,
       synchronizedClock: true,
     }]);
     const inspections = audit ? [{
@@ -242,6 +241,10 @@
       step,
       provenance,
     };
+  }
+
+  function comparisonK(k) {
+    return Math.min(64, Math.max(1, k * 2));
   }
 
   return Object.freeze({ createContribution });

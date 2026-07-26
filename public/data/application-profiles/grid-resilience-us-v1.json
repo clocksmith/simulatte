@@ -1,0 +1,64 @@
+{
+  "schema": "simulatte.applicationProfile.v3",
+  "id": "grid-resilience-us-v1",
+  "tier": "country",
+  "worldModelId": "us-food-network-v1",
+  "interaction": {
+    "mode": "simulation",
+    "simulationOwnerPluginId": "grid-resilience-us",
+    "missionRequired": false,
+    "startLabel": "Run grid experiment",
+    "shuffleLabel": "Change seed"
+  },
+  "defaultSeedId": "heat-demand-peak",
+  "seeds": [
+    {
+      "id": "heat-demand-peak",
+      "label": "Heat demand peak",
+      "description": "Historical aggregate demand and weather inputs with a declared heat-linked demand disturbance.",
+      "seed": "grid-heat-001",
+      "scenarioId": "heat-demand-peak"
+    },
+    {
+      "id": "generator-outage-cluster",
+      "label": "Generator outage cluster",
+      "description": "Modeled resource-block outages under identical baseline and intervention inputs.",
+      "seed": "grid-generation-002",
+      "scenarioId": "generator-outage-cluster"
+    },
+    {
+      "id": "renewable-forecast-error",
+      "label": "Renewable forecast error",
+      "description": "A common modeled renewable shortfall realization used by both policy branches.",
+      "seed": "grid-renewable-003",
+      "scenarioId": "renewable-forecast-error"
+    },
+    {
+      "id": "interface-loss",
+      "label": "Aggregate interface loss",
+      "description": "One authored regional transfer interface becomes unavailable.",
+      "seed": "grid-interface-004",
+      "scenarioId": "interface-loss"
+    },
+    {
+      "id": "restoration-sequence",
+      "label": "Restoration sequence",
+      "description": "Dependency-aware restoration compared with a nearest-first baseline.",
+      "seed": "grid-restoration-005",
+      "scenarioId": "restoration-sequence"
+    }
+  ],
+  "camera": {
+    "initialMode": "top",
+    "runMode": "top",
+    "pluginId": "grid-resilience-us",
+    "targetId": "grid-us"
+  },
+  "plugins": [
+    {
+      "id": "grid-resilience-us",
+      "configId": "grid-resilience-us-config-v1"
+    }
+  ],
+  "routeObjective": {}
+}

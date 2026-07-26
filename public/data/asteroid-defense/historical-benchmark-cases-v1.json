@@ -1,0 +1,28 @@
+{
+  "schema": "simulatte.asteroidHistoricalBenchmarks.v1",
+  "id": "asteroid-historical-benchmark-cases-v1",
+  "cases": [
+    {
+      "id": "apophis-2029-api-identity",
+      "objectDesignation": "99942",
+      "expectedCloseApproachDatePrefix": "2029-Apr-13",
+      "expectedNominalDistanceAuRange": [
+        0.00025,
+        0.00026
+      ],
+      "sourceSnapshotId": "cad-apophis-2029",
+      "purpose": "API parsing and units benchmark only",
+      "prohibitedUse": "operational orbit, impact probability, or danger assessment",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "snapshot",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "interpretation": "Pinned agency output has its own source uncertainty fields."
+          }
+        }
+      }
+    }
+  ]
+}

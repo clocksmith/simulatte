@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Neighborhood Bulk Pool configuration v1",
+  "type": "object",
+  "required": [
+    "schema",
+    "id",
+    "defaultScenarioId",
+    "selectedWarehouseIds",
+    "selectedCategoryIds",
+    "compensationModes",
+    "allowUnknownAvailability",
+    "constraints",
+    "emissions"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "const": "simulatte.plugin.neighborhoodBulkPoolConfig.v1"
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "defaultScenarioId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "selectedWarehouseIds": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 64,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "selectedCategoryIds": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 128,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "compensationModes": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "pro-bono",
+          "exact-expenses",
+          "fee"
+        ]
+      }
+    },
+    "allowUnknownAvailability": {
+      "type": "boolean"
+    },
+    "constraints": {
+      "type": "object",
+      "required": [
+        "maximumWalkingKm"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "maximumWalkingKm": {
+          "type": "number",
+          "minimum": 0.1,
+          "maximum": 10
+        }
+      }
+    },
+    "emissions": {
+      "type": "object",
+      "required": [
+        "kgCo2ePerVehicleKm"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "kgCo2ePerVehicleKm": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 5
+        }
+      }
+    }
+  }
+}

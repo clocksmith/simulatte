@@ -1,0 +1,2261 @@
+{
+  "schema": "simulatte.gridEiaBalancingAuthorityHourly.v1",
+  "id": "grid-eia-balancing-authority-hourly-v1",
+  "source": {
+    "publisher": "U.S. Energy Information Administration",
+    "documentationUrl": "https://www.eia.gov/opendata/documentation.php",
+    "license": "U.S. government public data; attribution retained",
+    "retrievalDate": "2026-07-26",
+    "transformationVersion": "grid-eia-promoter-v1",
+    "caveat": "Agency-reported balancing-authority aggregates may be revised, imputed, or incomplete."
+  },
+  "period": {
+    "start": "2024-07-15T00",
+    "end": "2024-07-15T23",
+    "frequency": "hourly"
+  },
+  "requests": [
+    {
+      "route": "/v2/electricity/rto/region-data/data",
+      "normalizedQuery": "frequency=hourly&start=2024-07-15T00&end=2024-07-15T23&offset=0&length=5000&data%5B0%5D=value&facets%5Brespondent%5D%5B%5D=CISO&facets%5Btype%5D%5B%5D=D&sort%5B0%5D%5Bcolumn%5D=period&sort%5B0%5D%5Bdirection%5D=asc",
+      "requestHash": "f795a98a029c8aa2ecddf67324784c9d8834e819de36ca2efd52154bcc576071",
+      "responseHash": "161e3ff5edf8cee6e307012b5e116a6d3b7c6cbd902ad33b11bfb4c1d38bcfff",
+      "retrievedAt": "2026-07-26T00:00:00Z",
+      "responseVersion": "EIA API v2"
+    },
+    {
+      "route": "/v2/electricity/rto/region-data/data",
+      "normalizedQuery": "frequency=hourly&start=2024-07-15T00&end=2024-07-15T23&offset=0&length=5000&data%5B0%5D=value&facets%5Brespondent%5D%5B%5D=ERCO&facets%5Btype%5D%5B%5D=D&sort%5B0%5D%5Bcolumn%5D=period&sort%5B0%5D%5Bdirection%5D=asc",
+      "requestHash": "f3ae83d66ba5acaa7934e86edd3183ffc5197aabafe5b475ceeafb53f4a8a824",
+      "responseHash": "e6cfffb5910bf96433a8758c5bf641fcb2f9d3388b8526c619c4a880d3d64cda",
+      "retrievedAt": "2026-07-26T00:00:00Z",
+      "responseVersion": "EIA API v2"
+    },
+    {
+      "route": "/v2/electricity/rto/region-data/data",
+      "normalizedQuery": "frequency=hourly&start=2024-07-15T00&end=2024-07-15T23&offset=0&length=5000&data%5B0%5D=value&facets%5Brespondent%5D%5B%5D=MISO&facets%5Btype%5D%5B%5D=D&sort%5B0%5D%5Bcolumn%5D=period&sort%5B0%5D%5Bdirection%5D=asc",
+      "requestHash": "45dde3554d4c53caaf0e2fcae11a808c95c66602ea424b7441e6f55ebd69a15b",
+      "responseHash": "6e60707c4924b1873e88e629a85983a36ab3c6c5b5b152b51cc9dcc5332df166",
+      "retrievedAt": "2026-07-26T00:00:00Z",
+      "responseVersion": "EIA API v2"
+    },
+    {
+      "route": "/v2/electricity/rto/region-data/data",
+      "normalizedQuery": "frequency=hourly&start=2024-07-15T00&end=2024-07-15T23&offset=0&length=5000&data%5B0%5D=value&facets%5Brespondent%5D%5B%5D=PJM&facets%5Btype%5D%5B%5D=D&sort%5B0%5D%5Bcolumn%5D=period&sort%5B0%5D%5Bdirection%5D=asc",
+      "requestHash": "8bddd99a4a706dc28e9dc9e48ed89405e2e00c044f5608828161c51062db56e2",
+      "responseHash": "ab5faeb3b4785abc36301dfd63005f3188a9999aeb959fb79c8bea749a85335c",
+      "retrievedAt": "2026-07-26T00:00:00Z",
+      "responseVersion": "EIA API v2"
+    }
+  ],
+  "rows": [
+    {
+      "period": "2024-07-15T00",
+      "respondent": "CISO",
+      "respondentName": "California Independent System Operator",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 29846,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:CISO:2024-07-15T00:D",
+      "rowHash": "38b50ba51eace7008c8b9bffe9c8c52b957d9b2ec504bebf75915c66c30c40b9"
+    },
+    {
+      "period": "2024-07-15T01",
+      "respondent": "CISO",
+      "respondentName": "California Independent System Operator",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 31671,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:CISO:2024-07-15T01:D",
+      "rowHash": "b913ae8e8f562b5e2f212d35898ebb70f8b35dcda8de4c83ada42098ebc3f3ac"
+    },
+    {
+      "period": "2024-07-15T02",
+      "respondent": "CISO",
+      "respondentName": "California Independent System Operator",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 33795,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:CISO:2024-07-15T02:D",
+      "rowHash": "29c745b1c49175e72144d57205fb36a7a456b8e1c6de8ef98205a1864eaf3940"
+    },
+    {
+      "period": "2024-07-15T03",
+      "respondent": "CISO",
+      "respondentName": "California Independent System Operator",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 35290,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:CISO:2024-07-15T03:D",
+      "rowHash": "12674c34d15519a873d954e35d01622308bde841c884ba1d7ce04a875c82feef"
+    },
+    {
+      "period": "2024-07-15T04",
+      "respondent": "CISO",
+      "respondentName": "California Independent System Operator",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 35303,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:CISO:2024-07-15T04:D",
+      "rowHash": "1b37c6b0176f05e65b2521ceca4aa732095218fa215a69d0f7bb57d245e65abf"
+    },
+    {
+      "period": "2024-07-15T05",
+      "respondent": "CISO",
+      "respondentName": "California Independent System Operator",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 34761,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:CISO:2024-07-15T05:D",
+      "rowHash": "9e397ef5ad866048eaae33bdc2d69537ce54330b0a30a28e6ecb40d0993576b3"
+    },
+    {
+      "period": "2024-07-15T06",
+      "respondent": "CISO",
+      "respondentName": "California Independent System Operator",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 33708,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:CISO:2024-07-15T06:D",
+      "rowHash": "a36d61a30948f393a015f3f3aae35826b44899c597d7a2c22e0eba9c5f6d0f07"
+    },
+    {
+      "period": "2024-07-15T07",
+      "respondent": "CISO",
+      "respondentName": "California Independent System Operator",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 31664,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:CISO:2024-07-15T07:D",
+      "rowHash": "e047aed92acf3c819e5dc1ee666063ceae8e96deab62dc9b0cf1f2b32c983faf"
+    },
+    {
+      "period": "2024-07-15T08",
+      "respondent": "CISO",
+      "respondentName": "California Independent System Operator",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 29322,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:CISO:2024-07-15T08:D",
+      "rowHash": "12e88483682cc357b2b781808033c24266bcf32ba31af33a5ee88cb8e2ffe2e4"
+    },
+    {
+      "period": "2024-07-15T09",
+      "respondent": "CISO",
+      "respondentName": "California Independent System Operator",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 27457,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:CISO:2024-07-15T09:D",
+      "rowHash": "c02f37cdcef83a768f6364ae46d45c9d89353ddba89120485aa08b402c851b7d"
+    },
+    {
+      "period": "2024-07-15T10",
+      "respondent": "CISO",
+      "respondentName": "California Independent System Operator",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 26085,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:CISO:2024-07-15T10:D",
+      "rowHash": "45604c91f88f36c8777f74eb659abde23ea65e43179bf431d0ac3c86b666c8b0"
+    },
+    {
+      "period": "2024-07-15T11",
+      "respondent": "CISO",
+      "respondentName": "California Independent System Operator",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 24937,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:CISO:2024-07-15T11:D",
+      "rowHash": "bd3c07081b9c16b2fe10b0c21758107fb986762dda11872f8dab624a805035d3"
+    },
+    {
+      "period": "2024-07-15T12",
+      "respondent": "CISO",
+      "respondentName": "California Independent System Operator",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 24061,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:CISO:2024-07-15T12:D",
+      "rowHash": "92cf6031cc3c55e651345c0976aadf1b67704e609b957da2a79e3c27c591a262"
+    },
+    {
+      "period": "2024-07-15T13",
+      "respondent": "CISO",
+      "respondentName": "California Independent System Operator",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 24088,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:CISO:2024-07-15T13:D",
+      "rowHash": "12042559cbc3405a3c9b72b7f6daa539d6dbf5824c9190cef84e953fa685d8c2"
+    },
+    {
+      "period": "2024-07-15T14",
+      "respondent": "CISO",
+      "respondentName": "California Independent System Operator",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 24893,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:CISO:2024-07-15T14:D",
+      "rowHash": "f7f111f4606aef8dafc665269eaf78d8beaffc719f273338757ec76d93a57e5c"
+    },
+    {
+      "period": "2024-07-15T15",
+      "respondent": "CISO",
+      "respondentName": "California Independent System Operator",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 25966,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:CISO:2024-07-15T15:D",
+      "rowHash": "8ee41dbae83a1d910b209ed0df8f9b6be2d2113df6d9efd1c93c46bc1fea26e3"
+    },
+    {
+      "period": "2024-07-15T16",
+      "respondent": "CISO",
+      "respondentName": "California Independent System Operator",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 28073,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:CISO:2024-07-15T16:D",
+      "rowHash": "0ac534156a76b3f9788b5e36054c7286388e60c918c42c22d6e36444881dd4f7"
+    },
+    {
+      "period": "2024-07-15T17",
+      "respondent": "CISO",
+      "respondentName": "California Independent System Operator",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 30312,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:CISO:2024-07-15T17:D",
+      "rowHash": "1c42eab546d99ddc28553b6eb167bae18b1eb3f890f532277ab4eb013f508faa"
+    },
+    {
+      "period": "2024-07-15T18",
+      "respondent": "CISO",
+      "respondentName": "California Independent System Operator",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 30982,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:CISO:2024-07-15T18:D",
+      "rowHash": "86e6ee71b8cc8f4b9b30e6c4f204c1dc7b76386b1ad72e8359b45ed9d7f06747"
+    },
+    {
+      "period": "2024-07-15T19",
+      "respondent": "CISO",
+      "respondentName": "California Independent System Operator",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 31597,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:CISO:2024-07-15T19:D",
+      "rowHash": "eff22e4d12a0f32ddf9c5d98c0ea4f735cc1361e5ff67bf4d2014673c390c743"
+    },
+    {
+      "period": "2024-07-15T20",
+      "respondent": "CISO",
+      "respondentName": "California Independent System Operator",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 31573,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:CISO:2024-07-15T20:D",
+      "rowHash": "85993f40e77e5dcb908ee516e6961b8de2909ffe3ba210f1fc23f5258ab9a722"
+    },
+    {
+      "period": "2024-07-15T21",
+      "respondent": "CISO",
+      "respondentName": "California Independent System Operator",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 31119,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:CISO:2024-07-15T21:D",
+      "rowHash": "60814eb49929ab18e37dde451d25f01bf66cb706160eda6f4013ed3de91d855a"
+    },
+    {
+      "period": "2024-07-15T22",
+      "respondent": "CISO",
+      "respondentName": "California Independent System Operator",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 31334,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:CISO:2024-07-15T22:D",
+      "rowHash": "669a1eb93aaecb2e6d04e431f4722eaf45e31b3599cf0e19b609d049ecf818cc"
+    },
+    {
+      "period": "2024-07-15T23",
+      "respondent": "CISO",
+      "respondentName": "California Independent System Operator",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 31359,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:CISO:2024-07-15T23:D",
+      "rowHash": "327ab495c8530af8dbcdba672c94482db3dcb27c4fccf9a96a031d95068c1c5e"
+    },
+    {
+      "period": "2024-07-15T00",
+      "respondent": "ERCO",
+      "respondentName": "Electric Reliability Council of Texas, Inc.",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 71728,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:ERCO:2024-07-15T00:D",
+      "rowHash": "bea81b06995351983dddca0263eeb85c578604754f3f71af811c6c4e7ecaa04e"
+    },
+    {
+      "period": "2024-07-15T01",
+      "respondent": "ERCO",
+      "respondentName": "Electric Reliability Council of Texas, Inc.",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 69594,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:ERCO:2024-07-15T01:D",
+      "rowHash": "2e70a4459a18660cca4b14df5fb2e76344640cc81d940c1e406aa9806d2a83cd"
+    },
+    {
+      "period": "2024-07-15T02",
+      "respondent": "ERCO",
+      "respondentName": "Electric Reliability Council of Texas, Inc.",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 67205,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:ERCO:2024-07-15T02:D",
+      "rowHash": "84f3d1cc25b6dffa3c96a28fbe7d0a9a1b96699f2c223bbdae11a83150fa1372"
+    },
+    {
+      "period": "2024-07-15T03",
+      "respondent": "ERCO",
+      "respondentName": "Electric Reliability Council of Texas, Inc.",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 65880,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:ERCO:2024-07-15T03:D",
+      "rowHash": "cdf24c98dff9cb9c025bae5630c1b7e5b3a78929d302779eafb083c7cff52e94"
+    },
+    {
+      "period": "2024-07-15T04",
+      "respondent": "ERCO",
+      "respondentName": "Electric Reliability Council of Texas, Inc.",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 62874,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:ERCO:2024-07-15T04:D",
+      "rowHash": "7b95fd15c2c77fd415d07ad883370d0ddb2d2e52927a9d1d5bedceafabfd6985"
+    },
+    {
+      "period": "2024-07-15T05",
+      "respondent": "ERCO",
+      "respondentName": "Electric Reliability Council of Texas, Inc.",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 59540,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:ERCO:2024-07-15T05:D",
+      "rowHash": "0641dfa229d52e163b03b5023e750ac9c4014d5e9fc2c9fa3ceb434d7e2a2d6a"
+    },
+    {
+      "period": "2024-07-15T06",
+      "respondent": "ERCO",
+      "respondentName": "Electric Reliability Council of Texas, Inc.",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 56314,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:ERCO:2024-07-15T06:D",
+      "rowHash": "31f84d9a89612702c2b38d553fa6b99339f4c0e03b20c5a7503140ff1da3f5d9"
+    },
+    {
+      "period": "2024-07-15T07",
+      "respondent": "ERCO",
+      "respondentName": "Electric Reliability Council of Texas, Inc.",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 53536,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:ERCO:2024-07-15T07:D",
+      "rowHash": "ff52b21e0855ef1ebf4f418d260860d3470fcfbf4dbf02351668e15d7f1b718d"
+    },
+    {
+      "period": "2024-07-15T08",
+      "respondent": "ERCO",
+      "respondentName": "Electric Reliability Council of Texas, Inc.",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 51634,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:ERCO:2024-07-15T08:D",
+      "rowHash": "da6d49114b67b8b05d31cfb0b9faf3e3a2fa13f89e87adce28ff9e25a7b05a6d"
+    },
+    {
+      "period": "2024-07-15T09",
+      "respondent": "ERCO",
+      "respondentName": "Electric Reliability Council of Texas, Inc.",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 50119,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:ERCO:2024-07-15T09:D",
+      "rowHash": "33ab482e5cb8bf8dfc6a8afba0ea7fea5847181552ce539ebfce13b4ed882cb5"
+    },
+    {
+      "period": "2024-07-15T10",
+      "respondent": "ERCO",
+      "respondentName": "Electric Reliability Council of Texas, Inc.",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 49617,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:ERCO:2024-07-15T10:D",
+      "rowHash": "5c034021ddce13efb6824d263de60409142ffe3807b7a7da0cf9d40730e3adb0"
+    },
+    {
+      "period": "2024-07-15T11",
+      "respondent": "ERCO",
+      "respondentName": "Electric Reliability Council of Texas, Inc.",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 50106,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:ERCO:2024-07-15T11:D",
+      "rowHash": "35f66d8178cc07d3f1d20f5b1ad8e087306ee42226b846d1c7a931c7e21414dd"
+    },
+    {
+      "period": "2024-07-15T12",
+      "respondent": "ERCO",
+      "respondentName": "Electric Reliability Council of Texas, Inc.",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 50956,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:ERCO:2024-07-15T12:D",
+      "rowHash": "66741f3dada673201a8999ceccd98f6ec553ed21951cbcf32bfe5c31fcbddf71"
+    },
+    {
+      "period": "2024-07-15T13",
+      "respondent": "ERCO",
+      "respondentName": "Electric Reliability Council of Texas, Inc.",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 51975,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:ERCO:2024-07-15T13:D",
+      "rowHash": "4df9b7ec591e60a1f28262d2c396526de867e36a6d2adad374ba6bc192fc3a59"
+    },
+    {
+      "period": "2024-07-15T14",
+      "respondent": "ERCO",
+      "respondentName": "Electric Reliability Council of Texas, Inc.",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 54704,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:ERCO:2024-07-15T14:D",
+      "rowHash": "40f319d52e92b08c593c0502ec7f472aa2d18ef7c1da18c5ea8254a8bb7cc646"
+    },
+    {
+      "period": "2024-07-15T15",
+      "respondent": "ERCO",
+      "respondentName": "Electric Reliability Council of Texas, Inc.",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 58742,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:ERCO:2024-07-15T15:D",
+      "rowHash": "acc1fc0daeecc7439689c9800689eed283a3e68adccf44964728bec35e4632c6"
+    },
+    {
+      "period": "2024-07-15T16",
+      "respondent": "ERCO",
+      "respondentName": "Electric Reliability Council of Texas, Inc.",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 62650,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:ERCO:2024-07-15T16:D",
+      "rowHash": "8e8f05ed569a173fe59c1ccc9106d94a96635fce29330832530ba119477d1b54"
+    },
+    {
+      "period": "2024-07-15T17",
+      "respondent": "ERCO",
+      "respondentName": "Electric Reliability Council of Texas, Inc.",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 66375,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:ERCO:2024-07-15T17:D",
+      "rowHash": "8b1d52fbcfec2cc7631a50e0f13a69c34b878d7e2cbc93cff1a13bc6ead9691e"
+    },
+    {
+      "period": "2024-07-15T18",
+      "respondent": "ERCO",
+      "respondentName": "Electric Reliability Council of Texas, Inc.",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 70114,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:ERCO:2024-07-15T18:D",
+      "rowHash": "7e963c1867b71d54d4a9186eb767fc6e366dbc801b77c4a7878a6b0978437894"
+    },
+    {
+      "period": "2024-07-15T19",
+      "respondent": "ERCO",
+      "respondentName": "Electric Reliability Council of Texas, Inc.",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 73644,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:ERCO:2024-07-15T19:D",
+      "rowHash": "9fd78e045daa41517db50c8028b796296d47e9d8f831a2fd8968e9efa11185ff"
+    },
+    {
+      "period": "2024-07-15T20",
+      "respondent": "ERCO",
+      "respondentName": "Electric Reliability Council of Texas, Inc.",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 76137,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:ERCO:2024-07-15T20:D",
+      "rowHash": "df4849bed291da1a083502702449e679c71916cc561e525604ba73e50844ef94"
+    },
+    {
+      "period": "2024-07-15T21",
+      "respondent": "ERCO",
+      "respondentName": "Electric Reliability Council of Texas, Inc.",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 78043,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:ERCO:2024-07-15T21:D",
+      "rowHash": "d9684d27472bcf5522213bcd35a24f279297b175aee756bf0ada81b106d38268"
+    },
+    {
+      "period": "2024-07-15T22",
+      "respondent": "ERCO",
+      "respondentName": "Electric Reliability Council of Texas, Inc.",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 79343,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:ERCO:2024-07-15T22:D",
+      "rowHash": "122a6e1018a54f084428c710c021f0285a61378bc2fd9b2ba44b7afb7ad40903"
+    },
+    {
+      "period": "2024-07-15T23",
+      "respondent": "ERCO",
+      "respondentName": "Electric Reliability Council of Texas, Inc.",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 79706,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:ERCO:2024-07-15T23:D",
+      "rowHash": "923e38984cb0bc6cc32399ce1e2942b7f87f83410bf12f3e315406de90dc047b"
+    },
+    {
+      "period": "2024-07-15T00",
+      "respondent": "MISO",
+      "respondentName": "Midcontinent Independent System Operator, Inc.",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 106717,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:MISO:2024-07-15T00:D",
+      "rowHash": "aba8165d20f25390c4adc60c6d8b155f406994eeaad71c24784331ff2634359a"
+    },
+    {
+      "period": "2024-07-15T01",
+      "respondent": "MISO",
+      "respondentName": "Midcontinent Independent System Operator, Inc.",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 104253,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:MISO:2024-07-15T01:D",
+      "rowHash": "ce1a042bea39c82cf550b5ac9f79c1e2530b6f84a549db3679f0868729b1d33f"
+    },
+    {
+      "period": "2024-07-15T02",
+      "respondent": "MISO",
+      "respondentName": "Midcontinent Independent System Operator, Inc.",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 101260,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:MISO:2024-07-15T02:D",
+      "rowHash": "14ee2bd78334b6896814827b3f98fbf4cdf31d7bc55dd471d4b65f5c00e16b2f"
+    },
+    {
+      "period": "2024-07-15T03",
+      "respondent": "MISO",
+      "respondentName": "Midcontinent Independent System Operator, Inc.",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 97427,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:MISO:2024-07-15T03:D",
+      "rowHash": "f1b97b0df036200bcdf64e9dafe98a8dcfe6d24cf742ecbf636d0154a8992b65"
+    },
+    {
+      "period": "2024-07-15T04",
+      "respondent": "MISO",
+      "respondentName": "Midcontinent Independent System Operator, Inc.",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 92443,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:MISO:2024-07-15T04:D",
+      "rowHash": "e563e92afed744c0b0e4ab4f0a622b85c26667af902dedacad7f0c2641fe0046"
+    },
+    {
+      "period": "2024-07-15T05",
+      "respondent": "MISO",
+      "respondentName": "Midcontinent Independent System Operator, Inc.",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 87025,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:MISO:2024-07-15T05:D",
+      "rowHash": "98bcdf1ef0dbea1b2ca53e2dcf5c27b96ec939a0ea587655208c725960b65f2a"
+    },
+    {
+      "period": "2024-07-15T06",
+      "respondent": "MISO",
+      "respondentName": "Midcontinent Independent System Operator, Inc.",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 83329,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:MISO:2024-07-15T06:D",
+      "rowHash": "6ef920a3511b8d73e7b95c7d9944ceb4539ac712da79900cc309463f029212ec"
+    },
+    {
+      "period": "2024-07-15T07",
+      "respondent": "MISO",
+      "respondentName": "Midcontinent Independent System Operator, Inc.",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 79829,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:MISO:2024-07-15T07:D",
+      "rowHash": "243253b219984000a783c3c419fa9b79162e533658092eb2742ab492c19c924a"
+    },
+    {
+      "period": "2024-07-15T08",
+      "respondent": "MISO",
+      "respondentName": "Midcontinent Independent System Operator, Inc.",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 77301,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:MISO:2024-07-15T08:D",
+      "rowHash": "b10e80e7955539fbd612a002832d43ede54bcec7c0818fb35563c21e20d02672"
+    },
+    {
+      "period": "2024-07-15T09",
+      "respondent": "MISO",
+      "respondentName": "Midcontinent Independent System Operator, Inc.",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 75827,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:MISO:2024-07-15T09:D",
+      "rowHash": "363e1b421fae869c521080bc427946faca21a4c145da49ebe2913217410aed7c"
+    },
+    {
+      "period": "2024-07-15T10",
+      "respondent": "MISO",
+      "respondentName": "Midcontinent Independent System Operator, Inc.",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 76045,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:MISO:2024-07-15T10:D",
+      "rowHash": "1c51a5806b25fc32193fd53db61ba565370ff67b9ee89ba538cd0e3aca1fc391"
+    },
+    {
+      "period": "2024-07-15T11",
+      "respondent": "MISO",
+      "respondentName": "Midcontinent Independent System Operator, Inc.",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 78103,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:MISO:2024-07-15T11:D",
+      "rowHash": "f23e9eee5b7e9a9bac06613be8258186f12057dee7f1f8d93db958f8dd23bc3f"
+    },
+    {
+      "period": "2024-07-15T12",
+      "respondent": "MISO",
+      "respondentName": "Midcontinent Independent System Operator, Inc.",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 79790,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:MISO:2024-07-15T12:D",
+      "rowHash": "f36a6b5b730595dc87e0917669d67a26066e828d0258885edc74d97c8bb357ef"
+    },
+    {
+      "period": "2024-07-15T13",
+      "respondent": "MISO",
+      "respondentName": "Midcontinent Independent System Operator, Inc.",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 83008,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:MISO:2024-07-15T13:D",
+      "rowHash": "02a4c8f2c0a813d654073d91f589978833a85ea660937cd95679ac9f343a7e88"
+    },
+    {
+      "period": "2024-07-15T14",
+      "respondent": "MISO",
+      "respondentName": "Midcontinent Independent System Operator, Inc.",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 87514,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:MISO:2024-07-15T14:D",
+      "rowHash": "930a662c9510a170a08de2089dce5577b70468bd36249f26c432d37283294d86"
+    },
+    {
+      "period": "2024-07-15T15",
+      "respondent": "MISO",
+      "respondentName": "Midcontinent Independent System Operator, Inc.",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 92404,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:MISO:2024-07-15T15:D",
+      "rowHash": "259d9c9d5675f7004353c17bcc83cab179c69b20c7bb4b8e35a5c1400f25a1a7"
+    },
+    {
+      "period": "2024-07-15T16",
+      "respondent": "MISO",
+      "respondentName": "Midcontinent Independent System Operator, Inc.",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 97824,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:MISO:2024-07-15T16:D",
+      "rowHash": "788a80db966ab4663567a6cca76c07dfed1e101dacdcccc38d32a4653c0efafd"
+    },
+    {
+      "period": "2024-07-15T17",
+      "respondent": "MISO",
+      "respondentName": "Midcontinent Independent System Operator, Inc.",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 102707,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:MISO:2024-07-15T17:D",
+      "rowHash": "eeb6ba1af788360615e665a60f6df2ff4a5b07e746bf3db17299d204c788ab57"
+    },
+    {
+      "period": "2024-07-15T18",
+      "respondent": "MISO",
+      "respondentName": "Midcontinent Independent System Operator, Inc.",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 107241,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:MISO:2024-07-15T18:D",
+      "rowHash": "44e6943394d6ac9a4654fbb0c398dcca8e0972ee9dfc9b244b101f718118bed4"
+    },
+    {
+      "period": "2024-07-15T19",
+      "respondent": "MISO",
+      "respondentName": "Midcontinent Independent System Operator, Inc.",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 110787,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:MISO:2024-07-15T19:D",
+      "rowHash": "2287414a0c58839380409a220c78246097e9592a74582ae254fe39c10f5c4e29"
+    },
+    {
+      "period": "2024-07-15T20",
+      "respondent": "MISO",
+      "respondentName": "Midcontinent Independent System Operator, Inc.",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 113078,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:MISO:2024-07-15T20:D",
+      "rowHash": "fe11276cf1d100fb64c17c1b8fd196da3adfb246a0a16870d259eb1aa5db3196"
+    },
+    {
+      "period": "2024-07-15T21",
+      "respondent": "MISO",
+      "respondentName": "Midcontinent Independent System Operator, Inc.",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 114571,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:MISO:2024-07-15T21:D",
+      "rowHash": "bc573108f9ac183799075be82196200a909bc7b6f8088171d547d45c5b656c34"
+    },
+    {
+      "period": "2024-07-15T22",
+      "respondent": "MISO",
+      "respondentName": "Midcontinent Independent System Operator, Inc.",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 114734,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:MISO:2024-07-15T22:D",
+      "rowHash": "a74e0beb7f7e5c31e23d71d437acbc2b0f85b422e64277cc760c5184d72b42f6"
+    },
+    {
+      "period": "2024-07-15T23",
+      "respondent": "MISO",
+      "respondentName": "Midcontinent Independent System Operator, Inc.",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 114453,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:MISO:2024-07-15T23:D",
+      "rowHash": "8d15a8a324fcaefddcfa7ecff155dfdef4f3fb02be6da23236e6eb586f9e98e5"
+    },
+    {
+      "period": "2024-07-15T00",
+      "respondent": "PJM",
+      "respondentName": "PJM Interconnection, LLC",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 131649,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:PJM:2024-07-15T00:D",
+      "rowHash": "77fe81833875401560fab7deeb4d909966b503d265909e6283e8b8ab51b03c26"
+    },
+    {
+      "period": "2024-07-15T01",
+      "respondent": "PJM",
+      "respondentName": "PJM Interconnection, LLC",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 127432,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:PJM:2024-07-15T01:D",
+      "rowHash": "1c83c397ac8b5207598f3297befb2e2658ab102838c9a73f42017eeed8f60369"
+    },
+    {
+      "period": "2024-07-15T02",
+      "respondent": "PJM",
+      "respondentName": "PJM Interconnection, LLC",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 123416,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:PJM:2024-07-15T02:D",
+      "rowHash": "82ac62eee31758a8dc4cd457e291c735b430608f5d68d3047e83ec9ad6145429"
+    },
+    {
+      "period": "2024-07-15T03",
+      "respondent": "PJM",
+      "respondentName": "PJM Interconnection, LLC",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 117162,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:PJM:2024-07-15T03:D",
+      "rowHash": "1deec3fa3d64c4a3dae2ea498c134efc14b4f51bb8c75f2d4408212ef2706ff9"
+    },
+    {
+      "period": "2024-07-15T04",
+      "respondent": "PJM",
+      "respondentName": "PJM Interconnection, LLC",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 111001,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:PJM:2024-07-15T04:D",
+      "rowHash": "3a073cbcad62932481bc8fb6e1adef0f99fe221d5137b13df3f136e15ba2ae37"
+    },
+    {
+      "period": "2024-07-15T05",
+      "respondent": "PJM",
+      "respondentName": "PJM Interconnection, LLC",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 105487,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:PJM:2024-07-15T05:D",
+      "rowHash": "87b1a26aa4f1aabad8b1b7d0ed4e0887aed8c1d3f25c3e7d1994361073b473ce"
+    },
+    {
+      "period": "2024-07-15T06",
+      "respondent": "PJM",
+      "respondentName": "PJM Interconnection, LLC",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 100837,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:PJM:2024-07-15T06:D",
+      "rowHash": "02444edca6207a32bd8fba84fd5ab05f86ce3123d15fbc7a0c6a168879d30599"
+    },
+    {
+      "period": "2024-07-15T07",
+      "respondent": "PJM",
+      "respondentName": "PJM Interconnection, LLC",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 97046,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:PJM:2024-07-15T07:D",
+      "rowHash": "483f13128279ed99b9f1ab86f5e9ab178f0a3a6c7b0d0c888c5b38f238e2680f"
+    },
+    {
+      "period": "2024-07-15T08",
+      "respondent": "PJM",
+      "respondentName": "PJM Interconnection, LLC",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 94704,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:PJM:2024-07-15T08:D",
+      "rowHash": "2736125617259b6f3c7a0ee45db2d6e2f412360fa90295d463267e1e2d91b3f5"
+    },
+    {
+      "period": "2024-07-15T09",
+      "respondent": "PJM",
+      "respondentName": "PJM Interconnection, LLC",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 94464,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:PJM:2024-07-15T09:D",
+      "rowHash": "e39e4d81825719535b9083cba63f336f99d2eff0e2b1ddf01e82e3442a0e6330"
+    },
+    {
+      "period": "2024-07-15T10",
+      "respondent": "PJM",
+      "respondentName": "PJM Interconnection, LLC",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 96790,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:PJM:2024-07-15T10:D",
+      "rowHash": "e299129f0677f8a9d04228819531769e20809ffc9aef3c55109d3e6bde8bb42e"
+    },
+    {
+      "period": "2024-07-15T11",
+      "respondent": "PJM",
+      "respondentName": "PJM Interconnection, LLC",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 100690,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:PJM:2024-07-15T11:D",
+      "rowHash": "c4f793a5a52600f40d380ad5a947acc3fba18e556299e37cfdcfea6e0fe2e087"
+    },
+    {
+      "period": "2024-07-15T12",
+      "respondent": "PJM",
+      "respondentName": "PJM Interconnection, LLC",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 105205,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:PJM:2024-07-15T12:D",
+      "rowHash": "1c0615960dac509a1cbf0bf1671d0ada87ad5d4b73adb938c01da9cedaf98ca6"
+    },
+    {
+      "period": "2024-07-15T13",
+      "respondent": "PJM",
+      "respondentName": "PJM Interconnection, LLC",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 111432,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:PJM:2024-07-15T13:D",
+      "rowHash": "19e374edc478c9b7838f65898ef253e71e2f083635f30c94a4f0022ff4b9687a"
+    },
+    {
+      "period": "2024-07-15T14",
+      "respondent": "PJM",
+      "respondentName": "PJM Interconnection, LLC",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 117656,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:PJM:2024-07-15T14:D",
+      "rowHash": "bc1257531199358daf8a09284269d75d07528f92b3813596609c4f24a574bcac"
+    },
+    {
+      "period": "2024-07-15T15",
+      "respondent": "PJM",
+      "respondentName": "PJM Interconnection, LLC",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 124348,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:PJM:2024-07-15T15:D",
+      "rowHash": "d09906a28ab4215067e326199a42fea16ff0380defa0d075dafe043c8a85ca3d"
+    },
+    {
+      "period": "2024-07-15T16",
+      "respondent": "PJM",
+      "respondentName": "PJM Interconnection, LLC",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 130931,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:PJM:2024-07-15T16:D",
+      "rowHash": "44be90af9cd6ad917476114fda1a941a24a43f913a789d1b1e95bca1b1c18651"
+    },
+    {
+      "period": "2024-07-15T17",
+      "respondent": "PJM",
+      "respondentName": "PJM Interconnection, LLC",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 137834,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:PJM:2024-07-15T17:D",
+      "rowHash": "257de5ddeda7580f1a2561a9c61afe12bb62118e604289f1d22b17209a1d0e3f"
+    },
+    {
+      "period": "2024-07-15T18",
+      "respondent": "PJM",
+      "respondentName": "PJM Interconnection, LLC",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 143725,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:PJM:2024-07-15T18:D",
+      "rowHash": "12ad7f6a35b910badb4e480fdc12fb841cc82e7a7dd3b213a8704000bca107f6"
+    },
+    {
+      "period": "2024-07-15T19",
+      "respondent": "PJM",
+      "respondentName": "PJM Interconnection, LLC",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 147866,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:PJM:2024-07-15T19:D",
+      "rowHash": "1a068ab9a245c23804602c041c08625702165bd8bf9e7c3a8581bc895bb0fe57"
+    },
+    {
+      "period": "2024-07-15T20",
+      "respondent": "PJM",
+      "respondentName": "PJM Interconnection, LLC",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 150618,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:PJM:2024-07-15T20:D",
+      "rowHash": "a00c2bb123242ff0f69f3538a5b63591f0d4ed3f257f8fad628d28c9721a9ea9"
+    },
+    {
+      "period": "2024-07-15T21",
+      "respondent": "PJM",
+      "respondentName": "PJM Interconnection, LLC",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 152092,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:PJM:2024-07-15T21:D",
+      "rowHash": "6aa33372b08c94bf591fa27afed6dad9996f99d77f1ef3f3dc880bc0f5c6efd8"
+    },
+    {
+      "period": "2024-07-15T22",
+      "respondent": "PJM",
+      "respondentName": "PJM Interconnection, LLC",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 152137,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:PJM:2024-07-15T22:D",
+      "rowHash": "a3ef3ce3ed2419121a4ea9c4ff0300daa9b79dc28d3efd6a4595f3e4cb1ff0e1"
+    },
+    {
+      "period": "2024-07-15T23",
+      "respondent": "PJM",
+      "respondentName": "PJM Interconnection, LLC",
+      "type": "D",
+      "typeName": "Demand",
+      "fuelType": null,
+      "value": 150962,
+      "unit": "megawatthours",
+      "revisionStatus": "agency-reported; values may be revised or imputed",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "EIA does not publish row-level measurement uncertainty in this route."
+          }
+        }
+      },
+      "rowId": "eia:PJM:2024-07-15T23:D",
+      "rowHash": "4814b1ea02e78a928f61ceddf1ef6ea1e2816a24e74e799b293c44eec87b8ef3"
+    }
+  ]
+}

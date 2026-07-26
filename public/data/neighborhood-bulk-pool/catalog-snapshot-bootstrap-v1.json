@@ -1,0 +1,346 @@
+{
+  "schema": "simulatte.neighborhoodBulkCatalogSnapshot.v1",
+  "id": "neighborhood-bulk-catalog-snapshot-bootstrap-v1",
+  "contentVersion": "bootstrap-scenario-2026-07",
+  "snapshotAt": "2026-07-26T16:00:00Z",
+  "coverage": {
+    "status": "bootstrap-scenario",
+    "catalogRows": 18,
+    "declaredComplete": false,
+    "maximumSupportedRows": 250000,
+    "missingCapabilities": [
+      "authorized warehouse catalog feed",
+      "complete warehouse-specific item coverage",
+      "current warehouse prices",
+      "current warehouse availability",
+      "receipt-confirmed final prices"
+    ]
+  },
+  "categories": [
+    { "id": "produce", "label": "Produce" },
+    { "id": "refrigerated", "label": "Refrigerated" },
+    { "id": "frozen", "label": "Frozen" },
+    { "id": "pantry", "label": "Pantry" },
+    { "id": "snacks-bakery", "label": "Snacks and bakery" },
+    { "id": "household", "label": "Household" }
+  ],
+  "items": [
+    {
+      "id": "scenario-yellow-potatoes-10lb",
+      "itemNumber": "scenario-10001",
+      "name": "Yellow potatoes, 10 lb",
+      "brand": null,
+      "categoryId": "produce",
+      "categoryPath": ["Grocery", "Produce"],
+      "package": { "innerUnits": 20, "unitType": "potato", "divisionMode": "count", "massKg": 4.54, "volumeL": 8.0 },
+      "handling": { "temperatureZone": "ambient", "maximumTransitMinutes": 360 },
+      "eligibility": { "isPoolEligible": true, "requiresSealedInnerUnit": false, "isRestricted": false },
+      "offers": [
+        { "warehouseId": "costco-1062-manhattan", "priceUsd": 9.99, "availability": "scenario-available" },
+        { "warehouseId": "costco-318-brooklyn", "priceUsd": 9.49, "availability": "scenario-available" },
+        { "warehouseId": "costco-243-long-island-city", "priceUsd": 9.79, "availability": "scenario-available" },
+        { "warehouseId": "costco-1070-rego-park", "priceUsd": 9.69, "availability": "scenario-available" }
+      ]
+    },
+    {
+      "id": "scenario-avocados-6ct",
+      "itemNumber": "scenario-10002",
+      "name": "Avocados, 6 count",
+      "brand": null,
+      "categoryId": "produce",
+      "categoryPath": ["Grocery", "Produce"],
+      "package": { "innerUnits": 6, "unitType": "avocado", "divisionMode": "count", "massKg": 1.2, "volumeL": 3.5 },
+      "handling": { "temperatureZone": "ambient", "maximumTransitMinutes": 240 },
+      "eligibility": { "isPoolEligible": true, "requiresSealedInnerUnit": false, "isRestricted": false },
+      "offers": [
+        { "warehouseId": "costco-1062-manhattan", "priceUsd": 7.49, "availability": "scenario-available" },
+        { "warehouseId": "costco-318-brooklyn", "priceUsd": 6.99, "availability": "scenario-available" },
+        { "warehouseId": "costco-243-long-island-city", "priceUsd": 7.29, "availability": "scenario-available" },
+        { "warehouseId": "costco-1070-rego-park", "priceUsd": 7.19, "availability": "scenario-available" }
+      ]
+    },
+    {
+      "id": "scenario-eggs-24ct",
+      "itemNumber": "scenario-10003",
+      "name": "Large eggs, 24 count",
+      "brand": null,
+      "categoryId": "refrigerated",
+      "categoryPath": ["Grocery", "Dairy and Eggs"],
+      "package": { "innerUnits": 24, "unitType": "egg", "divisionMode": "count", "massKg": 1.6, "volumeL": 4.0 },
+      "handling": { "temperatureZone": "refrigerated", "maximumTransitMinutes": 120 },
+      "eligibility": { "isPoolEligible": true, "requiresSealedInnerUnit": false, "isRestricted": false },
+      "offers": [
+        { "warehouseId": "costco-1062-manhattan", "priceUsd": 8.49, "availability": "scenario-available" },
+        { "warehouseId": "costco-318-brooklyn", "priceUsd": 7.99, "availability": "scenario-available" },
+        { "warehouseId": "costco-243-long-island-city", "priceUsd": 8.19, "availability": "scenario-available" },
+        { "warehouseId": "costco-1070-rego-park", "priceUsd": 8.09, "availability": "scenario-available" }
+      ]
+    },
+    {
+      "id": "scenario-milk-2ct",
+      "itemNumber": "scenario-10004",
+      "name": "Milk, two one-gallon jugs",
+      "brand": null,
+      "categoryId": "refrigerated",
+      "categoryPath": ["Grocery", "Dairy and Eggs"],
+      "package": { "innerUnits": 2, "unitType": "gallon jug", "divisionMode": "sealed-unit", "massKg": 7.8, "volumeL": 9.0 },
+      "handling": { "temperatureZone": "refrigerated", "maximumTransitMinutes": 100 },
+      "eligibility": { "isPoolEligible": true, "requiresSealedInnerUnit": true, "isRestricted": false },
+      "offers": [
+        { "warehouseId": "costco-1062-manhattan", "priceUsd": 8.29, "availability": "scenario-available" },
+        { "warehouseId": "costco-318-brooklyn", "priceUsd": 7.79, "availability": "scenario-available" },
+        { "warehouseId": "costco-243-long-island-city", "priceUsd": 7.99, "availability": "scenario-available" },
+        { "warehouseId": "costco-1070-rego-park", "priceUsd": 7.89, "availability": "scenario-available" }
+      ]
+    },
+    {
+      "id": "scenario-yogurt-18ct",
+      "itemNumber": "scenario-10005",
+      "name": "Yogurt cups, 18 count",
+      "brand": null,
+      "categoryId": "refrigerated",
+      "categoryPath": ["Grocery", "Dairy and Eggs"],
+      "package": { "innerUnits": 18, "unitType": "sealed cup", "divisionMode": "sealed-unit", "massKg": 2.4, "volumeL": 5.0 },
+      "handling": { "temperatureZone": "refrigerated", "maximumTransitMinutes": 110 },
+      "eligibility": { "isPoolEligible": true, "requiresSealedInnerUnit": true, "isRestricted": false },
+      "offers": [
+        { "warehouseId": "costco-1062-manhattan", "priceUsd": 13.49, "availability": "scenario-available" },
+        { "warehouseId": "costco-318-brooklyn", "priceUsd": 12.99, "availability": "scenario-available" },
+        { "warehouseId": "costco-243-long-island-city", "priceUsd": 13.19, "availability": "scenario-available" },
+        { "warehouseId": "costco-1070-rego-park", "priceUsd": 13.09, "availability": "scenario-available" }
+      ]
+    },
+    {
+      "id": "scenario-chicken-portions-12ct",
+      "itemNumber": "scenario-10006",
+      "name": "Chicken portions, 12 count",
+      "brand": null,
+      "categoryId": "refrigerated",
+      "categoryPath": ["Grocery", "Fresh Meat"],
+      "package": { "innerUnits": 12, "unitType": "portion", "divisionMode": "count", "massKg": 3.0, "volumeL": 5.5 },
+      "handling": { "temperatureZone": "refrigerated", "maximumTransitMinutes": 80 },
+      "eligibility": { "isPoolEligible": true, "requiresSealedInnerUnit": false, "isRestricted": false },
+      "offers": [
+        { "warehouseId": "costco-1062-manhattan", "priceUsd": 29.99, "availability": "scenario-available" },
+        { "warehouseId": "costco-318-brooklyn", "priceUsd": 28.49, "availability": "scenario-available" },
+        { "warehouseId": "costco-243-long-island-city", "priceUsd": 28.99, "availability": "scenario-available" },
+        { "warehouseId": "costco-1070-rego-park", "priceUsd": 28.79, "availability": "scenario-available" }
+      ]
+    },
+    {
+      "id": "scenario-frozen-berries-3ct",
+      "itemNumber": "scenario-10007",
+      "name": "Frozen berry bags, 3 count",
+      "brand": null,
+      "categoryId": "frozen",
+      "categoryPath": ["Grocery", "Frozen Food"],
+      "package": { "innerUnits": 3, "unitType": "sealed bag", "divisionMode": "sealed-unit", "massKg": 2.7, "volumeL": 6.0 },
+      "handling": { "temperatureZone": "frozen", "maximumTransitMinutes": 70 },
+      "eligibility": { "isPoolEligible": true, "requiresSealedInnerUnit": true, "isRestricted": false },
+      "offers": [
+        { "warehouseId": "costco-1062-manhattan", "priceUsd": 16.99, "availability": "scenario-available" },
+        { "warehouseId": "costco-318-brooklyn", "priceUsd": 15.99, "availability": "scenario-available" },
+        { "warehouseId": "costco-243-long-island-city", "priceUsd": 16.49, "availability": "scenario-available" },
+        { "warehouseId": "costco-1070-rego-park", "priceUsd": 16.29, "availability": "scenario-available" }
+      ]
+    },
+    {
+      "id": "scenario-frozen-vegetables-4ct",
+      "itemNumber": "scenario-10008",
+      "name": "Frozen vegetable bags, 4 count",
+      "brand": null,
+      "categoryId": "frozen",
+      "categoryPath": ["Grocery", "Frozen Food"],
+      "package": { "innerUnits": 4, "unitType": "sealed bag", "divisionMode": "sealed-unit", "massKg": 3.0, "volumeL": 7.0 },
+      "handling": { "temperatureZone": "frozen", "maximumTransitMinutes": 70 },
+      "eligibility": { "isPoolEligible": true, "requiresSealedInnerUnit": true, "isRestricted": false },
+      "offers": [
+        { "warehouseId": "costco-1062-manhattan", "priceUsd": 14.49, "availability": "scenario-available" },
+        { "warehouseId": "costco-318-brooklyn", "priceUsd": 13.79, "availability": "scenario-available" },
+        { "warehouseId": "costco-243-long-island-city", "priceUsd": 13.99, "availability": "scenario-available" },
+        { "warehouseId": "costco-1070-rego-park", "priceUsd": 13.89, "availability": "scenario-available" }
+      ]
+    },
+    {
+      "id": "scenario-rice-25lb",
+      "itemNumber": "scenario-10009",
+      "name": "Long-grain rice, 25 lb",
+      "brand": null,
+      "categoryId": "pantry",
+      "categoryPath": ["Grocery", "Pantry and Dry Goods"],
+      "package": { "innerUnits": 25, "unitType": "pound share", "divisionMode": "weight", "massKg": 11.34, "volumeL": 18.0 },
+      "handling": { "temperatureZone": "ambient", "maximumTransitMinutes": 720 },
+      "eligibility": { "isPoolEligible": true, "requiresSealedInnerUnit": false, "isRestricted": false },
+      "offers": [
+        { "warehouseId": "costco-1062-manhattan", "priceUsd": 24.99, "availability": "scenario-available" },
+        { "warehouseId": "costco-318-brooklyn", "priceUsd": 22.99, "availability": "scenario-available" },
+        { "warehouseId": "costco-243-long-island-city", "priceUsd": 23.99, "availability": "scenario-available" },
+        { "warehouseId": "costco-1070-rego-park", "priceUsd": 23.49, "availability": "scenario-available" }
+      ]
+    },
+    {
+      "id": "scenario-black-beans-8ct",
+      "itemNumber": "scenario-10010",
+      "name": "Black beans, 8 cans",
+      "brand": null,
+      "categoryId": "pantry",
+      "categoryPath": ["Grocery", "Pantry and Dry Goods"],
+      "package": { "innerUnits": 8, "unitType": "sealed can", "divisionMode": "sealed-unit", "massKg": 3.6, "volumeL": 5.0 },
+      "handling": { "temperatureZone": "ambient", "maximumTransitMinutes": 720 },
+      "eligibility": { "isPoolEligible": true, "requiresSealedInnerUnit": true, "isRestricted": false },
+      "offers": [
+        { "warehouseId": "costco-1062-manhattan", "priceUsd": 10.99, "availability": "scenario-available" },
+        { "warehouseId": "costco-318-brooklyn", "priceUsd": 9.99, "availability": "scenario-available" },
+        { "warehouseId": "costco-243-long-island-city", "priceUsd": 10.49, "availability": "scenario-available" },
+        { "warehouseId": "costco-1070-rego-park", "priceUsd": 10.29, "availability": "scenario-available" }
+      ]
+    },
+    {
+      "id": "scenario-olive-oil-2ct",
+      "itemNumber": "scenario-10011",
+      "name": "Olive oil, 2 bottles",
+      "brand": null,
+      "categoryId": "pantry",
+      "categoryPath": ["Grocery", "Pantry and Dry Goods"],
+      "package": { "innerUnits": 2, "unitType": "sealed bottle", "divisionMode": "sealed-unit", "massKg": 3.2, "volumeL": 4.0 },
+      "handling": { "temperatureZone": "ambient", "maximumTransitMinutes": 720 },
+      "eligibility": { "isPoolEligible": true, "requiresSealedInnerUnit": true, "isRestricted": false },
+      "offers": [
+        { "warehouseId": "costco-1062-manhattan", "priceUsd": 26.99, "availability": "scenario-available" },
+        { "warehouseId": "costco-318-brooklyn", "priceUsd": 25.49, "availability": "scenario-available" },
+        { "warehouseId": "costco-243-long-island-city", "priceUsd": 25.99, "availability": "scenario-available" },
+        { "warehouseId": "costco-1070-rego-park", "priceUsd": 25.79, "availability": "scenario-available" }
+      ]
+    },
+    {
+      "id": "scenario-coffee-2ct",
+      "itemNumber": "scenario-10012",
+      "name": "Whole-bean coffee, 2 bags",
+      "brand": null,
+      "categoryId": "pantry",
+      "categoryPath": ["Grocery", "Coffee"],
+      "package": { "innerUnits": 2, "unitType": "sealed bag", "divisionMode": "sealed-unit", "massKg": 2.3, "volumeL": 5.0 },
+      "handling": { "temperatureZone": "ambient", "maximumTransitMinutes": 720 },
+      "eligibility": { "isPoolEligible": true, "requiresSealedInnerUnit": true, "isRestricted": false },
+      "offers": [
+        { "warehouseId": "costco-1062-manhattan", "priceUsd": 24.99, "availability": "scenario-available" },
+        { "warehouseId": "costco-318-brooklyn", "priceUsd": 23.49, "availability": "scenario-available" },
+        { "warehouseId": "costco-243-long-island-city", "priceUsd": 23.99, "availability": "scenario-available" },
+        { "warehouseId": "costco-1070-rego-park", "priceUsd": 23.79, "availability": "scenario-available" }
+      ]
+    },
+    {
+      "id": "scenario-snack-bags-40ct",
+      "itemNumber": "scenario-10013",
+      "name": "Baked snack bags, 40 count",
+      "brand": null,
+      "categoryId": "snacks-bakery",
+      "categoryPath": ["Grocery", "Snacks"],
+      "package": { "innerUnits": 40, "unitType": "sealed bag", "divisionMode": "sealed-unit", "massKg": 1.0, "volumeL": 18.0 },
+      "handling": { "temperatureZone": "ambient", "maximumTransitMinutes": 720 },
+      "eligibility": { "isPoolEligible": true, "requiresSealedInnerUnit": true, "isRestricted": false },
+      "offers": [
+        { "warehouseId": "costco-1062-manhattan", "priceUsd": 19.99, "availability": "scenario-available" },
+        { "warehouseId": "costco-318-brooklyn", "priceUsd": 18.49, "availability": "scenario-available" },
+        { "warehouseId": "costco-243-long-island-city", "priceUsd": 18.99, "availability": "scenario-available" },
+        { "warehouseId": "costco-1070-rego-park", "priceUsd": 18.79, "availability": "scenario-available" }
+      ]
+    },
+    {
+      "id": "scenario-granola-bars-48ct",
+      "itemNumber": "scenario-10014",
+      "name": "Granola bars, 48 count",
+      "brand": null,
+      "categoryId": "snacks-bakery",
+      "categoryPath": ["Grocery", "Snacks"],
+      "package": { "innerUnits": 48, "unitType": "wrapped bar", "divisionMode": "sealed-unit", "massKg": 1.9, "volumeL": 8.0 },
+      "handling": { "temperatureZone": "ambient", "maximumTransitMinutes": 720 },
+      "eligibility": { "isPoolEligible": true, "requiresSealedInnerUnit": true, "isRestricted": false },
+      "offers": [
+        { "warehouseId": "costco-1062-manhattan", "priceUsd": 17.99, "availability": "scenario-available" },
+        { "warehouseId": "costco-318-brooklyn", "priceUsd": 16.49, "availability": "scenario-available" },
+        { "warehouseId": "costco-243-long-island-city", "priceUsd": 16.99, "availability": "scenario-available" },
+        { "warehouseId": "costco-1070-rego-park", "priceUsd": 16.79, "availability": "scenario-available" }
+      ]
+    },
+    {
+      "id": "scenario-croissants-12ct",
+      "itemNumber": "scenario-10015",
+      "name": "Croissants, 12 count",
+      "brand": null,
+      "categoryId": "snacks-bakery",
+      "categoryPath": ["Grocery", "Bakery"],
+      "package": { "innerUnits": 12, "unitType": "croissant", "divisionMode": "count", "massKg": 0.9, "volumeL": 10.0 },
+      "handling": { "temperatureZone": "ambient", "maximumTransitMinutes": 240 },
+      "eligibility": { "isPoolEligible": true, "requiresSealedInnerUnit": false, "isRestricted": false },
+      "offers": [
+        { "warehouseId": "costco-1062-manhattan", "priceUsd": 7.99, "availability": "scenario-available" },
+        { "warehouseId": "costco-318-brooklyn", "priceUsd": 7.49, "availability": "scenario-available" },
+        { "warehouseId": "costco-243-long-island-city", "priceUsd": 7.79, "availability": "scenario-available" },
+        { "warehouseId": "costco-1070-rego-park", "priceUsd": 7.69, "availability": "scenario-available" }
+      ]
+    },
+    {
+      "id": "scenario-paper-towels-12ct",
+      "itemNumber": "scenario-10016",
+      "name": "Paper towels, 12 rolls",
+      "brand": null,
+      "categoryId": "household",
+      "categoryPath": ["Household", "Paper Products"],
+      "package": { "innerUnits": 12, "unitType": "wrapped roll", "divisionMode": "sealed-unit", "massKg": 4.0, "volumeL": 45.0 },
+      "handling": { "temperatureZone": "ambient", "maximumTransitMinutes": 720 },
+      "eligibility": { "isPoolEligible": true, "requiresSealedInnerUnit": true, "isRestricted": false },
+      "offers": [
+        { "warehouseId": "costco-1062-manhattan", "priceUsd": 25.99, "availability": "scenario-available" },
+        { "warehouseId": "costco-318-brooklyn", "priceUsd": 23.99, "availability": "scenario-available" },
+        { "warehouseId": "costco-243-long-island-city", "priceUsd": 24.99, "availability": "scenario-available" },
+        { "warehouseId": "costco-1070-rego-park", "priceUsd": 24.49, "availability": "scenario-available" }
+      ]
+    },
+    {
+      "id": "scenario-storage-containers-50ct",
+      "itemNumber": "scenario-10017",
+      "name": "Food storage containers, 50 count",
+      "brand": null,
+      "categoryId": "household",
+      "categoryPath": ["Household", "Kitchen"],
+      "package": { "innerUnits": 50, "unitType": "container", "divisionMode": "count", "massKg": 2.0, "volumeL": 20.0 },
+      "handling": { "temperatureZone": "ambient", "maximumTransitMinutes": 720 },
+      "eligibility": { "isPoolEligible": true, "requiresSealedInnerUnit": false, "isRestricted": false },
+      "offers": [
+        { "warehouseId": "costco-1062-manhattan", "priceUsd": 18.99, "availability": "scenario-available" },
+        { "warehouseId": "costco-318-brooklyn", "priceUsd": 17.49, "availability": "scenario-available" },
+        { "warehouseId": "costco-243-long-island-city", "priceUsd": 17.99, "availability": "scenario-available" },
+        { "warehouseId": "costco-1070-rego-park", "priceUsd": 17.79, "availability": "scenario-available" }
+      ]
+    },
+    {
+      "id": "scenario-laundry-pods-152ct",
+      "itemNumber": "scenario-10018",
+      "name": "Laundry pods, 152 count",
+      "brand": null,
+      "categoryId": "household",
+      "categoryPath": ["Household", "Laundry"],
+      "package": { "innerUnits": 152, "unitType": "sealed pod", "divisionMode": "sealed-unit", "massKg": 3.8, "volumeL": 8.0 },
+      "handling": { "temperatureZone": "ambient", "maximumTransitMinutes": 720 },
+      "eligibility": { "isPoolEligible": true, "requiresSealedInnerUnit": true, "isRestricted": false },
+      "offers": [
+        { "warehouseId": "costco-1062-manhattan", "priceUsd": 31.99, "availability": "unknown" },
+        { "warehouseId": "costco-318-brooklyn", "priceUsd": 29.99, "availability": "unknown" },
+        { "warehouseId": "costco-243-long-island-city", "priceUsd": 30.99, "availability": "unknown" },
+        { "warehouseId": "costco-1070-rego-park", "priceUsd": 30.49, "availability": "unknown" }
+      ]
+    }
+  ],
+  "truth": {
+    "origin": "scenario",
+    "temporalStatus": "forecast",
+    "uncertainty": {
+      "kind": "missing",
+      "value": {
+        "reason": "Product identities, package sizes, prices, and availability are bootstrap scenario inputs, not observed Costco warehouse inventory."
+      }
+    }
+  },
+  "claimBoundary": "This bootstrap snapshot proves the catalog and optimizer contracts only. It is deliberately incomplete and does not claim that any named package, price, or availability is currently offered by Costco."
+}

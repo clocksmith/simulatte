@@ -1,0 +1,44 @@
+{
+  "schema": "simulatte.subseaModelGovernance.v1",
+  "id": "subsea-model-governance-v1",
+  "contentVersion": "1.0.0",
+  "algorithms": [
+    {
+      "id": "bounded-simple-path-v1",
+      "owner": "path-catalog.js",
+      "guarantee": "loop-free deterministic candidate paths"
+    },
+    {
+      "id": "path-flow-simplex-v1",
+      "owner": "allocation-solver.js",
+      "guarantee": "capacity and demand constrained linear allocation"
+    },
+    {
+      "id": "proportional-fair-frank-wolfe-v1",
+      "owner": "allocation-solver.js",
+      "guarantee": "feasible concave-utility allocation with reported gap"
+    },
+    {
+      "id": "repair-discrete-event-v1",
+      "owner": "repair-engine.js",
+      "guarantee": "inventory-conserving deterministic event queue"
+    }
+  ],
+  "omissions": [
+    "current traffic matrices",
+    "authoritative private capacities",
+    "terrestrial routing",
+    "commercial contracts",
+    "cybersecurity behavior",
+    "operational repair readiness",
+    "burial depth",
+    "fault localization error",
+    "weather accessibility"
+  ],
+  "prohibitedClaims": [
+    "current traffic",
+    "live capacity",
+    "authoritative outage",
+    "actual restoration time"
+  ]
+}

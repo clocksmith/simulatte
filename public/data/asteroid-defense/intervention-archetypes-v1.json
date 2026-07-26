@@ -1,0 +1,78 @@
+{
+  "schema": "simulatte.asteroidInterventionArchetypes.v1",
+  "id": "asteroid-intervention-archetypes-v1",
+  "archetypes": [
+    {
+      "id": "none",
+      "label": "No intervention",
+      "deltaVAuD": 0,
+      "reliability": 1,
+      "decisionDay": 20,
+      "direction": "encounter-plane-normal-screening",
+      "truth": {
+        "origin": "modeled",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "distribution",
+          "value": {
+            "interpretation": "Declared scientific model assumption."
+          }
+        }
+      }
+    },
+    {
+      "id": "kinetic-impactor",
+      "label": "Synthetic kinetic impulse",
+      "deltaVAuD": 3.2e-7,
+      "reliability": 0.82,
+      "decisionDay": 20,
+      "direction": "encounter-plane-normal-screening",
+      "truth": {
+        "origin": "modeled",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "distribution",
+          "value": {
+            "interpretation": "Declared scientific model assumption."
+          }
+        }
+      }
+    },
+    {
+      "id": "reconnaissance-first",
+      "label": "Observation campaign then bounded kinetic impulse",
+      "deltaVAuD": 2.4e-7,
+      "reliability": 0.9,
+      "decisionDay": 20,
+      "direction": "encounter-plane-normal-screening",
+      "truth": {
+        "origin": "modeled",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "distribution",
+          "value": {
+            "interpretation": "Declared scientific model assumption."
+          }
+        }
+      }
+    },
+    {
+      "id": "gravity-tractor",
+      "label": "Synthetic accumulated low impulse",
+      "deltaVAuD": 8e-8,
+      "reliability": 0.96,
+      "decisionDay": 20,
+      "direction": "encounter-plane-normal-screening",
+      "truth": {
+        "origin": "modeled",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "distribution",
+          "value": {
+            "interpretation": "Declared scientific model assumption."
+          }
+        }
+      }
+    }
+  ]
+}

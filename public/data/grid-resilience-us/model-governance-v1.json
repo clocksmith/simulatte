@@ -1,0 +1,34 @@
+{
+  "schema": "simulatte.gridModelGovernance.v1",
+  "id": "grid-model-governance-v1",
+  "algorithms": [
+    {
+      "id": "interface-constrained-dispatch-v1",
+      "kind": "deterministic_lexicographic_dispatch",
+      "limitation": "Aggregate active-power accounting only; no AC or contingency model."
+    },
+    {
+      "id": "storage-transition-v1",
+      "kind": "bounded_energy_state_transition",
+      "limitation": "Aggregate storage archetypes, not actual assets."
+    },
+    {
+      "id": "restoration-state-machine-v1",
+      "kind": "dependency_and_crew_scheduler",
+      "limitation": "Scenario crews and durations."
+    },
+    {
+      "id": "grid-ensemble-v1",
+      "kind": "declared_seed_sensitivity",
+      "limitation": "Scenario variance, not calibrated forecast uncertainty."
+    }
+  ],
+  "prohibitedClaims": [
+    "protected or exact grid topology",
+    "security-constrained dispatch",
+    "AC power flow or cascading outage realism",
+    "operational blackout forecast",
+    "utility control-room recommendation"
+  ],
+  "publicClaim": "Under the declared regional model and disturbance, the intervention changed modeled unserved energy, reserve margin, storage use, and emissions."
+}

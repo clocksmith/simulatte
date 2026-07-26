@@ -5,6 +5,11 @@ natural-language mission into typed obligations, executes an embodied agent
 through repeated autonomous decisions, settles the predictions made at every
 tick, and emits a hash-linked journey receipt.
 
+The implementation program for the four unbuilt World experiences is in
+[Proposed experience implementation program](proposed-experiences/README.md).
+It specifies Subsea Network, Grid Resilience, Exoplanet Survey, and Asteroid
+Defense without registering or claiming them as deployed profiles.
+
 The target cooperative-city architecture is specified in
 [Cooperative city architecture](cooperative-city-architecture.md). It covers
 incidental peer delivery, marginal-detour matching, relays, custody, dynamic

@@ -180,6 +180,23 @@ test('every public scenario emits deterministic solver hashes, verification erro
   }
 });
 
+test('objective controls rerun the launch-window search and become receipt-backed state', async () => {
+  const host = fixture();
+  const instance = await plugin.activate({ sdk: host.sdk, config, profile, scenario: profile.seeds[0] });
+  const before = instance.capabilities['simulation.orbital-transfer.v1']();
+  const action = instance.handleAction('scenario.run', {
+    values: { phase: 'start', deltaVWeight: 2, timeWeight: 0.2 },
+  });
+  const after = instance.capabilities['simulation.orbital-transfer.v1']();
+  assert.equal(action.status, 'settled');
+  assert.notEqual(after.selected.objective, before.selected.objective);
+  const controls = Object.fromEntries(instance.contributeV4().controls.controls.map((row) => [row.id, row.value]));
+  assert.deepEqual(controls, { deltaVWeight: 2, timeWeight: 0.2 });
+  const receipt = host.receipts.findLast((row) => row.schema === 'simulatte.plugin.orbitalTransferReceipt.v2');
+  assert.equal(receipt.selectedCandidateId, after.selected.id);
+  assert.deepEqual(receipt.solver, after.solverReceipt);
+});
+
 function fixture() {
   const values = new Map(manifest.datasets.map((row) => [
     row.id,

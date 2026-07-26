@@ -6,7 +6,7 @@ const contracts = require('../public/simulatte/platform/contracts/plugin-v4-cont
 const clockApi = require('../public/simulatte/platform/runtime/simulation-clock.js');
 const timelineApi = require('../public/simulatte/platform/runtime/simulation-timeline.js');
 
-function fixture({ incompleteSettlement = false, stepOffset = 0 } = {}) {
+function fixture({ incompleteSettlement = false, stepOffset = 0, controlValues = {} } = {}) {
   const provenance = contracts.createProvenance({
     origin: 'simulated',
     temporalStatus: 'forecast',
@@ -41,8 +41,10 @@ function fixture({ incompleteSettlement = false, stepOffset = 0 } = {}) {
   let day = 0;
   let settledReceipt = null;
   const phases = [];
+  const dispatchedValues = [];
   const runtime = {
     async dispatchAction(_pluginId, _actionId, context) {
+      dispatchedValues.push(structuredClone(context.values));
       if (context.values.phase === 'start') {
         day = 0;
         return { status: 'running', currentStep: day, totalSteps: 2 };
@@ -68,12 +70,13 @@ function fixture({ incompleteSettlement = false, stepOffset = 0 } = {}) {
     ownerPluginId: 'fixture',
     scenario: { id: 'fixture-scenario', seed: 'fixture-seed' },
     clock,
+    getControlValues: () => controlValues,
     render() {},
     onPhase: (phase) => phases.push(phase),
     onSettled: (receipt) => { settledReceipt = receipt; },
     onError: () => {},
   });
-  return { controller, phases, settledReceipt: () => settledReceipt };
+  return { controller, dispatchedValues, phases, settledReceipt: () => settledReceipt };
 }
 
 test('plugin playback advances on the shared clock and settles terminal obligations', async () => {
@@ -139,4 +142,18 @@ test('plugin playback receipt storage is profile-scoped and recoverable', () => 
   playbackApi.clearStoredReceipt(storage, 'profile-a');
   assert.equal(playbackApi.loadStoredReceipt(storage, 'profile-a'), null);
   assert.equal(playbackApi.browserStorage({ sessionStorage: storage }), storage);
+});
+
+test('plugin playback sends typed experiment parameters on every phase and receipts them', async () => {
+  const parameterValues = { durationDays: 2, enabled: true, families: ['usb-c-to-c'] };
+  const lane = fixture({ controlValues: parameterValues });
+  await lane.controller.start();
+  await lane.controller.step();
+  await lane.controller.step();
+  assert.deepEqual(lane.dispatchedValues.slice(0, 3), [
+    { ...parameterValues, phase: 'start' },
+    { ...parameterValues, phase: 'step' },
+    { ...parameterValues, phase: 'step' },
+  ]);
+  assert.deepEqual(lane.settledReceipt().parameterValues, parameterValues);
 });

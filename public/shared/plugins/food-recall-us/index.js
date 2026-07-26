@@ -141,6 +141,25 @@
     function handleAction(actionId, context = {}) {
       const values = context.values || {};
       if (actionId === 'scenario.run') {
+        if (values.phase === 'start') {
+          activeIntervention = interventionFrom(values);
+          const ran = run(activeSpec, activeIntervention);
+          appendInterventionReceipt(activeSpec, ran, baseline.result.trueIllnesses);
+          sdk.events.propose({
+            pluginId: PLUGIN_ID,
+            kind: `${PLUGIN_ID}.recall-issued`,
+            run: ran.result,
+            intervention: activeIntervention,
+            inputContext: ran.inputs,
+          });
+          const state = sdk.state.read();
+          return {
+            status: 'settled',
+            scenarioId: activeSpec.id,
+            intervention: activeIntervention,
+            run: state.run,
+          };
+        }
         const state = sdk.state.read();
         sdk.events.propose({
           pluginId: PLUGIN_ID,
@@ -152,11 +171,7 @@
         return { status: 'settled', scenarioId: activeSpec.id, run: state.run };
       }
       if (actionId === 'recall.issue') {
-        const intervention = {
-          dayOffset: Number(values.recallDay ?? activeSpec.defaultIntervention.dayOffset),
-          depth: values.recallDepth || activeSpec.defaultIntervention.depth,
-          scope: activeSpec.defaultIntervention.scope,
-        };
+        const intervention = interventionFrom(values);
         activeIntervention = intervention;
         const ran = run(activeSpec, intervention);
         appendInterventionReceipt(activeSpec, ran, baseline.result.trueIllnesses);
@@ -245,6 +260,18 @@
         });
       }
       return { status: 'refused', reason: 'unknown_action' };
+    }
+
+    function interventionFrom(values) {
+      const dayOffset = Number(values.recallDay ?? activeSpec.defaultIntervention.dayOffset);
+      if (!Number.isInteger(dayOffset) || dayOffset < 0 || dayOffset > activeSpec.durationDays) {
+        throw new Error(`food_recall_control_invalid: recallDay must be an integer from 0 to ${activeSpec.durationDays}`);
+      }
+      const depth = values.recallDepth || activeSpec.defaultIntervention.depth;
+      if (!['retail', 'consumer'].includes(depth)) {
+        throw new Error(`food_recall_control_invalid: unsupported recallDepth ${depth}`);
+      }
+      return { dayOffset, depth, scope: activeSpec.defaultIntervention.scope };
     }
 
     function settle() {

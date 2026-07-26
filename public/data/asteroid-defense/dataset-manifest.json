@@ -1,0 +1,77 @@
+{
+  "schema": "simulatte.pluginDatasetManifest.v1",
+  "id": "asteroid-defense-dataset-manifest-v1",
+  "generatedBy": "tools/asteroid-defense/update-asteroid-manifest.mjs",
+  "datasets": [
+    {
+      "id": "asteroid-decision-policies-v1",
+      "path": "./decision-policies-v1.json",
+      "schemaId": "simulatte.asteroidDecisionPolicies.v1",
+      "sha256": "c70695a9040fddd86bceb5e0a7cf99a1dd08b7384630b784632bcedf95fa25f9",
+      "bytes": 2116
+    },
+    {
+      "id": "asteroid-execution-uncertainty-models-v1",
+      "path": "./execution-uncertainty-models-v1.json",
+      "schemaId": "simulatte.asteroidExecutionUncertainty.v1",
+      "sha256": "e934589e9db72278fc8005ce51ef3aa874ebb495f6b2b908f735fdc3ca4a520a",
+      "bytes": 712
+    },
+    {
+      "id": "asteroid-force-models-v1",
+      "path": "./force-models-v1.json",
+      "schemaId": "simulatte.asteroidForceModels.v1",
+      "sha256": "9b593b32915282106a87b89019606d5b99f88639fe38c1be944991a21f866f81",
+      "bytes": 848
+    },
+    {
+      "id": "asteroid-historical-benchmark-cases-v1",
+      "path": "./historical-benchmark-cases-v1.json",
+      "schemaId": "simulatte.asteroidHistoricalBenchmarks.v1",
+      "sha256": "f17fec3394a65279759481caad41c798fe7560b66e928a3932a0b938836d1b77",
+      "bytes": 828
+    },
+    {
+      "id": "asteroid-intervention-archetypes-v1",
+      "path": "./intervention-archetypes-v1.json",
+      "schemaId": "simulatte.asteroidInterventionArchetypes.v1",
+      "sha256": "8bc13e330b96257f16c63b3b22ab81717f8a3245c71acc0d7fe96c05bbcf9e4a",
+      "bytes": 2081
+    },
+    {
+      "id": "asteroid-jpl-reference-snapshots-v1",
+      "path": "./jpl-reference-snapshots-v1.json",
+      "schemaId": "simulatte.asteroidJplReferenceSnapshots.v1",
+      "sha256": "ff444a7d58beb28d69c2b2c460530b76d13e24a7b4a719e43f7f177684891eda",
+      "bytes": 10066
+    },
+    {
+      "id": "asteroid-model-governance-v1",
+      "path": "./model-governance-v1.json",
+      "schemaId": "simulatte.asteroidModelGovernance.v1",
+      "sha256": "219fba4e06e82dec27f707fc5bd3446d0b73d34e833382eaefe26da25eb0435f",
+      "bytes": 940
+    },
+    {
+      "id": "asteroid-observer-stations-v1",
+      "path": "./observer-stations-v1.json",
+      "schemaId": "simulatte.asteroidObserverStations.v1",
+      "sha256": "bac48d258a2b10d9670722e830679fcf67a973ce03a9ed92a3a9f6fe2f73bba9",
+      "bytes": 1061
+    },
+    {
+      "id": "asteroid-provenance-registry-v1",
+      "path": "./provenance-registry-v1.json",
+      "schemaId": "simulatte.asteroidProvenanceRegistry.v1",
+      "sha256": "3a372ab52b769481065aba1930d84d21c29a854206a1981e41f1db66131d3b9b",
+      "bytes": 4065
+    },
+    {
+      "id": "asteroid-synthetic-observation-campaigns-v1",
+      "path": "./synthetic-observation-campaigns-v1.json",
+      "schemaId": "simulatte.asteroidSyntheticCampaigns.v1",
+      "sha256": "19a382e5a66ca5b53aee385ddeeaef9d120f8c2f51721b55ff68a528d4a59c2a",
+      "bytes": 63825
+    }
+  ]
+}

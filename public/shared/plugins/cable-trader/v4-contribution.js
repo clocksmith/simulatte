@@ -167,7 +167,7 @@
         scenarioClaim
       ),
       numericControl('durationDays', 'Duration', config.simulation.durationDays, 1, 365, 1, scenarioClaim),
-      numericControl('initialInventoryPerHubType', 'Starting inventory', config.simulation.initialInventoryPerHubType, 0, 10000, 1, scenarioClaim),
+      numericControl('initialInventoryPerHubType', 'Starting inventory', config.simulation.initialInventoryPerHubType, 1, 100000, 1, scenarioClaim),
     ], [{
       id: 'optimized-vs-local-only',
       label: 'Optimized redistribution vs local inventory only',

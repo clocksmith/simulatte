@@ -1,0 +1,215 @@
+{
+  "schema": "simulatte.subseaLandingPoints.v1",
+  "id": "subsea-landing-points-governed-v1",
+  "contentVersion": "1.0.0",
+  "points": [
+    {
+      "id": "us-northeast",
+      "label": "United States northeast gateway",
+      "coordinates": [
+        -71,
+        41
+      ],
+      "regionId": "united-states",
+      "coordinateClassification": "modeled-regional-display-anchor",
+      "evidenceRefs": [],
+      "truth": {
+        "origin": "modeled",
+        "temporalStatus": "snapshot",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Display anchor is not a landing-station location."
+          }
+        }
+      }
+    },
+    {
+      "id": "us-mid-atlantic",
+      "label": "United States mid-Atlantic gateway",
+      "coordinates": [
+        -75.2,
+        37.1
+      ],
+      "regionId": "united-states",
+      "coordinateClassification": "modeled-regional-display-anchor",
+      "evidenceRefs": [],
+      "truth": {
+        "origin": "modeled",
+        "temporalStatus": "snapshot",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Display anchor is not a landing-station location."
+          }
+        }
+      }
+    },
+    {
+      "id": "denmark",
+      "label": "Denmark",
+      "regionId": "denmark",
+      "coordinates": [
+        8,
+        56
+      ],
+      "coordinateClassification": "modeled-country-display-anchor",
+      "evidenceRefs": [
+        "fcc-landing:atlantic:havfrue:denmark"
+      ],
+      "truth": {
+        "origin": "derived",
+        "temporalStatus": "snapshot",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Country identity is observed; display coordinate is modeled."
+          }
+        }
+      }
+    },
+    {
+      "id": "france",
+      "label": "France",
+      "regionId": "france",
+      "coordinates": [
+        -4.8,
+        48.4
+      ],
+      "coordinateClassification": "modeled-country-display-anchor",
+      "evidenceRefs": [
+        "fcc-landing:atlantic:amitie:france",
+        "fcc-landing:atlantic:dunant:france"
+      ],
+      "truth": {
+        "origin": "derived",
+        "temporalStatus": "snapshot",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Country identity is observed; display coordinate is modeled."
+          }
+        }
+      }
+    },
+    {
+      "id": "iceland",
+      "label": "Iceland",
+      "regionId": "iceland",
+      "coordinates": [
+        -22,
+        64
+      ],
+      "coordinateClassification": "modeled-country-display-anchor",
+      "evidenceRefs": [
+        "fcc-landing:atlantic:aeconnect-cable-network:iceland"
+      ],
+      "truth": {
+        "origin": "derived",
+        "temporalStatus": "snapshot",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Country identity is observed; display coordinate is modeled."
+          }
+        }
+      }
+    },
+    {
+      "id": "ireland",
+      "label": "Ireland",
+      "regionId": "ireland",
+      "coordinates": [
+        -10.2,
+        52.1
+      ],
+      "coordinateClassification": "modeled-country-display-anchor",
+      "evidenceRefs": [
+        "fcc-landing:atlantic:aeconnect-cable-network:ireland",
+        "fcc-landing:atlantic:havfrue:ireland"
+      ],
+      "truth": {
+        "origin": "derived",
+        "temporalStatus": "snapshot",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Country identity is observed; display coordinate is modeled."
+          }
+        }
+      }
+    },
+    {
+      "id": "norway",
+      "label": "Norway",
+      "regionId": "norway",
+      "coordinates": [
+        5,
+        60
+      ],
+      "coordinateClassification": "modeled-country-display-anchor",
+      "evidenceRefs": [
+        "fcc-landing:atlantic:havfrue:norway"
+      ],
+      "truth": {
+        "origin": "derived",
+        "temporalStatus": "snapshot",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Country identity is observed; display coordinate is modeled."
+          }
+        }
+      }
+    },
+    {
+      "id": "spain",
+      "label": "Spain",
+      "regionId": "spain",
+      "coordinates": [
+        -9.2,
+        43.4
+      ],
+      "coordinateClassification": "modeled-country-display-anchor",
+      "evidenceRefs": [
+        "fcc-landing:atlantic:grace-hopper:spain",
+        "fcc-landing:atlantic:marea:spain"
+      ],
+      "truth": {
+        "origin": "derived",
+        "temporalStatus": "snapshot",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Country identity is observed; display coordinate is modeled."
+          }
+        }
+      }
+    },
+    {
+      "id": "united-kingdom",
+      "label": "United Kingdom",
+      "regionId": "united-kingdom",
+      "coordinates": [
+        -5,
+        50.5
+      ],
+      "coordinateClassification": "modeled-country-display-anchor",
+      "evidenceRefs": [
+        "fcc-landing:atlantic:amitie:united-kingdom",
+        "fcc-landing:atlantic:grace-hopper:united-kingdom"
+      ],
+      "truth": {
+        "origin": "derived",
+        "temporalStatus": "snapshot",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Country identity is observed; display coordinate is modeled."
+          }
+        }
+      }
+    }
+  ],
+  "claimBoundary": "Points are regional display anchors, not physical landing stations."
+}

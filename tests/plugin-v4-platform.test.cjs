@@ -429,14 +429,17 @@ test('Orbital v4 separates pinned state vectors from forecast transfer modeling'
   assert.equal(contribution.controls.comparisons[0].baselineScenarioId, 'earth-mars-circular-hohmann');
 });
 
-test('the seven shipped experiences each load one native v4 contribution and City is only the substrate', () => {
+test('the ten shipped experiences each load one native v4 contribution and City is only the substrate', () => {
   const expectedProfiles = [
     'cable-trader-pickup-v1',
     'food-recall-us-v1',
+    'grid-resilience-us-v1',
     'interstellar-relay-network-v1',
     'maritime-trade-global-v1',
+    'neighborhood-bulk-pool-v1',
     'orbital-transfer-planner-v1',
     'safety-explorer-v1',
+    'subsea-network-global-v1',
     'sun-walker-v1',
   ];
   assert.deepEqual(Object.keys(runtimeManifest.profilePlugins).sort(), expectedProfiles);

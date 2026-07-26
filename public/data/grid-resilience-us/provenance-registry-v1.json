@@ -1,0 +1,185 @@
+{
+  "schema": "simulatte.gridProvenanceRegistry.v1",
+  "id": "grid-provenance-registry-v1",
+  "records": [
+    {
+      "id": "provenance:grid-eia-balancing-authority-hourly-v1",
+      "datasetId": "grid-eia-balancing-authority-hourly-v1",
+      "origin": "observed",
+      "temporalStatus": "historical",
+      "uncertainty": {
+        "kind": "missing",
+        "value": {
+          "reason": "Source-specific uncertainty or revision flags retained where available."
+        }
+      },
+      "rowIdPatterns": [
+        "eia:*"
+      ],
+      "artifactHashBinding": "dataset-manifest",
+      "transformationChain": [
+        "grid-resilience-data-v1"
+      ],
+      "contentVersion": "v1",
+      "claim": "Agency-reported demand aggregates"
+    },
+    {
+      "id": "provenance:grid-eia-generation-mix-hourly-v1",
+      "datasetId": "grid-eia-generation-mix-hourly-v1",
+      "origin": "observed",
+      "temporalStatus": "historical",
+      "uncertainty": {
+        "kind": "missing",
+        "value": {
+          "reason": "Source-specific uncertainty or revision flags retained where available."
+        }
+      },
+      "rowIdPatterns": [
+        "eia:*"
+      ],
+      "artifactHashBinding": "dataset-manifest",
+      "transformationChain": [
+        "grid-resilience-data-v1"
+      ],
+      "contentVersion": "v1",
+      "claim": "Agency-reported generation-by-fuel aggregates"
+    },
+    {
+      "id": "provenance:grid-noaa-weather-stations-v1",
+      "datasetId": "grid-noaa-weather-stations-v1",
+      "origin": "observed",
+      "temporalStatus": "historical",
+      "uncertainty": {
+        "kind": "missing",
+        "value": {
+          "reason": "Source-specific uncertainty or revision flags retained where available."
+        }
+      },
+      "rowIdPatterns": [
+        "noaa:*:station"
+      ],
+      "artifactHashBinding": "dataset-manifest",
+      "transformationChain": [
+        "grid-resilience-data-v1"
+      ],
+      "contentVersion": "v1",
+      "claim": "Station metadata"
+    },
+    {
+      "id": "provenance:grid-noaa-weather-observations-v1",
+      "datasetId": "grid-noaa-weather-observations-v1",
+      "origin": "observed",
+      "temporalStatus": "historical",
+      "uncertainty": {
+        "kind": "missing",
+        "value": {
+          "reason": "Source-specific uncertainty or revision flags retained where available."
+        }
+      },
+      "rowIdPatterns": [
+        "noaa:*"
+      ],
+      "artifactHashBinding": "dataset-manifest",
+      "transformationChain": [
+        "grid-resilience-data-v1"
+      ],
+      "contentVersion": "v1",
+      "claim": "Historical station observations"
+    },
+    {
+      "id": "provenance:grid-regional-interface-scenarios-v1",
+      "datasetId": "grid-regional-interface-scenarios-v1",
+      "origin": "modeled",
+      "temporalStatus": "forecast",
+      "uncertainty": {
+        "kind": "distribution",
+        "value": {
+          "interpretation": "Declared aggregate experiment assumption."
+        }
+      },
+      "rowIdPatterns": [],
+      "artifactHashBinding": "dataset-manifest",
+      "transformationChain": [
+        "grid-resilience-data-v1"
+      ],
+      "contentVersion": "v1",
+      "claim": "Authored aggregate geography and interface limits"
+    },
+    {
+      "id": "provenance:grid-resource-archetypes-v1",
+      "datasetId": "grid-resource-archetypes-v1",
+      "origin": "modeled",
+      "temporalStatus": "forecast",
+      "uncertainty": {
+        "kind": "distribution",
+        "value": {
+          "interpretation": "Declared aggregate experiment assumption."
+        }
+      },
+      "rowIdPatterns": [],
+      "artifactHashBinding": "dataset-manifest",
+      "transformationChain": [
+        "grid-resilience-data-v1"
+      ],
+      "contentVersion": "v1",
+      "claim": "Authored aggregate resource blocks"
+    },
+    {
+      "id": "provenance:grid-storage-archetypes-v1",
+      "datasetId": "grid-storage-archetypes-v1",
+      "origin": "modeled",
+      "temporalStatus": "forecast",
+      "uncertainty": {
+        "kind": "distribution",
+        "value": {
+          "interpretation": "Declared aggregate experiment assumption."
+        }
+      },
+      "rowIdPatterns": [],
+      "artifactHashBinding": "dataset-manifest",
+      "transformationChain": [
+        "grid-resilience-data-v1"
+      ],
+      "contentVersion": "v1",
+      "claim": "Authored aggregate storage"
+    },
+    {
+      "id": "provenance:grid-disturbance-scenarios-v1",
+      "datasetId": "grid-disturbance-scenarios-v1",
+      "origin": "scenario",
+      "temporalStatus": "forecast",
+      "uncertainty": {
+        "kind": "distribution",
+        "value": {
+          "interpretation": "Declared aggregate experiment assumption."
+        }
+      },
+      "rowIdPatterns": [],
+      "artifactHashBinding": "dataset-manifest",
+      "transformationChain": [
+        "grid-resilience-data-v1"
+      ],
+      "contentVersion": "v1",
+      "claim": "Declared disruptions"
+    },
+    {
+      "id": "provenance:grid-restoration-resources-v1",
+      "datasetId": "grid-restoration-resources-v1",
+      "origin": "scenario",
+      "temporalStatus": "forecast",
+      "uncertainty": {
+        "kind": "distribution",
+        "value": {
+          "interpretation": "Declared aggregate experiment assumption."
+        }
+      },
+      "rowIdPatterns": [],
+      "artifactHashBinding": "dataset-manifest",
+      "transformationChain": [
+        "grid-resilience-data-v1"
+      ],
+      "contentVersion": "v1",
+      "claim": "Declared crews, durations, and dependencies"
+    }
+  ]
+}

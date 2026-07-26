@@ -1,0 +1,42 @@
+{
+  "schema": "simulatte.asteroidObserverStations.v1",
+  "id": "asteroid-observer-stations-v1",
+  "stations": [
+    {
+      "id": "scenario-north",
+      "label": "Scenario northern station",
+      "longitudeDeg": -110.7,
+      "latitudeDeg": 32.4,
+      "elevationM": 2100,
+      "classification": "scenario_station",
+      "truth": {
+        "origin": "scenario",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "distribution",
+          "value": {
+            "interpretation": "Synthetic campaign assumption."
+          }
+        }
+      }
+    },
+    {
+      "id": "scenario-south",
+      "label": "Scenario southern station",
+      "longitudeDeg": -70.8,
+      "latitudeDeg": -30.2,
+      "elevationM": 2400,
+      "classification": "scenario_station",
+      "truth": {
+        "origin": "scenario",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "distribution",
+          "value": {
+            "interpretation": "Synthetic campaign assumption."
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,87 @@
+{
+  "schema": "simulatte.neighborhoodBulkRouteCorridors.v1",
+  "id": "neighborhood-bulk-route-corridors-modeled-v1",
+  "contentVersion": "nyc-four-warehouse-scenario-v1",
+  "neighborhoods": [
+    { "id": "east-harlem", "label": "East Harlem", "coordinates": [-73.9387, 40.7957] },
+    { "id": "upper-west-side", "label": "Upper West Side", "coordinates": [-73.9670, 40.7870] },
+    { "id": "astoria", "label": "Astoria", "coordinates": [-73.9230, 40.7640] },
+    { "id": "sunnyside", "label": "Sunnyside", "coordinates": [-73.9180, 40.7430] },
+    { "id": "jackson-heights", "label": "Jackson Heights", "coordinates": [-73.8840, 40.7550] },
+    { "id": "rego-park", "label": "Rego Park", "coordinates": [-73.8600, 40.7250] },
+    { "id": "forest-hills", "label": "Forest Hills", "coordinates": [-73.8440, 40.7190] },
+    { "id": "sunset-park", "label": "Sunset Park", "coordinates": [-74.0090, 40.6460] },
+    { "id": "park-slope", "label": "Park Slope", "coordinates": [-73.9800, 40.6720] },
+    { "id": "bedford-stuyvesant", "label": "Bedford-Stuyvesant", "coordinates": [-73.9410, 40.6870] },
+    { "id": "williamsburg", "label": "Williamsburg", "coordinates": [-73.9570, 40.7180] }
+  ],
+  "hubs": [
+    { "id": "hub-east-harlem", "label": "East Harlem pickup", "neighborhoodId": "east-harlem", "coordinates": [-73.9387, 40.7957], "walkingRadiusKm": 1.2 },
+    { "id": "hub-astoria", "label": "Astoria pickup", "neighborhoodId": "astoria", "coordinates": [-73.9230, 40.7640], "walkingRadiusKm": 1.4 },
+    { "id": "hub-sunnyside", "label": "Sunnyside pickup", "neighborhoodId": "sunnyside", "coordinates": [-73.9180, 40.7430], "walkingRadiusKm": 1.3 },
+    { "id": "hub-park-slope", "label": "Park Slope pickup", "neighborhoodId": "park-slope", "coordinates": [-73.9800, 40.6720], "walkingRadiusKm": 1.5 },
+    { "id": "hub-rego-park", "label": "Rego Park pickup", "neighborhoodId": "rego-park", "coordinates": [-73.8600, 40.7250], "walkingRadiusKm": 1.5 }
+  ],
+  "corridors": [
+    {
+      "id": "corridor-manhattan-harlem",
+      "warehouseId": "costco-1062-manhattan",
+      "label": "Manhattan to Harlem and Upper West Side",
+      "coordinates": [[-73.9312, 40.7956], [-73.9387, 40.7957], [-73.9550, 40.7930], [-73.9670, 40.7870]],
+      "baseDistanceKm": 7.8
+    },
+    {
+      "id": "corridor-lic-astoria-sunnyside",
+      "warehouseId": "costco-243-long-island-city",
+      "label": "Long Island City to Astoria and Sunnyside",
+      "coordinates": [[-73.9352, 40.7677], [-73.9230, 40.7640], [-73.9300, 40.7510], [-73.9180, 40.7430]],
+      "baseDistanceKm": 9.4
+    },
+    {
+      "id": "corridor-lic-brooklyn",
+      "warehouseId": "costco-243-long-island-city",
+      "label": "Long Island City to Williamsburg and Bedford-Stuyvesant",
+      "coordinates": [[-73.9352, 40.7677], [-73.9570, 40.7180], [-73.9410, 40.6870]],
+      "baseDistanceKm": 13.2
+    },
+    {
+      "id": "corridor-brooklyn-west",
+      "warehouseId": "costco-318-brooklyn",
+      "label": "Brooklyn to Sunset Park and Park Slope",
+      "coordinates": [[-74.0093, 40.6555], [-74.0090, 40.6460], [-73.9950, 40.6610], [-73.9800, 40.6720]],
+      "baseDistanceKm": 7.1
+    },
+    {
+      "id": "corridor-brooklyn-central",
+      "warehouseId": "costco-318-brooklyn",
+      "label": "Brooklyn to Park Slope and Bedford-Stuyvesant",
+      "coordinates": [[-74.0093, 40.6555], [-73.9800, 40.6720], [-73.9610, 40.6800], [-73.9410, 40.6870]],
+      "baseDistanceKm": 11.8
+    },
+    {
+      "id": "corridor-rego-jackson-forest",
+      "warehouseId": "costco-1070-rego-park",
+      "label": "Rego Park to Jackson Heights and Forest Hills",
+      "coordinates": [[-73.8697, 40.7330], [-73.8600, 40.7250], [-73.8440, 40.7190], [-73.8840, 40.7550]],
+      "baseDistanceKm": 10.6
+    },
+    {
+      "id": "corridor-rego-sunnyside",
+      "warehouseId": "costco-1070-rego-park",
+      "label": "Rego Park to Sunnyside",
+      "coordinates": [[-73.8697, 40.7330], [-73.8890, 40.7380], [-73.9180, 40.7430]],
+      "baseDistanceKm": 8.9
+    }
+  ],
+  "truth": {
+    "origin": "modeled",
+    "temporalStatus": "forecast",
+    "uncertainty": {
+      "kind": "missing",
+      "value": {
+        "reason": "Corridors are scenario display polylines and distance approximations, not turn-by-turn routes or live traffic."
+      }
+    }
+  },
+  "claimBoundary": "Neighborhood points are coarse scenario centroids. Corridors, distances, pickup hubs, walking radii, bridge behavior, parking, and travel times are modeled; they are not exact street routes or live traffic observations."
+}

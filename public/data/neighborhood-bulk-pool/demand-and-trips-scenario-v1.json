@@ -1,0 +1,180 @@
+{
+  "schema": "simulatte.neighborhoodBulkDemandTrips.v1",
+  "id": "neighborhood-bulk-demand-and-trips-scenario-v1",
+  "contentVersion": "nyc-pseudonymous-scenario-v1",
+  "participants": [
+    { "id": "participant-cedar", "pseudonym": "Cedar", "neighborhoodId": "east-harlem" },
+    { "id": "participant-orchid", "pseudonym": "Orchid", "neighborhoodId": "astoria" },
+    { "id": "participant-lantern", "pseudonym": "Lantern", "neighborhoodId": "park-slope" },
+    { "id": "participant-harbor", "pseudonym": "Harbor", "neighborhoodId": "sunset-park" },
+    { "id": "participant-maple", "pseudonym": "Maple", "neighborhoodId": "rego-park" },
+    { "id": "participant-river", "pseudonym": "River", "neighborhoodId": "astoria" },
+    { "id": "participant-saffron", "pseudonym": "Saffron", "neighborhoodId": "east-harlem" },
+    { "id": "participant-pine", "pseudonym": "Pine", "neighborhoodId": "sunnyside" }
+  ],
+  "requests": [
+    { "id": "request-01", "participantId": "participant-cedar", "itemId": "scenario-yellow-potatoes-10lb", "quantity": 5, "maximumUnitPriceUsd": 2.0 },
+    { "id": "request-02", "participantId": "participant-orchid", "itemId": "scenario-yellow-potatoes-10lb", "quantity": 2, "maximumUnitPriceUsd": 2.0 },
+    { "id": "request-03", "participantId": "participant-lantern", "itemId": "scenario-yellow-potatoes-10lb", "quantity": 3, "maximumUnitPriceUsd": 2.0 },
+    { "id": "request-04", "participantId": "participant-harbor", "itemId": "scenario-snack-bags-40ct", "quantity": 6, "maximumUnitPriceUsd": 1.0 },
+    { "id": "request-05", "participantId": "participant-maple", "itemId": "scenario-snack-bags-40ct", "quantity": 12, "maximumUnitPriceUsd": 1.0 },
+    { "id": "request-06", "participantId": "participant-river", "itemId": "scenario-snack-bags-40ct", "quantity": 8, "maximumUnitPriceUsd": 1.0 },
+    { "id": "request-07", "participantId": "participant-saffron", "itemId": "scenario-eggs-24ct", "quantity": 6, "maximumUnitPriceUsd": 1.0 },
+    { "id": "request-08", "participantId": "participant-pine", "itemId": "scenario-eggs-24ct", "quantity": 12, "maximumUnitPriceUsd": 1.0 },
+    { "id": "request-09", "participantId": "participant-cedar", "itemId": "scenario-yogurt-18ct", "quantity": 6, "maximumUnitPriceUsd": 2.0 },
+    { "id": "request-10", "participantId": "participant-orchid", "itemId": "scenario-yogurt-18ct", "quantity": 4, "maximumUnitPriceUsd": 2.0 },
+    { "id": "request-11", "participantId": "participant-lantern", "itemId": "scenario-rice-25lb", "quantity": 5, "maximumUnitPriceUsd": 2.0 },
+    { "id": "request-12", "participantId": "participant-harbor", "itemId": "scenario-rice-25lb", "quantity": 10, "maximumUnitPriceUsd": 2.0 },
+    { "id": "request-13", "participantId": "participant-maple", "itemId": "scenario-avocados-6ct", "quantity": 2, "maximumUnitPriceUsd": 3.0 },
+    { "id": "request-14", "participantId": "participant-river", "itemId": "scenario-avocados-6ct", "quantity": 3, "maximumUnitPriceUsd": 3.0 },
+    { "id": "request-15", "participantId": "participant-pine", "itemId": "scenario-frozen-berries-3ct", "quantity": 1, "maximumUnitPriceUsd": 8.0 },
+    { "id": "request-16", "participantId": "participant-saffron", "itemId": "scenario-chicken-portions-12ct", "quantity": 4, "maximumUnitPriceUsd": 5.0 },
+    { "id": "request-17", "participantId": "participant-lantern", "itemId": "scenario-paper-towels-12ct", "quantity": 4, "maximumUnitPriceUsd": 5.0 },
+    { "id": "request-18", "participantId": "participant-harbor", "itemId": "scenario-paper-towels-12ct", "quantity": 4, "maximumUnitPriceUsd": 5.0 },
+    { "id": "request-19", "participantId": "participant-maple", "itemId": "scenario-laundry-pods-152ct", "quantity": 40, "maximumUnitPriceUsd": 1.0 },
+    { "id": "request-20", "participantId": "participant-orchid", "itemId": "scenario-coffee-2ct", "quantity": 1, "maximumUnitPriceUsd": 18.0 },
+    { "id": "request-21", "participantId": "participant-river", "itemId": "scenario-granola-bars-48ct", "quantity": 12, "maximumUnitPriceUsd": 1.0 },
+    { "id": "request-22", "participantId": "participant-cedar", "itemId": "scenario-milk-2ct", "quantity": 1, "maximumUnitPriceUsd": 6.0 },
+    { "id": "request-23", "participantId": "participant-saffron", "itemId": "scenario-milk-2ct", "quantity": 1, "maximumUnitPriceUsd": 6.0 },
+    { "id": "request-24", "participantId": "participant-pine", "itemId": "scenario-frozen-vegetables-4ct", "quantity": 2, "maximumUnitPriceUsd": 6.0 }
+  ],
+  "trips": [
+    {
+      "id": "trip-atlas",
+      "driverPseudonym": "Atlas",
+      "warehouseId": "costco-1062-manhattan",
+      "corridorId": "corridor-manhattan-harlem",
+      "capacityKg": 120,
+      "capacityL": 280,
+      "coldCapacityL": 32,
+      "maximumStops": 6,
+      "maximumDetourKm": 5,
+      "compensation": { "mode": "pro-bono", "amountUsd": 0 }
+    },
+    {
+      "id": "trip-ember",
+      "driverPseudonym": "Ember",
+      "warehouseId": "costco-243-long-island-city",
+      "corridorId": "corridor-lic-astoria-sunnyside",
+      "capacityKg": 140,
+      "capacityL": 320,
+      "coldCapacityL": 44,
+      "maximumStops": 7,
+      "maximumDetourKm": 5,
+      "compensation": { "mode": "exact-expenses", "amountUsd": 8 }
+    },
+    {
+      "id": "trip-nova",
+      "driverPseudonym": "Nova",
+      "warehouseId": "costco-318-brooklyn",
+      "corridorId": "corridor-brooklyn-west",
+      "capacityKg": 160,
+      "capacityL": 360,
+      "coldCapacityL": 0,
+      "maximumStops": 6,
+      "maximumDetourKm": 5,
+      "compensation": { "mode": "fee", "amountUsd": 16 }
+    },
+    {
+      "id": "trip-kite",
+      "driverPseudonym": "Kite",
+      "warehouseId": "costco-1070-rego-park",
+      "corridorId": "corridor-rego-jackson-forest",
+      "capacityKg": 110,
+      "capacityL": 250,
+      "coldCapacityL": 28,
+      "maximumStops": 6,
+      "maximumDetourKm": 5,
+      "compensation": { "mode": "pro-bono", "amountUsd": 0 }
+    },
+    {
+      "id": "trip-moss",
+      "driverPseudonym": "Moss",
+      "warehouseId": "costco-243-long-island-city",
+      "corridorId": "corridor-lic-brooklyn",
+      "capacityKg": 130,
+      "capacityL": 300,
+      "coldCapacityL": 0,
+      "maximumStops": 6,
+      "maximumDetourKm": 6,
+      "compensation": { "mode": "fee", "amountUsd": 12 }
+    },
+    {
+      "id": "trip-vale",
+      "driverPseudonym": "Vale",
+      "warehouseId": "costco-318-brooklyn",
+      "corridorId": "corridor-brooklyn-central",
+      "capacityKg": 120,
+      "capacityL": 260,
+      "coldCapacityL": 36,
+      "maximumStops": 6,
+      "maximumDetourKm": 6,
+      "compensation": { "mode": "exact-expenses", "amountUsd": 10 }
+    },
+    {
+      "id": "trip-lumen",
+      "driverPseudonym": "Lumen",
+      "warehouseId": "costco-1062-manhattan",
+      "corridorId": "corridor-manhattan-harlem",
+      "capacityKg": 100,
+      "capacityL": 220,
+      "coldCapacityL": 24,
+      "maximumStops": 4,
+      "maximumDetourKm": 4,
+      "compensation": { "mode": "fee", "amountUsd": 20 }
+    },
+    {
+      "id": "trip-coral",
+      "driverPseudonym": "Coral",
+      "warehouseId": "costco-1070-rego-park",
+      "corridorId": "corridor-rego-sunnyside",
+      "capacityKg": 100,
+      "capacityL": 240,
+      "coldCapacityL": 0,
+      "maximumStops": 5,
+      "maximumDetourKm": 5,
+      "compensation": { "mode": "exact-expenses", "amountUsd": 7 }
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "weekend-baseline",
+      "label": "Weekend neighborhood pool",
+      "requestIds": ["request-01", "request-02", "request-03", "request-04", "request-05", "request-06", "request-07", "request-08", "request-09", "request-10", "request-11", "request-12", "request-13", "request-14", "request-15", "request-16", "request-17", "request-18", "request-20", "request-21", "request-22", "request-23", "request-24"],
+      "tripIds": ["trip-atlas", "trip-ember", "trip-nova", "trip-kite", "trip-moss", "trip-vale", "trip-lumen", "trip-coral"],
+      "defaults": { "poolingPolicyId": "existing-trip", "maximumDetourKm": 5, "maximumStops": 6, "minimumSavingsUsd": 0, "freshnessLimitMinutes": 120 }
+    },
+    {
+      "id": "cold-chain-tight",
+      "label": "Cold-chain constraint",
+      "requestIds": ["request-07", "request-08", "request-09", "request-10", "request-15", "request-16", "request-22", "request-23", "request-24"],
+      "tripIds": ["trip-atlas", "trip-ember", "trip-kite", "trip-vale"],
+      "defaults": { "poolingPolicyId": "existing-trip", "maximumDetourKm": 3, "maximumStops": 4, "minimumSavingsUsd": 0, "freshnessLimitMinutes": 65 }
+    },
+    {
+      "id": "fee-vs-probono",
+      "label": "Compensation choices",
+      "requestIds": ["request-01", "request-02", "request-03", "request-04", "request-05", "request-06", "request-11", "request-12", "request-13", "request-14", "request-17", "request-18", "request-20", "request-21"],
+      "tripIds": ["trip-atlas", "trip-ember", "trip-nova", "trip-kite", "trip-moss", "trip-vale", "trip-lumen", "trip-coral"],
+      "defaults": { "poolingPolicyId": "neighborhood-hub", "maximumDetourKm": 5, "maximumStops": 5, "minimumSavingsUsd": 2, "freshnessLimitMinutes": 120 }
+    },
+    {
+      "id": "inventory-gap",
+      "label": "Unknown warehouse inventory",
+      "requestIds": ["request-01", "request-02", "request-05", "request-11", "request-13", "request-17", "request-19", "request-20"],
+      "tripIds": ["trip-atlas", "trip-ember", "trip-nova", "trip-kite", "trip-moss", "trip-vale", "trip-coral"],
+      "defaults": { "poolingPolicyId": "existing-trip", "maximumDetourKm": 5, "maximumStops": 6, "minimumSavingsUsd": 0, "freshnessLimitMinutes": 120 }
+    }
+  ],
+  "truth": {
+    "origin": "scenario",
+    "temporalStatus": "forecast",
+    "uncertainty": {
+      "kind": "distribution",
+      "value": {
+        "interpretation": "Authored scenario variation only; not a sample of real residents, drivers, or shopping behavior."
+      }
+    }
+  },
+  "claimBoundary": "Every participant, demand, trip, capacity, compensation choice, and availability window is synthetic. Pseudonyms are not linked to people, and coordinates resolve only to governed neighborhood centroids."
+}

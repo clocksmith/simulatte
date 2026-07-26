@@ -1,0 +1,68 @@
+{
+  "schema": "simulatte.subseaProvenanceRegistry.v1",
+  "id": "subsea-provenance-registry-v1",
+  "contentVersion": "1.0.0",
+  "sources": [
+    {
+      "id": "fcc-license-register-2025",
+      "url": "https://docs.fcc.gov/public/attachments/DA-26-197A3.pdf",
+      "fileName": "da-26-197a3.pdf",
+      "sha256": "eaadcb659e59b39d60c1944253b896aafe924c9d89c827551aeee58edc735231",
+      "publishedThrough": "2025-12-31",
+      "retrievalDate": "2026-07-26",
+      "license": {
+        "identifier": "FCC-public-record",
+        "requiredAttribution": "Federal Communications Commission, Office of International Affairs"
+      }
+    },
+    {
+      "id": "fcc-circuit-capacity-2024",
+      "url": "https://docs.fcc.gov/public/attachments/DA-25-1072A2.pdf",
+      "fileName": "da-25-1072a2.pdf",
+      "sha256": "543558edfb752741cf87f8fa730cfe50f223175bcc1199bf63ce3db9e29fe426",
+      "publishedThrough": "2024-12-31",
+      "retrievalDate": "2026-07-26",
+      "license": {
+        "identifier": "FCC-public-record",
+        "requiredAttribution": "Federal Communications Commission, Office of International Affairs"
+      }
+    }
+  ],
+  "transformations": [
+    {
+      "id": "fcc-pdf-to-source-extract-v1",
+      "generatedBy": "tools/subsea-network/fetch-fcc-license-register.mjs",
+      "parentSourceIds": [
+        "fcc-license-register-2025",
+        "fcc-circuit-capacity-2024"
+      ]
+    },
+    {
+      "id": "subsea-governed-scenario-build-v1",
+      "generatedBy": "tools/subsea-network/build-subsea-network-data.mjs",
+      "parentSourceIds": [
+        "fcc-license-register-2025",
+        "fcc-circuit-capacity-2024"
+      ]
+    }
+  ],
+  "truthAxes": {
+    "origin": [
+      "observed",
+      "derived",
+      "modeled",
+      "simulated",
+      "scenario"
+    ],
+    "temporalStatus": [
+      "historical",
+      "snapshot",
+      "forecast"
+    ],
+    "uncertainty": [
+      "interval",
+      "distribution",
+      "missing"
+    ]
+  }
+}

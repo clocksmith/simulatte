@@ -1,0 +1,327 @@
+{
+  "schema": "simulatte.asteroidJplReferenceSnapshots.v1",
+  "id": "asteroid-jpl-reference-snapshots-v1",
+  "publisher": "NASA/JPL Solar System Dynamics",
+  "license": "U.S. government public data; attribution retained",
+  "claimBoundary": "Pinned agency output used for API identity and benchmark terminology only; not an operational risk reproduction.",
+  "responses": [
+    {
+      "id": "sbdb-apophis",
+      "url": "https://ssd-api.jpl.nasa.gov/sbdb.api?sstr=99942&phys-par=1",
+      "retrievedAt": "2026-07-26T00:00:00Z",
+      "sha256": "c776900a49d33d1189eae7a1d06c2e2aee3210ac09136e12542e93ecb09e3ca5",
+      "response": {
+        "signature": {
+          "version": "1.3",
+          "source": "NASA/JPL Small-Body Database (SBDB) API"
+        },
+        "object": {
+          "spkid": "20099942",
+          "neo": true,
+          "prefix": null,
+          "orbit_class": {
+            "code": "ATE",
+            "name": "Aten"
+          },
+          "shortname": "99942 Apophis",
+          "des": "99942",
+          "kind": "an",
+          "orbit_id": "220",
+          "fullname": "99942 Apophis (2004 MN4)",
+          "pha": true
+        },
+        "orbit": {
+          "n_obs_used": 7370,
+          "rms": "0.26",
+          "pe_used": "DE441",
+          "soln_date": "2024-06-25 10:48:08",
+          "sb_used": "SB441-N16",
+          "source": "JPL",
+          "epoch": "2461200.5",
+          "cov_epoch": "2459215.5",
+          "two_body": null,
+          "condition_code": "0",
+          "not_valid_before": null,
+          "equinox": "J2000",
+          "not_valid_after": null,
+          "data_arc": "6599",
+          "moid_jup": "4.12",
+          "moid": "0.000108",
+          "producer": "Davide Farnocchia",
+          "elements": [
+            {
+              "title": "eccentricity",
+              "label": "e",
+              "value": "0.191",
+              "sigma": "1.8e-09",
+              "units": null,
+              "name": "e"
+            },
+            {
+              "value": "0.922",
+              "label": "a",
+              "title": "semi-major axis",
+              "name": "a",
+              "units": "au",
+              "sigma": "1.6e-09"
+            },
+            {
+              "title": "perihelion distance",
+              "label": "q",
+              "value": "0.746",
+              "sigma": "2.9e-09",
+              "units": "au",
+              "name": "q"
+            },
+            {
+              "title": "inclination; angle with respect to x-y ecliptic plane",
+              "label": "i",
+              "value": "3.34",
+              "sigma": "9.9e-08",
+              "units": "deg",
+              "name": "i"
+            },
+            {
+              "label": "node",
+              "value": "204",
+              "title": "longitude of the ascending node",
+              "name": "om",
+              "sigma": "3.1e-06",
+              "units": "deg"
+            },
+            {
+              "units": "deg",
+              "sigma": "3.3e-06",
+              "name": "w",
+              "title": "argument of perihelion",
+              "value": "127",
+              "label": "peri"
+            },
+            {
+              "label": "M",
+              "value": "175",
+              "title": "mean anomaly",
+              "name": "ma",
+              "sigma": "5.3e-07",
+              "units": "deg"
+            },
+            {
+              "title": "time of perihelion passage",
+              "value": "2461042.919",
+              "label": "tp",
+              "units": "TDB",
+              "sigma": "7.1e-07",
+              "name": "tp"
+            },
+            {
+              "value": "324",
+              "label": "period",
+              "title": "sidereal orbital period",
+              "name": "per",
+              "units": "d",
+              "sigma": "8.2e-07"
+            },
+            {
+              "name": "n",
+              "units": "deg/d",
+              "sigma": "2.8e-09",
+              "value": "1.11",
+              "label": "n",
+              "title": "mean motion"
+            },
+            {
+              "label": "Q",
+              "value": "1.1",
+              "title": "aphelion distance",
+              "name": "ad",
+              "sigma": "1.9e-09",
+              "units": "au"
+            }
+          ],
+          "last_obs": "2022-04-09",
+          "model_pars": [
+            {
+              "title": "non-grav. radial accel.",
+              "kind": "EST",
+              "desc": "non-gravitational radial acceleration parameter",
+              "n": 1,
+              "sigma": "4.892E-13",
+              "value": "5e-13",
+              "units": "au/d^2",
+              "name": "A1"
+            },
+            {
+              "sigma": "1.859E-16",
+              "n": 2,
+              "desc": "non-gravitational transverse acceleration parameter",
+              "kind": "EST",
+              "title": "non-grav. transverse accel.",
+              "name": "A2",
+              "units": "au/d^2",
+              "value": "-2.902e-14"
+            },
+            {
+              "title": "normalizing factor",
+              "kind": "SET",
+              "desc": "normalizing factor [default 0.1112620426]",
+              "sigma": null,
+              "n": 0,
+              "value": "1.",
+              "units": null,
+              "name": "ALN"
+            },
+            {
+              "kind": "SET",
+              "desc": "non-grav. model constant, exponent k [default 4.6142]",
+              "title": "non-grav. model exp. k",
+              "n": 0,
+              "sigma": null,
+              "value": "0.",
+              "name": "NK",
+              "units": null
+            },
+            {
+              "sigma": null,
+              "n": 0,
+              "title": "non-grav. model exp. m",
+              "desc": "non-grav. model constant, exponent m [default 2.15]",
+              "kind": "SET",
+              "units": null,
+              "name": "NM",
+              "value": "2."
+            },
+            {
+              "name": "R0",
+              "units": "au",
+              "value": "1.",
+              "n": 0,
+              "sigma": null,
+              "kind": "SET",
+              "desc": "normalizing distance, au [default 2.808 au]",
+              "title": "normalizing distance"
+            }
+          ],
+          "n_dop_obs_used": 30,
+          "first_obs": "2004-03-15",
+          "comment": null,
+          "orbit_id": "220",
+          "t_jup": "6.466",
+          "n_del_obs_used": 20
+        },
+        "phys_par": [
+          {
+            "ref": "Pravec et al., Icarus 233, 48-60 (2014)",
+            "sigma": "0.19",
+            "desc": "absolute magnitude (magnitude at 1 au from Sun and observer)",
+            "title": "absolute magnitude",
+            "notes": null,
+            "name": "H",
+            "units": null,
+            "value": "19.09"
+          },
+          {
+            "desc": "magnitude slope parameter used in the standard asteroid H/G magnitude law",
+            "title": "magnitude slope",
+            "ref": "Pravec et al., Icarus 233, 48-60 (2014)",
+            "sigma": "0.11",
+            "value": "0.24",
+            "notes": "Assumed based on Warner et al., Icarus 202, 1340146 (2009)",
+            "name": "G",
+            "units": null
+          },
+          {
+            "value": "0.34",
+            "notes": "Based on 3D shape model derived from radar observations in 2012-2013",
+            "name": "diameter",
+            "units": "km",
+            "desc": "effective body diameter",
+            "title": "diameter",
+            "sigma": "0.04",
+            "ref": "Brozovic et al., Icarus 300, 115-128 (2018)"
+          },
+          {
+            "title": "rotation period",
+            "desc": "body rotation period (synodic)",
+            "ref": "Pravec et al., Icarus 233, 48-60 (2014)",
+            "sigma": "0.01",
+            "value": "30.56",
+            "units": "h",
+            "name": "rot_per",
+            "notes": null
+          },
+          {
+            "units": null,
+            "notes": null,
+            "name": "albedo",
+            "value": "0.35",
+            "ref": "Brozovic et al., Icarus 300, 115-128 (2018)",
+            "sigma": "0.10",
+            "title": "geometric albedo",
+            "desc": "geometric albedo"
+          },
+          {
+            "title": "thermal inertia",
+            "desc": "Thermal inertia of the small-body surface",
+            "ref": "Licandro et al., A&A 585, A10 (2016)",
+            "sigma": null,
+            "value": "50-500",
+            "units": "J/m^2/s^0.5/K",
+            "notes": null,
+            "name": "I"
+          },
+          {
+            "sigma": null,
+            "ref": "Binzel, R. P. et al.  Icarus 200 (2009) 480-485",
+            "title": "SMASSII spectral type",
+            "desc": "SMASSII spectral taxonomic classification",
+            "units": null,
+            "name": "spec_B",
+            "notes": null,
+            "value": "Sq"
+          }
+        ]
+      }
+    },
+    {
+      "id": "cad-apophis-2029",
+      "url": "https://ssd-api.jpl.nasa.gov/cad.api?des=99942&date-min=2025-01-01&date-max=2030-01-01&dist-max=0.2",
+      "retrievedAt": "2026-07-26T00:00:00Z",
+      "sha256": "e1300dd039309836b8e318c0fb9e617f3eecbd849b8e2e74693036ef63a8c82a",
+      "response": {
+        "signature": {
+          "version": "1.5",
+          "source": "NASA/JPL SBDB Close Approach Data API"
+        },
+        "count": 1,
+        "fields": [
+          "des",
+          "orbit_id",
+          "jd",
+          "cd",
+          "dist",
+          "dist_min",
+          "dist_max",
+          "v_rel",
+          "v_inf",
+          "t_sigma_f",
+          "h"
+        ],
+        "data": [
+          [
+            "99942",
+            "220",
+            "2462240.407091969",
+            "2029-Apr-13 21:46",
+            "0.000254090910419299",
+            "0.000254068999976389",
+            "0.000254112821017663",
+            "7.42253895678452",
+            "5.84135589753103",
+            "< 00:01",
+            "19.09"
+          ]
+        ]
+      }
+    }
+  ]
+}

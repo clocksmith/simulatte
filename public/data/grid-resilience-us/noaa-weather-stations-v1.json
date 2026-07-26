@@ -1,0 +1,102 @@
+{
+  "schema": "simulatte.gridNoaaWeatherStations.v1",
+  "id": "grid-noaa-weather-stations-v1",
+  "source": {
+    "publisher": "NOAA National Centers for Environmental Information",
+    "product": "Integrated Surface Database Global Hourly",
+    "documentationUrl": "https://www.ncei.noaa.gov/products/land-based-station/integrated-surface-database",
+    "license": "U.S. government public data; attribution retained",
+    "retrievalDate": "2026-07-26",
+    "transformationVersion": "grid-noaa-promoter-v1"
+  },
+  "stations": [
+    {
+      "id": "72494023234",
+      "regionId": "west",
+      "name": "San Francisco International Airport",
+      "coordinates": [
+        -122.36562,
+        37.61962
+      ],
+      "coordinateClassification": "observed_station_metadata",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "No regional representativeness claim."
+          }
+        }
+      },
+      "rowId": "noaa:undefined:station",
+      "rowHash": "8ae3a20340a8daedf1079975f87c82ba6b1ceb2d9d9ae0d2be5155316a92e8fa"
+    },
+    {
+      "id": "72259003927",
+      "regionId": "texas",
+      "name": "Dallas/Fort Worth International Airport",
+      "coordinates": [
+        -97.038,
+        32.896
+      ],
+      "coordinateClassification": "observed_station_metadata",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "No regional representativeness claim."
+          }
+        }
+      },
+      "rowId": "noaa:undefined:station",
+      "rowHash": "33dc06cf0bd386c6028316841ffd1d67ce785b4c899c9300eb220fa65cf04ced"
+    },
+    {
+      "id": "72530094846",
+      "regionId": "central",
+      "name": "Chicago O'Hare International Airport",
+      "coordinates": [
+        -87.9047,
+        41.9786
+      ],
+      "coordinateClassification": "observed_station_metadata",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "No regional representativeness claim."
+          }
+        }
+      },
+      "rowId": "noaa:undefined:station",
+      "rowHash": "3b0612c5aac05f3abbbe97eadad99453be30267b33bd5c449f2e171084be2228"
+    },
+    {
+      "id": "74486094789",
+      "regionId": "east",
+      "name": "John F. Kennedy International Airport",
+      "coordinates": [
+        -73.7622,
+        40.6386
+      ],
+      "coordinateClassification": "observed_station_metadata",
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "No regional representativeness claim."
+          }
+        }
+      },
+      "rowId": "noaa:undefined:station",
+      "rowHash": "51f03ef8de5162096dc95afeab0c87341f574a546a2a19e9c8629e8ce699c7cb"
+    }
+  ]
+}

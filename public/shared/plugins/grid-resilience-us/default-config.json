@@ -1,0 +1,30 @@
+{
+  "schema": "simulatte.plugin.gridResilienceConfig.v1",
+  "id": "grid-resilience-us-config-v1",
+  "disturbanceScenarioId": "heat-demand-peak",
+  "dispatchPolicyId": "resilience-weighted",
+  "reservePolicyId": "adaptive-reserve",
+  "storagePolicyId": "reserve-preserving",
+  "restorationPolicyId": "dependency-aware",
+  "demandResponseMaximumFraction": 0.08,
+  "emissionsPriceUsdPerTon": 50,
+  "sheddingPriorities": [
+    "east",
+    "texas",
+    "central",
+    "west"
+  ],
+  "restorationCrewCount": 2,
+  "ensembleSeeds": [
+    "grid-ensemble-001",
+    "grid-ensemble-002",
+    "grid-ensemble-003",
+    "grid-ensemble-004",
+    "grid-ensemble-005",
+    "grid-ensemble-006"
+  ],
+  "ensembleSize": 4,
+  "startInstant": "2024-07-15T00:00:00Z",
+  "durationHours": 24,
+  "stepMinutes": 60
+}

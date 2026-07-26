@@ -16,7 +16,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginSafetyExplorer",
-    "integrity": "sha384-c02f5425a6a9e6f7d3eeab9b9b0dba72bca52be375df3c15cd668c89bfb4c0f2ff51217dfa0c0b5e295288bcf6d807dd",
+    "integrity": "sha384-8f53f1fce977587c5c68ef7a8dcdfa49eea6112032fe05219e893d566a02801a2bf4e0be47fccbfe01110bf9b27cc8f5",
     "path": "./index.js"
   },
   "extensionPoints": [
@@ -55,7 +55,7 @@
       "path": "./fixed-sparse-count-shrinkage.js"
     },
     {
-      "integrity": "sha384-d27de5175b89cbc5ee4d49340c3630325ad90129e340018ea0f7d56f6985e563b245381f8cfadbe8732cee08c4c8d877",
+      "integrity": "sha384-92f9689534173c843947c79981befc8fbe2568183a3ee97c01f9e51f9eccd94b9fb05cd60fd5cd18cb830cbf9bc61264",
       "path": "./v4-contribution.js"
     }
   ],

@@ -93,7 +93,7 @@ test('route audits preserve observations and joins while zero or absent history 
   assert.equal(unknownPath.tone, 'gray');
   assert.equal(presentation.paths.some((row) => row.tone === 'green'), false);
   assert.match(instance.view()[0].rows.find((row) => row.label === 'Claim warning').value, /do not identify a safest route/i);
-  assert.ok(instance.view()[0].fields.some((row) => row.id === 'joinRadiusM'));
+  assert.equal(instance.view()[0].fields.some((row) => row.id === 'joinRadiusM'), false);
 
   const contribution = instance.contributeV4();
   v4Contracts.validateContribution(contribution);
@@ -103,23 +103,31 @@ test('route audits preserve observations and joins while zero or absent history 
   assert.match(contribution.inspections[0].fields.find((row) => row.id === 'claim-warning').value, /cannot identify or claim a safest route/i);
 });
 
-test('sensitivity controls change only derived parameters and disclose when a spatial rejoin is required', async () => {
+test('sensitivity controls recompute derived route state without mutating observations', async () => {
   const host = fixture(index);
   const instance = await plugin.activate({ sdk: host.sdk, config });
-  const result = instance.handleAction('sensitivity.apply', {
+  const known = index.segmentRows[0];
+  const original = structuredClone(known);
+  const initial = instance.createRouteContributor().evaluateRoute({ route: { segmentIds: [known.segmentId] } });
+  const result = instance.handleAction('scenario.run', {
     values: {
+      phase: 'start',
       shrinkageK: 8,
       crashWeight: 1,
       injuryWeight: 5,
       fatalityWeight: 20,
-      joinRadiusM: 20,
     },
   });
-  assert.equal(result.status, 'settled');
-  assert.equal(result.parameters.k, 8);
-  assert.deepEqual(result.parameters.weights, { crash: 1, injury: 5, fatality: 20 });
-  assert.match(result.limitation, /rebuilding the governed spatial join/);
+  assert.equal(result.status, 'running');
   assert.equal(host.state().parameters.k, 8);
+  assert.deepEqual(host.state().parameters.weights, { crash: 1, injury: 5, fatality: 20 });
+  assert.notEqual(host.state().audit.fixedSparseCountEstimate, initial.fixedSparseCountEstimate);
+  assert.equal(host.state().audit.crashCount, initial.crashCount);
+  assert.equal(host.state().audit.injuryCount, initial.injuryCount);
+  assert.equal(host.state().audit.fatalityCount, initial.fatalityCount);
+  assert.deepEqual(known, original);
+  assert.equal(instance.contributeV4().controls.controls.some((row) => row.id === 'joinRadiusM'), false);
+  assert.match(instance.contributeV4().controls.comparisons[0].label, /K=8 baseline vs K=16 sensitivity/);
 });
 
 function fixture(dataset) {

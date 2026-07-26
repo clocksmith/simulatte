@@ -1,0 +1,142 @@
+{
+  "schema": "simulatte.asteroidProvenanceRegistry.v1",
+  "id": "asteroid-provenance-registry-v1",
+  "records": [
+    {
+      "id": "provenance:asteroid-synthetic-observation-campaigns-v1",
+      "datasetId": "asteroid-synthetic-observation-campaigns-v1",
+      "origin": "scenario",
+      "temporalStatus": "forecast",
+      "uncertainty": {
+        "kind": "missing",
+        "value": {
+          "reason": "Declared scenario/model assumption."
+        }
+      },
+      "artifactHashBinding": "dataset-manifest",
+      "transformationChain": [
+        "asteroid-defense-data-v1"
+      ],
+      "contentVersion": "v1"
+    },
+    {
+      "id": "provenance:asteroid-observer-stations-v1",
+      "datasetId": "asteroid-observer-stations-v1",
+      "origin": "scenario",
+      "temporalStatus": "forecast",
+      "uncertainty": {
+        "kind": "missing",
+        "value": {
+          "reason": "Declared scenario/model assumption."
+        }
+      },
+      "artifactHashBinding": "dataset-manifest",
+      "transformationChain": [
+        "asteroid-defense-data-v1"
+      ],
+      "contentVersion": "v1"
+    },
+    {
+      "id": "provenance:asteroid-force-models-v1",
+      "datasetId": "asteroid-force-models-v1",
+      "origin": "modeled",
+      "temporalStatus": "forecast",
+      "uncertainty": {
+        "kind": "missing",
+        "value": {
+          "reason": "Declared scenario/model assumption."
+        }
+      },
+      "artifactHashBinding": "dataset-manifest",
+      "transformationChain": [
+        "asteroid-defense-data-v1"
+      ],
+      "contentVersion": "v1"
+    },
+    {
+      "id": "provenance:asteroid-intervention-archetypes-v1",
+      "datasetId": "asteroid-intervention-archetypes-v1",
+      "origin": "modeled",
+      "temporalStatus": "forecast",
+      "uncertainty": {
+        "kind": "missing",
+        "value": {
+          "reason": "Declared scenario/model assumption."
+        }
+      },
+      "artifactHashBinding": "dataset-manifest",
+      "transformationChain": [
+        "asteroid-defense-data-v1"
+      ],
+      "contentVersion": "v1"
+    },
+    {
+      "id": "provenance:asteroid-execution-uncertainty-models-v1",
+      "datasetId": "asteroid-execution-uncertainty-models-v1",
+      "origin": "modeled",
+      "temporalStatus": "forecast",
+      "uncertainty": {
+        "kind": "missing",
+        "value": {
+          "reason": "Declared scenario/model assumption."
+        }
+      },
+      "artifactHashBinding": "dataset-manifest",
+      "transformationChain": [
+        "asteroid-defense-data-v1"
+      ],
+      "contentVersion": "v1"
+    },
+    {
+      "id": "provenance:asteroid-decision-policies-v1",
+      "datasetId": "asteroid-decision-policies-v1",
+      "origin": "scenario",
+      "temporalStatus": "forecast",
+      "uncertainty": {
+        "kind": "missing",
+        "value": {
+          "reason": "Declared scenario/model assumption."
+        }
+      },
+      "artifactHashBinding": "dataset-manifest",
+      "transformationChain": [
+        "asteroid-defense-data-v1"
+      ],
+      "contentVersion": "v1"
+    },
+    {
+      "id": "provenance:asteroid-historical-benchmark-cases-v1",
+      "datasetId": "asteroid-historical-benchmark-cases-v1",
+      "origin": "observed",
+      "temporalStatus": "snapshot",
+      "uncertainty": {
+        "kind": "missing",
+        "value": {
+          "reason": "Source-specific fields retained."
+        }
+      },
+      "artifactHashBinding": "dataset-manifest",
+      "transformationChain": [
+        "asteroid-defense-data-v1"
+      ],
+      "contentVersion": "v1"
+    },
+    {
+      "id": "provenance:asteroid-jpl-reference-snapshots-v1",
+      "datasetId": "asteroid-jpl-reference-snapshots-v1",
+      "origin": "observed",
+      "temporalStatus": "snapshot",
+      "uncertainty": {
+        "kind": "missing",
+        "value": {
+          "reason": "Source-specific fields retained."
+        }
+      },
+      "artifactHashBinding": "dataset-manifest",
+      "transformationChain": [
+        "asteroid-defense-data-v1"
+      ],
+      "contentVersion": "v1"
+    }
+  ]
+}

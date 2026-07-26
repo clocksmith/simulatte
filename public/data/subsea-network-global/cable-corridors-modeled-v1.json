@@ -1,0 +1,642 @@
+{
+  "schema": "simulatte.subseaCableTopology.v1",
+  "id": "subsea-cable-corridors-modeled-v1",
+  "contentVersion": "1.0.0",
+  "nodeIds": [
+    "us-northeast",
+    "us-mid-atlantic",
+    "denmark",
+    "france",
+    "iceland",
+    "ireland",
+    "norway",
+    "spain",
+    "united-kingdom"
+  ],
+  "edges": [
+    {
+      "id": "aeconnect-1:ireland",
+      "cableId": "aeconnect-1",
+      "fromLandingId": "us-northeast",
+      "toLandingId": "ireland",
+      "isBidirectional": true,
+      "latencyMs": 22.86,
+      "coordinates": [
+        [
+          -71,
+          41
+        ],
+        [
+          -40.6,
+          45.3
+        ],
+        [
+          -10.2,
+          52.1
+        ]
+      ],
+      "evidenceRefs": [
+        "fcc-license:scl-mod-20210105-00001",
+        "fcc-landing:atlantic:aeconnect-cable-network:iceland",
+        "fcc-landing:atlantic:aeconnect-cable-network:ireland"
+      ],
+      "geometryClassification": "modeled-representative-corridor",
+      "truth": {
+        "origin": "derived",
+        "temporalStatus": "snapshot",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Corridor is not a surveyed cable route."
+          }
+        }
+      }
+    },
+    {
+      "id": "aeconnect-1:iceland",
+      "cableId": "aeconnect-1",
+      "fromLandingId": "us-northeast",
+      "toLandingId": "iceland",
+      "isBidirectional": true,
+      "latencyMs": 19.745,
+      "coordinates": [
+        [
+          -71,
+          41
+        ],
+        [
+          -46.5,
+          53.75
+        ],
+        [
+          -22,
+          64
+        ]
+      ],
+      "evidenceRefs": [
+        "fcc-license:scl-mod-20210105-00001",
+        "fcc-landing:atlantic:aeconnect-cable-network:iceland",
+        "fcc-landing:atlantic:aeconnect-cable-network:ireland"
+      ],
+      "geometryClassification": "modeled-representative-corridor",
+      "truth": {
+        "origin": "derived",
+        "temporalStatus": "snapshot",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Corridor is not a surveyed cable route."
+          }
+        }
+      }
+    },
+    {
+      "id": "amitie:france",
+      "cableId": "amitie",
+      "fromLandingId": "us-northeast",
+      "toLandingId": "france",
+      "isBidirectional": true,
+      "latencyMs": 25.154,
+      "coordinates": [
+        [
+          -71,
+          41
+        ],
+        [
+          -37.9,
+          43.45
+        ],
+        [
+          -4.8,
+          48.4
+        ]
+      ],
+      "evidenceRefs": [
+        "fcc-license:scl-lic-20200807-00036",
+        "fcc-landing:atlantic:amitie:france",
+        "fcc-landing:atlantic:amitie:united-kingdom"
+      ],
+      "geometryClassification": "modeled-representative-corridor",
+      "truth": {
+        "origin": "derived",
+        "temporalStatus": "snapshot",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Corridor is not a surveyed cable route."
+          }
+        }
+      }
+    },
+    {
+      "id": "amitie:united-kingdom",
+      "cableId": "amitie",
+      "fromLandingId": "us-northeast",
+      "toLandingId": "united-kingdom",
+      "isBidirectional": true,
+      "latencyMs": 24.776,
+      "coordinates": [
+        [
+          -71,
+          41
+        ],
+        [
+          -38,
+          47
+        ],
+        [
+          -5,
+          50.5
+        ]
+      ],
+      "evidenceRefs": [
+        "fcc-license:scl-lic-20200807-00036",
+        "fcc-landing:atlantic:amitie:france",
+        "fcc-landing:atlantic:amitie:united-kingdom"
+      ],
+      "geometryClassification": "modeled-representative-corridor",
+      "truth": {
+        "origin": "derived",
+        "temporalStatus": "snapshot",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Corridor is not a surveyed cable route."
+          }
+        }
+      }
+    },
+    {
+      "id": "dunant:france",
+      "cableId": "dunant",
+      "fromLandingId": "us-mid-atlantic",
+      "toLandingId": "france",
+      "isBidirectional": true,
+      "latencyMs": 27.823,
+      "coordinates": [
+        [
+          -75.2,
+          37.1
+        ],
+        [
+          -40,
+          41.5
+        ],
+        [
+          -4.8,
+          48.4
+        ]
+      ],
+      "evidenceRefs": [
+        "fcc-license:scl-lic-20190410-00015",
+        "fcc-landing:atlantic:dunant:france"
+      ],
+      "geometryClassification": "modeled-representative-corridor",
+      "truth": {
+        "origin": "derived",
+        "temporalStatus": "snapshot",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Corridor is not a surveyed cable route."
+          }
+        }
+      }
+    },
+    {
+      "id": "grace-hopper:spain",
+      "cableId": "grace-hopper",
+      "fromLandingId": "us-northeast",
+      "toLandingId": "spain",
+      "isBidirectional": true,
+      "latencyMs": 24.405,
+      "coordinates": [
+        [
+          -71,
+          41
+        ],
+        [
+          -40.1,
+          40.95
+        ],
+        [
+          -9.2,
+          43.4
+        ]
+      ],
+      "evidenceRefs": [
+        "fcc-license:scl-lic-20210225-00014",
+        "fcc-landing:atlantic:grace-hopper:spain",
+        "fcc-landing:atlantic:grace-hopper:united-kingdom"
+      ],
+      "geometryClassification": "modeled-representative-corridor",
+      "truth": {
+        "origin": "derived",
+        "temporalStatus": "snapshot",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Corridor is not a surveyed cable route."
+          }
+        }
+      }
+    },
+    {
+      "id": "grace-hopper:united-kingdom",
+      "cableId": "grace-hopper",
+      "fromLandingId": "us-northeast",
+      "toLandingId": "united-kingdom",
+      "isBidirectional": true,
+      "latencyMs": 24.776,
+      "coordinates": [
+        [
+          -71,
+          41
+        ],
+        [
+          -38,
+          47
+        ],
+        [
+          -5,
+          50.5
+        ]
+      ],
+      "evidenceRefs": [
+        "fcc-license:scl-lic-20210225-00014",
+        "fcc-landing:atlantic:grace-hopper:spain",
+        "fcc-landing:atlantic:grace-hopper:united-kingdom"
+      ],
+      "geometryClassification": "modeled-representative-corridor",
+      "truth": {
+        "origin": "derived",
+        "temporalStatus": "snapshot",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Corridor is not a surveyed cable route."
+          }
+        }
+      }
+    },
+    {
+      "id": "havfrue:denmark",
+      "cableId": "havfrue",
+      "fromLandingId": "us-northeast",
+      "toLandingId": "denmark",
+      "isBidirectional": true,
+      "latencyMs": 27.995,
+      "coordinates": [
+        [
+          -71,
+          41
+        ],
+        [
+          -31.5,
+          47.25
+        ],
+        [
+          8,
+          56
+        ]
+      ],
+      "evidenceRefs": [
+        "fcc-license:scl-lic-20180511-00010",
+        "fcc-landing:atlantic:havfrue:denmark",
+        "fcc-landing:atlantic:havfrue:ireland",
+        "fcc-landing:atlantic:havfrue:norway"
+      ],
+      "geometryClassification": "modeled-representative-corridor",
+      "truth": {
+        "origin": "derived",
+        "temporalStatus": "snapshot",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Corridor is not a surveyed cable route."
+          }
+        }
+      }
+    },
+    {
+      "id": "havfrue:ireland",
+      "cableId": "havfrue",
+      "fromLandingId": "us-northeast",
+      "toLandingId": "ireland",
+      "isBidirectional": true,
+      "latencyMs": 22.86,
+      "coordinates": [
+        [
+          -71,
+          41
+        ],
+        [
+          -40.6,
+          47.8
+        ],
+        [
+          -10.2,
+          52.1
+        ]
+      ],
+      "evidenceRefs": [
+        "fcc-license:scl-lic-20180511-00010",
+        "fcc-landing:atlantic:havfrue:denmark",
+        "fcc-landing:atlantic:havfrue:ireland",
+        "fcc-landing:atlantic:havfrue:norway"
+      ],
+      "geometryClassification": "modeled-representative-corridor",
+      "truth": {
+        "origin": "derived",
+        "temporalStatus": "snapshot",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Corridor is not a surveyed cable route."
+          }
+        }
+      }
+    },
+    {
+      "id": "havfrue:norway",
+      "cableId": "havfrue",
+      "fromLandingId": "us-northeast",
+      "toLandingId": "norway",
+      "isBidirectional": true,
+      "latencyMs": 26.568,
+      "coordinates": [
+        [
+          -71,
+          41
+        ],
+        [
+          -33,
+          54.25
+        ],
+        [
+          5,
+          60
+        ]
+      ],
+      "evidenceRefs": [
+        "fcc-license:scl-lic-20180511-00010",
+        "fcc-landing:atlantic:havfrue:denmark",
+        "fcc-landing:atlantic:havfrue:ireland",
+        "fcc-landing:atlantic:havfrue:norway"
+      ],
+      "geometryClassification": "modeled-representative-corridor",
+      "truth": {
+        "origin": "derived",
+        "temporalStatus": "snapshot",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Corridor is not a surveyed cable route."
+          }
+        }
+      }
+    },
+    {
+      "id": "marea:spain",
+      "cableId": "marea",
+      "fromLandingId": "us-mid-atlantic",
+      "toLandingId": "spain",
+      "isBidirectional": true,
+      "latencyMs": 26.952,
+      "coordinates": [
+        [
+          -75.2,
+          37.1
+        ],
+        [
+          -42.2,
+          39
+        ],
+        [
+          -9.2,
+          43.4
+        ]
+      ],
+      "evidenceRefs": [
+        "fcc-license:scl-lic-20160525-00012",
+        "fcc-landing:atlantic:marea:spain"
+      ],
+      "geometryClassification": "modeled-representative-corridor",
+      "truth": {
+        "origin": "derived",
+        "temporalStatus": "snapshot",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Corridor is not a surveyed cable route."
+          }
+        }
+      }
+    },
+    {
+      "id": "modeled-gateway:ireland:united-kingdom",
+      "cableId": "modeled-regional-gateway",
+      "fromLandingId": "ireland",
+      "toLandingId": "united-kingdom",
+      "isBidirectional": true,
+      "latencyMs": 1.975,
+      "coordinates": [
+        [
+          -10.2,
+          52.1
+        ],
+        [
+          -7.6,
+          50.05
+        ],
+        [
+          -5,
+          50.5
+        ]
+      ],
+      "evidenceRefs": [],
+      "geometryClassification": "modeled-regional-gateway",
+      "truth": {
+        "origin": "scenario",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Terrestrial and regional gateway path is a scenario abstraction."
+          }
+        }
+      }
+    },
+    {
+      "id": "modeled-gateway:united-kingdom:france",
+      "cableId": "modeled-regional-gateway",
+      "fromLandingId": "united-kingdom",
+      "toLandingId": "france",
+      "isBidirectional": true,
+      "latencyMs": 1.147,
+      "coordinates": [
+        [
+          -5,
+          50.5
+        ],
+        [
+          -4.9,
+          48.2
+        ],
+        [
+          -4.8,
+          48.4
+        ]
+      ],
+      "evidenceRefs": [],
+      "geometryClassification": "modeled-regional-gateway",
+      "truth": {
+        "origin": "scenario",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Terrestrial and regional gateway path is a scenario abstraction."
+          }
+        }
+      }
+    },
+    {
+      "id": "modeled-gateway:france:spain",
+      "cableId": "modeled-regional-gateway",
+      "fromLandingId": "france",
+      "toLandingId": "spain",
+      "isBidirectional": true,
+      "latencyMs": 3.195,
+      "coordinates": [
+        [
+          -4.8,
+          48.4
+        ],
+        [
+          -7,
+          44.65
+        ],
+        [
+          -9.2,
+          43.4
+        ]
+      ],
+      "evidenceRefs": [],
+      "geometryClassification": "modeled-regional-gateway",
+      "truth": {
+        "origin": "scenario",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Terrestrial and regional gateway path is a scenario abstraction."
+          }
+        }
+      }
+    },
+    {
+      "id": "modeled-gateway:ireland:iceland",
+      "cableId": "modeled-regional-gateway",
+      "fromLandingId": "ireland",
+      "toLandingId": "iceland",
+      "isBidirectional": true,
+      "latencyMs": 7.298,
+      "coordinates": [
+        [
+          -10.2,
+          52.1
+        ],
+        [
+          -16.1,
+          56.8
+        ],
+        [
+          -22,
+          64
+        ]
+      ],
+      "evidenceRefs": [],
+      "geometryClassification": "modeled-regional-gateway",
+      "truth": {
+        "origin": "scenario",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Terrestrial and regional gateway path is a scenario abstraction."
+          }
+        }
+      }
+    },
+    {
+      "id": "modeled-gateway:ireland:denmark",
+      "cableId": "modeled-regional-gateway",
+      "fromLandingId": "ireland",
+      "toLandingId": "denmark",
+      "isBidirectional": true,
+      "latencyMs": 6.178,
+      "coordinates": [
+        [
+          -10.2,
+          52.1
+        ],
+        [
+          -1.1,
+          52.8
+        ],
+        [
+          8,
+          56
+        ]
+      ],
+      "evidenceRefs": [],
+      "geometryClassification": "modeled-regional-gateway",
+      "truth": {
+        "origin": "scenario",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Terrestrial and regional gateway path is a scenario abstraction."
+          }
+        }
+      }
+    },
+    {
+      "id": "modeled-gateway:denmark:norway",
+      "cableId": "modeled-regional-gateway",
+      "fromLandingId": "denmark",
+      "toLandingId": "norway",
+      "isBidirectional": true,
+      "latencyMs": 2.346,
+      "coordinates": [
+        [
+          8,
+          56
+        ],
+        [
+          6.5,
+          56.75
+        ],
+        [
+          5,
+          60
+        ]
+      ],
+      "evidenceRefs": [],
+      "geometryClassification": "modeled-regional-gateway",
+      "truth": {
+        "origin": "scenario",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Terrestrial and regional gateway path is a scenario abstraction."
+          }
+        }
+      }
+    }
+  ],
+  "claimBoundary": "Cable association uses FCC identity; all route geometry and regional gateway connectivity are modeled."
+}

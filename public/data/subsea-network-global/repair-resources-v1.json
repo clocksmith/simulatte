@@ -1,0 +1,41 @@
+{
+  "schema": "simulatte.subseaRepairResources.v1",
+  "id": "subsea-repair-resources-v1",
+  "contentVersion": "1.0.0",
+  "scenarios": [
+    {
+      "id": "atlantic-repair-resources-v1",
+      "resources": [
+        {
+          "id": "repair-resource-west",
+          "startLandingId": "us-northeast",
+          "speedKph": 22,
+          "spareCableKm": 120,
+          "spliceKits": 4
+        },
+        {
+          "id": "repair-resource-east",
+          "startLandingId": "ireland",
+          "speedKph": 20,
+          "spareCableKm": 90,
+          "spliceKits": 3
+        }
+      ],
+      "repairDurationHours": 36,
+      "spareCablePerRepairKm": 8,
+      "spliceKitsPerRepair": 1,
+      "attemptFailureProbability": 0.12
+    }
+  ],
+  "truth": {
+    "origin": "scenario",
+    "temporalStatus": "forecast",
+    "uncertainty": {
+      "kind": "distribution",
+      "value": {
+        "source": "declared deterministic seed stream",
+        "calibrationStatus": "not_operationally_calibrated"
+      }
+    }
+  }
+}

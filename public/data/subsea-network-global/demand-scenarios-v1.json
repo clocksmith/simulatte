@@ -1,0 +1,233 @@
+{
+  "schema": "simulatte.subseaDemandScenarios.v1",
+  "id": "subsea-demand-scenarios-v1",
+  "contentVersion": "1.0.0",
+  "categories": [
+    {
+      "id": "essential",
+      "label": "Essential services",
+      "defaultWeight": 3
+    },
+    {
+      "id": "general",
+      "label": "General modeled demand",
+      "defaultWeight": 1
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "atlantic-single-cut",
+      "capacityScenarioId": "modeled-atlantic-capacity-v1",
+      "repairScenarioId": "atlantic-repair-resources-v1",
+      "failedResourceIds": [
+        "marea:spain"
+      ],
+      "demands": [
+        {
+          "id": "demand-us-fr-essential",
+          "originLandingId": "us-northeast",
+          "destinationLandingId": "france",
+          "categoryId": "essential",
+          "requestedGbps": 58000,
+          "weight": 3
+        },
+        {
+          "id": "demand-us-es-general",
+          "originLandingId": "us-mid-atlantic",
+          "destinationLandingId": "spain",
+          "categoryId": "general",
+          "requestedGbps": 94000,
+          "weight": 1
+        },
+        {
+          "id": "demand-us-uk-general",
+          "originLandingId": "us-northeast",
+          "destinationLandingId": "united-kingdom",
+          "categoryId": "general",
+          "requestedGbps": 72000,
+          "weight": 1
+        },
+        {
+          "id": "demand-us-ie-essential",
+          "originLandingId": "us-mid-atlantic",
+          "destinationLandingId": "ireland",
+          "categoryId": "essential",
+          "requestedGbps": 38000,
+          "weight": 3
+        },
+        {
+          "id": "demand-es-us-general",
+          "originLandingId": "spain",
+          "destinationLandingId": "us-northeast",
+          "categoryId": "general",
+          "requestedGbps": 52000,
+          "weight": 1
+        }
+      ]
+    },
+    {
+      "id": "landing-station-loss",
+      "capacityScenarioId": "modeled-atlantic-capacity-v1",
+      "repairScenarioId": "atlantic-repair-resources-v1",
+      "failedResourceIds": [
+        "landing:united-kingdom"
+      ],
+      "demands": [
+        {
+          "id": "demand-us-fr-essential",
+          "originLandingId": "us-northeast",
+          "destinationLandingId": "france",
+          "categoryId": "essential",
+          "requestedGbps": 62640,
+          "weight": 3
+        },
+        {
+          "id": "demand-us-es-general",
+          "originLandingId": "us-mid-atlantic",
+          "destinationLandingId": "spain",
+          "categoryId": "general",
+          "requestedGbps": 101520,
+          "weight": 1
+        },
+        {
+          "id": "demand-us-uk-general",
+          "originLandingId": "us-northeast",
+          "destinationLandingId": "united-kingdom",
+          "categoryId": "general",
+          "requestedGbps": 77760,
+          "weight": 1
+        },
+        {
+          "id": "demand-us-ie-essential",
+          "originLandingId": "us-mid-atlantic",
+          "destinationLandingId": "ireland",
+          "categoryId": "essential",
+          "requestedGbps": 41040,
+          "weight": 3
+        },
+        {
+          "id": "demand-es-us-general",
+          "originLandingId": "spain",
+          "destinationLandingId": "us-northeast",
+          "categoryId": "general",
+          "requestedGbps": 56160,
+          "weight": 1
+        }
+      ]
+    },
+    {
+      "id": "dual-regional-disruption",
+      "capacityScenarioId": "modeled-atlantic-capacity-v1",
+      "repairScenarioId": "atlantic-repair-resources-v1",
+      "failedResourceIds": [
+        "marea:spain",
+        "amitie:united-kingdom"
+      ],
+      "demands": [
+        {
+          "id": "demand-us-fr-essential",
+          "originLandingId": "us-northeast",
+          "destinationLandingId": "france",
+          "categoryId": "essential",
+          "requestedGbps": 70760,
+          "weight": 3
+        },
+        {
+          "id": "demand-us-es-general",
+          "originLandingId": "us-mid-atlantic",
+          "destinationLandingId": "spain",
+          "categoryId": "general",
+          "requestedGbps": 114680,
+          "weight": 1
+        },
+        {
+          "id": "demand-us-uk-general",
+          "originLandingId": "us-northeast",
+          "destinationLandingId": "united-kingdom",
+          "categoryId": "general",
+          "requestedGbps": 87840,
+          "weight": 1
+        },
+        {
+          "id": "demand-us-ie-essential",
+          "originLandingId": "us-mid-atlantic",
+          "destinationLandingId": "ireland",
+          "categoryId": "essential",
+          "requestedGbps": 46360,
+          "weight": 3
+        },
+        {
+          "id": "demand-es-us-general",
+          "originLandingId": "spain",
+          "destinationLandingId": "us-northeast",
+          "categoryId": "general",
+          "requestedGbps": 63440,
+          "weight": 1
+        }
+      ]
+    },
+    {
+      "id": "repair-priority",
+      "capacityScenarioId": "modeled-atlantic-capacity-v1",
+      "repairScenarioId": "atlantic-repair-resources-v1",
+      "failedResourceIds": [
+        "marea:spain",
+        "havfrue:ireland"
+      ],
+      "demands": [
+        {
+          "id": "demand-us-fr-essential",
+          "originLandingId": "us-northeast",
+          "destinationLandingId": "france",
+          "categoryId": "essential",
+          "requestedGbps": 64960,
+          "weight": 3
+        },
+        {
+          "id": "demand-us-es-general",
+          "originLandingId": "us-mid-atlantic",
+          "destinationLandingId": "spain",
+          "categoryId": "general",
+          "requestedGbps": 105280,
+          "weight": 1
+        },
+        {
+          "id": "demand-us-uk-general",
+          "originLandingId": "us-northeast",
+          "destinationLandingId": "united-kingdom",
+          "categoryId": "general",
+          "requestedGbps": 80640,
+          "weight": 1
+        },
+        {
+          "id": "demand-us-ie-essential",
+          "originLandingId": "us-mid-atlantic",
+          "destinationLandingId": "ireland",
+          "categoryId": "essential",
+          "requestedGbps": 42560,
+          "weight": 3
+        },
+        {
+          "id": "demand-es-us-general",
+          "originLandingId": "spain",
+          "destinationLandingId": "us-northeast",
+          "categoryId": "general",
+          "requestedGbps": 58240,
+          "weight": 1
+        }
+      ]
+    }
+  ],
+  "truth": {
+    "origin": "scenario",
+    "temporalStatus": "forecast",
+    "uncertainty": {
+      "kind": "distribution",
+      "value": {
+        "interpretation": "declared demand ensemble variance",
+        "calibrationStatus": "not_calibrated_to_current_traffic"
+      }
+    }
+  },
+  "claimBoundary": "Demand units are synthetic commodities and never current internet traffic."
+}

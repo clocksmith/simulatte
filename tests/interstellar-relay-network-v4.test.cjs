@@ -223,9 +223,27 @@ test('plugin advances one chronological causal event at a time and settles with 
   const initial = host.instance.capabilities['simulation.interstellar-relay.v4']();
   assert.equal(initial.progressive.status, 'ready');
   assert.equal(initial.progressive.currentEventIndex, -1);
-  const start = await host.instance.handleAction('scenario.run', { values: { phase: 'start' } });
+  const terminalIds = Object.keys(readJson(path.join(dataDirectory, 'relay-hardware-archetypes-v2.json')).archetypes);
+  const selectedTerminal = terminalIds.find((id) => id !== initial.result.controls.transceiverId) || terminalIds[0];
+  const start = await host.instance.handleAction('scenario.run', {
+    values: {
+      phase: 'start',
+      startEpochIso: '2040-01-02T03:04',
+      packetBytes: 4096,
+      processingDelayHours: 12,
+      targetEpochYear: 2050,
+      transceiverId: selectedTerminal,
+    },
+  });
   assert.equal(start.status, 'running');
   assert.equal(start.currentStep, 0);
+  const configured = host.instance.capabilities['simulation.interstellar-relay.v4']().result;
+  assert.equal(configured.controls.packetBytes, 4096);
+  assert.equal(configured.controls.startEpochIso, '2040-01-02T03:04:00.000Z');
+  assert.equal(configured.controls.processingDelayHours, 12);
+  assert.equal(configured.controls.targetEpochYear, 2050);
+  assert.equal(configured.controls.transceiverId, selectedTerminal);
+  assert.ok(host.instance.contributeV4().controls.controls.some((row) => row.id === 'transceiverId'));
   let previousStep = 0;
   let progress = start;
   while (progress.status === 'running') {

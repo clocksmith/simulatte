@@ -1,0 +1,90 @@
+{
+  "schema": "simulatte.gridStorageArchetypes.v1",
+  "id": "grid-storage-archetypes-v1",
+  "storage": [
+    {
+      "id": "storage-west",
+      "regionId": "west",
+      "powerFractionOfPeakDemand": 0.06,
+      "durationHours": 4,
+      "initialStateOfChargeFraction": 0.68,
+      "minimumStateOfChargeFraction": 0.08,
+      "chargeEfficiency": 0.94,
+      "dischargeEfficiency": 0.92,
+      "degradationCostUsdPerMwh": 7,
+      "truth": {
+        "origin": "modeled",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "distribution",
+          "value": {
+            "interpretation": "Aggregate authored representation calibrated only to order-of-magnitude public snapshots."
+          }
+        }
+      }
+    },
+    {
+      "id": "storage-texas",
+      "regionId": "texas",
+      "powerFractionOfPeakDemand": 0.065,
+      "durationHours": 4,
+      "initialStateOfChargeFraction": 0.68,
+      "minimumStateOfChargeFraction": 0.08,
+      "chargeEfficiency": 0.94,
+      "dischargeEfficiency": 0.92,
+      "degradationCostUsdPerMwh": 7,
+      "truth": {
+        "origin": "modeled",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "distribution",
+          "value": {
+            "interpretation": "Aggregate authored representation calibrated only to order-of-magnitude public snapshots."
+          }
+        }
+      }
+    },
+    {
+      "id": "storage-central",
+      "regionId": "central",
+      "powerFractionOfPeakDemand": 0.06999999999999999,
+      "durationHours": 4,
+      "initialStateOfChargeFraction": 0.68,
+      "minimumStateOfChargeFraction": 0.08,
+      "chargeEfficiency": 0.94,
+      "dischargeEfficiency": 0.92,
+      "degradationCostUsdPerMwh": 7,
+      "truth": {
+        "origin": "modeled",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "distribution",
+          "value": {
+            "interpretation": "Aggregate authored representation calibrated only to order-of-magnitude public snapshots."
+          }
+        }
+      }
+    },
+    {
+      "id": "storage-east",
+      "regionId": "east",
+      "powerFractionOfPeakDemand": 0.075,
+      "durationHours": 4,
+      "initialStateOfChargeFraction": 0.68,
+      "minimumStateOfChargeFraction": 0.08,
+      "chargeEfficiency": 0.94,
+      "dischargeEfficiency": 0.92,
+      "degradationCostUsdPerMwh": 7,
+      "truth": {
+        "origin": "modeled",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "distribution",
+          "value": {
+            "interpretation": "Aggregate authored representation calibrated only to order-of-magnitude public snapshots."
+          }
+        }
+      }
+    }
+  ]
+}

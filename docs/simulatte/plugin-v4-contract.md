@@ -127,7 +127,7 @@ envelope. Draft schemas are not v4 and fall back to the compatibility path.
 
 ## Profile boundary
 
-The public audit covers seven profiles:
+The public audit covers eight profiles:
 
 1. Cable Trader
 2. Safety Explorer
@@ -136,6 +136,7 @@ The public audit covers seven profiles:
 5. Maritime Trade
 6. Orbital Transfer Planner
 7. Interstellar Relay Network
+8. Subsea Network
 
-City is shared world data and simulation substrate, not an eighth experience.
+City is shared world data and simulation substrate, not another experience.
 Blank is a separate product and has its own audit.

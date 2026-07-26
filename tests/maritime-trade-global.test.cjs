@@ -161,8 +161,28 @@ test('plugin supports progressive start/step and current-core terminal compatibi
     profile,
     scenario: { scenarioId: 'asia-europe-mainline', seed: 'progressive-seed' },
   });
-  const started = progressive.handleAction('scenario.run', { values: { phase: 'start' } });
+  const started = progressive.handleAction('scenario.run', {
+    values: {
+      phase: 'start',
+      vesselClassId: 'feeder-2k',
+      speedPolicy: 'slow',
+      cargoTeu: 900,
+      ensembleReplicates: 8,
+    },
+  });
   assert.equal(started.status, 'running');
+  const configured = progressive.capabilities['simulation.maritime-trade.v1']({}).result;
+  assert.deepEqual(configured.parameters, {
+    ...configured.parameters,
+    vesselClassId: 'feeder-2k',
+    speedPolicy: 'slow',
+    cargoTeu: 900,
+    ensembleReplicates: 8,
+  });
+  assert.equal(configured.metrics.cargoTeu.value, 900);
+  const controls = progressive.contributeV4().controls.controls;
+  assert.ok(controls.some((row) => row.id === 'vesselClassId' && row.value === 'feeder-2k'));
+  assert.ok(controls.some((row) => row.id === 'speedPolicy' && row.value === 'slow'));
   let step = started;
   while (step.status === 'running') step = progressive.handleAction('scenario.run', { values: { phase: 'step' } });
   assert.equal(step.status, 'settled');

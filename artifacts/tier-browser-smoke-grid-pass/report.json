@@ -1,0 +1,20 @@
+{
+  "timestamp": "2026-07-26T18:59:51.352Z",
+  "pass": true,
+  "totalTiers": 1,
+  "passedTiers": 1,
+  "reports": [
+    {
+      "tier": "country",
+      "profileId": "grid-resilience-us-v1",
+      "pluginId": "grid-resilience-us",
+      "pass": true,
+      "status": "Complete",
+      "receipt": {
+        "actionStatus": "settled",
+        "obligations": 3
+      },
+      "errors": []
+    }
+  ]
+}

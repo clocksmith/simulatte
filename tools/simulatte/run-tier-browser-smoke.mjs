@@ -15,22 +15,25 @@ const DEFAULT_OUT = path.join(ROOT, 'artifacts', 'tier-browser-smoke');
 
 const TIERS = [
   { tier: 'country', profileId: 'food-recall-us-v1', pluginId: 'food-recall-us' },
+  { tier: 'country', profileId: 'grid-resilience-us-v1', pluginId: 'grid-resilience-us' },
   { tier: 'world', profileId: 'maritime-trade-global-v1', pluginId: 'maritime-trade-global' },
+  { tier: 'world', profileId: 'subsea-network-global-v1', pluginId: 'subsea-network-global' },
   { tier: 'solar-system', profileId: 'orbital-transfer-planner-v1', pluginId: 'orbital-transfer-planner' },
   { tier: 'star-chart', profileId: 'interstellar-relay-network-v1', pluginId: 'interstellar-relay-network' },
 ];
 
 function parseArgs(argv) {
-  const options = { outDir: DEFAULT_OUT, checkOnly: false, chromePath: process.env.CHROME_PATH || '', baseUrl: '' };
+  const options = { outDir: DEFAULT_OUT, checkOnly: false, chromePath: process.env.CHROME_PATH || '', baseUrl: '', profileId: '' };
   for (let index = 0; index < argv.length; index += 1) {
     const [key, inline] = argv[index].split('=');
     const value = () => inline ?? argv[++index];
     if (key === '--out') options.outDir = path.resolve(value());
     else if (key === '--chrome') options.chromePath = path.resolve(value());
     else if (key === '--url' || key === '--base-url') options.baseUrl = value();
+    else if (key === '--profile') options.profileId = value();
     else if (key === '--check') options.checkOnly = true;
     else if (key === '--help') {
-      console.log('usage: node tools/simulatte/run-tier-browser-smoke.mjs [--check] [--out DIR] [--chrome PATH] [--base-url URL]');
+      console.log('usage: node tools/simulatte/run-tier-browser-smoke.mjs [--check] [--out DIR] [--chrome PATH] [--base-url URL] [--profile PROFILE_ID]');
       process.exit(0);
     }
   }
@@ -89,10 +92,11 @@ async function waitForDevtools(port, child) {
 const STATE_PROBE = `(() => {
   const receipt = window.__simulatteTierRunReceipt || null;
   const runtimeStatus = document.getElementById('runtime-status');
+  const runtimeError = [...(window.__simulatteAutonomyRuntimeEvents || [])].reverse().find((row) => row.level === 'error');
   return {
     status: runtimeStatus ? runtimeStatus.textContent.trim() : '',
     statusKind: runtimeStatus ? runtimeStatus.dataset.kind || '' : '',
-    error: window.__simulatteLastFailError?.message || '',
+    error: window.__simulatteLastFailError?.message || runtimeError?.details?.message || '',
     receipt: receipt ? { actionStatus: receipt.actionResult && receipt.actionResult.status, obligations: (receipt.settlement && receipt.settlement[0] && receipt.settlement[0].obligationResults || []).length } : null,
   };
 })()`;
@@ -164,7 +168,9 @@ async function runTierBrowserSmoke() {
   }
 
   const reports = [];
-  for (const item of TIERS) {
+  const selectedTiers = options.profileId ? TIERS.filter((row) => row.profileId === options.profileId) : TIERS;
+  if (!selectedTiers.length) throw new Error(`Unknown profile ${options.profileId}`);
+  for (const item of selectedTiers) {
     console.log(`TIER-SMOKE testing tier=${item.tier} profile=${item.profileId}...`);
     const report = await auditTier(chromePath, options.baseUrl, item);
     console.log(`TIER-SMOKE tier=${item.tier} status=${report.pass ? 'pass' : 'fail'}${report.pass ? ` obligations=${report.receipt.obligations}` : ` reason=${report.errors[0] || 'unknown'}`}`);
@@ -172,11 +178,11 @@ async function runTierBrowserSmoke() {
   }
 
   const passed = reports.filter((row) => row.pass).length;
-  const allPass = passed === TIERS.length;
-  fs.writeFileSync(path.join(options.outDir, 'report.json'), JSON.stringify({ timestamp: new Date().toISOString(), pass: allPass, totalTiers: TIERS.length, passedTiers: passed, reports }, null, 2));
+  const allPass = passed === selectedTiers.length;
+  fs.writeFileSync(path.join(options.outDir, 'report.json'), JSON.stringify({ timestamp: new Date().toISOString(), pass: allPass, totalTiers: selectedTiers.length, passedTiers: passed, reports }, null, 2));
   if (server) server.close();
 
-  console.log(`TIER-SMOKE status=${allPass ? 'pass' : 'fail'} total=${TIERS.length} passed=${passed}`);
+  console.log(`TIER-SMOKE status=${allPass ? 'pass' : 'fail'} total=${selectedTiers.length} passed=${passed}`);
   process.exit(allPass ? 0 : 1);
 }
 

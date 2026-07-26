@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Grid Resilience US configuration",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "id",
+    "disturbanceScenarioId",
+    "dispatchPolicyId",
+    "reservePolicyId",
+    "storagePolicyId",
+    "restorationPolicyId",
+    "demandResponseMaximumFraction",
+    "emissionsPriceUsdPerTon",
+    "sheddingPriorities",
+    "restorationCrewCount",
+    "ensembleSeeds",
+    "ensembleSize",
+    "startInstant",
+    "durationHours",
+    "stepMinutes"
+  ],
+  "properties": {
+    "schema": { "const": "simulatte.plugin.gridResilienceConfig.v1" },
+    "id": { "const": "grid-resilience-us-config-v1" },
+    "disturbanceScenarioId": { "type": "string", "minLength": 1 },
+    "dispatchPolicyId": { "enum": ["economic-order", "resilience-weighted"] },
+    "reservePolicyId": { "enum": ["fixed-reserve", "adaptive-reserve"] },
+    "storagePolicyId": { "enum": ["immediate-support", "reserve-preserving"] },
+    "restorationPolicyId": { "enum": ["nearest-first", "dependency-aware", "service-impact-first"] },
+    "demandResponseMaximumFraction": { "type": "number", "minimum": 0, "maximum": 0.2 },
+    "emissionsPriceUsdPerTon": { "type": "number", "minimum": 0, "maximum": 250 },
+    "sheddingPriorities": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "enum": ["west", "texas", "central", "east"] }
+    },
+    "restorationCrewCount": { "type": "integer", "minimum": 1, "maximum": 2 },
+    "ensembleSeeds": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "ensembleSize": { "type": "integer", "minimum": 1, "maximum": 64 },
+    "startInstant": { "type": "string", "format": "date-time" },
+    "durationHours": { "const": 24 },
+    "stepMinutes": { "const": 60 }
+  }
+}

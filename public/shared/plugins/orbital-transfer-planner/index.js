@@ -28,7 +28,7 @@
     const depotsData = sdk.datasets.optional('orbital.depots.v1');
     const spacecraftData = sdk.datasets.optional('spacecraft.archetypes.v1');
     const sunGm = gmData.bodies.sun.gmAuD2;
-    const profileWeights = profile?.routeObjective || {};
+    let activeWeights = weightsFrom(profile?.routeObjective || {});
     const inputHashes = Object.freeze({
       ephemeris: sdk.datasets.receipt('jpl.horizons.heliocentric-vectors.v1')?.sha256 || null,
       gravitationalParameters: sdk.datasets.receipt('solar.system.gm-constants-de440.v1')?.sha256 || null,
@@ -67,7 +67,7 @@
       });
     }
 
-    function computeScenario(spec) {
+    function computeScenario(spec, weights = activeWeights) {
       const targetBodyId = targetForScenario(spec.id);
       const searchSpec = searchForTarget(targetBodyId, ephemerisData);
       const search = launchWindowApi.scanLaunchWindow({
@@ -76,8 +76,8 @@
         arrivalBodyId: targetBodyId,
         gmSunAuD2: sunGm,
         objectiveWeights: {
-          deltaV: Number(profileWeights.deltaV ?? 1),
-          timeOfFlight: Number(profileWeights.timeOfFlight ?? profileWeights.timeOfFlightDays ?? 0.01),
+          deltaV: weights.deltaV,
+          timeOfFlight: weights.timeOfFlight,
         },
         bodyConstants: bodyConstants(gmData),
         lambertOptions: {
@@ -212,8 +212,17 @@
       });
     }
 
-    function handleAction(actionId) {
+    function handleAction(actionId, context = {}) {
       if (actionId === 'scenario.run' || actionId === 'plan.transfer') {
+        const values = context.values || {};
+        if (values.phase === 'start' || actionId === 'plan.transfer') {
+          activeWeights = weightsFrom({
+            deltaV: values.deltaVWeight ?? activeWeights.deltaV,
+            timeOfFlight: values.timeWeight ?? activeWeights.timeOfFlight,
+          });
+          current = computeScenario(activeScenario, activeWeights);
+          sdk.events.propose({ pluginId: PLUGIN_ID, kind: `${PLUGIN_ID}.scenario-computed`, scenarioId: activeScenario.id, result: current });
+        }
         appendTransferReceipt(actionId);
         sdk.events.propose({ pluginId: PLUGIN_ID, kind: `${PLUGIN_ID}.plan-recorded`, actionId, result: current });
         return { status: 'settled', metrics: current.metrics };
@@ -309,10 +318,7 @@
             { label: 'Independent propagation', value: result.metrics.verificationStatus },
             { label: 'Endpoint error', value: result.verification ? `${result.metrics.endpointPositionErrorKm.toFixed(3)} km · ${result.metrics.endpointVelocityErrorKmS.toFixed(6)} km/s` : 'not applicable to screening baseline' },
           ],
-          actions: [
-            { id: 'plan.transfer', label: 'Compute transfer' },
-            { id: 'counterfactual.compare', label: 'Compare Hohmann baseline' },
-          ],
+          actions: [],
         },
         {
           slot: 'hud', title: 'Orbital claim boundary',
@@ -346,7 +352,7 @@
       return v4.createContribution({
         result: sdk.state.read().result,
         ephemerisData,
-        profileWeights,
+        profileWeights: { deltaV: activeWeights.deltaV, timeOfFlight: activeWeights.timeOfFlight },
         datasetReceipts: datasetIds.map((id) => ({
           id,
           receipt: sdk.datasets.receipt(id),
@@ -368,6 +374,18 @@
     if (typeof value === 'string') return { id: value, seed: value };
     const id = value?.scenarioId || value?.id || config?.defaultScenarioId || 'earth-mars-window';
     return Object.freeze({ id, seed: value?.seed || id, label: value?.label || id });
+  }
+
+  function weightsFrom(value) {
+    const deltaV = Number(value.deltaV ?? 1);
+    const timeOfFlight = Number(value.timeOfFlight ?? value.timeOfFlightDays ?? 0.01);
+    if (!Number.isFinite(deltaV) || deltaV < 0 || deltaV > 10) {
+      throw new Error('orbital_control_invalid: deltaVWeight must be from 0 to 10');
+    }
+    if (!Number.isFinite(timeOfFlight) || timeOfFlight < 0 || timeOfFlight > 1) {
+      throw new Error('orbital_control_invalid: timeWeight must be from 0 to 1');
+    }
+    return Object.freeze({ deltaV, timeOfFlight });
   }
   function targetForScenario(id) {
     const text = String(id || '').toLowerCase();

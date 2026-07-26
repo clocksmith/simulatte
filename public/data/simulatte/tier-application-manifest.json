@@ -1,7 +1,7 @@
 {
   "generatedAt": "2026-07-22T00:00:00Z",
-  "id": "simulatte-tier-applications-v2",
-  "schema": "simulatte.tierApplicationManifest.v2",
+  "id": "simulatte-tier-applications-v3",
+  "schema": "simulatte.tierApplicationManifest.v3",
   "tiers": {
     "country": {
       "defaultProfileId": "food-recall-us-v1",
@@ -9,14 +9,24 @@
         {
           "id": "food-recall-us-v1",
           "path": "../application-profiles/food-recall-us-v1.json",
-          "sha256": "43ec577d7f319962dc98e053d2436a9e8b3c9ee894b2174df6885f6a6ded840f"
+          "sha256": "43ec577d7f319962dc98e053d2436a9e8b3c9ee894b2174df6885f6a6ded840f",
+          "world": {
+            "id": "us-food-network-v1",
+            "path": "./worlds/us-food-network-v1.json",
+            "sha256": "bbe232fe794b039d5c508b2b9813f6a8cefbc53dca419bdb0250de1f1baa74fb"
+          }
+        },
+        {
+          "id": "grid-resilience-us-v1",
+          "path": "../application-profiles/grid-resilience-us-v1.json",
+          "sha256": "82c6c02e4f3e7277a802da4dcc53674cb41c4c22570d644d96aac8101cd9c672",
+          "world": {
+            "id": "us-food-network-v1",
+            "path": "./worlds/us-food-network-v1.json",
+            "sha256": "bbe232fe794b039d5c508b2b9813f6a8cefbc53dca419bdb0250de1f1baa74fb"
+          }
         }
-      ],
-      "world": {
-        "id": "us-food-network-v1",
-        "path": "./worlds/us-food-network-v1.json",
-        "sha256": "bbe232fe794b039d5c508b2b9813f6a8cefbc53dca419bdb0250de1f1baa74fb"
-      }
+      ]
     },
     "solar-system": {
       "defaultProfileId": "orbital-transfer-planner-v1",
@@ -24,14 +34,14 @@
         {
           "id": "orbital-transfer-planner-v1",
           "path": "../application-profiles/orbital-transfer-planner-v1.json",
-          "sha256": "0091dced08a3358e68fd03f058aa88f1ea78ebb009cda22adbeafefd72cc1016"
+          "sha256": "0091dced08a3358e68fd03f058aa88f1ea78ebb009cda22adbeafefd72cc1016",
+          "world": {
+            "id": "solar-system-ephemeris-v2",
+            "path": "./worlds/solar-system-ephemeris-v2.json",
+            "sha256": "a493d60b797e73502684e47915921c86b6cef8bf252112110169e0be2d689326"
+          }
         }
-      ],
-      "world": {
-        "id": "solar-system-ephemeris-v2",
-        "path": "./worlds/solar-system-ephemeris-v2.json",
-        "sha256": "a493d60b797e73502684e47915921c86b6cef8bf252112110169e0be2d689326"
-      }
+      ]
     },
     "star-chart": {
       "defaultProfileId": "interstellar-relay-network-v1",
@@ -39,14 +49,14 @@
         {
           "id": "interstellar-relay-network-v1",
           "path": "../application-profiles/interstellar-relay-network-v1.json",
-          "sha256": "46fa2899b700907ef20f82531509c8901fc9488f2499157d3ea604b81a611c76"
+          "sha256": "46fa2899b700907ef20f82531509c8901fc9488f2499157d3ea604b81a611c76",
+          "world": {
+            "id": "gaia-dr3-stellar-neighborhood-v1",
+            "path": "./worlds/gaia-dr3-stellar-neighborhood-v1.json",
+            "sha256": "93696af57c73e09f3bdcf831a813f3e6c88d29fec5ee2630abd186e5777a547c"
+          }
         }
-      ],
-      "world": {
-        "id": "gaia-dr3-stellar-neighborhood-v1",
-        "path": "./worlds/gaia-dr3-stellar-neighborhood-v1.json",
-        "sha256": "93696af57c73e09f3bdcf831a813f3e6c88d29fec5ee2630abd186e5777a547c"
-      }
+      ]
     },
     "world": {
       "defaultProfileId": "maritime-trade-global-v1",
@@ -54,14 +64,24 @@
         {
           "id": "maritime-trade-global-v1",
           "path": "../application-profiles/maritime-trade-global-v1.json",
-          "sha256": "58879d087b94a7b8c7b365df6f6630b77ab55a2c87c9b522c50c15259543cbdd"
+          "sha256": "58879d087b94a7b8c7b365df6f6630b77ab55a2c87c9b522c50c15259543cbdd",
+          "world": {
+            "id": "earth-global-topology-v1",
+            "path": "./worlds/earth-global-topology-v1.json",
+            "sha256": "c1ec7a5f834ec24e32284b2c195cf52d93e0406a96b8ffca0c344ba9f00327d4"
+          }
+        },
+        {
+          "id": "subsea-network-global-v1",
+          "path": "../application-profiles/subsea-network-global-v1.json",
+          "sha256": "22a0549a49c977da8eb684590517581cf5fc64af29cab88cdd6ffee388480313",
+          "world": {
+            "id": "earth-global-topology-v1",
+            "path": "./worlds/earth-global-topology-v1.json",
+            "sha256": "c1ec7a5f834ec24e32284b2c195cf52d93e0406a96b8ffca0c344ba9f00327d4"
+          }
         }
-      ],
-      "world": {
-        "id": "earth-global-topology-v1",
-        "path": "./worlds/earth-global-topology-v1.json",
-        "sha256": "c1ec7a5f834ec24e32284b2c195cf52d93e0406a96b8ffca0c344ba9f00327d4"
-      }
+      ]
     }
   }
 }

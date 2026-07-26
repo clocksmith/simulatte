@@ -1,0 +1,178 @@
+{
+  "configSchema": "./config.schema.json",
+  "consumes": [],
+  "datasets": [
+    {
+      "id": "asteroid-decision-policies-v1",
+      "reference": {
+        "id": "asteroid-decision-policies-v1",
+        "path": "../../../data/asteroid-defense/decision-policies-v1.json",
+        "schemaId": "simulatte.asteroidDecisionPolicies.v1",
+        "sha256": "c70695a9040fddd86bceb5e0a7cf99a1dd08b7384630b784632bcedf95fa25f9"
+      },
+      "required": true
+    },
+    {
+      "id": "asteroid-execution-uncertainty-models-v1",
+      "reference": {
+        "id": "asteroid-execution-uncertainty-models-v1",
+        "path": "../../../data/asteroid-defense/execution-uncertainty-models-v1.json",
+        "schemaId": "simulatte.asteroidExecutionUncertainty.v1",
+        "sha256": "e934589e9db72278fc8005ce51ef3aa874ebb495f6b2b908f735fdc3ca4a520a"
+      },
+      "required": true
+    },
+    {
+      "id": "asteroid-force-models-v1",
+      "reference": {
+        "id": "asteroid-force-models-v1",
+        "path": "../../../data/asteroid-defense/force-models-v1.json",
+        "schemaId": "simulatte.asteroidForceModels.v1",
+        "sha256": "9b593b32915282106a87b89019606d5b99f88639fe38c1be944991a21f866f81"
+      },
+      "required": true
+    },
+    {
+      "id": "asteroid-historical-benchmark-cases-v1",
+      "reference": {
+        "id": "asteroid-historical-benchmark-cases-v1",
+        "path": "../../../data/asteroid-defense/historical-benchmark-cases-v1.json",
+        "schemaId": "simulatte.asteroidHistoricalBenchmarks.v1",
+        "sha256": "f17fec3394a65279759481caad41c798fe7560b66e928a3932a0b938836d1b77"
+      },
+      "required": true
+    },
+    {
+      "id": "asteroid-intervention-archetypes-v1",
+      "reference": {
+        "id": "asteroid-intervention-archetypes-v1",
+        "path": "../../../data/asteroid-defense/intervention-archetypes-v1.json",
+        "schemaId": "simulatte.asteroidInterventionArchetypes.v1",
+        "sha256": "8bc13e330b96257f16c63b3b22ab81717f8a3245c71acc0d7fe96c05bbcf9e4a"
+      },
+      "required": true
+    },
+    {
+      "id": "asteroid-jpl-reference-snapshots-v1",
+      "reference": {
+        "id": "asteroid-jpl-reference-snapshots-v1",
+        "path": "../../../data/asteroid-defense/jpl-reference-snapshots-v1.json",
+        "schemaId": "simulatte.asteroidJplReferenceSnapshots.v1",
+        "sha256": "ff444a7d58beb28d69c2b2c460530b76d13e24a7b4a719e43f7f177684891eda"
+      },
+      "required": true
+    },
+    {
+      "id": "asteroid-model-governance-v1",
+      "reference": {
+        "id": "asteroid-model-governance-v1",
+        "path": "../../../data/asteroid-defense/model-governance-v1.json",
+        "schemaId": "simulatte.asteroidModelGovernance.v1",
+        "sha256": "219fba4e06e82dec27f707fc5bd3446d0b73d34e833382eaefe26da25eb0435f"
+      },
+      "required": true
+    },
+    {
+      "id": "asteroid-observer-stations-v1",
+      "reference": {
+        "id": "asteroid-observer-stations-v1",
+        "path": "../../../data/asteroid-defense/observer-stations-v1.json",
+        "schemaId": "simulatte.asteroidObserverStations.v1",
+        "sha256": "bac48d258a2b10d9670722e830679fcf67a973ce03a9ed92a3a9f6fe2f73bba9"
+      },
+      "required": true
+    },
+    {
+      "id": "asteroid-provenance-registry-v1",
+      "reference": {
+        "id": "asteroid-provenance-registry-v1",
+        "path": "../../../data/asteroid-defense/provenance-registry-v1.json",
+        "schemaId": "simulatte.asteroidProvenanceRegistry.v1",
+        "sha256": "3a372ab52b769481065aba1930d84d21c29a854206a1981e41f1db66131d3b9b"
+      },
+      "required": true
+    },
+    {
+      "id": "asteroid-synthetic-observation-campaigns-v1",
+      "reference": {
+        "id": "asteroid-synthetic-observation-campaigns-v1",
+        "path": "../../../data/asteroid-defense/synthetic-observation-campaigns-v1.json",
+        "schemaId": "simulatte.asteroidSyntheticCampaigns.v1",
+        "sha256": "19a382e5a66ca5b53aee385ddeeaef9d120f8c2f51721b55ff68a528d4a59c2a"
+      },
+      "required": true
+    }
+  ],
+  "defaultConfig": "./default-config.json",
+  "entry": {
+    "globalFactory": "SimulattePluginAsteroidDefense",
+    "integrity": "sha384-39f7fe164af48261a16270dce216c3a5f5f7ac277beca93f5c92eb4de61d6254d672d4f7b98d744a69814b9752bcc868",
+    "path": "./index.js"
+  },
+  "extensionPoints": [
+    "request",
+    "event",
+    "settlement",
+    "ui",
+    "presentation"
+  ],
+  "id": "asteroid-defense",
+  "permissions": [
+    "events.propose.v1",
+    "receipts.append.v1",
+    "state.reduce.v1",
+    "ui.geospatial.v1",
+    "ui.inspector.v1"
+  ],
+  "provides": [
+    "simulation.asteroid-defense.v1",
+    "propagation.n-body.v1"
+  ],
+  "receiptSchemas": [
+    "simulatte.plugin.asteroidScenarioReceipt.v1",
+    "simulatte.plugin.asteroidSettlementReceipt.v1",
+    "simulatte.plugin.asteroidComparisonReceipt.v1",
+    "simulatte.comparisonExecutionReceipt.v4"
+  ],
+  "resources": [
+    {
+      "integrity": "sha384-845ede68a5c33261dac4928f3b8ecdf23ee85c2ba282e5db91943430c1441797109664459f1fc5040be8a3d6639615a9",
+      "path": "./config.schema.json"
+    },
+    {
+      "integrity": "sha384-5fce09e397b976fc16ad42ca70bd7f9abdcff13381c86029e57fb06d691a11cf10f3eec367bd3c82cd6651c574bdd766",
+      "path": "./default-config.json"
+    },
+    {
+      "integrity": "sha384-da32dd40499b3390341dca8b6737ce5e7d2aa07730faae8263e7a129ba414315ca9587887b40c22d5fba187befa642c1",
+      "path": "./covariance-ensemble.js"
+    },
+    {
+      "integrity": "sha384-736cd47e945cd87fdabffa4b3e5ad7ba092b8836086ffb1535584e29b14735dd3555dca504a5b8a36b1f6599f412dd83",
+      "path": "./encounter-model.js"
+    },
+    {
+      "integrity": "sha384-c561955fb0e0aa8273b5bf79b987f946aba633c3f0a3c02d8193164ea0d6a9a1a9c4bff59a2d7a295b82771950f835f0",
+      "path": "./orbit-determination.js"
+    },
+    {
+      "integrity": "sha384-0d4025bfc69741674b6c679b2d81d14ecdc39af2c96e13971b7f44faf86ba1eb97bc22f41c7343acd390f9fbfd504917",
+      "path": "./asteroid-model.js"
+    },
+    {
+      "integrity": "sha384-d3a69408a32dbdfefe13cbc720a06b69e5515f3c79d2728542d064aa2781daaa714e8190be5c388e5ca0cdb0cb5aa3df",
+      "path": "./v4-contribution.js"
+    },
+    {
+      "integrity": "sha384-31be6228b24f3dcd29a6f46300830156a54f892a3ab43b1eafd8d3b3f87d2a782df1908c00cbc6c06314fe5b217ff9f1",
+      "path": "./comparison-driver.js"
+    },
+    {
+      "integrity": "sha384-e7ba0d303e51633160d0a6a0620ed71d6d6d725575662450356f02c5d8792be0f68df9a09ad2844c4e7d24ede6e9de7c",
+      "path": "./presentation.js"
+    }
+  ],
+  "schema": "simulatte.pluginManifest.v1",
+  "sdkVersion": 2,
+  "version": "1.0.0"
+}

@@ -1,0 +1,31 @@
+{
+  "schema": "simulatte.plugin.neighborhoodBulkPoolConfig.v1",
+  "id": "neighborhood-bulk-pool-config-v1",
+  "defaultScenarioId": "weekend-baseline",
+  "selectedWarehouseIds": [
+    "costco-1062-manhattan",
+    "costco-318-brooklyn",
+    "costco-243-long-island-city",
+    "costco-1070-rego-park"
+  ],
+  "selectedCategoryIds": [
+    "produce",
+    "refrigerated",
+    "frozen",
+    "pantry",
+    "snacks-bakery",
+    "household"
+  ],
+  "compensationModes": [
+    "pro-bono",
+    "exact-expenses",
+    "fee"
+  ],
+  "allowUnknownAvailability": false,
+  "constraints": {
+    "maximumWalkingKm": 1.5
+  },
+  "emissions": {
+    "kgCo2ePerVehicleKm": 0.251
+  }
+}

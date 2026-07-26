@@ -1,0 +1,38 @@
+{
+  "schema": "simulatte.plugin.subseaNetworkConfig.v1",
+  "id": "subsea-network-global-config-v1",
+  "topologyDatasetId": "subsea-cable-corridors-modeled-v1",
+  "landingDatasetId": "subsea-landing-points-governed-v1",
+  "demandScenarioId": "atlantic-single-cut",
+  "capacityScenarioId": "modeled-atlantic-capacity-v1",
+  "repairScenarioId": "atlantic-repair-resources-v1",
+  "allocationPolicyId": "proportional-fair",
+  "repairPolicyId": "unmet-demand-first",
+  "failureIds": [
+    "marea:spain"
+  ],
+  "jurisdictionExclusions": [],
+  "essentialServiceWeight": 3,
+  "repairResourceCount": 2,
+  "pathLimitPerCommodity": 6,
+  "solver": {
+    "relativeTolerance": 0.000001,
+    "absoluteTolerance": 0.000001,
+    "maximumIterations": 256,
+    "regularizationEpsilon": 0.000001
+  },
+  "ensembleSeeds": [
+    "subsea-ensemble-001",
+    "subsea-ensemble-002",
+    "subsea-ensemble-003",
+    "subsea-ensemble-004",
+    "subsea-ensemble-005",
+    "subsea-ensemble-006",
+    "subsea-ensemble-007",
+    "subsea-ensemble-008"
+  ],
+  "ensembleSize": 4,
+  "startInstant": "2035-01-01T00:00:00Z",
+  "durationHours": 720,
+  "stepMinutes": 60
+}

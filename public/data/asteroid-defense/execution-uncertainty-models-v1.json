@@ -1,0 +1,25 @@
+{
+  "schema": "simulatte.asteroidExecutionUncertainty.v1",
+  "id": "asteroid-execution-uncertainty-models-v1",
+  "models": [
+    {
+      "id": "execution-independent-v1",
+      "launchFailureProbability": 0.1,
+      "navigationSigmaFraction": 0.12,
+      "deliverySigmaFraction": 0.08,
+      "momentumEnhancementMean": 1,
+      "momentumEnhancementSigma": 0.15,
+      "correlationAssumption": "independent named deterministic streams",
+      "truth": {
+        "origin": "modeled",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "distribution",
+          "value": {
+            "interpretation": "Declared scientific model assumption."
+          }
+        }
+      }
+    }
+  ]
+}

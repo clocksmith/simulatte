@@ -1,0 +1,50 @@
+{
+  "schema": "simulatte.neighborhoodBulkModelGovernance.v1",
+  "id": "neighborhood-bulk-model-governance-v1",
+  "contentVersion": "1.0.0",
+  "models": [
+    {
+      "id": "catalog-inverted-index-v1",
+      "algorithm": "normalized token inverted index with bounded deterministic top-k insertion",
+      "inputBounds": { "maximumCatalogRows": 250000, "maximumQueryTokens": 16, "maximumResults": 100 },
+      "expectedComplexity": "O(total indexed terms) build; O(sum posting lengths plus k) query"
+    },
+    {
+      "id": "joint-package-trip-solver-v1",
+      "algorithm": "deterministic package grouping followed by capacity-aware existing-trip assignment",
+      "inputBounds": { "maximumRequests": 5000, "maximumTrips": 1000, "maximumCandidateTripsPerRequest": 64 },
+      "expectedComplexity": "O(requests times candidate trips plus package groups times assigned trips)"
+    },
+    {
+      "id": "route-detour-screen-v1",
+      "algorithm": "equirectangular point-to-polyline detour estimate with temperature, stop, mass, volume, and time gates",
+      "inputBounds": { "maximumCorridorPoints": 256, "maximumStopsPerTrip": 32 },
+      "expectedComplexity": "O(candidate trips times corridor points)"
+    },
+    {
+      "id": "exact-cost-settlement-v1",
+      "algorithm": "pro-rata package and disclosed trip compensation allocation with conservation checks",
+      "inputBounds": { "maximumParticipants": 5000, "maximumPoolGroups": 5000 },
+      "expectedComplexity": "O(allocations plus participants plus trips)"
+    }
+  ],
+  "gates": {
+    "unknownAvailability": "excluded unless the user explicitly enables scenario-only unknown inventory",
+    "restrictedItems": "always excluded",
+    "temperature": "reject an assignment when declared cold capacity or transit limit is exceeded",
+    "privacy": "only pseudonyms and neighborhood centroids enter simulation or presentation",
+    "conservation": "requested equals fulfilled plus unserved; purchased equals fulfilled plus waste",
+    "nonconvergence": "not applicable to deterministic bounded grouping; invalid inputs fail closed"
+  },
+  "truth": {
+    "origin": "modeled",
+    "temporalStatus": "forecast",
+    "uncertainty": {
+      "kind": "missing",
+      "value": {
+        "reason": "Algorithms are deterministic for declared inputs; demand, travel, inventory, and behavior are not empirically calibrated."
+      }
+    }
+  },
+  "claimBoundary": "The solver is a neighborhood-market simulation. It does not establish optimal citywide routing, real inventory, legal marketplace status, or food-safety compliance."
+}

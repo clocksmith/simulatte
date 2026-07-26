@@ -7,7 +7,7 @@
   root.InterstellarRelayV4 = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createInterstellarV4(builder) {
   const PLUGIN_ID = 'interstellar-relay-network';
-  function createContribution({ result, progressive }) {
+  function createContribution({ result, progressive, transceiverOptions = [] }) {
     const datasets = result.dataReceipts.filter((row) => row.sha256).map((row) => builder.datasetRecord(row.datasetId, row, {
       coverage: row.coverage,
       license: row.license,
@@ -158,9 +158,11 @@
       })],
     });
     const controls = builder.controls([
-      numeric('packetBytes', 'Packet size', result.controls.packetBytes, 1, 1000000000, 1, modeled),
+      datetime('startEpochIso', 'Transmission epoch', result.controls.startEpochIso.slice(0, 16), modeled),
+      numeric('packetBytes', 'Packet size', result.controls.packetBytes, 64, 1073741824, 1, modeled),
       numeric('processingDelayHours', 'Relay processing delay', result.controls.processingDelayHours, 0, 8760, 1, modeled),
-      numeric('targetEpochYear', 'Target epoch year', result.controls.targetEpochYear, 1900, 2500, 1, modeled),
+      numeric('targetEpochYear', 'Target epoch year', result.controls.targetEpochYear, 2016, 2200, 1, modeled),
+      ...(transceiverOptions.length ? [select('transceiverId', 'Optical terminal', result.controls.transceiverId, transceiverOptions, modeled)] : []),
     ], [{
       id: result.comparisonDefinition.id,
       label: result.comparisonDefinition.label || 'Relay path vs direct baseline',
@@ -223,6 +225,14 @@
   }
   function numeric(id, label, value, minimum, maximum, step, provenance) {
     return { id, label, kind: 'number', value, options: null, minimum, maximum, step, provenance };
+  }
+
+  function select(id, label, value, options, provenance) {
+    return { id, label, kind: 'select', value, options, minimum: null, maximum: null, step: null, provenance };
+  }
+
+  function datetime(id, label, value, provenance) {
+    return { id, label, kind: 'datetime-local', value, options: null, minimum: null, maximum: null, step: null, provenance };
   }
   function field(id, label, value, unit, provenance) { return { id, label, value, unit, provenance }; }
   return Object.freeze({ createContribution });

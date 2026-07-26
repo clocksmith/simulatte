@@ -1,0 +1,56 @@
+{
+  "schema": "simulatte.subseaDatasetManifest.v1",
+  "id": "subsea-network-global-datasets-v1",
+  "contentVersion": "1.0.0",
+  "generatedBy": "tools/subsea-network/build-subsea-network-data.mjs",
+  "artifacts": [
+    {
+      "id": "subsea-fcc-cable-license-register-2025-v1",
+      "path": "./fcc-cable-license-register-2025-v1.json",
+      "schemaId": "simulatte.subseaFccCableRegistry.v1",
+      "sha256": "33ac0868987591b6518af5f528a8cfc47c4966256c67532180281d050e0c5e09"
+    },
+    {
+      "id": "subsea-landing-points-governed-v1",
+      "path": "./landing-points-governed-v1.json",
+      "schemaId": "simulatte.subseaLandingPoints.v1",
+      "sha256": "0b0f95266d651f8088ff2ae2a0e7ef24efbddffc5703de65b566fe2d0d1fa5e1"
+    },
+    {
+      "id": "subsea-cable-corridors-modeled-v1",
+      "path": "./cable-corridors-modeled-v1.json",
+      "schemaId": "simulatte.subseaCableTopology.v1",
+      "sha256": "4a85a5bd3b216920400322a663bc1092fa47fb7433a5e5f4880a19affbbfadf8"
+    },
+    {
+      "id": "subsea-capacity-scenarios-v1",
+      "path": "./capacity-scenarios-v1.json",
+      "schemaId": "simulatte.subseaCapacityScenarios.v1",
+      "sha256": "a516637a199caa74ae17d3d979f74edbfb4c3600452e7bedabf56dc305551a35"
+    },
+    {
+      "id": "subsea-demand-scenarios-v1",
+      "path": "./demand-scenarios-v1.json",
+      "schemaId": "simulatte.subseaDemandScenarios.v1",
+      "sha256": "1a3ab517d9d0514493ed50798dccb61170eddd0c342bf480a2238f9f280fc57c"
+    },
+    {
+      "id": "subsea-repair-resources-v1",
+      "path": "./repair-resources-v1.json",
+      "schemaId": "simulatte.subseaRepairResources.v1",
+      "sha256": "002607c2884e8473033b3b505bf3893f90658fdf171f75345fcc72690b2dce12"
+    },
+    {
+      "id": "subsea-model-governance-v1",
+      "path": "./model-governance-v1.json",
+      "schemaId": "simulatte.subseaModelGovernance.v1",
+      "sha256": "6c675b4ce5ce3854f7725bf6cee225c0dd8a6f564382bfd728661cc4103ff9ff"
+    },
+    {
+      "id": "subsea-provenance-registry-v1",
+      "path": "./provenance-registry-v1.json",
+      "schemaId": "simulatte.subseaProvenanceRegistry.v1",
+      "sha256": "dd5b44709bd663c97665660939d1223d5b781629106b0e9d2630ec46bfbbe9ff"
+    }
+  ]
+}

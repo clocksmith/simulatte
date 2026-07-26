@@ -15,7 +15,7 @@
       ],
       "output": {
         "path": "public/data/simulatte/autonomy-manifest.json",
-        "sha256": "b8622e367eb131fda707eab2ef7761064125f2afd51d965fdc1a015d9833dfd7"
+        "sha256": "999487572132a31dc49ca3c7ba82b7458fa691b8be634a1fef94f06986040d39"
       },
       "contentVersion": "autonomy-nyc-multimodal-v1",
       "activationState": "active",
@@ -24,7 +24,7 @@
     {
       "artifactId": "tier-applications",
       "owner": "simulatte-world",
-      "schema": "simulatte.tierApplicationManifest.v2",
+      "schema": "simulatte.tierApplicationManifest.v3",
       "generatorCommand": "npm run simulatte:tiers:sync",
       "inputIdentities": [
         {
@@ -33,9 +33,9 @@
       ],
       "output": {
         "path": "public/data/simulatte/tier-application-manifest.json",
-        "sha256": "55773940853a5a1444fb8993a5b915d7089f8bb1e29edc97420d7aac1ddd78fb"
+        "sha256": "6807fd88003f584cee5407d89818bbb4b9f6aee831dfbfe37684004d4b2c12d2"
       },
-      "contentVersion": "simulatte-tier-applications-v2",
+      "contentVersion": "simulatte-tier-applications-v3",
       "activationState": "active",
       "validationCommand": "npm run simulatte:tiers:check"
     },

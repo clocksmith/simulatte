@@ -1,0 +1,111 @@
+{
+  "configSchema": "./config.schema.json",
+  "consumes": [],
+  "datasets": [
+    {
+      "id": "neighborhood-bulk-warehouse-registry-v1",
+      "reference": {
+        "id": "neighborhood-bulk-warehouse-registry-v1",
+        "path": "../../../data/neighborhood-bulk-pool/warehouse-registry-v1.json",
+        "schemaId": "simulatte.neighborhoodBulkWarehouseRegistry.v1",
+        "sha256": "110cab0e7d624b44c26ce61167346d4bd36740b8515a44d4bc8f7f9cd545d1c3"
+      },
+      "required": true
+    },
+    {
+      "id": "neighborhood-bulk-catalog-snapshot-bootstrap-v1",
+      "reference": {
+        "id": "neighborhood-bulk-catalog-snapshot-bootstrap-v1",
+        "path": "../../../data/neighborhood-bulk-pool/catalog-snapshot-bootstrap-v1.json",
+        "schemaId": "simulatte.neighborhoodBulkCatalogSnapshot.v1",
+        "sha256": "8360131bd9c830b59dd5cb5bf6c5512f09a765c7b946775ebf8032693b0bcf29"
+      },
+      "required": true
+    },
+    {
+      "id": "neighborhood-bulk-route-corridors-modeled-v1",
+      "reference": {
+        "id": "neighborhood-bulk-route-corridors-modeled-v1",
+        "path": "../../../data/neighborhood-bulk-pool/route-corridors-modeled-v1.json",
+        "schemaId": "simulatte.neighborhoodBulkRouteCorridors.v1",
+        "sha256": "24b9d3dd298ad4d1e53ee626c44e0a751681969c1df92e9809a1ca48035e00de"
+      },
+      "required": true
+    },
+    {
+      "id": "neighborhood-bulk-demand-and-trips-scenario-v1",
+      "reference": {
+        "id": "neighborhood-bulk-demand-and-trips-scenario-v1",
+        "path": "../../../data/neighborhood-bulk-pool/demand-and-trips-scenario-v1.json",
+        "schemaId": "simulatte.neighborhoodBulkDemandTrips.v1",
+        "sha256": "ceb52b1b58071ae6826c1303e055937ecd697a458cb3a8ea7b2d67a9aacee7be"
+      },
+      "required": true
+    },
+    {
+      "id": "neighborhood-bulk-model-governance-v1",
+      "reference": {
+        "id": "neighborhood-bulk-model-governance-v1",
+        "path": "../../../data/neighborhood-bulk-pool/model-governance-v1.json",
+        "schemaId": "simulatte.neighborhoodBulkModelGovernance.v1",
+        "sha256": "ecc077d0c9ebc7e387d85a5871b411179b8e4b9999114040f4789b4b4fdef473"
+      },
+      "required": true
+    }
+  ],
+  "defaultConfig": "./default-config.json",
+  "entry": {
+    "globalFactory": "SimulattePluginNeighborhoodBulkPool",
+    "integrity": "sha384-0fc58fca1432d0432176b04ec79ebe7401a2947dd6e17f71014eb47c9a1bbb8c16e89efb4470535ca0b02576dd29b42d",
+    "path": "./index.js"
+  },
+  "extensionPoints": [
+    "request",
+    "event",
+    "settlement",
+    "ui"
+  ],
+  "id": "neighborhood-bulk-pool",
+  "permissions": [
+    "events.propose.v1",
+    "receipts.append.v1",
+    "state.reduce.v1",
+    "ui.geospatial.v1",
+    "ui.inspector.v1"
+  ],
+  "provides": [
+    "simulation.neighborhood-bulk-pool.v1",
+    "catalog.neighborhood-bulk.search.v1"
+  ],
+  "receiptSchemas": [
+    "simulatte.plugin.neighborhoodBulkScenarioReceipt.v1",
+    "simulatte.plugin.neighborhoodBulkSettlementReceipt.v1",
+    "simulatte.plugin.neighborhoodBulkComparisonReceipt.v1",
+    "simulatte.comparisonExecutionReceipt.v4"
+  ],
+  "resources": [
+    {
+      "integrity": "sha384-6b0d2e102dbbd7ad7adfde12df32525f874ed93f4972c3b1752a0fd04fda93dac3f0e568270cd968c72c6ebe48565a98",
+      "path": "./config.schema.json"
+    },
+    {
+      "integrity": "sha384-984ee59300ed21ec8bfb6db95b7a1a63e3a914da9a96bd705181fb417fa0a5722f2608abfb735f7185535bc1ed0bf3d3",
+      "path": "./default-config.json"
+    },
+    {
+      "integrity": "sha384-b3f37a7ec960d8c36104749c4f00fc1aa0c3fd79d8cc74269319c7b441afd16620fd50ab119c2877e7353e3f31d91145",
+      "path": "./catalog-index.js"
+    },
+    {
+      "integrity": "sha384-38845f40ba87e597c4b236dfef74c8cebcd7f8627c580f447da8374bce60f03a21590e276420a7d912316027ef656194",
+      "path": "./pool-solver.js"
+    },
+    {
+      "integrity": "sha384-65a43724e3dd485bc2416d7a3733b9d562c71cc1114584398e2b521d65d9321df0ae026acb2c6d3c1c92803f1977b638",
+      "path": "./v4-contribution.js"
+    }
+  ],
+  "schema": "simulatte.pluginManifest.v2",
+  "sdkVersion": 2,
+  "version": "1.0.0"
+}

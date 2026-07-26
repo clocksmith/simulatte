@@ -63,39 +63,43 @@
           };
         },
         evaluateRoute({ route }) {
-          const physical = new Map();
-          route.segmentIds.forEach((id) => { const row = rows.get(id); if (row && !physical.has(row.physicalKey)) physical.set(row.physicalKey, row); });
-          const values = [...physical.values()];
-          const segmentEvidence = route.segmentIds.map(segmentReceipt);
-          const method = currentMethod();
-          const audit = {
-            schema: 'simulatte.plugin.safetyExplorerRouteAudit.v2',
-            crashCount: sum(values, 'crashCount'), injuryCount: sum(values, 'injuryCount'), fatalityCount: sum(values, 'fatalityCount'),
-            historicalObservationScore: sum(values, 'historicalObservationScore'), physicalSegmentsWithHistory: values.length,
-            fixedSparseCountEstimate: number(values.reduce((total, row) => total + shrinkage.estimate(row, { ...activeParameters, corpusMean: method.corpusMean }), 0)),
-            segmentIds: [...route.segmentIds],
-            segmentEvidence,
-            sourcePeriod: {
-              start: index.source.periodStart,
-              endExclusive: index.source.periodEndExclusive,
-            },
-            joinMethod: {
-              id: index.method.id,
-              maximumJoinDistanceM: index.method.maximumJoinDistanceM,
-              routeMaximumJoinDistanceM: values.length ? Math.max(...values.map((row) => row.maximumJoinDistanceM || 0)) : null,
-            },
-            unmatchedSourceCollisionIds: index.unjoinedCollisionIds.slice(),
-            method,
-            exposureStatus: 'unknown',
-            unknownSegmentCount: segmentEvidence.filter((row) => row.observationStatus !== 'reported_history').length,
-            indexId: index.id,
-            claimBoundary: index.claimBoundary,
-          };
-          sdk.events.propose({ pluginId: PLUGIN_ID, kind: `${PLUGIN_ID}.route-audited`, audit });
-          sdk.receipts.append(audit);
-          return audit;
+          return auditRoute(route.segmentIds);
         },
       };
+    }
+
+    function auditRoute(segmentIds) {
+      const physical = new Map();
+      segmentIds.forEach((id) => { const row = rows.get(id); if (row && !physical.has(row.physicalKey)) physical.set(row.physicalKey, row); });
+      const values = [...physical.values()];
+      const segmentEvidence = segmentIds.map(segmentReceipt);
+      const method = currentMethod();
+      const audit = {
+        schema: 'simulatte.plugin.safetyExplorerRouteAudit.v2',
+        crashCount: sum(values, 'crashCount'), injuryCount: sum(values, 'injuryCount'), fatalityCount: sum(values, 'fatalityCount'),
+        historicalObservationScore: sum(values, 'historicalObservationScore'), physicalSegmentsWithHistory: values.length,
+        fixedSparseCountEstimate: number(values.reduce((total, row) => total + shrinkage.estimate(row, { ...activeParameters, corpusMean: method.corpusMean }), 0)),
+        segmentIds: [...segmentIds],
+        segmentEvidence,
+        sourcePeriod: {
+          start: index.source.periodStart,
+          endExclusive: index.source.periodEndExclusive,
+        },
+        joinMethod: {
+          id: index.method.id,
+          maximumJoinDistanceM: index.method.maximumJoinDistanceM,
+          routeMaximumJoinDistanceM: values.length ? Math.max(...values.map((row) => row.maximumJoinDistanceM || 0)) : null,
+        },
+        unmatchedSourceCollisionIds: index.unjoinedCollisionIds.slice(),
+        method,
+        exposureStatus: 'unknown',
+        unknownSegmentCount: segmentEvidence.filter((row) => row.observationStatus !== 'reported_history').length,
+        indexId: index.id,
+        claimBoundary: index.claimBoundary,
+      };
+      sdk.events.propose({ pluginId: PLUGIN_ID, kind: `${PLUGIN_ID}.route-audited`, audit });
+      sdk.receipts.append(audit);
+      return audit;
     }
 
     function view() {
@@ -116,8 +120,8 @@
             { label: 'Join evidence', value: `${audit.unmatchedSourceCollisionIds.length} source crashes unmatched; route max ${audit.joinMethod.routeMaximumJoinDistanceM ?? 'n/a'} m.` },
             { label: 'Claim warning', value: 'Reported history and fixed shrinkage do not identify a safest route.' },
           ],
-          fields: sensitivityFields(audit.method, audit.joinMethod.maximumJoinDistanceM),
-          actions: [{ id: 'sensitivity.apply', label: 'Apply sensitivity parameters' }],
+          fields: sensitivityFields(audit.method),
+          actions: [],
         },
         {
           slot: 'hud',
@@ -181,7 +185,9 @@
 
     function handleAction(actionId, context = {}) {
       if (actionId === 'scenario.run') {
+        if (context.values?.phase === 'start') applySensitivity(context.values || {});
         let audit = sdk.state.read().audit;
+        const hadAudit = Boolean(audit);
         if (!audit && context.values?.phase === 'start') {
           activeScenario = context.scenario || activeScenario;
           const mission = sdk.routing.resolveMission(activeScenario?.missionText || '');
@@ -190,6 +196,7 @@
           audit = sdk.state.read().audit;
         }
         if (!audit) return { status: 'refused', reason: 'route_audit_missing' };
+        if (hadAudit && context.values?.phase === 'start' && audit.segmentIds?.length) audit = auditRoute(audit.segmentIds);
         const phase = context.values?.phase;
         if (phase === 'start') {
           sdk.events.propose({ pluginId: PLUGIN_ID, kind: `${PLUGIN_ID}.playback-started` });
@@ -205,7 +212,7 @@
         const audit = sdk.state.read().audit;
         if (!audit) return { status: 'refused', reason: 'route_audit_missing' };
         const routeRows = audit.segmentIds.map((id) => rows.get(id)).filter(Boolean);
-        const baselineParameters = shrinkage.parameters(config?.fixedSparseCountShrinkage);
+        const baselineParameters = activeParameters;
         const interventionParameters = shrinkage.parameters({
           ...baselineParameters,
           k: Math.min(64, Math.max(1, baselineParameters.k * 2)),
@@ -232,13 +239,23 @@
         };
       }
       if (actionId !== 'sensitivity.apply') return { status: 'refused', reason: 'unknown_action' };
-      const values = context.values || {};
+      applySensitivity(context.values || {});
+      const audit = sdk.state.read().audit;
+      if (audit?.segmentIds?.length) auditRoute(audit.segmentIds);
+      return {
+        status: 'settled',
+        parameters: activeParameters,
+        audit: sdk.state.read().audit,
+      };
+    }
+
+    function applySensitivity(values) {
       activeParameters = shrinkage.parameters({
-        k: values.shrinkageK,
+        k: values.shrinkageK ?? activeParameters.k,
         weights: {
-          crash: values.crashWeight,
-          injury: values.injuryWeight,
-          fatality: values.fatalityWeight,
+          crash: values.crashWeight ?? activeParameters.weights.crash,
+          injury: values.injuryWeight ?? activeParameters.weights.injury,
+          fatality: values.fatalityWeight ?? activeParameters.weights.fatality,
         },
       });
       sdk.events.propose({
@@ -246,12 +263,6 @@
         kind: `${PLUGIN_ID}.sensitivity-updated`,
         parameters: activeParameters,
       });
-      return {
-        status: 'settled',
-        parameters: activeParameters,
-        joinRadiusM: Number(values.joinRadiusM ?? index.method.maximumJoinDistanceM),
-        limitation: 'Changing join radius requires rebuilding the governed spatial join for an exact result.',
-      };
     }
 
     // Legacy capability name is preserved for compatibility. Its value is explicitly a
@@ -337,13 +348,12 @@
   function sum(rows, key) { return Number(rows.reduce((total, row) => total + (row[key] || 0), 0).toFixed(6)); }
   function number(value) { return value === null ? null : Number(value.toFixed(6)); }
   function weightsText(weights) { return `crash ${weights.crash}, injury ${weights.injury}, fatality ${weights.fatality}`; }
-  function sensitivityFields(method, joinRadiusM) {
+  function sensitivityFields(method) {
     return [
       { id: 'shrinkageK', label: 'Shrinkage K', type: 'number', value: String(method.k) },
       { id: 'crashWeight', label: 'Crash weight', type: 'number', value: String(method.severityWeights.crash) },
       { id: 'injuryWeight', label: 'Injury weight', type: 'number', value: String(method.severityWeights.injury) },
       { id: 'fatalityWeight', label: 'Fatality weight', type: 'number', value: String(method.severityWeights.fatality) },
-      { id: 'joinRadiusM', label: 'Join-radius sensitivity', type: 'number', value: String(joinRadiusM) },
     ];
   }
   return Object.freeze({ activate });

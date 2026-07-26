@@ -39,7 +39,10 @@
     const governanceReceipt = sdk.datasets.receipt(GOVERNANCE_DATASET_ID);
     const environmentReceipt = sdk.datasets.receipt(ENVIRONMENT_DATASET_ID);
     const buildingReceipt = sdk.datasets.receipt('world.buildings.v1');
+    let activeConfig = { ...config };
     let activeScenario = scenario;
+    let activeMission = null;
+    let activeDepartureAt = null;
     sdk.state.register(reduce, {
       simulation: null,
       playback: { status: 'idle', step: 0 },
@@ -48,15 +51,16 @@
 
     function simulateMission(mission) {
       if (!mission) throw pluginError('sun_mission_required', 'Sun Walker requires a resolved route mission');
-      const routes = sdk.routing.alternatives(mission, config.maximumAlternatives);
-      const departureAt = sdk.clock.instantForMission(mission);
+      activeMission = mission;
+      const routes = sdk.routing.alternatives(mission, activeConfig.maximumAlternatives);
+      const departureAt = activeDepartureAt || sdk.clock.instantForMission(mission);
       const simulation = routeSimulation.simulate({
         world,
         worldModel,
         routes,
         departureAt,
-        config,
-        seed: activeScenario?.seed || config.seed,
+        config: activeConfig,
+        seed: activeScenario?.seed || activeConfig.seed,
         buildingReceipt,
         governance,
         governanceReceipt,
@@ -124,8 +128,8 @@
               segment,
               buildings,
               sun,
-              sampleSpacingM: config.sampleSpacingM,
-              minimumSolarElevationDegrees: config.minimumSolarElevationDegrees,
+              sampleSpacingM: activeConfig.sampleSpacingM,
+              minimumSolarElevationDegrees: activeConfig.minimumSolarElevationDegrees,
             });
             exposureBySegmentId.set(segment.id, row);
           }
@@ -145,17 +149,21 @@
 
     function setScenario(nextScenario) {
       activeScenario = nextScenario;
+      activeMission = null;
+      activeDepartureAt = null;
       sdk.events.propose({ pluginId: 'sun-walker', kind: 'sun-walker.scenario-selected', scenario: nextScenario });
-      return { status: 'ready', seed: activeScenario?.seed || config.seed };
+      return { status: 'ready', seed: activeScenario?.seed || activeConfig.seed };
     }
 
     function handleAction(actionId, context = {}) {
       if (actionId === 'sun-walker.select-control') {
+        applyControlValues(context.values || {});
+        const mission = activeMission || sdk.routing.resolveMission(activeScenario?.missionText || '');
+        const simulation = simulateMission(mission);
         return {
-          status: 'deferred',
-          reason: 'shared_branching_runtime_required',
-          acceptedValues: context.values || {},
-          controlDefinitions: sdk.state.read().simulation?.controls || [],
+          status: 'settled',
+          simulationId: simulation.id,
+          controls: simulation.controls,
         };
       }
       if (actionId === 'counterfactual.compare') {
@@ -178,10 +186,13 @@
       if (actionId !== 'scenario.run') return { status: 'refused', reason: 'unknown_action', actionId };
       const phase = context.values?.phase;
       let state = sdk.state.read();
-      if (!state.simulation && phase === 'start') {
+      if (phase === 'start') {
         activeScenario = context.scenario || activeScenario;
-        simulateMission(sdk.routing.resolveMission(activeScenario?.missionText || ''));
-        state = sdk.state.read();
+        if (hasControlValues(context.values) || !state.simulation) {
+          applyControlValues(context.values || {});
+          simulateMission(activeMission || sdk.routing.resolveMission(activeScenario?.missionText || ''));
+          state = sdk.state.read();
+        }
       }
       if (!state.simulation) return { status: 'refused', reason: 'simulation_missing' };
       if (phase === 'start') {
@@ -198,6 +209,19 @@
         return playbackAction(nextState);
       }
       return { status: 'refused', reason: 'scenario_phase_invalid', phase: phase || null };
+    }
+
+    function applyControlValues(values) {
+      activeConfig = {
+        ...activeConfig,
+        maximumAddedTimeSeconds: finiteControl(values.maximumAddedTimeSeconds, activeConfig.maximumAddedTimeSeconds, 0, Infinity, 'maximumAddedTimeSeconds'),
+        maximumAddedRatio: finiteControl(values.maximumAddedRatio, activeConfig.maximumAddedRatio, 0, Infinity, 'maximumAddedRatio'),
+        directSunWeight: finiteControl(values.directSunWeight, activeConfig.directSunWeight, 0, Infinity, 'directSunWeight'),
+        walkingSpeedMps: finiteControl(values.walkingSpeedMps, activeConfig.walkingSpeedMps, Number.EPSILON, 3, 'walkingSpeedMps'),
+        treeCanopyParticipation: booleanControl(values.treeCanopyParticipation, activeConfig.treeCanopyParticipation, 'treeCanopyParticipation'),
+        weatherParticipation: booleanControl(values.weatherParticipation, activeConfig.weatherParticipation, 'weatherParticipation'),
+      };
+      if (values.departureAt !== undefined) activeDepartureAt = datetimeControl(values.departureAt, 'departureAt');
     }
 
     function appendPlaybackReceipt(state) {
@@ -427,6 +451,42 @@
 
   function candidate(simulation, id) {
     return simulation.candidates.find((row) => row.id === id);
+  }
+
+  function finiteControl(value, fallback, minimum, maximum, label) {
+    if (value === undefined || value === null || value === '') return fallback;
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed) || parsed < minimum || parsed > maximum) {
+      throw pluginError('sun_control_invalid', `${label} must be between ${minimum} and ${maximum}`);
+    }
+    return parsed;
+  }
+
+  function booleanControl(value, fallback, label) {
+    if (value === undefined || value === null || value === '') return fallback;
+    if (typeof value !== 'boolean') throw pluginError('sun_control_invalid', `${label} must be boolean`);
+    return value;
+  }
+
+  function datetimeControl(value, label) {
+    const text = String(value);
+    const normalized = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?$/.test(text)
+      ? `${text}Z`
+      : text;
+    if (!Number.isFinite(Date.parse(normalized))) throw pluginError('sun_control_invalid', `${label} must be a valid date and time`);
+    return new Date(normalized).toISOString();
+  }
+
+  function hasControlValues(values) {
+    return [
+      'maximumAddedTimeSeconds',
+      'maximumAddedRatio',
+      'directSunWeight',
+      'walkingSpeedMps',
+      'treeCanopyParticipation',
+      'weatherParticipation',
+      'departureAt',
+    ].some((key) => Object.prototype.hasOwnProperty.call(values || {}, key));
   }
 
   function pluginError(code, message) {

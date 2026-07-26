@@ -18,6 +18,7 @@
     render,
     resetRuntime,
     buildReceipt,
+    getControlValues = () => ({}),
     onState,
     onReceipt,
     onError,
@@ -39,6 +40,7 @@
     let isRestoring = false;
     let scenarioResult = null;
     let finalReceipt = null;
+    let parameterValues = {};
 
     function snapshot() {
       return Object.freeze({
@@ -51,7 +53,7 @@
       });
     }
 
-    async function start({ restored = false } = {}) {
+    async function start({ restored = false, values = null } = {}) {
       if (['running', 'paused'].includes(state)) return snapshot();
       cancelTimer();
       const generation = ++runGeneration;
@@ -60,6 +62,7 @@
       isRestoring = restored;
       scenarioResult = null;
       finalReceipt = null;
+      parameterValues = normalizeValues(values === null ? getControlValues(ownerPluginId) : values);
       reflect();
       try {
         let result = await dispatchScenario({ phase: 'start' });
@@ -133,7 +136,7 @@
         clearStoredReceipt(storage, profileId);
         return false;
       }
-      await start({ restored: true });
+      await start({ restored: true, values: stored.parameterValues || {} });
       cancelTimer();
       while (['running', 'paused'].includes(state)) {
         state = 'running';
@@ -208,6 +211,7 @@
         actionResult,
         settlement,
         comparisonExecutionReceipt,
+        parameterValues,
         restored: isRestoring,
       }));
       writeStoredReceipt(storage, profileId, finalReceipt);
@@ -221,7 +225,7 @@
       return requiredRuntime(getRuntime()).dispatchAction(
         ownerPluginId,
         'scenario.run',
-        { scenario, values }
+        { scenario, values: { ...parameterValues, ...values } }
       );
     }
 
@@ -307,6 +311,11 @@
     error.code = code;
     error.evidence = evidence;
     return error;
+  }
+
+  function normalizeValues(value) {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
+    return Object.fromEntries(Object.entries(value).map(([key, entry]) => [key, Array.isArray(entry) ? [...entry] : entry]));
   }
 
   return Object.freeze({

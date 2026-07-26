@@ -106,7 +106,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginMaritimeTradeGlobal",
-    "integrity": "sha384-b2b9c20a9274fe8f52d90be81ccca00761c7781e42b067a4520a7efc2ccb0a9a508a28c3f20412aa65ef48b825b131cc",
+    "integrity": "sha384-c6c413b2dece138341145554bcec631f25fd2c145c02e9d9a03d1dd2365861fdc79c78311745b82a49db9e309ca1eb69",
     "path": "./index.js"
   },
   "extensionPoints": [
@@ -189,7 +189,7 @@
       "path": "./queue-engine.js"
     },
     {
-      "integrity": "sha384-5b43a2faff58ae4978ba5a18112742b59dfedaf34af2285d546b6a11f8456c62a3d51fcb9199bbfd8fac8cd2e5abb33a",
+      "integrity": "sha384-8a76b95d84166c3fbb8b36da1b0b29d66edfff55285e2ebf52829bb4003f24ebc4badeb481a9ee9c5f78ffae5b5f7686",
       "path": "./v4-contribution.js"
     },
     {

@@ -103,6 +103,8 @@
       })],
     });
     const controls = builder.controls([
+      select('vesselClassId', 'Vessel archetype', result.parameters.vesselClassId, result.controls.find((row) => row.id === 'vesselClassId').options, modeled),
+      select('speedPolicy', 'Speed policy', result.parameters.speedPolicy, result.controls.find((row) => row.id === 'speedPolicy').options, modeled),
       numeric('cargoTeu', 'Scenario cargo', result.parameters.cargoTeu, 100, 24000, 100, modeled),
       numeric('ensembleReplicates', 'Queue ensemble runs', result.parameters.ensembleReplicates, 2, 512, 1, modeled),
     ], [{
@@ -153,6 +155,10 @@
   }
   function numeric(id, label, value, minimum, maximum, step, provenance) {
     return { id, label, kind: 'number', value, options: null, minimum, maximum, step, provenance };
+  }
+
+  function select(id, label, value, options, provenance) {
+    return { id, label, kind: 'select', value, options, minimum: null, maximum: null, step: null, provenance };
   }
   function field(id, label, value, unit, provenance) { return { id, label, value, unit, provenance }; }
   return Object.freeze({ createContribution });

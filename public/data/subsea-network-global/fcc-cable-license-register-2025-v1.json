@@ -1,0 +1,279 @@
+{
+  "schema": "simulatte.subseaFccCableRegistry.v1",
+  "id": "subsea-fcc-cable-license-register-2025-v1",
+  "contentVersion": "fcc-year-end-2025-and-capacity-2024",
+  "retrievalDate": "2026-07-26",
+  "license": {
+    "identifier": "FCC-public-record",
+    "requiredAttribution": "Federal Communications Commission, Office of International Affairs"
+  },
+  "sources": [
+    {
+      "id": "fcc-license-register-2025",
+      "url": "https://docs.fcc.gov/public/attachments/DA-26-197A3.pdf",
+      "fileName": "da-26-197a3.pdf",
+      "sha256": "eaadcb659e59b39d60c1944253b896aafe924c9d89c827551aeee58edc735231",
+      "publishedThrough": "2025-12-31"
+    },
+    {
+      "id": "fcc-circuit-capacity-2024",
+      "url": "https://docs.fcc.gov/public/attachments/DA-25-1072A2.pdf",
+      "fileName": "da-25-1072a2.pdf",
+      "sha256": "543558edfb752741cf87f8fa730cfe50f223175bcc1199bf63ce3db9e29fe426",
+      "publishedThrough": "2024-12-31"
+    }
+  ],
+  "cables": [
+    {
+      "id": "aeconnect-1",
+      "label": "AEConnect-1 Cable System",
+      "currentLicenseNumber": "SCL-MOD-20210105-00001",
+      "originalFileNumber": "SCL-LIC-20140206-00002",
+      "region": "atlantic",
+      "foreignLandingCountries": [
+        "Iceland",
+        "Ireland"
+      ],
+      "sourceRows": [
+        {
+          "documentId": "fcc-license-register-2025",
+          "page": 1,
+          "line": 36,
+          "rowIdentity": "fcc-license:scl-mod-20210105-00001"
+        },
+        {
+          "documentId": "fcc-circuit-capacity-2024",
+          "page": 13,
+          "line": 47,
+          "rowIdentity": "fcc-landing:atlantic:aeconnect-cable-network:iceland"
+        },
+        {
+          "documentId": "fcc-circuit-capacity-2024",
+          "page": 13,
+          "line": 48,
+          "rowIdentity": "fcc-landing:atlantic:aeconnect-cable-network:ireland"
+        }
+      ],
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Regulatory identity has no quantified uncertainty."
+          }
+        }
+      }
+    },
+    {
+      "id": "amitie",
+      "label": "Amitié",
+      "currentLicenseNumber": "SCL-LIC-20200807-00036",
+      "originalFileNumber": "SCL-LIC-20200807-00036",
+      "region": "atlantic",
+      "foreignLandingCountries": [
+        "France",
+        "United Kingdom"
+      ],
+      "sourceRows": [
+        {
+          "documentId": "fcc-license-register-2025",
+          "page": 1,
+          "line": 37,
+          "rowIdentity": "fcc-license:scl-lic-20200807-00036"
+        },
+        {
+          "documentId": "fcc-circuit-capacity-2024",
+          "page": 13,
+          "line": 49,
+          "rowIdentity": "fcc-landing:atlantic:amitie:france"
+        },
+        {
+          "documentId": "fcc-circuit-capacity-2024",
+          "page": 13,
+          "line": 50,
+          "rowIdentity": "fcc-landing:atlantic:amitie:united-kingdom"
+        }
+      ],
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Regulatory identity has no quantified uncertainty."
+          }
+        }
+      }
+    },
+    {
+      "id": "dunant",
+      "label": "Dunant",
+      "currentLicenseNumber": "SCL-LIC-20190410-00015",
+      "originalFileNumber": "SCL-LIC-20190410-00015",
+      "region": "atlantic",
+      "foreignLandingCountries": [
+        "France"
+      ],
+      "sourceRows": [
+        {
+          "documentId": "fcc-license-register-2025",
+          "page": 1,
+          "line": 40,
+          "rowIdentity": "fcc-license:scl-lic-20190410-00015"
+        },
+        {
+          "documentId": "fcc-circuit-capacity-2024",
+          "page": 13,
+          "line": 56,
+          "rowIdentity": "fcc-landing:atlantic:dunant:france"
+        }
+      ],
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Regulatory identity has no quantified uncertainty."
+          }
+        }
+      }
+    },
+    {
+      "id": "grace-hopper",
+      "label": "Grace Hopper",
+      "currentLicenseNumber": "SCL-LIC-20210225-00014",
+      "originalFileNumber": "SCL-LIC-20210225-00014",
+      "region": "atlantic",
+      "foreignLandingCountries": [
+        "Spain",
+        "United Kingdom"
+      ],
+      "sourceRows": [
+        {
+          "documentId": "fcc-license-register-2025",
+          "page": 1,
+          "line": 43,
+          "rowIdentity": "fcc-license:scl-lic-20210225-00014"
+        },
+        {
+          "documentId": "fcc-circuit-capacity-2024",
+          "page": 14,
+          "line": 8,
+          "rowIdentity": "fcc-landing:atlantic:grace-hopper:spain"
+        },
+        {
+          "documentId": "fcc-circuit-capacity-2024",
+          "page": 14,
+          "line": 9,
+          "rowIdentity": "fcc-landing:atlantic:grace-hopper:united-kingdom"
+        }
+      ],
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Regulatory identity has no quantified uncertainty."
+          }
+        }
+      }
+    },
+    {
+      "id": "havfrue",
+      "label": "Havfrue",
+      "currentLicenseNumber": "SCL-LIC-20180511-00010",
+      "originalFileNumber": "SCL-LIC-20180511-00010",
+      "region": "atlantic",
+      "foreignLandingCountries": [
+        "Denmark",
+        "Ireland",
+        "Norway"
+      ],
+      "sourceRows": [
+        {
+          "documentId": "fcc-license-register-2025",
+          "page": 1,
+          "line": 44,
+          "rowIdentity": "fcc-license:scl-lic-20180511-00010"
+        },
+        {
+          "documentId": "fcc-circuit-capacity-2024",
+          "page": 14,
+          "line": 13,
+          "rowIdentity": "fcc-landing:atlantic:havfrue:denmark"
+        },
+        {
+          "documentId": "fcc-circuit-capacity-2024",
+          "page": 14,
+          "line": 14,
+          "rowIdentity": "fcc-landing:atlantic:havfrue:ireland"
+        },
+        {
+          "documentId": "fcc-circuit-capacity-2024",
+          "page": 14,
+          "line": 15,
+          "rowIdentity": "fcc-landing:atlantic:havfrue:norway"
+        }
+      ],
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Regulatory identity has no quantified uncertainty."
+          }
+        }
+      }
+    },
+    {
+      "id": "marea",
+      "label": "MAREA",
+      "currentLicenseNumber": "SCL-LIC-20160525-00012",
+      "originalFileNumber": "SCL-LIC-20160525-00012",
+      "region": "atlantic",
+      "foreignLandingCountries": [
+        "Spain"
+      ],
+      "sourceRows": [
+        {
+          "documentId": "fcc-license-register-2025",
+          "page": 1,
+          "line": 45,
+          "rowIdentity": "fcc-license:scl-lic-20160525-00012"
+        },
+        {
+          "documentId": "fcc-circuit-capacity-2024",
+          "page": 14,
+          "line": 16,
+          "rowIdentity": "fcc-landing:atlantic:marea:spain"
+        }
+      ],
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Regulatory identity has no quantified uncertainty."
+          }
+        }
+      }
+    }
+  ],
+  "publicCapacityEvidence": [
+    {
+      "id": "fcc-capacity:marea:2024",
+      "cableName": "MAREA",
+      "availableCapacityGbps": 178000,
+      "plannedCapacityGbps": 178000,
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 6,
+      "sourceLine": 48
+    }
+  ],
+  "claimBoundary": "Observed fields identify FCC regulatory records and named foreign landing countries only."
+}

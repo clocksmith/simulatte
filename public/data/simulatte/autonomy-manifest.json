@@ -6,6 +6,11 @@
   },
   "applicationProfiles": [
     {
+      "id": "neighborhood-bulk-pool-v1",
+      "path": "../application-profiles/neighborhood-bulk-pool-v1.json",
+      "sha256": "376031f80d410cda5a604e748183ea3177480f6fd37a7bed822d523542ae76bd"
+    },
+    {
       "id": "safety-explorer-v1",
       "path": "../application-profiles/safety-explorer-v1.json",
       "sha256": "e738f5d69cd0324453a73153720e44b998163af075fd65fec09245f8edc36ecc"
@@ -16,7 +21,7 @@
       "sha256": "04a9557572df2342d3d17f22c20e3ce3c523d2f1e00f1f0c6a47c0ef9afc81da"
     }
   ],
-  "claimBoundary": "This manifest governs bicycle-delivery and pedestrian-loop simulations assembled from independently hashed region packs for New York City. Park circuits follow frozen property boundaries, not surveyed sidewalk centerlines. It does not claim live conditions, physical-world autonomy, or control of a real vehicle.",
+  "claimBoundary": "This manifest governs bicycle-delivery, pedestrian-loop, and neighborhood bulk-pooling simulations in New York City. Park circuits follow frozen property boundaries, not surveyed sidewalk centerlines. Bulk-pool corridors outside the governed street graph are modeled geospatial scenarios. It does not claim live conditions, real warehouse inventory, physical-world autonomy, or control of a real vehicle.",
   "contentVersion": "autonomy-nyc-multimodal-v1",
   "curriculum": {
     "id": "nyc-routing-foundations-v1",

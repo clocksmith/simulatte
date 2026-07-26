@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Asteroid Defense configuration",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "id",
+    "observationCampaignId",
+    "forceModelId",
+    "followUpPolicyId",
+    "decisionPolicyId",
+    "interventionArchetypeId",
+    "executionUncertaintyModelId",
+    "ensembleSize",
+    "observationBudget",
+    "decisionThreshold",
+    "fit",
+    "propagation",
+    "startInstant"
+  ],
+  "properties": {
+    "schema": { "const": "simulatte.plugin.asteroidDefenseConfig.v1" },
+    "id": { "const": "asteroid-defense-config-v1" },
+    "observationCampaignId": { "type": "string", "minLength": 1 },
+    "forceModelId": { "const": "heliocentric-two-body-screening-v1" },
+    "followUpPolicyId": { "enum": ["fixed-cadence", "information-gain"] },
+    "decisionPolicyId": { "enum": ["act-at-threshold", "observe-then-decide"] },
+    "interventionArchetypeId": { "enum": ["none", "kinetic-impactor", "reconnaissance-first", "gravity-tractor"] },
+    "executionUncertaintyModelId": { "const": "execution-independent-v1" },
+    "ensembleSize": { "type": "integer", "minimum": 4, "maximum": 64 },
+    "observationBudget": { "type": "integer", "minimum": 4, "maximum": 12 },
+    "decisionThreshold": { "type": "number", "minimum": 0, "maximum": 1 },
+    "fit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["maximumIterations", "initialDamping", "correctionTolerance", "residualToleranceRad"],
+      "properties": {
+        "maximumIterations": { "type": "integer", "minimum": 4, "maximum": 64 },
+        "initialDamping": { "type": "number", "exclusiveMinimum": 0 },
+        "correctionTolerance": { "type": "number", "exclusiveMinimum": 0 },
+        "residualToleranceRad": { "type": "number", "exclusiveMinimum": 0 }
+      }
+    },
+    "propagation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["stepDays", "verificationStepDays", "maximumEnergyDriftAu2D2"],
+      "properties": {
+        "stepDays": { "type": "number", "exclusiveMinimum": 0 },
+        "verificationStepDays": { "type": "number", "exclusiveMinimum": 0 },
+        "maximumEnergyDriftAu2D2": { "type": "number", "exclusiveMinimum": 0 }
+      }
+    },
+    "startInstant": { "type": "string", "format": "date-time" }
+  }
+}

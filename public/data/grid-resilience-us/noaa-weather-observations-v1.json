@@ -1,0 +1,2465 @@
+{
+  "schema": "simulatte.gridNoaaWeatherObservations.v1",
+  "id": "grid-noaa-weather-observations-v1",
+  "source": {
+    "publisher": "NOAA National Centers for Environmental Information",
+    "product": "Integrated Surface Database Global Hourly",
+    "documentationUrl": "https://www.ncei.noaa.gov/products/land-based-station/integrated-surface-database",
+    "license": "U.S. government public data; attribution retained",
+    "retrievalDate": "2026-07-26",
+    "transformationVersion": "grid-noaa-promoter-v1"
+  },
+  "sourceReceipts": [
+    {
+      "stationId": "72494023234",
+      "url": "https://www.ncei.noaa.gov/data/global-hourly/access/2024/72494023234.csv",
+      "responseHash": "d88a869e9a37e80c94a70d8dc038038f75d58146b2c752a2a3fb6c8f36bf0dcd"
+    },
+    {
+      "stationId": "72259003927",
+      "url": "https://www.ncei.noaa.gov/data/global-hourly/access/2024/72259003927.csv",
+      "responseHash": "acec0cb05e221539870d6821817424efb5b4e49f9776466aa30cb98cd2618cc7"
+    },
+    {
+      "stationId": "72530094846",
+      "url": "https://www.ncei.noaa.gov/data/global-hourly/access/2024/72530094846.csv",
+      "responseHash": "1f21901ce9998830e7078d28fbad99fc626d409d413d7d34c986b66a3df70176"
+    },
+    {
+      "stationId": "74486094789",
+      "url": "https://www.ncei.noaa.gov/data/global-hourly/access/2024/74486094789.csv",
+      "responseHash": "a81deadebf7dcb568346eb554516a0d85be387c91946fde84305489ede2e5dc7"
+    }
+  ],
+  "period": {
+    "start": "2024-07-15T00:00:00",
+    "end": "2024-07-15T23:59:59"
+  },
+  "observations": [
+    {
+      "stationId": "72494023234",
+      "regionId": "west",
+      "timestamp": "2024-07-15T00:56:00",
+      "airTemperatureC": 18.3,
+      "dewPointC": 12.2,
+      "windSpeedMps": 8.8,
+      "qualityFields": {
+        "airTemperature": "+0183,5",
+        "dewPoint": "+0122,5",
+        "wind": "300,5,N,0088,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72494023234:2024-07-15T00:56:00",
+      "rowHash": "6c791d4d0f71b5436ec3a0d8d2590228528f1c697182ef0753fcebf2b888026d"
+    },
+    {
+      "stationId": "72494023234",
+      "regionId": "west",
+      "timestamp": "2024-07-15T01:56:00",
+      "airTemperatureC": 17.2,
+      "dewPointC": 12.2,
+      "windSpeedMps": 7.7,
+      "qualityFields": {
+        "airTemperature": "+0172,5",
+        "dewPoint": "+0122,5",
+        "wind": "300,5,N,0077,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72494023234:2024-07-15T01:56:00",
+      "rowHash": "8b67b0ff20d65132a1f2d6944fcf07c113c40e2caf480a2b770c82402c74b002"
+    },
+    {
+      "stationId": "72494023234",
+      "regionId": "west",
+      "timestamp": "2024-07-15T02:56:00",
+      "airTemperatureC": 15.6,
+      "dewPointC": 11.7,
+      "windSpeedMps": 6.7,
+      "qualityFields": {
+        "airTemperature": "+0156,5",
+        "dewPoint": "+0117,5",
+        "wind": "300,5,N,0067,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72494023234:2024-07-15T02:56:00",
+      "rowHash": "16eccd43d2e1119b3ddd8ab0bb6533c3b15e2f94ce646d544e10fb803bb12f65"
+    },
+    {
+      "stationId": "72494023234",
+      "regionId": "west",
+      "timestamp": "2024-07-15T03:56:00",
+      "airTemperatureC": 15,
+      "dewPointC": 11.7,
+      "windSpeedMps": 6.2,
+      "qualityFields": {
+        "airTemperature": "+0150,5",
+        "dewPoint": "+0117,5",
+        "wind": "300,5,N,0062,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72494023234:2024-07-15T03:56:00",
+      "rowHash": "a5766b94ce32e81055870a82eaa33033a6df569afe3811f43cc5af4018044ec8"
+    },
+    {
+      "stationId": "72494023234",
+      "regionId": "west",
+      "timestamp": "2024-07-15T04:56:00",
+      "airTemperatureC": 14.4,
+      "dewPointC": 11.7,
+      "windSpeedMps": 6.2,
+      "qualityFields": {
+        "airTemperature": "+0144,5",
+        "dewPoint": "+0117,5",
+        "wind": "290,5,N,0062,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72494023234:2024-07-15T04:56:00",
+      "rowHash": "6b75cffae07e159737981097b909a4677de1c9b2b5f6e679ea4f2ef0ef955763"
+    },
+    {
+      "stationId": "72494023234",
+      "regionId": "west",
+      "timestamp": "2024-07-15T05:56:00",
+      "airTemperatureC": 13.9,
+      "dewPointC": 11.7,
+      "windSpeedMps": 5.7,
+      "qualityFields": {
+        "airTemperature": "+0139,5",
+        "dewPoint": "+0117,5",
+        "wind": "290,5,N,0057,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72494023234:2024-07-15T05:56:00",
+      "rowHash": "0e7c5d9e30cecabca8dd65b83fc2b58fb826bb120d1e33dda1359687e39705e2"
+    },
+    {
+      "stationId": "72494023234",
+      "regionId": "west",
+      "timestamp": "2024-07-15T06:56:00",
+      "airTemperatureC": 13.9,
+      "dewPointC": 11.7,
+      "windSpeedMps": 5.7,
+      "qualityFields": {
+        "airTemperature": "+0139,5",
+        "dewPoint": "+0117,5",
+        "wind": "270,5,N,0057,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72494023234:2024-07-15T06:56:00",
+      "rowHash": "6e57d488cfd9508484d0ebfc42579b4c3d0c210620ed33f1307365a3e0fdacbb"
+    },
+    {
+      "stationId": "72494023234",
+      "regionId": "west",
+      "timestamp": "2024-07-15T07:56:00",
+      "airTemperatureC": 13.9,
+      "dewPointC": 11.7,
+      "windSpeedMps": 3.6,
+      "qualityFields": {
+        "airTemperature": "+0139,5",
+        "dewPoint": "+0117,5",
+        "wind": "290,5,N,0036,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72494023234:2024-07-15T07:56:00",
+      "rowHash": "d681fb182a008fa14e08a9ca1d5824ef14db6a6dca8cb8930d97e01c28b25fe4"
+    },
+    {
+      "stationId": "72494023234",
+      "regionId": "west",
+      "timestamp": "2024-07-15T08:56:00",
+      "airTemperatureC": 13.9,
+      "dewPointC": 11.7,
+      "windSpeedMps": 4.1,
+      "qualityFields": {
+        "airTemperature": "+0139,5",
+        "dewPoint": "+0117,5",
+        "wind": "280,5,N,0041,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72494023234:2024-07-15T08:56:00",
+      "rowHash": "82a820e1081b5feb4a0c46584d045fe06302c080111ca8d44155a6bcdb02cb98"
+    },
+    {
+      "stationId": "72494023234",
+      "regionId": "west",
+      "timestamp": "2024-07-15T09:56:00",
+      "airTemperatureC": 13.9,
+      "dewPointC": 11.7,
+      "windSpeedMps": 3.1,
+      "qualityFields": {
+        "airTemperature": "+0139,5",
+        "dewPoint": "+0117,5",
+        "wind": "250,5,N,0031,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72494023234:2024-07-15T09:56:00",
+      "rowHash": "e03fbf6a1cad36e5e851057b103b4ff23ddbdf6555863410fd762083e343a590"
+    },
+    {
+      "stationId": "72494023234",
+      "regionId": "west",
+      "timestamp": "2024-07-15T10:56:00",
+      "airTemperatureC": 13.9,
+      "dewPointC": 11.7,
+      "windSpeedMps": 3.6,
+      "qualityFields": {
+        "airTemperature": "+0139,5",
+        "dewPoint": "+0117,5",
+        "wind": "260,5,N,0036,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72494023234:2024-07-15T10:56:00",
+      "rowHash": "c4782e89e3ed6cb6ff2ee8e9dd4e5adab3e2f476a3b2ce1bd3691d95d379e0c5"
+    },
+    {
+      "stationId": "72494023234",
+      "regionId": "west",
+      "timestamp": "2024-07-15T11:56:00",
+      "airTemperatureC": 13.9,
+      "dewPointC": 11.7,
+      "windSpeedMps": 3.1,
+      "qualityFields": {
+        "airTemperature": "+0139,5",
+        "dewPoint": "+0117,5",
+        "wind": "270,5,N,0031,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72494023234:2024-07-15T11:56:00",
+      "rowHash": "8d0beff11314bb383c6f98b0d275316936a9c14a159c06d29b9db6557c6a3203"
+    },
+    {
+      "stationId": "72494023234",
+      "regionId": "west",
+      "timestamp": "2024-07-15T12:56:00",
+      "airTemperatureC": 13.9,
+      "dewPointC": 11.7,
+      "windSpeedMps": 4.1,
+      "qualityFields": {
+        "airTemperature": "+0139,5",
+        "dewPoint": "+0117,5",
+        "wind": "250,5,N,0041,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72494023234:2024-07-15T12:56:00",
+      "rowHash": "e2c548a9202a07b1b6b904144180fe0e6c3053a035dcbb21c49c5869608cb933"
+    },
+    {
+      "stationId": "72494023234",
+      "regionId": "west",
+      "timestamp": "2024-07-15T13:56:00",
+      "airTemperatureC": 13.9,
+      "dewPointC": 11.1,
+      "windSpeedMps": 4.1,
+      "qualityFields": {
+        "airTemperature": "+0139,5",
+        "dewPoint": "+0111,5",
+        "wind": "250,5,N,0041,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72494023234:2024-07-15T13:56:00",
+      "rowHash": "908d5f4324e9ba7dd09f3e188e8a956c1c9a900ff91338dfd265040aa2ba5108"
+    },
+    {
+      "stationId": "72494023234",
+      "regionId": "west",
+      "timestamp": "2024-07-15T14:56:00",
+      "airTemperatureC": 14.4,
+      "dewPointC": 11.7,
+      "windSpeedMps": 4.1,
+      "qualityFields": {
+        "airTemperature": "+0144,5",
+        "dewPoint": "+0117,5",
+        "wind": "250,5,N,0041,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72494023234:2024-07-15T14:56:00",
+      "rowHash": "20df2d0ae0650fe0956824ec6d0c310f27b47552d5ba7d0a0c5543716cb4551d"
+    },
+    {
+      "stationId": "72494023234",
+      "regionId": "west",
+      "timestamp": "2024-07-15T15:56:00",
+      "airTemperatureC": 15.6,
+      "dewPointC": 11.7,
+      "windSpeedMps": 2.6,
+      "qualityFields": {
+        "airTemperature": "+0156,5",
+        "dewPoint": "+0117,5",
+        "wind": "270,5,N,0026,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72494023234:2024-07-15T15:56:00",
+      "rowHash": "d55eb5f213ee319d1db45828adad07cbc341a6f2c32f241a410a3a6dcb5c5613"
+    },
+    {
+      "stationId": "72494023234",
+      "regionId": "west",
+      "timestamp": "2024-07-15T16:56:00",
+      "airTemperatureC": 16.1,
+      "dewPointC": 12.2,
+      "windSpeedMps": 4.6,
+      "qualityFields": {
+        "airTemperature": "+0161,5",
+        "dewPoint": "+0122,5",
+        "wind": "240,5,N,0046,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72494023234:2024-07-15T16:56:00",
+      "rowHash": "2409d55d96dbb003dc5523a78f0b2ff2f0b76b704edfa6ba2ed0c255ebe73c45"
+    },
+    {
+      "stationId": "72494023234",
+      "regionId": "west",
+      "timestamp": "2024-07-15T17:56:00",
+      "airTemperatureC": 17.8,
+      "dewPointC": 11.7,
+      "windSpeedMps": 5.1,
+      "qualityFields": {
+        "airTemperature": "+0178,5",
+        "dewPoint": "+0117,5",
+        "wind": "240,5,N,0051,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72494023234:2024-07-15T17:56:00",
+      "rowHash": "bd82edc191c585154f1da8d64aa57d576aa1328fb8d790c3ad57bf010b1a1033"
+    },
+    {
+      "stationId": "72494023234",
+      "regionId": "west",
+      "timestamp": "2024-07-15T18:56:00",
+      "airTemperatureC": 19.4,
+      "dewPointC": 12.2,
+      "windSpeedMps": 4.6,
+      "qualityFields": {
+        "airTemperature": "+0194,5",
+        "dewPoint": "+0122,5",
+        "wind": "230,5,N,0046,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72494023234:2024-07-15T18:56:00",
+      "rowHash": "d410019a07653ff50b6627ebfd0f07306e30c394d5e0e1dfbde1a4f4a97257b3"
+    },
+    {
+      "stationId": "72494023234",
+      "regionId": "west",
+      "timestamp": "2024-07-15T19:56:00",
+      "airTemperatureC": 19.4,
+      "dewPointC": 12.2,
+      "windSpeedMps": 3.6,
+      "qualityFields": {
+        "airTemperature": "+0194,5",
+        "dewPoint": "+0122,5",
+        "wind": "250,5,N,0036,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72494023234:2024-07-15T19:56:00",
+      "rowHash": "650e1bab5e3a1c61874e86c6810a1c3c8e2b5342eec5250e87a16dfdbef28236"
+    },
+    {
+      "stationId": "72494023234",
+      "regionId": "west",
+      "timestamp": "2024-07-15T20:56:00",
+      "airTemperatureC": 21.1,
+      "dewPointC": 12.2,
+      "windSpeedMps": 6.7,
+      "qualityFields": {
+        "airTemperature": "+0211,5",
+        "dewPoint": "+0122,5",
+        "wind": "270,5,N,0067,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72494023234:2024-07-15T20:56:00",
+      "rowHash": "10c8376a271830f0e706b0bc2264c879a64fd791ca2ecc170cab4b27ca12de78"
+    },
+    {
+      "stationId": "72494023234",
+      "regionId": "west",
+      "timestamp": "2024-07-15T21:56:00",
+      "airTemperatureC": 20.6,
+      "dewPointC": 12.2,
+      "windSpeedMps": 8.2,
+      "qualityFields": {
+        "airTemperature": "+0206,5",
+        "dewPoint": "+0122,5",
+        "wind": "280,5,N,0082,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72494023234:2024-07-15T21:56:00",
+      "rowHash": "d8d0d029a762401dc680974a7388fdc242369b144976d7de2a0d1d649cf6fe06"
+    },
+    {
+      "stationId": "72494023234",
+      "regionId": "west",
+      "timestamp": "2024-07-15T22:56:00",
+      "airTemperatureC": 20.6,
+      "dewPointC": 12.2,
+      "windSpeedMps": 6.2,
+      "qualityFields": {
+        "airTemperature": "+0206,5",
+        "dewPoint": "+0122,5",
+        "wind": "260,5,N,0062,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72494023234:2024-07-15T22:56:00",
+      "rowHash": "a4cbe1dfe9f6ddf57b64e27e7300baf46ec2c8fe5f43a085a78e8a650d34e470"
+    },
+    {
+      "stationId": "72494023234",
+      "regionId": "west",
+      "timestamp": "2024-07-15T23:56:00",
+      "airTemperatureC": 20,
+      "dewPointC": 11.7,
+      "windSpeedMps": 7.7,
+      "qualityFields": {
+        "airTemperature": "+0200,5",
+        "dewPoint": "+0117,5",
+        "wind": "260,5,N,0077,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72494023234:2024-07-15T23:56:00",
+      "rowHash": "2c536076c3e76c5ecebcdfcb7fb4b2a88e2f373937e2039572c143d450956c08"
+    },
+    {
+      "stationId": "72259003927",
+      "regionId": "texas",
+      "timestamp": "2024-07-15T00:53:00",
+      "airTemperatureC": 34.4,
+      "dewPointC": 18.9,
+      "windSpeedMps": 6.7,
+      "qualityFields": {
+        "airTemperature": "+0344,5",
+        "dewPoint": "+0189,5",
+        "wind": "180,5,N,0067,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72259003927:2024-07-15T00:53:00",
+      "rowHash": "2923e265a8f6d7ca63787ff0a3f89f913141f789ef6b02175446f62aed158740"
+    },
+    {
+      "stationId": "72259003927",
+      "regionId": "texas",
+      "timestamp": "2024-07-15T01:53:00",
+      "airTemperatureC": 33.3,
+      "dewPointC": 18.3,
+      "windSpeedMps": 4.6,
+      "qualityFields": {
+        "airTemperature": "+0333,5",
+        "dewPoint": "+0183,5",
+        "wind": "170,5,N,0046,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72259003927:2024-07-15T01:53:00",
+      "rowHash": "202c173fd3902a7155c0a70cac8847c818ee46b50311187e16475bb8c13fc1f1"
+    },
+    {
+      "stationId": "72259003927",
+      "regionId": "texas",
+      "timestamp": "2024-07-15T02:53:00",
+      "airTemperatureC": 32.2,
+      "dewPointC": 20.6,
+      "windSpeedMps": 5.7,
+      "qualityFields": {
+        "airTemperature": "+0322,5",
+        "dewPoint": "+0206,5",
+        "wind": "180,5,N,0057,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72259003927:2024-07-15T02:53:00",
+      "rowHash": "9ff3e05320befa69a1ffb495c06fa6d9a3d6f570bdad86ff9d27e8c16600f45f"
+    },
+    {
+      "stationId": "72259003927",
+      "regionId": "texas",
+      "timestamp": "2024-07-15T03:53:00",
+      "airTemperatureC": 31.1,
+      "dewPointC": 21.1,
+      "windSpeedMps": 6.2,
+      "qualityFields": {
+        "airTemperature": "+0311,5",
+        "dewPoint": "+0211,5",
+        "wind": "180,5,N,0062,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72259003927:2024-07-15T03:53:00",
+      "rowHash": "b483445f6f96965f0b52ec564a2d721a7c3228b39f2e1652fcd9c3137c0fda40"
+    },
+    {
+      "stationId": "72259003927",
+      "regionId": "texas",
+      "timestamp": "2024-07-15T04:53:00",
+      "airTemperatureC": 30,
+      "dewPointC": 21.1,
+      "windSpeedMps": 7.7,
+      "qualityFields": {
+        "airTemperature": "+0300,5",
+        "dewPoint": "+0211,5",
+        "wind": "180,5,N,0077,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72259003927:2024-07-15T04:53:00",
+      "rowHash": "fb2b60f349d051c7acdcec800ae8877134a2c9071abacd5f9597261a73f98e8c"
+    },
+    {
+      "stationId": "72259003927",
+      "regionId": "texas",
+      "timestamp": "2024-07-15T05:53:00",
+      "airTemperatureC": 29.4,
+      "dewPointC": 21.7,
+      "windSpeedMps": 6.2,
+      "qualityFields": {
+        "airTemperature": "+0294,5",
+        "dewPoint": "+0217,5",
+        "wind": "190,5,N,0062,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72259003927:2024-07-15T05:53:00",
+      "rowHash": "af3807c867c103220bddbb0c4c34b6931999157d673c293fb47e0671e2142171"
+    },
+    {
+      "stationId": "72259003927",
+      "regionId": "texas",
+      "timestamp": "2024-07-15T06:53:00",
+      "airTemperatureC": 28.9,
+      "dewPointC": 21.1,
+      "windSpeedMps": 6.7,
+      "qualityFields": {
+        "airTemperature": "+0289,5",
+        "dewPoint": "+0211,5",
+        "wind": "200,5,N,0067,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72259003927:2024-07-15T06:53:00",
+      "rowHash": "8de525edaaf5db231af8f6b592ac7a50b89246cda2fb9e0037229e857d42bd63"
+    },
+    {
+      "stationId": "72259003927",
+      "regionId": "texas",
+      "timestamp": "2024-07-15T07:53:00",
+      "airTemperatureC": 27.8,
+      "dewPointC": 21.1,
+      "windSpeedMps": 4.6,
+      "qualityFields": {
+        "airTemperature": "+0278,5",
+        "dewPoint": "+0211,5",
+        "wind": "200,5,N,0046,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72259003927:2024-07-15T07:53:00",
+      "rowHash": "5319442276b8721503ab7baaf02d5b361f8c9b6a991a944cee4176a71fd466f4"
+    },
+    {
+      "stationId": "72259003927",
+      "regionId": "texas",
+      "timestamp": "2024-07-15T08:53:00",
+      "airTemperatureC": 27.2,
+      "dewPointC": 21.1,
+      "windSpeedMps": 4.6,
+      "qualityFields": {
+        "airTemperature": "+0272,5",
+        "dewPoint": "+0211,5",
+        "wind": "200,5,N,0046,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72259003927:2024-07-15T08:53:00",
+      "rowHash": "21af15b51742370f63cf545f0d64c4a641d86c2fcefaf1e2bdec2aef0431fd21"
+    },
+    {
+      "stationId": "72259003927",
+      "regionId": "texas",
+      "timestamp": "2024-07-15T09:53:00",
+      "airTemperatureC": 26.1,
+      "dewPointC": 21.1,
+      "windSpeedMps": 3.1,
+      "qualityFields": {
+        "airTemperature": "+0261,5",
+        "dewPoint": "+0211,5",
+        "wind": "190,5,N,0031,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72259003927:2024-07-15T09:53:00",
+      "rowHash": "f74ac276c8cc105ee22cb7334c9fbe4583dddd02a85e169c385244ec165e2465"
+    },
+    {
+      "stationId": "72259003927",
+      "regionId": "texas",
+      "timestamp": "2024-07-15T10:53:00",
+      "airTemperatureC": 26.1,
+      "dewPointC": 21.7,
+      "windSpeedMps": 4.1,
+      "qualityFields": {
+        "airTemperature": "+0261,5",
+        "dewPoint": "+0217,5",
+        "wind": "190,5,N,0041,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72259003927:2024-07-15T10:53:00",
+      "rowHash": "aa7fb1642924ec1da438dfbed756739ae296a6a66b17b4a32f63e1c4bc7ab9ac"
+    },
+    {
+      "stationId": "72259003927",
+      "regionId": "texas",
+      "timestamp": "2024-07-15T11:53:00",
+      "airTemperatureC": 25.6,
+      "dewPointC": 21.7,
+      "windSpeedMps": 3.6,
+      "qualityFields": {
+        "airTemperature": "+0256,5",
+        "dewPoint": "+0217,5",
+        "wind": "170,5,N,0036,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72259003927:2024-07-15T11:53:00",
+      "rowHash": "0b707a900cf1c69fffc80cf0a548a6f7fdc610c6a9533802314f0885846ccf1f"
+    },
+    {
+      "stationId": "72259003927",
+      "regionId": "texas",
+      "timestamp": "2024-07-15T12:53:00",
+      "airTemperatureC": 26.7,
+      "dewPointC": 22.2,
+      "windSpeedMps": 6.2,
+      "qualityFields": {
+        "airTemperature": "+0267,5",
+        "dewPoint": "+0222,5",
+        "wind": "190,5,N,0062,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72259003927:2024-07-15T12:53:00",
+      "rowHash": "2e719ece7b9f0c17b675981b8155736faf6890d5d373dca33f4a3f9b661064b8"
+    },
+    {
+      "stationId": "72259003927",
+      "regionId": "texas",
+      "timestamp": "2024-07-15T13:53:00",
+      "airTemperatureC": 28.3,
+      "dewPointC": 22.8,
+      "windSpeedMps": 6.7,
+      "qualityFields": {
+        "airTemperature": "+0283,5",
+        "dewPoint": "+0228,5",
+        "wind": "210,5,N,0067,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72259003927:2024-07-15T13:53:00",
+      "rowHash": "0b1d83dd9749c219462c9ea3630b4dc3fdb3e595e9a6122515076d899f56df4d"
+    },
+    {
+      "stationId": "72259003927",
+      "regionId": "texas",
+      "timestamp": "2024-07-15T14:53:00",
+      "airTemperatureC": 30,
+      "dewPointC": 22.8,
+      "windSpeedMps": 7.2,
+      "qualityFields": {
+        "airTemperature": "+0300,5",
+        "dewPoint": "+0228,5",
+        "wind": "200,5,N,0072,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72259003927:2024-07-15T14:53:00",
+      "rowHash": "467c21ca80db632cc37bd2004a624ed4f9d042c60669853fb364902be8b8bc2b"
+    },
+    {
+      "stationId": "72259003927",
+      "regionId": "texas",
+      "timestamp": "2024-07-15T15:53:00",
+      "airTemperatureC": 31.7,
+      "dewPointC": 22.8,
+      "windSpeedMps": 6.2,
+      "qualityFields": {
+        "airTemperature": "+0317,5",
+        "dewPoint": "+0228,5",
+        "wind": "190,5,N,0062,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72259003927:2024-07-15T15:53:00",
+      "rowHash": "966a030cd8a3b8a1bdb808fa7049f9c56e2f00012500206ba1f9416036c150c2"
+    },
+    {
+      "stationId": "72259003927",
+      "regionId": "texas",
+      "timestamp": "2024-07-15T16:53:00",
+      "airTemperatureC": 33.9,
+      "dewPointC": 22.8,
+      "windSpeedMps": 5.7,
+      "qualityFields": {
+        "airTemperature": "+0339,5",
+        "dewPoint": "+0228,5",
+        "wind": "190,5,N,0057,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72259003927:2024-07-15T16:53:00",
+      "rowHash": "0039685a7afcb9a02f4744d08f04a56e5db9174c06085f54cc5dd313fa1ebb5e"
+    },
+    {
+      "stationId": "72259003927",
+      "regionId": "texas",
+      "timestamp": "2024-07-15T17:53:00",
+      "airTemperatureC": 34.4,
+      "dewPointC": 22.8,
+      "windSpeedMps": 5.7,
+      "qualityFields": {
+        "airTemperature": "+0344,5",
+        "dewPoint": "+0228,5",
+        "wind": "210,5,N,0057,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72259003927:2024-07-15T17:53:00",
+      "rowHash": "ad2acd30498b3065a3009b3936fcb07bd9db985e83250e29c7b117a5d7132023"
+    },
+    {
+      "stationId": "72259003927",
+      "regionId": "texas",
+      "timestamp": "2024-07-15T18:53:00",
+      "airTemperatureC": 35.6,
+      "dewPointC": 20.6,
+      "windSpeedMps": 7.7,
+      "qualityFields": {
+        "airTemperature": "+0356,5",
+        "dewPoint": "+0206,5",
+        "wind": "190,5,N,0077,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72259003927:2024-07-15T18:53:00",
+      "rowHash": "d5b6d11f3b1738ab73079b3581527bfecb8c7afe39910f1be063be7f4346ab64"
+    },
+    {
+      "stationId": "72259003927",
+      "regionId": "texas",
+      "timestamp": "2024-07-15T19:53:00",
+      "airTemperatureC": 36.7,
+      "dewPointC": 20,
+      "windSpeedMps": 8.2,
+      "qualityFields": {
+        "airTemperature": "+0367,5",
+        "dewPoint": "+0200,5",
+        "wind": "210,5,N,0082,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72259003927:2024-07-15T19:53:00",
+      "rowHash": "1fbc73cb47d14348511ae37885b1480102b970a397c3d9b3010162c538632768"
+    },
+    {
+      "stationId": "72259003927",
+      "regionId": "texas",
+      "timestamp": "2024-07-15T20:53:00",
+      "airTemperatureC": 36.7,
+      "dewPointC": 20.6,
+      "windSpeedMps": 4.6,
+      "qualityFields": {
+        "airTemperature": "+0367,5",
+        "dewPoint": "+0206,5",
+        "wind": "210,5,N,0046,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72259003927:2024-07-15T20:53:00",
+      "rowHash": "4e86379f42194ff68b87a35b6a69f6c9edeab9b1ce846a0fbe0c2fea5e90c19d"
+    },
+    {
+      "stationId": "72259003927",
+      "regionId": "texas",
+      "timestamp": "2024-07-15T21:53:00",
+      "airTemperatureC": 37.2,
+      "dewPointC": 18.9,
+      "windSpeedMps": 6.2,
+      "qualityFields": {
+        "airTemperature": "+0372,5",
+        "dewPoint": "+0189,5",
+        "wind": "200,5,N,0062,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72259003927:2024-07-15T21:53:00",
+      "rowHash": "9a9e14e5ed30b4b24e8e990aaff67655b3844e643a5107265046670230fe2ca6"
+    },
+    {
+      "stationId": "72259003927",
+      "regionId": "texas",
+      "timestamp": "2024-07-15T22:53:00",
+      "airTemperatureC": 37.2,
+      "dewPointC": 18.3,
+      "windSpeedMps": 8.2,
+      "qualityFields": {
+        "airTemperature": "+0372,5",
+        "dewPoint": "+0183,5",
+        "wind": "190,5,N,0082,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72259003927:2024-07-15T22:53:00",
+      "rowHash": "bda26ad304ca46519d464b501ece298742aa90dfa3641ca49dd5c2ef003f0f0e"
+    },
+    {
+      "stationId": "72259003927",
+      "regionId": "texas",
+      "timestamp": "2024-07-15T23:53:00",
+      "airTemperatureC": 36.1,
+      "dewPointC": 20,
+      "windSpeedMps": 5.1,
+      "qualityFields": {
+        "airTemperature": "+0361,5",
+        "dewPoint": "+0200,5",
+        "wind": "190,5,N,0051,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72259003927:2024-07-15T23:53:00",
+      "rowHash": "e5fba43b45eed5e864c01b7b2dde34da43f83b5665a462bb68666e8ac4a1ac79"
+    },
+    {
+      "stationId": "72530094846",
+      "regionId": "central",
+      "timestamp": "2024-07-15T00:51:00",
+      "airTemperatureC": 29.4,
+      "dewPointC": 22.8,
+      "windSpeedMps": 3.6,
+      "qualityFields": {
+        "airTemperature": "+0294,5",
+        "dewPoint": "+0228,5",
+        "wind": "190,5,N,0036,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72530094846:2024-07-15T00:51:00",
+      "rowHash": "ec084147cde8f8bacdb27996d49c8bf5f4126e721ff4fb63ec271a33af8754a4"
+    },
+    {
+      "stationId": "72530094846",
+      "regionId": "central",
+      "timestamp": "2024-07-15T01:51:00",
+      "airTemperatureC": 28.9,
+      "dewPointC": 23.3,
+      "windSpeedMps": 5.1,
+      "qualityFields": {
+        "airTemperature": "+0289,5",
+        "dewPoint": "+0233,5",
+        "wind": "170,5,N,0051,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72530094846:2024-07-15T01:51:00",
+      "rowHash": "f4f490b44fdf200d3032d44f6dc317095a1ea00cf4baed571a735f3919363279"
+    },
+    {
+      "stationId": "72530094846",
+      "regionId": "central",
+      "timestamp": "2024-07-15T02:51:00",
+      "airTemperatureC": 28.9,
+      "dewPointC": 23.9,
+      "windSpeedMps": 4.6,
+      "qualityFields": {
+        "airTemperature": "+0289,5",
+        "dewPoint": "+0239,5",
+        "wind": "180,5,N,0046,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72530094846:2024-07-15T02:51:00",
+      "rowHash": "2021c8bb45ce1e582a402a8a5f1c3eafa782eb17ac79f2e71f0baab5d85a0784"
+    },
+    {
+      "stationId": "72530094846",
+      "regionId": "central",
+      "timestamp": "2024-07-15T03:51:00",
+      "airTemperatureC": 21.1,
+      "dewPointC": 20.6,
+      "windSpeedMps": 2.1,
+      "qualityFields": {
+        "airTemperature": "+0211,5",
+        "dewPoint": "+0206,5",
+        "wind": "999,9,V,0021,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72530094846:2024-07-15T03:51:00",
+      "rowHash": "0c3d209aad9bc54e325c71f722dcfc340cb6f7ac19c4a9199e1cb03431c5c925"
+    },
+    {
+      "stationId": "72530094846",
+      "regionId": "central",
+      "timestamp": "2024-07-15T04:51:00",
+      "airTemperatureC": 21.1,
+      "dewPointC": 20,
+      "windSpeedMps": 3.6,
+      "qualityFields": {
+        "airTemperature": "+0211,5",
+        "dewPoint": "+0200,5",
+        "wind": "330,5,N,0036,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72530094846:2024-07-15T04:51:00",
+      "rowHash": "ed2eef19cfb9ac06024b1722ad4ce69a3084b3dea5adc1441037f297874ae0bc"
+    },
+    {
+      "stationId": "72530094846",
+      "regionId": "central",
+      "timestamp": "2024-07-15T05:51:00",
+      "airTemperatureC": 21.1,
+      "dewPointC": 20.6,
+      "windSpeedMps": 1.5,
+      "qualityFields": {
+        "airTemperature": "+0211,5",
+        "dewPoint": "+0206,5",
+        "wind": "120,5,N,0015,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72530094846:2024-07-15T05:51:00",
+      "rowHash": "183ed75f64504ac816d9c76dcdf9fbcccb5a631c0db86c99871d32ed3e3f1eea"
+    },
+    {
+      "stationId": "72530094846",
+      "regionId": "central",
+      "timestamp": "2024-07-15T06:51:00",
+      "airTemperatureC": 21.1,
+      "dewPointC": 20.6,
+      "windSpeedMps": 2.1,
+      "qualityFields": {
+        "airTemperature": "+0211,5",
+        "dewPoint": "+0206,5",
+        "wind": "200,5,N,0021,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72530094846:2024-07-15T06:51:00",
+      "rowHash": "b4e78514d587985c6f230de6d5bc7ec7c330ce7b6a44c7da561bf5c03c80b21a"
+    },
+    {
+      "stationId": "72530094846",
+      "regionId": "central",
+      "timestamp": "2024-07-15T07:51:00",
+      "airTemperatureC": 21.1,
+      "dewPointC": 20,
+      "windSpeedMps": 3.1,
+      "qualityFields": {
+        "airTemperature": "+0211,5",
+        "dewPoint": "+0200,5",
+        "wind": "220,5,N,0031,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72530094846:2024-07-15T07:51:00",
+      "rowHash": "b64fc53ee5467690a6f39606d758bab0ada3bca3078531d46cbe242e45549ad9"
+    },
+    {
+      "stationId": "72530094846",
+      "regionId": "central",
+      "timestamp": "2024-07-15T08:51:00",
+      "airTemperatureC": 21.1,
+      "dewPointC": 20,
+      "windSpeedMps": 1.5,
+      "qualityFields": {
+        "airTemperature": "+0211,5",
+        "dewPoint": "+0200,5",
+        "wind": "290,5,N,0015,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72530094846:2024-07-15T08:51:00",
+      "rowHash": "73ed1c285139dc42e2b4bcc42d7c7bffaa9e8f500501bdcfbbb3ceed84ea6cd1"
+    },
+    {
+      "stationId": "72530094846",
+      "regionId": "central",
+      "timestamp": "2024-07-15T09:51:00",
+      "airTemperatureC": 21.1,
+      "dewPointC": 20,
+      "windSpeedMps": 1.5,
+      "qualityFields": {
+        "airTemperature": "+0211,5",
+        "dewPoint": "+0200,5",
+        "wind": "220,5,N,0015,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72530094846:2024-07-15T09:51:00",
+      "rowHash": "e220d91de1a2c0fad33db0b7f00fcc065bdb75df641f19d1ffdfe75bfab46451"
+    },
+    {
+      "stationId": "72530094846",
+      "regionId": "central",
+      "timestamp": "2024-07-15T10:51:00",
+      "airTemperatureC": 20.6,
+      "dewPointC": 20,
+      "windSpeedMps": 2.1,
+      "qualityFields": {
+        "airTemperature": "+0206,5",
+        "dewPoint": "+0200,5",
+        "wind": "200,5,N,0021,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72530094846:2024-07-15T10:51:00",
+      "rowHash": "bbcf21978c316b7a3ce25322b9424b6381711d45f208b32d43f9b28f20392172"
+    },
+    {
+      "stationId": "72530094846",
+      "regionId": "central",
+      "timestamp": "2024-07-15T11:51:00",
+      "airTemperatureC": 21.1,
+      "dewPointC": 20,
+      "windSpeedMps": 2.6,
+      "qualityFields": {
+        "airTemperature": "+0211,5",
+        "dewPoint": "+0200,5",
+        "wind": "220,5,N,0026,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72530094846:2024-07-15T11:51:00",
+      "rowHash": "69e0c996cfbf3fb1db0ce3191608c7164ada5e53d9bc2324506fc9da8353626d"
+    },
+    {
+      "stationId": "72530094846",
+      "regionId": "central",
+      "timestamp": "2024-07-15T12:51:00",
+      "airTemperatureC": 22.2,
+      "dewPointC": 20.6,
+      "windSpeedMps": 2.1,
+      "qualityFields": {
+        "airTemperature": "+0222,5",
+        "dewPoint": "+0206,5",
+        "wind": "999,9,V,0021,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72530094846:2024-07-15T12:51:00",
+      "rowHash": "1ea0e4ba916f54d05d5c62748b08bc09a5b1db4fb79a18ae11854bf4e6bd472d"
+    },
+    {
+      "stationId": "72530094846",
+      "regionId": "central",
+      "timestamp": "2024-07-15T13:51:00",
+      "airTemperatureC": 23.9,
+      "dewPointC": 21.1,
+      "windSpeedMps": 3.1,
+      "qualityFields": {
+        "airTemperature": "+0239,5",
+        "dewPoint": "+0211,5",
+        "wind": "230,5,N,0031,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72530094846:2024-07-15T13:51:00",
+      "rowHash": "73e34112940e0a702194d21cbbc5202ac17a1fc98b2611a72af274803cd4df29"
+    },
+    {
+      "stationId": "72530094846",
+      "regionId": "central",
+      "timestamp": "2024-07-15T14:51:00",
+      "airTemperatureC": 25,
+      "dewPointC": 21.7,
+      "windSpeedMps": 2.6,
+      "qualityFields": {
+        "airTemperature": "+0250,5",
+        "dewPoint": "+0217,5",
+        "wind": "240,5,N,0026,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72530094846:2024-07-15T14:51:00",
+      "rowHash": "8f52caea1ec52d67d1350a6aa75abc62e95336af29c7f18443a55d766d01195d"
+    },
+    {
+      "stationId": "72530094846",
+      "regionId": "central",
+      "timestamp": "2024-07-15T15:51:00",
+      "airTemperatureC": 27.2,
+      "dewPointC": 21.7,
+      "windSpeedMps": 3.1,
+      "qualityFields": {
+        "airTemperature": "+0272,5",
+        "dewPoint": "+0217,5",
+        "wind": "220,5,N,0031,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72530094846:2024-07-15T15:51:00",
+      "rowHash": "1f750b4812346e328e0a5e7593cf07f586b0f37e68a418bab68a9f49c7b76460"
+    },
+    {
+      "stationId": "72530094846",
+      "regionId": "central",
+      "timestamp": "2024-07-15T16:51:00",
+      "airTemperatureC": 28.9,
+      "dewPointC": 22.2,
+      "windSpeedMps": 2.6,
+      "qualityFields": {
+        "airTemperature": "+0289,5",
+        "dewPoint": "+0222,5",
+        "wind": "250,5,N,0026,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72530094846:2024-07-15T16:51:00",
+      "rowHash": "5b757013cb34ccfbc05f5af7af3993a0c5388cefc9fe8e651f8c80af1dcf2611"
+    },
+    {
+      "stationId": "72530094846",
+      "regionId": "central",
+      "timestamp": "2024-07-15T17:51:00",
+      "airTemperatureC": 30,
+      "dewPointC": 21.7,
+      "windSpeedMps": 3.1,
+      "qualityFields": {
+        "airTemperature": "+0300,5",
+        "dewPoint": "+0217,5",
+        "wind": "999,9,V,0031,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72530094846:2024-07-15T17:51:00",
+      "rowHash": "df14fbef6f3c8bd172af4a071d1f89707607a15c87cf8b172e57f355192c3899"
+    },
+    {
+      "stationId": "72530094846",
+      "regionId": "central",
+      "timestamp": "2024-07-15T18:51:00",
+      "airTemperatureC": 31.7,
+      "dewPointC": 22.2,
+      "windSpeedMps": 2.6,
+      "qualityFields": {
+        "airTemperature": "+0317,5",
+        "dewPoint": "+0222,5",
+        "wind": "230,5,N,0026,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72530094846:2024-07-15T18:51:00",
+      "rowHash": "fda8920fbb99faff0ebaf69b827b82af29556aee75b5fdfd4f970da2508511ca"
+    },
+    {
+      "stationId": "72530094846",
+      "regionId": "central",
+      "timestamp": "2024-07-15T19:51:00",
+      "airTemperatureC": 31.1,
+      "dewPointC": 22.8,
+      "windSpeedMps": 3.6,
+      "qualityFields": {
+        "airTemperature": "+0311,5",
+        "dewPoint": "+0228,5",
+        "wind": "220,5,N,0036,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72530094846:2024-07-15T19:51:00",
+      "rowHash": "fa3b2414b8cb79e60f13db8f8e881d4ca7edb304ef29b119cdcc62ae4b0537a3"
+    },
+    {
+      "stationId": "72530094846",
+      "regionId": "central",
+      "timestamp": "2024-07-15T20:51:00",
+      "airTemperatureC": 31.7,
+      "dewPointC": 23.3,
+      "windSpeedMps": 3.6,
+      "qualityFields": {
+        "airTemperature": "+0317,5",
+        "dewPoint": "+0233,5",
+        "wind": "200,5,N,0036,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72530094846:2024-07-15T20:51:00",
+      "rowHash": "80dda1104af435ac2058d3b92dd2e6ac406d5e690bbae75931afd01ab29a8825"
+    },
+    {
+      "stationId": "72530094846",
+      "regionId": "central",
+      "timestamp": "2024-07-15T21:51:00",
+      "airTemperatureC": 32.2,
+      "dewPointC": 23.3,
+      "windSpeedMps": 4.1,
+      "qualityFields": {
+        "airTemperature": "+0322,5",
+        "dewPoint": "+0233,5",
+        "wind": "210,5,N,0041,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72530094846:2024-07-15T21:51:00",
+      "rowHash": "358c45b1405462e1c5abdeeb44fa6ab0091164aaa17f5b243d7243026b4e2f4c"
+    },
+    {
+      "stationId": "72530094846",
+      "regionId": "central",
+      "timestamp": "2024-07-15T22:51:00",
+      "airTemperatureC": 32.2,
+      "dewPointC": 22.8,
+      "windSpeedMps": 5.1,
+      "qualityFields": {
+        "airTemperature": "+0322,5",
+        "dewPoint": "+0228,5",
+        "wind": "230,5,N,0051,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72530094846:2024-07-15T22:51:00",
+      "rowHash": "69f88cf524e90d77b81c9bedad79370de601ced7eef36455a7eef3d41555b050"
+    },
+    {
+      "stationId": "72530094846",
+      "regionId": "central",
+      "timestamp": "2024-07-15T23:51:00",
+      "airTemperatureC": 31.1,
+      "dewPointC": 23.9,
+      "windSpeedMps": 5.1,
+      "qualityFields": {
+        "airTemperature": "+0311,5",
+        "dewPoint": "+0239,5",
+        "wind": "180,5,N,0051,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:72530094846:2024-07-15T23:51:00",
+      "rowHash": "a5c4c7d7388e7e8dc48bad78a733e0c376c6246aacfe51da9fe07473842a2719"
+    },
+    {
+      "stationId": "74486094789",
+      "regionId": "east",
+      "timestamp": "2024-07-15T00:51:00",
+      "airTemperatureC": 25,
+      "dewPointC": 22.2,
+      "windSpeedMps": 5.1,
+      "qualityFields": {
+        "airTemperature": "+0250,5",
+        "dewPoint": "+0222,5",
+        "wind": "200,5,N,0051,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:74486094789:2024-07-15T00:51:00",
+      "rowHash": "0ad874e9ed59f6164d9fd2f90ea0b21a0752a9984ae802744b7204842805200d"
+    },
+    {
+      "stationId": "74486094789",
+      "regionId": "east",
+      "timestamp": "2024-07-15T01:51:00",
+      "airTemperatureC": 24.4,
+      "dewPointC": 22.2,
+      "windSpeedMps": 4.6,
+      "qualityFields": {
+        "airTemperature": "+0244,5",
+        "dewPoint": "+0222,5",
+        "wind": "200,5,N,0046,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:74486094789:2024-07-15T01:51:00",
+      "rowHash": "bb595cc5bd28647c072644388dec00fb99f4dbe4b680455906250307692a04a4"
+    },
+    {
+      "stationId": "74486094789",
+      "regionId": "east",
+      "timestamp": "2024-07-15T02:51:00",
+      "airTemperatureC": 24.4,
+      "dewPointC": 22.2,
+      "windSpeedMps": 3.6,
+      "qualityFields": {
+        "airTemperature": "+0244,5",
+        "dewPoint": "+0222,5",
+        "wind": "190,5,N,0036,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:74486094789:2024-07-15T02:51:00",
+      "rowHash": "8038d9cf87523750e9d17bf117622dacb4a8f3a8f04cd556ec01456498a4e285"
+    },
+    {
+      "stationId": "74486094789",
+      "regionId": "east",
+      "timestamp": "2024-07-15T03:51:00",
+      "airTemperatureC": 24.4,
+      "dewPointC": 22.2,
+      "windSpeedMps": 4.1,
+      "qualityFields": {
+        "airTemperature": "+0244,5",
+        "dewPoint": "+0222,5",
+        "wind": "200,5,N,0041,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:74486094789:2024-07-15T03:51:00",
+      "rowHash": "82ac3e43db6a29dcba71920e0db29ebf42abbea92c7a93753578952dd0641fc4"
+    },
+    {
+      "stationId": "74486094789",
+      "regionId": "east",
+      "timestamp": "2024-07-15T04:51:00",
+      "airTemperatureC": 23.9,
+      "dewPointC": 21.7,
+      "windSpeedMps": 3.6,
+      "qualityFields": {
+        "airTemperature": "+0239,5",
+        "dewPoint": "+0217,5",
+        "wind": "200,5,N,0036,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:74486094789:2024-07-15T04:51:00",
+      "rowHash": "28e23c4304194692f180ce323515c9be05ca1de6fa96aa709314cf35a48e951f"
+    },
+    {
+      "stationId": "74486094789",
+      "regionId": "east",
+      "timestamp": "2024-07-15T05:51:00",
+      "airTemperatureC": 23.3,
+      "dewPointC": 22.2,
+      "windSpeedMps": 2.6,
+      "qualityFields": {
+        "airTemperature": "+0233,5",
+        "dewPoint": "+0222,5",
+        "wind": "200,5,N,0026,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:74486094789:2024-07-15T05:51:00",
+      "rowHash": "9c83bd45ced4160a1458a2e08eafb8993fe7dd1ac9782ce527acea644eb8f4d0"
+    },
+    {
+      "stationId": "74486094789",
+      "regionId": "east",
+      "timestamp": "2024-07-15T06:51:00",
+      "airTemperatureC": 23.3,
+      "dewPointC": 22.2,
+      "windSpeedMps": 2.1,
+      "qualityFields": {
+        "airTemperature": "+0233,5",
+        "dewPoint": "+0222,5",
+        "wind": "170,5,N,0021,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:74486094789:2024-07-15T06:51:00",
+      "rowHash": "d1ac1f486ca1974fe63fd05cc81339003573313fdfbee8eb2cefe3bcf10f7e34"
+    },
+    {
+      "stationId": "74486094789",
+      "regionId": "east",
+      "timestamp": "2024-07-15T07:51:00",
+      "airTemperatureC": 23.3,
+      "dewPointC": 21.7,
+      "windSpeedMps": 3.1,
+      "qualityFields": {
+        "airTemperature": "+0233,5",
+        "dewPoint": "+0217,5",
+        "wind": "180,5,N,0031,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:74486094789:2024-07-15T07:51:00",
+      "rowHash": "8506aab1992eaea699e380a8a6bf378152b9e6855f45edf5c28d4b7b39855bb7"
+    },
+    {
+      "stationId": "74486094789",
+      "regionId": "east",
+      "timestamp": "2024-07-15T08:51:00",
+      "airTemperatureC": 23.9,
+      "dewPointC": 22.2,
+      "windSpeedMps": 4.1,
+      "qualityFields": {
+        "airTemperature": "+0239,5",
+        "dewPoint": "+0222,5",
+        "wind": "210,5,N,0041,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:74486094789:2024-07-15T08:51:00",
+      "rowHash": "951334e439dea6da3a3eb9a54a1c8bc927f7855eee0e4c18654392040377fbf6"
+    },
+    {
+      "stationId": "74486094789",
+      "regionId": "east",
+      "timestamp": "2024-07-15T09:51:00",
+      "airTemperatureC": 22.8,
+      "dewPointC": 20.6,
+      "windSpeedMps": 3.1,
+      "qualityFields": {
+        "airTemperature": "+0228,5",
+        "dewPoint": "+0206,5",
+        "wind": "210,5,N,0031,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:74486094789:2024-07-15T09:51:00",
+      "rowHash": "1e12fbf9b9665dd290b87ab378c89bb21c9fdc0ea26ed4b4f674a3ba0dec5956"
+    },
+    {
+      "stationId": "74486094789",
+      "regionId": "east",
+      "timestamp": "2024-07-15T10:51:00",
+      "airTemperatureC": 23.3,
+      "dewPointC": 21.7,
+      "windSpeedMps": 5.1,
+      "qualityFields": {
+        "airTemperature": "+0233,5",
+        "dewPoint": "+0217,5",
+        "wind": "130,5,N,0051,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:74486094789:2024-07-15T10:51:00",
+      "rowHash": "55558f1ccf7e477326dccdcd038c3c52d9e93fd1204656509857a9aa8d35e695"
+    },
+    {
+      "stationId": "74486094789",
+      "regionId": "east",
+      "timestamp": "2024-07-15T11:51:00",
+      "airTemperatureC": 26.1,
+      "dewPointC": 21.7,
+      "windSpeedMps": 4.1,
+      "qualityFields": {
+        "airTemperature": "+0261,5",
+        "dewPoint": "+0217,5",
+        "wind": "150,5,N,0041,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:74486094789:2024-07-15T11:51:00",
+      "rowHash": "abf4e79237042f54974ca26508574823a578c86c9794f57855a1bc36579a44ec"
+    },
+    {
+      "stationId": "74486094789",
+      "regionId": "east",
+      "timestamp": "2024-07-15T12:51:00",
+      "airTemperatureC": 26.1,
+      "dewPointC": 22.2,
+      "windSpeedMps": 5.7,
+      "qualityFields": {
+        "airTemperature": "+0261,5",
+        "dewPoint": "+0222,5",
+        "wind": "180,5,N,0057,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:74486094789:2024-07-15T12:51:00",
+      "rowHash": "ae7bfd035663cd3db9edc90e5c08f94f5130139f2d2efc80a496f825ab88787e"
+    },
+    {
+      "stationId": "74486094789",
+      "regionId": "east",
+      "timestamp": "2024-07-15T13:51:00",
+      "airTemperatureC": 26.1,
+      "dewPointC": 23.3,
+      "windSpeedMps": 6.2,
+      "qualityFields": {
+        "airTemperature": "+0261,5",
+        "dewPoint": "+0233,5",
+        "wind": "190,5,N,0062,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:74486094789:2024-07-15T13:51:00",
+      "rowHash": "d764191b0a9e93857afefb0299eeaa7ddf882ac5acc8c8501c515f970c5351d1"
+    },
+    {
+      "stationId": "74486094789",
+      "regionId": "east",
+      "timestamp": "2024-07-15T14:51:00",
+      "airTemperatureC": 25.6,
+      "dewPointC": 23.3,
+      "windSpeedMps": 5.1,
+      "qualityFields": {
+        "airTemperature": "+0256,5",
+        "dewPoint": "+0233,5",
+        "wind": "180,5,N,0051,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:74486094789:2024-07-15T14:51:00",
+      "rowHash": "9ee38066fe707fc12f349a51d0e18241c9fba92dac324f55f280062b9bf84eee"
+    },
+    {
+      "stationId": "74486094789",
+      "regionId": "east",
+      "timestamp": "2024-07-15T15:51:00",
+      "airTemperatureC": 26.7,
+      "dewPointC": 23.9,
+      "windSpeedMps": 3.6,
+      "qualityFields": {
+        "airTemperature": "+0267,5",
+        "dewPoint": "+0239,5",
+        "wind": "170,5,N,0036,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:74486094789:2024-07-15T15:51:00",
+      "rowHash": "c581e6df21d5ef46a60f00d9e940b761304cd98733bdd8bc9b2fdd71ad2467b4"
+    },
+    {
+      "stationId": "74486094789",
+      "regionId": "east",
+      "timestamp": "2024-07-15T16:51:00",
+      "airTemperatureC": 27.8,
+      "dewPointC": 24.4,
+      "windSpeedMps": 3.6,
+      "qualityFields": {
+        "airTemperature": "+0278,5",
+        "dewPoint": "+0244,5",
+        "wind": "190,5,N,0036,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:74486094789:2024-07-15T16:51:00",
+      "rowHash": "5daf2e3b436d2db70b252372b69d9c0af46c064b9e4da0c64533f0f3a5982514"
+    },
+    {
+      "stationId": "74486094789",
+      "regionId": "east",
+      "timestamp": "2024-07-15T17:51:00",
+      "airTemperatureC": null,
+      "dewPointC": null,
+      "windSpeedMps": null,
+      "qualityFields": {
+        "airTemperature": "+9999,9",
+        "dewPoint": "+9999,9",
+        "wind": "999,9,N,9999,9"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:74486094789:2024-07-15T17:51:00",
+      "rowHash": "dc326b5edd6c22cc89dd945b6ba1e41e802b670d58874c2cfba9553f58d8e049"
+    },
+    {
+      "stationId": "74486094789",
+      "regionId": "east",
+      "timestamp": "2024-07-15T17:53:00",
+      "airTemperatureC": 27.8,
+      "dewPointC": 24.4,
+      "windSpeedMps": 3.6,
+      "qualityFields": {
+        "airTemperature": "+0278,5",
+        "dewPoint": "+0244,5",
+        "wind": "190,5,N,0036,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:74486094789:2024-07-15T17:53:00",
+      "rowHash": "c875d265e1d7637d863c5786586ed37263cb4dbff63c2160a5871226ed40aff4"
+    },
+    {
+      "stationId": "74486094789",
+      "regionId": "east",
+      "timestamp": "2024-07-15T18:51:00",
+      "airTemperatureC": 28.9,
+      "dewPointC": 25,
+      "windSpeedMps": 4.6,
+      "qualityFields": {
+        "airTemperature": "+0289,5",
+        "dewPoint": "+0250,5",
+        "wind": "180,5,N,0046,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:74486094789:2024-07-15T18:51:00",
+      "rowHash": "0867866592280aa227c89f03f0881db1c0c10e306be50b9f6b96b23718aa3cc1"
+    },
+    {
+      "stationId": "74486094789",
+      "regionId": "east",
+      "timestamp": "2024-07-15T19:51:00",
+      "airTemperatureC": 27.8,
+      "dewPointC": 24.4,
+      "windSpeedMps": 4.6,
+      "qualityFields": {
+        "airTemperature": "+0278,5",
+        "dewPoint": "+0244,5",
+        "wind": "200,5,N,0046,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:74486094789:2024-07-15T19:51:00",
+      "rowHash": "1194859227131c2d6a44300ada95b0bd0a0826055d918d9d1d29ba369fc92956"
+    },
+    {
+      "stationId": "74486094789",
+      "regionId": "east",
+      "timestamp": "2024-07-15T20:51:00",
+      "airTemperatureC": 28.3,
+      "dewPointC": 24.4,
+      "windSpeedMps": 5.1,
+      "qualityFields": {
+        "airTemperature": "+0283,5",
+        "dewPoint": "+0244,5",
+        "wind": "200,5,N,0051,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:74486094789:2024-07-15T20:51:00",
+      "rowHash": "703e9f53df407d2da75e8b051deb44dbc76e39e79c9dcd6777f9a75e5bce5de1"
+    },
+    {
+      "stationId": "74486094789",
+      "regionId": "east",
+      "timestamp": "2024-07-15T21:51:00",
+      "airTemperatureC": 28.3,
+      "dewPointC": 24.4,
+      "windSpeedMps": 6.7,
+      "qualityFields": {
+        "airTemperature": "+0283,5",
+        "dewPoint": "+0244,5",
+        "wind": "200,5,N,0067,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:74486094789:2024-07-15T21:51:00",
+      "rowHash": "3cfb8e0cf9a852c35c0639eda3ab560452aa5036e95585295f8ecf00db947230"
+    },
+    {
+      "stationId": "74486094789",
+      "regionId": "east",
+      "timestamp": "2024-07-15T22:51:00",
+      "airTemperatureC": 27.2,
+      "dewPointC": 23.9,
+      "windSpeedMps": 5.7,
+      "qualityFields": {
+        "airTemperature": "+0272,5",
+        "dewPoint": "+0239,5",
+        "wind": "200,5,N,0057,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:74486094789:2024-07-15T22:51:00",
+      "rowHash": "e0995b5aa46d4b8689676400376ddab3ea7181d8f6662cb2b78e6ea254f1ad1d"
+    },
+    {
+      "stationId": "74486094789",
+      "regionId": "east",
+      "timestamp": "2024-07-15T23:51:00",
+      "airTemperatureC": 26.7,
+      "dewPointC": 22.8,
+      "windSpeedMps": 3.6,
+      "qualityFields": {
+        "airTemperature": "+0267,5",
+        "dewPoint": "+0228,5",
+        "wind": "190,5,N,0036,5"
+      },
+      "truth": {
+        "origin": "observed",
+        "temporalStatus": "historical",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Station observation flags are retained; no spatial representativeness interval is published."
+          }
+        }
+      },
+      "rowId": "noaa:74486094789:2024-07-15T23:51:00",
+      "rowHash": "f950e3c89c942b30ef54bf891301188d5648565843afec1c4c110d9d11fddf80"
+    }
+  ]
+}

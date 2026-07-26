@@ -1,0 +1,51 @@
+{
+  "schema": "simulatte.applicationProfile.v3",
+  "id": "subsea-network-global-v1",
+  "tier": "world",
+  "worldModelId": "earth-global-topology-v1",
+  "interaction": {
+    "mode": "simulation",
+    "simulationOwnerPluginId": "subsea-network-global",
+    "missionRequired": false,
+    "startLabel": "Run allocation",
+    "shuffleLabel": "Change disruption"
+  },
+  "defaultSeedId": "atlantic-single-cut",
+  "seeds": [
+    {
+      "id": "atlantic-single-cut",
+      "label": "Atlantic single cut",
+      "description": "One modeled MAREA corridor failure with weighted-throughput and proportional-fair comparison.",
+      "seed": "subsea-atlantic-001",
+      "scenarioId": "atlantic-single-cut"
+    },
+    {
+      "id": "landing-station-loss",
+      "label": "Regional landing loss",
+      "description": "One modeled United Kingdom regional landing dependency is unavailable.",
+      "seed": "subsea-landing-002",
+      "scenarioId": "landing-station-loss"
+    },
+    {
+      "id": "dual-regional-disruption",
+      "label": "Dual disruption",
+      "description": "Two modeled Atlantic capacity corridors fail under higher synthetic demand.",
+      "seed": "subsea-dual-003",
+      "scenarioId": "dual-regional-disruption"
+    },
+    {
+      "id": "repair-priority",
+      "label": "Repair priority",
+      "description": "Identical modeled failures expose nearest-first and unmet-demand-first repair ordering.",
+      "seed": "subsea-repair-004",
+      "scenarioId": "repair-priority"
+    }
+  ],
+  "plugins": [
+    {
+      "id": "subsea-network-global",
+      "configId": "subsea-network-global-config-v1"
+    }
+  ],
+  "routeObjective": {}
+}

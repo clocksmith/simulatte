@@ -1,0 +1,352 @@
+{
+  "schema": "simulatte.gridResourceArchetypes.v1",
+  "id": "grid-resource-archetypes-v1",
+  "blocks": [
+    {
+      "id": "west:firm-zero-carbon",
+      "regionId": "west",
+      "kind": "firm-zero-carbon",
+      "capacityFractionOfPeakDemand": 0.31,
+      "minimumOutputFraction": 0.55,
+      "variableCostUsdPerMwh": 8,
+      "emissionsTonsPerMwh": 0.02,
+      "rampUpFraction": 0.02,
+      "rampDownFraction": 0.02,
+      "truth": {
+        "origin": "modeled",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "distribution",
+          "value": {
+            "interpretation": "Aggregate authored representation calibrated only to order-of-magnitude public snapshots."
+          }
+        }
+      }
+    },
+    {
+      "id": "west:variable-renewable",
+      "regionId": "west",
+      "kind": "variable-renewable",
+      "capacityFractionOfPeakDemand": 0.25,
+      "minimumOutputFraction": 0,
+      "variableCostUsdPerMwh": 3,
+      "emissionsTonsPerMwh": 0,
+      "rampUpFraction": 1,
+      "rampDownFraction": 1,
+      "truth": {
+        "origin": "modeled",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "distribution",
+          "value": {
+            "interpretation": "Aggregate authored representation calibrated only to order-of-magnitude public snapshots."
+          }
+        }
+      }
+    },
+    {
+      "id": "west:efficient-gas",
+      "regionId": "west",
+      "kind": "efficient-gas",
+      "capacityFractionOfPeakDemand": 0.28,
+      "minimumOutputFraction": 0,
+      "variableCostUsdPerMwh": 46,
+      "emissionsTonsPerMwh": 0.39,
+      "rampUpFraction": 0.35,
+      "rampDownFraction": 0.35,
+      "truth": {
+        "origin": "modeled",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "distribution",
+          "value": {
+            "interpretation": "Aggregate authored representation calibrated only to order-of-magnitude public snapshots."
+          }
+        }
+      }
+    },
+    {
+      "id": "west:peaking",
+      "regionId": "west",
+      "kind": "peaking",
+      "capacityFractionOfPeakDemand": 0.16,
+      "minimumOutputFraction": 0,
+      "variableCostUsdPerMwh": 125,
+      "emissionsTonsPerMwh": 0.62,
+      "rampUpFraction": 1,
+      "rampDownFraction": 1,
+      "truth": {
+        "origin": "modeled",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "distribution",
+          "value": {
+            "interpretation": "Aggregate authored representation calibrated only to order-of-magnitude public snapshots."
+          }
+        }
+      }
+    },
+    {
+      "id": "texas:firm-zero-carbon",
+      "regionId": "texas",
+      "kind": "firm-zero-carbon",
+      "capacityFractionOfPeakDemand": 0.31,
+      "minimumOutputFraction": 0.55,
+      "variableCostUsdPerMwh": 9,
+      "emissionsTonsPerMwh": 0.02,
+      "rampUpFraction": 0.02,
+      "rampDownFraction": 0.02,
+      "truth": {
+        "origin": "modeled",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "distribution",
+          "value": {
+            "interpretation": "Aggregate authored representation calibrated only to order-of-magnitude public snapshots."
+          }
+        }
+      }
+    },
+    {
+      "id": "texas:variable-renewable",
+      "regionId": "texas",
+      "kind": "variable-renewable",
+      "capacityFractionOfPeakDemand": 0.25,
+      "minimumOutputFraction": 0,
+      "variableCostUsdPerMwh": 3,
+      "emissionsTonsPerMwh": 0,
+      "rampUpFraction": 1,
+      "rampDownFraction": 1,
+      "truth": {
+        "origin": "modeled",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "distribution",
+          "value": {
+            "interpretation": "Aggregate authored representation calibrated only to order-of-magnitude public snapshots."
+          }
+        }
+      }
+    },
+    {
+      "id": "texas:efficient-gas",
+      "regionId": "texas",
+      "kind": "efficient-gas",
+      "capacityFractionOfPeakDemand": 0.28,
+      "minimumOutputFraction": 0,
+      "variableCostUsdPerMwh": 46,
+      "emissionsTonsPerMwh": 0.39,
+      "rampUpFraction": 0.35,
+      "rampDownFraction": 0.35,
+      "truth": {
+        "origin": "modeled",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "distribution",
+          "value": {
+            "interpretation": "Aggregate authored representation calibrated only to order-of-magnitude public snapshots."
+          }
+        }
+      }
+    },
+    {
+      "id": "texas:peaking",
+      "regionId": "texas",
+      "kind": "peaking",
+      "capacityFractionOfPeakDemand": 0.16,
+      "minimumOutputFraction": 0,
+      "variableCostUsdPerMwh": 125,
+      "emissionsTonsPerMwh": 0.62,
+      "rampUpFraction": 1,
+      "rampDownFraction": 1,
+      "truth": {
+        "origin": "modeled",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "distribution",
+          "value": {
+            "interpretation": "Aggregate authored representation calibrated only to order-of-magnitude public snapshots."
+          }
+        }
+      }
+    },
+    {
+      "id": "central:firm-zero-carbon",
+      "regionId": "central",
+      "kind": "firm-zero-carbon",
+      "capacityFractionOfPeakDemand": 0.31,
+      "minimumOutputFraction": 0.55,
+      "variableCostUsdPerMwh": 10,
+      "emissionsTonsPerMwh": 0.02,
+      "rampUpFraction": 0.02,
+      "rampDownFraction": 0.02,
+      "truth": {
+        "origin": "modeled",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "distribution",
+          "value": {
+            "interpretation": "Aggregate authored representation calibrated only to order-of-magnitude public snapshots."
+          }
+        }
+      }
+    },
+    {
+      "id": "central:variable-renewable",
+      "regionId": "central",
+      "kind": "variable-renewable",
+      "capacityFractionOfPeakDemand": 0.25,
+      "minimumOutputFraction": 0,
+      "variableCostUsdPerMwh": 3,
+      "emissionsTonsPerMwh": 0,
+      "rampUpFraction": 1,
+      "rampDownFraction": 1,
+      "truth": {
+        "origin": "modeled",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "distribution",
+          "value": {
+            "interpretation": "Aggregate authored representation calibrated only to order-of-magnitude public snapshots."
+          }
+        }
+      }
+    },
+    {
+      "id": "central:efficient-gas",
+      "regionId": "central",
+      "kind": "efficient-gas",
+      "capacityFractionOfPeakDemand": 0.28,
+      "minimumOutputFraction": 0,
+      "variableCostUsdPerMwh": 46,
+      "emissionsTonsPerMwh": 0.39,
+      "rampUpFraction": 0.35,
+      "rampDownFraction": 0.35,
+      "truth": {
+        "origin": "modeled",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "distribution",
+          "value": {
+            "interpretation": "Aggregate authored representation calibrated only to order-of-magnitude public snapshots."
+          }
+        }
+      }
+    },
+    {
+      "id": "central:peaking",
+      "regionId": "central",
+      "kind": "peaking",
+      "capacityFractionOfPeakDemand": 0.16,
+      "minimumOutputFraction": 0,
+      "variableCostUsdPerMwh": 125,
+      "emissionsTonsPerMwh": 0.62,
+      "rampUpFraction": 1,
+      "rampDownFraction": 1,
+      "truth": {
+        "origin": "modeled",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "distribution",
+          "value": {
+            "interpretation": "Aggregate authored representation calibrated only to order-of-magnitude public snapshots."
+          }
+        }
+      }
+    },
+    {
+      "id": "east:firm-zero-carbon",
+      "regionId": "east",
+      "kind": "firm-zero-carbon",
+      "capacityFractionOfPeakDemand": 0.31,
+      "minimumOutputFraction": 0.55,
+      "variableCostUsdPerMwh": 11,
+      "emissionsTonsPerMwh": 0.02,
+      "rampUpFraction": 0.02,
+      "rampDownFraction": 0.02,
+      "truth": {
+        "origin": "modeled",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "distribution",
+          "value": {
+            "interpretation": "Aggregate authored representation calibrated only to order-of-magnitude public snapshots."
+          }
+        }
+      }
+    },
+    {
+      "id": "east:variable-renewable",
+      "regionId": "east",
+      "kind": "variable-renewable",
+      "capacityFractionOfPeakDemand": 0.25,
+      "minimumOutputFraction": 0,
+      "variableCostUsdPerMwh": 3,
+      "emissionsTonsPerMwh": 0,
+      "rampUpFraction": 1,
+      "rampDownFraction": 1,
+      "truth": {
+        "origin": "modeled",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "distribution",
+          "value": {
+            "interpretation": "Aggregate authored representation calibrated only to order-of-magnitude public snapshots."
+          }
+        }
+      }
+    },
+    {
+      "id": "east:efficient-gas",
+      "regionId": "east",
+      "kind": "efficient-gas",
+      "capacityFractionOfPeakDemand": 0.28,
+      "minimumOutputFraction": 0,
+      "variableCostUsdPerMwh": 46,
+      "emissionsTonsPerMwh": 0.39,
+      "rampUpFraction": 0.35,
+      "rampDownFraction": 0.35,
+      "truth": {
+        "origin": "modeled",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "distribution",
+          "value": {
+            "interpretation": "Aggregate authored representation calibrated only to order-of-magnitude public snapshots."
+          }
+        }
+      }
+    },
+    {
+      "id": "east:peaking",
+      "regionId": "east",
+      "kind": "peaking",
+      "capacityFractionOfPeakDemand": 0.16,
+      "minimumOutputFraction": 0,
+      "variableCostUsdPerMwh": 125,
+      "emissionsTonsPerMwh": 0.62,
+      "rampUpFraction": 1,
+      "rampDownFraction": 1,
+      "truth": {
+        "origin": "modeled",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "distribution",
+          "value": {
+            "interpretation": "Aggregate authored representation calibrated only to order-of-magnitude public snapshots."
+          }
+        }
+      }
+    }
+  ],
+  "truth": {
+    "origin": "modeled",
+    "temporalStatus": "forecast",
+    "uncertainty": {
+      "kind": "distribution",
+      "value": {
+        "interpretation": "Aggregate authored representation calibrated only to order-of-magnitude public snapshots."
+      }
+    }
+  }
+}

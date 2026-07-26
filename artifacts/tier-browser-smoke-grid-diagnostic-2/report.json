@@ -1,0 +1,20 @@
+{
+  "timestamp": "2026-07-26T18:59:28.046Z",
+  "pass": false,
+  "totalTiers": 1,
+  "passedTiers": 0,
+  "reports": [
+    {
+      "tier": "country",
+      "profileId": "grid-resilience-us-v1",
+      "pluginId": "grid-resilience-us",
+      "pass": false,
+      "status": null,
+      "receipt": null,
+      "errors": [
+        "tier-complete: runtime error (plugin_receipt_schema_undeclared: Plugin grid-resilience-us emitted undeclared receipt simulatte.gridSettlement.v1)",
+        "[Simulatte] tier.run.failed Object"
+      ]
+    }
+  ]
+}

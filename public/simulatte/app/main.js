@@ -288,6 +288,7 @@
           ownerPluginId,
           scenario: activeScenario,
           clock: pluginClock,
+          getControlValues: pluginUi.values,
           render: () => renderPluginExperience({ mission: null }),
           onPhase: reflectPluginPlaybackPhase,
           onSettled: (receipt) => {

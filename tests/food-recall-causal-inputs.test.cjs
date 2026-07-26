@@ -250,6 +250,18 @@ test('plugin receipts, settlement, inspection, and v4 contribution expose applie
   assert.ok(facilityLayers.every((row) => row.aggregationKey === null));
   assert.ok(corridorLayers.every((row) => overview.targetIds.includes(row.id)));
   assert.equal(instance.present().geoPaths.length, activeCorridorIds.size);
+  const started = instance.handleAction('scenario.run', {
+    values: { phase: 'start', recallDay: 1, recallDepth: 'retail' },
+  });
+  assert.equal(started.status, 'settled');
+  assert.deepEqual(started.intervention, {
+    dayOffset: 1,
+    depth: 'retail',
+    scope: config.scenarios[1].defaultIntervention.scope,
+  });
+  assert.equal(state.run.recall.dayOffset, 1);
+  assert.equal(state.run.recall.depth, 'retail');
+  assert.ok(receipts.some((row) => row.schema === 'simulatte.plugin.foodRecallInterventionReceipt.v2'));
 });
 
 function json(filename) {

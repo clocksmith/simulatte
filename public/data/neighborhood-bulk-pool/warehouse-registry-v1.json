@@ -1,0 +1,75 @@
+{
+  "schema": "simulatte.neighborhoodBulkWarehouseRegistry.v1",
+  "id": "neighborhood-bulk-warehouse-registry-v1",
+  "contentVersion": "2026-07-26",
+  "retrievedAt": "2026-07-26T16:00:00Z",
+  "warehouses": [
+    {
+      "id": "costco-1062-manhattan",
+      "warehouseNumber": "1062",
+      "label": "Manhattan warehouse",
+      "merchant": "Costco Wholesale",
+      "address": "517 E 117th St, New York, NY 10035",
+      "coordinates": [-73.9312, 40.7956],
+      "departments": ["bakery", "fresh-deli", "fresh-meat", "fresh-produce", "membership", "rotisserie-chicken"],
+      "sourceUrl": "https://www.costco.com/w/-/ny/manhattan-new-york/1062",
+      "fieldTruth": {
+        "identityAndAddress": "observed from the official warehouse page",
+        "coordinates": "derived display anchor from the published address"
+      }
+    },
+    {
+      "id": "costco-318-brooklyn",
+      "warehouseNumber": "318",
+      "label": "Brooklyn warehouse",
+      "merchant": "Costco Wholesale",
+      "address": "976 3rd Ave, Brooklyn, NY 11232",
+      "coordinates": [-74.0093, 40.6555],
+      "departments": ["bakery", "fresh-deli", "fresh-meat", "fresh-produce", "membership", "service-deli"],
+      "sourceUrl": "https://www.costco.com/w/-/NY/brooklyn/318",
+      "fieldTruth": {
+        "identityAndAddress": "observed from the official warehouse page",
+        "coordinates": "derived display anchor from the published address"
+      }
+    },
+    {
+      "id": "costco-243-long-island-city",
+      "warehouseNumber": "243",
+      "label": "Long Island City warehouse",
+      "merchant": "Costco Wholesale",
+      "address": "3250 Vernon Blvd, Long Island City, NY 11106",
+      "coordinates": [-73.9352, 40.7677],
+      "departments": ["bakery", "fresh-deli", "fresh-meat", "fresh-produce", "membership", "service-deli"],
+      "sourceUrl": "https://www.costco.com/w/-/ny/long-island-city/243",
+      "fieldTruth": {
+        "identityAndAddress": "observed from the official warehouse page",
+        "coordinates": "derived display anchor from the published address"
+      }
+    },
+    {
+      "id": "costco-1070-rego-park",
+      "warehouseNumber": "1070",
+      "label": "Rego Park warehouse",
+      "merchant": "Costco Wholesale",
+      "address": "61-35 Junction Blvd, Rego Park, NY 11374",
+      "coordinates": [-73.8697, 40.7330],
+      "departments": ["bakery", "fresh-deli", "fresh-meat", "fresh-produce", "membership", "rotisserie-chicken"],
+      "sourceUrl": "https://www.costco.com/w/-/ny/rego-park/1070",
+      "fieldTruth": {
+        "identityAndAddress": "observed from the official warehouse page",
+        "coordinates": "derived display anchor from the published address"
+      }
+    }
+  ],
+  "truth": {
+    "origin": "derived",
+    "temporalStatus": "snapshot",
+    "uncertainty": {
+      "kind": "missing",
+      "value": {
+        "reason": "Official pages identify warehouses and addresses; display anchors are derived and are not surveyed entrances."
+      }
+    }
+  },
+  "claimBoundary": "Warehouse identities, addresses, and published departments come from official public warehouse pages. Coordinates are display anchors, not surveyed entrances or live loading access."
+}

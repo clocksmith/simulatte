@@ -117,8 +117,6 @@
           options: [{ value: 'retail', label: 'Retail' }, { value: 'consumer', label: 'Consumer' }] },
       ],
       actions: [
-        { id: 'recall.issue', label: 'Issue recall' },
-        { id: 'counterfactual.compare', label: 'Compare vs baseline' },
         { id: 'ensemble.run', label: 'Run ensemble' },
         { id: 'focus.national', label: 'National view', command: { kind: 'camera.focus', targetId: 'food-network-overview' } },
       ],

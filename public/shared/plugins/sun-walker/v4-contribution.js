@@ -95,15 +95,13 @@
         priority: snapshot.state.status === 'settled' ? 65 : 45,
       })],
     });
-    const controls = builder.controls(simulation.controls.filter((row) => row.kind !== 'datetime' && row.isEnabled !== false).map((row) => ({
+    const controls = builder.controls(simulation.controls.filter((row) => row.isEnabled !== false).map((row) => ({
       id: row.id,
       label: row.description,
-      kind: row.kind === 'toggle' ? 'toggle' : 'number',
-      value: row.defaultValue,
+      kind: row.kind === 'datetime' ? 'datetime-local' : row.kind === 'toggle' ? 'toggle' : 'number',
+      value: row.kind === 'datetime' ? simulation.departureAt.slice(0, 16) : row.defaultValue,
       options: null,
-      minimum: null,
-      maximum: null,
-      step: null,
+      ...controlBounds(row.id),
       provenance: claim,
     })), [{
       id: 'fastest-versus-shade-selected',
@@ -167,6 +165,15 @@
 
   function field(id, label, value, unit, provenance) {
     return { id, label, value, unit, provenance };
+  }
+
+  function controlBounds(id) {
+    return {
+      maximumAddedTimeSeconds: { minimum: 0, maximum: 86400, step: 30 },
+      maximumAddedRatio: { minimum: 0, maximum: 10, step: 0.05 },
+      directSunWeight: { minimum: 0, maximum: 100, step: 0.1 },
+      walkingSpeedMps: { minimum: 0.1, maximum: 3, step: 0.1 },
+    }[id] || { minimum: null, maximum: null, step: null };
   }
 
   return Object.freeze({ createContribution });

@@ -1,0 +1,962 @@
+            2024 Circuit Capacity Data For U.S.-International Submarine Cables
+
+Table      1 Section 43.82 Circuit Capacity Filers (2024) – Entities that filed a cable
+             operator and/or capacity holder report.
+Table      2 Number of Reports Filed By Submarine Cable Operators (2024)
+Table      3 Submarine Cable Operator Reports (in Gbps) (2024/2026) – Available and
+             planned capacity for each U.S.-international submarine cable, with regional
+             totals.
+Table      4 Submarine Cable Operator Capacity Trend Data (in Gbps) – Detailed
+             capacity trend data for each U.S.-international submarine cable.
+Table      5 Submarine Cable Capacity Holder Reports by Region (2024) – Capacity
+             holder data (i.e., cable capacity leased or owned by all filing entities) on a
+             regional basis.
+Table      6 Comparison of Capacities Reported from Cable Operator Reports and
+             Capacity Holder Reports (2024) – Comparison of total available capacity
+             reported in the cable operator reports with total owned capacity in the capacity
+             holder reports, on a regional basis.
+Attachment A U.S.-International Submarine Cables – Landing Points by Region, Cable, and
+             Foreign Landing Point as of December 31, 2024
+Attachment B U.S.-International Submarine Cables – Landing Points by Region, Foreign
+             Landing Point, and Cable as of December 31, 2024
+Attachment C U.S.-International Submarine Cables – Landing Points by Number of Landing
+             Points Per Country and Region and a Frequency Table Summarizing Foreign
+             Landing Points Per Country as of December 31, 2024
+
+
+Source:       Office of International Affairs, Federal Communications Commission
+
+For definitions of terms and instructions on filing procedures, please refer to the
+Filing Manual (Feb. 2020)
+For further information on current and past reports, see
+https://www.fcc.gov/circuit-capacity-data-us-international-submarine-cables
+                                                Table 1
+                              Section 43.82 Circuit Capacity Filers (2024)
+
+
+                                                                             Submarine    Submarine
+                                                                               Cable     Cable Capacity
+No.                                        Entities
+                                                                              Operator      Holder
+                                                                              Reports       Reports
+
+1     AARNet Pty Ltd                                                                           ✓
+2     ALGAR TELECOM S/A                                                                        ✓
+3     AMCS LLC                                                                                 ✓
+4     American Samoa Hawaii Cable, LLC                                          ✓              ✓
+5     American Samoa Telecommunications Authority                                              ✓
+6     ANGOLA CABLES                                                                            ✓
+7     Antel                                                                                    ✓
+8     Antelecom N.V.                                                                           ✓
+9     Antilles Crossing-St. Croix, Inc.                                         ✓              ✓
+10    Aqua Comms (Americas) Inc                                                 ✓              ✓
+11    ARCOS-1 USA, Inc.                                                         ✓              ✓
+12    Arelion U.S. Inc.                                                                        ✓
+13    AT&T Corp.                                                                ✓              ✓
+14    Atlantic Teleconnection Operating Company Limited                                        ✓
+15    Australia-Japan Cable (Guam) Limited                                      ✓              ✓
+16    Bharti Airtel (USA) Ltd.                                                                 ✓
+17    Bharti Airtel Limited                                                                    ✓
+18    BT Americas Inc.                                                                         ✓
+19    Cable and Wireless (BVI) Limited                                                         ✓
+20    Cable and Wireless Americas Systems Inc.                                  ✓              ✓
+21    Cable Andino, Inc.                                                                       ✓
+22    Caribbean Crossings Ltd.                                                  ✓              ✓
+23    CenturyLink Communications, LLC                                                          ✓
+24    China Mobile International Limited                                                       ✓
+25    China Telecom Global Limited                                                             ✓
+26    China Telecommunications Corporation                                                     ✓
+27    China United Network Communications Group Company Limited                                ✓
+28    Chunghwa Telecom Co., Ltd.                                                               ✓
+29    Cirion Technologies Solutions, LLC                                        ✓              ✓
+30    City of Ketchikan                                                         ✓              ✓
+31    Claro S.A. (Embratel)                                                                    ✓
+32    COGENT COMMUNICATIONS HOLDINGS INC                                        ✓              ✓
+33    COLT Telecommunications                                                   ✓              ✓
+34    Columbus Networks USA, Inc.                                               ✓              ✓
+35    Crosslake Fiber USA LP                                                    ✓              ✓
+36    Crown Castle Fiber LLC                                                                   ✓
+37    CWC New Cayman Limited                                                    ✓              ✓
+38    Deutsche Telekom North America, Inc.                                                     ✓
+39    DOCOMO PACIFIC, INC.                                                                     ✓
+                                                                        Submarine    Submarine
+                                                                          Cable     Cable Capacity
+No.                                         Entities
+                                                                         Operator      Holder
+                                                                         Reports       Reports
+
+40    Edge Cable Holdings USA, LLC                                         ✓              ✓
+41    EXA Infrastructure US LLC                                            ✓              ✓
+42    FLAG Telecom Limited                                                 ✓              ✓
+43    France Telecom Long Distance USA, LLC d/b/a Orange Carriers USA                     ✓
+44    Global Caribbean Network                                             ✓              ✓
+45    Global Transit 2 Limited                                                            ✓
+46    Global Transit Limited                                                              ✓
+47    GlobeNet Cabos Submarinos America, Inc.                              ✓              ✓
+48    GTI Corporation                                                                     ✓
+49    GU Holdings Inc.                                                     ✓              ✓
+50    Hannon Armstrong KCS Funding, LLC                                                   ✓
+51    Hawaiian Telcom Services Company, Inc.                               ✓
+52    Hawaiki Submarine Cable USA LLC                                      ✓              ✓
+53    HUB Advanced Networks, LLC                                                          ✓
+54    KDDI America, Inc.                                                                  ✓
+55    KT Corporation                                                                      ✓
+56    Latam Telecommunications, L.L.C.                                     ✓              ✓
+57    Ledcor Industries (USA) Inc.                                         ✓
+58    Level 3 Communications, LLC                                                         ✓
+59    Marine Cable Corporation                                                            ✓
+60    Megaport (USA), Inc.                                                                ✓
+61    Microsoft Infrastructure Group, LLC                                                 ✓
+62    Microsoft Operations Pte Ltd                                         ✓              ✓
+63    National Telecom Public Company Limited                                             ✓
+64    Network i2i Limited                                                                 ✓
+65    Neutral Networks USA LLC                                             ✓              ✓
+66    NTT America, Inc.                                                                   ✓
+67    NTT Ltd Japan Corporation                                            ✓              ✓
+68    ONATI Honotua Division (U.S.)                                        ✓              ✓
+69    Optibulk Havfrue AS                                                                 ✓
+70    Orange Business Services U.S., Inc.                                                 ✓
+71    Pacific Carriage Limited Inc.                                        ✓              ✓
+72    PC Landing Corp.                                                     ✓              ✓
+73    PCCW Global, Inc.                                                                   ✓
+74    PLDT Inc.                                                                           ✓
+75    PPC 1 Limited                                                        ✓              ✓
+76    PT Telekomunikasi Indonesia International                                           ✓
+77    PTI Pacifica Inc.                                                                   ✓
+78    Puerto Rico Telephone Company, Inc.                                                 ✓
+79    Rogers Telecom (US) Inc.                                                            ✓
+80    RTI JGA Pte. Ltd.                                                    ✓              ✓
+81    Seabras 1 USA, LLC                                                   ✓              ✓
+                                                         Submarine    Submarine
+                                                           Cable     Cable Capacity
+No.                                        Entities
+                                                          Operator      Holder
+                                                          Reports       Reports
+
+82    Seren Juno Network Co., Ltd.                          ✓
+83    SETAR N.V.                                                           ✓
+84    Singapore Telecom USA, Inc.                                          ✓
+85    SMITCOMS, Inc.                                        ✓              ✓
+86    SoftBank Corp.                                                       ✓
+87    StarHub Ltd                                                          ✓
+88    TA Resources N.V.                                                    ✓
+89    Tata Communications (America) Inc.                    ✓              ✓
+90    Telcosub USA LLC                                      ✓
+91    Telefonica Larga Distancia de Puerto Rico, Inc.                      ✓
+92    TeleGuam Holdings, LLC                                               ✓
+93    Telekom Malaysia Bhd                                                 ✓
+94    Telstra Incorporated                                  ✓              ✓
+95    Telxius Cable USA, Inc.                               ✓              ✓
+96    The Bahamas Telecommunications Company Limited        ✓              ✓
+97    TI Sparkle North America, Inc.                                       ✓
+98    Truestone, LLC                                        ✓              ✓
+99    UNIFIED NATIONAL NETWORKS                                            ✓
+100   Verizon Business Global LLC dba Verizon Business      ✓              ✓
+101   VNPT                                                                 ✓
+102   Zayo Group, LLC                                                      ✓
+      TOTAL                                                     43             98
+                                       Table 2
+             Number of Reports Filed by Submarine Cable Operators (2024)
+
+No.                                            Entities                    Cable Reports
+ 1    American Samoa Hawaii Cable, LLC                                          1
+ 2    Antilles Crossing-St. Croix, Inc.                                         1
+ 3    Aqua Comms (Americas) Inc                                                 2
+ 4    ARCOS-1 USA, Inc.                                                         1
+ 5    AT&T Corp.                                                                4
+ 6    Australia-Japan Cable (Guam) Limited                                      1
+ 7    Cable and Wireless Americas Systems Inc.                                  1
+ 8    Caribbean Crossings Ltd.                                                  1
+ 9    Cirion Technologies Solutions, LLC                                        2
+10    City of Ketchikan                                                         1
+11    COGENT COMMUNICATIONS HOLDINGS INC                                        1
+12    COLT Telecommunications                                                   2
+13    Columbus Networks USA, Inc.                                               1
+14    Crosslake Fiber USA LP                                                    1
+15    CWC New Cayman Limited                                                    1
+16    Edge Cable Holdings USA, LLC                                              2
+17    EXA Infrastructure US LLC                                                 1
+18    FLAG Telecom Limited                                                      1
+19    Global Caribbean Network                                                  1
+20    GlobeNet Cabos Submarinos America, Inc.                                   1
+21    GU Holdings Inc.                                                          9
+22    Hawaiian Telcom Services Company, Inc.                                    1
+23    Hawaiki Submarine Cable USA LLC                                           1
+24    Latam Telecommunications, L.L.C.                                          1
+25    Ledcor Industries (USA) Inc.                                              1
+26    Microsoft Operations Pte Ltd                                              1
+27    Neutral Networks USA LLC                                                  1
+28    NTT Ltd Japan Corporation                                                 1
+29    ONATI Honotua Division (U.S.)                                             1
+30    Pacific Carriage Limited Inc.                                             2
+31    PC Landing Corp.                                                          1
+32    PPC 1 Limited                                                             1
+33    RTI JGA Pte. Ltd.                                                         1
+34    Seabras 1 USA, LLC                                                        1
+35    Seren Juno Network Co., Ltd.                                              1
+36    SMITCOMS, Inc.                                                            1
+37    Tata Communications (America) Inc.                                        2
+38    Telcosub USA LLC                                                          1
+39    Telstra Incorporated                                                      1
+40    Telxius Cable USA, Inc.                                                   4
+41    The Bahamas Telecommunications Company Limited                            1
+42    Truestone, LLC                                                            1
+43    Verizon Business Global LLC dba Verizon Business                          1
+      TOTAL                                                                     63
+                                                Table 3
+                          Submarine Cable Operator Reports (in Gbps) (2024/2026)
+
+                                                               Available Capacity         Planned Capacity
+No.                            Cable System
+                                                                as of 12/31/2024           as of 12/31/2026
+      Americas Region
+ 1    América Móvil Submarine Cable System (AMX1)                            90,000.0               112,000.0
+ 2    AmeriCan-1                                                                     *                        *
+ 3    Americas II                                                                    *                        *
+ 4    Antilles Crossing                                                              *                        *
+ 5    ARCOS-1                                                                        *                        *
+ 6    BAHAMAS II                                                                     *                        *
+ 7    Bahamas Internet Cable System (BICS)                                      698.0                   948.0
+ 8    BRUSA                                                                 144,000.0               144,000.0
+ 9    Carnival Submarine Networks-1 (CSN-1)                                         0.0               20,000.0
+10    CFX-1 Cable System (CFX-1)                                                     *                        *
+11    Crosslake Fibre                                                                *                        *
+12    Curie                                                                          *                        *
+13    Firmina                                                                        *                        *
+14    Gemini Bermuda System                                                          *                        *
+15    Global Caribbean Network (GCN)                                            340.0                   600.0
+16    GlobeNet                                                                       *                        *
+17    KetchCan1 Submarine Fiber Cable System                                         *                        *
+18    Maya-1                                                                         *                        *
+19    Monet Cable System                                                             *                        *
+20    Neutral Networks Laredo Cable                                       1,382,400.0              1,382,400.0
+21    Pacific Caribbean Cable System (PCCS)                                 144,000.0               144,000.0
+22    Pan American Crossing (PAC)                                                    *                        *
+23    Seabras-1                                                                      *                        *
+24    SMPR-1                                                                         *                        *
+25    South America-1 (SAm-1)                                                48,000.0                 48,000.0
+26    South American Crossing (SAC)                                                  *                        *
+27    Taino-Carib Cable System                                                       *                        *
+      Total Americas Region                                               4,991,862.0              5,262,206.0
+
+
+      Atlantic Region
+ 1    AEConnect-1 Cable System                                                       *                        *
+ 2    Amitié                                                                         *                        *
+ 3    Apollo Cable                                                                   *                        *
+ 4    Atlantic Crossing 1 (AC-1)                                                     *                        *
+ 5    Dunant                                                                         *                        *
+ 6    FLAG Atlantic-1                                                                *                        *
+ 7    Grace Hopper                                                                   *                        *
+ 8    GTT Atlantic Cable System                                                      *                        *
+ 9    Havfrue                                                                        *                        *
+10    MAREA                                                                 178,000.0               178,000.0
+11    TGN Atlantic                                                                   *                        *
+                                                                                 Available Capacity           Planned Capacity
+   No.                             Cable System
+                                                                                  as of 12/31/2024             as of 12/31/2026
+   12      Yellow                                                                                       *                         *
+           Total Atlantic Region                                                              1,663,430.0              1,678,830.0
+
+
+           Pacific Region
+    1      Asia America Gateway (AAG)                                                                   *                         *
+    2      Australia-Japan Cable                                                                        *                         *
+    3      Echo                                                                                         *                         *
+    4      FASTER Cable System                                                                          *                         *
+    5      GOKI Cable Network                                                                           *                         *
+    6      HANTRU1                                                                                      *                         *
+    7      Hawaiki Cable System                                                                         *                         *
+    8      Honotua Cable System                                                                         *                         *
+           Japan-Guam-Australia (JGA) North System (JGA
+    9      North)                                                                                       *                         *
+           Japan-Guam-Australia (JGA) South System (JGA
+   10      South)                                                                                       *                         *
+   11      JUNO                                                                                         *                         *
+   12      JUPITER                                                                                      *                         *
+   13      New Cross-Pacific (NCP)                                                                      *                         *
+   14      Pacific Crossing-1 (PC-1)                                                                    *                         *
+   15      Pacific Light Cable Network (PLCN)                                                           *                         *
+   16      PPC-1                                                                                        *                         *
+   17      Samoa American Samoa Cable System                                                            *                         *
+   18      Southeast Asia-US (SEA-US)                                                                   *                         *
+   19      Southern Cross 1&2                                                                           *                         *
+   20      Southern Cross NEXT                                                                          *                         *
+   21      Telstra Endeavour                                                                            *                         *
+   22      TGN Pacific                                                                                  *                         *
+   23      Trans-Pacific Express (TPE) Cable Network                                              7,010.0                  7,010.0
+   24      Unity Cable System                                                                           *                         *
+           Total Pacific Region                                                                781,765.0               1,393,250.0
+
+
+           All Regions
+           Americas Region                                                         4,991,862.0 (67.12%)       5,262,206.0 (63.14%)
+           Atlantic Region                                                         1,663,430.0 (22.37%)       1,678,830.0 (20.14%)
+           Pacific Region                                                            781,765.0 (10.51%)       1,393,250.0 (16.72%)
+           Total                                                                   7,437,057.0 (100.0%)      8,334,286.0 (100.0% )
+
+
+* Filer requested confidential treatment of its Submarine Cable Operator Report data. Regional totals include both
+public and confidential data.
+                                                                                                                                                                  Table 4
+                                                                                                                                           Submarine Cable Operator Capacity Trend Data (in Gbps)
+
+
+                                                                                                                                                                                                                                                                                                                                                    Planned
+                                 CABLES                                    2007          2008          2009           2010          2011          2012           2013          2014         2015          2016          2017           2018           2019            2020            2021            2022            2023            2024            2026
+AMERICAS REGION
+América Móvil Submarine Cable System (AMX1)                                                                                                                                    1,640        2,800        4,660         4,890            *               *           90,000.0        90,000.0        90,000.0        90,000.0        90,000.0       112,000.0
+AmeriCan-1                                                                159.3          159.3         159.3         159.3          159.3         159.3         159.3          1,163       1,167.5      1,467.5          *              *               *               *               *               *               *               *               *
+Americas II                                                                 80            80             80           520            780           820           850            850          920          960          1,070         5,070.0         6,140.0            *               *               *               *               *               *
+Antillas-1 ***                                                               5             5             10            20            20             60            60            90            90           90            90           302.5           302.5             *               *               *
+Antilles Crossing                                                           30            20             20            20            30             30            40            80            *           320           320             *               *              320              *              520              *               *               *
+ARCOS-1                                                                     80            120           210           240            290           350           450           1,468          *             *            *              *               *               *               *               *               *               *               *
+BAHAMAS II                                                                  2.5           2.5           2.5            2.5           2.5            60            60            60            60           60            60           100.0           100.0             *               *               *               *               *               *
+Bahamas Internet Cable System (BICS)                                       12.5          12.5           12.5          22.5          22.5            20            40            60            60          100           278           469.0           466.0           706.0           716.0           748.0           748.0           698.0           948.0
+BRUSA                                                                                                                                                                                                                                   *               *               *           144,000.0           *           144,000.0      144,000.0       144,000.0
+Carnival Submarine Networks-1 (CSN-1)                                                                                                                                                                                                                                                                                                  0.0          20,000.0
+CFX-1 Cable System (CFX-1)                                                                100           110           500            560           610          1,040          1,580          *             *            *              *               *               *               *               *               *               *               *
+Challenger Bermuda (CB-1) ****                                                            20             20            20            20             20            20            20            *             *            *              *               *               *               *               *               *
+Crosslake Fibre                                                                                                                                                                                                                                         *               *               *               *               *               *               *
+Curie                                                                                                                                                                                                                                                   *               *               *               *               *               *               *
+Firmina                                                                                                                                                                                                                                                                                                 *               *               *               *
+Gemini Bermuda System                                                                     40             40            70            80             80           140            160           *             *            *              *               *               *               *               *               *               *               *
+Global Caribbean Network (GCN)                                              20            20             20            20            40             40            40            60            70            *           140           140.0           140.0             *             140.0           140.0           240.0           340.0           600.0
+GlobeNet                                                                    80            140           720           720           2,080         2,080         2,400          2,400          *             *            *              *               *               *               *               *               *               *               *
+KetchCan1 Submarine Fiber Cable System                                                                                                                                                                                                                  *               *               *               *               *               *               *
+Maya-1                                                                      65            145           145           145            145           145           145            980           *             *            *              *               *               *               *               *               *               *               *
+Monet Cable System                                                                                                                                                                                                       *              *               *               *               *               *               *               *               *
+Neutral Networks Laredo Cable                                                                                                                                                                                                                                                                      1,382,400.0     1,382,400.0     1,382,400.0    1,382,400.0
+Pacific Caribbean Cable System (PCCS)                                                                                                                                                        950            *          5,470            *               *               *           144,000.0           *           144,000.0      144,000.0       144,000.0
+Pan American Cable System ***                                                5             5             5            140            140           140           140            140          140          140           140            140             140              *
+Pan American Crossing (PAC)                                                 50            65             95           150            310           460           790            800           *             *            *              *               *            5,310.0            *               *               *               *               *
+Seabras-1                                                                                                                                                                                                                *              *               *           72,000.0            *               *               *               *               *
+SMPR-1                                                                      2.5           2.5           2.5            2.5           2.6            3              3            10            10            *            10             *               *               *               *              0.0             0.0              *               *
+South America-1 (SAm-1)                                                    160            440           960          1,300          1,700         2,100         2,700          4,400        5,100           *          12,250           *               *               *           48,000.0            *           48,000.0        48,000.0        48,000.0
+South American Crossing (SAC)                                              200            200           320           530            620           935          1,600          4,260          *             *            *              *               *           15,370.0            *               *               *               *               *
+Taino-Carib Cable System                                                    1.9           1.9           1.9            70            70             70           110            110          110          120           120          40,400.0        40,400.0           *               *               *               *               *               *
+
+Total                                                                     953.6        1,578.60      2,933.60       4,651.80      7,071.90      8,181.90      10,787.40       20,331       28,057.5     42,347.5     168,525.5      580,827.0      2,435,174.0     3,150,216.5     3,268,535.5     4,678,210.0     4,742,367.9     4,991,862.0    5,262,206.0
+ATLANTIC REGION
+AEConnect-1 Cable System                                                                                                                                                                      *             *            *              *               *               *               *               *               *               *               *
+Amitié                                                                                                                                                                                                                                                                                 0.0              *               *               *               *
+Apollo Cable                                                              1,280          2,280         2,860         3,100          3,150         3,420         3,510          6,100          *             *            *              *               *               *               *               *               *               *               *
+Atlantic Crossing (AC-1)                                                   635            815          1,165         1,455          1,500         1,760         2,100          2,350          *             *            *              *               *            4,860.0            *               *               *               *               *
+Columbus III ***                                                            40            40            160           160            160           160           160            160          160          160           160           600.0           600.0
+Dunant                                                                                                                                                                                                                                                                  *               *               *               *               *               *
+FLAG Atlantic-1                                                           1,240          1,480         1,640         2,200          2,280         2,830         3,560          4,430        6,130           *            *           10,260.0           *               *               *               *               *               *               *
+Grace Hopper                                                                                                                                                                                                                                                                                            *               *               *               *
+GTT Atlantic Cable System                                                  360            360           360           360           2,000         2,750         3,750         14,400          *             *            *           13,800.0           *               *               *               *               *               *               *
+Havfrue                                                                                                                                                                                                                                                 *               *               *               *               *               *               *
+MAREA                                                                                                                                                                                                                                   *               *               *           178,000.0           *           178,000.0      178,000.0       178,000.0
+TAT-14 ***                                                                1,280          1,280         1,870         1,870          1,870         2,250         2,990          3,150          *             *            *              *               *
+TGN Atlantic                                                               460           1,040         1,460         1,560          1,770         2,810         3,010          3,420        6,310           *            *              *               *               *               *               *               *               *               *
+Yellow                                                                     320            500           900          1,780          1,780         1,860         1,750          4,420          *             *            *              *               *            8,640.0            *               *               *               *               *
+
+Total                                                                     5,615          7,795        10,415         12,485        14,510        17,840         20,830        38,430        47,920      137,160       149,780       332,440.0       362,140.0       546,970.0       869,060.0      1,270,760.0     1,598,090.0     1,663,430.0    1,678,830.0
+PACIFIC REGION
+Asia America Gateway (AAG)                                                                              540           540            580          1,540         1,540          2,180        4,210        6,610         8,100         15,000.0        15,450.0           *               *               *               *               *               *
+Australia-Japan Cable                                                      160            520           520           520            640          1,200         1,480          1,760          *             *            *              *               *           10,360.0            *               *               *               *               *
+Echo                                                                                                                                                                                                                                                                                                    *               *               *               *
+FASTER Cable System                                                                                                                                                                                         *            *              *               *               *               *               *               *               *               *
+GOKI Cable Network                                                                                                                                                                                                       80           100.0           100.0             *               *               *               *               *               *
+HANTRU1                                                                                                                40            40             40            40            20            *             *            *              *               *               *               *               *               *               *               *
+Hawaiki Cable System                                                                                                                                                                                                                    *               *               *               *               *               *               *               *
+Honotua Cable System                                                                                                   20            20             20            20            20            40            *            40            40.0            40.0            40.0             *               *               *               *               *
+Japan-Guam-Australia North System (JGA North)                                                                                                                                                                                                                           *               *               *               *               *               *
+Japan-Guam-Australia South System (JGA South)                                                                                                                                                                                                                           *               *               *               *               *               *
+Japan-U.S. Cable Network ***                                               800           1,900         2,180         2,300          2,500         2,530         4,630          5,380        6,850        7,240         8,000         20,800.0        20,800.0           *               *               *
+JUNO                                                                                                                                                                                                                                                                                                                    *               *               *
+JUPITER                                                                                                                                                                                                                                                                 *               *               *               *               *               *
+New Cross-Pacific (NCP)                                                                                                                                                                                                                 *               *               *               *               *               *               *               *
+Pacific Crossing-1 (PC-1)                                                  360            960          1,030         1,430          1,800         1,800         2,900          2,780          *             *            *              *               *               *               *               *               *               *               *
+Pacific Light Cable Network (PLCN)                                                                                                                                                                                                                                                      *               *               *               *               *
+PPC-1                                                                                                   140           140            140           140           140            700           *             *          5,000            *               *            5,000.0            *               *               *               *               *
+Samoa American Samoa Cable System **                                                                     1              1             1             1              1             1           1.2            *            *              *               *               *               *               *               *               *               *
+Southeast Asia-US (SEA-US)                                                                                                                                                                                               *              *               *               *               *               *               *               *               *
+Southern Cross 1&2                                                         480            860           860          1,240          1,240         1,640         2,700          3,500          *             *            *              *               *               *           13,100.0            *               *               *               *
+Southern Cross NEXT                                                                                                                                                                                                                                                     0               0               *               *               *               *
+Telstra Endeavour                                                                         80             80           160            300           300           600            580           *             *            *              *               *               *               *               *               *               *               *
+TGN Pacific                                                               1,880          2,760         3,140         3,140          3,140         3,660         4,350          5,520        6,430           *            *              *               *               *               *               *               *               *               *
+Trans-Pacific Express (TPE) Cable Network                                                1,280         1,280         1,870          1,870         2,040         2,200          2,200        2,200        3,230         5,680         6,610.0            *            6,610.0         6,710.0         6,710.0         6,810.0         7,010.0         7,010.0
+Unity Cable System                                                                                                   2,380          2,380         2,700         4,020          7,220          *             *            *              *               *               *               *               *               *               *               *
+
+Total                                                                     3,840          8,520         9,931         13,941        14,811        17,771         24,781        32,021        43,783       75,394        93,374       248,461.2       260,881.2       464,560.0       589,470.0       707,550.0       766,230.0      781,765.0      1,393,250.0
+REGIONAL CAPACITY
+Americas                                                                  953.6        1,578.60      2,933.60       4,651.80      7,071.90      8,181.90      10,787.40       20,331       28,057.5     42,347.5     168,525.5      580,827.0      2,435,174.0     3,150,216.5     3,268,535.5     4,678,210.0     4,742,367.9     4,991,862.0    5,262,206.0
+Atlantic                                                                  6,015          8,195        10,815         12,885        15,640        19,090         22,580        38,430        47,920      137,160       149,780       332,440.0       362,140.0       546,970.0       869,060.0      1,270,760.0     1,598,090.0     1,663,430.0    1,678,830.0
+Pacific                                                                   3,840          8,520         9,931         13,941        14,811        17,771         24,781        32,021        43,783       75,394        93,374       248,461.2       260,881.2       464,560.0       589,470.0       707,550.0       766,230.0      781,765.0      1,393,250.0
+Total                                                                     10,809        18,294        23,680         31,478        37,523        45,043         58,148        90,782       119,761     254,901.50     411,680      1,161,728.2     3,058,195.2     4,161,746.5     4,727,065.5     6,656,520.0     7,106,687.9     7,437,057.0    8,334,286.0
+NUMBER OF CABLES IN SERVICE
+Americas                                                                    16            19             19            19            19             19            19            20            21           21            22             24              25              27             26              27              26              26
+Atlantic                                                                     8             8             8              8             8             8              8             8            8             9            9              10              10              9              10              11              12              12
+Pacific                                                                      6             8             11            14            14             14            14            14            14           14            16             18              18              21             22              23              22              22
+Total                                                                       30            35             38            41            41             41            41            42            43           44            47             52              53              57             58              61              60              60
+GROWTH RATE RELATIVE TO PREVIOUS YEAR
+Americas                                                                                65.5%          85.8%         58.6%         52.0%          15.7%         31.8%         88.5%         38.0%        50.9%        298.0%         244.7%          319.3%           29.4%           3.8%           43.1%            1.4%            5.3%
+Atlantic                                                                                36.2%          32.0%         19.1%         21.4%          22.1%         18.3%         70.2%         24.7%       186.2%          9.2%         122.0%           8.9%            51.0%           58.9%          46.2%           25.8%            4.1%
+Pacific                                                                                 121.9%         16.6%         40.4%          6.2%          20.0%         39.4%         29.2%         36.7%        72.2%         23.8%         166.1%           5.0%            78.1%           26.9%          20.0%            8.3%            2.0%
+Total                                                                                   69.3%         29.4%          32.9%         19.2%         20.0%          29.1%         56.1%         31.9%       112.8%         61.5%         182.2%          163.2%          36.1%           13.6%           40.8%            6.8%            4.6%
+COMPOUND ANNUAL GROWTH RATE (CAGR, 2007-2024)
+Americas                                                                  65.5%
+Atlantic                                                                  39.2%
+Pacific                                                                   36.7%
+Total                                                                     46.9%
+FORECAST CAGR (2024-2026)
+Americas                                                                   2.7%
+Atlantic                                                                   0.5%
+Pacific                                                                   33.5%
+Total                                                                     5.9%
+
+
+
+
+* The filer requested confidential treatment of its Submarine Cable Operator Report data. The regional totals include both public and confidential data.
+
+** On July 16, 2020, the American Samoa-Hawaii segment of the American Samoa Hawaii Cable System was retired and taken out of commercial service. The Samoa-American Samoa segment remains in service and is now known as the Samoa American Samoa Cable.
+
+*** TAT-14, Columbus III, and the Pan American Cable System were retired from service on December 15, 2020, December 18, 2020, and December 5, 2021, respectively. The Antillas-1 cable landing station located in Isla Verde, Puerto Rico, ceased originating or terminating any traffic on the Antillas-1 submarine cable system on September 12,
+2022. With the exception of Segment 1 of the Japan-U.S. Cable Network (“S-1 link,” from Makaha, Hawaii to Morro Bay, California), the remaining cable was retired from service as of October 30, 2023.
+
+**** The Challenger Bermuda (CB-1) cable system was retired from service on May 18, 2024.
+
+We note that: (1) data as of 2007 to 2013 were extracted from the 2013 Section 43.82 Circuit Status Data Report; (2) the "number of cables in service" reflects the number of U.S.-international cables for which an in-service notification was filed pursuant to 47 CFR § 1.767(g)(15) as of the end of the reporting period; (3) on December 28, 2018, the
+International Bureau released a revised Filing Manual and clarified the definition of “[a]vailable capacity, also known as design capacity, is all of the capacity (both lit and unlit capacity) on the cable as of the reporting date (December 31 of the reporting period).” International Bureau Releases Revised Filing Manual for Section 43.82 Circuit
+Capacity Reports, Public Notice, 33 FCC Rcd 12517 (2018); Filing Manual at 6, para. 28.
+* The filer requested confidential treatment of its Submarine Cable Operator Report data. The regional totals include both public and confidential data.
+
+** On July 16, 2020, the American Samoa-Hawaii segment of the American Samoa Hawaii Cable System was retired and taken out of commercial service. The Samoa-American Samoa segment remains in service and is now known as the Samoa American Samoa Cable.
+
+*** TAT-14, Columbus III, and the Pan American Cable System were retired from service on December 15, 2020, December 18, 2020, and December 5, 2021, respectively. The Antillas-1 cable landing station located in Isla Verde, Puerto Rico, ceased originating or terminating any traffic on the Antillas-1 submarine cable system on September 12,
+2022. With the exception of Segment 1 of the Japan-U.S. Cable Network (“S-1 link,” from Makaha, Hawaii to Morro Bay, California), the remaining cable was retired from service as of October 30, 2023.
+
+**** The Challenger Bermuda (CB-1) cable system was retired from service on May 18, 2024.
+
+We note that: (1) data as of 2007 to 2013 were extracted from the 2013 Section 43.82 Circuit Status Data Report; (2) the "number of cables in service" reflects the number of U.S.-international cables for which an in-service notification was filed pursuant to 47 CFR § 1.767(g)(15) as of the end of the reporting period; (3) on December 28, 2018, the
+International Bureau released a revised Filing Manual and clarified the definition of “[a]vailable capacity, also known as design capacity, is all of the capacity (both lit and unlit capacity) on the cable as of the reporting date (December 31 of the reporting period).” International Bureau Releases Revised Filing Manual for Section 43.82 Circuit
+Capacity Reports, Public Notice, 33 FCC Rcd 12517 (2018); Filing Manual at 6, para. 28.
+                                                                                 Table 5
+                                                         Submarine Cable Capacity Holder Reports by Region (2024)
+
+                                                                                Capacity Holders in Gbps Units
+                                                             Net Inter-
+                                                                                     Net Capacity                Activated            Non-Activated
+    Region          Owned Capacity           Net IRUs         Carrier                                                                                            Activated %      Non-Activated %
+                                                                                         Held                    Capacity               Capacity
+                                                             Leaseholds
+                            (a)                 (b)              (c)            (d)=(a)+(b)+(c)=(e)+(f)              (e)                     (f)                     (g)                (h)
+Americas                    4,866,702.5       -135,095.1         -59,068.4                       4,672,539.0        220,755.2                      4,451,783.8             4.7%               95.3%
+Atlantic                    1,607,780.0       -318,602.5         -71,164.0                       1,218,013.5        696,613.5                       521,400.0          57.2%                  42.8%
+Pacific                       701,855.0         -17,354.9        -31,645.9                        652,854.2         335,758.1                       317,096.1          51.4%                  48.6%
+Total                      7,176,337.5        -471,052.5       -161,878.3                       6,543,406.7       1,253,126.8                     5,290,279.9          19.2%                  80.8%
+The aggregate capacity holder data represent data for U.S.-international submarine cables that were in service as of the end of the reporting period.
+                                                       Table 6
+           Comparison of Capacities Reported from Cable Operator Reports and Capacity Holder Reports (2024)
+
+
+                    Submarine Cable           Submarine Cable
+                    Operator Reports       Capacity Holder Reports
+                                                                                        Percent Captured    Percent Not Captured
+    Region              (Gbps)                      (Gbps)            Discrepancy
+                                                                                        by Holder Reports    by Holder Reports
+                   (Available Capacity)       (Owned Capacity)
+
+Americas                     4,991,862.0                4,866,702.5         125,159.5              97.5%                    2.5%
+Atlantic                     1,663,430.0                1,607,780.0          55,650.0              96.7%                    3.3%
+Pacific                        781,765.0                  701,855.0          79,910.0              89.8%                   10.2%
+Total                        7,437,057.0                7,176,337.5         260,719.5              96.5%                    3.5%
+                                                     Attachment A
+                                U.S.-International Submarine Cables – Landing Points
+                          by Region, Cable, and Foreign Landing Point as of December 31, 2024
+
+
+No.              Region                               Cable Name                               Foreign Landing Point
+
+1     Americas                  América Móvil Submarine Cable System (AMX1)    Brazil
+2     Americas                  América Móvil Submarine Cable System (AMX1)    Colombia
+3     Americas                  América Móvil Submarine Cable System (AMX1)    Dominican Republic
+4     Americas                  América Móvil Submarine Cable System (AMX1)    Guatemala
+5     Americas                  América Móvil Submarine Cable System (AMX1)    Mexico
+6     Americas                  AmeriCan-1                                     Canada
+7     Americas                  Americas II                                    Brazil
+8     Americas                  Americas II                                    Curaçao
+9     Americas                  Americas II                                    French Guiana
+10    Americas                  Americas II                                    Martinique
+11    Americas                  Americas II                                    Trinidad and Tobago
+12    Americas                  Americas II                                    Venezuela
+13    Americas                  Antilles Crossing                              Barbados
+14    Americas                  Antilles Crossing                              Saint Lucia
+15    Americas                  ARCOS-1                                        Bahamas
+16    Americas                  ARCOS-1                                        Belize
+17    Americas                  ARCOS-1                                        Colombia
+18    Americas                  ARCOS-1                                        Costa Rica
+19    Americas                  ARCOS-1                                        Curaçao
+20    Americas                  ARCOS-1                                        Dominican Republic
+21    Americas                  ARCOS-1                                        Guatemala
+22    Americas                  ARCOS-1                                        Honduras
+23    Americas                  ARCOS-1                                        Mexico
+24    Americas                  ARCOS-1                                        Nicaragua
+25    Americas                  ARCOS-1                                        Panama
+26    Americas                  ARCOS-1                                        Turks and Caicos Islands
+27    Americas                  ARCOS-1                                        Venezuela
+28    Americas                  BAHAMAS II                                     Bahamas
+29    Americas                  Bahamas Internet Cable System (BICS)           Bahamas
+30    Americas                  BRUSA                                          Brazil
+31    Americas                  Carnival Submarine Networks-1 (CSN-1)          Colombia
+32    Americas                  Carnival Submarine Networks-1 (CSN-1)          Ecuador
+33    Americas                  Carnival Submarine Networks-1 (CSN-1)          Panama
+34    Americas                  CFX-1 Cable System (CFX-1)                     Colombia
+35    Americas                  CFX-1 Cable System (CFX-1)                     Jamaica
+36    Americas                  Crosslake Fibre                                Canada
+37    Americas                  Curie                                          Chile
+38    Americas                  Firmina                                        Argentina
+39    Americas                  Firmina                                        Brazil
+40    Americas                  Firmina                                        Uruguay
+41    Americas                  Gemini Bermuda System                          Bermuda
+42    Americas                  Global Caribbean Network (GCN)                 Guadeloupe
+43    Americas                  Global Caribbean Network (GCN)                 Saint Barthelemy
+44    Americas                  Global Caribbean Network (GCN)                 Saint Martin
+45    Americas                  GlobeNet                                       Bermuda
+46    Americas                  GlobeNet                                       Brazil
+47    Americas                  GlobeNet                                       Colombia
+48    Americas                  GlobeNet                                       Venezuela
+49    Americas                  KetchCan1 Submarine Fiber Cable System         Canada
+
+
+
+                                                        A-2
+                                                     Attachment A
+                                U.S.-International Submarine Cables – Landing Points
+                          by Region, Cable, and Foreign Landing Point as of December 31, 2024
+
+
+No.              Region                               Cable Name                                Foreign Landing Point
+
+50    Americas                  Maya-1                                         Cayman Islands
+51    Americas                  Maya-1                                         Colombia
+52    Americas                  Maya-1                                         Costa Rica
+53    Americas                  Maya-1                                         Honduras
+54    Americas                  Maya-1                                         Mexico
+55    Americas                  Maya-1                                         Panama
+56    Americas                  Monet Cable System                             Brazil
+57    Americas                  Neutral Networks Laredo Cable                  Mexico
+58    Americas                  Pacific Caribbean Cable System (PCCS)          Aruba
+59    Americas                  Pacific Caribbean Cable System (PCCS)          British Virgin Islands
+60    Americas                  Pacific Caribbean Cable System (PCCS)          Colombia
+61    Americas                  Pacific Caribbean Cable System (PCCS)          Ecuador
+62    Americas                  Pacific Caribbean Cable System (PCCS)          Panama
+63    Americas                  Pan American Crossing (PAC)                    Costa Rica
+64    Americas                  Pan American Crossing (PAC)                    Mexico
+65    Americas                  Pan American Crossing (PAC)                    Panama
+66    Americas                  Pan American Crossing (PAC)                    Venezuela
+67    Americas                  Seabras-1                                      Brazil
+68    Americas                  SMPR-1                                         Sint Maarten
+69    Americas                  South America-1 (SAm-1)                        Argentina
+70    Americas                  South America-1 (SAm-1)                        Brazil
+70    Americas                  South America-1 (SAm-1)                        Chile
+71    Americas                  South America-1 (SAm-1)                        Colombia
+73    Americas                  South America-1 (SAm-1)                        Dominican Republic
+74    Americas                  South America-1 (SAm-1)                        Ecuador
+75    Americas                  South America-1 (SAm-1)                        Guatemala
+76    Americas                  South America-1 (SAm-1)                        Peru
+77    Americas                  South American Crossing (SAC)                  Argentina
+78    Americas                  South American Crossing (SAC)                  Brazil
+79    Americas                  South American Crossing (SAC)                  Chile
+80    Americas                  South American Crossing (SAC)                  Colombia
+81    Americas                  South American Crossing (SAC)                  Panama
+82    Americas                  South American Crossing (SAC)                  Peru
+83    Americas                  Taino-Carib Cable System                       British Virgin Islands
+
+
+
+No.              Region                               Cable Name                                Foreign Landing Point
+
+1     Atlantic                  AEConnect Cable Network                        Iceland
+2     Atlantic                  AEConnect Cable Network                        Ireland
+3     Atlantic                  Amitié                                         France
+4     Atlantic                  Amitié                                         United Kingdom
+5     Atlantic                  Apollo Cable                                   France
+6     Atlantic                  Apollo Cable                                   United Kingdom
+7     Atlantic                  Atlantic Crossing (AC-1)                       Germany
+8     Atlantic                  Atlantic Crossing (AC-1)                       Netherlands
+9     Atlantic                  Atlantic Crossing (AC-1)                       United Kingdom
+10    Atlantic                  Dunant                                         France
+11    Atlantic                  FLAG Atlantic-1                                France
+12    Atlantic                  FLAG Atlantic-1                                United Kingdom
+
+
+
+                                                           A-3
+                                                     Attachment A
+                                U.S.-International Submarine Cables – Landing Points
+                          by Region, Cable, and Foreign Landing Point as of December 31, 2024
+
+
+No.              Region                                 Cable Name                                   Foreign Landing Point
+
+13    Atlantic                  Grace Hopper                                          Spain
+14    Atlantic                  Grace Hopper                                          United Kingdom
+15    Atlantic                  GTT Atlantic                                          Canada
+16    Atlantic                  GTT Atlantic                                          Ireland
+17    Atlantic                  GTT Atlantic                                          United Kingdom
+18    Atlantic                  Havfrue                                               Denmark
+19    Atlantic                  Havfrue                                               Ireland
+20    Atlantic                  Havfrue                                               Norway
+21    Atlantic                  MAREA                                                 Spain
+22    Atlantic                  TGN Atlantic                                          United Kingdom
+23    Atlantic                  Yellow                                                United Kingdom
+
+
+
+No.              Region                                 Cable Name                                   Foreign Landing Point
+
+1     Pacific                   Asia America Gateway (AAG)                            Brunei
+2     Pacific                   Asia America Gateway (AAG)                            Hong Kong
+3     Pacific                   Asia America Gateway (AAG)                            Malaysia
+4     Pacific                   Asia America Gateway (AAG)                            Philippines
+5     Pacific                   Asia America Gateway (AAG)                            Singapore
+6     Pacific                   Asia America Gateway (AAG)                            Thailand
+7     Pacific                   Asia America Gateway (AAG)                            Vietnam
+8     Pacific                   Australia-Japan Cable                                 Australia
+9     Pacific                   Australia-Japan Cable                                 Japan
+10    Pacific                   Echo                                                  Indonesia
+11    Pacific                   Echo                                                  Singapore
+12    Pacific                   FASTER Cable System                                   Japan
+13    Pacific                   FASTER Cable System                                   Taiwan
+14    Pacific                   GOKI Cable Network                                    Japan
+15    Pacific                   HANTRU1                                               Federated States of Micronesia
+16    Pacific                   HANTRU1                                               Republic of the Marshall Islands
+17    Pacific                   Hawaiki Cable System                                  Australia
+18    Pacific                   Hawaiki Cable System                                  New Zealand
+19    Pacific                   Honotua Cable System                                  French Polynesia
+20    Pacific                   Japan-Guam-Australia (JGA) North System (JGA North)   Japan
+21    Pacific                   Japan-Guam-Australia (JGA) South System (JGA South)   Australia
+22    Pacific                   JUNO                                                  Japan
+23    Pacific                   JUPITER                                               Japan
+24    Pacific                   JUPITER                                               Philippines
+25    Pacific                   New Cross-Pacific (NCP)                               China
+26    Pacific                   New Cross-Pacific (NCP)                               Japan
+27    Pacific                   New Cross-Pacific (NCP)                               South Korea
+28    Pacific                   New Cross-Pacific (NCP)                               Taiwan
+29    Pacific                   Pacific Crossing-1 (PC-1)                             Japan
+30    Pacific                   Pacific Light Cable Network (PLCN)                    Philippines
+31    Pacific                   Pacific Light Cable Network (PLCN)                    Taiwan
+32    Pacific                   PPC-1                                                 Australia
+33    Pacific                   PPC-1                                                 Papua New Guinea
+34    Pacific                   Samoa American Samoa Cable System                     Samoa
+35    Pacific                   Southeast Asia-US (SEA-US)                            Indonesia
+
+
+
+                                                            A-2
+                                                               Attachment A
+                                          U.S.-International Submarine Cables – Landing Points
+                                    by Region, Cable, and Foreign Landing Point as of December 31, 2024
+
+
+    No.                Region                                   Cable Name                             Foreign Landing Point
+
+
+    36       Pacific                      Southeast Asia-US (SEA-US)                     Philippines
+    37       Pacific                      Southern Cross Cable Network                   Australia
+    38       Pacific                      Southern Cross Cable Network                   Fiji
+    39       Pacific                      Southern Cross Cable Network                   New Zealand
+    40       Pacific                      Southern Cross NEXT                            Australia
+    41       Pacific                      Southern Cross NEXT                            Fiji
+    42       Pacific                      Southern Cross NEXT                            Kiribati
+    43       Pacific                      Southern Cross NEXT                            New Zealand
+    44       Pacific                      Southern Cross NEXT                            Samoa
+    45       Pacific                      Southern Cross NEXT                            Tokelau
+    46       Pacific                      Telstra Endeavour                              Australia
+    47       Pacific                      TGN Pacific                                    Japan
+    48       Pacific                      Trans-Pacific Express (TPE) Cable Network      China
+    49       Pacific                      Trans-Pacific Express (TPE) Cable Network      Japan
+    50       Pacific                      Trans-Pacific Express (TPE) Cable Network      South Korea
+    51       Pacific                      Trans-Pacific Express (TPE) Cable Network      Taiwan
+    52       Pacific                      Unity Cable System                             Japan
+
+
+    158      Total Landing Points
+Source: FCC records
+
+
+
+
+                                                                   A-3
+                                                                Attachment B
+                                            U.S.-International Submarine Cables – Landing Points
+                                     by Region, Foreign Landing Point, and Cable as of December 31, 2024
+
+
+    No.                 Region                               Foreign Landing Point                              Cable Name
+
+
+     1       Americas                     Argentina                                     Firmina
+     2       Americas                     Argentina                                     South America-1 (SAm-1)
+     3       Americas                     Argentina                                     South American Crossing (SAC)
+     4       Americas                     Aruba                                         Pacific Caribbean Cable System (PCCS)
+     5       Americas                     Bahamas                                       ARCOS-1
+     6       Americas                     Bahamas                                       BAHAMAS II
+     7       Americas                     Bahamas                                       Bahamas Internet Cable System (BICS)
+     8       Americas                     Barbados                                      Antilles Crossing
+     9       Americas                     Belize                                        ARCOS-1
+    10       Americas                     Bermuda                                       Gemini Bermuda System
+    11       Americas                     Bermuda                                       GlobeNet
+    12       Americas                     Brazil                                        América Móvil Submarine Cable System (AMX1)
+    13       Americas                     Brazil                                        Americas II
+    14       Americas                     Brazil                                        BRUSA
+    15       Americas                     Brazil                                        Firmina
+    16       Americas                     Brazil                                        GlobeNet
+    17       Americas                     Brazil                                        Monet Cable System
+    18       Americas                     Brazil                                        Seabras-1
+    19       Americas                     Brazil                                        South America-1 (SAm-1)
+    20       Americas                     Brazil                                        South American Crossing (SAC)
+    21       Americas                     British Virgin Islands                        Pacific Caribbean Cable System (PCCS)
+    22       Americas                     British Virgin Islands                        Taino-Carib Cable System
+    23       Americas                     Canada                                        AmeriCan-1
+    24       Americas                     Canada                                        Crosslake Fibre
+    25       Americas                     Canada                                        KetchCan1 Submarine Fiber Cable System
+    26       Americas                     Cayman Islands                                Maya-1
+    27       Americas                     Chile                                         Curie
+    28       Americas                     Chile                                         South America-1 (SAm-1)
+    29       Americas                     Chile                                         South American Crossing (SAC)
+    30       Americas                     Colombia                                      América Móvil Submarine Cable System (AMX1)
+    31       Americas                     Colombia                                      ARCOS-1
+    32       Americas                     Colombia                                      Carnival Submarine Networks-1 (CSN-1)
+    33       Americas                     Colombia                                      CFX-1 Cable System (CFX-1)
+    34       Americas                     Colombia                                      GlobeNet
+    35       Americas                     Colombia                                      Maya-1
+    36       Americas                     Colombia                                      Pacific Caribbean Cable System (PCCS)
+    37       Americas                     Colombia                                      South America-1 (SAm-1)
+    38       Americas                     Colombia                                      South American Crossing (SAC)
+    39       Americas                     Costa Rica                                    ARCOS-1
+    40       Americas                     Costa Rica                                    Maya-1
+    41       Americas                     Costa Rica                                    Pan American Crossing (PAC)
+    42       Americas                     Curaçao                                       Americas II
+    43       Americas                     Curaçao                                       ARCOS-1
+    44       Americas                     Dominican Republic                            América Móvil Submarine Cable System (AMX1)
+    45       Americas                     Dominican Republic                            ARCOS-1
+    46       Americas                     Dominican Republic                            South America-1 (SAm-1)
+    47       Americas                     Ecuador                                       Carnival Submarine Networks-1 (CSN-1)
+    48       Americas                     Ecuador                                       Pacific Caribbean Cable System (PCCS)
+    49       Americas                     Ecuador                                       South America-1 (SAm-1)
+    50       Americas                     French Guiana                                 Americas II
+    51       Americas                     Guadeloupe                                    Global Caribbean Network (GCN)
+    52       Americas                     Guatemala                                     América Móvil Submarine Cable System (AMX1)
+    53       Americas                     Guatemala                                     ARCOS-1
+    54       Americas                     Guatemala                                     South America-1 (SAm-1)
+    55       Americas                     Honduras                                      ARCOS-1
+    56       Americas                     Honduras                                      Maya-1
+    57       Americas                     Jamaica                                       CFX-1 Cable System (CFX-1)
+    58       Americas                     Martinique                                    Americas II
+    59       Americas                     Mexico                                        América Móvil Submarine Cable System (AMX1)
+    60       Americas                     Mexico                                        ARCOS-1
+    61       Americas                     Mexico                                        Maya-1
+    62       Americas                     Mexico                                        Neutral Networks Laredo Cable
+    63       Americas                     Mexico                                        Pan American Crossing (PAC)
+    64       Americas                     Nicaragua                                     ARCOS-1
+    64       Americas                     Panama                                        ARCOS-1
+    66       Americas                     Panama                                        Carnival Submarine Networks-1 (CSN-1)
+    67       Americas                     Panama                                        Maya-1
+    68       Americas                     Panama                                        Pacific Caribbean Cable System (PCCS)
+    69       Americas                     Panama                                        Pan American Crossing (PAC)
+    70       Americas                     Panama                                        South American Crossing (SAC)
+    71       Americas                     Peru                                          South America-1 (SAm-1)
+    72       Americas                     Peru                                          South American Crossing (SAC)
+    73       Americas                     Saint Barthelemy                              Global Caribbean Network (GCN)
+    74       Americas                     Saint Lucia                                   Antilles Crossing
+    75       Americas                     Saint Martin                                  Global Caribbean Network (GCN)
+    76       Americas                     Sint Maarten                                  SMPR-1
+    77       Americas                     Trinidad and Tobago                           Americas II
+    78       Americas                     Turks and Caicos Islands                      ARCOS-1
+    79       Americas                     Uruguay                                       Firmina
+    80       Americas                     Venezuela                                     Americas II
+    81       Americas                     Venezuela                                     ARCOS-1
+    82       Americas                     Venezuela                                     GlobeNet
+    83       Americas                     Venezuela                                     Pan American Crossing (PAC)
+
+
+    No.                 Region                               Foreign Landing Point                              Cable Name
+
+     1       Atlantic                     Canada                                        GTT Atlantic
+     2       Atlantic                     Denmark                                       Havfrue
+     3       Atlantic                     France                                        Amitié
+     4       Atlantic                     France                                        Apollo Cable
+     5       Atlantic                     France                                        Dunant
+     6       Atlantic                     France                                        FLAG Atlantic-1
+     7       Atlantic                     Germany                                       Atlantic Crossing (AC-1)
+     8       Atlantic                     Iceland                                       AEConnect Cable Network
+     9       Atlantic                     Ireland                                       AEConnect Cable Network
+    10       Atlantic                     Ireland                                       GTT Atlantic
+    11       Atlantic                     Ireland                                       Havfrue
+    12       Atlantic                     Netherlands                                   Atlantic Crossing (AC-1)
+    13       Atlantic                     Norway                                        Havfrue
+    14       Atlantic                     Spain                                         Grace Hopper
+    15       Atlantic                     Spain                                         MAREA
+    16       Atlantic                     United Kingdom                                Amitié
+    17       Atlantic                     United Kingdom                                Apollo Cable
+    18       Atlantic                     United Kingdom                                Atlantic Crossing (AC-1)
+    19       Atlantic                     United Kingdom                                FLAG Atlantic-1
+    20       Atlantic                     United Kingdom                                Grace Hopper
+    21       Atlantic                     United Kingdom                                GTT Atlantic
+    22       Atlantic                     United Kingdom                                TGN Atlantic
+    23       Atlantic                     United Kingdom                                Yellow
+
+
+    No.                 Region                               Foreign Landing Point                              Cable Name
+
+     1       Pacific                      Australia                                     Australia-Japan Cable
+     2       Pacific                      Australia                                     Hawaiki Cable System
+     3       Pacific                      Australia                                     Japan-Guam-Australia (JGA) South System
+     4       Pacific                      Australia                                     PPC-1
+     5       Pacific                      Australia                                     Southern Cross Cable Network
+     6       Pacific                      Australia                                     Southern Cross NEXT
+     7       Pacific                      Australia                                     Telstra Endeavour
+     8       Pacific                      Brunei                                        Asia America Gateway (AAG)
+     9       Pacific                      China                                         New Cross-Pacific (NCP)
+    10       Pacific                      China                                         Trans-Pacific Express (TPE) Cable Network
+    11       Pacific                      Federated States of Micronesia                HANTRU1
+    12       Pacific                      Fiji                                          Southern Cross Cable Network
+    13       Pacific                      Fiji                                          Southern Cross NEXT
+    14       Pacific                      French Polynesia                              Honotua Cable System
+    15       Pacific                      Hong Kong                                     Asia America Gateway (AAG)
+    16       Pacific                      Indonesia                                     Echo
+    17       Pacific                      Indonesia                                     Southeast Asia-US (SEA-US)
+    18       Pacific                      Japan                                         Australia-Japan Cable
+    19       Pacific                      Japan                                         FASTER Cable System
+    20       Pacific                      Japan                                         GOKI Cable Network
+    21       Pacific                      Japan                                         Japan-Guam-Australia (JGA) North System
+    22       Pacific                      Japan                                         JUNO
+    23       Pacific                      Japan                                         JUPITER
+    24       Pacific                      Japan                                         New Cross-Pacific (NCP)
+    25       Pacific                      Japan                                         Pacific Crossing-1 (PC-1)
+    26       Pacific                      Japan                                         TGN Pacific
+    27       Pacific                      Japan                                         Trans-Pacific Express (TPE) Cable Network
+    28       Pacific                      Japan                                         Unity Cable System
+    29       Pacific                      Kiribati                                      Southern Cross NEXT
+    30       Pacific                      Malaysia                                      Asia America Gateway (AAG)
+    31       Pacific                      New Zealand                                   Hawaiki Cable System
+    32       Pacific                      New Zealand                                   Southern Cross Cable Network
+    33       Pacific                      New Zealand                                   Southern Cross NEXT
+    34       Pacific                      Papua New Guinea                              PPC-1
+    35       Pacific                      Philippines                                   Asia America Gateway (AAG)
+    36       Pacific                      Philippines                                   JUPITER
+    37       Pacific                      Philippines                                   Pacific Light Cable Network (PLCN)
+    38       Pacific                      Philippines                                   Southeast Asia-US (SEA-US)
+    39       Pacific                      Republic of the Marshall Islands              HANTRU1
+    40       Pacific                      Samoa                                         Samoa American Samoa Cable System
+    41       Pacific                      Samoa                                         Southern Cross NEXT
+    42       Pacific                      Singapore                                     Asia America Gateway (AAG)
+    43       Pacific                      Singapore                                     Echo
+    44       Pacific                      South Korea                                   New Cross-Pacific (NCP)
+    45       Pacific                      South Korea                                   Trans-Pacific Express (TPE) Cable Network
+    46       Pacific                      Taiwan                                        FASTER Cable System
+    47       Pacific                      Taiwan                                        New Cross-Pacific (NCP)
+    48       Pacific                      Taiwan                                        Pacific Light Cable Network (PLCN)
+    49       Pacific                      Taiwan                                        Trans-Pacific Express (TPE) Cable Network
+    50       Pacific                      Thailand                                      Asia America Gateway (AAG)
+    51       Pacific                      Tokelau                                       Southern Cross NEXT
+    52       Pacific                      Vietnam                                       Asia America Gateway (AAG)
+
+   158        Total Landing Points
+Source: FCC records
+
+
+
+
+                                                                     B-2
+                                       Attachment C
+                   U.S.-International Submarine Cables – Landing Points
+                   by Number of Landing Points Per Country and Region
+                                as of December 31, 2024
+
+              No. of Landing
+                                             Country                         Region
+            Points Per Country
+
+                      11                       Japan                          Pacific
+                       9                       Brazil                        Americas
+                       9                     Colombia                        Americas
+                       8                 United Kingdom                      Atlantic
+                       7                     Australia                        Pacific
+                       6                      Panama                         Americas
+                       5                      Mexico                         Americas
+                       4                      France                         Atlantic
+                       4                    Philippines                       Pacific
+                       4                      Taiwan                          Pacific
+                       4                    Venezuela                        Americas
+                       3                     Argentina                       Americas
+                       3                     Bahamas                         Americas
+                       3                      Canada                         Americas
+                       3                       Chile                         Americas
+                       3                    Costa Rica                       Americas
+                       3               Dominican Republic                    Americas
+                       3                     Ecuador                         Americas
+                       3                    Guatemala                        Americas
+                       3                      Ireland                        Atlantic
+                       3                   New Zealand                        Pacific
+                       2                     Bermuda                         Americas
+                       2               British Virgin Islands                Americas
+                       2                       China                          Pacific
+                       2                     Curaçao                         Americas
+                       2                        Fiji                          Pacific
+                       2                     Honduras                        Americas
+                       2                     Indonesia                        Pacific
+                       2                       Peru                          Americas
+                       2                      Samoa                           Pacific
+                       2                     Singapore                        Pacific
+                       2                   South Korea                        Pacific
+                       2                       Spain                         Atlantic
+                       1                      Aruba                          Americas
+                       1                     Barbados                        Americas
+                       1                      Belize                         Americas
+                       1                      Brunei                          Pacific
+                       1                      Canada                         Atlantic
+                       1                  Cayman Islands                     Americas
+                       1                     Denmark                         Atlantic
+                       1          Federated States of Micronesia              Pacific
+                       1                  French Guiana                      Americas
+                       1                 French Polynesia                     Pacific
+                       1                     Germany                         Atlantic
+                       1                    Guadeloupe                       Americas
+                       1                    Hong Kong                         Pacific
+                       1                      Iceland                        Atlantic
+                       1                      Jamaica                        Americas
+                       1                      Kiribati                        Pacific
+                       1                     Malaysia                         Pacific
+                       1                    Martinique                       Americas
+                       1                    Netherlands                      Atlantic
+                       1                    Nicaragua                        Americas
+                       1                      Norway                         Atlantic
+                       1               Papua New Guinea                       Pacific
+                       1          Republic of the Marshall Islands            Pacific
+                       1                 Saint Barthelemy                    Americas
+                       1                    Saint Lucia                      Americas
+                       1                   Saint Martin                      Americas
+                       1                   Sint Maarten                      Americas
+                       1                     Thailand                         Pacific
+                       1                     Tokelau                          Pacific
+                       1               Trinidad and Tobago                   Americas
+                       1             Turks and Caicos Islands                Americas
+                       1                     Uruguay                         Americas
+                       1                     Vietnam                         Pacific
+            Source: FCC Records
+                                    Frequency Table
+                      Summarizing Foreign Landing Points Per Country
+                                                                Number of Countries Per Region
+   No. of Landing Points Per
+                                             Americas                        Atlantic            Pacific
+            Country
+               1                                16                              6                  11
+               2                                 5                              1                  6
+               3                                 8                              1                  1
+               4                                 1                              1                  2
+               5                                 1
+               6                                 1
+               7                                                                                   1
+               8                                                                1
+               9                                 2
+              10
+              11                                                                                   1
+Source: FCC Records
+

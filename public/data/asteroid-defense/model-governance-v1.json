@@ -1,0 +1,30 @@
+{
+  "schema": "simulatte.asteroidModelGovernance.v1",
+  "id": "asteroid-model-governance-v1",
+  "algorithms": [
+    {
+      "id": "angular-lm-fit-v1",
+      "kind": "weighted nonlinear least squares with central-difference Jacobian"
+    },
+    {
+      "id": "shared-heliocentric-rk4-v1",
+      "kind": "shared fixed-step RK4 two-body propagation"
+    },
+    {
+      "id": "covariance-square-root-ensemble-v1",
+      "kind": "deterministic Cholesky normal ensemble"
+    },
+    {
+      "id": "encounter-screening-v1",
+      "kind": "sampled closest approach and local encounter plane"
+    }
+  ],
+  "prohibitedClaims": [
+    "public danger assessment",
+    "operational Sentry reproduction",
+    "launch or civil-defense recommendation",
+    "validated impact probability",
+    "navigation solution"
+  ],
+  "publicClaim": "Inside this declared simulation, the observation and intervention policy changed the modeled encounter distribution."
+}

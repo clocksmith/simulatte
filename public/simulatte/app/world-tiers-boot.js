@@ -13,6 +13,7 @@
   const TIER_LABELS = tierRegistry.TIER_LABELS;
   const PROFILE_LABELS = Object.freeze({
     'cable-trader-pickup-v1': 'Cable Trader',
+    'neighborhood-bulk-pool-v1': 'Neighborhood Bulk Pool',
     'safety-explorer-v1': 'Safety Explorer',
     'sun-walker-v1': 'Sun Walker',
     'food-recall-us-v1': 'Food Recall (US)',
@@ -258,10 +259,11 @@
         ownerPluginId:owner,
         scenario:activeScenario,
         profileId:data.applicationProfile.id,
+        getControlValues:pluginUi.values,
         storage:root.sessionStorage,
         render:renderPlugins,
         resetRuntime:()=>activateScenario(activeScenario),
-        buildReceipt:({actionResult,settlement})=>Object.freeze({schema:'simulatte.tierRunReceipt.v1',tier,profileId:data.applicationProfile.id,scenario:activeScenario,actionResult,settlement,pluginRuntime:runtime.runtimeReceipt(),loadReceipt:data.receipt}),
+        buildReceipt:({actionResult,settlement,parameterValues})=>Object.freeze({schema:'simulatte.tierRunReceipt.v1',tier,profileId:data.applicationProfile.id,scenario:activeScenario,parameterValues,actionResult,settlement,pluginRuntime:runtime.runtimeReceipt(),loadReceipt:data.receipt}),
         onState:(state)=>{
           root.__simulatteTierRunState=state;
           const isRunning=state.state==='running';
@@ -282,7 +284,12 @@
           ctx.setJourneyPhase?.('completed');
           ctx.setRuntimeStatus?.(elements,'Complete','ready');
         },
-        onError:(error)=>{ctx.setJourneyPhase?.('failed');ctx.setRuntimeStatus?.(elements,'Stopped','error');root.SimulatteRuntimeLog?.error?.('tier.run.failed',{message:error.message,code:error.code||null});},
+        onError:(error)=>{
+          root.__simulatteLastFailError={message:error.message,code:error.code||null};
+          ctx.setJourneyPhase?.('failed');
+          ctx.setRuntimeStatus?.(elements,'Stopped','error');
+          (root.SimulatteAutonomyRuntimeLog||root.SimulatteRuntimeLog)?.error?.('tier.run.failed',{message:error.message,code:error.code||null});
+        },
       });
     }
     try {
@@ -338,7 +345,8 @@
         }catch(error){
           ctx.setJourneyPhase?.('failed');
           ctx.setRuntimeStatus?.(elements,'Stopped','error');
-          root.SimulatteRuntimeLog?.error?.('tier.scenario.activation.failed',{message:error.message,code:error.code||null});
+          root.__simulatteLastFailError={message:error.message,code:error.code||null};
+          (root.SimulatteAutonomyRuntimeLog||root.SimulatteRuntimeLog)?.error?.('tier.scenario.activation.failed',{message:error.message,code:error.code||null});
         }finally{
           elements.shuffleButton.disabled=false;
           elements.startButton.disabled=false;

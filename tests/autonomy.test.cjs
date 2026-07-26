@@ -1178,7 +1178,11 @@ test('browser loader verifies raw hashes and rejects tampered assets', async () 
   assert.ok(requests.every((row) => row.options?.cache === 'no-cache'));
   assert.equal(loaded.applicationProfile.id, 'cable-trader-pickup-v1');
   assert.deepEqual(loaded.applicationProfile.plugins.map((row) => row.id), ['cable-trader']);
-  assert.deepEqual(loaded.manifest.applicationProfiles.map((row) => row.id), ['safety-explorer-v1', 'sun-walker-v1']);
+  assert.deepEqual(loaded.manifest.applicationProfiles.map((row) => row.id), [
+    'neighborhood-bulk-pool-v1',
+    'safety-explorer-v1',
+    'sun-walker-v1',
+  ]);
   assert.equal(fs.existsSync(path.join(root, 'public/data/application-profiles/simulatte-world-v1.json')), false);
 
   const safetyProfile = await dataLoader.loadApplication('http://localhost/data/simulatte/autonomy-manifest.json', fetchFiles, { requestedProfileId: 'safety-explorer-v1' });

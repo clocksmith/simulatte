@@ -1,0 +1,51 @@
+{
+  "schema": "simulatte.applicationProfile.v2",
+  "id": "neighborhood-bulk-pool-v1",
+  "interaction": {
+    "mode": "playback",
+    "startLabel": "Form neighborhood pool",
+    "shuffleLabel": "Change demand"
+  },
+  "defaultSeedId": "weekend-baseline",
+  "seeds": [
+    {
+      "id": "weekend-baseline",
+      "label": "Weekend neighborhood pool",
+      "description": "Modeled demand across four NYC warehouses compares independent shopping, bulk splitting, existing-trip delivery, and pickup hubs.",
+      "seed": "bulk-pool-weekend-001",
+      "missionText": "Run the predefined weekend neighborhood bulk-purchasing and existing-trip pooling scenario."
+    },
+    {
+      "id": "cold-chain-tight",
+      "label": "Cold-chain constraint",
+      "description": "Refrigerated and frozen requests face tighter cold capacity, detour, stop, and freshness constraints.",
+      "seed": "bulk-pool-cold-002",
+      "missionText": "Run the predefined neighborhood bulk-pool cold-chain constraint scenario."
+    },
+    {
+      "id": "fee-vs-probono",
+      "label": "Compensation choices",
+      "description": "Pro-bono, exact-expense, and disclosed-fee trips expose separate cost, burden, and reputation dimensions.",
+      "seed": "bulk-pool-compensation-003",
+      "missionText": "Run the predefined neighborhood bulk-pool driver-compensation scenario."
+    },
+    {
+      "id": "inventory-gap",
+      "label": "Unknown inventory",
+      "description": "Unknown warehouse availability fails closed unless the user explicitly admits it as a scenario assumption.",
+      "seed": "bulk-pool-inventory-gap-004",
+      "missionText": "Run the predefined neighborhood bulk-pool unknown-inventory scenario."
+    }
+  ],
+  "camera": {
+    "initialMode": "top",
+    "runMode": "top"
+  },
+  "plugins": [
+    {
+      "id": "neighborhood-bulk-pool",
+      "configId": "neighborhood-bulk-pool-config-v1"
+    }
+  ],
+  "routeObjective": {}
+}

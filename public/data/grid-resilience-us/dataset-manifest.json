@@ -1,0 +1,84 @@
+{
+  "schema": "simulatte.pluginDatasetManifest.v1",
+  "id": "grid-resilience-us-dataset-manifest-v1",
+  "generatedBy": "tools/grid-resilience/update-grid-manifest.mjs",
+  "datasets": [
+    {
+      "id": "grid-disturbance-scenarios-v1",
+      "path": "./disturbance-scenarios-v1.json",
+      "schemaId": "simulatte.gridDisturbanceScenarios.v1",
+      "sha256": "531c145743206d4513b94b632174ee382b5e70d2e7501ff4cdc37159efc9c49a",
+      "bytes": 3599
+    },
+    {
+      "id": "grid-eia-balancing-authority-hourly-v1",
+      "path": "./eia-balancing-authority-hourly-v1.json",
+      "schemaId": "simulatte.gridEiaBalancingAuthorityHourly.v1",
+      "sha256": "670eeb0a2a189056259a92b0e1ad27b5e7dc427e4ba06a3351245d2df9b46558",
+      "bytes": 75392
+    },
+    {
+      "id": "grid-eia-generation-mix-hourly-v1",
+      "path": "./eia-generation-mix-hourly-v1.json",
+      "schemaId": "simulatte.gridEiaGenerationMixHourly.v1",
+      "sha256": "5de0b7927f3a2ec082f7a5320a7130537e52006f76e35ef1dba2fda05fadbdca",
+      "bytes": 545941
+    },
+    {
+      "id": "grid-model-governance-v1",
+      "path": "./model-governance-v1.json",
+      "schemaId": "simulatte.gridModelGovernance.v1",
+      "sha256": "4265a91b356ffffe03577edff8f672c069d292a2c05b199bc6762272bfe55101",
+      "bytes": 1206
+    },
+    {
+      "id": "grid-noaa-weather-observations-v1",
+      "path": "./noaa-weather-observations-v1.json",
+      "schemaId": "simulatte.gridNoaaWeatherObservations.v1",
+      "sha256": "d9bc51a9b25885f97217188bffc715d0e6a8e60ac8943ce6215baf30242edf98",
+      "bytes": 77477
+    },
+    {
+      "id": "grid-noaa-weather-stations-v1",
+      "path": "./noaa-weather-stations-v1.json",
+      "schemaId": "simulatte.gridNoaaWeatherStations.v1",
+      "sha256": "26c0241dd35c14b6cb3c0b40366951601152015b35203d346d4918a0705434a8",
+      "bytes": 3056
+    },
+    {
+      "id": "grid-provenance-registry-v1",
+      "path": "./provenance-registry-v1.json",
+      "schemaId": "simulatte.gridProvenanceRegistry.v1",
+      "sha256": "62d5c3c835517f8a55db76f92b157257b07a80bca881c3a62fa3651c98543f5d",
+      "bytes": 5554
+    },
+    {
+      "id": "grid-regional-interface-scenarios-v1",
+      "path": "./regional-interface-scenarios-v1.json",
+      "schemaId": "simulatte.gridRegionalInterfaceScenarios.v1",
+      "sha256": "01052ef4388ad5c00695ac5246722b812c40325b2139b309d80adc6682482be5",
+      "bytes": 4762
+    },
+    {
+      "id": "grid-resource-archetypes-v1",
+      "path": "./resource-archetypes-v1.json",
+      "schemaId": "simulatte.gridResourceArchetypes.v1",
+      "sha256": "1b91b17fbb3718ff5caad85180d49f92477cc4103848e230504fbb79544aae11",
+      "bytes": 10466
+    },
+    {
+      "id": "grid-restoration-resources-v1",
+      "path": "./restoration-resources-v1.json",
+      "schemaId": "simulatte.gridRestorationResources.v1",
+      "sha256": "79fea427fbed23db1e1b7d73055909c40c1eeedbbbc6abd8e66544f67c8c1a0c",
+      "bytes": 3309
+    },
+    {
+      "id": "grid-storage-archetypes-v1",
+      "path": "./storage-archetypes-v1.json",
+      "schemaId": "simulatte.gridStorageArchetypes.v1",
+      "sha256": "e40e52ad85ae8fed503bdbd6570b1966463c5d3f13c850459728104afaba09c1",
+      "bytes": 2703
+    }
+  ]
+}

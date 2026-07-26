@@ -1,0 +1,131 @@
+{
+  "schema": "simulatte.gridDisturbanceScenarios.v1",
+  "id": "grid-disturbance-scenarios-v1",
+  "scenarios": [
+    {
+      "id": "heat-demand-peak",
+      "name": "Temperature-linked aggregate demand uplift",
+      "demandMultiplierByRegion": {
+        "west": 1.12,
+        "texas": 1.18,
+        "central": 1.1,
+        "east": 1.13
+      },
+      "unavailableResourceFractions": {},
+      "unavailableInterfaceIds": [],
+      "truth": {
+        "origin": "scenario",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "distribution",
+          "value": {
+            "interpretation": "Declared experiment assumption; not an operating-system forecast."
+          }
+        }
+      }
+    },
+    {
+      "id": "generator-outage-cluster",
+      "name": "Seeded aggregate resource unavailability",
+      "demandMultiplierByRegion": {
+        "west": 1,
+        "texas": 1.04,
+        "central": 1.02,
+        "east": 1
+      },
+      "unavailableResourceFractions": {
+        "texas:efficient-gas": 0.42,
+        "central:firm-zero-carbon": 0.3
+      },
+      "unavailableInterfaceIds": [],
+      "truth": {
+        "origin": "scenario",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "distribution",
+          "value": {
+            "interpretation": "Declared experiment assumption; not an operating-system forecast."
+          }
+        }
+      }
+    },
+    {
+      "id": "renewable-forecast-error",
+      "name": "Common renewable shortfall realization",
+      "demandMultiplierByRegion": {
+        "west": 1.03,
+        "texas": 1.03,
+        "central": 1.03,
+        "east": 1.03
+      },
+      "unavailableResourceFractions": {
+        "west:variable-renewable": 0.48,
+        "texas:variable-renewable": 0.35,
+        "central:variable-renewable": 0.3,
+        "east:variable-renewable": 0.25
+      },
+      "unavailableInterfaceIds": [],
+      "truth": {
+        "origin": "scenario",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "distribution",
+          "value": {
+            "interpretation": "Declared experiment assumption; not an operating-system forecast."
+          }
+        }
+      }
+    },
+    {
+      "id": "interface-loss",
+      "name": "One aggregate transfer interface unavailable",
+      "demandMultiplierByRegion": {
+        "west": 1,
+        "texas": 1.05,
+        "central": 1.04,
+        "east": 1.06
+      },
+      "unavailableResourceFractions": {},
+      "unavailableInterfaceIds": [
+        "central-east"
+      ],
+      "truth": {
+        "origin": "scenario",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "distribution",
+          "value": {
+            "interpretation": "Declared experiment assumption; not an operating-system forecast."
+          }
+        }
+      }
+    },
+    {
+      "id": "restoration-sequence",
+      "name": "Aggregate interface and resource outages with repair dependencies",
+      "demandMultiplierByRegion": {
+        "west": 1,
+        "texas": 1.08,
+        "central": 1.06,
+        "east": 1.08
+      },
+      "unavailableResourceFractions": {
+        "central:efficient-gas": 0.38,
+        "east:peaking": 0.55
+      },
+      "unavailableInterfaceIds": [
+        "central-east"
+      ],
+      "truth": {
+        "origin": "scenario",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "distribution",
+          "value": {
+            "interpretation": "Declared experiment assumption; not an operating-system forecast."
+          }
+        }
+      }
+    }
+  ]
+}

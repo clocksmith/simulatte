@@ -1,0 +1,67 @@
+{
+  "timestamp": "2026-07-26T18:38:39.193Z",
+  "pass": false,
+  "totalTiers": 5,
+  "passedTiers": 4,
+  "reports": [
+    {
+      "tier": "country",
+      "profileId": "food-recall-us-v1",
+      "pluginId": "food-recall-us",
+      "pass": true,
+      "status": "Complete",
+      "receipt": {
+        "actionStatus": "settled",
+        "obligations": 4
+      },
+      "errors": []
+    },
+    {
+      "tier": "world",
+      "profileId": "maritime-trade-global-v1",
+      "pluginId": "maritime-trade-global",
+      "pass": false,
+      "status": null,
+      "receipt": null,
+      "errors": [
+        "tier-complete: runtime error (Stopped)"
+      ]
+    },
+    {
+      "tier": "world",
+      "profileId": "subsea-network-global-v1",
+      "pluginId": "subsea-network-global",
+      "pass": true,
+      "status": "Complete",
+      "receipt": {
+        "actionStatus": "settled",
+        "obligations": 3
+      },
+      "errors": []
+    },
+    {
+      "tier": "solar-system",
+      "profileId": "orbital-transfer-planner-v1",
+      "pluginId": "orbital-transfer-planner",
+      "pass": true,
+      "status": "Complete",
+      "receipt": {
+        "actionStatus": "settled",
+        "obligations": 4
+      },
+      "errors": []
+    },
+    {
+      "tier": "star-chart",
+      "profileId": "interstellar-relay-network-v1",
+      "pluginId": "interstellar-relay-network",
+      "pass": true,
+      "status": "Complete",
+      "receipt": {
+        "actionStatus": "settled",
+        "obligations": 3
+      },
+      "errors": []
+    }
+  ]
+}

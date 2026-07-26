@@ -1,0 +1,2442 @@
+{
+  "schema": "simulatte.subseaFccSourceExtract.v1",
+  "id": "subsea-fcc-source-extract-v1",
+  "generatedBy": "tools/subsea-network/fetch-fcc-license-register.mjs",
+  "retrievalDate": "2026-07-26",
+  "license": {
+    "identifier": "FCC-public-record",
+    "requiredAttribution": "Federal Communications Commission, Office of International Affairs"
+  },
+  "sources": [
+    {
+      "id": "fcc-license-register-2025",
+      "url": "https://docs.fcc.gov/public/attachments/DA-26-197A3.pdf",
+      "fileName": "da-26-197a3.pdf",
+      "sha256": "eaadcb659e59b39d60c1944253b896aafe924c9d89c827551aeee58edc735231",
+      "publishedThrough": "2025-12-31"
+    },
+    {
+      "id": "fcc-circuit-capacity-2024",
+      "url": "https://docs.fcc.gov/public/attachments/DA-25-1072A2.pdf",
+      "fileName": "da-25-1072a2.pdf",
+      "sha256": "543558edfb752741cf87f8fa730cfe50f223175bcc1199bf63ce3db9e29fe426",
+      "publishedThrough": "2024-12-31"
+    }
+  ],
+  "licenses": [
+    {
+      "id": "fcc-license:scl-lic-20230915-00025",
+      "cableName": "América Móvil Submarine Cable System (AMX1)",
+      "region": "americas",
+      "originalFileNumber": "SCL-LIC-20120330-00002",
+      "currentLicenseNumber": "SCL-LIC-20230915-00025",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 1,
+      "sourceLine": 5
+    },
+    {
+      "id": "fcc-license:scl-mod-19990901-00016",
+      "cableName": "AmeriCan-1",
+      "region": "americas",
+      "originalFileNumber": "SCL-LIC-19980123-00002",
+      "currentLicenseNumber": "SCL-MOD-19990901-00016",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 1,
+      "sourceLine": 6
+    },
+    {
+      "id": "fcc-license:scl-mod-20191202-00038",
+      "cableName": "Americas II",
+      "region": "americas",
+      "originalFileNumber": "SCL-LIC-19980429-00019",
+      "currentLicenseNumber": "SCL-MOD-20191202-00038",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 1,
+      "sourceLine": 7
+    },
+    {
+      "id": "fcc-license:scl-lic-20031125-00032",
+      "cableName": "Antilles Crossing",
+      "region": "americas",
+      "originalFileNumber": "SCL-LIC-20031125-00032",
+      "currentLicenseNumber": "SCL-LIC-20031125-00032",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 1,
+      "sourceLine": 8
+    },
+    {
+      "id": "fcc-license:scl-mod-20020701-00056",
+      "cableName": "ARCOS-1",
+      "region": "americas",
+      "originalFileNumber": "SCL-LIC-19981222-00032",
+      "currentLicenseNumber": "SCL-MOD-20020701-00056",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 1,
+      "sourceLine": 9
+    },
+    {
+      "id": "fcc-license:scl-lic-20220422-00016",
+      "cableName": "BAHAMAS II",
+      "region": "americas",
+      "originalFileNumber": "SCL-LIC-20220422-00016",
+      "currentLicenseNumber": "SCL-LIC-20220422-00016",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 1,
+      "sourceLine": 10
+    },
+    {
+      "id": "fcc-license:scl-mod-20020925-00094",
+      "cableName": "Bahamas Internet Cable System (BICS)",
+      "region": "americas",
+      "originalFileNumber": "SCL-LIC-20000118-00001",
+      "currentLicenseNumber": "SCL-MOD-20020925-00094",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 1,
+      "sourceLine": 11
+    },
+    {
+      "id": "fcc-license:scl-lic-20160330-00011",
+      "cableName": "BRUSA",
+      "region": "americas",
+      "originalFileNumber": "SCL-LIC-20160330-00011",
+      "currentLicenseNumber": "SCL-LIC-20160330-00011",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 1,
+      "sourceLine": 12
+    },
+    {
+      "id": "fcc-license:scl-lic-20230921-00026",
+      "cableName": "Carnival Submarine Networks-1 (CSN-1)",
+      "region": "americas",
+      "originalFileNumber": "SCL-LIC-20230921-00026",
+      "currentLicenseNumber": "SCL-LIC-20230921-00026",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 1,
+      "sourceLine": 13
+    },
+    {
+      "id": "fcc-license:scl-lic-20070516-00008",
+      "cableName": "CFX-1 Cable System (CFX-1)",
+      "region": "americas",
+      "originalFileNumber": "SCL-LIC-20070516-00008",
+      "currentLicenseNumber": "SCL-LIC-20070516-00008",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 1,
+      "sourceLine": 14
+    },
+    {
+      "id": "fcc-license:scl-lic-20180216-00002",
+      "cableName": "Crosslake Fibre",
+      "region": "americas",
+      "originalFileNumber": "SCL-LIC-20180216-00002",
+      "currentLicenseNumber": "SCL-LIC-20180216-00002",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 1,
+      "sourceLine": 15
+    },
+    {
+      "id": "fcc-license:scl-mod-20191223-00039",
+      "cableName": "Curie",
+      "region": "americas",
+      "originalFileNumber": "SCL-LIC-20181008-00034",
+      "currentLicenseNumber": "SCL-MOD-20191223-00039",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 1,
+      "sourceLine": 16
+    },
+    {
+      "id": "fcc-license:scl-lic-20220422-00015",
+      "cableName": "Firmina",
+      "region": "americas",
+      "originalFileNumber": "SCL-LIC-20220422-00015",
+      "currentLicenseNumber": "SCL-LIC-20220422-00015",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 1,
+      "sourceLine": 17
+    },
+    {
+      "id": "fcc-license:scl-lic-20070925-00017",
+      "cableName": "Gemini Bermuda System",
+      "region": "americas",
+      "originalFileNumber": "SCL-LIC-20070925-00017",
+      "currentLicenseNumber": "SCL-LIC-20070925-00017",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 1,
+      "sourceLine": 18
+    },
+    {
+      "id": "fcc-license:scl-mod-20140923-00009",
+      "cableName": "Global Caribbean Network (GCN)",
+      "region": "americas",
+      "originalFileNumber": "SCL-LIC-20050418-00010",
+      "currentLicenseNumber": "SCL-MOD-20140923-00009",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 1,
+      "sourceLine": 19
+    },
+    {
+      "id": "fcc-license:scl-mod-20121003-00012",
+      "cableName": "GlobeNet",
+      "region": "americas",
+      "originalFileNumber": "SCL-LIC-19990602-00010",
+      "currentLicenseNumber": "SCL-MOD-20121003-00012",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 1,
+      "sourceLine": 20
+    },
+    {
+      "id": "fcc-license:scl-lic-20190718-00020",
+      "cableName": "KetchCan1 Submarine Fiber Cable System",
+      "region": "americas",
+      "originalFileNumber": "SCL-LIC-20190718-00020",
+      "currentLicenseNumber": "SCL-LIC-20190718-00020",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 1,
+      "sourceLine": 21
+    },
+    {
+      "id": "fcc-license:scl-mod-20110928-00028",
+      "cableName": "Maya-1",
+      "region": "americas",
+      "originalFileNumber": "SCL-LIC-19990325-00006",
+      "currentLicenseNumber": "SCL-MOD-20110928-00028",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 1,
+      "sourceLine": 22
+    },
+    {
+      "id": "fcc-license:scl-lic-20150408-00008",
+      "cableName": "Monet Cable System",
+      "region": "americas",
+      "originalFileNumber": "SCL-LIC-20150408-00008",
+      "currentLicenseNumber": "SCL-LIC-20150408-00008",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 1,
+      "sourceLine": 23
+    },
+    {
+      "id": "fcc-license:scl-lic-20210930-00042",
+      "cableName": "Neutral Networks Laredo Cable",
+      "region": "americas",
+      "originalFileNumber": "SCL-LIC-20210930-00042",
+      "currentLicenseNumber": "SCL-LIC-20210930-00042",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 1,
+      "sourceLine": 24
+    },
+    {
+      "id": "fcc-license:scl-lic-20240621-00030",
+      "cableName": "Nuvem",
+      "region": "americas",
+      "originalFileNumber": "SCL-LIC-20240621-00030",
+      "currentLicenseNumber": "SCL-LIC-20240621-00030",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 1,
+      "sourceLine": 25
+    },
+    {
+      "id": "fcc-license:scl-lic-20130122-00001",
+      "cableName": "Pacific Caribbean Cable System (PCCS)",
+      "region": "americas",
+      "originalFileNumber": "SCL-LIC-20130122-00001",
+      "currentLicenseNumber": "SCL-LIC-20130122-00001",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 1,
+      "sourceLine": 26
+    },
+    {
+      "id": "fcc-license:scl-mod-20110524-00020",
+      "cableName": "Pan American Crossing (PAC)",
+      "region": "americas",
+      "originalFileNumber": "SCL-LIC-19981103-00022",
+      "currentLicenseNumber": "SCL-MOD-20110524-00020",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 1,
+      "sourceLine": 27
+    },
+    {
+      "id": "fcc-license:scl-lic-20160115-00002",
+      "cableName": "Seabras-1",
+      "region": "americas",
+      "originalFileNumber": "SCL-LIC-20160115-00002",
+      "currentLicenseNumber": "SCL-LIC-20160115-00002",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 1,
+      "sourceLine": 28
+    },
+    {
+      "id": "fcc-license:scl-lic-20031209-00033",
+      "cableName": "SMPR-1",
+      "region": "americas",
+      "originalFileNumber": "SCL-LIC-20031209-00033",
+      "currentLicenseNumber": "SCL-LIC-20031209-00033",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 1,
+      "sourceLine": 29
+    },
+    {
+      "id": "fcc-license:scl-mod-20250423-00013",
+      "cableName": "South America-1 (SAm-1)",
+      "region": "americas",
+      "originalFileNumber": "SCL-LIC-20000204-00003",
+      "currentLicenseNumber": "SCL-MOD-20250423-00013",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 1,
+      "sourceLine": 30
+    },
+    {
+      "id": "fcc-license:scl-mod-20150129-00002",
+      "cableName": "South American Crossing (SAC)",
+      "region": "americas",
+      "originalFileNumber": "SCL-LIC-19990823-00015",
+      "currentLicenseNumber": "SCL-MOD-20150129-00002",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 1,
+      "sourceLine": 31
+    },
+    {
+      "id": "fcc-license:scl-lic-20180702-00019",
+      "cableName": "Taino-Carib Cable System",
+      "region": "americas",
+      "originalFileNumber": "SCL-LIC-20180702-00019",
+      "currentLicenseNumber": "SCL-LIC-20180702-00019",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 1,
+      "sourceLine": 32
+    },
+    {
+      "id": "fcc-license:scl-lic-20240105-00001",
+      "cableName": "TIKAL-AMX3",
+      "region": "americas",
+      "originalFileNumber": "SCL-LIC-20240105-00001",
+      "currentLicenseNumber": "SCL-LIC-20240105-00001",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 1,
+      "sourceLine": 33
+    },
+    {
+      "id": "fcc-license:scl-lic-20240605-00023",
+      "cableName": "Trans Americas Fiber System (TAM-1)",
+      "region": "americas",
+      "originalFileNumber": "SCL-LIC-20240605-00023",
+      "currentLicenseNumber": "SCL-LIC-20240605-00023",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 1,
+      "sourceLine": 34
+    },
+    {
+      "id": "fcc-license:scl-mod-20210105-00001",
+      "cableName": "AEConnect-1 Cable System",
+      "region": "atlantic",
+      "originalFileNumber": "SCL-LIC-20140206-00002",
+      "currentLicenseNumber": "SCL-MOD-20210105-00001",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 1,
+      "sourceLine": 36
+    },
+    {
+      "id": "fcc-license:scl-lic-20200807-00036",
+      "cableName": "Amitié",
+      "region": "atlantic",
+      "originalFileNumber": "SCL-LIC-20200807-00036",
+      "currentLicenseNumber": "SCL-LIC-20200807-00036",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 1,
+      "sourceLine": 37
+    },
+    {
+      "id": "fcc-license:scl-mod-20020412-00031",
+      "cableName": "Apollo Cable",
+      "region": "atlantic",
+      "originalFileNumber": "SCL-LIC-20010122-00002",
+      "currentLicenseNumber": "SCL-MOD-20020412-00031",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 1,
+      "sourceLine": 38
+    },
+    {
+      "id": "fcc-license:scl-lic-20230222-00005",
+      "cableName": "Atlantic Crossing 1 (AC-1)",
+      "region": "atlantic",
+      "originalFileNumber": "SCL-LIC-20230222-00005",
+      "currentLicenseNumber": "SCL-LIC-20230222-00005",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 1,
+      "sourceLine": 39
+    },
+    {
+      "id": "fcc-license:scl-lic-20190410-00015",
+      "cableName": "Dunant",
+      "region": "atlantic",
+      "originalFileNumber": "SCL-LIC-20190410-00015",
+      "currentLicenseNumber": "SCL-LIC-20190410-00015",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 1,
+      "sourceLine": 40
+    },
+    {
+      "id": "fcc-license:scl-mod-20020412-00023",
+      "cableName": "EXA North and South",
+      "region": "atlantic",
+      "originalFileNumber": "SCL-LIC-19990804-00012",
+      "currentLicenseNumber": "SCL-MOD-20020412-00023",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 1,
+      "sourceLine": 41
+    },
+    {
+      "id": "fcc-license:scl-mod-20040211-00006",
+      "cableName": "FLAG Atlantic-1",
+      "region": "atlantic",
+      "originalFileNumber": "SCL-LIC-19990301-00005",
+      "currentLicenseNumber": "SCL-MOD-20040211-00006",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 1,
+      "sourceLine": 42
+    },
+    {
+      "id": "fcc-license:scl-lic-20210225-00014",
+      "cableName": "Grace Hopper",
+      "region": "atlantic",
+      "originalFileNumber": "SCL-LIC-20210225-00014",
+      "currentLicenseNumber": "SCL-LIC-20210225-00014",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 1,
+      "sourceLine": 43
+    },
+    {
+      "id": "fcc-license:scl-lic-20180511-00010",
+      "cableName": "Havfrue",
+      "region": "atlantic",
+      "originalFileNumber": "SCL-LIC-20180511-00010",
+      "currentLicenseNumber": "SCL-LIC-20180511-00010",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 1,
+      "sourceLine": 44
+    },
+    {
+      "id": "fcc-license:scl-lic-20160525-00012",
+      "cableName": "MAREA",
+      "region": "atlantic",
+      "originalFileNumber": "SCL-LIC-20160525-00012",
+      "currentLicenseNumber": "SCL-LIC-20160525-00012",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 1,
+      "sourceLine": 45
+    },
+    {
+      "id": "fcc-license:scl-mod-20060111-00001",
+      "cableName": "TGN Atlantic",
+      "region": "atlantic",
+      "originalFileNumber": "SCL-LIC-20000308-00007",
+      "currentLicenseNumber": "SCL-MOD-20060111-00001",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 1,
+      "sourceLine": 46
+    },
+    {
+      "id": "fcc-license:scl-mod-20020415-00026",
+      "cableName": "Yellow Cable System",
+      "region": "atlantic",
+      "originalFileNumber": "SCL-LIC-19990913-00019",
+      "currentLicenseNumber": "SCL-MOD-20020415-00026",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 1,
+      "sourceLine": 47
+    },
+    {
+      "id": "fcc-license:scl-lic-20220715-00024",
+      "cableName": "Apricot",
+      "region": "pacific",
+      "originalFileNumber": "SCL-LIC-20220715-00024",
+      "currentLicenseNumber": "SCL-LIC-20220715-00024",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 1,
+      "sourceLine": 49
+    },
+    {
+      "id": "fcc-license:scl-lic-20070824-00015",
+      "cableName": "Asia America Gateway (AAG)",
+      "region": "pacific",
+      "originalFileNumber": "SCL-LIC-20070824-00015",
+      "currentLicenseNumber": "SCL-LIC-20070824-00015",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 1,
+      "sourceLine": 50
+    },
+    {
+      "id": "fcc-license:scl-mod-20020415-00050",
+      "cableName": "Australia-Japan Cable",
+      "region": "pacific",
+      "originalFileNumber": "SCL-LIC-20000629-00025",
+      "currentLicenseNumber": "SCL-MOD-20020415-00050",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 1,
+      "sourceLine": 51
+    },
+    {
+      "id": "fcc-license:scl-lic-20221209-00036",
+      "cableName": "Bifrost",
+      "region": "pacific",
+      "originalFileNumber": "SCL-LIC-20221209-00036",
+      "currentLicenseNumber": "SCL-LIC-20221209-00036",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 1,
+      "sourceLine": 52
+    },
+    {
+      "id": "fcc-license:scl-lic-20210329-00020",
+      "cableName": "Echo",
+      "region": "pacific",
+      "originalFileNumber": "SCL-LIC-20210329-00020",
+      "currentLicenseNumber": "SCL-LIC-20210329-00020",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 1,
+      "sourceLine": 53
+    },
+    {
+      "id": "fcc-license:scl-lic-20150626-00015",
+      "cableName": "FASTER Cable System",
+      "region": "pacific",
+      "originalFileNumber": "SCL-LIC-20150626-00015",
+      "currentLicenseNumber": "SCL-LIC-20150626-00015",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 1,
+      "sourceLine": 54
+    },
+    {
+      "id": "fcc-license:scl-lic-20110329-00009",
+      "cableName": "GOKI Cable Network",
+      "region": "pacific",
+      "originalFileNumber": "SCL-LIC-20110329-00009",
+      "currentLicenseNumber": "SCL-LIC-20110329-00009",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 1,
+      "sourceLine": 55
+    },
+    {
+      "id": "fcc-license:scl-lic-20241210-00048",
+      "cableName": "Halaihai",
+      "region": "pacific",
+      "originalFileNumber": "SCL-LIC-20241210-00048",
+      "currentLicenseNumber": "SCL-LIC-20241210-00048",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 1,
+      "sourceLine": 56
+    },
+    {
+      "id": "fcc-license:scl-lic-20090302-00005",
+      "cableName": "HANTRU1",
+      "region": "pacific",
+      "originalFileNumber": "SCL-LIC-20090302-00005",
+      "currentLicenseNumber": "SCL-LIC-20090302-00005",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 1,
+      "sourceLine": 57
+    },
+    {
+      "id": "fcc-license:scl-lic-20160906-00019",
+      "cableName": "Hawaiki Cable System",
+      "region": "pacific",
+      "originalFileNumber": "SCL-LIC-20160906-00019",
+      "currentLicenseNumber": "SCL-LIC-20160906-00019",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 1,
+      "sourceLine": 58
+    },
+    {
+      "id": "fcc-license:scl-lic-20241030-00042",
+      "cableName": "Honomoana",
+      "region": "pacific",
+      "originalFileNumber": "SCL-LIC-20241030-00042",
+      "currentLicenseNumber": "SCL-LIC-20241030-00042",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 1,
+      "sourceLine": 59
+    },
+    {
+      "id": "fcc-license:scl-mod-20180410-00007",
+      "cableName": "Honotua Cable System",
+      "region": "pacific",
+      "originalFileNumber": "SCL-LIC-20081008-00017",
+      "currentLicenseNumber": "SCL-MOD-20180410-00007",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 1,
+      "sourceLine": 60
+    },
+    {
+      "id": "fcc-license:scl-lic-20181106-00035",
+      "cableName": "Japan-Guam-Australia (JGA) North System (JGA North)",
+      "region": "pacific",
+      "originalFileNumber": "SCL-LIC-20181106-00035",
+      "currentLicenseNumber": "SCL-LIC-20181106-00035",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 1,
+      "sourceLine": 61
+    },
+    {
+      "id": "fcc-license:scl-lic-20190502-00016",
+      "cableName": "Japan-Guam-Australia (JGA) South System (JGA South)",
+      "region": "pacific",
+      "originalFileNumber": "SCL-LIC-20190502-00016",
+      "currentLicenseNumber": "SCL-LIC-20190502-00016",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 1,
+      "sourceLine": 62
+    },
+    {
+      "id": "fcc-license:scl-lic-20221208-00037",
+      "cableName": "JUNO",
+      "region": "pacific",
+      "originalFileNumber": "SCL-LIC-20221208-00037",
+      "currentLicenseNumber": "SCL-LIC-20221208-00037",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 1,
+      "sourceLine": 63
+    },
+    {
+      "id": "fcc-license:scl-lic-20180517-00012",
+      "cableName": "JUPITER",
+      "region": "pacific",
+      "originalFileNumber": "SCL-LIC-20180517-00012",
+      "currentLicenseNumber": "SCL-LIC-20180517-00012",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 1,
+      "sourceLine": 64
+    },
+    {
+      "id": "fcc-license:scl-lic-20151104-00029",
+      "cableName": "New Cross-Pacific (NCP)",
+      "region": "pacific",
+      "originalFileNumber": "SCL-LIC-20151104-00029",
+      "currentLicenseNumber": "SCL-LIC-20151104-00029",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 1,
+      "sourceLine": 65
+    },
+    {
+      "id": "fcc-license:scl-lic-20240424-00010",
+      "cableName": "Pacific Crossing-1 (PC-1)",
+      "region": "pacific",
+      "originalFileNumber": "SCL-LIC-19980807-00010",
+      "currentLicenseNumber": "SCL-LIC-20240424-00010",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 1,
+      "sourceLine": 66
+    },
+    {
+      "id": "fcc-license:scl-lic-20200827-00038",
+      "cableName": "Pacific Light Cable Network (PLCN)",
+      "region": "pacific",
+      "originalFileNumber": "SCL-LIC-20200827-00038",
+      "currentLicenseNumber": "SCL-LIC-20200827-00038",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 1,
+      "sourceLine": 67
+    },
+    {
+      "id": "fcc-license:scl-mod-20180803-00030",
+      "cableName": "PPC-1",
+      "region": "pacific",
+      "originalFileNumber": "SCL-LIC-20080213-00001",
+      "currentLicenseNumber": "SCL-MOD-20180803-00030",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 1,
+      "sourceLine": 68
+    },
+    {
+      "id": "fcc-license:scl-lic-20240911-00038",
+      "cableName": "Proa",
+      "region": "pacific",
+      "originalFileNumber": "SCL-LIC-20240911-00038",
+      "currentLicenseNumber": "SCL-LIC-20240911-00038",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 1,
+      "sourceLine": 69
+    },
+    {
+      "id": "fcc-license:scl-lic-20080814-00016",
+      "cableName": "Samoa American Samoa Cable System",
+      "region": "pacific",
+      "originalFileNumber": "SCL-LIC-20080814-00016",
+      "currentLicenseNumber": "SCL-LIC-20080814-00016",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 1,
+      "sourceLine": 70
+    },
+    {
+      "id": "fcc-license:scl-lic-20150626-00016",
+      "cableName": "Southeast Asia-US (SEA-US)",
+      "region": "pacific",
+      "originalFileNumber": "SCL-LIC-20150626-00016",
+      "currentLicenseNumber": "SCL-LIC-20150626-00016",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 1,
+      "sourceLine": 71
+    },
+    {
+      "id": "fcc-license:scl-lic-20231117-00038",
+      "cableName": "Southern Cross 1&2",
+      "region": "pacific",
+      "originalFileNumber": "SCL-LIC-20231117-00038",
+      "currentLicenseNumber": "SCL-LIC-20231117-00038",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 1,
+      "sourceLine": 72
+    },
+    {
+      "id": "fcc-license:scl-lic-20190809-00026",
+      "cableName": "Southern Cross NEXT",
+      "region": "pacific",
+      "originalFileNumber": "SCL-LIC-20190809-00026",
+      "currentLicenseNumber": "SCL-LIC-20190809-00026",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 1,
+      "sourceLine": 73
+    },
+    {
+      "id": "fcc-license:scl-lic-20240819-00037",
+      "cableName": "Tabua",
+      "region": "pacific",
+      "originalFileNumber": "SCL-LIC-20240819-00037",
+      "currentLicenseNumber": "SCL-LIC-20240819-00037",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 1,
+      "sourceLine": 74
+    },
+    {
+      "id": "fcc-license:scl-lic-20240926-00039",
+      "cableName": "Taihei",
+      "region": "pacific",
+      "originalFileNumber": "SCL-LIC-20240926-00039",
+      "currentLicenseNumber": "SCL-LIC-20240926-00039",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 2,
+      "sourceLine": 1
+    },
+    {
+      "id": "fcc-license:scl-lic-20070621-00009",
+      "cableName": "Telstra Endeavour",
+      "region": "pacific",
+      "originalFileNumber": "SCL-LIC-20070621-00009",
+      "currentLicenseNumber": "SCL-LIC-20070621-00009",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 2,
+      "sourceLine": 2
+    },
+    {
+      "id": "fcc-license:scl-mod-20060111-00002",
+      "cableName": "TGN Pacific",
+      "region": "pacific",
+      "originalFileNumber": "SCL-LIC-20000717-00026",
+      "currentLicenseNumber": "SCL-MOD-20060111-00002",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 2,
+      "sourceLine": 3
+    },
+    {
+      "id": "fcc-license:scl-lic-20230511-00013",
+      "cableName": "TPU",
+      "region": "pacific",
+      "originalFileNumber": "SCL-LIC-20230511-00013",
+      "currentLicenseNumber": "SCL-LIC-20230511-00013",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 2,
+      "sourceLine": 4
+    },
+    {
+      "id": "fcc-license:scl-mod-20080714-00012",
+      "cableName": "Trans-Pacific Express (TPE) Cable Network",
+      "region": "pacific",
+      "originalFileNumber": "SCL-LIC-20070222-00002",
+      "currentLicenseNumber": "SCL-MOD-20080714-00012",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 2,
+      "sourceLine": 5
+    },
+    {
+      "id": "fcc-license:scl-lic-20080516-00010",
+      "cableName": "Unity Cable System",
+      "region": "pacific",
+      "originalFileNumber": "SCL-LIC-20080516-00010",
+      "currentLicenseNumber": "SCL-LIC-20080516-00010",
+      "sourceDocumentId": "fcc-license-register-2025",
+      "sourcePage": 2,
+      "sourceLine": 6
+    }
+  ],
+  "foreignLandingRows": [
+    {
+      "id": "fcc-landing:americas:america-movil-submarine-cable-system-amx1:brazil",
+      "rowNumber": 1,
+      "region": "americas",
+      "cableName": "América Móvil Submarine Cable System (AMX1)",
+      "foreignLandingPoint": "Brazil",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 12,
+      "sourceLine": 8
+    },
+    {
+      "id": "fcc-landing:americas:america-movil-submarine-cable-system-amx1:colombia",
+      "rowNumber": 2,
+      "region": "americas",
+      "cableName": "América Móvil Submarine Cable System (AMX1)",
+      "foreignLandingPoint": "Colombia",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 12,
+      "sourceLine": 9
+    },
+    {
+      "id": "fcc-landing:americas:america-movil-submarine-cable-system-amx1:dominican-republic",
+      "rowNumber": 3,
+      "region": "americas",
+      "cableName": "América Móvil Submarine Cable System (AMX1)",
+      "foreignLandingPoint": "Dominican Republic",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 12,
+      "sourceLine": 10
+    },
+    {
+      "id": "fcc-landing:americas:america-movil-submarine-cable-system-amx1:guatemala",
+      "rowNumber": 4,
+      "region": "americas",
+      "cableName": "América Móvil Submarine Cable System (AMX1)",
+      "foreignLandingPoint": "Guatemala",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 12,
+      "sourceLine": 11
+    },
+    {
+      "id": "fcc-landing:americas:america-movil-submarine-cable-system-amx1:mexico",
+      "rowNumber": 5,
+      "region": "americas",
+      "cableName": "América Móvil Submarine Cable System (AMX1)",
+      "foreignLandingPoint": "Mexico",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 12,
+      "sourceLine": 12
+    },
+    {
+      "id": "fcc-landing:americas:american-1:canada",
+      "rowNumber": 6,
+      "region": "americas",
+      "cableName": "AmeriCan-1",
+      "foreignLandingPoint": "Canada",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 12,
+      "sourceLine": 13
+    },
+    {
+      "id": "fcc-landing:americas:americas-ii:brazil",
+      "rowNumber": 7,
+      "region": "americas",
+      "cableName": "Americas II",
+      "foreignLandingPoint": "Brazil",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 12,
+      "sourceLine": 14
+    },
+    {
+      "id": "fcc-landing:americas:americas-ii:curacao",
+      "rowNumber": 8,
+      "region": "americas",
+      "cableName": "Americas II",
+      "foreignLandingPoint": "Curaçao",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 12,
+      "sourceLine": 15
+    },
+    {
+      "id": "fcc-landing:americas:americas-ii:french-guiana",
+      "rowNumber": 9,
+      "region": "americas",
+      "cableName": "Americas II",
+      "foreignLandingPoint": "French Guiana",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 12,
+      "sourceLine": 16
+    },
+    {
+      "id": "fcc-landing:americas:americas-ii:martinique",
+      "rowNumber": 10,
+      "region": "americas",
+      "cableName": "Americas II",
+      "foreignLandingPoint": "Martinique",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 12,
+      "sourceLine": 17
+    },
+    {
+      "id": "fcc-landing:americas:americas-ii:trinidad-and-tobago",
+      "rowNumber": 11,
+      "region": "americas",
+      "cableName": "Americas II",
+      "foreignLandingPoint": "Trinidad and Tobago",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 12,
+      "sourceLine": 18
+    },
+    {
+      "id": "fcc-landing:americas:americas-ii:venezuela",
+      "rowNumber": 12,
+      "region": "americas",
+      "cableName": "Americas II",
+      "foreignLandingPoint": "Venezuela",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 12,
+      "sourceLine": 19
+    },
+    {
+      "id": "fcc-landing:americas:antilles-crossing:barbados",
+      "rowNumber": 13,
+      "region": "americas",
+      "cableName": "Antilles Crossing",
+      "foreignLandingPoint": "Barbados",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 12,
+      "sourceLine": 20
+    },
+    {
+      "id": "fcc-landing:americas:antilles-crossing:saint-lucia",
+      "rowNumber": 14,
+      "region": "americas",
+      "cableName": "Antilles Crossing",
+      "foreignLandingPoint": "Saint Lucia",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 12,
+      "sourceLine": 21
+    },
+    {
+      "id": "fcc-landing:americas:arcos-1:bahamas",
+      "rowNumber": 15,
+      "region": "americas",
+      "cableName": "ARCOS-1",
+      "foreignLandingPoint": "Bahamas",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 12,
+      "sourceLine": 22
+    },
+    {
+      "id": "fcc-landing:americas:arcos-1:belize",
+      "rowNumber": 16,
+      "region": "americas",
+      "cableName": "ARCOS-1",
+      "foreignLandingPoint": "Belize",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 12,
+      "sourceLine": 23
+    },
+    {
+      "id": "fcc-landing:americas:arcos-1:colombia",
+      "rowNumber": 17,
+      "region": "americas",
+      "cableName": "ARCOS-1",
+      "foreignLandingPoint": "Colombia",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 12,
+      "sourceLine": 24
+    },
+    {
+      "id": "fcc-landing:americas:arcos-1:costa-rica",
+      "rowNumber": 18,
+      "region": "americas",
+      "cableName": "ARCOS-1",
+      "foreignLandingPoint": "Costa Rica",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 12,
+      "sourceLine": 25
+    },
+    {
+      "id": "fcc-landing:americas:arcos-1:curacao",
+      "rowNumber": 19,
+      "region": "americas",
+      "cableName": "ARCOS-1",
+      "foreignLandingPoint": "Curaçao",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 12,
+      "sourceLine": 26
+    },
+    {
+      "id": "fcc-landing:americas:arcos-1:dominican-republic",
+      "rowNumber": 20,
+      "region": "americas",
+      "cableName": "ARCOS-1",
+      "foreignLandingPoint": "Dominican Republic",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 12,
+      "sourceLine": 27
+    },
+    {
+      "id": "fcc-landing:americas:arcos-1:guatemala",
+      "rowNumber": 21,
+      "region": "americas",
+      "cableName": "ARCOS-1",
+      "foreignLandingPoint": "Guatemala",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 12,
+      "sourceLine": 28
+    },
+    {
+      "id": "fcc-landing:americas:arcos-1:honduras",
+      "rowNumber": 22,
+      "region": "americas",
+      "cableName": "ARCOS-1",
+      "foreignLandingPoint": "Honduras",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 12,
+      "sourceLine": 29
+    },
+    {
+      "id": "fcc-landing:americas:arcos-1:mexico",
+      "rowNumber": 23,
+      "region": "americas",
+      "cableName": "ARCOS-1",
+      "foreignLandingPoint": "Mexico",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 12,
+      "sourceLine": 30
+    },
+    {
+      "id": "fcc-landing:americas:arcos-1:nicaragua",
+      "rowNumber": 24,
+      "region": "americas",
+      "cableName": "ARCOS-1",
+      "foreignLandingPoint": "Nicaragua",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 12,
+      "sourceLine": 31
+    },
+    {
+      "id": "fcc-landing:americas:arcos-1:panama",
+      "rowNumber": 25,
+      "region": "americas",
+      "cableName": "ARCOS-1",
+      "foreignLandingPoint": "Panama",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 12,
+      "sourceLine": 32
+    },
+    {
+      "id": "fcc-landing:americas:arcos-1:turks-and-caicos-islands",
+      "rowNumber": 26,
+      "region": "americas",
+      "cableName": "ARCOS-1",
+      "foreignLandingPoint": "Turks and Caicos Islands",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 12,
+      "sourceLine": 33
+    },
+    {
+      "id": "fcc-landing:americas:arcos-1:venezuela",
+      "rowNumber": 27,
+      "region": "americas",
+      "cableName": "ARCOS-1",
+      "foreignLandingPoint": "Venezuela",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 12,
+      "sourceLine": 34
+    },
+    {
+      "id": "fcc-landing:americas:bahamas-ii:bahamas",
+      "rowNumber": 28,
+      "region": "americas",
+      "cableName": "BAHAMAS II",
+      "foreignLandingPoint": "Bahamas",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 12,
+      "sourceLine": 35
+    },
+    {
+      "id": "fcc-landing:americas:bahamas-internet-cable-system-bics:bahamas",
+      "rowNumber": 29,
+      "region": "americas",
+      "cableName": "Bahamas Internet Cable System (BICS)",
+      "foreignLandingPoint": "Bahamas",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 12,
+      "sourceLine": 36
+    },
+    {
+      "id": "fcc-landing:americas:brusa:brazil",
+      "rowNumber": 30,
+      "region": "americas",
+      "cableName": "BRUSA",
+      "foreignLandingPoint": "Brazil",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 12,
+      "sourceLine": 37
+    },
+    {
+      "id": "fcc-landing:americas:carnival-submarine-networks-1-csn-1:colombia",
+      "rowNumber": 31,
+      "region": "americas",
+      "cableName": "Carnival Submarine Networks-1 (CSN-1)",
+      "foreignLandingPoint": "Colombia",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 12,
+      "sourceLine": 38
+    },
+    {
+      "id": "fcc-landing:americas:carnival-submarine-networks-1-csn-1:ecuador",
+      "rowNumber": 32,
+      "region": "americas",
+      "cableName": "Carnival Submarine Networks-1 (CSN-1)",
+      "foreignLandingPoint": "Ecuador",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 12,
+      "sourceLine": 39
+    },
+    {
+      "id": "fcc-landing:americas:carnival-submarine-networks-1-csn-1:panama",
+      "rowNumber": 33,
+      "region": "americas",
+      "cableName": "Carnival Submarine Networks-1 (CSN-1)",
+      "foreignLandingPoint": "Panama",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 12,
+      "sourceLine": 40
+    },
+    {
+      "id": "fcc-landing:americas:cfx-1-cable-system-cfx-1:colombia",
+      "rowNumber": 34,
+      "region": "americas",
+      "cableName": "CFX-1 Cable System (CFX-1)",
+      "foreignLandingPoint": "Colombia",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 12,
+      "sourceLine": 41
+    },
+    {
+      "id": "fcc-landing:americas:cfx-1-cable-system-cfx-1:jamaica",
+      "rowNumber": 35,
+      "region": "americas",
+      "cableName": "CFX-1 Cable System (CFX-1)",
+      "foreignLandingPoint": "Jamaica",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 12,
+      "sourceLine": 42
+    },
+    {
+      "id": "fcc-landing:americas:crosslake-fibre:canada",
+      "rowNumber": 36,
+      "region": "americas",
+      "cableName": "Crosslake Fibre",
+      "foreignLandingPoint": "Canada",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 12,
+      "sourceLine": 43
+    },
+    {
+      "id": "fcc-landing:americas:curie:chile",
+      "rowNumber": 37,
+      "region": "americas",
+      "cableName": "Curie",
+      "foreignLandingPoint": "Chile",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 12,
+      "sourceLine": 44
+    },
+    {
+      "id": "fcc-landing:americas:firmina:argentina",
+      "rowNumber": 38,
+      "region": "americas",
+      "cableName": "Firmina",
+      "foreignLandingPoint": "Argentina",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 12,
+      "sourceLine": 45
+    },
+    {
+      "id": "fcc-landing:americas:firmina:brazil",
+      "rowNumber": 39,
+      "region": "americas",
+      "cableName": "Firmina",
+      "foreignLandingPoint": "Brazil",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 12,
+      "sourceLine": 46
+    },
+    {
+      "id": "fcc-landing:americas:firmina:uruguay",
+      "rowNumber": 40,
+      "region": "americas",
+      "cableName": "Firmina",
+      "foreignLandingPoint": "Uruguay",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 12,
+      "sourceLine": 47
+    },
+    {
+      "id": "fcc-landing:americas:gemini-bermuda-system:bermuda",
+      "rowNumber": 41,
+      "region": "americas",
+      "cableName": "Gemini Bermuda System",
+      "foreignLandingPoint": "Bermuda",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 12,
+      "sourceLine": 48
+    },
+    {
+      "id": "fcc-landing:americas:global-caribbean-network-gcn:guadeloupe",
+      "rowNumber": 42,
+      "region": "americas",
+      "cableName": "Global Caribbean Network (GCN)",
+      "foreignLandingPoint": "Guadeloupe",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 12,
+      "sourceLine": 49
+    },
+    {
+      "id": "fcc-landing:americas:global-caribbean-network-gcn:saint-barthelemy",
+      "rowNumber": 43,
+      "region": "americas",
+      "cableName": "Global Caribbean Network (GCN)",
+      "foreignLandingPoint": "Saint Barthelemy",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 12,
+      "sourceLine": 50
+    },
+    {
+      "id": "fcc-landing:americas:global-caribbean-network-gcn:saint-martin",
+      "rowNumber": 44,
+      "region": "americas",
+      "cableName": "Global Caribbean Network (GCN)",
+      "foreignLandingPoint": "Saint Martin",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 12,
+      "sourceLine": 51
+    },
+    {
+      "id": "fcc-landing:americas:globenet:bermuda",
+      "rowNumber": 45,
+      "region": "americas",
+      "cableName": "GlobeNet",
+      "foreignLandingPoint": "Bermuda",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 12,
+      "sourceLine": 52
+    },
+    {
+      "id": "fcc-landing:americas:globenet:brazil",
+      "rowNumber": 46,
+      "region": "americas",
+      "cableName": "GlobeNet",
+      "foreignLandingPoint": "Brazil",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 12,
+      "sourceLine": 53
+    },
+    {
+      "id": "fcc-landing:americas:globenet:colombia",
+      "rowNumber": 47,
+      "region": "americas",
+      "cableName": "GlobeNet",
+      "foreignLandingPoint": "Colombia",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 12,
+      "sourceLine": 54
+    },
+    {
+      "id": "fcc-landing:americas:globenet:venezuela",
+      "rowNumber": 48,
+      "region": "americas",
+      "cableName": "GlobeNet",
+      "foreignLandingPoint": "Venezuela",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 12,
+      "sourceLine": 55
+    },
+    {
+      "id": "fcc-landing:americas:ketchcan1-submarine-fiber-cable-system:canada",
+      "rowNumber": 49,
+      "region": "americas",
+      "cableName": "KetchCan1 Submarine Fiber Cable System",
+      "foreignLandingPoint": "Canada",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 12,
+      "sourceLine": 56
+    },
+    {
+      "id": "fcc-landing:americas:maya-1:cayman-islands",
+      "rowNumber": 50,
+      "region": "americas",
+      "cableName": "Maya-1",
+      "foreignLandingPoint": "Cayman Islands",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 13,
+      "sourceLine": 8
+    },
+    {
+      "id": "fcc-landing:americas:maya-1:colombia",
+      "rowNumber": 51,
+      "region": "americas",
+      "cableName": "Maya-1",
+      "foreignLandingPoint": "Colombia",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 13,
+      "sourceLine": 9
+    },
+    {
+      "id": "fcc-landing:americas:maya-1:costa-rica",
+      "rowNumber": 52,
+      "region": "americas",
+      "cableName": "Maya-1",
+      "foreignLandingPoint": "Costa Rica",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 13,
+      "sourceLine": 10
+    },
+    {
+      "id": "fcc-landing:americas:maya-1:honduras",
+      "rowNumber": 53,
+      "region": "americas",
+      "cableName": "Maya-1",
+      "foreignLandingPoint": "Honduras",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 13,
+      "sourceLine": 11
+    },
+    {
+      "id": "fcc-landing:americas:maya-1:mexico",
+      "rowNumber": 54,
+      "region": "americas",
+      "cableName": "Maya-1",
+      "foreignLandingPoint": "Mexico",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 13,
+      "sourceLine": 12
+    },
+    {
+      "id": "fcc-landing:americas:maya-1:panama",
+      "rowNumber": 55,
+      "region": "americas",
+      "cableName": "Maya-1",
+      "foreignLandingPoint": "Panama",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 13,
+      "sourceLine": 13
+    },
+    {
+      "id": "fcc-landing:americas:monet-cable-system:brazil",
+      "rowNumber": 56,
+      "region": "americas",
+      "cableName": "Monet Cable System",
+      "foreignLandingPoint": "Brazil",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 13,
+      "sourceLine": 14
+    },
+    {
+      "id": "fcc-landing:americas:neutral-networks-laredo-cable:mexico",
+      "rowNumber": 57,
+      "region": "americas",
+      "cableName": "Neutral Networks Laredo Cable",
+      "foreignLandingPoint": "Mexico",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 13,
+      "sourceLine": 15
+    },
+    {
+      "id": "fcc-landing:americas:pacific-caribbean-cable-system-pccs:aruba",
+      "rowNumber": 58,
+      "region": "americas",
+      "cableName": "Pacific Caribbean Cable System (PCCS)",
+      "foreignLandingPoint": "Aruba",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 13,
+      "sourceLine": 16
+    },
+    {
+      "id": "fcc-landing:americas:pacific-caribbean-cable-system-pccs:british-virgin-islands",
+      "rowNumber": 59,
+      "region": "americas",
+      "cableName": "Pacific Caribbean Cable System (PCCS)",
+      "foreignLandingPoint": "British Virgin Islands",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 13,
+      "sourceLine": 17
+    },
+    {
+      "id": "fcc-landing:americas:pacific-caribbean-cable-system-pccs:colombia",
+      "rowNumber": 60,
+      "region": "americas",
+      "cableName": "Pacific Caribbean Cable System (PCCS)",
+      "foreignLandingPoint": "Colombia",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 13,
+      "sourceLine": 18
+    },
+    {
+      "id": "fcc-landing:americas:pacific-caribbean-cable-system-pccs:ecuador",
+      "rowNumber": 61,
+      "region": "americas",
+      "cableName": "Pacific Caribbean Cable System (PCCS)",
+      "foreignLandingPoint": "Ecuador",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 13,
+      "sourceLine": 19
+    },
+    {
+      "id": "fcc-landing:americas:pacific-caribbean-cable-system-pccs:panama",
+      "rowNumber": 62,
+      "region": "americas",
+      "cableName": "Pacific Caribbean Cable System (PCCS)",
+      "foreignLandingPoint": "Panama",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 13,
+      "sourceLine": 20
+    },
+    {
+      "id": "fcc-landing:americas:pan-american-crossing-pac:costa-rica",
+      "rowNumber": 63,
+      "region": "americas",
+      "cableName": "Pan American Crossing (PAC)",
+      "foreignLandingPoint": "Costa Rica",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 13,
+      "sourceLine": 21
+    },
+    {
+      "id": "fcc-landing:americas:pan-american-crossing-pac:mexico",
+      "rowNumber": 64,
+      "region": "americas",
+      "cableName": "Pan American Crossing (PAC)",
+      "foreignLandingPoint": "Mexico",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 13,
+      "sourceLine": 22
+    },
+    {
+      "id": "fcc-landing:americas:pan-american-crossing-pac:panama",
+      "rowNumber": 65,
+      "region": "americas",
+      "cableName": "Pan American Crossing (PAC)",
+      "foreignLandingPoint": "Panama",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 13,
+      "sourceLine": 23
+    },
+    {
+      "id": "fcc-landing:americas:pan-american-crossing-pac:venezuela",
+      "rowNumber": 66,
+      "region": "americas",
+      "cableName": "Pan American Crossing (PAC)",
+      "foreignLandingPoint": "Venezuela",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 13,
+      "sourceLine": 24
+    },
+    {
+      "id": "fcc-landing:americas:seabras-1:brazil",
+      "rowNumber": 67,
+      "region": "americas",
+      "cableName": "Seabras-1",
+      "foreignLandingPoint": "Brazil",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 13,
+      "sourceLine": 25
+    },
+    {
+      "id": "fcc-landing:americas:smpr-1:sint-maarten",
+      "rowNumber": 68,
+      "region": "americas",
+      "cableName": "SMPR-1",
+      "foreignLandingPoint": "Sint Maarten",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 13,
+      "sourceLine": 26
+    },
+    {
+      "id": "fcc-landing:americas:south-america-1-sam-1:argentina",
+      "rowNumber": 69,
+      "region": "americas",
+      "cableName": "South America-1 (SAm-1)",
+      "foreignLandingPoint": "Argentina",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 13,
+      "sourceLine": 27
+    },
+    {
+      "id": "fcc-landing:americas:south-america-1-sam-1:brazil",
+      "rowNumber": 70,
+      "region": "americas",
+      "cableName": "South America-1 (SAm-1)",
+      "foreignLandingPoint": "Brazil",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 13,
+      "sourceLine": 28
+    },
+    {
+      "id": "fcc-landing:americas:south-america-1-sam-1:chile",
+      "rowNumber": 70,
+      "region": "americas",
+      "cableName": "South America-1 (SAm-1)",
+      "foreignLandingPoint": "Chile",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 13,
+      "sourceLine": 29
+    },
+    {
+      "id": "fcc-landing:americas:south-america-1-sam-1:colombia",
+      "rowNumber": 71,
+      "region": "americas",
+      "cableName": "South America-1 (SAm-1)",
+      "foreignLandingPoint": "Colombia",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 13,
+      "sourceLine": 30
+    },
+    {
+      "id": "fcc-landing:americas:south-america-1-sam-1:dominican-republic",
+      "rowNumber": 73,
+      "region": "americas",
+      "cableName": "South America-1 (SAm-1)",
+      "foreignLandingPoint": "Dominican Republic",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 13,
+      "sourceLine": 31
+    },
+    {
+      "id": "fcc-landing:americas:south-america-1-sam-1:ecuador",
+      "rowNumber": 74,
+      "region": "americas",
+      "cableName": "South America-1 (SAm-1)",
+      "foreignLandingPoint": "Ecuador",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 13,
+      "sourceLine": 32
+    },
+    {
+      "id": "fcc-landing:americas:south-america-1-sam-1:guatemala",
+      "rowNumber": 75,
+      "region": "americas",
+      "cableName": "South America-1 (SAm-1)",
+      "foreignLandingPoint": "Guatemala",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 13,
+      "sourceLine": 33
+    },
+    {
+      "id": "fcc-landing:americas:south-america-1-sam-1:peru",
+      "rowNumber": 76,
+      "region": "americas",
+      "cableName": "South America-1 (SAm-1)",
+      "foreignLandingPoint": "Peru",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 13,
+      "sourceLine": 34
+    },
+    {
+      "id": "fcc-landing:americas:south-american-crossing-sac:argentina",
+      "rowNumber": 77,
+      "region": "americas",
+      "cableName": "South American Crossing (SAC)",
+      "foreignLandingPoint": "Argentina",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 13,
+      "sourceLine": 35
+    },
+    {
+      "id": "fcc-landing:americas:south-american-crossing-sac:brazil",
+      "rowNumber": 78,
+      "region": "americas",
+      "cableName": "South American Crossing (SAC)",
+      "foreignLandingPoint": "Brazil",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 13,
+      "sourceLine": 36
+    },
+    {
+      "id": "fcc-landing:americas:south-american-crossing-sac:chile",
+      "rowNumber": 79,
+      "region": "americas",
+      "cableName": "South American Crossing (SAC)",
+      "foreignLandingPoint": "Chile",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 13,
+      "sourceLine": 37
+    },
+    {
+      "id": "fcc-landing:americas:south-american-crossing-sac:colombia",
+      "rowNumber": 80,
+      "region": "americas",
+      "cableName": "South American Crossing (SAC)",
+      "foreignLandingPoint": "Colombia",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 13,
+      "sourceLine": 38
+    },
+    {
+      "id": "fcc-landing:americas:south-american-crossing-sac:panama",
+      "rowNumber": 81,
+      "region": "americas",
+      "cableName": "South American Crossing (SAC)",
+      "foreignLandingPoint": "Panama",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 13,
+      "sourceLine": 39
+    },
+    {
+      "id": "fcc-landing:americas:south-american-crossing-sac:peru",
+      "rowNumber": 82,
+      "region": "americas",
+      "cableName": "South American Crossing (SAC)",
+      "foreignLandingPoint": "Peru",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 13,
+      "sourceLine": 40
+    },
+    {
+      "id": "fcc-landing:americas:taino-carib-cable-system:british-virgin-islands",
+      "rowNumber": 83,
+      "region": "americas",
+      "cableName": "Taino-Carib Cable System",
+      "foreignLandingPoint": "British Virgin Islands",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 13,
+      "sourceLine": 41
+    },
+    {
+      "id": "fcc-landing:atlantic:aeconnect-cable-network:iceland",
+      "rowNumber": 1,
+      "region": "atlantic",
+      "cableName": "AEConnect Cable Network",
+      "foreignLandingPoint": "Iceland",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 13,
+      "sourceLine": 47
+    },
+    {
+      "id": "fcc-landing:atlantic:aeconnect-cable-network:ireland",
+      "rowNumber": 2,
+      "region": "atlantic",
+      "cableName": "AEConnect Cable Network",
+      "foreignLandingPoint": "Ireland",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 13,
+      "sourceLine": 48
+    },
+    {
+      "id": "fcc-landing:atlantic:amitie:france",
+      "rowNumber": 3,
+      "region": "atlantic",
+      "cableName": "Amitié",
+      "foreignLandingPoint": "France",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 13,
+      "sourceLine": 49
+    },
+    {
+      "id": "fcc-landing:atlantic:amitie:united-kingdom",
+      "rowNumber": 4,
+      "region": "atlantic",
+      "cableName": "Amitié",
+      "foreignLandingPoint": "United Kingdom",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 13,
+      "sourceLine": 50
+    },
+    {
+      "id": "fcc-landing:atlantic:apollo-cable:france",
+      "rowNumber": 5,
+      "region": "atlantic",
+      "cableName": "Apollo Cable",
+      "foreignLandingPoint": "France",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 13,
+      "sourceLine": 51
+    },
+    {
+      "id": "fcc-landing:atlantic:apollo-cable:united-kingdom",
+      "rowNumber": 6,
+      "region": "atlantic",
+      "cableName": "Apollo Cable",
+      "foreignLandingPoint": "United Kingdom",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 13,
+      "sourceLine": 52
+    },
+    {
+      "id": "fcc-landing:atlantic:atlantic-crossing-ac-1:germany",
+      "rowNumber": 7,
+      "region": "atlantic",
+      "cableName": "Atlantic Crossing (AC-1)",
+      "foreignLandingPoint": "Germany",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 13,
+      "sourceLine": 53
+    },
+    {
+      "id": "fcc-landing:atlantic:atlantic-crossing-ac-1:netherlands",
+      "rowNumber": 8,
+      "region": "atlantic",
+      "cableName": "Atlantic Crossing (AC-1)",
+      "foreignLandingPoint": "Netherlands",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 13,
+      "sourceLine": 54
+    },
+    {
+      "id": "fcc-landing:atlantic:atlantic-crossing-ac-1:united-kingdom",
+      "rowNumber": 9,
+      "region": "atlantic",
+      "cableName": "Atlantic Crossing (AC-1)",
+      "foreignLandingPoint": "United Kingdom",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 13,
+      "sourceLine": 55
+    },
+    {
+      "id": "fcc-landing:atlantic:dunant:france",
+      "rowNumber": 10,
+      "region": "atlantic",
+      "cableName": "Dunant",
+      "foreignLandingPoint": "France",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 13,
+      "sourceLine": 56
+    },
+    {
+      "id": "fcc-landing:atlantic:flag-atlantic-1:france",
+      "rowNumber": 11,
+      "region": "atlantic",
+      "cableName": "FLAG Atlantic-1",
+      "foreignLandingPoint": "France",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 13,
+      "sourceLine": 57
+    },
+    {
+      "id": "fcc-landing:atlantic:flag-atlantic-1:united-kingdom",
+      "rowNumber": 12,
+      "region": "atlantic",
+      "cableName": "FLAG Atlantic-1",
+      "foreignLandingPoint": "United Kingdom",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 13,
+      "sourceLine": 58
+    },
+    {
+      "id": "fcc-landing:atlantic:grace-hopper:spain",
+      "rowNumber": 13,
+      "region": "atlantic",
+      "cableName": "Grace Hopper",
+      "foreignLandingPoint": "Spain",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 14,
+      "sourceLine": 8
+    },
+    {
+      "id": "fcc-landing:atlantic:grace-hopper:united-kingdom",
+      "rowNumber": 14,
+      "region": "atlantic",
+      "cableName": "Grace Hopper",
+      "foreignLandingPoint": "United Kingdom",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 14,
+      "sourceLine": 9
+    },
+    {
+      "id": "fcc-landing:atlantic:gtt-atlantic:canada",
+      "rowNumber": 15,
+      "region": "atlantic",
+      "cableName": "GTT Atlantic",
+      "foreignLandingPoint": "Canada",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 14,
+      "sourceLine": 10
+    },
+    {
+      "id": "fcc-landing:atlantic:gtt-atlantic:ireland",
+      "rowNumber": 16,
+      "region": "atlantic",
+      "cableName": "GTT Atlantic",
+      "foreignLandingPoint": "Ireland",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 14,
+      "sourceLine": 11
+    },
+    {
+      "id": "fcc-landing:atlantic:gtt-atlantic:united-kingdom",
+      "rowNumber": 17,
+      "region": "atlantic",
+      "cableName": "GTT Atlantic",
+      "foreignLandingPoint": "United Kingdom",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 14,
+      "sourceLine": 12
+    },
+    {
+      "id": "fcc-landing:atlantic:havfrue:denmark",
+      "rowNumber": 18,
+      "region": "atlantic",
+      "cableName": "Havfrue",
+      "foreignLandingPoint": "Denmark",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 14,
+      "sourceLine": 13
+    },
+    {
+      "id": "fcc-landing:atlantic:havfrue:ireland",
+      "rowNumber": 19,
+      "region": "atlantic",
+      "cableName": "Havfrue",
+      "foreignLandingPoint": "Ireland",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 14,
+      "sourceLine": 14
+    },
+    {
+      "id": "fcc-landing:atlantic:havfrue:norway",
+      "rowNumber": 20,
+      "region": "atlantic",
+      "cableName": "Havfrue",
+      "foreignLandingPoint": "Norway",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 14,
+      "sourceLine": 15
+    },
+    {
+      "id": "fcc-landing:atlantic:marea:spain",
+      "rowNumber": 21,
+      "region": "atlantic",
+      "cableName": "MAREA",
+      "foreignLandingPoint": "Spain",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 14,
+      "sourceLine": 16
+    },
+    {
+      "id": "fcc-landing:atlantic:tgn-atlantic:united-kingdom",
+      "rowNumber": 22,
+      "region": "atlantic",
+      "cableName": "TGN Atlantic",
+      "foreignLandingPoint": "United Kingdom",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 14,
+      "sourceLine": 17
+    },
+    {
+      "id": "fcc-landing:atlantic:yellow:united-kingdom",
+      "rowNumber": 23,
+      "region": "atlantic",
+      "cableName": "Yellow",
+      "foreignLandingPoint": "United Kingdom",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 14,
+      "sourceLine": 18
+    },
+    {
+      "id": "fcc-landing:pacific:asia-america-gateway-aag:brunei",
+      "rowNumber": 1,
+      "region": "pacific",
+      "cableName": "Asia America Gateway (AAG)",
+      "foreignLandingPoint": "Brunei",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 14,
+      "sourceLine": 24
+    },
+    {
+      "id": "fcc-landing:pacific:asia-america-gateway-aag:hong-kong",
+      "rowNumber": 2,
+      "region": "pacific",
+      "cableName": "Asia America Gateway (AAG)",
+      "foreignLandingPoint": "Hong Kong",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 14,
+      "sourceLine": 25
+    },
+    {
+      "id": "fcc-landing:pacific:asia-america-gateway-aag:malaysia",
+      "rowNumber": 3,
+      "region": "pacific",
+      "cableName": "Asia America Gateway (AAG)",
+      "foreignLandingPoint": "Malaysia",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 14,
+      "sourceLine": 26
+    },
+    {
+      "id": "fcc-landing:pacific:asia-america-gateway-aag:philippines",
+      "rowNumber": 4,
+      "region": "pacific",
+      "cableName": "Asia America Gateway (AAG)",
+      "foreignLandingPoint": "Philippines",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 14,
+      "sourceLine": 27
+    },
+    {
+      "id": "fcc-landing:pacific:asia-america-gateway-aag:singapore",
+      "rowNumber": 5,
+      "region": "pacific",
+      "cableName": "Asia America Gateway (AAG)",
+      "foreignLandingPoint": "Singapore",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 14,
+      "sourceLine": 28
+    },
+    {
+      "id": "fcc-landing:pacific:asia-america-gateway-aag:thailand",
+      "rowNumber": 6,
+      "region": "pacific",
+      "cableName": "Asia America Gateway (AAG)",
+      "foreignLandingPoint": "Thailand",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 14,
+      "sourceLine": 29
+    },
+    {
+      "id": "fcc-landing:pacific:asia-america-gateway-aag:vietnam",
+      "rowNumber": 7,
+      "region": "pacific",
+      "cableName": "Asia America Gateway (AAG)",
+      "foreignLandingPoint": "Vietnam",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 14,
+      "sourceLine": 30
+    },
+    {
+      "id": "fcc-landing:pacific:australia-japan-cable:australia",
+      "rowNumber": 8,
+      "region": "pacific",
+      "cableName": "Australia-Japan Cable",
+      "foreignLandingPoint": "Australia",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 14,
+      "sourceLine": 31
+    },
+    {
+      "id": "fcc-landing:pacific:australia-japan-cable:japan",
+      "rowNumber": 9,
+      "region": "pacific",
+      "cableName": "Australia-Japan Cable",
+      "foreignLandingPoint": "Japan",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 14,
+      "sourceLine": 32
+    },
+    {
+      "id": "fcc-landing:pacific:echo:indonesia",
+      "rowNumber": 10,
+      "region": "pacific",
+      "cableName": "Echo",
+      "foreignLandingPoint": "Indonesia",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 14,
+      "sourceLine": 33
+    },
+    {
+      "id": "fcc-landing:pacific:echo:singapore",
+      "rowNumber": 11,
+      "region": "pacific",
+      "cableName": "Echo",
+      "foreignLandingPoint": "Singapore",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 14,
+      "sourceLine": 34
+    },
+    {
+      "id": "fcc-landing:pacific:faster-cable-system:japan",
+      "rowNumber": 12,
+      "region": "pacific",
+      "cableName": "FASTER Cable System",
+      "foreignLandingPoint": "Japan",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 14,
+      "sourceLine": 35
+    },
+    {
+      "id": "fcc-landing:pacific:faster-cable-system:taiwan",
+      "rowNumber": 13,
+      "region": "pacific",
+      "cableName": "FASTER Cable System",
+      "foreignLandingPoint": "Taiwan",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 14,
+      "sourceLine": 36
+    },
+    {
+      "id": "fcc-landing:pacific:goki-cable-network:japan",
+      "rowNumber": 14,
+      "region": "pacific",
+      "cableName": "GOKI Cable Network",
+      "foreignLandingPoint": "Japan",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 14,
+      "sourceLine": 37
+    },
+    {
+      "id": "fcc-landing:pacific:hantru1:federated-states-of-micronesia",
+      "rowNumber": 15,
+      "region": "pacific",
+      "cableName": "HANTRU1",
+      "foreignLandingPoint": "Federated States of Micronesia",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 14,
+      "sourceLine": 38
+    },
+    {
+      "id": "fcc-landing:pacific:hantru1:republic-of-the-marshall-islands",
+      "rowNumber": 16,
+      "region": "pacific",
+      "cableName": "HANTRU1",
+      "foreignLandingPoint": "Republic of the Marshall Islands",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 14,
+      "sourceLine": 39
+    },
+    {
+      "id": "fcc-landing:pacific:hawaiki-cable-system:australia",
+      "rowNumber": 17,
+      "region": "pacific",
+      "cableName": "Hawaiki Cable System",
+      "foreignLandingPoint": "Australia",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 14,
+      "sourceLine": 40
+    },
+    {
+      "id": "fcc-landing:pacific:hawaiki-cable-system:new-zealand",
+      "rowNumber": 18,
+      "region": "pacific",
+      "cableName": "Hawaiki Cable System",
+      "foreignLandingPoint": "New Zealand",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 14,
+      "sourceLine": 41
+    },
+    {
+      "id": "fcc-landing:pacific:honotua-cable-system:french-polynesia",
+      "rowNumber": 19,
+      "region": "pacific",
+      "cableName": "Honotua Cable System",
+      "foreignLandingPoint": "French Polynesia",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 14,
+      "sourceLine": 42
+    },
+    {
+      "id": "fcc-landing:pacific:japan-guam-australia-jga-north-system-jga-north:japan",
+      "rowNumber": 20,
+      "region": "pacific",
+      "cableName": "Japan-Guam-Australia (JGA) North System (JGA North)",
+      "foreignLandingPoint": "Japan",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 14,
+      "sourceLine": 43
+    },
+    {
+      "id": "fcc-landing:pacific:japan-guam-australia-jga-south-system-jga-south:australia",
+      "rowNumber": 21,
+      "region": "pacific",
+      "cableName": "Japan-Guam-Australia (JGA) South System (JGA South)",
+      "foreignLandingPoint": "Australia",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 14,
+      "sourceLine": 44
+    },
+    {
+      "id": "fcc-landing:pacific:juno:japan",
+      "rowNumber": 22,
+      "region": "pacific",
+      "cableName": "JUNO",
+      "foreignLandingPoint": "Japan",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 14,
+      "sourceLine": 45
+    },
+    {
+      "id": "fcc-landing:pacific:jupiter:japan",
+      "rowNumber": 23,
+      "region": "pacific",
+      "cableName": "JUPITER",
+      "foreignLandingPoint": "Japan",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 14,
+      "sourceLine": 46
+    },
+    {
+      "id": "fcc-landing:pacific:jupiter:philippines",
+      "rowNumber": 24,
+      "region": "pacific",
+      "cableName": "JUPITER",
+      "foreignLandingPoint": "Philippines",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 14,
+      "sourceLine": 47
+    },
+    {
+      "id": "fcc-landing:pacific:new-cross-pacific-ncp:china",
+      "rowNumber": 25,
+      "region": "pacific",
+      "cableName": "New Cross-Pacific (NCP)",
+      "foreignLandingPoint": "China",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 14,
+      "sourceLine": 48
+    },
+    {
+      "id": "fcc-landing:pacific:new-cross-pacific-ncp:japan",
+      "rowNumber": 26,
+      "region": "pacific",
+      "cableName": "New Cross-Pacific (NCP)",
+      "foreignLandingPoint": "Japan",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 14,
+      "sourceLine": 49
+    },
+    {
+      "id": "fcc-landing:pacific:new-cross-pacific-ncp:south-korea",
+      "rowNumber": 27,
+      "region": "pacific",
+      "cableName": "New Cross-Pacific (NCP)",
+      "foreignLandingPoint": "South Korea",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 14,
+      "sourceLine": 50
+    },
+    {
+      "id": "fcc-landing:pacific:new-cross-pacific-ncp:taiwan",
+      "rowNumber": 28,
+      "region": "pacific",
+      "cableName": "New Cross-Pacific (NCP)",
+      "foreignLandingPoint": "Taiwan",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 14,
+      "sourceLine": 51
+    },
+    {
+      "id": "fcc-landing:pacific:pacific-crossing-1-pc-1:japan",
+      "rowNumber": 29,
+      "region": "pacific",
+      "cableName": "Pacific Crossing-1 (PC-1)",
+      "foreignLandingPoint": "Japan",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 14,
+      "sourceLine": 52
+    },
+    {
+      "id": "fcc-landing:pacific:pacific-light-cable-network-plcn:philippines",
+      "rowNumber": 30,
+      "region": "pacific",
+      "cableName": "Pacific Light Cable Network (PLCN)",
+      "foreignLandingPoint": "Philippines",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 14,
+      "sourceLine": 53
+    },
+    {
+      "id": "fcc-landing:pacific:pacific-light-cable-network-plcn:taiwan",
+      "rowNumber": 31,
+      "region": "pacific",
+      "cableName": "Pacific Light Cable Network (PLCN)",
+      "foreignLandingPoint": "Taiwan",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 14,
+      "sourceLine": 54
+    },
+    {
+      "id": "fcc-landing:pacific:ppc-1:australia",
+      "rowNumber": 32,
+      "region": "pacific",
+      "cableName": "PPC-1",
+      "foreignLandingPoint": "Australia",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 14,
+      "sourceLine": 55
+    },
+    {
+      "id": "fcc-landing:pacific:ppc-1:papua-new-guinea",
+      "rowNumber": 33,
+      "region": "pacific",
+      "cableName": "PPC-1",
+      "foreignLandingPoint": "Papua New Guinea",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 14,
+      "sourceLine": 56
+    },
+    {
+      "id": "fcc-landing:pacific:samoa-american-samoa-cable-system:samoa",
+      "rowNumber": 34,
+      "region": "pacific",
+      "cableName": "Samoa American Samoa Cable System",
+      "foreignLandingPoint": "Samoa",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 14,
+      "sourceLine": 57
+    },
+    {
+      "id": "fcc-landing:pacific:southeast-asia-us-sea-us:indonesia",
+      "rowNumber": 35,
+      "region": "pacific",
+      "cableName": "Southeast Asia-US (SEA-US)",
+      "foreignLandingPoint": "Indonesia",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 14,
+      "sourceLine": 58
+    },
+    {
+      "id": "fcc-landing:pacific:southeast-asia-us-sea-us:philippines",
+      "rowNumber": 36,
+      "region": "pacific",
+      "cableName": "Southeast Asia-US (SEA-US)",
+      "foreignLandingPoint": "Philippines",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 15,
+      "sourceLine": 9
+    },
+    {
+      "id": "fcc-landing:pacific:southern-cross-cable-network:australia",
+      "rowNumber": 37,
+      "region": "pacific",
+      "cableName": "Southern Cross Cable Network",
+      "foreignLandingPoint": "Australia",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 15,
+      "sourceLine": 10
+    },
+    {
+      "id": "fcc-landing:pacific:southern-cross-cable-network:fiji",
+      "rowNumber": 38,
+      "region": "pacific",
+      "cableName": "Southern Cross Cable Network",
+      "foreignLandingPoint": "Fiji",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 15,
+      "sourceLine": 11
+    },
+    {
+      "id": "fcc-landing:pacific:southern-cross-cable-network:new-zealand",
+      "rowNumber": 39,
+      "region": "pacific",
+      "cableName": "Southern Cross Cable Network",
+      "foreignLandingPoint": "New Zealand",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 15,
+      "sourceLine": 12
+    },
+    {
+      "id": "fcc-landing:pacific:southern-cross-next:australia",
+      "rowNumber": 40,
+      "region": "pacific",
+      "cableName": "Southern Cross NEXT",
+      "foreignLandingPoint": "Australia",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 15,
+      "sourceLine": 13
+    },
+    {
+      "id": "fcc-landing:pacific:southern-cross-next:fiji",
+      "rowNumber": 41,
+      "region": "pacific",
+      "cableName": "Southern Cross NEXT",
+      "foreignLandingPoint": "Fiji",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 15,
+      "sourceLine": 14
+    },
+    {
+      "id": "fcc-landing:pacific:southern-cross-next:kiribati",
+      "rowNumber": 42,
+      "region": "pacific",
+      "cableName": "Southern Cross NEXT",
+      "foreignLandingPoint": "Kiribati",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 15,
+      "sourceLine": 15
+    },
+    {
+      "id": "fcc-landing:pacific:southern-cross-next:new-zealand",
+      "rowNumber": 43,
+      "region": "pacific",
+      "cableName": "Southern Cross NEXT",
+      "foreignLandingPoint": "New Zealand",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 15,
+      "sourceLine": 16
+    },
+    {
+      "id": "fcc-landing:pacific:southern-cross-next:samoa",
+      "rowNumber": 44,
+      "region": "pacific",
+      "cableName": "Southern Cross NEXT",
+      "foreignLandingPoint": "Samoa",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 15,
+      "sourceLine": 17
+    },
+    {
+      "id": "fcc-landing:pacific:southern-cross-next:tokelau",
+      "rowNumber": 45,
+      "region": "pacific",
+      "cableName": "Southern Cross NEXT",
+      "foreignLandingPoint": "Tokelau",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 15,
+      "sourceLine": 18
+    },
+    {
+      "id": "fcc-landing:pacific:telstra-endeavour:australia",
+      "rowNumber": 46,
+      "region": "pacific",
+      "cableName": "Telstra Endeavour",
+      "foreignLandingPoint": "Australia",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 15,
+      "sourceLine": 19
+    },
+    {
+      "id": "fcc-landing:pacific:tgn-pacific:japan",
+      "rowNumber": 47,
+      "region": "pacific",
+      "cableName": "TGN Pacific",
+      "foreignLandingPoint": "Japan",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 15,
+      "sourceLine": 20
+    },
+    {
+      "id": "fcc-landing:pacific:trans-pacific-express-tpe-cable-network:china",
+      "rowNumber": 48,
+      "region": "pacific",
+      "cableName": "Trans-Pacific Express (TPE) Cable Network",
+      "foreignLandingPoint": "China",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 15,
+      "sourceLine": 21
+    },
+    {
+      "id": "fcc-landing:pacific:trans-pacific-express-tpe-cable-network:japan",
+      "rowNumber": 49,
+      "region": "pacific",
+      "cableName": "Trans-Pacific Express (TPE) Cable Network",
+      "foreignLandingPoint": "Japan",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 15,
+      "sourceLine": 22
+    },
+    {
+      "id": "fcc-landing:pacific:trans-pacific-express-tpe-cable-network:south-korea",
+      "rowNumber": 50,
+      "region": "pacific",
+      "cableName": "Trans-Pacific Express (TPE) Cable Network",
+      "foreignLandingPoint": "South Korea",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 15,
+      "sourceLine": 23
+    },
+    {
+      "id": "fcc-landing:pacific:trans-pacific-express-tpe-cable-network:taiwan",
+      "rowNumber": 51,
+      "region": "pacific",
+      "cableName": "Trans-Pacific Express (TPE) Cable Network",
+      "foreignLandingPoint": "Taiwan",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 15,
+      "sourceLine": 24
+    },
+    {
+      "id": "fcc-landing:pacific:unity-cable-system:japan",
+      "rowNumber": 52,
+      "region": "pacific",
+      "cableName": "Unity Cable System",
+      "foreignLandingPoint": "Japan",
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 15,
+      "sourceLine": 25
+    }
+  ],
+  "publicCapacityRows": [
+    {
+      "id": "fcc-capacity:america-movil-submarine-cable-system-amx1:2024",
+      "cableName": "América Móvil Submarine Cable System (AMX1)",
+      "availableCapacityGbps": 90000,
+      "plannedCapacityGbps": 112000,
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 6,
+      "sourceLine": 8
+    },
+    {
+      "id": "fcc-capacity:bahamas-internet-cable-system-bics:2024",
+      "cableName": "Bahamas Internet Cable System (BICS)",
+      "availableCapacityGbps": 698,
+      "plannedCapacityGbps": 948,
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 6,
+      "sourceLine": 14
+    },
+    {
+      "id": "fcc-capacity:brusa:2024",
+      "cableName": "BRUSA",
+      "availableCapacityGbps": 144000,
+      "plannedCapacityGbps": 144000,
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 6,
+      "sourceLine": 15
+    },
+    {
+      "id": "fcc-capacity:carnival-submarine-networks-1-csn-1:2024",
+      "cableName": "Carnival Submarine Networks-1 (CSN-1)",
+      "availableCapacityGbps": 0,
+      "plannedCapacityGbps": 20000,
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 6,
+      "sourceLine": 16
+    },
+    {
+      "id": "fcc-capacity:global-caribbean-network-gcn:2024",
+      "cableName": "Global Caribbean Network (GCN)",
+      "availableCapacityGbps": 340,
+      "plannedCapacityGbps": 600,
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 6,
+      "sourceLine": 22
+    },
+    {
+      "id": "fcc-capacity:neutral-networks-laredo-cable:2024",
+      "cableName": "Neutral Networks Laredo Cable",
+      "availableCapacityGbps": 1382400,
+      "plannedCapacityGbps": 1382400,
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 6,
+      "sourceLine": 27
+    },
+    {
+      "id": "fcc-capacity:pacific-caribbean-cable-system-pccs:2024",
+      "cableName": "Pacific Caribbean Cable System (PCCS)",
+      "availableCapacityGbps": 144000,
+      "plannedCapacityGbps": 144000,
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 6,
+      "sourceLine": 28
+    },
+    {
+      "id": "fcc-capacity:south-america-1-sam-1:2024",
+      "cableName": "South America-1 (SAm-1)",
+      "availableCapacityGbps": 48000,
+      "plannedCapacityGbps": 48000,
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 6,
+      "sourceLine": 32
+    },
+    {
+      "id": "fcc-capacity:marea:2024",
+      "cableName": "MAREA",
+      "availableCapacityGbps": 178000,
+      "plannedCapacityGbps": 178000,
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 6,
+      "sourceLine": 48
+    },
+    {
+      "id": "fcc-capacity:trans-pacific-express-tpe-cable-network:2024",
+      "cableName": "Trans-Pacific Express (TPE) Cable Network",
+      "availableCapacityGbps": 7010,
+      "plannedCapacityGbps": 7010,
+      "sourceDocumentId": "fcc-circuit-capacity-2024",
+      "sourcePage": 7,
+      "sourceLine": 33
+    }
+  ]
+}

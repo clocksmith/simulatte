@@ -9,6 +9,7 @@
   function createDeclarativeUiHost({ rootElement, rootElements = null, onAction }) {
     const roots = rootElements || { inspector: rootElement };
     const requiredSlots = ['inspector', 'map', 'hud'];
+    const controlValues = new Map();
     if (!roots.inspector || typeof roots.inspector.replaceChildren !== 'function') throw uiError('plugin_ui_root_invalid', 'Declarative UI host expected an inspector root element', null);
     Object.entries(roots).forEach(([slot, element]) => {
       if (!requiredSlots.includes(slot) || !element || typeof element.replaceChildren !== 'function') throw uiError('plugin_ui_root_invalid', `Declarative UI host received an invalid ${slot} root`, null);
@@ -18,6 +19,10 @@
     function render(contributions, v4Contributions = []) {
       const documentRef = roots.inspector.ownerDocument;
       const fragments = Object.fromEntries(Object.keys(roots).map((slot) => [slot, documentRef.createDocumentFragment()]));
+      const v4ControlIds = new Map(v4Contributions.map((contribution) => [
+        contribution.pluginId,
+        new Set(contribution.controls.controls.map((control) => control.id)),
+      ]));
       [...contributions].sort((left, right) => left.view.slot.localeCompare(right.view.slot) || left.pluginId.localeCompare(right.pluginId)).forEach(({ pluginId, view }) => {
         contracts.validateUiContribution(pluginId, view);
         if (!view || !fragments[view.slot]) return;
@@ -42,10 +47,11 @@
           section.append(rows);
         }
         const fields = new Map();
-        if (view.fields?.length) {
+        const legacyFields = (view.fields || []).filter((field) => !v4ControlIds.get(pluginId)?.has(field.id));
+        if (legacyFields.length) {
           const controls = documentRef.createElement('div');
           controls.className = 'plugin-controls';
-          view.fields.forEach((field) => {
+          legacyFields.forEach((field) => {
             const label = documentRef.createElement('label');
             const caption = documentRef.createElement('span');
             caption.textContent = field.label;
@@ -77,7 +83,15 @@
             button.addEventListener('click', async () => {
               button.disabled = true;
               try {
-                await onAction({ pluginId, actionId: action.id, command: action.command || null, values: Object.fromEntries([...fields].map(([id, input]) => [id, input.value])) });
+                await onAction({
+                  pluginId,
+                  actionId: action.id,
+                  command: action.command || null,
+                  values: {
+                    ...values(pluginId),
+                    ...Object.fromEntries([...fields].map(([id, input]) => [id, input.value])),
+                  },
+                });
               } finally {
                 button.disabled = false;
               }
@@ -89,6 +103,9 @@
         fragments[view.slot].append(section);
       });
       v4Contributions.forEach((contribution) => {
+        if (contribution.controls.controls.length) {
+          fragments.inspector.append(renderControls(documentRef, contribution.pluginId, contribution.controls.controls, controlValues));
+        }
         contribution.inspections.forEach((inspection) => {
           fragments.inspector.append(renderInspection(documentRef, contribution.pluginId, inspection));
         });
@@ -96,7 +113,86 @@
       Object.entries(roots).forEach(([slot, element]) => element.replaceChildren(fragments[slot]));
     }
 
-    return Object.freeze({ render });
+    function values(pluginId) {
+      return Object.fromEntries(
+        [...(controlValues.get(pluginId) || new Map())].map(([id, value]) => [id, Array.isArray(value) ? [...value] : value])
+      );
+    }
+
+    return Object.freeze({ render, values });
+  }
+
+  function renderControls(documentRef, pluginId, controls, controlValues) {
+    const section = documentRef.createElement('details');
+    section.className = 'evidence-section plugin-evidence plugin-parameter-section';
+    section.dataset.pluginId = pluginId;
+    section.open = true;
+    const heading = documentRef.createElement('summary');
+    heading.textContent = 'Experiment parameters';
+    const explanation = documentRef.createElement('p');
+    explanation.className = 'plugin-parameter-note';
+    explanation.textContent = 'These values are applied when you start or replay the simulation.';
+    const fields = documentRef.createElement('div');
+    fields.className = 'plugin-controls';
+    const values = controlValues.get(pluginId) || new Map();
+    controlValues.set(pluginId, values);
+    controls.forEach((control) => {
+      if (!values.has(control.id)) values.set(control.id, cloneControlValue(control.value));
+      const label = documentRef.createElement('label');
+      const caption = documentRef.createElement('span');
+      caption.textContent = control.label;
+      const input = createControlInput(documentRef, control, values.get(control.id));
+      input.className = 'sim-field';
+      input.dataset.pluginControl = control.id;
+      input.addEventListener('change', () => values.set(control.id, readControlInput(input, control)));
+      label.append(caption, input);
+      fields.append(label);
+    });
+    section.append(heading, explanation, fields);
+    return section;
+  }
+
+  function createControlInput(documentRef, control, currentValue) {
+    if (['select', 'multiselect'].includes(control.kind)) {
+      const input = documentRef.createElement('select');
+      input.multiple = control.kind === 'multiselect';
+      (control.options || []).forEach((option) => {
+        const node = documentRef.createElement('option');
+        node.value = String(option.value);
+        node.textContent = option.label;
+        node.selected = control.kind === 'multiselect'
+          ? currentValue.includes(option.value)
+          : currentValue === option.value;
+        input.append(node);
+      });
+      return input;
+    }
+    const input = documentRef.createElement('input');
+    input.type = control.kind === 'toggle' ? 'checkbox' : control.kind;
+    if (control.minimum !== null) input.min = String(control.minimum);
+    if (control.maximum !== null) input.max = String(control.maximum);
+    if (control.step !== null) input.step = String(control.step);
+    if (control.kind === 'toggle') input.checked = Boolean(currentValue);
+    else input.value = String(currentValue);
+    return input;
+  }
+
+  function readControlInput(input, control) {
+    if (control.kind === 'toggle') return input.checked;
+    if (control.kind === 'multiselect') {
+      return [...input.selectedOptions].map((option) => typedOptionValue(option.value, control.options));
+    }
+    if (['number', 'range'].includes(control.kind)) return Number(input.value);
+    if (control.kind === 'select') return typedOptionValue(input.value, control.options);
+    return input.value;
+  }
+
+  function typedOptionValue(value, options) {
+    return (options || []).find((option) => String(option.value) === value)?.value ?? value;
+  }
+
+  function cloneControlValue(value) {
+    return Array.isArray(value) ? [...value] : value;
   }
 
   function renderInspection(documentRef, pluginId, inspection) {

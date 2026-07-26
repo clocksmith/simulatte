@@ -1,14 +1,17 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "schema": "simulatte.profileClaimInventory.v1",
-  "contentVersion": "2026-07-25",
+  "contentVersion": "2026-07-26",
   "profileIds": [
     "cable-trader-pickup-v1",
     "food-recall-us-v1",
+    "grid-resilience-us-v1",
     "interstellar-relay-network-v1",
     "maritime-trade-global-v1",
+    "neighborhood-bulk-pool-v1",
     "orbital-transfer-planner-v1",
     "safety-explorer-v1",
+    "subsea-network-global-v1",
     "sun-walker-v1"
   ],
   "publicationScope": {

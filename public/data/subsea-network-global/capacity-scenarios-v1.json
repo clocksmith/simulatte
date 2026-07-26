@@ -1,0 +1,131 @@
+{
+  "schema": "simulatte.subseaCapacityScenarios.v1",
+  "id": "subsea-capacity-scenarios-v1",
+  "contentVersion": "1.0.0",
+  "scenarios": [
+    {
+      "id": "modeled-atlantic-capacity-v1",
+      "edgeCapacities": [
+        {
+          "edgeId": "aeconnect-1:ireland",
+          "capacityGbps": 76000,
+          "origin": "scenario",
+          "evidenceRefs": []
+        },
+        {
+          "edgeId": "aeconnect-1:iceland",
+          "capacityGbps": 76000,
+          "origin": "scenario",
+          "evidenceRefs": []
+        },
+        {
+          "edgeId": "amitie:france",
+          "capacityGbps": 92000,
+          "origin": "scenario",
+          "evidenceRefs": []
+        },
+        {
+          "edgeId": "amitie:united-kingdom",
+          "capacityGbps": 92000,
+          "origin": "scenario",
+          "evidenceRefs": []
+        },
+        {
+          "edgeId": "dunant:france",
+          "capacityGbps": 84000,
+          "origin": "scenario",
+          "evidenceRefs": []
+        },
+        {
+          "edgeId": "grace-hopper:spain",
+          "capacityGbps": 96000,
+          "origin": "scenario",
+          "evidenceRefs": []
+        },
+        {
+          "edgeId": "grace-hopper:united-kingdom",
+          "capacityGbps": 96000,
+          "origin": "scenario",
+          "evidenceRefs": []
+        },
+        {
+          "edgeId": "havfrue:denmark",
+          "capacityGbps": 68000,
+          "origin": "scenario",
+          "evidenceRefs": []
+        },
+        {
+          "edgeId": "havfrue:ireland",
+          "capacityGbps": 68000,
+          "origin": "scenario",
+          "evidenceRefs": []
+        },
+        {
+          "edgeId": "havfrue:norway",
+          "capacityGbps": 68000,
+          "origin": "scenario",
+          "evidenceRefs": []
+        },
+        {
+          "edgeId": "marea:spain",
+          "capacityGbps": 178000,
+          "origin": "scenario-informed-by-published-capacity",
+          "evidenceRefs": [
+            "fcc-capacity:marea:2024"
+          ]
+        },
+        {
+          "edgeId": "modeled-gateway:ireland:united-kingdom",
+          "capacityGbps": 125000,
+          "origin": "scenario",
+          "evidenceRefs": []
+        },
+        {
+          "edgeId": "modeled-gateway:united-kingdom:france",
+          "capacityGbps": 125000,
+          "origin": "scenario",
+          "evidenceRefs": []
+        },
+        {
+          "edgeId": "modeled-gateway:france:spain",
+          "capacityGbps": 125000,
+          "origin": "scenario",
+          "evidenceRefs": []
+        },
+        {
+          "edgeId": "modeled-gateway:ireland:iceland",
+          "capacityGbps": 125000,
+          "origin": "scenario",
+          "evidenceRefs": []
+        },
+        {
+          "edgeId": "modeled-gateway:ireland:denmark",
+          "capacityGbps": 125000,
+          "origin": "scenario",
+          "evidenceRefs": []
+        },
+        {
+          "edgeId": "modeled-gateway:denmark:norway",
+          "capacityGbps": 125000,
+          "origin": "scenario",
+          "evidenceRefs": []
+        }
+      ],
+      "truth": {
+        "origin": "scenario",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "interval",
+          "value": {
+            "interpretation": "scenario range, not a confidence interval",
+            "relativeRange": [
+              -0.2,
+              0.2
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "claimBoundary": "Capacities are scenario inputs. MAREA uses a published value as its nominal scenario value but is not live."
+}

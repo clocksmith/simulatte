@@ -1,0 +1,31 @@
+{
+  "schema": "simulatte.asteroidForceModels.v1",
+  "id": "asteroid-force-models-v1",
+  "models": [
+    {
+      "id": "heliocentric-two-body-screening-v1",
+      "referenceCenter": "Sun",
+      "referenceFrame": "ICRF ecliptic approximation",
+      "timeScale": "TDB day offset",
+      "gmSunAu3Day2": 0.0002959122082855911,
+      "integrator": "shared-heliocentric-rk4-v1",
+      "stepDays": 0.05,
+      "omissions": [
+        "planetary third bodies",
+        "relativity",
+        "nongravitational acceleration",
+        "Earth gravity during close approach"
+      ],
+      "truth": {
+        "origin": "modeled",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "distribution",
+          "value": {
+            "interpretation": "Declared scientific model assumption."
+          }
+        }
+      }
+    }
+  ]
+}

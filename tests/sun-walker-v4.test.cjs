@@ -234,8 +234,26 @@ test('plugin lifecycle advances the modeled walk without owning playback delay o
   });
   assert.equal(contribution.missionPatch.routeOverride.algorithm, 'sun_walker_arrival_sample_route_v2');
   assert.equal(instance.semanticPresentation().schema, 'simulatte.presentationLayerSet.v4');
-  const started = instance.handleAction('scenario.run', { values: { phase: 'start' } });
+  const previousTravelSeconds = instance.comparisonModel().metrics.travelSeconds.intervention;
+  const started = instance.handleAction('scenario.run', {
+    values: {
+      phase: 'start',
+      departureAt: '2026-07-19T18:00',
+      maximumAddedTimeSeconds: 300,
+      maximumAddedRatio: 0.5,
+      directSunWeight: 2,
+      walkingSpeedMps: 2,
+      treeCanopyParticipation: false,
+      weatherParticipation: false,
+    },
+  });
   assert.equal(started.status, 'running');
+  assert.ok(instance.comparisonModel().metrics.travelSeconds.intervention < previousTravelSeconds);
+  const controlValues = Object.fromEntries(instance.controlModel().map((row) => [row.id, row.defaultValue]));
+  assert.equal(controlValues.walkingSpeedMps, 2);
+  assert.equal(controlValues.treeCanopyParticipation, false);
+  assert.equal(controlValues.weatherParticipation, false);
+  assert.equal(instance.eventTimeline().events[0].timestamp.startsWith('2026-07-19T18:00'), true);
   assert.equal(Object.hasOwn(started, 'nextStepDelayMs'), false);
   let result = started;
   while (result.status === 'running') result = instance.handleAction('scenario.run', { values: { phase: 'step' } });

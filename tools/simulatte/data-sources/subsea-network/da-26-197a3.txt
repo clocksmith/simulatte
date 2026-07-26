@@ -1,0 +1,89 @@
+                            U.S. International Submarine Cable License Numbers
+                                                      As of December 31, 2025
+                         Cable Name                                 Original File Number        Current License Number
+Americas Region
+América Móvil Submarine Cable System (AMX1)               SCL-LIC-20120330-00002           SCL-LIC-20230915-00025
+AmeriCan-1                                                SCL-LIC-19980123-00002           SCL-MOD-19990901-00016
+Americas II                                               SCL-LIC-19980429-00019           SCL-MOD-20191202-00038
+Antilles Crossing                                         SCL-LIC-20031125-00032           SCL-LIC-20031125-00032
+ARCOS-1                                                   SCL-LIC-19981222-00032           SCL-MOD-20020701-00056
+BAHAMAS II                                                SCL-LIC-20220422-00016           SCL-LIC-20220422-00016
+Bahamas Internet Cable System (BICS)                      SCL-LIC-20000118-00001           SCL-MOD-20020925-00094
+BRUSA                                                     SCL-LIC-20160330-00011           SCL-LIC-20160330-00011
+Carnival Submarine Networks-1 (CSN-1)                     SCL-LIC-20230921-00026           SCL-LIC-20230921-00026
+CFX-1 Cable System (CFX-1)                                SCL-LIC-20070516-00008           SCL-LIC-20070516-00008
+Crosslake Fibre                                           SCL-LIC-20180216-00002           SCL-LIC-20180216-00002
+Curie                                                     SCL-LIC-20181008-00034           SCL-MOD-20191223-00039
+Firmina                                                   SCL-LIC-20220422-00015           SCL-LIC-20220422-00015
+Gemini Bermuda System                                     SCL-LIC-20070925-00017           SCL-LIC-20070925-00017
+Global Caribbean Network (GCN)                            SCL-LIC-20050418-00010           SCL-MOD-20140923-00009
+GlobeNet                                                  SCL-LIC-19990602-00010           SCL-MOD-20121003-00012
+KetchCan1 Submarine Fiber Cable System                    SCL-LIC-20190718-00020           SCL-LIC-20190718-00020
+Maya-1                                                    SCL-LIC-19990325-00006           SCL-MOD-20110928-00028
+Monet Cable System                                        SCL-LIC-20150408-00008           SCL-LIC-20150408-00008
+Neutral Networks Laredo Cable                             SCL-LIC-20210930-00042           SCL-LIC-20210930-00042
+Nuvem                                                     SCL-LIC-20240621-00030           SCL-LIC-20240621-00030
+Pacific Caribbean Cable System (PCCS)                     SCL-LIC-20130122-00001           SCL-LIC-20130122-00001
+Pan American Crossing (PAC)                               SCL-LIC-19981103-00022           SCL-MOD-20110524-00020
+Seabras-1                                                 SCL-LIC-20160115-00002           SCL-LIC-20160115-00002
+SMPR-1                                                    SCL-LIC-20031209-00033           SCL-LIC-20031209-00033
+South America-1 (SAm-1)                                   SCL-LIC-20000204-00003           SCL-MOD-20250423-00013
+South American Crossing (SAC)                             SCL-LIC-19990823-00015           SCL-MOD-20150129-00002
+Taino-Carib Cable System                                  SCL-LIC-20180702-00019           SCL-LIC-20180702-00019
+TIKAL-AMX3                                                SCL-LIC-20240105-00001           SCL-LIC-20240105-00001
+Trans Americas Fiber System (TAM-1)                       SCL-LIC-20240605-00023           SCL-LIC-20240605-00023
+Atlantic Region
+AEConnect-1 Cable System*                                 SCL-LIC-20140206-00002           SCL-MOD-20210105-00001
+Amitié                                                    SCL-LIC-20200807-00036           SCL-LIC-20200807-00036
+Apollo Cable                                              SCL-LIC-20010122-00002           SCL-MOD-20020412-00031
+Atlantic Crossing 1 (AC-1)                                SCL-LIC-20230222-00005           SCL-LIC-20230222-00005
+Dunant                                                    SCL-LIC-20190410-00015           SCL-LIC-20190410-00015
+EXA North and South**                                     SCL-LIC-19990804-00012           SCL-MOD-20020412-00023
+FLAG Atlantic-1                                           SCL-LIC-19990301-00005           SCL-MOD-20040211-00006
+Grace Hopper                                              SCL-LIC-20210225-00014           SCL-LIC-20210225-00014
+Havfrue                                                   SCL-LIC-20180511-00010           SCL-LIC-20180511-00010
+MAREA                                                     SCL-LIC-20160525-00012           SCL-LIC-20160525-00012
+TGN Atlantic                                              SCL-LIC-20000308-00007           SCL-MOD-20060111-00001
+Yellow Cable System                                       SCL-LIC-19990913-00019           SCL-MOD-20020415-00026
+Pacific Region
+Apricot                                                   SCL-LIC-20220715-00024           SCL-LIC-20220715-00024
+Asia America Gateway (AAG)                                SCL-LIC-20070824-00015           SCL-LIC-20070824-00015
+Australia-Japan Cable                                     SCL-LIC-20000629-00025           SCL-MOD-20020415-00050
+Bifrost                                                   SCL-LIC-20221209-00036           SCL-LIC-20221209-00036
+Echo                                                      SCL-LIC-20210329-00020           SCL-LIC-20210329-00020
+FASTER Cable System                                       SCL-LIC-20150626-00015           SCL-LIC-20150626-00015
+GOKI Cable Network                                        SCL-LIC-20110329-00009           SCL-LIC-20110329-00009
+Halaihai                                                  SCL-LIC-20241210-00048           SCL-LIC-20241210-00048
+HANTRU1                                                   SCL-LIC-20090302-00005           SCL-LIC-20090302-00005
+Hawaiki Cable System                                      SCL-LIC-20160906-00019           SCL-LIC-20160906-00019
+Honomoana                                                 SCL-LIC-20241030-00042           SCL-LIC-20241030-00042
+Honotua Cable System                                      SCL-LIC-20081008-00017           SCL-MOD-20180410-00007
+Japan-Guam-Australia (JGA) North System (JGA North)       SCL-LIC-20181106-00035           SCL-LIC-20181106-00035
+Japan-Guam-Australia (JGA) South System (JGA South)       SCL-LIC-20190502-00016           SCL-LIC-20190502-00016
+JUNO                                                      SCL-LIC-20221208-00037           SCL-LIC-20221208-00037
+JUPITER                                                   SCL-LIC-20180517-00012           SCL-LIC-20180517-00012
+New Cross-Pacific (NCP)                                   SCL-LIC-20151104-00029           SCL-LIC-20151104-00029
+Pacific Crossing-1 (PC-1)                                 SCL-LIC-19980807-00010           SCL-LIC-20240424-00010
+Pacific Light Cable Network (PLCN)                        SCL-LIC-20200827-00038           SCL-LIC-20200827-00038
+PPC-1                                                     SCL-LIC-20080213-00001           SCL-MOD-20180803-00030
+Proa                                                      SCL-LIC-20240911-00038           SCL-LIC-20240911-00038
+Samoa American Samoa Cable System***                      SCL-LIC-20080814-00016           SCL-LIC-20080814-00016
+Southeast Asia-US (SEA-US)                                SCL-LIC-20150626-00016           SCL-LIC-20150626-00016
+Southern Cross 1&2 ****                                   SCL-LIC-20231117-00038           SCL-LIC-20231117-00038
+Southern Cross NEXT                                       SCL-LIC-20190809-00026           SCL-LIC-20190809-00026
+Tabua                                                     SCL-LIC-20240819-00037           SCL-LIC-20240819-00037
+Taihei                                       SCL-LIC-20240926-00039   SCL-LIC-20240926-00039
+Telstra Endeavour                            SCL-LIC-20070621-00009   SCL-LIC-20070621-00009
+TGN Pacific                                  SCL-LIC-20000717-00026   SCL-MOD-20060111-00002
+TPU                                          SCL-LIC-20230511-00013   SCL-LIC-20230511-00013
+Trans-Pacific Express (TPE) Cable Network    SCL-LIC-20070222-00002   SCL-MOD-20080714-00012
+Unity Cable System                           SCL-LIC-20080516-00010     SCL-LIC-20080516-00010
+* Formerly Emerald Express Cable System
+** Formerly GTT Atlantic Cable System
+*** Formerly American Samoa Hawaii Cable
+
+
+
+
+**** Formerly Southern Cross Cable Network
+

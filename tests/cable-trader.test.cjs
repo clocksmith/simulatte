@@ -187,6 +187,33 @@ test('Cable Trader exposes progressive causal state without owning playback timi
   assert.ok(sdk.emittedReceipts.some((row) => row.schema === 'simulatte.plugin.cableTraderPlaybackReceipt.v1'));
 });
 
+test('Cable Trader start parameters rebuild the simulated month and its receipts', async () => {
+  const instance = await plugin.activate({
+    sdk: stubSdk(),
+    config,
+    scenario: { id: 'july-baseline', seed: 'parameter-seed' },
+  });
+  const before = instance.contributeV4();
+  const selectedCableFamilyIds = ['usb-c-to-c', 'hdmi'];
+  const started = await instance.handleAction('scenario.run', {
+    scenario: { id: 'july-baseline', seed: 'parameter-seed' },
+    values: {
+      phase: 'start',
+      selectedCableFamilyIds,
+      durationDays: 5,
+      initialInventoryPerHubType: 3,
+    },
+  });
+  const after = instance.contributeV4();
+  assert.equal(started.totalSteps, 5);
+  assert.deepEqual(started.selectedCableFamilyIds, selectedCableFamilyIds);
+  assert.notEqual(after.state.id, before.state.id);
+  assert.equal(after.controls.controls.find((row) => row.id === 'durationDays').value, 5);
+  assert.equal(after.controls.controls.find((row) => row.id === 'initialInventoryPerHubType').value, 3);
+  assert.deepEqual(after.controls.controls.find((row) => row.id === 'selectedCableFamilyIds').value, selectedCableFamilyIds);
+  assert.equal(after.state.measures.find((row) => row.kind === 'ending-inventory').value, 24);
+});
+
 test('Cable Trader scenario selection emits a compact causal event', async () => {
   const sdk = stubSdk();
   const instance = await plugin.activate({ sdk, config, scenario: { id: 'july-baseline', seed: 'initial-seed' } });

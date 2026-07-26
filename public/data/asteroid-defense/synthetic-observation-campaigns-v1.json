@@ -1,0 +1,1956 @@
+{
+  "schema": "simulatte.asteroidSyntheticCampaigns.v1",
+  "id": "asteroid-synthetic-observation-campaigns-v1",
+  "generator": {
+    "id": "asteroid-campaign-generator-v1",
+    "solarGmAu3Day2": 0.0002959122082855911,
+    "propagationMethodId": "shared-heliocentric-rk4-v1",
+    "observationModel": "heliocentric two-body state to geocentric angular line of sight",
+    "noiseModel": "deterministic Box-Muller independent RA/Dec draws"
+  },
+  "campaigns": [
+    {
+      "id": "short-arc-follow-up",
+      "label": "short arc follow up",
+      "referenceEpochTdbDay": 0,
+      "startInstant": "2036-01-01T00:00:00Z",
+      "terminalDay": 90,
+      "initialGuess": {
+        "positionAu": [
+          0.98451,
+          -0.008008,
+          0.001205
+        ],
+        "velocityAuD": [
+          0.0002202,
+          0.01728985,
+          -0.00001792
+        ]
+      },
+      "rangePriorAu": 0.02,
+      "observations": [
+        {
+          "id": "short-arc-follow-up:obs-01",
+          "epochDayTdb": 0,
+          "epochUtc": "2036-01-01T00:00:00.000Z",
+          "stationId": "scenario-north",
+          "rightAscensionRad": -2.665139777595543,
+          "declinationRad": 0.06865622104099792,
+          "covarianceRad2": [
+            [
+              1.4690269086936178e-10,
+              0
+            ],
+            [
+              0,
+              1.4690269086936178e-10
+            ]
+          ],
+          "referenceFrame": "ICRF ecliptic approximation",
+          "corrections": {
+            "lightTime": "omitted",
+            "aberration": "omitted",
+            "topocentricParallax": "station identity retained; Earth-center approximation"
+          },
+          "truth": {
+            "origin": "scenario",
+            "temporalStatus": "forecast",
+            "uncertainty": {
+              "kind": "distribution",
+              "value": {
+                "interpretation": "Synthetic campaign assumption."
+              }
+            }
+          },
+          "rowId": "short-arc-follow-up:obs-01",
+          "rowHash": "5c43cdb2ce01d5615159eea97a8244f4f6875d17bee9f8117975cc0e0ca61033"
+        },
+        {
+          "id": "short-arc-follow-up:obs-02",
+          "epochDayTdb": 0.35714285714285715,
+          "epochUtc": "2036-01-01T08:34:17.142Z",
+          "stationId": "scenario-south",
+          "rightAscensionRad": -2.6646786528253776,
+          "declinationRad": 0.0686251873380637,
+          "covarianceRad2": [
+            [
+              1.4690269086936178e-10,
+              0
+            ],
+            [
+              0,
+              1.4690269086936178e-10
+            ]
+          ],
+          "referenceFrame": "ICRF ecliptic approximation",
+          "corrections": {
+            "lightTime": "omitted",
+            "aberration": "omitted",
+            "topocentricParallax": "station identity retained; Earth-center approximation"
+          },
+          "truth": {
+            "origin": "scenario",
+            "temporalStatus": "forecast",
+            "uncertainty": {
+              "kind": "distribution",
+              "value": {
+                "interpretation": "Synthetic campaign assumption."
+              }
+            }
+          },
+          "rowId": "short-arc-follow-up:obs-02",
+          "rowHash": "d7c292c703ac5e78e4c80bdc199844c4f7ad9fe1b111586ee59b25cf13462c05"
+        },
+        {
+          "id": "short-arc-follow-up:obs-03",
+          "epochDayTdb": 0.7142857142857143,
+          "epochUtc": "2036-01-01T17:08:34.285Z",
+          "stationId": "scenario-north",
+          "rightAscensionRad": -2.664274239734924,
+          "declinationRad": 0.068595862626129,
+          "covarianceRad2": [
+            [
+              1.4690269086936178e-10,
+              0
+            ],
+            [
+              0,
+              1.4690269086936178e-10
+            ]
+          ],
+          "referenceFrame": "ICRF ecliptic approximation",
+          "corrections": {
+            "lightTime": "omitted",
+            "aberration": "omitted",
+            "topocentricParallax": "station identity retained; Earth-center approximation"
+          },
+          "truth": {
+            "origin": "scenario",
+            "temporalStatus": "forecast",
+            "uncertainty": {
+              "kind": "distribution",
+              "value": {
+                "interpretation": "Synthetic campaign assumption."
+              }
+            }
+          },
+          "rowId": "short-arc-follow-up:obs-03",
+          "rowHash": "94030369ba7bbae2d07e38191b644b0a80e5f07579d2185e578b45e690fd2071"
+        },
+        {
+          "id": "short-arc-follow-up:obs-04",
+          "epochDayTdb": 1.0714285714285714,
+          "epochUtc": "2036-01-02T01:42:51.428Z",
+          "stationId": "scenario-south",
+          "rightAscensionRad": -2.663908544287618,
+          "declinationRad": 0.06852865101903431,
+          "covarianceRad2": [
+            [
+              1.4690269086936178e-10,
+              0
+            ],
+            [
+              0,
+              1.4690269086936178e-10
+            ]
+          ],
+          "referenceFrame": "ICRF ecliptic approximation",
+          "corrections": {
+            "lightTime": "omitted",
+            "aberration": "omitted",
+            "topocentricParallax": "station identity retained; Earth-center approximation"
+          },
+          "truth": {
+            "origin": "scenario",
+            "temporalStatus": "forecast",
+            "uncertainty": {
+              "kind": "distribution",
+              "value": {
+                "interpretation": "Synthetic campaign assumption."
+              }
+            }
+          },
+          "rowId": "short-arc-follow-up:obs-04",
+          "rowHash": "1ca2e5003a003e53c8f24309fefc59908da02ae547472edd0c712e0a7e040d7b"
+        },
+        {
+          "id": "short-arc-follow-up:obs-05",
+          "epochDayTdb": 1.4285714285714286,
+          "epochUtc": "2036-01-02T10:17:08.571Z",
+          "stationId": "scenario-north",
+          "rightAscensionRad": -2.66361508856772,
+          "declinationRad": 0.06849519255652753,
+          "covarianceRad2": [
+            [
+              1.4690269086936178e-10,
+              0
+            ],
+            [
+              0,
+              1.4690269086936178e-10
+            ]
+          ],
+          "referenceFrame": "ICRF ecliptic approximation",
+          "corrections": {
+            "lightTime": "omitted",
+            "aberration": "omitted",
+            "topocentricParallax": "station identity retained; Earth-center approximation"
+          },
+          "truth": {
+            "origin": "scenario",
+            "temporalStatus": "forecast",
+            "uncertainty": {
+              "kind": "distribution",
+              "value": {
+                "interpretation": "Synthetic campaign assumption."
+              }
+            }
+          },
+          "rowId": "short-arc-follow-up:obs-05",
+          "rowHash": "ff6d3666115df94e342213837c0cd60b4227428ee83d2309739f0a85d3135a00"
+        },
+        {
+          "id": "short-arc-follow-up:obs-06",
+          "epochDayTdb": 1.7857142857142858,
+          "epochUtc": "2036-01-02T18:51:25.714Z",
+          "stationId": "scenario-south",
+          "rightAscensionRad": -2.663340329885724,
+          "declinationRad": 0.06843450592366566,
+          "covarianceRad2": [
+            [
+              1.4690269086936178e-10,
+              0
+            ],
+            [
+              0,
+              1.4690269086936178e-10
+            ]
+          ],
+          "referenceFrame": "ICRF ecliptic approximation",
+          "corrections": {
+            "lightTime": "omitted",
+            "aberration": "omitted",
+            "topocentricParallax": "station identity retained; Earth-center approximation"
+          },
+          "truth": {
+            "origin": "scenario",
+            "temporalStatus": "forecast",
+            "uncertainty": {
+              "kind": "distribution",
+              "value": {
+                "interpretation": "Synthetic campaign assumption."
+              }
+            }
+          },
+          "rowId": "short-arc-follow-up:obs-06",
+          "rowHash": "789529650be7ca7a046e0ba9a062e95017769e49cef31732c50b8b62abb5bca2"
+        },
+        {
+          "id": "short-arc-follow-up:obs-07",
+          "epochDayTdb": 2.142857142857143,
+          "epochUtc": "2036-01-03T03:25:42.857Z",
+          "stationId": "scenario-north",
+          "rightAscensionRad": -2.6631109319914135,
+          "declinationRad": 0.06834682831722759,
+          "covarianceRad2": [
+            [
+              1.4690269086936178e-10,
+              0
+            ],
+            [
+              0,
+              1.4690269086936178e-10
+            ]
+          ],
+          "referenceFrame": "ICRF ecliptic approximation",
+          "corrections": {
+            "lightTime": "omitted",
+            "aberration": "omitted",
+            "topocentricParallax": "station identity retained; Earth-center approximation"
+          },
+          "truth": {
+            "origin": "scenario",
+            "temporalStatus": "forecast",
+            "uncertainty": {
+              "kind": "distribution",
+              "value": {
+                "interpretation": "Synthetic campaign assumption."
+              }
+            }
+          },
+          "rowId": "short-arc-follow-up:obs-07",
+          "rowHash": "539c72186ce47c467e887960a787279d89ebe397122255d5fa74dbd619ee643d"
+        },
+        {
+          "id": "short-arc-follow-up:obs-08",
+          "epochDayTdb": 2.5,
+          "epochUtc": "2036-01-03T12:00:00.000Z",
+          "stationId": "scenario-south",
+          "rightAscensionRad": -2.662899065618405,
+          "declinationRad": 0.06825635293358186,
+          "covarianceRad2": [
+            [
+              1.4690269086936178e-10,
+              0
+            ],
+            [
+              0,
+              1.4690269086936178e-10
+            ]
+          ],
+          "referenceFrame": "ICRF ecliptic approximation",
+          "corrections": {
+            "lightTime": "omitted",
+            "aberration": "omitted",
+            "topocentricParallax": "station identity retained; Earth-center approximation"
+          },
+          "truth": {
+            "origin": "scenario",
+            "temporalStatus": "forecast",
+            "uncertainty": {
+              "kind": "distribution",
+              "value": {
+                "interpretation": "Synthetic campaign assumption."
+              }
+            }
+          },
+          "rowId": "short-arc-follow-up:obs-08",
+          "rowHash": "41441a1b642c7d94effd730fc4a675f07692116594506f10d6c127a4c5e29636"
+        }
+      ],
+      "hiddenTruth": {
+        "schema": "simulatte.asteroidHiddenTruth.v1",
+        "id": "short-arc-follow-up:hidden",
+        "initialState": {
+          "positionAu": [
+            0.9845,
+            -0.008,
+            0.0012
+          ],
+          "velocityAuD": [
+            0.00022,
+            0.01729,
+            -0.000018
+          ]
+        },
+        "truthHash": "bb566f8a3026eea5a62ab05efd96596420722140b139f09878d40addd2c505c0",
+        "classification": "hidden synthetic evaluation truth"
+      },
+      "truth": {
+        "origin": "scenario",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "distribution",
+          "value": {
+            "interpretation": "Synthetic campaign assumption."
+          }
+        }
+      }
+    },
+    {
+      "id": "late-precision-observation",
+      "label": "late precision observation",
+      "referenceEpochTdbDay": 0,
+      "startInstant": "2036-01-01T00:00:00Z",
+      "terminalDay": 90,
+      "initialGuess": {
+        "positionAu": [
+          0.9830099999999999,
+          -0.012008,
+          0.000805
+        ],
+        "velocityAuD": [
+          0.0002802,
+          0.01724985,
+          -0.000011920000000000001
+        ]
+      },
+      "rangePriorAu": 0.02,
+      "observations": [
+        {
+          "id": "late-precision-observation:obs-01",
+          "epochDayTdb": 0,
+          "epochUtc": "2036-01-01T00:00:00.000Z",
+          "stationId": "scenario-north",
+          "rightAscensionRad": -2.526915367562029,
+          "declinationRad": 0.038429144375622615,
+          "covarianceRad2": [
+            [
+              9.401772215639154e-11,
+              0
+            ],
+            [
+              0,
+              9.401772215639154e-11
+            ]
+          ],
+          "referenceFrame": "ICRF ecliptic approximation",
+          "corrections": {
+            "lightTime": "omitted",
+            "aberration": "omitted",
+            "topocentricParallax": "station identity retained; Earth-center approximation"
+          },
+          "truth": {
+            "origin": "scenario",
+            "temporalStatus": "forecast",
+            "uncertainty": {
+              "kind": "distribution",
+              "value": {
+                "interpretation": "Synthetic campaign assumption."
+              }
+            }
+          },
+          "rowId": "late-precision-observation:obs-01",
+          "rowHash": "5a8cc644316504f3e2e3ead34bb1f4543a18d789b9687004859941108cbe565c"
+        },
+        {
+          "id": "late-precision-observation:obs-02",
+          "epochDayTdb": 1.75,
+          "epochUtc": "2036-01-02T18:00:00.000Z",
+          "stationId": "scenario-south",
+          "rightAscensionRad": -2.5170806431028274,
+          "declinationRad": 0.038195366072904455,
+          "covarianceRad2": [
+            [
+              9.401772215639154e-11,
+              0
+            ],
+            [
+              0,
+              9.401772215639154e-11
+            ]
+          ],
+          "referenceFrame": "ICRF ecliptic approximation",
+          "corrections": {
+            "lightTime": "omitted",
+            "aberration": "omitted",
+            "topocentricParallax": "station identity retained; Earth-center approximation"
+          },
+          "truth": {
+            "origin": "scenario",
+            "temporalStatus": "forecast",
+            "uncertainty": {
+              "kind": "distribution",
+              "value": {
+                "interpretation": "Synthetic campaign assumption."
+              }
+            }
+          },
+          "rowId": "late-precision-observation:obs-02",
+          "rowHash": "50f04d85e0b3cc254f64932b42ccdbd3c358c366b8e25d9eb463b80aea54e89b"
+        },
+        {
+          "id": "late-precision-observation:obs-03",
+          "epochDayTdb": 3.5,
+          "epochUtc": "2036-01-04T12:00:00.000Z",
+          "stationId": "scenario-north",
+          "rightAscensionRad": -2.508162225082996,
+          "declinationRad": 0.03791245199238836,
+          "covarianceRad2": [
+            [
+              9.401772215639154e-11,
+              0
+            ],
+            [
+              0,
+              9.401772215639154e-11
+            ]
+          ],
+          "referenceFrame": "ICRF ecliptic approximation",
+          "corrections": {
+            "lightTime": "omitted",
+            "aberration": "omitted",
+            "topocentricParallax": "station identity retained; Earth-center approximation"
+          },
+          "truth": {
+            "origin": "scenario",
+            "temporalStatus": "forecast",
+            "uncertainty": {
+              "kind": "distribution",
+              "value": {
+                "interpretation": "Synthetic campaign assumption."
+              }
+            }
+          },
+          "rowId": "late-precision-observation:obs-03",
+          "rowHash": "7dea3d0b3bdf14ab995cb957ff98bd0fc32dfd14b92932008cb91f700d1c7638"
+        },
+        {
+          "id": "late-precision-observation:obs-04",
+          "epochDayTdb": 5.25,
+          "epochUtc": "2036-01-06T06:00:00.000Z",
+          "stationId": "scenario-south",
+          "rightAscensionRad": -2.5001408135352143,
+          "declinationRad": 0.03749145734421053,
+          "covarianceRad2": [
+            [
+              9.401772215639154e-11,
+              0
+            ],
+            [
+              0,
+              9.401772215639154e-11
+            ]
+          ],
+          "referenceFrame": "ICRF ecliptic approximation",
+          "corrections": {
+            "lightTime": "omitted",
+            "aberration": "omitted",
+            "topocentricParallax": "station identity retained; Earth-center approximation"
+          },
+          "truth": {
+            "origin": "scenario",
+            "temporalStatus": "forecast",
+            "uncertainty": {
+              "kind": "distribution",
+              "value": {
+                "interpretation": "Synthetic campaign assumption."
+              }
+            }
+          },
+          "rowId": "late-precision-observation:obs-04",
+          "rowHash": "0eab2e5a5e29859f280a58a8bf42eae57ec818b168b61bc1a8e3054223be85cd"
+        },
+        {
+          "id": "late-precision-observation:obs-05",
+          "epochDayTdb": 7,
+          "epochUtc": "2036-01-08T00:00:00.000Z",
+          "stationId": "scenario-north",
+          "rightAscensionRad": -2.493093853978039,
+          "declinationRad": 0.03698444642190907,
+          "covarianceRad2": [
+            [
+              9.401772215639154e-11,
+              0
+            ],
+            [
+              0,
+              9.401772215639154e-11
+            ]
+          ],
+          "referenceFrame": "ICRF ecliptic approximation",
+          "corrections": {
+            "lightTime": "omitted",
+            "aberration": "omitted",
+            "topocentricParallax": "station identity retained; Earth-center approximation"
+          },
+          "truth": {
+            "origin": "scenario",
+            "temporalStatus": "forecast",
+            "uncertainty": {
+              "kind": "distribution",
+              "value": {
+                "interpretation": "Synthetic campaign assumption."
+              }
+            }
+          },
+          "rowId": "late-precision-observation:obs-05",
+          "rowHash": "7a5d0645ef60d79117fa2e6e2f6a39c2e8666db9a2491312e9af1919b18465ee"
+        },
+        {
+          "id": "late-precision-observation:obs-06",
+          "epochDayTdb": 8.75,
+          "epochUtc": "2036-01-09T18:00:00.000Z",
+          "stationId": "scenario-south",
+          "rightAscensionRad": -2.4870013344651043,
+          "declinationRad": 0.03638400269708527,
+          "covarianceRad2": [
+            [
+              9.401772215639154e-11,
+              0
+            ],
+            [
+              0,
+              9.401772215639154e-11
+            ]
+          ],
+          "referenceFrame": "ICRF ecliptic approximation",
+          "corrections": {
+            "lightTime": "omitted",
+            "aberration": "omitted",
+            "topocentricParallax": "station identity retained; Earth-center approximation"
+          },
+          "truth": {
+            "origin": "scenario",
+            "temporalStatus": "forecast",
+            "uncertainty": {
+              "kind": "distribution",
+              "value": {
+                "interpretation": "Synthetic campaign assumption."
+              }
+            }
+          },
+          "rowId": "late-precision-observation:obs-06",
+          "rowHash": "c96bae23ee325d2d7e75819f354ca050c454ffd351b2537e220799af38f1a96a"
+        },
+        {
+          "id": "late-precision-observation:obs-07",
+          "epochDayTdb": 10.5,
+          "epochUtc": "2036-01-11T12:00:00.000Z",
+          "stationId": "scenario-north",
+          "rightAscensionRad": -2.4818913439021744,
+          "declinationRad": 0.03568785528278468,
+          "covarianceRad2": [
+            [
+              9.401772215639154e-11,
+              0
+            ],
+            [
+              0,
+              9.401772215639154e-11
+            ]
+          ],
+          "referenceFrame": "ICRF ecliptic approximation",
+          "corrections": {
+            "lightTime": "omitted",
+            "aberration": "omitted",
+            "topocentricParallax": "station identity retained; Earth-center approximation"
+          },
+          "truth": {
+            "origin": "scenario",
+            "temporalStatus": "forecast",
+            "uncertainty": {
+              "kind": "distribution",
+              "value": {
+                "interpretation": "Synthetic campaign assumption."
+              }
+            }
+          },
+          "rowId": "late-precision-observation:obs-07",
+          "rowHash": "42527c3ad902d58f6982c863cfa78a815117a9037f11ac600e2459c6030d7fc3"
+        },
+        {
+          "id": "late-precision-observation:obs-08",
+          "epochDayTdb": 12.25,
+          "epochUtc": "2036-01-13T06:00:00.000Z",
+          "stationId": "scenario-south",
+          "rightAscensionRad": -2.4777986618763044,
+          "declinationRad": 0.034887406796445676,
+          "covarianceRad2": [
+            [
+              9.401772215639154e-11,
+              0
+            ],
+            [
+              0,
+              9.401772215639154e-11
+            ]
+          ],
+          "referenceFrame": "ICRF ecliptic approximation",
+          "corrections": {
+            "lightTime": "omitted",
+            "aberration": "omitted",
+            "topocentricParallax": "station identity retained; Earth-center approximation"
+          },
+          "truth": {
+            "origin": "scenario",
+            "temporalStatus": "forecast",
+            "uncertainty": {
+              "kind": "distribution",
+              "value": {
+                "interpretation": "Synthetic campaign assumption."
+              }
+            }
+          },
+          "rowId": "late-precision-observation:obs-08",
+          "rowHash": "38a039ba33a8f1e839766b5648cc8c4e66f06cc71ac6427e4bf9e44e858e0def"
+        },
+        {
+          "id": "late-precision-observation:obs-09",
+          "epochDayTdb": 14,
+          "epochUtc": "2036-01-15T00:00:00.000Z",
+          "stationId": "scenario-north",
+          "rightAscensionRad": -2.4746757325504545,
+          "declinationRad": 0.03397640726555316,
+          "covarianceRad2": [
+            [
+              2.1153987485188093e-12,
+              0
+            ],
+            [
+              0,
+              2.1153987485188093e-12
+            ]
+          ],
+          "referenceFrame": "ICRF ecliptic approximation",
+          "corrections": {
+            "lightTime": "omitted",
+            "aberration": "omitted",
+            "topocentricParallax": "station identity retained; Earth-center approximation"
+          },
+          "truth": {
+            "origin": "scenario",
+            "temporalStatus": "forecast",
+            "uncertainty": {
+              "kind": "distribution",
+              "value": {
+                "interpretation": "Synthetic campaign assumption."
+              }
+            }
+          },
+          "rowId": "late-precision-observation:obs-09",
+          "rowHash": "d1e2fae3856b367acdd22a3d27b293427ce55bad83b9b0d05c818bf566237e37"
+        }
+      ],
+      "hiddenTruth": {
+        "schema": "simulatte.asteroidHiddenTruth.v1",
+        "id": "late-precision-observation:hidden",
+        "initialState": {
+          "positionAu": [
+            0.983,
+            -0.012,
+            0.0008
+          ],
+          "velocityAuD": [
+            0.00028,
+            0.01725,
+            -0.000012
+          ]
+        },
+        "truthHash": "1b0c55007d85fb3ae86ab8b71708e83f964a619ea66f8f6becb70bd50940e4aa",
+        "classification": "hidden synthetic evaluation truth"
+      },
+      "truth": {
+        "origin": "scenario",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "distribution",
+          "value": {
+            "interpretation": "Synthetic campaign assumption."
+          }
+        }
+      }
+    },
+    {
+      "id": "keyhole-sensitive-encounter",
+      "label": "keyhole sensitive encounter",
+      "referenceEpochTdbDay": 0,
+      "startInstant": "2036-01-01T00:00:00Z",
+      "terminalDay": 90,
+      "initialGuess": {
+        "positionAu": [
+          0.9810099999999999,
+          -0.016008,
+          0.000305
+        ],
+        "velocityAuD": [
+          0.00034020000000000003,
+          0.01719985,
+          -0.00000592
+        ]
+      },
+      "rangePriorAu": 0.02,
+      "observations": [
+        {
+          "id": "keyhole-sensitive-encounter:obs-01",
+          "epochDayTdb": 0,
+          "epochUtc": "2036-01-01T00:00:00.000Z",
+          "stationId": "scenario-north",
+          "rightAscensionRad": -2.4416913014853376,
+          "declinationRad": 0.012077828108733339,
+          "covarianceRad2": [
+            [
+              5.2884968712970235e-11,
+              0
+            ],
+            [
+              0,
+              5.2884968712970235e-11
+            ]
+          ],
+          "referenceFrame": "ICRF ecliptic approximation",
+          "corrections": {
+            "lightTime": "omitted",
+            "aberration": "omitted",
+            "topocentricParallax": "station identity retained; Earth-center approximation"
+          },
+          "truth": {
+            "origin": "scenario",
+            "temporalStatus": "forecast",
+            "uncertainty": {
+              "kind": "distribution",
+              "value": {
+                "interpretation": "Synthetic campaign assumption."
+              }
+            }
+          },
+          "rowId": "keyhole-sensitive-encounter:obs-01",
+          "rowHash": "20144ee08d050d32e64b648a5cf41f87e36b8a5621ee3a38c3f27b9c3d551ad0"
+        },
+        {
+          "id": "keyhole-sensitive-encounter:obs-02",
+          "epochDayTdb": 2,
+          "epochUtc": "2036-01-03T00:00:00.000Z",
+          "stationId": "scenario-south",
+          "rightAscensionRad": -2.42447163672429,
+          "declinationRad": 0.011816461433475041,
+          "covarianceRad2": [
+            [
+              5.2884968712970235e-11,
+              0
+            ],
+            [
+              0,
+              5.2884968712970235e-11
+            ]
+          ],
+          "referenceFrame": "ICRF ecliptic approximation",
+          "corrections": {
+            "lightTime": "omitted",
+            "aberration": "omitted",
+            "topocentricParallax": "station identity retained; Earth-center approximation"
+          },
+          "truth": {
+            "origin": "scenario",
+            "temporalStatus": "forecast",
+            "uncertainty": {
+              "kind": "distribution",
+              "value": {
+                "interpretation": "Synthetic campaign assumption."
+              }
+            }
+          },
+          "rowId": "keyhole-sensitive-encounter:obs-02",
+          "rowHash": "864813e6bb75cabb51d35c0c55d87780dec8857fc3ba7c63982e0544c3b4b20e"
+        },
+        {
+          "id": "keyhole-sensitive-encounter:obs-03",
+          "epochDayTdb": 4,
+          "epochUtc": "2036-01-05T00:00:00.000Z",
+          "stationId": "scenario-north",
+          "rightAscensionRad": -2.4083825183572367,
+          "declinationRad": 0.011530093901861346,
+          "covarianceRad2": [
+            [
+              5.2884968712970235e-11,
+              0
+            ],
+            [
+              0,
+              5.2884968712970235e-11
+            ]
+          ],
+          "referenceFrame": "ICRF ecliptic approximation",
+          "corrections": {
+            "lightTime": "omitted",
+            "aberration": "omitted",
+            "topocentricParallax": "station identity retained; Earth-center approximation"
+          },
+          "truth": {
+            "origin": "scenario",
+            "temporalStatus": "forecast",
+            "uncertainty": {
+              "kind": "distribution",
+              "value": {
+                "interpretation": "Synthetic campaign assumption."
+              }
+            }
+          },
+          "rowId": "keyhole-sensitive-encounter:obs-03",
+          "rowHash": "bb57ca66d825b8c3fe3d8a6521e1d011b89d716cebefe2eb6795617e51633f1e"
+        },
+        {
+          "id": "keyhole-sensitive-encounter:obs-04",
+          "epochDayTdb": 6,
+          "epochUtc": "2036-01-07T00:00:00.000Z",
+          "stationId": "scenario-south",
+          "rightAscensionRad": -2.3934712506782096,
+          "declinationRad": 0.011195814771918956,
+          "covarianceRad2": [
+            [
+              5.2884968712970235e-11,
+              0
+            ],
+            [
+              0,
+              5.2884968712970235e-11
+            ]
+          ],
+          "referenceFrame": "ICRF ecliptic approximation",
+          "corrections": {
+            "lightTime": "omitted",
+            "aberration": "omitted",
+            "topocentricParallax": "station identity retained; Earth-center approximation"
+          },
+          "truth": {
+            "origin": "scenario",
+            "temporalStatus": "forecast",
+            "uncertainty": {
+              "kind": "distribution",
+              "value": {
+                "interpretation": "Synthetic campaign assumption."
+              }
+            }
+          },
+          "rowId": "keyhole-sensitive-encounter:obs-04",
+          "rowHash": "a6ed61ab64d45b03f5c853ff1394ad1659e71645e7a0cc158ab4c842348e2be7"
+        },
+        {
+          "id": "keyhole-sensitive-encounter:obs-05",
+          "epochDayTdb": 8,
+          "epochUtc": "2036-01-09T00:00:00.000Z",
+          "stationId": "scenario-north",
+          "rightAscensionRad": -2.379797812410293,
+          "declinationRad": 0.010820978471895648,
+          "covarianceRad2": [
+            [
+              5.2884968712970235e-11,
+              0
+            ],
+            [
+              0,
+              5.2884968712970235e-11
+            ]
+          ],
+          "referenceFrame": "ICRF ecliptic approximation",
+          "corrections": {
+            "lightTime": "omitted",
+            "aberration": "omitted",
+            "topocentricParallax": "station identity retained; Earth-center approximation"
+          },
+          "truth": {
+            "origin": "scenario",
+            "temporalStatus": "forecast",
+            "uncertainty": {
+              "kind": "distribution",
+              "value": {
+                "interpretation": "Synthetic campaign assumption."
+              }
+            }
+          },
+          "rowId": "keyhole-sensitive-encounter:obs-05",
+          "rowHash": "9f602ea3d782d012d01c01f070c558f85243a30001bcf29b103674353a89bb39"
+        },
+        {
+          "id": "keyhole-sensitive-encounter:obs-06",
+          "epochDayTdb": 10,
+          "epochUtc": "2036-01-11T00:00:00.000Z",
+          "stationId": "scenario-south",
+          "rightAscensionRad": -2.3674263019541715,
+          "declinationRad": 0.010419650846741858,
+          "covarianceRad2": [
+            [
+              5.2884968712970235e-11,
+              0
+            ],
+            [
+              0,
+              5.2884968712970235e-11
+            ]
+          ],
+          "referenceFrame": "ICRF ecliptic approximation",
+          "corrections": {
+            "lightTime": "omitted",
+            "aberration": "omitted",
+            "topocentricParallax": "station identity retained; Earth-center approximation"
+          },
+          "truth": {
+            "origin": "scenario",
+            "temporalStatus": "forecast",
+            "uncertainty": {
+              "kind": "distribution",
+              "value": {
+                "interpretation": "Synthetic campaign assumption."
+              }
+            }
+          },
+          "rowId": "keyhole-sensitive-encounter:obs-06",
+          "rowHash": "8b01f43cd45949c7f380977a626d3436bab8bd9ab0fb71760ecc76d6346f5a32"
+        },
+        {
+          "id": "keyhole-sensitive-encounter:obs-07",
+          "epochDayTdb": 12,
+          "epochUtc": "2036-01-13T00:00:00.000Z",
+          "stationId": "scenario-north",
+          "rightAscensionRad": -2.356385948741065,
+          "declinationRad": 0.009943207959295873,
+          "covarianceRad2": [
+            [
+              5.2884968712970235e-11,
+              0
+            ],
+            [
+              0,
+              5.2884968712970235e-11
+            ]
+          ],
+          "referenceFrame": "ICRF ecliptic approximation",
+          "corrections": {
+            "lightTime": "omitted",
+            "aberration": "omitted",
+            "topocentricParallax": "station identity retained; Earth-center approximation"
+          },
+          "truth": {
+            "origin": "scenario",
+            "temporalStatus": "forecast",
+            "uncertainty": {
+              "kind": "distribution",
+              "value": {
+                "interpretation": "Synthetic campaign assumption."
+              }
+            }
+          },
+          "rowId": "keyhole-sensitive-encounter:obs-07",
+          "rowHash": "98701673414ebc39805eda77042fdb01c8147b770342732b8422b01a2ab7e78b"
+        },
+        {
+          "id": "keyhole-sensitive-encounter:obs-08",
+          "epochDayTdb": 14,
+          "epochUtc": "2036-01-15T00:00:00.000Z",
+          "stationId": "scenario-south",
+          "rightAscensionRad": -2.3467102498599055,
+          "declinationRad": 0.009455023822174384,
+          "covarianceRad2": [
+            [
+              5.2884968712970235e-11,
+              0
+            ],
+            [
+              0,
+              5.2884968712970235e-11
+            ]
+          ],
+          "referenceFrame": "ICRF ecliptic approximation",
+          "corrections": {
+            "lightTime": "omitted",
+            "aberration": "omitted",
+            "topocentricParallax": "station identity retained; Earth-center approximation"
+          },
+          "truth": {
+            "origin": "scenario",
+            "temporalStatus": "forecast",
+            "uncertainty": {
+              "kind": "distribution",
+              "value": {
+                "interpretation": "Synthetic campaign assumption."
+              }
+            }
+          },
+          "rowId": "keyhole-sensitive-encounter:obs-08",
+          "rowHash": "74fce37c406d135f172dd4d1f6e30d68a82a4a0f4b1feed46d46ae4a0b091dce"
+        },
+        {
+          "id": "keyhole-sensitive-encounter:obs-09",
+          "epochDayTdb": 16,
+          "epochUtc": "2036-01-17T00:00:00.000Z",
+          "stationId": "scenario-north",
+          "rightAscensionRad": -2.3384300828149263,
+          "declinationRad": 0.008922431113611042,
+          "covarianceRad2": [
+            [
+              5.2884968712970235e-11,
+              0
+            ],
+            [
+              0,
+              5.2884968712970235e-11
+            ]
+          ],
+          "referenceFrame": "ICRF ecliptic approximation",
+          "corrections": {
+            "lightTime": "omitted",
+            "aberration": "omitted",
+            "topocentricParallax": "station identity retained; Earth-center approximation"
+          },
+          "truth": {
+            "origin": "scenario",
+            "temporalStatus": "forecast",
+            "uncertainty": {
+              "kind": "distribution",
+              "value": {
+                "interpretation": "Synthetic campaign assumption."
+              }
+            }
+          },
+          "rowId": "keyhole-sensitive-encounter:obs-09",
+          "rowHash": "e57e13d14cb97a93aa0fb224d2915bc16ad0531b6dfc6983ba8268acea150473"
+        },
+        {
+          "id": "keyhole-sensitive-encounter:obs-10",
+          "epochDayTdb": 18,
+          "epochUtc": "2036-01-19T00:00:00.000Z",
+          "stationId": "scenario-south",
+          "rightAscensionRad": -2.3315490923571813,
+          "declinationRad": 0.008343015457854382,
+          "covarianceRad2": [
+            [
+              5.2884968712970235e-11,
+              0
+            ],
+            [
+              0,
+              5.2884968712970235e-11
+            ]
+          ],
+          "referenceFrame": "ICRF ecliptic approximation",
+          "corrections": {
+            "lightTime": "omitted",
+            "aberration": "omitted",
+            "topocentricParallax": "station identity retained; Earth-center approximation"
+          },
+          "truth": {
+            "origin": "scenario",
+            "temporalStatus": "forecast",
+            "uncertainty": {
+              "kind": "distribution",
+              "value": {
+                "interpretation": "Synthetic campaign assumption."
+              }
+            }
+          },
+          "rowId": "keyhole-sensitive-encounter:obs-10",
+          "rowHash": "d178d24c85edb6102195ef3ec6978a0347ceb3d61ddeb453804b89648b0e38bc"
+        },
+        {
+          "id": "keyhole-sensitive-encounter:obs-11",
+          "epochDayTdb": 20,
+          "epochUtc": "2036-01-21T00:00:00.000Z",
+          "stationId": "scenario-north",
+          "rightAscensionRad": -2.326095541383243,
+          "declinationRad": 0.007715296728582703,
+          "covarianceRad2": [
+            [
+              5.2884968712970235e-11,
+              0
+            ],
+            [
+              0,
+              5.2884968712970235e-11
+            ]
+          ],
+          "referenceFrame": "ICRF ecliptic approximation",
+          "corrections": {
+            "lightTime": "omitted",
+            "aberration": "omitted",
+            "topocentricParallax": "station identity retained; Earth-center approximation"
+          },
+          "truth": {
+            "origin": "scenario",
+            "temporalStatus": "forecast",
+            "uncertainty": {
+              "kind": "distribution",
+              "value": {
+                "interpretation": "Synthetic campaign assumption."
+              }
+            }
+          },
+          "rowId": "keyhole-sensitive-encounter:obs-11",
+          "rowHash": "8fad57973e8f1c3d97b8dfc22db0e5223e646c9e37ccb422032b353c6851ca32"
+        },
+        {
+          "id": "keyhole-sensitive-encounter:obs-12",
+          "epochDayTdb": 22,
+          "epochUtc": "2036-01-23T00:00:00.000Z",
+          "stationId": "scenario-south",
+          "rightAscensionRad": -2.32203877680835,
+          "declinationRad": 0.007081725572016091,
+          "covarianceRad2": [
+            [
+              5.2884968712970235e-11,
+              0
+            ],
+            [
+              0,
+              5.2884968712970235e-11
+            ]
+          ],
+          "referenceFrame": "ICRF ecliptic approximation",
+          "corrections": {
+            "lightTime": "omitted",
+            "aberration": "omitted",
+            "topocentricParallax": "station identity retained; Earth-center approximation"
+          },
+          "truth": {
+            "origin": "scenario",
+            "temporalStatus": "forecast",
+            "uncertainty": {
+              "kind": "distribution",
+              "value": {
+                "interpretation": "Synthetic campaign assumption."
+              }
+            }
+          },
+          "rowId": "keyhole-sensitive-encounter:obs-12",
+          "rowHash": "36fb8b4f8fd23fd1277a8f3d6f251155fc2b2ccde2c24cd9468960b0cecc602a"
+        }
+      ],
+      "hiddenTruth": {
+        "schema": "simulatte.asteroidHiddenTruth.v1",
+        "id": "keyhole-sensitive-encounter:hidden",
+        "initialState": {
+          "positionAu": [
+            0.981,
+            -0.016,
+            0.0003
+          ],
+          "velocityAuD": [
+            0.00034,
+            0.0172,
+            -0.000006
+          ]
+        },
+        "truthHash": "033d9a701b2943c6734c70dd7755f4db7e814b313ba8dbd04a73bfdb7fb83d04",
+        "classification": "hidden synthetic evaluation truth"
+      },
+      "truth": {
+        "origin": "scenario",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "distribution",
+          "value": {
+            "interpretation": "Synthetic campaign assumption."
+          }
+        }
+      }
+    },
+    {
+      "id": "launch-reliability",
+      "label": "launch reliability",
+      "referenceEpochTdbDay": 0,
+      "startInstant": "2036-01-01T00:00:00Z",
+      "terminalDay": 90,
+      "initialGuess": {
+        "positionAu": [
+          0.9820099999999999,
+          -0.011007999999999999,
+          0.001005
+        ],
+        "velocityAuD": [
+          0.0003002,
+          0.017239849999999998,
+          -0.000014920000000000001
+        ]
+      },
+      "rangePriorAu": 0.02,
+      "observations": [
+        {
+          "id": "launch-reliability:obs-01",
+          "epochDayTdb": 0,
+          "epochUtc": "2036-01-01T00:00:00.000Z",
+          "stationId": "scenario-north",
+          "rightAscensionRad": -2.593035456692251,
+          "declinationRad": 0.0473721093391275,
+          "covarianceRad2": [
+            [
+              9.401772215639154e-11,
+              0
+            ],
+            [
+              0,
+              9.401772215639154e-11
+            ]
+          ],
+          "referenceFrame": "ICRF ecliptic approximation",
+          "corrections": {
+            "lightTime": "omitted",
+            "aberration": "omitted",
+            "topocentricParallax": "station identity retained; Earth-center approximation"
+          },
+          "truth": {
+            "origin": "scenario",
+            "temporalStatus": "forecast",
+            "uncertainty": {
+              "kind": "distribution",
+              "value": {
+                "interpretation": "Synthetic campaign assumption."
+              }
+            }
+          },
+          "rowId": "launch-reliability:obs-01",
+          "rowHash": "7053f4678d48800ebf045fc77ce3fe175427557357c50fe6ca40b0219927d521"
+        },
+        {
+          "id": "launch-reliability:obs-02",
+          "epochDayTdb": 1.1111111111111112,
+          "epochUtc": "2036-01-02T02:40:00.000Z",
+          "stationId": "scenario-south",
+          "rightAscensionRad": -2.5866638507966937,
+          "declinationRad": 0.04723677325064251,
+          "covarianceRad2": [
+            [
+              9.401772215639154e-11,
+              0
+            ],
+            [
+              0,
+              9.401772215639154e-11
+            ]
+          ],
+          "referenceFrame": "ICRF ecliptic approximation",
+          "corrections": {
+            "lightTime": "omitted",
+            "aberration": "omitted",
+            "topocentricParallax": "station identity retained; Earth-center approximation"
+          },
+          "truth": {
+            "origin": "scenario",
+            "temporalStatus": "forecast",
+            "uncertainty": {
+              "kind": "distribution",
+              "value": {
+                "interpretation": "Synthetic campaign assumption."
+              }
+            }
+          },
+          "rowId": "launch-reliability:obs-02",
+          "rowHash": "2e0fff02da3f60b5253de2a884573a186478d04dbec6025312907f4694634e99"
+        },
+        {
+          "id": "launch-reliability:obs-03",
+          "epochDayTdb": 2.2222222222222223,
+          "epochUtc": "2036-01-03T05:20:00.000Z",
+          "stationId": "scenario-north",
+          "rightAscensionRad": -2.5806104033497994,
+          "declinationRad": 0.04708638855661936,
+          "covarianceRad2": [
+            [
+              9.401772215639154e-11,
+              0
+            ],
+            [
+              0,
+              9.401772215639154e-11
+            ]
+          ],
+          "referenceFrame": "ICRF ecliptic approximation",
+          "corrections": {
+            "lightTime": "omitted",
+            "aberration": "omitted",
+            "topocentricParallax": "station identity retained; Earth-center approximation"
+          },
+          "truth": {
+            "origin": "scenario",
+            "temporalStatus": "forecast",
+            "uncertainty": {
+              "kind": "distribution",
+              "value": {
+                "interpretation": "Synthetic campaign assumption."
+              }
+            }
+          },
+          "rowId": "launch-reliability:obs-03",
+          "rowHash": "9246ae39e55bb3f2511995b9e5ce9e25cc42b617a8534e5d3633c9e29b721314"
+        },
+        {
+          "id": "launch-reliability:obs-04",
+          "epochDayTdb": 3.3333333333333335,
+          "epochUtc": "2036-01-04T08:00:00.000Z",
+          "stationId": "scenario-south",
+          "rightAscensionRad": -2.574901534253247,
+          "declinationRad": 0.04686507387972075,
+          "covarianceRad2": [
+            [
+              9.401772215639154e-11,
+              0
+            ],
+            [
+              0,
+              9.401772215639154e-11
+            ]
+          ],
+          "referenceFrame": "ICRF ecliptic approximation",
+          "corrections": {
+            "lightTime": "omitted",
+            "aberration": "omitted",
+            "topocentricParallax": "station identity retained; Earth-center approximation"
+          },
+          "truth": {
+            "origin": "scenario",
+            "temporalStatus": "forecast",
+            "uncertainty": {
+              "kind": "distribution",
+              "value": {
+                "interpretation": "Synthetic campaign assumption."
+              }
+            }
+          },
+          "rowId": "launch-reliability:obs-04",
+          "rowHash": "88ff11071d68721215dd08508cdd67c7bea673d68aa49ad0d695a710c52287c6"
+        },
+        {
+          "id": "launch-reliability:obs-05",
+          "epochDayTdb": 4.444444444444445,
+          "epochUtc": "2036-01-05T10:40:00.000Z",
+          "stationId": "scenario-north",
+          "rightAscensionRad": -2.5694692244743385,
+          "declinationRad": 0.04659223187930932,
+          "covarianceRad2": [
+            [
+              9.401772215639154e-11,
+              0
+            ],
+            [
+              0,
+              9.401772215639154e-11
+            ]
+          ],
+          "referenceFrame": "ICRF ecliptic approximation",
+          "corrections": {
+            "lightTime": "omitted",
+            "aberration": "omitted",
+            "topocentricParallax": "station identity retained; Earth-center approximation"
+          },
+          "truth": {
+            "origin": "scenario",
+            "temporalStatus": "forecast",
+            "uncertainty": {
+              "kind": "distribution",
+              "value": {
+                "interpretation": "Synthetic campaign assumption."
+              }
+            }
+          },
+          "rowId": "launch-reliability:obs-05",
+          "rowHash": "6687d991f25de898cffd1634e522e56a6981e855456ec1373e8811941c6e3cab"
+        },
+        {
+          "id": "launch-reliability:obs-06",
+          "epochDayTdb": 5.555555555555555,
+          "epochUtc": "2036-01-06T13:20:00.000Z",
+          "stationId": "scenario-south",
+          "rightAscensionRad": -2.564405346512216,
+          "declinationRad": 0.0462863309767769,
+          "covarianceRad2": [
+            [
+              9.401772215639154e-11,
+              0
+            ],
+            [
+              0,
+              9.401772215639154e-11
+            ]
+          ],
+          "referenceFrame": "ICRF ecliptic approximation",
+          "corrections": {
+            "lightTime": "omitted",
+            "aberration": "omitted",
+            "topocentricParallax": "station identity retained; Earth-center approximation"
+          },
+          "truth": {
+            "origin": "scenario",
+            "temporalStatus": "forecast",
+            "uncertainty": {
+              "kind": "distribution",
+              "value": {
+                "interpretation": "Synthetic campaign assumption."
+              }
+            }
+          },
+          "rowId": "launch-reliability:obs-06",
+          "rowHash": "07115a2a0b7f7b15189be63ee8f4b6d5f9d73626bcf0704e68ddfb4f7e3b2fde"
+        },
+        {
+          "id": "launch-reliability:obs-07",
+          "epochDayTdb": 6.666666666666667,
+          "epochUtc": "2036-01-07T16:00:00.000Z",
+          "stationId": "scenario-north",
+          "rightAscensionRad": -2.5596749983502027,
+          "declinationRad": 0.04590740946383049,
+          "covarianceRad2": [
+            [
+              9.401772215639154e-11,
+              0
+            ],
+            [
+              0,
+              9.401772215639154e-11
+            ]
+          ],
+          "referenceFrame": "ICRF ecliptic approximation",
+          "corrections": {
+            "lightTime": "omitted",
+            "aberration": "omitted",
+            "topocentricParallax": "station identity retained; Earth-center approximation"
+          },
+          "truth": {
+            "origin": "scenario",
+            "temporalStatus": "forecast",
+            "uncertainty": {
+              "kind": "distribution",
+              "value": {
+                "interpretation": "Synthetic campaign assumption."
+              }
+            }
+          },
+          "rowId": "launch-reliability:obs-07",
+          "rowHash": "b05ddf44bffda4940eca47fe131d70070d4fe22f5a12d4019d28374e65bd4d20"
+        },
+        {
+          "id": "launch-reliability:obs-08",
+          "epochDayTdb": 7.777777777777778,
+          "epochUtc": "2036-01-08T18:40:00.000Z",
+          "stationId": "scenario-south",
+          "rightAscensionRad": -2.5552849673609295,
+          "declinationRad": 0.0455018540772994,
+          "covarianceRad2": [
+            [
+              9.401772215639154e-11,
+              0
+            ],
+            [
+              0,
+              9.401772215639154e-11
+            ]
+          ],
+          "referenceFrame": "ICRF ecliptic approximation",
+          "corrections": {
+            "lightTime": "omitted",
+            "aberration": "omitted",
+            "topocentricParallax": "station identity retained; Earth-center approximation"
+          },
+          "truth": {
+            "origin": "scenario",
+            "temporalStatus": "forecast",
+            "uncertainty": {
+              "kind": "distribution",
+              "value": {
+                "interpretation": "Synthetic campaign assumption."
+              }
+            }
+          },
+          "rowId": "launch-reliability:obs-08",
+          "rowHash": "13a22d5ed8a22ac75ccdaed8af293f1faf6d96f9608542d5b8c83b5bffba6756"
+        },
+        {
+          "id": "launch-reliability:obs-09",
+          "epochDayTdb": 8.88888888888889,
+          "epochUtc": "2036-01-09T21:20:00.000Z",
+          "stationId": "scenario-north",
+          "rightAscensionRad": -2.551238264813406,
+          "declinationRad": 0.04501465977401205,
+          "covarianceRad2": [
+            [
+              9.401772215639154e-11,
+              0
+            ],
+            [
+              0,
+              9.401772215639154e-11
+            ]
+          ],
+          "referenceFrame": "ICRF ecliptic approximation",
+          "corrections": {
+            "lightTime": "omitted",
+            "aberration": "omitted",
+            "topocentricParallax": "station identity retained; Earth-center approximation"
+          },
+          "truth": {
+            "origin": "scenario",
+            "temporalStatus": "forecast",
+            "uncertainty": {
+              "kind": "distribution",
+              "value": {
+                "interpretation": "Synthetic campaign assumption."
+              }
+            }
+          },
+          "rowId": "launch-reliability:obs-09",
+          "rowHash": "78261e9fa9a48ce07d29272944489610c70a5a4a04d2ae32d12cbba9465e8bce"
+        },
+        {
+          "id": "launch-reliability:obs-10",
+          "epochDayTdb": 10,
+          "epochUtc": "2036-01-11T00:00:00.000Z",
+          "stationId": "scenario-south",
+          "rightAscensionRad": -2.5475251786463433,
+          "declinationRad": 0.04451028288980915,
+          "covarianceRad2": [
+            [
+              9.401772215639154e-11,
+              0
+            ],
+            [
+              0,
+              9.401772215639154e-11
+            ]
+          ],
+          "referenceFrame": "ICRF ecliptic approximation",
+          "corrections": {
+            "lightTime": "omitted",
+            "aberration": "omitted",
+            "topocentricParallax": "station identity retained; Earth-center approximation"
+          },
+          "truth": {
+            "origin": "scenario",
+            "temporalStatus": "forecast",
+            "uncertainty": {
+              "kind": "distribution",
+              "value": {
+                "interpretation": "Synthetic campaign assumption."
+              }
+            }
+          },
+          "rowId": "launch-reliability:obs-10",
+          "rowHash": "fac36b862fde3d9f98bbcd3538857781ab8b3b7d273b0783e6cf78fcd50366d4"
+        }
+      ],
+      "hiddenTruth": {
+        "schema": "simulatte.asteroidHiddenTruth.v1",
+        "id": "launch-reliability:hidden",
+        "initialState": {
+          "positionAu": [
+            0.982,
+            -0.011,
+            0.001
+          ],
+          "velocityAuD": [
+            0.0003,
+            0.01724,
+            -0.000015
+          ]
+        },
+        "truthHash": "b5d7bf6abd26544f6bfab683a5e06ed4424b8c22d5d061ba4132165fc445b241",
+        "classification": "hidden synthetic evaluation truth"
+      },
+      "truth": {
+        "origin": "scenario",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "distribution",
+          "value": {
+            "interpretation": "Synthetic campaign assumption."
+          }
+        }
+      }
+    },
+    {
+      "id": "false-alarm-calibration",
+      "label": "false alarm calibration",
+      "referenceEpochTdbDay": 0,
+      "startInstant": "2036-01-01T00:00:00Z",
+      "terminalDay": 90,
+      "initialGuess": {
+        "positionAu": [
+          0.9850099999999999,
+          -0.009007999999999999,
+          0.0045049999999999995
+        ],
+        "velocityAuD": [
+          0.00020020000000000001,
+          0.017309849999999998,
+          0.00002508
+        ]
+      },
+      "rangePriorAu": 0.02,
+      "observations": [
+        {
+          "id": "false-alarm-calibration:obs-01",
+          "epochDayTdb": 0,
+          "epochUtc": "2036-01-01T00:00:00.000Z",
+          "stationId": "scenario-north",
+          "rightAscensionRad": -2.601175168533233,
+          "declinationRad": 0.2517720927328001,
+          "covarianceRad2": [
+            [
+              2.1153987485188094e-10,
+              0
+            ],
+            [
+              0,
+              2.1153987485188094e-10
+            ]
+          ],
+          "referenceFrame": "ICRF ecliptic approximation",
+          "corrections": {
+            "lightTime": "omitted",
+            "aberration": "omitted",
+            "topocentricParallax": "station identity retained; Earth-center approximation"
+          },
+          "truth": {
+            "origin": "scenario",
+            "temporalStatus": "forecast",
+            "uncertainty": {
+              "kind": "distribution",
+              "value": {
+                "interpretation": "Synthetic campaign assumption."
+              }
+            }
+          },
+          "rowId": "false-alarm-calibration:obs-01",
+          "rowHash": "579fdda97f363e985ed8fcf67ee5fe969f36df7f9a54bfadae6ca0f6eb1be417"
+        },
+        {
+          "id": "false-alarm-calibration:obs-02",
+          "epochDayTdb": 0.7142857142857143,
+          "epochUtc": "2036-01-01T17:08:34.285Z",
+          "stationId": "scenario-south",
+          "rightAscensionRad": -2.6008379911587,
+          "declinationRad": 0.25495408155736743,
+          "covarianceRad2": [
+            [
+              2.1153987485188094e-10,
+              0
+            ],
+            [
+              0,
+              2.1153987485188094e-10
+            ]
+          ],
+          "referenceFrame": "ICRF ecliptic approximation",
+          "corrections": {
+            "lightTime": "omitted",
+            "aberration": "omitted",
+            "topocentricParallax": "station identity retained; Earth-center approximation"
+          },
+          "truth": {
+            "origin": "scenario",
+            "temporalStatus": "forecast",
+            "uncertainty": {
+              "kind": "distribution",
+              "value": {
+                "interpretation": "Synthetic campaign assumption."
+              }
+            }
+          },
+          "rowId": "false-alarm-calibration:obs-02",
+          "rowHash": "0fcd7f015f46f896de22c232e4c0235f4aae36e6e8fb6e80bafb86b7c4dc44e2"
+        },
+        {
+          "id": "false-alarm-calibration:obs-03",
+          "epochDayTdb": 1.4285714285714286,
+          "epochUtc": "2036-01-02T10:17:08.571Z",
+          "stationId": "scenario-north",
+          "rightAscensionRad": -2.6007379510719004,
+          "declinationRad": 0.25811204681898103,
+          "covarianceRad2": [
+            [
+              2.1153987485188094e-10,
+              0
+            ],
+            [
+              0,
+              2.1153987485188094e-10
+            ]
+          ],
+          "referenceFrame": "ICRF ecliptic approximation",
+          "corrections": {
+            "lightTime": "omitted",
+            "aberration": "omitted",
+            "topocentricParallax": "station identity retained; Earth-center approximation"
+          },
+          "truth": {
+            "origin": "scenario",
+            "temporalStatus": "forecast",
+            "uncertainty": {
+              "kind": "distribution",
+              "value": {
+                "interpretation": "Synthetic campaign assumption."
+              }
+            }
+          },
+          "rowId": "false-alarm-calibration:obs-03",
+          "rowHash": "a4bd94e55e6f5be7bac5125980a30eb9fe9dd57aa9de2525603d8dd216c74252"
+        },
+        {
+          "id": "false-alarm-calibration:obs-04",
+          "epochDayTdb": 2.142857142857143,
+          "epochUtc": "2036-01-03T03:25:42.857Z",
+          "stationId": "scenario-south",
+          "rightAscensionRad": -2.6007923992681587,
+          "declinationRad": 0.2612209194436759,
+          "covarianceRad2": [
+            [
+              2.1153987485188094e-10,
+              0
+            ],
+            [
+              0,
+              2.1153987485188094e-10
+            ]
+          ],
+          "referenceFrame": "ICRF ecliptic approximation",
+          "corrections": {
+            "lightTime": "omitted",
+            "aberration": "omitted",
+            "topocentricParallax": "station identity retained; Earth-center approximation"
+          },
+          "truth": {
+            "origin": "scenario",
+            "temporalStatus": "forecast",
+            "uncertainty": {
+              "kind": "distribution",
+              "value": {
+                "interpretation": "Synthetic campaign assumption."
+              }
+            }
+          },
+          "rowId": "false-alarm-calibration:obs-04",
+          "rowHash": "7eac9e223afa61e611d2efbd79bbbfd326835a02fec2e9d93851962eae02463c"
+        },
+        {
+          "id": "false-alarm-calibration:obs-05",
+          "epochDayTdb": 2.857142857142857,
+          "epochUtc": "2036-01-03T20:34:17.142Z",
+          "stationId": "scenario-north",
+          "rightAscensionRad": -2.6010783688177925,
+          "declinationRad": 0.264287597506759,
+          "covarianceRad2": [
+            [
+              2.1153987485188094e-10,
+              0
+            ],
+            [
+              0,
+              2.1153987485188094e-10
+            ]
+          ],
+          "referenceFrame": "ICRF ecliptic approximation",
+          "corrections": {
+            "lightTime": "omitted",
+            "aberration": "omitted",
+            "topocentricParallax": "station identity retained; Earth-center approximation"
+          },
+          "truth": {
+            "origin": "scenario",
+            "temporalStatus": "forecast",
+            "uncertainty": {
+              "kind": "distribution",
+              "value": {
+                "interpretation": "Synthetic campaign assumption."
+              }
+            }
+          },
+          "rowId": "false-alarm-calibration:obs-05",
+          "rowHash": "a1aac797aff7dbaf1c0beac6ab5cb484aec6a6a02e1bba757aa626f255c4d012"
+        },
+        {
+          "id": "false-alarm-calibration:obs-06",
+          "epochDayTdb": 3.5714285714285716,
+          "epochUtc": "2036-01-04T13:42:51.428Z",
+          "stationId": "scenario-south",
+          "rightAscensionRad": -2.6015560130013324,
+          "declinationRad": 0.26733098384718573,
+          "covarianceRad2": [
+            [
+              2.1153987485188094e-10,
+              0
+            ],
+            [
+              0,
+              2.1153987485188094e-10
+            ]
+          ],
+          "referenceFrame": "ICRF ecliptic approximation",
+          "corrections": {
+            "lightTime": "omitted",
+            "aberration": "omitted",
+            "topocentricParallax": "station identity retained; Earth-center approximation"
+          },
+          "truth": {
+            "origin": "scenario",
+            "temporalStatus": "forecast",
+            "uncertainty": {
+              "kind": "distribution",
+              "value": {
+                "interpretation": "Synthetic campaign assumption."
+              }
+            }
+          },
+          "rowId": "false-alarm-calibration:obs-06",
+          "rowHash": "d5de7ad4b024b023f862af1b61a5357ed02557ddb99dd74fe167d18324a0ea83"
+        },
+        {
+          "id": "false-alarm-calibration:obs-07",
+          "epochDayTdb": 4.285714285714286,
+          "epochUtc": "2036-01-05T06:51:25.714Z",
+          "stationId": "scenario-north",
+          "rightAscensionRad": -2.6022069135153525,
+          "declinationRad": 0.2703244942440366,
+          "covarianceRad2": [
+            [
+              2.1153987485188094e-10,
+              0
+            ],
+            [
+              0,
+              2.1153987485188094e-10
+            ]
+          ],
+          "referenceFrame": "ICRF ecliptic approximation",
+          "corrections": {
+            "lightTime": "omitted",
+            "aberration": "omitted",
+            "topocentricParallax": "station identity retained; Earth-center approximation"
+          },
+          "truth": {
+            "origin": "scenario",
+            "temporalStatus": "forecast",
+            "uncertainty": {
+              "kind": "distribution",
+              "value": {
+                "interpretation": "Synthetic campaign assumption."
+              }
+            }
+          },
+          "rowId": "false-alarm-calibration:obs-07",
+          "rowHash": "5e7ddb7808e4a8dff007cf0789c5da94bbcbc54d8d27a2462480527e13418331"
+        },
+        {
+          "id": "false-alarm-calibration:obs-08",
+          "epochDayTdb": 5,
+          "epochUtc": "2036-01-06T00:00:00.000Z",
+          "stationId": "scenario-south",
+          "rightAscensionRad": -2.603089393805225,
+          "declinationRad": 0.2732527992250926,
+          "covarianceRad2": [
+            [
+              2.1153987485188094e-10,
+              0
+            ],
+            [
+              0,
+              2.1153987485188094e-10
+            ]
+          ],
+          "referenceFrame": "ICRF ecliptic approximation",
+          "corrections": {
+            "lightTime": "omitted",
+            "aberration": "omitted",
+            "topocentricParallax": "station identity retained; Earth-center approximation"
+          },
+          "truth": {
+            "origin": "scenario",
+            "temporalStatus": "forecast",
+            "uncertainty": {
+              "kind": "distribution",
+              "value": {
+                "interpretation": "Synthetic campaign assumption."
+              }
+            }
+          },
+          "rowId": "false-alarm-calibration:obs-08",
+          "rowHash": "4848b9caf98b3fbb25ce11db14b8bebcf5294a25f14515ae6bd947e19ac92dd8"
+        }
+      ],
+      "hiddenTruth": {
+        "schema": "simulatte.asteroidHiddenTruth.v1",
+        "id": "false-alarm-calibration:hidden",
+        "initialState": {
+          "positionAu": [
+            0.985,
+            -0.009,
+            0.0045
+          ],
+          "velocityAuD": [
+            0.0002,
+            0.01731,
+            0.000025
+          ]
+        },
+        "truthHash": "c91abff862cacdd9c346ef8ff9bb966350c666c0a7cdae60530b1e5a47f57aaf",
+        "classification": "hidden synthetic evaluation truth"
+      },
+      "truth": {
+        "origin": "scenario",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "distribution",
+          "value": {
+            "interpretation": "Synthetic campaign assumption."
+          }
+        }
+      }
+    }
+  ],
+  "claimBoundary": "All public campaigns and measurements are synthetic; hidden state is evaluation truth only."
+}

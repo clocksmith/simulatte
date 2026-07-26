@@ -1,0 +1,89 @@
+{
+  "schema": "simulatte.asteroidDecisionPolicies.v1",
+  "id": "asteroid-decision-policies-v1",
+  "policies": [
+    {
+      "id": "fixed-cadence",
+      "label": "Fixed cadence",
+      "publicInputs": [
+        "acquiredObservations",
+        "fitReceipt",
+        "observationBudget"
+      ],
+      "truth": {
+        "origin": "scenario",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "distribution",
+          "value": {
+            "interpretation": "Synthetic campaign assumption."
+          }
+        }
+      }
+    },
+    {
+      "id": "information-gain",
+      "label": "Information-gain follow-up",
+      "publicInputs": [
+        "acquiredObservations",
+        "fitCovariance",
+        "observationBudget"
+      ],
+      "truth": {
+        "origin": "scenario",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "distribution",
+          "value": {
+            "interpretation": "Synthetic campaign assumption."
+          }
+        }
+      }
+    },
+    {
+      "id": "act-at-threshold",
+      "label": "Act at modeled threshold",
+      "publicInputs": [
+        "fitReceipt",
+        "modeledEncounterDistribution",
+        "decisionThreshold"
+      ],
+      "truth": {
+        "origin": "scenario",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "distribution",
+          "value": {
+            "interpretation": "Synthetic campaign assumption."
+          }
+        }
+      }
+    },
+    {
+      "id": "observe-then-decide",
+      "label": "Observe then decide",
+      "publicInputs": [
+        "fitReceipt",
+        "fitCovariance",
+        "observationBudget",
+        "decisionThreshold"
+      ],
+      "truth": {
+        "origin": "scenario",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "distribution",
+          "value": {
+            "interpretation": "Synthetic campaign assumption."
+          }
+        }
+      }
+    }
+  ],
+  "forbiddenInputs": [
+    "hiddenInitialState",
+    "futureObservationOutcomes",
+    "executionDraws",
+    "trueEncounterOutcome"
+  ]
+}

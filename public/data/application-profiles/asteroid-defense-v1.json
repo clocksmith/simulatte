@@ -1,0 +1,64 @@
+{
+  "schema": "simulatte.applicationProfile.v3",
+  "id": "asteroid-defense-v1",
+  "tier": "solar-system",
+  "worldModelId": "solar-system-ephemeris-v2",
+  "interaction": {
+    "mode": "simulation",
+    "simulationOwnerPluginId": "asteroid-defense",
+    "missionRequired": false,
+    "startLabel": "Run defense experiment",
+    "shuffleLabel": "Change campaign"
+  },
+  "defaultSeedId": "short-arc-follow-up",
+  "seeds": [
+    {
+      "id": "short-arc-follow-up",
+      "label": "Short-arc follow-up",
+      "description": "A synthetic short arc compares fixed cadence with information-gain follow-up.",
+      "seed": "asteroid-short-arc-001",
+      "scenarioId": "short-arc-follow-up"
+    },
+    {
+      "id": "late-precision-observation",
+      "label": "Late precision observation",
+      "description": "One later synthetic high-precision observation changes the modeled orbit distribution.",
+      "seed": "asteroid-late-precision-002",
+      "scenarioId": "late-precision-observation"
+    },
+    {
+      "id": "keyhole-sensitive-encounter",
+      "label": "Encounter-plane sensitivity",
+      "description": "A synthetic close-approach geometry examines covariance-targeted intervention sensitivity.",
+      "seed": "asteroid-keyhole-003",
+      "scenarioId": "keyhole-sensitive-encounter"
+    },
+    {
+      "id": "launch-reliability",
+      "label": "Launch reliability",
+      "description": "Identical orbit clones compare uncertain kinetic execution with reconnaissance-first policy.",
+      "seed": "asteroid-launch-004",
+      "scenarioId": "launch-reliability"
+    },
+    {
+      "id": "false-alarm-calibration",
+      "label": "False-alarm calibration",
+      "description": "A nonimpacting hidden synthetic orbit tests whether follow-up prevents unnecessary intervention.",
+      "seed": "asteroid-false-alarm-005",
+      "scenarioId": "false-alarm-calibration"
+    }
+  ],
+  "camera": {
+    "initialMode": "orbit",
+    "runMode": "orbit",
+    "pluginId": "asteroid-defense",
+    "targetId": "asteroid-encounter"
+  },
+  "plugins": [
+    {
+      "id": "asteroid-defense",
+      "configId": "asteroid-defense-config-v1"
+    }
+  ],
+  "routeObjective": {}
+}

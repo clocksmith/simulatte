@@ -466,10 +466,7 @@
             { label: 'Astrometry', value: `Gaia DR3 · ${starsData.provenance.retrievalAt.slice(0, 10)} · ${starsData.stars.length - 1} source rows` },
           ],
           fields: controlFields(result.controls, hardwareData),
-          actions: [
-            { id: 'simulate.packet.transmission', label: 'Run controlled transmission' },
-            { id: 'counterfactual.compare', label: 'Compare direct baseline' },
-          ],
+          actions: [],
         },
         {
           slot: 'hud',
@@ -494,7 +491,11 @@
     }
     function contributeV4() {
       const state = sdk.state.read();
-      return v4Api.createContribution({ result: state.result, progressive: state.progressive });
+      return v4Api.createContribution({
+        result: state.result,
+        progressive: state.progressive,
+        transceiverOptions: Object.values(hardwareData.archetypes).map((row) => ({ value: row.id, label: row.name })),
+      });
     }
     function viewIntents() {
       const state = sdk.state.read();
@@ -563,7 +564,7 @@
 
   function resolveControls(config, scenario, values, hardwareData) {
     const controls = Object.freeze({
-      startEpochIso: String(values.startEpochIso || config.startEpochIso),
+      startEpochIso: normalizeEpoch(values.startEpochIso || config.startEpochIso),
       targetEpochYear: Number(values.targetEpochYear ?? config.targetEpochYear),
       processingDelayHours: Number(values.processingDelayHours ?? config.processingDelayHours),
       packetBytes: Number(values.packetBytes ?? scenario.packetBytes),
@@ -591,6 +592,15 @@
         options: Object.values(hardwareData.archetypes).map((row) => ({ value: row.id, label: row.name })),
       },
     ];
+  }
+
+  function normalizeEpoch(value) {
+    const text = String(value);
+    const normalized = /^\d{4}-\d{2}-\d{2}(?:T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?)?$/.test(text)
+      ? `${text.includes('T') ? text : `${text}T00:00:00`}Z`
+      : text;
+    if (!Number.isFinite(Date.parse(normalized))) throw new Error('interstellar_start_epoch_invalid');
+    return new Date(normalized).toISOString();
   }
 
   function createComparisonDefinition(scenario, seed, omissions, reliabilityScope) {

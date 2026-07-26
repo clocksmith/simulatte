@@ -1,0 +1,128 @@
+{
+  "schema": "simulatte.gridRestorationResources.v1",
+  "id": "grid-restoration-resources-v1",
+  "crews": [
+    {
+      "id": "crew-west",
+      "homeRegionId": "west",
+      "skillIds": [
+        "resource",
+        "interface"
+      ],
+      "truth": {
+        "origin": "scenario",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "distribution",
+          "value": {
+            "interpretation": "Declared experiment assumption; not an operating-system forecast."
+          }
+        }
+      }
+    },
+    {
+      "id": "crew-central",
+      "homeRegionId": "central",
+      "skillIds": [
+        "resource",
+        "interface"
+      ],
+      "truth": {
+        "origin": "scenario",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "distribution",
+          "value": {
+            "interpretation": "Declared experiment assumption; not an operating-system forecast."
+          }
+        }
+      }
+    }
+  ],
+  "tasks": [
+    {
+      "id": "restore-central-east",
+      "targetKind": "interface",
+      "targetId": "central-east",
+      "dependencyIds": [],
+      "durationHours": 4,
+      "attemptSuccessProbability": 0.88,
+      "truth": {
+        "origin": "scenario",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "distribution",
+          "value": {
+            "interpretation": "Declared experiment assumption; not an operating-system forecast."
+          }
+        }
+      }
+    },
+    {
+      "id": "restore-central-gas",
+      "targetKind": "resource",
+      "targetId": "central:efficient-gas",
+      "dependencyIds": [],
+      "durationHours": 3,
+      "attemptSuccessProbability": 0.88,
+      "truth": {
+        "origin": "scenario",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "distribution",
+          "value": {
+            "interpretation": "Declared experiment assumption; not an operating-system forecast."
+          }
+        }
+      }
+    },
+    {
+      "id": "restore-east-peaker",
+      "targetKind": "resource",
+      "targetId": "east:peaking",
+      "dependencyIds": [
+        "restore-central-east"
+      ],
+      "durationHours": 2,
+      "attemptSuccessProbability": 0.88,
+      "truth": {
+        "origin": "scenario",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "distribution",
+          "value": {
+            "interpretation": "Declared experiment assumption; not an operating-system forecast."
+          }
+        }
+      }
+    },
+    {
+      "id": "restore-texas-gas",
+      "targetKind": "resource",
+      "targetId": "texas:efficient-gas",
+      "dependencyIds": [],
+      "durationHours": 3,
+      "attemptSuccessProbability": 0.88,
+      "truth": {
+        "origin": "scenario",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "distribution",
+          "value": {
+            "interpretation": "Declared experiment assumption; not an operating-system forecast."
+          }
+        }
+      }
+    }
+  ],
+  "truth": {
+    "origin": "scenario",
+    "temporalStatus": "forecast",
+    "uncertainty": {
+      "kind": "distribution",
+      "value": {
+        "interpretation": "Declared experiment assumption; not an operating-system forecast."
+      }
+    }
+  }
+}

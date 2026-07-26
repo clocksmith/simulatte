@@ -1,0 +1,174 @@
+{
+  "schema": "simulatte.gridRegionalInterfaceScenarios.v1",
+  "id": "grid-regional-interface-scenarios-v1",
+  "regions": [
+    {
+      "id": "west",
+      "respondent": "CISO",
+      "name": "West aggregate",
+      "coordinates": [
+        -119.5,
+        37.2
+      ],
+      "geometryClassification": "modeled_display_anchor",
+      "truth": {
+        "origin": "modeled",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "distribution",
+          "value": {
+            "interpretation": "Aggregate authored representation calibrated only to order-of-magnitude public snapshots."
+          }
+        }
+      }
+    },
+    {
+      "id": "texas",
+      "respondent": "ERCO",
+      "name": "Texas aggregate",
+      "coordinates": [
+        -99.2,
+        31.2
+      ],
+      "geometryClassification": "modeled_display_anchor",
+      "truth": {
+        "origin": "modeled",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "distribution",
+          "value": {
+            "interpretation": "Aggregate authored representation calibrated only to order-of-magnitude public snapshots."
+          }
+        }
+      }
+    },
+    {
+      "id": "central",
+      "respondent": "MISO",
+      "name": "Central aggregate",
+      "coordinates": [
+        -91.5,
+        41.5
+      ],
+      "geometryClassification": "modeled_display_anchor",
+      "truth": {
+        "origin": "modeled",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "distribution",
+          "value": {
+            "interpretation": "Aggregate authored representation calibrated only to order-of-magnitude public snapshots."
+          }
+        }
+      }
+    },
+    {
+      "id": "east",
+      "respondent": "PJM",
+      "name": "East aggregate",
+      "coordinates": [
+        -78.4,
+        39.6
+      ],
+      "geometryClassification": "modeled_display_anchor",
+      "truth": {
+        "origin": "modeled",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "distribution",
+          "value": {
+            "interpretation": "Aggregate authored representation calibrated only to order-of-magnitude public snapshots."
+          }
+        }
+      }
+    }
+  ],
+  "interfaces": [
+    {
+      "id": "west-central",
+      "fromRegionId": "west",
+      "toRegionId": "central",
+      "forwardLimitMw": 5200,
+      "reverseLimitMw": 5200,
+      "truth": {
+        "origin": "modeled",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "distribution",
+          "value": {
+            "interpretation": "Aggregate authored representation calibrated only to order-of-magnitude public snapshots."
+          }
+        }
+      }
+    },
+    {
+      "id": "west-texas",
+      "fromRegionId": "west",
+      "toRegionId": "texas",
+      "forwardLimitMw": 3200,
+      "reverseLimitMw": 3200,
+      "truth": {
+        "origin": "modeled",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "distribution",
+          "value": {
+            "interpretation": "Aggregate authored representation calibrated only to order-of-magnitude public snapshots."
+          }
+        }
+      }
+    },
+    {
+      "id": "texas-central",
+      "fromRegionId": "texas",
+      "toRegionId": "central",
+      "forwardLimitMw": 4600,
+      "reverseLimitMw": 4600,
+      "truth": {
+        "origin": "modeled",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "distribution",
+          "value": {
+            "interpretation": "Aggregate authored representation calibrated only to order-of-magnitude public snapshots."
+          }
+        }
+      }
+    },
+    {
+      "id": "central-east",
+      "fromRegionId": "central",
+      "toRegionId": "east",
+      "forwardLimitMw": 7200,
+      "reverseLimitMw": 7200,
+      "truth": {
+        "origin": "modeled",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "distribution",
+          "value": {
+            "interpretation": "Aggregate authored representation calibrated only to order-of-magnitude public snapshots."
+          }
+        }
+      }
+    },
+    {
+      "id": "texas-east",
+      "fromRegionId": "texas",
+      "toRegionId": "east",
+      "forwardLimitMw": 2800,
+      "reverseLimitMw": 2800,
+      "truth": {
+        "origin": "modeled",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "distribution",
+          "value": {
+            "interpretation": "Aggregate authored representation calibrated only to order-of-magnitude public snapshots."
+          }
+        }
+      }
+    }
+  ],
+  "claimBoundary": "Aggregate authored interfaces are not physical transmission lines or protected topology."
+}

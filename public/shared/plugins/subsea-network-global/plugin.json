@@ -1,0 +1,170 @@
+{
+  "configSchema": "./config.schema.json",
+  "consumes": [],
+  "datasets": [
+    {
+      "id": "subsea-fcc-cable-license-register-2025-v1",
+      "reference": {
+        "id": "subsea-fcc-cable-license-register-2025-v1",
+        "path": "../../../data/subsea-network-global/fcc-cable-license-register-2025-v1.json",
+        "schemaId": "simulatte.subseaFccCableRegistry.v1",
+        "sha256": "33ac0868987591b6518af5f528a8cfc47c4966256c67532180281d050e0c5e09"
+      },
+      "required": true
+    },
+    {
+      "id": "subsea-landing-points-governed-v1",
+      "reference": {
+        "id": "subsea-landing-points-governed-v1",
+        "path": "../../../data/subsea-network-global/landing-points-governed-v1.json",
+        "schemaId": "simulatte.subseaLandingPoints.v1",
+        "sha256": "0b0f95266d651f8088ff2ae2a0e7ef24efbddffc5703de65b566fe2d0d1fa5e1"
+      },
+      "required": true
+    },
+    {
+      "id": "subsea-cable-corridors-modeled-v1",
+      "reference": {
+        "id": "subsea-cable-corridors-modeled-v1",
+        "path": "../../../data/subsea-network-global/cable-corridors-modeled-v1.json",
+        "schemaId": "simulatte.subseaCableTopology.v1",
+        "sha256": "4a85a5bd3b216920400322a663bc1092fa47fb7433a5e5f4880a19affbbfadf8"
+      },
+      "required": true
+    },
+    {
+      "id": "subsea-capacity-scenarios-v1",
+      "reference": {
+        "id": "subsea-capacity-scenarios-v1",
+        "path": "../../../data/subsea-network-global/capacity-scenarios-v1.json",
+        "schemaId": "simulatte.subseaCapacityScenarios.v1",
+        "sha256": "a516637a199caa74ae17d3d979f74edbfb4c3600452e7bedabf56dc305551a35"
+      },
+      "required": true
+    },
+    {
+      "id": "subsea-demand-scenarios-v1",
+      "reference": {
+        "id": "subsea-demand-scenarios-v1",
+        "path": "../../../data/subsea-network-global/demand-scenarios-v1.json",
+        "schemaId": "simulatte.subseaDemandScenarios.v1",
+        "sha256": "1a3ab517d9d0514493ed50798dccb61170eddd0c342bf480a2238f9f280fc57c"
+      },
+      "required": true
+    },
+    {
+      "id": "subsea-repair-resources-v1",
+      "reference": {
+        "id": "subsea-repair-resources-v1",
+        "path": "../../../data/subsea-network-global/repair-resources-v1.json",
+        "schemaId": "simulatte.subseaRepairResources.v1",
+        "sha256": "002607c2884e8473033b3b505bf3893f90658fdf171f75345fcc72690b2dce12"
+      },
+      "required": true
+    },
+    {
+      "id": "subsea-model-governance-v1",
+      "reference": {
+        "id": "subsea-model-governance-v1",
+        "path": "../../../data/subsea-network-global/model-governance-v1.json",
+        "schemaId": "simulatte.subseaModelGovernance.v1",
+        "sha256": "6c675b4ce5ce3854f7725bf6cee225c0dd8a6f564382bfd728661cc4103ff9ff"
+      },
+      "required": true
+    },
+    {
+      "id": "subsea-provenance-registry-v1",
+      "reference": {
+        "id": "subsea-provenance-registry-v1",
+        "path": "../../../data/subsea-network-global/provenance-registry-v1.json",
+        "schemaId": "simulatte.subseaProvenanceRegistry.v1",
+        "sha256": "dd5b44709bd663c97665660939d1223d5b781629106b0e9d2630ec46bfbbe9ff"
+      },
+      "required": true
+    }
+  ],
+  "defaultConfig": "./default-config.json",
+  "entry": {
+    "globalFactory": "SimulattePluginSubseaNetworkGlobal",
+    "integrity": "sha384-024bccad91aed200a297ca7094eb36f604d82deb654c00435660c740f73b99687abb7c015cb9d82a3fd51cb5db066f6d",
+    "path": "./index.js"
+  },
+  "extensionPoints": [
+    "request",
+    "event",
+    "settlement",
+    "ui",
+    "presentation"
+  ],
+  "id": "subsea-network-global",
+  "permissions": [
+    "events.propose.v1",
+    "receipts.append.v1",
+    "state.reduce.v1",
+    "ui.geospatial.v1",
+    "ui.inspector.v1"
+  ],
+  "provides": [
+    "simulation.subsea-network.v1"
+  ],
+  "receiptSchemas": [
+    "simulatte.plugin.subseaScenarioReceipt.v1",
+    "simulatte.plugin.subseaPathCatalogReceipt.v1",
+    "simulatte.plugin.subseaAllocationReceipt.v1",
+    "simulatte.plugin.subseaRepairReceipt.v1",
+    "simulatte.plugin.subseaEnsembleReceipt.v1",
+    "simulatte.plugin.subseaConservationReceipt.v1",
+    "simulatte.plugin.subseaSettlementReceipt.v1",
+    "simulatte.plugin.subseaComparisonReceipt.v1",
+    "simulatte.comparisonExecutionReceipt.v4"
+  ],
+  "resources": [
+    {
+      "integrity": "sha384-e28cd94d7deab5b1bcc56325884744b19c488da9156a28f1f2c226dee40fa1f3d924ea7eeca5d3b30e1d4bf8b5348a90",
+      "path": "./config.schema.json"
+    },
+    {
+      "integrity": "sha384-5070fc8a5eca9012c4f51347a88b0cf7e76a67488012d06ada63c0ce1a2eb4dd5b4efc890a742ab3ccd6910f6a48208b",
+      "path": "./default-config.json"
+    },
+    {
+      "integrity": "sha384-fd1886905d5ef52358ea123251189251f2ad10ba92b4fde75f08a611376a86090480da323f87354b442351a8ba846003",
+      "path": "./path-catalog.js"
+    },
+    {
+      "integrity": "sha384-496a1458d557747bf5bc920276d9973100330581f2157f1dab2cdca8e4d4548d04f49dfb1cea1ab54bd4c62c5c63d6f4",
+      "path": "./allocation-solver.js"
+    },
+    {
+      "integrity": "sha384-4a357ec71be192a639b79697a80cba1d842377658faf8b9c3d466247245ec6128256ab3c55cd191a8029b6cf2cde17f8",
+      "path": "./demand-model.js"
+    },
+    {
+      "integrity": "sha384-8c01ec2d121e7815f9cd6f32856cc520a6f6ec3ba4ccd269f64f2548104a0d1a812bbc4985af9c2c7a104795fe34c4b7",
+      "path": "./metrics.js"
+    },
+    {
+      "integrity": "sha384-07c285fbf0b5406193f60d1c0da3c277b67a56199403709687d2466597c21f2b2ad2447b2ddf65c241b97bbecc82360f",
+      "path": "./repair-engine.js"
+    },
+    {
+      "integrity": "sha384-72648bef25f3c7da024d2d35b759f386706b7320f43abf34f3d7e5b0ff3a5ae9458e168ea7bb879179efb4f543a1d70a",
+      "path": "./network-model.js"
+    },
+    {
+      "integrity": "sha384-80d2dcd7492c13ab19dc01408bde629374808effa7cf9f804b9a2e181bf944049c0a962141d427c3332ae866a4a39629",
+      "path": "./v4-contribution.js"
+    },
+    {
+      "integrity": "sha384-5439cab4aac15b3a2f7bf3cfe9017a5f0ea5053b3c7685b59fd2250b3ea8bdd229ed76990741688794bfee6fcaf0e7ca",
+      "path": "./comparison-driver.js"
+    },
+    {
+      "integrity": "sha384-b6705120804131e36e985aceac66be496411c33160e617e2f54b5333e8b77556e34f6df5874b9dea9b121cb458fc3ab5",
+      "path": "./presentation.js"
+    }
+  ],
+  "schema": "simulatte.pluginManifest.v1",
+  "sdkVersion": 2,
+  "version": "1.0.0"
+}
