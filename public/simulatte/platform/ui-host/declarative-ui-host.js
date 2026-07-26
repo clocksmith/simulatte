@@ -23,9 +23,16 @@
         contribution.pluginId,
         new Set(contribution.controls.controls.map((control) => control.id)),
       ]));
+      v4Contributions.forEach((contribution) => {
+        if (contribution.controls.controls.length) {
+          fragments.inspector.append(renderControls(documentRef, contribution.pluginId, contribution.controls.controls, controlValues));
+        }
+      });
       [...contributions].sort((left, right) => left.view.slot.localeCompare(right.view.slot) || left.pluginId.localeCompare(right.pluginId)).forEach(({ pluginId, view }) => {
         contracts.validateUiContribution(pluginId, view);
         if (!view || !fragments[view.slot]) return;
+        const legacyFields = (view.fields || []).filter((field) => !v4ControlIds.get(pluginId)?.has(field.id));
+        if (!view.rows.length && !legacyFields.length && !view.actions.length) return;
         const section = documentRef.createElement(view.slot === 'inspector' ? 'details' : 'section');
         section.className = view.slot === 'inspector' ? 'evidence-section plugin-evidence' : `plugin-${view.slot}-card sim-surface`;
         section.dataset.pluginId = pluginId;
@@ -47,7 +54,6 @@
           section.append(rows);
         }
         const fields = new Map();
-        const legacyFields = (view.fields || []).filter((field) => !v4ControlIds.get(pluginId)?.has(field.id));
         if (legacyFields.length) {
           const controls = documentRef.createElement('div');
           controls.className = 'plugin-controls';
@@ -103,9 +109,6 @@
         fragments[view.slot].append(section);
       });
       v4Contributions.forEach((contribution) => {
-        if (contribution.controls.controls.length) {
-          fragments.inspector.append(renderControls(documentRef, contribution.pluginId, contribution.controls.controls, controlValues));
-        }
         contribution.inspections.forEach((inspection) => {
           fragments.inspector.append(renderInspection(documentRef, contribution.pluginId, inspection));
         });
@@ -119,16 +122,22 @@
       );
     }
 
-    return Object.freeze({ render, values });
+    function dispose() {
+      controlValues.clear();
+      Object.values(roots).forEach((element) => element.replaceChildren());
+    }
+
+    return Object.freeze({ render, values, dispose });
   }
 
   function renderControls(documentRef, pluginId, controls, controlValues) {
     const section = documentRef.createElement('details');
     section.className = 'evidence-section plugin-evidence plugin-parameter-section';
     section.dataset.pluginId = pluginId;
+    section.dataset.controlCount = String(controls.length);
     section.open = true;
     const heading = documentRef.createElement('summary');
-    heading.textContent = 'Experiment parameters';
+    heading.textContent = `Experiment parameters (${controls.length})`;
     const explanation = documentRef.createElement('p');
     explanation.className = 'plugin-parameter-note';
     explanation.textContent = 'These values are applied when you start or replay the simulation.';
@@ -142,9 +151,13 @@
       const caption = documentRef.createElement('span');
       caption.textContent = control.label;
       const input = createControlInput(documentRef, control, values.get(control.id));
+      input.id = `plugin-control-${domId(pluginId)}-${domId(control.id)}`;
       input.className = 'sim-field';
       input.dataset.pluginControl = control.id;
-      input.addEventListener('change', () => values.set(control.id, readControlInput(input, control)));
+      label.htmlFor = input.id;
+      const updateValue = () => values.set(control.id, readControlInput(input, control));
+      input.addEventListener('input', updateValue);
+      input.addEventListener('change', updateValue);
       label.append(caption, input);
       fields.append(label);
     });
@@ -156,6 +169,7 @@
     if (['select', 'multiselect'].includes(control.kind)) {
       const input = documentRef.createElement('select');
       input.multiple = control.kind === 'multiselect';
+      if (input.multiple) input.size = Math.min(6, Math.max(2, (control.options || []).length));
       (control.options || []).forEach((option) => {
         const node = documentRef.createElement('option');
         node.value = String(option.value);
@@ -193,6 +207,10 @@
 
   function cloneControlValue(value) {
     return Array.isArray(value) ? [...value] : value;
+  }
+
+  function domId(value) {
+    return String(value).replace(/[^a-zA-Z0-9_-]+/g, '-');
   }
 
   function renderInspection(documentRef, pluginId, inspection) {

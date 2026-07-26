@@ -364,8 +364,17 @@ async function runBrowserSmoke(options) {
       && result.shuffle.startLabel.length > 0
       && (result.shuffle.interactionMode === 'prompt' ? result.shuffle.startLabel === 'Start' : result.shuffle.seedChanged)
       && result.copy.removedLabelsAbsent
-      && result.copy.blankLink.href === 'https://create.simulatte.world/'
-      && result.copy.blankLink.label === 'Create'
+      && result.copy.createLink.href === 'https://create.simulatte.world/'
+      && result.copy.createLink.label === 'Create'
+      && result.copy.createLink.insideRuntimeDetails
+      && result.copy.experienceDocLink.label === 'Experience docs'
+      && result.copy.experienceDocLink.visible
+      && result.copy.experienceDocLink.matchesActiveProfile
+      && result.copy.experienceDocLink.target === '_blank'
+      && result.copy.experienceDocLink.rel.includes('noopener')
+      && result.copy.experienceDocLink.rel.includes('noreferrer')
+      && result.copy.experienceDocLink.withinViewport
+      && !result.copy.experienceDocLink.overlapsMissionDock
       && consentView.disclosed.title === 'Enable local Qwen embedding?'
       && consentView.disclosed.embedding === '533 MB'
       && consentView.disclosed.rerankerRowAbsent
@@ -520,14 +529,16 @@ function pluginFeatureExpression({ expectsP2pDelivery, expectsSunWalker, expects
     };
     const input = document.getElementById('mission-input');
     const step = document.getElementById('step-button');
+    const pluginSections = (pluginId) => [...document.querySelectorAll('#plugin-inspector [data-plugin-id="' + pluginId + '"]')];
+    const evidenceSection = (pluginId) => pluginSections(pluginId).find((section) => section.querySelector('dd'));
     let cooperation = { visible: Boolean(document.querySelector('#plugin-inspector [data-plugin-id="p2p-delivery"]')) };
     let gpuParity = null;
     if (${expectsP2pDelivery}) {
       input.value = 'I need two AA batteries delivered to my East Village office. Match someone already passing nearby.';
       input.dispatchEvent(new Event('input', { bubbles: true }));
       step.click();
-      await waitFor(() => document.querySelector('#plugin-inspector [data-plugin-id="p2p-delivery"]'), 'cooperative-plugin');
-      const cooperationSection = document.querySelector('#plugin-inspector [data-plugin-id="p2p-delivery"]');
+      await waitFor(() => evidenceSection('p2p-delivery'), 'cooperative-plugin');
+      const cooperationSection = evidenceSection('p2p-delivery');
       const cooperationRows = Object.fromEntries([...cooperationSection.querySelectorAll('div')].map((row) => [row.querySelector('dt')?.textContent.trim(), row.querySelector('dd')?.textContent.trim()]));
       cooperation = {
         visible: true,
@@ -553,11 +564,11 @@ function pluginFeatureExpression({ expectsP2pDelivery, expectsSunWalker, expects
       step.click();
       await waitFor(() => {
         const proof = document.getElementById('alternative-proof');
-        return Boolean(document.querySelector('#plugin-inspector [data-plugin-id="sun-walker"]'))
+        return Boolean(evidenceSection('sun-walker'))
           && proof.dataset.routeAlgorithm === 'sun_walker_arrival_time_route_v1';
       }, 'shade-route');
       const proof = document.getElementById('alternative-proof');
-      const shadeSection = document.querySelector('#plugin-inspector [data-plugin-id="sun-walker"]');
+      const shadeSection = evidenceSection('sun-walker');
       const shadeRows = Object.fromEntries([...shadeSection.querySelectorAll('div')].map((row) => [row.querySelector('dt')?.textContent.trim(), row.querySelector('dd')?.textContent.trim()]));
       const canvas = document.getElementById('autonomy-canvas');
       shade = {
@@ -577,10 +588,10 @@ function pluginFeatureExpression({ expectsP2pDelivery, expectsSunWalker, expects
       input.dispatchEvent(new Event('input', { bubbles: true }));
       step.click();
       await waitFor(() => {
-        const section = document.querySelector('#plugin-inspector [data-plugin-id="cable-trader"]');
+        const section = evidenceSection('cable-trader');
         return [...(section?.querySelectorAll('dd') || [])].some((row) => row.textContent.trim() === '300 / 300 (100%)');
       }, 'cable-trader-network');
-      const section = document.querySelector('#plugin-inspector [data-plugin-id="cable-trader"]');
+      const section = evidenceSection('cable-trader');
       const rows = Object.fromEntries([...section.querySelectorAll('div')].map((row) => [row.querySelector('dt')?.textContent.trim(), row.querySelector('dd')?.textContent.trim()]));
       const canvas = document.getElementById('autonomy-canvas');
       cableTrader = {
@@ -697,7 +708,7 @@ function browserJourneyExpression(expectedRunCameraMode = 'follow', expectsPlugi
       return { id, hidden: element.hidden, left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom, width: rect.width, height: rect.height };
     };
     const interactionMode = document.body.dataset.interactionMode || 'prompt';
-    const initialRects = ['runtime-toggle', 'application-profile-trigger', 'camera-focus-button', 'camera-follow', 'camera-bird', 'camera-top', 'mission-input', 'scenario-field', 'shuffle-button', 'start-button', 'place-resolution-lane', 'decisions-button'].map(rectFor);
+    const initialRects = ['runtime-toggle', 'application-profile-trigger', 'camera-focus-button', 'camera-follow', 'camera-bird', 'camera-top', 'mission-input', 'scenario-field', 'shuffle-button', 'start-button', 'place-resolution-lane', 'decisions-button', 'experience-doc-link'].map(rectFor);
     const primaryFieldId = interactionMode === 'prompt' ? 'mission-input' : 'scenario-field';
     const initialLayout = {
       viewport: viewportRect,
@@ -778,15 +789,57 @@ function browserJourneyExpression(expectedRunCameraMode = 'follow', expectsPlugi
       startLabel: startButton.textContent.trim(),
     };
     const visibleCopy = document.body.innerText;
+    const createLink = document.querySelector('#runtime-details .sim-text-link[href="https://create.simulatte.world/"]');
+    const experienceDocLink = document.getElementById('experience-doc-link');
+    const experienceDocRect = experienceDocLink?.getBoundingClientRect();
+    const missionDockRect = document.querySelector('.mission-dock')?.getBoundingClientRect();
+    const intersects = (left, right) => Boolean(
+      left && right
+      && left.width > 0
+      && left.height > 0
+      && right.width > 0
+      && right.height > 0
+      && left.left < right.right
+      && left.right > right.left
+      && left.top < right.bottom
+      && left.bottom > right.top
+    );
+    const expectedExperienceDocUrl = globalThis.SimulatteWorldTiersBoot?.experienceDocUrl(applicationProfile.value);
     const copy = {
       removedLabelsAbsent: !visibleCopy.includes('Mission compiler')
         && !visibleCopy.includes('Natural language to grounded obligations')
         && !visibleCopy.includes('Every autonomous choice, exposed and settled.')
         && !visibleCopy.includes('observe, retrieve, choose, settle')
         && !visibleCopy.includes('3 regions | 2026-07-13'),
-      blankLink: {
-        href: document.querySelector('.blank-link')?.getAttribute('href') || null,
-        label: document.querySelector('.blank-link')?.textContent.trim() || null,
+      createLink: {
+        href: createLink?.getAttribute('href') || null,
+        label: createLink?.textContent.trim() || null,
+        insideRuntimeDetails: Boolean(createLink?.closest('#runtime-details')),
+      },
+      experienceDocLink: {
+        href: experienceDocLink?.href || null,
+        label: experienceDocLink?.textContent.trim() || null,
+        target: experienceDocLink?.target || null,
+        rel: experienceDocLink?.rel || '',
+        visible: Boolean(
+          experienceDocLink
+          && !experienceDocLink.hidden
+          && getComputedStyle(experienceDocLink).display !== 'none'
+          && experienceDocRect?.width > 0
+          && experienceDocRect?.height > 0
+        ),
+        matchesActiveProfile: Boolean(
+          expectedExperienceDocUrl
+          && experienceDocLink?.href === expectedExperienceDocUrl
+        ),
+        withinViewport: Boolean(
+          experienceDocRect
+          && experienceDocRect.left >= -0.5
+          && experienceDocRect.top >= -0.5
+          && experienceDocRect.right <= viewportRect.width + 0.5
+          && experienceDocRect.bottom <= viewportRect.height + 0.5
+        ),
+        overlapsMissionDock: intersects(experienceDocRect, missionDockRect),
       },
     };
     const sleep = (duration) => new Promise((resolve) => setTimeout(resolve, duration));

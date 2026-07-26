@@ -76,10 +76,8 @@ body:not([data-journey-phase="loading"]) .loading-screen {
   visibility: hidden;
 }
 
-/* Standalone world explorer (non-City scales): hide the City-only gameplay chrome. */
-.world-explorer .mission-dock,
+/* Governed scales keep scenario and parameter controls, but not City journey chrome. */
 .world-explorer #journey-hud,
-.world-explorer #decisions-button,
 .world-explorer .camera-controls {
   display: none !important;
 }
@@ -665,8 +663,10 @@ body[data-journey-phase="ready"] .journey-hud {
   margin-top: 8px;
 }
 
-.blank-link {
+.sim-text-link {
+  display: inline-flex;
   width: fit-content;
+  align-items: center;
   color: var(--sim-ink-soft);
   font: 700 11px/1 var(--sim-mono);
   letter-spacing: 0.08em;
@@ -674,12 +674,27 @@ body[data-journey-phase="ready"] .journey-hud {
   text-transform: uppercase;
 }
 
-.blank-link:hover,
-.blank-link:focus-visible {
+.sim-text-link:hover,
+.sim-text-link:focus-visible {
   color: var(--sim-ink);
   text-decoration: underline;
   text-underline-offset: 3px;
   outline: none;
+}
+
+.experience-doc-link {
+  position: fixed;
+  z-index: 19;
+  left: max(16px, env(safe-area-inset-left));
+  bottom: max(16px, env(safe-area-inset-bottom));
+  min-height: 38px;
+  padding: 0 12px;
+}
+
+.experience-doc-link:hover,
+.experience-doc-link:focus-visible {
+  border-color: var(--sim-line-strong);
+  box-shadow: var(--sim-shadow-small);
 }
 
 .decisions-button {
@@ -1342,12 +1357,6 @@ body[data-journey-phase="failed"] .scenario-field {
   line-height: 1.25;
 }
 
-.plugin-map-card .evidence-grid,
-.plugin-hud-card .evidence-grid {
-  margin: 0;
-  padding: 0;
-}
-
 .plugin-map-card .plugin-actions,
 .plugin-hud-card .plugin-actions {
   display: flex;
@@ -1382,10 +1391,6 @@ body[data-journey-phase="failed"] .scenario-field {
 }
 
 .plugin-hud-card > strong {
-  grid-column: 1 / -1;
-}
-
-.plugin-hud-card .evidence-grid {
   grid-column: 1 / -1;
 }
 
@@ -1440,6 +1445,15 @@ body[data-journey-phase="failed"] .scenario-field {
     top: max(12px, env(safe-area-inset-top));
     right: max(12px, env(safe-area-inset-right));
     bottom: auto;
+  }
+
+  .experience-doc-link {
+    left: max(12px, env(safe-area-inset-left));
+    bottom: calc(max(12px, env(safe-area-inset-bottom)) + 146px);
+  }
+
+  .world-explorer .experience-doc-link {
+    bottom: max(12px, env(safe-area-inset-bottom));
   }
 
   .follow-minimap {
@@ -1572,6 +1586,18 @@ body[data-journey-phase="failed"] .scenario-field {
     right: max(10px, env(safe-area-inset-right));
     left: max(10px, env(safe-area-inset-left));
     max-width: none;
+  }
+
+  .experience-doc-link {
+    left: max(10px, env(safe-area-inset-left));
+    bottom: calc(max(10px, env(safe-area-inset-bottom)) + 194px);
+    min-height: 36px;
+    padding: 0 10px;
+    font-size: 10px;
+  }
+
+  .world-explorer .experience-doc-link {
+    bottom: max(10px, env(safe-area-inset-bottom));
   }
 
   .runtime-toolbar {

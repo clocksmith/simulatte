@@ -127,10 +127,12 @@
               <p>NYC bike routes, park properties, building footprints, and OpenStreetMap street context.</p>
               <p>Park circuits follow property boundaries, not surveyed sidewalks. Traffic, signals, risk, and outcomes are simulated.</p>
             </details>
-            <a class="blank-link" href="https://create.simulatte.world/" aria-label="Open Simulatte Create">Create</a>
+            <a class="sim-text-link" href="https://create.simulatte.world/" aria-label="Open Simulatte Create">Create</a>
             <button id="runtime-details-close" class="quiet-action" type="button">Close</button>
           </div>
         </div>
+
+        <a id="experience-doc-link" class="sim-text-link experience-doc-link sim-surface" target="_blank" rel="noopener noreferrer" hidden>Experience docs</a>
 
         <div class="camera-controls" aria-label="Camera controls">
           <div class="camera-focus-anchor">
@@ -168,7 +170,7 @@
           </div>
         </section>
 
-        <button id="decisions-button" class="sim-action decisions-button" type="button" aria-controls="decisions-drawer" aria-expanded="false">Decisions</button>
+        <button id="decisions-button" class="sim-action decisions-button" type="button" aria-controls="decisions-drawer" aria-expanded="false">Controls</button>
 
 
         <section class="mission-dock sim-surface" aria-label="Mission">
@@ -209,14 +211,16 @@
     </section>
 
     <div id="decisions-backdrop" class="drawer-backdrop" hidden></div>
-    <aside id="decisions-drawer" class="evidence-panel sim-surface" aria-label="Decision details" aria-hidden="true">
+    <aside id="decisions-drawer" class="evidence-panel sim-surface" aria-label="Controls and evidence" aria-hidden="true">
       <header class="evidence-heading">
         <div>
-          <strong id="decision-title">Awaiting first observation</strong>
-          <p id="decision-meta">Start a mission to see why each action was selected.</p>
+          <strong id="decision-title">Experiment controls</strong>
+          <p id="decision-meta">Change parameters before Start. Inspect evidence after the run.</p>
         </div>
         <button id="decisions-close" class="drawer-close" type="button" aria-label="Close decisions">×</button>
       </header>
+
+      <section id="plugin-inspector" aria-label="Experience extensions"></section>
 
       <details id="journey-section" class="evidence-section journey-evidence" open>
         <summary>Journey <span id="route-stats">Not planned</span></summary>
@@ -239,9 +243,6 @@
         <span class="sim-label">Prediction check</span>
         <div id="settlement-math" class="settlement-math">No settled prediction</div>
       </details>
-
-      <section id="plugin-inspector" aria-label="Experience extensions"></section>
-
       <details id="advanced-section" class="evidence-section advanced-evidence">
         <summary>Advanced</summary>
         <details class="evidence-section retrieval-evidence">

@@ -339,6 +339,10 @@
       };
     }
 
+    if (activeScenario?.missionText) {
+      simulateMission(sdk.routing.resolveMission(activeScenario.missionText));
+    }
+
     const capabilities = {
       'field.thermal-comfort.v1': (input) => thermalComfortField(input, sdk),
     };
