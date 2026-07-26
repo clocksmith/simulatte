@@ -6,22 +6,25 @@
   function createSemanticPresentation(starsData, result, progressiveState) {
     const selectedIds = new Set(result.scenario.relayHops);
     const stateById = new Map(result.stellarStates.map((state) => [state.sourceId, state]));
+    const catalogById = new Map((starsData.stars || []).map((star) => [star.sourceId, star]));
     const spatialContract = createSpatialContract(result);
-    const starEntities = (starsData.stars || []).map((star) => {
-      const state = stateById.get(star.sourceId);
+    const channelModelId = result.modelReceipts.find((row) => row.modelId.startsWith('interstellar-channel:'))?.modelId;
+    const starEntities = result.stellarStates.map((state) => {
+      const star = catalogById.get(state.sourceId);
+      if (!star) throw new Error(`interstellar_presentation_star_missing: ${state.sourceId}`);
       const evidenceReferences = Object.freeze([
         ...(state.sourceRowIds || []),
         state.modelReceipt.modelId,
       ]);
       return Object.freeze({
-        id: star.sourceId,
+        id: state.sourceId,
         semanticType: 'stellar-system',
         label: state.name,
         coordinates: state.positionPc,
         quantities: Object.freeze({
           apparentMagnitudeG: star.photGMag,
           distancePc: state.distancePc,
-          isRelayPathMember: selectedIds.has(star.sourceId),
+          isRelayPathMember: selectedIds.has(state.sourceId),
           astrometricQualityRuwe: star.ruwe,
         }),
         spatialEvidence: spatialEvidence(state.positionPc, evidenceReferences),
@@ -39,30 +42,37 @@
         ...stateById.get(hop.fromId).sourceRowIds,
         ...stateById.get(hop.toId).sourceRowIds,
         result.linkBudgets[index].modelReceipt.modelId,
+        channelModelId,
         result.schedule.modelReceipt.modelId,
-      ]);
+      ].filter(Boolean));
       return Object.freeze({
         id: `relay-link:${index}`,
-        semanticType: 'optical-link',
-        label: `${stateById.get(hop.fromId).name} to ${stateById.get(hop.toId).name}`,
+        semanticType: result.controls.channelMode === 'classical-optical'
+          ? 'optical-link'
+          : 'advanced-information-channel',
+        label: `${result.channelReceipts[index].label}: ${stateById.get(hop.fromId).name} to ${stateById.get(hop.toId).name}`,
         coordinates,
         spatialEvidence: pathSpatialEvidence(coordinates, evidenceReferences),
         quantities: Object.freeze({
           distancePc: hop.lightTime.distancePc,
           lightTimeYears: hop.lightTime.latencyYears,
-          achievableDataRateGbps: result.linkBudgets[index].achievableDataRateGbps,
+          achievableDataRateGbps: result.channelReceipts[index].effectiveDataRateGbps,
           linkMarginDb: result.linkBudgets[index].linkMarginDb,
-          estimatedPacketSuccessProbability: result.linkBudgets[index].packetSuccessProbability,
-          reliabilityConditionalOnContinuousContact: true,
-          transmissionEnergyJ: hop.transmitDurationSeconds * result.linkBudgets[index].txPowerW,
+          physicalPacketSuccessProbability: result.channelReceipts[index].packetSuccessProbability,
+          operationalDeliveryProbability: result.operations.deliveryProbability,
+          channelMode: result.channelReceipts[index].mode,
+          causalityStatus: result.channelReceipts[index].causalityStatus,
+          constructibilityStatus: result.channelReceipts[index].constructibilityStatus,
+          transmissionEnergyJ: result.channelReceipts[index].transmissionEnergyJ,
           status: linkStatus(progressiveState, index),
         }),
         reliabilityScope: result.reliabilityScope,
         omissions: result.omissions,
         evidenceReferences,
-        truth: result.linkBudgets[index].truth,
+        truth: result.channelReceipts[index].truth,
       });
     });
+    const alternativeEntities = routeAlternativeEntities(result, stateById);
     const packetPosition = locatePacket(result, progressiveState, stateById);
     const packetEvidenceReferences = Object.freeze([
       result.packet.integrity.packetHash,
@@ -94,6 +104,15 @@
           temporalVisibility: 'event-state',
         }),
         Object.freeze({
+          id: 'route-alternatives',
+          semanticLayerType: 'route-comparison',
+          entities: Object.freeze(alternativeEntities),
+          aggregationPolicy: Object.freeze({ kind: 'core-managed', semanticQuantity: 'score' }),
+          lodPolicy: Object.freeze({ kind: 'core-managed', priorityEntityIds: Object.freeze(alternativeEntities.map((row) => row.id)) }),
+          pickBehavior: 'inspect-route-candidate',
+          temporalVisibility: 'entire-run',
+        }),
+        Object.freeze({
           id: 'packet-state',
           semanticLayerType: 'temporal-packet',
           entities: Object.freeze([Object.freeze({
@@ -108,7 +127,8 @@
               activeHopIndex: progressiveState.activeHopIndex,
               radialDistancePc: Math.hypot(...packetPosition),
               lineOfSightDepthPc: packetPosition[2],
-              reliabilityConditionalOnContinuousContact: true,
+              operationalDeliveryProbability: result.operations.deliveryProbability,
+              channelMode: result.controls.channelMode,
             }),
             spatialEvidence: spatialEvidence(packetPosition, packetEvidenceReferences),
             reliabilityScope: result.reliabilityScope,
@@ -175,6 +195,7 @@
     const semantic = createSemanticPresentation(starsData, result, progressiveState);
     const starLayer = semantic.layers.find((layer) => layer.id === 'stellar-neighborhood');
     const linkLayer = semantic.layers.find((layer) => layer.id === 'relay-links');
+    const alternativeLayer = semantic.layers.find((layer) => layer.id === 'route-alternatives');
     const packetLayer = semantic.layers.find((layer) => layer.id === 'packet-state');
     return Object.freeze({
       schema: 'simulatte.pluginPresentation.v3',
@@ -187,13 +208,22 @@
         tone: entity.quantities.isRelayPathMember ? 'cyan' : 'muted',
         radius: entity.quantities.isRelayPathMember ? 0.075 : 0.025,
       })),
-      paths: linkLayer.entities.map((entity) => ({
-        id: entity.id,
-        coordinates: entity.coordinates,
-        label: labelForLink(entity),
-        tone: entity.quantities.status === 'completed' ? 'green' : entity.quantities.status === 'active' ? 'amber' : 'muted',
-        width: 1,
-      })),
+      paths: [
+        ...linkLayer.entities.map((entity) => ({
+          id: entity.id,
+          coordinates: entity.coordinates,
+          label: labelForLink(entity),
+          tone: entity.quantities.status === 'completed' ? 'green' : entity.quantities.status === 'active' ? 'amber' : 'muted',
+          width: 1,
+        })),
+        ...alternativeLayer.entities.map((entity) => ({
+          id: entity.id,
+          coordinates: entity.coordinates,
+          label: `Candidate · score ${entity.quantities.score.toFixed(3)}`,
+          tone: 'muted',
+          width: 0.5,
+        })),
+      ],
       actors: packetLayer.entities.map((entity) => ({
         id: entity.id,
         position: entity.coordinates,
@@ -217,6 +247,39 @@
         })),
       ],
     });
+  }
+
+  function routeAlternativeEntities(result, stateById) {
+    return result.routeSelection.alternatives
+      .filter((row) => row.path.join(':') !== result.routeSelection.selectedPath.join(':'))
+      .map((alternative, index) => {
+        const coordinates = Object.freeze(alternative.path.map((id) => stateById.get(id).positionPc));
+        const references = Object.freeze([
+          ...alternative.path.flatMap((id) => stateById.get(id).sourceRowIds),
+          'interstellar-route-search-v1',
+        ]);
+        return Object.freeze({
+          id: `route-alternative:${index}`,
+          semanticType: 'route-alternative',
+          label: alternative.path.map((id) => stateById.get(id).name).join(' → '),
+          coordinates,
+          spatialEvidence: pathSpatialEvidence(coordinates, references),
+          quantities: Object.freeze({
+            score: alternative.score,
+            hopCount: alternative.metrics.hopCount,
+            latencySeconds: alternative.metrics.latencySeconds,
+            bottleneckDataRateGbps: alternative.metrics.bottleneckDataRateGbps,
+            packetSuccessProbability: alternative.metrics.packetSuccessProbability,
+          }),
+          evidenceReferences: references,
+          omissions: result.omissions,
+          truth: Object.freeze({
+            origin: 'modeled',
+            temporalStatus: 'forecast',
+            uncertainty: result.metrics.truth.uncertainty,
+          }),
+        });
+      });
   }
 
   function locatePacket(result, state, stateById) {
@@ -258,14 +321,17 @@
     });
   }
   function pathSpatialEvidence(coordinates, evidenceReferences) {
-    const midpoint = coordinates[0].map((value, index) => (value + coordinates[1][index]) / 2);
+    const midpoint = centroid(coordinates);
+    const euclideanLengthPc = coordinates.slice(1).reduce((total, point, index) => (
+      total + Math.hypot(...point.map((value, axis) => value - coordinates[index][axis]))
+    ), 0);
     return Object.freeze({
       spatialContractId: 'interstellar:icrs-cartesian-pc:true-3d:v1',
       endpointPositionsPc: Object.freeze(coordinates.map((row) => Object.freeze(row.slice()))),
       midpointPc: Object.freeze(midpoint),
       radialDistancePc: Math.hypot(...midpoint),
       lineOfSightDepthPc: midpoint[2],
-      euclideanLengthPc: Math.hypot(...coordinates[1].map((value, index) => value - coordinates[0][index])),
+      euclideanLengthPc,
       evidenceReferences,
     });
   }

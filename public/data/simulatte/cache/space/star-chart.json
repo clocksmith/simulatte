@@ -1,5 +1,35 @@
 {
   "schema": "simulatte.starCatalog.v1",
+  "id": "hyg.visible-stars.v1",
+  "contentVersion": "2026-07-20",
+  "provenance": {
+    "publisher": "Astronexus HYG Database",
+    "retrievalAt": "2026-07-20T15:35:37Z",
+    "retrievalTimeBasis": "repository-recorded cache time; raw HTTP response receipt unavailable",
+    "license": {
+      "id": "CC-BY-SA-4.0",
+      "url": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    "coverage": {
+      "kind": "visible-star-cache",
+      "scope": "HYG v4.1 rows at apparent magnitude 5 or brighter"
+    },
+    "sourceArtifact": {
+      "id": "hyg-v41-csv",
+      "url": "https://github.com/astronexus/HYG-Database",
+      "identityStatus": "upstream response hash unavailable; governed cache bytes are hashed by the dataset receipt"
+    },
+    "truth": {
+      "origin": "derived",
+      "temporalStatus": "snapshot",
+      "uncertainty": {
+        "kind": "missing",
+        "value": {
+          "reason": "The activated cache does not retain upstream covariance, motion fields, or the raw source-response hash."
+        }
+      }
+    }
+  },
   "maxMagnitude": 5,
   "count": 1638,
   "stars": [

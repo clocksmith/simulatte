@@ -27,7 +27,11 @@
       schema: 'simulatte.interstellarPacketReceipt.v2', packetId, sequence,
       payloadDescriptor: payload, payloadBytes: declaredBytes, sourceId, destinationId,
       relayPath: Object.freeze(relayPath.slice()), createdAt, estimatedArrivalEpoch: schedule.deliveryEpochIso,
-      latencyYears: schedule.totalLatencyYears, integrity, terminalVerification: verification.pass ? 'verified_sha256_match' : 'failed',
+      latencyYears: schedule.totalLatencyYears,
+      integrity,
+      terminalVerification: schedule.deliveryStatus === 'delivered' && verification.pass
+        ? 'verified_sha256_match'
+        : schedule.deliveryStatus === 'failed' ? 'not-delivered' : 'failed',
       truth: Object.freeze({
         origin: 'scenario',
         temporalStatus: 'forecast',

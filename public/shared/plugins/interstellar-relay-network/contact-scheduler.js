@@ -8,6 +8,8 @@
     relayPath,
     statesById,
     linkBudgets,
+    channelReceipts = null,
+    operationalPlan = null,
     packetBits,
     scheduler,
     startEpochIso = '2026-07-25T00:00:00Z',
@@ -17,10 +19,21 @@
     if (!Array.isArray(relayPath) || relayPath.length < 2) throw new Error('relay_path_invalid');
     if (!Array.isArray(linkBudgets) || linkBudgets.length !== relayPath.length - 1) throw new Error('relay_link_budget_count_invalid');
     if (!(packetBits > 0)) throw new Error('relay_packet_bits_invalid');
-    const queue = scheduler.create({ maxEvents: relayPath.length * 8 + 20 });
+    const channels = channelReceipts || linkBudgets.map((budget) => ({
+      mode: 'classical-optical',
+      latencySeconds: null,
+      effectiveDataRateGbps: budget.achievableDataRateGbps,
+      packetSuccessProbability: budget.packetSuccessProbability,
+      transmissionEnergyJ: null,
+    }));
+    if (!Array.isArray(channels) || channels.length !== relayPath.length - 1) {
+      throw new Error('relay_channel_receipt_count_invalid');
+    }
+    const queue = scheduler.create({ maxEvents: relayPath.length * 32 + 40 });
     let cursorSeconds = 0;
     const hops = [];
     let causalParentIds = [];
+    let deliveryStatus = 'delivered';
     const createdId = queue.schedule({
       time: 0,
       priority: 0,
@@ -28,7 +41,11 @@
       payload: eventPayload({
         causalParentIds: [],
         affectedEntityIds: ['packet:0', relayPath[0]],
-        evidenceReferences: ['interstellar.scenario.network.v2', 'interstellar.relay.models.v1:deterministic-store-forward-v2'],
+        evidenceReferences: [
+          'interstellar.scenario.network.v2',
+          'interstellar.relay.models.v1:deterministic-store-forward-v2',
+          'interstellar.operations.models.v1',
+        ],
         hopIndex: null,
         fromId: relayPath[0],
         toId: relayPath.at(-1),
@@ -41,10 +58,65 @@
       const from = statesById.get(fromId);
       const to = statesById.get(toId);
       if (!from || !to) throw new Error(`relay_state_missing: ${fromId}->${toId}`);
+      const operationalHop = operationalPlan?.hops?.[index] || {
+        acquisitionSeconds: 0,
+        queueDelaySeconds: 0,
+        maintenanceSeconds: 0,
+        repairSeconds: 0,
+        retryCount: 0,
+        retryDelaySeconds: 0,
+        success: true,
+      };
+      const stageEvidence = [
+        ...from.sourceRowIds,
+        ...to.sourceRowIds,
+        'interstellar.operations.models.v1',
+      ];
+      ({ cursorSeconds, causalParentIds } = scheduleOperationalStages({
+        queue,
+        cursorSeconds,
+        causalParentIds,
+        operationalHop,
+        hopIndex: index,
+        fromId,
+        toId,
+        evidenceReferences: stageEvidence,
+      }));
+      if (!operationalHop.success) {
+        const failedId = queue.schedule({
+          time: cursorSeconds,
+          priority: index * 40 + 19,
+          kind: 'relay.packet-failed',
+          payload: eventPayload({
+            causalParentIds,
+            affectedEntityIds: ['packet:0', fromId, toId],
+            evidenceReferences: stageEvidence,
+            hopIndex: index,
+            fromId,
+            toId,
+          }),
+        });
+        causalParentIds = [failedId];
+        deliveryStatus = 'failed';
+        break;
+      }
       const transmissionEpochIso = new Date(Date.parse(startEpochIso) + cursorSeconds * 1000).toISOString();
-      const lightTime = lightTimeApi.computeMovingTargetLightTime(from, to, cursorSeconds, transmissionEpochIso);
+      const classicalLightTime = lightTimeApi.computeMovingTargetLightTime(
+        from,
+        to,
+        cursorSeconds,
+        transmissionEpochIso,
+      );
+      const channel = channels[index];
+      const lightTime = Object.freeze({
+        ...classicalLightTime,
+        latencySeconds: channel.latencySeconds ?? classicalLightTime.latencySeconds,
+        latencyYears: (channel.latencySeconds ?? classicalLightTime.latencySeconds) / (365.25 * 86400),
+        channelMode: channel.mode,
+        causalityStatus: channel.causalityStatus || 'light-speed-limited',
+      });
       const budget = linkBudgets[index];
-      const informationBitRate = budget.achievableDataRateGbps * 1e9;
+      const informationBitRate = channel.effectiveDataRateGbps * 1e9;
       if (!(informationBitRate > 0)) throw new Error(`relay_link_rate_unusable: ${fromId}->${toId}`);
       const transmitDurationSeconds = packetBits / informationBitRate;
       const transmitCompleteSeconds = cursorSeconds + transmitDurationSeconds;
@@ -56,7 +128,7 @@
       ];
       const startId = queue.schedule({
         time: cursorSeconds,
-        priority: index * 20 + 1,
+        priority: index * 40 + 20,
         kind: 'relay.transmission-started',
         payload: eventPayload({
           causalParentIds,
@@ -69,7 +141,7 @@
       });
       const transmittedId = queue.schedule({
         time: transmitCompleteSeconds,
-        priority: index * 20 + 2,
+        priority: index * 40 + 21,
         kind: 'relay.transmission-completed',
         payload: eventPayload({
           causalParentIds: [startId],
@@ -83,7 +155,7 @@
       const receiveKind = index === relayPath.length - 2 ? 'relay.packet-delivered' : 'relay.packet-received';
       const receivedId = queue.schedule({
         time: receiveSeconds,
-        priority: index * 20 + 3,
+        priority: index * 40 + 22,
         kind: receiveKind,
         payload: eventPayload({
           causalParentIds: [transmittedId],
@@ -103,6 +175,8 @@
         transmitOffsetSeconds: cursorSeconds,
         transmitDurationSeconds,
         receiveOffsetSeconds: receiveSeconds,
+        channelMode: channel.mode,
+        operationalHop,
       }));
       cursorSeconds = receiveSeconds;
       causalParentIds = [receivedId];
@@ -110,12 +184,15 @@
         const processingCompleteSeconds = cursorSeconds + processingDelayHours * 3600;
         const processingId = queue.schedule({
           time: processingCompleteSeconds,
-          priority: index * 20 + 4,
+          priority: index * 40 + 23,
           kind: 'relay.processing-completed',
           payload: eventPayload({
             causalParentIds: [receivedId],
             affectedEntityIds: ['packet:0', toId],
-            evidenceReferences: ['interstellar.relay.models.v1:deterministic-store-forward-v2'],
+            evidenceReferences: [
+              'interstellar.relay.models.v1:deterministic-store-forward-v2',
+              'interstellar.operations.models.v1',
+            ],
             hopIndex: index,
             fromId: toId,
             toId: relayPath[index + 2],
@@ -155,26 +232,31 @@
                 ? null
                 : linkBudgets[event.payload.hopIndex].truth.uncertainty.value.achievableDataRateGbps,
               note: 'Event order is deterministic; modeled link quantities retain their declared intervals.',
-              omissionIds: Object.freeze([
-                'acquisition-not-modeled',
-                'maintenance-not-modeled',
-                'plasma-not-modeled',
-                'detector-background-noise-incomplete',
-                'retries-not-modeled',
-                'infrastructure-not-observed',
-                'continuous-contact-assumed',
+              omissionIds: Object.freeze(['infrastructure-not-observed']),
+              modeledEffectIds: Object.freeze([
+                'acquisition-modeled',
+                'availability-and-outages-modeled',
+                'maintenance-modeled',
+                'hardware-failure-and-repair-modeled',
+                'retries-modeled',
+                'queue-delay-modeled',
+                'dust-and-plasma-attenuation-modeled',
+                'detector-background-noise-modeled',
               ]),
-              continuousContactAssumed: true,
+              continuousContactAssumed: false,
             }),
           }),
         }),
       });
     });
     return Object.freeze({
-      schema: 'simulatte.interstellarContactSchedule.v2',
+      schema: 'simulatte.interstellarContactSchedule.v3',
       relayPath: Object.freeze(relayPath.slice()),
       startEpochIso,
-      deliveryEpochIso: new Date(Date.parse(startEpochIso) + cursorSeconds * 1000).toISOString(),
+      deliveryEpochIso: deliveryStatus === 'delivered'
+        ? new Date(Date.parse(startEpochIso) + cursorSeconds * 1000).toISOString()
+        : null,
+      deliveryStatus,
       totalLatencySeconds: cursorSeconds, totalLatencyYears: cursorSeconds / (365.25 * 86400),
       packetBits,
       processingDelayHours,
@@ -185,31 +267,90 @@
       schedulerReceipt: queue.receipt(),
       deterministicOrder: 'time_then_priority_then_sequence',
       modelReceipt: Object.freeze({
-        modelId: 'deterministic-store-forward-v2',
-        parameters: Object.freeze({ packetBits, processingDelayHours }),
-        validationIds: Object.freeze(['causal-event-order-and-conservation-v1']),
-        assumptions: Object.freeze(['continuous-contact-assumed']),
-        omissionIds: Object.freeze([
-          'acquisition-not-modeled',
-          'maintenance-not-modeled',
-          'plasma-not-modeled',
-          'detector-background-noise-incomplete',
-          'retries-not-modeled',
-          'infrastructure-not-observed',
-          'continuous-contact-assumed',
-        ]),
+        modelId: 'operational-store-forward-v3',
+        parameters: Object.freeze({
+          packetBits,
+          processingDelayHours,
+          operationsSampleIndex: operationalPlan?.sampleIndex ?? null,
+        }),
+        validationIds: Object.freeze(['causal-event-order-and-conservation-v1', 'operational-stage-order-v1']),
+        assumptions: Object.freeze(['seeded-operational-profile']),
+        omissionIds: Object.freeze(['infrastructure-not-observed']),
         reliabilityScope: Object.freeze({
-          conditionalOn: Object.freeze(['continuous-contact-assumed', 'infrastructure-not-observed']),
-          excludes: Object.freeze([
-            'acquisition-not-modeled',
-            'maintenance-not-modeled',
-            'plasma-not-modeled',
-            'detector-background-noise-incomplete',
-            'retries-not-modeled',
-          ]),
+          conditionalOn: Object.freeze(['declared-operational-profile', 'infrastructure-not-observed']),
+          excludes: Object.freeze(['empirical-interstellar-operations-unavailable']),
         }),
       }),
     });
+  }
+
+  function scheduleOperationalStages({
+    queue,
+    cursorSeconds,
+    causalParentIds,
+    operationalHop,
+    hopIndex,
+    fromId,
+    toId,
+    evidenceReferences,
+  }) {
+    const stages = [
+      ['relay.acquisition', operationalHop.acquisitionSeconds],
+      ['relay.queue-wait', operationalHop.queueDelaySeconds],
+      ['relay.maintenance', operationalHop.maintenanceSeconds],
+      ['relay.outage-repair', operationalHop.repairSeconds],
+    ];
+    let cursor = cursorSeconds;
+    let parents = causalParentIds;
+    stages.forEach(([kind, duration], stageIndex) => {
+      if (!(duration > 0)) return;
+      const startedId = queue.schedule({
+        time: cursor,
+        priority: hopIndex * 40 + stageIndex * 2 + 1,
+        kind: `${kind}-started`,
+        payload: eventPayload({
+          causalParentIds: parents,
+          affectedEntityIds: ['packet:0', fromId, toId],
+          evidenceReferences,
+          hopIndex,
+          fromId,
+          toId,
+        }),
+      });
+      cursor += duration;
+      const completedId = queue.schedule({
+        time: cursor,
+        priority: hopIndex * 40 + stageIndex * 2 + 2,
+        kind: `${kind}-completed`,
+        payload: eventPayload({
+          causalParentIds: [startedId],
+          affectedEntityIds: ['packet:0', fromId, toId],
+          evidenceReferences,
+          hopIndex,
+          fromId,
+          toId,
+        }),
+      });
+      parents = [completedId];
+    });
+    for (let retryIndex = 0; retryIndex < operationalHop.retryCount; retryIndex += 1) {
+      cursor += operationalHop.retryDelaySeconds / Math.max(1, operationalHop.retryCount);
+      const retryId = queue.schedule({
+        time: cursor,
+        priority: hopIndex * 40 + 10 + retryIndex,
+        kind: 'relay.retry-scheduled',
+        payload: eventPayload({
+          causalParentIds: parents,
+          affectedEntityIds: ['packet:0', fromId, toId],
+          evidenceReferences,
+          hopIndex,
+          fromId,
+          toId,
+        }),
+      });
+      parents = [retryId];
+    }
+    return { cursorSeconds: cursor, causalParentIds: parents };
   }
 
   function eventPayload({
@@ -240,6 +381,7 @@
       evidenceReferences: Object.freeze([
         'interstellar.scenario.network.v2',
         'interstellar.relay.models.v1:deterministic-store-forward-v2',
+        'interstellar.operations.models.v1',
       ]),
     });
   }
@@ -248,9 +390,10 @@
     const isStarted = event.kind === 'relay.transmission-started';
     const isReceived = event.kind === 'relay.packet-received';
     const isDelivered = event.kind === 'relay.packet-delivered';
+    const isFailed = event.kind === 'relay.packet-failed';
     return Object.freeze({
       ...state,
-      status: isDelivered ? 'settled' : 'running',
+      status: isDelivered ? 'settled' : isFailed ? 'failed' : 'running',
       currentEventIndex: state.currentEventIndex + 1,
       currentEventId: event.id,
       timestamp,

@@ -95,7 +95,19 @@
       insideScreeningRadius: closest.distanceKm <= ENCOUNTER_SCREENING_RADIUS_KM,
       bPlane,
       trajectory,
-      propagationReceipts: [first, second],
+      propagationReceipts: [first, second].map(compactPropagationReceipt),
+    });
+  }
+
+  function compactPropagationReceipt(receipt) {
+    const { trajectory, ...identity } = receipt;
+    return deepFreeze({
+      ...identity,
+      trajectorySummary: {
+        sampleCount: trajectory.length,
+        firstDay: trajectory[0]?.day ?? null,
+        lastDay: trajectory.at(-1)?.day ?? null,
+      },
     });
   }
 

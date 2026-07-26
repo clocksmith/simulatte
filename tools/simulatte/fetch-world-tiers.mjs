@@ -424,6 +424,36 @@ async function runStarChart(args) {
 
   const catalog = {
     schema: 'simulatte.starCatalog.v1',
+    id: 'hyg.visible-stars.v1',
+    contentVersion: new Date().toISOString().slice(0, 10),
+    provenance: {
+      publisher: 'Astronexus HYG Database',
+      retrievalAt: new Date().toISOString(),
+      retrievalTimeBasis: 'fetch completion time',
+      license: {
+        id: 'CC-BY-SA-4.0',
+        url: 'https://creativecommons.org/licenses/by-sa/4.0/'
+      },
+      coverage: {
+        kind: 'visible-star-cache',
+        scope: `HYG v4.1 rows at apparent magnitude ${maxMag} or brighter`
+      },
+      sourceArtifact: {
+        id: 'hyg-v41-csv',
+        url,
+        identityStatus: 'upstream response hash not retained; generated cache bytes require downstream governance'
+      },
+      truth: {
+        origin: 'derived',
+        temporalStatus: 'snapshot',
+        uncertainty: {
+          kind: 'missing',
+          value: {
+            reason: 'HYG cache does not retain covariance or motion fields used by the relay simulation.'
+          }
+        }
+      }
+    },
     maxMagnitude: maxMag,
     count: stars.length,
     stars

@@ -17,6 +17,9 @@ const root = path.resolve(__dirname, '..');
 const pluginDirectory = path.join(root, 'public/shared/plugins/interstellar-relay-network');
 const dataDirectory = path.join(root, 'public/data/interstellar-relay-network');
 const OMISSION_IDS = [
+  'infrastructure-not-observed',
+];
+const LEGACY_MODEL_OMISSION_IDS = [
   'acquisition-not-modeled',
   'continuous-contact-assumed',
   'detector-background-noise-incomplete',
@@ -92,7 +95,7 @@ async function activateDefault(seedId = null) {
   return { ...host, instance, profile, config };
 }
 
-test('every public experiment compiles finite links and a terminal causal state', async () => {
+test('every starting preset compiles finite links and reaches an honest terminal outcome', async () => {
   const profile = readJson(path.join(root, 'public/data/application-profiles/interstellar-relay-network-v1.json'));
   contracts.validateProfile(profile);
   for (const seed of profile.seeds) {
@@ -102,7 +105,9 @@ test('every public experiment compiles finite links and a terminal causal state'
     assert.ok(result.linkBudgets.every((row) => row.achievableDataRateGbps > 0), seed.id);
     assert.ok(result.schedule.trace.length >= 4, seed.id);
     assert.equal(result.schedule.snapshots.at(-1).status, 'settled', seed.id);
+    assert.equal(result.schedule.deliveryStatus, 'delivered', seed.id);
     assert.ok(Number.isFinite(result.metrics.oneWayLatencyYears), seed.id);
+    assert.equal(host.instance.contributeV4().schema, 'simulatte.pluginContribution.v4', seed.id);
   }
 });
 
@@ -148,7 +153,7 @@ test('governed relay inputs preserve Gaia row identity, hashes, licenses, and in
   }
 });
 
-test('runtime data and model receipts close the custody chain and expose every omission', async () => {
+test('runtime receipts distinguish newly modeled effects from remaining limitations', async () => {
   const host = await activateDefault();
   const result = host.instance.capabilities['simulation.interstellar-relay.v4']().result;
   result.dataReceipts.forEach((receipt) => {
@@ -165,21 +170,23 @@ test('runtime data and model receipts close the custody chain and expose every o
     && row.sha256 === '354e64413eae69f4a06e10b8cfb096674710d486e510e7f2eee850bb36ef8895'
   )));
   assert.deepEqual(result.omissions.map((row) => row.id).sort(), OMISSION_IDS);
-  assert.deepEqual(
-    [...result.reliabilityScope.conditionalOn, ...result.reliabilityScope.excludes].sort(),
-    OMISSION_IDS,
-  );
+  assert.ok(result.reliabilityScope.conditionalOn.includes('declared-operational-profile'));
+  assert.ok(result.operations.modeledEffectIds.includes('acquisition-modeled'));
+  assert.ok(result.operations.modeledEffectIds.includes('availability-and-outages-modeled'));
+  assert.ok(result.operations.modeledEffectIds.includes('maintenance-modeled'));
+  assert.ok(result.operations.modeledEffectIds.includes('retries-modeled'));
+  assert.ok(result.operations.modeledEffectIds.includes('dust-and-plasma-attenuation-modeled'));
   const storeForward = result.modelReceipts.find((row) => row.modelId === 'deterministic-store-forward-v2');
-  assert.deepEqual(storeForward.omissions.map((row) => row.id).sort(), OMISSION_IDS);
+  assert.deepEqual(storeForward.omissions.map((row) => row.id).sort(), LEGACY_MODEL_OMISSION_IDS);
   assert.deepEqual(
     [...storeForward.reliabilityScope.conditionalOn, ...storeForward.reliabilityScope.excludes].sort(),
-    OMISSION_IDS,
+    LEGACY_MODEL_OMISSION_IDS,
   );
-  result.modelReceipts.forEach((receipt) => receipt.omissions.forEach((omission) => {
-    assert.ok(OMISSION_IDS.includes(omission.id));
+  storeForward.omissions.forEach((omission) => {
+    assert.ok(LEGACY_MODEL_OMISSION_IDS.includes(omission.id));
     assert.ok(omission.effect);
     assert.ok(omission.affects.length);
-  }));
+  });
 });
 
 test('stellar propagation carries source rows, transformations, and missing radial-velocity uncertainty', () => {
@@ -268,7 +275,8 @@ test('plugin advances one chronological causal event at a time and settles with 
     assert.ok(event.evidenceReferences.length);
     assert.equal(event.truth.origin, 'simulated');
     assert.deepEqual(event.truth.uncertainty.value.omissionIds.slice().sort(), OMISSION_IDS);
-    assert.equal(event.truth.uncertainty.value.continuousContactAssumed, true);
+    assert.equal(event.truth.uncertainty.value.continuousContactAssumed, false);
+    assert.ok(event.truth.uncertainty.value.modeledEffectIds.includes('retries-modeled'));
   });
   const settlement = host.instance.settle();
   assert.ok(settlement.obligationResults.every((row) => row.status === 'settled'));
@@ -280,8 +288,13 @@ test('plugin advances one chronological causal event at a time and settles with 
     assert.deepEqual(row.evidence.omissionIds.slice().sort(), OMISSION_IDS);
   });
   assert.deepEqual(terminal.result.metrics.omissions.map((row) => row.id).sort(), OMISSION_IDS);
-  assert.match(terminal.result.metrics.reliabilityScope.statement, /continuous contact/i);
-  assert.ok(host.receipts.some((row) => row.schema === 'simulatte.plugin.interstellarRunReceipt.v2'));
+  assert.match(terminal.result.metrics.reliabilityScope.statement, /operational ensemble/i);
+  assert.ok(host.receipts.some((row) => row.schema === 'simulatte.plugin.interstellarRunReceipt.v3'));
+  const runReceipt = host.receipts.find((row) => row.schema === 'simulatte.plugin.interstellarRunReceipt.v3');
+  assert.equal(runReceipt.operations.ensembleSize, terminal.result.operations.ensembleSize);
+  assert.equal(runReceipt.operations.samples, undefined);
+  assert.equal(runReceipt.representativeOperationalPlan.sampleIndex, terminal.result.operations.representative.sampleIndex);
+  assert.ok(Buffer.byteLength(JSON.stringify(runReceipt)) < 50000);
   assert.ok(host.receipts.some((row) => row.schema === 'simulatte.modelReceipt.v1'));
   host.receipts.forEach((receipt) => {
     assert.ok(host.manifest.receiptSchemas.includes(receipt.schema), `undeclared emitted receipt ${receipt.schema}`);
@@ -316,11 +329,12 @@ test('semantic presentation carries quantities and evidence while v3 compatibili
   const reliabilityEntities = entities.filter((entity) => entity.reliabilityScope);
   reliabilityEntities.forEach((entity) => {
     assert.deepEqual(entity.omissions.map((row) => row.id).sort(), OMISSION_IDS);
-    assert.equal(entity.quantities.reliabilityConditionalOnContinuousContact, true);
+    assert.ok(Number.isFinite(entity.quantities.operationalDeliveryProbability));
   });
   const compatibility = host.instance.present();
   contracts.validatePresentationContribution('interstellar-relay-network', compatibility);
-  assert.ok(compatibility.paths.every((row) => row.width === 1));
+  assert.ok(compatibility.paths.some((row) => row.width === 1));
+  assert.ok(compatibility.paths.some((row) => row.width === 0.5));
   const intents = host.instance.viewIntents();
   assert.equal(intents[0].mode, 'overview');
   assert.equal(intents[0].allowsUserOverride, true);
@@ -331,7 +345,7 @@ test('semantic presentation carries quantities and evidence while v3 compatibili
   assert.ok(intents[0].targetEvidenceReferences.some((id) => id.startsWith('gaiadr3.gaia_source:')));
   const views = host.instance.view();
   views.forEach((view) => contracts.validateUiContribution('interstellar-relay-network', view));
-  assert.equal(views[0].fields.length, 5);
+  assert.ok(views[0].fields.length >= 14);
   assert.doesNotMatch(fs.readFileSync(path.join(pluginDirectory, 'index.js'), 'utf8'), /camera\.focus|document\.|requestAnimationFrame|fetch\(/);
 });
 
@@ -343,10 +357,17 @@ test('comparison reuses seed and epoch while reporting latency, rate, energy, an
   assert.equal(result.comparison.baseline.scenarioId, result.comparison.intervention.scenarioId);
   assert.deepEqual(
     Object.keys(result.comparison.differences).sort(),
-    ['bottleneckDataRateGbps', 'latencyYears', 'packetSuccessProbability', 'transmissionEnergyJ'],
+    [
+      'bottleneckDataRateGbps',
+      'latencyYears',
+      'operationalP90LatencySeconds',
+      'packetSuccessProbability',
+      'physicalChannelSuccessProbability',
+      'transmissionEnergyJ',
+    ],
   );
   assert.deepEqual(result.comparison.omissions.map((row) => row.id).sort(), OMISSION_IDS);
-  assert.match(result.comparison.reliabilityScope.statement, /continuous contact/i);
+  assert.match(result.comparison.reliabilityScope.statement, /operational ensemble/i);
   const definition = host.instance.capabilities['comparison.interstellar-relay.v1']();
   assert.deepEqual(definition.omissionIds.slice().sort(), OMISSION_IDS);
   assert.equal(definition.spatialComparison.dimensions, 3);
@@ -389,12 +410,247 @@ test('native v4 contribution preserves true 3D evidence, moving packet depth, an
   assert.equal(stateMeasures['packet-distance'].value, Math.hypot(...packetLayer.geometry.coordinates[0]));
   const inspection = contribution.inspections[0];
   const fields = Object.fromEntries(inspection.fields.map((row) => [row.id, row]));
-  assert.match(fields.reliability.label, /continuous contact/i);
+  assert.match(fields['operational-reliability'].label, /Operational delivery/i);
+  assert.match(fields['operational-effects'].value, /acquisition-modeled/);
   OMISSION_IDS.forEach((id) => assert.match(fields.omissions.value, new RegExp(id.split('-')[0], 'i')));
   contribution.events.forEach((event) => {
     assert.deepEqual(event.payload.omissionIds.slice().sort(), OMISSION_IDS);
+    assert.ok(event.payload.modeledEffectIds.includes('retries-modeled'));
     assert.equal(event.payload.spatialTransformationId, spatial.id);
   });
+});
+
+test('users can choose arbitrary endpoints and direct, automatic, or manual routing', async () => {
+  const host = await activateDefault();
+  await host.instance.handleAction('scenario.run', {
+    values: {
+      phase: 'start',
+      sourceId: 'gaia-barnard',
+      targetId: 'gaia-wolf-359',
+      routingMode: 'direct',
+      requiredRelayIds: ['none'],
+      maxHops: 6,
+      maxHopDistancePc: 1000,
+      packetBytes: 4096,
+    },
+  });
+  let result = host.instance.capabilities['simulation.interstellar-relay.v4']().result;
+  assert.deepEqual(result.routeSelection.selectedPath, ['gaia-barnard', 'gaia-wolf-359']);
+  assert.equal(result.packet.sourceId, 'gaia-barnard');
+  assert.equal(result.packet.destinationId, 'gaia-wolf-359');
+
+  await host.instance.handleAction('scenario.run', {
+    values: {
+      phase: 'start',
+      sourceId: 'gaia-sol',
+      targetId: 'gaia-barnard',
+      routingMode: 'manual',
+      requiredRelayIds: ['gaia-proxima'],
+      maxHops: 4,
+      maxHopDistancePc: 1000,
+      packetBytes: 4096,
+    },
+  });
+  result = host.instance.capabilities['simulation.interstellar-relay.v4']().result;
+  assert.deepEqual(result.routeSelection.selectedPath, ['gaia-sol', 'gaia-proxima', 'gaia-barnard']);
+
+  await host.instance.handleAction('scenario.run', {
+    values: {
+      phase: 'start',
+      sourceId: 'gaia-sol',
+      targetId: 'gaia-61-cygni-a',
+      routingMode: 'automatic',
+      requiredRelayIds: ['none'],
+      eligibleRelayIds: ['gaia-proxima', 'gaia-barnard', 'gaia-wolf-359'],
+      routeObjective: 'balanced',
+      maxHops: 4,
+      maxHopDistancePc: 1000,
+      packetBytes: 4096,
+    },
+  });
+  result = host.instance.capabilities['simulation.interstellar-relay.v4']().result;
+  assert.equal(result.routeSelection.sourceId, 'gaia-sol');
+  assert.equal(result.routeSelection.targetId, 'gaia-61-cygni-a');
+  assert.ok(result.routeSelection.candidateCount > 1);
+  assert.ok(result.routeSelection.searchAttempts <= result.routeSelection.searchBound);
+  assert.ok(result.routeSelection.candidateCount <= result.routeSelection.pathSearchBound);
+  assert.ok(result.routeSelection.pathSearchAttempts <= result.routeSelection.pathSearchBound);
+  assert.equal(result.routeSelection.pathSearchTruncated, false);
+  const controls = new Map(host.instance.contributeV4().controls.controls.map((row) => [row.id, row]));
+  [
+    'sourceId',
+    'targetId',
+    'routingMode',
+    'routeObjective',
+    'requiredRelayIds',
+    'eligibleRelayIds',
+    'maxHops',
+    'maxHopDistancePc',
+  ].forEach((id) => assert.ok(controls.has(id), id));
+  assert.equal(controls.get('requiredRelayIds').kind, 'multiselect');
+  assert.equal(controls.get('eligibleRelayIds').kind, 'multiselect');
+});
+
+test('every visible HYG star is selectable with source-specific uncertainty and receipts', async () => {
+  const host = await activateDefault();
+  const hyg = readJson(path.join(root, 'public/data/simulatte/cache/space/star-chart.json'));
+  const gaia = readJson(path.join(dataDirectory, 'gaia-dr3-nearby-stars-v2.json'));
+  let result = host.instance.capabilities['simulation.interstellar-relay.v4']().result;
+  assert.equal(result.controlOptions.stars.length, hyg.count - 1 + gaia.stars.length);
+  assert.equal(result.controls.eligibleRelayIds.length, gaia.stars.length);
+  assert.ok(result.controlOptions.stars.some((row) => row.value === 'hyg:32263' && /Sirius · HYG/.test(row.label)));
+  assert.ok(result.controlOptions.stars.some((row) => row.value === 'hyg:90979' && /Vega · HYG/.test(row.label)));
+
+  await host.instance.handleAction('scenario.run', {
+    values: {
+      phase: 'start',
+      sourceId: 'hyg:32263',
+      targetId: 'hyg:90979',
+      routingMode: 'direct',
+      requiredRelayIds: ['none'],
+      maxHopDistancePc: 250000,
+      channelMode: 'traversable-wormhole',
+      wormholeTraversalSeconds: 1,
+      wormholeThroatRadiusM: 10,
+      packetBytes: 4096,
+    },
+  });
+  result = host.instance.capabilities['simulation.interstellar-relay.v4']().result;
+  assert.deepEqual(result.routeSelection.selectedPath, ['hyg:32263', 'hyg:90979']);
+  assert.match(result.claimBoundary, /HYG visible-star snapshot/i);
+  assert.match(result.claimBoundary, /held static/i);
+  const hygStates = result.stellarStates.filter((row) => row.sourceId.startsWith('hyg:'));
+  assert.deepEqual(hygStates.map((row) => row.sourceId).sort(), ['hyg:32263', 'hyg:90979']);
+  hygStates.forEach((state) => {
+    assert.equal(state.uncertainty.kind, 'missing');
+    assert.equal(state.uncertainty.value.appliedAssumption, 'static-catalog-position-with-zero-space-motion');
+    assert.ok(state.uncertainty.value.fields.includes('covariance'));
+  });
+  const hygReceipt = result.dataReceipts.find((row) => row.datasetId === 'hyg.visible-stars.v1');
+  assert.ok(hygReceipt);
+  assert.equal(hygReceipt.sha256, '7ec4d4806499e8d853f32851459409d7cc7e3c2b7bbf7924386c2343c666943b');
+  assert.deepEqual([...hygReceipt.sourceRowIds].sort(), ['hyg.v41:32263', 'hyg.v41:90979']);
+  assert.equal(hygReceipt.truth.origin, 'derived');
+  const contribution = host.instance.contributeV4();
+  const hygRows = contribution.provenanceRecords.filter((row) => row.datasetId === 'hyg.visible-stars.v1');
+  assert.ok(hygRows.some((row) => row.kind === 'dataset'));
+  assert.deepEqual(
+    hygRows.filter((row) => row.kind === 'row').map((row) => row.rowId).sort(),
+    ['hyg.v41:32263', 'hyg.v41:90979'],
+  );
+});
+
+test('advanced physics lanes expose distinct causality and constructibility receipts', async () => {
+  const common = {
+    phase: 'start',
+    sourceId: 'gaia-sol',
+    targetId: 'gaia-proxima',
+    routingMode: 'direct',
+    requiredRelayIds: ['none'],
+    packetBytes: 4096,
+    transceiverId: 'high-power-array',
+  };
+  const classicalHost = await activateDefault();
+  await classicalHost.instance.handleAction('scenario.run', {
+    values: { ...common, channelMode: 'classical-optical' },
+  });
+  const classical = classicalHost.instance.capabilities['simulation.interstellar-relay.v4']().result;
+
+  const quantumHost = await activateDefault();
+  await quantumHost.instance.handleAction('scenario.run', {
+    values: {
+      ...common,
+      channelMode: 'quantum-assisted',
+      quantumMemoryCoherenceHours: 1e12,
+      quantumInitialFidelity: 0.99,
+      entanglementPairRateHz: 1e9,
+    },
+  });
+  const quantum = quantumHost.instance.capabilities['simulation.interstellar-relay.v4']().result;
+  assert.equal(quantum.channelReceipts[0].latencySeconds, classical.channelReceipts[0].latencySeconds);
+  assert.equal(quantum.channelReceipts[0].causalityStatus, 'classical-message-required-no-ftl');
+  assert.equal(quantum.channelReceipts[0].constraintReceipt.noSignalingSatisfied, true);
+  assert.ok(quantum.channelReceipts[0].effectiveDataRateGbps > classical.channelReceipts[0].effectiveDataRateGbps);
+  assert.ok(quantumHost.instance.contributeV4().controls.controls.some(
+    (row) => row.id === 'quantumMemoryCoherenceHours',
+  ));
+
+  const wormholeHost = await activateDefault();
+  await wormholeHost.instance.handleAction('scenario.run', {
+    values: {
+      ...common,
+      channelMode: 'traversable-wormhole',
+      wormholeTraversalSeconds: 1,
+      wormholeThroatRadiusM: 10,
+      speculativeBandwidthGbps: 2,
+      speculativeStabilityProbability: 0.8,
+    },
+  });
+  const wormhole = wormholeHost.instance.capabilities['simulation.interstellar-relay.v4']().result;
+  const wormholeReceipt = wormhole.channelReceipts[0];
+  assert.equal(wormholeReceipt.latencySeconds, 1);
+  assert.match(wormholeReceipt.constructibilityStatus, /^unsupported/);
+  assert.equal(wormholeReceipt.constraintReceipt.weakEnergyConditionSatisfied, false);
+  assert.equal(wormholeReceipt.constraintReceipt.fordRomanQuantumInequalitySatisfied, false);
+  assert.equal(wormholeReceipt.truth.origin, 'scenario');
+  assert.match(wormhole.claimBoundary, /speculative metric lane/i);
+  const wormholeLink = wormholeHost.instance.contributeV4().presentation.layers.find(
+    (row) => row.id === 'relay-link:0',
+  );
+  assert.equal(wormholeLink.provenance.axes.origin, 'scenario');
+
+  const warpHost = await activateDefault();
+  await warpHost.instance.handleAction('scenario.run', {
+    values: {
+      ...common,
+      channelMode: 'alcubierre-warp',
+      warpEffectiveSpeedC: 10,
+      warpBubbleRadiusM: 100,
+      speculativeBandwidthGbps: 2,
+      speculativeStabilityProbability: 0.8,
+    },
+  });
+  const warp = warpHost.instance.capabilities['simulation.interstellar-relay.v4']().result;
+  assert.ok(Math.abs(
+    warp.channelReceipts[0].latencySeconds - classical.channelReceipts[0].latencySeconds / 10,
+  ) < 1e-6);
+  assert.equal(warp.channelReceipts[0].constraintReceipt.originalMetricEnergyConditionSatisfied, false);
+  assert.match(warp.channelReceipts[0].constructibilityStatus, /^unsupported/);
+});
+
+test('operational profiles deterministically change delays, attenuation, and event traces', async () => {
+  const values = {
+    phase: 'start',
+    sourceId: 'gaia-sol',
+    targetId: 'gaia-61-cygni-a',
+    routingMode: 'direct',
+    requiredRelayIds: ['none'],
+    packetBytes: 4096,
+    transceiverId: 'high-power-array',
+    ensembleSize: 128,
+  };
+  const nominalHost = await activateDefault();
+  await nominalHost.instance.handleAction('scenario.run', {
+    values: { ...values, operationsProfileId: 'nominal-autonomous' },
+  });
+  const nominal = nominalHost.instance.capabilities['simulation.interstellar-relay.v4']().result;
+  const repeatedHost = await activateDefault();
+  await repeatedHost.instance.handleAction('scenario.run', {
+    values: { ...values, operationsProfileId: 'nominal-autonomous' },
+  });
+  const repeated = repeatedHost.instance.capabilities['simulation.interstellar-relay.v4']().result;
+  assert.deepEqual(repeated.operations, nominal.operations);
+
+  const severeHost = await activateDefault();
+  await severeHost.instance.handleAction('scenario.run', {
+    values: { ...values, operationsProfileId: 'severe-disruption' },
+  });
+  const severe = severeHost.instance.capabilities['simulation.interstellar-relay.v4']().result;
+  assert.ok(severe.operations.latencySeconds.p90 > nominal.operations.latencySeconds.p90);
+  assert.ok(severe.metrics.bottleneckDataRateGbps < nominal.metrics.bottleneckDataRateGbps);
+  assert.ok(nominal.schedule.trace.some((row) => row.kind === 'relay.acquisition-started'));
+  assert.ok(nominal.schedule.trace.some((row) => row.kind === 'relay.queue-wait-started'));
+  assert.equal(nominal.metrics.truth.uncertainty.value.continuousContactAssumed, false);
 });
 
 test('plugin manifest locks every browser resource with a matching SHA-384 digest', () => {

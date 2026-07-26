@@ -1,0 +1,120 @@
+{
+  "schema": "simulatte.interstellarAdvancedChannels.v1",
+  "id": "interstellar.advanced.channels.v1",
+  "contentVersion": "2026-07-26",
+  "provenance": {
+    "publisher": "Simulatte",
+    "retrievalAt": "2026-07-26T00:00:00Z",
+    "license": {
+      "id": "CC-BY-4.0",
+      "url": "https://creativecommons.org/licenses/by/4.0/"
+    },
+    "coverage": {
+      "kind": "theory-and-scenario-catalog",
+      "scope": "Classical, quantum-assisted, and speculative spacetime information channels"
+    },
+    "truth": {
+      "origin": "modeled",
+      "temporalStatus": "forecast",
+      "uncertainty": {
+        "kind": "missing",
+        "value": {
+          "reason": "Advanced channel entries span established equations and explicitly speculative metrics."
+        }
+      }
+    }
+  },
+  "defaults": {
+    "quantumMemoryCoherenceHours": 8760,
+    "quantumInitialFidelity": 0.99,
+    "entanglementPairRateHz": 1000000,
+    "wormholeTraversalSeconds": 1,
+    "wormholeThroatRadiusM": 10,
+    "warpEffectiveSpeedC": 10,
+    "warpBubbleRadiusM": 100,
+    "speculativeBandwidthGbps": 1,
+    "speculativeStabilityProbability": 0.5
+  },
+  "channels": [
+    {
+      "id": "classical-optical",
+      "label": "Classical optical link",
+      "citations": [
+        "https://physics.nist.gov/cgi-bin/cuu/Value?c"
+      ],
+      "truth": {
+        "origin": "modeled",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "interval",
+          "value": {
+            "source": "link-budget-and-astrometric-intervals"
+          }
+        }
+      },
+      "claimBoundary": "Finite-light-time optical engineering scenario over hypothetical terminals."
+    },
+    {
+      "id": "quantum-assisted",
+      "label": "Quantum-assisted optical link",
+      "maximumCapacityGainFactor": 1.163,
+      "entanglementSourcePowerW": 10000,
+      "citations": [
+        "https://doi.org/10.1103/PhysRevLett.70.1895",
+        "https://doi.org/10.1103/PhysRevLett.126.250501",
+        "https://doi.org/10.1103/PhysRevLett.106.010501"
+      ],
+      "truth": {
+        "origin": "modeled",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "Interstellar quantum memories and repeaters are not observed or calibrated."
+          }
+        }
+      },
+      "claimBoundary": "Entanglement may assist capacity or error performance, but decoding requires a classical message and cannot transmit controllable information faster than light."
+    },
+    {
+      "id": "traversable-wormhole",
+      "label": "Traversable wormhole metric",
+      "declaredFormationEnergyJ": 1e+45,
+      "citations": [
+        "https://doi.org/10.1103/PhysRevLett.61.1446",
+        "https://arxiv.org/abs/gr-qc/9510071"
+      ],
+      "truth": {
+        "origin": "scenario",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "No observed traversable wormhole or known construction method is represented."
+          }
+        }
+      },
+      "claimBoundary": "A metric sandbox that exposes energy-condition, stability, quantum-inequality, and causality failures. It is not a constructible communications forecast."
+    },
+    {
+      "id": "alcubierre-warp",
+      "label": "Alcubierre warp metric",
+      "declaredFormationEnergyJ": 1e+50,
+      "citations": [
+        "https://doi.org/10.1088/0264-9381/11/5/001"
+      ],
+      "truth": {
+        "origin": "scenario",
+        "temporalStatus": "forecast",
+        "uncertainty": {
+          "kind": "missing",
+          "value": {
+            "reason": "No observed warp bubble or known generation mechanism is represented."
+          }
+        }
+      },
+      "claimBoundary": "An original-metric scenario with explicit negative-energy, horizon, control, and causality failures. It is not an engineering forecast."
+    }
+  ],
+  "claimBoundary": "Every advanced channel retains its own truth axes. Speculative spacetime metrics never satisfy an engineering or observational claim."
+}

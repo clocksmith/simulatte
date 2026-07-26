@@ -51,7 +51,9 @@
       uncertainty: { kind: 'distribution', value: { interpretation: 'Synthetic observations and policy controls.' } },
       records: records.filter((row) => /synthetic-observation|decision-policies/.test(row.id)),
     });
-    const encounter = snapshot.interventionEncounter || snapshot.baselineEncounter || result.baselineEncounter;
+    const encounter = snapshot.interventionEncounter
+      ? result.interventionEncounter
+      : result.baselineEncounter;
     const representative = encounter.members[0];
     const maxDistance = Math.max(1, ...encounter.members.map((row) => row.minimumDistanceKm));
     const layers = [

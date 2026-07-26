@@ -5,11 +5,11 @@ natural-language mission into typed obligations, executes an embodied agent
 through repeated autonomous decisions, settles the predictions made at every
 tick, and emits a hash-linked journey receipt.
 
-The implementation program for four additional World experiences is in
-[Proposed experience implementation program](proposed-experiences/README.md).
-Subsea Network, Grid Resilience, and Asteroid Defense are registered native v4
-profiles. Exoplanet Survey remains proposed and excluded from the current
-implementation program.
+The canonical product, control, data-truth, simulation, comparison, claim, and
+verification description for every experience is in the
+[experience index](experiences/README.md). Eleven profiles are registered and
+browser-verified in the bound evidence matrix. Exoplanet Survey remains a
+proposal with no registered runtime.
 
 The target cooperative-city architecture is specified in
 [Cooperative city architecture](cooperative-city-architecture.md). It covers

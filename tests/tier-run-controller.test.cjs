@@ -43,7 +43,7 @@ function memoryStorage() {
   };
 }
 
-function fakeRuntime({ progressive = true, dispatchedValues = [] } = {}) {
+function fakeRuntime({ progressive = true, dispatchedValues = [], terminalStatus = 'settled' } = {}) {
   let step = 0;
   const contribution = {
     pluginId: 'fixture',
@@ -66,13 +66,13 @@ function fakeRuntime({ progressive = true, dispatchedValues = [] } = {}) {
         };
       }
       dispatchedValues.push(structuredClone(context.values));
-      if (!progressive) return { status: 'settled', result: 'terminal' };
+      if (!progressive) return { status: terminalStatus, result: 'terminal' };
       if (context.values.phase === 'start') {
         step = 0;
         return { status: 'running', step };
       }
       step += 1;
-      return { status: step === 2 ? 'settled' : 'running', step };
+      return { status: step === 2 ? terminalStatus : 'running', step };
     },
     platformV4() {
       return { contributions: [contribution] };
@@ -144,6 +144,23 @@ test('tier controller reconstructs a matching terminal receipt after reload', as
   assert.equal(await restored.restore(), true);
   assert.equal(restored.snapshot().state, 'settled');
   assert.equal(restoredReceipts.length, 1);
+});
+
+test('tier controller compares, settles, and restores a terminal simulation failure', async () => {
+  const storage = memoryStorage();
+  const receipts = [];
+  const first = create(fakeRuntime({ terminalStatus: 'failed' }), storage, [], receipts);
+  await first.start();
+  first.pause();
+  await first.step();
+  await first.step();
+  assert.equal(first.snapshot().state, 'settled');
+  assert.equal(receipts[0].actionResult.status, 'settled');
+  assert.equal(receipts[0].actionResult.scenario.status, 'failed');
+  assert.equal(receipts[0].actionResult.comparisonExecutionReceipt.state, 'settled');
+  const restored = create(fakeRuntime({ terminalStatus: 'failed' }), storage, [], []);
+  assert.equal(await restored.restore(), true);
+  assert.equal(restored.snapshot().state, 'settled');
 });
 
 test('tier controller applies experiment parameters to start and step phases and persists them', async () => {

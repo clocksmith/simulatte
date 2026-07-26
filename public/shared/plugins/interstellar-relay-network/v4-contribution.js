@@ -7,17 +7,22 @@
   root.InterstellarRelayV4 = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createInterstellarV4(builder) {
   const PLUGIN_ID = 'interstellar-relay-network';
-  function createContribution({ result, progressive, transceiverOptions = [] }) {
+  function createContribution({ result, progressive }) {
     const datasets = result.dataReceipts.filter((row) => row.sha256).map((row) => builder.datasetRecord(row.datasetId, row, {
       coverage: row.coverage,
       license: row.license,
     }));
     const gaia = datasets.find((row) => row.id.startsWith('gaia.'));
+    const hyg = datasets.find((row) => row.id === 'hyg.visible-stars.v1');
     const modelDataset = datasets.find((row) => row.id === 'interstellar.relay.models.v1') || gaia;
-    const starRows = result.stellarStates.map((state) => builder.rowRecord(gaia, state.sourceRowIds[0] || state.sourceId, {
-      sourceId: state.sourceId,
-      name: state.name,
-    }));
+    const starRows = result.stellarStates.map((state) => {
+      const dataset = state.sourceId.startsWith('hyg:') ? hyg : gaia;
+      if (!dataset) throw new Error(`interstellar_v4_dataset_missing: ${state.sourceId}`);
+      return builder.rowRecord(dataset, state.sourceRowIds[0] || state.sourceId, {
+        sourceId: state.sourceId,
+        name: state.name,
+      });
+    });
     const model = builder.modelRecord({
       id: `${PLUGIN_ID}:model:relay-v2`,
       datasetId: modelDataset.id,
@@ -40,9 +45,9 @@
     });
     const spatial = builder.transformationRecord({
       id: `${PLUGIN_ID}:spatial:icrs-cartesian-pc:true-3d:v1`,
-      datasetId: gaia.id,
-      contentHash: gaia.contentHash,
-      parentIds: [gaia.id, model.id],
+      datasetId: modelDataset.id,
+      contentHash: modelDataset.contentHash,
+      parentIds: [...new Set([modelDataset.id, model.id, gaia?.id, hyg?.id].filter(Boolean))],
       metadata: {
         dimensions: 3,
         axisOrder: ['icrs-x', 'icrs-y', 'icrs-z'],
@@ -82,7 +87,30 @@
       uncertainty: result.metrics.truth.uncertainty,
       records: [model, spatial],
     });
+    const channelProvenance = builder.provenance({
+      origin: ['traversable-wormhole', 'alcubierre-warp'].includes(result.controls.channelMode)
+        ? 'scenario'
+        : 'modeled',
+      temporalStatus: 'forecast',
+      uncertainty: result.channelReceipts[0]?.truth?.uncertainty || result.metrics.truth.uncertainty,
+      records: [model, spatial],
+    });
     const stateById = new Map(result.stellarStates.map((row) => [row.sourceId, row]));
+    const alternativeLayers = result.routeSelection.alternatives
+      .filter((row) => row.path.join(':') !== result.routeSelection.selectedPath.join(':'))
+      .map((alternative, index) => builder.layer({
+        id: `route-alternative:${index}`,
+        kind: 'path',
+        label: `Alternative ${index + 1}: ${pathLabel(alternative.path, stateById)}`,
+        geometry: builder.geometry('polyline', 'icrs-cartesian-pc', alternative.path.map(
+          (id) => stateById.get(id).positionPc,
+        )),
+        quantity: builder.quantity('route-score', alternative.score, 'normalized-score'),
+        role: 'comparison',
+        importance: Math.max(0.2, 0.48 - index * 0.06),
+        aggregationKey: 'route-alternatives',
+        provenance: modeled,
+      }));
     const layers = [
       ...result.stellarStates.map((state) => builder.layer({
         id: `star:${state.sourceId}`,
@@ -98,17 +126,18 @@
       ...result.schedule.hops.map((hop, index) => builder.layer({
         id: `relay-link:${index}`,
         kind: 'path',
-        label: `${stateById.get(hop.fromId).name} to ${stateById.get(hop.toId).name}`,
+        label: `${result.channelReceipts[index].label}: ${stateById.get(hop.fromId).name} to ${stateById.get(hop.toId).name}`,
         geometry: builder.geometry('polyline', 'icrs-cartesian-pc', [
           stateById.get(hop.fromId).positionPc,
           stateById.get(hop.toId).positionPc,
         ]),
-        quantity: builder.quantity('data-rate', result.linkBudgets[index].achievableDataRateGbps, 'Gb/s'),
+        quantity: builder.quantity('data-rate', result.channelReceipts[index].effectiveDataRateGbps, 'Gb/s'),
         role: 'primary',
-        importance: 0.8,
-        aggregationKey: 'relay-links',
-        provenance: modeled,
+        importance: ['traversable-wormhole', 'alcubierre-warp'].includes(result.controls.channelMode) ? 1 : 0.8,
+        aggregationKey: `relay-links:${result.controls.channelMode}`,
+        provenance: channelProvenance,
       })),
+      ...alternativeLayers,
     ];
     const packetState = stateById.get(progressive.packetLocationId) || result.relayStates[0];
     const packetPosition = locatePacket(result, progressive, stateById);
@@ -133,6 +162,9 @@
       payload: {
         affectedEntityIds: row.affectedEntityIds,
         omissionIds: result.omissions.map((omission) => omission.id),
+        modeledEffectIds: result.operations.modeledEffectIds,
+        channelMode: result.controls.channelMode,
+        routeSelectionSchema: result.routeSelection.schema,
         reliabilityScope: result.reliabilityScope,
         spatialTransformationId: spatial.id,
       },
@@ -152,17 +184,38 @@
         mode: progressive.status === 'settled' ? 'compare' : activeLayerId ? 'follow' : 'overview',
         targetIds: activeLayerId
           ? [activeLayerId, result.packet.packetId]
-          : [...result.schedule.hops.map((_, index) => `relay-link:${index}`), result.packet.packetId],
+          : [
+            ...result.schedule.hops.map((_, index) => `relay-link:${index}`),
+            ...alternativeLayers.map((row) => row.id),
+            result.packet.packetId,
+          ],
         reasonEventId: currentEvent?.id || null,
         priority: 65,
       })],
     });
+    const options = result.controlOptions;
+    const requiredRelays = result.controls.requiredRelayIds.length
+      ? result.controls.requiredRelayIds
+      : ['none'];
     const controls = builder.controls([
+      select('sourceId', 'From star', result.controls.sourceId, options.stars, modeled),
+      select('targetId', 'To star', result.controls.targetId, options.stars, modeled),
+      select('routingMode', 'Routing mode', result.controls.routingMode, routeModes(), modeled),
+      select('routeObjective', 'Route objective', result.controls.routeObjective, routeObjectives(), modeled),
+      multiselect('requiredRelayIds', 'Required relay stars', requiredRelays, options.relays, modeled),
+      multiselect('eligibleRelayIds', 'Stars eligible as relays', result.controls.eligibleRelayIds, options.stars, modeled),
+      numeric('maxHops', 'Maximum hops', result.controls.maxHops, 1, 8, 1, modeled),
+      numeric('maxHopDistancePc', 'Maximum hop distance', result.controls.maxHopDistancePc, 0.01, 250000, 0.01, modeled),
+      select('channelMode', 'Physics lane', result.controls.channelMode, options.channels, channelProvenance),
+      select('operationsProfileId', 'Operations profile', result.controls.operationsProfileId, options.operationsProfiles, modeled),
+      numeric('ensembleSize', 'Operational samples', result.controls.ensembleSize, 8, 512, 8, modeled),
+      numeric('retryLimit', 'Retry limit', result.controls.retryLimit, 0, 20, 1, modeled),
       datetime('startEpochIso', 'Transmission epoch', result.controls.startEpochIso.slice(0, 16), modeled),
       numeric('packetBytes', 'Packet size', result.controls.packetBytes, 64, 1073741824, 1, modeled),
       numeric('processingDelayHours', 'Relay processing delay', result.controls.processingDelayHours, 0, 8760, 1, modeled),
       numeric('targetEpochYear', 'Target epoch year', result.controls.targetEpochYear, 2016, 2200, 1, modeled),
-      ...(transceiverOptions.length ? [select('transceiverId', 'Optical terminal', result.controls.transceiverId, transceiverOptions, modeled)] : []),
+      select('transceiverId', 'Optical terminal', result.controls.transceiverId, options.terminals, modeled),
+      ...advancedControls(result, channelProvenance),
     ], [{
       id: result.comparisonDefinition.id,
       label: result.comparisonDefinition.label || 'Relay path vs direct baseline',
@@ -183,7 +236,11 @@
         builder.quantity('minimum-margin', result.metrics.minimumLinkMarginDb, 'dB'),
         builder.quantity('packet-distance', Math.hypot(...packetPosition), 'pc'),
         builder.quantity('packet-depth', packetPosition[2], 'pc'),
-        builder.quantity('packet-success-conditional', result.metrics.endToEndPacketSuccessProbability, 'probability'),
+        builder.quantity('physical-packet-success', result.metrics.physicalChannelSuccessProbability, 'probability'),
+        builder.quantity('operational-delivery-probability', result.operations.deliveryProbability, 'probability'),
+        ...(Number.isFinite(result.operations.latencySeconds.p90)
+          ? [builder.quantity('operational-p90-latency', result.operations.latencySeconds.p90, 'second')]
+          : []),
       ],
       provenance: simulated,
     });
@@ -200,9 +257,19 @@
         fields: [
           field('latency', 'One-way latency', result.metrics.oneWayLatencyYears, 'year', modeled),
           field('rate', 'Bottleneck rate', result.metrics.bottleneckDataRateGbps, 'Gb/s', modeled),
-          field('reliability', 'Packet success conditional on continuous contact', result.metrics.endToEndPacketSuccessProbability, 'probability', modeled),
-          field('continuous-contact', 'Continuous contact availability', 'assumed, not observed', null, modeled),
-          field('omissions', 'Omitted reliability effects', result.omissions.map((row) => `${row.label}: ${row.effect}`).join('; '), null, modeled),
+          field('route', 'Selected route', pathLabel(result.routeSelection.selectedPath, stateById), null, modeled),
+          field('route-candidates', 'Valid route candidates', result.routeSelection.candidateCount, 'routes', modeled),
+          field('route-search', 'Bounded route work', `${result.routeSelection.searchAttempts}/${result.routeSelection.searchBound} edge attempts · ${result.routeSelection.pathSearchAttempts}/${result.routeSelection.pathSearchBound} route states · ${result.routeSelection.candidateCount} valid${result.routeSelection.pathSearchTruncated ? ' · truncated' : ''}`, null, modeled),
+          field('channel', 'Physics lane', result.channelReceipts[0]?.label || result.controls.channelMode, null, channelProvenance),
+          field('causality', 'Causality status', uniqueJoin(result.channelReceipts, 'causalityStatus'), null, channelProvenance),
+          field('constructibility', 'Constructibility status', uniqueJoin(result.channelReceipts, 'constructibilityStatus'), null, channelProvenance),
+          field('channel-constraints', 'Constraint receipt', JSON.stringify(result.channelReceipts[0]?.constraintReceipt || {}), null, channelProvenance),
+          field('physical-reliability', 'Physical packet success', result.metrics.physicalChannelSuccessProbability, 'probability', modeled),
+          field('operational-reliability', 'Operational delivery probability', result.operations.deliveryProbability, 'probability', simulated),
+          field('operational-latency', 'Successful latency p10 / p50 / p90', quantileLabel(result.operations.latencySeconds), null, simulated),
+          field('operational-effects', 'Modeled operations', result.operations.modeledEffectIds.join('; '), null, simulated),
+          field('operational-counts', 'Mean retries / outages / maintenance', `${result.operations.meanRetryCount.toFixed(2)} / ${result.operations.meanOutageCount.toFixed(2)} / ${result.operations.meanMaintenanceCount.toFixed(2)}`, null, simulated),
+          field('omissions', 'Remaining limitations', result.omissions.map((row) => `${row.label}: ${row.effect}`).join('; '), null, modeled),
           field('coordinates', 'Spatial frame', 'true 3D ICRS Cartesian parsecs', null, modeled),
           field('packet-depth', 'Packet signed ICRS-z depth', packetPosition[2], 'pc', simulated),
           field('packet-distance', 'Packet Euclidean distance from origin', Math.hypot(...packetPosition), 'pc', simulated),
@@ -231,8 +298,59 @@
     return { id, label, kind: 'select', value, options, minimum: null, maximum: null, step: null, provenance };
   }
 
+  function multiselect(id, label, value, options, provenance) {
+    return { id, label, kind: 'multiselect', value, options, minimum: null, maximum: null, step: null, provenance };
+  }
+
   function datetime(id, label, value, provenance) {
     return { id, label, kind: 'datetime-local', value, options: null, minimum: null, maximum: null, step: null, provenance };
+  }
+  function advancedControls(result, provenance) {
+    const value = result.controls;
+    if (value.channelMode === 'quantum-assisted') return [
+      numeric('quantumMemoryCoherenceHours', 'Quantum memory coherence', value.quantumMemoryCoherenceHours, 0.001, 1e12, 1, provenance),
+      numeric('quantumInitialFidelity', 'Initial entanglement fidelity', value.quantumInitialFidelity, 0, 1, 0.001, provenance),
+      numeric('entanglementPairRateHz', 'Entanglement pair rate', value.entanglementPairRateHz, 1, 1e18, 1, provenance),
+    ];
+    if (value.channelMode === 'traversable-wormhole') return [
+      numeric('wormholeTraversalSeconds', 'Wormhole traversal time', value.wormholeTraversalSeconds, 0.000001, 1e12, 0.001, provenance),
+      numeric('wormholeThroatRadiusM', 'Wormhole throat radius', value.wormholeThroatRadiusM, 1e-35, 1e12, 0.01, provenance),
+      numeric('speculativeBandwidthGbps', 'Scenario bandwidth', value.speculativeBandwidthGbps, 1e-12, 1e12, 0.001, provenance),
+      numeric('speculativeStabilityProbability', 'Scenario stability', value.speculativeStabilityProbability, 0, 1, 0.01, provenance),
+    ];
+    if (value.channelMode === 'alcubierre-warp') return [
+      numeric('warpEffectiveSpeedC', 'Effective speed', value.warpEffectiveSpeedC, 0.01, 1e6, 0.01, provenance),
+      numeric('warpBubbleRadiusM', 'Warp bubble radius', value.warpBubbleRadiusM, 0.01, 1e12, 1, provenance),
+      numeric('speculativeBandwidthGbps', 'Scenario bandwidth', value.speculativeBandwidthGbps, 1e-12, 1e12, 0.001, provenance),
+      numeric('speculativeStabilityProbability', 'Scenario stability', value.speculativeStabilityProbability, 0, 1, 0.01, provenance),
+    ];
+    return [];
+  }
+  function routeModes() {
+    return [
+      { value: 'automatic', label: 'Automatic route search' },
+      { value: 'manual', label: 'Use required relay set' },
+      { value: 'direct', label: 'Direct link only' },
+    ];
+  }
+  function routeObjectives() {
+    return [
+      { value: 'balanced', label: 'Balanced frontier' },
+      { value: 'latency', label: 'Lowest latency' },
+      { value: 'throughput', label: 'Highest throughput' },
+      { value: 'energy', label: 'Lowest energy' },
+      { value: 'reliability', label: 'Highest reliability' },
+    ];
+  }
+  function pathLabel(path, stateById) {
+    return path.map((id) => stateById.get(id)?.name || id).join(' → ');
+  }
+  function uniqueJoin(rows, key) {
+    return [...new Set(rows.map((row) => row[key]))].join('; ');
+  }
+  function quantileLabel(value) {
+    const format = (seconds) => seconds === null ? 'not delivered' : `${(seconds / 31557600).toFixed(5)} y`;
+    return `${format(value.p10)} / ${format(value.p50)} / ${format(value.p90)}`;
   }
   function field(id, label, value, unit, provenance) { return { id, label, value, unit, provenance }; }
   return Object.freeze({ createContribution });

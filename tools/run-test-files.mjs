@@ -10,6 +10,7 @@ import { runTestFileWithWatchdog } from './test-file-watchdog.mjs';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const testsDir = path.join(root, 'tests');
 const execFileAsync = promisify(execFile);
+const SOURCE_PATHSPEC = Object.freeze(['--', '.', ':(exclude)artifacts']);
 
 async function loadPolicy() {
   const policy = JSON.parse(await fs.readFile(path.join(testsDir, 'test-run-policy.json'), 'utf8'));
@@ -29,8 +30,8 @@ async function testFiles(argv) {
 
 async function worktreeFingerprint() {
   const [{ stdout: diff }, { stdout: status }] = await Promise.all([
-    execFileAsync('git', ['diff', '--binary', 'HEAD'], { cwd: root, encoding: 'buffer', maxBuffer: 64 * 1024 * 1024 }),
-    execFileAsync('git', ['status', '--porcelain=v1', '-z', '--untracked-files=all'], {
+    execFileAsync('git', ['diff', '--binary', 'HEAD', ...SOURCE_PATHSPEC], { cwd: root, encoding: 'buffer', maxBuffer: 64 * 1024 * 1024 }),
+    execFileAsync('git', ['status', '--porcelain=v1', '-z', '--untracked-files=all', ...SOURCE_PATHSPEC], {
       cwd: root,
       encoding: 'buffer',
       maxBuffer: 16 * 1024 * 1024,
