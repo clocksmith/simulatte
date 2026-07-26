@@ -123,7 +123,7 @@ function buildEmissionsModel() {
 }
 
 function govern(id, schemaId, body) {
-  return { ...body, datasetId: id, datasetSchemaId: schemaId, generatedBy: 'tools/simulatte/build-maritime-data.mjs', generatorVersion: 'maritime-data-1.0.0' };
+  return { ...body, id, datasetId: id, datasetSchemaId: schemaId, generatedBy: 'tools/simulatte/build-maritime-data.mjs', generatorVersion: 'maritime-data-1.0.0' };
 }
 
 function writeDataset(fileName, value) {

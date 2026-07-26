@@ -1,0 +1,277 @@
+#!/usr/bin/env node
+import crypto from 'node:crypto';
+import fs from 'node:fs';
+import path from 'node:path';
+import { execFileSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+import {
+  addressReceipt,
+  buildEvidencePlan,
+  currentSourceIdentity,
+  expandClaims,
+  readJson,
+  sha256Bytes,
+  sha256File,
+  storeReceipt,
+  validateReceipt,
+} from './profile-evidence-contract.mjs';
+import { captureBrowserRun, createEvidenceServer, findChrome } from './profile-evidence-browser.mjs';
+
+const TOOL_DIRECTORY = path.dirname(fileURLToPath(import.meta.url));
+const ROOT = path.resolve(TOOL_DIRECTORY, '../..');
+const DEFAULT_OUTPUT = path.join(ROOT, 'artifacts/profile-evidence');
+const INVENTORY_PATH = path.join(ROOT, 'public/data/application-profiles/profile-claim-inventory-v1.json');
+
+function parseArgs(argv) {
+  const options = {
+    capture: false,
+    check: false,
+    planOnly: false,
+    outputDirectory: DEFAULT_OUTPUT,
+    chromePath: process.env.CHROME_PATH || '',
+    baseUrl: '',
+    runIds: [],
+  };
+  for (let index = 0; index < argv.length; index += 1) {
+    const [key, inlineValue] = argv[index].split('=');
+    const value = () => inlineValue ?? argv[++index];
+    if (key === '--capture') options.capture = true;
+    else if (key === '--check') options.check = true;
+    else if (key === '--plan') options.planOnly = true;
+    else if (key === '--out') options.outputDirectory = path.resolve(value());
+    else if (key === '--chrome') options.chromePath = path.resolve(value());
+    else if (key === '--url' || key === '--base-url') options.baseUrl = new URL(value()).toString();
+    else if (key === '--run') options.runIds.push(value());
+    else if (key === '--help') {
+      console.log('usage: node tools/simulatte/run-profile-evidence.mjs --plan | --capture [--check] [--out DIR] [--chrome PATH] [--base-url URL] [--run RUN_ID]');
+      process.exit(0);
+    } else throw new Error(`Unknown argument: ${argv[index]}`);
+  }
+  if (!options.capture && !options.check && !options.planOnly) options.planOnly = true;
+  return options;
+}
+
+function worktreeSha256() {
+  const diff = execFileSync('git', ['diff', '--binary', 'HEAD'], { cwd: ROOT, encoding: 'buffer', maxBuffer: 64 * 1024 * 1024 });
+  const status = execFileSync('git', ['status', '--porcelain=v1', '-z', '--untracked-files=all'], { cwd: ROOT, encoding: 'buffer', maxBuffer: 16 * 1024 * 1024 });
+  const hash = crypto.createHash('sha256').update(diff).update(status);
+  for (const row of status.toString('utf8').split('\0').filter(Boolean)) {
+    if (!row.startsWith('?? ')) continue;
+    const filePath = path.join(ROOT, row.slice(3));
+    if (fs.statSync(filePath).isFile()) hash.update(fs.readFileSync(filePath));
+  }
+  return hash.digest('hex');
+}
+
+function buildIdentity() {
+  return {
+    buildId: readJson(path.join(ROOT, 'public/version.json')).build,
+    commitSha: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim(),
+    worktreeSha256: worktreeSha256(),
+  };
+}
+
+function failedReceipt(run, sourceIdentity, claims, error) {
+  return {
+    schema: 'simulatte.profileEvidenceReceipt.v1',
+    capturedAt: new Date().toISOString(),
+    run: {
+      id: run.id,
+      profileId: run.profileId,
+      seedId: run.seedId,
+      seed: run.seed,
+      viewportId: run.viewport.id,
+      interactionPath: run.interactionPath,
+    },
+    sourceIdentity,
+    browser: null,
+    runtime: { path: 'unavailable', profileId: run.profileId },
+    evidence: {
+      controls: [],
+      events: [],
+      progressiveStates: [],
+      comparisons: [],
+      settlements: [],
+      console: [],
+      consoleErrors: [{ type: 'capture', values: [error.message] }],
+      performance: { frameCount: 0, elapsedMs: null },
+      screenshot: null,
+      pixelReadback: { status: 'fail' },
+      lifecycle: [],
+    },
+    integrity: { status: 'contradictory', contradictions: ['capture_failed'] },
+    claims: claims.map((claim) => ({ id: claim.id, sentence: claim.sentence })),
+  };
+}
+
+function writePlan(outputDirectory, plan, inventory) {
+  fs.mkdirSync(outputDirectory, { recursive: true });
+  const output = {
+    ...plan,
+    claimInventory: {
+      path: path.relative(ROOT, INVENTORY_PATH),
+      sha256: sha256File(INVENTORY_PATH),
+      schema: inventory.schema,
+      contentVersion: inventory.contentVersion,
+    },
+  };
+  fs.writeFileSync(path.join(outputDirectory, 'plan.json'), `${JSON.stringify(output, null, 2)}\n`);
+  return output;
+}
+
+function relativeArtifactLink(outputDirectory, filePath) {
+  return path.relative(outputDirectory, filePath).split(path.sep).join('/');
+}
+
+function writeSummary(outputDirectory, report) {
+  const lines = [
+    '# Simulatte profile evidence',
+    '',
+    `Status: ${report.pass ? 'pass' : 'fail'}`,
+    '',
+    `Runs: ${report.passedRuns}/${report.totalRuns} passed`,
+    '',
+    '| Profile | Seed | Viewport | Status | Receipt | Failures |',
+    '| --- | --- | --- | --- | --- | --- |',
+    ...report.runs.map((row) => `| ${row.profileId} | ${row.seedId} | ${row.viewportId} | ${row.pass ? 'pass' : 'fail'} | [${row.receiptSha256.slice(0, 12)}](${row.receiptPath}) | ${row.failures.join(', ') || 'none'} |`),
+    '',
+  ];
+  fs.writeFileSync(path.join(outputDirectory, 'summary.md'), `${lines.join('\n')}\n`);
+}
+
+function verifyStoredReceipt(outputDirectory, row) {
+  const receiptPath = path.join(outputDirectory, row.receiptPath);
+  if (!fs.existsSync(receiptPath)) throw new Error(`profile_evidence_receipt_missing: ${row.receiptPath}`);
+  const bytes = fs.readFileSync(receiptPath);
+  const hash = sha256Bytes(bytes);
+  if (hash !== row.receiptSha256) throw new Error(`profile_evidence_receipt_hash_mismatch: ${row.receiptPath}`);
+  const receipt = JSON.parse(bytes);
+  const addressed = addressReceipt(receipt);
+  if (addressed.sha256 !== row.receiptSha256) throw new Error(`profile_evidence_receipt_not_canonical: ${row.receiptPath}`);
+  return receipt;
+}
+
+function validateIndex({ outputDirectory, plan, claims, identity }) {
+  const indexPath = path.join(outputDirectory, 'index.json');
+  if (!fs.existsSync(indexPath)) throw new Error(`profile_evidence_index_missing: ${indexPath}`);
+  const index = readJson(indexPath);
+  const indexFailures = [];
+  const planSha256 = sha256Bytes(fs.readFileSync(path.join(outputDirectory, 'plan.json')));
+  if (index.planSha256 !== planSha256) indexFailures.push('evidence_plan_stale');
+  if (index.claimInventorySha256 !== sha256File(INVENTORY_PATH)) indexFailures.push('claim_inventory_stale');
+  if (index.totalRuns !== plan.runs.length) indexFailures.push('run_count_mismatch');
+  const rowsById = new Map(index.runs.map((row) => [row.runId, row]));
+  const validations = plan.runs.map((run) => {
+    const row = rowsById.get(run.id);
+    if (!row) return { runId: run.id, pass: false, failures: ['run_receipt_missing'], claimResults: [] };
+    try {
+      const receipt = verifyStoredReceipt(outputDirectory, row);
+      return validateReceipt({
+        receipt,
+        run,
+        sourceIdentity: currentSourceIdentity(ROOT, run, identity),
+        claims,
+      });
+    } catch (error) {
+      return { runId: run.id, pass: false, failures: [error.code || error.message], claimResults: [] };
+    }
+  });
+  const extras = index.runs.filter((row) => !plan.runs.some((run) => run.id === row.runId));
+  if (extras.length) validations.push({ runId: 'index', pass: false, failures: ['unexpected_run_receipts'], claimResults: [] });
+  if (indexFailures.length) validations.push({ runId: 'index-contract', pass: false, failures: indexFailures, claimResults: [] });
+  return validations;
+}
+
+async function captureAll({ options, plan, claims, identity }) {
+  const selectedRuns = options.runIds.length
+    ? plan.runs.filter((run) => options.runIds.includes(run.id))
+    : plan.runs;
+  if (selectedRuns.length !== (options.runIds.length || plan.runs.length)) throw new Error('profile_evidence_run_filter_unknown');
+  const chromePath = findChrome(options.chromePath);
+  const localServer = options.baseUrl ? null : await createEvidenceServer(path.join(ROOT, 'public'));
+  const baseUrl = options.baseUrl || localServer.baseUrl;
+  const rows = [];
+  try {
+    for (const run of selectedRuns) {
+      const sourceIdentity = currentSourceIdentity(ROOT, run, identity);
+      const runClaims = claims.filter((claim) => claim.profileId === run.profileId && claim.seedId === run.seedId);
+      const profile = readJson(path.join(ROOT, run.profilePath));
+      const seedIndex = profile.seeds.findIndex((seed) => seed.id === run.seedId);
+      console.log(`PROFILE-EVIDENCE capture profile=${run.profileId} seed=${run.seedId} viewport=${run.viewport.id}`);
+      let receipt;
+      try {
+        receipt = await captureBrowserRun({
+          chromePath,
+          baseUrl,
+          run,
+          sourceIdentity,
+          claims: runClaims,
+          outputDirectory: options.outputDirectory,
+          seedIndex,
+        });
+      } catch (error) {
+        receipt = failedReceipt(run, sourceIdentity, runClaims, error);
+      }
+      const stored = storeReceipt(path.join(options.outputDirectory, 'receipts'), receipt);
+      const validation = validateReceipt({ receipt, run, sourceIdentity, claims });
+      rows.push({
+        runId: run.id,
+        profileId: run.profileId,
+        seedId: run.seedId,
+        viewportId: run.viewport.id,
+        receiptSha256: stored.sha256,
+        receiptPath: relativeArtifactLink(options.outputDirectory, stored.path),
+        pass: validation.pass,
+        failures: validation.failures,
+      });
+      console.log(`PROFILE-EVIDENCE result=${validation.pass ? 'pass' : 'fail'} run=${run.id} failures=${validation.failures.join(',') || 'none'}`);
+    }
+  } finally {
+    if (localServer) await new Promise((resolve) => localServer.server.close(resolve));
+  }
+  const report = {
+    schema: 'simulatte.profileEvidenceIndex.v1',
+    planSha256: sha256Bytes(fs.readFileSync(path.join(options.outputDirectory, 'plan.json'))),
+    claimInventorySha256: sha256File(INVENTORY_PATH),
+    sourceIdentity: identity,
+    totalRuns: selectedRuns.length,
+    passedRuns: rows.filter((row) => row.pass).length,
+    pass: rows.every((row) => row.pass) && selectedRuns.length === plan.runs.length,
+    runs: rows,
+  };
+  fs.writeFileSync(path.join(options.outputDirectory, 'index.json'), `${JSON.stringify(report, null, 2)}\n`);
+  writeSummary(options.outputDirectory, report);
+  return report;
+}
+
+async function main() {
+  const options = parseArgs(process.argv.slice(2));
+  const plan = buildEvidencePlan(ROOT);
+  const inventory = readJson(INVENTORY_PATH);
+  const claims = expandClaims(ROOT, inventory);
+  const identity = buildIdentity();
+  writePlan(options.outputDirectory, plan, inventory);
+  if (options.planOnly) {
+    console.log(`PROFILE-EVIDENCE plan profiles=${plan.profileIds.length} runs=${plan.runCount} claims=${claims.length}`);
+    return;
+  }
+  let report = null;
+  if (options.capture) report = await captureAll({ options, plan, claims, identity });
+  if (options.check) {
+    const validations = validateIndex({ outputDirectory: options.outputDirectory, plan, claims, identity });
+    const passed = validations.filter((row) => row.pass).length;
+    console.log(`PROFILE-EVIDENCE check runs=${validations.length} passed=${passed} failed=${validations.length - passed}`);
+    if (passed !== plan.runs.length || validations.length !== plan.runs.length) process.exitCode = 1;
+  } else if (report && !report.pass) {
+    process.exitCode = 1;
+  }
+}
+
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  main().catch((error) => {
+    console.error(error && error.stack || error);
+    process.exit(1);
+  });
+}
+
+export { buildIdentity, failedReceipt, parseArgs, validateIndex, worktreeSha256 };

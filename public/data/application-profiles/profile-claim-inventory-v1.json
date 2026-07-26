@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "schema": "simulatte.profileClaimInventory.v1",
+  "contentVersion": "2026-07-25",
+  "profileIds": [
+    "cable-trader-pickup-v1",
+    "food-recall-us-v1",
+    "interstellar-relay-network-v1",
+    "maritime-trade-global-v1",
+    "orbital-transfer-planner-v1",
+    "safety-explorer-v1",
+    "sun-walker-v1"
+  ],
+  "publicationScope": {
+    "path": "public/data/application-profiles/*.json",
+    "jsonPointer": "/seeds/*/description",
+    "claimIdTemplate": "{profileId}.seed.{seedId}.description"
+  },
+  "seedDescriptionClaim": {
+    "requiredSelectors": [
+      {
+        "id": "profile-id",
+        "path": "run.profileId",
+        "operator": "equals",
+        "contextPath": "run.profileId"
+      },
+      {
+        "id": "seed-id",
+        "path": "run.seedId",
+        "operator": "equals",
+        "contextPath": "run.seedId"
+      },
+      {
+        "id": "governed-seed",
+        "path": "run.seed",
+        "operator": "equals",
+        "contextPath": "run.seed"
+      },
+      {
+        "id": "native-v4-runtime",
+        "path": "runtime.path",
+        "operator": "equals",
+        "value": "native-v4"
+      },
+      {
+        "id": "controls-captured",
+        "path": "evidence.controls",
+        "operator": "non-empty"
+      },
+      {
+        "id": "events-captured",
+        "path": "evidence.events",
+        "operator": "non-empty"
+      },
+      {
+        "id": "progressive-states-captured",
+        "path": "evidence.progressiveStates",
+        "operator": "non-empty"
+      },
+      {
+        "id": "comparison-settled",
+        "path": "evidence.comparisons",
+        "operator": "non-empty"
+      },
+      {
+        "id": "settlement-captured",
+        "path": "evidence.settlements",
+        "operator": "non-empty"
+      },
+      {
+        "id": "console-clean",
+        "path": "evidence.consoleErrors",
+        "operator": "empty"
+      },
+      {
+        "id": "performance-captured",
+        "path": "evidence.performance.frameCount",
+        "operator": "gte",
+        "value": 1
+      },
+      {
+        "id": "screenshot-content-addressed",
+        "path": "evidence.screenshot.sha256",
+        "operator": "non-empty"
+      },
+      {
+        "id": "pixel-readback-passed",
+        "path": "evidence.pixelReadback.status",
+        "operator": "equals",
+        "value": "pass"
+      },
+      {
+        "id": "interaction-path-complete",
+        "path": "evidence.lifecycle",
+        "operator": "includes-all",
+        "contextPath": "run.interactionPath"
+      },
+      {
+        "id": "claim-source-bound",
+        "path": "claims",
+        "operator": "non-empty"
+      }
+    ],
+    "contradictorySelectors": [
+      {
+        "id": "legacy-adapter-used",
+        "path": "runtime.path",
+        "operator": "equals",
+        "value": "legacy-adapter"
+      },
+      {
+        "id": "runtime-errors-recorded",
+        "path": "integrity.status",
+        "operator": "equals",
+        "value": "contradictory"
+      }
+    ]
+  }
+}

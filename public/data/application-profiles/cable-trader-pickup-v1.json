@@ -9,7 +9,7 @@
     { "id": "display-cable-surge", "label": "Display cable surge", "description": "Higher modeled demand for HDMI and DisplayPort-family cables.", "seed": "cable-city-display-surge-4096", "missionText": "Show the predefined 30-day cable network and its optimal allocation." },
     { "id": "brooklyn-rebalance", "label": "Brooklyn rebalance", "description": "Higher Brooklyn need weights paired with higher Manhattan return weights.", "seed": "cable-city-brooklyn-rebalance-8192", "missionText": "Show the predefined 30-day cable network and its optimal allocation." }
   ],
-  "camera": { "initialMode": "top", "runMode": "top", "pluginId": "cable-trader", "targetId": "cable-network" },
+  "camera": { "initialMode": "top", "runMode": "top", "pluginId": "cable-trader", "targetId": "cable-network-overview" },
   "plugins": [{ "id": "cable-trader", "configId": "cable-trader-network-v3" }],
   "routeObjective": { "travelSeconds": 1 }
 }

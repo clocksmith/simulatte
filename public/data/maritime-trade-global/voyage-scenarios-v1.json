@@ -1,5 +1,6 @@
 {
   "schema": "simulatte.maritimeVoyageScenarios.v1",
+  "id": "maritime.voyage.scenarios.v1",
   "datasetId": "maritime.voyage.scenarios.v1",
   "claimBoundary": "Scenario routes, distance calibrations, disruptions, cargo, and departure epoch are declared modeling inputs. They are not observed carrier services, live schedules, or navigational tracks.",
   "scenarios": [

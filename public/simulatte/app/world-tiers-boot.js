@@ -222,7 +222,7 @@
       simulationClock.useTimeline(platform.timeline,{atMs:simulationTimeMs});
       viewDirector=root.SimulatteViewDirector.createViewDirector();
       platform.contributions.forEach((contribution)=>contribution.presentation.viewIntents.forEach((intent)=>viewDirector.submit(intent,{source:contribution.pluginId})));
-      root.__simulattePluginPlatformV4=Object.freeze({receipt:platform.receipt,clock:simulationClock.receipt(),view:viewDirector.receipt()});
+      root.__simulattePluginPlatformV4=Object.freeze({receipt:platform.receipt,contributions:platform.contributions,contributionSources:platform.contributionSources,clock:simulationClock.receipt(),view:viewDirector.receipt()});
     }
     function renderScenario(){root.SimulatteApplicationProfileSelect.renderInteraction(interaction,activeScenario,elements);elements.missionField.hidden=true;elements.scenarioField.hidden=false;elements.startButton.hidden=false;elements.shuffleButton.hidden=interaction.scenarios.length<2;elements.pauseButton.hidden=true;elements.resumeButton.hidden=true;elements.replayButton.hidden=true;elements.newMissionButton.hidden=true;elements.modelSelectionControls?.replaceChildren();}
     try {

@@ -180,6 +180,8 @@ test('plugin manifest and maritime data manifest identity-lock their actual file
   const generatedById = new Map(dataManifest.datasets.map((row) => [row.datasetId, row]));
   manifest.datasets.forEach((declaration) => {
     const filePath = path.resolve(PLUGIN_DIRECTORY, declaration.reference.path);
+    const dataset = loadJson(filePath);
+    assert.equal(dataset.id, declaration.id, `${declaration.id} canonical identity`);
     assert.equal(declaration.reference.sha256, sha256(filePath), declaration.id);
     assert.equal(generatedById.get(declaration.id).sha256, declaration.reference.sha256, declaration.id);
   });

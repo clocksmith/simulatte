@@ -39,6 +39,7 @@
       "sfocGPerKwh": 185
     }
   ],
+  "id": "maritime-vessel-archetypes-v1",
   "datasetId": "maritime-vessel-archetypes-v1",
   "datasetSchemaId": "simulatte.maritimeVesselArchetypes.v1",
   "generatedBy": "tools/simulatte/build-maritime-data.mjs",

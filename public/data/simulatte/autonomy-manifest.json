@@ -2,7 +2,7 @@
   "applicationProfile": {
     "id": "cable-trader-pickup-v1",
     "path": "../application-profiles/cable-trader-pickup-v1.json",
-    "sha256": "f736008665573886d3a1acda631148e98546bf163418f3e78f9bf5ca3426da88"
+    "sha256": "b1294ac13e84263c8a015d63750442aca6f63866ddac416cbeb9643f0a4b9bdb"
   },
   "applicationProfiles": [
     {

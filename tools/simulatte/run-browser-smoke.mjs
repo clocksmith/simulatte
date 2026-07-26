@@ -145,10 +145,32 @@ async function runBrowserSmoke(options) {
     client.on('Log.entryAdded', (params) => {
       if (params.entry.level === 'error') errors.push({ kind: 'log', text: params.entry.text });
     });
+    client.on('Runtime.consoleAPICalled', (params) => {
+      const values = params.args.map((row) => row.value).filter((row) => row !== undefined);
+      if (values[0] === 'SIMULATTE_BROWSER_PHASE') {
+        console.log(`SIMULATTE-BROWSER phase=${values[1]}`);
+        if (process.env.SIMULATTE_DEBUG_PAUSE === '1' && values[1] === 'scenario_shuffle_dispatched') {
+          setTimeout(() => client.send('Debugger.pause').catch(() => {}), 3000);
+        }
+      }
+    });
+    client.on('Debugger.paused', (params) => {
+      const frames = params.callFrames.slice(0, 12).map((frame) => (
+        `${frame.functionName || '<anonymous>'} ${frame.url}:${frame.location.lineNumber + 1}`
+      ));
+      console.log(`SIMULATTE-BROWSER paused=${frames.join(' <- ')}`);
+      void client.send('Debugger.resume');
+    });
     client.on('Network.responseReceived', (params) => {
       if (params.response.status >= 400) failedResponses.push({ url: params.response.url, status: params.response.status });
     });
-    await Promise.all([client.send('Runtime.enable'), client.send('Page.enable'), client.send('Log.enable'), client.send('Network.enable')]);
+    await Promise.all([
+      client.send('Runtime.enable'),
+      client.send('Page.enable'),
+      client.send('Log.enable'),
+      client.send('Network.enable'),
+      ...(process.env.SIMULATTE_DEBUG_PAUSE === '1' ? [client.send('Debugger.enable')] : []),
+    ]);
     await client.send('Emulation.setDeviceMetricsOverride', {
       width: options.viewport.width,
       height: options.viewport.height,
@@ -165,6 +187,7 @@ async function runBrowserSmoke(options) {
     });
     if (consentEvaluation.exceptionDetails) throw new Error(consentEvaluation.exceptionDetails.exception && consentEvaluation.exceptionDetails.exception.description || consentEvaluation.exceptionDetails.text);
     const consentView = consentEvaluation.result.value;
+    console.log('SIMULATTE-BROWSER phase=consent-complete');
     await client.send('Runtime.evaluate', {
       expression: `(async () => {
         const started = performance.now();
@@ -176,9 +199,11 @@ async function runBrowserSmoke(options) {
       })()`,
       awaitPromise: true,
     });
+    console.log('SIMULATTE-BROWSER phase=initial-view-settled');
     const initialExperienceScreenshot = await client.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false });
+    console.log('SIMULATTE-BROWSER phase=journey-probe-started');
     const evaluated = await client.send('Runtime.evaluate', {
-      expression: browserJourneyExpression(expectedRunCameraMode),
+      expression: browserJourneyExpression(expectedRunCameraMode, expectedProfile.interaction?.mode === 'playback'),
       awaitPromise: true,
       returnByValue: true,
     });
@@ -257,10 +282,24 @@ async function runBrowserSmoke(options) {
         ? featureView.cableTrader.visible
           && featureView.cableTrader.needsServed === '4,096 / 4,096 (100%)'
           && featureView.cableTrader.exactAllocations === '300 / 300 (100%)'
-          && featureView.cableTrader.monteCarloEvents === '9,152'
+          && featureView.cableTrader.seededInputEvents === '9,152'
           && featureView.cableTrader.markerCount >= 4
-          && featureView.cableTrader.actorCount >= 48
+          && featureView.cableTrader.pathCount >= 1
         : !featureView.cableTrader.visible);
+    const isPluginPlayback = expectedProfile.interaction?.mode === 'playback';
+    const autonomyProofPassed = isPluginPlayback
+      ? result.pluginPlayback?.schema === 'simulatte.pluginPlaybackRunReceipt.v1'
+        && result.pluginPlayback.settlements?.every((row) => row.obligationResults.every((obligation) => obligation.status === 'settled'))
+      : result.retrievalRows > 0
+        && result.rerankRows > 0
+        && result.occurrenceRows > 0
+        && result.rerankerProof.includes('MRR')
+        && result.rerankerProof.includes('→')
+        && result.retrievalLaneLabel.startsWith('Lexical + typed rules')
+        && result.gateRows === 7
+        && result.traceRows > 0
+        && result.selectedRows === 1
+        && result.editInvalidatedController;
     const pass = result.state === 'completed'
       && result.rendererBackend === 'webgpu'
       && result.actorMeshSchema === 'simulatte.autonomyActorMesh.v1'
@@ -274,23 +313,14 @@ async function runBrowserSmoke(options) {
       && result.smoothness.over33msRatio <= 0.01
       && result.smoothness.longTaskCount === 0
       && result.staticVertexCount > 10000
-      && result.retrievalRows > 0
-      && result.rerankRows > 0
-      && result.occurrenceRows > 0
-      && result.rerankerProof.includes('MRR')
-      && result.rerankerProof.includes('→')
-      && result.retrievalLaneLabel.startsWith('Lexical + typed rules')
+      && autonomyProofPassed
       && result.runtimeLog.eventCount >= 8
       && result.runtimeLog.requiredEventsPresent
       && result.runtimeLog.manifestMissionExampleCount >= 4
       && result.runtimeLog.manifestCacheMode === 'no-cache'
-      && result.runtimeLog.embeddingExecuted === false
-      && result.runtimeLog.neuralRerankerExecuted === false
+      && (isPluginPlayback || result.runtimeLog.embeddingExecuted === false)
+      && (isPluginPlayback || result.runtimeLog.neuralRerankerExecuted === false)
       && result.runtimeLog.failureCount === 0
-      && result.gateRows === 7
-      && result.traceRows > 0
-      && result.selectedRows === 1
-      && result.editInvalidatedController
       && result.missionLockedDuringRun
       && result.shuffle.changed
       && result.shuffle.startLabel.length > 0
@@ -342,14 +372,16 @@ async function runBrowserSmoke(options) {
       && result.camera.zoomWorked
       && result.camera.followZoomWorked
       && result.camera.returnedToRoute
-      && result.distance === '1524 m'
+      && (isPluginPlayback || result.distance === '1524 m')
       && result.runtime === 'Complete'
-      && actorView.mode === 'follow'
-      && actorView.transition === 'settled'
-      && actorView.followDistance <= 5.01
-      && actorView.dynamicVertexCount > 1000
-      && actorView.minimapVisible
-      && actorView.minimapFrameCount > 0
+      && (isPluginPlayback || (
+        actorView.mode === 'follow'
+        && actorView.transition === 'settled'
+        && actorView.followDistance <= 5.01
+        && actorView.dynamicVertexCount > 1000
+        && actorView.minimapVisible
+        && actorView.minimapFrameCount > 0
+      ))
       && featurePass
       && result.scrollY === 0
       && !result.hasHorizontalOverflow
@@ -370,8 +402,9 @@ async function runBrowserSmoke(options) {
         && result.staticVertexCount > 10000,
       evidence: result.runtimeLog.requiredEventsPresent
         && result.runtimeLog.failureCount === 0
-        && result.traceRows > 0
-        && result.selectedRows === 1,
+        && (isPluginPlayback
+          ? result.pluginPlayback?.settlements?.every((row) => row.obligationResults.every((obligation) => obligation.status === 'settled'))
+          : result.traceRows > 0 && result.selectedRows === 1),
       layout: result.initialLayout.allWithinViewport
         && result.initialLayout.primaryControlsVisible
         && !result.hasHorizontalOverflow,
@@ -511,8 +544,9 @@ function pluginFeatureExpression({ expectsP2pDelivery, expectsSunWalker, expects
         visible: true,
         needsServed: rows['Needs served'] || '',
         exactAllocations: rows['Exact allocations'] || '',
-        monteCarloEvents: rows['Monte Carlo events'] || '',
+        seededInputEvents: rows['Seeded input events'] || '',
         markerCount: Number(canvas.dataset.pluginMarkersCount || 0),
+        pathCount: Number(canvas.dataset.pluginPathsCount || 0),
         actorCount: Number(canvas.dataset.pluginActorsCount || 0),
       };
     }
@@ -585,9 +619,10 @@ async function stopChild(child) {
   await exited;
 }
 
-function browserJourneyExpression(expectedRunCameraMode = 'follow') {
+function browserJourneyExpression(expectedRunCameraMode = 'follow', expectsPluginPlayback = false) {
   return `(async () => {
     const configuredRunMode = ${JSON.stringify(expectedRunCameraMode)};
+    const pluginPlayback = ${Boolean(expectsPluginPlayback)};
     const runtimeFailure = () => {
       const status = document.getElementById('runtime-status');
       if (status?.dataset.kind !== 'error') return null;
@@ -634,7 +669,10 @@ function browserJourneyExpression(expectedRunCameraMode = 'follow') {
     const rafIntervals = [];
     const longTasks = [];
     const phaseMarks = [{ phase: 'sampling_started', at: performance.now() }];
-    const markPhase = (phase) => phaseMarks.push({ phase, at: performance.now() });
+    const markPhase = (phase) => {
+      phaseMarks.push({ phase, at: performance.now() });
+      console.log('SIMULATTE_BROWSER_PHASE', phase);
+    };
     let lastRafTimestamp = null;
     let sampleRaf = true;
     const sampleFrame = (timestamp) => {
@@ -675,8 +713,11 @@ function browserJourneyExpression(expectedRunCameraMode = 'follow') {
       && document.activeElement === applicationProfileTrigger;
     const originalMission = missionInput.value;
     const originalSeed = scenarioSeed.textContent;
+    markPhase('scenario_shuffle_started');
     shuffleButton.click();
+    markPhase('scenario_shuffle_dispatched');
     await waitFor(() => missionInput.value !== originalMission || scenarioSeed.textContent !== originalSeed, 'scenario-shuffled');
+    markPhase('scenario_shuffle_complete');
     const shuffledMission = missionInput.value;
     const shuffledSeed = scenarioSeed.textContent;
     const shuffle = {
@@ -708,9 +749,11 @@ function browserJourneyExpression(expectedRunCameraMode = 'follow') {
     const cameraTarget = () => vector(canvas.dataset.cameraTarget);
     const waitForCamera = (label) => waitFor(() => canvas.dataset.cameraTransition === 'settled', label, 5000);
     const probeMode = async (mode) => {
+      console.log('SIMULATTE_BROWSER_PHASE', 'camera-' + mode + '-before');
       await waitForCamera('camera-' + mode + '-ready');
       const before = cameraEye();
       document.getElementById('camera-' + mode).click();
+      console.log('SIMULATTE_BROWSER_PHASE', 'camera-' + mode + '-clicked');
       const immediate = cameraEye();
       const began = canvas.dataset.cameraMode === mode && canvas.dataset.cameraTransition === 'active';
       const noSnap = vectorDistance(before, immediate) < 1;
@@ -722,6 +765,7 @@ function browserJourneyExpression(expectedRunCameraMode = 'follow') {
         && progress < 1
         && vectorDistance(before, middle) > 1;
       await waitForCamera('camera-' + mode + '-settled');
+      console.log('SIMULATTE_BROWSER_PHASE', 'camera-' + mode + '-settled');
       const after = cameraEye();
       return {
         mode,
@@ -816,10 +860,12 @@ function browserJourneyExpression(expectedRunCameraMode = 'follow') {
       && canvas.dataset.cameraFocus === 'route'
       && canvas.dataset.cameraTransition === 'settled';
     markPhase('camera_interactions_complete');
-    missionInput.value = 'run in circles around union squatre park parimeter until youve ran 5000 feet';
-    missionInput.dispatchEvent(new Event('input', { bubbles: true }));
-    const editInvalidatedController = document.getElementById('export-button').disabled
-      && document.getElementById('runtime-status').dataset.kind === 'changed';
+    if (!pluginPlayback) {
+      missionInput.value = 'run in circles around union squatre park parimeter until youve ran 5000 feet';
+      missionInput.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+    const editInvalidatedController = pluginPlayback || (document.getElementById('export-button').disabled
+      && document.getElementById('runtime-status').dataset.kind === 'changed');
     markPhase('mission_edited');
     startButton.click();
     markPhase('start_clicked');
@@ -836,7 +882,9 @@ function browserJourneyExpression(expectedRunCameraMode = 'follow') {
       frameCount: Number(minimap.dataset.frameCount || 0),
     };
     markPhase('configured_camera_ready');
-    await waitFor(() => ['completed', 'failed'].includes(document.getElementById('metric-state').textContent), 'journey-terminal');
+    await waitFor(() => pluginPlayback
+      ? ['completed', 'failed'].includes(document.body.dataset.journeyPhase)
+      : ['completed', 'failed'].includes(document.getElementById('metric-state').textContent), 'journey-terminal');
     markPhase('journey_terminal');
     await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     sampleRaf = false;
@@ -863,11 +911,10 @@ function browserJourneyExpression(expectedRunCameraMode = 'follow') {
       'data.manifest.received',
       'data.manifest.validated',
       'data.load.ready',
-      'mission.compiled',
       'renderer.ready',
-      'journey.started',
-      'retrieval.lane.executed',
-      'journey.terminal',
+      ...(pluginPlayback
+        ? ['plugin.playback.started', 'plugin.playback.terminal']
+        : ['mission.compiled', 'journey.started', 'retrieval.lane.executed', 'journey.terminal']),
     ];
     return {
       runtime: document.getElementById('runtime-status').textContent,
@@ -878,7 +925,7 @@ function browserJourneyExpression(expectedRunCameraMode = 'follow') {
         optionIds: Array.from(applicationProfile.options, (option) => option.value),
         custom: customProfileSelect,
       },
-      state: document.getElementById('metric-state').textContent,
+      state: pluginPlayback ? document.body.dataset.journeyPhase : document.getElementById('metric-state').textContent,
       tick: Number(document.getElementById('metric-tick').textContent),
       distance: document.getElementById('metric-distance').textContent,
       decision: document.getElementById('metric-bet').textContent,
@@ -925,6 +972,7 @@ function browserJourneyExpression(expectedRunCameraMode = 'follow') {
       },
       editInvalidatedController,
       missionLockedDuringRun,
+      pluginPlayback: globalThis.__simulattePluginRunReceipt || null,
       rendererBackend: document.getElementById('autonomy-canvas').dataset.rendererBackend || null,
       actorMeshSchema: document.getElementById('autonomy-canvas').dataset.actorMeshSchema || null,
       actorMeshKinds: document.getElementById('autonomy-canvas').dataset.actorMeshKinds || null,

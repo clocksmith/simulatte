@@ -196,14 +196,20 @@
     }
 
     function contributionsV4(context) {
+      return collectContributionsV4(context).contributions;
+    }
+
+    function collectContributionsV4(context) {
       const legacyEvents = stateHost.trace();
-      return Object.freeze(graph.order.flatMap((pluginId) => {
+      const sources = [];
+      const contributions = graph.order.flatMap((pluginId) => {
         const instance = instances.get(pluginId);
         if (typeof instance.contributeV4 === 'function') {
           const contribution = instance.contributeV4(stateApi.freezeClone(context));
           if (contribution === null) return [];
           if (contribution.schema === 'simulatte.pluginContribution.v4') {
             v4Contracts.validateContribution(contribution, `Plugin ${pluginId} v4 contribution`);
+            sources.push(Object.freeze({ pluginId, source: 'native-v4' }));
             return [stateApi.freezeClone(contribution)];
           }
         }
@@ -213,17 +219,24 @@
         const viewContribution = typeof instance.view === 'function'
           ? instance.view(stateApi.freezeClone(context))
           : [];
-        return [v4Adapters.normalizeContribution({
+        const contribution = v4Adapters.normalizeContribution({
           pluginId,
           presentation,
           views: viewContribution === null ? [] : viewContribution,
           events: legacyEvents.filter((event) => event.pluginId === pluginId),
-        })];
-      }));
+        });
+        sources.push(Object.freeze({ pluginId, source: 'legacy-adapter' }));
+        return [contribution];
+      });
+      return Object.freeze({
+        contributions: Object.freeze(contributions),
+        sources: Object.freeze(sources),
+      });
     }
 
     function platformV4(context) {
-      const contributions = contributionsV4(context);
+      const collected = collectContributionsV4(context);
+      const contributions = collected.contributions;
       const registry = provenanceApi.createProvenanceRegistry();
       contributions.forEach((contribution) => {
         contribution.provenanceRecords.forEach(registry.register);
@@ -236,12 +249,14 @@
       return Object.freeze({
         schema: 'simulatte.pluginPlatform.v4',
         contributions,
+        contributionSources: collected.sources,
         timeline,
         provenance: registry,
         receipt: stateApi.freezeClone({
           schema: 'simulatte.pluginPlatformReceipt.v4',
           profileId: profile.id,
           pluginIds: contributions.map((contribution) => contribution.pluginId),
+          contributionSources: collected.sources,
           timeline: timeline.receipt(),
           provenance: registry.receipt(),
         }),

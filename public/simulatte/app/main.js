@@ -1,5 +1,6 @@
 (function attachAutonomyApp(root, factory) {
   const api = factory(Object.freeze({
+    hostRoot: root,
     dataLoader: // Accept both the original and the in-progress renamed global names so the app boots
     // whichever the module files currently register under (the multi-tier refactor renamed
     // these references before the module registrations were renamed to match).
@@ -38,6 +39,9 @@
     mainViewApi: typeof module === 'object' && module.exports
       ? require('./main-view.js')
       : root.SimulatteMainView,
+    pluginPlaybackApi: typeof module === 'object' && module.exports
+      ? require('./plugin-playback.js')
+      : root.SimulattePluginPlayback,
     cityInterfaceApi: typeof module === 'object' && module.exports
       ? require('./city-interface.js')
       : root.SimulatteCityInterface
@@ -45,7 +49,7 @@
   root.SimulatteAutonomyApp = api;
   if (typeof module === 'object' && module.exports) module.exports = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyApp(dependencies) {
-  const { dataLoader, missionApi, controllerApi, canvasApi, traceApi, runtimeLog, neuralPlaceApi, ledgerApi, receiptsApi, worldApi, neuralConsentApi, modelSelectionApi, runtimeLoaderApi, pluginRuntimeApi, pluginRegistry, pluginUiApi, transportApi, artifactStoreApi, routePlannerApi, civilTimeApi, universeParserApi, applicationProfileSelectApi, experienceCameraApi, pluginAssetPathsApi, pluginRandomApi, pluginSchedulerApi, pluginEnvironmentApi, pluginGeographyApi, pluginComputeApi, simulationClockApi, viewDirectorApi, mountLifecycleApi, mainViewApi, cityInterfaceApi } = dependencies;
+  const { hostRoot, dataLoader, missionApi, controllerApi, canvasApi, traceApi, runtimeLog, neuralPlaceApi, ledgerApi, receiptsApi, worldApi, neuralConsentApi, modelSelectionApi, runtimeLoaderApi, pluginRuntimeApi, pluginRegistry, pluginUiApi, transportApi, artifactStoreApi, routePlannerApi, civilTimeApi, universeParserApi, applicationProfileSelectApi, experienceCameraApi, pluginAssetPathsApi, pluginRandomApi, pluginSchedulerApi, pluginEnvironmentApi, pluginGeographyApi, pluginComputeApi, simulationClockApi, viewDirectorApi, mountLifecycleApi, mainViewApi, pluginPlaybackApi, cityInterfaceApi } = dependencies;
   if (!cityInterfaceApi || !mainViewApi) throw new Error('simulatte_app_view_dependency_missing');
   const { collectElements, populateApplicationProfiles, applicationProfileLabel, setRuntimeStatus, runtimeLabel, renderIdentity, renderPlaceResolution, renderPlanning } = mainViewApi;
   const { wireCameraControls, selectCameraMode, populateCameraFocus, wireInterfaceControls, setJourneyPhase, resizeMissionInput, clearMissionError, isMissionInputError, friendlyMissionError, updateButtons } = cityInterfaceApi;
@@ -73,6 +77,7 @@
     let frameRequest = null;
     let pluginClock = null;
     let pluginViewDirector = null;
+    let pluginPlayback = null;
     let isRunning = false;
     let disposal = null;
 
@@ -99,6 +104,7 @@
           { resource: 'tier-visualizer', dispose: () => resources.tierVisualizer?.destroy() },
           { resource: 'renderer', dispose: () => resources.renderer?.destroy() },
           { resource: 'plugin-runtime', dispose: () => resources.extensions?.dispose() },
+          { resource: 'plugin-playback', dispose: () => pluginPlayback?.dispose() },
           { resource: 'profile-select', dispose: () => resources.profileSelectUi?.dispose() },
         ], ({ resource, error }) => log.warn('app.dispose.resource_failed', {
           resource,
@@ -235,13 +241,35 @@
       renderer.setPluginPresentations(semanticPresentations);
       const platformTime = Math.max(0, ...platform.contributions.map((contribution) => contribution.state?.simulationTimeMs || 0));
       if (!pluginClock) pluginClock = simulationClockApi.createClock({ timeline: platform.timeline });
-      pluginClock.useTimeline(platform.timeline, { atMs: platformTime });
+      const clockState = pluginClock.snapshot();
+      const timelineId = platform.timeline.receipt().id;
+      if (clockState.timelineId !== timelineId || (clockState.state !== 'playing' && clockState.currentMs !== platformTime)) {
+        pluginClock.useTimeline(platform.timeline, { atMs: platformTime });
+      }
+      if (interaction.mode === 'playback' && !pluginPlayback) {
+        if (!pluginPlaybackApi?.createController) throw new Error('Plugin playback dependency is unavailable');
+        const ownerPluginId = data.applicationProfile.interaction?.simulationOwnerPluginId || extensions.activePluginIds[0];
+        pluginPlayback = pluginPlaybackApi.createController({
+          runtime: extensions,
+          ownerPluginId,
+          scenario: activeScenario,
+          clock: pluginClock,
+          render: () => renderPluginExperience({ mission: null }),
+          onPhase: reflectPluginPlaybackPhase,
+          onSettled: (receipt) => {
+            hostRoot.__simulattePluginRunReceipt = receipt;
+          },
+          onError: (error) => failRuntime(elements, error),
+        });
+      }
       pluginViewDirector = viewDirectorApi.createViewDirector();
       platform.contributions.forEach((contribution) => {
         contribution.presentation.viewIntents.forEach((intent) => pluginViewDirector.submit(intent, { source: contribution.pluginId }));
       });
-      root.__simulattePluginPlatformV4 = Object.freeze({
+      hostRoot.__simulattePluginPlatformV4 = Object.freeze({
         receipt: platform.receipt,
+        contributions: platform.contributions,
+        contributionSources: platform.contributionSources,
         clock: pluginClock.receipt(),
         view: pluginViewDirector.receipt(),
       });
@@ -356,6 +384,7 @@
           }
           if (!terminalJourneyLogged && snapshot.state.status !== 'active') {
             terminalJourneyLogged = true;
+            setJourneyPhase(snapshot.state.status === 'completed' ? 'completed' : 'failed');
             log.info('journey.terminal', {
               missionId: mission.id,
               status: snapshot.state.status,
@@ -408,6 +437,7 @@
       renderPluginExperience({ mission });
       elements.renderIdentity.textContent = renderIdentity(renderer.receipt());
       setRuntimeStatus(elements, snapshot.state.status === 'active' ? 'Ready' : runtimeLabel(snapshot.state), snapshot.state.status === 'active' ? 'ready' : 'failed');
+      setJourneyPhase(snapshot.state.status === 'active' ? 'ready' : 'failed');
       updateButtons(elements, keepMissionLocked, true, snapshot.state.status, hasJourneyStarted);
       if (snapshot.state.status !== 'active') await recordJourney(nextController);
       return controller;
@@ -451,6 +481,7 @@
       renderer.setCameraMode(runCameraMode);
       selectCameraMode(elements, runCameraMode);
       isRunning = true;
+      setJourneyPhase('running');
       hasJourneyStarted = true;
       updateButtons(elements, true, true, 'active', true);
       setRuntimeStatus(elements, 'Running', 'active');
@@ -480,8 +511,20 @@
         failRuntime(elements, error);
       }
     };
-    on(elements.startButton, 'click', startRun);
-    on(elements.resumeButton, 'click', startRun);
+    const startSelectedExperience = async () => {
+      try {
+        if (interaction.mode === 'playback') {
+          const runCameraMode = experienceCameraApi.runCameraMode(data.applicationProfile.camera);
+          renderer.setCameraMode(runCameraMode);
+          selectCameraMode(elements, runCameraMode);
+          await pluginPlayback.start();
+        } else await startRun();
+      } catch (error) {
+        failRuntime(elements, error);
+      }
+    };
+    on(elements.startButton, 'click', startSelectedExperience);
+    on(elements.resumeButton, 'click', startSelectedExperience);
     on(elements.newMissionButton, 'click', () => {
       stopLoop();
       buildRevision += 1;
@@ -493,25 +536,49 @@
     });
     on(elements.shuffleButton, 'click', async () => {
       if (isRunning) return;
-      activeScenario = applicationProfileSelectApi.nextScenario(interaction, activeScenario.id);
-      await extensions.setScenario(activeScenario);
-      applicationProfileSelectApi.renderInteraction(interaction, activeScenario, elements);
-      log.info('application.scenario.selected', {
-        scenarioId: activeScenario.id,
-        seed: activeScenario.seed,
-        interactionMode: interaction.mode,
-      });
-      elements.missionInput.dispatchEvent(new Event('input', { bubbles: true }));
-      resizeMissionInput(elements.missionInput);
-      renderPluginExperience({ mission: null });
-      if (hasJourneyStarted) { try { stopLoop(); hasJourneyStarted = false; await buildController(); } catch (e) { failRuntime(elements, e); } } // tier-flow parity: rebuild after a run so Shuffle re-loads cleanly
+      const nextScenario = applicationProfileSelectApi.nextScenario(interaction, activeScenario.id);
+      elements.shuffleButton.disabled = true;
+      setJourneyPhase('loading');
+      setRuntimeStatus(elements, 'Loading scenario', 'loading');
+      await yieldToFrame();
+      try {
+        if (pluginPlayback) await pluginPlayback.reset(nextScenario);
+        else await extensions.setScenario(nextScenario);
+        activeScenario = nextScenario;
+        applicationProfileSelectApi.renderInteraction(interaction, activeScenario, elements);
+        log.info('application.scenario.selected', {
+          scenarioId: activeScenario.id,
+          seed: activeScenario.seed,
+          interactionMode: interaction.mode,
+        });
+        elements.missionInput.dispatchEvent(new Event('input', { bubbles: true }));
+        resizeMissionInput(elements.missionInput);
+        renderPluginExperience({ mission: null });
+        if (hasJourneyStarted) {
+          stopLoop();
+          hasJourneyStarted = false;
+          await buildController();
+        }
+      } catch (error) {
+        failRuntime(elements, error);
+      } finally {
+        elements.shuffleButton.disabled = false;
+      }
     });
     on(elements.pauseButton, 'click', () => {
+      if (pluginPlayback) {
+        pluginPlayback.pause();
+        return;
+      }
       stopLoop();
       setRuntimeStatus(elements, 'Paused', 'paused');
     });
     on(elements.stepButton, 'click', async () => {
       try {
+        if (pluginPlayback) {
+          await pluginPlayback.step();
+          return;
+        }
         stopLoop();
         let targetController = controller;
         if (!targetController || targetController.snapshot().state.status !== 'active') targetController = await buildController();
@@ -531,6 +598,10 @@
     });
     on(elements.replayButton, 'click', async () => {
       try {
+        if (pluginPlayback) {
+          await pluginPlayback.replay();
+          return;
+        }
         stopLoop();
         hasJourneyStarted = false;
         await buildController({ keepMissionLocked: true });
@@ -540,6 +611,27 @@
         failRuntime(elements, error);
       }
     });
+
+    function reflectPluginPlaybackPhase(phase, snapshot) {
+      const isActive = phase === 'running';
+      isRunning = isActive;
+      hasJourneyStarted = phase !== 'ready';
+      if (phase === 'running') {
+        log.info('plugin.playback.started', snapshot);
+      } else if (phase === 'completed' || phase === 'failed') {
+        log.info('plugin.playback.terminal', snapshot);
+      }
+      const status = phase === 'completed' ? 'completed' : phase === 'failed' ? 'failed' : 'active';
+      updateButtons(elements, isActive, true, status, hasJourneyStarted);
+      const label = phase === 'completed'
+        ? 'Complete'
+        : phase === 'paused'
+          ? `Paused at ${snapshot.currentStep} of ${snapshot.totalSteps}`
+          : phase === 'running'
+            ? `Running ${snapshot.currentStep} of ${snapshot.totalSteps}`
+            : 'Ready';
+      setRuntimeStatus(elements, label, phase === 'failed' ? 'error' : phase);
+    }
     on(elements.whatIfButton, 'click', () => interfaceUi.openDecisions('plugin-inspector'));
     on(elements.exportButton, 'click', async () => {
       if (!controller) return;
@@ -654,6 +746,7 @@
   }
 
   function failRuntime(elements, error) {
+    setJourneyPhase('failed');
     try { if (typeof window !== 'undefined') window.__simulatteLastFailError = { code: error?.code || null, name: error?.name || null, message: error?.message || String(error), evidence: error?.evidence || null, stack: typeof error?.stack === 'string' ? error.stack.split('\n').slice(0, 6).join('\n') : null }; } catch (_e) { /* diagnostic only */ }
     log.error('runtime.failed', log.serializeError(error));
     if (isMissionInputError(error)) {

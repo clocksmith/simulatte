@@ -1,10 +1,10 @@
 {
   "schema": "simulatte.autonomyBrowserSmoke.v11",
   "pass": false,
-  "targetUrl": "http://127.0.0.1:60505/city",
+  "targetUrl": "http://127.0.0.1:59071/city",
   "viewport": {
     "width": 1440,
-    "height": 900
+    "height": 1000
   },
   "browser": {
     "product": "Chrome/150.0.7871.186",
@@ -16,7 +16,7 @@
     "initialLayout": {
       "viewport": {
         "width": 1440,
-        "height": 900
+        "height": 1000
       },
       "rects": [
         {
@@ -34,9 +34,9 @@
           "hidden": false,
           "left": 174.703125,
           "top": 16,
-          "right": 321.765625,
+          "right": 293.421875,
           "bottom": 60,
-          "width": 147.0625,
+          "width": 118.71875,
           "height": 44
         },
         {
@@ -82,16 +82,6 @@
         {
           "id": "mission-input",
           "hidden": false,
-          "left": 341,
-          "top": 814,
-          "right": 833.234375,
-          "bottom": 873,
-          "width": 492.234375,
-          "height": 59
-        },
-        {
-          "id": "scenario-field",
-          "hidden": true,
           "left": 0,
           "top": 0,
           "right": 0,
@@ -100,24 +90,34 @@
           "height": 0
         },
         {
+          "id": "scenario-field",
+          "hidden": false,
+          "left": 341,
+          "top": 904.609375,
+          "right": 755.3125,
+          "bottom": 973,
+          "width": 414.3125,
+          "height": 68.390625
+        },
+        {
           "id": "shuffle-button",
           "hidden": false,
-          "left": 843.234375,
-          "top": 814,
-          "right": 932.453125,
-          "bottom": 873,
-          "width": 89.21875,
-          "height": 59
+          "left": 765.3125,
+          "top": 904.609375,
+          "right": 887.96875,
+          "bottom": 973,
+          "width": 122.65625,
+          "height": 68.390625
         },
         {
           "id": "start-button",
           "hidden": false,
-          "left": 938.453125,
-          "top": 814,
+          "left": 893.96875,
+          "top": 904.609375,
           "right": 1012.65625,
-          "bottom": 873,
-          "width": 74.203125,
-          "height": 59
+          "bottom": 973,
+          "width": 118.6875,
+          "height": 68.390625
         },
         {
           "id": "place-resolution-lane",
@@ -133,9 +133,9 @@
           "id": "decisions-button",
           "hidden": false,
           "left": 1337.453125,
-          "top": 840,
+          "top": 940,
           "right": 1424,
-          "bottom": 884,
+          "bottom": 984,
           "width": 86.546875,
           "height": 44
         }
@@ -145,9 +145,8 @@
     },
     "applicationProfile": {
       "enabled": true,
-      "selectedId": "simulatte-world-v1",
+      "selectedId": "cable-trader-pickup-v1",
       "optionIds": [
-        "simulatte-world-v1",
         "cable-trader-pickup-v1",
         "safety-explorer-v1",
         "sun-walker-v1"
@@ -156,29 +155,29 @@
         "enabled": true,
         "opened": true,
         "groupLabels": [],
-        "optionCount": 4,
-        "selectedLabel": "Simulatte World",
+        "optionCount": 3,
+        "selectedLabel": "Cable Trader",
         "escapeClosed": true
       }
     },
     "state": "completed",
-    "tick": 442,
-    "distance": "1524 m",
-    "decision": "Accelerate",
-    "settlement": "won",
-    "calibration": "442 / 442",
-    "traceRows": 48,
-    "betRows": 4,
-    "selectedRows": 1,
+    "tick": 0,
+    "distance": "0 m",
+    "decision": "none",
+    "settlement": "none",
+    "calibration": "0 / 0",
+    "traceRows": 0,
+    "betRows": 0,
+    "selectedRows": 0,
     "rejectedRows": 0,
-    "gateRows": 7,
-    "retrievalRows": 9,
-    "rerankRows": 5,
-    "occurrenceRows": 1,
-    "retrievalLaneLabel": "Lexical + typed rules · 13185 cards · 374 found · 5 selected",
+    "gateRows": 0,
+    "retrievalRows": 0,
+    "rerankRows": 0,
+    "occurrenceRows": 0,
+    "retrievalLaneLabel": "No query",
     "rerankerProof": "Public diagnostic · MRR 0.725 → 0.750 · Δ +0.025",
     "runtimeLog": {
-      "eventCount": 41,
+      "eventCount": 35,
       "eventNames": [
         "app.boot.started",
         "data.load.started",
@@ -210,40 +209,34 @@
         "data.load.ready",
         "data.asset.fetch.completed",
         "data.asset.fetch.completed",
-        "data.asset.fetch.completed",
-        "data.asset.fetch.completed",
-        "data.asset.fetch.completed",
-        "data.asset.fetch.completed",
         "mission.compiled",
         "renderer.ready",
         "application.scenario.selected",
-        "mission.compiled",
-        "journey.started",
-        "retrieval.lane.executed",
-        "journey.terminal"
+        "plugin.playback.started",
+        "plugin.playback.terminal"
       ],
       "requiredEventsPresent": true,
       "manifestMissionExampleCount": 14,
       "manifestCacheMode": "no-cache",
-      "embeddingExecuted": false,
-      "neuralRerankerExecuted": false,
+      "embeddingExecuted": null,
+      "neuralRerankerExecuted": null,
       "failureCount": 0
     },
     "shuffle": {
       "changed": true,
       "seedChanged": true,
-      "interactionMode": "prompt",
-      "originalMission": "Deliver the parcel by bike from Union Square to North Williamsburg. Prefer protected lanes and yield to pedestrians.",
-      "shuffledMission": "Walk from Union Square to Washington Square.",
-      "originalSeed": "Seed prompt-125fe5da",
-      "shuffledSeed": "Seed prompt-59231774",
-      "startLabel": "Start"
+      "interactionMode": "playback",
+      "originalMission": "Show the predefined 30-day cable network and its optimal allocation.",
+      "shuffledMission": "Show the predefined 30-day cable network and its optimal allocation.",
+      "originalSeed": "Seed cable-city-month-2026-07",
+      "shuffledSeed": "Seed cable-city-campus-return-731",
+      "startLabel": "Play month"
     },
     "copy": {
       "removedLabelsAbsent": true,
       "blankLink": {
-        "href": "/blank/",
-        "label": "Blank"
+        "href": "https://create.simulatte.world/",
+        "label": "Create"
       }
     },
     "camera": {
@@ -294,17 +287,602 @@
         "mode": "bird",
         "focus": "route"
       },
-      "configuredRunMode": "follow",
+      "configuredRunMode": "top",
       "startedInConfiguredMode": true,
       "minimap": {
-        "visible": true,
+        "visible": false,
         "projection": "orthographic_top_north_up",
         "radiusM": 420,
-        "frameCount": 72
+        "frameCount": 68
       }
     },
     "editInvalidatedController": true,
     "missionLockedDuringRun": true,
+    "pluginPlayback": {
+      "schema": "simulatte.pluginPlaybackRunReceipt.v1",
+      "ownerPluginId": "cable-trader",
+      "scenario": {
+        "id": "campus-return-wave",
+        "label": "Campus return wave",
+        "description": "Higher Manhattan need and return weights around Union Square and the East Village.",
+        "seed": "cable-city-campus-return-731",
+        "missionText": "Show the predefined 30-day cable network and its optimal allocation."
+      },
+      "actionResult": {
+        "status": "settled",
+        "currentStep": 30,
+        "totalSteps": 30,
+        "simulationId": "cable-network-8339fc62",
+        "summary": {
+          "needs": 4096,
+          "fulfilledNeeds": 4096,
+          "fulfillmentPercent": 100,
+          "randomEvents": 9152,
+          "returns": 4096,
+          "journeyEvents": 960,
+          "participants": 2048,
+          "startingInventory": 320,
+          "endingInventory": 320,
+          "totalBurden": 1105.442270387,
+          "allocations": 300,
+          "optimalAllocations": 300,
+          "optimalityPercent": 100,
+          "optimalityProven": true
+        }
+      },
+      "settlements": [
+        {
+          "pluginId": "cable-trader",
+          "obligationResults": [
+            {
+              "obligationId": "cable-trader:month:cable-network-8339fc62",
+              "status": "settled",
+              "evidence": {
+                "completedDays": 30,
+                "durationDays": 30
+              }
+            },
+            {
+              "obligationId": "cable-trader:optimality:cable-network-8339fc62",
+              "status": "settled",
+              "evidence": {
+                "optimalAllocations": 300,
+                "allocations": 300
+              }
+            }
+          ],
+          "stateIdentity": "cable-network-8339fc62:day-30:settled",
+          "losses": []
+        }
+      ],
+      "clock": {
+        "schema": "simulatte.simulationClockReceipt.v4",
+        "timeline": {
+          "schema": "simulatte.timelineReceipt.v4",
+          "id": "cable-trader-pickup-v1:campus-return-wave",
+          "parent": null,
+          "eventCount": 30,
+          "startMs": 86400000,
+          "endMs": 2592000000,
+          "pluginIds": [
+            "cable-trader"
+          ],
+          "correlationIds": [
+            "cable-network-8339fc62"
+          ],
+          "eventIds": [
+            "cable-trader:event:day-1",
+            "cable-trader:event:day-2",
+            "cable-trader:event:day-3",
+            "cable-trader:event:day-4",
+            "cable-trader:event:day-5",
+            "cable-trader:event:day-6",
+            "cable-trader:event:day-7",
+            "cable-trader:event:day-8",
+            "cable-trader:event:day-9",
+            "cable-trader:event:day-10",
+            "cable-trader:event:day-11",
+            "cable-trader:event:day-12",
+            "cable-trader:event:day-13",
+            "cable-trader:event:day-14",
+            "cable-trader:event:day-15",
+            "cable-trader:event:day-16",
+            "cable-trader:event:day-17",
+            "cable-trader:event:day-18",
+            "cable-trader:event:day-19",
+            "cable-trader:event:day-20",
+            "cable-trader:event:day-21",
+            "cable-trader:event:day-22",
+            "cable-trader:event:day-23",
+            "cable-trader:event:day-24",
+            "cable-trader:event:day-25",
+            "cable-trader:event:day-26",
+            "cable-trader:event:day-27",
+            "cable-trader:event:day-28",
+            "cable-trader:event:day-29",
+            "cable-trader:event:day-30"
+          ]
+        },
+        "state": {
+          "schema": "simulatte.simulationClockState.v4",
+          "timelineId": "cable-trader-pickup-v1:campus-return-wave",
+          "state": "paused",
+          "currentMs": 2592000000,
+          "playbackRate": 1,
+          "cursor": 30,
+          "eventCount": 30
+        },
+        "emittedCount": 30
+      },
+      "runtime": {
+        "schema": "simulatte.pluginRuntimeReceipt.v1",
+        "profileId": "cable-trader-pickup-v1",
+        "scenario": {
+          "id": "campus-return-wave",
+          "label": "Campus return wave",
+          "description": "Higher Manhattan need and return weights around Union Square and the East Village.",
+          "seed": "cable-city-campus-return-731",
+          "missionText": "Show the predefined 30-day cable network and its optimal allocation."
+        },
+        "sdkVersion": 2,
+        "activationOrder": [
+          "cable-trader"
+        ],
+        "sourceReceipts": [
+          {
+            "pluginId": "cable-trader",
+            "integrity": "sha384-c91059bcf1c9387a8c360baa49fa6404549a6ca853ec783baecb9f54719eae1cbdf819460b02e52f5529f88c6c4b76d8",
+            "url": "http://127.0.0.1:59071/shared/plugins/cable-trader/index.js"
+          },
+          {
+            "pluginId": "cable-trader",
+            "path": "./config.schema.json",
+            "integrity": "sha384-13804ef43efba754468c39eed5a3581231f4d2579e5eb84481af2cd0a99109eb9a420b3e512b5e391856faf96cd76b3d",
+            "url": "http://127.0.0.1:59071/shared/plugins/cable-trader/config.schema.json"
+          },
+          {
+            "pluginId": "cable-trader",
+            "path": "./default-config.json",
+            "integrity": "sha384-9946f0bb6bec9adf7d961e67274f2940e7f04b4286c59b9e871987ebef1b120684400dc6d0cb4e55892747d277749715",
+            "url": "http://127.0.0.1:59071/shared/plugins/cable-trader/default-config.json"
+          },
+          {
+            "pluginId": "cable-trader",
+            "path": "./network-simulation.js",
+            "integrity": "sha384-9b3051638fa7d7c8e4895cada113c65b6b3a9a7df5b3562056720efbb798601979c944f80cb071506d83ac7d238c57bb",
+            "url": "http://127.0.0.1:59071/shared/plugins/cable-trader/network-simulation.js"
+          },
+          {
+            "pluginId": "cable-trader",
+            "path": "./v4-contribution.js",
+            "integrity": "sha384-05254c120ee37e5b36e7f30470e41e564dcae50e290d686d86b022f8de9f437cd92fad1058c59a2adf58af29a19db499",
+            "url": "http://127.0.0.1:59071/shared/plugins/cable-trader/v4-contribution.js"
+          }
+        ],
+        "disabledOptionalCapabilities": [
+          {
+            "pluginId": "cable-trader",
+            "capabilityId": "fulfillment.delivery.v1",
+            "reason": "provider_missing"
+          }
+        ],
+        "pluginReceipts": [
+          {
+            "schema": "simulatte.pluginReceiptEnvelope.v1",
+            "sequence": 0,
+            "pluginId": "cable-trader",
+            "pluginVersion": "2.1.0",
+            "receipt": {
+              "schema": "simulatte.plugin.cableTraderNetworkReceipt.v1",
+              "simulationId": "cable-network-d100e895",
+              "seed": "cable-city-month-2026-07",
+              "durationDays": 30,
+              "summary": {
+                "needs": 4096,
+                "fulfilledNeeds": 4096,
+                "fulfillmentPercent": 100,
+                "randomEvents": 9152,
+                "returns": 4096,
+                "journeyEvents": 960,
+                "participants": 2048,
+                "startingInventory": 320,
+                "endingInventory": 320,
+                "totalBurden": 1266.502291736,
+                "allocations": 300,
+                "optimalAllocations": 300,
+                "optimalityPercent": 100,
+                "optimalityProven": true
+              },
+              "solver": {
+                "algorithm": "exact_min_cost_maximum_flow",
+                "completeCandidateGraph": true,
+                "allocationUnit": "day_cable_family",
+                "optimalityProven": true
+              },
+              "dataReceiptIds": [
+                "cable-trader:data:compatibility-priors",
+                "cable-trader:data:authored-scenario"
+              ],
+              "modelReceiptIds": [
+                "cable-trader:model:event-generator",
+                "cable-trader:model:min-cost-flow"
+              ],
+              "origin": "simulated",
+              "temporalStatus": "forecast",
+              "uncertainty": {
+                "kind": "distribution",
+                "value": {
+                  "ensembleSize": 1,
+                  "seed": "cable-city-month-2026-07",
+                  "intervalStatus": "not_computed"
+                }
+              },
+              "claimBoundary": "Exact optimum over every modeled day, cable family, hub, inventory unit, and complete inter-hub route set. Seeded events model possible demand and journey costs; they are not forecasts of real people."
+            }
+          },
+          {
+            "schema": "simulatte.pluginReceiptEnvelope.v1",
+            "sequence": 1,
+            "pluginId": "cable-trader",
+            "pluginVersion": "2.1.0",
+            "receipt": {
+              "schema": "simulatte.pluginCapabilityDisabledReceipt.v1",
+              "pluginId": "cable-trader",
+              "capabilityId": "fulfillment.delivery.v1",
+              "reason": "provider_missing"
+            }
+          },
+          {
+            "schema": "simulatte.pluginReceiptEnvelope.v1",
+            "sequence": 2,
+            "pluginId": "cable-trader",
+            "pluginVersion": "2.1.0",
+            "receipt": {
+              "schema": "simulatte.plugin.cableTraderNetworkReceipt.v1",
+              "simulationId": "cable-network-8339fc62",
+              "seed": "cable-city-campus-return-731",
+              "durationDays": 30,
+              "summary": {
+                "needs": 4096,
+                "fulfilledNeeds": 4096,
+                "fulfillmentPercent": 100,
+                "randomEvents": 9152,
+                "returns": 4096,
+                "journeyEvents": 960,
+                "participants": 2048,
+                "startingInventory": 320,
+                "endingInventory": 320,
+                "totalBurden": 1105.442270387,
+                "allocations": 300,
+                "optimalAllocations": 300,
+                "optimalityPercent": 100,
+                "optimalityProven": true
+              },
+              "solver": {
+                "algorithm": "exact_min_cost_maximum_flow",
+                "completeCandidateGraph": true,
+                "allocationUnit": "day_cable_family",
+                "optimalityProven": true
+              },
+              "dataReceiptIds": [
+                "cable-trader:data:compatibility-priors",
+                "cable-trader:data:authored-scenario"
+              ],
+              "modelReceiptIds": [
+                "cable-trader:model:event-generator",
+                "cable-trader:model:min-cost-flow"
+              ],
+              "origin": "simulated",
+              "temporalStatus": "forecast",
+              "uncertainty": {
+                "kind": "distribution",
+                "value": {
+                  "ensembleSize": 1,
+                  "seed": "cable-city-campus-return-731",
+                  "intervalStatus": "not_computed"
+                }
+              },
+              "claimBoundary": "Exact optimum over every modeled day, cable family, hub, inventory unit, and complete inter-hub route set. Seeded events model possible demand and journey costs; they are not forecasts of real people."
+            }
+          },
+          {
+            "schema": "simulatte.pluginReceiptEnvelope.v1",
+            "sequence": 3,
+            "pluginId": "cable-trader",
+            "pluginVersion": "2.1.0",
+            "receipt": {
+              "schema": "simulatte.plugin.cableTraderPlaybackReceipt.v1",
+              "simulationId": "cable-network-8339fc62",
+              "seed": "cable-city-campus-return-731",
+              "completedDays": 30,
+              "durationDays": 30,
+              "eventIds": [
+                "cable-trader:event:day-1",
+                "cable-trader:event:day-2",
+                "cable-trader:event:day-3",
+                "cable-trader:event:day-4",
+                "cable-trader:event:day-5",
+                "cable-trader:event:day-6",
+                "cable-trader:event:day-7",
+                "cable-trader:event:day-8",
+                "cable-trader:event:day-9",
+                "cable-trader:event:day-10",
+                "cable-trader:event:day-11",
+                "cable-trader:event:day-12",
+                "cable-trader:event:day-13",
+                "cable-trader:event:day-14",
+                "cable-trader:event:day-15",
+                "cable-trader:event:day-16",
+                "cable-trader:event:day-17",
+                "cable-trader:event:day-18",
+                "cable-trader:event:day-19",
+                "cable-trader:event:day-20",
+                "cable-trader:event:day-21",
+                "cable-trader:event:day-22",
+                "cable-trader:event:day-23",
+                "cable-trader:event:day-24",
+                "cable-trader:event:day-25",
+                "cable-trader:event:day-26",
+                "cable-trader:event:day-27",
+                "cable-trader:event:day-28",
+                "cable-trader:event:day-29",
+                "cable-trader:event:day-30"
+              ],
+              "endingInventory": 320,
+              "fulfillmentPercent": 100,
+              "optimalityProven": true,
+              "dataReceiptIds": [
+                "cable-trader:data:compatibility-priors",
+                "cable-trader:data:authored-scenario"
+              ],
+              "modelReceiptIds": [
+                "cable-trader:model:event-generator",
+                "cable-trader:model:min-cost-flow"
+              ],
+              "origin": "simulated",
+              "temporalStatus": "forecast",
+              "uncertainty": {
+                "kind": "distribution",
+                "value": {
+                  "ensembleSize": 1,
+                  "seed": "cable-city-campus-return-731",
+                  "intervalStatus": "not_computed"
+                }
+              },
+              "claimBoundary": "Exact optimum over every modeled day, cable family, hub, inventory unit, and complete inter-hub route set. Seeded events model possible demand and journey costs; they are not forecasts of real people."
+            }
+          }
+        ],
+        "events": [
+          {
+            "schema": "simulatte.pluginEvent.v1",
+            "sequence": 0,
+            "pluginId": "cable-trader",
+            "kind": "cable-trader.scenario-selected",
+            "scenario": {
+              "id": "campus-return-wave",
+              "seed": "cable-city-campus-return-731"
+            }
+          },
+          {
+            "schema": "simulatte.pluginEvent.v1",
+            "sequence": 1,
+            "pluginId": "cable-trader",
+            "kind": "cable-trader.playback-started"
+          },
+          {
+            "schema": "simulatte.pluginEvent.v1",
+            "sequence": 2,
+            "pluginId": "cable-trader",
+            "kind": "cable-trader.playback-advanced",
+            "day": 1
+          },
+          {
+            "schema": "simulatte.pluginEvent.v1",
+            "sequence": 3,
+            "pluginId": "cable-trader",
+            "kind": "cable-trader.playback-advanced",
+            "day": 2
+          },
+          {
+            "schema": "simulatte.pluginEvent.v1",
+            "sequence": 4,
+            "pluginId": "cable-trader",
+            "kind": "cable-trader.playback-advanced",
+            "day": 3
+          },
+          {
+            "schema": "simulatte.pluginEvent.v1",
+            "sequence": 5,
+            "pluginId": "cable-trader",
+            "kind": "cable-trader.playback-advanced",
+            "day": 4
+          },
+          {
+            "schema": "simulatte.pluginEvent.v1",
+            "sequence": 6,
+            "pluginId": "cable-trader",
+            "kind": "cable-trader.playback-advanced",
+            "day": 5
+          },
+          {
+            "schema": "simulatte.pluginEvent.v1",
+            "sequence": 7,
+            "pluginId": "cable-trader",
+            "kind": "cable-trader.playback-advanced",
+            "day": 6
+          },
+          {
+            "schema": "simulatte.pluginEvent.v1",
+            "sequence": 8,
+            "pluginId": "cable-trader",
+            "kind": "cable-trader.playback-advanced",
+            "day": 7
+          },
+          {
+            "schema": "simulatte.pluginEvent.v1",
+            "sequence": 9,
+            "pluginId": "cable-trader",
+            "kind": "cable-trader.playback-advanced",
+            "day": 8
+          },
+          {
+            "schema": "simulatte.pluginEvent.v1",
+            "sequence": 10,
+            "pluginId": "cable-trader",
+            "kind": "cable-trader.playback-advanced",
+            "day": 9
+          },
+          {
+            "schema": "simulatte.pluginEvent.v1",
+            "sequence": 11,
+            "pluginId": "cable-trader",
+            "kind": "cable-trader.playback-advanced",
+            "day": 10
+          },
+          {
+            "schema": "simulatte.pluginEvent.v1",
+            "sequence": 12,
+            "pluginId": "cable-trader",
+            "kind": "cable-trader.playback-advanced",
+            "day": 11
+          },
+          {
+            "schema": "simulatte.pluginEvent.v1",
+            "sequence": 13,
+            "pluginId": "cable-trader",
+            "kind": "cable-trader.playback-advanced",
+            "day": 12
+          },
+          {
+            "schema": "simulatte.pluginEvent.v1",
+            "sequence": 14,
+            "pluginId": "cable-trader",
+            "kind": "cable-trader.playback-advanced",
+            "day": 13
+          },
+          {
+            "schema": "simulatte.pluginEvent.v1",
+            "sequence": 15,
+            "pluginId": "cable-trader",
+            "kind": "cable-trader.playback-advanced",
+            "day": 14
+          },
+          {
+            "schema": "simulatte.pluginEvent.v1",
+            "sequence": 16,
+            "pluginId": "cable-trader",
+            "kind": "cable-trader.playback-advanced",
+            "day": 15
+          },
+          {
+            "schema": "simulatte.pluginEvent.v1",
+            "sequence": 17,
+            "pluginId": "cable-trader",
+            "kind": "cable-trader.playback-advanced",
+            "day": 16
+          },
+          {
+            "schema": "simulatte.pluginEvent.v1",
+            "sequence": 18,
+            "pluginId": "cable-trader",
+            "kind": "cable-trader.playback-advanced",
+            "day": 17
+          },
+          {
+            "schema": "simulatte.pluginEvent.v1",
+            "sequence": 19,
+            "pluginId": "cable-trader",
+            "kind": "cable-trader.playback-advanced",
+            "day": 18
+          },
+          {
+            "schema": "simulatte.pluginEvent.v1",
+            "sequence": 20,
+            "pluginId": "cable-trader",
+            "kind": "cable-trader.playback-advanced",
+            "day": 19
+          },
+          {
+            "schema": "simulatte.pluginEvent.v1",
+            "sequence": 21,
+            "pluginId": "cable-trader",
+            "kind": "cable-trader.playback-advanced",
+            "day": 20
+          },
+          {
+            "schema": "simulatte.pluginEvent.v1",
+            "sequence": 22,
+            "pluginId": "cable-trader",
+            "kind": "cable-trader.playback-advanced",
+            "day": 21
+          },
+          {
+            "schema": "simulatte.pluginEvent.v1",
+            "sequence": 23,
+            "pluginId": "cable-trader",
+            "kind": "cable-trader.playback-advanced",
+            "day": 22
+          },
+          {
+            "schema": "simulatte.pluginEvent.v1",
+            "sequence": 24,
+            "pluginId": "cable-trader",
+            "kind": "cable-trader.playback-advanced",
+            "day": 23
+          },
+          {
+            "schema": "simulatte.pluginEvent.v1",
+            "sequence": 25,
+            "pluginId": "cable-trader",
+            "kind": "cable-trader.playback-advanced",
+            "day": 24
+          },
+          {
+            "schema": "simulatte.pluginEvent.v1",
+            "sequence": 26,
+            "pluginId": "cable-trader",
+            "kind": "cable-trader.playback-advanced",
+            "day": 25
+          },
+          {
+            "schema": "simulatte.pluginEvent.v1",
+            "sequence": 27,
+            "pluginId": "cable-trader",
+            "kind": "cable-trader.playback-advanced",
+            "day": 26
+          },
+          {
+            "schema": "simulatte.pluginEvent.v1",
+            "sequence": 28,
+            "pluginId": "cable-trader",
+            "kind": "cable-trader.playback-advanced",
+            "day": 27
+          },
+          {
+            "schema": "simulatte.pluginEvent.v1",
+            "sequence": 29,
+            "pluginId": "cable-trader",
+            "kind": "cable-trader.playback-advanced",
+            "day": 28
+          },
+          {
+            "schema": "simulatte.pluginEvent.v1",
+            "sequence": 30,
+            "pluginId": "cable-trader",
+            "kind": "cable-trader.playback-advanced",
+            "day": 29
+          },
+          {
+            "schema": "simulatte.pluginEvent.v1",
+            "sequence": 31,
+            "pluginId": "cable-trader",
+            "kind": "cable-trader.playback-advanced",
+            "day": 30
+          }
+        ]
+      }
+    },
     "rendererBackend": "webgpu",
     "actorMeshSchema": "simulatte.autonomyActorMesh.v1",
     "actorMeshKinds": "pedestrian,bicycle,scooter,car",
@@ -312,90 +890,71 @@
     "ambientActorCount": 13,
     "ambientActorKinds": "pedestrian,bicycle,scooter,car",
     "adapterName": "metal-3",
-    "rendererFrames": 1026,
+    "rendererFrames": 465,
     "smoothness": {
-      "rafFrameCount": 986,
+      "rafFrameCount": 423,
       "frameIntervalMs": {
         "min": 15.6,
-        "p50": 16.8,
-        "p95": 34.2,
-        "p99": 50.4,
-        "max": 99.9,
-        "mean": 21.5678
+        "p50": 16.7,
+        "p95": 17.5,
+        "p99": 17.7,
+        "max": 33.5,
+        "mean": 16.7456
       },
-      "over20msCount": 240,
-      "over33msCount": 126,
-      "over33msRatio": 0.1278,
-      "longTaskCount": 6,
-      "longTaskTotalMs": 429,
-      "longestTaskMs": 99,
+      "over20msCount": 2,
+      "over33msCount": 1,
+      "over33msRatio": 0.0024,
+      "longTaskCount": 0,
+      "longTaskTotalMs": 0,
+      "longestTaskMs": 0,
       "phaseMarks": [
         {
           "phase": "sampling_started",
-          "at": 17895.599999904633
+          "at": 17071.599999904633
+        },
+        {
+          "phase": "scenario_shuffle_started",
+          "at": 17073.599999904633
+        },
+        {
+          "phase": "scenario_shuffle_dispatched",
+          "at": 17074.199999809265
+        },
+        {
+          "phase": "scenario_shuffle_complete",
+          "at": 17128.599999904633
         },
         {
           "phase": "camera_modes_complete",
-          "at": 20830.599999904633
+          "at": 20003.400000095367
         },
         {
           "phase": "camera_interactions_complete",
-          "at": 23365.39999961853
+          "at": 22561.400000095367
         },
         {
           "phase": "mission_edited",
-          "at": 23365.799999713898
+          "at": 22561.400000095367
         },
         {
           "phase": "start_clicked",
-          "at": 23366.099999904633
+          "at": 22563.400000095367
         },
         {
           "phase": "configured_camera_ready",
-          "at": 23560.5
+          "at": 22578.099999904633
         },
         {
           "phase": "journey_terminal",
-          "at": 39152.2999997139
+          "at": 24137.599999904633
         }
       ],
-      "longTasks": [
-        {
-          "startTime": 23384,
-          "duration": 61,
-          "phase": "start_clicked"
-        },
-        {
-          "startTime": 23920.9,
-          "duration": 75,
-          "phase": "configured_camera_ready"
-        },
-        {
-          "startTime": 28009,
-          "duration": 70,
-          "phase": "configured_camera_ready"
-        },
-        {
-          "startTime": 32574,
-          "duration": 69,
-          "phase": "configured_camera_ready"
-        },
-        {
-          "startTime": 37528.3,
-          "duration": 99,
-          "phase": "configured_camera_ready"
-        },
-        {
-          "startTime": 39077.3,
-          "duration": 55,
-          "phase": "configured_camera_ready"
-        }
-      ]
+      "longTasks": []
     },
     "staticVertexCount": 547548,
-    "dynamicVertexCount": 58719,
+    "dynamicVertexCount": 52665,
     "canvasWidth": 1440,
-    "canvasHeight": 900,
+    "canvasHeight": 1000,
     "viewportWidth": 1440,
     "documentWidth": 1440,
     "scrollY": 0,
@@ -417,18 +976,18 @@
     "open": true,
     "hidden": "false",
     "expanded": "true",
-    "summary": "Accelerate on the selected route"
+    "summary": "Ready to choose a route"
   },
   "actorView": {
     "mode": "follow",
     "transition": "settled",
     "followDistance": 5,
-    "dynamicVertexCount": 58719,
+    "dynamicVertexCount": 52665,
     "actorMeshSchema": "simulatte.autonomyActorMesh.v1",
     "ambientActorCount": 13,
     "ambientActorKinds": "pedestrian,bicycle,scooter,car",
     "minimapVisible": true,
-    "minimapFrameCount": 826
+    "minimapFrameCount": 140
   },
   "featureView": {
     "cooperation": {
@@ -436,28 +995,22 @@
     },
     "gpuParity": null,
     "shade": {
-      "visible": true,
-      "routeAlgorithm": "sun_walker_arrival_time_route_v1",
-      "selected": "30% modeled shade",
-      "areaCount": 320,
-      "sunCount": 1,
-      "solarLighting": "plugin",
-      "sunAzimuthDegrees": 140.719011,
-      "sunElevationDegrees": 67.1563
+      "visible": false
     },
     "cableTrader": {
       "visible": true,
       "needsServed": "4,096 / 4,096 (100%)",
       "exactAllocations": "300 / 300 (100%)",
-      "monteCarloEvents": "9,152",
+      "seededInputEvents": "9,152",
       "markerCount": 4,
-      "actorCount": 64
+      "pathCount": 8,
+      "actorCount": 0
     }
   },
   "errors": [],
   "failedResponses": [],
   "diagnostics": {
-    "performance": false,
+    "performance": true,
     "profileScope": true,
     "visualRuntime": true,
     "evidence": true,
@@ -466,9 +1019,7 @@
     "plugins": true,
     "browserErrors": true
   },
-  "failedDiagnostics": [
-    "performance"
-  ],
+  "failedDiagnostics": [],
   "requests": [
     {
       "pathname": "/city",
@@ -515,11 +1066,11 @@
       "status": 200
     },
     {
-      "pathname": "/shared/contracts/contract-validation-primitives.js",
+      "pathname": "/shared/contracts/data-contract-validator.js",
       "status": 200
     },
     {
-      "pathname": "/shared/contracts/data-contract-validator.js",
+      "pathname": "/shared/contracts/contract-validation-primitives.js",
       "status": 200
     },
     {
@@ -548,6 +1099,34 @@
     },
     {
       "pathname": "/simulatte/platform/contracts/plugin-contracts.js",
+      "status": 200
+    },
+    {
+      "pathname": "/simulatte/platform/contracts/plugin-v4-contracts.js",
+      "status": 200
+    },
+    {
+      "pathname": "/simulatte/platform/contracts/plugin-v4-adapters.js",
+      "status": 200
+    },
+    {
+      "pathname": "/simulatte/platform/runtime/provenance-registry.js",
+      "status": 200
+    },
+    {
+      "pathname": "/simulatte/platform/runtime/simulation-timeline.js",
+      "status": 200
+    },
+    {
+      "pathname": "/simulatte/platform/runtime/simulation-clock.js",
+      "status": 200
+    },
+    {
+      "pathname": "/simulatte/platform/render/semantic-compositor.js",
+      "status": 200
+    },
+    {
+      "pathname": "/simulatte/platform/view/view-director.js",
       "status": 200
     },
     {
@@ -635,6 +1214,10 @@
       "status": 200
     },
     {
+      "pathname": "/shared/core/simulation/plugin-v4-builder.js",
+      "status": 200
+    },
+    {
       "pathname": "/simulatte/world/world-tile-manager.js",
       "status": 200
     },
@@ -719,11 +1302,11 @@
       "status": 200
     },
     {
-      "pathname": "/simulatte/app/webgpu-math.js",
+      "pathname": "/simulatte/runtime/journey-ledger.js",
       "status": 200
     },
     {
-      "pathname": "/simulatte/runtime/journey-ledger.js",
+      "pathname": "/simulatte/app/webgpu-math.js",
       "status": 200
     },
     {
@@ -799,23 +1382,19 @@
       "status": 200
     },
     {
+      "pathname": "/simulatte/app/plugin-playback.js",
+      "status": 200
+    },
+    {
       "pathname": "/simulatte/app/main.js",
       "status": 200
     },
     {
-      "pathname": "/shared/plugins/safety-explorer/index.js",
-      "status": 200
-    },
-    {
-      "pathname": "/shared/plugins/sun-walker/sun-exposure.js",
-      "status": 200
-    },
-    {
-      "pathname": "/shared/plugins/sun-walker/index.js",
-      "status": 200
-    },
-    {
       "pathname": "/shared/plugins/cable-trader/network-simulation.js",
+      "status": 200
+    },
+    {
+      "pathname": "/shared/plugins/cable-trader/v4-contribution.js",
       "status": 200
     },
     {
@@ -824,6 +1403,10 @@
     },
     {
       "pathname": "/data/simulatte/autonomy-manifest.json",
+      "status": 200
+    },
+    {
+      "pathname": "/favicon.svg",
       "status": 200
     },
     {
@@ -859,7 +1442,7 @@
       "status": 200
     },
     {
-      "pathname": "/data/application-profiles/simulatte-world-v1.json",
+      "pathname": "/data/application-profiles/cable-trader-pickup-v1.json",
       "status": 200
     },
     {
@@ -899,10 +1482,6 @@
       "status": 200
     },
     {
-      "pathname": "/favicon.svg",
-      "status": 200
-    },
-    {
       "pathname": "/data/simulatte/regions/packs/manhattan-villages-v1.geometry.json",
       "status": 200
     },
@@ -915,23 +1494,7 @@
       "status": 200
     },
     {
-      "pathname": "/data/simulatte/safety-history-index-v1.json",
-      "status": 200
-    },
-    {
-      "pathname": "/shared/plugins/safety-explorer/config.schema.json",
-      "status": 200
-    },
-    {
-      "pathname": "/shared/plugins/safety-explorer/default-config.json",
-      "status": 200
-    },
-    {
-      "pathname": "/shared/plugins/sun-walker/config.schema.json",
-      "status": 200
-    },
-    {
-      "pathname": "/shared/plugins/sun-walker/default-config.json",
+      "pathname": "/data/cable-trader/cable-compatibility-priors-v1.json",
       "status": 200
     },
     {

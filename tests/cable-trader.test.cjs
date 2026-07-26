@@ -69,6 +69,7 @@ test('Cable Trader profile queries the predefined network instead of creating on
 function stubSdk() {
   let reducer = null;
   let state = null;
+  const emittedEvents = [];
   const emittedReceipts = [];
   return {
     worldQuery: { model() { return { segment() { return { lengthM: 1000 }; } }; } },
@@ -80,8 +81,15 @@ function stubSdk() {
       register(nextReducer, initialState) { reducer = nextReducer; state = structuredClone(initialState); },
       read() { return state; },
     },
-    events: { propose(event) { state = reducer(state, event); return event; } },
+    events: {
+      propose(event) {
+        emittedEvents.push(structuredClone(event));
+        state = reducer(state, event);
+        return event;
+      },
+    },
     receipts: { append(receipt) { emittedReceipts.push(structuredClone(receipt)); return receipt; } },
+    emittedEvents,
     emittedReceipts,
   };
 }
@@ -135,6 +143,18 @@ test('Cable Trader exposes progressive causal state without owning playback timi
   assert.ok(sdk.emittedReceipts.some((row) => row.schema === 'simulatte.plugin.cableTraderPlaybackReceipt.v1'));
 });
 
+test('Cable Trader scenario selection emits a compact causal event', async () => {
+  const sdk = stubSdk();
+  const instance = await plugin.activate({ sdk, config, scenario: { id: 'july-baseline', seed: 'initial-seed' } });
+  const initialStateId = instance.contributeV4().state.id;
+  instance.setScenario({ id: 'display-cable-surge', seed: 'surge-seed' });
+  const event = sdk.emittedEvents.at(-1);
+  assert.deepEqual(event.scenario, { id: 'display-cable-surge', seed: 'surge-seed' });
+  assert.equal('simulation' in event, false);
+  assert.notEqual(instance.contributeV4().state.id, initialStateId);
+  assert.equal(sdk.emittedReceipts.at(-1).seed, 'surge-seed');
+});
+
 test('Cable Trader seed labels select materially distinct authored scenario modifiers', () => {
   const routes = completeRoutes();
   const byScenario = Object.fromEntries(config.scenarioModifiers.map((modifier) => {
@@ -181,6 +201,10 @@ test('Cable Trader compatibility provenance binds the exact governed dataset byt
   const declaration = manifest.datasets.find((row) => row.id === dataset.id);
   assert.equal(sha256, contributionApi.DATASET_REFERENCE.sha256);
   assert.equal(declaration.reference.sha256, sha256);
+  assert.equal(
+    plugin.datasetValidators['simulatte.cableCompatibilityPriors.v1'](dataset),
+    dataset,
+  );
   assert.match(dataset.claimBoundary, /no observed hub demand/i);
   assert.ok(dataset.rows.every((row) => row.origin && row.temporalStatus && row.uncertainty));
 });

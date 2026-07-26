@@ -50,7 +50,8 @@
       }, transferRoutes, rng ? { rng } : {});
     };
     const simulation = simulationFor(scenario);
-    sdk.state.register(reduce, {
+    const reduceState = createReducer(simulationFor);
+    sdk.state.register(reduceState, {
       simulation,
       inventory: simulation.snapshots[0].inventory,
       credits: {},
@@ -77,8 +78,15 @@
     }
 
     function setScenario(nextScenario) {
-      const nextSimulation = simulationFor(nextScenario);
-      sdk.events.propose({ pluginId: 'cable-trader', kind: 'cable-trader.scenario-selected', simulation: nextSimulation });
+      sdk.events.propose({
+        pluginId: 'cable-trader',
+        kind: 'cable-trader.scenario-selected',
+        scenario: {
+          id: nextScenario?.id || config.scenarioModifiers[0].id,
+          seed: nextScenario?.seed || config.simulation.seed,
+        },
+      });
+      const nextSimulation = sdk.state.read().simulation;
       appendNetworkReceipt(nextSimulation);
       return nextSimulation.summary;
     }
@@ -146,7 +154,7 @@
           { label: 'Solver', value: 'Exact min-cost maximum-flow' },
         ],
         actions: [
-          { id: 'focus-network', label: 'Whole network', command: { kind: 'camera.focus', targetId: 'cable-network' } },
+          { id: 'focus-network', label: 'Whole network', command: { kind: 'camera.focus', targetId: 'cable-network-overview' } },
           ...config.hubs.map((hub) => ({ id: `focus-${hub.id}`, label: hub.label, command: { kind: 'camera.focus', targetId: hub.id } })),
         ],
       }];
@@ -347,16 +355,23 @@
     });
   }
 
-  function reduce(state, event) {
-    if (event.kind === 'cable-trader.scenario-selected') {
-      return {
-        ...state,
-        simulation: event.simulation,
-        inventory: event.simulation.snapshots[0].inventory,
-        lastExchange: null,
-        playback: { status: 'ready', day: 0 },
-      };
-    }
+  function createReducer(simulationFor) {
+    return function reduce(state, event) {
+      if (event.kind === 'cable-trader.scenario-selected') {
+        const simulation = simulationFor(event.scenario);
+        return {
+          ...state,
+          simulation,
+          inventory: simulation.snapshots[0].inventory,
+          lastExchange: null,
+          playback: { status: 'ready', day: 0 },
+        };
+      }
+      return reducePlaybackState(state, event);
+    };
+  }
+
+  function reducePlaybackState(state, event) {
     if (event.kind === 'cable-trader.playback-started') {
       return {
         ...state,
@@ -414,5 +429,38 @@
 
   function flowTone(index) { return ['cyan', 'blue', 'magenta', 'violet', 'green', 'amber'][index % 6]; }
   function format(value) { return Number(value).toLocaleString('en-US'); }
-  return Object.freeze({ activate });
+
+  function validateCompatibilityPriors(value) {
+    if (value?.schema !== 'simulatte.cableCompatibilityPriors.v1'
+      || value.id !== 'cable-compatibility-priors-v1'
+      || !Array.isArray(value.sources)
+      || !value.sources.length
+      || !Array.isArray(value.rows)
+      || !value.rows.length
+      || !Array.isArray(value.scenarioOnlyCableTypeIds)
+      || typeof value.claimBoundary !== 'string') {
+      throw new Error('cable_compatibility_priors_invalid');
+    }
+    const sourceIds = new Set(value.sources.map((row) => row.id));
+    value.rows.forEach((row) => {
+      if (!row.id
+        || !Array.isArray(row.connectorFamilyIds)
+        || !row.connectorFamilyIds.length
+        || !Array.isArray(row.sourceIds)
+        || row.sourceIds.some((id) => !sourceIds.has(id))
+        || !row.origin
+        || !row.temporalStatus
+        || !row.uncertainty) {
+        throw new Error(`cable_compatibility_prior_row_invalid: ${row.id || 'missing'}`);
+      }
+    });
+    return value;
+  }
+
+  return Object.freeze({
+    activate,
+    datasetValidators: Object.freeze({
+      'simulatte.cableCompatibilityPriors.v1': validateCompatibilityPriors,
+    }),
+  });
 });

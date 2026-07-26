@@ -289,20 +289,30 @@
       }
     }
     const target = demands.reduce((total, quantity) => total + quantity, 0);
+    const potentials = Array(graph.length).fill(0);
     let delivered = 0;
     let cost = 0;
     while (delivered < target) {
-      const shortest = shortestResidualPath(graph, source);
+      const shortest = shortestResidualPath(graph, source, potentials);
       if (!Number.isFinite(shortest.distance[sink])) break;
       let quantity = target - delivered;
-      for (let node = sink; node !== source; node = shortest.previous[node].from) quantity = Math.min(quantity, shortest.previous[node].edge.capacity);
-      for (let node = sink; node !== source; node = shortest.previous[node].from) {
-        const edge = shortest.previous[node].edge;
+      const path = [];
+      for (let node = sink; node !== source;) {
+        const previous = shortest.previous[node];
+        if (!previous) throw new Error(`Cable transport path to node ${node} did not reach the source`);
+        path.push(previous.edge);
+        quantity = Math.min(quantity, previous.edge.capacity);
+        node = previous.from;
+      }
+      if (!(quantity > 0)) throw new Error(`Cable transport expected a positive augmentation, received ${quantity}`);
+      let pathCost = 0;
+      path.forEach((edge) => {
         edge.capacity -= quantity;
         edge.reverse.capacity += quantity;
-      }
+        pathCost += edge.cost;
+      });
       delivered += quantity;
-      cost += quantity * shortest.distance[sink];
+      cost += quantity * pathCost;
     }
     const flows = [];
     transportEdges.forEach((row, supply) => row.forEach((edge, demand) => {
@@ -320,26 +330,35 @@
     return forward;
   }
 
-  function shortestResidualPath(graph, source) {
+  function shortestResidualPath(graph, source, potentials) {
     const distance = Array(graph.length).fill(Infinity);
     const previous = Array(graph.length).fill(null);
+    const visited = Array(graph.length).fill(false);
     distance[source] = 0;
-    for (let pass = 0; pass < graph.length - 1; pass += 1) {
-      let changed = false;
-      for (let from = 0; from < graph.length; from += 1) {
-        if (!Number.isFinite(distance[from])) continue;
-        for (const edge of graph[from]) {
-          if (edge.capacity <= 0) continue;
-          const candidate = distance[from] + edge.cost;
-          if (candidate < distance[edge.to]) {
-            distance[edge.to] = candidate;
-            previous[edge.to] = { from, edge };
-            changed = true;
-          }
+    for (let pass = 0; pass < graph.length; pass += 1) {
+      let from = -1;
+      for (let node = 0; node < graph.length; node += 1) {
+        if (visited[node] || !Number.isFinite(distance[node])) continue;
+        if (from < 0 || distance[node] < distance[from] || (distance[node] === distance[from] && node < from)) from = node;
+      }
+      if (from < 0) break;
+      visited[from] = true;
+      for (const edge of graph[from]) {
+        if (edge.capacity <= 0 || visited[edge.to]) continue;
+        const reducedCost = edge.cost + potentials[from] - potentials[edge.to];
+        if (reducedCost < -1e-9) {
+          throw new Error(`Cable transport reduced cost became negative: ${reducedCost}`);
+        }
+        const candidate = distance[from] + Math.max(0, reducedCost);
+        if (candidate < distance[edge.to]) {
+          distance[edge.to] = candidate;
+          previous[edge.to] = { from, edge };
         }
       }
-      if (!changed) break;
     }
+    distance.forEach((value, node) => {
+      if (Number.isFinite(value)) potentials[node] += value;
+    });
     return { distance, previous };
   }
 

@@ -399,8 +399,13 @@ test('the seven shipped experiences each load one native v4 contribution and Cit
   assert.equal(Object.hasOwn(runtimeManifest.profilePlugins, 'simulatte-world-v1'), false);
 
   const profilesDirectory = path.join(__dirname, '../public/data/application-profiles');
-  const profileFiles = fs.readdirSync(profilesDirectory).filter((name) => name.endsWith('.json')).sort();
+  const jsonFiles = fs.readdirSync(profilesDirectory).filter((name) => name.endsWith('.json')).sort();
+  const profileFiles = jsonFiles.filter((fileName) => {
+    const value = JSON.parse(fs.readFileSync(path.join(profilesDirectory, fileName), 'utf8'));
+    return /^simulatte\.applicationProfile\.v\d+$/.test(value.schema);
+  });
   assert.deepEqual(profileFiles, expectedProfiles.map((id) => `${id}.json`));
+  assert.deepEqual(jsonFiles.filter((fileName) => !profileFiles.includes(fileName)), ['profile-claim-inventory-v1.json']);
   profileFiles.forEach((fileName) => {
     const profile = JSON.parse(fs.readFileSync(path.join(profilesDirectory, fileName), 'utf8'));
     assert.equal(profile.plugins.length, 1, `${profile.id} should declare one experience plugin`);

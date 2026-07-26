@@ -23,6 +23,8 @@
     'simulatte/platform/runtime/provenance-registry.js',
     'simulatte/platform/runtime/simulation-timeline.js',
     'simulatte/platform/runtime/simulation-clock.js',
+    'simulatte/platform/core/simulation/comparison-contracts.js',
+    'simulatte/platform/core/simulation/comparison-execution.js',
     'simulatte/platform/render/semantic-compositor.js',
     'simulatte/platform/view/view-director.js',
     'simulatte/platform/transport/browser-transport.js',
@@ -136,6 +138,7 @@
     'simulatte/app/router.js',
     'simulatte/app/city-interface.js',
     'simulatte/app/main-view.js',
+    'simulatte/app/plugin-playback.js',
     'simulatte/app/main.js',
   ]);
   const PROFILE_PLUGINS = Object.freeze({

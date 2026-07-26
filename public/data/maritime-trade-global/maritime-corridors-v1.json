@@ -303,6 +303,7 @@
       "provenanceKind": "synthetic_aggregate_corridor"
     }
   ],
+  "id": "global-maritime-corridors-v1",
   "datasetId": "global-maritime-corridors-v1",
   "datasetSchemaId": "simulatte.maritimeCorridors.v1",
   "generatedBy": "tools/simulatte/build-maritime-data.mjs",
