@@ -217,6 +217,95 @@ test('complete native browser evidence settles its profile claim', async () => {
   assert.ok(validation.claimResults.every((row) => row.pass));
 });
 
+test('browser evidence replaces repeated simulation payloads with content-addressed references', async () => {
+  const browser = await import(BROWSER_URL);
+  const contract = await import(CONTRACT_URL);
+  const trajectory = Array.from({ length: 4_000 }, (_, index) => ({
+    index,
+    x: index * 0.125,
+    y: index * -0.25,
+    covariance: [1, 0, 0, 1],
+  }));
+  const event = {
+    schema: 'simulatte.asteroidDefenseEvent.v1',
+    id: 'scenario-computed',
+    pluginId: 'asteroid-defense',
+    kind: 'asteroid-defense.scenario-computed',
+    sequence: 0,
+    simulationTimeMs: 0,
+    result: {
+      schema: 'simulatte.asteroidDefenseResult.v1',
+      scenarioId: 'test-scenario',
+      seed: 'test-seed',
+      status: 'settled',
+      trajectory,
+    },
+  };
+  const runReceipt = {
+    schema: 'simulatte.tierRunReceipt.v1',
+    profileId: 'asteroid-defense-v1',
+    tier: 'solar-system',
+    scenario: { id: 'test-scenario', seed: 'test-seed' },
+    actionResult: { status: 'settled', scenarioIdentity: 'scenario:test' },
+    pluginRuntime: {
+      events: [event],
+      pluginReceipts: [{ schema: 'simulatte.pluginReceipt.v4' }],
+    },
+  };
+  const raw = {
+    runtime: { runReceipt },
+    evidence: { events: [structuredClone(event)] },
+  };
+  const compacted = browser.compactCapturedEvidence(raw);
+  const rawBytes = Buffer.byteLength(JSON.stringify(raw));
+  const compactedBytes = Buffer.byteLength(JSON.stringify(compacted));
+
+  assert.ok(compactedBytes < rawBytes / 20, `${compactedBytes} should be much smaller than ${rawBytes}`);
+  assert.equal(compacted.runtime.runReceipt.schema, 'simulatte.profileEvidenceRunReceiptRef.v1');
+  assert.equal(compacted.runtime.runReceipt.originalSchema, runReceipt.schema);
+  assert.equal(compacted.runtime.runReceipt.eventCount, 1);
+  assert.equal(
+    compacted.runtime.runReceipt.contentSha256,
+    contract.sha256Bytes(JSON.stringify(runReceipt)),
+  );
+  assert.equal(compacted.evidence.events[0].schema, 'simulatte.profileEvidenceEventRef.v1');
+  assert.equal(compacted.evidence.events[0].kind, event.kind);
+  assert.equal(compacted.evidence.events[0].result.scenarioId, 'test-scenario');
+  assert.equal(
+    compacted.evidence.events[0].contentSha256,
+    contract.sha256Bytes(JSON.stringify(event)),
+  );
+  assert.equal(raw.runtime.runReceipt.pluginRuntime.events[0].result.trajectory.length, 4_000);
+});
+
+test('content-addressed playback references prove reload without embedding both receipts', async () => {
+  const browser = await import(BROWSER_URL);
+  const { contract, run } = await fixture();
+  const beforeReceipt = browser.compactRunReceiptReference(playbackReceipt(run));
+  const afterReceipt = browser.compactRunReceiptReference(playbackReceipt(run));
+  const reload = {
+    attempted: true,
+    restored: true,
+    kind: 'plugin-playback',
+    beforeReceipt,
+    afterReceipt,
+  };
+
+  assert.equal(contract.isRestoredRunEvidence(reload, run), true);
+  reload.afterReceipt = {
+    ...afterReceipt,
+    restorationIdentitySha256: '0'.repeat(64),
+  };
+  assert.equal(contract.isRestoredRunEvidence(reload, run), false);
+});
+
+test('profile evidence fails closed when a receipt exceeds its storage budget', async () => {
+  const { claims, contract, receipt, run, sourceIdentity } = await fixture();
+  receipt.evidence.unboundedRuntimePayload = 'x'.repeat(contract.MAX_PROFILE_EVIDENCE_RECEIPT_BYTES);
+  const validation = contract.validateReceipt({ receipt, run, sourceIdentity, claims });
+  assert.ok(validation.failures.includes('receipt_size_budget_exceeded'));
+});
+
 test('rendered evidence fails closed on missing visuals, dominant overlays, and camera mismatch', async () => {
   const { claims, contract, receipt, run, sourceIdentity } = await fixture();
   receipt.evidence.visual = null;
@@ -503,6 +592,7 @@ test('release scripts and CI consume the same public profile claim evidence runn
 test('source identity excludes generated audit output without excluding source files', () => {
   const source = fs.readFileSync(path.join(ROOT, 'tools/simulatte/run-profile-evidence.mjs'), 'utf8');
   assert.match(source, /!relativePath\.startsWith\('artifacts\/'\)/);
+  assert.match(source, /:\(exclude\)artifacts\/\*\*/);
   assert.doesNotMatch(source, /!relativePath\.startsWith\('public\/'\)/);
   assert.doesNotMatch(source, /!relativePath\.startsWith\('tests\/'\)/);
   assert.doesNotMatch(source, /!relativePath\.startsWith\('tools\/'\)/);

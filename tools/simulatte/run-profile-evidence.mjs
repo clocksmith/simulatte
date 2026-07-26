@@ -52,8 +52,16 @@ function parseArgs(argv) {
 }
 
 function worktreeSha256() {
-  const diff = execFileSync('git', ['diff', '--binary', 'HEAD'], { cwd: ROOT, encoding: 'buffer', maxBuffer: 64 * 1024 * 1024 });
-  const rawStatus = execFileSync('git', ['status', '--porcelain=v1', '-z', '--untracked-files=all'], { cwd: ROOT, encoding: 'utf8', maxBuffer: 16 * 1024 * 1024 });
+  const diff = execFileSync(
+    'git',
+    ['diff', '--binary', 'HEAD', '--', '.', ':(exclude)artifacts/**'],
+    { cwd: ROOT, encoding: 'buffer', maxBuffer: 64 * 1024 * 1024 },
+  );
+  const rawStatus = execFileSync(
+    'git',
+    ['status', '--porcelain=v1', '-z', '--untracked-files=all', '--', '.', ':(exclude)artifacts/**'],
+    { cwd: ROOT, encoding: 'utf8', maxBuffer: 16 * 1024 * 1024 },
+  );
   const rows = rawStatus.split('\0').filter(Boolean).filter((row) => {
     const relativePath = row.slice(3).replaceAll('\\', '/');
     return !relativePath.startsWith('artifacts/');

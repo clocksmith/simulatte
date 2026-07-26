@@ -232,13 +232,27 @@
       observationCount: index >= 1 ? fitReceipt.observationIds.length : 0,
       fitReceipt: index >= 2 ? fitReceipt : null,
       ensembleReceipt: index >= 3 ? ensembleReceipt : null,
-      baselineEncounter: index >= 4 ? baselineEncounter : null,
+      baselineEncounter: index >= 4 ? encounterSummary(baselineEncounter) : null,
       requestedInterventionId: index >= 5 ? requestedIntervention.id : null,
       appliedInterventionId: index >= 5 ? appliedIntervention.id : null,
-      interventionEncounter: index >= 6 ? interventionEncounter : null,
+      interventionEncounter: index >= 6 ? encounterSummary(interventionEncounter) : null,
       eventIds: events.slice(0, index).map((row) => row.id),
       campaign: { id: campaign.id, startInstant: campaign.startInstant, terminalDay: campaign.terminalDay },
     }));
+  }
+
+  function encounterSummary(encounter) {
+    return deepFreeze({
+      schema: 'simulatte.asteroidEncounterSummary.v1',
+      interventionId: encounter.interventionId,
+      ensembleSize: encounter.ensembleSize,
+      screeningRadiusKm: encounter.screeningRadiusKm,
+      modeledScreeningFraction: encounter.modeledScreeningFraction,
+      minimumDistanceKm: encounter.minimumDistanceKm,
+      medianDistanceKm: encounter.medianDistanceKm,
+      maximumDistanceKm: encounter.maximumDistanceKm,
+      successfulExecutionCount: encounter.members.filter((row) => row.executionSucceeded).length,
+    });
   }
 
   function hiddenEvaluation(fitted, hidden) {

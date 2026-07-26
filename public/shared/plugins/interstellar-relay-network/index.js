@@ -20,13 +20,24 @@
     const metricsApi = dependency('InterstellarMetrics', './metrics.js');
     const presentationApi = dependency('InterstellarRelayPresentation', './presentation.js');
     const v4Api = dependency('InterstellarRelayV4', './v4-contribution.js');
+    const lightTimeApi = dependency('InterstellarLightTime', './light-time.js');
+    const routerApi = dependency('InterstellarNetworkRouter', './network-router.js');
+    const operationsApi = dependency('InterstellarOperationsModel', './operations-model.js');
+    const advancedApi = dependency('InterstellarAdvancedChannels', './advanced-channels.js');
+    const controlsApi = dependency('InterstellarRelayControls', './relay-controls.js');
+    const receiptApi = dependency('InterstellarReceiptFactory', './receipt-factory.js');
+    const catalogApi = dependency('InterstellarStellarCatalog', './stellar-catalog.js');
 
     const starsData = sdk.datasets.require('gaia.dr3.nearby-stars.v2');
     const hardwareData = sdk.datasets.require('relay.hardware.archetypes.v2');
     const scenariosData = sdk.datasets.require('interstellar.scenario.network.v2');
     const modelsData = sdk.datasets.require('interstellar.relay.models.v1');
-    const starsById = new Map((starsData.stars || []).map((row) => [row.sourceId, row]));
-    let activeScenario = normalizeScenario(scenario, config);
+    const operationsData = sdk.datasets.require('interstellar.operations.models.v1');
+    const advancedData = sdk.datasets.require('interstellar.advanced.channels.v1');
+    const hygData = sdk.datasets.require('hyg.visible-stars.v1');
+    const stellarCatalog = catalogApi.createCatalog(starsData, hygData);
+    const starsById = new Map(stellarCatalog.stars.map((row) => [row.sourceId, row]));
+    let activeScenario = controlsApi.normalizeScenario(scenario, config);
     let current = await computeScenario(activeScenario);
     sdk.state.register(reduce, {
       scenarioId: current.scenarioId,
@@ -39,38 +50,117 @@
     appendScenarioReceipt(current);
 
     async function computeScenario(spec, controlValues = {}, branch = 'intervention') {
-      const scenarioRow = resolveScenario(scenariosData, spec.id);
-      const controls = resolveControls(config, scenarioRow, controlValues, hardwareData);
-      const selectedPath = branch === 'baseline' ? scenarioRow.baselineRelayHops : scenarioRow.relayHops;
-      const selectedTransceiverId = branch === 'baseline'
-        ? scenarioRow.baselineTransceiverId
-        : controls.transceiverId;
+      const scenarioRow = controlsApi.resolveScenario(scenariosData, spec.id);
+      const branchValues = branch === 'baseline' ? {
+        ...controlValues,
+        routingMode: 'direct',
+        channelMode: 'classical-optical',
+        transceiverId: scenarioRow.baselineTransceiverId,
+      } : controlValues;
+      const controls = controlsApi.resolveControls({
+        config,
+        scenario: scenarioRow,
+        values: branchValues,
+        hardwareData,
+        starsData: stellarCatalog,
+        operationsData,
+        advancedData,
+      });
+      const selectedTransceiverId = controls.transceiverId;
       const transceiver = hardwareData.archetypes[selectedTransceiverId];
       if (!transceiver) throw new Error(`interstellar_transceiver_missing: ${selectedTransceiverId}`);
-      const stellarStates = (starsData.stars || []).map((star) => (
-        stellarApi.convertEquatorialToCartesianPc(star, controls.targetEpochYear)
-      ));
-      const statesById = new Map(stellarStates.map((state) => [state.sourceId, state]));
-      selectedPath.forEach((id) => {
-        if (!statesById.has(id)) throw new Error(`interstellar_path_star_missing: ${id}`);
+      const activeStarIds = new Set([
+        controls.sourceId,
+        controls.targetId,
+        ...controls.requiredRelayIds,
+        ...controls.eligibleRelayIds,
+      ]);
+      activeStarIds.delete('none');
+      const stellarStates = [...activeStarIds].map((id) => {
+        const star = starsById.get(id);
+        if (!star) throw new Error(`interstellar_active_star_missing: ${id}`);
+        return stellarApi.convertEquatorialToCartesianPc(star, controls.targetEpochYear);
       });
+      const statesById = new Map(stellarStates.map((state) => [state.sourceId, state]));
       const packetBits = controls.packetBytes * 8;
-      const linkBudgets = selectedPath.slice(0, -1).map((fromId, index) => {
-        const from = statesById.get(fromId);
-        const to = statesById.get(selectedPath[index + 1]);
+      const edgeCache = new Map();
+      const evaluateEdge = (from, to, distancePc) => {
+        const id = `${from.sourceId}->${to.sourceId}`;
+        if (edgeCache.has(id)) return edgeCache.get(id);
         const distanceMeters = distance(from.positionPc, to.positionPc) * PC_TO_METERS;
         const uncertaintyMeters = endpointDistanceUncertaintyPc(from, to) * PC_TO_METERS;
-        return linkApi.computeLinkBudget(distanceMeters, transceiver, {
+        const attenuationDb = distancePc * (
+          controls.dustExtinctionMagPerPc * 4
+          + controls.plasmaLossDbPerPc
+        );
+        const linkBudget = linkApi.computeLinkBudget(distanceMeters, transceiver, {
           packetBits,
           distanceLowerMeters: Math.max(1, distanceMeters - uncertaintyMeters),
           distanceUpperMeters: distanceMeters + uncertaintyMeters,
+          attenuationFactor: 10 ** (-attenuationDb / 10),
+          backgroundPhotonRateHz: transceiver.backgroundPhotonRateHz * controls.detectorNoiseScale,
           sourceRowIds: [...from.sourceRowIds, ...to.sourceRowIds],
         });
+        const lightTime = lightTimeApi.computeMovingTargetLightTime(
+          from,
+          to,
+          0,
+          controls.startEpochIso,
+        );
+        const channelReceipt = advancedApi.evaluateChannel({
+          mode: controls.channelMode,
+          distancePc,
+          packetBits,
+          classicalLinkBudget: linkBudget,
+          classicalLightTime: lightTime,
+          controls,
+          catalog: advancedData,
+        });
+        const value = Object.freeze({
+          latencySeconds: channelReceipt.latencySeconds,
+          effectiveDataRateGbps: channelReceipt.effectiveDataRateGbps,
+          packetSuccessProbability: channelReceipt.packetSuccessProbability,
+          transmissionEnergyJ: channelReceipt.transmissionEnergyJ,
+          linkBudget,
+          channelReceipt,
+        });
+        edgeCache.set(id, value);
+        return value;
+      };
+      const routeSelection = routerApi.selectRoute({
+        stellarStates,
+        sourceId: controls.sourceId,
+        targetId: controls.targetId,
+        routingMode: controls.routingMode,
+        requiredRelayIds: controls.requiredRelayIds,
+        eligibleRelayIds: controls.eligibleRelayIds,
+        maxHops: controls.maxHops,
+        maxHopDistancePc: controls.maxHopDistancePc,
+        objective: controls.routeObjective,
+        processingDelayHours: controls.processingDelayHours,
+        evaluateEdge,
+      });
+      const selectedPath = routeSelection.selectedPath;
+      const selectedEdges = selectedPath.slice(0, -1).map((fromId, index) => {
+        const from = statesById.get(fromId);
+        const to = statesById.get(selectedPath[index + 1]);
+        return evaluateEdge(from, to, distance(from.positionPc, to.positionPc));
+      });
+      const linkBudgets = selectedEdges.map((row) => row.linkBudget);
+      const channelReceipts = selectedEdges.map((row) => row.channelReceipt);
+      const operations = operationsApi.simulateEnsemble({
+        seed: spec.seed,
+        channelReceipts,
+        packetBits,
+        processingDelayHours: controls.processingDelayHours,
+        controls,
       });
       const schedule = contactApi.scheduleRelay({
         relayPath: selectedPath,
         statesById,
         linkBudgets,
+        channelReceipts,
+        operationalPlan: operations.representative,
         packetBits,
         scheduler: sdk.scheduler,
         startEpochIso: controls.startEpochIso,
@@ -82,25 +172,46 @@
         sequence: 0,
         payload: `interstellar-relay-payload:${spec.seed}:${branch}`,
         payloadBytes: controls.packetBytes,
-        sourceId: scenarioRow.sourceId,
-        destinationId: scenarioRow.targetId,
+        sourceId: controls.sourceId,
+        destinationId: controls.targetId,
         relayPath: selectedPath,
         createdAt: schedule.startEpochIso,
         schedule,
       });
       const relayStates = selectedPath.map((id) => statesById.get(id));
       const effectiveControls = Object.freeze({ ...controls, transceiverId: selectedTransceiverId });
-      const dataReceipts = createDataReceipts();
-      const modelReceipts = createModelReceipts(modelsData, effectiveControls, selectedTransceiverId);
-      const omissions = Object.freeze(modelsData.omissions.map((row) => Object.freeze({ ...row })));
+      const dataReceipts = receiptApi.createDataReceipts({
+        sdk,
+        starsData,
+        hardwareData,
+        scenariosData,
+        modelsData,
+        operationsData,
+        advancedData,
+        hygData: Object.freeze({
+          ...hygData,
+          id: stellarCatalog.hygDatasetId,
+          contentVersion: stellarCatalog.hygContentVersion,
+          provenance: stellarCatalog.provenance,
+        }),
+        stellarStates,
+      });
+      const modelReceipts = Object.freeze([
+        ...receiptApi.createModelReceipts(modelsData, effectiveControls, selectedTransceiverId),
+        receiptApi.operationsModelReceipt(effectiveControls, operations),
+        receiptApi.advancedChannelModelReceipt(effectiveControls, channelReceipts),
+      ]);
+      const omissions = Object.freeze(operations.remainingLimitations.map((row) => Object.freeze({ ...row })));
       const reliabilityScope = Object.freeze({
-        statement: 'The packet-success estimate is conditional on continuous contact and hypothetical infrastructure.',
-        conditionalOn: Object.freeze(modelsData.reliabilityScope.conditionalOn.slice()),
-        excludes: Object.freeze(modelsData.reliabilityScope.excludes.slice()),
+        statement: 'Delivery probability is a seeded operational ensemble over declared profiles and hypothetical infrastructure.',
+        conditionalOn: Object.freeze(['declared-operational-profile', 'infrastructure-not-observed']),
+        excludes: Object.freeze([]),
       });
       const metrics = metricsApi.summarize({
         schedule,
         linkBudgets,
+        channelReceipts,
+        operations,
         packet,
         omissions,
         reliabilityScope,
@@ -111,16 +222,30 @@
         ],
       });
       return Object.freeze({
-        schema: 'simulatte.interstellarRelayResult.v2',
+        schema: 'simulatte.interstellarRelayResult.v3',
         scenarioId: spec.id,
         branch,
         datasetScenarioId: scenarioRow.id,
         seed: spec.seed,
         targetEpochYear: controls.targetEpochYear,
-        scenario: Object.freeze({ ...scenarioRow, relayHops: Object.freeze(selectedPath.slice()) }),
+        scenario: Object.freeze({
+          ...scenarioRow,
+          sourceId: controls.sourceId,
+          targetId: controls.targetId,
+          relayHops: Object.freeze(selectedPath.slice()),
+        }),
         controls: effectiveControls,
+        controlOptions: controlsApi.controlOptions({
+          starsData: stellarCatalog,
+          hardwareData,
+          operationsData,
+          advancedData,
+        }),
+        routeSelection,
         schedule,
         linkBudgets: Object.freeze(linkBudgets),
+        channelReceipts: Object.freeze(channelReceipts),
+        operations,
         packet,
         metrics,
         stellarStates: Object.freeze(stellarStates),
@@ -129,86 +254,24 @@
         modelReceipts,
         omissions,
         reliabilityScope,
-        comparisonDefinition: createComparisonDefinition(scenarioRow, spec.seed, omissions, reliabilityScope),
+        comparisonDefinition: createComparisonDefinition({
+          scenario: scenarioRow,
+          controls: effectiveControls,
+          routeSelection,
+          seed: spec.seed,
+          omissions,
+          reliabilityScope,
+        }),
         truth: Object.freeze({
           origin: 'simulated',
           temporalStatus: 'forecast',
           uncertainty: metrics.truth.uncertainty,
         }),
-        claimBoundary: 'Measured Gaia DR3 astrometry drives a hypothetical optical store-and-forward experiment. No relay terminal, packet traffic, continuous contact, or operating interstellar network is observed.',
-      });
-    }
-
-    function createDataReceipts() {
-      return Object.freeze([
-        dataReceipt('gaia.dr3.nearby-stars.v2', starsData, starsData.provenance, starsData.stars.map((row) => row.sourceRowId)),
-        dataReceipt('relay.hardware.archetypes.v2', hardwareData, hardwareData.provenance, Object.keys(hardwareData.archetypes).map((id) => `relay.hardware.archetypes.v2:${id}`)),
-        dataReceipt('interstellar.scenario.network.v2', scenariosData, scenariosData.provenance, scenariosData.scenarios.map((row) => `interstellar.scenario.network.v2:${row.id}`)),
-        dataReceipt('interstellar.relay.models.v1', modelsData, { ...modelsData.provenance, truth: modeledTruth('Catalog of declared equations') }, modelsData.models.map((row) => `interstellar.relay.models.v1:${row.id}`)),
-      ]);
-    }
-
-    function dataReceipt(datasetId, dataset, provenance, sourceRowIds) {
-      const hostReceipt = sdk.datasets.receipt(datasetId);
-      return Object.freeze({
-        schema: 'simulatte.dataReceipt.v1',
-        datasetId,
-        contentVersion: dataset.contentVersion,
-        sha256: hostReceipt?.sha256 || null,
-        sourceRowIds: Object.freeze(sourceRowIds),
-        retrievalAt: provenance?.retrievalAt || null,
-        license: provenance?.license || null,
-        coverage: provenance?.coverage || null,
-        sourceArtifacts: Object.freeze([
-          ...(provenance?.sourceArtifact ? [provenance.sourceArtifact] : []),
-          ...(provenance?.sourceArtifacts || []),
-        ].map((row) => Object.freeze({ ...row }))),
-        immutableSourceHashes: Object.freeze([
-          ...(hostReceipt?.sha256 ? [{ kind: 'governed-output', sha256: hostReceipt.sha256 }] : []),
-          ...(provenance?.sourceArtifact?.sha256 ? [{ kind: 'source-artifact', sha256: provenance.sourceArtifact.sha256 }] : []),
-          ...(provenance?.sourceArtifacts || []).filter((row) => row.sha256).map((row) => ({
-            kind: `source-artifact:${row.id}`,
-            sha256: row.sha256,
-          })),
-        ].map((row) => Object.freeze(row))),
-        truth: provenance?.truth || (datasetId.startsWith('gaia.') ? observedTruth() : scenarioTruth('Scenario artifact')),
-      });
-    }
-
-    function createModelReceipts(dataset, controls, transceiverId) {
-      const usedIds = new Set([
-        'linear-space-motion-v2',
-        'finite-light-time-v2',
-        'diffraction-photon-budget-v2',
-        'deterministic-store-forward-v2',
-      ]);
-      return Object.freeze(dataset.models.filter((row) => usedIds.has(row.id)).map((row) => Object.freeze({
-        schema: 'simulatte.modelReceipt.v1',
-        modelId: row.id,
-        equation: row.equation,
-        citation: row.citation,
-        parameters: Object.freeze({
-          targetEpochYear: controls.targetEpochYear,
-          startEpochIso: controls.startEpochIso,
-          processingDelayHours: controls.processingDelayHours,
-          packetBytes: controls.packetBytes,
-          transceiverId,
+        claimBoundary: catalogApi.claimBoundary({
+          usesHygSnapshot: selectedPath.some((id) => id.startsWith('hyg:')),
+          speculative: channelReceipts.some((row) => row.constructibilityStatus.startsWith('unsupported')),
         }),
-        assumptions: Object.freeze(row.assumptions.slice()),
-        omissions: Object.freeze((row.omissionIds || []).map((id) => {
-          const omission = dataset.omissions.find((candidate) => candidate.id === id);
-          if (!omission) throw new Error(`interstellar_model_omission_missing: ${row.id}:${id}`);
-          return Object.freeze({ ...omission });
-        })),
-        reliabilityScope: row.id === 'diffraction-photon-budget-v2' || row.id === 'deterministic-store-forward-v2'
-          ? Object.freeze({
-            conditionalOn: Object.freeze(dataset.reliabilityScope.conditionalOn.slice()),
-            excludes: Object.freeze(dataset.reliabilityScope.excludes.slice()),
-          })
-          : null,
-        validation: row.validation,
-        truth: row.truth,
-      })));
+      });
     }
 
     function appendDataReceipts() {
@@ -216,24 +279,11 @@
     }
 
     function appendScenarioReceipt(result) {
-      sdk.receipts.append({
-        schema: 'simulatte.plugin.interstellarScenarioReceipt.v2',
-        scenarioId: result.scenarioId,
-        datasetScenarioId: result.datasetScenarioId,
-        seed: result.seed,
-        relayPath: result.scenario.relayHops,
-        dataReceipts: result.dataReceipts,
-        modelReceiptIds: result.modelReceipts.map((row) => row.modelId),
-        eventCount: result.schedule.trace.length,
-        controls: result.controls,
-        omissionIds: result.omissions.map((row) => row.id),
-        reliabilityScope: result.reliabilityScope,
-        claimBoundary: result.claimBoundary,
-      });
+      sdk.receipts.append(receiptApi.scenarioReceipt(result));
     }
 
     async function setScenario(nextScenario) {
-      activeScenario = normalizeScenario(nextScenario, config);
+      activeScenario = controlsApi.normalizeScenario(nextScenario, config);
       current = await computeScenario(activeScenario);
       appendScenarioReceipt(current);
       sdk.events.propose({
@@ -246,7 +296,7 @@
     }
 
     function contributeRequest({ sourceText, mission = null }) {
-      if (!/\b(?:interstellar|relay|light[- ]?time|optical\s+link|proxima|barnard|wolf\s+359|61\s+cygni|stellar\s+packet)\b/i.test(sourceText || '')) return null;
+      if (!/\b(?:interstellar|relay|light[- ]?time|optical\s+link|quantum|entanglement|wormhole|warp|proxima|barnard|wolf\s+359|61\s+cygni|stellar\s+packet)\b/i.test(sourceText || '')) return null;
       if (!mission) return { recognized: true, obligations: [], unresolved: [] };
       return {
         recognized: true,
@@ -262,22 +312,7 @@
     async function appendRunReceipts(result) {
       result.modelReceipts.forEach((receipt) => sdk.receipts.append(receipt));
       sdk.receipts.append(result.packet);
-      sdk.receipts.append({
-        schema: 'simulatte.plugin.interstellarRunReceipt.v2',
-        scenarioId: result.scenarioId,
-        packetId: result.packet.packetId,
-        eventIds: result.schedule.trace.map((event) => event.id),
-        causalEdges: result.schedule.trace.flatMap((event) => (
-          event.causalParentIds.map((parentId) => ({ parentId, childId: event.id }))
-        )),
-        scheduler: result.schedule.schedulerReceipt,
-        metrics: result.metrics,
-        omissions: result.omissions,
-        reliabilityScope: result.reliabilityScope,
-        terminalVerification: result.packet.terminalVerification,
-        truth: result.truth,
-        claimBoundary: result.claimBoundary,
-      });
+      sdk.receipts.append(receiptApi.runReceipt(result));
     }
 
     async function handleAction(actionId, context = {}) {
@@ -331,7 +366,9 @@
         progressive: nextProgressive,
       });
       const nextState = sdk.state.read();
-      if (nextState.progressive.status === 'settled') await appendRunReceipts(nextState.result);
+      if (['settled', 'failed'].includes(nextState.progressive.status)) {
+        await appendRunReceipts(nextState.result);
+      }
       return progressAction(nextState);
     }
 
@@ -350,6 +387,11 @@
           bottleneckDataRateGbps: state.result.metrics.bottleneckDataRateGbps - baseline.metrics.bottleneckDataRateGbps,
           transmissionEnergyJ: state.result.metrics.transmissionEnergyJ - baseline.metrics.transmissionEnergyJ,
           packetSuccessProbability: state.result.metrics.endToEndPacketSuccessProbability - baseline.metrics.endToEndPacketSuccessProbability,
+          physicalChannelSuccessProbability: state.result.metrics.physicalChannelSuccessProbability - baseline.metrics.physicalChannelSuccessProbability,
+          operationalP90LatencySeconds: nullableDifference(
+            state.result.operations.latencySeconds.p90,
+            baseline.operations.latencySeconds.p90,
+          ),
         }),
         omissions: state.result.omissions,
         reliabilityScope: state.result.reliabilityScope,
@@ -362,7 +404,7 @@
       sdk.receipts.append({
         ...comparison,
         schema: 'simulatte.plugin.interstellarCounterfactualReceipt.v2',
-        claimBoundary: 'Both branches reuse the same astrometric epoch, packet size, and seed. Only declared path or terminal parameters differ.',
+        claimBoundary: 'Both branches reuse endpoints, astrometric epoch, packet size, operational profile, and seed. The baseline forces a direct classical link and its declared baseline terminal.',
       });
       sdk.events.propose({ pluginId: PLUGIN_ID, kind: `${PLUGIN_ID}.comparison-computed`, comparison });
       return {
@@ -379,10 +421,11 @@
     function settle() {
       const state = sdk.state.read();
       const result = state.result;
-      const completed = state.progressive.status === 'settled';
+      const delivered = state.progressive.status === 'settled';
+      const terminal = ['settled', 'failed'].includes(state.progressive.status);
       const causal = causalOrderPass(result.schedule.trace);
       const evidenceCount = presentationApi
-        .createSemanticPresentation(starsData, result, state.progressive)
+        .createSemanticPresentation(stellarCatalog, result, state.progressive)
         .layers
         .flatMap((layer) => layer.entities)
         .filter((entity) => entity.evidenceReferences.length > 0)
@@ -391,7 +434,7 @@
         obligationResults: [
           {
             obligationId: `${PLUGIN_ID}:delivery:${state.scenarioId}`,
-            status: completed && result.packet.terminalVerification === 'verified_sha256_match' ? 'settled' : 'unmet',
+            status: delivered && result.packet.terminalVerification === 'verified_sha256_match' ? 'settled' : 'unmet',
             evidence: {
               currentEventId: state.progressive.currentEventId,
               deliveryEpochIso: result.schedule.deliveryEpochIso,
@@ -402,7 +445,7 @@
           },
           {
             obligationId: `${PLUGIN_ID}:causality:${state.scenarioId}`,
-            status: completed && causal ? 'settled' : 'unmet',
+            status: terminal && causal ? 'settled' : 'unmet',
             evidence: {
               eventCount: result.schedule.trace.length,
               processedCount: result.schedule.schedulerReceipt.processedCount,
@@ -423,14 +466,14 @@
         ],
         stateIdentity: `${state.scenarioId}:${state.progressive.currentEventId || 'ready'}:${result.packet.integrity.packetHash}`,
         losses: [
-          ...(!completed ? [{ kind: 'simulation_incomplete', currentEventIndex: state.progressive.currentEventIndex }] : []),
+          ...(!terminal ? [{ kind: 'simulation_incomplete', currentEventIndex: state.progressive.currentEventIndex }] : []),
           ...result.stellarStates.filter((row) => !row.hasRadialVelocity).map((row) => ({
             kind: 'missing_radial_velocity',
             sourceId: row.sourceId,
             appliedAssumption: 'zero-radial-velocity',
           })),
           ...result.omissions.map((row) => ({
-            kind: row.id === 'continuous-contact-assumed' ? 'model_assumption' : 'model_omission',
+            kind: 'model_omission',
             omissionId: row.id,
             detail: row.effect,
             affects: row.affects,
@@ -451,32 +494,37 @@
           slot: 'inspector',
           title: 'Interstellar Relay Network',
           rows: [
-            { label: 'Experiment', value: result.scenario.name },
+            { label: 'Starting preset', value: result.scenario.name },
             { label: 'Progress', value: `${state.progressive.currentEventIndex + 1}/${result.schedule.trace.length} events · ${state.progressive.status}` },
             { label: 'Current event', value: event?.kind || 'ready' },
             { label: 'Packet location', value: currentStar?.name || state.progressive.packetLocationId },
             { label: 'Relay path', value: result.scenario.relayHops.map((id) => result.stellarStates.find((row) => row.sourceId === id)?.name || id).join(' → ') },
+            { label: 'Route search', value: `${result.routeSelection.candidateCount} candidates · ${result.controls.routeObjective} objective` },
+            { label: 'Physics lane', value: result.channelReceipts[0]?.label || result.controls.channelMode },
             { label: 'One-way latency', value: `${result.metrics.oneWayLatencyYears.toFixed(5)} years` },
             { label: 'Bottleneck rate', value: formatRate(result.metrics.bottleneckDataRateGbps) },
             { label: 'Minimum margin', value: `${result.metrics.minimumLinkMarginDb.toFixed(2)} dB` },
             { label: 'Transmission energy', value: `${(result.metrics.transmissionEnergyJ / 3.6e6).toFixed(2)} kWh` },
-            { label: 'Packet success model', value: `${(result.metrics.endToEndPacketSuccessProbability * 100).toFixed(5)}%` },
-            { label: 'Reliability assumes', value: 'Continuous contact; no acquisition, outage, maintenance, or retries' },
-            { label: 'Reliability omits', value: 'Plasma effects and a complete detector/background-noise model' },
-            { label: 'Astrometry', value: `Gaia DR3 · ${starsData.provenance.retrievalAt.slice(0, 10)} · ${starsData.stars.length - 1} source rows` },
+            { label: 'Operational delivery', value: `${(result.operations.deliveryProbability * 100).toFixed(3)}% across ${result.operations.ensembleSize} samples` },
+            { label: 'Successful latency p10/p50/p90', value: formatQuantiles(result.operations.latencySeconds) },
+            { label: 'Operational effects', value: result.operations.modeledEffectIds.join('; ') },
+            { label: 'Constructibility', value: [...new Set(result.channelReceipts.map((row) => row.constructibilityStatus))].join('; ') },
+            { label: 'Remaining limitation', value: result.omissions.map((row) => row.label).join('; ') },
+            { label: 'Endpoint catalog', value: `${stellarCatalog.stars.length.toLocaleString()} selectable · ${starsData.stars.length - 1} Gaia DR3 astrometric rows · ${hygData.count - 1} non-Sol HYG snapshot rows` },
           ],
-          fields: controlFields(result.controls, hardwareData),
+          fields: controlsApi.controlFields(result.controls, result.controlOptions),
           actions: [],
         },
         {
           slot: 'hud',
           title: 'Truth boundary',
           rows: [
-            { label: 'Observed', value: 'Gaia DR3 astrometry only' },
-            { label: 'Modeled', value: 'Space motion, light time, optical photon budget' },
-            { label: 'Simulated', value: 'Causal packet and store-forward events' },
-            { label: 'Scenario', value: 'All terminals, contacts, payloads, and relay policy' },
-            { label: 'Continuous contact', value: 'Assumed for every hop; not observed or simulated as availability' },
+            { label: 'Observed', value: 'Gaia DR3 astrometry for six nearby source rows' },
+            { label: 'Derived snapshot', value: 'HYG visible-star positions; motion and covariance unavailable' },
+            { label: 'Modeled', value: 'Space motion, light time, photon budget, route ranking, channel constraints' },
+            { label: 'Simulated', value: 'Acquisition, queueing, outages, maintenance, failure/repair, retries, packet events' },
+            { label: 'Scenario', value: 'All terminals, contacts, traffic, operations profiles, and advanced channels' },
+            { label: 'Causality', value: [...new Set(result.channelReceipts.map((row) => row.causalityStatus))].join('; ') },
             { label: 'Omissions', value: result.omissions.map((row) => row.label).join('; ') },
             { label: 'Limitation', value: result.claimBoundary },
           ],
@@ -487,14 +535,13 @@
 
     function semanticPresentation() {
       const state = sdk.state.read();
-      return presentationApi.createSemanticPresentation(starsData, state.result, state.progressive);
+      return presentationApi.createSemanticPresentation(stellarCatalog, state.result, state.progressive);
     }
     function contributeV4() {
       const state = sdk.state.read();
       return v4Api.createContribution({
         result: state.result,
         progressive: state.progressive,
-        transceiverOptions: Object.values(hardwareData.archetypes).map((row) => ({ value: row.id, label: row.name })),
       });
     }
     function viewIntents() {
@@ -503,7 +550,7 @@
     }
     function present() {
       const state = sdk.state.read();
-      return presentationApi.createV3CompatibilityPresentation(starsData, state.result, state.progressive);
+      return presentationApi.createV3CompatibilityPresentation(stellarCatalog, state.result, state.progressive);
     }
 
     const capabilities = Object.freeze({
@@ -521,6 +568,9 @@
       },
       'simulation.light-delay-queue.v1': () => sdk.state.read().result.schedule,
       'simulation.interstellar-communications.v1': () => sdk.state.read().result,
+      'simulation.interstellar-route-search.v1': () => sdk.state.read().result.routeSelection,
+      'simulation.interstellar-operations-ensemble.v1': () => sdk.state.read().result.operations,
+      'simulation.interstellar-advanced-channel.v1': () => sdk.state.read().result.channelReceipts,
       'simulation.interstellar-relay.v4': () => sdk.state.read(),
       'presentation.semantic.v4': semanticPresentation,
       'view.intents.v1': viewIntents,
@@ -544,80 +594,37 @@
     });
   }
 
-  function resolveScenario(dataset, id) {
-    const aliases = {
-      'sol-alpha-centauri-relay': 'sol-proxima-barnard-relay',
-      'nearest-ten-star-store-forward': 'nearby-star-store-forward',
-      'sirius-high-power-link': '61-cygni-high-power-link',
-    };
-    const wanted = aliases[id] || id;
-    const found = dataset.scenarios?.find((row) => row.id === wanted);
-    if (!found) throw new Error(`interstellar_scenario_missing: ${wanted}`);
-    return found;
-  }
-
-  function normalizeScenario(value, config) {
-    if (typeof value === 'string') return Object.freeze({ id: value, seed: value });
-    const id = value?.scenarioId || value?.id || config?.defaultScenarioId || 'sol-proxima-direct';
-    return Object.freeze({ ...value, id, seed: value?.seed || id });
-  }
-
-  function resolveControls(config, scenario, values, hardwareData) {
-    const controls = Object.freeze({
-      startEpochIso: normalizeEpoch(values.startEpochIso || config.startEpochIso),
-      targetEpochYear: Number(values.targetEpochYear ?? config.targetEpochYear),
-      processingDelayHours: Number(values.processingDelayHours ?? config.processingDelayHours),
-      packetBytes: Number(values.packetBytes ?? scenario.packetBytes),
-      transceiverId: String(values.transceiverId || scenario.transceiverId || config.defaultTransceiver),
-    });
-    if (!Number.isFinite(Date.parse(controls.startEpochIso))) throw new Error('interstellar_start_epoch_invalid');
-    if (!Number.isFinite(controls.targetEpochYear) || controls.targetEpochYear < 2016 || controls.targetEpochYear > 2200) throw new Error('interstellar_target_epoch_invalid');
-    if (!Number.isFinite(controls.processingDelayHours) || controls.processingDelayHours < 0 || controls.processingDelayHours > 8760) throw new Error('interstellar_processing_delay_invalid');
-    if (!Number.isInteger(controls.packetBytes) || controls.packetBytes < 64 || controls.packetBytes > 1073741824) throw new Error('interstellar_packet_bytes_invalid');
-    if (!hardwareData.archetypes[controls.transceiverId]) throw new Error(`interstellar_transceiver_missing: ${controls.transceiverId}`);
-    return controls;
-  }
-
-  function controlFields(controls, hardwareData) {
-    return [
-      { id: 'startEpochIso', label: 'Transmission epoch', type: 'date', value: controls.startEpochIso.slice(0, 10) },
-      { id: 'targetEpochYear', label: 'Astrometry epoch year', type: 'number', value: controls.targetEpochYear },
-      { id: 'processingDelayHours', label: 'Relay processing hours', type: 'number', value: controls.processingDelayHours },
-      { id: 'packetBytes', label: 'Packet bytes', type: 'number', value: controls.packetBytes },
-      {
-        id: 'transceiverId',
-        label: 'Scenario terminal',
-        type: 'select',
-        value: controls.transceiverId,
-        options: Object.values(hardwareData.archetypes).map((row) => ({ value: row.id, label: row.name })),
-      },
-    ];
-  }
-
-  function normalizeEpoch(value) {
-    const text = String(value);
-    const normalized = /^\d{4}-\d{2}-\d{2}(?:T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?)?$/.test(text)
-      ? `${text.includes('T') ? text : `${text}T00:00:00`}Z`
-      : text;
-    if (!Number.isFinite(Date.parse(normalized))) throw new Error('interstellar_start_epoch_invalid');
-    return new Date(normalized).toISOString();
-  }
-
-  function createComparisonDefinition(scenario, seed, omissions, reliabilityScope) {
+  function createComparisonDefinition({
+    scenario,
+    controls,
+    routeSelection,
+    seed,
+    omissions,
+    reliabilityScope,
+  }) {
     return Object.freeze({
       schema: 'simulatte.comparisonDefinition.v1',
       id: `${scenario.id}:direct-baseline`,
       baseline: Object.freeze({
-        relayPath: Object.freeze(scenario.baselineRelayHops.slice()),
+        relayPath: Object.freeze([controls.sourceId, controls.targetId]),
         transceiverId: scenario.baselineTransceiverId,
+        channelMode: 'classical-optical',
       }),
       intervention: Object.freeze({
-        relayPath: Object.freeze(scenario.relayHops.slice()),
-        transceiverId: scenario.transceiverId,
+        relayPath: routeSelection.selectedPath,
+        transceiverId: controls.transceiverId,
+        channelMode: controls.channelMode,
       }),
       synchronizedClock: true,
       commonSeed: seed,
-      metricIds: Object.freeze(['latencyYears', 'bottleneckDataRateGbps', 'transmissionEnergyJ', 'packetSuccessProbability']),
+      metricIds: Object.freeze([
+        'latencyYears',
+        'bottleneckDataRateGbps',
+        'transmissionEnergyJ',
+        'packetSuccessProbability',
+        'physicalChannelSuccessProbability',
+        'operationalP90LatencySeconds',
+      ]),
       omissionIds: Object.freeze(omissions.map((row) => row.id)),
       reliabilityScope,
       spatialComparison: Object.freeze({
@@ -634,10 +641,15 @@
       scenarioId: result.scenarioId,
       relayPath: result.scenario.relayHops,
       transceiverId: result.controls.transceiverId,
+      channelMode: result.controls.channelMode,
+      routingMode: result.controls.routingMode,
+      routeObjective: result.controls.routeObjective,
       latencyYears: result.metrics.oneWayLatencyYears,
       bottleneckDataRateGbps: result.metrics.bottleneckDataRateGbps,
       transmissionEnergyJ: result.metrics.transmissionEnergyJ,
       packetSuccessProbability: result.metrics.endToEndPacketSuccessProbability,
+      physicalChannelSuccessProbability: result.metrics.physicalChannelSuccessProbability,
+      operationalP90LatencySeconds: result.operations.latencySeconds.p90,
     });
   }
 
@@ -709,57 +721,18 @@
     if (gbps >= 0.001) return `${(gbps * 1000).toFixed(3)} Mbps`;
     return `${(gbps * 1e6).toFixed(3)} kbps`;
   }
-  function observedTruth() {
-    return Object.freeze({
-      origin: 'observed',
-      temporalStatus: 'historical',
-      uncertainty: Object.freeze({ kind: 'distribution', value: Object.freeze({ family: 'catalog-reported-standard-errors' }) }),
-    });
+  function formatQuantiles(value) {
+    const format = (seconds) => seconds === null ? 'not delivered' : `${(seconds / 31557600).toFixed(5)} y`;
+    return `${format(value.p10)} / ${format(value.p50)} / ${format(value.p90)}`;
   }
-  function modeledTruth(reason) {
-    return Object.freeze({
-      origin: 'modeled',
-      temporalStatus: 'forecast',
-      uncertainty: Object.freeze({ kind: 'missing', value: Object.freeze({ reason }) }),
-    });
+  function nullableDifference(left, right) {
+    return left === null || right === null ? null : left - right;
   }
-  function scenarioTruth(reason) {
-    return Object.freeze({
-      origin: 'scenario',
-      temporalStatus: 'forecast',
-      uncertainty: Object.freeze({ kind: 'missing', value: Object.freeze({ reason }) }),
-    });
-  }
-
-  const datasetValidators = Object.freeze({
-    'simulatte.gaiaDr3NearbyStars.v2': (value) => {
-      if (!Array.isArray(value?.stars) || value.stars.length < 2) throw new Error('nearby star catalog incomplete');
-      value.stars.filter((row) => row.sourceId !== 'gaia-sol').forEach((row) => {
-        if (!/^\d+$/.test(row.catalogSourceId || '') || !row.sourceRowId) throw new Error(`gaia source row identity missing: ${row.sourceId}`);
-      });
-      return value;
-    },
-    'simulatte.relayHardwareArchetypes.v2': (value) => {
-      if (!value?.archetypes || !Object.keys(value.archetypes).length) throw new Error('relay hardware missing');
-      return value;
-    },
-    'simulatte.interstellarScenarioNetwork.v2': (value) => {
-      if (!Array.isArray(value?.scenarios) || !value.scenarios.length) throw new Error('relay scenarios missing');
-      return value;
-    },
-    'simulatte.interstellarRelayModelCatalog.v1': (value) => {
-      if (!Array.isArray(value?.models) || value.models.length < 4) throw new Error('relay model catalog incomplete');
-      if (!Array.isArray(value.omissions) || value.omissions.length !== 7) throw new Error('relay model omission catalog incomplete');
-      const omissionIds = new Set(value.omissions.map((row) => row.id));
-      value.models.forEach((model) => (model.omissionIds || []).forEach((id) => {
-        if (!omissionIds.has(id)) throw new Error(`relay model omission unresolved: ${model.id}:${id}`);
-      }));
-      [...(value.reliabilityScope?.conditionalOn || []), ...(value.reliabilityScope?.excludes || [])].forEach((id) => {
-        if (!omissionIds.has(id)) throw new Error(`relay reliability omission unresolved: ${id}`);
-      });
-      return value;
-    },
-  });
+  const validatorApi = typeof module === 'object' && module.exports
+    ? require('./dataset-validators.js')
+    : root.InterstellarDatasetValidators;
+  if (!validatorApi?.datasetValidators) throw new Error('interstellar_dataset_validators_missing');
+  const { datasetValidators } = validatorApi;
 
   return Object.freeze({ activate, datasetValidators });
 });

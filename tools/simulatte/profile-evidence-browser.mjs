@@ -7,7 +7,88 @@ import zlib from 'node:zlib';
 import { spawn } from 'node:child_process';
 import { CdpClient, findChrome } from './run-browser-smoke.mjs';
 import { createStaticSiteServer } from './static-site-server.mjs';
-import { sha256Bytes } from './profile-evidence-contract.mjs';
+import {
+  canonicalJson,
+  pluginPlaybackIdentity,
+  sha256Bytes,
+} from './profile-evidence-contract.mjs';
+
+function serializedIdentity(value) {
+  const content = JSON.stringify(value);
+  return {
+    contentSha256: sha256Bytes(content),
+    byteLength: Buffer.byteLength(content),
+  };
+}
+
+function compactResultIdentity(result) {
+  if (!result || typeof result !== 'object') return null;
+  return {
+    schema: result.schema || null,
+    id: result.id || null,
+    scenarioId: result.scenarioId || result.scenario?.id || null,
+    scenarioSeed: result.seed || result.scenario?.seed || null,
+    scenarioIdentity: result.scenarioIdentity || null,
+    status: result.status || null,
+  };
+}
+
+function compactEventReference(event) {
+  const identity = serializedIdentity(event);
+  return {
+    schema: 'simulatte.profileEvidenceEventRef.v1',
+    originalSchema: event?.schema || null,
+    id: event?.id || null,
+    pluginId: event?.pluginId || null,
+    kind: event?.kind || event?.event || null,
+    sequence: Number.isFinite(event?.sequence) ? event.sequence : null,
+    simulationTimeMs: Number.isFinite(event?.simulationTimeMs) ? event.simulationTimeMs : null,
+    result: compactResultIdentity(event?.result),
+    ...identity,
+  };
+}
+
+function compactRunReceiptReference(receipt) {
+  if (!receipt || typeof receipt !== 'object') return null;
+  if (receipt.schema === 'simulatte.profileEvidenceRunReceiptRef.v1') return receipt;
+  const restorationIdentity = pluginPlaybackIdentity(receipt);
+  const events = receipt.pluginRuntime?.events || receipt.runtime?.events || [];
+  const pluginReceipts = receipt.pluginRuntime?.pluginReceipts || receipt.runtime?.pluginReceipts || [];
+  return {
+    schema: 'simulatte.profileEvidenceRunReceiptRef.v1',
+    originalSchema: receipt.schema || null,
+    profileId: receipt.profileId || null,
+    tier: receipt.tier || null,
+    ownerPluginId: receipt.ownerPluginId || null,
+    scenario: {
+      id: receipt.scenario?.id || null,
+      seed: receipt.scenario?.seed || null,
+    },
+    status: receipt.actionResult?.status || receipt.status || null,
+    scenarioIdentity: receipt.actionResult?.scenarioIdentity || null,
+    eventCount: Array.isArray(events) ? events.length : 0,
+    pluginReceiptCount: Array.isArray(pluginReceipts) ? pluginReceipts.length : 0,
+    restorationIdentity,
+    restorationIdentitySha256: restorationIdentity
+      ? sha256Bytes(canonicalJson(restorationIdentity))
+      : null,
+    ...serializedIdentity(receipt),
+  };
+}
+
+function compactCapturedEvidence(captured) {
+  return {
+    ...captured,
+    runtime: {
+      ...captured.runtime,
+      runReceipt: compactRunReceiptReference(captured.runtime?.runReceipt),
+    },
+    evidence: {
+      ...captured.evidence,
+      events: (captured.evidence?.events || []).map(compactEventReference),
+    },
+  };
+}
 
 async function freePort() {
   const server = net.createServer();
@@ -464,7 +545,7 @@ async function captureBrowserRun({ chromePath, baseUrl, run, sourceIdentity, cla
     fs.mkdirSync(screenshotDirectory, { recursive: true });
     const screenshotPath = path.join(screenshotDirectory, `${screenshotSha256}.png`);
     if (!fs.existsSync(screenshotPath)) fs.writeFileSync(screenshotPath, screenshot);
-    const captured = evaluated.result.value;
+    const captured = compactCapturedEvidence(evaluated.result.value);
     const reloaded = client.once('Page.loadEventFired');
     await client.send('Page.reload', { ignoreCache: false });
     await reloaded;
@@ -472,7 +553,8 @@ async function captureBrowserRun({ chromePath, baseUrl, run, sourceIdentity, cla
     const reload = await client.send('Runtime.evaluate', {
       expression: `(async () => {
         const beforeReceipt = ${JSON.stringify(beforeRunReceipt)};
-        const isPluginPlayback = beforeReceipt?.schema === 'simulatte.pluginPlaybackRunReceipt.v1';
+        const isPluginPlayback = beforeReceipt?.originalSchema === 'simulatte.pluginPlaybackRunReceipt.v1'
+          || beforeReceipt?.schema === 'simulatte.pluginPlaybackRunReceipt.v1';
         const receipt = () => isPluginPlayback
           ? globalThis.__simulattePluginRunReceipt || null
           : globalThis.__simulatteTierRunReceipt || null;
@@ -503,7 +585,12 @@ async function captureBrowserRun({ chromePath, baseUrl, run, sourceIdentity, cla
       awaitPromise: true,
       returnByValue: true,
     });
-    captured.evidence.reload = reload.result.value;
+    const reloadEvidence = reload.result.value;
+    if (reloadEvidence.kind === 'plugin-playback') {
+      reloadEvidence.beforeReceipt = compactRunReceiptReference(reloadEvidence.beforeReceipt);
+      reloadEvidence.afterReceipt = compactRunReceiptReference(reloadEvidence.afterReceipt);
+    }
+    captured.evidence.reload = reloadEvidence;
     if (reload.result.value.restored) captured.evidence.lifecycle.push('reload');
     else {
       captured.integrity.status = 'contradictory';
@@ -551,4 +638,13 @@ async function createEvidenceServer(publicRoot) {
   return { server, baseUrl: `http://127.0.0.1:${server.address().port}/` };
 }
 
-export { browserProbeExpression, captureBrowserRun, createEvidenceServer, findChrome, inspectPng };
+export {
+  browserProbeExpression,
+  captureBrowserRun,
+  compactCapturedEvidence,
+  compactEventReference,
+  compactRunReceiptReference,
+  createEvidenceServer,
+  findChrome,
+  inspectPng,
+};

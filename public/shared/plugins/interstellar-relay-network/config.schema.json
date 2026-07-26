@@ -7,6 +7,13 @@
     "id",
     "defaultTransceiver",
     "defaultScenarioId",
+    "defaultRoutingMode",
+    "defaultRouteObjective",
+    "defaultChannelMode",
+    "defaultOperationsProfileId",
+    "maxHops",
+    "maxHopDistancePc",
+    "ensembleSize",
     "processingDelayHours",
     "startEpochIso",
     "targetEpochYear"
@@ -27,6 +34,49 @@
     "defaultScenarioId": {
       "type": "string",
       "minLength": 1
+    },
+    "defaultRoutingMode": {
+      "enum": [
+        "direct",
+        "automatic",
+        "manual"
+      ]
+    },
+    "defaultRouteObjective": {
+      "enum": [
+        "latency",
+        "throughput",
+        "energy",
+        "reliability",
+        "balanced"
+      ]
+    },
+    "defaultChannelMode": {
+      "enum": [
+        "classical-optical",
+        "quantum-assisted",
+        "traversable-wormhole",
+        "alcubierre-warp"
+      ]
+    },
+    "defaultOperationsProfileId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "maxHops": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 8
+    },
+    "maxHopDistancePc": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "maximum": 250000
+    },
+    "ensembleSize": {
+      "type": "integer",
+      "minimum": 8,
+      "maximum": 512
     },
     "processingDelayHours": {
       "type": "number",

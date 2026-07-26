@@ -6,7 +6,9 @@
   root.SimulatteAsteroidPresentation = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createAsteroidPresentation(propagation) {
   function createSemanticPresentation({ result, snapshot, forceModel }) {
-    const encounter = snapshot.interventionEncounter || snapshot.baselineEncounter || result.baselineEncounter;
+    const encounter = snapshot.interventionEncounter
+      ? result.interventionEncounter
+      : result.baselineEncounter;
     const representative = encounter.members[0];
     const trajectory = representative.trajectory.map((row) => row.positionAu);
     const earthTrajectory = representative.trajectory.map((row) => propagation.earthState(row.day, forceModel.gmSunAu3Day2).positionAu);
