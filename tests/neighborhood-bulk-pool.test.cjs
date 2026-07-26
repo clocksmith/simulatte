@@ -34,6 +34,7 @@ test('governed inputs validate while keeping residents, routes, and inventory cl
   )));
   assert.equal(datasets.catalog.coverage.declaredComplete, false);
   assert.equal(datasets.catalog.coverage.status, 'bootstrap-scenario');
+  assert.equal(datasets.routes.coverageAreas.length, 3);
   assert.match(datasets.catalog.claimBoundary, /deliberately incomplete/i);
   assert.match(datasets.routes.claimBoundary, /not.*street/i);
 });
@@ -263,6 +264,19 @@ test('v4 contribution renders semantic WGS84 evidence and every accepted control
   assert.ok(contribution.presentation.layers.some((row) => row.quantity?.kind === 'catalog-offer-rows'));
   assert.ok(contribution.provenanceRecords.length >= manifest.datasets.length + 4);
   assert.ok(contribution.inspections.some((row) => JSON.stringify(row).includes('bootstrap-scenario')));
+  const models = Object.fromEntries(
+    contribution.provenanceRecords.filter((row) => row.kind === 'model').map((row) => [row.id, row])
+  );
+  const catalogHash = createHash('sha256')
+    .update(readFileSync(join(PLUGIN_DIRECTORY, 'catalog-index.js')))
+    .digest('hex');
+  const solverHash = createHash('sha256')
+    .update(readFileSync(join(PLUGIN_DIRECTORY, 'pool-solver.js')))
+    .digest('hex');
+  assert.equal(models['neighborhood-bulk-pool:model:catalog-index'].contentHash, catalogHash);
+  for (const id of ['pool-solver', 'route-screen', 'settlement']) {
+    assert.equal(models[`neighborhood-bulk-pool:model:${id}`].contentHash, solverHash);
+  }
 });
 
 function parametersFor(scenarioId, overrides = {}) {

@@ -19,6 +19,7 @@ const TIERS = [
   { tier: 'world', profileId: 'maritime-trade-global-v1', pluginId: 'maritime-trade-global' },
   { tier: 'world', profileId: 'subsea-network-global-v1', pluginId: 'subsea-network-global' },
   { tier: 'solar-system', profileId: 'orbital-transfer-planner-v1', pluginId: 'orbital-transfer-planner' },
+  { tier: 'solar-system', profileId: 'asteroid-defense-v1', pluginId: 'asteroid-defense' },
   { tier: 'star-chart', profileId: 'interstellar-relay-network-v1', pluginId: 'interstellar-relay-network' },
 ];
 

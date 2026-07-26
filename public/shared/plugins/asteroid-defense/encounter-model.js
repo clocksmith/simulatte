@@ -52,7 +52,8 @@
       gmSunAuD2: forceModel.gmSunAu3Day2,
       sampleLimit: 256,
     });
-    const success = unit(`${executionSeed}:launch`) < intervention.reliability * (1 - executionModel.launchFailureProbability);
+    const success = intervention.id !== 'none'
+      && unit(`${executionSeed}:launch`) < intervention.reliability * (1 - executionModel.launchFailureProbability);
     const executionScale = success
       ? 1 + normal(`${executionSeed}:delivery`) * Math.hypot(
         executionModel.navigationSigmaFraction,

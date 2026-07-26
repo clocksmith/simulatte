@@ -1,0 +1,20 @@
+{
+  "timestamp": "2026-07-26T19:19:40.777Z",
+  "pass": false,
+  "totalTiers": 1,
+  "passedTiers": 0,
+  "reports": [
+    {
+      "tier": "solar-system",
+      "profileId": "asteroid-defense-v1",
+      "pluginId": "asteroid-defense",
+      "pass": false,
+      "status": null,
+      "receipt": null,
+      "errors": [
+        "tier-complete: runtime error (Failed to execute 'setItem' on 'Storage': Setting the value of 'simulatte:tier-run:v1:asteroid-defense-v1' exceeded the quota.)",
+        "[Simulatte] tier.run.failed Object"
+      ]
+    }
+  ]
+}

@@ -48,12 +48,6 @@
       "scenarioId": "false-alarm-calibration"
     }
   ],
-  "camera": {
-    "initialMode": "orbit",
-    "runMode": "orbit",
-    "pluginId": "asteroid-defense",
-    "targetId": "asteroid-encounter"
-  },
   "plugins": [
     {
       "id": "asteroid-defense",

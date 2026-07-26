@@ -39,6 +39,7 @@ function memoryStorage() {
     getItem: (key) => rows.get(key) || null,
     setItem: (key, value) => rows.set(key, value),
     removeItem: (key) => rows.delete(key),
+    rows,
   };
 }
 
@@ -127,7 +128,10 @@ test('tier controller pauses, steps, executes both comparison branches, settles,
   assert.equal(receipt.actionResult.comparisonExecutionReceipt.state, 'settled');
   assert.equal(receipt.actionResult.comparisonExecutionReceipt.history.length, 1);
   assert.equal(receipts.length, 1);
-  assert.equal(controllerApi.readStoredReceipt(storage, 'fixture-profile').scenario.seed, 'fixture-seed');
+  const stored = controllerApi.readStoredReceipt(storage, 'fixture-profile');
+  assert.equal(stored.schema, 'simulatte.tierRunRestoreEnvelope.v1');
+  assert.equal(stored.scenario.seed, 'fixture-seed');
+  assert.equal(stored.terminal.status, 'settled');
   assert.equal(states.some((state) => state.startsWith('paused:')), true);
 });
 
@@ -157,4 +161,41 @@ test('tier controller applies experiment parameters to start and step phases and
     { ...parameters, phase: 'step' },
   ]);
   assert.deepEqual(controller.receipt().parameterValues, parameters);
+});
+
+test('tier controller persists a bounded reload envelope instead of terminal evidence', () => {
+  const storage = memoryStorage();
+  const receipt = {
+    schema: 'simulatte.tierRunReceipt.v1',
+    profileId: 'fixture-profile',
+    scenario: {
+      id: 'fixture-scenario',
+      seed: 'fixture-seed',
+      description: 'x'.repeat(100_000),
+    },
+    parameterValues: {
+      policy: 'intervention',
+      selectedIds: ['one', 'two'],
+    },
+    actionResult: {
+      status: 'settled',
+      comparisonExecutionReceipt: {
+        comparisonId: 'fixture-comparison',
+        history: [{ payload: 'x'.repeat(2_000_000) }],
+      },
+    },
+    pluginRuntime: {
+      events: [{ payload: 'x'.repeat(2_000_000) }],
+    },
+  };
+
+  assert.equal(controllerApi.writeStoredReceipt(storage, 'fixture-profile', receipt), true);
+  const serialized = storage.rows.get(controllerApi.storageKey('fixture-profile'));
+  assert.ok(serialized.length < 1_024);
+  const stored = controllerApi.readStoredReceipt(storage, 'fixture-profile');
+  assert.deepEqual(stored.scenario, { id: 'fixture-scenario', seed: 'fixture-seed' });
+  assert.deepEqual(stored.parameterValues, receipt.parameterValues);
+  assert.equal(stored.terminal.comparisonId, 'fixture-comparison');
+  assert.equal('pluginRuntime' in stored, false);
+  assert.equal('actionResult' in stored, false);
 });

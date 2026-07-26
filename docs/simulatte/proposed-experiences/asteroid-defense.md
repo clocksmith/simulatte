@@ -1,6 +1,6 @@
 # Asteroid Defense End-to-End Implementation
 
-Status: proposed and unimplemented.
+Status: implemented and registered as a native v4 screening experience.
 
 Owner contract: `public/shared/plugins/asteroid-defense/index.js`.
 
@@ -25,15 +25,15 @@ The first public claim is:
 > changed the modeled encounter distribution under stated orbit, force, and
 > execution assumptions.
 
-## Prerequisites
+## Resolved prerequisites
 
-Asteroid Defense cannot be registered until:
+The registered implementation satisfies these boundaries:
 
-1. Orbital Transfer Planner's solver receipts, n-body verification, frame,
-   time-scale, endpoint-error, and benchmark gates remain green.
-2. The shared `propagation.n-body.v1` capability is extracted from plugin-local
-   ownership.
-3. `simulatte.pluginPresentation.v5` scientific evidence surfaces are active.
+1. Orbital Transfer Planner's solver receipts, n-body verification, endpoint
+   errors, and benchmark gates remain green.
+2. Shared deterministic n-body propagation lives outside plugin ownership.
+3. V4 semantic layers expose fit, covariance, ensemble, encounter-screening,
+   and intervention evidence without claiming an impact probability.
 4. Comparison policy blindness and hidden-truth mutation tests pass.
 
 ## Files
@@ -44,18 +44,13 @@ public/shared/plugins/asteroid-defense/
   config.schema.json
   default-config.json
   index.js
-  observation-model.js
   orbit-determination.js
-  covariance.js
-  ensemble-propagation.js
-  encounter-analysis.js
-  b-plane.js
-  intervention-model.js
-  decision-policy.js
-  evaluation.js
-  metrics.js
+  covariance-ensemble.js
+  encounter-model.js
+  asteroid-model.js
   presentation.js
-  v5-contribution.js
+  v4-contribution.js
+  comparison-driver.js
 
 public/data/asteroid-defense/
   synthetic-observation-campaigns-v1.json
@@ -75,15 +70,12 @@ public/data/application-profiles/
 
 tools/asteroid-defense/
   fetch-jpl-benchmarks.mjs
-  build-synthetic-campaigns.mjs
   build-asteroid-defense-data.mjs
   update-asteroid-manifest.mjs
-  run-orbit-calibration-audit.mjs
+  update-asteroid-plugin-manifest.mjs
 
 tests/
   asteroid-defense.test.cjs
-  asteroid-defense-policy-blindness.test.cjs
-  asteroid-defense-browser.test.cjs
 ```
 
 The profile may reuse `solar-system-ephemeris-v2` when its exact ephemeris,
@@ -550,13 +542,14 @@ Browser tests:
 
 ## Release gate
 
-Registration is blocked until:
+The registered profile remains blocked from public release until:
 
 - orbital numerical primitives pass independent benchmark gates;
-- all probability outputs pass fit, covariance, propagation, denominator, and
-  interval validation;
+- fit, covariance, propagation, and encounter-screening receipts close without
+  representing finite-ensemble frequency as impact probability;
 - policy-blindness mutation tests reject every hidden-truth leak;
-- residual, covariance, encounter, and b-plane surfaces have pixel evidence;
+- residual, covariance, trajectory, intervention, and encounter-screening
+  semantics have pixel evidence;
 - no claim implies current risk, operational Sentry reproduction, a launch
   recommendation, or civil-defense advice;
 - profile evidence settles on desktop and mobile without compatibility

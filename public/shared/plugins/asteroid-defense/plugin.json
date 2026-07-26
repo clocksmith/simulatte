@@ -148,7 +148,7 @@
       "path": "./covariance-ensemble.js"
     },
     {
-      "integrity": "sha384-736cd47e945cd87fdabffa4b3e5ad7ba092b8836086ffb1535584e29b14735dd3555dca504a5b8a36b1f6599f412dd83",
+      "integrity": "sha384-e662b536e9171594d7c03d523e2b021c7abbc95434e128fcf5324f93bf764bcd5db489d50bb327366db27cdeeb2139fb",
       "path": "./encounter-model.js"
     },
     {
@@ -160,7 +160,7 @@
       "path": "./asteroid-model.js"
     },
     {
-      "integrity": "sha384-d3a69408a32dbdfefe13cbc720a06b69e5515f3c79d2728542d064aa2781daaa714e8190be5c388e5ca0cdb0cb5aa3df",
+      "integrity": "sha384-e6fb3c8a6991e7a9d20c47466b536c17c9785d752de9ea82b28dc3f4b5b080711b2c9111e19dfabe0d6699424df03ac7",
       "path": "./v4-contribution.js"
     },
     {

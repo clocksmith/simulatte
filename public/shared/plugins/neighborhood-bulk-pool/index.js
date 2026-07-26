@@ -527,6 +527,8 @@
   function validateRoutes(value) {
     if (!Array.isArray(value?.neighborhoods) || !value.neighborhoods.length
       || !Array.isArray(value.hubs) || !value.hubs.length
+      || !Array.isArray(value.coverageAreas) || value.coverageAreas.length !== 3
+      || value.coverageAreas.some((row) => !Array.isArray(row.coordinates) || row.coordinates.length < 3)
       || !Array.isArray(value.corridors) || !value.corridors.length
       || value.corridors.some((row) => !Array.isArray(row.coordinates) || row.coordinates.length < 2)) {
       throw pluginError('bulk_pool_routes_invalid', 'Route corridor scenarios are incomplete');

@@ -22,6 +22,23 @@
     { "id": "hub-park-slope", "label": "Park Slope pickup", "neighborhoodId": "park-slope", "coordinates": [-73.9800, 40.6720], "walkingRadiusKm": 1.5 },
     { "id": "hub-rego-park", "label": "Rego Park pickup", "neighborhoodId": "rego-park", "coordinates": [-73.8600, 40.7250], "walkingRadiusKm": 1.5 }
   ],
+  "coverageAreas": [
+    {
+      "id": "coverage-manhattan",
+      "label": "Manhattan scenario coverage",
+      "coordinates": [[-74.0200, 40.7000], [-73.9700, 40.8750], [-73.9250, 40.8800], [-73.9100, 40.7600], [-73.9750, 40.6950]]
+    },
+    {
+      "id": "coverage-brooklyn",
+      "label": "Brooklyn scenario coverage",
+      "coordinates": [[-74.0450, 40.5650], [-73.8500, 40.5700], [-73.8550, 40.7350], [-73.9700, 40.7450], [-74.0250, 40.6800]]
+    },
+    {
+      "id": "coverage-queens",
+      "label": "Queens scenario coverage",
+      "coordinates": [[-73.9650, 40.6800], [-73.7600, 40.6750], [-73.7000, 40.8000], [-73.9400, 40.8050]]
+    }
+  ],
   "corridors": [
     {
       "id": "corridor-manhattan-harlem",
@@ -83,5 +100,5 @@
       }
     }
   },
-  "claimBoundary": "Neighborhood points are coarse scenario centroids. Corridors, distances, pickup hubs, walking radii, bridge behavior, parking, and travel times are modeled; they are not exact street routes or live traffic observations."
+  "claimBoundary": "Neighborhood points are coarse scenario centroids and coverage areas are display envelopes, not borough boundaries. Corridors, distances, pickup hubs, walking radii, bridge behavior, parking, and travel times are modeled; they are not exact street routes or live traffic observations."
 }

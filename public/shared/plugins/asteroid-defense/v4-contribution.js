@@ -11,7 +11,7 @@
   const MODEL_HASHES = Object.freeze({
     orbitFit: 'ee6af91acf7efb8a7c5602b939fca005161630b7ce53a5debb188c31c2dd3006',
     ensemble: '69236a83edcbfbf07bdd63b30fb08d19b0dd28f4dccc6b420eb120057f5143e2',
-    encounter: 'c53e5d958a652b9867d6adda5b04ad79db5a6adb6fc7eaec585460a5c61b52eb',
+    encounter: '8600ce8c2e549f9a14f95fc6c0d1b0f98e3a2a2b9291b755da347690aa125f83',
     propagation: 'ccdb8fc4462878971f510c195f6c55b47613bc506264f0095b6a7daf230de9a0',
   });
 

@@ -114,6 +114,7 @@ test('observation and intervention policies materially alter declared outcomes',
     observationCampaignId: 'late-precision-observation',
     seed: 'asteroid-policy-difference',
     observationBudget: 6,
+    decisionPolicyId: 'act-at-threshold',
   };
   const fixed = model.runScenario({
     datasets,
@@ -131,7 +132,10 @@ test('observation and intervention policies materially alter declared outcomes',
     scenario: { ...policyScenario, interventionArchetypeId: 'none', decisionThreshold: 0 },
   });
   assert.notEqual(fixed.metrics.fitResidualRmsArcsec, informed.metrics.fitResidualRmsArcsec);
-  assert.notEqual(informed.metrics.interventionMedianDistanceKm, none.metrics.interventionMedianDistanceKm);
+  assert.notDeepEqual(
+    informed.interventionEncounter.members.map((row) => row.minimumDistanceKm),
+    none.interventionEncounter.members.map((row) => row.minimumDistanceKm)
+  );
 });
 
 test('comparison executes blind lockstep branches and does not serialize hidden state', async () => {

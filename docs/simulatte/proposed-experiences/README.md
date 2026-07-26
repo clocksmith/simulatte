@@ -1,8 +1,8 @@
 # Proposed Experience Implementation Program
 
-Status: staged implementation specifications. Subsea Network is implemented
-and registered. Grid Resilience and Asteroid Defense are next. Exoplanet
-Survey remains proposed and excluded from the current implementation program.
+Status: Subsea Network, Grid Resilience, and Asteroid Defense are implemented
+and registered as native v4 experiences. Exoplanet Survey remains proposed
+and is excluded from the current implementation program.
 
 Owner contracts:
 
@@ -73,9 +73,10 @@ a second profile to a tier.
 
 ### Scientific evidence surfaces
 
-Grid and Subsea fit the current map-centric v4 presentation. Exoplanet and
-Asteroid require plots that are first-class rendered evidence, not arrays
-hidden in inspector fields.
+Grid and Subsea use the current map-centric v4 presentation. Asteroid Defense
+uses v4 semantic paths, samples, quantities, inspections, and declarative view
+intents. Exoplanet still requires plots that are first-class rendered evidence,
+not arrays hidden in inspector fields.
 
 Add a core-owned `simulatte.pluginPresentation.v5` that preserves v4 layers and
 adds multiple semantic surfaces:
@@ -116,25 +117,24 @@ Required implementation:
 5. Add desktop and mobile tests for world-to-plot switching, comparison mode,
    selection, manual view override, and reload.
 
-This work is required before Exoplanet Survey or Asteroid Defense can pass
-visible-evidence gates.
+This work is required before Exoplanet Survey can pass visible-evidence gates.
+Asteroid Defense deliberately exposes screening evidence through bounded v4
+semantics and does not claim an operational impact probability.
 
 ### Shared numerical capability
 
-Asteroid Defense and Orbital Transfer Planner need the same independently
-verified n-body propagation primitive. A plugin must not import another
-plugin. Move the reusable propagator and frame/time-scale validators into:
+Asteroid Defense and Orbital Transfer Planner need independently verified
+propagation without importing one another. The shared deterministic RK4
+primitive is implemented at:
 
 ```text
-public/shared/core/orbits/
-  frame-contracts.js
-  n-body-propagator.js
-  propagation-receipt.js
+public/shared/core/simulation/n-body-propagation.js
 ```
 
-Expose `propagation.n-body.v1` through a restricted host capability. Keep
-Lambert search, mission policy, impact analysis, and intervention logic inside
-their owning plugins.
+Asteroid Defense exposes `propagation.n-body.v1` and records its force-model,
+step, energy-drift, and omission receipt. Orbital Transfer Planner retains its
+independent verifier. Lambert search, mission policy, encounter screening, and
+intervention logic remain inside their owning plugins.
 
 ## Existing runtime reused unchanged
 
@@ -154,15 +154,12 @@ their owning plugins.
 ## Implementation order
 
 1. Maintain the implemented profile-owned world contract.
-2. Maintain Subsea Network as the first complete vertical slice.
-3. Implement Grid Resilience after Subsea proves shared constrained-flow
-   numerics and comparison presentation.
-4. Add scientific evidence surfaces and shared orbital propagation.
-5. Implement Exoplanet Survey to prove hidden-truth and policy-blind analysis.
-6. Implement Asteroid Defense after orbital verification and plot evidence are
-   release-gated.
-7. Regenerate the plugin registry, runtime inventory, manifests, hashes, claim
-   inventory, and complete profile evidence matrix.
+2. Maintain Subsea Network as the first complete new vertical slice.
+3. Maintain Grid Resilience as the interface-constrained dispatch slice.
+4. Maintain Asteroid Defense as the policy-blind orbital screening slice.
+5. Keep generated registries, manifests, hashes, and claim inventory aligned.
+6. Capture the complete profile evidence matrix.
+7. Implement Exoplanet Survey only when it returns to the active program.
 
 No later lane may be registered publicly until its own source, data, runtime,
 browser, and claim evidence closes. Earlier profiles remain deployable while a

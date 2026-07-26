@@ -40,6 +40,16 @@
             "path": "./worlds/solar-system-ephemeris-v2.json",
             "sha256": "a493d60b797e73502684e47915921c86b6cef8bf252112110169e0be2d689326"
           }
+        },
+        {
+          "id": "asteroid-defense-v1",
+          "path": "../application-profiles/asteroid-defense-v1.json",
+          "sha256": "d3a16290faecd42c488cb98e6d58d96295912a8459185cbf2124896694948473",
+          "world": {
+            "id": "solar-system-ephemeris-v2",
+            "path": "./worlds/solar-system-ephemeris-v2.json",
+            "sha256": "a493d60b797e73502684e47915921c86b6cef8bf252112110169e0be2d689326"
+          }
         }
       ]
     },

@@ -1,0 +1,20 @@
+{
+  "timestamp": "2026-07-26T19:18:37.538Z",
+  "pass": false,
+  "totalTiers": 1,
+  "passedTiers": 0,
+  "reports": [
+    {
+      "tier": "solar-system",
+      "profileId": "asteroid-defense-v1",
+      "pluginId": "asteroid-defense",
+      "pass": false,
+      "status": null,
+      "receipt": null,
+      "errors": [
+        "tier-ready: runtime error (application_profile_camera_mode_invalid: Profile asteroid-defense-v1 camera modes are invalid)",
+        "[Simulatte] runtime.failed Object"
+      ]
+    }
+  ]
+}

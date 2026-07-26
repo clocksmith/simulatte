@@ -28,7 +28,7 @@
         "id": "neighborhood-bulk-route-corridors-modeled-v1",
         "path": "../../../data/neighborhood-bulk-pool/route-corridors-modeled-v1.json",
         "schemaId": "simulatte.neighborhoodBulkRouteCorridors.v1",
-        "sha256": "24b9d3dd298ad4d1e53ee626c44e0a751681969c1df92e9809a1ca48035e00de"
+        "sha256": "0ad60929d655c056ff85515015f0c261897b21619993eda4385983870f57512f"
       },
       "required": true
     },
@@ -56,7 +56,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginNeighborhoodBulkPool",
-    "integrity": "sha384-0fc58fca1432d0432176b04ec79ebe7401a2947dd6e17f71014eb47c9a1bbb8c16e89efb4470535ca0b02576dd29b42d",
+    "integrity": "sha384-1bb727b03018ead5467afe57ba6b783b7f4f2b08766fa8757605f7349274b4bbe9bd77289d4ff17efb7f366a7c6651cf",
     "path": "./index.js"
   },
   "extensionPoints": [
@@ -101,7 +101,7 @@
       "path": "./pool-solver.js"
     },
     {
-      "integrity": "sha384-65a43724e3dd485bc2416d7a3733b9d562c71cc1114584398e2b521d65d9321df0ae026acb2c6d3c1c92803f1977b638",
+      "integrity": "sha384-62ed6e1486ddab5319ea75647a77facb4649b7b1c16b712081ffa4c9b23757104256bffd29ffb97ba4e6d28c3cabc530",
       "path": "./v4-contribution.js"
     }
   ],

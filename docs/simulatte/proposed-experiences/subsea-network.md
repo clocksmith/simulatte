@@ -1,6 +1,6 @@
 # Subsea Network End-to-End Implementation
 
-Status: implemented and registered as the eighth native v4 experience.
+Status: implemented and registered as a native v4 experience.
 
 Owner contract: `public/shared/plugins/subsea-network-global/index.js`.
 

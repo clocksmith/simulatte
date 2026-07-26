@@ -3,6 +3,7 @@
   "schema": "simulatte.profileClaimInventory.v1",
   "contentVersion": "2026-07-26",
   "profileIds": [
+    "asteroid-defense-v1",
     "cable-trader-pickup-v1",
     "food-recall-us-v1",
     "grid-resilience-us-v1",

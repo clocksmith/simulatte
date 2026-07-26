@@ -9,6 +9,7 @@
   comparisonAdapter
 ) {
   const STORAGE_PREFIX = 'simulatte:tier-run:v1:';
+  const RESTORE_ENVELOPE_SCHEMA = 'simulatte.tierRunRestoreEnvelope.v1';
 
   function createController({
     getRuntime,
@@ -286,8 +287,12 @@
   function readStoredReceipt(storage, profileId) {
     if (!storage || typeof storage.getItem !== 'function') return null;
     try {
-      const value = JSON.parse(storage.getItem(storageKey(profileId)) || 'null');
-      return value?.schema === 'simulatte.tierRunReceipt.v1' ? value : null;
+      const serialized = storage.getItem(storageKey(profileId));
+      if (!serialized) return null;
+      const value = JSON.parse(serialized);
+      if (value?.schema === RESTORE_ENVELOPE_SCHEMA) return value;
+      clearStoredReceipt(storage, profileId);
+      return null;
     } catch (_error) {
       clearStoredReceipt(storage, profileId);
       return null;
@@ -296,8 +301,53 @@
 
   function writeStoredReceipt(storage, profileId, receipt) {
     if (!storage || typeof storage.setItem !== 'function') return false;
-    storage.setItem(storageKey(profileId), JSON.stringify(receipt));
+    const envelope = createRestoreEnvelope(profileId, receipt);
+    const serialized = JSON.stringify(envelope);
+    try {
+      storage.setItem(storageKey(profileId), serialized);
+    } catch (error) {
+      throw controllerError(
+        'tier_run_restore_storage_failed',
+        `Could not persist deterministic reload inputs for ${profileId}`,
+        {
+          profileId,
+          serializedLength: serialized.length,
+          storageErrorName: error?.name || null,
+        }
+      );
+    }
     return true;
+  }
+
+  function createRestoreEnvelope(profileId, receipt) {
+    if (!receipt || receipt.profileId !== profileId) {
+      throw controllerError(
+        'tier_run_restore_receipt_invalid',
+        `Terminal receipt does not belong to ${profileId}`,
+        { profileId, receiptProfileId: receipt?.profileId || null }
+      );
+    }
+    if (!receipt.scenario?.id || !receipt.scenario?.seed) {
+      throw controllerError(
+        'tier_run_restore_scenario_invalid',
+        `Terminal receipt for ${profileId} is missing scenario identity`,
+        { profileId }
+      );
+    }
+    return Object.freeze({
+      schema: RESTORE_ENVELOPE_SCHEMA,
+      profileId,
+      scenario: Object.freeze({
+        id: receipt.scenario.id,
+        seed: receipt.scenario.seed,
+      }),
+      parameterValues: Object.freeze(normalizeValues(receipt.parameterValues)),
+      terminal: Object.freeze({
+        receiptSchema: receipt.schema || null,
+        status: receipt.actionResult?.status || null,
+        comparisonId: receipt.actionResult?.comparisonExecutionReceipt?.comparisonId || null,
+      }),
+    });
   }
 
   function clearStoredReceipt(storage, profileId) {
@@ -320,8 +370,10 @@
 
   return Object.freeze({
     clearStoredReceipt,
+    createRestoreEnvelope,
     createController,
     readStoredReceipt,
+    RESTORE_ENVELOPE_SCHEMA,
     storageKey,
     writeStoredReceipt,
   });

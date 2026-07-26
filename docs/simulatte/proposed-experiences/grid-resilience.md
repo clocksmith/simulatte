@@ -1,6 +1,6 @@
 # Grid Resilience End-to-End Implementation
 
-Status: proposed and unimplemented.
+Status: implemented and registered as a native v4 experience.
 
 Owner contract: `public/shared/plugins/grid-resilience-us/index.js`.
 
@@ -32,14 +32,12 @@ public/shared/plugins/grid-resilience-us/
   default-config.json
   index.js
   operating-snapshot.js
-  disturbance-model.js
   dispatch-model.js
-  dispatch-solver.js
-  storage-model.js
   restoration-engine.js
   metrics.js
   presentation.js
   v4-contribution.js
+  comparison-driver.js
 
 public/data/grid-resilience-us/
   eia-balancing-authority-hourly-v1.json
@@ -58,19 +56,15 @@ public/data/grid-resilience-us/
 public/data/application-profiles/
   grid-resilience-us-v1.json
 
-public/data/simulatte/worlds/
-  us-balancing-authority-regions-v1.json
-
 tools/grid-resilience/
   fetch-eia-operating-data.mjs
   fetch-noaa-weather.mjs
   build-grid-resilience-data.mjs
   update-grid-manifest.mjs
-  run-grid-audit.mjs
+  update-grid-plugin-manifest.mjs
 
 tests/
   grid-resilience-us.test.cjs
-  grid-resilience-browser.test.cjs
 ```
 
 ## Governed data
@@ -415,7 +409,7 @@ Browser tests cover:
 
 ## Release gate
 
-Registration is blocked until:
+The registered profile remains blocked from public release until:
 
 - API response versions, query hashes, rows, units, revisions, and licenses are
   present;

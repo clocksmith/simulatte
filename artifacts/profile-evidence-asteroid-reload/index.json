@@ -1,0 +1,43 @@
+{
+  "schema": "simulatte.profileEvidenceIndex.v1",
+  "planSha256": "9400565f45888f799f58c690825317d66f3eec2789a35a1e5a29801c4c758398",
+  "claimInventorySha256": "cfa741ad478cde73874db3192895165371cdbfeedf8a46a52539b046b6be3429",
+  "sourceIdentity": {
+    "buildId": "8b5371cdda26dff56e1d6c47eb0fc014cadba199-60f75628983b",
+    "commitSha": "97fbbe1df2390d7170d9c87243f0a5fd2ae60add",
+    "worktreeSha256": "ca87928045aafb643fcb76585fcd799f0daf7b5bf6e14c0d5c5401f5fea8f4a1"
+  },
+  "totalRuns": 2,
+  "passedRuns": 2,
+  "pass": false,
+  "profiles": [
+    {
+      "profileId": "asteroid-defense-v1",
+      "totalRuns": 2,
+      "passedRuns": 2,
+      "failureCounts": {}
+    }
+  ],
+  "runs": [
+    {
+      "runId": "run-370aacb731513592d0ee",
+      "profileId": "asteroid-defense-v1",
+      "seedId": "short-arc-follow-up",
+      "viewportId": "desktop-1440x1000",
+      "receiptSha256": "5bcd7b430eaa9f1d78f6290815df5bbeea686e661f127fef8af7c51b895faaab",
+      "receiptPath": "receipts/sha256/5bcd7b430eaa9f1d78f6290815df5bbeea686e661f127fef8af7c51b895faaab.json",
+      "pass": true,
+      "failures": []
+    },
+    {
+      "runId": "run-449ffe75e235728053fb",
+      "profileId": "asteroid-defense-v1",
+      "seedId": "short-arc-follow-up",
+      "viewportId": "mobile-390x844",
+      "receiptSha256": "f0410bb2e492fb3d3fff64bfb77343762c8629e27ae3e5d42a22f233a16c65d1",
+      "receiptPath": "receipts/sha256/f0410bb2e492fb3d3fff64bfb77343762c8629e27ae3e5d42a22f233a16c65d1.json",
+      "pass": true,
+      "failures": []
+    }
+  ]
+}

@@ -8,10 +8,10 @@
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createNeighborhoodBulkV4(builder) {
   const PLUGIN_ID = 'neighborhood-bulk-pool';
   const MODEL_HASHES = Object.freeze({
-    catalogIndex: 'c208d27c9f577ea8ec7d43f500d6f5785403fe67738ab234e952003d71ef5741',
-    poolSolver: 'f21624e5b6bbc51bda6c1402b38b311c5a1e2ac7059ca1086c8b906567edb27d',
-    routeScreen: 'c51218bc43eff026a800a658f196bfc564dc037a59446813bed3a1636742767f',
-    settlement: '4d9908a33b9f499fa6d3ed96150e81ee88d74d66d38aa26b2bd784e67b505208',
+    catalogIndex: '5e42ab29d255645b3afe617b01bdbc8120e756b288c97af946b423961331ec76',
+    poolSolver: 'f912863db9cabbab5c049be0f165c70dff0f1360e5e919cd7469609fbf8ec2f7',
+    routeScreen: 'f912863db9cabbab5c049be0f165c70dff0f1360e5e919cd7469609fbf8ec2f7',
+    settlement: 'f912863db9cabbab5c049be0f165c70dff0f1360e5e919cd7469609fbf8ec2f7',
   });
 
   function createContribution({ datasets, dataReceipts, config, result, snapshot }) {
@@ -161,14 +161,25 @@
     const neighborhoods = new Map(datasets.routes.neighborhoods.map((row) => [row.id, row]));
     const maximumOffers = Math.max(...warehouseOffers.values(), 1);
     const layers = [
+      ...datasets.routes.coverageAreas.map((row) => builder.layer({
+        id: `modeled-area:${row.id}`,
+        kind: 'area',
+        label: `${row.label} · coarse modeled envelope`,
+        geometry: builder.geometry('polygon', 'wgs84', row.coordinates),
+        quantity: builder.quantity('scenario-coverage-area', 1, 'area', [0, 2]),
+        role: 'comparison',
+        importance: 0.66,
+        aggregationKey: 'bulk-pool-modeled-coverage',
+        provenance: modeled,
+      })),
       ...datasets.warehouses.warehouses.map((row) => builder.layer({
         id: `warehouse:${row.id}`,
         kind: 'point',
         label: row.label,
         geometry: builder.geometry('point', 'wgs84', [[...row.coordinates, 0]]),
         quantity: builder.quantity('catalog-offer-rows', warehouseOffers.get(row.id), 'rows', [0, maximumOffers]),
-        role: 'context',
-        importance: 0.72,
+        role: 'primary',
+        importance: 0.98,
         aggregationKey: 'bulk-pool-warehouses',
         provenance: warehouse,
       })),
