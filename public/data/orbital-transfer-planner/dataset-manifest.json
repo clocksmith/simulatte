@@ -1,6 +1,10 @@
 {
   "schema": "simulatte.orbitalTransferDatasetManifest.v1",
+  "id": "orbital-transfer-planner.dataset-manifest.v2",
   "generatedAt": "2026-07-22T14:54:24.077Z",
+  "auditedAt": "2026-07-25T00:00:00Z",
+  "owner": "orbital-transfer-planner",
+  "claimBoundary": "Artifact hashes identify activated files. Source identity is independently incomplete where a raw response hash or upstream row identifier is absent.",
   "datasets": [
     {
       "id": "jpl.horizons.heliocentric-vectors.v1",
@@ -8,31 +12,66 @@
       "schemaId": "simulatte.jplHorizonsHeliocentricVectors.v1",
       "sha256": "dae6f914e45a5692b127dc122d9861c6f76770316979fd4c822ba8c83ae25020",
       "sourceKind": "observed_jpl_horizons_vectors",
-      "retrievedAt": "2026-07-22T14:54:24.077Z"
+      "retrievedAt": "2026-07-22T14:54:24.077Z",
+      "sourceUrl": "https://ssd.jpl.nasa.gov/api/horizons.api",
+      "license": "NASA/JPL public ephemeris service; use remains subject to JPL terms and source acknowledgement",
+      "rowIdentity": "body command + TDB Julian date/epoch",
+      "sourceRowCoverage": "Earth, Moon, Venus, Mars, and Jupiter daily vectors from 2030-09-15 through 2032-09-14",
+      "sourceResponseSha256": null,
+      "sourceIdentityStatus": "query retained; raw Horizons response hash not retained",
+      "origin": "observed",
+      "temporalStatus": "historical"
     },
     {
       "id": "orbital.depots.v1",
       "filename": "orbital-depots-v1.json",
       "schemaId": "simulatte.orbitalDepots.v1",
-      "sha256": "a2720a78cef373a127473c8950ba804dba7449d3507e89dd0605e437a0c373de"
+      "sha256": "a2720a78cef373a127473c8950ba804dba7449d3507e89dd0605e437a0c373de",
+      "retrievedAt": null,
+      "license": "No external dataset license; Simulatte-authored scenario artifact",
+      "rowIdentity": "depots[].id",
+      "sourceResponseSha256": null,
+      "origin": "scenario",
+      "temporalStatus": "forecast"
     },
     {
       "id": "solar.radiation.snapshot.v1",
       "filename": "solar-radiation-snapshot-v1.json",
       "schemaId": "simulatte.solarRadiationSnapshot.v1",
-      "sha256": "7033f000b18639dff8a548fc2481a679cdfc9b4b763722c5e3b120c1ea2f759f"
+      "sha256": "7033f000b18639dff8a548fc2481a679cdfc9b4b763722c5e3b120c1ea2f759f",
+      "retrievedAt": "2026-07-21T00:00:00Z",
+      "license": "No observed SWPC rows are retained; Simulatte-authored scenario artifact",
+      "rowIdentity": "flareEvents[].day + class",
+      "sourceResponseSha256": null,
+      "origin": "scenario",
+      "temporalStatus": "forecast",
+      "sourceIdentityStatus": "not observed weather; title does not establish SWPC provenance"
     },
     {
       "id": "solar.system.gm-constants-de440.v1",
       "filename": "gm-constants-de440-v1.json",
       "schemaId": "simulatte.solarSystemGmConstants.v1",
-      "sha256": "54e129096f6aa63fec28ddd0fbcd4e70f1ba54fddd8435f0f3faf7041197bbd0"
+      "sha256": "54e129096f6aa63fec28ddd0fbcd4e70f1ba54fddd8435f0f3faf7041197bbd0",
+      "retrievedAt": null,
+      "sourceUrl": "https://ssd.jpl.nasa.gov/doc/Park.2021.AJ.DE440.pdf",
+      "license": "NASA/JPL published constants; source acknowledgement required",
+      "rowIdentity": "bodies object key",
+      "sourceResponseSha256": null,
+      "origin": "derived",
+      "temporalStatus": "snapshot",
+      "sourceIdentityStatus": "values identify DE440 but the upstream table bytes and retrieval receipt are not retained"
     },
     {
       "id": "spacecraft.archetypes.v1",
       "filename": "spacecraft-archetypes-v1.json",
       "schemaId": "simulatte.spacecraftArchetypes.v1",
-      "sha256": "b264a7006fcdda4597dd498f15ea8b3f650a9895241662747081da3fd423de7b"
+      "sha256": "b264a7006fcdda4597dd498f15ea8b3f650a9895241662747081da3fd423de7b",
+      "retrievedAt": null,
+      "license": "No external dataset license; Simulatte-authored scenario artifact",
+      "rowIdentity": "archetypes object key",
+      "sourceResponseSha256": null,
+      "origin": "scenario",
+      "temporalStatus": "forecast"
     }
   ]
 }

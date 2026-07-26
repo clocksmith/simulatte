@@ -7,7 +7,9 @@
     "id",
     "defaultArchetype",
     "defaultDepotId",
-    "defaultScenarioId"
+    "defaultScenarioId",
+    "solver",
+    "verification"
   ],
   "additionalProperties": false,
   "properties": {
@@ -29,6 +31,26 @@
     "defaultScenarioId": {
       "type": "string",
       "minLength": 1
+    },
+    "solver": {
+      "type": "object",
+      "required": ["prograde", "maxIterations", "toleranceDays"],
+      "additionalProperties": false,
+      "properties": {
+        "prograde": { "type": "boolean" },
+        "maxIterations": { "type": "integer", "minimum": 1, "maximum": 1024 },
+        "toleranceDays": { "type": "number", "exclusiveMinimum": 0 }
+      }
+    },
+    "verification": {
+      "type": "object",
+      "required": ["stepDays", "positionToleranceKm", "velocityToleranceKmS"],
+      "additionalProperties": false,
+      "properties": {
+        "stepDays": { "type": "number", "exclusiveMinimum": 0, "maximum": 5 },
+        "positionToleranceKm": { "type": "number", "exclusiveMinimum": 0 },
+        "velocityToleranceKmS": { "type": "number", "exclusiveMinimum": 0 }
+      }
     }
   }
 }

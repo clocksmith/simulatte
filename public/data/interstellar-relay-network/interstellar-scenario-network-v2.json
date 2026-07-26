@@ -14,6 +14,16 @@
         }
       }
     },
+    "retrievalAt": "2026-07-25T00:00:00Z",
+    "license": {
+      "id": "Simulatte-repository-governed-scenario",
+      "status": "locally-authored-scenario-data"
+    },
+    "coverage": {
+      "kind": "four-public-experiments",
+      "rowCount": 4,
+      "observationStatus": "No network topology is observed."
+    },
     "claimBoundary": "Every relay node, packet, and terminal is hypothetical. Stellar inputs are governed separately."
   },
   "scenarios": [

@@ -1,5 +1,37 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema", "title": "Safety Explorer configuration v1", "type": "object",
-  "required": ["schema", "id"], "additionalProperties": false,
-  "properties": { "schema": { "const": "simulatte.plugin.safetyExplorerConfig.v1" }, "id": { "type": "string" } }
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Safety Explorer configuration v2",
+  "type": "object",
+  "required": ["schema", "id", "fixedSparseCountShrinkage", "sensitivity"],
+  "additionalProperties": false,
+  "properties": {
+    "schema": { "const": "simulatte.plugin.safetyExplorerConfig.v2" },
+    "id": { "type": "string" },
+    "fixedSparseCountShrinkage": {
+      "type": "object",
+      "required": ["k", "weights"],
+      "additionalProperties": false,
+      "properties": {
+        "k": { "type": "number", "minimum": 0 },
+        "weights": {
+          "type": "object",
+          "required": ["crash", "injury", "fatality"],
+          "additionalProperties": false,
+          "properties": {
+            "crash": { "type": "number", "minimum": 0 },
+            "injury": { "type": "number", "minimum": 0 },
+            "fatality": { "type": "number", "minimum": 0 }
+          }
+        }
+      }
+    },
+    "sensitivity": {
+      "type": "object",
+      "required": ["joinRadiusM"],
+      "additionalProperties": false,
+      "properties": {
+        "joinRadiusM": { "type": "number", "minimum": 1, "maximum": 35 }
+      }
+    }
+  }
 }

@@ -3,7 +3,7 @@
   "id": "cable-compatibility-priors-v1",
   "contentVersion": "2026-07-25",
   "retrievedAt": "2026-07-25T00:00:00Z",
-  "claimBoundary": "This catalog governs connector-family identity and compatibility context only. It contains no observed hub demand, inventory, participant, exchange, failure-rate, or product-lifetime measurements.",
+  "claimBoundary": "This catalog governs connector-family identity and compatibility context only. It contains no observed hub demand, inventory, modeled-request outcomes, exchange, failure-rate, or product-lifetime measurements.",
   "sources": [
     {
       "id": "usb-if-type-c-cable-connector",

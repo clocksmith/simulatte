@@ -8,6 +8,7 @@ const plugin = require('../public/shared/plugins/interstellar-relay-network/inde
 const stellar = require('../public/shared/plugins/interstellar-relay-network/stellar-state.js');
 const lightTime = require('../public/shared/plugins/interstellar-relay-network/light-time.js');
 const optical = require('../public/shared/plugins/interstellar-relay-network/optical-link-budget.js');
+const v4 = require('../public/shared/plugins/interstellar-relay-network/v4-contribution.js');
 const contracts = require('../public/simulatte/platform/contracts/plugin-contracts.js');
 const schedulerApi = require('../public/simulatte/platform/plugin-host/plugin-scheduler.js');
 const canonicalReceipts = require('../public/simulatte/runtime/canonical-receipts.js');
@@ -15,6 +16,15 @@ const canonicalReceipts = require('../public/simulatte/runtime/canonical-receipt
 const root = path.resolve(__dirname, '..');
 const pluginDirectory = path.join(root, 'public/shared/plugins/interstellar-relay-network');
 const dataDirectory = path.join(root, 'public/data/interstellar-relay-network');
+const OMISSION_IDS = [
+  'acquisition-not-modeled',
+  'continuous-contact-assumed',
+  'detector-background-noise-incomplete',
+  'infrastructure-not-observed',
+  'maintenance-not-modeled',
+  'plasma-not-modeled',
+  'retries-not-modeled',
+];
 
 function readJson(filename) {
   return JSON.parse(fs.readFileSync(filename, 'utf8'));
@@ -105,8 +115,16 @@ test('governed relay inputs preserve Gaia row identity, hashes, licenses, and in
     assert.equal(actual, declaration.reference.sha256, declaration.id);
   }
   const stars = readJson(path.join(dataDirectory, 'gaia-dr3-nearby-stars-v2.json'));
+  const rawGaia = fs.readFileSync(path.join(dataDirectory, 'gaia-dr3-source-response-v1.csv'));
   assert.equal(stars.provenance.publisher, 'European Space Agency Gaia Archive');
   assert.match(stars.provenance.license.url, /^https:/);
+  assert.equal(
+    crypto.createHash('sha256').update(rawGaia).digest('hex'),
+    stars.provenance.sourceArtifact.sha256,
+  );
+  const governedManifest = readJson(path.join(dataDirectory, 'governed-dataset-manifest-v2.json'));
+  assert.equal(governedManifest.sources[0].sha256, stars.provenance.sourceArtifact.sha256);
+  assert.equal(governedManifest.sources[0].retrievalAt, stars.provenance.retrievalAt);
   const observedRows = stars.stars.filter((row) => row.sourceId !== 'gaia-sol');
   assert.equal(observedRows.length, 6);
   observedRows.forEach((row) => {
@@ -117,6 +135,51 @@ test('governed relay inputs preserve Gaia row identity, hashes, licenses, and in
     assert.ok(row.truth.uncertainty.kind);
   });
   assert.equal(stars.stars[0].truth.origin, 'scenario');
+  for (const filename of [
+    'gaia-dr3-nearby-stars-v2.json',
+    'relay-hardware-archetypes-v2.json',
+    'interstellar-scenario-network-v2.json',
+    'interstellar-relay-models-v1.json',
+  ]) {
+    const dataset = readJson(path.join(dataDirectory, filename));
+    assert.match(dataset.contentVersion, /^\d{4}-\d{2}-\d{2}$/);
+    assert.match(dataset.provenance.retrievalAt, /^\d{4}-\d{2}-\d{2}T/);
+    assert.ok(dataset.provenance.license.id);
+  }
+});
+
+test('runtime data and model receipts close the custody chain and expose every omission', async () => {
+  const host = await activateDefault();
+  const result = host.instance.capabilities['simulation.interstellar-relay.v4']().result;
+  result.dataReceipts.forEach((receipt) => {
+    assert.match(receipt.contentVersion, /^\d{4}-\d{2}-\d{2}$/);
+    assert.match(receipt.retrievalAt, /^\d{4}-\d{2}-\d{2}T/);
+    assert.ok(receipt.license.id);
+    assert.ok(receipt.coverage.kind);
+    assert.ok(receipt.sourceRowIds.length);
+    assert.ok(receipt.immutableSourceHashes.some((row) => row.kind === 'governed-output'));
+  });
+  const gaiaReceipt = result.dataReceipts.find((row) => row.datasetId === 'gaia.dr3.nearby-stars.v2');
+  assert.ok(gaiaReceipt.immutableSourceHashes.some((row) => (
+    row.kind === 'source-artifact'
+    && row.sha256 === '354e64413eae69f4a06e10b8cfb096674710d486e510e7f2eee850bb36ef8895'
+  )));
+  assert.deepEqual(result.omissions.map((row) => row.id).sort(), OMISSION_IDS);
+  assert.deepEqual(
+    [...result.reliabilityScope.conditionalOn, ...result.reliabilityScope.excludes].sort(),
+    OMISSION_IDS,
+  );
+  const storeForward = result.modelReceipts.find((row) => row.modelId === 'deterministic-store-forward-v2');
+  assert.deepEqual(storeForward.omissions.map((row) => row.id).sort(), OMISSION_IDS);
+  assert.deepEqual(
+    [...storeForward.reliabilityScope.conditionalOn, ...storeForward.reliabilityScope.excludes].sort(),
+    OMISSION_IDS,
+  );
+  result.modelReceipts.forEach((receipt) => receipt.omissions.forEach((omission) => {
+    assert.ok(OMISSION_IDS.includes(omission.id));
+    assert.ok(omission.effect);
+    assert.ok(omission.affects.length);
+  }));
 });
 
 test('stellar propagation carries source rows, transformations, and missing radial-velocity uncertainty', () => {
@@ -186,9 +249,20 @@ test('plugin advances one chronological causal event at a time and settles with 
     event.causalParentIds.forEach((parentId) => assert.ok(eventIndex.get(parentId) < index));
     assert.ok(event.evidenceReferences.length);
     assert.equal(event.truth.origin, 'simulated');
+    assert.deepEqual(event.truth.uncertainty.value.omissionIds.slice().sort(), OMISSION_IDS);
+    assert.equal(event.truth.uncertainty.value.continuousContactAssumed, true);
   });
   const settlement = host.instance.settle();
   assert.ok(settlement.obligationResults.every((row) => row.status === 'settled'));
+  assert.deepEqual(
+    settlement.losses.filter((row) => row.omissionId).map((row) => row.omissionId).sort(),
+    OMISSION_IDS,
+  );
+  settlement.obligationResults.forEach((row) => {
+    assert.deepEqual(row.evidence.omissionIds.slice().sort(), OMISSION_IDS);
+  });
+  assert.deepEqual(terminal.result.metrics.omissions.map((row) => row.id).sort(), OMISSION_IDS);
+  assert.match(terminal.result.metrics.reliabilityScope.statement, /continuous contact/i);
   assert.ok(host.receipts.some((row) => row.schema === 'simulatte.plugin.interstellarRunReceipt.v2'));
   assert.ok(host.receipts.some((row) => row.schema === 'simulatte.modelReceipt.v1'));
   host.receipts.forEach((receipt) => {
@@ -201,6 +275,9 @@ test('semantic presentation carries quantities and evidence while v3 compatibili
   const semantic = host.instance.semanticPresentation();
   assert.equal(semantic.schema, 'simulatte.semanticPresentation.v4-draft');
   assert.equal(semantic.renderedEvidenceContract.finalStyleAuthority, 'core');
+  assert.equal(semantic.spatialContract.dimensions, 3);
+  assert.equal(semantic.spatialContract.scaleSemantics, 'true-distance');
+  assert.equal(semantic.spatialContract.depthSemantics, 'signed-icrs-z-parsec-not-render-order');
   const entities = semantic.layers.flatMap((layer) => layer.entities);
   entities.forEach((entity) => {
     assert.ok(Object.keys(entity.quantities).length);
@@ -209,6 +286,19 @@ test('semantic presentation carries quantities and evidence while v3 compatibili
     assert.equal(entity.tone, undefined);
     assert.equal(entity.width, undefined);
     assert.equal(entity.radius, undefined);
+    if (entity.spatialEvidence.positionPc) {
+      assert.equal(entity.spatialEvidence.positionPc.length, 3);
+      assert.equal(entity.spatialEvidence.lineOfSightDepthPc, entity.spatialEvidence.positionPc[2]);
+      assert.equal(entity.spatialEvidence.radialDistancePc, Math.hypot(...entity.spatialEvidence.positionPc));
+    } else {
+      assert.ok(entity.spatialEvidence.endpointPositionsPc.every((position) => position.length === 3));
+      assert.ok(Number.isFinite(entity.spatialEvidence.euclideanLengthPc));
+    }
+  });
+  const reliabilityEntities = entities.filter((entity) => entity.reliabilityScope);
+  reliabilityEntities.forEach((entity) => {
+    assert.deepEqual(entity.omissions.map((row) => row.id).sort(), OMISSION_IDS);
+    assert.equal(entity.quantities.reliabilityConditionalOnContinuousContact, true);
   });
   const compatibility = host.instance.present();
   contracts.validatePresentationContribution('interstellar-relay-network', compatibility);
@@ -216,6 +306,11 @@ test('semantic presentation carries quantities and evidence while v3 compatibili
   const intents = host.instance.viewIntents();
   assert.equal(intents[0].mode, 'overview');
   assert.equal(intents[0].allowsUserOverride, true);
+  assert.equal(intents[0].spatialContractId, semantic.spatialContract.id);
+  assert.equal(intents[0].framing.preserveDepth, true);
+  assert.equal(intents[0].framing.preserveTrueDistance, true);
+  assert.ok(intents[0].targetEvidenceReferences.length);
+  assert.ok(intents[0].targetEvidenceReferences.some((id) => id.startsWith('gaiadr3.gaia_source:')));
   const views = host.instance.view();
   views.forEach((view) => contracts.validateUiContribution('interstellar-relay-network', view));
   assert.equal(views[0].fields.length, 5);
@@ -232,9 +327,55 @@ test('comparison reuses seed and epoch while reporting latency, rate, energy, an
     Object.keys(result.comparison.differences).sort(),
     ['bottleneckDataRateGbps', 'latencyYears', 'packetSuccessProbability', 'transmissionEnergyJ'],
   );
+  assert.deepEqual(result.comparison.omissions.map((row) => row.id).sort(), OMISSION_IDS);
+  assert.match(result.comparison.reliabilityScope.statement, /continuous contact/i);
+  const definition = host.instance.capabilities['comparison.interstellar-relay.v1']();
+  assert.deepEqual(definition.omissionIds.slice().sort(), OMISSION_IDS);
+  assert.equal(definition.spatialComparison.dimensions, 3);
   assert.ok(host.receipts.some((row) => row.schema === 'simulatte.plugin.interstellarCounterfactualReceipt.v2'));
   host.receipts.forEach((receipt) => {
     assert.ok(host.manifest.receiptSchemas.includes(receipt.schema), `undeclared emitted receipt ${receipt.schema}`);
+  });
+});
+
+test('native v4 contribution preserves true 3D evidence, moving packet depth, and omission inspections', async () => {
+  const host = await activateDefault();
+  await host.instance.handleAction('scenario.run', { values: { phase: 'start' } });
+  let state = host.instance.capabilities['simulation.interstellar-relay.v4']();
+  while (state.progressive.activeHopIndex === null) {
+    await host.instance.handleAction('scenario.run', { values: { phase: 'step' } });
+    state = host.instance.capabilities['simulation.interstellar-relay.v4']();
+  }
+  const activeHop = state.result.schedule.hops[state.progressive.activeHopIndex];
+  const midpointProgressive = {
+    ...state.progressive,
+    elapsedSeconds: (activeHop.transmitOffsetSeconds + activeHop.receiveOffsetSeconds) / 2,
+  };
+  const contribution = v4.createContribution({ result: state.result, progressive: midpointProgressive });
+  assert.equal(contribution.schema, 'simulatte.pluginContribution.v4');
+  const spatial = contribution.provenanceRecords.find((row) => row.kind === 'transformation');
+  assert.equal(spatial.metadata.dimensions, 3);
+  assert.equal(spatial.metadata.distanceSemantics, 'euclidean-3d-parsec');
+  assert.equal(spatial.metadata.depthSemantics, 'signed-icrs-z-parsec-not-render-order');
+  contribution.presentation.layers.forEach((layer) => {
+    assert.ok(layer.geometry.coordinates.every((coordinate) => coordinate.length === 3));
+    assert.ok(layer.provenance.evidenceRefs.some((row) => row.transformationId === spatial.id));
+  });
+  const packetLayer = contribution.presentation.layers.find((row) => row.id === state.result.packet.packetId);
+  const from = state.result.stellarStates.find((row) => row.sourceId === activeHop.fromId).positionPc;
+  assert.notDeepEqual(packetLayer.geometry.coordinates[0], from);
+  assert.equal(contribution.presentation.viewIntents[0].mode, 'follow');
+  assert.ok(contribution.presentation.viewIntents[0].targetIds.includes(packetLayer.id));
+  const stateMeasures = Object.fromEntries(contribution.state.measures.map((row) => [row.kind, row]));
+  assert.equal(stateMeasures['packet-depth'].value, packetLayer.geometry.coordinates[0][2]);
+  assert.equal(stateMeasures['packet-distance'].value, Math.hypot(...packetLayer.geometry.coordinates[0]));
+  const inspection = contribution.inspections[0];
+  const fields = Object.fromEntries(inspection.fields.map((row) => [row.id, row]));
+  assert.match(fields.reliability.label, /continuous contact/i);
+  OMISSION_IDS.forEach((id) => assert.match(fields.omissions.value, new RegExp(id.split('-')[0], 'i')));
+  contribution.events.forEach((event) => {
+    assert.deepEqual(event.payload.omissionIds.slice().sort(), OMISSION_IDS);
+    assert.equal(event.payload.spatialTransformationId, spatial.id);
   });
 });
 

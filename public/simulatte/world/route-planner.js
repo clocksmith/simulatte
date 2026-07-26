@@ -121,6 +121,15 @@
 
   function planRouteAlternatives(args, maximumAlternatives = 3) {
     const baseline = planRoute(args);
+    if (maximumAlternatives <= 1) {
+      return [{
+        ...baseline,
+        alternativeKind: 'baseline',
+        deviatedFromSegmentId: null,
+        alternativeRank: 1,
+        forecast: forecastRoute(baseline, args.worldModel, args.mission),
+      }];
+    }
     const candidates = new Map([[baseline.segmentIds.join('|'), { ...baseline, alternativeKind: 'baseline', deviatedFromSegmentId: null }]]);
     for (const segmentId of baseline.segmentIds) {
       if (candidates.size >= maximumAlternatives * 4) break;

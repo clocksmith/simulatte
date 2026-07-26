@@ -1,48 +1,101 @@
 {
   "schema": "simulatte.foodDataManifest.v1",
+  "id": "food-recall-us.dataset-manifest.v2",
   "generatedAt": "2026-07-21",
+  "auditedAt": "2026-07-25T00:00:00Z",
+  "owner": "food-recall-us",
+  "claimBoundary": "This inventory records custody for authored and derived artifacts. It does not upgrade synthetic rows or manually normalized historical summaries into observed supply-chain evidence.",
   "datasets": [
     {
       "datasetId": "us.food.facilities.synthetic.v1",
       "schemaId": "simulatte.usFoodFacilityCatalog.v1",
       "path": "../../../data/food-recall-us/facilities-synthetic-v1.json",
-      "sha256": "6c01b650c42f02956f5b3bbaed8218af7a8ac8c679e4354316c27c60143f5e4c"
+      "sha256": "6c01b650c42f02956f5b3bbaed8218af7a8ac8c679e4354316c27c60143f5e4c",
+      "origin": "scenario",
+      "temporalStatus": "forecast",
+      "license": "No external dataset license; Simulatte-authored synthetic scenario artifact",
+      "retrievedAt": null,
+      "generatedAt": "2026-07-21",
+      "rowIdentity": "facilities[].id",
+      "sourceRows": "none; generated deterministically from authored priors"
     },
     {
       "datasetId": "us.food.freight-corridors.v1",
       "schemaId": "simulatte.usFoodFreightCorridors.v1",
       "path": "../../../data/food-recall-us/freight-corridors-v1.json",
-      "sha256": "12c63da2930d624bd38ad172f8cf0c5013c6dd2c5f2af86fbedf3ca9553eee18"
+      "sha256": "12c63da2930d624bd38ad172f8cf0c5013c6dd2c5f2af86fbedf3ca9553eee18",
+      "origin": "scenario",
+      "temporalStatus": "forecast",
+      "license": "No external dataset license; Simulatte-authored aggregate corridor artifact",
+      "retrievedAt": null,
+      "generatedAt": "2026-07-21",
+      "rowIdentity": "corridors[].id",
+      "sourceRows": "none; routes and timing priors are authored"
     },
     {
       "datasetId": "us.food.commodity-profiles.v1",
       "schemaId": "simulatte.usFoodCommodityProfiles.v1",
       "path": "../../../data/food-recall-us/commodity-profiles-v1.json",
-      "sha256": "36c7812f124d6f95beb01d72a0a3289755b6a832165f62e149d4343fb55b4dd3"
+      "sha256": "36c7812f124d6f95beb01d72a0a3289755b6a832165f62e149d4343fb55b4dd3",
+      "origin": "modeled",
+      "temporalStatus": "snapshot",
+      "license": "No external dataset license; Simulatte-authored parameter artifact",
+      "retrievedAt": null,
+      "generatedAt": "2026-07-21",
+      "rowIdentity": "products[].id",
+      "sourceRows": "none; published-range priors lack row-level citations"
     },
     {
       "datasetId": "us.food.hazard-model-registry.v1",
       "schemaId": "simulatte.usFoodHazardRegistry.v1",
       "path": "../../../data/food-recall-us/hazard-model-registry-v1.json",
-      "sha256": "be5cc9de33a64318a7650cdf6697d654de95760b26373ce8dc24282fb2f78af8"
+      "sha256": "be5cc9de33a64318a7650cdf6697d654de95760b26373ce8dc24282fb2f78af8",
+      "origin": "modeled",
+      "temporalStatus": "snapshot",
+      "license": "No external dataset license; Simulatte-authored parameter artifact",
+      "retrievedAt": null,
+      "generatedAt": "2026-07-21",
+      "rowIdentity": "hazards[].id",
+      "sourceRows": "none; illustrative ranges are not a validated regulatory model"
     },
     {
       "datasetId": "us.food.consumer-zones.v1",
       "schemaId": "simulatte.usFoodConsumerZones.v1",
       "path": "../../../data/food-recall-us/consumer-zones-v1.json",
-      "sha256": "67437acbab680fba61490f5cae0e004d3096fe733c629eb1ad1a7f9b07a6c94c"
+      "sha256": "67437acbab680fba61490f5cae0e004d3096fe733c629eb1ad1a7f9b07a6c94c",
+      "origin": "scenario",
+      "temporalStatus": "forecast",
+      "license": "No external dataset license; Simulatte-authored synthetic scenario artifact",
+      "retrievedAt": null,
+      "generatedAt": "2026-07-21",
+      "rowIdentity": "zones[].id",
+      "sourceRows": "none; population and high-risk fractions are synthetic"
     },
     {
       "datasetId": "us.food.historical-recalls.v1",
       "schemaId": "simulatte.usFoodHistoricalRecalls.v1",
       "path": "../../../data/food-recall-us/historical-recalls-v1.json",
-      "sha256": "72dc09d545d4c68a471554181bdb740e55e19e810eb032b57eb9cd379d52fd21"
+      "sha256": "72dc09d545d4c68a471554181bdb740e55e19e810eb032b57eb9cd379d52fd21",
+      "origin": "derived",
+      "temporalStatus": "historical",
+      "license": "United States federal public information; normalized summary artifact is Simulatte-authored",
+      "retrievedAt": null,
+      "generatedAt": "2026-07-21",
+      "rowIdentity": "records[].id is a local summary identity, not an openFDA enforcement-report identity",
+      "sourceRows": "missing; block observed-field publication until official enforcement row IDs and retrieval receipts are attached"
     },
     {
       "datasetId": "us.environment.snapshot.v1",
       "schemaId": "simulatte.usEnvironmentSnapshot.v1",
       "path": "../../../data/food-recall-us/environment-snapshot-v1.json",
-      "sha256": "3d607232ffc3874bdb1b5ad430c36b75793ca9f76bc40a16e0cadeb669392661"
+      "sha256": "3d607232ffc3874bdb1b5ad430c36b75793ca9f76bc40a16e0cadeb669392661",
+      "origin": "scenario",
+      "temporalStatus": "forecast",
+      "license": "No external dataset license; Simulatte-authored analytic environment artifact",
+      "retrievedAt": null,
+      "generatedAt": "2026-07-21",
+      "rowIdentity": "sourceSnapshotIds[] are local scenario identities",
+      "sourceRows": "none; despite its identifier, this is not observed NOAA weather"
     }
   ]
 }

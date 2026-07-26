@@ -1,0 +1,39 @@
+{
+  "schema": "simulatte.profileEvidenceIndex.v1",
+  "planSha256": "14710106f019e51871bbfee47c3e4a559dd619788fbb3204ecd5d27c356f98c9",
+  "claimInventorySha256": "3e09f7d9178b52c9c60f545ae87102dfa03a13d4934558bd7674fcf887e592ef",
+  "sourceIdentity": {
+    "buildId": "64b4838d99a3c41498616db50ba0815473cddfa7-cbd5ffaaed3d",
+    "commitSha": "8b5371cdda26dff56e1d6c47eb0fc014cadba199",
+    "worktreeSha256": "e60c95243380bc4ca6a0cd50f1d230a7cab863976c120f2b11bcd83b608aa755"
+  },
+  "totalRuns": 1,
+  "passedRuns": 0,
+  "pass": false,
+  "profiles": [
+    {
+      "profileId": "food-recall-us-v1",
+      "totalRuns": 1,
+      "passedRuns": 0,
+      "failureCounts": {
+        "settlement_receipt_invalid": 1,
+        "claim_evidence_unresolved": 1
+      }
+    }
+  ],
+  "runs": [
+    {
+      "runId": "run-1a9ffbf24e0949be538f",
+      "profileId": "food-recall-us-v1",
+      "seedId": "leafy-green-baseline",
+      "viewportId": "desktop-1440x1000",
+      "receiptSha256": "e79b91a1fe1ae6d08f66f4d69d6ea4b3b292f35ba475656a4f2d0ae5f868736f",
+      "receiptPath": "receipts/sha256/e79b91a1fe1ae6d08f66f4d69d6ea4b3b292f35ba475656a4f2d0ae5f868736f.json",
+      "pass": false,
+      "failures": [
+        "settlement_receipt_invalid",
+        "claim_evidence_unresolved"
+      ]
+    }
+  ]
+}

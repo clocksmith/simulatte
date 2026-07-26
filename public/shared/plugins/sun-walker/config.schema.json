@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Sun Walker configuration v2",
+  "title": "Sun Walker configuration v3",
   "type": "object",
   "required": [
     "schema",
@@ -15,11 +15,12 @@
     "walkingSpeedMps",
     "minimumSolarElevationDegrees",
     "treeCanopyParticipation",
-    "weatherParticipation"
+    "weatherParticipation",
+    "canopyShadeThreshold"
   ],
   "additionalProperties": false,
   "properties": {
-    "schema": { "const": "simulatte.plugin.sunWalkerConfig.v2" },
+    "schema": { "const": "simulatte.plugin.sunWalkerConfig.v3" },
     "id": { "type": "string" },
     "seed": { "type": "string", "minLength": 1 },
     "maximumAlternatives": { "type": "integer", "minimum": 1, "maximum": 8 },
@@ -30,7 +31,8 @@
     "sampleSpacingM": { "type": "number", "exclusiveMinimum": 0 },
     "walkingSpeedMps": { "type": "number", "exclusiveMinimum": 0, "maximum": 3 },
     "minimumSolarElevationDegrees": { "type": "number", "exclusiveMinimum": 0, "maximum": 15 },
-    "treeCanopyParticipation": { "const": false },
-    "weatherParticipation": { "const": false }
+    "treeCanopyParticipation": { "type": "boolean" },
+    "weatherParticipation": { "type": "boolean" },
+    "canopyShadeThreshold": { "type": "number", "minimum": 0, "maximum": 1 }
   }
 }

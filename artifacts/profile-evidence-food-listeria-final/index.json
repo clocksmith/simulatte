@@ -1,0 +1,43 @@
+{
+  "schema": "simulatte.profileEvidenceIndex.v1",
+  "planSha256": "a45df33d1ff47f2b34b23acb9be08b1bf0cc6dfecd408c62410feb6de14bd992",
+  "claimInventorySha256": "3e09f7d9178b52c9c60f545ae87102dfa03a13d4934558bd7674fcf887e592ef",
+  "sourceIdentity": {
+    "buildId": "64b4838d99a3c41498616db50ba0815473cddfa7-cbd5ffaaed3d",
+    "commitSha": "8b5371cdda26dff56e1d6c47eb0fc014cadba199",
+    "worktreeSha256": "7ff9e0c90f2d25994819c9b107c6eeb473430f8f12378717e739feeaafdc7843"
+  },
+  "totalRuns": 2,
+  "passedRuns": 2,
+  "pass": false,
+  "profiles": [
+    {
+      "profileId": "food-recall-us-v1",
+      "totalRuns": 2,
+      "passedRuns": 2,
+      "failureCounts": {}
+    }
+  ],
+  "runs": [
+    {
+      "runId": "run-cda8302e97f1516afd61",
+      "profileId": "food-recall-us-v1",
+      "seedId": "listeria-rte",
+      "viewportId": "desktop-1440x1000",
+      "receiptSha256": "dfdb3f217a23d0ce5f83c0e99ff07d9273d4765dc55bf306133b763482e6e409",
+      "receiptPath": "receipts/sha256/dfdb3f217a23d0ce5f83c0e99ff07d9273d4765dc55bf306133b763482e6e409.json",
+      "pass": true,
+      "failures": []
+    },
+    {
+      "runId": "run-6cc83f8932aadfe9295a",
+      "profileId": "food-recall-us-v1",
+      "seedId": "listeria-rte",
+      "viewportId": "mobile-390x844",
+      "receiptSha256": "34cb3c0da663d5a65593443461e975520fd045340dff24fabcd68bb875b64cba",
+      "receiptPath": "receipts/sha256/34cb3c0da663d5a65593443461e975520fd045340dff24fabcd68bb875b64cba.json",
+      "pass": true,
+      "failures": []
+    }
+  ]
+}

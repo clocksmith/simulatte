@@ -26,9 +26,12 @@
           temporalVisibility: { fromEventId: simulation.timeline.events[0].id, untilEventId: null },
           quantities: [
             quantity('directSunSeconds', selected.metrics.directSunSeconds, 'seconds'),
+            quantity('directBeamEquivalentSeconds', selected.metrics.directBeamEquivalentSeconds, 'seconds'),
             quantity('shadeSeconds', selected.metrics.shadeSeconds, 'seconds'),
             quantity('unknownSeconds', selected.metrics.unknownSeconds, 'seconds'),
             quantity('modeledBuildingShadePercent', selected.metrics.modeledBuildingShadePercent, 'percent'),
+            quantity('modeledCanopyShadePercent', selected.metrics.modeledCanopyShadePercent, 'percent'),
+            quantity('modeledShadePercent', selected.metrics.modeledShadePercent, 'percent'),
           ],
           entities: selected.segments.map(segmentEntity),
           evidenceRefs: [simulation.dataReceipt.id, simulation.modelReceipt.id],
@@ -59,6 +62,7 @@
           quantities: [
             quantity('progress', snapshot.state.progress, 'ratio'),
             quantity('directSunSeconds', snapshot.state.directSunSeconds, 'seconds'),
+            quantity('directBeamEquivalentSeconds', snapshot.state.directBeamEquivalentSeconds, 'seconds'),
             quantity('shadeSeconds', snapshot.state.shadeSeconds, 'seconds'),
           ],
           entities: visibleSamples.map(sampleEntity),
@@ -73,12 +77,47 @@
           coordinateSystem: 'world-local-meters',
           temporalVisibility: { fromEventId: simulation.timeline.events[0].id, untilEventId: null },
           quantities: [quantity('occludingBuildingCount', new Set(visibleSamples.map((row) => row.occluderId).filter(Boolean)).size, 'count')],
-          entities: transitions.filter((row) => row.occluderId).map(sampleEntity),
-          evidenceRefs: [...new Set(visibleSamples.flatMap((row) => row.evidenceRefs))],
+          entities: transitions.filter((row) => row.occluderKind === 'building').map(sampleEntity),
+          evidenceRefs: [...new Set(visibleSamples
+            .filter((row) => row.occluderKind === 'building')
+            .flatMap((row) => row.evidenceRefs))],
           truth: selected.truth,
           representationHint: 'only shadows causally linked to sampled route exposure',
         },
-      ],
+        {
+          schema: 'simulatte.presentationLayer.v4',
+          id: 'causal-canopy-evidence',
+          semanticLayerType: 'tree.canopy-evidence',
+          coordinateSystem: 'world-local-meters',
+          temporalVisibility: { fromEventId: simulation.timeline.events[0].id, untilEventId: null },
+          quantities: [quantity('occludingTreeCount', new Set(visibleSamples
+            .filter((row) => row.occluderKind === 'tree-canopy')
+            .map((row) => row.occluderId)).size, 'count')],
+          entities: transitions.filter((row) => row.occluderKind === 'tree-canopy').map(sampleEntity),
+          evidenceRefs: [...new Set([
+            simulation.dataReceipt.id,
+            ...visibleSamples
+            .filter((row) => row.occluderKind === 'tree-canopy')
+            .flatMap((row) => row.evidenceRefs),
+          ])],
+          truth: selected.truth,
+          representationHint: 'bounded canopy envelopes only where they causally attenuate a route sample',
+        },
+        {
+          schema: 'simulatte.presentationLayer.v4',
+          id: 'weather-analog-evidence',
+          semanticLayerType: 'weather.historical-analog',
+          coordinateSystem: 'world-local-meters',
+          temporalVisibility: { fromEventId: simulation.timeline.events[0].id, untilEventId: null },
+          quantities: [
+            quantity('meanDirectBeamFactor', average(visibleSamples.map((row) => row.environment.directBeamFactor)), 'ratio'),
+          ],
+          entities: uniqueWeatherEntities(visibleSamples),
+          evidenceRefs: [...new Set(visibleSamples.flatMap((row) => row.environment.evidenceRefs))],
+          truth: selected.truth,
+          representationHint: 'station-observation evidence for the historical weather analog, not a live weather field',
+        },
+      ].filter((layer) => layer.evidenceRefs.length > 0),
       viewIntents: viewIntents(simulation, snapshot, transitions),
       controls: simulation.controls,
       comparisons: simulation.comparisons,
@@ -188,7 +227,12 @@
       state: sample.state,
       reason: sample.reason,
       occluderId: sample.occluderId,
-      quantities: [quantity('representedSeconds', sample.representedSeconds, 'seconds')],
+      occluderKind: sample.occluderKind,
+      quantities: [
+        quantity('representedSeconds', sample.representedSeconds, 'seconds'),
+        quantity('directBeamFactor', sample.directBeamFactor, 'ratio'),
+        quantity('directBeamEquivalentSeconds', sample.directBeamEquivalentSeconds, 'seconds'),
+      ],
       evidenceRefs: sample.evidenceRefs,
       truth: sample.truth,
     };
@@ -196,6 +240,36 @@
 
   function quantity(id, value, units) {
     return { id, value, units };
+  }
+
+  function uniqueWeatherEntities(samples) {
+    const rows = new Map();
+    samples.forEach((sample) => {
+      const weather = sample.environment.weather;
+      if (!weather.sourceRowId || rows.has(weather.sourceRowId)) return;
+      rows.set(weather.sourceRowId, {
+        id: weather.observationId,
+        timestamp: weather.observedAt,
+        analogFor: weather.analogFor,
+        skyCode: weather.skyCode,
+        quantities: [
+          quantity('airTemperatureC', weather.airTemperatureC, 'celsius'),
+          quantity('directBeamFactor', weather.directBeamFactor, 'ratio'),
+        ],
+        evidenceRefs: [`weather:${weather.sourceRowId}`],
+        truth: {
+          origin: 'observed',
+          temporalStatus: 'historical',
+          uncertainty: { kind: 'missing', value: { streetScaleIrradiance: true } },
+        },
+      });
+    });
+    return [...rows.values()];
+  }
+
+  function average(values) {
+    if (!values.length) return null;
+    return Number((values.reduce((sum, value) => sum + value, 0) / values.length).toFixed(6));
   }
 
   return Object.freeze({ semanticPresentation });

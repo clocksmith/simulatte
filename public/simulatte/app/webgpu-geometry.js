@@ -97,15 +97,17 @@
       });
     });
     const heading = headingFor(snapshot.state.position, routeIds, worldModel, tracePositions);
-    actorGeometry.addActor(writer, {
-      kind: snapshot.state.embodimentKind || snapshot.state.renderProfile,
-      point: snapshot.state.position,
-      heading,
-      motionPhase: snapshot.state.distanceTraveledM * 2.1,
-      gait: snapshot.state.taskType === 'loop' ? snapshot.state.embodimentKind === 'pedestrian' ? 'run' : null : null,
-      isPrimary: true,
-    });
-    addSensorCone(writer, snapshot.state.position, heading, snapshot.state.speedMps);
+    if (!snapshot.state.suppressPrimaryActor) {
+      actorGeometry.addActor(writer, {
+        kind: snapshot.state.embodimentKind || snapshot.state.renderProfile,
+        point: snapshot.state.position,
+        heading,
+        motionPhase: snapshot.state.distanceTraveledM * 2.1,
+        gait: snapshot.state.taskType === 'loop' ? snapshot.state.embodimentKind === 'pedestrian' ? 'run' : null : null,
+        isPrimary: true,
+      });
+      addSensorCone(writer, snapshot.state.position, heading, snapshot.state.speedMps);
+    }
     const selected = tickReceipt?.bets?.find((row) => row.bet.id === tickReceipt.selectedBetId);
     if (selected) addRibbon(writer, [snapshot.state.position, selected.bet.prediction.endPosition], 0.85, 1.1, COLORS.prediction, 1.2);
     return writer.finish();

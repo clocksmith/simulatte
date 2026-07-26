@@ -11,14 +11,14 @@
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createTierPluginPresentationApi(deterministicValues, compositorApi) {
   const COLORS = Object.freeze({ cyan:'#4de8ff',green:'#33ff66',amber:'#ffb347',red:'#ff5c66',magenta:'#ff4fd8',violet:'#a98cff',blue:'#6da8ff',shade:'#5e7389',muted:'rgba(237,245,243,0.28)' });
 
-  function compileTierPresentation(pluginPresentation, fallbackCoordinateSystem = 'wgs84') {
-    if (pluginPresentation?.schema === 'simulatte.pluginPresentation.v4') return compileSemantic(pluginPresentation);
+  function compileTierPresentation(pluginPresentation, fallbackCoordinateSystem = 'wgs84', options = {}) {
+    if (pluginPresentation?.schema === 'simulatte.pluginPresentation.v4') return compileSemantic(pluginPresentation, options);
     if (!pluginPresentation || pluginPresentation.schema !== 'simulatte.pluginPresentation.v3') return null;
     if (pluginPresentation.coordinateSystem) return compileCoordinateNative(pluginPresentation, fallbackCoordinateSystem);
     return compileGeospatial(pluginPresentation);
   }
 
-  function compileSemantic(value) {
+  function compileSemantic(value, options) {
     const markers = [];
     const paths = [];
     const actors = [];
@@ -29,35 +29,51 @@
       const coordinates = layer.geometry.coordinates || [];
       if (!coordinates.length) return;
       pointsById.set(layer.id, coordinates);
-      const style = compositorApi.styleForLayer(layer);
+    });
+    const viewport = options.viewport || { width: 1024, height: 768 };
+    const composition = compositorApi.createCompositor(options.compositorPolicy).compose(value, {
+      simulationTimeMs: Number(options.simulationTimeMs || 0),
+      selectedIds: options.selectedIds || [],
+      viewport,
+      provenanceReceipt: options.provenanceReceipt || null,
+      project: (source) => {
+        const point = options.project?.(normalizeTuple(source, value.coordinateSystem), value.coordinateSystem);
+        return point ? [point.x, point.y] : [Number(source?.[0] || 0), Number(source?.[1] || 0)];
+      },
+    });
+    composition.primitives.forEach((primitive) => {
+      const coordinates = primitive.geometry.coordinates || [];
+      if (!coordinates.length) return;
+      const style = primitive.style;
       const row = freezeRow({
-        id: layer.id,
-        label: layer.label,
+        id: primitive.id,
+        label: primitive.label,
         style,
-        provenance: layer.provenance,
+        provenance: primitive.provenance,
+        memberIds: primitive.memberIds,
         intensity: style.strokeOpacity,
       });
-      if (['point', 'label'].includes(layer.kind)) markers.push(freezeRow({
+      if (['point', 'point-cluster', 'label'].includes(primitive.kind)) markers.push(freezeRow({
         ...row,
         position: normalizeTuple(coordinates[0], value.coordinateSystem),
         radius: style.radiusPx || 4,
       }));
-      else if (layer.kind === 'actor') actors.push(freezeRow({
+      else if (primitive.kind === 'actor') actors.push(freezeRow({
         ...row,
         position: normalizeTuple(coordinates[0], value.coordinateSystem),
         radius: style.radiusPx || 5,
       }));
-      else if (layer.kind === 'path') paths.push(freezeRow({
+      else if (primitive.kind === 'path') paths.push(freezeRow({
         ...row,
         coordinates: Object.freeze(coordinates.map((point) => Object.freeze(normalizeTuple(point, value.coordinateSystem)))),
         width: style.widthPx || 1,
       }));
-      else if (layer.kind === 'field') choropleths.push(freezeRow({
+      else if (primitive.kind === 'field') choropleths.push(freezeRow({
         ...row,
         coordinates: Object.freeze(coordinates.map((point) => Object.freeze(normalizeTuple(point, value.coordinateSystem)))),
-        value: layer.quantity?.value || 0,
+        value: primitive.quantity?.value || 0,
       }));
-      else if (layer.kind === 'area') areas.push(freezeRow({
+      else if (primitive.kind === 'area') areas.push(freezeRow({
         ...row,
         coordinates: Object.freeze(coordinates.map((point) => Object.freeze(normalizeTuple(point, value.coordinateSystem)))),
       }));
@@ -69,6 +85,8 @@
         id: intent.id,
         label: intent.id,
         center: center(points),
+        bounds: coordinateBounds(points),
+        memberIds: Object.freeze([...intent.targetIds]),
         distance: 0,
         viewMode: intent.mode,
         priority: intent.priority,
@@ -85,6 +103,7 @@
       areas: Object.freeze(areas),
       choropleths: Object.freeze(choropleths),
       cameraTargets: Object.freeze(cameraTargets),
+      compositorReceipt: composition.receipt,
     });
   }
 
@@ -114,9 +133,14 @@
     });
   }
 
-  function compileContributions(contributions) {
+  function compileContributions(contributions, options = {}) {
     return Object.freeze((contributions || []).flatMap(({ pluginId, presentation }) => {
-      const compiled = compileTierPresentation(presentation);
+      const provenanceReceipt = (options.provenanceReceipts || [])
+        .find((receipt) => receipt?.pluginId === pluginId) || null;
+      const compiled = compileTierPresentation(presentation, 'wgs84', {
+        ...options,
+        provenanceReceipt,
+      });
       if (!compiled) return [];
       const namespace = (id) => `plugin:${pluginId}:${id}`;
       const mapIds = (rows) => Object.freeze(rows.map((row) => freezeRow({ ...row, id: namespace(row.id), sourceId: row.id, pluginId })));
@@ -147,12 +171,21 @@
     let presentations = Object.freeze([]);
     let cameraTargets = Object.freeze([]);
     return Object.freeze({
-      set(contributions) {
-        presentations = compileContributions(contributions);
+      set(contributions, runtimeOptions = {}) {
+        const view = host.view();
+        presentations = compileContributions(contributions, {
+          ...runtimeOptions,
+          viewport: { width: Math.max(1, host.width()), height: Math.max(1, host.height()) },
+          project: (position, system) => projectPoint(position, system, view),
+        });
         cameraTargets = Object.freeze(presentations.flatMap((row) => row.cameraTargets || []));
         return presentations;
       },
       focus(id) {
+        const target = cameraTargets.find((row) => row.id === id);
+        if (!target) return false;
+        const system = presentations.find((row) => row.pluginId === target.pluginId)?.coordinateSystem || 'wgs84';
+        if (host.fit?.(target, system)) return true;
         const delta = focusDelta(cameraTargets, presentations, id, host.width(), host.height(), host.view());
         if (!delta) return false;
         host.pan(delta.dx, delta.dy);
@@ -163,6 +196,12 @@
         const view = host.view();
         draw(ctx, presentations, (position, system) => projectPoint(position, system, view), { timeSeconds: performance.now() / 1000 });
       },
+      receipt() {
+        return Object.freeze(presentations.flatMap((row) => row.compositorReceipt
+          ? [{ pluginId: row.pluginId, ...row.compositorReceipt }]
+          : []));
+      },
+      targets: () => cameraTargets,
     });
   }
 
@@ -209,6 +248,10 @@
   }
   function color(tone, alpha, semantic = null) { const value=semantic||COLORS[tone]||COLORS.muted; if(value.startsWith('rgba')) return value; const a=Math.max(0,Math.min(1,alpha)); return `${value}${Math.round(a*255).toString(16).padStart(2,'0')}`; }
   function center(points) { const xs=points.map((row)=>row[0]);const ys=points.map((row)=>row[1]);return Object.freeze([(Math.min(...xs)+Math.max(...xs))/2,(Math.min(...ys)+Math.max(...ys))/2,0]); }
+  function coordinateBounds(points) {
+    const xs=points.map((row)=>row[0]);const ys=points.map((row)=>row[1]);
+    return Object.freeze({minX:Math.min(...xs),maxX:Math.max(...xs),minY:Math.min(...ys),maxY:Math.max(...ys)});
+  }
   function normalizeTuple(value, system) { if(!Array.isArray(value)||value.length<2||value.length>3||value.some((row)=>!Number.isFinite(row))) throw new Error(`tier_presentation_position_invalid: ${system}`); return Object.freeze([Number(value[0]),Number(value[1]),Number(value[2]||0)]); }
   function freezeRow(value) { return Object.freeze(value); }
   function hash(value) { return deterministicValues.fnv1a32CodePoints(value) / 4294967296 * Math.PI * 2; }

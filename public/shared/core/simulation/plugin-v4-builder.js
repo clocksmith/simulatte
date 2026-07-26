@@ -9,7 +9,14 @@
   function datasetRecord(id, receipt, metadata = {}) {
     const contentHash = receipt?.sha256 || receipt?.contentHash || receipt?.reference?.sha256;
     if (typeof contentHash !== 'string' || !contentHash) throw builderError('plugin_v4_dataset_hash_missing', `Dataset ${id} has no content hash`);
-    return record({ id, kind: 'dataset', datasetId: id, contentHash, metadata });
+    return record({
+      id,
+      kind: 'dataset',
+      datasetId: id,
+      contentHash,
+      metadata,
+      envelope: migrateDatasetEnvelope(id, contentHash, receipt, metadata),
+    });
   }
 
   function rowRecord(dataset, rowId, metadata = {}) {
@@ -21,18 +28,41 @@
       contentHash: dataset.contentHash,
       parentIds: [dataset.id],
       metadata,
+      envelope: contracts.createProvenanceEnvelope({
+        ...dataset.envelope,
+        subjectId: `${dataset.id}:row:${rowId}`,
+        subjectKind: 'row',
+        rowIds: [String(rowId)],
+        parentIds: [dataset.id],
+      }),
     });
   }
 
-  function modelRecord({ id, datasetId, contentHash, parentIds = [], metadata = {} }) {
-    return record({ id, kind: 'model', datasetId, contentHash, parentIds, metadata });
+  function modelRecord({ id, datasetId, contentHash, parentIds = [], metadata = {}, lineage = {} }) {
+    return record({
+      id,
+      kind: 'model',
+      datasetId,
+      contentHash,
+      parentIds,
+      metadata,
+      envelope: createComputedEnvelope({ id, kind: 'model', datasetId, contentHash, parentIds, metadata, lineage }),
+    });
   }
 
-  function transformationRecord({ id, datasetId, contentHash, parentIds = [], metadata = {} }) {
-    return record({ id, kind: 'transformation', datasetId, contentHash, parentIds, metadata });
+  function transformationRecord({ id, datasetId, contentHash, parentIds = [], metadata = {}, lineage = {} }) {
+    return record({
+      id,
+      kind: 'transformation',
+      datasetId,
+      contentHash,
+      parentIds,
+      metadata,
+      envelope: createComputedEnvelope({ id, kind: 'transformation', datasetId, contentHash, parentIds, metadata, lineage }),
+    });
   }
 
-  function record({ id, kind, datasetId, rowId, contentHash, parentIds = [], metadata = {} }) {
+  function record({ id, kind, datasetId, rowId, contentHash, parentIds = [], metadata = {}, envelope }) {
     const value = {
       schema: 'simulatte.provenanceRecord.v4',
       id,
@@ -42,6 +72,7 @@
       contentHash,
       parentIds,
       metadata,
+      envelope,
     };
     contracts.validateProvenanceRecord(value);
     return deepFreeze(value);
@@ -65,6 +96,97 @@
       uncertainty,
       evidenceRefs: records.map(evidence),
     });
+  }
+
+  function migrateDatasetEnvelope(id, contentHash, receipt, metadata) {
+    const declaredAxes = declaredTruthAxes(receipt?.truth || receipt?.provenance?.truth || metadata.truth);
+    const isScenario = Boolean(metadata.seed || metadata.scenarioKind || /synthetic|scenario/i.test(String(metadata.kind || '')));
+    const licenseIdentifier = normalizeLicense(metadata.license || receipt?.license || receipt?.provenance?.license);
+    const origin = declaredAxes?.origin || (isScenario ? 'scenario' : licenseIdentifier ? 'observed' : 'derived');
+    const temporalStatus = declaredAxes?.temporalStatus
+      || (isScenario ? 'forecast' : receipt?.retrievalAt || receipt?.retrievedAt ? 'snapshot' : 'historical');
+    const uncertainty = declaredAxes?.uncertainty || {
+      kind: 'missing',
+      value: { reason: 'source receipt does not declare quantified uncertainty' },
+    };
+    const contentVersion = String(
+      receipt?.contentVersion
+      || receipt?.version
+      || metadata.contentVersion
+      || metadata.schemaId
+      || `sha256:${normalizeSha256(contentHash)}`,
+    );
+    const retrievalEpoch = receipt?.retrievalAt
+      || receipt?.retrievedAt
+      || receipt?.provenance?.retrievalAt
+      || receipt?.provenance?.retrievedAt
+      || (!isScenario ? `content-version:${contentVersion}` : null);
+    const scenarioEpoch = metadata.seed
+      ? `seed:${metadata.seed}`
+      : isScenario
+        ? `content-version:${contentVersion}`
+        : null;
+    return contracts.createProvenanceEnvelope({
+      subjectId: id,
+      subjectKind: 'dataset',
+      axes: { origin, temporalStatus, uncertainty },
+      datasetIds: [id],
+      artifactSha256: contentHash,
+      retrievalEpoch,
+      scenarioEpoch,
+      contentVersion,
+      license: {
+        required: origin === 'observed',
+        identifier: licenseIdentifier,
+      },
+    });
+  }
+
+  function createComputedEnvelope({ id, kind, datasetId, contentHash, parentIds, metadata, lineage }) {
+    const axes = lineage.axes || {
+      origin: kind === 'transformation' ? 'derived' : 'modeled',
+      temporalStatus: lineage.temporalStatus || 'forecast',
+      uncertainty: lineage.uncertainty || {
+        kind: 'missing',
+        value: { reason: `${kind} receipt does not declare quantified uncertainty` },
+      },
+    };
+    const contentVersion = String(lineage.contentVersion || metadata.version || metadata.engineVersion || `sha256:${normalizeSha256(contentHash)}`);
+    return contracts.createProvenanceEnvelope({
+      subjectId: id,
+      subjectKind: kind,
+      axes,
+      datasetIds: [datasetId],
+      artifactSha256: contentHash,
+      parentIds,
+      transformationChain: kind === 'transformation'
+        ? [...new Set([...(lineage.transformationChain || []), id])]
+        : (lineage.transformationChain || []),
+      modelReceiptId: kind === 'model' ? (lineage.modelReceiptId || id) : (lineage.modelReceiptId || null),
+      retrievalEpoch: lineage.retrievalEpoch || null,
+      scenarioEpoch: lineage.scenarioEpoch || `content-version:${contentVersion}`,
+      contentVersion,
+      license: lineage.license || { required: false, identifier: null },
+    });
+  }
+
+  function declaredTruthAxes(value) {
+    if (!value || typeof value !== 'object') return null;
+    const origin = value.origin;
+    const temporalStatus = value.temporalStatus;
+    const uncertainty = value.uncertainty;
+    if (!contracts.ORIGINS.includes(origin) || !contracts.TEMPORAL_STATUSES.includes(temporalStatus) || uncertainty === undefined) return null;
+    return { origin, temporalStatus, uncertainty };
+  }
+
+  function normalizeLicense(value) {
+    if (typeof value === 'string' && value) return value;
+    if (!value || typeof value !== 'object') return null;
+    return value.id || value.identifier || value.url || null;
+  }
+
+  function normalizeSha256(value) {
+    return value.startsWith('sha256-') ? value.slice('sha256-'.length) : value;
   }
 
   function quantity(kind, value, unit, domain = null) {

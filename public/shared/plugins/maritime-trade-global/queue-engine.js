@@ -79,6 +79,7 @@
     portId,
     replicates,
     randomForReplicate,
+    calibration = null,
     ...parameters
   }) {
     if (!Number.isInteger(replicates) || replicates < 2 || replicates > 512) {
@@ -103,6 +104,13 @@
       p95WaitHours: percentile(waits, 0.95),
       meanWaitHours: average(waits),
       selectedReplicate: runs[selectedIndex],
+      calibration: Object.freeze({
+        artifactId: calibration?.id || null,
+        status: calibration?.status || 'not_declared',
+        inputRowIdentity: calibration?.inputRowIdentity || null,
+        limitationCount: calibration?.limitations?.length || 0,
+      }),
+      uncertaintyClass: 'stochastic_simulation',
       truth: truth('simulated', 'forecast', {
         kind: 'distribution',
         value: {
@@ -113,6 +121,10 @@
       }),
       evidenceRefs: Object.freeze([
         `row:container-port-performance-v1:${portId}`,
+        ...(calibration?.id ? [
+          'dataset:maritime.calibration.artifacts.v1',
+          `row:maritime.calibration.artifacts.v1:${calibration.id}`,
+        ] : []),
         'model:fcfs-multi-server-queue-v2',
       ]),
       runs: Object.freeze(runs),

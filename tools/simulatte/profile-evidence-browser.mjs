@@ -129,7 +129,29 @@ function browserProbeExpression(run, seedIndex) {
     const waitFor = async (predicate, label, limit = 45000) => {
       const started = performance.now();
       while (!predicate()) {
-        if (performance.now() - started > limit) throw new Error('profile evidence timeout at ' + label);
+        const phase = document.body?.dataset.journeyPhase;
+        const runtimeStatus = document.getElementById('runtime-status');
+        if (phase === 'failed' || runtimeStatus?.dataset.kind === 'error') {
+          const event = [...(globalThis.__simulatteAutonomyRuntimeEvents || [])]
+            .reverse()
+            .find((row) => row.level === 'error' || row.event === 'runtime.failed');
+          const failure = globalThis.__simulatteLastFailError || null;
+          throw new Error('profile evidence runtime failed at ' + label + ': '
+            + (event?.details?.message || runtimeStatus?.textContent || 'unknown runtime error')
+            + (failure ? ' evidence=' + JSON.stringify(failure) : ''));
+        }
+        if (performance.now() - started > limit) {
+          const recentEvents = [...(globalThis.__simulatteAutonomyRuntimeEvents || [])]
+            .slice(-3)
+            .map((row) => row.event + ':' + JSON.stringify(row.details || {}))
+            .join('|');
+          throw new Error('profile evidence timeout at ' + label
+            + ' phase=' + (document.body?.dataset.journeyPhase || 'missing')
+            + ' status=' + (runtimeStatus?.textContent || 'missing')
+            + ' clock=' + JSON.stringify(globalThis.__simulattePluginPlatformV4?.clock || null)
+            + ' tier=' + JSON.stringify(globalThis.__simulatteTierRunState || null)
+            + ' events=' + (recentEvents || 'none'));
+        }
         await new Promise((resolve) => setTimeout(resolve, 25));
       }
     };
@@ -137,11 +159,22 @@ function browserProbeExpression(run, seedIndex) {
     const expectedSeed = ${JSON.stringify(run.seed)};
     const seedText = () => document.getElementById('scenario-seed')?.textContent || '';
     for (let index = 0; index < ${seedIndex}; index += 1) {
-      document.getElementById('shuffle-button').click();
       const previous = seedText();
+      document.getElementById('shuffle-button').click();
       await waitFor(() => seedText() !== previous, 'seed-change');
+      await waitFor(
+        () => document.body.dataset.journeyPhase === 'ready'
+          && !document.getElementById('shuffle-button')?.disabled
+          && !document.getElementById('start-button')?.disabled,
+        'scenario-controls-ready',
+        10000
+      );
     }
-    await waitFor(() => seedText().includes(expectedSeed), 'governed-seed');
+    await waitFor(
+      () => seedText().includes(expectedSeed),
+      'governed-seed expected=' + expectedSeed + ' actual=' + seedText(),
+      5000
+    );
     const controls = Array.from(document.querySelectorAll('button, input, select, [role="button"]')).map((element) => ({
       id: element.id || element.name || element.dataset.actionId || element.getAttribute('aria-label') || element.textContent?.trim(),
       kind: element.tagName.toLowerCase(),
@@ -161,15 +194,33 @@ function browserProbeExpression(run, seedIndex) {
       await new Promise((resolve) => setTimeout(resolve, 25));
       pause.click();
       lifecycle.push('pause');
-      const step = document.getElementById('step-button');
-      if (step && !step.hidden && !step.disabled) {
-        step.click();
-        lifecycle.push('step');
-      }
       const resume = document.getElementById('resume-button');
       if (resume && !resume.hidden && !resume.disabled) {
         resume.click();
         lifecycle.push('resume');
+        if (!pause.hidden && !pause.disabled) pause.click();
+      }
+      const step = document.getElementById('step-button');
+      if (step && !step.hidden && !step.disabled) {
+        const previousStepStatus = document.getElementById('runtime-status')?.textContent || '';
+        const previousEmittedCount = Number(globalThis.__simulattePluginPlatformV4?.clock?.emittedCount || 0);
+        const previousClockCursor = Number(globalThis.__simulattePluginPlatformV4?.clock?.state?.cursor || 0);
+        const previousTierStepCount = Number(globalThis.__simulatteTierRunState?.stepCount || 0);
+        step.click();
+        await waitFor(
+          () => document.body.dataset.journeyPhase === 'completed'
+            || Number(globalThis.__simulattePluginPlatformV4?.clock?.emittedCount || 0) > previousEmittedCount
+            || Number(globalThis.__simulattePluginPlatformV4?.clock?.state?.cursor || 0) > previousClockCursor
+            || Number(globalThis.__simulatteTierRunState?.stepCount || 0) > previousTierStepCount
+            || (document.getElementById('runtime-status')?.textContent || '') !== previousStepStatus,
+          'step-completed',
+          10000
+        );
+        lifecycle.push('step');
+      }
+      if (resume && !resume.hidden && !resume.disabled) {
+        resume.click();
+        if (!lifecycle.includes('resume')) lifecycle.push('resume');
       }
     }
     const started = performance.now();
@@ -179,7 +230,13 @@ function browserProbeExpression(run, seedIndex) {
         tick: Number(document.getElementById('metric-tick')?.textContent || 0),
         atMs: performance.now(),
       });
-      if (performance.now() - started > 45000) throw new Error('profile evidence timeout at settlement');
+      if (performance.now() - started > 45000) {
+        throw new Error('profile evidence timeout at settlement phase='
+          + (document.body.dataset.journeyPhase || 'missing')
+          + ' status=' + (document.getElementById('runtime-status')?.textContent || 'missing')
+          + ' clock=' + JSON.stringify(globalThis.__simulattePluginPlatformV4?.clock || null)
+          + ' playback=' + JSON.stringify(globalThis.__simulattePluginRunReceipt || null));
+      }
       await new Promise((resolve) => setTimeout(resolve, 50));
     }
     lifecycle.push('settle');
@@ -188,6 +245,13 @@ function browserProbeExpression(run, seedIndex) {
       tick: Number(document.getElementById('metric-tick')?.textContent || 0),
       atMs: performance.now(),
     });
+    const replay = document.getElementById('replay-button');
+    if (replay && !replay.hidden && !replay.disabled) {
+      replay.click();
+      await waitFor(() => document.body.dataset.journeyPhase !== 'completed', 'replay-started');
+      await waitFor(() => document.body.dataset.journeyPhase === 'completed', 'replay');
+      lifecycle.push('replay');
+    }
     const tierReceipt = globalThis.__simulatteTierRunReceipt || null;
     const pluginRunReceipt = globalThis.__simulattePluginRunReceipt || null;
     const runReceipt = tierReceipt || pluginRunReceipt;
@@ -196,6 +260,15 @@ function browserProbeExpression(run, seedIndex) {
     const contributions = platform?.contributions || [];
     const platformReceipt = platform?.receipt || platform || null;
     const contributionSources = platform?.contributionSources || [];
+    const datasetEvidence = (platformReceipt?.provenanceReceipts || [])
+      .flatMap((receipt) => receipt?.envelopes || [])
+      .filter((envelope) => envelope?.subjectKind === 'dataset')
+      .flatMap((envelope) => (envelope.datasetIds || []).map((id) => ({
+        id,
+        subjectId: envelope.subjectId || null,
+        artifactSha256s: envelope.artifactSha256s || [],
+        contentVersions: envelope.contentVersions || [],
+      })));
     const native = contributionSources.length === ${run.pluginIds.length}
       && contributionSources.every((row) => row.source === 'native-v4')
       && ${JSON.stringify(run.pluginIds)}.every((id) => contributionSources.some((row) => row.pluginId === id));
@@ -203,22 +276,37 @@ function browserProbeExpression(run, seedIndex) {
       || contributions.flatMap((row) => row.events || [])
       || globalThis.__simulatteAutonomyRuntimeEvents
       || [];
-    const comparisons = contributions.flatMap((row) => row.controls?.comparisons || [])
-      .concat(runReceipt?.actionResult?.comparisons || runReceipt?.actionResult?.comparison ? [runReceipt.actionResult.comparisons || runReceipt.actionResult.comparison].flat() : []);
+    const collectExecutionReceipts = (value, output = [], depth = 0) => {
+      if (!value || depth > 8) return output;
+      if (value.schema === 'simulatte.comparisonExecutionReceipt.v4') {
+        output.push(value);
+        return output;
+      }
+      if (Array.isArray(value)) {
+        value.forEach((row) => collectExecutionReceipts(row, output, depth + 1));
+      } else if (typeof value === 'object') {
+        Object.values(value).forEach((row) => collectExecutionReceipts(row, output, depth + 1));
+      }
+      return output;
+    };
+    const comparisons = collectExecutionReceipts([
+      runReceipt?.actionResult || null,
+      runReceipt?.comparisonExecutionReceipt || null,
+      runtimeReceipt?.pluginReceipts || null,
+      globalThis.__simulatteComparisonExecutionReceipts || null,
+    ]);
     const settlements = tierReceipt?.settlement
-      || pluginRunReceipt?.settlements
-      || (document.getElementById('metric-settlement')?.textContent ? [{ summary: document.getElementById('metric-settlement').textContent }] : []);
-    const replay = document.getElementById('replay-button');
-    if (replay && !replay.hidden && !replay.disabled) {
-      replay.click();
-      await waitFor(() => document.body.dataset.journeyPhase === 'completed', 'replay');
-      lifecycle.push('replay');
-    }
+      ? (Array.isArray(tierReceipt.settlement) ? tierReceipt.settlement.flat() : [tierReceipt.settlement])
+      : pluginRunReceipt?.settlements || [];
     return {
       runtime: {
         path: native ? 'native-v4' : contributionSources.some((row) => row.source === 'legacy-adapter') ? 'legacy-adapter' : 'unproven-v4',
         profileId: ${JSON.stringify(run.profileId)},
         platformReceipt,
+        clockReceipt: platform?.clock || null,
+        viewReceipt: platform?.view || null,
+        compositorReceipts: Array.isArray(platform?.compositor) ? platform.compositor : [],
+        datasetEvidence,
         runReceipt,
         contributionSources,
       },
@@ -228,6 +316,7 @@ function browserProbeExpression(run, seedIndex) {
         progressiveStates,
         comparisons,
         settlements,
+        reload: null,
         lifecycle,
         performance: {
           frameCount: Number(document.getElementById('autonomy-canvas')?.dataset.frameCount || progressiveStates.length),
@@ -312,24 +401,42 @@ async function captureBrowserRun({ chromePath, baseUrl, run, sourceIdentity, cla
     const reloaded = client.once('Page.loadEventFired');
     await client.send('Page.reload', { ignoreCache: false });
     await reloaded;
+    const beforeRunReceipt = captured.runtime.runReceipt;
     const reload = await client.send('Runtime.evaluate', {
       expression: `(async () => {
+        const beforeReceipt = ${JSON.stringify(beforeRunReceipt)};
+        const isPluginPlayback = beforeReceipt?.schema === 'simulatte.pluginPlaybackRunReceipt.v1';
+        const receipt = () => isPluginPlayback
+          ? globalThis.__simulattePluginRunReceipt || null
+          : globalThis.__simulatteTierRunReceipt || null;
         const started = performance.now();
-        while (!['ready', 'completed', 'failed'].includes(document.body.dataset.journeyPhase)) {
-          if (performance.now() - started > 45000) return { restored: false, reason: 'reload_timeout' };
+        while (!receipt() || document.body.dataset.journeyPhase !== 'completed') {
+          const phase = document.body.dataset.journeyPhase;
+          if (phase === 'failed') break;
+          if (performance.now() - started > 45000) break;
           await new Promise((resolve) => setTimeout(resolve, 25));
         }
-        const tier = globalThis.__simulatteTierRunReceipt || null;
-        const platform = globalThis.__simulattePluginPlatformV4 || null;
-        const seed = tier?.scenario?.seed || platform?.scenario?.seed || null;
+        const afterReceipt = receipt();
+        const beforeScenario = beforeReceipt?.scenario || null;
+        const afterScenario = afterReceipt?.scenario || null;
+        const restored = Boolean(afterReceipt && document.body.dataset.journeyPhase === 'completed');
         return {
-          restored: document.body.dataset.journeyPhase === 'completed' && seed === ${JSON.stringify(run.seed)},
-          reason: document.body.dataset.journeyPhase === 'completed' ? 'scenario_identity_mismatch' : 'terminal_receipt_not_restored',
+          attempted: true,
+          kind: isPluginPlayback ? 'plugin-playback' : 'tier-run',
+          restored,
+          beforeReceipt: isPluginPlayback ? beforeReceipt : null,
+          afterReceipt: isPluginPlayback ? afterReceipt : null,
+          beforeScenarioId: beforeScenario?.id || null,
+          afterScenarioId: afterScenario?.id || null,
+          beforeSeed: beforeScenario?.seed || null,
+          afterSeed: afterScenario?.seed || null,
+          reason: restored ? null : 'terminal_receipt_not_restored',
         };
       })()`,
       awaitPromise: true,
       returnByValue: true,
     });
+    captured.evidence.reload = reload.result.value;
     if (reload.result.value.restored) captured.evidence.lifecycle.push('reload');
     else {
       captured.integrity.status = 'contradictory';
@@ -365,7 +472,7 @@ async function captureBrowserRun({ chromePath, baseUrl, run, sourceIdentity, cla
       claims: claims.map((claim) => ({ id: claim.id, sentence: claim.sentence })),
     };
   } finally {
-    if (client) client.close();
+    if (client) await client.close();
     await stopChild(chrome);
     fs.rmSync(profileDirectory, { recursive: true, force: true, maxRetries: 5, retryDelay: 50 });
   }
@@ -377,4 +484,4 @@ async function createEvidenceServer(publicRoot) {
   return { server, baseUrl: `http://127.0.0.1:${server.address().port}/` };
 }
 
-export { captureBrowserRun, createEvidenceServer, findChrome, inspectPng };
+export { browserProbeExpression, captureBrowserRun, createEvidenceServer, findChrome, inspectPng };

@@ -14,7 +14,7 @@
       "minItems": 1,
       "items": {
         "type": "object",
-        "required": ["id", "kind", "label", "description", "seed", "commodityId", "hazardId", "originFacilityKind", "durationDays", "contamination", "detectionProfile", "defaultIntervention"],
+        "required": ["id", "kind", "label", "description", "seed", "startInstant", "commodityId", "hazardId", "originFacilityKind", "durationDays", "contamination", "refrigeration", "detectionProfile", "defaultIntervention"],
         "additionalProperties": true,
         "properties": {
           "id": { "type": "string" },
@@ -22,6 +22,7 @@
           "label": { "type": "string" },
           "description": { "type": "string" },
           "seed": { "type": "string" },
+          "startInstant": { "type": "string", "format": "date-time" },
           "commodityId": { "type": "string" },
           "hazardId": { "type": "string" },
           "originFacilityKind": { "type": "string" },
@@ -44,6 +45,16 @@
               "corridorStage": { "type": "string" },
               "repairHours": { "type": "number", "minimum": 0 },
               "ambientTempC": { "type": "number" }
+            }
+          },
+          "refrigeration": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["setpointC", "timeConstantHours", "failureRateMultiplier"],
+            "properties": {
+              "setpointC": { "type": "number" },
+              "timeConstantHours": { "type": "number", "exclusiveMinimum": 0 },
+              "failureRateMultiplier": { "type": "number", "minimum": 0 }
             }
           },
           "detectionProfile": { "type": "string", "enum": ["accelerated", "baseline", "delayed"] },

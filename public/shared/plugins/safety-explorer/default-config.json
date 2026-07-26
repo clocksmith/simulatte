@@ -1,1 +1,15 @@
-{ "schema": "simulatte.plugin.safetyExplorerConfig.v1", "id": "safety-explorer-default-v1" }
+{
+  "schema": "simulatte.plugin.safetyExplorerConfig.v2",
+  "id": "safety-explorer-default-v2",
+  "fixedSparseCountShrinkage": {
+    "k": 4,
+    "weights": {
+      "crash": 1,
+      "injury": 3,
+      "fatality": 10
+    }
+  },
+  "sensitivity": {
+    "joinRadiusM": 35
+  }
+}

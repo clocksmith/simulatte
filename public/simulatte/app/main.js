@@ -35,6 +35,9 @@
     pluginComputeApi: root.SimulattePluginCompute,
     simulationClockApi: root.SimulatteSimulationClock,
     viewDirectorApi: root.SimulatteViewDirector,
+    pluginViewRuntimeApi: typeof module === 'object' && module.exports
+      ? require('./plugin-view-runtime.js')
+      : root.SimulattePluginViewRuntime,
     mountLifecycleApi: root.SimulatteMountLifecycle,
     mainViewApi: typeof module === 'object' && module.exports
       ? require('./main-view.js')
@@ -49,7 +52,7 @@
   root.SimulatteAutonomyApp = api;
   if (typeof module === 'object' && module.exports) module.exports = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyApp(dependencies) {
-  const { hostRoot, dataLoader, missionApi, controllerApi, canvasApi, traceApi, runtimeLog, neuralPlaceApi, ledgerApi, receiptsApi, worldApi, neuralConsentApi, modelSelectionApi, runtimeLoaderApi, pluginRuntimeApi, pluginRegistry, pluginUiApi, transportApi, artifactStoreApi, routePlannerApi, civilTimeApi, universeParserApi, applicationProfileSelectApi, experienceCameraApi, pluginAssetPathsApi, pluginRandomApi, pluginSchedulerApi, pluginEnvironmentApi, pluginGeographyApi, pluginComputeApi, simulationClockApi, viewDirectorApi, mountLifecycleApi, mainViewApi, pluginPlaybackApi, cityInterfaceApi } = dependencies;
+  const { hostRoot, dataLoader, missionApi, controllerApi, canvasApi, traceApi, runtimeLog, neuralPlaceApi, ledgerApi, receiptsApi, worldApi, neuralConsentApi, modelSelectionApi, runtimeLoaderApi, pluginRuntimeApi, pluginRegistry, pluginUiApi, transportApi, artifactStoreApi, routePlannerApi, civilTimeApi, universeParserApi, applicationProfileSelectApi, experienceCameraApi, pluginAssetPathsApi, pluginRandomApi, pluginSchedulerApi, pluginEnvironmentApi, pluginGeographyApi, pluginComputeApi, simulationClockApi, pluginViewRuntimeApi, mountLifecycleApi, mainViewApi, pluginPlaybackApi, cityInterfaceApi } = dependencies;
   if (!cityInterfaceApi || !mainViewApi) throw new Error('simulatte_app_view_dependency_missing');
   const { collectElements, populateApplicationProfiles, applicationProfileLabel, setRuntimeStatus, runtimeLabel, renderIdentity, renderPlaceResolution, renderPlanning } = mainViewApi;
   const { wireCameraControls, selectCameraMode, populateCameraFocus, wireInterfaceControls, setJourneyPhase, resizeMissionInput, clearMissionError, isMissionInputError, friendlyMissionError, updateButtons } = cityInterfaceApi;
@@ -76,7 +79,7 @@
     let placeResolver = null;
     let frameRequest = null;
     let pluginClock = null;
-    let pluginViewDirector = null;
+    let pluginViewRuntime = null;
     let pluginPlayback = null;
     let isRunning = false;
     let disposal = null;
@@ -131,7 +134,21 @@
       lifecycle.throwIfAborted();
     if (!applicationProfileSelectApi?.resolveInteraction || !applicationProfileSelectApi?.renderInteraction) throw new Error('Application interaction dependency is unavailable');
     const interaction = applicationProfileSelectApi.resolveInteraction(data.applicationProfile, data.manifest);
-    let activeScenario = interaction.defaultScenario;
+    const playbackStorage = pluginPlaybackApi?.browserStorage?.(hostRoot) || null;
+    let storedPlaybackReceipt = interaction.mode === 'playback'
+      ? pluginPlaybackApi.loadStoredReceipt(playbackStorage, data.applicationProfile.id)
+      : null;
+    const storedScenario = storedPlaybackReceipt
+      ? interaction.scenarios.find((row) => (
+          row.id === storedPlaybackReceipt.scenario?.id
+          && row.seed === storedPlaybackReceipt.scenario?.seed
+        ))
+      : null;
+    if (storedPlaybackReceipt && !storedScenario) {
+      pluginPlaybackApi.clearStoredReceipt(playbackStorage, data.applicationProfile.id);
+      storedPlaybackReceipt = null;
+    }
+    let activeScenario = storedScenario || interaction.defaultScenario;
     const pluginArtifacts = artifactStoreApi.createGovernedArtifactStore({ transport: transportApi.createBrowserTransport({ fetchImpl: lifecycle.fetch }) });
     let activeMissionForPlugins = null;
     extensions = await pluginRuntimeApi.createPluginRuntime({
@@ -145,6 +162,9 @@
         worldQuery: Object.freeze({ snapshot: () => data.world, model: () => worldApi.createWorldModel(data.world) }),
         routing: Object.freeze({
           plan(options) { return routePlannerApi.planRoute(options); },
+          resolveMission(sourceText) {
+            return missionApi.compileMission(sourceText, data.world, data.embodiments);
+          },
           alternatives(mission, maximumAlternatives) {
             const embodiment = data.embodiments.find((row) => row.id === mission.embodimentId);
             if (!embodiment) throw new Error(`Plugin routing expected embodiment ${mission.embodimentId}`);
@@ -184,6 +204,7 @@
       onAction: async ({ pluginId, actionId, command, values }) => {
         if (command?.kind === 'camera.focus') {
           const targetId = `plugin:${pluginId}:${command.targetId}`;
+          pluginViewRuntime?.setManualOverride({ mode: 'free', targetIds: [targetId] });
           selectCameraMode(elements, renderer.focusCameraTarget(targetId));
           elements.cameraFocus.value = targetId;
           return;
@@ -238,12 +259,18 @@
         pluginId: contribution.pluginId,
         presentation: contribution.presentation,
       }));
-      renderer.setPluginPresentations(semanticPresentations);
       const platformTime = Math.max(0, ...platform.contributions.map((contribution) => contribution.state?.simulationTimeMs || 0));
+      renderer.setPluginPresentations(semanticPresentations, {
+        simulationTimeMs: platformTime,
+        selectedIds: [selected],
+        provenanceReceipts: platform.provenanceReceipts,
+      });
       if (!pluginClock) pluginClock = simulationClockApi.createClock({ timeline: platform.timeline });
       const clockState = pluginClock.snapshot();
-      const timelineId = platform.timeline.receipt().id;
-      if (clockState.timelineId !== timelineId || (clockState.state !== 'playing' && clockState.currentMs !== platformTime)) {
+      const timelineReceipt = platform.timeline.receipt();
+      if (clockState.timelineId !== timelineReceipt.id
+        || clockState.eventCount !== timelineReceipt.eventCount
+        || (clockState.state !== 'playing' && clockState.currentMs !== platformTime)) {
         pluginClock.useTimeline(platform.timeline, { atMs: platformTime });
       }
       if (interaction.mode === 'playback' && !pluginPlayback) {
@@ -258,20 +285,30 @@
           onPhase: reflectPluginPlaybackPhase,
           onSettled: (receipt) => {
             hostRoot.__simulattePluginRunReceipt = receipt;
+            hostRoot.__simulatteComparisonExecutionReceipts = Object.freeze(
+              receipt.comparisonExecutionReceipt ? [receipt.comparisonExecutionReceipt] : []
+            );
+            pluginPlaybackApi.saveStoredReceipt(playbackStorage, data.applicationProfile.id, receipt);
           },
           onError: (error) => failRuntime(elements, error),
         });
       }
-      pluginViewDirector = viewDirectorApi.createViewDirector();
-      platform.contributions.forEach((contribution) => {
-        contribution.presentation.viewIntents.forEach((intent) => pluginViewDirector.submit(intent, { source: contribution.pluginId }));
-      });
+      if (!pluginViewRuntime) {
+        pluginViewRuntime = pluginViewRuntimeApi.createCoordinator({
+          renderer,
+          focusSelect: elements.cameraFocus,
+          onModeSelected: (mode) => selectCameraMode(elements, mode),
+        });
+      }
+      const viewReceipt = pluginViewRuntime.sync(platform.contributions, platform.provenanceReceipts);
       hostRoot.__simulattePluginPlatformV4 = Object.freeze({
         receipt: platform.receipt,
         contributions: platform.contributions,
         contributionSources: platform.contributionSources,
+        provenance: platform.provenanceCoverage,
         clock: pluginClock.receipt(),
-        view: pluginViewDirector.receipt(),
+        view: viewReceipt,
+        compositor: renderer.receipt().pluginCompositor,
       });
       populateCameraFocus(elements.cameraFocus, renderer.cameraTargets(), selected);
       if (!hasAppliedInitialCamera) hasAppliedInitialCamera = experienceCameraApi.applyInitialCamera({
@@ -301,6 +338,42 @@
     });
     on(window, 'pagehide', () => { void disposeApplication(); }, { once: true });
 
+    async function ensureRenderer(worldModel) {
+      if (renderer) return renderer;
+      renderer = await canvasApi.createCanvasRenderer(elements.autonomyCanvas, worldModel, {
+        minimapCanvas: elements.followMinimap,
+        regionRegistry: data.regionRegistry,
+        regionPacks: data.regionPacks,
+        onFailure: (error) => {
+          stopLoop();
+          failRuntime(elements, error);
+        },
+        onCameraInteraction: (cameraInteraction) => {
+          pluginViewRuntime?.setManualOverride({
+            mode: cameraInteraction.mode,
+            targetIds: cameraInteraction.targetIds,
+          });
+        },
+      });
+      wireCameraControls(elements, renderer, lifecycle.signal, {
+        onManualNavigation: (cameraInteraction) => {
+          pluginViewRuntime?.setManualOverride({
+            mode: cameraInteraction.mode,
+            targetIds: cameraInteraction.targetIds,
+          });
+        },
+      });
+      const renderReceipt = renderer.receipt();
+      log.info('renderer.ready', {
+        backend: renderReceipt.backend,
+        adapter: renderReceipt.adapter,
+        buildingCount: renderReceipt.buildingCount,
+        staticVertexCount: renderReceipt.staticVertexCount,
+        ambientTraffic: renderReceipt.ambientTraffic,
+      });
+      return renderer;
+    }
+
     async function buildController({ keepMissionLocked = false } = {}) {
       const revision = ++buildRevision;
       const isCurrent = () => revision === buildRevision;
@@ -311,6 +384,36 @@
       const sourceOverrides = preflightContributions.filter((row) => row.executableSourceText);
       if (sourceOverrides.length > 1) throw new Error(`Plugin request conflict: ${sourceOverrides.map((row) => row.pluginId).join(', ')} proposed executable source`);
       const executableSourceText = sourceOverrides[0]?.executableSourceText || requestedSourceText;
+      if (interaction.mode === 'playback') {
+        const playbackWorld = worldApi.createWorldModel(data.world);
+        await ensureRenderer(playbackWorld);
+        if (!isCurrent()) return null;
+        const initialNode = data.world.nodes[0];
+        const snapshot = {
+          route: { segmentIds: [] },
+          state: {
+            tick: 0,
+            taskType: 'playback',
+            currentNodeId: initialNode.id,
+            position: { ...initialNode.position },
+            suppressPrimaryActor: true,
+            distanceTraveledM: 0,
+            speedMps: 0,
+            simulatedTimeSeconds: 0,
+            status: 'active',
+          },
+        };
+        renderer.reset();
+        renderer.render(snapshot);
+        activeMission = null;
+        activeMissionForPlugins = null;
+        renderPluginExperience({ mission: null });
+        elements.renderIdentity.textContent = renderIdentity(renderer.receipt());
+        setRuntimeStatus(elements, 'Ready', 'ready');
+        setJourneyPhase('ready');
+        updateButtons(elements, keepMissionLocked, true, 'active', hasJourneyStarted);
+        return null;
+      }
       const placeSelection = modelSelection.selectedRuntimeRef('place-resolution');
       const useNeuralPlaces = placeSelection.kind === 'embedding';
       if (useNeuralPlaces && await modelSelection.ensureConsent() !== true) {
@@ -399,26 +502,7 @@
           if (snapshot.state.status !== 'active') stopLoop();
         },
       });
-      if (!renderer) {
-        renderer = await canvasApi.createCanvasRenderer(elements.autonomyCanvas, nextController.worldModel, {
-          minimapCanvas: elements.followMinimap,
-          regionRegistry: data.regionRegistry,
-          regionPacks: data.regionPacks,
-          onFailure: (error) => {
-            stopLoop();
-            failRuntime(elements, error);
-          },
-        });
-        wireCameraControls(elements, renderer, lifecycle.signal);
-        const renderReceipt = renderer.receipt();
-        log.info('renderer.ready', {
-          backend: renderReceipt.backend,
-          adapter: renderReceipt.adapter,
-          buildingCount: renderReceipt.buildingCount,
-          staticVertexCount: renderReceipt.staticVertexCount,
-          ambientTraffic: renderReceipt.ambientTraffic,
-        });
-      }
+      await ensureRenderer(nextController.worldModel);
       if (!isCurrent()) return null;
       retrievalLaneLogged = false;
       terminalJourneyLogged = false;
@@ -517,7 +601,8 @@
           const runCameraMode = experienceCameraApi.runCameraMode(data.applicationProfile.camera);
           renderer.setCameraMode(runCameraMode);
           selectCameraMode(elements, runCameraMode);
-          await pluginPlayback.start();
+          if (pluginPlayback.snapshot().phase === 'paused') pluginPlayback.resume();
+          else await pluginPlayback.start();
         } else await startRun();
       } catch (error) {
         failRuntime(elements, error);
@@ -542,6 +627,8 @@
       setRuntimeStatus(elements, 'Loading scenario', 'loading');
       await yieldToFrame();
       try {
+        pluginPlaybackApi.clearStoredReceipt(playbackStorage, data.applicationProfile.id);
+        hostRoot.__simulattePluginRunReceipt = null;
         if (pluginPlayback) await pluginPlayback.reset(nextScenario);
         else await extensions.setScenario(nextScenario);
         activeScenario = nextScenario;
@@ -717,6 +804,15 @@
       renderPolicyArena(elements, data.policyArenaEvidence);
       await renderLedger(elements, journeyLedger, data.curriculum, data.world.contentVersion);
       await buildController();
+      if (storedPlaybackReceipt) {
+        if (!pluginPlayback) throw new Error('Stored plugin playback cannot be restored without a playback controller');
+        try {
+          await pluginPlayback.restore(storedPlaybackReceipt);
+        } catch (error) {
+          pluginPlaybackApi.clearStoredReceipt(playbackStorage, data.applicationProfile.id);
+          throw error;
+        }
+      }
 
       // Init the tier visualizer + wire the toolbar dropdown (SimulatteWorldTiersBoot owns landing).
       tierVisualizer = SimulatteMultiTierVisualizer.createTierVisualizer(elements.overlayCanvas, 'world-tier-control');

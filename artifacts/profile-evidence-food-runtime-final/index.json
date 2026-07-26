@@ -1,0 +1,53 @@
+{
+  "schema": "simulatte.profileEvidenceIndex.v1",
+  "planSha256": "14710106f019e51871bbfee47c3e4a559dd619788fbb3204ecd5d27c356f98c9",
+  "claimInventorySha256": "3e09f7d9178b52c9c60f545ae87102dfa03a13d4934558bd7674fcf887e592ef",
+  "sourceIdentity": {
+    "buildId": "64b4838d99a3c41498616db50ba0815473cddfa7-cbd5ffaaed3d",
+    "commitSha": "8b5371cdda26dff56e1d6c47eb0fc014cadba199",
+    "worktreeSha256": "46dff27a8a5e8d48dd0ae7aa6afac65ec3631c62bb64d8d51d4e51982cc1c283"
+  },
+  "totalRuns": 1,
+  "passedRuns": 0,
+  "pass": false,
+  "profiles": [
+    {
+      "profileId": "food-recall-us-v1",
+      "totalRuns": 1,
+      "passedRuns": 0,
+      "failureCounts": {
+        "runtime_path_mismatch": 1,
+        "platform_clock_receipt_invalid": 1,
+        "platform_view_receipt_invalid": 1,
+        "platform_compositor_receipt_missing": 1,
+        "comparison_execution_receipt_missing": 1,
+        "settlement_receipt_missing": 1,
+        "run_reload_not_restored": 1,
+        "claim_evidence_unresolved": 1,
+        "receipt_contradictory": 1
+      }
+    }
+  ],
+  "runs": [
+    {
+      "runId": "run-1a9ffbf24e0949be538f",
+      "profileId": "food-recall-us-v1",
+      "seedId": "leafy-green-baseline",
+      "viewportId": "desktop-1440x1000",
+      "receiptSha256": "822e46b387a2a32e1a739db74611eab309cdedc3bef20ba85db2e5777c13a76a",
+      "receiptPath": "receipts/sha256/822e46b387a2a32e1a739db74611eab309cdedc3bef20ba85db2e5777c13a76a.json",
+      "pass": false,
+      "failures": [
+        "runtime_path_mismatch",
+        "platform_clock_receipt_invalid",
+        "platform_view_receipt_invalid",
+        "platform_compositor_receipt_missing",
+        "comparison_execution_receipt_missing",
+        "settlement_receipt_missing",
+        "run_reload_not_restored",
+        "claim_evidence_unresolved",
+        "receipt_contradictory"
+      ]
+    }
+  ]
+}

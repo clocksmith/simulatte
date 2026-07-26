@@ -12,6 +12,7 @@ const rows = [
   ['ibtracs-v04r01-scenario-tracks-v1', 'ibtracs-scenario-tracks-v1.json', 'simulatte.ibtracsScenarioTracks.v1'],
   ['maritime-vessel-archetypes-v1', 'vessel-archetypes-v1.json', 'simulatte.maritimeVesselArchetypes.v1'],
   ['maritime-emissions-model-v1', 'emissions-model-v1.json', 'simulatte.maritimeEmissionsModel.v1'],
+  ['maritime.calibration.artifacts.v1', 'calibration-artifacts-v1.json', 'simulatte.maritimeCalibrationArtifacts.v1'],
   ['maritime.voyage.scenarios.v1', 'voyage-scenarios-v1.json', 'simulatte.maritimeVoyageScenarios.v1'],
   ['maritime.provenance.registry.v1', 'provenance-registry-v1.json', 'simulatte.maritimeProvenanceRegistry.v1'],
 ];

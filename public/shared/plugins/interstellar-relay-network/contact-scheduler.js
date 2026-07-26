@@ -155,6 +155,16 @@
                 ? null
                 : linkBudgets[event.payload.hopIndex].truth.uncertainty.value.achievableDataRateGbps,
               note: 'Event order is deterministic; modeled link quantities retain their declared intervals.',
+              omissionIds: Object.freeze([
+                'acquisition-not-modeled',
+                'maintenance-not-modeled',
+                'plasma-not-modeled',
+                'detector-background-noise-incomplete',
+                'retries-not-modeled',
+                'infrastructure-not-observed',
+                'continuous-contact-assumed',
+              ]),
+              continuousContactAssumed: true,
             }),
           }),
         }),
@@ -178,6 +188,26 @@
         modelId: 'deterministic-store-forward-v2',
         parameters: Object.freeze({ packetBits, processingDelayHours }),
         validationIds: Object.freeze(['causal-event-order-and-conservation-v1']),
+        assumptions: Object.freeze(['continuous-contact-assumed']),
+        omissionIds: Object.freeze([
+          'acquisition-not-modeled',
+          'maintenance-not-modeled',
+          'plasma-not-modeled',
+          'detector-background-noise-incomplete',
+          'retries-not-modeled',
+          'infrastructure-not-observed',
+          'continuous-contact-assumed',
+        ]),
+        reliabilityScope: Object.freeze({
+          conditionalOn: Object.freeze(['continuous-contact-assumed', 'infrastructure-not-observed']),
+          excludes: Object.freeze([
+            'acquisition-not-modeled',
+            'maintenance-not-modeled',
+            'plasma-not-modeled',
+            'detector-background-noise-incomplete',
+            'retries-not-modeled',
+          ]),
+        }),
       }),
     });
   }

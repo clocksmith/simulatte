@@ -1,0 +1,240 @@
+const assert = require('node:assert/strict');
+const test = require('node:test');
+
+const cityPresentation = require('../public/simulatte/app/plugin-presentation.js');
+const tierPresentation = require('../public/simulatte/app/tier-plugin-presentation.js');
+const multiTierVisualizer = require('../public/simulatte/app/multi-tier-visualizer.js');
+const contracts = require('../public/simulatte/platform/contracts/plugin-v4-contracts.js');
+const provenanceRegistry = require('../public/simulatte/platform/runtime/provenance-registry.js');
+
+const provenance = contracts.createProvenance({
+  origin: 'simulated',
+  temporalStatus: 'forecast',
+  uncertainty: { kind: 'missing', value: { reason: 'fixture uncertainty' } },
+  evidenceRefs: [{
+    id: 'fixture:model',
+    datasetId: 'fixture:dataset',
+    contentHash: 'a'.repeat(64),
+    modelReceiptId: 'fixture:model-receipt',
+  }],
+});
+
+function semanticPresentation() {
+  return {
+    schema: 'simulatte.pluginPresentation.v4',
+    pluginId: 'fixture',
+    coordinateSystem: 'local-m',
+    epoch: null,
+    layers: [
+      {
+        id: 'flow',
+        kind: 'path',
+        label: 'Transfer flow',
+        geometry: { kind: 'polyline', coordinateSystem: 'local-m', coordinates: [[0, 0], [100, 100]] },
+        quantity: { kind: 'flow', value: 1000, unit: 'items', domain: [0, 1000] },
+        role: 'primary',
+        importance: 1,
+        aggregationKey: null,
+        temporal: null,
+        provenance,
+      },
+      ...[0, 1, 2].map((index) => ({
+        id: `hub:${index}`,
+        kind: 'point',
+        label: `Hub ${index}`,
+        geometry: { kind: 'point', coordinateSystem: 'local-m', coordinates: [[10 + index, 10 + index]] },
+        quantity: { kind: 'inventory', value: index + 1, unit: 'items', domain: [0, 10] },
+        role: 'context',
+        importance: 0.3,
+        aggregationKey: 'hubs',
+        temporal: null,
+        provenance,
+      })),
+      {
+        id: 'pressure-field',
+        kind: 'field',
+        label: 'Pressure field',
+        geometry: {
+          kind: 'polygon',
+          coordinateSystem: 'local-m',
+          coordinates: [[0, 0], [20, 0], [20, 20], [0, 20]],
+        },
+        quantity: { kind: 'pressure', value: 7, unit: 'index', domain: [0, 10] },
+        role: 'context',
+        importance: 0.4,
+        aggregationKey: null,
+        temporal: null,
+        provenance,
+      },
+    ],
+    viewIntents: [{
+      schema: 'simulatte.viewIntent.v4',
+      id: 'overview',
+      mode: 'overview',
+      targetIds: ['flow'],
+      reasonEventId: null,
+      priority: 50,
+      transition: 'ease',
+    }],
+  };
+}
+
+function provenanceReceipt(presentation) {
+  const envelope = contracts.createProvenanceEnvelope({
+    subjectId: 'fixture:model',
+    subjectKind: 'model',
+    axes: provenance.axes,
+    datasetIds: ['fixture:dataset'],
+    artifactSha256: 'a'.repeat(64),
+    parentIds: [],
+    modelReceiptId: 'fixture:model-receipt',
+    scenarioEpoch: 'scenario:fixture',
+    contentVersion: 'fixture-v1',
+    license: { required: false, identifier: null },
+  });
+  return provenanceRegistry.createContributionProvenanceReceipt({
+    schema: 'simulatte.pluginContribution.v4',
+    pluginId: presentation.pluginId,
+    presentation,
+    events: [],
+    controls: { schema: 'simulatte.pluginControls.v4', controls: [], comparisons: [] },
+    state: null,
+    inspections: [],
+    provenanceRecords: [{
+      schema: 'simulatte.provenanceRecord.v4',
+      id: 'fixture:model',
+      kind: 'model',
+      datasetId: 'fixture:dataset',
+      contentHash: 'a'.repeat(64),
+      parentIds: [],
+      metadata: {},
+      envelope,
+    }],
+  });
+}
+
+test('City presentation consumes compositor clustering, styles, and receipts', () => {
+  const presentation = semanticPresentation();
+  const compiled = cityPresentation.compile([{
+    pluginId: 'fixture',
+    presentation,
+  }], {
+    world: {},
+    node() { throw new Error('unused'); },
+    segment() { throw new Error('unused'); },
+  }, {
+    viewport: { width: 400, height: 300 },
+    provenanceReceipts: [provenanceReceipt(presentation)],
+  });
+  assert.equal(compiled.markers.length < 3, true);
+  assert.equal(compiled.markers.flatMap((row) => row.memberIds).length, 3);
+  assert.equal(compiled.paths[0].style.widthPx <= 4, true);
+  assert.equal(compiled.paths[0].intensity > compiled.paths[0].style.strokeOpacity, true);
+  assert.equal(compiled.paths[0].provenance.axes.origin, 'simulated');
+  assert.equal(compiled.compositorReceipts[0].clusterCount >= 1, true);
+  assert.equal(compiled.compositorReceipts[0].policies.collisionManagedLabels, true);
+  assert.equal(compiled.compositorReceipts[0].policies.cohortQuantityDomains, true);
+  assert.equal(compiled.compositorReceipts[0].provenance.isCanonical, true);
+  assert.deepEqual(compiled.compositorReceipts[0].provenance.unresolvedLayerIds, []);
+});
+
+test('City renderer converts compositor pixels into visible world dimensions', () => {
+  const presentation = semanticPresentation();
+  const compiled = cityPresentation.compile([{
+    pluginId: 'fixture',
+    presentation,
+  }], {
+    world: {},
+    node() { throw new Error('unused'); },
+    segment() { throw new Error('unused'); },
+  }, {
+    viewport: { width: 20, height: 20 },
+    provenanceReceipts: [provenanceReceipt(presentation)],
+  });
+  assert.equal(compiled.paths[0].widthM > compiled.paths[0].style.widthPx, true);
+  assert.equal(compiled.markers[0].radiusM > compiled.markers[0].style.radiusPx, true);
+  assert.equal(compiled.markers[0].heightM, compiled.markers[0].radiusM * 3);
+  assert.equal(compiled.compositorReceipts[0].policies.screenSpaceWidths, true);
+});
+
+test('governed tier presentation consumes the same compositor contract', () => {
+  const presentation = semanticPresentation();
+  const compiled = tierPresentation.compileTierPresentation(
+    presentation,
+    'local-m',
+    {
+      viewport: { width: 400, height: 300 },
+      project: (position) => ({ x: position[0], y: position[1] }),
+      provenanceReceipt: provenanceReceipt(presentation),
+    }
+  );
+  assert.equal(compiled.markers.length, 1);
+  assert.equal(compiled.paths[0].style.widthPx <= 4, true);
+  assert.equal(compiled.choropleths[0].value, 7);
+  assert.equal(compiled.compositorReceipt.clusterCount, 1);
+  assert.equal(compiled.compositorReceipt.policies.screenSpaceWidths, true);
+  assert.equal(compiled.compositorReceipt.provenance.isCanonical, true);
+  assert.deepEqual(compiled.compositorReceipt.provenance.unresolvedLayerIds, []);
+  assert.deepEqual(compiled.cameraTargets[0].bounds, { minX: 0, maxX: 100, minY: 0, maxY: 100 });
+  assert.deepEqual(compiled.cameraTargets[0].memberIds, ['flow']);
+});
+
+test('tier presentation sends evidence-bound extent to the core-owned camera fitter', () => {
+  const presentation = semanticPresentation();
+  const calls = [];
+  const layer = tierPresentation.createLayer({
+    width: () => 400,
+    height: () => 300,
+    pan: () => {
+      throw new Error('extent fitter should own this camera transition');
+    },
+    fit: (target, coordinateSystem) => {
+      calls.push({ target, coordinateSystem });
+      return true;
+    },
+    view: () => ({
+      panX: 0,
+      panY: 0,
+      zoom: 1,
+      currentTier: 'country',
+      bounds: null,
+      projectCountry: null,
+    }),
+  });
+  layer.set([{ pluginId: 'fixture', presentation }], {
+    provenanceReceipts: [provenanceReceipt(presentation)],
+  });
+  assert.equal(layer.focus('plugin:fixture:overview'), true);
+  assert.equal(calls[0].coordinateSystem, 'local-m');
+  assert.deepEqual(calls[0].target.memberIds, ['flow']);
+  assert.deepEqual(calls[0].target.bounds, { minX: 0, maxX: 100, minY: 0, maxY: 100 });
+});
+
+test('country evidence framing fills desktop and mobile viewports without clipping evidence', () => {
+  const countryBounds = { minLon: -171, maxLon: -66, minLat: 18, maxLat: 72 };
+  const evidenceBounds = { minX: -124, maxX: -71, minY: 25, maxY: 48 };
+  [
+    { width: 1440, height: 1000, minimumFraction: 0.45, maximumFraction: 0.58 },
+    { width: 390, height: 844, minimumFraction: 0.65, maximumFraction: 0.84 },
+  ].forEach(({ width, height, minimumFraction, maximumFraction }) => {
+    const fitted = multiTierVisualizer.countryEvidenceView({
+      countryBounds,
+      evidenceBounds,
+      width,
+      height,
+    });
+    const scalePerZoom = Math.min(
+      width / (countryBounds.maxLon - countryBounds.minLon),
+      height / (countryBounds.maxLat - countryBounds.minLat)
+    ) * 0.06;
+    const projectedWidth = (evidenceBounds.maxX - evidenceBounds.minX) * scalePerZoom * fitted.zoom;
+    assert.ok(projectedWidth >= width * minimumFraction);
+    assert.ok(projectedWidth <= width * maximumFraction);
+    const countryCenterX = (countryBounds.minLon + countryBounds.maxLon) / 2;
+    const evidenceCenterX = (evidenceBounds.minX + evidenceBounds.maxX) / 2;
+    assert.equal(
+      Math.round(fitted.panX + (evidenceCenterX - countryCenterX) * scalePerZoom * fitted.zoom),
+      Math.round(width / 2)
+    );
+  });
+});

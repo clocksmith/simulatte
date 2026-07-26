@@ -16,6 +16,46 @@ const orbitalV4 = require('../public/shared/plugins/orbital-transfer-planner/v4-
 const runtimeManifest = require('../public/simulatte/app/world-runtime-script-manifest.js');
 
 const HASH = 'a'.repeat(64);
+
+function provenanceRecord({
+  id,
+  kind,
+  datasetId,
+  rowId,
+  contentHash = HASH,
+  parentIds = [],
+  origin,
+  temporalStatus,
+  uncertainty,
+  license = { required: false, identifier: null },
+  metadata = {},
+}) {
+  return {
+    schema: 'simulatte.provenanceRecord.v4',
+    id,
+    kind,
+    datasetId,
+    ...(rowId === undefined ? {} : { rowId }),
+    contentHash,
+    parentIds,
+    metadata,
+    envelope: contracts.createProvenanceEnvelope({
+      subjectId: id,
+      subjectKind: kind,
+      axes: { origin, temporalStatus, uncertainty },
+      datasetIds: [datasetId],
+      rowIds: rowId === undefined ? [] : [rowId],
+      artifactSha256: contentHash,
+      parentIds,
+      transformationChain: kind === 'transformation' ? [id] : [],
+      modelReceiptId: kind === 'model' ? id : null,
+      retrievalEpoch: temporalStatus === 'historical' ? '2026-07-25' : null,
+      scenarioEpoch: temporalStatus === 'historical' ? null : 'scenario:test',
+      contentVersion: 'test-v1',
+      license,
+    }),
+  };
+}
 const OBSERVED = contracts.createProvenance({
   origin: 'observed',
   temporalStatus: 'historical',
@@ -35,7 +75,7 @@ const SIMULATED = contracts.createProvenance({
     id: 'model:flow',
     datasetId: 'dataset:roads',
     contentHash: HASH,
-    modelReceiptId: 'model-receipt:flow',
+    modelReceiptId: 'model:flow',
   }],
 });
 
@@ -119,16 +159,17 @@ test('v4 truth axes preserve origin, time, and uncertainty independently', () =>
 
 test('provenance registry exposes source records through render-object bindings', () => {
   const registry = provenanceRegistry.createProvenanceRegistry();
-  registry.register({
-    schema: 'simulatte.provenanceRecord.v4',
+  registry.register(provenanceRecord({
     id: 'row:1',
     kind: 'row',
     datasetId: 'dataset:roads',
     rowId: '1',
-    contentHash: HASH,
-    parentIds: [],
+    origin: 'observed',
+    temporalStatus: 'historical',
+    uncertainty: { kind: 'confidence', value: { level: 0.95 } },
+    license: { required: true, identifier: 'test-open-data-license' },
     metadata: { source: 'transport authority' },
-  });
+  }));
   const resolved = registry.bind('route:1', OBSERVED.evidenceRefs);
   assert.equal(resolved[0].rowId, '1');
   assert.equal(registry.receipt().bindingCount, 1);
@@ -168,25 +209,28 @@ test('v4 contribution closes every rendered and simulated claim over provenance 
     state: null,
     inspections: [],
     provenanceRecords: [
-      {
-        schema: 'simulatte.provenanceRecord.v4',
+      provenanceRecord({
         id: 'row:1',
         kind: 'row',
         datasetId: 'dataset:roads',
         rowId: '1',
-        contentHash: HASH,
-        parentIds: [],
+        origin: 'observed',
+        temporalStatus: 'historical',
+        uncertainty: { kind: 'confidence', value: { level: 0.95 } },
+        license: { required: true, identifier: 'test-open-data-license' },
         metadata: {},
-      },
-      {
-        schema: 'simulatte.provenanceRecord.v4',
+      }),
+      provenanceRecord({
         id: 'model:flow',
         kind: 'model',
         datasetId: 'dataset:roads',
         contentHash: HASH,
         parentIds: ['row:1'],
+        origin: 'modeled',
+        temporalStatus: 'forecast',
+        uncertainty: { kind: 'distribution', value: { family: 'poisson', lambda: 4 } },
         metadata: { algorithm: 'flow-model-v1' },
-      },
+      }),
     ],
   };
   assert.equal(contracts.validateContribution(value), value);

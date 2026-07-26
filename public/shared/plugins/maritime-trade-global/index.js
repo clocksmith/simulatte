@@ -12,6 +12,7 @@
     'ibtracs-v04r01-scenario-tracks-v1',
     'maritime-vessel-archetypes-v1',
     'maritime-emissions-model-v1',
+    'maritime.calibration.artifacts.v1',
     'maritime.voyage.scenarios.v1',
     'maritime.provenance.registry.v1',
   ]);
@@ -93,6 +94,8 @@
           { id: `${PLUGIN_ID}:voyage:${scenarioId}`, kind: 'causal_maritime_voyage', required: true },
           { id: `${PLUGIN_ID}:lineage:${scenarioId}`, kind: 'container_lineage', required: true },
           { id: `${PLUGIN_ID}:provenance:${scenarioId}`, kind: 'evidence_traceability', required: true },
+          { id: `${PLUGIN_ID}:queue-uncertainty:${scenarioId}`, kind: 'stochastic_queue_uncertainty', required: true },
+          { id: `${PLUGIN_ID}:emissions-sensitivity:${scenarioId}`, kind: 'emissions_parameter_sensitivity', required: true },
         ],
         unresolved: [],
       };
@@ -160,15 +163,24 @@
           fuelTonsDelta: selectedMetrics.fuelTons - baselineMetrics.fuelTons,
           co2TonsDelta: selectedMetrics.co2Tons - baselineMetrics.co2Tons,
         },
+        queueStochastic: {
+          kind: 'distribution',
+          method: 'common_random_numbers',
+          baseline: quantiles(baseline.queueEnsemble),
+          intervention: quantiles(selected.queueEnsemble),
+          queueReplicates: selected.parameters.ensembleReplicates,
+        },
+        emissionsParameterSensitivity: {
+          kind: 'parameter_sensitivity',
+          probability: null,
+          baseline: sensitivitySummary(baseline.emissions.parameterSensitivity),
+          intervention: sensitivitySummary(selected.emissions.parameterSensitivity),
+        },
         baseline,
         intervention: selected,
-        truth: truth('derived', 'forecast', {
-          kind: 'distribution',
-          value: {
-            method: 'common_random_numbers',
-            queueReplicates: selected.parameters.ensembleReplicates,
-          },
-        }),
+        truth: truth('derived', 'forecast', missing(
+          'Composite comparison has no single uncertainty distribution; inspect queueStochastic and emissionsParameterSensitivity separately.'
+        )),
         evidenceRefs: [
           ...selected.dataReceipts.map((row) => `dataset:${row.datasetId}`),
           ...selected.modelReceipts.map((row) => row.id),
@@ -187,9 +199,19 @@
         commonSeed: selected.seed,
         synchronizedClock: true,
         metrics: comparison.metrics,
+        queueStochastic: comparison.queueStochastic,
+        emissionsParameterSensitivity: comparison.emissionsParameterSensitivity,
         truth: comparison.truth,
       });
-      return { status: 'settled', comparison: comparison.metrics };
+      return {
+        status: 'settled',
+        comparison: comparison.metrics,
+        comparisonId: comparison.id,
+        comparisonBranches: {
+          baseline: baselineMetrics,
+          intervention: selectedMetrics,
+        },
+      };
     }
 
     function appendCompletionReceipts(value) {
@@ -216,6 +238,8 @@
         p05WaitHours: value.queueEnsemble.p05WaitHours,
         p50WaitHours: value.queueEnsemble.p50WaitHours,
         p95WaitHours: value.queueEnsemble.p95WaitHours,
+        uncertaintyClass: value.queueEnsemble.uncertaintyClass,
+        calibration: value.queueEnsemble.calibration,
         truth: value.queueEnsemble.truth,
         evidenceRefs: value.queueEnsemble.evidenceRefs,
       });
@@ -239,6 +263,19 @@
         parameters: value.emissions.parameters,
         truth: value.emissions.truth,
         evidenceRefs: value.emissions.evidenceRefs,
+      });
+      sdk.receipts.append({
+        schema: 'simulatte.plugin.maritimeEmissionsSensitivityReceipt.v1',
+        scenarioId: value.scenarioId,
+        ...sensitivitySummary(value.emissions.parameterSensitivity),
+        cases: value.emissions.parameterSensitivity.cases,
+        probability: null,
+        confidenceLevel: null,
+        samplingDistribution: null,
+        truth: truth('scenario', 'forecast', missing(
+          'Deterministic parameter cases do not define a probability or confidence interval.'
+        )),
+        evidenceRefs: value.emissions.parameterSensitivity.evidenceRefs,
       });
     }
 
@@ -271,6 +308,26 @@
             status: provenance.unresolvedReferenceCount === 0 ? 'settled' : 'unmet',
             evidence: provenance,
           },
+          {
+            obligationId: `${PLUGIN_ID}:queue-uncertainty:${state.scenarioId}`,
+            status: state.result.queueEnsemble.uncertaintyClass === 'stochastic_simulation'
+              && state.result.queueEnsemble.truth.uncertainty.kind === 'distribution'
+              ? 'settled'
+              : 'unmet',
+            evidence: {
+              uncertaintyClass: state.result.queueEnsemble.uncertaintyClass,
+              quantiles: quantiles(state.result.queueEnsemble),
+              calibrationStatus: state.result.queueEnsemble.calibration.status,
+            },
+          },
+          {
+            obligationId: `${PLUGIN_ID}:emissions-sensitivity:${state.scenarioId}`,
+            status: state.result.emissions.truth.uncertainty.kind === 'missing'
+              && state.result.emissions.parameterSensitivity.kind === 'parameter_sensitivity'
+              ? 'settled'
+              : 'unmet',
+            evidence: sensitivitySummary(state.result.emissions.parameterSensitivity),
+          },
         ],
         stateIdentity: `${state.scenarioId}:event-${current.cursor}:${state.playback.status}`,
         losses: isComplete ? [] : [{
@@ -297,8 +354,10 @@
             { label: 'Route model', value: state.result.route.algorithm },
             { label: 'Transit', value: `${values.totalTransitDays.toFixed(2)} modeled days` },
             { label: 'Queue p05 / p50 / p95', value: `${state.result.queueEnsemble.p05WaitHours.toFixed(1)} / ${state.result.queueEnsemble.p50WaitHours.toFixed(1)} / ${state.result.queueEnsemble.p95WaitHours.toFixed(1)} h` },
+            { label: 'Queue evidence', value: `Seeded stochastic ensemble · ${state.result.queueEnsemble.calibration.status.replaceAll('_', ' ')}` },
             { label: 'Cargo', value: `${values.cargoTeu.toLocaleString()} scenario TEU` },
             { label: 'Fuel / CO2e', value: `${values.fuelTons.toFixed(0)} / ${values.co2Tons.toFixed(0)} modeled t` },
+            { label: 'CO2e sensitivity low / base / high', value: sensitivityLabel(state.result.emissions.parameterSensitivity) },
             { label: 'CO2e intensity', value: `${values.intensityGCo2PerTeuNm.toFixed(2)} g/TEU-NM` },
             ...(comparison ? [{ label: 'Compared transit delta', value: `${comparison.metrics.transitDaysDelta.toFixed(2)} days` }] : []),
           ],
@@ -424,6 +483,7 @@
       cyclones: sdk.datasets.require('ibtracs-v04r01-scenario-tracks-v1'),
       vessels: sdk.datasets.require('maritime-vessel-archetypes-v1'),
       emissionsModel: sdk.datasets.require('maritime-emissions-model-v1'),
+      calibration: sdk.datasets.require('maritime.calibration.artifacts.v1'),
       scenarioCatalog: sdk.datasets.require('maritime.voyage.scenarios.v1'),
       provenance: sdk.datasets.require('maritime.provenance.registry.v1'),
       dataReceipts: Object.freeze(dataReceipts),
@@ -574,6 +634,30 @@
     };
   }
 
+  function quantiles(queue) {
+    return deepFreeze({
+      p05WaitHours: queue.p05WaitHours,
+      p50WaitHours: queue.p50WaitHours,
+      p95WaitHours: queue.p95WaitHours,
+    });
+  }
+
+  function sensitivitySummary(sensitivity) {
+    return deepFreeze({
+      sensitivityId: sensitivity.id,
+      kind: sensitivity.kind,
+      method: sensitivity.method,
+      baselineCo2Tons: sensitivity.baselineCo2Tons,
+      minimumCo2Tons: sensitivity.minimumCo2Tons,
+      maximumCo2Tons: sensitivity.maximumCo2Tons,
+      interpretation: sensitivity.interpretation,
+    });
+  }
+
+  function sensitivityLabel(sensitivity) {
+    return `${sensitivity.minimumCo2Tons.toFixed(0)} / ${sensitivity.baselineCo2Tons.toFixed(0)} / ${sensitivity.maximumCo2Tons.toFixed(0)} modeled t · not probabilistic`;
+  }
+
   function numberOr(value, fallback) {
     return value === undefined || value === null || value === '' ? fallback : Number(value);
   }
@@ -610,6 +694,13 @@
       return value;
     },
     'simulatte.maritimeEmissionsModel.v1': (value) => value,
+    'simulatte.maritimeCalibrationArtifacts.v1': (value) => {
+      if (value?.queueCalibration?.status !== 'not_empirically_calibrated'
+        || value?.emissionsSensitivity?.interpretation?.kind !== 'parameter_sensitivity') {
+        throw new Error('maritime_calibration_artifacts_invalid');
+      }
+      return value;
+    },
     'simulatte.maritimeVoyageScenarios.v1': (value) => {
       if (!Array.isArray(value?.scenarios) || value.scenarios.length < 5) throw new Error('maritime_voyage_scenarios_invalid');
       return value;

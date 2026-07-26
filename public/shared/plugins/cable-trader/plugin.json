@@ -13,7 +13,7 @@
         "id": "cable-compatibility-priors-v1",
         "path": "../../../data/cable-trader/cable-compatibility-priors-v1.json",
         "schemaId": "simulatte.cableCompatibilityPriors.v1",
-        "sha256": "5b06038f025546f1dc3b5be7827925820e6a8ddbbdc5a8e72c92af419297627c"
+        "sha256": "489761dac36fb64f334a20460f6e43e3858bd0ec909c85ff32e0023c41492e4d"
       },
       "required": true
     }
@@ -21,7 +21,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginCableTrader",
-    "integrity": "sha384-feaa081a03a7ce4dd04c221ec07937c9cb817d0cae0eedb68d45ba6a7eecffe047ddb3ecb599e53b09ba8e8d737fc0cb",
+    "integrity": "sha384-07771c6ada99dd122baabea629480912fa0c9338f7b3134541c5bac3e4258d7032dc0667bb49279dda238e6fbb1891e6",
     "path": "./index.js"
   },
   "extensionPoints": [
@@ -49,27 +49,37 @@
   ],
   "receiptSchemas": [
     "simulatte.plugin.cableTraderNetworkReceipt.v1",
-    "simulatte.plugin.cableTraderPlaybackReceipt.v1"
+    "simulatte.plugin.cableTraderPlaybackReceipt.v1",
+    "simulatte.plugin.cableTraderEnsembleReceipt.v1",
+    "simulatte.comparisonExecutionReceipt.v4"
   ],
   "resources": [
     {
-      "integrity": "sha384-13804ef43efba754468c39eed5a3581231f4d2579e5eb84481af2cd0a99109eb9a420b3e512b5e391856faf96cd76b3d",
+      "integrity": "sha384-1a8eaba59ad566a2ba199f9027b4906ec6f2577c5d9046f808ffa6b2856c5c00851c2687ed343d84220eebcf57e561e2",
       "path": "./config.schema.json"
     },
     {
-      "integrity": "sha384-9946f0bb6bec9adf7d961e67274f2940e7f04b4286c59b9e871987ebef1b120684400dc6d0cb4e55892747d277749715",
+      "integrity": "sha384-84fca3d31b44be235e42b82a2b504f0484396c1392b28f0a5e4fae933c7380cf19c58d5c004ad8d617037babc8e54025",
       "path": "./default-config.json"
     },
     {
-      "integrity": "sha384-9b3051638fa7d7c8e4895cada113c65b6b3a9a7df5b3562056720efbb798601979c944f80cb071506d83ac7d238c57bb",
+      "integrity": "sha384-fdb6052d08d5022ccad15172a1ceb65e52138a4cf7458784079d79d8ba6966666461379f51b0cc0d41542d4f175ce5c6",
       "path": "./network-simulation.js"
     },
     {
-      "integrity": "sha384-05254c120ee37e5b36e7f30470e41e564dcae50e290d686d86b022f8de9f437cd92fad1058c59a2adf58af29a19db499",
+      "integrity": "sha384-949a26d9654e2a6c89c553f6800b193ea7cca33d58162650bdea766fd3970ad63e95892043d1bd68277f604fa05764df",
       "path": "./v4-contribution.js"
+    },
+    {
+      "integrity": "sha384-bc78fdcdc9d431278df3f5f33a8609b10e7acdc764db704c7f47c23ae347d4f4a5231f2dd730ebc0adf3ee2039dc5d20",
+      "path": "./comparison-driver.js"
+    },
+    {
+      "integrity": "sha384-ef0d390b0d5ac3e8b419e87ac17d57e1306d0cc7266e3b75c1c34368c8b8b18ac5bf58dd40fd45ffdfecb3f3623a3e87",
+      "path": "./ensemble-runner.js"
     }
   ],
   "schema": "simulatte.pluginManifest.v1",
   "sdkVersion": 2,
-  "version": "2.1.0"
+  "version": "2.2.0"
 }

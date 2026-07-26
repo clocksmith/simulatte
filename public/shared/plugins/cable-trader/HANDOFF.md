@@ -24,16 +24,20 @@ remain authored scenario inputs. The profile labels now have material effects:
 
 ## Model
 
-`network-simulation.js` generates seeded needs, returns, and journey-cost events. Each
-day and cable family is solved using successive shortest residual paths over the
-complete directed hub graph. The implementation uses Bellman-Ford relaxation because
-reverse residual edges may have negative cost. Every one of the 300 day-family
-allocations records an optimality result.
+`network-simulation.js` generates seeded demand, return, and journey-cost events for
+the governed cable-family multiselect. The normalized selected IDs bind the scenario
+identity, derived seed, configuration SHA-256, events, snapshots, comparisons, and
+receipts. Changing selection rebuilds demand, inventory, allocations, hub pressure,
+transfer paths, and settlement. Each day and selected cable family is solved using
+successive shortest residual paths over the complete directed hub graph.
 
 The route cost is modeled as governed NYC route distance in kilometers plus a seeded
 journey penalty. It is not observed travel time, money, emissions, or inconvenience.
-The simulation has one seeded realization and no calibrated interval. The v4 draft
-contribution records this as distribution uncertainty with `ensembleSize: 1`.
+`ensemble-runner.js` executes the declared seed set with one optimized and one
+local-inventory-only timeline per seed. It preserves every daily timeline and reports
+fulfillment, unserved demand, transfer burden, inventory depletion, and hub imbalance
+distributions. These are labeled scenario variance because arrival and return
+processes are not calibrated from observed operations.
 
 ## Events and state
 
@@ -60,7 +64,8 @@ for v1-v3 hosts.
 - the complete event timeline and current progressive state;
 - one semantic point per inventory hub and one semantic path per active transfer;
 - raw quantity, node, and route-segment fields without final styles;
-- duration and starting-inventory controls plus hub inventory inspection models;
+- governed cable-family multiselect, duration, and starting-inventory controls;
+- selected-family inventory and standards-evidence inspection models;
 - a synchronized optimized-versus-local-only comparison definition;
 - advisory Overview and dominant-flow Follow ViewIntent rows.
 
@@ -77,16 +82,15 @@ authority boundary.
 - Run the declared comparison through synchronized deterministic branches.
 - Add the compatibility-prior dataset to the shared provenance registry.
 - Regenerate the global plugin registry after all four parallel lanes settle.
-- Add a final multi-select control shape before exposing selected cable families; the
-  current shared v4 contract does not yet support multi-select.
+- Render `multiselect` controls through the final host control surface.
 
 Until that integration lands, the current City v2 host still treats Play as a route
 journey and cannot provide truthful progressive browser evidence for this plugin.
 
 ## Remaining data limitations
 
-- No observed hub inventories, exchanges, reservations, participant counts, or demand.
+- No observed hub inventories, exchanges, reservations, modeled requests, or demand.
 - No calibrated arrival, return, abandonment, compatibility, failure, or lifetime model.
 - Five cable categories lack standards provenance in the current compatibility catalog.
 - No hub capacity, delayed transfer, inventory condition, or item aging state.
-- No ensemble service-level interval.
+- Scenario-variance ensembles are not calibrated service-level intervals.

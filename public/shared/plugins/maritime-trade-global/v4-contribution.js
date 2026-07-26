@@ -38,6 +38,12 @@
       uncertainty: result.queueEnsemble.truth.uncertainty,
       records: [model],
     });
+    const emissionsModeled = builder.provenance({
+      origin: 'modeled',
+      temporalStatus: 'forecast',
+      uncertainty: result.emissions.truth.uncertainty,
+      records: [model],
+    });
     const layers = [
       ...activePorts.map((port) => builder.layer({
         id: `port:${port.id}`,
@@ -133,6 +139,12 @@
         fields: [
           field('distance', 'Distance', result.route.distanceNm, 'nautical miles', modeled),
           field('transit', 'Transit', result.metrics.totalTransitDays.value, 'day', simulated),
+          field('queue-p05', 'Queue stochastic p05', result.queueEnsemble.p05WaitHours, 'hour', simulated),
+          field('queue-p50', 'Queue stochastic p50', result.queueEnsemble.p50WaitHours, 'hour', simulated),
+          field('queue-p95', 'Queue stochastic p95', result.queueEnsemble.p95WaitHours, 'hour', simulated),
+          field('co2-baseline', 'CO2e baseline', result.emissions.parameterSensitivity.baselineCo2Tons, 'tonne', emissionsModeled),
+          field('co2-sensitivity-low', 'CO2e parameter sensitivity low', result.emissions.parameterSensitivity.minimumCo2Tons, 'tonne', emissionsModeled),
+          field('co2-sensitivity-high', 'CO2e parameter sensitivity high', result.emissions.parameterSensitivity.maximumCo2Tons, 'tonne', emissionsModeled),
           field('boundary', 'Claim boundary', result.claimBoundary, null, modeled),
         ],
       }],

@@ -1,0 +1,210 @@
+{
+  "schema": "simulatte.profileEvidenceIndex.v1",
+  "planSha256": "14710106f019e51871bbfee47c3e4a559dd619788fbb3204ecd5d27c356f98c9",
+  "claimInventorySha256": "3e09f7d9178b52c9c60f545ae87102dfa03a13d4934558bd7674fcf887e592ef",
+  "sourceIdentity": {
+    "buildId": "64b4838d99a3c41498616db50ba0815473cddfa7-cbd5ffaaed3d",
+    "commitSha": "8b5371cdda26dff56e1d6c47eb0fc014cadba199",
+    "worktreeSha256": "2828447a6c48fbc4cdaa688eaf6a8bfc85b70f5a3d572a16cc3eadfd9c76e926"
+  },
+  "totalRuns": 10,
+  "passedRuns": 6,
+  "pass": false,
+  "profiles": [
+    {
+      "profileId": "interstellar-relay-network-v1",
+      "totalRuns": 2,
+      "passedRuns": 2,
+      "failureCounts": {}
+    },
+    {
+      "profileId": "maritime-trade-global-v1",
+      "totalRuns": 2,
+      "passedRuns": 2,
+      "failureCounts": {}
+    },
+    {
+      "profileId": "orbital-transfer-planner-v1",
+      "totalRuns": 2,
+      "passedRuns": 2,
+      "failureCounts": {}
+    },
+    {
+      "profileId": "safety-explorer-v1",
+      "totalRuns": 2,
+      "passedRuns": 0,
+      "failureCounts": {
+        "runtime_path_mismatch": 2,
+        "platform_clock_receipt_invalid": 2,
+        "platform_view_receipt_invalid": 2,
+        "platform_compositor_receipt_missing": 2,
+        "comparison_execution_receipt_missing": 2,
+        "settlement_receipt_missing": 2,
+        "plugin_playback_reload_not_restored": 2,
+        "claim_evidence_unresolved": 2,
+        "receipt_contradictory": 2
+      }
+    },
+    {
+      "profileId": "sun-walker-v1",
+      "totalRuns": 2,
+      "passedRuns": 0,
+      "failureCounts": {
+        "runtime_path_mismatch": 2,
+        "platform_clock_receipt_invalid": 2,
+        "platform_view_receipt_invalid": 2,
+        "platform_compositor_receipt_missing": 2,
+        "comparison_execution_receipt_missing": 2,
+        "settlement_receipt_missing": 2,
+        "plugin_playback_reload_not_restored": 2,
+        "runtime_dataset_identity_missing:sun-walker:world.buildings.v1": 2,
+        "claim_evidence_unresolved": 2,
+        "receipt_contradictory": 2
+      }
+    }
+  ],
+  "runs": [
+    {
+      "runId": "run-e1c0921e985c6b85da2d",
+      "profileId": "interstellar-relay-network-v1",
+      "seedId": "sol-proxima-direct",
+      "viewportId": "desktop-1440x1000",
+      "receiptSha256": "3d9cbda8d6b8af3d47b29055a6a8ab688837fa005ddf3eec10fb0fec20794185",
+      "receiptPath": "receipts/sha256/3d9cbda8d6b8af3d47b29055a6a8ab688837fa005ddf3eec10fb0fec20794185.json",
+      "pass": true,
+      "failures": []
+    },
+    {
+      "runId": "run-336832adc71f76a39ca8",
+      "profileId": "interstellar-relay-network-v1",
+      "seedId": "sol-proxima-direct",
+      "viewportId": "mobile-390x844",
+      "receiptSha256": "0e47426baa4088c5feb09ba95df125796ff97952026c859b18b27a0d48a49fa5",
+      "receiptPath": "receipts/sha256/0e47426baa4088c5feb09ba95df125796ff97952026c859b18b27a0d48a49fa5.json",
+      "pass": true,
+      "failures": []
+    },
+    {
+      "runId": "run-92ca28b8099a6a821cdf",
+      "profileId": "maritime-trade-global-v1",
+      "seedId": "asia-europe-mainline",
+      "viewportId": "desktop-1440x1000",
+      "receiptSha256": "d70a6d0db708a71fa219e1040ad03075473e3dc3f636f7031adcaa167f814be0",
+      "receiptPath": "receipts/sha256/d70a6d0db708a71fa219e1040ad03075473e3dc3f636f7031adcaa167f814be0.json",
+      "pass": true,
+      "failures": []
+    },
+    {
+      "runId": "run-5c34d14be825be3566ec",
+      "profileId": "maritime-trade-global-v1",
+      "seedId": "asia-europe-mainline",
+      "viewportId": "mobile-390x844",
+      "receiptSha256": "a5114fa779fed381788f37beac85a3852705432942469f7820d99ea24e810377",
+      "receiptPath": "receipts/sha256/a5114fa779fed381788f37beac85a3852705432942469f7820d99ea24e810377.json",
+      "pass": true,
+      "failures": []
+    },
+    {
+      "runId": "run-364d51876c074e6d3646",
+      "profileId": "orbital-transfer-planner-v1",
+      "seedId": "earth-mars-window",
+      "viewportId": "desktop-1440x1000",
+      "receiptSha256": "8ed2ecb54e5f7a6a90f305199807913a4b013a5ddd6abce007cb7979f595cbf7",
+      "receiptPath": "receipts/sha256/8ed2ecb54e5f7a6a90f305199807913a4b013a5ddd6abce007cb7979f595cbf7.json",
+      "pass": true,
+      "failures": []
+    },
+    {
+      "runId": "run-c7a559a8954390eaad66",
+      "profileId": "orbital-transfer-planner-v1",
+      "seedId": "earth-mars-window",
+      "viewportId": "mobile-390x844",
+      "receiptSha256": "82d86c06f8ecc157daaaed3b15439276a9b6152563fcd37f5b0b747780037631",
+      "receiptPath": "receipts/sha256/82d86c06f8ecc157daaaed3b15439276a9b6152563fcd37f5b0b747780037631.json",
+      "pass": true,
+      "failures": []
+    },
+    {
+      "runId": "run-4908c711843889bcf9eb",
+      "profileId": "safety-explorer-v1",
+      "seedId": "union-mccarren",
+      "viewportId": "desktop-1440x1000",
+      "receiptSha256": "bdfe9abfb2b2e33c7a87154e8b1b080371db527e4d8093622e62c7d9b1a724b0",
+      "receiptPath": "receipts/sha256/bdfe9abfb2b2e33c7a87154e8b1b080371db527e4d8093622e62c7d9b1a724b0.json",
+      "pass": false,
+      "failures": [
+        "runtime_path_mismatch",
+        "platform_clock_receipt_invalid",
+        "platform_view_receipt_invalid",
+        "platform_compositor_receipt_missing",
+        "comparison_execution_receipt_missing",
+        "settlement_receipt_missing",
+        "plugin_playback_reload_not_restored",
+        "claim_evidence_unresolved",
+        "receipt_contradictory"
+      ]
+    },
+    {
+      "runId": "run-d41f0823f11b4d9b8cd6",
+      "profileId": "safety-explorer-v1",
+      "seedId": "union-mccarren",
+      "viewportId": "mobile-390x844",
+      "receiptSha256": "5d11874436af2ef1525d84064a1414e4b7cb857e7ea9d51e96b0830e481722cf",
+      "receiptPath": "receipts/sha256/5d11874436af2ef1525d84064a1414e4b7cb857e7ea9d51e96b0830e481722cf.json",
+      "pass": false,
+      "failures": [
+        "runtime_path_mismatch",
+        "platform_clock_receipt_invalid",
+        "platform_view_receipt_invalid",
+        "platform_compositor_receipt_missing",
+        "comparison_execution_receipt_missing",
+        "settlement_receipt_missing",
+        "plugin_playback_reload_not_restored",
+        "claim_evidence_unresolved",
+        "receipt_contradictory"
+      ]
+    },
+    {
+      "runId": "run-4f7b7ab18a9570b29c46",
+      "profileId": "sun-walker-v1",
+      "seedId": "village-union-shade",
+      "viewportId": "desktop-1440x1000",
+      "receiptSha256": "52ec60eed3dc4884bd408cbff912642bd40c988665417206d0d8bb59aa4223a4",
+      "receiptPath": "receipts/sha256/52ec60eed3dc4884bd408cbff912642bd40c988665417206d0d8bb59aa4223a4.json",
+      "pass": false,
+      "failures": [
+        "runtime_path_mismatch",
+        "platform_clock_receipt_invalid",
+        "platform_view_receipt_invalid",
+        "platform_compositor_receipt_missing",
+        "comparison_execution_receipt_missing",
+        "settlement_receipt_missing",
+        "plugin_playback_reload_not_restored",
+        "runtime_dataset_identity_missing:sun-walker:world.buildings.v1",
+        "claim_evidence_unresolved",
+        "receipt_contradictory"
+      ]
+    },
+    {
+      "runId": "run-31425088818d93426b56",
+      "profileId": "sun-walker-v1",
+      "seedId": "village-union-shade",
+      "viewportId": "mobile-390x844",
+      "receiptSha256": "09bdec53122e27091f0ee0de81d6db68d397ffa605c88372f918fbe2f6df2d42",
+      "receiptPath": "receipts/sha256/09bdec53122e27091f0ee0de81d6db68d397ffa605c88372f918fbe2f6df2d42.json",
+      "pass": false,
+      "failures": [
+        "runtime_path_mismatch",
+        "platform_clock_receipt_invalid",
+        "platform_view_receipt_invalid",
+        "platform_compositor_receipt_missing",
+        "comparison_execution_receipt_missing",
+        "settlement_receipt_missing",
+        "plugin_playback_reload_not_restored",
+        "runtime_dataset_identity_missing:sun-walker:world.buildings.v1",
+        "claim_evidence_unresolved",
+        "receipt_contradictory"
+      ]
+    }
+  ]
+}

@@ -1,13 +1,13 @@
 {
   "schema": "simulatte.applicationProfile.v2",
   "id": "sun-walker-v1",
-  "interaction": { "mode": "route", "startLabel": "Simulate shaded walk", "shuffleLabel": "Shuffle walk" },
+  "interaction": { "mode": "playback", "startLabel": "Simulate shaded walk", "shuffleLabel": "Shuffle walk" },
   "defaultSeedId": "village-union-shade",
   "seeds": [
     { "id": "village-union-shade", "label": "Village to Union Square", "description": "Compare clear-sky building shade at simulated arrival times.", "seed": "shade-village-union-0719", "missionText": "Walk from Washington Square Park to Union Square using the most building shade." },
-    { "id": "mccarren-cooper-shade", "label": "McCarren to Cooper", "description": "Compare modeled building shade on Brooklyn walking alternatives.", "seed": "shade-mccarren-cooper-2048", "missionText": "Find a shaded walk from McCarren Park to Cooper Park." },
-    { "id": "tompkins-union-sun", "label": "Tompkins to Union", "description": "Minimize modeled clear-sky direct sun on an East Village walk.", "seed": "shade-tompkins-union-4096", "missionText": "Avoid direct sun between Tompkins Square Park and Union Square." },
-    { "id": "village-tompkins-hot", "label": "Crosstown comparison", "description": "Compare arrival-time building shade without claiming thermal comfort.", "seed": "shade-village-tompkins-8192", "missionText": "Take the shadier route from Washington Square Park to Tompkins Square Park." }
+    { "id": "mccarren-cooper-shade", "label": "McCarren to Greenpoint", "description": "Compare modeled building shade on Brooklyn walking alternatives.", "seed": "shade-mccarren-cooper-2048", "missionText": "Walk from McCarren Park to Greenpoint using the most building shade." },
+    { "id": "tompkins-union-sun", "label": "Tompkins to Union", "description": "Minimize modeled clear-sky direct sun on an East Village walk.", "seed": "shade-tompkins-union-4096", "missionText": "Walk from Tompkins Square Park to Union Square using the most building shade." },
+    { "id": "village-tompkins-hot", "label": "Crosstown comparison", "description": "Compare arrival-time building shade without claiming thermal comfort.", "seed": "shade-village-tompkins-8192", "missionText": "Walk from Washington Square Park to Tompkins Square Park using the most building shade." }
   ],
   "camera": { "initialMode": "bird", "runMode": "follow", "pluginId": "sun-walker", "targetId": "shade-route" },
   "plugins": [{ "id": "sun-walker", "configId": "sun-walker-default-v1" }],

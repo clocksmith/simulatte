@@ -8,6 +8,7 @@
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createOrbitalTransferV4(builder) {
   const PLUGIN_ID = 'orbital-transfer-planner';
   const MODEL_HASH = 'c21e2c257506a1d550f9ce62ce0ea746afa7ed83285e4e72ab5e7c2473da29e6';
+  const VERIFIER_HASH = 'df8ac302c5450b95c88d68d182ffe8fe81c5633ea1c46a43c1993f6f9fc0ef03';
 
   function createContribution({ result, ephemerisData, datasetReceipts, profileWeights = {} }) {
     const datasets = datasetReceipts.filter((row) => row.receipt).map((row) => builder.datasetRecord(row.id, row.receipt, {
@@ -26,8 +27,25 @@
       contentHash: MODEL_HASH,
       parentIds: datasets.slice(0, 2).map((row) => row.id),
       metadata: {
-        algorithms: ['universal-variable Lambert', 'launch-window scan', 'circular Hohmann fallback'],
+        algorithms: [
+          'universal-variable single-revolution Lambert',
+          'bounded launch-window grid scan',
+          'circular coplanar Hohmann screening baseline',
+        ],
+        solverReceipt: result.solverReceipt || null,
         claimBoundary: result.claimBoundary,
+      },
+    });
+    const verifier = builder.modelRecord({
+      id: `${PLUGIN_ID}:model:n-body-verifier-v1`,
+      datasetId: ephemeris.datasetId,
+      contentHash: VERIFIER_HASH,
+      parentIds: datasets.slice(0, 2).map((row) => row.id),
+      metadata: {
+        method: result.verification?.methodId || 'heliocentric-rk4-third-body-verifier-v1',
+        forceModel: result.verification?.forceModel || null,
+        stepDays: result.verification?.stepDays || null,
+        tolerance: result.verification?.tolerance || null,
       },
     });
     const stateVectorClaim = (bodyId) => builder.provenance({
@@ -47,10 +65,11 @@
         value: {
           navigationCovariance: true,
           maneuverExecutionError: true,
-          nBodyPerturbations: true,
+          endpointBodySphereOfInfluenceTransitions: true,
+          verificationStatus: result.claimGate?.status || 'not_supplied',
         },
       },
-      records: [model],
+      records: result.verification ? [model, verifier] : [model],
     });
     const layers = [];
     Object.entries(ephemerisData.bodies || {}).forEach(([id, body]) => {
@@ -83,14 +102,25 @@
         }));
       }
     });
-    const trajectory = result.selected?.trajectory || result.fallback?.trajectory || [];
+    const trajectory = result.verification?.trajectory?.map((row) => row.positionAu)
+      || result.selected?.trajectory
+      || result.fallback?.trajectory
+      || [];
+    const deltaVScaleMaximumKmS = Math.max(
+      20,
+      Math.ceil(Number(result.metrics.totalDeltaVKmS || 0) / 5) * 5,
+    );
     if (trajectory.length >= 2) {
       layers.push(builder.layer({
         id: 'transfer-trajectory',
         kind: 'path',
-        label: result.selected ? 'Selected Lambert transfer' : 'Circular Hohmann fallback chord',
+        label: result.selected
+          ? result.verification?.accepted
+            ? 'Lambert transfer with accepted screening verification'
+            : 'Approximate Lambert transfer'
+          : 'Circular coplanar Hohmann screening chord',
         geometry: builder.geometry('polyline', 'heliocentric-ecliptic-au', trajectory),
-        quantity: builder.quantity('total-delta-v', result.metrics.totalDeltaVKmS, 'km/s', [0, 20]),
+        quantity: builder.quantity('total-delta-v', result.metrics.totalDeltaVKmS, 'km/s', [0, deltaVScaleMaximumKmS]),
         role: 'primary',
         importance: 1,
         provenance: transferClaim,
@@ -109,6 +139,15 @@
         targetBodyId: result.targetBodyId,
         selectedCandidateId: result.selected?.id || null,
         algorithm: result.metrics.algorithm,
+        solverReceipt: result.solverReceipt || null,
+        verification: result.verification
+          ? {
+            accepted: result.verification.accepted,
+            positionErrorKm: result.verification.endpoint.positionErrorKm,
+            velocityErrorKmS: result.verification.endpoint.velocityErrorKmS,
+          }
+          : null,
+        claimGate: result.claimGate || null,
       },
       provenance: transferClaim,
     })];
@@ -134,8 +173,10 @@
       numericControl('timeWeight', 'Flight-time weight', profileWeights.timeOfFlight ?? profileWeights.timeOfFlightDays ?? 0.01, 0, 1, 0.01, transferClaim),
     ], [{
       id: 'lambert-vs-hohmann',
-      label: 'Selected transfer vs circular Hohmann baseline',
-      baselineScenarioId: 'earth-mars-circular-hohmann',
+      label: 'Selected transfer vs circular coplanar Hohmann screening baseline',
+      baselineScenarioId: result.targetBodyId === 'mars'
+        ? 'earth-mars-circular-hohmann'
+        : `earth-${result.targetBodyId}-circular-coplanar-hohmann-screening`,
       variantScenarioId: result.scenarioId,
       synchronizedClock: true,
     }]);
@@ -151,6 +192,12 @@
         builder.quantity('time-of-flight', result.metrics.timeOfFlightDays, 'day'),
         builder.quantity('total-delta-v', result.metrics.totalDeltaVKmS, 'km/s'),
         builder.quantity('radiation-exposure-proxy', result.metrics.radiationExposureUnits, 'shielded proton units'),
+        ...(Number.isFinite(result.metrics.endpointPositionErrorKm)
+          ? [builder.quantity('endpoint-position-error', result.metrics.endpointPositionErrorKm, 'km')]
+          : []),
+        ...(Number.isFinite(result.metrics.endpointVelocityErrorKmS)
+          ? [builder.quantity('endpoint-velocity-error', result.metrics.endpointVelocityErrorKmS, 'km/s')]
+          : []),
       ],
       provenance: transferClaim,
     });
@@ -164,6 +211,27 @@
         field('arrival', 'Arrival epoch', result.metrics.arrivalEpoch || 'circular fallback', null, transferClaim),
         field('flight-time', 'Time of flight', result.metrics.timeOfFlightDays, 'day', transferClaim),
         field('delta-v', 'Total Δv', result.metrics.totalDeltaVKmS, 'km/s', transferClaim),
+        field('input-hashes', 'Input artifact SHA-256 identities', result.solverReceipt?.inputHashes || null, null, transferClaim),
+        field('frame', 'Reference frame', result.solverReceipt?.ephemeris?.frame || null, null, stateVectorClaim('earth')),
+        field('center', 'Ephemeris center', result.solverReceipt?.ephemeris?.center || null, null, stateVectorClaim('earth')),
+        field('time-scale', 'Epoch time scale', result.solverReceipt?.ephemeris?.timeScale || null, null, stateVectorClaim('earth')),
+        field('branch', 'Lambert branch', result.solverReceipt?.branch || null, null, transferClaim),
+        field('revolutions', 'Revolution count', result.solverReceipt?.revolutionCount ?? 0, 'revolutions', transferClaim),
+        field('grid-bounds', 'Search grid bounds', result.solverReceipt?.gridBounds || null, null, transferClaim),
+        field('iterations', 'Solver iterations', result.solverReceipt?.iterations || null, 'iterations', transferClaim),
+        field('tolerance', 'Solver tolerance', result.solverReceipt?.toleranceDays || null, 'day', transferClaim),
+        field('residual', 'Solver residual', result.solverReceipt?.residualDays ?? null, 'day', transferClaim),
+        field('rejected-candidates', 'Rejected candidates', {
+          count: result.solverReceipt?.rejectedCandidateCount ?? null,
+          reasons: result.solverReceipt?.rejectionCounts || null,
+        }, null, transferClaim),
+        field('fallback', 'Fallback reason and assumptions', result.fallback || null, null, transferClaim),
+        field('position-error', 'Independent endpoint position error', result.verification?.endpoint.positionErrorKm ?? null, 'km', transferClaim),
+        field('velocity-error', 'Independent endpoint velocity error', result.verification?.endpoint.velocityErrorKmS ?? null, 'km/s', transferClaim),
+        field('claim-gate', 'Claim gate', result.claimGate || {
+          status: 'legacy_result_without_verification',
+          blocked: ['validated flight path', 'navigation product', 'certification evidence'],
+        }, null, transferClaim),
         field('boundary', 'Claim boundary', result.claimBoundary, null, transferClaim),
       ],
     }];
@@ -174,7 +242,7 @@
       controls,
       state: progressiveState,
       inspections,
-      provenanceRecords: [...datasets, ...bodyRecords, model],
+      provenanceRecords: [...datasets, ...bodyRecords, model, verifier],
     });
   }
 

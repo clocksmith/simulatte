@@ -60,9 +60,27 @@
         p50WaitHours: result.queueEnsemble.p50WaitHours,
         p95WaitHours: result.queueEnsemble.p95WaitHours,
         replicateCount: result.queueEnsemble.replicateCount,
+        uncertaintyClass: result.queueEnsemble.uncertaintyClass,
+        calibrationStatus: result.queueEnsemble.calibration.status,
       },
       evidenceRefs: result.queueEnsemble.evidenceRefs,
       truth: result.queueEnsemble.truth,
+    });
+    const emissionsSensitivityObject = semanticObject({
+      id: `emissions-sensitivity:${result.scenarioId}`,
+      kind: 'emissions_parameter_sensitivity',
+      geometry: { type: 'point', coordinates: result.route.waypoints.at(-1) },
+      quantities: {
+        baselineCo2Tons: result.emissions.parameterSensitivity.baselineCo2Tons,
+        minimumCo2Tons: result.emissions.parameterSensitivity.minimumCo2Tons,
+        maximumCo2Tons: result.emissions.parameterSensitivity.maximumCo2Tons,
+        sensitivityKind: result.emissions.parameterSensitivity.kind,
+        probability: null,
+      },
+      evidenceRefs: result.emissions.parameterSensitivity.evidenceRefs,
+      truth: truth('scenario', 'forecast', missing(
+        'This deterministic parameter-sensitivity envelope is not a probability or confidence interval.'
+      )),
     });
     const disruptionObject = result.disruption.trackCoordinates.length >= 2
       ? semanticObject({
@@ -115,6 +133,14 @@
           aggregationHint: { method: 'quantile_summary', quantity: 'p50WaitHours' },
           temporalVisibility: { kind: 'after_event_kind', eventKind: 'maritime.voyage-arrived' },
           pickBehavior: { kind: 'inspect_uncertainty' },
+        },
+        {
+          id: 'voyage-emissions-sensitivity',
+          semanticType: 'parameter_sensitivity',
+          objects: [emissionsSensitivityObject],
+          aggregationHint: { method: 'range_summary', quantity: 'baselineCo2Tons' },
+          temporalVisibility: { kind: 'after_event_kind', eventKind: 'maritime.voyage-arrived' },
+          pickBehavior: { kind: 'inspect_parameter_sensitivity' },
         },
         ...(disruptionObject ? [{
           id: 'weather-disruption',

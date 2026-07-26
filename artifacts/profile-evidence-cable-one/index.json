@@ -1,0 +1,33 @@
+{
+  "schema": "simulatte.profileEvidenceIndex.v1",
+  "planSha256": "14710106f019e51871bbfee47c3e4a559dd619788fbb3204ecd5d27c356f98c9",
+  "claimInventorySha256": "3e09f7d9178b52c9c60f545ae87102dfa03a13d4934558bd7674fcf887e592ef",
+  "sourceIdentity": {
+    "buildId": "64b4838d99a3c41498616db50ba0815473cddfa7-cbd5ffaaed3d",
+    "commitSha": "8b5371cdda26dff56e1d6c47eb0fc014cadba199",
+    "worktreeSha256": "4d9565b3811f3acdb141fd080ce7b83c46c3f1858cc3f8950ad41dcb63623ae3"
+  },
+  "totalRuns": 1,
+  "passedRuns": 1,
+  "pass": false,
+  "profiles": [
+    {
+      "profileId": "cable-trader-pickup-v1",
+      "totalRuns": 1,
+      "passedRuns": 1,
+      "failureCounts": {}
+    }
+  ],
+  "runs": [
+    {
+      "runId": "run-b3b2447a1930776c4016",
+      "profileId": "cable-trader-pickup-v1",
+      "seedId": "july-baseline",
+      "viewportId": "desktop-1440x1000",
+      "receiptSha256": "38afe1fddacb85526e8f9273bf4eb0f94a357a78c3f8068bc574d372cf808f77",
+      "receiptPath": "receipts/sha256/38afe1fddacb85526e8f9273bf4eb0f94a357a78c3f8068bc574d372cf808f77.json",
+      "pass": true,
+      "failures": []
+    }
+  ]
+}

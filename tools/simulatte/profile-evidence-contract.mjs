@@ -172,6 +172,13 @@ function pluginSourceIdentities(root, profile) {
     const configPath = path.resolve(pluginDirectory, manifest.defaultConfig);
     assert(fs.existsSync(configPath), 'profile_evidence_plugin_config_missing', `Plugin ${selection.id} default config is missing`);
     const datasets = manifest.datasets.map((dataset) => {
+      if (!dataset.reference) {
+        return {
+          id: dataset.id,
+          required: dataset.required === true,
+          resolution: 'runtime-catalog',
+        };
+      }
       const datasetPath = path.resolve(pluginDirectory, dataset.reference.path);
       assert(
         fs.existsSync(datasetPath),
@@ -188,6 +195,8 @@ function pluginSourceIdentities(root, profile) {
       );
       return {
         id: dataset.id,
+        required: dataset.required === true,
+        resolution: 'manifest-reference',
         path: path.relative(root, datasetPath),
         schemaId: dataset.reference.schemaId,
         declaredSha256: dataset.reference.sha256,
@@ -273,6 +282,87 @@ function expectedValue(selector, context) {
   return undefined;
 }
 
+function isSettledComparisonExecutionReceipt(value) {
+  if (!value || value.schema !== 'simulatte.comparisonExecutionReceipt.v4') return false;
+  if (value.state !== 'settled' || value.fault !== null || value.cancellation !== null) return false;
+  if (!Array.isArray(value.history) || value.history.length < 1) return false;
+  if (value.cursor !== value.history.length) return false;
+  const branches = value.branches;
+  if (!branches || !['baseline', 'intervention'].every((role) => (
+    branches[role]?.role === role
+    && branches[role]?.status === 'terminal'
+    && Number.isInteger(branches[role]?.stepCount)
+    && branches[role].stepCount >= 1
+    && branches[role]?.timeline
+  ))) return false;
+  const settlement = value.settlement;
+  if (!settlement
+    || settlement.schema !== 'simulatte.comparisonSettlement.v4'
+    || settlement.comparisonId !== value.id
+    || settlement.status !== 'settled'
+    || settlement.evidenceClosure?.status !== 'closed'
+    || !Array.isArray(settlement.metricDeltas)) return false;
+  return ['baseline', 'intervention'].every((role) => (
+    settlement.branches?.[role]?.schema === 'simulatte.comparisonBranchSettlement.v4'
+    && settlement.branches[role].status === 'settled'
+  ));
+}
+
+function isSettledEvidenceReceipt(value) {
+  if (!value || typeof value !== 'object') return false;
+  if (value.status === 'settled') return true;
+  return Array.isArray(value.obligationResults)
+    && value.obligationResults.length > 0
+    && value.obligationResults.every((result) => result?.status === 'settled');
+}
+
+function pluginPlaybackIdentity(value) {
+  if (!value
+    || value.schema !== 'simulatte.pluginPlaybackRunReceipt.v1'
+    || value.actionResult?.status !== 'settled'
+    || !value.ownerPluginId
+    || !value.scenario?.id
+    || !value.scenario?.seed
+    || !Array.isArray(value.settlements)
+    || value.settlements.length < 1) return null;
+  if (!value.settlements.every((row) => (
+    Array.isArray(row.obligationResults)
+    && row.obligationResults.length > 0
+    && row.obligationResults.every((result) => result.status === 'settled')
+  ))) return null;
+  return {
+    ownerPluginId: value.ownerPluginId,
+    scenarioId: value.scenario.id,
+    seed: value.scenario.seed,
+    currentStep: value.actionResult.currentStep,
+    totalSteps: value.actionResult.totalSteps,
+    settlementSha256: sha256Value(value.settlements),
+    clock: {
+      timelineId: value.clock?.state?.timelineId || null,
+      timelineEventCount: value.clock?.timeline?.eventCount ?? null,
+      currentMs: value.clock?.state?.currentMs ?? null,
+      cursor: value.clock?.state?.cursor ?? null,
+    },
+  };
+}
+
+function isRestoredRunEvidence(value, run) {
+  if (!value || value.attempted !== true || value.restored !== true) return false;
+  if (run.tier === 'city') {
+    const before = pluginPlaybackIdentity(value.beforeReceipt);
+    const after = pluginPlaybackIdentity(value.afterReceipt);
+    return Boolean(before
+      && after
+      && canonicalJson(before) === canonicalJson(after)
+      && before.scenarioId === run.seedId
+      && before.seed === run.seed);
+  }
+  return value.beforeScenarioId === run.seedId
+    && value.afterScenarioId === run.seedId
+    && value.beforeSeed === run.seed
+    && value.afterSeed === run.seed;
+}
+
 function selectorResult(receipt, selector, context) {
   const actual = valueAtPath(receipt, selector.path);
   const expected = expectedValue(selector, context);
@@ -285,6 +375,16 @@ function selectorResult(receipt, selector, context) {
   if (selector.operator === 'includes-all') return Array.isArray(actual)
     && Array.isArray(expected)
     && expected.every((row) => actual.includes(row));
+  if (selector.operator === 'all-schema') return Array.isArray(actual)
+    && actual.length > 0
+    && actual.every((row) => row?.schema === expected);
+  if (selector.operator === 'settled-execution-receipts') return Array.isArray(actual)
+    && actual.length > 0
+    && actual.every(isSettledComparisonExecutionReceipt);
+  if (selector.operator === 'settled-receipts') return Array.isArray(actual)
+    && actual.length > 0
+    && actual.every(isSettledEvidenceReceipt);
+  if (selector.operator === 'restored-run') return isRestoredRunEvidence(actual, context.run);
   throw new Error(`profile_claim_selector_operator_invalid: Unknown selector operator ${selector.operator}`);
 }
 
@@ -301,9 +401,21 @@ function validateSourceIdentity(receipt, expectedSource) {
     const captured = actualPlugins.get(plugin.id);
     if (!captured) failures.push(`plugin_manifest_missing:${plugin.id}`);
     else if (captured.sha256 !== plugin.sha256) failures.push(`plugin_manifest_stale:${plugin.id}`);
-    const capturedDatasets = new Map((captured?.datasets || []).map((row) => [row.id, row.sha256]));
+    const capturedDatasets = new Map((captured?.datasets || []).map((row) => [row.id, row]));
     plugin.datasets.forEach((dataset) => {
-      if (capturedDatasets.get(dataset.id) !== dataset.sha256) failures.push(`dataset_identity_stale:${plugin.id}:${dataset.id}`);
+      const capturedDataset = capturedDatasets.get(dataset.id);
+      if (!capturedDataset) {
+        failures.push(`dataset_identity_missing:${plugin.id}:${dataset.id}`);
+      } else if (dataset.resolution === 'manifest-reference' && capturedDataset.sha256 !== dataset.sha256) {
+        failures.push(`dataset_identity_stale:${plugin.id}:${dataset.id}`);
+      } else if (dataset.resolution === 'runtime-catalog') {
+        const runtimeEvidence = (receipt.runtime?.datasetEvidence || []).find((row) => (
+          row.id === dataset.id
+          && Array.isArray(row.artifactSha256s)
+          && row.artifactSha256s.some((hash) => /^[a-f0-9]{64}$/i.test(hash))
+        ));
+        if (!runtimeEvidence) failures.push(`runtime_dataset_identity_missing:${plugin.id}:${dataset.id}`);
+      }
     });
   });
   return failures;
@@ -317,6 +429,30 @@ function validateReceipt({ receipt, run, sourceIdentity, claims }) {
   if (receipt.run?.seedId !== run.seedId || receipt.run?.seed !== run.seed) failures.push('seed_identity_mismatch');
   if (receipt.run?.viewportId !== run.viewport.id) failures.push('viewport_identity_mismatch');
   if (receipt.runtime?.path !== 'native-v4') failures.push(receipt.runtime?.path === 'legacy-adapter' ? 'legacy_only_evidence' : 'runtime_path_mismatch');
+  if (receipt.runtime?.clockReceipt?.schema !== 'simulatte.simulationClockReceipt.v4') {
+    failures.push('platform_clock_receipt_invalid');
+  }
+  if (receipt.runtime?.viewReceipt?.schema !== 'simulatte.viewDirectorReceipt.v4') {
+    failures.push('platform_view_receipt_invalid');
+  }
+  if (!Array.isArray(receipt.runtime?.compositorReceipts) || !receipt.runtime.compositorReceipts.length) {
+    failures.push('platform_compositor_receipt_missing');
+  } else if (!receipt.runtime.compositorReceipts.every((row) => row?.schema === 'simulatte.compositorReceipt.v4')) {
+    failures.push('platform_compositor_receipt_invalid');
+  }
+  if (!Array.isArray(receipt.evidence?.comparisons) || !receipt.evidence.comparisons.length) {
+    failures.push('comparison_execution_receipt_missing');
+  } else if (!receipt.evidence.comparisons.every(isSettledComparisonExecutionReceipt)) {
+    failures.push('comparison_execution_receipt_invalid');
+  }
+  if (!Array.isArray(receipt.evidence?.settlements) || !receipt.evidence.settlements.length) {
+    failures.push('settlement_receipt_missing');
+  } else if (!receipt.evidence.settlements.every(isSettledEvidenceReceipt)) {
+    failures.push('settlement_receipt_invalid');
+  }
+  if (!isRestoredRunEvidence(receipt.evidence?.reload, run)) {
+    failures.push(run.tier === 'city' ? 'plugin_playback_reload_not_restored' : 'run_reload_not_restored');
+  }
   failures.push(...validateSourceIdentity(receipt, sourceIdentity));
   const runClaims = claims.filter((claim) => claim.profileId === run.profileId && claim.seedId === run.seedId);
   if (!runClaims.length) failures.push('claim_inventory_missing');
@@ -360,7 +496,11 @@ export {
   claimId,
   currentSourceIdentity,
   expandClaims,
+  isRestoredRunEvidence,
+  isSettledEvidenceReceipt,
+  isSettledComparisonExecutionReceipt,
   loadProfiles,
+  pluginPlaybackIdentity,
   readJson,
   sha256Bytes,
   sha256File,

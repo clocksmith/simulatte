@@ -56,7 +56,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginOrbitalTransferPlanner",
-    "integrity": "sha384-05db3fe21a33617910f182f0bfd660901d7991f8856972b39a0020637882ede741260fb173b9f3443d0881dcdb283ac6",
+    "integrity": "sha384-53a8563a7bc7e2306b36d62637a6d830996bc9665a18d9d939ebca37b77577fa5b3e6ee294a570bebc6063a888fea492",
     "path": "./index.js"
   },
   "extensionPoints": [
@@ -86,16 +86,19 @@
   ],
   "receiptSchemas": [
     "simulatte.plugin.ephemerisIdentityReceipt.v1",
+    "simulatte.plugin.ephemerisIdentityReceipt.v2",
     "simulatte.plugin.orbitalTransferReceipt.v1",
-    "simulatte.plugin.orbitalCounterfactualReceipt.v1"
+    "simulatte.plugin.orbitalTransferReceipt.v2",
+    "simulatte.plugin.orbitalCounterfactualReceipt.v1",
+    "simulatte.plugin.orbitalCounterfactualReceipt.v2"
   ],
   "resources": [
     {
-      "integrity": "sha384-97dc6a5083bf3138e06a17d71f1416aca599786d9873899bf79bb278b7943b34c413e652f09af7955f32dae7bec364cb",
+      "integrity": "sha384-68b70436372c0a3063bd05d45cc1a7f2eb301b2ff75af9ba3f3330a63185aad53f74c6fed4b699ec362be21a99b983de",
       "path": "./config.schema.json"
     },
     {
-      "integrity": "sha384-7d479f08ac2de050da3597582fcc76514072517b46f64542e536ead61601a357abafa5afd9f698f7007ab094280d0e3a",
+      "integrity": "sha384-f2420109b87c5de1c64e18ca2ffefefaa002c496eb2eb9d96f418bdfcf7081b6dc41e297f311bba777a14eb9825c121f",
       "path": "./default-config.json"
     },
     {
@@ -107,15 +110,19 @@
       "path": "./ephemeris.js"
     },
     {
-      "integrity": "sha384-245d10cc051176329db6837771308aaf3ecf16ea16bdc1e6a5a54a02f17fedae8397915a52dbe2c3e039bd6d7d6a5b0f",
+      "integrity": "sha384-95c580c099b72f9e857460ef0b282f2957a7c1272ead287b06497557e6ef8781173c182e4fae914815c77309988992c6",
       "path": "./hohmann.js"
     },
     {
-      "integrity": "sha384-68cdcdf0f11eb51fad20dea2a6af75760f0be6f750987c95c4fec0cef5740da20109ea3c29c683bb7fa7960394f7c8ef",
+      "integrity": "sha384-67e3f1b6af70b157523688b6e7b72b0dde57d66287c6b9d1a0e8617202328de80af9ea4cd8227629e7d76c8f225fcc11",
       "path": "./lambert.js"
     },
     {
-      "integrity": "sha384-c423b484c13d88a0d452ff7ad13158c2f7658025bf9a85a99e639e79374eb3f9f4c2ea19f4ac23b64ebf01b93964f932",
+      "integrity": "sha384-5affb8b76b2310416f6c7ff2b3e2746b1ed2925b8f4d75b0d6862dc172cb4cf2089b5400be6cf8a41b145ce00d5f5561",
+      "path": "./patched-conic.js"
+    },
+    {
+      "integrity": "sha384-d250fd1a3e97d35f92d118ee88b5a091790319719ed3537d2edbc953bf2cf77a997ae0b33ab7659b951ed09948fa190a",
       "path": "./launch-window.js"
     },
     {
@@ -123,8 +130,8 @@
       "path": "./metrics.js"
     },
     {
-      "integrity": "sha384-5affb8b76b2310416f6c7ff2b3e2746b1ed2925b8f4d75b0d6862dc172cb4cf2089b5400be6cf8a41b145ce00d5f5561",
-      "path": "./patched-conic.js"
+      "integrity": "sha384-43548d7097c245f29b98d24c7b4b8bfb8633d31187d8f1a54f60a975ec6527f5d4140521439f8adfe783f7edb93b0c4e",
+      "path": "./n-body-verifier.js"
     },
     {
       "integrity": "sha384-1681a82e378b44912afbc33d4214024eb23971d6fdb175631553d7d12eb071b904e2006cd2ca30540be15749f07fda94",
@@ -135,11 +142,11 @@
       "path": "./radiation.js"
     },
     {
-      "integrity": "sha384-667d3a4dad546ade68f154faf2fbf38c8778039fe5175350af1133a19bed2e04075cef94ae08dedddfa3fbce6bc535fd",
+      "integrity": "sha384-05b0ea002c322062f3558e0c7014f10c4388dbb3dc3515c2b4952e3f6618588fdbcce8f7f5c8b1b991fbd7607d43dde3",
       "path": "./v4-contribution.js"
     }
   ],
   "schema": "simulatte.pluginManifest.v2",
   "sdkVersion": 2,
-  "version": "1.0.0"
+  "version": "2.0.0"
 }

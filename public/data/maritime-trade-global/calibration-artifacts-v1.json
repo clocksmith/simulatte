@@ -1,0 +1,89 @@
+{
+  "schema": "simulatte.maritimeCalibrationArtifacts.v1",
+  "id": "maritime.calibration.artifacts.v1",
+  "generatedAt": "2026-07-25",
+  "claimBoundary": "This artifact records calibration status and declared sensitivity cases. It does not convert modeled priors into observations or interpret engineering sensitivity as probability.",
+  "queueCalibration": {
+    "id": "calibration:maritime-queue-service-prior-v1",
+    "modelId": "model:fcfs-multi-server-queue-v2",
+    "status": "not_empirically_calibrated",
+    "inputDatasetId": "container-port-performance-v1",
+    "inputRowIdentity": "row.portId",
+    "sourceIds": [
+      "source:world-bank-cppi"
+    ],
+    "sourceIdentitySha256": "383a7f3a7f12380d8cab9e6cf98931ebeb2bbc5d4fc8f080fa750380d77bb8ab",
+    "transformation": "serviceMeanHours = clamp(4, 24, modeled medianHoursInPort / 2)",
+    "calibrationEvidence": [],
+    "limitations": [
+      "No pinned CPPI row snapshot is checked in.",
+      "No documented mapping from CPPI score or vessel time to arrival rate, service-time distribution, or berth count is available.",
+      "The checked-in medianHoursInPort values are seeded model priors and must not be described as CPPI observations."
+    ],
+    "stochasticUncertainty": {
+      "kind": "distribution",
+      "source": "seeded_simulation_randomness",
+      "family": "empirical_seeded_ensemble",
+      "quantiles": [
+        0.05,
+        0.5,
+        0.95
+      ],
+      "appliesTo": "average queue wait across simulated arrivals",
+      "doesNotCover": [
+        "parameter uncertainty",
+        "model-form uncertainty",
+        "port-specific calibration error"
+      ]
+    }
+  },
+  "emissionsSensitivity": {
+    "id": "sensitivity:maritime-emissions-parameters-v1",
+    "modelId": "model:maritime-emissions-v2",
+    "status": "declared_engineering_sensitivity",
+    "inputDatasetIds": [
+      "maritime-emissions-model-v1",
+      "maritime-vessel-archetypes-v1"
+    ],
+    "inputRowIdentities": [
+      "emissions.version",
+      "archetype.id"
+    ],
+    "sourceIds": [
+      "source:imo-fourth-ghg-study"
+    ],
+    "sourceIdentitySha256": "619ce93eb4909caab06068d66eaf0c73e60fcbc0ba91f0cea63677ae6b963c6b",
+    "validationContext": "The IMO study documents operational emissions-intensity variability and the importance of vessel phase, speed, power, auxiliary load, fuel, and emissions factors. It does not provide probability weights for these Simulatte parameter cases.",
+    "method": "joint_low_and_high_parameter_cases",
+    "cases": [
+      {
+        "id": "declared-low",
+        "speedPowerExponent": 2.7,
+        "referenceLoadFractionMultiplier": 0.9,
+        "mainEnginePowerMultiplier": 0.9,
+        "specificFuelConsumptionMultiplier": 0.9,
+        "queueLoadFractionMultiplier": 0.75
+      },
+      {
+        "id": "declared-high",
+        "speedPowerExponent": 3.3,
+        "referenceLoadFractionMultiplier": 1.1,
+        "mainEnginePowerMultiplier": 1.1,
+        "specificFuelConsumptionMultiplier": 1.1,
+        "queueLoadFractionMultiplier": 1.25
+      }
+    ],
+    "interpretation": {
+      "kind": "parameter_sensitivity",
+      "probability": null,
+      "confidenceLevel": null,
+      "samplingDistribution": null,
+      "warning": "Low/high results are deterministic joint parameter cases, not p05/p95, prediction intervals, or confidence intervals."
+    },
+    "limitations": [
+      "Parameter bounds are declared engineering scenarios, not statistically calibrated vessel distributions.",
+      "Cases move parameters jointly and therefore are an envelope stress test, not one-at-a-time attribution.",
+      "Weather resistance, hull fouling, draught, auxiliary machinery detail, and vessel-specific measurements remain absent."
+    ]
+  }
+}

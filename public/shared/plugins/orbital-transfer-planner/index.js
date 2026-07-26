@@ -19,6 +19,7 @@
     const radiationApi = dependency('OrbitalTransferRadiation', './radiation.js');
     const presentationApi = dependency('OrbitalTransferPresentation', './presentation.js');
     const hohmannApi = dependency('OrbitalTransferHohmann', './hohmann.js');
+    const verifierApi = dependency('OrbitalTransferNBodyVerifier', './n-body-verifier.js');
     const v4 = dependency('OrbitalTransferV4', './v4-contribution.js');
 
     const ephemerisData = sdk.datasets.require('jpl.horizons.heliocentric-vectors.v1');
@@ -28,6 +29,20 @@
     const spacecraftData = sdk.datasets.optional('spacecraft.archetypes.v1');
     const sunGm = gmData.bodies.sun.gmAuD2;
     const profileWeights = profile?.routeObjective || {};
+    const inputHashes = Object.freeze({
+      ephemeris: sdk.datasets.receipt('jpl.horizons.heliocentric-vectors.v1')?.sha256 || null,
+      gravitationalParameters: sdk.datasets.receipt('solar.system.gm-constants-de440.v1')?.sha256 || null,
+      radiation: sdk.datasets.receipt('solar.radiation.snapshot.v1')?.sha256 || null,
+      depots: sdk.datasets.receipt('orbital.depots.v1')?.sha256 || null,
+      spacecraft: sdk.datasets.receipt('spacecraft.archetypes.v1')?.sha256 || null,
+    });
+    const ephemerisIdentity = Object.freeze({
+      frame: ephemerisData.provenance?.query?.referenceSystem || 'undeclared',
+      referencePlane: ephemerisData.provenance?.query?.referencePlane || 'undeclared',
+      center: ephemerisData.provenance?.query?.center || 'undeclared',
+      timeScale: 'TDB',
+      outputUnits: ephemerisData.provenance?.query?.outputUnits || 'undeclared',
+    });
 
     let activeScenario = normalizeScenario(scenario, config);
     let current = computeScenario(activeScenario);
@@ -36,11 +51,17 @@
 
     function appendEphemerisReceipt() {
       sdk.receipts.append({
-        schema: 'simulatte.plugin.ephemerisIdentityReceipt.v1',
+        schema: 'simulatte.plugin.ephemerisIdentityReceipt.v2',
         datasetId: ephemerisData.id,
         datasetSha256: sdk.datasets.receipt('jpl.horizons.heliocentric-vectors.v1')?.sha256 || null,
         epochStart: ephemerisData.epochStart || ephemerisData.epoch?.start || null,
         epochCount: ephemerisData.epochCount || null,
+        frame: ephemerisIdentity.frame,
+        referencePlane: ephemerisIdentity.referencePlane,
+        center: ephemerisIdentity.center,
+        timeScale: ephemerisIdentity.timeScale,
+        outputUnits: ephemerisIdentity.outputUnits,
+        query: ephemerisData.provenance?.query || null,
         sourceKind: ephemerisData.provenance?.sourceKind || ephemerisData.sourceKind || 'declared_dataset',
         claimBoundary: ephemerisData.provenance?.claimBoundary || 'Pinned ephemeris state vectors; not operational navigation data.',
       });
@@ -59,6 +80,11 @@
           timeOfFlight: Number(profileWeights.timeOfFlight ?? profileWeights.timeOfFlightDays ?? 0.01),
         },
         bodyConstants: bodyConstants(gmData),
+        lambertOptions: {
+          prograde: config?.solver?.prograde !== false,
+          maxIterations: Number(config?.solver?.maxIterations ?? 96),
+          toleranceDays: Number(config?.solver?.toleranceDays ?? 1e-8),
+        },
         ...searchSpec,
       });
       let selected = search.selected;
@@ -66,24 +92,81 @@
       if (!selected) {
         const earth = ephemerisApi.getBodyState(ephemerisData, 'earth', 0, { clamp: true });
         const target = ephemerisApi.getBodyState(ephemerisData, targetBodyId, 0, { clamp: true });
-        const h = hohmannApi.computeHohmann(Math.hypot(...earth.positionAu), Math.hypot(...target.positionAu), sunGm);
-        fallback = Object.freeze({ method: 'circular_hohmann_fallback_v1', timeOfFlightDays: h.timeOfFlightDays, totalDeltaVKmS: h.totalDvKmS, trajectory: [earth.positionAu, target.positionAu] });
+        fallback = hohmannApi.createScreeningBaseline({
+          r1Au: Math.hypot(...earth.positionAu),
+          r2Au: Math.hypot(...target.positionAu),
+          gmSunAuD2: sunGm,
+          fallbackReason: {
+            code: 'no_converged_lambert_candidate',
+            attempted: search.search.attempted,
+            rejectionCounts: search.search.rejectionCounts,
+            gridBounds: gridBounds(search.search),
+          },
+          trajectory: [earth.positionAu, target.positionAu],
+        });
       }
+      const verification = selected
+        ? verifierApi.verifyCandidate({
+          candidate: selected,
+          ephemerisDataset: ephemerisData,
+          gmData,
+          departureBodyId: 'earth',
+          arrivalBodyId: targetBodyId,
+          stepDays: Number(config?.verification?.stepDays ?? 0.5),
+          positionToleranceKm: Number(config?.verification?.positionToleranceKm ?? 1000000),
+          velocityToleranceKmS: Number(config?.verification?.velocityToleranceKmS ?? 0.5),
+        })
+        : null;
       const tofDays = selected?.tofDays ?? fallback.timeOfFlightDays;
       const spacecraft = spacecraftData?.archetypes?.[config?.defaultArchetype || 'cargo-freighter-v1'];
       const radiation = radiationApi.computeExposure(tofDays, radData, spacecraft?.radiationShieldingGcm2 || 15);
-      const metrics = selected ? metricsApi.summarize(search, radiation) : Object.freeze({
+      const baseMetrics = selected ? metricsApi.summarize(search, radiation) : Object.freeze({
         schema: 'simulatte.orbitalTransferMetrics.v1', solutionCount: 0, attemptedCount: search.search.attempted,
         departureEpoch: null, arrivalEpoch: null, timeOfFlightDays: tofDays,
         totalDeltaVKmS: fallback.totalDeltaVKmS, radiationExposureUnits: radiation.shieldedProtonUnits,
         algorithm: fallback.method, claimBoundary: search.claimBoundary,
       });
+      const metrics = Object.freeze({
+        ...baseMetrics,
+        verificationStatus: verification?.claimGate.status || 'screening_baseline_only',
+        endpointPositionErrorKm: verification?.endpoint.positionErrorKm ?? null,
+        endpointVelocityErrorKmS: verification?.endpoint.velocityErrorKmS ?? null,
+      });
+      const solverReceipt = Object.freeze({
+        schema: 'simulatte.orbitalSolverReceipt.v2',
+        inputHashes,
+        ephemeris: ephemerisIdentity,
+        departureBodyId: 'earth',
+        arrivalBodyId: targetBodyId,
+        departureEpoch: selected?.departureEpoch || null,
+        arrivalEpoch: selected?.arrivalEpoch || null,
+        branch: selected?.transfer.branch || null,
+        revolutionCount: selected?.transfer.revolutionCount ?? 0,
+        gridBounds: gridBounds(search.search),
+        iterations: selected?.transfer.iterations || null,
+        maxIterations: selected?.transfer.maxIterations || search.search.lambertOptions.maxIterations,
+        toleranceDays: selected?.transfer.toleranceDays || search.search.lambertOptions.toleranceDays,
+        residualDays: selected?.transfer.residualDays ?? null,
+        totalDeltaVKmS: metrics.totalDeltaVKmS,
+        selectedCandidateId: selected?.id || null,
+        rejectedCandidateCount: search.search.failed,
+        rejectionCounts: search.search.rejectionCounts,
+        rejectedCandidates: search.rejectedCandidates,
+        fallbackReason: fallback?.reason || null,
+      });
+      const claimGate = verification?.claimGate || Object.freeze({
+        status: 'screening_baseline_only',
+        allowed: ['circular coplanar Hohmann screening comparison'],
+        blocked: ['trajectory approximation claim', 'validated flight path', 'navigation product', 'certification evidence'],
+      });
       return Object.freeze({
-        schema: 'simulatte.orbitalScenarioResult.v1',
+        schema: 'simulatte.orbitalScenarioResult.v2',
         scenarioId: spec.id, seed: spec.seed || null, targetBodyId,
-        search, selected, fallback, metrics, radiation,
+        search, selected, fallback, metrics, radiation, verification, solverReceipt, claimGate,
         depots: depotsData?.depots || [],
-        claimBoundary: 'Deterministic mission-design comparison over pinned state vectors; not operational navigation or flight certification.',
+        claimBoundary: claimGate.status === 'verified_screening_approximation'
+          ? 'Deterministic mission-design screening passed the declared independent propagation tolerances. It is still not an operational trajectory, navigation product, or certification.'
+          : 'Deterministic mission-design screening only. Verification did not establish a validated flight path, navigation product, or certification.',
       });
     }
 
@@ -109,7 +192,7 @@
 
     function appendTransferReceipt(kind = 'plan') {
       sdk.receipts.append({
-        schema: 'simulatte.plugin.orbitalTransferReceipt.v1',
+        schema: 'simulatte.plugin.orbitalTransferReceipt.v2',
         scenarioId: current.scenarioId,
         kind,
         targetBodyId: current.targetBodyId,
@@ -122,6 +205,9 @@
         algorithm: current.metrics.algorithm,
         searchAttempted: current.metrics.attemptedCount,
         searchSolutions: current.metrics.solutionCount,
+        solver: current.solverReceipt,
+        verification: current.verification,
+        claimGate: current.claimGate,
         claimBoundary: current.claimBoundary,
       });
     }
@@ -133,16 +219,39 @@
         return { status: 'settled', metrics: current.metrics };
       }
       if (actionId === 'counterfactual.compare') {
-        const baseline = hohmannApi.computeHohmann(1.0, 1.523679, sunGm);
+        const earth = ephemerisApi.getBodyState(ephemerisData, 'earth', 0, { clamp: true });
+        const target = ephemerisApi.getBodyState(ephemerisData, current.targetBodyId, 0, { clamp: true });
+        const baseline = hohmannApi.computeHohmann(
+          Math.hypot(...earth.positionAu),
+          Math.hypot(...target.positionAu),
+          sunGm,
+        );
         const deltaDvKmS = current.metrics.totalDeltaVKmS - baseline.totalDvKmS;
         const deltaDays = current.metrics.timeOfFlightDays - baseline.timeOfFlightDays;
         sdk.receipts.append({
-          schema: 'simulatte.plugin.orbitalCounterfactualReceipt.v1',
-          baselineId: 'earth-mars-circular-hohmann', counterfactualScenarioId: current.scenarioId,
+          schema: 'simulatte.plugin.orbitalCounterfactualReceipt.v2',
+          baselineId: `earth-${current.targetBodyId}-circular-coplanar-hohmann-screening`,
+          baselineAssumptions: ['circular endpoint orbits', 'coplanar impulsive burns', 'two-body solar gravity'],
+          counterfactualScenarioId: current.scenarioId,
           deltaDvKmS, deltaDays,
-          claimBoundary: 'Comparison against a circular coplanar Earth–Mars Hohmann baseline.',
+          claimBoundary: `Comparison against a circular coplanar Earth–${current.targetBodyId} Hohmann baseline.`,
         });
-        return { status: 'settled', deltaDvKmS, deltaDays };
+        return {
+          status: 'settled',
+          deltaDvKmS,
+          deltaDays,
+          comparisonId: `${current.scenarioId}:selected-vs-hohmann`,
+          comparisonBranches: {
+            baseline: {
+              totalDeltaVKmS: baseline.totalDvKmS,
+              timeOfFlightDays: baseline.timeOfFlightDays,
+            },
+            intervention: {
+              totalDeltaVKmS: current.metrics.totalDeltaVKmS,
+              timeOfFlightDays: current.metrics.timeOfFlightDays,
+            },
+          },
+        };
       }
       return { status: 'refused', reason: 'unknown_action', actionId };
     }
@@ -151,15 +260,32 @@
       const state = sdk.state.read();
       const result = state.result;
       const hasSolution = Boolean(result.selected || result.fallback);
-      const ephemerisIdentity = sdk.datasets.receipt('jpl.horizons.heliocentric-vectors.v1')?.sha256 || null;
+      const ephemerisHash = sdk.datasets.receipt('jpl.horizons.heliocentric-vectors.v1')?.sha256 || null;
+      const verified = result.verification?.accepted === true;
+      const totalDeltaVKmS = result.metrics.totalDeltaVKmS;
+      const screeningEnvelopeMaximumKmS = 20;
+      const hasFiniteDeltaV = Number.isFinite(totalDeltaVKmS) && totalDeltaVKmS >= 0;
       return {
         obligationResults: [
           { obligationId: `${PLUGIN_ID}:solution:${state.scenarioId}`, status: hasSolution ? 'settled' : 'unmet', evidence: { solutionCount: result.metrics.solutionCount, fallback: Boolean(result.fallback) } },
-          { obligationId: `${PLUGIN_ID}:ephemeris:${state.scenarioId}`, status: ephemerisIdentity ? 'settled' : 'unmet', evidence: { sha256: ephemerisIdentity } },
-          { obligationId: `${PLUGIN_ID}:dv-envelope`, status: result.metrics.totalDeltaVKmS <= 20 ? 'settled' : 'unmet', evidence: { totalDeltaVKmS: result.metrics.totalDeltaVKmS, maximumKmS: 20 } },
+          { obligationId: `${PLUGIN_ID}:ephemeris:${state.scenarioId}`, status: ephemerisHash ? 'settled' : 'unmet', evidence: { sha256: ephemerisHash, ...ephemerisIdentity } },
+          { obligationId: `${PLUGIN_ID}:independent-verification`, status: verified ? 'settled' : 'unmet', evidence: { verification: result.verification, claimGate: result.claimGate } },
+          {
+            obligationId: `${PLUGIN_ID}:dv-envelope`,
+            status: hasFiniteDeltaV ? 'settled' : 'unmet',
+            evidence: {
+              totalDeltaVKmS,
+              maximumKmS: screeningEnvelopeMaximumKmS,
+              withinScreeningEnvelope: hasFiniteDeltaV && totalDeltaVKmS <= screeningEnvelopeMaximumKmS,
+              interpretation: 'The envelope is a reported screening target, not a runtime-completion criterion.',
+            },
+          },
         ],
         stateIdentity: `${state.scenarioId}:${result.metrics.algorithm}:${result.metrics.departureEpoch || 'fallback'}`,
-        losses: [],
+        losses: result.claimGate.status === 'verified_screening_approximation' ? [] : [{
+          kind: 'trajectory_claim_gated',
+          claimGate: result.claimGate,
+        }],
       };
     }
 
@@ -178,6 +304,10 @@
             { label: 'Total Δv', value: `${result.metrics.totalDeltaVKmS.toFixed(3)} km/s` },
             { label: 'Radiation proxy', value: `${result.metrics.radiationExposureUnits.toFixed(2)} shielded proton units` },
             { label: 'Method', value: result.metrics.algorithm },
+            { label: 'Lambert branch / revolutions', value: `${result.solverReceipt.branch || 'n/a'} / ${result.solverReceipt.revolutionCount}` },
+            { label: 'Iterations / residual', value: `${result.solverReceipt.iterations ?? 'n/a'} / ${result.solverReceipt.residualDays ?? 'n/a'} days` },
+            { label: 'Independent propagation', value: result.metrics.verificationStatus },
+            { label: 'Endpoint error', value: result.verification ? `${result.metrics.endpointPositionErrorKm.toFixed(3)} km · ${result.metrics.endpointVelocityErrorKmS.toFixed(6)} km/s` : 'not applicable to screening baseline' },
           ],
           actions: [
             { id: 'plan.transfer', label: 'Compute transfer' },
@@ -188,6 +318,8 @@
           slot: 'hud', title: 'Orbital claim boundary',
           rows: [
             { label: 'Status', value: result.selected ? 'Lambert solution' : 'Hohmann fallback' },
+            { label: 'Claim gate', value: result.claimGate.status },
+            { label: 'Fallback reason', value: result.fallback?.reason.code || 'none' },
             { label: 'Boundary', value: result.claimBoundary },
           ], actions: [],
         },
@@ -196,7 +328,10 @@
 
     function present() {
       const result = sdk.state.read().result;
-      const trajectory = result.selected?.trajectory || result.fallback?.trajectory || [];
+      const trajectory = result.verification?.trajectory?.map((row) => row.positionAu)
+        || result.selected?.trajectory
+        || result.fallback?.trajectory
+        || [];
       return presentationApi.createPresentation(ephemerisData, { trajectory, selectedBodyIds: ['earth', result.targetBodyId] });
     }
 
@@ -251,6 +386,21 @@
   function bodyConstants(gmData) {
     const radiiKm = { earth: 6378.137, moon: 1737.4, mars: 3396.19, venus: 6051.8, jupiter: 71492 };
     return Object.fromEntries(Object.entries(gmData.bodies || {}).map(([id, row]) => [id, { ...row, radiusKm: radiiKm[id] || null }]));
+  }
+  function gridBounds(search) {
+    return Object.freeze({
+      departureDay: {
+        minimum: search.departureStartDay,
+        maximum: search.departureEndDay,
+        step: search.departureStepDays,
+      },
+      timeOfFlightDays: {
+        minimum: search.tofMinDays,
+        maximum: search.tofMaxDays,
+        step: search.tofStepDays,
+      },
+      attempted: search.attempted,
+    });
   }
   function reduce(state, event) {
     if (event.kind === `${PLUGIN_ID}.scenario-computed`) return { ...state, scenarioId: event.scenarioId, result: event.result, lastAction: 'scenario' };

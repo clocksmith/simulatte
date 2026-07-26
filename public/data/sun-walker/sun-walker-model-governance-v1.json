@@ -23,6 +23,24 @@
       "retrievedAt": "2026-07-25T00:00:00Z",
       "coverage": "Public building and historical building footprint GIS layers",
       "limitations": "The active Simulatte world is a frozen governed subset. This citation does not replace the active world's content hash or source-row receipt."
+    },
+    {
+      "id": "nyc-2015-street-tree-census",
+      "publisher": "NYC Department of Parks and Recreation",
+      "title": "2015 Street Tree Census",
+      "url": "https://dev.socrata.com/foundry/data.cityofnewyork.us/uvpi-gqnh",
+      "retrievedAt": "2026-07-25T00:00:00Z",
+      "coverage": "Source-identified street trees surveyed from May 2015 through October 2016, including diameter, health, species, and coordinates",
+      "limitations": "Historical tree identity and diameter do not establish current presence, measured crown geometry, leaf state, or street-level shade."
+    },
+    {
+      "id": "ncei-global-hourly-central-park",
+      "publisher": "NOAA National Centers for Environmental Information",
+      "title": "Global Hourly, Central Park station 72505394728",
+      "url": "https://www.ncei.noaa.gov/products/land-based-station/integrated-surface-database",
+      "retrievedAt": "2026-07-25T00:00:00Z",
+      "coverage": "Pinned hourly surface observations for July 18–19, 2024",
+      "limitations": "A single historical station analog does not establish current weather or street-level direct, diffuse, and reflected irradiance."
     }
   ],
   "models": [
@@ -73,6 +91,46 @@
           "lexicographicSegmentIdentity"
         ]
       }
+    },
+    {
+      "id": "dbh-canopy-envelope-v1",
+      "kind": "deterministic-canopy-occlusion-model",
+      "equations": [
+        "crownRadiusM = clamp(1.25 + 0.09 * diameterInches, 1.5, 6.5)",
+        "crownCenterHeightM = clamp(3.5 + 0.22 * diameterInches, 4.0, 11.0)",
+        "crownHalfHeightM = clamp(1.0 + 0.06 * diameterInches, 1.25, 3.5)",
+        "canopy occludes when the sunward ray crosses the modeled crown envelope"
+      ],
+      "parameters": {
+        "directBeamTransmittanceByHealth": {
+          "Good": 0.18,
+          "Fair": 0.28,
+          "Poor": 0.42,
+          "unknown": 0.35
+        },
+        "calibrationStatus": "engineering bounds only; no street irradiance calibration"
+      }
+    },
+    {
+      "id": "metar-sky-direct-beam-attenuation-v1",
+      "kind": "categorical-historical-weather-analog",
+      "equations": [
+        "observation = nearest pinned row by month-day and UTC minute",
+        "directBeamEquivalentSeconds = representedSeconds * skyCodeFactor * canopyTransmittance"
+      ],
+      "parameters": {
+        "directBeamFactorByCode": {
+          "CLR": 1,
+          "SKC": 1,
+          "FEW": 0.85,
+          "SCT": 0.65,
+          "BKN": 0.35,
+          "OVC": 0.15,
+          "VV": 0.1,
+          "unknown": 0.5
+        },
+        "calibrationStatus": "categorical engineering mapping; no pyranometer calibration"
+      }
     }
   ],
   "validation": {
@@ -86,6 +144,12 @@
       "missing height propagates unknown",
       "low solar elevation below the configured floor propagates unknown"
     ],
+    "environmentChecks": [
+      "source row identities, retrieval dates, licenses, and raw hashes are present",
+      "healthy ten-inch tree envelope reproduces the governed engineering case",
+      "clear and overcast sky codes reproduce the governed attenuation cases",
+      "disabling canopy or weather removes only that modeled contribution"
+    ],
     "determinismChecks": [
       "same world, route candidates, controls, departure instant, and seed produce byte-equivalent event and state identities"
     ]
@@ -97,8 +161,10 @@
       "kind": "missing",
       "value": {
         "empiricalStreetCalibration": true,
-        "treeCanopy": true,
-        "cloudAndWeather": true,
+        "currentTreeCanopy": true,
+        "currentCloudAndWeather": true,
+        "measuredCrownGeometry": true,
+        "streetLevelIrradiance": true,
         "awningsAndFacadeDetail": true,
         "diffuseAndReflectedRadiation": true
       }

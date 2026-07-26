@@ -78,9 +78,10 @@
         booted = await boot(route.tier, route.experience || null, { signal: attempt.signal });
       } catch (error) {
         if (attempt.signal.aborted || generationAtStart !== generation) return;
-        // A bad/removed experience id in the URL should not strand the visitor: retry the tier's
-        // default once, in place, then canonicalize. Only surface failure if the default also fails.
-        if (route.experience) {
+        // A genuinely unknown/removed experience id should not strand the visitor. Any failure
+        // inside a known experience must remain visible instead of silently booting a different
+        // product and producing evidence for the wrong route.
+        if(route.experience&&error?.code==='application_profile_unknown') {
           try {
             booted = await boot(route.tier, null, { signal: attempt.signal });
           } catch (retryError) {
@@ -151,7 +152,7 @@
   }
 
   async function bootGovernedTierExplorer(ctx,tier,requestedProfileId,options={}) {
-    const required=['SimulatteTierApplicationLoader','SimulattePluginRuntime','SimulatteGeneratedPluginRegistry','SimulatteDeclarativeUiHost','SimulatteApplicationProfileSelect','SimulattePluginRandom','SimulattePluginScheduler','SimulattePluginCompute','SimulattePluginEnvironment','SimulattePluginGeography','SimulatteSimulationClock','SimulatteViewDirector','SimulatteAutonomyReceipts'];
+    const required=['SimulatteTierApplicationLoader','SimulattePluginRuntime','SimulatteGeneratedPluginRegistry','SimulatteDeclarativeUiHost','SimulatteApplicationProfileSelect','SimulattePluginRandom','SimulattePluginScheduler','SimulattePluginCompute','SimulattePluginEnvironment','SimulattePluginGeography','SimulatteSimulationClock','SimulatteViewDirector','SimulatteAutonomyReceipts','SimulatteTierRunController'];
     const missing=required.find((name)=>!root[name]);
     if(missing)throw new Error(`tier_boot_dependency_missing: ${missing}`);
     const elements=ctx.collectElements();
@@ -166,13 +167,18 @@
     let pluginUi=null;
     let simulationClock=null;
     let viewDirector=null;
+    let viewIntentIds=new Set();
+    let runController=null;
+    let removeManualView=null;
     let disposed=false;
 
     async function dispose(){
       if(disposed)return;
       disposed=true;
       simulationClock?.pause();
+      runController?.dispose();
       lifecycle.abort();
+      removeManualView?.();
       const resources={runtime,pluginUi,profileSelectUi,tierVisualizer};
       runtime=null;pluginUi=null;profileSelectUi=null;tierVisualizer=null;
       await lifecycleApi.disposeAll([
@@ -202,10 +208,11 @@
     }
 
     async function activateScenario(scenario){
+      pluginUi?.dispose?.();
       if(runtime)await runtime.dispose();
       runtime=await root.SimulattePluginRuntime.createPluginRuntime({registry:root.SimulatteGeneratedPluginRegistry,profile:data.applicationProfile,scenario,dataCatalog:data.dataCatalog,artifactStore:data.artifactStore,registryBaseUrl:data.registryBaseUrl,corePorts:createCorePorts(scenario)});
       pluginUi=root.SimulatteDeclarativeUiHost.createDeclarativeUiHost({rootElements:{inspector:elements.pluginInspector,map:elements.pluginMapUi,hud:elements.pluginHudUi},onAction:async({pluginId,actionId,command,values})=>{
-        if(command?.kind==='camera.focus'){tierVisualizer.focusPluginTarget?.(`plugin:${pluginId}:${command.targetId}`);return;}
+        if(command?.kind==='camera.focus'){viewDirector?.setManualOverride({mode:'free',targetIds:[command.targetId]});tierVisualizer.focusPluginTarget?.(`plugin:${pluginId}:${command.targetId}`);return;}
         await runtime.dispatchAction(pluginId,actionId,{values,scenario:activeScenario,routeObjective:data.applicationProfile.routeObjective});
         renderPlugins();
       }});
@@ -216,15 +223,68 @@
       const context={scenario:activeScenario,compositionSize:runtime.activePluginIds.length};
       const platform=runtime.platformV4(context);
       pluginUi.render(runtime.views(context),platform.contributions);
-      tierVisualizer.setPluginPresentations?.(platform.contributions.map((contribution)=>({pluginId:contribution.pluginId,presentation:contribution.presentation})));
       const simulationTimeMs=Math.max(0,...platform.contributions.map((contribution)=>contribution.state?.simulationTimeMs||0));
+      tierVisualizer.setPluginPresentations?.(platform.contributions.map((contribution)=>({pluginId:contribution.pluginId,presentation:contribution.presentation})),{simulationTimeMs,provenanceReceipts:platform.provenanceReceipts});
       if(!simulationClock)simulationClock=root.SimulatteSimulationClock.createClock({timeline:platform.timeline});
       simulationClock.useTimeline(platform.timeline,{atMs:simulationTimeMs});
-      viewDirector=root.SimulatteViewDirector.createViewDirector();
-      platform.contributions.forEach((contribution)=>contribution.presentation.viewIntents.forEach((intent)=>viewDirector.submit(intent,{source:contribution.pluginId})));
-      root.__simulattePluginPlatformV4=Object.freeze({receipt:platform.receipt,contributions:platform.contributions,contributionSources:platform.contributionSources,clock:simulationClock.receipt(),view:viewDirector.receipt()});
+      const previousViewState=viewDirector?.snapshot();
+      const manualDecision=previousViewState?.manualOverride?previousViewState.decision:null;
+      viewDirector=root.SimulatteViewDirector.createViewDirector({provenanceReceipts:platform.provenanceReceipts});
+      viewIntentIds=new Set();
+      platform.contributions.forEach((contribution)=>contribution.presentation.viewIntents.forEach((intent)=>{
+        const hosted=Object.freeze({...intent,id:`${contribution.pluginId}:${intent.id}`});
+        viewDirector.submit(hosted,{source:contribution.pluginId});
+        viewIntentIds.add(hosted.id);
+      }));
+      if(manualDecision)viewDirector.setManualOverride({mode:manualDecision.mode,targetIds:manualDecision.targetIds});
+      const viewState=viewDirector.snapshot();
+      if(!viewState.manualOverride&&viewState.decision.source!=='core-fallback'){
+        const targetId=viewState.decision.targetIds.find((id)=>tierVisualizer.focusPluginTarget?.(`plugin:${viewState.decision.source}:${id}`));
+        if(!targetId&&viewState.decision.intentId){
+          const sourceIntentId=viewState.decision.intentId.slice(`${viewState.decision.source}:`.length);
+          tierVisualizer.focusPluginTarget?.(`plugin:${viewState.decision.source}:${sourceIntentId}`);
+        }
+      }
+      root.__simulattePluginPlatformV4=Object.freeze({receipt:platform.receipt,contributions:platform.contributions,contributionSources:platform.contributionSources,provenance:platform.provenanceCoverage,clock:simulationClock.receipt(),view:viewDirector.receipt(),compositor:tierVisualizer.pluginPresentationReceipt?.()||[]});
     }
     function renderScenario(){root.SimulatteApplicationProfileSelect.renderInteraction(interaction,activeScenario,elements);elements.missionField.hidden=true;elements.scenarioField.hidden=false;elements.startButton.hidden=false;elements.shuffleButton.hidden=interaction.scenarios.length<2;elements.pauseButton.hidden=true;elements.resumeButton.hidden=true;elements.replayButton.hidden=true;elements.newMissionButton.hidden=true;elements.modelSelectionControls?.replaceChildren();}
+    function configureRunController(owner){
+      runController?.dispose();
+      root.__simulatteTierRunReceipt=null;
+      root.__simulatteTierRunState=null;
+      root.__simulatteComparisonExecutionReceipts=Object.freeze([]);
+      runController=root.SimulatteTierRunController.createController({
+        getRuntime:()=>runtime,
+        ownerPluginId:owner,
+        scenario:activeScenario,
+        profileId:data.applicationProfile.id,
+        storage:root.sessionStorage,
+        render:renderPlugins,
+        resetRuntime:()=>activateScenario(activeScenario),
+        buildReceipt:({actionResult,settlement})=>Object.freeze({schema:'simulatte.tierRunReceipt.v1',tier,profileId:data.applicationProfile.id,scenario:activeScenario,actionResult,settlement,pluginRuntime:runtime.runtimeReceipt(),loadReceipt:data.receipt}),
+        onState:(state)=>{
+          root.__simulatteTierRunState=state;
+          const isRunning=state.state==='running';
+          const isPaused=state.state==='paused';
+          const isSettled=state.state==='settled';
+          elements.startButton.hidden=state.state!=='idle';
+          elements.pauseButton.hidden=!isRunning;
+          elements.resumeButton.hidden=!isPaused;
+          elements.stepButton.hidden=!isPaused;
+          elements.replayButton.hidden=!isSettled;
+          elements.startButton.disabled=false;
+          if(isRunning||isPaused){ctx.setJourneyPhase?.(isPaused?'paused':'running');ctx.setRuntimeStatus?.(elements,isPaused?'Paused':'Running scenario',isPaused?'paused':'active');}
+          else if(state.state==='idle'&&document.body.dataset.journeyPhase==='completed'){ctx.setJourneyPhase?.('ready');ctx.setRuntimeStatus?.(elements,'Resetting scenario','loading');}
+        },
+        onReceipt:(receipt)=>{
+          root.__simulatteTierRunReceipt=receipt;
+          root.__simulatteComparisonExecutionReceipts=Object.freeze([receipt.actionResult.comparisonExecutionReceipt]);
+          ctx.setJourneyPhase?.('completed');
+          ctx.setRuntimeStatus?.(elements,'Complete','ready');
+        },
+        onError:(error)=>{ctx.setJourneyPhase?.('failed');ctx.setRuntimeStatus?.(elements,'Stopped','error');root.SimulatteRuntimeLog?.error?.('tier.run.failed',{message:error.message,code:error.code||null});},
+      });
+    }
     try {
       document.body.classList.add('world-explorer');
       ctx.setJourneyPhase?.('loading');
@@ -235,6 +295,7 @@
       data=await root.SimulatteTierApplicationLoader.loadTierApplication({tier,requestedProfileId:requestedProfileId||null,fetchImpl:lifecycle.fetch});
       lifecycle.throwIfAborted();
       tierVisualizer=ctx.createTierVisualizer(elements.overlayCanvas,'world-tier-control');
+      removeManualView=tierVisualizer.onManualView?.(()=>viewDirector?.setManualOverride({mode:'free',targetIds:[]}));
       await tierVisualizer.loadTier(tier);
       lifecycle.throwIfAborted();
       populateProfileSelect(elements.applicationProfile,data.profileEntries,data.applicationProfile.id);
@@ -245,16 +306,47 @@
       on(elements.applicationProfile,'change',()=>{const value=elements.applicationProfile.value;if(value&&value!==data.applicationProfile.id)ctx.navigate?.({tier,experience:value});});
       wireTierControls({elements,tierVisualizer,profileSelectUi,activeTier:tier,hasProfiles:true,signal:lifecycle.signal,onSelectTier:ctx.onSelectTier});
       interaction=root.SimulatteApplicationProfileSelect.resolveInteraction(data.applicationProfile,{});
-      activeScenario=interaction.defaultScenario;
+      const storedRun=root.SimulatteTierRunController.readStoredReceipt(root.sessionStorage,data.applicationProfile.id);
+      activeScenario=interaction.scenarios.find((scenario)=>(
+        scenario.id===storedRun?.scenario?.id&&scenario.seed===storedRun?.scenario?.seed
+      ))||interaction.defaultScenario;
       renderScenario();
       await activateScenario(activeScenario);
       lifecycle.throwIfAborted();
       const owner=data.applicationProfile.interaction.simulationOwnerPluginId||runtime.activePluginIds[0];
-      on(elements.startButton,'click',async()=>{try{elements.startButton.disabled=true;ctx.setJourneyPhase?.('running');ctx.setRuntimeStatus?.(elements,'Running scenario','active');const actionResult=await runtime.dispatchAction(owner,'scenario.run',{scenario:activeScenario,values:{}});if(!actionResult||actionResult.status!=='settled')throw new Error(`tier_scenario_action_refused: ${owner} returned ${actionResult?.status||'missing'}`);const settlement=await runtime.settle({scenario:activeScenario,actionResult});root.__simulatteTierRunReceipt=Object.freeze({schema:'simulatte.tierRunReceipt.v1',tier,profileId:data.applicationProfile.id,scenario:activeScenario,actionResult,settlement,pluginRuntime:runtime.runtimeReceipt(),loadReceipt:data.receipt});renderPlugins();ctx.setJourneyPhase?.('completed');ctx.setRuntimeStatus?.(elements,'Complete','ready');}catch(error){ctx.setJourneyPhase?.('failed');ctx.setRuntimeStatus?.(elements,'Stopped','error');throw error;}finally{elements.startButton.disabled=false;}});
-      on(elements.shuffleButton,'click',async()=>{activeScenario=root.SimulatteApplicationProfileSelect.nextScenario(interaction,activeScenario.id);renderScenario();await activateScenario(activeScenario);});
+      configureRunController(owner);
+      on(elements.startButton,'click',()=>{void runController.start().catch(()=>{});});
+      on(elements.pauseButton,'click',()=>runController.pause());
+      on(elements.resumeButton,'click',()=>runController.resume());
+      on(elements.stepButton,'click',()=>{void runController.step().catch(()=>{});});
+      on(elements.replayButton,'click',()=>{void runController.replay().catch(()=>{});});
+      on(elements.shuffleButton,'click',async()=>{
+        runController?.dispose();
+        elements.shuffleButton.disabled=true;
+        elements.startButton.disabled=true;
+        ctx.setJourneyPhase?.('loading');
+        ctx.setRuntimeStatus?.(elements,'Loading scenario','loading');
+        activeScenario=root.SimulatteApplicationProfileSelect.nextScenario(interaction,activeScenario.id);
+        renderScenario();
+        elements.shuffleButton.disabled=true;
+        elements.startButton.disabled=true;
+        try{
+          await activateScenario(activeScenario);
+          configureRunController(owner);
+          ctx.setJourneyPhase?.('ready');
+          ctx.setRuntimeStatus?.(elements,'Ready','ready');
+        }catch(error){
+          ctx.setJourneyPhase?.('failed');
+          ctx.setRuntimeStatus?.(elements,'Stopped','error');
+          root.SimulatteRuntimeLog?.error?.('tier.scenario.activation.failed',{message:error.message,code:error.code||null});
+        }finally{
+          elements.shuffleButton.disabled=false;
+          elements.startButton.disabled=false;
+        }
+      });
       on(window,'pagehide',()=>{void dispose();},{once:true});
-      ctx.setJourneyPhase?.('ready');
-      ctx.setRuntimeStatus?.(elements,'Ready','ready');
+      const restored=await runController.restore();
+      if(!restored){ctx.setJourneyPhase?.('ready');ctx.setRuntimeStatus?.(elements,'Ready','ready');}
       return Object.freeze({ tier, experience: data.applicationProfile.id, dispose });
     } catch (error) {
       await dispose();

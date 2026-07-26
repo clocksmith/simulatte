@@ -2,18 +2,18 @@
   "applicationProfile": {
     "id": "cable-trader-pickup-v1",
     "path": "../application-profiles/cable-trader-pickup-v1.json",
-    "sha256": "b1294ac13e84263c8a015d63750442aca6f63866ddac416cbeb9643f0a4b9bdb"
+    "sha256": "2262cb795e2107bcfb4ccb9b24681ef3e9ae32d02c3b80a722b0cbaa6714e6f5"
   },
   "applicationProfiles": [
     {
       "id": "safety-explorer-v1",
       "path": "../application-profiles/safety-explorer-v1.json",
-      "sha256": "fee83fa309c7228487a279b59c0fffa64eed6bdf86c77d9fbc2718538e0be5a5"
+      "sha256": "e738f5d69cd0324453a73153720e44b998163af075fd65fec09245f8edc36ecc"
     },
     {
       "id": "sun-walker-v1",
       "path": "../application-profiles/sun-walker-v1.json",
-      "sha256": "4f0739b06c62bf10fc55739806ebd53ca8931104e2c5b5ba5effc4000782ae00"
+      "sha256": "04a9557572df2342d3d17f22c20e3ce3c523d2f1e00f1f0c6a47c0ef9afc81da"
     }
   ],
   "claimBoundary": "This manifest governs bicycle-delivery and pedestrian-loop simulations assembled from independently hashed region packs for New York City. Park circuits follow frozen property boundaries, not surveyed sidewalk centerlines. It does not claim live conditions, physical-world autonomy, or control of a real vehicle.",

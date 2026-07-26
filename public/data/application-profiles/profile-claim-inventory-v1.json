@@ -43,6 +43,29 @@
         "value": "native-v4"
       },
       {
+        "id": "shared-clock-receipt",
+        "path": "runtime.clockReceipt.schema",
+        "operator": "equals",
+        "value": "simulatte.simulationClockReceipt.v4"
+      },
+      {
+        "id": "view-director-receipt",
+        "path": "runtime.viewReceipt.schema",
+        "operator": "equals",
+        "value": "simulatte.viewDirectorReceipt.v4"
+      },
+      {
+        "id": "semantic-compositor-receipts",
+        "path": "runtime.compositorReceipts",
+        "operator": "all-schema",
+        "value": "simulatte.compositorReceipt.v4"
+      },
+      {
+        "id": "runtime-dataset-evidence",
+        "path": "runtime.datasetEvidence",
+        "operator": "non-empty"
+      },
+      {
         "id": "controls-captured",
         "path": "evidence.controls",
         "operator": "non-empty"
@@ -60,12 +83,12 @@
       {
         "id": "comparison-settled",
         "path": "evidence.comparisons",
-        "operator": "non-empty"
+        "operator": "settled-execution-receipts"
       },
       {
         "id": "settlement-captured",
         "path": "evidence.settlements",
-        "operator": "non-empty"
+        "operator": "settled-receipts"
       },
       {
         "id": "console-clean",
@@ -94,6 +117,11 @@
         "path": "evidence.lifecycle",
         "operator": "includes-all",
         "contextPath": "run.interactionPath"
+      },
+      {
+        "id": "run-restored-after-reload",
+        "path": "evidence.reload",
+        "operator": "restored-run"
       },
       {
         "id": "claim-source-bound",

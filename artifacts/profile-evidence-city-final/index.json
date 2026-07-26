@@ -1,0 +1,131 @@
+{
+  "schema": "simulatte.profileEvidenceIndex.v1",
+  "planSha256": "a45df33d1ff47f2b34b23acb9be08b1bf0cc6dfecd408c62410feb6de14bd992",
+  "claimInventorySha256": "3e09f7d9178b52c9c60f545ae87102dfa03a13d4934558bd7674fcf887e592ef",
+  "sourceIdentity": {
+    "buildId": "64b4838d99a3c41498616db50ba0815473cddfa7-cbd5ffaaed3d",
+    "commitSha": "8b5371cdda26dff56e1d6c47eb0fc014cadba199",
+    "worktreeSha256": "229ad8b155ecdb7b538f24ea9dd45cd5e99aafba2f2fc0973dc2d72dcc2c95e1"
+  },
+  "totalRuns": 6,
+  "passedRuns": 2,
+  "pass": false,
+  "profiles": [
+    {
+      "profileId": "cable-trader-pickup-v1",
+      "totalRuns": 2,
+      "passedRuns": 0,
+      "failureCounts": {
+        "runtime_path_mismatch": 2,
+        "platform_clock_receipt_invalid": 2,
+        "platform_view_receipt_invalid": 2,
+        "platform_compositor_receipt_missing": 2,
+        "comparison_execution_receipt_missing": 2,
+        "settlement_receipt_missing": 2,
+        "plugin_playback_reload_not_restored": 2,
+        "claim_evidence_unresolved": 2,
+        "receipt_contradictory": 2
+      }
+    },
+    {
+      "profileId": "safety-explorer-v1",
+      "totalRuns": 2,
+      "passedRuns": 0,
+      "failureCounts": {
+        "claim_evidence_unresolved": 2
+      }
+    },
+    {
+      "profileId": "sun-walker-v1",
+      "totalRuns": 2,
+      "passedRuns": 2,
+      "failureCounts": {}
+    }
+  ],
+  "runs": [
+    {
+      "runId": "run-b3b2447a1930776c4016",
+      "profileId": "cable-trader-pickup-v1",
+      "seedId": "july-baseline",
+      "viewportId": "desktop-1440x1000",
+      "receiptSha256": "2eb864d277cc9dfab69592f62dc16d2759deebb9c8e3d00dbb989e5c509a39c0",
+      "receiptPath": "receipts/sha256/2eb864d277cc9dfab69592f62dc16d2759deebb9c8e3d00dbb989e5c509a39c0.json",
+      "pass": false,
+      "failures": [
+        "runtime_path_mismatch",
+        "platform_clock_receipt_invalid",
+        "platform_view_receipt_invalid",
+        "platform_compositor_receipt_missing",
+        "comparison_execution_receipt_missing",
+        "settlement_receipt_missing",
+        "plugin_playback_reload_not_restored",
+        "claim_evidence_unresolved",
+        "receipt_contradictory"
+      ]
+    },
+    {
+      "runId": "run-3c81417b6ce783ae643e",
+      "profileId": "cable-trader-pickup-v1",
+      "seedId": "july-baseline",
+      "viewportId": "mobile-390x844",
+      "receiptSha256": "033b962a2db0a5625c419ebbc2a5ae15ed14434d81f606d54d8590adfe4aeea7",
+      "receiptPath": "receipts/sha256/033b962a2db0a5625c419ebbc2a5ae15ed14434d81f606d54d8590adfe4aeea7.json",
+      "pass": false,
+      "failures": [
+        "runtime_path_mismatch",
+        "platform_clock_receipt_invalid",
+        "platform_view_receipt_invalid",
+        "platform_compositor_receipt_missing",
+        "comparison_execution_receipt_missing",
+        "settlement_receipt_missing",
+        "plugin_playback_reload_not_restored",
+        "claim_evidence_unresolved",
+        "receipt_contradictory"
+      ]
+    },
+    {
+      "runId": "run-4908c711843889bcf9eb",
+      "profileId": "safety-explorer-v1",
+      "seedId": "union-mccarren",
+      "viewportId": "desktop-1440x1000",
+      "receiptSha256": "e90921498aef87067a340e560fe6867c9f099846711a9a6b78a2b279cc725436",
+      "receiptPath": "receipts/sha256/e90921498aef87067a340e560fe6867c9f099846711a9a6b78a2b279cc725436.json",
+      "pass": false,
+      "failures": [
+        "claim_evidence_unresolved"
+      ]
+    },
+    {
+      "runId": "run-d41f0823f11b4d9b8cd6",
+      "profileId": "safety-explorer-v1",
+      "seedId": "union-mccarren",
+      "viewportId": "mobile-390x844",
+      "receiptSha256": "ec479985b491ddd2a995514c2350f6f6b14eeb1921237216f3e3a325f67d6d88",
+      "receiptPath": "receipts/sha256/ec479985b491ddd2a995514c2350f6f6b14eeb1921237216f3e3a325f67d6d88.json",
+      "pass": false,
+      "failures": [
+        "claim_evidence_unresolved"
+      ]
+    },
+    {
+      "runId": "run-4f7b7ab18a9570b29c46",
+      "profileId": "sun-walker-v1",
+      "seedId": "village-union-shade",
+      "viewportId": "desktop-1440x1000",
+      "receiptSha256": "6548adcc04dd154c68993f256e2ab9695be06386210026844daca8ad1e6e1412",
+      "receiptPath": "receipts/sha256/6548adcc04dd154c68993f256e2ab9695be06386210026844daca8ad1e6e1412.json",
+      "pass": true,
+      "failures": []
+    },
+    {
+      "runId": "run-31425088818d93426b56",
+      "profileId": "sun-walker-v1",
+      "seedId": "village-union-shade",
+      "viewportId": "mobile-390x844",
+      "receiptSha256": "d5486788230a90fa3acd5f120a9492067ca9a6591b4fd0dc3b0d519557b7ecf0",
+      "receiptPath": "receipts/sha256/d5486788230a90fa3acd5f120a9492067ca9a6591b4fd0dc3b0d519557b7ecf0.json",
+      "pass": true,
+      "failures": []
+    }
+  ]
+}

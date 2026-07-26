@@ -187,7 +187,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       minimapCanvas.dataset.projection = 'orthographic_top_north_up';
       minimapCanvas.dataset.radiusM = String(MINIMAP_RADIUS_M);
     }
-    installCameraControls(canvas, state, cameraApi);
+    installCameraControls(canvas, state, cameraApi, options.onCameraInteraction);
     device.lost.then((info) => {
       canvas.dataset.rendererLost = 'true';
       if (!state.isDestroyed && typeof options.onFailure === 'function') options.onFailure(rendererError('webgpu_device_lost', `${info.reason}: ${info.message}`));
@@ -206,8 +206,14 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       ensureDynamicBuffer(device, state, state.dynamicData);
     }
 
-    function setPluginPresentations(contributions) {
-      state.pluginScene = presentationCompiler.compile(contributions, worldModel);
+    function setPluginPresentations(contributions, presentationOptions = {}) {
+      state.pluginScene = presentationCompiler.compile(contributions, worldModel, {
+        ...presentationOptions,
+        viewport: {
+          width: Math.max(1, canvas.clientWidth || canvas.width),
+          height: Math.max(1, canvas.clientHeight || canvas.height),
+        },
+      });
       cameraApi.replacePluginCameraTargets(state, state.pluginScene.cameraTargets, performance.now());
       Object.entries(state.pluginScene.counts).forEach(([key, value]) => {
         canvas.dataset[`plugin${key.charAt(0).toUpperCase()}${key.slice(1)}Count`] = String(value);
@@ -215,6 +221,12 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       canvas.dataset.sunAzimuthDegrees = state.pluginScene.sun ? String(state.pluginScene.sun.azimuthDegrees) : '';
       canvas.dataset.sunElevationDegrees = state.pluginScene.sun ? String(state.pluginScene.sun.elevationDegrees) : '';
       canvas.dataset.solarLighting = state.pluginScene.sun ? 'plugin' : 'default';
+      const compositorReceipts = state.pluginScene.compositorReceipts || [];
+      canvas.dataset.pluginCompositorReceiptCount = String(compositorReceipts.length);
+      canvas.dataset.pluginVisibleLayerCount = String(compositorReceipts.reduce((sum, row) => sum + row.visibleLayerCount, 0));
+      canvas.dataset.pluginSuppressedLayerCount = String(compositorReceipts.reduce((sum, row) => sum + row.suppressedLayerIds.length, 0));
+      canvas.dataset.pluginClusterCount = String(compositorReceipts.reduce((sum, row) => sum + row.clusterCount, 0));
+      canvas.dataset.pluginLabelCount = String(compositorReceipts.reduce((sum, row) => sum + row.labelCount, 0));
       if (state.latestSnapshot) render(state.latestSnapshot, state.latestReceipt);
       return structuredClone(state.pluginScene.counts);
     }
@@ -369,6 +381,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
           frameCount: state.minimapFrameCount,
         },
         pluginPresentation: structuredClone(state.pluginScene.counts),
+        pluginCompositor: structuredClone(state.pluginScene.compositorReceipts || []),
       };
     }
 
@@ -484,12 +497,13 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
     device.queue.writeBuffer(buffer, 0, values);
   }
 
-  function installCameraControls(canvas, state, camera) {
+  function installCameraControls(canvas, state, camera, onInteraction) {
     let pointer = null;
     canvas.addEventListener('pointerdown', (event) => {
       const action = state.mode === 'top' || event.shiftKey || event.button !== 0 ? 'pan' : 'orbit';
       pointer = { id: event.pointerId, x: event.clientX, y: event.clientY, action };
       canvas.dataset.cameraInteraction = action;
+      onInteraction?.({ control: action, mode: 'free', targetIds: [] });
       canvas.setPointerCapture(event.pointerId);
     });
     canvas.addEventListener('pointermove', (event) => {
@@ -510,6 +524,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
     canvas.addEventListener('wheel', (event) => {
       event.preventDefault();
       canvas.dataset.cameraInteraction = 'zoom';
+      onInteraction?.({ control: 'zoom', mode: 'free', targetIds: [] });
       camera.zoomCamera(state, event.deltaY);
     }, { passive: false });
   }

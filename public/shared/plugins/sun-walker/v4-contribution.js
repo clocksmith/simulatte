@@ -9,14 +9,17 @@
   const PLUGIN_ID = 'sun-walker';
   const MODEL_HASH = '3f5955769b066c43acaee934f8b9b775fe76a2b796db48d4a9eea89e7bd66ce7';
 
-  function createContribution({ simulation, step, buildingReceipt, governanceReceipt }) {
+  function createContribution({ simulation, step, buildingReceipt, governanceReceipt, environmentReceipt }) {
     const buildings = builder.datasetRecord('world.buildings.v1', buildingReceipt, { coverage: simulation.dataReceipt.datasets[0].coverage });
     const governance = builder.datasetRecord('sun-walker.model-governance.v1', governanceReceipt, { coverage: 'solar equations and assumptions' });
+    const environment = builder.datasetRecord('sun-walker.environment.v1', environmentReceipt, {
+      coverage: 'historical NYC street-tree identities and Central Park hourly weather observations',
+    });
     const model = builder.modelRecord({
       id: simulation.modelReceipt.id,
       datasetId: governance.id,
       contentHash: MODEL_HASH,
-      parentIds: [buildings.id, governance.id],
+      parentIds: [buildings.id, governance.id, environment.id],
       metadata: { algorithms: simulation.modelReceipt.algorithms.map((row) => row.id), claimBoundary: simulation.claimBoundary },
     });
     const selected = simulation.candidates.find((row) => row.id === simulation.selectedCandidateId);
@@ -24,7 +27,16 @@
     const snapshot = simulation.timeline.snapshots[Math.min(step, simulation.timeline.snapshots.length - 1)];
     const samples = selected.samples.slice(0, snapshot.state.completedSamples);
     const buildingRows = [...new Set(samples.map((row) => row.occluderId).filter(Boolean))]
+      .filter((id) => samples.some((row) => row.occluderId === id && row.occluderKind === 'building'))
       .map((id) => builder.rowRecord(buildings, id, {}));
+    const canopyRows = [...new Set(samples
+      .filter((row) => row.occluderKind === 'tree-canopy')
+      .map((row) => row.environment.canopy.sourceRowId))]
+      .map((id) => builder.rowRecord(environment, id, { rowKind: 'historical-tree-census' }));
+    const weatherRows = [...new Set(samples
+      .map((row) => row.environment.weather.sourceRowId)
+      .filter(Boolean))]
+      .map((id) => builder.rowRecord(environment, id, { rowKind: 'historical-hourly-weather' }));
     const claim = builder.provenance({
       origin: 'modeled',
       temporalStatus: 'forecast',
@@ -47,7 +59,12 @@
           origin: 'modeled',
           temporalStatus: 'forecast',
           uncertainty: simulation.modelReceipt.uncertainty,
-          records: [model, ...buildingRows.filter((row) => row.rowId === sample.occluderId)],
+          records: [
+            model,
+            ...buildingRows.filter((row) => row.rowId === sample.occluderId),
+            ...canopyRows.filter((row) => row.rowId === sample.environment.canopy.sourceRowId),
+            ...weatherRows.filter((row) => row.rowId === sample.environment.weather.sourceRowId),
+          ],
         }),
       })),
     ];
@@ -107,6 +124,7 @@
         builder.quantity('direct-sun', snapshot.state.directSunSeconds, 'seconds'),
         builder.quantity('shade', snapshot.state.shadeSeconds, 'seconds'),
         builder.quantity('unknown', snapshot.state.unknownSeconds, 'seconds'),
+        builder.quantity('direct-beam-equivalent', snapshot.state.directBeamEquivalentSeconds, 'seconds'),
       ],
       provenance: claim,
     });
@@ -122,12 +140,15 @@
         targetIds: ['shade-selected-route'],
         fields: [
           field('direct-sun', 'Direct sun', selected.metrics.directSunSeconds, 'seconds', claim),
-          field('shade', 'Modeled building shade', selected.metrics.shadeSeconds, 'seconds', claim),
+          field('direct-beam-equivalent', 'Weather/canopy-adjusted direct beam', selected.metrics.directBeamEquivalentSeconds, 'seconds', claim),
+          field('building-shade', 'Modeled building shade', selected.metrics.buildingShadeSeconds, 'seconds', claim),
+          field('canopy-shade', 'Modeled historical-canopy shade', selected.metrics.canopyShadeSeconds, 'seconds', claim),
           field('unknown', 'Unknown exposure', selected.metrics.unknownSeconds, 'seconds', claim),
+          field('environment', 'Environmental evidence', 'Historical 2015 trees + pinned 2024 Central Park analog', null, claim),
           field('boundary', 'Claim boundary', simulation.claimBoundary, null, claim),
         ],
       }],
-      provenanceRecords: [buildings, governance, model, ...buildingRows],
+      provenanceRecords: [buildings, governance, environment, model, ...buildingRows, ...canopyRows, ...weatherRows],
     });
   }
 

@@ -80,6 +80,9 @@ jobs:
       - name: Run non-city 4-tier browser smoke audit
         run: node tools/simulatte/run-tier-browser-smoke.mjs --check --chrome /usr/bin/google-chrome-stable
 
+      - name: Run public profile claim evidence matrix
+        run: npm run audit:simulatte:evidence -- --chrome /usr/bin/google-chrome-stable
+
       - name: Upload browser audit artifacts
         if: always()
         uses: actions/upload-artifact@v4

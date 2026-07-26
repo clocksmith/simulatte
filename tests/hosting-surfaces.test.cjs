@@ -84,3 +84,12 @@ test('hosting targets separate World and Create while preserving governed shared
   assert.equal(worldReceipt.inventorySha256, inventorySha256(worldRoot));
   assert.equal(createReceipt.inventorySha256, inventorySha256(createRoot));
 });
+
+test('release and hosting validation run against the stamped build identity', () => {
+  const scripts = readJson('package.json').scripts;
+  assert.match(scripts['release:audit'], /^npm run stamp:build && npm run check:deploy/);
+  assert.match(
+    scripts['prepare:hosting'],
+    /^npm run restore:doppler:development && npm run stamp:build && npm run check:deploy && npm run package:hosting$/,
+  );
+});

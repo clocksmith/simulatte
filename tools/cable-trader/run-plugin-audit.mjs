@@ -7,9 +7,11 @@ import { fileURLToPath } from 'node:url';
 const require = createRequire(import.meta.url);
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const config = readJson('public/shared/plugins/cable-trader/default-config.json');
+const profile = readJson('public/data/application-profiles/cable-trader-pickup-v1.json');
 const world = readJson('public/data/simulatte/worlds/nyc-core-autonomy-v1.json');
 const policy = readJson('public/data/simulatte/policies/bet-selector-v1.json');
 const network = require(path.join(ROOT, 'public/shared/plugins/cable-trader/network-simulation.js'));
+const plugin = require(path.join(ROOT, 'public/shared/plugins/cable-trader/index.js'));
 const contributionApi = require(path.join(ROOT, 'public/shared/plugins/cable-trader/v4-contribution.js'));
 const worldApi = require(path.join(ROOT, 'public/simulatte/world/world-model.js'));
 const routing = require(path.join(ROOT, 'public/simulatte/world/route-planner.js'));
@@ -54,6 +56,7 @@ const contribution = contributionApi.createContribution({
 const flowLayers = contribution.presentation.layers.filter((row) => row.id.startsWith('flow:'));
 const hubLayers = contribution.presentation.layers.filter((row) => row.id.startsWith('hub:'));
 const styleFields = ['widthM', 'tone', 'color', 'opacity', 'animationRate'];
+const publicClaims = profile.seeds.map((row) => plugin.validatePublicClaim(row.description));
 const report = {
   schema: 'simulatte.cableTraderPluginAudit.v1',
   pass: simulation.events.length === simulation.durationDays
@@ -68,13 +71,16 @@ const report = {
       && row.provenance.axes.uncertainty)
     && flowLayers.length > 0
     && flowLayers.every((row) => row.geometry.segmentIds.length > 0)
+    && publicClaims.length === profile.seeds.length
     && contribution.presentation.layers.every((layer) => styleFields.every((field) => !(field in layer))),
   identities: {
     simulationId: simulation.id,
     scenarioId: simulation.scenarioId,
     seed: simulation.seed,
+    configurationHash: simulation.configurationHash,
+    selectedCableFamilyIds: simulation.selectedCableFamilyIds,
     worldId: world.id,
-    compatibilityDataset: adapter.DATASET_REFERENCE,
+    compatibilityDataset: contributionApi.DATASET_REFERENCE,
   },
   simulation: {
     durationDays: simulation.durationDays,
@@ -95,6 +101,10 @@ const report = {
     finalStyleFieldsAbsent: styleFields,
   },
   controls: contribution.controls.controls.map((row) => row.id),
+  publicClaimValidation: {
+    status: 'pass',
+    claimCount: publicClaims.length,
+  },
   comparisons: contribution.controls.comparisons.map((row) => ({
     id: row.id,
     synchronizedClock: row.synchronizedClock,

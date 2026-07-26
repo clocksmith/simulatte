@@ -73,6 +73,16 @@
       "required": true
     },
     {
+      "id": "maritime.calibration.artifacts.v1",
+      "reference": {
+        "id": "maritime.calibration.artifacts.v1",
+        "path": "../../../data/maritime-trade-global/calibration-artifacts-v1.json",
+        "schemaId": "simulatte.maritimeCalibrationArtifacts.v1",
+        "sha256": "527d75f6a208f99cd167ba8d4239b3f7de3b1a0c3a2441faa8a7a1861b4dffea"
+      },
+      "required": true
+    },
+    {
       "id": "maritime.voyage.scenarios.v1",
       "reference": {
         "id": "maritime.voyage.scenarios.v1",
@@ -88,7 +98,7 @@
         "id": "maritime.provenance.registry.v1",
         "path": "../../../data/maritime-trade-global/provenance-registry-v1.json",
         "schemaId": "simulatte.maritimeProvenanceRegistry.v1",
-        "sha256": "134a1ff3a0953bab0ab0273c2a3ba9dd060a3716480c9b74cecbfb7d3cf3a3d1"
+        "sha256": "9ae28da60a6b859bcdac7d7063bd85e2ab6e04827869597af7e62b25119b30b5"
       },
       "required": true
     }
@@ -96,7 +106,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginMaritimeTradeGlobal",
-    "integrity": "sha384-80f12e83544af2777b636063cae649f4cc1388988455bc406301c180bbd459afcd49fa6f3be80834399aa94283491b05",
+    "integrity": "sha384-b2b9c20a9274fe8f52d90be81ccca00761c7781e42b067a4520a7efc2ccb0a9a508a28c3f20412aa65ef48b825b131cc",
     "path": "./index.js"
   },
   "extensionPoints": [
@@ -138,6 +148,7 @@
     "simulatte.plugin.maritimeQueueReceipt.v2",
     "simulatte.plugin.containerLineageReceipt.v2",
     "simulatte.plugin.maritimeEmissionsReceipt.v2",
+    "simulatte.plugin.maritimeEmissionsSensitivityReceipt.v1",
     "simulatte.plugin.maritimeComparisonReceipt.v2"
   ],
   "resources": [
@@ -146,27 +157,23 @@
       "path": "./config.schema.json"
     },
     {
-      "integrity": "sha384-6d1db485fa453ab506c78e825b6b5cc48cacf003e752c6995c7e8184d0616667c4e1f4ea9b9a01a7e9093ea0622bceff",
-      "path": "./container-ledger.js"
-    },
-    {
       "integrity": "sha384-93f6808b4ced76a23b49773c694fb697aaa4a635a61973423cf43833e450e43913e1867fdf577eba513ba48bfbc480ee",
       "path": "./default-config.json"
     },
     {
-      "integrity": "sha384-ed619d7738bf6a4a4afcc1a406d0df0d690581a12f08f536d1d7d393720737acb2b74de7037028c3e3645c57e829b1b9",
+      "integrity": "sha384-6d1db485fa453ab506c78e825b6b5cc48cacf003e752c6995c7e8184d0616667c4e1f4ea9b9a01a7e9093ea0622bceff",
+      "path": "./container-ledger.js"
+    },
+    {
+      "integrity": "sha384-ab50dc6cf5e4c130da8e40b25834b334bc0cbc26af8810e66e1709e29faa431e1d1b935e27d487edc318f545835146f1",
       "path": "./emissions-model.js"
     },
     {
-      "integrity": "sha384-4c98694c5c189c82a4375fa9b8764bc0266ce327d6286b194253527018248c4f629b2d035c503edc8cfde0f16c1e41b6",
-      "path": "./emissions.js"
-    },
-    {
-      "integrity": "sha384-25502fb46642673d0670b8d2f9a6315163332414da47a075370baecccf62304d435504be57a55f2d5d3785513d33c4e7",
+      "integrity": "sha384-b0888da7ccf998584ffd0387a2a439f51c144930b519e4a1f103681017824bc940c22cbc70d0162fff133604c8c8fc4c",
       "path": "./maritime-engine.js"
     },
     {
-      "integrity": "sha384-09cffba4907234db58325e3f916003edaaf7f2e94277446c485075489717b43a2a4c193c57f7a7e3012f5e4035ebecff",
+      "integrity": "sha384-4f56aaea03fc57039a380fd8fc8a9bb8e96d158e47beba886169c2ab576fd4e176b836ea102d2c3ba101f54f871cf65c",
       "path": "./metrics.js"
     },
     {
@@ -174,28 +181,16 @@
       "path": "./network-router.js"
     },
     {
-      "integrity": "sha384-35c2b508297cfef9e71f4c931c909df3715ec400cb2d5d7b7017296921440cec67d026d792d3bb1080ba70736040b2e5",
-      "path": "./ports.js"
-    },
-    {
-      "integrity": "sha384-d14473446c483303c0b7669f7acf9503934111321a7e01e029f54cf0949bfe9174409fca8b884f7f7c1e9007fbda5e10",
+      "integrity": "sha384-f208dbe1d0b7749b040efef46c1ec0df4cb1631f355ccbcb7072da8a90285336c6b75af9d900f0109c4740de9202c6bc",
       "path": "./presentation.js"
     },
     {
-      "integrity": "sha384-0bd7d6b7476706f07b7ee3f0e4e5986db15f5de3a35facca275afe5951b238744076bf81cf0b35382f278826a7c56d2f",
+      "integrity": "sha384-dda51aa9b824afadf65aaefdadd4cd434186c24c05738f30c6694f0e32a7ab52fa0d85db327a41247447d5ba91501ee0",
       "path": "./queue-engine.js"
     },
     {
-      "integrity": "sha384-da07fbba831ed4f5fa16e910f3263d5a364419cf7451c191297171f3f74eaf3183c816dd316fb9fba892efbf8e08be32",
-      "path": "./routing.js"
-    },
-    {
-      "integrity": "sha384-863167b1e7bb7bdb1271d94bc17470a319f9f093aac86fca21d2e449ebf51fb3f4afaf91b77c3cef3c81562b378762af",
+      "integrity": "sha384-5b43a2faff58ae4978ba5a18112742b59dfedaf34af2285d546b6a11f8456c62a3d51fcb9199bbfd8fac8cd2e5abb33a",
       "path": "./v4-contribution.js"
-    },
-    {
-      "integrity": "sha384-981936c3f75224385a42c9a37e9f5d28adc240235ceedcdd4ec006486ecc6139d497b6a63c2fcd812d1f954833cd666e",
-      "path": "./vessels.js"
     },
     {
       "integrity": "sha384-df0f38aa68adb2e7608ac3dab6d14f0e24ab599174ed9d9f7f6de44d6af241c8045519e5ba305f2d449404ccecc99cb5",

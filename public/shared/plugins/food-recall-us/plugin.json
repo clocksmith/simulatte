@@ -79,13 +79,13 @@
         "schemaId": "simulatte.usEnvironmentSnapshot.v1",
         "sha256": "3d607232ffc3874bdb1b5ad430c36b75793ca9f76bc40a16e0cadeb669392661"
       },
-      "required": false
+      "required": true
     }
   ],
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginFoodRecallUs",
-    "integrity": "sha384-38fbaca56c44d34d4234fdf307e3d78922e455eeac6ddd1b7d28bda1094c4b8f9f399d2036f8ff316fb7a7df638ea798",
+    "integrity": "sha384-632ed7271cfa4d9a22651f981efbc90a8c48d1276ee2f54cc83853caceea8152515ef2329d3b7068abe0388344ef2c51",
     "path": "./index.js"
   },
   "extensionPoints": [
@@ -115,35 +115,39 @@
     "field.food-contamination.v1"
   ],
   "receiptSchemas": [
-    "simulatte.plugin.foodRecallScenarioReceipt.v2",
+    "simulatte.plugin.foodRecallScenarioReceipt.v3",
     "simulatte.plugin.foodRecallEventChainReceipt.v1",
-    "simulatte.plugin.foodRecallInterventionReceipt.v1",
+    "simulatte.plugin.foodRecallInterventionReceipt.v2",
     "simulatte.plugin.foodRecallTracebackReceipt.v1",
     "simulatte.plugin.foodRecallOutcomeReceipt.v1"
   ],
   "resources": [
     {
-      "integrity": "sha384-35a24dc37cc678cb3a1676dba9e6148651f4633a9d9ada45c4ef00bda469cdc3b2ca663e06fbddfbf2ac1017982653c9",
+      "integrity": "sha384-b0468726ba244ebfde1fef05e06885142cd0509fa6f5b177153a5780192533c05a9b82e54c52f8d6d053f4cd7b5492ef",
       "path": "./config.schema.json"
     },
     {
-      "integrity": "sha384-1cb29046157dab2b4b1ac99efc76d27fe1d76822d8910fe8c85fc81102967cb9230f529a4a4b59ec9aea6bcaa6ff1f4c",
+      "integrity": "sha384-1c718b0f23b95446c137cc873e01e0621ab70e0125cc23776d4a817f14fa4d46626efd431ce75ecfe35ed462274effde",
       "path": "./default-config.json"
     },
     {
-      "integrity": "sha384-42311c00bf7a7a6480e9ce58fedceab2eddda8bd5eacb57945c765d057f5a8c3ddfb2a2f64a7937d90e4c382a12a793e",
+      "integrity": "sha384-fdac6bbfb21d6c511b713b4408577b49f2ab0be40ded8363ad0e76ff856c44fd4845fb3fd9b2654a2edbec76956be9da",
       "path": "./food-engine.js"
     },
     {
-      "integrity": "sha384-c4f293a493ea2309472805251bba30c50aa4f01d913b918943b562d597a3414fbbddb2872fefb81733586074edbe572d",
+      "integrity": "sha384-457c02d9a2851a587b941fe3027a9246937bbfcf0de0a4602911008529da9a62ec7f03506aca438a709bc8d8493eb3e1",
       "path": "./food-presentation.js"
     },
     {
-      "integrity": "sha384-a6a141ba2aaae1cccf367f712a9e61190d33f1ff76c2d3977e252ef41d63907993205b28a002f54944635c9ff49cf023",
+      "integrity": "sha384-2f257cf0917a2a39ea60fd126ddfe0ea2d01eeb3011652b88914c2fecc678eebd564057a7f1836f7e9cd39a8a834120c",
+      "path": "./input-context.js"
+    },
+    {
+      "integrity": "sha384-a7e924e1ee3d9c4c7b2a042fea92541ac00238700746f61b69aa0cd718e2fc36d1bec8a35fd514cd742e9f17aad77710",
       "path": "./v4-contribution.js"
     }
   ],
   "schema": "simulatte.pluginManifest.v1",
   "sdkVersion": 2,
-  "version": "2.0.0"
+  "version": "2.1.0"
 }

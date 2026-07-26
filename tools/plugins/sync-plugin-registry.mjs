@@ -33,10 +33,12 @@ function readPlugin(pluginId) {
     manifest.entry.integrity = integrity;
     fs.writeFileSync(manifestPath, `${JSON.stringify(sortValue(manifest), null, 2)}\n`);
   }
-  const resourcePaths = [manifest.configSchema, manifest.defaultConfig, ...walk(directory)
-    .filter((file) => file.endsWith('.js') && file !== entryPath)
-    .map((file) => `./${path.relative(directory, file).split(path.sep).join('/')}`)]
-    .sort();
+  const scriptPaths = walk(directory)
+    .filter((file) => file.endsWith('.js') && file !== entryPath);
+  const resourcePaths = [
+    ...[manifest.configSchema, manifest.defaultConfig].sort(),
+    ...orderPluginScripts(directory, scriptPaths),
+  ];
   const resources = resourcePaths.map((resourcePath) => ({
     path: resourcePath,
     integrity: `sha384-${crypto.createHash('sha384').update(fs.readFileSync(path.resolve(directory, resourcePath))).digest('hex')}`,
@@ -56,6 +58,38 @@ function walk(directory) {
     const target = path.join(directory, row.name);
     return row.isDirectory() ? walk(target) : [target];
   });
+}
+
+function orderPluginScripts(directory, files) {
+  const byPath = new Map(files.map((file) => [
+    `./${path.relative(directory, file).split(path.sep).join('/')}`,
+    file,
+  ]));
+  const dependencies = new Map([...byPath].map(([resourcePath, file]) => {
+    const source = fs.readFileSync(file, 'utf8');
+    const rows = [...source.matchAll(/require\(['"]([^'"]+\.js)['"]\)/g)]
+      .map((match) => {
+        const resolved = path.resolve(path.dirname(file), match[1]);
+        return `./${path.relative(directory, resolved).split(path.sep).join('/')}`;
+      })
+      .filter((dependency) => byPath.has(dependency))
+      .sort();
+    return [resourcePath, rows];
+  }));
+  const ordered = [];
+  const visiting = new Set();
+  const visited = new Set();
+  function visit(resourcePath) {
+    if (visited.has(resourcePath)) return;
+    if (visiting.has(resourcePath)) fail(`Plugin script dependency cycle includes ${resourcePath}`);
+    visiting.add(resourcePath);
+    dependencies.get(resourcePath).forEach(visit);
+    visiting.delete(resourcePath);
+    visited.add(resourcePath);
+    ordered.push(resourcePath);
+  }
+  [...byPath.keys()].sort().forEach(visit);
+  return ordered;
 }
 
 function renderRegistry(rows) {

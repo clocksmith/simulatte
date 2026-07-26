@@ -476,7 +476,7 @@ async function main() {
       skipped.push({ lane: 'hybrid_optin', reason: 'no local model source: pass --model-base-url or provide the sibling doppler artifact' });
     }
   } finally {
-    client?.close();
+    await client?.close();
     await stopChild(chrome);
     await new Promise((resolve) => staticHost.server.close(resolve));
     await removeProfileDirectory(profileDir);

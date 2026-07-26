@@ -6,8 +6,13 @@
   function createSemanticPresentation(starsData, result, progressiveState) {
     const selectedIds = new Set(result.scenario.relayHops);
     const stateById = new Map(result.stellarStates.map((state) => [state.sourceId, state]));
+    const spatialContract = createSpatialContract(result);
     const starEntities = (starsData.stars || []).map((star) => {
       const state = stateById.get(star.sourceId);
+      const evidenceReferences = Object.freeze([
+        ...(state.sourceRowIds || []),
+        state.modelReceipt.modelId,
+      ]);
       return Object.freeze({
         id: star.sourceId,
         semanticType: 'stellar-system',
@@ -19,43 +24,56 @@
           isRelayPathMember: selectedIds.has(star.sourceId),
           astrometricQualityRuwe: star.ruwe,
         }),
-        evidenceReferences: Object.freeze([
-          ...(state.sourceRowIds || []),
-          state.modelReceipt.modelId,
-        ]),
+        spatialEvidence: spatialEvidence(state.positionPc, evidenceReferences),
+        evidenceReferences,
+        omissions: Object.freeze([]),
         truth: state.truth,
       });
     });
-    const linkEntities = result.schedule.hops.map((hop, index) => Object.freeze({
-        id: `relay-link:${index}`,
-        semanticType: 'optical-link',
-        label: `${stateById.get(hop.fromId).name} to ${stateById.get(hop.toId).name}`,
-      coordinates: Object.freeze([
+    const linkEntities = result.schedule.hops.map((hop, index) => {
+      const coordinates = Object.freeze([
         stateById.get(hop.fromId).positionPc,
         stateById.get(hop.toId).positionPc,
-      ]),
-      quantities: Object.freeze({
-        distancePc: hop.lightTime.distancePc,
-        lightTimeYears: hop.lightTime.latencyYears,
-        achievableDataRateGbps: result.linkBudgets[index].achievableDataRateGbps,
-        linkMarginDb: result.linkBudgets[index].linkMarginDb,
-        estimatedPacketSuccessProbability: result.linkBudgets[index].packetSuccessProbability,
-        transmissionEnergyJ: hop.transmitDurationSeconds * result.linkBudgets[index].txPowerW,
-        status: linkStatus(progressiveState, index),
-      }),
-      evidenceReferences: Object.freeze([
+      ]);
+      const evidenceReferences = Object.freeze([
         ...stateById.get(hop.fromId).sourceRowIds,
         ...stateById.get(hop.toId).sourceRowIds,
         result.linkBudgets[index].modelReceipt.modelId,
         result.schedule.modelReceipt.modelId,
-      ]),
-      truth: result.linkBudgets[index].truth,
-    }));
+      ]);
+      return Object.freeze({
+        id: `relay-link:${index}`,
+        semanticType: 'optical-link',
+        label: `${stateById.get(hop.fromId).name} to ${stateById.get(hop.toId).name}`,
+        coordinates,
+        spatialEvidence: pathSpatialEvidence(coordinates, evidenceReferences),
+        quantities: Object.freeze({
+          distancePc: hop.lightTime.distancePc,
+          lightTimeYears: hop.lightTime.latencyYears,
+          achievableDataRateGbps: result.linkBudgets[index].achievableDataRateGbps,
+          linkMarginDb: result.linkBudgets[index].linkMarginDb,
+          estimatedPacketSuccessProbability: result.linkBudgets[index].packetSuccessProbability,
+          reliabilityConditionalOnContinuousContact: true,
+          transmissionEnergyJ: hop.transmitDurationSeconds * result.linkBudgets[index].txPowerW,
+          status: linkStatus(progressiveState, index),
+        }),
+        reliabilityScope: result.reliabilityScope,
+        omissions: result.omissions,
+        evidenceReferences,
+        truth: result.linkBudgets[index].truth,
+      });
+    });
     const packetPosition = locatePacket(result, progressiveState, stateById);
+    const packetEvidenceReferences = Object.freeze([
+      result.packet.integrity.packetHash,
+      progressiveState.currentEventId || result.schedule.trace[0].id,
+      ...result.metrics.evidenceReferences,
+    ]);
     return Object.freeze({
       schema: 'simulatte.semanticPresentation.v4-draft',
       coordinateSystem: 'icrs-cartesian-pc',
       epoch: `J${result.targetEpochYear}`,
+      spatialContract,
       layers: Object.freeze([
         Object.freeze({
           id: 'stellar-neighborhood',
@@ -88,11 +106,14 @@
               status: progressiveState.status,
               elapsedSeconds: progressiveState.elapsedSeconds,
               activeHopIndex: progressiveState.activeHopIndex,
+              radialDistancePc: Math.hypot(...packetPosition),
+              lineOfSightDepthPc: packetPosition[2],
+              reliabilityConditionalOnContinuousContact: true,
             }),
-            evidenceReferences: Object.freeze([
-              result.packet.integrity.packetHash,
-              progressiveState.currentEventId || result.schedule.trace[0].id,
-            ]),
+            spatialEvidence: spatialEvidence(packetPosition, packetEvidenceReferences),
+            reliabilityScope: result.reliabilityScope,
+            omissions: result.omissions,
+            evidenceReferences: packetEvidenceReferences,
             truth: Object.freeze({
               origin: 'simulated',
               temporalStatus: 'forecast',
@@ -111,6 +132,8 @@
       renderedEvidenceContract: Object.freeze({
         objectEvidenceField: 'evidenceReferences',
         semanticQuantityField: 'quantities',
+        spatialEvidenceField: 'spatialEvidence',
+        spatialContractId: spatialContract.id,
         finalStyleAuthority: 'core',
       }),
     });
@@ -124,11 +147,16 @@
       ? [activeHop.fromId, activeHop.toId]
       : result.scenario.relayHops;
     const mode = activeHop ? 'follow' : 'overview';
+    const targetStates = targetIds.map((id) => result.stellarStates.find((row) => row.sourceId === id)).filter(Boolean);
+    const framing = spatialFraming(targetStates.map((row) => row.positionPc));
     return Object.freeze([Object.freeze({
       schema: 'simulatte.viewIntent.v1',
       id: `interstellar:${progressiveState.currentEventId || 'ready'}`,
       mode,
       targetIds: Object.freeze(targetIds.slice()),
+      targetEvidenceReferences: Object.freeze(targetStates.flatMap((row) => row.sourceRowIds)),
+      spatialContractId: 'interstellar:icrs-cartesian-pc:true-3d:v1',
+      framing,
       transitionReason: progressiveState.currentEventId
         ? `simulation-event:${progressiveState.currentEventId}`
         : 'scenario-ready',
@@ -199,6 +227,58 @@
     const span = Math.max(1, hop.receiveOffsetSeconds - hop.transmitOffsetSeconds);
     const progress = Math.max(0, Math.min(1, (state.elapsedSeconds - hop.transmitOffsetSeconds) / span));
     return source.map((value, index) => value + ((target[index] - value) * progress));
+  }
+  function createSpatialContract(result) {
+    return Object.freeze({
+      schema: 'simulatte.interstellarSpatialContract.v1',
+      id: 'interstellar:icrs-cartesian-pc:true-3d:v1',
+      coordinateSystem: 'icrs-cartesian-pc',
+      dimensions: 3,
+      axisOrder: Object.freeze(['icrs-x', 'icrs-y', 'icrs-z']),
+      units: 'parsec',
+      origin: 'solar-system-barycentric-scenario-origin',
+      epoch: `J${result.targetEpochYear}`,
+      scaleSemantics: 'true-distance',
+      distanceSemantics: 'euclidean-3d-parsec',
+      depthSemantics: 'signed-icrs-z-parsec-not-render-order',
+      projectionPolicy: 'Core may project for display but must retain source 3D coordinates and evidence.',
+      evidenceReferences: Object.freeze([
+        ...result.relayStates.flatMap((row) => row.sourceRowIds),
+        'linear-space-motion-v2',
+      ]),
+    });
+  }
+  function spatialEvidence(position, evidenceReferences) {
+    return Object.freeze({
+      spatialContractId: 'interstellar:icrs-cartesian-pc:true-3d:v1',
+      positionPc: Object.freeze(position.slice()),
+      radialDistancePc: Math.hypot(...position),
+      lineOfSightDepthPc: position[2],
+      evidenceReferences,
+    });
+  }
+  function pathSpatialEvidence(coordinates, evidenceReferences) {
+    const midpoint = coordinates[0].map((value, index) => (value + coordinates[1][index]) / 2);
+    return Object.freeze({
+      spatialContractId: 'interstellar:icrs-cartesian-pc:true-3d:v1',
+      endpointPositionsPc: Object.freeze(coordinates.map((row) => Object.freeze(row.slice()))),
+      midpointPc: Object.freeze(midpoint),
+      radialDistancePc: Math.hypot(...midpoint),
+      lineOfSightDepthPc: midpoint[2],
+      euclideanLengthPc: Math.hypot(...coordinates[1].map((value, index) => value - coordinates[0][index])),
+      evidenceReferences,
+    });
+  }
+  function spatialFraming(points) {
+    const center = centroid(points);
+    return Object.freeze({
+      kind: 'evidence-bounding-sphere-3d',
+      centerPc: Object.freeze(center),
+      radiusPc: extent(points),
+      preserveDepth: true,
+      preserveTrueDistance: true,
+      allowsUserOverride: true,
+    });
   }
   function linkStatus(state, index) {
     if (state.deliveredHopCount > index) return 'completed';

@@ -23,5 +23,18 @@ export class CdpClient {
     });
   }
   on(method, listener) { this.listeners.set(method, [...(this.listeners.get(method) || []), listener]); }
-  close() { try { this.socket?.close(); } catch { /* already closed */ } }
+  async close() {
+    const socket = this.socket;
+    this.socket = null;
+    if (!socket || socket.readyState === WebSocket.CLOSED) return;
+    await new Promise((resolve) => {
+      const timeout = setTimeout(resolve, 1000);
+      const finish = () => {
+        clearTimeout(timeout);
+        resolve();
+      };
+      socket.addEventListener('close', finish, { once: true });
+      try { socket.close(); } catch { finish(); }
+    });
+  }
 }

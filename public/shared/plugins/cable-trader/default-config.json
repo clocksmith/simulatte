@@ -1,6 +1,6 @@
 {
-  "schema": "simulatte.plugin.cableTraderConfig.v3",
-  "id": "cable-trader-network-v3",
+  "schema": "simulatte.plugin.cableTraderConfig.v4",
+  "id": "cable-trader-network-v4",
   "cableTypes": [
     { "id": "usb-c-to-a", "label": "USB-C to USB-A", "labels": ["usb c to a", "usb-c to usb-a", "usb c cable"], "demandWeight": 18 },
     { "id": "usb-c-to-c", "label": "USB-C to USB-C", "labels": ["usb c to c", "usb-c to usb-c"], "demandWeight": 18 },
@@ -63,12 +63,29 @@
   ],
   "simulation": {
     "seed": "cable-city-month-2026-07",
+    "selectedCableFamilyIds": [
+      "usb-c-to-a",
+      "usb-c-to-c",
+      "usb-c-to-lightning",
+      "ethernet-rj45",
+      "hdmi",
+      "displayport",
+      "mini-displayport",
+      "micro-usb",
+      "three-five-mm-audio",
+      "iec-c13-power"
+    ],
+    "ensembleSeeds": [
+      "cable-city-variance-01",
+      "cable-city-variance-02",
+      "cable-city-variance-03",
+      "cable-city-variance-04"
+    ],
     "durationDays": 30,
     "needCount": 4096,
     "returnCount": 4096,
     "journeyEventCount": 960,
-    "participantCount": 2048,
-    "renderedActorCount": 64,
+    "renderedRequestCount": 64,
     "initialInventoryPerHubType": 8
   }
 }

@@ -5,10 +5,13 @@
   const truth = typeof module === 'object' && module.exports
     ? require('./truth.js')
     : root.SimulatteSunWalkerTruth;
-  const api = factory(exposure, truth);
+  const environment = typeof module === 'object' && module.exports
+    ? require('./environment.js')
+    : root.SimulatteSunWalkerEnvironment;
+  const api = factory(exposure, truth, environment);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteSunWalkerRouteSimulation = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createSunWalkerRouteSimulation(exposure, truthApi) {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createSunWalkerRouteSimulation(exposure, truthApi, environmentApi) {
   const DIRECT_SUN_TRANSFORM = 'sun-walker.sample-arrival-occlusion.v1';
   const ROUTE_SELECTION_TRANSFORM = 'sun-walker.bounded-alternative-selection.v2';
 
@@ -22,10 +25,21 @@
     buildingReceipt,
     governance,
     governanceReceipt,
+    environment,
+    environmentReceipt,
   }) {
     validateInputs({ routes, departureAt, config });
     const buildings = exposure.compiledBuildings(world);
-    const dataReceipt = createDataReceipt(world, buildings, buildingReceipt, governance, governanceReceipt);
+    const environmentalScene = environmentApi.compile(environment, world);
+    const dataReceipt = createDataReceipt(
+      world,
+      buildings,
+      buildingReceipt,
+      governance,
+      governanceReceipt,
+      environment,
+      environmentReceipt
+    );
     const modelReceipt = createModelReceipt(config, seed, dataReceipt, governance);
     const candidates = routes.map((route, routeIndex) => evaluateCandidate({
       route,
@@ -37,6 +51,7 @@
       config,
       dataReceipt,
       modelReceipt,
+      environmentalScene,
     }));
     const fastest = candidates.slice().sort(compareFastest)[0];
     const allowedAddedSeconds = Math.min(
@@ -58,7 +73,7 @@
       seed,
       departureAt,
       selected.id,
-      selected.samples.map((row) => `${row.segmentId}:${row.state}`).join('|'),
+      selected.samples.map((row) => `${row.segmentId}:${row.state}:${row.directBeamFactor}`).join('|'),
     ].join(':'))}`;
     return truthApi.deepFreeze({
       schema: 'simulatte.plugin.sunWalkerSimulation.v2',
@@ -96,6 +111,7 @@
     config,
     dataReceipt,
     modelReceipt,
+    environmentalScene,
   }) {
     const departureMs = Date.parse(departureAt);
     let elapsedSeconds = 0;
@@ -113,6 +129,7 @@
         config,
         dataReceipt,
         modelReceipt,
+        environmentalScene,
       });
       row.samples.forEach((sample) => samples.push(sample));
       segments.push(row.summary);
@@ -120,7 +137,7 @@
     });
     const totals = sumExposure(samples);
     const generalizedCost = totals.travelSeconds
-      + totals.directSunSeconds * config.directSunWeight
+      + totals.directBeamEquivalentSeconds * config.directSunWeight
       + totals.unknownSeconds * config.unknownWeight;
     return {
       schema: 'simulatte.sunWalkerRouteCandidate.v2',
@@ -130,7 +147,15 @@
       arrivalAt: new Date(departureMs + elapsedSeconds * 1000).toISOString(),
       metrics: {
         ...totals,
-        modeledBuildingShadePercent: percentage(totals.shadeSeconds, totals.directSunSeconds + totals.shadeSeconds),
+        modeledBuildingShadePercent: percentage(
+          totals.buildingShadeSeconds,
+          totals.directSunSeconds + totals.shadeSeconds
+        ),
+        modeledCanopyShadePercent: percentage(
+          totals.canopyShadeSeconds,
+          totals.directSunSeconds + totals.shadeSeconds
+        ),
+        modeledShadePercent: percentage(totals.shadeSeconds, totals.directSunSeconds + totals.shadeSeconds),
         objective: round(generalizedCost),
       },
       segments,
@@ -149,6 +174,7 @@
     config,
     dataReceipt,
     modelReceipt,
+    environmentalScene,
   }) {
     const samplePoints = samplePolylineAtMidpoints(segment.geometry, config.sampleSpacingM);
     const segmentLengthM = Number.isFinite(segment.lengthM) ? segment.lengthM : polylineLength(segment.geometry);
@@ -162,10 +188,19 @@
       const result = exposure.pointSunStateDetailed(point, buildings, sun, {
         minimumSolarElevationDegrees: config.minimumSolarElevationDegrees,
       });
+      const environmental = environmentApi.sample({
+        point,
+        sun,
+        timestamp,
+        environment: environmentalScene,
+        config,
+      });
+      const state = exposureState(result, environmental, config);
       const evidenceRefs = [
         dataReceipt.id,
         modelReceipt.id,
         ...(result.occluderId ? [`building:${result.occluderId}`] : []),
+        ...environmental.evidenceRefs,
       ];
       return {
         schema: 'simulatte.sunWalkerExposureSample.v2',
@@ -176,9 +211,13 @@
         sampleIndex,
         point,
         representedSeconds: round(sampleSeconds),
-        state: result.state,
-        reason: result.reason,
-        occluderId: result.occluderId,
+        state: state.state,
+        reason: state.reason,
+        occluderId: result.occluderId || environmental.canopy.treeId,
+        occluderKind: result.occluderId ? 'building' : environmental.canopy.occluded ? 'tree-canopy' : null,
+        directBeamFactor: state.directBeamFactor,
+        directBeamEquivalentSeconds: round(sampleSeconds * state.directBeamFactor),
+        environment: environmental,
         solarPosition: {
           azimuthDegrees: sun.azimuthDegrees,
           elevationDegrees: sun.elevationDegrees,
@@ -301,8 +340,11 @@
       progress: 0,
       directSunSeconds: 0,
       shadeSeconds: 0,
+      buildingShadeSeconds: 0,
+      canopyShadeSeconds: 0,
       unknownSeconds: 0,
       nightSeconds: 0,
+      directBeamEquivalentSeconds: 0,
     };
   }
 
@@ -316,14 +358,32 @@
       totalSamples,
       progress: round(completedSamples / totalSamples),
       [key]: round(state[key] + sample.representedSeconds),
+      buildingShadeSeconds: round(state.buildingShadeSeconds
+        + (sample.state === 'shade' && sample.occluderKind === 'building' ? sample.representedSeconds : 0)),
+      canopyShadeSeconds: round(state.canopyShadeSeconds
+        + (sample.state === 'shade' && sample.occluderKind === 'tree-canopy' ? sample.representedSeconds : 0)),
+      directBeamEquivalentSeconds: round(state.directBeamEquivalentSeconds + sample.directBeamEquivalentSeconds),
     };
   }
 
-  function createDataReceipt(world, buildings, buildingReceipt, governance, governanceReceipt) {
+  function createDataReceipt(
+    world,
+    buildings,
+    buildingReceipt,
+    governance,
+    governanceReceipt,
+    environment,
+    environmentReceipt
+  ) {
     const buildingHash = buildingReceipt?.sha256 || world.provenance?.sources?.buildings?.sha256 || null;
     return truthApi.deepFreeze({
       schema: 'simulatte.dataReceipt.v4',
-      id: `sun-data-${truthApi.stableId(`${world.id}:${buildingHash}:${governanceReceipt?.sha256 || 'governance'}`)}`,
+      id: `sun-data-${truthApi.stableId([
+        world.id,
+        buildingHash,
+        governanceReceipt?.sha256 || 'governance',
+        environmentReceipt?.sha256 || 'environment',
+      ].join(':'))}`,
       datasets: [
         {
           id: 'world.buildings.v1',
@@ -349,11 +409,29 @@
           sourceRowIds: governance.models.map((row) => row.id),
           truth: derivedTruth(),
         },
+        {
+          id: environment.id,
+          sourceId: environment.id,
+          source: environment.sources.map((row) => row.url).join(' | '),
+          retrievalTime: environment.generatedAt,
+          license: environment.sources.map((row) => row.license).join(' | '),
+          coverage: environment.coverage,
+          resolution: 'source-identified street trees and hourly station observations',
+          hash: environmentReceipt?.sha256 || null,
+          sourceRowIds: [
+            ...environment.canopy.rows.map((row) => row.sourceRowId),
+            ...environment.weather.rows.map((row) => row.sourceRowId),
+          ],
+          sourceReceipts: environment.sources,
+          truth: observedHistoricalTruth(environmentReceipt?.sha256),
+        },
       ],
       transformations: [
         DIRECT_SUN_TRANSFORM,
         ROUTE_SELECTION_TRANSFORM,
         'sun-walker.building-prism-ray-occlusion.v2',
+        'sun-walker.dbh-canopy-envelope.v1',
+        'sun-walker.metar-sky-direct-beam-attenuation.v1',
       ],
       truth: derivedTruth(),
     });
@@ -375,6 +453,16 @@
           citationIds: [],
         },
         {
+          id: 'dbh-canopy-envelope-v1',
+          equationIds: ['dbh-to-crown-radius', 'dbh-to-crown-height', 'sun-ray-crown-envelope-intersection'],
+          citationIds: ['nyc-2015-street-tree-census'],
+        },
+        {
+          id: 'metar-sky-direct-beam-attenuation-v1',
+          equationIds: ['nearest-historical-analog', 'sky-code-direct-beam-factor'],
+          citationIds: ['ncei-global-hourly-central-park'],
+        },
+        {
           id: 'bounded_alternative_route_selection_v2',
           equationIds: ['generalized-exposure-cost', 'maximum-detour-bound'],
           citationIds: [],
@@ -392,24 +480,30 @@
         minimumSolarElevationDegrees: config.minimumSolarElevationDegrees,
         treeCanopyParticipation: config.treeCanopyParticipation,
         weatherParticipation: config.weatherParticipation,
+        canopyShadeThreshold: config.canopyShadeThreshold,
       },
       calibration: {
-        status: 'not_calibrated_against_observed_street_irradiance',
+        status: 'engineering_cases_passed_not_calibrated_against_observed_street_irradiance',
         dataReceiptId: dataReceipt.id,
+        cases: dataReceipt.datasets[2].sourceReceipts.map((row) => ({
+          sourceId: row.id,
+          rawSha256: row.rawSha256,
+          sourceRowCount: row.rowCount,
+        })),
       },
       seed,
       uncertainty: {
         kind: 'missing',
         value: {
           buildingHeight: 'unknown heights propagate as unknown exposure',
-          treeCanopy: 'not available',
-          cloudAndWeather: 'not available',
+          treeCanopy: 'historical tree identity observed; crown geometry and current presence modeled',
+          cloudAndWeather: 'historical station analog; street-scale irradiance missing',
           facadeAndAwningGeometry: 'not available',
         },
       },
       validation: governance.validation,
       truth: modeledTruth(),
-      claimBoundary: 'Deterministic clear-sky direct-sun exposure from retained building footprints and available heights at each simulated arrival sample. It does not model clouds, diffuse or reflected radiation, tree canopy, awnings, facade detail, terrain slope, or thermal comfort.',
+      claimBoundary: 'Deterministic direct-beam exposure using retained buildings, historical 2015 street-tree identities with modeled crown envelopes, and a pinned 2024 Central Park weather analog. It is not current observed street shade, measured irradiance, thermal comfort, or a forecast of present canopy or weather.',
     });
   }
 
@@ -426,10 +520,20 @@
           intervention: selected.metrics.directSunSeconds,
           difference: round(selected.metrics.directSunSeconds - fastest.metrics.directSunSeconds),
         },
+        directBeamEquivalentSeconds: {
+          baseline: fastest.metrics.directBeamEquivalentSeconds,
+          intervention: selected.metrics.directBeamEquivalentSeconds,
+          difference: round(selected.metrics.directBeamEquivalentSeconds - fastest.metrics.directBeamEquivalentSeconds),
+        },
         modeledBuildingShadePercent: {
           baseline: fastest.metrics.modeledBuildingShadePercent,
           intervention: selected.metrics.modeledBuildingShadePercent,
           difference: round(selected.metrics.modeledBuildingShadePercent - fastest.metrics.modeledBuildingShadePercent),
+        },
+        modeledCanopyShadePercent: {
+          baseline: fastest.metrics.modeledCanopyShadePercent,
+          intervention: selected.metrics.modeledCanopyShadePercent,
+          difference: round(selected.metrics.modeledCanopyShadePercent - fastest.metrics.modeledCanopyShadePercent),
         },
         travelSeconds: {
           baseline: fastest.metrics.travelSeconds,
@@ -450,8 +554,8 @@
       control('maximumAddedRatio', 'number', config.maximumAddedRatio, 'scenario', 'Maximum relative detour'),
       control('directSunWeight', 'number', config.directSunWeight, 'scenario', 'Direct-sun preference weight'),
       control('walkingSpeedMps', 'number', config.walkingSpeedMps, 'scenario', 'Walking speed'),
-      control('treeCanopyParticipation', 'toggle', false, 'modeled', 'Unavailable until a governed canopy dataset is active', false),
-      control('weatherParticipation', 'toggle', false, 'modeled', 'Unavailable until a governed weather snapshot is active', false),
+      control('treeCanopyParticipation', 'toggle', config.treeCanopyParticipation, 'scenario', 'Use historical 2015 tree identities with modeled crown envelopes'),
+      control('weatherParticipation', 'toggle', config.weatherParticipation, 'scenario', 'Use the pinned 2024 Central Park observation as a historical weather analog'),
     ]);
   }
 
@@ -474,7 +578,13 @@
       baseline: { candidateId: fastest.id, label: 'Fastest route' },
       intervention: { candidateId: selected.id, label: 'Shade-selected route' },
       synchronizedBy: 'elapsed_walk_progress',
-      metricIds: ['directSunSeconds', 'modeledBuildingShadePercent', 'travelSeconds'],
+      metricIds: [
+        'directSunSeconds',
+        'directBeamEquivalentSeconds',
+        'modeledBuildingShadePercent',
+        'modeledCanopyShadePercent',
+        'travelSeconds',
+      ],
     }];
   }
 
@@ -483,13 +593,23 @@
       travelSeconds: 0,
       directSunSeconds: 0,
       shadeSeconds: 0,
+      buildingShadeSeconds: 0,
+      canopyShadeSeconds: 0,
       unknownSeconds: 0,
       nightSeconds: 0,
+      directBeamEquivalentSeconds: 0,
     };
     samples.forEach((sample) => {
       totals.travelSeconds += sample.representedSeconds;
       const key = `${sample.state === 'direct' ? 'directSun' : sample.state}Seconds`;
       totals[key] += sample.representedSeconds;
+      if (sample.state === 'shade' && sample.occluderKind === 'building') {
+        totals.buildingShadeSeconds += sample.representedSeconds;
+      }
+      if (sample.state === 'shade' && sample.occluderKind === 'tree-canopy') {
+        totals.canopyShadeSeconds += sample.representedSeconds;
+      }
+      totals.directBeamEquivalentSeconds += sample.directBeamEquivalentSeconds;
     });
     return Object.fromEntries(Object.entries(totals).map(([key, value]) => [key, round(value)]));
   }
@@ -558,7 +678,14 @@
       temporalStatus: 'forecast',
       uncertainty: {
         kind: 'missing',
-        value: { clouds: true, trees: true, awnings: true, diffuseRadiation: true, reflectedRadiation: true },
+        value: {
+          currentCanopyState: true,
+          currentWeather: true,
+          measuredCrownGeometry: true,
+          awnings: true,
+          diffuseRadiation: true,
+          reflectedRadiation: true,
+        },
       },
     });
   }
@@ -569,7 +696,7 @@
       temporalStatus: 'forecast',
       uncertainty: {
         kind: 'missing',
-        value: { empiricalCalibration: true, environmentalObservations: true },
+        value: { empiricalStreetCalibration: true, currentEnvironmentalObservations: true },
       },
     });
   }
@@ -580,6 +707,45 @@
     const positive = ['maximumAlternatives', 'sampleSpacingM', 'walkingSpeedMps', 'minimumSolarElevationDegrees'];
     positive.forEach((key) => {
       if (!Number.isFinite(config[key]) || config[key] <= 0) throw simulationError(`sun_config_${key}_invalid`, config[key]);
+    });
+    if (!Number.isFinite(config.canopyShadeThreshold)
+      || config.canopyShadeThreshold < 0 || config.canopyShadeThreshold > 1) {
+      throw simulationError('sun_config_canopyShadeThreshold_invalid', config.canopyShadeThreshold);
+    }
+  }
+
+  function exposureState(building, environmental, config) {
+    if (building.state === 'night' || building.state === 'unknown' || building.state === 'shade') {
+      return {
+        state: building.state,
+        reason: building.reason,
+        directBeamFactor: building.state === 'shade' || building.state === 'night' ? 0 : environmental.directBeamFactor,
+      };
+    }
+    if (config.treeCanopyParticipation && environmental.canopy.occluded
+      && environmental.canopy.directBeamTransmittance <= config.canopyShadeThreshold) {
+      return {
+        state: 'shade',
+        reason: 'modeled_tree_canopy_occlusion',
+        directBeamFactor: environmental.directBeamFactor,
+      };
+    }
+    return {
+      state: 'direct',
+      reason: environmental.weather.participation
+        ? 'unoccluded_historical_weather_analog'
+        : building.reason,
+      directBeamFactor: environmental.directBeamFactor,
+    };
+  }
+
+  function observedHistoricalTruth(hash) {
+    return truthApi.truth({
+      origin: 'observed',
+      temporalStatus: 'historical',
+      uncertainty: hash
+        ? { kind: 'confidence', value: { identityVerified: true, historicalNotCurrent: true } }
+        : { kind: 'missing', value: { datasetHash: true } },
     });
   }
 

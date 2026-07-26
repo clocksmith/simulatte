@@ -45,6 +45,8 @@ test('browser smoke lanes share one CDP client', () => {
   assert.match(tierSmoke, /from '\.\/browser-harness\.mjs'/);
   assert.doesNotMatch(browserSmoke, /class CdpClient/);
   assert.doesNotMatch(tierSmoke, /class CdpClient/);
+  assert.match(tierSmoke, /getElementById\('runtime-status'\)/);
+  assert.doesNotMatch(tierSmoke, /document\.body\s*\?\s*document\.body\.innerText/);
 });
 
 test('completed TODO trackers stay removed', () => {

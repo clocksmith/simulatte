@@ -1,0 +1,53 @@
+{
+  "schema": "simulatte.profileEvidenceIndex.v1",
+  "planSha256": "d426f908bc41e83706d1b22967b16db5ac1b26b75baf1f9dc87ebb715ed8e4cb",
+  "claimInventorySha256": "3e09f7d9178b52c9c60f545ae87102dfa03a13d4934558bd7674fcf887e592ef",
+  "sourceIdentity": {
+    "buildId": "64b4838d99a3c41498616db50ba0815473cddfa7-cbd5ffaaed3d",
+    "commitSha": "8b5371cdda26dff56e1d6c47eb0fc014cadba199",
+    "worktreeSha256": "88d0b58b75b94c6d93a4602c609b036d3a8e055dd730260efd46ae0b669fec6d"
+  },
+  "totalRuns": 1,
+  "passedRuns": 0,
+  "pass": false,
+  "profiles": [
+    {
+      "profileId": "safety-explorer-v1",
+      "totalRuns": 1,
+      "passedRuns": 0,
+      "failureCounts": {
+        "runtime_path_mismatch": 1,
+        "platform_clock_receipt_invalid": 1,
+        "platform_view_receipt_invalid": 1,
+        "platform_compositor_receipt_missing": 1,
+        "comparison_execution_receipt_missing": 1,
+        "settlement_receipt_missing": 1,
+        "plugin_playback_reload_not_restored": 1,
+        "claim_evidence_unresolved": 1,
+        "receipt_contradictory": 1
+      }
+    }
+  ],
+  "runs": [
+    {
+      "runId": "run-4908c711843889bcf9eb",
+      "profileId": "safety-explorer-v1",
+      "seedId": "union-mccarren",
+      "viewportId": "desktop-1440x1000",
+      "receiptSha256": "b4292cf2cdfa20bc56a8751418785a8f02cbec6aec8a7856fc128a94f6d00528",
+      "receiptPath": "receipts/sha256/b4292cf2cdfa20bc56a8751418785a8f02cbec6aec8a7856fc128a94f6d00528.json",
+      "pass": false,
+      "failures": [
+        "runtime_path_mismatch",
+        "platform_clock_receipt_invalid",
+        "platform_view_receipt_invalid",
+        "platform_compositor_receipt_missing",
+        "comparison_execution_receipt_missing",
+        "settlement_receipt_missing",
+        "plugin_playback_reload_not_restored",
+        "claim_evidence_unresolved",
+        "receipt_contradictory"
+      ]
+    }
+  ]
+}

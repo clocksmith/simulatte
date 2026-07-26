@@ -7,41 +7,80 @@
   root.InterstellarRelayV4 = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createInterstellarV4(builder) {
   const PLUGIN_ID = 'interstellar-relay-network';
-  const MODEL_HASH = '0df39609ee3573112e2ebe1698edb28b46c9ebe316f1558abef4db100ad3596d';
   function createContribution({ result, progressive }) {
     const datasets = result.dataReceipts.filter((row) => row.sha256).map((row) => builder.datasetRecord(row.datasetId, row, {
       coverage: row.coverage,
       license: row.license,
     }));
     const gaia = datasets.find((row) => row.id.startsWith('gaia.'));
+    const modelDataset = datasets.find((row) => row.id === 'interstellar.relay.models.v1') || gaia;
     const starRows = result.stellarStates.map((state) => builder.rowRecord(gaia, state.sourceRowIds[0] || state.sourceId, {
       sourceId: state.sourceId,
       name: state.name,
     }));
     const model = builder.modelRecord({
       id: `${PLUGIN_ID}:model:relay-v2`,
-      datasetId: datasets.find((row) => row.id === 'interstellar.relay.models.v1')?.id || gaia.id,
-      contentHash: MODEL_HASH,
+      datasetId: modelDataset.id,
+      contentHash: modelDataset.contentHash,
       parentIds: datasets.map((row) => row.id),
-      metadata: { modelIds: result.modelReceipts.map((row) => row.modelId), claimBoundary: result.claimBoundary },
+      metadata: {
+        modelIds: result.modelReceipts.map((row) => row.modelId),
+        omissionIds: result.omissions.map((row) => row.id),
+        reliabilityScope: result.reliabilityScope,
+        claimBoundary: result.claimBoundary,
+      },
+      lineage: {
+        axes: {
+          origin: 'derived',
+          temporalStatus: 'forecast',
+          uncertainty: result.metrics.truth.uncertainty,
+        },
+        transformationChain: result.modelReceipts.map((row) => row.modelId),
+      },
     });
-    const observed = (state) => builder.provenance({
-      origin: 'observed',
-      temporalStatus: 'snapshot',
+    const spatial = builder.transformationRecord({
+      id: `${PLUGIN_ID}:spatial:icrs-cartesian-pc:true-3d:v1`,
+      datasetId: gaia.id,
+      contentHash: gaia.contentHash,
+      parentIds: [gaia.id, model.id],
+      metadata: {
+        dimensions: 3,
+        axisOrder: ['icrs-x', 'icrs-y', 'icrs-z'],
+        units: 'parsec',
+        origin: 'solar-system-barycentric-scenario-origin',
+        epoch: `J${result.targetEpochYear}`,
+        scaleSemantics: 'true-distance',
+        distanceSemantics: 'euclidean-3d-parsec',
+        depthSemantics: 'signed-icrs-z-parsec-not-render-order',
+        projectionPolicy: 'Projection must retain source coordinates and evidence.',
+      },
+      lineage: {
+        axes: {
+          origin: 'derived',
+          temporalStatus: 'forecast',
+          uncertainty: result.metrics.truth.uncertainty,
+        },
+        modelReceiptId: model.id,
+        transformationChain: ['linear-space-motion-v2', 'icrs-spherical-to-cartesian'],
+      },
+    });
+    const derivedPosition = (state) => builder.provenance({
+      origin: 'derived',
+      temporalStatus: 'forecast',
       uncertainty: state.truth.uncertainty,
-      records: [starRows.find((row) => row.metadata.sourceId === state.sourceId)],
+      records: [starRows.find((row) => row.metadata.sourceId === state.sourceId), spatial],
     });
     const modeled = builder.provenance({
       origin: 'modeled',
       temporalStatus: 'forecast',
       uncertainty: result.metrics.truth.uncertainty,
-      records: [model],
+      records: [model, spatial],
     });
     const simulated = builder.provenance({
       origin: 'simulated',
       temporalStatus: 'forecast',
       uncertainty: result.metrics.truth.uncertainty,
-      records: [model],
+      records: [model, spatial],
     });
     const stateById = new Map(result.stellarStates.map((row) => [row.sourceId, row]));
     const layers = [
@@ -54,7 +93,7 @@
         role: result.scenario.relayHops.includes(state.sourceId) ? 'primary' : 'context',
         importance: result.scenario.relayHops.includes(state.sourceId) ? 0.9 : 0.25,
         aggregationKey: 'stellar-neighborhood',
-        provenance: observed(state),
+        provenance: derivedPosition(state),
       })),
       ...result.schedule.hops.map((hop, index) => builder.layer({
         id: `relay-link:${index}`,
@@ -72,11 +111,12 @@
       })),
     ];
     const packetState = stateById.get(progressive.packetLocationId) || result.relayStates[0];
+    const packetPosition = locatePacket(result, progressive, stateById);
     if (packetState) layers.push(builder.layer({
       id: result.packet.packetId,
       kind: 'actor',
       label: `Scenario packet: ${progressive.status}`,
-      geometry: builder.geometry('point', 'icrs-cartesian-pc', [packetState.positionPc]),
+      geometry: builder.geometry('point', 'icrs-cartesian-pc', [packetPosition]),
       quantity: builder.quantity('payload', result.packet.payloadBytes, 'bytes'),
       role: 'event',
       importance: 1,
@@ -90,10 +130,18 @@
       kind: `${PLUGIN_ID}.${row.kind.replace(/^relay\./, '')}`,
       causationIds: row.causalParentIds,
       correlationId: result.scenarioId,
-      payload: { affectedEntityIds: row.affectedEntityIds },
+      payload: {
+        affectedEntityIds: row.affectedEntityIds,
+        omissionIds: result.omissions.map((omission) => omission.id),
+        reliabilityScope: result.reliabilityScope,
+        spatialTransformationId: spatial.id,
+      },
       provenance: simulated,
     }));
     const currentEvent = events[Math.max(0, progressive.currentEventIndex)] || null;
+    const activeLayerId = progressive.activeHopIndex === null
+      ? null
+      : `relay-link:${progressive.activeHopIndex}`;
     const presentation = builder.presentation({
       pluginId: PLUGIN_ID,
       coordinateSystem: 'icrs-cartesian-pc',
@@ -101,8 +149,10 @@
       layers,
       viewIntents: [builder.viewIntent({
         id: 'interstellar-relay-overview',
-        mode: progressive.status === 'settled' ? 'compare' : 'overview',
-        targetIds: [...result.schedule.hops.map((_, index) => `relay-link:${index}`), result.packet.packetId],
+        mode: progressive.status === 'settled' ? 'compare' : activeLayerId ? 'follow' : 'overview',
+        targetIds: activeLayerId
+          ? [activeLayerId, result.packet.packetId]
+          : [...result.schedule.hops.map((_, index) => `relay-link:${index}`), result.packet.packetId],
         reasonEventId: currentEvent?.id || null,
         priority: 65,
       })],
@@ -129,6 +179,9 @@
         builder.quantity('latency', result.metrics.oneWayLatencyYears, 'year'),
         builder.quantity('bottleneck-rate', result.metrics.bottleneckDataRateGbps, 'Gb/s'),
         builder.quantity('minimum-margin', result.metrics.minimumLinkMarginDb, 'dB'),
+        builder.quantity('packet-distance', Math.hypot(...packetPosition), 'pc'),
+        builder.quantity('packet-depth', packetPosition[2], 'pc'),
+        builder.quantity('packet-success-conditional', result.metrics.endToEndPacketSuccessProbability, 'probability'),
       ],
       provenance: simulated,
     });
@@ -145,11 +198,28 @@
         fields: [
           field('latency', 'One-way latency', result.metrics.oneWayLatencyYears, 'year', modeled),
           field('rate', 'Bottleneck rate', result.metrics.bottleneckDataRateGbps, 'Gb/s', modeled),
+          field('reliability', 'Packet success conditional on continuous contact', result.metrics.endToEndPacketSuccessProbability, 'probability', modeled),
+          field('continuous-contact', 'Continuous contact availability', 'assumed, not observed', null, modeled),
+          field('omissions', 'Omitted reliability effects', result.omissions.map((row) => `${row.label}: ${row.effect}`).join('; '), null, modeled),
+          field('coordinates', 'Spatial frame', 'true 3D ICRS Cartesian parsecs', null, modeled),
+          field('packet-depth', 'Packet signed ICRS-z depth', packetPosition[2], 'pc', simulated),
+          field('packet-distance', 'Packet Euclidean distance from origin', Math.hypot(...packetPosition), 'pc', simulated),
           field('boundary', 'Claim boundary', result.claimBoundary, null, modeled),
         ],
       }],
-      provenanceRecords: [...datasets, ...starRows, model],
+      provenanceRecords: [...datasets, ...starRows, model, spatial],
     });
+  }
+  function locatePacket(result, progressive, stateById) {
+    if (progressive.activeHopIndex === null) {
+      return stateById.get(progressive.packetLocationId)?.positionPc || [0, 0, 0];
+    }
+    const hop = result.schedule.hops[progressive.activeHopIndex];
+    const source = stateById.get(hop.fromId).positionPc;
+    const target = stateById.get(hop.toId).positionPc;
+    const duration = Math.max(1, hop.receiveOffsetSeconds - hop.transmitOffsetSeconds);
+    const fraction = Math.max(0, Math.min(1, (progressive.elapsedSeconds - hop.transmitOffsetSeconds) / duration));
+    return source.map((value, index) => value + ((target[index] - value) * fraction));
   }
   function numeric(id, label, value, minimum, maximum, step, provenance) {
     return { id, label, kind: 'number', value, options: null, minimum, maximum, step, provenance };

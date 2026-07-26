@@ -8,7 +8,7 @@
         "id": "nyc-crash-history-2025-07-to-2026-07-v1",
         "path": "../../../data/simulatte/safety-history-index-v1.json",
         "schemaId": "simulatte.autonomySafetyHistoryIndex.v1",
-        "sha256": "3b7aee9ec349c558f32778c3797f87a8c39d34dbb8f3d42cc1ed47079f5bc602"
+        "sha256": "bb90646fe02e2a4f09efc01713cc9752b2a6dc023d0db211126c0e50a09d3176"
       },
       "required": true
     }
@@ -16,13 +16,14 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginSafetyExplorer",
-    "integrity": "sha384-69a2237b97dd8e541b690d15e3d61b7b9b0817819728e3b6e5bbd4f2ef4372af8a2ee5ad14c30e0ac2796530ed1baeda",
+    "integrity": "sha384-c02f5425a6a9e6f7d3eeab9b9b0dba72bca52be375df3c15cd668c89bfb4c0f2ff51217dfa0c0b5e295288bcf6d807dd",
     "path": "./index.js"
   },
   "extensionPoints": [
     "route",
     "ui",
-    "presentation"
+    "presentation",
+    "settlement"
   ],
   "id": "safety-explorer",
   "permissions": [
@@ -38,23 +39,27 @@
     "field.mobility-risk.v1"
   ],
   "receiptSchemas": [
-    "simulatte.plugin.safetyExplorerRouteAudit.v1"
+    "simulatte.plugin.safetyExplorerRouteAudit.v2"
   ],
   "resources": [
     {
-      "integrity": "sha384-1c890e5a242e3d870a02a4cb027102d16a5f5d2e3df3650a6d0a439d8f307d1f09e62e218eafd6d33f4edb1011e65cf7",
+      "integrity": "sha384-33d862831ae39f96fa36e9e5e9400f89b6536769076ad514a90953a8ee5bf4e87fb2943c1b8558677d25d673f0473f41",
       "path": "./config.schema.json"
     },
     {
-      "integrity": "sha384-f4230093f9bc9b92e7145f1da988b87b8a20fd6247e0fe13a11c4b5293272447dbf485976e560f1bd285aa8e04e16c10",
+      "integrity": "sha384-4d4843c59a19d606b4eb3098d70c8ddbc051b2eebd0813458c7a359c4c59f28c58b9de31d216a007af2a52143fc14432",
       "path": "./default-config.json"
     },
     {
-      "integrity": "sha384-27de7b15489e7fac7b7155c88df5225592ed624eb4dba4444fe6744222aa191ae0fb600be570f9353ac92061b86d7e8f",
+      "integrity": "sha384-7a9ef7b144c24595e41d36dd7c180b88ec893b2e20fc39b55c2524dfb4b796f4eff22e3ca88897544f0a6c8c562c70a7",
+      "path": "./fixed-sparse-count-shrinkage.js"
+    },
+    {
+      "integrity": "sha384-d27de5175b89cbc5ee4d49340c3630325ad90129e340018ea0f7d56f6985e563b245381f8cfadbe8732cee08c4c8d877",
       "path": "./v4-contribution.js"
     }
   ],
   "schema": "simulatte.pluginManifest.v1",
   "sdkVersion": 1,
-  "version": "1.0.0"
+  "version": "2.0.0"
 }

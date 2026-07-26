@@ -22,8 +22,13 @@
       "id": "source:nga-wpi",
       "title": "NGA World Port Index",
       "url": "https://msi.nga.mil/Publications/WPI",
-      "retrievedAt": "2026-07-22",
-      "license": "Source terms apply; Simulatte makes no additional license assertion.",
+      "retrievedAt": "2026-07-25",
+      "sourceVersion": "monthly official CSV; page state retrieved 2026-07-25",
+      "sourceRowIdentity": "official WPI port record; local subset keyed by port.id and UN/LOCODE",
+      "sourceIdentitySha256": "f51e4c4a51d692d9e50c5f407cd67478986439942a2a393a46b8efa5f69c5472",
+      "sourceContentSha256": null,
+      "licenseStatus": "not_asserted",
+      "license": "No dataset-specific license was verified in the official WPI publication page.",
       "coverage": "Pinned reference identities and coordinates for 24 major ports.",
       "resolution": "Port record",
       "limitations": "Berth counts are modeled archetype inputs and are not attributed to WPI source rows."
@@ -32,8 +37,13 @@
       "id": "source:un-locode",
       "title": "UN/LOCODE",
       "url": "https://unece.org/trade/cefact/unlocode-code-list-country-and-territory",
-      "retrievedAt": "2026-07-22",
-      "license": "Source terms apply; Simulatte makes no additional license assertion.",
+      "retrievedAt": "2026-07-25",
+      "sourceVersion": "UN/LOCODE 2025-1",
+      "sourceRowIdentity": "five-character UN/LOCODE",
+      "sourceIdentitySha256": "0fadf9bb907a256d2b3b06320c0c05eecd9e0cf5fda172df5ae8b632a4086807",
+      "sourceContentSha256": null,
+      "licenseStatus": "not_asserted",
+      "license": "No dataset-specific license was verified in the official UN/LOCODE download page.",
       "coverage": "Pinned location codes for modeled corridor endpoints.",
       "resolution": "Location code",
       "limitations": "Codes identify places; they do not provide vessel schedules, corridor demand, or queue observations."
@@ -41,9 +51,14 @@
     {
       "id": "source:world-bank-cppi",
       "title": "World Bank Container Port Performance Index",
-      "url": "https://data360.worldbank.org/en/dataset/WB_CPPI",
-      "retrievedAt": "2026-07-22",
-      "license": "Source terms apply; Simulatte makes no additional license assertion.",
+      "url": "https://www.worldbank.org/en/topic/transport/publication/cppi",
+      "retrievedAt": "2026-07-25",
+      "sourceVersion": "CPPI 2025, report 211097, published 2026-06-10",
+      "sourceRowIdentity": "port-year aggregate in the official annex; no source rows copied into Simulatte",
+      "sourceIdentitySha256": "383a7f3a7f12380d8cab9e6cf98931ebeb2bbc5d4fc8f080fa750380d77bb8ab",
+      "sourceContentSha256": null,
+      "licenseStatus": "not_applicable_to_local_values",
+      "license": "The checked-in service priors are generated Simulatte values. Rights for CPPI reports and underlying third-party operational data are not asserted here.",
       "coverage": "Methodological anchor for relative port-service priors.",
       "resolution": "Port-year index",
       "limitations": "The checked-in service values are modeled priors, not copied CPPI observations or guaranteed queue times."
@@ -52,8 +67,14 @@
       "id": "source:noaa-ibtracs-v04r01",
       "title": "NOAA IBTrACS v04r01",
       "url": "https://www.ncei.noaa.gov/products/international-best-track-archive",
-      "retrievedAt": "2026-07-22",
-      "license": "Publicly available NOAA dataset; source terms and citation guidance apply.",
+      "retrievedAt": "2026-07-25",
+      "sourceVersion": "IBTrACS v04r01",
+      "sourceDocumentId": "doi:10.25921/82ty-9e16; NCEI DSI 9637",
+      "sourceRowIdentity": "storm SID plus ISO_TIME in the source; no source rows copied into the scenario tracks",
+      "sourceIdentitySha256": "34a060e0e1128f990e858b60416b778af13b468193b49ca4928cbe25e611b02b",
+      "sourceContentSha256": null,
+      "licenseStatus": "publicly_available_with_citation_guidance",
+      "license": "NOAA describes IBTrACS as publicly available and provides dataset citation guidance.",
       "coverage": "Climatological shape reference for two synthetic disruption tracks.",
       "resolution": "Six-hour best-track point in the source product",
       "limitations": "The checked-in tracks are generated scenarios, not observed storms or forecasts."
@@ -63,6 +84,11 @@
       "title": "IMO Fourth Greenhouse Gas Study 2020",
       "url": "https://www.imo.org/en/ourwork/environment/pages/fourth-imo-greenhouse-gas-study-2020.aspx",
       "retrievedAt": "2026-07-25",
+      "sourceVersion": "Fourth IMO GHG Study 2020",
+      "sourceRowIdentity": "published fleet/vessel-category study result; no audited vessel rows copied",
+      "sourceIdentitySha256": "619ce93eb4909caab06068d66eaf0c73e60fcbc0ba91f0cea63677ae6b963c6b",
+      "sourceContentSha256": null,
+      "licenseStatus": "copyrighted_source_context_only",
       "license": "IMO copyright and source terms apply.",
       "coverage": "Methodological context for voyage phases, speed-power behavior, auxiliary loads, fuel use, and emissions.",
       "resolution": "Fleet and vessel-category study",
@@ -74,7 +100,7 @@
       "id": "global-port-registry-wpi-v1",
       "path": "port-registry-wpi-v1.json",
       "schemaId": "simulatte.maritimePortRegistry.v1",
-      "sha256": "89942e9fdf92d721710718c3d821927fb73053248928f5793b0213fb99dfe515",
+      "sha256": "ba44dd7e0e2ad0694de525991a84a71856c411e6af088e1db71f22189fc3cc72",
       "sourceIds": [
         "source:nga-wpi",
         "source:un-locode"
@@ -111,7 +137,7 @@
       "id": "global-maritime-corridors-v1",
       "path": "maritime-corridors-v1.json",
       "schemaId": "simulatte.maritimeCorridors.v1",
-      "sha256": "719fe4125465a1daf7f23136ed5cd1a75f87e71df07a720b854317453092b108",
+      "sha256": "a01cc2395b1c0cd8ec57bafdede6cd4d03f5521c18760bbf4dd922d003b5f716",
       "sourceIds": [
         "source:nga-wpi",
         "source:un-locode"
@@ -150,7 +176,7 @@
       "id": "global-canal-service-models-v1",
       "path": "canal-service-models-v1.json",
       "schemaId": "simulatte.canalServiceModels.v1",
-      "sha256": "c131c1a9e251ff56e2c3dfc7c047e5c135820d5ac7290223dc2e9dd8837f4746",
+      "sha256": "f7d99e7a93dfa91716a90076b013a7b29b1e5a74dcbf2f853b24f44ed2c33e72",
       "sourceIds": [],
       "rowIdentity": "model.id",
       "transformations": [
@@ -174,7 +200,7 @@
       "id": "container-port-performance-v1",
       "path": "container-port-performance-v1.json",
       "schemaId": "simulatte.containerPortPerformance.v1",
-      "sha256": "247b56901147f366612c3ebee27dac832d63c80f041133ae3b55be982b695afc",
+      "sha256": "816373d95dc23389cc548843d7b55e1b2e5727504172d25c22bc8227ae2a4c31",
       "sourceIds": [
         "source:world-bank-cppi"
       ],
@@ -201,7 +227,7 @@
       "id": "ibtracs-v04r01-scenario-tracks-v1",
       "path": "ibtracs-scenario-tracks-v1.json",
       "schemaId": "simulatte.ibtracsScenarioTracks.v1",
-      "sha256": "8e34061a7635a2f7478b1a77abda17e69f96d3d9f073861f11a3a00649533835",
+      "sha256": "485a23bfc0ed29002910090d00a52d99eff28b28c7b26fd8ebc76d8e97f39110",
       "sourceIds": [
         "source:noaa-ibtracs-v04r01"
       ],
@@ -226,7 +252,7 @@
       "id": "maritime-vessel-archetypes-v1",
       "path": "vessel-archetypes-v1.json",
       "schemaId": "simulatte.maritimeVesselArchetypes.v1",
-      "sha256": "bc321fffbc1861e095331e25e47f329780a2cbf063b6748245c35f4e2550a368",
+      "sha256": "a02344cf9d5d698873abccec48f16c68afe2b8ebe291780127d2bcbd7c0b5e71",
       "sourceIds": [
         "source:imo-fourth-ghg-study"
       ],
@@ -253,7 +279,7 @@
       "id": "maritime-emissions-model-v1",
       "path": "emissions-model-v1.json",
       "schemaId": "simulatte.maritimeEmissionsModel.v1",
-      "sha256": "948b76b802fc4f957c5c3ead5276275ab509b30d0909a575598d6408c7c5b500",
+      "sha256": "9ef87a2d408c07ce94d6fa9cfe7e7aaa96293b2a7a19426127eaa791b91c97e0",
       "sourceIds": [
         "source:imo-fourth-ghg-study"
       ],
@@ -266,11 +292,46 @@
           "origin": "modeled",
           "temporalStatus": "snapshot",
           "uncertainty": {
-            "kind": "interval",
+            "kind": "missing",
             "value": {
-              "relativeMinimum": -0.2,
-              "relativeMaximum": 0.2,
-              "basis": "Declared model sensitivity consistent with reported container-ship intensity variability."
+              "reason": "No probabilistic emissions uncertainty model is calibrated. Deterministic engineering sensitivity is governed separately."
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "maritime.calibration.artifacts.v1",
+      "path": "calibration-artifacts-v1.json",
+      "schemaId": "simulatte.maritimeCalibrationArtifacts.v1",
+      "sha256": "527d75f6a208f99cd167ba8d4239b3f7de3b1a0c3a2441faa8a7a1861b4dffea",
+      "sourceIds": [
+        "source:world-bank-cppi",
+        "source:imo-fourth-ghg-study"
+      ],
+      "rowIdentity": "queueCalibration.id and emissionsSensitivity.id",
+      "transformations": [
+        "explicit_calibration_status_v1",
+        "declared_joint_parameter_sensitivity_v1"
+      ],
+      "fieldTruth": {
+        "queueCalibration.stochasticUncertainty": {
+          "origin": "simulated",
+          "temporalStatus": "forecast",
+          "uncertainty": {
+            "kind": "distribution",
+            "value": {
+              "family": "empirical_seeded_ensemble"
+            }
+          }
+        },
+        "emissionsSensitivity": {
+          "origin": "scenario",
+          "temporalStatus": "forecast",
+          "uncertainty": {
+            "kind": "missing",
+            "value": {
+              "reason": "Declared low/high parameter cases have no probability or confidence level."
             }
           }
         }
@@ -280,7 +341,7 @@
       "id": "maritime.voyage.scenarios.v1",
       "path": "voyage-scenarios-v1.json",
       "schemaId": "simulatte.maritimeVoyageScenarios.v1",
-      "sha256": "d62701631179036eef23a64423012a2665b58fbe25e1a38e2fdbb6a85ef3a532",
+      "sha256": "75a505bc2e2ce206b849832573e6fc46d5267d940cca7393bdf5bb1016baf6f0",
       "sourceIds": [
         "source:nga-wpi",
         "source:un-locode",

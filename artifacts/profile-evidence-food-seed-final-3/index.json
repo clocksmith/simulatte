@@ -1,0 +1,43 @@
+{
+  "schema": "simulatte.profileEvidenceIndex.v1",
+  "planSha256": "a45df33d1ff47f2b34b23acb9be08b1bf0cc6dfecd408c62410feb6de14bd992",
+  "claimInventorySha256": "3e09f7d9178b52c9c60f545ae87102dfa03a13d4934558bd7674fcf887e592ef",
+  "sourceIdentity": {
+    "buildId": "64b4838d99a3c41498616db50ba0815473cddfa7-cbd5ffaaed3d",
+    "commitSha": "8b5371cdda26dff56e1d6c47eb0fc014cadba199",
+    "worktreeSha256": "18e9772d2b1ef59515d33ad18c21f986c055e3227796abbf2e08660bb32bc11a"
+  },
+  "totalRuns": 2,
+  "passedRuns": 2,
+  "pass": false,
+  "profiles": [
+    {
+      "profileId": "food-recall-us-v1",
+      "totalRuns": 2,
+      "passedRuns": 2,
+      "failureCounts": {}
+    }
+  ],
+  "runs": [
+    {
+      "runId": "run-b430d78beb28a1e69729",
+      "profileId": "food-recall-us-v1",
+      "seedId": "egg-cold-chain",
+      "viewportId": "desktop-1440x1000",
+      "receiptSha256": "6204c3fb1301cd1f2e7c638b715ac4418516621479ce0af751185cc199db9e39",
+      "receiptPath": "receipts/sha256/6204c3fb1301cd1f2e7c638b715ac4418516621479ce0af751185cc199db9e39.json",
+      "pass": true,
+      "failures": []
+    },
+    {
+      "runId": "run-da0be457202914cc7926",
+      "profileId": "food-recall-us-v1",
+      "seedId": "egg-cold-chain",
+      "viewportId": "mobile-390x844",
+      "receiptSha256": "ed2d974808895f26de0569affe5305ca879eba013ca8082f8af481d8658d9de5",
+      "receiptPath": "receipts/sha256/ed2d974808895f26de0569affe5305ca879eba013ca8082f8af481d8658d9de5.json",
+      "pass": true,
+      "failures": []
+    }
+  ]
+}

@@ -242,6 +242,13 @@
         contribution.provenanceRecords.forEach(registry.register);
         bindContributionProvenance(registry, contribution);
       });
+      const nativePluginIds = new Set(collected.sources
+        .filter((row) => row.source === 'native-v4')
+        .map((row) => row.pluginId));
+      const provenanceReceipts = contributions
+        .filter((contribution) => nativePluginIds.has(contribution.pluginId))
+        .map((contribution) => provenanceApi.createContributionProvenanceReceipt(contribution));
+      const provenanceCoverage = provenanceApi.createPlatformProvenanceReceipt(provenanceReceipts);
       const timeline = timelineApi.createTimeline({
         id: `${profile.id}:${scenario?.id || 'default'}`,
         events: contributions.flatMap((contribution) => contribution.events),
@@ -250,6 +257,8 @@
         schema: 'simulatte.pluginPlatform.v4',
         contributions,
         contributionSources: collected.sources,
+        provenanceReceipts,
+        provenanceCoverage,
         timeline,
         provenance: registry,
         receipt: stateApi.freezeClone({
@@ -257,6 +266,8 @@
           profileId: profile.id,
           pluginIds: contributions.map((contribution) => contribution.pluginId),
           contributionSources: collected.sources,
+          provenanceReceipts,
+          provenanceCoverage,
           timeline: timeline.receipt(),
           provenance: registry.receipt(),
         }),

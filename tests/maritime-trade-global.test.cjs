@@ -26,6 +26,7 @@ const DATA_FILES = Object.freeze({
   'ibtracs-v04r01-scenario-tracks-v1': 'ibtracs-scenario-tracks-v1.json',
   'maritime-vessel-archetypes-v1': 'vessel-archetypes-v1.json',
   'maritime-emissions-model-v1': 'emissions-model-v1.json',
+  'maritime.calibration.artifacts.v1': 'calibration-artifacts-v1.json',
   'maritime.voyage.scenarios.v1': 'voyage-scenarios-v1.json',
   'maritime.provenance.registry.v1': 'provenance-registry-v1.json',
 });
@@ -121,7 +122,35 @@ test('queue ensemble exposes a deterministic empirical service distribution', ()
   assert.ok(queue.p05WaitHours <= queue.p50WaitHours);
   assert.ok(queue.p50WaitHours <= queue.p95WaitHours);
   assert.equal(queue.truth.uncertainty.value.family, 'empirical_seeded_ensemble');
+  assert.equal(queue.uncertaintyClass, 'stochastic_simulation');
+  assert.equal(queue.calibration.status, 'not_empirically_calibrated');
   assert.equal(queue.selectedReplicate.parameters.discipline, 'first_come_first_served');
+});
+
+test('emissions parameter sensitivity is separate from queue stochastic uncertainty', () => {
+  const result = simulate('asia-europe-mainline');
+  const sensitivity = result.emissions.parameterSensitivity;
+  assert.equal(result.queueEnsemble.truth.uncertainty.kind, 'distribution');
+  assert.equal(result.queueEnsemble.uncertaintyClass, 'stochastic_simulation');
+  assert.equal(result.emissions.truth.uncertainty.kind, 'missing');
+  assert.equal(sensitivity.kind, 'parameter_sensitivity');
+  assert.equal(sensitivity.probability, null);
+  assert.equal(sensitivity.confidenceLevel, null);
+  assert.equal(sensitivity.samplingDistribution, null);
+  assert.ok(sensitivity.minimumCo2Tons < sensitivity.baselineCo2Tons);
+  assert.ok(sensitivity.baselineCo2Tons < sensitivity.maximumCo2Tons);
+  const queueModel = result.modelReceipts.find((row) => row.id === 'model:fcfs-multi-server-queue-v2');
+  const emissionsModel = result.modelReceipts.find((row) => row.id === 'model:maritime-emissions-v2');
+  assert.equal(queueModel.uncertaintyClass, 'stochastic_simulation');
+  assert.equal(queueModel.calibration.status, 'not_empirically_calibrated');
+  assert.equal(emissionsModel.uncertaintyClass, 'not_probabilistically_calibrated');
+  assert.equal(emissionsModel.parameterSensitivity.id, sensitivity.id);
+  const semantic = presentation.createSemanticPresentation(datasets().ports, result, result.snapshots.at(-1));
+  const queueLayer = semantic.layers.find((row) => row.semanticType === 'queue_distribution');
+  const sensitivityLayer = semantic.layers.find((row) => row.semanticType === 'parameter_sensitivity');
+  assert.equal(queueLayer.objects[0].truth.uncertainty.kind, 'distribution');
+  assert.equal(sensitivityLayer.objects[0].truth.uncertainty.kind, 'missing');
+  assert.equal(sensitivityLayer.objects[0].quantities.probability, null);
 });
 
 test('plugin supports progressive start/step and current-core terminal compatibility', async () => {
@@ -138,6 +167,13 @@ test('plugin supports progressive start/step and current-core terminal compatibi
   while (step.status === 'running') step = progressive.handleAction('scenario.run', { values: { phase: 'step' } });
   assert.equal(step.status, 'settled');
   assert.ok(progressive.settle().obligationResults.every((row) => row.status === 'settled'));
+  const queueReceipt = progressiveHost.receipts.find((row) => row.schema === 'simulatte.plugin.maritimeQueueReceipt.v2');
+  const sensitivityReceipt = progressiveHost.receipts.find((row) => row.schema === 'simulatte.plugin.maritimeEmissionsSensitivityReceipt.v1');
+  assert.equal(queueReceipt.truth.uncertainty.kind, 'distribution');
+  assert.equal(queueReceipt.uncertaintyClass, 'stochastic_simulation');
+  assert.equal(sensitivityReceipt.kind, 'parameter_sensitivity');
+  assert.equal(sensitivityReceipt.probability, null);
+  assert.equal(sensitivityReceipt.truth.uncertainty.kind, 'missing');
   assert.ok(progressive.capabilities['simulation.maritime-trade.v1']({ kind: 'events' }).length > 4);
 
   const compatibilityHost = hostFor('north-atlantic-cyclone');
@@ -168,10 +204,60 @@ test('comparison uses a common seed and preserves selected scenario state', asyn
   const capability = instance.capabilities['simulation.maritime-trade.v1']({});
   assert.equal(capability.result.scenarioId, 'suez-closure-cape-reroute');
   assert.equal(capability.comparison.commonSeed, 'comparison-seed');
+  assert.equal(capability.comparison.queueStochastic.kind, 'distribution');
+  assert.equal(capability.comparison.emissionsParameterSensitivity.kind, 'parameter_sensitivity');
+  assert.equal(capability.comparison.emissionsParameterSensitivity.probability, null);
+});
+
+test('calibration and source metadata preserve exact claim boundaries', () => {
+  const calibration = data('maritime.calibration.artifacts.v1');
+  const provenance = data('maritime.provenance.registry.v1');
+  assert.equal(calibration.queueCalibration.status, 'not_empirically_calibrated');
+  assert.deepEqual(calibration.queueCalibration.calibrationEvidence, []);
+  assert.equal(calibration.queueCalibration.inputRowIdentity, 'row.portId');
+  assert.equal(calibration.emissionsSensitivity.interpretation.kind, 'parameter_sensitivity');
+  assert.equal(calibration.emissionsSensitivity.interpretation.probability, null);
+  assert.equal(calibration.emissionsSensitivity.interpretation.confidenceLevel, null);
+  provenance.sources.forEach((source) => {
+    assert.match(source.retrievedAt, /^\d{4}-\d{2}-\d{2}$/);
+    assert.match(source.sourceIdentitySha256, /^[a-f0-9]{64}$/);
+    assert.ok(source.sourceRowIdentity);
+    assert.ok(source.licenseStatus);
+    assert.ok(Object.hasOwn(source, 'sourceContentSha256'));
+  });
+  const calibrationRecord = provenance.datasets.find((row) => row.id === calibration.id);
+  assert.equal(calibrationRecord.rowIdentity, 'queueCalibration.id and emissionsSensitivity.id');
+  assert.equal(calibrationRecord.sha256, manifest.datasets.find((row) => row.id === calibration.id).reference.sha256);
+  provenance.datasets.forEach((record) => {
+    assert.equal(record.sha256, sha256(path.join(DATA_DIRECTORY, record.path)), record.id);
+  });
 });
 
 test('plugin manifest and maritime data manifest identity-lock their actual files', () => {
   contracts.validateManifest(manifest);
+  const obsoleteCompatibilityResources = new Set([
+    './emissions.js',
+    './ports.js',
+    './routing.js',
+    './vessels.js',
+  ]);
+  assert.equal(
+    manifest.resources.some((row) => obsoleteCompatibilityResources.has(row.path)),
+    false
+  );
+  obsoleteCompatibilityResources.forEach((resourcePath) => {
+    assert.equal(fs.existsSync(path.join(PLUGIN_DIRECTORY, resourcePath)), false, resourcePath);
+  });
+  const activeSource = [
+    fs.readFileSync(path.join(PLUGIN_DIRECTORY, manifest.entry.path), 'utf8'),
+    ...manifest.resources
+      .filter((row) => row.path.endsWith('.js'))
+      .map((row) => fs.readFileSync(path.join(PLUGIN_DIRECTORY, row.path), 'utf8')),
+  ].join('\n');
+  assert.doesNotMatch(
+    activeSource,
+    /MaritimeTrade(?:Emissions|Ports|Routing|Vessels)|require\(['"]\.\/(?:emissions|ports|routing|vessels)\.js['"]\)/
+  );
   assert.equal(manifest.entry.integrity, sri384(path.join(PLUGIN_DIRECTORY, manifest.entry.path)));
   manifest.resources.forEach((row) => {
     assert.equal(row.integrity, sri384(path.join(PLUGIN_DIRECTORY, row.path)), row.path);
@@ -210,6 +296,7 @@ function datasets() {
     cyclones: data('ibtracs-v04r01-scenario-tracks-v1'),
     vessels: data('maritime-vessel-archetypes-v1'),
     emissionsModel: data('maritime-emissions-model-v1'),
+    calibration: data('maritime.calibration.artifacts.v1'),
     scenarioCatalog: data('maritime.voyage.scenarios.v1'),
     provenance: data('maritime.provenance.registry.v1'),
     dataReceipts: manifest.datasets.map((row) => ({

@@ -3,6 +3,131 @@
   "id": "interstellar.relay.models.v1",
   "title": "Interstellar relay equations and assumptions",
   "contentVersion": "2026-07-25",
+  "provenance": {
+    "retrievalAt": "2026-07-25T00:00:00Z",
+    "license": {
+      "id": "mixed-reference-metadata",
+      "status": "Citations retain publisher-specific rights."
+    },
+    "coverage": {
+      "kind": "four-active-models-and-seven-explicit-omissions",
+      "modelCount": 4,
+      "omissionCount": 7
+    },
+    "sourceArtifacts": [
+      {
+        "id": "gaia-dr3-data-model",
+        "url": "https://gea.esac.esa.int/archive/documentation/GDR3/Gaia_archive/chap_datamodel/sec_dm_main_source_catalogue/ssec_dm_gaia_source.html",
+        "retrievedAt": "2026-07-25T00:00:00Z",
+        "sha256": "800bf953fa4d5b63c4f7dabe024753eb4fc987833b6265e57ec5030d9d558c0c",
+        "mediaType": "text/html"
+      },
+      {
+        "id": "nist-speed-of-light",
+        "url": "https://physics.nist.gov/cgi-bin/cuu/Value?c",
+        "retrievedAt": "2026-07-25T00:00:00Z",
+        "sha256": "a020472160c5b5d02d63359477193701d350cadd9c3c9c0ae22e82e248c179eb",
+        "mediaType": "text/html"
+      },
+      {
+        "id": "nasa-dsoc",
+        "url": "https://www.nasa.gov/mission/deep-space-optical-communications-dsoc/",
+        "retrievedAt": "2026-07-25T00:00:00Z",
+        "sha256": "5f1a27ac33d1e55a24c960dca65609a305e31a6025fb0f215e35b67b784d6e9a",
+        "mediaType": "text/html"
+      },
+      {
+        "id": "ccsds-bundle-protocol",
+        "url": "https://public.ccsds.org/Pubs/734x2b1.pdf",
+        "retrievedAt": "2026-07-25T00:00:00Z",
+        "sha256": "c37f025602d28800c31c2ba1770ba27ed4e977305d0b3a69ecad8ba67f5748dc",
+        "mediaType": "application/pdf"
+      }
+    ]
+  },
+  "omissions": [
+    {
+      "id": "acquisition-not-modeled",
+      "label": "Terminal acquisition and reacquisition",
+      "effect": "Reliability excludes failures to acquire or reacquire the optical target.",
+      "affects": [
+        "reliability",
+        "latency",
+        "availability"
+      ]
+    },
+    {
+      "id": "maintenance-not-modeled",
+      "label": "Maintenance and terminal outage",
+      "effect": "Reliability assumes terminals remain operational for the complete experiment.",
+      "affects": [
+        "reliability",
+        "availability",
+        "energy"
+      ]
+    },
+    {
+      "id": "plasma-not-modeled",
+      "label": "Interstellar plasma and propagation medium",
+      "effect": "Light time and link margin exclude plasma dispersion, scattering, and extinction variability.",
+      "affects": [
+        "latency",
+        "linkMargin",
+        "reliability"
+      ]
+    },
+    {
+      "id": "detector-background-noise-incomplete",
+      "label": "Complete detector and background-noise model",
+      "effect": "Reliability uses a fixed background photon rate instead of a calibrated detector and sky-noise distribution.",
+      "affects": [
+        "dataRate",
+        "linkMargin",
+        "reliability"
+      ]
+    },
+    {
+      "id": "retries-not-modeled",
+      "label": "Retries and retransmission policy",
+      "effect": "The nominal timeline does not retry corrupted, lost, or unavailable transmissions.",
+      "affects": [
+        "latency",
+        "reliability",
+        "energy"
+      ]
+    },
+    {
+      "id": "infrastructure-not-observed",
+      "label": "Operating relay infrastructure",
+      "effect": "Relay terminals, contacts, queues, and traffic are hypothetical scenario entities.",
+      "affects": [
+        "all-simulation-results"
+      ]
+    },
+    {
+      "id": "continuous-contact-assumed",
+      "label": "Continuous contact availability",
+      "effect": "Every link remains continuously available from transmission start through receipt.",
+      "affects": [
+        "latency",
+        "reliability",
+        "availability"
+      ]
+    }
+  ],
+  "reliabilityScope": {
+    "conditionalOn": [
+      "continuous-contact-assumed",
+      "infrastructure-not-observed"
+    ],
+    "excludes": [
+      "acquisition-not-modeled",
+      "maintenance-not-modeled",
+      "plasma-not-modeled",
+      "detector-background-noise-incomplete",
+      "retries-not-modeled"
+    ]
+  },
   "models": [
     {
       "id": "linear-space-motion-v2",
@@ -16,6 +141,7 @@
         "Constant barycentric velocity",
         "Zero radial velocity when catalog value is missing"
       ],
+      "omissionIds": [],
       "validation": {
         "id": "analytic-fixtures-v1",
         "status": "tested"
@@ -44,6 +170,9 @@
         "Euclidean barycentric separation",
         "No relativistic gravitational delay"
       ],
+      "omissionIds": [
+        "plasma-not-modeled"
+      ],
       "validation": {
         "id": "one-parsec-light-time-fixture-v1",
         "status": "tested"
@@ -70,8 +199,16 @@
       "assumptions": [
         "Diffraction-limited circular apertures",
         "Declared pointing jitter",
-        "Fixed background photon rate",
-        "No acquisition outage"
+        "Fixed background photon rate"
+      ],
+      "omissionIds": [
+        "acquisition-not-modeled",
+        "maintenance-not-modeled",
+        "plasma-not-modeled",
+        "detector-background-noise-incomplete",
+        "retries-not-modeled",
+        "infrastructure-not-observed",
+        "continuous-contact-assumed"
       ],
       "validation": {
         "id": "inverse-square-and-aperture-monotonicity-v1",
@@ -100,6 +237,15 @@
         "Continuous contact availability",
         "No retransmission during nominal run",
         "Causal store-and-forward ordering"
+      ],
+      "omissionIds": [
+        "continuous-contact-assumed",
+        "acquisition-not-modeled",
+        "maintenance-not-modeled",
+        "plasma-not-modeled",
+        "detector-background-noise-incomplete",
+        "retries-not-modeled",
+        "infrastructure-not-observed"
       ],
       "validation": {
         "id": "causal-event-order-and-conservation-v1",

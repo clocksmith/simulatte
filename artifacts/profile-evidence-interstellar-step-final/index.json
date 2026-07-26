@@ -1,0 +1,73 @@
+{
+  "schema": "simulatte.profileEvidenceIndex.v1",
+  "planSha256": "a45df33d1ff47f2b34b23acb9be08b1bf0cc6dfecd408c62410feb6de14bd992",
+  "claimInventorySha256": "3e09f7d9178b52c9c60f545ae87102dfa03a13d4934558bd7674fcf887e592ef",
+  "sourceIdentity": {
+    "buildId": "64b4838d99a3c41498616db50ba0815473cddfa7-cbd5ffaaed3d",
+    "commitSha": "8b5371cdda26dff56e1d6c47eb0fc014cadba199",
+    "worktreeSha256": "6ba8a4d800ed9860173bf5de93760f7ac6eebb0e420d16d3f30c1b55cda52439"
+  },
+  "totalRuns": 2,
+  "passedRuns": 0,
+  "pass": false,
+  "profiles": [
+    {
+      "profileId": "interstellar-relay-network-v1",
+      "totalRuns": 2,
+      "passedRuns": 0,
+      "failureCounts": {
+        "runtime_path_mismatch": 2,
+        "platform_clock_receipt_invalid": 2,
+        "platform_view_receipt_invalid": 2,
+        "platform_compositor_receipt_missing": 2,
+        "comparison_execution_receipt_missing": 2,
+        "settlement_receipt_missing": 2,
+        "run_reload_not_restored": 2,
+        "claim_evidence_unresolved": 2,
+        "receipt_contradictory": 2
+      }
+    }
+  ],
+  "runs": [
+    {
+      "runId": "run-e1c0921e985c6b85da2d",
+      "profileId": "interstellar-relay-network-v1",
+      "seedId": "sol-proxima-direct",
+      "viewportId": "desktop-1440x1000",
+      "receiptSha256": "18c74857aefb8a40e0f5e2fd293eb86595f8d1eabca174f553a836971ed73cca",
+      "receiptPath": "receipts/sha256/18c74857aefb8a40e0f5e2fd293eb86595f8d1eabca174f553a836971ed73cca.json",
+      "pass": false,
+      "failures": [
+        "runtime_path_mismatch",
+        "platform_clock_receipt_invalid",
+        "platform_view_receipt_invalid",
+        "platform_compositor_receipt_missing",
+        "comparison_execution_receipt_missing",
+        "settlement_receipt_missing",
+        "run_reload_not_restored",
+        "claim_evidence_unresolved",
+        "receipt_contradictory"
+      ]
+    },
+    {
+      "runId": "run-336832adc71f76a39ca8",
+      "profileId": "interstellar-relay-network-v1",
+      "seedId": "sol-proxima-direct",
+      "viewportId": "mobile-390x844",
+      "receiptSha256": "f514fed10b0b5255da18b145f30bc587b2289985f19630c79b3c7e827dd6b179",
+      "receiptPath": "receipts/sha256/f514fed10b0b5255da18b145f30bc587b2289985f19630c79b3c7e827dd6b179.json",
+      "pass": false,
+      "failures": [
+        "runtime_path_mismatch",
+        "platform_clock_receipt_invalid",
+        "platform_view_receipt_invalid",
+        "platform_compositor_receipt_missing",
+        "comparison_execution_receipt_missing",
+        "settlement_receipt_missing",
+        "run_reload_not_restored",
+        "claim_evidence_unresolved",
+        "receipt_contradictory"
+      ]
+    }
+  ]
+}

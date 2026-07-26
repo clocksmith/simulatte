@@ -5,6 +5,7 @@ const crypto = require('node:crypto');
 
 const contracts = require('../public/simulatte/platform/contracts/plugin-contracts.js');
 const exposure = require('../public/shared/plugins/sun-walker/sun-exposure.js');
+const environmentApi = require('../public/shared/plugins/sun-walker/environment.js');
 const simulationApi = require('../public/shared/plugins/sun-walker/sun-route-simulation.js');
 const presentationApi = require('../public/shared/plugins/sun-walker/presentation.js');
 const compatibilityApi = require('../public/shared/plugins/sun-walker/compatibility-adapter.js');
@@ -12,7 +13,9 @@ const plugin = require('../public/shared/plugins/sun-walker/index.js');
 
 const pluginRoot = require.resolve('../public/shared/plugins/sun-walker/plugin.json').replace(/plugin\.json$/, '');
 const governancePath = require.resolve('../public/data/sun-walker/sun-walker-model-governance-v1.json');
+const environmentPath = require.resolve('../public/data/sun-walker/sun-walker-environment-v1.json');
 const governance = JSON.parse(fs.readFileSync(governancePath, 'utf8'));
+const environment = JSON.parse(fs.readFileSync(environmentPath, 'utf8'));
 const config = JSON.parse(fs.readFileSync(`${pluginRoot}default-config.json`, 'utf8'));
 
 function fixture() {
@@ -81,6 +84,11 @@ function simulate(overrides = {}) {
       id: governance.id,
       sha256: crypto.createHash('sha256').update(fs.readFileSync(governancePath)).digest('hex'),
     },
+    environment,
+    environmentReceipt: {
+      id: environment.id,
+      sha256: crypto.createHash('sha256').update(fs.readFileSync(environmentPath)).digest('hex'),
+    },
     ...overrides,
   });
 }
@@ -89,9 +97,13 @@ test('Sun Walker manifest identity-locks every owned resource and governed model
   const manifest = JSON.parse(fs.readFileSync(`${pluginRoot}plugin.json`, 'utf8'));
   contracts.validateManifest(manifest);
   plugin.datasetValidators['simulatte.sunWalkerModelGovernance.v1'](governance);
+  plugin.datasetValidators['simulatte.sunWalkerEnvironment.v1'](environment);
   const declaration = manifest.datasets.find((row) => row.id === governance.id);
+  const environmentDeclaration = manifest.datasets.find((row) => row.id === environment.id);
   assert.equal(declaration.required, true);
   assert.equal(declaration.reference.sha256, crypto.createHash('sha256').update(fs.readFileSync(governancePath)).digest('hex'));
+  assert.equal(environmentDeclaration.required, true);
+  assert.equal(environmentDeclaration.reference.sha256, crypto.createHash('sha256').update(fs.readFileSync(environmentPath)).digest('hex'));
   const resources = new Map(manifest.resources.map((row) => [row.path, row.integrity]));
   for (const [relativePath, integrity] of resources) {
     const actual = crypto.createHash('sha384').update(fs.readFileSync(`${pluginRoot}${relativePath.slice(2)}`)).digest('hex');
@@ -123,12 +135,16 @@ test('arrival-time route simulation is deterministic, causal, progressive, and t
   const selected = first.candidates.find((row) => row.id === first.selectedCandidateId);
   assert.equal(selected.route.segmentIds[0], 'shade-1');
   assert.ok(selected.metrics.shadeSeconds > 0);
+  assert.equal(selected.metrics.buildingShadeSeconds, selected.metrics.shadeSeconds);
+  assert.equal(selected.metrics.canopyShadeSeconds, 0);
   assert.ok(selected.samples.every((row) => row.solarPosition.azimuthDegrees >= 0 && row.solarPosition.azimuthDegrees < 360));
   assert.ok(selected.samples.every((row, index) => index === 0 || Date.parse(row.timestamp) > Date.parse(selected.samples[index - 1].timestamp)));
   assert.equal(first.dataReceipt.datasets[0].truth.origin, 'observed');
   assert.equal(first.modelReceipt.truth.origin, 'modeled');
-  assert.equal(first.modelReceipt.parameters.weatherParticipation, false);
-  assert.equal(first.modelReceipt.uncertainty.value.treeCanopy, 'not available');
+  assert.equal(first.modelReceipt.parameters.weatherParticipation, true);
+  assert.equal(first.modelReceipt.uncertainty.value.treeCanopy, 'historical tree identity observed; crown geometry and current presence modeled');
+  assert.equal(first.dataReceipt.datasets[2].sourceReceipts.length, 2);
+  assert.ok(first.candidates.every((row) => Number.isFinite(row.metrics.directBeamEquivalentSeconds)));
 });
 
 test('semantic layers carry quantities and evidence without permanent styling authority', () => {
@@ -140,6 +156,8 @@ test('semantic layers carry quantities and evidence without permanent styling au
     'route.comparison-baseline',
     'exposure.sample-progress',
     'building.shadow-evidence',
+    'tree.canopy-evidence',
+    'weather.historical-analog',
   ]);
   assert.ok(semantic.layers.every((row) => row.evidenceRefs.length > 0));
   assert.ok(semantic.viewIntents.some((row) => row.mode === 'compare'));
@@ -147,7 +165,7 @@ test('semantic layers carry quantities and evidence without permanent styling au
   const serialized = JSON.stringify(semantic);
   assert.doesNotMatch(serialized, /"tone"|"color"|"widthM"|"lineWidth"|"labelDensity"|"lodThreshold"/);
   assert.ok(semantic.controls.some((row) => row.id === 'walkingSpeedMps' && row.isEnabled));
-  assert.ok(semantic.controls.some((row) => row.id === 'weatherParticipation' && !row.isEnabled));
+  assert.ok(semantic.controls.some((row) => row.id === 'weatherParticipation' && row.isEnabled));
 });
 
 test('legacy adapter projects only causal shadow evidence and keeps compatibility styling bounded', () => {
@@ -174,12 +192,19 @@ test('plugin lifecycle advances the modeled walk without owning playback delay o
     datasets: {
       require: (id) => {
         if (id === governance.id) return governance;
+        if (id === environment.id) return environment;
         if (id === 'world.buildings.v1') return rows.world;
         throw new Error(`unexpected dataset ${id}`);
       },
-      receipt: (id) => id === governance.id
-        ? { id, sha256: crypto.createHash('sha256').update(fs.readFileSync(governancePath)).digest('hex') }
-        : { id: rows.world.id, sha256: 'a'.repeat(64), source: 'verified_test_fixture' },
+      receipt: (id) => {
+        if (id === governance.id) {
+          return { id, sha256: crypto.createHash('sha256').update(fs.readFileSync(governancePath)).digest('hex') };
+        }
+        if (id === environment.id) {
+          return { id, sha256: crypto.createHash('sha256').update(fs.readFileSync(environmentPath)).digest('hex') };
+        }
+        return { id: rows.world.id, sha256: 'a'.repeat(64), source: 'verified_test_fixture' };
+      },
     },
     routing: {
       alternatives: () => rows.routes,
@@ -238,4 +263,71 @@ test('solar reference keeps nighttime distinct from missing geometric evidence',
   );
   assert.equal(result.state, 'night');
   assert.equal(result.reason, 'sun_below_horizon');
+});
+
+test('governed canopy and weather engineering calibration cases reproduce exact outputs', () => {
+  const healthy = environmentApi.canopyEnvelope(
+    { diameterInches: 10, health: 'Good' },
+    environment.canopy.model
+  );
+  assert.deepEqual(
+    healthy,
+    environment.validation.calibrationCases
+      .find((row) => row.id === 'healthy-10-inch-tree-envelope').expected
+  );
+
+  const scene = environmentApi.compile(environment, fixture().world);
+  const clear = environmentApi.weatherAt('2026-07-19T17:00:00Z', scene.weather);
+  assert.equal(clear.skyCode, 'CLR');
+  assert.equal(
+    clear.directBeamFactor,
+    environment.validation.calibrationCases.find((row) => row.id === 'clear-sky-factor').expected.directBeamFactor
+  );
+  assert.equal(clear.sourceRowId, '72505394728:2024-07-19T16:51:00:FM-15');
+  const shiftedWorld = {
+    ...fixture().world,
+    coordinateSystem: { originWgs84: { latitude: 40.726, longitude: -73.978 } },
+  };
+  const shiftedScene = environmentApi.compile(environment, shiftedWorld);
+  assert.notDeepEqual(scene.canopy.rows[0].point, shiftedScene.canopy.rows[0].point);
+});
+
+test('environment participation is causal and exactly replayable', () => {
+  const active = simulate();
+  assert.deepEqual(active, simulate());
+  const inactive = simulate({
+    config: {
+      ...config,
+      directSunWeight: 4,
+      treeCanopyParticipation: false,
+      weatherParticipation: false,
+    },
+  });
+  const activeSelected = active.candidates.find((row) => row.id === active.selectedCandidateId);
+  const inactiveSelected = inactive.candidates.find((row) => row.id === inactive.selectedCandidateId);
+  assert.ok(activeSelected.samples.every((row) => row.environment.weather.sourceRowId));
+  assert.ok(inactiveSelected.samples.every((row) => row.environment.weather.participation === false));
+  assert.ok(activeSelected.metrics.directBeamEquivalentSeconds <= activeSelected.metrics.directSunSeconds);
+  assert.ok(inactiveSelected.metrics.directBeamEquivalentSeconds <= inactiveSelected.metrics.directSunSeconds);
+  assert.notEqual(active.modelReceipt.id, inactive.modelReceipt.id);
+
+  const scene = environmentApi.compile(environment, fixture().world);
+  const sun = exposure.solarPosition('2026-07-18T02:00:00Z', 40.73, -73.99);
+  const cloudy = environmentApi.sample({
+    point: { x: 100000, y: 100000 },
+    sun,
+    timestamp: '2026-07-18T02:00:00Z',
+    environment: scene,
+    config: { ...config, treeCanopyParticipation: false, weatherParticipation: true },
+  });
+  const weatherDisabled = environmentApi.sample({
+    point: { x: 100000, y: 100000 },
+    sun,
+    timestamp: '2026-07-18T02:00:00Z',
+    environment: scene,
+    config: { ...config, treeCanopyParticipation: false, weatherParticipation: false },
+  });
+  assert.equal(cloudy.weather.skyCode, 'OVC');
+  assert.equal(cloudy.directBeamFactor, 0.15);
+  assert.equal(weatherDisabled.directBeamFactor, 1);
 });

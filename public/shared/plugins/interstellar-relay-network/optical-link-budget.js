@@ -85,6 +85,25 @@
       modelReceipt: Object.freeze({
         modelId: 'diffraction-photon-budget-v2',
         parameterSourceIds: Object.freeze([`relay.hardware.archetypes.v2:${transceiver.id}`]),
+        omissionIds: Object.freeze([
+          'acquisition-not-modeled',
+          'maintenance-not-modeled',
+          'plasma-not-modeled',
+          'detector-background-noise-incomplete',
+          'retries-not-modeled',
+          'infrastructure-not-observed',
+          'continuous-contact-assumed',
+        ]),
+        reliabilityScope: Object.freeze({
+          conditionalOn: Object.freeze(['continuous-contact-assumed', 'infrastructure-not-observed']),
+          excludes: Object.freeze([
+            'acquisition-not-modeled',
+            'maintenance-not-modeled',
+            'plasma-not-modeled',
+            'detector-background-noise-incomplete',
+            'retries-not-modeled',
+          ]),
+        }),
         parameters: Object.freeze({
           attenuationFactor: declaredAttenuation,
           packetBits,
@@ -105,6 +124,16 @@
           value: Object.freeze({
             achievableDataRateGbps: Object.freeze([rateForPower(lowerPower), rateForPower(upperPower)]),
             sources: Object.freeze(['opticalEfficiencyInterval', 'pointingJitterUncertaintyPercent', 'astrometricDistanceInterval']),
+            omissionIds: Object.freeze([
+              'acquisition-not-modeled',
+              'maintenance-not-modeled',
+              'plasma-not-modeled',
+              'detector-background-noise-incomplete',
+              'retries-not-modeled',
+              'infrastructure-not-observed',
+              'continuous-contact-assumed',
+            ]),
+            continuousContactAssumed: true,
           }),
         }),
       }),

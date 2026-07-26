@@ -3,7 +3,14 @@
   root.InterstellarMetrics = api;
   if (typeof module === 'object' && module.exports) module.exports = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createInterstellarMetrics() {
-  function summarize({ schedule, linkBudgets, packet, evidenceReferences = [] }) {
+  function summarize({
+    schedule,
+    linkBudgets,
+    packet,
+    evidenceReferences = [],
+    omissions = [],
+    reliabilityScope = { conditionalOn: [], excludes: [] },
+  }) {
     const rates = linkBudgets.map((row) => row.achievableDataRateGbps).filter(Number.isFinite);
     const margins = linkBudgets.map((row) => row.linkMarginDb).filter(Number.isFinite);
     const successProbabilities = linkBudgets
@@ -31,6 +38,12 @@
       relayForwardCount: Math.max(0, schedule.hops.length - 1),
       packetHash: packet.integrity.packetHash,
       evidenceReferences: Object.freeze(evidenceReferences.slice()),
+      omissions: Object.freeze(omissions.map((row) => Object.freeze({ ...row }))),
+      reliabilityScope: Object.freeze({
+        statement: 'The packet-success estimate is conditional on continuous contact and hypothetical infrastructure.',
+        conditionalOn: Object.freeze(reliabilityScope.conditionalOn.slice()),
+        excludes: Object.freeze(reliabilityScope.excludes.slice()),
+      }),
       truth: Object.freeze({
         origin: 'derived',
         temporalStatus: 'forecast',
@@ -42,7 +55,8 @@
               Math.min(...rateIntervals.map((row) => row[1])),
             ]),
             reliabilityModel: 'idealized-independent-hop-product',
-            unmodeled: Object.freeze(['terminal outage', 'acquisition failure', 'maintenance', 'complete detector noise']),
+            omissionIds: Object.freeze(omissions.map((row) => row.id)),
+            continuousContactAssumed: reliabilityScope.conditionalOn.includes('continuous-contact-assumed'),
           }),
         }),
       }),

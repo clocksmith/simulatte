@@ -10,7 +10,7 @@
   // datasets always produce the same terminal state and receipts. Counterfactual
   // (baseline vs intervention) runs share the same underlying draws — common random
   // numbers — so cases-averted is measured against matched contamination and demand.
-  const ENGINE_VERSION = 'food-recall-engine-2.0.0';
+  const ENGINE_VERSION = 'food-recall-engine-2.1.0';
   const HOURS_PER_DAY = 24;
   const CHAIN = ['grower', 'initial_packer', 'processor', 'distributor', 'retailer'];
 
@@ -50,15 +50,17 @@
   }
 
   // ---- Cold chain: first-order cargo temperature response + reefer failure ---------
-  function transitTempProfile(corridor, hazard, rng, coldChainFailure) {
-    const setpoint = 3.5;
-    const tau = 6;
-    const totalHours = Math.max(1, corridor.meanTransitHours);
+  function transitTempProfile(corridor, rng, coldChainFailure, inputs) {
+    const setpoint = Number(inputs.refrigerationSetpointC ?? 3.5);
+    const tau = Number(inputs.refrigerationTimeConstantHours ?? 6);
+    const serviceDelay = Math.max(0, Number(inputs.logisticsDelayHours ?? 0));
+    const totalHours = Math.max(1, corridor.meanTransitHours + serviceDelay);
     let temp = setpoint;
     let failed = false;
     let repairHours = 0;
     // Hazard-rate reefer failure over the transit.
-    const failureProbability = 1 - Math.exp(-corridor.reeferFailureRatePerHour * totalHours);
+    const failureMultiplier = Math.max(0, Number(inputs.refrigerationFailureRateMultiplier ?? 1));
+    const failureProbability = 1 - Math.exp(-corridor.reeferFailureRatePerHour * failureMultiplier * totalHours);
     if (coldChainFailure && coldChainFailure.corridorStage === corridor.toStage) {
       failed = true;
       repairHours = coldChainFailure.repairHours;
@@ -67,11 +69,20 @@
       repairHours = 4 + rng.next() * 20;
     }
     // Integrate growth over 1-hour steps; target is setpoint, or ambient during failure.
-    return { totalHours, tau, setpoint, ambient: coldChainFailure?.ambientTempC ?? corridor.ambientTempC, failed, repairHours, temp };
+    return {
+      totalHours,
+      serviceDelay,
+      tau,
+      setpoint,
+      ambient: Number(coldChainFailure?.ambientTempC ?? inputs.ambientTemperatureC ?? corridor.ambientTempC),
+      failed,
+      repairHours,
+      temp,
+    };
   }
 
-  function integrateTransit(lot, corridor, hazard, rng, coldChainFailure) {
-    const profile = transitTempProfile(corridor, hazard, rng, coldChainFailure);
+  function integrateTransit(lot, corridor, hazard, rng, coldChainFailure, inputs) {
+    const profile = transitTempProfile(corridor, rng, coldChainFailure, inputs);
     let temp = profile.setpoint;
     let load = lot.totalLoadCfu;
     const failureStart = profile.failed ? profile.totalHours * 0.4 : Infinity;
@@ -83,7 +94,15 @@
       peakTempC = Math.max(peakTempC, temp);
       load = growLoad(load, lot.massKg * 1000, hazard, temp, 1);
     }
-    return { load, peakTempC, failed: profile.failed, repairHours: profile.repairHours };
+    return {
+      load,
+      totalHours: profile.totalHours,
+      serviceDelayHours: profile.serviceDelay,
+      ambientTempC: profile.ambient,
+      peakTempC,
+      failed: profile.failed,
+      repairHours: profile.repairHours,
+    };
   }
 
   // ---- Lot ledger: transformation with strict mass + load balance ------------------
@@ -132,7 +151,7 @@
 
   // ---- Full scenario run ----------------------------------------------------------
   // intervention: null (baseline) or { dayOffset, depth, scope }.
-  function runScenario({ model, scenario, random, scheduler, intervention }) {
+  function runScenario({ model, scenario, random, scheduler, intervention, inputContext = null }) {
     const contaminationRng = random.stream(`${scenario.seed}:contamination`);
     const shipmentRng = random.stream(`${scenario.seed}:shipment`);
     const reeferRng = random.stream(`${scenario.seed}:reefer`);
@@ -145,9 +164,11 @@
     if (!product || !hazard) throw engineError('food_scenario_unresolved', `Scenario ${scenario.id} references unknown product/hazard`, { product: scenario.commodityId, hazard: scenario.hazardId });
     const isAllergen = hazard.family === 'undeclared_allergen';
 
-    const events = [];
+    const inputs = normalizeInputs(inputContext);
     const lots = new Map();
     const lineage = [];
+    let eventOrdinal = 0;
+    const record = (event) => lineage.push({ ...event, eventOrdinal: (eventOrdinal += 1) });
     let lotCounter = 0;
     const newTlc = (facility, tag) => `tlc:${facility.id}:${scenario.seed}:${tag}:${(lotCounter += 1)}`;
 
@@ -168,10 +189,11 @@
         massKg, totalLoadCfu, parentTlcIds: [], facilityId: facility.id, stage: scenario.originFacilityKind,
         contaminatedAtOrigin: totalLoadCfu > 0 || (isAllergen && isSeeded),
         allergenPresenceMg: isAllergen && isSeeded ? scenario.contamination.presenceMg : 0,
+        cumulativeTransitHours: 0,
       };
       lots.set(lot.tlcId, lot);
       originLots.push(lot);
-      lineage.push({ cte: 'harvesting', facilityId: facility.id, tlcId: lot.tlcId, parents: [] });
+      record({ cte: 'harvesting', timeHours: 0, facilityId: facility.id, tlcId: lot.tlcId, parents: [] });
     });
 
     // 2. Propagate along the chain, transforming at the processor and shipping onward.
@@ -180,10 +202,44 @@
     function ship(lot, corridor) {
       const toStage = model.facilityById.get(corridor.toFacilityId).facilityKind;
       const annotated = { ...corridor, toStage };
-      const transit = isAllergen ? { load: lot.totalLoadCfu, peakTempC: 4, failed: false, repairHours: 0 }
-        : integrateTransit(lot, annotated, hazard, reeferRng, scenario.coldChainFailure);
-      lineage.push({ cte: 'shipping', facilityId: corridor.fromFacilityId, toFacilityId: corridor.toFacilityId, tlcId: lot.tlcId, peakTempC: Number(transit.peakTempC.toFixed(2)), reeferFailed: transit.failed });
-      return { ...lot, totalLoadCfu: transit.load, facilityId: corridor.toFacilityId, stage: toStage, transit };
+      const forcedFailure = inputs.forcedColdChainFailure;
+      const transit = isAllergen
+        ? {
+          load: lot.totalLoadCfu,
+          totalHours: Math.max(1, corridor.meanTransitHours + inputs.logisticsDelayHours),
+          serviceDelayHours: inputs.logisticsDelayHours,
+          ambientTempC: inputs.ambientTemperatureC,
+          peakTempC: inputs.refrigerationSetpointC,
+          failed: false,
+          repairHours: 0,
+        }
+        : integrateTransit(lot, annotated, hazard, reeferRng, forcedFailure, inputs);
+      const departureHour = lot.cumulativeTransitHours || 0;
+      const arrivalHour = departureHour + transit.totalHours;
+      record({
+        cte: 'shipping',
+        timeHours: arrivalHour,
+        departureHour,
+        arrivalHour,
+        facilityId: corridor.fromFacilityId,
+        toFacilityId: corridor.toFacilityId,
+        corridorId: corridor.id,
+        tlcId: lot.tlcId,
+        peakTempC: Number(transit.peakTempC.toFixed(2)),
+        ambientTempC: transit.ambientTempC,
+        transitHours: Number(transit.totalHours.toFixed(3)),
+        serviceDelayHours: Number(transit.serviceDelayHours.toFixed(3)),
+        reeferFailed: transit.failed,
+        inputFieldIds: inputs.fieldIdentities,
+      });
+      return {
+        ...lot,
+        totalLoadCfu: transit.load,
+        facilityId: corridor.toFacilityId,
+        stage: toStage,
+        cumulativeTransitHours: arrivalHour,
+        transit,
+      };
     }
 
     let frontier = originLots.map((lot) => ({ lot, stageIndex: startStageIndex }));
@@ -206,20 +262,47 @@
           const logReduction = product.preparationProfiles.some((p) => p.logReduction > 0) ? 0 : 0; // process kill handled at consumer prep
           const envTransfer = lot.totalLoadCfu > 0 ? 0 : (contaminationRng.next() < 0.05 ? Math.pow(10, 2) * lot.massKg * 100 : 0);
           const xform = transform([lot], 0.85, envTransfer, logReduction, outId, product.id, hazard.id);
-          const merged = { ...xform, facilityId: lot.facilityId, stage: 'processor', contaminatedAtOrigin: lot.contaminatedAtOrigin, allergenPresenceMg: lot.allergenPresenceMg };
+          const merged = {
+            ...xform,
+            facilityId: lot.facilityId,
+            stage: 'processor',
+            contaminatedAtOrigin: lot.contaminatedAtOrigin,
+            allergenPresenceMg: lot.allergenPresenceMg,
+            cumulativeTransitHours: lot.cumulativeTransitHours || 0,
+          };
           lots.set(merged.tlcId, merged);
-          lineage.push({ cte: 'transformation', facilityId: facility.id, tlcId: merged.tlcId, parents: xform.parentTlcIds, balance: xform.balance });
+          record({
+            cte: 'transformation',
+            timeHours: lot.cumulativeTransitHours || 0,
+            facilityId: facility.id,
+            tlcId: merged.tlcId,
+            parents: xform.parentTlcIds,
+            balance: xform.balance,
+          });
           // Split into shipment child lots.
           const childCount = Math.max(1, (model.outgoing.get(lot.facilityId) || []).length);
           const fractions = Array.from({ length: childCount }, () => 1 / childCount);
           const childIds = fractions.map(() => newTlc(facility, 'ship'));
           shippableLots = splitLot(merged, fractions, childIds, contaminationRng).map((child) => {
-            const stored = { ...child, facilityId: lot.facilityId, stage: 'processor', contaminatedAtOrigin: merged.contaminatedAtOrigin, allergenPresenceMg: merged.allergenPresenceMg };
+            const stored = {
+              ...child,
+              facilityId: lot.facilityId,
+              stage: 'processor',
+              contaminatedAtOrigin: merged.contaminatedAtOrigin,
+              allergenPresenceMg: merged.allergenPresenceMg,
+              cumulativeTransitHours: merged.cumulativeTransitHours,
+            };
             lots.set(stored.tlcId, stored);
             // Record the split so lot lineage stays connected: the recall descendant
             // closure and traceback both walk lineage parents, so an unrecorded split
             // would orphan every downstream lot from its contaminated ancestor.
-            lineage.push({ cte: 'lot_split', facilityId: facility.id, tlcId: stored.tlcId, parents: [merged.tlcId] });
+            record({
+              cte: 'lot_split',
+              timeHours: lot.cumulativeTransitHours || 0,
+              facilityId: facility.id,
+              tlcId: stored.tlcId,
+              parents: [merged.tlcId],
+            });
             return stored;
           });
         }
@@ -239,7 +322,8 @@
     const exposedLots = [];
     distributed.forEach((lot) => {
       const units = Math.max(1, Math.round((lot.massKg) / product.defaultUnitMassKg));
-      const servings = Math.min(units, 500);
+      const availableServings = Math.floor(Math.min(units, 500) * inputs.logisticsAvailability);
+      const servings = Math.max(0, availableServings);
       const concentrationPerG = lot.totalLoadCfu / Math.max(1, lot.massKg * 1000);
       const prep = product.preparationProfiles;
       let lotIllness = 0;
@@ -272,7 +356,15 @@
     } else if (isAllergen && observed >= 1) {
       detectionHours = sampleLog(stages.onsetToCareHours) + sampleLog(stages.clusterToTracebackHours);
     }
-    const detectionDay = detectionHours / HOURS_PER_DAY;
+    const surveillanceMultiplier = scenario.detectionProfile === 'accelerated'
+      ? 0.75
+      : scenario.detectionProfile === 'delayed' ? 1.5 : 1;
+    const exposureDelayHours = distributed.length
+      ? distributed.reduce((sum, lot) => sum + (lot.cumulativeTransitHours || 0), 0) / distributed.length
+      : 0;
+    const detectionDay = detectionHours > 0
+      ? (exposureDelayHours + detectionHours * surveillanceMultiplier) / HOURS_PER_DAY
+      : 0;
 
     // 5. Traceback: score candidate origin lots by reachability to observed exposures.
     const trueSourceIds = originLots.filter((lot) => lot.contaminatedAtOrigin).map((lot) => lot.tlcId);
@@ -285,19 +377,64 @@
       recall = runRecall({ intervention, originLots, lots, lineage, distributed, exposedLots, product, model, recallRng, detectionDay, trueIllnesses, isAllergen });
     }
 
+    const chronologicalLineage = lineage
+      .slice()
+      .sort((left, right) => (left.timeHours || 0) - (right.timeHours || 0) || left.eventOrdinal - right.eventOrdinal)
+      .map((event, sequence) => Object.freeze({ ...event, sequence }));
+    const transitEvents = chronologicalLineage.filter((event) => event.cte === 'shipping');
+    const refrigerationFailures = transitEvents.filter((event) => event.reeferFailed).length;
     return Object.freeze({
       schema: 'simulatte.foodRecallRun.v1', engineVersion: ENGINE_VERSION,
       scenarioId: scenario.id, scenarioKind: scenario.kind, seed: scenario.seed,
-      lotCount: lots.size, eventCount: lineage.length,
+      lotCount: lots.size, eventCount: chronologicalLineage.length,
       trueIllnesses, observedCases: observed, detectionDay: Number(detectionDay.toFixed(2)),
+      exposureDelayDays: Number((exposureDelayHours / HOURS_PER_DAY).toFixed(3)),
+      shipmentDurationHours: Number((transitEvents.reduce((sum, event) => sum + event.transitHours, 0)).toFixed(3)),
+      refrigerationFailures,
+      inputContext: Object.freeze({
+        schema: 'simulatte.foodRecallAppliedInputs.v1',
+        ambientTemperatureC: inputs.ambientTemperatureC,
+        logisticsDelayHours: inputs.logisticsDelayHours,
+        logisticsAvailability: inputs.logisticsAvailability,
+        refrigerationSetpointC: inputs.refrigerationSetpointC,
+        refrigerationTimeConstantHours: inputs.refrigerationTimeConstantHours,
+        refrigerationFailureRateMultiplier: inputs.refrigerationFailureRateMultiplier,
+        fieldIdentities: Object.freeze(inputs.fieldIdentities.slice()),
+      }),
       distributedLots: distributed.length,
       contaminatedOriginLots: trueSourceIds.length,
       traceback: Object.freeze(traceback.slice(0, 5)),
       trueSourceRank: trueSourceRank || null,
       recall,
-      lineage: Object.freeze(lineage),
-      lots: Object.freeze([...lots.values()].map((lot) => Object.freeze({ tlcId: lot.tlcId, stage: lot.stage, massKg: Number(lot.massKg.toFixed(2)), totalLoadCfu: Math.round(lot.totalLoadCfu), parentTlcIds: lot.parentTlcIds, contaminated: !!lot.contaminatedAtOrigin }))),
+      lineage: Object.freeze(chronologicalLineage),
+      lots: Object.freeze([...lots.values()].map((lot) => Object.freeze({
+        tlcId: lot.tlcId,
+        stage: lot.stage,
+        massKg: Number(lot.massKg.toFixed(2)),
+        totalLoadCfu: Math.round(lot.totalLoadCfu),
+        parentTlcIds: lot.parentTlcIds,
+        contaminated: !!lot.contaminatedAtOrigin,
+        cumulativeTransitHours: Number((lot.cumulativeTransitHours || 0).toFixed(3)),
+      }))),
       randomStreams: Object.freeze([contaminationRng, shipmentRng, reeferRng, consumerRng, surveillanceRng, recallRng].map((s) => s.receipt())),
+    });
+  }
+
+  function normalizeInputs(inputContext) {
+    const engineInputs = inputContext?.engineInputs || inputContext || {};
+    return Object.freeze({
+      ambientTemperatureC: Number(engineInputs.ambientTemperatureC ?? 20),
+      logisticsDelayHours: Math.max(0, Number(engineInputs.logisticsDelayHours ?? 0)),
+      logisticsAvailability: Math.max(0, Math.min(1, Number(engineInputs.logisticsAvailability ?? 1))),
+      refrigerationSetpointC: Number(engineInputs.refrigerationSetpointC ?? 3.5),
+      refrigerationTimeConstantHours: Math.max(0.1, Number(engineInputs.refrigerationTimeConstantHours ?? 6)),
+      refrigerationFailureRateMultiplier: Math.max(0, Number(engineInputs.refrigerationFailureRateMultiplier ?? 1)),
+      forcedColdChainFailure: inputContext?.refrigeration?.forcedFailure || null,
+      fieldIdentities: [
+        inputContext?.weather?.fieldIdentity,
+        inputContext?.logistics?.fieldIdentity,
+        inputContext?.refrigeration?.fieldIdentity,
+      ].filter(Boolean),
     });
   }
 

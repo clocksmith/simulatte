@@ -1578,7 +1578,7 @@ body[data-journey-phase="failed"] .scenario-field {
   }
 
   .profile-selector {
-    max-width: max(64px, calc(100vw - 260px));
+    max-width: max(64px, calc(100vw - 330px));
   }
 
   .profile-selector .select-trigger {
@@ -1645,6 +1645,8 @@ body[data-journey-phase="failed"] .scenario-field {
     top: calc(max(10px, env(safe-area-inset-top)) + 98px);
     left: max(10px, env(safe-area-inset-left));
     width: min(250px, calc(100vw - 20px));
+    max-height: min(46dvh, calc(100dvh - 270px));
+    scrollbar-gutter: stable;
   }
 
   .plugin-hud-ui {
@@ -1673,6 +1675,37 @@ body[data-journey-phase="failed"] .scenario-field {
   .mission-actions .sim-action {
     min-height: 42px;
     font-size: 12px;
+  }
+
+  body[data-journey-phase="running"] .mission-dock,
+  body[data-journey-phase="paused"] .mission-dock,
+  body[data-journey-phase="completed"] .mission-dock,
+  body[data-journey-phase="failed"] .mission-dock {
+    width: min(440px, calc(100vw - 20px));
+  }
+
+  body[data-journey-phase="running"] .mission-actions,
+  body[data-journey-phase="paused"] .mission-actions,
+  body[data-journey-phase="completed"] .mission-actions,
+  body[data-journey-phase="failed"] .mission-actions {
+    min-width: 0;
+  }
+
+  body[data-journey-phase="running"] .mission-actions .sim-action,
+  body[data-journey-phase="paused"] .mission-actions .sim-action,
+  body[data-journey-phase="completed"] .mission-actions .sim-action,
+  body[data-journey-phase="failed"] .mission-actions .sim-action {
+    min-width: 40px;
+    padding: 0 7px;
+    font-size: 11px;
+  }
+
+  body[data-journey-phase="running"] .model-selection-panel,
+  body[data-journey-phase="paused"] .model-selection-panel,
+  body[data-journey-phase="completed"] .model-selection-panel,
+  body[data-journey-phase="failed"] .model-selection-panel {
+    min-width: 58px;
+    padding: 0 7px;
   }
 
   .decisions-button {

@@ -14,8 +14,23 @@
         }
       }
     },
-    "sourceUrl": "https://public.ccsds.org/Pubs/142x0b2.pdf",
-    "citation": "CCSDS 142.0-B-2 Optical Communications Coding and Synchronization",
+    "retrievalAt": "2026-07-25T00:00:00Z",
+    "sourceUrl": "https://public.ccsds.org/Pubs/142x0b1.pdf",
+    "citation": "CCSDS 142.0-B-1 Optical Communications Coding and Synchronization",
+    "sourceArtifact": {
+      "sha256": "4d9a82efc6bebe9bbc35a0dd9fa5a15defd8b7ff4799ef1ad8578f16212d235f",
+      "mediaType": "application/pdf"
+    },
+    "license": {
+      "id": "CCSDS-publication-rights-retained",
+      "url": "https://public.ccsds.org/default.aspx",
+      "status": "publicly-accessible-reference-publication"
+    },
+    "coverage": {
+      "kind": "three-engineering-scenario-archetypes",
+      "rowCount": 3,
+      "observationStatus": "No terminals are observed."
+    },
     "claimBoundary": "Parameters are engineering scenarios informed by optical-link equations. They are not observed or deployed terminals."
   },
   "archetypes": {

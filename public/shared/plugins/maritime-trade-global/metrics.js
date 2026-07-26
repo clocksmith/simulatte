@@ -17,10 +17,12 @@
         ...queueEnsemble.evidenceRefs,
         'model:terminal-handling-v1',
       ], {
-        kind: 'interval',
+        kind: 'distribution',
         value: {
-          minimum: route.sailingDays + queueEnsemble.p05WaitHours / 24 + 18 / 24,
-          maximum: route.sailingDays + queueEnsemble.p95WaitHours / 24 + 18 / 24,
+          family: 'queue_ensemble_transformed_to_total_transit',
+          p05: route.sailingDays + queueEnsemble.p05WaitHours / 24 + 18 / 24,
+          p50: route.sailingDays + queueEnsemble.p50WaitHours / 24 + 18 / 24,
+          p95: route.sailingDays + queueEnsemble.p95WaitHours / 24 + 18 / 24,
           units: 'day',
         },
       }),

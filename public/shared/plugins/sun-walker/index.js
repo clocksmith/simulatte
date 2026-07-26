@@ -14,7 +14,10 @@
   const v4 = typeof module === 'object' && module.exports
     ? require('./v4-contribution.js')
     : root.SimulatteSunWalkerV4;
-  const api = factory(exposure, routeSimulation, presentation, compatibility, v4);
+  const environment = typeof module === 'object' && module.exports
+    ? require('./environment.js')
+    : root.SimulatteSunWalkerEnvironment;
+  const api = factory(exposure, routeSimulation, presentation, compatibility, v4, environment);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulattePluginSunWalker = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createSunWalkerPlugin(
@@ -22,15 +25,19 @@
   routeSimulation,
   presentationApi,
   compatibilityApi,
-  v4Api
+  v4Api,
+  environmentApi
 ) {
   const GOVERNANCE_DATASET_ID = 'sun-walker.model-governance.v1';
+  const ENVIRONMENT_DATASET_ID = 'sun-walker.environment.v1';
 
   async function activate({ sdk, config, scenario = null }) {
     const world = sdk.worldQuery.snapshot();
     const worldModel = sdk.worldQuery.model();
     const governance = sdk.datasets.require(GOVERNANCE_DATASET_ID);
+    const environment = sdk.datasets.require(ENVIRONMENT_DATASET_ID);
     const governanceReceipt = sdk.datasets.receipt(GOVERNANCE_DATASET_ID);
+    const environmentReceipt = sdk.datasets.receipt(ENVIRONMENT_DATASET_ID);
     const buildingReceipt = sdk.datasets.receipt('world.buildings.v1');
     let activeScenario = scenario;
     sdk.state.register(reduce, {
@@ -53,6 +60,8 @@
         buildingReceipt,
         governance,
         governanceReceipt,
+        environment,
+        environmentReceipt,
       });
       sdk.events.propose({ pluginId: 'sun-walker', kind: 'sun-walker.simulation-created', simulation });
       appendSelectionReceipt(simulation);
@@ -149,9 +158,31 @@
           controlDefinitions: sdk.state.read().simulation?.controls || [],
         };
       }
+      if (actionId === 'counterfactual.compare') {
+        const simulation = sdk.state.read().simulation;
+        if (!simulation?.comparison?.metrics) {
+          return { status: 'refused', reason: 'comparison_missing' };
+        }
+        const comparisonBranches = Object.fromEntries(['baseline', 'intervention'].map((role) => [
+          role,
+          Object.fromEntries(Object.entries(simulation.comparison.metrics)
+            .map(([id, values]) => [id, values[role]])),
+        ]));
+        return {
+          status: 'settled',
+          comparisonId: simulation.comparison.id,
+          comparisonBranches,
+          comparison: simulation.comparison,
+        };
+      }
       if (actionId !== 'scenario.run') return { status: 'refused', reason: 'unknown_action', actionId };
       const phase = context.values?.phase;
-      const state = sdk.state.read();
+      let state = sdk.state.read();
+      if (!state.simulation && phase === 'start') {
+        activeScenario = context.scenario || activeScenario;
+        simulateMission(sdk.routing.resolveMission(activeScenario?.missionText || ''));
+        state = sdk.state.read();
+      }
       if (!state.simulation) return { status: 'refused', reason: 'simulation_missing' };
       if (phase === 'start') {
         sdk.events.propose({ pluginId: 'sun-walker', kind: 'sun-walker.playback-started' });
@@ -197,6 +228,7 @@
         step: state.playback.step,
         buildingReceipt,
         governanceReceipt,
+        environmentReceipt,
       });
     }
 
@@ -218,8 +250,8 @@
           title: 'Sun Walker',
           rows: [
             { label: 'Activation', value: 'Ask for shade or less direct sun' },
-            { label: 'Inputs', value: 'Governed buildings + modeled solar position' },
-            { label: 'Boundary', value: 'Clear sky; no trees or weather' },
+            { label: 'Inputs', value: 'Governed buildings, historical tree identities, and pinned weather analog' },
+            { label: 'Boundary', value: 'Canopy envelopes and weather attenuation are modeled; conditions are not live' },
           ],
           actions: [],
         };
@@ -232,6 +264,7 @@
       const rows = [
         { label: 'Simulation', value: `${snapshot.state.status} · ${snapshot.state.completedSamples}/${snapshot.state.totalSamples} samples` },
         { label: 'Shade-selected', value: `${Math.round(selected.metrics.modeledBuildingShadePercent)}% modeled building shade` },
+        { label: 'Canopy', value: `${Math.round(selected.metrics.modeledCanopyShadePercent)}% modeled historical-canopy shade` },
         { label: 'Fastest', value: `${Math.round(fastest.metrics.modeledBuildingShadePercent)}% modeled building shade` },
         { label: 'Direct sun', value: `${Math.round(snapshot.state.directSunSeconds)} of ${Math.round(selected.metrics.directSunSeconds)} s` },
         { label: 'Added travel', value: `${Math.round(simulation.comparison.metrics.travelSeconds.difference)} s` },
@@ -240,14 +273,18 @@
           value: `${Math.round(latestSample.solarPosition.azimuthDegrees)}° azimuth · ${Math.round(latestSample.solarPosition.elevationDegrees)}° elevation`,
         },
         { label: 'Data', value: `${simulation.dataReceipt.datasets[0].sourceRowIds.length.toLocaleString('en-US')} governed building rows` },
-        { label: 'Uncertainty', value: 'Trees, weather, awnings, diffuse light missing' },
+        {
+          label: 'Environment',
+          value: `${latestSample.environment.weather.skyCode || 'weather off'} · ${latestSample.occluderKind || 'no occluder'}`,
+        },
+        { label: 'Uncertainty', value: 'Current canopy/weather, awnings, diffuse and reflected light remain missing' },
       ];
       return [
         { slot: 'inspector', title: 'Arrival-time sun exposure', rows, actions: [] },
         {
           slot: 'hud',
           title: 'Sun + shade',
-          rows: [rows[0], rows[1], rows[3]],
+          rows: [rows[0], rows[1], rows[4]],
           actions: [],
         },
       ];
@@ -403,6 +440,7 @@
     activate,
     datasetValidators: Object.freeze({
       'simulatte.sunWalkerModelGovernance.v1': validateGovernance,
+      'simulatte.sunWalkerEnvironment.v1': environmentApi.validateDataset,
     }),
   });
 });

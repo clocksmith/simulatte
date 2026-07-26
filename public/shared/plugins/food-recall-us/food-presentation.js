@@ -4,46 +4,44 @@
   root.SimulatteFoodRecallPresentation = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createFoodRecallPresentation() {
   // Builds the national geospatial presentation (v3) and the declarative UI views for a
-  // run result (TODO_PLUGINS §13). Rendering distinguishes CONFIRMED contamination from
-  // SIMULATED/SUSPECTED risk with different tones — never the same colour for both — and
-  // every view is traceable to the run receipt or a governed dataset.
-  const TONE = Object.freeze({ confirmed: 'red', suspected: 'amber', clean: 'cyan', recall: 'magenta', zone: 'violet' });
+  // run result. Presentation terms preserve the simulation boundary and every view is
+  // traceable to the run receipt or a governed dataset.
+  const TONE = Object.freeze({ simulated: 'red', suspected: 'amber', clean: 'cyan', recall: 'magenta', zone: 'violet' });
 
   function facilityStatus(facility, run) {
     const contaminated = run.lots.some((lot) => lot.contaminated && lot.tlcId.includes(`:${facility.id}:`));
-    if (contaminated) return 'confirmed';
+    if (contaminated) return 'simulated';
     const suspected = run.traceback.some((row) => row.facilityId === facility.id && row.score > 0);
     return suspected ? 'suspected' : 'clean';
   }
 
   function buildPresentation({ run, facilities, corridors, consumerZones }) {
     const facilityById = new Map(facilities.map((row) => [row.id, row]));
+    const activeCorridorIds = activeCorridors(run);
     const geoMarkers = facilities.slice(0, 900).map((facility) => {
       const status = facilityStatus(facility, run);
       return {
         id: `facility-${facility.id.replace(/[^a-z0-9]+/gi, '-')}`,
-        label: `${facility.label} (${status})`,
+        label: facilityLabel(facility, status),
         longitude: facility.location.longitude, latitude: facility.location.latitude,
-        // Sizes are in the national world's planar units (~kilometres); the scene is
-        // ~5000 units wide, so a marker is tens of units, not raw metres.
-        tone: TONE[status], heightM: status === 'confirmed' ? 90 : 40,
-        radiusM: status === 'confirmed' ? 55 : 28,
-        intensity: status === 'confirmed' ? 1.8 : status === 'suspected' ? 1.1 : 0.5,
+        tone: TONE[status], heightM: status === 'simulated' ? 90 : 32,
+        radiusM: status === 'simulated' ? 7 : 3,
+        intensity: status === 'simulated' ? 1.8 : status === 'suspected' ? 1.1 : 0.5,
       };
     });
-    const geoPaths = corridors.slice(0, 500).map((corridor, index) => {
+    const geoPaths = corridors.filter((corridor) => activeCorridorIds.has(corridor.id)).map((corridor, index) => {
       const from = facilityById.get(corridor.fromFacilityId);
       const to = facilityById.get(corridor.toFacilityId);
       if (!from || !to) return null;
-      const contaminatedRoute = facilityStatus(from, run) === 'confirmed' || facilityStatus(to, run) === 'confirmed';
+      const contaminatedRoute = facilityStatus(from, run) === 'simulated' || facilityStatus(to, run) === 'simulated';
       return {
         id: `corridor-${index}`, label: `${from.label} → ${to.label}`,
         coordinates: [
           { longitude: from.location.longitude, latitude: from.location.latitude },
           { longitude: to.location.longitude, latitude: to.location.latitude },
         ],
-        tone: contaminatedRoute ? TONE.confirmed : TONE.clean,
-        widthM: contaminatedRoute ? 16 : 7,
+        tone: contaminatedRoute ? TONE.simulated : TONE.clean,
+        widthM: contaminatedRoute ? 3 : 1,
         intensity: contaminatedRoute ? 1.5 : 0.5,
       };
     }).filter(Boolean);
@@ -73,14 +71,26 @@
 
   // A small diamond ring around a zone centroid so the choropleth cell is a valid polygon.
   function zoneRing(longitude, latitude) {
-    const d = 1.6;
+    const d = 0.65;
     return [
       { longitude: longitude - d, latitude }, { longitude, latitude: latitude + d },
       { longitude: longitude + d, latitude }, { longitude, latitude: latitude - d },
     ];
   }
 
-  function buildViews({ run, scenario, datasetReceipts, activeIntervention }) {
+  function activeCorridors(run) {
+    return new Set((run.lineage || []).map((row) => row.corridorId).filter(Boolean));
+  }
+
+  function facilityLabel(facility, status) {
+    const state = facility.location?.state || 'US';
+    const kind = String(facility.facilityKind || 'facility').replaceAll('_', ' ');
+    return status === 'simulated'
+      ? `${state} ${kind}: simulated contamination`
+      : `${state} ${kind}`;
+  }
+
+  function buildViews({ run, scenario, datasetReceipts, activeIntervention, inputContext }) {
     const inspector = {
       slot: 'inspector', title: `Food recall — ${scenario.label}`,
       rows: [
@@ -89,6 +99,10 @@
         { label: 'True illnesses', value: String(run.trueIllnesses) },
         { label: 'Observed cases', value: String(run.observedCases) },
         { label: 'Detection', value: run.detectionDay ? `day ${run.detectionDay}` : 'not detected' },
+        { label: 'Shipment time', value: `${run.shipmentDurationHours} modeled hours` },
+        { label: 'Cold-chain failures', value: `${run.refrigerationFailures} simulated events` },
+        { label: 'Ambient input', value: inputContext ? `${inputContext.weather.airTemperatureC} °C · ${inputContext.weather.truth.origin}` : 'unavailable' },
+        { label: 'Logistics input', value: inputContext ? `${inputContext.logistics.transitDelayHoursPrior} h delay · ${(inputContext.logistics.availabilityPrior * 100).toFixed(1)}% availability` : 'unavailable' },
         { label: 'True source rank', value: run.trueSourceRank ? `#${run.trueSourceRank}` : 'unranked' },
         ...(run.recall ? [
           { label: 'Recall sensitivity', value: fmtPct(run.recall.recallSensitivity) },
@@ -117,6 +131,7 @@
         { label: 'Illnesses / Cases', value: `${run.trueIllnesses} est. / ${run.observedCases} obs.` },
         { label: 'Detection / Recall', value: `${run.detectionDay ? 'Day ' + run.detectionDay : 'Undetected'} · ${run.recall ? fmtPct(run.recall.recallSensitivity) + ' sensitivity' : 'No recall'}` },
         { label: 'Cases Averted', value: run.recall ? `${run.recall.casesAverted} cases` : '0 cases' },
+        { label: 'Input boundary', value: inputContext ? `${inputContext.weather.providerId}; ${inputContext.logistics.providerId}` : 'No input receipt' },
         { label: 'Claim boundary', value: 'Synthetic scenario estimate — not a live recall alert.' },
       ],
       actions: [],

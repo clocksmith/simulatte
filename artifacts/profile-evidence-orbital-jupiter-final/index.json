@@ -1,0 +1,43 @@
+{
+  "schema": "simulatte.profileEvidenceIndex.v1",
+  "planSha256": "a45df33d1ff47f2b34b23acb9be08b1bf0cc6dfecd408c62410feb6de14bd992",
+  "claimInventorySha256": "3e09f7d9178b52c9c60f545ae87102dfa03a13d4934558bd7674fcf887e592ef",
+  "sourceIdentity": {
+    "buildId": "64b4838d99a3c41498616db50ba0815473cddfa7-cbd5ffaaed3d",
+    "commitSha": "8b5371cdda26dff56e1d6c47eb0fc014cadba199",
+    "worktreeSha256": "2dab665a53c55b33e8b1be94ea6cea83ff18c0002edac631db3204a9970854fd"
+  },
+  "totalRuns": 2,
+  "passedRuns": 2,
+  "pass": false,
+  "profiles": [
+    {
+      "profileId": "orbital-transfer-planner-v1",
+      "totalRuns": 2,
+      "passedRuns": 2,
+      "failureCounts": {}
+    }
+  ],
+  "runs": [
+    {
+      "runId": "run-6084cdb5712dc14e1387",
+      "profileId": "orbital-transfer-planner-v1",
+      "seedId": "earth-jupiter-window",
+      "viewportId": "desktop-1440x1000",
+      "receiptSha256": "d9c5feff689288a70df9a9ed800d1b2b2fc9eba6e4dfe0d310a6860c68366cbc",
+      "receiptPath": "receipts/sha256/d9c5feff689288a70df9a9ed800d1b2b2fc9eba6e4dfe0d310a6860c68366cbc.json",
+      "pass": true,
+      "failures": []
+    },
+    {
+      "runId": "run-b7c4b3824e8225a15824",
+      "profileId": "orbital-transfer-planner-v1",
+      "seedId": "earth-jupiter-window",
+      "viewportId": "mobile-390x844",
+      "receiptSha256": "1bc886a5a28be30c62302c9421acfec9afc2da03b403d840d9fabfbcdd9499bd",
+      "receiptPath": "receipts/sha256/1bc886a5a28be30c62302c9421acfec9afc2da03b403d840d9fabfbcdd9499bd.json",
+      "pass": true,
+      "failures": []
+    }
+  ]
+}

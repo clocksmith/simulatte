@@ -44,6 +44,7 @@
       serviceMeanHours: Math.max(4, Math.min(24, Number(servicePrior.medianHoursInPort) / 2)),
       serviceSigma: spec.serviceSigma,
       disruptionMultiplier: disruption.queueMultiplier,
+      calibration: datasets.calibration.queueCalibration,
       randomForReplicate(index) {
         const stream = random?.stream(`maritime:queue:${spec.seed}`, `${destination.id}:${index}`) || null;
         if (stream) randomStreams.push(stream);
@@ -73,6 +74,7 @@
       queueHours: queueEnsemble.p50WaitHours,
       cargoTeu: spec.cargoTeu,
       model: datasets.emissionsModel,
+      calibration: datasets.calibration,
     });
     const metrics = metricsApi.summarize({
       route,
@@ -98,7 +100,7 @@
       schedulerReceipt: progression.schedulerReceipt,
       randomReceipts: Object.freeze(randomStreams.map((stream) => stream.receipt())),
       dataReceipts: datasets.dataReceipts,
-      modelReceipts: modelReceipts(spec, route, queueEnsemble, emissions),
+      modelReceipts: modelReceipts(spec, route, queueEnsemble, emissions, datasets.calibration),
       comparisons: comparisonDefinitions(spec),
       controls: controlDefinitions(datasets.vessels, spec),
       claimBoundary: 'Deterministic, seeded maritime logistics forecast over observed port identities and modeled corridors, queues, vessel archetypes, cargo, weather scenarios, and emissions. It is not AIS, a booking system, hydrographic navigation, or an operational ETA.',
@@ -319,11 +321,36 @@
     })[kind] || current;
   }
 
-  function modelReceipts(spec, route, queue, emissions) {
+  function modelReceipts(spec, route, queue, emissions, calibration) {
     return Object.freeze([
       modelReceipt('model:governed-corridor-dijkstra-v2', route.algorithm, route.objective, route.evidenceRefs, route.truth.uncertainty, spec.seed),
-      modelReceipt('model:fcfs-multi-server-queue-v2', 'FCFS multi-server discrete-event queue with exponential arrivals and lognormal service', queue.selectedReplicate.parameters, queue.evidenceRefs, queue.truth.uncertainty, spec.seed),
-      modelReceipt('model:maritime-emissions-v2', emissions.method, emissions.parameters, emissions.evidenceRefs, emissions.truth.uncertainty, spec.seed),
+      modelReceipt(
+        'model:fcfs-multi-server-queue-v2',
+        'FCFS multi-server discrete-event queue with exponential arrivals and lognormal service',
+        queue.selectedReplicate.parameters,
+        queue.evidenceRefs,
+        queue.truth.uncertainty,
+        spec.seed,
+        {
+          calibrationStatus: calibration.queueCalibration.status,
+          calibrationArtifactId: calibration.queueCalibration.id,
+          uncertaintyClass: 'stochastic_simulation',
+        }
+      ),
+      modelReceipt(
+        'model:maritime-emissions-v2',
+        emissions.method,
+        emissions.parameters,
+        emissions.evidenceRefs,
+        emissions.truth.uncertainty,
+        spec.seed,
+        {
+          calibrationStatus: calibration.emissionsSensitivity.status,
+          calibrationArtifactId: calibration.emissionsSensitivity.id,
+          uncertaintyClass: 'not_probabilistically_calibrated',
+          parameterSensitivity: emissions.parameterSensitivity,
+        }
+      ),
       modelReceipt('model:container-lineage-state-machine-v2', 'Event-sourced booked, loaded, discharged, delivered state machine', { representativeContainerCount: spec.containerCount }, ['model:maritime-causal-event-log-v2'], {
         kind: 'missing',
         value: { reason: 'Synthetic representative container identities.' },
@@ -339,7 +366,7 @@
     ]);
   }
 
-  function modelReceipt(id, algorithm, parameters, evidenceRefs, uncertainty, seed) {
+  function modelReceipt(id, algorithm, parameters, evidenceRefs, uncertainty, seed, metadata = {}) {
     return deepFreeze({
       schema: 'simulatte.modelReceipt.v4',
       id,
@@ -348,9 +375,15 @@
         ? Object.freeze(['P/P_ref = (v/v_ref)^3', 'fuel = P × load × time × SFOC', 'CO2e = fuel × factor'])
         : Object.freeze([]),
       parameters,
-      calibration: Object.freeze({ evidenceRefs: Object.freeze([...(evidenceRefs || [])]) }),
+      calibration: Object.freeze({
+        status: metadata.calibrationStatus || 'structural',
+        artifactId: metadata.calibrationArtifactId || null,
+        evidenceRefs: Object.freeze([...(evidenceRefs || [])]),
+      }),
       seed,
       uncertainty,
+      uncertaintyClass: metadata.uncertaintyClass || 'model_declared',
+      parameterSensitivity: metadata.parameterSensitivity || null,
       validation: Object.freeze({
         status: 'structural',
         results: Object.freeze(['finite outputs', 'causal ordering', 'container conservation', 'deterministic replay']),

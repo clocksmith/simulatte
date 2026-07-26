@@ -47,6 +47,7 @@
       this.panY = 0;
       this.zoom = 1.0;
       this.isDragging = false;
+      this.manualViewListeners = new Set();
       this.dragStartX = 0;
       this.dragStartY = 0;
 
@@ -61,6 +62,7 @@
       this.hudElement = null;
       this.pluginLayer = tierPresentation?.createLayer({
         width: () => this.width, height: () => this.height, pan: (dx, dy) => { this.panX += dx; this.panY += dy; },
+        fit: (target, system) => this.fitPluginPresentationTarget(target, system),
         view: () => ({ panX: this.panX, panY: this.panY, zoom: this.zoom, currentTier: this.currentTier, bounds: this.data?.bounds, projectCountry: (x, y, bounds) => this.projectCountryPoint(x, y, bounds) }),
       });
 
@@ -99,6 +101,7 @@
       const c = this.canvas;
       this.on(c, 'mousedown', (e) => {
         if (this.currentTier === 'city') return;
+        this.notifyManualView('pan-orbit');
         this.isDragging = true;
         this.dragStartX = e.clientX;
         this.dragStartY = e.clientY;
@@ -128,6 +131,7 @@
 
       this.on(c, 'wheel', (e) => {
         if (this.currentTier === 'city') return;
+        this.notifyManualView('zoom');
         e.preventDefault();
         const zoomFactor = e.deltaY < 0 ? 1.15 : 0.85;
         const nextZoom = Math.max(0.01, Math.min(250.0, this.zoom * zoomFactor));
@@ -141,6 +145,15 @@
         this.panY = cursorY - (cursorY - this.panY) * (nextZoom / this.zoom);
         this.zoom = nextZoom;
       }, { passive: false });
+    }
+
+    notifyManualView(control) {
+      this.manualViewListeners.forEach((listener) => listener({ control, mode: 'free', targetIds: [] }));
+    }
+
+    onManualView(listener) {
+      this.manualViewListeners.add(listener);
+      return () => this.manualViewListeners.delete(listener);
     }
 
     on(target, type, handler, options = {}) {
@@ -562,6 +575,23 @@
       return { x, y };
     }
 
+    fitPluginPresentationTarget(target, coordinateSystem) {
+      const countryBounds = this.data?.bounds;
+      const evidenceBounds = target?.bounds;
+      if (this.currentTier !== 'country' || coordinateSystem !== 'wgs84') return false;
+      const fitted = countryEvidenceView({
+        countryBounds,
+        evidenceBounds,
+        width: this.width,
+        height: this.height,
+      });
+      if (!fitted) return false;
+      this.zoom = fitted.zoom;
+      this.panX = fitted.panX;
+      this.panY = fitted.panY;
+      return true;
+    }
+
     haversineKm(lat1, lon1, lat2, lon2) {
       const toRadians = (value) => (value * Math.PI) / 180;
       const earthRadius = 6371;
@@ -574,8 +604,12 @@
       return 2 * earthRadius * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     }
 
-    setPluginPresentations(contributions) {
-      return this.pluginLayer ? this.pluginLayer.set(contributions) : Object.freeze([]);
+    setPluginPresentations(contributions, options = {}) {
+      return this.pluginLayer ? this.pluginLayer.set(contributions, options) : Object.freeze([]);
+    }
+
+    pluginPresentationReceipt() {
+      return this.pluginLayer?.receipt() || Object.freeze([]);
     }
 
     focusPluginTarget(id) {
@@ -646,10 +680,44 @@
     return new URL(relativePath, TIER_CACHE_BASE_URL).toString();
   }
 
+  function countryEvidenceView({ countryBounds, evidenceBounds, width, height }) {
+    if (
+      !countryBounds ||
+      !evidenceBounds ||
+      !Number.isFinite(width) ||
+      !Number.isFinite(height) ||
+      width <= 0 ||
+      height <= 0 ||
+      ![
+        countryBounds.minLon, countryBounds.maxLon, countryBounds.minLat, countryBounds.maxLat,
+        evidenceBounds.minX, evidenceBounds.maxX, evidenceBounds.minY, evidenceBounds.maxY,
+      ].every(Number.isFinite)
+    ) return null;
+    const countryLonSpan = Math.max(1, countryBounds.maxLon - countryBounds.minLon);
+    const countryLatSpan = Math.max(1, countryBounds.maxLat - countryBounds.minLat);
+    const evidenceLonSpan = Math.max(2, evidenceBounds.maxX - evidenceBounds.minX) * 1.18;
+    const evidenceLatSpan = Math.max(2, evidenceBounds.maxY - evidenceBounds.minY) * 1.18;
+    const availableWidth = width * (width < 600 ? 0.84 : 0.58);
+    const availableHeight = height * (height < 700 ? 0.48 : 0.58);
+    const desiredScale = Math.min(availableWidth / evidenceLonSpan, availableHeight / evidenceLatSpan);
+    const scalePerZoom = Math.min(width / countryLonSpan, height / countryLatSpan) * 0.06;
+    const zoom = Math.max(0.01, Math.min(250, desiredScale / Math.max(scalePerZoom, 0.0001)));
+    const countryCenterX = (countryBounds.minLon + countryBounds.maxLon) / 2;
+    const countryCenterY = (countryBounds.minLat + countryBounds.maxLat) / 2;
+    const targetCenterX = (evidenceBounds.minX + evidenceBounds.maxX) / 2;
+    const targetCenterY = (evidenceBounds.minY + evidenceBounds.maxY) / 2;
+    const scale = scalePerZoom * zoom;
+    return Object.freeze({
+      zoom,
+      panX: width / 2 - (targetCenterX - countryCenterX) * scale,
+      panY: height / 2 + (targetCenterY - countryCenterY) * scale,
+    });
+  }
+
   // --- API DECLARATION ---
   function createTierVisualizer(canvas, containerId) {
     return new TierVisualizer(canvas, containerId);
   }
 
-  return { createTierVisualizer };
+  return { createTierVisualizer, countryEvidenceView };
 });

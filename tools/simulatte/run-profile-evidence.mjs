@@ -53,9 +53,13 @@ function parseArgs(argv) {
 
 function worktreeSha256() {
   const diff = execFileSync('git', ['diff', '--binary', 'HEAD'], { cwd: ROOT, encoding: 'buffer', maxBuffer: 64 * 1024 * 1024 });
-  const status = execFileSync('git', ['status', '--porcelain=v1', '-z', '--untracked-files=all'], { cwd: ROOT, encoding: 'buffer', maxBuffer: 16 * 1024 * 1024 });
-  const hash = crypto.createHash('sha256').update(diff).update(status);
-  for (const row of status.toString('utf8').split('\0').filter(Boolean)) {
+  const rawStatus = execFileSync('git', ['status', '--porcelain=v1', '-z', '--untracked-files=all'], { cwd: ROOT, encoding: 'utf8', maxBuffer: 16 * 1024 * 1024 });
+  const rows = rawStatus.split('\0').filter(Boolean).filter((row) => {
+    const relativePath = row.slice(3).replaceAll('\\', '/');
+    return !relativePath.startsWith('artifacts/');
+  });
+  const hash = crypto.createHash('sha256').update(diff).update(rows.join('\0'));
+  for (const row of rows) {
     if (!row.startsWith('?? ')) continue;
     const filePath = path.join(ROOT, row.slice(3));
     if (fs.statSync(filePath).isFile()) hash.update(fs.readFileSync(filePath));
@@ -93,15 +97,28 @@ function failedReceipt(run, sourceIdentity, claims, error) {
       comparisons: [],
       settlements: [],
       console: [],
-      consoleErrors: [{ type: 'capture', values: [error.message] }],
+      consoleErrors: [{
+        type: 'capture',
+        values: [error.code || error.name || 'Error', error.message],
+        evidence: error.evidence || null,
+      }],
       performance: { frameCount: 0, elapsedMs: null },
       screenshot: null,
       pixelReadback: { status: 'fail' },
       lifecycle: [],
+      reload: { attempted: false, restored: false, reason: 'capture_failed' },
     },
     integrity: { status: 'contradictory', contradictions: ['capture_failed'] },
     claims: claims.map((claim) => ({ id: claim.id, sentence: claim.sentence })),
   };
+}
+
+function attemptSourceIdentity(factory) {
+  try {
+    return { sourceIdentity: factory(), error: null };
+  } catch (error) {
+    return { sourceIdentity: null, error };
+  }
 }
 
 function writePlan(outputDirectory, plan, inventory) {
@@ -131,12 +148,37 @@ function writeSummary(outputDirectory, report) {
     '',
     `Runs: ${report.passedRuns}/${report.totalRuns} passed`,
     '',
+    '| Profile | Passed | Total | Blocking failures |',
+    '| --- | ---: | ---: | --- |',
+    ...report.profiles.map((row) => `| ${row.profileId} | ${row.passedRuns} | ${row.totalRuns} | ${Object.entries(row.failureCounts).map(([failure, count]) => `${failure} (${count})`).join(', ') || 'none'} |`),
+    '',
     '| Profile | Seed | Viewport | Status | Receipt | Failures |',
     '| --- | --- | --- | --- | --- | --- |',
     ...report.runs.map((row) => `| ${row.profileId} | ${row.seedId} | ${row.viewportId} | ${row.pass ? 'pass' : 'fail'} | [${row.receiptSha256.slice(0, 12)}](${row.receiptPath}) | ${row.failures.join(', ') || 'none'} |`),
     '',
   ];
   fs.writeFileSync(path.join(outputDirectory, 'summary.md'), `${lines.join('\n')}\n`);
+}
+
+function profileClosureMatrix(rows) {
+  const profiles = new Map();
+  rows.forEach((row) => {
+    if (!profiles.has(row.profileId)) {
+      profiles.set(row.profileId, {
+        profileId: row.profileId,
+        totalRuns: 0,
+        passedRuns: 0,
+        failureCounts: {},
+      });
+    }
+    const profile = profiles.get(row.profileId);
+    profile.totalRuns += 1;
+    if (row.pass) profile.passedRuns += 1;
+    row.failures.forEach((failure) => {
+      profile.failureCounts[failure] = (profile.failureCounts[failure] || 0) + 1;
+    });
+  });
+  return [...profiles.values()];
 }
 
 function verifyStoredReceipt(outputDirectory, row) {
@@ -193,11 +235,29 @@ async function captureAll({ options, plan, claims, identity }) {
   const rows = [];
   try {
     for (const run of selectedRuns) {
-      const sourceIdentity = currentSourceIdentity(ROOT, run, identity);
       const runClaims = claims.filter((claim) => claim.profileId === run.profileId && claim.seedId === run.seedId);
       const profile = readJson(path.join(ROOT, run.profilePath));
       const seedIndex = profile.seeds.findIndex((seed) => seed.id === run.seedId);
       console.log(`PROFILE-EVIDENCE capture profile=${run.profileId} seed=${run.seedId} viewport=${run.viewport.id}`);
+      const sourceAttempt = attemptSourceIdentity(() => currentSourceIdentity(ROOT, run, identity));
+      if (sourceAttempt.error) {
+        const receipt = failedReceipt(run, null, runClaims, sourceAttempt.error);
+        const stored = storeReceipt(path.join(options.outputDirectory, 'receipts'), receipt);
+        const failures = [sourceAttempt.error.code || sourceAttempt.error.message];
+        rows.push({
+          runId: run.id,
+          profileId: run.profileId,
+          seedId: run.seedId,
+          viewportId: run.viewport.id,
+          receiptSha256: stored.sha256,
+          receiptPath: relativeArtifactLink(options.outputDirectory, stored.path),
+          pass: false,
+          failures,
+        });
+        console.log(`PROFILE-EVIDENCE result=fail run=${run.id} failures=${failures.join(',')}`);
+        continue;
+      }
+      const { sourceIdentity } = sourceAttempt;
       let receipt;
       try {
         receipt = await captureBrowserRun({
@@ -227,7 +287,12 @@ async function captureAll({ options, plan, claims, identity }) {
       console.log(`PROFILE-EVIDENCE result=${validation.pass ? 'pass' : 'fail'} run=${run.id} failures=${validation.failures.join(',') || 'none'}`);
     }
   } finally {
-    if (localServer) await new Promise((resolve) => localServer.server.close(resolve));
+    if (localServer) {
+      localServer.server.close();
+      localServer.server.closeIdleConnections?.();
+      localServer.server.closeAllConnections?.();
+      localServer.server.unref();
+    }
   }
   const report = {
     schema: 'simulatte.profileEvidenceIndex.v1',
@@ -237,6 +302,7 @@ async function captureAll({ options, plan, claims, identity }) {
     totalRuns: selectedRuns.length,
     passedRuns: rows.filter((row) => row.pass).length,
     pass: rows.every((row) => row.pass) && selectedRuns.length === plan.runs.length,
+    profiles: profileClosureMatrix(rows),
     runs: rows,
   };
   fs.writeFileSync(path.join(options.outputDirectory, 'index.json'), `${JSON.stringify(report, null, 2)}\n`);
@@ -268,10 +334,13 @@ async function main() {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  main().catch((error) => {
-    console.error(error && error.stack || error);
-    process.exit(1);
-  });
+  main().then(
+    () => process.exit(process.exitCode || 0),
+    (error) => {
+      console.error(error && error.stack || error);
+      process.exit(1);
+    }
+  );
 }
 
-export { buildIdentity, failedReceipt, parseArgs, validateIndex, worktreeSha256 };
+export { attemptSourceIdentity, buildIdentity, failedReceipt, parseArgs, profileClosureMatrix, validateIndex, worktreeSha256 };

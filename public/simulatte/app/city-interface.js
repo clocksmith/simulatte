@@ -3,7 +3,7 @@
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteCityInterface = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createCityInterface() {
-  function wireCameraControls(elements, renderer, signal) {
+  function wireCameraControls(elements, renderer, signal, hooks = {}) {
     const on = (target, type, handler, options) => target.addEventListener(type, handler, { ...(options || {}), signal });
     const controls = [
       [elements.cameraFollow, 'follow'],
@@ -12,10 +12,14 @@
     ];
     populateCameraFocus(elements.cameraFocus, renderer.cameraTargets());
     controls.forEach(([button, mode]) => on(button, 'click', () => {
+      hooks.onManualNavigation?.({ control: 'mode', mode, targetIds: [] });
       renderer.setCameraMode(mode);
       selectCameraMode(elements, mode);
     }));
-    on(elements.cameraFocus, 'change', () => selectCameraMode(elements, renderer.focusCameraTarget(elements.cameraFocus.value)));
+    on(elements.cameraFocus, 'change', () => {
+      hooks.onManualNavigation?.({ control: 'focus', mode: 'free', targetIds: [elements.cameraFocus.value] });
+      selectCameraMode(elements, renderer.focusCameraTarget(elements.cameraFocus.value));
+    });
   }
 
   function selectCameraMode(elements, mode) {

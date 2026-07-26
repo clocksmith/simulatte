@@ -6,7 +6,7 @@ const contracts = require('../public/simulatte/platform/contracts/plugin-v4-cont
 const clockApi = require('../public/simulatte/platform/runtime/simulation-clock.js');
 const timelineApi = require('../public/simulatte/platform/runtime/simulation-timeline.js');
 
-function fixture({ incompleteSettlement = false } = {}) {
+function fixture({ incompleteSettlement = false, stepOffset = 0 } = {}) {
   const provenance = contracts.createProvenance({
     origin: 'simulated',
     temporalStatus: 'forecast',
@@ -48,7 +48,7 @@ function fixture({ incompleteSettlement = false } = {}) {
         return { status: 'running', currentStep: day, totalSteps: 2 };
       }
       day += 1;
-      return { status: day === 2 ? 'settled' : 'running', currentStep: day, totalSteps: 2 };
+      return { status: day === 2 ? 'settled' : 'running', currentStep: day + stepOffset, totalSteps: 2 + stepOffset };
     },
     async setScenario() { day = 0; },
     async settle() {
@@ -95,4 +95,48 @@ test('plugin playback fails closed when terminal obligations remain unmet', asyn
   await lane.controller.step();
   assert.equal(lane.controller.snapshot().phase, 'failed');
   assert.equal(lane.settledReceipt(), null);
+});
+
+test('plugin playback restores a settled run deterministically from its receipt', async () => {
+  const original = fixture();
+  await original.controller.start();
+  await original.controller.step();
+  await original.controller.step();
+  const receipt = structuredClone(original.settledReceipt());
+
+  const restored = fixture();
+  await restored.controller.restore(receipt);
+  assert.equal(restored.controller.snapshot().phase, 'completed');
+  assert.deepEqual(restored.settledReceipt().actionResult, receipt.actionResult);
+  assert.deepEqual(restored.settledReceipt().settlements, receipt.settlements);
+});
+
+test('plugin playback refuses a reload whose deterministic reconstruction diverges', async () => {
+  const original = fixture();
+  await original.controller.start();
+  await original.controller.step();
+  await original.controller.step();
+  const receipt = structuredClone(original.settledReceipt());
+
+  const changed = fixture({ stepOffset: 1 });
+  await assert.rejects(
+    changed.controller.restore(receipt),
+    (error) => error.code === 'plugin_playback_restore_diverged'
+  );
+});
+
+test('plugin playback receipt storage is profile-scoped and recoverable', () => {
+  const values = new Map();
+  const storage = {
+    getItem: (key) => values.get(key) || null,
+    setItem: (key, value) => values.set(key, value),
+    removeItem: (key) => values.delete(key),
+  };
+  const receipt = { schema: 'simulatte.pluginPlaybackRunReceipt.v1', ownerPluginId: 'fixture' };
+  playbackApi.saveStoredReceipt(storage, 'profile-a', receipt);
+  assert.deepEqual(playbackApi.loadStoredReceipt(storage, 'profile-a'), receipt);
+  assert.equal(playbackApi.loadStoredReceipt(storage, 'profile-b'), null);
+  playbackApi.clearStoredReceipt(storage, 'profile-a');
+  assert.equal(playbackApi.loadStoredReceipt(storage, 'profile-a'), null);
+  assert.equal(playbackApi.browserStorage({ sessionStorage: storage }), storage);
 });

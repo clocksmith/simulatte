@@ -18,6 +18,14 @@ function compileSafetyHistoryIndex() {
   const worldBytes = fs.readFileSync(WORLD_FILE);
   const world = JSON.parse(worldBytes.toString('utf8'));
   const sourceFiles = receipt.files.slice().sort((left, right) => left.output.localeCompare(right.output));
+  const sourceRequests = receipt.plan.requests
+    .filter((request) => request.sourceId === 'nyc-motor-vehicle-crashes');
+  const sourceRequest = sourceRequests[0];
+  if (!sourceRequest
+    || sourceRequests.some((request) => request.authority !== sourceRequest.authority
+      || request.license !== sourceRequest.license)) {
+    throw new Error('Crash-history source requests do not share one governed authority and license');
+  }
   const sourceRows = sourceFiles.flatMap((file) => readVerifiedSource(file));
   const physicalSegments = physicalSegmentRows(world.segments);
   const grid = buildSegmentGrid(physicalSegments);
@@ -51,7 +59,12 @@ function compileSafetyHistoryIndex() {
     world: { id: world.id, contentVersion: world.contentVersion, sha256: sha256(worldBytes) },
     source: {
       datasetId: 'nyc-motor-vehicle-crashes',
-      authority: 'New York City Police Department',
+      authority: sourceRequest.authority,
+      sourceUrl: new URL(sourceRequest.url).origin + new URL(sourceRequest.url).pathname,
+      license: sourceRequest.license,
+      licenseUrl: 'https://opendata.cityofnewyork.us/overview/#termsofuse',
+      retrievedAt: `${receipt.plan.snapshotDate}T00:00:00Z`,
+      rowIdentityField: 'collision_id',
       periodStart: '2025-07-01',
       periodEndExclusive: '2026-07-01',
       sourceReceiptSha256: sha256(receiptBytes),

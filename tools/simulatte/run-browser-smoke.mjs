@@ -445,9 +445,14 @@ async function runBrowserSmoke(options) {
     }
     return report;
   } finally {
-    if (client) client.close();
+    if (client) await client.close();
     await stopChild(chrome);
-    if (staticHost) await new Promise((resolve) => staticHost.server.close(resolve));
+    if (staticHost) {
+      await new Promise((resolve) => {
+        staticHost.server.close(resolve);
+        staticHost.server.closeAllConnections?.();
+      });
+    }
     fs.rmSync(profileDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 50 });
   }
 }
@@ -1064,13 +1069,17 @@ async function main() {
   console.log(`AUTONOMY-BROWSER state=${report.result.state} tick=${report.result.tick} trace=${report.result.traceRows} errors=${report.errors.length} failedResponses=${report.failedResponses.length} status=${report.pass ? 'pass' : 'fail'}`);
   if (report.failedDiagnostics.length) console.log(`AUTONOMY-BROWSER failedChecks=${report.failedDiagnostics.join(',')}`);
   if (!report.pass) process.exitCode = 1;
+  return report;
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  main().catch((error) => {
-    console.error(error && error.stack || error);
-    process.exit(1);
-  });
+  main().then(
+    () => process.exit(process.exitCode || 0),
+    (error) => {
+      console.error(error && error.stack || error);
+      process.exit(1);
+    }
+  );
 }
 
 export { CdpClient, actorViewExpression, browserJourneyExpression, consentFlowExpression, createStaticServer, findChrome, parseUrl, parseViewport, runBrowserSmoke };

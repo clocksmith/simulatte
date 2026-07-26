@@ -12,6 +12,16 @@ const gaiaQuery = [
   '3864972938605115520,762815470562110464,5164707970261890560,',
   '1872046609345556480)',
 ].join('');
+const gaiaSourceCsv = [
+  'source_id,ra,ra_error,dec,dec_error,parallax,parallax_error,pmra,pmra_error,pmdec,pmdec_error,radial_velocity,radial_velocity_error,phot_g_mean_mag,ruwe,ref_epoch',
+  '5164707970261890560,53.22829341517546,0.12144193,-9.458168216292322,0.09303789,310.5772928005821,0.13549915,-974.758145249517,0.15972257,20.875840089774208,0.120366044,,,3.465752,2.7166147,2016.0',
+  '3864972938605115520,164.10319030755974,0.06683743,7.002726940984864,0.051524777,415.17941567802137,0.06837086,-3866.3382751436793,0.08130645,-2699.214987679166,0.06910815,,,11.038391,0.8353354,2016.0',
+  '4472832130942575872,269.44850252543836,0.026238997,4.739420051112412,0.029043527,546.975939730948,0.040116355,-801.5509783684709,0.031820867,10362.394206546573,0.036070455,-110.46822,0.13125522,8.1939745,1.0848505,2016.0',
+  '762815470562110464,165.83095967577933,0.024125582,35.948653032660104,0.029372523,392.75294543876464,0.03206665,-580.0570872139048,0.025565954,-4776.588719443488,0.030034095,-85.11064,0.13100341,6.551172,0.9638494,2016.0',
+  '1872046609345556480,316.7484792940004,0.03876041,38.76386244649797,0.048496146,285.99494829578117,0.05989728,4164.2086922846665,0.055289943,3249.613883848584,0.055022996,-65.97495,0.11701901,4.766713,1.2043179,2016.0',
+  '5853498713190525696,217.39232147200883,0.023999203,-62.67607511676666,0.03443618,768.0665391873573,0.049872905,-3781.741008265163,0.031386077,769.4650146478623,0.050524533,-21.942726,0.21612652,8.984749,0.97145325,2016.0',
+].join('\n') + '\n';
+const sha256 = (value) => crypto.createHash('sha256').update(value).digest('hex');
 
 const truth = (origin, temporalStatus, uncertainty) => ({ origin, temporalStatus, uncertainty });
 const observedTruth = truth('observed', 'historical', {
@@ -31,6 +41,11 @@ const gaiaProvenance = {
   retrievalAt,
   queryLanguage: 'ADQL',
   query: gaiaQuery,
+  sourceArtifact: {
+    path: 'gaia-dr3-source-response-v1.csv',
+    sha256: sha256(gaiaSourceCsv),
+    mediaType: 'text/csv',
+  },
   license: {
     id: 'Gaia-archive-acknowledgement-and-data-use',
     url: 'https://www.cosmos.esa.int/web/gaia-users/credits',
@@ -235,8 +250,23 @@ const hardware = {
   contentVersion: '2026-07-25',
   provenance: {
     truth: scenarioTruth,
-    sourceUrl: 'https://public.ccsds.org/Pubs/142x0b2.pdf',
-    citation: 'CCSDS 142.0-B-2 Optical Communications Coding and Synchronization',
+    retrievalAt,
+    sourceUrl: 'https://public.ccsds.org/Pubs/142x0b1.pdf',
+    citation: 'CCSDS 142.0-B-1 Optical Communications Coding and Synchronization',
+    sourceArtifact: {
+      sha256: '4d9a82efc6bebe9bbc35a0dd9fa5a15defd8b7ff4799ef1ad8578f16212d235f',
+      mediaType: 'application/pdf',
+    },
+    license: {
+      id: 'CCSDS-publication-rights-retained',
+      url: 'https://public.ccsds.org/default.aspx',
+      status: 'publicly-accessible-reference-publication',
+    },
+    coverage: {
+      kind: 'three-engineering-scenario-archetypes',
+      rowCount: 3,
+      observationStatus: 'No terminals are observed.',
+    },
     claimBoundary: 'Parameters are engineering scenarios informed by optical-link equations. They are not observed or deployed terminals.',
   },
   archetypes: {
@@ -304,6 +334,16 @@ const scenarios = {
   contentVersion: '2026-07-25',
   provenance: {
     truth: scenarioTruth,
+    retrievalAt,
+    license: {
+      id: 'Simulatte-repository-governed-scenario',
+      status: 'locally-authored-scenario-data',
+    },
+    coverage: {
+      kind: 'four-public-experiments',
+      rowCount: 4,
+      observationStatus: 'No network topology is observed.',
+    },
     claimBoundary: 'Every relay node, packet, and terminal is hypothetical. Stellar inputs are governed separately.',
   },
   scenarios: [
@@ -367,6 +407,102 @@ const models = {
   id: 'interstellar.relay.models.v1',
   title: 'Interstellar relay equations and assumptions',
   contentVersion: '2026-07-25',
+  provenance: {
+    retrievalAt,
+    license: {
+      id: 'mixed-reference-metadata',
+      status: 'Citations retain publisher-specific rights.',
+    },
+    coverage: {
+      kind: 'four-active-models-and-seven-explicit-omissions',
+      modelCount: 4,
+      omissionCount: 7,
+    },
+    sourceArtifacts: [
+      {
+        id: 'gaia-dr3-data-model',
+        url: 'https://gea.esac.esa.int/archive/documentation/GDR3/Gaia_archive/chap_datamodel/sec_dm_main_source_catalogue/ssec_dm_gaia_source.html',
+        retrievedAt: retrievalAt,
+        sha256: '800bf953fa4d5b63c4f7dabe024753eb4fc987833b6265e57ec5030d9d558c0c',
+        mediaType: 'text/html',
+      },
+      {
+        id: 'nist-speed-of-light',
+        url: 'https://physics.nist.gov/cgi-bin/cuu/Value?c',
+        retrievedAt: retrievalAt,
+        sha256: 'a020472160c5b5d02d63359477193701d350cadd9c3c9c0ae22e82e248c179eb',
+        mediaType: 'text/html',
+      },
+      {
+        id: 'nasa-dsoc',
+        url: 'https://www.nasa.gov/mission/deep-space-optical-communications-dsoc/',
+        retrievedAt: retrievalAt,
+        sha256: '5f1a27ac33d1e55a24c960dca65609a305e31a6025fb0f215e35b67b784d6e9a',
+        mediaType: 'text/html',
+      },
+      {
+        id: 'ccsds-bundle-protocol',
+        url: 'https://public.ccsds.org/Pubs/734x2b1.pdf',
+        retrievedAt: retrievalAt,
+        sha256: 'c37f025602d28800c31c2ba1770ba27ed4e977305d0b3a69ecad8ba67f5748dc',
+        mediaType: 'application/pdf',
+      },
+    ],
+  },
+  omissions: [
+    {
+      id: 'acquisition-not-modeled',
+      label: 'Terminal acquisition and reacquisition',
+      effect: 'Reliability excludes failures to acquire or reacquire the optical target.',
+      affects: ['reliability', 'latency', 'availability'],
+    },
+    {
+      id: 'maintenance-not-modeled',
+      label: 'Maintenance and terminal outage',
+      effect: 'Reliability assumes terminals remain operational for the complete experiment.',
+      affects: ['reliability', 'availability', 'energy'],
+    },
+    {
+      id: 'plasma-not-modeled',
+      label: 'Interstellar plasma and propagation medium',
+      effect: 'Light time and link margin exclude plasma dispersion, scattering, and extinction variability.',
+      affects: ['latency', 'linkMargin', 'reliability'],
+    },
+    {
+      id: 'detector-background-noise-incomplete',
+      label: 'Complete detector and background-noise model',
+      effect: 'Reliability uses a fixed background photon rate instead of a calibrated detector and sky-noise distribution.',
+      affects: ['dataRate', 'linkMargin', 'reliability'],
+    },
+    {
+      id: 'retries-not-modeled',
+      label: 'Retries and retransmission policy',
+      effect: 'The nominal timeline does not retry corrupted, lost, or unavailable transmissions.',
+      affects: ['latency', 'reliability', 'energy'],
+    },
+    {
+      id: 'infrastructure-not-observed',
+      label: 'Operating relay infrastructure',
+      effect: 'Relay terminals, contacts, queues, and traffic are hypothetical scenario entities.',
+      affects: ['all-simulation-results'],
+    },
+    {
+      id: 'continuous-contact-assumed',
+      label: 'Continuous contact availability',
+      effect: 'Every link remains continuously available from transmission start through receipt.',
+      affects: ['latency', 'reliability', 'availability'],
+    },
+  ],
+  reliabilityScope: {
+    conditionalOn: ['continuous-contact-assumed', 'infrastructure-not-observed'],
+    excludes: [
+      'acquisition-not-modeled',
+      'maintenance-not-modeled',
+      'plasma-not-modeled',
+      'detector-background-noise-incomplete',
+      'retries-not-modeled',
+    ],
+  },
   models: [
     {
       id: 'linear-space-motion-v2',
@@ -377,6 +513,7 @@ const models = {
         url: 'https://gea.esac.esa.int/archive/documentation/GDR3/Gaia_archive/chap_datamodel/sec_dm_main_source_catalogue/ssec_dm_gaia_source.html',
       },
       assumptions: ['Constant barycentric velocity', 'Zero radial velocity when catalog value is missing'],
+      omissionIds: [],
       validation: { id: 'analytic-fixtures-v1', status: 'tested' },
       truth: truth('modeled', 'forecast', {
         kind: 'interval',
@@ -392,6 +529,7 @@ const models = {
         url: 'https://physics.nist.gov/cgi-bin/cuu/Value?c',
       },
       assumptions: ['Euclidean barycentric separation', 'No relativistic gravitational delay'],
+      omissionIds: ['plasma-not-modeled'],
       validation: { id: 'one-parsec-light-time-fixture-v1', status: 'tested' },
       truth: truth('derived', 'forecast', {
         kind: 'interval',
@@ -406,7 +544,16 @@ const models = {
         title: 'NASA Deep Space Optical Communications',
         url: 'https://www.nasa.gov/mission/deep-space-optical-communications-dsoc/',
       },
-      assumptions: ['Diffraction-limited circular apertures', 'Declared pointing jitter', 'Fixed background photon rate', 'No acquisition outage'],
+      assumptions: ['Diffraction-limited circular apertures', 'Declared pointing jitter', 'Fixed background photon rate'],
+      omissionIds: [
+        'acquisition-not-modeled',
+        'maintenance-not-modeled',
+        'plasma-not-modeled',
+        'detector-background-noise-incomplete',
+        'retries-not-modeled',
+        'infrastructure-not-observed',
+        'continuous-contact-assumed',
+      ],
       validation: { id: 'inverse-square-and-aperture-monotonicity-v1', status: 'tested' },
       truth: truth('modeled', 'forecast', {
         kind: 'interval',
@@ -422,6 +569,15 @@ const models = {
         url: 'https://public.ccsds.org/Pubs/734x2b1.pdf',
       },
       assumptions: ['Continuous contact availability', 'No retransmission during nominal run', 'Causal store-and-forward ordering'],
+      omissionIds: [
+        'continuous-contact-assumed',
+        'acquisition-not-modeled',
+        'maintenance-not-modeled',
+        'plasma-not-modeled',
+        'detector-background-noise-incomplete',
+        'retries-not-modeled',
+        'infrastructure-not-observed',
+      ],
       validation: { id: 'causal-event-order-and-conservation-v1', status: 'tested' },
       truth: truth('simulated', 'forecast', {
         kind: 'missing',
@@ -439,6 +595,7 @@ const artifacts = [
 ];
 
 fs.mkdirSync(outputDirectory, { recursive: true });
+fs.writeFileSync(path.join(outputDirectory, 'gaia-dr3-source-response-v1.csv'), gaiaSourceCsv);
 const inventory = artifacts.map(([filename, value]) => {
   const content = `${JSON.stringify(value, null, 2)}\n`;
   fs.writeFileSync(path.join(outputDirectory, filename), content);
@@ -455,6 +612,15 @@ const manifest = {
   schema: 'simulatte.interstellarDatasetManifest.v2',
   generatedAt: retrievalAt,
   generator: 'node tools/interstellar-relay/build-governed-relay-data.mjs',
+  sources: [
+    {
+      id: 'gaia-dr3-source-response-v1',
+      filename: 'gaia-dr3-source-response-v1.csv',
+      sha256: sha256(gaiaSourceCsv),
+      retrievalAt,
+      license: gaiaProvenance.license,
+    },
+  ],
   datasets: inventory,
 };
 fs.writeFileSync(

@@ -1,0 +1,33 @@
+{
+  "schema": "simulatte.profileEvidenceIndex.v1",
+  "planSha256": "a45df33d1ff47f2b34b23acb9be08b1bf0cc6dfecd408c62410feb6de14bd992",
+  "claimInventorySha256": "3e09f7d9178b52c9c60f545ae87102dfa03a13d4934558bd7674fcf887e592ef",
+  "sourceIdentity": {
+    "buildId": "64b4838d99a3c41498616db50ba0815473cddfa7-cbd5ffaaed3d",
+    "commitSha": "8b5371cdda26dff56e1d6c47eb0fc014cadba199",
+    "worktreeSha256": "86e10354158cbdb08fcfc3bd9b7244721201714991fde7dc1c9fa996dbbc8d9a"
+  },
+  "totalRuns": 1,
+  "passedRuns": 1,
+  "pass": false,
+  "profiles": [
+    {
+      "profileId": "safety-explorer-v1",
+      "totalRuns": 1,
+      "passedRuns": 1,
+      "failureCounts": {}
+    }
+  ],
+  "runs": [
+    {
+      "runId": "run-4908c711843889bcf9eb",
+      "profileId": "safety-explorer-v1",
+      "seedId": "union-mccarren",
+      "viewportId": "desktop-1440x1000",
+      "receiptSha256": "e0edca838c9419db6bfc85ccef1483ee5e0e8cd59dd05ea0863a1787eb25ff60",
+      "receiptPath": "receipts/sha256/e0edca838c9419db6bfc85ccef1483ee5e0e8cd59dd05ea0863a1787eb25ff60.json",
+      "pass": true,
+      "failures": []
+    }
+  ]
+}

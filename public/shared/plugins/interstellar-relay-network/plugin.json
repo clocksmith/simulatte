@@ -8,7 +8,7 @@
         "id": "gaia.dr3.nearby-stars.v2",
         "path": "../../../data/interstellar-relay-network/gaia-dr3-nearby-stars-v2.json",
         "schemaId": "simulatte.gaiaDr3NearbyStars.v2",
-        "sha256": "3851cad4094acc14cb90e04973d23eecca8708a604e973689a46e60c93c6e7bd"
+        "sha256": "3d0b94d023b4e93c1ce874fa6dd3f8d7e5c3e42832e163f230890a85438b7a18"
       },
       "required": true
     },
@@ -18,7 +18,7 @@
         "id": "relay.hardware.archetypes.v2",
         "path": "../../../data/interstellar-relay-network/relay-hardware-archetypes-v2.json",
         "schemaId": "simulatte.relayHardwareArchetypes.v2",
-        "sha256": "4c0d721c5b6e25c04008f8b289ebf647ebdb85eb69630c814b2208493b39e846"
+        "sha256": "1d9b5784d6918f513619d3a336d132b3b62b7b0133d576ea6bdc2078983da72d"
       },
       "required": true
     },
@@ -28,7 +28,7 @@
         "id": "interstellar.scenario.network.v2",
         "path": "../../../data/interstellar-relay-network/interstellar-scenario-network-v2.json",
         "schemaId": "simulatte.interstellarScenarioNetwork.v2",
-        "sha256": "d5b3aff26171d22ff4b3a961821d6543e087d7c83b0b815cd60b0ce767da7ec0"
+        "sha256": "507c7c7d6f797beb124e222af40dbd5e9b96402ec55d84e5b41d70278508ddc1"
       },
       "required": true
     },
@@ -38,7 +38,7 @@
         "id": "interstellar.relay.models.v1",
         "path": "../../../data/interstellar-relay-network/interstellar-relay-models-v1.json",
         "schemaId": "simulatte.interstellarRelayModelCatalog.v1",
-        "sha256": "b190f2c419a9e19e48cc838ab647e11ee3c52b0624c5b97f4307d924ae1fc030"
+        "sha256": "1c12642b8048d4f6b820e7714ddf1f70005459bf10bf2e45c98e448171adc184"
       },
       "required": true
     }
@@ -46,7 +46,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginInterstellarRelayNetwork",
-    "integrity": "sha384-87a4076959b0daaadf6d3707986cdffd28c5a19f131ebd9475f1abe478fd82a6a229c4f95c20d9719dbcc91f51da0b96",
+    "integrity": "sha384-0208eb5a4cd014e1be9c7d541bee2c1f742f833cfbf4b57f46f033084c740b37e0c31b9fa89647e9778f3bc153201542",
     "path": "./index.js"
   },
   "extensionPoints": [
@@ -98,27 +98,27 @@
       "path": "./config.schema.json"
     },
     {
-      "integrity": "sha384-ec435ff2e5cca3512b53a5ea1da34c43541f1b81c054c78422b15792625d6eceb208980924eba71910a04a16889a0323",
-      "path": "./contact-scheduler.js"
-    },
-    {
       "integrity": "sha384-a9ec46be31be84ec9f16e432e646a6ab749e84b7f4818b4a0355254fc3e55c0ed794416ca584a72b1c01d6af28ab423c",
       "path": "./default-config.json"
+    },
+    {
+      "integrity": "sha384-0575f26ce63214d5cbaf4ff0f62a63406e22687b8e1f1f85954b5225e2be50bfb758caf33b8c76519a5b18bf4d17af76",
+      "path": "./contact-scheduler.js"
     },
     {
       "integrity": "sha384-7e245b4fdff6e46c79e9c1b25665976d00a68dc1b974f592774ab3e437651ab5fd9dc2f26e191bbb65e2329e6edad0c6",
       "path": "./integrity.js"
     },
     {
-      "integrity": "sha384-81ff891d9909ea0983b6ff9d6d8a6306f52c2dec95dfe4a178d9b9eee293fd6919b74eead73f7aadc49eef45ef4502bc",
+      "integrity": "sha384-49f5d1428455311d29315cd2407fa2268091aeceb42ddb899b4807760c2eb3e4ba742ef41f42294c749b9646812e5e15",
       "path": "./light-time.js"
     },
     {
-      "integrity": "sha384-cae6463362babcd364481190c1fad39d39ed34f524ef447fcf133ec6b89efe58229f019432aaad5dc0b33f20a23a27ce",
+      "integrity": "sha384-e2fa589fe4bcf151d340e33fd05c2a2e2e0e676a32fbc1475b850f807087fc4e759b2007ccf8a6fa511ea15ee50efcab",
       "path": "./metrics.js"
     },
     {
-      "integrity": "sha384-e20f28cbeec3f335d83b74648528635d0ec0f2fe209af4d6e775c58abf7ea5c9d8996fd646fd0fde21d3c29750d913b9",
+      "integrity": "sha384-366125efa235ca2a9dd8fd66700ba583be58da489725e0b6ed2e3f10a8aa18c06105b450d4fe8a0ff4005fe110ebd9a5",
       "path": "./optical-link-budget.js"
     },
     {
@@ -126,7 +126,7 @@
       "path": "./packet-queue.js"
     },
     {
-      "integrity": "sha384-605fdc2bbfb473e458a170647f01b818e807ae776063d93346cc6f9ebfd8f06ae5394837a8afddbe8ba6ba2677e8477b",
+      "integrity": "sha384-ad951c54fab88300acc42463feac504af3dc31870423ccc3d04ba05d18e299da98c43e1056b169614f94c8b765087082",
       "path": "./presentation.js"
     },
     {
@@ -134,7 +134,7 @@
       "path": "./stellar-state.js"
     },
     {
-      "integrity": "sha384-f7c8a76f6caa79503d5b98ab960a706ad3393576217ebf6e0dac9af230699e7bad96d029fbd44b83ef0686dd4d3a1d7c",
+      "integrity": "sha384-8d6bdc5cc4cbbe9b6f6ed579a499a3a28d86865a81b0a9e4b5288495a7ff6bbfc844a4a40a7ec6d4be98ab371c6c2efa",
       "path": "./v4-contribution.js"
     }
   ],

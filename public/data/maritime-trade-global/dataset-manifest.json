@@ -46,6 +46,12 @@
       "sha256": "9ef87a2d408c07ce94d6fa9cfe7e7aaa96293b2a7a19426127eaa791b91c97e0"
     },
     {
+      "datasetId": "maritime.calibration.artifacts.v1",
+      "schemaId": "simulatte.maritimeCalibrationArtifacts.v1",
+      "path": "../../../data/maritime-trade-global/calibration-artifacts-v1.json",
+      "sha256": "527d75f6a208f99cd167ba8d4239b3f7de3b1a0c3a2441faa8a7a1861b4dffea"
+    },
+    {
       "datasetId": "maritime.voyage.scenarios.v1",
       "schemaId": "simulatte.maritimeVoyageScenarios.v1",
       "path": "../../../data/maritime-trade-global/voyage-scenarios-v1.json",
@@ -55,7 +61,7 @@
       "datasetId": "maritime.provenance.registry.v1",
       "schemaId": "simulatte.maritimeProvenanceRegistry.v1",
       "path": "../../../data/maritime-trade-global/provenance-registry-v1.json",
-      "sha256": "134a1ff3a0953bab0ab0273c2a3ba9dd060a3716480c9b74cecbfb7d3cf3a3d1"
+      "sha256": "9ae28da60a6b859bcdac7d7063bd85e2ab6e04827869597af7e62b25119b30b5"
     }
   ]
 }

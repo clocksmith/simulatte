@@ -38,9 +38,16 @@ CO2e = fuel × fuel carbon factor
 intensity = CO2e / (cargo TEU × distance NM)
 ```
 
-The calculation includes sailing load and queue auxiliary load. It reports a declared
-plus or minus 20 percent archetype sensitivity. That range is not vessel-specific
-measurement error.
+The calculation includes sailing load and queue auxiliary load. A separate governed
+calibration artifact runs declared joint low and high parameter cases over exponent,
+reference load, engine power, SFOC, and queue auxiliary load. Those results are
+deterministic engineering sensitivity, with null probability and confidence level.
+They are not p05/p95, a prediction interval, or vessel-specific measurement error.
+
+Queue p05/p50/p95 has a different meaning: it is the empirical distribution across
+seeded discrete-event replicates with fixed model parameters. It covers simulation
+randomness only. It does not cover queue parameter uncertainty, model-form error, or
+the missing row-level calibration to observed port calls.
 
 ## Progressive state and events
 
@@ -78,6 +85,7 @@ provided. A v4 clock may call `scenario.run` with `phase: "start"` and repeated
 | Selected voyage | Cargo TEU, distance, speed, progress, disruption severity |
 | Voyage actor | Progress, cargo, speed, event state |
 | Destination queue | p05, p50, p95 wait and ensemble count |
+| Emissions sensitivity | Low, baseline, and high CO2e deterministic parameter cases |
 
 Each object has geometry, semantic quantities, truth dimensions, and evidence
 references. The semantic contract contains no colors, final widths, label density,
@@ -99,15 +107,26 @@ cargo TEU, and queue ensemble count. The current declarative UI can render these
 select and number fields.
 
 `selected-vs-undisrupted` defines a synchronized baseline/intervention comparison with
-a common seed. It compares transit days, queue wait, fuel, and CO2e. Until the shared
+a common seed. It compares transit days, queue wait, fuel, and CO2e. The comparison
+reports queue stochastic quantiles and branch-specific emissions parameter-sensitivity
+envelopes as separate structures; its composite receipt intentionally has no single
+uncertainty distribution. Until the shared
 branch runtime consumes the definition, `counterfactual.compare` runs the baseline
 synchronously inside the plugin and stores both immutable results.
 
 ## Provenance and truth boundary
 
 `public/data/maritime-trade-global/provenance-registry-v1.json` records source,
-retrieval date, source terms, coverage, resolution, artifact hash, transformations,
-field truth, and uncertainty for every active dataset.
+retrieval date, source version/document identity, license-verification status,
+canonical source-identity hash, source-content-hash availability, row identity,
+coverage, resolution, artifact hash, transformations, field truth, and uncertainty.
+`calibration-artifacts-v1.json` makes the unresolved queue calibration and declared
+emissions sensitivity machine-readable.
+
+Source identity hashes are SHA-256 hashes of canonical source identity strings
+(publisher, version/document identifier, and official URL). They are not represented
+as source-content hashes. `sourceContentSha256` remains null because no immutable raw
+WPI, UN/LOCODE, CPPI, IBTrACS, or IMO source snapshot is checked in.
 
 | Input | Truth boundary |
 | --- | --- |
@@ -129,6 +148,14 @@ Remaining data limitations:
 - The corridor graph is sparse and uses aggregate port-to-port geometry.
 - Port service priors need a documented row-level calibration to a pinned CPPI
   release before they may be called observed.
+- The current queue ensemble quantifies stochastic simulation variability only; it
+  does not quantify calibration or model-form uncertainty.
+- Emissions low/high cases are declared joint parameter scenarios, not probabilities,
+  confidence intervals, or one-at-a-time parameter attribution.
+- Upstream source-content hashes remain unavailable until licensed/allowed raw source
+  snapshots are pinned; canonical source-identity hashes do not substitute for them.
+- Dataset-specific licenses for WPI and UN/LOCODE were not verified, and rights for
+  CPPI underlying third-party operational data are not asserted.
 - Canal service parameters are declared models without a pinned source-row
   calibration.
 - Cyclone tracks are climatology-shaped synthetic scenarios.
@@ -142,10 +169,10 @@ The plugin does not modify shared runtime files. Integration owns these deltas:
 1. Regenerate `public/simulatte/platform/plugin-host/generated-plugin-registry.js`
    from `plugin.json`. The checked-in shared registry still embeds Maritime v1 and
    its old dataset declarations.
-2. Keep the existing World script inventory loading the nine active Maritime
-   JavaScript resources. It currently also loads the unused legacy files
-   `routing.js`, `emissions.js`, `ports.js`, and `vessels.js`; remove those entries
-   when the shared inventory owner is ready.
+2. Keep the World script inventory limited to the active Maritime resources.
+   Import-graph and manifest tests prove that the removed `routing.js`,
+   `emissions.js`, `ports.js`, and `vessels.js` compatibility modules are not part
+   of the runtime or deployment package.
 3. Drive `phase: "start"` and `phase: "step"` from the shared simulation clock.
 4. Consume `contributeV4()` as `simulatte.pluginContribution.v4` through the shared
    runtime and compositor, then remove `adaptSemanticToV3`.
@@ -165,5 +192,8 @@ node --test tests/maritime-trade-global.test.cjs
 
 The focused suite verifies all five route intents, deterministic replay, chronological
 causal events, progressive state, container conservation, truth and evidence coverage,
-semantic presentation purity, v3 adapter validation, queue quantiles, progressive and
-terminal playback paths, common-seed comparison, and every plugin/data integrity hash.
+semantic presentation purity, v3 adapter validation, queue quantiles, explicit
+separation of queue stochastic uncertainty from emissions parameter sensitivity,
+calibration/source metadata, completion receipts, settlement obligations, progressive
+and terminal playback paths, common-seed comparison, and every plugin/data integrity
+hash.

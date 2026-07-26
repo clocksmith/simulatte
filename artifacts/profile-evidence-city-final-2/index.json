@@ -1,0 +1,69 @@
+{
+  "schema": "simulatte.profileEvidenceIndex.v1",
+  "planSha256": "a45df33d1ff47f2b34b23acb9be08b1bf0cc6dfecd408c62410feb6de14bd992",
+  "claimInventorySha256": "3e09f7d9178b52c9c60f545ae87102dfa03a13d4934558bd7674fcf887e592ef",
+  "sourceIdentity": {
+    "buildId": "64b4838d99a3c41498616db50ba0815473cddfa7-cbd5ffaaed3d",
+    "commitSha": "8b5371cdda26dff56e1d6c47eb0fc014cadba199",
+    "worktreeSha256": "0a27bc1bb5c6242ddef6d3551855e1d1a9fcfac1b7661ddd14e5ef99272afde1"
+  },
+  "totalRuns": 4,
+  "passedRuns": 4,
+  "pass": false,
+  "profiles": [
+    {
+      "profileId": "cable-trader-pickup-v1",
+      "totalRuns": 2,
+      "passedRuns": 2,
+      "failureCounts": {}
+    },
+    {
+      "profileId": "safety-explorer-v1",
+      "totalRuns": 2,
+      "passedRuns": 2,
+      "failureCounts": {}
+    }
+  ],
+  "runs": [
+    {
+      "runId": "run-b3b2447a1930776c4016",
+      "profileId": "cable-trader-pickup-v1",
+      "seedId": "july-baseline",
+      "viewportId": "desktop-1440x1000",
+      "receiptSha256": "b15935fc511b1f30b57056f85fc56ca8f736911e16fe471de4d8e891d084681e",
+      "receiptPath": "receipts/sha256/b15935fc511b1f30b57056f85fc56ca8f736911e16fe471de4d8e891d084681e.json",
+      "pass": true,
+      "failures": []
+    },
+    {
+      "runId": "run-3c81417b6ce783ae643e",
+      "profileId": "cable-trader-pickup-v1",
+      "seedId": "july-baseline",
+      "viewportId": "mobile-390x844",
+      "receiptSha256": "4364903453a62b4ed6c73ee596d85400b95c901909b1e530d1a367df7552ed23",
+      "receiptPath": "receipts/sha256/4364903453a62b4ed6c73ee596d85400b95c901909b1e530d1a367df7552ed23.json",
+      "pass": true,
+      "failures": []
+    },
+    {
+      "runId": "run-4908c711843889bcf9eb",
+      "profileId": "safety-explorer-v1",
+      "seedId": "union-mccarren",
+      "viewportId": "desktop-1440x1000",
+      "receiptSha256": "debbdf5bd2a565392fde8a053d16afb3008310dec228c16e0aafc50ff7a5acb7",
+      "receiptPath": "receipts/sha256/debbdf5bd2a565392fde8a053d16afb3008310dec228c16e0aafc50ff7a5acb7.json",
+      "pass": true,
+      "failures": []
+    },
+    {
+      "runId": "run-d41f0823f11b4d9b8cd6",
+      "profileId": "safety-explorer-v1",
+      "seedId": "union-mccarren",
+      "viewportId": "mobile-390x844",
+      "receiptSha256": "c81c23d199e01c2d8865383c08f6b8ca9719f818535cc91bdb102101c2d76d01",
+      "receiptPath": "receipts/sha256/c81c23d199e01c2d8865383c08f6b8ca9719f818535cc91bdb102101c2d76d01.json",
+      "pass": true,
+      "failures": []
+    }
+  ]
+}

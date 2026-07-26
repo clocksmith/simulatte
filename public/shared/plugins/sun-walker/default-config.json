@@ -1,5 +1,5 @@
 {
-  "schema": "simulatte.plugin.sunWalkerConfig.v2",
+  "schema": "simulatte.plugin.sunWalkerConfig.v3",
   "id": "sun-walker-default-v1",
   "seed": "sun-walker-clear-sky-v2",
   "maximumAlternatives": 3,
@@ -10,6 +10,7 @@
   "sampleSpacingM": 12,
   "walkingSpeedMps": 1.4,
   "minimumSolarElevationDegrees": 2,
-  "treeCanopyParticipation": false,
-  "weatherParticipation": false
+  "treeCanopyParticipation": true,
+  "weatherParticipation": true,
+  "canopyShadeThreshold": 0.5
 }

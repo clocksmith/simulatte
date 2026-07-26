@@ -1,0 +1,43 @@
+{
+  "schema": "simulatte.profileEvidenceIndex.v1",
+  "planSha256": "a45df33d1ff47f2b34b23acb9be08b1bf0cc6dfecd408c62410feb6de14bd992",
+  "claimInventorySha256": "3e09f7d9178b52c9c60f545ae87102dfa03a13d4934558bd7674fcf887e592ef",
+  "sourceIdentity": {
+    "buildId": "64b4838d99a3c41498616db50ba0815473cddfa7-cbd5ffaaed3d",
+    "commitSha": "8b5371cdda26dff56e1d6c47eb0fc014cadba199",
+    "worktreeSha256": "7ff9e0c90f2d25994819c9b107c6eeb473430f8f12378717e739feeaafdc7843"
+  },
+  "totalRuns": 2,
+  "passedRuns": 2,
+  "pass": false,
+  "profiles": [
+    {
+      "profileId": "food-recall-us-v1",
+      "totalRuns": 2,
+      "passedRuns": 2,
+      "failureCounts": {}
+    }
+  ],
+  "runs": [
+    {
+      "runId": "run-d53f10d633b93b2fc606",
+      "profileId": "food-recall-us-v1",
+      "seedId": "allergen-label",
+      "viewportId": "desktop-1440x1000",
+      "receiptSha256": "16924e8d79aa02b984d198d74796bb954d306dde3b25335ae281f0fac9860dbf",
+      "receiptPath": "receipts/sha256/16924e8d79aa02b984d198d74796bb954d306dde3b25335ae281f0fac9860dbf.json",
+      "pass": true,
+      "failures": []
+    },
+    {
+      "runId": "run-3385ae8c27b6e575b310",
+      "profileId": "food-recall-us-v1",
+      "seedId": "allergen-label",
+      "viewportId": "mobile-390x844",
+      "receiptSha256": "44f0ec7eae074e452a7b55d48d39357f90a63acf56844e3846b83ef2a512df3a",
+      "receiptPath": "receipts/sha256/44f0ec7eae074e452a7b55d48d39357f90a63acf56844e3846b83ef2a512df3a.json",
+      "pass": true,
+      "failures": []
+    }
+  ]
+}

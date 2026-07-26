@@ -88,10 +88,10 @@ async function waitForDevtools(port, child) {
 // when Start dispatches scenario.run and settlement completes.
 const STATE_PROBE = `(() => {
   const receipt = window.__simulatteTierRunReceipt || null;
-  const text = document.body ? document.body.innerText : '';
-  const match = text.match(/\\b(Loading experience|Ready|Running scenario|Complete|Stopped)\\b/);
+  const runtimeStatus = document.getElementById('runtime-status');
   return {
-    status: match ? match[1] : '',
+    status: runtimeStatus ? runtimeStatus.textContent.trim() : '',
+    statusKind: runtimeStatus ? runtimeStatus.dataset.kind || '' : '',
     error: window.__simulatteLastFailError?.message || '',
     receipt: receipt ? { actionStatus: receipt.actionResult && receipt.actionResult.status, obligations: (receipt.settlement && receipt.settlement[0] && receipt.settlement[0].obligationResults || []).length } : null,
   };
@@ -139,7 +139,7 @@ async function auditTier(chromePath, baseUrl, item) {
   } catch (error) {
     report.errors.unshift(error.message);
   } finally {
-    if (client) client.close();
+    if (client) await client.close();
     chrome.kill();
   }
   return report;

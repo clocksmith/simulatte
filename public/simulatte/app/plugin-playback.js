@@ -1,8 +1,11 @@
 (function attachPluginPlayback(root, factory) {
-  const api = factory();
+  const comparisonAdapter = typeof module === 'object' && module.exports
+    ? require('../platform/core/simulation/comparison-result-adapter.js')
+    : root.SimulatteComparisonResultAdapter;
+  const api = factory(comparisonAdapter);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulattePluginPlayback = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createPluginPlaybackModule() {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createPluginPlaybackModule(comparisonAdapter) {
   function createController({
     runtime,
     ownerPluginId,
@@ -51,6 +54,13 @@
       return snapshot();
     }
 
+    function resume() {
+      if (phase !== 'paused') return snapshot();
+      setPhase('running');
+      clock.play();
+      return snapshot();
+    }
+
     async function step() {
       if (phase === 'ready') {
         actionResult = await dispatch('start');
@@ -95,7 +105,15 @@
           actual: settlements,
         });
       }
-      return publishSettlement(settlements);
+      const comparisonExecutionReceipt = await executeComparison();
+      if (receipt.comparisonExecutionReceipt
+        && JSON.stringify(comparisonExecutionReceipt) !== JSON.stringify(receipt.comparisonExecutionReceipt)) {
+        throw playbackError('plugin_playback_restore_comparison_diverged', 'Reconstructed comparison differs from the stored receipt', {
+          expected: receipt.comparisonExecutionReceipt,
+          actual: comparisonExecutionReceipt,
+        });
+      }
+      return publishSettlement(settlements, comparisonExecutionReceipt);
     }
 
     async function reset(nextScenario = activeScenario) {
@@ -126,10 +144,35 @@
       if (!settlements.length || settlements.some((row) => row.obligationResults.some((result) => result.status !== 'settled'))) {
         throw playbackError('plugin_playback_settlement_incomplete', `Plugin ${ownerPluginId} did not settle every obligation`, { settlements });
       }
-      return publishSettlement(settlements);
+      return publishSettlement(settlements, await executeComparison());
     }
 
-    function publishSettlement(settlements) {
+    async function executeComparison() {
+      if (typeof runtime.platformV4 !== 'function') return null;
+      const platform = runtime.platformV4({ scenario: activeScenario, compositionSize: runtime.activePluginIds?.length || 1 });
+      const contribution = platform.contributions.find((row) => row.pluginId === ownerPluginId);
+      const definition = contribution?.controls?.comparisons?.[0] || null;
+      if (!definition) return null;
+      if (!comparisonAdapter?.createSettledComparison) {
+        throw playbackError('plugin_playback_comparison_adapter_missing', 'Shared comparison execution is unavailable');
+      }
+      const comparison = await runtime.dispatchAction(ownerPluginId, 'counterfactual.compare', {
+        scenario: activeScenario,
+        values: {},
+      });
+      if (comparison?.status !== 'settled' || !comparison.comparisonBranches) {
+        throw playbackError('plugin_playback_comparison_missing', `Plugin ${ownerPluginId} did not execute both comparison branches`, { comparison });
+      }
+      return comparisonAdapter.createSettledComparison({
+        pluginId: ownerPluginId,
+        scenario: activeScenario,
+        comparisonId: comparison.comparisonId || definition.id,
+        branches: comparison.comparisonBranches,
+        contribution,
+      });
+    }
+
+    function publishSettlement(settlements, comparisonExecutionReceipt = null) {
       setPhase('completed');
       const receipt = Object.freeze({
         schema: 'simulatte.pluginPlaybackRunReceipt.v1',
@@ -137,6 +180,7 @@
         scenario: activeScenario,
         actionResult,
         settlements,
+        comparisonExecutionReceipt,
         clock: clock.receipt(),
         runtime: runtime.runtimeReceipt(),
       });
@@ -181,7 +225,7 @@
       unsubscribe();
     }
 
-    return Object.freeze({ dispose, pause, replay, reset, restore, snapshot, start, step });
+    return Object.freeze({ dispose, pause, replay, reset, restore, resume, snapshot, start, step });
   }
 
   function validateRestoreReceipt(value, ownerPluginId) {
@@ -228,6 +272,14 @@
     if (storage && typeof storage.removeItem === 'function') storage.removeItem(storageKey(profileId));
   }
 
+  function browserStorage(host) {
+    try {
+      return host?.sessionStorage || null;
+    } catch {
+      return null;
+    }
+  }
+
   function playbackError(code, message, evidence = null) {
     const error = new Error(`${code}: ${message}`);
     error.name = 'SimulattePluginPlaybackError';
@@ -236,5 +288,5 @@
     return error;
   }
 
-  return Object.freeze({ clearStoredReceipt, createController, loadStoredReceipt, saveStoredReceipt, storageKey });
+  return Object.freeze({ browserStorage, clearStoredReceipt, createController, loadStoredReceipt, saveStoredReceipt, storageKey });
 });

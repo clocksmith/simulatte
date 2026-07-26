@@ -18,17 +18,31 @@
     return geographyApi.createProjection(projection || geographyApi.projectionFromWorld(world));
   }
 
-  function compile(contributions, worldModel) {
+  function compile(contributions, worldModel, options = {}) {
     if (!worldModel || typeof worldModel.node !== 'function' || typeof worldModel.segment !== 'function') {
       throw presentationError('plugin_presentation_world_invalid', 'Presentation compiler expected a world model');
     }
     const rows = Array.isArray(contributions) ? contributions : [];
     const projection = projectionForWorld(worldModel);
-    const compiled = { schema: SCHEMA, markers: [], paths: [], actors: [], areas: [], sun: null, cameraTargets: [], geoMarkers: [], geoPaths: [], geoAreas: [], choropleths: [] };
+    const compiled = {
+      schema: SCHEMA,
+      markers: [],
+      paths: [],
+      actors: [],
+      areas: [],
+      sun: null,
+      cameraTargets: [],
+      geoMarkers: [],
+      geoPaths: [],
+      geoAreas: [],
+      choropleths: [],
+      labels: [],
+      compositorReceipts: [],
+    };
     rows.forEach(({ pluginId, presentation }) => {
       const namespace = (id) => `plugin:${pluginId}:${id}`;
       if (presentation.schema === 'simulatte.pluginPresentation.v4') {
-        compileSemantic(compiled, presentation, pluginId, namespace, projection, worldModel);
+        compileSemantic(compiled, presentation, pluginId, namespace, projection, worldModel, options);
         return;
       }
       if (presentation.schema === 'simulatte.pluginPresentation.v3') {
@@ -115,43 +129,71 @@
     return Object.freeze(compiled);
   }
 
-  function compileSemantic(compiled, presentation, pluginId, namespace, projection, worldModel) {
+  function compileSemantic(compiled, presentation, pluginId, namespace, projection, worldModel, options) {
     const layerPoints = new Map();
     presentation.layers.forEach((layer) => {
       const points = resolveSemanticGeometry(layer.geometry, worldModel, pluginId, projection, layer.id);
       layerPoints.set(layer.id, points);
-      const style = compositorApi.styleForLayer(layer);
+    });
+    const viewport = validViewport(options.viewport) ? options.viewport : { width: 1024, height: 768 };
+    const worldUnitsPerPixel = renderScaleForPoints([...layerPoints.values()].flat(), viewport);
+    const selectedIds = (options.selectedIds || [])
+      .map((id) => id.startsWith(`plugin:${pluginId}:`) ? id.slice(`plugin:${pluginId}:`.length) : id)
+      .filter((id) => presentation.layers.some((layer) => layer.id === id));
+    const composition = compositorApi.createCompositor(options.compositorPolicy).compose(presentation, {
+      simulationTimeMs: Number(options.simulationTimeMs || 0),
+      selectedIds,
+      viewport,
+      provenanceReceipt: provenanceReceiptFor(options.provenanceReceipts, pluginId),
+      project: (_source, _geometry, layer) => projectLayer(layerPoints.get(layer.id), layerPoints, viewport),
+    });
+    compiled.compositorReceipts.push(Object.freeze({
+      pluginId,
+      ...composition.receipt,
+    }));
+    composition.labels.forEach((row) => compiled.labels.push(Object.freeze({
+      ...row,
+      id: namespace(row.id),
+      sourceId: row.id,
+      pluginId,
+    })));
+    composition.primitives.forEach((primitive) => {
+      const points = resolveSemanticGeometry(primitive.geometry, worldModel, pluginId, projection, primitive.id);
+      const style = primitive.style;
       const common = Object.freeze({
-        id: namespace(layer.id),
-        sourceId: layer.id,
+        id: namespace(primitive.id),
+        sourceId: primitive.id,
         pluginId,
-        label: layer.label,
-        tone: originTone(layer.provenance.axes.origin),
+        label: primitive.label,
+        tone: originTone(primitive.provenance.axes.origin),
         style,
-        provenance: layer.provenance,
-        intensity: style.strokeOpacity,
+        provenance: primitive.provenance,
+        memberIds: primitive.memberIds,
+        intensity: semanticIntensity(style),
       });
-      if (['point', 'label'].includes(layer.kind)) {
+      if (['point', 'point-cluster', 'label'].includes(primitive.kind)) {
+        const radiusM = screenPixelsToWorld(style.radiusPx || 4, worldUnitsPerPixel);
         compiled.markers.push(Object.freeze({
           ...common,
           point: points[0],
-          radiusM: style.radiusPx || 4,
-          heightM: style.radiusPx ? style.radiusPx * 2 : 8,
+          radiusM,
+          heightM: radiusM * 3,
         }));
-      } else if (layer.kind === 'actor') {
+      } else if (primitive.kind === 'actor') {
+        const radiusM = screenPixelsToWorld(style.radiusPx || 5, worldUnitsPerPixel);
         compiled.markers.push(Object.freeze({
           ...common,
           point: points[0],
-          radiusM: style.radiusPx || 5,
-          heightM: 10,
+          radiusM,
+          heightM: radiusM * 2,
         }));
-      } else if (layer.kind === 'path') {
+      } else if (primitive.kind === 'path') {
         compiled.paths.push(Object.freeze({
           ...common,
           points: Object.freeze(points),
-          widthM: style.widthPx || 1,
+          widthM: screenPixelsToWorld(style.widthPx || 1, worldUnitsPerPixel),
         }));
-      } else if (['area', 'field'].includes(layer.kind)) {
+      } else if (['area', 'field'].includes(primitive.kind)) {
         compiled.areas.push(Object.freeze({
           ...common,
           points: Object.freeze(points),
@@ -192,6 +234,61 @@
         }));
       });
     });
+  }
+
+  function provenanceReceiptFor(receipts, pluginId) {
+    return (Array.isArray(receipts) ? receipts : [])
+      .find((receipt) => receipt?.pluginId === pluginId) || null;
+  }
+
+  function projectLayer(points, allLayerPoints, viewport) {
+    const source = centerPoint(points || []);
+    const allPoints = [...allLayerPoints.values()].flat();
+    if (!allPoints.length) return [viewport.width / 2, viewport.height / 2];
+    const minimumX = Math.min(...allPoints.map((row) => row.x));
+    const maximumX = Math.max(...allPoints.map((row) => row.x));
+    const minimumY = Math.min(...allPoints.map((row) => row.y));
+    const maximumY = Math.max(...allPoints.map((row) => row.y));
+    const spanX = Math.max(1, maximumX - minimumX);
+    const spanY = Math.max(1, maximumY - minimumY);
+    const padding = Math.min(24, viewport.width / 8, viewport.height / 8);
+    return [
+      padding + ((source.x - minimumX) / spanX) * Math.max(1, viewport.width - padding * 2),
+      padding + ((source.y - minimumY) / spanY) * Math.max(1, viewport.height - padding * 2),
+    ];
+  }
+
+  function centerPoint(points) {
+    if (!points.length) return { x: 0, y: 0 };
+    return {
+      x: points.reduce((sum, row) => sum + row.x, 0) / points.length,
+      y: points.reduce((sum, row) => sum + row.y, 0) / points.length,
+    };
+  }
+
+  function validViewport(value) {
+    return value
+      && Number.isFinite(value.width)
+      && Number.isFinite(value.height)
+      && value.width > 0
+      && value.height > 0;
+  }
+
+  function renderScaleForPoints(points, viewport) {
+    if (!points.length) return 1;
+    const spanX = Math.max(...points.map((row) => row.x)) - Math.min(...points.map((row) => row.x));
+    const spanY = Math.max(...points.map((row) => row.y)) - Math.min(...points.map((row) => row.y));
+    const horizontalPixels = Math.max(1, viewport.width - Math.min(48, viewport.width / 4));
+    const verticalPixels = Math.max(1, viewport.height - Math.min(48, viewport.height / 4));
+    return Math.max(0.5, spanX / horizontalPixels, spanY / verticalPixels);
+  }
+
+  function screenPixelsToWorld(value, worldUnitsPerPixel) {
+    return Math.max(0.5, Number(value) * worldUnitsPerPixel);
+  }
+
+  function semanticIntensity(style) {
+    return Math.min(1.6, 0.7 + Number(style.strokeOpacity || 0));
   }
 
   function resolveSemanticGeometry(geometry, worldModel, pluginId, projection, layerId) {

@@ -3,5 +3,15 @@
   "id": "orbital-transfer-planner-config-v1",
   "defaultArchetype": "cargo-freighter-v1",
   "defaultDepotId": "depot-earth-l1",
-  "defaultScenarioId": "earth-mars-window"
+  "defaultScenarioId": "earth-mars-window",
+  "solver": {
+    "prograde": true,
+    "maxIterations": 96,
+    "toleranceDays": 1e-8
+  },
+  "verification": {
+    "stepDays": 0.5,
+    "positionToleranceKm": 1000000,
+    "velocityToleranceKmS": 0.5
+  }
 }

@@ -1,0 +1,43 @@
+{
+  "schema": "simulatte.profileEvidenceIndex.v1",
+  "planSha256": "a45df33d1ff47f2b34b23acb9be08b1bf0cc6dfecd408c62410feb6de14bd992",
+  "claimInventorySha256": "3e09f7d9178b52c9c60f545ae87102dfa03a13d4934558bd7674fcf887e592ef",
+  "sourceIdentity": {
+    "buildId": "64b4838d99a3c41498616db50ba0815473cddfa7-cbd5ffaaed3d",
+    "commitSha": "8b5371cdda26dff56e1d6c47eb0fc014cadba199",
+    "worktreeSha256": "58bc394f9281b203e4d19e257294934d56a74a0fc57dc05896d0f74801f17666"
+  },
+  "totalRuns": 2,
+  "passedRuns": 2,
+  "pass": false,
+  "profiles": [
+    {
+      "profileId": "interstellar-relay-network-v1",
+      "totalRuns": 2,
+      "passedRuns": 2,
+      "failureCounts": {}
+    }
+  ],
+  "runs": [
+    {
+      "runId": "run-e1c0921e985c6b85da2d",
+      "profileId": "interstellar-relay-network-v1",
+      "seedId": "sol-proxima-direct",
+      "viewportId": "desktop-1440x1000",
+      "receiptSha256": "a45db789ba41f5b563e5682bca51434d3aa66a27be4ffc889eea5f8173166d75",
+      "receiptPath": "receipts/sha256/a45db789ba41f5b563e5682bca51434d3aa66a27be4ffc889eea5f8173166d75.json",
+      "pass": true,
+      "failures": []
+    },
+    {
+      "runId": "run-336832adc71f76a39ca8",
+      "profileId": "interstellar-relay-network-v1",
+      "seedId": "sol-proxima-direct",
+      "viewportId": "mobile-390x844",
+      "receiptSha256": "20f2b1c415284a6e444602cff971a99284261b19326b1a9cc96f952229e82aa1",
+      "receiptPath": "receipts/sha256/20f2b1c415284a6e444602cff971a99284261b19326b1a9cc96f952229e82aa1.json",
+      "pass": true,
+      "failures": []
+    }
+  ]
+}

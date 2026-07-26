@@ -5,6 +5,7 @@ const comparisonModule = require(
   '../public/simulatte/platform/core/simulation/comparison-execution.js'
 );
 const pluginContracts = require('../public/simulatte/platform/contracts/plugin-v4-contracts.js');
+const pluginBuilder = require('../public/shared/core/simulation/plugin-v4-builder.js');
 
 const DATASET_HASH = 'a'.repeat(64);
 const MODEL_HASH = 'b'.repeat(64);
@@ -24,15 +25,13 @@ const STARTING_IDENTITY = Object.freeze({
   modelHashes: [{ id: 'model:test', sha256: MODEL_HASH }],
   hiddenTruth: { id: 'truth:test', sha256: TRUTH_HASH },
 });
-const EVIDENCE_CATALOG = Object.freeze([{
-  schema: 'simulatte.provenanceRecord.v4',
+const EVIDENCE_CATALOG = Object.freeze([pluginBuilder.modelRecord({
   id: EVIDENCE_ID,
-  kind: 'model',
   datasetId: 'dataset:test',
   contentHash: MODEL_HASH,
   parentIds: [],
   metadata: { algorithm: 'deterministic-test-engine' },
-}]);
+})]);
 const PROVENANCE = pluginContracts.createProvenance({
   origin: 'simulated',
   temporalStatus: 'forecast',
@@ -41,7 +40,7 @@ const PROVENANCE = pluginContracts.createProvenance({
     id: EVIDENCE_ID,
     datasetId: 'dataset:test',
     contentHash: MODEL_HASH,
-    modelReceiptId: 'model-receipt:test',
+    modelReceiptId: EVIDENCE_ID,
   }],
 });
 

@@ -10,8 +10,22 @@
   const LAYER_KINDS = Object.freeze(['point', 'path', 'area', 'actor', 'field', 'label']);
   const SEMANTIC_ROLES = Object.freeze(['primary', 'context', 'comparison', 'uncertainty', 'event']);
   const VIEW_MODES = Object.freeze(['overview', 'follow', 'pov', 'compare', 'free']);
-  const CONTROL_KINDS = Object.freeze(['number', 'range', 'select', 'toggle', 'time']);
+  const CONTROL_KINDS = Object.freeze(['number', 'range', 'select', 'multiselect', 'toggle', 'time']);
+  const PROVENANCE_SUBJECT_KINDS = Object.freeze([
+    'dataset',
+    'row',
+    'parameter',
+    'transformation',
+    'event',
+    'state',
+    'semanticObject',
+    'metric',
+    'inspection',
+    'settlement',
+    'model',
+  ]);
   const HASH_PATTERN = /^(?:[a-f0-9]{64}|sha(?:256|384)-[a-f0-9]{64,96})$/;
+  const SHA256_PATTERN = /^(?:[a-f0-9]{64}|sha256-[a-f0-9]{64})$/;
 
   function validateTruthAxes(value, label = 'Truth axes') {
     object(value, 'plugin_v4_truth_invalid', `${label} expected an object`);
@@ -181,6 +195,16 @@
         text(option.label, 'plugin_v4_control_option_label_invalid', `${label} option label`);
       });
     }
+    if (value.kind === 'multiselect') {
+      array(value.value, 'plugin_v4_control_multiselect_value_invalid', `${label} multiselect value`);
+      if (!value.value.length) fail('plugin_v4_control_multiselect_empty', `${label} multiselect requires at least one value`);
+      unique(value.value, 'plugin_v4_control_multiselect_duplicate', `${label} multiselect values`);
+      const optionValues = new Set((value.options || []).map((option) => option.value));
+      const unknown = value.value.find((entry) => !optionValues.has(entry));
+      if (unknown !== undefined) {
+        fail('plugin_v4_control_multiselect_option_missing', `${label} multiselect value is not declared by its options`, { value: unknown });
+      }
+    }
     ['minimum', 'maximum', 'step'].forEach((key) => {
       if (value[key] !== null && !Number.isFinite(value[key])) fail('plugin_v4_control_bound_invalid', `${label} ${key} expected a finite number or null`);
     });
@@ -258,8 +282,8 @@
     object(value, 'plugin_v4_provenance_record_invalid', `${label} expected an object`);
     allowedKeys(
       value,
-      ['schema', 'id', 'kind', 'datasetId', 'rowId', 'contentHash', 'parentIds', 'metadata'],
-      ['schema', 'id', 'kind', 'datasetId', 'contentHash', 'parentIds', 'metadata'],
+      ['schema', 'id', 'kind', 'datasetId', 'rowId', 'contentHash', 'parentIds', 'metadata', 'envelope'],
+      ['schema', 'id', 'kind', 'datasetId', 'contentHash', 'parentIds', 'metadata', 'envelope'],
       label
     );
     equal(value.schema, 'simulatte.provenanceRecord.v4', 'plugin_v4_provenance_record_schema_invalid', `${label} schema`);
@@ -271,6 +295,93 @@
     value.parentIds.forEach((id) => text(id, 'plugin_v4_provenance_record_parent_invalid', `${label} parent ID`));
     unique(value.parentIds, 'plugin_v4_provenance_record_parent_duplicate', `${label} parent IDs`);
     object(value.metadata, 'plugin_v4_provenance_record_metadata_invalid', `${label} metadata expected an object`);
+    validateProvenanceEnvelope(value.envelope, `${label} envelope`);
+    if (value.envelope.subjectId !== value.id || value.envelope.subjectKind !== value.kind) {
+      fail('plugin_v4_provenance_envelope_subject_mismatch', `${label} envelope subject does not match its record`, {
+        recordId: value.id,
+        subjectId: value.envelope.subjectId,
+        recordKind: value.kind,
+        subjectKind: value.envelope.subjectKind,
+      });
+    }
+    if (!value.envelope.datasetIds.includes(value.datasetId)) {
+      fail('plugin_v4_provenance_envelope_dataset_mismatch', `${label} envelope omits dataset ${value.datasetId}`);
+    }
+    if (value.rowId !== undefined && !value.envelope.rowIds.includes(value.rowId)) {
+      fail('plugin_v4_provenance_envelope_row_mismatch', `${label} envelope omits row ${value.rowId}`);
+    }
+    if (!value.envelope.artifactSha256s.includes(normalizeSha256(value.contentHash))) {
+      fail('plugin_v4_provenance_envelope_hash_mismatch', `${label} envelope artifact hash does not match its record`);
+    }
+    if (canonical(value.envelope.parentIds) !== canonical(value.parentIds)) {
+      fail('plugin_v4_provenance_envelope_parent_mismatch', `${label} envelope parents do not match its record`);
+    }
+    return value;
+  }
+
+  function validateProvenanceEnvelope(value, label = 'Provenance envelope') {
+    object(value, 'plugin_v4_provenance_envelope_invalid', `${label} expected an object`);
+    exactKeys(value, [
+      'schema',
+      'subjectId',
+      'subjectKind',
+      'axes',
+      'datasetIds',
+      'rowIds',
+      'artifactSha256s',
+      'parentIds',
+      'transformationChain',
+      'modelReceiptIds',
+      'retrievalEpochs',
+      'scenarioEpochs',
+      'contentVersions',
+      'licenseRequired',
+      'licenseIdentifiers',
+    ], label);
+    equal(value.schema, 'simulatte.provenanceEnvelope.v4', 'plugin_v4_provenance_envelope_schema_invalid', `${label} schema`);
+    text(value.subjectId, 'plugin_v4_provenance_envelope_subject_invalid', `${label} subjectId`);
+    enumValue(value.subjectKind, PROVENANCE_SUBJECT_KINDS, 'plugin_v4_provenance_envelope_kind_invalid', `${label} subjectKind`);
+    validateTruthAxes(value.axes, `${label} axes`);
+    if (value.axes.uncertainty === null) {
+      fail('plugin_v4_provenance_uncertainty_missing', `${label} must declare uncertainty or an explicit missing-uncertainty reason`);
+    }
+    [
+      ['datasetIds', 'plugin_v4_provenance_dataset_ids_invalid'],
+      ['rowIds', 'plugin_v4_provenance_row_ids_invalid'],
+      ['artifactSha256s', 'plugin_v4_provenance_sha256s_invalid'],
+      ['parentIds', 'plugin_v4_provenance_parent_ids_invalid'],
+      ['transformationChain', 'plugin_v4_provenance_transformations_invalid'],
+      ['modelReceiptIds', 'plugin_v4_provenance_model_receipts_invalid'],
+      ['retrievalEpochs', 'plugin_v4_provenance_retrieval_epochs_invalid'],
+      ['scenarioEpochs', 'plugin_v4_provenance_scenario_epochs_invalid'],
+      ['contentVersions', 'plugin_v4_provenance_content_versions_invalid'],
+      ['licenseIdentifiers', 'plugin_v4_provenance_license_identifiers_invalid'],
+    ].forEach(([key, code]) => {
+      array(value[key], code, `${label} ${key}`);
+      value[key].forEach((id) => text(id, code, `${label} ${key} entry`));
+      unique(value[key], `${code}_duplicate`, `${label} ${key}`);
+    });
+    if (!value.datasetIds.length) fail('plugin_v4_provenance_dataset_ids_missing', `${label} requires a dataset identity`);
+    if (!value.artifactSha256s.length || value.artifactSha256s.some((hash) => !SHA256_PATTERN.test(hash))) {
+      fail('plugin_v4_provenance_sha256_invalid', `${label} artifactSha256s expected SHA-256 identities`, { artifactSha256s: value.artifactSha256s });
+    }
+    if (!value.retrievalEpochs.length && !value.scenarioEpochs.length) {
+      fail('plugin_v4_provenance_epoch_missing', `${label} requires a retrieval or scenario epoch`);
+    }
+    if (!value.contentVersions.length) fail('plugin_v4_provenance_content_version_missing', `${label} requires a content version`);
+    if (typeof value.licenseRequired !== 'boolean') {
+      fail('plugin_v4_provenance_license_required_invalid', `${label} licenseRequired expected a boolean`);
+    }
+    if (value.licenseRequired && !value.licenseIdentifiers.length) {
+      fail('plugin_v4_provenance_license_missing', `${label} required license identifier is missing`);
+    }
+    if (
+      value.axes.origin === 'observed'
+      && ['dataset', 'row'].includes(value.subjectKind)
+      && (!value.licenseRequired || !value.licenseIdentifiers.length)
+    ) {
+      fail('plugin_v4_provenance_license_missing', `${label} observed ${value.subjectKind} requires a license identifier`);
+    }
     return value;
   }
 
@@ -317,10 +428,147 @@
       .flatMap((row) => row.evidenceRefs.map((reference) => reference.id))
       .filter((id) => !recordIds.has(id));
     if (missing.length) fail('plugin_v4_contribution_evidence_missing', `${label} references undeclared provenance records`, { missing: [...new Set(missing)] });
+    const recordsById = new Map(value.provenanceRecords.map((row) => [row.id, row]));
+    provenances.flatMap((row) => row.evidenceRefs).forEach((reference) => {
+      const record = recordsById.get(reference.id);
+      if (record) validateEvidenceIdentity(reference, record, label);
+    });
     value.provenanceRecords.forEach((row) => {
       const missingParents = row.parentIds.filter((id) => !recordIds.has(id));
       if (missingParents.length) fail('plugin_v4_contribution_parent_missing', `${label} provenance record ${row.id} has missing parents`, { missingParents });
     });
+    value.provenanceRecords.forEach((row) => validateMixedLineage(
+      row.envelope.axes.origin,
+      row.parentIds.map((id) => recordsById.get(id)?.envelope.axes.origin).filter(Boolean),
+      `${label} provenance record ${row.id}`,
+    ));
+    provenances.forEach((row, index) => validateMixedLineage(
+      row.axes.origin,
+      row.evidenceRefs.map((reference) => recordsById.get(reference.id)?.envelope.axes.origin).filter(Boolean),
+      `${label} claim ${index}`,
+    ));
+  }
+
+  function validateEvidenceIdentity(reference, record, label) {
+    const mismatches = [];
+    if (reference.datasetId !== record.datasetId) mismatches.push('datasetId');
+    if (!record.envelope.artifactSha256s.includes(normalizeSha256(reference.contentHash))) mismatches.push('contentHash');
+    if (reference.rowId !== undefined && reference.rowId !== record.rowId) mismatches.push('rowId');
+    if (reference.transformationId !== undefined && !record.envelope.transformationChain.includes(reference.transformationId)) {
+      mismatches.push('transformationId');
+    }
+    if (reference.modelReceiptId !== undefined && !record.envelope.modelReceiptIds.includes(reference.modelReceiptId)) {
+      mismatches.push('modelReceiptId');
+    }
+    if (mismatches.length) {
+      fail('plugin_v4_evidence_identity_mismatch', `${label} evidence ${reference.id} does not match its provenance record`, {
+        evidenceId: reference.id,
+        mismatches,
+      });
+    }
+  }
+
+  function validateMixedLineage(origin, parentOrigins, label) {
+    const origins = new Set(parentOrigins);
+    if (origins.has('observed') && origins.has('scenario') && origin !== 'derived') {
+      fail('plugin_v4_mixed_lineage_not_derived', `${label} combines observed and scenario evidence but is not derived`, {
+        origin,
+        parentOrigins: [...origins].sort(),
+      });
+    }
+  }
+
+  function createProvenanceEnvelope({
+    subjectId,
+    subjectKind,
+    axes,
+    datasetIds,
+    rowIds = [],
+    artifactSha256,
+    artifactSha256s = artifactSha256 === undefined ? [] : [artifactSha256],
+    parentIds = [],
+    transformationChain = [],
+    modelReceiptId = null,
+    modelReceiptIds = modelReceiptId === null ? [] : [modelReceiptId],
+    retrievalEpoch = null,
+    retrievalEpochs = retrievalEpoch === null ? [] : [retrievalEpoch],
+    scenarioEpoch = null,
+    scenarioEpochs = scenarioEpoch === null ? [] : [scenarioEpoch],
+    contentVersion,
+    contentVersions = contentVersion === undefined ? [] : [contentVersion],
+    license = { required: false, identifier: null },
+    licenseRequired = license.required,
+    licenseIdentifiers = license.identifier === null ? [] : [license.identifier],
+  }) {
+    const value = {
+      schema: 'simulatte.provenanceEnvelope.v4',
+      subjectId,
+      subjectKind,
+      axes,
+      datasetIds,
+      rowIds,
+      artifactSha256s: [...new Set(artifactSha256s.map(normalizeSha256))],
+      parentIds,
+      transformationChain,
+      modelReceiptIds: [...new Set(modelReceiptIds)],
+      retrievalEpochs: [...new Set(retrievalEpochs)],
+      scenarioEpochs: [...new Set(scenarioEpochs)],
+      contentVersions: [...new Set(contentVersions)],
+      licenseRequired,
+      licenseIdentifiers: [...new Set(licenseIdentifiers)],
+    };
+    validateProvenanceEnvelope(value);
+    return deepFreeze(structuredClone(value));
+  }
+
+  function createCoverageMatrix(records) {
+    array(records, 'plugin_v4_provenance_coverage_records_invalid', 'Provenance coverage records');
+    records.forEach((row, index) => validateProvenanceRecord(row, `Provenance coverage records[${index}]`));
+    const byOrigin = countsFor(records, ORIGINS, (row) => row.envelope.axes.origin);
+    const byTemporalStatus = countsFor(records, TEMPORAL_STATUSES, (row) => row.envelope.axes.temporalStatus);
+    const byUncertaintyKind = countsFor(records, UNCERTAINTY_KINDS, (row) => row.envelope.axes.uncertainty.kind);
+    const bySubjectKind = Object.fromEntries(PROVENANCE_SUBJECT_KINDS.map((kind) => [
+      kind,
+      countsFor(records.filter((row) => row.envelope.subjectKind === kind), ORIGINS, (row) => row.envelope.axes.origin),
+    ]));
+    return deepFreeze({
+      schema: 'simulatte.provenanceCoverageMatrix.v4',
+      recordCount: records.length,
+      byOrigin,
+      byTemporalStatus,
+      byUncertaintyKind,
+      bySubjectKind,
+      gaps: {
+        hypotheticalRecordIds: records
+          .filter((row) => ['modeled', 'simulated', 'scenario'].includes(row.envelope.axes.origin))
+          .map((row) => row.id)
+          .sort(),
+        missingUncertaintyRecordIds: records
+          .filter((row) => row.envelope.axes.uncertainty.kind === 'missing')
+          .map((row) => row.id)
+          .sort(),
+      },
+    });
+  }
+
+  function countsFor(records, keys, select) {
+    return Object.freeze(Object.fromEntries(keys.map((key) => [
+      key,
+      records.filter((row) => select(row) === key).length,
+    ])));
+  }
+
+  function normalizeSha256(value) {
+    if (typeof value !== 'string') return value;
+    return value.startsWith('sha256-') ? value.slice('sha256-'.length) : value;
+  }
+
+  function canonical(value) {
+    if (Array.isArray(value)) return `[${value.map(canonical).join(',')}]`;
+    if (value && typeof value === 'object') {
+      return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${canonical(value[key])}`).join(',')}}`;
+    }
+    return JSON.stringify(value);
   }
 
   function createProvenance({ origin, temporalStatus, uncertainty = null, evidenceRefs = [] }) {
@@ -395,11 +643,14 @@
     GEOMETRY_KINDS,
     LAYER_KINDS,
     ORIGINS,
+    PROVENANCE_SUBJECT_KINDS,
     SEMANTIC_ROLES,
     TEMPORAL_STATUSES,
     UNCERTAINTY_KINDS,
     VIEW_MODES,
     createProvenance,
+    createProvenanceEnvelope,
+    createCoverageMatrix,
     validateContribution,
     validateControls,
     validateDomainEvent,
@@ -408,6 +659,7 @@
     validatePresentation,
     validateProgressiveState,
     validateProvenance,
+    validateProvenanceEnvelope,
     validateProvenanceRecord,
     validateSemanticLayer,
     validateTruthAxes,

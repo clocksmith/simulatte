@@ -30,5 +30,26 @@
     };
   }
 
-  return Object.freeze({ computeHohmann });
+  function createScreeningBaseline({ r1Au, r2Au, gmSunAuD2, trajectory, fallbackReason }) {
+    const result = computeHohmann(r1Au, r2Au, gmSunAuD2);
+    return Object.freeze({
+      schema: 'simulatte.circularCoplanarHohmannScreeningBaseline.v2',
+      method: 'circular_coplanar_hohmann_screening_baseline_v2',
+      baselineType: 'circular_coplanar_screening_only',
+      reason: fallbackReason,
+      assumptions: Object.freeze([
+        'circular heliocentric endpoint orbits',
+        'coplanar impulsive burns',
+        'two-body solar gravity',
+        'no epoch-specific rendezvous geometry',
+      ]),
+      inputRadiiAu: Object.freeze({ departure: result.r1Au, arrival: result.r2Au }),
+      timeOfFlightDays: result.timeOfFlightDays,
+      totalDeltaVKmS: result.totalDvKmS,
+      trajectory: Object.freeze((trajectory || []).map((row) => Object.freeze(row.slice()))),
+      claimBoundary: 'Circular coplanar Hohmann screening baseline only; not an epoch-valid trajectory or fallback navigation solution.',
+    });
+  }
+
+  return Object.freeze({ computeHohmann, createScreeningBaseline });
 });

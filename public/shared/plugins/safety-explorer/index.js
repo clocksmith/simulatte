@@ -2,23 +2,44 @@
   const v4 = typeof module === 'object' && module.exports
     ? require('./v4-contribution.js')
     : root.SimulatteSafetyExplorerV4;
-  const api = factory(v4);
+  const shrinkage = typeof module === 'object' && module.exports
+    ? require('./fixed-sparse-count-shrinkage.js')
+    : root.SimulatteFixedSparseCountShrinkage;
+  const api = factory(v4, shrinkage);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulattePluginSafetyExplorer = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createSafetyExplorerPlugin(v4) {
-  async function activate({ sdk }) {
-    sdk.state.register(reduce, { audit: null });
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createSafetyExplorerPlugin(v4, shrinkage) {
+  const PLUGIN_ID = 'safety-explorer';
+
+  async function activate({ sdk, config, scenario = null }) {
+    let activeParameters = shrinkage.parameters(config?.fixedSparseCountShrinkage);
+    let activeScenario = scenario;
+    sdk.state.register(reduce, { audit: null, parameters: activeParameters });
     const index = sdk.datasets.require('nyc-crash-history-2025-07-to-2026-07-v1');
     const rows = new Map(index.segmentRows.map((row) => [row.segmentId, row]));
-    // v2 (§17): severity separation + empirical shrinkage + uncertainty. Fatal/serious
-    // events weigh more than property-only ones, and a single crash on a low-volume
-    // segment is shrunk toward the corpus mean so it cannot dominate a route. Evidence
-    // coverage is reported so a score is never presented as more certain than its count.
-    const SHRINK_K = 4;
-    const severityRaw = (row) => (row.crashCount || 0) + 3 * (row.injuryCount || 0) + 10 * (row.fatalityCount || 0);
-    const priorMean = index.segmentRows.length ? index.segmentRows.reduce((sum, row) => sum + severityRaw(row), 0) / index.segmentRows.length : 0;
-    const shrunkSeverity = (row) => { const count = row?.crashCount || 0; return ((count * severityRaw(row)) + SHRINK_K * priorMean) / (count + SHRINK_K); };
-    const evidenceCoverage = (row) => { const count = row?.crashCount || 0; return Number((count / (count + SHRINK_K)).toFixed(3)); };
+
+    function currentMethod() {
+      return shrinkage.methodReceipt(index.segmentRows, activeParameters);
+    }
+
+    function segmentReceipt(segmentId) {
+      const row = rows.get(segmentId) || null;
+      const method = currentMethod();
+      const observation = shrinkage.observation(row, index);
+      return Object.freeze({
+        schema: 'simulatte.safetyExplorerSegmentEvidence.v1',
+        segmentId,
+        physicalKey: row?.physicalKey || null,
+        sourceRowId: row ? `${index.id}:segment:${row.segmentId}` : null,
+        ...observation,
+        historicalObservationScore: row?.historicalObservationScore ?? null,
+        fixedSparseCountEstimate: row
+          ? number(shrinkage.estimate(row, { ...activeParameters, corpusMean: method.corpusMean }))
+          : null,
+        evidenceCoverage: number(shrinkage.evidenceCoverage(row, activeParameters.k)),
+        sensitivity: shrinkage.sensitivity(row, index.segmentRows, activeParameters),
+      });
+    }
 
     function createRouteContributor() {
       return {
@@ -27,29 +48,50 @@
         canRejectSegments: false,
         evaluateSegment({ segment }) {
           const row = rows.get(segment.id);
+          const receipt = segmentReceipt(segment.id);
           return {
             eligible: true,
             costDimensions: {
               historicalObservation: row?.historicalObservationScore || 0,
-              // routing.dimension.historical-observation.v2: shrunk severity-weighted risk.
-              severityWeightedObservation: row ? Number(shrunkSeverity(row).toFixed(4)) : Number(priorMean.toFixed(4)),
+              // No joined observations is neutral. It is not substituted with the
+              // corpus mean because missing evidence is not evidence of either safety
+              // or danger.
+              severityWeightedObservation: receipt.fixedSparseCountEstimate || 0,
             },
             rejectionReasons: [],
-            receipt: row ? { ...row, shrunkSeverity: Number(shrunkSeverity(row).toFixed(4)), evidenceCoverage: evidenceCoverage(row) } : null,
+            receipt,
           };
         },
         evaluateRoute({ route }) {
           const physical = new Map();
           route.segmentIds.forEach((id) => { const row = rows.get(id); if (row && !physical.has(row.physicalKey)) physical.set(row.physicalKey, row); });
           const values = [...physical.values()];
+          const segmentEvidence = route.segmentIds.map(segmentReceipt);
+          const method = currentMethod();
           const audit = {
-            schema: 'simulatte.plugin.safetyExplorerRouteAudit.v1',
+            schema: 'simulatte.plugin.safetyExplorerRouteAudit.v2',
             crashCount: sum(values, 'crashCount'), injuryCount: sum(values, 'injuryCount'), fatalityCount: sum(values, 'fatalityCount'),
             historicalObservationScore: sum(values, 'historicalObservationScore'), physicalSegmentsWithHistory: values.length,
+            fixedSparseCountEstimate: number(values.reduce((total, row) => total + shrinkage.estimate(row, { ...activeParameters, corpusMean: method.corpusMean }), 0)),
             segmentIds: [...route.segmentIds],
-            indexId: index.id, claimBoundary: index.claimBoundary,
+            segmentEvidence,
+            sourcePeriod: {
+              start: index.source.periodStart,
+              endExclusive: index.source.periodEndExclusive,
+            },
+            joinMethod: {
+              id: index.method.id,
+              maximumJoinDistanceM: index.method.maximumJoinDistanceM,
+              routeMaximumJoinDistanceM: values.length ? Math.max(...values.map((row) => row.maximumJoinDistanceM || 0)) : null,
+            },
+            unmatchedSourceCollisionIds: index.unjoinedCollisionIds.slice(),
+            method,
+            exposureStatus: 'unknown',
+            unknownSegmentCount: segmentEvidence.filter((row) => row.observationStatus !== 'reported_history').length,
+            indexId: index.id,
+            claimBoundary: index.claimBoundary,
           };
-          sdk.events.propose({ pluginId: 'safety-explorer', kind: 'safety-explorer.route-audited', audit });
+          sdk.events.propose({ pluginId: PLUGIN_ID, kind: `${PLUGIN_ID}.route-audited`, audit });
           sdk.receipts.append(audit);
           return audit;
         },
@@ -60,41 +102,249 @@
       const audit = sdk.state.read().audit;
       if (!audit) return null;
       return [
-        { slot: 'inspector', title: 'Historical street observations', rows: [{ label: 'Recorded crashes', value: String(audit.crashCount) }, { label: 'Recorded injuries', value: String(audit.injuryCount) }, { label: 'Observation score', value: audit.historicalObservationScore.toFixed(3) }], actions: [] },
-        { slot: 'hud', title: 'Historical observations', rows: [{ label: 'Crashes', value: String(audit.crashCount) }, { label: 'Score', value: audit.historicalObservationScore.toFixed(2) }], actions: [{ id: 'focus-observations', label: 'View route', command: { kind: 'camera.focus', targetId: 'observed-route' } }] },
+        {
+          slot: 'inspector',
+          title: 'Historical street observations',
+          rows: [
+            { label: 'Recorded crashes', value: String(audit.crashCount) },
+            { label: 'Recorded injuries', value: String(audit.injuryCount) },
+            { label: 'Recorded fatalities', value: String(audit.fatalityCount) },
+            { label: 'Observation period', value: `${audit.sourcePeriod.start} to ${audit.sourcePeriod.endExclusive} (exclusive)` },
+            { label: 'Fixed sparse-count estimate', value: audit.fixedSparseCountEstimate.toFixed(4) },
+            { label: 'Method', value: `K=${audit.method.k}; mean=${audit.method.corpusMean}; weights ${weightsText(audit.method.severityWeights)}` },
+            { label: 'Unknown exposure', value: `${audit.unknownSegmentCount} route segments lack joined observations; no segment has an exposure denominator.` },
+            { label: 'Join evidence', value: `${audit.unmatchedSourceCollisionIds.length} source crashes unmatched; route max ${audit.joinMethod.routeMaximumJoinDistanceM ?? 'n/a'} m.` },
+            { label: 'Claim warning', value: 'Reported history and fixed shrinkage do not identify a safest route.' },
+          ],
+          fields: sensitivityFields(audit.method, audit.joinMethod.maximumJoinDistanceM),
+          actions: [{ id: 'sensitivity.apply', label: 'Apply sensitivity parameters' }],
+        },
+        {
+          slot: 'hud',
+          title: 'Historical observations',
+          rows: [
+            { label: 'Crashes / injuries / fatalities', value: `${audit.crashCount} / ${audit.injuryCount} / ${audit.fatalityCount}` },
+            { label: 'Evidence status', value: 'Exposure unknown; zero observations are neutral, not safe.' },
+          ],
+          actions: [],
+        },
       ];
     }
     function present() {
       const audit = sdk.state.read().audit;
       if (!audit?.segmentIds?.length) return null;
-      const tone = audit.fatalityCount ? 'red' : audit.crashCount ? 'amber' : 'green';
-      return { schema: 'simulatte.pluginPresentation.v1', markers: [], actors: [], paths: [{ id: 'observed-route', label: 'Historically observed route', segmentIds: audit.segmentIds, tone, widthM: 7, intensity: 1.25 }], cameraTargets: [{ id: 'observed-route', label: 'Historically observed route', nodeIds: [], segmentIds: audit.segmentIds, distanceM: 1100 }] };
+      const observedIds = audit.segmentEvidence.filter((row) => row.observationStatus === 'reported_history').map((row) => row.segmentId);
+      const unknownIds = audit.segmentEvidence.filter((row) => row.observationStatus !== 'reported_history').map((row) => row.segmentId);
+      const paths = [];
+      if (observedIds.length) {
+        paths.push({
+          id: 'observed-route',
+          label: 'Route segments with reported crash history',
+          segmentIds: observedIds,
+          tone: audit.fatalityCount ? 'red' : 'amber',
+          widthM: 4,
+          intensity: 1,
+        });
+      }
+      if (unknownIds.length) {
+        paths.push({
+          id: 'unknown-observation-route',
+          label: 'Unknown exposure and no joined crash observation',
+          segmentIds: unknownIds,
+          tone: 'gray',
+          widthM: 3,
+          intensity: 0.45,
+        });
+      }
+      return {
+        schema: 'simulatte.pluginPresentation.v1',
+        markers: [],
+        actors: [],
+        paths,
+        cameraTargets: [{
+          id: 'observed-route',
+          label: 'Historical observation route',
+          nodeIds: [],
+          segmentIds: audit.segmentIds,
+          distanceM: 1100,
+        }],
+      };
     }
     function contributeV4() {
       return v4.createContribution({
         audit: sdk.state.read().audit,
         index,
         datasetReceipt: sdk.datasets.receipt('nyc-crash-history-2025-07-to-2026-07-v1'),
+        parameters: activeParameters,
       });
     }
-    // Neutral mobility-risk field (§18): shrunk severity-weighted observation for a
-    // segment plus evidence coverage. Preserves the observed-vs-simulated distinction.
+
+    function handleAction(actionId, context = {}) {
+      if (actionId === 'scenario.run') {
+        let audit = sdk.state.read().audit;
+        if (!audit && context.values?.phase === 'start') {
+          activeScenario = context.scenario || activeScenario;
+          const mission = sdk.routing.resolveMission(activeScenario?.missionText || '');
+          const [route] = sdk.routing.alternatives(mission, 1);
+          if (route) createRouteContributor().evaluateRoute({ route });
+          audit = sdk.state.read().audit;
+        }
+        if (!audit) return { status: 'refused', reason: 'route_audit_missing' };
+        const phase = context.values?.phase;
+        if (phase === 'start') {
+          sdk.events.propose({ pluginId: PLUGIN_ID, kind: `${PLUGIN_ID}.playback-started` });
+          return { status: 'running', currentStep: 0, totalSteps: 1, audit };
+        }
+        if (phase === 'step') {
+          sdk.events.propose({ pluginId: PLUGIN_ID, kind: `${PLUGIN_ID}.playback-settled` });
+          return { status: 'settled', currentStep: 1, totalSteps: 1, audit };
+        }
+        return { status: 'settled', audit, compatibilityAdapter: 'single-dispatch-settles-route-audit' };
+      }
+      if (actionId === 'counterfactual.compare') {
+        const audit = sdk.state.read().audit;
+        if (!audit) return { status: 'refused', reason: 'route_audit_missing' };
+        const routeRows = audit.segmentIds.map((id) => rows.get(id)).filter(Boolean);
+        const baselineParameters = shrinkage.parameters(config?.fixedSparseCountShrinkage);
+        const interventionParameters = shrinkage.parameters({
+          ...baselineParameters,
+          k: Math.min(64, Math.max(1, baselineParameters.k * 2)),
+        });
+        const score = (parameters) => {
+          const method = shrinkage.methodReceipt(index.segmentRows, parameters);
+          return routeRows.reduce((total, row) => (
+            total + shrinkage.estimate(row, { ...parameters, corpusMean: method.corpusMean })
+          ), 0);
+        };
+        return {
+          status: 'settled',
+          comparisonId: `${PLUGIN_ID}:fixed-shrinkage-k-sensitivity`,
+          comparisonBranches: {
+            baseline: {
+              fixedSparseCountEstimate: score(baselineParameters),
+              shrinkageK: baselineParameters.k,
+            },
+            intervention: {
+              fixedSparseCountEstimate: score(interventionParameters),
+              shrinkageK: interventionParameters.k,
+            },
+          },
+        };
+      }
+      if (actionId !== 'sensitivity.apply') return { status: 'refused', reason: 'unknown_action' };
+      const values = context.values || {};
+      activeParameters = shrinkage.parameters({
+        k: values.shrinkageK,
+        weights: {
+          crash: values.crashWeight,
+          injury: values.injuryWeight,
+          fatality: values.fatalityWeight,
+        },
+      });
+      sdk.events.propose({
+        pluginId: PLUGIN_ID,
+        kind: `${PLUGIN_ID}.sensitivity-updated`,
+        parameters: activeParameters,
+      });
+      return {
+        status: 'settled',
+        parameters: activeParameters,
+        joinRadiusM: Number(values.joinRadiusM ?? index.method.maximumJoinDistanceM),
+        limitation: 'Changing join radius requires rebuilding the governed spatial join for an exact result.',
+      };
+    }
+
+    // Legacy capability name is preserved for compatibility. Its value is explicitly a
+    // derived fixed sparse-count observation, never an observed or predictive risk.
     const capabilities = {
       'field.mobility-risk.v1': (input) => {
         const row = input?.segmentId ? rows.get(input.segmentId) : null;
+        const method = currentMethod();
+        const evidence = segmentReceipt(input?.segmentId || 'unknown');
         return {
           schema: 'field.mobility-risk.v1',
-          value: row ? Number(shrunkSeverity(row).toFixed(4)) : Number(priorMean.toFixed(4)),
-          units: 'severity_weighted_observation',
-          evidenceCoverage: row ? evidenceCoverage(row) : 0,
-          observed: true, providerId: 'safety-explorer',
+          value: row ? number(shrinkage.estimate(row, { ...activeParameters, corpusMean: method.corpusMean })) : null,
+          units: 'fixed_sparse_count_observation',
+          method: method.name,
+          methodReceipt: method,
+          observation: evidence,
+          evidenceCoverage: evidence.evidenceCoverage,
+          observed: false,
+          truth: {
+            origin: row ? 'derived' : 'scenario',
+            temporalStatus: 'historical',
+            uncertainty: {
+              kind: 'missing',
+              value: { exposureDenominator: 'missing', observationStatus: evidence.observationStatus },
+            },
+          },
+          providerId: PLUGIN_ID,
           claimBoundary: index.claimBoundary,
         };
       },
     };
-    return Object.freeze({ id: 'safety-explorer', contributeV4, createRouteContributor, view, present, capabilities, dispose() {} });
+    function setScenario(nextScenario) {
+      activeScenario = nextScenario;
+      sdk.events.propose({ pluginId: PLUGIN_ID, kind: `${PLUGIN_ID}.scenario-selected`, scenario: nextScenario });
+      return { status: 'ready', seed: nextScenario?.seed || null };
+    }
+    function settle() {
+      const audit = sdk.state.read().audit;
+      if (!audit) return null;
+      return {
+        obligationResults: [
+          {
+            obligationId: `${PLUGIN_ID}:observations-preserved`,
+            status: audit.segmentEvidence?.length === audit.segmentIds?.length ? 'settled' : 'unmet',
+            evidence: {
+              routeSegmentCount: audit.segmentIds?.length || 0,
+              segmentEvidenceCount: audit.segmentEvidence?.length || 0,
+            },
+          },
+          {
+            obligationId: `${PLUGIN_ID}:unknown-exposure-disclosed`,
+            status: audit.exposureStatus === 'unknown' ? 'settled' : 'unmet',
+            evidence: {
+              exposureStatus: audit.exposureStatus,
+              unknownSegmentCount: audit.unknownSegmentCount,
+              unmatchedSourceCollisionCount: audit.unmatchedSourceCollisionIds?.length || 0,
+            },
+          },
+        ],
+        stateIdentity: `${activeScenario?.id || 'scenario'}:${activeScenario?.seed || 'seed'}:${audit.indexId}`,
+        losses: [],
+      };
+    }
+    return Object.freeze({
+      id: PLUGIN_ID,
+      contributeV4,
+      createRouteContributor,
+      view,
+      present,
+      handleAction,
+      setScenario,
+      settle,
+      capabilities,
+      dispose() {},
+    });
   }
-  function reduce(state, event) { return event.kind === 'safety-explorer.route-audited' ? { ...state, audit: event.audit } : state; }
+  function reduce(state, event) {
+    if (event.kind === `${PLUGIN_ID}.scenario-selected`) return { ...state, audit: null };
+    if (event.kind === `${PLUGIN_ID}.route-audited`) return { ...state, audit: event.audit };
+    if (event.kind === `${PLUGIN_ID}.sensitivity-updated`) return { ...state, parameters: event.parameters };
+    return state;
+  }
   function sum(rows, key) { return Number(rows.reduce((total, row) => total + (row[key] || 0), 0).toFixed(6)); }
+  function number(value) { return value === null ? null : Number(value.toFixed(6)); }
+  function weightsText(weights) { return `crash ${weights.crash}, injury ${weights.injury}, fatality ${weights.fatality}`; }
+  function sensitivityFields(method, joinRadiusM) {
+    return [
+      { id: 'shrinkageK', label: 'Shrinkage K', type: 'number', value: String(method.k) },
+      { id: 'crashWeight', label: 'Crash weight', type: 'number', value: String(method.severityWeights.crash) },
+      { id: 'injuryWeight', label: 'Injury weight', type: 'number', value: String(method.severityWeights.injury) },
+      { id: 'fatalityWeight', label: 'Fatality weight', type: 'number', value: String(method.severityWeights.fatality) },
+      { id: 'joinRadiusM', label: 'Join-radius sensitivity', type: 'number', value: String(joinRadiusM) },
+    ];
+  }
   return Object.freeze({ activate });
 });

@@ -71,6 +71,7 @@
         modelId: 'finite-light-time-v2',
         equation: '|target(t + dt) - source(t)| = c * dt',
         parameters: Object.freeze({ transmitOffsetSeconds, lightSpeedMs: LIGHT_SPEED_MS }),
+        omissionIds: Object.freeze(['plasma-not-modeled']),
       }),
     });
   }

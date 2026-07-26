@@ -1,0 +1,1613 @@
+{
+  "schema": "simulatte.profileEvidencePlan.v1",
+  "profileIds": [
+    "cable-trader-pickup-v1",
+    "food-recall-us-v1",
+    "interstellar-relay-network-v1",
+    "maritime-trade-global-v1",
+    "orbital-transfer-planner-v1",
+    "safety-explorer-v1",
+    "sun-walker-v1"
+  ],
+  "viewports": [
+    {
+      "id": "desktop-1440x1000",
+      "width": 1440,
+      "height": 1000
+    },
+    {
+      "id": "mobile-390x844",
+      "width": 390,
+      "height": 844
+    }
+  ],
+  "runCount": 58,
+  "runs": [
+    {
+      "id": "run-b3b2447a1930776c4016",
+      "profileId": "cable-trader-pickup-v1",
+      "profilePath": "public/data/application-profiles/cable-trader-pickup-v1.json",
+      "profileSha256": "2262cb795e2107bcfb4ccb9b24681ef3e9ae32d02c3b80a722b0cbaa6714e6f5",
+      "seedId": "july-baseline",
+      "seed": "cable-city-month-2026-07",
+      "route": "/city/cable-trader-pickup-v1",
+      "tier": "city",
+      "pluginIds": [
+        "cable-trader"
+      ],
+      "viewport": {
+        "id": "desktop-1440x1000",
+        "width": 1440,
+        "height": 1000
+      },
+      "interactionPath": [
+        "boot",
+        "select-seed",
+        "start",
+        "pause",
+        "step",
+        "resume",
+        "settle",
+        "replay",
+        "reload"
+      ]
+    },
+    {
+      "id": "run-3c81417b6ce783ae643e",
+      "profileId": "cable-trader-pickup-v1",
+      "profilePath": "public/data/application-profiles/cable-trader-pickup-v1.json",
+      "profileSha256": "2262cb795e2107bcfb4ccb9b24681ef3e9ae32d02c3b80a722b0cbaa6714e6f5",
+      "seedId": "july-baseline",
+      "seed": "cable-city-month-2026-07",
+      "route": "/city/cable-trader-pickup-v1",
+      "tier": "city",
+      "pluginIds": [
+        "cable-trader"
+      ],
+      "viewport": {
+        "id": "mobile-390x844",
+        "width": 390,
+        "height": 844
+      },
+      "interactionPath": [
+        "boot",
+        "select-seed",
+        "start",
+        "pause",
+        "step",
+        "resume",
+        "settle",
+        "replay",
+        "reload"
+      ]
+    },
+    {
+      "id": "run-0af8c3bf8143c32377ac",
+      "profileId": "cable-trader-pickup-v1",
+      "profilePath": "public/data/application-profiles/cable-trader-pickup-v1.json",
+      "profileSha256": "2262cb795e2107bcfb4ccb9b24681ef3e9ae32d02c3b80a722b0cbaa6714e6f5",
+      "seedId": "campus-return-wave",
+      "seed": "cable-city-campus-return-731",
+      "route": "/city/cable-trader-pickup-v1",
+      "tier": "city",
+      "pluginIds": [
+        "cable-trader"
+      ],
+      "viewport": {
+        "id": "desktop-1440x1000",
+        "width": 1440,
+        "height": 1000
+      },
+      "interactionPath": [
+        "boot",
+        "select-seed",
+        "start",
+        "pause",
+        "step",
+        "resume",
+        "settle",
+        "replay",
+        "reload"
+      ]
+    },
+    {
+      "id": "run-e8cfd46416517fc4acc0",
+      "profileId": "cable-trader-pickup-v1",
+      "profilePath": "public/data/application-profiles/cable-trader-pickup-v1.json",
+      "profileSha256": "2262cb795e2107bcfb4ccb9b24681ef3e9ae32d02c3b80a722b0cbaa6714e6f5",
+      "seedId": "campus-return-wave",
+      "seed": "cable-city-campus-return-731",
+      "route": "/city/cable-trader-pickup-v1",
+      "tier": "city",
+      "pluginIds": [
+        "cable-trader"
+      ],
+      "viewport": {
+        "id": "mobile-390x844",
+        "width": 390,
+        "height": 844
+      },
+      "interactionPath": [
+        "boot",
+        "select-seed",
+        "start",
+        "pause",
+        "step",
+        "resume",
+        "settle",
+        "replay",
+        "reload"
+      ]
+    },
+    {
+      "id": "run-0f82eedc178ea08cc26d",
+      "profileId": "cable-trader-pickup-v1",
+      "profilePath": "public/data/application-profiles/cable-trader-pickup-v1.json",
+      "profileSha256": "2262cb795e2107bcfb4ccb9b24681ef3e9ae32d02c3b80a722b0cbaa6714e6f5",
+      "seedId": "display-cable-surge",
+      "seed": "cable-city-display-surge-4096",
+      "route": "/city/cable-trader-pickup-v1",
+      "tier": "city",
+      "pluginIds": [
+        "cable-trader"
+      ],
+      "viewport": {
+        "id": "desktop-1440x1000",
+        "width": 1440,
+        "height": 1000
+      },
+      "interactionPath": [
+        "boot",
+        "select-seed",
+        "start",
+        "pause",
+        "step",
+        "resume",
+        "settle",
+        "replay",
+        "reload"
+      ]
+    },
+    {
+      "id": "run-f00f200a552754ab8fe2",
+      "profileId": "cable-trader-pickup-v1",
+      "profilePath": "public/data/application-profiles/cable-trader-pickup-v1.json",
+      "profileSha256": "2262cb795e2107bcfb4ccb9b24681ef3e9ae32d02c3b80a722b0cbaa6714e6f5",
+      "seedId": "display-cable-surge",
+      "seed": "cable-city-display-surge-4096",
+      "route": "/city/cable-trader-pickup-v1",
+      "tier": "city",
+      "pluginIds": [
+        "cable-trader"
+      ],
+      "viewport": {
+        "id": "mobile-390x844",
+        "width": 390,
+        "height": 844
+      },
+      "interactionPath": [
+        "boot",
+        "select-seed",
+        "start",
+        "pause",
+        "step",
+        "resume",
+        "settle",
+        "replay",
+        "reload"
+      ]
+    },
+    {
+      "id": "run-f84d98b454517ff57f79",
+      "profileId": "cable-trader-pickup-v1",
+      "profilePath": "public/data/application-profiles/cable-trader-pickup-v1.json",
+      "profileSha256": "2262cb795e2107bcfb4ccb9b24681ef3e9ae32d02c3b80a722b0cbaa6714e6f5",
+      "seedId": "brooklyn-rebalance",
+      "seed": "cable-city-brooklyn-rebalance-8192",
+      "route": "/city/cable-trader-pickup-v1",
+      "tier": "city",
+      "pluginIds": [
+        "cable-trader"
+      ],
+      "viewport": {
+        "id": "desktop-1440x1000",
+        "width": 1440,
+        "height": 1000
+      },
+      "interactionPath": [
+        "boot",
+        "select-seed",
+        "start",
+        "pause",
+        "step",
+        "resume",
+        "settle",
+        "replay",
+        "reload"
+      ]
+    },
+    {
+      "id": "run-761380549fa43cf68983",
+      "profileId": "cable-trader-pickup-v1",
+      "profilePath": "public/data/application-profiles/cable-trader-pickup-v1.json",
+      "profileSha256": "2262cb795e2107bcfb4ccb9b24681ef3e9ae32d02c3b80a722b0cbaa6714e6f5",
+      "seedId": "brooklyn-rebalance",
+      "seed": "cable-city-brooklyn-rebalance-8192",
+      "route": "/city/cable-trader-pickup-v1",
+      "tier": "city",
+      "pluginIds": [
+        "cable-trader"
+      ],
+      "viewport": {
+        "id": "mobile-390x844",
+        "width": 390,
+        "height": 844
+      },
+      "interactionPath": [
+        "boot",
+        "select-seed",
+        "start",
+        "pause",
+        "step",
+        "resume",
+        "settle",
+        "replay",
+        "reload"
+      ]
+    },
+    {
+      "id": "run-1a9ffbf24e0949be538f",
+      "profileId": "food-recall-us-v1",
+      "profilePath": "public/data/application-profiles/food-recall-us-v1.json",
+      "profileSha256": "43ec577d7f319962dc98e053d2436a9e8b3c9ee894b2174df6885f6a6ded840f",
+      "seedId": "leafy-green-baseline",
+      "seed": "food-recall-leafy-green-001",
+      "route": "/country/food-recall-us-v1",
+      "tier": "country",
+      "pluginIds": [
+        "food-recall-us"
+      ],
+      "viewport": {
+        "id": "desktop-1440x1000",
+        "width": 1440,
+        "height": 1000
+      },
+      "interactionPath": [
+        "boot",
+        "select-seed",
+        "start",
+        "settle",
+        "replay",
+        "reload"
+      ]
+    },
+    {
+      "id": "run-7acf1d128abb0d0a76e6",
+      "profileId": "food-recall-us-v1",
+      "profilePath": "public/data/application-profiles/food-recall-us-v1.json",
+      "profileSha256": "43ec577d7f319962dc98e053d2436a9e8b3c9ee894b2174df6885f6a6ded840f",
+      "seedId": "leafy-green-baseline",
+      "seed": "food-recall-leafy-green-001",
+      "route": "/country/food-recall-us-v1",
+      "tier": "country",
+      "pluginIds": [
+        "food-recall-us"
+      ],
+      "viewport": {
+        "id": "mobile-390x844",
+        "width": 390,
+        "height": 844
+      },
+      "interactionPath": [
+        "boot",
+        "select-seed",
+        "start",
+        "settle",
+        "replay",
+        "reload"
+      ]
+    },
+    {
+      "id": "run-b430d78beb28a1e69729",
+      "profileId": "food-recall-us-v1",
+      "profilePath": "public/data/application-profiles/food-recall-us-v1.json",
+      "profileSha256": "43ec577d7f319962dc98e053d2436a9e8b3c9ee894b2174df6885f6a6ded840f",
+      "seedId": "egg-cold-chain",
+      "seed": "food-recall-eggs-002",
+      "route": "/country/food-recall-us-v1",
+      "tier": "country",
+      "pluginIds": [
+        "food-recall-us"
+      ],
+      "viewport": {
+        "id": "desktop-1440x1000",
+        "width": 1440,
+        "height": 1000
+      },
+      "interactionPath": [
+        "boot",
+        "select-seed",
+        "start",
+        "settle",
+        "replay",
+        "reload"
+      ]
+    },
+    {
+      "id": "run-da0be457202914cc7926",
+      "profileId": "food-recall-us-v1",
+      "profilePath": "public/data/application-profiles/food-recall-us-v1.json",
+      "profileSha256": "43ec577d7f319962dc98e053d2436a9e8b3c9ee894b2174df6885f6a6ded840f",
+      "seedId": "egg-cold-chain",
+      "seed": "food-recall-eggs-002",
+      "route": "/country/food-recall-us-v1",
+      "tier": "country",
+      "pluginIds": [
+        "food-recall-us"
+      ],
+      "viewport": {
+        "id": "mobile-390x844",
+        "width": 390,
+        "height": 844
+      },
+      "interactionPath": [
+        "boot",
+        "select-seed",
+        "start",
+        "settle",
+        "replay",
+        "reload"
+      ]
+    },
+    {
+      "id": "run-cda8302e97f1516afd61",
+      "profileId": "food-recall-us-v1",
+      "profilePath": "public/data/application-profiles/food-recall-us-v1.json",
+      "profileSha256": "43ec577d7f319962dc98e053d2436a9e8b3c9ee894b2174df6885f6a6ded840f",
+      "seedId": "listeria-rte",
+      "seed": "food-recall-listeria-003",
+      "route": "/country/food-recall-us-v1",
+      "tier": "country",
+      "pluginIds": [
+        "food-recall-us"
+      ],
+      "viewport": {
+        "id": "desktop-1440x1000",
+        "width": 1440,
+        "height": 1000
+      },
+      "interactionPath": [
+        "boot",
+        "select-seed",
+        "start",
+        "settle",
+        "replay",
+        "reload"
+      ]
+    },
+    {
+      "id": "run-6cc83f8932aadfe9295a",
+      "profileId": "food-recall-us-v1",
+      "profilePath": "public/data/application-profiles/food-recall-us-v1.json",
+      "profileSha256": "43ec577d7f319962dc98e053d2436a9e8b3c9ee894b2174df6885f6a6ded840f",
+      "seedId": "listeria-rte",
+      "seed": "food-recall-listeria-003",
+      "route": "/country/food-recall-us-v1",
+      "tier": "country",
+      "pluginIds": [
+        "food-recall-us"
+      ],
+      "viewport": {
+        "id": "mobile-390x844",
+        "width": 390,
+        "height": 844
+      },
+      "interactionPath": [
+        "boot",
+        "select-seed",
+        "start",
+        "settle",
+        "replay",
+        "reload"
+      ]
+    },
+    {
+      "id": "run-d53f10d633b93b2fc606",
+      "profileId": "food-recall-us-v1",
+      "profilePath": "public/data/application-profiles/food-recall-us-v1.json",
+      "profileSha256": "43ec577d7f319962dc98e053d2436a9e8b3c9ee894b2174df6885f6a6ded840f",
+      "seedId": "allergen-label",
+      "seed": "food-recall-allergen-004",
+      "route": "/country/food-recall-us-v1",
+      "tier": "country",
+      "pluginIds": [
+        "food-recall-us"
+      ],
+      "viewport": {
+        "id": "desktop-1440x1000",
+        "width": 1440,
+        "height": 1000
+      },
+      "interactionPath": [
+        "boot",
+        "select-seed",
+        "start",
+        "settle",
+        "replay",
+        "reload"
+      ]
+    },
+    {
+      "id": "run-3385ae8c27b6e575b310",
+      "profileId": "food-recall-us-v1",
+      "profilePath": "public/data/application-profiles/food-recall-us-v1.json",
+      "profileSha256": "43ec577d7f319962dc98e053d2436a9e8b3c9ee894b2174df6885f6a6ded840f",
+      "seedId": "allergen-label",
+      "seed": "food-recall-allergen-004",
+      "route": "/country/food-recall-us-v1",
+      "tier": "country",
+      "pluginIds": [
+        "food-recall-us"
+      ],
+      "viewport": {
+        "id": "mobile-390x844",
+        "width": 390,
+        "height": 844
+      },
+      "interactionPath": [
+        "boot",
+        "select-seed",
+        "start",
+        "settle",
+        "replay",
+        "reload"
+      ]
+    },
+    {
+      "id": "run-e1c0921e985c6b85da2d",
+      "profileId": "interstellar-relay-network-v1",
+      "profilePath": "public/data/application-profiles/interstellar-relay-network-v1.json",
+      "profileSha256": "46fa2899b700907ef20f82531509c8901fc9488f2499157d3ea604b81a611c76",
+      "seedId": "sol-proxima-direct",
+      "seed": "relay-sol-proxima-001",
+      "route": "/star-chart/interstellar-relay-network-v1",
+      "tier": "star-chart",
+      "pluginIds": [
+        "interstellar-relay-network"
+      ],
+      "viewport": {
+        "id": "desktop-1440x1000",
+        "width": 1440,
+        "height": 1000
+      },
+      "interactionPath": [
+        "boot",
+        "select-seed",
+        "start",
+        "settle",
+        "replay",
+        "reload"
+      ]
+    },
+    {
+      "id": "run-336832adc71f76a39ca8",
+      "profileId": "interstellar-relay-network-v1",
+      "profilePath": "public/data/application-profiles/interstellar-relay-network-v1.json",
+      "profileSha256": "46fa2899b700907ef20f82531509c8901fc9488f2499157d3ea604b81a611c76",
+      "seedId": "sol-proxima-direct",
+      "seed": "relay-sol-proxima-001",
+      "route": "/star-chart/interstellar-relay-network-v1",
+      "tier": "star-chart",
+      "pluginIds": [
+        "interstellar-relay-network"
+      ],
+      "viewport": {
+        "id": "mobile-390x844",
+        "width": 390,
+        "height": 844
+      },
+      "interactionPath": [
+        "boot",
+        "select-seed",
+        "start",
+        "settle",
+        "replay",
+        "reload"
+      ]
+    },
+    {
+      "id": "run-df4440f3231a008a5bb0",
+      "profileId": "interstellar-relay-network-v1",
+      "profilePath": "public/data/application-profiles/interstellar-relay-network-v1.json",
+      "profileSha256": "46fa2899b700907ef20f82531509c8901fc9488f2499157d3ea604b81a611c76",
+      "seedId": "sol-proxima-barnard-relay",
+      "seed": "relay-barnard-002",
+      "route": "/star-chart/interstellar-relay-network-v1",
+      "tier": "star-chart",
+      "pluginIds": [
+        "interstellar-relay-network"
+      ],
+      "viewport": {
+        "id": "desktop-1440x1000",
+        "width": 1440,
+        "height": 1000
+      },
+      "interactionPath": [
+        "boot",
+        "select-seed",
+        "start",
+        "settle",
+        "replay",
+        "reload"
+      ]
+    },
+    {
+      "id": "run-6c61a79dcf154d9c6dc6",
+      "profileId": "interstellar-relay-network-v1",
+      "profilePath": "public/data/application-profiles/interstellar-relay-network-v1.json",
+      "profileSha256": "46fa2899b700907ef20f82531509c8901fc9488f2499157d3ea604b81a611c76",
+      "seedId": "sol-proxima-barnard-relay",
+      "seed": "relay-barnard-002",
+      "route": "/star-chart/interstellar-relay-network-v1",
+      "tier": "star-chart",
+      "pluginIds": [
+        "interstellar-relay-network"
+      ],
+      "viewport": {
+        "id": "mobile-390x844",
+        "width": 390,
+        "height": 844
+      },
+      "interactionPath": [
+        "boot",
+        "select-seed",
+        "start",
+        "settle",
+        "replay",
+        "reload"
+      ]
+    },
+    {
+      "id": "run-0d87ec2a4321d21e6796",
+      "profileId": "interstellar-relay-network-v1",
+      "profilePath": "public/data/application-profiles/interstellar-relay-network-v1.json",
+      "profileSha256": "46fa2899b700907ef20f82531509c8901fc9488f2499157d3ea604b81a611c76",
+      "seedId": "nearby-star-store-forward",
+      "seed": "relay-nearest-003",
+      "route": "/star-chart/interstellar-relay-network-v1",
+      "tier": "star-chart",
+      "pluginIds": [
+        "interstellar-relay-network"
+      ],
+      "viewport": {
+        "id": "desktop-1440x1000",
+        "width": 1440,
+        "height": 1000
+      },
+      "interactionPath": [
+        "boot",
+        "select-seed",
+        "start",
+        "settle",
+        "replay",
+        "reload"
+      ]
+    },
+    {
+      "id": "run-a6f384728aeff399df92",
+      "profileId": "interstellar-relay-network-v1",
+      "profilePath": "public/data/application-profiles/interstellar-relay-network-v1.json",
+      "profileSha256": "46fa2899b700907ef20f82531509c8901fc9488f2499157d3ea604b81a611c76",
+      "seedId": "nearby-star-store-forward",
+      "seed": "relay-nearest-003",
+      "route": "/star-chart/interstellar-relay-network-v1",
+      "tier": "star-chart",
+      "pluginIds": [
+        "interstellar-relay-network"
+      ],
+      "viewport": {
+        "id": "mobile-390x844",
+        "width": 390,
+        "height": 844
+      },
+      "interactionPath": [
+        "boot",
+        "select-seed",
+        "start",
+        "settle",
+        "replay",
+        "reload"
+      ]
+    },
+    {
+      "id": "run-ef69f560b8809cc7c250",
+      "profileId": "interstellar-relay-network-v1",
+      "profilePath": "public/data/application-profiles/interstellar-relay-network-v1.json",
+      "profileSha256": "46fa2899b700907ef20f82531509c8901fc9488f2499157d3ea604b81a611c76",
+      "seedId": "61-cygni-high-power-link",
+      "seed": "relay-61-cygni-004",
+      "route": "/star-chart/interstellar-relay-network-v1",
+      "tier": "star-chart",
+      "pluginIds": [
+        "interstellar-relay-network"
+      ],
+      "viewport": {
+        "id": "desktop-1440x1000",
+        "width": 1440,
+        "height": 1000
+      },
+      "interactionPath": [
+        "boot",
+        "select-seed",
+        "start",
+        "settle",
+        "replay",
+        "reload"
+      ]
+    },
+    {
+      "id": "run-d1b794a5d6ef24ff7734",
+      "profileId": "interstellar-relay-network-v1",
+      "profilePath": "public/data/application-profiles/interstellar-relay-network-v1.json",
+      "profileSha256": "46fa2899b700907ef20f82531509c8901fc9488f2499157d3ea604b81a611c76",
+      "seedId": "61-cygni-high-power-link",
+      "seed": "relay-61-cygni-004",
+      "route": "/star-chart/interstellar-relay-network-v1",
+      "tier": "star-chart",
+      "pluginIds": [
+        "interstellar-relay-network"
+      ],
+      "viewport": {
+        "id": "mobile-390x844",
+        "width": 390,
+        "height": 844
+      },
+      "interactionPath": [
+        "boot",
+        "select-seed",
+        "start",
+        "settle",
+        "replay",
+        "reload"
+      ]
+    },
+    {
+      "id": "run-92ca28b8099a6a821cdf",
+      "profileId": "maritime-trade-global-v1",
+      "profilePath": "public/data/application-profiles/maritime-trade-global-v1.json",
+      "profileSha256": "58879d087b94a7b8c7b365df6f6630b77ab55a2c87c9b522c50c15259543cbdd",
+      "seedId": "asia-europe-mainline",
+      "seed": "maritime-asia-europe-001",
+      "route": "/world/maritime-trade-global-v1",
+      "tier": "world",
+      "pluginIds": [
+        "maritime-trade-global"
+      ],
+      "viewport": {
+        "id": "desktop-1440x1000",
+        "width": 1440,
+        "height": 1000
+      },
+      "interactionPath": [
+        "boot",
+        "select-seed",
+        "start",
+        "settle",
+        "replay",
+        "reload"
+      ]
+    },
+    {
+      "id": "run-5c34d14be825be3566ec",
+      "profileId": "maritime-trade-global-v1",
+      "profilePath": "public/data/application-profiles/maritime-trade-global-v1.json",
+      "profileSha256": "58879d087b94a7b8c7b365df6f6630b77ab55a2c87c9b522c50c15259543cbdd",
+      "seedId": "asia-europe-mainline",
+      "seed": "maritime-asia-europe-001",
+      "route": "/world/maritime-trade-global-v1",
+      "tier": "world",
+      "pluginIds": [
+        "maritime-trade-global"
+      ],
+      "viewport": {
+        "id": "mobile-390x844",
+        "width": 390,
+        "height": 844
+      },
+      "interactionPath": [
+        "boot",
+        "select-seed",
+        "start",
+        "settle",
+        "replay",
+        "reload"
+      ]
+    },
+    {
+      "id": "run-af8dc1c5e8bcf2369316",
+      "profileId": "maritime-trade-global-v1",
+      "profilePath": "public/data/application-profiles/maritime-trade-global-v1.json",
+      "profileSha256": "58879d087b94a7b8c7b365df6f6630b77ab55a2c87c9b522c50c15259543cbdd",
+      "seedId": "transpacific-eastbound",
+      "seed": "maritime-transpacific-002",
+      "route": "/world/maritime-trade-global-v1",
+      "tier": "world",
+      "pluginIds": [
+        "maritime-trade-global"
+      ],
+      "viewport": {
+        "id": "desktop-1440x1000",
+        "width": 1440,
+        "height": 1000
+      },
+      "interactionPath": [
+        "boot",
+        "select-seed",
+        "start",
+        "settle",
+        "replay",
+        "reload"
+      ]
+    },
+    {
+      "id": "run-c4101559e99f881216ea",
+      "profileId": "maritime-trade-global-v1",
+      "profilePath": "public/data/application-profiles/maritime-trade-global-v1.json",
+      "profileSha256": "58879d087b94a7b8c7b365df6f6630b77ab55a2c87c9b522c50c15259543cbdd",
+      "seedId": "transpacific-eastbound",
+      "seed": "maritime-transpacific-002",
+      "route": "/world/maritime-trade-global-v1",
+      "tier": "world",
+      "pluginIds": [
+        "maritime-trade-global"
+      ],
+      "viewport": {
+        "id": "mobile-390x844",
+        "width": 390,
+        "height": 844
+      },
+      "interactionPath": [
+        "boot",
+        "select-seed",
+        "start",
+        "settle",
+        "replay",
+        "reload"
+      ]
+    },
+    {
+      "id": "run-bc7e55037a67f4feee33",
+      "profileId": "maritime-trade-global-v1",
+      "profilePath": "public/data/application-profiles/maritime-trade-global-v1.json",
+      "profileSha256": "58879d087b94a7b8c7b365df6f6630b77ab55a2c87c9b522c50c15259543cbdd",
+      "seedId": "suez-closure-cape-reroute",
+      "seed": "maritime-suez-003",
+      "route": "/world/maritime-trade-global-v1",
+      "tier": "world",
+      "pluginIds": [
+        "maritime-trade-global"
+      ],
+      "viewport": {
+        "id": "desktop-1440x1000",
+        "width": 1440,
+        "height": 1000
+      },
+      "interactionPath": [
+        "boot",
+        "select-seed",
+        "start",
+        "settle",
+        "replay",
+        "reload"
+      ]
+    },
+    {
+      "id": "run-183a1e9c0090e549385a",
+      "profileId": "maritime-trade-global-v1",
+      "profilePath": "public/data/application-profiles/maritime-trade-global-v1.json",
+      "profileSha256": "58879d087b94a7b8c7b365df6f6630b77ab55a2c87c9b522c50c15259543cbdd",
+      "seedId": "suez-closure-cape-reroute",
+      "seed": "maritime-suez-003",
+      "route": "/world/maritime-trade-global-v1",
+      "tier": "world",
+      "pluginIds": [
+        "maritime-trade-global"
+      ],
+      "viewport": {
+        "id": "mobile-390x844",
+        "width": 390,
+        "height": 844
+      },
+      "interactionPath": [
+        "boot",
+        "select-seed",
+        "start",
+        "settle",
+        "replay",
+        "reload"
+      ]
+    },
+    {
+      "id": "run-51ca661ed3b3c7cf7dbb",
+      "profileId": "maritime-trade-global-v1",
+      "profilePath": "public/data/application-profiles/maritime-trade-global-v1.json",
+      "profileSha256": "58879d087b94a7b8c7b365df6f6630b77ab55a2c87c9b522c50c15259543cbdd",
+      "seedId": "north-atlantic-cyclone",
+      "seed": "maritime-cyclone-004",
+      "route": "/world/maritime-trade-global-v1",
+      "tier": "world",
+      "pluginIds": [
+        "maritime-trade-global"
+      ],
+      "viewport": {
+        "id": "desktop-1440x1000",
+        "width": 1440,
+        "height": 1000
+      },
+      "interactionPath": [
+        "boot",
+        "select-seed",
+        "start",
+        "settle",
+        "replay",
+        "reload"
+      ]
+    },
+    {
+      "id": "run-63e22f6074a47b948a37",
+      "profileId": "maritime-trade-global-v1",
+      "profilePath": "public/data/application-profiles/maritime-trade-global-v1.json",
+      "profileSha256": "58879d087b94a7b8c7b365df6f6630b77ab55a2c87c9b522c50c15259543cbdd",
+      "seedId": "north-atlantic-cyclone",
+      "seed": "maritime-cyclone-004",
+      "route": "/world/maritime-trade-global-v1",
+      "tier": "world",
+      "pluginIds": [
+        "maritime-trade-global"
+      ],
+      "viewport": {
+        "id": "mobile-390x844",
+        "width": 390,
+        "height": 844
+      },
+      "interactionPath": [
+        "boot",
+        "select-seed",
+        "start",
+        "settle",
+        "replay",
+        "reload"
+      ]
+    },
+    {
+      "id": "run-ad8d492847a018dd3058",
+      "profileId": "maritime-trade-global-v1",
+      "profilePath": "public/data/application-profiles/maritime-trade-global-v1.json",
+      "profileSha256": "58879d087b94a7b8c7b365df6f6630b77ab55a2c87c9b522c50c15259543cbdd",
+      "seedId": "panama-capacity-restriction",
+      "seed": "maritime-panama-005",
+      "route": "/world/maritime-trade-global-v1",
+      "tier": "world",
+      "pluginIds": [
+        "maritime-trade-global"
+      ],
+      "viewport": {
+        "id": "desktop-1440x1000",
+        "width": 1440,
+        "height": 1000
+      },
+      "interactionPath": [
+        "boot",
+        "select-seed",
+        "start",
+        "settle",
+        "replay",
+        "reload"
+      ]
+    },
+    {
+      "id": "run-ea758ecb14f978082028",
+      "profileId": "maritime-trade-global-v1",
+      "profilePath": "public/data/application-profiles/maritime-trade-global-v1.json",
+      "profileSha256": "58879d087b94a7b8c7b365df6f6630b77ab55a2c87c9b522c50c15259543cbdd",
+      "seedId": "panama-capacity-restriction",
+      "seed": "maritime-panama-005",
+      "route": "/world/maritime-trade-global-v1",
+      "tier": "world",
+      "pluginIds": [
+        "maritime-trade-global"
+      ],
+      "viewport": {
+        "id": "mobile-390x844",
+        "width": 390,
+        "height": 844
+      },
+      "interactionPath": [
+        "boot",
+        "select-seed",
+        "start",
+        "settle",
+        "replay",
+        "reload"
+      ]
+    },
+    {
+      "id": "run-364d51876c074e6d3646",
+      "profileId": "orbital-transfer-planner-v1",
+      "profilePath": "public/data/application-profiles/orbital-transfer-planner-v1.json",
+      "profileSha256": "0091dced08a3358e68fd03f058aa88f1ea78ebb009cda22adbeafefd72cc1016",
+      "seedId": "earth-mars-window",
+      "seed": "orbital-earth-mars-001",
+      "route": "/solar-system/orbital-transfer-planner-v1",
+      "tier": "solar-system",
+      "pluginIds": [
+        "orbital-transfer-planner"
+      ],
+      "viewport": {
+        "id": "desktop-1440x1000",
+        "width": 1440,
+        "height": 1000
+      },
+      "interactionPath": [
+        "boot",
+        "select-seed",
+        "start",
+        "settle",
+        "replay",
+        "reload"
+      ]
+    },
+    {
+      "id": "run-c7a559a8954390eaad66",
+      "profileId": "orbital-transfer-planner-v1",
+      "profilePath": "public/data/application-profiles/orbital-transfer-planner-v1.json",
+      "profileSha256": "0091dced08a3358e68fd03f058aa88f1ea78ebb009cda22adbeafefd72cc1016",
+      "seedId": "earth-mars-window",
+      "seed": "orbital-earth-mars-001",
+      "route": "/solar-system/orbital-transfer-planner-v1",
+      "tier": "solar-system",
+      "pluginIds": [
+        "orbital-transfer-planner"
+      ],
+      "viewport": {
+        "id": "mobile-390x844",
+        "width": 390,
+        "height": 844
+      },
+      "interactionPath": [
+        "boot",
+        "select-seed",
+        "start",
+        "settle",
+        "replay",
+        "reload"
+      ]
+    },
+    {
+      "id": "run-34a0de0dfe19dc78f1d5",
+      "profileId": "orbital-transfer-planner-v1",
+      "profilePath": "public/data/application-profiles/orbital-transfer-planner-v1.json",
+      "profileSha256": "0091dced08a3358e68fd03f058aa88f1ea78ebb009cda22adbeafefd72cc1016",
+      "seedId": "earth-moon-cargo",
+      "seed": "orbital-earth-moon-002",
+      "route": "/solar-system/orbital-transfer-planner-v1",
+      "tier": "solar-system",
+      "pluginIds": [
+        "orbital-transfer-planner"
+      ],
+      "viewport": {
+        "id": "desktop-1440x1000",
+        "width": 1440,
+        "height": 1000
+      },
+      "interactionPath": [
+        "boot",
+        "select-seed",
+        "start",
+        "settle",
+        "replay",
+        "reload"
+      ]
+    },
+    {
+      "id": "run-b01a52718da50c1e603c",
+      "profileId": "orbital-transfer-planner-v1",
+      "profilePath": "public/data/application-profiles/orbital-transfer-planner-v1.json",
+      "profileSha256": "0091dced08a3358e68fd03f058aa88f1ea78ebb009cda22adbeafefd72cc1016",
+      "seedId": "earth-moon-cargo",
+      "seed": "orbital-earth-moon-002",
+      "route": "/solar-system/orbital-transfer-planner-v1",
+      "tier": "solar-system",
+      "pluginIds": [
+        "orbital-transfer-planner"
+      ],
+      "viewport": {
+        "id": "mobile-390x844",
+        "width": 390,
+        "height": 844
+      },
+      "interactionPath": [
+        "boot",
+        "select-seed",
+        "start",
+        "settle",
+        "replay",
+        "reload"
+      ]
+    },
+    {
+      "id": "run-f3b093ad460db2d18529",
+      "profileId": "orbital-transfer-planner-v1",
+      "profilePath": "public/data/application-profiles/orbital-transfer-planner-v1.json",
+      "profileSha256": "0091dced08a3358e68fd03f058aa88f1ea78ebb009cda22adbeafefd72cc1016",
+      "seedId": "earth-venus-window",
+      "seed": "orbital-earth-venus-003",
+      "route": "/solar-system/orbital-transfer-planner-v1",
+      "tier": "solar-system",
+      "pluginIds": [
+        "orbital-transfer-planner"
+      ],
+      "viewport": {
+        "id": "desktop-1440x1000",
+        "width": 1440,
+        "height": 1000
+      },
+      "interactionPath": [
+        "boot",
+        "select-seed",
+        "start",
+        "settle",
+        "replay",
+        "reload"
+      ]
+    },
+    {
+      "id": "run-b6fae10268db2d95ac76",
+      "profileId": "orbital-transfer-planner-v1",
+      "profilePath": "public/data/application-profiles/orbital-transfer-planner-v1.json",
+      "profileSha256": "0091dced08a3358e68fd03f058aa88f1ea78ebb009cda22adbeafefd72cc1016",
+      "seedId": "earth-venus-window",
+      "seed": "orbital-earth-venus-003",
+      "route": "/solar-system/orbital-transfer-planner-v1",
+      "tier": "solar-system",
+      "pluginIds": [
+        "orbital-transfer-planner"
+      ],
+      "viewport": {
+        "id": "mobile-390x844",
+        "width": 390,
+        "height": 844
+      },
+      "interactionPath": [
+        "boot",
+        "select-seed",
+        "start",
+        "settle",
+        "replay",
+        "reload"
+      ]
+    },
+    {
+      "id": "run-6084cdb5712dc14e1387",
+      "profileId": "orbital-transfer-planner-v1",
+      "profilePath": "public/data/application-profiles/orbital-transfer-planner-v1.json",
+      "profileSha256": "0091dced08a3358e68fd03f058aa88f1ea78ebb009cda22adbeafefd72cc1016",
+      "seedId": "earth-jupiter-window",
+      "seed": "orbital-earth-jupiter-004",
+      "route": "/solar-system/orbital-transfer-planner-v1",
+      "tier": "solar-system",
+      "pluginIds": [
+        "orbital-transfer-planner"
+      ],
+      "viewport": {
+        "id": "desktop-1440x1000",
+        "width": 1440,
+        "height": 1000
+      },
+      "interactionPath": [
+        "boot",
+        "select-seed",
+        "start",
+        "settle",
+        "replay",
+        "reload"
+      ]
+    },
+    {
+      "id": "run-b7c4b3824e8225a15824",
+      "profileId": "orbital-transfer-planner-v1",
+      "profilePath": "public/data/application-profiles/orbital-transfer-planner-v1.json",
+      "profileSha256": "0091dced08a3358e68fd03f058aa88f1ea78ebb009cda22adbeafefd72cc1016",
+      "seedId": "earth-jupiter-window",
+      "seed": "orbital-earth-jupiter-004",
+      "route": "/solar-system/orbital-transfer-planner-v1",
+      "tier": "solar-system",
+      "pluginIds": [
+        "orbital-transfer-planner"
+      ],
+      "viewport": {
+        "id": "mobile-390x844",
+        "width": 390,
+        "height": 844
+      },
+      "interactionPath": [
+        "boot",
+        "select-seed",
+        "start",
+        "settle",
+        "replay",
+        "reload"
+      ]
+    },
+    {
+      "id": "run-4908c711843889bcf9eb",
+      "profileId": "safety-explorer-v1",
+      "profilePath": "public/data/application-profiles/safety-explorer-v1.json",
+      "profileSha256": "e738f5d69cd0324453a73153720e44b998163af075fd65fec09245f8edc36ecc",
+      "seedId": "union-mccarren",
+      "seed": "safety-union-mccarren-0719",
+      "route": "/city/safety-explorer-v1",
+      "tier": "city",
+      "pluginIds": [
+        "safety-explorer"
+      ],
+      "viewport": {
+        "id": "desktop-1440x1000",
+        "width": 1440,
+        "height": 1000
+      },
+      "interactionPath": [
+        "boot",
+        "select-seed",
+        "start",
+        "pause",
+        "step",
+        "resume",
+        "settle",
+        "replay",
+        "reload"
+      ]
+    },
+    {
+      "id": "run-d41f0823f11b4d9b8cd6",
+      "profileId": "safety-explorer-v1",
+      "profilePath": "public/data/application-profiles/safety-explorer-v1.json",
+      "profileSha256": "e738f5d69cd0324453a73153720e44b998163af075fd65fec09245f8edc36ecc",
+      "seedId": "union-mccarren",
+      "seed": "safety-union-mccarren-0719",
+      "route": "/city/safety-explorer-v1",
+      "tier": "city",
+      "pluginIds": [
+        "safety-explorer"
+      ],
+      "viewport": {
+        "id": "mobile-390x844",
+        "width": 390,
+        "height": 844
+      },
+      "interactionPath": [
+        "boot",
+        "select-seed",
+        "start",
+        "pause",
+        "step",
+        "resume",
+        "settle",
+        "replay",
+        "reload"
+      ]
+    },
+    {
+      "id": "run-c41122bd2407a1edd5f1",
+      "profileId": "safety-explorer-v1",
+      "profilePath": "public/data/application-profiles/safety-explorer-v1.json",
+      "profileSha256": "e738f5d69cd0324453a73153720e44b998163af075fd65fec09245f8edc36ecc",
+      "seedId": "village-union",
+      "seed": "safety-village-union-2048",
+      "route": "/city/safety-explorer-v1",
+      "tier": "city",
+      "pluginIds": [
+        "safety-explorer"
+      ],
+      "viewport": {
+        "id": "desktop-1440x1000",
+        "width": 1440,
+        "height": 1000
+      },
+      "interactionPath": [
+        "boot",
+        "select-seed",
+        "start",
+        "pause",
+        "step",
+        "resume",
+        "settle",
+        "replay",
+        "reload"
+      ]
+    },
+    {
+      "id": "run-cb72728cd3dc4a0c215f",
+      "profileId": "safety-explorer-v1",
+      "profilePath": "public/data/application-profiles/safety-explorer-v1.json",
+      "profileSha256": "e738f5d69cd0324453a73153720e44b998163af075fd65fec09245f8edc36ecc",
+      "seedId": "village-union",
+      "seed": "safety-village-union-2048",
+      "route": "/city/safety-explorer-v1",
+      "tier": "city",
+      "pluginIds": [
+        "safety-explorer"
+      ],
+      "viewport": {
+        "id": "mobile-390x844",
+        "width": 390,
+        "height": 844
+      },
+      "interactionPath": [
+        "boot",
+        "select-seed",
+        "start",
+        "pause",
+        "step",
+        "resume",
+        "settle",
+        "replay",
+        "reload"
+      ]
+    },
+    {
+      "id": "run-6abcf8fbf84972d262c5",
+      "profileId": "safety-explorer-v1",
+      "profilePath": "public/data/application-profiles/safety-explorer-v1.json",
+      "profileSha256": "e738f5d69cd0324453a73153720e44b998163af075fd65fec09245f8edc36ecc",
+      "seedId": "cooper-mccarren",
+      "seed": "safety-cooper-mccarren-4096",
+      "route": "/city/safety-explorer-v1",
+      "tier": "city",
+      "pluginIds": [
+        "safety-explorer"
+      ],
+      "viewport": {
+        "id": "desktop-1440x1000",
+        "width": 1440,
+        "height": 1000
+      },
+      "interactionPath": [
+        "boot",
+        "select-seed",
+        "start",
+        "pause",
+        "step",
+        "resume",
+        "settle",
+        "replay",
+        "reload"
+      ]
+    },
+    {
+      "id": "run-5e1b436fedb564a1dffc",
+      "profileId": "safety-explorer-v1",
+      "profilePath": "public/data/application-profiles/safety-explorer-v1.json",
+      "profileSha256": "e738f5d69cd0324453a73153720e44b998163af075fd65fec09245f8edc36ecc",
+      "seedId": "cooper-mccarren",
+      "seed": "safety-cooper-mccarren-4096",
+      "route": "/city/safety-explorer-v1",
+      "tier": "city",
+      "pluginIds": [
+        "safety-explorer"
+      ],
+      "viewport": {
+        "id": "mobile-390x844",
+        "width": 390,
+        "height": 844
+      },
+      "interactionPath": [
+        "boot",
+        "select-seed",
+        "start",
+        "pause",
+        "step",
+        "resume",
+        "settle",
+        "replay",
+        "reload"
+      ]
+    },
+    {
+      "id": "run-c7d4c87efbaee8596838",
+      "profileId": "safety-explorer-v1",
+      "profilePath": "public/data/application-profiles/safety-explorer-v1.json",
+      "profileSha256": "e738f5d69cd0324453a73153720e44b998163af075fd65fec09245f8edc36ecc",
+      "seedId": "tompkins-union",
+      "seed": "safety-tompkins-union-8192",
+      "route": "/city/safety-explorer-v1",
+      "tier": "city",
+      "pluginIds": [
+        "safety-explorer"
+      ],
+      "viewport": {
+        "id": "desktop-1440x1000",
+        "width": 1440,
+        "height": 1000
+      },
+      "interactionPath": [
+        "boot",
+        "select-seed",
+        "start",
+        "pause",
+        "step",
+        "resume",
+        "settle",
+        "replay",
+        "reload"
+      ]
+    },
+    {
+      "id": "run-48fd494dff281a107ed0",
+      "profileId": "safety-explorer-v1",
+      "profilePath": "public/data/application-profiles/safety-explorer-v1.json",
+      "profileSha256": "e738f5d69cd0324453a73153720e44b998163af075fd65fec09245f8edc36ecc",
+      "seedId": "tompkins-union",
+      "seed": "safety-tompkins-union-8192",
+      "route": "/city/safety-explorer-v1",
+      "tier": "city",
+      "pluginIds": [
+        "safety-explorer"
+      ],
+      "viewport": {
+        "id": "mobile-390x844",
+        "width": 390,
+        "height": 844
+      },
+      "interactionPath": [
+        "boot",
+        "select-seed",
+        "start",
+        "pause",
+        "step",
+        "resume",
+        "settle",
+        "replay",
+        "reload"
+      ]
+    },
+    {
+      "id": "run-4f7b7ab18a9570b29c46",
+      "profileId": "sun-walker-v1",
+      "profilePath": "public/data/application-profiles/sun-walker-v1.json",
+      "profileSha256": "04a9557572df2342d3d17f22c20e3ce3c523d2f1e00f1f0c6a47c0ef9afc81da",
+      "seedId": "village-union-shade",
+      "seed": "shade-village-union-0719",
+      "route": "/city/sun-walker-v1",
+      "tier": "city",
+      "pluginIds": [
+        "sun-walker"
+      ],
+      "viewport": {
+        "id": "desktop-1440x1000",
+        "width": 1440,
+        "height": 1000
+      },
+      "interactionPath": [
+        "boot",
+        "select-seed",
+        "start",
+        "pause",
+        "step",
+        "resume",
+        "settle",
+        "replay",
+        "reload"
+      ]
+    },
+    {
+      "id": "run-31425088818d93426b56",
+      "profileId": "sun-walker-v1",
+      "profilePath": "public/data/application-profiles/sun-walker-v1.json",
+      "profileSha256": "04a9557572df2342d3d17f22c20e3ce3c523d2f1e00f1f0c6a47c0ef9afc81da",
+      "seedId": "village-union-shade",
+      "seed": "shade-village-union-0719",
+      "route": "/city/sun-walker-v1",
+      "tier": "city",
+      "pluginIds": [
+        "sun-walker"
+      ],
+      "viewport": {
+        "id": "mobile-390x844",
+        "width": 390,
+        "height": 844
+      },
+      "interactionPath": [
+        "boot",
+        "select-seed",
+        "start",
+        "pause",
+        "step",
+        "resume",
+        "settle",
+        "replay",
+        "reload"
+      ]
+    },
+    {
+      "id": "run-c6faf00a6325b5103a53",
+      "profileId": "sun-walker-v1",
+      "profilePath": "public/data/application-profiles/sun-walker-v1.json",
+      "profileSha256": "04a9557572df2342d3d17f22c20e3ce3c523d2f1e00f1f0c6a47c0ef9afc81da",
+      "seedId": "mccarren-cooper-shade",
+      "seed": "shade-mccarren-cooper-2048",
+      "route": "/city/sun-walker-v1",
+      "tier": "city",
+      "pluginIds": [
+        "sun-walker"
+      ],
+      "viewport": {
+        "id": "desktop-1440x1000",
+        "width": 1440,
+        "height": 1000
+      },
+      "interactionPath": [
+        "boot",
+        "select-seed",
+        "start",
+        "pause",
+        "step",
+        "resume",
+        "settle",
+        "replay",
+        "reload"
+      ]
+    },
+    {
+      "id": "run-ea3e8ff5c4ecc5abe653",
+      "profileId": "sun-walker-v1",
+      "profilePath": "public/data/application-profiles/sun-walker-v1.json",
+      "profileSha256": "04a9557572df2342d3d17f22c20e3ce3c523d2f1e00f1f0c6a47c0ef9afc81da",
+      "seedId": "mccarren-cooper-shade",
+      "seed": "shade-mccarren-cooper-2048",
+      "route": "/city/sun-walker-v1",
+      "tier": "city",
+      "pluginIds": [
+        "sun-walker"
+      ],
+      "viewport": {
+        "id": "mobile-390x844",
+        "width": 390,
+        "height": 844
+      },
+      "interactionPath": [
+        "boot",
+        "select-seed",
+        "start",
+        "pause",
+        "step",
+        "resume",
+        "settle",
+        "replay",
+        "reload"
+      ]
+    },
+    {
+      "id": "run-b89015e274a7ab887038",
+      "profileId": "sun-walker-v1",
+      "profilePath": "public/data/application-profiles/sun-walker-v1.json",
+      "profileSha256": "04a9557572df2342d3d17f22c20e3ce3c523d2f1e00f1f0c6a47c0ef9afc81da",
+      "seedId": "tompkins-union-sun",
+      "seed": "shade-tompkins-union-4096",
+      "route": "/city/sun-walker-v1",
+      "tier": "city",
+      "pluginIds": [
+        "sun-walker"
+      ],
+      "viewport": {
+        "id": "desktop-1440x1000",
+        "width": 1440,
+        "height": 1000
+      },
+      "interactionPath": [
+        "boot",
+        "select-seed",
+        "start",
+        "pause",
+        "step",
+        "resume",
+        "settle",
+        "replay",
+        "reload"
+      ]
+    },
+    {
+      "id": "run-b759534872ca2411f208",
+      "profileId": "sun-walker-v1",
+      "profilePath": "public/data/application-profiles/sun-walker-v1.json",
+      "profileSha256": "04a9557572df2342d3d17f22c20e3ce3c523d2f1e00f1f0c6a47c0ef9afc81da",
+      "seedId": "tompkins-union-sun",
+      "seed": "shade-tompkins-union-4096",
+      "route": "/city/sun-walker-v1",
+      "tier": "city",
+      "pluginIds": [
+        "sun-walker"
+      ],
+      "viewport": {
+        "id": "mobile-390x844",
+        "width": 390,
+        "height": 844
+      },
+      "interactionPath": [
+        "boot",
+        "select-seed",
+        "start",
+        "pause",
+        "step",
+        "resume",
+        "settle",
+        "replay",
+        "reload"
+      ]
+    },
+    {
+      "id": "run-d5585685ea219015cbdf",
+      "profileId": "sun-walker-v1",
+      "profilePath": "public/data/application-profiles/sun-walker-v1.json",
+      "profileSha256": "04a9557572df2342d3d17f22c20e3ce3c523d2f1e00f1f0c6a47c0ef9afc81da",
+      "seedId": "village-tompkins-hot",
+      "seed": "shade-village-tompkins-8192",
+      "route": "/city/sun-walker-v1",
+      "tier": "city",
+      "pluginIds": [
+        "sun-walker"
+      ],
+      "viewport": {
+        "id": "desktop-1440x1000",
+        "width": 1440,
+        "height": 1000
+      },
+      "interactionPath": [
+        "boot",
+        "select-seed",
+        "start",
+        "pause",
+        "step",
+        "resume",
+        "settle",
+        "replay",
+        "reload"
+      ]
+    },
+    {
+      "id": "run-2c70dcd9dee3f90147c7",
+      "profileId": "sun-walker-v1",
+      "profilePath": "public/data/application-profiles/sun-walker-v1.json",
+      "profileSha256": "04a9557572df2342d3d17f22c20e3ce3c523d2f1e00f1f0c6a47c0ef9afc81da",
+      "seedId": "village-tompkins-hot",
+      "seed": "shade-village-tompkins-8192",
+      "route": "/city/sun-walker-v1",
+      "tier": "city",
+      "pluginIds": [
+        "sun-walker"
+      ],
+      "viewport": {
+        "id": "mobile-390x844",
+        "width": 390,
+        "height": 844
+      },
+      "interactionPath": [
+        "boot",
+        "select-seed",
+        "start",
+        "pause",
+        "step",
+        "resume",
+        "settle",
+        "replay",
+        "reload"
+      ]
+    }
+  ],
+  "claimInventory": {
+    "path": "public/data/application-profiles/profile-claim-inventory-v1.json",
+    "sha256": "3e09f7d9178b52c9c60f545ae87102dfa03a13d4934558bd7674fcf887e592ef",
+    "schema": "simulatte.profileClaimInventory.v1",
+    "contentVersion": "2026-07-25"
+  }
+}

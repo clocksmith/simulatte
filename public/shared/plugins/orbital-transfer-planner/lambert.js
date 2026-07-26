@@ -50,14 +50,20 @@
     if (Math.abs(g) < 1e-14) throw lambertError('lambert_g_singular', 'Lambert solution produced a singular g coefficient');
     const departureVelocityAuD = scale(subtract(r2Vec, scale(r1Vec, f)), 1 / g);
     const arrivalVelocityAuD = scale(subtract(scale(r2Vec, gDot), r1Vec), 1 / g);
+    const residualDays = evaluation.timeDays - targetSeconds;
     return Object.freeze({
-      schema: 'simulatte.lambertSolution.v1',
-      converged: Math.abs(evaluation.timeDays - targetSeconds) <= toleranceDays,
+      schema: 'simulatte.lambertSolution.v2',
+      converged: Math.abs(residualDays) <= toleranceDays,
       prograde: options.prograde !== false,
-      iterations,
+      branch: options.prograde === false ? 'retrograde' : 'prograde',
+      revolutionCount: 0,
+      iterations: Math.min(iterations + 1, maxIterations),
+      maxIterations,
+      toleranceDays,
       timeOfFlightDays: tofDays,
-      residualDays: evaluation.timeDays - targetSeconds,
+      residualDays,
       z,
+      bracketZ: Object.freeze({ low: bracket[0], high: bracket[1] }),
       departureVelocityAuD: Object.freeze(departureVelocityAuD),
       arrivalVelocityAuD: Object.freeze(arrivalVelocityAuD),
       geometry: Object.freeze({ r1Au: r1, r2Au: r2, transferAngleRadians: Math.atan2(sinDelta, cosDelta), A }),
