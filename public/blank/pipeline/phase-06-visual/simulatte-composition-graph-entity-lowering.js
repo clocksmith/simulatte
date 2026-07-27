@@ -39,6 +39,7 @@
         pose: object.pose || {},
         layoutConstraints: (object.layoutConstraints || []).slice(),
         layoutRelationRoles: (object.layoutRelationRoles || []).slice(),
+        layoutReceipt: object.layoutReceipt || null,
         semanticRef: object.semanticRef || '',
         physicalRef: object.physicalRef || '',
         sourceGraphId: object.visualSourceGraphId || object.id || '',

@@ -9,6 +9,8 @@
   const PLUGIN_ID = 'maritime-trade-global';
   const MODEL_HASH = '0fc99b214f626c1be3cd2f9c2777b789d326af0857b1de4248d565d33e3f212e';
   function createContribution({ portsData, result, snapshot, dataReceipts }) {
+    const settled = snapshot.status === 'settled';
+    const queueVisible = ['queued', 'berthing', 'discharged', 'delivered', 'settled'].includes(snapshot.status);
     const datasets = dataReceipts.filter((row) => row.sha256).map((row) => builder.datasetRecord(row.datasetId, row, {}));
     const portDataset = datasets.find((row) => /port-registry/.test(row.id)) || datasets[0];
     const activePorts = (portsData.ports || []).filter((row) => result.route.portIds.includes(row.id));
@@ -123,8 +125,9 @@
       eventIds: events.slice(0, snapshot.cursor).map((row) => row.id),
       measures: [
         builder.quantity('progress', snapshot.progressFraction, 'ratio', [0, 1]),
-        builder.quantity('transit-time', result.metrics.totalTransitDays.value, 'day'),
-        builder.quantity('queue-p50', result.queueEnsemble.p50WaitHours, 'hour'),
+        builder.quantity('elapsed-modeled-time', snapshot.timeHours / 24, 'day'),
+        ...(settled ? [builder.quantity('transit-time', result.metrics.totalTransitDays.value, 'day')] : []),
+        ...(queueVisible ? [builder.quantity('queue-p50', result.queueEnsemble.p50WaitHours, 'hour')] : []),
       ],
       provenance: simulated,
     });
@@ -140,13 +143,19 @@
         targetIds: [`route:${result.route.id}`],
         fields: [
           field('distance', 'Distance', result.route.distanceNm, 'nautical miles', modeled),
-          field('transit', 'Transit', result.metrics.totalTransitDays.value, 'day', simulated),
-          field('queue-p05', 'Queue stochastic p05', result.queueEnsemble.p05WaitHours, 'hour', simulated),
-          field('queue-p50', 'Queue stochastic p50', result.queueEnsemble.p50WaitHours, 'hour', simulated),
-          field('queue-p95', 'Queue stochastic p95', result.queueEnsemble.p95WaitHours, 'hour', simulated),
-          field('co2-baseline', 'CO2e baseline', result.emissions.parameterSensitivity.baselineCo2Tons, 'tonne', emissionsModeled),
-          field('co2-sensitivity-low', 'CO2e parameter sensitivity low', result.emissions.parameterSensitivity.minimumCo2Tons, 'tonne', emissionsModeled),
-          field('co2-sensitivity-high', 'CO2e parameter sensitivity high', result.emissions.parameterSensitivity.maximumCo2Tons, 'tonne', emissionsModeled),
+          field('progress', 'Voyage progress', snapshot.progressFraction, 'ratio', simulated),
+          field('elapsed', 'Elapsed modeled time', snapshot.timeHours / 24, 'day', simulated),
+          ...(settled ? [field('transit', 'Transit', result.metrics.totalTransitDays.value, 'day', simulated)] : []),
+          ...(queueVisible ? [
+            field('queue-p05', 'Queue stochastic p05', result.queueEnsemble.p05WaitHours, 'hour', simulated),
+            field('queue-p50', 'Queue stochastic p50', result.queueEnsemble.p50WaitHours, 'hour', simulated),
+            field('queue-p95', 'Queue stochastic p95', result.queueEnsemble.p95WaitHours, 'hour', simulated),
+          ] : []),
+          ...(settled ? [
+            field('co2-baseline', 'CO2e baseline', result.emissions.parameterSensitivity.baselineCo2Tons, 'tonne', emissionsModeled),
+            field('co2-sensitivity-low', 'CO2e parameter sensitivity low', result.emissions.parameterSensitivity.minimumCo2Tons, 'tonne', emissionsModeled),
+            field('co2-sensitivity-high', 'CO2e parameter sensitivity high', result.emissions.parameterSensitivity.maximumCo2Tons, 'tonne', emissionsModeled),
+          ] : []),
           field('boundary', 'Claim boundary', result.claimBoundary, null, modeled),
         ],
       }],

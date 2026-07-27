@@ -248,6 +248,8 @@
         rows: [
           { label: 'Scenario', value: state.acceptedParameters.scenarioId.replaceAll('-', ' ') },
           { label: 'Playback', value: `${state.playback.cursor} of ${state.result.snapshots.length - 1} · ${state.playback.status}` },
+          { label: 'Current stage', value: snapshot.status.replaceAll('-', ' ') },
+          { label: 'What changed', value: snapshot.narrative },
           { label: 'Policy', value: state.acceptedParameters.poolingPolicyId.replaceAll('-', ' ') },
           { label: 'Catalog', value: `${state.result.catalogReceipt.indexedRows.toLocaleString()} bootstrap rows · incomplete` },
           { label: 'Requested', value: `${metrics.requestedUnits} share units` },
@@ -255,19 +257,9 @@
           { label: 'Packages', value: `${metrics.packagesPurchased} whole packages · ${metrics.wasteUnits} unallocated units` },
           { label: 'Cost', value: `$${metrics.householdCostUsd.toFixed(2)}` },
           { label: 'Incremental driving', value: `${metrics.incrementalVehicleKm.toFixed(2)} scenario km` },
+          ...visibleBasketRows(state.result, snapshot),
         ],
         fields: [],
-        actions: [],
-      }, {
-        slot: 'hud',
-        title: 'Truth boundary',
-        rows: [
-          { label: 'Observed', value: 'Four official warehouse identities and addresses' },
-          { label: 'Scenario', value: 'Products, prices, availability, participants, demand, trips, compensation' },
-          { label: 'Modeled', value: 'Corridors, detours, capacity screens, freshness times' },
-          { label: 'Simulated', value: 'Packages, assignments, costs, savings, waste, reputation' },
-          { label: 'Not claimed', value: 'Live Costco inventory, real residents, exact streets, legal marketplace readiness' },
-        ],
         actions: [],
       }];
     }
@@ -503,6 +495,17 @@
 
   function currentSnapshot(state) {
     return state.result.snapshots[state.playback.cursor];
+  }
+
+  function visibleBasketRows(result, snapshot) {
+    const visible = new Set(snapshot.visiblePoolGroupIds || []);
+    return result.poolGroups
+      .filter((row) => visible.has(row.id))
+      .slice(0, 3)
+      .map((row) => ({
+        label: row.item.name,
+        value: `${row.allocatedUnits} requested · ${row.purchasedUnits} purchased · ${row.wasteUnits} unused`,
+      }));
   }
 
   function scenarioSummary(result) {

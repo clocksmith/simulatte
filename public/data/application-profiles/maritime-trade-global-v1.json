@@ -7,7 +7,7 @@
     "mode": "simulation",
     "simulationOwnerPluginId": "maritime-trade-global",
     "missionRequired": false,
-    "startLabel": "Run modeled voyage",
+    "startLabel": "Run voyage",
     "shuffleLabel": "Change scenario"
   },
   "defaultSeedId": "asia-europe-mainline",

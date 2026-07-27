@@ -45,6 +45,7 @@
           validationReceipt: overrides.validationReceipt || null,
           solverGraph: overrides.solverGraph || null,
           renderIR: overrides.renderIR || null,
+          interactionIR: overrides.interactionIR || null,
           phaseArtifacts: scope.mergePhaseArtifacts(
             overrides.phaseArtifacts,
             overrides.intent && overrides.intent.phaseArtifacts
@@ -64,6 +65,7 @@
           spec.validationReceipt = spec.validationReceipt || simulationCompile.validationReceipt || null;
           spec.solverGraph = spec.solverGraph || simulationCompile.solverGraph || null;
           spec.renderIR = spec.renderIR || simulationCompile.renderIR || null;
+          spec.interactionIR = spec.interactionIR || simulationCompile.interactionIR || null;
         }
         if (spec.templateId === 'custom-world') {
           reportCompilePhaseProgress(overrides, 'simulation', 100, 'Simulation compiled');
@@ -123,6 +125,7 @@
           validationReceipt: raw.validationReceipt || null,
           solverGraph: raw.solverGraph || null,
           renderIR: raw.renderIR || null,
+          interactionIR: raw.interactionIR || null,
           phaseArtifacts: raw.phaseArtifacts || null,
           createdAt: raw.createdAt || new Date(0).toISOString(),
           remixOf: raw.remixOf || '',
@@ -194,6 +197,17 @@
             ? attachRenderIRPhaseInputs(scope.compileRenderIR(nextIR, solverGraph, universeGraph), universeGraph)
             : null
         );
+        const nextInteractionIR = overrides.interactionIR || spec.interactionIR || (
+          nextIR && solverGraph && scope.compileInteractionIR
+            ? scope.compileInteractionIR({
+              acceptedGraph: universeGraph,
+              physicsIR: nextIR,
+              solverGraph,
+              renderIR: nextRenderIR,
+              controls: spec.controls || [],
+            })
+            : null
+        );
         const nextIntent = intent && promptParse && universeGraph
           ? { ...intent, promptParse, universeGraph }
           : intent;
@@ -244,6 +258,7 @@
           validationReceipt: simulationCompile.validationReceipt || validationReceipt,
           solverGraph: simulationCompile.solverGraph || solverGraph,
           renderIR: simulationCompile.renderIR || nextRenderIR,
+          interactionIR: simulationCompile.interactionIR || nextInteractionIR,
           phaseArtifacts: scope.mergePhaseArtifacts(phaseArtifacts, generatedPhaseArtifacts, scope.phaseArtifactSet(nextPhase4, nextPhase5)),
         };
       }

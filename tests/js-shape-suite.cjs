@@ -988,7 +988,7 @@ test('physics loading uses a phase-reactive canvas Snake game instead of a card 
   assert.match(webgpuRenderer, /const SCENE_PACKET_FLOATS = SCENE_PACKET_OBJECT_SLOTS \* 12/);
   assert.doesNotMatch(webgpuRenderer, /GPU_SCENE_INSTANCE_CAPACITY|GPU_SCENE_INSTANCE_FLOATS/);
   assert.match(webgpuRenderer, /const GPU_OBJECT_PART_CAPACITY = 256/);
-  assert.match(webgpuRenderer, /const GPU_OBJECT_PART_FLOATS = 24/);
+  assert.match(webgpuRenderer, /const GPU_OBJECT_PART_FLOATS = 40/);
   assert.match(webgpuRenderer, /motion: vec4f/);
   assert.match(webgpuRenderer, /u\.viewport\.z \* row\.motion\.x/);
   assert.match(webgpuRenderer, /const WEBGPU_OPTIONAL_FEATURES = Object\.freeze/);
@@ -1031,7 +1031,9 @@ test('physics loading uses a phase-reactive canvas Snake game instead of a card 
   assert.match(webgpuRenderer, /this\.sceneObjectUniforms = renderData\.sceneObjectUniforms/);
   assert.doesNotMatch(webgpuRenderer, /sceneInstanceData/);
   assert.match(webgpuRenderer, /this\.sceneInstanceCount = renderData\.objectPartCount/);
-  assert.match(webgpuRenderer, /this\.objectPartData = renderData\.objectPartData/);
+  assert.match(webgpuRenderer, /this\.baseObjectPartData = new Float32Array\(renderData\.objectPartData\)/);
+  assert.match(webgpuRenderer, /this\.objectPartData = new Float32Array\(renderData\.objectPartData\)/);
+  assert.match(webgpuRenderer, /scope\.scenePacketInteractionPartData\(\s*this\.baseObjectPartData/);
   assert.match(webgpuRenderer, /this\.objectPartCount = renderData\.objectPartCount/);
   assert.match(webgpuRenderer, /canvas\.dataset\.sceneMix = scope\.sceneMixSummary\(this\.sceneMix\)/);
   assert.match(webgpuRenderer, /canvas\.dataset\.visualIrLayers = scope\.visualIrLayerSummary\(this\.visualIrLayers\)/);
@@ -1229,7 +1231,7 @@ test('physics loading uses a phase-reactive canvas Snake game instead of a card 
   assert.doesNotMatch(webgpuRenderer, /mergeFeatureVectors\(featureVector\(text\), graphicsAtomFeatureVector\(spec\)\)/);
   assert.doesNotMatch(webgpuRenderer, /renderProgram\.intentText|renderProgram\.prompt|rendererPlan\.intentText|renderIR\.prompt/);
   assert.match(webgpuRenderer, /fn backgroundSceneMix\(index: i32\) -> f32/);
-  assert.match(webgpuRenderer, /fn objectPartMask\(local: vec2f, shape: f32\) -> f32/);
+  assert.match(webgpuRenderer, /fn objectPartMask\(local: vec2f, shape: f32, parameters: vec4f\) -> f32/);
   assert.match(webgpuRenderer, /fn objectSpiral\(local: vec2f\) -> f32/);
   assert.match(webgpuRenderer, /fn objectWave\(local: vec2f\) -> f32/);
   assert.match(webgpuRenderer, /pass\.draw\(6, this\.objectPartCount, 0, 0\)/);
@@ -1932,6 +1934,12 @@ test('visual audit auto-judges prompt fidelity and motion with a rubric', () => 
   assert.match(tool, /auditPageUrl/);
   assert.match(tool, /simulatte\.liveVisualAutoRating\.v1/);
   assert.match(tool, /autoRating/);
+  assert.match(tool, /recognizabilityVerified: false/);
+  assert.match(tool, /grade: 'unverified'/);
+  assert.match(tool, /verdict: 'not-proven'/);
+  assert.match(tool, /machineStructuralVerdict:/);
+  assert.match(tool, /simulatte\.phase7MorphologySubmission\.v1/);
+  assert.match(tool, /submitted object parts lack the Phase 6 morphology contract/);
   assert.match(tool, /diversityTelemetryOnly: true/);
   assert.doesNotMatch(tool, /sceneDiversity \* 0\.14/);
   assert.doesNotMatch(tool, /screenshotDiversity \* 0\.08/);
@@ -2222,11 +2230,11 @@ test('phase 8 renders compiled scene packets without semantic inference', () => 
   assert.match(webgpuRenderer, /function scenePacketObjectPartStorageVector/);
   assert.match(webgpuRenderer, /const objectRealization = scope\.scenePacketObjectRealization\(packet, objectParts\)/);
   assert.match(objectRealization, /const geometryRealized = program\.literal === true &&/);
-  assert.match(objectRealization, /realized: geometryRealized && \(!hasSubmissionEvidence \|\| submitted\)/);
+  assert.match(objectRealization, /realized: perceptualReady && \(!hasSubmissionEvidence \|\| submitted\)/);
   assert.match(webgpuRenderer, /pass\.draw\(6, this\.objectPartCount, 0, 0\)/);
   assert.match(graph, /simulatte\.objectGeometryProgram\.v1/);
 
-  const shaderBody = webgpuRenderer.match(/fn objectPartMask\(local: vec2f, shape: f32\) -> f32 \{[\s\S]*?return objectBox\(local, 0\.12\);\n\}/);
+  const shaderBody = webgpuRenderer.match(/fn objectPartMask\(local: vec2f, shape: f32, parameters: vec4f\) -> f32 \{[\s\S]*?return objectBox\(local, 0\.12\);\n\}/);
   assert.ok(shaderBody, 'objectPartMask should be parseable');
   for (const primitive of [
     'objectEllipse',
@@ -2237,7 +2245,16 @@ test('phase 8 renders compiled scene packets without semantic inference', () => 
     'objectStar',
     'objectSpiral',
     'objectWave',
+    'objectTrapezoid',
+    'objectTeardrop',
+    'objectLeaf',
+    'objectCrescent',
+    'objectArch',
+    'objectGear',
+    'objectCloud',
   ]) assert.match(shaderBody[0], new RegExp(primitive));
+  assert.match(webgpuRenderer, /fn objectSuperellipse\(local: vec2f, parameters: vec4f\)[\s\S]*?parameters\.x/);
+  assert.match(webgpuRenderer, /objectPartMask\(input\.local, input\.shape, input\.shapeParams\)/);
   assert.match(webgpuRenderer, /fn objectSurfaceNormal\(local: vec2f, shape: f32\) -> vec3f/);
   assert.match(webgpuRenderer, /fn objectSpecularStrength\(shape: f32, metallic: f32\) -> f32/);
   assert.match(webgpuRenderer, /let normal = objectSurfaceNormal\(input\.local, input\.shape\)/);

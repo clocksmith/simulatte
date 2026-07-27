@@ -268,9 +268,10 @@ test('plugin lifecycle advances the modeled walk without owning playback delay o
   assert.ok(receipts.some((row) => row.schema === 'simulatte.plugin.sunWalkerPlaybackReceipt.v1'));
   assert.ok(proposed.some((row) => row.kind === 'sun-walker.playback-advanced'));
   const views = instance.view();
-  assert.deepEqual(views[1].actions, []);
+  assert.equal(views.length, 1);
+  assert.deepEqual(views[0].actions, []);
   const simulation = instance.simulationState();
-  const directSun = views[1].rows.find((row) => row.label === 'Direct sun');
+  const directSun = views[0].rows.find((row) => row.label === 'Direct sun');
   assert.equal(
     directSun.value,
     `${Math.round(simulation.state.directSunSeconds)} of ${Math.round(instance.comparisonModel().metrics.travelSeconds.intervention)} s`

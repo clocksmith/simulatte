@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.applicationProfile.v2",
   "id": "sun-walker-v1",
-  "interaction": { "mode": "playback", "startLabel": "Simulate shaded walk", "shuffleLabel": "Shuffle walk" },
+  "interaction": { "mode": "playback", "startLabel": "Run shaded walk", "shuffleLabel": "Change scenario" },
   "defaultSeedId": "village-union-shade",
   "seeds": [
     { "id": "village-union-shade", "label": "Village to Union Square", "description": "Compare clear-sky building shade at simulated arrival times.", "seed": "shade-village-union-0719", "missionText": "Walk from Washington Square Park to Union Square using the most building shade." },

@@ -10,7 +10,12 @@
   const MODEL_HASH = 'c21e2c257506a1d550f9ce62ce0ea746afa7ed83285e4e72ab5e7c2473da29e6';
   const VERIFIER_HASH = 'df8ac302c5450b95c88d68d182ffe8fe81c5633ea1c46a43c1993f6f9fc0ef03';
 
-  function createContribution({ result, ephemerisData, datasetReceipts, profileWeights = {} }) {
+  function createContribution({ result, ephemerisData, datasetReceipts, profileWeights = {}, playback = null }) {
+    const currentStep = playback?.cursor ?? playback?.currentStep ?? Number.MAX_SAFE_INTEGER;
+    const searchVisible = currentStep >= 1;
+    const selectionVisible = currentStep >= 3;
+    const verificationVisible = currentStep >= 4;
+    const flightFraction = flightProgress(currentStep);
     const datasets = datasetReceipts.filter((row) => row.receipt).map((row) => builder.datasetRecord(row.id, row.receipt, {
       claimBoundary: row.value?.provenance?.claimBoundary || null,
     }));
@@ -110,7 +115,7 @@
       20,
       Math.ceil(Number(result.metrics.totalDeltaVKmS || 0) / 5) * 5,
     );
-    if (trajectory.length >= 2) {
+    if (selectionVisible && trajectory.length >= 2) {
       layers.push(builder.layer({
         id: 'transfer-trajectory',
         kind: 'path',
@@ -126,8 +131,21 @@
         provenance: transferClaim,
       }));
     }
+    const actorPosition = pointAlong(trajectory, flightFraction);
+    if (actorPosition) {
+      layers.push(builder.layer({
+        id: 'screening-spacecraft',
+        kind: 'actor',
+        label: `Modeled coast · ${Math.round(flightFraction * 100)}%`,
+        geometry: builder.geometry('point', 'heliocentric-ecliptic-au', [actorPosition]),
+        quantity: builder.quantity('flight-progress', flightFraction, 'ratio', [0, 1]),
+        role: 'event',
+        importance: 1,
+        provenance: transferClaim,
+      }));
+    }
     const eventId = `${PLUGIN_ID}:event:${result.scenarioId}`;
-    const events = [builder.event({
+    const events = currentStep > 0 ? [builder.event({
       id: eventId,
       pluginId: PLUGIN_ID,
       sequence: 0,
@@ -150,7 +168,7 @@
         claimGate: result.claimGate || null,
       },
       provenance: transferClaim,
-    })];
+    })] : [];
     const targetIds = ['transfer-trajectory', `body:earth`, `body:${result.targetBodyId}`]
       .filter((id) => layers.some((row) => row.id === id));
     const visual = builder.presentation({
@@ -163,7 +181,7 @@
           id: 'transfer-overview',
           mode: 'compare',
           targetIds,
-          reasonEventId: eventId,
+          reasonEventId: events[0]?.id || null,
           priority: 70,
         }),
       ],
@@ -181,21 +199,29 @@
       synchronizedClock: true,
     }]);
     const progressiveState = builder.state({
-      id: `${PLUGIN_ID}:state:${result.scenarioId}`,
+      id: `${PLUGIN_ID}:state:${result.scenarioId}:${Number.isFinite(currentStep) ? currentStep : 'settled'}`,
       pluginId: PLUGIN_ID,
-      simulationTimeMs: 0,
-      status: 'settled',
-      eventIds: [eventId],
+      simulationTimeMs: Number.isFinite(flightFraction)
+        ? Math.round(result.metrics.timeOfFlightDays * flightFraction * 86400000)
+        : 0,
+      status: playback?.status || 'settled',
+      eventIds: events.map((row) => row.id),
       measures: [
-        builder.quantity('solution-count', result.metrics.solutionCount, 'solutions'),
-        builder.quantity('attempted-count', result.metrics.attemptedCount, 'candidates'),
-        builder.quantity('time-of-flight', result.metrics.timeOfFlightDays, 'day'),
-        builder.quantity('total-delta-v', result.metrics.totalDeltaVKmS, 'km/s'),
-        builder.quantity('radiation-exposure-proxy', result.metrics.radiationExposureUnits, 'shielded proton units'),
-        ...(Number.isFinite(result.metrics.endpointPositionErrorKm)
+        ...(searchVisible ? [
+          builder.quantity('solution-count', result.metrics.solutionCount, 'solutions'),
+          builder.quantity('attempted-count', result.metrics.attemptedCount, 'candidates'),
+        ] : []),
+        ...(selectionVisible ? [
+          builder.quantity('time-of-flight', result.metrics.timeOfFlightDays, 'day'),
+          builder.quantity('total-delta-v', result.metrics.totalDeltaVKmS, 'km/s'),
+        ] : []),
+        ...(playback?.status === 'settled'
+          ? [builder.quantity('radiation-exposure-proxy', result.metrics.radiationExposureUnits, 'shielded proton units')]
+          : []),
+        ...(verificationVisible && Number.isFinite(result.metrics.endpointPositionErrorKm)
           ? [builder.quantity('endpoint-position-error', result.metrics.endpointPositionErrorKm, 'km')]
           : []),
-        ...(Number.isFinite(result.metrics.endpointVelocityErrorKmS)
+        ...(verificationVisible && Number.isFinite(result.metrics.endpointVelocityErrorKmS)
           ? [builder.quantity('endpoint-velocity-error', result.metrics.endpointVelocityErrorKmS, 'km/s')]
           : []),
       ],
@@ -206,6 +232,8 @@
       label: 'Transfer plan and validity boundary',
       targetIds,
       fields: [
+        field('solver-stage', 'Solver stage', playback?.stage?.label || 'Settled result', null, transferClaim),
+        field('solver-narrative', 'What changed', playback?.stage?.narrative || result.claimBoundary, null, transferClaim),
         field('target', 'Target', result.targetBodyId, null, transferClaim),
         field('departure', 'Departure epoch', result.metrics.departureEpoch || 'circular fallback', null, transferClaim),
         field('arrival', 'Arrival epoch', result.metrics.arrivalEpoch || 'circular fallback', null, transferClaim),
@@ -256,6 +284,17 @@
 
   function magnitude(vector) {
     return Math.hypot(...vector);
+  }
+
+  function flightProgress(cursor) {
+    if (cursor < 5) return null;
+    return [0.25, 0.5, 0.75, 1][Math.min(3, cursor - 5)];
+  }
+
+  function pointAlong(points, fraction) {
+    if (!Number.isFinite(fraction) || !Array.isArray(points) || points.length < 2) return null;
+    const index = Math.min(points.length - 1, Math.max(0, Math.round((points.length - 1) * fraction)));
+    return points[index];
   }
 
   return Object.freeze({ createContribution });

@@ -2941,7 +2941,10 @@ test('WebGPU phase 8 layer summary follows compiled VisualIR structures', () => 
       assert.equal(canvas.dataset.renderExecutionInput, 'simulatte.renderExecutionInput.v1');
       assert.equal(canvas.dataset.phase7SceneRenderPacketInput, 'simulatte.sceneRenderPacket.v1');
       assert.equal(canvas.dataset.phase7RenderData, 'simulatte.phase7.compactRenderData.v1');
-      assert.equal(canvas.dataset.phase7RenderPath, 'depth-lit-storage-object-parts-with-uniform-fallback');
+      assert.equal(
+        canvas.dataset.phase7RenderPath,
+        'depth-lit-prompt-conditioned-contours-surfaces-and-atmospheres'
+      );
       assert.match(canvas.dataset.sceneRenderPacket || '', /simulatte\.sceneRenderPacket\.v1/);
       assert.ok(Number(canvas.dataset.sceneRenderEntityCount) > 0, `${prompt} should report packet entity count`);
       assert.ok(Number(canvas.dataset.sceneRenderDrawCount) > 0, `${prompt} should compile compact draw rows`);
@@ -3197,7 +3200,8 @@ test('solver integrator contracts are explicit, validated, and carried into comp
   const registry = solverRegistry.createSolverRegistry();
   const operators = Object.values(registry.operators);
 
-  assert.equal(operators.length, 23);
+  assert.equal(operators.length, 24);
+  assert.equal(registry.operatorFor('interaction_kinematics').id, 'interaction-kinematics');
   assert.ok(operators.every((row) => solverRegistry.validateIntegrator(row.integrator)));
   assert.ok(operators.some((row) => row.integrator.scheme === 'semi_implicit_euler_v1'));
   assert.ok(operators.some((row) => row.integrator.scheme === 'explicit_euler_v1'));

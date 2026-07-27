@@ -1298,8 +1298,9 @@ test('autonomy browser surface loads every declared module and stays independent
   assert.match(html, /id="follow-minimap"/);
   assert.match(html, /id="shuffle-button"[^>]*>[\s\S]*?id="shuffle-label">Shuffle<\/span>/);
   assert.match(html, /id="start-button"[^>]*>[\s\S]*?id="start-label">Start<\/span>/);
-  assert.match(html, /class="sim-text-link" href="https:\/\/create\.simulatte\.world\/"[^>]*>Create<\/a>/);
-  assert.match(html, /id="experience-doc-link" class="sim-text-link experience-doc-link sim-surface"[^>]*target="_blank"[^>]*hidden>Experience docs<\/a>/);
+  assert.doesNotMatch(html, /href="https:\/\/create\.simulatte\.world\/"[^>]*>Create<\/a>/);
+  assert.match(html, /id="experience-doc-link" class="sim-text-link experience-doc-link"[^>]*target="_blank"[^>]*hidden>Experience docs<\/a>/);
+  assert.doesNotMatch(html, /id="experience-doc-link"[^>]*sim-surface/);
   assert.doesNotMatch(html, /class="blank-link"/);
   assert.match(compatibilityHtml, /Simulatte/);
   assert.match(compilerHtml, /class="prompt-dock-autonomy" href="https:\/\/simulatte\.world\/"/);
@@ -1343,7 +1344,8 @@ test('autonomy UI keeps the map primary and moves technical controls behind prog
   assert.match(html, /id="decisions-drawer"[^>]*aria-hidden="true"/);
   assert.match(html, /id="runtime-toggle"[^>]*aria-expanded="false"/);
   assert.match(html, /id="runtime-details"[^>]*hidden/);
-  assert.match(html, /id="runtime-details"[\s\S]*class="legend"[\s\S]*class="sim-text-link"/);
+  assert.match(html, /id="runtime-details"[\s\S]*id="runtime-context-legend"[\s\S]*id="runtime-data-copy"/);
+  assert.doesNotMatch(html, /id="runtime-details"[\s\S]*href="https:\/\/create\.simulatte\.world\/"/);
   assert.doesNotMatch(html, /id="map-panel-button"|id="map-popover"/);
   assert.match(html, /id="camera-focus-popover"[^>]*hidden/);
   assert.match(html, /id="dock-more-menu"[^>]*hidden/);

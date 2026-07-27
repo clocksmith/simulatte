@@ -84,7 +84,16 @@
     function showLanding() {
       landing?.classList.remove('hidden');
       updateExperienceDocLink(documentationLink, null);
-      try { document.body.classList.remove('world-explorer'); } catch (_error) { /* no document */ }
+      try {
+        document.body.classList.remove('world-explorer');
+        delete document.body.dataset.experienceShell;
+        delete document.body.dataset.experienceId;
+        delete document.body.dataset.experienceKind;
+        const summary=document.getElementById('experience-summary');
+        const cameraControls=document.getElementById('camera-controls');
+        if(summary)summary.hidden=true;
+        if(cameraControls)cameraControls.hidden=true;
+      } catch (_error) { /* no document */ }
     }
 
     async function renderRoute(route) {
@@ -193,7 +202,7 @@
   }
 
   async function bootGovernedTierExplorer(ctx,tier,requestedProfileId,options={}) {
-    const required=['SimulatteTierApplicationLoader','SimulattePluginRuntime','SimulatteGeneratedPluginRegistry','SimulatteDeclarativeUiHost','SimulatteApplicationProfileSelect','SimulatteCityInterface','SimulattePluginRandom','SimulattePluginScheduler','SimulattePluginCompute','SimulattePluginEnvironment','SimulattePluginGeography','SimulatteSimulationClock','SimulatteViewDirector','SimulatteAutonomyReceipts','SimulatteTierRunController'];
+    const required=['SimulatteTierApplicationLoader','SimulattePluginRuntime','SimulatteGeneratedPluginRegistry','SimulatteDeclarativeUiHost','SimulatteApplicationProfileSelect','SimulatteCityInterface','SimulatteMainView','SimulattePluginRandom','SimulattePluginScheduler','SimulattePluginCompute','SimulattePluginEnvironment','SimulattePluginGeography','SimulatteSimulationClock','SimulatteViewDirector','SimulatteAutonomyReceipts','SimulatteTierRunController'];
     const missing=required.find((name)=>!root[name]);
     if(missing)throw new Error(`tier_boot_dependency_missing: ${missing}`);
     const elements=ctx.collectElements();
@@ -212,7 +221,65 @@
     let viewIntentIds=new Set();
     let runController=null;
     let removeManualView=null;
+    let lastPluginContributions=Object.freeze([]);
     let disposed=false;
+
+    function selectTierViewMode(mode){
+      const overview=mode==='overview';
+      elements.cameraBird.classList.toggle('is-active',overview);
+      elements.cameraBird.setAttribute('aria-pressed',String(overview));
+      elements.cameraTop.classList.toggle('is-active',!overview);
+      elements.cameraTop.setAttribute('aria-pressed',String(!overview));
+    }
+    function closeTierFocus(){
+      elements.cameraFocusPopover.hidden=true;
+      elements.cameraFocusButton.setAttribute('aria-expanded','false');
+    }
+    function populateTierCameraTargets(){
+      const targets=tierVisualizer?.pluginCameraTargets?.()||[];
+      const selected=elements.cameraFocus.value;
+      elements.cameraFocus.replaceChildren(...targets.map((target)=>{
+        const option=document.createElement('option');
+        option.value=target.id;
+        option.textContent=target.label;
+        return option;
+      }));
+      elements.cameraFocusButton.disabled=!targets.length;
+      if(targets.some((target)=>target.id===selected))elements.cameraFocus.value=selected;
+      else if(targets.length)elements.cameraFocus.value=targets[0].id;
+    }
+    function wireTierViewControls(){
+      elements.cameraFollow.hidden=true;
+      elements.cameraBird.textContent='Overview';
+      elements.cameraTop.textContent='Free';
+      selectTierViewMode('overview');
+      on(elements.cameraFocusButton,'click',(event)=>{
+        event.stopPropagation();
+        const open=elements.cameraFocusPopover.hidden;
+        elements.cameraFocusPopover.hidden=!open;
+        elements.cameraFocusButton.setAttribute('aria-expanded',String(open));
+      });
+      on(window,'click',closeTierFocus);
+      on(elements.cameraFocusPopover,'click',(event)=>event.stopPropagation());
+      on(elements.cameraFocus,'change',()=>{
+        const targetId=elements.cameraFocus.value;
+        const target=tierVisualizer.pluginCameraTargets?.().find((row)=>row.id===targetId);
+        if(!target)return;
+        viewDirector?.setManualOverride({mode:'free',targetIds:[target.sourceId]});
+        tierVisualizer.focusPluginTarget?.(targetId);
+        selectTierViewMode('free');
+        closeTierFocus();
+      });
+      on(elements.cameraBird,'click',()=>{
+        viewDirector?.releaseManualOverride();
+        tierVisualizer.resetView?.();
+        selectTierViewMode('overview');
+      });
+      on(elements.cameraTop,'click',()=>{
+        viewDirector?.setManualOverride({mode:'free',targetIds:[]});
+        selectTierViewMode('free');
+      });
+    }
 
     async function dispose(){
       if(disposed)return;
@@ -253,7 +320,7 @@
       pluginUi?.dispose?.();
       if(runtime)await runtime.dispose();
       runtime=await root.SimulattePluginRuntime.createPluginRuntime({registry:root.SimulatteGeneratedPluginRegistry,profile:data.applicationProfile,scenario,dataCatalog:data.dataCatalog,artifactStore:data.artifactStore,registryBaseUrl:data.registryBaseUrl,corePorts:createCorePorts(scenario)});
-      pluginUi=root.SimulatteDeclarativeUiHost.createDeclarativeUiHost({rootElements:{inspector:elements.pluginInspector,map:elements.pluginMapUi,hud:elements.pluginHudUi},onAction:async({pluginId,actionId,command,values})=>{
+      pluginUi=root.SimulatteDeclarativeUiHost.createDeclarativeUiHost({rootElements:{inspector:elements.pluginInspector,map:elements.pluginMapUi},onAction:async({pluginId,actionId,command,values})=>{
         if(command?.kind==='camera.focus'){viewDirector?.setManualOverride({mode:'free',targetIds:[command.targetId]});tierVisualizer.focusPluginTarget?.(`plugin:${pluginId}:${command.targetId}`);return;}
         await runtime.dispatchAction(pluginId,actionId,{values,scenario:activeScenario,routeObjective:data.applicationProfile.routeObjective});
         renderPlugins();
@@ -264,17 +331,15 @@
       if(!runtime)return;
       const context={scenario:activeScenario,compositionSize:runtime.activePluginIds.length};
       const platform=runtime.platformV4(context);
+      lastPluginContributions=platform.contributions;
       pluginUi.render(runtime.views(context),platform.contributions);
       const controlCount=platform.contributions.reduce((total,contribution)=>total+contribution.controls.controls.length,0);
       elements.decisionsButton.textContent=controlCount?`Controls (${controlCount})`:'Evidence';
-      tierVisualizer.setExperienceSummary?.(experienceHudSummary({
-        profileId:data.applicationProfile.id,
-        profileLabel:elements.applicationProfileLabel.textContent,
-        scenario:activeScenario,
-        contributions:platform.contributions,
-      }));
+      renderTierSummary(root.__simulatteTierRunState?.state||'idle');
+      tierVisualizer.removeHud?.();
       const simulationTimeMs=Math.max(0,...platform.contributions.map((contribution)=>contribution.state?.simulationTimeMs||0));
       tierVisualizer.setPluginPresentations?.(platform.contributions.map((contribution)=>({pluginId:contribution.pluginId,presentation:contribution.presentation})),{simulationTimeMs,provenanceReceipts:platform.provenanceReceipts});
+      populateTierCameraTargets();
       if(!simulationClock)simulationClock=root.SimulatteSimulationClock.createClock({timeline:platform.timeline});
       simulationClock.useTimeline(platform.timeline,{atMs:simulationTimeMs});
       const previousViewState=viewDirector?.snapshot();
@@ -297,11 +362,28 @@
       }
       root.__simulattePluginPlatformV4=Object.freeze({receipt:platform.receipt,contributions:platform.contributions,contributionSources:platform.contributionSources,provenance:platform.provenanceCoverage,clock:simulationClock.receipt(),view:viewDirector.receipt(),compositor:tierVisualizer.pluginPresentationReceipt?.()||[]});
     }
-    function renderScenario(){root.SimulatteApplicationProfileSelect.renderInteraction(interaction,activeScenario,elements);elements.missionField.hidden=true;elements.scenarioField.hidden=false;elements.startButton.hidden=false;elements.shuffleButton.hidden=interaction.scenarios.length<2;elements.pauseButton.hidden=true;elements.resumeButton.hidden=true;elements.replayButton.hidden=true;elements.newMissionButton.hidden=true;elements.modelSelectionControls?.replaceChildren();}
+    function renderTierSummary(runState){
+      root.SimulatteMainView.renderExperienceSummary(elements,experienceHudSummary({
+        profileId:data.applicationProfile.id,
+        profileLabel:elements.applicationProfileLabel.textContent,
+        scenario:activeScenario,
+        contributions:lastPluginContributions,
+        runState,
+      }));
+    }
+    function renderScenario(){root.SimulatteApplicationProfileSelect.renderInteraction(interaction,activeScenario,elements);elements.missionField.hidden=true;elements.scenarioField.hidden=false;elements.startButton.hidden=false;elements.shuffleButton.hidden=interaction.scenarios.length<2;elements.pauseButton.hidden=true;elements.resumeButton.hidden=true;elements.replayButton.hidden=true;elements.newMissionButton.hidden=true;elements.dockMoreButton.hidden=true;elements.playbackSpeedControl.hidden=true;elements.playbackTimelineControl.hidden=true;elements.playbackTimeline.value='0';elements.playbackTimeline.max='0';elements.playbackProgress.textContent='0 / 0';elements.modelSelectionControls?.replaceChildren();}
+    function reportRunFailure(error){
+      if(root.__simulatteLastFailError?.message===error.message)return;
+      root.__simulatteLastFailError={message:error.message,code:error.code||null};
+      ctx.setJourneyPhase?.('failed');
+      ctx.setRuntimeStatus?.(elements,'Stopped','error');
+      (root.SimulatteAutonomyRuntimeLog||root.SimulatteRuntimeLog)?.error?.('tier.run.failed',{message:error.message,code:error.code||null});
+    }
     function configureRunController(owner){
       runController?.dispose();
       root.__simulatteTierRunReceipt=null;
       root.__simulatteTierRunState=null;
+      root.__simulatteLastFailError=null;
       root.__simulatteComparisonExecutionReceipts=Object.freeze([]);
       runController=root.SimulatteTierRunController.createController({
         getRuntime:()=>runtime,
@@ -318,13 +400,22 @@
           const isRunning=state.state==='running';
           const isPaused=state.state==='paused';
           const isSettled=state.state==='settled';
-          elements.startButton.hidden=state.state!=='idle';
-          elements.pauseButton.hidden=!isRunning;
-          elements.resumeButton.hidden=!isPaused;
-          elements.stepButton.hidden=!isPaused;
-          elements.replayButton.hidden=!isSettled;
+          const isProgressive=state.totalSteps>1;
+          elements.startButton.hidden=state.state!=='idle'&&!(isSettled&&!isProgressive);
+          elements.pauseButton.hidden=!isRunning||!isProgressive;
+          elements.resumeButton.hidden=!isPaused||!isProgressive;
+          elements.stepButton.hidden=!isPaused||!isProgressive;
+          elements.replayButton.hidden=!isSettled||!isProgressive;
+          elements.dockMoreButton.hidden=!isProgressive||(!isRunning&&!isPaused&&!isSettled);
+          elements.playbackSpeedControl.hidden=!isProgressive;
+          elements.playbackTimelineControl.hidden=!isProgressive;
+          elements.playbackTimeline.max=String(state.totalSteps);
+          elements.playbackTimeline.value=String(Math.min(state.currentStep,state.totalSteps));
+          elements.playbackProgress.textContent=`${Math.min(state.currentStep,state.totalSteps)} / ${state.totalSteps}`;
+          elements.playbackSpeed.value=String(state.playbackRate);
           elements.startButton.disabled=false;
-          if(isRunning||isPaused){ctx.setJourneyPhase?.(isPaused?'paused':'running');ctx.setRuntimeStatus?.(elements,isPaused?'Paused':'Running scenario',isPaused?'paused':'active');}
+          renderTierSummary(state.state);
+          if(isRunning||isPaused){ctx.setJourneyPhase?.(isPaused?'paused':'running');ctx.setRuntimeStatus?.(elements,state.terminalPreview?'End preview · Resume or step to settle':isPaused?'Paused':'Running scenario',isPaused?'paused':'active');}
           else if(state.state==='idle'&&document.body.dataset.journeyPhase==='completed'){ctx.setJourneyPhase?.('ready');ctx.setRuntimeStatus?.(elements,'Resetting scenario','loading');}
         },
         onReceipt:(receipt)=>{
@@ -333,12 +424,7 @@
           ctx.setJourneyPhase?.('completed');
           ctx.setRuntimeStatus?.(elements,'Complete','ready');
         },
-        onError:(error)=>{
-          root.__simulatteLastFailError={message:error.message,code:error.code||null};
-          ctx.setJourneyPhase?.('failed');
-          ctx.setRuntimeStatus?.(elements,'Stopped','error');
-          (root.SimulatteAutonomyRuntimeLog||root.SimulatteRuntimeLog)?.error?.('tier.run.failed',{message:error.message,code:error.code||null});
-        },
+        onError:reportRunFailure,
       });
     }
     try {
@@ -351,7 +437,10 @@
       data=await root.SimulatteTierApplicationLoader.loadTierApplication({tier,requestedProfileId:requestedProfileId||null,fetchImpl:lifecycle.fetch});
       lifecycle.throwIfAborted();
       tierVisualizer=ctx.createTierVisualizer(elements.overlayCanvas,'world-tier-control');
-      removeManualView=tierVisualizer.onManualView?.(()=>viewDirector?.setManualOverride({mode:'free',targetIds:[]}));
+      removeManualView=tierVisualizer.onManualView?.(()=>{
+        viewDirector?.setManualOverride({mode:'free',targetIds:[]});
+        selectTierViewMode('free');
+      });
       await tierVisualizer.loadTier(tier);
       lifecycle.throwIfAborted();
       populateProfileSelect(elements.applicationProfile,data.profileEntries,data.applicationProfile.id);
@@ -361,7 +450,13 @@
       profileSelectUi.sync();
       on(elements.applicationProfile,'change',()=>{const value=elements.applicationProfile.value;if(value&&value!==data.applicationProfile.id)ctx.navigate?.({tier,experience:value});});
       wireTierControls({elements,tierVisualizer,profileSelectUi,activeTier:tier,hasProfiles:true,signal:lifecycle.signal,onSelectTier:ctx.onSelectTier});
+      wireTierViewControls();
       interaction=root.SimulatteApplicationProfileSelect.resolveInteraction(data.applicationProfile,{});
+      root.SimulatteMainView.configureExperienceShell(elements,{
+        interactionMode:interaction.mode,
+        profileId:data.applicationProfile.id,
+        tier,
+      });
       const storedRun=root.SimulatteTierRunController.readStoredReceipt(root.sessionStorage,data.applicationProfile.id);
       activeScenario=interaction.scenarios.find((scenario)=>(
         scenario.id===storedRun?.scenario?.id&&scenario.seed===storedRun?.scenario?.seed
@@ -371,11 +466,13 @@
       lifecycle.throwIfAborted();
       const owner=data.applicationProfile.interaction.simulationOwnerPluginId||runtime.activePluginIds[0];
       configureRunController(owner);
-      on(elements.startButton,'click',()=>{void runController.start().catch(()=>{});});
+      on(elements.startButton,'click',()=>{void runController.start().catch(reportRunFailure);});
       on(elements.pauseButton,'click',()=>runController.pause());
-      on(elements.resumeButton,'click',()=>runController.resume());
-      on(elements.stepButton,'click',()=>{void runController.step().catch(()=>{});});
-      on(elements.replayButton,'click',()=>{void runController.replay().catch(()=>{});});
+      on(elements.resumeButton,'click',()=>{void runController.resume().catch(reportRunFailure);});
+      on(elements.stepButton,'click',()=>{void runController.step().catch(reportRunFailure);});
+      on(elements.replayButton,'click',()=>{void runController.replay().catch(reportRunFailure);});
+      on(elements.playbackSpeed,'change',()=>{runController.setPlaybackRate(Number(elements.playbackSpeed.value));});
+      on(elements.playbackTimeline,'change',()=>{void runController.seek(Number(elements.playbackTimeline.value)).catch(reportRunFailure);});
       on(elements.shuffleButton,'click',async()=>{
         runController?.dispose();
         elements.shuffleButton.disabled=true;
@@ -413,23 +510,27 @@
 
   function populateProfileSelect(select,entries,selectedId){select.replaceChildren(...entries.map((entry)=>{const option=document.createElement('option');option.value=entry.id;option.textContent=labelForProfile(entry.id);option.selected=entry.id===selectedId;return option;}));select.value=selectedId;}
   function labelForProfile(id){if(PROFILE_LABELS[id])return PROFILE_LABELS[id];return String(id).replace(/-v\d+$/,'').split('-').filter(Boolean).map((part)=>part.charAt(0).toUpperCase()+part.slice(1)).join(' ');}
-  function experienceHudSummary({profileId,profileLabel,scenario,contributions=[]}) {
+  function experienceHudSummary({profileId,profileLabel,scenario,contributions=[],runState='ready'}) {
     const primary=contributions.find((contribution)=>contribution.state?.measures?.length)||contributions[0]||null;
-    const measures=(primary?.state?.measures||[]).filter((measure)=>measure.kind!=='progress').slice(0,5);
+    const exposesResults=!['idle','ready'].includes(runState);
+    const measures=exposesResults?(primary?.state?.measures||[]).filter((measure)=>measure.kind!=='progress').slice(0,5):[];
     const controls=contributions.reduce((total,contribution)=>total+(contribution.controls?.controls?.length||0),0);
     const stats=Object.fromEntries(measures.map((measure)=>[hudLabel(measure.kind),hudValue(measure)]));
     if(!measures.length)stats.Controls=controls;
     return Object.freeze({
       experienceId:profileId,
       title:profileLabel||labelForProfile(profileId),
-      description:[scenario?.label,hudLabel(primary?.state?.status||'ready')].filter(Boolean).join(' · '),
+      description:[scenario?.label,hudLabel(runState)].filter(Boolean).join(' · '),
       stats:Object.freeze(stats),
-      help:'Active experiment metrics. Change Controls, then Start to recompute.',
+      help:exposesResults?'Current causal state. Use the timeline to inspect changes.':'Choose parameters, then use the primary action.',
     });
   }
   function hudLabel(value){return String(value||'').split(/[-_]/).filter(Boolean).map((part)=>part.charAt(0).toUpperCase()+part.slice(1)).join(' ');}
   function hudValue(measure){
     const value=Number(measure.value);
+    if(Number.isFinite(value)&&['ratio','probability','fraction'].includes(String(measure.unit||'').toLowerCase())){
+      return `${(value*100).toLocaleString('en-US',{maximumFractionDigits:3})}%`;
+    }
     const formatted=!Number.isFinite(value)?String(measure.value):value!==0&&Math.abs(value)<0.001?value.toExponential(2):value.toLocaleString('en-US',{maximumFractionDigits:3});
     return measure.unit?`${formatted} ${measure.unit}`:formatted;
   }

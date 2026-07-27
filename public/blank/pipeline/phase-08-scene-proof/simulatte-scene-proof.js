@@ -38,12 +38,17 @@
       sourceObligations: sourceLedger.obligations || [],
       objectRealizationRows,
       environmentProgram: renderExecution.environmentProgram || null,
+      atmosphereProgram: renderExecution.atmosphereProgram || null,
+      rendererConsumption: renderExecution.rendererConsumption || null,
     }));
     const requiredLost = settledObligations.filter((row) => row.required === true && row.status === 'lost');
     const requiredNotProven = settledObligations.filter((row) => row.required === true && row.status === 'not-proven');
+    const interactionProof = settleInteractionReceipt(renderExecution.interactionReceipt || null);
     const verdict = !rendered
       ? 'not-proven'
-      : requiredLost.length || requiredNotProven.length ? 'fail' : 'pass';
+      : requiredLost.length || requiredNotProven.length || interactionProof.status === 'fail'
+        ? 'fail'
+        : 'pass';
     const summary = {
       obligationCount: settledObligations.length,
       preservedCount: countByStatus(settledObligations, 'preserved'),
@@ -59,12 +64,19 @@
       rendered,
       settledObligations,
       summary,
+      interactionProof,
       evidence: {
         packetIdentitySummary,
         pixelAuditStatus: renderExecution.pixelAudit && renderExecution.pixelAudit.status || '',
         renderCount: Number(renderExecution.renderCount || 0),
         visualObligationProofSummary: renderExecution.visualObligationProofSummary || null,
         objectRealization: renderExecution.objectRealization || null,
+        morphologySubmission: renderExecution.rendererConsumption &&
+          renderExecution.rendererConsumption.morphologySubmission || null,
+        atmosphereProgram: renderExecution.atmosphereProgram || null,
+        atmosphereConsumed: renderExecution.rendererConsumption &&
+          renderExecution.rendererConsumption.atmosphereConsumed === true,
+        interactionReceipt: renderExecution.interactionReceipt || null,
       },
       nowIso: options.nowIso || new Date().toISOString(),
     };
@@ -91,8 +103,68 @@
           requiredLostIds: summary.requiredLostIds.slice(0, 12),
           requiredNotProvenIds: summary.requiredNotProvenIds.slice(0, 12),
           pixelAuditStatus: sceneProof.evidence.pixelAuditStatus,
+          perceptualReadyCount: Number(
+            sceneProof.evidence.objectRealization &&
+            sceneProof.evidence.objectRealization.perceptualReadyCount || 0
+          ),
+          interactionStatus: interactionProof.status,
+          interactionCommandCount: interactionProof.commandCount,
+          interactionChangedChannelCount: interactionProof.changedChannelCount,
         },
       ],
+    };
+  }
+
+  function settleInteractionReceipt(receipt = null) {
+    if (!receipt || receipt.schema !== 'simulatte.phase7InteractionReceipt.v1') {
+      return {
+        schema: 'simulatte.phase8InteractionProof.v1',
+        status: 'not-configured',
+        commandCount: 0,
+        changedChannelCount: 0,
+        reason: 'Phase 7 supplied no interaction receipt',
+      };
+    }
+    const commandCount = Number(receipt.commandCount || 0);
+    const changedChannelCount = Number(receipt.changedChannelCount || 0);
+    if (receipt.status !== 'executed' || Number(receipt.appliedCommandCount || 0) === 0) {
+      return {
+        schema: 'simulatte.phase8InteractionProof.v1',
+        status: 'not-exercised',
+        commandCount,
+        changedChannelCount,
+        reason: 'No accepted interaction command has executed',
+      };
+    }
+    if (receipt.physicalActionExecuted === true && changedChannelCount === 0) {
+      return {
+        schema: 'simulatte.phase8InteractionProof.v1',
+        status: 'fail',
+        commandCount,
+        changedChannelCount,
+        reason: 'A physical interaction claimed execution without changed simulation channels',
+      };
+    }
+    const visibleTargetActive = Boolean(receipt.selectedTargetId || receipt.activeTargetId);
+    if (visibleTargetActive && receipt.visualStateConsumed !== true) {
+      return {
+        schema: 'simulatte.phase8InteractionProof.v1',
+        status: 'fail',
+        commandCount,
+        changedChannelCount,
+        reason: 'Executed interaction state was not consumed by Phase 7 visual feedback',
+      };
+    }
+    return {
+      schema: 'simulatte.phase8InteractionProof.v1',
+      status: 'pass',
+      commandCount,
+      changedChannelCount,
+      selectedTargetId: receipt.selectedTargetId || '',
+      activeTargetId: receipt.activeTargetId || '',
+      reason: receipt.physicalActionExecuted === true
+        ? 'Input command changed simulation channels and Phase 7 consumed interaction state'
+        : 'Input command changed selection state and Phase 7 consumed interaction feedback',
     };
   }
 
@@ -196,11 +268,21 @@
         context.environmentProgram && context.environmentProgram.kind,
         identityTarget
       )) {
+        if (context.atmosphereProgram &&
+            context.atmosphereProgram.schema === 'simulatte.sceneAtmosphereProgram.v1' &&
+            !(context.rendererConsumption && context.rendererConsumption.atmosphereConsumed === true)) {
+          return {
+            ...base,
+            status: base.required ? 'lost' : 'not-proven',
+            reason: 'compiled environment atmosphere was not consumed by Phase 7',
+            evidence: ['environmentProgram', 'sceneAtmosphereProgram', 'rendererConsumption'],
+          };
+        }
         return {
           ...base,
           status: 'preserved',
           reason: 'environment has a rendered environment program',
-          evidence: ['environmentProgram'],
+          evidence: ['environmentProgram', 'sceneAtmosphereProgram', 'rendererConsumption'],
         };
       }
       if (identityTarget && hasIdentityEvidence(context.identities, identityTarget)) {
@@ -210,7 +292,15 @@
             ...base,
             status: 'preserved',
             reason: 'identity has a rendered literal geometry program',
-            evidence: ['packetIdentitySummary', 'objectRealization'],
+            evidence: ['packetIdentitySummary', 'objectRealization', 'objectMorphologyReceipt'],
+          };
+        }
+        if (realization && realization.perceptualReady === false) {
+          return {
+            ...base,
+            status: base.required ? 'lost' : 'not-proven',
+            reason: `identity ${identityTarget} lacks contour, topology, or surface specificity`,
+            evidence: ['packetIdentitySummary', 'objectRealization', 'objectMorphologyReceipt'],
           };
         }
         return {
@@ -402,6 +492,7 @@
     SCENE_PROOF_SCHEMA,
     PHASE8_OUTPUT_SCHEMA,
     SETTLED_STATUSES,
+    settleInteractionReceipt,
     settleSceneProof,
   };
 });

@@ -82,7 +82,7 @@ test('Cable Trader profile queries the predefined network instead of creating on
   const profile = JSON.parse(fs.readFileSync(path.join(root, 'public/data/application-profiles/cable-trader-pickup-v1.json'), 'utf8'));
   assert.equal(profile.plugins[0].configId, 'cable-trader-network-v4');
   assert.equal(profile.interaction.mode, 'playback');
-  assert.equal(profile.interaction.shuffleLabel, 'Shuffle seed');
+  assert.equal(profile.interaction.shuffleLabel, 'Change scenario');
   assert.ok(profile.seeds.length >= 4);
   assert.ok(profile.seeds.every((row) => !/\bI need\b|\bGet me\b|\bBorrow\b/i.test(row.missionText)));
   const results = profile.seeds.slice(0, 2).map((row) => network.simulateNetwork({ ...config, simulation: { ...config.simulation, seed: row.seed } }, completeRoutes()));

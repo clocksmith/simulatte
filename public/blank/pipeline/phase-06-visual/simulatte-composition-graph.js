@@ -6,6 +6,7 @@
     require('./simulatte-composition-graph-render-ir-binding.js');
     require('./simulatte-composition-graph-entity-lowering.js');
     require('./simulatte-composition-graph-visual-ir.js');
+    require('./simulatte-scene-interaction.js');
     require('./simulatte-composition-graph-materials.js');
     require('./simulatte-construction-evidence.js');
     require('./simulatte-construction-placement.js');
@@ -13,6 +14,8 @@
     require('./simulatte-construction-geometry.js');
     require('./simulatte-prompt-visual-contracts.js');
     require('./simulatte-object-geometry-grammars.js');
+    require('./simulatte-object-geometry-morphology.js');
+    require('./simulatte-scene-atmosphere.js');
     require('./simulatte-scene-framing.js');
     require('./simulatte-scene-animation.js');
     require('./simulatte-composition-graph-scene-packet.js');

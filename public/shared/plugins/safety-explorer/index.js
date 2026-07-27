@@ -123,15 +123,6 @@
           fields: sensitivityFields(audit.method),
           actions: [],
         },
-        {
-          slot: 'hud',
-          title: 'Historical observations',
-          rows: [
-            { label: 'Crashes / injuries / fatalities', value: `${audit.crashCount} / ${audit.injuryCount} / ${audit.fatalityCount}` },
-            { label: 'Evidence status', value: 'Exposure unknown; zero observations are neutral, not safe.' },
-          ],
-          actions: [],
-        },
       ];
     }
     function present() {
@@ -199,12 +190,23 @@
         if (hadAudit && context.values?.phase === 'start' && audit.segmentIds?.length) audit = auditRoute(audit.segmentIds);
         const phase = context.values?.phase;
         if (phase === 'start') {
-          sdk.events.propose({ pluginId: PLUGIN_ID, kind: `${PLUGIN_ID}.playback-started` });
-          return { status: 'running', currentStep: 0, totalSteps: 1, audit };
+          sdk.events.propose({ pluginId: PLUGIN_ID, kind: `${PLUGIN_ID}.analysis-settled` });
+          return {
+            status: 'settled',
+            currentStep: 1,
+            totalSteps: 1,
+            audit,
+            interactionKind: 'historical-evidence-analysis',
+          };
         }
         if (phase === 'step') {
-          sdk.events.propose({ pluginId: PLUGIN_ID, kind: `${PLUGIN_ID}.playback-settled` });
-          return { status: 'settled', currentStep: 1, totalSteps: 1, audit };
+          return {
+            status: 'settled',
+            currentStep: 1,
+            totalSteps: 1,
+            audit,
+            interactionKind: 'historical-evidence-analysis',
+          };
         }
         return { status: 'settled', audit, compatibilityAdapter: 'single-dispatch-settles-route-audit' };
       }

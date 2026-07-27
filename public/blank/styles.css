@@ -1123,6 +1123,11 @@ summary {
   min-height: 100vh;
 }
 
+#physics-canvas:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--sim-accent, #4ea4ff) 82%, white);
+  outline-offset: -3px;
+}
+
 #physics-canvas {
   position: relative;
   z-index: 1;
@@ -1130,6 +1135,16 @@ summary {
   height: 100%;
   min-height: 100vh;
   display: block;
+  cursor: crosshair;
+  touch-action: none;
+}
+
+#physics-canvas[data-interaction-selected-target]:not([data-interaction-selected-target=""]) {
+  cursor: grab;
+}
+
+#physics-canvas[data-interaction-grabbed-target]:not([data-interaction-grabbed-target=""]) {
+  cursor: grabbing;
 }
 
 .physics-note {

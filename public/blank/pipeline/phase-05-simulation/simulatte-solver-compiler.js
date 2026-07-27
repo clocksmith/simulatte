@@ -44,6 +44,7 @@
         domainId: field.domainId,
         entityId: field.entityId,
         bounds: field.bounds || null,
+        interactionWritable: field.interactionWritable === true,
       };
     }
     const steps = [];
@@ -65,6 +66,37 @@
         outputs: operator.outputs || operator.writes || [],
         params: { ...(operator.params || {}) },
         receipt: operator.receipt ? { ...operator.receipt } : null,
+        stableDt: solver.integrator && solver.integrator.stableDt || solver.stableDt || 0.05,
+        integrator: cloneValue(solver.integrator),
+      });
+    }
+    for (const entity of physicsIR.entities || []) {
+      const entityId = String(entity.id || '');
+      const interactionChannels = fields
+        .filter((field) => field.entityId === entityId && field.interactionWritable === true)
+        .map((field) => field.id);
+      if (!interactionChannels.some((id) => id.startsWith('position:'))) continue;
+      const solver = registry.operatorFor ? registry.operatorFor('interaction_kinematics') : null;
+      if (!solver) {
+        warnings.push({ operatorId: `interaction:${entityId}`, reason: 'missing interaction kinematics solver' });
+        continue;
+      }
+      steps.push({
+        operatorId: `interaction:${entityId}`,
+        operatorType: 'interaction_kinematics',
+        solverId: solver.id,
+        stage: 'controls',
+        reads: interactionChannels.slice(),
+        writes: interactionChannels.slice(),
+        inputs: interactionChannels.slice(),
+        outputs: interactionChannels.slice(),
+        params: { entityId, damping: 0.84, translationScale: 0.18 },
+        receipt: {
+          schema: 'simulatte.interactionSolverBindingReceipt.v1',
+          source: 'physicsIR.interactionWritable',
+          entityId,
+          channels: interactionChannels.slice(),
+        },
         stableDt: solver.integrator && solver.integrator.stableDt || solver.stableDt || 0.05,
         integrator: cloneValue(solver.integrator),
       });

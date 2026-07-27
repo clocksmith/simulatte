@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.applicationProfile.v2",
   "id": "cable-trader-pickup-v1",
-  "interaction": { "mode": "playback", "startLabel": "Play month", "shuffleLabel": "Shuffle seed" },
+  "interaction": { "mode": "playback", "startLabel": "Run exchange", "shuffleLabel": "Change scenario" },
   "defaultSeedId": "july-baseline",
   "seeds": [
     { "id": "july-baseline", "label": "July baseline", "description": "4,096 modeled demand events across four hubs and ten cable families.", "seed": "cable-city-month-2026-07", "missionText": "Show the predefined 30-day cable network and its optimal allocation." },

@@ -24,7 +24,7 @@
     onReceipt,
     onError,
     storage = null,
-    stepDelayMs = 60,
+    stepDelayMs = 500,
     setTimer = setTimeout,
     clearTimer = clearTimeout,
   }) {
@@ -42,12 +42,18 @@
     let scenarioResult = null;
     let finalReceipt = null;
     let parameterValues = {};
+    let playbackRate = 1;
+    let seekQueue = Promise.resolve();
 
     function snapshot() {
       return Object.freeze({
         schema: 'simulatte.tierRunControllerState.v1',
         state,
         stepCount,
+        currentStep: Number.isInteger(scenarioResult?.currentStep) ? scenarioResult.currentStep : stepCount,
+        totalSteps: Number.isInteger(scenarioResult?.totalSteps) ? scenarioResult.totalSteps : 0,
+        playbackRate,
+        terminalPreview: state === 'paused' && isTerminalResult(scenarioResult),
         scenarioId: scenario.id,
         seed: scenario.seed,
         hasReceipt: finalReceipt !== null,
@@ -58,6 +64,7 @@
       if (['running', 'paused'].includes(state)) return snapshot();
       cancelTimer();
       const generation = ++runGeneration;
+      if (['settled', 'failed'].includes(state)) await resetRuntime();
       state = 'running';
       stepCount = 0;
       isRestoring = restored;
@@ -73,6 +80,7 @@
         if (generation !== runGeneration) return snapshot();
         scenarioResult = result;
         render();
+        reflect();
         if (isTerminalResult(result)) await complete(generation);
         else if (result?.status === 'running') schedule(generation);
         else throw controllerError(
@@ -94,8 +102,17 @@
       return snapshot();
     }
 
-    function resume() {
+    async function resume() {
       if (state !== 'paused') return snapshot();
+      if (isTerminalResult(scenarioResult)) {
+        try {
+          await complete(runGeneration);
+        } catch (error) {
+          fail(error);
+          throw error;
+        }
+        return snapshot();
+      }
       state = 'running';
       reflect();
       schedule(runGeneration);
@@ -108,7 +125,21 @@
       cancelTimer();
       state = 'paused';
       reflect();
-      await advance(runGeneration);
+      if (isTerminalResult(scenarioResult)) {
+        try {
+          await complete(runGeneration);
+        } catch (error) {
+          fail(error);
+          throw error;
+        }
+        return snapshot();
+      }
+      try {
+        await advance(runGeneration);
+      } catch (error) {
+        fail(error);
+        throw error;
+      }
       if (shouldResume && state === 'paused') {
         state = 'running';
         reflect();
@@ -126,6 +157,56 @@
       reflect();
       await resetRuntime();
       return start();
+    }
+
+    function setPlaybackRate(nextRate) {
+      const value = Number(nextRate);
+      if (!Number.isFinite(value) || value <= 0 || value > 16) {
+        throw controllerError('tier_run_playback_rate_invalid', 'Playback rate expected a number above 0 and at most 16');
+      }
+      playbackRate = value;
+      if (state === 'running') {
+        cancelTimer();
+        schedule(runGeneration);
+      }
+      reflect();
+      return snapshot();
+    }
+
+    function seek(targetStep) {
+      if (!Number.isInteger(targetStep) || targetStep < 0) {
+        return Promise.reject(controllerError('tier_run_seek_invalid', 'Timeline seek expected a non-negative step'));
+      }
+      const pending = seekQueue.then(() => reconstructAtStep(targetStep));
+      seekQueue = pending.catch(() => {});
+      return pending;
+    }
+
+    async function reconstructAtStep(requestedStep) {
+      cancelTimer();
+      const generation = ++runGeneration;
+      try {
+        await resetRuntime();
+        if (generation !== runGeneration) return snapshot();
+        state = 'running';
+        stepCount = 0;
+        scenarioResult = await dispatchScenario({ phase: 'start' });
+        if (generation !== runGeneration) return snapshot();
+        const totalSteps = Number.isInteger(scenarioResult?.totalSteps) ? scenarioResult.totalSteps : 0;
+        const targetStep = Math.min(requestedStep, totalSteps);
+        while (stepCount < targetStep && scenarioResult?.status === 'running') {
+          stepCount += 1;
+          scenarioResult = await dispatchScenario({ phase: 'step' });
+          if (generation !== runGeneration) return snapshot();
+        }
+        render();
+        state = 'paused';
+        reflect();
+        return snapshot();
+      } catch (error) {
+        if (generation === runGeneration) fail(error);
+        throw error;
+      }
     }
 
     async function restore() {
@@ -161,6 +242,7 @@
       if (generation !== runGeneration) return;
       scenarioResult = result;
       render();
+      reflect();
       if (isTerminalResult(result)) await complete(generation);
       else if (result?.status !== 'running') {
         throw controllerError(
@@ -242,9 +324,9 @@
           await advance(generation);
           if (state === 'running') schedule(generation);
         } catch (error) {
-          fail(error);
+          if (generation === runGeneration) fail(error);
         }
-      }, stepDelayMs);
+      }, Math.max(16, stepDelayMs / playbackRate));
     }
 
     function cancelTimer() {
@@ -271,6 +353,8 @@
       replay,
       restore,
       resume,
+      seek,
+      setPlaybackRate,
       snapshot,
       start,
       step,

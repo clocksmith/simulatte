@@ -609,11 +609,15 @@
 
     function createSimulationState(spec) {
         const normalized = scope.normalizeSpec(spec);
-        if (normalized.templateId === 'blank-world') return scope.createBlankState(normalized);
-        if (normalized.templateId === 'custom-world') return scope.createCustomState(normalized);
-        if (normalized.templateId === 'fluid-vortex') return createFluidState(normalized.params);
-        if (normalized.templateId === 'reaction-diffusion') return scope.createReactionState(normalized.params);
-        return createState(normalized.params);
+        let state;
+        if (normalized.templateId === 'blank-world') state = scope.createBlankState(normalized);
+        else if (normalized.templateId === 'custom-world') state = scope.createCustomState(normalized);
+        else if (normalized.templateId === 'fluid-vortex') state = createFluidState(normalized.params);
+        else if (normalized.templateId === 'reaction-diffusion') state = scope.createReactionState(normalized.params);
+        else state = createState(normalized.params);
+        return scope.withInteractionState
+          ? scope.withInteractionState(state, normalized.interactionIR)
+          : state;
       }
 
     function stepSimulation(inputState, spec, dt) {

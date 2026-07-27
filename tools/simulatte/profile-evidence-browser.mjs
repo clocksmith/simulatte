@@ -407,7 +407,6 @@ function browserProbeExpression(run, seedIndex) {
     const overlays = [
       visibleRect(document.querySelector('.visualizer-hud')),
       visibleRect(document.getElementById('plugin-map-ui')),
-      visibleRect(document.getElementById('plugin-hud-ui')),
     ].filter(Boolean);
     const clippedArea = (rect, bounds) => {
       if (!bounds) return 0;

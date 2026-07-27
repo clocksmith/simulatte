@@ -9,9 +9,9 @@
   const PLUGIN_ID = 'neighborhood-bulk-pool';
   const MODEL_HASHES = Object.freeze({
     catalogIndex: '5e42ab29d255645b3afe617b01bdbc8120e756b288c97af946b423961331ec76',
-    poolSolver: 'f912863db9cabbab5c049be0f165c70dff0f1360e5e919cd7469609fbf8ec2f7',
-    routeScreen: 'f912863db9cabbab5c049be0f165c70dff0f1360e5e919cd7469609fbf8ec2f7',
-    settlement: 'f912863db9cabbab5c049be0f165c70dff0f1360e5e919cd7469609fbf8ec2f7',
+    poolSolver: '42525e7f9217c19b3cc764b88b964c49c9540782cf2fea414e0a738a9f7807fe',
+    routeScreen: '42525e7f9217c19b3cc764b88b964c49c9540782cf2fea414e0a738a9f7807fe',
+    settlement: '42525e7f9217c19b3cc764b88b964c49c9540782cf2fea414e0a738a9f7807fe',
   });
 
   function createContribution({ datasets, dataReceipts, config, result, snapshot }) {
@@ -158,6 +158,7 @@
     }));
     const activeGroups = new Set(snapshot.visiblePoolGroupIds);
     const activeTrips = new Set(snapshot.visibleTripAssignmentIds);
+    const visibleRejectedRequests = new Set(snapshot.visibleRejectedRequestIds || []);
     const neighborhoods = new Map(datasets.routes.neighborhoods.map((row) => [row.id, row]));
     const maximumOffers = Math.max(...warehouseOffers.values(), 1);
     const layers = [
@@ -221,7 +222,9 @@
           provenance: scenario,
         }))
       )),
-      ...result.policyResults[result.activePolicyId].rejectedRequests.map((row) => {
+      ...result.policyResults[result.activePolicyId].rejectedRequests
+        .filter((row) => visibleRejectedRequests.has(row.requestId))
+        .map((row) => {
         const neighborhood = neighborhoods.get(row.neighborhoodId);
         if (!neighborhood) return null;
         return builder.layer({

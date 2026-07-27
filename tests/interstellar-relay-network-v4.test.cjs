@@ -410,8 +410,19 @@ test('native v4 contribution preserves true 3D evidence, moving packet depth, an
   assert.equal(stateMeasures['packet-distance'].value, Math.hypot(...packetLayer.geometry.coordinates[0]));
   const inspection = contribution.inspections[0];
   const fields = Object.fromEntries(inspection.fields.map((row) => [row.id, row]));
-  assert.match(fields['operational-reliability'].label, /Operational delivery/i);
-  assert.match(fields['operational-effects'].value, /acquisition-modeled/);
+  assert.equal(fields['operational-reliability'], undefined);
+  let terminal = await host.instance.handleAction('scenario.run', { values: { phase: 'step' } });
+  while (terminal.status === 'running') {
+    terminal = await host.instance.handleAction('scenario.run', { values: { phase: 'step' } });
+  }
+  const settledState = host.instance.capabilities['simulation.interstellar-relay.v4']();
+  const settledContribution = v4.createContribution({
+    result: settledState.result,
+    progressive: settledState.progressive,
+  });
+  const settledFields = Object.fromEntries(settledContribution.inspections[0].fields.map((row) => [row.id, row]));
+  assert.match(settledFields['operational-reliability'].label, /Operational delivery/i);
+  assert.match(settledFields['operational-effects'].value, /acquisition-modeled/);
   OMISSION_IDS.forEach((id) => assert.match(fields.omissions.value, new RegExp(id.split('-')[0], 'i')));
   contribution.events.forEach((event) => {
     assert.deepEqual(event.payload.omissionIds.slice().sort(), OMISSION_IDS);

@@ -53,6 +53,14 @@
     });
     const baseEdges = materializeEdges(datasets.topology.edges, capacityScenario);
     const failedEdgeIds = edgeIdsForFailures(failedResourceIds, baseEdges);
+    const healthy = allocate({
+      edges: baseEdges,
+      demands,
+      failedEdgeIds: [],
+      excludedLandingIds,
+      allocationPolicyId,
+      config,
+    });
     const initial = allocate({
       edges: baseEdges,
       demands,
@@ -82,14 +90,55 @@
       causationIds: row.causationIds.length ? row.causationIds : [events[2].id],
     }));
     const snapshots = [snapshot({
-      id: `${scenario.scenarioId}:snapshot-0`,
+      id: `${scenario.scenarioId}:snapshot-healthy`,
       simulationTimeMs: 0,
-      status: 'disrupted',
+      status: 'healthy',
+      narrative: 'Declared demand is allocated before the modeled failure.',
+      allocationResult: healthy,
+      failedEdgeIds: [],
+      repairedTargetIds: [],
+      eventIds: events.slice(0, 2).map((row) => row.id),
+    }), snapshot({
+      id: `${scenario.scenarioId}:snapshot-disrupted`,
+      simulationTimeMs: 0,
+      status: failedEdgeIds.length ? 'disrupted' : 'allocated',
+      narrative: failedEdgeIds.length
+        ? 'The selected cable or landing failure removes capacity and traffic is reallocated.'
+        : 'No failure is active; the selected allocation policy serves the declared demand.',
       allocationResult: initial,
       failedEdgeIds,
       repairedTargetIds: [],
       eventIds: events.filter((row) => row.simulationTimeMs === 0).map((row) => row.id),
     })];
+    const firstRestoration = repairReceipt.restorations[0] || null;
+    if (firstRestoration) {
+      const firstRepairEvents = repairReceipt.events.filter((row) => (
+        row.targetId === firstRestoration.targetId
+        && !['repair.requested', 'repair.capacity-restored', 'repair.completed'].includes(row.kind)
+      ));
+      firstRepairEvents.forEach((repairEvent, index) => {
+        const repairEventIds = repairReceipt.events
+          .filter((row) => row.targetId === repairEvent.targetId
+            && (row.simulationTimeMs < repairEvent.simulationTimeMs
+              || (row.simulationTimeMs === repairEvent.simulationTimeMs
+                && row.sequence <= repairEvent.sequence)))
+          .map((row) => row.id);
+        snapshots.push(snapshot({
+          id: `${scenario.scenarioId}:snapshot-repair-${index}`,
+          simulationTimeMs: repairEvent.simulationTimeMs,
+          status: 'repairing',
+          narrative: repairNarrative(repairEvent),
+          activeRepairEventId: repairEvent.id,
+          allocationResult: initial,
+          failedEdgeIds,
+          repairedTargetIds: [],
+          eventIds: [
+            ...events.filter((row) => row.simulationTimeMs === 0).map((row) => row.id),
+            ...repairEventIds,
+          ],
+        }));
+      });
+    }
     const restoredEdgeIds = new Set();
     repairReceipt.restorations.forEach((restoration, index) => {
       restoration.edgeIds.forEach((edgeId) => restoredEdgeIds.add(edgeId));
@@ -110,9 +159,12 @@
         allocationMatrixHash: next.receipt.matrixHash,
       });
       snapshots.push(snapshot({
-        id: `${scenario.scenarioId}:snapshot-${index + 1}`,
+        id: `${scenario.scenarioId}:snapshot-restoration-${index + 1}`,
         simulationTimeMs: restoration.simulationTimeMs,
         status: activeFailedEdgeIds.length ? 'repairing' : 'restored',
+        narrative: activeFailedEdgeIds.length
+          ? `${restoration.targetId} is restored; remaining failures stay in the repair queue.`
+          : `${restoration.targetId} is restored and affected traffic is allocated again.`,
         allocationResult: next,
         failedEdgeIds: activeFailedEdgeIds,
         repairedTargetIds: repairReceipt.restorations.slice(0, index + 1).map((row) => row.targetId),
@@ -131,6 +183,7 @@
       id: `${scenario.scenarioId}:snapshot-terminal`,
       simulationTimeMs: terminalTimeMs,
       status: 'settled',
+      narrative: 'Service, unmet demand, fairness, and repair outcomes are settled.',
       eventIds: events.map((row) => row.id),
     };
     snapshots.push(finalSnapshot);
@@ -306,13 +359,25 @@
     });
   }
 
-  function snapshot({ id, simulationTimeMs, status, allocationResult, failedEdgeIds, repairedTargetIds, eventIds }) {
+  function snapshot({
+    id,
+    simulationTimeMs,
+    status,
+    narrative,
+    activeRepairEventId = null,
+    allocationResult,
+    failedEdgeIds,
+    repairedTargetIds,
+    eventIds,
+  }) {
     const restorationHours = simulationTimeMs / HOUR_MS;
     return {
       schema: 'simulatte.subseaNetworkState.v1',
       id,
       simulationTimeMs,
       status,
+      narrative,
+      activeRepairEventId,
       edges: allocationResult.allocation.edges,
       demands: allocationResult.allocation.demands,
       pathFlows: allocationResult.allocation.pathFlows,
@@ -323,6 +388,17 @@
       pathCatalogReceipt: allocationResult.pathCatalog,
       allocationReceipt: allocationResult.receipt,
     };
+  }
+
+  function repairNarrative(event) {
+    const labels = {
+      'repair.resource-assigned': `${event.resourceId} is assigned to ${event.targetId}.`,
+      'repair.transit-started': `${event.resourceId} begins transit toward ${event.targetId}.`,
+      'repair.site-reached': `${event.resourceId} reaches ${event.targetId}.`,
+      'repair.attempt-started': `A repair attempt begins at ${event.targetId}.`,
+      'repair.attempt-failed': `The first repair attempt at ${event.targetId} fails and must be retried.`,
+    };
+    return labels[event.kind] || event.kind.replaceAll('.', ' ');
   }
 
   function compareEvent(left, right) {

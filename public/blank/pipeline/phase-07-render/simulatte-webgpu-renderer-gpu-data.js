@@ -12,7 +12,11 @@
     const WEBGPU_TRANSLATED_TECHNIQUES = Object.freeze([
         'compiled-object-geometry-programs',
         'storage-buffer-object-parts',
-        'direct-instanced-bounded-quads',
+        'prompt-conditioned-sdf-contours',
+        'procedural-material-surfaces',
+        'phase6-compiled-accent-programs',
+        'scene-mix-atmosphere-layers',
+        'direct-instanced-contour-fields',
       ]);
 
     const DEFAULT_WEBGPU_FEATURE_RECEIPT = Object.freeze({
@@ -21,7 +25,14 @@
         requested: Object.freeze([]),
         enabled: Object.freeze([]),
         failed: Object.freeze([]),
-        used: Object.freeze(['lightweight-background', 'direct-instanced-bounded-quads']),
+        used: Object.freeze([
+          'lightweight-background',
+          'prompt-conditioned-sdf-contours',
+          'procedural-material-surfaces',
+          'phase6-compiled-accent-programs',
+          'scene-mix-atmosphere-layers',
+          'direct-instanced-contour-fields',
+        ]),
         unsupportedNativeFeatures: WEBGPU_NATIVE_ONLY_FEATURES,
       });
 

@@ -41,6 +41,7 @@
       this.animationFrame = null;
       this.currentSolarSystemInterval = null;
       this.currentStarCutoff = null;
+      this.defaultView = null;
 
       // Mouse control variables (zoom & pan/orbit)
       this.panX = 0;
@@ -392,6 +393,14 @@
         }
       }
 
+      this.defaultView = Object.freeze({
+        zoom: this.zoom,
+        panX: this.panX,
+        panY: this.panY,
+        rotX: this.rotX,
+        rotY: this.rotY,
+        rotZ: this.rotZ,
+      });
       this.loop();
     }
 
@@ -619,8 +628,18 @@
       return this.pluginLayer?.receipt() || Object.freeze([]);
     }
 
+    pluginCameraTargets() {
+      return this.pluginLayer?.targets() || Object.freeze([]);
+    }
+
     focusPluginTarget(id) {
       return this.pluginLayer ? this.pluginLayer.focus(id) : false;
+    }
+
+    resetView() {
+      if (!this.defaultView) return false;
+      Object.assign(this, this.defaultView);
+      return true;
     }
 
     stop() {

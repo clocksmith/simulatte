@@ -235,11 +235,31 @@ test('plugin receipts, settlement, inspection, and v4 contribution expose applie
   assert.equal(scenarioReceipt.appliedInputs.logistics.transitDelayHoursPrior, 6);
   assert.equal(scenarioReceipt.causalOutcomes.shipmentDurationHours, state.run.shipmentDurationHours);
   assert.ok(instance.view()[0].rows.some((row) => row.label === 'Ambient input'));
+  assert.equal(instance.settle().obligationResults.find((row) => row.obligationId.endsWith(':causal-inputs')).status, 'unmet');
+  const readyContribution = instance.contributeV4();
+  contracts.validateContribution(readyContribution);
+  assert.ok(readyContribution.inspections[0].fields.some((row) => row.id === 'ambient-temperature'));
+  assert.ok(readyContribution.provenanceRecords.some((row) => row.metadata.fieldIdentity === state.inputContext.weather.fieldIdentity));
+  assert.equal(readyContribution.presentation.layers.filter((row) => row.id.startsWith('corridor:')).length, 0);
+  assert.equal(instance.present().geoPaths.length, 0);
+  let started = instance.handleAction('scenario.run', {
+    values: { phase: 'start', recallDay: 1, recallDepth: 'retail' },
+  });
+  assert.equal(started.status, 'running');
+  assert.deepEqual(started.intervention, {
+    dayOffset: 1,
+    depth: 'retail',
+    scope: config.scenarios[1].defaultIntervention.scope,
+  });
+  while (started.status === 'running') {
+    started = instance.handleAction('scenario.run', { values: { phase: 'step' } });
+  }
+  assert.equal(started.status, 'settled');
+  assert.equal(state.run.recall.dayOffset, 1);
+  assert.equal(state.run.recall.depth, 'retail');
   assert.equal(instance.settle().obligationResults.find((row) => row.obligationId.endsWith(':causal-inputs')).status, 'settled');
   const contribution = instance.contributeV4();
   contracts.validateContribution(contribution);
-  assert.ok(contribution.inspections[0].fields.some((row) => row.id === 'ambient-temperature'));
-  assert.ok(contribution.provenanceRecords.some((row) => row.metadata.fieldIdentity === state.inputContext.weather.fieldIdentity));
   const activeCorridorIds = new Set(state.run.lineage.map((row) => row.corridorId).filter(Boolean));
   const corridorLayers = contribution.presentation.layers.filter((row) => row.id.startsWith('corridor:'));
   const facilityLayers = contribution.presentation.layers.filter((row) => row.id.startsWith('facility:'));
@@ -250,17 +270,6 @@ test('plugin receipts, settlement, inspection, and v4 contribution expose applie
   assert.ok(facilityLayers.every((row) => row.aggregationKey === null));
   assert.ok(corridorLayers.every((row) => overview.targetIds.includes(row.id)));
   assert.equal(instance.present().geoPaths.length, activeCorridorIds.size);
-  const started = instance.handleAction('scenario.run', {
-    values: { phase: 'start', recallDay: 1, recallDepth: 'retail' },
-  });
-  assert.equal(started.status, 'settled');
-  assert.deepEqual(started.intervention, {
-    dayOffset: 1,
-    depth: 'retail',
-    scope: config.scenarios[1].defaultIntervention.scope,
-  });
-  assert.equal(state.run.recall.dayOffset, 1);
-  assert.equal(state.run.recall.depth, 'retail');
   assert.ok(receipts.some((row) => row.schema === 'simulatte.plugin.foodRecallInterventionReceipt.v2'));
 });
 

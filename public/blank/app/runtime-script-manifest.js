@@ -101,6 +101,7 @@
   );
   const solverAndRenderIr = group(
     'pipeline/phase-05-simulation/solvers/simulatte-solver-values.js',
+    'pipeline/phase-05-simulation/solvers/simulatte-solver-interaction-kinematics.js',
     'pipeline/phase-05-simulation/solvers/simulatte-solver-rigid-body-2d.js',
     'pipeline/phase-05-simulation/solvers/simulatte-solver-particles.js',
     'pipeline/phase-05-simulation/solvers/simulatte-solver-constraints.js',
@@ -117,7 +118,8 @@
     'pipeline/phase-05-simulation/simulatte-solver-registry.js',
     'pipeline/phase-05-simulation/simulatte-solver-compiler.js',
     'pipeline/phase-05-simulation/simulatte-render-registry.js',
-    'pipeline/phase-05-simulation/simulatte-render-ir.js'
+    'pipeline/phase-05-simulation/simulatte-render-ir.js',
+    'pipeline/phase-05-simulation/simulatte-interaction-ir.js'
   );
   const visualCompile = group(
     'pipeline/phase-06-visual/simulatte-visual-operator-atlas.js',
@@ -129,6 +131,7 @@
     'pipeline/phase-06-visual/simulatte-composition-graph-render-ir-binding.js',
     'pipeline/phase-06-visual/simulatte-composition-graph-entity-lowering.js',
     'pipeline/phase-06-visual/simulatte-composition-graph-visual-ir.js',
+    'pipeline/phase-06-visual/simulatte-scene-interaction.js',
     'pipeline/phase-06-visual/simulatte-composition-graph-materials.js',
     'pipeline/phase-06-visual/simulatte-construction-evidence.js',
     'pipeline/phase-06-visual/simulatte-construction-placement.js',
@@ -136,6 +139,8 @@
     'pipeline/phase-06-visual/simulatte-construction-geometry.js',
     'pipeline/phase-06-visual/simulatte-prompt-visual-contracts.js',
     'pipeline/phase-06-visual/simulatte-object-geometry-grammars.js',
+    'pipeline/phase-06-visual/simulatte-object-geometry-morphology.js',
+    'pipeline/phase-06-visual/simulatte-scene-atmosphere.js',
     'pipeline/phase-06-visual/simulatte-scene-framing.js',
     'pipeline/phase-06-visual/simulatte-scene-animation.js',
     'pipeline/phase-06-visual/simulatte-composition-graph-scene-packet.js',
@@ -155,7 +160,8 @@
     'app/runtime/runtime-progress-support.js',
     'app/runtime/runtime-progress-state.js',
     'app/runtime/runtime-progress.js',
-    'app/runtime/run-view-model.js'
+    'app/runtime/run-view-model.js',
+    'app/runtime/world-interaction-runtime.js'
   );
   const renderProof = group(
     'pipeline/phase-07-render/simulatte-object-realization.js',
@@ -168,6 +174,8 @@
     'pipeline/phase-07-render/simulatte-webgpu-renderer-scene-proof-observer.js',
     'pipeline/phase-07-render/simulatte-webgpu-renderer-renderer-class.js',
     'pipeline/phase-07-render/simulatte-webgpu-renderer-part-segmentation.js',
+    'pipeline/phase-07-render/simulatte-webgpu-renderer-morphology.js',
+    'pipeline/phase-07-render/simulatte-webgpu-renderer-interaction.js',
     'pipeline/phase-07-render/simulatte-webgpu-renderer-packets.js',
     'pipeline/phase-07-render/simulatte-webgpu-renderer-pixel-proof.js',
     'pipeline/phase-07-render/simulatte-webgpu-renderer-gpu-data.js',

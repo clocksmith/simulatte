@@ -35,7 +35,16 @@
       schema: 'simulatte.pluginPresentation.v2',
       markers: [],
       paths,
-      actors: [],
+      actors: latest ? [{
+        id: 'sun-walker-actor',
+        label: `Walker · ${latest.state} · ${latest.timestamp}`,
+        kind: 'pedestrian',
+        segmentIds: [latest.segmentId],
+        tone: latest.state === 'direct' ? 'amber' : latest.state === 'unknown' ? 'gray' : 'green',
+        speedMps: 0.1,
+        phaseOffsetM: 0,
+        isSelected: true,
+      }] : [],
       areas,
       sun: latest ? {
         id: 'modeled-sun',

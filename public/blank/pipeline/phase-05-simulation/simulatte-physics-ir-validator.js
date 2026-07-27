@@ -85,6 +85,7 @@
 
     for (const field of fields) {
       if (isDerivedOnly(field.name)) continue;
+      if (field.interactionWritable === true) continue;
       if (!ownedFields.has(field.id) && shouldHaveOwner(field)) {
         receipt.approximate.push({
           promptSpan: field.id,

@@ -10,6 +10,7 @@
   }
   const {
     EXAMPLE_INTENTS,
+    applyInteractionCommands,
     clamp,
     controlsForSpec,
     createRenderExecutionInput,
@@ -106,6 +107,7 @@
     model,
     runtimeProgressApi,
     EXAMPLE_INTENTS,
+    applyInteractionCommands,
     clamp,
     controlsForSpec,
     createRenderExecutionInput,

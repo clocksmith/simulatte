@@ -51,6 +51,9 @@
             solver: 'typed-spatial-constraints',
             sceneKind,
             topology: visualGenome && visualGenome.compositionTopology || '',
+            placementStrategy: state.placementStrategy,
+            placementSeed: state.placementSeed,
+            initialAnchor: state.initialAnchor.slice(),
             relationIds,
             relationCount: relationIds.length,
           },
@@ -173,22 +176,75 @@
       const topology = String(visualGenome && visualGenome.compositionTopology || '');
       const hash = stableLayoutHash(`${object.id || index}:${object.semanticRef || ''}:${topology}`);
       const phase = (hash % 10000) / 10000 * Math.PI * 2;
-      const t = total <= 1 ? 0.5 : index / Math.max(1, total - 1);
-      const radius = topology === 'orbit' || topology === 'radial' ? 0.3 : 0.22 + (index % 3) * 0.055;
-      const corridor = topology === 'corridor' || topology === 'conveyor' || topology === 'ladder';
-      const x = container ? 0.5 : corridor ? 0.14 + t * 0.72 : 0.5 + Math.cos(phase) * radius;
-      const y = container ? 0.52 : corridor ? 0.34 + (index % 2) * 0.3 : 0.5 + Math.sin(phase) * radius * 0.78;
+      const anchor = initialLayoutAnchor(topology, index, total, phase, container);
       const size = layoutObjectSize(object, container);
       return {
         object,
-        x,
-        y,
+        x: anchor.x,
+        y: anchor.y,
         w: size[0],
         h: size[1],
         rotation: Number.isFinite(Number(pose.rotation)) ? Number(pose.rotation) : 0,
         z: pose.z != null && Number.isFinite(Number(pose.z)) ? Number(pose.z) : NaN,
         relationRoles: new Set(),
         container,
+        placementStrategy: anchor.strategy,
+        placementSeed: hash,
+        initialAnchor: [
+          Number(anchor.x.toFixed(5)),
+          Number(anchor.y.toFixed(5)),
+        ],
+      };
+    }
+
+    function initialLayoutAnchor(topology = '', index = 0, total = 1, phase = 0, container = false) {
+      if (container) return { x: 0.5, y: 0.52, strategy: 'semantic-container' };
+      if (total <= 1) return { x: 0.5, y: 0.5, strategy: 'single-focal-subject' };
+      const t = index / Math.max(1, total - 1);
+      if (topology === 'corridor' || topology === 'conveyor' || topology === 'ladder') {
+        return {
+          x: 0.14 + t * 0.72,
+          y: 0.38 + (index % 2) * 0.24 + Math.sin(phase) * 0.035,
+          strategy: 'directional-corridor',
+        };
+      }
+      if (topology === 'stack') {
+        return {
+          x: 0.5 + (index % 2 ? 0.08 : -0.08) + Math.cos(phase) * 0.025,
+          y: 0.18 + t * 0.64,
+          strategy: 'vertical-stack',
+        };
+      }
+      if (topology === 'orbit' || topology === 'radial') {
+        const angle = phase + index * 2.399963;
+        const radius = index === 0 ? 0.08 : 0.24 + (index % 3) * 0.035;
+        return {
+          x: 0.5 + Math.cos(angle) * radius,
+          y: 0.5 + Math.sin(angle) * radius * 0.78,
+          strategy: 'focal-radial',
+        };
+      }
+      if (total === 2) {
+        return {
+          x: (index === 0 ? 0.35 : 0.66) + Math.cos(phase) * 0.035,
+          y: (index === 0 ? 0.46 : 0.54) + Math.sin(phase) * 0.045,
+          strategy: 'asymmetric-two-subject',
+        };
+      }
+      if (total === 3) {
+        const anchors = [[0.5, 0.27], [0.3, 0.65], [0.7, 0.61]];
+        return {
+          x: anchors[index][0] + Math.cos(phase) * 0.03,
+          y: anchors[index][1] + Math.sin(phase) * 0.03,
+          strategy: 'triangular-three-subject',
+        };
+      }
+      const angle = phase + index * 2.399963;
+      const radius = 0.16 + Math.sqrt((index + 1) / total) * 0.2;
+      return {
+        x: 0.5 + Math.cos(angle) * radius,
+        y: 0.49 + Math.sin(angle) * radius * 0.75,
+        strategy: 'golden-angle-field',
       };
     }
 

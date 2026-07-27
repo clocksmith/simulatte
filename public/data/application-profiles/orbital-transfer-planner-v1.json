@@ -7,8 +7,8 @@
     "mode": "simulation",
     "simulationOwnerPluginId": "orbital-transfer-planner",
     "missionRequired": false,
-    "startLabel": "Plan transfer",
-    "shuffleLabel": "Change mission"
+    "startLabel": "Solve transfer",
+    "shuffleLabel": "Change scenario"
   },
   "defaultSeedId": "earth-mars-window",
   "seeds": [

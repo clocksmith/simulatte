@@ -3,8 +3,8 @@
   "id": "neighborhood-bulk-pool-v1",
   "interaction": {
     "mode": "playback",
-    "startLabel": "Form neighborhood pool",
-    "shuffleLabel": "Change demand"
+    "startLabel": "Run pooling experiment",
+    "shuffleLabel": "Change scenario"
   },
   "defaultSeedId": "weekend-baseline",
   "seeds": [

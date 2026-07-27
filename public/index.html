@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <base href="/">
-  <meta name="simulatte-build" content="41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811">
+  <meta name="simulatte-build" content="38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae">
   <title>Simulatte</title>
   <meta name="description" content="A local-first WebGPU simulator for governed pedestrian, bicycle, scooter, and car journeys across the Villages and North Brooklyn.">
   <link rel="icon" type="image/svg+xml" href="./favicon.svg">
@@ -78,7 +78,6 @@
           })();
         </script>
         <section id="plugin-map-ui" class="plugin-map-ui" aria-label="Experience view"></section>
-        <section id="plugin-hud-ui" class="plugin-hud-ui" aria-label="Experience status"></section>
 
         <div class="runtime-anchor">
           <div class="runtime-toolbar">
@@ -111,8 +110,8 @@
           <div id="runtime-details" class="runtime-details sim-popover" hidden>
             <span class="sim-label">This device</span>
             <span id="render-identity">Waiting for renderer</span>
-            <span class="sim-label">Map</span>
-            <div class="legend" aria-label="Map legend">
+            <span id="runtime-context-label" class="sim-label">Map</span>
+            <div id="runtime-context-legend" class="legend" aria-label="Map legend">
               <span><i class="building"></i>Buildings</span>
               <span><i class="park"></i>Parks</span>
               <span><i class="protected"></i>Protected</span>
@@ -121,20 +120,31 @@
               <span><i class="trace"></i>Traveled</span>
               <span><i class="prediction"></i>Prediction</span>
             </div>
-            <p class="map-hint">Drag to orbit. Shift-drag or use Top to pan. Scroll to zoom.</p>
+            <p id="runtime-context-hint" class="map-hint">Drag to orbit. Shift-drag or use Top to pan. Scroll to zoom.</p>
             <details class="map-data-details">
               <summary>Data and limits</summary>
-              <p>NYC bike routes, park properties, building footprints, and OpenStreetMap street context.</p>
-              <p>Park circuits follow property boundaries, not surveyed sidewalks. Traffic, signals, risk, and outcomes are simulated.</p>
+              <div id="runtime-data-copy">
+                <p>NYC bike routes, park properties, building footprints, and OpenStreetMap street context.</p>
+                <p>Park circuits follow property boundaries, not surveyed sidewalks. Traffic, signals, risk, and outcomes are simulated.</p>
+              </div>
             </details>
-            <a class="sim-text-link" href="https://create.simulatte.world/" aria-label="Open Simulatte Create">Create</a>
             <button id="runtime-details-close" class="quiet-action" type="button">Close</button>
           </div>
         </div>
 
-        <a id="experience-doc-link" class="sim-text-link experience-doc-link sim-surface" target="_blank" rel="noopener noreferrer" hidden>Experience docs</a>
+        <a id="experience-doc-link" class="sim-text-link experience-doc-link" target="_blank" rel="noopener noreferrer" hidden>Experience docs</a>
 
-        <div class="camera-controls" aria-label="Camera controls">
+        <section id="experience-summary" class="experience-summary sim-surface" aria-live="polite" hidden>
+          <header>
+            <span id="experience-summary-state" class="sim-label">Ready</span>
+            <strong id="experience-summary-title"></strong>
+          </header>
+          <p id="experience-summary-description"></p>
+          <dl id="experience-summary-stats"></dl>
+          <p id="experience-summary-help" class="experience-summary-help"></p>
+        </section>
+
+        <div id="camera-controls" class="camera-controls" aria-label="View controls">
           <div class="camera-focus-anchor">
             <button id="camera-focus-button" class="sim-action" type="button" aria-controls="camera-focus-popover" aria-expanded="false">Focus</button>
             <div id="camera-focus-popover" class="camera-focus-popover sim-popover" hidden>
@@ -148,7 +158,7 @@
           </div>
           <div class="camera-modes sim-segmented">
             <button id="camera-follow" type="button" aria-pressed="false">Follow</button>
-            <button id="camera-bird" class="is-active" type="button" aria-pressed="true">Bird</button>
+            <button id="camera-bird" class="is-active" type="button" aria-pressed="true">Overview</button>
             <button id="camera-top" type="button" aria-pressed="false">Top</button>
           </div>
         </div>
@@ -193,12 +203,25 @@
             <div class="dock-more-anchor">
               <button id="dock-more-button" class="sim-action" type="button" aria-controls="dock-more-menu" aria-expanded="false" aria-label="More controls" hidden>⋯</button>
               <div id="dock-more-menu" class="dock-more-menu sim-popover sim-menu" hidden>
-                <button id="step-button" type="button" hidden>Step one tick</button>
+                <button id="step-button" type="button" hidden>Step one event</button>
                 <button id="reset-button" type="button" hidden>Reset run</button>
                 <button id="what-if-button" type="button" hidden>What if</button>
+                <label id="playback-speed-control" class="playback-control" hidden>
+                  <span>Playback speed</span>
+                  <select id="playback-speed" class="sim-field">
+                    <option value="0.5">0.5×</option>
+                    <option value="1" selected>1×</option>
+                    <option value="2">2×</option>
+                    <option value="4">4×</option>
+                  </select>
+                </label>
+                <label id="playback-timeline-control" class="playback-control playback-timeline-control" hidden>
+                  <span>Timeline <output id="playback-progress">0 / 0</output></span>
+                  <input id="playback-timeline" type="range" min="0" max="0" step="1" value="0">
+                </label>
               </div>
             </div>
-            <details class="model-selection-panel">
+            <details id="model-selection-panel" class="model-selection-panel">
               <summary>Models</summary>
               <div id="model-selection-controls" class="model-selection-controls" aria-label="Pipeline model selection"></div>
             </details>
@@ -294,102 +317,102 @@
     </div>
   </dialog>
 
-  <script defer src="./simulatte/app/world-runtime-script-manifest.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./neural-model-consent.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./model-selection.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./shared/deterministic-values.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./shared/language/positive-language.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./shared/streets/street-name.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./shared/contracts/data-contract-validator.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./shared/contracts/contract-validation-primitives.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./shared/contracts/contract-runtime-validator.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./shared/contracts/contract-validator.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/runtime/canonical-receipts.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/world/region-pack-merger.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/runtime/runtime-log.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/platform/contracts/schema-registry.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/platform/contracts/plugin-contracts.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/platform/contracts/plugin-v4-contracts.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/platform/contracts/plugin-v4-adapters.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/platform/runtime/provenance-registry.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/platform/runtime/simulation-timeline.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/platform/runtime/simulation-clock.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/platform/core/simulation/comparison-contracts.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/platform/core/simulation/comparison-execution.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/platform/core/simulation/comparison-result-adapter.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/platform/render/semantic-compositor.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/platform/view/view-director.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/app/plugin-view-runtime.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/app/tier-run-controller.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/platform/transport/browser-transport.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/platform/artifacts/governed-artifact-store.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/platform/data-catalog/immutable-data-catalog.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/platform/storage/browser-tile-storage.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/platform/plugin-host/plugin-state-host.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/platform/plugin-host/capability-graph.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/platform/plugin-host/plugin-sdk.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/platform/plugin-host/plugin-asset-paths.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/platform/plugin-host/plugin-runtime.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/platform/plugin-host/plugin-random.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/platform/plugin-host/plugin-scheduler.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/platform/plugin-host/plugin-environment.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/platform/plugin-host/plugin-geography.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/platform/plugin-host/plugin-compute.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/platform/plugin-host/generated-plugin-registry.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/platform/bootstrap/application-load-context.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/platform/bootstrap/tier-application-loader.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/app/world-runtime-loader.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/app/tier-plugin-presentation.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/platform/ui-host/declarative-ui-host.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./shared/core/simulation/civil-time.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./shared/core/simulation/plugin-v4-builder.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./shared/core/simulation/n-body-propagation.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
+  <script defer src="./simulatte/app/world-runtime-script-manifest.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./neural-model-consent.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./model-selection.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./shared/deterministic-values.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./shared/language/positive-language.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./shared/streets/street-name.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./shared/contracts/data-contract-validator.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./shared/contracts/contract-validation-primitives.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./shared/contracts/contract-runtime-validator.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./shared/contracts/contract-validator.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/runtime/canonical-receipts.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/world/region-pack-merger.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/runtime/runtime-log.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/platform/contracts/schema-registry.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/platform/contracts/plugin-contracts.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/platform/contracts/plugin-v4-contracts.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/platform/contracts/plugin-v4-adapters.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/platform/runtime/provenance-registry.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/platform/runtime/simulation-timeline.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/platform/runtime/simulation-clock.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/platform/core/simulation/comparison-contracts.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/platform/core/simulation/comparison-execution.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/platform/core/simulation/comparison-result-adapter.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/platform/render/semantic-compositor.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/platform/view/view-director.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/app/plugin-view-runtime.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/app/tier-run-controller.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/platform/transport/browser-transport.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/platform/artifacts/governed-artifact-store.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/platform/data-catalog/immutable-data-catalog.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/platform/storage/browser-tile-storage.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/platform/plugin-host/plugin-state-host.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/platform/plugin-host/capability-graph.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/platform/plugin-host/plugin-sdk.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/platform/plugin-host/plugin-asset-paths.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/platform/plugin-host/plugin-runtime.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/platform/plugin-host/plugin-random.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/platform/plugin-host/plugin-scheduler.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/platform/plugin-host/plugin-environment.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/platform/plugin-host/plugin-geography.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/platform/plugin-host/plugin-compute.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/platform/plugin-host/generated-plugin-registry.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/platform/bootstrap/application-load-context.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/platform/bootstrap/tier-application-loader.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/app/world-runtime-loader.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/app/tier-plugin-presentation.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/platform/ui-host/declarative-ui-host.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./shared/core/simulation/civil-time.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./shared/core/simulation/plugin-v4-builder.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./shared/core/simulation/n-body-propagation.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
   <!-- generated-plugin-scripts:start -->
   <!-- Selected plugin scripts are loaded by world-runtime-loader.js after route selection. -->
   <!-- generated-plugin-scripts:end -->
-  <script defer src="./simulatte/world/world-tile-manager.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/world/world-tile-storage.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/platform/bootstrap/application-loader.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/mission/capability-matrix.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/mission/mission-compiler.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./data/simulatte-language-lexicon.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/language/simulatte-universe-parser.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/world/ambient-actors.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/world/world-model.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/world/route-planner.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/world/time-dependent-edge-cost.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/runtime/feature-retrieval.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/runtime/occurrence-engine.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/runtime/observation-builder.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/runtime/reference-dynamics.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/runtime/bet-proposer.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/runtime/safety-gate.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/runtime/bet-selector.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/runtime/bet-settlement.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/verifier/journey-verifier.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/runtime/autonomy-controller.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/runtime/journey-ledger.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/app/webgpu-math.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/app/webgpu-actor-geometry.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/app/webgpu-geometry.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/app/plugin-presentation.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/app/camera-controller.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/app/webgpu-renderer.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/app/trace-view.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/app/application-profile-select.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/app/experience-camera.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/app/tier-facts.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/app/tier-data-loader.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/app/tier-renderers.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/app/tier-registry.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/app/multi-tier-visualizer.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/app/mount-lifecycle.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/app/world-tiers-boot.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/app/router.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/app/city-interface.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/app/main-view.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/app/plugin-playback.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
-  <script defer src="./simulatte/app/main.js?v=41ba859635151f4f0f1182971b944c9e50783068-82f8c2b8f811"></script>
+  <script defer src="./simulatte/world/world-tile-manager.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/world/world-tile-storage.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/platform/bootstrap/application-loader.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/mission/capability-matrix.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/mission/mission-compiler.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./data/simulatte-language-lexicon.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/language/simulatte-universe-parser.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/world/ambient-actors.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/world/world-model.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/world/route-planner.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/world/time-dependent-edge-cost.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/runtime/feature-retrieval.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/runtime/occurrence-engine.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/runtime/observation-builder.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/runtime/reference-dynamics.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/runtime/bet-proposer.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/runtime/safety-gate.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/runtime/bet-selector.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/runtime/bet-settlement.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/verifier/journey-verifier.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/runtime/autonomy-controller.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/runtime/journey-ledger.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/app/webgpu-math.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/app/webgpu-actor-geometry.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/app/webgpu-geometry.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/app/plugin-presentation.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/app/camera-controller.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/app/webgpu-renderer.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/app/trace-view.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/app/application-profile-select.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/app/experience-camera.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/app/tier-facts.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/app/tier-data-loader.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/app/tier-renderers.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/app/tier-registry.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/app/multi-tier-visualizer.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/app/mount-lifecycle.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/app/world-tiers-boot.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/app/router.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/app/city-interface.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/app/main-view.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/app/plugin-playback.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
+  <script defer src="./simulatte/app/main.js?v=38ae046fdccce2688fb7de8d825ce065eec82b7f-b59137f2d9ae"></script>
 
   <!-- World Tiers Landing Page Selector -->
   <div id="world-tiers-landing-page">

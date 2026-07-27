@@ -122,6 +122,13 @@ async function probe(client) {
       })),
       controlsButtonVisible: isVisible(document.getElementById('decisions-button')),
       missionDockVisible: isVisible(document.querySelector('.mission-dock')),
+      sideHuds: [...document.querySelectorAll('.visualizer-hud')].map((row) => ({
+        experienceId: row.dataset.experienceId || null,
+        visible: isVisible(row),
+        text: row.innerText.replace(/\\s+/g, ' ').trim(),
+      })),
+      pluginHudSurfacePresent: Boolean(document.getElementById('plugin-hud-ui')),
+      pluginHudCardCount: document.querySelectorAll('.plugin-hud-card').length,
       firstInspectorControlCount: document.querySelector('#plugin-inspector > [data-control-count]')?.dataset.controlCount || null,
       inspectorText: document.getElementById('plugin-inspector')?.innerText.replace(/\\s+/g, ' ').trim() || '',
     };
@@ -187,6 +194,12 @@ async function main() {
         ...(row.expected.length ? [] : [`${row.profileId}: no experiment controls`]),
         ...(row.controlsButtonVisible ? [] : [`${row.profileId}: Controls button hidden`]),
         ...(row.missionDockVisible ? [] : [`${row.profileId}: mission dock hidden`]),
+        ...(row.sideHuds.length === 1 && row.sideHuds[0].visible && row.sideHuds[0].experienceId === row.profileId
+          ? []
+          : [`${row.profileId}: expected one profile-owned side metrics HUD`]),
+        ...(!row.pluginHudSurfacePresent && row.pluginHudCardCount === 0
+          ? []
+          : [`${row.profileId}: duplicate plugin HUD surface rendered`]),
         ...(Number(row.firstInspectorControlCount) === row.expected.length ? [] : [`${row.profileId}: parameters were not first in the inspector`]),
       ];
     });
@@ -202,6 +215,8 @@ async function main() {
         expectedControls: row.expected.length,
         renderedControls: row.rendered.length,
         contributionStates: row.contributionStates.length,
+        sideMetrics: row.sideHuds[0]?.text || null,
+        pluginHudCards: row.pluginHudCardCount,
       })),
       switchResult,
       screenshotPath,

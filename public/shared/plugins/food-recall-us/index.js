@@ -59,9 +59,12 @@
     sdk.state.register(reduce, {
       scenarioId: activeSpec.id,
       run: baseline.result,
+      finalRun: baseline.result,
+      visibleRun: projectRun(baseline.result, baseline.result, 0, foodTimeline(baseline.result)),
       intervention: null,
       ensemble: null,
       inputContext: baseline.inputs,
+      playback: playbackState('ready', 0, foodTimeline(baseline.result)),
     });
 
     function appendScenarioReceipt(spec, ran) {
@@ -117,11 +120,14 @@
       activeIntervention = null;
       baseline = run(activeSpec, null);
       appendScenarioReceipt(activeSpec, baseline);
+      const timeline = foodTimeline(baseline.result);
       sdk.events.propose({
         pluginId: PLUGIN_ID,
         kind: `${PLUGIN_ID}.scenario-run`,
         scenarioId: activeSpec.id,
         run: baseline.result,
+        visibleRun: projectRun(baseline.result, baseline.result, 0, timeline),
+        playback: playbackState('ready', 0, timeline),
         inputContext: baseline.inputs,
       });
       return baseline.result;
@@ -144,31 +150,70 @@
         if (values.phase === 'start') {
           activeIntervention = interventionFrom(values);
           const ran = run(activeSpec, activeIntervention);
+          const timeline = foodTimeline(ran.result);
           appendInterventionReceipt(activeSpec, ran, baseline.result.trueIllnesses);
           sdk.events.propose({
             pluginId: PLUGIN_ID,
-            kind: `${PLUGIN_ID}.recall-issued`,
+            kind: `${PLUGIN_ID}.playback-started`,
             run: ran.result,
+            visibleRun: projectRun(ran.result, baseline.result, 0, timeline),
             intervention: activeIntervention,
             inputContext: ran.inputs,
+            playback: playbackState('running', 0, timeline),
           });
-          const state = sdk.state.read();
           return {
-            status: 'settled',
+            status: 'running',
             scenarioId: activeSpec.id,
             intervention: activeIntervention,
-            run: state.run,
+            currentStep: 0,
+            totalSteps: timeline.length - 1,
+            stage: timeline[0],
           };
         }
         const state = sdk.state.read();
+        if (values.phase === 'step') {
+          if (state.playback?.status !== 'running') {
+            return {
+              status: state.playback?.status === 'settled' ? 'settled' : 'refused',
+              reason: state.playback?.status === 'settled' ? null : 'food_recall_playback_not_started',
+              currentStep: state.playback?.currentStep || 0,
+              totalSteps: state.playback?.totalSteps || 0,
+            };
+          }
+          const nextStep = Math.min(state.playback.currentStep + 1, state.playback.totalSteps);
+          const status = nextStep >= state.playback.totalSteps ? 'settled' : 'running';
+          const playback = playbackState(status, nextStep, state.playback.timeline);
+          sdk.events.propose({
+            pluginId: PLUGIN_ID,
+            kind: `${PLUGIN_ID}.playback-advanced`,
+            visibleRun: projectRun(state.finalRun, baseline.result, nextStep, state.playback.timeline),
+            playback,
+          });
+          return {
+            status,
+            scenarioId: activeSpec.id,
+            intervention: state.intervention,
+            currentStep: nextStep,
+            totalSteps: state.playback.totalSteps,
+            stage: state.playback.timeline[nextStep],
+          };
+        }
         sdk.events.propose({
           pluginId: PLUGIN_ID,
           kind: `${PLUGIN_ID}.scenario-run`,
           scenarioId: activeSpec.id,
-          run: state.run,
+          run: state.finalRun,
+          visibleRun: state.visibleRun,
+          playback: state.playback,
           inputContext: state.inputContext,
         });
-        return { status: 'settled', scenarioId: activeSpec.id, run: state.run };
+        return {
+          status: state.playback?.status || 'settled',
+          scenarioId: activeSpec.id,
+          currentStep: state.playback?.currentStep || 0,
+          totalSteps: state.playback?.totalSteps || 0,
+          stage: state.playback?.stage || null,
+        };
       }
       if (actionId === 'recall.issue') {
         const intervention = interventionFrom(values);
@@ -276,12 +321,13 @@
 
     function settle() {
       const state = sdk.state.read();
-      const run_ = state.run;
+      const run_ = state.finalRun || state.run;
+      const terminal = state.playback?.status === 'settled';
       const results = [];
       // Source identified within the declared rank.
       results.push({
         obligationId: `${PLUGIN_ID}:source-rank`,
-        status: Number.isInteger(run_.trueSourceRank) ? 'settled' : 'unmet',
+        status: terminal && Number.isInteger(run_.trueSourceRank) ? 'settled' : 'unmet',
         evidence: {
           trueSourceRank: run_.trueSourceRank,
           targetRank: 5,
@@ -289,12 +335,12 @@
         },
       });
       // No false claim when traceability evidence is incomplete: if unranked, report honestly.
-      if (!run_.trueSourceRank) results.push({ obligationId: `${PLUGIN_ID}:honest-uncertainty`, status: 'settled', evidence: { note: 'Source not identified; no substitute claim made.' } });
+      if (terminal && !run_.trueSourceRank) results.push({ obligationId: `${PLUGIN_ID}:honest-uncertainty`, status: 'settled', evidence: { note: 'Source not identified; no substitute claim made.' } });
       // Lineage preserved.
-      results.push({ obligationId: `${PLUGIN_ID}:lineage`, status: run_.eventCount > 0 ? 'settled' : 'unmet', evidence: { eventCount: run_.eventCount, lotCount: run_.lotCount } });
+      results.push({ obligationId: `${PLUGIN_ID}:lineage`, status: terminal && run_.eventCount > 0 ? 'settled' : 'unmet', evidence: { eventCount: run_.eventCount, lotCount: run_.lotCount } });
       results.push({
         obligationId: `${PLUGIN_ID}:causal-inputs`,
-        status: run_.inputContext?.fieldIdentities?.length === 3 ? 'settled' : 'unmet',
+        status: terminal && run_.inputContext?.fieldIdentities?.length === 3 ? 'settled' : 'unmet',
         evidence: {
           fieldIdentities: run_.inputContext?.fieldIdentities || [],
           shipmentDurationHours: run_.shipmentDurationHours,
@@ -307,7 +353,7 @@
         const ok = (run_.recall.recallSensitivity ?? 0) >= 0.8;
         results.push({
           obligationId: `${PLUGIN_ID}:containment:${state.scenarioId}`,
-          status: Number.isFinite(run_.recall.recallSensitivity) ? 'settled' : 'unmet',
+          status: terminal && Number.isFinite(run_.recall.recallSensitivity) ? 'settled' : 'unmet',
           evidence: {
             recallSensitivity: run_.recall.recallSensitivity,
             target: 0.8,
@@ -322,23 +368,24 @@
     function view() {
       const state = sdk.state.read();
       return presentation.buildViews({
-        run: state.run,
+        run: state.visibleRun || state.run,
         scenario: activeSpec,
         datasetReceipts,
         activeIntervention,
         inputContext: state.inputContext,
+        playback: state.playback,
       });
     }
 
     function present() {
       const state = sdk.state.read();
-      return presentation.buildPresentation({ run: state.run, facilities, corridors, consumerZones: consumerZones.zones });
+      return presentation.buildPresentation({ run: state.visibleRun || state.run, facilities, corridors, consumerZones: consumerZones.zones });
     }
 
     function contributeV4() {
       const state = sdk.state.read();
       return v4.createContribution({
-        run: state.run,
+        run: state.visibleRun || state.run,
         scenario: activeSpec,
         facilities,
         corridors,
@@ -346,6 +393,7 @@
         datasetReceipts,
         activeIntervention,
         inputContext: state.inputContext,
+        playback: state.playback,
       });
     }
 
@@ -386,20 +434,97 @@
         ...state,
         scenarioId: event.scenarioId,
         run: event.run,
+        finalRun: event.run,
+        visibleRun: event.visibleRun || event.run,
         intervention: null,
         inputContext: event.inputContext,
+        playback: event.playback || state.playback,
+      };
+    }
+    if (event.kind === `${PLUGIN_ID}.playback-started`) {
+      return {
+        ...state,
+        run: event.run,
+        finalRun: event.run,
+        visibleRun: event.visibleRun,
+        intervention: event.intervention,
+        inputContext: event.inputContext,
+        playback: event.playback,
+      };
+    }
+    if (event.kind === `${PLUGIN_ID}.playback-advanced`) {
+      return {
+        ...state,
+        visibleRun: event.visibleRun,
+        playback: event.playback,
       };
     }
     if (event.kind === `${PLUGIN_ID}.recall-issued`) {
       return {
         ...state,
         run: event.run,
+        finalRun: event.run,
+        visibleRun: event.run,
         intervention: event.intervention,
         inputContext: event.inputContext,
+        playback: playbackState('settled', foodTimeline(event.run).length, foodTimeline(event.run)),
       };
     }
     if (event.kind === `${PLUGIN_ID}.ensemble-run`) return { ...state, ensemble: event.ensemble };
     return state;
+  }
+
+  function foodTimeline(run) {
+    const lineage = Array.isArray(run?.lineage) ? run.lineage : [];
+    const shippingCount = lineage.filter((row) => row.cte === 'shipping').length;
+    return Object.freeze([
+      Object.freeze({ id: 'ready', label: 'Incident prepared', lineageCount: 0, narrative: 'The governed scenario is ready; no modeled outcome is revealed.' }),
+      Object.freeze({ id: 'origin', label: 'Lots enter custody', lineageCount: Math.max(1, lineage.filter((row) => row.cte === 'harvesting').length), narrative: 'Synthetic origin lots receive stable traceability identities.' }),
+      Object.freeze({ id: 'shipping', label: 'Cold-chain shipments move', lineageCount: Math.max(1, Math.ceil(lineage.length * 0.45)), narrative: `${shippingCount} modeled shipments carry temperature and service-state receipts.` }),
+      Object.freeze({ id: 'distribution', label: 'Lots reach consumers', lineageCount: lineage.length, narrative: 'Custody paths and transformations determine which synthetic lots are exposed.' }),
+      Object.freeze({ id: 'exposure', label: 'Illnesses emerge', lineageCount: lineage.length, narrative: 'Dose-response and reporting assumptions generate the modeled exposure outcome.' }),
+      Object.freeze({ id: 'detection', label: 'Cluster is detected', lineageCount: lineage.length, narrative: 'Only reported cases become available to the traceback policy.' }),
+      Object.freeze({ id: 'recall', label: 'Recall propagates', lineageCount: lineage.length, narrative: 'The selected recall day and depth remove reachable descendant lots.' }),
+      Object.freeze({ id: 'settled', label: 'Incident settled', lineageCount: lineage.length, narrative: 'The intervention and no-recall branches can now be compared.' }),
+    ]);
+  }
+
+  function playbackState(status, currentStep, timeline) {
+    return Object.freeze({
+      status,
+      currentStep,
+      totalSteps: Math.max(0, timeline.length - 1),
+      stage: timeline[currentStep] || timeline.at(-1),
+      timeline,
+    });
+  }
+
+  function projectRun(finalRun, baselineRun, step, timeline) {
+    const stage = timeline[Math.max(0, Math.min(step, timeline.length - 1))];
+    const lineage = (finalRun.lineage || []).slice(0, stage.lineageCount);
+    const visibleLotIds = new Set(lineage.flatMap((row) => [row.tlcId, ...(row.parents || [])]).filter(Boolean));
+    const showExposure = step >= 4;
+    const showDetection = step >= 5;
+    const showRecall = step >= 6;
+    const settled = step >= timeline.length - 1;
+    const illnesses = showExposure
+      ? (showRecall ? finalRun.trueIllnesses : baselineRun.trueIllnesses)
+      : 0;
+    const lots = (finalRun.lots || []).filter((row) => visibleLotIds.has(row.tlcId));
+    return {
+      ...finalRun,
+      lineage,
+      lots,
+      lotCount: lots.length,
+      eventCount: lineage.length,
+      trueIllnesses: illnesses,
+      observedCases: showDetection ? finalRun.observedCases : 0,
+      detectionDay: showDetection ? finalRun.detectionDay : null,
+      traceback: showDetection ? finalRun.traceback : [],
+      recall: showRecall ? finalRun.recall : null,
+      playbackStage: stage,
+      playbackSettled: settled,
+    };
   }
 
   // ---- Dataset validators (structural; declared schema ids) -----------------------

@@ -248,6 +248,7 @@
       ensembleSize: encounter.ensembleSize,
       screeningRadiusKm: encounter.screeningRadiusKm,
       modeledScreeningFraction: encounter.modeledScreeningFraction,
+      interpretation: encounter.interpretation,
       minimumDistanceKm: encounter.minimumDistanceKm,
       medianDistanceKm: encounter.medianDistanceKm,
       maximumDistanceKm: encounter.maximumDistanceKm,

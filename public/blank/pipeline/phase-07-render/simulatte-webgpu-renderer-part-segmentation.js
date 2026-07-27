@@ -7,7 +7,8 @@
       const core = parts.find((part) => part.constructionRole === 'core') || { center: [0, 0] };
       let tentacleIndex = 0;
       return parts.flatMap((part) => {
-        if (part.primitive !== 'capsule' || !/^tentacle-\d+$/.test(String(part.id || ''))) return [part];
+        if (!['capsule', 'tapered-capsule'].includes(part.primitive) ||
+          !/^tentacle-\d+$/.test(String(part.id || ''))) return [part];
         const segments = cephalopodTentacleSegments(part, core, tentacleIndex);
         tentacleIndex += 1;
         return segments;

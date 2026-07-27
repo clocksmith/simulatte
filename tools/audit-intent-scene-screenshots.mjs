@@ -2172,7 +2172,7 @@ function analyze(results, options = {}) {
     if (result.phase7RenderData !== 'simulatte.phase7.compactRenderData.v1') {
       failures.push(`${result.index}: Phase 7 render data receipt missing`);
     }
-    if (result.phase7RenderPath !== 'depth-lit-storage-object-parts-with-uniform-fallback') {
+    if (result.phase7RenderPath !== 'depth-lit-prompt-conditioned-contours-surfaces-and-atmospheres') {
       failures.push(`${result.index}: Phase 7 render data path is ${result.phase7RenderPath || 'missing'}`);
     }
     const consumption = result.phase7RendererConsumption || {};
@@ -2184,6 +2184,17 @@ function analyze(results, options = {}) {
     if (Number(consumption.materialCountConsumed || 0) < 1) failures.push(`${result.index}: compiled materials were not consumed`);
     if (consumption.depthEnabled !== true) failures.push(`${result.index}: depth execution is not enabled`);
     if (consumption.normalShading !== true) failures.push(`${result.index}: material lighting does not use surface normals`);
+    if (consumption.atmosphereConfigured === true && consumption.atmosphereConsumed !== true) {
+      failures.push(`${result.index}: compiled atmosphere program was not consumed`);
+    }
+    const morphology = consumption.morphologySubmission || {};
+    if (Number(consumption.objectPartCount || 0) > 0 &&
+        (morphology.schema !== 'simulatte.phase7MorphologySubmission.v1' ||
+          Number(morphology.contourProfileCount || 0) < 1 ||
+          Number(morphology.surfacePatternCount || 0) < 1 ||
+          Number(morphology.accentPatternCount || 0) < 1)) {
+      failures.push(`${result.index}: submitted object parts lack the Phase 6 morphology contract`);
+    }
     const constructionGate = phase3ConstructionGate(result);
     for (const slot of constructionGate.missingSlots) {
       failures.push(`${result.index}: required construction slot ${slot.slotId} has neither a proven local grammar nor model-evaluated construction evidence`);
@@ -2461,8 +2472,9 @@ function withAutoRating(summary) {
       recognizabilityVerified: false,
       humanAdjudicationRequired: true,
       score,
-      grade: gradeForScore(score),
-      verdict: summary.ok && score >= 85 ? 'pass' : 'fail',
+      grade: 'unverified',
+      verdict: 'not-proven',
+      machineStructuralVerdict: summary.ok && score >= 85 ? 'pass' : 'fail',
       promptCount,
       passRate: Number(passRate.toFixed(3)),
       sceneDiversity: Number(sceneDiversity.toFixed(3)),

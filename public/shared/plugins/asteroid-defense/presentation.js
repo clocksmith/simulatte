@@ -8,11 +8,15 @@
   function createSemanticPresentation({ result, snapshot, forceModel }) {
     const encounter = snapshot.interventionEncounter
       ? result.interventionEncounter
-      : result.baselineEncounter;
-    const representative = encounter.members[0];
-    const trajectory = representative.trajectory.map((row) => row.positionAu);
-    const earthTrajectory = representative.trajectory.map((row) => propagation.earthState(row.day, forceModel.gmSunAu3Day2).positionAu);
-    const encounterObjects = encounter.members.map((member) => {
+      : snapshot.baselineEncounter ? result.baselineEncounter : null;
+    const representative = encounter?.members?.[0] || null;
+    const trajectory = snapshot.fitReceipt && representative
+      ? representative.trajectory.map((row) => row.positionAu)
+      : [];
+    const earthTrajectory = trajectory.length
+      ? representative.trajectory.map((row) => propagation.earthState(row.day, forceModel.gmSunAu3Day2).positionAu)
+      : [];
+    const encounterObjects = (encounter?.members || []).map((member) => {
       const closest = member.trajectory.reduce((best, row) =>
         Math.abs(row.day - member.closestApproachDay) < Math.abs(best.day - member.closestApproachDay) ? row : best);
       return {
@@ -36,6 +40,7 @@
       epoch: result.campaign.startInstant,
       currentEventId: snapshot.eventIds.at(-1) || null,
       layers: [
+        ...(trajectory.length ? [
         layer('asteroid-trajectories', 'orbit_ensemble', [{
           id: 'asteroid-representative-trajectory',
           kind: 'synthetic_asteroid_trajectory',
@@ -52,14 +57,17 @@
           evidenceRefs: [forceModel.id],
           truth: truth('modeled'),
         }], 'none', null),
-        layer('asteroid-encounters', 'encounter_distribution', encounterObjects, 'distribution_cluster', 'minimumDistanceKm'),
+        ] : []),
+        ...(encounterObjects.length ? [
+          layer('asteroid-encounters', 'encounter_distribution', encounterObjects, 'distribution_cluster', 'minimumDistanceKm'),
+        ] : []),
       ],
       viewIntents: [{
         schema: 'simulatte.viewIntent.v4',
         mode: snapshot.status === 'settled' ? 'compare' : snapshot.status.includes('propagated') ? 'follow' : 'overview',
         targetIds: snapshot.status.includes('propagated')
           ? encounterObjects.map((row) => row.id)
-          : ['asteroid-representative-trajectory', 'earth-reference-trajectory'],
+          : trajectory.length ? ['asteroid-representative-trajectory', 'earth-reference-trajectory'] : [],
         transitionReason: snapshot.eventIds.at(-1) ? `simulation_event:${snapshot.eventIds.at(-1)}` : 'scenario_ready',
         priority: 70,
         expiresAtEventId: null,

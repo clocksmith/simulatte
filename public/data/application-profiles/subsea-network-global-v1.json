@@ -7,8 +7,8 @@
     "mode": "simulation",
     "simulationOwnerPluginId": "subsea-network-global",
     "missionRequired": false,
-    "startLabel": "Run allocation",
-    "shuffleLabel": "Change disruption"
+    "startLabel": "Run network experiment",
+    "shuffleLabel": "Change scenario"
   },
   "defaultSeedId": "atlantic-single-cut",
   "seeds": [

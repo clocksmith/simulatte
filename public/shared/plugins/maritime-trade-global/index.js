@@ -353,6 +353,8 @@
       const current = snapshot(state);
       const values = metricsApi.values(state.result.metrics);
       const comparison = state.comparison;
+      const settled = state.playback.status === 'settled';
+      const event = state.result.eventTrace.find((row) => row.id === current.currentEventId);
       return [
         {
           slot: 'inspector',
@@ -360,16 +362,21 @@
           rows: [
             { label: 'Scenario', value: state.result.route.name },
             { label: 'Progress', value: `${Math.round(current.progressFraction * 100)}% · ${current.status}` },
-            { label: 'Current event', value: current.currentEventId || 'Ready' },
+            { label: 'Modeled clock', value: `${(current.timeHours / 24).toFixed(1)} days since departure` },
+            { label: 'Current event', value: event ? maritimeEventLabel(event.kind) : 'Voyage configured' },
             { label: 'Route model', value: state.result.route.algorithm },
-            { label: 'Transit', value: `${values.totalTransitDays.toFixed(2)} modeled days` },
-            { label: 'Queue p05 / p50 / p95', value: `${state.result.queueEnsemble.p05WaitHours.toFixed(1)} / ${state.result.queueEnsemble.p50WaitHours.toFixed(1)} / ${state.result.queueEnsemble.p95WaitHours.toFixed(1)} h` },
-            { label: 'Queue evidence', value: `Seeded stochastic ensemble · ${state.result.queueEnsemble.calibration.status.replaceAll('_', ' ')}` },
             { label: 'Cargo', value: `${values.cargoTeu.toLocaleString()} scenario TEU` },
-            { label: 'Fuel / CO2e', value: `${values.fuelTons.toFixed(0)} / ${values.co2Tons.toFixed(0)} modeled t` },
-            { label: 'CO2e sensitivity low / base / high', value: sensitivityLabel(state.result.emissions.parameterSensitivity) },
-            { label: 'CO2e intensity', value: `${values.intensityGCo2PerTeuNm.toFixed(2)} g/TEU-NM` },
-            ...(comparison ? [{ label: 'Compared transit delta', value: `${comparison.metrics.transitDaysDelta.toFixed(2)} days` }] : []),
+            ...(['queued', 'berthing', 'discharged', 'delivered', 'settled'].includes(current.status) ? [
+              { label: 'Queue p05 / p50 / p95', value: `${state.result.queueEnsemble.p05WaitHours.toFixed(1)} / ${state.result.queueEnsemble.p50WaitHours.toFixed(1)} / ${state.result.queueEnsemble.p95WaitHours.toFixed(1)} h` },
+              { label: 'Queue evidence', value: `Seeded stochastic ensemble · ${state.result.queueEnsemble.calibration.status.replaceAll('_', ' ')}` },
+            ] : []),
+            ...(settled ? [
+              { label: 'Transit', value: `${values.totalTransitDays.toFixed(2)} modeled days` },
+              { label: 'Fuel / CO2e', value: `${values.fuelTons.toFixed(0)} / ${values.co2Tons.toFixed(0)} modeled t` },
+              { label: 'CO2e sensitivity low / base / high', value: sensitivityLabel(state.result.emissions.parameterSensitivity) },
+              { label: 'CO2e intensity', value: `${values.intensityGCo2PerTeuNm.toFixed(2)} g/TEU-NM` },
+            ] : []),
+            ...(settled && comparison ? [{ label: 'Compared transit delta', value: `${comparison.metrics.transitDaysDelta.toFixed(2)} days` }] : []),
           ],
           fields: [
             {
@@ -388,17 +395,6 @@
             },
             { id: 'cargoTeu', label: 'Scenario cargo TEU', type: 'number', value: state.result.parameters.cargoTeu },
             { id: 'ensembleReplicates', label: 'Queue ensemble runs', type: 'number', value: state.result.parameters.ensembleReplicates },
-          ],
-          actions: [],
-        },
-        {
-          slot: 'hud',
-          title: 'Truth boundary',
-          rows: [
-            { label: 'Observed', value: 'Pinned port identities and coordinates' },
-            { label: 'Modeled', value: 'Corridors, queue priors, vessel, fuel, emissions' },
-            { label: 'Simulated', value: `${state.result.eventTrace.length} causal events · ${state.result.parameters.ensembleReplicates} queue runs` },
-            { label: 'Not claimed', value: 'AIS, carrier schedule, booking, navigation, operational ETA' },
           ],
           actions: [],
         },
@@ -562,6 +558,19 @@
 
   function snapshot(state) {
     return state.result.snapshots[state.playback.cursor];
+  }
+
+  function maritimeEventLabel(kind) {
+    return {
+      'maritime.scenario-configured': 'Voyage and cargo configured',
+      'maritime.voyage-departed': 'Vessel departed with custody recorded',
+      'maritime.leg-completed': 'Ocean or chokepoint leg completed',
+      'maritime.voyage-arrived': 'Vessel arrived at destination anchorage',
+      'maritime.queue-entered': 'Vessel joined the modeled berth queue',
+      'maritime.berth-started': 'Berth service started',
+      'maritime.cargo-discharged': 'Cargo was discharged',
+      'maritime.container-delivered': 'Representative containers reached delivery',
+    }[kind] || String(kind || 'ready').replaceAll('.', ' ');
   }
 
   function playbackAction(state) {

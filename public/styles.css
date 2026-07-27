@@ -76,9 +76,8 @@ body:not([data-journey-phase="loading"]) .loading-screen {
   visibility: hidden;
 }
 
-/* Governed scales keep scenario and parameter controls, but not City journey chrome. */
-.world-explorer #journey-hud,
-.world-explorer .camera-controls {
+/* Experiments own a compact results surface instead of inheriting journey progress chrome. */
+body[data-experience-shell="experiment"] #journey-hud {
   display: none !important;
 }
 
@@ -484,6 +483,66 @@ button {
   gap: 8px;
 }
 
+.experience-summary {
+  position: fixed;
+  z-index: 16;
+  top: calc(max(16px, env(safe-area-inset-top)) + 56px);
+  right: max(16px, env(safe-area-inset-right));
+  display: grid;
+  width: min(320px, calc(100vw - 32px));
+  max-height: min(42vh, 360px);
+  gap: 9px;
+  overflow: auto;
+  padding: 13px 14px;
+}
+
+.experience-summary header {
+  display: grid;
+  gap: 4px;
+}
+
+.experience-summary header strong {
+  font-size: 15px;
+  line-height: 1.2;
+}
+
+.experience-summary p {
+  margin: 0;
+  color: var(--sim-ink-soft);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.experience-summary dl {
+  display: grid;
+  gap: 0;
+  margin: 0;
+}
+
+.experience-summary dl > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  border-top: 1px solid var(--sim-line);
+  padding: 7px 0;
+  font: 600 10px/1.3 var(--sim-mono);
+}
+
+.experience-summary dt {
+  color: var(--sim-ink-faint);
+}
+
+.experience-summary dd {
+  margin: 0;
+  color: var(--sim-ink);
+  text-align: right;
+}
+
+.experience-summary .experience-summary-help {
+  color: var(--sim-ink-faint);
+  font-size: 10px;
+}
+
 .camera-focus-anchor {
   position: relative;
 }
@@ -687,14 +746,22 @@ body[data-journey-phase="ready"] .journey-hud {
   z-index: 19;
   left: max(16px, env(safe-area-inset-left));
   bottom: max(16px, env(safe-area-inset-bottom));
-  min-height: 38px;
-  padding: 0 12px;
+  color: var(--sim-ink-soft);
+  font: 600 12px/1.4 var(--sim-font);
+  letter-spacing: 0;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-transform: none;
 }
 
 .experience-doc-link:hover,
 .experience-doc-link:focus-visible {
-  border-color: var(--sim-line-strong);
-  box-shadow: var(--sim-shadow-small);
+  color: var(--sim-ink);
+}
+
+.experience-doc-link:focus-visible {
+  outline: 2px solid var(--sim-accent);
+  outline-offset: 4px;
 }
 
 .decisions-button {
@@ -835,6 +902,30 @@ body[data-journey-phase="ready"] .journey-hud {
   position: absolute;
   right: 0;
   bottom: calc(100% + 10px);
+  min-width: 220px;
+}
+
+.playback-control {
+  display: grid;
+  gap: 6px;
+  padding: 8px 10px;
+  color: var(--sim-ink-soft);
+  font: 600 11px/1.3 var(--sim-font);
+}
+
+.playback-control > span {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.playback-control select,
+.playback-control input {
+  width: 100%;
+}
+
+.playback-timeline-control input {
+  accent-color: var(--sim-accent);
 }
 
 .play-mark {
@@ -1310,6 +1401,55 @@ body[data-journey-phase="failed"] .scenario-field {
   gap: 10px;
 }
 
+.plugin-facts {
+  display: grid;
+  gap: 0;
+  margin: 10px 0 0;
+}
+
+.plugin-facts > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr);
+  gap: 12px;
+  border-top: 1px solid var(--sim-line);
+  padding: 8px 0;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.plugin-facts dt {
+  color: var(--sim-ink-faint);
+}
+
+.plugin-facts dd {
+  margin: 0;
+  color: var(--sim-ink);
+  overflow-wrap: anywhere;
+}
+
+.plugin-control-groups {
+  display: grid;
+  gap: 8px;
+}
+
+.plugin-control-group {
+  border: 1px solid var(--sim-line);
+  border-radius: var(--sim-radius-small);
+  background: var(--sim-glass-faint);
+}
+
+.plugin-control-group > summary {
+  padding: 9px 10px;
+  color: var(--sim-ink-soft);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.plugin-control-group > .plugin-controls {
+  border-top: 1px solid var(--sim-line);
+  padding: 10px;
+}
+
 .plugin-controls label {
   display: grid;
   gap: 5px;
@@ -1322,6 +1462,12 @@ body[data-journey-phase="failed"] .scenario-field {
   min-height: 42px;
   padding: 0 10px;
   font-size: 12px;
+}
+
+.plugin-controls input[type="checkbox"] {
+  width: 20px;
+  min-height: 20px;
+  padding: 0;
 }
 
 .plugin-actions button {
@@ -1341,8 +1487,7 @@ body[data-journey-phase="failed"] .scenario-field {
   pointer-events: none;
 }
 
-.plugin-map-card,
-.plugin-hud-card {
+.plugin-map-card {
   display: grid;
   gap: 8px;
   border: 1px solid var(--sim-line-strong);
@@ -1351,51 +1496,21 @@ body[data-journey-phase="failed"] .scenario-field {
   pointer-events: auto;
 }
 
-.plugin-map-card > strong,
-.plugin-hud-card > strong {
+.plugin-map-card > strong {
   font-size: 12px;
   line-height: 1.25;
 }
 
-.plugin-map-card .plugin-actions,
-.plugin-hud-card .plugin-actions {
+.plugin-map-card .plugin-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
 }
 
-.plugin-map-card .sim-action,
-.plugin-hud-card .sim-action {
+.plugin-map-card .sim-action {
   min-height: 34px;
   padding: 0 10px;
   font-size: 10px;
-}
-
-.plugin-hud-ui {
-  position: fixed;
-  z-index: 18;
-  right: max(16px, env(safe-area-inset-right));
-  bottom: calc(max(16px, env(safe-area-inset-bottom)) + 56px);
-  display: flex;
-  max-width: min(560px, calc(100vw - 32px));
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 8px;
-  pointer-events: none;
-}
-
-.plugin-hud-card {
-  grid-template-columns: auto 1fr;
-  align-items: center;
-  min-width: 180px;
-}
-
-.plugin-hud-card > strong {
-  grid-column: 1 / -1;
-}
-
-.plugin-hud-card .plugin-actions {
-  grid-column: 1 / -1;
 }
 
 .receipt-actions {
@@ -1442,18 +1557,19 @@ body[data-journey-phase="failed"] .scenario-field {
   }
 
   .camera-controls {
-    top: max(12px, env(safe-area-inset-top));
+    top: calc(max(12px, env(safe-area-inset-top)) + 50px);
     right: max(12px, env(safe-area-inset-right));
     bottom: auto;
+  }
+
+  .experience-summary {
+    top: calc(max(12px, env(safe-area-inset-top)) + 100px);
+    max-height: min(34dvh, 300px);
   }
 
   .experience-doc-link {
     left: max(12px, env(safe-area-inset-left));
     bottom: calc(max(12px, env(safe-area-inset-bottom)) + 146px);
-  }
-
-  .world-explorer .experience-doc-link {
-    bottom: max(12px, env(safe-area-inset-bottom));
   }
 
   .follow-minimap {
@@ -1468,12 +1584,6 @@ body[data-journey-phase="failed"] .scenario-field {
     left: max(12px, env(safe-area-inset-left));
     width: min(270px, calc(100vw - 24px));
     max-height: 34vh;
-  }
-
-  .plugin-hud-ui {
-    right: max(12px, env(safe-area-inset-right));
-    bottom: calc(max(12px, env(safe-area-inset-bottom)) + 112px);
-    max-width: calc(100vw - 24px);
   }
 
   .journey-hud {
@@ -1591,13 +1701,7 @@ body[data-journey-phase="failed"] .scenario-field {
   .experience-doc-link {
     left: max(10px, env(safe-area-inset-left));
     bottom: calc(max(10px, env(safe-area-inset-bottom)) + 194px);
-    min-height: 36px;
-    padding: 0 10px;
-    font-size: 10px;
-  }
-
-  .world-explorer .experience-doc-link {
-    bottom: max(10px, env(safe-area-inset-bottom));
+    font-size: 11px;
   }
 
   .runtime-toolbar {
@@ -1647,8 +1751,48 @@ body[data-journey-phase="failed"] .scenario-field {
   }
 
   .camera-controls {
+    top: calc(max(10px, env(safe-area-inset-top)) + 48px);
     right: max(10px, env(safe-area-inset-right));
     bottom: auto;
+  }
+
+  .experience-summary {
+    top: calc(max(10px, env(safe-area-inset-top)) + 96px);
+    right: max(10px, env(safe-area-inset-right));
+    left: max(10px, env(safe-area-inset-left));
+    width: auto;
+    max-height: 112px;
+    padding: 10px 11px;
+  }
+
+  .experience-summary header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .experience-summary dl {
+    display: flex;
+    gap: 14px;
+    overflow-x: auto;
+  }
+
+  .experience-summary dl > div {
+    display: grid;
+    flex: 0 0 auto;
+    grid-template-columns: none;
+    gap: 2px;
+    border-top: 0;
+    padding: 2px 0;
+  }
+
+  .experience-summary dd {
+    text-align: left;
+  }
+
+  .experience-summary-help {
+    display: none;
   }
 
   .camera-modes > button {
@@ -1688,23 +1832,8 @@ body[data-journey-phase="failed"] .scenario-field {
     scrollbar-gutter: stable;
   }
 
-  .plugin-hud-ui {
-    right: max(10px, env(safe-area-inset-right));
-    bottom: calc(max(10px, env(safe-area-inset-bottom)) + 146px);
-    max-width: min(280px, calc(100vw - 20px));
-  }
-
-  .plugin-hud-card {
-    max-height: min(28dvh, 220px);
-    overflow: auto;
-  }
-
-  .world-explorer .plugin-map-ui {
-    top: calc(max(10px, env(safe-area-inset-top)) + 48px);
-  }
-
-  .world-explorer .plugin-hud-ui {
-    bottom: max(10px, env(safe-area-inset-bottom));
+  body[data-experience-shell="experiment"] .plugin-map-ui {
+    top: calc(max(10px, env(safe-area-inset-top)) + 218px);
   }
 
   .mission-dock {

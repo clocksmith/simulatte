@@ -24,7 +24,7 @@
     throw new Error('SimulattePromptControllerLab requires support, workers, training, construction search, runtime, model selection, and run view model');
   }
   const {
-    model, runtimeProgressApi, EXAMPLE_INTENTS, clamp, createRenderExecutionInput,
+    model, runtimeProgressApi, EXAMPLE_INTENTS, applyInteractionCommands, clamp, createRenderExecutionInput,
     createSimulationState, createSpec, createSpecFromPrompt, deserializeSpec,
     normalizeSpec, remixSpec, serializeSpec, stepSimulation,
   } = support;
@@ -118,10 +118,30 @@
         let paused = false;
         let buildSerial = 0;
         let compileSerial = 0;
+        const pendingInteractionCommands = [];
         let constructionRetryPending = false;
         let activePromptRuntimeReceipt = null;
         let classificationPolicyPromise = null;
         const pipelineCompiler = createPipelineCompiler(root);
+        const worldInteractionApi = root.defaultView && root.defaultView.SimulatteWorldInteractionRuntime;
+        const worldInteraction = worldInteractionApi && typeof worldInteractionApi.connect === 'function'
+          ? worldInteractionApi.connect(canvas, {
+            renderer: webGpuRenderer,
+            getProgram: () => {
+              const visualCompile = spec && spec.phaseArtifacts && spec.phaseArtifacts.phase6 &&
+                spec.phaseArtifacts.phase6.artifact &&
+                spec.phaseArtifacts.phase6.artifact.visualCompile;
+              return visualCompile && visualCompile.interactionProgram ||
+                visualCompile && visualCompile.sceneRenderPacket &&
+                visualCompile.sceneRenderPacket.interactionProgram ||
+                null;
+            },
+            enqueueCommand: (command) => {
+              pendingInteractionCommands.push(command);
+              if (pendingInteractionCommands.length > 128) pendingInteractionCommands.shift();
+            },
+          })
+          : null;
 
         function ensureClassificationPolicy() {
           if (classificationPolicyPromise) return classificationPolicyPromise;
@@ -241,6 +261,8 @@
         const setSpec = (nextSpec, options = {}) => {
           const visible = options.visible === true || simulationVisible;
           spec = normalizeSpec(nextSpec);
+          pendingInteractionCommands.length = 0;
+          worldInteraction?.reset();
           runView?.recordSpec(spec);
           state = createSimulationState(spec);
           renderExecutionInput = null;
@@ -650,6 +672,10 @@
           if (spec !== previousSpec) {
             renderExecutionInput = null;
             if (previewDisclosure && previewDisclosure.open) syncSpecPreview(specPreview, spec);
+          }
+          if (pendingInteractionCommands.length && typeof applyInteractionCommands === 'function') {
+            const commands = pendingInteractionCommands.splice(0, pendingInteractionCommands.length);
+            state = applyInteractionCommands(state, spec.interactionIR, commands);
           }
           if (!paused && canvas.dataset.auditFreezeFrame !== 'true') {
             const substeps = spec.templateId === 'reaction-diffusion' ? 2 : 3;

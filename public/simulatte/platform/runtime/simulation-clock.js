@@ -8,7 +8,7 @@
     playbackRate = 1,
     setTimer = setTimeout,
     clearTimer = clearTimeout,
-    wallIntervalMs = 50,
+    wallIntervalMs = 450,
   } = {}) {
     validateTimeline(timeline);
     rate(playbackRate);
@@ -66,6 +66,18 @@
       state = 'paused';
       currentMs = simulationTimeMs;
       cursor = firstAfter(activeTimeline.all(), simulationTimeMs);
+      emitState();
+      return snapshot();
+    }
+
+    function seekEvent(eventIndex) {
+      if (!Number.isInteger(eventIndex) || eventIndex < 0 || eventIndex > activeTimeline.all().length) {
+        throw clockError('simulation_clock_event_index_invalid', 'Clock event index expected a valid timeline position');
+      }
+      cancelTimer();
+      state = 'paused';
+      cursor = eventIndex;
+      currentMs = eventIndex > 0 ? activeTimeline.all()[eventIndex - 1].simulationTimeMs : 0;
       emitState();
       return snapshot();
     }
@@ -166,6 +178,7 @@
       receipt,
       replay,
       seek,
+      seekEvent,
       setPlaybackRate,
       snapshot,
       step,
