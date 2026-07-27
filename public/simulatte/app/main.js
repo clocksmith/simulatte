@@ -72,6 +72,7 @@
   };
   const {
     applyPluginMissionContributions,
+    createRenderer,
     downloadJson,
     environmentInstant,
     failRuntime,
@@ -79,6 +80,7 @@
     renderLedger,
     renderPolicyArena,
     validateImportedJourneyReceipt,
+    wireProfileSelection,
   } = mainSupportApi.create({
     hostRoot,
     receiptsApi,
@@ -88,6 +90,9 @@
     friendlyMissionError,
     setRuntimeStatus,
     updateButtons,
+    canvasApi,
+    wireCameraControls,
+    selectCameraMode,
     log,
   });
   async function start(initialTier = 'city', requestedProfileId = null, hooks = {}) {
@@ -415,59 +420,38 @@
       }));
     }
 
-    populateApplicationProfiles(elements.applicationProfile, data.manifest, data.applicationProfile.id);
-    if (!applicationProfileSelectApi?.createApplicationProfileSelect) {
-      throw new Error('Application profile select dependency is unavailable');
-    }
-    profileSelectUi = applicationProfileSelectApi.createApplicationProfileSelect({
-      select: elements.applicationProfile,
-      root: elements.applicationProfileControl,
-      trigger: elements.applicationProfileTrigger,
-      label: elements.applicationProfileLabel,
-      listbox: elements.applicationProfileOptions,
+    profileSelectUi = wireProfileSelection({
+      elements,
+      data,
+      applicationProfileSelectApi,
+      populateApplicationProfiles,
+      on,
+      navigate: hooks.navigate,
+      dispose: disposeApplication,
     });
-    on(elements.applicationProfile, 'change', () => {
-      const profileId = elements.applicationProfile.value;
-      if (!profileId || profileId === data.applicationProfile.id) return;
-      // URL is the source of truth: push /city/<profileId>; the shell re-boots this app in place.
-      hooks.navigate?.({ tier: 'city', experience: profileId });
-    });
-    on(window, 'pagehide', () => { void disposeApplication(); }, { once: true });
 
     async function ensureRenderer(worldModel) {
       if (renderer) return renderer;
-      renderer = await canvasApi.createCanvasRenderer(elements.autonomyCanvas, worldModel, {
-        minimapCanvas: elements.followMinimap,
-        labelCanvas: elements.semanticLabelCanvas,
-        regionRegistry: data.regionRegistry,
-        regionPacks: data.regionPacks,
-        onFailure: (error) => {
-          stopLoop();
-          failRuntime(elements, error);
-        },
-        onCameraInteraction: (cameraInteraction) => {
+      renderer = await createRenderer({
+        elements,
+        worldModel,
+        data,
+        lifecycle,
+        stopLoop,
+        fail: (error) => failRuntime(elements, error),
+        onCameraInteraction(cameraInteraction) {
           pluginViewRuntime?.setManualOverride({
             mode: cameraInteraction.mode,
             targetIds: cameraInteraction.targetIds,
           });
           selectCameraMode(elements, cameraInteraction.mode);
         },
-      });
-      wireCameraControls(elements, renderer, lifecycle.signal, {
-        onManualNavigation: (cameraInteraction) => {
+        onManualNavigation(cameraInteraction) {
           pluginViewRuntime?.setManualOverride({
             mode: cameraInteraction.mode,
             targetIds: cameraInteraction.targetIds,
           });
         },
-      });
-      const renderReceipt = renderer.receipt();
-      log.info('renderer.ready', {
-        backend: renderReceipt.backend,
-        adapter: renderReceipt.adapter,
-        buildingCount: renderReceipt.buildingCount,
-        staticVertexCount: renderReceipt.staticVertexCount,
-        ambientTraffic: renderReceipt.ambientTraffic,
       });
       return renderer;
     }
