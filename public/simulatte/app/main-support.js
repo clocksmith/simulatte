@@ -206,6 +206,63 @@
       return renderer;
     }
 
+    function wireReceiptControls(options) {
+      const {
+        on,
+        elements,
+        getController,
+        getRenderer,
+        data,
+        extensions,
+        journeyLedger,
+        stopLoop,
+        resizeMissionInput,
+        resetJourneyState,
+      } = options;
+      on(elements.exportButton, 'click', async () => {
+        const controller = getController();
+        if (!controller) return;
+        const receipt = await controller.journeyReceipt();
+        receipt.rendering = getRenderer().receipt();
+        receipt.dataLoad = structuredClone(data.receipt);
+        receipt.pluginRuntime = extensions.runtimeReceipt();
+        log.info('journey.receipt.exported', {
+          missionId: receipt.mission.id,
+          terminalHash: receipt.integrity.terminalHash,
+          traceEntryCount: receipt.trace.length,
+        });
+        downloadJson(`simulatte-autonomy-${receipt.mission.id}.json`, receipt);
+      });
+      on(elements.exportLedgerButton, 'click', async () => {
+        downloadJson('simulatte-local-settlement-ledger.json', await journeyLedger.exportLedger());
+      });
+      on(elements.importReceiptButton, 'click', () => elements.importReceiptFile.click());
+      on(elements.importReceiptFile, 'change', async () => {
+        const [file] = elements.importReceiptFile.files || [];
+        elements.importReceiptFile.value = '';
+        if (!file) return;
+        try {
+          const imported = JSON.parse(await file.text());
+          await validateImportedJourneyReceipt(imported, receiptsApi);
+          stopLoop();
+          elements.missionInput.value = imported.mission.sourceText;
+          resizeMissionInput(elements.missionInput);
+          resetJourneyState();
+          setRuntimeStatus(elements, 'Receipt verified. Ready to replay.', 'ready');
+          log.info('journey.receipt.imported', {
+            filename: file.name,
+            missionId: imported.mission.id,
+            terminalHash: imported.integrity.terminalHash,
+            worldContentVersion: imported.identities.worldContentVersion,
+            networkWrite: false,
+          });
+        } catch (error) {
+          setRuntimeStatus(elements, `Receipt import refused: ${error.message}`, 'error');
+          log.error('journey.receipt.import_failed', log.serializeError(error));
+        }
+      });
+    }
+
     function launchBrowserApp(start, collectElements) {
       if (typeof document === 'undefined') return;
       const launch = () => {
@@ -259,6 +316,7 @@
       renderPolicyArena,
       validateImportedJourneyReceipt,
       wireProfileSelection,
+      wireReceiptControls,
     });
   }
 

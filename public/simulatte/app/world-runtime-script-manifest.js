@@ -183,6 +183,8 @@
     'simulatte/app/router.js',
     'simulatte/app/city-interface.js',
     'simulatte/app/main-view.js',
+    'simulatte/app/main-controller-builder.js',
+    'simulatte/app/main-support.js',
     'simulatte/app/plugin-playback.js',
     'simulatte/app/main.js',
   ]);

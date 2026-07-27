@@ -73,7 +73,6 @@
   const {
     applyPluginMissionContributions,
     createRenderer,
-    downloadJson,
     environmentInstant,
     failRuntime,
     launchBrowserApp,
@@ -81,19 +80,11 @@
     renderPolicyArena,
     validateImportedJourneyReceipt,
     wireProfileSelection,
+    wireReceiptControls,
   } = mainSupportApi.create({
-    hostRoot,
-    receiptsApi,
-    civilTimeApi,
-    setJourneyPhase,
-    isMissionInputError,
-    friendlyMissionError,
-    setRuntimeStatus,
-    updateButtons,
-    canvasApi,
-    wireCameraControls,
-    selectCameraMode,
-    log,
+    hostRoot, receiptsApi, civilTimeApi, setJourneyPhase, isMissionInputError,
+    friendlyMissionError, setRuntimeStatus, updateButtons, canvasApi,
+    wireCameraControls, selectCameraMode, log,
   });
   async function start(initialTier = 'city', requestedProfileId = null, hooks = {}) {
     if (!experienceCameraApi?.applyInitialCamera || !experienceCameraApi?.runCameraMode) throw new Error('Experience camera dependency is unavailable');
@@ -288,10 +279,7 @@
       consentGate: neuralGate,
     });
     const controllerBuilder = mainControllerBuilderApi.create({
-      elements,
-      data,
-      interaction,
-      worldApi,
+      elements, data, interaction, worldApi,
       ensureRenderer,
       nextRevision: () => ++buildRevision,
       currentRevision: () => buildRevision,
@@ -303,11 +291,8 @@
         activeMission = next.mission;
         activeMissionForPlugins = next.mission;
       },
-      renderPluginExperience,
-      renderIdentity,
-      setRuntimeStatus,
-      setJourneyPhase,
-      updateButtons,
+      renderPluginExperience, renderIdentity, setRuntimeStatus,
+      setJourneyPhase, updateButtons,
       hasJourneyStarted: () => hasJourneyStarted,
       modelSelection,
       runtimeLoaderApi,
@@ -663,49 +648,22 @@
       renderPluginSummary(phase);
     }
     on(elements.whatIfButton, 'click', () => interfaceUi.openDecisions('plugin-inspector'));
-    on(elements.exportButton, 'click', async () => {
-      if (!controller) return;
-      const receipt = await controller.journeyReceipt();
-      receipt.rendering = renderer.receipt();
-      receipt.dataLoad = structuredClone(data.receipt);
-      receipt.pluginRuntime = extensions.runtimeReceipt();
-      log.info('journey.receipt.exported', {
-        missionId: receipt.mission.id,
-        terminalHash: receipt.integrity.terminalHash,
-        traceEntryCount: receipt.trace.length,
-      });
-      downloadJson(`simulatte-autonomy-${receipt.mission.id}.json`, receipt);
-    });
-    on(elements.exportLedgerButton, 'click', async () => {
-      downloadJson('simulatte-local-settlement-ledger.json', await journeyLedger.exportLedger());
-    });
-    on(elements.importReceiptButton, 'click', () => elements.importReceiptFile.click());
-    on(elements.importReceiptFile, 'change', async () => {
-      const [file] = elements.importReceiptFile.files || [];
-      elements.importReceiptFile.value = '';
-      if (!file) return;
-      try {
-        const imported = JSON.parse(await file.text());
-        await validateImportedJourneyReceipt(imported, receiptsApi);
-        stopLoop();
-        elements.missionInput.value = imported.mission.sourceText;
-        resizeMissionInput(elements.missionInput);
+    wireReceiptControls({
+      on,
+      elements,
+      getController: () => controller,
+      getRenderer: () => renderer,
+      data,
+      extensions,
+      journeyLedger,
+      stopLoop,
+      resizeMissionInput,
+      resetJourneyState() {
         buildRevision += 1;
         controller = null;
         hasJourneyStarted = false;
         updateButtons(elements, false, false, 'active', false);
-        setRuntimeStatus(elements, 'Receipt verified. Ready to replay.', 'ready');
-        log.info('journey.receipt.imported', {
-          filename: file.name,
-          missionId: imported.mission.id,
-          terminalHash: imported.integrity.terminalHash,
-          worldContentVersion: imported.identities.worldContentVersion,
-          networkWrite: false,
-        });
-      } catch (error) {
-        setRuntimeStatus(elements, `Receipt import refused: ${error.message}`, 'error');
-        log.error('journey.receipt.import_failed', log.serializeError(error));
-      }
+      },
     });
     on(elements.missionInput, 'input', () => {
       if (isRunning) return;
