@@ -41,7 +41,7 @@ traffic, advanced channels, or an operating interstellar network exist.
 | Physics lane | Classical optical | Classical, quantum-assisted, wormhole, warp | Changes channel equations and claim boundary |
 | Operations | Nominal profile | Profile, 8 to 512 samples, 0 to 20 retries | Changes reliability and latency distribution |
 | Packet and timing | Scenario preset | Epoch, 64 B to 1 GiB, processing delay | Changes schedule and latency |
-| Terminal and astrometry | Scenario preset | Terminal archetype and target epoch | Changes budget and propagated coordinates |
+| Terminal and transmission epoch | Scenario preset | Terminal archetype and date-time | Changes budget, propagated coordinates, and schedule |
 | Channel parameters | Lane-specific | Memory, fidelity, pair rate, throat, warp, bandwidth, stability | Changes speculative constraint receipts |
 
 ## What does the user see?

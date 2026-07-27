@@ -8,8 +8,5 @@
       "injury": 3,
       "fatality": 10
     }
-  },
-  "sensitivity": {
-    "joinRadiusM": 35
   }
 }

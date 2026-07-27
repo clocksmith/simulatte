@@ -79,7 +79,7 @@
       const stellarStates = [...activeStarIds].map((id) => {
         const star = starsById.get(id);
         if (!star) throw new Error(`interstellar_active_star_missing: ${id}`);
-        return stellarApi.convertEquatorialToCartesianPc(star, controls.targetEpochYear);
+        return stellarApi.convertEquatorialToCartesianPc(star, controls.astrometryEpochYear);
       });
       const statesById = new Map(stellarStates.map((state) => [state.sourceId, state]));
       const packetBits = controls.packetBytes * 8;
@@ -146,11 +146,11 @@
         const to = statesById.get(selectedPath[index + 1]);
         return evaluateEdge(from, to, distance(from.positionPc, to.positionPc));
       });
-      const linkBudgets = selectedEdges.map((row) => row.linkBudget);
-      const channelReceipts = selectedEdges.map((row) => row.channelReceipt);
+      const routeLinkBudgets = selectedEdges.map((row) => row.linkBudget);
+      const routeChannelReceipts = selectedEdges.map((row) => row.channelReceipt);
       const operations = operationsApi.simulateEnsemble({
         seed: spec.seed,
-        channelReceipts,
+        channelReceipts: routeChannelReceipts,
         packetBits,
         processingDelayHours: controls.processingDelayHours,
         controls,
@@ -158,14 +158,42 @@
       const schedule = contactApi.scheduleRelay({
         relayPath: selectedPath,
         statesById,
-        linkBudgets,
-        channelReceipts,
+        linkBudgets: routeLinkBudgets,
+        channelReceipts: routeChannelReceipts,
+        channelEvaluator({ from, to, classicalLightTime }) {
+          const distanceMeters = classicalLightTime.distanceMeters;
+          const uncertaintyMeters = endpointDistanceUncertaintyPc(from, to) * PC_TO_METERS;
+          const attenuationDb = classicalLightTime.distancePc * (
+            controls.dustExtinctionMagPerPc * 4
+            + controls.plasmaLossDbPerPc
+          );
+          const scheduledLinkBudget = linkApi.computeLinkBudget(distanceMeters, transceiver, {
+            packetBits,
+            distanceLowerMeters: Math.max(1, distanceMeters - uncertaintyMeters),
+            distanceUpperMeters: distanceMeters + uncertaintyMeters,
+            attenuationFactor: 10 ** (-attenuationDb / 10),
+            backgroundPhotonRateHz: transceiver.backgroundPhotonRateHz * controls.detectorNoiseScale,
+            sourceRowIds: [...from.sourceRowIds, ...to.sourceRowIds],
+          });
+          const receipt = advancedApi.evaluateChannel({
+            mode: controls.channelMode,
+            distancePc: classicalLightTime.distancePc,
+            packetBits,
+            classicalLinkBudget: scheduledLinkBudget,
+            classicalLightTime,
+            controls,
+            catalog: advancedData,
+          });
+          return Object.freeze({ channelReceipt: receipt, linkBudget: scheduledLinkBudget });
+        },
         operationalPlan: operations.representative,
         packetBits,
         scheduler: sdk.scheduler,
         startEpochIso: controls.startEpochIso,
         processingDelayHours: controls.processingDelayHours,
       });
+      const linkBudgets = schedule.hops.map((row) => row.linkBudget);
+      const channelReceipts = schedule.hops.map((row) => row.channelReceipt);
       const packet = await packetApi.createPacket({
         receiptTools: sdk.receipts,
         packetId: `packet:${spec.id}:${branch}:0`,
@@ -227,7 +255,7 @@
         branch,
         datasetScenarioId: scenarioRow.id,
         seed: spec.seed,
-        targetEpochYear: controls.targetEpochYear,
+        astrometryEpochYear: controls.astrometryEpochYear,
         scenario: Object.freeze({
           ...scenarioRow,
           sourceId: controls.sourceId,

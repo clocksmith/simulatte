@@ -2,14 +2,17 @@
   const builder = typeof module === 'object' && module.exports
     ? require('../../core/simulation/plugin-v4-builder.js')
     : root.SimulattePluginV4Builder;
-  const api = factory(builder);
+  const shadowGeometry = typeof module === 'object' && module.exports
+    ? require('./shadow-geometry.js')
+    : root.SimulatteSunWalkerShadowGeometry;
+  const api = factory(builder, shadowGeometry);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteSunWalkerV4 = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createSunWalkerV4(builder) {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createSunWalkerV4(builder, shadowGeometry) {
   const PLUGIN_ID = 'sun-walker';
   const MODEL_HASH = '3f5955769b066c43acaee934f8b9b775fe76a2b796db48d4a9eea89e7bd66ce7';
 
-  function createContribution({ simulation, step, buildingReceipt, governanceReceipt, environmentReceipt }) {
+  function createContribution({ simulation, step, world, buildingReceipt, governanceReceipt, environmentReceipt }) {
     const buildings = builder.datasetRecord('world.buildings.v1', buildingReceipt, { coverage: simulation.dataReceipt.datasets[0].coverage });
     const governance = builder.datasetRecord('sun-walker.model-governance.v1', governanceReceipt, { coverage: 'solar equations and assumptions' });
     const environment = builder.datasetRecord('sun-walker.environment.v1', environmentReceipt, {
@@ -26,8 +29,9 @@
     const fastest = simulation.candidates.find((row) => row.id === simulation.fastestCandidateId);
     const snapshot = simulation.timeline.snapshots[Math.min(step, simulation.timeline.snapshots.length - 1)];
     const samples = selected.samples.slice(0, snapshot.state.completedSamples);
-    const buildingRows = [...new Set(samples.map((row) => row.occluderId).filter(Boolean))]
-      .filter((id) => samples.some((row) => row.occluderId === id && row.occluderKind === 'building'))
+    const activeSample = samples.at(-1) || selected.samples[0];
+    const buildingRows = [...new Set(selected.samples.map((row) => row.occluderId).filter(Boolean))]
+      .filter((id) => selected.samples.some((row) => row.occluderId === id && row.occluderKind === 'building'))
       .map((id) => builder.rowRecord(buildings, id, {}));
     const canopyRows = [...new Set(samples
       .filter((row) => row.occluderKind === 'tree-canopy')
@@ -43,15 +47,45 @@
       uncertainty: simulation.modelReceipt.uncertainty,
       records: [model],
     });
+    const shadowAreas = shadowGeometry.projectedEvidenceShadows(
+      world,
+      selected.samples.filter((row) => row.occluderKind === 'building').map((row) => row.occluderId),
+      activeSample?.solarPosition,
+    );
     const layers = [
-      routeLayer('shade-selected-route', 'Shade-selected route', selected, 'primary', 1, claim),
-      ...(fastest.id === selected.id ? [] : [routeLayer('fastest-route', 'Fastest route baseline', fastest, 'comparison', 0.55, claim)]),
+      routeLayer('shade-selected-route', 'Shade-selected route', selected, 'route.shade-selected', 'primary', 1, claim),
+      ...(fastest.id === selected.id
+        ? []
+        : [routeLayer('fastest-route', 'Fastest route baseline', fastest, 'route.fastest-baseline', 'comparison', 0.55, claim)]),
+      ...shadowAreas.map((shadow) => builder.layer({
+        id: shadow.id,
+        kind: 'area',
+        label: shadow.label,
+        geometry: builder.geometry(
+          'polygon',
+          'city-local-m',
+          shadow.points.map((point) => [point.x, point.y, 0]),
+        ),
+        quantity: builder.quantity('occlusion.shadow-length', shadow.lengthM, 'meters'),
+        role: 'context',
+        importance: 0.7,
+        aggregationKey: null,
+        provenance: builder.provenance({
+          origin: 'modeled',
+          temporalStatus: 'forecast',
+          uncertainty: simulation.modelReceipt.uncertainty,
+          records: [
+            model,
+            ...buildingRows.filter((row) => row.rowId === shadow.sourceBuildingId),
+          ],
+        }),
+      })),
       ...samples.map((sample) => builder.layer({
         id: sample.id,
         kind: 'point',
         label: `${sample.state} at ${sample.timestamp}`,
         geometry: builder.geometry('point', 'city-local-m', [[sample.point.x, sample.point.y, 0]]),
-        quantity: builder.quantity('represented-exposure', sample.representedSeconds, 'seconds'),
+        quantity: builder.quantity(`exposure.${sample.state}`, sample.representedSeconds, 'seconds'),
         role: sample.state === 'direct' ? 'event' : sample.state === 'unknown' ? 'uncertainty' : 'context',
         importance: sample.state === 'direct' ? 0.85 : 0.4,
         aggregationKey: 'sun-exposure-samples',
@@ -67,12 +101,12 @@
           ],
         }),
       })),
-      ...samples.slice(-1).map((sample) => builder.layer({
+      ...[activeSample].filter(Boolean).map((sample) => builder.layer({
         id: 'sun-walker-actor',
         kind: 'actor',
         label: `Walker · ${sample.state} · ${sample.timestamp}`,
         geometry: builder.geometry('point', 'city-local-m', [[sample.point.x, sample.point.y, 0]]),
-        quantity: builder.quantity('route-progress', snapshot.state.progress, 'ratio', [0, 1]),
+        quantity: builder.quantity('actor.pedestrian.route-progress', snapshot.state.progress, 'ratio', [0, 1]),
         role: 'event',
         importance: 1,
         aggregationKey: null,
@@ -92,18 +126,26 @@
       provenance: claim,
     }));
     const activeEvent = events[Math.min(step, events.length - 1)] || null;
-    const targetIds = fastest.id === selected.id ? ['shade-selected-route'] : ['shade-selected-route', 'fastest-route'];
+    const settledTargetIds = fastest.id === selected.id ? ['shade-selected-route'] : ['shade-selected-route', 'fastest-route'];
+    const isSettled = snapshot.state.status === 'settled';
+    const previousSample = samples.length > 1 ? samples.at(-2) : null;
+    const navigationMode = exposureNavigationMode(previousSample, activeSample, isSettled);
+    const isExposureTransition = navigationMode === 'pov';
     const presentation = builder.presentation({
       pluginId: PLUGIN_ID,
       coordinateSystem: 'city-node-segment-id',
       epoch: simulation.departureAt,
       layers,
       viewIntents: [builder.viewIntent({
-        id: 'sun-route-overview',
-        mode: snapshot.state.status === 'settled' ? 'compare' : 'overview',
-        targetIds,
+        id: isSettled
+          ? 'sun-route-comparison'
+          : isExposureTransition
+            ? 'sun-exposure-transition'
+            : 'sun-walker-navigation',
+        mode: isSettled ? 'compare' : navigationMode,
+        targetIds: isSettled ? settledTargetIds : ['sun-walker-actor'],
         reasonEventId: activeEvent?.id || null,
-        priority: snapshot.state.status === 'settled' ? 65 : 45,
+        priority: isSettled ? 65 : isExposureTransition ? 70 : 55,
       })],
     });
     const controls = builder.controls(simulation.controls.filter((row) => row.isEnabled !== false).map((row) => ({
@@ -161,13 +203,13 @@
     });
   }
 
-  function routeLayer(id, label, candidate, role, importance, provenance) {
+  function routeLayer(id, label, candidate, quantityKind, role, importance, provenance) {
     return builder.layer({
       id,
       kind: 'path',
       label,
       geometry: builder.geometry('segments', 'city-segment-id', candidate.route.segmentIds),
-      quantity: builder.quantity('direct-sun', candidate.metrics.directSunSeconds, 'seconds', [0, Math.max(1, candidate.metrics.travelSeconds)]),
+      quantity: builder.quantity(quantityKind, candidate.metrics.directSunSeconds, 'seconds', [0, Math.max(1, candidate.metrics.travelSeconds)]),
       role,
       importance,
       provenance,
@@ -187,5 +229,12 @@
     }[id] || { minimum: null, maximum: null, step: null };
   }
 
-  return Object.freeze({ createContribution });
+  function exposureNavigationMode(previousSample, activeSample, settled = false) {
+    if (settled) return 'compare';
+    return previousSample && activeSample && previousSample.state !== activeSample.state
+      ? 'pov'
+      : 'follow';
+  }
+
+  return Object.freeze({ createContribution, exposureNavigationMode });
 });

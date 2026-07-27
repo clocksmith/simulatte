@@ -78,7 +78,7 @@
     const distanceNm = Number(spec.distanceCalibrationNm || graphDistanceKm / 1.852);
     const distanceKm = distanceNm * 1.852;
     const distanceScale = distanceKm / graphDistanceKm;
-    const sailingDays = distanceNm / (speedKnots * 24);
+    const sailingDays = selected.edges.reduce((sum, row) => sum + row.transitHours, 0) * distanceScale / 24;
     const canalIds = [...new Set(selected.edges.map((row) => row.canalId).filter(Boolean))];
     if ((spec.requiredCanalIds || []).some((canalId) => !canalIds.includes(canalId))) {
       throw routeError('maritime_route_required_canal_missing', `Scenario ${scenarioId} did not traverse its required canal`);
@@ -106,9 +106,17 @@
         canalId: row.canalId,
         distanceKm: row.distanceKm * distanceScale,
         distanceNm: row.distanceKm * distanceScale / 1.852,
-        sailingHours: row.distanceKm * distanceScale / 1.852 / speedKnots,
+        sailingHours: row.transitHours * distanceScale,
+        routeSelectionFuelTons: row.fuelTons * distanceScale,
+        routeSelectionCo2Tons: row.co2Tons * distanceScale,
+        effectiveSpeedKnots: row.effectiveSpeedKnots,
         sourceRowIds: Object.freeze([row.id]),
       }))),
+      objectiveValues: Object.freeze({
+        totalTransitDays: sailingDays,
+        fuelTons: selected.edges.reduce((sum, row) => sum + row.fuelTons, 0) * distanceScale,
+        co2Tons: selected.edges.reduce((sum, row) => sum + row.co2Tons, 0) * distanceScale,
+      }),
       disruptionId: disruption?.id || 'baseline',
       algorithm: 'bidirectional_governed_corridor_dijkstra_v2',
       objective: Object.freeze(normalizeObjective(routeObjective)),
@@ -139,12 +147,25 @@
     const objective = normalizeObjective(routeObjective);
     return rows.flatMap((row) => {
       if (!(row.distanceKm > 0) || !row.fromPortId || !row.toPortId || blockedCanalIds.has(row.canalId)) return [];
-      const sailingDays = row.distanceKm / 1.852 / speedKnots / 24;
-      const normalizedDistance = row.distanceKm / 1000;
-      const weight = sailingDays * objective.totalTransitDays
-        + normalizedDistance * objective.fuelTons
-        + normalizedDistance * objective.co2Tons;
-      const base = { ...row, weight };
+      const effectiveSpeedKnots = Math.min(speedKnots, Number(row.serviceSpeedKn || speedKnots));
+      const transitHours = row.distanceKm / 1.852 / effectiveSpeedKnots;
+      const referenceSpeed = Math.max(1, Number(routeObjective?.vesselServiceSpeedKnots || speedKnots));
+      const engineLoad = Math.min(1, Math.max(0.08, (effectiveSpeedKnots / referenceSpeed) ** 3));
+      const mainEnginePowerKw = Math.max(1, Number(routeObjective?.mainEnginePowerKw || 40000));
+      const sfocGPerKwh = Math.max(1, Number(routeObjective?.sfocGPerKwh || 175));
+      const fuelTons = mainEnginePowerKw * engineLoad * transitHours * sfocGPerKwh / 1e6;
+      const co2Tons = fuelTons * Math.max(0, Number(routeObjective?.co2TonsPerFuelTon || 3.114));
+      const weight = transitHours / 24 * objective.totalTransitDays
+        + fuelTons * objective.fuelTons
+        + co2Tons * objective.co2Tons;
+      const base = {
+        ...row,
+        weight,
+        transitHours,
+        fuelTons,
+        co2Tons,
+        effectiveSpeedKnots,
+      };
       return [
         Object.freeze({ ...base, from: row.fromPortId, to: row.toPortId }),
         Object.freeze({ ...base, from: row.toPortId, to: row.fromPortId }),

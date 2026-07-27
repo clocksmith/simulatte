@@ -76,7 +76,7 @@
       equation: row.equation,
       citation: row.citation,
       parameters: Object.freeze({
-        targetEpochYear: controls.targetEpochYear,
+        astrometryEpochYear: controls.astrometryEpochYear,
         startEpochIso: controls.startEpochIso,
         processingDelayHours: controls.processingDelayHours,
         packetBytes: controls.packetBytes,

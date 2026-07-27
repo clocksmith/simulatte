@@ -6,7 +6,13 @@
   root.SimulatteAsteroidOrbitDetermination = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createOrbitDetermination(propagation) {
   function fit({ campaign, forceModel, observationBudget, followUpPolicyId, fit }) {
-    const observations = selectObservations(campaign.observations, observationBudget, followUpPolicyId);
+    const selection = selectObservations(
+      campaign.observations,
+      observationBudget,
+      followUpPolicyId,
+      { initialState: campaign.initialGuess, forceModel }
+    );
+    const observations = selection.observations;
     if (observations.length < 4) throw fitError('asteroid_fit_observations_insufficient', 'At least four angular observations are required');
     let state = flattenState(campaign.initialGuess);
     let damping = fit.initialDamping;
@@ -65,6 +71,7 @@
       observationRowHashes: observations.map((row) => row.rowHash),
       observationBudget,
       followUpPolicyId,
+      observationSelectionReceipt: selection.receipt,
       initialGuess: campaign.initialGuess,
       fittedState: unflattenState(state),
       iterations,
@@ -85,13 +92,96 @@
     });
   }
 
-  function selectObservations(rows, budget, policyId) {
+  function selectObservations(rows, budget, policyId, context = {}) {
     const count = Math.min(rows.length, budget);
-    if (policyId === 'fixed-cadence') return rows.slice(0, count);
+    if (policyId === 'fixed-cadence') {
+      const observations = rows.slice(0, count);
+      return {
+        observations,
+        receipt: {
+          method: 'chronological_fixed_cadence',
+          selectedObservationIds: observations.map((row) => row.id),
+          selectionSteps: observations.map((row, index) => ({
+            step: index,
+            observationId: row.id,
+            epochDayTdb: row.epochDayTdb,
+          })),
+        },
+      };
+    }
     if (policyId !== 'information-gain') throw fitError('asteroid_follow_up_policy_invalid', policyId);
-    if (count === 1) return [rows[0]];
-    return [...new Set(Array.from({ length: count }, (_, index) => Math.round(index * (rows.length - 1) / (count - 1))))]
-      .map((index) => rows[index]);
+    if (!context.initialState || !context.forceModel) {
+      throw fitError('asteroid_information_gain_context_missing', 'Information-gain selection requires an initial state and force model');
+    }
+    const selected = [rows[0]];
+    const remaining = rows.slice(1);
+    const selectionSteps = [{
+      step: 0,
+      observationId: rows[0].id,
+      epochDayTdb: rows[0].epochDayTdb,
+      logDetInformation: informationScore(selected, context.initialState, context.forceModel),
+      candidateCount: rows.length,
+    }];
+    while (selected.length < count && remaining.length) {
+      const candidates = remaining.map((row) => ({
+        row,
+        score: informationScore([...selected, row], context.initialState, context.forceModel),
+      })).sort((left, right) => (
+        right.score - left.score
+        || left.row.epochDayTdb - right.row.epochDayTdb
+        || left.row.id.localeCompare(right.row.id)
+      ));
+      const chosen = candidates[0];
+      selected.push(chosen.row);
+      remaining.splice(remaining.indexOf(chosen.row), 1);
+      selectionSteps.push({
+        step: selected.length - 1,
+        observationId: chosen.row.id,
+        epochDayTdb: chosen.row.epochDayTdb,
+        logDetInformation: chosen.score,
+        candidateCount: candidates.length,
+        runnerUpLogDetInformation: candidates[1]?.score ?? null,
+      });
+    }
+    selected.sort((left, right) => left.epochDayTdb - right.epochDayTdb || left.id.localeCompare(right.id));
+    return {
+      observations: selected,
+      receipt: {
+        method: 'greedy_d_optimal_actual_measurement_jacobian_v1',
+        selectedObservationIds: selected.map((row) => row.id),
+        selectionSteps,
+        regularization: 1e-9,
+      },
+    };
+  }
+
+  function informationScore(observations, initialState, forceModel) {
+    const state = flattenState(initialState);
+    const jacobian = centralJacobian(state, observations, forceModel);
+    const normal = multiplyTranspose(jacobian)
+      .map((row, i) => row.map((value, j) => value + (i === j ? 1e-9 : 0)));
+    return logDeterminantPositiveDefinite(normal);
+  }
+
+  function logDeterminantPositiveDefinite(matrix) {
+    const rows = matrix.map((row) => [...row]);
+    let result = 0;
+    for (let column = 0; column < rows.length; column += 1) {
+      let pivot = column;
+      for (let row = column + 1; row < rows.length; row += 1) {
+        if (Math.abs(rows[row][column]) > Math.abs(rows[pivot][column])) pivot = row;
+      }
+      const value = Math.max(1e-300, Math.abs(rows[pivot][column]));
+      result += Math.log(value);
+      [rows[column], rows[pivot]] = [rows[pivot], rows[column]];
+      for (let row = column + 1; row < rows.length; row += 1) {
+        const factor = rows[row][column] / rows[column][column];
+        for (let index = column + 1; index < rows.length; index += 1) {
+          rows[row][index] -= factor * rows[column][index];
+        }
+      }
+    }
+    return result;
   }
 
   function residualEvaluation(vector, observations, forceModel) {
@@ -177,14 +267,61 @@
 
   function validateCovariance(covariance) {
     const symmetric = covariance.every((row, i) => row.every((value, j) => Math.abs(value - covariance[j][i]) <= 1e-6));
-    const positiveDiagonal = covariance.every((row, index) => row[index] > 0 && Number.isFinite(row[index]));
+    const eigenvalues = symmetric ? symmetricEigenvalues(covariance) : [];
+    const scale = Math.max(1e-30, ...eigenvalues.map(Math.abs));
+    const tolerance = Math.max(1e-30, scale * 1e-10);
+    const positiveSemidefinite = symmetric
+      && eigenvalues.length === covariance.length
+      && eigenvalues.every((value) => Number.isFinite(value) && value >= -tolerance);
+    const positive = eigenvalues.filter((value) => value > tolerance);
     return {
-      rank: positiveDiagonal ? 6 : 0,
+      rank: positive.length,
       symmetric,
-      positiveSemidefinite: symmetric && positiveDiagonal,
-      conditionEstimate: Math.max(...covariance.map((row, index) => row[index]))
-        / Math.max(1e-30, Math.min(...covariance.map((row, index) => row[index]))),
+      positiveSemidefinite,
+      minimumEigenvalue: eigenvalues.length ? Math.min(...eigenvalues) : null,
+      maximumEigenvalue: eigenvalues.length ? Math.max(...eigenvalues) : null,
+      eigenvalueTolerance: tolerance,
+      conditionEstimate: positive.length
+        ? Math.max(...positive) / Math.max(1e-30, Math.min(...positive))
+        : Infinity,
     };
+  }
+
+  function symmetricEigenvalues(matrix) {
+    const rows = matrix.map((row, i) => row.map((value, j) => 0.5 * (value + matrix[j][i])));
+    const maximumSweeps = rows.length * rows.length * 20;
+    for (let sweep = 0; sweep < maximumSweeps; sweep += 1) {
+      let p = 0;
+      let q = 1;
+      let maximum = 0;
+      for (let i = 0; i < rows.length; i += 1) {
+        for (let j = i + 1; j < rows.length; j += 1) {
+          if (Math.abs(rows[i][j]) > maximum) {
+            maximum = Math.abs(rows[i][j]);
+            p = i;
+            q = j;
+          }
+        }
+      }
+      if (maximum <= 1e-14) break;
+      const angle = 0.5 * Math.atan2(2 * rows[p][q], rows[q][q] - rows[p][p]);
+      const cosine = Math.cos(angle);
+      const sine = Math.sin(angle);
+      for (let index = 0; index < rows.length; index += 1) {
+        if (index === p || index === q) continue;
+        const left = rows[index][p];
+        const right = rows[index][q];
+        rows[index][p] = rows[p][index] = cosine * left - sine * right;
+        rows[index][q] = rows[q][index] = sine * left + cosine * right;
+      }
+      const pp = rows[p][p];
+      const qq = rows[q][q];
+      const pq = rows[p][q];
+      rows[p][p] = cosine * cosine * pp - 2 * sine * cosine * pq + sine * sine * qq;
+      rows[q][q] = sine * sine * pp + 2 * sine * cosine * pq + cosine * cosine * qq;
+      rows[p][q] = rows[q][p] = 0;
+    }
+    return rows.map((row, index) => row[index]).sort((left, right) => left - right);
   }
 
   function receiptIteration(index, result, damping, correctionNorm, rejected, rejectionReason) {
@@ -213,5 +350,5 @@
     return Object.freeze(value);
   }
 
-  return Object.freeze({ fit, predictAngles, selectObservations });
+  return Object.freeze({ fit, predictAngles, selectObservations, validateCovariance });
 });

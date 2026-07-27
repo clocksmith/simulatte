@@ -37,20 +37,83 @@
       const requestedAt = resource.availableAtHours;
       const reachedAt = requestedAt + travelHours;
       let attemptAt = reachedAt;
-      appendEvent(events, target, resource, 'repair.requested', requestedAt, []);
-      appendEvent(events, target, resource, 'repair.resource-assigned', requestedAt, [events.at(-1).id]);
-      appendEvent(events, target, resource, 'repair.transit-started', requestedAt, [events.at(-1).id]);
-      appendEvent(events, target, resource, 'repair.site-reached', reachedAt, [events.at(-1).id]);
-      appendEvent(events, target, resource, 'repair.attempt-started', attemptAt, [events.at(-1).id]);
+      const origin = coordinatesFor(resource.currentLandingId, points);
+      const destination = coordinatesFor(target.landingId, points);
+      appendEvent(events, target, resource, 'repair.requested', requestedAt, [], {
+        position: origin,
+        origin,
+        destination,
+        transitProgressFraction: 0,
+      });
+      appendEvent(events, target, resource, 'repair.resource-assigned', requestedAt, [events.at(-1).id], {
+        position: origin,
+        origin,
+        destination,
+        transitProgressFraction: 0,
+      });
+      appendEvent(events, target, resource, 'repair.transit-started', requestedAt, [events.at(-1).id], {
+        position: origin,
+        origin,
+        destination,
+        transitProgressFraction: 0,
+      });
+      for (const fraction of [0.25, 0.5, 0.75]) {
+        appendEvent(
+          events,
+          target,
+          resource,
+          'repair.transit-progressed',
+          requestedAt + travelHours * fraction,
+          [events.at(-1).id],
+          {
+            position: interpolate(origin, destination, fraction),
+            origin,
+            destination,
+            transitProgressFraction: fraction,
+          }
+        );
+      }
+      appendEvent(events, target, resource, 'repair.site-reached', reachedAt, [events.at(-1).id], {
+        position: destination,
+        origin,
+        destination,
+        transitProgressFraction: 1,
+      });
+      appendEvent(events, target, resource, 'repair.attempt-started', attemptAt, [events.at(-1).id], {
+        position: destination,
+        origin,
+        destination,
+        transitProgressFraction: 1,
+      });
       const failedAttempt = demandApi.seededUnit(`${seed}:${target.id}:repair-attempt`) < repairScenario.attemptFailureProbability;
       if (failedAttempt) {
         attemptAt += repairScenario.repairDurationHours;
-        appendEvent(events, target, resource, 'repair.attempt-failed', attemptAt, [events.at(-1).id]);
-        appendEvent(events, target, resource, 'repair.attempt-started', attemptAt, [events.at(-1).id]);
+        appendEvent(events, target, resource, 'repair.attempt-failed', attemptAt, [events.at(-1).id], {
+          position: destination,
+          origin,
+          destination,
+          transitProgressFraction: 1,
+        });
+        appendEvent(events, target, resource, 'repair.attempt-started', attemptAt, [events.at(-1).id], {
+          position: destination,
+          origin,
+          destination,
+          transitProgressFraction: 1,
+        });
       }
       const restoredAt = attemptAt + repairScenario.repairDurationHours;
-      appendEvent(events, target, resource, 'repair.capacity-restored', restoredAt, [events.at(-1).id]);
-      appendEvent(events, target, resource, 'repair.completed', restoredAt, [events.at(-1).id]);
+      appendEvent(events, target, resource, 'repair.capacity-restored', restoredAt, [events.at(-1).id], {
+        position: destination,
+        origin,
+        destination,
+        transitProgressFraction: 1,
+      });
+      appendEvent(events, target, resource, 'repair.completed', restoredAt, [events.at(-1).id], {
+        position: destination,
+        origin,
+        destination,
+        transitProgressFraction: 1,
+      });
       resource.remainingSpareCableKm -= repairScenario.spareCablePerRepairKm;
       resource.remainingSpliceKits -= repairScenario.spliceKitsPerRepair;
       resource.availableAtHours = restoredAt;
@@ -67,6 +130,14 @@
       algorithm: 'deterministic-discrete-event-repair-queue-v1',
       repairPolicyId,
       failedResourceIds: [...failedResourceIds].sort(),
+      targetPriorityBurdenGbps: Object.fromEntries(
+        [...targets]
+          .sort((left, right) => left.id.localeCompare(right.id))
+          .map((target) => [
+            target.id,
+            target.edgeIds.reduce((sum, edgeId) => sum + (unmetByEdge[edgeId] || 0), 0),
+          ])
+      ),
       events: events.sort(compareEvent).map((row, sequence) => ({ ...row, sequence })),
       restorations: restorations.sort((left, right) => left.simulationTimeMs - right.simulationTimeMs || left.targetId.localeCompare(right.targetId)),
       resources: resources.map(({ availableAtHours, currentLandingId, ...row }) => ({
@@ -137,7 +208,7 @@
     return 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   }
 
-  function appendEvent(events, target, resource, kind, timeHours, causationIds) {
+  function appendEvent(events, target, resource, kind, timeHours, causationIds, details = {}) {
     events.push({
       id: `${target.id}:${resource.id}:${kind}:${events.length}`,
       kind,
@@ -146,7 +217,18 @@
       edgeIds: target.edgeIds,
       resourceId: resource.id,
       causationIds,
+      ...details,
     });
+  }
+
+  function coordinatesFor(landingId, points) {
+    const point = points.find((row) => row.id === landingId);
+    if (!point) throw repairError('subsea_repair_landing_missing', landingId);
+    return Object.freeze([...point.coordinates, 0]);
+  }
+
+  function interpolate(start, end, fraction) {
+    return Object.freeze(start.map((value, index) => value + (end[index] - value) * fraction));
   }
 
   function compareEvent(left, right) {

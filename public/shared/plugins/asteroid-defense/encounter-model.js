@@ -16,6 +16,7 @@
     intervention,
     executionModel,
     seed,
+    notBeforeDay = 0,
   }) {
     const members = ensemble.samples.map((sample, index) => propagateMember({
       sample,
@@ -24,6 +25,7 @@
       intervention,
       executionModel,
       executionSeed: `${seed}:execution:${index}`,
+      notBeforeDay,
     }));
     const sortedDistances = members.map((row) => row.minimumDistanceKm).sort((a, b) => a - b);
     const thresholdCount = members.filter((row) => row.insideScreeningRadius).length;
@@ -36,44 +38,98 @@
       minimumDistanceKm: sortedDistances[0],
       medianDistanceKm: quantile(sortedDistances, 0.5),
       maximumDistanceKm: sortedDistances.at(-1),
+      executionProfile: {
+        deliveryMode: intervention.deliveryMode || (intervention.id === 'none' ? 'none' : 'instantaneous-kinetic'),
+        campaignDelayDays: Number(intervention.campaignDelayDays || 0),
+        thrustDurationDays: Number(intervention.thrustDurationDays || 0),
+        impulseCount: intervention.id === 'none'
+          ? 0
+          : intervention.deliveryMode === 'continuous-low-thrust'
+            ? Math.max(1, Math.min(64, Math.round(Number(intervention.impulseProfileSteps || 1))))
+            : 1,
+        navigationSigmaMultiplier: Number(intervention.navigationSigmaMultiplier ?? 1),
+      },
       members,
       probabilityClaimAllowed: false,
       interpretation: 'Finite synthetic ensemble inside a declared one-million-kilometer encounter screen, not an impact probability.',
     });
   }
 
-  function propagateMember({ sample, campaign, forceModel, intervention, executionModel, executionSeed }) {
-    const decisionDay = Math.min(intervention.decisionDay, campaign.terminalDay);
+  function propagateMember({
+    sample,
+    campaign,
+    forceModel,
+    intervention,
+    executionModel,
+    executionSeed,
+    notBeforeDay,
+  }) {
+    const decisionDay = Math.min(
+      Math.max(Number(intervention.decisionDay || 0), Number(notBeforeDay || 0)),
+      campaign.terminalDay
+    );
+    const applicationDay = Math.min(
+      decisionDay + Math.max(0, Number(intervention.campaignDelayDays || 0)),
+      campaign.terminalDay
+    );
     const first = propagation.propagate({
       stateVector: sample.state,
       startDay: 0,
-      durationDays: decisionDay,
+      durationDays: applicationDay,
       stepDays: forceModel.stepDays,
       gmSunAuD2: forceModel.gmSunAu3Day2,
       sampleLimit: 256,
     });
     const success = intervention.id !== 'none'
       && unit(`${executionSeed}:launch`) < intervention.reliability * (1 - executionModel.launchFailureProbability);
+    const navigationSigmaMultiplier = Math.max(0, Number(intervention.navigationSigmaMultiplier ?? 1));
     const executionScale = success
-      ? 1 + normal(`${executionSeed}:delivery`) * Math.hypot(
-        executionModel.navigationSigmaFraction,
+      ? Math.max(0, 1 + normal(`${executionSeed}:delivery`) * Math.hypot(
+        executionModel.navigationSigmaFraction * navigationSigmaMultiplier,
         executionModel.deliverySigmaFraction,
         executionModel.momentumEnhancementSigma
-      )
+      ))
       : 0;
-    const decisionEarth = propagation.earthState(decisionDay, forceModel.gmSunAu3Day2);
-    const relative = first.endpoint.positionAu.map((row, index) => row - decisionEarth.positionAu[index]);
-    const direction = normalize([-relative[1], relative[0], relative[2] || 0.01]);
-    const velocity = first.endpoint.velocityAuD.map((row, index) => row + direction[index] * intervention.deltaVAuD * executionScale);
-    const second = propagation.propagate({
-      stateVector: { positionAu: first.endpoint.positionAu, velocityAuD: velocity },
-      startDay: decisionDay,
-      durationDays: campaign.terminalDay - decisionDay,
-      stepDays: forceModel.stepDays,
-      gmSunAuD2: forceModel.gmSunAu3Day2,
-      sampleLimit: 512,
-    });
-    const trajectory = [...first.trajectory, ...second.trajectory.slice(1)];
+    const profile = interventionProfile(intervention, applicationDay, campaign.terminalDay, success);
+    let currentState = {
+      positionAu: first.endpoint.positionAu,
+      velocityAuD: first.endpoint.velocityAuD,
+    };
+    let currentDay = applicationDay;
+    const trajectory = [...first.trajectory];
+    const propagationReceipts = [first];
+    const deliveredImpulseAuD = Number(intervention.deltaVAuD || 0) * executionScale;
+    if (profile.impulseCount > 0) {
+      for (let impulseIndex = 0; impulseIndex < profile.impulseCount; impulseIndex += 1) {
+        const earth = propagation.earthState(currentDay, forceModel.gmSunAu3Day2);
+        const relative = currentState.positionAu.map((row, index) => row - earth.positionAu[index]);
+        const direction = normalize([-relative[1], relative[0], relative[2] || 0.01]);
+        currentState = {
+          positionAu: currentState.positionAu,
+          velocityAuD: currentState.velocityAuD.map((row, index) => (
+            row + direction[index] * deliveredImpulseAuD / profile.impulseCount
+          )),
+        };
+        const segmentDays = profile.deliveryMode === 'continuous-low-thrust'
+          ? profile.thrustDurationDays / profile.impulseCount
+          : campaign.terminalDay - currentDay;
+        if (segmentDays > 0) {
+          const segment = propagateSegment(currentState, currentDay, segmentDays, forceModel);
+          propagationReceipts.push(segment);
+          trajectory.push(...segment.trajectory.slice(1));
+          currentState = {
+            positionAu: segment.endpoint.positionAu,
+            velocityAuD: segment.endpoint.velocityAuD,
+          };
+          currentDay += segmentDays;
+        }
+      }
+    }
+    if (currentDay < campaign.terminalDay) {
+      const coast = propagateSegment(currentState, currentDay, campaign.terminalDay - currentDay, forceModel);
+      propagationReceipts.push(coast);
+      trajectory.push(...coast.trajectory.slice(1));
+    }
     const approaches = trajectory.map((row) => {
       const earth = propagation.earthState(row.day, forceModel.gmSunAu3Day2);
       const relativePosition = row.positionAu.map((value, index) => value - earth.positionAu[index]);
@@ -90,12 +146,54 @@
       id: sample.id,
       executionSucceeded: success,
       executionScale,
+      executionProfile: {
+        deliveryMode: profile.deliveryMode,
+        decisionDay,
+        applicationDay,
+        campaignDelayDays: applicationDay - decisionDay,
+        thrustDurationDays: profile.thrustDurationDays,
+        impulseCount: profile.impulseCount,
+        navigationSigmaMultiplier,
+        deliveredDeltaVAuD: deliveredImpulseAuD,
+      },
       minimumDistanceKm: closest.distanceKm,
       closestApproachDay: closest.day,
       insideScreeningRadius: closest.distanceKm <= ENCOUNTER_SCREENING_RADIUS_KM,
       bPlane,
       trajectory,
-      propagationReceipts: [first, second].map(compactPropagationReceipt),
+      propagationReceipts: propagationReceipts.map(compactPropagationReceipt),
+    });
+  }
+
+  function interventionProfile(intervention, applicationDay, terminalDay, success) {
+    const deliveryMode = intervention.deliveryMode || (intervention.id === 'none' ? 'none' : 'instantaneous-kinetic');
+    if (!success || deliveryMode === 'none') {
+      return { deliveryMode, thrustDurationDays: 0, impulseCount: 0 };
+    }
+    if (deliveryMode === 'continuous-low-thrust') {
+      const thrustDurationDays = Math.max(
+        0,
+        Math.min(Number(intervention.thrustDurationDays || 0), terminalDay - applicationDay)
+      );
+      return {
+        deliveryMode,
+        thrustDurationDays,
+        impulseCount: thrustDurationDays > 0
+          ? Math.max(1, Math.min(64, Math.round(Number(intervention.impulseProfileSteps || 1))))
+          : 0,
+      };
+    }
+    return { deliveryMode, thrustDurationDays: 0, impulseCount: 1 };
+  }
+
+  function propagateSegment(stateVector, startDay, durationDays, forceModel) {
+    return propagation.propagate({
+      stateVector,
+      startDay,
+      durationDays,
+      stepDays: forceModel.stepDays,
+      gmSunAuD2: forceModel.gmSunAu3Day2,
+      sampleLimit: 512,
     });
   }
 

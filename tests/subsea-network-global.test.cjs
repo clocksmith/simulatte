@@ -10,6 +10,7 @@ const model = require(join(PLUGIN_DIRECTORY, 'network-model.js'));
 const solver = require(join(PLUGIN_DIRECTORY, 'allocation-solver.js'));
 const comparison = require(join(PLUGIN_DIRECTORY, 'comparison-driver.js'));
 const plugin = require(join(PLUGIN_DIRECTORY, 'index.js'));
+const v4 = require(join(PLUGIN_DIRECTORY, 'v4-contribution.js'));
 const config = json(join(PLUGIN_DIRECTORY, 'default-config.json'));
 const manifest = json(join(PLUGIN_DIRECTORY, 'plugin.json'));
 const dataReceipts = manifest.datasets.map((row) => ({
@@ -82,6 +83,44 @@ test('allocation policies execute distinct feasible allocations on identical exo
   );
   assert.equal(throughput.snapshots[0].allocationReceipt.feasibility.isValid, true);
   assert.equal(fair.snapshots[0].allocationReceipt.feasibility.isValid, true);
+});
+
+test('every failed target gets a progressive repair voyage and causally ranked burden', () => {
+  const dual = model.runScenario({
+    datasets,
+    config,
+    scenario: {
+      ...scenario,
+      scenarioId: 'dual-regional-disruption',
+      failedResourceIds: ['marea:spain', 'amitie:united-kingdom'],
+      repairResourceCount: 2,
+    },
+  });
+  for (const targetId of dual.failedResourceIds) {
+    const targetEvents = dual.repairReceipt.events.filter((row) => row.targetId === targetId);
+    assert.equal(targetEvents.filter((row) => row.kind === 'repair.transit-progressed').length, 3);
+    assert.ok(targetEvents.every((row) => Array.isArray(row.position)));
+    assert.ok(dual.snapshots.some((row) => (
+      row.activeRepairEventId && targetEvents.some((event) => event.id === row.activeRepairEventId)
+    )));
+    assert.ok(Number.isFinite(dual.repairReceipt.targetPriorityBurdenGbps[targetId]));
+  }
+  assert.ok(dual.snapshots.every((row, index, rows) => !index
+    || row.simulationTimeMs >= rows[index - 1].simulationTimeMs));
+  const transitSnapshot = dual.snapshots.find((row) => (
+    dual.repairReceipt.events.find((event) => event.id === row.activeRepairEventId)?.kind
+      === 'repair.transit-progressed'
+  ));
+  const contribution = v4.createContribution({
+    datasets,
+    dataReceipts,
+    config,
+    result: dual,
+    snapshot: transitSnapshot,
+  });
+  const actor = contribution.presentation.layers.find((row) => row.kind === 'actor');
+  assert.equal(actor.quantity.kind, 'actor.repair-vessel.route-progress');
+  assert.deepEqual(contribution.presentation.viewIntents[0].targetIds, [actor.id]);
 });
 
 test('solver fails closed for unavailable-path flow and invalid policy inputs', () => {

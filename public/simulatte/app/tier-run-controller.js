@@ -64,13 +64,16 @@
       if (['running', 'paused'].includes(state)) return snapshot();
       cancelTimer();
       const generation = ++runGeneration;
+      const nextParameterValues = normalizeValues(
+        values === null ? getControlValues(ownerPluginId) : values
+      );
       if (['settled', 'failed'].includes(state)) await resetRuntime();
       state = 'running';
       stepCount = 0;
       isRestoring = restored;
       scenarioResult = null;
       finalReceipt = null;
-      parameterValues = normalizeValues(values === null ? getControlValues(ownerPluginId) : values);
+      parameterValues = nextParameterValues;
       reflect();
       try {
         let result = await dispatchScenario({ phase: 'start' });
@@ -151,12 +154,13 @@
     }
 
     async function replay() {
+      const replayValues = normalizeValues(parameterValues);
       cancelTimer();
       runGeneration += 1;
       state = 'idle';
       reflect();
       await resetRuntime();
-      return start();
+      return start({ values: replayValues });
     }
 
     function setPlaybackRate(nextRate) {
@@ -258,42 +262,52 @@
       const runtime = requiredRuntime(getRuntime());
       const platform = runtime.platformV4({ scenario, compositionSize: runtime.activePluginIds.length });
       const contribution = platform.contributions.find((row) => row.pluginId === ownerPluginId);
-      const comparisonDefinition = contribution?.controls?.comparisons?.[0] || null;
-      if (!comparisonDefinition) {
+      const comparisonDefinitions = contribution?.controls?.comparisons || [];
+      if (!comparisonDefinitions.length) {
         throw controllerError(
           'tier_comparison_definition_missing',
           `${ownerPluginId} did not declare a v4 comparison`
         );
       }
-      const comparisonResult = await runtime.dispatchAction(
-        ownerPluginId,
-        'counterfactual.compare',
-        { scenario, values: {} }
-      );
-      if (comparisonResult?.status !== 'settled' || !comparisonResult.comparisonBranches) {
-        throw controllerError(
-          'tier_comparison_execution_missing',
-          `${ownerPluginId} did not return executable baseline and intervention branches`
+      const comparisons = [];
+      const comparisonExecutionReceipts = [];
+      for (const definition of comparisonDefinitions) {
+        const comparisonResult = await runtime.dispatchAction(
+          ownerPluginId,
+          'counterfactual.compare',
+          { scenario, values: { comparisonId: definition.id } }
         );
+        if (comparisonResult?.status !== 'settled' || !comparisonResult.comparisonBranches) {
+          throw controllerError(
+            'tier_comparison_execution_missing',
+            `${ownerPluginId} did not execute comparison ${definition.id}`
+          );
+        }
+        comparisons.push(comparisonResult);
+        comparisonExecutionReceipts.push(await comparisonAdapter.createSettledComparison({
+          pluginId: ownerPluginId,
+          scenario,
+          comparisonId: definition.id,
+          branches: comparisonResult.comparisonBranches,
+          contribution,
+        }));
       }
-      const comparisonExecutionReceipt = await comparisonAdapter.createSettledComparison({
-        pluginId: ownerPluginId,
-        scenario,
-        comparisonId: comparisonResult.comparisonId || comparisonDefinition.id,
-        branches: comparisonResult.comparisonBranches,
-        contribution,
-      });
+      const comparisonResult = comparisons[0];
+      const comparisonExecutionReceipt = comparisonExecutionReceipts[0];
       const actionResult = Object.freeze({
         status: 'settled',
         scenario: scenarioResult,
         comparison: comparisonResult,
         comparisonExecutionReceipt,
+        comparisons: Object.freeze(comparisons),
+        comparisonExecutionReceipts: Object.freeze(comparisonExecutionReceipts),
       });
       const settlement = await runtime.settle({ scenario, actionResult });
       finalReceipt = Object.freeze(buildReceipt({
         actionResult,
         settlement,
         comparisonExecutionReceipt,
+        comparisonExecutionReceipts,
         parameterValues,
         restored: isRestoring,
       }));
@@ -434,6 +448,10 @@
         receiptSchema: receipt.schema || null,
         status: receipt.actionResult?.status || null,
         comparisonId: receipt.actionResult?.comparisonExecutionReceipt?.comparisonId || null,
+        comparisonIds: Object.freeze(
+          (receipt.actionResult?.comparisonExecutionReceipts || [])
+            .map((row) => row.comparisonId || row.id)
+        ),
       }),
     });
   }

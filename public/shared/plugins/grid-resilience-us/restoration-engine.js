@@ -3,7 +3,9 @@
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteGridRestoration = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createGridRestoration() {
-  function schedule({ disturbance, restoration, policyId, crewCount }) {
+  const MAXIMUM_ATTEMPTS = 3;
+
+  function schedule({ disturbance, restoration, policyId, crewCount, seed = 'grid-restoration' }) {
     const targets = [
       ...disturbance.unavailableInterfaceIds,
       ...Object.entries(disturbance.unavailableResourceFractions || {}).filter(([, fraction]) => fraction > 0).map(([id]) => id),
@@ -35,17 +37,44 @@
       const crewIndex = crewAvailable.indexOf(Math.min(...crewAvailable));
       const dependenciesComplete = Math.max(0, ...task.dependencyIds.map((id) => completionByTask.get(id) || 0));
       const startHour = Math.max(crewAvailable[crewIndex], dependenciesComplete);
-      const completeHour = startHour + task.durationHours;
-      crewAvailable[crewIndex] = completeHour;
-      completionByTask.set(task.id, completeHour);
-      rows.push({ ...task, crewId: restoration.crews[crewIndex]?.id || `crew-${crewIndex + 1}`, startHour, completeHour });
+      const attempts = [];
+      let crewReleaseHour = startHour;
+      let successful = false;
+      for (let attempt = 1; Number.isFinite(startHour)
+        && attempt <= MAXIMUM_ATTEMPTS && !successful; attempt += 1) {
+        const attemptStartHour = crewReleaseHour;
+        crewReleaseHour += task.durationHours;
+        const draw = unit(`${seed}:${task.id}:attempt-${attempt}`);
+        successful = draw <= task.attemptSuccessProbability;
+        attempts.push({
+          attempt,
+          startHour: attemptStartHour,
+          completeHour: crewReleaseHour,
+          draw,
+          success: successful,
+        });
+      }
+      const completeHour = successful ? crewReleaseHour : null;
+      if (Number.isFinite(crewReleaseHour)) crewAvailable[crewIndex] = crewReleaseHour;
+      completionByTask.set(task.id, successful ? completeHour : Infinity);
+      rows.push({
+        ...task,
+        crewId: restoration.crews[crewIndex]?.id || `crew-${crewIndex + 1}`,
+        startHour: Number.isFinite(startHour) ? startHour : null,
+        completeHour,
+        crewReleaseHour: Number.isFinite(crewReleaseHour) ? crewReleaseHour : null,
+        successful,
+        attempts,
+      });
     });
     return deepFreeze({
       schema: 'simulatte.gridRestorationSchedule.v1',
       policyId,
       crewCount,
       tasks: rows,
-      targetRestoredAtHour: Object.fromEntries(rows.map((row) => [row.targetId, row.completeHour])),
+      targetRestoredAtHour: Object.fromEntries(rows
+        .filter((row) => row.successful)
+        .map((row) => [row.targetId, row.completeHour])),
       crewOverlapValid: verifyCrewOverlap(rows),
       dependenciesValid: rows.every((row) => row.dependencyIds.every(
         (id) => (completionByTask.get(id) || 0) <= row.startHour
@@ -55,7 +84,17 @@
 
   function verifyCrewOverlap(rows) {
     return rows.every((row, index) => rows.slice(index + 1).every((other) => row.crewId !== other.crewId
-      || row.completeHour <= other.startHour || other.completeHour <= row.startHour));
+      || row.crewReleaseHour === null || other.crewReleaseHour === null
+      || row.crewReleaseHour <= other.startHour || other.crewReleaseHour <= row.startHour));
+  }
+
+  function unit(text) {
+    let hash = 2166136261;
+    for (let index = 0; index < text.length; index += 1) {
+      hash ^= text.charCodeAt(index);
+      hash = Math.imul(hash, 16777619);
+    }
+    return (hash >>> 0) / 0xffffffff;
   }
 
   function deepFreeze(value) {
@@ -64,5 +103,5 @@
     return Object.freeze(value);
   }
 
-  return Object.freeze({ schedule });
+  return Object.freeze({ MAXIMUM_ATTEMPTS, schedule });
 });

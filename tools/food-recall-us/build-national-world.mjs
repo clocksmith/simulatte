@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Builds the dedicated national world `us-food-network-v1` (TODO_PLUGINS §9, §13,
+// Builds the shared national-regions world `us-national-regions-v1` (TODO_PLUGINS §9, §13,
 // roadmap Phase 1). The world supplies:
 //   * a coordinateSystem.projection so the host geography port can project WGS84 to the
 //     scene, letting food-recall-us present national geography without fake node IDs;
@@ -18,7 +18,7 @@ import {
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(here, '..', '..');
-const outPath = join(repoRoot, 'public', 'data', 'simulatte', 'worlds', 'us-food-network-v1.json');
+const outPath = join(repoRoot, 'public', 'data', 'simulatte', 'worlds', 'us-national-regions-v1.json');
 
 function stableStringify(value) {
   if (Array.isArray(value)) return `[${value.map(stableStringify).join(',')}]`;
@@ -91,9 +91,9 @@ function build() {
 
   const world = {
     schema: 'simulatte.autonomyWorld.v1',
-    id: 'us-food-network-v1',
-    label: 'United States food-supply national world',
-    contentVersion: 'us-food-network-2026-07-21',
+    id: 'us-national-regions-v1',
+    label: 'United States national regions world',
+    contentVersion: 'us-national-regions-2026-07-26',
     coordinateSystem: {
       kind: 'local_cartesian_meters',
       originLabel: `${NATIONAL_PROJECTION.originLatitude},${NATIONAL_PROJECTION.originLongitude}`,

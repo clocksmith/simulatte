@@ -41,9 +41,10 @@
     }
     const scenarioRelays = scenario.relayHops.slice(1, -1);
     const eligibleDefault = starsData.defaultRelayIds || starsData.stars.map((row) => row.sourceId);
+    const startEpochIso = normalizeEpoch(values.startEpochIso || config.startEpochIso);
     const controls = {
-      startEpochIso: normalizeEpoch(values.startEpochIso || config.startEpochIso),
-      targetEpochYear: Number(values.targetEpochYear ?? config.targetEpochYear),
+      startEpochIso,
+      astrometryEpochYear: decimalYear(startEpochIso),
       processingDelayHours: Number(values.processingDelayHours ?? config.processingDelayHours),
       packetBytes: Number(values.packetBytes ?? scenario.packetBytes),
       transceiverId: String(values.transceiverId || scenario.transceiverId || config.defaultTransceiver),
@@ -118,7 +119,7 @@
     if (!['latency', 'throughput', 'energy', 'reliability', 'balanced'].includes(value.routeObjective)) {
       throw controlError('interstellar_route_objective_invalid', value.routeObjective);
     }
-    requireNumber(value, 'targetEpochYear', 2016, 2200);
+    requireNumber(value, 'astrometryEpochYear', 2016, 2200);
     requireNumber(value, 'processingDelayHours', 0, 8760);
     requireInteger(value, 'packetBytes', 64, 1073741824);
     requireInteger(value, 'maxHops', 1, 8);
@@ -162,7 +163,6 @@
       { id: 'ensembleSize', label: 'Operational ensemble', type: 'number', value: controls.ensembleSize },
       { id: 'retryLimit', label: 'Retry limit', type: 'number', value: controls.retryLimit },
       { id: 'startEpochIso', label: 'Transmission epoch', type: 'date', value: controls.startEpochIso.slice(0, 10) },
-      { id: 'targetEpochYear', label: 'Astrometry epoch year', type: 'number', value: controls.targetEpochYear },
       { id: 'processingDelayHours', label: 'Relay processing hours', type: 'number', value: controls.processingDelayHours },
       { id: 'packetBytes', label: 'Packet bytes', type: 'number', value: controls.packetBytes },
       selectField('transceiverId', 'Scenario terminal', controls.transceiverId, options.terminals),
@@ -209,6 +209,15 @@
   }
   function selectField(id, label, value, options) {
     return { id, label, type: 'select', value, options };
+  }
+
+  function decimalYear(epochIso) {
+    const milliseconds = Date.parse(epochIso);
+    const date = new Date(milliseconds);
+    const year = date.getUTCFullYear();
+    const start = Date.UTC(year, 0, 1);
+    const end = Date.UTC(year + 1, 0, 1);
+    return year + ((milliseconds - start) / (end - start));
   }
   function starOption(row) {
     const catalog = row.catalogDatasetId === 'hyg.visible-stars.v1' ? 'HYG' : 'Gaia';

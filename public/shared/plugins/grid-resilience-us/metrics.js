@@ -10,6 +10,8 @@
       modeledDemandResponseMwh: sum(snapshots.flatMap((row) => row.regions), 'demandResponseMw'),
       modeledEmissionsTons: sum(snapshots.flatMap((row) => row.regions), 'emissionsTons'),
       modeledStorageDischargeMwh: sum(snapshots.flatMap((row) => row.regions), 'storageDischargeMw'),
+      modeledStorageChargeMwh: sum(snapshots.flatMap((row) => row.regions), 'storageChargeMw'),
+      modeledSpilledGenerationMwh: sum(snapshots.flatMap((row) => row.regions), 'spilledGenerationMw'),
       minimumReserveMarginRatio: Math.min(...snapshots.flatMap((row) => row.regions).map((row) => row.reserveMarginRatio)),
       terminalRestoredTargetCount: terminal.restoredTargetIds.length,
       maximumInterfaceUtilizationRatio: Math.max(0, ...snapshots.flatMap((row) => row.interfaces).map((row) => row.utilizationRatio)),

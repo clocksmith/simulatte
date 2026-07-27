@@ -15,8 +15,7 @@
     "maxHopDistancePc",
     "ensembleSize",
     "processingDelayHours",
-    "startEpochIso",
-    "targetEpochYear"
+    "startEpochIso"
   ],
   "additionalProperties": false,
   "properties": {
@@ -86,11 +85,6 @@
     "startEpochIso": {
       "type": "string",
       "format": "date-time"
-    },
-    "targetEpochYear": {
-      "type": "number",
-      "minimum": 2016,
-      "maximum": 2200
     }
   }
 }

@@ -137,7 +137,7 @@
       targets: [{ entityId: selected.id, segmentIds: selected.route.segmentIds }],
       transitionReason: 'route alternatives and modeled exposure are ready',
       triggerEventId: simulation.timeline.events[0].id,
-      priority: 40,
+      priority: 20,
       expiresAfterEventId: null,
       preservesManualOverride: true,
     }];
@@ -146,10 +146,10 @@
         schema: 'simulatte.viewIntent.v4',
         id: `sun-follow-${snapshot.step}`,
         mode: 'follow',
-        targets: [{ entityId: snapshot.state.currentSegmentId }],
+        targets: [{ entityId: 'sun-walker-actor' }],
         transitionReason: 'walker advanced to the next exposure sample',
         triggerEventId: snapshot.eventId,
-        priority: 30,
+        priority: 55,
         expiresAfterEventId: simulation.timeline.events[snapshot.step + 1]?.id || null,
         preservesManualOverride: true,
       });
@@ -159,10 +159,10 @@
           schema: 'simulatte.viewIntent.v4',
           id: `sun-pov-transition-${snapshot.step}`,
           mode: 'pov',
-          targets: [{ entityId: transition.segmentId, point: transition.point }],
+          targets: [{ entityId: 'sun-walker-actor', point: transition.point }],
           transitionReason: `exposure changed to ${transition.state}`,
           triggerEventId: snapshot.eventId,
-          priority: 50,
+          priority: 65,
           expiresAfterEventId: simulation.timeline.events[snapshot.step + 1]?.id || null,
           preservesManualOverride: true,
         });
@@ -186,17 +186,6 @@
         preservesManualOverride: true,
       });
     }
-    rows.push({
-      schema: 'simulatte.viewIntent.v4',
-      id: 'sun-free-camera',
-      mode: 'free',
-      targets: [],
-      transitionReason: 'user-selected unrestricted inspection',
-      triggerEventId: null,
-      priority: 100,
-      expiresAfterEventId: null,
-      preservesManualOverride: true,
-    });
     return rows;
   }
 

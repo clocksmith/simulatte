@@ -33,7 +33,10 @@ test('governed inputs validate while keeping residents, routes, and inventory cl
     !Object.hasOwn(row, 'address') && !Object.hasOwn(row, 'coordinates')
   )));
   assert.equal(datasets.catalog.coverage.declaredComplete, false);
-  assert.equal(datasets.catalog.coverage.status, 'bootstrap-scenario');
+  assert.equal(datasets.catalog.coverage.status, 'modeled-warehouse-scale');
+  const materialized = catalogApi.materializeCatalogSnapshot(datasets.catalog);
+  assert.equal(materialized.items.length, 2048);
+  assert.ok(materialized.categories.length >= 14);
   assert.equal(datasets.routes.coverageAreas.length, 3);
   assert.match(datasets.catalog.claimBoundary, /deliberately incomplete/i);
   assert.match(datasets.routes.claimBoundary, /not.*street/i);
@@ -220,20 +223,36 @@ test('typed controls rebuild the run, step without recomputation, and replay exa
   }), /bulk_pool_control_invalid/);
 });
 
-test('comparison shares exogenous inputs and exposes compatible numeric branch metrics', async () => {
+test('all declared comparisons share exogenous inputs and execute their intended policy pair', async () => {
   const harness = createSdkHarness();
   const instance = await plugin.activate({ sdk: harness.sdk, config, profile, scenario });
   await instance.handleAction('scenario.run', {
     scenario,
     values: { ...scenario, phase: 'start' },
   });
-  const comparison = await instance.handleAction('counterfactual.compare');
-  assert.equal(comparison.status, 'settled');
-  assert.deepEqual(
-    Object.keys(comparison.comparisonBranches.baseline).sort(),
-    Object.keys(comparison.comparisonBranches.intervention).sort()
-  );
-  assert.ok(Object.values(comparison.comparisonBranches.baseline).every(Number.isFinite));
+  const expectedPairs = {
+    'independent-vs-pool': ['independent', scenario.poolingPolicyId],
+    'bulk-only-vs-existing-trip': ['bulk-only', 'existing-trip'],
+    'existing-trip-vs-hub': ['existing-trip', 'neighborhood-hub'],
+  };
+  for (const [comparisonId, [baselinePolicyId, interventionPolicyId]] of Object.entries(expectedPairs)) {
+    const comparison = await instance.handleAction('counterfactual.compare', {
+      values: { comparisonId },
+    });
+    assert.equal(comparison.status, 'settled');
+    assert.equal(comparison.comparisonId, comparisonId);
+    assert.deepEqual(
+      Object.keys(comparison.comparisonBranches.baseline).sort(),
+      Object.keys(comparison.comparisonBranches.intervention).sort()
+    );
+    assert.ok(Object.values(comparison.comparisonBranches.baseline).every(Number.isFinite));
+    assert.ok(harness.receipts.some((row) => (
+      row.schema === 'simulatte.plugin.neighborhoodBulkComparisonReceipt.v1'
+      && row.comparisonId === comparisonId
+      && row.baselinePolicyId === baselinePolicyId
+      && row.interventionPolicyId === interventionPolicyId
+    )));
+  }
   assert.ok(harness.receipts.some((row) => (
     row.schema === 'simulatte.plugin.neighborhoodBulkComparisonReceipt.v1'
     && row.sharedConfiguration.seed === scenario.seed
@@ -263,7 +282,7 @@ test('v4 contribution renders semantic WGS84 evidence and every accepted control
   );
   assert.ok(contribution.presentation.layers.some((row) => row.quantity?.kind === 'catalog-offer-rows'));
   assert.ok(contribution.provenanceRecords.length >= manifest.datasets.length + 4);
-  assert.ok(contribution.inspections.some((row) => JSON.stringify(row).includes('bootstrap-scenario')));
+  assert.ok(contribution.inspections.some((row) => JSON.stringify(row).includes('modeled-warehouse-scale')));
   const models = Object.fromEntries(
     contribution.provenanceRecords.filter((row) => row.kind === 'model').map((row) => [row.id, row])
   );
@@ -277,6 +296,35 @@ test('v4 contribution renders semantic WGS84 evidence and every accepted control
   for (const id of ['pool-solver', 'route-screen', 'settlement']) {
     assert.equal(models[`neighborhood-bulk-pool:model:${id}`].contentHash, solverHash);
   }
+});
+
+test('trip playback emits moving driver actors and follows only the active driver', async () => {
+  const harness = createSdkHarness();
+  const instance = await plugin.activate({ sdk: harness.sdk, config, profile, scenario });
+  let playback = await instance.handleAction('scenario.run', {
+    scenario,
+    values: { ...scenario, phase: 'start' },
+  });
+  let contribution = instance.contributeV4();
+  while (playback.status === 'running'
+    && !contribution.presentation.layers.some((row) => row.id.startsWith('driver:'))) {
+    playback = await instance.handleAction('scenario.run', { values: { phase: 'step' } });
+    contribution = instance.contributeV4();
+  }
+  const drivers = contribution.presentation.layers.filter((row) => row.id.startsWith('driver:'));
+  assert.ok(drivers.length > 0);
+  assert.ok(drivers.every((row) => (
+    row.kind === 'actor'
+    && row.quantity.kind === 'actor.car.route-progress'
+    && row.geometry.kind === 'polyline'
+  )));
+  const follow = contribution.presentation.viewIntents.find((row) => row.mode === 'follow');
+  assert.ok(follow);
+  assert.ok(follow.targetIds.every((id) => id.startsWith('driver:')));
+  assert.equal(
+    contribution.presentation.layers.some((row) => row.id.startsWith('stop:') && row.kind === 'actor'),
+    false
+  );
 });
 
 function parametersFor(scenarioId, overrides = {}) {

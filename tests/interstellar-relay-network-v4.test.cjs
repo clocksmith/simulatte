@@ -212,6 +212,15 @@ test('moving-target light time solves a future intercept instead of freezing the
   assert.equal(moving.modelReceipt.modelId, 'finite-light-time-v2');
 });
 
+test('moving-target light time back-propagates reference-epoch states to transmission time', () => {
+  const source = { epochYear: 2050, positionPc: [0, 0, 0], velocityPcYr: [0, 0, 0] };
+  const target = { epochYear: 2050, positionPc: [1, 0, 0], velocityPcYr: [0.01, 0, 0] };
+  const moving = lightTime.computeMovingTargetLightTime(source, target, 0, '2040-01-01T00:00:00Z');
+  assert.ok(Math.abs(moving.targetPositionAtTransmissionPc[0] - 0.9) < 1e-12);
+  assert.equal(moving.modelReceipt.parameters.targetReferenceEpochYear, 2050);
+  assert.equal(moving.modelReceipt.parameters.transmissionEpochYear, 2040);
+});
+
 test('optical model is inverse-square monotonic and exposes modeled rate uncertainty', () => {
   const hardware = readJson(path.join(dataDirectory, 'relay-hardware-archetypes-v2.json')).archetypes['sol-primary-gateway'];
   const near = optical.computeLinkBudget(1e16, hardware, { packetBits: 8192 });
@@ -238,7 +247,6 @@ test('plugin advances one chronological causal event at a time and settles with 
       startEpochIso: '2040-01-02T03:04',
       packetBytes: 4096,
       processingDelayHours: 12,
-      targetEpochYear: 2050,
       transceiverId: selectedTerminal,
     },
   });
@@ -248,8 +256,11 @@ test('plugin advances one chronological causal event at a time and settles with 
   assert.equal(configured.controls.packetBytes, 4096);
   assert.equal(configured.controls.startEpochIso, '2040-01-02T03:04:00.000Z');
   assert.equal(configured.controls.processingDelayHours, 12);
-  assert.equal(configured.controls.targetEpochYear, 2050);
   assert.equal(configured.controls.transceiverId, selectedTerminal);
+  assert.ok(Math.abs(configured.controls.astrometryEpochYear - 2040.003) < 0.002);
+  assert.ok(configured.stellarStates.every((row) => (
+    Math.abs(row.epochYear - configured.controls.astrometryEpochYear) < 1e-9
+  )));
   assert.ok(host.instance.contributeV4().controls.controls.some((row) => row.id === 'transceiverId'));
   let previousStep = 0;
   let progress = start;
@@ -266,6 +277,7 @@ test('plugin advances one chronological causal event at a time and settles with 
   assert.ok(terminal.result.metrics.evidenceReferences.some((id) => id.startsWith('gaiadr3.gaia_source:')));
   assert.ok(terminal.result.metrics.evidenceReferences.some((id) => id.startsWith('gaia.dr3.nearby-stars.v2:')));
   const events = terminal.result.schedule.trace;
+  assert.ok(events.some((event) => event.kind === 'relay.signal-progressed'));
   const eventIndex = new Map(events.map((event, index) => [event.id, index]));
   events.forEach((event, index) => {
     assert.equal(event.schema, 'simulatte.simulationEvent.v4');
@@ -623,7 +635,7 @@ test('advanced physics lanes expose distinct causality and constructibility rece
   });
   const warp = warpHost.instance.capabilities['simulation.interstellar-relay.v4']().result;
   assert.ok(Math.abs(
-    warp.channelReceipts[0].latencySeconds - classical.channelReceipts[0].latencySeconds / 10,
+    warp.channelReceipts[0].latencySeconds - warp.schedule.hops[0].lightTime.classicalLatencySeconds / 10,
   ) < 1e-6);
   assert.equal(warp.channelReceipts[0].constraintReceipt.originalMetricEnergyConditionSatisfied, false);
   assert.match(warp.channelReceipts[0].constructibilityStatus, /^unsupported/);

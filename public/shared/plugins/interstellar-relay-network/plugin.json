@@ -76,7 +76,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginInterstellarRelayNetwork",
-    "integrity": "sha384-567ca9eb12b62c0ac9c20a08bd6902630550e70aafb2728e07a1fbe3b0ccd5565622e0f52b9878eff0f641fb311e8577",
+    "integrity": "sha384-24c561954800befdc2daf1fa6d111ca40cde4b2e56092acaab0a97687c3d1c3cb3e0b904e62f157f37191f913fbf5e4f",
     "path": "./index.js"
   },
   "extensionPoints": [
@@ -129,11 +129,11 @@
   ],
   "resources": [
     {
-      "integrity": "sha384-203cc4c1ae7edbe83a88e11b2b014c3604abedee6fb48de21563bfa6bc78d7ad9001cd2d33a2850c155af318e68c8bca",
+      "integrity": "sha384-fb93f3ec23e0a18019949e9d2249681ac8b1928a48b1ae226524d6644f7a72ed308e6fe27447c6b22cc2bcc47ab8c2eb",
       "path": "./config.schema.json"
     },
     {
-      "integrity": "sha384-1cdf480179242c48ae45e2a64c3fed3d9375495f25f58f158b8148cba6a14c11cd1812c311aec7a3f3f12ae9c624ce03",
+      "integrity": "sha384-fd22d7263b9e418182d4f0101fe49fd72510d5a8af255657faef1964bb7d2c2ecaea46e111223782c056609caab7384f",
       "path": "./default-config.json"
     },
     {
@@ -141,7 +141,7 @@
       "path": "./advanced-channels.js"
     },
     {
-      "integrity": "sha384-05c354ace8122750bbbd0d4b81affc16bd72fdf4f70f6123fd2f2bdfd8c79886795dc7ecb5c114554296952e1ec5c050",
+      "integrity": "sha384-daec5c49cc20f03238b6436be204aa10ce382484a99f1f737c7a031751ced380ec2ec5ff3bd235533b2c57635a9ee033",
       "path": "./contact-scheduler.js"
     },
     {
@@ -153,7 +153,7 @@
       "path": "./integrity.js"
     },
     {
-      "integrity": "sha384-49f5d1428455311d29315cd2407fa2268091aeceb42ddb899b4807760c2eb3e4ba742ef41f42294c749b9646812e5e15",
+      "integrity": "sha384-8a9b3e6a289a3054b8217a568d8fe2383ba26684771c4fd1a96c0ff73cde40217d2cde800c67461ab203bf02b881ecf3",
       "path": "./light-time.js"
     },
     {
@@ -177,15 +177,15 @@
       "path": "./packet-queue.js"
     },
     {
-      "integrity": "sha384-fa7ffef8942fca2cdf0ace2937c77c6b443d3fe379004f3924abe1a9ae4afedbdc4e3a71ba04a29119f7585331a3b601",
+      "integrity": "sha384-1502ad11c35bbe7e88c7278817ec3c87304aa3d3047ad1f2329907da1308e92abdf117e743292d6a3652ff9cdddf5886",
       "path": "./presentation.js"
     },
     {
-      "integrity": "sha384-82c5b83dea177fefcf986b39d0518e97594eaf3f05e2d6b80fdf4aa74af2ef35d2579b7ebc288e6a13a34fa239e4b8e3",
+      "integrity": "sha384-5ef9c998d1097b1d5557e9410fb115f56bacaa84256de8a0847c286190a8cdd122eb3535eea1ea56672efba42fd19b0f",
       "path": "./receipt-factory.js"
     },
     {
-      "integrity": "sha384-0716eaae85b8f8fd1780398f4a56ffd551857acc129207e7a2858c5df0029e13f916ce7bc2249a41f41291345dab934f",
+      "integrity": "sha384-a8a6122f9bde74389e08bb9bd41f693b31917cdc6eb70e2eae89840cb4b70c245745f7da3c983a65609e0f5f73295257",
       "path": "./relay-controls.js"
     },
     {
@@ -197,7 +197,7 @@
       "path": "./stellar-state.js"
     },
     {
-      "integrity": "sha384-4fb0f180d4bd7a003c35bb3bd87d674b91d74327597a4a3dde6d2725f08b0219381bfbcdf17836c43930a97fe6aa6219",
+      "integrity": "sha384-8b2362167bc27aed5e4c8dd9c4ef91e93e359af0497a867f34326ad4dcfde9eddafb7b14534efc44b0c1ed6fb549a999",
       "path": "./v4-contribution.js"
     }
   ],

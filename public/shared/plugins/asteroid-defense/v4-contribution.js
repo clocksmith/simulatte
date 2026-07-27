@@ -51,10 +51,17 @@
       uncertainty: { kind: 'distribution', value: { interpretation: 'Synthetic observations and policy controls.' } },
       records: records.filter((row) => /synthetic-observation|decision-policies/.test(row.id)),
     });
-    const encounter = snapshot.interventionEncounter
+    const encounter = snapshot.activeEncounter === 'intervention'
       ? result.interventionEncounter
-      : snapshot.baselineEncounter ? result.baselineEncounter : null;
+      : snapshot.activeEncounter === 'baseline'
+        ? result.baselineEncounter
+        : snapshot.interventionEncounter
+          ? result.interventionEncounter
+          : snapshot.baselineEncounter ? result.baselineEncounter : null;
     const representative = encounter?.members?.[0] || null;
+    const actorPosition = representative && Number.isFinite(snapshot.trajectoryDay)
+      ? positionAtDay(representative.trajectory, snapshot.trajectoryDay)
+      : null;
     const maxDistance = Math.max(1, ...(encounter?.members || []).map((row) => row.minimumDistanceKm));
     const layers = [
       ...(snapshot.fitReceipt && representative ? [
@@ -97,6 +104,22 @@
           provenance: simulated,
         });
       }),
+      ...(actorPosition ? [builder.layer({
+        id: 'asteroid-active-clone',
+        kind: 'actor',
+        label: `${snapshot.activeEncounter || 'encounter'} trajectory · ${Math.round((snapshot.trajectoryProgress || 0) * 100)}%`,
+        geometry: builder.geometry('point', 'heliocentric-ecliptic-au', [actorPosition]),
+        quantity: builder.quantity(
+          'actor.asteroid.route-progress',
+          snapshot.trajectoryProgress,
+          'ratio',
+          [0, 1]
+        ),
+        role: 'event',
+        importance: 1,
+        aggregationKey: 'asteroid-active-clone',
+        provenance: simulated,
+      })] : []),
     ];
     const events = result.events.map((row, sequence) => builder.event({
       id: row.id,
@@ -112,13 +135,15 @@
     const presentation = builder.presentation({
       pluginId: PLUGIN_ID,
       coordinateSystem: 'heliocentric-ecliptic-au',
-      epoch: result.campaign.startInstant,
+      epoch: epochForDay(result.campaign.startInstant, snapshot.trajectoryDay || 0),
       layers,
       viewIntents: [builder.viewIntent({
         id: `asteroid-view:${snapshot.id}`,
-        mode: comparison?.settlement ? 'compare' : snapshot.status.includes('propagated') ? 'follow' : 'overview',
-        targetIds: snapshot.status.includes('propagated')
-          ? layers.filter((row) => row.kind === 'point').map((row) => row.id)
+        mode: comparison?.settlement
+          ? 'compare'
+          : snapshot.status.includes('propagating') && actorPosition ? 'follow' : 'overview',
+        targetIds: snapshot.status.includes('propagating') && actorPosition
+          ? ['asteroid-active-clone']
           : ['asteroid-representative-trajectory', 'earth-reference-trajectory'],
         reasonEventId: snapshot.eventIds.at(-1) || null,
         priority: 75,
@@ -178,6 +203,8 @@
             field('fit-termination', 'Fit termination', snapshot.fitReceipt.terminationReason, null, simulated),
             field('fit-rms', 'Angular residual RMS', result.metrics.fitResidualRmsArcsec, 'arcsec', simulated),
             field('covariance', 'Covariance PSD', snapshot.fitReceipt.covarianceReceipt.positiveSemidefinite, null, simulated),
+            field('follow-up-method', 'Follow-up selection method', snapshot.fitReceipt.observationSelectionReceipt.method, null, simulated),
+            field('selected-observations', 'Selected observation IDs', snapshot.fitReceipt.observationSelectionReceipt.selectedObservationIds, null, simulated),
           ] : []),
           ...(snapshot.baselineEncounter ? [
             field('screening-radius', 'Declared encounter screen', snapshot.baselineEncounter.screeningRadiusKm, 'km', simulated),
@@ -186,6 +213,7 @@
           ...(snapshot.requestedInterventionId ? [
             field('requested-intervention', 'Requested intervention', snapshot.requestedInterventionId, null, scenarioClaim),
             field('applied-intervention', 'Applied intervention', snapshot.appliedInterventionId, null, simulated),
+            field('execution-profile', 'Intervention execution profile', result.metrics.interventionExecutionProfile, null, simulated),
           ] : []),
         field('hidden-policy-access', 'Policy access to hidden truth', false, null, simulated),
         field('force-omissions', 'Force-model omissions', datasets.forceModels.models[0].omissions, null, simulated),
@@ -231,5 +259,20 @@
   function option(value, label) { return { value, label }; }
   function field(id, label, value, unit, provenance) { return { id, label, value, unit, provenance }; }
 
-  return Object.freeze({ MODEL_HASHES, createContribution });
+  function positionAtDay(trajectory, day) {
+    if (!trajectory?.length) return null;
+    let lowerIndex = 0;
+    for (let index = 1; index < trajectory.length && trajectory[index].day <= day; index += 1) lowerIndex = index;
+    const lower = trajectory[lowerIndex];
+    const upper = trajectory[Math.min(trajectory.length - 1, lowerIndex + 1)];
+    const ratio = upper.day === lower.day ? 0 : (day - lower.day) / (upper.day - lower.day);
+    return lower.positionAu.map((value, index) => value + (upper.positionAu[index] - value) * ratio);
+  }
+
+  function epochForDay(startInstant, day) {
+    const start = Date.parse(startInstant || '');
+    return Number.isFinite(start) ? new Date(start + day * 86400000).toISOString() : startInstant;
+  }
+
+  return Object.freeze({ MODEL_HASHES, createContribution, positionAtDay });
 });

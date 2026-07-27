@@ -124,7 +124,8 @@
       if (!['slow', 'service', 'fast'].includes(speedPolicy)) {
         throw new Error(`maritime_control_invalid: unknown speedPolicy ${speedPolicy}`);
       }
-      const cargoTeu = integerControl(values.cargoTeu, activeScenario.cargoTeu, 100, 24000, 'cargoTeu');
+      const vesselCapacityTeu = Number(datasets.vessels.archetypes.find((row) => row.id === vesselClassId).teu);
+      const cargoTeu = integerControl(values.cargoTeu, activeScenario.cargoTeu, 100, vesselCapacityTeu, 'cargoTeu');
       const ensembleReplicates = integerControl(values.ensembleReplicates, activeScenario.ensembleReplicates, 2, 512, 'ensembleReplicates');
       return normalizeScenario({ ...activeScenario, vesselClassId, speedPolicy, cargoTeu, ensembleReplicates }, config);
     }
@@ -393,8 +394,24 @@
               value: state.result.parameters.speedPolicy,
               options: state.result.controls.find((row) => row.id === 'speedPolicy').options,
             },
-            { id: 'cargoTeu', label: 'Scenario cargo TEU', type: 'number', value: state.result.parameters.cargoTeu },
-            { id: 'ensembleReplicates', label: 'Queue ensemble runs', type: 'number', value: state.result.parameters.ensembleReplicates },
+            {
+              id: 'cargoTeu',
+              label: 'Scenario cargo TEU',
+              type: 'number',
+              value: state.result.parameters.cargoTeu,
+              minimum: 100,
+              maximum: state.result.vessel.teu,
+              step: 100,
+            },
+            {
+              id: 'ensembleReplicates',
+              label: 'Queue ensemble runs',
+              type: 'number',
+              value: state.result.parameters.ensembleReplicates,
+              minimum: 2,
+              maximum: 512,
+              step: 1,
+            },
           ],
           actions: [],
         },

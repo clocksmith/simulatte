@@ -178,7 +178,9 @@
   }
 
   function publicMetrics(values) {
-    return Object.fromEntries(Object.entries(values).filter(([id]) => id !== 'fitStateErrorAu'));
+    return Object.fromEntries(Object.entries(values).filter(([id, value]) => (
+      id !== 'fitStateErrorAu' && Number.isFinite(value)
+    )));
   }
 
   function metricRows(values, provenance) {

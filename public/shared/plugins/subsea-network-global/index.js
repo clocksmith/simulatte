@@ -462,6 +462,7 @@
 
   function playbackResult(state) {
     const snapshot = currentSnapshot(state);
+    const activeRepair = state.result.repairReceipt.events.find((row) => row.id === snapshot.activeRepairEventId) || null;
     return {
       status: state.playback.status === 'settled' ? 'settled' : 'running',
       currentStep: state.playback.cursor,
@@ -472,8 +473,10 @@
       viewIntents: [{
         schema: 'simulatte.viewIntent.v4',
         mode: snapshot.status === 'repairing' ? 'follow' : snapshot.status === 'settled' ? 'compare' : 'overview',
-        targetIds: snapshot.edges.filter((row) => row.failureState === 'failed' || row.utilizationRatio > 0.85)
-          .map((row) => `corridor:${row.id}`),
+        targetIds: snapshot.status === 'repairing' && activeRepair
+          ? [`repair-resource:${activeRepair.resourceId}`]
+          : snapshot.edges.filter((row) => row.failureState === 'failed' || row.utilizationRatio > 0.85)
+            .map((row) => `corridor:${row.id}`),
         transitionReason: snapshot.eventIds.at(-1) ? `simulation_event:${snapshot.eventIds.at(-1)}` : 'scenario_ready',
         priority: 60,
         expiresAtEventId: null,

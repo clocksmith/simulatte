@@ -63,8 +63,10 @@
         ? [intentTargetId, ...subjectTargetIds].filter(Boolean)
         : [...subjectTargetIds, intentTargetId].filter(Boolean);
       const targetId = candidates.find((id) => renderer.cameraTargets().some((row) => row.id === id));
-      const cameraMode = ['follow', 'pov'].includes(decision.mode)
-        ? 'follow'
+      const cameraMode = decision.mode === 'pov'
+        ? 'pov'
+        : decision.mode === 'follow'
+          ? 'follow'
         : ['overview', 'compare'].includes(decision.mode)
           ? 'bird'
           : null;

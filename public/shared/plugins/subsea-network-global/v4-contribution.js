@@ -76,6 +76,7 @@
       records: modelRecords,
     });
     const pointById = new Map(datasets.landings.points.map((row) => [row.id, row]));
+    const activeRepair = result.repairReceipt.events.find((row) => row.id === snapshot.activeRepairEventId) || null;
     const maximumCapacity = Math.max(...snapshot.edges.map((row) => row.capacityGbps), 1);
     const maximumDemand = Math.max(...snapshot.demands.map((row) => row.requestedGbps), 1);
     const layers = [
@@ -118,6 +119,22 @@
         aggregationKey: 'subsea-dropped-demand',
         provenance: simulated,
       })),
+      ...(activeRepair?.position ? [builder.layer({
+        id: `repair-resource:${activeRepair.resourceId}`,
+        kind: 'actor',
+        label: `${activeRepair.resourceId} repair resource`,
+        geometry: builder.geometry('point', 'wgs84', [activeRepair.position]),
+        quantity: builder.quantity(
+          'actor.repair-vessel.route-progress',
+          activeRepair.transitProgressFraction ?? 1,
+          'ratio',
+          [0, 1]
+        ),
+        role: 'event',
+        importance: 1,
+        aggregationKey: 'subsea-repair-resources',
+        provenance: simulated,
+      })] : []),
     ];
     const events = result.events.map((row, sequence) => builder.event({
       id: row.id,
@@ -136,6 +153,7 @@
     }));
     const activeEvent = [...events].reverse().find((row) => row.simulationTimeMs <= snapshot.simulationTimeMs) || null;
     const activeTargets = layers.filter((row) => row.role === 'event' || row.role === 'primary').map((row) => row.id);
+    const repairTargetId = activeRepair ? `repair-resource:${activeRepair.resourceId}` : null;
     const presentation = builder.presentation({
       pluginId: PLUGIN_ID,
       coordinateSystem: 'wgs84',
@@ -144,7 +162,11 @@
       viewIntents: [builder.viewIntent({
         id: `subsea-view:${snapshot.id}`,
         mode: comparison?.settlement ? 'compare' : snapshot.status === 'repairing' ? 'follow' : 'overview',
-        targetIds: activeTargets.length ? activeTargets : layers.filter((row) => row.kind === 'path').map((row) => row.id),
+        targetIds: snapshot.status === 'repairing' && repairTargetId
+          ? [repairTargetId]
+          : activeTargets.length
+            ? activeTargets
+            : layers.filter((row) => row.kind === 'path').map((row) => row.id),
         reasonEventId: activeEvent?.id || null,
         priority: 65,
       })],

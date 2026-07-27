@@ -3,7 +3,7 @@
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteAutonomyCamera = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyCameraController() {
-  const CAMERA_MODES = Object.freeze(['follow', 'bird', 'top']);
+  const CAMERA_MODES = Object.freeze(['follow', 'pov', 'bird', 'top']);
   const CAMERA_TRANSITION_MS = 850;
   const CAMERA_RESPONSE_PER_SECOND = 10;
   const DEFAULT_YAW = -0.72;
@@ -26,6 +26,7 @@
       followDistance: DEFAULT_FOLLOW_DISTANCE,
       orbitTarget: [...route.target],
       focusId: route.id,
+      focusHeading: null,
       targets,
       pose: null,
       transition: null,
@@ -99,9 +100,14 @@
       || Math.abs(target.distance - previousTarget.distance) > 0.001
       || target.target.some((value, index) => Math.abs(value - previousTarget.target[index]) > 0.001);
     if (!targetChanged) return state.targets;
+    if (previousTarget && target.id === previousTarget.id) {
+      const deltaX = target.target[0] - previousTarget.target[0];
+      const deltaY = -(target.target[2] - previousTarget.target[2]);
+      if (Math.hypot(deltaX, deltaY) > 0.01) state.focusHeading = Math.atan2(deltaY, deltaX);
+    }
     state.orbitTarget = [...target.target];
     state.distance = target.distance;
-    beginTransition(state, timestamp);
+    if (!['follow', 'pov'].includes(state.mode) || target.id !== previousTarget?.id) beginTransition(state, timestamp);
     return state.targets;
   }
 
@@ -117,9 +123,10 @@
     const target = state.targets.find((row) => row.id === targetId);
     if (!target) throw cameraError('camera_focus_invalid', `Expected a declared camera target; received ${targetId}`);
     state.focusId = target.id;
+    state.focusHeading = null;
     state.orbitTarget = [...target.target];
     state.distance = target.distance;
-    if (state.mode === 'follow') state.mode = 'bird';
+    if (['follow', 'pov'].includes(state.mode)) state.mode = 'bird';
     beginTransition(state, timestamp);
     return state.mode;
   }
@@ -133,7 +140,7 @@
   }
 
   function panCamera(state, deltaX, deltaY, viewportHeight) {
-    if (state.mode === 'follow') return false;
+    if (['follow', 'pov'].includes(state.mode)) return false;
     const scale = state.distance * 1.35 / Math.max(240, viewportHeight || 0);
     const right = state.mode === 'top'
       ? [1, 0, 0]
@@ -150,7 +157,7 @@
   }
 
   function zoomCamera(state, deltaY) {
-    if (state.mode === 'follow') {
+    if (['follow', 'pov'].includes(state.mode)) {
       state.followDistance = clamp(state.followDistance * Math.exp(deltaY * 0.001), MIN_FOLLOW_DISTANCE, MAX_FOLLOW_DISTANCE);
       cancelTransition(state);
       return true;
@@ -194,17 +201,46 @@
   }
 
   function cameraPoseFor(state, snapshot, worldModel) {
-    if (state.mode === 'follow') {
-      const point = snapshot.state.position;
-      const heading = routeHeading(snapshot, worldModel);
+    if (['follow', 'pov'].includes(state.mode)) {
+      const pluginTarget = focusedPluginTarget(state);
+      const point = pluginTarget
+        ? { x: pluginTarget.target[0], y: -pluginTarget.target[2] }
+        : snapshot.state.position;
+      const heading = pluginTarget
+        ? state.focusHeading ?? -DEFAULT_YAW
+        : routeHeading(snapshot, worldModel);
+      if (state.mode === 'pov') {
+        const eyeOffset = 0.45;
+        const lookAhead = 24;
+        return {
+          eye: [
+            point.x - Math.cos(heading) * eyeOffset,
+            1.7,
+            -point.y + Math.sin(heading) * eyeOffset,
+          ],
+          target: [
+            point.x + Math.cos(heading) * lookAhead,
+            1.62,
+            -point.y - Math.sin(heading) * lookAhead,
+          ],
+          fieldOfViewRadians: 64 * Math.PI / 180,
+          near: 0.08,
+          far: 20000,
+        };
+      }
       const distance = state.followDistance;
-      const height = clamp(distance * 0.58, 2.8, 92);
-      const lookAhead = clamp(distance * 0.68, 4, 96);
-      const targetHeight = clamp(distance * 0.065, 1.35, 8);
+      const height = pluginTarget
+        ? clamp(distance * 0.92, 18, 110)
+        : clamp(distance * 0.58, 2.8, 92);
+      const trailingDistance = pluginTarget ? distance * 0.62 : distance;
+      const lookAhead = pluginTarget
+        ? clamp(distance * 0.24, 3, 32)
+        : clamp(distance * 0.68, 4, 96);
+      const targetHeight = pluginTarget ? 1.4 : clamp(distance * 0.065, 1.35, 8);
       return {
-        eye: [point.x - Math.cos(heading) * distance, height, -point.y + Math.sin(heading) * distance],
+        eye: [point.x - Math.cos(heading) * trailingDistance, height, -point.y + Math.sin(heading) * trailingDistance],
         target: [point.x + Math.cos(heading) * lookAhead, targetHeight, -point.y - Math.sin(heading) * lookAhead],
-        fieldOfViewRadians: 52 * Math.PI / 180,
+        fieldOfViewRadians: pluginTarget ? 48 * Math.PI / 180 : 52 * Math.PI / 180,
         near: 0.4,
         far: 20000,
       };
@@ -223,6 +259,11 @@
       near: 1,
       far: 20000,
     };
+  }
+
+  function focusedPluginTarget(state) {
+    if (!state.focusId.startsWith('plugin:')) return null;
+    return state.targets.find((row) => row.id === state.focusId) || null;
   }
 
   function beginTransition(state, timestamp) {

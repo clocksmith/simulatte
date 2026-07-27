@@ -10,7 +10,7 @@
   // datasets always produce the same terminal state and receipts. Counterfactual
   // (baseline vs intervention) runs share the same underlying draws — common random
   // numbers — so cases-averted is measured against matched contamination and demand.
-  const ENGINE_VERSION = 'food-recall-engine-2.1.0';
+  const ENGINE_VERSION = 'food-recall-engine-2.2.0';
   const HOURS_PER_DAY = 24;
   const CHAIN = ['grower', 'initial_packer', 'processor', 'distributor', 'retailer'];
 
@@ -374,7 +374,17 @@
     // 6. Recall intervention (descendant closure + notification + removal), if requested.
     let recall = null;
     if (intervention && observed >= 1) {
-      recall = runRecall({ intervention, originLots, lots, lineage, distributed, exposedLots, product, model, recallRng, detectionDay, trueIllnesses, isAllergen });
+      recall = runRecall({
+        intervention,
+        originLots,
+        traceback,
+        lineage,
+        distributed,
+        product,
+        recallRng,
+        detectionDay,
+        trueIllnesses,
+      });
     }
 
     const chronologicalLineage = lineage
@@ -472,21 +482,37 @@
     return index;
   }
 
-  function runRecall({ intervention, originLots, lots, lineage, distributed, exposedLots, product, model, recallRng, detectionDay, trueIllnesses, isAllergen }) {
+  function runRecall({
+    intervention,
+    originLots,
+    traceback,
+    lineage,
+    distributed,
+    product,
+    recallRng,
+    detectionDay,
+    trueIllnesses,
+  }) {
     const descendantsOf = buildDescendantIndex(lineage);
-    const targets = originLots.filter((lot) => lot.contaminatedAtOrigin).map((lot) => lot.tlcId);
+    const rankedCandidates = traceback.filter((row) => row.score > 0);
+    const leadingCandidates = rankedCandidates.length ? rankedCandidates : traceback.slice(0, 1);
+    const selectedCandidate = leadingCandidates[0] || null;
+    const targets = intervention.scope === 'lot'
+      ? leadingCandidates.slice(0, 1).map((row) => row.candidateId)
+      : intervention.scope === 'facility'
+        ? originLots.filter((lot) => lot.facilityId === selectedCandidate?.facilityId).map((lot) => lot.tlcId)
+        : originLots.map((lot) => lot.tlcId);
     const recalledLotIds = new Set(targets);
     targets.forEach((target) => (descendantsOf.get(target) || new Set()).forEach((id) => recalledLotIds.add(id)));
 
-    const distributedById = new Map(distributed.map((lot) => [lot.tlcId, lot]));
-    const contaminatedDistributed = distributed.filter((lot) => lot.contaminatedAtOrigin);
     let contaminatedUnitsDistributed = 0;
     let contaminatedUnitsRemoved = 0;
     let cleanUnitsRemoved = 0;
     // Notification success falls with recall depth and consignee response probability.
     const responseProbability = intervention.depth === 'consumer' ? 0.62 : 0.82;
     // Fraction of product still in inventory (not yet consumed) at recall time.
-    const inInventoryFraction = Math.max(0, Math.min(1, 1 - detectionDay / (intervention.dayOffset + detectionDay + 6)));
+    const recallDay = Math.max(0, detectionDay + intervention.dayOffset);
+    const inInventoryFraction = Math.max(0, Math.min(1, 6 / (recallDay + 6)));
 
     distributed.forEach((lot) => {
       const units = Math.max(1, Math.round(lot.massKg / product.defaultUnitMassKg));
@@ -502,13 +528,17 @@
     const sensitivity = contaminatedUnitsDistributed ? contaminatedUnitsRemoved / contaminatedUnitsDistributed : null;
     const precision = (contaminatedUnitsRemoved + cleanUnitsRemoved) ? contaminatedUnitsRemoved / (contaminatedUnitsRemoved + cleanUnitsRemoved) : null;
     // Cases averted: illnesses prevented ∝ contaminated units removed before consumption.
-    const casesAverted = Math.round(trueIllnesses * (sensitivity || 0) * inInventoryFraction);
+    const casesAverted = Math.round(trueIllnesses * (sensitivity || 0));
 
     return Object.freeze({
       schema: 'simulatte.foodRecallIntervention.v1',
       targetTlcIds: Object.freeze(targets),
+      targetSelectionBasis: 'traceback-ranking',
+      selectedTracebackRank: selectedCandidate ? traceback.indexOf(selectedCandidate) + 1 : null,
+      selectedTracebackScore: selectedCandidate?.score ?? null,
       recalledLotCount: recalledLotIds.size,
       depth: intervention.depth, scope: intervention.scope, dayOffset: intervention.dayOffset,
+      recallDay: Number(recallDay.toFixed(3)),
       contaminatedUnitsDistributed, contaminatedUnitsRemoved, cleanUnitsRemoved,
       recallSensitivity: sensitivity === null ? null : Number(sensitivity.toFixed(3)),
       recallPrecision: precision === null ? null : Number(precision.toFixed(3)),

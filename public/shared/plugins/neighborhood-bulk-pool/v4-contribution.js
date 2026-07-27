@@ -8,7 +8,7 @@
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createNeighborhoodBulkV4(builder) {
   const PLUGIN_ID = 'neighborhood-bulk-pool';
   const MODEL_HASHES = Object.freeze({
-    catalogIndex: '5e42ab29d255645b3afe617b01bdbc8120e756b288c97af946b423961331ec76',
+    catalogIndex: 'b5a43046410595e55b3cfe7ed7e042f0ce17fe3f93c36ca73ea4c1b7a0bfa865',
     poolSolver: '42525e7f9217c19b3cc764b88b964c49c9540782cf2fea414e0a738a9f7807fe',
     routeScreen: '42525e7f9217c19b3cc764b88b964c49c9540782cf2fea414e0a738a9f7807fe',
     settlement: '42525e7f9217c19b3cc764b88b964c49c9540782cf2fea414e0a738a9f7807fe',
@@ -74,6 +74,9 @@
     const activeEvent = [...events].reverse()
       .find((row) => row.simulationTimeMs <= snapshot.simulationTimeMs) || null;
     const activeTripIds = new Set(snapshot.visibleTripAssignmentIds);
+    const activeDriverIds = layers
+      .filter((row) => row.id.startsWith('driver:'))
+      .map((row) => row.id);
     const activeTargets = layers
       .filter((row) => row.role === 'primary' || row.role === 'event')
       .map((row) => row.id);
@@ -85,8 +88,10 @@
         builder.viewIntent({
           id: `bulk-pool-view:${snapshot.id}`,
           mode: snapshot.status === 'settled' ? 'compare' : activeTripIds.size ? 'follow' : 'overview',
-          targetIds: activeTargets.length
-            ? activeTargets
+          targetIds: activeTripIds.size && snapshot.status !== 'settled'
+            ? activeDriverIds
+            : activeTargets.length
+              ? activeTargets
             : layers.filter((row) => row.id.startsWith('warehouse:')).map((row) => row.id),
           reasonEventId: activeEvent?.id || null,
           priority: 68,
@@ -158,6 +163,8 @@
     }));
     const activeGroups = new Set(snapshot.visiblePoolGroupIds);
     const activeTrips = new Set(snapshot.visibleTripAssignmentIds);
+    const snapshotIndex = Math.max(0, result.snapshots.findIndex((row) => row.id === snapshot.id));
+    const tripProgress = Math.min(1, snapshotIndex / Math.max(1, result.snapshots.length - 1));
     const visibleRejectedRequests = new Set(snapshot.visibleRejectedRequestIds || []);
     const neighborhoods = new Map(datasets.routes.neighborhoods.map((row) => [row.id, row]));
     const maximumOffers = Math.max(...warehouseOffers.values(), 1);
@@ -209,10 +216,21 @@
         aggregationKey: 'bulk-pool-trip-corridors',
         provenance: modeled,
       })),
+      ...result.tripAssignments.filter((row) => activeTrips.has(row.id)).map((row) => builder.layer({
+        id: `driver:${row.id}`,
+        kind: 'actor',
+        label: `${row.driverPseudonym} · ${Math.round(tripProgress * 100)}% along volunteered corridor`,
+        geometry: builder.geometry('polyline', 'wgs84', row.corridorCoordinates),
+        quantity: builder.quantity('actor.car.route-progress', tripProgress, 'ratio', [0, 1]),
+        role: 'event',
+        importance: 1,
+        aggregationKey: 'bulk-pool-drivers',
+        provenance: simulated,
+      })),
       ...result.tripAssignments.filter((row) => activeTrips.has(row.id)).flatMap((trip) => (
         trip.stops.map((stop) => builder.layer({
           id: `stop:${trip.tripId}:${stop.id}`,
-          kind: stop.kind === 'pickup-hub' ? 'point' : 'actor',
+          kind: 'point',
           label: stop.label,
           geometry: builder.geometry('point', 'wgs84', [[...stop.coordinates, 0]]),
           quantity: builder.quantity('handoff-stop', 1, 'stop', [0, Math.max(1, trip.stops.length)]),

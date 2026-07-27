@@ -32,6 +32,10 @@ function model() {
 }
 
 function run(scenario, appliedInputs) {
+  return runWithIntervention(scenario, appliedInputs, scenario.defaultIntervention);
+}
+
+function runWithIntervention(scenario, appliedInputs, intervention) {
   const random = randomApi.createRandomPort({
     rootSeed: 'food-causal-input-test',
     scenarioId: scenario.id,
@@ -42,7 +46,7 @@ function run(scenario, appliedInputs) {
     scenario,
     random,
     scheduler,
-    intervention: scenario.defaultIntervention,
+    intervention,
     inputContext: appliedInputs,
   });
 }
@@ -146,6 +150,32 @@ test('identical inputs and seeds replay byte-for-byte', () => {
   const scenario = config.scenarios[1];
   const inputs = applied({ temperatureC: 28, delayHours: 3, availability: 0.9 });
   assert.deepEqual(run(scenario, inputs), run(scenario, inputs));
+});
+
+test('recall targeting follows observable traceback rank and later action cannot recover more inventory', () => {
+  const scenario = config.scenarios[1];
+  const inputs = applied({ temperatureC: 28, delayHours: 3, availability: 0.9 });
+  const early = runWithIntervention(scenario, inputs, {
+    ...scenario.defaultIntervention,
+    dayOffset: 0,
+  });
+  const late = runWithIntervention(scenario, inputs, {
+    ...scenario.defaultIntervention,
+    dayOffset: 14,
+  });
+  for (const result of [early, late]) {
+    assert.equal(result.recall.targetSelectionBasis, 'traceback-ranking');
+    assert.equal(result.recall.selectedTracebackRank, 1);
+    assert.deepEqual(result.recall.targetTlcIds, [result.traceback[0].candidateId]);
+    assert.equal(
+      result.recall.casesAverted,
+      Math.round(result.trueIllnesses * result.recall.recallSensitivity)
+    );
+  }
+  assert.ok(late.recall.recallDay > early.recall.recallDay);
+  assert.ok(late.recall.inInventoryFraction <= early.recall.inInventoryFraction);
+  assert.ok(late.recall.contaminatedUnitsRemoved <= early.recall.contaminatedUnitsRemoved);
+  assert.ok(late.recall.casesAverted <= early.recall.casesAverted);
 });
 
 test('plugin receipts, settlement, inspection, and v4 contribution expose applied causal inputs', async () => {

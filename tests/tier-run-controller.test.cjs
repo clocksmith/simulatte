@@ -43,12 +43,18 @@ function memoryStorage() {
   };
 }
 
-function fakeRuntime({ progressive = true, dispatchedValues = [], terminalStatus = 'settled' } = {}) {
+function fakeRuntime({
+  progressive = true,
+  dispatchedValues = [],
+  terminalStatus = 'settled',
+  comparisonIds = ['fixture-comparison'],
+  comparisonDispatches = [],
+} = {}) {
   let step = 0;
   const contribution = {
     pluginId: 'fixture',
     controls: {
-      comparisons: [{ id: 'fixture-comparison' }],
+      comparisons: comparisonIds.map((id) => ({ id })),
     },
     provenanceRecords: [modelRecord()],
   };
@@ -56,9 +62,10 @@ function fakeRuntime({ progressive = true, dispatchedValues = [], terminalStatus
     activePluginIds: ['fixture'],
     async dispatchAction(_pluginId, actionId, context) {
       if (actionId === 'counterfactual.compare') {
+        comparisonDispatches.push(context.values.comparisonId);
         return {
           status: 'settled',
-          comparisonId: 'fixture-comparison',
+          comparisonId: context.values.comparisonId,
           comparisonBranches: {
             baseline: { served: 4 },
             intervention: { served: 7 },
@@ -188,6 +195,39 @@ test('tier controller applies experiment parameters to start and step phases and
     { ...parameters, phase: 'step' },
   ]);
   assert.deepEqual(controller.receipt().parameterValues, parameters);
+});
+
+test('tier controller preserves the settled run parameters across runtime-reset replay', async () => {
+  const dispatchedValues = [];
+  const controls = { cargoTeu: 1200, speedPolicy: 'slow' };
+  const controller = create(fakeRuntime({ progressive: false, dispatchedValues }), memoryStorage(), [], [], controls);
+  await controller.start();
+  controls.cargoTeu = 400;
+  controls.speedPolicy = 'fast';
+  await controller.replay();
+  assert.deepEqual(dispatchedValues, [
+    { cargoTeu: 1200, speedPolicy: 'slow', phase: 'start' },
+    { cargoTeu: 1200, speedPolicy: 'slow', phase: 'start' },
+  ]);
+});
+
+test('tier controller executes every declared comparison independently', async () => {
+  const comparisonDispatches = [];
+  const controller = create(fakeRuntime({
+    progressive: false,
+    comparisonIds: ['first-comparison', 'second-comparison'],
+    comparisonDispatches,
+  }), memoryStorage(), [], []);
+  await controller.start();
+  assert.deepEqual(comparisonDispatches, ['first-comparison', 'second-comparison']);
+  assert.deepEqual(
+    controller.receipt().actionResult.comparisonExecutionReceipts.map((row) => row.id),
+    ['first-comparison', 'second-comparison']
+  );
+  assert.equal(
+    controller.receipt().actionResult.comparisonExecutionReceipt,
+    controller.receipt().actionResult.comparisonExecutionReceipts[0]
+  );
 });
 
 test('tier controller persists a bounded reload envelope instead of terminal evidence', () => {

@@ -44,6 +44,11 @@
       ensembleSize: scenario.ensembleSize,
       seed: scenario.seed,
     });
+    const decisionNotBeforeDay = Math.max(
+      ...campaign.observations
+        .filter((row) => fitReceipt.observationIds.includes(row.id))
+        .map((row) => row.epochDayTdb)
+    );
     const baselineEncounter = encounterApi.propagateEnsemble({
       ensemble: ensembleReceipt,
       campaign,
@@ -51,6 +56,7 @@
       intervention: noIntervention,
       executionModel,
       seed: scenario.seed,
+      notBeforeDay: decisionNotBeforeDay,
     });
     const thresholdSatisfied = baselineEncounter.modeledScreeningFraction >= scenario.decisionThreshold;
     const evidenceSatisfied = scenario.decisionPolicyId === 'act-at-threshold'
@@ -66,6 +72,7 @@
         intervention: appliedIntervention,
         executionModel,
         seed: scenario.seed,
+        notBeforeDay: decisionNotBeforeDay,
       });
     const fitError = hiddenEvaluation(fitReceipt.fittedState, campaign.hiddenTruth.initialState);
     const configurationIdentity = {
@@ -117,6 +124,7 @@
       baselineMedianDistanceKm: baselineEncounter.medianDistanceKm,
       interventionMedianDistanceKm: interventionEncounter.medianDistanceKm,
       successfulExecutionCount: interventionEncounter.members.filter((row) => row.executionSucceeded).length,
+      interventionExecutionProfile: interventionEncounter.executionProfile,
     };
     return deepFreeze({
       schema: 'simulatte.asteroidDefenseRun.v1',
@@ -166,28 +174,46 @@
     appliedIntervention,
   }) {
     const rows = [];
-    append('observations.acquired', campaign.observations.at(-1).epochDayTdb * DAY_MS, {
+    const analysisStartDay = campaign.observations.at(-1).epochDayTdb;
+    append('observations.acquired', analysisStartDay * DAY_MS, {
       observationIds: fitReceipt.observationIds,
     });
-    append('orbit.fit-completed', (campaign.observations.at(-1).epochDayTdb + 1) * DAY_MS, {
+    append('orbit.fit-completed', (analysisStartDay + 1) * DAY_MS, {
       terminationReason: fitReceipt.terminationReason,
       residualRmsRad: fitReceipt.residualRmsRad,
     });
-    append('orbit.ensemble-generated', (campaign.observations.at(-1).epochDayTdb + 2) * DAY_MS, {
+    append('orbit.ensemble-generated', (analysisStartDay + 2) * DAY_MS, {
       ensembleSize: ensembleReceipt.ensembleSize,
       covarianceIdentity: ensembleReceipt.covarianceIdentity,
     });
-    append('encounter.baseline-propagated', (campaign.observations.at(-1).epochDayTdb + 3) * DAY_MS, {
+    for (const [offset, progressFraction] of [[3, 0.25], [4, 0.5], [5, 0.75]]) {
+      append('encounter.baseline-progressed', (analysisStartDay + offset) * DAY_MS, {
+        progressFraction,
+        trajectoryDay: campaign.terminalDay * progressFraction,
+      });
+    }
+    append('encounter.baseline-propagated', (analysisStartDay + 6) * DAY_MS, {
       modeledScreeningFraction: baselineEncounter.modeledScreeningFraction,
+      progressFraction: 1,
+      trajectoryDay: campaign.terminalDay,
     });
-    append('decision.evaluated', (campaign.observations.at(-1).epochDayTdb + 4) * DAY_MS, {
+    append('decision.evaluated', (analysisStartDay + 7) * DAY_MS, {
       requestedInterventionId: requestedIntervention.id,
       appliedInterventionId: appliedIntervention.id,
     });
-    append('encounter.intervention-propagated', campaign.terminalDay * DAY_MS, {
+    for (const [offset, progressFraction] of [[8, 0.25], [9, 0.5], [10, 0.75]]) {
+      append('encounter.intervention-progressed', (analysisStartDay + offset) * DAY_MS, {
+        progressFraction,
+        trajectoryDay: campaign.terminalDay * progressFraction,
+        interventionId: appliedIntervention.id,
+      });
+    }
+    append('encounter.intervention-propagated', (analysisStartDay + 11) * DAY_MS, {
       modeledScreeningFraction: interventionEncounter.modeledScreeningFraction,
+      progressFraction: 1,
+      trajectoryDay: campaign.terminalDay,
     });
-    append('scenario.settled', (campaign.terminalDay + 1) * DAY_MS, {
+    append('scenario.settled', (analysisStartDay + 12) * DAY_MS, {
       claimBoundary: 'simulation-only',
     });
     return rows;
@@ -215,30 +241,54 @@
     appliedIntervention,
   }) {
     const phases = [
-      ['ready', 0],
-      ['observed', events[0].simulationTimeMs],
-      ['fitted', events[1].simulationTimeMs],
-      ['ensemble', events[2].simulationTimeMs],
-      ['baseline-propagated', events[3].simulationTimeMs],
-      ['decision', events[4].simulationTimeMs],
-      ['intervention-propagated', events[5].simulationTimeMs],
-      ['settled', events[6].simulationTimeMs],
+      { status: 'ready', simulationTimeMs: 0, event: null },
+      ...events.map((event) => ({
+        status: statusForEvent(event.kind),
+        simulationTimeMs: event.simulationTimeMs,
+        event,
+      })),
     ];
-    return phases.map(([status, simulationTimeMs], index) => deepFreeze({
+    return phases.map(({ status, simulationTimeMs, event }, index) => {
+      const occurred = events.slice(0, index);
+      const hasOccurred = (kind) => occurred.some((row) => row.kind === kind);
+      const baselineComplete = hasOccurred('encounter.baseline-propagated');
+      const decisionComplete = hasOccurred('decision.evaluated');
+      const interventionComplete = hasOccurred('encounter.intervention-propagated');
+      return deepFreeze({
       schema: 'simulatte.asteroidDefenseState.v1',
       id: `${scenarioIdentity}:snapshot-${index}`,
       simulationTimeMs,
       status,
-      observationCount: index >= 1 ? fitReceipt.observationIds.length : 0,
-      fitReceipt: index >= 2 ? fitReceipt : null,
-      ensembleReceipt: index >= 3 ? ensembleReceipt : null,
-      baselineEncounter: index >= 4 ? encounterSummary(baselineEncounter) : null,
-      requestedInterventionId: index >= 5 ? requestedIntervention.id : null,
-      appliedInterventionId: index >= 5 ? appliedIntervention.id : null,
-      interventionEncounter: index >= 6 ? encounterSummary(interventionEncounter) : null,
-      eventIds: events.slice(0, index).map((row) => row.id),
+      observationCount: hasOccurred('observations.acquired') ? fitReceipt.observationIds.length : 0,
+      fitReceipt: hasOccurred('orbit.fit-completed') ? fitReceipt : null,
+      ensembleReceipt: hasOccurred('orbit.ensemble-generated') ? ensembleReceipt : null,
+      baselineEncounter: baselineComplete ? encounterSummary(baselineEncounter) : null,
+      requestedInterventionId: decisionComplete ? requestedIntervention.id : null,
+      appliedInterventionId: decisionComplete ? appliedIntervention.id : null,
+      interventionEncounter: interventionComplete ? encounterSummary(interventionEncounter) : null,
+      activeEncounter: event?.kind.includes('intervention')
+        ? 'intervention'
+        : event?.kind.includes('baseline') ? 'baseline' : null,
+      trajectoryProgress: event?.payload?.progressFraction ?? null,
+      trajectoryDay: event?.payload?.trajectoryDay ?? null,
+      eventIds: occurred.map((row) => row.id),
       campaign: { id: campaign.id, startInstant: campaign.startInstant, terminalDay: campaign.terminalDay },
-    }));
+      });
+    });
+  }
+
+  function statusForEvent(kind) {
+    return ({
+      'observations.acquired': 'observed',
+      'orbit.fit-completed': 'fitted',
+      'orbit.ensemble-generated': 'ensemble',
+      'encounter.baseline-progressed': 'baseline-propagating',
+      'encounter.baseline-propagated': 'baseline-propagated',
+      'decision.evaluated': 'decision',
+      'encounter.intervention-progressed': 'intervention-propagating',
+      'encounter.intervention-propagated': 'intervention-propagated',
+      'scenario.settled': 'settled',
+    })[kind] || 'running';
   }
 
   function encounterSummary(encounter) {

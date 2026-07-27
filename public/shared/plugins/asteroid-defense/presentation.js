@@ -6,9 +6,13 @@
   root.SimulatteAsteroidPresentation = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createAsteroidPresentation(propagation) {
   function createSemanticPresentation({ result, snapshot, forceModel }) {
-    const encounter = snapshot.interventionEncounter
+    const encounter = snapshot.activeEncounter === 'intervention'
       ? result.interventionEncounter
-      : snapshot.baselineEncounter ? result.baselineEncounter : null;
+      : snapshot.activeEncounter === 'baseline'
+        ? result.baselineEncounter
+        : snapshot.interventionEncounter
+          ? result.interventionEncounter
+          : snapshot.baselineEncounter ? result.baselineEncounter : null;
     const representative = encounter?.members?.[0] || null;
     const trajectory = snapshot.fitReceipt && representative
       ? representative.trajectory.map((row) => row.positionAu)
@@ -34,10 +38,24 @@
         truth: truth('simulated'),
       };
     });
+    const actorPosition = representative && Number.isFinite(snapshot.trajectoryDay)
+      ? positionAtDay(representative.trajectory, snapshot.trajectoryDay)
+      : null;
+    const actorObjects = actorPosition ? [{
+      id: 'asteroid-active-clone',
+      kind: 'synthetic_asteroid_actor',
+      geometry: { type: 'point', coordinates: actorPosition },
+      quantities: {
+        progressFraction: snapshot.trajectoryProgress,
+        encounterBranch: snapshot.activeEncounter,
+      },
+      evidenceRefs: [result.ensembleReceipt.covarianceIdentity],
+      truth: truth('simulated'),
+    }] : [];
     return deepFreeze({
       schema: 'simulatte.semanticPresentation.v4',
       coordinateSystem: 'heliocentric-ecliptic-au',
-      epoch: result.campaign.startInstant,
+      epoch: epochForDay(result.campaign.startInstant, snapshot.trajectoryDay || 0),
       currentEventId: snapshot.eventIds.at(-1) || null,
       layers: [
         ...(trajectory.length ? [
@@ -61,12 +79,15 @@
         ...(encounterObjects.length ? [
           layer('asteroid-encounters', 'encounter_distribution', encounterObjects, 'distribution_cluster', 'minimumDistanceKm'),
         ] : []),
+        ...(actorObjects.length ? [
+          layer('asteroid-active-clone-layer', 'progress_actor', actorObjects, 'none', 'progressFraction'),
+        ] : []),
       ],
       viewIntents: [{
         schema: 'simulatte.viewIntent.v4',
-        mode: snapshot.status === 'settled' ? 'compare' : snapshot.status.includes('propagated') ? 'follow' : 'overview',
-        targetIds: snapshot.status.includes('propagated')
-          ? encounterObjects.map((row) => row.id)
+        mode: snapshot.status === 'settled' ? 'compare' : actorObjects.length ? 'follow' : 'overview',
+        targetIds: actorObjects.length
+          ? actorObjects.map((row) => row.id)
           : trajectory.length ? ['asteroid-representative-trajectory', 'earth-reference-trajectory'] : [],
         transitionReason: snapshot.eventIds.at(-1) ? `simulation_event:${snapshot.eventIds.at(-1)}` : 'scenario_ready',
         priority: 70,
@@ -78,6 +99,7 @@
 
   function adaptToV3(semantic) {
     const objects = semantic.layers.flatMap((row) => row.objects);
+    const actors = objects.filter((row) => row.kind === 'synthetic_asteroid_actor');
     return deepFreeze({
       schema: 'simulatte.pluginPresentation.v3',
       coordinateSystem: 'heliocentric-ecliptic-au',
@@ -96,7 +118,13 @@
         tone: row.kind === 'modeled_earth_reference' ? 'blue' : 'amber',
         width: 1.1,
       })),
-      actors: [],
+      actors: actors.map((row) => ({
+        id: row.id,
+        position: row.geometry.coordinates,
+        label: `Synthetic clone · ${Math.round(row.quantities.progressFraction * 100)}%`,
+        tone: 'green',
+        radius: 0.7,
+      })),
       areas: [],
       cameraTargets: [{ id: 'asteroid-encounter', center: [1, 0, 0], label: 'Synthetic encounter region', distance: 2.4 }],
       viewIntents: semantic.viewIntents,
@@ -119,6 +147,18 @@
       temporalStatus: 'forecast',
       uncertainty: { kind: 'distribution', value: { interpretation: 'Synthetic orbit and execution ensemble.' } },
     };
+  }
+  function positionAtDay(trajectory, day) {
+    let lowerIndex = 0;
+    for (let index = 1; index < trajectory.length && trajectory[index].day <= day; index += 1) lowerIndex = index;
+    const lower = trajectory[lowerIndex];
+    const upper = trajectory[Math.min(trajectory.length - 1, lowerIndex + 1)];
+    const ratio = upper.day === lower.day ? 0 : (day - lower.day) / (upper.day - lower.day);
+    return lower.positionAu.map((value, index) => value + (upper.positionAu[index] - value) * ratio);
+  }
+  function epochForDay(startInstant, day) {
+    const start = Date.parse(startInstant || '');
+    return Number.isFinite(start) ? new Date(start + day * 86400000).toISOString() : startInstant;
   }
   function deepFreeze(value) {
     if (!value || typeof value !== 'object' || Object.isFrozen(value)) return value;

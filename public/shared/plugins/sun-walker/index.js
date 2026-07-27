@@ -250,6 +250,7 @@
       return v4Api.createContribution({
         simulation: state.simulation,
         step: state.playback.step,
+        world,
         buildingReceipt,
         governanceReceipt,
         environmentReceipt,

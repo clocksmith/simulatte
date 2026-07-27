@@ -55,7 +55,8 @@
         axisOrder: ['icrs-x', 'icrs-y', 'icrs-z'],
         units: 'parsec',
         origin: 'solar-system-barycentric-scenario-origin',
-        epoch: `J${result.targetEpochYear}`,
+        epoch: progressive.timestamp || result.schedule.startEpochIso,
+        inputStateEpoch: `J${result.astrometryEpochYear}`,
         scaleSemantics: 'true-distance',
         distanceSemantics: 'euclidean-3d-parsec',
         depthSemantics: 'signed-icrs-z-parsec-not-render-order',
@@ -98,6 +99,10 @@
       records: [model, spatial],
     });
     const stateById = new Map(result.stellarStates.map((row) => [row.sourceId, row]));
+    const displayPositionById = new Map(result.stellarStates.map((row) => [
+      row.sourceId,
+      positionAtEpoch(row, progressive.timestamp),
+    ]));
     const alternativeLayers = result.routeSelection.alternatives
       .filter((row) => row.path.join(':') !== result.routeSelection.selectedPath.join(':'))
       .map((alternative, index) => builder.layer({
@@ -105,7 +110,7 @@
         kind: 'path',
         label: `Alternative ${index + 1}: ${pathLabel(alternative.path, stateById)}`,
         geometry: builder.geometry('polyline', 'icrs-cartesian-pc', alternative.path.map(
-          (id) => stateById.get(id).positionPc,
+          (id) => displayPositionById.get(id),
         )),
         quantity: builder.quantity('route-score', alternative.score, 'normalized-score'),
         role: 'comparison',
@@ -118,7 +123,7 @@
         id: `star:${state.sourceId}`,
         kind: 'point',
         label: state.name,
-        geometry: builder.geometry('point', 'icrs-cartesian-pc', [state.positionPc]),
+        geometry: builder.geometry('point', 'icrs-cartesian-pc', [displayPositionById.get(state.sourceId)]),
         quantity: builder.quantity('distance', state.distancePc, 'pc'),
         role: result.scenario.relayHops.includes(state.sourceId) ? 'primary' : 'context',
         importance: result.scenario.relayHops.includes(state.sourceId) ? 0.9 : 0.25,
@@ -130,8 +135,8 @@
         kind: 'path',
         label: `${result.channelReceipts[index].label}: ${stateById.get(hop.fromId).name} to ${stateById.get(hop.toId).name}`,
         geometry: builder.geometry('polyline', 'icrs-cartesian-pc', [
-          stateById.get(hop.fromId).positionPc,
-          stateById.get(hop.toId).positionPc,
+          hop.lightTime.sourcePositionAtTransmissionPc,
+          hop.lightTime.targetPositionAtArrivalPc,
         ]),
         quantity: builder.quantity('data-rate', result.channelReceipts[index].effectiveDataRateGbps, 'Gb/s'),
         role: 'primary',
@@ -141,14 +146,18 @@
       })),
       ...alternativeLayers,
     ];
-    const packetState = stateById.get(progressive.packetLocationId) || result.relayStates[0];
     const packetPosition = locatePacket(result, progressive, stateById);
-    if (packetState) layers.push(builder.layer({
+    if (packetPosition) layers.push(builder.layer({
       id: result.packet.packetId,
       kind: 'actor',
       label: `Scenario packet: ${progressive.status}`,
       geometry: builder.geometry('point', 'icrs-cartesian-pc', [packetPosition]),
-      quantity: builder.quantity('payload', result.packet.payloadBytes, 'bytes'),
+      quantity: builder.quantity(
+        'actor.packet.route-progress',
+        activeHopProgress(result, progressive),
+        'ratio',
+        [0, 1]
+      ),
       role: 'event',
       importance: 1,
       provenance: simulated,
@@ -179,13 +188,13 @@
     const presentation = builder.presentation({
       pluginId: PLUGIN_ID,
       coordinateSystem: 'icrs-cartesian-pc',
-      epoch: `J${result.targetEpochYear}`,
+      epoch: progressive.timestamp || result.schedule.startEpochIso,
       layers,
       viewIntents: [builder.viewIntent({
         id: 'interstellar-relay-overview',
         mode: progressive.status === 'settled' ? 'compare' : activeLayerId ? 'follow' : 'overview',
         targetIds: activeLayerId
-          ? [activeLayerId, result.packet.packetId]
+          ? [result.packet.packetId]
           : [
             ...result.schedule.hops.map((_, index) => `relay-link:${index}`),
             ...alternativeLayers.map((row) => row.id),
@@ -215,7 +224,6 @@
       datetime('startEpochIso', 'Transmission epoch', result.controls.startEpochIso.slice(0, 16), modeled),
       numeric('packetBytes', 'Packet size', result.controls.packetBytes, 64, 1073741824, 1, modeled),
       numeric('processingDelayHours', 'Relay processing delay', result.controls.processingDelayHours, 0, 8760, 1, modeled),
-      numeric('targetEpochYear', 'Target epoch year', result.controls.targetEpochYear, 2016, 2200, 1, modeled),
       select('transceiverId', 'Optical terminal', result.controls.transceiverId, options.terminals, modeled),
       ...advancedControls(result, channelProvenance),
     ], [{
@@ -295,10 +303,31 @@
     }
     const hop = result.schedule.hops[progressive.activeHopIndex];
     const source = stateById.get(hop.fromId).positionPc;
-    const target = stateById.get(hop.toId).positionPc;
+    const target = hop.lightTime.targetPositionAtArrivalPc;
+    const transmissionSource = hop.lightTime.sourcePositionAtTransmissionPc || source;
     const duration = Math.max(1, hop.receiveOffsetSeconds - hop.transmitOffsetSeconds);
     const fraction = Math.max(0, Math.min(1, (progressive.elapsedSeconds - hop.transmitOffsetSeconds) / duration));
-    return source.map((value, index) => value + ((target[index] - value) * fraction));
+    return transmissionSource.map((value, index) => value + ((target[index] - value) * fraction));
+  }
+  function activeHopProgress(result, progressive) {
+    if (progressive.activeHopIndex === null) {
+      return progressive.status === 'settled' ? 1 : 0;
+    }
+    const hop = result.schedule.hops[progressive.activeHopIndex];
+    const duration = Math.max(1, hop.receiveOffsetSeconds - hop.transmitOffsetSeconds);
+    return Math.max(0, Math.min(1, (progressive.elapsedSeconds - hop.transmitOffsetSeconds) / duration));
+  }
+  function positionAtEpoch(state, epochIso) {
+    const epochYear = decimalYear(epochIso);
+    const deltaYears = epochYear - Number(state.epochYear ?? epochYear);
+    return state.positionPc.map((value, index) => value + (state.velocityPcYr?.[index] || 0) * deltaYears);
+  }
+  function decimalYear(epochIso) {
+    const milliseconds = Date.parse(epochIso || '');
+    if (!Number.isFinite(milliseconds)) return 0;
+    const year = new Date(milliseconds).getUTCFullYear();
+    const start = Date.UTC(year, 0, 1);
+    return year + (milliseconds - start) / (Date.UTC(year + 1, 0, 1) - start);
   }
   function numeric(id, label, value, minimum, maximum, step, provenance) {
     return { id, label, kind: 'number', value, options: null, minimum, maximum, step, provenance };
@@ -363,5 +392,5 @@
     return `${format(value.p10)} / ${format(value.p50)} / ${format(value.p90)}`;
   }
   function field(id, label, value, unit, provenance) { return { id, label, value, unit, provenance }; }
-  return Object.freeze({ createContribution });
+  return Object.freeze({ activeHopProgress, createContribution, locatePacket, positionAtEpoch });
 });

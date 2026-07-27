@@ -157,6 +157,46 @@ test('City renderer converts compositor pixels into visible world dimensions', (
   assert.equal(compiled.compositorReceipts[0].policies.screenSpaceWidths, true);
 });
 
+test('City compiles a semantic actor into a moving actor mesh and camera target', () => {
+  const base = semanticPresentation();
+  const presentation = {
+    ...base,
+    layers: [{
+      ...base.layers[0],
+      id: 'walker',
+      kind: 'actor',
+      label: 'Walker',
+      geometry: { kind: 'point', coordinateSystem: 'local-m', coordinates: [[20, 30]] },
+      quantity: { kind: 'actor.pedestrian.route-progress', value: 0.25, unit: 'ratio', domain: [0, 1] },
+      aggregationKey: null,
+    }],
+    viewIntents: [{
+      schema: 'simulatte.viewIntent.v4',
+      id: 'walker-navigation',
+      mode: 'follow',
+      targetIds: ['walker'],
+      reasonEventId: null,
+      priority: 55,
+      transition: 'ease',
+    }],
+  };
+  const compiled = cityPresentation.compile([{
+    pluginId: 'fixture',
+    presentation,
+  }], {
+    world: {},
+    node() { throw new Error('unused'); },
+    segment() { throw new Error('unused'); },
+  }, {
+    viewport: { width: 400, height: 300 },
+    provenanceReceipts: [provenanceReceipt(presentation)],
+  });
+  assert.equal(compiled.actors.length, 1);
+  assert.equal(compiled.actors[0].kind, 'pedestrian');
+  assert.deepEqual(compiled.actors[0].points, [{ x: 20, y: 30 }]);
+  assert.ok(compiled.cameraTargets.some((row) => row.id === 'plugin:fixture:walker'));
+});
+
 test('City segment-set paths render independently without invented connector geometry', () => {
   const presentation = {
     ...semanticPresentation(),

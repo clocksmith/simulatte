@@ -138,6 +138,8 @@
         builder.quantity('modeled-emissions-this-hour', currentMetrics.emissionsTons, 'ton'),
         builder.quantity('current-minimum-reserve-margin', currentMetrics.minimumReserveMarginRatio, 'ratio'),
         builder.quantity('storage-state-of-charge', currentMetrics.storageStateOfChargeMwh, 'MWh'),
+        builder.quantity('storage-charging-load', currentMetrics.storageChargeMw, 'MW'),
+        builder.quantity('spilled-generation', currentMetrics.spilledGenerationMw, 'MW'),
       ],
       provenance: simulated,
     });
@@ -222,11 +224,15 @@
       emissionsTons: result.emissionsTons + (row.emissionsTons || 0),
       minimumReserveMarginRatio: Math.min(result.minimumReserveMarginRatio, row.reserveMarginRatio || 0),
       storageStateOfChargeMwh: result.storageStateOfChargeMwh + (row.storageStateOfChargeMwh || 0),
+      storageChargeMw: result.storageChargeMw + (row.storageChargeMw || 0),
+      spilledGenerationMw: result.spilledGenerationMw + (row.spilledGenerationMw || 0),
     }), {
       unservedMw: 0,
       emissionsTons: 0,
       minimumReserveMarginRatio: 1,
       storageStateOfChargeMwh: 0,
+      storageChargeMw: 0,
+      spilledGenerationMw: 0,
     });
   }
 

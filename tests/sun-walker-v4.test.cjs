@@ -10,6 +10,7 @@ const simulationApi = require('../public/shared/plugins/sun-walker/sun-route-sim
 const presentationApi = require('../public/shared/plugins/sun-walker/presentation.js');
 const compatibilityApi = require('../public/shared/plugins/sun-walker/compatibility-adapter.js');
 const plugin = require('../public/shared/plugins/sun-walker/index.js');
+const v4Api = require('../public/shared/plugins/sun-walker/v4-contribution.js');
 
 const pluginRoot = require.resolve('../public/shared/plugins/sun-walker/plugin.json').replace(/plugin\.json$/, '');
 const governancePath = require.resolve('../public/data/sun-walker/sun-walker-model-governance-v1.json');
@@ -161,7 +162,7 @@ test('semantic layers carry quantities and evidence without permanent styling au
   ]);
   assert.ok(semantic.layers.every((row) => row.evidenceRefs.length > 0));
   assert.ok(semantic.viewIntents.some((row) => row.mode === 'compare'));
-  assert.ok(semantic.viewIntents.some((row) => row.mode === 'free'));
+  assert.ok(semantic.viewIntents.every((row) => row.mode !== 'free'));
   const serialized = JSON.stringify(semantic);
   assert.doesNotMatch(serialized, /"tone"|"color"|"widthM"|"lineWidth"|"labelDensity"|"lodThreshold"/);
   assert.ok(semantic.controls.some((row) => row.id === 'walkingSpeedMps' && row.isEnabled));
@@ -229,7 +230,17 @@ test('plugin lifecycle advances the modeled walk without owning playback delay o
     config: { ...config, directSunWeight: 4 },
     scenario: { seed: 'lifecycle-seed', missionText: 'Take the shadier walk' },
   });
-  assert.ok(instance.contributeV4().controls.controls.length >= 7);
+  const readyV4 = instance.contributeV4();
+  assert.ok(readyV4.controls.controls.length >= 7);
+  assert.ok(readyV4.presentation.layers.some((row) => row.id === 'sun-walker-actor' && row.kind === 'actor'));
+  assert.ok(readyV4.presentation.layers.some((row) => row.kind === 'area' && row.quantity.kind === 'occlusion.shadow-length'));
+  assert.deepEqual(readyV4.presentation.viewIntents.map((row) => ({
+    mode: row.mode,
+    targetIds: row.targetIds,
+  })), [{
+    mode: 'follow',
+    targetIds: ['sun-walker-actor'],
+  }]);
   const contribution = instance.contributeRequest({
     sourceText: 'Take the shadier walk',
     mission: { originNodeId: 'a', destinationNodeId: 'b', embodimentId: 'pedestrian' },
@@ -258,7 +269,9 @@ test('plugin lifecycle advances the modeled walk without owning playback delay o
   assert.equal(instance.eventTimeline().events[0].timestamp.startsWith('2026-07-19T18:00'), true);
   assert.equal(Object.hasOwn(started, 'nextStepDelayMs'), false);
   let result = started;
-  while (result.status === 'running') result = instance.handleAction('scenario.run', { values: { phase: 'step' } });
+  while (result.status === 'running') {
+    result = instance.handleAction('scenario.run', { values: { phase: 'step' } });
+  }
   assert.equal(result.status, 'settled');
   const settlement = instance.settle();
   contracts.validateSettlementContribution('sun-walker', settlement);
@@ -275,6 +288,21 @@ test('plugin lifecycle advances the modeled walk without owning playback delay o
   assert.equal(
     directSun.value,
     `${Math.round(simulation.state.directSunSeconds)} of ${Math.round(instance.comparisonModel().metrics.travelSeconds.intervention)} s`
+  );
+});
+
+test('exposure transitions request a true POV camera while steady movement remains follow', () => {
+  assert.equal(
+    v4Api.exposureNavigationMode({ state: 'shade' }, { state: 'direct' }),
+    'pov'
+  );
+  assert.equal(
+    v4Api.exposureNavigationMode({ state: 'shade' }, { state: 'shade' }),
+    'follow'
+  );
+  assert.equal(
+    v4Api.exposureNavigationMode({ state: 'shade' }, { state: 'direct' }, true),
+    'compare'
   );
 });
 

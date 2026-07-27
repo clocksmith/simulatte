@@ -223,6 +223,9 @@
       const busiestHub = [...result.hubStats].sort((left, right) => right.needs - left.needs || left.id.localeCompare(right.id))[0];
       const busiestCable = [...result.typeStats].sort((left, right) => right.needs - left.needs || left.id.localeCompare(right.id))[0];
       const crossHubTransfers = result.flows.filter((flow) => flow.sourceHubId !== flow.destinationHubId).reduce((total, flow) => total + flow.quantity, 0);
+      const visibleRequestCount = crossHubTransfers > 0
+        ? Math.ceil(renderedRequestCount * (result.day / result.durationDays))
+        : 0;
       const today = result.day > 0 ? state.simulation.daily[result.day - 1] : null;
       const settled = state.playback.status === 'settled';
       return [{
@@ -270,7 +273,7 @@
         title: '30-day cable city',
         rows: [
           { label: 'Modeled demand events', value: format(result.summary.modeledRequests) },
-          { label: 'Rendered request sample', value: `${format(renderedRequestCount)} of ${format(result.summary.modeledRequests)} modeled requests` },
+          { label: 'Visible request actors', value: `${format(visibleRequestCount)} of ${format(result.summary.modeledRequests)} modeled requests` },
           { label: 'Cross-hub transfers', value: format(crossHubTransfers) },
           { label: 'Solver', value: 'Exact min-cost maximum-flow' },
         ],

@@ -39,6 +39,7 @@
       restoration: datasets.restoration,
       policyId: policies.restorationPolicyId,
       crewCount: scenario.restorationCrewCount || config.restorationCrewCount,
+      seed: scenario.seed,
     });
     const storageState = Object.fromEntries(operating.regions.flatMap((region) => region.storage.map(
       (row) => [row.id, row.initialStateOfChargeMwh]
@@ -92,7 +93,9 @@
         regions: result.regions,
         interfaces: result.interfaces,
         activeFailureIds: activeFailures.targetIds,
-        restoredTargetIds: restoration.tasks.filter((row) => row.completeHour <= hour).map((row) => row.targetId),
+        restoredTargetIds: restoration.tasks.filter(
+          (row) => Number.isFinite(row.completeHour) && row.completeHour <= hour
+        ).map((row) => row.targetId),
         eventIds: events.map((row) => row.id),
         verification: result.verification,
       }));
@@ -100,7 +103,7 @@
     const metrics = metricsApi.summarize(snapshots.slice(1));
     const configurationIdentity = {
       profileId: 'grid-resilience-us-v1',
-      worldModelId: 'us-food-network-v1',
+      worldModelId: 'us-national-regions-v1',
       disturbanceScenarioId: disturbance.id,
       seed: scenario.seed,
       ...policies,
@@ -212,6 +215,8 @@
         importsMw: 0,
         exportsMw: 0,
         storageDischargeMw: 0,
+        storageChargeMw: 0,
+        spilledGenerationMw: 0,
         unservedMw: 0,
         priority: priority.get(region.id) ?? 999,
         resourceHeadroomMw: round(sum(generation, 'headroomMw')),
@@ -247,12 +252,45 @@
     const nextStorageState = { ...storageState };
     regionState.forEach((region) => {
       const storage = operating.regions.find((row) => row.id === region.id).storage[0];
-      const deficit = Math.max(0, region.netDemandMw - region.generationMw - region.importsMw + region.exportsMw);
+      let netPositionMw = round(
+        region.generationMw + region.importsMw - region.exportsMw - region.netDemandMw
+      );
+      if (netPositionMw > 0) {
+        const energyHeadroomMwh = Math.max(
+          0,
+          storage.energyCapacityMwh - storageState[storage.id]
+        );
+        const chargeMw = round(Math.min(
+          netPositionMw,
+          storage.powerCapacityMw,
+          energyHeadroomMwh / storage.chargeEfficiency
+        ));
+        region.storageChargeMw = chargeMw;
+        nextStorageState[storage.id] = round(
+          storageState[storage.id] + chargeMw * storage.chargeEfficiency
+        );
+        netPositionMw = round(netPositionMw - chargeMw);
+        if (netPositionMw > 0) {
+          const curtailed = reduceGeneration(region, netPositionMw);
+          netPositionMw = round(netPositionMw - curtailed);
+        }
+        region.spilledGenerationMw = Math.max(0, netPositionMw);
+      }
+      const deficit = Math.max(
+        0,
+        region.netDemandMw - region.generationMw - region.importsMw + region.exportsMw
+      );
       const reserveFraction = policies.storagePolicyId === 'reserve-preserving' ? 0.38 : storage.minimumStateOfChargeFraction;
       const availableEnergyMwh = Math.max(0, storageState[storage.id] - storage.energyCapacityMwh * reserveFraction);
       const dischargeMw = round(Math.min(deficit, storage.powerCapacityMw, availableEnergyMwh * storage.dischargeEfficiency));
       region.storageDischargeMw = dischargeMw;
-      nextStorageState[storage.id] = round(storageState[storage.id] - dischargeMw / storage.dischargeEfficiency);
+      if (dischargeMw > 0) {
+        nextStorageState[storage.id] = round(
+          storageState[storage.id] - dischargeMw / storage.dischargeEfficiency
+        );
+      } else if (nextStorageState[storage.id] === undefined) {
+        nextStorageState[storage.id] = storageState[storage.id];
+      }
       region.unservedMw = round(Math.max(0, deficit - dischargeMw));
       region.servedMw = round(region.grossDemandMw - region.demandResponseMw - region.unservedMw);
       region.reserveMw = round(Math.max(0, region.resourceHeadroomMw));
@@ -265,7 +303,8 @@
       ));
       region.balanceResidualMw = round(
         region.generationMw + region.importsMw + region.storageDischargeMw
-        + region.unservedMw + region.demandResponseMw - region.grossDemandMw - region.exportsMw
+        + region.unservedMw + region.demandResponseMw - region.grossDemandMw
+        - region.exportsMw - region.storageChargeMw - region.spilledGenerationMw
       );
       delete region.priority;
       delete region.resourceHeadroomMw;
@@ -277,6 +316,10 @@
       const storage = region.storage[0];
       return nextStorageState[storage.id] >= -1e-6 && nextStorageState[storage.id] <= storage.energyCapacityMwh + 1e-6;
     });
+    const rampValid = regionState.every((region) => region.generation.every(
+      (resource) => resource.generationMw + 1e-6 >= resource.minimumGenerationMw
+        && resource.generationMw <= resource.availableCapacityMw + 1e-6
+    ));
     return deepFreeze({
       regions: regionState,
       interfaces,
@@ -286,10 +329,11 @@
       ))),
       observedRowIds: regionState.flatMap((row) => [row.observedDemandRowId, ...row.observedWeatherRowIds]),
       verification: {
-        valid: maximumBalanceResidualMw <= 1e-5 && interfaceValid && storageValid,
+        valid: maximumBalanceResidualMw <= 1e-5 && interfaceValid && storageValid && rampValid,
         maximumBalanceResidualMw,
         interfaceValid,
         storageValid,
+        rampValid,
       },
     });
   }
@@ -308,9 +352,18 @@
       availableCapacityMw = Math.min(availableCapacityMw,
         previousGeneration[resource.id] + resource.capacityMw * resource.rampUpFraction);
     }
+    const stableMinimumMw = resource.capacityMw * resource.minimumOutputFraction * availability;
+    const rampMinimumMw = hour > 0 && Number.isFinite(previousGeneration[resource.id])
+      ? previousGeneration[resource.id] - resource.capacityMw * resource.rampDownFraction
+      : stableMinimumMw;
+    const minimumGenerationMw = Math.min(
+      availableCapacityMw,
+      Math.max(0, stableMinimumMw, rampMinimumMw)
+    );
     return {
       ...resource,
       availableCapacityMw: round(Math.max(0, availableCapacityMw)),
+      minimumGenerationMw: round(Math.max(0, minimumGenerationMw)),
       effectiveCostUsdPerMwh: round(resource.variableCostUsdPerMwh + resource.emissionsTonsPerMwh * emissionsPriceUsdPerTon),
     };
   }
@@ -321,10 +374,15 @@
       const bScore = b.effectiveCostUsdPerMwh + (policyId === 'resilience-weighted' ? b.emissionsTonsPerMwh * 35 : 0);
       return aScore - bScore || a.id.localeCompare(b.id);
     });
-    let remaining = targetMw;
+    let remaining = Math.max(0, targetMw - sum(ordered, 'minimumGenerationMw'));
     return ordered.map((resource) => {
-      const generationMw = round(Math.min(remaining, resource.availableCapacityMw));
-      remaining = round(Math.max(0, remaining - generationMw));
+      const generationMw = round(
+        resource.minimumGenerationMw
+        + Math.min(remaining, resource.availableCapacityMw - resource.minimumGenerationMw)
+      );
+      remaining = round(Math.max(0, remaining - (
+        generationMw - resource.minimumGenerationMw
+      )));
       return {
         ...resource,
         generationMw,
@@ -334,12 +392,42 @@
   }
 
   function transfer(edge, source, destination, signedAmount) {
-    const amount = Math.abs(signedAmount);
-    source.generationMw = round(source.generationMw + amount);
-    source.resourceHeadroomMw = round(source.resourceHeadroomMw - amount);
+    const requested = Math.abs(signedAmount);
+    const amount = increaseGeneration(source, requested);
     source.exportsMw = round(source.exportsMw + amount);
     destination.importsMw = round(destination.importsMw + amount);
-    edge.transferMw = round(signedAmount);
+    edge.transferMw = round(Math.sign(signedAmount) * amount);
+  }
+
+  function increaseGeneration(region, requestedMw) {
+    let remaining = requestedMw;
+    region.generation.forEach((resource) => {
+      if (remaining <= 0) return;
+      const increase = Math.min(remaining, resource.headroomMw);
+      resource.generationMw = round(resource.generationMw + increase);
+      resource.headroomMw = round(resource.headroomMw - increase);
+      remaining = round(remaining - increase);
+    });
+    const delivered = round(requestedMw - remaining);
+    region.generationMw = round(sum(region.generation, 'generationMw'));
+    region.resourceHeadroomMw = round(sum(region.generation, 'headroomMw'));
+    return delivered;
+  }
+
+  function reduceGeneration(region, requestedMw) {
+    let remaining = requestedMw;
+    [...region.generation].reverse().forEach((resource) => {
+      if (remaining <= 0) return;
+      const reducible = Math.max(0, resource.generationMw - resource.minimumGenerationMw);
+      const reduction = Math.min(remaining, reducible);
+      resource.generationMw = round(resource.generationMw - reduction);
+      resource.headroomMw = round(resource.headroomMw + reduction);
+      remaining = round(remaining - reduction);
+    });
+    const reduced = round(requestedMw - remaining);
+    region.generationMw = round(sum(region.generation, 'generationMw'));
+    region.resourceHeadroomMw = round(sum(region.generation, 'headroomMw'));
+    return reduced;
   }
 
   function failuresAtHour(disturbance, restoration, hour) {
@@ -382,7 +470,13 @@
       ],
       restoredTargetIds: [],
       eventIds: [],
-      verification: { valid: true, maximumBalanceResidualMw: 0, interfaceValid: true, storageValid: true },
+      verification: {
+        valid: true,
+        maximumBalanceResidualMw: 0,
+        interfaceValid: true,
+        storageValid: true,
+        rampValid: true,
+      },
     });
   }
 

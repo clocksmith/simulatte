@@ -307,7 +307,8 @@
           onSettled: (receipt) => {
             hostRoot.__simulattePluginRunReceipt = receipt;
             hostRoot.__simulatteComparisonExecutionReceipts = Object.freeze(
-              receipt.comparisonExecutionReceipt ? [receipt.comparisonExecutionReceipt] : []
+              receipt.comparisonExecutionReceipts
+                || (receipt.comparisonExecutionReceipt ? [receipt.comparisonExecutionReceipt] : [])
             );
             pluginPlaybackApi.saveStoredReceipt(playbackStorage, data.applicationProfile.id, receipt);
           },

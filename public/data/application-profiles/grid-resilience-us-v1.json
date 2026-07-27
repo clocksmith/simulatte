@@ -2,7 +2,7 @@
   "schema": "simulatte.applicationProfile.v3",
   "id": "grid-resilience-us-v1",
   "tier": "country",
-  "worldModelId": "us-food-network-v1",
+  "worldModelId": "us-national-regions-v1",
   "interaction": {
     "mode": "simulation",
     "simulationOwnerPluginId": "grid-resilience-us",
@@ -48,12 +48,6 @@
       "scenarioId": "restoration-sequence"
     }
   ],
-  "camera": {
-    "initialMode": "top",
-    "runMode": "top",
-    "pluginId": "grid-resilience-us",
-    "targetId": "grid-us"
-  },
   "plugins": [
     {
       "id": "grid-resilience-us",

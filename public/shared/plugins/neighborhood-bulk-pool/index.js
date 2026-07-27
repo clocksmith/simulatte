@@ -54,7 +54,7 @@
 
     function handleAction(actionId, context = {}) {
       if (actionId === 'scenario.run') return runPlayback(context);
-      if (actionId === 'counterfactual.compare') return compareCounterfactual();
+      if (actionId === 'counterfactual.compare') return compareCounterfactual(context.values?.comparisonId);
       if (actionId === 'catalog.search') return searchCatalog(context.values || context);
       return { status: 'refused', reason: 'unknown_action', actionId };
     }
@@ -99,11 +99,12 @@
       return { status: 'refused', reason: 'scenario_phase_invalid', phase };
     }
 
-    function compareCounterfactual() {
+    function compareCounterfactual(requestedComparisonId = 'independent-vs-pool') {
       const state = sdk.state.read();
-      const baseline = state.result.policyResults.independent;
-      const intervention = state.result.policyResults[state.result.activePolicyId];
-      const comparisonId = `${PLUGIN_ID}:comparison:${state.result.scenarioIdentity}`;
+      const policies = comparisonPolicies(requestedComparisonId, state.result.activePolicyId);
+      const baseline = state.result.policyResults[policies.baselinePolicyId];
+      const intervention = state.result.policyResults[policies.interventionPolicyId];
+      const comparisonId = requestedComparisonId;
       const comparisonBranches = deepFreeze({
         baseline: baseline.metrics,
         intervention: intervention.metrics,
@@ -118,8 +119,8 @@
         schema: 'simulatte.plugin.neighborhoodBulkComparisonReceipt.v1',
         comparisonId,
         scenarioIdentity: state.result.scenarioIdentity,
-        baselinePolicyId: 'independent',
-        interventionPolicyId: state.result.activePolicyId,
+        baselinePolicyId: policies.baselinePolicyId,
+        interventionPolicyId: policies.interventionPolicyId,
         branchMetrics: comparisonBranches,
         sharedConfiguration: state.acceptedParameters,
         truth: truth(
@@ -181,7 +182,9 @@
         && snapshot.status === 'settled';
       const conservation = state.result.conservation;
       const inventoryBoundary = state.result.catalogReceipt.declaredComplete === false
-        && state.result.catalogReceipt.coverageStatus === 'bootstrap-scenario';
+        && ['bootstrap-scenario', 'modeled-warehouse-scale'].includes(
+          state.result.catalogReceipt.coverageStatus
+        );
       return {
         obligationResults: [
           {
@@ -251,7 +254,7 @@
           { label: 'Current stage', value: snapshot.status.replaceAll('-', ' ') },
           { label: 'What changed', value: snapshot.narrative },
           { label: 'Policy', value: state.acceptedParameters.poolingPolicyId.replaceAll('-', ' ') },
-          { label: 'Catalog', value: `${state.result.catalogReceipt.indexedRows.toLocaleString()} bootstrap rows · incomplete` },
+          { label: 'Catalog', value: `${state.result.catalogReceipt.indexedRows.toLocaleString()} scenario rows · incomplete live coverage` },
           { label: 'Requested', value: `${metrics.requestedUnits} share units` },
           { label: 'Fulfilled', value: `${metrics.fulfilledUnits} share units` },
           { label: 'Packages', value: `${metrics.packagesPurchased} whole packages · ${metrics.wasteUnits} unallocated units` },
@@ -410,6 +413,28 @@
     });
   }
 
+  function comparisonPolicies(comparisonId, activePolicyId) {
+    const pairs = {
+      'independent-vs-pool': {
+        baselinePolicyId: 'independent',
+        interventionPolicyId: activePolicyId,
+      },
+      'bulk-only-vs-existing-trip': {
+        baselinePolicyId: 'bulk-only',
+        interventionPolicyId: 'existing-trip',
+      },
+      'existing-trip-vs-hub': {
+        baselinePolicyId: 'existing-trip',
+        interventionPolicyId: 'neighborhood-hub',
+      },
+    };
+    const selected = pairs[comparisonId];
+    if (!selected) {
+      throw pluginError('bulk_pool_comparison_unknown', `Unknown comparison ${comparisonId}`);
+    }
+    return selected;
+  }
+
   function loadDatasets(sdk) {
     const dataReceipts = Object.values(DATASETS).map((datasetId) => {
       const receipt = sdk.datasets.receipt(datasetId);
@@ -418,7 +443,7 @@
     });
     return deepFreeze({
       warehouses: sdk.datasets.require(DATASETS.warehouses),
-      catalog: sdk.datasets.require(DATASETS.catalog),
+      catalog: catalogApi.materializeCatalogSnapshot(sdk.datasets.require(DATASETS.catalog)),
       routes: sdk.datasets.require(DATASETS.routes),
       demand: sdk.datasets.require(DATASETS.demand),
       governance: sdk.datasets.require(DATASETS.governance),

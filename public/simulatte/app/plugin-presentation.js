@@ -180,13 +180,26 @@
           heightM: radiusM * 3,
         }));
       } else if (primitive.kind === 'actor') {
-        const radiusM = screenPixelsToWorld(style.radiusPx || 5, worldUnitsPerPixel);
-        compiled.markers.push(Object.freeze({
-          ...common,
-          point: points[0],
-          radiusM,
-          heightM: radiusM * 2,
-        }));
+        const actorKind = semanticActorKind(primitive.quantity?.kind);
+        if (actorKind) {
+          const progress = semanticActorProgress(primitive.quantity);
+          compiled.actors.push(Object.freeze({
+            ...common,
+            points: Object.freeze([pointAlongPath(points, progress)]),
+            kind: actorKind,
+            speedMps: 0,
+            phaseOffsetM: 0,
+            isSelected: true,
+          }));
+        } else {
+          const radiusM = screenPixelsToWorld(style.radiusPx || 5, worldUnitsPerPixel);
+          compiled.markers.push(Object.freeze({
+            ...common,
+            point: points[0],
+            radiusM,
+            heightM: radiusM * 2,
+          }));
+        }
       } else if (primitive.kind === 'path') {
         const pathParts = primitive.geometry.kind === 'segments'
           ? primitive.geometry.segmentIds.map((segmentId) => (
@@ -296,6 +309,46 @@
 
   function semanticIntensity(style) {
     return Math.min(1.6, 0.7 + Number(style.strokeOpacity || 0));
+  }
+
+  function semanticActorKind(quantityKind) {
+    const match = /^actor\.(pedestrian|bicycle|scooter|car)\./.exec(String(quantityKind || ''));
+    return match?.[1] || null;
+  }
+
+  function semanticActorProgress(quantity) {
+    if (!quantity || !Array.isArray(quantity.domain)) return 0;
+    const [minimum, maximum] = quantity.domain;
+    if (!Number.isFinite(minimum) || !Number.isFinite(maximum) || maximum <= minimum) return 0;
+    return Math.max(0, Math.min(1, (quantity.value - minimum) / (maximum - minimum)));
+  }
+
+  function pointAlongPath(points, progress) {
+    if (points.length <= 1) return points[0];
+    const lengths = [];
+    let total = 0;
+    for (let index = 1; index < points.length; index += 1) {
+      const left = points[index - 1];
+      const right = points[index];
+      const length = Math.hypot(right.x - left.x, right.y - left.y);
+      lengths.push(length);
+      total += length;
+    }
+    if (total <= 0) return points[0];
+    let remaining = progress * total;
+    for (let index = 0; index < lengths.length; index += 1) {
+      if (remaining <= lengths[index] || index === lengths.length - 1) {
+        const ratio = lengths[index] <= 0 ? 0 : remaining / lengths[index];
+        const left = points[index];
+        const right = points[index + 1];
+        return Object.freeze({
+          x: left.x + ((right.x - left.x) * ratio),
+          y: left.y + ((right.y - left.y) * ratio),
+        });
+      }
+      remaining -= lengths[index];
+    }
+    return points.at(-1);
   }
 
   function resolveSemanticGeometry(geometry, worldModel, pluginId, projection, layerId) {

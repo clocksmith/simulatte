@@ -12,6 +12,7 @@ function fixture({
   controlValues = {},
   eventTimes = [1000, 2000],
   stepGate = null,
+  comparisonIds = [],
 } = {}) {
   const provenance = contracts.createProvenance({
     origin: 'simulated',
@@ -23,6 +24,22 @@ function fixture({
       contentHash: 'a'.repeat(64),
       modelReceiptId: 'fixture:model-receipt',
     }],
+  });
+  const modelEnvelope = contracts.createProvenanceEnvelope({
+    subjectId: 'fixture:model',
+    subjectKind: 'model',
+    axes: {
+      origin: 'modeled',
+      temporalStatus: 'forecast',
+      uncertainty: { kind: 'missing', value: { reason: 'fixture model' } },
+    },
+    datasetIds: ['fixture:dataset'],
+    artifactSha256: 'a'.repeat(64),
+    parentIds: [],
+    modelReceiptId: 'fixture:model',
+    scenarioEpoch: 'scenario:fixture',
+    contentVersion: 'fixture-v1',
+    license: { required: false, identifier: null },
   });
   const timeline = timelineApi.createTimeline({
     id: 'fixture-timeline',
@@ -48,8 +65,20 @@ function fixture({
   let settledReceipt = null;
   const phases = [];
   const dispatchedValues = [];
+  const errors = [];
   const runtime = {
-    async dispatchAction(_pluginId, _actionId, context) {
+    async dispatchAction(_pluginId, actionId, context) {
+      if (actionId === 'counterfactual.compare') {
+        dispatchedValues.push({ comparisonId: context.values.comparisonId });
+        return {
+          status: 'settled',
+          comparisonId: context.values.comparisonId,
+          comparisonBranches: {
+            baseline: { served: 4 },
+            intervention: { served: 7 },
+          },
+        };
+      }
       dispatchedValues.push(structuredClone(context.values));
       if (context.values.phase === 'start') {
         day = 0;
@@ -76,19 +105,42 @@ function fixture({
       }];
     },
     runtimeReceipt() { return { schema: 'fixture.runtimeReceipt.v1', day }; },
+    ...(comparisonIds.length ? {
+      activePluginIds: ['fixture'],
+      platformV4() {
+        return {
+          contributions: [{
+            pluginId: 'fixture',
+            controls: { comparisons: comparisonIds.map((id) => ({ id })) },
+            provenanceRecords: [{
+              schema: 'simulatte.provenanceRecord.v4',
+              id: 'fixture:model',
+              kind: 'model',
+              datasetId: 'fixture:dataset',
+              contentHash: 'a'.repeat(64),
+              parentIds: [],
+              metadata: {},
+              envelope: modelEnvelope,
+            }],
+          }],
+        };
+      },
+    } : {}),
   };
   const controller = playbackApi.createController({
     runtime,
     ownerPluginId: 'fixture',
     scenario: { id: 'fixture-scenario', seed: 'fixture-seed' },
     clock,
-    getControlValues: () => controlValues,
+    getControlValues: () => (
+      typeof controlValues === 'function' ? controlValues() : controlValues
+    ),
     render() {},
     onPhase: (phase) => phases.push(phase),
     onSettled: (receipt) => { settledReceipt = receipt; },
-    onError: () => {},
+    onError: (error) => errors.push(error),
   });
-  return { clock, controller, dispatchedValues, phases, settledReceipt: () => settledReceipt };
+  return { clock, controller, dispatchedValues, errors, phases, settledReceipt: () => settledReceipt };
 }
 
 test('plugin playback advances on the shared clock and settles terminal obligations', async () => {
@@ -168,6 +220,45 @@ test('plugin playback sends typed experiment parameters on every phase and recei
     { ...parameterValues, phase: 'step' },
   ]);
   assert.deepEqual(lane.settledReceipt().parameterValues, parameterValues);
+});
+
+test('plugin playback captures controls when Step starts a ready run', async () => {
+  const parameterValues = { durationDays: 4, enabled: true };
+  const lane = fixture({ controlValues: parameterValues });
+  await lane.controller.step();
+  assert.deepEqual(lane.dispatchedValues[0], { ...parameterValues, phase: 'start' });
+  assert.equal(lane.controller.snapshot().phase, 'paused');
+});
+
+test('plugin playback preserves the completed run parameters across replay', async () => {
+  const mutable = { value: { durationDays: 2, enabled: true } };
+  const lane = fixture({ controlValues: () => mutable.value });
+  await lane.controller.start();
+  await lane.controller.step();
+  await lane.controller.step();
+  mutable.value = { durationDays: 9, enabled: false };
+  await lane.controller.replay();
+  assert.deepEqual(lane.dispatchedValues.at(-1), {
+    durationDays: 2,
+    enabled: true,
+    phase: 'start',
+  });
+});
+
+test('plugin playback executes and receipts every declared comparison', async () => {
+  const lane = fixture({ comparisonIds: ['comparison-a', 'comparison-b'] });
+  await lane.controller.start();
+  await lane.controller.step();
+  await lane.controller.step();
+  assert.deepEqual(lane.errors, []);
+  assert.deepEqual(
+    lane.settledReceipt().comparisonExecutionReceipts.map((row) => row.id),
+    ['comparison-a', 'comparison-b']
+  );
+  assert.deepEqual(
+    lane.dispatchedValues.slice(-2),
+    [{ comparisonId: 'comparison-a' }, { comparisonId: 'comparison-b' }]
+  );
 });
 
 test('plugin playback seek clamps stale targets and requires an explicit terminal commit', async () => {

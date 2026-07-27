@@ -14,7 +14,15 @@
     "frozen",
     "pantry",
     "snacks-bakery",
-    "household"
+    "household",
+    "beverages",
+    "meat-seafood",
+    "personal-care",
+    "baby",
+    "pet",
+    "office",
+    "home-kitchen",
+    "seasonal"
   ],
   "compensationModes": [
     "pro-bono",

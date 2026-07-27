@@ -199,6 +199,7 @@
           { label: 'Demand / served', value: `${Math.round(totals.demandMw).toLocaleString()} / ${Math.round(totals.servedMw).toLocaleString()} MW` },
           { label: 'Generation / imports', value: `${Math.round(totals.generationMw).toLocaleString()} / ${Math.round(totals.importsMw).toLocaleString()} MW` },
           { label: 'Storage / response', value: `${Math.round(totals.storageDischargeMw).toLocaleString()} / ${Math.round(totals.demandResponseMw).toLocaleString()} MW` },
+          { label: 'Charging / spill', value: `${Math.round(totals.storageChargeMw).toLocaleString()} / ${Math.round(totals.spilledGenerationMw).toLocaleString()} MW` },
           { label: 'Unserved now', value: `${Math.round(totals.unservedMw).toLocaleString()} MW` },
           {
             label: 'Binding region',
@@ -361,6 +362,8 @@
       generationMw: totals.generationMw + (region.generationMw || 0),
       importsMw: totals.importsMw + Math.max(0, region.importsMw || 0),
       storageDischargeMw: totals.storageDischargeMw + (region.storageDischargeMw || 0),
+      storageChargeMw: totals.storageChargeMw + (region.storageChargeMw || 0),
+      spilledGenerationMw: totals.spilledGenerationMw + (region.spilledGenerationMw || 0),
       demandResponseMw: totals.demandResponseMw + (region.demandResponseMw || 0),
       unservedMw: totals.unservedMw + (region.unservedMw || 0),
     }), {
@@ -369,6 +372,8 @@
       generationMw: 0,
       importsMw: 0,
       storageDischargeMw: 0,
+      storageChargeMw: 0,
+      spilledGenerationMw: 0,
       demandResponseMw: 0,
       unservedMw: 0,
     });

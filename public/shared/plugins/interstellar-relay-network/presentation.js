@@ -6,8 +6,12 @@
   function createSemanticPresentation(starsData, result, progressiveState) {
     const selectedIds = new Set(result.scenario.relayHops);
     const stateById = new Map(result.stellarStates.map((state) => [state.sourceId, state]));
+    const displayPositionById = new Map(result.stellarStates.map((state) => [
+      state.sourceId,
+      positionAtEpoch(state, progressiveState.timestamp),
+    ]));
     const catalogById = new Map((starsData.stars || []).map((star) => [star.sourceId, star]));
-    const spatialContract = createSpatialContract(result);
+    const spatialContract = createSpatialContract(result, progressiveState);
     const channelModelId = result.modelReceipts.find((row) => row.modelId.startsWith('interstellar-channel:'))?.modelId;
     const starEntities = result.stellarStates.map((state) => {
       const star = catalogById.get(state.sourceId);
@@ -20,14 +24,14 @@
         id: state.sourceId,
         semanticType: 'stellar-system',
         label: state.name,
-        coordinates: state.positionPc,
+        coordinates: displayPositionById.get(state.sourceId),
         quantities: Object.freeze({
           apparentMagnitudeG: star.photGMag,
           distancePc: state.distancePc,
           isRelayPathMember: selectedIds.has(state.sourceId),
           astrometricQualityRuwe: star.ruwe,
         }),
-        spatialEvidence: spatialEvidence(state.positionPc, evidenceReferences),
+        spatialEvidence: spatialEvidence(displayPositionById.get(state.sourceId), evidenceReferences),
         evidenceReferences,
         omissions: Object.freeze([]),
         truth: state.truth,
@@ -35,8 +39,8 @@
     });
     const linkEntities = result.schedule.hops.map((hop, index) => {
       const coordinates = Object.freeze([
-        stateById.get(hop.fromId).positionPc,
-        stateById.get(hop.toId).positionPc,
+        hop.lightTime.sourcePositionAtTransmissionPc,
+        hop.lightTime.targetPositionAtArrivalPc,
       ]);
       const evidenceReferences = Object.freeze([
         ...stateById.get(hop.fromId).sourceRowIds,
@@ -72,7 +76,7 @@
         truth: result.channelReceipts[index].truth,
       });
     });
-    const alternativeEntities = routeAlternativeEntities(result, stateById);
+    const alternativeEntities = routeAlternativeEntities(result, stateById, displayPositionById);
     const packetPosition = locatePacket(result, progressiveState, stateById);
     const packetEvidenceReferences = Object.freeze([
       result.packet.integrity.packetHash,
@@ -82,7 +86,7 @@
     return Object.freeze({
       schema: 'simulatte.semanticPresentation.v4-draft',
       coordinateSystem: 'icrs-cartesian-pc',
-      epoch: `J${result.targetEpochYear}`,
+      epoch: progressiveState.timestamp || result.schedule.startEpochIso,
       spatialContract,
       layers: Object.freeze([
         Object.freeze({
@@ -164,11 +168,19 @@
       ? null
       : result.schedule.hops[progressiveState.activeHopIndex];
     const targetIds = activeHop
-      ? [activeHop.fromId, activeHop.toId]
+      ? [result.packet.packetId]
       : result.scenario.relayHops;
     const mode = activeHop ? 'follow' : 'overview';
-    const targetStates = targetIds.map((id) => result.stellarStates.find((row) => row.sourceId === id)).filter(Boolean);
-    const framing = spatialFraming(targetStates.map((row) => row.positionPc));
+    const targetStates = activeHop
+      ? [activeHop.fromId, activeHop.toId]
+        .map((id) => result.stellarStates.find((row) => row.sourceId === id)).filter(Boolean)
+      : targetIds.map((id) => result.stellarStates.find((row) => row.sourceId === id)).filter(Boolean);
+    const framing = activeHop
+      ? spatialFraming([
+        locatePacket(result, progressiveState, new Map(result.stellarStates.map((row) => [row.sourceId, row]))),
+        activeHop.lightTime.targetPositionAtArrivalPc,
+      ])
+      : spatialFraming(targetStates.map((row) => row.positionPc));
     return Object.freeze([Object.freeze({
       schema: 'simulatte.viewIntent.v1',
       id: `interstellar:${progressiveState.currentEventId || 'ready'}`,
@@ -249,11 +261,11 @@
     });
   }
 
-  function routeAlternativeEntities(result, stateById) {
+  function routeAlternativeEntities(result, stateById, displayPositionById) {
     return result.routeSelection.alternatives
       .filter((row) => row.path.join(':') !== result.routeSelection.selectedPath.join(':'))
       .map((alternative, index) => {
-        const coordinates = Object.freeze(alternative.path.map((id) => stateById.get(id).positionPc));
+        const coordinates = Object.freeze(alternative.path.map((id) => displayPositionById.get(id)));
         const references = Object.freeze([
           ...alternative.path.flatMap((id) => stateById.get(id).sourceRowIds),
           'interstellar-route-search-v1',
@@ -285,13 +297,25 @@
   function locatePacket(result, state, stateById) {
     if (state.activeHopIndex === null) return stateById.get(state.packetLocationId)?.positionPc || [0, 0, 0];
     const hop = result.schedule.hops[state.activeHopIndex];
-    const source = stateById.get(hop.fromId).positionPc;
-    const target = stateById.get(hop.toId).positionPc;
+    const source = hop.lightTime.sourcePositionAtTransmissionPc || stateById.get(hop.fromId).positionPc;
+    const target = hop.lightTime.targetPositionAtArrivalPc || stateById.get(hop.toId).positionPc;
     const span = Math.max(1, hop.receiveOffsetSeconds - hop.transmitOffsetSeconds);
     const progress = Math.max(0, Math.min(1, (state.elapsedSeconds - hop.transmitOffsetSeconds) / span));
     return source.map((value, index) => value + ((target[index] - value) * progress));
   }
-  function createSpatialContract(result) {
+  function positionAtEpoch(state, epochIso) {
+    const epochYear = decimalYear(epochIso);
+    const deltaYears = epochYear - Number(state.epochYear ?? epochYear);
+    return state.positionPc.map((value, index) => value + (state.velocityPcYr?.[index] || 0) * deltaYears);
+  }
+  function decimalYear(epochIso) {
+    const milliseconds = Date.parse(epochIso || '');
+    if (!Number.isFinite(milliseconds)) return 0;
+    const year = new Date(milliseconds).getUTCFullYear();
+    const start = Date.UTC(year, 0, 1);
+    return year + (milliseconds - start) / (Date.UTC(year + 1, 0, 1) - start);
+  }
+  function createSpatialContract(result, progressiveState) {
     return Object.freeze({
       schema: 'simulatte.interstellarSpatialContract.v1',
       id: 'interstellar:icrs-cartesian-pc:true-3d:v1',
@@ -300,7 +324,7 @@
       axisOrder: Object.freeze(['icrs-x', 'icrs-y', 'icrs-z']),
       units: 'parsec',
       origin: 'solar-system-barycentric-scenario-origin',
-      epoch: `J${result.targetEpochYear}`,
+      epoch: progressiveState.timestamp || result.schedule.startEpochIso,
       scaleSemantics: 'true-distance',
       distanceSemantics: 'euclidean-3d-parsec',
       depthSemantics: 'signed-icrs-z-parsec-not-render-order',

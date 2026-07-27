@@ -18,7 +18,7 @@
     {
       "id": "sun-walker-v1",
       "path": "../application-profiles/sun-walker-v1.json",
-      "sha256": "2c82c51d96ac679f2966a4d10a681fc565c125a0341e4b1eca2bdb84ef55c6cf"
+      "sha256": "15e2c057082d2db9941a33f6dca30240d42b40c0509ccc4c5d9eca1ba3719197"
     }
   ],
   "claimBoundary": "This manifest governs bicycle-delivery, pedestrian-loop, and neighborhood bulk-pooling simulations in New York City. Park circuits follow frozen property boundaries, not surveyed sidewalk centerlines. Bulk-pool corridors outside the governed street graph are modeled geospatial scenarios. It does not claim live conditions, real warehouse inventory, physical-world autonomy, or control of a real vehicle.",

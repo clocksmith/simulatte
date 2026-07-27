@@ -106,7 +106,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginMaritimeTradeGlobal",
-    "integrity": "sha384-8c7ba3b9f4859dd720db355b773fa2b341c34f39f090532a05cc1b63b56d19371e82f526a178670a90c498ac8111d9e6",
+    "integrity": "sha384-04ac8ddf07f9965e0d46dd5d005b37f687e87e4c80720352933ada886160c448702c449cd91e5f5f5ce9d561d9ece541",
     "path": "./index.js"
   },
   "extensionPoints": [
@@ -169,7 +169,7 @@
       "path": "./emissions-model.js"
     },
     {
-      "integrity": "sha384-b0888da7ccf998584ffd0387a2a439f51c144930b519e4a1f103681017824bc940c22cbc70d0162fff133604c8c8fc4c",
+      "integrity": "sha384-3b123ca1ff7a49008dc2616833ea47550f072415dc5331e6f85c3fdfa1fbdd2c973388866a220934ecbfb3a9c4fcb002",
       "path": "./maritime-engine.js"
     },
     {
@@ -177,7 +177,7 @@
       "path": "./metrics.js"
     },
     {
-      "integrity": "sha384-d87350a1a1e1c5786892193961b985cf1a295cc4160fc9be49ed2a3761c36f2fa193235cc447cc650d26a5823983a24f",
+      "integrity": "sha384-cba0075ed6a35cbf40c920086294611a293ec9a1735c54f66938e71139ec43dc83889da21f856c2b7a7e36f9caa97eff",
       "path": "./network-router.js"
     },
     {
@@ -189,7 +189,7 @@
       "path": "./queue-engine.js"
     },
     {
-      "integrity": "sha384-3d847a507878d53c7b2a7790ec4a3a397c8ad7a7cd40dba5d9dccc85ab39da2e6eab19c4d9fc66d8f836f5bd5715f3c2",
+      "integrity": "sha384-eb7403e0a8bb060dd0e525af6c9c74881dbf1a2860dd0ca828eda4ac46bfa39979a30eae5228edc909c55da82faf2416",
       "path": "./v4-contribution.js"
     },
     {

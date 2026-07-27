@@ -91,6 +91,13 @@
     }));
     const eventIndex = Math.max(0, Math.min(events.length - 1, snapshot.cursor - 1));
     const currentEvent = events[eventIndex] || null;
+    const viewMode = snapshot.status === 'configured'
+      ? 'overview'
+      : snapshot.status === 'settled'
+        ? 'compare'
+        : snapshot.status === 'sailing'
+          ? 'follow'
+          : 'pov';
     const presentation = builder.presentation({
       pluginId: PLUGIN_ID,
       coordinateSystem: 'wgs84',
@@ -98,8 +105,14 @@
       layers,
       viewIntents: [builder.viewIntent({
         id: 'maritime-voyage-overview',
-        mode: snapshot.status === 'settled' ? 'compare' : 'overview',
-        targetIds: [`route:${result.route.id}`, `voyage:${result.scenarioId}`],
+        mode: viewMode,
+        targetIds: viewMode === 'overview'
+          ? [`route:${result.route.id}`]
+          : viewMode === 'compare'
+            ? [`route:${result.route.id}`, `voyage:${result.scenarioId}`]
+            : viewMode === 'follow'
+              ? [`voyage:${result.scenarioId}`]
+              : [`port:${result.route.destinationPort}`],
         reasonEventId: currentEvent?.id || null,
         priority: 60,
       })],
@@ -107,7 +120,7 @@
     const controls = builder.controls([
       select('vesselClassId', 'Vessel archetype', result.parameters.vesselClassId, result.controls.find((row) => row.id === 'vesselClassId').options, modeled),
       select('speedPolicy', 'Speed policy', result.parameters.speedPolicy, result.controls.find((row) => row.id === 'speedPolicy').options, modeled),
-      numeric('cargoTeu', 'Scenario cargo', result.parameters.cargoTeu, 100, 24000, 100, modeled),
+      numeric('cargoTeu', 'Scenario cargo', result.parameters.cargoTeu, 100, result.vessel.teu, 100, modeled),
       numeric('ensembleReplicates', 'Queue ensemble runs', result.parameters.ensembleReplicates, 2, 512, 1, modeled),
     ], [{
       id: 'disrupted-vs-baseline',

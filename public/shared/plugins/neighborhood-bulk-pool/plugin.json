@@ -18,7 +18,7 @@
         "id": "neighborhood-bulk-catalog-snapshot-bootstrap-v1",
         "path": "../../../data/neighborhood-bulk-pool/catalog-snapshot-bootstrap-v1.json",
         "schemaId": "simulatte.neighborhoodBulkCatalogSnapshot.v1",
-        "sha256": "8360131bd9c830b59dd5cb5bf6c5512f09a765c7b946775ebf8032693b0bcf29"
+        "sha256": "dcd790e47dc394c5edc4803f83dc1655f698e1f23d95669952e081788909a5e1"
       },
       "required": true
     },
@@ -56,7 +56,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginNeighborhoodBulkPool",
-    "integrity": "sha384-1bba154fce1b502e71f0cdd8939df848f7312dc8f06bd2fd02b925eda9fb10683e61ddd9e67f31ef4feb626fe1985bf8",
+    "integrity": "sha384-050b143332826f9c86cbdd1cbf7f000d1537239549f582345a99877d3033f76ff5ae29ee91078f69b8750bc6497fbc1f",
     "path": "./index.js"
   },
   "extensionPoints": [
@@ -89,11 +89,11 @@
       "path": "./config.schema.json"
     },
     {
-      "integrity": "sha384-984ee59300ed21ec8bfb6db95b7a1a63e3a914da9a96bd705181fb417fa0a5722f2608abfb735f7185535bc1ed0bf3d3",
+      "integrity": "sha384-6041222183a1fdf2e39ebf5bfbf433db114ac3e16b9edeef8cd3102c70ccee1ef31d985eed6edd56ee9ace3813bafec3",
       "path": "./default-config.json"
     },
     {
-      "integrity": "sha384-b3f37a7ec960d8c36104749c4f00fc1aa0c3fd79d8cc74269319c7b441afd16620fd50ab119c2877e7353e3f31d91145",
+      "integrity": "sha384-5093ce66c0f7a22237cd79cb2f7b0ac6e7c12b827b5a1a0fc6eb184f9ad4a5e295ff5a22f8508078ca91dc12fc62b839",
       "path": "./catalog-index.js"
     },
     {
@@ -101,7 +101,7 @@
       "path": "./pool-solver.js"
     },
     {
-      "integrity": "sha384-c739703de22c629d1280a38257c18ef3b44f9bfe44dd4dd787b9808d833b7e2ea409919a1d404ecda3a75ee011221127",
+      "integrity": "sha384-c73c6a82c282ef03379ef713c6200c3eb33ed9fcc4229a668fc29077157f8ce33890e8cf384a7a36ea72154bcd8c3675",
       "path": "./v4-contribution.js"
     }
   ],

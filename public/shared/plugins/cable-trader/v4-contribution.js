@@ -88,6 +88,12 @@
     });
     const visible = simulation.snapshots[state.playback.day];
     const routeByPair = new Map(transferRoutes.map((route) => [`${route.sourceHubId}:${route.destinationHubId}`, route]));
+    const visibleFlows = visible.flows.filter((flow) => (
+      flow.sourceHubId !== flow.destinationHubId && flow.quantity > 0
+    ));
+    const actorCount = visibleFlows.length
+      ? Math.ceil(config.simulation.renderedRequestCount * (visible.day / simulation.durationDays))
+      : 0;
     const layers = [
       ...visible.hubStats.map((hub) => {
         const configHub = config.hubs.find((row) => row.id === hub.id);
@@ -108,7 +114,7 @@
           }),
         });
       }),
-      ...visible.flows.filter((flow) => flow.sourceHubId !== flow.destinationHubId).flatMap((flow) => {
+      ...visibleFlows.flatMap((flow) => {
         const route = routeByPair.get(`${flow.sourceHubId}:${flow.destinationHubId}`);
         if (!route?.segmentIds?.length) return [];
         return [builder.layer({
@@ -123,6 +129,31 @@
           provenance: simulated,
         })];
       }),
+      ...Array.from({ length: actorCount }, (_, index) => {
+        const flow = selectFlow(visibleFlows, index, actorCount);
+        const route = routeByPair.get(`${flow.sourceHubId}:${flow.destinationHubId}`);
+        if (!route?.segmentIds?.length) return null;
+        const progress = (
+          (visible.day / Math.max(1, simulation.durationDays))
+          + (index / Math.max(1, actorCount))
+        ) % 1;
+        return builder.layer({
+          id: `modeled-cable-request-${index + 1}`,
+          kind: 'actor',
+          label: `Modeled request ${index + 1}`,
+          geometry: builder.geometry('segments', 'city-segment-id', route.segmentIds),
+          quantity: builder.quantity(
+            `actor.${index % 5 === 0 ? 'scooter' : 'bicycle'}.route-progress`,
+            progress,
+            'ratio',
+            [0, 1],
+          ),
+          role: 'event',
+          importance: index === 0 ? 1 : 0.65,
+          aggregationKey: 'modeled-cable-requests',
+          provenance: simulated,
+        });
+      }).filter(Boolean),
     ];
     const events = simulation.events.map((row, sequence) => builder.event({
       id: row.id,
@@ -135,7 +166,7 @@
       payload: { measures: row.measures, affectedEntityIds: row.affectedEntityIds },
       provenance: simulated,
     }));
-    const dominantFlow = layers.filter((row) => row.id.startsWith('flow:')).sort((left, right) => right.quantity.value - left.quantity.value)[0];
+    const leadingActor = layers.find((row) => row.id.startsWith('modeled-cable-request-'));
     const viewIntents = [
       builder.viewIntent({
         id: 'cable-network-overview',
@@ -144,10 +175,10 @@
         reasonEventId: events[Math.max(0, state.playback.day - 1)]?.id || null,
         priority: 45,
       }),
-      ...(dominantFlow && state.playback.status === 'running' ? [builder.viewIntent({
+      ...(leadingActor && state.playback.status === 'running' ? [builder.viewIntent({
         id: `cable-dominant-flow:${state.playback.day}`,
         mode: 'follow',
-        targetIds: [dominantFlow.id],
+        targetIds: [leadingActor.id],
         reasonEventId: events[Math.max(0, state.playback.day - 1)]?.id || null,
         priority: 60,
       })] : []),
@@ -260,6 +291,16 @@
       step: null,
       provenance,
     };
+  }
+
+  function selectFlow(flows, index, count) {
+    const total = flows.reduce((sum, flow) => sum + flow.quantity, 0);
+    let target = ((index + 0.5) / count) * total;
+    for (const flow of flows) {
+      target -= flow.quantity;
+      if (target <= 0) return flow;
+    }
+    return flows.at(-1);
   }
 
   return Object.freeze({

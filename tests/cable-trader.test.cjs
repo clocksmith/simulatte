@@ -265,6 +265,12 @@ test('Cable Trader v4 contribution separates truth axes and semantic quantities'
   assert.ok(contribution.provenanceRecords.some((row) => row.kind === 'model'));
   assert.ok(contribution.presentation.layers.some((row) => row.id.startsWith('hub:')));
   assert.ok(contribution.presentation.layers.some((row) => row.id.startsWith('flow:')));
+  const actors = contribution.presentation.layers.filter((row) => row.kind === 'actor');
+  assert.ok(actors.length > 0);
+  assert.ok(actors.every((row) => row.quantity.kind.startsWith('actor.')));
+  assert.ok(contribution.presentation.viewIntents.some((row) => (
+    row.mode === 'follow' && row.targetIds.every((id) => id.startsWith('modeled-cable-request-'))
+  )));
   assert.equal(contribution.presentation.layers.some((row) => 'widthM' in row || 'tone' in row), false);
   assert.ok(contribution.controls.controls.every((row) => row.provenance));
   assert.equal(contribution.controls.comparisons[0].synchronizedClock, true);

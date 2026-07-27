@@ -30,7 +30,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginSunWalker",
-    "integrity": "sha384-aec126c25c38a6a983dec06c2a1641ec4a74c083a2b3c4e45e87bf282f211470897dbd92fa38a686d6ed7984fd283026",
+    "integrity": "sha384-08a85357394b3d42348acae3aee80f0bc3266ad63a655033fac3142bb54ffd06b22c50740addfb53fcce4de3786db468",
     "path": "./index.js"
   },
   "extensionPoints": [
@@ -70,7 +70,11 @@
       "path": "./default-config.json"
     },
     {
-      "integrity": "sha384-f6bfa3c11bc079351298ca17c689361afd4fe948d9cc9752dd6407bcccb49d3ad6f3091faf84d7835dd9a50fbff1ed06",
+      "integrity": "sha384-c2fb065b1f777679fc1875a0e6b5acdd15afcbb8f451e7bd8f2a5466b0c4a11ad892a8ff444b18db02c58ca112f2a588",
+      "path": "./shadow-geometry.js"
+    },
+    {
+      "integrity": "sha384-cb50fe95c577e53d9a56cab12ebe97fc769992f9d5d405b4937167bb567b18f46646a80f472979f55f152a874084381e",
       "path": "./compatibility-adapter.js"
     },
     {
@@ -82,7 +86,7 @@
       "path": "./environment.js"
     },
     {
-      "integrity": "sha384-dc8c5356765340720e7e9f606d4efdf8b8353f9938ab17fc0f6a212131baf9c6ae06fa8bc9cff21489d0bb5fdd11dcdc",
+      "integrity": "sha384-d48daf374064c64cba352a39b3f2f79d0b0c69a80ffb4a1e450cc2df0ed14dfd2ab3dc627ffc726377908e5a02e9e638",
       "path": "./presentation.js"
     },
     {
@@ -94,7 +98,7 @@
       "path": "./sun-route-simulation.js"
     },
     {
-      "integrity": "sha384-26f91439a1cb0c5b0ca2938cc574892b58e60b02d5585f4f42d4a06cfe31554968294e4ac4182360719835687ffcca99",
+      "integrity": "sha384-61c0d4e9fed747fbf231b458129711adff1daa12f226fbfa213b1336d3b4dfd300270366deecb1c92c5c7e7a3702fa02",
       "path": "./v4-contribution.js"
     }
   ],

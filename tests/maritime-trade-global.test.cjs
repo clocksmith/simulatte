@@ -87,6 +87,38 @@ test('event log is chronological, causal, progressive, and container conserving'
   assert.equal(result.ledger.totalContainers, config.containerCount);
   assert.equal(result.ledger.containers.filter((row) => row.status === 'delivered').length, config.containerCount);
   assert.ok(result.ledger.containers.every((row) => row.lineage.length === 4));
+  const sailingPositions = result.eventTrace
+    .filter((row) => row.kind === 'maritime.voyage-progressed')
+    .map((row) => row.after.position.join(','));
+  assert.ok(sailingPositions.length >= result.route.legs.length * 3);
+  assert.ok(new Set(sailingPositions).size > result.route.legs.length);
+});
+
+test('cargo capacity is enforced by the engine and advertised by the active vessel control', () => {
+  const selected = simulate('asia-europe-mainline');
+  assert.equal(selected.controls.find((row) => row.id === 'cargoTeu').maximum, selected.vessel.teu);
+  assert.throws(() => engine.runScenario({
+    datasets: datasets(),
+    scenario: {
+      scenarioId: 'asia-europe-mainline',
+      seed: 'over-capacity',
+      vesselClassId: 'feeder-2k',
+      cargoTeu: 2100,
+    },
+    config,
+    random: randomApi.createRandomPort({ rootSeed: 'maritime-capacity', scenarioId: 'capacity' })
+      .forPlugin('maritime-trade-global'),
+    scheduler: schedulerApi.createSchedulerPort({}).forPlugin('maritime-trade-global'),
+    routeObjective: profile.routeObjective,
+  }), /maritime_cargo_exceeds_vessel_capacity/);
+});
+
+test('route selection exposes dimensioned transit, fuel, and emissions costs', () => {
+  const route = simulate('asia-europe-mainline').route;
+  assert.ok(route.objectiveValues.totalTransitDays > 0);
+  assert.ok(route.objectiveValues.fuelTons > 0);
+  assert.ok(route.objectiveValues.co2Tons > route.objectiveValues.fuelTons);
+  assert.ok(route.legs.every((row) => row.routeSelectionFuelTons > 0 && row.effectiveSpeedKnots > 0));
 });
 
 test('metrics, models, state, events, and semantic objects carry evidence and independent truth axes', () => {

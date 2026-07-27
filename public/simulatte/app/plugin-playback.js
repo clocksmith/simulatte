@@ -43,10 +43,13 @@
         });
     });
 
-    async function start() {
+    async function start({ values = null } = {}) {
       if (phase === 'running') return snapshot();
+      const nextParameterValues = normalizedValues(
+        values === null ? getControlValues(ownerPluginId) : values
+      );
       if (phase === 'completed' || phase === 'failed') await reset(activeScenario);
-      parameterValues = normalizedValues(getControlValues(ownerPluginId));
+      parameterValues = nextParameterValues;
       setPhase('running');
       actionResult = await dispatch('start');
       if (actionResult.status !== 'running' && actionResult.status !== 'settled') {
@@ -81,6 +84,7 @@
 
     async function step() {
       if (phase === 'ready') {
+        parameterValues = normalizedValues(getControlValues(ownerPluginId));
         actionResult = await dispatch('start');
         render();
       }
@@ -101,8 +105,9 @@
     }
 
     async function replay() {
+      const replayValues = normalizedValues(parameterValues);
       await reset(activeScenario);
-      return start();
+      return start({ values: replayValues });
     }
 
     function setPlaybackRate(nextRate) {
@@ -122,12 +127,15 @@
     async function reconstructAtStep(requestedStep) {
       clock.pause();
       const generation = ++runGeneration;
+      const reconstructionValues = phase === 'ready'
+        ? normalizedValues(getControlValues(ownerPluginId))
+        : normalizedValues(parameterValues);
       try {
         await actionQueue;
         if (generation !== runGeneration) return snapshot();
         await resetState(activeScenario, generation);
         if (generation !== runGeneration) return snapshot();
-        parameterValues = normalizedValues(getControlValues(ownerPluginId));
+        parameterValues = reconstructionValues;
         setPhase('running');
         actionResult = await dispatch('start');
         if (generation !== runGeneration) return snapshot();
@@ -174,15 +182,17 @@
           actual: settlements,
         });
       }
-      const comparisonExecutionReceipt = await executeComparison();
-      if (receipt.comparisonExecutionReceipt
-        && JSON.stringify(comparisonExecutionReceipt) !== JSON.stringify(receipt.comparisonExecutionReceipt)) {
+      const comparisonExecutionReceipts = await executeComparisons();
+      const expectedComparisonReceipts = receipt.comparisonExecutionReceipts
+        || (receipt.comparisonExecutionReceipt ? [receipt.comparisonExecutionReceipt] : []);
+      if (expectedComparisonReceipts.length
+        && JSON.stringify(comparisonExecutionReceipts) !== JSON.stringify(expectedComparisonReceipts)) {
         throw playbackError('plugin_playback_restore_comparison_diverged', 'Reconstructed comparison differs from the stored receipt', {
-          expected: receipt.comparisonExecutionReceipt,
-          actual: comparisonExecutionReceipt,
+          expected: expectedComparisonReceipts,
+          actual: comparisonExecutionReceipts,
         });
       }
-      return publishSettlement(settlements, comparisonExecutionReceipt);
+      return publishSettlement(settlements, comparisonExecutionReceipts);
     }
 
     async function reset(nextScenario = activeScenario) {
@@ -225,38 +235,43 @@
       if (!settlements.length || settlements.some((row) => row.obligationResults.some((result) => result.status !== 'settled'))) {
         throw playbackError('plugin_playback_settlement_incomplete', `Plugin ${ownerPluginId} did not settle every obligation`, { settlements });
       }
-      const comparisonExecutionReceipt = await executeComparison();
+      const comparisonExecutionReceipts = await executeComparisons();
       if (generation !== runGeneration) return snapshot();
-      return publishSettlement(settlements, comparisonExecutionReceipt);
+      return publishSettlement(settlements, comparisonExecutionReceipts);
     }
 
-    async function executeComparison() {
-      if (typeof runtime.platformV4 !== 'function') return null;
+    async function executeComparisons() {
+      if (typeof runtime.platformV4 !== 'function') return [];
       const platform = runtime.platformV4({ scenario: activeScenario, compositionSize: runtime.activePluginIds?.length || 1 });
       const contribution = platform.contributions.find((row) => row.pluginId === ownerPluginId);
-      const definition = contribution?.controls?.comparisons?.[0] || null;
-      if (!definition) return null;
+      const definitions = contribution?.controls?.comparisons || [];
+      if (!definitions.length) return [];
       if (!comparisonAdapter?.createSettledComparison) {
         throw playbackError('plugin_playback_comparison_adapter_missing', 'Shared comparison execution is unavailable');
       }
-      const comparison = await runtime.dispatchAction(ownerPluginId, 'counterfactual.compare', {
-        scenario: activeScenario,
-        values: {},
-      });
-      if (comparison?.status !== 'settled' || !comparison.comparisonBranches) {
-        throw playbackError('plugin_playback_comparison_missing', `Plugin ${ownerPluginId} did not execute both comparison branches`, { comparison });
+      const receipts = [];
+      for (const definition of definitions) {
+        const comparison = await runtime.dispatchAction(ownerPluginId, 'counterfactual.compare', {
+          scenario: activeScenario,
+          values: { comparisonId: definition.id },
+        });
+        if (comparison?.status !== 'settled' || !comparison.comparisonBranches) {
+          throw playbackError('plugin_playback_comparison_missing', `Plugin ${ownerPluginId} did not execute comparison ${definition.id}`, { comparison });
+        }
+        receipts.push(await comparisonAdapter.createSettledComparison({
+          pluginId: ownerPluginId,
+          scenario: activeScenario,
+          comparisonId: definition.id,
+          branches: comparison.comparisonBranches,
+          contribution,
+        }));
       }
-      return comparisonAdapter.createSettledComparison({
-        pluginId: ownerPluginId,
-        scenario: activeScenario,
-        comparisonId: comparison.comparisonId || definition.id,
-        branches: comparison.comparisonBranches,
-        contribution,
-      });
+      return receipts;
     }
 
-    function publishSettlement(settlements, comparisonExecutionReceipt = null) {
+    function publishSettlement(settlements, comparisonExecutionReceipts = []) {
       setPhase('completed');
+      const frozenComparisons = Object.freeze([...comparisonExecutionReceipts]);
       const receipt = Object.freeze({
         schema: 'simulatte.pluginPlaybackRunReceipt.v1',
         ownerPluginId,
@@ -264,7 +279,8 @@
         parameterValues,
         actionResult,
         settlements,
-        comparisonExecutionReceipt,
+        comparisonExecutionReceipt: frozenComparisons[0] || null,
+        comparisonExecutionReceipts: frozenComparisons,
         clock: clock.receipt(),
         runtime: runtime.runtimeReceipt(),
       });

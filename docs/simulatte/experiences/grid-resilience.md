@@ -5,7 +5,7 @@ Owner contract: `public/shared/plugins/grid-resilience-us/index.js`.
 ## Status
 
 - Status: verified
-- Tier and world: Country, `us-food-network-v1`
+- Tier and world: Country, `us-national-regions-v1`
 - Plugin ID: `grid-resilience-us`
 - Profile ID: `grid-resilience-us-v1`
 - Default scenario: `heat-demand-peak`

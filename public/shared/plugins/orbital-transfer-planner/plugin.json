@@ -56,7 +56,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginOrbitalTransferPlanner",
-    "integrity": "sha384-7f457ed3e6ee08a04d3fc8a8926e12ab9f132840f9f5effd90b22e4cd0b083151f6af33adb56598ef30af58a70beea6d",
+    "integrity": "sha384-94d48010706a08097dcc480b9d32f5944b5bd132402c847c8c1e936fda314402d302050c6fce45db8679684a5ae1957c",
     "path": "./index.js"
   },
   "extensionPoints": [
@@ -134,7 +134,7 @@
       "path": "./n-body-verifier.js"
     },
     {
-      "integrity": "sha384-631590808c488973f08f74fb372d6f11534eee6820c7651164188cb4cbd7fe4b23b327204ab751c3886aab68d912afb5",
+      "integrity": "sha384-dc6aec0945c9e77155dce8482689a2342c1973c6a37a00fa2c7dae9a7f9803f9005374ee9a78af29ffc66d0c5dd59c85",
       "path": "./presentation.js"
     },
     {
@@ -142,7 +142,7 @@
       "path": "./radiation.js"
     },
     {
-      "integrity": "sha384-26167abc907ce5a390c53646293fd6707c5f2a4be36c172f55668883403ab6efd3003c0d9ce323128e33217113137432",
+      "integrity": "sha384-d0ae992d3a4616326743b2ab2a7b77d4937490f7581fb6976c2148dea9a9169c36d89c717880a809becef280ae620b0b",
       "path": "./v4-contribution.js"
     }
   ],

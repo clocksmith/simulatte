@@ -129,7 +129,7 @@
     const usesDenseActorSignals = scene.actors.length > DENSE_PLUGIN_ACTOR_THRESHOLD;
     scene.actors.forEach((row, index) => {
       const pose = poseAlongPath(row.points, row.phaseOffsetM + elapsedSeconds * row.speedMps);
-      addBeacon(writer, pose.point, tone(row.tone), row.isSelected ? 12 : 5, row.isSelected ? 3.2 : 1.8, row.isSelected ? 1.2 : 0.72);
+      addBeacon(writer, pose.point, semanticColor(row), row.isSelected ? 12 : 5, row.isSelected ? 3.2 : 1.8, row.isSelected ? 1.2 : 0.72);
       if (usesDenseActorSignals && !row.isSelected) return;
       actorGeometry.addActor(writer, {
         kind: row.kind,

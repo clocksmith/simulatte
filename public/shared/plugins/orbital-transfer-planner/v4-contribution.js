@@ -16,6 +16,8 @@
     const selectionVisible = currentStep >= 3;
     const verificationVisible = currentStep >= 4;
     const flightFraction = flightProgress(currentStep);
+    const ephemerisDay = displayEphemerisDay(result, flightFraction, selectionVisible, ephemerisData);
+    const displayEpoch = epochForDay(ephemerisData, ephemerisDay);
     const datasets = datasetReceipts.filter((row) => row.receipt).map((row) => builder.datasetRecord(row.id, row.receipt, {
       claimBoundary: row.value?.provenance?.claimBoundary || null,
     }));
@@ -79,7 +81,7 @@
     const layers = [];
     Object.entries(ephemerisData.bodies || {}).forEach(([id, body]) => {
       const vectors = body.vectors || [];
-      const current = vectors[0]?.positionAu;
+      const current = stateAtDay(vectors, ephemerisDay);
       if (current) {
         layers.push(builder.layer({
           id: `body:${id}`,
@@ -138,7 +140,7 @@
         kind: 'actor',
         label: `Modeled coast · ${Math.round(flightFraction * 100)}%`,
         geometry: builder.geometry('point', 'heliocentric-ecliptic-au', [actorPosition]),
-        quantity: builder.quantity('flight-progress', flightFraction, 'ratio', [0, 1]),
+        quantity: builder.quantity('actor.spacecraft.route-progress', flightFraction, 'ratio', [0, 1]),
         role: 'event',
         importance: 1,
         provenance: transferClaim,
@@ -171,16 +173,24 @@
     })] : [];
     const targetIds = ['transfer-trajectory', `body:earth`, `body:${result.targetBodyId}`]
       .filter((id) => layers.some((row) => row.id === id));
+    const actorVisible = layers.some((row) => row.id === 'screening-spacecraft');
+    const viewMode = currentStep < 3
+      ? 'overview'
+      : actorVisible && currentStep < 8
+        ? 'follow'
+        : currentStep >= 8
+          ? 'compare'
+          : 'overview';
     const visual = builder.presentation({
       pluginId: PLUGIN_ID,
       coordinateSystem: 'heliocentric-ecliptic-au',
-      epoch: ephemerisData.epochStart || ephemerisData.epoch?.start || null,
+      epoch: displayEpoch,
       layers,
       viewIntents: [
         builder.viewIntent({
-          id: 'transfer-overview',
-          mode: 'compare',
-          targetIds,
+          id: `transfer-view:${Number.isFinite(currentStep) ? currentStep : 'settled'}`,
+          mode: viewMode,
+          targetIds: viewMode === 'follow' ? ['screening-spacecraft'] : targetIds,
           reasonEventId: events[0]?.id || null,
           priority: 70,
         }),
@@ -293,9 +303,64 @@
 
   function pointAlong(points, fraction) {
     if (!Number.isFinite(fraction) || !Array.isArray(points) || points.length < 2) return null;
-    const index = Math.min(points.length - 1, Math.max(0, Math.round((points.length - 1) * fraction)));
-    return points[index];
+    const scaled = Math.min(points.length - 1, Math.max(0, (points.length - 1) * fraction));
+    const lowerIndex = Math.floor(scaled);
+    const upperIndex = Math.min(points.length - 1, lowerIndex + 1);
+    const ratio = scaled - lowerIndex;
+    return points[lowerIndex].map((value, index) => (
+      value + (points[upperIndex][index] - value) * ratio
+    ));
   }
 
-  return Object.freeze({ createContribution });
+  function displayEphemerisDay(result, flightFraction, selectionVisible, dataset = null) {
+    if (!result.selected || !selectionVisible) return 0;
+    const departureDay = firstFinite(
+      result.selected.departureDay,
+      dayForEpoch(dataset, result.metrics?.departureEpoch),
+      0
+    );
+    if (!Number.isFinite(flightFraction)) return departureDay;
+    const timeOfFlightDays = firstFinite(
+      result.selected.tofDays,
+      result.metrics?.timeOfFlightDays,
+      0
+    );
+    return departureDay + timeOfFlightDays * flightFraction;
+  }
+
+  function stateAtDay(vectors, day) {
+    if (!vectors.length) return null;
+    const bounded = Math.max(Number(vectors[0].day || 0), Math.min(Number(vectors.at(-1).day), day));
+    let lowerIndex = 0;
+    for (let index = 1; index < vectors.length && Number(vectors[index].day) <= bounded; index += 1) {
+      lowerIndex = index;
+    }
+    const lower = vectors[lowerIndex];
+    const upper = vectors[Math.min(vectors.length - 1, lowerIndex + 1)];
+    const lowerDay = Number(lower.day ?? lowerIndex);
+    const upperDay = Number(upper.day ?? lowerIndex + 1);
+    const ratio = upperDay === lowerDay ? 0 : (bounded - lowerDay) / (upperDay - lowerDay);
+    return lower.positionAu.map((value, index) => (
+      value + (upper.positionAu[index] - value) * ratio
+    ));
+  }
+
+  function epochForDay(dataset, day) {
+    const start = Date.parse(dataset.epochStart || dataset.epoch?.start || '');
+    return Number.isFinite(start) && Number.isFinite(day)
+      ? new Date(start + day * 86400000).toISOString()
+      : null;
+  }
+
+  function dayForEpoch(dataset, epochIso) {
+    const start = Date.parse(dataset?.epochStart || dataset?.epoch?.start || '');
+    const epoch = Date.parse(epochIso || '');
+    return Number.isFinite(start) && Number.isFinite(epoch) ? (epoch - start) / 86400000 : null;
+  }
+
+  function firstFinite(...values) {
+    return values.map(Number).find(Number.isFinite);
+  }
+
+  return Object.freeze({ createContribution, displayEphemerisDay, pointAlong, stateAtDay });
 });

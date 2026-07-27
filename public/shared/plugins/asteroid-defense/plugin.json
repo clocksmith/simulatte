@@ -48,7 +48,7 @@
         "id": "asteroid-intervention-archetypes-v1",
         "path": "../../../data/asteroid-defense/intervention-archetypes-v1.json",
         "schemaId": "simulatte.asteroidInterventionArchetypes.v1",
-        "sha256": "8bc13e330b96257f16c63b3b22ab81717f8a3245c71acc0d7fe96c05bbcf9e4a"
+        "sha256": "30b1c096c23044131654a494bb8f952a20b2dfac6d3ec3b1993d4fa9f77011c9"
       },
       "required": true
     },
@@ -106,7 +106,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginAsteroidDefense",
-    "integrity": "sha384-d7de6a5722ab039a3fdde182002f167521f4e88355f063a40ce25c6c6cd3bf8bf1ec731793e433c46ec742e2726c3e18",
+    "integrity": "sha384-70ccbce3db2d55ff4847a00a160fd97e4c31016620bb6e351f5178af3e90de0c253d9d7cc9cd092926d9cf1959c558e5",
     "path": "./index.js"
   },
   "extensionPoints": [
@@ -148,27 +148,27 @@
       "path": "./covariance-ensemble.js"
     },
     {
-      "integrity": "sha384-1bae5e9512f3846e808d0fb38abb4643ffc82fad496dfa4d62032430642d49e8328c62253c0bc1cc5f57f0b8fd1bad72",
+      "integrity": "sha384-3695e7c9bb72cc6b229181877a4d8ef4940f3c0421cee76329d688f67ef40c09d3b8ba0af46319e4d2b73c09e9097633",
       "path": "./encounter-model.js"
     },
     {
-      "integrity": "sha384-c561955fb0e0aa8273b5bf79b987f946aba633c3f0a3c02d8193164ea0d6a9a1a9c4bff59a2d7a295b82771950f835f0",
+      "integrity": "sha384-86175d1bacd8b3250b0e1df8a3621d33e368418d82de2750f408628680b0983b9b7f0fae9ea05dfa120e9aa1c3a487c0",
       "path": "./orbit-determination.js"
     },
     {
-      "integrity": "sha384-74f3fa22f3c2f1212d3883212f59dca18625db6859461838b495f8bf617c1ed09c52837ebe99df1199f2e9e0c9a1925c",
+      "integrity": "sha384-7c079a1c132ba1e7a4b0e8823758428fa0e8a287fccdea65744c9fbd2b088097a1adbb881d9c4b84c356a01719365222",
       "path": "./asteroid-model.js"
     },
     {
-      "integrity": "sha384-8f32da9a1bc7e40fd983a4495fe586e14d753f061ba037db4724351d1c3039842534aae44cacbe437656865a258fa385",
+      "integrity": "sha384-0668e90dfa6a07f95005ac879e9043cb0a74c047a8791963edc7ae1b856569e4ada17935770d78e10edde75dbd24c618",
       "path": "./v4-contribution.js"
     },
     {
-      "integrity": "sha384-31be6228b24f3dcd29a6f46300830156a54f892a3ab43b1eafd8d3b3f87d2a782df1908c00cbc6c06314fe5b217ff9f1",
+      "integrity": "sha384-35b26b15fc7f6cfc025f93eaeb1fd0a7926864f401f35fd2b84d7fd78d62d15d61d39673f26cbd29410dedf9aedee325",
       "path": "./comparison-driver.js"
     },
     {
-      "integrity": "sha384-6aa73d62c60905a2c96e2c7ab0466c72f00fe6985648adf4aeda00219dba487b0643571328891f3e3f5d0dc111097ece",
+      "integrity": "sha384-f14c9bcee2a0967bd7512c340a83825f1e224bac0b38fdfa26aafc383cbd2da73544b2187311818b741e427e6b4f5b62",
       "path": "./presentation.js"
     }
   ],

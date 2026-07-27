@@ -131,6 +131,7 @@
     elements.cameraControls.hidden = false;
     const governedTier = tier !== 'city';
     elements.cameraFollow.hidden = governedTier;
+    elements.cameraFollow.textContent = 'Follow';
     elements.cameraBird.textContent = 'Overview';
     elements.cameraTop.textContent = governedTier ? 'Free' : 'Top';
     elements.decisionTitle.textContent = isExperiment ? 'Experiment' : 'Decision details';

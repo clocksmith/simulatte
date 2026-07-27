@@ -5,7 +5,7 @@ Owner contract: `public/shared/plugins/food-recall-us/index.js`.
 ## Status
 
 - Status: verified
-- Tier and world: Country, `us-food-network-v1`
+- Tier and world: Country, `us-national-regions-v1`
 - Plugin ID: `food-recall-us`
 - Profile ID: `food-recall-us-v1`
 - Default scenario: `leafy-green-baseline`

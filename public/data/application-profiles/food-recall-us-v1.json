@@ -2,7 +2,7 @@
   "schema": "simulatte.applicationProfile.v3",
   "id": "food-recall-us-v1",
   "tier": "country",
-  "worldModelId": "us-food-network-v1",
+  "worldModelId": "us-national-regions-v1",
   "interaction": {
     "mode": "simulation",
     "simulationOwnerPluginId": "food-recall-us",

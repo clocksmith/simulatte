@@ -16,7 +16,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginSafetyExplorer",
-    "integrity": "sha384-2fb76ecec2b13271a39624b3f403f0286917cb8be105a785092e876a918ab47c2fbc1367d98082b6554d20507d537e88",
+    "integrity": "sha384-02c694d792c4632821080292406fd0c64076817c00fd07f8f1962bbfc5b60767c38ecdf537f7692c056c7c94792be876",
     "path": "./index.js"
   },
   "extensionPoints": [
@@ -43,11 +43,11 @@
   ],
   "resources": [
     {
-      "integrity": "sha384-33d862831ae39f96fa36e9e5e9400f89b6536769076ad514a90953a8ee5bf4e87fb2943c1b8558677d25d673f0473f41",
+      "integrity": "sha384-8e63eb556d9b7dcf0c5eadc2b4a090d2baf8be687e31c3ba857481604f9384b05e3ff27df2882abe3e935bd307f7de15",
       "path": "./config.schema.json"
     },
     {
-      "integrity": "sha384-4d4843c59a19d606b4eb3098d70c8ddbc051b2eebd0813458c7a359c4c59f28c58b9de31d216a007af2a52143fc14432",
+      "integrity": "sha384-a71a19a5deec95ef7fa993a67d07ad11a3ae26049d2476a840cd559ccdb1c2353da8a1ac114e72d0514b34adab2d829b",
       "path": "./default-config.json"
     },
     {
@@ -55,7 +55,7 @@
       "path": "./fixed-sparse-count-shrinkage.js"
     },
     {
-      "integrity": "sha384-92f9689534173c843947c79981befc8fbe2568183a3ee97c01f9e51f9eccd94b9fb05cd60fd5cd18cb830cbf9bc61264",
+      "integrity": "sha384-d4ad517cb476d23b2d54aa412606c018ddba4e7b78157ca87ea6072e95e9249aca78929ec9080017c5a6e8f0647a835a",
       "path": "./v4-contribution.js"
     }
   ],

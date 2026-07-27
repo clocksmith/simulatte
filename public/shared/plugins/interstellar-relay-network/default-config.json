@@ -11,6 +11,5 @@
   "maxHopDistancePc": 20,
   "ensembleSize": 64,
   "processingDelayHours": 8,
-  "startEpochIso": "2026-07-25T00:00:00Z",
-  "targetEpochYear": 2026.5
+  "startEpochIso": "2026-07-25T00:00:00Z"
 }

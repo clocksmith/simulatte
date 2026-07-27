@@ -9,21 +9,21 @@
         {
           "id": "food-recall-us-v1",
           "path": "../application-profiles/food-recall-us-v1.json",
-          "sha256": "8889d23fdbf79d29928d03122f5b5d9f05662c5806532838cb593cd1d23c4d87",
+          "sha256": "9f85278b0faf79fcc265c61e4c01c1605b26a3c23f7a5d16e4608c72f5f80b09",
           "world": {
-            "id": "us-food-network-v1",
-            "path": "./worlds/us-food-network-v1.json",
-            "sha256": "bbe232fe794b039d5c508b2b9813f6a8cefbc53dca419bdb0250de1f1baa74fb"
+            "id": "us-national-regions-v1",
+            "path": "./worlds/us-national-regions-v1.json",
+            "sha256": "2aa3b7324fd1b80d64de7aa1cb98cd33053b0e0f6ff62962f2bfa505c8a1c550"
           }
         },
         {
           "id": "grid-resilience-us-v1",
           "path": "../application-profiles/grid-resilience-us-v1.json",
-          "sha256": "fb84842cef67121d6a3ae34e52a436c59945cb87a983e01d032d59ca02dfce0c",
+          "sha256": "3857f5a160b22e39c03f54fef7fd9d99b8c39b13307437816640232b5768bf7f",
           "world": {
-            "id": "us-food-network-v1",
-            "path": "./worlds/us-food-network-v1.json",
-            "sha256": "bbe232fe794b039d5c508b2b9813f6a8cefbc53dca419bdb0250de1f1baa74fb"
+            "id": "us-national-regions-v1",
+            "path": "./worlds/us-national-regions-v1.json",
+            "sha256": "2aa3b7324fd1b80d64de7aa1cb98cd33053b0e0f6ff62962f2bfa505c8a1c550"
           }
         }
       ]

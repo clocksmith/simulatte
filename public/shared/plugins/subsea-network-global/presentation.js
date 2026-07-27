@@ -49,6 +49,23 @@
       evidenceRefs: [`scenario-demand:${demand.id}`],
       truth: demand.truth,
     }));
+    const activeRepair = result.repairReceipt.events.find((row) => row.id === snapshot.activeRepairEventId) || null;
+    const repairObjects = activeRepair?.position ? [{
+      id: `repair-resource:${activeRepair.resourceId}`,
+      kind: 'modeled_repair_resource',
+      geometry: { type: 'point', coordinates: activeRepair.position },
+      quantities: {
+        targetId: activeRepair.targetId,
+        state: activeRepair.kind,
+        transitProgressFraction: activeRepair.transitProgressFraction ?? 1,
+      },
+      evidenceRefs: [activeRepair.id],
+      truth: {
+        origin: 'simulated',
+        temporalStatus: 'forecast',
+        uncertainty: { kind: 'missing', value: { reason: 'Repair voyage is a declared scenario, not vessel telemetry.' } },
+      },
+    }] : [];
     return deepFreeze({
       schema: 'simulatte.semanticPresentation.v4',
       coordinateSystem: 'wgs84',
@@ -58,12 +75,15 @@
         layer('subsea-landings', 'network_nodes', landingObjects, 'cluster', 'deliveredGbps'),
         layer('subsea-corridors', 'capacity_flow', edgeObjects, 'corridor_bundle', 'utilizationRatio'),
         layer('subsea-service-loss', 'dropped_demand', droppedObjects, 'region_sum', 'droppedGbps'),
+        layer('subsea-repair-resources', 'progress_actor', repairObjects, 'none', 'transitProgressFraction'),
       ],
       viewIntents: [{
         schema: 'simulatte.viewIntent.v4',
-        mode: snapshot.status === 'settled' ? 'compare' : 'overview',
-        targetIds: edgeObjects.filter((row) => row.quantities.failureState === 'failed'
-          || row.quantities.utilizationRatio > 0.8).map((row) => row.id),
+        mode: snapshot.status === 'settled' ? 'compare' : repairObjects.length ? 'follow' : 'overview',
+        targetIds: repairObjects.length
+          ? repairObjects.map((row) => row.id)
+          : edgeObjects.filter((row) => row.quantities.failureState === 'failed'
+            || row.quantities.utilizationRatio > 0.8).map((row) => row.id),
         transitionReason: snapshot.eventIds.at(-1) ? `simulation_event:${snapshot.eventIds.at(-1)}` : 'scenario_ready',
         priority: 55,
         expiresAtEventId: null,
@@ -74,7 +94,8 @@
 
   function adaptToV3(semantic) {
     const objects = semantic.layers.flatMap((row) => row.objects);
-    const points = objects.filter((row) => row.geometry.type === 'point');
+    const points = objects.filter((row) => row.geometry.type === 'point' && row.kind !== 'modeled_repair_resource');
+    const actors = objects.filter((row) => row.kind === 'modeled_repair_resource');
     const corridors = objects.filter((row) => row.kind === 'subsea_capacity_corridor');
     return deepFreeze({
       schema: 'simulatte.pluginPresentation.v3',
@@ -96,7 +117,13 @@
           : row.quantities.utilizationRatio > 0.85 ? 'amber' : 'cyan',
         width: 1.2,
       })),
-      actors: [],
+      actors: actors.map((row) => ({
+        id: row.id,
+        position: row.geometry.coordinates,
+        label: `${row.id.replace('repair-resource:', '')} en route`,
+        tone: 'green',
+        radius: 0.95,
+      })),
       areas: [],
       cameraTargets: [{
         id: 'subsea-atlantic',

@@ -1,11 +1,11 @@
 {
   "schema": "simulatte.neighborhoodBulkCatalogSnapshot.v1",
   "id": "neighborhood-bulk-catalog-snapshot-bootstrap-v1",
-  "contentVersion": "bootstrap-scenario-2026-07",
+  "contentVersion": "modeled-warehouse-scale-2026-07",
   "snapshotAt": "2026-07-26T16:00:00Z",
   "coverage": {
-    "status": "bootstrap-scenario",
-    "catalogRows": 18,
+    "status": "modeled-warehouse-scale",
+    "catalogRows": 2048,
     "declaredComplete": false,
     "maximumSupportedRows": 250000,
     "missingCapabilities": [
@@ -22,8 +22,34 @@
     { "id": "frozen", "label": "Frozen" },
     { "id": "pantry", "label": "Pantry" },
     { "id": "snacks-bakery", "label": "Snacks and bakery" },
-    { "id": "household", "label": "Household" }
+    { "id": "household", "label": "Household" },
+    { "id": "beverages", "label": "Beverages" },
+    { "id": "meat-seafood", "label": "Meat and seafood" },
+    { "id": "personal-care", "label": "Personal care" },
+    { "id": "baby", "label": "Baby" },
+    { "id": "pet", "label": "Pet" },
+    { "id": "office", "label": "Office" },
+    { "id": "home-kitchen", "label": "Home and kitchen" },
+    { "id": "seasonal", "label": "Seasonal" }
   ],
+  "modeledExpansion": {
+    "targetRows": 2048,
+    "descriptors": ["Classic", "Family", "Organic-style", "Everyday", "Premium-style", "Value", "Assorted", "Seasonal"],
+    "archetypes": [
+      { "categoryId": "beverages", "categoryPath": ["Grocery", "Beverages"], "name": "Bottled beverage variety", "innerUnits": 24, "unitType": "sealed bottle", "divisionMode": "sealed-unit", "massKg": 12, "volumeL": 15, "temperatureZone": "ambient", "maximumTransitMinutes": 720, "basePriceUsd": 18 },
+      { "categoryId": "beverages", "categoryPath": ["Grocery", "Coffee and tea"], "name": "Coffee pod assortment", "innerUnits": 72, "unitType": "sealed pod", "divisionMode": "sealed-unit", "massKg": 2, "volumeL": 8, "temperatureZone": "ambient", "maximumTransitMinutes": 720, "basePriceUsd": 34 },
+      { "categoryId": "meat-seafood", "categoryPath": ["Grocery", "Meat"], "name": "Portioned protein pack", "innerUnits": 8, "unitType": "sealed portion", "divisionMode": "sealed-unit", "massKg": 3.5, "volumeL": 5, "temperatureZone": "refrigerated", "maximumTransitMinutes": 90, "basePriceUsd": 29 },
+      { "categoryId": "meat-seafood", "categoryPath": ["Grocery", "Seafood"], "name": "Frozen seafood portions", "innerUnits": 12, "unitType": "sealed portion", "divisionMode": "sealed-unit", "massKg": 2.5, "volumeL": 4, "temperatureZone": "frozen", "maximumTransitMinutes": 60, "basePriceUsd": 32 },
+      { "categoryId": "personal-care", "categoryPath": ["Personal Care", "Bath"], "name": "Personal care multipack", "innerUnits": 6, "unitType": "sealed item", "divisionMode": "sealed-unit", "massKg": 2.2, "volumeL": 4, "temperatureZone": "ambient", "maximumTransitMinutes": 720, "basePriceUsd": 21 },
+      { "categoryId": "personal-care", "categoryPath": ["Personal Care", "Oral care"], "name": "Oral care multipack", "innerUnits": 8, "unitType": "sealed item", "divisionMode": "sealed-unit", "massKg": 1.1, "volumeL": 3, "temperatureZone": "ambient", "maximumTransitMinutes": 720, "basePriceUsd": 19 },
+      { "categoryId": "baby", "categoryPath": ["Baby", "Supplies"], "name": "Baby supply case", "innerUnits": 12, "unitType": "sealed pack", "divisionMode": "sealed-unit", "massKg": 5, "volumeL": 18, "temperatureZone": "ambient", "maximumTransitMinutes": 720, "basePriceUsd": 28 },
+      { "categoryId": "pet", "categoryPath": ["Pet", "Food and supplies"], "name": "Pet supply bulk pack", "innerUnits": 20, "unitType": "sealed unit", "divisionMode": "sealed-unit", "massKg": 8, "volumeL": 16, "temperatureZone": "ambient", "maximumTransitMinutes": 720, "basePriceUsd": 31 },
+      { "categoryId": "office", "categoryPath": ["Office", "Supplies"], "name": "Office supply case", "innerUnits": 24, "unitType": "item", "divisionMode": "count", "massKg": 3, "volumeL": 9, "temperatureZone": "ambient", "maximumTransitMinutes": 720, "basePriceUsd": 23 },
+      { "categoryId": "home-kitchen", "categoryPath": ["Home", "Kitchen"], "name": "Kitchen consumable set", "innerUnits": 16, "unitType": "item", "divisionMode": "count", "massKg": 4, "volumeL": 14, "temperatureZone": "ambient", "maximumTransitMinutes": 720, "basePriceUsd": 27 },
+      { "categoryId": "home-kitchen", "categoryPath": ["Home", "Cleaning"], "name": "Cleaning supply multipack", "innerUnits": 10, "unitType": "sealed item", "divisionMode": "sealed-unit", "massKg": 7, "volumeL": 12, "temperatureZone": "ambient", "maximumTransitMinutes": 720, "basePriceUsd": 25 },
+      { "categoryId": "seasonal", "categoryPath": ["Seasonal", "Entertaining"], "name": "Seasonal entertaining assortment", "innerUnits": 18, "unitType": "item", "divisionMode": "count", "massKg": 4, "volumeL": 20, "temperatureZone": "ambient", "maximumTransitMinutes": 720, "basePriceUsd": 30 }
+    ]
+  },
   "items": [
     {
       "id": "scenario-yellow-potatoes-10lb",
@@ -338,9 +364,9 @@
     "uncertainty": {
       "kind": "missing",
       "value": {
-        "reason": "Product identities, package sizes, prices, and availability are bootstrap scenario inputs, not observed Costco warehouse inventory."
+        "reason": "Product identities, package sizes, prices, and availability are warehouse-scale modeled scenario inputs, not observed Costco warehouse inventory."
       }
     }
   },
-  "claimBoundary": "This bootstrap snapshot proves the catalog and optimizer contracts only. It is deliberately incomplete and does not claim that any named package, price, or availability is currently offered by Costco."
+  "claimBoundary": "This warehouse-scale modeled snapshot exercises catalog search and optimization across 2,048 rows. It is deliberately incomplete as live inventory and does not claim that any named package, price, or availability is currently offered by Costco."
 }

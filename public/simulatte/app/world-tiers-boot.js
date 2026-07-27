@@ -420,7 +420,10 @@
         },
         onReceipt:(receipt)=>{
           root.__simulatteTierRunReceipt=receipt;
-          root.__simulatteComparisonExecutionReceipts=Object.freeze([receipt.actionResult.comparisonExecutionReceipt]);
+          root.__simulatteComparisonExecutionReceipts=Object.freeze(
+            receipt.actionResult.comparisonExecutionReceipts
+              || [receipt.actionResult.comparisonExecutionReceipt].filter(Boolean)
+          );
           ctx.setJourneyPhase?.('completed');
           ctx.setRuntimeStatus?.(elements,'Complete','ready');
         },

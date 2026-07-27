@@ -47,7 +47,7 @@
             const term = documentRef.createElement('dt');
             const description = documentRef.createElement('dd');
             term.textContent = row.label;
-            description.textContent = String(row.value);
+            description.textContent = formatFieldValue(row.value, null);
             container.append(term, description);
             rows.append(container);
           });
@@ -146,9 +146,7 @@
     controls.forEach((control) => {
       if (!values.has(control.id)) values.set(control.id, cloneControlValue(control.value));
     });
-    const fields = controls.length <= 6
-      ? renderControlFields(documentRef, pluginId, controls, values)
-      : renderControlGroups(documentRef, pluginId, controls, values);
+    const fields = renderControlGroups(documentRef, pluginId, controls, values);
     section.append(heading, explanation, fields);
     return section;
   }
@@ -156,10 +154,10 @@
   function renderControlGroups(documentRef, pluginId, controls, values) {
     const container = documentRef.createElement('div');
     container.className = 'plugin-control-groups';
-    groupControls(controls).forEach((group, index) => {
+    groupControls(controls).forEach((group) => {
       const section = documentRef.createElement('details');
       section.className = 'plugin-control-group';
-      section.open = index === 0;
+      section.open = true;
       const heading = documentRef.createElement('summary');
       heading.textContent = `${group.label} (${group.controls.length})`;
       section.append(heading, renderControlFields(documentRef, pluginId, group.controls, values));
@@ -267,7 +265,7 @@
       const term = documentRef.createElement('dt');
       const description = documentRef.createElement('dd');
       term.textContent = field.label;
-      description.textContent = field.unit === null ? String(field.value) : `${field.value} ${field.unit}`;
+      description.textContent = formatFieldValue(field.value, field.unit);
       description.title = provenanceSummary(field.provenance);
       description.dataset.origin = field.provenance.axes.origin;
       description.dataset.temporalStatus = field.provenance.axes.temporalStatus;
@@ -289,6 +287,30 @@
     return `${provenance.axes.origin}; ${provenance.axes.temporalStatus}; ${uncertainty}; evidence: ${evidence}`;
   }
 
+  function formatFieldValue(value, unit) {
+    let text;
+    if (value === null || value === undefined) text = 'Not available';
+    else if (Array.isArray(value)) {
+      text = value.every((entry) => entry === null || ['string', 'number', 'boolean'].includes(typeof entry))
+        ? value.map((entry) => String(entry)).join(', ')
+        : stableJson(value);
+    } else if (typeof value === 'object') text = stableJson(value);
+    else text = String(value);
+    return unit === null || unit === undefined ? text : `${text} ${unit}`;
+  }
+
+  function stableJson(value) {
+    return JSON.stringify(sortObject(value), null, 2);
+  }
+
+  function sortObject(value) {
+    if (Array.isArray(value)) return value.map(sortObject);
+    if (!value || typeof value !== 'object') return value;
+    return Object.fromEntries(
+      Object.keys(value).sort().map((key) => [key, sortObject(value[key])])
+    );
+  }
+
   function uiError(code, message, evidence) {
     const error = new Error(`${code}: ${message}`);
     error.name = 'SimulattePluginUiError';
@@ -297,5 +319,5 @@
     return error;
   }
 
-  return { createDeclarativeUiHost };
+  return { createDeclarativeUiHost, formatFieldValue };
 });

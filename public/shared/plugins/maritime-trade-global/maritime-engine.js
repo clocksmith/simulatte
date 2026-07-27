@@ -20,6 +20,9 @@
 
     const spec = normalizeSpec(scenario, config);
     const vessel = vesselFor(datasets.vessels, spec.vesselClassId);
+    if (spec.cargoTeu > Number(vessel.teu)) {
+      throw new Error(`maritime_cargo_exceeds_vessel_capacity: ${spec.cargoTeu} > ${vessel.teu}`);
+    }
     const disruption = disruptionApi.resolveDisruption(spec.scenarioId, datasets);
     const route = router.planRoute({
       ports: datasets.ports,
@@ -29,7 +32,13 @@
       scenarioId: spec.scenarioId,
       speedPolicy: spec.speedPolicy,
       disruption,
-      routeObjective,
+      routeObjective: {
+        ...routeObjective,
+        vesselServiceSpeedKnots: Number(vessel.serviceSpeedKn),
+        mainEnginePowerKw: Number(vessel.mainEnginePowerKw),
+        sfocGPerKwh: Number(vessel.sfocGPerKwh),
+        co2TonsPerFuelTon: Number(datasets.emissionsModel?.co2KgPerKgFuel || 3.114),
+      },
     });
     const destination = (datasets.ports.ports || []).find((row) => row.id === route.destinationPort);
     if (!destination) throw new Error(`maritime_destination_missing: ${route.destinationPort}`);
@@ -134,13 +143,28 @@
       position: route.waypoints[0],
     }, [configuredId], [route.evidenceRefs[0], 'model:container-lineage-state-machine-v2']);
     let elapsedHours = 0;
+    let completedDistanceNm = 0;
     route.legs.forEach((leg, index) => {
+      const legStart = route.waypoints[index];
+      const legEnd = route.waypoints[index + 1];
+      for (const fraction of [0.25, 0.5, 0.75]) {
+        previousId = schedule(elapsedHours + leg.sailingHours * fraction, 20, 'maritime.voyage-progressed', {
+          legId: leg.id,
+          portId: null,
+          legIndex: index,
+          legProgressFraction: fraction,
+          progressFraction: (completedDistanceNm + leg.distanceNm * fraction) / route.distanceNm,
+          position: interpolatePoint(legStart, legEnd, fraction),
+        }, [previousId], [`row:global-maritime-corridors-v1:${leg.id}`, 'model:governed-corridor-dijkstra-v2']);
+      }
       elapsedHours += leg.sailingHours;
+      completedDistanceNm += leg.distanceNm;
       previousId = schedule(elapsedHours, 20, 'maritime.leg-completed', {
         legId: leg.id,
         portId: leg.toPortId,
         legIndex: index,
-        progressFraction: (index + 1) / route.legs.length,
+        legProgressFraction: 1,
+        progressFraction: completedDistanceNm / route.distanceNm,
         position: route.waypoints[index + 1],
       }, [previousId], [`row:global-maritime-corridors-v1:${leg.id}`, 'model:governed-corridor-dijkstra-v2']);
     });
@@ -312,6 +336,7 @@
     return ({
       'maritime.scenario-configured': 'configured',
       'maritime.voyage-departed': 'sailing',
+      'maritime.voyage-progressed': 'sailing',
       'maritime.leg-completed': 'sailing',
       'maritime.voyage-arrived': 'arrived',
       'maritime.queue-entered': 'queued',
@@ -395,7 +420,14 @@
     return deepFreeze([
       { id: 'vesselClassId', type: 'select', value: spec.vesselClassId, options: vessels.archetypes.map((row) => ({ value: row.id, label: row.label })), provenance: 'dataset:maritime-vessel-archetypes-v1' },
       { id: 'speedPolicy', type: 'select', value: spec.speedPolicy, options: [{ value: 'slow', label: 'Slow steaming' }, { value: 'service', label: 'Service speed' }, { value: 'fast', label: 'Fast recovery' }], provenance: 'model:governed-corridor-dijkstra-v2' },
-      { id: 'cargoTeu', type: 'number', value: spec.cargoTeu, minimum: 100, maximum: 24000, provenance: 'scenario:cargo-load' },
+      {
+        id: 'cargoTeu',
+        type: 'number',
+        value: spec.cargoTeu,
+        minimum: 100,
+        maximum: Number(vesselFor(vessels, spec.vesselClassId).teu),
+        provenance: 'scenario:cargo-load',
+      },
       { id: 'ensembleReplicates', type: 'number', value: spec.ensembleReplicates, minimum: 2, maximum: 512, provenance: 'model:fcfs-multi-server-queue-v2' },
     ]);
   }
@@ -417,6 +449,14 @@
     if (scenarioId === 'north-atlantic-cyclone') return 'north-atlantic-baseline';
     if (scenarioId === 'transpacific-panama-restriction') return 'panama-baseline';
     return scenarioId;
+  }
+
+  function interpolatePoint(start, end, fraction) {
+    return Object.freeze([
+      Number(start?.[0] || 0) + (Number(end?.[0] || 0) - Number(start?.[0] || 0)) * fraction,
+      Number(start?.[1] || 0) + (Number(end?.[1] || 0) - Number(start?.[1] || 0)) * fraction,
+      Number(start?.[2] || 0) + (Number(end?.[2] || 0) - Number(start?.[2] || 0)) * fraction,
+    ]);
   }
 
   function numberWithin(value, minimum, maximum, label) {

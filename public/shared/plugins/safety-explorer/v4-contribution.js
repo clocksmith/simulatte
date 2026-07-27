@@ -12,9 +12,12 @@
   const PLUGIN_ID = 'safety-explorer';
   const MODEL_HASH = '2cf0e2ac6500fb7af22d974f5ef7778cc5da4fab4cb19759619b6d26ab2d384a';
 
-  function createContribution({ audit, index, datasetReceipt, parameters = null }) {
+  function createContribution({ audit, playback = null, index, datasetReceipt, parameters = null }) {
     const selectedParameters = shrinkage.parameters(parameters || audit?.method || {});
     const methodReceipt = shrinkage.methodReceipt(index.segmentRows, selectedParameters);
+    const stage = audit && (!playback || playback.status === 'ready')
+      ? 3
+      : Math.max(0, Math.min(3, playback?.step || 0));
     const dataset = builder.datasetRecord(index.id, datasetReceipt, {
       title: 'NYC crash history by physical street segment',
       claimBoundary: index.claimBoundary,
@@ -95,19 +98,30 @@
       },
       records: [dataset, model],
     });
-    const eventId = audit ? `${PLUGIN_ID}:route-audited` : null;
-    const layers = audit ? [
+    const eventIds = [
+      `${PLUGIN_ID}:route-resolved`,
+      `${PLUGIN_ID}:observations-joined`,
+      `${PLUGIN_ID}:estimate-derived`,
+    ];
+    const evidenceLayers = audit ? [
       ...(routeRows.length ? [builder.layer({
         id: 'observed-route',
         kind: 'path',
         label: 'Reported crash history with fixed sparse-count shrinkage',
         geometry: builder.geometry('segments', 'city-segment-id', routeRows.map((row) => row.segmentId)),
-        quantity: builder.quantity(
-          'fixed-sparse-count-observation',
-          fixedScore(routeRows, methodReceipt),
-          'score',
-          [0, Math.max(1, fixedScore(index.segmentRows, methodReceipt))],
-        ),
+        quantity: stage >= 3
+          ? builder.quantity(
+              'fixed-sparse-count-observation',
+              fixedScore(routeRows, methodReceipt),
+              'score',
+              [0, Math.max(1, fixedScore(index.segmentRows, methodReceipt))],
+            )
+          : builder.quantity(
+              'reported-crash-count',
+              routeRows.reduce((sum, row) => sum + row.crashCount, 0),
+              'reports',
+              [0, Math.max(1, routeRows.reduce((sum, row) => sum + row.crashCount, 0))],
+            ),
         role: 'primary',
         importance: 1,
         provenance: estimate,
@@ -123,18 +137,39 @@
         provenance: unknown,
       })] : []),
     ] : [];
-    const events = audit ? [
+    const routeScopeLayer = audit ? builder.layer({
+      id: 'analysis-route-scope',
+      kind: 'path',
+      label: 'Route selected for historical evidence analysis',
+      geometry: builder.geometry('segments', 'city-segment-id', audit.segmentIds),
+      quantity: builder.quantity('route-segment-count', audit.segmentIds.length, 'segments'),
+      role: 'context',
+      importance: 0.8,
+      provenance: unknown,
+    }) : null;
+    const layers = stage === 1 && routeScopeLayer
+      ? [routeScopeLayer]
+      : stage >= 2
+        ? evidenceLayers
+        : [];
+    const stageNames = ['route-resolved', 'observations-joined', 'estimate-derived'];
+    const events = audit ? stageNames.map((name, sequence) => (
       builder.event({
-        id: eventId,
+        id: eventIds[sequence],
         pluginId: PLUGIN_ID,
-        sequence: 0,
-        simulationTimeMs: 1,
-        kind: `${PLUGIN_ID}.route-audited`,
+        sequence,
+        simulationTimeMs: (sequence + 1) * 1000,
+        kind: `${PLUGIN_ID}.${name}`,
+        causationIds: sequence ? [eventIds[sequence - 1]] : [],
         correlationId: `${PLUGIN_ID}:${audit.indexId}`,
-        payload: audit,
-        provenance: estimate,
-      }),
-    ] : [];
+        payload: {
+          routeSegmentCount: audit.segmentIds.length,
+          joinedObservationCount: routeRows.length,
+          fixedSparseCountEstimate: sequence >= 2 ? audit.fixedSparseCountEstimate : null,
+        },
+        provenance: sequence >= 2 ? estimate : sequence === 1 ? observation : unknown,
+      })
+    )) : [];
     const visual = builder.presentation({
       pluginId: PLUGIN_ID,
       coordinateSystem: 'city-segment-id',
@@ -144,26 +179,34 @@
           id: 'safety-route-overview',
           mode: 'compare',
           targetIds: layers.map((row) => row.id),
-          reasonEventId: eventId,
+          reasonEventId: stage ? eventIds[stage - 1] : null,
           priority: 70,
         }),
       ] : [],
     });
     const progressiveState = audit ? builder.state({
-      id: `${PLUGIN_ID}:state:route-audited`,
+      id: `${PLUGIN_ID}:state:${stageNames[Math.max(0, stage - 1)] || 'ready'}`,
       pluginId: PLUGIN_ID,
-      simulationTimeMs: 1,
-      status: 'settled',
-      eventIds: [eventId],
+      simulationTimeMs: stage * 1000,
+      status: stage >= 3 ? 'settled' : stage > 0 ? 'running' : 'ready',
+      previousStateId: stage > 0
+        ? `${PLUGIN_ID}:state:${stage === 1 ? 'ready' : stageNames[stage - 2]}`
+        : null,
+      eventIds: eventIds.slice(0, stage),
       measures: [
-        builder.quantity('crash-count', audit.crashCount, 'reports'),
-        builder.quantity('injury-count', audit.injuryCount, 'reports'),
-        builder.quantity('fatality-count', audit.fatalityCount, 'reports'),
-        builder.quantity('historical-observation-score', audit.historicalObservationScore, 'score'),
-        builder.quantity('fixed-sparse-count-observation', audit.fixedSparseCountEstimate ?? fixedScore(routeRows, methodReceipt), 'score'),
-        builder.quantity('unknown-observation-segments', audit.unknownSegmentCount ?? unknownSegmentIds.length, 'segments'),
+        ...(stage >= 1 ? [builder.quantity('route-segment-count', audit.segmentIds.length, 'segments')] : []),
+        ...(stage >= 2 ? [
+          builder.quantity('crash-count', audit.crashCount, 'reports'),
+          builder.quantity('injury-count', audit.injuryCount, 'reports'),
+          builder.quantity('fatality-count', audit.fatalityCount, 'reports'),
+          builder.quantity('unknown-observation-segments', audit.unknownSegmentCount ?? unknownSegmentIds.length, 'segments'),
+        ] : []),
+        ...(stage >= 3 ? [
+          builder.quantity('historical-observation-score', audit.historicalObservationScore, 'score'),
+          builder.quantity('fixed-sparse-count-observation', audit.fixedSparseCountEstimate ?? fixedScore(routeRows, methodReceipt), 'score'),
+        ] : []),
       ],
-      provenance: estimate,
+      provenance: stage >= 3 ? estimate : stage >= 2 ? observation : unknown,
     }) : null;
     const controls = builder.controls([
       numericControl('shrinkageK', 'Shrinkage K', methodReceipt.k, 0, 64, 1, estimate),
@@ -177,7 +220,7 @@
       variantScenarioId: `${PLUGIN_ID}:k-${comparisonK(methodReceipt.k)}`,
       synchronizedClock: true,
     }]);
-    const inspections = audit ? [{
+    const inspections = audit && stage >= 2 ? [{
       id: 'safety-route-evidence',
       label: 'Route observation and uncertainty evidence',
       targetIds: layers.map((row) => row.id),
@@ -191,13 +234,15 @@
         field('collision-ids', 'Observed collision IDs', routeRows.flatMap((row) => row.collisionIds || []), null, observation),
         field('maximum-join-distance', 'Maximum route join distance', routeRows.length ? Math.max(...routeRows.map((row) => row.maximumJoinDistanceM || 0)) : null, 'm', observation),
         field('match-status', 'Match status', audit.segmentEvidence?.map((row) => ({ segmentId: row.segmentId, matchStatus: row.matchStatus })) || unknownSegmentIds.map((segmentId) => ({ segmentId, matchStatus: 'no_history_row' })), null, unknown),
-        field('fixed-estimate', 'Fixed sparse-count estimate', audit.fixedSparseCountEstimate ?? fixedScore(routeRows, methodReceipt), 'score', estimate),
-        field('formula', 'Fixed sparse-count formula', methodReceipt.formula, null, estimate),
-        field('parameters', 'K, corpus mean, severity weights', {
+        ...(stage >= 3 ? [
+          field('fixed-estimate', 'Fixed sparse-count estimate', audit.fixedSparseCountEstimate ?? fixedScore(routeRows, methodReceipt), 'score', estimate),
+          field('formula', 'Fixed sparse-count formula', methodReceipt.formula, null, estimate),
+          field('parameters', 'K, corpus mean, severity weights', {
           k: methodReceipt.k,
           corpusMean: methodReceipt.corpusMean,
           severityWeights: methodReceipt.severityWeights,
-        }, null, estimate),
+          }, null, estimate),
+        ] : []),
         field('unknown-exposure', 'Exposure warning', 'Exposure denominator is missing. Zero observations and unmatched segments are unknown, not safe.', null, unknown),
         field('unmatched-collisions', 'Unmatched source collision IDs', index.unjoinedCollisionIds, null, observation),
         field('claim-warning', 'Decision boundary', 'This method cannot identify or claim a safest route.', null, estimate),

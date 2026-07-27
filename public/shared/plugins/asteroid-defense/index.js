@@ -200,6 +200,7 @@
           ...(snapshot.fitReceipt ? [
             { label: 'Fit residual', value: `${state.result.metrics.fitResidualRmsArcsec.toFixed(2)} arcsec` },
             { label: 'Fit status', value: state.result.fitReceipt.terminationReason.replaceAll('_', ' ') },
+            { label: 'Follow-up selection', value: state.result.fitReceipt.observationSelectionReceipt.method.replaceAll('_', ' ') },
           ] : []),
           ...(snapshot.ensembleReceipt ? [{ label: 'Orbit clones', value: `${snapshot.ensembleReceipt.ensembleSize} generated from the fitted covariance` }] : []),
           ...(snapshot.baselineEncounter ? [{
@@ -225,12 +226,14 @@
           terminationReason: runResult.fitReceipt.terminationReason,
           residualRmsRad: runResult.fitReceipt.residualRmsRad,
           covariance: runResult.fitReceipt.covarianceReceipt,
+          observationSelection: runResult.fitReceipt.observationSelectionReceipt,
         },
         ensemble: {
           covarianceIdentity: runResult.ensembleReceipt.covarianceIdentity,
           size: runResult.ensembleReceipt.ensembleSize,
           rejected: runResult.ensembleReceipt.rejected.length,
         },
+        interventionExecutionProfile: runResult.metrics.interventionExecutionProfile,
         claimBoundary: runResult.claimBoundary,
         truth: truth('derived', 'distribution', 'Synthetic observations plus declared models.'),
       });
@@ -338,8 +341,8 @@
       acceptedParameters: state.acceptedParameters,
       viewIntents: [{
         schema: 'simulatte.viewIntent.v4',
-        mode: snapshot.status.includes('propagated') ? 'follow' : snapshot.status === 'settled' ? 'compare' : 'overview',
-        targetIds: snapshot.status.includes('propagated') ? ['asteroid-encounter:orbit-clone-001'] : ['asteroid-representative-trajectory'],
+        mode: snapshot.status.includes('propagating') ? 'follow' : snapshot.status === 'settled' ? 'compare' : 'overview',
+        targetIds: snapshot.status.includes('propagating') ? ['asteroid-active-clone'] : ['asteroid-representative-trajectory'],
         transitionReason: snapshot.eventIds.at(-1) ? `simulation_event:${snapshot.eventIds.at(-1)}` : 'scenario_ready',
         priority: 70,
         expiresAtEventId: null,
@@ -354,8 +357,10 @@
       observed: 'Synthetic observations acquired',
       fitted: 'Orbit fit and covariance computed',
       ensemble: 'Uncertainty clones generated',
+      'baseline-propagating': 'No-intervention ensemble propagating',
       'baseline-propagated': 'No-intervention encounter screened',
       decision: 'Decision policy evaluated',
+      'intervention-propagating': 'Intervention ensemble propagating',
       'intervention-propagated': 'Intervention ensemble propagated',
       settled: 'Comparison settled',
     }[status] || String(status).replaceAll('-', ' ');
@@ -394,7 +399,7 @@
     'simulatte.asteroidSyntheticCampaigns.v1': (value) => rows(value, 'campaigns', 5),
     'simulatte.asteroidObserverStations.v1': (value) => rows(value, 'stations', 2),
     'simulatte.asteroidForceModels.v1': (value) => rows(value, 'models', 1),
-    'simulatte.asteroidInterventionArchetypes.v1': (value) => rows(value, 'archetypes', 4),
+    'simulatte.asteroidInterventionArchetypes.v1': validateInterventions,
     'simulatte.asteroidExecutionUncertainty.v1': (value) => rows(value, 'models', 1),
     'simulatte.asteroidDecisionPolicies.v1': (value) => rows(value, 'policies', 4),
     'simulatte.asteroidHistoricalBenchmarks.v1': (value) => rows(value, 'cases', 1),
@@ -404,6 +409,20 @@
   });
   function rows(value, key, minimum) {
     if (!Array.isArray(value?.[key]) || value[key].length < minimum) throw pluginError('asteroid_dataset_invalid', `${value?.id || key}:${key}`);
+    return value;
+  }
+  function validateInterventions(value) {
+    rows(value, 'archetypes', 4);
+    const modes = new Set(['none', 'instantaneous-kinetic', 'reconnaissance-then-kinetic', 'continuous-low-thrust']);
+    value.archetypes.forEach((row) => {
+      if (!modes.has(row.deliveryMode)
+        || !Number.isFinite(row.campaignDelayDays)
+        || !Number.isFinite(row.thrustDurationDays)
+        || !Number.isInteger(row.impulseProfileSteps)
+        || !Number.isFinite(row.navigationSigmaMultiplier)) {
+        throw pluginError('asteroid_dataset_invalid', `${value.id}:${row.id}:execution-profile`);
+      }
+    });
     return value;
   }
   return Object.freeze({ activate, datasetValidators });

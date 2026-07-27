@@ -135,6 +135,25 @@ test('overview frames the aggregate intent while follow targets the active subje
   ]);
 });
 
+test('POV intents remain distinct from elevated follow navigation', () => {
+  const calls = [];
+  const coordinator = viewRuntimeApi.createCoordinator({
+    renderer: {
+      cameraTargets: () => [
+        { id: 'plugin:fixture:active-view' },
+        { id: 'plugin:fixture:route' },
+      ],
+      focusCameraTarget: (id) => calls.push(['focus', id]),
+      setCameraMode: (mode) => calls.push(['mode', mode]),
+    },
+  });
+  coordinator.sync([contribution('fixture', 'pov')], [provenanceReceipt('fixture')]);
+  assert.deepEqual(calls, [
+    ['focus', 'plugin:fixture:route'],
+    ['mode', 'pov'],
+  ]);
+});
+
 test('synchronization reapplies an unchanged semantic decision after renderer state refresh', () => {
   const calls = [];
   const camera = { mode: 'bird', focusId: 'route' };

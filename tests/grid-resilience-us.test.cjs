@@ -6,6 +6,7 @@ const test = require('node:test');
 const ROOT = join(__dirname, '..');
 const PLUGIN_DIRECTORY = join(ROOT, 'public/shared/plugins/grid-resilience-us');
 const model = require(join(PLUGIN_DIRECTORY, 'dispatch-model.js'));
+const restorationApi = require(join(PLUGIN_DIRECTORY, 'restoration-engine.js'));
 const comparison = require(join(PLUGIN_DIRECTORY, 'comparison-driver.js'));
 const plugin = require(join(PLUGIN_DIRECTORY, 'index.js'));
 const config = json(join(PLUGIN_DIRECTORY, 'default-config.json'));
@@ -61,7 +62,71 @@ test('dispatch replays deterministically and independently verifies balance, sto
       const limit = row.transferMw >= 0 ? row.forwardLimitMw : row.reverseLimitMw;
       assert.ok(Math.abs(row.transferMw) <= limit + 1e-6);
     });
+    snapshot.regions.forEach((region) => {
+      assert.ok(Math.abs(
+        region.generationMw
+        - region.generation.reduce((sum, resource) => sum + resource.generationMw, 0)
+      ) <= 1e-5);
+      assert.ok(region.generation.every((resource) => (
+        resource.generationMw + 1e-6 >= resource.minimumGenerationMw
+        && resource.generationMw <= resource.availableCapacityMw + 1e-6
+      )));
+      assert.ok(Math.abs(
+        region.emissionsTons
+        - region.generation.reduce(
+          (sum, resource) => sum + resource.generationMw * resource.emissionsTonsPerMwh,
+          0
+        )
+      ) <= 1e-5);
+    });
   });
+});
+
+test('ramp-down surplus charges storage or is explicitly spilled instead of violating balance', () => {
+  const periods = [...new Set(datasets.eiaDemand.rows.map((row) => row.period))].sort();
+  const plungePeriod = periods[12];
+  const demandRows = datasets.eiaDemand.rows.map((row) => (
+    row.period === plungePeriod ? { ...row, value: row.value * 0.05 } : row
+  ));
+  const stressedDatasets = {
+    ...datasets,
+    eiaDemand: { ...datasets.eiaDemand, rows: demandRows },
+  };
+  const run = model.runScenario({ datasets: stressedDatasets, config, scenario });
+  assert.equal(run.settlement.status, 'settled');
+  assert.ok(
+    run.metrics.modeledStorageChargeMwh > 0
+    || run.metrics.modeledSpilledGenerationMwh > 0
+  );
+  assert.ok(run.snapshots.slice(1).every((snapshot) => snapshot.verification.rampValid));
+});
+
+test('restoration attempts use the declared probability and failed work remains unavailable', () => {
+  const disturbance = datasets.disturbances.scenarios.find((row) => row.id === 'restoration-sequence');
+  const schedule = restorationApi.schedule({
+    disturbance,
+    restoration: datasets.restoration,
+    policyId: 'dependency-aware',
+    crewCount: 2,
+    seed: 'seed-restoration-sequence',
+  });
+  assert.deepEqual(schedule, restorationApi.schedule({
+    disturbance,
+    restoration: datasets.restoration,
+    policyId: 'dependency-aware',
+    crewCount: 2,
+    seed: 'seed-restoration-sequence',
+  }));
+  assert.ok(schedule.tasks.every((task) => (
+    task.attempts.length <= restorationApi.MAXIMUM_ATTEMPTS
+    && task.attempts.every((attempt) => (
+      attempt.success === (attempt.draw <= task.attemptSuccessProbability)
+    ))
+  )));
+  assert.ok(schedule.tasks.some((task) => task.attempts.length > 1 || !task.successful));
+  assert.ok(schedule.tasks.filter((task) => !task.successful).every(
+    (task) => !Object.hasOwn(schedule.targetRestoredAtHour, task.targetId)
+  ));
 });
 
 test('controls materially alter dispatch, storage, emissions, and restoration outcomes', () => {

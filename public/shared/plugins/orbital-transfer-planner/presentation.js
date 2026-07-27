@@ -7,8 +7,9 @@
     const selected = new Set(transferPlan.selectedBodyIds || []);
     const markers = [];
     const paths = [];
+    const ephemerisDay = Number(transferPlan.ephemerisDay || 0);
     Object.entries(ephemerisData?.bodies || {}).forEach(([id, body]) => {
-      const currentPos = body.vectors?.[0]?.positionAu || [0, 0, 0];
+      const currentPos = stateAtDay(body.vectors || [], ephemerisDay);
       markers.push({
         id, position: currentPos, label: body.name || id,
         tone: id === 'sun' ? 'amber' : selected.has(id) ? 'cyan' : 'muted',
@@ -22,7 +23,7 @@
     }
     return Object.freeze({
       schema: 'simulatte.pluginPresentation.v3', coordinateSystem: 'heliocentric-ecliptic-au',
-      epoch: ephemerisData?.epochStart || '2030-09-15T00:00:00Z', markers, paths,
+      epoch: epochForDay(ephemerisData, ephemerisDay), markers, paths,
       actors: transferPlan.actorPosition ? [{
         id: 'screening-spacecraft',
         position: transferPlan.actorPosition,
@@ -37,5 +38,25 @@
       ],
     });
   }
+  function stateAtDay(vectors, day) {
+    if (!vectors.length) return [0, 0, 0];
+    const bounded = Math.max(Number(vectors[0].day || 0), Math.min(Number(vectors.at(-1).day), day));
+    let lowerIndex = 0;
+    for (let index = 1; index < vectors.length && Number(vectors[index].day) <= bounded; index += 1) lowerIndex = index;
+    const lower = vectors[lowerIndex];
+    const upper = vectors[Math.min(vectors.length - 1, lowerIndex + 1)];
+    const lowerDay = Number(lower.day ?? lowerIndex);
+    const upperDay = Number(upper.day ?? lowerIndex + 1);
+    const ratio = upperDay === lowerDay ? 0 : (bounded - lowerDay) / (upperDay - lowerDay);
+    return lower.positionAu.map((value, index) => value + (upper.positionAu[index] - value) * ratio);
+  }
+
+  function epochForDay(dataset, day) {
+    const start = Date.parse(dataset?.epochStart || dataset?.epoch?.start || '');
+    return Number.isFinite(start)
+      ? new Date(start + day * 86400000).toISOString()
+      : dataset?.epochStart || '2030-09-15T00:00:00Z';
+  }
+
   return Object.freeze({ createPresentation });
 });

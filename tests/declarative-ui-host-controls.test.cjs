@@ -206,7 +206,7 @@ test('declarative UI groups dense parameter sets without changing their typed va
   const groups = find(inspector, (node) => node.className === 'plugin-control-groups');
   assert.ok(groups);
   assert.ok(groups.children.length >= 3);
-  assert.equal(groups.children[0].open, true);
+  assert.equal(groups.children.every((group) => group.open), true);
   assert.deepEqual(host.values('dense-fixture'), {
     demandScenario: 'peak',
     failureIds: ['cut-1'],
@@ -216,4 +216,13 @@ test('declarative UI groups dense parameter sets without changing their typed va
     ensembleSize: 8,
     excludedJurisdictions: [],
   });
+});
+
+test('declarative UI formats structured inspection values as readable stable JSON', () => {
+  assert.equal(
+    uiHost.formatFieldValue({ z: 2, a: { value: 1 } }, null),
+    '{\n  "a": {\n    "value": 1\n  },\n  "z": 2\n}'
+  );
+  assert.equal(uiHost.formatFieldValue(['north', 'south'], null), 'north, south');
+  assert.equal(uiHost.formatFieldValue(null, 'MW'), 'Not available MW');
 });

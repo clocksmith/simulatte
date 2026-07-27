@@ -69,7 +69,15 @@
       allocationPolicyId,
       config,
     });
-    const unmetByEdge = burdenByFailedEdge(failedEdgeIds, initial.allocation.demands);
+    const unmetByEdge = burdenByFailedEdge({
+      failedEdgeIds,
+      healthy,
+      edges: baseEdges,
+      demands,
+      excludedLandingIds,
+      allocationPolicyId,
+      config,
+    });
     const repairReceipt = repairApi.buildRepairTimeline({
       failedResourceIds,
       edges: baseEdges,
@@ -110,65 +118,50 @@
       repairedTargetIds: [],
       eventIds: events.filter((row) => row.simulationTimeMs === 0).map((row) => row.id),
     })];
-    const firstRestoration = repairReceipt.restorations[0] || null;
-    if (firstRestoration) {
-      const firstRepairEvents = repairReceipt.events.filter((row) => (
-        row.targetId === firstRestoration.targetId
-        && !['repair.requested', 'repair.capacity-restored', 'repair.completed'].includes(row.kind)
-      ));
-      firstRepairEvents.forEach((repairEvent, index) => {
-        const repairEventIds = repairReceipt.events
-          .filter((row) => row.targetId === repairEvent.targetId
-            && (row.simulationTimeMs < repairEvent.simulationTimeMs
-              || (row.simulationTimeMs === repairEvent.simulationTimeMs
-                && row.sequence <= repairEvent.sequence)))
-          .map((row) => row.id);
-        snapshots.push(snapshot({
-          id: `${scenario.scenarioId}:snapshot-repair-${index}`,
-          simulationTimeMs: repairEvent.simulationTimeMs,
-          status: 'repairing',
-          narrative: repairNarrative(repairEvent),
-          activeRepairEventId: repairEvent.id,
-          allocationResult: initial,
-          failedEdgeIds,
-          repairedTargetIds: [],
-          eventIds: [
-            ...events.filter((row) => row.simulationTimeMs === 0).map((row) => row.id),
-            ...repairEventIds,
-          ],
-        }));
-      });
-    }
     const restoredEdgeIds = new Set();
-    repairReceipt.restorations.forEach((restoration, index) => {
-      restoration.edgeIds.forEach((edgeId) => restoredEdgeIds.add(edgeId));
-      const activeFailedEdgeIds = failedEdgeIds.filter((edgeId) => !restoredEdgeIds.has(edgeId));
-      const next = allocate({
-        edges: baseEdges,
-        demands,
-        failedEdgeIds: activeFailedEdgeIds,
-        excludedLandingIds,
-        allocationPolicyId,
-        config,
-      });
-      appendEvent(events, 'allocation.recomputed', restoration.simulationTimeMs, [
-        events.find((row) => row.kind === 'repair.capacity-restored' && row.targetId === restoration.targetId)?.id,
-      ].filter(Boolean), {
-        policyId: allocationPolicyId,
-        pathCatalogHash: next.pathCatalog.catalogHash,
-        allocationMatrixHash: next.receipt.matrixHash,
-      });
+    const repairedTargetIds = [];
+    let activeFailedEdgeIds = [...failedEdgeIds];
+    let activeAllocation = initial;
+    repairReceipt.events.forEach((repairEvent, index) => {
+      if (repairEvent.kind === 'repair.completed') return;
+      if (repairEvent.kind === 'repair.capacity-restored') {
+        repairEvent.edgeIds.forEach((edgeId) => restoredEdgeIds.add(edgeId));
+        activeFailedEdgeIds = failedEdgeIds.filter((edgeId) => !restoredEdgeIds.has(edgeId));
+        activeAllocation = allocate({
+          edges: baseEdges,
+          demands,
+          failedEdgeIds: activeFailedEdgeIds,
+          excludedLandingIds,
+          allocationPolicyId,
+          config,
+        });
+        repairedTargetIds.push(repairEvent.targetId);
+        appendEvent(events, 'allocation.recomputed', repairEvent.simulationTimeMs, [repairEvent.id], {
+          policyId: allocationPolicyId,
+          targetId: repairEvent.targetId,
+          pathCatalogHash: activeAllocation.pathCatalog.catalogHash,
+          allocationMatrixHash: activeAllocation.receipt.matrixHash,
+        });
+      }
+      const status = repairEvent.kind === 'repair.capacity-restored' && !activeFailedEdgeIds.length
+        ? 'restored'
+        : 'repairing';
       snapshots.push(snapshot({
-        id: `${scenario.scenarioId}:snapshot-restoration-${index + 1}`,
-        simulationTimeMs: restoration.simulationTimeMs,
-        status: activeFailedEdgeIds.length ? 'repairing' : 'restored',
-        narrative: activeFailedEdgeIds.length
-          ? `${restoration.targetId} is restored; remaining failures stay in the repair queue.`
-          : `${restoration.targetId} is restored and affected traffic is allocated again.`,
-        allocationResult: next,
+        id: `${scenario.scenarioId}:snapshot-repair-${index}`,
+        simulationTimeMs: repairEvent.simulationTimeMs,
+        status,
+        narrative: repairEvent.kind === 'repair.capacity-restored'
+          ? activeFailedEdgeIds.length
+            ? `${repairEvent.targetId} is restored; remaining failures stay in the repair queue.`
+            : `${repairEvent.targetId} is restored and affected traffic is allocated again.`
+          : repairNarrative(repairEvent),
+        activeRepairEventId: repairEvent.id,
+        allocationResult: activeAllocation,
         failedEdgeIds: activeFailedEdgeIds,
-        repairedTargetIds: repairReceipt.restorations.slice(0, index + 1).map((row) => row.targetId),
-        eventIds: events.filter((row) => row.simulationTimeMs <= restoration.simulationTimeMs).map((row) => row.id),
+        repairedTargetIds: [...repairedTargetIds],
+        eventIds: events
+          .filter((row) => row.simulationTimeMs <= repairEvent.simulationTimeMs)
+          .map((row) => row.id),
       }));
     });
     const terminalTimeMs = Math.min(
@@ -314,12 +307,32 @@
     return [...ids].sort();
   }
 
-  function burdenByFailedEdge(failedEdgeIds, demands) {
-    const totalDropped = demands.reduce((sum, row) => sum + row.droppedGbps, 0);
-    return Object.fromEntries(failedEdgeIds.map((edgeId, index) => [
-      edgeId,
-      totalDropped / Math.max(1, failedEdgeIds.length) + failedEdgeIds.length - index,
-    ]));
+  function burdenByFailedEdge({
+    failedEdgeIds,
+    healthy,
+    edges,
+    demands,
+    excludedLandingIds,
+    allocationPolicyId,
+    config,
+  }) {
+    const healthyDroppedByDemand = new Map(
+      healthy.allocation.demands.map((row) => [row.id, row.droppedGbps])
+    );
+    return Object.fromEntries(failedEdgeIds.map((edgeId) => {
+      const counterfactual = allocate({
+        edges,
+        demands,
+        failedEdgeIds: [edgeId],
+        excludedLandingIds,
+        allocationPolicyId,
+        config,
+      });
+      const incrementalDroppedGbps = counterfactual.allocation.demands.reduce((sum, row) => (
+        sum + Math.max(0, row.droppedGbps - (healthyDroppedByDemand.get(row.id) || 0))
+      ), 0);
+      return [edgeId, incrementalDroppedGbps];
+    }));
   }
 
   function appendAllocationEvents(events, result, timeMs, causeId) {
@@ -394,6 +407,7 @@
     const labels = {
       'repair.resource-assigned': `${event.resourceId} is assigned to ${event.targetId}.`,
       'repair.transit-started': `${event.resourceId} begins transit toward ${event.targetId}.`,
+      'repair.transit-progressed': `${event.resourceId} is en route to ${event.targetId}.`,
       'repair.site-reached': `${event.resourceId} reaches ${event.targetId}.`,
       'repair.attempt-started': `A repair attempt begins at ${event.targetId}.`,
       'repair.attempt-failed': `The first repair attempt at ${event.targetId} fails and must be retried.`,

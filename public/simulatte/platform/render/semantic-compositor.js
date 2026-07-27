@@ -13,6 +13,16 @@
     simulated: '#ffb45c',
     scenario: '#ff7c9c',
   });
+  const QUANTITY_COLORS = Object.freeze({
+    'route.shade-selected': '#56e6a2',
+    'route.fastest-baseline': '#ffb85c',
+    'exposure.direct': '#ffd75f',
+    'exposure.shade': '#4fb9c6',
+    'exposure.unknown': '#9aa3b8',
+    'exposure.night': '#69738b',
+    'actor.pedestrian.route-progress': '#f4fff9',
+    'occlusion.shadow-length': '#315878',
+  });
   const ROLE_ORDER = Object.freeze({
     primary: 5,
     event: 4,
@@ -125,7 +135,7 @@
     const uncertain = layer.provenance.axes.uncertainty !== null;
     const roleWeight = ROLE_ORDER[layer.role] / 5;
     return deepFreeze({
-      color: ORIGIN_COLORS[layer.provenance.axes.origin],
+      color: QUANTITY_COLORS[layer.quantity?.kind] || ORIGIN_COLORS[layer.provenance.axes.origin],
       widthPx: layer.kind === 'path'
         ? round(clamp(2.2 + normalized * 0.9 + roleWeight * 0.6 + (selected ? 0.6 : 0), 2.2, 4))
         : null,

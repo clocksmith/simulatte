@@ -35,9 +35,15 @@
 
   function computeMovingTargetLightTime(fromState, toState, transmitOffsetSeconds = 0, transmissionEpochIso = '2026-07-25T00:00:00Z') {
     if (!fromState?.positionPc || !toState?.positionPc) throw new Error('moving_target_state_invalid');
-    const transmitOffsetYears = transmitOffsetSeconds / SECONDS_PER_YEAR;
-    const sourceAtTransmission = propagate(fromState, transmitOffsetYears);
-    const targetAtTransmission = propagate(toState, transmitOffsetYears);
+    const transmissionEpochYear = decimalYear(transmissionEpochIso);
+    const sourceAtTransmission = propagate(
+      fromState,
+      transmissionEpochYear - Number(fromState.epochYear ?? transmissionEpochYear)
+    );
+    const targetAtTransmission = propagate(
+      toState,
+      transmissionEpochYear - Number(toState.epochYear ?? transmissionEpochYear)
+    );
     const relative = targetAtTransmission.map((value, index) => value - sourceAtTransmission[index]);
     const targetVelocity = toState.velocityPcYr || [0, 0, 0];
     const a = dot(targetVelocity, targetVelocity) - (LIGHT_SPEED_PC_YR * LIGHT_SPEED_PC_YR);
@@ -70,7 +76,13 @@
       modelReceipt: Object.freeze({
         modelId: 'finite-light-time-v2',
         equation: '|target(t + dt) - source(t)| = c * dt',
-        parameters: Object.freeze({ transmitOffsetSeconds, lightSpeedMs: LIGHT_SPEED_MS }),
+        parameters: Object.freeze({
+          transmitOffsetSeconds,
+          transmissionEpochYear,
+          sourceReferenceEpochYear: fromState.epochYear ?? null,
+          targetReferenceEpochYear: toState.epochYear ?? null,
+          lightSpeedMs: LIGHT_SPEED_MS,
+        }),
         omissionIds: Object.freeze(['plasma-not-modeled']),
       }),
     });
@@ -79,6 +91,15 @@
   function propagate(state, deltaYears) {
     const velocity = state.velocityPcYr || [0, 0, 0];
     return state.positionPc.map((value, index) => value + velocity[index] * deltaYears);
+  }
+  function decimalYear(epochIso) {
+    const milliseconds = Date.parse(epochIso);
+    if (!Number.isFinite(milliseconds)) throw new Error('moving_target_epoch_invalid');
+    const date = new Date(milliseconds);
+    const year = date.getUTCFullYear();
+    const start = Date.UTC(year, 0, 1);
+    const end = Date.UTC(year + 1, 0, 1);
+    return year + (milliseconds - start) / (end - start);
   }
   function dot(left, right) { return left.reduce((sum, value, index) => sum + value * right[index], 0); }
 
@@ -89,5 +110,6 @@
     LIGHT_SPEED_PC_YR,
     computeOneWayLightTime,
     computeMovingTargetLightTime,
+    decimalYear,
   });
 });

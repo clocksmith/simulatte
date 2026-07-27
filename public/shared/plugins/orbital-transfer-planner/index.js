@@ -261,8 +261,18 @@
         };
       }
       if (actionId === 'counterfactual.compare') {
-        const earth = ephemerisApi.getBodyState(ephemerisData, 'earth', 0, { clamp: true });
-        const target = ephemerisApi.getBodyState(ephemerisData, current.targetBodyId, 0, { clamp: true });
+        const earth = ephemerisApi.getBodyState(
+          ephemerisData,
+          'earth',
+          current.selected?.departureDay ?? 0,
+          { clamp: true }
+        );
+        const target = ephemerisApi.getBodyState(
+          ephemerisData,
+          current.targetBodyId,
+          current.selected?.arrivalDay ?? 0,
+          { clamp: true }
+        );
         const baseline = hohmannApi.computeHohmann(
           Math.hypot(...earth.positionAu),
           Math.hypot(...target.positionAu),
@@ -380,10 +390,12 @@
         || [];
       const trajectory = playback.cursor >= 3 ? fullTrajectory : [];
       const flightFraction = flightProgress(playback.cursor);
+      const ephemerisDay = displayEphemerisDay(result, flightFraction, playback.cursor >= 3);
       return presentationApi.createPresentation(ephemerisData, {
         trajectory,
         actorPosition: pointAlong(trajectory, flightFraction),
         flightFraction,
+        ephemerisDay,
         selectedBodyIds: ['earth', result.targetBodyId],
       });
     }
@@ -547,8 +559,19 @@
 
   function pointAlong(points, fraction) {
     if (!Number.isFinite(fraction) || !Array.isArray(points) || points.length < 2) return null;
-    const index = Math.min(points.length - 1, Math.max(0, Math.round((points.length - 1) * fraction)));
-    return points[index];
+    const scaled = Math.min(points.length - 1, Math.max(0, (points.length - 1) * fraction));
+    const lowerIndex = Math.floor(scaled);
+    const upperIndex = Math.min(points.length - 1, lowerIndex + 1);
+    const ratio = scaled - lowerIndex;
+    return points[lowerIndex].map((value, index) => (
+      value + (points[upperIndex][index] - value) * ratio
+    ));
+  }
+
+  function displayEphemerisDay(result, flightFraction, selectionVisible) {
+    if (!result.selected || !selectionVisible) return 0;
+    if (!Number.isFinite(flightFraction)) return result.selected.departureDay;
+    return result.selected.departureDay + result.selected.tofDays * flightFraction;
   }
 
   function rejectionSummary(counts) {

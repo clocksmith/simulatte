@@ -6,8 +6,9 @@
   const MAXIMUM_QUERY_TOKENS = 16;
   const MAXIMUM_RESULTS = 100;
 
-  function createCatalogIndex(snapshot) {
-    validateCatalogSnapshot(snapshot);
+  function createCatalogIndex(sourceSnapshot) {
+    validateCatalogSnapshot(sourceSnapshot);
+    const snapshot = materializeCatalogSnapshot(sourceSnapshot);
     const itemsById = new Map();
     const postings = new Map();
     const offersByItemWarehouse = new Map();
@@ -87,15 +88,16 @@
       || !Array.isArray(value.items) || !value.items.length) {
       throw catalogError('bulk_catalog_invalid', 'Catalog snapshot header is incomplete');
     }
-    const categoryIds = uniqueIds(value.categories, 'catalog category');
-    const itemIds = uniqueIds(value.items, 'catalog item');
-    if (value.coverage.catalogRows !== value.items.length) {
+    const snapshot = materializeCatalogSnapshot(value);
+    const categoryIds = uniqueIds(snapshot.categories, 'catalog category');
+    const itemIds = uniqueIds(snapshot.items, 'catalog item');
+    if (snapshot.coverage.catalogRows !== snapshot.items.length) {
       throw catalogError(
         'bulk_catalog_coverage_mismatch',
-        `Catalog declares ${value.coverage.catalogRows} rows but contains ${value.items.length}`
+        `Catalog declares ${snapshot.coverage.catalogRows} rows but materializes ${snapshot.items.length}`
       );
     }
-    value.items.forEach((item) => {
+    snapshot.items.forEach((item) => {
       if (!categoryIds.has(item.categoryId)
         || typeof item.name !== 'string' || !item.name
         || typeof item.itemNumber !== 'string' || !item.itemNumber
@@ -117,8 +119,82 @@
         warehouseIds.add(offer.warehouseId);
       });
     });
-    if (itemIds.size !== value.items.length) throw catalogError('bulk_catalog_item_duplicate', 'Catalog item IDs are not unique');
+    if (itemIds.size !== snapshot.items.length) throw catalogError('bulk_catalog_item_duplicate', 'Catalog item IDs are not unique');
     return value;
+  }
+
+  function materializeCatalogSnapshot(snapshot) {
+    const expansion = snapshot?.modeledExpansion;
+    if (!expansion || snapshot.items.length === snapshot.coverage.catalogRows) return snapshot;
+    if (!Number.isInteger(expansion.targetRows)
+      || expansion.targetRows < snapshot.items.length
+      || expansion.targetRows > snapshot.coverage.maximumSupportedRows
+      || !Array.isArray(expansion.descriptors) || !expansion.descriptors.length
+      || !Array.isArray(expansion.archetypes) || !expansion.archetypes.length) {
+      throw catalogError('bulk_catalog_expansion_invalid', 'Modeled catalog expansion is incomplete or outside the supported row bound');
+    }
+    const categories = new Set(snapshot.categories.map((row) => row.id));
+    const warehouseIds = [...new Set(snapshot.items.flatMap((item) => (
+      item.offers.map((offer) => offer.warehouseId)
+    )))].sort();
+    const generated = [];
+    const generatedCount = expansion.targetRows - snapshot.items.length;
+    for (let index = 0; index < generatedCount; index += 1) {
+      const archetype = expansion.archetypes[index % expansion.archetypes.length];
+      if (!categories.has(archetype.categoryId)) {
+        throw catalogError('bulk_catalog_expansion_category_invalid', `Unknown modeled category ${archetype.categoryId}`);
+      }
+      const descriptor = expansion.descriptors[
+        Math.floor(index / expansion.archetypes.length) % expansion.descriptors.length
+      ];
+      const packVariant = 1 + (Math.floor(index / (
+        expansion.archetypes.length * expansion.descriptors.length
+      )) % 9);
+      const innerUnits = Math.max(1, archetype.innerUnits + packVariant - 1);
+      const priceUsd = archetype.basePriceUsd * (0.82 + (packVariant * 0.045));
+      generated.push({
+        id: `modeled-catalog-${String(index + 1).padStart(5, '0')}`,
+        itemNumber: `MODELED-${String(index + 1).padStart(6, '0')}`,
+        name: `${descriptor} ${archetype.name}, pack ${innerUnits}`,
+        brand: null,
+        categoryId: archetype.categoryId,
+        categoryPath: [...archetype.categoryPath],
+        package: {
+          innerUnits,
+          unitType: archetype.unitType,
+          divisionMode: archetype.divisionMode,
+          massKg: rounded(archetype.massKg * (innerUnits / archetype.innerUnits)),
+          volumeL: rounded(archetype.volumeL * (innerUnits / archetype.innerUnits)),
+        },
+        handling: {
+          temperatureZone: archetype.temperatureZone,
+          maximumTransitMinutes: archetype.maximumTransitMinutes,
+        },
+        eligibility: {
+          isPoolEligible: true,
+          requiresSealedInnerUnit: archetype.divisionMode === 'sealed-unit',
+          isRestricted: false,
+        },
+        offers: warehouseIds.map((warehouseId, warehouseIndex) => ({
+          warehouseId,
+          priceUsd: rounded(priceUsd + (warehouseIndex * 0.37)),
+          availability: 'scenario-available',
+        })),
+        truth: snapshot.truth,
+      });
+    }
+    return Object.freeze({
+      ...snapshot,
+      items: Object.freeze([...snapshot.items, ...generated]),
+      coverage: Object.freeze({
+        ...snapshot.coverage,
+        catalogRows: expansion.targetRows,
+      }),
+    });
+  }
+
+  function rounded(value) {
+    return Number(value.toFixed(2));
   }
 
   function eligibleOffers(item, { warehouseIds, allowUnknownAvailability }) {
@@ -190,6 +266,7 @@
     MAXIMUM_QUERY_TOKENS,
     MAXIMUM_RESULTS,
     createCatalogIndex,
+    materializeCatalogSnapshot,
     tokenize,
     validateCatalogSnapshot,
   });

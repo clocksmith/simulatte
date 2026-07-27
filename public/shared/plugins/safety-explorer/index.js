@@ -14,7 +14,11 @@
   async function activate({ sdk, config, scenario = null }) {
     let activeParameters = shrinkage.parameters(config?.fixedSparseCountShrinkage);
     let activeScenario = scenario;
-    sdk.state.register(reduce, { audit: null, parameters: activeParameters });
+    sdk.state.register(reduce, {
+      audit: null,
+      parameters: activeParameters,
+      playback: { status: 'ready', step: 0 },
+    });
     const index = sdk.datasets.require('nyc-crash-history-2025-07-to-2026-07-v1');
     const rows = new Map(index.segmentRows.map((row) => [row.segmentId, row]));
 
@@ -168,6 +172,7 @@
     function contributeV4() {
       return v4.createContribution({
         audit: sdk.state.read().audit,
+        playback: sdk.state.read().playback,
         index,
         datasetReceipt: sdk.datasets.receipt('nyc-crash-history-2025-07-to-2026-07-v1'),
         parameters: activeParameters,
@@ -190,25 +195,34 @@
         if (hadAudit && context.values?.phase === 'start' && audit.segmentIds?.length) audit = auditRoute(audit.segmentIds);
         const phase = context.values?.phase;
         if (phase === 'start') {
-          sdk.events.propose({ pluginId: PLUGIN_ID, kind: `${PLUGIN_ID}.analysis-settled` });
-          return {
-            status: 'settled',
-            currentStep: 1,
-            totalSteps: 1,
-            audit,
-            interactionKind: 'historical-evidence-analysis',
-          };
+          sdk.events.propose({
+            pluginId: PLUGIN_ID,
+            kind: `${PLUGIN_ID}.analysis-started`,
+            auditId: audit.indexId,
+          });
+          return playbackAction(sdk.state.read());
         }
         if (phase === 'step') {
-          return {
-            status: 'settled',
-            currentStep: 1,
-            totalSteps: 1,
-            audit,
-            interactionKind: 'historical-evidence-analysis',
-          };
+          const playback = sdk.state.read().playback;
+          if (playback.status !== 'running') {
+            return { status: 'refused', reason: 'analysis_not_running' };
+          }
+          const nextStep = Math.min(3, playback.step + 1);
+          const stage = ['route-resolved', 'observations-joined', 'estimate-derived'][nextStep - 1];
+          sdk.events.propose({
+            pluginId: PLUGIN_ID,
+            kind: `${PLUGIN_ID}.${stage}`,
+            step: nextStep,
+            auditId: audit.indexId,
+          });
+          return playbackAction(sdk.state.read());
         }
-        return { status: 'settled', audit, compatibilityAdapter: 'single-dispatch-settles-route-audit' };
+        sdk.events.propose({ pluginId: PLUGIN_ID, kind: `${PLUGIN_ID}.analysis-started`, auditId: audit.indexId });
+        for (let step = 1; step <= 3; step += 1) {
+          const stage = ['route-resolved', 'observations-joined', 'estimate-derived'][step - 1];
+          sdk.events.propose({ pluginId: PLUGIN_ID, kind: `${PLUGIN_ID}.${stage}`, step, auditId: audit.indexId });
+        }
+        return { ...playbackAction(sdk.state.read()), compatibilityAdapter: 'eager-analysis-playback' };
       }
       if (actionId === 'counterfactual.compare') {
         const audit = sdk.state.read().audit;
@@ -342,10 +356,38 @@
     });
   }
   function reduce(state, event) {
-    if (event.kind === `${PLUGIN_ID}.scenario-selected`) return { ...state, audit: null };
+    if (event.kind === `${PLUGIN_ID}.scenario-selected`) {
+      return { ...state, audit: null, playback: { status: 'ready', step: 0 } };
+    }
     if (event.kind === `${PLUGIN_ID}.route-audited`) return { ...state, audit: event.audit };
     if (event.kind === `${PLUGIN_ID}.sensitivity-updated`) return { ...state, parameters: event.parameters };
+    if (event.kind === `${PLUGIN_ID}.analysis-started`) {
+      return { ...state, playback: { status: 'running', step: 0 } };
+    }
+    if ([
+      `${PLUGIN_ID}.route-resolved`,
+      `${PLUGIN_ID}.observations-joined`,
+      `${PLUGIN_ID}.estimate-derived`,
+    ].includes(event.kind)) {
+      return {
+        ...state,
+        playback: {
+          status: event.step >= 3 ? 'settled' : 'running',
+          step: event.step,
+        },
+      };
+    }
     return state;
+  }
+  function playbackAction(state) {
+    return {
+      status: state.playback.status === 'settled' ? 'settled' : 'running',
+      currentStep: state.playback.step,
+      totalSteps: 3,
+      simulationTimeMs: state.playback.step * 1000,
+      audit: state.audit,
+      interactionKind: 'historical-evidence-analysis',
+    };
   }
   function sum(rows, key) { return Number(rows.reduce((total, row) => total + (row[key] || 0), 0).toFixed(6)); }
   function number(value) { return value === null ? null : Number(value.toFixed(6)); }

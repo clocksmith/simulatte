@@ -9,7 +9,7 @@
     { "id": "tompkins-union-sun", "label": "Tompkins to Union", "description": "Minimize modeled clear-sky direct sun on an East Village walk.", "seed": "shade-tompkins-union-4096", "missionText": "Walk from Tompkins Square Park to Union Square using the most building shade." },
     { "id": "village-tompkins-hot", "label": "Crosstown comparison", "description": "Compare arrival-time building shade without claiming thermal comfort.", "seed": "shade-village-tompkins-8192", "missionText": "Walk from Washington Square Park to Tompkins Square Park using the most building shade." }
   ],
-  "camera": { "initialMode": "bird", "runMode": "follow", "pluginId": "sun-walker", "targetId": "shade-route" },
+  "camera": { "initialMode": "follow", "runMode": "follow", "pluginId": "sun-walker", "targetId": "sun-walker-actor" },
   "plugins": [{ "id": "sun-walker", "configId": "sun-walker-default-v1" }],
   "routeObjective": { "travelSeconds": 1, "sunExposureSeconds": 0.4 }
 }

@@ -9,6 +9,7 @@
     statesById,
     linkBudgets,
     channelReceipts = null,
+    channelEvaluator = null,
     operationalPlan = null,
     packetBits,
     scheduler,
@@ -107,15 +108,27 @@
         cursorSeconds,
         transmissionEpochIso,
       );
-      const channel = channels[index];
+      const scheduledEvaluation = channelEvaluator
+        ? channelEvaluator({
+          from,
+          to,
+          hopIndex: index,
+          transmitOffsetSeconds: cursorSeconds,
+          transmissionEpochIso,
+          classicalLightTime,
+          linkBudget: linkBudgets[index],
+        })
+        : null;
+      const channel = scheduledEvaluation?.channelReceipt || scheduledEvaluation || channels[index];
       const lightTime = Object.freeze({
         ...classicalLightTime,
+        classicalLatencySeconds: classicalLightTime.latencySeconds,
         latencySeconds: channel.latencySeconds ?? classicalLightTime.latencySeconds,
         latencyYears: (channel.latencySeconds ?? classicalLightTime.latencySeconds) / (365.25 * 86400),
         channelMode: channel.mode,
         causalityStatus: channel.causalityStatus || 'light-speed-limited',
       });
-      const budget = linkBudgets[index];
+      const budget = scheduledEvaluation?.linkBudget || linkBudgets[index];
       const informationBitRate = channel.effectiveDataRateGbps * 1e9;
       if (!(informationBitRate > 0)) throw new Error(`relay_link_rate_unusable: ${fromId}->${toId}`);
       const transmitDurationSeconds = packetBits / informationBitRate;
@@ -152,13 +165,31 @@
           toId,
         }),
       });
+      let receiveParentId = transmittedId;
+      for (const progressFraction of [0.25, 0.5, 0.75]) {
+        const progressedId = queue.schedule({
+          time: transmitCompleteSeconds + lightTime.latencySeconds * progressFraction,
+          priority: index * 40 + 21,
+          kind: 'relay.signal-progressed',
+          payload: eventPayload({
+            causalParentIds: [receiveParentId],
+            affectedEntityIds: ['packet:0', fromId, toId],
+            evidenceReferences,
+            hopIndex: index,
+            fromId,
+            toId,
+            progressFraction,
+          }),
+        });
+        receiveParentId = progressedId;
+      }
       const receiveKind = index === relayPath.length - 2 ? 'relay.packet-delivered' : 'relay.packet-received';
       const receivedId = queue.schedule({
         time: receiveSeconds,
         priority: index * 40 + 22,
         kind: receiveKind,
         payload: eventPayload({
-          causalParentIds: [transmittedId],
+          causalParentIds: [receiveParentId],
           affectedEntityIds: ['packet:0', toId],
           evidenceReferences,
           hopIndex: index,
@@ -172,10 +203,12 @@
         toId,
         lightTime,
         linkBudgetId: `link-budget:${index}`,
+        linkBudget: budget,
         transmitOffsetSeconds: cursorSeconds,
         transmitDurationSeconds,
         receiveOffsetSeconds: receiveSeconds,
         channelMode: channel.mode,
+        channelReceipt: channel,
         operationalHop,
       }));
       cursorSeconds = receiveSeconds;
@@ -354,7 +387,7 @@
   }
 
   function eventPayload({
-    causalParentIds, affectedEntityIds, evidenceReferences, hopIndex, fromId, toId,
+    causalParentIds, affectedEntityIds, evidenceReferences, hopIndex, fromId, toId, progressFraction = null,
   }) {
     return Object.freeze({
       causalParentIds: Object.freeze(causalParentIds.slice()),
@@ -363,6 +396,7 @@
       hopIndex,
       fromId,
       toId,
+      progressFraction,
     });
   }
 

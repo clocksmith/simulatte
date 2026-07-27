@@ -118,10 +118,10 @@ test('sensitivity controls recompute derived route state without mutating observ
       fatalityWeight: 20,
     },
   });
-  assert.equal(result.status, 'settled');
+  assert.equal(result.status, 'running');
   assert.equal(result.interactionKind, 'historical-evidence-analysis');
-  assert.equal(result.currentStep, 1);
-  assert.equal(result.totalSteps, 1);
+  assert.equal(result.currentStep, 0);
+  assert.equal(result.totalSteps, 3);
   assert.equal(host.state().parameters.k, 8);
   assert.deepEqual(host.state().parameters.weights, { crash: 1, injury: 5, fatality: 20 });
   assert.notEqual(host.state().audit.fixedSparseCountEstimate, initial.fixedSparseCountEstimate);
@@ -131,6 +131,26 @@ test('sensitivity controls recompute derived route state without mutating observ
   assert.deepEqual(known, original);
   assert.equal(instance.contributeV4().controls.controls.some((row) => row.id === 'joinRadiusM'), false);
   assert.match(instance.contributeV4().controls.comparisons[0].label, /K=8 baseline vs K=16 sensitivity/);
+  const first = instance.handleAction('scenario.run', { values: { phase: 'step' } });
+  assert.equal(first.currentStep, 1);
+  assert.deepEqual(
+    instance.contributeV4().state.measures.map((row) => row.kind),
+    ['route-segment-count']
+  );
+  const second = instance.handleAction('scenario.run', { values: { phase: 'step' } });
+  assert.equal(second.currentStep, 2);
+  assert.ok(instance.contributeV4().state.measures.some((row) => row.kind === 'crash-count'));
+  assert.equal(instance.contributeV4().state.measures.some((row) => row.kind === 'fixed-sparse-count-observation'), false);
+  const settled = instance.handleAction('scenario.run', { values: { phase: 'step' } });
+  assert.equal(settled.status, 'settled');
+  assert.equal(settled.currentStep, 3);
+  assert.ok(instance.contributeV4().state.measures.some((row) => row.kind === 'fixed-sparse-count-observation'));
+});
+
+test('Safety Explorer config contains no dead spatial-join control', () => {
+  const schema = json(path.join(pluginDirectory, 'config.schema.json'));
+  assert.equal('sensitivity' in config, false);
+  assert.equal('sensitivity' in schema.properties, false);
 });
 
 function fixture(dataset) {

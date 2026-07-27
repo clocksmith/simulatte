@@ -89,7 +89,19 @@ test('orbit fit reads public observations only and hidden-truth mutation cannot 
   assert.deepEqual(mutated, first);
   assert.equal(first.converged, true);
   assert.equal(first.covarianceReceipt.positiveSemidefinite, true);
+  assert.equal(first.observationSelectionReceipt.method, 'greedy_d_optimal_actual_measurement_jacobian_v1');
+  assert.equal(first.observationSelectionReceipt.selectionSteps.length, 8);
   assert.ok(first.iterations.every((row) => Number.isFinite(row.weightedCost)));
+});
+
+test('covariance validation checks the full spectrum rather than only the diagonal', () => {
+  const invalid = orbit.validateCovariance([
+    [1, 2],
+    [2, 1],
+  ]);
+  assert.equal(invalid.symmetric, true);
+  assert.equal(invalid.positiveSemidefinite, false);
+  assert.ok(invalid.minimumEigenvalue < 0);
 });
 
 test('all five scenarios replay deterministically and keep frequency separate from probability', () => {
@@ -103,8 +115,16 @@ test('all five scenarios replay deterministically and keep frequency separate fr
     assert.equal(first.baselineEncounter.probabilityClaimAllowed, false);
     assert.match(first.baselineEncounter.interpretation, /not an impact probability/i);
     assert.equal(first.ensembleReceipt.samples.length, parameters.ensembleSize);
-    assert.equal(first.snapshots[4].baselineEncounter.schema, 'simulatte.asteroidEncounterSummary.v1');
-    assert.equal(Object.hasOwn(first.snapshots[4].baselineEncounter, 'members'), false);
+    const lastObservationDay = Math.max(...first.fitReceipt.observationIds.map((id) => (
+      datasets.campaigns.campaigns.find((row) => row.id === seed.id)
+        .observations.find((row) => row.id === id).epochDayTdb
+    )));
+    assert.ok(first.interventionEncounter.members.every((member) => (
+      member.executionProfile.decisionDay >= lastObservationDay
+    )));
+    const baselineSnapshot = first.snapshots.find((row) => row.status === 'baseline-propagated');
+    assert.equal(baselineSnapshot.baselineEncounter.schema, 'simulatte.asteroidEncounterSummary.v1');
+    assert.equal(Object.hasOwn(baselineSnapshot.baselineEncounter, 'members'), false);
     assert.ok(first.baselineEncounter.members.every((member) => (
       member.propagationReceipts.every((receipt) => (
         !Object.hasOwn(receipt, 'trajectory')
@@ -148,6 +168,38 @@ test('observation and intervention policies materially alter declared outcomes',
     informed.interventionEncounter.members.map((row) => row.minimumDistanceKm),
     none.interventionEncounter.members.map((row) => row.minimumDistanceKm)
   );
+});
+
+test('kinetic, reconnaissance, and gravity-tractor strategies execute distinct profiles', () => {
+  const base = {
+    ...scenario,
+    decisionThreshold: 0,
+    decisionPolicyId: 'act-at-threshold',
+    seed: 'strategy-profile-comparison',
+  };
+  const kinetic = model.runScenario({
+    datasets,
+    config,
+    scenario: { ...base, interventionArchetypeId: 'kinetic-impactor' },
+  });
+  const reconnaissance = model.runScenario({
+    datasets,
+    config,
+    scenario: { ...base, interventionArchetypeId: 'reconnaissance-first' },
+  });
+  const tractor = model.runScenario({
+    datasets,
+    config,
+    scenario: { ...base, interventionArchetypeId: 'gravity-tractor' },
+  });
+  assert.equal(kinetic.metrics.interventionExecutionProfile.deliveryMode, 'instantaneous-kinetic');
+  assert.equal(kinetic.metrics.interventionExecutionProfile.impulseCount, 1);
+  assert.equal(reconnaissance.metrics.interventionExecutionProfile.deliveryMode, 'reconnaissance-then-kinetic');
+  assert.equal(reconnaissance.metrics.interventionExecutionProfile.campaignDelayDays, 10);
+  assert.equal(reconnaissance.metrics.interventionExecutionProfile.navigationSigmaMultiplier, 0.45);
+  assert.equal(tractor.metrics.interventionExecutionProfile.deliveryMode, 'continuous-low-thrust');
+  assert.equal(tractor.metrics.interventionExecutionProfile.impulseCount, 15);
+  assert.equal(tractor.metrics.interventionExecutionProfile.thrustDurationDays, 45);
 });
 
 test('comparison executes blind lockstep branches and does not serialize hidden state', async () => {
@@ -202,9 +254,19 @@ test('typed controls rebuild once, step existing state, replay exactly, and clos
   ].sort());
   assert.ok(!contribution.inspections[0].fields.some((row) => row.id === 'screening-language'));
   let terminal = replayed;
+  let sawMovingActor = false;
   while (terminal.status === 'running') {
     terminal = await instance.handleAction('scenario.run', { values: { ...values, phase: 'step' } });
+    const progressive = instance.contributeV4();
+    if (progressive.state.status.includes('propagating')) {
+      const actor = progressive.presentation.layers.find((row) => row.id === 'asteroid-active-clone');
+      assert.equal(actor.quantity.kind, 'actor.asteroid.route-progress');
+      assert.equal(progressive.presentation.viewIntents[0].mode, 'follow');
+      assert.deepEqual(progressive.presentation.viewIntents[0].targetIds, [actor.id]);
+      sawMovingActor = true;
+    }
   }
+  assert.equal(sawMovingActor, true);
   const settledContribution = instance.contributeV4();
   assert.ok(settledContribution.inspections[0].fields.some((row) => row.id === 'screening-language'));
   assert.ok(contribution.provenanceRecords.length > manifest.datasets.length);

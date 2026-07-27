@@ -1,8 +1,8 @@
 {
   "schema": "simulatte.autonomyWorld.v1",
-  "id": "us-food-network-v1",
-  "label": "United States food-supply national world",
-  "contentVersion": "us-food-network-2026-07-21",
+  "id": "us-national-regions-v1",
+  "label": "United States national regions world",
+  "contentVersion": "us-national-regions-2026-07-26",
   "coordinateSystem": {
     "kind": "local_cartesian_meters",
     "originLabel": "39.8283,-98.5795",

@@ -131,7 +131,7 @@
       "path": "./default-config.json"
     },
     {
-      "integrity": "sha384-fdac6bbfb21d6c511b713b4408577b49f2ab0be40ded8363ad0e76ff856c44fd4845fb3fd9b2654a2edbec76956be9da",
+      "integrity": "sha384-14861cf6f3e59eb7ef3399e74777bcfef1ab09bceca56bc4989b368b5d5951b0fe9ebb4e997d7224d797a5809860390d",
       "path": "./food-engine.js"
     },
     {

@@ -201,6 +201,33 @@ test('objective controls rerun the launch-window search and become receipt-backe
   assert.deepEqual(receipt.solver, after.solverReceipt);
 });
 
+test('flight playback advances the ephemeris epoch and follows the moving spacecraft', async () => {
+  const host = fixture();
+  const instance = await plugin.activate({ sdk: host.sdk, config, profile, scenario: profile.seeds[0] });
+  let action = instance.handleAction('scenario.run', {
+    values: { phase: 'start', deltaVWeight: 1, timeWeight: 0.01 },
+  });
+  for (let cursor = 0; cursor < 5; cursor += 1) {
+    action = instance.handleAction('scenario.run', { values: { phase: 'step' } });
+  }
+  assert.equal(action.currentStep, 5);
+  const result = instance.capabilities['simulation.orbital-transfer.v1']();
+  const contribution = instance.contributeV4();
+  const expectedDay = result.selected.departureDay + result.selected.tofDays * 0.25;
+  assert.equal(
+    contribution.presentation.epoch,
+    new Date(Date.parse(ephemerisData.epochStart) + expectedDay * 86400000).toISOString()
+  );
+  const actor = contribution.presentation.layers.find((row) => row.id === 'screening-spacecraft');
+  assert.equal(actor.quantity.kind, 'actor.spacecraft.route-progress');
+  assert.deepEqual(contribution.presentation.viewIntents[0].targetIds, [actor.id]);
+  assert.equal(contribution.presentation.viewIntents[0].mode, 'follow');
+  assert.notDeepEqual(
+    contribution.presentation.layers.find((row) => row.id === 'body:earth').geometry.coordinates[0],
+    ephemerisData.bodies.earth.vectors[0].positionAu
+  );
+});
+
 function fixture() {
   const values = new Map(manifest.datasets.map((row) => [
     row.id,
