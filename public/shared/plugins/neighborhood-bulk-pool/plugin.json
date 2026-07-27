@@ -97,11 +97,15 @@
       "path": "./catalog-index.js"
     },
     {
-      "integrity": "sha384-2cec28c3b923345273b0b1ab8f864299badaba636bbad391376b403e1469c98c85efa40f67e3fc1c664c5f0c61abe19b",
+      "integrity": "sha384-185993608c08b1668d08fa5a2ee3ad6d10e6bdacc1cd216b54faae3994a2cc9331b494959f892670bd24ab6a584da15b",
+      "path": "./pool-timeline.js"
+    },
+    {
+      "integrity": "sha384-0b16deef8e711dccd393813b989f180a74c0cf519f6f3f1d8e5378ad8d230ec0622818f9435b1e91d2adb0156bfac070",
       "path": "./pool-solver.js"
     },
     {
-      "integrity": "sha384-c73c6a82c282ef03379ef713c6200c3eb33ed9fcc4229a668fc29077157f8ce33890e8cf384a7a36ea72154bcd8c3675",
+      "integrity": "sha384-0335e754788dd066dcf5377ed7064860e51a6b36bd82eb2d733b405acef0c71e64b9c81c7fb4ea9566dc2676484990c8",
       "path": "./v4-contribution.js"
     }
   ],

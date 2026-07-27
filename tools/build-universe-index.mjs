@@ -5,6 +5,7 @@ import {
   INDEX_BY_NAME,
   UNIVERSE_DIR,
   artifactPath,
+  bindUniverseIndexArtifacts,
   cloneJson,
   createManifest,
   mergeDocuments,
@@ -829,8 +830,17 @@ async function main() {
       'simulatte-grounding-basis-cards',
     ],
   };
-  await writeJson(path.join(UNIVERSE_DIR, 'manifest.json'), manifest);
-
+  if (process.argv.includes('--manifest-only')) {
+    await writeJson(
+      path.join(UNIVERSE_DIR, 'manifest.json'),
+      await bindUniverseIndexArtifacts(manifest)
+    );
+    console.log(JSON.stringify({
+      manifest: 'public/data/simulatte-universe/manifest.json',
+      boundIndexes: INDEX_DEFINITIONS.length,
+    }, null, 2));
+    return;
+  }
   const generatedDocs = generatedUniverseDocs();
   for (const definition of INDEX_DEFINITIONS) {
     if (definition.name === 'affordances') continue;
@@ -857,6 +867,10 @@ async function main() {
   if (!affordances) {
     await writeJson(artifactPath(affordanceDefinition.artifact), normalizeIndex('affordances', {}, []));
   }
+  await writeJson(
+    path.join(UNIVERSE_DIR, 'manifest.json'),
+    await bindUniverseIndexArtifacts(manifest)
+  );
 
   console.log(JSON.stringify({
     universeDir: UNIVERSE_DIR,

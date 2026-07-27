@@ -9,17 +9,17 @@ executable sources of truth.
 
 | Experience | Tier | Status | Real data | Simulation | Comparison | Browser proof |
 |---|---|---|---|---|---|---|
-| [Cable Trader](cable-trader.md) | City | verified | Connector standards context | Synthetic cable demand and redistribution | Optimized redistribution vs local inventory | 8/8 |
-| [Neighborhood Bulk Pool](neighborhood-bulk-pool.md) | City | verified | Warehouse identities and addresses | Synthetic pooling, handoffs, costs, and waste | Four pooling policies | 8/8 |
-| [Safety Explorer](safety-explorer.md) | City | verified | NYC reported collision rows | Fixed sparse-count shrinkage over route evidence | Baseline K vs sensitivity K | 8/8 |
-| [Sun Walker](sun-walker.md) | City | verified | NYC geometry, 2015 trees, historical weather analog | Arrival-time solar exposure and occlusion | Fastest vs shade-selected route | 8/8 |
-| [Food Recall](food-recall.md) | Country | verified | Governed environmental and logistics fields where identified | Synthetic lots, contamination, illness, and recall | Recall intervention vs no recall | 8/8 |
-| [Grid Resilience](grid-resilience.md) | Country | verified | Historical EIA and NOAA rows | Interface-constrained dispatch and restoration | Economic baseline vs resilience policy | 10/10 |
-| [Maritime Trade](maritime-trade.md) | World | verified | Governed port identities and calibration artifacts | Routes, queues, cargo, emissions, and disruption | Configured voyage vs undisrupted baseline | 10/10 |
-| [Subsea Network](subsea-network.md) | World | verified | FCC regulatory cable identities | Traffic allocation, failures, fairness, and repairs | Weighted throughput vs proportional fairness | 8/8 |
-| [Orbital Transfer Planner](orbital-transfer-planner.md) | Solar System | verified | Pinned ephemeris state vectors | Lambert search and independent propagation | Selected transfer vs Hohmann screen | 8/8 |
-| [Asteroid Defense](asteroid-defense.md) | Solar System | verified | Pinned JPL benchmark identity only | Synthetic observations, orbit clones, and intervention | No intervention vs selected policy | 10/10 |
-| [Interstellar Relay Network](interstellar-relay-network.md) | Star Chart | verified | Gaia DR3 astrometry; derived HYG snapshot | Hypothetical terminals, routing, channels, and operations | Direct classical link vs selected route | 8/8 |
+| [Cable Trader](cable-trader.md) | City | implemented | Connector standards context | Synthetic cable demand and redistribution | Optimized redistribution vs local inventory | Prior commit only |
+| [Neighborhood Bulk Pool](neighborhood-bulk-pool.md) | City | implemented | Warehouse identities and addresses | Synthetic pooling, handoffs, costs, and waste | Four pooling policies | Prior commit only |
+| [Safety Explorer](safety-explorer.md) | City | implemented | NYC reported collision rows | Fixed sparse-count shrinkage over route evidence | Baseline K vs sensitivity K | Prior commit only |
+| [Sun Walker](sun-walker.md) | City | implemented | NYC geometry, 2015 trees, historical weather analog | Arrival-time solar exposure and occlusion | Fastest vs shade-selected route | Prior commit only |
+| [Food Recall](food-recall.md) | Country | implemented | Governed environmental and logistics fields where identified | Synthetic lots, contamination, illness, and recall | Recall intervention vs no recall | Prior commit only |
+| [Grid Resilience](grid-resilience.md) | Country | implemented | Historical EIA and NOAA rows | Interface-constrained dispatch and restoration | Economic baseline vs resilience policy | Prior commit only |
+| [Maritime Trade](maritime-trade.md) | World | implemented | Governed port identities and calibration artifacts | Routes, queues, cargo, emissions, and disruption | Configured voyage vs undisrupted baseline | Prior commit only |
+| [Subsea Network](subsea-network.md) | World | implemented | FCC regulatory cable identities | Traffic allocation, failures, fairness, and repairs | Weighted throughput vs proportional fairness | Prior commit only |
+| [Orbital Transfer Planner](orbital-transfer-planner.md) | Solar System | implemented | Pinned ephemeris state vectors | Lambert search and independent propagation | Selected transfer vs Hohmann screen | Prior commit only |
+| [Asteroid Defense](asteroid-defense.md) | Solar System | implemented | Pinned JPL catalog and benchmark rows | Synthetic observations, orbit clones, and intervention | No intervention vs selected policy | Prior commit only |
+| [Interstellar Relay Network](interstellar-relay-network.md) | Star Chart | implemented | Gaia DR3 astrometry; derived HYG snapshot | Hypothetical terminals, routing, channels, and operations | Direct classical link vs selected route | Prior commit only |
 | [Exoplanet Survey](exoplanet-survey.md) | Star Chart | proposed | Proposed Gaia and NASA archive inputs | Proposed blinded injection and recovery | Proposed survey-policy comparison | Not tested |
 
 ## Reading status
@@ -32,12 +32,13 @@ executable sources of truth.
 | `verified` | Focused tests and the declared browser evidence matrix pass |
 | `deployed` | Verified behavior was also checked on the hosted production URL |
 
-The current evidence index is
+The existing evidence index is
 [`artifacts/profile-evidence/index.json`](../../../artifacts/profile-evidence/index.json).
 It binds 94 passing runs to commit `a5713c1c13abacbc626b8e96c95e4c64fc779ca9`
 and worktree identity
 `facdee0932717326829d2b3704ee5bf44b2192d43d8badcbc9496d60792c2698`.
-This page does not claim a production deployment check.
+Those receipts do not verify the current worktree. Current browser and
+production deployment checks have not been rerun.
 
 ## Truth vocabulary
 

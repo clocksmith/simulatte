@@ -3,7 +3,7 @@
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteAutonomyCamera = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyCameraController() {
-  const CAMERA_MODES = Object.freeze(['follow', 'pov', 'bird', 'top']);
+  const CAMERA_MODES = Object.freeze(['follow', 'pov', 'bird', 'overview', 'top', 'free', 'compare']);
   const CAMERA_TRANSITION_MS = 850;
   const CAMERA_RESPONSE_PER_SECOND = 10;
   const DEFAULT_YAW = -0.72;
@@ -126,13 +126,13 @@
     state.focusHeading = null;
     state.orbitTarget = [...target.target];
     state.distance = target.distance;
-    if (['follow', 'pov'].includes(state.mode)) state.mode = 'bird';
+    if (['follow', 'pov'].includes(state.mode)) state.mode = 'overview';
     beginTransition(state, timestamp);
     return state.mode;
   }
 
   function orbitCamera(state, deltaX, deltaY) {
-    if (state.mode !== 'bird') return false;
+    if (!['bird', 'overview', 'free', 'compare'].includes(state.mode)) return false;
     state.yaw -= deltaX * 0.006;
     state.pitch = clamp(state.pitch + deltaY * 0.004, 0.35, 1.25);
     cancelTransition(state);
@@ -245,17 +245,23 @@
         far: 20000,
       };
     }
-    const pitch = state.mode === 'top' ? TOP_PITCH : state.pitch;
-    const horizontal = state.distance * Math.cos(pitch);
+    const isCompare = state.mode === 'compare';
+    const pitch = state.mode === 'top'
+      ? TOP_PITCH
+      : isCompare
+        ? Math.max(state.pitch, 1.02)
+        : state.pitch;
+    const distance = isCompare ? state.distance * 1.16 : state.distance;
+    const horizontal = distance * Math.cos(pitch);
     const eye = [
       state.orbitTarget[0] + Math.cos(state.yaw) * horizontal,
-      Math.max(80, state.distance * Math.sin(pitch)),
+      Math.max(80, distance * Math.sin(pitch)),
       state.orbitTarget[2] + Math.sin(state.yaw) * horizontal,
     ];
     return {
       eye,
       target: [...state.orbitTarget],
-      fieldOfViewRadians: (state.mode === 'top' ? 42 : 46) * Math.PI / 180,
+      fieldOfViewRadians: (state.mode === 'top' ? 42 : isCompare ? 54 : 46) * Math.PI / 180,
       near: 1,
       far: 20000,
     };

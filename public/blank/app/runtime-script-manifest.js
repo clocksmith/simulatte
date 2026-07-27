@@ -52,6 +52,8 @@
     'pipeline/phase-03-retrieval/simulatte-intent-embedder-model-cache.js',
     'pipeline/phase-03-retrieval/simulatte-intent-embedder-runtime-class.js',
     'pipeline/phase-03-retrieval/simulatte-intent-embedder-runtime-probes.js',
+    'pipeline/phase-03-retrieval/simulatte-intent-embedder-universe-loader.js',
+    'pipeline/phase-03-retrieval/simulatte-intent-embedder-manifest-loader.js',
     'pipeline/phase-03-retrieval/simulatte-intent-embedder-construction-retrieval.js',
     'pipeline/phase-03-retrieval/simulatte-intent-embedder-span-retrieval.js',
     'pipeline/phase-03-retrieval/simulatte-intent-embedder-slot-retrieval.js',
@@ -123,6 +125,7 @@
   );
   const visualCompile = group(
     'pipeline/phase-06-visual/simulatte-visual-operator-atlas.js',
+    'pipeline/phase-06-visual/simulatte-visual-graphics-atoms.js',
     'pipeline/phase-06-visual/simulatte-visual-operator-compiler.js',
     'pipeline/phase-06-visual/simulatte-scene-packet-contract.js',
     'pipeline/phase-06-visual/simulatte-composition-graph-dependencies.js',
@@ -130,6 +133,7 @@
     'pipeline/phase-06-visual/simulatte-composition-graph-selection-layout.js',
     'pipeline/phase-06-visual/simulatte-composition-graph-render-ir-binding.js',
     'pipeline/phase-06-visual/simulatte-composition-graph-entity-lowering.js',
+    'pipeline/phase-06-visual/simulatte-composition-graph-graphics-atom-lowering.js',
     'pipeline/phase-06-visual/simulatte-composition-graph-visual-ir.js',
     'pipeline/phase-06-visual/simulatte-scene-interaction.js',
     'pipeline/phase-06-visual/simulatte-composition-graph-materials.js',
@@ -194,6 +198,7 @@
     'pipeline/phase-05-simulation/simulatte-physics-model-activation-verdicts.js',
     'pipeline/phase-05-simulation/simulatte-physics-model-activation-fusion.js',
     'pipeline/phase-05-simulation/simulatte-physics-model-phase-grounding.js',
+    'pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-execution.js',
     'pipeline/phase-05-simulation/simulatte-physics-model-phase-simulation.js',
     'pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-render.js',
     'pipeline/phase-05-simulation/simulatte-physics-model-state-solvers.js',
@@ -205,10 +210,10 @@
   const prompt = group(
     'app/prompt/prompt-controller-dependencies.js',
     'app/prompt/prompt-controller-construction-search.js',
+    'app/prompt/prompt-controller-runtime.js',
     'app/prompt/prompt-controller-workers.js',
     'app/prompt/prompt-controller-training.js',
     'app/prompt/prompt-model-selection.js',
-    'app/prompt/prompt-controller-runtime.js',
     'app/prompt/prompt-controller-lab-controller.js',
     'app/prompt/prompt-controller.js'
   );

@@ -556,7 +556,10 @@
           spec && spec.renderIR && spec.renderIR.objects || []
         );
         const swimmingVisualLowering = lowerSwimmingVisualObligations(spec, baseVisualEntities, sceneKind);
-        const visualEntities = swimmingVisualLowering.entities;
+        const visualEntities = scope.bindGraphicsAtomsToEntities(
+          swimmingVisualLowering.entities,
+          graphicsAtoms
+        );
         const materialRows = scope.uniqueVisualRows([
           ...swimmingVisualLowering.materials,
           ...scope.visualMaterialsForObjects(objects, visualGenome, recipe, causalAffordances),
@@ -602,10 +605,11 @@
           causalAffordances,
           graphicsAtoms
         );
-        const camera = {
-          ...scope.visualCameraForScene(sceneKind, recipe, visualEntities, visualGenome),
-          atoms: graphicsAtoms.camera,
-        };
+        const camera = scope.visualCameraWithGraphicsAtoms(
+          scope.visualCameraForScene(sceneKind, recipe, visualEntities, visualGenome),
+          graphicsAtoms.camera,
+          visualEntities
+        );
         const lighting = scope.applyPromptEnvironmentLighting(
           scope.visualLightingForScene(sceneKind, recipe, visualGenome),
           environmentPrograms

@@ -1,4 +1,5 @@
 import fs from 'node:fs/promises';
+import crypto from 'node:crypto';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
@@ -167,7 +168,7 @@ export function cloneJson(value) {
 }
 
 export function createManifest(existing = {}) {
-  return {
+  const manifest = {
     schema: 'simulatte.universeManifest.v1',
     id: existing.id || 'simulatte-universe-multi-index-v1',
     modelRuntimeLock: cloneJson(MODEL_RUNTIME_LOCK_REFERENCE),
@@ -180,6 +181,21 @@ export function createManifest(existing = {}) {
       },
     ])),
   };
+  if (existing.generator) manifest.generator = cloneJson(existing.generator);
+  return manifest;
+}
+
+export async function bindUniverseIndexArtifacts(manifest) {
+  const bound = cloneJson(manifest);
+  for (const definition of INDEX_DEFINITIONS) {
+    const bytes = await fs.readFile(artifactPath(definition.artifact));
+    bound.indexes[definition.name].artifactHash = {
+      alg: 'sha256',
+      hex: crypto.createHash('sha256').update(bytes).digest('hex'),
+    };
+    bound.indexes[definition.name].artifactBytes = bytes.byteLength;
+  }
+  return bound;
 }
 
 export async function loadUniversePackage() {
@@ -241,6 +257,12 @@ export function validateUniversePackage({ manifest, indexes }, options = {}) {
     if (config.documentSchema && config.documentSchema !== definition.schema) {
       errors.push(`manifest.indexes.${definition.name}.documentSchema must be ${definition.schema}`);
     }
+    if (!/^[a-f0-9]{64}$/.test(String(config.artifactHash?.hex || ''))) {
+      errors.push(`manifest.indexes.${definition.name}.artifactHash must bind sha256 bytes`);
+    }
+    if (!Number.isSafeInteger(config.artifactBytes) || config.artifactBytes <= 0) {
+      errors.push(`manifest.indexes.${definition.name}.artifactBytes must be a positive integer`);
+    }
     const index = indexes[definition.name];
     if (!index) {
       errors.push(`${definition.name} index missing`);
@@ -253,6 +275,14 @@ export function validateUniversePackage({ manifest, indexes }, options = {}) {
     if (!Array.isArray(index.documents)) {
       errors.push(`${definition.name}.documents must be an array`);
       continue;
+    }
+    const serializedIndex = stableStringify(index);
+    const actualHash = crypto.createHash('sha256').update(serializedIndex).digest('hex');
+    if (config.artifactHash?.alg !== 'sha256' || config.artifactHash?.hex !== actualHash) {
+      errors.push(`manifest.indexes.${definition.name}.artifactHash does not match artifact bytes`);
+    }
+    if (config.artifactBytes !== Buffer.byteLength(serializedIndex)) {
+      errors.push(`manifest.indexes.${definition.name}.artifactBytes does not match artifact bytes`);
     }
     index.documents.forEach((doc, order) => {
       validateDocumentBase(definition.name, doc, order, errors);

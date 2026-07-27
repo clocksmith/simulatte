@@ -55,7 +55,7 @@
       "path": "./fixed-sparse-count-shrinkage.js"
     },
     {
-      "integrity": "sha384-d4ad517cb476d23b2d54aa412606c018ddba4e7b78157ca87ea6072e95e9249aca78929ec9080017c5a6e8f0647a835a",
+      "integrity": "sha384-d78ac46a00d22e372825e58a353d912c974c5a1963574535c7355a8181bdb4cd642b1d751f71f790be1582229f97e01e",
       "path": "./v4-contribution.js"
     }
   ],

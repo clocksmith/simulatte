@@ -2,23 +2,23 @@
   "applicationProfile": {
     "id": "cable-trader-pickup-v1",
     "path": "../application-profiles/cable-trader-pickup-v1.json",
-    "sha256": "69162771a481cfa9bf9c921ceed0c29584ade390f13ef6c78ac19699c8ac4495"
+    "sha256": "4bf7d26b02004b793a87b659cd9add73acd897c1c8fa73a7bac9d92421a2e652"
   },
   "applicationProfiles": [
     {
       "id": "neighborhood-bulk-pool-v1",
       "path": "../application-profiles/neighborhood-bulk-pool-v1.json",
-      "sha256": "821305b4259e3fe2ccb5c7d28b3d1b5ef66543be5769d30277b2d52fd9d7c4a5"
+      "sha256": "1cf4449af79fee081098020731f0287c07718ea53842b4817d25a34b80c4717f"
     },
     {
       "id": "safety-explorer-v1",
       "path": "../application-profiles/safety-explorer-v1.json",
-      "sha256": "a417ec7694d4dc8d25a29ad5e996b0c6370fb091a0fc8b1870e4319bac63f03f"
+      "sha256": "e30d5c3737885b581bba55a060a1dd2384afbcd29bf25cb27a32160b282a4c51"
     },
     {
       "id": "sun-walker-v1",
       "path": "../application-profiles/sun-walker-v1.json",
-      "sha256": "15e2c057082d2db9941a33f6dca30240d42b40c0509ccc4c5d9eca1ba3719197"
+      "sha256": "865991f8e12880cad0aafcace7fa414f4e4c91798548ee65ebb899d138ee9ef3"
     }
   ],
   "claimBoundary": "This manifest governs bicycle-delivery, pedestrian-loop, and neighborhood bulk-pooling simulations in New York City. Park circuits follow frozen property boundaries, not surveyed sidewalk centerlines. Bulk-pool corridors outside the governed street graph are modeled geospatial scenarios. It does not claim live conditions, real warehouse inventory, physical-world autonomy, or control of a real vehicle.",

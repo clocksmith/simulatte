@@ -8,6 +8,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const SAMER_DIR = path.join(ROOT, 'tools', 'samer');
 const DEFAULT_SEALED_DIR = path.join(SAMER_DIR, 'model-selection', 'sealed');
 const JOBS_PATH = path.join(SAMER_DIR, 'classification-jobs-v1.json');
+const POLICY_PATH = path.join(SAMER_DIR, 'model-selection-policy.json');
 const POPULATIONS = Object.freeze([
   {
     task: 'classification',
@@ -78,7 +79,7 @@ function validateOpeningReceipt(pointer, task) {
   if (receipt.candidateProcessesReceivedGoldLabels !== false || receipt.evaluatorOwnedMetrics !== true) fail(`${task} opening receipt does not preserve evaluator custody`);
 }
 
-function validatePopulation(population, expected, jobs) {
+function validatePopulation(population, expected, jobs, policy) {
   if (population.schema !== expected.schema) fail(`${expected.task} population schema mismatch`);
   requireText(population.id, `${expected.task} population id`);
   requireText(population.sealedAt, `${expected.task} sealedAt`);
@@ -92,7 +93,7 @@ function validatePopulation(population, expected, jobs) {
     ids.add(id);
   }
   if (expected.task === 'classification') validateClassification(population.rows, jobs);
-  if (expected.task === 'embedding-retrieval') validateRetrieval(population.rows);
+  if (expected.task === 'embedding-retrieval') validateRetrieval(population.rows, policy);
   if (expected.task === 'reranking') validateReranking(population.rows);
 }
 
@@ -111,12 +112,23 @@ function validateClassification(rows, jobs) {
   }
 }
 
-function validateRetrieval(rows) {
+function validateRetrieval(rows, policy) {
+  const retrievalPolicy = policy.requiredTasks.find((task) => task.id === 'embedding-retrieval');
+  const shape = retrievalPolicy && retrievalPolicy.populationShape || {};
+  const minimumCandidates = requirePositiveInteger(
+    shape.minimumCandidatesPerQuery,
+    'retrieval minimum candidates per query'
+  );
+  if (minimumCandidates <= Number(retrievalPolicy.evaluationK)) {
+    fail('retrieval candidate population must be larger than evaluation K');
+  }
   let hardNegativeRows = 0;
   let mustRefuseRows = 0;
   for (const row of rows) {
     requireText(row.query, `retrieval row ${row.id} query`);
-    if (!Array.isArray(row.candidates) || row.candidates.length < 4) fail(`retrieval row ${row.id} requires at least four candidates`);
+    if (!Array.isArray(row.candidates) || row.candidates.length < minimumCandidates) {
+      fail(`retrieval row ${row.id} requires at least ${minimumCandidates} candidates`);
+    }
     const candidateIds = new Set(row.candidates.map((candidate) => requireText(candidate.id, `retrieval row ${row.id} candidate id`)));
     const relevant = Array.isArray(row.relevantIds) ? row.relevantIds : [];
     const hard = Array.isArray(row.hardNegativeIds) ? row.hardNegativeIds : [];
@@ -127,8 +139,12 @@ function validateRetrieval(rows) {
     for (const id of [...relevant, ...hard]) if (!candidateIds.has(id)) fail(`retrieval row ${row.id} references missing candidate ${id}`);
     if (hard.length) hardNegativeRows += 1;
   }
-  if (hardNegativeRows < 20) fail('retrieval population requires at least 20 hard-negative rows');
-  if (mustRefuseRows < 20) fail('retrieval population requires at least 20 must-refuse rows');
+  if (hardNegativeRows < shape.minimumHardNegativeRows) {
+    fail(`retrieval population requires at least ${shape.minimumHardNegativeRows} hard-negative rows`);
+  }
+  if (mustRefuseRows < shape.minimumMustRefuseRows) {
+    fail(`retrieval population requires at least ${shape.minimumMustRefuseRows} must-refuse rows`);
+  }
 }
 
 function validateReranking(rows) {
@@ -184,6 +200,7 @@ function verifyCommittedOnly() {
 
 function verifyOrWritePrivate(options) {
   const jobs = readJson(JOBS_PATH);
+  const policy = readJson(POLICY_PATH);
   const generatorPath = path.join(options.sealedDir, 'population-generator.mjs');
   if (!fs.existsSync(generatorPath)) fail(`sealed generator missing at ${generatorPath}`);
   const generatorHash = digest(fs.readFileSync(generatorPath));
@@ -193,7 +210,7 @@ function verifyOrWritePrivate(options) {
     if (!fs.existsSync(populationPath)) fail(`sealed population missing at ${populationPath}`);
     const bytes = fs.readFileSync(populationPath);
     const population = JSON.parse(bytes.toString('utf8'));
-    validatePopulation(population, expected, jobs);
+    validatePopulation(population, expected, jobs, policy);
     const commitment = buildCommitment(bytes, population, expected, generatorHash);
     const commitmentPath = path.join(SAMER_DIR, expected.commitment);
     if (options.write) fs.writeFileSync(commitmentPath, `${JSON.stringify(commitment, null, 2)}\n`);
@@ -223,6 +240,7 @@ function requireHash(value, label) {
 
 function requirePositiveInteger(value, label) {
   if (!Number.isInteger(value) || value < 1) fail(`${label} must be a positive integer`);
+  return value;
 }
 
 function fail(message) {

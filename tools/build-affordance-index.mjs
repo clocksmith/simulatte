@@ -1,14 +1,19 @@
 import {
   INDEX_BY_NAME,
+  UNIVERSE_DIR,
   artifactPath,
+  bindUniverseIndexArtifacts,
+  createManifest,
   loadPrimitiveIds,
   mergeDocuments,
   normalizeIndex,
   readJson,
+  readManifest,
   uniqueSorted,
   writeJson,
 } from './simulatte-universe-utils.mjs';
 import { createRequire } from 'node:module';
+import path from 'node:path';
 
 const require = createRequire(import.meta.url);
 
@@ -78,6 +83,11 @@ async function main() {
   await writeJson(
     artifactPath(INDEX_BY_NAME.affordances.artifact),
     index
+  );
+  const existingManifest = await readManifest();
+  await writeJson(
+    path.join(UNIVERSE_DIR, 'manifest.json'),
+    await bindUniverseIndexArtifacts(createManifest(existingManifest || {}))
   );
   console.log(JSON.stringify({
     affordances: index.documents.length,

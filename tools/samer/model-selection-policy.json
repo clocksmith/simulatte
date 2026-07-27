@@ -45,6 +45,13 @@
         "minimumAnswerableAcceptance": 0.92,
         "minimumRefusalPrecision": 0.9
       },
+      "populationShape": {
+        "minimumCandidatesPerQuery": 12,
+        "minimumRelevantCandidates": 1,
+        "minimumHardNegatives": 1,
+        "minimumMustRefuseRows": 20,
+        "minimumHardNegativeRows": 20
+      },
       "populationContract": "simulatte.sealedEmbeddingRetrievalPopulation.v1"
     },
     {

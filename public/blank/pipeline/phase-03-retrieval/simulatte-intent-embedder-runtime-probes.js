@@ -1,6 +1,5 @@
 (function attachSimulatteIntentEmbedderruntimeprobes(root) {
   const scope = root.SimulattePhaseModuleRegistry.family('intentEmbedder');
-
     async function fetchJson(url, label, telemetry = {}) {
         const started = nowMs();
         const progress = telemetry.progress || null;
@@ -21,8 +20,8 @@
           cacheMode: 'force-cache',
         });
         const response = await fetch(url, { cache: 'force-cache' });
-        const durationMs = elapsedMsSince(started);
         if (!response.ok) {
+          const durationMs = elapsedMsSince(started);
           emitRuntimeProgress(progress, trace, {
             source: 'simulatte-intent-embedder',
             stage: telemetry.stage || 'resource-fetch',
@@ -42,11 +41,12 @@
             ...telemetry,
             startPercent,
             endPercent,
-          progress,
-          trace,
+            progress,
+            trace,
             resourceUrl: String(url || ''),
           });
           const verifiedHash = await assertJsonResourceHash(label, url, body.bytes, telemetry);
+          const durationMs = elapsedMsSince(started);
           emitRuntimeProgress(progress, trace, {
           source: 'simulatte-intent-embedder',
           stage: telemetry.stage || 'resource-fetch',
@@ -64,6 +64,17 @@
             verifiedHash,
             cacheMode: 'force-cache',
           });
+          if (Array.isArray(telemetry.fetchReceipts)) {
+            telemetry.fetchReceipts.push({
+              label,
+              resourceKind: telemetry.resourceKind || label,
+              resourceUrl: String(url || ''),
+              byteLength: body.byteLength,
+              totalBytes: body.totalBytes,
+              durationMs,
+              verifiedHash,
+            });
+          }
           return body.value;
         }
 
@@ -413,126 +424,14 @@
         return out;
       }
 
-    async function loadUniverseIndexes(manifestUrl, telemetry = {}) {
-        const manifest = await fetchJson(manifestUrl, 'universe manifest', {
-          ...telemetry,
-          stage: 'index-fetch',
-          percent: 13,
-          resourceKind: 'universe-manifest',
-        });
-        if (!manifest || manifest.schema !== 'simulatte.universeManifest.v1') {
-          throw new Error('universe manifest schema mismatch; expected simulatte.universeManifest.v1');
-        }
-        const entries = Object.entries(manifest.indexes || {});
-        const indexes = {};
-        await Promise.all(entries.map(async ([name, config]) => {
-          if (!config || !config.artifact) throw new Error(`universe index ${name} missing artifact`);
-            indexes[name] = await fetchJson(scope.versionedAssetUrl(scope.resolveUrl(config.artifact, manifestUrl), telemetry.assetVersionQuery), `universe ${name} index`, {
-              ...telemetry,
-              stage: 'index-fetch',
-              percent: 14,
-              resourceKind: `universe-${name}-index`,
-              expectedHash: config.artifactHash || config.hash || null,
-            });
-        }));
-        return { manifest, indexes };
-      }
-
     function normalizeModelBackedRuntime(manifest, index, cardIndex = null, universe = null) {
         const normalizedIndex = normalizePrimitiveIndex(index, manifest);
         return {
           manifest,
           index: normalizedIndex,
           cardIndex: normalizeSurfaceCardIndex(cardIndex, manifest, normalizedIndex),
-          universe: normalizeUniverseIndexes(universe, manifest),
+          universe: scope.normalizeUniverseIndexes(universe, manifest),
           reranker: scope.rerankerConfig(manifest),
-        };
-      }
-
-    function normalizeUniverseIndexes(universe, manifest) {
-        if (!universe) return null;
-        if (!universe.manifest || universe.manifest.schema !== 'simulatte.universeManifest.v1') {
-          throw new Error('universe index package missing manifest');
-        }
-        const universeLock = universe.manifest.modelRuntimeLock || {};
-        const runtimeLock = manifest.modelRuntimeLock || {};
-        if (
-          universeLock.id !== runtimeLock.id ||
-          Number(universeLock.number) !== Number(runtimeLock.number) ||
-          scope.hashHex(universeLock.artifactHash) !== scope.hashHex(runtimeLock.artifactHash)
-        ) {
-          throw new Error('universe modelRuntimeLock must match the resolved intent model runtime lock');
-        }
-        const indexes = {};
-        let documentCount = 0;
-        for (const [name, index] of Object.entries(universe.indexes || {})) {
-          if (!index || !Array.isArray(index.documents)) {
-            throw new Error(`universe index ${name} missing documents`);
-          }
-          const rawDocs = index.documents;
-          const embeddingDim = Number(index.embeddingDim || 0);
-          const packedEmbeddings = index.embeddingsPackedBase64 && Number.isFinite(embeddingDim) && embeddingDim > 0
-            ? decodePackedEmbeddings(
-              index.embeddingsPackedBase64,
-              rawDocs.length,
-              embeddingDim,
-              `universe ${name} embedding index`
-            )
-            : null;
-          const featureDim = Number(index.featureDim || 0);
-          const packedFeatures = index.featurePackedBase64 && Number.isFinite(featureDim) && featureDim > 0
-            ? decodePackedEmbeddings(
-              index.featurePackedBase64,
-              rawDocs.length,
-              featureDim,
-              `universe ${name} feature index`
-            )
-            : null;
-          if (packedFeatures) {
-            const featureModelId = String(index.featureModelId || '');
-            const expectedFeatureModelId = scope.runtimeFeatureModelId();
-            if (featureModelId !== expectedFeatureModelId) {
-              throw new Error(
-                `universe index ${name} featureModelId mismatch (${featureModelId || 'missing'} !== ${expectedFeatureModelId}); rebuild the index or align the runtime feature builder`
-              );
-            }
-          }
-          indexes[name] = {
-            schema: index.schema || '',
-            id: index.id || `simulatte-universe-${name}`,
-            embedModelId: index.embedModelId || '',
-            embeddingDim: packedEmbeddings ? embeddingDim : 0,
-            featureModelId: index.featureModelId || '',
-            featureDim: packedFeatures ? featureDim : 0,
-            documents: rawDocs.map((doc, order) => {
-              const embeddingOffset = order * embeddingDim;
-              const featureOffset = order * featureDim;
-              return {
-                ...doc,
-                order,
-                indexName: name,
-                vector: packedEmbeddings
-                  ? normalizeEmbeddingVector(
-                    packedEmbeddings.slice(embeddingOffset, embeddingOffset + embeddingDim),
-                    `universe ${name} ${doc.id || order}`
-                  )
-                  : null,
-                featureVector: packedFeatures
-                  ? normalizeEmbeddingVector(
-                    packedFeatures.slice(featureOffset, featureOffset + featureDim),
-                    `universe ${name} feature ${doc.id || order}`
-                  )
-                  : null,
-              };
-            }),
-          };
-          documentCount += indexes[name].documents.length;
-        }
-        return {
-          schema: universe.manifest.schema,
-          id: universe.manifest.id || 'simulatte-universe',
-          indexes,
-          documentCount,
         };
       }
 
@@ -828,9 +727,7 @@
       blake3ModuleUrl,
       bytesToHex,
       concatChunks,
-      loadUniverseIndexes,
       normalizeModelBackedRuntime,
-      normalizeUniverseIndexes,
       normalizePrimitiveIndex,
       normalizeSurfaceCardIndex,
       decodePackedEmbeddings,

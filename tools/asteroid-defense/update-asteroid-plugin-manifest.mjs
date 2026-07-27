@@ -15,6 +15,18 @@ const datasets = datasetManifest.datasets.map((row) => ({
     sha256: row.sha256,
   },
 }));
+const resourcePaths = [
+  './config.schema.json',
+  './default-config.json',
+  './covariance-ensemble.js',
+  './encounter-model.js',
+  './orbit-determination.js',
+  './asteroid-model.js',
+  './asteroid-catalog.js',
+  './v4-contribution.js',
+  './comparison-driver.js',
+  './presentation.js',
+];
 const manifest = {
   schema: 'simulatte.pluginManifest.v1',
   id: 'asteroid-defense',
@@ -38,8 +50,11 @@ const manifest = {
     'simulatte.comparisonExecutionReceipt.v4',
   ],
   datasets,
-  resources: [],
+  resources: resourcePaths.map((resourcePath) => ({
+    path: resourcePath,
+    integrity: sha384(fs.readFileSync(path.join(pluginDirectory, resourcePath))),
+  })),
 };
 fs.writeFileSync(path.join(pluginDirectory, 'plugin.json'), `${JSON.stringify(manifest, null, 2)}\n`);
-console.log(`ASTEROID-PLUGIN-MANIFEST wrote datasets=${datasets.length}`);
+console.log(`ASTEROID-PLUGIN-MANIFEST wrote datasets=${datasets.length} resources=${resourcePaths.length}`);
 function sha384(bytes) { return `sha384-${crypto.createHash('sha384').update(bytes).digest('hex')}`; }

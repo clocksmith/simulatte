@@ -10,6 +10,20 @@
     "startLabel": "Run resilience experiment",
     "shuffleLabel": "Change scenario"
   },
+  "experience": {
+    "kind": "simulation",
+    "timelineLabel": "Operating hour",
+    "primaryMeasureKinds": ["modeled-unserved-load", "current-minimum-reserve-margin", "storage-state-of-charge", "modeled-emissions-this-hour", "spilled-generation"],
+    "supportedViews": ["overview", "free", "compare"],
+    "defaultView": "overview",
+    "comparisonMode": "synchronized",
+    "stages": [
+      { "id": "system-balances", "label": "System balances", "narrative": "Regional demand, available generation, reserves, storage, and interfaces establish the starting balance.", "fromProgress": 0 },
+      { "id": "disturbance-arrives", "label": "Disturbance arrives", "narrative": "Scenario outages or demand changes tighten reserve and transfer constraints.", "fromProgress": 0.18 },
+      { "id": "policy-responds", "label": "Policy responds", "narrative": "Dispatch, storage, response, and prioritized shedding resolve each constrained hour.", "fromProgress": 0.42 },
+      { "id": "service-restores", "label": "Service restores", "narrative": "Restoration and terminal energy accounting settle against the synchronized policy branch.", "fromProgress": 0.78 }
+    ]
+  },
   "defaultSeedId": "heat-demand-peak",
   "seeds": [
     {

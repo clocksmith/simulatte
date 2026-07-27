@@ -9,7 +9,7 @@
         {
           "id": "food-recall-us-v1",
           "path": "../application-profiles/food-recall-us-v1.json",
-          "sha256": "9f85278b0faf79fcc265c61e4c01c1605b26a3c23f7a5d16e4608c72f5f80b09",
+          "sha256": "1061eb2a0dd4706de3d2769a92da4ad913d4be55502e630a27ff6ee77673e98d",
           "world": {
             "id": "us-national-regions-v1",
             "path": "./worlds/us-national-regions-v1.json",
@@ -19,7 +19,7 @@
         {
           "id": "grid-resilience-us-v1",
           "path": "../application-profiles/grid-resilience-us-v1.json",
-          "sha256": "3857f5a160b22e39c03f54fef7fd9d99b8c39b13307437816640232b5768bf7f",
+          "sha256": "e35e04051579de57c5e53ee37a3ba0cfda3980cfa2664d8009d63e31c13bbf33",
           "world": {
             "id": "us-national-regions-v1",
             "path": "./worlds/us-national-regions-v1.json",
@@ -34,7 +34,7 @@
         {
           "id": "orbital-transfer-planner-v1",
           "path": "../application-profiles/orbital-transfer-planner-v1.json",
-          "sha256": "65879a6ad42f4f239386dec6f82764ad9656e27db2da3ddcdfa8d262da1f44a2",
+          "sha256": "129451d8be394c6aec73a82401b0c3301ef2e3ab00e673759a69ad3ed1d3cc4a",
           "world": {
             "id": "solar-system-ephemeris-v2",
             "path": "./worlds/solar-system-ephemeris-v2.json",
@@ -44,7 +44,7 @@
         {
           "id": "asteroid-defense-v1",
           "path": "../application-profiles/asteroid-defense-v1.json",
-          "sha256": "b5f79fbed796dc0a93ffe0966a044085583a99bafb183c771871df6001ef67fc",
+          "sha256": "58ea8f636d6c20872c52861895c5599aaac7d88e5e785e537b050561c6fe5b3f",
           "world": {
             "id": "solar-system-ephemeris-v2",
             "path": "./worlds/solar-system-ephemeris-v2.json",
@@ -59,7 +59,7 @@
         {
           "id": "interstellar-relay-network-v1",
           "path": "../application-profiles/interstellar-relay-network-v1.json",
-          "sha256": "5ac3c8e9e4ff1a722d057d2dc23b91c5dae55a5d6ce088d52aff8b90636f540b",
+          "sha256": "f711fd09c1c8278c48ac8988d5cd7ca36f9ef5899c7f8874f8834119702470d7",
           "world": {
             "id": "gaia-dr3-stellar-neighborhood-v1",
             "path": "./worlds/gaia-dr3-stellar-neighborhood-v1.json",
@@ -74,7 +74,7 @@
         {
           "id": "maritime-trade-global-v1",
           "path": "../application-profiles/maritime-trade-global-v1.json",
-          "sha256": "894e821dd117924501521847fe272a44aefa2e621e936507cf33e84c81502484",
+          "sha256": "ec7b4fab29f5138db8e49179faa8558fe172f8b053459f6b7b3304a19d308f0c",
           "world": {
             "id": "earth-global-topology-v1",
             "path": "./worlds/earth-global-topology-v1.json",
@@ -84,7 +84,7 @@
         {
           "id": "subsea-network-global-v1",
           "path": "../application-profiles/subsea-network-global-v1.json",
-          "sha256": "1c4e323517a96e309373e6848e2a474b6538d13c3421fd0ad1369fd6dd921f10",
+          "sha256": "a0ee0f8b6a18cae74becc09698575767486b29197436336ad1e1c523434fb16a",
           "world": {
             "id": "earth-global-topology-v1",
             "path": "./worlds/earth-global-topology-v1.json",

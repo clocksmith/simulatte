@@ -152,7 +152,7 @@
       "path": "./network-model.js"
     },
     {
-      "integrity": "sha384-2fd1e94e1e3e9c6800ca583c17503890649a951b5c2bacddf045e95e41ebed4662da9cd3b1b4cfe52634ae842b80fca8",
+      "integrity": "sha384-90a295f7806c54c408d488768026c6521f6868722fcf9d395048edb8bbedafcb9b306ccaa656046476f6befee40c62a9",
       "path": "./v4-contribution.js"
     },
     {

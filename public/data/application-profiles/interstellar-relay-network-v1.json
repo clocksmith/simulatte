@@ -10,6 +10,20 @@
     "startLabel": "Run relay experiment",
     "shuffleLabel": "Change scenario"
   },
+  "experience": {
+    "kind": "simulation",
+    "timelineLabel": "Relay event",
+    "primaryMeasureKinds": ["packet-depth", "packet-distance", "bottleneck-rate", "latency", "physical-packet-success"],
+    "supportedViews": ["overview", "free", "compare"],
+    "defaultView": "overview",
+    "comparisonMode": "synchronized",
+    "stages": [
+      { "id": "route-builds", "label": "Route built", "narrative": "Endpoint motion, optical budgets, packet size, and routing constraints determine the hop sequence.", "fromProgress": 0 },
+      { "id": "link-acquires", "label": "Link acquisition", "narrative": "Terminal acquisition, queueing, operations state, and failures gate transmission.", "fromProgress": 0.16 },
+      { "id": "packet-propagates", "label": "Packet propagates", "narrative": "Transmission, light-time propagation, reception, processing, and retries advance hop by hop.", "fromProgress": 0.4 },
+      { "id": "delivery-settles", "label": "Delivery settles", "narrative": "Latency, rate, energy, reliability, omissions, and direct-route comparison close together.", "fromProgress": 0.82 }
+    ]
+  },
   "defaultSeedId": "sol-proxima-direct",
   "seeds": [
     {

@@ -13,15 +13,20 @@
       renderer.focusCameraTarget(targetId);
     }
     if (configuration?.initialMode) {
-      renderer.setCameraMode(configuration.initialMode);
-      onModeSelected(configuration.initialMode);
+      const mode = canonicalMode(configuration.initialMode);
+      renderer.setCameraMode(mode);
+      onModeSelected(mode);
     }
     return true;
   }
 
   function runCameraMode(configuration) {
-    return configuration?.runMode || 'follow';
+    return canonicalMode(configuration?.runMode || 'follow');
   }
 
-  return { applyInitialCamera, runCameraMode };
+  function canonicalMode(mode) {
+    return mode === 'bird' ? 'overview' : mode;
+  }
+
+  return { applyInitialCamera, canonicalMode, runCameraMode };
 });

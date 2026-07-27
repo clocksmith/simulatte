@@ -13,6 +13,107 @@
     }
   ],
   "$defs": {
+    "experience": {
+      "type": "object",
+      "required": [
+        "kind",
+        "timelineLabel",
+        "primaryMeasureKinds",
+        "supportedViews",
+        "defaultView",
+        "comparisonMode",
+        "stages"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "analysis",
+            "simulation",
+            "solver"
+          ]
+        },
+        "timelineLabel": {
+          "type": "string",
+          "minLength": 1
+        },
+        "primaryMeasureKinds": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 5,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "supportedViews": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "follow",
+              "pov",
+              "overview",
+              "top",
+              "free",
+              "compare"
+            ]
+          }
+        },
+        "defaultView": {
+          "enum": [
+            "follow",
+            "pov",
+            "overview",
+            "top",
+            "free",
+            "compare"
+          ]
+        },
+        "comparisonMode": {
+          "enum": [
+            "none",
+            "sensitivity",
+            "synchronized"
+          ]
+        },
+        "stages": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "label",
+              "narrative",
+              "fromProgress"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1
+              },
+              "narrative": {
+                "type": "string",
+                "minLength": 1
+              },
+              "fromProgress": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              }
+            }
+          }
+        }
+      }
+    },
     "v1": {
       "type": "object",
       "required": [
@@ -213,6 +314,9 @@
             }
           }
         },
+        "experience": {
+          "$ref": "#/$defs/experience"
+        },
         "defaultSeedId": {
           "type": "string",
           "minLength": 1
@@ -381,6 +485,9 @@
               "type": "boolean"
             }
           }
+        },
+        "experience": {
+          "$ref": "#/$defs/experience"
         },
         "defaultSeedId": {
           "type": "string",

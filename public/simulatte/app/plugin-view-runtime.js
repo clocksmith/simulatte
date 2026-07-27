@@ -67,8 +67,10 @@
         ? 'pov'
         : decision.mode === 'follow'
           ? 'follow'
-        : ['overview', 'compare'].includes(decision.mode)
-          ? 'bird'
+        : decision.mode === 'overview'
+          ? 'overview'
+        : decision.mode === 'compare'
+          ? 'compare'
           : null;
       const cameraState = renderer.cameraState?.() || null;
       if (
@@ -107,7 +109,8 @@
   }
 
   function semanticManualMode(mode) {
-    if (mode === 'bird' || mode === 'top') return 'overview';
+    if (mode === 'bird' || mode === 'overview') return 'overview';
+    if (mode === 'top') return 'free';
     return mode;
   }
 

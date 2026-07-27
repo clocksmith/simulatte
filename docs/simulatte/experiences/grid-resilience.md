@@ -4,14 +4,14 @@ Owner contract: `public/shared/plugins/grid-resilience-us/index.js`.
 
 ## Status
 
-- Status: verified
+- Status: implemented
 - Tier and world: Country, `us-national-regions-v1`
 - Plugin ID: `grid-resilience-us`
 - Profile ID: `grid-resilience-us-v1`
 - Default scenario: `heat-demand-peak`
 - Contract version: plugin v4 contribution
-- Last verified source: commit `a5713c1c13ab`, bound worktree receipt
-- Evidence: 10/10 runs in `artifacts/profile-evidence/index.json`
+- Last verified source: prior browser proof at commit `a5713c1c13ab`
+- Evidence: current worktree browser proof not rerun; prior index contains 10/10 runs
 
 ## What is it?
 
@@ -104,8 +104,8 @@ Cannot claim:
 - Unit tests: passing in `tests/grid-resilience-us.test.cjs`
 - Deterministic replay: verified
 - Comparison execution: verified
-- Desktop browser: verified
-- Mobile browser: verified
+- Desktop browser: not rerun for the current worktree
+- Mobile browser: not rerun for the current worktree
 - Known unresolved failures: operational topology and asset calibration are intentionally absent
 
 ## Where is it implemented?

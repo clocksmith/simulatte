@@ -299,13 +299,12 @@ async function runBrowserSmoke(options) {
       : !featureView.cooperation.visible && featureView.gpuParity === null;
     const sunWalkerPass = expectsSunWalker
       ? featureView.shade.visible
-        && featureView.shade.routeAlgorithm === 'sun_walker_arrival_time_route_v1'
-        && featureView.shade.selected.includes('modeled shade')
-        && featureView.shade.areaCount > 0
-        && featureView.shade.sunCount === 1
-        && featureView.shade.solarLighting === 'plugin'
-        && featureView.shade.sunAzimuthDegrees > 0
-        && featureView.shade.sunElevationDegrees > 2
+        && featureView.shade.routeAlgorithms.includes('arrival_time_building_occlusion_v2')
+        && featureView.shade.routeAlgorithms.includes('bounded_alternative_route_selection_v2')
+        && featureView.shade.selected === 'Shade-selected route'
+        && featureView.shade.actorCount === 1
+        && featureView.shade.exposureSeconds > 0
+        && ['overview', 'follow', 'pov', 'compare', 'free', 'top'].includes(featureView.shade.viewMode)
       : !featureView.shade.visible;
     const featurePass = p2pDeliveryPass
       && sunWalkerPass
@@ -559,27 +558,23 @@ function pluginFeatureExpression({ expectsP2pDelivery, expectsSunWalker, expects
     }
     let shade = { visible: Boolean(document.querySelector('#plugin-inspector [data-plugin-id="sun-walker"]')) };
     if (${expectsSunWalker}) {
-      input.value = 'Walk from Union Square to Washington Square in the shade on a hot day.';
-      input.dispatchEvent(new Event('input', { bubbles: true }));
-      step.click();
       await waitFor(() => {
-        const proof = document.getElementById('alternative-proof');
-        return Boolean(evidenceSection('sun-walker'))
-          && proof.dataset.routeAlgorithm === 'sun_walker_arrival_time_route_v1';
+        const contribution = globalThis.__simulattePluginPlatformV4?.contributions
+          ?.find((row) => row.pluginId === 'sun-walker');
+        return contribution?.state?.status === 'settled';
       }, 'shade-route');
-      const proof = document.getElementById('alternative-proof');
-      const shadeSection = evidenceSection('sun-walker');
-      const shadeRows = Object.fromEntries([...shadeSection.querySelectorAll('div')].map((row) => [row.querySelector('dt')?.textContent.trim(), row.querySelector('dd')?.textContent.trim()]));
-      const canvas = document.getElementById('autonomy-canvas');
+      const platform = globalThis.__simulattePluginPlatformV4;
+      const contribution = platform.contributions.find((row) => row.pluginId === 'sun-walker');
+      const model = contribution.provenanceRecords.find((row) => row.kind === 'model');
+      const measures = Object.fromEntries(contribution.state.measures.map((row) => [row.kind, Number(row.value)]));
       shade = {
         visible: true,
-        routeAlgorithm: proof.dataset.routeAlgorithm || null,
-        selected: shadeRows['Selected route'] || '',
-        areaCount: Number(canvas.dataset.pluginAreasCount || 0),
-        sunCount: Number(canvas.dataset.pluginSunsCount || 0),
-        solarLighting: canvas.dataset.solarLighting || null,
-        sunAzimuthDegrees: Number(canvas.dataset.sunAzimuthDegrees),
-        sunElevationDegrees: Number(canvas.dataset.sunElevationDegrees),
+        routeAlgorithms: model?.metadata?.algorithms || [],
+        selected: contribution.presentation.layers.find((row) => row.id === 'shade-selected-route')?.label || '',
+        areaCount: contribution.presentation.layers.filter((row) => row.kind === 'area').length,
+        actorCount: contribution.presentation.layers.filter((row) => row.kind === 'actor').length,
+        exposureSeconds: (measures['direct-sun'] || 0) + (measures.shade || 0) + (measures.unknown || 0),
+        viewMode: platform.view?.state?.decision?.mode || null,
       };
     }
     let cableTrader = { visible: Boolean(document.querySelector('#plugin-inspector [data-plugin-id="cable-trader"]')) };

@@ -6,7 +6,7 @@
   const ACTOR_MESH_SCHEMA = 'simulatte.autonomyActorMesh.v1';
   const FLOATS_PER_VERTEX = 13;
   const MATERIAL_MODEL = 'metallic_roughness_vertex_v1';
-  const SUPPORTED_ACTOR_KINDS = Object.freeze(['pedestrian', 'bicycle', 'scooter', 'car']);
+  const SUPPORTED_ACTOR_KINDS = Object.freeze(['pedestrian', 'bicycle', 'scooter', 'car', 'package']);
   const MATERIALS = Object.freeze({
     fabric: Object.freeze([0.02, 0.86]),
     skin: Object.freeze([0.01, 0.68]),
@@ -44,7 +44,8 @@
     if (kind === 'pedestrian') addPerson(writer, frame, { motionPhase, gait: options.gait || 'walk' });
     else if (kind === 'bicycle') addBicycle(writer, frame, { motionPhase, hasRider: true });
     else if (kind === 'scooter') addScooter(writer, frame, { motionPhase, hasRider: true });
-    else addCar(writer, frame);
+    else if (kind === 'car') addCar(writer, frame);
+    else addPackage(writer, frame, motionPhase);
     return {
       schema: ACTOR_MESH_SCHEMA,
       kind,
@@ -54,10 +55,44 @@
   }
 
   function canonicalKind(kind) {
-    const aliases = { runner: 'pedestrian', cycle: 'bicycle', delivery_bike: 'bicycle', automobile: 'car' };
+    const aliases = {
+      runner: 'pedestrian',
+      cycle: 'bicycle',
+      delivery_bike: 'bicycle',
+      automobile: 'car',
+      parcel: 'package',
+    };
     const value = aliases[kind] || kind;
     if (!SUPPORTED_ACTOR_KINDS.includes(value)) throw new Error(`actor_kind_unsupported: expected ${SUPPORTED_ACTOR_KINDS.join(', ')}, received ${kind}`);
     return value;
+  }
+
+  function addPackage(writer, frame, motionPhase = 0) {
+    const bob = 0.46 + Math.sin(motionPhase * 0.5) * 0.025;
+    addOrientedBox(
+      writer,
+      frame,
+      [0, bob, 0],
+      [0.62, 0.48, 0.5],
+      [0.55, 0.31, 0.12, 1],
+      MATERIALS.polymer
+    );
+    addOrientedBox(
+      writer,
+      frame,
+      [0, bob + 0.01, 0],
+      [0.66, 0.05, 0.52],
+      COLORS.accent,
+      MATERIALS.fabric
+    );
+    addOrientedBox(
+      writer,
+      frame,
+      [0, bob + 0.01, 0],
+      [0.07, 0.51, 0.54],
+      COLORS.accent,
+      MATERIALS.fabric
+    );
   }
 
   function addPerson(writer, frame, { motionPhase = 0, gait = 'walk' } = {}) {

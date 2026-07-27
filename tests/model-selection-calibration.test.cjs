@@ -229,17 +229,17 @@ function classificationMetricsFixture() {
 }
 
 function retrievalGoldRow(id, mustRefuse) {
+  const candidates = Array.from({ length: 12 }, (_, index) => ({
+    id: `candidate-${id}-${index + 1}`,
+    text: `candidate ${id} ${index + 1}`,
+    types: [],
+  }));
   return {
     id,
     query: `query ${id}`,
-    candidates: [
-      { id: `candidate-${id}-1`, text: `candidate ${id} one`, types: [] },
-      { id: `candidate-${id}-2`, text: `candidate ${id} two`, types: [] },
-      { id: `candidate-${id}-3`, text: `candidate ${id} three`, types: [] },
-      { id: `candidate-${id}-4`, text: `candidate ${id} four`, types: [] },
-    ],
+    candidates,
     relevantIds: mustRefuse ? [] : [`candidate-${id}-1`],
-    hardNegativeIds: [],
+    hardNegativeIds: [`candidate-${id}-2`],
     mustRefuse,
   };
 }

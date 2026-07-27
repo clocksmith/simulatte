@@ -1633,12 +1633,19 @@ test('Phase 3 keeps known visual identities local and model-ranks unresolved con
       max: 12,
       queryPlan,
     });
+    const universeLoadReceipt = result.universeMatches.loadReceipt;
     const dogSlot = result.slotRetrieval.bySlot.find((row) => row.slotId === 'slot.actor.dog');
     const catSlot = result.slotRetrieval.bySlot.find((row) => row.slotId === 'slot.actor.cat');
     const actionSlot = result.slotRetrieval.bySlot.find((row) => row.slotRole === 'action');
     const visualSlot = result.slotRetrieval.bySlot.find((row) => row.slotRole === 'visual');
 
     assert.equal(result.slotRetrieval.schema, 'simulatte.phase3SlotRetrieval.v1');
+    assert.ok(universeLoadReceipt.loadedIndexNames.includes('shapes'));
+    assert.ok(universeLoadReceipt.loadedIndexNames.includes('analogs'));
+    assert.equal(universeLoadReceipt.loadedIndexNames.includes('synonyms'), false);
+    assert.equal(universeLoadReceipt.loadedIndexNames.includes('concepts'), false);
+    assert.ok(universeLoadReceipt.deferredShardBytes > 0);
+    assert.ok(universeLoadReceipt.loadedShardBytes < universeLoadReceipt.availableShardBytes);
     assert.equal(result.slotRetrieval.queryPlanSchema, 'simulatte.sceneQueryPlan.v1');
     assert.ok(result.slotRetrieval.modelEvidenceSlotCount + result.slotRetrieval.localEvidenceSlotCount >=
       queryPlan.summary.requiredSlotCount);

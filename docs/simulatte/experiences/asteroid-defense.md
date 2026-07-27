@@ -4,14 +4,14 @@ Owner contract: `public/shared/plugins/asteroid-defense/index.js`.
 
 ## Status
 
-- Status: verified
+- Status: implemented
 - Tier and world: Solar System, `solar-system-ephemeris-v2`
 - Plugin ID: `asteroid-defense`
 - Profile ID: `asteroid-defense-v1`
 - Default scenario: `short-arc-follow-up`
 - Contract version: plugin v4 contribution
-- Last verified source: commit `a5713c1c13ab`, bound worktree receipt
-- Evidence: 10/10 runs in `artifacts/profile-evidence/index.json`
+- Last verified source: prior browser proof at commit `a5713c1c13ab`
+- Evidence: current worktree browser proof not rerun; prior index contains 10/10 runs
 
 ## What is it?
 
@@ -45,8 +45,8 @@ danger, or recommend observation, launch, or civil-defense action.
 
 ## What does the user see?
 
-- Initial view: Synthetic observations, fitted orbit context, modeled Earth reference, and clone ensemble.
-- During playback: Observation, fit, follow-up, decision, intervention, propagation, encounter, and settlement events.
+- Initial view: A bounded 120-object projection from the governed JPL small-body context catalog, with the hypothetical threat visually and semantically separate.
+- During playback: Angular observation sightlines, fitted clone paths, policy decisions, intervention travel/effects, encounter screening, and settlement events.
 - Selection and inspection: Campaign identity, observation count, residuals, clone state, encounter quantities, and truth boundary.
 - Comparison view: No-intervention and selected-policy branches share hidden truth while displaying separate outcomes.
 - Final settlement: Baseline and intervention screening fractions, execution status, uncertainty, omissions, and policy result.
@@ -56,6 +56,7 @@ danger, or recommend observation, launch, or civil-defense action.
 | Item | Origin | Source | Time status | Uncertainty | Used for |
 |---|---|---|---|---|---|
 | JPL API identity and benchmark row | observed | Pinned JPL reference snapshot | historical | Benchmark-only coverage | Terminology and regression |
+| JPL NEO context catalog | observed | Bounded pinned SBDB Query API extract | snapshot | Published orbital-element fields | Background context only |
 | Observer stations | scenario | Authored station registry | forecast | Synthetic campaign geometry | Measurements |
 | Observations and hidden orbit | scenario | Synthetic campaign pack | forecast | Declared measurement errors | Fit and evaluation |
 | Orbit fit and covariance | modeled | Least-squares fit | forecast | Residuals and clone covariance | State estimate |
@@ -101,17 +102,17 @@ Cannot claim:
 - Unit tests: passing in `tests/asteroid-defense.test.cjs`
 - Deterministic replay: verified
 - Comparison execution: verified with policy blindness
-- Desktop browser: verified
-- Mobile browser: verified
+- Desktop browser: not rerun for the current worktree
+- Mobile browser: not rerun for the current worktree
 - Known unresolved failures: public risk assessment and operational calibration are excluded
 
 ## Where is it implemented?
 
 - [Plugin entry](../../../public/shared/plugins/asteroid-defense/index.js)
-- [Configuration](../../../public/shared/plugins/asteroid-defense/default-config.json)
 - [Orbit determination](../../../public/shared/plugins/asteroid-defense/orbit-determination.js)
 - [Encounter model](../../../public/shared/plugins/asteroid-defense/encounter-model.js)
+- [JPL catalog renderer](../../../public/shared/plugins/asteroid-defense/asteroid-catalog.js)
+- [JPL catalog build pipeline](../../../tools/asteroid-defense/build-jpl-neo-context.mjs)
 - [v4 contribution](../../../public/shared/plugins/asteroid-defense/v4-contribution.js)
 - [Profile](../../../public/data/application-profiles/asteroid-defense-v1.json)
 - [Focused tests](../../../tests/asteroid-defense.test.cjs)
-- [Evidence index](../../../artifacts/profile-evidence/index.json)

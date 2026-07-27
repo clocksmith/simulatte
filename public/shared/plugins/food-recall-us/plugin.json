@@ -143,7 +143,7 @@
       "path": "./input-context.js"
     },
     {
-      "integrity": "sha384-515c1ec07a4f4a0bda2ac461a3a1c4362b30179c882746bfac7ede904c79b9fa6531c9d6443e1f477502cf3f2dbce16f",
+      "integrity": "sha384-79811e894bce0efaba3f68f586f3365ea697079597505ed1852a1c99f0ad10f3e380655851340e1ff1c9b85804792b1d",
       "path": "./v4-contribution.js"
     }
   ],

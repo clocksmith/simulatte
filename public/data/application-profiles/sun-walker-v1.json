@@ -2,6 +2,20 @@
   "schema": "simulatte.applicationProfile.v2",
   "id": "sun-walker-v1",
   "interaction": { "mode": "playback", "startLabel": "Run shaded walk", "shuffleLabel": "Change scenario" },
+  "experience": {
+    "kind": "simulation",
+    "timelineLabel": "Route sample",
+    "primaryMeasureKinds": ["progress", "direct-sun", "shade", "unknown", "direct-beam-equivalent"],
+    "supportedViews": ["follow", "pov", "overview", "top"],
+    "defaultView": "pov",
+    "comparisonMode": "synchronized",
+    "stages": [
+      { "id": "routes-evaluate", "label": "Routes evaluated", "narrative": "Fastest and shade-selected routes are sampled at their modeled arrival times.", "fromProgress": 0 },
+      { "id": "walker-departs", "label": "Walker departs", "narrative": "The walker advances through direct sun, building shade, canopy attenuation, and unknown exposure.", "fromProgress": 0.08 },
+      { "id": "exposure-accumulates", "label": "Exposure accumulates", "narrative": "Each timestamped sample changes the visible route position and accumulated exposure totals.", "fromProgress": 0.35 },
+      { "id": "walk-compares", "label": "Walk settles", "narrative": "Travel time and clear-sky exposure settle against the fastest-route baseline.", "fromProgress": 0.9 }
+    ]
+  },
   "defaultSeedId": "village-union-shade",
   "seeds": [
     { "id": "village-union-shade", "label": "Village to Union Square", "description": "Compare clear-sky building shade at simulated arrival times.", "seed": "shade-village-union-0719", "missionText": "Walk from Washington Square Park to Union Square using the most building shade." },

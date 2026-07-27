@@ -24,7 +24,7 @@
     const routeObject = semanticObject({
       id: `route:${result.route.id}`,
       kind: 'cargo_flow',
-      geometry: { type: 'line_string', coordinates: result.route.waypoints },
+      geometry: { type: 'line_string', coordinates: result.route.renderCoordinates },
       quantities: {
         cargoTeu: result.parameters.cargoTeu,
         distanceNm: result.route.distanceNm,
@@ -41,6 +41,7 @@
       geometry: { type: 'point', coordinates: snapshot.position },
       quantities: {
         progressFraction: snapshot.progressFraction,
+        actorKind: 'vessel',
         cargoTeu: result.parameters.cargoTeu,
         speedKnots: result.route.speedKnots,
         state: snapshot.status,

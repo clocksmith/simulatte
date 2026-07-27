@@ -97,9 +97,18 @@
           hubStats[row.source].supplied += row.quantity;
           hubStats[row.destination].fulfilled += row.quantity;
           const key = `${sourceHub.id}:${destinationHub.id}`;
-          const current = flows.get(key) || { sourceHubId: sourceHub.id, destinationHubId: destinationHub.id, quantity: 0, burden: 0 };
+          const current = flows.get(key) || {
+            sourceHubId: sourceHub.id,
+            destinationHubId: destinationHub.id,
+            quantity: 0,
+            burden: 0,
+            byCableFamily: {},
+          };
           current.quantity += row.quantity;
           current.burden += row.quantity * costs[row.source][row.destination];
+          current.byCableFamily[cableTypes[type].id] = (
+            current.byCableFamily[cableTypes[type].id] || 0
+          ) + row.quantity;
           flows.set(key, current);
         });
         demands.forEach((quantity, destination) => { hubStats[destination].needs += quantity; });
@@ -354,7 +363,10 @@
       }),
       hubStats: Object.freeze(hubStats.map((row) => Object.freeze({ ...row, endingInventory: inventoryAtHub(inventory, row.id) }))),
       typeStats: Object.freeze(typeStats.map((row) => Object.freeze({ ...row }))),
-      flows: Object.freeze([...flows.values()].map((row) => Object.freeze({ ...row })).sort((left, right) => right.quantity - left.quantity || `${left.sourceHubId}:${left.destinationHubId}`.localeCompare(`${right.sourceHubId}:${right.destinationHubId}`))),
+      flows: Object.freeze([...flows.values()].map((row) => Object.freeze({
+        ...row,
+        byCableFamily: Object.freeze({ ...row.byCableFamily }),
+      })).sort((left, right) => right.quantity - left.quantity || `${left.sourceHubId}:${left.destinationHubId}`.localeCompare(`${right.sourceHubId}:${right.destinationHubId}`))),
       inventory: Object.freeze({ ...inventory }),
     });
   }

@@ -10,6 +10,20 @@
     "startLabel": "Run defense experiment",
     "shuffleLabel": "Change scenario"
   },
+  "experience": {
+    "kind": "simulation",
+    "timelineLabel": "Decision stage",
+    "primaryMeasureKinds": ["observation-count", "fit-residual", "baseline-screening-frequency", "intervention-screening-frequency", "intervention-median-distance"],
+    "supportedViews": ["overview", "follow", "free", "compare"],
+    "defaultView": "overview",
+    "comparisonMode": "synchronized",
+    "stages": [
+      { "id": "observations-arrive", "label": "Observations arrive", "narrative": "Synthetic noisy observations arrive without exposing the hidden scenario truth.", "fromProgress": 0 },
+      { "id": "orbit-fits", "label": "Orbit and covariance fit", "narrative": "Residuals and the uncertainty ensemble change as follow-up observations are incorporated.", "fromProgress": 0.22 },
+      { "id": "policy-decides", "label": "Policy decision", "narrative": "The selected threshold and observation budget determine whether and how intervention proceeds.", "fromProgress": 0.48 },
+      { "id": "encounter-screens", "label": "Encounter screened", "narrative": "Baseline and intervention clone ensembles propagate to the modeled encounter and settle.", "fromProgress": 0.76 }
+    ]
+  },
   "defaultSeedId": "short-arc-follow-up",
   "seeds": [
     {

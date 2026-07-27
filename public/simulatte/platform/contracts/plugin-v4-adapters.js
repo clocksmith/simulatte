@@ -85,9 +85,9 @@
         kind: normalizeControlKind(field.type),
         value: field.value,
         options: field.options || null,
-        minimum: null,
-        maximum: null,
-        step: null,
+        minimum: field.minimum ?? null,
+        maximum: field.maximum ?? null,
+        step: field.step ?? null,
         provenance: DEFAULT_PROVENANCE,
       }));
       (view.actions || []).filter((action) => /compare|baseline|counterfactual/i.test(action.id)).forEach((action) => comparisons.push({

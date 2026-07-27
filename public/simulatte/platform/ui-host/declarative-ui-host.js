@@ -71,6 +71,11 @@
               input.append(node);
             });
             else input.type = field.type;
+            if (field.type === 'number') {
+              if (field.minimum !== undefined) input.min = String(field.minimum);
+              if (field.maximum !== undefined) input.max = String(field.maximum);
+              if (field.step !== undefined) input.step = String(field.step);
+            }
             input.value = String(field.value ?? '');
             fields.set(field.id, input);
             label.append(caption, input);

@@ -35,8 +35,15 @@
       "id": "asteroid-intervention-archetypes-v1",
       "path": "./intervention-archetypes-v1.json",
       "schemaId": "simulatte.asteroidInterventionArchetypes.v1",
-      "sha256": "8bc13e330b96257f16c63b3b22ab81717f8a3245c71acc0d7fe96c05bbcf9e4a",
-      "bytes": 2081
+      "sha256": "30b1c096c23044131654a494bb8f952a20b2dfac6d3ec3b1993d4fa9f77011c9",
+      "bytes": 2790
+    },
+    {
+      "id": "asteroid-jpl-neo-context-v1",
+      "path": "./jpl-neo-context-v1.json",
+      "schemaId": "simulatte.asteroidJplNeoCatalog.v1",
+      "sha256": "5b67d9b8164f18be7bf4e33bc156e85ff1b286e933fa66b8814295ea54d245ab",
+      "bytes": 316545
     },
     {
       "id": "asteroid-jpl-reference-snapshots-v1",

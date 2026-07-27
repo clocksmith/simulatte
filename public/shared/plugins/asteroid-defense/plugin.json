@@ -53,6 +53,16 @@
       "required": true
     },
     {
+      "id": "asteroid-jpl-neo-context-v1",
+      "reference": {
+        "id": "asteroid-jpl-neo-context-v1",
+        "path": "../../../data/asteroid-defense/jpl-neo-context-v1.json",
+        "schemaId": "simulatte.asteroidJplNeoCatalog.v1",
+        "sha256": "5b67d9b8164f18be7bf4e33bc156e85ff1b286e933fa66b8814295ea54d245ab"
+      },
+      "required": true
+    },
+    {
       "id": "asteroid-jpl-reference-snapshots-v1",
       "reference": {
         "id": "asteroid-jpl-reference-snapshots-v1",
@@ -106,7 +116,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginAsteroidDefense",
-    "integrity": "sha384-70ccbce3db2d55ff4847a00a160fd97e4c31016620bb6e351f5178af3e90de0c253d9d7cc9cd092926d9cf1959c558e5",
+    "integrity": "sha384-4ea3631ff033d57b30487f2b141fa299d0830cb84b3c74de79f6991c0f2ba0663be01368366d01f98a38631788454e0a",
     "path": "./index.js"
   },
   "extensionPoints": [
@@ -144,6 +154,10 @@
       "path": "./default-config.json"
     },
     {
+      "integrity": "sha384-9a19ca8283fca07fada0c9e5058d4b5d94687021496b64444d503e6ae6789c263bc8733c3c806a1b372ab7782473a566",
+      "path": "./asteroid-catalog.js"
+    },
+    {
       "integrity": "sha384-da32dd40499b3390341dca8b6737ce5e7d2aa07730faae8263e7a129ba414315ca9587887b40c22d5fba187befa642c1",
       "path": "./covariance-ensemble.js"
     },
@@ -160,7 +174,7 @@
       "path": "./asteroid-model.js"
     },
     {
-      "integrity": "sha384-0668e90dfa6a07f95005ac879e9043cb0a74c047a8791963edc7ae1b856569e4ada17935770d78e10edde75dbd24c618",
+      "integrity": "sha384-f7291a7ff772f1487136f341f41404d0ca1060a368b4e23f0b803162e670613eaa362669f7080072a51cac7c12fd464e",
       "path": "./v4-contribution.js"
     },
     {

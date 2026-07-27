@@ -23,6 +23,14 @@
     'actor.pedestrian.route-progress': '#f4fff9',
     'occlusion.shadow-length': '#315878',
   });
+  const QUANTITY_COLOR_RULES = Object.freeze([
+    Object.freeze({ pattern: /(?:unserved|dropped|illness|fatality|failure|contamination)/, color: '#ff657a' }),
+    Object.freeze({ pattern: /(?:fulfilled|delivered|averted|fairness|inventory|shade)/, color: '#58dfa0' }),
+    Object.freeze({ pattern: /(?:utilization|reserve|queue|burden|delay|refrigeration)/, color: '#ffb84f' }),
+    Object.freeze({ pattern: /(?:trajectory|delta-v|heliocentric|encounter|latency|distance)/, color: '#a993ff' }),
+    Object.freeze({ pattern: /(?:observation|crash|injury|residual|source-rank)/, color: '#ff8f70' }),
+    Object.freeze({ pattern: /(?:actor|progress|packet|transferred|service)/, color: '#46d9ff' }),
+  ]);
   const ROLE_ORDER = Object.freeze({
     primary: 5,
     event: 4,
@@ -79,12 +87,17 @@
         semanticDomains,
       ));
       const labels = placeLabels(
-        visible.filter((layer) => layer.kind === 'label' || selected.has(layer.id)),
+        visible.filter((layer) => (
+          layer.kind === 'label'
+          || selected.has(layer.id)
+          || (['primary', 'event'].includes(layer.role) && layer.importance >= 0.75)
+        )),
         project,
         viewport,
         maxLabels,
         provenance.bySubjectId,
       );
+      const representedLayerIds = [...new Set(primitives.flatMap((row) => row.memberIds))].sort();
       return deepFreeze({
         schema: 'simulatte.composition.v4',
         pluginId: presentation.pluginId,
@@ -97,8 +110,13 @@
           inputLayerCount: presentation.layers.length,
           activeLayerCount: temporal.length,
           visibleLayerCount: visible.length,
+          representedLayerCount: representedLayerIds.length,
+          representedLayerIds,
           suppressedLayerIds: suppressed.map((layer) => layer.id),
           clusterCount: primitives.filter((row) => row.kind === 'point-cluster').length,
+          clusteredLayerCount: primitives
+            .filter((row) => row.kind === 'point-cluster')
+            .reduce((sum, row) => sum + row.memberIds.length, 0),
           labelCount: labels.length,
           provenance: compositorProvenanceReceipt(provenance, primitives, suppressed),
           policies: {
@@ -135,7 +153,7 @@
     const uncertain = layer.provenance.axes.uncertainty !== null;
     const roleWeight = ROLE_ORDER[layer.role] / 5;
     return deepFreeze({
-      color: QUANTITY_COLORS[layer.quantity?.kind] || ORIGIN_COLORS[layer.provenance.axes.origin],
+      color: colorForLayer(layer),
       widthPx: layer.kind === 'path'
         ? round(clamp(2.2 + normalized * 0.9 + roleWeight * 0.6 + (selected ? 0.6 : 0), 2.2, 4))
         : null,
@@ -147,6 +165,17 @@
       dash: uncertaintyDash(layer.provenance.axes.uncertainty),
       emphasis: selected ? 'selected' : layer.role,
     });
+  }
+
+  function colorForLayer(layer) {
+    const quantityKind = layer.quantity?.kind || '';
+    const exact = QUANTITY_COLORS[quantityKind];
+    if (exact) return exact;
+    const rule = QUANTITY_COLOR_RULES.find((row) => row.pattern.test(quantityKind));
+    if (rule) return rule.color;
+    if (layer.role === 'comparison') return '#ffbd66';
+    if (layer.role === 'uncertainty') return '#9aa3b8';
+    return ORIGIN_COLORS[layer.provenance.axes.origin];
   }
 
   function clusterPoints(layers, project, radiusPx, envelopesById, semanticDomains) {
@@ -448,5 +477,5 @@
     return error;
   }
 
-  return Object.freeze({ ORIGIN_COLORS, createCompositor, styleForLayer });
+  return Object.freeze({ ORIGIN_COLORS, colorForLayer, createCompositor, styleForLayer });
 });

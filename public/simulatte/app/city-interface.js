@@ -7,12 +7,20 @@
     const on = (target, type, handler, options) => target.addEventListener(type, handler, { ...(options || {}), signal });
     const controls = [
       [elements.cameraFollow, 'follow'],
-      [elements.cameraBird, 'bird'],
+      [elements.cameraPov, 'pov'],
+      [elements.cameraBird, 'overview'],
       [elements.cameraTop, 'top'],
+      [elements.cameraFree, 'free'],
+      [elements.cameraCompare, 'compare'],
     ];
     populateCameraFocus(elements.cameraFocus, renderer.cameraTargets());
     controls.forEach(([button, mode]) => on(button, 'click', () => {
       hooks.onManualNavigation?.({ control: 'mode', mode, targetIds: [] });
+      const target = preferredCameraTarget(renderer.cameraTargets(), mode);
+      if (target) {
+        elements.cameraFocus.value = target.id;
+        renderer.focusCameraTarget(target.id);
+      }
       renderer.setCameraMode(mode);
       selectCameraMode(elements, mode);
     }));
@@ -23,15 +31,27 @@
   }
 
   function selectCameraMode(elements, mode) {
+    const selectedMode = mode === 'bird' ? 'overview' : mode;
     [
       [elements.cameraFollow, 'follow'],
-      [elements.cameraBird, 'bird'],
+      [elements.cameraPov, 'pov'],
+      [elements.cameraBird, 'overview'],
       [elements.cameraTop, 'top'],
+      [elements.cameraFree, 'free'],
+      [elements.cameraCompare, 'compare'],
     ].forEach(([button, buttonMode]) => {
-      const active = buttonMode === mode;
+      const active = buttonMode === selectedMode;
       button.classList.toggle('is-active', active);
       button.setAttribute('aria-pressed', String(active));
     });
+  }
+
+  function preferredCameraTarget(targets, mode) {
+    if (!['follow', 'pov', 'overview', 'compare'].includes(mode)) return null;
+    return [...targets]
+      .filter((target) => target.viewMode === mode || (mode === 'pov' && target.viewMode === 'follow'))
+      .sort((left, right) => Number(right.priority || 0) - Number(left.priority || 0))[0]
+      || null;
   }
 
   function populateCameraFocus(select, targets, selectedId = 'route') {
@@ -185,6 +205,7 @@
   }
 
   function updateButtons(elements, running, hasController, status = 'active', hasJourneyStarted = false) {
+    const isExperiment = elements.missionInput.ownerDocument.body.dataset.experienceShell === 'experiment';
     const completed = status === 'completed';
     const failed = status === 'failed';
     const paused = !running && hasJourneyStarted && status === 'active';
@@ -206,11 +227,11 @@
     elements.resetButton.hidden = !['running', 'paused'].includes(phase);
     elements.replayButton.hidden = !['completed', 'failed'].includes(phase);
     elements.newMissionButton.hidden = !['completed', 'failed'].includes(phase);
-    elements.whatIfButton.hidden = phase !== 'completed';
-    elements.dockMoreButton.hidden = !['running', 'paused', 'completed'].includes(phase);
+    elements.whatIfButton.hidden = isExperiment || phase !== 'completed';
+    elements.dockMoreButton.hidden = isExperiment || !['running', 'paused', 'completed'].includes(phase);
     elements.dockMoreMenu.hidden = true;
     elements.dockMoreButton.setAttribute('aria-expanded', 'false');
   }
 
-  return Object.freeze({ wireCameraControls, selectCameraMode, populateCameraFocus, wireInterfaceControls, setJourneyPhase, resizeMissionInput, clearMissionError, isMissionInputError, friendlyMissionError, updateButtons });
+  return Object.freeze({ wireCameraControls, selectCameraMode, preferredCameraTarget, populateCameraFocus, wireInterfaceControls, setJourneyPhase, resizeMissionInput, clearMissionError, isMissionInputError, friendlyMissionError, updateButtons });
 });

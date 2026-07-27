@@ -2,6 +2,20 @@
   "schema": "simulatte.applicationProfile.v2",
   "id": "cable-trader-pickup-v1",
   "interaction": { "mode": "playback", "startLabel": "Run exchange", "shuffleLabel": "Change scenario" },
+  "experience": {
+    "kind": "simulation",
+    "timelineLabel": "Day",
+    "primaryMeasureKinds": ["fulfilled-needs", "transferred-cables", "transport-burden", "ending-inventory"],
+    "supportedViews": ["overview", "top"],
+    "defaultView": "top",
+    "comparisonMode": "synchronized",
+    "stages": [
+      { "id": "requests-arrive", "label": "Requests arrive", "narrative": "Modeled requests and returns change each hub's available cable inventory.", "fromProgress": 0 },
+      { "id": "shortages-form", "label": "Shortages form", "narrative": "Local inventory gaps reveal which cable families cannot be served in place.", "fromProgress": 0.2 },
+      { "id": "network-rebalances", "label": "Network rebalances", "narrative": "Exact min-cost allocation moves available cables toward unresolved requests.", "fromProgress": 0.45 },
+      { "id": "month-settles", "label": "Month settles", "narrative": "Fulfillment, transfer burden, and remaining inventory close against the local-only branch.", "fromProgress": 0.85 }
+    ]
+  },
   "defaultSeedId": "july-baseline",
   "seeds": [
     { "id": "july-baseline", "label": "July baseline", "description": "4,096 modeled demand events across four hubs and ten cable families.", "seed": "cable-city-month-2026-07", "missionText": "Show the predefined 30-day cable network and its optimal allocation." },

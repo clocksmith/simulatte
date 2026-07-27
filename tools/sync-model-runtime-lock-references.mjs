@@ -21,7 +21,7 @@ function main() {
     const filePath = path.join(ROOT, relativePath);
     const document = JSON.parse(fs.readFileSync(filePath, 'utf8'));
     const expected = modelRuntimeLockReference(artifact);
-    if (JSON.stringify(document.modelRuntimeLock) === JSON.stringify(expected)) continue;
+    if (sameModelRuntimeLockReference(document.modelRuntimeLock, expected)) continue;
     stale.push(relativePath);
     if (WRITE) {
       document.modelRuntimeLock = expected;
@@ -44,6 +44,14 @@ function main() {
     throw new Error(`Model runtime lock references are stale: ${stale.join(', ')}`);
   }
   console.log(`Model runtime lock references ${WRITE ? 'synced' : 'clean'}: ${REFERENCES.length} mirrors checked.`);
+}
+
+function sameModelRuntimeLockReference(actual = {}, expected = {}) {
+  return actual.id === expected.id
+    && Number(actual.number) === Number(expected.number)
+    && actual.artifact === expected.artifact
+    && actual.artifactHash?.alg === expected.artifactHash?.alg
+    && actual.artifactHash?.hex === expected.artifactHash?.hex;
 }
 
 try {

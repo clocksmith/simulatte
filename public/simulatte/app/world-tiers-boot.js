@@ -5,11 +5,15 @@
   const tierRegistry = typeof module === 'object' && module.exports
     ? require('./tier-registry.js')
     : root.SimulatteTierRegistry;
-  const api = factory(root, lifecycle, tierRegistry);
+  const experiencePresentation = typeof module === 'object' && module.exports
+    ? require('./experience-presentation.js')
+    : root.SimulatteExperiencePresentation;
+  const api = factory(root, lifecycle, tierRegistry, experiencePresentation);
   root.SimulatteWorldTiersBoot = api;
   if (typeof module === 'object' && module.exports) module.exports = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createWorldTiersBoot(root, lifecycleApi, tierRegistry) {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createWorldTiersBoot(root, lifecycleApi, tierRegistry, experiencePresentationApi) {
   if (!tierRegistry) throw new Error('world_tiers_boot_tier_registry_missing');
+  if (!experiencePresentationApi) throw new Error('world_tiers_boot_experience_presentation_missing');
   const TIER_LABELS = tierRegistry.TIER_LABELS;
   const GITHUB_EXPERIENCE_DOC_BASE_URL = 'https://github.com/clocksmith/simulatte/blob/main/docs/simulatte/experiences/';
   const EXPERIENCE_DOC_PATHS = Object.freeze({
@@ -114,6 +118,7 @@
       cancelPending();
       await teardown();
       if (generationAtStart !== generation) return;
+      clearExperienceSummary();
       landing?.classList.add('hidden');
       // The URL already decided the tier, so drive the toolbar from it synchronously — before the
       // async load — so the scale/experience controls never disagree with the address bar (e.g.
@@ -165,6 +170,18 @@
         const experienceLabel = document.getElementById('application-profile-label');
         if (experienceLabel) experienceLabel.textContent = route.experience ? labelForProfile(route.experience) : 'Loading experience';
       } catch (_error) { /* toolbar not present yet */ }
+    }
+
+    function clearExperienceSummary() {
+      try {
+        const summary = document.getElementById('experience-summary');
+        const stats = document.getElementById('experience-summary-stats');
+        if (summary) {
+          summary.hidden = true;
+          delete summary.dataset.experienceId;
+        }
+        stats?.replaceChildren();
+      } catch (_error) { /* no document */ }
     }
 
     function wireLanding() {
@@ -225,11 +242,18 @@
     let disposed=false;
 
     function selectTierViewMode(mode){
-      const overview=mode==='overview';
-      elements.cameraBird.classList.toggle('is-active',overview);
-      elements.cameraBird.setAttribute('aria-pressed',String(overview));
-      elements.cameraTop.classList.toggle('is-active',!overview);
-      elements.cameraTop.setAttribute('aria-pressed',String(!overview));
+      [
+        [elements.cameraFollow, 'follow'],
+        [elements.cameraPov, 'pov'],
+        [elements.cameraBird, 'overview'],
+        [elements.cameraTop, 'top'],
+        [elements.cameraFree, 'free'],
+        [elements.cameraCompare, 'compare'],
+      ].forEach(([button, buttonMode]) => {
+        const active=mode===buttonMode;
+        button.classList.toggle('is-active',active);
+        button.setAttribute('aria-pressed',String(active));
+      });
     }
     function closeTierFocus(){
       elements.cameraFocusPopover.hidden=true;
@@ -245,14 +269,25 @@
         return option;
       }));
       elements.cameraFocusButton.disabled=!targets.length;
+      elements.cameraFollow.disabled=!targets.some((target)=>target.viewMode==='follow');
+      elements.cameraPov.disabled=!targets.some((target)=>target.viewMode==='pov'||target.viewMode==='follow');
+      elements.cameraCompare.disabled=!targets.some((target)=>target.viewMode==='compare');
       if(targets.some((target)=>target.id===selected))elements.cameraFocus.value=selected;
       else if(targets.length)elements.cameraFocus.value=targets[0].id;
     }
     function wireTierViewControls(){
-      elements.cameraFollow.hidden=true;
+      const supportedViews=new Set(data.applicationProfile.experience?.supportedViews||['overview','free']);
+      elements.cameraFollow.hidden=!supportedViews.has('follow');
+      elements.cameraPov.hidden=!supportedViews.has('pov');
+      elements.cameraBird.hidden=!supportedViews.has('overview');
+      elements.cameraTop.hidden=!supportedViews.has('top');
+      elements.cameraFree.hidden=!supportedViews.has('free');
+      elements.cameraCompare.hidden=!supportedViews.has('compare');
       elements.cameraBird.textContent='Overview';
-      elements.cameraTop.textContent='Free';
-      selectTierViewMode('overview');
+      elements.cameraTop.textContent='Top';
+      elements.cameraFree.textContent='Free';
+      elements.cameraCompare.textContent='Compare';
+      selectTierViewMode(data.applicationProfile.experience?.defaultView||'overview');
       on(elements.cameraFocusButton,'click',(event)=>{
         event.stopPropagation();
         const open=elements.cameraFocusPopover.hidden;
@@ -266,18 +301,51 @@
         const target=tierVisualizer.pluginCameraTargets?.().find((row)=>row.id===targetId);
         if(!target)return;
         viewDirector?.setManualOverride({mode:'free',targetIds:[target.sourceId]});
+        tierVisualizer.setViewMode?.('free');
         tierVisualizer.focusPluginTarget?.(targetId);
         selectTierViewMode('free');
         closeTierFocus();
       });
       on(elements.cameraBird,'click',()=>{
-        viewDirector?.releaseManualOverride();
-        tierVisualizer.resetView?.();
+        const target=preferredTierCameraTarget(tierVisualizer.pluginCameraTargets?.()||[],'overview');
+        viewDirector?.setManualOverride({mode:'overview',targetIds:target?[target.sourceId]:[]});
+        tierVisualizer.setViewMode?.('overview');
+        if(target)tierVisualizer.focusPluginTarget?.(target.id);
         selectTierViewMode('overview');
+      });
+      on(elements.cameraFollow,'click',()=>{
+        const target=preferredTierCameraTarget(tierVisualizer.pluginCameraTargets?.()||[],'follow');
+        if(!target)return;
+        viewDirector?.setManualOverride({mode:'follow',targetIds:[target.sourceId]});
+        tierVisualizer.setViewMode?.('follow');
+        tierVisualizer.focusPluginTarget?.(target.id);
+        selectTierViewMode('follow');
+      });
+      on(elements.cameraPov,'click',()=>{
+        const target=preferredTierCameraTarget(tierVisualizer.pluginCameraTargets?.()||[],'pov');
+        if(!target)return;
+        viewDirector?.setManualOverride({mode:'pov',targetIds:[target.sourceId]});
+        tierVisualizer.setViewMode?.('pov');
+        tierVisualizer.focusPluginTarget?.(target.id);
+        selectTierViewMode('pov');
       });
       on(elements.cameraTop,'click',()=>{
         viewDirector?.setManualOverride({mode:'free',targetIds:[]});
+        tierVisualizer.setViewMode?.('top');
+        selectTierViewMode('top');
+      });
+      on(elements.cameraFree,'click',()=>{
+        viewDirector?.setManualOverride({mode:'free',targetIds:[]});
+        tierVisualizer.setViewMode?.('free');
         selectTierViewMode('free');
+      });
+      on(elements.cameraCompare,'click',()=>{
+        const target=preferredTierCameraTarget(tierVisualizer.pluginCameraTargets?.()||[],'compare');
+        if(!target)return;
+        viewDirector?.setManualOverride({mode:'compare',targetIds:[target.sourceId]});
+        tierVisualizer.setViewMode?.('compare');
+        tierVisualizer.focusPluginTarget?.(target.id);
+        selectTierViewMode('compare');
       });
     }
 
@@ -354,24 +422,31 @@
       if(manualDecision)viewDirector.setManualOverride({mode:manualDecision.mode,targetIds:manualDecision.targetIds});
       const viewState=viewDirector.snapshot();
       if(!viewState.manualOverride&&viewState.decision.source!=='core-fallback'){
-        const targetId=viewState.decision.targetIds.find((id)=>tierVisualizer.focusPluginTarget?.(`plugin:${viewState.decision.source}:${id}`));
-        if(!targetId&&viewState.decision.intentId){
-          const sourceIntentId=viewState.decision.intentId.slice(`${viewState.decision.source}:`.length);
-          tierVisualizer.focusPluginTarget?.(`plugin:${viewState.decision.source}:${sourceIntentId}`);
-        }
+        const sourceIntentId=viewState.decision.intentId?.slice(`${viewState.decision.source}:`.length)||null;
+        const intentTargetId=sourceIntentId?`plugin:${viewState.decision.source}:${sourceIntentId}`:null;
+        const subjectTargetIds=viewState.decision.targetIds.map((id)=>`plugin:${viewState.decision.source}:${id}`);
+        const candidates=['overview','compare'].includes(viewState.decision.mode)
+          ?[intentTargetId,...subjectTargetIds].filter(Boolean)
+          :[...subjectTargetIds,intentTargetId].filter(Boolean);
+        tierVisualizer.setViewMode?.(viewState.decision.mode);
+        candidates.some((id)=>tierVisualizer.focusPluginTarget?.(id));
+        selectTierViewMode(viewState.decision.mode);
       }
       root.__simulattePluginPlatformV4=Object.freeze({receipt:platform.receipt,contributions:platform.contributions,contributionSources:platform.contributionSources,provenance:platform.provenanceCoverage,clock:simulationClock.receipt(),view:viewDirector.receipt(),compositor:tierVisualizer.pluginPresentationReceipt?.()||[]});
     }
     function renderTierSummary(runState){
       root.SimulatteMainView.renderExperienceSummary(elements,experienceHudSummary({
         profileId:data.applicationProfile.id,
+        profile:data.applicationProfile,
         profileLabel:elements.applicationProfileLabel.textContent,
         scenario:activeScenario,
         contributions:lastPluginContributions,
         runState,
+        playback:root.__simulatteTierRunState||null,
+        comparisonReceipts:root.__simulatteComparisonExecutionReceipts||[],
       }));
     }
-    function renderScenario(){root.SimulatteApplicationProfileSelect.renderInteraction(interaction,activeScenario,elements);elements.missionField.hidden=true;elements.scenarioField.hidden=false;elements.startButton.hidden=false;elements.shuffleButton.hidden=interaction.scenarios.length<2;elements.pauseButton.hidden=true;elements.resumeButton.hidden=true;elements.replayButton.hidden=true;elements.newMissionButton.hidden=true;elements.dockMoreButton.hidden=true;elements.playbackSpeedControl.hidden=true;elements.playbackTimelineControl.hidden=true;elements.playbackTimeline.value='0';elements.playbackTimeline.max='0';elements.playbackProgress.textContent='0 / 0';elements.modelSelectionControls?.replaceChildren();}
+    function renderScenario(){root.SimulatteApplicationProfileSelect.renderInteraction(interaction,activeScenario,elements);elements.missionField.hidden=true;elements.scenarioField.hidden=false;elements.startButton.hidden=false;elements.shuffleButton.hidden=interaction.scenarios.length<2;elements.pauseButton.hidden=true;elements.resumeButton.hidden=true;elements.replayButton.hidden=true;elements.newMissionButton.hidden=true;elements.dockMoreButton.hidden=true;elements.playbackStrip.hidden=true;elements.playbackSpeedControl.hidden=true;elements.playbackTimelineControl.hidden=true;elements.playbackTimeline.value='0';elements.playbackTimeline.max='0';elements.playbackProgress.textContent='0 / 0';elements.modelSelectionControls?.replaceChildren();}
     function reportRunFailure(error){
       if(root.__simulatteLastFailError?.message===error.message)return;
       root.__simulatteLastFailError={message:error.message,code:error.code||null};
@@ -401,21 +476,22 @@
           const isPaused=state.state==='paused';
           const isSettled=state.state==='settled';
           const isProgressive=state.totalSteps>1;
+          const shellPhase=isSettled?'completed':state.state==='idle'?'ready':state.state;
           elements.startButton.hidden=state.state!=='idle'&&!(isSettled&&!isProgressive);
           elements.pauseButton.hidden=!isRunning||!isProgressive;
           elements.resumeButton.hidden=!isPaused||!isProgressive;
           elements.stepButton.hidden=!isPaused||!isProgressive;
+          elements.resetButton.hidden=!isProgressive||(!isRunning&&!isPaused);
           elements.replayButton.hidden=!isSettled||!isProgressive;
-          elements.dockMoreButton.hidden=!isProgressive||(!isRunning&&!isPaused&&!isSettled);
-          elements.playbackSpeedControl.hidden=!isProgressive;
-          elements.playbackTimelineControl.hidden=!isProgressive;
-          elements.playbackTimeline.max=String(state.totalSteps);
-          elements.playbackTimeline.value=String(Math.min(state.currentStep,state.totalSteps));
-          elements.playbackProgress.textContent=`${Math.min(state.currentStep,state.totalSteps)} / ${state.totalSteps}`;
-          elements.playbackSpeed.value=String(state.playbackRate);
+          elements.dockMoreButton.hidden=true;
+          const statusLabel=root.SimulatteMainView.renderPlayback(elements,shellPhase,{
+            ...state,
+            phase:shellPhase,
+            clock:{playbackRate:state.playbackRate},
+          });
           elements.startButton.disabled=false;
           renderTierSummary(state.state);
-          if(isRunning||isPaused){ctx.setJourneyPhase?.(isPaused?'paused':'running');ctx.setRuntimeStatus?.(elements,state.terminalPreview?'End preview · Resume or step to settle':isPaused?'Paused':'Running scenario',isPaused?'paused':'active');}
+          if(isRunning||isPaused){ctx.setJourneyPhase?.(isPaused?'paused':'running');ctx.setRuntimeStatus?.(elements,statusLabel,isPaused?'paused':'active');}
           else if(state.state==='idle'&&document.body.dataset.journeyPhase==='completed'){ctx.setJourneyPhase?.('ready');ctx.setRuntimeStatus?.(elements,'Resetting scenario','loading');}
         },
         onReceipt:(receipt)=>{
@@ -442,6 +518,7 @@
       tierVisualizer=ctx.createTierVisualizer(elements.overlayCanvas,'world-tier-control');
       removeManualView=tierVisualizer.onManualView?.(()=>{
         viewDirector?.setManualOverride({mode:'free',targetIds:[]});
+        tierVisualizer.setViewMode?.('free');
         selectTierViewMode('free');
       });
       await tierVisualizer.loadTier(tier);
@@ -457,7 +534,7 @@
       interaction=root.SimulatteApplicationProfileSelect.resolveInteraction(data.applicationProfile,{});
       root.SimulatteMainView.configureExperienceShell(elements,{
         interactionMode:interaction.mode,
-        profileId:data.applicationProfile.id,
+        profile:data.applicationProfile,
         tier,
       });
       const storedRun=root.SimulatteTierRunController.readStoredReceipt(root.sessionStorage,data.applicationProfile.id);
@@ -473,6 +550,7 @@
       on(elements.pauseButton,'click',()=>runController.pause());
       on(elements.resumeButton,'click',()=>{void runController.resume().catch(reportRunFailure);});
       on(elements.stepButton,'click',()=>{void runController.step().catch(reportRunFailure);});
+      on(elements.resetButton,'click',()=>{void runController.reset().catch(reportRunFailure);});
       on(elements.replayButton,'click',()=>{void runController.replay().catch(reportRunFailure);});
       on(elements.playbackSpeed,'change',()=>{runController.setPlaybackRate(Number(elements.playbackSpeed.value));});
       on(elements.playbackTimeline,'change',()=>{void runController.seek(Number(elements.playbackTimeline.value)).catch(reportRunFailure);});
@@ -513,29 +591,12 @@
 
   function populateProfileSelect(select,entries,selectedId){select.replaceChildren(...entries.map((entry)=>{const option=document.createElement('option');option.value=entry.id;option.textContent=labelForProfile(entry.id);option.selected=entry.id===selectedId;return option;}));select.value=selectedId;}
   function labelForProfile(id){if(PROFILE_LABELS[id])return PROFILE_LABELS[id];return String(id).replace(/-v\d+$/,'').split('-').filter(Boolean).map((part)=>part.charAt(0).toUpperCase()+part.slice(1)).join(' ');}
-  function experienceHudSummary({profileId,profileLabel,scenario,contributions=[],runState='ready'}) {
-    const primary=contributions.find((contribution)=>contribution.state?.measures?.length)||contributions[0]||null;
-    const exposesResults=!['idle','ready'].includes(runState);
-    const measures=exposesResults?(primary?.state?.measures||[]).filter((measure)=>measure.kind!=='progress').slice(0,5):[];
-    const controls=contributions.reduce((total,contribution)=>total+(contribution.controls?.controls?.length||0),0);
-    const stats=Object.fromEntries(measures.map((measure)=>[hudLabel(measure.kind),hudValue(measure)]));
-    if(!measures.length)stats.Controls=controls;
-    return Object.freeze({
-      experienceId:profileId,
-      title:profileLabel||labelForProfile(profileId),
-      description:[scenario?.label,hudLabel(runState)].filter(Boolean).join(' · '),
-      stats:Object.freeze(stats),
-      help:exposesResults?'Current causal state. Use the timeline to inspect changes.':'Choose parameters, then use the primary action.',
-    });
-  }
-  function hudLabel(value){return String(value||'').split(/[-_]/).filter(Boolean).map((part)=>part.charAt(0).toUpperCase()+part.slice(1)).join(' ');}
-  function hudValue(measure){
-    const value=Number(measure.value);
-    if(Number.isFinite(value)&&['ratio','probability','fraction'].includes(String(measure.unit||'').toLowerCase())){
-      return `${(value*100).toLocaleString('en-US',{maximumFractionDigits:3})}%`;
-    }
-    const formatted=!Number.isFinite(value)?String(measure.value):value!==0&&Math.abs(value)<0.001?value.toExponential(2):value.toLocaleString('en-US',{maximumFractionDigits:3});
-    return measure.unit?`${formatted} ${measure.unit}`:formatted;
+  function experienceHudSummary(options) { return experiencePresentationApi.summarize(options); }
+  function preferredTierCameraTarget(targets, mode) {
+    return [...(targets || [])]
+      .filter((target) => target.viewMode === mode || (mode === 'pov' && target.viewMode === 'follow'))
+      .sort((left, right) => Number(right.priority || 0) - Number(left.priority || 0))[0]
+      || null;
   }
 
   return Object.freeze({
@@ -548,6 +609,7 @@
     wireTierControls,
     bootGovernedTierExplorer,
     experienceHudSummary,
+    preferredTierCameraTarget,
     labelForProfile,
     populateProfileSelect,
   });

@@ -4,14 +4,14 @@ Owner contract: `public/shared/plugins/maritime-trade-global/index.js`.
 
 ## Status
 
-- Status: verified
+- Status: implemented
 - Tier and world: World, `earth-global-topology-v1`
 - Plugin ID: `maritime-trade-global`
 - Profile ID: `maritime-trade-global-v1`
 - Default scenario: `asia-europe-mainline`
 - Contract version: plugin v4 contribution
-- Last verified source: commit `a5713c1c13ab`, bound worktree receipt
-- Evidence: 10/10 runs in `artifacts/profile-evidence/index.json`
+- Last verified source: prior browser proof at commit `a5713c1c13ab`
+- Evidence: current worktree browser proof not rerun; prior index contains 10/10 runs
 
 ## What is it?
 
@@ -44,7 +44,7 @@ claiming current operations, actual cargo, or an ETA.
 ## What does the user see?
 
 - Initial view: Global ports, selected corridor, cargo flow, vessel actor, and disruption context.
-- During playback: Departure, ocean legs, chokepoints, queues, berth service, discharge, and delivery.
+- During playback: A vessel follows authored ocean corridor geometry, pauses at chokepoints and arrival events, and exposes modeled destination queue pressure before berth, discharge, and delivery.
 - Selection and inspection: Route distance, queue quantiles, emissions sensitivity, custody state, and claim boundary.
 - Comparison view: Configured disruption and undisrupted baseline advance on synchronized voyage clocks.
 - Final settlement: Transit, waiting, delivery, cargo lineage, emissions, and disruption differences.
@@ -99,8 +99,8 @@ Cannot claim:
 - Unit tests: passing in `tests/maritime-trade-global.test.cjs`
 - Deterministic replay: verified
 - Comparison execution: verified
-- Desktop browser: verified
-- Mobile browser: verified
+- Desktop browser: not rerun for the current worktree
+- Mobile browser: not rerun for the current worktree
 - Known unresolved failures: current operations and broad held-out calibration are not claimed
 
 ## Where is it implemented?

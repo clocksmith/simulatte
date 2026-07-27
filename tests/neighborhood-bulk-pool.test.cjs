@@ -298,7 +298,7 @@ test('v4 contribution renders semantic WGS84 evidence and every accepted control
   }
 });
 
-test('trip playback emits moving driver actors and follows only the active driver', async () => {
+test('trip playback emits one active driver, moving packages, and a bird-eye camera target', async () => {
   const harness = createSdkHarness();
   const instance = await plugin.activate({ sdk: harness.sdk, config, profile, scenario });
   let playback = await instance.handleAction('scenario.run', {
@@ -318,9 +318,17 @@ test('trip playback emits moving driver actors and follows only the active drive
     && row.quantity.kind === 'actor.car.route-progress'
     && row.geometry.kind === 'polyline'
   )));
-  const follow = contribution.presentation.viewIntents.find((row) => row.mode === 'follow');
-  assert.ok(follow);
-  assert.ok(follow.targetIds.every((id) => id.startsWith('driver:')));
+  assert.equal(drivers.length, 1);
+  const packages = contribution.presentation.layers.filter((row) => row.id.startsWith('package:'));
+  assert.ok(packages.length > 0);
+  assert.ok(packages.every((row) => (
+    row.kind === 'actor'
+      && row.quantity.kind === 'actor.package.route-progress'
+      && row.geometry.kind === 'polyline'
+  )));
+  const overview = contribution.presentation.viewIntents.find((row) => row.mode === 'overview');
+  assert.ok(overview);
+  assert.ok(overview.targetIds.some((id) => id.startsWith('driver:')));
   assert.equal(
     contribution.presentation.layers.some((row) => row.id.startsWith('stop:') && row.kind === 'actor'),
     false

@@ -468,15 +468,17 @@ test('legacy prompt profile resolves governed examples that all compile', () => 
   assert.equal(new Set(visited).size, interaction.scenarios.length);
 });
 
-test('one actor mesh contract renders realistic pedestrian, bicycle, scooter, and car geometry', () => {
+test('one actor mesh contract renders mobile actors and carried packages', () => {
   const minimumBounds = {
     pedestrian: [0.65, 1.8, 0.55],
     bicycle: [2.8, 2.2, 0.5],
     scooter: [1.2, 1.7, 0.55],
     car: [4.2, 1.4, 2],
+    package: [0.6, 0.5, 0.5],
   };
+  const minimumVertices = { package: 100 };
   assert.equal(gpuGeometry.FLOATS_PER_VERTEX, actorGeometry.FLOATS_PER_VERTEX);
-  assert.deepEqual(actorGeometry.SUPPORTED_ACTOR_KINDS, ['pedestrian', 'bicycle', 'scooter', 'car']);
+  assert.deepEqual(actorGeometry.SUPPORTED_ACTOR_KINDS, ['pedestrian', 'bicycle', 'scooter', 'car', 'package']);
 
   actorGeometry.SUPPORTED_ACTOR_KINDS.forEach((kind) => {
     const writer = gpuGeometry.createWriter();
@@ -503,7 +505,7 @@ test('one actor mesh contract renders realistic pedestrian, bicycle, scooter, an
     assert.equal(receipt.kind, kind);
     assert.equal(receipt.materialModel, 'metallic_roughness_vertex_v1');
     assert.equal(receipt.vertexCount, vertices.length / gpuGeometry.FLOATS_PER_VERTEX);
-    assert.ok(receipt.vertexCount > 1000, `${kind} should not regress to a placeholder primitive`);
+    assert.ok(receipt.vertexCount > (minimumVertices[kind] || 1000), `${kind} should not regress to a placeholder primitive`);
     minimumBounds[kind].forEach((value, axis) => assert.ok(bounds[axis] >= value, `${kind} axis ${axis} extent`));
   });
 
@@ -1161,7 +1163,18 @@ test('browser loader verifies raw hashes and rejects tampered assets', async () 
     const file = fileForUrl(url);
     return { ok: fs.existsSync(file), status: fs.existsSync(file) ? 200 : 404, text: async () => fs.readFileSync(file, 'utf8') };
   };
-  const loaded = await dataLoader.loadApplication('http://localhost/data/simulatte/autonomy-manifest.json', fetchFiles);
+  const deferred = await dataLoader.loadApplication(
+    'http://localhost/data/simulatte/autonomy-manifest.json',
+    fetchFiles,
+    { deferRenderGeometry: true }
+  );
+  assert.equal(deferred.receipt.renderGeometryStatus, 'deferred');
+  assert.equal(deferred.world.renderGeometry.buildings.length, 0);
+  assert.equal(requests.some((row) => row.url.includes('.geometry.json')), false);
+  const loaded = await deferred.loadRenderGeometry();
+  assert.equal(loaded.receipt.renderGeometryStatus, 'ready');
+  assert.ok(loaded.world.renderGeometry.buildings.length > 1500);
+  assert.equal(requests.filter((row) => row.url.includes('.geometry.json')).length, 3);
   assert.equal(loaded.world.id, 'nyc-core-autonomy-v1');
   assert.deepEqual(loaded.embodiments.map((row) => row.id), ['delivery-bike-v1', 'pedestrian-v1', 'scooter-v1', 'car-v1']);
   assert.equal(loaded.defaultEmbodiment.id, 'delivery-bike-v1');
@@ -1349,7 +1362,8 @@ test('autonomy UI keeps the map primary and moves technical controls behind prog
   assert.doesNotMatch(html, /id="map-panel-button"|id="map-popover"/);
   assert.match(html, /id="camera-focus-popover"[^>]*hidden/);
   assert.match(html, /id="dock-more-menu"[^>]*hidden/);
-  assert.match(html, /id="dock-more-menu"[\s\S]*id="step-button"[\s\S]*id="reset-button"[\s\S]*id="what-if-button"/);
+  assert.match(html, /id="dock-more-menu"[\s\S]*id="what-if-button"/);
+  assert.match(html, /id="playback-strip"[\s\S]*id="step-button"[\s\S]*id="reset-button"[\s\S]*id="playback-speed"/);
   assert.match(html, /id="advanced-section"[\s\S]*<details class="evidence-section retrieval-evidence">/);
   assert.match(html, /<details class="evidence-section retrieval-evidence">/);
   assert.match(html, /<details class="evidence-section receipt-evidence">/);

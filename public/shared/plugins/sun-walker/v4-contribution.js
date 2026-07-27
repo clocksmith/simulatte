@@ -231,7 +231,8 @@
 
   function exposureNavigationMode(previousSample, activeSample, settled = false) {
     if (settled) return 'compare';
-    return previousSample && activeSample && previousSample.state !== activeSample.state
+    return activeSample?.state === 'direct'
+      || (previousSample && activeSample && previousSample.state !== activeSample.state)
       ? 'pov'
       : 'follow';
   }

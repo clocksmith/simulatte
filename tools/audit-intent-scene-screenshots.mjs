@@ -25,24 +25,28 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const PUBLIC_DIR = path.join(ROOT, 'public');
 const DEFAULT_OUT_DIR = path.join(ROOT, 'artifacts', 'simulatte-intent-scene-audit');
 const MODEL_CONSENT_STORAGE_KEY = 'simulatte.neuralModels.consent.v1';
+const MODEL_SELECTION_STORAGE_KEY =
+  'simulatte.modelSelection.simulatte-pipeline-model-selection-v1.blank';
+const MODEL_SELECTION_VALUE = Object.freeze({
+  schema: 'simulatte.pipelineModelSelectionState.v1',
+  selections: Object.freeze({
+    'bounded-classification': 'multinomial-nb-tfidf-head',
+    'open-vocabulary-retrieval': 'qwen-embedding-retrieval',
+    'candidate-reranking': 'deterministic-typed-reranking',
+  }),
+});
+const require = createRequire(import.meta.url);
+const neuralModelConsent = require('../public/neural-model-consent.js');
 const MODEL_RUNTIME_LOCK = JSON.parse(await fs.readFile(path.join(PUBLIC_DIR, 'data/simulatte-embedder/model-runtime-lock.json'), 'utf8'));
+const MODEL_RUNTIME_BUNDLE = neuralModelConsent.summarizeLock(MODEL_RUNTIME_LOCK);
 const MODEL_CONSENT_GRANT = Object.freeze({
   schema: 'simulatte.neuralModelConsent.v1',
   enabled: true,
-  bundleIdentity: [
-    MODEL_RUNTIME_LOCK.id,
-    MODEL_RUNTIME_LOCK.number,
-    MODEL_RUNTIME_LOCK.doppler.package.version,
-    MODEL_RUNTIME_LOCK.embedding.id,
-    MODEL_RUNTIME_LOCK.embedding.manifestHash.hex,
-    MODEL_RUNTIME_LOCK.reranker.model.id,
-    MODEL_RUNTIME_LOCK.reranker.model.manifestHash.hex,
-  ].join(':'),
-  lockId: MODEL_RUNTIME_LOCK.id,
-  lockNumber: MODEL_RUNTIME_LOCK.number,
+  bundleIdentity: MODEL_RUNTIME_BUNDLE.identity,
+  lockId: MODEL_RUNTIME_BUNDLE.lockId,
+  lockNumber: MODEL_RUNTIME_BUNDLE.lockNumber,
   grantedAt: 'audit-authorized',
 });
-const require = createRequire(import.meta.url);
 const phaseContracts = require('../public/blank/pipeline/simulatte-phase-contracts.js');
 const EXPECTED_PHASE_OUTPUT_SCHEMAS = Object.freeze(Object.fromEntries(
   phaseContracts.phases
@@ -733,7 +737,10 @@ async function setupPage(cdp, url, width, height, timeoutMs, intentMode) {
   });
   if (intentMode === 'model') {
     await cdp.send('Page.addScriptToEvaluateOnNewDocument', {
-      source: `localStorage.setItem(${JSON.stringify(MODEL_CONSENT_STORAGE_KEY)}, ${JSON.stringify(JSON.stringify(MODEL_CONSENT_GRANT))});`,
+      source: [
+        `localStorage.setItem(${JSON.stringify(MODEL_CONSENT_STORAGE_KEY)}, ${JSON.stringify(JSON.stringify(MODEL_CONSENT_GRANT))});`,
+        `localStorage.setItem(${JSON.stringify(MODEL_SELECTION_STORAGE_KEY)}, ${JSON.stringify(JSON.stringify(MODEL_SELECTION_VALUE))});`,
+      ].join('\n'),
     });
   }
   const loaded = cdp.waitForEvent('Page.loadEventFired');
@@ -751,13 +758,26 @@ async function setupPage(cdp, url, width, height, timeoutMs, intentMode) {
     })();
     const runtimeEvents = (window.__simulatteIntentRuntimeEvents || []).slice(-8);
     const blocking = runtime && runtime.dataset.blocking === 'true';
+    const retrieval = document.querySelector('[data-model-slot="open-vocabulary-retrieval"]');
+    const neuralConsent = document.getElementById('blank-neural-models');
+    const modelLaneReady = ${JSON.stringify(intentMode)} !== 'model' || (
+      retrieval &&
+      retrieval.value === 'qwen-embedding-retrieval' &&
+      neuralConsent &&
+      neuralConsent.checked === true &&
+      neuralConsent.getAttribute('aria-checked') === 'true'
+    );
     return {
       ok: document.readyState === 'complete' &&
         !!document.getElementById('build-prompt') &&
         !!document.getElementById('physics-canvas') &&
         !!(window.SimulattePhysicsLab && window.SimulattePhysicsLab._browserLab) &&
+        modelLaneReady &&
         (!run || run.disabled === false || !blocking),
       labReady: !!(window.SimulattePhysicsLab && window.SimulattePhysicsLab._browserLab),
+      modelLaneReady,
+      retrievalSelection: retrieval && retrieval.value,
+      neuralConsent: neuralConsent && neuralConsent.checked,
       runDisabled: run && run.disabled,
       runtimeState: runtime && runtime.dataset.state,
       runtimeBlocking: runtime && runtime.dataset.blocking,
@@ -1293,6 +1313,10 @@ async function runPrompt(cdp, entry, index, outDir, options) {
         embeddingProbeDim: Number(promptRuntimeReceipt.probeEmbeddingDim || 0),
         embeddingStabilitySimilarity: Number(promptRuntimeReceipt.stabilitySimilarity || 0),
         embeddingDistinctProbePairs: Number(promptRuntimeReceipt.distinctProbePairs || 0),
+        runtimeLoadMs: Number(promptRuntimeReceipt.durationMs || 0),
+        providerLoadMs: Number(promptRuntimeReceipt.providerLoadMs || 0),
+        probeMs: Number(promptRuntimeReceipt.probeMs || 0),
+        firstEmbeddingMs: Number(promptRuntimeReceipt.firstEmbeddingMs || 0),
         rerankerId: promptRuntimeReceipt.reranker || '',
         rerankerModelId: promptRuntimeReceipt.rerankerModelId || '',
         rerankerModelHash: promptRuntimeReceipt.rerankerModelHash || '',

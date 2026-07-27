@@ -119,11 +119,33 @@
         aggregationKey: 'subsea-dropped-demand',
         provenance: simulated,
       })),
+      ...(activeRepair?.origin && activeRepair?.destination ? [builder.layer({
+        id: `repair-transit:${activeRepair.resourceId}`,
+        kind: 'path',
+        label: `${activeRepair.resourceId} modeled repair transit`,
+        geometry: builder.geometry('polyline', 'wgs84', [activeRepair.origin, activeRepair.destination]),
+        quantity: builder.quantity(
+          'repair-progress',
+          activeRepair.transitProgressFraction ?? 1,
+          'ratio',
+          [0, 1]
+        ),
+        role: 'event',
+        importance: 0.78,
+        aggregationKey: 'subsea-repair-transit',
+        provenance: simulated,
+      })] : []),
       ...(activeRepair?.position ? [builder.layer({
         id: `repair-resource:${activeRepair.resourceId}`,
         kind: 'actor',
         label: `${activeRepair.resourceId} repair resource`,
-        geometry: builder.geometry('point', 'wgs84', [activeRepair.position]),
+        geometry: builder.geometry(
+          activeRepair.origin && activeRepair.destination ? 'polyline' : 'point',
+          'wgs84',
+          activeRepair.origin && activeRepair.destination
+            ? [activeRepair.origin, activeRepair.destination]
+            : [activeRepair.position]
+        ),
         quantity: builder.quantity(
           'actor.repair-vessel.route-progress',
           activeRepair.transitProgressFraction ?? 1,

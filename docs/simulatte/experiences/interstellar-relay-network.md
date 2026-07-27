@@ -4,14 +4,14 @@ Owner contract: `public/shared/plugins/interstellar-relay-network/index.js`.
 
 ## Status
 
-- Status: verified
+- Status: implemented
 - Tier and world: Star Chart, `gaia-dr3-stellar-neighborhood-v1`
 - Plugin ID: `interstellar-relay-network`
 - Profile ID: `interstellar-relay-network-v1`
 - Default scenario: `sol-proxima-direct`
 - Contract version: plugin v4 contribution
-- Last verified source: current worktree, focused tests and browser rerun
-- Evidence: 8/8 profile runs; canonical prior-version receipts remain in `artifacts/profile-evidence/index.json`
+- Last verified source: prior browser proof at commit `a5713c1c13ab`
+- Evidence: current worktree browser proof not rerun; prior index contains 8/8 runs
 
 ## What is it?
 
@@ -28,7 +28,7 @@ traffic, advanced channels, or an operating interstellar network exist.
 3. Search or enforce a direct or multi-hop route under user constraints.
 4. Solve moving-target light time and a channel-specific link receipt for each hop.
 5. Run a seeded operational ensemble for acquisition, queueing, outages, maintenance, repair, and retries.
-6. Advance one representative packet through causal transmission events in true 3D coordinates.
+6. Advance one representative packet through causal transmission events in depth-aware 3D coordinates.
 7. Compare against a synchronized direct classical baseline, then settle delivery and receipts.
 
 ## What can the user control?
@@ -46,7 +46,7 @@ traffic, advanced channels, or an operating interstellar network exist.
 
 ## What does the user see?
 
-- Initial view: The 1,638-star HYG backdrop plus active Gaia-default relay candidates in true 3D ICRS Cartesian parsecs.
+- Initial view: The 1,638-star HYG backdrop plus active Gaia-default relay candidates in depth-aware 3D ICRS Cartesian parsecs.
 - During playback: Selected links, route alternatives, packet depth, acquisition, queue, retry, transmit, receive, and delivery events.
 - Selection and inspection: Route work, link budget, causality, constructibility, reliability, operational effects, omissions, and coordinates.
 - Comparison view: Direct classical baseline and selected intervention use synchronized endpoints, epochs, packet, and operations seed.
@@ -104,8 +104,8 @@ Cannot claim:
 - Unit tests: passing in `tests/interstellar-relay-network-v4.test.cjs`
 - Deterministic replay: verified
 - Comparison execution: verified
-- Desktop browser: verified
-- Mobile browser: verified
+- Desktop browser: not rerun for the current worktree
+- Mobile browser: not rerun for the current worktree
 - Known unresolved failures: infrastructure, operations calibration, and full covariance are absent
 
 ## Where is it implemented?

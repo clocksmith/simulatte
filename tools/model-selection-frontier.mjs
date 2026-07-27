@@ -141,6 +141,15 @@ function validateTrial(trial, policy, jobs) {
   if (taskPolicy.evaluationK != null && trial.workload.k !== taskPolicy.evaluationK) {
     fail(`${trial.task} workload K must be ${taskPolicy.evaluationK}`);
   }
+  if (trial.task === 'embedding-retrieval') {
+    const minimumCandidates = Number(taskPolicy.populationShape?.minimumCandidatesPerQuery);
+    if (!Number.isInteger(minimumCandidates) || minimumCandidates <= trial.workload.k) {
+      fail('embedding-retrieval policy must require a candidate population larger than K');
+    }
+    if (trial.workload.minimumCandidatesPerQuery !== minimumCandidates) {
+      fail(`embedding-retrieval workload must prove at least ${minimumCandidates} candidates per query`);
+    }
+  }
   const minimumCandidateCount = Number(policy.comparisonContract && policy.comparisonContract.minimumCandidateCount || 2);
   if (!Array.isArray(trial.candidates) || trial.candidates.length < minimumCandidateCount) {
     fail(`${trial.task} frontier requires at least ${minimumCandidateCount} candidates`);

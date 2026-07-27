@@ -91,20 +91,27 @@
     const visibleFlows = visible.flows.filter((flow) => (
       flow.sourceHubId !== flow.destinationHubId && flow.quantity > 0
     ));
-    const actorCount = visibleFlows.length
-      ? Math.ceil(config.simulation.renderedRequestCount * (visible.day / simulation.durationDays))
-      : 0;
+    const transferredCables = visibleFlows.reduce((total, flow) => total + flow.quantity, 0);
+    const actorCount = Math.min(12, visibleFlows.length * 2);
     const layers = [
       ...visible.hubStats.map((hub) => {
         const configHub = config.hubs.find((row) => row.id === hub.id);
+        const shortage = Math.max(0, hub.needs - hub.fulfilled);
         return builder.layer({
           id: `hub:${hub.id}`,
           kind: 'point',
-          label: `${hub.label}: ${hub.endingInventory} cables`,
+          label: shortage
+            ? `${hub.label}: ${shortage} requests unserved · ${hub.endingInventory} cables remain`
+            : `${hub.label}: all requests served · ${hub.endingInventory} cables remain`,
           geometry: builder.geometry('node', 'city-node-id', [configHub.nodeId]),
-          quantity: builder.quantity('ending-inventory', hub.endingInventory, 'items', [0, Math.max(1, visible.summary.endingInventory)]),
-          role: 'primary',
-          importance: 0.85,
+          quantity: builder.quantity(
+            shortage ? 'unserved-demand' : 'ending-inventory',
+            shortage || hub.endingInventory,
+            'items',
+            [0, Math.max(1, shortage ? visible.summary.needs : visible.summary.endingInventory)]
+          ),
+          role: shortage ? 'event' : 'primary',
+          importance: shortage ? 1 : 0.85,
           aggregationKey: 'cable-hubs',
           provenance: builder.provenance({
             origin: 'simulated',
@@ -137,10 +144,13 @@
           (visible.day / Math.max(1, simulation.durationDays))
           + (index / Math.max(1, actorCount))
         ) % 1;
+        const cableFamilyId = dominantCableFamily(flow, index);
+        const cableLabel = config.cableTypes.find((row) => row.id === cableFamilyId)?.label
+          || 'cable';
         return builder.layer({
           id: `modeled-cable-request-${index + 1}`,
           kind: 'actor',
-          label: `Modeled request ${index + 1}`,
+          label: `${cableLabel} transfer · ${flow.sourceHubId.replaceAll('-', ' ')} to ${flow.destinationHubId.replaceAll('-', ' ')}`,
           geometry: builder.geometry('segments', 'city-segment-id', route.segmentIds),
           quantity: builder.quantity(
             `actor.${index % 5 === 0 ? 'scooter' : 'bicycle'}.route-progress`,
@@ -215,6 +225,7 @@
       eventIds: events.slice(0, visible.day).map((row) => row.id),
       measures: [
         builder.quantity('fulfilled-needs', visible.summary.fulfilledNeeds, 'items'),
+        builder.quantity('transferred-cables', transferredCables, 'items'),
         builder.quantity('selected-cable-families', simulation.selectedCableFamilyIds.length, 'families'),
         builder.quantity('ending-inventory', visible.summary.endingInventory, 'items'),
         builder.quantity('transport-burden', visible.summary.totalBurden, 'cost units'),
@@ -291,6 +302,13 @@
       step: null,
       provenance,
     };
+  }
+
+  function dominantCableFamily(flow, offset = 0) {
+    const rows = Object.entries(flow.byCableFamily || {})
+      .filter(([, quantity]) => quantity > 0)
+      .sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0]));
+    return rows.length ? rows[offset % rows.length][0] : null;
   }
 
   function selectFlow(flows, index, count) {

@@ -27,6 +27,7 @@
     <section class="simulation-stage" aria-label="NYC mission map">
       <div class="canvas-shell">
         <canvas id="autonomy-canvas" width="1440" height="900" aria-label="Interactive WebGPU view of pedestrian, bicycle, scooter, and car missions in the Villages and North Brooklyn"></canvas>
+        <canvas id="semantic-label-canvas" width="1440" height="900" aria-label="Collision-managed semantic labels" aria-hidden="true"></canvas>
         <canvas id="overlay-canvas" width="1440" height="900" aria-label="Interactive visual overlay for world scales" hidden></canvas>
         <canvas id="follow-minimap" class="follow-minimap" width="320" height="240" aria-label="Top view minimap centered on the active agent" hidden></canvas>
         <div id="loading-screen" class="loading-screen" role="status" aria-label="Loading Simulatte">
@@ -140,8 +141,18 @@
             <strong id="experience-summary-title"></strong>
           </header>
           <p id="experience-summary-description"></p>
+          <div class="experience-story">
+            <div>
+              <span class="sim-label">Now</span>
+              <strong id="experience-summary-event"></strong>
+            </div>
+            <div>
+              <span class="sim-label">Why</span>
+              <span id="experience-summary-narrative"></span>
+            </div>
+          </div>
           <dl id="experience-summary-stats"></dl>
-          <p id="experience-summary-help" class="experience-summary-help"></p>
+          <p id="experience-summary-comparison" class="experience-summary-comparison"></p>
         </section>
 
         <div id="camera-controls" class="camera-controls" aria-label="View controls">
@@ -158,8 +169,11 @@
           </div>
           <div class="camera-modes sim-segmented">
             <button id="camera-follow" type="button" aria-pressed="false">Follow</button>
+            <button id="camera-pov" type="button" aria-pressed="false">POV</button>
             <button id="camera-bird" class="is-active" type="button" aria-pressed="true">Overview</button>
             <button id="camera-top" type="button" aria-pressed="false">Top</button>
+            <button id="camera-free" type="button" aria-pressed="false">Free</button>
+            <button id="camera-compare" type="button" aria-pressed="false">Compare</button>
           </div>
         </div>
 
@@ -203,22 +217,7 @@
             <div class="dock-more-anchor">
               <button id="dock-more-button" class="sim-action" type="button" aria-controls="dock-more-menu" aria-expanded="false" aria-label="More controls" hidden>⋯</button>
               <div id="dock-more-menu" class="dock-more-menu sim-popover sim-menu" hidden>
-                <button id="step-button" type="button" hidden>Step one event</button>
-                <button id="reset-button" type="button" hidden>Reset run</button>
                 <button id="what-if-button" type="button" hidden>What if</button>
-                <label id="playback-speed-control" class="playback-control" hidden>
-                  <span>Playback speed</span>
-                  <select id="playback-speed" class="sim-field">
-                    <option value="0.5">0.5×</option>
-                    <option value="1" selected>1×</option>
-                    <option value="2">2×</option>
-                    <option value="4">4×</option>
-                  </select>
-                </label>
-                <label id="playback-timeline-control" class="playback-control playback-timeline-control" hidden>
-                  <span>Timeline <output id="playback-progress">0 / 0</output></span>
-                  <input id="playback-timeline" type="range" min="0" max="0" step="1" value="0">
-                </label>
               </div>
             </div>
             <details id="model-selection-panel" class="model-selection-panel">
@@ -227,6 +226,29 @@
             </details>
             <input id="place-resolution-lane" type="checkbox" hidden aria-describedby="place-lane-note">
             <span id="place-lane-note" class="sr-only">Deterministic matching is active.</span>
+          </div>
+          <div id="playback-strip" class="playback-strip" aria-label="Playback" hidden>
+            <div class="playback-story">
+              <span id="playback-timeline-label" class="sim-label">Event</span>
+              <strong id="playback-event">Ready</strong>
+            </div>
+            <label id="playback-timeline-control" class="playback-control playback-timeline-control" hidden>
+              <span>Timeline <output id="playback-progress">0 / 0</output></span>
+              <input id="playback-timeline" type="range" min="0" max="0" step="1" value="0">
+            </label>
+            <div class="playback-actions">
+              <button id="step-button" class="sim-action" type="button" hidden>Step</button>
+              <button id="reset-button" class="sim-action" type="button" hidden>Reset</button>
+              <label id="playback-speed-control" class="playback-control playback-speed-control" hidden>
+                <span>Speed</span>
+                <select id="playback-speed" class="sim-field">
+                  <option value="0.5">0.5×</option>
+                  <option value="1" selected>1×</option>
+                  <option value="2">2×</option>
+                  <option value="4">4×</option>
+                </select>
+              </label>
+            </div>
           </div>
           <output id="mission-error" class="mission-error" aria-live="polite"></output>
         </section>
@@ -397,6 +419,7 @@
   <script defer src="./simulatte/app/webgpu-geometry.js?v=5e8355b1f3c60c308bd70a065af7ceff5e5a1b3e-16ba1abdd852"></script>
   <script defer src="./simulatte/app/plugin-presentation.js?v=5e8355b1f3c60c308bd70a065af7ceff5e5a1b3e-16ba1abdd852"></script>
   <script defer src="./simulatte/app/camera-controller.js?v=5e8355b1f3c60c308bd70a065af7ceff5e5a1b3e-16ba1abdd852"></script>
+  <script defer src="./simulatte/app/semantic-label-overlay.js?v=5e8355b1f3c60c308bd70a065af7ceff5e5a1b3e-16ba1abdd852"></script>
   <script defer src="./simulatte/app/webgpu-renderer.js?v=5e8355b1f3c60c308bd70a065af7ceff5e5a1b3e-16ba1abdd852"></script>
   <script defer src="./simulatte/app/trace-view.js?v=5e8355b1f3c60c308bd70a065af7ceff5e5a1b3e-16ba1abdd852"></script>
   <script defer src="./simulatte/app/application-profile-select.js?v=5e8355b1f3c60c308bd70a065af7ceff5e5a1b3e-16ba1abdd852"></script>
@@ -407,6 +430,7 @@
   <script defer src="./simulatte/app/tier-registry.js?v=5e8355b1f3c60c308bd70a065af7ceff5e5a1b3e-16ba1abdd852"></script>
   <script defer src="./simulatte/app/multi-tier-visualizer.js?v=5e8355b1f3c60c308bd70a065af7ceff5e5a1b3e-16ba1abdd852"></script>
   <script defer src="./simulatte/app/mount-lifecycle.js?v=5e8355b1f3c60c308bd70a065af7ceff5e5a1b3e-16ba1abdd852"></script>
+  <script defer src="./simulatte/app/experience-presentation.js?v=5e8355b1f3c60c308bd70a065af7ceff5e5a1b3e-16ba1abdd852"></script>
   <script defer src="./simulatte/app/world-tiers-boot.js?v=5e8355b1f3c60c308bd70a065af7ceff5e5a1b3e-16ba1abdd852"></script>
   <script defer src="./simulatte/app/router.js?v=5e8355b1f3c60c308bd70a065af7ceff5e5a1b3e-16ba1abdd852"></script>
   <script defer src="./simulatte/app/city-interface.js?v=5e8355b1f3c60c308bd70a065af7ceff5e5a1b3e-16ba1abdd852"></script>

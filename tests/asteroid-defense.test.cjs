@@ -10,6 +10,8 @@ const model = require(join(PLUGIN_DIRECTORY, 'asteroid-model.js'));
 const orbit = require(join(PLUGIN_DIRECTORY, 'orbit-determination.js'));
 const comparison = require(join(PLUGIN_DIRECTORY, 'comparison-driver.js'));
 const propagation = require(join(ROOT, 'public/shared/core/simulation/n-body-propagation.js'));
+const catalog = require(join(PLUGIN_DIRECTORY, 'asteroid-catalog.js'));
+const semanticCompositor = require(join(ROOT, 'public/simulatte/platform/render/semantic-compositor.js'));
 const config = json(join(PLUGIN_DIRECTORY, 'default-config.json'));
 const manifest = json(join(PLUGIN_DIRECTORY, 'plugin.json'));
 const profile = json(join(ROOT, 'public/data/application-profiles/asteroid-defense-v1.json'));
@@ -63,6 +65,19 @@ test('shared n-body propagation is deterministic and receipts force-model omissi
   assert.equal(first.methodId, 'shared-heliocentric-rk4-v1');
   assert.ok(first.maximumSpecificEnergyDriftAu2D2 < 1e-12);
   assert.ok(first.omissions.includes('relativity'));
+});
+
+test('governed JPL context produces bounded three-dimensional catalog positions', () => {
+  assert.ok(datasets.neoCatalog.objects.length >= 100);
+  assert.match(datasets.neoCatalog.source.documentationUrl, /jpl\.nasa\.gov/);
+  const object = datasets.neoCatalog.objects.find((row) => row.inclinationDeg > 10);
+  const position = catalog.positionAtEpoch(object, object.epochTdbJd);
+  assert.equal(position.length, 3);
+  assert.ok(position.every(Number.isFinite));
+  assert.notEqual(position[2], 0);
+  const visual = catalog.visualCatalog(datasets.neoCatalog.objects, object.epochTdbJd, 120);
+  assert.equal(visual.length, 120);
+  assert.ok(visual.some((row) => row.object.potentiallyHazardous));
 });
 
 test('orbit fit reads public observations only and hidden-truth mutation cannot change it', () => {
@@ -236,6 +251,31 @@ test('typed controls rebuild once, step existing state, replay exactly, and clos
   assert.equal(stepped.currentStep, 1);
   assert.equal(stepped.scenarioIdentity, started.scenarioIdentity);
   assert.equal(harness.receipts.length, receiptCount);
+  const observedStage = instance.contributeV4();
+  assert.equal(
+    observedStage.presentation.layers.filter((row) => row.id.startsWith('jpl-neo-context:')).length,
+    120
+  );
+  const composition = semanticCompositor.createCompositor({
+    maxVisibleLayers: 300,
+    maxLabels: 24,
+  }).compose(observedStage.presentation, {
+    viewport: { width: 1200, height: 800 },
+    project: (position) => [
+      600 + Number(position[0] || 0) * 100,
+      400 + Number(position[1] || 0) * 100,
+    ],
+  });
+  const catalogPrimitiveIds = composition.primitives
+    .filter((row) => row.memberIds.some((id) => id.startsWith('jpl-neo-context:')))
+    .flatMap((row) => row.memberIds);
+  assert.equal(catalogPrimitiveIds.length, 120);
+  assert.ok(composition.primitives
+    .filter((row) => row.memberIds.some((id) => id.startsWith('jpl-neo-context:')))
+    .every((row) => row.kind === 'point' && row.memberIds.length === 1));
+  assert.equal(composition.receipt.representedLayerIds
+    .filter((id) => id.startsWith('jpl-neo-context:')).length, 120);
+  assert.ok(observedStage.presentation.layers.some((row) => row.id.startsWith('asteroid-observation:')));
   const replayed = await instance.handleAction('scenario.run', {
     scenario: { id: 'late-precision-observation', scenarioId: 'late-precision-observation', seed: 'asteroid-replay' },
     values: { ...values, phase: 'start' },
@@ -262,7 +302,9 @@ test('typed controls rebuild once, step existing state, replay exactly, and clos
       const actor = progressive.presentation.layers.find((row) => row.id === 'asteroid-active-clone');
       assert.equal(actor.quantity.kind, 'actor.asteroid.route-progress');
       assert.equal(progressive.presentation.viewIntents[0].mode, 'follow');
-      assert.deepEqual(progressive.presentation.viewIntents[0].targetIds, [actor.id]);
+      assert.ok(progressive.presentation.viewIntents[0].targetIds.every((id) => (
+        progressive.presentation.layers.some((row) => row.id === id && row.kind === 'actor')
+      )));
       sawMovingActor = true;
     }
   }
@@ -305,6 +347,7 @@ function loadDatasets() {
     policies: rows['asteroid-decision-policies-v1'],
     benchmarks: rows['asteroid-historical-benchmark-cases-v1'],
     jpl: rows['asteroid-jpl-reference-snapshots-v1'],
+    neoCatalog: rows['asteroid-jpl-neo-context-v1'],
     governance: rows['asteroid-model-governance-v1'],
     provenance: rows['asteroid-provenance-registry-v1'],
     dataReceipts,

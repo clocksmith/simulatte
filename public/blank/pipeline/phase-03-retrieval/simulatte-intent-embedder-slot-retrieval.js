@@ -267,6 +267,7 @@
           ...empty,
           candidates: candidates.slice(0, maxUniverse),
           byIndex,
+          loadReceipt: universe.loadReceipt || null,
         };
       }
 

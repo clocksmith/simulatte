@@ -347,6 +347,7 @@
           layout: layoutForEntity(entity, sceneKind),
           scale: entity.pose && (entity.pose.w || entity.pose.h || entity.pose.r) ? 'specified' : 'adaptive',
           constraints: geometryConstraintsForEntity(entity),
+          graphicsAtomBindings: entity.graphicsAtomBindings || null,
           sourceGraphId: entity.sourceGraphId || entity.sourceObject || entity.id || '',
           sourceKind: entity.sourceKind || '',
           sourceIds: entity.sourceIds || [],

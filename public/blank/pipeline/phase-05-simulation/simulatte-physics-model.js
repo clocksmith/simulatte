@@ -8,6 +8,7 @@
     require('./simulatte-physics-model-activation-fusion.js');
     require('./simulatte-interaction-ir.js');
     require('./simulatte-physics-model-phase-grounding.js');
+    require('./simulatte-physics-model-phase-visual-execution.js');
     require('./simulatte-physics-model-phase-simulation.js');
     require('./simulatte-physics-model-phase-visual-render.js');
     require('./simulatte-physics-model-state-solvers.js');

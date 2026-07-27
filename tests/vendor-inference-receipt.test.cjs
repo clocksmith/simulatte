@@ -30,13 +30,14 @@ test('vendor inference receipt requires real probes, prompt reranking, and the n
       policy: 'prepare-all-sources-then-load-embedding-before-reranker',
       sourceOrder: ['embedding', 'reranker'],
       sourcePreparations: [
-        { role: 'embedding', modelId: 'embed', order: 1, status: 'ready', overlap: false, queueWaitMs: 0, durationMs: 2 },
-        { role: 'reranker', modelId: 'reranker-model', order: 2, status: 'ready', overlap: false, queueWaitMs: 2, durationMs: 3 },
+        { role: 'embedding', modelId: 'embed', order: 1, status: 'ready', overlap: false, queueWaitMs: 0, durationMs: 2, verificationMs: 2, importMs: 0 },
+        { role: 'reranker', modelId: 'reranker-model', order: 2, status: 'ready', overlap: false, queueWaitMs: 2, durationMs: 3, verificationMs: 3, importMs: 0 },
       ],
       loadOrder: [
         { role: 'embedding', modelId: 'embed', order: 1, status: 'ready', overlap: false, queueWaitMs: 0, durationMs: 4 },
         { role: 'reranker', modelId: 'reranker-model', order: 2, status: 'ready', overlap: false, queueWaitMs: 4, durationMs: 5 },
       ],
+      devicePreparation: { status: 'ready', durationMs: 1, reused: false },
     },
     modelRuntimeLock: { id: 'runtime-lock', number: 7, artifactHash: 'lock-hash' },
     embeddingModelId: 'embed',
@@ -151,4 +152,49 @@ test('vendor inference receipt requires real probes, prompt reranking, and the n
     () => validateVendorInferenceReport(missingCacheState, lock, 'lock-hash'),
     /cache state is missing/
   );
+});
+
+test('model preparation accepts an explicitly disabled optional reranker', async () => {
+  const { modelPreparationFailures } = await import('../tools/model-preparation-receipt.mjs');
+  const execution = {
+    cachePrefetch: true,
+    cacheMode: 'opfs',
+    cacheVerified: true,
+    embeddingCacheState: 'verified-hit',
+    embeddingModelId: 'embed',
+    rerankerEnabled: false,
+    rerankerRequired: false,
+    modelPreparation: {
+      schema: 'simulatte.dopplerModelPreparationReceipt.v1',
+      policy: 'prepare-all-sources-then-load-embedding-before-reranker',
+      sourceOrder: ['embedding'],
+      sourcePreparations: [
+        {
+          role: 'embedding',
+          modelId: 'embed',
+          order: 1,
+          status: 'ready',
+          overlap: false,
+          queueWaitMs: 0,
+          durationMs: 2,
+          verificationMs: 2,
+          importMs: 0,
+        },
+      ],
+      loadOrder: [
+        {
+          role: 'embedding',
+          modelId: 'embed',
+          order: 1,
+          status: 'ready',
+          overlap: false,
+          queueWaitMs: 0,
+          durationMs: 3,
+        },
+      ],
+      devicePreparation: { status: 'ready', durationMs: 1, reused: false },
+    },
+  };
+
+  assert.deepEqual(modelPreparationFailures(execution), []);
 });

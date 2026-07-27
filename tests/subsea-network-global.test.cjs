@@ -118,8 +118,12 @@ test('every failed target gets a progressive repair voyage and causally ranked b
     result: dual,
     snapshot: transitSnapshot,
   });
+  const transitEvent = dual.repairReceipt.events.find((row) => row.id === transitSnapshot.activeRepairEventId);
   const actor = contribution.presentation.layers.find((row) => row.kind === 'actor');
   assert.equal(actor.quantity.kind, 'actor.repair-vessel.route-progress');
+  assert.equal(actor.geometry.kind, 'polyline');
+  assert.deepEqual(actor.geometry.coordinates, [transitEvent.origin, transitEvent.destination]);
+  assert.ok(contribution.presentation.layers.some((row) => row.id.startsWith('repair-transit:')));
   assert.deepEqual(contribution.presentation.viewIntents[0].targetIds, [actor.id]);
 });
 

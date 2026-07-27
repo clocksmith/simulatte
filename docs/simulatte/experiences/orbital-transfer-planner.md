@@ -4,14 +4,14 @@ Owner contract: `public/shared/plugins/orbital-transfer-planner/index.js`.
 
 ## Status
 
-- Status: verified
+- Status: implemented
 - Tier and world: Solar System, `solar-system-ephemeris-v2`
 - Plugin ID: `orbital-transfer-planner`
 - Profile ID: `orbital-transfer-planner-v1`
 - Default scenario: `earth-mars-window`
 - Contract version: plugin v4 contribution
-- Last verified source: commit `a5713c1c13ab`, bound worktree receipt
-- Evidence: 8/8 runs in `artifacts/profile-evidence/index.json`
+- Last verified source: prior browser proof at commit `a5713c1c13ab`
+- Evidence: current worktree browser proof not rerun; prior index contains 8/8 runs
 
 ## What is it?
 
@@ -37,12 +37,15 @@ or proof that a mission is feasible.
 |---|---:|---|---|
 | Delta-v weight | 1 | 0 to 10 | Changes candidate ranking |
 | Flight-time weight | 0.01 | 0 to 1 | Changes candidate ranking |
+| Spacecraft | Heavy cargo freighter | Governed archetypes | Changes modeled shielding and radiation proxy |
+| Transfer branch | Prograde | Prograde or retrograde | Changes Lambert candidates |
+| Verification step | 0.5 days | 0.05 to 5 days | Changes independent propagation resolution |
 | Mission preset | Earth to Mars | Moon, Mars, Venus, Jupiter presets | Changes target, epochs, bounds, spacecraft, and constraints |
 
 ## What does the user see?
 
 - Initial view: Solar System bodies and pinned reference paths in heliocentric coordinates.
-- During playback: The selected trajectory and solver outcome appear as one settled planning event.
+- During playback: A bounded family of candidate paths appears during search, the selected Lambert solution is verified, and a spacecraft follows the independently propagated trajectory to its endpoint residual.
 - Selection and inspection: Epochs, flight time, delta-v, branch, revolutions, iterations, residual, hashes, frame, and center.
 - Comparison view: Selected Lambert transfer and circular coplanar Hohmann screen remain explicitly distinct.
 - Final settlement: Convergence, fallback, endpoint position and velocity error, verifier status, and claim gate.
@@ -97,8 +100,8 @@ Cannot claim:
 - Unit tests: passing in `tests/orbital-transfer-verification.test.cjs`
 - Deterministic replay: verified against snapshots
 - Comparison execution: verified
-- Desktop browser: verified
-- Mobile browser: verified
+- Desktop browser: not rerun for the current worktree
+- Mobile browser: not rerun for the current worktree
 - Known unresolved failures: navigation covariance and operational mission constraints are absent
 
 ## Where is it implemented?

@@ -108,8 +108,8 @@ test('plugin view runtime applies declarative intents through renderer-owned cam
   assert.equal(focusSelect.value, 'plugin:fixture:active-view');
   assert.deepEqual(calls, [
     ['focus', 'plugin:fixture:active-view'],
-    ['mode', 'bird'],
-    ['selected', 'bird'],
+    ['mode', 'overview'],
+    ['selected', 'overview'],
   ]);
 });
 
@@ -129,7 +129,7 @@ test('overview frames the aggregate intent while follow targets the active subje
   coordinator.sync([contribution('fixture', 'follow')], [provenanceReceipt('fixture')]);
   assert.deepEqual(calls, [
     ['focus', 'plugin:fixture:active-view'],
-    ['mode', 'bird'],
+    ['mode', 'overview'],
     ['focus', 'plugin:fixture:route'],
     ['mode', 'follow'],
   ]);
@@ -181,6 +181,7 @@ test('synchronization reapplies an unchanged semantic decision after renderer st
   coordinator.sync([active], [provenance]);
   assert.deepEqual(calls, [
     ['focus', 'plugin:fixture:active-view'],
+    ['mode', 'overview'],
     ['focus', 'plugin:fixture:active-view'],
   ]);
 });
@@ -207,7 +208,7 @@ test('manual camera authority persists while domain intents continue changing', 
   ]);
 });
 
-test('renderer bird and top controls become semantic overview overrides', () => {
+test('legacy bird and manual top controls become semantic overview and free overrides', () => {
   const coordinator = viewRuntimeApi.createCoordinator({
     renderer: {
       cameraTargets: () => [],
@@ -216,7 +217,26 @@ test('renderer bird and top controls become semantic overview overrides', () => 
     },
   });
   assert.equal(coordinator.setManualOverride({ mode: 'bird' }).decision.mode, 'overview');
-  assert.equal(coordinator.setManualOverride({ mode: 'top' }).decision.mode, 'overview');
+  assert.equal(coordinator.setManualOverride({ mode: 'top' }).decision.mode, 'free');
+});
+
+test('compare remains a distinct semantic camera mode and frames the aggregate intent', () => {
+  const calls = [];
+  const coordinator = viewRuntimeApi.createCoordinator({
+    renderer: {
+      cameraTargets: () => [
+        { id: 'plugin:fixture:active-view' },
+        { id: 'plugin:fixture:route' },
+      ],
+      focusCameraTarget: (id) => calls.push(['focus', id]),
+      setCameraMode: (mode) => calls.push(['mode', mode]),
+    },
+  });
+  coordinator.sync([contribution('fixture', 'compare')], [provenanceReceipt('fixture')]);
+  assert.deepEqual(calls, [
+    ['focus', 'plugin:fixture:active-view'],
+    ['mode', 'compare'],
+  ]);
 });
 
 test('same-named intents from different plugins remain independently addressable', () => {

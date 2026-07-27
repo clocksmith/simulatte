@@ -306,6 +306,31 @@ test('semantic compositor bounds widths and clusters dense points without losing
   assert.equal(composition.receipt.policies.boundedDensity, true);
 });
 
+test('semantic compositor gives consequential quantities distinct domain colors', () => {
+  const base = presentation().layers[0];
+  const dropped = {
+    ...base,
+    id: 'dropped',
+    quantity: { kind: 'dropped-demand', value: 0.5, unit: 'ratio', domain: [0, 1] },
+    provenance: SIMULATED,
+  };
+  const delivered = {
+    ...base,
+    id: 'delivered',
+    quantity: { kind: 'delivered-service', value: 0.5, unit: 'ratio', domain: [0, 1] },
+    provenance: SIMULATED,
+  };
+  const queue = {
+    ...base,
+    id: 'queue',
+    quantity: { kind: 'queue-p50', value: 12, unit: 'hours', domain: [0, 24] },
+    provenance: SIMULATED,
+  };
+  assert.equal(compositorModule.styleForLayer(dropped).color, '#ff657a');
+  assert.equal(compositorModule.styleForLayer(delivered).color, '#58dfa0');
+  assert.equal(compositorModule.styleForLayer(queue).color, '#ffb84f');
+});
+
 test('View Director arbitrates intents while manual navigation remains authoritative', () => {
   const director = viewDirectorModule.createViewDirector();
   presentation().viewIntents.forEach((intent) => director.submit(intent));
@@ -402,6 +427,11 @@ test('Orbital v4 separates pinned state vectors from forecast transfer modeling'
   const contribution = orbitalV4.createContribution({
     ephemerisData,
     profileWeights: { deltaV: 1, timeOfFlight: 0.01 },
+    spacecraftData: {
+      archetypes: {
+        'cargo-freighter-v1': { name: 'Heavy Cargo Freighter' },
+      },
+    },
     datasetReceipts: [
       { id: 'jpl.horizons.heliocentric-vectors.v1', receipt: { sha256: HASH }, value: ephemerisData },
       { id: 'solar.system.gm-constants-de440.v1', receipt: { sha256: 'b'.repeat(64) }, value: {} },
@@ -420,6 +450,13 @@ test('Orbital v4 separates pinned state vectors from forecast transfer modeling'
         algorithm: 'lambert',
         attemptedCount: 100,
         solutionCount: 12,
+      },
+      acceptedParameters: {
+        deltaVWeight: 1,
+        timeWeight: 0.01,
+        spacecraftArchetypeId: 'cargo-freighter-v1',
+        prograde: true,
+        verificationStepDays: 0.5,
       },
       claimBoundary: 'Mission-design comparison, not operational navigation.',
     },

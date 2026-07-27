@@ -4,6 +4,7 @@ const test = require('node:test');
 const cityPresentation = require('../public/simulatte/app/plugin-presentation.js');
 const tierPresentation = require('../public/simulatte/app/tier-plugin-presentation.js');
 const multiTierVisualizer = require('../public/simulatte/app/multi-tier-visualizer.js');
+const semanticLabelOverlay = require('../public/simulatte/app/semantic-label-overlay.js');
 const contracts = require('../public/simulatte/platform/contracts/plugin-v4-contracts.js');
 const provenanceRegistry = require('../public/simulatte/platform/runtime/provenance-registry.js');
 
@@ -132,6 +133,8 @@ test('City presentation consumes compositor clustering, styles, and receipts', (
   assert.equal(compiled.paths[0].intensity > compiled.paths[0].style.strokeOpacity, true);
   assert.equal(compiled.paths[0].provenance.axes.origin, 'simulated');
   assert.equal(compiled.compositorReceipts[0].clusterCount >= 1, true);
+  assert.equal(compiled.compositorReceipts[0].representedLayerCount, 5);
+  assert.equal(compiled.compositorReceipts[0].clusteredLayerCount, 2);
   assert.equal(compiled.compositorReceipts[0].policies.collisionManagedLabels, true);
   assert.equal(compiled.compositorReceipts[0].policies.cohortQuantityDomains, true);
   assert.equal(compiled.compositorReceipts[0].provenance.isCanonical, true);
@@ -166,7 +169,11 @@ test('City compiles a semantic actor into a moving actor mesh and camera target'
       id: 'walker',
       kind: 'actor',
       label: 'Walker',
-      geometry: { kind: 'point', coordinateSystem: 'local-m', coordinates: [[20, 30]] },
+      geometry: {
+        kind: 'polyline',
+        coordinateSystem: 'local-m',
+        coordinates: [[0, 0], [80, 0], [80, 80]],
+      },
       quantity: { kind: 'actor.pedestrian.route-progress', value: 0.25, unit: 'ratio', domain: [0, 1] },
       aggregationKey: null,
     }],
@@ -193,8 +200,9 @@ test('City compiles a semantic actor into a moving actor mesh and camera target'
   });
   assert.equal(compiled.actors.length, 1);
   assert.equal(compiled.actors[0].kind, 'pedestrian');
-  assert.deepEqual(compiled.actors[0].points, [{ x: 20, y: 30 }]);
-  assert.ok(compiled.cameraTargets.some((row) => row.id === 'plugin:fixture:walker'));
+  assert.deepEqual(compiled.actors[0].points, [{ x: 40, y: 0 }]);
+  const cameraTarget = compiled.cameraTargets.find((row) => row.id === 'plugin:fixture:walker');
+  assert.deepEqual(cameraTarget.target, [40, 0, -0]);
 });
 
 test('City segment-set paths render independently without invented connector geometry', () => {
@@ -260,12 +268,79 @@ test('governed tier presentation consumes the same compositor contract', () => {
   assert.equal(compiled.markers.length, 1);
   assert.equal(compiled.paths[0].style.widthPx <= 4, true);
   assert.equal(compiled.choropleths[0].value, 7);
+  assert.ok(compiled.labels.some((row) => row.id === 'flow' && row.label === 'Transfer flow'));
   assert.equal(compiled.compositorReceipt.clusterCount, 1);
   assert.equal(compiled.compositorReceipt.policies.screenSpaceWidths, true);
   assert.equal(compiled.compositorReceipt.provenance.isCanonical, true);
   assert.deepEqual(compiled.compositorReceipt.provenance.unresolvedLayerIds, []);
+  assert.equal(compiled.compositorReceipt.representedLayerCount, 5);
+  assert.equal(compiled.compositorReceipt.clusteredLayerCount, 3);
   assert.deepEqual(compiled.cameraTargets[0].bounds, { minX: 0, maxX: 100, minY: 0, maxY: 100 });
   assert.deepEqual(compiled.cameraTargets[0].memberIds, ['flow']);
+});
+
+test('tier presentation preserves semantic actor identity and projects native 3D depth', () => {
+  const base = semanticPresentation();
+  const presentation = {
+    ...base,
+    coordinateSystem: 'heliocentric-ecliptic-au',
+    layers: [{
+      ...base.layers[0],
+      id: 'spacecraft',
+      kind: 'actor',
+      geometry: {
+        kind: 'polyline',
+        coordinateSystem: 'heliocentric-ecliptic-au',
+        coordinates: [[0, 0, 0], [1, 0.5, 0.75], [2, 1, 1.5]],
+      },
+      quantity: {
+        kind: 'actor.spacecraft.route-progress',
+        value: 0.5,
+        unit: 'ratio',
+        domain: [0, 1],
+      },
+    }],
+    viewIntents: [{
+      schema: 'simulatte.viewIntent.v4',
+      id: 'spacecraft-follow',
+      mode: 'follow',
+      targetIds: ['spacecraft'],
+      reasonEventId: null,
+      priority: 80,
+      transition: 'ease',
+    }],
+  };
+  const compiled = tierPresentation.compileTierPresentation(presentation, 'heliocentric-ecliptic-au', {
+    viewport: { width: 400, height: 300 },
+    project: (position) => tierPresentation.projectPoint(position, 'heliocentric-ecliptic-au', {
+      panX: 200,
+      panY: 150,
+      zoom: 100,
+      rotX: 0.4,
+      rotY: -0.5,
+    }),
+    provenanceReceipt: provenanceReceipt(presentation),
+  });
+  assert.equal(compiled.actors[0].quantityKind, 'actor.spacecraft.route-progress');
+  assert.deepEqual(compiled.actors[0].position, [1, 0.5, 0.75]);
+  assert.deepEqual(compiled.cameraTargets[0].center, [1, 0.5, 0.75]);
+  const flat = tierPresentation.projectPoint([1, 0.5, 0.75], 'heliocentric-ecliptic-au', {
+    panX: 200,
+    panY: 150,
+    zoom: 100,
+    rotX: 0,
+    rotY: 0,
+  });
+  const rotated = tierPresentation.projectPoint([1, 0.5, 0.75], 'heliocentric-ecliptic-au', {
+    panX: 200,
+    panY: 150,
+    zoom: 100,
+    rotX: 0.4,
+    rotY: -0.5,
+  });
+  assert.notEqual(rotated.x, flat.x);
+  assert.notEqual(rotated.y, flat.y);
+  assert.notEqual(rotated.depth, flat.depth);
 });
 
 test('tier presentation sends evidence-bound extent to the core-owned camera fitter', () => {
@@ -326,4 +401,114 @@ test('country evidence framing fills desktop and mobile viewports without clippi
       Math.round(width / 2)
     );
   });
+});
+
+test('City semantic labels project through the camera and suppress screen collisions', () => {
+  const identity = new Float32Array([
+    1, 0, 0, 0,
+    0, 1, 0, 0,
+    0, 0, 1, 0,
+    0, 0, 0, 1,
+  ]);
+  const result = semanticLabelOverlay.layout([
+    { id: 'first', text: 'First', point: { x: 0, y: -0.5, heightM: 0.1 } },
+    { id: 'second', text: 'Second', point: { x: 0, y: -0.5, heightM: 0.1 } },
+  ], identity, { width: 400, height: 300, scale: 1 });
+  assert.deepEqual(result.labels.map((row) => row.id), ['first']);
+  assert.deepEqual(result.suppressedIds, ['second']);
+});
+
+function tierDrawingTrace(timeSeconds, { depthOrder = false } = {}) {
+  const trace = [];
+  const ctx = {
+    beginPath() { trace.push(['begin']); },
+    moveTo(x, y) { trace.push(['move', x, y]); },
+    lineTo(x, y) { trace.push(['line', x, y]); },
+    setLineDash(value) { trace.push(['dash', ...value]); },
+    stroke() { trace.push(['stroke']); },
+    fill() { trace.push(['fill']); },
+    arc(x, y, radius) { trace.push(['arc', x, y, radius]); },
+  };
+  tierPresentation.draw(ctx, [{
+    pluginId: 'fixture',
+    coordinateSystem: 'local-m',
+    areas: [],
+    choropleths: [],
+    paths: [{
+      id: 'flow',
+      coordinates: [[0, 0, depthOrder ? 5 : 0], [100, 0, depthOrder ? 5 : 0]],
+      quantityKind: depthOrder ? 'static-line' : 'cargo-flow',
+      tone: 'cool',
+      style: { widthPx: 2, strokeOpacity: 0.8, dash: [] },
+    }],
+    markers: [{
+      id: 'failure',
+      position: [10, 10, depthOrder ? -5 : 0],
+      quantityKind: 'service-failure',
+      tone: 'danger',
+      radius: 5,
+      style: { fillOpacity: 0.9, strokeOpacity: 0.9 },
+    }],
+    actors: [],
+    labels: [],
+  }], (position) => ({ x: position[0], y: position[1], depth: Number(position[2] || 0) }), {
+    timeSeconds,
+  });
+  return trace;
+}
+
+test('tier animation is deterministic at a simulation time and changes only when time advances', () => {
+  const first = tierDrawingTrace(12.5);
+  const replayed = tierDrawingTrace(12.5);
+  const advanced = tierDrawingTrace(13.5);
+  assert.deepEqual(replayed, first);
+  assert.notDeepEqual(
+    advanced.filter((row) => row[0] === 'arc'),
+    first.filter((row) => row[0] === 'arc'),
+  );
+});
+
+test('tier primitives are painter-sorted by projected 3D depth across primitive kinds', () => {
+  const trace = tierDrawingTrace(0, { depthOrder: true });
+  assert.ok(trace.findIndex((row) => row[0] === 'fill') < trace.findIndex((row) => row[0] === 'move'));
+});
+
+test('tier labels remain collision-managed after camera reprojection', () => {
+  const visible = [];
+  const ctx = {
+    measureText: (text) => ({ width: String(text).length * 7 }),
+    fillRect() {},
+    fillText: (text) => visible.push(text),
+  };
+  tierPresentation.draw(ctx, [{
+    pluginId: 'fixture',
+    coordinateSystem: 'local-m',
+    areas: [],
+    choropleths: [],
+    paths: [],
+    markers: [],
+    actors: [],
+    labels: [
+      { id: 'first', label: 'First', position: [0, 0, 0] },
+      { id: 'second', label: 'Second', position: [0, 0, 0] },
+    ],
+  }], () => ({ x: 100, y: 100, depth: 0 }), { timeSeconds: 0 });
+  assert.deepEqual(visible, ['First']);
+});
+
+test('coordinate-native compare framing remains distinct from overview and follow', () => {
+  const options = {
+    coordinates: [[-2, -1, -0.5], [2, 1, 1.5]],
+    coordinateSystem: 'heliocentric-ecliptic-au',
+    width: 800,
+    height: 600,
+    rotX: 0.3,
+    rotY: -0.4,
+  };
+  const overview = multiTierVisualizer.coordinateEvidenceView({ ...options, viewMode: 'overview' });
+  const compare = multiTierVisualizer.coordinateEvidenceView({ ...options, viewMode: 'compare' });
+  const follow = multiTierVisualizer.coordinateEvidenceView({ ...options, viewMode: 'follow' });
+  assert.ok(overview.zoom > compare.zoom);
+  assert.ok(compare.zoom > follow.zoom);
+  assert.ok([compare.panX, compare.panY, compare.zoom].every(Number.isFinite));
 });

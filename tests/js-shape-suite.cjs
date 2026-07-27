@@ -805,6 +805,7 @@ test('prompt compilation has a worker boundary with main-thread fallback', () =>
   assert.match(worker, /type: 'simulatte:pipeline-worker:result'/);
   assert.match(renderer, /const pipelineCompiler = createPipelineCompiler\(root\)/);
   assert.match(renderer, /function createPipelineCompiler\(root\)/);
+  assert.match(renderer, /const \{ appendBuildVersion \} = runtime/);
   assert.match(renderer, /simulatte-pipeline-worker\.js/);
   assert.match(renderer, /appendBuildVersion\(url, view\)/);
   assert.match(renderer, /new view\.Worker\(url\)/);
@@ -818,6 +819,13 @@ test('prompt compilation has a worker boundary with main-thread fallback', () =>
   assert.doesNotMatch(renderer, /Compiling preview simulation graph/);
   assert.match(renderer, /message: 'Parsing language'/);
   assert.doesNotMatch(renderer, /publishCompiledPhaseProgress/);
+
+  const objectShader = fs.readFileSync(
+    path.join(publicDir, 'blank/pipeline/phase-07-render/simulatte-webgpu-renderer-object-shader.js'),
+    'utf8'
+  );
+  assert.doesNotMatch(objectShader, /\blet active\b/);
+  assert.match(objectShader, /\blet activeState = clamp\(input\.accentMotion\.w/);
   assert.doesNotMatch(renderer, /stage: 'compile',\n\s+percent: 94/);
 
   assert.match(intentWorker, /manifestEntry: 'intentWorker'/);

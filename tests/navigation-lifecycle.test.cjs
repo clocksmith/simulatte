@@ -6,6 +6,8 @@ const path = require('node:path');
 const lifecycleApi = require('../public/simulatte/app/mount-lifecycle.js');
 const routerApi = require('../public/simulatte/app/router.js');
 const bootApi = require('../public/simulatte/app/world-tiers-boot.js');
+const mainView = require('../public/simulatte/app/main-view.js');
+const pluginContracts = require('../public/simulatte/platform/contracts/plugin-contracts.js');
 
 function deferred() {
   let resolve;
@@ -24,31 +26,155 @@ function fakeLink() {
 }
 
 test('experience HUD summary binds the active profile, scenario, and V4 state measures', () => {
+  const profile = JSON.parse(fs.readFileSync(
+    path.resolve(__dirname, '../public/data/application-profiles/grid-resilience-us-v1.json'),
+    'utf8',
+  ));
   const summary = bootApi.experienceHudSummary({
     profileId: 'grid-resilience-us-v1',
+    profile,
     profileLabel: 'Grid Resilience',
     scenario: { label: 'Heat demand peak' },
     contributions: [{
+      pluginId: 'grid-resilience-us',
       controls: { controls: [{ id: 'policy' }] },
+      events: [{
+        id: 'grid:event:12',
+        kind: 'grid.interface-saturated',
+      }],
       state: {
         status: 'ready',
+        eventIds: ['grid:event:12'],
         measures: [
-          { kind: 'progress', value: 0, unit: 'ratio' },
-          { kind: 'modeled-unserved-energy', value: 377766.206936, unit: 'MWh' },
-          { kind: 'minimum-reserve-margin', value: -0.12, unit: 'ratio' },
+          { kind: 'progress', value: 0.5, unit: 'ratio' },
+          { kind: 'modeled-unserved-load', value: 377766.206936, unit: 'MW' },
+          { kind: 'current-minimum-reserve-margin', value: -0.12, unit: 'ratio' },
         ],
       },
     }],
     runState: 'running',
+    playback: { currentStep: 12, totalSteps: 24 },
   });
 
   assert.equal(summary.experienceId, 'grid-resilience-us-v1');
   assert.equal(summary.title, 'Grid Resilience');
-  assert.equal(summary.description, 'Heat demand peak · Running');
+  assert.equal(summary.description, 'Heat demand peak');
+  assert.equal(summary.state, 'Running');
+  assert.equal(summary.event, 'Interface Saturated');
+  assert.equal(summary.stageLabel, 'Policy responds');
+  assert.match(summary.narrative, /Dispatch, storage/);
+  assert.equal(summary.comparison, 'Comparison settles after both branches complete');
   assert.deepEqual(summary.stats, {
-    'Modeled Unserved Energy': '377,766.207 MWh',
-    'Minimum Reserve Margin': '-12%',
+    'Modeled Unserved Load': '377,766.207 MW',
+    'Current Minimum Reserve Margin': '-12%',
   });
+});
+
+test('all shipped experiences declare validated story, metric, comparison, and view behavior', () => {
+  const root = path.resolve(__dirname, '..');
+  const inventory = JSON.parse(fs.readFileSync(
+    path.join(root, 'public/data/application-profiles/profile-claim-inventory-v1.json'),
+    'utf8',
+  ));
+  const kinds = new Map();
+  inventory.profileIds.forEach((profileId) => {
+    const profile = JSON.parse(fs.readFileSync(
+      path.join(root, 'public/data/application-profiles', `${profileId}.json`),
+      'utf8',
+    ));
+    pluginContracts.validateProfile(profile);
+    assert.ok(profile.experience);
+    assert.ok(profile.experience.primaryMeasureKinds.length <= 5);
+    assert.equal(profile.experience.stages[0].fromProgress, 0);
+    assert.ok(profile.experience.supportedViews.includes(profile.experience.defaultView));
+    kinds.set(profileId, profile.experience.kind);
+  });
+  assert.equal(kinds.get('safety-explorer-v1'), 'analysis');
+  assert.equal(kinds.get('orbital-transfer-planner-v1'), 'solver');
+  assert.equal([...kinds.values()].filter((kind) => kind === 'simulation').length, 9);
+});
+
+test('the shared shell exposes POV and first-class playback controls', () => {
+  const html = fs.readFileSync(path.resolve(__dirname, '../public/index.html'), 'utf8');
+  assert.match(html, /id="camera-pov"/);
+  assert.match(html, /id="camera-free"/);
+  assert.match(html, /id="camera-compare"/);
+  assert.match(html, /id="semantic-label-canvas"/);
+  assert.match(html, /id="playback-strip"/);
+  assert.match(html, /id="playback-event"/);
+  const strip = html.slice(html.indexOf('id="playback-strip"'), html.indexOf('id="mission-error"'));
+  assert.match(strip, /id="step-button"/);
+  assert.match(strip, /id="reset-button"/);
+  assert.match(strip, /id="playback-timeline"/);
+  assert.match(strip, /id="playback-speed"/);
+  assert.doesNotMatch(
+    fs.readFileSync(path.resolve(__dirname, '../public/simulatte/app/main.js'), 'utf8'),
+    /\bmainView\./,
+  );
+});
+
+test('side metrics replace the previous experience rows instead of retaining stale values', () => {
+  const node = () => ({
+    children: [],
+    dataset: {},
+    hidden: false,
+    textContent: '',
+    append(...children) { this.children.push(...children); },
+    replaceChildren(...children) { this.children = children; },
+  });
+  const documentRef = { createElement: node };
+  const elements = {
+    experienceSummary: { ...node(), ownerDocument: documentRef },
+    experienceSummaryState: node(),
+    experienceSummaryTitle: node(),
+    experienceSummaryDescription: node(),
+    experienceSummaryEvent: node(),
+    experienceSummaryNarrative: node(),
+    experienceSummaryStats: node(),
+    experienceSummaryComparison: node(),
+    playbackStrip: { hidden: true },
+    playbackEvent: node(),
+  };
+  mainView.renderExperienceSummary(elements, {
+    experienceId: 'grid-resilience-us-v1',
+    state: 'Running',
+    title: 'Grid Resilience',
+    description: 'Heat peak',
+    event: 'Outage',
+    narrative: 'Grid state changes.',
+    stats: { 'Unserved Load': '12 MW', Reserves: '4%' },
+    comparison: 'Baseline running',
+  });
+  mainView.renderExperienceSummary(elements, {
+    experienceId: 'asteroid-defense-v1',
+    state: 'Ready',
+    title: 'Asteroid Defense',
+    description: 'Short arc',
+    event: 'Observing',
+    narrative: 'Follow-up observations reduce uncertainty.',
+    stats: { 'Encounter Distance': '42,000 km' },
+    comparison: '',
+  });
+  assert.equal(elements.experienceSummary.dataset.experienceId, 'asteroid-defense-v1');
+  assert.equal(elements.experienceSummaryTitle.textContent, 'Asteroid Defense');
+  assert.equal(elements.experienceSummaryStats.children.length, 1);
+  assert.equal(elements.experienceSummaryStats.children[0].children[0].textContent, 'Encounter Distance');
+  assert.equal(elements.experienceSummaryStats.children[0].children[1].textContent, '42,000 km');
+  assert.equal(elements.experienceSummaryComparison.hidden, true);
+});
+
+test('tier camera controls resolve real overview, follow, POV, and compare targets by priority', () => {
+  const targets = [
+    { id: 'overview-low', viewMode: 'overview', priority: 10 },
+    { id: 'overview-high', viewMode: 'overview', priority: 90 },
+    { id: 'follow', viewMode: 'follow', priority: 60 },
+    { id: 'compare', viewMode: 'compare', priority: 70 },
+  ];
+  assert.equal(bootApi.preferredTierCameraTarget(targets, 'overview').id, 'overview-high');
+  assert.equal(bootApi.preferredTierCameraTarget(targets, 'follow').id, 'follow');
+  assert.equal(bootApi.preferredTierCameraTarget(targets, 'pov').id, 'follow');
+  assert.equal(bootApi.preferredTierCameraTarget(targets, 'compare').id, 'compare');
+  assert.equal(bootApi.preferredTierCameraTarget(targets, 'free'), null);
 });
 
 test('router paths preserve the governed tier and full experience id', () => {
@@ -202,6 +328,41 @@ test('app shell aborts and disposes a superseded boot before mounting the latest
     tier: 'world',
     experience: 'maritime-trade-global-v1',
   }]);
+});
+
+test('app shell clears stale side metrics before a different experience boots', async () => {
+  const previousDocument = global.document;
+  const summary = { hidden: false, dataset: { experienceId: 'old-experience-v1' } };
+  const stats = {
+    children: [{ textContent: 'Old metric' }],
+    replaceChildren() { this.children = []; },
+  };
+  global.document = {
+    body: { classList: { add() {}, remove() {} }, dataset: {} },
+    getElementById(id) {
+      if (id === 'experience-summary') return summary;
+      if (id === 'experience-summary-stats') return stats;
+      return null;
+    },
+    querySelectorAll() { return []; },
+  };
+  try {
+    const shell = bootApi.createAppShell({
+      router: { canonicalize() {}, start() {} },
+      landing: {
+        classList: { add() {}, remove() {} },
+        querySelector() { return null; },
+        addEventListener() {},
+      },
+      boot: async (tier, experience) => ({ tier, experience, dispose() {} }),
+    });
+    await shell.renderRoute({ tier: 'world', experience: 'maritime-trade-global-v1' });
+    assert.equal(summary.hidden, true);
+    assert.equal(summary.dataset.experienceId, undefined);
+    assert.deepEqual(stats.children, []);
+  } finally {
+    global.document = previousDocument;
+  }
 });
 
 test('app shell aborts and releases a terminally failed boot attempt', async () => {

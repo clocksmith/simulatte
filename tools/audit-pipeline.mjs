@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { spawnSync } from 'node:child_process';
+import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -28,7 +29,11 @@ function runNode(args) {
     stdio: 'inherit',
   });
   if (result.error) throw result.error;
-  if (result.status !== 0) process.exit(result.status || 1);
+  if (result.status !== 0) {
+    const error = new Error(`node ${args.join(' ')} exited with status ${result.status || 1}`);
+    error.exitCode = result.status || 1;
+    throw error;
+  }
 }
 
 function promptArgsFrom(argv) {
@@ -97,10 +102,48 @@ function outputDirsFor(mode) {
   };
 }
 
+function printUsage() {
+  console.log([
+    'usage: node tools/audit-pipeline.mjs [options]',
+    '',
+    'options:',
+    '  --intent-mode local|model',
+    '  --profile-dir PATH',
+    '  --local-port PORT',
+    '  --prompt TEXT',
+    '  --write-baseline',
+    '  --floor NUMBER',
+    '  --diversity-policy NAME',
+    '  --help',
+  ].join('\n'));
+}
+
+function promoteDirectory(stagingDir, canonicalDir) {
+  const backupDir = `${canonicalDir}.previous-${process.pid}`;
+  fs.rmSync(backupDir, { recursive: true, force: true });
+  if (fs.existsSync(canonicalDir)) fs.renameSync(canonicalDir, backupDir);
+  try {
+    fs.renameSync(stagingDir, canonicalDir);
+    fs.rmSync(backupDir, { recursive: true, force: true });
+  } catch (error) {
+    fs.rmSync(canonicalDir, { recursive: true, force: true });
+    if (fs.existsSync(backupDir)) fs.renameSync(backupDir, canonicalDir);
+    throw error;
+  }
+}
+
 function main() {
   const extraArgs = process.argv.slice(2);
+  if (extraArgs.includes('--help') || extraArgs.includes('-h')) {
+    printUsage();
+    return;
+  }
   const options = auditOptionsFrom(extraArgs);
   const outputDirs = outputDirsFor(options.intentMode);
+  const liveStagingDir = path.join(
+    AUDIT_DIR,
+    `.${path.basename(outputDirs.live)}.staging-${process.pid}-${Date.now()}`
+  );
   const literalArgs = LITERAL_PROMPTS.flatMap((prompt) => ['--prompt', prompt]);
   const adversarialArgs = ADVERSARIAL_PROMPTS.flatMap((prompt) => ['--prompt', prompt]);
   const extraPromptArgs = promptArgsFrom(extraArgs);
@@ -111,7 +154,7 @@ function main() {
     '--four', '0',
     '--eighty', '0',
     '--intent-mode', options.intentMode,
-    '--out', outputDirs.live,
+    '--out', liveStagingDir,
     '--timeout-ms', '45000',
     '--frame-delay-ms', '650',
     '--local-port', String(options.localPort),
@@ -122,7 +165,13 @@ function main() {
   if (options.intentMode === 'model') {
     visualArgs.push('--profile-dir', options.profileDir);
   }
-  runNode(visualArgs);
+  try {
+    runNode(visualArgs);
+    promoteDirectory(liveStagingDir, outputDirs.live);
+  } catch (error) {
+    fs.rmSync(liveStagingDir, { recursive: true, force: true });
+    throw error;
+  }
   const scoreArgs = [
     'tools/audit-pipeline-score.mjs',
     '--live-report', path.join(outputDirs.live, 'report.json'),
@@ -135,4 +184,9 @@ function main() {
   runNode(scoreArgs);
 }
 
-main();
+try {
+  main();
+} catch (error) {
+  console.error(error instanceof Error ? error.message : String(error));
+  process.exitCode = Number(error?.exitCode || 1);
+}

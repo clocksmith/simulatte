@@ -65,12 +65,16 @@
           probeCount: probes.length,
         });
         const rows = [];
+        let firstEmbeddingMs = 0;
         for (let i = 0; i < probes.length; i += 1) {
           const probe = probes[i];
+          const embeddingStarted = scope.nowMs();
           const result = await provider.embed({
             text: probe.text,
             nowIso: options.nowIso || new Date().toISOString(),
           });
+          const embeddingMs = scope.elapsedMsSince(embeddingStarted);
+          if (i === 0) firstEmbeddingMs = embeddingMs;
           const vector = scope.validateQueryEmbedding(result, runtime.index);
           rows.push({
             id: probe.id,
@@ -78,6 +82,7 @@
             embeddingDim: vector.length,
             vector,
             hash: embeddingVectorHash(vector),
+            durationMs: embeddingMs,
           });
           scope.emitRuntimeProgress(options.progress || null, Boolean(options.trace), {
             source: 'simulatte-intent-embedder',
@@ -107,6 +112,7 @@
         const probe = {
           ok: true,
           durationMs: scope.elapsedMsSince(started),
+          firstEmbeddingMs,
           embeddingDim: rows[0] ? rows[0].embeddingDim : runtime.index.embeddingDim,
           probeCount: rows.length,
           probeIds: rows.map((row) => row.id),
@@ -388,6 +394,7 @@
           durationMs: Number(details.durationMs || 0),
           providerLoadMs: Number(details.providerLoadMs || 0),
           probeMs: Number(probe.durationMs || 0),
+          firstEmbeddingMs: Number(probe.firstEmbeddingMs || 0),
           firstLoad: details.firstLoad === true,
           traceId: details.traceId || '',
           timestamp: new Date().toISOString(),

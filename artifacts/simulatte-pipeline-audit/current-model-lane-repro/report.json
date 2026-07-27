@@ -1,0 +1,227 @@
+{
+  "schema": "simulatte.intentSceneScreenshotAudit.v1",
+  "createdAt": "2026-07-27T15:40:31.537Z",
+  "chromePath": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+  "intentMode": "model",
+  "goldGate": "machine-and-human-recognizability",
+  "target": "local-public",
+  "url": "http://127.0.0.1:4198/blank/",
+  "profileDir": "/Users/xyz/deco/simulatte/artifacts/model-cache-profile",
+  "profilePersistent": true,
+  "promptDeadlineMs": 225000,
+  "chromeProcessLog": {
+    "schema": "simulatte.auditChildProcessLog.v1",
+    "stdout": {
+      "characterCount": 0,
+      "chunkCount": 0,
+      "truncated": false,
+      "tail": ""
+    },
+    "stderr": {
+      "characterCount": 9930,
+      "chunkCount": 49,
+      "truncated": false,
+      "tail": "\nDevTools listening on ws://127.0.0.1:51695/devtools/browser/98887708-f720-40a5-be22-e3ddb78b60e0\nTrying to load the allocator multiple times. This is *not* supported.\n[88220:41202088:0727/113903.064126:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT\n[88300:41202530:0727/113919.735254:VERBOSE1:chrome/updater/updater.cc:374] Version: 152.0.7933.0, opt, ARM_64, command line: /Users/xyz/Library/Application Support/Google/GoogleUpdater/152.0.7933.0/GoogleUpdater.app/Contents/MacOS/GoogleUpdater --wake-all --enable-logging --vmodule=*/components/update_client/*=2,*/chrome/enterprise_companion/*=2,*/chrome/updater/*=2\n[88300:41202530:0727/113919.735665:VERBOSE1:chrome/updater/updater.cc:377] OS version: 26.3.0, arch: arm64, System uptime (seconds): 3193077, parent pid: 88220\n[88300:41202530:0727/113919.737014:VERBOSE1:chrome/updater/updater.cc:382] Available disk space in install directory (/Users/xyz/Library/Application Support/Google/GoogleUpdater): 42235953152B (39.335GiB) / 494384795648B (460.432GiB)\n[88300:41202530:0727/113919.737025:VERBOSE1:chrome/updater/updater.cc:386] Available disk space in temporary directory (/var/folders/85/l5dptg296tlfx03cd_k7h0l80000gn/T/): 42235953152B (39.335GiB) / 494384795648B (460.432GiB)\n[88300:41202530:0727/113919.737077:VERBOSE2:chrome/updater/event_history.cc:265] Emitted a UPDATER_PROCESS START event to the history log\n[88302:41202534:0727/113919.743313:VERBOSE1:chrome/updater/updater.cc:374] Version: 152.0.7933.0, opt, ARM_64, command line: /Users/xyz/Library/Application Support/Google/GoogleUpdater/152.0.7933.0/GoogleUpdater.app/Contents/MacOS/GoogleUpdater --crash-handler --database=/Users/xyz/Library/Application Support/Google/GoogleUpdater/152.0.7933.0/Crashpad --url=https://clients2.google.com/cr/report --annotation=prod=Update4 --annotation=ver=152.0.7933.0 --handshake-fd=6 --enable-logging --vmodule=*/components/update_client/*=2,*/chrome/enterprise_companion/*=2,*/chrome/updater/*=2\n[88302:41202534:0727/113919.743712:VERBOSE1:chrome/updater/updater.cc:377] OS version: 26.3.0, arch: arm64, System uptime (seconds): 3193077, parent pid: 1\n[88302:41202534:0727/113919.745088:VERBOSE1:chrome/updater/updater.cc:382] Available disk space in install directory (/Users/xyz/Library/Application Support/Google/GoogleUpdater): 42235953152B (39.335GiB) / 494384795648B (460.432GiB)\n[88302:41202534:0727/113919.745098:VERBOSE1:chrome/updater/updater.cc:386] Available disk space in temporary directory (/var/folders/85/l5dptg296tlfx03cd_k7h0l80000gn/T/): 42235953152B (39.335GiB) / 494384795648B (460.432GiB)\n[88302:41202534:0727/113919.745155:VERBOSE2:chrome/updater/event_history.cc:265] Emitted a UPDATER_PROCESS START event to the history log\n[88300:41202530:0727/113919.745463:VERBOSE1:chrome/updater/crash_reporter.cc:124] Crash handler launched and ready.\n[88300:41202530:0727/113919.745972:VERBOSE1:chrome/updater/crash_client.cc:108] Found 0 completed crash reports\n[88300:41202530:0727/113919.746029:VERBOSE1:chrome/updater/crash_client.cc:132] Found 0 pending crash reports\n[88300:41202530:0727/113919.746087:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /Users/xyz/Library/Application Support/Google/RLZ/Crashpad/settings.dat: No such file or directory (2)\n[88300:41202530:0727/113919.746097:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /Users/xyz/Library/Application Support/Google/AndroidStudio2025.2.1/Crashpad/settings.dat: No such file or directory (2)\n[88300:41202530:0727/113919.746104:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /Users/xyz/Library/Application Support/Google/consentOptions/Crashpad/settings.dat: No such file or directory (2)\n[88300:41202530:0727/113919.746127:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /Users/xyz/Library/Application Support/Google/AndroidStudio2024.3.2/Crashpad/settings.dat: No such file or directory (2)\n[88300:41202530:0727/113919.746176:VERBOSE1:chrome/updater/updater.cc:105] Crash reporting initialized.\n[88300:41202542:0727/113919.746398:VERBOSE1:chrome/updater/app/app_wakeall.cc:58] Launching `/Users/xyz/Library/Application Support/Google/GoogleUpdater/152.0.7933.0/GoogleUpdater.app/Contents/MacOS/GoogleUpdater --wake`\n[88303:41202546:0727/113919.752237:VERBOSE1:chrome/updater/updater.cc:374] Version: 152.0.7933.0, opt, ARM_64, command line: /Users/xyz/Library/Application Support/Google/GoogleUpdater/152.0.7933.0/GoogleUpdater.app/Contents/MacOS/GoogleUpdater --wake --enable-logging --vmodule=*/components/update_client/*=2,*/chrome/enterprise_companion/*=2,*/chrome/updater/*=2\n[88303:41202546:0727/113919.752636:VERBOSE1:chrome/updater/updater.cc:377] OS version: 26.3.0, arch: arm64, System uptime (seconds): 3193077, parent pid: 88300\n[88303:41202546:0727/113919.753900:VERBOSE1:chrome/updater/updater.cc:382] Available disk space in install directory (/Users/xyz/Library/Application Support/Google/GoogleUpdater): 42235953152B (39.335GiB) / 494384795648B (460.432GiB)\n[88303:41202546:0727/113919.753912:VERBOSE1:chrome/updater/updater.cc:386] Available disk space in temporary directory (/var/folders/85/l5dptg296tlfx03cd_k7h0l80000gn/T/): 42235953152B (39.335GiB) / 494384795648B (460.432GiB)\n[88303:41202546:0727/113919.753964:VERBOSE2:chrome/updater/event_history.cc:265] Emitted a UPDATER_PROCESS START event to the history log\n[88305:41202550:0727/113919.760648:VERBOSE1:chrome/updater/updater.cc:374] Version: 152.0.7933.0, opt, ARM_64, command line: /Users/xyz/Library/Application Support/Google/GoogleUpdater/152.0.7933.0/GoogleUpdater.app/Contents/MacOS/GoogleUpdater --crash-handler --database=/Users/xyz/Library/Application Support/Google/GoogleUpdater/152.0.7933.0/Crashpad --url=https://clients2.google.com/cr/report --annotation=prod=Update4 --annotation=ver=152.0.7933.0 --handshake-fd=6 --enable-logging --vmodule=*/components/update_client/*=2,*/chrome/enterprise_companion/*=2,*/chrome/updater/*=2\n[88305:41202550:0727/113919.761063:VERBOSE1:chrome/updater/updater.cc:377] OS version: 26.3.0, arch: arm64, System uptime (seconds): 3193077, parent pid: 1\n[88305:41202550:0727/113919.762355:VERBOSE1:chrome/updater/updater.cc:382] Available disk space in install directory (/Users/xyz/Library/Application Support/Google/GoogleUpdater): 42235953152B (39.335GiB) / 494384795648B (460.432GiB)\n[88305:41202550:0727/113919.762366:VERBOSE1:chrome/updater/updater.cc:386] Available disk space in temporary directory (/var/folders/85/l5dptg296tlfx03cd_k7h0l80000gn/T/): 42235953152B (39.335GiB) / 494384795648B (460.432GiB)\n[88305:41202550:0727/113919.762423:VERBOSE2:chrome/updater/event_history.cc:265] Emitted a UPDATER_PROCESS START event to the history log\n[88303:41202546:0727/113919.762733:VERBOSE1:chrome/updater/crash_reporter.cc:124] Crash handler launched and ready.\n[88303:41202546:0727/113919.763236:VERBOSE1:chrome/updater/crash_client.cc:108] Found 0 completed crash reports\n[88303:41202546:0727/113919.763294:VERBOSE1:chrome/updater/crash_client.cc:132] Found 0 pending crash reports\n[88303:41202546:0727/113919.763356:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /Users/xyz/Library/Application Support/Google/RLZ/Crashpad/settings.dat: No such file or directory (2)\n[88303:41202546:0727/113919.763366:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /Users/xyz/Library/Application Support/Google/AndroidStudio2025.2.1/Crashpad/settings.dat: No such file or directory (2)\n[88303:41202546:0727/113919.763373:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /Users/xyz/Library/Application Support/Google/consentOptions/Crashpad/settings.dat: No such file or directory (2)\n[88303:41202546:0727/113919.763396:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /Users/xyz/Library/Application Support/Google/AndroidStudio2024.3.2/Crashpad/settings.dat: No such file or directory (2)\n[88303:41202546:0727/113919.763443:VERBOSE1:chrome/updater/updater.cc:105] Crash reporting initialized.\n[88303:41202546:0727/113919.763558:VERBOSE1:chrome/updater/ipc/update_service_internal_proxy_mojo.cc:61] Run\n[88220:41202088:0727/113927.212639:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT\n[88303:41202546:0727/113937.295295:VERBOSE1:chrome/updater/app/app.cc:52] Shutdown: 0\n[88303:41202546:0727/113937.295545:VERBOSE2:chrome/updater/event_history.cc:265] Emitted a UPDATER_PROCESS END event to the history log\n[88303:41202546:0727/113937.295559:VERBOSE1:chrome/updater/updater.cc:419] UpdaterMain (--wake) returned 0.\n[88300:41202542:0727/113937.390271:VERBOSE1:chrome/updater/app/app_wakeall.cc:68] `/Users/xyz/Library/Application Support/Google/GoogleUpdater/152.0.7933.0/GoogleUpdater.app/Contents/MacOS/GoogleUpdater --wake` exited 0\n[88300:41202530:0727/113937.390374:VERBOSE1:chrome/updater/app/app.cc:52] Shutdown: 0\n[88300:41202530:0727/113937.390739:VERBOSE2:chrome/updater/event_history.cc:265] Emitted a UPDATER_PROCESS END event to the history log\n[88300:41202530:0727/113937.390756:VERBOSE1:chrome/updater/updater.cc:419] UpdaterMain (--wake-all) returned 0.\n[88305:41202550:0727/113947.301451:VERBOSE2:chrome/updater/event_history.cc:265] Emitted a UPDATER_PROCESS END event to the history log\n[88305:41202550:0727/113947.301469:VERBOSE1:chrome/updater/updater.cc:419] UpdaterMain (--crash-handler) returned 0.\n[88302:41202534:0727/113947.302144:VERBOSE2:chrome/updater/event_history.cc:265] Emitted a UPDATER_PROCESS END event to the history log\n[88302:41202534:0727/113947.302347:VERBOSE1:chrome/updater/updater.cc:419] UpdaterMain (--crash-handler) returned 0.\n[88220:41202088:0727/114023.916703:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT\n"
+    }
+  },
+  "promptCounts": {
+    "curated": 0,
+    "broad": 0,
+    "custom": 1,
+    "gold": 0,
+    "random4gram": 0,
+    "random80gram": 0
+  },
+  "browserEvents": [],
+  "gpuValidationFailures": [],
+  "summary": {
+    "ok": false,
+    "failures": [
+      "1: prompt audit failed: Timed out waiting for intent ready for 01-custom-particle-collider-muon-tracks-collision-plume-through-a-detector-slice-with-fiel: {\"ok\":null,\"state\":\"ready\",\"stageId\":\"prompt-runtime\",\"lastStage\":\"model-ready\",\"pipelineStep\":\"1\",\"progress\":\"determinate\",\"detail\":\"Prompt runtime ready 100%\",\"blocking\":\"false\",\"passive\":\"false\",\"modelId\":\"\",\"cacheMode\":\"\",\"cacheWorker\":\"\",\"resourceKind\":\"\",\"resourceFile\":\"\",\"completedBytes\":\"0\",\"totalBytes\":\"0\",\"traceId\":\"\",\"rankId\":\"\",\"providerReady\":\"false\",\"reuse\":\"false\",\"cacheHitCount\":\"0\",\"cacheMissCount\":\"0\",\"message\":\"Ready\",\"phaseLabel\":\"Prompt runtime\",\"renderer\":\"webgpu\",\"rendererStatus\":\"WebGPU renderer ready\",\"sceneVisible\":false,\"sceneId\":\"\",\"renderInputSerial\":0,\"renderInputAdvanced\":false,\"compiledPrompt\":\"\",\"promptMatches\":false,\"phase6Schema\":\"\",\"compiledSpecName\":\"Blank Construction Plane\",\"disabled\":false,\"runtimeHealth\":{\"schema\":\"simulatte.intentRuntimeHealth.v2\",\"timestamp\":\"2026-07-27T15:39:01.122Z\",\"source\":\"\",\"state\":\"ready\",\"blocking\":false,\"passive\":false,\"canvasLoading\":false,\"stage\":\"runtime.model.ready\",\"phaseId\":\"prompt-runtime\",\"phaseLabel\":\"Prompt runtime\",\"pipelineStep\":1,\"progress\":100,\"taskProgress\":100,\"overallProgress\":100,\"sourceProgress\":100,\"progressBasis\":\"terminal\",\"progressEstimated\":false,\"taskKey\":\"runtime.model.ready\",\"taskElapsedMs\":0,\"taskExpectedDurationMs\":300,\"taskRemainingMs\":300,\"runElapsedMs\":0,\"runExpectedDurationMs\":644,\"runRemainingMs\":644,\"line\":\"Prompt runtime ready 100%\",\"displayLine\":\"Prompt runtime ready 100%\",\"label\":\"Embedding model ready\",\"subline\":\"\",\"byteText\":\"\",\"sourceText\":\"\",\"byteProgress\":\"\",\"activity\":\"embedding model ready\",\"heartbeat\":false,\"silenceMs\":0,\"message\":\"Ready\",\"detail\":\"Qwen retrieval selected for the next run\",\"backend\":\"\",\"timing\":{\"timestamp\":\"2026-07-27T15:39:01.122Z\",\"durationMs\":0,\"elapsedMs\":0,\"queueWaitMs\":0,\"schedulerLagMs\":0,\"handlerDurationMs\":0,\"timing\":\"\",\"traceId\":\"\"},\"model\":{\"id\":\"\",\"baseUrl\":\"\",\"artifactMode\":\"\",\"sourceSizeBytes\":0,\"cachePrefetch\":false,\"cacheSkipReason\":\"\"},\"resource\":{\"kind\":\"\",\"url\":\"\",\"file\":\"\",\"fileKind\":\"\",\"status\":0,\"byteLength\":0,\"completedBytes\":0,\"totalBytes\":0},\"embeddings\":{\"promptChars\":0,\"embeddingDim\":0,\"candidateCount\":0,\"rankBackend\":\"\",\"spanCount\":0,\"embeddedSpanCount\":0,\"cachedSpanCount\":0,\"cacheHitCount\":0},\"promptRuntime\":null,\"loaderReceipt\":{\"schema\":\"simulatte.loaderPhaseReceipt.v2\",\"id\":\"loader-1\",\"runId\":\"\",\"stage\":\"runtime.model.ready\",\"sourceStage\":\"model-ready\",\"phaseId\":\"prompt-runtime\",\"phaseLabel\":\"Prompt runtime\",\"pipelineStep\":1}},\"runtimeEvents\":[{\"schema\":\"simulatte.intentRuntimeHealth.v2\",\"timestamp\":\"2026-07-27T15:39:01.112Z\",\"source\":\"\",\"state\":\"idle\",\"blocking\":false,\"passive\":false,\"canvasLoading\":false,\"stage\":\"runtime.start\",\"phaseId\":\"prompt-runtime\",\"phaseLabel\":\"Prompt runtime\",\"pipelineStep\":1,\"progress\":0,\"taskProgress\":0,\"overallProgress\":0,\"sourceProgress\":0,\"progressBasis\":\"elapsed-time-forecast\",\"progressEstimated\":true,\"taskKey\":\"\",\"taskElapsedMs\":0,\"taskExpectedDurationMs\":1200,\"taskRemainingMs\":1200,\"runElapsedMs\":0,\"runExpectedDurationMs\":24000,\"runRemainingMs\":24000,\"line\":\"\",\"displayLine\":\"\",\"label\":\"\",\"subline\":\"\",\"byteText\":\"\",\"sourceText\":\"\",\"byteProgress\":\"\",\"activity\":\"\",\"heartbeat\":false,\"silenceMs\":0,\"message\":\"\",\"detail\":\"\",\"backend\":\"\",\"timing\":{},\"model\":{},\"resource\":{},\"embeddings\":{},\"promptRuntime\":null,\"loaderReceipt\":null},{\"schema\":\"simulatte.intentRuntimeHealth.v2\",\"timestamp\":\"2026-07-27T15:39:01.122Z\",\"source\":\"\",\"state\":\"ready\",\"blocking\":false,\"passive\":false,\"canvasLoading\":false,\"stage\":\"runtime.model.ready\",\"phaseId\":\"prompt-runtime\",\"phaseLabel\":\"Prompt runtime\",\"pipelineStep\":1,\"progress\":100,\"taskProgress\":100,\"overallProgress\":100,\"sourceProgress\":100,\"progressBasis\":\"terminal\",\"progressEstimated\":false,\"taskKey\":\"runtime.model.ready\",\"taskElapsedMs\":0,\"taskExpectedDurationMs\":300,\"taskRemainingMs\":300,\"runElapsedMs\":0,\"runExpectedDurationMs\":644,\"runRemainingMs\":644,\"line\":\"Prompt runtime ready 100%\",\"displayLine\":\"Prompt runtime ready 100%\",\"label\":\"Embedding model ready\",\"subline\":\"\",\"byteText\":\"\",\"sourceText\":\"\",\"byteProgress\":\"\",\"activity\":\"embedding model ready\",\"heartbeat\":false,\"silenceMs\":0,\"message\":\"Ready\",\"detail\":\"Qwen retrieval selected for the next run\",\"backend\":\"\",\"timing\":{\"timestamp\":\"2026-07-27T15:39:01.122Z\",\"durationMs\":0,\"elapsedMs\":0,\"queueWaitMs\":0,\"schedulerLagMs\":0,\"handlerDurationMs\":0,\"timing\":\"\",\"traceId\":\"\"},\"model\":{\"id\":\"\",\"baseUrl\":\"\",\"artifactMode\":\"\",\"sourceSizeBytes\":0,\"cachePrefetch\":false,\"cacheSkipReason\":\"\"},\"resource\":{\"kind\":\"\",\"url\":\"\",\"file\":\"\",\"fileKind\":\"\",\"status\":0,\"byteLength\":0,\"completedBytes\":0,\"totalBytes\":0},\"embeddings\":{\"promptChars\":0,\"embeddingDim\":0,\"candidateCount\":0,\"rankBackend\":\"\",\"spanCount\":0,\"embeddedSpanCount\":0,\"cachedSpanCount\":0,\"cacheHitCount\":0},\"promptRuntime\":null,\"loaderReceipt\":{\"schema\":\"simulatte.loaderPhaseReceipt.v2\",\"id\":\"loader-1\",\"runId\":\"\",\"stage\":\"runtime.model.ready\",\"sourceStage\":\"model-ready\",\"phaseId\":\"prompt-runtime\",\"phaseLabel\":\"Prompt runtime\",\"pipelineStep\":1}}]}"
+    ],
+    "promptCount": 1,
+    "screenshotCount": 0,
+    "uniqueCanvasHashes": 1,
+    "uniqueScreenshotHashes": 1,
+    "uniqueCanvasPerceptualHashes": 0,
+    "minCanvasPerceptualHashDistance": null,
+    "uniqueCanvasDiversityPerceptualHashes": 0,
+    "minCanvasDiversityPerceptualHashDistance": null,
+    "perceptualHashCalibration": {
+      "schema": "simulatte.cleanCanvasPerceptualHashCalibration.v1",
+      "hashKind": "audit:visual-clean-canvas-dhash-64",
+      "hashBits": 64,
+      "promptCount": 1,
+      "usablePromptCount": 0,
+      "bitMargin": 1,
+      "maxTemporalBits": null,
+      "maxTemporalDistance": null,
+      "minPairwiseBits": null,
+      "minPairwiseDistance": null,
+      "closestPair": null,
+      "recommendedHashFloorBits": null,
+      "recommendedHashFloor": null,
+      "calibrated": false
+    },
+    "sceneKinds": [],
+    "visualIRSceneKinds": [],
+    "visualIRCameras": [],
+    "graphicsAtoms": {
+      "totalAtoms": 0,
+      "mappingIds": [],
+      "uniformSlots": [],
+      "wgslOperators": []
+    },
+    "visualRubric": {
+      "scope": "machine-structural-and-pixel-presence",
+      "recognizabilityStatus": "human-adjudication-required",
+      "averageScore": 0,
+      "passCount": 0,
+      "failCount": 1,
+      "expectedSignals": [],
+      "missingSignals": [
+        "audit-completion"
+      ],
+      "dynamicFailures": [],
+      "representationFailures": [
+        1
+      ],
+      "averageRepresentationQuality": 0
+    },
+    "intentBriefs": {
+      "totalEvidence": 0,
+      "totalCausalEdges": 0,
+      "totalAffordances": 0,
+      "totalDegraded": 0
+    },
+    "physicalReceipts": {
+      "totalIntentEvidence": 0,
+      "totalCausalEdges": 0,
+      "totalCausalAffordances": 0,
+      "totalAssumptions": 0,
+      "totalUnsupported": 0,
+      "totalDegraded": 0
+    },
+    "causalRequirements": {
+      "promptCount": 1,
+      "promptsMissingAffordances": []
+    },
+    "templateIds": [],
+    "autoRating": {
+      "schema": "simulatte.liveVisualAutoRating.v1",
+      "scope": "machine-structural-and-pixel-presence",
+      "recognizabilityVerified": false,
+      "humanAdjudicationRequired": true,
+      "score": 0,
+      "grade": "unverified",
+      "verdict": "not-proven",
+      "machineStructuralVerdict": "fail",
+      "promptCount": 1,
+      "passRate": 0,
+      "sceneDiversity": 0,
+      "screenshotDiversity": 1,
+      "canvasDiversity": 0,
+      "diversityTelemetryOnly": true,
+      "causalCoverage": 1,
+      "failureCount": 1,
+      "dynamicFailureCount": 0,
+      "representationFailureCount": 1,
+      "averageRepresentationQuality": 0,
+      "missingSignals": [
+        "audit-completion"
+      ]
+    }
+  },
+  "results": [
+    {
+      "index": 1,
+      "kind": "custom",
+      "prompt": "particle collider muon tracks collision plume through a detector slice with field lines and calorimeter heat",
+      "goldRowId": "",
+      "auditError": "Timed out waiting for intent ready for 01-custom-particle-collider-muon-tracks-collision-plume-through-a-detector-slice-with-fiel: {\"ok\":null,\"state\":\"ready\",\"stageId\":\"prompt-runtime\",\"lastStage\":\"model-ready\",\"pipelineStep\":\"1\",\"progress\":\"determinate\",\"detail\":\"Prompt runtime ready 100%\",\"blocking\":\"false\",\"passive\":\"false\",\"modelId\":\"\",\"cacheMode\":\"\",\"cacheWorker\":\"\",\"resourceKind\":\"\",\"resourceFile\":\"\",\"completedBytes\":\"0\",\"totalBytes\":\"0\",\"traceId\":\"\",\"rankId\":\"\",\"providerReady\":\"false\",\"reuse\":\"false\",\"cacheHitCount\":\"0\",\"cacheMissCount\":\"0\",\"message\":\"Ready\",\"phaseLabel\":\"Prompt runtime\",\"renderer\":\"webgpu\",\"rendererStatus\":\"WebGPU renderer ready\",\"sceneVisible\":false,\"sceneId\":\"\",\"renderInputSerial\":0,\"renderInputAdvanced\":false,\"compiledPrompt\":\"\",\"promptMatches\":false,\"phase6Schema\":\"\",\"compiledSpecName\":\"Blank Construction Plane\",\"disabled\":false,\"runtimeHealth\":{\"schema\":\"simulatte.intentRuntimeHealth.v2\",\"timestamp\":\"2026-07-27T15:39:01.122Z\",\"source\":\"\",\"state\":\"ready\",\"blocking\":false,\"passive\":false,\"canvasLoading\":false,\"stage\":\"runtime.model.ready\",\"phaseId\":\"prompt-runtime\",\"phaseLabel\":\"Prompt runtime\",\"pipelineStep\":1,\"progress\":100,\"taskProgress\":100,\"overallProgress\":100,\"sourceProgress\":100,\"progressBasis\":\"terminal\",\"progressEstimated\":false,\"taskKey\":\"runtime.model.ready\",\"taskElapsedMs\":0,\"taskExpectedDurationMs\":300,\"taskRemainingMs\":300,\"runElapsedMs\":0,\"runExpectedDurationMs\":644,\"runRemainingMs\":644,\"line\":\"Prompt runtime ready 100%\",\"displayLine\":\"Prompt runtime ready 100%\",\"label\":\"Embedding model ready\",\"subline\":\"\",\"byteText\":\"\",\"sourceText\":\"\",\"byteProgress\":\"\",\"activity\":\"embedding model ready\",\"heartbeat\":false,\"silenceMs\":0,\"message\":\"Ready\",\"detail\":\"Qwen retrieval selected for the next run\",\"backend\":\"\",\"timing\":{\"timestamp\":\"2026-07-27T15:39:01.122Z\",\"durationMs\":0,\"elapsedMs\":0,\"queueWaitMs\":0,\"schedulerLagMs\":0,\"handlerDurationMs\":0,\"timing\":\"\",\"traceId\":\"\"},\"model\":{\"id\":\"\",\"baseUrl\":\"\",\"artifactMode\":\"\",\"sourceSizeBytes\":0,\"cachePrefetch\":false,\"cacheSkipReason\":\"\"},\"resource\":{\"kind\":\"\",\"url\":\"\",\"file\":\"\",\"fileKind\":\"\",\"status\":0,\"byteLength\":0,\"completedBytes\":0,\"totalBytes\":0},\"embeddings\":{\"promptChars\":0,\"embeddingDim\":0,\"candidateCount\":0,\"rankBackend\":\"\",\"spanCount\":0,\"embeddedSpanCount\":0,\"cachedSpanCount\":0,\"cacheHitCount\":0},\"promptRuntime\":null,\"loaderReceipt\":{\"schema\":\"simulatte.loaderPhaseReceipt.v2\",\"id\":\"loader-1\",\"runId\":\"\",\"stage\":\"runtime.model.ready\",\"sourceStage\":\"model-ready\",\"phaseId\":\"prompt-runtime\",\"phaseLabel\":\"Prompt runtime\",\"pipelineStep\":1}},\"runtimeEvents\":[{\"schema\":\"simulatte.intentRuntimeHealth.v2\",\"timestamp\":\"2026-07-27T15:39:01.112Z\",\"source\":\"\",\"state\":\"idle\",\"blocking\":false,\"passive\":false,\"canvasLoading\":false,\"stage\":\"runtime.start\",\"phaseId\":\"prompt-runtime\",\"phaseLabel\":\"Prompt runtime\",\"pipelineStep\":1,\"progress\":0,\"taskProgress\":0,\"overallProgress\":0,\"sourceProgress\":0,\"progressBasis\":\"elapsed-time-forecast\",\"progressEstimated\":true,\"taskKey\":\"\",\"taskElapsedMs\":0,\"taskExpectedDurationMs\":1200,\"taskRemainingMs\":1200,\"runElapsedMs\":0,\"runExpectedDurationMs\":24000,\"runRemainingMs\":24000,\"line\":\"\",\"displayLine\":\"\",\"label\":\"\",\"subline\":\"\",\"byteText\":\"\",\"sourceText\":\"\",\"byteProgress\":\"\",\"activity\":\"\",\"heartbeat\":false,\"silenceMs\":0,\"message\":\"\",\"detail\":\"\",\"backend\":\"\",\"timing\":{},\"model\":{},\"resource\":{},\"embeddings\":{},\"promptRuntime\":null,\"loaderReceipt\":null},{\"schema\":\"simulatte.intentRuntimeHealth.v2\",\"timestamp\":\"2026-07-27T15:39:01.122Z\",\"source\":\"\",\"state\":\"ready\",\"blocking\":false,\"passive\":false,\"canvasLoading\":false,\"stage\":\"runtime.model.ready\",\"phaseId\":\"prompt-runtime\",\"phaseLabel\":\"Prompt runtime\",\"pipelineStep\":1,\"progress\":100,\"taskProgress\":100,\"overallProgress\":100,\"sourceProgress\":100,\"progressBasis\":\"terminal\",\"progressEstimated\":false,\"taskKey\":\"runtime.model.ready\",\"taskElapsedMs\":0,\"taskExpectedDurationMs\":300,\"taskRemainingMs\":300,\"runElapsedMs\":0,\"runExpectedDurationMs\":644,\"runRemainingMs\":644,\"line\":\"Prompt runtime ready 100%\",\"displayLine\":\"Prompt runtime ready 100%\",\"label\":\"Embedding model ready\",\"subline\":\"\",\"byteText\":\"\",\"sourceText\":\"\",\"byteProgress\":\"\",\"activity\":\"embedding model ready\",\"heartbeat\":false,\"silenceMs\":0,\"message\":\"Ready\",\"detail\":\"Qwen retrieval selected for the next run\",\"backend\":\"\",\"timing\":{\"timestamp\":\"2026-07-27T15:39:01.122Z\",\"durationMs\":0,\"elapsedMs\":0,\"queueWaitMs\":0,\"schedulerLagMs\":0,\"handlerDurationMs\":0,\"timing\":\"\",\"traceId\":\"\"},\"model\":{\"id\":\"\",\"baseUrl\":\"\",\"artifactMode\":\"\",\"sourceSizeBytes\":0,\"cachePrefetch\":false,\"cacheSkipReason\":\"\"},\"resource\":{\"kind\":\"\",\"url\":\"\",\"file\":\"\",\"fileKind\":\"\",\"status\":0,\"byteLength\":0,\"completedBytes\":0,\"totalBytes\":0},\"embeddings\":{\"promptChars\":0,\"embeddingDim\":0,\"candidateCount\":0,\"rankBackend\":\"\",\"spanCount\":0,\"embeddedSpanCount\":0,\"cachedSpanCount\":0,\"cacheHitCount\":0},\"promptRuntime\":null,\"loaderReceipt\":{\"schema\":\"simulatte.loaderPhaseReceipt.v2\",\"id\":\"loader-1\",\"runId\":\"\",\"stage\":\"runtime.model.ready\",\"sourceStage\":\"model-ready\",\"phaseId\":\"prompt-runtime\",\"phaseLabel\":\"Prompt runtime\",\"pipelineStep\":1}}]}",
+      "auditFailureState": {
+        "url": "http://127.0.0.1:4198/blank/",
+        "runtime": {
+          "state": "ready",
+          "progress": "determinate",
+          "taskProgress": "100",
+          "overallProgress": "100",
+          "sourceProgress": "100",
+          "progressBasis": "terminal",
+          "progressEstimated": "false",
+          "taskKey": "runtime.model.ready",
+          "taskElapsedMs": "0",
+          "taskRemainingMs": "300",
+          "loadingVisual": "idle",
+          "stage": "prompt-runtime",
+          "pipelineStep": "1",
+          "detail": "Prompt runtime ready 100%",
+          "displayLine": "Prompt runtime ready 100%",
+          "label": "Embedding model ready",
+          "subline": "",
+          "byteText": "",
+          "sourceText": "",
+          "byteProgress": "",
+          "activity": "embedding model ready",
+          "heartbeat": "false",
+          "silenceMs": "0",
+          "lastStage": "model-ready",
+          "lastMessage": "Ready",
+          "lastLine": "Prompt runtime ready 100%",
+          "lastSource": "",
+          "backend": "",
+          "blocking": "false",
+          "passive": "false",
+          "loaderReceipt": "{\"schema\":\"simulatte.loaderPhaseReceipt.v2\",\"id\":\"loader-1\",\"runId\":\"\",\"stage\":\"runtime.model.ready\",\"sourceStage\":\"model-ready\",\"phaseId\":\"prompt-runtime\",\"phaseLabel\":\"Prompt runtime\",\"pipelineStep\":1,\"label\":\"Embedding model ready\",\"subline\":\"\",\"status\":\"complete\",\"state\":\"ready\",\"blocking\":false,\"indeterminate\":false,\"startedAt\":\"2026-07-27T15:39:01.122Z\",\"updatedAt\":\"2026-07-27T15:39:01.122Z\",\"completedAt\":\"2026-07-27T15:39:01.122Z\",\"durationMs\":0,\"taskKey\":\"runtime.model.ready\",\"progressBasis\":\"terminal\",\"progressEstimated\":false,\"expectedDurationMs\":300,\"percentStart\":0,\"percentEnd\":100,\"overallPercentStart\":100,\"overallPercentEnd\":100,\"sourcePercentStart\":100,\"sourcePercentEnd\":100,\"completedBytes\":0,\"totalBytes\":0,\"byteLength\":0,\"byteText\":\"\",\"sourceText\":\"\",\"byteProgress\":\"\",\"source\":\"\",\"cacheMode\":\"\",\"resourceKind\":\"\",\"resourceFile\":\"\",\"resourceUrl\":\"\",\"modelId\":\"\",\"modelBaseUrl\":\"\",\"eventCount\":1}",
+          "health": "{\"schema\":\"simulatte.intentRuntimeHealth.v2\",\"timestamp\":\"2026-07-27T15:39:01.122Z\",\"source\":\"\",\"state\":\"ready\",\"blocking\":false,\"passive\":false,\"canvasLoading\":false,\"stage\":\"runtime.model.ready\",\"phaseId\":\"prompt-runtime\",\"phaseLabel\":\"Prompt runtime\",\"pipelineStep\":1,\"progress\":100,\"taskProgress\":100,\"overallProgress\":100,\"sourceProgress\":100,\"progressBasis\":\"terminal\",\"progressEstimated\":false,\"taskKey\":\"runtime.model.ready\",\"taskElapsedMs\":0,\"taskExpectedDurationMs\":300,\"taskRemainingMs\":300,\"runElapsedMs\":0,\"runExpectedDurationMs\":644,\"runRemainingMs\":644,\"line\":\"Prompt runtime ready 100%\",\"displayLine\":\"Prompt runtime ready 100%\",\"label\":\"Embedding model ready\",\"subline\":\"\",\"byteText\":\"\",\"sourceText\":\"\",\"byteProgress\":\"\",\"activity\":\"embedding model ready\",\"heartbeat\":false,\"silenceMs\":0,\"message\":\"Ready\",\"detail\":\"Qwen retrieval selected for the next run\",\"backend\":\"\",\"timing\":{\"timestamp\":\"2026-07-27T15:39:01.122Z\",\"durationMs\":0,\"elapsedMs\":0,\"queueWaitMs\":0,\"schedulerLagMs\":0,\"handlerDurationMs\":0,\"timing\":\"\",\"traceId\":\"\"},\"model\":{\"id\":\"\",\"baseUrl\":\"\",\"artifactMode\":\"\",\"sourceSizeBytes\":0,\"cachePrefetch\":false,\"cacheSkipReason\":\"\"},\"resource\":{\"kind\":\"\",\"url\":\"\",\"file\":\"\",\"fileKind\":\"\",\"status\":0,\"byteLength\":0,\"completedBytes\":0,\"totalBytes\":0},\"embeddings\":{\"promptChars\":0,\"embeddingDim\":0,\"candidateCount\":0,\"rankBackend\":\"\",\"spanCount\":0,\"embeddedSpanCount\":0,\"cachedSpanCount\":0,\"cacheHitCount\":0},\"promptRuntime\":null,\"loaderReceipt\":{\"schema\":\"simulatte.loaderPhaseReceipt.v2\",\"id\":\"loader-1\",\"runId\":\"\",\"stage\":\"runtime.model.ready\",\"sourceStage\":\"model-ready\",\"phaseId\":\"prompt-runtime\",\"phaseLabel\":\"Prompt runtime\",\"pipelineStep\":1}}",
+          "loaderPhaseReceipts": "[{\"schema\":\"simulatte.loaderPhaseReceipt.v2\",\"id\":\"loader-1\",\"runId\":\"\",\"stage\":\"runtime.model.ready\",\"sourceStage\":\"model-ready\",\"phaseId\":\"prompt-runtime\",\"phaseLabel\":\"Prompt runtime\",\"pipelineStep\":1,\"label\":\"Embedding model ready\",\"subline\":\"\",\"status\":\"complete\",\"state\":\"ready\",\"blocking\":false,\"indeterminate\":false,\"startedAt\":\"2026-07-27T15:39:01.122Z\",\"updatedAt\":\"2026-07-27T15:39:01.122Z\",\"completedAt\":\"2026-07-27T15:39:01.122Z\",\"durationMs\":0,\"taskKey\":\"runtime.model.ready\",\"progressBasis\":\"terminal\",\"progressEstimated\":false,\"expectedDurationMs\":300,\"percentStart\":0,\"percentEnd\":100,\"overallPercentStart\":100,\"overallPercentEnd\":100,\"sourcePercentStart\":100,\"sourcePercentEnd\":100,\"completedBytes\":0,\"totalBytes\":0,\"byteLength\":0,\"byteText\":\"\",\"sourceText\":\"\",\"byteProgress\":\"\",\"source\":\"\",\"cacheMode\":\"\",\"resourceKind\":\"\",\"resourceFile\":\"\",\"resourceUrl\":\"\",\"modelId\":\"\",\"modelBaseUrl\":\"\",\"eventCount\":1}]",
+          "modelId": "",
+          "modelBaseUrl": "",
+          "cacheMode": "",
+          "cacheWorker": "",
+          "cacheBackends": "",
+          "resourceKind": "",
+          "resourceFile": "",
+          "completedBytes": "0",
+          "totalBytes": "0",
+          "traceId": "",
+          "rankId": "",
+          "reuse": "false",
+          "providerReady": "false",
+          "promptRuntimeReceipt": "",
+          "cacheHitCount": "0",
+          "cacheMissCount": "0",
+          "cachedSpanCount": "0"
+        },
+        "canvas": {
+          "sceneVisible": "false",
+          "renderer": "webgpu",
+          "rendererStatus": "WebGPU renderer ready",
+          "webgpuFeatureFlags": "enabled:standard;used:compiled-object-geometry-programs+storage-buffer-object-parts+instanced-bounded-quads+depth-buffer-occlusion+camera-perspective-transform+normal-material-lighting",
+          "webgpuOptimizationPath": "background-plus-instanced-object-parts",
+          "auditRequirePixelProof": "true",
+          "auditFreezeFrame": "false"
+        },
+        "labReady": true,
+        "spec": {
+          "name": "Blank Construction Plane",
+          "templateId": "blank-world",
+          "phaseSchemas": {},
+          "phase6SceneKind": "",
+          "phase6RenderPacketSchema": ""
+        }
+      },
+      "visualRubric": {
+        "score": 0,
+        "pass": false,
+        "expectedSignals": [],
+        "missingSignals": [
+          "audit-completion"
+        ],
+        "dynamicRequired": false,
+        "dynamic": false,
+        "representationQuality": 0
+      }
+    }
+  ]
+}

@@ -42,6 +42,7 @@
       this.currentSolarSystemInterval = null;
       this.currentStarCutoff = null;
       this.defaultView = null;
+      this.viewMode = 'overview';
 
       // Mouse control variables (zoom & pan/orbit)
       this.panX = 0;
@@ -64,7 +65,16 @@
       this.pluginLayer = tierPresentation?.createLayer({
         width: () => this.width, height: () => this.height, pan: (dx, dy) => { this.panX += dx; this.panY += dy; },
         fit: (target, system) => this.fitPluginPresentationTarget(target, system),
-        view: () => ({ panX: this.panX, panY: this.panY, zoom: this.zoom, currentTier: this.currentTier, bounds: this.data?.bounds, projectCountry: (x, y, bounds) => this.projectCountryPoint(x, y, bounds) }),
+        view: () => ({
+          panX: this.panX,
+          panY: this.panY,
+          zoom: this.zoom,
+          rotX: this.rotX,
+          rotY: this.rotY,
+          currentTier: this.currentTier,
+          bounds: this.data?.bounds,
+          projectCountry: (x, y, bounds) => this.projectCountryPoint(x, y, bounds),
+        }),
       });
 
       this.setupEvents();
@@ -115,12 +125,12 @@
         this.dragStartX = e.clientX;
         this.dragStartY = e.clientY;
 
-        if (this.currentTier === 'star-chart') {
-          // Orbit stars in 3D
+        if (this.currentTier === 'star-chart' || this.currentTier === 'solar-system') {
+          // Orbit coordinate-native evidence in 3D.
           this.rotY += dx * 0.005;
           this.rotX += dy * 0.005;
         } else {
-          // Pan map/solar system in 2D
+          // Pan planar map tiers.
           this.panX += dx;
           this.panY += dy;
         }
@@ -594,13 +604,22 @@
     fitPluginPresentationTarget(target, coordinateSystem) {
       const countryBounds = this.data?.bounds;
       const evidenceBounds = target?.bounds;
-      if (this.currentTier !== 'country' || coordinateSystem !== 'wgs84') return false;
-      const fitted = countryEvidenceView({
-        countryBounds,
-        evidenceBounds,
-        width: this.width,
-        height: this.height,
-      });
+      const fitted = this.currentTier === 'country' && coordinateSystem === 'wgs84'
+        ? countryEvidenceView({
+          countryBounds,
+          evidenceBounds,
+          width: this.width,
+          height: this.height,
+        })
+        : coordinateEvidenceView({
+          coordinates: target?.coordinates || [],
+          coordinateSystem,
+          width: this.width,
+          height: this.height,
+          rotX: this.rotX,
+          rotY: this.rotY,
+          viewMode: this.viewMode,
+        });
       if (!fitted) return false;
       this.zoom = fitted.zoom;
       this.panX = fitted.panX;
@@ -634,6 +653,19 @@
 
     focusPluginTarget(id) {
       return this.pluginLayer ? this.pluginLayer.focus(id) : false;
+    }
+
+    setViewMode(mode) {
+      const allowed = ['overview', 'follow', 'pov', 'top', 'free', 'compare'];
+      if (!allowed.includes(mode)) throw new Error(`simulatte_tier_view_mode_invalid: ${mode}`);
+      this.viewMode = mode;
+      this.canvas.dataset.viewMode = mode;
+      if (mode === 'overview') this.resetView();
+      if (mode === 'top' && ['solar-system', 'star-chart'].includes(this.currentTier)) {
+        this.rotX = 0;
+        this.rotY = 0;
+      }
+      return mode;
     }
 
     resetView() {
@@ -740,10 +772,57 @@
     });
   }
 
+  function coordinateEvidenceView({
+    coordinates,
+    coordinateSystem,
+    width,
+    height,
+    rotX = 0,
+    rotY = 0,
+    viewMode = 'overview',
+  }) {
+    if (
+      !Array.isArray(coordinates)
+      || !coordinates.length
+      || !Number.isFinite(width)
+      || !Number.isFinite(height)
+      || width <= 0
+      || height <= 0
+    ) return null;
+    const projected = coordinates.map((position) => tierPresentation.projectPoint(
+      position,
+      coordinateSystem,
+      { panX: 0, panY: 0, zoom: 1, rotX, rotY, currentTier: null },
+    ));
+    if (!projected.every((point) => Number.isFinite(point.x) && Number.isFinite(point.y))) return null;
+    const minimumX = Math.min(...projected.map((point) => point.x));
+    const maximumX = Math.max(...projected.map((point) => point.x));
+    const minimumY = Math.min(...projected.map((point) => point.y));
+    const maximumY = Math.max(...projected.map((point) => point.y));
+    const coverage = viewMode === 'follow' || viewMode === 'pov'
+      ? 0.38
+      : viewMode === 'compare'
+        ? 0.62
+        : 0.76;
+    const spanX = Math.max(0.000001, maximumX - minimumX);
+    const spanY = Math.max(0.000001, maximumY - minimumY);
+    const zoom = Math.max(0.01, Math.min(250, Math.min(
+      width * coverage / spanX,
+      height * coverage / spanY,
+    )));
+    const centerX = (minimumX + maximumX) / 2;
+    const centerY = (minimumY + maximumY) / 2;
+    return Object.freeze({
+      zoom,
+      panX: width / 2 - centerX * zoom,
+      panY: height / 2 - centerY * zoom,
+    });
+  }
+
   // --- API DECLARATION ---
   function createTierVisualizer(canvas, containerId) {
     return new TierVisualizer(canvas, containerId);
   }
 
-  return { createTierVisualizer, countryEvidenceView };
+  return { createTierVisualizer, coordinateEvidenceView, countryEvidenceView };
 });

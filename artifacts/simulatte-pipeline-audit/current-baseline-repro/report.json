@@ -1,0 +1,331 @@
+{
+  "schema": "simulatte.intentSceneScreenshotAudit.v1",
+  "createdAt": "2026-07-27T15:35:24.732Z",
+  "chromePath": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+  "intentMode": "model",
+  "goldGate": "machine-and-human-recognizability",
+  "target": "local-public",
+  "url": "http://127.0.0.1:4198/blank/",
+  "profileDir": "/Users/xyz/deco/simulatte/artifacts/model-cache-profile",
+  "profilePersistent": true,
+  "promptDeadlineMs": 225000,
+  "chromeProcessLog": {
+    "schema": "simulatte.auditChildProcessLog.v1",
+    "stdout": {
+      "characterCount": 0,
+      "chunkCount": 0,
+      "truncated": false,
+      "tail": ""
+    },
+    "stderr": {
+      "characterCount": 9930,
+      "chunkCount": 52,
+      "truncated": false,
+      "tail": "\nDevTools listening on ws://127.0.0.1:51464/devtools/browser/e4372f9d-f598-4452-af93-13c342ff75bc\nTrying to load the allocator multiple times. This is *not* supported.\n[87886:41197820:0727/113356.046749:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT\n[87909:41198175:0727/113411.697997:VERBOSE1:chrome/updater/updater.cc:374] Version: 152.0.7933.0, opt, ARM_64, command line: /Users/xyz/Library/Application Support/Google/GoogleUpdater/152.0.7933.0/GoogleUpdater.app/Contents/MacOS/GoogleUpdater --wake-all --enable-logging --vmodule=*/components/update_client/*=2,*/chrome/enterprise_companion/*=2,*/chrome/updater/*=2\n[87909:41198175:0727/113411.698434:VERBOSE1:chrome/updater/updater.cc:377] OS version: 26.3.0, arch: arm64, System uptime (seconds): 3192769, parent pid: 87886\n[87909:41198175:0727/113411.699898:VERBOSE1:chrome/updater/updater.cc:382] Available disk space in install directory (/Users/xyz/Library/Application Support/Google/GoogleUpdater): 42228486144B (39.328GiB) / 494384795648B (460.432GiB)\n[87909:41198175:0727/113411.699909:VERBOSE1:chrome/updater/updater.cc:386] Available disk space in temporary directory (/var/folders/85/l5dptg296tlfx03cd_k7h0l80000gn/T/): 42228486144B (39.328GiB) / 494384795648B (460.432GiB)\n[87909:41198175:0727/113411.699964:VERBOSE2:chrome/updater/event_history.cc:265] Emitted a UPDATER_PROCESS START event to the history log\n[87911:41198179:0727/113411.706615:VERBOSE1:chrome/updater/updater.cc:374] Version: 152.0.7933.0, opt, ARM_64, command line: /Users/xyz/Library/Application Support/Google/GoogleUpdater/152.0.7933.0/GoogleUpdater.app/Contents/MacOS/GoogleUpdater --crash-handler --database=/Users/xyz/Library/Application Support/Google/GoogleUpdater/152.0.7933.0/Crashpad --url=https://clients2.google.com/cr/report --annotation=prod=Update4 --annotation=ver=152.0.7933.0 --handshake-fd=6 --enable-logging --vmodule=*/components/update_client/*=2,*/chrome/enterprise_companion/*=2,*/chrome/updater/*=2\n[87911:41198179:0727/113411.707037:VERBOSE1:chrome/updater/updater.cc:377] OS version: 26.3.0, arch: arm64, System uptime (seconds): 3192769, parent pid: 1\n[87911:41198179:0727/113411.708365:VERBOSE1:chrome/updater/updater.cc:382] Available disk space in install directory (/Users/xyz/Library/Application Support/Google/GoogleUpdater): 42228486144B (39.328GiB) / 494384795648B (460.432GiB)\n[87911:41198179:0727/113411.708376:VERBOSE1:chrome/updater/updater.cc:386] Available disk space in temporary directory (/var/folders/85/l5dptg296tlfx03cd_k7h0l80000gn/T/): 42228486144B (39.328GiB) / 494384795648B (460.432GiB)\n[87911:41198179:0727/113411.708433:VERBOSE2:chrome/updater/event_history.cc:265] Emitted a UPDATER_PROCESS START event to the history log\n[87909:41198175:0727/113411.708765:VERBOSE1:chrome/updater/crash_reporter.cc:124] Crash handler launched and ready.\n[87909:41198175:0727/113411.709290:VERBOSE1:chrome/updater/crash_client.cc:108] Found 0 completed crash reports\n[87909:41198175:0727/113411.709355:VERBOSE1:chrome/updater/crash_client.cc:132] Found 0 pending crash reports\n[87909:41198175:0727/113411.709427:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /Users/xyz/Library/Application Support/Google/RLZ/Crashpad/settings.dat: No such file or directory (2)\n[87909:41198175:0727/113411.709438:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /Users/xyz/Library/Application Support/Google/AndroidStudio2025.2.1/Crashpad/settings.dat: No such file or directory (2)\n[87909:41198175:0727/113411.709445:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /Users/xyz/Library/Application Support/Google/consentOptions/Crashpad/settings.dat: No such file or directory (2)\n[87909:41198175:0727/113411.709472:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /Users/xyz/Library/Application Support/Google/AndroidStudio2024.3.2/Crashpad/settings.dat: No such file or directory (2)\n[87909:41198175:0727/113411.709523:VERBOSE1:chrome/updater/updater.cc:105] Crash reporting initialized.\n[87909:41198188:0727/113411.709730:VERBOSE1:chrome/updater/app/app_wakeall.cc:58] Launching `/Users/xyz/Library/Application Support/Google/GoogleUpdater/152.0.7933.0/GoogleUpdater.app/Contents/MacOS/GoogleUpdater --wake`\n[87912:41198192:0727/113411.716049:VERBOSE1:chrome/updater/updater.cc:374] Version: 152.0.7933.0, opt, ARM_64, command line: /Users/xyz/Library/Application Support/Google/GoogleUpdater/152.0.7933.0/GoogleUpdater.app/Contents/MacOS/GoogleUpdater --wake --enable-logging --vmodule=*/components/update_client/*=2,*/chrome/enterprise_companion/*=2,*/chrome/updater/*=2\n[87912:41198192:0727/113411.716502:VERBOSE1:chrome/updater/updater.cc:377] OS version: 26.3.0, arch: arm64, System uptime (seconds): 3192769, parent pid: 87909\n[87912:41198192:0727/113411.717889:VERBOSE1:chrome/updater/updater.cc:382] Available disk space in install directory (/Users/xyz/Library/Application Support/Google/GoogleUpdater): 42228486144B (39.328GiB) / 494384795648B (460.432GiB)\n[87912:41198192:0727/113411.717900:VERBOSE1:chrome/updater/updater.cc:386] Available disk space in temporary directory (/var/folders/85/l5dptg296tlfx03cd_k7h0l80000gn/T/): 42228486144B (39.328GiB) / 494384795648B (460.432GiB)\n[87912:41198192:0727/113411.717953:VERBOSE2:chrome/updater/event_history.cc:265] Emitted a UPDATER_PROCESS START event to the history log\n[87914:41198196:0727/113411.724288:VERBOSE1:chrome/updater/updater.cc:374] Version: 152.0.7933.0, opt, ARM_64, command line: /Users/xyz/Library/Application Support/Google/GoogleUpdater/152.0.7933.0/GoogleUpdater.app/Contents/MacOS/GoogleUpdater --crash-handler --database=/Users/xyz/Library/Application Support/Google/GoogleUpdater/152.0.7933.0/Crashpad --url=https://clients2.google.com/cr/report --annotation=prod=Update4 --annotation=ver=152.0.7933.0 --handshake-fd=6 --enable-logging --vmodule=*/components/update_client/*=2,*/chrome/enterprise_companion/*=2,*/chrome/updater/*=2\n[87914:41198196:0727/113411.724663:VERBOSE1:chrome/updater/updater.cc:377] OS version: 26.3.0, arch: arm64, System uptime (seconds): 3192769, parent pid: 1\n[87914:41198196:0727/113411.725906:VERBOSE1:chrome/updater/updater.cc:382] Available disk space in install directory (/Users/xyz/Library/Application Support/Google/GoogleUpdater): 42228486144B (39.328GiB) / 494384795648B (460.432GiB)\n[87914:41198196:0727/113411.725916:VERBOSE1:chrome/updater/updater.cc:386] Available disk space in temporary directory (/var/folders/85/l5dptg296tlfx03cd_k7h0l80000gn/T/): 42228486144B (39.328GiB) / 494384795648B (460.432GiB)\n[87914:41198196:0727/113411.725971:VERBOSE2:chrome/updater/event_history.cc:265] Emitted a UPDATER_PROCESS START event to the history log\n[87912:41198192:0727/113411.726286:VERBOSE1:chrome/updater/crash_reporter.cc:124] Crash handler launched and ready.\n[87912:41198192:0727/113411.726801:VERBOSE1:chrome/updater/crash_client.cc:108] Found 0 completed crash reports\n[87912:41198192:0727/113411.726865:VERBOSE1:chrome/updater/crash_client.cc:132] Found 0 pending crash reports\n[87912:41198192:0727/113411.726933:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /Users/xyz/Library/Application Support/Google/RLZ/Crashpad/settings.dat: No such file or directory (2)\n[87912:41198192:0727/113411.726944:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /Users/xyz/Library/Application Support/Google/AndroidStudio2025.2.1/Crashpad/settings.dat: No such file or directory (2)\n[87912:41198192:0727/113411.726951:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /Users/xyz/Library/Application Support/Google/consentOptions/Crashpad/settings.dat: No such file or directory (2)\n[87912:41198192:0727/113411.726977:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /Users/xyz/Library/Application Support/Google/AndroidStudio2024.3.2/Crashpad/settings.dat: No such file or directory (2)\n[87912:41198192:0727/113411.727027:VERBOSE1:chrome/updater/updater.cc:105] Crash reporting initialized.\n[87912:41198192:0727/113411.727162:VERBOSE1:chrome/updater/ipc/update_service_internal_proxy_mojo.cc:61] Run\n[87886:41197820:0727/113420.583378:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT\n[87912:41198192:0727/113427.826890:VERBOSE1:chrome/updater/app/app.cc:52] Shutdown: 0\n[87912:41198192:0727/113427.827158:VERBOSE2:chrome/updater/event_history.cc:265] Emitted a UPDATER_PROCESS END event to the history log\n[87912:41198192:0727/113427.827169:VERBOSE1:chrome/updater/updater.cc:419] UpdaterMain (--wake) returned 0.\n[87909:41198188:0727/113427.845355:VERBOSE1:chrome/updater/app/app_wakeall.cc:68] `/Users/xyz/Library/Application Support/Google/GoogleUpdater/152.0.7933.0/GoogleUpdater.app/Contents/MacOS/GoogleUpdater --wake` exited 0\n[87909:41198175:0727/113427.845401:VERBOSE1:chrome/updater/app/app.cc:52] Shutdown: 0\n[87909:41198175:0727/113427.845583:VERBOSE2:chrome/updater/event_history.cc:265] Emitted a UPDATER_PROCESS END event to the history log\n[87909:41198175:0727/113427.845593:VERBOSE1:chrome/updater/updater.cc:419] UpdaterMain (--wake-all) returned 0.\n[87914:41198196:0727/113437.838914:VERBOSE2:chrome/updater/event_history.cc:265] Emitted a UPDATER_PROCESS END event to the history log\n[87914:41198196:0727/113437.838929:VERBOSE1:chrome/updater/updater.cc:419] UpdaterMain (--crash-handler) returned 0.\n[87911:41198179:0727/113437.839698:VERBOSE2:chrome/updater/event_history.cc:265] Emitted a UPDATER_PROCESS END event to the history log\n[87911:41198179:0727/113437.839881:VERBOSE1:chrome/updater/updater.cc:419] UpdaterMain (--crash-handler) returned 0.\n[87886:41197820:0727/113501.128884:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT\n"
+    }
+  },
+  "promptCounts": {
+    "curated": 0,
+    "broad": 0,
+    "custom": 1,
+    "gold": 0,
+    "random4gram": 0,
+    "random80gram": 0
+  },
+  "browserEvents": [
+    {
+      "method": "Runtime.consoleAPICalled",
+      "params": {
+        "type": "warning",
+        "args": [
+          {
+            "type": "string",
+            "value": "[simulatte.pipeline] worker compile fell back to main thread"
+          },
+          {
+            "type": "object",
+            "subtype": "error",
+            "className": "ReferenceError",
+            "description": "ReferenceError: appendBuildVersion is not defined\n    at ensureWorker (http://127.0.0.1:4198/blank/app/prompt/prompt-controller-workers.js?v=5e8355b1f3c60c308bd70a065af7ceff5e5a1b3e-16ba1abdd852:41:11)\n    at Object.compile (http://127.0.0.1:4198/blank/app/prompt/prompt-controller-workers.js?v=5e8355b1f3c60c308bd70a065af7ceff5e5a1b3e-16ba1abdd852:76:15)\n    at compilePromptSpec (http://127.0.0.1:4198/blank/app/prompt/prompt-controller-lab-controller.js?v=5e8355b1f3c60c308bd70a065af7ceff5e5a1b3e-16ba1abdd852:640:45)\n    at async resolveDeterministically (http://127.0.0.1:4198/blank/app/prompt/prompt-controller-lab-controller.js?v=5e8355b1f3c60c308bd70a065af7ceff5e5a1b3e-16ba1abdd852:516:30)",
+            "objectId": "-8931844340585217488.2.10",
+            "preview": {
+              "type": "object",
+              "subtype": "error",
+              "description": "ReferenceError: appendBuildVersion is not defined\n    at ensureWorker (http://127.0.0.1:4198/blank/app/prompt/prompt-controller-workers.js?v=5e8355b1f3c60c308bd70a065af7ceff5e5a1b3e-16ba1abdd852:41:11)\n    at Object.compile (http://127.0.0.1:4198/blank/app/prompt/prompt-controller-workers.js?v=5e8355b1f3c60c308bd70a065af7ceff5e5a1b3e-16ba1abdd852:76:15)\n    at compilePromptSpec (http://127.0.0.1:4198/blank/app/prompt/prompt-controller-lab-controller.js?v=5e8355b1f3c60c308bd70a065af7ceff5e5a1b3e-16ba1abdd852:640:45)\n    at async resolveDeterministically (http://127.0.0.1:4198/blank/app/prompt/prompt-controller-lab-controller.js?v=5e8355b1f3c60c308bd70a065af7ceff5e5a1b3e-16ba1abdd852:516:30)",
+              "overflow": false,
+              "properties": [
+                {
+                  "name": "stack",
+                  "type": "string",
+                  "value": "ReferenceError: appendBuildVersion is not defined\n…0c308bd70a065af7ceff5e5a1b3e-16ba1abdd852:516:30)"
+                },
+                {
+                  "name": "message",
+                  "type": "string",
+                  "value": "appendBuildVersion is not defined"
+                }
+              ]
+            }
+          }
+        ],
+        "executionContextId": 2,
+        "timestamp": 1785166433500.481,
+        "stackTrace": {
+          "callFrames": [
+            {
+              "functionName": "compilePromptSpec",
+              "scriptId": "175",
+              "url": "http://127.0.0.1:4198/blank/app/prompt/prompt-controller-lab-controller.js?v=5e8355b1f3c60c308bd70a065af7ceff5e5a1b3e-16ba1abdd852",
+              "lineNumber": 642,
+              "columnNumber": 24
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "gpuValidationFailures": [],
+  "summary": {
+    "ok": false,
+    "failures": [
+      "1: prompt audit failed: Timed out waiting for pixel and scene proof settled for 01-custom-particle-collider-muon-tracks-collision-plume-through-a-detector-slice-with-fiel: {\"renderCount\":0,\"sceneId\":\"15\",\"renderInputMatches\":true,\"renderInputSerial\":1,\"expectedRenderInputSerial\":1,\"promptMatches\":true,\"sceneProofVerdict\":\"\",\"phase7PixelReadback\":\"\",\"phase7PixelProofStatus\":\"\",\"requiredObligations\":0,\"sampledObligations\":0}"
+    ],
+    "promptCount": 1,
+    "screenshotCount": 0,
+    "uniqueCanvasHashes": 1,
+    "uniqueScreenshotHashes": 1,
+    "uniqueCanvasPerceptualHashes": 0,
+    "minCanvasPerceptualHashDistance": null,
+    "uniqueCanvasDiversityPerceptualHashes": 0,
+    "minCanvasDiversityPerceptualHashDistance": null,
+    "perceptualHashCalibration": {
+      "schema": "simulatte.cleanCanvasPerceptualHashCalibration.v1",
+      "hashKind": "audit:visual-clean-canvas-dhash-64",
+      "hashBits": 64,
+      "promptCount": 1,
+      "usablePromptCount": 0,
+      "bitMargin": 1,
+      "maxTemporalBits": null,
+      "maxTemporalDistance": null,
+      "minPairwiseBits": null,
+      "minPairwiseDistance": null,
+      "closestPair": null,
+      "recommendedHashFloorBits": null,
+      "recommendedHashFloor": null,
+      "calibrated": false
+    },
+    "sceneKinds": [],
+    "visualIRSceneKinds": [],
+    "visualIRCameras": [],
+    "graphicsAtoms": {
+      "totalAtoms": 0,
+      "mappingIds": [],
+      "uniformSlots": [],
+      "wgslOperators": []
+    },
+    "visualRubric": {
+      "scope": "machine-structural-and-pixel-presence",
+      "recognizabilityStatus": "human-adjudication-required",
+      "averageScore": 0,
+      "passCount": 0,
+      "failCount": 1,
+      "expectedSignals": [],
+      "missingSignals": [
+        "audit-completion"
+      ],
+      "dynamicFailures": [],
+      "representationFailures": [
+        1
+      ],
+      "averageRepresentationQuality": 0
+    },
+    "intentBriefs": {
+      "totalEvidence": 0,
+      "totalCausalEdges": 0,
+      "totalAffordances": 0,
+      "totalDegraded": 0
+    },
+    "physicalReceipts": {
+      "totalIntentEvidence": 0,
+      "totalCausalEdges": 0,
+      "totalCausalAffordances": 0,
+      "totalAssumptions": 0,
+      "totalUnsupported": 0,
+      "totalDegraded": 0
+    },
+    "causalRequirements": {
+      "promptCount": 1,
+      "promptsMissingAffordances": []
+    },
+    "templateIds": [],
+    "autoRating": {
+      "schema": "simulatte.liveVisualAutoRating.v1",
+      "scope": "machine-structural-and-pixel-presence",
+      "recognizabilityVerified": false,
+      "humanAdjudicationRequired": true,
+      "score": 0,
+      "grade": "unverified",
+      "verdict": "not-proven",
+      "machineStructuralVerdict": "fail",
+      "promptCount": 1,
+      "passRate": 0,
+      "sceneDiversity": 0,
+      "screenshotDiversity": 1,
+      "canvasDiversity": 0,
+      "diversityTelemetryOnly": true,
+      "causalCoverage": 1,
+      "failureCount": 1,
+      "dynamicFailureCount": 0,
+      "representationFailureCount": 1,
+      "averageRepresentationQuality": 0,
+      "missingSignals": [
+        "audit-completion"
+      ]
+    }
+  },
+  "results": [
+    {
+      "index": 1,
+      "kind": "custom",
+      "prompt": "particle collider muon tracks collision plume through a detector slice with field lines and calorimeter heat",
+      "goldRowId": "",
+      "auditError": "Timed out waiting for pixel and scene proof settled for 01-custom-particle-collider-muon-tracks-collision-plume-through-a-detector-slice-with-fiel: {\"renderCount\":0,\"sceneId\":\"15\",\"renderInputMatches\":true,\"renderInputSerial\":1,\"expectedRenderInputSerial\":1,\"promptMatches\":true,\"sceneProofVerdict\":\"\",\"phase7PixelReadback\":\"\",\"phase7PixelProofStatus\":\"\",\"requiredObligations\":0,\"sampledObligations\":0}",
+      "auditFailureState": {
+        "url": "http://127.0.0.1:4198/blank/",
+        "runtime": {
+          "state": "ready",
+          "progress": "determinate",
+          "taskProgress": "100",
+          "overallProgress": "100",
+          "sourceProgress": "100",
+          "progressBasis": "terminal",
+          "progressEstimated": "false",
+          "taskKey": "render.ready:simulatte-deterministic-language-runtime-v1",
+          "taskElapsedMs": "0",
+          "taskRemainingMs": "100",
+          "loadingVisual": "idle",
+          "stage": "webgpu-ready",
+          "pipelineStep": "8",
+          "detail": "Ready 100%",
+          "displayLine": "Ready 100%",
+          "label": "Ready",
+          "subline": "",
+          "byteText": "",
+          "sourceText": "",
+          "byteProgress": "",
+          "activity": "ready",
+          "heartbeat": "false",
+          "silenceMs": "0",
+          "lastStage": "ready",
+          "lastMessage": "Deterministic ready",
+          "lastLine": "Ready 100%",
+          "lastSource": "",
+          "backend": "deterministic-local",
+          "blocking": "false",
+          "passive": "false",
+          "loaderReceipt": "{\"schema\":\"simulatte.loaderPhaseReceipt.v2\",\"id\":\"loader-11\",\"runId\":\"ms3e03pf-1\",\"stage\":\"render.ready\",\"sourceStage\":\"ready\",\"phaseId\":\"webgpu-ready\",\"phaseLabel\":\"WebGPU ready\",\"pipelineStep\":8,\"label\":\"Ready\",\"subline\":\"\",\"status\":\"complete\",\"state\":\"ready\",\"blocking\":false,\"indeterminate\":false,\"startedAt\":\"2026-07-27T15:33:54.002Z\",\"updatedAt\":\"2026-07-27T15:33:54.002Z\",\"completedAt\":\"2026-07-27T15:33:54.002Z\",\"durationMs\":0,\"taskKey\":\"render.ready:simulatte-deterministic-language-runtime-v1\",\"progressBasis\":\"terminal\",\"progressEstimated\":false,\"expectedDurationMs\":100,\"percentStart\":0,\"percentEnd\":100,\"overallPercentStart\":100,\"overallPercentEnd\":100,\"sourcePercentStart\":100,\"sourcePercentEnd\":100,\"completedBytes\":0,\"totalBytes\":0,\"byteLength\":0,\"byteText\":\"\",\"sourceText\":\"\",\"byteProgress\":\"\",\"source\":\"\",\"cacheMode\":\"\",\"resourceKind\":\"\",\"resourceFile\":\"\",\"resourceUrl\":\"\",\"modelId\":\"simulatte-deterministic-language-runtime-v1\",\"modelBaseUrl\":\"\",\"eventCount\":1}",
+          "health": "{\"schema\":\"simulatte.intentRuntimeHealth.v2\",\"timestamp\":\"2026-07-27T15:33:54.002Z\",\"source\":\"\",\"state\":\"ready\",\"blocking\":false,\"passive\":false,\"canvasLoading\":false,\"stage\":\"render.ready\",\"phaseId\":\"webgpu-ready\",\"phaseLabel\":\"WebGPU ready\",\"pipelineStep\":8,\"progress\":100,\"taskProgress\":100,\"overallProgress\":100,\"sourceProgress\":100,\"progressBasis\":\"terminal\",\"progressEstimated\":false,\"taskKey\":\"render.ready:simulatte-deterministic-language-runtime-v1\",\"taskElapsedMs\":0,\"taskExpectedDurationMs\":100,\"taskRemainingMs\":100,\"runElapsedMs\":527,\"runExpectedDurationMs\":24000,\"runRemainingMs\":23473,\"line\":\"Ready 100%\",\"displayLine\":\"Ready 100%\",\"label\":\"Ready\",\"subline\":\"\",\"byteText\":\"\",\"sourceText\":\"\",\"byteProgress\":\"\",\"activity\":\"ready\",\"heartbeat\":false,\"silenceMs\":0,\"message\":\"Deterministic ready\",\"detail\":\"Lexical retrieval and typed rules\",\"backend\":\"deterministic-local\",\"timing\":{\"timestamp\":\"2026-07-27T15:33:54.002Z\",\"durationMs\":0,\"elapsedMs\":0,\"queueWaitMs\":0,\"schedulerLagMs\":0,\"handlerDurationMs\":0,\"timing\":\"\",\"traceId\":\"\"},\"model\":{\"id\":\"simulatte-deterministic-language-runtime-v1\",\"baseUrl\":\"\",\"artifactMode\":\"\",\"sourceSizeBytes\":0,\"cachePrefetch\":false,\"cacheSkipReason\":\"\"},\"resource\":{\"kind\":\"\",\"url\":\"\",\"file\":\"\",\"fileKind\":\"\",\"status\":0,\"byteLength\":0,\"completedBytes\":0,\"totalBytes\":0},\"embeddings\":{\"promptChars\":0,\"embeddingDim\":0,\"candidateCount\":0,\"rankBackend\":\"\",\"spanCount\":0,\"embeddedSpanCount\":0,\"cachedSpanCount\":0,\"cacheHitCount\":0},\"promptRuntime\":null,\"loaderReceipt\":{\"schema\":\"simulatte.loaderPhaseReceipt.v2\",\"id\":\"loader-11\",\"runId\":\"ms3e03pf-1\",\"stage\":\"render.ready\",\"sourceStage\":\"ready\",\"phaseId\":\"webgpu-ready\",\"phaseLabel\":\"WebGPU ready\",\"pipelineStep\":8}}",
+          "loaderPhaseReceipts": "[{\"schema\":\"simulatte.loaderPhaseReceipt.v2\",\"id\":\"loader-1\",\"runId\":\"\",\"stage\":\"deterministic-ready\",\"sourceStage\":\"deterministic-ready\",\"phaseId\":\"prompt-runtime\",\"phaseLabel\":\"Prompt runtime\",\"pipelineStep\":1,\"label\":\"Prompt runtime\",\"subline\":\"\",\"status\":\"complete\",\"state\":\"ready\",\"blocking\":false,\"indeterminate\":false,\"startedAt\":\"2026-07-27T15:33:53.086Z\",\"updatedAt\":\"2026-07-27T15:33:53.086Z\",\"completedAt\":\"2026-07-27T15:33:53.086Z\",\"durationMs\":0,\"taskKey\":\"deterministic-ready\",\"progressBasis\":\"terminal\",\"progressEstimated\":false,\"expectedDurationMs\":1200,\"percentStart\":0,\"percentEnd\":100,\"overallPercentStart\":100,\"overallPercentEnd\":100,\"sourcePercentStart\":100,\"sourcePercentEnd\":100,\"completedBytes\":0,\"totalBytes\":0,\"byteLength\":0,\"byteText\":\"\",\"sourceText\":\"\",\"byteProgress\":\"\",\"source\":\"\",\"cacheMode\":\"\",\"resourceKind\":\"\",\"resourceFile\":\"\",\"resourceUrl\":\"\",\"modelId\":\"\",\"modelBaseUrl\":\"\",\"eventCount\":1},{\"schema\":\"simulatte.loaderPhaseReceipt.v2\",\"id\":\"loader-2\",\"runId\":\"ms3e03pf-1\",\"stage\":\"deterministic-start\",\"sourceStage\":\"deterministic-start\",\"phaseId\":\"prompt-runtime\",\"phaseLabel\":\"Prompt runtime\",\"pipelineStep\":1,\"label\":\"Prompt runtime\",\"subline\":\"1.2s estimated remaining\",\"status\":\"complete\",\"state\":\"active\",\"blocking\":true,\"indeterminate\":false,\"startedAt\":\"2026-07-27T15:33:53.475Z\",\"updatedAt\":\"2026-07-27T15:33:53.482Z\",\"completedAt\":\"2026-07-27T15:33:53.482Z\",\"durationMs\":7,\"taskKey\":\"deterministic-start\",\"progressBasis\":\"elapsed-time-forecast\",\"progressEstimated\":true,\"expectedDurationMs\":1200,\"percentStart\":0,\"percentEnd\":100,\"overallPercentStart\":0,\"overallPercentEnd\":0,\"sourcePercentStart\":4,\"sourcePercentEnd\":4,\"completedBytes\":0,\"totalBytes\":0,\"byteLength\":0,\"byteText\":\"\",\"sourceText\":\"\",\"byteProgress\":\"\",\"source\":\"\",\"cacheMode\":\"\",\"resourceKind\":\"\",\"resourceFile\":\"\",\"resourceUrl\":\"\",\"modelId\":\"\",\"modelBaseUrl\":\"\",\"eventCount\":1},{\"schema\":\"simulatte.loaderPhaseReceipt.v2\",\"id\":\"loader-3\",\"runId\":\"ms3e03pf-1\",\"stage\":\"runtime.manifest.fetch\",\"sourceStage\":\"manifest-fetch\",\"phaseId\":\"prompt-runtime\",\"phaseLabel\":\"Prompt runtime\",\"pipelineStep\":1,\"label\":\"Loading intent manifest\",\"subline\":\"browser cache/network - intent manifest - 3.7 KB - 3ms elapsed, 797ms estimated remaining\",\"status\":\"complete\",\"state\":\"active\",\"blocking\":true,\"indeterminate\":false,\"startedAt\":\"2026-07-27T15:33:53.482Z\",\"updatedAt\":\"2026-07-27T15:33:53.486Z\",\"co",
+          "modelId": "simulatte-deterministic-language-runtime-v1",
+          "modelBaseUrl": "",
+          "cacheMode": "",
+          "cacheWorker": "",
+          "cacheBackends": "",
+          "resourceKind": "",
+          "resourceFile": "",
+          "completedBytes": "0",
+          "totalBytes": "0",
+          "traceId": "",
+          "rankId": "",
+          "reuse": "false",
+          "providerReady": "false",
+          "promptRuntimeReceipt": "",
+          "cacheHitCount": "0",
+          "cacheMissCount": "0",
+          "cachedSpanCount": "0"
+        },
+        "canvas": {
+          "sceneVisible": "true",
+          "renderer": "webgpu-unavailable",
+          "rendererStatus": "Error while parsing WGSL: :506:7 error: 'active' is a reserved keyword\n  let active = clamp(input.accentMotion.w, 0.0, 1.0);\n      ^^^^^^\n\n\n - While calling [Device].CreateShaderModule([ShaderModuleDescriptor]).\n",
+          "auditRequirePixelProof": "true",
+          "auditFreezeFrame": "false",
+          "phase7InputVisualObligationCount": "10",
+          "phase7PixelReadback": "",
+          "phase7PixelReadbackMessage": "",
+          "phase7PixelProofStatus": "",
+          "phase7PixelSampleCount": "0",
+          "phase7PixelVisibleSampleCount": "0",
+          "phase7PixelMinContrast": "0",
+          "phase7PixelSampledObligationCount": "0",
+          "phase7PixelRequiredObligationCount": "0",
+          "phase7PixelSampledObligations": "",
+          "phase7VisualObligationProof": "",
+          "phase7PassedVisualObligationIds": "",
+          "phase7PixelAuditChecks": "",
+          "phase7PixelPacketKey": "particle-instrument:6:6:24:36d945ca",
+          "phase7LivePixelSamplesRequired": "true",
+          "phase7RequiredVisualObligationCount": "12",
+          "sceneKind": "particle-instrument",
+          "sceneId": "15",
+          "sceneMix": "thermal:1.00,instrument:0.85,phase:0.85",
+          "sceneMixSlots": "3",
+          "phase7Input": "simulatte.renderExecutionInput.v1",
+          "phase7SceneRenderPacketInput": "simulatte.sceneRenderPacket.v1",
+          "phase7RenderData": "simulatte.phase7.compactRenderData.v1",
+          "phase7RenderDataKey": "particle-instrument:6:6:24:36d945ca",
+          "phase7RenderPath": "depth-lit-prompt-conditioned-contours-surfaces-and-atmospheres",
+          "sceneRenderDrawCount": "25",
+          "sceneRenderPacket": "simulatte.sceneRenderPacket.v1;entities:6;fields:6;effects:24;layers:material-surface+detector-geometry+track-line+thermal-field+field-sheet+causal-affordance+phase-boundary+readout-panel;passes:background+fields+entities+effects",
+          "sceneRenderEntityCount": "6",
+          "sceneRenderFieldCount": "6",
+          "sceneRenderEffectCount": "24",
+          "sceneRenderSpatialHash": "36d945ca",
+          "sceneObjectUniforms": "0:particle collider:detector-geometry@0.23,0.60;1:muon tracks:track-line@0.35,0.46;2:detector slice:detector-geometry@0.55,0.48;3:calorimeter:detector-geometry@0.23,0.48;4:detector:detector-geometry@0.78,0.61;5:plume:material-surface@0.55,0.48;6:atom-process:particle-collision-readout:readout-panel@0.50,0.50;7:motion:particle-collision-readout:readout-panel@0.50,0.50",
+          "sceneObjectIdentities": "0:particle collider:object:detector-geometry:@0.23,0.60;1:muon tracks:object:track-line:@0.35,0.46;2:detector slice:object:detector-geometry:@0.55,0.48;3:calorimeter:object:detector-geometry:@0.23,0.48;4:detector:instrument:detector-geometry:@0.78,0.61;5:plume:object:material-surface:@0.55,0.48;6:atom-process:particle-collision-readout:process:readout-panel:@0.50,0.50;7:motion:particle-collision-readout:process:readout-panel:@0.50,0.50",
+          "webgpuOptimizationPath": "background-plus-instanced-object-parts",
+          "webgpuSceneInstanceCapacity": "256",
+          "webgpuSceneInstanceCount": "24",
+          "webgpuSceneInstances": "parts:24;identities:plume+particle-collider+detector-slice+instrument+calorimeter+muon-tracks;grammars:object-grammar.cloud+object-grammar.instrument+object-grammar.semantic-detector+object-grammar.particle-track",
+          "webgpuObjectPartCapacity": "256",
+          "webgpuObjectPartCount": "24",
+          "webgpuObjectParts": "parts:24;identities:plume+particle-collider+detector-slice+instrument+calorimeter+muon-tracks;grammars:object-grammar.cloud+object-grammar.instrument+object-grammar.semantic-detector+object-grammar.particle-track",
+          "webgpuObjectRealization": "{\"schema\":\"simulatte.objectRenderRealizationSummary.v1\",\"entityCount\":6,\"realizedCount\":6,\"literalCount\":6,\"constructionProgramCount\":5,\"modelEvaluatedConstructionCount\":0,\"topologyVerifiedCount\":6,\"semanticFitCount\":6,\"readableCount\":6,\"morphologyReadyCount\":6,\"perceptualReadyCount\":6,\"submittedCount\":6,\"submissionEvidence\":true,\"projectedArea\":0.40248,\"framingPass\":true,\"framing\":{\"schema\":\"simulatte.sceneFramingReceipt.v1\",\"method\":\"group-bounds-fit\",\"sourceBounds\":[0.05247,0.07955,0.97433,0.5208],\"framedBounds\":[0.09284,0.25903,0.81431,0.44193],\"targetBounds\":[0.1,0.12,0.8,0.72],\"scaleFactor\":0.82108,\"projectedArea\":0.40249,\"minimumProjectedArea\":0.16,\"centerOffset\":0.00001,\"entityCount\":6,\"readableCount\":6,\"surfaceContacts\":[],\"graspContacts\":[],\"pass\":true},\"unprovenEntityIds\":[],\"rows\":[{\"schema\":\"simulatte.objectRenderRealization.v1\",\"entityId\":\"prompt-environment-plume\",\"identityType\":\"plume\",\"identityLabels\":[\"prompt-environment-plume\",\"plume\",\"plume\",\"plume\",\"plume\",\"environment:plume\",\"prompt-environment-plume\",\"prompt.environment.plume\",\"environment:plume\"],\"grammarId\":\"object-grammar.cloud\",\"renderArchetype\":\"cloud\",\"literal\":true,\"partCount\":4,\"submittedPartCount\":4,\"submittedSemanticPartCount\":4,\"submissionEvidence\":true,\"submitted\":true,\"primitiveCount\":1,\"projectedArea\":0.01315,\"topologyVerified\":true,\"semanticFit\":true,\"readable\":true,\"geometryRealized\":true,\"morphologyQuality\":{\"schema\":\"simulatte.objectMorphologyReceipt.v1\",\"pass\":true,\"specificityScore\":0.5833,\"contourProfileCount\":1,\"surfacePatternCount\":1,\"accentPatternCount\":1,\"dynamicAccentPartCount\":0,\"distinctiveFeatureCount\":4},\"morphologySubmitted\":true,\"submittedContourProfileCount\":1,\"submittedSurfacePatternCount\":1,\"submittedAccentPatternCount\":1,\"submittedDistinctiveFeatureCount\":4,\"perceptualReady\":true,\"realized\":true,\"constructionSource\":true,\"modelEvaluatedConstruction\":false,\"rerankEvaluatedConstruction\":false},{\"schema\":\"simulatte.objectRenderRealization.v1\",\"entityId\":\"particle-collider-a\",\"identityType\":\"particle-collider\",\"identityLabels\":[\"particle-collider-a\",\"particle collider\",\"particle collider\",\"particle collider\",\"particle-collider\",\"entity:particle-collider\",\"particle-collider-a\",\"prompt.body.particle-collider\",\"prompt-body-particle-collider\",\"particle-collider-b\",\"entity:particle-collider\"],\"grammarId\":\"object-grammar.instrument\",\"renderArchetype\":\"instrument\",\"literal\":true,\"partCount\":4,\"submittedPartCount\":4,\"submittedSemanticPartCount\":4,\"submissionEvidence\":true,\"submitted\":true,\"primitiveCount\":2,\"projectedArea\":0.02677,\"topologyVerified\":true,\"semanticFit\":true,\"readable\":true,\"geometryRealized\":true,\"morphologyQuality\":{\"schema\":\"simulatte.objectMorphologyReceipt.v1\",\"pass\":true,\"specificityScore\":0.7333,\"contourProfileCount\":2,\"surfacePatternCount\":2,\"accentPatternCount\":2,\"dynamicAccentPartCount\":1,\"distinctiveFeatureCount\":4},\"morphologySubmitted\":true,\"submittedContourProfileCount\":2,\"submittedSurfacePatternCount\":2,\"submittedAccentPatternCount\":2,\"submittedDistinctiveFeatureCount\":3,\"perceptualReady\":true,\"realized\":true,\"constructionSource\":true,\"modelEvaluatedConstruction\":false,\"rerankEvaluatedConstruction\":false},{\"schema\":\"simulatte.objectRenderRealization.v1\",\"entityId\":\"muon-tracks-a\",\"identityType\":\"muon-tracks\",\"identityLabels\":[\"muon-tracks-a\",\"muon tracks\",\"muon tracks\",\"muon tracks\",\"muon-tracks\",\"entity:muon-tracks\",\"muon-tracks-a\",\"prompt.body.muon-tracks\",\"prompt-body-muon-tracks\",\"entity:muon-tracks\"],\"grammarId\":\"object-grammar.particle-track\",\"renderArchetype\":\"particle-track\",\"literal\":true,\"partCount\":5,\"submittedPartCount\":5,\"submittedSemanticPartCount\":5,\"submissionEvidence\":true,\"submitted\":true,\"primitiveCount\":1,\"projectedArea\":0.03775,\"topologyVerified\":true,\"semanticFit\":true,\"readable\":true,\"geometryRealized\":true,\"morphologyQuality\":{\"schema\":\"simulatte.objectMorphologyReceipt.v1\",\"pass\":true,\"specificityScore\":0.6467,\"contourProfileCount\":1,\"surfacePatternCount\":2,\"accentPatternCount\":2,\"dynamicAccentPartCount\":2,\"distinctiveFeatureCount\":5},\"morphologySubmitted\":true,\"submittedContourProfileCount\":1,\"submittedSurfacePatternCount\":2,\"submittedAccentPatternCount\":2,\"submittedDistinctiveFeatureCount\":4,\"perceptualReady\":true,\"realized\":true,\"constructionSource\":true,\"modelEvaluatedConstruction\":false,\"rerankEvaluatedConstruction\":false},{\"schema\":\"simulatte.objectRenderRealization.v1\",\"entityId\":\"detector-slice-a\",\"identityType\":\"detector-slice\",\"identityLabels\":[\"detector-slice-a\",\"detector slice\",\"detector slice\",\"detector slice\",\"detector-slice\",\"entity:detector-slice\",\"detector-slice-a\",\"prompt.body.detector-slice\",\"prompt-body-detector-slice\",\"detector-slice-b\",\"entity:detector-slice\"],\"grammarId\":\"object-grammar.instrument\",\"renderArchetype\":\"instrument\",\"literal\":true,\"partCount\":4,\"submittedPartCount\":4,\"submittedSemanticPartCount\":4,\"submissionEvidence\":true,\"submitted\":true,\"primitiveCount\":1,\"projectedArea\":0.26589,\"topologyVerified\":true,\"semanticFit\":true,\"readable\":true,\"geometryRealized\":true,\"morphologyQuality\":{\"schema\":\"simulatte.objectMorphologyReceipt.v1\",\"pass\":true,\"specificityScore\":0.6333,\"contourProfileCount\":1,\"surfacePatternCount\":1,\"accentPatternCount\":1,\"dynamicAccentPartCount\":4,\"distinctiveFeatureCount\":4},\"morphologySubmitted\":true,\"submittedContourProfileCount\":1,\"submittedSurfacePatternCount\":1,\"submittedAccentPatternCount\":1,\"submittedDistinctiveFeatureCount\":3,\"perceptualReady\":true,\"realized\":true,\"constructionSource\":true,\"modelEvaluatedConstruction\":false,\"rerankEvaluatedConstruction\":false},{\"schema\":\"simulatte.objectRenderRealization.v1\",\"entityId\":\"calorimeter-a\",\"identityType\":\"calorimeter\",\"identityLabels\":[\"calorimeter-a\",\"calorimeter\",\"calorimeter\",\"calorimeter\",\"calorimeter\",\"entity:calorimeter\",\"calorimeter-a\",\"prompt.body.calorimeter\",\"prompt-body-calorimeter\",\"entity:calorimeter\"],\"grammarId\":\"object-grammar.semantic-detector\",\"renderArchetype\":\"detector-geometry\",\"literal\":true,\"partCount\":3,\"submittedPartCount\":3,\"submittedSemanticPartCount\":3,\"submissionEvidence\":true,\"submitted\":true,\"primitiveCount\":3,\"projectedArea\":0.03371,\"topologyVerified\":true,\"semanticFit\":true,\"readable\":true,\"geometryRealized\":true,\"morphologyQuality\":{\"schema\":\"simulatte.objectMorphologyReceipt.v1\",\"pass\":true,\"specificityScore\":0.9,\"contourProfileCount\":3,\"surfacePatternCount\":1,\"accentPatternCount\":1,\"dynamicAccentPartCount\":3,\"distinctiveFeatureCount\":3},\"morphologySubmitted\":true,\"submittedContourProfileCount\":3,\"submittedSurfacePatternCount\":1,\"submittedAccentPatternCount\":1,\"submittedDistinctiveFeatureCount\":2,\"perceptualReady\":true,\"realized\":true,\"constructionSource\":true,\"modelEvaluatedConstruction\":false,\"rerankEvaluatedConstruction\":false},{\"schema\":\"simulatte.objectRenderRealization.v1\",\"entityId\":\"sensor-array\",\"identityType\":\"instrument\",\"identityLabels\":[\"sensor-array\",\"detector\",\"detector\",\"detector\",\"instrument\",\"sensor-array\"],\"grammarId\":\"object-grammar.instrument\",\"renderArchetype\":\"instrument\",\"literal\":true,\"partCount\":4,\"submittedPartCount\":4,\"submittedSemanticPartCount\":4,\"submissionEvidence\":true,\"submitted\":true,\"primitiveCount\":2,\"projectedArea\":0.02521,\"topologyVerified\":true,\"semanticFit\":true,\"readable\":true,\"geometryRealized\":true,\"morphologyQuality\":{\"schema\":\"simulatte.objectMorphologyReceipt.v1\",\"pass\":true,\"specificityScore\":0.7333,\"contourProfileCount\":2,\"surfacePatternCount\":1,\"accentPatternCount\":1,\"dynamicAccentPartCount\":4,\"distinctiveFeatureCount\":4},\"morphologySubmitted\":true,\"submittedContourProfileCount\":2,\"submittedSurfacePatternCount\":1,\"submittedAccentPatternCount\":1,\"submittedDistinctiveFeatureCount\":3,\"perceptualReady\":true,\"realized\":true,\"constructionSource\":false,\"modelEvaluatedConstruction\":null,\"rerankEvaluatedConstruction\":null}]}",
+          "webgpuStorageBytes": "40960",
+          "phase7RendererConsumption": "{\"schema\":\"simulatte.phase7RendererConsumption.v1\",\"cameraConfigured\":true,\"sourceLightCount\":2,\"sourceMaterialCount\":6,\"cameraConsumed\":false,\"lightCountConsumed\":0,\"materialCountConsumed\":0,\"objectPartCount\":24,\"morphologySubmission\":{\"schema\":\"simulatte.phase7MorphologySubmission.v1\",\"submittedPartCount\":24,\"contourProfiles\":[\"cloud\",\"rounded-box\",\"ring\",\"bevel-box\",\"trapezoid\"],\"surfacePatterns\":[\"solid\",\"instrument\"],\"accentPatterns\":[\"ambient\",\"scan\"],\"featureClasses\":[\"left\",\"middle\",\"right\",\"base\",\"case\",\"display\",\"dial\",\"detector\",\"readout\",\"beam\",\"curved\",\"collision\"],\"contourProfileCount\":5,\"surfacePatternCount\":2,\"accentPatternCount\":2,\"dynamicAccentPartCount\":14,\"distinctiveFeatureCount\":12},\"atmosphereConfigured\":true,\"atmosphereLayerCount\":3,\"atmosphereConsumed\":false,\"depthConfigured\":true,\"depthEnabled\":false,\"normalShading\":false,\"perspectiveEnabled\":true,\"interactionHitTestingConfigured\":true,\"interactionHitTestingConsumed\":false,\"interactionTargetCount\":5,\"interactionVisualStateConsumed\":false,\"constructionProgramCount\":5,\"modelEvaluatedConstructionCount\":0}",
+          "phase7CameraConsumed": "false",
+          "phase7LightCountConsumed": "0",
+          "phase7MaterialCountConsumed": "0",
+          "phase7DepthEnabled": "false",
+          "phase7InteractionTargetCount": "5"
+        },
+        "labReady": true,
+        "spec": {
+          "name": "Particle Collider Muon Tracks Collision Plume",
+          "templateId": "custom-world",
+          "phaseSchemas": {
+            "phase1": "simulatte.phase1.output.v1",
+            "phase2": "simulatte.phase2.output.v1",
+            "phase3": "simulatte.phase3.output.v2",
+            "phase4": "simulatte.phase4.output.v2",
+            "phase5": "simulatte.phase5.output.v2",
+            "phase6": "simulatte.phase6.output.v2"
+          },
+          "phase6SceneKind": "particle-instrument",
+          "phase6RenderPacketSchema": "simulatte.sceneRenderPacket.v1"
+        }
+      },
+      "visualRubric": {
+        "score": 0,
+        "pass": false,
+        "expectedSignals": [],
+        "missingSignals": [
+          "audit-completion"
+        ],
+        "dynamicRequired": false,
+        "dynamic": false,
+        "representationQuality": 0
+      }
+    }
+  ]
+}

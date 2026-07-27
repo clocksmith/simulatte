@@ -46,6 +46,7 @@
       uncertainty: result.emissions.truth.uncertainty,
       records: [model],
     });
+    const destinationPort = activePorts.find((port) => port.id === result.route.destinationPort);
     const layers = [
       ...activePorts.map((port) => builder.layer({
         id: `port:${port.id}`,
@@ -61,7 +62,7 @@
         id: `route:${result.route.id}`,
         kind: 'path',
         label: 'Selected modeled voyage',
-        geometry: builder.geometry('polyline', 'wgs84', result.route.waypoints),
+        geometry: builder.geometry('polyline', 'wgs84', result.route.renderCoordinates),
         quantity: builder.quantity('cargo', result.parameters.cargoTeu, 'TEU', [0, 24000]),
         role: 'primary',
         importance: 1,
@@ -72,11 +73,36 @@
         kind: 'actor',
         label: 'Representative simulated vessel',
         geometry: builder.geometry('point', 'wgs84', [snapshot.position]),
-        quantity: builder.quantity('progress', snapshot.progressFraction, 'ratio', [0, 1]),
+        quantity: builder.quantity('actor.vessel.route-progress', snapshot.progressFraction, 'ratio', [0, 1]),
         role: 'event',
         importance: 0.9,
         provenance: simulated,
       }),
+      ...(queueVisible && destinationPort ? [builder.layer({
+        id: `queue-pressure:${destinationPort.id}`,
+        kind: 'field',
+        label: `Modeled arrival queue · p50 ${result.queueEnsemble.p50WaitHours.toFixed(1)} h`,
+        geometry: builder.geometry(
+          'polygon',
+          'wgs84',
+          radialPolygon(
+            destinationPort.location.longitude,
+            destinationPort.location.latitude,
+            Math.max(0.35, Math.min(2.4, 0.35 + result.queueEnsemble.p50WaitHours / 24)),
+            24
+          )
+        ),
+        quantity: builder.quantity(
+          'queue-wait',
+          result.queueEnsemble.p50WaitHours,
+          'hour',
+          [0, Math.max(24, result.queueEnsemble.p95WaitHours)]
+        ),
+        role: snapshot.status === 'queued' ? 'event' : 'context',
+        importance: snapshot.status === 'queued' ? 1 : 0.55,
+        aggregationKey: 'modeled-port-queue',
+        provenance: simulated,
+      })] : []),
     ];
     const events = result.eventTrace.map((row, sequence) => builder.event({
       id: row.id,
@@ -139,6 +165,7 @@
       measures: [
         builder.quantity('progress', snapshot.progressFraction, 'ratio', [0, 1]),
         builder.quantity('elapsed-modeled-time', snapshot.timeHours / 24, 'day'),
+        builder.quantity('cargo', result.parameters.cargoTeu, 'TEU', [0, result.vessel.teu]),
         ...(settled ? [builder.quantity('transit-time', result.metrics.totalTransitDays.value, 'day')] : []),
         ...(queueVisible ? [builder.quantity('queue-p50', result.queueEnsemble.p50WaitHours, 'hour')] : []),
       ],
@@ -183,5 +210,16 @@
     return { id, label, kind: 'select', value, options, minimum: null, maximum: null, step: null, provenance };
   }
   function field(id, label, value, unit, provenance) { return { id, label, value, unit, provenance }; }
+  function radialPolygon(longitude, latitude, radiusDegrees, count) {
+    const latitudeScale = Math.max(0.2, Math.cos(latitude * Math.PI / 180));
+    return Array.from({ length: count }, (_, index) => {
+      const angle = index / count * Math.PI * 2;
+      return [
+        longitude + Math.cos(angle) * radiusDegrees / latitudeScale,
+        latitude + Math.sin(angle) * radiusDegrees,
+        0,
+      ];
+    });
+  }
   return Object.freeze({ createContribution });
 });

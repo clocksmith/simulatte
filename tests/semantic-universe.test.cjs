@@ -53,7 +53,14 @@ test('semantic universe manifest exposes the full parallel-worker contract', () 
     assert.equal(manifest.indexes[name].kind, kind);
     assert.equal(manifest.indexes[name].artifact, `./${artifact}`);
     assert.equal(manifest.indexes[name].documentSchema, schema);
-    const index = readJson(path.join(universeDir, artifact));
+    const artifactBytes = fs.readFileSync(path.join(universeDir, artifact));
+    assert.equal(manifest.indexes[name].artifactHash.alg, 'sha256');
+    assert.equal(
+      manifest.indexes[name].artifactHash.hex,
+      require('node:crypto').createHash('sha256').update(artifactBytes).digest('hex')
+    );
+    assert.equal(manifest.indexes[name].artifactBytes, artifactBytes.byteLength);
+    const index = JSON.parse(artifactBytes);
     assert.equal(index.schema, schema);
     assert.ok(index.id);
     assert.ok(Array.isArray(index.documents));

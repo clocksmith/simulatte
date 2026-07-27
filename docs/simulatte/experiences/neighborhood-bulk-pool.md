@@ -4,14 +4,14 @@ Owner contract: `public/shared/plugins/neighborhood-bulk-pool/index.js`.
 
 ## Status
 
-- Status: verified
+- Status: implemented
 - Tier and world: City, `nyc-core-autonomy-v1`
 - Plugin ID: `neighborhood-bulk-pool`
 - Profile ID: `neighborhood-bulk-pool-v1`
 - Default scenario: `weekend-baseline`
 - Contract version: plugin v4 contribution
-- Last verified source: commit `a5713c1c13ab`, bound worktree receipt
-- Evidence: 8/8 runs in `artifacts/profile-evidence/index.json`
+- Last verified source: prior browser proof at commit `a5713c1c13ab`
+- Evidence: current worktree browser proof not rerun; prior index contains 8/8 runs
 
 ## What is it?
 
@@ -48,7 +48,7 @@ legally ready marketplace.
 ## What does the user see?
 
 - Initial view: Warehouse identities and coarse neighborhood demand envelopes on the City map.
-- During playback: Package formation, trip assignments, handoff stops, and unserved demand appear progressively.
+- During playback: Pseudonymous baskets form packages, driver cars travel to warehouses and household handoffs, package actors move with the assigned trip, rejections remain visible, and costs settle.
 - Selection and inspection: Catalog coverage, warehouse offers, group allocation, trips, and compensation settlements.
 - Comparison view: Four policy outcomes expose changes in cost, waste, service, and incremental driving.
 - Final settlement: Requested and fulfilled units, packages purchased, waste, household cost, and scenario kilometers.
@@ -103,8 +103,8 @@ Cannot claim:
 - Unit tests: passing in plugin and platform suites
 - Deterministic replay: verified
 - Comparison execution: verified across declared policies
-- Desktop browser: verified
-- Mobile browser: verified
+- Desktop browser: not rerun for the current worktree
+- Mobile browser: not rerun for the current worktree
 - Known unresolved failures: none in the bound evidence matrix
 
 ## Where is it implemented?

@@ -40,6 +40,38 @@
       label: 'Long Beach to New York/New Jersey via Panama baseline',
     }),
   });
+  const CORRIDOR_GUIDES = Object.freeze({
+    'corridor:cnsha-sgsin': [[125, 29], [123, 21], [116, 12], [107, 5]],
+    'corridor:sgsin-lkcmb': [[98, 4], [90, 5], [83, 6]],
+    'corridor:lkcmb-aejea': [[72, 10], [61, 16], [57, 23]],
+    'corridor:aejea-grpir': [[56, 24], [48, 17], [42, 13], [35, 17], [32.5, 29.8], [29, 34]],
+    'corridor:sgsin-nlrtm': [[95, 5], [80, 9], [60, 15], [43, 13], [35, 18], [32.5, 29.8], [20, 35], [5, 38], [-5, 44], [0, 50]],
+    'corridor:sgsin-grpir': [[95, 5], [80, 9], [60, 15], [43, 13], [35, 18], [32.5, 29.8], [29, 34]],
+    'corridor:grpir-esvlc': [[18, 36], [10, 37], [3, 38]],
+    'corridor:esvlc-nlrtm': [[-2, 39], [-6, 44], [-3, 49]],
+    'corridor:nlrtm-beanr': [[3.4, 51.7]],
+    'corridor:nlrtm-deham': [[3.5, 52.5], [6.5, 54.2]],
+    'corridor:nlrtm-usnyc': [[-5, 50], [-20, 47], [-40, 44], [-60, 41]],
+    'corridor:usnyc-ussav': [[-73, 38], [-75, 34]],
+    'corridor:cnsha-uslax': [[135, 28], [155, 31], [179, 33], [-179, 33], [-155, 34], [-130, 34]],
+    'corridor:cnngb-uslgb': [[135, 27], [155, 30], [179, 32], [-179, 32], [-155, 33], [-130, 33]],
+    'corridor:krpus-uslax': [[145, 37], [165, 36], [179, 35], [-179, 35], [-150, 35], [-125, 34]],
+    'corridor:jptyo-uslax': [[150, 36], [170, 36], [179, 35], [-179, 35], [-150, 35], [-125, 34]],
+    'corridor:cnsha-krpus': [[125, 32], [128, 34]],
+    'corridor:cnsha-cnngb': [[122.2, 30.6]],
+    'corridor:cnszn-hkhkg': [[114.1, 22.45]],
+    'corridor:hkhkg-sgsin': [[113, 18], [110, 12], [106, 5]],
+    'corridor:twkhh-cnsha': [[121.5, 25], [123, 28]],
+    'corridor:phmnl-hkhkg': [[117, 16], [114.5, 20]],
+    'corridor:mytpp-sgsin': [[102.5, 1.1]],
+    'corridor:cntao-krpus': [[124, 35], [127, 34]],
+    'corridor:uslgb-usnyc': [[-117, 25], [-105, 14], [-90, 10], [-79.7, 9.1], [-77, 15], [-75, 28]],
+    'corridor:ussav-uslax': [[-77, 28], [-79.7, 9.1], [-90, 10], [-105, 18], [-116, 28]],
+    'corridor:brssz-uslgb': [[-40, -18], [-45, 0], [-65, 10], [-79.7, 9.1], [-95, 13], [-110, 25]],
+    'corridor:brssz-usnyc': [[-40, -16], [-38, 0], [-52, 18], [-67, 33]],
+    'corridor:zadur-sgsin': [[35, -34], [50, -30], [70, -18], [90, -6], [101, 0]],
+    'corridor:zadur-nlrtm': [[20, -36], [5, -35], [-10, -20], [-15, 0], [-10, 22], [-6, 40], [0, 50]],
+  });
 
   function planRoute({
     ports,
@@ -74,6 +106,20 @@
       }
       return Object.freeze([point.longitude, point.latitude, 0]);
     });
+    const legs = selected.edges.map((row, index) => Object.freeze({
+      id: row.id,
+      fromPortId: selected.portIds[index],
+      toPortId: selected.portIds[index + 1],
+      canalId: row.canalId,
+      distanceKm: row.distanceKm,
+      distanceNm: row.distanceKm / 1.852,
+      sailingHours: row.transitHours,
+      routeSelectionFuelTons: row.fuelTons,
+      routeSelectionCo2Tons: row.co2Tons,
+      effectiveSpeedKnots: row.effectiveSpeedKnots,
+      coordinates: corridorCoordinates(row, waypoints[index], waypoints[index + 1]),
+      sourceRowIds: Object.freeze([row.id]),
+    }));
     const graphDistanceKm = selected.edges.reduce((sum, row) => sum + row.distanceKm, 0);
     const distanceNm = Number(spec.distanceCalibrationNm || graphDistanceKm / 1.852);
     const distanceKm = distanceNm * 1.852;
@@ -99,18 +145,14 @@
       speedPolicy,
       sailingDays,
       waypoints: Object.freeze(waypoints),
-      legs: Object.freeze(selected.edges.map((row, index) => Object.freeze({
-        id: row.id,
-        fromPortId: selected.portIds[index],
-        toPortId: selected.portIds[index + 1],
-        canalId: row.canalId,
+      renderCoordinates: Object.freeze(flattenLegCoordinates(legs)),
+      legs: Object.freeze(legs.map((row) => Object.freeze({
+        ...row,
         distanceKm: row.distanceKm * distanceScale,
-        distanceNm: row.distanceKm * distanceScale / 1.852,
-        sailingHours: row.transitHours * distanceScale,
-        routeSelectionFuelTons: row.fuelTons * distanceScale,
-        routeSelectionCo2Tons: row.co2Tons * distanceScale,
-        effectiveSpeedKnots: row.effectiveSpeedKnots,
-        sourceRowIds: Object.freeze([row.id]),
+        distanceNm: row.distanceNm * distanceScale,
+        sailingHours: row.sailingHours * distanceScale,
+        routeSelectionFuelTons: row.routeSelectionFuelTons * distanceScale,
+        routeSelectionCo2Tons: row.routeSelectionCo2Tons * distanceScale,
       }))),
       objectiveValues: Object.freeze({
         totalTransitDays: sailingDays,
@@ -135,8 +177,23 @@
         ...selected.edges.map((row) => `row:global-maritime-corridors-v1:${row.id}`),
         'model:governed-corridor-dijkstra-v2',
       ]),
-      claimBoundary: 'Modeled route over a sparse, bidirectional aggregate corridor graph. It is not hydrographic navigation, a carrier schedule, or a live vessel route.',
+      claimBoundary: 'Modeled route over a sparse, bidirectional aggregate corridor graph with authored ocean-following display geometry. It is not hydrographic navigation, a carrier schedule, or a live vessel route.',
     });
+  }
+
+  function corridorCoordinates(edge, from, to) {
+    const guides = CORRIDOR_GUIDES[edge.id] || [];
+    const forward = edge.from === edge.fromPortId;
+    const ordered = forward ? guides : [...guides].reverse();
+    return Object.freeze([
+      Object.freeze([...from]),
+      ...ordered.map((point) => Object.freeze([point[0], point[1], 0])),
+      Object.freeze([...to]),
+    ]);
+  }
+
+  function flattenLegCoordinates(legs) {
+    return legs.flatMap((leg, index) => index === 0 ? leg.coordinates : leg.coordinates.slice(1));
   }
 
   function graphEdges(rows, speedKnots, disruption, routeObjective) {
@@ -250,5 +307,5 @@
     return error;
   }
 
-  return Object.freeze({ SCENARIOS, planRoute, scenarioFor, speedForPolicy });
+  return Object.freeze({ CORRIDOR_GUIDES, SCENARIOS, planRoute, scenarioFor, speedForPolicy });
 });

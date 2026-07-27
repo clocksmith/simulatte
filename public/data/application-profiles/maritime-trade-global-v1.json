@@ -10,6 +10,20 @@
     "startLabel": "Run voyage",
     "shuffleLabel": "Change scenario"
   },
+  "experience": {
+    "kind": "simulation",
+    "timelineLabel": "Voyage event",
+    "primaryMeasureKinds": ["progress", "elapsed-modeled-time", "queue-p50", "transit-time", "cargo"],
+    "supportedViews": ["overview", "free", "compare"],
+    "defaultView": "overview",
+    "comparisonMode": "synchronized",
+    "stages": [
+      { "id": "cargo-books", "label": "Cargo booked", "narrative": "Modeled cargo, vessel, route intent, and custody establish the selected voyage.", "fromProgress": 0 },
+      { "id": "vessel-sails", "label": "Vessel underway", "narrative": "The vessel advances through governed corridors while speed changes time and fuel use.", "fromProgress": 0.16 },
+      { "id": "port-queues", "label": "Port operations", "narrative": "Chokepoints, weather scenarios, queue arrivals, and berth service alter the voyage.", "fromProgress": 0.5 },
+      { "id": "cargo-delivers", "label": "Cargo delivered", "narrative": "Custody, transit, queue distribution, and emissions sensitivity settle independently.", "fromProgress": 0.84 }
+    ]
+  },
   "defaultSeedId": "asia-europe-mainline",
   "seeds": [
     {

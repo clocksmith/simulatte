@@ -165,6 +165,16 @@ export function validateCalibrationPopulationContract(population, task, policy) 
     if (!row || !String(row.id || '').trim()) fail(`${task} calibration row id is required`);
     if (ids.has(row.id)) fail(`${task} calibration row id is duplicated: ${row.id}`);
     ids.add(row.id);
+    if (task === 'embedding-retrieval') {
+      const minimumCandidates = Number(
+        policy?.requiredTasks?.find((entry) => entry.id === task)
+          ?.populationShape?.minimumCandidatesPerQuery
+      );
+      if (!Number.isInteger(minimumCandidates) || !Array.isArray(row.candidates) ||
+          row.candidates.length < minimumCandidates) {
+        fail(`${task} calibration row ${row.id} requires at least ${minimumCandidates || 'the governed number of'} candidates`);
+      }
+    }
   }
   const fingerprints = populationRowFingerprints(population, task);
   if (new Set(fingerprints).size !== fingerprints.length) fail(`${task} calibration contains duplicate row content`);

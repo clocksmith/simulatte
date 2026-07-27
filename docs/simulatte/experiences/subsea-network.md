@@ -4,14 +4,14 @@ Owner contract: `public/shared/plugins/subsea-network-global/index.js`.
 
 ## Status
 
-- Status: verified
+- Status: implemented
 - Tier and world: World, `earth-global-topology-v1`
 - Plugin ID: `subsea-network-global`
 - Profile ID: `subsea-network-global-v1`
 - Default scenario: `atlantic-single-cut`
 - Contract version: plugin v4 contribution
-- Last verified source: commit `a5713c1c13ab`, bound worktree receipt
-- Evidence: 8/8 runs in `artifacts/profile-evidence/index.json`
+- Last verified source: prior browser proof at commit `a5713c1c13ab`
+- Evidence: current worktree browser proof not rerun; prior index contains 8/8 runs
 
 ## What is it?
 
@@ -102,8 +102,8 @@ Cannot claim:
 - Unit tests: passing in `tests/subsea-network-global.test.cjs`
 - Deterministic replay: verified
 - Comparison execution: verified
-- Desktop browser: verified
-- Mobile browser: verified
+- Desktop browser: not rerun for the current worktree
+- Mobile browser: not rerun for the current worktree
 - Known unresolved failures: current traffic, capacity, and repair calibration are absent
 
 ## Where is it implemented?

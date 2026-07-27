@@ -64,7 +64,8 @@
       "properties": {
         "id": { "type": "string", "minLength": 1 },
         "sha256": { "$ref": "#/$defs/hash" },
-        "k": { "type": "integer", "minimum": 1 }
+        "k": { "type": "integer", "minimum": 1 },
+        "minimumCandidatesPerQuery": { "type": "integer", "minimum": 3 }
       }
     },
     "candidates": {
@@ -82,6 +83,16 @@
             "items": {
               "properties": { "quality": { "$ref": "#/$defs/classificationQuality" } }
             }
+          }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "task": { "const": "embedding-retrieval" } } },
+      "then": {
+        "properties": {
+          "workload": {
+            "required": ["id", "sha256", "k", "minimumCandidatesPerQuery"]
           }
         }
       }

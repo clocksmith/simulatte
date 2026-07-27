@@ -11,63 +11,113 @@
   "indexes": {
     "affordances": {
       "artifact": "./affordance-index-v1.json",
+      "artifactBytes": 3982035,
+      "artifactHash": {
+        "alg": "sha256",
+        "hex": "8230bcdfacab3bc163ffc36d6b8f7836ca8a12fb52af0fb4a126f6f1832c0ad6"
+      },
       "documentSchema": "simulatte.universeAffordanceIndex.v1",
       "kind": "affordance-index"
     },
     "analogs": {
       "artifact": "./physical-analog-index-v1.json",
+      "artifactBytes": 5106516,
+      "artifactHash": {
+        "alg": "sha256",
+        "hex": "13aea69fe58dc20a963ddc8d78c4a2b7b384e7add332b03c8490b4d0fe3bf241"
+      },
       "documentSchema": "simulatte.universePhysicalAnalogIndex.v1",
       "kind": "physical-analog-index"
     },
     "concepts": {
       "artifact": "./concept-index-v1.json",
+      "artifactBytes": 6029100,
+      "artifactHash": {
+        "alg": "sha256",
+        "hex": "6101d5604eae0a241fda3194fb7c487cc7a5cb2b14fac799a498f98fb2a9bd28"
+      },
       "documentSchema": "simulatte.universeConceptIndex.v1",
       "kind": "concept-index"
     },
     "materials": {
       "artifact": "./material-index-v1.json",
+      "artifactBytes": 573556,
+      "artifactHash": {
+        "alg": "sha256",
+        "hex": "85fe00a572a40fea7caa1eac454ce0b05a1aeb2d90e3788f3d1ae54358efdab1"
+      },
       "documentSchema": "simulatte.universeMaterialIndex.v1",
       "kind": "material-index"
     },
     "operators": {
       "artifact": "./operator-index-v1.json",
+      "artifactBytes": 1624562,
+      "artifactHash": {
+        "alg": "sha256",
+        "hex": "0311e01840906d7d56479a2e88d53a48ba628e3aad1732a2713ca5220660e1e7"
+      },
       "documentSchema": "simulatte.universeOperatorIndex.v1",
       "kind": "operator-index"
     },
     "processes": {
       "artifact": "./process-index-v1.json",
+      "artifactBytes": 1040621,
+      "artifactHash": {
+        "alg": "sha256",
+        "hex": "086734b01894a07c3c8d9b79518687a4d2eba2bd68eee43e30b2c745d7d894a9"
+      },
       "documentSchema": "simulatte.universeProcessIndex.v1",
       "kind": "process-index"
     },
     "relations": {
       "artifact": "./relation-index-v1.json",
+      "artifactBytes": 1046854,
+      "artifactHash": {
+        "alg": "sha256",
+        "hex": "dd1bdba90ff5056bd0475f8e68115a312824d19233918bddd9ea0f2e71536c63"
+      },
       "documentSchema": "simulatte.universeRelationIndex.v1",
       "kind": "relation-index"
     },
     "scenes": {
       "artifact": "./scene-index-v1.json",
+      "artifactBytes": 933954,
+      "artifactHash": {
+        "alg": "sha256",
+        "hex": "9a50c23c6477fd0a00b4f1ed51d7944d2fb4aa33db8d63e5253116da1ca1ea8f"
+      },
       "documentSchema": "simulatte.universeSceneIndex.v1",
       "kind": "scene-index"
     },
     "shapes": {
       "artifact": "./shape-index-v1.json",
+      "artifactBytes": 1492422,
+      "artifactHash": {
+        "alg": "sha256",
+        "hex": "6a09cfad8f0178a18352db5a027ec080ec4665486756f0202f7d20df0c27c67d"
+      },
       "documentSchema": "simulatte.universeShapeIndex.v1",
       "kind": "shape-index"
     },
     "synonyms": {
       "artifact": "./synonym-index-v1.json",
+      "artifactBytes": 12674287,
+      "artifactHash": {
+        "alg": "sha256",
+        "hex": "932b399a6c45551c4601a9c982f4300d613e9fa5b075bf3731bf934993454584"
+      },
       "documentSchema": "simulatte.universeSynonymIndex.v1",
       "kind": "synonym-index"
     }
   },
   "modelRuntimeLock": {
-    "id": "simulatte-doppler-qwen-runtime-lock",
-    "number": 13,
     "artifact": "../simulatte-embedder/model-runtime-lock.json",
     "artifactHash": {
       "alg": "sha256",
       "hex": "2eadfbbccfa9a746fc82696c8c3990363bec2d5367c4360570426b3f9b20baf2"
-    }
+    },
+    "id": "simulatte-doppler-qwen-runtime-lock",
+    "number": 13
   },
   "schema": "simulatte.universeManifest.v1"
 }

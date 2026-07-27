@@ -111,6 +111,8 @@
         totalBytes,
         durationMs: scope.elapsedMsSince(started),
       };
+      receipt.verificationMs = receipt.fromCache ? receipt.durationMs : 0;
+      receipt.importMs = receipt.fromCache ? 0 : receipt.durationMs;
       scope.emitRuntimeProgress(progress, trace, {
         source: 'doppler',
         stage: cache.fromCache ? 'cache-hit' : 'cache-ready',
@@ -166,6 +168,7 @@
         sourceOrder: [],
         sourcePreparations: [],
         loadOrder: [],
+        devicePreparation: null,
       };
       owner.dopplerSourcePreparationPromise = (async () => {
         const sources = {};
@@ -190,6 +193,12 @@
             sources[role] = await takeDopplerCachedModelSource(
               owner, role, runtime, models[role], roleOptions
             );
+            const cacheReceipt = sources[role].receipt || {};
+            row.cacheState = cacheReceipt.state || '';
+            row.fromCache = cacheReceipt.fromCache === true;
+            row.verificationMs = Number(cacheReceipt.verificationMs || 0);
+            row.importMs = Number(cacheReceipt.importMs || 0);
+            row.totalBytes = Number(cacheReceipt.totalBytes || 0);
             row.status = 'ready';
           } catch (error) {
             row.status = 'failed';

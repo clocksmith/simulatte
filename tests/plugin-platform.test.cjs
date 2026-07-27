@@ -126,6 +126,39 @@ test('plugin UI contract reserves map overlays for interaction and rejects dupli
   );
 });
 
+test('legacy numeric UI fields retain finite bounds for v4 normalization', () => {
+  const contribution = {
+    slot: 'inspector',
+    title: 'Bounded parameters',
+    rows: [],
+    fields: [{
+      id: 'cargo',
+      label: 'Cargo',
+      type: 'number',
+      value: 4000,
+      minimum: 100,
+      maximum: 24000,
+      step: 100,
+    }],
+    actions: [],
+  };
+  assert.equal(contracts.validateUiContribution('fixture-plugin', contribution), contribution);
+  assert.throws(
+    () => contracts.validateUiContribution('fixture-plugin', {
+      ...contribution,
+      fields: [{
+        id: 'policy',
+        label: 'Policy',
+        type: 'select',
+        value: 'fast',
+        minimum: 0,
+        options: [{ value: 'fast', label: 'Fast' }],
+      }],
+    }),
+    /plugin_ui_field_bounds_unexpected/
+  );
+});
+
 test('plugin presentation is validated and compiled into namespaced renderer data', () => {
   const contribution = {
     schema: 'simulatte.pluginPresentation.v1',
@@ -143,7 +176,7 @@ test('plugin presentation is validated and compiled into namespaced renderer dat
   assert.equal(compiled.markers[0].id, 'plugin:fixture-plugin:hub');
   assert.equal(compiled.actors[0].points.length, 2);
   assert.equal(compiled.cameraTargets[0].kind, 'plugin');
-  assert.deepEqual(compiled.counts, { plugins: 1, markers: 1, paths: 1, actors: 1, areas: 0, suns: 0, cameraTargets: 1, geoMarkers: 0, geoPaths: 0, geoAreas: 0, choropleths: 0 });
+  assert.deepEqual(compiled.counts, { plugins: 1, markers: 1, paths: 1, actors: 1, areas: 0, suns: 0, cameraTargets: 1, geoMarkers: 0, geoPaths: 0, geoAreas: 0, choropleths: 0, labels: 0 });
   assert.throws(() => contracts.validatePresentationContribution('fixture-plugin', { ...contribution, actors: [{ ...contribution.actors[0], kind: 'spaceship' }] }), /plugin_actor_kind_invalid/);
 
   const solar = {
@@ -160,7 +193,7 @@ test('plugin presentation is validated and compiled into namespaced renderer dat
   assert.equal(solarCompiled.areas.length, 1);
   assert.equal(solarCompiled.sun.pluginId, 'fixture-plugin');
   assert.equal(solarCompiled.sun.directionToSun.length, 3);
-  assert.deepEqual(solarCompiled.counts, { plugins: 1, markers: 0, paths: 0, actors: 0, areas: 1, suns: 1, cameraTargets: 1, geoMarkers: 0, geoPaths: 0, geoAreas: 0, choropleths: 0 });
+  assert.deepEqual(solarCompiled.counts, { plugins: 1, markers: 0, paths: 0, actors: 0, areas: 1, suns: 1, cameraTargets: 1, geoMarkers: 0, geoPaths: 0, geoAreas: 0, choropleths: 0, labels: 0 });
 });
 
 test('experience camera configuration targets only an active plugin', () => {
@@ -189,6 +222,7 @@ test('experience camera configuration targets only an active plugin', () => {
   assert.equal(focusSelect.value, 'plugin:cable-trader:network');
   assert.deepEqual(calls, [['focus', 'plugin:cable-trader:network'], ['mode', 'top'], ['selected', 'top']]);
   assert.equal(experienceCameraApi.runCameraMode(null), 'follow');
+  assert.equal(experienceCameraApi.runCameraMode({ runMode: 'bird' }), 'overview');
 });
 
 test('platform bootstrap has no named plugin import', () => {

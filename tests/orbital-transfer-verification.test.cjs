@@ -195,10 +195,65 @@ test('objective controls rerun the launch-window search and become receipt-backe
   }
   assert.equal(action.status, 'settled');
   const controls = Object.fromEntries(instance.contributeV4().controls.controls.map((row) => [row.id, row.value]));
-  assert.deepEqual(controls, { deltaVWeight: 2, timeWeight: 0.2 });
+  assert.deepEqual(controls, {
+    deltaVWeight: 2,
+    prograde: true,
+    spacecraftArchetypeId: 'cargo-freighter-v1',
+    timeWeight: 0.2,
+    verificationStepDays: 0.5,
+  });
   const receipt = host.receipts.findLast((row) => row.schema === 'simulatte.plugin.orbitalTransferReceipt.v2');
   assert.equal(receipt.selectedCandidateId, after.selected.id);
   assert.deepEqual(receipt.solver, after.solverReceipt);
+});
+
+test('spacecraft, solver branch, and verifier controls causally alter accepted results', async () => {
+  const host = fixture();
+  const instance = await plugin.activate({ sdk: host.sdk, config, profile, scenario: profile.seeds[0] });
+  const cargo = instance.handleAction('scenario.run', {
+    values: {
+      phase: 'start',
+      spacecraftArchetypeId: 'cargo-freighter-v1',
+      prograde: true,
+      verificationStepDays: 0.5,
+    },
+  });
+  assert.equal(cargo.status, 'running');
+  const cargoResult = instance.capabilities['simulation.orbital-transfer.v1']();
+
+  const crew = instance.handleAction('scenario.run', {
+    values: {
+      phase: 'start',
+      spacecraftArchetypeId: 'crew-ship-v1',
+      prograde: false,
+      verificationStepDays: 1,
+    },
+  });
+  assert.equal(crew.status, 'running');
+  const crewResult = instance.capabilities['simulation.orbital-transfer.v1']();
+  assert.equal(crewResult.acceptedParameters.spacecraftArchetypeId, 'crew-ship-v1');
+  assert.equal(crewResult.acceptedParameters.prograde, false);
+  assert.equal(crewResult.acceptedParameters.verificationStepDays, 1);
+  assert.equal(crewResult.solverReceipt.branch, 'retrograde');
+  assert.equal(crewResult.verification.stepDays, 1);
+  assert.ok(
+    crewResult.metrics.radiationExposureUnits < cargoResult.metrics.radiationExposureUnits,
+    'the more heavily shielded crew archetype must reduce the modeled radiation proxy'
+  );
+});
+
+test('launch-window playback exposes a bounded family of inspectable candidate paths', async () => {
+  const host = fixture();
+  const instance = await plugin.activate({ sdk: host.sdk, config, profile, scenario: profile.seeds[0] });
+  instance.handleAction('scenario.run', { values: { phase: 'start' } });
+  instance.handleAction('scenario.run', { values: { phase: 'step' } });
+  const contribution = instance.contributeV4();
+  const candidates = contribution.presentation.layers.filter((row) => row.id.startsWith('transfer-candidate:'));
+  assert.ok(candidates.length > 1);
+  assert.ok(candidates.length <= 12);
+  assert.ok(candidates.every((row) => row.geometry.coordinates.length === 24));
+  assert.ok(candidates.every((row) => row.quantity.kind === 'candidate-objective'));
+  assert.equal(contribution.presentation.layers.some((row) => row.id === 'transfer-trajectory'), false);
 });
 
 test('flight playback advances the ephemeris epoch and follows the moving spacecraft', async () => {

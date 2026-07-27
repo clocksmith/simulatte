@@ -23,6 +23,10 @@ function loadEmbeddingIndex() {
     const surfaceIndexText = fs.readFileSync(path.join(root, 'public/data/simulatte-embedder/surface-card-index-qwen-v1.json'), 'utf8');
     const universeRoot = path.join(root, 'public/data/simulatte-universe');
     const universeManifest = JSON.parse(fs.readFileSync(path.join(universeRoot, 'manifest.json'), 'utf8'));
+    const universeIndexTexts = Object.fromEntries(Object.entries(universeManifest.indexes).map(([name, config]) => [
+      name,
+      fs.readFileSync(path.join(universeRoot, config.artifact.replace(/^\.\//, '')), 'utf8'),
+    ]));
     embeddingFixture = {
       manifestText,
       modelRuntimeLockText,
@@ -31,9 +35,10 @@ function loadEmbeddingIndex() {
       index: JSON.parse(indexText),
       surfaceIndex: JSON.parse(surfaceIndexText),
       universeManifest,
-      universeIndexes: Object.fromEntries(Object.entries(universeManifest.indexes).map(([name, config]) => [
+      universeIndexTexts,
+      universeIndexes: Object.fromEntries(Object.entries(universeIndexTexts).map(([name, text]) => [
         name,
-        JSON.parse(fs.readFileSync(path.join(universeRoot, config.artifact.replace(/^\.\//, '')), 'utf8')),
+        JSON.parse(text),
       ])),
     };
   }
@@ -219,6 +224,7 @@ async function withIntentArtifactFetch(run, options = {}) {
     surfaceIndex,
     surfaceIndexText,
     universeManifest,
+    universeIndexTexts,
     universeIndexes,
   } = loadEmbeddingIndex();
   const manifest = manifestFacade(rawManifest, modelRuntimeLock);
@@ -237,7 +243,7 @@ async function withIntentArtifactFetch(run, options = {}) {
     for (const [name, universeIndex] of Object.entries(universeIndexes)) {
       const artifact = universeManifest.indexes[name].artifact.replace(/^\.\//, '');
       if (value.endsWith(artifact)) {
-        return new Response(JSON.stringify(universeIndex), { status: 200 });
+        return new Response(universeIndexTexts[name], { status: 200 });
       }
     }
     if (value.endsWith('/simulatte-embedder/manifest.json')) {

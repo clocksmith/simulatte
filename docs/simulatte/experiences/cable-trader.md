@@ -4,14 +4,14 @@ Owner contract: `public/shared/plugins/cable-trader/index.js`.
 
 ## Status
 
-- Status: verified
+- Status: implemented
 - Tier and world: City, `nyc-core-autonomy-v1`
 - Plugin ID: `cable-trader`
 - Profile ID: `cable-trader-pickup-v1`
 - Default scenario: `july-baseline`
 - Contract version: plugin v4 contribution
-- Last verified source: commit `a5713c1c13ab`, bound worktree receipt
-- Evidence: 8/8 runs in `artifacts/profile-evidence/index.json`
+- Last verified source: prior browser proof at commit `a5713c1c13ab`
+- Evidence: current worktree browser proof not rerun; prior index contains 8/8 runs
 
 ## What is it?
 
@@ -97,8 +97,8 @@ Cannot claim:
 - Unit tests: passing in `tests/cable-trader.test.cjs`
 - Deterministic replay: verified
 - Comparison execution: verified as two settled branches
-- Desktop browser: verified
-- Mobile browser: verified
+- Desktop browser: not rerun for the current worktree
+- Mobile browser: not rerun for the current worktree
 - Known unresolved failures: none in the bound evidence matrix
 
 ## Where is it implemented?

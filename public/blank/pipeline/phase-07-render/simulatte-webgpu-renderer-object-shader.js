@@ -506,13 +506,13 @@ fn objectFs(input: ObjectVsOut) -> @location(0) vec4f {
     (0.42 + edge * 0.58);
   let selected = clamp(input.accentMotion.y, 0.0, 1.0);
   let hovered = clamp(input.accentMotion.z, 0.0, 1.0);
-  let active = clamp(input.accentMotion.w, 0.0, 1.0);
+  let activeState = clamp(input.accentMotion.w, 0.0, 1.0);
   let interactionEdge = (1.0 - edge) * (selected * 0.72 + hovered * 0.38);
-  let interactionPulse = active * (0.16 + 0.1 * sin(u.viewport.z * 7.0));
+  let interactionPulse = activeState * (0.16 + 0.1 * sin(u.viewport.z * 7.0));
   let interactionColor = mix(
     vec3f(0.38, 0.86, 1.0),
     vec3f(1.0, 0.72, 0.22),
-    active
+    activeState
   ) * (interactionEdge + interactionPulse);
   let localOcclusion = mix(0.82, 1.04, clamp(0.55 - input.local.y * 0.35, 0.0, 1.0));
   let color = clamp(

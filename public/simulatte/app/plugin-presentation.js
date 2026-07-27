@@ -124,6 +124,7 @@
       geoPaths: compiled.geoPaths.length,
       geoAreas: compiled.geoAreas.length,
       choropleths: compiled.choropleths.length,
+      labels: compiled.labels.length,
     });
     Object.keys(compiled).filter((key) => Array.isArray(compiled[key])).forEach((key) => Object.freeze(compiled[key]));
     return Object.freeze(compiled);
@@ -133,7 +134,12 @@
     const layerPoints = new Map();
     presentation.layers.forEach((layer) => {
       const points = resolveSemanticGeometry(layer.geometry, worldModel, pluginId, projection, layer.id);
-      layerPoints.set(layer.id, points);
+      layerPoints.set(
+        layer.id,
+        layer.kind === 'actor'
+          ? [pointAlongPath(points, semanticActorProgress(layer.quantity))]
+          : points
+      );
     });
     const viewport = validViewport(options.viewport) ? options.viewport : { width: 1024, height: 768 };
     const worldUnitsPerPixel = renderScaleForPoints([...layerPoints.values()].flat(), viewport);
@@ -151,12 +157,16 @@
       pluginId,
       ...composition.receipt,
     }));
-    composition.labels.forEach((row) => compiled.labels.push(Object.freeze({
-      ...row,
-      id: namespace(row.id),
-      sourceId: row.id,
-      pluginId,
-    })));
+    composition.labels.forEach((row) => {
+      const point = centerPoint(layerPoints.get(row.id) || []);
+      compiled.labels.push(Object.freeze({
+        ...row,
+        id: namespace(row.id),
+        sourceId: row.id,
+        pluginId,
+        point: Object.freeze({ ...point, heightM: 1.8 }),
+      }));
+    });
     composition.primitives.forEach((primitive) => {
       const points = resolveSemanticGeometry(primitive.geometry, worldModel, pluginId, projection, primitive.id);
       const style = primitive.style;
@@ -228,7 +238,7 @@
         sourceId: intent.id,
         pluginId,
         kind: 'plugin',
-        label: intent.id,
+        label: cameraTargetLabel(presentation.layers, intent),
         target: Object.freeze(centerForPoints(points)),
         distance: distanceForPoints(points),
         viewMode: intent.mode,
@@ -258,6 +268,19 @@
   function provenanceReceiptFor(receipts, pluginId) {
     return (Array.isArray(receipts) ? receipts : [])
       .find((receipt) => receipt?.pluginId === pluginId) || null;
+  }
+
+  function cameraTargetLabel(layers, intent) {
+    if (intent.targetIds.length === 1) {
+      const layer = layers.find((row) => row.id === intent.targetIds[0]);
+      if (layer?.label) return layer.label;
+    }
+    return String(intent.id)
+      .replace(/:[^:]+$/, '')
+      .split(/[-_:]/)
+      .filter(Boolean)
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(' ');
   }
 
   function projectLayer(points, allLayerPoints, viewport) {
@@ -312,7 +335,7 @@
   }
 
   function semanticActorKind(quantityKind) {
-    const match = /^actor\.(pedestrian|bicycle|scooter|car)\./.exec(String(quantityKind || ''));
+    const match = /^actor\.(pedestrian|bicycle|scooter|car|package)\./.exec(String(quantityKind || ''));
     return match?.[1] || null;
   }
 

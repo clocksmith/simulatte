@@ -163,6 +163,21 @@
       return start({ values: replayValues });
     }
 
+    async function reset() {
+      cancelTimer();
+      runGeneration += 1;
+      state = 'idle';
+      stepCount = 0;
+      isRestoring = false;
+      scenarioResult = null;
+      finalReceipt = null;
+      parameterValues = {};
+      clearStoredReceipt(storage, profileId);
+      await resetRuntime();
+      reflect();
+      return snapshot();
+    }
+
     function setPlaybackRate(nextRate) {
       const value = Number(nextRate);
       if (!Number.isFinite(value) || value <= 0 || value > 16) {
@@ -365,6 +380,7 @@
       pause,
       receipt: () => finalReceipt,
       replay,
+      reset,
       restore,
       resume,
       seek,

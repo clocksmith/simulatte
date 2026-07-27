@@ -10,6 +10,20 @@
     "startLabel": "Run network experiment",
     "shuffleLabel": "Change scenario"
   },
+  "experience": {
+    "kind": "simulation",
+    "timelineLabel": "Network event",
+    "primaryMeasureKinds": ["delivered-service", "dropped-demand", "maximum-utilization", "service-fairness"],
+    "supportedViews": ["overview", "free", "compare"],
+    "defaultView": "overview",
+    "comparisonMode": "synchronized",
+    "stages": [
+      { "id": "traffic-allocates", "label": "Traffic allocated", "narrative": "Modeled demand is conserved across governed landing and cable identities.", "fromProgress": 0 },
+      { "id": "failure-isolates", "label": "Failure applied", "narrative": "Selected cable or landing failures remove capacity and expose disconnected demand.", "fromProgress": 0.2 },
+      { "id": "traffic-reroutes", "label": "Traffic rerouted", "narrative": "The allocation policy redistributes service until corridors saturate or demand drops.", "fromProgress": 0.42 },
+      { "id": "network-repairs", "label": "Repair and settlement", "narrative": "Repair resources restore capacity while throughput and fairness settle against baseline.", "fromProgress": 0.76 }
+    ]
+  },
   "defaultSeedId": "atlantic-single-cut",
   "seeds": [
     {

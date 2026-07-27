@@ -42,7 +42,33 @@
     });
     const maxDemand = Math.max(1, ...snapshot.regions.map((row) => row.grossDemandMw));
     const regionById = new Map(snapshot.regions.map((row) => [row.id, row]));
+    const activeCrewLayers = restorationCrewLayers(
+      result,
+      snapshot,
+      datasets,
+      regionById,
+      simulated
+    );
     const layers = [
+      ...snapshot.regions.map((region) => {
+        const radius = 1.1 + 2.3 * Math.sqrt(region.grossDemandMw / maxDemand);
+        return builder.layer({
+          id: `grid-balance:${region.id}`,
+          kind: 'field',
+          label: `${region.label}: ${Math.round(region.servedMw)} MW served of ${Math.round(region.grossDemandMw)} MW`,
+          geometry: builder.geometry('polygon', 'wgs84', diamond(region.coordinates, radius)),
+          quantity: builder.quantity(
+            region.unservedMw > 0 ? 'unserved-energy-field' : 'served-load-field',
+            region.unservedMw > 0 ? region.unservedMw : region.servedMw,
+            'MW',
+            [0, maxDemand]
+          ),
+          role: region.unservedMw > 0 ? 'event' : 'context',
+          importance: region.unservedMw > 0 ? 1 : 0.5,
+          aggregationKey: 'grid-balance-fields',
+          provenance: simulated,
+        });
+      }),
       ...snapshot.regions.map((region) => builder.layer({
         id: `grid-region:${region.id}`,
         kind: 'point',
@@ -68,6 +94,7 @@
         aggregationKey: 'grid-interfaces',
         provenance: simulated,
       })),
+      ...activeCrewLayers,
     ];
     const events = result.events.map((row, sequence) => builder.event({
       id: row.id,
@@ -88,7 +115,9 @@
       viewIntents: [builder.viewIntent({
         id: `grid-view:${snapshot.id}`,
         mode: comparison?.settlement ? 'compare' : 'overview',
-        targetIds: layers.filter((row) => row.role === 'event').map((row) => row.id),
+        targetIds: activeCrewLayers.length
+          ? activeCrewLayers.map((row) => row.id)
+          : layers.filter((row) => row.role === 'event').map((row) => row.id),
         reasonEventId: snapshot.eventIds.at(-1) || null,
         priority: 65,
       })],
@@ -234,6 +263,61 @@
       storageChargeMw: 0,
       spilledGenerationMw: 0,
     });
+  }
+
+  function restorationCrewLayers(result, snapshot, datasets, regionById, provenance) {
+    const interfaceById = new Map(snapshot.interfaces.map((row) => [row.id, row]));
+    const crewById = new Map(datasets.restoration.crews.map((row) => [row.id, row]));
+    return result.restoration.tasks.flatMap((task) => {
+      if (!Number.isFinite(task.startHour) || snapshot.hour < task.startHour
+        || (Number.isFinite(task.crewReleaseHour) && snapshot.hour > task.crewReleaseHour)) return [];
+      const crew = crewById.get(task.crewId);
+      const home = regionById.get(crew?.homeRegionId)?.coordinates;
+      const edge = interfaceById.get(task.targetId);
+      const target = edge
+        ? midpoint(
+          regionById.get(edge.fromRegionId)?.coordinates,
+          regionById.get(edge.toRegionId)?.coordinates
+        )
+        : regionForResource(task.targetId, snapshot.regions)?.coordinates;
+      if (!home || !target) return [];
+      const duration = Math.max(1, (task.crewReleaseHour || task.startHour + 1) - task.startHour);
+      const progress = Math.max(0, Math.min(1, (snapshot.hour - task.startHour) / duration));
+      const position = home.map((value, index) => value + (target[index] - value) * progress);
+      return [builder.layer({
+        id: `grid-restoration-crew:${task.crewId}:${task.targetId}`,
+        kind: 'actor',
+        label: `${task.crewId} · ${task.successful ? 'restoring' : 'attempting'} ${task.targetId}`,
+        geometry: builder.geometry('point', 'wgs84', [[...position, 0]]),
+        quantity: builder.quantity('actor.repair-crew.route-progress', progress, 'ratio', [0, 1]),
+        role: 'event',
+        importance: 1,
+        aggregationKey: 'grid-restoration-crews',
+        provenance,
+      })];
+    });
+  }
+
+  function diamond(coordinates, radius) {
+    const [longitude, latitude] = coordinates;
+    return [
+      [longitude, latitude + radius, 0],
+      [longitude + radius * 1.35, latitude, 0],
+      [longitude, latitude - radius, 0],
+      [longitude - radius * 1.35, latitude, 0],
+    ];
+  }
+
+  function midpoint(left, right) {
+    if (!left || !right) return null;
+    return [(left[0] + right[0]) / 2, (left[1] + right[1]) / 2];
+  }
+
+  function regionForResource(resourceId, regions) {
+    return regions.find((region) => (
+      String(resourceId).startsWith(`${region.id}-`)
+      || String(resourceId).includes(`:${region.id}:`)
+    )) || null;
   }
 
   return Object.freeze({ MODEL_HASHES, createContribution });

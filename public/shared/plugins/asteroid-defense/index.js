@@ -13,6 +13,7 @@
     policies: 'asteroid-decision-policies-v1',
     benchmarks: 'asteroid-historical-benchmark-cases-v1',
     jpl: 'asteroid-jpl-reference-snapshots-v1',
+    neoCatalog: 'asteroid-jpl-neo-context-v1',
     governance: 'asteroid-model-governance-v1',
     provenance: 'asteroid-provenance-registry-v1',
   });
@@ -404,6 +405,7 @@
     'simulatte.asteroidDecisionPolicies.v1': (value) => rows(value, 'policies', 4),
     'simulatte.asteroidHistoricalBenchmarks.v1': (value) => rows(value, 'cases', 1),
     'simulatte.asteroidJplReferenceSnapshots.v1': (value) => rows(value, 'responses', 2),
+    'simulatte.asteroidJplNeoCatalog.v1': validateNeoCatalog,
     'simulatte.asteroidModelGovernance.v1': (value) => rows(value, 'algorithms', 4),
     'simulatte.asteroidProvenanceRegistry.v1': (value) => rows(value, 'records', 8),
   });
@@ -421,6 +423,21 @@
         || !Number.isInteger(row.impulseProfileSteps)
         || !Number.isFinite(row.navigationSigmaMultiplier)) {
         throw pluginError('asteroid_dataset_invalid', `${value.id}:${row.id}:execution-profile`);
+      }
+    });
+    return value;
+  }
+  function validateNeoCatalog(value) {
+    rows(value, 'objects', 100);
+    if (!value.source?.documentationUrl || !value.retrievedAt || !value.content?.rowIdentityHash) {
+      throw pluginError('asteroid_dataset_invalid', `${value.id}:catalog-custody`);
+    }
+    value.objects.forEach((row) => {
+      if (!row.id || !Number.isFinite(row.epochTdbJd)
+        || !Number.isFinite(row.semiMajorAxisAu)
+        || !Number.isFinite(row.eccentricity)
+        || row.eccentricity < 0 || row.eccentricity >= 1) {
+        throw pluginError('asteroid_dataset_invalid', `${value.id}:${row.id || 'row'}:orbit`);
       }
     });
     return value;

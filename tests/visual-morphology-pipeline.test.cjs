@@ -32,6 +32,32 @@ const BROAD_DIVERSITY_PROMPTS = Object.freeze([
   'a laser refracts through a glass prism into a visible spectrum',
 ]);
 
+test('identity graphics atoms reach Phase 7 morphology and camera uniforms without inventing motion', () => {
+  const compile = (prompt) => {
+    const spec = lab.createSpecFromPrompt(prompt, { allowPrototypeFallback: true });
+    const packet = spec.phaseArtifacts.phase6.artifact.visualCompile.sceneRenderPacket;
+    return {
+      packet,
+      parts: renderer.scenePacketObjectParts(packet),
+      renderData: renderer.compileSceneRenderData(packet),
+    };
+  };
+  const dogs = compile('dogs');
+  const flowers = compile('flowers');
+
+  assert.ok(dogs.parts.length > 0);
+  assert.ok(flowers.parts.length > 0);
+  assert.ok(dogs.parts.every((part) => part.animationSpeed === 0));
+  assert.ok(flowers.parts.every((part) => part.animationSpeed === 0));
+  assert.equal(dogs.renderData.cameraState.archetype, 'subject-three-quarter');
+  assert.equal(flowers.renderData.cameraState.archetype, 'close-focus');
+  assert.notEqual(dogs.renderData.cameraState.zoom, flowers.renderData.cameraState.zoom);
+  assert.notDeepEqual(
+    dogs.parts.map((part) => [part.contourProfile, part.surfacePattern, part.accentPattern]),
+    flowers.parts.map((part) => [part.contourProfile, part.surfacePattern, part.accentPattern])
+  );
+});
+
 test('public gold prompts compile prompt-conditioned contours and material surfaces', () => {
   const observedContours = new Set();
   const observedSurfaces = new Set();

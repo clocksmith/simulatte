@@ -576,6 +576,24 @@ test('literal training review prompts survive semantic grounding into render obj
   assert.equal(dogs.renderProgram.rendererPlan.sceneKind, 'biology');
   assert.ok(!mappingIds(dogs).includes('visual.operator.biological-growth.v1'));
   assert.ok(!mappingIds(dogs).includes('visual.operator.instrument-readout.v1'));
+  assert.ok(dogs.renderProgram.visualIR.graphicsAtoms.geometry.length >= 4);
+  assert.ok(dogs.renderProgram.visualIR.graphicsAtoms.materials
+    .some((row) => row.id === 'identity-biological-surface'));
+  assert.equal(dogs.renderProgram.visualIR.graphicsAtoms.motion.length, 0);
+  assert.ok(dogs.renderProgram.visualIR.graphicsAtoms.camera
+    .some((row) => row.id === 'identity-animal-three-quarter-framing'));
+  const dogPacketEntities = dogs.renderProgram.sceneRenderPacket.entities
+    .filter((entity) => entity.identity.type === 'dog');
+  assert.ok(dogPacketEntities.every((entity) => (
+    entity.geometry.program.graphicsAtomBindings.geometry.includes('identity-animal-torso') &&
+    entity.geometry.program.graphicsAtomBindings.materials.includes('identity-biological-surface') &&
+    entity.animation.kind === 'static-pose'
+  )));
+  assert.equal(dogs.renderProgram.sceneRenderPacket.camera.archetype, 'subject-three-quarter');
+  assert.equal(dogs.renderProgram.visualIR.renderInstances
+    .some((row) => /graphics-atom:identity-animal/.test(row.entityId)), false);
+  assert.equal(dogs.renderProgram.visualIR.graphicsAtoms.processes.length, 0);
+  assert.equal(dogs.renderProgram.visualIR.graphicsAtoms.fields.length, 0);
   assert.ok(catalogCount(dogs) <= 6);
   assert.ok(!dogs.renderProgram.solverPlan.families.includes('fracture-threshold'));
   assert.equal(flowerObjects.length, 1);
@@ -586,6 +604,28 @@ test('literal training review prompts survive semantic grounding into render obj
   assert.equal(flowers.renderProgram.rendererPlan.sceneKind, 'biology');
   assert.ok(!mappingIds(flowers).includes('visual.operator.biological-growth.v1'));
   assert.ok(!mappingIds(flowers).includes('visual.operator.instrument-readout.v1'));
+  assert.ok(flowers.renderProgram.visualIR.graphicsAtoms.geometry.length >= 4);
+  assert.ok(flowers.renderProgram.visualIR.graphicsAtoms.materials
+    .some((row) => row.id === 'identity-plant-biological-surface'));
+  assert.equal(flowers.renderProgram.visualIR.graphicsAtoms.motion.length, 0);
+  assert.ok(flowers.renderProgram.visualIR.graphicsAtoms.camera
+    .some((row) => row.id === 'identity-plant-close-framing'));
+  const flowerPacketEntities = flowers.renderProgram.sceneRenderPacket.entities
+    .filter((entity) => entity.identity.type === 'flower');
+  assert.ok(flowerPacketEntities.every((entity) => (
+    entity.geometry.program.graphicsAtomBindings.geometry.includes('identity-plant-radial-crown') &&
+    entity.geometry.program.graphicsAtomBindings.materials.includes('identity-plant-biological-surface') &&
+    entity.animation.kind === 'static-pose'
+  )));
+  assert.equal(flowers.renderProgram.sceneRenderPacket.camera.archetype, 'close-focus');
+  assert.equal(flowers.renderProgram.visualIR.renderInstances
+    .some((row) => /graphics-atom:identity-plant/.test(row.entityId)), false);
+  assert.equal(flowers.renderProgram.visualIR.graphicsAtoms.processes.length, 0);
+  assert.equal(flowers.renderProgram.visualIR.graphicsAtoms.fields.length, 0);
+  assert.notDeepEqual(
+    dogs.renderProgram.visualIR.graphicsAtoms.geometry.map((row) => row.id),
+    flowers.renderProgram.visualIR.graphicsAtoms.geometry.map((row) => row.id)
+  );
   assert.ok(catalogCount(flowers) <= 6);
   const flowerPacketIdentities = flowers.renderProgram.sceneRenderPacket.entities.map((entity) => entity.identity);
   assert.ok(flowerPacketIdentities.some((identity) => identity.type === 'flower'));

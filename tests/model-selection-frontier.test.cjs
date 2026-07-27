@@ -130,7 +130,12 @@ function trial(task, candidates, overrides = {}) {
       openingReceipt: { path: `sealed/${task}-opening.json`, sha256: HASH },
     },
     environment: ENVIRONMENT,
-    workload: { id: `${task}-workload-v1`, sha256: HASH, k: task === 'embedding-retrieval' ? 2 : task === 'reranking' ? 4 : 1 },
+    workload: {
+      id: `${task}-workload-v1`,
+      sha256: HASH,
+      k: task === 'embedding-retrieval' ? 2 : task === 'reranking' ? 4 : 1,
+      ...(task === 'embedding-retrieval' ? { minimumCandidatesPerQuery: 12 } : {}),
+    },
     candidates,
     ...overrides,
   };
@@ -318,6 +323,7 @@ test('policy and schema own separate task quality and comparable performance con
     'refusalPrecision',
   ]);
   assert.equal(policy.requiredTasks[1].evaluationK, 2);
+  assert.equal(policy.requiredTasks[1].populationShape.minimumCandidatesPerQuery, 12);
   assert.deepEqual(policy.requiredTasks[2].requiredQualityMetrics, ['ndcgAtK', 'winnerAccuracy']);
   assert.equal(policy.requiredTasks[2].evaluationK, 4);
   assert.deepEqual(jobs.jobs.map((row) => row.id), HEAD_IDS);

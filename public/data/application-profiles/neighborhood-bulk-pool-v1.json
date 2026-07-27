@@ -6,6 +6,20 @@
     "startLabel": "Run pooling experiment",
     "shuffleLabel": "Change scenario"
   },
+  "experience": {
+    "kind": "simulation",
+    "timelineLabel": "Pooling stage",
+    "primaryMeasureKinds": ["requested-share-units", "fulfilled-share-units", "packages-purchased", "household-cost", "package-waste"],
+    "supportedViews": ["overview", "top"],
+    "defaultView": "top",
+    "comparisonMode": "synchronized",
+    "stages": [
+      { "id": "demand-registers", "label": "Baskets arrive", "narrative": "Synthetic household baskets register fractional demand by product and neighborhood.", "fromProgress": 0 },
+      { "id": "packages-form", "label": "Packages form", "narrative": "Compatible shares combine into whole warehouse packages under the selected policy.", "fromProgress": 0.22 },
+      { "id": "trips-assign", "label": "Trips and handoffs", "narrative": "Capacity, detour, savings, and cold-chain constraints accept or reject delivery assignments.", "fromProgress": 0.5 },
+      { "id": "costs-settle", "label": "Costs settle", "narrative": "Purchases, handoffs, household cost, and unused package units close together.", "fromProgress": 0.82 }
+    ]
+  },
   "defaultSeedId": "weekend-baseline",
   "seeds": [
     {

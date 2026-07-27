@@ -2,12 +2,14 @@
   const catalogApi = typeof module === 'object' && module.exports
     ? require('./catalog-index.js')
     : root.SimulatteNeighborhoodBulkCatalogIndex;
-  const api = factory(catalogApi);
+  const timelineApi = typeof module === 'object' && module.exports
+    ? require('./pool-timeline.js')
+    : root.SimulatteNeighborhoodBulkPoolTimeline;
+  const api = factory(catalogApi, timelineApi);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteNeighborhoodBulkPoolSolver = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createNeighborhoodBulkPoolSolver(catalogApi) {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createNeighborhoodBulkPoolSolver(catalogApi, timelineApi) {
   const POLICY_IDS = Object.freeze(['independent', 'bulk-only', 'existing-trip', 'neighborhood-hub']);
-  const HOUR_MS = 3600000;
   const ROUTED_POLICIES = new Set(['existing-trip', 'neighborhood-hub']);
 
   function runScenario({ datasets, config, scenario }) {
@@ -68,8 +70,8 @@
       allowUnknownAvailability: scenario.allowUnknownAvailability,
     });
     const scenarioIdentity = `neighborhood-bulk:${hashIdentity(configurationIdentity)}`;
-    const events = createEvents(scenarioIdentity, active);
-    const snapshots = createSnapshots(scenarioIdentity, active, events);
+    const events = timelineApi.createEvents(scenarioIdentity, active);
+    const snapshots = timelineApi.createSnapshots(scenarioIdentity, active, events);
     return deepFreeze({
       schema: 'simulatte.neighborhoodBulkSimulation.v1',
       id: scenarioIdentity,
@@ -522,97 +524,6 @@
       rows.push({ id: `unserved:${reason}`, kind: 'unserved-demand', reason });
     });
     return rows;
-  }
-
-  function createEvents(identity, result) {
-    const rows = [
-      { kind: 'bulk-pool.demand-registered', payload: { requestedUnits: result.metrics.requestedUnits } },
-      {
-        kind: 'bulk-pool.baskets-grouped',
-        payload: {
-          poolGroupCount: result.poolGroups.length,
-          items: result.poolGroups.map((row) => ({
-            itemId: row.item.id,
-            name: row.item.name,
-            requestedUnits: row.allocatedUnits,
-          })),
-        },
-      },
-      {
-        kind: 'bulk-pool.packages-formed',
-        payload: {
-          packagesPurchased: result.metrics.packagesPurchased,
-          fulfilledUnits: result.metrics.fulfilledUnits,
-          wasteUnits: result.metrics.wasteUnits,
-        },
-      },
-      {
-        kind: 'bulk-pool.assignments-evaluated',
-        payload: {
-          activeTrips: result.metrics.activeTrips,
-          rejectedRequests: result.rejectedRequests.map((row) => ({
-            requestId: row.requestId,
-            reason: row.reason,
-          })),
-        },
-      },
-      {
-        kind: 'bulk-pool.purchase-completed',
-        payload: {
-          packagesPurchased: result.metrics.packagesPurchased,
-          householdCostUsd: result.metrics.householdCostUsd,
-        },
-      },
-      {
-        kind: 'bulk-pool.handoffs-completed',
-        payload: {
-          activeTrips: result.metrics.activeTrips,
-          incrementalVehicleKm: result.metrics.incrementalVehicleKm,
-          refrigerationViolations: result.conservation.refrigerationViolations,
-        },
-      },
-      { kind: 'bulk-pool.settled', payload: { householdCostUsd: result.metrics.householdCostUsd, savingsUsd: result.metrics.householdSavingsUsd } },
-    ];
-    return rows.map((row, sequence) => deepFreeze({
-      id: `${identity}:event-${sequence}`,
-      sequence,
-      simulationTimeMs: sequence * HOUR_MS,
-      kind: row.kind,
-      causationIds: sequence ? [`${identity}:event-${sequence - 1}`] : [],
-      payload: row.payload,
-    }));
-  }
-
-  function createSnapshots(identity, result, events) {
-    const final = result.metrics;
-    const phases = [
-      ['demand-registered', 'Household requests arrive'],
-      ['baskets-grouped', 'Compatible basket shares are grouped'],
-      ['packages-formed', 'Whole packages are selected'],
-      ['assignments-evaluated', 'Trips and constraints are evaluated'],
-      ['purchase-completed', 'Accepted packages are purchased'],
-      ['handoffs-completed', 'Handoffs and freshness checks complete'],
-      ['settled', 'Costs, savings, and waste settle'],
-    ];
-    return phases.map(([status, narrative], index) => deepFreeze({
-      id: `${identity}:step-${index}`,
-      simulationTimeMs: index * HOUR_MS,
-      status,
-      narrative,
-      eventIds: events.slice(0, index + 1).map((row) => row.id),
-      visiblePoolGroupIds: index >= 1 ? result.poolGroups.map((row) => row.id) : [],
-      visibleTripAssignmentIds: index >= 3 ? result.tripAssignments.map((row) => row.id) : [],
-      visibleRejectedRequestIds: index >= 3 ? result.rejectedRequests.map((row) => row.requestId) : [],
-      metrics: {
-        requestedUnits: final.requestedUnits,
-        fulfilledUnits: index >= 3 ? final.fulfilledUnits : 0,
-        packagesPurchased: index >= 2 ? final.packagesPurchased : 0,
-        wasteUnits: index >= 2 ? final.wasteUnits : 0,
-        householdCostUsd: index >= 4 ? final.householdCostUsd : 0,
-        householdSavingsUsd: index >= 6 ? final.householdSavingsUsd : 0,
-        incrementalVehicleKm: index >= 5 ? final.incrementalVehicleKm : 0,
-      },
-    }));
   }
 
   function nearestHub(coordinates, hubs, maximumWalkingKm) {

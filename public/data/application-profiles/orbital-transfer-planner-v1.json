@@ -10,6 +10,20 @@
     "startLabel": "Solve transfer",
     "shuffleLabel": "Change scenario"
   },
+  "experience": {
+    "kind": "solver",
+    "timelineLabel": "Solver stage",
+    "primaryMeasureKinds": ["solution-count", "total-delta-v", "time-of-flight", "endpoint-position-error", "endpoint-velocity-error"],
+    "supportedViews": ["overview", "free", "compare"],
+    "defaultView": "overview",
+    "comparisonMode": "synchronized",
+    "stages": [
+      { "id": "states-load", "label": "States loaded", "narrative": "Pinned state vectors, frames, epochs, bounds, and solver tolerances define the search.", "fromProgress": 0 },
+      { "id": "candidates-search", "label": "Candidates searched", "narrative": "Lambert branches converge, fail numerically, or violate declared constraints.", "fromProgress": 0.18 },
+      { "id": "transfer-verifies", "label": "Transfer verified", "narrative": "Independent propagation measures endpoint position and velocity error for the selected candidate.", "fromProgress": 0.52 },
+      { "id": "flight-visualizes", "label": "Flight visualized", "narrative": "The verified screening trajectory advances separately from solver selection and Hohmann baseline.", "fromProgress": 0.78 }
+    ]
+  },
   "defaultSeedId": "earth-mars-window",
   "seeds": [
     {

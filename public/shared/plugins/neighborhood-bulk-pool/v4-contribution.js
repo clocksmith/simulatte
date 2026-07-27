@@ -9,9 +9,9 @@
   const PLUGIN_ID = 'neighborhood-bulk-pool';
   const MODEL_HASHES = Object.freeze({
     catalogIndex: 'b5a43046410595e55b3cfe7ed7e042f0ce17fe3f93c36ca73ea4c1b7a0bfa865',
-    poolSolver: '42525e7f9217c19b3cc764b88b964c49c9540782cf2fea414e0a738a9f7807fe',
-    routeScreen: '42525e7f9217c19b3cc764b88b964c49c9540782cf2fea414e0a738a9f7807fe',
-    settlement: '42525e7f9217c19b3cc764b88b964c49c9540782cf2fea414e0a738a9f7807fe',
+    poolSolver: '1be28a3a6a5342c8ab24f719ded88758324f6e38a1a924bb8e2d212cedcef1f8',
+    routeScreen: '1be28a3a6a5342c8ab24f719ded88758324f6e38a1a924bb8e2d212cedcef1f8',
+    settlement: '1be28a3a6a5342c8ab24f719ded88758324f6e38a1a924bb8e2d212cedcef1f8',
   });
 
   function createContribution({ datasets, dataReceipts, config, result, snapshot }) {
@@ -73,7 +73,9 @@
     }));
     const activeEvent = [...events].reverse()
       .find((row) => row.simulationTimeMs <= snapshot.simulationTimeMs) || null;
-    const activeTripIds = new Set(snapshot.visibleTripAssignmentIds);
+    const activeTripIds = new Set(
+      snapshot.activeTripAssignmentId ? [snapshot.activeTripAssignmentId] : []
+    );
     const activeDriverIds = layers
       .filter((row) => row.id.startsWith('driver:'))
       .map((row) => row.id);
@@ -87,7 +89,7 @@
       viewIntents: [
         builder.viewIntent({
           id: `bulk-pool-view:${snapshot.id}`,
-          mode: snapshot.status === 'settled' ? 'compare' : activeTripIds.size ? 'follow' : 'overview',
+          mode: snapshot.status === 'settled' ? 'compare' : 'overview',
           targetIds: activeTripIds.size && snapshot.status !== 'settled'
             ? activeDriverIds
             : activeTargets.length
@@ -162,9 +164,13 @@
       warehouseOffers.set(offer.warehouseId, (warehouseOffers.get(offer.warehouseId) || 0) + 1);
     }));
     const activeGroups = new Set(snapshot.visiblePoolGroupIds);
-    const activeTrips = new Set(snapshot.visibleTripAssignmentIds);
-    const snapshotIndex = Math.max(0, result.snapshots.findIndex((row) => row.id === snapshot.id));
-    const tripProgress = Math.min(1, snapshotIndex / Math.max(1, result.snapshots.length - 1));
+    const visibleTrips = new Set(snapshot.visibleTripAssignmentIds);
+    const completedTrips = new Set(snapshot.completedTripAssignmentIds || []);
+    const activeTripId = snapshot.activeTripAssignmentId || null;
+    const tripProgress = Number.isFinite(snapshot.activeTripProgress)
+      ? Math.max(0, Math.min(1, snapshot.activeTripProgress))
+      : 0;
+    const completedStops = new Set(snapshot.completedStopIds || []);
     const visibleRejectedRequests = new Set(snapshot.visibleRejectedRequestIds || []);
     const neighborhoods = new Map(datasets.routes.neighborhoods.map((row) => [row.id, row]));
     const maximumOffers = Math.max(...warehouseOffers.values(), 1);
@@ -205,18 +211,36 @@
           provenance: simulated,
         });
       }),
-      ...result.tripAssignments.filter((row) => activeTrips.has(row.id)).map((row) => builder.layer({
+      ...result.poolGroups.filter((row) => activeGroups.has(row.id)).flatMap((row) => (
+        row.allocations.map((allocation) => builder.layer({
+          id: `request:${allocation.requestId}`,
+          kind: 'point',
+          label: `${allocation.pseudonym} · ${allocation.quantity} ${row.item.package.unitType} ${row.item.name}`,
+          geometry: builder.geometry('point', 'wgs84', [[...allocation.neighborhoodCoordinates, 0]]),
+          quantity: builder.quantity(
+            'household-request-share-units',
+            allocation.quantity,
+            row.item.package.unitType,
+            [0, Math.max(1, result.metrics.requestedUnits)]
+          ),
+          role: 'context',
+          importance: 0.65,
+          aggregationKey: `bulk-pool-requests:${allocation.neighborhoodId}`,
+          provenance: scenario,
+        }))
+      )),
+      ...result.tripAssignments.filter((row) => visibleTrips.has(row.id)).map((row) => builder.layer({
         id: row.id,
         kind: 'path',
-        label: `${row.driverPseudonym}: ${row.stops.length} coarse handoff stops`,
+        label: `${row.driverPseudonym}: warehouse pickup and ${row.stops.length} handoff stops`,
         geometry: builder.geometry('polyline', 'wgs84', row.corridorCoordinates),
         quantity: builder.quantity('incremental-detour', row.incrementalDetourKm, 'km', [0, Math.max(0.001, result.configurationIdentity.maximumDetourKm)]),
-        role: 'primary',
-        importance: 0.88,
+        role: row.id === activeTripId ? 'primary' : 'context',
+        importance: row.id === activeTripId ? 0.96 : 0.42,
         aggregationKey: 'bulk-pool-trip-corridors',
         provenance: modeled,
       })),
-      ...result.tripAssignments.filter((row) => activeTrips.has(row.id)).map((row) => builder.layer({
+      ...result.tripAssignments.filter((row) => row.id === activeTripId).map((row) => builder.layer({
         id: `driver:${row.id}`,
         kind: 'actor',
         label: `${row.driverPseudonym} · ${Math.round(tripProgress * 100)}% along volunteered corridor`,
@@ -227,15 +251,43 @@
         aggregationKey: 'bulk-pool-drivers',
         provenance: simulated,
       })),
-      ...result.tripAssignments.filter((row) => activeTrips.has(row.id)).flatMap((trip) => (
+      ...result.tripAssignments.filter((row) => row.id === activeTripId).flatMap((trip) => (
+        trip.poolGroupIds.map((groupId, index) => {
+          const group = result.poolGroups.find((row) => row.id === groupId);
+          return builder.layer({
+            id: `package:${trip.id}:${groupId}`,
+            kind: 'actor',
+            label: `${group.item.name} · ${group.packages} package${group.packages === 1 ? '' : 's'} in transit`,
+            geometry: builder.geometry('polyline', 'wgs84', trip.corridorCoordinates),
+            quantity: builder.quantity(
+              'actor.package.route-progress',
+              Math.max(0, tripProgress - index * 0.015),
+              'ratio',
+              [0, 1]
+            ),
+            role: 'event',
+            importance: 0.92 - index * 0.02,
+            aggregationKey: `bulk-pool-packages:${trip.id}`,
+            provenance: simulated,
+          });
+        })
+      )),
+      ...result.tripAssignments.filter((row) => visibleTrips.has(row.id)).flatMap((trip) => (
         trip.stops.map((stop) => builder.layer({
           id: `stop:${trip.tripId}:${stop.id}`,
           kind: 'point',
-          label: stop.label,
+          label: completedStops.has(`${trip.id}:${stop.id}`)
+            ? `${stop.label} · delivered`
+            : stop.label,
           geometry: builder.geometry('point', 'wgs84', [[...stop.coordinates, 0]]),
-          quantity: builder.quantity('handoff-stop', 1, 'stop', [0, Math.max(1, trip.stops.length)]),
-          role: 'event',
-          importance: 0.8,
+          quantity: builder.quantity(
+            completedStops.has(`${trip.id}:${stop.id}`) ? 'handoff.completed' : 'handoff.pending',
+            completedStops.has(`${trip.id}:${stop.id}`) ? 1 : 0,
+            'state',
+            [0, 1]
+          ),
+          role: completedStops.has(`${trip.id}:${stop.id}`) ? 'primary' : 'context',
+          importance: completedStops.has(`${trip.id}:${stop.id}`) ? 0.9 : 0.5,
           aggregationKey: `bulk-pool-stops:${trip.tripId}`,
           provenance: scenario,
         }))
@@ -257,6 +309,20 @@
           provenance: simulated,
         });
       }).filter(Boolean),
+      ...result.tripAssignments.filter((row) => completedTrips.has(row.id)).map((row) => {
+        const endpoint = row.corridorCoordinates.at(-1);
+        return builder.layer({
+          id: `completed:${row.id}`,
+          kind: 'point',
+          label: `${row.driverPseudonym} completed pooled delivery`,
+          geometry: builder.geometry('point', 'wgs84', [[...endpoint, 0]]),
+          quantity: builder.quantity('delivery.completed', 1, 'trip', [0, 1]),
+          role: 'primary',
+          importance: 0.72,
+          aggregationKey: 'bulk-pool-completed-trips',
+          provenance: simulated,
+        });
+      }),
     ];
     return layers;
   }

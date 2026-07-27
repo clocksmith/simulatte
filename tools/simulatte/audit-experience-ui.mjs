@@ -122,11 +122,17 @@ async function probe(client) {
       })),
       controlsButtonVisible: isVisible(document.getElementById('decisions-button')),
       missionDockVisible: isVisible(document.querySelector('.mission-dock')),
-      sideHuds: [...document.querySelectorAll('.visualizer-hud')].map((row) => ({
-        experienceId: row.dataset.experienceId || null,
-        visible: isVisible(row),
-        text: row.innerText.replace(/\\s+/g, ' ').trim(),
-      })),
+      experienceSummary: (() => {
+        const row = document.getElementById('experience-summary');
+        return {
+          experienceId: row?.dataset.experienceId || null,
+          visible: isVisible(row),
+          text: row?.innerText.replace(/\\s+/g, ' ').trim() || '',
+          now: document.getElementById('experience-summary-event')?.textContent?.trim() || '',
+          why: document.getElementById('experience-summary-narrative')?.textContent?.trim() || '',
+          metricCount: row?.querySelectorAll('dl > div').length || 0,
+        };
+      })(),
       pluginHudSurfacePresent: Boolean(document.getElementById('plugin-hud-ui')),
       pluginHudCardCount: document.querySelectorAll('.plugin-hud-card').length,
       firstInspectorControlCount: document.querySelector('#plugin-inspector > [data-control-count]')?.dataset.controlCount || null,
@@ -175,9 +181,9 @@ async function main() {
     })()`);
     await waitForReady(client, 'grid-resilience-us-v1');
     const switchResult = await evaluate(client, `(() => ({
-      hudCount: document.querySelectorAll('.visualizer-hud').length,
-      hudExperienceIds: [...document.querySelectorAll('.visualizer-hud')].map((row) => row.dataset.experienceId || null),
-      hudText: [...document.querySelectorAll('.visualizer-hud')].map((row) => row.innerText.replace(/\\s+/g, ' ').trim()),
+      summaryCount: document.querySelectorAll('#experience-summary').length,
+      summaryExperienceId: document.getElementById('experience-summary')?.dataset.experienceId || null,
+      summaryText: document.getElementById('experience-summary')?.innerText.replace(/\\s+/g, ' ').trim() || '',
       mapOwners: [...document.querySelectorAll('#plugin-map-ui [data-plugin-id]')].map((row) => row.dataset.pluginId),
       controlOwners: [...document.querySelectorAll('[data-plugin-control]')].map((row) => row.closest('[data-plugin-id]')?.dataset.pluginId),
     }))()`);
@@ -194,17 +200,21 @@ async function main() {
         ...(row.expected.length ? [] : [`${row.profileId}: no experiment controls`]),
         ...(row.controlsButtonVisible ? [] : [`${row.profileId}: Controls button hidden`]),
         ...(row.missionDockVisible ? [] : [`${row.profileId}: mission dock hidden`]),
-        ...(row.sideHuds.length === 1 && row.sideHuds[0].visible && row.sideHuds[0].experienceId === row.profileId
+        ...(row.experienceSummary.visible
+          && row.experienceSummary.experienceId === row.profileId
+          && row.experienceSummary.now
+          && row.experienceSummary.why
+          && row.experienceSummary.metricCount > 0
           ? []
-          : [`${row.profileId}: expected one profile-owned side metrics HUD`]),
+          : [`${row.profileId}: shared experience summary is incomplete or bound to the wrong profile`]),
         ...(!row.pluginHudSurfacePresent && row.pluginHudCardCount === 0
           ? []
           : [`${row.profileId}: duplicate plugin HUD surface rendered`]),
         ...(Number(row.firstInspectorControlCount) === row.expected.length ? [] : [`${row.profileId}: parameters were not first in the inspector`]),
       ];
     });
-    if (switchResult.hudCount !== 1) failures.push(`experience switch left ${switchResult.hudCount} HUD elements`);
-    if (switchResult.hudExperienceIds[0] !== 'grid-resilience-us-v1') failures.push('experience HUD did not bind Grid Resilience');
+    if (switchResult.summaryCount !== 1) failures.push(`experience switch left ${switchResult.summaryCount} shared summaries`);
+    if (switchResult.summaryExperienceId !== 'grid-resilience-us-v1') failures.push('experience summary did not bind Grid Resilience');
     if (!switchResult.controlOwners.every((id) => id === 'grid-resilience-us')) failures.push('stale control owner remained after switch');
     if (!switchResult.drawerOpen) failures.push('Controls button did not open the parameter drawer');
     const report = {
@@ -215,7 +225,7 @@ async function main() {
         expectedControls: row.expected.length,
         renderedControls: row.rendered.length,
         contributionStates: row.contributionStates.length,
-        sideMetrics: row.sideHuds[0]?.text || null,
+        sideMetrics: row.experienceSummary.text || null,
         pluginHudCards: row.pluginHudCardCount,
       })),
       switchResult,

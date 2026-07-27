@@ -5,8 +5,11 @@
   const construction = typeof module === 'object' && module.exports
     ? require('./prompt-controller-construction-search.js')
     : root.SimulatteConstructionSearch;
-  if (!support || !construction) {
-    throw new Error('SimulattePromptControllerWorkers requires controller support and construction search');
+  const runtime = typeof module === 'object' && module.exports
+    ? require('./prompt-controller-runtime.js')
+    : root.SimulattePromptControllerRuntime;
+  if (!support || !construction || !runtime) {
+    throw new Error('SimulattePromptControllerWorkers requires controller support, construction search, and runtime URL helpers');
   }
   const {
     model,
@@ -18,6 +21,7 @@
     worldModelSnapshot,
   } = support;
   const { createConstructionSearchState } = construction;
+  const { appendBuildVersion } = runtime;
 
     function createPipelineCompiler(root) {
         const view = root && root.defaultView;

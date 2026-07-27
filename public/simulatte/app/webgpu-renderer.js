@@ -11,10 +11,13 @@
   const presentationCompiler = typeof module === 'object' && module.exports
     ? require('./plugin-presentation.js')
     : root.SimulattePluginPresentation;
-  const api = factory(math, geometry, cameraController, presentationCompiler);
+  const semanticLabels = typeof module === 'object' && module.exports
+    ? require('./semantic-label-overlay.js')
+    : root.SimulatteSemanticLabelOverlay;
+  const api = factory(math, geometry, cameraController, presentationCompiler, semanticLabels);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteAutonomyCanvas = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyWebGpuRenderer(math, geometry, cameraController, presentationCompiler) {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyWebGpuRenderer(math, geometry, cameraController, presentationCompiler, semanticLabels) {
   const SAMPLE_COUNT = 4;
   const MINIMAP_RADIUS_M = 420;
   const SHADER = `
@@ -92,7 +95,9 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
     if (!context) throw rendererError('webgpu_context_missing', 'Canvas did not provide a WebGPU context');
     const minimapCanvas = options.minimapCanvas || null;
     const minimapContext = minimapCanvas ? minimapCanvas.getContext('webgpu') : null;
+    const labelCanvas = options.labelCanvas || null;
     if (minimapCanvas && !minimapContext) throw rendererError('webgpu_minimap_context_missing', 'Follow minimap did not provide a WebGPU context');
+    if (labelCanvas && !semanticLabels?.draw) throw rendererError('semantic_label_runtime_missing', 'Semantic label canvas requires the label overlay runtime');
     const format = navigator.gpu.getPreferredCanvasFormat();
     context.configure({ device, format, alphaMode: 'opaque', colorSpace: 'srgb' });
     minimapContext?.configure({ device, format, alphaMode: 'opaque', colorSpace: 'srgb' });
@@ -168,6 +173,8 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       minimapTargets: null,
       minimapFrameCount: 0,
       pluginScene: presentationCompiler.compile([], worldModel),
+      pluginSimulationTimeSeconds: 0,
+      semanticLabelReceipt: null,
       isDestroyed: false,
     };
     const adapterInfo = readAdapterInfo(adapter);
@@ -202,11 +209,18 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       }
       const position = snapshot.state.position;
       if (position && (!state.tracePositions.length || pointDistance(position, state.tracePositions.at(-1)) > 0.15)) state.tracePositions.push({ ...position });
-      state.dynamicData = geometry.createDynamicGeometry(worldModel, snapshot, tickReceipt, state.tracePositions, state.dynamicWriter, state.pluginScene);
+      refreshDynamicGeometry();
+    }
+
+    function refreshDynamicGeometry() {
+      if (!state.latestSnapshot) return;
+      const snapshot = snapshotAtRenderTime(state.latestSnapshot, state.pluginSimulationTimeSeconds);
+      state.dynamicData = geometry.createDynamicGeometry(worldModel, snapshot, state.latestReceipt, state.tracePositions, state.dynamicWriter, state.pluginScene);
       ensureDynamicBuffer(device, state, state.dynamicData);
     }
 
     function setPluginPresentations(contributions, presentationOptions = {}) {
+      state.pluginSimulationTimeSeconds = Math.max(0, Number(presentationOptions.simulationTimeMs || 0)) / 1000;
       state.pluginScene = presentationCompiler.compile(contributions, worldModel, {
         ...presentationOptions,
         viewport: {
@@ -224,10 +238,12 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       const compositorReceipts = state.pluginScene.compositorReceipts || [];
       canvas.dataset.pluginCompositorReceiptCount = String(compositorReceipts.length);
       canvas.dataset.pluginVisibleLayerCount = String(compositorReceipts.reduce((sum, row) => sum + row.visibleLayerCount, 0));
+      canvas.dataset.pluginRepresentedLayerCount = String(compositorReceipts.reduce((sum, row) => sum + row.representedLayerCount, 0));
       canvas.dataset.pluginSuppressedLayerCount = String(compositorReceipts.reduce((sum, row) => sum + row.suppressedLayerIds.length, 0));
       canvas.dataset.pluginClusterCount = String(compositorReceipts.reduce((sum, row) => sum + row.clusterCount, 0));
+      canvas.dataset.pluginClusteredLayerCount = String(compositorReceipts.reduce((sum, row) => sum + row.clusteredLayerCount, 0));
       canvas.dataset.pluginLabelCount = String(compositorReceipts.reduce((sum, row) => sum + row.labelCount, 0));
-      if (state.latestSnapshot) render(state.latestSnapshot, state.latestReceipt);
+      refreshDynamicGeometry();
       return structuredClone(state.pluginScene.counts);
     }
 
@@ -237,8 +253,14 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       const pose = cameraApi.advanceCamera(state, state.latestSnapshot, worldModel, canvas.width / canvas.height, timestamp);
       const camera = cameraForPose(pose, canvas);
       recordCameraDataset(canvas, pose);
-      const seconds = (timestamp - state.startedAt) / 1000;
+      const seconds = resolvedSimulationTimeSeconds(state.latestSnapshot, state.pluginSimulationTimeSeconds);
       writeUniforms(device, uniformBuffer, camera, canvas, seconds, state.pluginScene.sun);
+      state.semanticLabelReceipt = semanticLabels?.draw(
+        labelCanvas,
+        state.pluginScene.labels,
+        camera.viewProjection,
+        { width: canvas.width, height: canvas.height },
+      ) || null;
       const encoder = device.createCommandEncoder({ label: 'autonomy-map-frame' });
       encodeScene(encoder, {
         label: 'autonomy-map-pass',
@@ -390,6 +412,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
         },
         pluginPresentation: structuredClone(state.pluginScene.counts),
         pluginCompositor: structuredClone(state.pluginScene.compositorReceipts || []),
+        semanticLabels: state.semanticLabelReceipt ? structuredClone(state.semanticLabelReceipt) : null,
       };
     }
 
@@ -404,6 +427,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       state.minimapTargets?.depth.destroy();
       uniformBuffer.destroy();
       minimapUniformBuffer?.destroy();
+      if (labelCanvas) labelCanvas.getContext('2d')?.clearRect(0, 0, labelCanvas.width, labelCanvas.height);
       device.destroy();
     }
 
@@ -521,6 +545,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
     let pointer = null;
     canvas.addEventListener('pointerdown', (event) => {
       const action = state.mode === 'top' || event.shiftKey || event.button !== 0 ? 'pan' : 'orbit';
+      camera.setCameraMode(state, 'free', performance.now());
       pointer = { id: event.pointerId, x: event.clientX, y: event.clientY, action };
       canvas.dataset.cameraInteraction = action;
       onInteraction?.({ control: action, mode: 'free', targetIds: [] });
@@ -543,6 +568,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
     canvas.addEventListener('contextmenu', (event) => event.preventDefault());
     canvas.addEventListener('wheel', (event) => {
       event.preventDefault();
+      camera.setCameraMode(state, 'free', performance.now());
       canvas.dataset.cameraInteraction = 'zoom';
       onInteraction?.({ control: 'zoom', mode: 'free', targetIds: [] });
       camera.zoomCamera(state, event.deltaY);
@@ -590,6 +616,23 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
     return Math.hypot(left.x - right.x, left.y - right.y);
   }
 
+  function resolvedSimulationTimeSeconds(snapshot, pluginSimulationTimeSeconds = 0) {
+    return Math.max(
+      0,
+      Number(snapshot?.state?.simulatedTimeSeconds || 0),
+      Number(pluginSimulationTimeSeconds || 0),
+    );
+  }
+
+  function snapshotAtRenderTime(snapshot, pluginSimulationTimeSeconds = 0) {
+    const simulatedTimeSeconds = resolvedSimulationTimeSeconds(snapshot, pluginSimulationTimeSeconds);
+    if (simulatedTimeSeconds === Number(snapshot?.state?.simulatedTimeSeconds || 0)) return snapshot;
+    return {
+      ...snapshot,
+      state: { ...snapshot.state, simulatedTimeSeconds },
+    };
+  }
+
   function clamp(value, minimum, maximum) {
     return Math.max(minimum, Math.min(maximum, value));
   }
@@ -601,5 +644,5 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
     return error;
   }
 
-  return { MINIMAP_RADIUS_M, SHADER, cameraForMinimap, createCanvasRenderer, readAdapterInfo, rendererError, resolveCameraController };
+  return { MINIMAP_RADIUS_M, SHADER, cameraForMinimap, createCanvasRenderer, readAdapterInfo, rendererError, resolveCameraController, resolvedSimulationTimeSeconds, snapshotAtRenderTime };
 });

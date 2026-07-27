@@ -89,6 +89,9 @@
       program.grammarId,
       entity.constructionApproachSeed,
       entity.constructionApproachAttempt,
+      ...Object.values(entity.graphicsAtomBindings || {}).flatMap((value) => (
+        Array.isArray(value) ? value : []
+      )),
     ].filter((value) => value !== '' && value != null).join(':');
     const enhancedParts = parts.map((part, index) => enhanceMorphologyPart(
       part,
@@ -102,6 +105,7 @@
     return {
       ...program,
       parts: enhancedParts,
+      graphicsAtomBindings: entity.graphicsAtomBindings || null,
       morphology: {
         schema: MORPHOLOGY_SCHEMA,
         identityType,
@@ -362,6 +366,9 @@
       ...((entity.construction && entity.construction.classHints) || []),
       ...((entity.construction && entity.construction.shapeHints) || []),
       ...((entity.construction && entity.construction.materialHints) || []),
+      ...Object.values(entity.graphicsAtomBindings || {}).flatMap((value) => (
+        Array.isArray(value) ? value : []
+      )),
     ].filter(Boolean).join(' ').toLowerCase();
   }
 

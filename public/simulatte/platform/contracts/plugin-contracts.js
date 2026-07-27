@@ -62,9 +62,9 @@
     const isV2 = value.schema === 'simulatte.applicationProfile.v2';
     const isV3 = value.schema === 'simulatte.applicationProfile.v3';
     const allowedKeys = isV3
-      ? ['schema', 'id', 'tier', 'worldModelId', 'plugins', 'routeObjective', 'camera', 'interaction', 'defaultSeedId', 'seeds']
+      ? ['schema', 'id', 'tier', 'worldModelId', 'plugins', 'routeObjective', 'camera', 'interaction', 'experience', 'defaultSeedId', 'seeds']
       : isV2
-        ? ['schema', 'id', 'plugins', 'routeObjective', 'camera', 'interaction', 'defaultSeedId', 'seeds']
+        ? ['schema', 'id', 'plugins', 'routeObjective', 'camera', 'interaction', 'experience', 'defaultSeedId', 'seeds']
         : ['schema', 'id', 'plugins', 'routeObjective', 'defaultMissionText', 'missionExamples', 'camera'];
     const requiredKeys = isV3
       ? ['schema', 'id', 'tier', 'worldModelId', 'plugins', 'routeObjective', 'interaction', 'defaultSeedId', 'seeds']
@@ -100,6 +100,7 @@
     }
     if (isV3) validateProfileScenarioInteraction(value);
     else if (isV2) validateProfileInteraction(value);
+    if ((isV2 || isV3) && value.experience !== undefined) validateExperiencePresentation(value);
     if (value.camera !== undefined) {
       assertAllowedKeys(value.camera, ['initialMode', 'runMode', 'pluginId', 'targetId'], ['initialMode', 'runMode'], `Profile ${value.id} camera`);
       if (!['follow', 'bird', 'top'].includes(value.camera.initialMode) || !['follow', 'bird', 'top'].includes(value.camera.runMode)) fail('application_profile_camera_mode_invalid', `Profile ${value.id} camera modes are invalid`, value.camera);
@@ -111,6 +112,54 @@
       }
     }
     return value;
+  }
+
+  function validateExperiencePresentation(value) {
+    const experience = value.experience;
+    assertObject(experience, 'application_profile_experience_invalid', `Profile ${value.id} experience expected an object`);
+    assertExactKeys(
+      experience,
+      ['kind', 'timelineLabel', 'primaryMeasureKinds', 'supportedViews', 'defaultView', 'comparisonMode', 'stages'],
+      `Profile ${value.id} experience`
+    );
+    if (!['analysis', 'simulation', 'solver'].includes(experience.kind)) {
+      fail('application_profile_experience_kind_invalid', `Profile ${value.id} experience kind is invalid`, experience);
+    }
+    text(experience.timelineLabel, 'application_profile_experience_timeline_invalid', `Profile ${value.id} timeline label`);
+    validateUniqueText(experience.primaryMeasureKinds, `Profile ${value.id} primary measure kinds`);
+    if (!experience.primaryMeasureKinds.length || experience.primaryMeasureKinds.length > 5) {
+      fail('application_profile_experience_measure_count_invalid', `Profile ${value.id} expected one to five primary measures`, experience);
+    }
+    validateUniqueText(experience.supportedViews, `Profile ${value.id} supported views`);
+    const viewModes = ['follow', 'pov', 'overview', 'top', 'free', 'compare'];
+    if (!experience.supportedViews.length || experience.supportedViews.some((mode) => !viewModes.includes(mode))) {
+      fail('application_profile_experience_views_invalid', `Profile ${value.id} has invalid supported views`, experience);
+    }
+    if (!experience.supportedViews.includes(experience.defaultView)) {
+      fail('application_profile_experience_default_view_invalid', `Profile ${value.id} default view is not supported`, experience);
+    }
+    if (!['none', 'sensitivity', 'synchronized'].includes(experience.comparisonMode)) {
+      fail('application_profile_experience_comparison_invalid', `Profile ${value.id} comparison mode is invalid`, experience);
+    }
+    if (!Array.isArray(experience.stages) || experience.stages.length < 2) {
+      fail('application_profile_experience_stages_invalid', `Profile ${value.id} expected at least two experience stages`, experience);
+    }
+    const stageIds = new Set();
+    let previousProgress = -1;
+    experience.stages.forEach((stage, index) => {
+      assertObject(stage, 'application_profile_experience_stage_invalid', `Profile ${value.id} stage ${index} expected an object`);
+      assertExactKeys(stage, ['id', 'label', 'narrative', 'fromProgress'], `Profile ${value.id} stage ${index}`);
+      ['id', 'label', 'narrative'].forEach((key) => text(stage[key], 'application_profile_experience_stage_text_invalid', `Profile ${value.id} stage ${index} ${key}`));
+      if (stageIds.has(stage.id)) fail('application_profile_experience_stage_duplicate', `Profile ${value.id} duplicates stage ${stage.id}`, experience);
+      if (!Number.isFinite(stage.fromProgress) || stage.fromProgress < 0 || stage.fromProgress > 1 || stage.fromProgress <= previousProgress) {
+        fail('application_profile_experience_stage_progress_invalid', `Profile ${value.id} stage progress must increase from zero through one`, experience);
+      }
+      stageIds.add(stage.id);
+      previousProgress = stage.fromProgress;
+    });
+    if (experience.stages[0].fromProgress !== 0) {
+      fail('application_profile_experience_stage_start_invalid', `Profile ${value.id} first stage must start at zero`, experience);
+    }
   }
 
   function validatePluginInstance(pluginId, value, manifest = null) {
@@ -235,7 +284,7 @@
     const fields = value.fields || [];
     if (!Array.isArray(fields)) fail('plugin_ui_fields_invalid', `Plugin ${pluginId} UI fields expected an array`, null);
     fields.forEach((row) => {
-      assertAllowedKeys(row, ['id', 'label', 'type', 'value', 'options'], ['id', 'label', 'type', 'value'], `Plugin ${pluginId} UI field`);
+      assertAllowedKeys(row, ['id', 'label', 'type', 'value', 'options', 'minimum', 'maximum', 'step'], ['id', 'label', 'type', 'value'], `Plugin ${pluginId} UI field`);
       text(row.id, 'plugin_ui_field_id_invalid', `Plugin ${pluginId} UI field ID`);
       text(row.label, 'plugin_ui_field_label_invalid', `Plugin ${pluginId} UI field label`);
       if (!['text', 'date', 'select', 'number'].includes(row.type)) fail('plugin_ui_field_type_invalid', `Plugin ${pluginId} UI field ${row.id} has unsupported type ${row.type}`, { pluginId, fieldId: row.id, type: row.type });
@@ -243,6 +292,19 @@
         if (!Array.isArray(row.options) || !row.options.length) fail('plugin_ui_field_options_invalid', `Plugin ${pluginId} select ${row.id} expected options`, { pluginId, fieldId: row.id });
         row.options.forEach((option) => { assertExactKeys(option, ['value', 'label'], `Plugin ${pluginId} select option`); text(String(option.value), 'plugin_ui_field_option_invalid', `Plugin ${pluginId} select option value`); text(option.label, 'plugin_ui_field_option_invalid', `Plugin ${pluginId} select option label`); });
       } else if (row.options !== undefined) fail('plugin_ui_field_options_unexpected', `Plugin ${pluginId} field ${row.id} cannot declare options`, { pluginId, fieldId: row.id });
+      const numericKeys = ['minimum', 'maximum', 'step'].filter((key) => row[key] !== undefined);
+      if (numericKeys.length && row.type !== 'number') {
+        fail('plugin_ui_field_bounds_unexpected', `Plugin ${pluginId} field ${row.id} cannot declare numeric bounds`, { pluginId, fieldId: row.id });
+      }
+      numericKeys.forEach((key) => {
+        if (!Number.isFinite(row[key])) fail('plugin_ui_field_bounds_invalid', `Plugin ${pluginId} field ${row.id} ${key} expected a finite number`, { pluginId, fieldId: row.id, key });
+      });
+      if (row.minimum !== undefined && row.maximum !== undefined && row.maximum < row.minimum) {
+        fail('plugin_ui_field_bounds_invalid', `Plugin ${pluginId} field ${row.id} maximum must be at least its minimum`, { pluginId, fieldId: row.id });
+      }
+      if (row.step !== undefined && row.step <= 0) {
+        fail('plugin_ui_field_bounds_invalid', `Plugin ${pluginId} field ${row.id} step must be positive`, { pluginId, fieldId: row.id });
+      }
     });
     value.actions.forEach((row) => {
       assertAllowedKeys(row, ['id', 'label', 'command'], ['id', 'label'], `Plugin ${pluginId} UI action`);

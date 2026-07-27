@@ -10,6 +10,20 @@
     "startLabel": "Run recall experiment",
     "shuffleLabel": "Change scenario"
   },
+  "experience": {
+    "kind": "simulation",
+    "timelineLabel": "Incident event",
+    "primaryMeasureKinds": ["true-illnesses", "observed-cases", "cases-averted", "detection-day", "refrigeration-failures"],
+    "supportedViews": ["overview", "free"],
+    "defaultView": "overview",
+    "comparisonMode": "synchronized",
+    "stages": [
+      { "id": "lots-enter", "label": "Lots enter custody", "narrative": "Synthetic lots enter the supply network with commodity, hazard, and environmental state.", "fromProgress": 0 },
+      { "id": "shipments-propagate", "label": "Shipments propagate", "narrative": "Temperature, refrigeration, storage, and transit receipts causally change lot state.", "fromProgress": 0.2 },
+      { "id": "cluster-detects", "label": "Cluster detected", "narrative": "Modeled illness reports cross the selected detection and reporting conditions.", "fromProgress": 0.5 },
+      { "id": "recall-settles", "label": "Recall settles", "narrative": "Traceback, removal, illnesses, waste, and the no-recall branch close from shared inputs.", "fromProgress": 0.78 }
+    ]
+  },
   "defaultSeedId": "leafy-green-baseline",
   "seeds": [
     {

@@ -91,6 +91,7 @@
     const layers = [
       ...facilityLayers(facilities, facilityRecordById, run, model),
       ...corridorLayers(corridors, corridorRecords, facilities, activeCorridorIds, run, model),
+      ...shipmentLayers(corridors, facilities, run, playback, simulated),
       ...zoneLayers(consumerZones, zoneRecords, run, simulated),
     ];
     const highlighted = layers.filter((row) => row.role === 'event').map((row) => row.id);
@@ -365,6 +366,37 @@
           }))],
         }),
       });
+    });
+  }
+
+  function shipmentLayers(corridors, facilities, run, playback, provenance) {
+    if (!['shipping', 'distribution'].includes(playback?.stage?.id)) return [];
+    const corridorById = new Map(corridors.map((row) => [row.id, row]));
+    const facilityById = new Map(facilities.map((row) => [row.id, row]));
+    const shipments = (run.lineage || []).filter((row) => row.cte === 'shipping').slice(-4);
+    const baseProgress = playback.stage.id === 'shipping' ? 0.32 : 0.88;
+    return shipments.flatMap((shipment, index) => {
+      const corridor = corridorById.get(shipment.corridorId);
+      const from = facilityById.get(corridor?.fromFacilityId);
+      const to = facilityById.get(corridor?.toFacilityId);
+      if (!from || !to) return [];
+      const progress = Math.max(0.08, Math.min(1, baseProgress - index * 0.08));
+      const position = [
+        from.location.longitude + (to.location.longitude - from.location.longitude) * progress,
+        from.location.latitude + (to.location.latitude - from.location.latitude) * progress,
+        0,
+      ];
+      return [builder.layer({
+        id: `shipment:${safeId(shipment.tlcId)}:${index}`,
+        kind: 'actor',
+        label: `${shipment.tlcId} · ${Math.round(progress * 100)}% through modeled shipment`,
+        geometry: builder.geometry('point', 'wgs84', [position]),
+        quantity: builder.quantity('actor.car.shipment-progress', progress, 'ratio', [0, 1]),
+        role: shipment.reeferFailed ? 'event' : 'primary',
+        importance: shipment.reeferFailed ? 1 : 0.88 - index * 0.08,
+        aggregationKey: 'food-active-shipments',
+        provenance,
+      })];
     });
   }
 

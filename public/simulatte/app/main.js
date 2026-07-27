@@ -47,14 +47,22 @@
       : root.SimulattePluginPlayback,
     cityInterfaceApi: typeof module === 'object' && module.exports
       ? require('./city-interface.js')
-      : root.SimulatteCityInterface
+      : root.SimulatteCityInterface,
+    mainControllerBuilderApi: typeof module === 'object' && module.exports
+      ? require('./main-controller-builder.js')
+      : root.SimulatteMainControllerBuilder,
+    mainSupportApi: typeof module === 'object' && module.exports
+      ? require('./main-support.js')
+      : root.SimulatteMainSupport,
   }));
   root.SimulatteAutonomyApp = api;
   if (typeof module === 'object' && module.exports) module.exports = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyApp(dependencies) {
-  const { hostRoot, dataLoader, missionApi, controllerApi, canvasApi, traceApi, runtimeLog, neuralPlaceApi, ledgerApi, receiptsApi, worldApi, neuralConsentApi, modelSelectionApi, runtimeLoaderApi, pluginRuntimeApi, pluginRegistry, pluginUiApi, transportApi, artifactStoreApi, routePlannerApi, civilTimeApi, universeParserApi, applicationProfileSelectApi, experienceCameraApi, pluginAssetPathsApi, pluginRandomApi, pluginSchedulerApi, pluginEnvironmentApi, pluginGeographyApi, pluginComputeApi, simulationClockApi, pluginViewRuntimeApi, mountLifecycleApi, mainViewApi, pluginPlaybackApi, cityInterfaceApi } = dependencies;
-  if (!cityInterfaceApi || !mainViewApi) throw new Error('simulatte_app_view_dependency_missing');
-  const { collectElements, populateApplicationProfiles, applicationProfileLabel, setRuntimeStatus, runtimeLabel, renderIdentity, renderPlaceResolution, renderPlanning, configureExperienceShell, renderExperienceSummary } = mainViewApi;
+  const { hostRoot, dataLoader, missionApi, controllerApi, canvasApi, traceApi, runtimeLog, neuralPlaceApi, ledgerApi, receiptsApi, worldApi, neuralConsentApi, modelSelectionApi, runtimeLoaderApi, pluginRuntimeApi, pluginRegistry, pluginUiApi, transportApi, artifactStoreApi, routePlannerApi, civilTimeApi, universeParserApi, applicationProfileSelectApi, experienceCameraApi, pluginAssetPathsApi, pluginRandomApi, pluginSchedulerApi, pluginEnvironmentApi, pluginGeographyApi, pluginComputeApi, simulationClockApi, pluginViewRuntimeApi, mountLifecycleApi, mainViewApi, pluginPlaybackApi, cityInterfaceApi, mainControllerBuilderApi, mainSupportApi } = dependencies;
+  if (!cityInterfaceApi || !mainViewApi || !mainControllerBuilderApi || !mainSupportApi) {
+    throw new Error('simulatte_app_view_dependency_missing');
+  }
+  const { collectElements, populateApplicationProfiles, applicationProfileLabel, setRuntimeStatus, runtimeLabel, renderIdentity, renderPlaceResolution, renderPlanning, configureExperienceShell, renderExperienceSummary, renderPlayback } = mainViewApi;
   const { wireCameraControls, selectCameraMode, populateCameraFocus, wireInterfaceControls, setJourneyPhase, resizeMissionInput, clearMissionError, isMissionInputError, friendlyMissionError, updateButtons } = cityInterfaceApi;
   const log = runtimeLog || {
     info: () => null,
@@ -62,14 +70,29 @@
     error: () => null,
     serializeError: (error) => ({ name: error?.name || 'Error', message: error?.message || String(error) }),
   };
-  // Owns the landing page and gates asset loading: nothing in start() runs until
-  // the visitor picks a tier here.
-
+  const {
+    applyPluginMissionContributions,
+    downloadJson,
+    environmentInstant,
+    failRuntime,
+    launchBrowserApp,
+    renderLedger,
+    renderPolicyArena,
+    validateImportedJourneyReceipt,
+  } = mainSupportApi.create({
+    hostRoot,
+    receiptsApi,
+    civilTimeApi,
+    setJourneyPhase,
+    isMissionInputError,
+    friendlyMissionError,
+    setRuntimeStatus,
+    updateButtons,
+    log,
+  });
   async function start(initialTier = 'city', requestedProfileId = null, hooks = {}) {
     if (!experienceCameraApi?.applyInitialCamera || !experienceCameraApi?.runCameraMode) throw new Error('Experience camera dependency is unavailable');
     const elements = collectElements();
-    // Every listener binds through `on` scoped to `lifecycle`, so disposeApplication()'s abort drops
-    // them all — letting the shell re-boot this app in place without double-binding the persistent DOM.
     const lifecycle = mountLifecycleApi.create(hooks.signal);
     const on = lifecycle.on;
     let extensions = null;
@@ -134,15 +157,16 @@
       await runtimeLoaderApi.loadSelectedProduct({ tierId: 'city', profileId: requestedProfileId });
       lifecycle.throwIfAborted();
       let data;
-      data = await dataLoader.loadApplication(undefined, lifecycle.fetch, { requestedProfileId });
+      data = await dataLoader.loadApplication(undefined, lifecycle.fetch, { requestedProfileId, deferRenderGeometry: true });
       lifecycle.throwIfAborted();
     if (!applicationProfileSelectApi?.resolveInteraction || !applicationProfileSelectApi?.renderInteraction) throw new Error('Application interaction dependency is unavailable');
     const interaction = applicationProfileSelectApi.resolveInteraction(data.applicationProfile, data.manifest);
     configureExperienceShell(elements, {
       interactionMode: interaction.mode,
-      profileId: data.applicationProfile.id,
+      profile: data.applicationProfile,
       tier: initialTier,
     });
+    if (typeof data.loadRenderGeometry === 'function') { setRuntimeStatus(elements, 'Loading map detail', 'loading'); await new Promise((resolve) => requestAnimationFrame(resolve)); lifecycle.throwIfAborted(); data = await data.loadRenderGeometry(); lifecycle.throwIfAborted(); }
     const playbackStorage = pluginPlaybackApi?.browserStorage?.(hostRoot) || null;
     let storedPlaybackReceipt = interaction.mode === 'playback'
       ? pluginPlaybackApi.loadStoredReceipt(playbackStorage, data.applicationProfile.id)
@@ -258,6 +282,50 @@
       surfaceId: 'autonomy',
       consentGate: neuralGate,
     });
+    const controllerBuilder = mainControllerBuilderApi.create({
+      elements,
+      data,
+      interaction,
+      worldApi,
+      ensureRenderer,
+      nextRevision: () => ++buildRevision,
+      currentRevision: () => buildRevision,
+      clearMissionError,
+      extensions,
+      getRenderer: () => renderer,
+      setActiveState(next) {
+        controller = next.controller;
+        activeMission = next.mission;
+        activeMissionForPlugins = next.mission;
+      },
+      renderPluginExperience,
+      renderIdentity,
+      setRuntimeStatus,
+      setJourneyPhase,
+      updateButtons,
+      hasJourneyStarted: () => hasJourneyStarted,
+      modelSelection,
+      runtimeLoaderApi,
+      neuralPlaceApi,
+      hostRoot,
+      getPlaceResolver: () => placeResolver,
+      setPlaceResolver: (value) => { placeResolver = value; },
+      missionApi,
+      applyPluginMissionContributions,
+      log,
+      renderPlaceResolution,
+      yieldToFrame,
+      controllerApi,
+      traceView,
+      runtimeLabel,
+      setRetrievalLaneLogged: (value) => { retrievalLaneLogged = value; },
+      isRetrievalLaneLogged: () => retrievalLaneLogged,
+      setTerminalJourneyLogged: (value) => { terminalJourneyLogged = value; },
+      isTerminalJourneyLogged: () => terminalJourneyLogged,
+      recordJourney,
+      stopLoop,
+      renderPlanning,
+    });
     function renderPluginExperience(context) {
       const pluginContext = { ...context, compositionSize: extensions.activePluginIds.length };
       const platform = extensions.platformV4(pluginContext);
@@ -337,10 +405,13 @@
     function renderPluginSummary(runState) {
       renderExperienceSummary(elements, hostRoot.SimulatteWorldTiersBoot.experienceHudSummary({
         profileId: data.applicationProfile.id,
+        profile: data.applicationProfile,
         profileLabel: elements.applicationProfileLabel.textContent,
         scenario: activeScenario,
         contributions: lastPluginContributions,
         runState,
+        playback: pluginPlayback?.snapshot() || null,
+        comparisonReceipts: hostRoot.__simulatteComparisonExecutionReceipts || [],
       }));
     }
 
@@ -367,6 +438,7 @@
       if (renderer) return renderer;
       renderer = await canvasApi.createCanvasRenderer(elements.autonomyCanvas, worldModel, {
         minimapCanvas: elements.followMinimap,
+        labelCanvas: elements.semanticLabelCanvas,
         regionRegistry: data.regionRegistry,
         regionPacks: data.regionPacks,
         onFailure: (error) => {
@@ -378,6 +450,7 @@
             mode: cameraInteraction.mode,
             targetIds: cameraInteraction.targetIds,
           });
+          selectCameraMode(elements, cameraInteraction.mode);
         },
       });
       wireCameraControls(elements, renderer, lifecycle.signal, {
@@ -400,156 +473,7 @@
     }
 
     async function buildController({ keepMissionLocked = false } = {}) {
-      const revision = ++buildRevision;
-      const isCurrent = () => revision === buildRevision;
-      clearMissionError(elements);
-      const requestedSourceText = elements.missionInput.value;
-      const preflightContributions = await extensions.contributeRequest({ sourceText: requestedSourceText });
-      if (!isCurrent()) return null;
-      const sourceOverrides = preflightContributions.filter((row) => row.executableSourceText);
-      if (sourceOverrides.length > 1) throw new Error(`Plugin request conflict: ${sourceOverrides.map((row) => row.pluginId).join(', ')} proposed executable source`);
-      const executableSourceText = sourceOverrides[0]?.executableSourceText || requestedSourceText;
-      if (interaction.mode === 'playback') {
-        const playbackWorld = worldApi.createWorldModel(data.world);
-        await ensureRenderer(playbackWorld);
-        if (!isCurrent()) return null;
-        const initialNode = data.world.nodes[0];
-        const snapshot = {
-          route: { segmentIds: [] },
-          state: {
-            tick: 0,
-            taskType: 'playback',
-            currentNodeId: initialNode.id,
-            position: { ...initialNode.position },
-            suppressPrimaryActor: true,
-            distanceTraveledM: 0,
-            speedMps: 0,
-            simulatedTimeSeconds: 0,
-            status: 'active',
-          },
-        };
-        renderer.reset();
-        renderer.render(snapshot);
-        activeMission = null;
-        activeMissionForPlugins = null;
-        renderPluginExperience({ mission: null });
-        elements.renderIdentity.textContent = renderIdentity(renderer.receipt());
-        setRuntimeStatus(elements, 'Ready', 'ready');
-        setJourneyPhase('ready');
-        updateButtons(elements, keepMissionLocked, true, 'active', hasJourneyStarted);
-        return null;
-      }
-      const placeSelection = modelSelection.selectedRuntimeRef('place-resolution');
-      const useNeuralPlaces = placeSelection.kind === 'embedding';
-      if (useNeuralPlaces && await modelSelection.ensureConsent() !== true) {
-        throw new Error('Selected place model requires local model consent');
-      }
-      if (useNeuralPlaces && !placeResolver) {
-        await runtimeLoaderApi.loadOptionalModel();
-        const activeNeuralPlaceApi = neuralPlaceApi || globalThis.SimulatteNeuralPlaceResolver;
-        if (!activeNeuralPlaceApi?.createPlaceResolver) throw new Error('Neural place resolver failed to load');
-        placeResolver = activeNeuralPlaceApi.createPlaceResolver({
-          index: data.placeEmbeddingIndex,
-          modelLock: data.modelRuntimeLock,
-          onProgress(event) {
-            if (event?.phase === 'ready') {
-              setRuntimeStatus(elements, 'Ready', 'ready');
-              elements.placeLaneNote.textContent = 'Semantic test ready. It currently adds no diagnostic matches.';
-            } else if (event?.percent != null) {
-              setRuntimeStatus(elements, `Loading semantic matching ${Math.round(event.percent)}%`, 'loading');
-              elements.placeLaneNote.textContent = `Downloading semantic matching ${Math.round(event.percent)}%.`;
-            }
-          },
-        });
-      }
-      const mission = useNeuralPlaces && sourceOverrides.length === 0
-        ? await missionApi.compileMissionWithResolver(executableSourceText, data.world, data.embodiments, placeResolver)
-        : missionApi.compileMission(executableSourceText, data.world, data.embodiments);
-      if (!isCurrent()) return null;
-      const pluginContributions = await extensions.contributeRequest({ sourceText: requestedSourceText, executableSourceText, mission });
-      if (!isCurrent()) return null;
-      applyPluginMissionContributions(mission, pluginContributions);
-      log.info('mission.compiled', {
-        missionId: mission.id,
-        sourceText: requestedSourceText,
-        executableSourceText,
-        embodimentId: mission.embodimentId,
-        task: mission.task,
-        constraints: mission.constraints,
-        grounding: mission.grounding,
-        placeResolution: mission.placeResolution,
-        modelSelection: modelSelection.receipt(),
-      });
-      renderPlaceResolution(elements, mission, placeResolver?.receipt() || null, data.placeResolutionEvidence);
-      await yieldToFrame();
-      if (!isCurrent()) return null;
-      const embodiment = data.embodiments.find((row) => row.id === mission.embodimentId);
-      if (!embodiment) throw new Error(`Mission selected unavailable embodiment ${mission.embodimentId}`);
-      const nextController = controllerApi.createAutonomyController({
-        world: data.world,
-        featureCatalog: data.featureCatalog,
-        occurrenceCatalog: data.occurrenceCatalog,
-        routeContributors: extensions.routeContributors({ mission }),
-        routeObjective: data.applicationProfile.routeObjective,
-        embodiment,
-        policy: data.policy,
-        mission,
-        regionComposition: data.regionComposition,
-        onTick: ({ entry, snapshot }) => {
-          renderer.render(snapshot, entry.payload);
-          traceView.renderTick(entry, snapshot);
-          setRuntimeStatus(elements, runtimeLabel(snapshot.state), snapshot.state.status);
-          const retrieval = entry.payload?.observation?.featureRetrieval;
-          if (!retrievalLaneLogged && retrieval) {
-            retrievalLaneLogged = true;
-            log.info('retrieval.lane.executed', {
-              missionId: mission.id,
-              method: retrieval.method,
-              reranker: retrieval.reranker,
-              modelExecution: retrieval.modelExecution,
-              counts: retrieval.counts,
-            });
-          }
-          if (!terminalJourneyLogged && snapshot.state.status !== 'active') {
-            terminalJourneyLogged = true;
-            setJourneyPhase(snapshot.state.status === 'completed' ? 'completed' : 'failed');
-            log.info('journey.terminal', {
-              missionId: mission.id,
-              status: snapshot.state.status,
-              terminalReason: snapshot.state.terminalReason || null,
-              tick: snapshot.state.tick,
-              distanceTraveledM: snapshot.state.distanceTraveledM,
-              simulatedTimeSeconds: snapshot.state.simulatedTimeSeconds,
-              completedLaps: snapshot.state.completedLaps,
-            });
-            recordJourney(nextController).catch((error) => log.error('journey.ledger.failed', log.serializeError(error)));
-          }
-          if (snapshot.state.status !== 'active') stopLoop();
-        },
-      });
-      await ensureRenderer(nextController.worldModel);
-      if (!isCurrent()) return null;
-      retrievalLaneLogged = false;
-      terminalJourneyLogged = false;
-      await yieldToFrame();
-      if (!isCurrent()) return null;
-      renderer.reset();
-      const snapshot = nextController.snapshot();
-      renderer.render(snapshot);
-      await yieldToFrame();
-      if (!isCurrent()) return null;
-      controller = nextController;
-      activeMission = mission;
-      activeMissionForPlugins = mission;
-      traceView.renderInitial(snapshot, renderer.receipt());
-      renderPlanning(elements, nextController.planning());
-      renderPluginExperience({ mission });
-      elements.renderIdentity.textContent = renderIdentity(renderer.receipt());
-      setRuntimeStatus(elements, snapshot.state.status === 'active' ? 'Ready' : runtimeLabel(snapshot.state), snapshot.state.status === 'active' ? 'ready' : 'failed');
-      setJourneyPhase(snapshot.state.status === 'active' ? 'ready' : 'failed');
-      updateButtons(elements, keepMissionLocked, true, snapshot.state.status, hasJourneyStarted);
-      if (snapshot.state.status !== 'active') await recordJourney(nextController);
-      return controller;
+      return controllerBuilder.build({ keepMissionLocked });
     }
 
     async function recordJourney(targetController) {
@@ -703,6 +627,10 @@
       stopLoop();
       try {
         hasJourneyStarted = false;
+        if (pluginPlayback) {
+          await pluginPlayback.reset(activeScenario);
+          return;
+        }
         await buildController();
       } catch (error) {
         failRuntime(elements, error);
@@ -746,7 +674,7 @@
       }
       const status = phase === 'completed' ? 'completed' : phase === 'failed' ? 'failed' : 'active';
       updateButtons(elements, isActive, true, status, hasJourneyStarted);
-      const label = mainView.renderPlayback(elements, phase, snapshot);
+      const label = renderPlayback(elements, phase, snapshot);
       setRuntimeStatus(elements, label, phase === 'failed' ? 'error' : phase);
       renderPluginSummary(phase);
     }
@@ -873,123 +801,6 @@
     }
   }
 
-  function failRuntime(elements, error) {
-    setJourneyPhase('failed');
-    try { if (typeof window !== 'undefined') window.__simulatteLastFailError = { code: error?.code || null, name: error?.name || null, message: error?.message || String(error), evidence: error?.evidence || null, stack: typeof error?.stack === 'string' ? error.stack.split('\n').slice(0, 6).join('\n') : null }; } catch (_e) { /* diagnostic only */ }
-    log.error('runtime.failed', log.serializeError(error));
-    if (isMissionInputError(error)) {
-      elements.missionError.textContent = friendlyMissionError(error);
-      elements.missionInput.setAttribute('aria-invalid', 'true');
-      setRuntimeStatus(elements, 'Check mission', 'changed');
-      updateButtons(elements, false, false, 'active', false);
-      elements.missionInput.focus();
-      return;
-    }
-    elements.missionError.textContent = 'The simulator stopped. Open status for technical details.';
-    setRuntimeStatus(elements, 'Stopped', 'error');
-    updateButtons(elements, false, false, 'failed', true);
-  }
-
-  function applyPluginMissionContributions(mission, contributions) {
-    const patches = contributions.filter((row) => row.missionPatch);
-    const routePatches = patches.filter((row) => row.missionPatch.routeOverride);
-    if (routePatches.length > 1) throw new Error(`Plugin mission conflict: ${routePatches.map((row) => row.pluginId).join(', ')} proposed route overrides`);
-    patches.forEach((row) => {
-      const keys = Object.keys(row.missionPatch);
-      if (keys.some((key) => key !== 'routeOverride')) throw new Error(`Plugin ${row.pluginId} proposed unsupported mission fields: ${keys.join(', ')}`);
-    });
-    if (routePatches.length) mission.constraints.routeOverride = structuredClone(routePatches[0].missionPatch.routeOverride);
-    mission.extensions = Object.freeze(Object.fromEntries(contributions.map((row) => [row.pluginId, structuredClone({
-      recognized: Boolean(row.recognized), obligations: row.obligations || [], unresolved: row.unresolved || [],
-    })])));
-    return mission;
-  }
-
-  function environmentInstant(world, mission) {
-    const snapshotDate = world.provenance?.snapshotDate || '2026-07-14';
-    const localMinutes = mission.constraints.departureLocalMinutes;
-    const hour = String(Math.floor(localMinutes / 60)).padStart(2, '0');
-    const minute = String(localMinutes % 60).padStart(2, '0');
-    return civilTimeApi.resolve({
-      civilTime: `${snapshotDate}T${hour}:${minute}:00`,
-      timeZone: world.scenario?.timeZone || 'America/New_York',
-    }).utcInstant;
-  }
-
-  async function renderLedger(elements, ledger, curriculum = null, worldContentVersion = null) {
-    try {
-      const summary = await ledger.summary();
-      const error = summary.meanAbsoluteEtaErrorSeconds;
-      const curriculumProgress = curriculum ? await ledger.curriculumProgress(curriculum, worldContentVersion) : null;
-      elements.ledgerProof.textContent = `${summary.trialCount} trial${summary.trialCount === 1 ? '' : 's'}${error === null ? '' : ` · MAE ${error.toFixed(1)} s`}${curriculumProgress ? ` · curriculum ${curriculumProgress.completedCount}/${curriculumProgress.missionCount}` : ''}`;
-    } catch (error) {
-      elements.ledgerProof.textContent = `integrity failure · ${error.code || 'invalid'}`;
-    }
-  }
-
-  function renderPolicyArena(elements, evidence) {
-    const leader = evidence?.diagnosticSelection;
-    const lane = evidence?.lanes?.find((row) => row.id === leader?.laneId);
-    elements.policyArenaProof.textContent = leader?.status === 'diagnostic_leader_only' && lane
-      ? `${lane.id} · ${lane.metrics.safetyAdjustedCompletionScore.toFixed(3)} · promotion blocked`
-      : 'no qualified diagnostic leader';
-  }
-
-  function downloadJson(filename, value) {
-    const blob = new Blob([`${JSON.stringify(value, null, 2)}\n`], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement('a');
-    anchor.href = url;
-    anchor.download = filename;
-    anchor.click();
-    URL.revokeObjectURL(url);
-  }
-
-  async function validateImportedJourneyReceipt(value, receiptTools = receiptsApi) {
-    if (!value || value.schema !== 'simulatte.autonomyJourneyReceipt.v2') {
-      throw new Error('expected simulatte.autonomyJourneyReceipt.v2');
-    }
-    if (!value.mission || typeof value.mission.sourceText !== 'string' || !value.mission.sourceText.trim()) {
-      throw new Error('receipt has no replayable mission source text');
-    }
-    if (!value.integrity || !Array.isArray(value.trace) || !receiptTools?.verifyReceiptChain) {
-      throw new Error('receipt integrity evidence is unavailable');
-    }
-    const verification = await receiptTools.verifyReceiptChain({
-      schema: 'simulatte.autonomyReceiptChain.v1',
-      algorithm: value.integrity.algorithm,
-      terminalHash: value.integrity.terminalHash,
-      entries: value.trace,
-    });
-    if (!verification.pass || verification.entryCount !== value.integrity.entryCount) {
-      throw new Error(`receipt chain failed verification: ${verification.reason}`);
-    }
-    return verification;
-  }
-
-  if (typeof document !== 'undefined') {
-    const launch = () => {
-      // Single URL dispatcher: the path names the tier; city boots the mission app, every other
-      // scale the governed explorer. Both return { tier, experience, dispose } to the shell.
-      const router = SimulatteRouter.createRouter(window);
-      const navigate = (route) => router.navigate(route);
-      const governedCtx = { collectElements, setJourneyPhase, setRuntimeStatus, createTierVisualizer: SimulatteMultiTierVisualizer.createTierVisualizer, navigate, onSelectTier: (tier) => navigate({ tier, experience: null }) };
-      const boot = (tier, experience, options) => tier === 'city'
-        ? start('city', experience, { navigate, signal: options?.signal })
-        : SimulatteWorldTiersBoot.bootGovernedTierExplorer(governedCtx, tier, experience, options);
-      const shell = SimulatteWorldTiersBoot.createAppShell({
-        router,
-        boot,
-        landing: document.getElementById('world-tiers-landing-page'),
-        documentationLink: document.getElementById('experience-doc-link'),
-      });
-      void Promise.resolve(shell.start()).catch((error) => {
-        try { failRuntime(collectElements(), error); } catch (boundaryError) { log.error('runtime.bootstrap_failed', log.serializeError(boundaryError)); }
-      });
-    };
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', launch, { once: true });
-    else launch();
-  }
-
+  launchBrowserApp(start, collectElements);
   return { applicationProfileLabel, collectElements, friendlyMissionError, populateApplicationProfiles, populateCameraFocus, renderIdentity, renderPlaceResolution, renderPlanning, renderPolicyArena, runtimeLabel, selectCameraMode, start, validateImportedJourneyReceipt };
 });

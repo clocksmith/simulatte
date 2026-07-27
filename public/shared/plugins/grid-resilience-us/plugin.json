@@ -170,7 +170,7 @@
       "path": "./dispatch-model.js"
     },
     {
-      "integrity": "sha384-495ee3f06bf216e32ed557b0d18926e22807596a333a8f87e51dcea0d71d4a0d89cc7e9ae05912092b79fb73fcc349b4",
+      "integrity": "sha384-fd7599bb58905fba7119b5daff84a72191a236a0a29fac18d97db26693240fd1ba6ad98878284fd3163c11269bf84710",
       "path": "./v4-contribution.js"
     },
     {

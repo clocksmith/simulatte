@@ -145,8 +145,6 @@
     let elapsedHours = 0;
     let completedDistanceNm = 0;
     route.legs.forEach((leg, index) => {
-      const legStart = route.waypoints[index];
-      const legEnd = route.waypoints[index + 1];
       for (const fraction of [0.25, 0.5, 0.75]) {
         previousId = schedule(elapsedHours + leg.sailingHours * fraction, 20, 'maritime.voyage-progressed', {
           legId: leg.id,
@@ -154,7 +152,7 @@
           legIndex: index,
           legProgressFraction: fraction,
           progressFraction: (completedDistanceNm + leg.distanceNm * fraction) / route.distanceNm,
-          position: interpolatePoint(legStart, legEnd, fraction),
+          position: pointAlongCoordinates(leg.coordinates, fraction),
         }, [previousId], [`row:global-maritime-corridors-v1:${leg.id}`, 'model:governed-corridor-dijkstra-v2']);
       }
       elapsedHours += leg.sailingHours;
@@ -451,11 +449,35 @@
     return scenarioId;
   }
 
-  function interpolatePoint(start, end, fraction) {
+  function pointAlongCoordinates(coordinates, progress) {
+    if (!Array.isArray(coordinates) || coordinates.length < 2) {
+      return Object.freeze([0, 0, 0]);
+    }
+    const lengths = [];
+    let total = 0;
+    for (let index = 1; index < coordinates.length; index += 1) {
+      const left = coordinates[index - 1];
+      const right = coordinates[index];
+      const rawLongitudeDelta = Math.abs(right[0] - left[0]);
+      const longitudeDelta = rawLongitudeDelta > 180 ? 360 - rawLongitudeDelta : rawLongitudeDelta;
+      total += Math.hypot(longitudeDelta, right[1] - left[1]);
+      lengths.push(total);
+    }
+    const target = total * Math.max(0, Math.min(1, progress));
+    const index = Math.max(0, lengths.findIndex((value) => value >= target));
+    const startDistance = index === 0 ? 0 : lengths[index - 1];
+    const fraction = (target - startDistance) / Math.max(0.000001, lengths[index] - startDistance);
+    const start = coordinates[index];
+    const end = coordinates[index + 1];
+    let endLongitude = end[0];
+    if (Math.abs(endLongitude - start[0]) > 180) {
+      endLongitude += endLongitude > start[0] ? -360 : 360;
+    }
+    const longitude = start[0] + (endLongitude - start[0]) * fraction;
     return Object.freeze([
-      Number(start?.[0] || 0) + (Number(end?.[0] || 0) - Number(start?.[0] || 0)) * fraction,
-      Number(start?.[1] || 0) + (Number(end?.[1] || 0) - Number(start?.[1] || 0)) * fraction,
-      Number(start?.[2] || 0) + (Number(end?.[2] || 0) - Number(start?.[2] || 0)) * fraction,
+      longitude > 180 ? longitude - 360 : longitude < -180 ? longitude + 360 : longitude,
+      start[1] + (end[1] - start[1]) * fraction,
+      start[2] + (end[2] - start[2]) * fraction,
     ]);
   }
 

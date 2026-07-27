@@ -2,6 +2,20 @@
   "schema": "simulatte.applicationProfile.v2",
   "id": "safety-explorer-v1",
   "interaction": { "mode": "playback", "startLabel": "Analyze corridor", "shuffleLabel": "Change scenario" },
+  "experience": {
+    "kind": "analysis",
+    "timelineLabel": "Analysis stage",
+    "primaryMeasureKinds": ["crash-count", "injury-count", "fatality-count", "unknown-observation-segments", "historical-observation-score"],
+    "supportedViews": ["overview", "top"],
+    "defaultView": "overview",
+    "comparisonMode": "sensitivity",
+    "stages": [
+      { "id": "route-resolves", "label": "Corridor resolves", "narrative": "The selected route is separated into physical street segments before evidence is joined.", "fromProgress": 0 },
+      { "id": "observations-join", "label": "Observations join", "narrative": "Historical collision rows attach to physical segments while unmatched evidence remains unknown.", "fromProgress": 0.3 },
+      { "id": "estimate-derives", "label": "Estimate derives", "narrative": "Fixed sparse-count shrinkage stabilizes sparse counts without changing observed rows.", "fromProgress": 0.65 },
+      { "id": "sensitivity-ready", "label": "Sensitivity ready", "narrative": "Parameter changes can now be compared against the same historical observations.", "fromProgress": 0.95 }
+    ]
+  },
   "defaultSeedId": "union-mccarren",
   "seeds": [
     { "id": "union-mccarren", "label": "Union Square to McCarren", "description": "Recorded crash and injury observations along a bike route.", "seed": "safety-union-mccarren-0719", "missionText": "Bike from Union Square to McCarren Park and show the route's historical crash observations." },

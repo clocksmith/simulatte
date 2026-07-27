@@ -126,6 +126,33 @@
         importance: 1,
         provenance: estimate,
       })] : []),
+      ...routeRows.map((row) => {
+        const severity = row.crashCount
+          + row.injuryCount * methodReceipt.severityWeights.injury
+          + row.fatalityCount * methodReceipt.severityWeights.fatality;
+        return builder.layer({
+          id: `safety-segment:${row.segmentId}`,
+          kind: 'path',
+          label: row.crashCount
+            ? `${row.crashCount} reported crashes · ${row.injuryCount} injuries · ${row.fatalityCount} fatalities`
+            : 'No joined crash row; exposure remains unknown',
+          geometry: builder.geometry('segments', 'city-segment-id', [row.segmentId]),
+          quantity: builder.quantity(
+            row.crashCount ? 'reported-segment-severity' : 'unknown-exposure',
+            severity,
+            'weighted reports',
+            [0, Math.max(1, ...routeRows.map((candidate) => (
+              candidate.crashCount
+                + candidate.injuryCount * methodReceipt.severityWeights.injury
+                + candidate.fatalityCount * methodReceipt.severityWeights.fatality
+            )))]
+          ),
+          role: row.fatalityCount || row.injuryCount ? 'event' : 'context',
+          importance: row.fatalityCount ? 1 : row.injuryCount ? 0.86 : 0.48,
+          aggregationKey: 'safety-segment-evidence',
+          provenance: observation,
+        });
+      }),
       ...(unknownSegmentIds.length ? [builder.layer({
         id: 'unknown-observation-route',
         kind: 'path',
@@ -177,7 +204,7 @@
       viewIntents: audit ? [
         builder.viewIntent({
           id: 'safety-route-overview',
-          mode: 'compare',
+        mode: stage >= 3 ? 'compare' : 'overview',
           targetIds: layers.map((row) => row.id),
           reasonEventId: stage ? eventIds[stage - 1] : null,
           priority: 70,

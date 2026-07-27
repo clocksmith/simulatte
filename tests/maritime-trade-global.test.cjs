@@ -46,8 +46,20 @@ test('five maritime scenarios route through the governed corridor matching their
     assert.deepEqual(result.route.canalIds, canalIds);
     assert.equal(result.route.distanceNm, distanceNm);
     assert.equal(result.route.algorithm, 'bidirectional_governed_corridor_dijkstra_v2');
+    assert.ok(result.route.renderCoordinates.length > result.route.waypoints.length);
+    assert.ok(result.route.legs.every((leg) => leg.coordinates.length >= 2));
     assert.match(result.claimBoundary, /not AIS/);
   });
+});
+
+test('governed corridor display geometry follows declared ocean guides and handles the date line', () => {
+  const pacific = simulate('transpacific-eastbound').route;
+  assert.ok(pacific.renderCoordinates.some((point) => point[0] >= 179));
+  assert.ok(pacific.renderCoordinates.some((point) => point[0] <= -179));
+  assert.ok(pacific.renderCoordinates.length >= 8);
+  const suez = simulate('asia-europe-mainline').route;
+  assert.ok(suez.renderCoordinates.some((point) => point[0] >= 32 && point[0] <= 33 && point[1] >= 29));
+  assert.ok(suez.renderCoordinates.length >= 12);
 });
 
 test('same seed reproduces queue ensemble, voyage events, snapshots, and terminal metrics', () => {
@@ -219,6 +231,11 @@ test('plugin supports progressive start/step and current-core terminal compatibi
   while (step.status === 'running') step = progressive.handleAction('scenario.run', { values: { phase: 'step' } });
   assert.equal(step.status, 'settled');
   assert.ok(progressive.settle().obligationResults.every((row) => row.status === 'settled'));
+  const settledContribution = progressive.contributeV4();
+  const queueField = settledContribution.presentation.layers.find((row) => row.id.startsWith('queue-pressure:'));
+  assert.equal(queueField.kind, 'field');
+  assert.equal(queueField.quantity.kind, 'queue-wait');
+  assert.equal(queueField.geometry.coordinates.length, 24);
   const queueReceipt = progressiveHost.receipts.find((row) => row.schema === 'simulatte.plugin.maritimeQueueReceipt.v2');
   const sensitivityReceipt = progressiveHost.receipts.find((row) => row.schema === 'simulatte.plugin.maritimeEmissionsSensitivityReceipt.v1');
   assert.equal(queueReceipt.truth.uncertainty.kind, 'distribution');

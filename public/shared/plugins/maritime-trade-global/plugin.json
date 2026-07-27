@@ -169,7 +169,7 @@
       "path": "./emissions-model.js"
     },
     {
-      "integrity": "sha384-3b123ca1ff7a49008dc2616833ea47550f072415dc5331e6f85c3fdfa1fbdd2c973388866a220934ecbfb3a9c4fcb002",
+      "integrity": "sha384-3479c8325735a76a45a8ae89f3edef11402b255bbed2b597c66a545c09f3b85e1591407397512002045fd320a0c6b2c0",
       "path": "./maritime-engine.js"
     },
     {
@@ -177,11 +177,11 @@
       "path": "./metrics.js"
     },
     {
-      "integrity": "sha384-cba0075ed6a35cbf40c920086294611a293ec9a1735c54f66938e71139ec43dc83889da21f856c2b7a7e36f9caa97eff",
+      "integrity": "sha384-4b0a8648461242289180f6a634bcb296587e48f029a7c0d71cf6b86129b0aaf8433b09e1d622a7d0a385a414f3025f74",
       "path": "./network-router.js"
     },
     {
-      "integrity": "sha384-f208dbe1d0b7749b040efef46c1ec0df4cb1631f355ccbcb7072da8a90285336c6b75af9d900f0109c4740de9202c6bc",
+      "integrity": "sha384-d49a9c3fc3305ad6d0dae56cc39f113028aac826849708ed6fc3ed90be034d293ca1029fd641149edcca448d8efc875a",
       "path": "./presentation.js"
     },
     {
@@ -189,7 +189,7 @@
       "path": "./queue-engine.js"
     },
     {
-      "integrity": "sha384-eb7403e0a8bb060dd0e525af6c9c74881dbf1a2860dd0ca828eda4ac46bfa39979a30eae5228edc909c55da82faf2416",
+      "integrity": "sha384-49e1dcf95ed9ba722eebf61f415ab979fbb1967851f0339a634076d62baceb9f1343e5e29d3fa6ec5222dd1758e11965",
       "path": "./v4-contribution.js"
     },
     {

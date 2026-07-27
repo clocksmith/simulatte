@@ -41,7 +41,11 @@
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createApplicationLoader(contracts, receipts, regions, runtimeLog, browserTransport, artifactStore, dataCatalog, pluginContracts, schemaRegistry, pluginRegistry, pluginPaths, loadContext) {
   assertDependencies();
 
-  async function loadApplication(manifestUrl = '../data/simulatte/autonomy-manifest.json', fetchImpl = defaultFetch(), { requestedProfileId = null } = {}) {
+  async function loadApplication(
+    manifestUrl = '../data/simulatte/autonomy-manifest.json',
+    fetchImpl = defaultFetch(),
+    { requestedProfileId = null, deferRenderGeometry = false } = {}
+  ) {
     const resolvedManifestUrl = new URL(manifestUrl, documentBase()).toString();
     const services = createDataServices(fetchImpl);
     runtimeLog.info('data.load.started', {
@@ -81,18 +85,15 @@
       contracts.validateRegionPack(row.value, registry);
       return row;
     }));
-    // Render geometry ships in per-pack sidecars so the routing packs above stay small.
-    // Loaded and hash-verified in parallel here, then reassembled into the full world.
-    // (Deferring the sidecars past first paint is a follow-up renderer change; the world
-    // model, ambient actors, camera, and static GPU buffer all derive from this geometry.)
-    const geometryByPackId = Object.fromEntries(await Promise.all(registry.packs.map(async (reference) => {
-      const row = await services.artifacts.resolve(
-        { id: reference.id, path: reference.geometry.path, sha256: reference.geometry.sha256, schemaId: reference.geometry.schemaId || null },
-        { baseUrl: loaded.regionRegistry.url, key: `regionGeometry:${reference.id}` });
-      return [reference.id, row.value.renderGeometry];
-    })));
+    const initialGeometry = deferRenderGeometry
+      ? null
+      : await resolveRegionGeometry(registry, loaded.regionRegistry.url, services);
     await yieldToHost();
-    const composition = regions.mergeRegionPacks(registry, packRows.map((row) => row.value), geometryByPackId);
+    const composition = regions.mergeRegionPacks(
+      registry,
+      packRows.map((row) => row.value),
+      initialGeometry && initialGeometry.geometryByPackId
+    );
     // Integrity without re-hashing the composed world on the main thread. Every region
     // pack is already sha256-verified on download against the (also verified) registry,
     // and mergeRegionPacks structurally validates the composition (exact pack ids, seam
@@ -106,7 +107,7 @@
     assertCompositionHash('featureCatalog', manifest.value.featureCatalog.sha256, featureCatalogHash, composition.receipt);
     await yieldToHost();
     contracts.validateFeatureCatalog(composition.featureCatalog);
-    contracts.validateWorld(composition.world, composition.featureCatalog);
+    if (!deferRenderGeometry) contracts.validateWorld(composition.world, composition.featureCatalog);
     await yieldToHost();
     contracts.validateOccurrenceCatalog(loaded.occurrenceCatalog.value, composition.world);
     contracts.validateRerankerEvidence(loaded.rerankerEvidence.value, composition.featureCatalog, {
@@ -155,14 +156,43 @@
           ...Object.fromEntries(refs.map(([key, row]) => [key, assetReceipt(row)])),
           embodiments: embodimentRows.map((row) => assetReceipt(row.loaded)),
           pluginDatasets: pluginDatasetRows.map(assetReceipt),
-          world: { id: composition.world.id, sha256: worldHash, source: 'verified_region_composition' },
+          regionGeometry: initialGeometry ? initialGeometry.rows.map(assetReceipt) : [],
+          world: {
+            id: composition.world.id,
+            sha256: worldHash,
+            source: initialGeometry ? 'verified_region_composition' : 'verified_region_routing_composition',
+          },
           featureCatalog: { id: composition.featureCatalog.id, sha256: featureCatalogHash, source: 'verified_region_composition' },
         },
         regionPacks: packRows.map(assetReceipt),
         regionComposition: structuredClone(composition.receipt),
+        renderGeometryStatus: initialGeometry ? 'ready' : 'deferred',
         claimBoundary: manifest.value.claimBoundary,
       },
     };
+    if (deferRenderGeometry) {
+      let geometryHydrationPromise = null;
+      Object.defineProperty(result, 'loadRenderGeometry', {
+        enumerable: false,
+        value() {
+          if (!geometryHydrationPromise) {
+            geometryHydrationPromise = hydrateRenderGeometry({
+              result,
+              registry,
+              regionRegistryUrl: loaded.regionRegistry.url,
+              services,
+              refs,
+              embodimentRows,
+              packRows,
+              pluginDatasetRows,
+              worldHash,
+              featureCatalogHash,
+            });
+          }
+          return geometryHydrationPromise;
+        },
+      });
+    }
     runtimeLog.info('data.load.ready', {
       manifestId: manifest.value.id,
       worldId: composition.world.id,
@@ -176,8 +206,100 @@
         segments: composition.world.segments.length,
         featureCards: composition.featureCatalog.cards.length,
       },
+      renderGeometryStatus: initialGeometry ? 'ready' : 'deferred',
     });
     return result;
+  }
+
+  async function resolveRegionGeometry(registry, regionRegistryUrl, services) {
+    const rows = await Promise.all(registry.packs.map((reference) => services.artifacts.resolve(
+      {
+        id: reference.id,
+        path: reference.geometry.path,
+        sha256: reference.geometry.sha256,
+        schemaId: reference.geometry.schemaId || null,
+      },
+      {
+        baseUrl: regionRegistryUrl,
+        key: `regionGeometry:${reference.id}`,
+      }
+    )));
+    return {
+      rows,
+      geometryByPackId: Object.fromEntries(rows.map((row) => [
+        row.value.id,
+        row.value.renderGeometry,
+      ])),
+    };
+  }
+
+  async function hydrateRenderGeometry({
+    result,
+    registry,
+    regionRegistryUrl,
+    services,
+    refs,
+    embodimentRows,
+    packRows,
+    pluginDatasetRows,
+    worldHash,
+    featureCatalogHash,
+  }) {
+    const startedAt = performanceNow();
+    const geometry = await resolveRegionGeometry(registry, regionRegistryUrl, services);
+    await yieldToHost();
+    const composition = regions.mergeRegionPacks(
+      registry,
+      packRows.map((row) => row.value),
+      geometry.geometryByPackId
+    );
+    contracts.validateWorld(composition.world, composition.featureCatalog);
+    const catalog = createLoadedDataCatalog({
+      refs,
+      embodimentRows,
+      packRows,
+      pluginDatasetRows,
+      composition,
+      worldHash,
+      featureCatalogHash,
+    });
+    Object.assign(result, {
+      dataCatalog: catalog,
+      world: catalog.require(composition.world.id),
+      featureCatalog: catalog.require(composition.featureCatalog.id),
+      regionComposition: composition.receipt,
+      receipt: {
+        ...result.receipt,
+        assets: {
+          ...result.receipt.assets,
+          regionGeometry: geometry.rows.map(assetReceipt),
+          world: {
+            ...result.receipt.assets.world,
+            source: 'verified_region_composition',
+          },
+        },
+        regionComposition: structuredClone(composition.receipt),
+        renderGeometryStatus: 'ready',
+        renderGeometryLoadMs: performanceNow() - startedAt,
+      },
+    });
+    runtimeLog.info('data.render_geometry.ready', {
+      manifestId: result.manifest.id,
+      packIds: registry.composition.defaultPackIds,
+      transferredAssets: geometry.rows.length,
+      durationMs: result.receipt.renderGeometryLoadMs,
+      counts: Object.fromEntries(
+        ['land', 'parks', 'streets', 'buildings', 'bikeFacilities']
+          .map((key) => [key, result.world.renderGeometry[key].length])
+      ),
+    });
+    return result;
+  }
+
+  function performanceNow() {
+    return typeof performance !== 'undefined' && typeof performance.now === 'function'
+      ? performance.now()
+      : Date.now();
   }
 
   async function loadReference(reference, baseUrl, key, fetchImpl) {

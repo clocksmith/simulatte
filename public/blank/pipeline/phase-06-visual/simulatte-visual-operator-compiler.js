@@ -8,12 +8,20 @@
   const positiveLanguage = typeof module === 'object' && module.exports
     ? require('../../../shared/language/positive-language.js')
     : root.SimulattePositiveLanguage;
-  const api = factory(atlas, deterministicValues, positiveLanguage);
+  const graphicsAtoms = typeof module === 'object' && module.exports
+    ? require('./simulatte-visual-graphics-atoms.js')
+    : root.SimulatteVisualGraphicsAtoms;
+  const api = factory(atlas, deterministicValues, positiveLanguage, graphicsAtoms);
   if (typeof module === 'object' && module.exports) {
     module.exports = api;
   }
   root.SimulatteVisualOperatorCompiler = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createVisualOperatorCompilerApi(atlas = {}, deterministicValues = {}, positiveLanguage = {}) {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createVisualOperatorCompilerApi(
+  atlas = {},
+  deterministicValues = {},
+  positiveLanguage = {},
+  graphicsAtoms = {}
+) {
   const VISUAL_OPERATOR_COMPILER_SCHEMA = 'simulatte.visualOperatorCompiler.v1';
   const GRAPHICS_ATOM_PLAN_SCHEMA = atlas.GRAPHICS_ATOM_PLAN_SCHEMA || 'simulatte.graphicsAtomPlan.v1';
   const GRAPHICS_ATOM_UNIFORMS_SCHEMA = atlas.GRAPHICS_ATOM_UNIFORMS_SCHEMA || 'simulatte.graphicsAtomUniforms.v1';
@@ -43,7 +51,6 @@
     'signal',
     'surface',
   ]);
-
   function compileVisualGraphicsAtoms(context = {}) {
     const text = visualOperatorContextText(context);
     const normalized = normalizeText(text);
@@ -51,7 +58,8 @@
       .map((row, index) => scoreMapping(row, index, text, normalized, context));
     const accepted = selectDiverseMappings(entries, 10);
     const source = accepted.map(compiledMapping);
-    const topologyAtoms = compositionTopologyAtoms(context);
+    const topologyAtoms = graphicsAtoms.compositionTopologyAtoms(context);
+    const identityAtoms = graphicsAtoms.compileIdentityGraphicsAtoms(context);
     const uniforms = compileAtomUniforms(source);
     return {
       schema: GRAPHICS_ATOM_PLAN_SCHEMA,
@@ -61,26 +69,39 @@
       source: 'handwritten-operator-graphics-basis',
       contextHash: stableContextHash(text),
       mappings: source,
-      geometry: uniqueAtomRows([
-        ...atomsForCategory(source, 'geometryAtoms', 'geometry'),
+      geometry: graphicsAtoms.uniqueAtomRows([
+        ...graphicsAtoms.atomsForCategory(atlas.VISUAL_OPERATOR_MAPPINGS, source, 'geometryAtoms', 'geometry'),
         ...topologyAtoms,
+        ...identityAtoms.geometry,
       ]),
-      fields: atomsForCategory(source, 'fieldAtoms', 'field'),
-      materials: atomsForCategory(source, 'materialAtoms', 'material'),
-      processes: atomsForCategory(source, 'processAtoms', 'process'),
-      motion: atomsForCategory(source, 'motionAtoms', 'motion'),
-      camera: atomsForCategory(source, 'cameraAtoms', 'camera'),
+      fields: graphicsAtoms.atomsForCategory(atlas.VISUAL_OPERATOR_MAPPINGS, source, 'fieldAtoms', 'field'),
+      materials: graphicsAtoms.uniqueAtomRows([
+        ...graphicsAtoms.atomsForCategory(atlas.VISUAL_OPERATOR_MAPPINGS, source, 'materialAtoms', 'material'),
+        ...identityAtoms.materials,
+      ]),
+      processes: graphicsAtoms.atomsForCategory(atlas.VISUAL_OPERATOR_MAPPINGS, source, 'processAtoms', 'process'),
+      motion: graphicsAtoms.uniqueAtomRows([
+        ...graphicsAtoms.atomsForCategory(atlas.VISUAL_OPERATOR_MAPPINGS, source, 'motionAtoms', 'motion'),
+        ...identityAtoms.motion,
+      ]),
+      camera: graphicsAtoms.uniqueAtomRows([
+        ...graphicsAtoms.atomsForCategory(atlas.VISUAL_OPERATOR_MAPPINGS, source, 'cameraAtoms', 'camera'),
+        ...identityAtoms.camera,
+      ]),
       languageSignals: compiledLanguageSignals(context),
       uniforms,
       wgslOperators: uniqueStrings(source.flatMap((row) => row.wgslOperators || [])),
-      receipts: source.map((row) => ({
-        id: `receipt:${row.id}`,
-        reason: row.receiptText,
-        score: row.score,
-        matchedTerms: row.matchedTerms || [],
-        uniformSlots: row.uniformSlots || [],
-        wgslOperators: row.wgslOperators || [],
-      })),
+      receipts: [
+        ...source.map((row) => ({
+          id: `receipt:${row.id}`,
+          reason: row.receiptText,
+          score: row.score,
+          matchedTerms: row.matchedTerms || [],
+          uniformSlots: row.uniformSlots || [],
+          wgslOperators: row.wgslOperators || [],
+        })),
+        ...identityAtoms.receipts,
+      ],
       rejections: entries
         .filter((entry) => !entry.accepted)
         .sort((a, b) => b.weightedScore - a.weightedScore || a.index - b.index)
@@ -92,27 +113,6 @@
           matchedTerms: entry.matchedTerms,
         })),
     };
-  }
-
-  function compositionTopologyAtoms(context = {}) {
-    const genome = context.visualGenome || {};
-    const topology = normalizeText(genome.compositionTopology || '').replace(/\s+/g, '-');
-    if (!topology) return [];
-    return [{
-      id: `composition-topology-${topology}`,
-      category: 'geometry',
-      label: `Composition topology ${topology}`,
-      sourceMappingIds: [],
-      evidence: [
-        `visual-dialect:${genome.visualDialect || 'compiled-scene'}`,
-        `composition-topology:${topology}`,
-      ],
-    }];
-  }
-
-  function uniqueAtomRows(rows = []) {
-    const ids = new Set();
-    return (rows || []).filter((row) => row && row.id && !ids.has(row.id) && ids.add(row.id));
   }
 
   function scoreMapping(row, index, text, normalized, context) {
@@ -216,30 +216,6 @@
 
   function primaryUniformSlot(row) {
     return row && row.uniformSlots && row.uniformSlots[0] || '';
-  }
-
-  function atomsForCategory(matched, key, category) {
-    const byId = new Map();
-    for (const match of matched || []) {
-      const row = (atlas.VISUAL_OPERATOR_MAPPINGS || []).find((item) => item.id === match.id);
-      for (const atomId of row && row[key] || []) {
-        if (!byId.has(atomId)) {
-          byId.set(atomId, {
-            id: atomId,
-            category,
-            label: labelize(atomId),
-            uniformSlots: match.uniformSlots || row.uniformSlots || [],
-            wgslOperators: match.wgslOperators || row.wgslOperators || [],
-            sourceMappingIds: [],
-            evidence: [],
-          });
-        }
-        const atom = byId.get(atomId);
-        atom.sourceMappingIds.push(match.id);
-        atom.evidence.push(`mapping:${match.id}`);
-      }
-    }
-    return Array.from(byId.values()).slice(0, 18);
   }
 
   function compileAtomUniforms(mappings = []) {
@@ -760,8 +736,10 @@
     GRAPHICS_ATOM_UNIFORMS_SCHEMA,
     VISUAL_ATOM_UNIFORM_SLOTS,
     VISUAL_OPERATOR_COMPILER_SCHEMA,
+    bindGraphicsAtomsToEntities: graphicsAtoms.bindGraphicsAtomsToEntities,
     compileVisualGraphicsAtoms,
     graphicsAtomUniformVector,
+    visualCameraWithGraphicsAtoms: graphicsAtoms.visualCameraWithGraphicsAtoms,
     visualOperatorContextText,
   };
 });

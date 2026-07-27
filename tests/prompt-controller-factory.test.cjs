@@ -78,15 +78,16 @@ test('prompt controller browser layers publish the API in manifest order', () =>
   const context = vm.createContext({
     SimulattePromptControllerSupport: require(path.join(promptDir, 'prompt-controller-dependencies.js')),
     SimulatteConstructionSearch: require(path.join(promptDir, 'prompt-controller-construction-search.js')),
+    SimulattePromptControllerRuntime: require(path.join(promptDir, 'prompt-controller-runtime.js')),
     SimulatteNeuralModelConsent: require('../public/neural-model-consent.js'),
     SimulatteModelSelection: require('../public/model-selection.js'),
     SimulatteRunViewModel: require('../public/blank/app/runtime/run-view-model.js'),
   });
   for (const file of [
+    'prompt-controller-runtime.js',
     'prompt-controller-workers.js',
     'prompt-controller-training.js',
     'prompt-model-selection.js',
-    'prompt-controller-runtime.js',
     'prompt-controller-lab-controller.js',
     'prompt-controller.js',
   ]) {

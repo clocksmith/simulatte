@@ -10,7 +10,14 @@
   const MODEL_HASH = 'c21e2c257506a1d550f9ce62ce0ea746afa7ed83285e4e72ab5e7c2473da29e6';
   const VERIFIER_HASH = 'df8ac302c5450b95c88d68d182ffe8fe81c5633ea1c46a43c1993f6f9fc0ef03';
 
-  function createContribution({ result, ephemerisData, datasetReceipts, profileWeights = {}, playback = null }) {
+  function createContribution({
+    result,
+    ephemerisData,
+    datasetReceipts,
+    profileWeights = {},
+    playback = null,
+    spacecraftData = null,
+  }) {
     const currentStep = playback?.cursor ?? playback?.currentStep ?? Number.MAX_SAFE_INTEGER;
     const searchVisible = currentStep >= 1;
     const selectionVisible = currentStep >= 3;
@@ -117,6 +124,28 @@
       20,
       Math.ceil(Number(result.metrics.totalDeltaVKmS || 0) / 5) * 5,
     );
+    if (searchVisible && !selectionVisible) {
+      (result.search?.candidates || []).slice(0, 12).forEach((candidate, index) => {
+        const preview = candidatePreview(candidate);
+        if (preview.length < 2) return;
+        layers.push(builder.layer({
+          id: `transfer-candidate:${candidate.id}`,
+          kind: 'path',
+          label: `Candidate ${index + 1} · ${candidate.endpoint.totalDeltaVKmS.toFixed(2)} km/s · ${candidate.tofDays} days`,
+          geometry: builder.geometry('polyline', 'heliocentric-ecliptic-au', preview),
+          quantity: builder.quantity(
+            'candidate-objective',
+            candidate.objective,
+            'weighted score',
+            candidateObjectiveDomain(result.search.candidates)
+          ),
+          role: index === 0 ? 'primary' : 'comparison',
+          importance: index === 0 ? 0.8 : Math.max(0.18, 0.55 - index * 0.025),
+          aggregationKey: 'lambert-candidates',
+          provenance: transferClaim,
+        }));
+      });
+    }
     if (selectionVisible && trajectory.length >= 2) {
       layers.push(builder.layer({
         id: 'transfer-trajectory',
@@ -199,6 +228,26 @@
     const controls = builder.controls([
       numericControl('deltaVWeight', 'Δv weight', profileWeights.deltaV ?? 1, 0, 10, 0.1, transferClaim),
       numericControl('timeWeight', 'Flight-time weight', profileWeights.timeOfFlight ?? profileWeights.timeOfFlightDays ?? 0.01, 0, 1, 0.01, transferClaim),
+      selectControl(
+        'spacecraftArchetypeId',
+        'Spacecraft',
+        result.acceptedParameters.spacecraftArchetypeId,
+        Object.entries(spacecraftData?.archetypes || {}).map(([value, row]) => ({
+          value,
+          label: row.name || value,
+        })),
+        transferClaim
+      ),
+      toggleControl('prograde', 'Prograde transfer branch', result.acceptedParameters.prograde, transferClaim),
+      numericControl(
+        'verificationStepDays',
+        'Verification integration step',
+        result.acceptedParameters.verificationStepDays,
+        0.05,
+        5,
+        0.05,
+        transferClaim
+      ),
     ], [{
       id: 'lambert-vs-hohmann',
       label: 'Selected transfer vs circular coplanar Hohmann screening baseline',
@@ -287,6 +336,12 @@
   function numericControl(id, label, value, minimum, maximum, step, provenance) {
     return { id, label, kind: 'number', value, options: null, minimum, maximum, step, provenance };
   }
+  function selectControl(id, label, value, options, provenance) {
+    return { id, label, kind: 'select', value, options, minimum: null, maximum: null, step: null, provenance };
+  }
+  function toggleControl(id, label, value, provenance) {
+    return { id, label, kind: 'toggle', value, options: null, minimum: null, maximum: null, step: null, provenance };
+  }
 
   function field(id, label, value, unit, provenance) {
     return { id, label, value, unit, provenance };
@@ -310,6 +365,42 @@
     return points[lowerIndex].map((value, index) => (
       value + (points[upperIndex][index] - value) * ratio
     ));
+  }
+
+  function candidatePreview(candidate, sampleCount = 24) {
+    const start = candidate?.trajectory?.[0];
+    const end = candidate?.trajectory?.at?.(-1);
+    const departureVelocity = candidate?.transfer?.departureVelocityAuD;
+    const arrivalVelocity = candidate?.transfer?.arrivalVelocityAuD;
+    const durationDays = Number(candidate?.tofDays);
+    if (![start, end, departureVelocity, arrivalVelocity].every(
+      (vector) => Array.isArray(vector) && vector.length >= 3
+    ) || !Number.isFinite(durationDays) || durationDays <= 0) {
+      return Array.isArray(candidate?.trajectory) ? candidate.trajectory : [];
+    }
+    return Array.from({ length: sampleCount }, (_, index) => {
+      const t = index / (sampleCount - 1);
+      const t2 = t * t;
+      const t3 = t2 * t;
+      const h00 = 2 * t3 - 3 * t2 + 1;
+      const h10 = t3 - 2 * t2 + t;
+      const h01 = -2 * t3 + 3 * t2;
+      const h11 = t3 - t2;
+      return start.map((value, axis) => (
+        h00 * value
+        + h10 * departureVelocity[axis] * durationDays
+        + h01 * end[axis]
+        + h11 * arrivalVelocity[axis] * durationDays
+      ));
+    });
+  }
+
+  function candidateObjectiveDomain(candidates = []) {
+    const values = candidates
+      .slice(0, 12)
+      .map((candidate) => Number(candidate.objective))
+      .filter(Number.isFinite);
+    return [Math.min(0, ...values), Math.max(1, ...values)];
   }
 
   function displayEphemerisDay(result, flightFraction, selectionVisible, dataset = null) {
@@ -362,5 +453,11 @@
     return values.map(Number).find(Number.isFinite);
   }
 
-  return Object.freeze({ createContribution, displayEphemerisDay, pointAlong, stateAtDay });
+  return Object.freeze({
+    candidatePreview,
+    createContribution,
+    displayEphemerisDay,
+    pointAlong,
+    stateAtDay,
+  });
 });

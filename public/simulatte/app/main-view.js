@@ -3,12 +3,9 @@
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteMainView = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createSimulatteMainView(root) {
-  const ANALYSIS_PROFILES = new Set(['safety-explorer-v1']);
-  const SOLVER_PROFILES = new Set(['orbital-transfer-planner-v1']);
-
   function collectElements() {
     const ids = [
-      'mission-field', 'scenario-field', 'scenario-label', 'scenario-description', 'scenario-seed', 'mission-input', 'mission-error', 'place-resolution-lane', 'place-lane-note', 'model-selection-controls', 'shuffle-button', 'shuffle-label', 'start-button', 'start-label', 'pause-button', 'resume-button', 'step-button', 'reset-button', 'replay-button', 'new-mission-button', 'what-if-button', 'export-button', 'playback-speed-control', 'playback-speed', 'playback-timeline-control', 'playback-timeline', 'playback-progress',
+      'mission-field', 'scenario-field', 'scenario-label', 'scenario-description', 'scenario-seed', 'mission-input', 'mission-error', 'place-resolution-lane', 'place-lane-note', 'model-selection-controls', 'shuffle-button', 'shuffle-label', 'start-button', 'start-label', 'pause-button', 'resume-button', 'step-button', 'reset-button', 'replay-button', 'new-mission-button', 'what-if-button', 'export-button', 'playback-strip', 'playback-event', 'playback-timeline-label', 'playback-speed-control', 'playback-speed', 'playback-timeline-control', 'playback-timeline', 'playback-progress',
       'dock-more-button', 'dock-more-menu',
       'runtime-status', 'runtime-toggle', 'runtime-details', 'runtime-details-close', 'runtime-context-label', 'runtime-context-legend', 'runtime-context-hint', 'runtime-data-copy', 'application-profile', 'application-profile-control', 'application-profile-trigger', 'application-profile-label', 'application-profile-options', 'render-identity', 'autonomy-canvas', 'follow-minimap', 'decision-title', 'decision-meta',
       'world-tier-control', 'world-tier-trigger', 'world-tier-label', 'world-tier-options', 'overlay-canvas', 'world-tiers-landing-page',
@@ -17,8 +14,8 @@
       'reranker-proof', 'place-resolution-proof',
       'occurrence-stats', 'occurrence-patterns', 'occurrence-effects',
       'metric-state', 'metric-tick', 'metric-time', 'metric-speed', 'metric-distance', 'metric-route', 'metric-bet', 'journey-progress-fill', 'journey-hud',
-      'metric-settlement', 'metric-calibration', 'camera-controls', 'camera-focus', 'camera-focus-button', 'camera-focus-popover', 'camera-follow', 'camera-bird', 'camera-top',
-      'experience-summary', 'experience-summary-state', 'experience-summary-title', 'experience-summary-description', 'experience-summary-stats', 'experience-summary-help',
+      'metric-settlement', 'metric-calibration', 'camera-controls', 'camera-focus', 'camera-focus-button', 'camera-focus-popover', 'camera-follow', 'camera-pov', 'camera-bird', 'camera-top', 'camera-free', 'camera-compare', 'semantic-label-canvas',
+      'experience-summary', 'experience-summary-state', 'experience-summary-title', 'experience-summary-description', 'experience-summary-event', 'experience-summary-narrative', 'experience-summary-stats', 'experience-summary-comparison',
       'planning-forecast', 'alternative-proof', 'ledger-proof', 'policy-arena-proof',
       'export-ledger-button', 'import-receipt-button', 'import-receipt-file',
       'decisions-button', 'decisions-drawer', 'decisions-close', 'decisions-backdrop', 'journey-section', 'decision-section', 'advanced-section', 'model-selection-panel',
@@ -91,17 +88,22 @@
     const currentStep = Math.min(snapshot.currentStep, snapshot.totalSteps);
     elements.playbackSpeedControl.hidden = !isProgressive;
     elements.playbackTimelineControl.hidden = !isProgressive;
+    elements.playbackStrip.hidden = !isProgressive;
     elements.playbackTimeline.max = String(snapshot.totalSteps);
     elements.playbackTimeline.value = String(currentStep);
     elements.playbackProgress.textContent = `${currentStep} / ${snapshot.totalSteps}`;
     elements.playbackSpeed.value = String(snapshot.clock.playbackRate);
-    if (isProgressive) {
-      elements.dockMoreButton.hidden = !['running', 'paused', 'completed'].includes(phase);
-    } else if (phase === 'completed') {
+    elements.playbackEvent.textContent = phase === 'completed'
+      ? 'Settlement complete'
+      : snapshot.terminalPreview
+        ? 'Terminal state preview'
+        : phase === 'paused'
+          ? `Paused at ${elements.playbackTimelineLabel.textContent.toLowerCase()} ${currentStep}`
+          : `${elements.playbackTimelineLabel.textContent} ${currentStep}`;
+    if (!isProgressive && phase === 'completed') {
       elements.startButton.hidden = false;
       elements.replayButton.hidden = true;
       elements.newMissionButton.hidden = true;
-      elements.dockMoreButton.hidden = true;
     }
     if (phase === 'completed') return 'Complete';
     if (snapshot.terminalPreview) return `End preview · Resume or step to settle`;
@@ -112,13 +114,12 @@
 
   function configureExperienceShell(elements, {
     interactionMode,
-    profileId,
+    profile,
     tier = 'city',
   }) {
     const isExperiment = interactionMode === 'playback' || interactionMode === 'simulation';
-    const experienceKind = ANALYSIS_PROFILES.has(profileId)
-      ? 'analysis'
-      : SOLVER_PROFILES.has(profileId) ? 'solver' : isExperiment ? 'simulation' : 'journey';
+    const profileId = profile?.id || null;
+    const experienceKind = profile?.experience?.kind || (isExperiment ? 'simulation' : 'journey');
     root.document.body.dataset.experienceShell = isExperiment ? 'experiment' : 'journey';
     root.document.body.dataset.experienceId = profileId || '';
     root.document.body.dataset.experienceKind = experienceKind;
@@ -129,11 +130,20 @@
     elements.modelSelectionPanel.hidden = isExperiment;
     elements.experienceSummary.hidden = !isExperiment;
     elements.cameraControls.hidden = false;
-    const governedTier = tier !== 'city';
-    elements.cameraFollow.hidden = governedTier;
+    const supportedViews = new Set(profile?.experience?.supportedViews || (tier === 'city' ? ['follow', 'overview', 'top'] : ['overview', 'free']));
+    elements.cameraFollow.hidden = !supportedViews.has('follow');
+    elements.cameraPov.hidden = !supportedViews.has('pov');
+    elements.cameraBird.hidden = !supportedViews.has('overview');
+    elements.cameraTop.hidden = !supportedViews.has('top');
+    elements.cameraFree.hidden = !supportedViews.has('free');
+    elements.cameraCompare.hidden = !supportedViews.has('compare');
     elements.cameraFollow.textContent = 'Follow';
     elements.cameraBird.textContent = 'Overview';
-    elements.cameraTop.textContent = governedTier ? 'Free' : 'Top';
+    elements.cameraTop.textContent = 'Top';
+    elements.cameraFree.textContent = 'Free';
+    elements.cameraCompare.textContent = 'Compare';
+    elements.semanticLabelCanvas.hidden = tier !== 'city';
+    elements.playbackTimelineLabel.textContent = profile?.experience?.timelineLabel || 'Event';
     elements.decisionTitle.textContent = isExperiment ? 'Experiment' : 'Decision details';
     elements.decisionMeta.textContent = experienceKind === 'analysis'
       ? 'Adjust evidence parameters, analyze the corridor, then inspect source rows.'
@@ -164,9 +174,12 @@
     }
     elements.experienceSummary.hidden = false;
     elements.experienceSummary.dataset.experienceId = summary.experienceId;
-    elements.experienceSummaryState.textContent = stateLabel(summary.description);
+    elements.experienceSummaryState.textContent = summary.state;
     elements.experienceSummaryTitle.textContent = summary.title;
     elements.experienceSummaryDescription.textContent = summary.description;
+    elements.experienceSummaryEvent.textContent = summary.event;
+    elements.experienceSummaryNarrative.textContent = summary.narrative;
+    if (!elements.playbackStrip.hidden) elements.playbackEvent.textContent = summary.event;
     const documentRef = elements.experienceSummary.ownerDocument;
     const rows = Object.entries(summary.stats || {}).map(([label, value]) => {
       const row = documentRef.createElement('div');
@@ -178,7 +191,8 @@
       return row;
     });
     elements.experienceSummaryStats.replaceChildren(...rows);
-    elements.experienceSummaryHelp.textContent = summary.help || '';
+    elements.experienceSummaryComparison.textContent = summary.comparison || '';
+    elements.experienceSummaryComparison.hidden = !summary.comparison;
   }
 
   function replaceRuntimeCopy(container, paragraphs) {
@@ -194,11 +208,6 @@
     if (tier === 'city') return 'Drag to orbit. Shift-drag or use Top to pan. Scroll to zoom.';
     if (tier === 'star-chart') return 'Drag to orbit the star field. Scroll to zoom. Use Focus to frame evidence.';
     return 'Drag to pan. Scroll to zoom. Use Focus to frame evidence.';
-  }
-
-  function stateLabel(description) {
-    const parts = String(description || '').split(' · ');
-    return parts.at(-1) || 'Ready';
   }
 
   return Object.freeze({

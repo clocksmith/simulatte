@@ -63,11 +63,11 @@
       "path": "./default-config.json"
     },
     {
-      "integrity": "sha384-fdb6052d08d5022ccad15172a1ceb65e52138a4cf7458784079d79d8ba6966666461379f51b0cc0d41542d4f175ce5c6",
+      "integrity": "sha384-5a4974a3e76aacadae4871eea4e620b7d93875c842a0c3b1a0b0ef100e54e0e71c5d73b58b4b4d7d00e6449d2401ad26",
       "path": "./network-simulation.js"
     },
     {
-      "integrity": "sha384-fa2fbb733cdd17deab246ab78474507f83ef0745a715a5efd18f2077c7314f09269fd1692b8ad168163da8e3e8196d2c",
+      "integrity": "sha384-0f4ac949e170f2b1ba24670d877469523a4206769b203b8249cfffdeff1badf4a39e02e02dcb1f90955255adbea77f6a",
       "path": "./v4-contribution.js"
     },
     {

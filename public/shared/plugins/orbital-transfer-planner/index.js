@@ -45,6 +45,11 @@
     });
 
     let activeScenario = normalizeScenario(scenario, config);
+    let activeSettings = Object.freeze({
+      spacecraftArchetypeId: config.defaultArchetype,
+      prograde: config.solver.prograde !== false,
+      verificationStepDays: Number(config.verification.stepDays),
+    });
     let current = computeScenario(activeScenario);
     sdk.state.register(reduce, {
       scenarioId: activeScenario.id,
@@ -72,7 +77,7 @@
       });
     }
 
-    function computeScenario(spec, weights = activeWeights) {
+    function computeScenario(spec, weights = activeWeights, settings = activeSettings) {
       const targetBodyId = targetForScenario(spec.id);
       const searchSpec = searchForTarget(targetBodyId, ephemerisData);
       const search = launchWindowApi.scanLaunchWindow({
@@ -86,7 +91,7 @@
         },
         bodyConstants: bodyConstants(gmData),
         lambertOptions: {
-          prograde: config?.solver?.prograde !== false,
+          prograde: settings.prograde,
           maxIterations: Number(config?.solver?.maxIterations ?? 96),
           toleranceDays: Number(config?.solver?.toleranceDays ?? 1e-8),
         },
@@ -117,13 +122,14 @@
           gmData,
           departureBodyId: 'earth',
           arrivalBodyId: targetBodyId,
-          stepDays: Number(config?.verification?.stepDays ?? 0.5),
+          stepDays: settings.verificationStepDays,
           positionToleranceKm: Number(config?.verification?.positionToleranceKm ?? 1000000),
           velocityToleranceKmS: Number(config?.verification?.velocityToleranceKmS ?? 0.5),
         })
         : null;
       const tofDays = selected?.tofDays ?? fallback.timeOfFlightDays;
-      const spacecraft = spacecraftData?.archetypes?.[config?.defaultArchetype || 'cargo-freighter-v1'];
+      const spacecraft = spacecraftData?.archetypes?.[settings.spacecraftArchetypeId];
+      if (!spacecraft) throw new Error(`orbital_control_invalid: spacecraftArchetypeId ${settings.spacecraftArchetypeId}`);
       const radiation = radiationApi.computeExposure(tofDays, radData, spacecraft?.radiationShieldingGcm2 || 15);
       const baseMetrics = selected ? metricsApi.summarize(search, radiation) : Object.freeze({
         schema: 'simulatte.orbitalTransferMetrics.v1', solutionCount: 0, attemptedCount: search.search.attempted,
@@ -169,6 +175,13 @@
         scenarioId: spec.id, seed: spec.seed || null, targetBodyId,
         search, selected, fallback, metrics, radiation, verification, solverReceipt, claimGate,
         depots: depotsData?.depots || [],
+        acceptedParameters: Object.freeze({
+          deltaVWeight: weights.deltaV,
+          timeWeight: weights.timeOfFlight,
+          spacecraftArchetypeId: settings.spacecraftArchetypeId,
+          prograde: settings.prograde,
+          verificationStepDays: settings.verificationStepDays,
+        }),
         claimBoundary: claimGate.status === 'verified_screening_approximation'
           ? 'Deterministic mission-design screening passed the declared independent propagation tolerances. It is still not an operational trajectory, navigation product, or certification.'
           : 'Deterministic mission-design screening only. Verification did not establish a validated flight path, navigation product, or certification.',
@@ -225,7 +238,8 @@
             deltaV: values.deltaVWeight ?? activeWeights.deltaV,
             timeOfFlight: values.timeWeight ?? activeWeights.timeOfFlight,
           });
-          current = computeScenario(activeScenario, activeWeights);
+          activeSettings = settingsFrom(values, activeSettings, spacecraftData);
+          current = computeScenario(activeScenario, activeWeights, activeSettings);
           sdk.events.propose({
             pluginId: PLUGIN_ID,
             kind: actionId === 'plan.transfer'
@@ -413,6 +427,7 @@
         playback: sdk.state.read().playback,
         ephemerisData,
         profileWeights: { deltaV: activeWeights.deltaV, timeOfFlight: activeWeights.timeOfFlight },
+        spacecraftData,
         datasetReceipts: datasetIds.map((id) => ({
           id,
           receipt: sdk.datasets.receipt(id),
@@ -446,6 +461,23 @@
       throw new Error('orbital_control_invalid: timeWeight must be from 0 to 1');
     }
     return Object.freeze({ deltaV, timeOfFlight });
+  }
+  function settingsFrom(value, fallback, spacecraftData) {
+    const spacecraftArchetypeId = value.spacecraftArchetypeId || fallback.spacecraftArchetypeId;
+    if (!spacecraftData?.archetypes?.[spacecraftArchetypeId]) {
+      throw new Error(`orbital_control_invalid: spacecraftArchetypeId ${spacecraftArchetypeId}`);
+    }
+    const prograde = value.prograde === undefined ? fallback.prograde : value.prograde;
+    if (typeof prograde !== 'boolean') {
+      throw new Error('orbital_control_invalid: prograde must be boolean');
+    }
+    const verificationStepDays = value.verificationStepDays === undefined
+      ? fallback.verificationStepDays
+      : Number(value.verificationStepDays);
+    if (!Number.isFinite(verificationStepDays) || verificationStepDays <= 0 || verificationStepDays > 5) {
+      throw new Error('orbital_control_invalid: verificationStepDays must be from 0 to 5');
+    }
+    return Object.freeze({ spacecraftArchetypeId, prograde, verificationStepDays });
   }
   function targetForScenario(id) {
     const text = String(id || '').toLowerCase();
@@ -549,6 +581,7 @@
       totalSteps: state.playback.totalSteps,
       stage: state.playback.stage,
       metrics: state.playback.status === 'settled' ? state.result.metrics : null,
+      acceptedParameters: state.result.acceptedParameters,
     };
   }
 

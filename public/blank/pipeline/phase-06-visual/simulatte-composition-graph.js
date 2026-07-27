@@ -5,6 +5,7 @@
     require('./simulatte-composition-graph-selection-layout.js');
     require('./simulatte-composition-graph-render-ir-binding.js');
     require('./simulatte-composition-graph-entity-lowering.js');
+    require('./simulatte-composition-graph-graphics-atom-lowering.js');
     require('./simulatte-composition-graph-visual-ir.js');
     require('./simulatte-scene-interaction.js');
     require('./simulatte-composition-graph-materials.js');
