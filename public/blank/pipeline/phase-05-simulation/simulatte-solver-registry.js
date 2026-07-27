@@ -5,6 +5,7 @@
       constraints: require('./solvers/simulatte-solver-constraints.js'),
       fracture: require('./solvers/simulatte-solver-fracture-threshold.js'),
       growth: require('./solvers/simulatte-solver-growth-decay.js'),
+      interaction: require('./solvers/simulatte-solver-interaction-kinematics.js'),
       network: require('./solvers/simulatte-solver-network-control.js'),
       deposition: require('./solvers/simulatte-solver-particle-deposition.js'),
       particles: require('./solvers/simulatte-solver-particles.js'),
@@ -32,6 +33,7 @@
     constraints: solverModules.constraints || root.SimulatteConstraintSolver,
     fracture: solverModules.fracture || root.SimulatteFractureThresholdSolver,
     growth: solverModules.growth || root.SimulatteGrowthDecaySolver,
+    interaction: solverModules.interaction || root.SimulatteInteractionKinematicsSolver,
     network: solverModules.network || root.SimulatteNetworkControlSolver,
     deposition: solverModules.deposition || root.SimulatteParticleDepositionSolver,
     particles: solverModules.particles || root.SimulatteParticleSolver,
@@ -45,6 +47,14 @@
 
   const SOLVER_OPERATORS = Object.freeze({
     heat_source: solver('thermal-source', ['heat_source'], ['temperature'], ['temperature'], 0.05, moduleStep('thermal')),
+    interaction_kinematics: solver(
+      'interaction-kinematics',
+      ['interaction_kinematics'],
+      ['position', 'velocity', 'force', 'angle', 'angularVelocity', 'torque'],
+      ['position', 'velocity', 'force', 'angle', 'angularVelocity', 'torque'],
+      0.05,
+      moduleStep('interaction')
+    ),
     heat_transfer: solver('thermal-transfer', ['heat_transfer'], ['temperature'], ['temperature'], 0.05, moduleStep('thermal')),
     combustion: solver('combustion', ['combustion'], ['fuel', 'temperature'], ['fuel', 'temperature', 'product', 'smoke'], 0.05, moduleStep('thermal')),
     advection: solver('advection-lite', ['advection'], ['flowVelocity'], ['flowVelocity', 'pressure'], 0.05, moduleStep('advection')),

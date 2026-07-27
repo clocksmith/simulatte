@@ -12,6 +12,7 @@
   });
 
   function createContribution({ datasets, config, result, snapshot, comparison = null }) {
+    const currentMetrics = currentSnapshotMetrics(snapshot);
     const records = datasets.dataReceipts.map((receipt) => builder.datasetRecord(
       receipt.datasetId,
       receipt,
@@ -133,9 +134,10 @@
       previousStateId: previousSnapshotId(result, snapshot),
       eventIds: snapshot.eventIds,
       measures: [
-        builder.quantity('modeled-unserved-energy', result.metrics.modeledUnservedEnergyMwh, 'MWh'),
-        builder.quantity('modeled-emissions', result.metrics.modeledEmissionsTons, 'ton'),
-        builder.quantity('minimum-reserve-margin', result.metrics.minimumReserveMarginRatio, 'ratio'),
+        builder.quantity('modeled-unserved-load', currentMetrics.unservedMw, 'MW'),
+        builder.quantity('modeled-emissions-this-hour', currentMetrics.emissionsTons, 'ton'),
+        builder.quantity('current-minimum-reserve-margin', currentMetrics.minimumReserveMarginRatio, 'ratio'),
+        builder.quantity('storage-state-of-charge', currentMetrics.storageStateOfChargeMwh, 'MWh'),
       ],
       provenance: simulated,
     });
@@ -213,6 +215,20 @@
   }
   function option(value, label) { return { value, label }; }
   function field(id, label, value, unit, provenance) { return { id, label, value, unit, provenance }; }
+
+  function currentSnapshotMetrics(snapshot) {
+    return snapshot.regions.reduce((result, row) => ({
+      unservedMw: result.unservedMw + (row.unservedMw || 0),
+      emissionsTons: result.emissionsTons + (row.emissionsTons || 0),
+      minimumReserveMarginRatio: Math.min(result.minimumReserveMarginRatio, row.reserveMarginRatio || 0),
+      storageStateOfChargeMwh: result.storageStateOfChargeMwh + (row.storageStateOfChargeMwh || 0),
+    }), {
+      unservedMw: 0,
+      emissionsTons: 0,
+      minimumReserveMarginRatio: 1,
+      storageStateOfChargeMwh: 0,
+    });
+  }
 
   return Object.freeze({ MODEL_HASHES, createContribution });
 });

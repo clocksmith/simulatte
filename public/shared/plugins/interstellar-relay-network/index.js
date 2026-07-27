@@ -489,6 +489,8 @@
         ? result.schedule.trace[state.progressive.currentEventIndex]
         : null;
       const currentStar = result.stellarStates.find((row) => row.sourceId === state.progressive.packetLocationId);
+      const started = state.progressive.currentEventIndex >= 0;
+      const settled = state.progressive.status === 'settled';
       return [
         {
           slot: 'inspector',
@@ -496,38 +498,28 @@
           rows: [
             { label: 'Starting preset', value: result.scenario.name },
             { label: 'Progress', value: `${state.progressive.currentEventIndex + 1}/${result.schedule.trace.length} events · ${state.progressive.status}` },
-            { label: 'Current event', value: event?.kind || 'ready' },
+            { label: 'Modeled clock', value: formatModeledDuration(state.progressive.elapsedSeconds) },
+            { label: 'Current event', value: relayEventLabel(event?.kind) },
             { label: 'Packet location', value: currentStar?.name || state.progressive.packetLocationId },
             { label: 'Relay path', value: result.scenario.relayHops.map((id) => result.stellarStates.find((row) => row.sourceId === id)?.name || id).join(' → ') },
             { label: 'Route search', value: `${result.routeSelection.candidateCount} candidates · ${result.controls.routeObjective} objective` },
             { label: 'Physics lane', value: result.channelReceipts[0]?.label || result.controls.channelMode },
-            { label: 'One-way latency', value: `${result.metrics.oneWayLatencyYears.toFixed(5)} years` },
-            { label: 'Bottleneck rate', value: formatRate(result.metrics.bottleneckDataRateGbps) },
-            { label: 'Minimum margin', value: `${result.metrics.minimumLinkMarginDb.toFixed(2)} dB` },
-            { label: 'Transmission energy', value: `${(result.metrics.transmissionEnergyJ / 3.6e6).toFixed(2)} kWh` },
-            { label: 'Operational delivery', value: `${(result.operations.deliveryProbability * 100).toFixed(3)}% across ${result.operations.ensembleSize} samples` },
-            { label: 'Successful latency p10/p50/p90', value: formatQuantiles(result.operations.latencySeconds) },
-            { label: 'Operational effects', value: result.operations.modeledEffectIds.join('; ') },
+            ...(started ? [
+              { label: 'One-way latency', value: `${result.metrics.oneWayLatencyYears.toFixed(5)} years` },
+              { label: 'Bottleneck rate', value: formatRate(result.metrics.bottleneckDataRateGbps) },
+              { label: 'Minimum margin', value: `${result.metrics.minimumLinkMarginDb.toFixed(2)} dB` },
+              { label: 'Transmission energy', value: `${(result.metrics.transmissionEnergyJ / 3.6e6).toFixed(2)} kWh` },
+            ] : []),
+            ...(settled ? [
+              { label: 'Operational delivery', value: `${(result.operations.deliveryProbability * 100).toFixed(3)}% across ${result.operations.ensembleSize} samples` },
+              { label: 'Successful latency p10/p50/p90', value: formatQuantiles(result.operations.latencySeconds) },
+              { label: 'Operational effects', value: result.operations.modeledEffectIds.join('; ') },
+            ] : []),
             { label: 'Constructibility', value: [...new Set(result.channelReceipts.map((row) => row.constructibilityStatus))].join('; ') },
             { label: 'Remaining limitation', value: result.omissions.map((row) => row.label).join('; ') },
             { label: 'Endpoint catalog', value: `${stellarCatalog.stars.length.toLocaleString()} selectable · ${starsData.stars.length - 1} Gaia DR3 astrometric rows · ${hygData.count - 1} non-Sol HYG snapshot rows` },
           ],
           fields: controlsApi.controlFields(result.controls, result.controlOptions),
-          actions: [],
-        },
-        {
-          slot: 'hud',
-          title: 'Truth boundary',
-          rows: [
-            { label: 'Observed', value: 'Gaia DR3 astrometry for six nearby source rows' },
-            { label: 'Derived snapshot', value: 'HYG visible-star positions; motion and covariance unavailable' },
-            { label: 'Modeled', value: 'Space motion, light time, photon budget, route ranking, channel constraints' },
-            { label: 'Simulated', value: 'Acquisition, queueing, outages, maintenance, failure/repair, retries, packet events' },
-            { label: 'Scenario', value: 'All terminals, contacts, traffic, operations profiles, and advanced channels' },
-            { label: 'Causality', value: [...new Set(result.channelReceipts.map((row) => row.causalityStatus))].join('; ') },
-            { label: 'Omissions', value: result.omissions.map((row) => row.label).join('; ') },
-            { label: 'Limitation', value: result.claimBoundary },
-          ],
           actions: [],
         },
       ];
@@ -720,6 +712,29 @@
     if (gbps >= 1) return `${gbps.toFixed(3)} Gbps`;
     if (gbps >= 0.001) return `${(gbps * 1000).toFixed(3)} Mbps`;
     return `${(gbps * 1e6).toFixed(3)} kbps`;
+  }
+  function formatModeledDuration(seconds) {
+    if (!Number.isFinite(seconds) || seconds <= 0) return 'Ready at transmission epoch';
+    const years = seconds / 31557600;
+    if (years >= 1) return `${years.toFixed(5)} modeled years`;
+    const days = seconds / 86400;
+    if (days >= 1) return `${days.toFixed(2)} modeled days`;
+    return `${seconds.toFixed(2)} modeled seconds`;
+  }
+  function relayEventLabel(kind) {
+    if (!kind) return 'Ready to create packet';
+    return {
+      'relay.packet-created': 'Packet created and integrity hash recorded',
+      'relay.acquisition-started': 'Terminal begins target acquisition',
+      'relay.acquisition-completed': 'Optical acquisition completed',
+      'relay.queue-entered': 'Packet entered the transmitter queue',
+      'relay.transmission-started': 'Serialization and optical transmission started',
+      'relay.transmission-completed': 'Serialization completed; propagation continues',
+      'relay.reception-completed': 'The next terminal received the packet',
+      'relay.processing-started': 'Relay processing started',
+      'relay.processing-completed': 'Relay processing completed',
+      'relay.packet-delivered': 'Packet delivered and integrity verified',
+    }[kind] || String(kind).replaceAll('.', ' ');
   }
   function formatQuantiles(value) {
     const format = (seconds) => seconds === null ? 'not delivered' : `${(seconds / 31557600).toFixed(5)} y`;

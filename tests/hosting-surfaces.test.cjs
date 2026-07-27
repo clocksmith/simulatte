@@ -47,6 +47,7 @@ test('hosting targets separate World and Create while preserving governed shared
   const worldRoot = path.join(outputRoot, 'world');
   const createRoot = path.join(outputRoot, 'create');
   const createHtml = fs.readFileSync(path.join(createRoot, 'index.html'), 'utf8');
+  const worldHtml = fs.readFileSync(path.join(worldRoot, 'index.html'), 'utf8');
   const sourceBlankHtml = fs.readFileSync(path.join(root, 'public', 'blank', 'index.html'), 'utf8');
 
   assert.equal(worldConfig.public, '.firebase-hosting/world');
@@ -57,6 +58,7 @@ test('hosting targets separate World and Create while preserving governed shared
     type: 301,
   }]);
   assert.equal(fs.existsSync(path.join(worldRoot, 'blank')), false);
+  assert.doesNotMatch(worldHtml, /href="https:\/\/create\.simulatte\.world\/"/);
   assert.equal(fs.existsSync(path.join(worldRoot, 'simulatte', 'app', 'main.js')), true);
   assert.equal(createHtml, sourceBlankHtml);
   assert.match(createHtml, /<base href="\/blank\/">/);

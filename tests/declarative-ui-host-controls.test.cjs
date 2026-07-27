@@ -132,7 +132,6 @@ test('declarative UI renders controls first without deleting dynamic evidence or
   const roots = {
     inspector: new FakeNode('inspector', documentRef),
     map: new FakeNode('map', documentRef),
-    hud: new FakeNode('hud', documentRef),
   };
   const host = uiHost.createDeclarativeUiHost({ rootElements: roots, onAction() {} });
   host.render([{
@@ -182,6 +181,39 @@ test('declarative UI renders controls first without deleting dynamic evidence or
   host.dispose();
   assert.deepEqual(roots.inspector.children, []);
   assert.deepEqual(roots.map.children, []);
-  assert.deepEqual(roots.hud.children, []);
   assert.deepEqual(host.values('fixture'), {});
+});
+
+test('declarative UI groups dense parameter sets without changing their typed values', () => {
+  const documentRef = fakeDocument();
+  const inspector = new FakeNode('root', documentRef);
+  const host = uiHost.createDeclarativeUiHost({ rootElement: inspector, onAction() {} });
+  const controls = [
+    control('demandScenario', 'select', 'peak', [{ value: 'peak', label: 'Peak' }]),
+    control('failureIds', 'multiselect', ['cut-1'], [{ value: 'cut-1', label: 'Cut 1' }]),
+    control('allocationPolicy', 'select', 'fair', [{ value: 'fair', label: 'Fair' }]),
+    control('repairPriority', 'select', 'service', [{ value: 'service', label: 'Service' }]),
+    control('repairResources', 'number', 2),
+    control('ensembleSize', 'number', 8),
+    control('excludedJurisdictions', 'multiselect', [], [{ value: 'none', label: 'None' }]),
+  ];
+  host.render([], [{
+    pluginId: 'dense-fixture',
+    controls: { controls },
+    inspections: [],
+  }]);
+
+  const groups = find(inspector, (node) => node.className === 'plugin-control-groups');
+  assert.ok(groups);
+  assert.ok(groups.children.length >= 3);
+  assert.equal(groups.children[0].open, true);
+  assert.deepEqual(host.values('dense-fixture'), {
+    demandScenario: 'peak',
+    failureIds: ['cut-1'],
+    allocationPolicy: 'fair',
+    repairPriority: 'service',
+    repairResources: 2,
+    ensembleSize: 8,
+    excludedJurisdictions: [],
+  });
 });

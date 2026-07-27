@@ -23,7 +23,14 @@
     return Object.freeze({
       schema: 'simulatte.pluginPresentation.v3', coordinateSystem: 'heliocentric-ecliptic-au',
       epoch: ephemerisData?.epochStart || '2030-09-15T00:00:00Z', markers, paths,
-      actors: [], areas: [],
+      actors: transferPlan.actorPosition ? [{
+        id: 'screening-spacecraft',
+        position: transferPlan.actorPosition,
+        label: `Modeled coast · ${Math.round((transferPlan.flightFraction || 0) * 100)}%`,
+        tone: 'green',
+        radius: 0.055,
+      }] : [],
+      areas: [],
       cameraTargets: [
         { id: 'solar-system', label: 'Solar system', center: [0, 0, 0], distance: 35 },
         { id: 'earth', label: 'Earth', center: ephemerisData?.bodies?.earth?.vectors?.[0]?.positionAu || [1, 0, 0], distance: 3 },

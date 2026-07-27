@@ -214,6 +214,8 @@
         rows: [
           { label: 'Scenario', value: parameters.demandScenarioId.replaceAll('-', ' ') },
           { label: 'Playback', value: `${state.playback.cursor} of ${state.result.snapshots.length - 1} · ${state.playback.status}` },
+          { label: 'Network stage', value: snapshot.status.replaceAll('-', ' ') },
+          { label: 'What changed', value: snapshot.narrative },
           { label: 'Allocation', value: parameters.allocationPolicyId.replaceAll('-', ' ') },
           { label: 'Repair priority', value: parameters.repairPolicyId.replaceAll('-', ' ') },
           { label: 'Modeled failures', value: parameters.failedResourceIds.join(', ') },
@@ -223,16 +225,6 @@
           { label: 'Ensemble', value: `${parameters.ensembleSize} declared seeds · scenario variance` },
         ],
         fields: [],
-        actions: [],
-      }, {
-        slot: 'hud',
-        title: 'Evidence boundary',
-        rows: [
-          { label: 'Observed', value: 'FCC regulatory identities and named foreign landing countries' },
-          { label: 'Scenario', value: 'Capacity, demand, failures, exclusions, repair resources' },
-          { label: 'Simulated', value: 'Allocation, service loss, utilization, fairness, restoration' },
-          { label: 'Not claimed', value: 'Current traffic, live capacity, private routes, operational readiness' },
-        ],
         actions: [],
       }];
     }

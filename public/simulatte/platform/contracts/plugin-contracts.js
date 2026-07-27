@@ -16,7 +16,7 @@
     'geography.project.v1', 'ui.geospatial.v1', 'tier.query.v1',
   ]);
   const EXTENSION_POINTS = Object.freeze(['request', 'route', 'event', 'settlement', 'ui', 'presentation']);
-  const UI_SLOTS = Object.freeze(['inspector', 'map', 'hud']);
+  const UI_SLOTS = Object.freeze(['inspector', 'map']);
   const PRESENTATION_TONES = Object.freeze(['cyan', 'green', 'amber', 'red', 'magenta', 'violet', 'blue', 'shade', 'muted']);
   const ACTOR_KINDS = Object.freeze(['pedestrian', 'bicycle', 'scooter', 'car']);
   const ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;

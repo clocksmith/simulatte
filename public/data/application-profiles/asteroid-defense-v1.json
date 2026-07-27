@@ -8,7 +8,7 @@
     "simulationOwnerPluginId": "asteroid-defense",
     "missionRequired": false,
     "startLabel": "Run defense experiment",
-    "shuffleLabel": "Change campaign"
+    "shuffleLabel": "Change scenario"
   },
   "defaultSeedId": "short-arc-follow-up",
   "seeds": [

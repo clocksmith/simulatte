@@ -39,6 +39,15 @@
     addBehaviorBundlesFromNodeActivity,
   } = createBehaviors({ ...support, addField, addOperator, addCouplingOperator });
 
+    const INTERACTION_WRITABLE_FIELDS = Object.freeze(new Set([
+      'position',
+      'velocity',
+      'force',
+      'angle',
+      'angularVelocity',
+      'torque',
+    ]));
+
     function buildPhysicsIR(input = {}) {
         const universeGraph = input.universeGraph || { nodes: [], edges: [], unresolved: [] };
         const intentBrief = universeGraph.intentBrief || null;
@@ -190,6 +199,7 @@
           row.fieldId,
         ]).filter(Boolean));
         return (fields || []).filter((field) => (
+          field.interactionWritable === true ||
           channelIds.has(field.id) || observableChannels.has(field.id) ||
           observableChannels.has(field.name)
         ));
@@ -545,6 +555,7 @@
           type,
           units,
           initial,
+          interactionWritable: INTERACTION_WRITABLE_FIELDS.has(name),
           bounds: boundsForField(name),
           owningSolvers: [],
         });

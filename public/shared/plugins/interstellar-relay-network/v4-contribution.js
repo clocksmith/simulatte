@@ -8,6 +8,8 @@
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createInterstellarV4(builder) {
   const PLUGIN_ID = 'interstellar-relay-network';
   function createContribution({ result, progressive }) {
+    const started = progressive.currentEventIndex >= 0;
+    const settled = progressive.status === 'settled';
     const datasets = result.dataReceipts.filter((row) => row.sha256).map((row) => builder.datasetRecord(row.datasetId, row, {
       coverage: row.coverage,
       license: row.license,
@@ -231,16 +233,18 @@
       previousStateId: progressive.currentEventIndex > 0 ? `${PLUGIN_ID}:state:${progressive.currentEventIndex - 1}` : null,
       eventIds: events.slice(0, progressive.currentEventIndex + 1).map((row) => row.id),
       measures: [
-        builder.quantity('latency', result.metrics.oneWayLatencyYears, 'year'),
-        builder.quantity('bottleneck-rate', result.metrics.bottleneckDataRateGbps, 'Gb/s'),
-        builder.quantity('minimum-margin', result.metrics.minimumLinkMarginDb, 'dB'),
+        ...(started ? [
+          builder.quantity('latency', result.metrics.oneWayLatencyYears, 'year'),
+          builder.quantity('bottleneck-rate', result.metrics.bottleneckDataRateGbps, 'Gb/s'),
+          builder.quantity('minimum-margin', result.metrics.minimumLinkMarginDb, 'dB'),
+        ] : []),
+        ...(settled ? [builder.quantity('operational-delivery-probability', result.operations.deliveryProbability, 'probability')] : []),
+        ...(settled && Number.isFinite(result.operations.latencySeconds.p90)
+          ? [builder.quantity('operational-p90-latency', result.operations.latencySeconds.p90 / 31557600, 'year')]
+          : []),
+        ...(settled ? [builder.quantity('physical-packet-success', result.metrics.physicalChannelSuccessProbability, 'probability')] : []),
         builder.quantity('packet-distance', Math.hypot(...packetPosition), 'pc'),
         builder.quantity('packet-depth', packetPosition[2], 'pc'),
-        builder.quantity('physical-packet-success', result.metrics.physicalChannelSuccessProbability, 'probability'),
-        builder.quantity('operational-delivery-probability', result.operations.deliveryProbability, 'probability'),
-        ...(Number.isFinite(result.operations.latencySeconds.p90)
-          ? [builder.quantity('operational-p90-latency', result.operations.latencySeconds.p90, 'second')]
-          : []),
       ],
       provenance: simulated,
     });
@@ -255,8 +259,12 @@
         label: 'Relay experiment and limits',
         targetIds: result.schedule.hops.map((_, index) => `relay-link:${index}`),
         fields: [
-          field('latency', 'One-way latency', result.metrics.oneWayLatencyYears, 'year', modeled),
-          field('rate', 'Bottleneck rate', result.metrics.bottleneckDataRateGbps, 'Gb/s', modeled),
+          field('event', 'Current event', currentEvent?.kind || 'ready', null, simulated),
+          field('elapsed', 'Elapsed modeled time', progressive.elapsedSeconds, 'second', simulated),
+          ...(started ? [
+            field('latency', 'One-way latency', result.metrics.oneWayLatencyYears, 'year', modeled),
+            field('rate', 'Bottleneck rate', result.metrics.bottleneckDataRateGbps, 'Gb/s', modeled),
+          ] : []),
           field('route', 'Selected route', pathLabel(result.routeSelection.selectedPath, stateById), null, modeled),
           field('route-candidates', 'Valid route candidates', result.routeSelection.candidateCount, 'routes', modeled),
           field('route-search', 'Bounded route work', `${result.routeSelection.searchAttempts}/${result.routeSelection.searchBound} edge attempts · ${result.routeSelection.pathSearchAttempts}/${result.routeSelection.pathSearchBound} route states · ${result.routeSelection.candidateCount} valid${result.routeSelection.pathSearchTruncated ? ' · truncated' : ''}`, null, modeled),
@@ -264,11 +272,13 @@
           field('causality', 'Causality status', uniqueJoin(result.channelReceipts, 'causalityStatus'), null, channelProvenance),
           field('constructibility', 'Constructibility status', uniqueJoin(result.channelReceipts, 'constructibilityStatus'), null, channelProvenance),
           field('channel-constraints', 'Constraint receipt', JSON.stringify(result.channelReceipts[0]?.constraintReceipt || {}), null, channelProvenance),
-          field('physical-reliability', 'Physical packet success', result.metrics.physicalChannelSuccessProbability, 'probability', modeled),
-          field('operational-reliability', 'Operational delivery probability', result.operations.deliveryProbability, 'probability', simulated),
-          field('operational-latency', 'Successful latency p10 / p50 / p90', quantileLabel(result.operations.latencySeconds), null, simulated),
-          field('operational-effects', 'Modeled operations', result.operations.modeledEffectIds.join('; '), null, simulated),
-          field('operational-counts', 'Mean retries / outages / maintenance', `${result.operations.meanRetryCount.toFixed(2)} / ${result.operations.meanOutageCount.toFixed(2)} / ${result.operations.meanMaintenanceCount.toFixed(2)}`, null, simulated),
+          ...(settled ? [
+            field('physical-reliability', 'Physical packet success', result.metrics.physicalChannelSuccessProbability, 'probability', modeled),
+            field('operational-reliability', 'Operational delivery probability', result.operations.deliveryProbability, 'probability', simulated),
+            field('operational-latency', 'Successful latency p10 / p50 / p90', quantileLabel(result.operations.latencySeconds), null, simulated),
+            field('operational-effects', 'Modeled operations', result.operations.modeledEffectIds.join('; '), null, simulated),
+            field('operational-counts', 'Mean retries / outages / maintenance', `${result.operations.meanRetryCount.toFixed(2)} / ${result.operations.meanOutageCount.toFixed(2)} / ${result.operations.meanMaintenanceCount.toFixed(2)}`, null, simulated),
+          ] : []),
           field('omissions', 'Remaining limitations', result.omissions.map((row) => `${row.label}: ${row.effect}`).join('; '), null, modeled),
           field('coordinates', 'Spatial frame', 'true 3D ICRS Cartesian parsecs', null, modeled),
           field('packet-depth', 'Packet signed ICRS-z depth', packetPosition[2], 'pc', simulated),

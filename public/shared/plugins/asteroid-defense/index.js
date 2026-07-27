@@ -188,27 +188,29 @@
 
     function view() {
       const state = sdk.state.read();
+      const snapshot = currentSnapshot(state);
       return [{
         slot: 'inspector',
         title: 'Asteroid defense experiment',
         rows: [
           { label: 'Synthetic campaign', value: state.acceptedParameters.observationCampaignId.replaceAll('-', ' ') },
           { label: 'Playback', value: `${state.playback.cursor} of ${state.result.snapshots.length - 1} · ${state.playback.status}` },
-          { label: 'Observations', value: `${state.result.metrics.observationCount}` },
-          { label: 'Fit residual', value: `${state.result.metrics.fitResidualRmsArcsec.toFixed(2)} arcsec` },
-          { label: 'Baseline encounter screen', value: `${(state.result.metrics.baselineModeledScreeningFraction * 100).toFixed(1)}% of synthetic clones` },
-          { label: 'Intervention encounter screen', value: `${(state.result.metrics.interventionModeledScreeningFraction * 100).toFixed(1)}% of synthetic clones` },
-          { label: 'Applied policy', value: state.result.appliedInterventionId.replaceAll('-', ' ') },
-        ],
-        actions: [],
-      }, {
-        slot: 'hud',
-        title: 'Scientific boundary',
-        rows: [
-          { label: 'Scenario', value: 'Observations, hidden orbit, follow-up budget, execution draws' },
-          { label: 'Modeled', value: 'Two-body force model, orbit fit, covariance, interventions' },
-          { label: 'Observed benchmark', value: 'Pinned JPL API identity and Apophis 2029 close-approach row only' },
-          { label: 'Not claimed', value: 'Impact probability, current danger, Sentry reproduction, launch guidance' },
+          { label: 'Scientific stage', value: asteroidStageLabel(snapshot.status) },
+          { label: 'Observations', value: `${snapshot.observationCount} acquired` },
+          ...(snapshot.fitReceipt ? [
+            { label: 'Fit residual', value: `${state.result.metrics.fitResidualRmsArcsec.toFixed(2)} arcsec` },
+            { label: 'Fit status', value: state.result.fitReceipt.terminationReason.replaceAll('_', ' ') },
+          ] : []),
+          ...(snapshot.ensembleReceipt ? [{ label: 'Orbit clones', value: `${snapshot.ensembleReceipt.ensembleSize} generated from the fitted covariance` }] : []),
+          ...(snapshot.baselineEncounter ? [{
+            label: 'Baseline encounter screen',
+            value: `${(snapshot.baselineEncounter.modeledScreeningFraction * 100).toFixed(1)}% of synthetic clones`,
+          }] : []),
+          ...(snapshot.appliedInterventionId ? [{ label: 'Applied policy', value: snapshot.appliedInterventionId.replaceAll('-', ' ') }] : []),
+          ...(snapshot.interventionEncounter ? [{
+            label: 'Intervention encounter screen',
+            value: `${(snapshot.interventionEncounter.modeledScreeningFraction * 100).toFixed(1)}% of synthetic clones`,
+          }] : []),
         ],
         actions: [],
       }];
@@ -346,6 +348,18 @@
     };
   }
   function currentSnapshot(state) { return state.result.snapshots[state.playback.cursor]; }
+  function asteroidStageLabel(status) {
+    return {
+      ready: 'Observation campaign ready',
+      observed: 'Synthetic observations acquired',
+      fitted: 'Orbit fit and covariance computed',
+      ensemble: 'Uncertainty clones generated',
+      'baseline-propagated': 'No-intervention encounter screened',
+      decision: 'Decision policy evaluated',
+      'intervention-propagated': 'Intervention ensemble propagated',
+      settled: 'Comparison settled',
+    }[status] || String(status).replaceAll('-', ' ');
+  }
   function summary(result, parameters) {
     return { scenarioId: result.scenarioId, scenarioIdentity: result.scenarioIdentity, acceptedParameters: parameters, totalSteps: result.snapshots.length - 1 };
   }

@@ -67,6 +67,17 @@
           ],
         }),
       })),
+      ...samples.slice(-1).map((sample) => builder.layer({
+        id: 'sun-walker-actor',
+        kind: 'actor',
+        label: `Walker · ${sample.state} · ${sample.timestamp}`,
+        geometry: builder.geometry('point', 'city-local-m', [[sample.point.x, sample.point.y, 0]]),
+        quantity: builder.quantity('route-progress', snapshot.state.progress, 'ratio', [0, 1]),
+        role: 'event',
+        importance: 1,
+        aggregationKey: null,
+        provenance: claim,
+      })),
     ];
     const departureMs = Date.parse(simulation.departureAt);
     const events = simulation.timeline.events.map((row) => builder.event({
@@ -137,11 +148,11 @@
         label: 'Sun exposure comparison',
         targetIds: ['shade-selected-route'],
         fields: [
-          field('direct-sun', 'Direct sun', selected.metrics.directSunSeconds, 'seconds', claim),
-          field('direct-beam-equivalent', 'Weather/canopy-adjusted direct beam', selected.metrics.directBeamEquivalentSeconds, 'seconds', claim),
-          field('building-shade', 'Modeled building shade', selected.metrics.buildingShadeSeconds, 'seconds', claim),
-          field('canopy-shade', 'Modeled historical-canopy shade', selected.metrics.canopyShadeSeconds, 'seconds', claim),
-          field('unknown', 'Unknown exposure', selected.metrics.unknownSeconds, 'seconds', claim),
+          field('progress', 'Route progress', snapshot.state.progress, 'ratio', claim),
+          field('direct-sun', 'Direct sun so far', snapshot.state.directSunSeconds, 'seconds', claim),
+          field('direct-beam-equivalent', 'Weather/canopy-adjusted direct beam so far', snapshot.state.directBeamEquivalentSeconds, 'seconds', claim),
+          field('building-shade', 'Modeled shade so far', snapshot.state.shadeSeconds, 'seconds', claim),
+          field('unknown', 'Unknown exposure so far', snapshot.state.unknownSeconds, 'seconds', claim),
           field('environment', 'Environmental evidence', 'Historical 2015 trees + pinned 2024 Central Park analog', null, claim),
           field('boundary', 'Claim boundary', simulation.claimBoundary, null, claim),
         ],

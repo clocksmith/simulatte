@@ -55,7 +55,7 @@
 
     if (proof.verdict === 'pass') {
       search.status = 'accepted';
-      search.terminalReason = 'all required screenshot obligations passed';
+      search.terminalReason = 'all required render, morphology, and pixel obligations passed';
       return constructionSearchDecision('accept', search, attempt, search.terminalReason);
     }
     if (!retryGrammarIds.length) {

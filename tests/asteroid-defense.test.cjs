@@ -200,7 +200,13 @@ test('typed controls rebuild once, step existing state, replay exactly, and clos
     'observationBudget',
     'observationCampaignId',
   ].sort());
-  assert.ok(contribution.inspections[0].fields.some((row) => row.id === 'screening-language'));
+  assert.ok(!contribution.inspections[0].fields.some((row) => row.id === 'screening-language'));
+  let terminal = replayed;
+  while (terminal.status === 'running') {
+    terminal = await instance.handleAction('scenario.run', { values: { ...values, phase: 'step' } });
+  }
+  const settledContribution = instance.contributeV4();
+  assert.ok(settledContribution.inspections[0].fields.some((row) => row.id === 'screening-language'));
   assert.ok(contribution.provenanceRecords.length > manifest.datasets.length);
 });
 

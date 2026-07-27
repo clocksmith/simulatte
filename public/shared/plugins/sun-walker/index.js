@@ -285,13 +285,19 @@
       const fastest = candidate(simulation, simulation.fastestCandidateId);
       const snapshot = simulation.timeline.snapshots[state.playback.step];
       const latestSample = selected.samples[Math.max(0, snapshot.state.completedSamples - 1)];
+      const settled = snapshot.state.status === 'settled';
       const rows = [
         { label: 'Simulation', value: `${snapshot.state.status} · ${snapshot.state.completedSamples}/${snapshot.state.totalSamples} samples` },
-        { label: 'Shade-selected', value: `${Math.round(selected.metrics.modeledBuildingShadePercent)}% modeled building shade` },
-        { label: 'Canopy', value: `${Math.round(selected.metrics.modeledCanopyShadePercent)}% modeled historical-canopy shade` },
-        { label: 'Fastest', value: `${Math.round(fastest.metrics.modeledBuildingShadePercent)}% modeled building shade` },
+        { label: 'Current exposure', value: latestSample ? `${latestSample.state} · ${latestSample.timestamp}` : 'Ready at route origin' },
         { label: 'Direct sun', value: `${Math.round(snapshot.state.directSunSeconds)} of ${Math.round(selected.metrics.travelSeconds)} s` },
-        { label: 'Added travel', value: `${Math.round(simulation.comparison.metrics.travelSeconds.difference)} s` },
+        { label: 'Building shade so far', value: `${Math.round(snapshot.state.shadeSeconds)} s` },
+        { label: 'Unknown so far', value: `${Math.round(snapshot.state.unknownSeconds)} s` },
+        ...(settled ? [
+          { label: 'Shade-selected', value: `${Math.round(selected.metrics.modeledBuildingShadePercent)}% modeled building shade` },
+          { label: 'Canopy', value: `${Math.round(selected.metrics.modeledCanopyShadePercent)}% modeled historical-canopy shade` },
+          { label: 'Fastest', value: `${Math.round(fastest.metrics.modeledBuildingShadePercent)}% modeled building shade` },
+          { label: 'Added travel', value: `${Math.round(simulation.comparison.metrics.travelSeconds.difference)} s` },
+        ] : []),
         {
           label: 'Sun',
           value: `${Math.round(latestSample.solarPosition.azimuthDegrees)}° azimuth · ${Math.round(latestSample.solarPosition.elevationDegrees)}° elevation`,
@@ -303,15 +309,7 @@
         },
         { label: 'Uncertainty', value: 'Current canopy/weather, awnings, diffuse and reflected light remain missing' },
       ];
-      return [
-        { slot: 'inspector', title: 'Arrival-time sun exposure', rows, actions: [] },
-        {
-          slot: 'hud',
-          title: 'Sun + shade',
-          rows: [rows[0], rows[1], rows[4]],
-          actions: [],
-        },
-      ];
+      return [{ slot: 'inspector', title: 'Arrival-time sun exposure', rows, actions: [] }];
     }
 
     function settle() {

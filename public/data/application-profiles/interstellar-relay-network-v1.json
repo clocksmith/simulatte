@@ -7,8 +7,8 @@
     "mode": "simulation",
     "simulationOwnerPluginId": "interstellar-relay-network",
     "missionRequired": false,
-    "startLabel": "Transmit packet",
-    "shuffleLabel": "Change experiment"
+    "startLabel": "Run relay experiment",
+    "shuffleLabel": "Change scenario"
   },
   "defaultSeedId": "sol-proxima-direct",
   "seeds": [

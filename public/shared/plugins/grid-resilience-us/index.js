@@ -183,27 +183,35 @@
     function view() {
       const state = sdk.state.read();
       const snapshot = currentSnapshot(state);
-      const metrics = state.result.metrics;
+      const totals = gridTotals(snapshot);
+      const constrained = [...snapshot.regions]
+        .sort((left, right) => right.unservedMw - left.unservedMw
+          || left.reserveMarginRatio - right.reserveMarginRatio)[0];
+      const latestEvent = state.result.events.find((row) => row.id === snapshot.eventIds.at(-1));
       return [{
         slot: 'inspector',
         title: 'Grid resilience experiment',
         rows: [
           { label: 'Disturbance', value: state.acceptedParameters.disturbanceScenarioId.replaceAll('-', ' ') },
           { label: 'Playback', value: `${state.playback.cursor} of ${state.result.snapshots.length - 1} · ${state.playback.status}` },
-          { label: 'Modeled unserved energy', value: `${Math.round(metrics.modeledUnservedEnergyMwh).toLocaleString()} MWh` },
-          { label: 'Minimum reserve margin', value: `${(metrics.minimumReserveMarginRatio * 100).toFixed(1)}%` },
+          { label: 'Operating hour', value: snapshot.hour < 0 ? 'Ready' : `${snapshot.period} · hour ${snapshot.hour + 1}` },
+          { label: 'Current event', value: latestEvent?.kind.replaceAll('.', ' ') || 'Dispatch inputs prepared' },
+          { label: 'Demand / served', value: `${Math.round(totals.demandMw).toLocaleString()} / ${Math.round(totals.servedMw).toLocaleString()} MW` },
+          { label: 'Generation / imports', value: `${Math.round(totals.generationMw).toLocaleString()} / ${Math.round(totals.importsMw).toLocaleString()} MW` },
+          { label: 'Storage / response', value: `${Math.round(totals.storageDischargeMw).toLocaleString()} / ${Math.round(totals.demandResponseMw).toLocaleString()} MW` },
+          { label: 'Unserved now', value: `${Math.round(totals.unservedMw).toLocaleString()} MW` },
+          {
+            label: 'Binding region',
+            value: constrained
+              ? `${constrained.label}: ${Math.round(constrained.unservedMw)} MW unserved · ${(constrained.reserveMarginRatio * 100).toFixed(1)}% reserve margin`
+              : 'None',
+          },
           { label: 'Active failures', value: snapshot.activeFailureIds.join(', ') || 'None' },
-          { label: 'Ensemble', value: `${state.acceptedParameters.ensembleSize} declared seeds · scenario variance` },
-        ],
-        actions: [],
-      }, {
-        slot: 'hud',
-        title: 'Evidence boundary',
-        rows: [
-          { label: 'Observed', value: 'Historical EIA balancing-authority aggregates and NOAA station observations' },
-          { label: 'Modeled', value: 'Resource blocks, regional anchors, interface capacities, storage' },
-          { label: 'Scenario', value: 'Disturbances, crews, priorities, policies' },
-          { label: 'Not claimed', value: 'Protected topology, AC flow, current operations, blackout forecast' },
+          ...(state.playback.status === 'settled' ? [
+            { label: 'Modeled unserved energy', value: `${Math.round(state.result.metrics.modeledUnservedEnergyMwh).toLocaleString()} MWh` },
+            { label: 'Minimum reserve margin', value: `${(state.result.metrics.minimumReserveMarginRatio * 100).toFixed(1)}%` },
+            { label: 'Ensemble', value: `${state.acceptedParameters.ensembleSize} declared seeds · scenario variance` },
+          ] : []),
         ],
         actions: [],
       }];
@@ -346,6 +354,25 @@
   }
 
   function currentSnapshot(state) { return state.result.snapshots[state.playback.cursor]; }
+  function gridTotals(snapshot) {
+    return snapshot.regions.reduce((totals, region) => ({
+      demandMw: totals.demandMw + (region.grossDemandMw || 0),
+      servedMw: totals.servedMw + (region.servedMw || 0),
+      generationMw: totals.generationMw + (region.generationMw || 0),
+      importsMw: totals.importsMw + Math.max(0, region.importsMw || 0),
+      storageDischargeMw: totals.storageDischargeMw + (region.storageDischargeMw || 0),
+      demandResponseMw: totals.demandResponseMw + (region.demandResponseMw || 0),
+      unservedMw: totals.unservedMw + (region.unservedMw || 0),
+    }), {
+      demandMw: 0,
+      servedMw: 0,
+      generationMw: 0,
+      importsMw: 0,
+      storageDischargeMw: 0,
+      demandResponseMw: 0,
+      unservedMw: 0,
+    });
+  }
   function summary(result, parameters) {
     return { scenarioId: result.scenarioId, scenarioIdentity: result.scenarioIdentity, acceptedParameters: parameters, totalSteps: result.snapshots.length - 1 };
   }

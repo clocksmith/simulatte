@@ -15,7 +15,7 @@
       ],
       "output": {
         "path": "public/data/simulatte/autonomy-manifest.json",
-        "sha256": "999487572132a31dc49ca3c7ba82b7458fa691b8be634a1fef94f06986040d39"
+        "sha256": "7ed132392f8b2d57ae276f6d59f2cd1805df8d2cc28ba2eff76041cb15a62ffb"
       },
       "contentVersion": "autonomy-nyc-multimodal-v1",
       "activationState": "active",
@@ -33,7 +33,7 @@
       ],
       "output": {
         "path": "public/data/simulatte/tier-application-manifest.json",
-        "sha256": "2578a5c72f9982d878593863158c1ce03999fe9a7793732cd7b9ab2ab68b3220"
+        "sha256": "52f83954cca8de9f91ecbeee3019b90b6e57acd85172cfd1459904794c474fb3"
       },
       "contentVersion": "simulatte-tier-applications-v3",
       "activationState": "active",

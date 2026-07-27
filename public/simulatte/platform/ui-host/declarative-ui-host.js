@@ -8,7 +8,7 @@
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createDeclarativeUiHostModule(contracts) {
   function createDeclarativeUiHost({ rootElement, rootElements = null, onAction }) {
     const roots = rootElements || { inspector: rootElement };
-    const requiredSlots = ['inspector', 'map', 'hud'];
+    const requiredSlots = ['inspector', 'map'];
     const controlValues = new Map();
     if (!roots.inspector || typeof roots.inspector.replaceChildren !== 'function') throw uiError('plugin_ui_root_invalid', 'Declarative UI host expected an inspector root element', null);
     Object.entries(roots).forEach(([slot, element]) => {
@@ -41,7 +41,7 @@
         section.append(heading);
         if (view.rows.length) {
           const rows = documentRef.createElement('dl');
-          rows.className = 'evidence-grid';
+          rows.className = 'plugin-facts';
           view.rows.forEach((row) => {
             const container = documentRef.createElement('div');
             const term = documentRef.createElement('dt');
@@ -141,12 +141,37 @@
     const explanation = documentRef.createElement('p');
     explanation.className = 'plugin-parameter-note';
     explanation.textContent = 'These values are applied when you start or replay the simulation.';
-    const fields = documentRef.createElement('div');
-    fields.className = 'plugin-controls';
     const values = controlValues.get(pluginId) || new Map();
     controlValues.set(pluginId, values);
     controls.forEach((control) => {
       if (!values.has(control.id)) values.set(control.id, cloneControlValue(control.value));
+    });
+    const fields = controls.length <= 6
+      ? renderControlFields(documentRef, pluginId, controls, values)
+      : renderControlGroups(documentRef, pluginId, controls, values);
+    section.append(heading, explanation, fields);
+    return section;
+  }
+
+  function renderControlGroups(documentRef, pluginId, controls, values) {
+    const container = documentRef.createElement('div');
+    container.className = 'plugin-control-groups';
+    groupControls(controls).forEach((group, index) => {
+      const section = documentRef.createElement('details');
+      section.className = 'plugin-control-group';
+      section.open = index === 0;
+      const heading = documentRef.createElement('summary');
+      heading.textContent = `${group.label} (${group.controls.length})`;
+      section.append(heading, renderControlFields(documentRef, pluginId, group.controls, values));
+      container.append(section);
+    });
+    return container;
+  }
+
+  function renderControlFields(documentRef, pluginId, controls, values) {
+    const fields = documentRef.createElement('div');
+    fields.className = 'plugin-controls';
+    controls.forEach((control) => {
       const label = documentRef.createElement('label');
       const caption = documentRef.createElement('span');
       caption.textContent = control.label;
@@ -161,8 +186,22 @@
       label.append(caption, input);
       fields.append(label);
     });
-    section.append(heading, explanation, fields);
-    return section;
+    return fields;
+  }
+
+  function groupControls(controls) {
+    const groups = [
+      { label: 'Scenario', pattern: /(scenario|campaign|mission|route|departure|epoch|preset|demand|failure|commodity|hazard|vessel|cable|family|origin|destination|terminal)/i, controls: [] },
+      { label: 'Policy', pattern: /(policy|priority|weight|objective|threshold|preference|recall|allocation|routing|strategy|handling|intervention)/i, controls: [] },
+      { label: 'Resources and uncertainty', pattern: /(ensemble|clone|sample|uncertainty|retry|budget|resource|crew|inventory|capacity|speed|duration|days|time|detour|refriger|weather|canopy|emission|storage|reserve)/i, controls: [] },
+      { label: 'Advanced model', pattern: null, controls: [] },
+    ];
+    controls.forEach((control) => {
+      const searchable = `${control.id} ${control.label}`;
+      const group = groups.find((candidate) => candidate.pattern?.test(searchable)) || groups.at(-1);
+      group.controls.push(control);
+    });
+    return groups.filter((group) => group.controls.length);
   }
 
   function createControlInput(documentRef, control, currentValue) {
@@ -222,7 +261,7 @@
     heading.textContent = inspection.label;
     section.append(heading);
     const rows = documentRef.createElement('dl');
-    rows.className = 'evidence-grid';
+    rows.className = 'plugin-facts';
     inspection.fields.forEach((field) => {
       const container = documentRef.createElement('div');
       const term = documentRef.createElement('dt');

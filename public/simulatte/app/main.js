@@ -54,7 +54,7 @@
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createAutonomyApp(dependencies) {
   const { hostRoot, dataLoader, missionApi, controllerApi, canvasApi, traceApi, runtimeLog, neuralPlaceApi, ledgerApi, receiptsApi, worldApi, neuralConsentApi, modelSelectionApi, runtimeLoaderApi, pluginRuntimeApi, pluginRegistry, pluginUiApi, transportApi, artifactStoreApi, routePlannerApi, civilTimeApi, universeParserApi, applicationProfileSelectApi, experienceCameraApi, pluginAssetPathsApi, pluginRandomApi, pluginSchedulerApi, pluginEnvironmentApi, pluginGeographyApi, pluginComputeApi, simulationClockApi, pluginViewRuntimeApi, mountLifecycleApi, mainViewApi, pluginPlaybackApi, cityInterfaceApi } = dependencies;
   if (!cityInterfaceApi || !mainViewApi) throw new Error('simulatte_app_view_dependency_missing');
-  const { collectElements, populateApplicationProfiles, applicationProfileLabel, setRuntimeStatus, runtimeLabel, renderIdentity, renderPlaceResolution, renderPlanning } = mainViewApi;
+  const { collectElements, populateApplicationProfiles, applicationProfileLabel, setRuntimeStatus, runtimeLabel, renderIdentity, renderPlaceResolution, renderPlanning, configureExperienceShell, renderExperienceSummary } = mainViewApi;
   const { wireCameraControls, selectCameraMode, populateCameraFocus, wireInterfaceControls, setJourneyPhase, resizeMissionInput, clearMissionError, isMissionInputError, friendlyMissionError, updateButtons } = cityInterfaceApi;
   const log = runtimeLog || {
     info: () => null,
@@ -82,6 +82,7 @@
     let pluginViewRuntime = null;
     let pluginPlayback = null;
     let pluginUi = null;
+    let lastPluginContributions = Object.freeze([]);
     let isRunning = false;
     let disposal = null;
 
@@ -137,6 +138,11 @@
       lifecycle.throwIfAborted();
     if (!applicationProfileSelectApi?.resolveInteraction || !applicationProfileSelectApi?.renderInteraction) throw new Error('Application interaction dependency is unavailable');
     const interaction = applicationProfileSelectApi.resolveInteraction(data.applicationProfile, data.manifest);
+    configureExperienceShell(elements, {
+      interactionMode: interaction.mode,
+      profileId: data.applicationProfile.id,
+      tier: initialTier,
+    });
     const playbackStorage = pluginPlaybackApi?.browserStorage?.(hostRoot) || null;
     let storedPlaybackReceipt = interaction.mode === 'playback'
       ? pluginPlaybackApi.loadStoredReceipt(playbackStorage, data.applicationProfile.id)
@@ -203,7 +209,7 @@
     });
     lifecycle.throwIfAborted();
     pluginUi = pluginUiApi.createDeclarativeUiHost({
-      rootElements: { inspector: elements.pluginInspector, map: elements.pluginMapUi, hud: elements.pluginHudUi },
+      rootElements: { inspector: elements.pluginInspector, map: elements.pluginMapUi },
       onAction: async ({ pluginId, actionId, command, values }) => {
         if (command?.kind === 'camera.focus') {
           const targetId = `plugin:${pluginId}:${command.targetId}`;
@@ -255,17 +261,11 @@
     function renderPluginExperience(context) {
       const pluginContext = { ...context, compositionSize: extensions.activePluginIds.length };
       const platform = extensions.platformV4(pluginContext);
+      lastPluginContributions = platform.contributions;
       pluginUi.render(extensions.views(pluginContext), platform.contributions);
       const controlCount = platform.contributions.reduce((total, contribution) => total + contribution.controls.controls.length, 0);
       elements.decisionsButton.textContent = controlCount ? `Controls (${controlCount})` : 'Evidence';
-      if (tierVisualizer && !elements.pluginMapUi.childElementCount) {
-        tierVisualizer.setExperienceSummary?.(hostRoot.SimulatteWorldTiersBoot.experienceHudSummary({
-          profileId: data.applicationProfile.id,
-          profileLabel: elements.applicationProfileLabel.textContent,
-          scenario: activeScenario,
-          contributions: platform.contributions,
-        }));
-      }
+      renderPluginSummary(pluginPlayback?.snapshot().phase || 'ready');
       if (!renderer) return;
       const selected = elements.cameraFocus.value || 'route';
       const semanticPresentations = platform.contributions.map((contribution) => ({
@@ -331,6 +331,16 @@
         view: viewReceipt,
         compositor: renderer.receipt().pluginCompositor,
       });
+    }
+
+    function renderPluginSummary(runState) {
+      renderExperienceSummary(elements, hostRoot.SimulatteWorldTiersBoot.experienceHudSummary({
+        profileId: data.applicationProfile.id,
+        profileLabel: elements.applicationProfileLabel.textContent,
+        scenario: activeScenario,
+        contributions: lastPluginContributions,
+        runState,
+      }));
     }
 
     populateApplicationProfiles(elements.applicationProfile, data.manifest, data.applicationProfile.id);
@@ -615,7 +625,7 @@
           const runCameraMode = experienceCameraApi.runCameraMode(data.applicationProfile.camera);
           renderer.setCameraMode(runCameraMode);
           selectCameraMode(elements, runCameraMode);
-          if (pluginPlayback.snapshot().phase === 'paused') pluginPlayback.resume();
+          if (pluginPlayback.snapshot().phase === 'paused') await pluginPlayback.resume();
           else await pluginPlayback.start();
         } else await startRun();
       } catch (error) {
@@ -712,6 +722,17 @@
         failRuntime(elements, error);
       }
     });
+    on(elements.playbackSpeed, 'change', () => {
+      pluginPlayback?.setPlaybackRate(Number(elements.playbackSpeed.value));
+    });
+    on(elements.playbackTimeline, 'change', async () => {
+      if (!pluginPlayback) return;
+      try {
+        await pluginPlayback.seek(Number(elements.playbackTimeline.value));
+      } catch (error) {
+        failRuntime(elements, error);
+      }
+    });
 
     function reflectPluginPlaybackPhase(phase, snapshot) {
       const isActive = phase === 'running';
@@ -724,14 +745,9 @@
       }
       const status = phase === 'completed' ? 'completed' : phase === 'failed' ? 'failed' : 'active';
       updateButtons(elements, isActive, true, status, hasJourneyStarted);
-      const label = phase === 'completed'
-        ? 'Complete'
-        : phase === 'paused'
-          ? `Paused at ${snapshot.currentStep} of ${snapshot.totalSteps}`
-          : phase === 'running'
-            ? `Running ${snapshot.currentStep} of ${snapshot.totalSteps}`
-            : 'Ready';
+      const label = mainView.renderPlayback(elements, phase, snapshot);
       setRuntimeStatus(elements, label, phase === 'failed' ? 'error' : phase);
+      renderPluginSummary(phase);
     }
     on(elements.whatIfButton, 'click', () => interfaceUi.openDecisions('plugin-inspector'));
     on(elements.exportButton, 'click', async () => {

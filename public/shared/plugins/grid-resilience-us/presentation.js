@@ -74,8 +74,8 @@
         id: row.id,
         position: row.geometry.coordinates,
         label: row.quantities.unservedMw > 0
-          ? `${row.id.replace('grid-region:', '')}: ${Math.round(row.quantities.unservedMw).toLocaleString()} modeled MW unserved`
-          : `${row.id.replace('grid-region:', '')}: ${(row.quantities.reserveMarginRatio * 100).toFixed(1)}% reserve margin`,
+          ? `${row.id.replace('grid-region:', '')}: ${Math.round(row.quantities.servedMw).toLocaleString()} served + ${Math.round(row.quantities.unservedMw).toLocaleString()} unserved of ${Math.round(row.quantities.grossDemandMw).toLocaleString()} MW`
+          : `${row.id.replace('grid-region:', '')}: ${Math.round(row.quantities.servedMw).toLocaleString()} of ${Math.round(row.quantities.grossDemandMw).toLocaleString()} MW · ${(row.quantities.reserveMarginRatio * 100).toFixed(1)}% reserve`,
         tone: row.quantities.unservedMw > 0 ? 'amber' : 'cyan',
         radius: row.quantities.unservedMw > 0 ? 1.15 : 0.8,
       })),

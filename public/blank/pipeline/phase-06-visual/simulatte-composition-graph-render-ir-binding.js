@@ -624,6 +624,9 @@
           graphicsAtoms,
           compositionLedger: baseCompositionLedger,
           visualGenome,
+          interactionIR: spec.interactionIR ||
+            spec.simulationCompile && spec.simulationCompile.interactionIR ||
+            null,
         });
         const compositionLedger = scope.mergeConstructionVisualObligations(baseCompositionLedger, sceneRenderPacket);
         sceneRenderPacket.compositionLedger = compositionLedger;
@@ -648,6 +651,7 @@
           motion: motionRows,
           renderInstances,
           sceneRenderPacket,
+          interactionProgram: sceneRenderPacket.interactionProgram,
           compositionLedger,
           rejectedRows: scope.visualRejectedRowsForIR(rendererPlan, graphicsAtoms),
           graphicsAtoms,

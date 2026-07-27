@@ -112,6 +112,11 @@
         compileRenderIR,
       } = scope.renderIR || {};
 
+    const interactionIR = typeof module === 'object' && module.exports
+      ? require('./simulatte-interaction-ir.js')
+      : root.SimulatteInteractionIR;
+    if (!interactionIR) throw new Error('Simulatte InteractionIR compiler unavailable');
+
     const {
         INTENT_BRIEF_SCHEMA,
         buildIntentForensics,
@@ -255,6 +260,7 @@
       deriveChannelSummary,
       RENDER_IR_SCHEMA,
       compileRenderIR,
+      ...interactionIR,
       INTENT_BRIEF_SCHEMA,
       buildIntentForensics,
       buildActivationCloud,

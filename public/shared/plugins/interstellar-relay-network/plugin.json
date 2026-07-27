@@ -76,7 +76,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginInterstellarRelayNetwork",
-    "integrity": "sha384-82a57bdc8ed90842b4b9263062f201e4eaa4676f970ce2c4028c4f6e673bdc85eca477ec3b56f037dff567db912d7f49",
+    "integrity": "sha384-567ca9eb12b62c0ac9c20a08bd6902630550e70aafb2728e07a1fbe3b0ccd5565622e0f52b9878eff0f641fb311e8577",
     "path": "./index.js"
   },
   "extensionPoints": [
@@ -197,7 +197,7 @@
       "path": "./stellar-state.js"
     },
     {
-      "integrity": "sha384-b61e5f54d9d6f86ca08022ee8a850b48af65ce64c30964f73ee7a070d1432fbdce5653b4a7b1dc7b854bdf129439b875",
+      "integrity": "sha384-4fb0f180d4bd7a003c35bb3bd87d674b91d74327597a4a3dde6d2725f08b0219381bfbcdf17836c43930a97fe6aa6219",
       "path": "./v4-contribution.js"
     }
   ],

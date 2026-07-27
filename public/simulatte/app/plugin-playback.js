@@ -31,9 +31,16 @@
     let parameterValues = {};
     let phase = 'ready';
     let actionQueue = Promise.resolve();
+    let seekQueue = Promise.resolve();
+    let runGeneration = 0;
     const unsubscribe = clock.subscribe((message) => {
       if (message.type !== 'event') return;
-      actionQueue = actionQueue.then(advance).catch(fail);
+      const generation = runGeneration;
+      actionQueue = actionQueue
+        .then(() => advance(generation))
+        .catch((error) => {
+          if (generation === runGeneration) fail(error);
+        });
     });
 
     async function start() {
@@ -57,8 +64,16 @@
       return snapshot();
     }
 
-    function resume() {
+    async function resume() {
       if (phase !== 'paused') return snapshot();
+      if (actionResult?.status === 'settled') {
+        try {
+          return await complete(runGeneration);
+        } catch (error) {
+          fail(error);
+          throw error;
+        }
+      }
       setPhase('running');
       clock.play();
       return snapshot();
@@ -72,6 +87,14 @@
       if (!['running', 'paused', 'ready'].includes(phase)) return snapshot();
       setPhase('paused');
       clock.pause();
+      if (actionResult?.status === 'settled') {
+        try {
+          return await complete(runGeneration);
+        } catch (error) {
+          fail(error);
+          throw error;
+        }
+      }
       clock.step(1);
       await actionQueue;
       return snapshot();
@@ -80,6 +103,48 @@
     async function replay() {
       await reset(activeScenario);
       return start();
+    }
+
+    function setPlaybackRate(nextRate) {
+      clock.setPlaybackRate(nextRate);
+      return snapshot();
+    }
+
+    function seek(targetStep) {
+      if (!Number.isInteger(targetStep) || targetStep < 0) {
+        return Promise.reject(playbackError('plugin_playback_seek_invalid', 'Playback seek expected a non-negative step'));
+      }
+      const pending = seekQueue.then(() => reconstructAtStep(targetStep));
+      seekQueue = pending.catch(() => {});
+      return pending;
+    }
+
+    async function reconstructAtStep(requestedStep) {
+      clock.pause();
+      const generation = ++runGeneration;
+      try {
+        await actionQueue;
+        if (generation !== runGeneration) return snapshot();
+        await resetState(activeScenario, generation);
+        if (generation !== runGeneration) return snapshot();
+        parameterValues = normalizedValues(getControlValues(ownerPluginId));
+        setPhase('running');
+        actionResult = await dispatch('start');
+        if (generation !== runGeneration) return snapshot();
+        const totalSteps = actionResult?.totalSteps || 0;
+        const targetStep = Math.min(requestedStep, totalSteps);
+        for (let stepIndex = 0; stepIndex < targetStep && actionResult.status === 'running'; stepIndex += 1) {
+          actionResult = await dispatch('step');
+          if (generation !== runGeneration) return snapshot();
+        }
+        render();
+        clock.seek(currentSimulationTimeMs());
+        setPhase('paused');
+        return snapshot();
+      } catch (error) {
+        if (generation === runGeneration) fail(error);
+        throw error;
+      }
     }
 
     async function restore(receipt) {
@@ -122,8 +187,16 @@
 
     async function reset(nextScenario = activeScenario) {
       clock.pause();
+      const generation = ++runGeneration;
+      await actionQueue;
+      return resetState(nextScenario, generation);
+    }
+
+    async function resetState(nextScenario, generation) {
+      if (generation !== runGeneration) return snapshot();
       activeScenario = nextScenario;
       await runtime.setScenario(activeScenario);
+      if (generation !== runGeneration) return snapshot();
       actionResult = null;
       render();
       clock.seek(0);
@@ -131,24 +204,30 @@
       return snapshot();
     }
 
-    async function advance() {
+    async function advance(generation = runGeneration) {
+      if (generation !== runGeneration) return snapshot();
       if (!['running', 'paused'].includes(phase)) return snapshot();
       actionResult = await dispatch('step');
+      if (generation !== runGeneration) return snapshot();
       render();
-      if (actionResult.status === 'settled') return complete();
+      if (actionResult.status === 'settled') return complete(generation);
       if (actionResult.status !== 'running') {
         throw playbackError('plugin_playback_step_refused', `Plugin ${ownerPluginId} refused playback step`, { actionResult });
       }
       return snapshot();
     }
 
-    async function complete() {
+    async function complete(generation = runGeneration) {
+      if (generation !== runGeneration) return snapshot();
       clock.pause();
       const settlements = await runtime.settle({ scenario: activeScenario, actionResult });
+      if (generation !== runGeneration) return snapshot();
       if (!settlements.length || settlements.some((row) => row.obligationResults.some((result) => result.status !== 'settled'))) {
         throw playbackError('plugin_playback_settlement_incomplete', `Plugin ${ownerPluginId} did not settle every obligation`, { settlements });
       }
-      return publishSettlement(settlements, await executeComparison());
+      const comparisonExecutionReceipt = await executeComparison();
+      if (generation !== runGeneration) return snapshot();
+      return publishSettlement(settlements, comparisonExecutionReceipt);
     }
 
     async function executeComparison() {
@@ -219,18 +298,38 @@
         scenarioId: activeScenario?.id || null,
         phase,
         actionStatus: actionResult?.status || null,
+        terminalPreview: phase === 'paused' && actionResult?.status === 'settled',
         currentStep: actionResult?.currentStep || 0,
         totalSteps: actionResult?.totalSteps || 0,
         clock: clock.snapshot(),
       });
     }
 
+    function currentSimulationTimeMs() {
+      const direct = Number(actionResult?.simulationTimeMs);
+      if (Number.isFinite(direct) && direct >= 0) return direct;
+      if (typeof runtime.platformV4 === 'function') {
+        const platform = runtime.platformV4({
+          scenario: activeScenario,
+          compositionSize: runtime.activePluginIds?.length || 1,
+        });
+        const contribution = platform.contributions.find((row) => row.pluginId === ownerPluginId);
+        const contributed = Number(contribution?.state?.simulationTimeMs);
+        if (Number.isFinite(contributed) && contributed >= 0) return contributed;
+      }
+      throw playbackError(
+        'plugin_playback_simulation_time_missing',
+        `Plugin ${ownerPluginId} did not expose simulationTimeMs for deterministic seeking`
+      );
+    }
+
     function dispose() {
+      runGeneration += 1;
       clock.pause();
       unsubscribe();
     }
 
-    return Object.freeze({ dispose, pause, replay, reset, restore, resume, snapshot, start, step });
+    return Object.freeze({ dispose, pause, replay, reset, restore, resume, seek, setPlaybackRate, snapshot, start, step });
   }
 
   function validateRestoreReceipt(value, ownerPluginId) {

@@ -19,6 +19,7 @@
     datasetReceipts,
     activeIntervention,
     inputContext,
+    playback = null,
   }) {
     const datasets = datasetReceipts.map((row) => builder.datasetRecord(row.id, row, {
       scenarioKind: scenario.kind,
@@ -144,10 +145,13 @@
       synchronizedClock: true,
     }]);
     const progressiveState = builder.state({
-      id: `${PLUGIN_ID}:state:${run.seed}`,
+      id: `${PLUGIN_ID}:state:${run.seed}:${playback?.currentStep || 0}`,
       pluginId: PLUGIN_ID,
-      simulationTimeMs: scenario.durationDays * DAY_MS,
-      status: 'settled',
+      simulationTimeMs: Math.round(
+        scenario.durationDays * DAY_MS
+        * ((playback?.currentStep || 0) / Math.max(1, playback?.totalSteps || 1))
+      ),
+      status: playback?.status || 'settled',
       eventIds: events.map((row) => row.id),
       measures: [
         builder.quantity('true-illnesses', run.trueIllnesses, 'estimated people'),
@@ -167,6 +171,8 @@
       label: 'Scenario outcome and limits',
       targetIds: highlighted,
       fields: [
+        field('incident-stage', 'Incident stage', playback?.stage?.label || 'Ready', null, scenarioClaim),
+        field('incident-narrative', 'What changed', playback?.stage?.narrative || 'No modeled outcome revealed yet', null, scenarioClaim),
         field('scenario', 'Scenario', scenario.label, null, scenarioClaim),
         field('true-illnesses', 'Estimated illnesses', run.trueIllnesses, 'people', simulated),
         field('observed-cases', 'Simulated observed cases', run.observedCases, 'reports', simulated),

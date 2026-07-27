@@ -184,12 +184,16 @@ test('objective controls rerun the launch-window search and become receipt-backe
   const host = fixture();
   const instance = await plugin.activate({ sdk: host.sdk, config, profile, scenario: profile.seeds[0] });
   const before = instance.capabilities['simulation.orbital-transfer.v1']();
-  const action = instance.handleAction('scenario.run', {
+  let action = instance.handleAction('scenario.run', {
     values: { phase: 'start', deltaVWeight: 2, timeWeight: 0.2 },
   });
   const after = instance.capabilities['simulation.orbital-transfer.v1']();
-  assert.equal(action.status, 'settled');
+  assert.equal(action.status, 'running');
   assert.notEqual(after.selected.objective, before.selected.objective);
+  while (action.status === 'running') {
+    action = instance.handleAction('scenario.run', { values: { phase: 'step' } });
+  }
+  assert.equal(action.status, 'settled');
   const controls = Object.fromEntries(instance.contributeV4().controls.controls.map((row) => [row.id, row.value]));
   assert.deepEqual(controls, { deltaVWeight: 2, timeWeight: 0.2 });
   const receipt = host.receipts.findLast((row) => row.schema === 'simulatte.plugin.orbitalTransferReceipt.v2');

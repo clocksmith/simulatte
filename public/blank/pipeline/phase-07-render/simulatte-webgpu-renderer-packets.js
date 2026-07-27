@@ -110,6 +110,11 @@
           );
           const visualObligationProofSummary = scope.summarizeRenderObligationProof(visualObligationProof);
           const pixelAudit = scope.renderPixelAudit(sceneRenderPacket, renderData, canvas, visualObligationProofSummary, optimization);
+          const interactionReceipt = scope.phase7InteractionReceipt(
+            renderExecutionInput,
+            renderData,
+            sceneRenderPacket
+          );
           return {
             schema: scope.PHASE7_OUTPUT_SCHEMA,
           phase: 7,
@@ -131,9 +136,11 @@
                   rendered: true,
             packetIdentitySummary: scope.scenePacketIdentitySummary(sceneRenderPacket),
             environmentProgram: sceneRenderPacket && sceneRenderPacket.environmentProgram || null,
+              atmosphereProgram: renderData && renderData.atmosphereProgram || null,
               objectRealization: renderData && renderData.objectRealization ||
                 scope.objectRealizationForScenePacket(sceneRenderPacket),
               rendererConsumption: renderData && renderData.rendererConsumption || null,
+              interactionReceipt,
                   visualObligationProof,
                   visualObligationProofSummary,
                   shaderPath: renderData && renderData.path || '',
@@ -169,6 +176,18 @@
               lightCountConsumed: renderData && renderData.rendererConsumption && renderData.rendererConsumption.lightCountConsumed || 0,
               materialCountConsumed: renderData && renderData.rendererConsumption && renderData.rendererConsumption.materialCountConsumed || 0,
               depthEnabled: renderData && renderData.rendererConsumption && renderData.rendererConsumption.depthEnabled === true,
+              contourProfileCount: renderData && renderData.morphologySubmission &&
+                renderData.morphologySubmission.contourProfileCount || 0,
+              surfacePatternCount: renderData && renderData.morphologySubmission &&
+                renderData.morphologySubmission.surfacePatternCount || 0,
+              accentPatternCount: renderData && renderData.morphologySubmission &&
+                renderData.morphologySubmission.accentPatternCount || 0,
+              atmosphereLayerCount: renderData && renderData.atmosphereProgram &&
+                renderData.atmosphereProgram.layerCount || 0,
+              interactionStatus: interactionReceipt.status,
+              interactionCommandCount: interactionReceipt.commandCount,
+              interactionChangedChannelCount: interactionReceipt.changedChannelCount,
+              interactionVisualStateConsumed: interactionReceipt.visualStateConsumed,
                 },
             ],
           };
@@ -210,7 +229,7 @@
         const summary = sceneRenderPacketSummary(packet);
         return {
           schema: scope.RENDER_DATA_SCHEMA,
-          path: 'depth-lit-storage-object-parts-with-uniform-fallback',
+          path: 'depth-lit-prompt-conditioned-contours-surfaces-and-atmospheres',
           packetKey: packetKey || sceneRenderPacketRenderDataKey(packet, sceneKind),
           sceneKind,
           sceneId: scenePacketResolvedSceneId(packet, sceneKind),
@@ -227,6 +246,7 @@
           features: scenePacketFeatureVector(packet),
           atomUniforms: scenePacketAtomUniformVector(packet),
           sceneMix: scenePacketSceneMixVector(packet, sceneKind),
+          atmosphereProgram: packet && packet.uniforms && packet.uniforms.atmosphere || null,
           visualIrLayers: scope.visualIrLayerVector(packet),
           palette: scenePacketPaletteVector(packet),
           sceneObjectUniforms,
@@ -237,6 +257,7 @@
           objectPartCount: objectParts.length,
           objectPartCapacity: scope.GPU_OBJECT_PART_CAPACITY,
           objectPartSummary: scenePacketObjectPartSummary(objectParts),
+          morphologySubmission: scope.scenePacketMorphologySummary(objectParts),
           cameraState,
           lightState,
           rendererConsumption: scenePacketRendererConsumption(packet, objectParts, cameraState, lightState),
@@ -250,20 +271,14 @@
         };
       }
 
-    const OBJECT_PART_SHAPE_CODES = Object.freeze({
-      ellipse: 1,
-      box: 2,
-      'rounded-box': 3,
-      capsule: 4,
-      triangle: 5,
-      ring: 6,
-      star: 7,
-      spiral: 8,
-      wave: 9,
-    });
     function scenePacketObjectParts(packet = {}) {
         const rows = scenePacketRows(packet, 'entities')
-          .filter((row) => row && row.geometry && row.geometry.program)
+          .filter((row) => (
+            row &&
+            row.geometry &&
+            row.geometry.program &&
+            row.geometry.program.literal === true
+          ))
           .sort((a, b) => (
             Number(a.geometry.program.zOrder || 0) - Number(b.geometry.program.zOrder || 0) ||
             Number(a.drawOrder || 0) - Number(b.drawOrder || 0) ||
@@ -275,6 +290,7 @@
           for (const sourcePart of scope.scenePacketConstructionParts(program)) {
             const transformed = scenePacketObjectPartTransform(row, sourcePart);
             const fill = scenePacketObjectPartColor(sourcePart.fill);
+            const morphology = scope.scenePacketObjectPartMorphology(sourcePart);
             const materialOpacity = Number(row.material && row.material.opacity || 0.72);
             const literalOpacity = program.literal === true ? Math.max(0.9, materialOpacity) : materialOpacity;
             parts.push({
@@ -287,8 +303,17 @@
               constructionRoleIndex: Number(sourcePart.constructionRoleIndex || 0),
               constructionPartId: sourcePart.constructionPartId || sourcePart.id || '',
               constructionConstraintIds: (sourcePart.constructionConstraintIds || []).slice(),
-              primitive: sourcePart.primitive || 'rounded-box',
-              shapeCode: OBJECT_PART_SHAPE_CODES[sourcePart.primitive] || OBJECT_PART_SHAPE_CODES['rounded-box'],
+              primitive: morphology.primitive,
+              shapeCode: morphology.shapeCode,
+              contourProfile: morphology.contourProfile,
+              shapeParameters: morphology.shapeParameters,
+              surfacePattern: morphology.surfacePattern,
+              surfaceCode: morphology.surfaceCode,
+              surfaceParameters: morphology.surfaceParameters,
+              accentPattern: morphology.accentPattern,
+              accentCode: morphology.accentCode,
+              accentParameters: morphology.accentParameters,
+              visualFeatureClass: morphology.visualFeatureClass,
               center: transformed.center,
               size: transformed.size,
               rotation: transformed.rotation,
@@ -400,6 +425,7 @@
           vector[offset + 21] = Number(row.animationAmplitude || 0);
           vector[offset + 22] = Number(row.animationPhase || 0);
           vector[offset + 23] = 0;
+          scope.writeObjectPartMorphology(vector, offset, row);
         });
         return vector;
       }
@@ -473,6 +499,7 @@
 
     function scenePacketRendererConsumption(packet = {}, objectParts = [], cameraState = {}, lightState = {}) {
         const materialCount = scenePacketRows(packet, 'entities').filter((row) => row.material).length;
+        const atmosphere = packet && packet.uniforms && packet.uniforms.atmosphere || null;
         const constructionPrograms = scenePacketRows(packet, 'entities').filter((row) => (
           row.geometry && row.geometry.program && row.geometry.program.constructionReceipt
         ));
@@ -485,10 +512,22 @@
           lightCountConsumed: 0,
           materialCountConsumed: 0,
           objectPartCount: objectParts.length,
+          morphologySubmission: scope.scenePacketMorphologySummary(objectParts),
+          atmosphereConfigured: atmosphere &&
+            atmosphere.schema === 'simulatte.sceneAtmosphereProgram.v1',
+          atmosphereLayerCount: Number(atmosphere && atmosphere.layerCount || 0),
+          atmosphereConsumed: false,
           depthConfigured: true,
           depthEnabled: false,
           normalShading: false,
           perspectiveEnabled: Number(cameraState.perspective || 0) > 0,
+          interactionHitTestingConfigured: packet && packet.interactionProgram &&
+            packet.interactionProgram.schema === 'simulatte.sceneInteractionProgram.v1',
+          interactionHitTestingConsumed: false,
+          interactionTargetCount: Number(
+            packet && packet.interactionProgram && packet.interactionProgram.targetCount || 0
+          ),
+          interactionVisualStateConsumed: false,
           constructionProgramCount: constructionPrograms.length,
           modelEvaluatedConstructionCount: constructionPrograms.filter((row) => (
             row.geometry.program.constructionReceipt && row.geometry.program.constructionReceipt.modelEvaluated === true
@@ -812,7 +851,6 @@
       scenePacketSemanticCode,
       scenePacketCategoryCode,
       scenePacketKindCode,
-      OBJECT_PART_SHAPE_CODES,
       scenePacketObjectParts,
       scenePacketObjectPartTransform,
       scenePacketObjectPartColor,

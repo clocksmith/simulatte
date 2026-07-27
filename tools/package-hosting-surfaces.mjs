@@ -46,8 +46,8 @@ function assertSourceContracts() {
   if (!/href="https:\/\/simulatte\.world\/"/.test(blankHtml)) {
     fail('Blank must link back to the canonical world origin');
   }
-  if (!/href="https:\/\/create\.simulatte\.world\/"/.test(worldHtml)) {
-    fail('World must link to the canonical create origin');
+  if (/href="https:\/\/create\.simulatte\.world\/"/.test(worldHtml)) {
+    fail('World must not expose the separate create product in its application chrome');
   }
   for (const entry of CREATE_ENTRIES) {
     if (!fs.existsSync(path.join(PUBLIC_ROOT, entry))) fail(`create asset is missing: public/${entry}`);

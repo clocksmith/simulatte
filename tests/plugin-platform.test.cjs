@@ -118,6 +118,14 @@ test('request contributions reject fields outside the versioned host contract', 
   );
 });
 
+test('plugin UI contract reserves map overlays for interaction and rejects duplicate HUD surfaces', () => {
+  const contribution = { slot: 'hud', title: 'Truth boundary', rows: [], actions: [] };
+  assert.throws(
+    () => contracts.validateUiContribution('fixture-plugin', contribution),
+    /plugin_ui_slot_invalid/
+  );
+});
+
 test('plugin presentation is validated and compiled into namespaced renderer data', () => {
   const contribution = {
     schema: 'simulatte.pluginPresentation.v1',
@@ -200,6 +208,9 @@ test('Main exposes governed profile selection and disposes plugins on teardown',
   assert.doesNotMatch(html, /id="application-profile-options"[^>]*sim-popover/);
   assert.doesNotMatch(styles, /\.world-explorer \.mission-dock/);
   assert.doesNotMatch(styles, /\.world-explorer #decisions-button/);
+  assert.doesNotMatch(html, /plugin-hud-ui/);
+  assert.doesNotMatch(styles, /plugin-hud/);
+  assert.doesNotMatch(main, /pluginHudUi/);
   assert.match(html, /id="decisions-button"[^>]*>Controls<\/button>/);
   assert.ok(
     html.indexOf('id="plugin-inspector"') < html.indexOf('id="journey-section"'),

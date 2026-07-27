@@ -90,10 +90,13 @@
       : `${state} ${kind}`;
   }
 
-  function buildViews({ run, scenario, datasetReceipts, activeIntervention, inputContext }) {
+  function buildViews({ run, scenario, datasetReceipts, activeIntervention, inputContext, playback = null }) {
     const inspector = {
       slot: 'inspector', title: `Food recall — ${scenario.label}`,
       rows: [
+        { label: 'Incident stage', value: playback?.stage?.label || 'Ready' },
+        { label: 'What changed', value: playback?.stage?.narrative || 'Choose recall parameters, then start the incident.' },
+        { label: 'Timeline', value: `${playback?.currentStep || 0} / ${playback?.totalSteps || 0}` },
         { label: 'Scenario kind', value: `${run.scenarioKind} · seed ${run.seed}` },
         { label: 'Lots / events', value: `${run.lotCount} lots · ${run.eventCount} events` },
         { label: 'True illnesses', value: String(run.trueIllnesses) },
@@ -121,20 +124,7 @@
         { id: 'focus.national', label: 'National view', command: { kind: 'camera.focus', targetId: 'food-network-overview' } },
       ],
     };
-    // Provenance panel (§13): scenario metrics, dataset hashes, concise claim boundary.
-    const provenance = {
-      slot: 'hud', title: 'Live Simulation Metrics & Provenance',
-      rows: [
-        { label: 'Scenario', value: `${run.scenarioKind} · seed ${run.seed}` },
-        { label: 'Illnesses / Cases', value: `${run.trueIllnesses} est. / ${run.observedCases} obs.` },
-        { label: 'Detection / Recall', value: `${run.detectionDay ? 'Day ' + run.detectionDay : 'Undetected'} · ${run.recall ? fmtPct(run.recall.recallSensitivity) + ' sensitivity' : 'No recall'}` },
-        { label: 'Cases Averted', value: run.recall ? `${run.recall.casesAverted} cases` : '0 cases' },
-        { label: 'Input boundary', value: inputContext ? `${inputContext.weather.providerId}; ${inputContext.logistics.providerId}` : 'No input receipt' },
-        { label: 'Claim boundary', value: 'Synthetic scenario estimate — not a live recall alert.' },
-      ],
-      actions: [],
-    };
-    return [inspector, provenance];
+    return [inspector];
   }
 
   function fmtPct(value) { return value === null || value === undefined ? 'n/a' : `${(value * 100).toFixed(1)}%`; }

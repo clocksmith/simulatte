@@ -39,14 +39,15 @@ test('experience HUD summary binds the active profile, scenario, and V4 state me
         ],
       },
     }],
+    runState: 'running',
   });
 
   assert.equal(summary.experienceId, 'grid-resilience-us-v1');
   assert.equal(summary.title, 'Grid Resilience');
-  assert.equal(summary.description, 'Heat demand peak · Ready');
+  assert.equal(summary.description, 'Heat demand peak · Running');
   assert.deepEqual(summary.stats, {
     'Modeled Unserved Energy': '377,766.207 MWh',
-    'Minimum Reserve Margin': '-0.12 ratio',
+    'Minimum Reserve Margin': '-12%',
   });
 });
 
@@ -91,6 +92,31 @@ test('experience documentation link updates and fails closed for unknown profile
   bootApi.updateExperienceDocLink(link, null);
   assert.equal(link.hidden, true);
   assert.equal(link.href, undefined);
+});
+
+test('experience actions use one honest verb taxonomy', () => {
+  const root = path.resolve(__dirname, '..');
+  const expected = {
+    'cable-trader-pickup-v1': 'Run exchange',
+    'neighborhood-bulk-pool-v1': 'Run pooling experiment',
+    'safety-explorer-v1': 'Analyze corridor',
+    'sun-walker-v1': 'Run shaded walk',
+    'food-recall-us-v1': 'Run recall experiment',
+    'grid-resilience-us-v1': 'Run resilience experiment',
+    'maritime-trade-global-v1': 'Run voyage',
+    'subsea-network-global-v1': 'Run network experiment',
+    'orbital-transfer-planner-v1': 'Solve transfer',
+    'asteroid-defense-v1': 'Run defense experiment',
+    'interstellar-relay-network-v1': 'Run relay experiment',
+  };
+  Object.entries(expected).forEach(([profileId, startLabel]) => {
+    const profile = JSON.parse(fs.readFileSync(
+      path.join(root, 'public/data/application-profiles', `${profileId}.json`),
+      'utf8',
+    ));
+    assert.equal(profile.interaction.startLabel, startLabel, profileId);
+    assert.equal(profile.interaction.shuffleLabel, 'Change scenario', profileId);
+  });
 });
 
 test('mount lifecycle links parent cancellation to listeners and fetches', async () => {

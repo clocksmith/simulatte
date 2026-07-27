@@ -172,6 +172,39 @@ test('scene proof normalizes browser renderer identity summary receipts', () => 
   assert.ok(phase8.artifact.sceneProof.evidence.packetIdentitySummary.includes('dog'));
 });
 
+test('scene proof requires Phase 7 to consume a compiled environment atmosphere', () => {
+  const phase7 = renderedPhase7('a dog in a forest');
+  const withAtmosphereConsumption = (atmosphereConsumed) => ({
+    ...phase7,
+    artifact: {
+      ...phase7.artifact,
+      renderExecution: {
+        ...phase7.artifact.renderExecution,
+        environmentProgram: { kind: 'forest' },
+        atmosphereProgram: {
+          schema: 'simulatte.sceneAtmosphereProgram.v1',
+          dominantSlot: 'biological',
+          layerCount: 1,
+        },
+        rendererConsumption: {
+          ...(phase7.artifact.renderExecution.rendererConsumption || {}),
+          atmosphereConsumed,
+        },
+      },
+    },
+  });
+
+  const missing = lab.runPhase8SceneProof(withAtmosphereConsumption(false)).artifact.sceneProof;
+  const missingForest = missing.settledObligations.find((row) => row.obligationId === 'environment:forest');
+  assert.equal(missingForest.status, 'lost');
+  assert.match(missingForest.reason, /atmosphere was not consumed/);
+
+  const consumed = lab.runPhase8SceneProof(withAtmosphereConsumption(true)).artifact.sceneProof;
+  const consumedForest = consumed.settledObligations.find((row) => row.obligationId === 'environment:forest');
+  assert.equal(consumedForest.status, 'preserved');
+  assert.ok(consumedForest.evidence.includes('sceneAtmosphereProgram'));
+});
+
 test('every compiled scene carries a concrete Phase 6 pixel obligation', () => {
   const phase7 = renderedPhase7('flowers');
   const visual = phase7.artifact.renderExecution.visualObligationProof || [];

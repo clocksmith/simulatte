@@ -6,6 +6,7 @@
     require('./simulatte-physics-model-phase-retrieval.js');
     require('./simulatte-physics-model-activation-verdicts.js');
     require('./simulatte-physics-model-activation-fusion.js');
+    require('./simulatte-interaction-ir.js');
     require('./simulatte-physics-model-phase-grounding.js');
     require('./simulatte-physics-model-phase-simulation.js');
     require('./simulatte-physics-model-phase-visual-render.js');
@@ -33,6 +34,7 @@
     SOLVER_GRAPH_SCHEMA: scope.SOLVER_GRAPH_SCHEMA,
     ENERGY_LEDGER_SCHEMA: scope.ENERGY_LEDGER_SCHEMA,
     CHECKPOINT_SCHEMA: scope.CHECKPOINT_SCHEMA,
+    INTERACTION_IR_SCHEMA: scope.INTERACTION_IR_SCHEMA,
     SYNTHESIS_SCHEMA: scope.SYNTHESIS_SCHEMA,
     OBLIGATION_VERDICTS: scope.OBLIGATION_VERDICTS,
     UNIVERSE_GRAPH_SCHEMA: scope.UNIVERSE_GRAPH_SCHEMA,
@@ -44,6 +46,7 @@
     classifyIntentPrompt: scope.classifyIntentPrompt,
     compileCompositionToRenderProgram: scope.compileCompositionToRenderProgram,
     compileRenderIR: scope.compileRenderIR,
+    compileInteractionIR: scope.compileInteractionIR,
     compileSolverGraph: scope.compileSolverGraph,
     createPhaseEnvelope: scope.createPhaseEnvelope,
     assertPhaseEnvelope: scope.assertPhaseEnvelope,
@@ -76,6 +79,8 @@
     createSemanticRag: scope.createSemanticRag,
     createReactionState: scope.createReactionState,
     createSimulationState: scope.createSimulationState,
+    createInteractionCommand: scope.createInteractionCommand,
+    createInteractionState: scope.createInteractionState,
     createSolverState: scope.createSolverState,
     createEnergyLedger: scope.createEnergyLedger,
     createSolverCheckpoint: scope.createSolverCheckpoint,
@@ -115,6 +120,7 @@
     stepFluidState: scope.stepFluidState,
     stepReactionState: scope.stepReactionState,
     stepSimulation: scope.stepSimulation,
+    applyInteractionCommands: scope.applyInteractionCommands,
     stepState: scope.stepState,
     applyGridBoundaryFlux: scope.applyGridBoundaryFlux,
     buildGridGhostLayer: scope.buildGridGhostLayer,

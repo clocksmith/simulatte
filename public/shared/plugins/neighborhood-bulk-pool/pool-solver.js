@@ -527,8 +527,50 @@
   function createEvents(identity, result) {
     const rows = [
       { kind: 'bulk-pool.demand-registered', payload: { requestedUnits: result.metrics.requestedUnits } },
-      { kind: 'bulk-pool.packages-formed', payload: { poolGroupCount: result.poolGroups.length, packagesPurchased: result.metrics.packagesPurchased } },
-      { kind: 'bulk-pool.trips-assigned', payload: { activeTrips: result.metrics.activeTrips, fulfilledUnits: result.metrics.fulfilledUnits } },
+      {
+        kind: 'bulk-pool.baskets-grouped',
+        payload: {
+          poolGroupCount: result.poolGroups.length,
+          items: result.poolGroups.map((row) => ({
+            itemId: row.item.id,
+            name: row.item.name,
+            requestedUnits: row.allocatedUnits,
+          })),
+        },
+      },
+      {
+        kind: 'bulk-pool.packages-formed',
+        payload: {
+          packagesPurchased: result.metrics.packagesPurchased,
+          fulfilledUnits: result.metrics.fulfilledUnits,
+          wasteUnits: result.metrics.wasteUnits,
+        },
+      },
+      {
+        kind: 'bulk-pool.assignments-evaluated',
+        payload: {
+          activeTrips: result.metrics.activeTrips,
+          rejectedRequests: result.rejectedRequests.map((row) => ({
+            requestId: row.requestId,
+            reason: row.reason,
+          })),
+        },
+      },
+      {
+        kind: 'bulk-pool.purchase-completed',
+        payload: {
+          packagesPurchased: result.metrics.packagesPurchased,
+          householdCostUsd: result.metrics.householdCostUsd,
+        },
+      },
+      {
+        kind: 'bulk-pool.handoffs-completed',
+        payload: {
+          activeTrips: result.metrics.activeTrips,
+          incrementalVehicleKm: result.metrics.incrementalVehicleKm,
+          refrigerationViolations: result.conservation.refrigerationViolations,
+        },
+      },
       { kind: 'bulk-pool.settled', payload: { householdCostUsd: result.metrics.householdCostUsd, savingsUsd: result.metrics.householdSavingsUsd } },
     ];
     return rows.map((row, sequence) => deepFreeze({
@@ -543,22 +585,32 @@
 
   function createSnapshots(identity, result, events) {
     const final = result.metrics;
-    const phases = ['demand-registered', 'packages-formed', 'trips-assigned', 'settled'];
-    return phases.map((status, index) => deepFreeze({
+    const phases = [
+      ['demand-registered', 'Household requests arrive'],
+      ['baskets-grouped', 'Compatible basket shares are grouped'],
+      ['packages-formed', 'Whole packages are selected'],
+      ['assignments-evaluated', 'Trips and constraints are evaluated'],
+      ['purchase-completed', 'Accepted packages are purchased'],
+      ['handoffs-completed', 'Handoffs and freshness checks complete'],
+      ['settled', 'Costs, savings, and waste settle'],
+    ];
+    return phases.map(([status, narrative], index) => deepFreeze({
       id: `${identity}:step-${index}`,
       simulationTimeMs: index * HOUR_MS,
       status,
+      narrative,
       eventIds: events.slice(0, index + 1).map((row) => row.id),
       visiblePoolGroupIds: index >= 1 ? result.poolGroups.map((row) => row.id) : [],
-      visibleTripAssignmentIds: index >= 2 ? result.tripAssignments.map((row) => row.id) : [],
+      visibleTripAssignmentIds: index >= 3 ? result.tripAssignments.map((row) => row.id) : [],
+      visibleRejectedRequestIds: index >= 3 ? result.rejectedRequests.map((row) => row.requestId) : [],
       metrics: {
         requestedUnits: final.requestedUnits,
-        fulfilledUnits: index >= 2 ? final.fulfilledUnits : 0,
-        packagesPurchased: index >= 1 ? final.packagesPurchased : 0,
-        wasteUnits: index >= 1 ? final.wasteUnits : 0,
-        householdCostUsd: index >= 3 ? final.householdCostUsd : 0,
-        householdSavingsUsd: index >= 3 ? final.householdSavingsUsd : 0,
-        incrementalVehicleKm: index >= 2 ? final.incrementalVehicleKm : 0,
+        fulfilledUnits: index >= 3 ? final.fulfilledUnits : 0,
+        packagesPurchased: index >= 2 ? final.packagesPurchased : 0,
+        wasteUnits: index >= 2 ? final.wasteUnits : 0,
+        householdCostUsd: index >= 4 ? final.householdCostUsd : 0,
+        householdSavingsUsd: index >= 6 ? final.householdSavingsUsd : 0,
+        incrementalVehicleKm: index >= 5 ? final.incrementalVehicleKm : 0,
       },
     }));
   }

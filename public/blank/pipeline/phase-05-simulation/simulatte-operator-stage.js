@@ -4,6 +4,7 @@
   root.SimulatteOperatorStage = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createOperatorStageApi() {
   function stageForOperator(type) {
+    if (type === 'interaction_kinematics') return 'controls';
     if (type === 'heat_source') return 'sources';
     if ([
       'advection',

@@ -46,7 +46,12 @@
 
     let activeScenario = normalizeScenario(scenario, config);
     let current = computeScenario(activeScenario);
-    sdk.state.register(reduce, { scenarioId: activeScenario.id, result: current, lastAction: 'activated' });
+    sdk.state.register(reduce, {
+      scenarioId: activeScenario.id,
+      result: current,
+      playback: playbackState('ready', 0),
+      lastAction: 'activated',
+    });
     appendEphemerisReceipt();
 
     function appendEphemerisReceipt() {
@@ -221,11 +226,39 @@
             timeOfFlight: values.timeWeight ?? activeWeights.timeOfFlight,
           });
           current = computeScenario(activeScenario, activeWeights);
-          sdk.events.propose({ pluginId: PLUGIN_ID, kind: `${PLUGIN_ID}.scenario-computed`, scenarioId: activeScenario.id, result: current });
+          sdk.events.propose({
+            pluginId: PLUGIN_ID,
+            kind: actionId === 'plan.transfer'
+              ? `${PLUGIN_ID}.plan-recorded`
+              : `${PLUGIN_ID}.playback-started`,
+            scenarioId: activeScenario.id,
+            actionId,
+            result: current,
+          });
+          if (actionId === 'scenario.run') {
+            return playbackResult(sdk.state.read());
+          }
+        }
+        if (values.phase === 'step') {
+          const state = sdk.state.read();
+          if (state.playback.status !== 'running') return playbackResult(state);
+          const cursor = Math.min(TRANSFER_TIMELINE.length - 1, state.playback.cursor + 1);
+          sdk.events.propose({
+            pluginId: PLUGIN_ID,
+            kind: `${PLUGIN_ID}.playback-advanced`,
+            cursor,
+          });
+          const next = sdk.state.read();
+          if (next.playback.status === 'settled') appendTransferReceipt('scenario.run');
+          return playbackResult(next);
         }
         appendTransferReceipt(actionId);
-        sdk.events.propose({ pluginId: PLUGIN_ID, kind: `${PLUGIN_ID}.plan-recorded`, actionId, result: current });
-        return { status: 'settled', metrics: current.metrics };
+        return {
+          status: 'settled',
+          currentStep: TRANSFER_TIMELINE.length - 1,
+          totalSteps: TRANSFER_TIMELINE.length - 1,
+          metrics: current.metrics,
+        };
       }
       if (actionId === 'counterfactual.compare') {
         const earth = ephemerisApi.getBodyState(ephemerisData, 'earth', 0, { clamp: true });
@@ -268,6 +301,7 @@
     function settle() {
       const state = sdk.state.read();
       const result = state.result;
+      const playbackSettled = state.playback?.status === 'settled';
       const hasSolution = Boolean(result.selected || result.fallback);
       const ephemerisHash = sdk.datasets.receipt('jpl.horizons.heliocentric-vectors.v1')?.sha256 || null;
       const verified = result.verification?.accepted === true;
@@ -276,7 +310,7 @@
       const hasFiniteDeltaV = Number.isFinite(totalDeltaVKmS) && totalDeltaVKmS >= 0;
       return {
         obligationResults: [
-          { obligationId: `${PLUGIN_ID}:solution:${state.scenarioId}`, status: hasSolution ? 'settled' : 'unmet', evidence: { solutionCount: result.metrics.solutionCount, fallback: Boolean(result.fallback) } },
+          { obligationId: `${PLUGIN_ID}:solution:${state.scenarioId}`, status: hasSolution && playbackSettled ? 'settled' : 'unmet', evidence: { solutionCount: result.metrics.solutionCount, fallback: Boolean(result.fallback), playbackSettled } },
           { obligationId: `${PLUGIN_ID}:ephemeris:${state.scenarioId}`, status: ephemerisHash ? 'settled' : 'unmet', evidence: { sha256: ephemerisHash, ...ephemerisIdentity } },
           { obligationId: `${PLUGIN_ID}:independent-verification`, status: verified ? 'settled' : 'unmet', evidence: { verification: result.verification, claimGate: result.claimGate } },
           {
@@ -299,46 +333,59 @@
     }
 
     function view() {
-      const result = sdk.state.read().result;
+      const state = sdk.state.read();
+      const result = state.result;
+      const playback = state.playback || playbackState('settled', TRANSFER_TIMELINE.length - 1);
+      const selectedVisible = playback.cursor >= 3;
+      const verificationVisible = playback.cursor >= 4;
+      const arrivalVisible = playback.cursor >= TRANSFER_TIMELINE.length - 1;
       return [
         {
           slot: 'inspector', title: 'Orbital Transfer Planner',
           rows: [
+            { label: 'Solver stage', value: playback.stage.label },
+            { label: 'What changed', value: playback.stage.narrative },
+            { label: 'Progress', value: `${playback.cursor} / ${playback.totalSteps}` },
             { label: 'Scenario', value: result.scenarioId },
             { label: 'Target', value: result.targetBodyId.toUpperCase() },
-            { label: 'Search', value: `${result.metrics.solutionCount}/${result.metrics.attemptedCount} converged` },
-            { label: 'Departure', value: result.metrics.departureEpoch || 'circular fallback' },
-            { label: 'Arrival', value: result.metrics.arrivalEpoch || 'circular fallback' },
-            { label: 'Time of flight', value: `${result.metrics.timeOfFlightDays.toFixed(2)} days` },
-            { label: 'Total Δv', value: `${result.metrics.totalDeltaVKmS.toFixed(3)} km/s` },
-            { label: 'Radiation proxy', value: `${result.metrics.radiationExposureUnits.toFixed(2)} shielded proton units` },
-            { label: 'Method', value: result.metrics.algorithm },
-            { label: 'Lambert branch / revolutions', value: `${result.solverReceipt.branch || 'n/a'} / ${result.solverReceipt.revolutionCount}` },
-            { label: 'Iterations / residual', value: `${result.solverReceipt.iterations ?? 'n/a'} / ${result.solverReceipt.residualDays ?? 'n/a'} days` },
-            { label: 'Independent propagation', value: result.metrics.verificationStatus },
-            { label: 'Endpoint error', value: result.verification ? `${result.metrics.endpointPositionErrorKm.toFixed(3)} km · ${result.metrics.endpointVelocityErrorKmS.toFixed(6)} km/s` : 'not applicable to screening baseline' },
+            ...(playback.cursor >= 1 ? [{ label: 'Search', value: `${result.metrics.solutionCount}/${result.metrics.attemptedCount} converged` }] : []),
+            ...(playback.cursor >= 2 ? [{ label: 'Rejected', value: `${result.solverReceipt.rejectedCandidateCount} candidates · ${rejectionSummary(result.solverReceipt.rejectionCounts)}` }] : []),
+            ...(selectedVisible ? [
+              { label: 'Departure', value: result.metrics.departureEpoch || 'circular fallback' },
+              { label: 'Arrival', value: result.metrics.arrivalEpoch || 'circular fallback' },
+              { label: 'Time of flight', value: `${result.metrics.timeOfFlightDays.toFixed(2)} days` },
+              { label: 'Total Δv', value: `${result.metrics.totalDeltaVKmS.toFixed(3)} km/s` },
+              { label: 'Method', value: result.metrics.algorithm },
+              { label: 'Lambert branch / revolutions', value: `${result.solverReceipt.branch || 'n/a'} / ${result.solverReceipt.revolutionCount}` },
+              { label: 'Iterations / residual', value: `${result.solverReceipt.iterations ?? 'n/a'} / ${result.solverReceipt.residualDays ?? 'n/a'} days` },
+            ] : []),
+            ...(verificationVisible ? [
+              { label: 'Independent propagation', value: result.metrics.verificationStatus },
+              { label: 'Endpoint error', value: result.verification ? `${result.metrics.endpointPositionErrorKm.toFixed(3)} km · ${result.metrics.endpointVelocityErrorKmS.toFixed(6)} km/s` : 'not applicable to screening baseline' },
+            ] : []),
+            ...(arrivalVisible ? [{ label: 'Radiation proxy', value: `${result.metrics.radiationExposureUnits.toFixed(2)} shielded proton units` }] : []),
           ],
           actions: [],
-        },
-        {
-          slot: 'hud', title: 'Orbital claim boundary',
-          rows: [
-            { label: 'Status', value: result.selected ? 'Lambert solution' : 'Hohmann fallback' },
-            { label: 'Claim gate', value: result.claimGate.status },
-            { label: 'Fallback reason', value: result.fallback?.reason.code || 'none' },
-            { label: 'Boundary', value: result.claimBoundary },
-          ], actions: [],
         },
       ];
     }
 
     function present() {
-      const result = sdk.state.read().result;
-      const trajectory = result.verification?.trajectory?.map((row) => row.positionAu)
+      const state = sdk.state.read();
+      const result = state.result;
+      const playback = state.playback || playbackState('settled', TRANSFER_TIMELINE.length - 1);
+      const fullTrajectory = result.verification?.trajectory?.map((row) => row.positionAu)
         || result.selected?.trajectory
         || result.fallback?.trajectory
         || [];
-      return presentationApi.createPresentation(ephemerisData, { trajectory, selectedBodyIds: ['earth', result.targetBodyId] });
+      const trajectory = playback.cursor >= 3 ? fullTrajectory : [];
+      const flightFraction = flightProgress(playback.cursor);
+      return presentationApi.createPresentation(ephemerisData, {
+        trajectory,
+        actorPosition: pointAlong(trajectory, flightFraction),
+        flightFraction,
+        selectedBodyIds: ['earth', result.targetBodyId],
+      });
     }
 
     function contributeV4() {
@@ -351,6 +398,7 @@
       ];
       return v4.createContribution({
         result: sdk.state.read().result,
+        playback: sdk.state.read().playback,
         ephemerisData,
         profileWeights: { deltaV: activeWeights.deltaV, timeOfFlight: activeWeights.timeOfFlight },
         datasetReceipts: datasetIds.map((id) => ({
@@ -421,9 +469,91 @@
     });
   }
   function reduce(state, event) {
-    if (event.kind === `${PLUGIN_ID}.scenario-computed`) return { ...state, scenarioId: event.scenarioId, result: event.result, lastAction: 'scenario' };
-    if (event.kind === `${PLUGIN_ID}.plan-recorded`) return { ...state, result: event.result, lastAction: event.actionId };
+    if (event.kind === `${PLUGIN_ID}.scenario-computed`) {
+      return {
+        ...state,
+        scenarioId: event.scenarioId,
+        result: event.result,
+        playback: playbackState('ready', 0),
+        lastAction: 'scenario',
+      };
+    }
+    if (event.kind === `${PLUGIN_ID}.playback-started`) {
+      return {
+        ...state,
+        scenarioId: event.scenarioId,
+        result: event.result,
+        playback: playbackState('running', 0),
+        lastAction: event.actionId,
+      };
+    }
+    if (event.kind === `${PLUGIN_ID}.playback-advanced`) {
+      return {
+        ...state,
+        playback: playbackState(
+          event.cursor === TRANSFER_TIMELINE.length - 1 ? 'settled' : 'running',
+          event.cursor
+        ),
+      };
+    }
+    if (event.kind === `${PLUGIN_ID}.plan-recorded`) {
+      return {
+        ...state,
+        scenarioId: event.scenarioId || state.scenarioId,
+        result: event.result,
+        playback: playbackState('settled', TRANSFER_TIMELINE.length - 1),
+        lastAction: event.actionId,
+      };
+    }
     return state;
+  }
+
+  const TRANSFER_TIMELINE = Object.freeze([
+    Object.freeze({ id: 'ready', label: 'Search prepared', narrative: 'The bounded departure and flight-time grid is ready.' }),
+    Object.freeze({ id: 'grid', label: 'Launch window scanned', narrative: 'Every declared candidate in the bounded grid has been attempted.' }),
+    Object.freeze({ id: 'rejections', label: 'Candidates classified', narrative: 'Numerical failures and rejected candidates are preserved by reason.' }),
+    Object.freeze({ id: 'selected', label: 'Transfer selected', narrative: 'The weighted objective selects a Lambert solution or named Hohmann screening fallback.' }),
+    Object.freeze({ id: 'verified', label: 'Trajectory verified', narrative: 'Independent propagation measures endpoint position and velocity residuals.' }),
+    Object.freeze({ id: 'flight-quarter', label: 'Modeled coast · 25%', narrative: 'The display advances along the selected screening trajectory.' }),
+    Object.freeze({ id: 'flight-half', label: 'Modeled coast · 50%', narrative: 'Elapsed flight and heliocentric position advance together.' }),
+    Object.freeze({ id: 'flight-three-quarter', label: 'Modeled coast · 75%', narrative: 'The spacecraft approaches the target epoch.' }),
+    Object.freeze({ id: 'arrival', label: 'Screening arrival settled', narrative: 'Endpoint error, Δv, flight time, and claim gates are now final.' }),
+  ]);
+
+  function playbackState(status, cursor) {
+    return Object.freeze({
+      status,
+      cursor,
+      currentStep: cursor,
+      totalSteps: TRANSFER_TIMELINE.length - 1,
+      stage: TRANSFER_TIMELINE[cursor],
+    });
+  }
+
+  function playbackResult(state) {
+    return {
+      status: state.playback.status,
+      currentStep: state.playback.cursor,
+      totalSteps: state.playback.totalSteps,
+      stage: state.playback.stage,
+      metrics: state.playback.status === 'settled' ? state.result.metrics : null,
+    };
+  }
+
+  function flightProgress(cursor) {
+    if (cursor < 5) return null;
+    return [0.25, 0.5, 0.75, 1][Math.min(3, cursor - 5)];
+  }
+
+  function pointAlong(points, fraction) {
+    if (!Number.isFinite(fraction) || !Array.isArray(points) || points.length < 2) return null;
+    const index = Math.min(points.length - 1, Math.max(0, Math.round((points.length - 1) * fraction)));
+    return points[index];
+  }
+
+  function rejectionSummary(counts) {
+    const entries = Object.entries(counts || {}).filter(([, value]) => value > 0);
+    return entries.length ? entries.map(([key, value]) => `${key} ${value}`).join(', ') : 'none';
   }
 
   const datasetValidators = Object.freeze({

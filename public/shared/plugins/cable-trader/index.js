@@ -223,6 +223,8 @@
       const busiestHub = [...result.hubStats].sort((left, right) => right.needs - left.needs || left.id.localeCompare(right.id))[0];
       const busiestCable = [...result.typeStats].sort((left, right) => right.needs - left.needs || left.id.localeCompare(right.id))[0];
       const crossHubTransfers = result.flows.filter((flow) => flow.sourceHubId !== flow.destinationHubId).reduce((total, flow) => total + flow.quantity, 0);
+      const today = result.day > 0 ? state.simulation.daily[result.day - 1] : null;
+      const settled = state.playback.status === 'settled';
       return [{
         slot: 'inspector',
         title: 'Optimal cable network',
@@ -230,21 +232,36 @@
           { label: 'Playback', value: `Day ${result.day} of ${result.durationDays} · ${state.playback.status}` },
           { label: 'Seeded month', value: `${state.simulation.durationDays} days · ${state.simulation.seed}` },
           { label: 'Cable families', value: state.simulation.selectedCableFamilyIds.join(', ') },
+          {
+            label: 'Current event',
+            value: today
+              ? `Day ${today.day}: ${format(today.needs)} requests, ${format(today.returns)} returns, ${format(today.fulfilled)} served`
+              : 'Choose parameters, then play the month.',
+          },
+          ...(today ? [{
+            label: 'Today’s shortage',
+            value: today.fulfilled < today.needs
+              ? `${format(today.needs - today.fulfilled)} requests could not be served`
+              : 'Every modeled request was served',
+          }] : []),
           { label: 'Needs served', value: result.summary.needs ? `${format(result.summary.fulfilledNeeds)} / ${format(result.summary.needs)} (${result.summary.fulfillmentPercent}%)` : '0 / 0 (not started)' },
           { label: 'Seeded input events', value: format(result.summary.randomEvents) },
           { label: 'Exact allocations', value: result.summary.allocations ? `${result.summary.optimalAllocations} / ${result.summary.allocations} (${result.summary.optimalityPercent}%)` : '0 / 0 (not started)' },
           { label: 'Inventory', value: `${format(result.summary.startingInventory)} → ${format(result.summary.endingInventory)}` },
-          { label: 'Busiest hub', value: `${busiestHub.label} · ${format(busiestHub.needs)} modeled requests` },
-          { label: 'Top cable', value: `${busiestCable.label} · ${format(busiestCable.needs)} modeled requests` },
+          ...(result.day > 0 ? [
+            { label: 'Busiest hub', value: `${busiestHub.label} · ${format(busiestHub.needs)} modeled requests` },
+            { label: 'Top cable', value: `${busiestCable.label} · ${format(busiestCable.needs)} modeled requests` },
+          ] : []),
           { label: 'Modeled service level', value: result.summary.needs ? `${result.summary.fulfillmentPercent.toFixed(1)}%` : 'not started' },
-          {
+          ...(settled ? [{
             label: 'Scenario variance',
             value: distributionRange(
               activeEnsembleRun.distributions.branches.intervention.fulfillmentPercent,
               '% fulfillment'
             ),
-          },
+          }] : []),
           { label: 'Average transport cost', value: `${(result.summary.totalBurden / (result.summary.fulfilledNeeds || 1)).toFixed(2)} modeled cost units` },
+          ...inventoryRows(state, result),
           ...(state.lastExchange ? [{ label: 'Last live exchange', value: `${state.lastExchange.direction} · ${state.lastExchange.hubId}` }] : []),
         ],
         actions: [],
@@ -623,6 +640,23 @@
 
   function visibleResult(state) {
     return state.simulation.snapshots[state.playback.day];
+  }
+
+  function inventoryRows(state, result) {
+    return state.simulation.selectedCableFamilyIds.map((cableTypeId) => {
+      const cable = activeLabel(state.simulation.typeStats, cableTypeId);
+      const quantities = state.simulation.hubStats.map((hub) => (
+        result.inventory[`${hub.id}:${cableTypeId}`] || 0
+      ));
+      return {
+        label: `${cable} inventory`,
+        value: quantities.map((quantity, index) => `${state.simulation.hubStats[index].label} ${format(quantity)}`).join(' · '),
+      };
+    });
+  }
+
+  function activeLabel(rows, id) {
+    return rows.find((row) => row.id === id)?.label || id;
   }
 
   function playbackAction(state) {

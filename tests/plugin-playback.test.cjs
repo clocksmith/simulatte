@@ -6,7 +6,13 @@ const contracts = require('../public/simulatte/platform/contracts/plugin-v4-cont
 const clockApi = require('../public/simulatte/platform/runtime/simulation-clock.js');
 const timelineApi = require('../public/simulatte/platform/runtime/simulation-timeline.js');
 
-function fixture({ incompleteSettlement = false, stepOffset = 0, controlValues = {} } = {}) {
+function fixture({
+  incompleteSettlement = false,
+  stepOffset = 0,
+  controlValues = {},
+  eventTimes = [1000, 2000],
+  stepGate = null,
+} = {}) {
   const provenance = contracts.createProvenance({
     origin: 'simulated',
     temporalStatus: 'forecast',
@@ -20,16 +26,16 @@ function fixture({ incompleteSettlement = false, stepOffset = 0, controlValues =
   });
   const timeline = timelineApi.createTimeline({
     id: 'fixture-timeline',
-    events: [1, 2].map((day, index) => ({
+    events: eventTimes.map((simulationTimeMs, index) => ({
       schema: 'simulatte.pluginEvent.v4',
-      id: `day-${day}`,
+      id: `event-${index}`,
       pluginId: 'fixture',
       sequence: index,
-      simulationTimeMs: day * 1000,
+      simulationTimeMs,
       kind: 'fixture.day',
-      causationIds: day === 1 ? [] : [`day-${day - 1}`],
+      causationIds: index === 0 ? [] : [`event-${index - 1}`],
       correlationId: 'fixture-run',
-      payload: { day },
+      payload: { index },
       provenance,
     })),
   });
@@ -47,10 +53,16 @@ function fixture({ incompleteSettlement = false, stepOffset = 0, controlValues =
       dispatchedValues.push(structuredClone(context.values));
       if (context.values.phase === 'start') {
         day = 0;
-        return { status: 'running', currentStep: day, totalSteps: 2 };
+        return { status: 'running', currentStep: day, totalSteps: 2, simulationTimeMs: 0 };
       }
+      if (stepGate) await stepGate.promise;
       day += 1;
-      return { status: day === 2 ? 'settled' : 'running', currentStep: day + stepOffset, totalSteps: 2 + stepOffset };
+      return {
+        status: day === 2 ? 'settled' : 'running',
+        currentStep: day + stepOffset,
+        totalSteps: 2 + stepOffset,
+        simulationTimeMs: day * 1000,
+      };
     },
     async setScenario() { day = 0; },
     async settle() {
@@ -76,7 +88,7 @@ function fixture({ incompleteSettlement = false, stepOffset = 0, controlValues =
     onSettled: (receipt) => { settledReceipt = receipt; },
     onError: () => {},
   });
-  return { controller, dispatchedValues, phases, settledReceipt: () => settledReceipt };
+  return { clock, controller, dispatchedValues, phases, settledReceipt: () => settledReceipt };
 }
 
 test('plugin playback advances on the shared clock and settles terminal obligations', async () => {
@@ -156,4 +168,44 @@ test('plugin playback sends typed experiment parameters on every phase and recei
     { ...parameterValues, phase: 'step' },
   ]);
   assert.deepEqual(lane.settledReceipt().parameterValues, parameterValues);
+});
+
+test('plugin playback seek clamps stale targets and requires an explicit terminal commit', async () => {
+  const lane = fixture();
+  await lane.controller.start();
+  const preview = await lane.controller.seek(99);
+  assert.equal(preview.phase, 'paused');
+  assert.equal(preview.terminalPreview, true);
+  assert.equal(preview.currentStep, 2);
+  assert.equal(lane.settledReceipt(), null);
+  await lane.controller.resume();
+  assert.equal(lane.controller.snapshot().phase, 'completed');
+  assert.ok(lane.settledReceipt());
+});
+
+test('plugin playback seek aligns the clock by simulation time rather than event index', async () => {
+  const lane = fixture({ eventTimes: [100, 900, 2000] });
+  await lane.controller.start();
+  await lane.controller.seek(1);
+  assert.equal(lane.controller.snapshot().currentStep, 1);
+  assert.equal(lane.clock.snapshot().currentMs, 1000);
+  assert.equal(lane.clock.snapshot().cursor, 2);
+});
+
+test('plugin playback seek drains an in-flight clock step before reconstructing', async () => {
+  let release;
+  const stepGate = {
+    promise: new Promise((resolve) => { release = resolve; }),
+  };
+  const lane = fixture({ stepGate });
+  await lane.controller.start();
+  lane.clock.step(1);
+  await Promise.resolve();
+  const seeking = lane.controller.seek(0);
+  release();
+  const reconstructed = await seeking;
+  assert.equal(reconstructed.phase, 'paused');
+  assert.equal(reconstructed.currentStep, 0);
+  assert.equal(reconstructed.actionStatus, 'running');
+  assert.equal(lane.clock.snapshot().currentMs, 0);
 });

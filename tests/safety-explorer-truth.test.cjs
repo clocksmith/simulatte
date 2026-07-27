@@ -118,7 +118,10 @@ test('sensitivity controls recompute derived route state without mutating observ
       fatalityWeight: 20,
     },
   });
-  assert.equal(result.status, 'running');
+  assert.equal(result.status, 'settled');
+  assert.equal(result.interactionKind, 'historical-evidence-analysis');
+  assert.equal(result.currentStep, 1);
+  assert.equal(result.totalSteps, 1);
   assert.equal(host.state().parameters.k, 8);
   assert.deepEqual(host.state().parameters.weights, { crash: 1, injury: 5, fatality: 20 });
   assert.notEqual(host.state().audit.fixedSparseCountEstimate, initial.fixedSparseCountEstimate);

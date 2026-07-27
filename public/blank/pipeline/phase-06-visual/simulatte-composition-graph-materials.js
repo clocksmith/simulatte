@@ -737,7 +737,11 @@
           .filter(Boolean)
         ).slice(0, 32);
         const sceneFraming = scope.frameScenePacketEntities(rawPacketEntities);
-        const packetEntities = sceneFraming.entities;
+        const interactionBinding = scope.bindScenePacketInteractions(
+          sceneFraming.entities,
+          context.interactionIR || null
+        );
+        const packetEntities = interactionBinding.entities;
         const packetFields = fields
           .map((field, index) => scope.scenePacketField({
             field,
@@ -797,6 +801,7 @@
           entities: packetEntities,
           fields: packetFields,
           effects: packetEffects,
+          interactionProgram: interactionBinding.program,
           compositionLedger: context.compositionLedger || null,
           uniforms,
           passes: scope.scenePacketPasses(packetEntities, packetFields, packetEffects),
@@ -812,6 +817,7 @@
             cameraArchetype: context.visualGenome && context.visualGenome.cameraArchetype || '',
             scaleTier: context.visualGenome && context.visualGenome.scaleTier || '',
             framing: sceneFraming.receipt,
+            interaction: interactionBinding.program.receipt,
           compositionLedger: context.compositionLedger ? {
                 schema: context.compositionLedger.schema || scope.SCENE_COMPOSITION_LEDGER_SCHEMA,
                 obligationCount: (context.compositionLedger.obligations || []).length,

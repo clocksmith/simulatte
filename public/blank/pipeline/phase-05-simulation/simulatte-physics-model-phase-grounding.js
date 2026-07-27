@@ -526,6 +526,15 @@
           const renderIR = physicsIR && solverGraph && scope.compileRenderIR
             ? scope.attachRenderIRPhaseInputs(scope.compileRenderIR(physicsIR, solverGraph, acceptedGraph), acceptedGraph)
             : null;
+          const interactionIR = physicsIR && solverGraph && scope.compileInteractionIR
+            ? scope.compileInteractionIR({
+              acceptedGraph,
+              physicsIR,
+              solverGraph,
+              renderIR,
+              controls: uniqueControlsFromComponents(components),
+            })
+            : null;
           const visualSource = groundedIntent.visualSource || {};
           const compositionLedger = scope.advanceCompositionLedger(
             physicsIR && physicsIR.compositionLedger ||
@@ -541,6 +550,7 @@
             validationReceipt,
             solverGraph,
             renderIR,
+            interactionIR,
             loweredRelations: relationLoweringRows(physicsIR),
             physicsObligations: physicsObligationsFromLedger(compositionLedger, physicsIR),
             unsupportedPhysics: validationReceipt && Array.isArray(validationReceipt.unsupported)
@@ -571,6 +581,9 @@
                 physicsIR: simulationCompile.physicsIR && simulationCompile.physicsIR.schema || '',
                 solverGraph: simulationCompile.solverGraph && simulationCompile.solverGraph.schema || '',
                 renderIR: simulationCompile.renderIR && simulationCompile.renderIR.schema || '',
+                interactionIR: simulationCompile.interactionIR && simulationCompile.interactionIR.schema || '',
+                interactionTargetCount: simulationCompile.interactionIR &&
+                  simulationCompile.interactionIR.targets.length || 0,
                 loweredRelations: simulationCompile.loweredRelations.length,
                 physicsObligations: simulationCompile.physicsObligations.length,
             unsupportedPhysics: simulationCompile.unsupportedPhysics.length,
@@ -708,6 +721,7 @@
           physicsIR: simulationCompile.physicsIR || null,
           solverGraph: simulationCompile.solverGraph || null,
           renderIR: simulationCompile.renderIR || null,
+          interactionIR: simulationCompile.interactionIR || null,
           simulationCompile,
           phaseArtifacts: { phase5: phase5Output },
         };
@@ -742,6 +756,7 @@
             schema: scope.VISUAL_COMPILE_SCHEMA,
             visualIR,
             sceneRenderPacket,
+            interactionProgram: sceneRenderPacket && sceneRenderPacket.interactionProgram || null,
             renderInstances: visualIR && Array.isArray(visualIR.renderInstances) ? visualIR.renderInstances : [],
             visualObligations: visualObligationsFromLedger(compositionLedger),
             identityPreservation: identityPreservationRows(sceneRenderPacket, compositionLedger),
@@ -773,6 +788,8 @@
                   : 0,
                 identityPreservation: visualCompile.identityPreservation.length,
                 passes: visualCompile.passes.length,
+                interactionTargetCount: visualCompile.interactionProgram &&
+                  visualCompile.interactionProgram.targetCount || 0,
               },
             ],
           });

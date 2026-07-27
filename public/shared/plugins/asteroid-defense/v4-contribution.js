@@ -53,10 +53,11 @@
     });
     const encounter = snapshot.interventionEncounter
       ? result.interventionEncounter
-      : result.baselineEncounter;
-    const representative = encounter.members[0];
-    const maxDistance = Math.max(1, ...encounter.members.map((row) => row.minimumDistanceKm));
+      : snapshot.baselineEncounter ? result.baselineEncounter : null;
+    const representative = encounter?.members?.[0] || null;
+    const maxDistance = Math.max(1, ...(encounter?.members || []).map((row) => row.minimumDistanceKm));
     const layers = [
+      ...(snapshot.fitReceipt && representative ? [
       builder.layer({
         id: 'asteroid-representative-trajectory',
         kind: 'path',
@@ -80,7 +81,8 @@
         aggregationKey: 'solar-reference',
         provenance: simulated,
       }),
-      ...encounter.members.map((member) => {
+      ] : []),
+      ...(encounter?.members || []).map((member) => {
         const closest = member.trajectory.reduce((best, row) =>
           Math.abs(row.day - member.closestApproachDay) < Math.abs(best.day - member.closestApproachDay) ? row : best);
         return builder.layer({
@@ -154,10 +156,13 @@
       previousStateId: previousSnapshotId(result, snapshot),
       eventIds: snapshot.eventIds,
       measures: [
-        builder.quantity('fit-residual', result.metrics.fitResidualRmsArcsec, 'arcsec'),
-        builder.quantity('baseline-screening-frequency', result.metrics.baselineModeledScreeningFraction, 'ratio'),
-        builder.quantity('intervention-screening-frequency', result.metrics.interventionModeledScreeningFraction, 'ratio'),
-        builder.quantity('intervention-median-distance', result.metrics.interventionMedianDistanceKm, 'km'),
+        builder.quantity('observation-count', snapshot.observationCount, 'observations'),
+        ...(snapshot.fitReceipt ? [builder.quantity('fit-residual', result.metrics.fitResidualRmsArcsec, 'arcsec')] : []),
+        ...(snapshot.baselineEncounter ? [builder.quantity('baseline-screening-frequency', snapshot.baselineEncounter.modeledScreeningFraction, 'ratio')] : []),
+        ...(snapshot.interventionEncounter ? [
+          builder.quantity('intervention-screening-frequency', snapshot.interventionEncounter.modeledScreeningFraction, 'ratio'),
+          builder.quantity('intervention-median-distance', snapshot.interventionEncounter.medianDistanceKm, 'km'),
+        ] : []),
       ],
       provenance: simulated,
     });
@@ -165,16 +170,23 @@
       id: 'asteroid-fit-and-encounter',
       label: 'Synthetic orbit fit and encounter boundary',
       targetIds: layers.map((row) => row.id),
-      fields: [
-        field('campaign', 'Synthetic campaign', result.scenarioId, null, scenarioClaim),
-        field('observations', 'Acquired observations', result.fitReceipt.observationIds.length, 'observations', scenarioClaim),
-        field('fit-termination', 'Fit termination', result.fitReceipt.terminationReason, null, simulated),
-        field('fit-rms', 'Angular residual RMS', result.metrics.fitResidualRmsArcsec, 'arcsec', simulated),
-        field('covariance', 'Covariance PSD', result.fitReceipt.covarianceReceipt.positiveSemidefinite, null, simulated),
-        field('screening-radius', 'Declared encounter screen', result.baselineEncounter.screeningRadiusKm, 'km', simulated),
-        field('screening-language', 'Interpretation', result.baselineEncounter.interpretation, null, simulated),
-        field('requested-intervention', 'Requested intervention', result.requestedInterventionId, null, scenarioClaim),
-        field('applied-intervention', 'Applied intervention', result.appliedInterventionId, null, simulated),
+        fields: [
+          field('campaign', 'Synthetic campaign', result.scenarioId, null, scenarioClaim),
+          field('stage', 'Scientific stage', snapshot.status, null, scenarioClaim),
+          field('observations', 'Acquired observations', snapshot.observationCount, 'observations', scenarioClaim),
+          ...(snapshot.fitReceipt ? [
+            field('fit-termination', 'Fit termination', snapshot.fitReceipt.terminationReason, null, simulated),
+            field('fit-rms', 'Angular residual RMS', result.metrics.fitResidualRmsArcsec, 'arcsec', simulated),
+            field('covariance', 'Covariance PSD', snapshot.fitReceipt.covarianceReceipt.positiveSemidefinite, null, simulated),
+          ] : []),
+          ...(snapshot.baselineEncounter ? [
+            field('screening-radius', 'Declared encounter screen', snapshot.baselineEncounter.screeningRadiusKm, 'km', simulated),
+            field('screening-language', 'Interpretation', snapshot.baselineEncounter.interpretation, null, simulated),
+          ] : []),
+          ...(snapshot.requestedInterventionId ? [
+            field('requested-intervention', 'Requested intervention', snapshot.requestedInterventionId, null, scenarioClaim),
+            field('applied-intervention', 'Applied intervention', snapshot.appliedInterventionId, null, simulated),
+          ] : []),
         field('hidden-policy-access', 'Policy access to hidden truth', false, null, simulated),
         field('force-omissions', 'Force-model omissions', datasets.forceModels.models[0].omissions, null, simulated),
         field('claim-boundary', 'Claim boundary', result.settlement.claimBoundary, null, simulated),

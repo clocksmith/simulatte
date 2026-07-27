@@ -37,6 +37,7 @@
           this.atomUniforms = new Float32Array(24);
           this.sceneMix = new Float32Array(scope.SCENE_MIX_SLOTS.length);
           this.sceneMix[scope.SCENE_MIX_SLOTS.indexOf('mechanical')] = 1;
+          this.atmosphereProgram = null;
           this.visualIrLayers = new Float32Array(scope.VISUAL_IR_LAYER_SLOTS.length);
           this.sceneRenderPacket = null;
           this.sceneRenderPacketKey = '';
@@ -55,6 +56,11 @@
           this.sceneObjectUniforms = new Float32Array(scope.SCENE_PACKET_FLOATS);
           this.sceneInstanceCount = 0;
           this.objectPartData = new Float32Array(scope.GPU_OBJECT_PART_CAPACITY * scope.GPU_OBJECT_PART_FLOATS);
+          this.baseObjectPartData = new Float32Array(scope.GPU_OBJECT_PART_CAPACITY * scope.GPU_OBJECT_PART_FLOATS);
+          this.interactionVisualReceipt = scope.emptyInteractionVisualReceipt();
+          this.interactionVisualKey = '';
+          this.interactionProofVersion = -1;
+          this.lastHitTestReceipt = null;
           this.objectUniforms = new Float32Array(scope.GPU_OBJECT_UNIFORM_FLOATS);
           this.cameraState = {};
           this.lightState = {};
@@ -261,6 +267,21 @@
           this.setRenderExecutionInput(renderExecutionInput);
         }
 
+        pick(clientX, clientY) {
+          const point = scope.scenePacketPointerPoint(this.canvas, clientX, clientY);
+          const receipt = scope.scenePacketHitTest(
+            this.sceneRenderPacket || {},
+            point,
+            this.renderExecutionInput && this.renderExecutionInput.simulationState || null
+          );
+          this.lastHitTestReceipt = receipt;
+          if (this.renderData) this.renderData.hitTestReceipt = receipt;
+          if (this.rendererConsumption) this.rendererConsumption.interactionHitTestingConsumed = true;
+          this.canvas.dataset.phase7HitTest = JSON.stringify(receipt);
+          this.phase7OutputPacketKey = '';
+          return receipt;
+        }
+
         applyPixelSampleOptions(renderExecutionInput = null) {
           if (!this.renderData) return;
           const proof = renderExecutionInput && renderExecutionInput.phase7PixelProof || {};
@@ -296,6 +317,7 @@
           const state = this.renderExecutionInput && this.renderExecutionInput.simulationState || {};
           this.resize();
           this.refreshRendererConsumption();
+          this.updateInteractionVisualState(state);
           this.writeUniforms(state, nowMs || 0);
           this.device.queue.writeBuffer(this.uniformBuffer, 0, this.uniforms);
           this.writeObjectUniforms(nowMs || 0);
@@ -623,14 +645,19 @@
           this.features = renderData.features;
           this.atomUniforms = renderData.atomUniforms;
           this.sceneMix = renderData.sceneMix;
+          this.atmosphereProgram = renderData.atmosphereProgram || null;
           this.visualIrLayers = renderData.visualIrLayers;
           this.sceneObjectUniforms = renderData.sceneObjectUniforms;
           this.sceneInstanceCount = renderData.objectPartCount;
-          this.objectPartData = renderData.objectPartData;
+          this.baseObjectPartData = new Float32Array(renderData.objectPartData);
+          this.objectPartData = new Float32Array(renderData.objectPartData);
           this.objectPartCount = renderData.objectPartCount;
           this.cameraState = renderData.cameraState || {};
           this.lightState = renderData.lightState || {};
           this.rendererConsumption = renderData.rendererConsumption || null;
+          this.interactionVisualReceipt = scope.emptyInteractionVisualReceipt(this.sceneRenderPacket || {});
+          this.interactionVisualKey = '';
+          this.interactionProofVersion = -1;
           this.objectPartBufferDirty = true;
           this.palette = scope.paletteForScene(this.sceneKind, this.atomUniforms, renderData.palette);
           this.metrics = renderData.metrics;
@@ -672,6 +699,48 @@
           this.canvas.dataset.phase7LightCountConsumed = String(this.rendererConsumption && this.rendererConsumption.lightCountConsumed || 0);
           this.canvas.dataset.phase7MaterialCountConsumed = String(this.rendererConsumption && this.rendererConsumption.materialCountConsumed || 0);
           this.canvas.dataset.phase7DepthEnabled = this.rendererConsumption && this.rendererConsumption.depthEnabled ? 'true' : 'false';
+          this.canvas.dataset.phase7InteractionTargetCount = String(
+            this.sceneRenderPacket && this.sceneRenderPacket.interactionProgram &&
+            this.sceneRenderPacket.interactionProgram.targetCount || 0
+          );
+        }
+
+        updateInteractionVisualState(state = {}) {
+          const interaction = state && state.interaction || {};
+          const key = [
+            Number(interaction.version || 0),
+            interaction.selectedTargetId || '',
+            interaction.hoveredTargetId || '',
+            interaction.grabbedTargetId || '',
+            interaction.activeTargetId || '',
+            (interaction.modifiedChannels || []).length
+              ? Number(state.solverState && state.solverState.frame || 0)
+              : 0,
+          ].join(':');
+          if (key === this.interactionVisualKey) return this.interactionVisualReceipt;
+          const applied = scope.scenePacketInteractionPartData(
+            this.baseObjectPartData,
+            this.renderData && this.renderData.objectParts || [],
+            this.sceneRenderPacket || {},
+            state
+          );
+          this.objectPartData = applied.data;
+          this.interactionVisualReceipt = applied.receipt;
+          this.interactionVisualKey = key;
+          this.objectPartBufferDirty = true;
+          if (this.renderData) {
+            this.renderData.interactionVisualReceipt = applied.receipt;
+            if (this.renderData.rendererConsumption) {
+              this.renderData.rendererConsumption.interactionVisualStateConsumed = applied.receipt.consumed === true;
+            }
+          }
+          this.canvas.dataset.phase7InteractionVisual = JSON.stringify(applied.receipt);
+          const interactionVersion = Number(interaction.version || 0);
+          if (interactionVersion !== this.interactionProofVersion) {
+            this.phase7OutputPacketKey = '';
+            this.interactionProofVersion = interactionVersion;
+          }
+          return applied.receipt;
         }
 
         refreshRendererConsumption() {
@@ -689,6 +758,11 @@
             : 0;
           this.rendererConsumption.depthEnabled = objectPathActive && Boolean(this.depthTexture);
           this.rendererConsumption.normalShading = objectPathActive;
+          this.rendererConsumption.atmosphereConsumed = Boolean(
+            this.pipeline && this.rendererConsumption.atmosphereConfigured === true
+          );
+          this.rendererConsumption.interactionVisualStateConsumed =
+            this.interactionVisualReceipt && this.interactionVisualReceipt.consumed === true;
           if (this.renderData) this.renderData.rendererConsumption = this.rendererConsumption;
           this.canvas.dataset.phase7RendererConsumption = JSON.stringify(this.rendererConsumption);
           this.canvas.dataset.phase7CameraConsumed = this.rendererConsumption.cameraConsumed ? 'true' : 'false';

@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.applicationProfile.v2",
   "id": "safety-explorer-v1",
-  "interaction": { "mode": "playback", "startLabel": "Inspect route", "shuffleLabel": "Shuffle corridor" },
+  "interaction": { "mode": "playback", "startLabel": "Analyze corridor", "shuffleLabel": "Change scenario" },
   "defaultSeedId": "union-mccarren",
   "seeds": [
     { "id": "union-mccarren", "label": "Union Square to McCarren", "description": "Recorded crash and injury observations along a bike route.", "seed": "safety-union-mccarren-0719", "missionText": "Bike from Union Square to McCarren Park and show the route's historical crash observations." },

@@ -97,7 +97,8 @@
         const layerSlot = instance && instance.layerSlot ||
           scope.renderInstanceLayerSlot('geometry', geometry || {}, entity, null, sceneKind);
         const identity = scenePacketEntityIdentity(entity, geometry, layerSlot);
-        const geometryProgram = scope.objectGeometryProgramForIdentity(identity, geometry || {}, entity, layerSlot);
+        const selectedGeometryProgram = scope.objectGeometryProgramForIdentity(identity, geometry || {}, entity, layerSlot);
+        const geometryProgram = scope.enhanceObjectGeometryProgram(selectedGeometryProgram, identity, entity);
         const transform = scope.scenePacketReadableTransform(initialTransform, geometryProgram, entity);
         const animation = scope.scenePacketAnimation({
           layerSlot,
@@ -139,6 +140,7 @@
           supportOnly: entity.supportOnly === true,
           layoutConstraints: (entity.layoutConstraints || []).slice(),
           layoutRelationRoles: (entity.layoutRelationRoles || []).slice(),
+          layoutReceipt: entity.layoutReceipt || null,
           representedEntityIds: scope.uniqueList([
             ...(entity.representedEntityIds || []),
             ...(entity.sourceIds || []),
@@ -833,6 +835,7 @@
       }
 
     function scenePacketUniformsForVisualIR({ sceneKind = '', entities = [], fields = [], effects = [], graphicsAtoms = {}, visualGenome = {} }) {
+        const sceneMix = scenePacketSceneMixVector(sceneKind, entities, fields, effects);
         return {
           schema: 'simulatte.sceneRenderPacketUniforms.v1',
           compiler: 'simulatte.visual-ir.scene-render-packet.uniforms.v1',
@@ -840,7 +843,8 @@
           source: 'sceneRenderPacket.renderCodes',
           sceneId: scope.scenePacketSceneId(sceneKind),
           atomUniforms: scenePacketAtomUniforms(graphicsAtoms),
-          sceneMix: scenePacketSceneMixVector(sceneKind, entities, fields, effects),
+          sceneMix,
+          atmosphere: scope.scenePacketAtmosphereProgram(sceneMix),
           visualLayers: scenePacketVisualLayerVector(entities, fields, effects),
           palette: scenePacketGenomePaletteVector(visualGenome),
         };

@@ -66,13 +66,23 @@ function fakeRuntime({ progressive = true, dispatchedValues = [], terminalStatus
         };
       }
       dispatchedValues.push(structuredClone(context.values));
-      if (!progressive) return { status: terminalStatus, result: 'terminal' };
+      if (!progressive) return {
+        status: terminalStatus,
+        result: 'terminal',
+        currentStep: 1,
+        totalSteps: 1,
+      };
       if (context.values.phase === 'start') {
         step = 0;
-        return { status: 'running', step };
+        return { status: 'running', step, currentStep: 0, totalSteps: 2 };
       }
       step += 1;
-      return { status: step === 2 ? terminalStatus : 'running', step };
+      return {
+        status: step === 2 ? terminalStatus : 'running',
+        step,
+        currentStep: step,
+        totalSteps: 2,
+      };
     },
     platformV4() {
       return { contributions: [contribution] };
@@ -215,4 +225,21 @@ test('tier controller persists a bounded reload envelope instead of terminal evi
   assert.equal(stored.terminal.comparisonId, 'fixture-comparison');
   assert.equal('pluginRuntime' in stored, false);
   assert.equal('actionResult' in stored, false);
+});
+
+test('tier controller seek clamps stale targets and commits terminal preview explicitly', async () => {
+  const storage = memoryStorage();
+  const receipts = [];
+  const controller = create(fakeRuntime(), storage, [], receipts);
+  await controller.start();
+  const preview = await controller.seek(99);
+  assert.equal(preview.state, 'paused');
+  assert.equal(preview.terminalPreview, true);
+  assert.equal(preview.currentStep, 2);
+  assert.equal(preview.hasReceipt, false);
+  assert.equal(receipts.length, 0);
+  assert.equal(controllerApi.readStoredReceipt(storage, 'fixture-profile'), null);
+  await controller.resume();
+  assert.equal(controller.snapshot().state, 'settled');
+  assert.equal(receipts.length, 1);
 });
