@@ -2527,11 +2527,12 @@ test('Firebase hosting revalidates app lab and app JavaScript', () => {
   assert.match(developmentSync, /sibling-git-archive/);
   assert.match(developmentSync, /git', \['archive'/);
   assert.match(developmentSync, /public', 'vendor', 'doppler'/);
-  assert.match(developmentSync, /const sourceSha = WRITE \? siblingHead : development\.gitSha/);
-  assert.match(developmentSync, /validating pinned lock/);
+  assert.match(developmentSync, /let packageSource = `\$\{packagePin\.name\}@\$\{packagePin\.version\}`/);
+  assert.match(developmentSync, /if \(WRITE\) \{/);
+  assert.match(developmentSync, /const entry = verifyPackument\(JSON\.parse\(output\), packagePin, WRITE\)/);
   assert.doesNotMatch(developmentSync, /fail\(`sibling HEAD/);
   assert.match(developmentSync, /packagePin\.integrity = entry\.integrity/);
-  assert.match(developmentSync, /development\.gitSha = sourceSha/);
+  assert.match(developmentSync, /development\.gitSha = writeSourceSha/);
   assert.doesNotMatch(deployCheck, /git', \['status', '--porcelain=v1'/);
   const noCacheSources = new Set(headers
     .filter((entry) => entry.headers.some((header) => (
@@ -2622,7 +2623,7 @@ test('model-backed intent retrieval uses a 1024d Qwen index and keeps the unqual
   assert.equal(rawManifest.modelRuntimeLock.id, modelRuntimeLock.id);
   assert.equal(rawManifest.modelRuntimeLock.number, modelRuntimeLock.number);
   assert.equal(modelRuntimeLock.schema, 'simulatte.modelRuntimeLock.v1');
-  assert.equal(modelRuntimeLock.number, 12);
+  assert.equal(modelRuntimeLock.number, 13);
   assert.equal(Object.hasOwn(rawManifest, 'embedModel'), false);
   assert.equal(Object.hasOwn(rawManifest, 'reranker'), false);
     assert.equal(Object.hasOwn(rawManifest, 'runtime'), false);
@@ -2699,7 +2700,7 @@ test('model-backed intent retrieval uses a 1024d Qwen index and keeps the unqual
   assert.doesNotMatch(manifest.embedModel.defaultModelBaseUrl, /models\/local/);
   assert.equal(manifest.embedModel.source.kind, 'huggingface-rdrr');
   assert.equal(manifest.embedModel.source.sourceCheckpointId, 'Qwen/Qwen3-Embedding-0.6B');
-  assert.equal(modelRuntimeLock.doppler.package.version, '0.4.10');
+  assert.equal(modelRuntimeLock.doppler.package.version, '0.5.1');
   assert.equal(modelRuntimeLock.doppler.development.kind, 'sibling-git-archive');
   assert.match(modelRuntimeLock.doppler.development.gitSha, /^[0-9a-f]{40}$/);
   assert.equal(manifest.runtime.moduleUrl, '../../vendor/doppler/src/index.js');

@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.modelRuntimeLock.v1",
   "id": "simulatte-doppler-qwen-runtime-lock",
-  "number": 12,
+  "number": 13,
   "doppler": {
     "moduleUrl": "../../vendor/doppler/src/index.js",
     "deviceModuleUrl": "../../vendor/doppler/src/tooling-exports/device.js",
@@ -9,15 +9,15 @@
     "kernelBasePath": "../../vendor/doppler/src/gpu/kernels",
     "package": {
       "name": "doppler-gpu",
-      "version": "0.4.10",
-      "integrity": "sha512-5fr6M/wFXtbJl7XOQU45Xfry/qwBlgXCRVGb1VbtH8mww30Si6aoQhPbeqdoF4jzGgISw64mkQb7BSSGy74g/A==",
-      "shasum": "02541140c8138334f948b277ff47473d93e7f434",
-      "fileCount": 1366
+      "version": "0.5.1",
+      "integrity": "sha512-eVzxMdaRn5QN3z1lUQB3BSfSN+MNwB9uMMSAMa0MsAVGLUvy9vyj48jYqR2HfadXmmAsHpdMLXFYmNydjtjJrw==",
+      "shasum": "ae3f1b577442cd584df2252638055f56ef387652",
+      "fileCount": 1438
     },
     "development": {
       "kind": "sibling-git-archive",
       "workspacePath": "../doppler",
-      "gitSha": "2853452e34a14271a66e59cd520420a3cbd10b61"
+      "gitSha": "8c223f737d8e1d3578b976b01b7dc51e20e78dd6"
     }
   },
   "embedding": {

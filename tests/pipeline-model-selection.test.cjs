@@ -37,7 +37,7 @@ test('Blank defaults are explicit and selectable alternatives resolve to runtime
   api.setSelection(state, 'bounded-classification', 'linear-svc-tfidf-head');
   const result = api.receipt(state);
   assert.equal(result.selections.find((row) => row.slotId === 'bounded-classification').runtimeRef.id, 'linear-svc-tfidf-head');
-  assert.equal(result.modelRuntimeLock.number, 12);
+  assert.equal(result.modelRuntimeLock.number, 13);
 });
 
 test('Qwen label classification selects its required Qwen retrieval lane', () => {

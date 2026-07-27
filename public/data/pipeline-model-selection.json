@@ -4,7 +4,7 @@
   "id": "simulatte-pipeline-model-selection-v1",
   "modelRuntimeLock": {
     "id": "simulatte-doppler-qwen-runtime-lock",
-    "number": 12,
+    "number": 13,
     "path": "./simulatte-embedder/model-runtime-lock.json"
   },
   "options": [

@@ -317,7 +317,7 @@ async function compileIndex(inputs, documents, options) {
       embeddingsPackedBase64: packedBytes.toString('base64'),
       embeddingsSha256: sha256Hex(packedBytes),
       reproduction: {
-        command: 'node tools/autonomy/compile-place-embeddings.mjs',
+        command: 'node tools/simulatte/compile-place-embeddings.mjs',
         runtime: 'pinned_doppler_node_webgpu',
       },
       claimBoundary: 'This index embeds uniformly generated descriptors from pinned governed world artifacts. It contains no diagnostic probe text and does not establish resolver quality or promotion eligibility.',

@@ -29,7 +29,22 @@ export async function createResolver({ world, embodiment }) {
   }
   const gpu = await bootstrapNodeWebGPU();
   if (!gpu.ok) throw new Error(`Node WebGPU unavailable: ${gpu.detail || gpu.provider || 'unknown'}`);
-  const model = await doppler.load({ url: modelLock.defaultModelBaseUrl }, {});
+  const modelDirectory = String(process.env.SIMULATTE_EMBED_MODEL_DIR || '').trim();
+  let modelSource = { url: modelLock.defaultModelBaseUrl };
+  if (modelDirectory) {
+    const absoluteModelDirectory = path.resolve(modelDirectory);
+    const manifestBytes = await fs.readFile(path.join(absoluteModelDirectory, 'manifest.json'));
+    const manifestSha256 = crypto.createHash('sha256').update(manifestBytes).digest('hex');
+    if (manifestSha256 !== modelLock.manifestHash.hex) {
+      throw new Error(`Local embedding manifest expected SHA-256 ${modelLock.manifestHash.hex}, received ${manifestSha256}`);
+    }
+    const manifest = JSON.parse(manifestBytes.toString('utf8'));
+    if (manifest.modelId !== modelLock.id) {
+      throw new Error(`Local embedding manifest expected modelId ${modelLock.id}, received ${manifest.modelId}`);
+    }
+    modelSource = { manifest, baseUrl: absoluteModelDirectory };
+  }
+  const model = await doppler.load(modelSource, {});
   const lexical = createLexicalResolver(world, embodiment);
   let policy = { ...core.POLICY };
 

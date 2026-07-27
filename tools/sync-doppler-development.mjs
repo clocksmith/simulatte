@@ -151,28 +151,28 @@ function main() {
   if (!/^[0-9a-f]{40}$/i.test(String(development.gitSha || ''))) {
     fail('doppler.development.gitSha must be a full Git SHA');
   }
-  const siblingRoot = path.resolve(ROOT, String(development.workspacePath || ''));
-  if (!fs.existsSync(path.join(siblingRoot, '.git'))) {
-    fail(`sibling repository not found at ${siblingRoot}`);
-  }
-  const siblingHead = run('git', ['rev-parse', 'HEAD'], { cwd: siblingRoot }).trim();
-  const sourceSha = WRITE ? siblingHead : development.gitSha;
-  if (!WRITE && siblingHead !== sourceSha) {
-    console.log(
-      `Doppler sibling checkout is ${siblingHead}; validating pinned lock #${lock.number} source ${sourceSha}.`
-    );
-  }
+  const sourceSha = development.gitSha;
 
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'simulatte-doppler-development-'));
   try {
-    const archivePath = path.join(tempDir, 'doppler.tar');
-    run('git', ['archive', '--format=tar', `--output=${archivePath}`, sourceSha], { cwd: siblingRoot });
-    run('tar', ['-xf', archivePath, '-C', tempDir]);
     const packDir = path.join(tempDir, 'pack');
     fs.mkdirSync(packDir);
+    let packageSource = `${packagePin.name}@${packagePin.version}`;
+    let writeSourceSha = sourceSha;
+    if (WRITE) {
+      const siblingRoot = path.resolve(ROOT, String(development.workspacePath || ''));
+      if (!fs.existsSync(path.join(siblingRoot, '.git'))) {
+        fail(`sibling repository not found at ${siblingRoot}`);
+      }
+      writeSourceSha = run('git', ['rev-parse', 'HEAD'], { cwd: siblingRoot }).trim();
+      const archivePath = path.join(tempDir, 'doppler.tar');
+      run('git', ['archive', '--format=tar', `--output=${archivePath}`, writeSourceSha], { cwd: siblingRoot });
+      run('tar', ['-xf', archivePath, '-C', tempDir]);
+      packageSource = tempDir;
+    }
     const output = run('npm', [
       'pack',
-      tempDir,
+      packageSource,
       '--ignore-scripts',
       '--pack-destination',
       packDir,
@@ -192,7 +192,8 @@ function main() {
       fail(`packed source has ${comparison.expectedFiles.length} files; expected ${expectedFileCount}`);
     }
     if (comparison.missing.length || comparison.extra.length || comparison.changed.length) {
-      fail('public/vendor/doppler differs from the pinned sibling package', [
+      const authority = WRITE ? 'pinned sibling package' : 'published npm package';
+      fail(`public/vendor/doppler differs from the ${authority}`, [
         ...sample('missing:', comparison.missing),
         ...sample('extra:', comparison.extra),
         ...sample('changed:', comparison.changed),
@@ -202,14 +203,15 @@ function main() {
       packagePin.integrity = entry.integrity;
       packagePin.shasum = entry.shasum;
       packagePin.fileCount = Number(entry.entryCount);
-      development.gitSha = sourceSha;
+      development.gitSha = writeSourceSha;
       writeLock(lock);
     }
   } finally {
     fs.rmSync(tempDir, { recursive: true, force: true });
   }
   const action = WRITE ? 'synced' : RESTORE ? 'restored' : 'clean';
-  console.log(`Doppler development source ${action}: lock #${lock.number} uses ${packagePin.name}@${packagePin.version} from ${sourceSha}.`);
+  const authority = WRITE ? `source ${development.gitSha}` : 'npm registry';
+  console.log(`Doppler development source ${action}: lock #${lock.number} uses ${packagePin.name}@${packagePin.version} from ${authority}.`);
 }
 
 try {
