@@ -224,8 +224,8 @@ test('experience actions use one honest verb taxonomy', () => {
   const root = path.resolve(__dirname, '..');
   const expected = {
     'cable-trader-pickup-v1': {
-      startLabel: 'Run restoration',
-      shuffleLabel: 'Change crisis',
+      startLabel: 'Start cable exchange',
+      shuffleLabel: 'Change pseudo-year',
     },
     'neighborhood-bulk-pool-v1': 'Run pooling experiment',
     'nyc-development-atlas-v1': 'Replay and forecast NYC',
@@ -369,6 +369,87 @@ test('app shell clears stale side metrics before a different experience boots', 
   } finally {
     global.document = previousDocument;
   }
+});
+
+test('app shell hides the mounted world synchronously and keeps only the loader until replacement boot completes', async () => {
+  const previousDocument = global.document;
+  const teardownGate = deferred();
+  const replacementBootGate = deferred();
+  const summary = { hidden: false, dataset: { experienceId: 'old-experience-v1' } };
+  const stats = {
+    children: [{ textContent: 'Old metric' }],
+    replaceChildren() { this.children = []; },
+  };
+  const loadingStatus = { textContent: 'Ready' };
+  const body = {
+    classList: { add() {}, remove() {} },
+    dataset: { journeyPhase: 'ready' },
+  };
+  global.document = {
+    body,
+    getElementById(id) {
+      if (id === 'experience-summary') return summary;
+      if (id === 'experience-summary-stats') return stats;
+      if (id === 'loading-status') return loadingStatus;
+      return null;
+    },
+    querySelectorAll() { return []; },
+  };
+  try {
+    const shell = bootApi.createAppShell({
+      router: { canonicalize() {}, start() {} },
+      landing: {
+        classList: { add() {}, remove() {} },
+        querySelector() { return null; },
+        addEventListener() {},
+      },
+      boot: async (tier, experience) => {
+        if (experience === 'old-experience-v1') {
+          return {
+            tier,
+            experience,
+            dispose: () => teardownGate.promise,
+          };
+        }
+        await replacementBootGate.promise;
+        body.dataset.journeyPhase = 'ready';
+        return { tier, experience, dispose() {} };
+      },
+    });
+    await shell.renderRoute({ tier: 'world', experience: 'old-experience-v1' });
+    summary.hidden = false;
+    summary.dataset.experienceId = 'old-experience-v1';
+    stats.children = [{ textContent: 'Old metric' }];
+
+    const replacement = shell.renderRoute({
+      tier: 'world',
+      experience: 'maritime-trade-global-v1',
+    });
+
+    assert.equal(body.dataset.routeLoading, 'true');
+    assert.equal(body.dataset.journeyPhase, 'loading');
+    assert.equal(loadingStatus.textContent, 'Loading experience');
+    assert.equal(summary.hidden, true);
+    assert.equal(summary.dataset.experienceId, undefined);
+    assert.deepEqual(stats.children, []);
+
+    teardownGate.resolve();
+    await Promise.resolve();
+    assert.equal(body.dataset.routeLoading, 'true');
+
+    replacementBootGate.resolve();
+    await replacement;
+    assert.equal(body.dataset.routeLoading, undefined);
+    assert.equal(body.dataset.journeyPhase, 'ready');
+  } finally {
+    global.document = previousDocument;
+  }
+});
+
+test('route loading layer covers every mounted world panel without a transition delay', () => {
+  const css = fs.readFileSync(path.resolve(__dirname, '../public/styles.css'), 'utf8');
+  assert.match(css, /body\[data-route-loading="true"\] \.loading-screen\s*\{[^}]*z-index:\s*500;/s);
+  assert.match(css, /body\[data-route-loading="true"\] \.loading-screen\s*\{[^}]*transition:\s*none;/s);
 });
 
 test('app shell aborts and releases a terminally failed boot attempt', async () => {

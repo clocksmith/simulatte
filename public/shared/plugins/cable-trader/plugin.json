@@ -3,12 +3,12 @@
   "consumes": [],
   "datasets": [
     {
-      "id": "cable-logistics-catalog-v1",
+      "id": "cable-circulation-catalog-v1",
       "reference": {
-        "id": "cable-logistics-catalog-v1",
-        "path": "../../../data/cable-trader/cable-logistics-catalog-v1.json",
-        "schemaId": "simulatte.cableLogisticsCatalog.v1",
-        "sha256": "8d41a7ff73a7073b6d8de7f3703c29726fbfe3586f13b94bc891f426d4fac3ee"
+        "id": "cable-circulation-catalog-v1",
+        "path": "../../../data/cable-trader/cable-circulation-catalog-v1.json",
+        "schemaId": "simulatte.cableCirculationCatalog.v1",
+        "sha256": "5694a3049a8f6b8036599a64545535531adffc2413720776b344a6ac959451b6"
       },
       "required": true
     }
@@ -16,7 +16,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginCableTrader",
-    "integrity": "sha384-f3df6da7e31a3a69cb59845424cac5c1b73d1d3037b3188b3f07aeba0adbfff41bc722a501275c34da1c2079c6a17aa9",
+    "integrity": "sha384-5f1d2200bc805374ef32b4f30605625744885995e82abfde05183db40154f8efb38bfa126a14639825d2fedc7953fe32",
     "path": "./index.js"
   },
   "extensionPoints": [
@@ -40,51 +40,32 @@
     "field.logistics-service.v1"
   ],
   "receiptSchemas": [
-    "simulatte.plugin.cableTraderNetworkReceipt.v1",
-    "simulatte.plugin.cableTraderPlaybackReceipt.v1",
-    "simulatte.plugin.cableTraderEnsembleReceipt.v1",
-    "simulatte.plugin.cableTraderConservationReceipt.v1",
-    "simulatte.comparisonExecutionReceipt.v4"
+    "simulatte.plugin.cableTraderCirculationReceipt.v1",
+    "simulatte.plugin.cableTraderPlaybackReceipt.v2"
   ],
   "resources": [
     {
-      "integrity": "sha384-2949c5b7e6e5b8b30fc9a28e72899823370a43666951ea6ea2d0920d955eab22733b58c6d09669e7b43e65320de66e6f",
+      "integrity": "sha384-9841d5609a8199f3046b1b5a268dc4000105358204e565963ce787d50606c0d00195b6683e2b6f59fc831af7f28d2f9c",
       "path": "./config.schema.json"
     },
     {
-      "integrity": "sha384-a89aba609cd5158adb64925d7166f20d459e28a0874a133bfc63cf04cc14744971b6f464ecec40913108fd62ac32af86",
+      "integrity": "sha384-ac84260e82f694bcb1840746347803b1e413fa8ec5876836e86c4f568c7a555eec89107df58cdba0e97e893bb3cdbb23",
       "path": "./default-config.json"
     },
     {
-      "integrity": "sha384-63f83b51c91cc87e478964828fbf9dc0cc556c890ff5e78dc415e055403ac9df7ae01916c561a0d3b8b0c3321d326928",
-      "path": "./logistics-flow-solver.js"
+      "integrity": "sha384-68cba7ea283a098e12228e2048b3d2240dffdb761212950f47ecb1b8d8475214bb236fc2f6acc702a27b99873777cc9d",
+      "path": "./circulation-presentation.js"
     },
     {
-      "integrity": "sha384-39041b80916b2a0cc2a88e7baeb3bbb82112e9de6328c730407cb2041b9d26bba5e7ad5940e2655d9a6f981c73efdd6f",
-      "path": "./logistics-engine.js"
+      "integrity": "sha384-dfdd63425cedb27adbe52f0f3b26ec4fb27a903949838e9c11258be85568ded78b740fc184a9e2c8e298eedc51fe3aeb",
+      "path": "./circulation-simulation.js"
     },
     {
-      "integrity": "sha384-14617589f3c2b03b35709910d1c3f56de479b7331774c28df8791c8a5af0c9f3e59148fdb88208b0c25bc9fd209fde5f",
-      "path": "./network-simulation.js"
-    },
-    {
-      "integrity": "sha384-4fb1f63cb5915c73c23fa0268298b65d35aca330323cbe6b85d65f5ad63c3c9301f5374655325414c992e1fc6c49ab58",
+      "integrity": "sha384-af1b60be0cad247e9768f63c4c86fdc9bdf5628c021ad4e9b3cd2e83574337993dbc2dfafecfd17fca420caa60f2d6dd",
       "path": "./v4-contribution.js"
-    },
-    {
-      "integrity": "sha384-e6998cc27c5a9c51254464ec7a9a545425b37dfeb71a16b6143157e2a89e910450d80a349dcb9c611f21120f336d9c60",
-      "path": "./comparison-driver.js"
-    },
-    {
-      "integrity": "sha384-a79414f8bd4aed012350a04fde7c3ca78744cf38fd10fd048770ec6abd3c3af5b406ccc28d8634ecaa80b56ba532ea82",
-      "path": "./ensemble-runner.js"
-    },
-    {
-      "integrity": "sha384-9a4cbf42796440c61adc7e8503f49dd1099acc4b224ce69960c3aa7dc168361ee67453dc1e9d71d443d2cb85c1387075",
-      "path": "./logistics-presentation.js"
     }
   ],
   "schema": "simulatte.pluginManifest.v1",
   "sdkVersion": 2,
-  "version": "3.0.0"
+  "version": "4.0.0"
 }

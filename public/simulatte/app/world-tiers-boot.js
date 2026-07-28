@@ -85,10 +85,28 @@
       try { await mounted.dispose?.(); } catch (_error) { /* teardown is best-effort */ }
     }
 
+    function beginRouteLoad(route) {
+      try {
+        document.body.dataset.routeLoading = 'true';
+        document.body.dataset.journeyPhase = 'loading';
+        const status = document.getElementById('loading-status');
+        if (status) status.textContent = route?.experience ? 'Loading experience' : 'Loading world';
+        clearExperienceSummary();
+      } catch (_error) { /* no document */ }
+    }
+
+    function finishRouteLoad() {
+      try {
+        delete document.body.dataset.routeLoading;
+      } catch (_error) { /* no document */ }
+    }
+
     function showLanding() {
       landing?.classList.remove('hidden');
       updateExperienceDocLink(documentationLink, null);
       try {
+        finishRouteLoad();
+        document.body.dataset.journeyPhase = 'ready';
         document.body.classList.remove('world-explorer');
         delete document.body.dataset.experienceShell;
         delete document.body.dataset.experienceId;
@@ -104,8 +122,8 @@
       const generationAtStart = ++generation;
       if (!route || !route.tier) {
         cancelPending();
-        await teardown();
         showLanding();
+        await teardown();
         return;
       }
       if (current && current.tier === route.tier) {
@@ -116,9 +134,9 @@
         }
       }
       cancelPending();
+      beginRouteLoad(route);
       await teardown();
       if (generationAtStart !== generation) return;
-      clearExperienceSummary();
       landing?.classList.add('hidden');
       // The URL already decided the tier, so drive the toolbar from it synchronously — before the
       // async load — so the scale/experience controls never disagree with the address bar (e.g.
@@ -159,6 +177,7 @@
       current = { tier: booted.tier, experience: booted.experience, dispose: booted.dispose };
       reflectRoute(current);
       router.canonicalize({ tier: booted.tier, experience: booted.experience });
+      finishRouteLoad();
     }
 
     function reflectRoute(route) {
@@ -465,6 +484,7 @@
         ownerPluginId:owner,
         scenario:activeScenario,
         profileId:data.applicationProfile.id,
+        comparisonRequired:data.applicationProfile.experience?.comparisonMode!=='none',
         getControlValues:pluginUi.values,
         storage:root.sessionStorage,
         render:renderPlugins,

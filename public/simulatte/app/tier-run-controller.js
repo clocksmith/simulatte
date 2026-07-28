@@ -27,6 +27,7 @@
     stepDelayMs = 500,
     setTimer = setTimeout,
     clearTimer = clearTimeout,
+    comparisonRequired = true,
   }) {
     if (typeof getRuntime !== 'function' || typeof resetRuntime !== 'function') {
       throw controllerError('tier_run_runtime_invalid', 'Tier run controller requires runtime access and reset');
@@ -278,7 +279,7 @@
       const platform = runtime.platformV4({ scenario, compositionSize: runtime.activePluginIds.length });
       const contribution = platform.contributions.find((row) => row.pluginId === ownerPluginId);
       const comparisonDefinitions = contribution?.controls?.comparisons || [];
-      if (!comparisonDefinitions.length) {
+      if (!comparisonDefinitions.length && comparisonRequired) {
         throw controllerError(
           'tier_comparison_definition_missing',
           `${ownerPluginId} did not declare a v4 comparison`
@@ -307,8 +308,8 @@
           contribution,
         }));
       }
-      const comparisonResult = comparisons[0];
-      const comparisonExecutionReceipt = comparisonExecutionReceipts[0];
+      const comparisonResult = comparisons[0] || null;
+      const comparisonExecutionReceipt = comparisonExecutionReceipts[0] || null;
       const actionResult = Object.freeze({
         status: 'settled',
         scenario: scenarioResult,

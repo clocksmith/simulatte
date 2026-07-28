@@ -113,7 +113,7 @@ test('application interactions expose governed seeds without presenting mission 
   assert.equal(contracts.validateProfile(profile), profile);
   const interaction = interactionApi.resolveInteraction(profile, {});
   assert.equal(interaction.mode, 'playback');
-  assert.equal(interaction.defaultScenario.id, 'backbone-shortage');
+  assert.equal(interaction.defaultScenario.id, 'everyday-exchange');
   assert.equal(interaction.scenarios.length, 4);
   assert.notEqual(interactionApi.nextScenario(interaction, interaction.defaultScenario.id).seed, interaction.defaultScenario.seed);
 });

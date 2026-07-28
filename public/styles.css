@@ -76,6 +76,13 @@ body:not([data-journey-phase="loading"]) .loading-screen {
   visibility: hidden;
 }
 
+body[data-route-loading="true"] .loading-screen {
+  z-index: 500;
+  opacity: 1;
+  visibility: visible;
+  transition: none;
+}
+
 /* Experiments own a compact results surface instead of inheriting journey progress chrome. */
 body[data-experience-shell="experiment"] #journey-hud {
   display: none !important;

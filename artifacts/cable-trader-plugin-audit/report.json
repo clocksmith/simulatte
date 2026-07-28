@@ -1,70 +1,103 @@
 {
-  "schema": "simulatte.cableTraderPluginAudit.v1",
+  "schema": "simulatte.cableTraderPluginAudit.v2",
   "pass": true,
   "identities": {
-    "simulationId": "cable-network-b84583c5",
-    "scenarioId": "july-baseline",
-    "seed": "cable-city-month-2026-07",
+    "simulationId": "everyday-exchange:4cd829942466d03122de",
+    "scenarioId": "everyday-exchange",
+    "seed": "cable-circulation-everyday-2026:configuration:4cd829942466d031",
+    "configurationHash": "4cd829942466d03122de019628e8a9138da02c60f6b9c9cd1d897ff2f6bb469f",
+    "selectedCableTypeIds": [
+      "usb-a-to-c",
+      "usb-c-to-c",
+      "usb-a-micro",
+      "lightning",
+      "hdmi",
+      "displayport",
+      "ethernet",
+      "iec-power",
+      "audio-3-5mm",
+      "usb-printer",
+      "coax",
+      "laptop-charger"
+    ],
     "worldId": "nyc-core-autonomy-v1",
-    "compatibilityDataset": {
-      "id": "cable-compatibility-priors-v1",
-      "path": "../../../data/cable-trader/cable-compatibility-priors-v1.json",
-      "sha256": "5b06038f025546f1dc3b5be7827925820e6a8ddbbdc5a8e72c92af419297627c",
-      "schemaId": "simulatte.cableCompatibilityPriors.v1"
+    "cableCatalog": {
+      "id": "cable-circulation-catalog-v1",
+      "path": "../../../data/cable-trader/cable-circulation-catalog-v1.json",
+      "sha256": "5694a3049a8f6b8036599a64545535531adffc2413720776b344a6ac959451b6",
+      "schemaId": "simulatte.cableCirculationCatalog.v1"
     }
   },
   "simulation": {
-    "durationDays": 30,
-    "eventCount": 30,
-    "snapshotCount": 31,
-    "needs": 4096,
-    "fulfilledNeeds": 4096,
-    "allocations": 300,
-    "optimalAllocations": 300,
-    "randomEvents": 9152
+    "durationDays": 365,
+    "peopleCount": 6000,
+    "hubCount": 4,
+    "locationCount": 12,
+    "eventCount": 365,
+    "snapshotCount": 366,
+    "totalSupply": 13296,
+    "totalDemand": 13140,
+    "cablesReused": 11434,
+    "waitingDemand": 1706,
+    "totalJourneys": 24730,
+    "balance": {
+      "startingInventory": 384,
+      "supplied": 13296,
+      "fulfilled": 11434,
+      "endingInventory": 2246,
+      "pass": true
+    }
   },
   "semanticPresentation": {
     "schema": "simulatte.pluginPresentation.v4",
     "layerKinds": [
       "point",
-      "path"
+      "path",
+      "actor"
     ],
     "hubCount": 4,
-    "flowCount": 10,
-    "routeSegmentReferenceCount": 262,
-    "finalStyleFieldsAbsent": [
-      "widthM",
-      "tone",
-      "color",
-      "opacity",
-      "animationRate"
-    ]
+    "locationCount": 12,
+    "journeyLayerCount": 48,
+    "routeSegmentReferenceCount": 551
   },
   "controls": [
-    "durationDays",
-    "initialInventoryPerHubType"
+    "peopleCount",
+    "hubCount",
+    "locationCount",
+    "selectedCableTypeIds"
   ],
-  "comparisons": [
-    {
-      "id": "optimized-vs-local-only",
-      "synchronizedClock": true
-    }
-  ],
+  "publicClaimValidation": {
+    "status": "pass",
+    "claimCount": 3
+  },
+  "comparisons": [],
   "viewIntents": [
     {
       "schema": "simulatte.viewIntent.v4",
       "id": "cable-network-overview",
       "mode": "overview",
       "targetIds": [
-        "hub:union-square-cable-hub",
-        "hub:east-village-cable-hub",
-        "hub:greenpoint-cable-hub",
-        "hub:williamsburg-cable-hub"
+        "hub:union-square",
+        "hub:east-village",
+        "hub:greenpoint",
+        "hub:north-williamsburg",
+        "location:houston-street",
+        "location:allen-street",
+        "location:lafayette-street",
+        "location:manhattan-avenue",
+        "location:hudson-greenway",
+        "location:williamsburg-bridge",
+        "location:east-8th-street",
+        "location:varick-street",
+        "location:kent-avenue",
+        "location:driggs-avenue",
+        "location:delancey-street",
+        "location:berry-street"
       ],
-      "reasonEventId": "cable-trader:event:day-30",
-      "priority": 45,
+      "reasonEventId": "everyday-exchange:4cd829942466d03122de:day-180",
+      "priority": 50,
       "transition": "ease"
     }
   ],
-  "claimBoundary": "Exact optimum over every modeled day, cable family, hub, inventory unit, and complete inter-hub route set. Seeded events model possible demand and journey costs; they are not forecasts of real people."
+  "claimBoundary": "People, cable supply, demand, inventories, and journeys are deterministic modeled activity. City nodes and route geometry come from the governed world; no exchange operations are observed."
 }

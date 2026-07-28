@@ -1,0 +1,32 @@
+{
+  "schema": "simulatte.cableCirculationCatalog.v1",
+  "id": "cable-circulation-catalog-v1",
+  "version": "2026-07-28",
+  "typeTaxonomy": [
+    { "id": "usb-a-to-c", "family": "USB", "commonUse": "charging and data", "identityOrigin": "authored" },
+    { "id": "usb-c-to-c", "family": "USB", "commonUse": "charging, data, and display", "identityOrigin": "authored" },
+    { "id": "usb-a-micro", "family": "USB", "commonUse": "legacy device charging", "identityOrigin": "authored" },
+    { "id": "lightning", "family": "Lightning", "commonUse": "device charging and data", "identityOrigin": "authored" },
+    { "id": "hdmi", "family": "HDMI", "commonUse": "display and audio", "identityOrigin": "authored" },
+    { "id": "displayport", "family": "DisplayPort", "commonUse": "display and audio", "identityOrigin": "authored" },
+    { "id": "ethernet", "family": "Ethernet", "commonUse": "local networking", "identityOrigin": "authored" },
+    { "id": "iec-power", "family": "IEC power", "commonUse": "computer and appliance power", "identityOrigin": "authored" },
+    { "id": "audio-3-5mm", "family": "analog audio", "commonUse": "headphones and speakers", "identityOrigin": "authored" },
+    { "id": "usb-printer", "family": "USB", "commonUse": "printer and peripheral data", "identityOrigin": "authored" },
+    { "id": "coax", "family": "coaxial", "commonUse": "television and modem signal", "identityOrigin": "authored" },
+    { "id": "laptop-charger", "family": "laptop power", "commonUse": "portable computer charging", "identityOrigin": "authored" }
+  ],
+  "modeledFields": [
+    "people",
+    "hubCount",
+    "locationCount",
+    "cableSupply",
+    "cableDemand",
+    "hubInventory",
+    "waitingDemand",
+    "pickupJourney",
+    "dropoffJourney",
+    "dailyParticipation"
+  ],
+  "claimBoundary": "The cable taxonomy is an authored everyday-use set. People, supply, demand, inventory, participation, pickups, and drop-offs are deterministic modeled activity, not observed community exchange operations."
+}

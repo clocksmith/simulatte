@@ -1,120 +1,70 @@
 {
-  "schema": "simulatte.plugin.cableTraderConfig.v5",
-  "id": "cable-trader-logistics-v5",
+  "schema": "simulatte.plugin.cableTraderConfig.v6",
+  "id": "cable-trader-circulation-v6",
   "cableTypes": [
-    {
-      "id": "cat6-copper",
-      "label": "Category 6 copper",
-      "shortLabel": "Cat 6",
-      "conductor": "four-pair copper",
-      "reelLengthM": 305,
-      "minimumUsefulRemnantM": 20,
-      "modeledCostPerMeter": 0.72,
-      "demandWeight": 8,
-      "substitutesFor": []
-    },
-    {
-      "id": "cat6a-copper",
-      "label": "Category 6A copper",
-      "shortLabel": "Cat 6A",
-      "conductor": "shielded four-pair copper",
-      "reelLengthM": 305,
-      "minimumUsefulRemnantM": 20,
-      "modeledCostPerMeter": 1.18,
-      "demandWeight": 6,
-      "substitutesFor": ["cat6-copper"]
-    },
-    {
-      "id": "os2-single-mode",
-      "label": "OS2 single-mode fiber",
-      "shortLabel": "OS2",
-      "conductor": "single-mode optical fiber",
-      "reelLengthM": 500,
-      "minimumUsefulRemnantM": 30,
-      "modeledCostPerMeter": 1.64,
-      "demandWeight": 4,
-      "substitutesFor": []
-    },
-    {
-      "id": "om4-multimode",
-      "label": "OM4 multimode fiber",
-      "shortLabel": "OM4",
-      "conductor": "multimode optical fiber",
-      "reelLengthM": 300,
-      "minimumUsefulRemnantM": 25,
-      "modeledCostPerMeter": 2.05,
-      "demandWeight": 3,
-      "substitutesFor": []
-    },
-    {
-      "id": "rg6-coax",
-      "label": "RG-6 coaxial cable",
-      "shortLabel": "RG-6",
-      "conductor": "copper-clad steel coaxial",
-      "reelLengthM": 305,
-      "minimumUsefulRemnantM": 20,
-      "modeledCostPerMeter": 0.48,
-      "demandWeight": 3,
-      "substitutesFor": []
-    }
+    { "id": "usb-a-to-c", "label": "USB-A to USB-C cable", "shortLabel": "USB-A → C", "tone": "cyan", "demandWeight": 10, "supplyWeight": 9 },
+    { "id": "usb-c-to-c", "label": "USB-C to USB-C cable", "shortLabel": "USB-C", "tone": "blue", "demandWeight": 10, "supplyWeight": 8 },
+    { "id": "usb-a-micro", "label": "USB-A to Micro-USB cable", "shortLabel": "Micro-USB", "tone": "violet", "demandWeight": 6, "supplyWeight": 10 },
+    { "id": "lightning", "label": "Lightning charging cable", "shortLabel": "Lightning", "tone": "magenta", "demandWeight": 7, "supplyWeight": 7 },
+    { "id": "hdmi", "label": "HDMI cable", "shortLabel": "HDMI", "tone": "amber", "demandWeight": 9, "supplyWeight": 8 },
+    { "id": "displayport", "label": "DisplayPort cable", "shortLabel": "DisplayPort", "tone": "red", "demandWeight": 5, "supplyWeight": 5 },
+    { "id": "ethernet", "label": "Cat 6 Ethernet cable", "shortLabel": "Ethernet", "tone": "green", "demandWeight": 8, "supplyWeight": 7 },
+    { "id": "iec-power", "label": "IEC computer power cable", "shortLabel": "Power", "tone": "amber", "demandWeight": 7, "supplyWeight": 9 },
+    { "id": "audio-3-5mm", "label": "3.5 mm audio cable", "shortLabel": "3.5 mm", "tone": "magenta", "demandWeight": 4, "supplyWeight": 7 },
+    { "id": "usb-printer", "label": "USB printer cable", "shortLabel": "USB-B", "tone": "cyan", "demandWeight": 4, "supplyWeight": 6 },
+    { "id": "coax", "label": "Coaxial cable", "shortLabel": "Coax", "tone": "amber", "demandWeight": 3, "supplyWeight": 6 },
+    { "id": "laptop-charger", "label": "Universal laptop charging cable", "shortLabel": "Laptop power", "tone": "violet", "demandWeight": 8, "supplyWeight": 5 }
   ],
   "hubs": [
-    { "id": "union-square-depot", "label": "Union Square depot", "nodeId": "bike-node-0d9391b2bfa3" },
-    { "id": "east-village-depot", "label": "East Village depot", "nodeId": "bike-node-ffea919f743c" },
-    { "id": "greenpoint-depot", "label": "Greenpoint depot", "nodeId": "bike-node-7a95737b9c7d" },
-    { "id": "williamsburg-depot", "label": "North Williamsburg depot", "nodeId": "bike-node-e25116ea05a4" }
+    { "id": "union-square", "label": "Union Square hub", "nodeId": "bike-node-0d9391b2bfa3" },
+    { "id": "east-village", "label": "East Village hub", "nodeId": "bike-node-ffea919f743c" },
+    { "id": "greenpoint", "label": "Greenpoint hub", "nodeId": "bike-node-7a95737b9c7d" },
+    { "id": "north-williamsburg", "label": "North Williamsburg hub", "nodeId": "bike-node-e25116ea05a4" },
+    { "id": "west-village", "label": "West Village hub", "nodeId": "bike-node-261ee8be5a25" },
+    { "id": "washington-square", "label": "Washington Square hub", "nodeId": "bike-node-a3f0f4b7e7e3" },
+    { "id": "williamsburg-waterfront", "label": "Williamsburg Waterfront hub", "nodeId": "bike-node-0b79eee2f2ef" },
+    { "id": "mccarren-park", "label": "McCarren Park hub", "nodeId": "bike-node-8a641140b02c" }
   ],
-  "demandSites": [
-    { "id": "hospital-uplink", "label": "Hospital uplink", "nodeId": "bike-node-261ee8be5a25", "defaultPriority": "critical" },
-    { "id": "school-network", "label": "Public school network", "nodeId": "bike-node-a3f0f4b7e7e3", "defaultPriority": "urgent" },
-    { "id": "housing-backbone", "label": "Housing backbone", "nodeId": "bike-node-429dcefa615d", "defaultPriority": "standard" },
-    { "id": "community-media", "label": "Community media room", "nodeId": "bike-node-86300f2cfd65", "defaultPriority": "standard" },
-    { "id": "transit-telemetry", "label": "Transit telemetry", "nodeId": "bike-node-0b79eee2f2ef", "defaultPriority": "urgent" },
-    { "id": "shelter-connectivity", "label": "Emergency shelter", "nodeId": "bike-node-8a641140b02c", "defaultPriority": "critical" }
-  ],
-  "scenarioModifiers": [
-    {
-      "id": "backbone-shortage",
-      "demandTypeMultipliers": { "cat6-copper": 1.35, "cat6a-copper": 1.25 },
-      "demandSiteMultipliers": { "housing-backbone": 1.4 }
-    },
-    {
-      "id": "fiber-restoration",
-      "demandTypeMultipliers": { "os2-single-mode": 1.8, "om4-multimode": 1.4 },
-      "demandSiteMultipliers": { "hospital-uplink": 1.5, "transit-telemetry": 1.3 }
-    },
-    {
-      "id": "emergency-restoration",
-      "demandTypeMultipliers": { "cat6a-copper": 1.4, "os2-single-mode": 1.5 },
-      "demandSiteMultipliers": { "hospital-uplink": 1.7, "shelter-connectivity": 1.8 }
-    },
-    {
-      "id": "borough-fairness",
-      "demandTypeMultipliers": {},
-      "demandSiteMultipliers": { "housing-backbone": 1.6, "community-media": 1.5 }
-    }
+  "locations": [
+    { "id": "houston-street", "label": "Houston Street", "nodeId": "bike-node-0027f161deee" },
+    { "id": "allen-street", "label": "Allen Street", "nodeId": "bike-node-0099ac79ed5d" },
+    { "id": "lafayette-street", "label": "Lafayette Street", "nodeId": "bike-node-00e6a4f5b13d" },
+    { "id": "manhattan-avenue", "label": "Manhattan Avenue", "nodeId": "bike-node-00f0c43427ea" },
+    { "id": "hudson-greenway", "label": "Hudson Greenway", "nodeId": "bike-node-00f5e482242f" },
+    { "id": "williamsburg-bridge", "label": "Williamsburg Bridge", "nodeId": "bike-node-019ee0d024c0" },
+    { "id": "east-8th-street", "label": "East 8th Street", "nodeId": "bike-node-020ae31348c7" },
+    { "id": "varick-street", "label": "Varick Street", "nodeId": "bike-node-0219074afbb1" },
+    { "id": "kent-avenue", "label": "Kent Avenue", "nodeId": "bike-node-02581375adf5" },
+    { "id": "driggs-avenue", "label": "Driggs Avenue", "nodeId": "bike-node-0276a7734bae" },
+    { "id": "delancey-street", "label": "Delancey Street", "nodeId": "bike-node-03352f042588" },
+    { "id": "berry-street", "label": "Berry Street", "nodeId": "bike-node-03e4f4137869" },
+    { "id": "stanton-street", "label": "Stanton Street", "nodeId": "bike-node-03ed7cd47daf" },
+    { "id": "franklin-street", "label": "Franklin Street", "nodeId": "bike-node-0432bbd6fe21" },
+    { "id": "east-3rd-street", "label": "East 3rd Street", "nodeId": "bike-node-045777091070" },
+    { "id": "greenwich-street", "label": "Greenwich Street", "nodeId": "bike-node-02e9c58895db" }
   ],
   "simulation": {
-    "seed": "cable-city-logistics-2026-07",
-    "selectedCableFamilyIds": ["cat6-copper", "cat6a-copper", "os2-single-mode", "om4-multimode", "rg6-coax"],
-    "ensembleSeeds": [
-      "cable-logistics-variance-01",
-      "cable-logistics-variance-02",
-      "cable-logistics-variance-03",
-      "cable-logistics-variance-04"
+    "seed": "cable-circulation-everyday-2026",
+    "durationDays": 365,
+    "peopleCount": 6000,
+    "hubCount": 4,
+    "locationCount": 12,
+    "selectedCableTypeIds": [
+      "usb-a-to-c",
+      "usb-c-to-c",
+      "usb-a-micro",
+      "lightning",
+      "hdmi",
+      "displayport",
+      "ethernet",
+      "iec-power",
+      "audio-3-5mm",
+      "usb-printer",
+      "coax",
+      "laptop-charger"
     ],
-    "durationDays": 14,
-    "needCount": 18,
-    "returnCount": 0,
-    "journeyEventCount": 0,
-    "renderedRequestCount": 18,
-    "initialInventoryPerHubType": 2,
-    "demandPriority": "critical-first",
-    "allowSubstitutes": true,
-    "reservePolicy": "one-reel",
-    "transferCapacityMetersPerDay": 900,
-    "allocationObjective": "cheapest",
-    "fairnessWeight": 3,
-    "disruptionScenario": "road-closure"
+    "initialInventoryPerHubCable": 8,
+    "dailyParticipationRate": 0.012,
+    "renderedTravelerCount": 24
   }
 }

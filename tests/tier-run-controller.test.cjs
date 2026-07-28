@@ -100,13 +100,14 @@ function fakeRuntime({
   };
 }
 
-function create(runtime, storage, states, receipts, controlValues = {}) {
+function create(runtime, storage, states, receipts, controlValues = {}, options = {}) {
   const scenario = { id: 'fixture-scenario', seed: 'fixture-seed' };
   return controllerApi.createController({
     getRuntime: () => runtime,
     ownerPluginId: 'fixture',
     scenario,
     profileId: 'fixture-profile',
+    comparisonRequired: options.comparisonRequired ?? true,
     getControlValues: () => controlValues,
     render() {},
     async resetRuntime() {},
@@ -127,6 +128,21 @@ function create(runtime, storage, states, receipts, controlValues = {}) {
     clearTimer() {},
   });
 }
+
+test('tier controller settles a profile that explicitly has no comparison mode', async () => {
+  const comparisonDispatches = [];
+  const controller = create(fakeRuntime({
+    progressive: false,
+    comparisonIds: [],
+    comparisonDispatches,
+  }), memoryStorage(), [], [], {}, { comparisonRequired: false });
+  await controller.start();
+  assert.equal(controller.snapshot().state, 'settled');
+  assert.deepEqual(comparisonDispatches, []);
+  assert.equal(controller.receipt().actionResult.comparison, null);
+  assert.equal(controller.receipt().actionResult.comparisonExecutionReceipt, null);
+  assert.deepEqual(controller.receipt().actionResult.comparisonExecutionReceipts, []);
+});
 
 test('tier controller pauses, steps, executes both comparison branches, settles, and persists', async () => {
   const storage = memoryStorage();

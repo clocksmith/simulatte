@@ -6,23 +6,25 @@ const test = require('node:test');
 
 const root = path.resolve(__dirname, '..');
 const pluginDirectory = path.join(root, 'public/shared/plugins/cable-trader');
-const network = require('../public/shared/plugins/cable-trader/network-simulation.js');
-const comparisonDriver = require('../public/shared/plugins/cable-trader/comparison-driver.js');
-const ensembleRunner = require('../public/shared/plugins/cable-trader/ensemble-runner.js');
+const circulation = require('../public/shared/plugins/cable-trader/circulation-simulation.js');
+const presentation = require('../public/shared/plugins/cable-trader/circulation-presentation.js');
 const plugin = require('../public/shared/plugins/cable-trader/index.js');
 const contracts = require('../public/simulatte/platform/contracts/plugin-contracts.js');
 const v4Contracts = require('../public/simulatte/platform/contracts/plugin-v4-contracts.js');
+const provenanceRegistry = require('../public/simulatte/platform/runtime/provenance-registry.js');
 const config = readJson(path.join(pluginDirectory, 'default-config.json'));
 
 function completeRoutes() {
-  return config.hubs.flatMap((source, sourceIndex) => config.demandSites.map((destination, destinationIndex) => ({
-    id: `route-${source.id}-${destination.id}`,
-    sourceHubId: source.id,
-    destinationSiteId: destination.id,
-    distanceM: 700 + sourceIndex * 850 + destinationIndex * 420,
-    costUnits: 1 + sourceIndex + destinationIndex,
-    segmentIds: [`segment-${source.id}-${destination.id}`],
-  })));
+  return config.hubs.flatMap((hub, hubIndex) => config.locations.flatMap((location, locationIndex) => (
+    ['from-hub', 'to-hub'].map((direction, directionIndex) => ({
+      id: `route-${hub.id}-${location.id}-${direction}`,
+      hubId: hub.id,
+      locationId: location.id,
+      direction,
+      distanceM: 500 + hubIndex * 100 + locationIndex * 20 + directionIndex,
+      segmentIds: [`segment-${hub.id}-${location.id}-${direction}`],
+    }))
+  )));
 }
 
 function scenarioConfig(overrides = {}) {
@@ -30,7 +32,7 @@ function scenarioConfig(overrides = {}) {
     ...config,
     simulation: {
       ...config.simulation,
-      scenarioId: 'backbone-shortage',
+      scenarioId: 'everyday-exchange',
       ...overrides,
     },
   };
@@ -44,7 +46,7 @@ function stubSdk() {
   return {
     worldQuery: {
       model() {
-        return { segment() { return { lengthM: 1400 }; } };
+        return { segment() { return { lengthM: 900 }; } };
       },
     },
     routing: {
@@ -78,336 +80,194 @@ function stubSdk() {
   };
 }
 
-test('exact transport utility reroutes an early choice to reach the global minimum', () => {
-  const result = network.minimumCostTransport([1, 1], [1, 1], [[1, 2], [2, 100]]);
-  assert.equal(result.delivered, 2);
-  assert.equal(result.cost, 4);
-  assert.equal(result.optimalityProven, true);
-  assert.deepEqual(result.flows.map((row) => [row.source, row.destination, row.quantity]), [
-    [0, 1, 1],
-    [1, 0, 1],
-  ]);
+test('Cable Trader creates a deterministic 365-day exchange with thousands of stable people', () => {
+  const first = circulation.simulateCirculation(scenarioConfig(), completeRoutes());
+  const replay = circulation.simulateCirculation(scenarioConfig(), completeRoutes());
+  assert.deepEqual(first, replay);
+  assert.equal(first.schema, 'simulatte.plugin.cableTraderCirculation.v1');
+  assert.equal(first.people.length, 6000);
+  assert.equal(new Set(first.people.map((row) => row.id)).size, 6000);
+  assert.equal(first.durationDays, 365);
+  assert.equal(first.snapshots.length, 366);
+  assert.equal(first.events.length, 365);
+  assert.equal(first.activeHubIds.length, 4);
+  assert.equal(first.activeLocationIds.length, 12);
 });
 
-test('Cable Trader deterministically preserves individual reel, project, and transfer identities', () => {
-  const first = network.simulateNetwork(scenarioConfig(), completeRoutes());
-  const replay = network.simulateNetwork(scenarioConfig(), completeRoutes());
-  assert.deepEqual(first, replay);
-  assert.equal(first.schema, 'simulatte.plugin.cableTraderSimulation.v2');
-  assert.equal(first.durationDays, 14);
-  assert.equal(first.snapshots.length, 15);
-  assert.equal(first.events.length, 14);
-  assert.ok(first.reels.every((row) => row.id.startsWith('reel:') && row.originalMeters > 0));
-  assert.ok(first.projects.every((row) => row.siteId && row.requiredCableFamilyId && row.requestedMeters > 0));
-  assert.ok(first.transfers.every((row) => (
-    row.reelId
-    && row.projectId
-    && row.quantityMeters > 0
-    && row.arrivalDay > row.dispatchDay
-    && row.reason
-    && Array.isArray(row.rejectedAlternatives)
-  )));
-  assert.equal(first.conservation.pass, true);
+test('real supply and demand boards balance every cable across hubs and the pseudo-year', () => {
+  const simulation = circulation.simulateCirculation(scenarioConfig(), completeRoutes());
+  assert.equal(simulation.balance.pass, true);
   assert.equal(
-    first.conservation.startingMeters,
-    first.conservation.remainingMeters
-      + first.conservation.damagedMeters
-      + first.conservation.unusableRemnantMeters
-      + first.conservation.dispatchedMeters
+    simulation.balance.startingInventory + simulation.balance.supplied,
+    simulation.balance.fulfilled + simulation.balance.endingInventory
   );
-});
-
-test('dispatch decrements the exact reel before arrival and arrival advances the exact project', () => {
-  const simulation = network.simulateNetwork(scenarioConfig(), completeRoutes());
-  const transfer = simulation.transfers[0];
-  const before = simulation.snapshots[transfer.dispatchDay - 1];
-  const dispatched = simulation.snapshots[transfer.dispatchDay];
-  const arrived = simulation.snapshots[transfer.arrivalDay];
-  const beforeReel = before.reelInventory.find((row) => row.id === transfer.reelId);
-  const afterReel = dispatched.reelInventory.find((row) => row.id === transfer.reelId);
-  const beforeProject = before.projectStats.find((row) => row.id === transfer.projectId);
-  const dispatchedProject = dispatched.projectStats.find((row) => row.id === transfer.projectId);
-  const arrivedProject = arrived.projectStats.find((row) => row.id === transfer.projectId);
-  assert.ok(afterReel.remainingMeters < beforeReel.remainingMeters);
-  assert.equal(dispatchedProject.deliveredMeters, beforeProject.deliveredMeters);
-  assert.ok(dispatchedProject.inFlightMeters > beforeProject.inFlightMeters);
-  assert.ok(arrivedProject.deliveredMeters > dispatchedProject.deliveredMeters);
-});
-
-test('cheapest, fastest, and fairness-first execute the same crisis with policy-visible outcomes', () => {
-  const cheapest = network.simulateNetwork(scenarioConfig(), completeRoutes(), { allocationPolicy: 'cheapest' });
-  const fastest = network.simulateNetwork(scenarioConfig(), completeRoutes(), {
-    allocationPolicy: 'fastest',
-    exogenous: cheapest.exogenous,
+  assert.ok(simulation.summary.totalSupply > 10000);
+  assert.ok(simulation.summary.totalDemand > 10000);
+  assert.ok(simulation.summary.cablesReused > 10000);
+  simulation.snapshots.forEach((snapshot) => {
+    assert.equal(snapshot.global.supply, snapshot.hubBoards.reduce((sum, row) => sum + row.supply, 0));
+    assert.equal(snapshot.global.demand, snapshot.hubBoards.reduce((sum, row) => sum + row.demand, 0));
+    assert.equal(snapshot.global.inventory, snapshot.hubBoards.reduce((sum, row) => sum + row.inventory, 0));
+    assert.equal(snapshot.global.waiting, snapshot.hubBoards.reduce((sum, row) => sum + row.waiting, 0));
   });
-  const fairness = network.simulateNetwork(scenarioConfig(), completeRoutes(), {
-    allocationPolicy: 'fairness-first',
-    exogenous: cheapest.exogenous,
-  });
-  assert.deepEqual(fastest.exogenous, cheapest.exogenous);
-  assert.deepEqual(fairness.exogenous, cheapest.exogenous);
-  assert.deepEqual(
-    new Set([cheapest.allocationPolicy, fastest.allocationPolicy, fairness.allocationPolicy]),
-    new Set(['cheapest', 'fastest', 'fairness-first'])
-  );
-  const outcomes = [cheapest, fastest, fairness].map((row) => JSON.stringify({
-    delivered: row.summary.deliveredMeters,
-    completed: row.summary.completedProjects,
-    cost: row.summary.totalCost,
-    transfers: row.transfers.map((transfer) => [
-      transfer.sourceHubId,
-      transfer.projectId,
-      transfer.quantityMeters,
-    ]),
-  }));
-  assert.ok(new Set(outcomes).size >= 2, 'policy choices must materially alter allocation or outcomes');
 });
 
-test('every public control changes scenario identity and at least one causal output', () => {
-  const baseline = network.simulateNetwork(scenarioConfig(), completeRoutes());
+test('every traveling person carries a named cable on an explicit pickup or drop-off route', () => {
+  const simulation = circulation.simulateCirculation(scenarioConfig(), completeRoutes());
+  const journeys = simulation.snapshots.flatMap((row) => row.journeys);
+  const people = new Set(simulation.people.map((row) => row.id));
+  const cables = new Set(simulation.selectedCableTypeIds);
+  assert.ok(journeys.length > 20000);
+  assert.ok(journeys.some((row) => row.action === 'pickup'));
+  assert.ok(journeys.some((row) => row.action === 'dropoff'));
+  assert.ok(journeys.every((row) => (
+    people.has(row.personId)
+    && cables.has(row.cableTypeId)
+    && ['pickup', 'dropoff'].includes(row.action)
+    && row.routeId
+  )));
+});
+
+test('people, hubs, locations, and cable set are causal controls', () => {
+  const baseline = circulation.simulateCirculation(scenarioConfig(), completeRoutes());
   const cases = [
-    { demandPriority: 'deadline-first' },
-    { allowSubstitutes: false },
-    { reservePolicy: 'none' },
-    { transferCapacityMetersPerDay: 250 },
-    { allocationObjective: 'fastest' },
-    { fairnessWeight: 0.5, allocationObjective: 'fairness-first' },
-    { disruptionScenario: 'damaged-stock' },
-    { initialInventoryPerHubType: 3 },
+    { peopleCount: 9000 },
+    { hubCount: 6 },
+    { locationCount: 16 },
+    { selectedCableTypeIds: ['usb-a-to-c', 'hdmi', 'ethernet'] },
   ];
-  for (const values of cases) {
-    const candidate = network.simulateNetwork(scenarioConfig(values), completeRoutes(), {
-      allocationPolicy: values.allocationObjective || config.simulation.allocationObjective,
-    });
+  cases.forEach((values) => {
+    const candidate = circulation.simulateCirculation(scenarioConfig(values), completeRoutes());
     assert.notEqual(candidate.configurationHash, baseline.configurationHash, JSON.stringify(values));
-    assert.notDeepEqual({
-      summary: candidate.summary,
-      transfers: candidate.transfers,
-      events: candidate.events,
-    }, {
-      summary: baseline.summary,
-      transfers: baseline.transfers,
-      events: baseline.events,
-    }, JSON.stringify(values));
-  }
-});
-
-test('staged disruptions and compatibility failures remain explicit evidence', () => {
-  const damaged = network.simulateNetwork(
-    scenarioConfig({ disruptionScenario: 'damaged-stock', allowSubstitutes: false }),
-    completeRoutes()
-  );
-  assert.ok(damaged.events.some((row) => row.storyEvents.some((event) => event.kind === 'damaged-stock')));
-  assert.ok(damaged.summary.damagedMeters > 0);
-  assert.ok(damaged.snapshots.some((snapshot) => snapshot.projectStats.some((project) => (
-    project.blockers.some((row) => /incompatible/.test(row))
-  ))));
-  assert.equal(damaged.conservation.pass, true);
-});
-
-test('mid-run interventions preserve history and causally alter the remaining restoration', async () => {
-  const baseline = network.simulateNetwork(scenarioConfig(), completeRoutes());
-  const intervenedConfig = scenarioConfig({
-    interventions: [
-      { id: 'user-route-closure-day-4', kind: 'route-closure', day: 4 },
-      { id: 'user-release-reserve-day-6', kind: 'release-reserve', day: 6 },
-    ],
+    assert.notDeepEqual(candidate.summary, baseline.summary, JSON.stringify(values));
   });
-  const intervened = network.simulateNetwork(intervenedConfig, completeRoutes());
-  assert.deepEqual(intervened.snapshots.slice(0, 4), baseline.snapshots.slice(0, 4));
-  assert.notEqual(intervened.configurationHash, baseline.configurationHash);
-  assert.ok(intervened.events[3].storyEvents.some((row) => row.kind === 'road-closure'));
-  assert.ok(intervened.events[5].storyEvents.some((row) => row.kind === 'reserve-released'));
-  assert.notDeepEqual(intervened.transfers, baseline.transfers);
+});
 
+test('presentation exposes global and per-hub boards plus bounded live people', () => {
+  const simulation = circulation.simulateCirculation(scenarioConfig(), completeRoutes());
+  const playback = { status: 'running', day: 180 };
+  const views = presentation.createViews({ config, simulation, playback });
+  const board = views.find((row) => row.slot === 'inspector');
+  assert.equal(board.title, 'Live cable exchange board');
+  assert.ok(board.rows.some((row) => row.label === 'Global supply today'));
+  assert.ok(board.rows.some((row) => row.label === 'Global demand today'));
+  assert.ok(config.hubs.slice(0, 4).every((hub) => board.rows.some((row) => row.label === hub.label)));
+  const visual = presentation.createPresentation({
+    config,
+    simulation,
+    playback,
+    routes: completeRoutes(),
+  });
+  contracts.validatePresentationContribution('cable-trader', visual);
+  assert.equal(visual.actors.length, 24);
+  assert.ok(visual.actors.every((row) => row.kind === 'bicycle' && /Person .* (pick up|drop off)/.test(row.label)));
+  assert.equal(visual.markers.filter((row) => row.id.startsWith('hub:')).length, 4);
+  assert.equal(visual.markers.filter((row) => row.id.startsWith('location:')).length, 12);
+});
+
+test('plugin playback advances live boards and settles the complete year', async () => {
   const sdk = stubSdk();
   const instance = await plugin.activate({
     sdk,
     config,
-    scenario: { id: 'backbone-shortage', seed: 'live-intervention' },
-  });
-  await instance.handleAction('scenario.run', { values: { phase: 'start' } });
-  await instance.handleAction('scenario.run', { values: { phase: 'step' } });
-  const action = await instance.handleAction('cable-trader.intervene.release-reserve', { values: {} });
-  assert.equal(action.status, 'running');
-  assert.equal(action.currentStep, 1);
-  assert.equal(action.intervention.kind, 'release-reserve');
-  assert.equal(action.interventions.length, 1);
-  assert.match(instance.view().find((row) => row.slot === 'map').rows
-    .find((row) => row.label === 'User interventions').value, /^1$/);
-});
-
-test('both synchronized comparison definitions execute and settle', async () => {
-  const simulation = network.simulateNetwork(scenarioConfig(), completeRoutes());
-  for (const comparisonId of ['cheapest-vs-fastest', 'cheapest-vs-fairness']) {
-    const run = await comparisonDriver.runComparison({
-      config: scenarioConfig(),
-      transferRoutes: completeRoutes(),
-      interventionSimulation: simulation,
-      comparisonId,
-    });
-    assert.equal(run.comparisonId, comparisonId);
-    assert.equal(run.settlement.status, 'settled');
-    assert.equal(run.comparisonExecutionReceipt.id, comparisonId);
-    assert.deepEqual(
-      run.comparisonExecutionReceipt.startingIdentity.hiddenTruth.sha256,
-      run.comparisonExecutionReceipt.startingIdentity.hiddenTruth.sha256
-    );
-    assert.notEqual(
-      run.branchSummaries.baseline.policyId,
-      run.branchSummaries.intervention.policyId
-    );
-  }
-});
-
-test('declared ensemble preserves individual timelines and reports scenario variance', async () => {
-  const first = await ensembleRunner.runEnsemble({ config: scenarioConfig(), transferRoutes: completeRoutes() });
-  const replay = await ensembleRunner.runEnsemble({ config: scenarioConfig(), transferRoutes: completeRoutes() });
-  assert.deepEqual(first, replay);
-  assert.equal(first.members.length, config.simulation.ensembleSeeds.length);
-  assert.ok(first.members.every((row) => row.branches.baseline.daily.length === 14));
-  assert.equal(first.receipt.uncertainty.value.label, 'scenario_variance');
-});
-
-test('plugin playback exposes real intermediate transfers, project progress, and aligned receipts', async () => {
-  const sdk = stubSdk();
-  const instance = await plugin.activate({
-    sdk,
-    config,
-    scenario: { id: 'backbone-shortage', seed: 'cable-city-logistics-2026-07' },
+    scenario: { id: 'everyday-exchange', seed: 'playback-proof' },
   });
   let action = await instance.handleAction('scenario.run', { values: { phase: 'start' } });
   assert.deepEqual(
     { status: action.status, currentStep: action.currentStep, totalSteps: action.totalSteps },
-    { status: 'running', currentStep: 0, totalSteps: 14 }
+    { status: 'running', currentStep: 0, totalSteps: 365 }
   );
-  let observedTransfer = false;
-  let observedProgress = false;
+  action = await instance.handleAction('scenario.run', { values: { phase: 'step' } });
+  assert.equal(action.currentStep, 1);
+  assert.ok(instance.present().actors.length > 0);
   while (action.status === 'running') {
     action = await instance.handleAction('scenario.run', { values: { phase: 'step' } });
-    const presentation = instance.present();
-    contracts.validatePresentationContribution('cable-trader', presentation);
-    observedTransfer ||= presentation.actors.length > 0;
-    observedProgress ||= instance.contributeV4().state.measures.some((row) => (
-      row.kind === 'delivered-cable' && row.value > 0
-    ));
   }
-  assert.equal(observedTransfer, true);
-  assert.equal(observedProgress, true);
-  const settlement = instance.settle();
-  assert.ok(settlement.obligationResults.every((row) => row.status === 'settled'));
+  assert.ok(instance.settle().obligationResults.every((row) => row.status === 'settled'));
   assert.ok(sdk.emittedReceipts.some((row) => (
-    row.schema === 'simulatte.plugin.cableTraderPlaybackReceipt.v1'
-    && row.conservation.pass
-    && row.transferReceipts.every((transfer) => transfer.reason && transfer.downstreamConsequence)
+    row.schema === 'simulatte.plugin.cableTraderPlaybackReceipt.v2'
+    && row.completedDays === 365
+    && row.balance.pass
   )));
 });
 
-test('typed controls rebuild the complete simulation and remain visible in v4 state', async () => {
+test('four focused controls rebuild state and remain visible in v4', async () => {
   const instance = await plugin.activate({
     sdk: stubSdk(),
     config,
-    scenario: { id: 'backbone-shortage', seed: 'parameter-rebuild' },
+    scenario: { id: 'everyday-exchange', seed: 'control-proof' },
   });
   const before = instance.contributeV4();
   const values = {
     phase: 'start',
-    selectedCableFamilyIds: ['cat6-copper', 'cat6a-copper'],
-    demandPriority: 'deadline-first',
-    allowSubstitutes: false,
-    reservePolicy: 'none',
-    transferCapacityMetersPerDay: 350,
-    allocationObjective: 'fastest',
-    fairnessWeight: 1.5,
-    disruptionScenario: 'surprise-demand',
-    initialInventoryPerHubType: 3,
+    peopleCount: 10000,
+    hubCount: 6,
+    locationCount: 16,
+    selectedCableTypeIds: ['usb-a-to-c', 'usb-c-to-c', 'hdmi', 'ethernet'],
   };
-  const started = await instance.handleAction('scenario.run', {
-    scenario: { id: 'backbone-shortage', seed: 'parameter-rebuild' },
+  await instance.handleAction('scenario.run', {
+    scenario: { id: 'everyday-exchange', seed: 'control-proof' },
     values,
   });
   const after = instance.contributeV4();
-  assert.equal(started.totalSteps, 14);
   assert.notEqual(after.state.id, before.state.id);
-  for (const [id, value] of Object.entries(values)) {
-    if (id === 'phase') continue;
-    assert.deepEqual(after.controls.controls.find((row) => row.id === id).value, value);
-  }
+  assert.deepEqual(
+    after.controls.controls.map((row) => row.id),
+    ['peopleCount', 'hubCount', 'locationCount', 'selectedCableTypeIds']
+  );
+  Object.entries(values).forEach(([id, value]) => {
+    if (id !== 'phase') assert.deepEqual(after.controls.controls.find((row) => row.id === id).value, value);
+  });
+  assert.equal(after.controls.comparisons.length, 0);
 });
 
-test('v4 presentation uses depots, demand sites, real transfers, explanations, and three policies', async () => {
+test('v4 contribution validates hubs, locations, cable journeys, and supply-demand measures', async () => {
   const instance = await plugin.activate({
     sdk: stubSdk(),
     config,
-    scenario: { id: 'backbone-shortage', seed: 'semantic-evidence' },
+    scenario: { id: 'everyday-exchange', seed: 'semantic-proof' },
   });
   await instance.handleAction('scenario.run', { values: { phase: 'start' } });
-  for (let day = 0; day < 5; day += 1) {
-    await instance.handleAction('scenario.run', { values: { phase: 'step' } });
-  }
+  await instance.handleAction('scenario.run', { values: { phase: 'step' } });
   const contribution = instance.contributeV4();
   assert.doesNotThrow(() => v4Contracts.validateContribution(contribution));
-  assert.ok(contribution.presentation.layers.some((row) => row.id.startsWith('depot:')));
-  assert.ok(contribution.presentation.layers.some((row) => row.id.startsWith('project-site:')));
-  assert.ok(contribution.presentation.layers.some((row) => row.id.startsWith('path:transfer-')));
-  assert.ok(contribution.inspections.some((row) => row.fields.some((field) => field.id === 'reason')));
-  assert.deepEqual(
-    contribution.controls.comparisons.map((row) => row.id),
-    ['cheapest-vs-fastest', 'cheapest-vs-fairness']
-  );
-  assert.deepEqual(
-    new Set(contribution.controls.comparisons.flatMap((row) => (
-      [row.baselineScenarioId.split(':').at(-1), row.variantScenarioId.split(':').at(-1)]
-    ))),
-    new Set(['cheapest', 'fastest', 'fairness-first'])
-  );
-  await instance.handleAction('counterfactual.compare', {
-    values: { comparisonId: 'cheapest-vs-fairness' },
-  });
-  for (let day = 5; day < 14; day += 1) {
-    await instance.handleAction('scenario.run', { values: { phase: 'step' } });
-  }
-  const settled = instance.contributeV4();
-  assert.deepEqual(
-    new Set(settled.presentation.layers
-      .filter((row) => row.id.startsWith('comparison:'))
-      .map((row) => row.quantity.kind)),
-    new Set([
-      'allocation-policy.cheapest',
-      'allocation-policy.fastest',
-      'allocation-policy.fairness-first',
-    ])
-  );
+  assert.ok(contribution.presentation.layers.some((row) => row.id.startsWith('hub:')));
+  assert.ok(contribution.presentation.layers.some((row) => row.id.startsWith('location:')));
+  assert.ok(contribution.presentation.layers.some((row) => row.id.startsWith('actor:')));
+  assert.ok(contribution.state.measures.some((row) => row.kind === 'cable-supply'));
+  assert.ok(contribution.state.measures.some((row) => row.kind === 'cable-demand'));
+  assert.ok(contribution.inspections.some((row) => row.label === 'Global supply and demand'));
+  const provenance = provenanceRegistry.createContributionProvenanceReceipt(contribution);
+  assert.doesNotThrow(() => provenanceRegistry.createPlatformProvenanceReceipt([provenance]));
 });
 
-test('profile and documentation describe a restoration story rather than an allocation dashboard', () => {
+test('profile describes a continuous community exchange rather than a crisis', () => {
   const profile = readJson(path.join(root, 'public/data/application-profiles/cable-trader-pickup-v1.json'));
   assert.equal(profile.plugins[0].configId, config.id);
-  assert.equal(profile.interaction.startLabel, 'Run restoration');
-  assert.deepEqual(profile.experience.supportedViews, ['overview', 'follow', 'top', 'compare']);
-  assert.ok(profile.experience.stages.some((row) => /metered cable leaves an identified reel/i.test(row.narrative)));
-  assert.equal(profile.seeds.length, 4);
+  assert.equal(profile.interaction.startLabel, 'Start cable exchange');
+  assert.equal(profile.interaction.shuffleLabel, 'Change pseudo-year');
+  assert.deepEqual(profile.experience.supportedViews, ['overview', 'follow', 'top']);
+  assert.equal(profile.experience.comparisonMode, 'none');
+  assert.ok(profile.experience.stages.some((row) => /365 modeled days/i.test(row.narrative)));
+  assert.doesNotMatch(JSON.stringify(profile), /\bcrisis\b/i);
 });
 
-test('governed catalog limits observed evidence to cable-family context', () => {
-  const catalogPath = path.join(root, 'public/data/cable-trader/cable-logistics-catalog-v1.json');
+test('authored cable catalog and public claims preserve the modeled boundary', () => {
+  const catalogPath = path.join(root, 'public/data/cable-trader/cable-circulation-catalog-v1.json');
   const catalog = readJson(catalogPath);
   assert.doesNotThrow(() => plugin.datasetValidators[catalog.schema](catalog));
-  assert.ok(catalog.modeledFields.includes('depotInventory'));
-  assert.ok(/scenario assumptions/.test(catalog.claimBoundary));
+  assert.ok(catalog.modeledFields.includes('cableSupply'));
+  assert.match(catalog.claimBoundary, /not observed/i);
   const manifest = readJson(path.join(pluginDirectory, 'plugin.json'));
   const reference = manifest.datasets.find((row) => row.id === catalog.id).reference;
   const hash = crypto.createHash('sha256').update(fs.readFileSync(catalogPath)).digest('hex');
   assert.equal(reference.sha256, hash);
-});
-
-test('public claims fail closed when observed operations are implied', () => {
   assert.equal(
-    plugin.validatePublicClaim('The standards catalog supplies family context; inventory and demand are modeled.'),
-    'The standards catalog supplies family context; inventory and demand are modeled.'
+    plugin.validatePublicClaim('Cable supply and demand are modeled, not observed operations.'),
+    'Cable supply and demand are modeled, not observed operations.'
   );
   assert.throws(
-    () => plugin.validatePublicClaim('The map shows actual current depot inventory.'),
+    () => plugin.validatePublicClaim('The map shows actual current community demand.'),
     /cable_public_claim_observed_operations_invalid/
   );
 });
@@ -415,12 +275,12 @@ test('public claims fail closed when observed operations are implied', () => {
 test('manifest integrity-locks every owned Cable Trader resource', () => {
   const manifest = readJson(path.join(pluginDirectory, 'plugin.json'));
   const resources = [{ path: manifest.entry.path, integrity: manifest.entry.integrity }, ...manifest.resources];
-  for (const resource of resources) {
+  resources.forEach((resource) => {
     const actual = `sha384-${crypto.createHash('sha384')
       .update(fs.readFileSync(path.resolve(pluginDirectory, resource.path)))
       .digest('hex')}`;
     assert.equal(resource.integrity, actual, resource.path);
-  }
+  });
 });
 
 function readJson(file) {

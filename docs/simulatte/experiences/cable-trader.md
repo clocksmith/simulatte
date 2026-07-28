@@ -8,112 +8,102 @@ Owner contract: `public/shared/plugins/cable-trader/index.js`.
 - Tier and world: City, `nyc-core-autonomy-v1`
 - Plugin ID: `cable-trader`
 - Profile ID: `cable-trader-pickup-v1`
-- Default scenario: `backbone-shortage`
-- Contract version: plugin v4 contribution
-- Last verified source: focused tests and targeted current-worktree browser audits on 2026-07-27
-- Evidence: desktop settled Compare and 390×844 mid-run intervention audits passed and were visually reviewed
+- Default scenario: `everyday-exchange`
+- Contract version: circulation config v6 and plugin v4 contribution
+- Last verified source: focused tests and the governed route audit on 2026-07-28
+- Evidence: 6,000 people, 365 days, real City route geometry, live journeys, and balanced cable accounting
 
 ## What is it?
 
-Cable Trader is a deterministic cable-restoration experiment. Named projects
-need specific cable families and lengths while four depots hold individually
-identified reels. Users choose the operating policy and watch stock leave a
-reel, travel through the City, and advance a project only when it arrives.
+Cable Trader is a continuous community cable exchange. Thousands of modeled
+neighbors use nearby hubs to pass along everyday cables that another neighbor
+would otherwise be missing, such as USB, HDMI, Ethernet, audio, display, and
+power cables. It is a hub-and-spoke reuse network, not a restoration crisis.
 
 ## What does it actually do?
 
-1. Load four City depot nodes and six project-site nodes.
-2. Create stable reels with family, conductor, length, cost, and remnant rules.
-3. Release seeded projects with family, meter, priority, and deadline needs.
-4. Apply reserve, compatibility, transfer-capacity, and disruption constraints.
-5. Solve exact policy-scored feasible flow from reels to projects.
-6. Dispatch identified transfers and decrement the source reel immediately.
-7. Move transfers for one or more days and credit projects only on arrival.
-8. Settle reel conservation, project completion, cost, and policy comparisons.
+1. Creates a stable identity for every modeled person.
+2. Activates the configured number of hubs and community locations.
+3. Generates daily cable supply and demand for all 365 days of a pseudo-year.
+4. Maintains inventory and waiting demand for every cable type at every hub.
+5. Matches available stock to pickup requests and future drop-offs to waiting requests.
+6. Routes each fulfilled pickup and every drop-off over governed City segments.
+7. Presents named people carrying named cables to or from the responsible hub.
+8. Settles global and per-hub boards with exact cable conservation.
 
 ## What can the user control?
 
 | Control | Default | Allowed values | Material effect |
 |---|---:|---|---|
-| Cable families | All five | One or more family IDs | Rebuilds reels, demand, feasible substitutions, and receipts |
-| Demand priority | Critical first | Critical, deadline, or balanced | Changes which contested project is served first |
-| Compatible substitutes | On | On or off | Adds or removes feasible family substitutions |
-| Depot reserve | One reel | None, one reel, or 20% | Changes dispatchable stock and remaining resilience |
-| Daily transfer capacity | 900 m | 50 to 10,000 m | Limits cable dispatched per modeled day |
-| Allocation objective | Cheapest | Cheapest, fastest, or fairness first | Changes the exact edge score and resulting transfers |
-| Fairness weighting | 3 | 0 to 5 | Changes underserved-project preference |
-| Staged disruption | Road closure | None, closure, damage, surprise, or conflict | Changes delays, stock, demand, or contention |
-| Starting reels | 2 | 1 to 12 per depot and family | Changes feasible supply and shortages |
-| Crisis preset | Backbone shortage | Four governed seeds | Changes demand mix, sites, priorities, and identity |
+| People | 6,000 | 1,000 to 25,000 | Changes participation, supply, demand, and person identities |
+| Hubs | 4 | 2 to 8 | Changes active inventory boards and spoke topology |
+| Locations | 12 | 4 to 16 | Changes where people and cable trips originate or end |
+| Cable set | 12 everyday types | One or more declared types | Changes inventories, demand mix, and cable identities |
+| Pseudo-year | Everyday exchange | Four governed seeds | Changes the deterministic daily circulation pattern |
 
 ## What does the user see?
 
-- Initial view: An overview of four depots and six named repair sites.
-- During playback: Family-colored cable paths and vehicles tied to real transfer IDs.
-- Inventory and consequences: Depots report usable reels and remaining meters; projects report delivered, in-transit, and short meters.
-- Selection: A transfer explains its reel, family, quantity, policy reason, rejected alternatives, and downstream consequence.
-- Comparison and settlement: Both policy comparisons use common inputs, then close completion, shortage, cost, damage, remnant, and conservation evidence.
+- Initial view: Active hubs, community locations, and a global exchange board.
+- During playback: Cable-colored people moving over real City routes with explicit pickup or drop-off labels.
+- Hub boards: Supply, demand, fulfilled pickups, available inventory, and waiting requests for each active hub.
+- Global board: Daily supply, daily demand, reused cables, waiting demand, journeys, and cumulative pseudo-year totals.
+- Selection: Person, cable type, action, hub, location, and route-backed journey evidence.
 
 ## What is real, derived, modeled, or simulated?
 
 | Item | Origin | Source | Time status | Uncertainty | Used for |
 |---|---|---|---|---|---|
-| City node and route geometry | observed/derived | Governed NYC world | snapshot | Coverage limits | Depot, site, and transfer placement |
-| Cable-family standards context | derived | TIA, IEC, and SCTE catalog metadata | historical | Full standards separately licensed | Family identity only |
-| Reel length, cost, and substitution | scenario | Plugin catalog | forecast | Operations calibration missing | Feasible supply and cost |
-| Depot inventory and project demand | scenario | Seeded crisis configuration | forecast | Four-seed scenario variance | Starting state |
-| Disruptions and delivery delays | simulated | Declared disruption model | forecast | Uncalibrated | Playback events |
-| Allocations and outcomes | simulated | Exact feasible-flow solver | forecast | Input-driven variance | Transfers and settlement |
+| City node and route geometry | observed/derived | Governed NYC world | snapshot | Coverage limits | Hub, location, and journey placement |
+| Everyday cable taxonomy | scenario | Authored cable catalog | forecast | Not externally calibrated | Cable identities |
+| People and home locations | simulated | Seeded circulation model | forecast | Not population calibrated | Stable participants |
+| Supply, demand, and inventory | simulated | Seeded circulation model | forecast | Not operations calibrated | Exchange boards |
+| Pickups and drop-offs | simulated | Hub-and-spoke matching model | forecast | Input-driven | Live journeys |
+| Annual outcomes | simulated | Exact modeled accounting | forecast | Seed-dependent | Settlement |
 
 ## How does the simulation work?
 
-- State: Individual reels, project demand, in-transit transfers, arrivals, damage, remnants, and cost.
-- Governing algorithm: Exact minimum-cost maximum-flow over every feasible reel-to-project edge, using the selected policy score.
-- Progression: Fourteen daily states release demand, apply disruptions, dispatch stock, move vehicles, and record arrivals.
-- Randomness: The crisis seed and every public control enter scenario identity and configuration hashing.
-- Invariants: Meter balance equals remaining plus damaged plus unusable remnant plus dispatched cable.
-- Settlement: Playback must finish and reel conservation must pass.
+- State: Stable people, active hubs, active locations, per-cable inventory, waiting demand, and journeys.
+- Governing algorithm: Seeded daily participation with hub-local inventory matching and backlog service.
+- Progression: A complete 365-day pseudo-year advances one deterministic daily state at a time.
+- Randomness: Seed, people count, hub count, location count, and cable set enter configuration identity.
+- Invariants: Starting inventory plus drop-offs equals fulfilled pickups plus ending inventory.
+- Settlement: Playback must reach day 365 and cable balance must pass.
 
 ## How do comparison and playback work?
 
-- Policies: Cheapest completion, fastest restoration, and fairness first.
-- Shared inputs: Reels, projects, routes, disruption realization, seed, and clock.
-- Executed comparisons: Cheapest versus fastest and cheapest versus fairness first.
-- Clock and replay: Start, pause, step, resume, seek, replay, and reload reconstruct deterministic daily state.
-- Invalid comparison: Mismatched inputs, hidden truth, metrics, clock, or terminal state blocks settlement.
+- Comparison: Cable Trader has no policy comparison mode because this experience is one continuous exchange.
+- Clock: Playback uses 365 daily steps and exposes the current pseudo-day.
+- Replay: The same seed and controls reconstruct the same people, boards, and journeys.
+- Shuffle: Changing the pseudo-year seed produces a different deterministic circulation pattern.
+- Controls: Edited people, hubs, locations, and cable types apply when playback starts or replays.
 
 ## What can and cannot be claimed?
 
-Can claim:
-
-- Each displayed transfer is backed by the same transfer identity in state and receipts.
-- Dispatch decrements its source reel; arrival advances its destination project.
-- The solver is exact over the declared feasible graph and policy score.
-- Controls rebuild scenario identity and materially alter causal inputs or outcomes.
-
-Cannot claim:
-
-- Depot inventory, projects, costs, vehicles, disruptions, or delivery times are observed.
-- Standards-family context validates a specific installation.
-- Modeled policy results predict real restoration operations.
-- Targeted browser audits prove the reviewed paths, not the complete release evidence matrix.
+- Can claim that every displayed traveler references a stable modeled person.
+- Can claim that every displayed traveler carries a named modeled cable for pickup or drop-off.
+- Can claim that global values equal the sum of the active hub boards.
+- Can claim that the settled pseudo-year preserves exact cable balance.
+- Cannot claim that people, supply, demand, inventory, or participation are observed.
+- Cannot claim that modeled fulfillment predicts a real exchange network.
+- Cannot claim that a cable taxonomy establishes electrical compatibility or safety.
+- Cannot claim that browser proof extends beyond the checked world, controls, and playback path.
 
 ## What is verified?
 
-- Focused tests: 16/16 passing in `tests/cable-trader.test.cjs`
-- Deterministic replay and reel conservation: covered
-- Three policy executions and two synchronized comparisons: covered
-- Desktop browser: settled Compare audit passed with three policy traces
-- Mobile browser: 390×844 mid-run intervention audit passed
-- Remaining browser boundary: complete profile evidence and release matrix not run
+- Focused tests: deterministic replay, stable people, 365-day progression, and causal controls pass.
+- Supply and demand: global values reconcile to every active hub board.
+- Cable accounting: starting stock plus supply equals reused cables plus ending stock.
+- Journey evidence: every live person has a cable, action, hub, location, and route.
+- Semantic contracts: v1 presentation and v4 contribution validation pass.
+- Governed route audit: 96 default hub-to-location directions and the complete pseudo-year pass.
 
 ## Where is it implemented?
 
 - [Plugin entry](../../../public/shared/plugins/cable-trader/index.js)
-- [Logistics engine](../../../public/shared/plugins/cable-trader/logistics-engine.js)
-- [Presentation adapter](../../../public/shared/plugins/cable-trader/logistics-presentation.js)
+- [Circulation simulation](../../../public/shared/plugins/cable-trader/circulation-simulation.js)
+- [Presentation adapter](../../../public/shared/plugins/cable-trader/circulation-presentation.js)
 - [Configuration](../../../public/shared/plugins/cable-trader/default-config.json)
 - [v4 contribution](../../../public/shared/plugins/cable-trader/v4-contribution.js)
 - [Profile](../../../public/data/application-profiles/cable-trader-pickup-v1.json)
-- [Governed catalog](../../../public/data/cable-trader/cable-logistics-catalog-v1.json)
+- [Authored cable catalog](../../../public/data/cable-trader/cable-circulation-catalog-v1.json)
 - [Focused tests](../../../tests/cable-trader.test.cjs)

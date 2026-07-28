@@ -310,11 +310,13 @@ async function runBrowserSmoke(options) {
       && sunWalkerPass
       && (expectsCableTrader
         ? featureView.cableTrader.visible
-          && featureView.cableTrader.needsServed === '4,096 / 4,096 (100%)'
-          && featureView.cableTrader.exactAllocations === '300 / 300 (100%)'
-          && featureView.cableTrader.seededInputEvents === '9,152'
-          && featureView.cableTrader.markerCount >= 4
+          && featureView.cableTrader.people === '6,000'
+          && featureView.cableTrader.globalSupply.includes('cables offered')
+          && featureView.cableTrader.globalDemand.includes('cables requested')
+          && featureView.cableTrader.pseudoYearTotal.includes('reused')
+          && featureView.cableTrader.markerCount >= 16
           && featureView.cableTrader.pathCount >= 1
+          && featureView.cableTrader.actorCount >= 1
         : !featureView.cableTrader.visible);
     const isPluginPlayback = expectedProfile.interaction?.mode === 'playback';
     const initialViewExpectation = semanticCameraExpectation(result.camera.initial.decision);
@@ -579,21 +581,25 @@ function pluginFeatureExpression({ expectsP2pDelivery, expectsSunWalker, expects
     }
     let cableTrader = { visible: Boolean(document.querySelector('#plugin-inspector [data-plugin-id="cable-trader"]')) };
     if (${expectsCableTrader}) {
-      input.value = 'Show the predefined 30-day cable network and its optimal allocation.';
+      input.value = 'Run the 365-day community cable exchange and show live hub supply, demand, pickups, and drop-offs.';
       input.dispatchEvent(new Event('input', { bubbles: true }));
       step.click();
       await waitFor(() => {
         const section = evidenceSection('cable-trader');
-        return [...(section?.querySelectorAll('dd') || [])].some((row) => row.textContent.trim() === '300 / 300 (100%)');
+        return [...(section?.querySelectorAll('dt') || [])]
+          .some((row) => row.textContent.trim() === 'Global supply today')
+          && [...(section?.querySelectorAll('dd') || [])]
+            .some((row) => /cables offered/.test(row.textContent));
       }, 'cable-trader-network');
       const section = evidenceSection('cable-trader');
       const rows = Object.fromEntries([...section.querySelectorAll('div')].map((row) => [row.querySelector('dt')?.textContent.trim(), row.querySelector('dd')?.textContent.trim()]));
       const canvas = document.getElementById('autonomy-canvas');
       cableTrader = {
         visible: true,
-        needsServed: rows['Needs served'] || '',
-        exactAllocations: rows['Exact allocations'] || '',
-        seededInputEvents: rows['Seeded input events'] || '',
+        people: rows.People || '',
+        globalSupply: rows['Global supply today'] || '',
+        globalDemand: rows['Global demand today'] || '',
+        pseudoYearTotal: rows['Pseudo-year total'] || '',
         markerCount: Number(canvas.dataset.pluginMarkersCount || 0),
         pathCount: Number(canvas.dataset.pluginPathsCount || 0),
         actorCount: Number(canvas.dataset.pluginActorsCount || 0),

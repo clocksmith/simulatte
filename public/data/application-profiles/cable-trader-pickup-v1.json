@@ -3,90 +3,90 @@
   "id": "cable-trader-pickup-v1",
   "interaction": {
     "mode": "playback",
-    "startLabel": "Run restoration",
-    "shuffleLabel": "Change crisis"
+    "startLabel": "Start cable exchange",
+    "shuffleLabel": "Change pseudo-year"
   },
   "experience": {
     "kind": "simulation",
     "timelineLabel": "Day",
     "primaryMeasureKinds": [
-      "requested-cable",
-      "delivered-cable",
-      "unserved-cable",
-      "in-transit-cable",
-      "completed-projects"
+      "people",
+      "cable-supply",
+      "cable-demand",
+      "cables-reused",
+      "active-travelers"
     ],
-    "supportedViews": ["overview", "follow", "top", "compare"],
+    "supportedViews": ["overview", "follow", "top"],
     "defaultView": "overview",
-    "comparisonMode": "synchronized",
+    "comparisonMode": "none",
     "stages": [
       {
-        "id": "crisis-arrives",
-        "label": "Repair needs arrive",
-        "narrative": "Named projects request specific cable families, quantities, priorities, and deadlines.",
+        "id": "exchange-opens",
+        "label": "Exchange opens",
+        "narrative": "Thousands of modeled neighbors begin requesting and offering everyday cables through nearby hubs.",
         "fromProgress": 0
       },
       {
-        "id": "stock-contested",
-        "label": "Stock becomes contested",
-        "narrative": "Compatibility, depot reserves, damaged reels, and daily vehicle capacity constrain feasible allocations.",
-        "fromProgress": 0.2
+        "id": "spokes-circulate",
+        "label": "Cables circulate",
+        "narrative": "People carry named cables into hubs for drop-off and away from hubs after pickup.",
+        "fromProgress": 0.18
       },
       {
-        "id": "transfers-move",
-        "label": "Transfers move",
-        "narrative": "Metered cable leaves an identified reel, travels to a project, and advances completion only when it arrives.",
-        "fromProgress": 0.42
+        "id": "board-balances",
+        "label": "Supply meets demand",
+        "narrative": "Global and per-hub boards expose stock, new requests, incoming supply, fulfilled pickups, and waiting demand.",
+        "fromProgress": 0.5
       },
       {
-        "id": "policies-settle",
-        "label": "Policies settle",
-        "narrative": "Cheapest, fastest-restoration, and fairness-first branches close with matching reel, transfer, project, and cost receipts.",
+        "id": "year-rolls",
+        "label": "The pseudo-year rolls",
+        "narrative": "The continuous exchange completes all 365 modeled days with every cable movement and inventory change balanced.",
         "fromProgress": 0.82
       }
     ]
   },
-  "defaultSeedId": "backbone-shortage",
+  "defaultSeedId": "everyday-exchange",
   "seeds": [
     {
-      "id": "backbone-shortage",
-      "label": "Neighborhood backbone shortage",
-      "description": "Copper-heavy repair demand competes for constrained depot reels during a modeled road closure.",
-      "seed": "cable-city-logistics-2026-07",
-      "missionText": "Run the governed neighborhood cable-restoration crisis and compare allocation policies."
+      "id": "everyday-exchange",
+      "label": "Everyday cable exchange",
+      "description": "A full pseudo-year of neighbors sharing the charging, display, network, audio, and power cables they need.",
+      "seed": "cable-circulation-everyday-2026",
+      "missionText": "Run the 365-day community cable exchange and show live hub supply, demand, pickups, and drop-offs."
     },
     {
-      "id": "fiber-restoration",
-      "label": "Fiber restoration",
-      "description": "Hospital and transit projects compete for OS2 and OM4 stock with incompatible copper remaining nearby.",
-      "seed": "cable-city-fiber-restoration-731",
-      "missionText": "Run the governed fiber-restoration crisis and explain each allocation."
+      "id": "device-upgrade-cycle",
+      "label": "Device upgrade cycle",
+      "description": "A different deterministic year shifts which everyday cable types enter hubs and which are requested.",
+      "seed": "cable-circulation-upgrades-2026",
+      "missionText": "Run the device-upgrade pseudo-year through the same community exchange."
     },
     {
-      "id": "emergency-restoration",
-      "label": "Emergency restoration",
-      "description": "Critical projects receive short deadlines and expose the cost of reserve and transfer-capacity policies.",
-      "seed": "cable-city-emergency-restoration-4096",
-      "missionText": "Run the governed emergency-restoration crisis and compare time to completion."
+      "id": "move-in-cycle",
+      "label": "Move-in cycle",
+      "description": "A different deterministic year changes the people, hubs, locations, and cable trips that become active each day.",
+      "seed": "cable-circulation-move-in-2026",
+      "missionText": "Run the move-in pseudo-year and inspect local cable balance at each hub."
     },
     {
-      "id": "borough-fairness",
-      "label": "Borough fairness conflict",
-      "description": "Two critical sites contest the same cable family so cheapest and fairness-first policies diverge.",
-      "seed": "cable-city-borough-fairness-8192",
-      "missionText": "Run the governed fairness conflict and compare who remains short."
+      "id": "office-cleanout-cycle",
+      "label": "Office clean-out cycle",
+      "description": "A different deterministic year circulates spare display, network, USB, audio, and power cables through the same neighborhood hubs.",
+      "seed": "cable-circulation-office-cleanout-2026",
+      "missionText": "Run the office clean-out pseudo-year and watch spare cables return to neighborhood use."
     }
   ],
   "camera": {
     "initialMode": "bird",
-    "runMode": "follow",
+    "runMode": "bird",
     "pluginId": "cable-trader",
     "targetId": "cable-network-overview"
   },
   "plugins": [
     {
       "id": "cable-trader",
-      "configId": "cable-trader-logistics-v5"
+      "configId": "cable-trader-circulation-v6"
     }
   ],
   "routeObjective": {
