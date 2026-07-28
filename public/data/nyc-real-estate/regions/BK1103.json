@@ -1,0 +1,7316 @@
+{
+  "capacitySites": [
+    {
+      "address": "1626 STILLWELL AVENUE",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 3.89,
+      "availableResidentialFar": 3.89,
+      "bbl": "3062530021",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 1296,
+      "builtFar": 0.11,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9874383,
+        40.6063684
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:3062530021",
+      "landUseCode": "7",
+      "lotAreaSquareFeet": 11520,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 44812.8,
+      "potentialResidentialFloorAreaSquareFeet": 44812.8,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 49,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3062530021"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "137 KINGS HIGHWAY",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 4,
+      "availableResidentialFar": 4,
+      "bbl": "3066180022",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9863147,
+        40.6061761
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:3066180022",
+      "landUseCode": "11",
+      "lotAreaSquareFeet": 10500,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 42000,
+      "potentialResidentialFloorAreaSquareFeet": 42000,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 46,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066180022"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "1650 WEST 12 STREET",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 3.2,
+      "availableResidentialFar": 3.2,
+      "bbl": "3066190024",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 2520,
+      "builtFar": 0.8,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.985382,
+        40.6061897
+      ],
+      "existingResidentialUnits": 2,
+      "existingTotalUnits": 2,
+      "id": "capacity:3066190024",
+      "landUseCode": "1",
+      "lotAreaSquareFeet": 3142,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 10054.4,
+      "potentialResidentialFloorAreaSquareFeet": 10054.4,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 11,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066190024"
+      ],
+      "zoningDistricts": [
+        "R7A",
+        "R4-1"
+      ]
+    },
+    {
+      "address": "KINGS HIGHWAY",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 4,
+      "availableResidentialFar": 4,
+      "bbl": "3066190029",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9853748,
+        40.6060196
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:3066190029",
+      "landUseCode": "10",
+      "lotAreaSquareFeet": 3143,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 12572,
+      "potentialResidentialFloorAreaSquareFeet": 12572,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 13,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066190029"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "165 KINGS HIGHWAY",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 3.36,
+      "availableResidentialFar": 3.36,
+      "bbl": "3066190031",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 1814,
+      "builtFar": 0.64,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9854829,
+        40.6060223
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:3066190031",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 2813,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 9451.68,
+      "potentialResidentialFloorAreaSquareFeet": 9451.68,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 10,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066190031"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "157 KINGS HIGHWAY",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 2.62,
+      "availableResidentialFar": 2.62,
+      "bbl": "3066190034",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 3168,
+      "builtFar": 1.38,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9856485,
+        40.6060745
+      ],
+      "existingResidentialUnits": 1,
+      "existingTotalUnits": 3,
+      "id": "capacity:3066190034",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 2288,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 5994.56,
+      "potentialResidentialFloorAreaSquareFeet": 5994.56,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 6,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066190034"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "155 KINGS HIGHWAY",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 2.51,
+      "availableResidentialFar": 2.51,
+      "bbl": "3066190035",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 3211,
+      "builtFar": 1.49,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9857205,
+        40.6060772
+      ],
+      "existingResidentialUnits": 2,
+      "existingTotalUnits": 3,
+      "id": "capacity:3066190035",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 2148,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 5391.48,
+      "potentialResidentialFloorAreaSquareFeet": 5391.48,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 5,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066190035"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "29 QUENTIN ROAD",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 3.3,
+      "availableResidentialFar": 3.3,
+      "bbl": "3066190049",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 1408,
+      "builtFar": 0.7,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.985609,
+        40.6054816
+      ],
+      "existingResidentialUnits": 2,
+      "existingTotalUnits": 2,
+      "id": "capacity:3066190049",
+      "landUseCode": "1",
+      "lotAreaSquareFeet": 2000,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 6600,
+      "potentialResidentialFloorAreaSquareFeet": 6600,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 7,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066190049"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "25 QUENTIN ROAD",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 3.26,
+      "availableResidentialFar": 3.26,
+      "bbl": "3066190050",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 1472,
+      "builtFar": 0.74,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9856847,
+        40.6054734
+      ],
+      "existingResidentialUnits": 2,
+      "existingTotalUnits": 2,
+      "id": "capacity:3066190050",
+      "landUseCode": "1",
+      "lotAreaSquareFeet": 2000,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 6520,
+      "potentialResidentialFloorAreaSquareFeet": 6520,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 7,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066190050"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "23 QUENTIN ROAD",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 3.08,
+      "availableResidentialFar": 3.08,
+      "bbl": "3066190051",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 1840,
+      "builtFar": 0.92,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9857567,
+        40.6054652
+      ],
+      "existingResidentialUnits": 2,
+      "existingTotalUnits": 2,
+      "id": "capacity:3066190051",
+      "landUseCode": "1",
+      "lotAreaSquareFeet": 2000,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 6160,
+      "potentialResidentialFloorAreaSquareFeet": 6160,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 6,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066190051"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "1660 WEST 11 STREET",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 3.33,
+      "availableResidentialFar": 3.33,
+      "bbl": "3066200030",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 1344,
+      "builtFar": 0.67,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9844096,
+        40.6060634
+      ],
+      "existingResidentialUnits": 1,
+      "existingTotalUnits": 1,
+      "id": "capacity:3066200030",
+      "landUseCode": "1",
+      "lotAreaSquareFeet": 2000,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 6660,
+      "potentialResidentialFloorAreaSquareFeet": 6660,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 7,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066200030"
+      ],
+      "zoningDistricts": [
+        "R7A",
+        "R4-1"
+      ]
+    },
+    {
+      "address": "175 KINGS HIGHWAY",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 3.35,
+      "availableResidentialFar": 3.35,
+      "bbl": "3066200032",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 12900,
+      "builtFar": 0.65,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9845357,
+        40.6059069
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:3066200032",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 20000,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 67000,
+      "potentialResidentialFloorAreaSquareFeet": 67000,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 74,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066200032"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "1655 WEST 12 STREET",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 3.26,
+      "availableResidentialFar": 3.26,
+      "bbl": "3066200054",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 2400,
+      "builtFar": 0.74,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9847806,
+        40.6060936
+      ],
+      "existingResidentialUnits": 2,
+      "existingTotalUnits": 2,
+      "id": "capacity:3066200054",
+      "landUseCode": "1",
+      "lotAreaSquareFeet": 3250,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 10595,
+      "potentialResidentialFloorAreaSquareFeet": 10595,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 11,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066200054"
+      ],
+      "zoningDistricts": [
+        "R7A",
+        "R4-1"
+      ]
+    },
+    {
+      "address": "205 KINGS HIGHWAY",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 3.32,
+      "availableResidentialFar": 3.32,
+      "bbl": "3066210049",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 7740,
+      "builtFar": 0.68,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9837723,
+        40.6057998
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 2,
+      "id": "capacity:3066210049",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 11440,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 37980.8,
+      "potentialResidentialFloorAreaSquareFeet": 37980.8,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 42,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066210049"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "1665 WEST 11 STREET",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 3.49,
+      "availableResidentialFar": 3.49,
+      "bbl": "3066210055",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 1352,
+      "builtFar": 0.51,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9838154,
+        40.6059672
+      ],
+      "existingResidentialUnits": 1,
+      "existingTotalUnits": 1,
+      "id": "capacity:3066210055",
+      "landUseCode": "1",
+      "lotAreaSquareFeet": 2650,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 9248.5,
+      "potentialResidentialFloorAreaSquareFeet": 9248.5,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 10,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066210055"
+      ],
+      "zoningDistricts": [
+        "R7A",
+        "R4-1"
+      ]
+    },
+    {
+      "address": "1674 WEST 9 STREET",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 2.51,
+      "availableResidentialFar": 2.51,
+      "bbl": "3066220037",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 3135,
+      "builtFar": 1.49,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9824973,
+        40.6059368
+      ],
+      "existingResidentialUnits": 3,
+      "existingTotalUnits": 3,
+      "id": "capacity:3066220037",
+      "landUseCode": "2",
+      "lotAreaSquareFeet": 2100,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 5271,
+      "potentialResidentialFloorAreaSquareFeet": 5271,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 5,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066220037"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "1678 WEST 9 STREET",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 2.92,
+      "availableResidentialFar": 2.92,
+      "bbl": "3066220038",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 3135,
+      "builtFar": 1.08,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9824866,
+        40.6058682
+      ],
+      "existingResidentialUnits": 3,
+      "existingTotalUnits": 3,
+      "id": "capacity:3066220038",
+      "landUseCode": "2",
+      "lotAreaSquareFeet": 2900,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 8468,
+      "potentialResidentialFloorAreaSquareFeet": 8468,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 9,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066220038"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "1680 WEST 9 STREET",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 2.92,
+      "availableResidentialFar": 2.92,
+      "bbl": "3066220039",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 3135,
+      "builtFar": 1.08,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9824722,
+        40.6057913
+      ],
+      "existingResidentialUnits": 3,
+      "existingTotalUnits": 3,
+      "id": "capacity:3066220039",
+      "landUseCode": "2",
+      "lotAreaSquareFeet": 2900,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 8468,
+      "potentialResidentialFloorAreaSquareFeet": 8468,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 9,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066220039"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "1684 WEST 9 STREET",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 2.51,
+      "availableResidentialFar": 2.51,
+      "bbl": "3066220040",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 3135,
+      "builtFar": 1.49,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9824578,
+        40.6057227
+      ],
+      "existingResidentialUnits": 3,
+      "existingTotalUnits": 3,
+      "id": "capacity:3066220040",
+      "landUseCode": "2",
+      "lotAreaSquareFeet": 2100,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 5271,
+      "potentialResidentialFloorAreaSquareFeet": 5271,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 5,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066220040"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "176 AVENUE P",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 2.84,
+      "availableResidentialFar": 2.84,
+      "bbl": "3066230010",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 2904,
+      "builtFar": 1.16,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.981719,
+        40.6075753
+      ],
+      "existingResidentialUnits": 3,
+      "existingTotalUnits": 3,
+      "id": "capacity:3066230010",
+      "landUseCode": "2",
+      "lotAreaSquareFeet": 2500,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 7100,
+      "potentialResidentialFloorAreaSquareFeet": 7100,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 7,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066230010"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "135 QUENTIN ROAD",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 3.46,
+      "availableResidentialFar": 3.46,
+      "bbl": "3066230042",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 1184,
+      "builtFar": 0.54,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9816258,
+        40.605923
+      ],
+      "existingResidentialUnits": 1,
+      "existingTotalUnits": 1,
+      "id": "capacity:3066230042",
+      "landUseCode": "1",
+      "lotAreaSquareFeet": 2200,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 7612,
+      "potentialResidentialFloorAreaSquareFeet": 7612,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 8,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066230042"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "133 QUENTIN ROAD",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 3.34,
+      "availableResidentialFar": 3.34,
+      "bbl": "3066230043",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 1184,
+      "builtFar": 0.66,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9816978,
+        40.6059147
+      ],
+      "existingResidentialUnits": 1,
+      "existingTotalUnits": 1,
+      "id": "capacity:3066230043",
+      "landUseCode": "1",
+      "lotAreaSquareFeet": 1800,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 6012,
+      "potentialResidentialFloorAreaSquareFeet": 6012,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 6,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066230043"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "1681 WEST 8 STREET",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 2.91,
+      "availableResidentialFar": 2.91,
+      "bbl": "3066240044",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 2700,
+      "builtFar": 1.09,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9809956,
+        40.6058954
+      ],
+      "existingResidentialUnits": 2,
+      "existingTotalUnits": 2,
+      "id": "capacity:3066240044",
+      "landUseCode": "1",
+      "lotAreaSquareFeet": 2475,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 7202.25,
+      "potentialResidentialFloorAreaSquareFeet": 7202.25,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 8,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066240044"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "1679 WEST 8 STREET",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 2.54,
+      "availableResidentialFar": 2.54,
+      "bbl": "3066240046",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 2676,
+      "builtFar": 1.46,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9810064,
+        40.6059668
+      ],
+      "existingResidentialUnits": 2,
+      "existingTotalUnits": 2,
+      "id": "capacity:3066240046",
+      "landUseCode": "1",
+      "lotAreaSquareFeet": 1829,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 4645.66,
+      "potentialResidentialFloorAreaSquareFeet": 4645.66,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 5,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066240046"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "1677 WEST 8 STREET",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 2.54,
+      "availableResidentialFar": 2.54,
+      "bbl": "3066240047",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 2676,
+      "builtFar": 1.46,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9810208,
+        40.6060272
+      ],
+      "existingResidentialUnits": 2,
+      "existingTotalUnits": 2,
+      "id": "capacity:3066240047",
+      "landUseCode": "1",
+      "lotAreaSquareFeet": 1829,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 4645.66,
+      "potentialResidentialFloorAreaSquareFeet": 4645.66,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 5,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066240047"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "1673 WEST 8 STREET",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 2.54,
+      "availableResidentialFar": 2.54,
+      "bbl": "3066240048",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 2676,
+      "builtFar": 1.46,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9810315,
+        40.6060875
+      ],
+      "existingResidentialUnits": 2,
+      "existingTotalUnits": 2,
+      "id": "capacity:3066240048",
+      "landUseCode": "1",
+      "lotAreaSquareFeet": 1829,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 4645.66,
+      "potentialResidentialFloorAreaSquareFeet": 4645.66,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 5,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066240048"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "1681 WEST 7 STREET",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 2.98,
+      "availableResidentialFar": 2.98,
+      "bbl": "3066250044",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 2560,
+      "builtFar": 1.02,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9800556,
+        40.6060517
+      ],
+      "existingResidentialUnits": 3,
+      "existingTotalUnits": 3,
+      "id": "capacity:3066250044",
+      "landUseCode": "2",
+      "lotAreaSquareFeet": 2500,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 7450,
+      "potentialResidentialFloorAreaSquareFeet": 7450,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 8,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066250044"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "1679 WEST 7 STREET",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 2.98,
+      "availableResidentialFar": 2.98,
+      "bbl": "3066250046",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 2560,
+      "builtFar": 1.02,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9800664,
+        40.6061176
+      ],
+      "existingResidentialUnits": 3,
+      "existingTotalUnits": 3,
+      "id": "capacity:3066250046",
+      "landUseCode": "2",
+      "lotAreaSquareFeet": 2500,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 7450,
+      "potentialResidentialFloorAreaSquareFeet": 7450,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 8,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066250046"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "1675 WEST 7 STREET",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 3.13,
+      "availableResidentialFar": 3.13,
+      "bbl": "3066250047",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 2560,
+      "builtFar": 0.87,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9800807,
+        40.6061917
+      ],
+      "existingResidentialUnits": 3,
+      "existingTotalUnits": 3,
+      "id": "capacity:3066250047",
+      "landUseCode": "2",
+      "lotAreaSquareFeet": 2950,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 9233.5,
+      "potentialResidentialFloorAreaSquareFeet": 9233.5,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 10,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066250047"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "76 QUENTIN ROAD",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 2.49,
+      "availableResidentialFar": 2.49,
+      "bbl": "3066460002",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 2480,
+      "builtFar": 1.51,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9837472,
+        40.6052206
+      ],
+      "existingResidentialUnits": 1,
+      "existingTotalUnits": 2,
+      "id": "capacity:3066460002",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 1640,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 4083.6,
+      "potentialResidentialFloorAreaSquareFeet": 4083.6,
+      "potentialResidentialUnitsClass1": 2,
+      "potentialResidentialUnitsClass2": 4,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066460002"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "84 QUENTIN ROAD",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 2.49,
+      "availableResidentialFar": 2.49,
+      "bbl": "3066460005",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 2480,
+      "builtFar": 1.51,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9835275,
+        40.6052425
+      ],
+      "existingResidentialUnits": 1,
+      "existingTotalUnits": 2,
+      "id": "capacity:3066460005",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 1640,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 4083.6,
+      "potentialResidentialFloorAreaSquareFeet": 4083.6,
+      "potentialResidentialUnitsClass1": 2,
+      "potentialResidentialUnitsClass2": 4,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066460005"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "1711 WEST 11 STREET",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 3.38,
+      "availableResidentialFar": 3.38,
+      "bbl": "3066460088",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 1560,
+      "builtFar": 0.62,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9836464,
+        40.6050806
+      ],
+      "existingResidentialUnits": 2,
+      "existingTotalUnits": 2,
+      "id": "capacity:3066460088",
+      "landUseCode": "1",
+      "lotAreaSquareFeet": 2500,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 8450,
+      "potentialResidentialFloorAreaSquareFeet": 8450,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 9,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066460088"
+      ],
+      "zoningDistricts": [
+        "R7A",
+        "R4-1"
+      ]
+    },
+    {
+      "address": "1717 WEST 10 STREET",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 3.53,
+      "availableResidentialFar": 3.53,
+      "bbl": "3066470087",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 1320,
+      "builtFar": 0.47,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9827569,
+        40.6050777
+      ],
+      "existingResidentialUnits": 1,
+      "existingTotalUnits": 1,
+      "id": "capacity:3066470087",
+      "landUseCode": "1",
+      "lotAreaSquareFeet": 2800,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 9884,
+      "potentialResidentialFloorAreaSquareFeet": 9884,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 10,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066470087"
+      ],
+      "zoningDistricts": [
+        "R7A",
+        "R5B"
+      ]
+    },
+    {
+      "address": "239 KINGS HIGHWAY",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 3.08,
+      "availableResidentialFar": 3.08,
+      "bbl": "3066480001",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 2804,
+      "builtFar": 0.92,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.981806,
+        40.6055003
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:3066480001",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 3060,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 9424.8,
+      "potentialResidentialFloorAreaSquareFeet": 9424.8,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 10,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066480001"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "238 KINGS HIGHWAY",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 2.45,
+      "availableResidentialFar": 2.45,
+      "bbl": "3066480014",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 4175,
+      "builtFar": 1.55,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9818961,
+        40.6051078
+      ],
+      "existingResidentialUnits": 4,
+      "existingTotalUnits": 5,
+      "id": "capacity:3066480014",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 2700,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 6615,
+      "potentialResidentialFloorAreaSquareFeet": 6615,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 7,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066480014"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "248 KINGS HIGHWAY",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 2.53,
+      "availableResidentialFar": 2.53,
+      "bbl": "3066480022",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 3306,
+      "builtFar": 1.47,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9815324,
+        40.6050611
+      ],
+      "existingResidentialUnits": 2,
+      "existingTotalUnits": 3,
+      "id": "capacity:3066480022",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 2242,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 5672.26,
+      "potentialResidentialFloorAreaSquareFeet": 5672.26,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 6,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066480022"
+      ],
+      "zoningDistricts": [
+        "R7A",
+        "R5B"
+      ]
+    },
+    {
+      "address": "250 KINGS HIGHWAY",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 2.45,
+      "availableResidentialFar": 2.45,
+      "bbl": "3066480023",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 3306,
+      "builtFar": 1.55,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9814604,
+        40.6050611
+      ],
+      "existingResidentialUnits": 2,
+      "existingTotalUnits": 3,
+      "id": "capacity:3066480023",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 2138,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 5238.1,
+      "potentialResidentialFloorAreaSquareFeet": 5238.1,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 5,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066480023"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "259 KINGS HIGHWAY",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 3,
+      "availableResidentialFar": 3,
+      "bbl": "3066490001",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 4044,
+      "builtFar": 1,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9809921,
+        40.6055029
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 2,
+      "id": "capacity:3066490001",
+      "landUseCode": "7",
+      "lotAreaSquareFeet": 4044,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 12132,
+      "potentialResidentialFloorAreaSquareFeet": 12132,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 13,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066490001"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "265 KINGS HIGHWAY",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 4,
+      "availableResidentialFar": 4,
+      "bbl": "3066490005",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.980686,
+        40.6055056
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:3066490005",
+      "landUseCode": "7",
+      "lotAreaSquareFeet": 11520,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 46080,
+      "potentialResidentialFloorAreaSquareFeet": 46080,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 51,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066490005"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "282 KINGS HIGHWAY",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 3.04,
+      "availableResidentialFar": 3.04,
+      "bbl": "3066490018",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 1725,
+      "builtFar": 0.96,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9802864,
+        40.604973
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:3066490018",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 1800,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 5472,
+      "potentialResidentialFloorAreaSquareFeet": 5472,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 6,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066490018"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "280 KINGS HIGHWAY",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 3.12,
+      "availableResidentialFar": 3.12,
+      "bbl": "3066490019",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 1600,
+      "builtFar": 0.88,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9803656,
+        40.604973
+      ],
+      "existingResidentialUnits": 2,
+      "existingTotalUnits": 3,
+      "id": "capacity:3066490019",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 1814,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 5659.68,
+      "potentialResidentialFloorAreaSquareFeet": 5659.68,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 6,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066490019"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "1740 WEST 7 STREET",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 2.49,
+      "availableResidentialFar": 2.49,
+      "bbl": "3066490022",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 1720,
+      "builtFar": 1.51,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.980308,
+        40.6048276
+      ],
+      "existingResidentialUnits": 2,
+      "existingTotalUnits": 2,
+      "id": "capacity:3066490022",
+      "landUseCode": "1",
+      "lotAreaSquareFeet": 1140,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 2838.6,
+      "potentialResidentialFloorAreaSquareFeet": 2838.6,
+      "potentialResidentialUnitsClass1": 1,
+      "potentialResidentialUnitsClass2": 3,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066490022"
+      ],
+      "zoningDistricts": [
+        "R7A",
+        "R5B"
+      ]
+    },
+    {
+      "address": "287 KINGS HIGHWAY",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 3,
+      "availableResidentialFar": 3,
+      "bbl": "3066500001",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 10522,
+      "builtFar": 1,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9800089,
+        40.6055055
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 2,
+      "id": "capacity:3066500001",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 10522,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 31566,
+      "potentialResidentialFloorAreaSquareFeet": 31566,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 35,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066500001"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "297 KINGS HIGHWAY",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 2.84,
+      "availableResidentialFar": 2.84,
+      "bbl": "3066500013",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 2610,
+      "builtFar": 1.16,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.979548,
+        40.6053682
+      ],
+      "existingResidentialUnits": 2,
+      "existingTotalUnits": 3,
+      "id": "capacity:3066500013",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 2256,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 6407.04,
+      "potentialResidentialFloorAreaSquareFeet": 6407.04,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 7,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066500013"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "295 KINGS HIGHWAY",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 2.84,
+      "availableResidentialFar": 2.84,
+      "bbl": "3066500014",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 2490,
+      "builtFar": 1.16,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.97962,
+        40.6053682
+      ],
+      "existingResidentialUnits": 2,
+      "existingTotalUnits": 3,
+      "id": "capacity:3066500014",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 2140,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 6077.6,
+      "potentialResidentialFloorAreaSquareFeet": 6077.6,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 6,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066500014"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "293 KINGS HIGHWAY",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 2.77,
+      "availableResidentialFar": 2.77,
+      "bbl": "3066500015",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 2490,
+      "builtFar": 1.23,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9796956,
+        40.6053682
+      ],
+      "existingResidentialUnits": 2,
+      "existingTotalUnits": 3,
+      "id": "capacity:3066500015",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 2024,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 5606.48,
+      "potentialResidentialFloorAreaSquareFeet": 5606.48,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 6,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066500015"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "291 KINGS HIGHWAY",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 2.7,
+      "availableResidentialFar": 2.7,
+      "bbl": "3066500016",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 2490,
+      "builtFar": 1.3,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9797677,
+        40.6053654
+      ],
+      "existingResidentialUnits": 2,
+      "existingTotalUnits": 3,
+      "id": "capacity:3066500016",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 1909,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 5154.3,
+      "potentialResidentialFloorAreaSquareFeet": 5154.3,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 5,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066500016"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "289 KINGS HIGHWAY",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 2.61,
+      "availableResidentialFar": 2.61,
+      "bbl": "3066500017",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 2490,
+      "builtFar": 1.39,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9798433,
+        40.6053655
+      ],
+      "existingResidentialUnits": 2,
+      "existingTotalUnits": 3,
+      "id": "capacity:3066500017",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 1792,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 4677.12,
+      "potentialResidentialFloorAreaSquareFeet": 4677.12,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 5,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066500017"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "1743 WEST 7 STREET",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 2.82,
+      "availableResidentialFar": 2.82,
+      "bbl": "3066500070",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 1922,
+      "builtFar": 1.18,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9798399,
+        40.6047781
+      ],
+      "existingResidentialUnits": 2,
+      "existingTotalUnits": 2,
+      "id": "capacity:3066500070",
+      "landUseCode": "1",
+      "lotAreaSquareFeet": 1630,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 4596.6,
+      "potentialResidentialFloorAreaSquareFeet": 4596.6,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 5,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066500070"
+      ],
+      "zoningDistricts": [
+        "R7A",
+        "R5B"
+      ]
+    },
+    {
+      "address": "296 KINGS HIGHWAY",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 2.73,
+      "availableResidentialFar": 2.73,
+      "bbl": "3066500078",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 3300,
+      "builtFar": 1.27,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9795445,
+        40.6048521
+      ],
+      "existingResidentialUnits": 2,
+      "existingTotalUnits": 3,
+      "id": "capacity:3066500078",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 2590,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 7070.7,
+      "potentialResidentialFloorAreaSquareFeet": 7070.7,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 7,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066500078"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "300 KINGS HIGHWAY",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 3.08,
+      "availableResidentialFar": 3.08,
+      "bbl": "3066500079",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 1800,
+      "builtFar": 0.92,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9794617,
+        40.6048768
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:3066500079",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 1965,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 6052.2,
+      "potentialResidentialFloorAreaSquareFeet": 6052.2,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 6,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066500079"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "194 QUENTIN ROAD",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 2.54,
+      "availableResidentialFar": 2.54,
+      "bbl": "3066510001",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 2920,
+      "builtFar": 1.46,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9790365,
+        40.6057139
+      ],
+      "existingResidentialUnits": 3,
+      "existingTotalUnits": 3,
+      "id": "capacity:3066510001",
+      "landUseCode": "2",
+      "lotAreaSquareFeet": 2000,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 5080,
+      "potentialResidentialFloorAreaSquareFeet": 5080,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 5,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066510001"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "196 QUENTIN ROAD",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 2.71,
+      "availableResidentialFar": 2.71,
+      "bbl": "3066510002",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 2576,
+      "builtFar": 1.29,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9789609,
+        40.6057221
+      ],
+      "existingResidentialUnits": 2,
+      "existingTotalUnits": 2,
+      "id": "capacity:3066510002",
+      "landUseCode": "1",
+      "lotAreaSquareFeet": 2000,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 5420,
+      "potentialResidentialFloorAreaSquareFeet": 5420,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 6,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066510002"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "198 QUENTIN ROAD",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 2.71,
+      "availableResidentialFar": 2.71,
+      "bbl": "3066510003",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 2576,
+      "builtFar": 1.29,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9788888,
+        40.6057303
+      ],
+      "existingResidentialUnits": 3,
+      "existingTotalUnits": 3,
+      "id": "capacity:3066510003",
+      "landUseCode": "2",
+      "lotAreaSquareFeet": 2000,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 5420,
+      "potentialResidentialFloorAreaSquareFeet": 5420,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 6,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066510003"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "1724 WEST 5 STREET",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 3.41,
+      "availableResidentialFar": 3.41,
+      "bbl": "3066510016",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 2376,
+      "builtFar": 0.59,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9784532,
+        40.6053625
+      ],
+      "existingResidentialUnits": 2,
+      "existingTotalUnits": 2,
+      "id": "capacity:3066510016",
+      "landUseCode": "1",
+      "lotAreaSquareFeet": 4000,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 13640,
+      "potentialResidentialFloorAreaSquareFeet": 13640,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 15,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066510016"
+      ],
+      "zoningDistricts": [
+        "R7A",
+        "R4-1"
+      ]
+    },
+    {
+      "address": "319 KINGS HIGHWAY",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 3,
+      "availableResidentialFar": 3,
+      "bbl": "3066510019",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 8465,
+      "builtFar": 1,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.97841,
+        40.6051868
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:3066510019",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 8465,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 25395,
+      "potentialResidentialFloorAreaSquareFeet": 25395,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 28,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066510019"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "320 KINGS HIGHWAY",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 3.1,
+      "availableResidentialFar": 3.1,
+      "bbl": "3066510027",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 8655,
+      "builtFar": 0.9,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9783454,
+        40.6047174
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:3066510027",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 9574,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 29679.4,
+      "potentialResidentialFloorAreaSquareFeet": 29679.4,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 32,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066510027"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "1753 WEST 6 STREET",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 3.48,
+      "availableResidentialFar": 3.48,
+      "bbl": "3066510067",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 1092,
+      "builtFar": 0.52,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9786875,
+        40.6046269
+      ],
+      "existingResidentialUnits": 1,
+      "existingTotalUnits": 1,
+      "id": "capacity:3066510067",
+      "landUseCode": "1",
+      "lotAreaSquareFeet": 2100,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 7308,
+      "potentialResidentialFloorAreaSquareFeet": 7308,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 8,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066510067"
+      ],
+      "zoningDistricts": [
+        "R7A",
+        "R4-1"
+      ]
+    },
+    {
+      "address": "314 KINGS HIGHWAY",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 2.57,
+      "availableResidentialFar": 2.57,
+      "bbl": "3066510070",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 2470,
+      "builtFar": 1.43,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9787055,
+        40.6047779
+      ],
+      "existingResidentialUnits": 2,
+      "existingTotalUnits": 3,
+      "id": "capacity:3066510070",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 1730,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 4446.1,
+      "potentialResidentialFloorAreaSquareFeet": 4446.1,
+      "potentialResidentialUnitsClass1": 2,
+      "potentialResidentialUnitsClass2": 4,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066510070"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "315 KINGS HIGHWAY",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 2.45,
+      "availableResidentialFar": 2.45,
+      "bbl": "3066510081",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 2280,
+      "builtFar": 1.55,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9787161,
+        40.6052198
+      ],
+      "existingResidentialUnits": 2,
+      "existingTotalUnits": 3,
+      "id": "capacity:3066510081",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 1472,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 3606.4,
+      "potentialResidentialFloorAreaSquareFeet": 3606.4,
+      "potentialResidentialUnitsClass1": 2,
+      "potentialResidentialUnitsClass2": 4,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066510081"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "317 KINGS HIGHWAY",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 3.28,
+      "availableResidentialFar": 3.28,
+      "bbl": "3066510181",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 1200,
+      "builtFar": 0.72,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9786477,
+        40.6052198
+      ],
+      "existingResidentialUnits": 2,
+      "existingTotalUnits": 3,
+      "id": "capacity:3066510181",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 1678,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 5503.84,
+      "potentialResidentialFloorAreaSquareFeet": 5503.84,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 6,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066510181"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "1701 WEST 5 STREET",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 2.8,
+      "availableResidentialFar": 2.8,
+      "bbl": "3066520001",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 2720,
+      "builtFar": 1.2,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9779848,
+        40.6059388
+      ],
+      "existingResidentialUnits": 3,
+      "existingTotalUnits": 3,
+      "id": "capacity:3066520001",
+      "landUseCode": "2",
+      "lotAreaSquareFeet": 2267,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 6347.6,
+      "potentialResidentialFloorAreaSquareFeet": 6347.6,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 7,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066520001"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "1738 WEST 4 STREET",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 2.91,
+      "availableResidentialFar": 2.91,
+      "bbl": "3066520022",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 2720,
+      "builtFar": 1.09,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9774665,
+        40.6051701
+      ],
+      "existingResidentialUnits": 3,
+      "existingTotalUnits": 3,
+      "id": "capacity:3066520022",
+      "landUseCode": "2",
+      "lotAreaSquareFeet": 2500,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 7275,
+      "potentialResidentialFloorAreaSquareFeet": 7275,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 8,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066520022"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "348 KINGS HIGHWAY",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 3.08,
+      "availableResidentialFar": 3.08,
+      "bbl": "3066520032",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 1764,
+      "builtFar": 0.92,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9774343,
+        40.6045937
+      ],
+      "existingResidentialUnits": 1,
+      "existingTotalUnits": 2,
+      "id": "capacity:3066520032",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 1920,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 5913.6,
+      "potentialResidentialFloorAreaSquareFeet": 5913.6,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 6,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066520032"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "350 KINGS HIGHWAY",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 3.11,
+      "availableResidentialFar": 3.11,
+      "bbl": "3066520033",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 1764,
+      "builtFar": 0.89,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9773622,
+        40.604591
+      ],
+      "existingResidentialUnits": 1,
+      "existingTotalUnits": 2,
+      "id": "capacity:3066520033",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 1990,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 6188.9,
+      "potentialResidentialFloorAreaSquareFeet": 6188.9,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 6,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066520033"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "352 KINGS HIGHWAY",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 3.05,
+      "availableResidentialFar": 3.05,
+      "bbl": "3066520034",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 1764,
+      "builtFar": 0.95,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9772902,
+        40.604591
+      ],
+      "existingResidentialUnits": 1,
+      "existingTotalUnits": 2,
+      "id": "capacity:3066520034",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 1848,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 5636.4,
+      "potentialResidentialFloorAreaSquareFeet": 5636.4,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 6,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066520034"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "354 KINGS HIGHWAY",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 2.56,
+      "availableResidentialFar": 2.56,
+      "bbl": "3066520035",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 2184,
+      "builtFar": 1.44,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9772146,
+        40.6045882
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 3,
+      "id": "capacity:3066520035",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 1520,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 3891.2,
+      "potentialResidentialFloorAreaSquareFeet": 3891.2,
+      "potentialResidentialUnitsClass1": 2,
+      "potentialResidentialUnitsClass2": 4,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066520035"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "1770 WEST 4 STREET",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 3.47,
+      "availableResidentialFar": 3.47,
+      "bbl": "3066520036",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 1288,
+      "builtFar": 0.53,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9773335,
+        40.6044373
+      ],
+      "existingResidentialUnits": 1,
+      "existingTotalUnits": 1,
+      "id": "capacity:3066520036",
+      "landUseCode": "1",
+      "lotAreaSquareFeet": 2450,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 8501.5,
+      "potentialResidentialFloorAreaSquareFeet": 8501.5,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 9,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066520036"
+      ],
+      "zoningDistricts": [
+        "R7A",
+        "R4-1"
+      ]
+    },
+    {
+      "address": "1765 WEST 5 STREET",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 3.54,
+      "availableResidentialFar": 3.54,
+      "bbl": "3066520062",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 1376,
+      "builtFar": 0.46,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9777152,
+        40.6044977
+      ],
+      "existingResidentialUnits": 1,
+      "existingTotalUnits": 1,
+      "id": "capacity:3066520062",
+      "landUseCode": "1",
+      "lotAreaSquareFeet": 3000,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 10620,
+      "potentialResidentialFloorAreaSquareFeet": 10620,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 11,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066520062"
+      ],
+      "zoningDistricts": [
+        "R7A",
+        "R4-1"
+      ]
+    },
+    {
+      "address": "1733 WEST 5 STREET",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 2.96,
+      "availableResidentialFar": 2.96,
+      "bbl": "3066520078",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 2720,
+      "builtFar": 1.04,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9778518,
+        40.6052416
+      ],
+      "existingResidentialUnits": 3,
+      "existingTotalUnits": 3,
+      "id": "capacity:3066520078",
+      "landUseCode": "2",
+      "lotAreaSquareFeet": 2617,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 7746.32,
+      "potentialResidentialFloorAreaSquareFeet": 7746.32,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 8,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066520078"
+      ],
+      "zoningDistricts": [
+        "R7A",
+        "R4-1"
+      ]
+    },
+    {
+      "address": "1709 WEST 5 STREET",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 2.94,
+      "availableResidentialFar": 2.94,
+      "bbl": "3066520087",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 2720,
+      "builtFar": 1.06,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9779453,
+        40.6057274
+      ],
+      "existingResidentialUnits": 3,
+      "existingTotalUnits": 3,
+      "id": "capacity:3066520087",
+      "landUseCode": "2",
+      "lotAreaSquareFeet": 2567,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 7546.98,
+      "potentialResidentialFloorAreaSquareFeet": 7546.98,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 8,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066520087"
+      ],
+      "zoningDistricts": [
+        "R7A",
+        "R4-1"
+      ]
+    },
+    {
+      "address": "1707 WEST 5 STREET",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 2.94,
+      "availableResidentialFar": 2.94,
+      "bbl": "3066520088",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 2720,
+      "builtFar": 1.06,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9779561,
+        40.6057988
+      ],
+      "existingResidentialUnits": 3,
+      "existingTotalUnits": 3,
+      "id": "capacity:3066520088",
+      "landUseCode": "2",
+      "lotAreaSquareFeet": 2567,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 7546.98,
+      "potentialResidentialFloorAreaSquareFeet": 7546.98,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 8,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066520088"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "1703 WEST 5 STREET",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 2.94,
+      "availableResidentialFar": 2.94,
+      "bbl": "3066520089",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 2720,
+      "builtFar": 1.06,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9779704,
+        40.6058674
+      ],
+      "existingResidentialUnits": 3,
+      "existingTotalUnits": 3,
+      "id": "capacity:3066520089",
+      "landUseCode": "2",
+      "lotAreaSquareFeet": 2567,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 7546.98,
+      "potentialResidentialFloorAreaSquareFeet": 7546.98,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 8,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066520089"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "1701 WEST 4 STREET",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 3.27,
+      "availableResidentialFar": 3.27,
+      "bbl": "3066530001",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 2000,
+      "builtFar": 0.73,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9770556,
+        40.6060347
+      ],
+      "existingResidentialUnits": 3,
+      "existingTotalUnits": 3,
+      "id": "capacity:3066530001",
+      "landUseCode": "2",
+      "lotAreaSquareFeet": 2750,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 8992.5,
+      "potentialResidentialFloorAreaSquareFeet": 8992.5,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 9,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066530001"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "373 KINGS HIGHWAY",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 3.71,
+      "availableResidentialFar": 3.71,
+      "bbl": "3066530027",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 2400,
+      "builtFar": 0.29,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.976469,
+        40.6049064
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:3066530027",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 8400,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 31164,
+      "potentialResidentialFloorAreaSquareFeet": 31164,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 34,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066530027"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "1769 WEST 4 STREET",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 2.77,
+      "availableResidentialFar": 2.77,
+      "bbl": "3066530061",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 3613,
+      "builtFar": 1.23,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9768653,
+        40.6045799
+      ],
+      "existingResidentialUnits": 3,
+      "existingTotalUnits": 3,
+      "id": "capacity:3066530061",
+      "landUseCode": "2",
+      "lotAreaSquareFeet": 2949,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 8168.73,
+      "potentialResidentialFloorAreaSquareFeet": 8168.73,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 9,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066530061"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "1711 WEST 4 STREET",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 2.84,
+      "availableResidentialFar": 2.84,
+      "bbl": "3066530085",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 3080,
+      "builtFar": 1.16,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9770161,
+        40.6058151
+      ],
+      "existingResidentialUnits": 3,
+      "existingTotalUnits": 3,
+      "id": "capacity:3066530085",
+      "landUseCode": "2",
+      "lotAreaSquareFeet": 2650,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 7526,
+      "potentialResidentialFloorAreaSquareFeet": 7526,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 8,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066530085"
+      ],
+      "zoningDistricts": [
+        "R7A",
+        "R4-1"
+      ]
+    },
+    {
+      "address": "1707 WEST 4 STREET",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 2.84,
+      "availableResidentialFar": 2.84,
+      "bbl": "3066530086",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 3080,
+      "builtFar": 1.16,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9770269,
+        40.6058864
+      ],
+      "existingResidentialUnits": 3,
+      "existingTotalUnits": 3,
+      "id": "capacity:3066530086",
+      "landUseCode": "2",
+      "lotAreaSquareFeet": 2650,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 7526,
+      "potentialResidentialFloorAreaSquareFeet": 7526,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 8,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066530086"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "1705 WEST 4 STREET",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 2.86,
+      "availableResidentialFar": 2.86,
+      "bbl": "3066530087",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 3030,
+      "builtFar": 1.14,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9770413,
+        40.6059606
+      ],
+      "existingResidentialUnits": 3,
+      "existingTotalUnits": 3,
+      "id": "capacity:3066530087",
+      "landUseCode": "2",
+      "lotAreaSquareFeet": 2650,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 7579,
+      "potentialResidentialFloorAreaSquareFeet": 7579,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 8,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066530087"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "399 KINGS HIGHWAY",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 2.64,
+      "availableResidentialFar": 2.64,
+      "bbl": "3066540030",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 3332,
+      "builtFar": 1.36,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.975367,
+        40.6048101
+      ],
+      "existingResidentialUnits": 2,
+      "existingTotalUnits": 4,
+      "id": "capacity:3066540030",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 2450,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 6468,
+      "potentialResidentialFloorAreaSquareFeet": 6468,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 7,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066540030"
+      ],
+      "zoningDistricts": [
+        "R7A",
+        "R4-1"
+      ]
+    },
+    {
+      "address": "397 KINGS HIGHWAY",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 2.92,
+      "availableResidentialFar": 2.92,
+      "bbl": "3066540033",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 2500,
+      "builtFar": 1.08,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9754391,
+        40.6048129
+      ],
+      "existingResidentialUnits": 2,
+      "existingTotalUnits": 3,
+      "id": "capacity:3066540033",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 2320,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 6774.4,
+      "potentialResidentialFloorAreaSquareFeet": 6774.4,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 7,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066540033"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "395 KINGS HIGHWAY",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 2.86,
+      "availableResidentialFar": 2.86,
+      "bbl": "3066540034",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 2500,
+      "builtFar": 1.14,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9755111,
+        40.6048129
+      ],
+      "existingResidentialUnits": 2,
+      "existingTotalUnits": 3,
+      "id": "capacity:3066540034",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 2200,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 6292,
+      "potentialResidentialFloorAreaSquareFeet": 6292,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 6,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066540034"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "393 KINGS HIGHWAY",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 2.8,
+      "availableResidentialFar": 2.8,
+      "bbl": "3066540035",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 2500,
+      "builtFar": 1.2,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9755867,
+        40.6048129
+      ],
+      "existingResidentialUnits": 2,
+      "existingTotalUnits": 3,
+      "id": "capacity:3066540035",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 2080,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 5824,
+      "potentialResidentialFloorAreaSquareFeet": 5824,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 6,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066540035"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "391 KINGS HIGHWAY",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 2.72,
+      "availableResidentialFar": 2.72,
+      "bbl": "3066540036",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 2500,
+      "builtFar": 1.28,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9756659,
+        40.6048157
+      ],
+      "existingResidentialUnits": 2,
+      "existingTotalUnits": 3,
+      "id": "capacity:3066540036",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 1960,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 5331.2,
+      "potentialResidentialFloorAreaSquareFeet": 5331.2,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 5,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066540036"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "KINGS HIGHWAY",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 3.51,
+      "availableResidentialFar": 3.51,
+      "bbl": "3066550034",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 11054,
+      "builtFar": 0.49,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9747332,
+        40.6047304
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:3066550034",
+      "landUseCode": "8",
+      "lotAreaSquareFeet": 22679,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 79603.29,
+      "potentialResidentialFloorAreaSquareFeet": 79603.29,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 88,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066550034"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "435 KINGS HIGHWAY",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 3.13,
+      "availableResidentialFar": 3.13,
+      "bbl": "3066560043",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 3900,
+      "builtFar": 0.87,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9738402,
+        40.6046341
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:3066560043",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 4475,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 14006.75,
+      "potentialResidentialFloorAreaSquareFeet": 14006.75,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 15,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066560043"
+      ],
+      "zoningDistricts": [
+        "R7A",
+        "R4-1"
+      ]
+    },
+    {
+      "address": "431 KINGS HIGHWAY",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 3.39,
+      "availableResidentialFar": 3.39,
+      "bbl": "3066560046",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 1240,
+      "builtFar": 0.61,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9740166,
+        40.6046205
+      ],
+      "existingResidentialUnits": 2,
+      "existingTotalUnits": 3,
+      "id": "capacity:3066560046",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 2040,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 6915.6,
+      "potentialResidentialFloorAreaSquareFeet": 6915.6,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 7,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066560046"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "473 KINGS HIGHWAY",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 3.8,
+      "availableResidentialFar": 3.8,
+      "bbl": "3066570047",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 2560,
+      "builtFar": 0.2,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9725581,
+        40.6045295
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:3066570047",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 13000,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 49400,
+      "potentialResidentialFloorAreaSquareFeet": 49400,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 54,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066570047"
+      ],
+      "zoningDistricts": [
+        "R7A",
+        "C8-2"
+      ]
+    },
+    {
+      "address": "461 KINGS HIGHWAY",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 2.61,
+      "availableResidentialFar": 2.61,
+      "bbl": "3066570053",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 2488,
+      "builtFar": 1.39,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9727778,
+        40.6045076
+      ],
+      "existingResidentialUnits": 2,
+      "existingTotalUnits": 3,
+      "id": "capacity:3066570053",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 1792,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 4677.12,
+      "potentialResidentialFloorAreaSquareFeet": 4677.12,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 5,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066570053"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "457 KINGS HIGHWAY",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 2.71,
+      "availableResidentialFar": 2.71,
+      "bbl": "3066570054",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 1400,
+      "builtFar": 1.29,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9728426,
+        40.6045049
+      ],
+      "existingResidentialUnits": 2,
+      "existingTotalUnits": 3,
+      "id": "capacity:3066570054",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 1086,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 2943.06,
+      "potentialResidentialFloorAreaSquareFeet": 2943.06,
+      "potentialResidentialUnitsClass1": 1,
+      "potentialResidentialUnitsClass2": 3,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066570054"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "455 KINGS HIGHWAY",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 2.58,
+      "availableResidentialFar": 2.58,
+      "bbl": "3066570055",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 2800,
+      "builtFar": 1.42,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9729147,
+        40.6045049
+      ],
+      "existingResidentialUnits": 2,
+      "existingTotalUnits": 3,
+      "id": "capacity:3066570055",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 1975,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 5095.5,
+      "potentialResidentialFloorAreaSquareFeet": 5095.5,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 5,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066570055"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "453 KINGS HIGHWAY",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 2.94,
+      "availableResidentialFar": 2.94,
+      "bbl": "3066570056",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 2050,
+      "builtFar": 1.06,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9729831,
+        40.6045049
+      ],
+      "existingResidentialUnits": 2,
+      "existingTotalUnits": 3,
+      "id": "capacity:3066570056",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 1940,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 5703.6,
+      "potentialResidentialFloorAreaSquareFeet": 5703.6,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 6,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066570056"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "394 KINGS HIGHWAY",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 3.45,
+      "availableResidentialFar": 3.45,
+      "bbl": "3066780071",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 2200,
+      "builtFar": 0.55,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9755401,
+        40.6043216
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:3066780071",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 3980,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 13731,
+      "potentialResidentialFloorAreaSquareFeet": 13731,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 15,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066780071"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "424 KINGS HIGHWAY",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 2.51,
+      "availableResidentialFar": 2.51,
+      "bbl": "3066780116",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 2494,
+      "builtFar": 1.49,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9744345,
+        40.6042143
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 2,
+      "id": "capacity:3066780116",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 1675,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 4204.25,
+      "potentialResidentialFloorAreaSquareFeet": 4204.25,
+      "potentialResidentialUnitsClass1": 2,
+      "potentialResidentialUnitsClass2": 4,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066780116"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "428 KINGS HIGHWAY",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 2.48,
+      "availableResidentialFar": 2.48,
+      "bbl": "3066780118",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 2480,
+      "builtFar": 1.52,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9742905,
+        40.6042006
+      ],
+      "existingResidentialUnits": 2,
+      "existingTotalUnits": 3,
+      "id": "capacity:3066780118",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 1635,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 4054.8,
+      "potentialResidentialFloorAreaSquareFeet": 4054.8,
+      "potentialResidentialUnitsClass1": 2,
+      "potentialResidentialUnitsClass2": 4,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066780118"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "432 KINGS HIGHWAY",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 2.46,
+      "availableResidentialFar": 2.46,
+      "bbl": "3066780119",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 2480,
+      "builtFar": 1.54,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9742221,
+        40.6041923
+      ],
+      "existingResidentialUnits": 2,
+      "existingTotalUnits": 3,
+      "id": "capacity:3066780119",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 1615,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 3972.9,
+      "potentialResidentialFloorAreaSquareFeet": 3972.9,
+      "potentialResidentialUnitsClass1": 2,
+      "potentialResidentialUnitsClass2": 4,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066780119"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "436 KINGS HIGHWAY",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 3.27,
+      "availableResidentialFar": 3.27,
+      "bbl": "3066790001",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 14240,
+      "builtFar": 0.73,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9735415,
+        40.6040906
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:3066790001",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 19383,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 63382.41,
+      "potentialResidentialFloorAreaSquareFeet": 63382.41,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 70,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066790001"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "470 KINGS HIGHWAY",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 2.72,
+      "availableResidentialFar": 2.72,
+      "bbl": "3066800005",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 10200,
+      "builtFar": 1.28,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9725764,
+        40.6039641
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 7,
+      "id": "capacity:3066800005",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 7950,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 21624,
+      "potentialResidentialFloorAreaSquareFeet": 21624,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 24,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066800005"
+      ],
+      "zoningDistricts": [
+        "R7A",
+        "M1-1"
+      ]
+    },
+    {
+      "address": "2074 MCDONALD AVENUE",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 2.86,
+      "availableFar": 2.86,
+      "availableResidentialFar": 2.86,
+      "bbl": "3066800039",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 18652,
+      "builtFar": 1.14,
+      "commercialFar": 4,
+      "coordinates": [
+        -73.9729444,
+        40.6022267
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 4,
+      "id": "capacity:3066800039",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 16430,
+      "potentialCommercialFloorAreaSquareFeet": 46989.8,
+      "potentialFloorAreaSquareFeet": 46989.8,
+      "potentialResidentialFloorAreaSquareFeet": 46989.8,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 52,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066800039"
+      ],
+      "zoningDistricts": [
+        "C4-4L",
+        "R5B"
+      ]
+    },
+    {
+      "address": "2080 MCDONALD AVENUE",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 3.5,
+      "availableFar": 3.5,
+      "availableResidentialFar": 3.5,
+      "bbl": "3066800042",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 7500,
+      "builtFar": 0.5,
+      "commercialFar": 4,
+      "coordinates": [
+        -73.9730093,
+        40.6019687
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:3066800042",
+      "landUseCode": "8",
+      "lotAreaSquareFeet": 15050,
+      "potentialCommercialFloorAreaSquareFeet": 52675,
+      "potentialFloorAreaSquareFeet": 52675,
+      "potentialResidentialFloorAreaSquareFeet": 52675,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 58,
+      "regionId": "BK1103",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3066800042"
+      ],
+      "zoningDistricts": [
+        "C4-4L"
+      ]
+    },
+    {
+      "address": "325 AVENUE U",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 3,
+      "availableResidentialFar": 3,
+      "bbl": "3071040263",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9720966,
+        40.5973463
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:3071040263",
+      "landUseCode": "11",
+      "lotAreaSquareFeet": 6000,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 18000,
+      "potentialResidentialFloorAreaSquareFeet": 18000,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 20,
+      "regionId": "BK1103",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:3071040263"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    }
+  ],
+  "claimBoundary": "This NTA shard preserves every joined row retained from the governed source snapshot. The source snapshot itself samples large DOB jobs, constructed footprints, and PLUTO capacity candidates and is not a complete property history or feasibility inventory.",
+  "contentVersion": "2026-07-27",
+  "coverage": {
+    "capacityCandidates": 101,
+    "compilerRegionCap": null,
+    "developmentForecastSupportedBySector": {
+      "all": false,
+      "tax-class-1": true,
+      "tax-class-2": true,
+      "tax-class-4": true
+    },
+    "developmentSeriesRows": 22,
+    "historicalSites": 43,
+    "priceForecastSupportedBySector": {
+      "all": true,
+      "tax-class-1": true,
+      "tax-class-2": true,
+      "tax-class-4": true
+    },
+    "saleRows": 30,
+    "saleYearsBySector": {
+      "tax-class-1": [
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "tax-class-2": [
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "tax-class-4": [
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024,
+        2025
+      ]
+    },
+    "sectorCandidateCounts": {
+      "all": 0,
+      "tax-class-1": 101,
+      "tax-class-2": 101,
+      "tax-class-4": 2
+    },
+    "sourceSampled": true
+  },
+  "developmentSeries": [
+    {
+      "filingCount": 53,
+      "id": "development:BK1103:2000",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "BK1103",
+      "sourceNtaNames": [
+        "Gravesend",
+        "Gravesend (West)"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2000
+    },
+    {
+      "filingCount": 24,
+      "id": "development:BK1103:2001",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "BK1103",
+      "sourceNtaNames": [
+        "Gravesend",
+        "Gravesend (West)"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2001
+    },
+    {
+      "filingCount": 44,
+      "id": "development:BK1103:2002",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "BK1103",
+      "sourceNtaNames": [
+        "Gravesend",
+        "Gravesend (West)"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2002
+    },
+    {
+      "filingCount": 60,
+      "id": "development:BK1103:2003",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "BK1103",
+      "sourceNtaNames": [
+        "Gravesend",
+        "Gravesend (West)"
+      ],
+      "withdrawnFilingCount": 3,
+      "year": 2003
+    },
+    {
+      "filingCount": 35,
+      "id": "development:BK1103:2004",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "BK1103",
+      "sourceNtaNames": [
+        "Gravesend",
+        "Gravesend (West)"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2004
+    },
+    {
+      "filingCount": 60,
+      "id": "development:BK1103:2005",
+      "proposedZoningSquareFeet": 10085,
+      "regionId": "BK1103",
+      "sourceNtaNames": [
+        "Gravesend",
+        "Gravesend (West)"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2005
+    },
+    {
+      "filingCount": 54,
+      "id": "development:BK1103:2006",
+      "proposedZoningSquareFeet": 12097,
+      "regionId": "BK1103",
+      "sourceNtaNames": [
+        "Gravesend",
+        "Gravesend (West)"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2006
+    },
+    {
+      "filingCount": 48,
+      "id": "development:BK1103:2007",
+      "proposedZoningSquareFeet": 2995315,
+      "regionId": "BK1103",
+      "sourceNtaNames": [
+        "Gravesend",
+        "Gravesend (West)"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2007
+    },
+    {
+      "filingCount": 25,
+      "id": "development:BK1103:2008",
+      "proposedZoningSquareFeet": 112489,
+      "regionId": "BK1103",
+      "sourceNtaNames": [
+        "Gravesend",
+        "Gravesend (West)"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2008
+    },
+    {
+      "filingCount": 17,
+      "id": "development:BK1103:2009",
+      "proposedZoningSquareFeet": 81587,
+      "regionId": "BK1103",
+      "sourceNtaNames": [
+        "Gravesend",
+        "Gravesend (West)"
+      ],
+      "withdrawnFilingCount": 4,
+      "year": 2009
+    },
+    {
+      "filingCount": 21,
+      "id": "development:BK1103:2010",
+      "proposedZoningSquareFeet": 78632,
+      "regionId": "BK1103",
+      "sourceNtaNames": [
+        "Gravesend",
+        "Gravesend (West)"
+      ],
+      "withdrawnFilingCount": 1,
+      "year": 2010
+    },
+    {
+      "filingCount": 22,
+      "id": "development:BK1103:2011",
+      "proposedZoningSquareFeet": 34061,
+      "regionId": "BK1103",
+      "sourceNtaNames": [
+        "Gravesend",
+        "Gravesend (West)"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2011
+    },
+    {
+      "filingCount": 29,
+      "id": "development:BK1103:2012",
+      "proposedZoningSquareFeet": 651737,
+      "regionId": "BK1103",
+      "sourceNtaNames": [
+        "Gravesend",
+        "Gravesend (West)"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2012
+    },
+    {
+      "filingCount": 9,
+      "id": "development:BK1103:2013",
+      "proposedZoningSquareFeet": 54386,
+      "regionId": "BK1103",
+      "sourceNtaNames": [
+        "Gravesend",
+        "Gravesend (West)"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2013
+    },
+    {
+      "filingCount": 22,
+      "id": "development:BK1103:2014",
+      "proposedZoningSquareFeet": 340534,
+      "regionId": "BK1103",
+      "sourceNtaNames": [
+        "Gravesend",
+        "Gravesend (West)"
+      ],
+      "withdrawnFilingCount": 1,
+      "year": 2014
+    },
+    {
+      "filingCount": 17,
+      "id": "development:BK1103:2015",
+      "proposedZoningSquareFeet": 62910,
+      "regionId": "BK1103",
+      "sourceNtaNames": [
+        "Gravesend",
+        "Gravesend (West)"
+      ],
+      "withdrawnFilingCount": 1,
+      "year": 2015
+    },
+    {
+      "filingCount": 42,
+      "id": "development:BK1103:2016",
+      "proposedZoningSquareFeet": 484544,
+      "regionId": "BK1103",
+      "sourceNtaNames": [
+        "Gravesend",
+        "Gravesend (West)"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2016
+    },
+    {
+      "filingCount": 17,
+      "id": "development:BK1103:2017",
+      "proposedZoningSquareFeet": 26907,
+      "regionId": "BK1103",
+      "sourceNtaNames": [
+        "Gravesend",
+        "Gravesend (West)"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2017
+    },
+    {
+      "filingCount": 44,
+      "id": "development:BK1103:2018",
+      "proposedZoningSquareFeet": 468469,
+      "regionId": "BK1103",
+      "sourceNtaNames": [
+        "Gravesend",
+        "Gravesend (West)"
+      ],
+      "withdrawnFilingCount": 1,
+      "year": 2018
+    },
+    {
+      "filingCount": 37,
+      "id": "development:BK1103:2019",
+      "proposedZoningSquareFeet": 107816,
+      "regionId": "BK1103",
+      "sourceNtaNames": [
+        "Gravesend",
+        "Gravesend (West)"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2019
+    },
+    {
+      "filingCount": 8,
+      "id": "development:BK1103:2020",
+      "proposedZoningSquareFeet": 78019,
+      "regionId": "BK1103",
+      "sourceNtaNames": [
+        "Gravesend",
+        "Gravesend (West)"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2020
+    },
+    {
+      "filingCount": 1,
+      "id": "development:BK1103:2021",
+      "proposedZoningSquareFeet": 764489,
+      "regionId": "BK1103",
+      "sourceNtaNames": [
+        "Gravesend (West)"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2021
+    }
+  ],
+  "developmentSites": [
+    {
+      "address": null,
+      "bbl": "3062530028",
+      "bin": "3418357",
+      "constructionYear": 2019,
+      "coordinates": [
+        -73.987283,
+        40.6059005
+      ],
+      "footprint": [
+        [
+          -73.987225,
+          40.6058419
+        ],
+        [
+          -73.9874072,
+          40.6058772
+        ],
+        [
+          -73.9873701,
+          40.6059883
+        ],
+        [
+          -73.9871879,
+          40.605953
+        ],
+        [
+          -73.987225,
+          40.6058419
+        ]
+      ],
+      "footprintAreaM2": 351.86,
+      "footprintOrigin": "observed",
+      "heightM": 9.14,
+      "id": "footprint:1034870",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2019-07-01",
+          "id": "footprint:1034870:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1103",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1034870"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3069430030",
+      "bin": "3426891",
+      "constructionYear": 2018,
+      "coordinates": [
+        -73.9978284,
+        40.589317
+      ],
+      "footprint": [
+        [
+          -73.997731,
+          40.5896302
+        ],
+        [
+          -73.9973359,
+          40.5891574
+        ],
+        [
+          -73.9979744,
+          40.5888473
+        ],
+        [
+          -73.9983695,
+          40.5893201
+        ],
+        [
+          -73.997731,
+          40.5896302
+        ]
+      ],
+      "footprintAreaM2": 6924.63,
+      "footprintOrigin": "observed",
+      "heightM": 0,
+      "id": "footprint:1036061",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2018-07-01",
+          "id": "footprint:1036061:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1103",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1036061"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3062530078",
+      "bin": "3426070",
+      "constructionYear": 2018,
+      "coordinates": [
+        -73.987683,
+        40.6069912
+      ],
+      "footprint": [
+        [
+          -73.9877649,
+          40.6070518
+        ],
+        [
+          -73.9875914,
+          40.6070703
+        ],
+        [
+          -73.9875601,
+          40.6069004
+        ],
+        [
+          -73.9877336,
+          40.6068819
+        ],
+        [
+          -73.9877649,
+          40.6070518
+        ]
+      ],
+      "footprintAreaM2": 490.79,
+      "footprintOrigin": "observed",
+      "heightM": 22.56,
+      "id": "footprint:1040844",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2018-07-01",
+          "id": "footprint:1040844:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1103",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1040844"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3070920021",
+      "bin": "3412945",
+      "constructionYear": 2011,
+      "coordinates": [
+        -73.9845957,
+        40.5966721
+      ],
+      "footprint": [
+        [
+          -73.9844946,
+          40.5967085
+        ],
+        [
+          -73.9846514,
+          40.596559
+        ],
+        [
+          -73.9847474,
+          40.5966176
+        ],
+        [
+          -73.9845906,
+          40.5967671
+        ],
+        [
+          -73.9844946,
+          40.5967085
+        ]
+      ],
+      "footprintAreaM2": 384.13,
+      "footprintOrigin": "observed",
+      "heightM": 8.53,
+      "id": "footprint:1064336",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2011-07-01",
+          "id": "footprint:1064336:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1103",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1064336"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3070920022",
+      "bin": "3397175",
+      "constructionYear": 2011,
+      "coordinates": [
+        -73.9845004,
+        40.5966141
+      ],
+      "footprint": [
+        [
+          -73.9843998,
+          40.5966509
+        ],
+        [
+          -73.9845567,
+          40.5965014
+        ],
+        [
+          -73.9846512,
+          40.596559
+        ],
+        [
+          -73.9844944,
+          40.5967085
+        ],
+        [
+          -73.9843998,
+          40.5966509
+        ]
+      ],
+      "footprintAreaM2": 378.25,
+      "footprintOrigin": "observed",
+      "heightM": 8.53,
+      "id": "footprint:1068438",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2011-07-01",
+          "id": "footprint:1068438:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1103",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1068438"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3062530033",
+      "bin": "3414453",
+      "constructionYear": 2019,
+      "coordinates": [
+        -73.9872959,
+        40.6058088
+      ],
+      "footprint": [
+        [
+          -73.9873542,
+          40.6058671
+        ],
+        [
+          -73.987175,
+          40.6058321
+        ],
+        [
+          -73.9872034,
+          40.60572
+        ],
+        [
+          -73.9873927,
+          40.6057574
+        ],
+        [
+          -73.9873542,
+          40.6058671
+        ]
+      ],
+      "footprintAreaM2": 353.36,
+      "footprintOrigin": "observed",
+      "heightM": 9.14,
+      "id": "footprint:1075672",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2019-07-01",
+          "id": "footprint:1075672:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1103",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1075672"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3070850125",
+      "bin": "3190373",
+      "constructionYear": 2018,
+      "coordinates": [
+        -73.9748933,
+        40.5997221
+      ],
+      "footprint": [
+        [
+          -73.9749614,
+          40.5997702
+        ],
+        [
+          -73.9747745,
+          40.5997526
+        ],
+        [
+          -73.9747911,
+          40.5996499
+        ],
+        [
+          -73.9749781,
+          40.5996675
+        ],
+        [
+          -73.9749614,
+          40.5997702
+        ]
+      ],
+      "footprintAreaM2": 318.32,
+      "footprintOrigin": "observed",
+      "heightM": 9.14,
+      "id": "footprint:1079707",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2018-07-01",
+          "id": "footprint:1079707:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1103",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1079707"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3066180027",
+      "bin": "3429013",
+      "constructionYear": 2022,
+      "coordinates": [
+        -73.9867097,
+        40.6062587
+      ],
+      "footprint": [
+        [
+          -73.9867469,
+          40.6063963
+        ],
+        [
+          -73.9867161,
+          40.6062361
+        ],
+        [
+          -73.9865099,
+          40.6062044
+        ],
+        [
+          -73.9864849,
+          40.6060713
+        ],
+        [
+          -73.986856,
+          40.6061271
+        ],
+        [
+          -73.9869071,
+          40.6063792
+        ],
+        [
+          -73.9867469,
+          40.6063963
+        ]
+      ],
+      "footprintAreaM2": 1158.47,
+      "footprintOrigin": "observed",
+      "heightM": 22.86,
+      "id": "footprint:1084595",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2022-07-01",
+          "id": "footprint:1084595:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1103",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1084595"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3066510082",
+      "bin": "3425885",
+      "constructionYear": 2021,
+      "coordinates": [
+        -73.9788422,
+        40.6053741
+      ],
+      "footprint": [
+        [
+          -73.978763,
+          40.6053355
+        ],
+        [
+          -73.9789927,
+          40.6053117
+        ],
+        [
+          -73.9790142,
+          40.6054198
+        ],
+        [
+          -73.9788013,
+          40.6054428
+        ],
+        [
+          -73.9787901,
+          40.605386
+        ],
+        [
+          -73.9787712,
+          40.6053876
+        ],
+        [
+          -73.978763,
+          40.6053355
+        ]
+      ],
+      "footprintAreaM2": 400.78,
+      "footprintOrigin": "observed",
+      "heightM": 24.38,
+      "id": "footprint:1084639",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2021-07-01",
+          "id": "footprint:1084639:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1103",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1084639"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3066780073",
+      "bin": "3426653",
+      "constructionYear": 2022,
+      "coordinates": [
+        -73.9752948,
+        40.6043247
+      ],
+      "footprint": [
+        [
+          -73.9754525,
+          40.6044419
+        ],
+        [
+          -73.9750239,
+          40.6043915
+        ],
+        [
+          -73.9750588,
+          40.6041502
+        ],
+        [
+          -73.9754861,
+          40.604198
+        ],
+        [
+          -73.9754525,
+          40.6044419
+        ]
+      ],
+      "footprintAreaM2": 1721.89,
+      "footprintOrigin": "observed",
+      "heightM": 21.34,
+      "id": "footprint:1085048",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2022-07-01",
+          "id": "footprint:1085048:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1103",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1085048"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3066260068",
+      "bin": "3175603",
+      "constructionYear": 2022,
+      "coordinates": [
+        -73.9792848,
+        40.6074327
+      ],
+      "footprint": [
+        [
+          -73.979379,
+          40.6074549
+        ],
+        [
+          -73.9791595,
+          40.6074806
+        ],
+        [
+          -73.979144,
+          40.6073984
+        ],
+        [
+          -73.9793625,
+          40.6073747
+        ],
+        [
+          -73.979379,
+          40.6074549
+        ]
+      ],
+      "footprintAreaM2": 296.78,
+      "footprintOrigin": "observed",
+      "heightM": 10.06,
+      "id": "footprint:1085508",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2022-07-01",
+          "id": "footprint:1085508:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1103",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1085508"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3068900026",
+      "bin": "3428917",
+      "constructionYear": 2023,
+      "coordinates": [
+        -73.9943059,
+        40.5954176
+      ],
+      "footprint": [
+        [
+          -73.994402,
+          40.595426
+        ],
+        [
+          -73.9943284,
+          40.5955005
+        ],
+        [
+          -73.9941618,
+          40.595405
+        ],
+        [
+          -73.9942354,
+          40.5953304
+        ],
+        [
+          -73.994402,
+          40.595426
+        ]
+      ],
+      "footprintAreaM2": 317.64,
+      "footprintOrigin": "observed",
+      "heightM": 12.19,
+      "id": "footprint:1087485",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2023-07-01",
+          "id": "footprint:1087485:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1103",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1087485"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3070750011",
+      "bin": "3426228",
+      "constructionYear": 2024,
+      "coordinates": [
+        -73.9852002,
+        40.6000412
+      ],
+      "footprint": [
+        [
+          -73.9853084,
+          40.6000064
+        ],
+        [
+          -73.9853187,
+          40.6000645
+        ],
+        [
+          -73.9850378,
+          40.6000933
+        ],
+        [
+          -73.9850276,
+          40.6000352
+        ],
+        [
+          -73.9853084,
+          40.6000064
+        ]
+      ],
+      "footprintAreaM2": 271.1,
+      "footprintOrigin": "observed",
+      "heightM": 10.06,
+      "id": "footprint:1089478",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2024-07-01",
+          "id": "footprint:1089478:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1103",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1089478"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3070950049",
+      "bin": "3428847",
+      "constructionYear": 2024,
+      "coordinates": [
+        -73.98206,
+        40.5962239
+      ],
+      "footprint": [
+        [
+          -73.98216,
+          40.5963242
+        ],
+        [
+          -73.9820187,
+          40.5963396
+        ],
+        [
+          -73.9819797,
+          40.5961386
+        ],
+        [
+          -73.9821222,
+          40.5961181
+        ],
+        [
+          -73.98216,
+          40.5963242
+        ]
+      ],
+      "footprintAreaM2": 487.1,
+      "footprintOrigin": "observed",
+      "heightM": 10.67,
+      "id": "footprint:1089497",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2024-07-01",
+          "id": "footprint:1089497:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1103",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1089497"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3066230007",
+      "bin": "3175408",
+      "constructionYear": 2021,
+      "coordinates": [
+        -73.9819383,
+        40.6076036
+      ],
+      "footprint": [
+        [
+          -73.9818814,
+          40.6075161
+        ],
+        [
+          -73.9820243,
+          40.6075001
+        ],
+        [
+          -73.982053,
+          40.6076495
+        ],
+        [
+          -73.9820138,
+          40.6076539
+        ],
+        [
+          -73.9820191,
+          40.6076812
+        ],
+        [
+          -73.9817937,
+          40.6077064
+        ],
+        [
+          -73.9817598,
+          40.6075297
+        ],
+        [
+          -73.9818814,
+          40.6075161
+        ]
+      ],
+      "footprintAreaM2": 761.27,
+      "footprintOrigin": "observed",
+      "heightM": 24.38,
+      "id": "footprint:1089498",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2021-07-01",
+          "id": "footprint:1089498:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1103",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1089498"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3071030020",
+      "bin": "3191416",
+      "constructionYear": 2019,
+      "coordinates": [
+        -73.9734028,
+        40.5982264
+      ],
+      "footprint": [
+        [
+          -73.973512,
+          40.5981939
+        ],
+        [
+          -73.9734972,
+          40.5982966
+        ],
+        [
+          -73.9732389,
+          40.598275
+        ],
+        [
+          -73.9732537,
+          40.5981724
+        ],
+        [
+          -73.973512,
+          40.5981939
+        ]
+      ],
+      "footprintAreaM2": 437.97,
+      "footprintOrigin": "observed",
+      "heightM": 8.23,
+      "id": "footprint:1090174",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2019-07-01",
+          "id": "footprint:1090174:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1103",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1090174"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3062530125",
+      "bin": "3418332",
+      "constructionYear": 2015,
+      "coordinates": [
+        -73.9876474,
+        40.6060074
+      ],
+      "footprint": [
+        [
+          -73.9877626,
+          40.6060429
+        ],
+        [
+          -73.9876596,
+          40.606022
+        ],
+        [
+          -73.9876538,
+          40.6060388
+        ],
+        [
+          -73.9875949,
+          40.6060269
+        ],
+        [
+          -73.9876008,
+          40.60601
+        ],
+        [
+          -73.9874911,
+          40.6059878
+        ],
+        [
+          -73.9875147,
+          40.60592
+        ],
+        [
+          -73.9877863,
+          40.6059751
+        ],
+        [
+          -73.9877626,
+          40.6060429
+        ]
+      ],
+      "footprintAreaM2": 338.91,
+      "footprintOrigin": "observed",
+      "heightM": 20.73,
+      "id": "footprint:348821",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2015-07-01",
+          "id": "footprint:348821:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1103",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:348821"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3064150051",
+      "bin": "3168034",
+      "constructionYear": 2016,
+      "coordinates": [
+        -73.9954473,
+        40.5994375
+      ],
+      "footprint": [
+        [
+          -73.9954366,
+          40.5993586
+        ],
+        [
+          -73.9954546,
+          40.5993413
+        ],
+        [
+          -73.9956112,
+          40.5994361
+        ],
+        [
+          -73.9954665,
+          40.599575
+        ],
+        [
+          -73.9953099,
+          40.5994803
+        ],
+        [
+          -73.9954036,
+          40.5993903
+        ],
+        [
+          -73.9954366,
+          40.5993586
+        ]
+      ],
+      "footprintAreaM2": 578.9,
+      "footprintOrigin": "observed",
+      "heightM": 9.69,
+      "id": "footprint:45152",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2016-07-01",
+          "id": "footprint:45152:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1103",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:45152"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3068750015",
+      "bin": "3185963",
+      "constructionYear": 2012,
+      "coordinates": [
+        -73.9931211,
+        40.5965102
+      ],
+      "footprint": [
+        [
+          -73.9930839,
+          40.5964532
+        ],
+        [
+          -73.9931273,
+          40.5964118
+        ],
+        [
+          -73.9932731,
+          40.5965003
+        ],
+        [
+          -73.9931427,
+          40.5966251
+        ],
+        [
+          -73.9929969,
+          40.5965365
+        ],
+        [
+          -73.9930405,
+          40.5964948
+        ],
+        [
+          -73.9930839,
+          40.5964532
+        ]
+      ],
+      "footprintAreaM2": 485.28,
+      "footprintOrigin": "observed",
+      "heightM": 10.06,
+      "id": "footprint:460465",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2012-07-01",
+          "id": "footprint:460465:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1103",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:460465"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3068530050",
+      "bin": "3418316",
+      "constructionYear": 2013,
+      "coordinates": [
+        -73.9885605,
+        40.6008862
+      ],
+      "footprint": [
+        [
+          -73.9885558,
+          40.6008065
+        ],
+        [
+          -73.9885718,
+          40.6007912
+        ],
+        [
+          -73.9887031,
+          40.6008711
+        ],
+        [
+          -73.9885672,
+          40.6010009
+        ],
+        [
+          -73.9884366,
+          40.6009204
+        ],
+        [
+          -73.9885558,
+          40.6008065
+        ]
+      ],
+      "footprintAreaM2": 455.21,
+      "footprintOrigin": "observed",
+      "heightM": 11.58,
+      "id": "footprint:460466",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2013-07-01",
+          "id": "footprint:460466:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1103",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:460466"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3070920024",
+      "bin": "3397177",
+      "constructionYear": 2011,
+      "coordinates": [
+        -73.9844264,
+        40.5965199
+      ],
+      "footprint": [
+        [
+          -73.9845568,
+          40.5965014
+        ],
+        [
+          -73.9844,
+          40.5966509
+        ],
+        [
+          -73.9843343,
+          40.5966108
+        ],
+        [
+          -73.9842842,
+          40.5963352
+        ],
+        [
+          -73.9845568,
+          40.5965014
+        ]
+      ],
+      "footprintAreaM2": 676.51,
+      "footprintOrigin": "observed",
+      "heightM": 8.53,
+      "id": "footprint:47777",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2011-07-01",
+          "id": "footprint:47777:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1103",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:47777"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3068820003",
+      "bin": "3425661",
+      "constructionYear": 2018,
+      "coordinates": [
+        -73.9878931,
+        40.5928977
+      ],
+      "footprint": [
+        [
+          -73.9877955,
+          40.592938
+        ],
+        [
+          -73.9877848,
+          40.5929313
+        ],
+        [
+          -73.98797,
+          40.5927466
+        ],
+        [
+          -73.9880989,
+          40.5928229
+        ],
+        [
+          -73.9879142,
+          40.5930094
+        ],
+        [
+          -73.9877955,
+          40.592938
+        ]
+      ],
+      "footprintAreaM2": 624.28,
+      "footprintOrigin": "observed",
+      "heightM": 10.06,
+      "id": "footprint:493835",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2018-07-01",
+          "id": "footprint:493835:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1103",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:493835"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3066320036",
+      "bin": "3175891",
+      "constructionYear": 2010,
+      "coordinates": [
+        -73.9729508,
+        40.6070775
+      ],
+      "footprint": [
+        [
+          -73.9728433,
+          40.6070348
+        ],
+        [
+          -73.9730879,
+          40.6070089
+        ],
+        [
+          -73.9731171,
+          40.6071695
+        ],
+        [
+          -73.9728624,
+          40.6071397
+        ],
+        [
+          -73.9728433,
+          40.6070348
+        ]
+      ],
+      "footprintAreaM2": 540.1,
+      "footprintOrigin": "observed",
+      "heightM": 6.1,
+      "id": "footprint:51362",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2010-07-01",
+          "id": "footprint:51362:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1103",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:51362"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3068600032",
+      "bin": "3396550",
+      "constructionYear": 2013,
+      "coordinates": [
+        -73.9859065,
+        40.5975325
+      ],
+      "footprint": [
+        [
+          -73.9859098,
+          40.5976472
+        ],
+        [
+          -73.985696,
+          40.597516
+        ],
+        [
+          -73.9857384,
+          40.5974759
+        ],
+        [
+          -73.9857488,
+          40.5974822
+        ],
+        [
+          -73.9859113,
+          40.5973284
+        ],
+        [
+          -73.986186,
+          40.5974972
+        ],
+        [
+          -73.9860287,
+          40.597646
+        ],
+        [
+          -73.9859574,
+          40.5976022
+        ],
+        [
+          -73.9859098,
+          40.5976472
+        ]
+      ],
+      "footprintAreaM2": 1358.2,
+      "footprintOrigin": "observed",
+      "heightM": 6.1,
+      "id": "footprint:55066",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2013-07-01",
+          "id": "footprint:55066:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1103",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:55066"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3071000059",
+      "bin": "3191221",
+      "constructionYear": 2010,
+      "coordinates": [
+        -73.9773499,
+        40.5974302
+      ],
+      "footprint": [
+        [
+          -73.9772515,
+          40.5974643
+        ],
+        [
+          -73.9772371,
+          40.5973996
+        ],
+        [
+          -73.9774005,
+          40.5973784
+        ],
+        [
+          -73.9774077,
+          40.597411
+        ],
+        [
+          -73.9774236,
+          40.5974089
+        ],
+        [
+          -73.9774597,
+          40.5974222
+        ],
+        [
+          -73.977465,
+          40.597446
+        ],
+        [
+          -73.9772536,
+          40.5974735
+        ],
+        [
+          -73.9772516,
+          40.5974648
+        ],
+        [
+          -73.9772515,
+          40.5974643
+        ]
+      ],
+      "footprintAreaM2": 230.64,
+      "footprintOrigin": "observed",
+      "heightM": 10.06,
+      "id": "footprint:55071",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2010-07-01",
+          "id": "footprint:55071:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1103",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:55071"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3068740080",
+      "bin": "3398415",
+      "constructionYear": 2012,
+      "coordinates": [
+        -73.9936011,
+        40.5966634
+      ],
+      "footprint": [
+        [
+          -73.9935117,
+          40.5966412
+        ],
+        [
+          -73.9935617,
+          40.5965936
+        ],
+        [
+          -73.9937265,
+          40.5966942
+        ],
+        [
+          -73.9936741,
+          40.596744
+        ],
+        [
+          -73.9935094,
+          40.5966434
+        ],
+        [
+          -73.9935117,
+          40.5966412
+        ]
+      ],
+      "footprintAreaM2": 219.93,
+      "footprintOrigin": "observed",
+      "heightM": 10.36,
+      "id": "footprint:55257",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2012-07-01",
+          "id": "footprint:55257:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1103",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:55257"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3064160017",
+      "bin": "3398187",
+      "constructionYear": 2012,
+      "coordinates": [
+        -73.995817,
+        40.5984735
+      ],
+      "footprint": [
+        [
+          -73.995778,
+          40.5984228
+        ],
+        [
+          -73.9959434,
+          40.5985246
+        ],
+        [
+          -73.9958916,
+          40.5985736
+        ],
+        [
+          -73.9957279,
+          40.5984702
+        ],
+        [
+          -73.995778,
+          40.5984228
+        ]
+      ],
+      "footprintAreaM2": 218.38,
+      "footprintOrigin": "observed",
+      "heightM": 9.75,
+      "id": "footprint:55259",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2012-07-01",
+          "id": "footprint:55259:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1103",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:55259"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3064710109",
+      "bin": "3425955",
+      "constructionYear": 2019,
+      "coordinates": [
+        -73.9971017,
+        40.595379
+      ],
+      "footprint": [
+        [
+          -73.9970935,
+          40.5957131
+        ],
+        [
+          -73.9965648,
+          40.5952544
+        ],
+        [
+          -73.9970991,
+          40.5948669
+        ],
+        [
+          -73.9976575,
+          40.5953475
+        ],
+        [
+          -73.9970935,
+          40.5957131
+        ]
+      ],
+      "footprintAreaM2": 7549.04,
+      "footprintOrigin": "observed",
+      "heightM": 73.15,
+      "id": "footprint:6029",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2019-07-01",
+          "id": "footprint:6029:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1103",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:6029"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3066530063",
+      "bin": "3176978",
+      "constructionYear": 2012,
+      "coordinates": [
+        -73.9766301,
+        40.6044668
+      ],
+      "footprint": [
+        [
+          -73.9765442,
+          40.6043804
+        ],
+        [
+          -73.9766983,
+          40.6043618
+        ],
+        [
+          -73.9767508,
+          40.6046152
+        ],
+        [
+          -73.9766129,
+          40.6045964
+        ],
+        [
+          -73.9765442,
+          40.6043804
+        ]
+      ],
+      "footprintAreaM2": 559.23,
+      "footprintOrigin": "observed",
+      "heightM": 23.77,
+      "id": "footprint:658366",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2012-07-01",
+          "id": "footprint:658366:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1103",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:658366"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3063190036",
+      "bin": "3424130",
+      "constructionYear": 2017,
+      "coordinates": [
+        -73.9897576,
+        40.6029717
+      ],
+      "footprint": [
+        [
+          -73.9896758,
+          40.6030113
+        ],
+        [
+          -73.9898178,
+          40.6028745
+        ],
+        [
+          -73.9898806,
+          40.6029125
+        ],
+        [
+          -73.9897378,
+          40.6030489
+        ],
+        [
+          -73.9896758,
+          40.6030113
+        ]
+      ],
+      "footprintAreaM2": 226.84,
+      "footprintOrigin": "observed",
+      "heightM": 10.06,
+      "id": "footprint:71677",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2017-07-01",
+          "id": "footprint:71677:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1103",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:71677"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3063190038",
+      "bin": "3424182",
+      "constructionYear": 2017,
+      "coordinates": [
+        -73.9897339,
+        40.6029132
+      ],
+      "footprint": [
+        [
+          -73.9898186,
+          40.6028747
+        ],
+        [
+          -73.9896758,
+          40.6030113
+        ],
+        [
+          -73.9896083,
+          40.6029698
+        ],
+        [
+          -73.9897483,
+          40.6028355
+        ],
+        [
+          -73.9898186,
+          40.6028747
+        ]
+      ],
+      "footprintAreaM2": 245.33,
+      "footprintOrigin": "observed",
+      "heightM": 10.06,
+      "id": "footprint:71678",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2017-07-01",
+          "id": "footprint:71678:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1103",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:71678"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3064170076",
+      "bin": "3425029",
+      "constructionYear": 2016,
+      "coordinates": [
+        -73.9950834,
+        40.597554
+      ],
+      "footprint": [
+        [
+          -73.9949964,
+          40.5975331
+        ],
+        [
+          -73.995047,
+          40.5974845
+        ],
+        [
+          -73.995214,
+          40.5975855
+        ],
+        [
+          -73.9951634,
+          40.5976342
+        ],
+        [
+          -73.9949964,
+          40.5975331
+        ]
+      ],
+      "footprintAreaM2": 216.04,
+      "footprintOrigin": "observed",
+      "heightM": 9.75,
+      "id": "footprint:71741",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2016-07-01",
+          "id": "footprint:71741:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1103",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:71741"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3064170075",
+      "bin": "3413943",
+      "constructionYear": 2016,
+      "coordinates": [
+        -73.9950432,
+        40.5975927
+      ],
+      "footprint": [
+        [
+          -73.9949964,
+          40.5975331
+        ],
+        [
+          -73.9951634,
+          40.5976342
+        ],
+        [
+          -73.9951134,
+          40.5976822
+        ],
+        [
+          -73.9949463,
+          40.5975812
+        ],
+        [
+          -73.9949964,
+          40.5975331
+        ]
+      ],
+      "footprintAreaM2": 213.63,
+      "footprintOrigin": "observed",
+      "heightM": 9.75,
+      "id": "footprint:71742",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2016-07-01",
+          "id": "footprint:71742:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1103",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:71742"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3066570047",
+      "bin": "3397895",
+      "constructionYear": 2012,
+      "coordinates": [
+        -73.9725199,
+        40.6044552
+      ],
+      "footprint": [
+        [
+          -73.9723756,
+          40.604508
+        ],
+        [
+          -73.9724018,
+          40.6043633
+        ],
+        [
+          -73.972633,
+          40.6043814
+        ],
+        [
+          -73.9726223,
+          40.6044592
+        ],
+        [
+          -73.97255,
+          40.6044534
+        ],
+        [
+          -73.972537,
+          40.6045249
+        ],
+        [
+          -73.9725164,
+          40.6045228
+        ],
+        [
+          -73.9723756,
+          40.604508
+        ]
+      ],
+      "footprintAreaM2": 484.9,
+      "footprintOrigin": "observed",
+      "heightM": 3.73,
+      "id": "footprint:81810",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2012-07-01",
+          "id": "footprint:81810:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1103",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:81810"
+      ]
+    },
+    {
+      "address": "1846 W 13 STREET",
+      "bbl": "3066670024",
+      "bin": "3425162",
+      "constructionYear": 2021,
+      "coordinates": [
+        -73.985189,
+        40.601639
+      ],
+      "footprint": [
+        [
+          -73.9857187,
+          40.6016212
+        ],
+        [
+          -73.9855801,
+          40.6016364
+        ],
+        [
+          -73.9855851,
+          40.6016593
+        ],
+        [
+          -73.9854803,
+          40.6016696
+        ],
+        [
+          -73.9854765,
+          40.6016517
+        ],
+        [
+          -73.9854582,
+          40.6016525
+        ],
+        [
+          -73.9854605,
+          40.6016721
+        ],
+        [
+          -73.9853267,
+          40.6016854
+        ],
+        [
+          -73.9853077,
+          40.6016017
+        ],
+        [
+          -73.9853302,
+          40.6016003
+        ],
+        [
+          -73.9853242,
+          40.6015749
+        ],
+        [
+          -73.9853059,
+          40.601576
+        ],
+        [
+          -73.985248,
+          40.6012537
+        ],
+        [
+          -73.9853786,
+          40.6012397
+        ],
+        [
+          -73.9853821,
+          40.6012583
+        ],
+        [
+          -73.9854049,
+          40.6012559
+        ],
+        [
+          -73.985402,
+          40.6012428
+        ],
+        [
+          -73.9854981,
+          40.6012328
+        ],
+        [
+          -73.9855219,
+          40.601349
+        ],
+        [
+          -73.9856632,
+          40.6013338
+        ],
+        [
+          -73.9857187,
+          40.6016212
+        ]
+      ],
+      "footprintAreaM2": 2469.72,
+      "footprintOrigin": "observed",
+      "heightM": 18.29,
+      "id": "job:302576264:01",
+      "jobId": "302576264",
+      "milestones": [
+        {
+          "date": "2018-05-09",
+          "id": "job:302576264:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2018-05-22",
+          "id": "job:302576264:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2019-01-28",
+          "id": "job:302576264:01:fully-permitted:3",
+          "kind": "fully-permitted",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 4,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": 49111,
+      "regionId": "BK1103",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:3016133",
+        "building-footprint:1080622"
+      ],
+      "status": "PERMIT ISSUED - ENTIRE JOB/WORK",
+      "withdrawn": true
+    },
+    {
+      "address": "1684 SHORE PARKWAY",
+      "bbl": "3345607",
+      "bin": "3345607",
+      "constructionYear": null,
+      "coordinates": [
+        -73.997926,
+        40.594339
+      ],
+      "footprint": [
+        [
+          -73.9987541,
+          40.5937102
+        ],
+        [
+          -73.9970979,
+          40.5937102
+        ],
+        [
+          -73.9970979,
+          40.5949678
+        ],
+        [
+          -73.9987541,
+          40.5949678
+        ],
+        [
+          -73.9987541,
+          40.5937102
+        ]
+      ],
+      "footprintAreaM2": 15550.48,
+      "footprintOrigin": "modeled",
+      "heightM": 9.75,
+      "id": "job:320376721:01",
+      "jobId": "320376721",
+      "milestones": [
+        {
+          "date": "2012-09-07",
+          "id": "job:320376721:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 2,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": 334768,
+      "regionId": "BK1103",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:2067244"
+      ],
+      "status": "PLAN EXAM - DISAPPROVED",
+      "withdrawn": false
+    },
+    {
+      "address": "1752 SHORE PARKWAY",
+      "bbl": "3064910207",
+      "bin": "3345765",
+      "constructionYear": 2016,
+      "coordinates": [
+        -73.996162,
+        40.592991
+      ],
+      "footprint": [
+        [
+          -73.9969901,
+          40.5923622
+        ],
+        [
+          -73.9953339,
+          40.5923622
+        ],
+        [
+          -73.9953339,
+          40.5936198
+        ],
+        [
+          -73.9969901,
+          40.5936198
+        ],
+        [
+          -73.9969901,
+          40.5923622
+        ]
+      ],
+      "footprintAreaM2": 12593.56,
+      "footprintOrigin": "modeled",
+      "heightM": 9.14,
+      "id": "job:320426758:01",
+      "jobId": "320426758",
+      "milestones": [
+        {
+          "date": "2012-02-08",
+          "id": "job:320426758:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2012-09-11",
+          "id": "job:320426758:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2013-06-13",
+          "id": "job:320426758:01:fully-permitted:3",
+          "kind": "fully-permitted",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2016-02-10",
+          "id": "job:320426758:01:final-certificate-of-occupancy:4",
+          "kind": "final-certificate-of-occupancy",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2016-02-10",
+          "id": "job:320426758:01:signed-off:5",
+          "kind": "signed-off",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 1,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": 135556,
+      "regionId": "BK1103",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:2064303",
+        "certificate-of-occupancy:320426758:008"
+      ],
+      "status": "SIGNED OFF",
+      "withdrawn": false
+    },
+    {
+      "address": "1752 SHORE PARKWAY",
+      "bbl": "3345765",
+      "bin": "3345765",
+      "constructionYear": 2016,
+      "coordinates": [
+        -73.996162,
+        40.592991
+      ],
+      "footprint": [
+        [
+          -73.9969285,
+          40.592409
+        ],
+        [
+          -73.9953955,
+          40.592409
+        ],
+        [
+          -73.9953955,
+          40.593573
+        ],
+        [
+          -73.9969285,
+          40.593573
+        ],
+        [
+          -73.9969285,
+          40.592409
+        ]
+      ],
+      "footprintAreaM2": 4197.85,
+      "footprintOrigin": "modeled",
+      "heightM": 9.14,
+      "id": "job:320426767:01",
+      "jobId": "320426767",
+      "milestones": [
+        {
+          "date": "2012-02-08",
+          "id": "job:320426767:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2012-09-11",
+          "id": "job:320426767:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2013-08-22",
+          "id": "job:320426767:01:fully-permitted:3",
+          "kind": "fully-permitted",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2016-02-29",
+          "id": "job:320426767:01:final-certificate-of-occupancy:4",
+          "kind": "final-certificate-of-occupancy",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2016-02-29",
+          "id": "job:320426767:01:signed-off:5",
+          "kind": "signed-off",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 3,
+      "proposedUnits": 1,
+      "proposedZoningSquareFeet": 135556,
+      "regionId": "BK1103",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:2142408",
+        "certificate-of-occupancy:320426767:007"
+      ],
+      "status": "SIGNED OFF",
+      "withdrawn": false
+    },
+    {
+      "address": "2286 CROPSEY AVENUE",
+      "bbl": "3064717501",
+      "bin": "3425955",
+      "constructionYear": null,
+      "coordinates": [
+        -73.997001,
+        40.595843
+      ],
+      "footprint": [
+        [
+          -73.9973688,
+          40.5955637
+        ],
+        [
+          -73.9966332,
+          40.5955637
+        ],
+        [
+          -73.9966332,
+          40.5961223
+        ],
+        [
+          -73.9973688,
+          40.5961223
+        ],
+        [
+          -73.9973688,
+          40.5955637
+        ]
+      ],
+      "footprintAreaM2": 966.43,
+      "footprintOrigin": "modeled",
+      "heightM": 73.15,
+      "id": "job:320978064:01",
+      "jobId": "320978064",
+      "milestones": [
+        {
+          "date": "2014-09-24",
+          "id": "job:320978064:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2019-01-09",
+          "id": "job:320978064:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2020-12-21",
+          "id": "job:320978064:01:fully-permitted:3",
+          "kind": "fully-permitted",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 23,
+      "proposedUnits": 151,
+      "proposedZoningSquareFeet": 239259,
+      "regionId": "BK1103",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:2405745"
+      ],
+      "status": "PERMIT ISSUED - ENTIRE JOB/WORK",
+      "withdrawn": false
+    },
+    {
+      "address": "8696 24 AVENUE",
+      "bbl": "3068750032",
+      "bin": "3427175",
+      "constructionYear": 2022,
+      "coordinates": [
+        -73.991614,
+        40.597133
+      ],
+      "footprint": [
+        [
+          -73.9918691,
+          40.5975627
+        ],
+        [
+          -73.9917281,
+          40.5974762
+        ],
+        [
+          -73.9917481,
+          40.597457
+        ],
+        [
+          -73.9915812,
+          40.5973558
+        ],
+        [
+          -73.9919542,
+          40.5969836
+        ],
+        [
+          -73.9921392,
+          40.597098
+        ],
+        [
+          -73.9919966,
+          40.5972343
+        ],
+        [
+          -73.9921576,
+          40.5973355
+        ],
+        [
+          -73.9919049,
+          40.5975841
+        ],
+        [
+          -73.9918691,
+          40.5975627
+        ]
+      ],
+      "footprintAreaM2": 2859.89,
+      "footprintOrigin": "observed",
+      "heightM": 24.38,
+      "id": "job:321185374:01",
+      "jobId": "321185374",
+      "milestones": [
+        {
+          "date": "2016-04-05",
+          "id": "job:321185374:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2016-11-23",
+          "id": "job:321185374:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2017-08-04",
+          "id": "job:321185374:01:fully-permitted:3",
+          "kind": "fully-permitted",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2022-03-15",
+          "id": "job:321185374:01:final-certificate-of-occupancy:4",
+          "kind": "final-certificate-of-occupancy",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2022-03-15",
+          "id": "job:321185374:01:signed-off:5",
+          "kind": "signed-off",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 4,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": 51690,
+      "regionId": "BK1103",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:2654527",
+        "certificate-of-occupancy:321185374:010",
+        "building-footprint:1075067"
+      ],
+      "status": "SIGNED OFF",
+      "withdrawn": false
+    },
+    {
+      "address": "1684 SHORE PARKWAY",
+      "bbl": "3064910011",
+      "bin": "3345607",
+      "constructionYear": null,
+      "coordinates": [
+        -74.000627,
+        40.595363
+      ],
+      "footprint": [
+        [
+          -74.0014551,
+          40.5947342
+        ],
+        [
+          -73.9997989,
+          40.5947342
+        ],
+        [
+          -73.9997989,
+          40.5959918
+        ],
+        [
+          -74.0014551,
+          40.5959918
+        ],
+        [
+          -74.0014551,
+          40.5947342
+        ]
+      ],
+      "footprintAreaM2": 29019.74,
+      "footprintOrigin": "modeled",
+      "heightM": 7.01,
+      "id": "job:321299992:01",
+      "jobId": "321299992",
+      "milestones": [
+        {
+          "date": "2016-01-19",
+          "id": "job:321299992:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 1,
+      "proposedUnits": 0,
+      "proposedZoningSquareFeet": 312366,
+      "regionId": "BK1103",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:2994032"
+      ],
+      "status": "PLAN EXAM - IN PROCESS",
+      "withdrawn": false
+    },
+    {
+      "address": "2230 CROPSEY AVENUE",
+      "bbl": "3064710113",
+      "bin": "3329131",
+      "constructionYear": 2023,
+      "coordinates": [
+        -73.998877,
+        40.596274
+      ],
+      "footprint": [
+        [
+          -73.9982514,
+          40.5964358
+        ],
+        [
+          -73.998147,
+          40.5963558
+        ],
+        [
+          -73.9981527,
+          40.596351
+        ],
+        [
+          -73.9980908,
+          40.5962992
+        ],
+        [
+          -73.9980272,
+          40.5963414
+        ],
+        [
+          -73.9978355,
+          40.5961736
+        ],
+        [
+          -73.9978124,
+          40.5961908
+        ],
+        [
+          -73.9977479,
+          40.5961358
+        ],
+        [
+          -73.9980858,
+          40.5958957
+        ],
+        [
+          -73.9984976,
+          40.5962369
+        ],
+        [
+          -73.9982514,
+          40.5964358
+        ]
+      ],
+      "footprintAreaM2": 3167.27,
+      "footprintOrigin": "observed",
+      "heightM": 111.25,
+      "id": "job:321384756:01",
+      "jobId": "321384756",
+      "milestones": [
+        {
+          "date": "2018-11-02",
+          "id": "job:321384756:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2020-02-10",
+          "id": "job:321384756:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2021-11-24",
+          "id": "job:321384756:01:fully-permitted:3",
+          "kind": "fully-permitted",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 31,
+      "proposedUnits": 248,
+      "proposedZoningSquareFeet": 345549,
+      "regionId": "BK1103",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:3113320",
+        "building-footprint:1087726"
+      ],
+      "status": "PERMIT ISSUED - ENTIRE JOB/WORK",
+      "withdrawn": false
+    },
+    {
+      "address": "2224 CROPSEY AVENUE",
+      "bbl": "3000000",
+      "bin": "3429031",
+      "constructionYear": null,
+      "coordinates": [
+        -73.998131,
+        40.596848
+      ],
+      "footprint": [
+        [
+          -73.9989591,
+          40.5962192
+        ],
+        [
+          -73.9973029,
+          40.5962192
+        ],
+        [
+          -73.9973029,
+          40.5974768
+        ],
+        [
+          -73.9989591,
+          40.5974768
+        ],
+        [
+          -73.9989591,
+          40.5962192
+        ]
+      ],
+      "footprintAreaM2": 6463.44,
+      "footprintOrigin": "modeled",
+      "heightM": 32,
+      "id": "job:321600362:01",
+      "jobId": "321600362",
+      "milestones": [
+        {
+          "date": "2021-04-27",
+          "id": "job:321600362:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2021-06-29",
+          "id": "job:321600362:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 11,
+      "proposedUnits": 110,
+      "proposedZoningSquareFeet": 765291,
+      "regionId": "BK1103",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:3292090"
+      ],
+      "status": "PLAN EXAM - APPROVED",
+      "withdrawn": false
+    }
+  ],
+  "id": "nyc-real-estate-region-bk1103-v1",
+  "region": {
+    "abbreviation": "Grvsnd_W",
+    "areaM2": 33835200.265,
+    "boroughId": "brooklyn",
+    "boroughLabel": "Brooklyn",
+    "bounds": {
+      "east": -73.9714835,
+      "north": 40.6088141,
+      "south": 40.5883993,
+      "west": -74.0020377
+    },
+    "centroid": [
+      -73.9915747,
+      40.5942765
+    ],
+    "communityDistrictTabulationAreaId": "BK11",
+    "communityDistrictTabulationAreaLabel": "BK11 Bensonhurst-Bath Beach (CD 11 Approximation)",
+    "id": "BK1103",
+    "label": "Gravesend (West)",
+    "polygon": [
+      [
+        -73.9807101,
+        40.5939972
+      ],
+      [
+        -73.9846397,
+        40.5935522
+      ],
+      [
+        -73.9860194,
+        40.594446
+      ],
+      [
+        -73.9896215,
+        40.590982
+      ],
+      [
+        -73.9903643,
+        40.5914319
+      ],
+      [
+        -73.9915393,
+        40.5903909
+      ],
+      [
+        -73.9933085,
+        40.5895839
+      ],
+      [
+        -73.9937576,
+        40.5903318
+      ],
+      [
+        -73.9979338,
+        40.5883993
+      ],
+      [
+        -73.9986729,
+        40.5891955
+      ],
+      [
+        -73.9992369,
+        40.5889353
+      ],
+      [
+        -73.9994645,
+        40.5892333
+      ],
+      [
+        -73.9983783,
+        40.5897704
+      ],
+      [
+        -73.9988362,
+        40.5896255
+      ],
+      [
+        -73.9984439,
+        40.5898604
+      ],
+      [
+        -73.998778,
+        40.5903144
+      ],
+      [
+        -73.9984433,
+        40.5902401
+      ],
+      [
+        -73.9977597,
+        40.5909525
+      ],
+      [
+        -73.9971117,
+        40.591278
+      ],
+      [
+        -73.9971898,
+        40.5916062
+      ],
+      [
+        -73.9980644,
+        40.5912095
+      ],
+      [
+        -73.9972827,
+        40.5917148
+      ],
+      [
+        -73.9975485,
+        40.5919176
+      ],
+      [
+        -73.9994627,
+        40.5911032
+      ],
+      [
+        -73.9999873,
+        40.5911729
+      ],
+      [
+        -74.0002308,
+        40.5914785
+      ],
+      [
+        -73.9990313,
+        40.5923128
+      ],
+      [
+        -73.999483,
+        40.5929692
+      ],
+      [
+        -73.9983883,
+        40.5935314
+      ],
+      [
+        -74.001096,
+        40.5925187
+      ],
+      [
+        -74.0020377,
+        40.5940596
+      ],
+      [
+        -73.9908733,
+        40.6047693
+      ],
+      [
+        -73.9886901,
+        40.6034253
+      ],
+      [
+        -73.9868476,
+        40.6050972
+      ],
+      [
+        -73.9891319,
+        40.6064561
+      ],
+      [
+        -73.9884227,
+        40.6071191
+      ],
+      [
+        -73.9729943,
+        40.6088141
+      ],
+      [
+        -73.9721774,
+        40.6041947
+      ],
+      [
+        -73.9729112,
+        40.5993158
+      ],
+      [
+        -73.9719108,
+        40.5994231
+      ],
+      [
+        -73.9714835,
+        40.5971716
+      ],
+      [
+        -73.9803579,
+        40.5961915
+      ],
+      [
+        -73.9799544,
+        40.5940738
+      ],
+      [
+        -73.9807101,
+        40.5939972
+      ]
+    ],
+    "spatialPolygons": [
+      {
+        "holes": [],
+        "outer": [
+          [
+            -73.9807101,
+            40.5939972
+          ],
+          [
+            -73.9846397,
+            40.5935522
+          ],
+          [
+            -73.9860194,
+            40.594446
+          ],
+          [
+            -73.9896215,
+            40.590982
+          ],
+          [
+            -73.9903643,
+            40.5914319
+          ],
+          [
+            -73.9915393,
+            40.5903909
+          ],
+          [
+            -73.9933085,
+            40.5895839
+          ],
+          [
+            -73.9937576,
+            40.5903318
+          ],
+          [
+            -73.9979338,
+            40.5883993
+          ],
+          [
+            -73.9986729,
+            40.5891955
+          ],
+          [
+            -73.9992369,
+            40.5889353
+          ],
+          [
+            -73.9994645,
+            40.5892333
+          ],
+          [
+            -73.9983783,
+            40.5897704
+          ],
+          [
+            -73.9988362,
+            40.5896255
+          ],
+          [
+            -73.9984439,
+            40.5898604
+          ],
+          [
+            -73.998778,
+            40.5903144
+          ],
+          [
+            -73.9984433,
+            40.5902401
+          ],
+          [
+            -73.9977597,
+            40.5909525
+          ],
+          [
+            -73.9971117,
+            40.591278
+          ],
+          [
+            -73.9971898,
+            40.5916062
+          ],
+          [
+            -73.9980644,
+            40.5912095
+          ],
+          [
+            -73.9972827,
+            40.5917148
+          ],
+          [
+            -73.9975485,
+            40.5919176
+          ],
+          [
+            -73.9994627,
+            40.5911032
+          ],
+          [
+            -73.9999873,
+            40.5911729
+          ],
+          [
+            -74.0002308,
+            40.5914785
+          ],
+          [
+            -73.9990313,
+            40.5923128
+          ],
+          [
+            -73.999483,
+            40.5929692
+          ],
+          [
+            -73.9983883,
+            40.5935314
+          ],
+          [
+            -74.001096,
+            40.5925187
+          ],
+          [
+            -74.0020377,
+            40.5940596
+          ],
+          [
+            -73.9908733,
+            40.6047693
+          ],
+          [
+            -73.9886901,
+            40.6034253
+          ],
+          [
+            -73.9868476,
+            40.6050972
+          ],
+          [
+            -73.9891319,
+            40.6064561
+          ],
+          [
+            -73.9884227,
+            40.6071191
+          ],
+          [
+            -73.9729943,
+            40.6088141
+          ],
+          [
+            -73.9721774,
+            40.6041947
+          ],
+          [
+            -73.9729112,
+            40.5993158
+          ],
+          [
+            -73.9719108,
+            40.5994231
+          ],
+          [
+            -73.9714835,
+            40.5971716
+          ],
+          [
+            -73.9803579,
+            40.5961915
+          ],
+          [
+            -73.9799544,
+            40.5940738
+          ],
+          [
+            -73.9807101,
+            40.5939972
+          ]
+        ]
+      }
+    ]
+  },
+  "saleSeries": [
+    {
+      "id": "sale:BK1103:2016:tax-1",
+      "meanPriceUsd": 880661.04,
+      "medianPriceUsd": 882500,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1103",
+      "saleCount": 192,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 363,
+      "year": 2016
+    },
+    {
+      "id": "sale:BK1103:2016:tax-2",
+      "meanPriceUsd": 738751.18,
+      "medianPriceUsd": 610325,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1103",
+      "saleCount": 62,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 103,
+      "year": 2016
+    },
+    {
+      "id": "sale:BK1103:2016:tax-4",
+      "meanPriceUsd": 2001608,
+      "medianPriceUsd": 732500,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1103",
+      "saleCount": 10,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 39,
+      "year": 2016
+    },
+    {
+      "id": "sale:BK1103:2017:tax-1",
+      "meanPriceUsd": 953722.94,
+      "medianPriceUsd": 910000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1103",
+      "saleCount": 175,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 328,
+      "year": 2017
+    },
+    {
+      "id": "sale:BK1103:2017:tax-2",
+      "meanPriceUsd": 916397.69,
+      "medianPriceUsd": 626223,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1103",
+      "saleCount": 59,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 114,
+      "year": 2017
+    },
+    {
+      "id": "sale:BK1103:2017:tax-4",
+      "meanPriceUsd": 2952544.1,
+      "medianPriceUsd": 2075000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1103",
+      "saleCount": 10,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 24,
+      "year": 2017
+    },
+    {
+      "id": "sale:BK1103:2018:tax-1",
+      "meanPriceUsd": 1005297.31,
+      "medianPriceUsd": 965000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1103",
+      "saleCount": 159,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 295,
+      "year": 2018
+    },
+    {
+      "id": "sale:BK1103:2018:tax-2",
+      "meanPriceUsd": 936267.66,
+      "medianPriceUsd": 534000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1103",
+      "saleCount": 56,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 154,
+      "year": 2018
+    },
+    {
+      "id": "sale:BK1103:2018:tax-4",
+      "meanPriceUsd": 3317555.56,
+      "medianPriceUsd": 1662500,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1103",
+      "saleCount": 18,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 214,
+      "year": 2018
+    },
+    {
+      "id": "sale:BK1103:2019:tax-1",
+      "meanPriceUsd": 1030455.74,
+      "medianPriceUsd": 988000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1103",
+      "saleCount": 153,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 274,
+      "year": 2019
+    },
+    {
+      "id": "sale:BK1103:2019:tax-2",
+      "meanPriceUsd": 1485351.42,
+      "medianPriceUsd": 670000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1103",
+      "saleCount": 45,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 197,
+      "year": 2019
+    },
+    {
+      "id": "sale:BK1103:2019:tax-4",
+      "meanPriceUsd": 3378837.23,
+      "medianPriceUsd": 695000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1103",
+      "saleCount": 35,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 36,
+      "year": 2019
+    },
+    {
+      "id": "sale:BK1103:2020:tax-1",
+      "meanPriceUsd": 1028333.94,
+      "medianPriceUsd": 990000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1103",
+      "saleCount": 109,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 197,
+      "year": 2020
+    },
+    {
+      "id": "sale:BK1103:2020:tax-2",
+      "meanPriceUsd": 1336756.4,
+      "medianPriceUsd": 589999.5,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1103",
+      "saleCount": 30,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 300,
+      "year": 2020
+    },
+    {
+      "id": "sale:BK1103:2020:tax-4",
+      "meanPriceUsd": 2531480.58,
+      "medianPriceUsd": 950000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1103",
+      "saleCount": 19,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 24,
+      "year": 2020
+    },
+    {
+      "id": "sale:BK1103:2021:tax-1",
+      "meanPriceUsd": 1099771.67,
+      "medianPriceUsd": 1009000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1103",
+      "saleCount": 204,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 400,
+      "year": 2021
+    },
+    {
+      "id": "sale:BK1103:2021:tax-2",
+      "meanPriceUsd": 947359.81,
+      "medianPriceUsd": 620000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1103",
+      "saleCount": 59,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 176,
+      "year": 2021
+    },
+    {
+      "id": "sale:BK1103:2021:tax-4",
+      "meanPriceUsd": 1881246.1,
+      "medianPriceUsd": 740000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1103",
+      "saleCount": 41,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 74,
+      "year": 2021
+    },
+    {
+      "id": "sale:BK1103:2022:tax-1",
+      "meanPriceUsd": 1131439.18,
+      "medianPriceUsd": 1095000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1103",
+      "saleCount": 217,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 408,
+      "year": 2022
+    },
+    {
+      "id": "sale:BK1103:2022:tax-2",
+      "meanPriceUsd": 849998.17,
+      "medianPriceUsd": 666954,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1103",
+      "saleCount": 89,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 221,
+      "year": 2022
+    },
+    {
+      "id": "sale:BK1103:2022:tax-4",
+      "meanPriceUsd": 1046616.5,
+      "medianPriceUsd": 712775,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1103",
+      "saleCount": 42,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 52,
+      "year": 2022
+    },
+    {
+      "id": "sale:BK1103:2023:tax-1",
+      "meanPriceUsd": 1125149.87,
+      "medianPriceUsd": 1047500,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1103",
+      "saleCount": 130,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 246,
+      "year": 2023
+    },
+    {
+      "id": "sale:BK1103:2023:tax-2",
+      "meanPriceUsd": 783894.28,
+      "medianPriceUsd": 677136,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1103",
+      "saleCount": 75,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 131,
+      "year": 2023
+    },
+    {
+      "id": "sale:BK1103:2023:tax-4",
+      "meanPriceUsd": 1580495.56,
+      "medianPriceUsd": 840056.5,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1103",
+      "saleCount": 32,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 41,
+      "year": 2023
+    },
+    {
+      "id": "sale:BK1103:2024:tax-1",
+      "meanPriceUsd": 1199008.43,
+      "medianPriceUsd": 1181250,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1103",
+      "saleCount": 136,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 267,
+      "year": 2024
+    },
+    {
+      "id": "sale:BK1103:2024:tax-2",
+      "meanPriceUsd": 762134.93,
+      "medianPriceUsd": 720082,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1103",
+      "saleCount": 119,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 156,
+      "year": 2024
+    },
+    {
+      "id": "sale:BK1103:2024:tax-4",
+      "meanPriceUsd": 1686958.96,
+      "medianPriceUsd": 809509,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1103",
+      "saleCount": 24,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 29,
+      "year": 2024
+    },
+    {
+      "id": "sale:BK1103:2025:tax-1",
+      "meanPriceUsd": 1148613.89,
+      "medianPriceUsd": 1120000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1103",
+      "saleCount": 155,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 296,
+      "year": 2025
+    },
+    {
+      "id": "sale:BK1103:2025:tax-2",
+      "meanPriceUsd": 1046272.84,
+      "medianPriceUsd": 782016,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1103",
+      "saleCount": 67,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 177,
+      "year": 2025
+    },
+    {
+      "id": "sale:BK1103:2025:tax-4",
+      "meanPriceUsd": 1369179,
+      "medianPriceUsd": 748414,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1103",
+      "saleCount": 27,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 35,
+      "year": 2025
+    }
+  ],
+  "schema": "simulatte.nycRealEstateRegionShard.v1",
+  "sourceIdentities": [
+    {
+      "byteCount": 1008463,
+      "path": "nyc-annualized-sales-by-nta.json",
+      "sha256": "14c15020381466196236073ee3753ff7a5d74a76ec6af4605e96564abd2bf99a",
+      "sourceId": "nyc-real-estate-sales-annual"
+    },
+    {
+      "byteCount": 8977616,
+      "path": "nyc-final-certificates-of-occupancy.json",
+      "sha256": "966c237824a79aff9d5137d27b498ba4f3670cc19844738c5ce17a559388030e",
+      "sourceId": "nyc-real-estate-final-occupancy"
+    },
+    {
+      "byteCount": 8802596,
+      "path": "nyc-largest-constructed-footprints-2010-2026.geojson",
+      "sha256": "15745b9c62fa539e683737f0665fe91d95231e68d8c1b598e7ed211114811eb6",
+      "sourceId": "nyc-real-estate-constructed-footprints"
+    },
+    {
+      "byteCount": 1076754,
+      "path": "nyc-largest-new-building-jobs-bronx.json",
+      "sha256": "1a44c6cbfa364639e4b75957b2fab7e3c301f95bcfcfa90c50862fef85f450c1",
+      "sourceId": "nyc-real-estate-new-building-sample-bronx"
+    },
+    {
+      "byteCount": 1085334,
+      "path": "nyc-largest-new-building-jobs-brooklyn.json",
+      "sha256": "389e1825faff440d6fad5a12ed470f84e90859fd732262346a3414c5503693fd",
+      "sourceId": "nyc-real-estate-new-building-sample-brooklyn"
+    },
+    {
+      "byteCount": 1097625,
+      "path": "nyc-largest-new-building-jobs-manhattan.json",
+      "sha256": "6346678de380d58e325db14fc2e0611d993743be29898360e08f092eaa1f88e5",
+      "sourceId": "nyc-real-estate-new-building-sample-manhattan"
+    },
+    {
+      "byteCount": 1091065,
+      "path": "nyc-largest-new-building-jobs-queens.json",
+      "sha256": "79eb6f028b2135214d47a793101f72de695efcb02e4c2802cc10cd062c760a22",
+      "sourceId": "nyc-real-estate-new-building-sample-queens"
+    },
+    {
+      "byteCount": 1120592,
+      "path": "nyc-largest-new-building-jobs-staten-island.json",
+      "sha256": "e0870a431a75bdd235fc09b0ecd7503c45384f5e8b66beba545447c7bb3d960a",
+      "sourceId": "nyc-real-estate-new-building-sample-staten-island"
+    },
+    {
+      "byteCount": 1250280,
+      "path": "nyc-new-building-filings-by-nta-year.json",
+      "sha256": "4b75b0ad54a1ce5241b9c2e303be2cc24781e55a65fbf27be10d00a80bfeadea",
+      "sourceId": "nyc-real-estate-new-building-annual"
+    },
+    {
+      "byteCount": 4576764,
+      "path": "nyc-nta-2020.geojson",
+      "sha256": "c3dd069e094e2d2f647c1c102cd7e0570d033dd6131446bd1943a73210d09c56",
+      "sourceId": "nyc-real-estate-nta-boundaries"
+    },
+    {
+      "byteCount": 2402191,
+      "path": "nyc-pluto-capacity-bronx.json",
+      "sha256": "b45168721525e18a29aafcce335212632607021240869b738cbb96fbe2441389",
+      "sourceId": "nyc-real-estate-pluto-capacity-bronx"
+    },
+    {
+      "byteCount": 2403266,
+      "path": "nyc-pluto-capacity-brooklyn.json",
+      "sha256": "63b33a507c0bc26f7b71669cf032baa4950af2db77ce8712b876ca6f4c9f771b",
+      "sourceId": "nyc-real-estate-pluto-capacity-brooklyn"
+    },
+    {
+      "byteCount": 2464264,
+      "path": "nyc-pluto-capacity-manhattan.json",
+      "sha256": "91e3e1f5dce97a340475b51577458c8e48183f1138c334fbcce27d68001e9d25",
+      "sourceId": "nyc-real-estate-pluto-capacity-manhattan"
+    },
+    {
+      "byteCount": 2418903,
+      "path": "nyc-pluto-capacity-queens.json",
+      "sha256": "02a12d81466e89e05b9be9273198c5f857e86db5d2c95cfb717160ce4ccf99c1",
+      "sourceId": "nyc-real-estate-pluto-capacity-queens"
+    },
+    {
+      "byteCount": 1168016,
+      "path": "nyc-pluto-capacity-staten-island.json",
+      "sha256": "6d488f6ce46fa09930b669429275014a8ecedae6c85041fb465a15633c6a38b0",
+      "sourceId": "nyc-real-estate-pluto-capacity-staten-island"
+    }
+  ],
+  "truth": {
+    "origin": "observed",
+    "temporalStatus": "historical",
+    "uncertainty": {
+      "kind": "missing",
+      "value": {
+        "reason": "Administrative records have missing, revised, duplicated, and source-sampled fields without a shared statistical uncertainty model."
+      }
+    }
+  }
+}

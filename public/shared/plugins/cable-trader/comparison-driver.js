@@ -40,11 +40,16 @@
   const DAY_MS = 86400000;
   const PLUGIN_ID = 'cable-trader';
   const ROLES = Object.freeze(['baseline', 'intervention']);
+  const COMPARISONS = Object.freeze({
+    'cheapest-vs-fastest': Object.freeze({ baseline: 'cheapest', intervention: 'fastest' }),
+    'cheapest-vs-fairness': Object.freeze({ baseline: 'cheapest', intervention: 'fairness-first' }),
+  });
 
   async function runComparison({
     config,
     transferRoutes,
     interventionSimulation,
+    comparisonId = 'cheapest-vs-fastest',
   }) {
     network = network || root.SimulatteCableTraderNetwork;
     v4Contribution = v4Contribution || root.SimulatteCableTraderV4Contribution;
@@ -62,6 +67,10 @@
       );
     }
     validateInputs(config, transferRoutes, interventionSimulation);
+    const policies = COMPARISONS[comparisonId];
+    if (!policies) {
+      throw comparisonError('cable_comparison_id_invalid', `Unknown Cable Trader comparison ${comparisonId}`);
+    }
     const effectiveConfig = {
       ...config,
       simulation: {
@@ -72,21 +81,25 @@
       },
     };
     const baselineSimulation = network.simulateNetwork(effectiveConfig, transferRoutes, {
-      allocationPolicy: 'local-only',
+      allocationPolicy: policies.baseline,
       exogenous: interventionSimulation.exogenous,
     });
-    assertSharedExogenous(interventionSimulation, baselineSimulation);
+    const variantSimulation = network.simulateNetwork(effectiveConfig, transferRoutes, {
+      allocationPolicy: policies.intervention,
+      exogenous: interventionSimulation.exogenous,
+    });
+    assertSharedExogenous(variantSimulation, baselineSimulation);
     await yieldBrowserTask();
     const inputHash = await sha256Json({ config: effectiveConfig, transferRoutes });
     const hiddenTruthHash = await sha256Json(interventionSimulation.exogenous);
     const branchConfigurations = Object.freeze({
       baseline: Object.freeze({
-        allocationPolicy: 'local-only',
+        allocationPolicy: policies.baseline,
         configurationHash: interventionSimulation.configurationHash,
         selectedCableFamilyIds: interventionSimulation.selectedCableFamilyIds,
       }),
       intervention: Object.freeze({
-        allocationPolicy: 'optimized',
+        allocationPolicy: policies.intervention,
         configurationHash: interventionSimulation.configurationHash,
         selectedCableFamilyIds: interventionSimulation.selectedCableFamilyIds,
       }),
@@ -120,10 +133,9 @@
       },
     });
     const evidenceCatalog = createEvidenceCatalog(effectiveConfig);
-    const comparisonId = `${PLUGIN_ID}:comparison:${interventionSimulation.configurationHash.slice(0, 24)}`;
     const simulations = Object.freeze({
       baseline: baselineSimulation,
-      intervention: interventionSimulation,
+      intervention: variantSimulation,
     });
     const execution = comparisonModule.createComparisonExecution({
       id: comparisonId,
@@ -173,11 +185,37 @@
       comparisonId,
       branchSummaries: deepFreeze({
         baseline: baselineSimulation.summary,
-        intervention: interventionSimulation.summary,
+        intervention: variantSimulation.summary,
+      }),
+      branchEvidence: deepFreeze({
+        baseline: comparisonEvidence(baselineSimulation),
+        intervention: comparisonEvidence(variantSimulation),
       }),
       settlement,
       comparisonExecutionReceipt: execution.receipt(),
     });
+  }
+
+  function comparisonEvidence(simulation) {
+    const final = simulation.snapshots.at(-1);
+    return {
+      policyId: simulation.allocationPolicy,
+      transfers: final.transfers.map((row) => ({
+        id: row.id,
+        routeId: row.routeId,
+        cableFamilyId: row.cableFamilyId,
+        quantityMeters: row.quantityMeters,
+        projectId: row.projectId,
+      })),
+      projectStats: final.projectStats.map((row) => ({
+        id: row.id,
+        siteId: row.siteId,
+        requestedMeters: row.requestedMeters,
+        deliveredMeters: row.deliveredMeters,
+        inFlightMeters: row.inFlightMeters,
+        completionPercent: row.completionPercent,
+      })),
+    };
   }
 
   function createPolicy(context) {
@@ -312,11 +350,11 @@
       .filter((flow) => flow.sourceHubId !== flow.destinationHubId)
       .reduce((total, flow) => total + flow.quantity, 0);
     return Object.freeze([
-      metric('fulfilled-demand-events', snapshot.summary.fulfilledNeeds, 'items', provenance),
+      metric('delivered-cable', snapshot.summary.deliveredMeters, 'm', provenance),
       metric(
-        'unserved-demand-events',
-        snapshot.summary.needs - snapshot.summary.fulfilledNeeds,
-        'items',
+        'unserved-cable',
+        snapshot.summary.shortageMeters,
+        'm',
         provenance
       ),
       metric(
@@ -326,12 +364,13 @@
         provenance
       ),
       metric('transfer-burden', snapshot.summary.totalBurden, 'cost units', provenance),
-      metric('cross-hub-transfers', crossHubTransfers, 'items', provenance),
-      metric('ending-inventory', snapshot.summary.endingInventory, 'items', provenance),
+      metric('transferred-cable', crossHubTransfers, 'm', provenance),
+      metric('ending-inventory', snapshot.summary.endingInventory, 'm', provenance),
+      metric('completed-projects', snapshot.summary.completedProjects, 'projects', provenance),
       metric(
         'hub-inventory-imbalance',
         Math.max(...inventories) - Math.min(...inventories),
-        'items',
+        'm',
         provenance
       ),
     ]);
@@ -395,8 +434,9 @@
         metadata: { algorithm: 'seeded weighted categorical demand and return events' },
         lineage: modelLineage('seeded-event-generator-v1', config),
       }),
-      allocationModel('local-only', config),
-      allocationModel('optimized', config),
+      allocationModel('cheapest', config),
+      allocationModel('fastest', config),
+      allocationModel('fairness-first', config),
     ]);
   }
 
@@ -439,24 +479,17 @@
   }
 
   function allocationModel(allocationPolicy, config) {
-    const isOptimized = allocationPolicy === 'optimized';
     return builder.modelRecord({
-      id: `${PLUGIN_ID}:model:${isOptimized ? 'min-cost-flow' : 'local-inventory-only'}`,
+      id: `${PLUGIN_ID}:model:policy-scored-flow:${allocationPolicy}`,
       datasetId: `${PLUGIN_ID}:data:authored-scenario`,
-      contentHash: isOptimized
-        ? v4Contribution.MODEL_IDENTITIES.flowModelHash
-        : v4Contribution.MODEL_IDENTITIES.localOnlyModelHash,
+      contentHash: v4Contribution.MODEL_IDENTITIES.flowModelHash,
       parentIds: [`${PLUGIN_ID}:data:authored-scenario`],
       metadata: {
-        algorithm: isOptimized
-          ? 'exact minimum-cost maximum-flow'
-          : 'exact destination-hub inventory-only fulfillment',
+        algorithm: 'exact policy-scored minimum-cost maximum-flow',
         allocationPolicy,
       },
       lineage: modelLineage(
-        isOptimized
-          ? 'exact-min-cost-maximum-flow-v1'
-          : 'local-inventory-only-allocation-v1',
+        `exact-policy-scored-flow-v2:${allocationPolicy}`,
         config
       ),
     });
@@ -466,7 +499,7 @@
     return Object.freeze([
       `${PLUGIN_ID}:data:authored-scenario`,
       `${PLUGIN_ID}:model:event-generator`,
-      `${PLUGIN_ID}:model:${allocationPolicy === 'optimized' ? 'min-cost-flow' : 'local-inventory-only'}`,
+      `${PLUGIN_ID}:model:policy-scored-flow:${allocationPolicy}`,
     ]);
   }
 
@@ -491,15 +524,14 @@
         'Cable comparison requires config, routes, and an intervention simulation'
       );
     }
-    if (interventionSimulation.allocationPolicy !== 'optimized'
-      || !interventionSimulation.exogenous
+    if (!interventionSimulation.exogenous
       || interventionSimulation.scenarioId === undefined
       || interventionSimulation.seed === undefined
       || interventionSimulation.configurationHash === undefined
       || !Array.isArray(interventionSimulation.selectedCableFamilyIds)) {
       throw comparisonError(
         'cable_comparison_intervention_invalid',
-        'Cable comparison intervention must be the optimized simulation with governed inputs'
+        'Cable comparison requires a simulation with governed exogenous inputs'
       );
     }
   }

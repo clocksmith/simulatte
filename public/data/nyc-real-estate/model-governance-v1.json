@@ -1,0 +1,116 @@
+{
+  "schema": "simulatte.nycRealEstateModelGovernance.v1",
+  "id": "nyc-real-estate-model-governance-v1",
+  "contentVersion": "2026-07-27",
+  "historicalReplay": {
+    "range": [
+      2010,
+      2026
+    ],
+    "observedStages": [
+      "filed",
+      "approved",
+      "fully-permitted",
+      "final-certificate-of-occupancy",
+      "signed-off",
+      "constructed-year"
+    ],
+    "inferredStages": [
+      "site-preparation",
+      "foundation",
+      "structure",
+      "enclosure"
+    ],
+    "rule": "Intermediate visible construction height is interpolated only between recorded administrative or construction-year milestones and is always labeled modeled."
+  },
+  "priceModel": {
+    "target": "annual nominal median recorded sale price for the selected 2020 NTA and tax class",
+    "ensembleSize": 31,
+    "forecastRange": [
+      2026,
+      2040
+    ],
+    "equation": "nextPrice = priorPrice * (1 + clamp(momentum + demand + financing + constructionCost + policy - supply + seededShock, -0.15, 0.18))",
+    "intervals": [
+      "p10",
+      "p50",
+      "p90"
+    ],
+    "validation": "Forecast skill is reported only when the complete published price-and-development pipeline can be reconstructed over historical holdout years. The current governed snapshot lacks historical parcel-capacity, financing, and construction-cost states, so validation fails closed and reports no MAPE or interval coverage.",
+    "selectionBias": "Annual medians are composition-sensitive and are not a repeat-sales index."
+  },
+  "developmentModel": {
+    "candidateBasis": "Current PLUTO lots within the selected NTA are evaluated without a compiler-imposed per-region cap and ranked by tax-class-compatible mapped FAR capacity.",
+    "equation": "startScore = capacity + demand + zoning policy + seeded capital availability - financing cost - construction cost",
+    "completionRule": "Selected projects complete after a modeled duration based on tax-class-compatible units or commercial floor area.",
+    "sectorRules": {
+      "tax-class-1": "One-to-three-family residential; modeled units are capped at three per lot and affordable-unit policy is inapplicable.",
+      "tax-class-2": "Multifamily residential; potential units use 900 residential square feet per unit before policy and feasibility discounts.",
+      "tax-class-4": "Commercial and industrial; output is commercial floor area, residential units are zero, and affordable-unit policy is inapplicable.",
+      "all": "Price aggregation only; mixed-sector development generation is refused."
+    },
+    "affordabilityRule": "Affordable units are a scenario share only for tax-class-2 modeled completed units, not observed commitments.",
+    "randomnessRule": "Baseline and intervention use the exact same seed-derived site, annual shock, capital-cycle, and duration draws; policy identifiers never alter the exogenous stream.",
+    "conservation": "Every future candidate is unstarted, active, completed, or excluded once per ensemble member; completed units and floor area cannot exceed modeled effective capacity."
+  },
+  "policies": [
+    {
+      "id": "business-as-usual",
+      "label": "Business as usual",
+      "zoningMultiplier": 1,
+      "startScoreOffset": 0,
+      "priceGrowthOffsetPct": 0
+    },
+    {
+      "id": "zoning-capacity-expansion",
+      "label": "Zoning capacity expansion",
+      "zoningMultiplier": 1.3,
+      "startScoreOffset": 0.12,
+      "priceGrowthOffsetPct": -0.15
+    },
+    {
+      "id": "affordability-first",
+      "label": "Affordability-first production",
+      "zoningMultiplier": 1.15,
+      "startScoreOffset": 0.04,
+      "priceGrowthOffsetPct": -0.35
+    },
+    {
+      "id": "high-rate-squeeze",
+      "label": "High-rate financing squeeze",
+      "zoningMultiplier": 0.9,
+      "startScoreOffset": -0.22,
+      "priceGrowthOffsetPct": -0.8
+    },
+    {
+      "id": "construction-cost-shock",
+      "label": "Construction-cost shock",
+      "zoningMultiplier": 0.92,
+      "startScoreOffset": -0.18,
+      "priceGrowthOffsetPct": 0.3
+    }
+  ],
+  "gates": {
+    "minimumObservedPriceYears": 4,
+    "minimumBacktestPredictions": 2,
+    "intervalOrderRequired": true,
+    "historicalRowsImmutable": true,
+    "candidateConservationRequired": true,
+    "futureClaimsMustBeScenario": true,
+    "commonExogenousDrawsRequired": true,
+    "sparsePriceForecastMustRefuse": true,
+    "sparseDevelopmentForecastMustRefuse": true,
+    "individualParcelPredictionAllowed": false
+  },
+  "truth": {
+    "origin": "modeled",
+    "temporalStatus": "forecast",
+    "uncertainty": {
+      "kind": "distribution",
+      "value": {
+        "interpretation": "Seeded scenario ensemble conditional on declared controls and governed inputs; percentiles are not calibrated probabilities of individual property value."
+      }
+    }
+  },
+  "claimBoundary": "This model explores conditional neighborhood scenarios. It does not appraise a parcel, forecast rent or mortgage performance, prove causal policy effects, predict a specific permit, or replace professional planning, valuation, engineering, environmental, legal, or investment analysis."
+}

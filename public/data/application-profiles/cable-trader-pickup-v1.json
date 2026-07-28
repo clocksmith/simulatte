@@ -1,29 +1,95 @@
 {
   "schema": "simulatte.applicationProfile.v2",
   "id": "cable-trader-pickup-v1",
-  "interaction": { "mode": "playback", "startLabel": "Run exchange", "shuffleLabel": "Change scenario" },
+  "interaction": {
+    "mode": "playback",
+    "startLabel": "Run restoration",
+    "shuffleLabel": "Change crisis"
+  },
   "experience": {
     "kind": "simulation",
     "timelineLabel": "Day",
-    "primaryMeasureKinds": ["fulfilled-needs", "transferred-cables", "transport-burden", "ending-inventory"],
-    "supportedViews": ["overview", "top"],
-    "defaultView": "top",
+    "primaryMeasureKinds": [
+      "requested-cable",
+      "delivered-cable",
+      "unserved-cable",
+      "in-transit-cable",
+      "completed-projects"
+    ],
+    "supportedViews": ["overview", "follow", "top", "compare"],
+    "defaultView": "overview",
     "comparisonMode": "synchronized",
     "stages": [
-      { "id": "requests-arrive", "label": "Requests arrive", "narrative": "Modeled requests and returns change each hub's available cable inventory.", "fromProgress": 0 },
-      { "id": "shortages-form", "label": "Shortages form", "narrative": "Local inventory gaps reveal which cable families cannot be served in place.", "fromProgress": 0.2 },
-      { "id": "network-rebalances", "label": "Network rebalances", "narrative": "Exact min-cost allocation moves available cables toward unresolved requests.", "fromProgress": 0.45 },
-      { "id": "month-settles", "label": "Month settles", "narrative": "Fulfillment, transfer burden, and remaining inventory close against the local-only branch.", "fromProgress": 0.85 }
+      {
+        "id": "crisis-arrives",
+        "label": "Repair needs arrive",
+        "narrative": "Named projects request specific cable families, quantities, priorities, and deadlines.",
+        "fromProgress": 0
+      },
+      {
+        "id": "stock-contested",
+        "label": "Stock becomes contested",
+        "narrative": "Compatibility, depot reserves, damaged reels, and daily vehicle capacity constrain feasible allocations.",
+        "fromProgress": 0.2
+      },
+      {
+        "id": "transfers-move",
+        "label": "Transfers move",
+        "narrative": "Metered cable leaves an identified reel, travels to a project, and advances completion only when it arrives.",
+        "fromProgress": 0.42
+      },
+      {
+        "id": "policies-settle",
+        "label": "Policies settle",
+        "narrative": "Cheapest, fastest-restoration, and fairness-first branches close with matching reel, transfer, project, and cost receipts.",
+        "fromProgress": 0.82
+      }
     ]
   },
-  "defaultSeedId": "july-baseline",
+  "defaultSeedId": "backbone-shortage",
   "seeds": [
-    { "id": "july-baseline", "label": "July baseline", "description": "4,096 modeled demand events across four hubs and ten cable families.", "seed": "cable-city-month-2026-07", "missionText": "Show the predefined 30-day cable network and its optimal allocation." },
-    { "id": "campus-return-wave", "label": "Campus return wave", "description": "Higher Manhattan need and return weights around Union Square and the East Village.", "seed": "cable-city-campus-return-731", "missionText": "Show the predefined 30-day cable network and its optimal allocation." },
-    { "id": "display-cable-surge", "label": "Display cable surge", "description": "Higher modeled demand for HDMI and DisplayPort-family cables.", "seed": "cable-city-display-surge-4096", "missionText": "Show the predefined 30-day cable network and its optimal allocation." },
-    { "id": "brooklyn-rebalance", "label": "Brooklyn rebalance", "description": "Higher Brooklyn need weights paired with higher Manhattan return weights.", "seed": "cable-city-brooklyn-rebalance-8192", "missionText": "Show the predefined 30-day cable network and its optimal allocation." }
+    {
+      "id": "backbone-shortage",
+      "label": "Neighborhood backbone shortage",
+      "description": "Copper-heavy repair demand competes for constrained depot reels during a modeled road closure.",
+      "seed": "cable-city-logistics-2026-07",
+      "missionText": "Run the governed neighborhood cable-restoration crisis and compare allocation policies."
+    },
+    {
+      "id": "fiber-restoration",
+      "label": "Fiber restoration",
+      "description": "Hospital and transit projects compete for OS2 and OM4 stock with incompatible copper remaining nearby.",
+      "seed": "cable-city-fiber-restoration-731",
+      "missionText": "Run the governed fiber-restoration crisis and explain each allocation."
+    },
+    {
+      "id": "emergency-restoration",
+      "label": "Emergency restoration",
+      "description": "Critical projects receive short deadlines and expose the cost of reserve and transfer-capacity policies.",
+      "seed": "cable-city-emergency-restoration-4096",
+      "missionText": "Run the governed emergency-restoration crisis and compare time to completion."
+    },
+    {
+      "id": "borough-fairness",
+      "label": "Borough fairness conflict",
+      "description": "Two critical sites contest the same cable family so cheapest and fairness-first policies diverge.",
+      "seed": "cable-city-borough-fairness-8192",
+      "missionText": "Run the governed fairness conflict and compare who remains short."
+    }
   ],
-  "camera": { "initialMode": "top", "runMode": "top", "pluginId": "cable-trader", "targetId": "cable-network-overview" },
-  "plugins": [{ "id": "cable-trader", "configId": "cable-trader-network-v4" }],
-  "routeObjective": { "travelSeconds": 1 }
+  "camera": {
+    "initialMode": "bird",
+    "runMode": "follow",
+    "pluginId": "cable-trader",
+    "targetId": "cable-network-overview"
+  },
+  "plugins": [
+    {
+      "id": "cable-trader",
+      "configId": "cable-trader-logistics-v5"
+    }
+  ],
+  "routeObjective": {
+    "travelSeconds": 1
+  }
 }

@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "schema": "simulatte.profileClaimInventory.v1",
-  "contentVersion": "2026-07-26",
+  "contentVersion": "2026-07-27",
   "profileIds": [
     "asteroid-defense-v1",
     "cable-trader-pickup-v1",
@@ -10,8 +10,8 @@
     "interstellar-relay-network-v1",
     "maritime-trade-global-v1",
     "neighborhood-bulk-pool-v1",
+    "nyc-development-atlas-v1",
     "orbital-transfer-planner-v1",
-    "safety-explorer-v1",
     "subsea-network-global-v1",
     "sun-walker-v1"
   ],

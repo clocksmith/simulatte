@@ -4,14 +4,14 @@ Owner contract: `public/shared/plugins/safety-explorer/index.js`.
 
 ## Status
 
-- Status: implemented
+- Status: disconnected; source and profile retained for historical reference
 - Tier and world: City, `nyc-core-autonomy-v1`
 - Plugin ID: `safety-explorer`
 - Profile ID: `safety-explorer-v1`
 - Default scenario: `union-mccarren`
 - Contract version: plugin v4 contribution
 - Last verified source: prior browser proof at commit `a5713c1c13ab`
-- Evidence: current worktree browser proof not rerun; prior index contains 8/8 runs
+- Evidence: excluded from the connected profile, plugin, and browser-evidence registries
 
 ## What is it?
 

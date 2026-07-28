@@ -87,6 +87,7 @@
       let text = null;
       let response = null;
       let loadedUrl = url;
+      let parseDurationMs = 0;
       if (value === null || value === undefined) {
         const loaded = await readJson(url);
         const computedHash = await receipts.sha256Hex(loaded.text);
@@ -115,6 +116,7 @@
         text = loaded.text;
         response = loaded.response;
         loadedUrl = loaded.url;
+        parseDurationMs = loaded.parseDurationMs;
         if (typeof loaded.text === 'string' && loaded.text.length >= CACHE_MIN_BYTES) await artifactCachePut(artifactKey, value);
       }
       const dependencies = await resolveDependencies(reference, value, loadedUrl, key);
@@ -133,6 +135,7 @@
           schemaId: reference.schemaId || null,
           dependencyIds: Object.freeze([...dependencies.keys()].sort()),
           cacheIdentity: cacheKey,
+          parseDurationMs,
         }),
       });
       cache.set(cacheKey, result);
@@ -191,15 +194,28 @@
 
   function parseJsonDocument(loaded) {
     try {
+      const startedAt = performanceNow();
+      const value = JSON.parse(loaded.text);
       return Object.freeze({
         text: loaded.text,
-        value: JSON.parse(loaded.text),
+        value,
         url: loaded.url,
         response: loaded.response,
+        parseDurationMs: roundedDuration(performanceNow() - startedAt),
       });
     } catch (error) {
       throw artifactError('asset_json_invalid', `${loaded.url} expected valid JSON, received ${error.message}`, { url: loaded.url });
     }
+  }
+
+  function performanceNow() {
+    return typeof performance !== 'undefined' && typeof performance.now === 'function'
+      ? performance.now()
+      : Date.now();
+  }
+
+  function roundedDuration(value) {
+    return Math.round(Math.max(0, value) * 1000) / 1000;
   }
 
   function validateReference(reference, key) {

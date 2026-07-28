@@ -67,7 +67,7 @@
       schema: manifest.value.schema,
       missionExampleCount: manifest.value.missionExamples.length,
     });
-    const directKeys = ['policy', 'occurrenceCatalog', 'rerankerEvidence', 'regionRegistry', 'placeEmbeddingIndex', 'placeResolutionEvidence', 'modelRuntimeLock', 'pipelineModelSelection', 'applicationProfile', 'curriculum', 'policyArenaEvidence'];
+    const directKeys = ['policy', 'occurrenceCatalog', 'rerankerEvidence', 'regionRegistry', 'placeEmbeddingIndex', 'placeResolutionEvidence', 'modelRuntimeLock', 'pipelineModelSelection', 'applicationProfile', 'safetyHistoryIndex', 'curriculum', 'policyArenaEvidence'];
     const selectedProfile = selectApplicationProfile(manifest.value, requestedProfileId);
     const resolvedReferences = await services.artifacts.resolveGraph(directKeys.map((key) => ({ key, reference: key === 'applicationProfile' ? selectedProfile : manifest.value[key] })), { baseUrl: resolvedManifestUrl });
     const refs = [...resolvedReferences.entries()];
@@ -119,6 +119,11 @@
     contracts.validateModelRuntimeLock(loaded.modelRuntimeLock.value);
     validatePipelineModelSelection(loaded.pipelineModelSelection.value, loaded.modelRuntimeLock.value);
     pluginContracts.validateProfile(loaded.applicationProfile.value);
+    contracts.validateSafetyHistoryIndex(
+      loaded.safetyHistoryIndex.value,
+      composition.world,
+      worldHash
+    );
     contracts.validatePlaceEmbeddingIndex(loaded.placeEmbeddingIndex.value, loaded.modelRuntimeLock.value);
     contracts.validatePlaceResolutionEvidence(loaded.placeResolutionEvidence.value, loaded.placeEmbeddingIndex.value, loaded.modelRuntimeLock.value);
     await yieldToHost();
@@ -126,8 +131,18 @@
     contracts.validatePolicyArenaEvidence(loaded.policyArenaEvidence.value);
     embodimentRows.forEach((row) => contracts.validateEmbodiment(row.loaded.value));
     contracts.validatePolicy(loaded.policy.value);
-    const pluginDatasetRows = await resolvePluginDatasets({ profile: loaded.applicationProfile.value, transport: services.transport, world: composition.world, worldHash });
-    const catalog = createLoadedDataCatalog({ refs, embodimentRows, packRows, pluginDatasetRows, composition, worldHash, featureCatalogHash });
+    const pluginDatasetBundle = await resolvePluginDatasets({ profile: loaded.applicationProfile.value, transport: services.transport, world: composition.world, worldHash });
+    const pluginDatasetRows = pluginDatasetBundle.rows;
+    const catalog = createLoadedDataCatalog({
+      refs,
+      embodimentRows,
+      packRows,
+      pluginDatasetRows,
+      pluginDatasetShardLoader: pluginDatasetBundle.loadShard,
+      composition,
+      worldHash,
+      featureCatalogHash,
+    });
     const result = {
       schema: 'simulatte.autonomyLoadedData.v2',
       manifest: manifest.value,
@@ -144,6 +159,7 @@
       modelRuntimeLock: catalog.require(loaded.modelRuntimeLock.value.id),
       pipelineModelSelection: catalog.require(loaded.pipelineModelSelection.value.id),
       applicationProfile: catalog.require(loaded.applicationProfile.value.id),
+      safetyHistoryIndex: catalog.require(loaded.safetyHistoryIndex.value.id),
       curriculum: catalog.require(loaded.curriculum.value.id),
       policyArenaEvidence: catalog.require(loaded.policyArenaEvidence.value.id),
       regionRegistry: catalog.require(registry.id),
@@ -185,6 +201,7 @@
               embodimentRows,
               packRows,
               pluginDatasetRows,
+              pluginDatasetShardLoader: pluginDatasetBundle.loadShard,
               worldHash,
               featureCatalogHash,
             });
@@ -242,6 +259,7 @@
     embodimentRows,
     packRows,
     pluginDatasetRows,
+    pluginDatasetShardLoader,
     worldHash,
     featureCatalogHash,
   }) {
@@ -259,6 +277,7 @@
       embodimentRows,
       packRows,
       pluginDatasetRows,
+      pluginDatasetShardLoader,
       composition,
       worldHash,
       featureCatalogHash,
@@ -355,7 +374,16 @@
     return loadContext.createDataServices({ fetchImpl, transportApi: browserTransport, artifactStoreApi: artifactStore });
   }
 
-  function createLoadedDataCatalog({ refs, embodimentRows, packRows, pluginDatasetRows, composition, worldHash, featureCatalogHash }) {
+  function createLoadedDataCatalog({
+    refs,
+    embodimentRows,
+    packRows,
+    pluginDatasetRows,
+    pluginDatasetShardLoader = null,
+    composition,
+    worldHash,
+    featureCatalogHash,
+  }) {
     const entries = [
       ...refs.map(([, row]) => ({ id: row.value.id, value: row.value, receipt: assetReceipt(row) })),
       ...embodimentRows.map((row) => ({ id: row.loaded.value.id, value: row.loaded.value, receipt: assetReceipt(row.loaded) })),
@@ -366,7 +394,7 @@
       { id: 'world.buildings.v1', value: composition.world, receipt: { id: composition.world.id, sha256: worldHash, source: 'verified_region_composition', view: 'buildings' } },
       { id: 'world.graph.v1', value: composition.world, receipt: { id: composition.world.id, sha256: worldHash, source: 'verified_region_composition', view: 'routing_graph' } },
     ];
-    return dataCatalog.createDataCatalog(entries);
+    return dataCatalog.createDataCatalog(entries, { loadShard: pluginDatasetShardLoader });
   }
 
   async function resolvePluginDatasets({ profile, transport, world, worldHash }) {
@@ -395,7 +423,36 @@
       const baseUrl = new URL('plugin.json', pluginPaths.pluginBaseFromDocument(documentBase(), declaration.pluginId)).toString();
       rows.push(await store.resolve(declaration.reference, { baseUrl, key: `pluginDataset:${declaration.pluginId}:${declaration.id}` }));
     }
-    return rows;
+    return {
+      rows,
+      loadShard: createShardLoader(store),
+    };
+  }
+
+  function createShardLoader(store) {
+    return async ({ datasetId, parentReceipt, shard }) => {
+      const startedAt = performanceNow();
+      const loaded = await store.resolve({
+        id: shard.id,
+        path: shard.path,
+        sha256: shard.sha256,
+      }, {
+        baseUrl: parentReceipt?.url,
+        key: `pluginDatasetShard:${datasetId}:${shard.id}`,
+      });
+      return {
+        value: loaded.value,
+        sha256: loaded.sha256,
+        receipt: {
+          ...(loaded.receipt || {}),
+          url: loaded.url,
+          loadDurationMs: Math.round(Math.max(0, performanceNow() - startedAt) * 1000) / 1000,
+          transferredBytes: typeof loaded.text === 'string' ? shard.byteCount : 0,
+          retainedBytesEstimate: shard.byteCount,
+          cacheMode: typeof loaded.text === 'string' ? 'network' : 'verified-content-cache',
+        },
+      };
+    };
   }
 
   function registerPluginDatasetValidators(registry, entry, context) {

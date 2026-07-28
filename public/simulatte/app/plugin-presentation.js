@@ -180,6 +180,7 @@
         provenance: primitive.provenance,
         memberIds: primitive.memberIds,
         intensity: semanticIntensity(style),
+        semanticKind: primitive.quantity?.kind || null,
       });
       if (['point', 'point-cluster', 'label'].includes(primitive.kind)) {
         const radiusM = screenPixelsToWorld(style.radiusPx || 4, worldUnitsPerPixel);
@@ -219,14 +220,21 @@
         pathParts.forEach((pathPoints, index) => compiled.paths.push(Object.freeze({
           ...common,
           id: pathParts.length === 1 ? common.id : `${common.id}:part-${index + 1}`,
-          points: Object.freeze(pathPoints),
+          points: Object.freeze(offsetPolyline(
+            pathPoints,
+            Number(style.laneOffsetPx || 0) * worldUnitsPerPixel
+          )),
           widthM: screenPixelsToWorld(style.widthPx || 1, worldUnitsPerPixel),
         })));
-      } else if (['area', 'field'].includes(primitive.kind)) {
+      } else if (['area', 'field', 'volume'].includes(primitive.kind)) {
+        const isVolume = primitive.kind === 'volume';
         compiled.areas.push(Object.freeze({
           ...common,
           points: Object.freeze(points),
-          heightM: 0.35,
+          heightM: isVolume
+            ? Math.max(0.35, Number(primitive.quantity?.value || 0))
+            : 0.35,
+          isVolume,
         }));
       }
     });
@@ -261,6 +269,23 @@
           priority: intent.priority,
           reasonEventId: intent.reasonEventId,
         }));
+      });
+    });
+  }
+
+  function offsetPolyline(points, distance) {
+    if (!distance || points.length < 2) return points;
+    return points.map((point, index) => {
+      const before = points[Math.max(0, index - 1)];
+      const after = points[Math.min(points.length - 1, index + 1)];
+      const dx = after.x - before.x;
+      const dy = after.y - before.y;
+      const length = Math.hypot(dx, dy);
+      if (!length) return point;
+      return Object.freeze({
+        ...point,
+        x: point.x - (dy / length) * distance,
+        y: point.y + (dx / length) * distance,
       });
     });
   }

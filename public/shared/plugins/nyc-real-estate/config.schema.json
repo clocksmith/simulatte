@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "NYC Development Atlas configuration v1",
+  "type": "object",
+  "required": [
+    "schema",
+    "id",
+    "defaultScenarioId",
+    "defaultRegionId",
+    "defaultSectorId",
+    "historicalStartYear",
+    "forecastEndYear",
+    "policyId",
+    "financingRatePct",
+    "annualDemandGrowthPct",
+    "constructionCostIndex",
+    "zoningCapacityMultiplier",
+    "affordableHousingSharePct",
+    "ensembleSize"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "const": "simulatte.plugin.nycRealEstateConfig.v1"
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "defaultScenarioId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "defaultRegionId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "defaultSectorId": {
+      "enum": [
+        "all",
+        "tax-class-1",
+        "tax-class-2",
+        "tax-class-4"
+      ]
+    },
+    "historicalStartYear": {
+      "type": "integer",
+      "minimum": 2010,
+      "maximum": 2020
+    },
+    "forecastEndYear": {
+      "type": "integer",
+      "minimum": 2030,
+      "maximum": 2040
+    },
+    "policyId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "financingRatePct": {
+      "type": "number",
+      "minimum": 2,
+      "maximum": 12
+    },
+    "annualDemandGrowthPct": {
+      "type": "number",
+      "minimum": -3,
+      "maximum": 6
+    },
+    "constructionCostIndex": {
+      "type": "number",
+      "minimum": 75,
+      "maximum": 175
+    },
+    "zoningCapacityMultiplier": {
+      "type": "number",
+      "minimum": 0.5,
+      "maximum": 2
+    },
+    "affordableHousingSharePct": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "ensembleSize": {
+      "const": 31
+    }
+  }
+}

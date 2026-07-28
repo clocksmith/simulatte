@@ -1,0 +1,1019 @@
+{
+  "capacitySites": [],
+  "claimBoundary": "This NTA shard preserves every joined row retained from the governed source snapshot. The source snapshot itself samples large DOB jobs, constructed footprints, and PLUTO capacity candidates and is not a complete property history or feasibility inventory.",
+  "contentVersion": "2026-07-27",
+  "coverage": {
+    "capacityCandidates": 0,
+    "compilerRegionCap": null,
+    "developmentForecastSupportedBySector": {
+      "all": false,
+      "tax-class-1": false,
+      "tax-class-2": false,
+      "tax-class-4": false
+    },
+    "developmentSeriesRows": 18,
+    "historicalSites": 4,
+    "priceForecastSupportedBySector": {
+      "all": true,
+      "tax-class-1": true,
+      "tax-class-2": false,
+      "tax-class-4": true
+    },
+    "saleRows": 18,
+    "saleYearsBySector": {
+      "tax-class-1": [
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "tax-class-2": [],
+      "tax-class-4": [
+        2016,
+        2017,
+        2018,
+        2019,
+        2022,
+        2023,
+        2024,
+        2025
+      ]
+    },
+    "sectorCandidateCounts": {
+      "all": 0,
+      "tax-class-1": 0,
+      "tax-class-2": 0,
+      "tax-class-4": 0
+    },
+    "sourceSampled": true
+  },
+  "developmentSeries": [
+    {
+      "filingCount": 20,
+      "id": "development:QN1304:2000",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "QN1304",
+      "sourceNtaNames": [
+        "Cambria Heights"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2000
+    },
+    {
+      "filingCount": 9,
+      "id": "development:QN1304:2001",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "QN1304",
+      "sourceNtaNames": [
+        "Cambria Heights"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2001
+    },
+    {
+      "filingCount": 8,
+      "id": "development:QN1304:2002",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "QN1304",
+      "sourceNtaNames": [
+        "Cambria Heights"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2002
+    },
+    {
+      "filingCount": 5,
+      "id": "development:QN1304:2003",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "QN1304",
+      "sourceNtaNames": [
+        "Cambria Heights"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2003
+    },
+    {
+      "filingCount": 5,
+      "id": "development:QN1304:2004",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "QN1304",
+      "sourceNtaNames": [
+        "Cambria Heights"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2004
+    },
+    {
+      "filingCount": 8,
+      "id": "development:QN1304:2005",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "QN1304",
+      "sourceNtaNames": [
+        "Cambria Heights"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2005
+    },
+    {
+      "filingCount": 10,
+      "id": "development:QN1304:2006",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "QN1304",
+      "sourceNtaNames": [
+        "Cambria Heights"
+      ],
+      "withdrawnFilingCount": 1,
+      "year": 2006
+    },
+    {
+      "filingCount": 7,
+      "id": "development:QN1304:2007",
+      "proposedZoningSquareFeet": 90,
+      "regionId": "QN1304",
+      "sourceNtaNames": [
+        "Cambria Heights"
+      ],
+      "withdrawnFilingCount": 2,
+      "year": 2007
+    },
+    {
+      "filingCount": 2,
+      "id": "development:QN1304:2008",
+      "proposedZoningSquareFeet": 780,
+      "regionId": "QN1304",
+      "sourceNtaNames": [
+        "Cambria Heights"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2008
+    },
+    {
+      "filingCount": 1,
+      "id": "development:QN1304:2009",
+      "proposedZoningSquareFeet": 202,
+      "regionId": "QN1304",
+      "sourceNtaNames": [
+        "Cambria Heights"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2009
+    },
+    {
+      "filingCount": 1,
+      "id": "development:QN1304:2010",
+      "proposedZoningSquareFeet": 193,
+      "regionId": "QN1304",
+      "sourceNtaNames": [
+        "Cambria Heights"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2010
+    },
+    {
+      "filingCount": 9,
+      "id": "development:QN1304:2011",
+      "proposedZoningSquareFeet": 15033,
+      "regionId": "QN1304",
+      "sourceNtaNames": [
+        "Cambria Heights"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2011
+    },
+    {
+      "filingCount": 1,
+      "id": "development:QN1304:2013",
+      "proposedZoningSquareFeet": 7933,
+      "regionId": "QN1304",
+      "sourceNtaNames": [
+        "Cambria Heights"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2013
+    },
+    {
+      "filingCount": 1,
+      "id": "development:QN1304:2014",
+      "proposedZoningSquareFeet": 32200,
+      "regionId": "QN1304",
+      "sourceNtaNames": [
+        "Cambria Heights"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2014
+    },
+    {
+      "filingCount": 2,
+      "id": "development:QN1304:2015",
+      "proposedZoningSquareFeet": 4036,
+      "regionId": "QN1304",
+      "sourceNtaNames": [
+        "Cambria Heights"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2015
+    },
+    {
+      "filingCount": 1,
+      "id": "development:QN1304:2017",
+      "proposedZoningSquareFeet": 1217,
+      "regionId": "QN1304",
+      "sourceNtaNames": [
+        "Cambria Heights"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2017
+    },
+    {
+      "filingCount": 8,
+      "id": "development:QN1304:2019",
+      "proposedZoningSquareFeet": 7692,
+      "regionId": "QN1304",
+      "sourceNtaNames": [
+        "Cambria Heights"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2019
+    },
+    {
+      "filingCount": 4,
+      "id": "development:QN1304:2020",
+      "proposedZoningSquareFeet": 10014,
+      "regionId": "QN1304",
+      "sourceNtaNames": [
+        "Cambria Heights"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2020
+    }
+  ],
+  "developmentSites": [
+    {
+      "address": null,
+      "bbl": "4127750155",
+      "bin": "4620914",
+      "constructionYear": 2023,
+      "coordinates": [
+        -73.7454734,
+        40.6913366
+      ],
+      "footprint": [
+        [
+          -73.7454834,
+          40.6914066
+        ],
+        [
+          -73.7453834,
+          40.6913766
+        ],
+        [
+          -73.7454584,
+          40.6912316
+        ],
+        [
+          -73.7455585,
+          40.6912616
+        ],
+        [
+          -73.7454834,
+          40.6914066
+        ]
+      ],
+      "footprintAreaM2": 273.99,
+      "footprintOrigin": "observed",
+      "heightM": 9.65,
+      "id": "footprint:1088290",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2023-07-01",
+          "id": "footprint:1088290:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN1304",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1088290"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4128200001",
+      "bin": "4539794",
+      "constructionYear": 2017,
+      "coordinates": [
+        -73.7297858,
+        40.6853613
+      ],
+      "footprint": [
+        [
+          -73.7299647,
+          40.685262
+        ],
+        [
+          -73.7299357,
+          40.685318
+        ],
+        [
+          -73.7299139,
+          40.6853114
+        ],
+        [
+          -73.7298883,
+          40.6853606
+        ],
+        [
+          -73.7299026,
+          40.685365
+        ],
+        [
+          -73.7297155,
+          40.6857252
+        ],
+        [
+          -73.7294088,
+          40.6856329
+        ],
+        [
+          -73.7295976,
+          40.6852694
+        ],
+        [
+          -73.7296493,
+          40.685285
+        ],
+        [
+          -73.7297022,
+          40.685183
+        ],
+        [
+          -73.7299647,
+          40.685262
+        ]
+      ],
+      "footprintAreaM2": 2592.81,
+      "footprintOrigin": "observed",
+      "heightM": 15.24,
+      "id": "footprint:72100",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2017-07-01",
+          "id": "footprint:72100:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN1304",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:72100"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4113270009",
+      "bin": "4541442",
+      "constructionYear": 2012,
+      "coordinates": [
+        -73.7346003,
+        40.6936732
+      ],
+      "footprint": [
+        [
+          -73.7345445,
+          40.6937265
+        ],
+        [
+          -73.7346209,
+          40.6935841
+        ],
+        [
+          -73.734699,
+          40.6936084
+        ],
+        [
+          -73.7346225,
+          40.693751
+        ],
+        [
+          -73.7345444,
+          40.6937267
+        ],
+        [
+          -73.7345445,
+          40.6937265
+        ]
+      ],
+      "footprintAreaM2": 212.44,
+      "footprintOrigin": "observed",
+      "heightM": 7.94,
+      "id": "footprint:94552",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2012-07-01",
+          "id": "footprint:94552:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN1304",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:94552"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4127750017",
+      "bin": "4545849",
+      "constructionYear": 2013,
+      "coordinates": [
+        -73.7446758,
+        40.6923284
+      ],
+      "footprint": [
+        [
+          -73.7445549,
+          40.6921445
+        ],
+        [
+          -73.744584,
+          40.6921393
+        ],
+        [
+          -73.7449223,
+          40.6922878
+        ],
+        [
+          -73.7448522,
+          40.6923803
+        ],
+        [
+          -73.744879,
+          40.692392
+        ],
+        [
+          -73.7448061,
+          40.6924882
+        ],
+        [
+          -73.7446136,
+          40.6924037
+        ],
+        [
+          -73.7446296,
+          40.6923826
+        ],
+        [
+          -73.7444814,
+          40.6923175
+        ],
+        [
+          -73.7444512,
+          40.6922813
+        ],
+        [
+          -73.7445549,
+          40.6921445
+        ]
+      ],
+      "footprintAreaM2": 1424.57,
+      "footprintOrigin": "observed",
+      "heightM": 5.18,
+      "id": "footprint:94741",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2013-07-01",
+          "id": "footprint:94741:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN1304",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:94741"
+      ]
+    }
+  ],
+  "id": "nyc-real-estate-region-qn1304-v1",
+  "region": {
+    "abbreviation": "CmbriaHts",
+    "areaM2": 33073252.5544,
+    "boroughId": "queens",
+    "boroughLabel": "Queens",
+    "bounds": {
+      "east": -73.7258626,
+      "north": 40.7034811,
+      "south": 40.6832411,
+      "west": -73.7477301
+    },
+    "centroid": [
+      -73.7397477,
+      40.6977945
+    ],
+    "communityDistrictTabulationAreaId": "QN13",
+    "communityDistrictTabulationAreaLabel": "QN13 Queens Village-Bellerose-Rosedale (CD 13 Approximation)",
+    "id": "QN1304",
+    "label": "Cambria Heights",
+    "polygon": [
+      [
+        -73.7362494,
+        40.702537
+      ],
+      [
+        -73.734304,
+        40.7024781
+      ],
+      [
+        -73.7342646,
+        40.7032195
+      ],
+      [
+        -73.7267776,
+        40.7030593
+      ],
+      [
+        -73.7258626,
+        40.6832411
+      ],
+      [
+        -73.7374416,
+        40.6867008
+      ],
+      [
+        -73.7375999,
+        40.686362
+      ],
+      [
+        -73.7474679,
+        40.6893222
+      ],
+      [
+        -73.7446796,
+        40.6934123
+      ],
+      [
+        -73.7435929,
+        40.6962153
+      ],
+      [
+        -73.7450748,
+        40.6963909
+      ],
+      [
+        -73.7461816,
+        40.6961219
+      ],
+      [
+        -73.7477301,
+        40.6995531
+      ],
+      [
+        -73.7450012,
+        40.7002622
+      ],
+      [
+        -73.7459087,
+        40.7022873
+      ],
+      [
+        -73.7410929,
+        40.7034811
+      ],
+      [
+        -73.7405034,
+        40.7034336
+      ],
+      [
+        -73.7407768,
+        40.7026798
+      ],
+      [
+        -73.7381958,
+        40.7025953
+      ],
+      [
+        -73.7362494,
+        40.702537
+      ]
+    ],
+    "spatialPolygons": [
+      {
+        "holes": [],
+        "outer": [
+          [
+            -73.7362494,
+            40.702537
+          ],
+          [
+            -73.734304,
+            40.7024781
+          ],
+          [
+            -73.7342646,
+            40.7032195
+          ],
+          [
+            -73.7267776,
+            40.7030593
+          ],
+          [
+            -73.7258626,
+            40.6832411
+          ],
+          [
+            -73.7374416,
+            40.6867008
+          ],
+          [
+            -73.7375999,
+            40.686362
+          ],
+          [
+            -73.7474679,
+            40.6893222
+          ],
+          [
+            -73.7446796,
+            40.6934123
+          ],
+          [
+            -73.7435929,
+            40.6962153
+          ],
+          [
+            -73.7450748,
+            40.6963909
+          ],
+          [
+            -73.7461816,
+            40.6961219
+          ],
+          [
+            -73.7477301,
+            40.6995531
+          ],
+          [
+            -73.7450012,
+            40.7002622
+          ],
+          [
+            -73.7459087,
+            40.7022873
+          ],
+          [
+            -73.7410929,
+            40.7034811
+          ],
+          [
+            -73.7405034,
+            40.7034336
+          ],
+          [
+            -73.7407768,
+            40.7026798
+          ],
+          [
+            -73.7381958,
+            40.7025953
+          ],
+          [
+            -73.7362494,
+            40.702537
+          ]
+        ]
+      }
+    ]
+  },
+  "saleSeries": [
+    {
+      "id": "sale:QN1304:2016:tax-1",
+      "meanPriceUsd": 388401.44,
+      "medianPriceUsd": 394000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN1304",
+      "saleCount": 151,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 175,
+      "year": 2016
+    },
+    {
+      "id": "sale:QN1304:2016:tax-4",
+      "meanPriceUsd": 863000,
+      "medianPriceUsd": 863000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN1304",
+      "saleCount": 2,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 7,
+      "year": 2016
+    },
+    {
+      "id": "sale:QN1304:2017:tax-1",
+      "meanPriceUsd": 434224.94,
+      "medianPriceUsd": 450000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN1304",
+      "saleCount": 177,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 202,
+      "year": 2017
+    },
+    {
+      "id": "sale:QN1304:2017:tax-4",
+      "meanPriceUsd": 1350000,
+      "medianPriceUsd": 1350000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN1304",
+      "saleCount": 1,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 1,
+      "year": 2017
+    },
+    {
+      "id": "sale:QN1304:2018:tax-1",
+      "meanPriceUsd": 457465.61,
+      "medianPriceUsd": 465000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN1304",
+      "saleCount": 166,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 188,
+      "year": 2018
+    },
+    {
+      "id": "sale:QN1304:2018:tax-4",
+      "meanPriceUsd": 1241666.67,
+      "medianPriceUsd": 800000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN1304",
+      "saleCount": 6,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 9,
+      "year": 2018
+    },
+    {
+      "id": "sale:QN1304:2019:tax-1",
+      "meanPriceUsd": 485414.53,
+      "medianPriceUsd": 499200,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN1304",
+      "saleCount": 178,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 196,
+      "year": 2019
+    },
+    {
+      "id": "sale:QN1304:2019:tax-4",
+      "meanPriceUsd": 2725000,
+      "medianPriceUsd": 2725000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN1304",
+      "saleCount": 2,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 3,
+      "year": 2019
+    },
+    {
+      "id": "sale:QN1304:2020:tax-1",
+      "meanPriceUsd": 525225.11,
+      "medianPriceUsd": 542875,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN1304",
+      "saleCount": 150,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 165,
+      "year": 2020
+    },
+    {
+      "id": "sale:QN1304:2021:tax-1",
+      "meanPriceUsd": 559585.29,
+      "medianPriceUsd": 582500,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN1304",
+      "saleCount": 154,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 169,
+      "year": 2021
+    },
+    {
+      "id": "sale:QN1304:2022:tax-1",
+      "meanPriceUsd": 622679.62,
+      "medianPriceUsd": 630000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN1304",
+      "saleCount": 159,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 182,
+      "year": 2022
+    },
+    {
+      "id": "sale:QN1304:2022:tax-4",
+      "meanPriceUsd": 10450000,
+      "medianPriceUsd": 10450000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN1304",
+      "saleCount": 2,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 3,
+      "year": 2022
+    },
+    {
+      "id": "sale:QN1304:2023:tax-1",
+      "meanPriceUsd": 609699.46,
+      "medianPriceUsd": 629500,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN1304",
+      "saleCount": 162,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 180,
+      "year": 2023
+    },
+    {
+      "id": "sale:QN1304:2023:tax-4",
+      "meanPriceUsd": 2146000,
+      "medianPriceUsd": 2072000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN1304",
+      "saleCount": 4,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 14,
+      "year": 2023
+    },
+    {
+      "id": "sale:QN1304:2024:tax-1",
+      "meanPriceUsd": 647575.41,
+      "medianPriceUsd": 670000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN1304",
+      "saleCount": 119,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 129,
+      "year": 2024
+    },
+    {
+      "id": "sale:QN1304:2024:tax-4",
+      "meanPriceUsd": 2655000,
+      "medianPriceUsd": 2655000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN1304",
+      "saleCount": 2,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 2,
+      "year": 2024
+    },
+    {
+      "id": "sale:QN1304:2025:tax-1",
+      "meanPriceUsd": 661075.96,
+      "medianPriceUsd": 690000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN1304",
+      "saleCount": 139,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 149,
+      "year": 2025
+    },
+    {
+      "id": "sale:QN1304:2025:tax-4",
+      "meanPriceUsd": 5500000,
+      "medianPriceUsd": 5500000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN1304",
+      "saleCount": 1,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 5,
+      "year": 2025
+    }
+  ],
+  "schema": "simulatte.nycRealEstateRegionShard.v1",
+  "sourceIdentities": [
+    {
+      "byteCount": 1008463,
+      "path": "nyc-annualized-sales-by-nta.json",
+      "sha256": "14c15020381466196236073ee3753ff7a5d74a76ec6af4605e96564abd2bf99a",
+      "sourceId": "nyc-real-estate-sales-annual"
+    },
+    {
+      "byteCount": 8977616,
+      "path": "nyc-final-certificates-of-occupancy.json",
+      "sha256": "966c237824a79aff9d5137d27b498ba4f3670cc19844738c5ce17a559388030e",
+      "sourceId": "nyc-real-estate-final-occupancy"
+    },
+    {
+      "byteCount": 8802596,
+      "path": "nyc-largest-constructed-footprints-2010-2026.geojson",
+      "sha256": "15745b9c62fa539e683737f0665fe91d95231e68d8c1b598e7ed211114811eb6",
+      "sourceId": "nyc-real-estate-constructed-footprints"
+    },
+    {
+      "byteCount": 1076754,
+      "path": "nyc-largest-new-building-jobs-bronx.json",
+      "sha256": "1a44c6cbfa364639e4b75957b2fab7e3c301f95bcfcfa90c50862fef85f450c1",
+      "sourceId": "nyc-real-estate-new-building-sample-bronx"
+    },
+    {
+      "byteCount": 1085334,
+      "path": "nyc-largest-new-building-jobs-brooklyn.json",
+      "sha256": "389e1825faff440d6fad5a12ed470f84e90859fd732262346a3414c5503693fd",
+      "sourceId": "nyc-real-estate-new-building-sample-brooklyn"
+    },
+    {
+      "byteCount": 1097625,
+      "path": "nyc-largest-new-building-jobs-manhattan.json",
+      "sha256": "6346678de380d58e325db14fc2e0611d993743be29898360e08f092eaa1f88e5",
+      "sourceId": "nyc-real-estate-new-building-sample-manhattan"
+    },
+    {
+      "byteCount": 1091065,
+      "path": "nyc-largest-new-building-jobs-queens.json",
+      "sha256": "79eb6f028b2135214d47a793101f72de695efcb02e4c2802cc10cd062c760a22",
+      "sourceId": "nyc-real-estate-new-building-sample-queens"
+    },
+    {
+      "byteCount": 1120592,
+      "path": "nyc-largest-new-building-jobs-staten-island.json",
+      "sha256": "e0870a431a75bdd235fc09b0ecd7503c45384f5e8b66beba545447c7bb3d960a",
+      "sourceId": "nyc-real-estate-new-building-sample-staten-island"
+    },
+    {
+      "byteCount": 1250280,
+      "path": "nyc-new-building-filings-by-nta-year.json",
+      "sha256": "4b75b0ad54a1ce5241b9c2e303be2cc24781e55a65fbf27be10d00a80bfeadea",
+      "sourceId": "nyc-real-estate-new-building-annual"
+    },
+    {
+      "byteCount": 4576764,
+      "path": "nyc-nta-2020.geojson",
+      "sha256": "c3dd069e094e2d2f647c1c102cd7e0570d033dd6131446bd1943a73210d09c56",
+      "sourceId": "nyc-real-estate-nta-boundaries"
+    },
+    {
+      "byteCount": 2402191,
+      "path": "nyc-pluto-capacity-bronx.json",
+      "sha256": "b45168721525e18a29aafcce335212632607021240869b738cbb96fbe2441389",
+      "sourceId": "nyc-real-estate-pluto-capacity-bronx"
+    },
+    {
+      "byteCount": 2403266,
+      "path": "nyc-pluto-capacity-brooklyn.json",
+      "sha256": "63b33a507c0bc26f7b71669cf032baa4950af2db77ce8712b876ca6f4c9f771b",
+      "sourceId": "nyc-real-estate-pluto-capacity-brooklyn"
+    },
+    {
+      "byteCount": 2464264,
+      "path": "nyc-pluto-capacity-manhattan.json",
+      "sha256": "91e3e1f5dce97a340475b51577458c8e48183f1138c334fbcce27d68001e9d25",
+      "sourceId": "nyc-real-estate-pluto-capacity-manhattan"
+    },
+    {
+      "byteCount": 2418903,
+      "path": "nyc-pluto-capacity-queens.json",
+      "sha256": "02a12d81466e89e05b9be9273198c5f857e86db5d2c95cfb717160ce4ccf99c1",
+      "sourceId": "nyc-real-estate-pluto-capacity-queens"
+    },
+    {
+      "byteCount": 1168016,
+      "path": "nyc-pluto-capacity-staten-island.json",
+      "sha256": "6d488f6ce46fa09930b669429275014a8ecedae6c85041fb465a15633c6a38b0",
+      "sourceId": "nyc-real-estate-pluto-capacity-staten-island"
+    }
+  ],
+  "truth": {
+    "origin": "observed",
+    "temporalStatus": "historical",
+    "uncertainty": {
+      "kind": "missing",
+      "value": {
+        "reason": "Administrative records have missing, revised, duplicated, and source-sampled fields without a shared statistical uncertainty model."
+      }
+    }
+  }
+}

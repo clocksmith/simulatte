@@ -1,0 +1,1240 @@
+{
+  "capacitySites": [],
+  "claimBoundary": "This NTA shard preserves every joined row retained from the governed source snapshot. The source snapshot itself samples large DOB jobs, constructed footprints, and PLUTO capacity candidates and is not a complete property history or feasibility inventory.",
+  "contentVersion": "2026-07-27",
+  "coverage": {
+    "capacityCandidates": 0,
+    "compilerRegionCap": null,
+    "developmentForecastSupportedBySector": {
+      "all": false,
+      "tax-class-1": false,
+      "tax-class-2": false,
+      "tax-class-4": false
+    },
+    "developmentSeriesRows": 12,
+    "historicalSites": 9,
+    "priceForecastSupportedBySector": {
+      "all": true,
+      "tax-class-1": false,
+      "tax-class-2": false,
+      "tax-class-4": true
+    },
+    "saleRows": 8,
+    "saleYearsBySector": {
+      "tax-class-1": [],
+      "tax-class-2": [],
+      "tax-class-4": [
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2025
+      ]
+    },
+    "sectorCandidateCounts": {
+      "all": 0,
+      "tax-class-1": 0,
+      "tax-class-2": 0,
+      "tax-class-4": 0
+    },
+    "sourceSampled": true
+  },
+  "developmentSeries": [
+    {
+      "filingCount": 1,
+      "id": "development:QN0161:2000",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "QN0161",
+      "sourceNtaNames": [
+        "Sunnyside Yards (North)"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2000
+    },
+    {
+      "filingCount": 1,
+      "id": "development:QN0161:2001",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "QN0161",
+      "sourceNtaNames": [
+        "Sunnyside Yards (North)"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2001
+    },
+    {
+      "filingCount": 1,
+      "id": "development:QN0161:2002",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "QN0161",
+      "sourceNtaNames": [
+        "Sunnyside Yards (North)"
+      ],
+      "withdrawnFilingCount": 1,
+      "year": 2002
+    },
+    {
+      "filingCount": 1,
+      "id": "development:QN0161:2003",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "QN0161",
+      "sourceNtaNames": [
+        "Sunnyside Yards (North)"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2003
+    },
+    {
+      "filingCount": 1,
+      "id": "development:QN0161:2005",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "QN0161",
+      "sourceNtaNames": [
+        "Sunnyside Yards (North)"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2005
+    },
+    {
+      "filingCount": 1,
+      "id": "development:QN0161:2006",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "QN0161",
+      "sourceNtaNames": [
+        "Sunnyside Yards (North)"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2006
+    },
+    {
+      "filingCount": 1,
+      "id": "development:QN0161:2010",
+      "proposedZoningSquareFeet": 524645,
+      "regionId": "QN0161",
+      "sourceNtaNames": [
+        "Sunnyside Yards (North)"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2010
+    },
+    {
+      "filingCount": 4,
+      "id": "development:QN0161:2011",
+      "proposedZoningSquareFeet": 197795,
+      "regionId": "QN0161",
+      "sourceNtaNames": [
+        "Sunnyside Yards (North)"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2011
+    },
+    {
+      "filingCount": 1,
+      "id": "development:QN0161:2012",
+      "proposedZoningSquareFeet": 69719,
+      "regionId": "QN0161",
+      "sourceNtaNames": [
+        "Sunnyside Yards (North)"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2012
+    },
+    {
+      "filingCount": 7,
+      "id": "development:QN0161:2013",
+      "proposedZoningSquareFeet": 156985,
+      "regionId": "QN0161",
+      "sourceNtaNames": [
+        "Sunnyside Yards (North)"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2013
+    },
+    {
+      "filingCount": 5,
+      "id": "development:QN0161:2016",
+      "proposedZoningSquareFeet": 315626,
+      "regionId": "QN0161",
+      "sourceNtaNames": [
+        "Sunnyside Yards (North)"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2016
+    },
+    {
+      "filingCount": 6,
+      "id": "development:QN0161:2019",
+      "proposedZoningSquareFeet": 405576,
+      "regionId": "QN0161",
+      "sourceNtaNames": [
+        "Sunnyside Yards (North)"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2019
+    }
+  ],
+  "developmentSites": [
+    {
+      "address": null,
+      "bbl": "4001430500",
+      "bin": "4430172",
+      "constructionYear": 2023,
+      "coordinates": [
+        -73.9191174,
+        40.7531274
+      ],
+      "footprint": [
+        [
+          -73.9193601,
+          40.7532286
+        ],
+        [
+          -73.9187753,
+          40.753359
+        ],
+        [
+          -73.9186986,
+          40.75316
+        ],
+        [
+          -73.9191163,
+          40.7530669
+        ],
+        [
+          -73.9190885,
+          40.7529919
+        ],
+        [
+          -73.9192572,
+          40.7529547
+        ],
+        [
+          -73.9192834,
+          40.7530296
+        ],
+        [
+          -73.9193601,
+          40.7532286
+        ]
+      ],
+      "footprintAreaM2": 2289.6,
+      "footprintOrigin": "observed",
+      "heightM": 8.23,
+      "id": "footprint:1089760",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2023-07-01",
+          "id": "footprint:1089760:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0161",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1089760"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4001430500",
+      "bin": "4626118",
+      "constructionYear": 2024,
+      "coordinates": [
+        -73.9175667,
+        40.753349
+      ],
+      "footprint": [
+        [
+          -73.9175083,
+          40.7535712
+        ],
+        [
+          -73.9174996,
+          40.7535278
+        ],
+        [
+          -73.9174623,
+          40.7535321
+        ],
+        [
+          -73.9174302,
+          40.7533725
+        ],
+        [
+          -73.9174675,
+          40.7533682
+        ],
+        [
+          -73.9174546,
+          40.7533039
+        ],
+        [
+          -73.9175501,
+          40.7532928
+        ],
+        [
+          -73.9175358,
+          40.7532218
+        ],
+        [
+          -73.9175018,
+          40.7532182
+        ],
+        [
+          -73.9175176,
+          40.7531304
+        ],
+        [
+          -73.9177674,
+          40.7531565
+        ],
+        [
+          -73.9177516,
+          40.7532443
+        ],
+        [
+          -73.9178101,
+          40.7535362
+        ],
+        [
+          -73.9175083,
+          40.7535712
+        ]
+      ],
+      "footprintAreaM2": 1981.09,
+      "footprintOrigin": "observed",
+      "heightM": 11.89,
+      "id": "footprint:1091774",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2024-07-01",
+          "id": "footprint:1091774:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0161",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1091774"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4002390036",
+      "bin": "4617788",
+      "constructionYear": 2016,
+      "coordinates": [
+        -73.9349053,
+        40.7498775
+      ],
+      "footprint": [
+        [
+          -73.9350165,
+          40.7497868
+        ],
+        [
+          -73.9349831,
+          40.7498323
+        ],
+        [
+          -73.9349569,
+          40.7498178
+        ],
+        [
+          -73.9348356,
+          40.7499448
+        ],
+        [
+          -73.9349256,
+          40.7499945
+        ],
+        [
+          -73.9348602,
+          40.7500629
+        ],
+        [
+          -73.9346635,
+          40.7499543
+        ],
+        [
+          -73.9348901,
+          40.749717
+        ],
+        [
+          -73.9350165,
+          40.7497868
+        ]
+      ],
+      "footprintAreaM2": 810.52,
+      "footprintOrigin": "observed",
+      "heightM": 12.19,
+      "id": "footprint:66375",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2016-07-01",
+          "id": "footprint:66375:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0161",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:66375"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4002390036",
+      "bin": "4617789",
+      "constructionYear": 2016,
+      "coordinates": [
+        -73.9352029,
+        40.7496954
+      ],
+      "footprint": [
+        [
+          -73.9354129,
+          40.7496912
+        ],
+        [
+          -73.9353142,
+          40.7497824
+        ],
+        [
+          -73.9352843,
+          40.7497634
+        ],
+        [
+          -73.9351962,
+          40.7498434
+        ],
+        [
+          -73.9349621,
+          40.7496943
+        ],
+        [
+          -73.9350357,
+          40.7496274
+        ],
+        [
+          -73.9350471,
+          40.7496346
+        ],
+        [
+          -73.9351611,
+          40.749531
+        ],
+        [
+          -73.9354129,
+          40.7496912
+        ]
+      ],
+      "footprintAreaM2": 1152.43,
+      "footprintOrigin": "observed",
+      "heightM": 10.97,
+      "id": "footprint:66376",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2016-07-01",
+          "id": "footprint:66376:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0161",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:66376"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4002390036",
+      "bin": "4542111",
+      "constructionYear": 2013,
+      "coordinates": [
+        -73.9355683,
+        40.7498474
+      ],
+      "footprint": [
+        [
+          -73.9357474,
+          40.7498075
+        ],
+        [
+          -73.9355053,
+          40.7500346
+        ],
+        [
+          -73.9352996,
+          40.7499072
+        ],
+        [
+          -73.9355417,
+          40.7496801
+        ],
+        [
+          -73.9357474,
+          40.7498075
+        ]
+      ],
+      "footprintAreaM2": 1268.81,
+      "footprintOrigin": "observed",
+      "heightM": 21.03,
+      "id": "footprint:67557",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2013-07-01",
+          "id": "footprint:67557:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0161",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:67557"
+      ]
+    },
+    {
+      "address": "33-24 WOODSIDE AVENUE",
+      "bbl": "4001200075",
+      "bin": "4538606",
+      "constructionYear": 2014,
+      "coordinates": [
+        -73.910215,
+        40.752389
+      ],
+      "footprint": [
+        [
+          -73.910437,
+          40.7520146
+        ],
+        [
+          -73.9103654,
+          40.7517186
+        ],
+        [
+          -73.9108056,
+          40.751657
+        ],
+        [
+          -73.9108774,
+          40.7519534
+        ],
+        [
+          -73.9104371,
+          40.752015
+        ],
+        [
+          -73.910437,
+          40.7520146
+        ]
+      ],
+      "footprintAreaM2": 2206.33,
+      "footprintOrigin": "observed",
+      "heightM": 23.77,
+      "id": "job:420302979:01",
+      "jobId": "420302979",
+      "milestones": [
+        {
+          "date": "2011-01-05",
+          "id": "job:420302979:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2011-03-08",
+          "id": "job:420302979:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2011-06-29",
+          "id": "job:420302979:01:fully-permitted:3",
+          "kind": "fully-permitted",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2014-02-14",
+          "id": "job:420302979:01:final-certificate-of-occupancy:4",
+          "kind": "final-certificate-of-occupancy",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2014-02-14",
+          "id": "job:420302979:01:signed-off:5",
+          "kind": "signed-off",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 6,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": 79694,
+      "regionId": "QN0161",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:1921805",
+        "certificate-of-occupancy:420302979:006",
+        "building-footprint:69666"
+      ],
+      "status": "SIGNED OFF",
+      "withdrawn": false
+    },
+    {
+      "address": "31-08 NORTHERN BOULEVARD",
+      "bbl": "4002397502",
+      "bin": "4003414",
+      "constructionYear": 2022,
+      "coordinates": [
+        -73.933507,
+        40.751669
+      ],
+      "footprint": [
+        [
+          -73.9341078,
+          40.7512139
+        ],
+        [
+          -73.9329062,
+          40.7512139
+        ],
+        [
+          -73.9329062,
+          40.7521241
+        ],
+        [
+          -73.9341078,
+          40.7521241
+        ],
+        [
+          -73.9341078,
+          40.7512139
+        ]
+      ],
+      "footprintAreaM2": 2567.02,
+      "footprintOrigin": "modeled",
+      "heightM": 36.27,
+      "id": "job:420665060:01",
+      "jobId": "420665060",
+      "milestones": [
+        {
+          "date": "2019-01-30",
+          "id": "job:420665060:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2019-10-17",
+          "id": "job:420665060:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2020-03-16",
+          "id": "job:420665060:01:fully-permitted:3",
+          "kind": "fully-permitted",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2022-05-18",
+          "id": "job:420665060:01:final-certificate-of-occupancy:4",
+          "kind": "final-certificate-of-occupancy",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 9,
+      "proposedUnits": 0,
+      "proposedZoningSquareFeet": 248681,
+      "regionId": "QN0161",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:3102160",
+        "certificate-of-occupancy:420665060:001"
+      ],
+      "status": "PERMIT ISSUED - ENTIRE JOB/WORK",
+      "withdrawn": false
+    },
+    {
+      "address": "31-28 NORTHERN BLVD",
+      "bbl": "4002390111",
+      "bin": "4543421",
+      "constructionYear": 2024,
+      "coordinates": [
+        -73.933283,
+        40.751719
+      ],
+      "footprint": [
+        [
+          -73.9321747,
+          40.7510027
+        ],
+        [
+          -73.9324104,
+          40.7513872
+        ],
+        [
+          -73.9324894,
+          40.7516527
+        ],
+        [
+          -73.932303,
+          40.7516855
+        ],
+        [
+          -73.9319997,
+          40.7510511
+        ],
+        [
+          -73.9321747,
+          40.7510027
+        ]
+      ],
+      "footprintAreaM2": 2367.48,
+      "footprintOrigin": "observed",
+      "heightM": 28.35,
+      "id": "job:420812856:01",
+      "jobId": "420812856",
+      "milestones": [
+        {
+          "date": "2013-02-13",
+          "id": "job:420812856:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2013-06-10",
+          "id": "job:420812856:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2014-11-05",
+          "id": "job:420812856:01:fully-permitted:3",
+          "kind": "fully-permitted",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 12,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": 156985,
+      "regionId": "QN0161",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:2203268",
+        "building-footprint:1090771"
+      ],
+      "status": "PERMIT ISSUED - ENTIRE JOB/WORK",
+      "withdrawn": false
+    },
+    {
+      "address": "31-28 NORTHERN BLVD",
+      "bbl": "4002390111",
+      "bin": "4543421",
+      "constructionYear": 2024,
+      "coordinates": [
+        -73.933283,
+        40.751719
+      ],
+      "footprint": [
+        [
+          -73.9321747,
+          40.7510027
+        ],
+        [
+          -73.9324104,
+          40.7513872
+        ],
+        [
+          -73.9324894,
+          40.7516527
+        ],
+        [
+          -73.932303,
+          40.7516855
+        ],
+        [
+          -73.9319997,
+          40.7510511
+        ],
+        [
+          -73.9321747,
+          40.7510027
+        ]
+      ],
+      "footprintAreaM2": 2367.48,
+      "footprintOrigin": "observed",
+      "heightM": 28.35,
+      "id": "job:421662016:01",
+      "jobId": "421662016",
+      "milestones": [
+        {
+          "date": "2019-02-19",
+          "id": "job:421662016:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2019-08-12",
+          "id": "job:421662016:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2020-08-24",
+          "id": "job:421662016:01:fully-permitted:3",
+          "kind": "fully-permitted",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 12,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": 156895,
+      "regionId": "QN0161",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:3106051",
+        "building-footprint:1090771"
+      ],
+      "status": "PERMIT ISSUED - ENTIRE JOB/WORK",
+      "withdrawn": false
+    }
+  ],
+  "id": "nyc-real-estate-region-qn0161-v1",
+  "region": {
+    "abbreviation": "SnnysdYd_N",
+    "areaM2": 4500282.01838,
+    "boroughId": "queens",
+    "boroughLabel": "Queens",
+    "bounds": {
+      "east": -73.9098432,
+      "north": 40.7538578,
+      "south": 40.7494119,
+      "west": -73.936095
+    },
+    "centroid": [
+      -73.9214688,
+      40.7516279
+    ],
+    "communityDistrictTabulationAreaId": "QN01",
+    "communityDistrictTabulationAreaLabel": "QN01 Astoria-Queensbridge (CD 1 Equivalent)",
+    "id": "QN0161",
+    "label": "Sunnyside Yards (North)",
+    "polygon": [
+      [
+        -73.9102312,
+        40.7529765
+      ],
+      [
+        -73.9103411,
+        40.7526768
+      ],
+      [
+        -73.9098432,
+        40.7516387
+      ],
+      [
+        -73.9131434,
+        40.7509671
+      ],
+      [
+        -73.915256,
+        40.7508456
+      ],
+      [
+        -73.920539,
+        40.7497508
+      ],
+      [
+        -73.9210148,
+        40.7509726
+      ],
+      [
+        -73.9216121,
+        40.7513716
+      ],
+      [
+        -73.9225504,
+        40.7515765
+      ],
+      [
+        -73.9246337,
+        40.7516433
+      ],
+      [
+        -73.9315191,
+        40.7511525
+      ],
+      [
+        -73.9339394,
+        40.7502696
+      ],
+      [
+        -73.9353869,
+        40.7494119
+      ],
+      [
+        -73.936095,
+        40.7497315
+      ],
+      [
+        -73.9338327,
+        40.7516047
+      ],
+      [
+        -73.9322762,
+        40.7519539
+      ],
+      [
+        -73.9256274,
+        40.7521372
+      ],
+      [
+        -73.9176319,
+        40.7538578
+      ],
+      [
+        -73.9144645,
+        40.7536764
+      ],
+      [
+        -73.9106747,
+        40.7529951
+      ],
+      [
+        -73.9102312,
+        40.7529765
+      ]
+    ],
+    "spatialPolygons": [
+      {
+        "holes": [],
+        "outer": [
+          [
+            -73.9102312,
+            40.7529765
+          ],
+          [
+            -73.9103411,
+            40.7526768
+          ],
+          [
+            -73.9098432,
+            40.7516387
+          ],
+          [
+            -73.9131434,
+            40.7509671
+          ],
+          [
+            -73.915256,
+            40.7508456
+          ],
+          [
+            -73.920539,
+            40.7497508
+          ],
+          [
+            -73.9210148,
+            40.7509726
+          ],
+          [
+            -73.9216121,
+            40.7513716
+          ],
+          [
+            -73.9225504,
+            40.7515765
+          ],
+          [
+            -73.9246337,
+            40.7516433
+          ],
+          [
+            -73.9315191,
+            40.7511525
+          ],
+          [
+            -73.9339394,
+            40.7502696
+          ],
+          [
+            -73.9353869,
+            40.7494119
+          ],
+          [
+            -73.936095,
+            40.7497315
+          ],
+          [
+            -73.9338327,
+            40.7516047
+          ],
+          [
+            -73.9322762,
+            40.7519539
+          ],
+          [
+            -73.9256274,
+            40.7521372
+          ],
+          [
+            -73.9176319,
+            40.7538578
+          ],
+          [
+            -73.9144645,
+            40.7536764
+          ],
+          [
+            -73.9106747,
+            40.7529951
+          ],
+          [
+            -73.9102312,
+            40.7529765
+          ]
+        ]
+      }
+    ]
+  },
+  "saleSeries": [
+    {
+      "id": "sale:QN0161:2017:tax-4",
+      "meanPriceUsd": 3500000,
+      "medianPriceUsd": 3500000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0161",
+      "saleCount": 1,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 1,
+      "year": 2017
+    },
+    {
+      "id": "sale:QN0161:2018:tax-4",
+      "meanPriceUsd": 16400000,
+      "medianPriceUsd": 16400000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0161",
+      "saleCount": 2,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 2,
+      "year": 2018
+    },
+    {
+      "id": "sale:QN0161:2019:tax-4",
+      "meanPriceUsd": 32260700,
+      "medianPriceUsd": 32260700,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0161",
+      "saleCount": 1,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 1,
+      "year": 2019
+    },
+    {
+      "id": "sale:QN0161:2020:tax-4",
+      "meanPriceUsd": 48500000,
+      "medianPriceUsd": 48500000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0161",
+      "saleCount": 1,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 1,
+      "year": 2020
+    },
+    {
+      "id": "sale:QN0161:2021:tax-4",
+      "meanPriceUsd": 64250000,
+      "medianPriceUsd": 64250000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0161",
+      "saleCount": 2,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 2,
+      "year": 2021
+    },
+    {
+      "id": "sale:QN0161:2022:tax-4",
+      "meanPriceUsd": 137321428.57,
+      "medianPriceUsd": 172750000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0161",
+      "saleCount": 7,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 7,
+      "year": 2022
+    },
+    {
+      "id": "sale:QN0161:2023:tax-4",
+      "meanPriceUsd": 14926748.5,
+      "medianPriceUsd": 14926748.5,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0161",
+      "saleCount": 2,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 3,
+      "year": 2023
+    },
+    {
+      "id": "sale:QN0161:2025:tax-4",
+      "meanPriceUsd": 42750000,
+      "medianPriceUsd": 42750000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0161",
+      "saleCount": 1,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 79,
+      "year": 2025
+    }
+  ],
+  "schema": "simulatte.nycRealEstateRegionShard.v1",
+  "sourceIdentities": [
+    {
+      "byteCount": 1008463,
+      "path": "nyc-annualized-sales-by-nta.json",
+      "sha256": "14c15020381466196236073ee3753ff7a5d74a76ec6af4605e96564abd2bf99a",
+      "sourceId": "nyc-real-estate-sales-annual"
+    },
+    {
+      "byteCount": 8977616,
+      "path": "nyc-final-certificates-of-occupancy.json",
+      "sha256": "966c237824a79aff9d5137d27b498ba4f3670cc19844738c5ce17a559388030e",
+      "sourceId": "nyc-real-estate-final-occupancy"
+    },
+    {
+      "byteCount": 8802596,
+      "path": "nyc-largest-constructed-footprints-2010-2026.geojson",
+      "sha256": "15745b9c62fa539e683737f0665fe91d95231e68d8c1b598e7ed211114811eb6",
+      "sourceId": "nyc-real-estate-constructed-footprints"
+    },
+    {
+      "byteCount": 1076754,
+      "path": "nyc-largest-new-building-jobs-bronx.json",
+      "sha256": "1a44c6cbfa364639e4b75957b2fab7e3c301f95bcfcfa90c50862fef85f450c1",
+      "sourceId": "nyc-real-estate-new-building-sample-bronx"
+    },
+    {
+      "byteCount": 1085334,
+      "path": "nyc-largest-new-building-jobs-brooklyn.json",
+      "sha256": "389e1825faff440d6fad5a12ed470f84e90859fd732262346a3414c5503693fd",
+      "sourceId": "nyc-real-estate-new-building-sample-brooklyn"
+    },
+    {
+      "byteCount": 1097625,
+      "path": "nyc-largest-new-building-jobs-manhattan.json",
+      "sha256": "6346678de380d58e325db14fc2e0611d993743be29898360e08f092eaa1f88e5",
+      "sourceId": "nyc-real-estate-new-building-sample-manhattan"
+    },
+    {
+      "byteCount": 1091065,
+      "path": "nyc-largest-new-building-jobs-queens.json",
+      "sha256": "79eb6f028b2135214d47a793101f72de695efcb02e4c2802cc10cd062c760a22",
+      "sourceId": "nyc-real-estate-new-building-sample-queens"
+    },
+    {
+      "byteCount": 1120592,
+      "path": "nyc-largest-new-building-jobs-staten-island.json",
+      "sha256": "e0870a431a75bdd235fc09b0ecd7503c45384f5e8b66beba545447c7bb3d960a",
+      "sourceId": "nyc-real-estate-new-building-sample-staten-island"
+    },
+    {
+      "byteCount": 1250280,
+      "path": "nyc-new-building-filings-by-nta-year.json",
+      "sha256": "4b75b0ad54a1ce5241b9c2e303be2cc24781e55a65fbf27be10d00a80bfeadea",
+      "sourceId": "nyc-real-estate-new-building-annual"
+    },
+    {
+      "byteCount": 4576764,
+      "path": "nyc-nta-2020.geojson",
+      "sha256": "c3dd069e094e2d2f647c1c102cd7e0570d033dd6131446bd1943a73210d09c56",
+      "sourceId": "nyc-real-estate-nta-boundaries"
+    },
+    {
+      "byteCount": 2402191,
+      "path": "nyc-pluto-capacity-bronx.json",
+      "sha256": "b45168721525e18a29aafcce335212632607021240869b738cbb96fbe2441389",
+      "sourceId": "nyc-real-estate-pluto-capacity-bronx"
+    },
+    {
+      "byteCount": 2403266,
+      "path": "nyc-pluto-capacity-brooklyn.json",
+      "sha256": "63b33a507c0bc26f7b71669cf032baa4950af2db77ce8712b876ca6f4c9f771b",
+      "sourceId": "nyc-real-estate-pluto-capacity-brooklyn"
+    },
+    {
+      "byteCount": 2464264,
+      "path": "nyc-pluto-capacity-manhattan.json",
+      "sha256": "91e3e1f5dce97a340475b51577458c8e48183f1138c334fbcce27d68001e9d25",
+      "sourceId": "nyc-real-estate-pluto-capacity-manhattan"
+    },
+    {
+      "byteCount": 2418903,
+      "path": "nyc-pluto-capacity-queens.json",
+      "sha256": "02a12d81466e89e05b9be9273198c5f857e86db5d2c95cfb717160ce4ccf99c1",
+      "sourceId": "nyc-real-estate-pluto-capacity-queens"
+    },
+    {
+      "byteCount": 1168016,
+      "path": "nyc-pluto-capacity-staten-island.json",
+      "sha256": "6d488f6ce46fa09930b669429275014a8ecedae6c85041fb465a15633c6a38b0",
+      "sourceId": "nyc-real-estate-pluto-capacity-staten-island"
+    }
+  ],
+  "truth": {
+    "origin": "observed",
+    "temporalStatus": "historical",
+    "uncertainty": {
+      "kind": "missing",
+      "value": {
+        "reason": "Administrative records have missing, revised, duplicated, and source-sampled fields without a shared statistical uncertainty model."
+      }
+    }
+  }
+}

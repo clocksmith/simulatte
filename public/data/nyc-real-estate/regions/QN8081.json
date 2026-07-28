@@ -1,0 +1,1019 @@
+{
+  "capacitySites": [],
+  "claimBoundary": "This NTA shard preserves every joined row retained from the governed source snapshot. The source snapshot itself samples large DOB jobs, constructed footprints, and PLUTO capacity candidates and is not a complete property history or feasibility inventory.",
+  "contentVersion": "2026-07-27",
+  "coverage": {
+    "capacityCandidates": 0,
+    "compilerRegionCap": null,
+    "developmentForecastSupportedBySector": {
+      "all": false,
+      "tax-class-1": false,
+      "tax-class-2": false,
+      "tax-class-4": false
+    },
+    "developmentSeriesRows": 3,
+    "historicalSites": 1,
+    "priceForecastSupportedBySector": {
+      "all": false,
+      "tax-class-1": false,
+      "tax-class-2": false,
+      "tax-class-4": false
+    },
+    "saleRows": 0,
+    "saleYearsBySector": {
+      "tax-class-1": [],
+      "tax-class-2": [],
+      "tax-class-4": []
+    },
+    "sectorCandidateCounts": {
+      "all": 0,
+      "tax-class-1": 0,
+      "tax-class-2": 0,
+      "tax-class-4": 0
+    },
+    "sourceSampled": true
+  },
+  "developmentSeries": [
+    {
+      "filingCount": 3,
+      "id": "development:QN8081:2006",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "QN8081",
+      "sourceNtaNames": [
+        "Airport",
+        "LaGuardia Airport"
+      ],
+      "withdrawnFilingCount": 1,
+      "year": 2006
+    },
+    {
+      "filingCount": 3,
+      "id": "development:QN8081:2010",
+      "proposedZoningSquareFeet": 9920,
+      "regionId": "QN8081",
+      "sourceNtaNames": [
+        "Airport"
+      ],
+      "withdrawnFilingCount": 1,
+      "year": 2010
+    },
+    {
+      "filingCount": 4,
+      "id": "development:QN8081:2016",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "QN8081",
+      "sourceNtaNames": [
+        "Airport"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2016
+    }
+  ],
+  "developmentSites": [
+    {
+      "address": null,
+      "bbl": "4009260001",
+      "bin": "4439235",
+      "constructionYear": 2017,
+      "coordinates": [
+        -73.8720869,
+        40.772773
+      ],
+      "footprint": [
+        [
+          -73.8741662,
+          40.7727403
+        ],
+        [
+          -73.8730719,
+          40.7729099
+        ],
+        [
+          -73.8730777,
+          40.773969
+        ],
+        [
+          -73.8722388,
+          40.7738734
+        ],
+        [
+          -73.8718267,
+          40.7737314
+        ],
+        [
+          -73.8712883,
+          40.7733814
+        ],
+        [
+          -73.869317,
+          40.772026
+        ],
+        [
+          -73.8692473,
+          40.7717291
+        ],
+        [
+          -73.8699171,
+          40.7720122
+        ],
+        [
+          -73.8705548,
+          40.7722715
+        ],
+        [
+          -73.8709859,
+          40.7724059
+        ],
+        [
+          -73.871652,
+          40.7725385
+        ],
+        [
+          -73.872415,
+          40.7726132
+        ],
+        [
+          -73.8730819,
+          40.7726092
+        ],
+        [
+          -73.8730488,
+          40.7727023
+        ],
+        [
+          -73.873117,
+          40.7727417
+        ],
+        [
+          -73.8738749,
+          40.7726638
+        ],
+        [
+          -73.874076,
+          40.772665
+        ],
+        [
+          -73.8741662,
+          40.7727403
+        ]
+      ],
+      "footprintAreaM2": 56345.94,
+      "footprintOrigin": "observed",
+      "heightM": 15.85,
+      "id": "footprint:1091815",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2017-07-01",
+          "id": "footprint:1091815:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN8081",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1091815"
+      ]
+    }
+  ],
+  "id": "nyc-real-estate-region-qn8081-v1",
+  "region": {
+    "abbreviation": "LGA",
+    "areaM2": 30591243.0037,
+    "boroughId": "queens",
+    "boroughLabel": "Queens",
+    "bounds": {
+      "east": -73.8550511,
+      "north": 40.7860382,
+      "south": 40.7637286,
+      "west": -73.8894549
+    },
+    "centroid": [
+      -73.8731054,
+      40.7762881
+    ],
+    "communityDistrictTabulationAreaId": "QN80",
+    "communityDistrictTabulationAreaLabel": "QN80 LaGuardia Airport (JIA 80 Approximation)",
+    "id": "QN8081",
+    "label": "LaGuardia Airport",
+    "polygon": [
+      [
+        -73.8708991,
+        40.7858714
+      ],
+      [
+        -73.8697808,
+        40.7853379
+      ],
+      [
+        -73.8691811,
+        40.7859435
+      ],
+      [
+        -73.8698701,
+        40.7850859
+      ],
+      [
+        -73.8694375,
+        40.7836384
+      ],
+      [
+        -73.8686053,
+        40.7838092
+      ],
+      [
+        -73.868486,
+        40.7836937
+      ],
+      [
+        -73.8694234,
+        40.7835913
+      ],
+      [
+        -73.8704803,
+        40.7823061
+      ],
+      [
+        -73.8714629,
+        40.7821264
+      ],
+      [
+        -73.8723229,
+        40.7811008
+      ],
+      [
+        -73.8720174,
+        40.7809558
+      ],
+      [
+        -73.8702191,
+        40.7812473
+      ],
+      [
+        -73.8720283,
+        40.7809334
+      ],
+      [
+        -73.872336,
+        40.7810851
+      ],
+      [
+        -73.8725573,
+        40.7808211
+      ],
+      [
+        -73.8647107,
+        40.7767332
+      ],
+      [
+        -73.8550511,
+        40.7721954
+      ],
+      [
+        -73.8550864,
+        40.7718314
+      ],
+      [
+        -73.8564627,
+        40.7702731
+      ],
+      [
+        -73.8578834,
+        40.7706597
+      ],
+      [
+        -73.8578246,
+        40.7704373
+      ],
+      [
+        -73.8580388,
+        40.7702035
+      ],
+      [
+        -73.8573473,
+        40.7701842
+      ],
+      [
+        -73.8568499,
+        40.7695425
+      ],
+      [
+        -73.8562127,
+        40.7691958
+      ],
+      [
+        -73.8562457,
+        40.7688857
+      ],
+      [
+        -73.8570479,
+        40.7691396
+      ],
+      [
+        -73.857678,
+        40.7682763
+      ],
+      [
+        -73.8587738,
+        40.76735
+      ],
+      [
+        -73.8593751,
+        40.7670753
+      ],
+      [
+        -73.8608554,
+        40.7669321
+      ],
+      [
+        -73.8611028,
+        40.7672719
+      ],
+      [
+        -73.8613139,
+        40.7669406
+      ],
+      [
+        -73.8626886,
+        40.7668759
+      ],
+      [
+        -73.8627202,
+        40.7666706
+      ],
+      [
+        -73.8621579,
+        40.7661918
+      ],
+      [
+        -73.8604334,
+        40.7638689
+      ],
+      [
+        -73.8609369,
+        40.7637286
+      ],
+      [
+        -73.8642723,
+        40.7674329
+      ],
+      [
+        -73.8680028,
+        40.7702552
+      ],
+      [
+        -73.8702614,
+        40.771357
+      ],
+      [
+        -73.8725959,
+        40.7718309
+      ],
+      [
+        -73.8752014,
+        40.7717713
+      ],
+      [
+        -73.8775361,
+        40.7712531
+      ],
+      [
+        -73.8791239,
+        40.7706209
+      ],
+      [
+        -73.8843191,
+        40.7679817
+      ],
+      [
+        -73.8877299,
+        40.7669144
+      ],
+      [
+        -73.8882209,
+        40.7686214
+      ],
+      [
+        -73.8887444,
+        40.7689182
+      ],
+      [
+        -73.8894549,
+        40.773533
+      ],
+      [
+        -73.8858076,
+        40.7740222
+      ],
+      [
+        -73.8856701,
+        40.7744331
+      ],
+      [
+        -73.8856323,
+        40.7740971
+      ],
+      [
+        -73.8857847,
+        40.7740247
+      ],
+      [
+        -73.8839163,
+        40.7741326
+      ],
+      [
+        -73.8845515,
+        40.7743606
+      ],
+      [
+        -73.8848374,
+        40.774953
+      ],
+      [
+        -73.8847736,
+        40.7753323
+      ],
+      [
+        -73.8842883,
+        40.7754831
+      ],
+      [
+        -73.8850552,
+        40.7784053
+      ],
+      [
+        -73.8852503,
+        40.7786129
+      ],
+      [
+        -73.8850529,
+        40.7787754
+      ],
+      [
+        -73.8851197,
+        40.7795114
+      ],
+      [
+        -73.8854129,
+        40.77966
+      ],
+      [
+        -73.8851089,
+        40.7795223
+      ],
+      [
+        -73.8851934,
+        40.7797862
+      ],
+      [
+        -73.885009,
+        40.7795648
+      ],
+      [
+        -73.8848811,
+        40.7799872
+      ],
+      [
+        -73.883852,
+        40.7802643
+      ],
+      [
+        -73.8827445,
+        40.7802234
+      ],
+      [
+        -73.8813908,
+        40.7806016
+      ],
+      [
+        -73.8797347,
+        40.7806548
+      ],
+      [
+        -73.8796069,
+        40.7808503
+      ],
+      [
+        -73.8787056,
+        40.7805859
+      ],
+      [
+        -73.8790512,
+        40.7817305
+      ],
+      [
+        -73.8793087,
+        40.7818537
+      ],
+      [
+        -73.8788584,
+        40.7823982
+      ],
+      [
+        -73.8797016,
+        40.7828828
+      ],
+      [
+        -73.8788315,
+        40.7824307
+      ],
+      [
+        -73.8783392,
+        40.7830259
+      ],
+      [
+        -73.8751575,
+        40.7815094
+      ],
+      [
+        -73.8748453,
+        40.7816849
+      ],
+      [
+        -73.8712486,
+        40.7860382
+      ],
+      [
+        -73.8708991,
+        40.7858714
+      ]
+    ],
+    "spatialPolygons": [
+      {
+        "holes": [],
+        "outer": [
+          [
+            -73.872872,
+            40.785975
+          ],
+          [
+            -73.8728284,
+            40.7859545
+          ],
+          [
+            -73.8728226,
+            40.785964
+          ],
+          [
+            -73.872872,
+            40.785975
+          ]
+        ]
+      },
+      {
+        "holes": [],
+        "outer": [
+          [
+            -73.8708991,
+            40.7858714
+          ],
+          [
+            -73.8697808,
+            40.7853379
+          ],
+          [
+            -73.8691811,
+            40.7859435
+          ],
+          [
+            -73.8698701,
+            40.7850859
+          ],
+          [
+            -73.8694375,
+            40.7836384
+          ],
+          [
+            -73.8686053,
+            40.7838092
+          ],
+          [
+            -73.868486,
+            40.7836937
+          ],
+          [
+            -73.8694234,
+            40.7835913
+          ],
+          [
+            -73.8704803,
+            40.7823061
+          ],
+          [
+            -73.8714629,
+            40.7821264
+          ],
+          [
+            -73.8723229,
+            40.7811008
+          ],
+          [
+            -73.8720174,
+            40.7809558
+          ],
+          [
+            -73.8702191,
+            40.7812473
+          ],
+          [
+            -73.8720283,
+            40.7809334
+          ],
+          [
+            -73.872336,
+            40.7810851
+          ],
+          [
+            -73.8725573,
+            40.7808211
+          ],
+          [
+            -73.8647107,
+            40.7767332
+          ],
+          [
+            -73.8550511,
+            40.7721954
+          ],
+          [
+            -73.8550864,
+            40.7718314
+          ],
+          [
+            -73.8564627,
+            40.7702731
+          ],
+          [
+            -73.8578834,
+            40.7706597
+          ],
+          [
+            -73.8578246,
+            40.7704373
+          ],
+          [
+            -73.8580388,
+            40.7702035
+          ],
+          [
+            -73.8573473,
+            40.7701842
+          ],
+          [
+            -73.8568499,
+            40.7695425
+          ],
+          [
+            -73.8562127,
+            40.7691958
+          ],
+          [
+            -73.8562457,
+            40.7688857
+          ],
+          [
+            -73.8570479,
+            40.7691396
+          ],
+          [
+            -73.857678,
+            40.7682763
+          ],
+          [
+            -73.8587738,
+            40.76735
+          ],
+          [
+            -73.8593751,
+            40.7670753
+          ],
+          [
+            -73.8608554,
+            40.7669321
+          ],
+          [
+            -73.8611028,
+            40.7672719
+          ],
+          [
+            -73.8613139,
+            40.7669406
+          ],
+          [
+            -73.8626886,
+            40.7668759
+          ],
+          [
+            -73.8627202,
+            40.7666706
+          ],
+          [
+            -73.8621579,
+            40.7661918
+          ],
+          [
+            -73.8604334,
+            40.7638689
+          ],
+          [
+            -73.8609369,
+            40.7637286
+          ],
+          [
+            -73.8642723,
+            40.7674329
+          ],
+          [
+            -73.8680028,
+            40.7702552
+          ],
+          [
+            -73.8702614,
+            40.771357
+          ],
+          [
+            -73.8725959,
+            40.7718309
+          ],
+          [
+            -73.8752014,
+            40.7717713
+          ],
+          [
+            -73.8775361,
+            40.7712531
+          ],
+          [
+            -73.8791239,
+            40.7706209
+          ],
+          [
+            -73.8843191,
+            40.7679817
+          ],
+          [
+            -73.8877299,
+            40.7669144
+          ],
+          [
+            -73.8882209,
+            40.7686214
+          ],
+          [
+            -73.8887444,
+            40.7689182
+          ],
+          [
+            -73.8894549,
+            40.773533
+          ],
+          [
+            -73.8858076,
+            40.7740222
+          ],
+          [
+            -73.8856701,
+            40.7744331
+          ],
+          [
+            -73.8856323,
+            40.7740971
+          ],
+          [
+            -73.8857847,
+            40.7740247
+          ],
+          [
+            -73.8839163,
+            40.7741326
+          ],
+          [
+            -73.8845515,
+            40.7743606
+          ],
+          [
+            -73.8848374,
+            40.774953
+          ],
+          [
+            -73.8847736,
+            40.7753323
+          ],
+          [
+            -73.8842883,
+            40.7754831
+          ],
+          [
+            -73.8850552,
+            40.7784053
+          ],
+          [
+            -73.8852503,
+            40.7786129
+          ],
+          [
+            -73.8850529,
+            40.7787754
+          ],
+          [
+            -73.8851197,
+            40.7795114
+          ],
+          [
+            -73.8854129,
+            40.77966
+          ],
+          [
+            -73.8851089,
+            40.7795223
+          ],
+          [
+            -73.8851934,
+            40.7797862
+          ],
+          [
+            -73.885009,
+            40.7795648
+          ],
+          [
+            -73.8848811,
+            40.7799872
+          ],
+          [
+            -73.883852,
+            40.7802643
+          ],
+          [
+            -73.8827445,
+            40.7802234
+          ],
+          [
+            -73.8813908,
+            40.7806016
+          ],
+          [
+            -73.8797347,
+            40.7806548
+          ],
+          [
+            -73.8796069,
+            40.7808503
+          ],
+          [
+            -73.8787056,
+            40.7805859
+          ],
+          [
+            -73.8790512,
+            40.7817305
+          ],
+          [
+            -73.8793087,
+            40.7818537
+          ],
+          [
+            -73.8788584,
+            40.7823982
+          ],
+          [
+            -73.8797016,
+            40.7828828
+          ],
+          [
+            -73.8788315,
+            40.7824307
+          ],
+          [
+            -73.8783392,
+            40.7830259
+          ],
+          [
+            -73.8751575,
+            40.7815094
+          ],
+          [
+            -73.8748453,
+            40.7816849
+          ],
+          [
+            -73.8712486,
+            40.7860382
+          ],
+          [
+            -73.8708991,
+            40.7858714
+          ]
+        ]
+      }
+    ]
+  },
+  "saleSeries": [],
+  "schema": "simulatte.nycRealEstateRegionShard.v1",
+  "sourceIdentities": [
+    {
+      "byteCount": 1008463,
+      "path": "nyc-annualized-sales-by-nta.json",
+      "sha256": "14c15020381466196236073ee3753ff7a5d74a76ec6af4605e96564abd2bf99a",
+      "sourceId": "nyc-real-estate-sales-annual"
+    },
+    {
+      "byteCount": 8977616,
+      "path": "nyc-final-certificates-of-occupancy.json",
+      "sha256": "966c237824a79aff9d5137d27b498ba4f3670cc19844738c5ce17a559388030e",
+      "sourceId": "nyc-real-estate-final-occupancy"
+    },
+    {
+      "byteCount": 8802596,
+      "path": "nyc-largest-constructed-footprints-2010-2026.geojson",
+      "sha256": "15745b9c62fa539e683737f0665fe91d95231e68d8c1b598e7ed211114811eb6",
+      "sourceId": "nyc-real-estate-constructed-footprints"
+    },
+    {
+      "byteCount": 1076754,
+      "path": "nyc-largest-new-building-jobs-bronx.json",
+      "sha256": "1a44c6cbfa364639e4b75957b2fab7e3c301f95bcfcfa90c50862fef85f450c1",
+      "sourceId": "nyc-real-estate-new-building-sample-bronx"
+    },
+    {
+      "byteCount": 1085334,
+      "path": "nyc-largest-new-building-jobs-brooklyn.json",
+      "sha256": "389e1825faff440d6fad5a12ed470f84e90859fd732262346a3414c5503693fd",
+      "sourceId": "nyc-real-estate-new-building-sample-brooklyn"
+    },
+    {
+      "byteCount": 1097625,
+      "path": "nyc-largest-new-building-jobs-manhattan.json",
+      "sha256": "6346678de380d58e325db14fc2e0611d993743be29898360e08f092eaa1f88e5",
+      "sourceId": "nyc-real-estate-new-building-sample-manhattan"
+    },
+    {
+      "byteCount": 1091065,
+      "path": "nyc-largest-new-building-jobs-queens.json",
+      "sha256": "79eb6f028b2135214d47a793101f72de695efcb02e4c2802cc10cd062c760a22",
+      "sourceId": "nyc-real-estate-new-building-sample-queens"
+    },
+    {
+      "byteCount": 1120592,
+      "path": "nyc-largest-new-building-jobs-staten-island.json",
+      "sha256": "e0870a431a75bdd235fc09b0ecd7503c45384f5e8b66beba545447c7bb3d960a",
+      "sourceId": "nyc-real-estate-new-building-sample-staten-island"
+    },
+    {
+      "byteCount": 1250280,
+      "path": "nyc-new-building-filings-by-nta-year.json",
+      "sha256": "4b75b0ad54a1ce5241b9c2e303be2cc24781e55a65fbf27be10d00a80bfeadea",
+      "sourceId": "nyc-real-estate-new-building-annual"
+    },
+    {
+      "byteCount": 4576764,
+      "path": "nyc-nta-2020.geojson",
+      "sha256": "c3dd069e094e2d2f647c1c102cd7e0570d033dd6131446bd1943a73210d09c56",
+      "sourceId": "nyc-real-estate-nta-boundaries"
+    },
+    {
+      "byteCount": 2402191,
+      "path": "nyc-pluto-capacity-bronx.json",
+      "sha256": "b45168721525e18a29aafcce335212632607021240869b738cbb96fbe2441389",
+      "sourceId": "nyc-real-estate-pluto-capacity-bronx"
+    },
+    {
+      "byteCount": 2403266,
+      "path": "nyc-pluto-capacity-brooklyn.json",
+      "sha256": "63b33a507c0bc26f7b71669cf032baa4950af2db77ce8712b876ca6f4c9f771b",
+      "sourceId": "nyc-real-estate-pluto-capacity-brooklyn"
+    },
+    {
+      "byteCount": 2464264,
+      "path": "nyc-pluto-capacity-manhattan.json",
+      "sha256": "91e3e1f5dce97a340475b51577458c8e48183f1138c334fbcce27d68001e9d25",
+      "sourceId": "nyc-real-estate-pluto-capacity-manhattan"
+    },
+    {
+      "byteCount": 2418903,
+      "path": "nyc-pluto-capacity-queens.json",
+      "sha256": "02a12d81466e89e05b9be9273198c5f857e86db5d2c95cfb717160ce4ccf99c1",
+      "sourceId": "nyc-real-estate-pluto-capacity-queens"
+    },
+    {
+      "byteCount": 1168016,
+      "path": "nyc-pluto-capacity-staten-island.json",
+      "sha256": "6d488f6ce46fa09930b669429275014a8ecedae6c85041fb465a15633c6a38b0",
+      "sourceId": "nyc-real-estate-pluto-capacity-staten-island"
+    }
+  ],
+  "truth": {
+    "origin": "observed",
+    "temporalStatus": "historical",
+    "uncertainty": {
+      "kind": "missing",
+      "value": {
+        "reason": "Administrative records have missing, revised, duplicated, and source-sampled fields without a shared statistical uncertainty model."
+      }
+    }
+  }
+}

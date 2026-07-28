@@ -1,0 +1,3683 @@
+{
+  "capacitySites": [
+    {
+      "address": "74-29 JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.33,
+      "availableResidentialFar": 2.33,
+      "bbl": "4088350001",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 12000,
+      "builtFar": 0.67,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8668087,
+        40.6916438
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4088350001",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 18000,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 41940,
+      "potentialResidentialFloorAreaSquareFeet": 41940,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 46,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4088350001"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "76-07 JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2,
+      "availableResidentialFar": 2,
+      "bbl": "4088400149",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 4339,
+      "builtFar": 1,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8651569,
+        40.6917791
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 3,
+      "id": "capacity:4088400149",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 4339,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 8678,
+      "potentialResidentialFloorAreaSquareFeet": 8678,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 9,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4088400149"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "76-01 JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.08,
+      "availableResidentialFar": 2.08,
+      "bbl": "4088400154",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 4860,
+      "builtFar": 0.92,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8655138,
+        40.6918234
+      ],
+      "existingResidentialUnits": 1,
+      "existingTotalUnits": 2,
+      "id": "capacity:4088400154",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 5308,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 11040.64,
+      "potentialResidentialFloorAreaSquareFeet": 11040.64,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 12,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4088400154"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "78-19 JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 3,
+      "availableResidentialFar": 3,
+      "bbl": "4088420147",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8635515,
+        40.6921505
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:4088420147",
+      "landUseCode": "11",
+      "lotAreaSquareFeet": 4040,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 12120,
+      "potentialResidentialFloorAreaSquareFeet": 12120,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 13,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4088420147"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "78-15 JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2,
+      "availableResidentialFar": 2,
+      "bbl": "4088420149",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 5940,
+      "builtFar": 1,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8637318,
+        40.6921178
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4088420149",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 5940,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 11880,
+      "potentialResidentialFloorAreaSquareFeet": 11880,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 13,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4088420149"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "78-07 JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.04,
+      "availableResidentialFar": 2.04,
+      "bbl": "4088420154",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 2990,
+      "builtFar": 0.96,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8638906,
+        40.6920713
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 2,
+      "id": "capacity:4088420154",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 3108,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 6340.32,
+      "potentialResidentialFloorAreaSquareFeet": 6340.32,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 7,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4088420154"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "78-01 JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.02,
+      "availableResidentialFar": 2.02,
+      "bbl": "4088420156",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 1378,
+      "builtFar": 0.98,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.864053,
+        40.6919974
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 2,
+      "id": "capacity:4088420156",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 1404,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 2836.08,
+      "potentialResidentialFloorAreaSquareFeet": 2836.08,
+      "potentialResidentialUnitsClass1": 1,
+      "potentialResidentialUnitsClass2": 3,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4088420156"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "80-25 JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.4,
+      "availableResidentialFar": 2.4,
+      "bbl": "4088470147",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 1958,
+      "builtFar": 0.6,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8615386,
+        40.6924775
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4088470147",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 3281,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 7874.4,
+      "potentialResidentialFloorAreaSquareFeet": 7874.4,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 8,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4088470147"
+      ],
+      "zoningDistricts": [
+        "R6A",
+        "R3-1"
+      ]
+    },
+    {
+      "address": "80-23 JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.09,
+      "availableResidentialFar": 2.09,
+      "bbl": "4088470148",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 6320,
+      "builtFar": 0.91,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8616865,
+        40.6924557
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4088470148",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 6950,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 14525.5,
+      "potentialResidentialFloorAreaSquareFeet": 14525.5,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 16,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4088470148"
+      ],
+      "zoningDistricts": [
+        "R6A",
+        "R3-1"
+      ]
+    },
+    {
+      "address": "80-09 JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.27,
+      "availableResidentialFar": 2.27,
+      "bbl": "4088470155",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 1040,
+      "builtFar": 0.73,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8620978,
+        40.6923875
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4088470155",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 1421,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 3225.67,
+      "potentialResidentialFloorAreaSquareFeet": 3225.67,
+      "potentialResidentialUnitsClass1": 2,
+      "potentialResidentialUnitsClass2": 3,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4088470155"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "80-07 JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.26,
+      "availableResidentialFar": 2.26,
+      "bbl": "4088470156",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 2080,
+      "builtFar": 0.74,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8621663,
+        40.6923767
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4088470156",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 2825,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 6384.5,
+      "potentialResidentialFloorAreaSquareFeet": 6384.5,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 7,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4088470156"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "84-37 JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.07,
+      "availableResidentialFar": 2.07,
+      "bbl": "4088530108",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 11160,
+      "builtFar": 0.93,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8597855,
+        40.6927498
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 3,
+      "id": "capacity:4088530108",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 11998,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 24835.86,
+      "potentialResidentialFloorAreaSquareFeet": 24835.86,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 27,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4088530108"
+      ],
+      "zoningDistricts": [
+        "R6A",
+        "R3-1"
+      ]
+    },
+    {
+      "address": "84-31 JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.42,
+      "availableResidentialFar": 2.42,
+      "bbl": "4088530112",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 1120,
+      "builtFar": 0.58,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8599479,
+        40.6926951
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4088530112",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 1935,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 4682.7,
+      "potentialResidentialFloorAreaSquareFeet": 4682.7,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 5,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4088530112"
+      ],
+      "zoningDistricts": [
+        "R6A",
+        "R3X"
+      ]
+    },
+    {
+      "address": "84-29 JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.41,
+      "availableResidentialFar": 2.41,
+      "bbl": "4088530113",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 1120,
+      "builtFar": 0.59,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8600056,
+        40.6926842
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4088530113",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 1901,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 4581.41,
+      "potentialResidentialFloorAreaSquareFeet": 4581.41,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 5,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4088530113"
+      ],
+      "zoningDistricts": [
+        "R6A",
+        "R3X"
+      ]
+    },
+    {
+      "address": "84-27 JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.4,
+      "availableResidentialFar": 2.4,
+      "bbl": "4088530114",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 1120,
+      "builtFar": 0.6,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8600669,
+        40.6926733
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4088530114",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 1867,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 4480.8,
+      "potentialResidentialFloorAreaSquareFeet": 4480.8,
+      "potentialResidentialUnitsClass1": 2,
+      "potentialResidentialUnitsClass2": 4,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4088530114"
+      ],
+      "zoningDistricts": [
+        "R6A",
+        "R3X"
+      ]
+    },
+    {
+      "address": "84-25 JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.39,
+      "availableResidentialFar": 2.39,
+      "bbl": "4088530115",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 1120,
+      "builtFar": 0.61,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8601247,
+        40.6926624
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4088530115",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 1834,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 4383.26,
+      "potentialResidentialFloorAreaSquareFeet": 4383.26,
+      "potentialResidentialUnitsClass1": 2,
+      "potentialResidentialUnitsClass2": 4,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4088530115"
+      ],
+      "zoningDistricts": [
+        "R6A",
+        "R3X"
+      ]
+    },
+    {
+      "address": "84-21 JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.37,
+      "availableResidentialFar": 2.37,
+      "bbl": "4088530116",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 1120,
+      "builtFar": 0.63,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8602365,
+        40.6926433
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4088530116",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 1766,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 4185.42,
+      "potentialResidentialFloorAreaSquareFeet": 4185.42,
+      "potentialResidentialUnitsClass1": 2,
+      "potentialResidentialUnitsClass2": 4,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4088530116"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "84-19 JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.04,
+      "availableResidentialFar": 2.04,
+      "bbl": "4088530117",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 1350,
+      "builtFar": 0.96,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8602942,
+        40.6926324
+      ],
+      "existingResidentialUnits": 1,
+      "existingTotalUnits": 2,
+      "id": "capacity:4088530117",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 1400,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 2856,
+      "potentialResidentialFloorAreaSquareFeet": 2856,
+      "potentialResidentialUnitsClass1": 1,
+      "potentialResidentialUnitsClass2": 3,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4088530117"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "84-17 JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.02,
+      "availableResidentialFar": 2.02,
+      "bbl": "4088530118",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 1378,
+      "builtFar": 0.98,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8603411,
+        40.6926242
+      ],
+      "existingResidentialUnits": 1,
+      "existingTotalUnits": 2,
+      "id": "capacity:4088530118",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 1400,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 2828,
+      "potentialResidentialFloorAreaSquareFeet": 2828,
+      "potentialResidentialUnitsClass1": 1,
+      "potentialResidentialUnitsClass2": 3,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4088530118"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "84-23 JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.38,
+      "availableResidentialFar": 2.38,
+      "bbl": "4088530143",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 1120,
+      "builtFar": 0.62,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8601824,
+        40.6926515
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4088530143",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 1799,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 4281.62,
+      "potentialResidentialFloorAreaSquareFeet": 4281.62,
+      "potentialResidentialUnitsClass1": 2,
+      "potentialResidentialUnitsClass2": 4,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4088530143"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "84-15 JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.02,
+      "availableResidentialFar": 2.02,
+      "bbl": "4088530144",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 1308,
+      "builtFar": 0.98,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.860388,
+        40.692616
+      ],
+      "existingResidentialUnits": 1,
+      "existingTotalUnits": 2,
+      "id": "capacity:4088530144",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 1333,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 2692.66,
+      "potentialResidentialFloorAreaSquareFeet": 2692.66,
+      "potentialResidentialUnitsClass1": 1,
+      "potentialResidentialUnitsClass2": 2,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4088530144"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "85-07 JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.03,
+      "availableResidentialFar": 2.03,
+      "bbl": "4088590028",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 1352,
+      "builtFar": 0.97,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8588299,
+        40.6927651
+      ],
+      "existingResidentialUnits": 1,
+      "existingTotalUnits": 2,
+      "id": "capacity:4088590028",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 1394,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 2829.82,
+      "potentialResidentialFloorAreaSquareFeet": 2829.82,
+      "potentialResidentialUnitsClass1": 1,
+      "potentialResidentialUnitsClass2": 3,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4088590028"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "8507A JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.03,
+      "availableResidentialFar": 2.03,
+      "bbl": "4088590127",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 1352,
+      "builtFar": 0.97,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.858783,
+        40.6927705
+      ],
+      "existingResidentialUnits": 1,
+      "existingTotalUnits": 2,
+      "id": "capacity:4088590127",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 1400,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 2842,
+      "potentialResidentialFloorAreaSquareFeet": 2842,
+      "potentialResidentialUnitsClass1": 1,
+      "potentialResidentialUnitsClass2": 3,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4088590127"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "86-48 89 STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.31,
+      "availableResidentialFar": 2.31,
+      "bbl": "4088630089",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 1156,
+      "builtFar": 0.69,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.855948,
+        40.6930525
+      ],
+      "existingResidentialUnits": 1,
+      "existingTotalUnits": 1,
+      "id": "capacity:4088630089",
+      "landUseCode": "1",
+      "lotAreaSquareFeet": 1672,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 3862.32,
+      "potentialResidentialFloorAreaSquareFeet": 3862.32,
+      "potentialResidentialUnitsClass1": 2,
+      "potentialResidentialUnitsClass2": 4,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4088630089"
+      ],
+      "zoningDistricts": [
+        "R6A",
+        "R3-1"
+      ]
+    },
+    {
+      "address": "88-09 JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.08,
+      "availableResidentialFar": 2.08,
+      "bbl": "4088630096",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 1920,
+      "builtFar": 0.92,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8561358,
+        40.6929072
+      ],
+      "existingResidentialUnits": 1,
+      "existingTotalUnits": 2,
+      "id": "capacity:4088630096",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 2092,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 4351.36,
+      "potentialResidentialFloorAreaSquareFeet": 4351.36,
+      "potentialResidentialUnitsClass1": 2,
+      "potentialResidentialUnitsClass2": 4,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4088630096"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "88-07 JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.06,
+      "availableResidentialFar": 2.06,
+      "bbl": "4088630097",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 1920,
+      "builtFar": 0.94,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8562116,
+        40.6929019
+      ],
+      "existingResidentialUnits": 1,
+      "existingTotalUnits": 2,
+      "id": "capacity:4088630097",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 2042,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 4206.52,
+      "potentialResidentialFloorAreaSquareFeet": 4206.52,
+      "potentialResidentialUnitsClass1": 2,
+      "potentialResidentialUnitsClass2": 4,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4088630097"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "88-05 JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.04,
+      "availableResidentialFar": 2.04,
+      "bbl": "4088630098",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 1920,
+      "builtFar": 0.96,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8562801,
+        40.6928937
+      ],
+      "existingResidentialUnits": 1,
+      "existingTotalUnits": 2,
+      "id": "capacity:4088630098",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 2008,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 4096.32,
+      "potentialResidentialFloorAreaSquareFeet": 4096.32,
+      "potentialResidentialUnitsClass1": 2,
+      "potentialResidentialUnitsClass2": 4,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4088630098"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "90-01 JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.16,
+      "availableResidentialFar": 2.16,
+      "bbl": "4088690035",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 4750,
+      "builtFar": 0.84,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.854592,
+        40.6930865
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4088690035",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 5679,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 12266.64,
+      "potentialResidentialFloorAreaSquareFeet": 12266.64,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 13,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4088690035"
+      ],
+      "zoningDistricts": [
+        "R6A",
+        "R3-1"
+      ]
+    },
+    {
+      "address": "92-07 JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.25,
+      "availableResidentialFar": 2.25,
+      "bbl": "4088700055",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 1652,
+      "builtFar": 0.75,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.852961,
+        40.6935949
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 2,
+      "id": "capacity:4088700055",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 2192,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 4932,
+      "potentialResidentialFloorAreaSquareFeet": 4932,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 5,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4088700055"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "93-01 JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.03,
+      "availableResidentialFar": 2.03,
+      "bbl": "4088800042",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 11800,
+      "builtFar": 0.97,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8516401,
+        40.6940516
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 10,
+      "id": "capacity:4088800042",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 12227,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 24820.81,
+      "potentialResidentialFloorAreaSquareFeet": 24820.81,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 27,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4088800042"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "95-19 JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.02,
+      "availableResidentialFar": 2.02,
+      "bbl": "4088830088",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 2200,
+      "builtFar": 0.98,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8497311,
+        40.694642
+      ],
+      "existingResidentialUnits": 1,
+      "existingTotalUnits": 2,
+      "id": "capacity:4088830088",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 2243,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 4530.86,
+      "potentialResidentialFloorAreaSquareFeet": 4530.86,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 5,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4088830088"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "95-17 JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.01,
+      "availableResidentialFar": 2.01,
+      "bbl": "4088830089",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 2260,
+      "builtFar": 0.99,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8497997,
+        40.6946311
+      ],
+      "existingResidentialUnits": 1,
+      "existingTotalUnits": 2,
+      "id": "capacity:4088830089",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 2280,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 4582.8,
+      "potentialResidentialFloorAreaSquareFeet": 4582.8,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 5,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4088830089"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "95-15 JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.05,
+      "availableResidentialFar": 2.05,
+      "bbl": "4088830090",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 2200,
+      "builtFar": 0.95,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8498682,
+        40.6946175
+      ],
+      "existingResidentialUnits": 1,
+      "existingTotalUnits": 2,
+      "id": "capacity:4088830090",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 2322,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 4760.1,
+      "potentialResidentialFloorAreaSquareFeet": 4760.1,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 5,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4088830090"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "95-13 JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.06,
+      "availableResidentialFar": 2.06,
+      "bbl": "4088830091",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 2200,
+      "builtFar": 0.94,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8499404,
+        40.6946038
+      ],
+      "existingResidentialUnits": 2,
+      "existingTotalUnits": 3,
+      "id": "capacity:4088830091",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 2348,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 4836.88,
+      "potentialResidentialFloorAreaSquareFeet": 4836.88,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 5,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4088830091"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "95-11 JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.13,
+      "availableResidentialFar": 2.13,
+      "bbl": "4088830092",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 2200,
+      "builtFar": 0.87,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8500125,
+        40.694593
+      ],
+      "existingResidentialUnits": 2,
+      "existingTotalUnits": 3,
+      "id": "capacity:4088830092",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 2540,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 5410.2,
+      "potentialResidentialFloorAreaSquareFeet": 5410.2,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 6,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4088830092"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "94-11 JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.37,
+      "availableResidentialFar": 2.37,
+      "bbl": "4088830105",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 5372,
+      "builtFar": 0.63,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8508927,
+        40.6944816
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4088830105",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 8554,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 20272.98,
+      "potentialResidentialFloorAreaSquareFeet": 20272.98,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 22,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4088830105"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 3,
+      "availableResidentialFar": 3,
+      "bbl": "4088920264",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8486803,
+        40.6952911
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:4088920264",
+      "landUseCode": "11",
+      "lotAreaSquareFeet": 6315,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 18945,
+      "potentialResidentialFloorAreaSquareFeet": 18945,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 21,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4088920264"
+      ],
+      "zoningDistricts": [
+        "R6A",
+        "R3A"
+      ]
+    },
+    {
+      "address": "74-08 JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.66,
+      "availableResidentialFar": 2.66,
+      "bbl": "4088990001",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 3232,
+      "builtFar": 0.34,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8677259,
+        40.6910135
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4088990001",
+      "landUseCode": "7",
+      "lotAreaSquareFeet": 9450,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 25137,
+      "potentialResidentialFloorAreaSquareFeet": 25137,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 27,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4088990001"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "74-16 JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.17,
+      "availableResidentialFar": 2.17,
+      "bbl": "4088990006",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 10000,
+      "builtFar": 0.83,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8673941,
+        40.6910269
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4088990006",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 12007,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 26055.19,
+      "potentialResidentialFloorAreaSquareFeet": 26055.19,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 28,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4088990006"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "75-04 JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.03,
+      "availableResidentialFar": 2.03,
+      "bbl": "4089040002",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 1800,
+      "builtFar": 0.97,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8662615,
+        40.6912259
+      ],
+      "existingResidentialUnits": 2,
+      "existingTotalUnits": 3,
+      "id": "capacity:4089040002",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 1849,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 3753.47,
+      "potentialResidentialFloorAreaSquareFeet": 3753.47,
+      "potentialResidentialUnitsClass1": 2,
+      "potentialResidentialUnitsClass2": 4,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4089040002"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "75-08 JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.04,
+      "availableResidentialFar": 2.04,
+      "bbl": "4089040004",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 1800,
+      "builtFar": 0.96,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8661316,
+        40.691245
+      ],
+      "existingResidentialUnits": 3,
+      "existingTotalUnits": 4,
+      "id": "capacity:4089040004",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 1870,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 3814.8,
+      "potentialResidentialFloorAreaSquareFeet": 3814.8,
+      "potentialResidentialUnitsClass1": 2,
+      "potentialResidentialUnitsClass2": 4,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4089040004"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "75-10 JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.19,
+      "availableResidentialFar": 2.19,
+      "bbl": "4089040005",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 1128,
+      "builtFar": 0.81,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8660739,
+        40.6912532
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4089040005",
+      "landUseCode": "8",
+      "lotAreaSquareFeet": 1385,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 3033.15,
+      "potentialResidentialFloorAreaSquareFeet": 3033.15,
+      "potentialResidentialUnitsClass1": 2,
+      "potentialResidentialUnitsClass2": 3,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4089040005"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "75-12 JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.44,
+      "availableResidentialFar": 2.44,
+      "bbl": "4089040006",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 780,
+      "builtFar": 0.56,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8659765,
+        40.6912668
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4089040006",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 1405,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 3428.2,
+      "potentialResidentialFloorAreaSquareFeet": 3428.2,
+      "potentialResidentialUnitsClass1": 2,
+      "potentialResidentialUnitsClass2": 3,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4089040006"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "75-10A JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.49,
+      "availableResidentialFar": 2.49,
+      "bbl": "4089040105",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 704,
+      "builtFar": 0.51,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8660234,
+        40.6912613
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4089040105",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 1392,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 3466.08,
+      "potentialResidentialFloorAreaSquareFeet": 3466.08,
+      "potentialResidentialUnitsClass1": 2,
+      "potentialResidentialUnitsClass2": 3,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4089040105"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 3,
+      "availableResidentialFar": 3,
+      "bbl": "4089080004",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8642667,
+        40.6915612
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:4089080004",
+      "landUseCode": "10",
+      "lotAreaSquareFeet": 5110,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 15330,
+      "potentialResidentialFloorAreaSquareFeet": 15330,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 17,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4089080004"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "77-20 JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.06,
+      "availableResidentialFar": 2.06,
+      "bbl": "4089080007",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 7360,
+      "builtFar": 0.94,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8640358,
+        40.6916076
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4089080007",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 7800,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 16068,
+      "potentialResidentialFloorAreaSquareFeet": 16068,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 17,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4089080007"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "79-20 JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.06,
+      "availableResidentialFar": 2.06,
+      "bbl": "4089140017",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 2080,
+      "builtFar": 0.94,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8625136,
+        40.6918363
+      ],
+      "existingResidentialUnits": 2,
+      "existingTotalUnits": 3,
+      "id": "capacity:4089140017",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 2222,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 4577.32,
+      "potentialResidentialFloorAreaSquareFeet": 4577.32,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 5,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4089140017"
+      ],
+      "zoningDistricts": [
+        "R6A",
+        "R3-1"
+      ]
+    },
+    {
+      "address": "80-20 JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.08,
+      "availableResidentialFar": 2.08,
+      "bbl": "4089190006",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 2300,
+      "builtFar": 0.92,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8615829,
+        40.6919944
+      ],
+      "existingResidentialUnits": 2,
+      "existingTotalUnits": 4,
+      "id": "capacity:4089190006",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 2500,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 5200,
+      "potentialResidentialFloorAreaSquareFeet": 5200,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 5,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4089190006"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "80-22 JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 3,
+      "availableResidentialFar": 3,
+      "bbl": "4089190007",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8614459,
+        40.6919888
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:4089190007",
+      "landUseCode": "7",
+      "lotAreaSquareFeet": 6060,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 18180,
+      "potentialResidentialFloorAreaSquareFeet": 18180,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 20,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4089190007"
+      ],
+      "zoningDistricts": [
+        "R6A",
+        "R3-1"
+      ]
+    },
+    {
+      "address": "80-28 JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.01,
+      "availableResidentialFar": 2.01,
+      "bbl": "4089190009",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 2876,
+      "builtFar": 0.99,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8613124,
+        40.6920051
+      ],
+      "existingResidentialUnits": 1,
+      "existingTotalUnits": 2,
+      "id": "capacity:4089190009",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 2905,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 5839.05,
+      "potentialResidentialFloorAreaSquareFeet": 5839.05,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 6,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4089190009"
+      ],
+      "zoningDistricts": [
+        "R6A",
+        "R3-1"
+      ]
+    },
+    {
+      "address": "80-40 JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.08,
+      "availableResidentialFar": 2.08,
+      "bbl": "4089190014",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 2200,
+      "builtFar": 0.92,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.860876,
+        40.6920649
+      ],
+      "existingResidentialUnits": 1,
+      "existingTotalUnits": 2,
+      "id": "capacity:4089190014",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 2382,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 4954.56,
+      "potentialResidentialFloorAreaSquareFeet": 4954.56,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 5,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4089190014"
+      ],
+      "zoningDistricts": [
+        "R6A",
+        "R3-1"
+      ]
+    },
+    {
+      "address": "80-42 JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.08,
+      "availableResidentialFar": 2.08,
+      "bbl": "4089190015",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 2200,
+      "builtFar": 0.92,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8608038,
+        40.6920731
+      ],
+      "existingResidentialUnits": 2,
+      "existingTotalUnits": 3,
+      "id": "capacity:4089190015",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 2382,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 4954.56,
+      "potentialResidentialFloorAreaSquareFeet": 4954.56,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 5,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4089190015"
+      ],
+      "zoningDistricts": [
+        "R6A",
+        "R3-1"
+      ]
+    },
+    {
+      "address": "80-44 JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.08,
+      "availableResidentialFar": 2.08,
+      "bbl": "4089190016",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 2200,
+      "builtFar": 0.92,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8607317,
+        40.692084
+      ],
+      "existingResidentialUnits": 2,
+      "existingTotalUnits": 3,
+      "id": "capacity:4089190016",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 2382,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 4954.56,
+      "potentialResidentialFloorAreaSquareFeet": 4954.56,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 5,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4089190016"
+      ],
+      "zoningDistricts": [
+        "R6A",
+        "R3-1"
+      ]
+    },
+    {
+      "address": "84-10 JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.06,
+      "availableResidentialFar": 2.06,
+      "bbl": "4089190020",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 2360,
+      "builtFar": 0.94,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8604287,
+        40.6921248
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 2,
+      "id": "capacity:4089190020",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 2514,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 5178.84,
+      "potentialResidentialFloorAreaSquareFeet": 5178.84,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 5,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4089190020"
+      ],
+      "zoningDistricts": [
+        "R6A",
+        "R3-1"
+      ]
+    },
+    {
+      "address": "84-16 JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2,
+      "availableResidentialFar": 2,
+      "bbl": "4089190023",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 3000,
+      "builtFar": 1,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8601582,
+        40.6921601
+      ],
+      "existingResidentialUnits": 2,
+      "existingTotalUnits": 3,
+      "id": "capacity:4089190023",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 2992,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 5984,
+      "potentialResidentialFloorAreaSquareFeet": 5984,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 6,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4089190023"
+      ],
+      "zoningDistricts": [
+        "R6A",
+        "R3-1"
+      ]
+    },
+    {
+      "address": "84-30 JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.33,
+      "availableResidentialFar": 2.33,
+      "bbl": "4089190028",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 1720,
+      "builtFar": 0.67,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8597181,
+        40.6922172
+      ],
+      "existingResidentialUnits": 2,
+      "existingTotalUnits": 3,
+      "id": "capacity:4089190028",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 2570,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 5988.1,
+      "potentialResidentialFloorAreaSquareFeet": 5988.1,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 6,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4089190028"
+      ],
+      "zoningDistricts": [
+        "R6A",
+        "R3-1"
+      ]
+    },
+    {
+      "address": "84-32 JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.03,
+      "availableResidentialFar": 2.03,
+      "bbl": "4089190029",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 9600,
+      "builtFar": 0.97,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8595269,
+        40.6922417
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4089190029",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 9847,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 19989.41,
+      "potentialResidentialFloorAreaSquareFeet": 19989.41,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 22,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4089190029"
+      ],
+      "zoningDistricts": [
+        "R6A",
+        "R3-1"
+      ]
+    },
+    {
+      "address": "80-32A JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.26,
+      "availableResidentialFar": 2.26,
+      "bbl": "4089190111",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 920,
+      "builtFar": 0.74,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8610888,
+        40.692035
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 3,
+      "id": "capacity:4089190111",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 1247,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 2818.22,
+      "potentialResidentialFloorAreaSquareFeet": 2818.22,
+      "potentialResidentialUnitsClass1": 1,
+      "potentialResidentialUnitsClass2": 3,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4089190111"
+      ],
+      "zoningDistricts": [
+        "R6A",
+        "R3-1"
+      ]
+    },
+    {
+      "address": "85-04 JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.44,
+      "availableResidentialFar": 2.44,
+      "bbl": "4089220002",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 810,
+      "builtFar": 0.56,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8587984,
+        40.6922985
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4089220002",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 1440,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 3513.6,
+      "potentialResidentialFloorAreaSquareFeet": 3513.6,
+      "potentialResidentialUnitsClass1": 2,
+      "potentialResidentialUnitsClass2": 3,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4089220002"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "85-06 JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.45,
+      "availableResidentialFar": 2.45,
+      "bbl": "4089220003",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 2352,
+      "builtFar": 0.55,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.858701,
+        40.6923121
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4089220003",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 4258,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 10432.1,
+      "potentialResidentialFloorAreaSquareFeet": 10432.1,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 11,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4089220003"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "85-12 JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2,
+      "availableResidentialFar": 2,
+      "bbl": "4089220005",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 6880,
+      "builtFar": 1,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8584955,
+        40.69232
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4089220005",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 6880,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 13760,
+      "potentialResidentialFloorAreaSquareFeet": 13760,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 15,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4089220005"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "88-08 JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.35,
+      "availableResidentialFar": 2.35,
+      "bbl": "4089270001",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 10400,
+      "builtFar": 0.65,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8559532,
+        40.6923389
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4089270001",
+      "landUseCode": "8",
+      "lotAreaSquareFeet": 15920,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 37412,
+      "potentialResidentialFloorAreaSquareFeet": 37412,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 41,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4089270001"
+      ],
+      "zoningDistricts": [
+        "R6A",
+        "R3-1"
+      ]
+    },
+    {
+      "address": "89-08 JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.14,
+      "availableResidentialFar": 2.14,
+      "bbl": "4089310003",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 1700,
+      "builtFar": 0.86,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8550837,
+        40.6925381
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4089310003",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 1980,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 4237.2,
+      "potentialResidentialFloorAreaSquareFeet": 4237.2,
+      "potentialResidentialUnitsClass1": 2,
+      "potentialResidentialUnitsClass2": 4,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4089310003"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "89-20 JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.05,
+      "availableResidentialFar": 2.05,
+      "bbl": "4089310009",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 2400,
+      "builtFar": 0.95,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8547481,
+        40.692631
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 2,
+      "id": "capacity:4089310009",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 2532,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 5190.6,
+      "potentialResidentialFloorAreaSquareFeet": 5190.6,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 5,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4089310009"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "92-14 JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.07,
+      "availableResidentialFar": 2.07,
+      "bbl": "4089330074",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 1600,
+      "builtFar": 0.93,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8526444,
+        40.6932624
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4089330074",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 1720,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 3560.4,
+      "potentialResidentialFloorAreaSquareFeet": 3560.4,
+      "potentialResidentialUnitsClass1": 2,
+      "potentialResidentialUnitsClass2": 3,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4089330074"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "97-02 JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.06,
+      "availableResidentialFar": 2.06,
+      "bbl": "4089380001",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 3870,
+      "builtFar": 0.94,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8483721,
+        40.6944234
+      ],
+      "existingResidentialUnits": 1,
+      "existingTotalUnits": 2,
+      "id": "capacity:4089380001",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 4128,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 8503.68,
+      "potentialResidentialFloorAreaSquareFeet": 8503.68,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 9,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4089380001"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 3,
+      "availableResidentialFar": 3,
+      "bbl": "4089380003",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8482639,
+        40.6944479
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:4089380003",
+      "landUseCode": "10",
+      "lotAreaSquareFeet": 1767,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 5301,
+      "potentialResidentialFloorAreaSquareFeet": 5301,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 5,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4089380003"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 3,
+      "availableResidentialFar": 3,
+      "bbl": "4089380004",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8481953,
+        40.6944643
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:4089380004",
+      "landUseCode": "10",
+      "lotAreaSquareFeet": 1728,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 5184,
+      "potentialResidentialFloorAreaSquareFeet": 5184,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 5,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4089380004"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 3,
+      "availableResidentialFar": 3,
+      "bbl": "4089380005",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.848134,
+        40.694478
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:4089380005",
+      "landUseCode": "10",
+      "lotAreaSquareFeet": 1689,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 5067,
+      "potentialResidentialFloorAreaSquareFeet": 5067,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 5,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4089380005"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "97-12 JAMAICA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 3,
+      "availableResidentialFar": 3,
+      "bbl": "4089380006",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8480583,
+        40.6944696
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:4089380006",
+      "landUseCode": "10",
+      "lotAreaSquareFeet": 2030,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 6090,
+      "potentialResidentialFloorAreaSquareFeet": 6090,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 6,
+      "regionId": "QN0905",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4089380006"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "ROCKAWAY BOULEVARD",
+      "affordableResidentialFar": 2.4,
+      "availableCommercialFar": 0,
+      "availableFar": 2,
+      "availableResidentialFar": 2,
+      "bbl": "4089540013",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8616557,
+        40.6847154
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:4089540013",
+      "landUseCode": "11",
+      "lotAreaSquareFeet": 1702,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 3404,
+      "potentialResidentialFloorAreaSquareFeet": 3404,
+      "potentialResidentialUnitsClass1": 2,
+      "potentialResidentialUnitsClass2": 3,
+      "regionId": "QN0905",
+      "residentialFar": 2,
+      "sourceRowIds": [
+        "pluto:4089540013"
+      ],
+      "zoningDistricts": [
+        "R6B"
+      ]
+    },
+    {
+      "address": "ATLANTIC AVENUE",
+      "affordableResidentialFar": 2.4,
+      "availableCommercialFar": 0,
+      "availableFar": 2,
+      "availableResidentialFar": 2,
+      "bbl": "4089600060",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8600507,
+        40.6849632
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:4089600060",
+      "landUseCode": "7",
+      "lotAreaSquareFeet": 12934,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 25868,
+      "potentialResidentialFloorAreaSquareFeet": 25868,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 28,
+      "regionId": "QN0905",
+      "residentialFar": 2,
+      "sourceRowIds": [
+        "pluto:4089600060"
+      ],
+      "zoningDistricts": [
+        "R6B",
+        "R3-1"
+      ]
+    }
+  ],
+  "claimBoundary": "This NTA shard preserves every joined row retained from the governed source snapshot. The source snapshot itself samples large DOB jobs, constructed footprints, and PLUTO capacity candidates and is not a complete property history or feasibility inventory.",
+  "contentVersion": "2026-07-27",
+  "coverage": {
+    "capacityCandidates": 72,
+    "compilerRegionCap": null,
+    "developmentForecastSupportedBySector": {
+      "all": false,
+      "tax-class-1": true,
+      "tax-class-2": true,
+      "tax-class-4": false
+    },
+    "developmentSeriesRows": 21,
+    "historicalSites": 5,
+    "priceForecastSupportedBySector": {
+      "all": true,
+      "tax-class-1": true,
+      "tax-class-2": true,
+      "tax-class-4": true
+    },
+    "saleRows": 29,
+    "saleYearsBySector": {
+      "tax-class-1": [
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "tax-class-2": [
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "tax-class-4": [
+        2016,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024,
+        2025
+      ]
+    },
+    "sectorCandidateCounts": {
+      "all": 0,
+      "tax-class-1": 72,
+      "tax-class-2": 72,
+      "tax-class-4": 0
+    },
+    "sourceSampled": true
+  },
+  "developmentSeries": [
+    {
+      "filingCount": 18,
+      "id": "development:QN0905:2000",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "QN0905",
+      "sourceNtaNames": [
+        "Woodhaven"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2000
+    },
+    {
+      "filingCount": 17,
+      "id": "development:QN0905:2001",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "QN0905",
+      "sourceNtaNames": [
+        "Woodhaven"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2001
+    },
+    {
+      "filingCount": 39,
+      "id": "development:QN0905:2002",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "QN0905",
+      "sourceNtaNames": [
+        "Woodhaven"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2002
+    },
+    {
+      "filingCount": 265,
+      "id": "development:QN0905:2003",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "QN0905",
+      "sourceNtaNames": [
+        "Woodhaven"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2003
+    },
+    {
+      "filingCount": 37,
+      "id": "development:QN0905:2004",
+      "proposedZoningSquareFeet": 1527,
+      "regionId": "QN0905",
+      "sourceNtaNames": [
+        "Woodhaven"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2004
+    },
+    {
+      "filingCount": 27,
+      "id": "development:QN0905:2005",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "QN0905",
+      "sourceNtaNames": [
+        "Woodhaven"
+      ],
+      "withdrawnFilingCount": 2,
+      "year": 2005
+    },
+    {
+      "filingCount": 28,
+      "id": "development:QN0905:2006",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "QN0905",
+      "sourceNtaNames": [
+        "Woodhaven"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2006
+    },
+    {
+      "filingCount": 38,
+      "id": "development:QN0905:2007",
+      "proposedZoningSquareFeet": 720,
+      "regionId": "QN0905",
+      "sourceNtaNames": [
+        "Woodhaven"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2007
+    },
+    {
+      "filingCount": 5,
+      "id": "development:QN0905:2008",
+      "proposedZoningSquareFeet": 12756,
+      "regionId": "QN0905",
+      "sourceNtaNames": [
+        "Woodhaven"
+      ],
+      "withdrawnFilingCount": 1,
+      "year": 2008
+    },
+    {
+      "filingCount": 5,
+      "id": "development:QN0905:2009",
+      "proposedZoningSquareFeet": 14985,
+      "regionId": "QN0905",
+      "sourceNtaNames": [
+        "Woodhaven"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2009
+    },
+    {
+      "filingCount": 6,
+      "id": "development:QN0905:2010",
+      "proposedZoningSquareFeet": 7054,
+      "regionId": "QN0905",
+      "sourceNtaNames": [
+        "Woodhaven"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2010
+    },
+    {
+      "filingCount": 1,
+      "id": "development:QN0905:2011",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "QN0905",
+      "sourceNtaNames": [
+        "Woodhaven"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2011
+    },
+    {
+      "filingCount": 6,
+      "id": "development:QN0905:2012",
+      "proposedZoningSquareFeet": 52178,
+      "regionId": "QN0905",
+      "sourceNtaNames": [
+        "Woodhaven"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2012
+    },
+    {
+      "filingCount": 8,
+      "id": "development:QN0905:2013",
+      "proposedZoningSquareFeet": 13333,
+      "regionId": "QN0905",
+      "sourceNtaNames": [
+        "Woodhaven"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2013
+    },
+    {
+      "filingCount": 4,
+      "id": "development:QN0905:2014",
+      "proposedZoningSquareFeet": 3092,
+      "regionId": "QN0905",
+      "sourceNtaNames": [
+        "Woodhaven"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2014
+    },
+    {
+      "filingCount": 13,
+      "id": "development:QN0905:2015",
+      "proposedZoningSquareFeet": 19644,
+      "regionId": "QN0905",
+      "sourceNtaNames": [
+        "Woodhaven"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2015
+    },
+    {
+      "filingCount": 9,
+      "id": "development:QN0905:2016",
+      "proposedZoningSquareFeet": 15926,
+      "regionId": "QN0905",
+      "sourceNtaNames": [
+        "Woodhaven"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2016
+    },
+    {
+      "filingCount": 18,
+      "id": "development:QN0905:2017",
+      "proposedZoningSquareFeet": 71670,
+      "regionId": "QN0905",
+      "sourceNtaNames": [
+        "Woodhaven"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2017
+    },
+    {
+      "filingCount": 24,
+      "id": "development:QN0905:2018",
+      "proposedZoningSquareFeet": 17669,
+      "regionId": "QN0905",
+      "sourceNtaNames": [
+        "Woodhaven"
+      ],
+      "withdrawnFilingCount": 2,
+      "year": 2018
+    },
+    {
+      "filingCount": 4,
+      "id": "development:QN0905:2019",
+      "proposedZoningSquareFeet": 3205,
+      "regionId": "QN0905",
+      "sourceNtaNames": [
+        "Woodhaven"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2019
+    },
+    {
+      "filingCount": 6,
+      "id": "development:QN0905:2020",
+      "proposedZoningSquareFeet": 38428,
+      "regionId": "QN0905",
+      "sourceNtaNames": [
+        "Woodhaven"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2020
+    }
+  ],
+  "developmentSites": [
+    {
+      "address": null,
+      "bbl": "4089290112",
+      "bin": "4550148",
+      "constructionYear": 2014,
+      "coordinates": [
+        -73.8514008,
+        40.6912885
+      ],
+      "footprint": [
+        [
+          -73.8514518,
+          40.6912366
+        ],
+        [
+          -73.8514875,
+          40.6912277
+        ],
+        [
+          -73.8515236,
+          40.6913109
+        ],
+        [
+          -73.8512916,
+          40.6913693
+        ],
+        [
+          -73.8512554,
+          40.691286
+        ],
+        [
+          -73.8512773,
+          40.6912805
+        ],
+        [
+          -73.8514518,
+          40.6912366
+        ]
+      ],
+      "footprintAreaM2": 350.13,
+      "footprintOrigin": "observed",
+      "heightM": 8.29,
+      "id": "footprint:102427",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2014-07-01",
+          "id": "footprint:102427:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0905",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:102427"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4088670013",
+      "bin": "4181974",
+      "constructionYear": 2010,
+      "coordinates": [
+        -73.8566893,
+        40.696712
+      ],
+      "footprint": [
+        [
+          -73.8566295,
+          40.6966848
+        ],
+        [
+          -73.8568217,
+          40.6966605
+        ],
+        [
+          -73.856838,
+          40.6967353
+        ],
+        [
+          -73.8566372,
+          40.6967607
+        ],
+        [
+          -73.8566304,
+          40.6967293
+        ],
+        [
+          -73.856639,
+          40.6967283
+        ],
+        [
+          -73.8566295,
+          40.6966848
+        ]
+      ],
+      "footprintAreaM2": 245.83,
+      "footprintOrigin": "observed",
+      "heightM": 8.22,
+      "id": "footprint:108015",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2010-07-01",
+          "id": "footprint:108015:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0905",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:108015"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4089190002",
+      "bin": "4183700",
+      "constructionYear": 2023,
+      "coordinates": [
+        -73.8618672,
+        40.6920126
+      ],
+      "footprint": [
+        [
+          -73.8619184,
+          40.692074
+        ],
+        [
+          -73.8618309,
+          40.6920874
+        ],
+        [
+          -73.8617901,
+          40.6919199
+        ],
+        [
+          -73.8618783,
+          40.6919075
+        ],
+        [
+          -73.8619184,
+          40.692074
+        ]
+      ],
+      "footprintAreaM2": 248.25,
+      "footprintOrigin": "observed",
+      "heightM": 22.86,
+      "id": "footprint:1088513",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2023-07-01",
+          "id": "footprint:1088513:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0905",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1088513"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4089750100",
+      "bin": "4538070",
+      "constructionYear": 2010,
+      "coordinates": [
+        -73.8486039,
+        40.6916497
+      ],
+      "footprint": [
+        [
+          -73.8484461,
+          40.69179
+        ],
+        [
+          -73.848327,
+          40.6915459
+        ],
+        [
+          -73.8485233,
+          40.6914904
+        ],
+        [
+          -73.8485775,
+          40.6916016
+        ],
+        [
+          -73.8486122,
+          40.6915917
+        ],
+        [
+          -73.8485965,
+          40.6915594
+        ],
+        [
+          -73.8488699,
+          40.6914821
+        ],
+        [
+          -73.8489545,
+          40.6916558
+        ],
+        [
+          -73.8486493,
+          40.691742
+        ],
+        [
+          -73.848639,
+          40.6917208
+        ],
+        [
+          -73.8486016,
+          40.6917314
+        ],
+        [
+          -73.8486079,
+          40.6917443
+        ],
+        [
+          -73.8484461,
+          40.69179
+        ]
+      ],
+      "footprintAreaM2": 1855.69,
+      "footprintOrigin": "observed",
+      "heightM": 15.24,
+      "id": "footprint:47517",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2010-07-01",
+          "id": "footprint:47517:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0905",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:47517"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4088690132",
+      "bin": "4182069",
+      "constructionYear": 2016,
+      "coordinates": [
+        -73.8543798,
+        40.6931271
+      ],
+      "footprint": [
+        [
+          -73.8543153,
+          40.6930113
+        ],
+        [
+          -73.8543847,
+          40.6929961
+        ],
+        [
+          -73.8544194,
+          40.6931549
+        ],
+        [
+          -73.8544113,
+          40.6931559
+        ],
+        [
+          -73.8544373,
+          40.6932746
+        ],
+        [
+          -73.8543753,
+          40.6932858
+        ],
+        [
+          -73.8543153,
+          40.6930113
+        ]
+      ],
+      "footprintAreaM2": 311.5,
+      "footprintOrigin": "observed",
+      "heightM": 7.01,
+      "id": "footprint:57454",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2016-07-01",
+          "id": "footprint:57454:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0905",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:57454"
+      ]
+    }
+  ],
+  "id": "nyc-real-estate-region-qn0905-v1",
+  "region": {
+    "abbreviation": "Wdhvn",
+    "areaM2": 23727497.977,
+    "boroughId": "queens",
+    "boroughLabel": "Queens",
+    "bounds": {
+      "east": -73.8449603,
+      "north": 40.7007651,
+      "south": 40.6831867,
+      "west": -73.8686845
+    },
+    "centroid": [
+      -73.8555106,
+      40.6958538
+    ],
+    "communityDistrictTabulationAreaId": "QN09",
+    "communityDistrictTabulationAreaLabel": "QN09 Kew Gardens-Richmond Hill-Woodhaven (CD 9 Approximation)",
+    "id": "QN0905",
+    "label": "Woodhaven",
+    "polygon": [
+      [
+        -73.8491384,
+        40.6982827
+      ],
+      [
+        -73.8494776,
+        40.6981958
+      ],
+      [
+        -73.8489413,
+        40.6975568
+      ],
+      [
+        -73.8449603,
+        40.6891626
+      ],
+      [
+        -73.8663026,
+        40.6831867
+      ],
+      [
+        -73.8665985,
+        40.6852696
+      ],
+      [
+        -73.8686845,
+        40.6940347
+      ],
+      [
+        -73.8684052,
+        40.6947312
+      ],
+      [
+        -73.8574445,
+        40.696913
+      ],
+      [
+        -73.8527451,
+        40.6975608
+      ],
+      [
+        -73.8528326,
+        40.6984078
+      ],
+      [
+        -73.8545663,
+        40.7005941
+      ],
+      [
+        -73.8541247,
+        40.7007651
+      ],
+      [
+        -73.8541012,
+        40.7005137
+      ],
+      [
+        -73.8507084,
+        40.7002031
+      ],
+      [
+        -73.8491384,
+        40.6982827
+      ]
+    ],
+    "spatialPolygons": [
+      {
+        "holes": [],
+        "outer": [
+          [
+            -73.8491384,
+            40.6982827
+          ],
+          [
+            -73.8494776,
+            40.6981958
+          ],
+          [
+            -73.8489413,
+            40.6975568
+          ],
+          [
+            -73.8449603,
+            40.6891626
+          ],
+          [
+            -73.8663026,
+            40.6831867
+          ],
+          [
+            -73.8665985,
+            40.6852696
+          ],
+          [
+            -73.8686845,
+            40.6940347
+          ],
+          [
+            -73.8684052,
+            40.6947312
+          ],
+          [
+            -73.8574445,
+            40.696913
+          ],
+          [
+            -73.8527451,
+            40.6975608
+          ],
+          [
+            -73.8528326,
+            40.6984078
+          ],
+          [
+            -73.8545663,
+            40.7005941
+          ],
+          [
+            -73.8541247,
+            40.7007651
+          ],
+          [
+            -73.8541012,
+            40.7005137
+          ],
+          [
+            -73.8507084,
+            40.7002031
+          ],
+          [
+            -73.8491384,
+            40.6982827
+          ]
+        ]
+      }
+    ]
+  },
+  "saleSeries": [
+    {
+      "id": "sale:QN0905:2016:tax-1",
+      "meanPriceUsd": 547872.79,
+      "medianPriceUsd": 525000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0905",
+      "saleCount": 263,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 437,
+      "year": 2016
+    },
+    {
+      "id": "sale:QN0905:2016:tax-2",
+      "meanPriceUsd": 520861.7,
+      "medianPriceUsd": 185000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0905",
+      "saleCount": 47,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 85,
+      "year": 2016
+    },
+    {
+      "id": "sale:QN0905:2016:tax-4",
+      "meanPriceUsd": 1026000,
+      "medianPriceUsd": 1026000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0905",
+      "saleCount": 1,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 1,
+      "year": 2016
+    },
+    {
+      "id": "sale:QN0905:2017:tax-1",
+      "meanPriceUsd": 584696.13,
+      "medianPriceUsd": 558500,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0905",
+      "saleCount": 278,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 432,
+      "year": 2017
+    },
+    {
+      "id": "sale:QN0905:2017:tax-2",
+      "meanPriceUsd": 380061.63,
+      "medianPriceUsd": 211000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0905",
+      "saleCount": 48,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 57,
+      "year": 2017
+    },
+    {
+      "id": "sale:QN0905:2018:tax-1",
+      "meanPriceUsd": 652280.19,
+      "medianPriceUsd": 620000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0905",
+      "saleCount": 240,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 386,
+      "year": 2018
+    },
+    {
+      "id": "sale:QN0905:2018:tax-2",
+      "meanPriceUsd": 387031.25,
+      "medianPriceUsd": 262000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0905",
+      "saleCount": 48,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 71,
+      "year": 2018
+    },
+    {
+      "id": "sale:QN0905:2018:tax-4",
+      "meanPriceUsd": 2950000,
+      "medianPriceUsd": 2950000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0905",
+      "saleCount": 2,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 3,
+      "year": 2018
+    },
+    {
+      "id": "sale:QN0905:2019:tax-1",
+      "meanPriceUsd": 675388.76,
+      "medianPriceUsd": 630000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0905",
+      "saleCount": 226,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 374,
+      "year": 2019
+    },
+    {
+      "id": "sale:QN0905:2019:tax-2",
+      "meanPriceUsd": 304359.38,
+      "medianPriceUsd": 267500,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0905",
+      "saleCount": 32,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 8,
+      "year": 2019
+    },
+    {
+      "id": "sale:QN0905:2019:tax-4",
+      "meanPriceUsd": 1100000,
+      "medianPriceUsd": 1117500,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0905",
+      "saleCount": 4,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 12,
+      "year": 2019
+    },
+    {
+      "id": "sale:QN0905:2020:tax-1",
+      "meanPriceUsd": 681474.75,
+      "medianPriceUsd": 650000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0905",
+      "saleCount": 176,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 284,
+      "year": 2020
+    },
+    {
+      "id": "sale:QN0905:2020:tax-2",
+      "meanPriceUsd": 574110.29,
+      "medianPriceUsd": 294000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0905",
+      "saleCount": 34,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 74,
+      "year": 2020
+    },
+    {
+      "id": "sale:QN0905:2020:tax-4",
+      "meanPriceUsd": 1100000,
+      "medianPriceUsd": 1100000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0905",
+      "saleCount": 1,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 1,
+      "year": 2020
+    },
+    {
+      "id": "sale:QN0905:2021:tax-1",
+      "meanPriceUsd": 731295.33,
+      "medianPriceUsd": 705000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0905",
+      "saleCount": 247,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 388,
+      "year": 2021
+    },
+    {
+      "id": "sale:QN0905:2021:tax-2",
+      "meanPriceUsd": 314605.26,
+      "medianPriceUsd": 265000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0905",
+      "saleCount": 35,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 24,
+      "year": 2021
+    },
+    {
+      "id": "sale:QN0905:2021:tax-4",
+      "meanPriceUsd": 1165000,
+      "medianPriceUsd": 1230000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0905",
+      "saleCount": 4,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 5,
+      "year": 2021
+    },
+    {
+      "id": "sale:QN0905:2022:tax-1",
+      "meanPriceUsd": 788552.19,
+      "medianPriceUsd": 750000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0905",
+      "saleCount": 216,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 351,
+      "year": 2022
+    },
+    {
+      "id": "sale:QN0905:2022:tax-2",
+      "meanPriceUsd": 462724.14,
+      "medianPriceUsd": 280000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0905",
+      "saleCount": 29,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 38,
+      "year": 2022
+    },
+    {
+      "id": "sale:QN0905:2022:tax-4",
+      "meanPriceUsd": 2985390.63,
+      "medianPriceUsd": 1810000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0905",
+      "saleCount": 8,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 20,
+      "year": 2022
+    },
+    {
+      "id": "sale:QN0905:2023:tax-1",
+      "meanPriceUsd": 760174.24,
+      "medianPriceUsd": 719000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0905",
+      "saleCount": 156,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 245,
+      "year": 2023
+    },
+    {
+      "id": "sale:QN0905:2023:tax-2",
+      "meanPriceUsd": 318819.44,
+      "medianPriceUsd": 250000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0905",
+      "saleCount": 36,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 15,
+      "year": 2023
+    },
+    {
+      "id": "sale:QN0905:2023:tax-4",
+      "meanPriceUsd": 1010000,
+      "medianPriceUsd": 650000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0905",
+      "saleCount": 4,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 5,
+      "year": 2023
+    },
+    {
+      "id": "sale:QN0905:2024:tax-1",
+      "meanPriceUsd": 784473.01,
+      "medianPriceUsd": 754993.5,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0905",
+      "saleCount": 164,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 267,
+      "year": 2024
+    },
+    {
+      "id": "sale:QN0905:2024:tax-2",
+      "meanPriceUsd": 307482.44,
+      "medianPriceUsd": 275000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0905",
+      "saleCount": 27,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 8,
+      "year": 2024
+    },
+    {
+      "id": "sale:QN0905:2024:tax-4",
+      "meanPriceUsd": 1141666.67,
+      "medianPriceUsd": 900000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0905",
+      "saleCount": 3,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 8,
+      "year": 2024
+    },
+    {
+      "id": "sale:QN0905:2025:tax-1",
+      "meanPriceUsd": 802144.3,
+      "medianPriceUsd": 774500,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0905",
+      "saleCount": 152,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 236,
+      "year": 2025
+    },
+    {
+      "id": "sale:QN0905:2025:tax-2",
+      "meanPriceUsd": 373730.77,
+      "medianPriceUsd": 257500,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0905",
+      "saleCount": 26,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 33,
+      "year": 2025
+    },
+    {
+      "id": "sale:QN0905:2025:tax-4",
+      "meanPriceUsd": 1294851,
+      "medianPriceUsd": 1040553,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0905",
+      "saleCount": 6,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 7,
+      "year": 2025
+    }
+  ],
+  "schema": "simulatte.nycRealEstateRegionShard.v1",
+  "sourceIdentities": [
+    {
+      "byteCount": 1008463,
+      "path": "nyc-annualized-sales-by-nta.json",
+      "sha256": "14c15020381466196236073ee3753ff7a5d74a76ec6af4605e96564abd2bf99a",
+      "sourceId": "nyc-real-estate-sales-annual"
+    },
+    {
+      "byteCount": 8977616,
+      "path": "nyc-final-certificates-of-occupancy.json",
+      "sha256": "966c237824a79aff9d5137d27b498ba4f3670cc19844738c5ce17a559388030e",
+      "sourceId": "nyc-real-estate-final-occupancy"
+    },
+    {
+      "byteCount": 8802596,
+      "path": "nyc-largest-constructed-footprints-2010-2026.geojson",
+      "sha256": "15745b9c62fa539e683737f0665fe91d95231e68d8c1b598e7ed211114811eb6",
+      "sourceId": "nyc-real-estate-constructed-footprints"
+    },
+    {
+      "byteCount": 1076754,
+      "path": "nyc-largest-new-building-jobs-bronx.json",
+      "sha256": "1a44c6cbfa364639e4b75957b2fab7e3c301f95bcfcfa90c50862fef85f450c1",
+      "sourceId": "nyc-real-estate-new-building-sample-bronx"
+    },
+    {
+      "byteCount": 1085334,
+      "path": "nyc-largest-new-building-jobs-brooklyn.json",
+      "sha256": "389e1825faff440d6fad5a12ed470f84e90859fd732262346a3414c5503693fd",
+      "sourceId": "nyc-real-estate-new-building-sample-brooklyn"
+    },
+    {
+      "byteCount": 1097625,
+      "path": "nyc-largest-new-building-jobs-manhattan.json",
+      "sha256": "6346678de380d58e325db14fc2e0611d993743be29898360e08f092eaa1f88e5",
+      "sourceId": "nyc-real-estate-new-building-sample-manhattan"
+    },
+    {
+      "byteCount": 1091065,
+      "path": "nyc-largest-new-building-jobs-queens.json",
+      "sha256": "79eb6f028b2135214d47a793101f72de695efcb02e4c2802cc10cd062c760a22",
+      "sourceId": "nyc-real-estate-new-building-sample-queens"
+    },
+    {
+      "byteCount": 1120592,
+      "path": "nyc-largest-new-building-jobs-staten-island.json",
+      "sha256": "e0870a431a75bdd235fc09b0ecd7503c45384f5e8b66beba545447c7bb3d960a",
+      "sourceId": "nyc-real-estate-new-building-sample-staten-island"
+    },
+    {
+      "byteCount": 1250280,
+      "path": "nyc-new-building-filings-by-nta-year.json",
+      "sha256": "4b75b0ad54a1ce5241b9c2e303be2cc24781e55a65fbf27be10d00a80bfeadea",
+      "sourceId": "nyc-real-estate-new-building-annual"
+    },
+    {
+      "byteCount": 4576764,
+      "path": "nyc-nta-2020.geojson",
+      "sha256": "c3dd069e094e2d2f647c1c102cd7e0570d033dd6131446bd1943a73210d09c56",
+      "sourceId": "nyc-real-estate-nta-boundaries"
+    },
+    {
+      "byteCount": 2402191,
+      "path": "nyc-pluto-capacity-bronx.json",
+      "sha256": "b45168721525e18a29aafcce335212632607021240869b738cbb96fbe2441389",
+      "sourceId": "nyc-real-estate-pluto-capacity-bronx"
+    },
+    {
+      "byteCount": 2403266,
+      "path": "nyc-pluto-capacity-brooklyn.json",
+      "sha256": "63b33a507c0bc26f7b71669cf032baa4950af2db77ce8712b876ca6f4c9f771b",
+      "sourceId": "nyc-real-estate-pluto-capacity-brooklyn"
+    },
+    {
+      "byteCount": 2464264,
+      "path": "nyc-pluto-capacity-manhattan.json",
+      "sha256": "91e3e1f5dce97a340475b51577458c8e48183f1138c334fbcce27d68001e9d25",
+      "sourceId": "nyc-real-estate-pluto-capacity-manhattan"
+    },
+    {
+      "byteCount": 2418903,
+      "path": "nyc-pluto-capacity-queens.json",
+      "sha256": "02a12d81466e89e05b9be9273198c5f857e86db5d2c95cfb717160ce4ccf99c1",
+      "sourceId": "nyc-real-estate-pluto-capacity-queens"
+    },
+    {
+      "byteCount": 1168016,
+      "path": "nyc-pluto-capacity-staten-island.json",
+      "sha256": "6d488f6ce46fa09930b669429275014a8ecedae6c85041fb465a15633c6a38b0",
+      "sourceId": "nyc-real-estate-pluto-capacity-staten-island"
+    }
+  ],
+  "truth": {
+    "origin": "observed",
+    "temporalStatus": "historical",
+    "uncertainty": {
+      "kind": "missing",
+      "value": {
+        "reason": "Administrative records have missing, revised, duplicated, and source-sampled fields without a shared statistical uncertainty model."
+      }
+    }
+  }
+}

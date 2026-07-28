@@ -1,25 +1,30 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Cable Trader configuration v4",
+  "title": "Cable Trader logistics configuration v5",
   "type": "object",
-  "required": ["schema", "id", "cableTypes", "hubs", "scenarioModifiers", "simulation"],
+  "required": ["schema", "id", "cableTypes", "hubs", "demandSites", "scenarioModifiers", "simulation"],
   "additionalProperties": false,
   "properties": {
-    "schema": { "const": "simulatte.plugin.cableTraderConfig.v4" },
+    "schema": { "const": "simulatte.plugin.cableTraderConfig.v5" },
     "id": { "type": "string", "minLength": 1 },
     "cableTypes": {
       "type": "array",
-      "minItems": 1,
-      "maxItems": 128,
+      "minItems": 2,
+      "maxItems": 16,
       "items": {
         "type": "object",
-        "required": ["id", "label", "labels", "demandWeight"],
+        "required": ["id", "label", "shortLabel", "conductor", "reelLengthM", "minimumUsefulRemnantM", "modeledCostPerMeter", "demandWeight", "substitutesFor"],
         "additionalProperties": false,
         "properties": {
-          "id": { "type": "string" },
-          "label": { "type": "string" },
-          "labels": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string" } },
-          "demandWeight": { "type": "number", "exclusiveMinimum": 0 }
+          "id": { "type": "string", "minLength": 1 },
+          "label": { "type": "string", "minLength": 1 },
+          "shortLabel": { "type": "string", "minLength": 1 },
+          "conductor": { "type": "string", "minLength": 1 },
+          "reelLengthM": { "type": "integer", "minimum": 20, "maximum": 5000 },
+          "minimumUsefulRemnantM": { "type": "integer", "minimum": 1, "maximum": 500 },
+          "modeledCostPerMeter": { "type": "number", "exclusiveMinimum": 0 },
+          "demandWeight": { "type": "number", "exclusiveMinimum": 0 },
+          "substitutesFor": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } }
         }
       }
     },
@@ -27,68 +32,76 @@
       "type": "array",
       "minItems": 2,
       "maxItems": 16,
+      "items": { "$ref": "#/$defs/place" }
+    },
+    "demandSites": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 32,
       "items": {
         "type": "object",
-        "required": ["id", "label", "nodeId"],
+        "required": ["id", "label", "nodeId", "defaultPriority"],
         "additionalProperties": false,
         "properties": {
-          "id": { "type": "string" },
-          "label": { "type": "string" },
-          "nodeId": { "type": "string" }
+          "id": { "type": "string", "minLength": 1 },
+          "label": { "type": "string", "minLength": 1 },
+          "nodeId": { "type": "string", "minLength": 1 },
+          "defaultPriority": { "enum": ["critical", "urgent", "standard"] }
         }
       }
     },
     "scenarioModifiers": {
       "type": "array",
       "minItems": 1,
-      "uniqueItems": true,
       "items": {
         "type": "object",
-        "required": ["id", "demandTypeMultipliers", "demandHubMultipliers", "returnHubMultipliers"],
+        "required": ["id", "demandTypeMultipliers", "demandSiteMultipliers"],
         "additionalProperties": false,
         "properties": {
           "id": { "type": "string", "minLength": 1 },
-          "demandTypeMultipliers": {
-            "type": "object",
-            "additionalProperties": { "type": "number", "exclusiveMinimum": 0 }
-          },
-          "demandHubMultipliers": {
-            "type": "object",
-            "additionalProperties": { "type": "number", "exclusiveMinimum": 0 }
-          },
-          "returnHubMultipliers": {
-            "type": "object",
-            "additionalProperties": { "type": "number", "exclusiveMinimum": 0 }
-          }
+          "demandTypeMultipliers": { "type": "object", "additionalProperties": { "type": "number", "exclusiveMinimum": 0 } },
+          "demandSiteMultipliers": { "type": "object", "additionalProperties": { "type": "number", "exclusiveMinimum": 0 } }
         }
       }
     },
     "simulation": {
       "type": "object",
-      "required": ["seed", "selectedCableFamilyIds", "ensembleSeeds", "durationDays", "needCount", "returnCount", "journeyEventCount", "renderedRequestCount", "initialInventoryPerHubType"],
+      "required": [
+        "seed", "selectedCableFamilyIds", "ensembleSeeds", "durationDays", "needCount",
+        "returnCount", "journeyEventCount", "renderedRequestCount", "initialInventoryPerHubType",
+        "demandPriority", "allowSubstitutes", "reservePolicy", "transferCapacityMetersPerDay",
+        "allocationObjective", "fairnessWeight", "disruptionScenario"
+      ],
       "additionalProperties": false,
       "properties": {
         "seed": { "type": "string", "minLength": 1 },
-        "selectedCableFamilyIds": {
-          "type": "array",
-          "minItems": 1,
-          "maxItems": 128,
-          "uniqueItems": true,
-          "items": { "type": "string", "minLength": 1 }
-        },
-        "ensembleSeeds": {
-          "type": "array",
-          "minItems": 2,
-          "maxItems": 64,
-          "uniqueItems": true,
-          "items": { "type": "string", "minLength": 1 }
-        },
-        "durationDays": { "type": "integer", "minimum": 1, "maximum": 365 },
-        "needCount": { "type": "integer", "minimum": 1000, "maximum": 100000 },
-        "returnCount": { "type": "integer", "minimum": 0, "maximum": 100000 },
-        "journeyEventCount": { "type": "integer", "minimum": 0, "maximum": 100000 },
-        "renderedRequestCount": { "type": "integer", "minimum": 1, "maximum": 64, "description": "Maximum number of sampled modeled demand events emitted as pluginPresentation.v1 actor rows." },
-        "initialInventoryPerHubType": { "type": "integer", "minimum": 1, "maximum": 100000 }
+        "selectedCableFamilyIds": { "type": "array", "minItems": 1, "maxItems": 16, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+        "ensembleSeeds": { "type": "array", "minItems": 2, "maxItems": 32, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+        "durationDays": { "type": "integer", "minimum": 6, "maximum": 60 },
+        "needCount": { "type": "integer", "minimum": 6, "maximum": 200 },
+        "returnCount": { "const": 0 },
+        "journeyEventCount": { "const": 0 },
+        "renderedRequestCount": { "type": "integer", "minimum": 1, "maximum": 64 },
+        "initialInventoryPerHubType": { "type": "integer", "minimum": 1, "maximum": 12 },
+        "demandPriority": { "enum": ["critical-first", "deadline-first", "balanced"] },
+        "allowSubstitutes": { "type": "boolean" },
+        "reservePolicy": { "enum": ["none", "one-reel", "twenty-percent"] },
+        "transferCapacityMetersPerDay": { "type": "integer", "minimum": 50, "maximum": 10000 },
+        "allocationObjective": { "enum": ["cheapest", "fastest", "fairness-first"] },
+        "fairnessWeight": { "type": "number", "minimum": 0, "maximum": 5 },
+        "disruptionScenario": { "enum": ["none", "road-closure", "damaged-stock", "surprise-demand", "fairness-conflict"] }
+      }
+    }
+  },
+  "$defs": {
+    "place": {
+      "type": "object",
+      "required": ["id", "label", "nodeId"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "label": { "type": "string", "minLength": 1 },
+        "nodeId": { "type": "string", "minLength": 1 }
       }
     }
   }

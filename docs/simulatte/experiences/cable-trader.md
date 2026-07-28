@@ -8,106 +8,112 @@ Owner contract: `public/shared/plugins/cable-trader/index.js`.
 - Tier and world: City, `nyc-core-autonomy-v1`
 - Plugin ID: `cable-trader`
 - Profile ID: `cable-trader-pickup-v1`
-- Default scenario: `july-baseline`
+- Default scenario: `backbone-shortage`
 - Contract version: plugin v4 contribution
-- Last verified source: prior browser proof at commit `a5713c1c13ab`
-- Evidence: current worktree browser proof not rerun; prior index contains 8/8 runs
+- Last verified source: focused tests and targeted current-worktree browser audits on 2026-07-27
+- Evidence: desktop settled Compare and 390×844 mid-run intervention audits passed and were visually reviewed
 
 ## What is it?
 
-Cable Trader is a deterministic synthetic exchange-network experiment. It asks
-how four NYC hubs could redistribute selected cable families to serve modeled
-demand while limiting transfer burden. It does not represent observed people,
-inventory, exchanges, compatibility outcomes, or transport costs.
+Cable Trader is a deterministic cable-restoration experiment. Named projects
+need specific cable families and lengths while four depots hold individually
+identified reels. Users choose the operating policy and watch stock leave a
+reel, travel through the City, and advance a project only when it arrives.
 
 ## What does it actually do?
 
-1. Load four governed City nodes and connector-family standards context.
-2. Generate seeded daily demand and return events for the selected families.
-3. Initialize family-specific inventory at every hub.
-4. Solve exact minimum-cost maximum-flow allocations over routed hub links.
-5. Advance 30 daily snapshots with inventory, fulfillment, and transfers.
-6. Execute the same inputs under a local-inventory-only baseline.
-7. Settle run and ensemble receipts with service and burden distributions.
+1. Load four City depot nodes and six project-site nodes.
+2. Create stable reels with family, conductor, length, cost, and remnant rules.
+3. Release seeded projects with family, meter, priority, and deadline needs.
+4. Apply reserve, compatibility, transfer-capacity, and disruption constraints.
+5. Solve exact policy-scored feasible flow from reels to projects.
+6. Dispatch identified transfers and decrement the source reel immediately.
+7. Move transfers for one or more days and credit projects only on arrival.
+8. Settle reel conservation, project completion, cost, and policy comparisons.
 
 ## What can the user control?
 
 | Control | Default | Allowed values | Material effect |
 |---|---:|---|---|
-| Cable families | All ten | One or more governed family IDs | Rebuilds demand, inventory, flows, identities, comparison, and receipts |
-| Duration | 30 days | 1 to 365 | Changes event timing, playback length, and settlement |
-| Starting inventory | 8 per hub and family | 1 to 100,000 | Changes availability, transfers, depletion, and fulfillment |
-| Scenario preset | July baseline | Four seeded demand patterns | Changes demand and return weights with a new governed seed |
+| Cable families | All five | One or more family IDs | Rebuilds reels, demand, feasible substitutions, and receipts |
+| Demand priority | Critical first | Critical, deadline, or balanced | Changes which contested project is served first |
+| Compatible substitutes | On | On or off | Adds or removes feasible family substitutions |
+| Depot reserve | One reel | None, one reel, or 20% | Changes dispatchable stock and remaining resilience |
+| Daily transfer capacity | 900 m | 50 to 10,000 m | Limits cable dispatched per modeled day |
+| Allocation objective | Cheapest | Cheapest, fastest, or fairness first | Changes the exact edge score and resulting transfers |
+| Fairness weighting | 3 | 0 to 5 | Changes underserved-project preference |
+| Staged disruption | Road closure | None, closure, damage, surprise, or conflict | Changes delays, stock, demand, or contention |
+| Starting reels | 2 | 1 to 12 per depot and family | Changes feasible supply and shortages |
+| Crisis preset | Backbone shortage | Four governed seeds | Changes demand mix, sites, priorities, and identity |
 
 ## What does the user see?
 
-- Initial view: A top-down City map framing Union Square, East Village, Greenpoint, and North Williamsburg.
-- During playback: Daily hub inventory and bounded transfer flows update as modeled requests are allocated.
-- Selection and inspection: A hub reveals family inventory and connector standards-coverage status.
-- Comparison view: Optimized redistribution and local-only branches expose fulfillment and transfer differences.
-- Final settlement: Fulfilled needs, ending inventory, transport burden, hub imbalance, and scenario variance.
+- Initial view: An overview of four depots and six named repair sites.
+- During playback: Family-colored cable paths and vehicles tied to real transfer IDs.
+- Inventory and consequences: Depots report usable reels and remaining meters; projects report delivered, in-transit, and short meters.
+- Selection: A transfer explains its reel, family, quantity, policy reason, rejected alternatives, and downstream consequence.
+- Comparison and settlement: Both policy comparisons use common inputs, then close completion, shortage, cost, damage, remnant, and conservation evidence.
 
 ## What is real, derived, modeled, or simulated?
 
 | Item | Origin | Source | Time status | Uncertainty | Used for |
 |---|---|---|---|---|---|
-| City hub node identities | observed | Governed NYC world | snapshot | Source coverage limits | Hub placement |
-| Five connector standards contexts | observed | Connector provenance registry | historical | Compatibility outcomes missing | Family evidence |
-| Other connector-family identities | scenario | Plugin configuration | forecast | Empirical coverage missing | Demand categories |
-| Demand and return events | simulated | Seeded weighted generator | forecast | Four-seed scenario variance | Inventory changes |
-| Starting inventory | scenario | User control | forecast | Operational calibration missing | Initial state |
-| Transfer route cost | modeled | City routing distance | forecast | Real transport burden missing | Flow objective |
-| Allocations and settlement | simulated | Exact flow solver | forecast | Input-driven scenario variance | Reported outcomes |
+| City node and route geometry | observed/derived | Governed NYC world | snapshot | Coverage limits | Depot, site, and transfer placement |
+| Cable-family standards context | derived | TIA, IEC, and SCTE catalog metadata | historical | Full standards separately licensed | Family identity only |
+| Reel length, cost, and substitution | scenario | Plugin catalog | forecast | Operations calibration missing | Feasible supply and cost |
+| Depot inventory and project demand | scenario | Seeded crisis configuration | forecast | Four-seed scenario variance | Starting state |
+| Disruptions and delivery delays | simulated | Declared disruption model | forecast | Uncalibrated | Playback events |
+| Allocations and outcomes | simulated | Exact feasible-flow solver | forecast | Input-driven variance | Transfers and settlement |
 
 ## How does the simulation work?
 
-- State: Inventory by hub and cable family plus cumulative demand, returns, fulfillment, and burden.
-- Governing algorithm: Exact minimum-cost maximum-flow over the complete directed hub-transfer graph.
-- Progression: Seeded inputs are grouped into daily causal events and 31 inventory snapshots.
-- Randomness: Scenario identity and family selection derive deterministic seeds and configuration hashes.
-- Invariants: Inventory remains nonnegative; every allocation references available stock and a declared demand event.
-- Settlement: All days complete and branch metrics, obligations, provenance, and ensemble distributions close.
+- State: Individual reels, project demand, in-transit transfers, arrivals, damage, remnants, and cost.
+- Governing algorithm: Exact minimum-cost maximum-flow over every feasible reel-to-project edge, using the selected policy score.
+- Progression: Fourteen daily states release demand, apply disruptions, dispatch stock, move vehicles, and record arrivals.
+- Randomness: The crisis seed and every public control enter scenario identity and configuration hashing.
+- Invariants: Meter balance equals remaining plus damaged plus unusable remnant plus dispatched cable.
+- Settlement: Playback must finish and reel conservation must pass.
 
 ## How do comparison and playback work?
 
-- Baseline branch: Each request can use local inventory only.
-- Intervention branch: Inventory may transfer between hubs through routed links.
-- Shared inputs: Families, demand, returns, starting inventory, seed, duration, and clock.
-- Clock and replay: Start, pause, step, resume, replay, and reload reconstruct deterministic daily state.
-- Invalid comparison: Mismatched configuration, seed, data identity, clock, or unsettled branch blocks polished deltas.
+- Policies: Cheapest completion, fastest restoration, and fairness first.
+- Shared inputs: Reels, projects, routes, disruption realization, seed, and clock.
+- Executed comparisons: Cheapest versus fastest and cheapest versus fairness first.
+- Clock and replay: Start, pause, step, resume, seek, replay, and reload reconstruct deterministic daily state.
+- Invalid comparison: Mismatched inputs, hidden truth, metrics, clock, or terminal state blocks settlement.
 
 ## What can and cannot be claimed?
 
 Can claim:
 
-- The solver finds the exact optimum within the declared network model.
-- Selection changes the complete scenario and its receipts.
-- Redistribution can be compared with local-only service on identical inputs.
-- Ensemble ranges describe declared scenario variance.
+- Each displayed transfer is backed by the same transfer identity in state and receipts.
+- Dispatch decrements its source reel; arrival advances its destination project.
+- The solver is exact over the declared feasible graph and policy score.
+- Controls rebuild scenario identity and materially alter causal inputs or outcomes.
 
 Cannot claim:
 
-- The events represent actual community demand or participants.
-- Hub inventories or exchanges are observed.
-- Standards evidence proves real compatibility outcomes.
-- Modeled burden measures real travel, labor, or emissions.
+- Depot inventory, projects, costs, vehicles, disruptions, or delivery times are observed.
+- Standards-family context validates a specific installation.
+- Modeled policy results predict real restoration operations.
+- Targeted browser audits prove the reviewed paths, not the complete release evidence matrix.
 
 ## What is verified?
 
-- Unit tests: passing in `tests/cable-trader.test.cjs`
-- Deterministic replay: verified
-- Comparison execution: verified as two settled branches
-- Desktop browser: not rerun for the current worktree
-- Mobile browser: not rerun for the current worktree
-- Known unresolved failures: none in the bound evidence matrix
+- Focused tests: 16/16 passing in `tests/cable-trader.test.cjs`
+- Deterministic replay and reel conservation: covered
+- Three policy executions and two synchronized comparisons: covered
+- Desktop browser: settled Compare audit passed with three policy traces
+- Mobile browser: 390×844 mid-run intervention audit passed
+- Remaining browser boundary: complete profile evidence and release matrix not run
 
 ## Where is it implemented?
 
 - [Plugin entry](../../../public/shared/plugins/cable-trader/index.js)
+- [Logistics engine](../../../public/shared/plugins/cable-trader/logistics-engine.js)
+- [Presentation adapter](../../../public/shared/plugins/cable-trader/logistics-presentation.js)
 - [Configuration](../../../public/shared/plugins/cable-trader/default-config.json)
-- [Network simulation](../../../public/shared/plugins/cable-trader/network-simulation.js)
 - [v4 contribution](../../../public/shared/plugins/cable-trader/v4-contribution.js)
 - [Profile](../../../public/data/application-profiles/cable-trader-pickup-v1.json)
-- [Governed data](../../../public/data/cable-trader/cable-compatibility-priors-v1.json)
+- [Governed catalog](../../../public/data/cable-trader/cable-logistics-catalog-v1.json)
 - [Focused tests](../../../tests/cable-trader.test.cjs)
-- [Evidence index](../../../artifacts/profile-evidence/index.json)

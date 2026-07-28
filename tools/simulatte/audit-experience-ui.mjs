@@ -14,7 +14,6 @@ const PUBLIC = path.join(ROOT, 'public');
 const PROFILES = [
   ['city', 'cable-trader-pickup-v1'],
   ['city', 'neighborhood-bulk-pool-v1'],
-  ['city', 'safety-explorer-v1'],
   ['city', 'sun-walker-v1'],
   ['country', 'food-recall-us-v1'],
   ['country', 'grid-resilience-us-v1'],
@@ -24,6 +23,23 @@ const PROFILES = [
   ['solar-system', 'asteroid-defense-v1'],
   ['star-chart', 'interstellar-relay-network-v1'],
 ];
+
+function selectedProfiles(argv = process.argv.slice(2)) {
+  const index = argv.indexOf('--profile');
+  if (index < 0) return PROFILES;
+  const profileId = argv[index + 1];
+  const selected = PROFILES.filter((row) => row[1] === profileId);
+  if (!selected.length) throw new Error(`Unknown experience UI profile ${profileId || 'missing'}`);
+  return selected;
+}
+
+function selectedViewport(argv = process.argv.slice(2)) {
+  const index = argv.indexOf('--viewport');
+  if (index < 0) return { width: 1440, height: 1000 };
+  const match = /^(\d+)x(\d+)$/.exec(argv[index + 1] || '');
+  if (!match) throw new Error('Experience UI viewport must use WIDTHxHEIGHT');
+  return { width: Number(match[1]), height: Number(match[2]) };
+}
 
 async function availablePort() {
   return new Promise((resolve, reject) => {
@@ -81,6 +97,74 @@ async function waitForReady(client, profileId) {
   }
 }
 
+async function exercisePlayback(client, minimumStep = 4, {
+  intervene = false,
+  settle = false,
+  compare = false,
+} = {}) {
+  await evaluate(client, `document.getElementById('start-button')?.click()`);
+  const started = Date.now();
+  for (;;) {
+    const state = await evaluate(client, `(() => ({
+      phase: document.body?.dataset.journeyPhase || '',
+      current: Number(document.getElementById('playback-timeline')?.value || 0),
+      canPause: !document.getElementById('pause-button')?.hidden,
+      failed: globalThis.__simulatteLastFailError?.message || '',
+    }))()`);
+    if (state.failed || state.phase === 'failed') throw new Error(state.failed || 'Playback failed');
+    if (state.canPause || state.phase === 'completed') break;
+    if (Date.now() - started > 30000) throw new Error('Playback did not become pausable');
+    await new Promise((resolve) => setTimeout(resolve, 20));
+  }
+  await evaluate(client, `document.getElementById('pause-button')?.click()`);
+  while (true) {
+    const current = await evaluate(client, `Number(document.getElementById('playback-timeline')?.value || 0)`);
+    if (current >= minimumStep) break;
+    await evaluate(client, `document.getElementById('step-button')?.click()`);
+    const before = current;
+    for (let attempt = 0; attempt < 200; attempt += 1) {
+      const next = await evaluate(client, `Number(document.getElementById('playback-timeline')?.value || 0)`);
+      if (next > before) break;
+      await new Promise((resolve) => setTimeout(resolve, 10));
+    }
+  }
+  if (intervene) {
+    const applied = await evaluate(client, `(() => {
+      const button = [...document.querySelectorAll('#plugin-map-ui button')]
+        .find((row) => row.textContent.trim() === 'Release depot reserves');
+      button?.click();
+      return Boolean(button);
+    })()`);
+    if (!applied) throw new Error('Cable intervention action was not available during playback');
+    await new Promise((resolve) => setTimeout(resolve, 250));
+  }
+  if (settle) {
+    await evaluate(client, `document.getElementById('start-button')?.click()`);
+    const resumed = Date.now();
+    for (;;) {
+      const state = await evaluate(client, `(() => ({
+        phase: document.body?.dataset.journeyPhase || '',
+        status: document.getElementById('runtime-status')?.textContent?.trim() || '',
+        failed: globalThis.__simulatteLastFailError?.message || '',
+      }))()`);
+      if (state.failed || state.phase === 'failed') throw new Error(state.failed || 'Playback failed');
+      if (state.phase === 'completed') break;
+      if (Date.now() - resumed > 30000) throw new Error(`Playback did not settle: ${JSON.stringify(state)}`);
+      await new Promise((resolve) => setTimeout(resolve, 20));
+    }
+  }
+  if (compare) {
+    const selected = await evaluate(client, `(() => {
+      const button = document.getElementById('camera-compare');
+      if (!button || button.disabled || button.hidden) return false;
+      button.click();
+      return true;
+    })()`);
+    if (!selected) throw new Error('Compare camera was unavailable');
+  }
+  await new Promise((resolve) => setTimeout(resolve, 250));
+}
+
 async function probe(client) {
   return evaluate(client, `(() => {
     const platform = globalThis.__simulattePluginPlatformV4;
@@ -120,6 +204,10 @@ async function probe(client) {
           .slice(0, 6)
           .map((field) => ({ id: field.id, label: field.label, value: field.value, unit: field.unit })),
       })),
+      comparisonLayerKinds: (platform?.contributions || []).flatMap((contribution) => (
+        contribution.presentation?.layers || []
+      )).filter((layer) => layer.role === 'comparison').map((layer) => layer.quantity?.kind),
+      compareSelected: document.getElementById('camera-compare')?.getAttribute('aria-pressed') === 'true',
       controlsButtonVisible: isVisible(document.getElementById('decisions-button')),
       missionDockVisible: isVisible(document.querySelector('.mission-dock')),
       experienceSummary: (() => {
@@ -145,6 +233,7 @@ async function main() {
   const chromePath = findChrome('');
   const sitePort = await availablePort();
   const debugPort = await availablePort();
+  const viewport = selectedViewport();
   const server = createStaticSiteServer({ publicRoot: PUBLIC });
   await new Promise((resolve) => server.listen(sitePort, '127.0.0.1', resolve));
   const profileDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'simulatte-ui-probe-'));
@@ -156,7 +245,7 @@ async function main() {
     '--no-default-browser-check',
     `--user-data-dir=${profileDirectory}`,
     `--remote-debugging-port=${debugPort}`,
-    '--window-size=1440,1000',
+    `--window-size=${viewport.width},${viewport.height}`,
     'about:blank',
   ], { stdio: ['ignore', 'ignore', 'ignore'] });
   let client;
@@ -167,28 +256,39 @@ async function main() {
     await client.send('Runtime.enable');
     await client.send('Page.enable');
     const results = [];
-    for (const [tier, profileId] of PROFILES) {
+    const filteredRun = process.argv.includes('--profile');
+    for (const [tier, profileId] of selectedProfiles()) {
       await client.send('Page.navigate', { url: `http://127.0.0.1:${sitePort}/${tier}/${profileId}` });
       await waitForReady(client, profileId);
+      if (process.argv.includes('--exercise')) {
+        await exercisePlayback(client, 4, {
+          intervene: process.argv.includes('--intervene'),
+          settle: process.argv.includes('--settle'),
+          compare: process.argv.includes('--compare'),
+        });
+      }
       results.push(await probe(client));
     }
-    await client.send('Page.navigate', { url: `http://127.0.0.1:${sitePort}/country/food-recall-us-v1` });
-    await waitForReady(client, 'food-recall-us-v1');
-    await evaluate(client, `(() => {
-      const select = document.getElementById('application-profile');
-      select.value = 'grid-resilience-us-v1';
-      select.dispatchEvent(new Event('change', { bubbles: true }));
-    })()`);
-    await waitForReady(client, 'grid-resilience-us-v1');
-    const switchResult = await evaluate(client, `(() => ({
+    let switchResult = null;
+    if (!filteredRun) {
+      await client.send('Page.navigate', { url: `http://127.0.0.1:${sitePort}/country/food-recall-us-v1` });
+      await waitForReady(client, 'food-recall-us-v1');
+      await evaluate(client, `(() => {
+        const select = document.getElementById('application-profile');
+        select.value = 'grid-resilience-us-v1';
+        select.dispatchEvent(new Event('change', { bubbles: true }));
+      })()`);
+      await waitForReady(client, 'grid-resilience-us-v1');
+      switchResult = await evaluate(client, `(() => ({
       summaryCount: document.querySelectorAll('#experience-summary').length,
       summaryExperienceId: document.getElementById('experience-summary')?.dataset.experienceId || null,
       summaryText: document.getElementById('experience-summary')?.innerText.replace(/\\s+/g, ' ').trim() || '',
       mapOwners: [...document.querySelectorAll('#plugin-map-ui [data-plugin-id]')].map((row) => row.dataset.pluginId),
       controlOwners: [...document.querySelectorAll('[data-plugin-control]')].map((row) => row.closest('[data-plugin-id]')?.dataset.pluginId),
-    }))()`);
-    await evaluate(client, `document.getElementById('decisions-button').click()`);
-    switchResult.drawerOpen = await evaluate(client, `document.getElementById('decisions-drawer').classList.contains('is-open')`);
+      }))()`);
+      await evaluate(client, `document.getElementById('decisions-button').click()`);
+      switchResult.drawerOpen = await evaluate(client, `document.getElementById('decisions-drawer').classList.contains('is-open')`);
+    }
     const screenshot = await client.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false });
     const screenshotPath = path.join(os.tmpdir(), 'simulatte-experience-ui-probe.png');
     fs.writeFileSync(screenshotPath, Buffer.from(screenshot.data, 'base64'));
@@ -213,10 +313,10 @@ async function main() {
         ...(Number(row.firstInspectorControlCount) === row.expected.length ? [] : [`${row.profileId}: parameters were not first in the inspector`]),
       ];
     });
-    if (switchResult.summaryCount !== 1) failures.push(`experience switch left ${switchResult.summaryCount} shared summaries`);
-    if (switchResult.summaryExperienceId !== 'grid-resilience-us-v1') failures.push('experience summary did not bind Grid Resilience');
-    if (!switchResult.controlOwners.every((id) => id === 'grid-resilience-us')) failures.push('stale control owner remained after switch');
-    if (!switchResult.drawerOpen) failures.push('Controls button did not open the parameter drawer');
+    if (switchResult?.summaryCount !== undefined && switchResult.summaryCount !== 1) failures.push(`experience switch left ${switchResult.summaryCount} shared summaries`);
+    if (switchResult && switchResult.summaryExperienceId !== 'grid-resilience-us-v1') failures.push('experience summary did not bind Grid Resilience');
+    if (switchResult && !switchResult.controlOwners.every((id) => id === 'grid-resilience-us')) failures.push('stale control owner remained after switch');
+    if (switchResult && !switchResult.drawerOpen) failures.push('Controls button did not open the parameter drawer');
     const report = {
       pass: failures.length === 0,
       failures,
@@ -227,6 +327,8 @@ async function main() {
         contributionStates: row.contributionStates.length,
         sideMetrics: row.experienceSummary.text || null,
         pluginHudCards: row.pluginHudCardCount,
+        comparisonLayerKinds: row.comparisonLayerKinds,
+        compareSelected: row.compareSelected,
       })),
       switchResult,
       screenshotPath,

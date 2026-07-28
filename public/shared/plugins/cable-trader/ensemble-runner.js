@@ -29,10 +29,10 @@
         simulation: { ...config.simulation, seed: baseSeed },
       };
       const intervention = network.simulateNetwork(memberConfig, transferRoutes, {
-        allocationPolicy: 'optimized',
+        allocationPolicy: config.simulation.allocationObjective,
       });
       const baseline = network.simulateNetwork(memberConfig, transferRoutes, {
-        allocationPolicy: 'local-only',
+        allocationPolicy: 'cheapest',
         exogenous: intervention.exogenous,
       });
       assertMatchedMember(baseline, intervention);
@@ -117,7 +117,7 @@
     const inventories = simulation.hubStats.map((row) => row.endingInventory);
     return {
       fulfillmentPercent: simulation.summary.fulfillmentPercent,
-      unservedDemandEvents: simulation.summary.needs - simulation.summary.fulfilledNeeds,
+      unservedDemandEvents: simulation.summary.shortageMeters,
       transferBurden: simulation.summary.totalBurden,
       inventoryDepletion: simulation.summary.startingInventory - simulation.summary.endingInventory,
       hubInventoryImbalance: Math.max(...inventories) - Math.min(...inventories),

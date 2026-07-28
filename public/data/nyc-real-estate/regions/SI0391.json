@@ -1,0 +1,1385 @@
+{
+  "capacitySites": [
+    {
+      "address": "ARTHUR KILL ROAD",
+      "affordableResidentialFar": 0,
+      "availableCommercialFar": 2,
+      "availableFar": 2,
+      "availableResidentialFar": 0,
+      "bbl": "5027250001",
+      "boroughId": "staten-island",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 2,
+      "coordinates": [
+        -74.2033836,
+        40.5762652
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:5027250001",
+      "landUseCode": "11",
+      "lotAreaSquareFeet": 3659040,
+      "potentialCommercialFloorAreaSquareFeet": 7318080,
+      "potentialFloorAreaSquareFeet": 7318080,
+      "potentialResidentialFloorAreaSquareFeet": 0,
+      "potentialResidentialUnitsClass1": 0,
+      "potentialResidentialUnitsClass2": 0,
+      "regionId": "SI0391",
+      "residentialFar": 0,
+      "sourceRowIds": [
+        "pluto:5027250001"
+      ],
+      "zoningDistricts": [
+        "M3-1"
+      ]
+    },
+    {
+      "address": "ARTHUR KILL ROAD",
+      "affordableResidentialFar": 0,
+      "availableCommercialFar": 1,
+      "availableFar": 1,
+      "availableResidentialFar": 0,
+      "bbl": "5059000014",
+      "boroughId": "staten-island",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 1,
+      "coordinates": [
+        -74.1910121,
+        40.5627244
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:5059000014",
+      "landUseCode": "11",
+      "lotAreaSquareFeet": 3798,
+      "potentialCommercialFloorAreaSquareFeet": 3798,
+      "potentialFloorAreaSquareFeet": 3798,
+      "potentialResidentialFloorAreaSquareFeet": 0,
+      "potentialResidentialUnitsClass1": 0,
+      "potentialResidentialUnitsClass2": 0,
+      "regionId": "SI0391",
+      "residentialFar": 0,
+      "sourceRowIds": [
+        "pluto:5059000014"
+      ],
+      "zoningDistricts": [
+        "M1-1"
+      ]
+    },
+    {
+      "address": "ARTHUR KILL ROAD",
+      "affordableResidentialFar": 0,
+      "availableCommercialFar": 1,
+      "availableFar": 1,
+      "availableResidentialFar": 0,
+      "bbl": "5059000015",
+      "boroughId": "staten-island",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 1,
+      "coordinates": [
+        -74.19222,
+        40.5635019
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:5059000015",
+      "landUseCode": "10",
+      "lotAreaSquareFeet": 43590,
+      "potentialCommercialFloorAreaSquareFeet": 43590,
+      "potentialFloorAreaSquareFeet": 43590,
+      "potentialResidentialFloorAreaSquareFeet": 0,
+      "potentialResidentialUnitsClass1": 0,
+      "potentialResidentialUnitsClass2": 0,
+      "regionId": "SI0391",
+      "residentialFar": 0,
+      "sourceRowIds": [
+        "pluto:5059000015"
+      ],
+      "zoningDistricts": [
+        "M1-1"
+      ]
+    },
+    {
+      "address": "1555 ARTHUR KILL ROAD",
+      "affordableResidentialFar": 0,
+      "availableCommercialFar": 1,
+      "availableFar": 1,
+      "availableResidentialFar": 0,
+      "bbl": "5059000017",
+      "boroughId": "staten-island",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 1,
+      "coordinates": [
+        -74.1920342,
+        40.5627309
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:5059000017",
+      "landUseCode": null,
+      "lotAreaSquareFeet": 4920,
+      "potentialCommercialFloorAreaSquareFeet": 4920,
+      "potentialFloorAreaSquareFeet": 4920,
+      "potentialResidentialFloorAreaSquareFeet": 0,
+      "potentialResidentialUnitsClass1": 0,
+      "potentialResidentialUnitsClass2": 0,
+      "regionId": "SI0391",
+      "residentialFar": 0,
+      "sourceRowIds": [
+        "pluto:5059000017"
+      ],
+      "zoningDistricts": [
+        "M1-1"
+      ]
+    },
+    {
+      "address": "ARTHUR KILL ROAD",
+      "affordableResidentialFar": 0,
+      "availableCommercialFar": 1,
+      "availableFar": 1,
+      "availableResidentialFar": 0,
+      "bbl": "5059000027",
+      "boroughId": "staten-island",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 1,
+      "coordinates": [
+        -74.191516,
+        40.5627482
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:5059000027",
+      "landUseCode": "11",
+      "lotAreaSquareFeet": 7800,
+      "potentialCommercialFloorAreaSquareFeet": 7800,
+      "potentialFloorAreaSquareFeet": 7800,
+      "potentialResidentialFloorAreaSquareFeet": 0,
+      "potentialResidentialUnitsClass1": 0,
+      "potentialResidentialUnitsClass2": 0,
+      "regionId": "SI0391",
+      "residentialFar": 0,
+      "sourceRowIds": [
+        "pluto:5059000027"
+      ],
+      "zoningDistricts": [
+        "M1-1"
+      ]
+    },
+    {
+      "address": "1529 ARTHUR KILL ROAD",
+      "affordableResidentialFar": 0,
+      "availableCommercialFar": 1,
+      "availableFar": 1,
+      "availableResidentialFar": 0,
+      "bbl": "5059000033",
+      "boroughId": "staten-island",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 1,
+      "coordinates": [
+        -74.1910989,
+        40.5628971
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:5059000033",
+      "landUseCode": "11",
+      "lotAreaSquareFeet": 6372,
+      "potentialCommercialFloorAreaSquareFeet": 6372,
+      "potentialFloorAreaSquareFeet": 6372,
+      "potentialResidentialFloorAreaSquareFeet": 0,
+      "potentialResidentialUnitsClass1": 0,
+      "potentialResidentialUnitsClass2": 0,
+      "regionId": "SI0391",
+      "residentialFar": 0,
+      "sourceRowIds": [
+        "pluto:5059000033"
+      ],
+      "zoningDistricts": [
+        "M1-1"
+      ]
+    },
+    {
+      "address": "1525 ARTHUR KILL ROAD",
+      "affordableResidentialFar": 0,
+      "availableCommercialFar": 1,
+      "availableFar": 1,
+      "availableResidentialFar": 0,
+      "bbl": "5059000039",
+      "boroughId": "staten-island",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 1,
+      "coordinates": [
+        -74.1908583,
+        40.5630787
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:5059000039",
+      "landUseCode": "11",
+      "lotAreaSquareFeet": 8642,
+      "potentialCommercialFloorAreaSquareFeet": 8642,
+      "potentialFloorAreaSquareFeet": 8642,
+      "potentialResidentialFloorAreaSquareFeet": 0,
+      "potentialResidentialUnitsClass1": 0,
+      "potentialResidentialUnitsClass2": 0,
+      "regionId": "SI0391",
+      "residentialFar": 0,
+      "sourceRowIds": [
+        "pluto:5059000039"
+      ],
+      "zoningDistricts": [
+        "M1-1"
+      ]
+    },
+    {
+      "address": "ARTHUR KILL ROAD",
+      "affordableResidentialFar": 0,
+      "availableCommercialFar": 1,
+      "availableFar": 1,
+      "availableResidentialFar": 0,
+      "bbl": "5059000050",
+      "boroughId": "staten-island",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 1,
+      "coordinates": [
+        -74.1907821,
+        40.5628647
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:5059000050",
+      "landUseCode": "11",
+      "lotAreaSquareFeet": 1704,
+      "potentialCommercialFloorAreaSquareFeet": 1704,
+      "potentialFloorAreaSquareFeet": 1704,
+      "potentialResidentialFloorAreaSquareFeet": 0,
+      "potentialResidentialUnitsClass1": 0,
+      "potentialResidentialUnitsClass2": 0,
+      "regionId": "SI0391",
+      "residentialFar": 0,
+      "sourceRowIds": [
+        "pluto:5059000050"
+      ],
+      "zoningDistricts": [
+        "M1-1"
+      ]
+    },
+    {
+      "address": "1315 ARTHUR KILL ROAD",
+      "affordableResidentialFar": 0,
+      "availableCommercialFar": 1,
+      "availableFar": 1,
+      "availableResidentialFar": 0,
+      "bbl": "5059000100",
+      "boroughId": "staten-island",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 1,
+      "coordinates": [
+        -74.1879089,
+        40.5688586
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:5059000100",
+      "landUseCode": "7",
+      "lotAreaSquareFeet": 10323720,
+      "potentialCommercialFloorAreaSquareFeet": 10323720,
+      "potentialFloorAreaSquareFeet": 10323720,
+      "potentialResidentialFloorAreaSquareFeet": 0,
+      "potentialResidentialUnitsClass1": 0,
+      "potentialResidentialUnitsClass2": 0,
+      "regionId": "SI0391",
+      "residentialFar": 0,
+      "sourceRowIds": [
+        "pluto:5059000100"
+      ],
+      "zoningDistricts": [
+        "M1-1"
+      ]
+    },
+    {
+      "address": "1323 WEST SERVICE ROAD",
+      "affordableResidentialFar": 0,
+      "availableCommercialFar": 1.99,
+      "availableFar": 1.99,
+      "availableResidentialFar": 0,
+      "bbl": "5059000500",
+      "boroughId": "staten-island",
+      "builtAreaSquareFeet": 80875,
+      "builtFar": 0.01,
+      "commercialFar": 2,
+      "coordinates": [
+        -74.1977282,
+        40.5713345
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 71,
+      "id": "capacity:5059000500",
+      "landUseCode": "7",
+      "lotAreaSquareFeet": 12369565,
+      "potentialCommercialFloorAreaSquareFeet": 24615434.35,
+      "potentialFloorAreaSquareFeet": 24615434.35,
+      "potentialResidentialFloorAreaSquareFeet": 0,
+      "potentialResidentialUnitsClass1": 0,
+      "potentialResidentialUnitsClass2": 0,
+      "regionId": "SI0391",
+      "residentialFar": 0,
+      "sourceRowIds": [
+        "pluto:5059000500"
+      ],
+      "zoningDistricts": [
+        "M3-1",
+        "M2-1"
+      ]
+    },
+    {
+      "address": "ARTHUR KILL ROAD",
+      "affordableResidentialFar": 0,
+      "availableCommercialFar": 1,
+      "availableFar": 1,
+      "availableResidentialFar": 0,
+      "bbl": "5059650100",
+      "boroughId": "staten-island",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 1,
+      "coordinates": [
+        -74.1967838,
+        40.5611116
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:5059650100",
+      "landUseCode": "9",
+      "lotAreaSquareFeet": 421868,
+      "potentialCommercialFloorAreaSquareFeet": 421868,
+      "potentialFloorAreaSquareFeet": 421868,
+      "potentialResidentialFloorAreaSquareFeet": 0,
+      "potentialResidentialUnitsClass1": 0,
+      "potentialResidentialUnitsClass2": 0,
+      "regionId": "SI0391",
+      "residentialFar": 0,
+      "sourceRowIds": [
+        "pluto:5059650100"
+      ],
+      "zoningDistricts": [
+        "M1-1"
+      ]
+    },
+    {
+      "address": "ARTHUR KILL ROAD",
+      "affordableResidentialFar": 0,
+      "availableCommercialFar": 2,
+      "availableFar": 2,
+      "availableResidentialFar": 0,
+      "bbl": "5059650500",
+      "boroughId": "staten-island",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 2,
+      "coordinates": [
+        -74.2048939,
+        40.5663263
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:5059650500",
+      "landUseCode": "11",
+      "lotAreaSquareFeet": 5140080,
+      "potentialCommercialFloorAreaSquareFeet": 10280160,
+      "potentialFloorAreaSquareFeet": 10280160,
+      "potentialResidentialFloorAreaSquareFeet": 0,
+      "potentialResidentialUnitsClass1": 0,
+      "potentialResidentialUnitsClass2": 0,
+      "regionId": "SI0391",
+      "residentialFar": 0,
+      "sourceRowIds": [
+        "pluto:5059650500"
+      ],
+      "zoningDistricts": [
+        "M3-1"
+      ]
+    },
+    {
+      "address": "1540 ARTHUR KILL ROAD",
+      "affordableResidentialFar": 0,
+      "availableCommercialFar": 1.95,
+      "availableFar": 1.95,
+      "availableResidentialFar": 0,
+      "bbl": "5061690200",
+      "boroughId": "staten-island",
+      "builtAreaSquareFeet": 180000,
+      "builtFar": 0.05,
+      "commercialFar": 2,
+      "coordinates": [
+        -74.2066202,
+        40.5612618
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:5061690200",
+      "landUseCode": "7",
+      "lotAreaSquareFeet": 4000000,
+      "potentialCommercialFloorAreaSquareFeet": 7800000,
+      "potentialFloorAreaSquareFeet": 7800000,
+      "potentialResidentialFloorAreaSquareFeet": 0,
+      "potentialResidentialUnitsClass1": 0,
+      "potentialResidentialUnitsClass2": 0,
+      "regionId": "SI0391",
+      "residentialFar": 0,
+      "sourceRowIds": [
+        "pluto:5061690200"
+      ],
+      "zoningDistricts": [
+        "M3-1",
+        "M2-1"
+      ]
+    }
+  ],
+  "claimBoundary": "This NTA shard preserves every joined row retained from the governed source snapshot. The source snapshot itself samples large DOB jobs, constructed footprints, and PLUTO capacity candidates and is not a complete property history or feasibility inventory.",
+  "contentVersion": "2026-07-27",
+  "coverage": {
+    "capacityCandidates": 13,
+    "compilerRegionCap": null,
+    "developmentForecastSupportedBySector": {
+      "all": false,
+      "tax-class-1": false,
+      "tax-class-2": false,
+      "tax-class-4": true
+    },
+    "developmentSeriesRows": 5,
+    "historicalSites": 2,
+    "priceForecastSupportedBySector": {
+      "all": true,
+      "tax-class-1": false,
+      "tax-class-2": false,
+      "tax-class-4": false
+    },
+    "saleRows": 4,
+    "saleYearsBySector": {
+      "tax-class-1": [
+        2016,
+        2017,
+        2021
+      ],
+      "tax-class-2": [],
+      "tax-class-4": [
+        2024
+      ]
+    },
+    "sectorCandidateCounts": {
+      "all": 0,
+      "tax-class-1": 0,
+      "tax-class-2": 0,
+      "tax-class-4": 13
+    },
+    "sourceSampled": true
+  },
+  "developmentSeries": [
+    {
+      "filingCount": 1,
+      "id": "development:SI0391:2002",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "SI0391",
+      "sourceNtaNames": [
+        "Freshkills Park (South)"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2002
+    },
+    {
+      "filingCount": 2,
+      "id": "development:SI0391:2007",
+      "proposedZoningSquareFeet": 8517,
+      "regionId": "SI0391",
+      "sourceNtaNames": [
+        "Freshkills Park (South)"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2007
+    },
+    {
+      "filingCount": 4,
+      "id": "development:SI0391:2008",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "SI0391",
+      "sourceNtaNames": [
+        "Freshkills Park (South)"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2008
+    },
+    {
+      "filingCount": 3,
+      "id": "development:SI0391:2009",
+      "proposedZoningSquareFeet": 5575,
+      "regionId": "SI0391",
+      "sourceNtaNames": [
+        "Freshkills Park (South)"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2009
+    },
+    {
+      "filingCount": 1,
+      "id": "development:SI0391:2020",
+      "proposedZoningSquareFeet": 647,
+      "regionId": "SI0391",
+      "sourceNtaNames": [
+        "Freshkills Park (South)"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2020
+    }
+  ],
+  "developmentSites": [
+    {
+      "address": "1000 WEST SERVICE ROAD",
+      "bbl": "5130986",
+      "bin": "5130986",
+      "constructionYear": null,
+      "coordinates": [
+        -74.195327,
+        40.571144
+      ],
+      "footprint": [
+        [
+          -74.1961548,
+          40.5705152
+        ],
+        [
+          -74.1944992,
+          40.5705152
+        ],
+        [
+          -74.1944992,
+          40.5717728
+        ],
+        [
+          -74.1961548,
+          40.5717728
+        ],
+        [
+          -74.1961548,
+          40.5705152
+        ]
+      ],
+      "footprintAreaM2": 9718.03,
+      "footprintOrigin": "modeled",
+      "heightM": 14.02,
+      "id": "job:510113315:01",
+      "jobId": "510113315",
+      "milestones": [
+        {
+          "date": "2019-02-20",
+          "id": "job:510113315:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2020-07-17",
+          "id": "job:510113315:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2021-06-04",
+          "id": "job:510113315:01:fully-permitted:3",
+          "kind": "fully-permitted",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 2,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": 209208,
+      "regionId": "SI0391",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:3071247"
+      ],
+      "status": "PERMIT ISSUED - ENTIRE JOB/WORK",
+      "withdrawn": false
+    },
+    {
+      "address": "1000 WEST SERVICE ROAD",
+      "bbl": "5130986",
+      "bin": "5130986",
+      "constructionYear": null,
+      "coordinates": [
+        -74.195327,
+        40.571144
+      ],
+      "footprint": [
+        [
+          -74.1961548,
+          40.5705152
+        ],
+        [
+          -74.1944992,
+          40.5705152
+        ],
+        [
+          -74.1944992,
+          40.5717728
+        ],
+        [
+          -74.1961548,
+          40.5717728
+        ],
+        [
+          -74.1961548,
+          40.5705152
+        ]
+      ],
+      "footprintAreaM2": 19436.05,
+      "footprintOrigin": "modeled",
+      "heightM": 13.41,
+      "id": "job:510114029:01",
+      "jobId": "510114029",
+      "milestones": [
+        {
+          "date": "2020-01-14",
+          "id": "job:510114029:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2020-08-06",
+          "id": "job:510114029:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2021-05-11",
+          "id": "job:510114029:01:fully-permitted:3",
+          "kind": "fully-permitted",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 1,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": 209208,
+      "regionId": "SI0391",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:3190651"
+      ],
+      "status": "PERMIT ISSUED - ENTIRE JOB/WORK",
+      "withdrawn": false
+    }
+  ],
+  "id": "nyc-real-estate-region-si0391-v1",
+  "region": {
+    "abbreviation": "FrshklPK_S",
+    "areaM2": 47758770.6322,
+    "boroughId": "staten-island",
+    "boroughLabel": "Staten Island",
+    "bounds": {
+      "east": -74.1775804,
+      "north": 40.58017,
+      "south": 40.5558808,
+      "west": -74.2132403
+    },
+    "centroid": [
+      -74.2008718,
+      40.5680914
+    ],
+    "communityDistrictTabulationAreaId": "SI03",
+    "communityDistrictTabulationAreaLabel": "SI03 South Shore (CD 3 Approximation)",
+    "id": "SI0391",
+    "label": "Freshkills Park (South)",
+    "polygon": [
+      [
+        -74.197498,
+        40.578859
+      ],
+      [
+        -74.1919501,
+        40.576576
+      ],
+      [
+        -74.1906405,
+        40.576685
+      ],
+      [
+        -74.1905494,
+        40.5762984
+      ],
+      [
+        -74.189558,
+        40.57627
+      ],
+      [
+        -74.1891802,
+        40.5755256
+      ],
+      [
+        -74.1890399,
+        40.5726665
+      ],
+      [
+        -74.1874941,
+        40.5727868
+      ],
+      [
+        -74.1860992,
+        40.572528
+      ],
+      [
+        -74.1844026,
+        40.573007
+      ],
+      [
+        -74.183768,
+        40.5725591
+      ],
+      [
+        -74.1793692,
+        40.5705483
+      ],
+      [
+        -74.1775804,
+        40.5637554
+      ],
+      [
+        -74.1815956,
+        40.565318
+      ],
+      [
+        -74.1829582,
+        40.5654802
+      ],
+      [
+        -74.1838361,
+        40.5653098
+      ],
+      [
+        -74.185254,
+        40.5645494
+      ],
+      [
+        -74.1894775,
+        40.563581
+      ],
+      [
+        -74.1909167,
+        40.5626197
+      ],
+      [
+        -74.1931739,
+        40.5626043
+      ],
+      [
+        -74.1938615,
+        40.5622223
+      ],
+      [
+        -74.1976948,
+        40.5588871
+      ],
+      [
+        -74.2003191,
+        40.5563382
+      ],
+      [
+        -74.2011647,
+        40.5559418
+      ],
+      [
+        -74.2020776,
+        40.5558808
+      ],
+      [
+        -74.2032286,
+        40.5560811
+      ],
+      [
+        -74.2052004,
+        40.5573322
+      ],
+      [
+        -74.2069989,
+        40.5575675
+      ],
+      [
+        -74.2056961,
+        40.558516
+      ],
+      [
+        -74.2132403,
+        40.5566726
+      ],
+      [
+        -74.2131359,
+        40.557051
+      ],
+      [
+        -74.2126434,
+        40.5572897
+      ],
+      [
+        -74.212673,
+        40.5576476
+      ],
+      [
+        -74.2119984,
+        40.5583781
+      ],
+      [
+        -74.2117562,
+        40.5591248
+      ],
+      [
+        -74.2119703,
+        40.5592977
+      ],
+      [
+        -74.2118804,
+        40.5595969
+      ],
+      [
+        -74.2111744,
+        40.5604599
+      ],
+      [
+        -74.2113401,
+        40.5612304
+      ],
+      [
+        -74.211096,
+        40.5621315
+      ],
+      [
+        -74.21138,
+        40.5634922
+      ],
+      [
+        -74.2107267,
+        40.5652739
+      ],
+      [
+        -74.2096282,
+        40.5673184
+      ],
+      [
+        -74.2095347,
+        40.567928
+      ],
+      [
+        -74.2093218,
+        40.5680253
+      ],
+      [
+        -74.2088666,
+        40.5689098
+      ],
+      [
+        -74.2089264,
+        40.5696243
+      ],
+      [
+        -74.2080171,
+        40.570518
+      ],
+      [
+        -74.2081685,
+        40.5707194
+      ],
+      [
+        -74.2078356,
+        40.57261
+      ],
+      [
+        -74.207078,
+        40.5742663
+      ],
+      [
+        -74.2072843,
+        40.5752545
+      ],
+      [
+        -74.2068121,
+        40.575922
+      ],
+      [
+        -74.2070892,
+        40.5763056
+      ],
+      [
+        -74.2065804,
+        40.5766527
+      ],
+      [
+        -74.2065313,
+        40.5769016
+      ],
+      [
+        -74.2068083,
+        40.5771796
+      ],
+      [
+        -74.2063234,
+        40.5775388
+      ],
+      [
+        -74.2059173,
+        40.5786166
+      ],
+      [
+        -74.2060284,
+        40.5797643
+      ],
+      [
+        -74.204412,
+        40.58017
+      ],
+      [
+        -74.20295,
+        40.580102
+      ],
+      [
+        -74.200584,
+        40.579511
+      ],
+      [
+        -74.1988762,
+        40.5793036
+      ],
+      [
+        -74.197498,
+        40.578859
+      ]
+    ],
+    "spatialPolygons": [
+      {
+        "holes": [],
+        "outer": [
+          [
+            -74.197498,
+            40.578859
+          ],
+          [
+            -74.1919501,
+            40.576576
+          ],
+          [
+            -74.1906405,
+            40.576685
+          ],
+          [
+            -74.1905494,
+            40.5762984
+          ],
+          [
+            -74.189558,
+            40.57627
+          ],
+          [
+            -74.1891802,
+            40.5755256
+          ],
+          [
+            -74.1890399,
+            40.5726665
+          ],
+          [
+            -74.1874941,
+            40.5727868
+          ],
+          [
+            -74.1860992,
+            40.572528
+          ],
+          [
+            -74.1844026,
+            40.573007
+          ],
+          [
+            -74.183768,
+            40.5725591
+          ],
+          [
+            -74.1793692,
+            40.5705483
+          ],
+          [
+            -74.1775804,
+            40.5637554
+          ],
+          [
+            -74.1815956,
+            40.565318
+          ],
+          [
+            -74.1829582,
+            40.5654802
+          ],
+          [
+            -74.1838361,
+            40.5653098
+          ],
+          [
+            -74.185254,
+            40.5645494
+          ],
+          [
+            -74.1894775,
+            40.563581
+          ],
+          [
+            -74.1909167,
+            40.5626197
+          ],
+          [
+            -74.1931739,
+            40.5626043
+          ],
+          [
+            -74.1938615,
+            40.5622223
+          ],
+          [
+            -74.1976948,
+            40.5588871
+          ],
+          [
+            -74.2003191,
+            40.5563382
+          ],
+          [
+            -74.2011647,
+            40.5559418
+          ],
+          [
+            -74.2020776,
+            40.5558808
+          ],
+          [
+            -74.2032286,
+            40.5560811
+          ],
+          [
+            -74.2052004,
+            40.5573322
+          ],
+          [
+            -74.2069989,
+            40.5575675
+          ],
+          [
+            -74.2056961,
+            40.558516
+          ],
+          [
+            -74.2132403,
+            40.5566726
+          ],
+          [
+            -74.2131359,
+            40.557051
+          ],
+          [
+            -74.2126434,
+            40.5572897
+          ],
+          [
+            -74.212673,
+            40.5576476
+          ],
+          [
+            -74.2119984,
+            40.5583781
+          ],
+          [
+            -74.2117562,
+            40.5591248
+          ],
+          [
+            -74.2119703,
+            40.5592977
+          ],
+          [
+            -74.2118804,
+            40.5595969
+          ],
+          [
+            -74.2111744,
+            40.5604599
+          ],
+          [
+            -74.2113401,
+            40.5612304
+          ],
+          [
+            -74.211096,
+            40.5621315
+          ],
+          [
+            -74.21138,
+            40.5634922
+          ],
+          [
+            -74.2107267,
+            40.5652739
+          ],
+          [
+            -74.2096282,
+            40.5673184
+          ],
+          [
+            -74.2095347,
+            40.567928
+          ],
+          [
+            -74.2093218,
+            40.5680253
+          ],
+          [
+            -74.2088666,
+            40.5689098
+          ],
+          [
+            -74.2089264,
+            40.5696243
+          ],
+          [
+            -74.2080171,
+            40.570518
+          ],
+          [
+            -74.2081685,
+            40.5707194
+          ],
+          [
+            -74.2078356,
+            40.57261
+          ],
+          [
+            -74.207078,
+            40.5742663
+          ],
+          [
+            -74.2072843,
+            40.5752545
+          ],
+          [
+            -74.2068121,
+            40.575922
+          ],
+          [
+            -74.2070892,
+            40.5763056
+          ],
+          [
+            -74.2065804,
+            40.5766527
+          ],
+          [
+            -74.2065313,
+            40.5769016
+          ],
+          [
+            -74.2068083,
+            40.5771796
+          ],
+          [
+            -74.2063234,
+            40.5775388
+          ],
+          [
+            -74.2059173,
+            40.5786166
+          ],
+          [
+            -74.2060284,
+            40.5797643
+          ],
+          [
+            -74.204412,
+            40.58017
+          ],
+          [
+            -74.20295,
+            40.580102
+          ],
+          [
+            -74.200584,
+            40.579511
+          ],
+          [
+            -74.1988762,
+            40.5793036
+          ],
+          [
+            -74.197498,
+            40.578859
+          ]
+        ]
+      }
+    ]
+  },
+  "saleSeries": [
+    {
+      "id": "sale:SI0391:2016:tax-1",
+      "meanPriceUsd": 309003,
+      "medianPriceUsd": 309003,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "SI0391",
+      "saleCount": 1,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 1,
+      "year": 2016
+    },
+    {
+      "id": "sale:SI0391:2017:tax-1",
+      "meanPriceUsd": 328536,
+      "medianPriceUsd": 328536,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "SI0391",
+      "saleCount": 1,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 1,
+      "year": 2017
+    },
+    {
+      "id": "sale:SI0391:2021:tax-1",
+      "meanPriceUsd": 1957600,
+      "medianPriceUsd": 2300000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "SI0391",
+      "saleCount": 5,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 9,
+      "year": 2021
+    },
+    {
+      "id": "sale:SI0391:2024:tax-4",
+      "meanPriceUsd": 7100000,
+      "medianPriceUsd": 7100000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "SI0391",
+      "saleCount": 1,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 9,
+      "year": 2024
+    }
+  ],
+  "schema": "simulatte.nycRealEstateRegionShard.v1",
+  "sourceIdentities": [
+    {
+      "byteCount": 1008463,
+      "path": "nyc-annualized-sales-by-nta.json",
+      "sha256": "14c15020381466196236073ee3753ff7a5d74a76ec6af4605e96564abd2bf99a",
+      "sourceId": "nyc-real-estate-sales-annual"
+    },
+    {
+      "byteCount": 8977616,
+      "path": "nyc-final-certificates-of-occupancy.json",
+      "sha256": "966c237824a79aff9d5137d27b498ba4f3670cc19844738c5ce17a559388030e",
+      "sourceId": "nyc-real-estate-final-occupancy"
+    },
+    {
+      "byteCount": 8802596,
+      "path": "nyc-largest-constructed-footprints-2010-2026.geojson",
+      "sha256": "15745b9c62fa539e683737f0665fe91d95231e68d8c1b598e7ed211114811eb6",
+      "sourceId": "nyc-real-estate-constructed-footprints"
+    },
+    {
+      "byteCount": 1076754,
+      "path": "nyc-largest-new-building-jobs-bronx.json",
+      "sha256": "1a44c6cbfa364639e4b75957b2fab7e3c301f95bcfcfa90c50862fef85f450c1",
+      "sourceId": "nyc-real-estate-new-building-sample-bronx"
+    },
+    {
+      "byteCount": 1085334,
+      "path": "nyc-largest-new-building-jobs-brooklyn.json",
+      "sha256": "389e1825faff440d6fad5a12ed470f84e90859fd732262346a3414c5503693fd",
+      "sourceId": "nyc-real-estate-new-building-sample-brooklyn"
+    },
+    {
+      "byteCount": 1097625,
+      "path": "nyc-largest-new-building-jobs-manhattan.json",
+      "sha256": "6346678de380d58e325db14fc2e0611d993743be29898360e08f092eaa1f88e5",
+      "sourceId": "nyc-real-estate-new-building-sample-manhattan"
+    },
+    {
+      "byteCount": 1091065,
+      "path": "nyc-largest-new-building-jobs-queens.json",
+      "sha256": "79eb6f028b2135214d47a793101f72de695efcb02e4c2802cc10cd062c760a22",
+      "sourceId": "nyc-real-estate-new-building-sample-queens"
+    },
+    {
+      "byteCount": 1120592,
+      "path": "nyc-largest-new-building-jobs-staten-island.json",
+      "sha256": "e0870a431a75bdd235fc09b0ecd7503c45384f5e8b66beba545447c7bb3d960a",
+      "sourceId": "nyc-real-estate-new-building-sample-staten-island"
+    },
+    {
+      "byteCount": 1250280,
+      "path": "nyc-new-building-filings-by-nta-year.json",
+      "sha256": "4b75b0ad54a1ce5241b9c2e303be2cc24781e55a65fbf27be10d00a80bfeadea",
+      "sourceId": "nyc-real-estate-new-building-annual"
+    },
+    {
+      "byteCount": 4576764,
+      "path": "nyc-nta-2020.geojson",
+      "sha256": "c3dd069e094e2d2f647c1c102cd7e0570d033dd6131446bd1943a73210d09c56",
+      "sourceId": "nyc-real-estate-nta-boundaries"
+    },
+    {
+      "byteCount": 2402191,
+      "path": "nyc-pluto-capacity-bronx.json",
+      "sha256": "b45168721525e18a29aafcce335212632607021240869b738cbb96fbe2441389",
+      "sourceId": "nyc-real-estate-pluto-capacity-bronx"
+    },
+    {
+      "byteCount": 2403266,
+      "path": "nyc-pluto-capacity-brooklyn.json",
+      "sha256": "63b33a507c0bc26f7b71669cf032baa4950af2db77ce8712b876ca6f4c9f771b",
+      "sourceId": "nyc-real-estate-pluto-capacity-brooklyn"
+    },
+    {
+      "byteCount": 2464264,
+      "path": "nyc-pluto-capacity-manhattan.json",
+      "sha256": "91e3e1f5dce97a340475b51577458c8e48183f1138c334fbcce27d68001e9d25",
+      "sourceId": "nyc-real-estate-pluto-capacity-manhattan"
+    },
+    {
+      "byteCount": 2418903,
+      "path": "nyc-pluto-capacity-queens.json",
+      "sha256": "02a12d81466e89e05b9be9273198c5f857e86db5d2c95cfb717160ce4ccf99c1",
+      "sourceId": "nyc-real-estate-pluto-capacity-queens"
+    },
+    {
+      "byteCount": 1168016,
+      "path": "nyc-pluto-capacity-staten-island.json",
+      "sha256": "6d488f6ce46fa09930b669429275014a8ecedae6c85041fb465a15633c6a38b0",
+      "sourceId": "nyc-real-estate-pluto-capacity-staten-island"
+    }
+  ],
+  "truth": {
+    "origin": "observed",
+    "temporalStatus": "historical",
+    "uncertainty": {
+      "kind": "missing",
+      "value": {
+        "reason": "Administrative records have missing, revised, duplicated, and source-sampled fields without a shared statistical uncertainty model."
+      }
+    }
+  }
+}

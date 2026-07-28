@@ -14,8 +14,21 @@ const EXPERIENCE_FILES = Object.freeze([
   'interstellar-relay-network.md',
   'maritime-trade.md',
   'neighborhood-bulk-pool.md',
+  'nyc-development-atlas.md',
   'orbital-transfer-planner.md',
-  'safety-explorer.md',
+  'subsea-network.md',
+  'sun-walker.md',
+]);
+const IMPROVEMENT_FILES = Object.freeze([
+  'asteroid-defense.md',
+  'cable-trader.md',
+  'food-recall.md',
+  'grid-resilience.md',
+  'interstellar-relay-network.md',
+  'maritime-trade.md',
+  'neighborhood-bulk-pool.md',
+  'nyc-development-atlas.md',
+  'orbital-transfer-planner.md',
   'subsea-network.md',
   'sun-walker.md',
 ]);
@@ -32,6 +45,7 @@ const REQUIRED_HEADINGS = Object.freeze([
   '## What is verified?',
   '## Where is it implemented?',
 ]);
+const DISCONNECTED_EXPERIENCE_FILES = Object.freeze(['safety-explorer.md']);
 
 function read(relativePath) {
   return fs.readFileSync(path.join(ROOT, relativePath), 'utf8');
@@ -100,6 +114,59 @@ test('experience index links every canonical page and local links resolve', () =
       );
     }
   }
+});
+
+test('each implemented experience owns one structured improvement ledger', () => {
+  const improvementsDirectory = path.join(DOCS_DIRECTORY, 'improvements');
+  const actualFiles = fs.readdirSync(improvementsDirectory)
+    .filter((filename) => filename.endsWith('.md') && filename !== 'README.md')
+    .sort();
+  assert.deepEqual(actualFiles, [...IMPROVEMENT_FILES, ...DISCONNECTED_EXPERIENCE_FILES].sort());
+
+  const index = read('docs/simulatte/experiences/improvements/README.md');
+  for (const filename of IMPROVEMENT_FILES) {
+    assert.match(index, new RegExp(`\\(${filename.replace('.', '\\.')}\\)`), filename);
+    const relativePath = `docs/simulatte/experiences/improvements/${filename}`;
+    const markdown = read(relativePath);
+    const headings = [
+      '## Current state',
+      '## Improvement sweeps',
+      '## Frontier improvements',
+      '## Acceptance gates',
+    ];
+    let previous = -1;
+    for (const heading of headings) {
+      const current = markdown.indexOf(heading);
+      assert.ok(current > previous, `${filename}: ${heading} is missing or out of order`);
+      previous = current;
+    }
+    assert.match(section(markdown, '## Current state'), /Consistency baseline/);
+    assert.match(section(markdown, '## Current state'), /Interest baseline/);
+    assert.match(section(markdown, '## Current state'), /Browser evidence/);
+    assert.match(section(markdown, '## Improvement sweeps'), /\| 20\d\d-\d\d-\d\d \|/);
+    assert.ok(
+      section(markdown, '## Frontier improvements').trim().length >= 200,
+      `${filename}: frontier direction is missing`,
+    );
+    assert.ok(
+      (section(markdown, '## Acceptance gates').match(/^- \[ \] /gm) || []).length >= 5,
+      `${filename}: fewer than five acceptance gates`,
+    );
+    assert.equal(markdown.includes('—'), false, `${filename}: em dash is forbidden`);
+
+    const absolutePath = path.join(ROOT, relativePath);
+    for (const match of markdown.matchAll(/\[[^\]]+\]\(([^)]+)\)/g)) {
+      const target = match[1];
+      if (/^(?:https?:|#)/.test(target)) continue;
+      assert.ok(
+        fs.existsSync(path.resolve(path.dirname(absolutePath), target.split('#')[0])),
+        `${filename}: unresolved link ${target}`,
+      );
+    }
+  }
+  DISCONNECTED_EXPERIENCE_FILES.forEach((filename) => {
+    assert.doesNotMatch(index, new RegExp(`\\(${filename.replace('.', '\\.')}\\)`), filename);
+  });
 });
 
 test('legacy experience documents are thin canonical pointers', () => {

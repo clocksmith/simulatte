@@ -1,0 +1,486 @@
+{
+  "capacitySites": [],
+  "claimBoundary": "This NTA shard preserves every joined row retained from the governed source snapshot. The source snapshot itself samples large DOB jobs, constructed footprints, and PLUTO capacity candidates and is not a complete property history or feasibility inventory.",
+  "contentVersion": "2026-07-27",
+  "coverage": {
+    "capacityCandidates": 0,
+    "compilerRegionCap": null,
+    "developmentForecastSupportedBySector": {
+      "all": false,
+      "tax-class-1": false,
+      "tax-class-2": false,
+      "tax-class-4": false
+    },
+    "developmentSeriesRows": 1,
+    "historicalSites": 1,
+    "priceForecastSupportedBySector": {
+      "all": false,
+      "tax-class-1": false,
+      "tax-class-2": false,
+      "tax-class-4": false
+    },
+    "saleRows": 3,
+    "saleYearsBySector": {
+      "tax-class-1": [
+        2017,
+        2020
+      ],
+      "tax-class-2": [],
+      "tax-class-4": [
+        2025
+      ]
+    },
+    "sectorCandidateCounts": {
+      "all": 0,
+      "tax-class-1": 0,
+      "tax-class-2": 0,
+      "tax-class-4": 0
+    },
+    "sourceSampled": true
+  },
+  "developmentSeries": [
+    {
+      "filingCount": 3,
+      "id": "development:BK1061:2003",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "BK1061",
+      "sourceNtaNames": [
+        "Fort Hamilton"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2003
+    }
+  ],
+  "developmentSites": [
+    {
+      "address": null,
+      "bbl": "3061530001",
+      "bin": "3424975",
+      "constructionYear": 2016,
+      "coordinates": [
+        -74.0236409,
+        40.6058664
+      ],
+      "footprint": [
+        [
+          -74.0238276,
+          40.6061193
+        ],
+        [
+          -74.0234762,
+          40.6059138
+        ],
+        [
+          -74.0233665,
+          40.6060227
+        ],
+        [
+          -74.0231523,
+          40.6058973
+        ],
+        [
+          -74.0234483,
+          40.6056034
+        ],
+        [
+          -74.0236625,
+          40.6057287
+        ],
+        [
+          -74.0236406,
+          40.6057505
+        ],
+        [
+          -74.0236977,
+          40.6057839
+        ],
+        [
+          -74.0237197,
+          40.6057621
+        ],
+        [
+          -74.0237711,
+          40.6057922
+        ],
+        [
+          -74.0237492,
+          40.605814
+        ],
+        [
+          -74.023992,
+          40.605956
+        ],
+        [
+          -74.0238276,
+          40.6061193
+        ]
+      ],
+      "footprintAreaM2": 3151.12,
+      "footprintOrigin": "observed",
+      "heightM": 0,
+      "id": "footprint:70985",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2016-07-01",
+          "id": "footprint:70985:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1061",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:70985"
+      ]
+    }
+  ],
+  "id": "nyc-real-estate-region-bk1061-v1",
+  "region": {
+    "abbreviation": "FtHmltn",
+    "areaM2": 8464626.25915,
+    "boroughId": "brooklyn",
+    "boroughLabel": "Brooklyn",
+    "bounds": {
+      "east": -74.0187138,
+      "north": 40.6163293,
+      "south": 40.6028716,
+      "west": -74.0360398
+    },
+    "centroid": [
+      -74.0266136,
+      40.6086264
+    ],
+    "communityDistrictTabulationAreaId": "BK10",
+    "communityDistrictTabulationAreaLabel": "BK10 Bay Ridge-Dyker Heights (CD 10 Approximation)",
+    "id": "BK1061",
+    "label": "Fort Hamilton",
+    "polygon": [
+      [
+        -74.0247773,
+        40.609696
+      ],
+      [
+        -74.021506,
+        40.6078221
+      ],
+      [
+        -74.0224777,
+        40.6066742
+      ],
+      [
+        -74.0207854,
+        40.6056737
+      ],
+      [
+        -74.0214386,
+        40.604416
+      ],
+      [
+        -74.0187138,
+        40.6035821
+      ],
+      [
+        -74.0194276,
+        40.6028716
+      ],
+      [
+        -74.0210166,
+        40.6035556
+      ],
+      [
+        -74.0300515,
+        40.6047592
+      ],
+      [
+        -74.0327068,
+        40.6063311
+      ],
+      [
+        -74.0342728,
+        40.6077175
+      ],
+      [
+        -74.0348705,
+        40.6085823
+      ],
+      [
+        -74.0360398,
+        40.6092956
+      ],
+      [
+        -74.0331456,
+        40.6102275
+      ],
+      [
+        -74.0314464,
+        40.6111198
+      ],
+      [
+        -74.0262898,
+        40.6163293
+      ],
+      [
+        -74.0257499,
+        40.6160582
+      ],
+      [
+        -74.027543,
+        40.6129372
+      ],
+      [
+        -74.0263761,
+        40.6124506
+      ],
+      [
+        -74.0271066,
+        40.610244
+      ],
+      [
+        -74.0249793,
+        40.609742
+      ],
+      [
+        -74.0247773,
+        40.609696
+      ]
+    ],
+    "spatialPolygons": [
+      {
+        "holes": [],
+        "outer": [
+          [
+            -74.0247773,
+            40.609696
+          ],
+          [
+            -74.021506,
+            40.6078221
+          ],
+          [
+            -74.0224777,
+            40.6066742
+          ],
+          [
+            -74.0207854,
+            40.6056737
+          ],
+          [
+            -74.0214386,
+            40.604416
+          ],
+          [
+            -74.0187138,
+            40.6035821
+          ],
+          [
+            -74.0194276,
+            40.6028716
+          ],
+          [
+            -74.0210166,
+            40.6035556
+          ],
+          [
+            -74.0300515,
+            40.6047592
+          ],
+          [
+            -74.0327068,
+            40.6063311
+          ],
+          [
+            -74.0342728,
+            40.6077175
+          ],
+          [
+            -74.0348705,
+            40.6085823
+          ],
+          [
+            -74.0360398,
+            40.6092956
+          ],
+          [
+            -74.0331456,
+            40.6102275
+          ],
+          [
+            -74.0314464,
+            40.6111198
+          ],
+          [
+            -74.0262898,
+            40.6163293
+          ],
+          [
+            -74.0257499,
+            40.6160582
+          ],
+          [
+            -74.027543,
+            40.6129372
+          ],
+          [
+            -74.0263761,
+            40.6124506
+          ],
+          [
+            -74.0271066,
+            40.610244
+          ],
+          [
+            -74.0249793,
+            40.609742
+          ],
+          [
+            -74.0247773,
+            40.609696
+          ]
+        ]
+      }
+    ]
+  },
+  "saleSeries": [
+    {
+      "id": "sale:BK1061:2017:tax-1",
+      "meanPriceUsd": 880000,
+      "medianPriceUsd": 880000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1061",
+      "saleCount": 1,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 1,
+      "year": 2017
+    },
+    {
+      "id": "sale:BK1061:2020:tax-1",
+      "meanPriceUsd": 802500,
+      "medianPriceUsd": 802500,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1061",
+      "saleCount": 2,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 4,
+      "year": 2020
+    },
+    {
+      "id": "sale:BK1061:2025:tax-4",
+      "meanPriceUsd": 2000000,
+      "medianPriceUsd": 2000000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1061",
+      "saleCount": 1,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 2,
+      "year": 2025
+    }
+  ],
+  "schema": "simulatte.nycRealEstateRegionShard.v1",
+  "sourceIdentities": [
+    {
+      "byteCount": 1008463,
+      "path": "nyc-annualized-sales-by-nta.json",
+      "sha256": "14c15020381466196236073ee3753ff7a5d74a76ec6af4605e96564abd2bf99a",
+      "sourceId": "nyc-real-estate-sales-annual"
+    },
+    {
+      "byteCount": 8977616,
+      "path": "nyc-final-certificates-of-occupancy.json",
+      "sha256": "966c237824a79aff9d5137d27b498ba4f3670cc19844738c5ce17a559388030e",
+      "sourceId": "nyc-real-estate-final-occupancy"
+    },
+    {
+      "byteCount": 8802596,
+      "path": "nyc-largest-constructed-footprints-2010-2026.geojson",
+      "sha256": "15745b9c62fa539e683737f0665fe91d95231e68d8c1b598e7ed211114811eb6",
+      "sourceId": "nyc-real-estate-constructed-footprints"
+    },
+    {
+      "byteCount": 1076754,
+      "path": "nyc-largest-new-building-jobs-bronx.json",
+      "sha256": "1a44c6cbfa364639e4b75957b2fab7e3c301f95bcfcfa90c50862fef85f450c1",
+      "sourceId": "nyc-real-estate-new-building-sample-bronx"
+    },
+    {
+      "byteCount": 1085334,
+      "path": "nyc-largest-new-building-jobs-brooklyn.json",
+      "sha256": "389e1825faff440d6fad5a12ed470f84e90859fd732262346a3414c5503693fd",
+      "sourceId": "nyc-real-estate-new-building-sample-brooklyn"
+    },
+    {
+      "byteCount": 1097625,
+      "path": "nyc-largest-new-building-jobs-manhattan.json",
+      "sha256": "6346678de380d58e325db14fc2e0611d993743be29898360e08f092eaa1f88e5",
+      "sourceId": "nyc-real-estate-new-building-sample-manhattan"
+    },
+    {
+      "byteCount": 1091065,
+      "path": "nyc-largest-new-building-jobs-queens.json",
+      "sha256": "79eb6f028b2135214d47a793101f72de695efcb02e4c2802cc10cd062c760a22",
+      "sourceId": "nyc-real-estate-new-building-sample-queens"
+    },
+    {
+      "byteCount": 1120592,
+      "path": "nyc-largest-new-building-jobs-staten-island.json",
+      "sha256": "e0870a431a75bdd235fc09b0ecd7503c45384f5e8b66beba545447c7bb3d960a",
+      "sourceId": "nyc-real-estate-new-building-sample-staten-island"
+    },
+    {
+      "byteCount": 1250280,
+      "path": "nyc-new-building-filings-by-nta-year.json",
+      "sha256": "4b75b0ad54a1ce5241b9c2e303be2cc24781e55a65fbf27be10d00a80bfeadea",
+      "sourceId": "nyc-real-estate-new-building-annual"
+    },
+    {
+      "byteCount": 4576764,
+      "path": "nyc-nta-2020.geojson",
+      "sha256": "c3dd069e094e2d2f647c1c102cd7e0570d033dd6131446bd1943a73210d09c56",
+      "sourceId": "nyc-real-estate-nta-boundaries"
+    },
+    {
+      "byteCount": 2402191,
+      "path": "nyc-pluto-capacity-bronx.json",
+      "sha256": "b45168721525e18a29aafcce335212632607021240869b738cbb96fbe2441389",
+      "sourceId": "nyc-real-estate-pluto-capacity-bronx"
+    },
+    {
+      "byteCount": 2403266,
+      "path": "nyc-pluto-capacity-brooklyn.json",
+      "sha256": "63b33a507c0bc26f7b71669cf032baa4950af2db77ce8712b876ca6f4c9f771b",
+      "sourceId": "nyc-real-estate-pluto-capacity-brooklyn"
+    },
+    {
+      "byteCount": 2464264,
+      "path": "nyc-pluto-capacity-manhattan.json",
+      "sha256": "91e3e1f5dce97a340475b51577458c8e48183f1138c334fbcce27d68001e9d25",
+      "sourceId": "nyc-real-estate-pluto-capacity-manhattan"
+    },
+    {
+      "byteCount": 2418903,
+      "path": "nyc-pluto-capacity-queens.json",
+      "sha256": "02a12d81466e89e05b9be9273198c5f857e86db5d2c95cfb717160ce4ccf99c1",
+      "sourceId": "nyc-real-estate-pluto-capacity-queens"
+    },
+    {
+      "byteCount": 1168016,
+      "path": "nyc-pluto-capacity-staten-island.json",
+      "sha256": "6d488f6ce46fa09930b669429275014a8ecedae6c85041fb465a15633c6a38b0",
+      "sourceId": "nyc-real-estate-pluto-capacity-staten-island"
+    }
+  ],
+  "truth": {
+    "origin": "observed",
+    "temporalStatus": "historical",
+    "uncertainty": {
+      "kind": "missing",
+      "value": {
+        "reason": "Administrative records have missing, revised, duplicated, and source-sampled fields without a shared statistical uncertainty model."
+      }
+    }
+  }
+}

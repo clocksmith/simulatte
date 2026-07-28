@@ -1,0 +1,3661 @@
+{
+  "capacitySites": [],
+  "claimBoundary": "This NTA shard preserves every joined row retained from the governed source snapshot. The source snapshot itself samples large DOB jobs, constructed footprints, and PLUTO capacity candidates and is not a complete property history or feasibility inventory.",
+  "contentVersion": "2026-07-27",
+  "coverage": {
+    "capacityCandidates": 0,
+    "compilerRegionCap": null,
+    "developmentForecastSupportedBySector": {
+      "all": false,
+      "tax-class-1": false,
+      "tax-class-2": false,
+      "tax-class-4": false
+    },
+    "developmentSeriesRows": 21,
+    "historicalSites": 22,
+    "priceForecastSupportedBySector": {
+      "all": true,
+      "tax-class-1": true,
+      "tax-class-2": true,
+      "tax-class-4": true
+    },
+    "saleRows": 30,
+    "saleYearsBySector": {
+      "tax-class-1": [
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "tax-class-2": [
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "tax-class-4": [
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024,
+        2025
+      ]
+    },
+    "sectorCandidateCounts": {
+      "all": 0,
+      "tax-class-1": 0,
+      "tax-class-2": 0,
+      "tax-class-4": 0
+    },
+    "sourceSampled": true
+  },
+  "developmentSeries": [
+    {
+      "filingCount": 162,
+      "id": "development:BK1802:2000",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "BK1802",
+      "sourceNtaNames": [
+        "Georgetown-Marine Park-Bergen Beach-Mill Basin",
+        "Marine Park-Mill Basin-Bergen Beach"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2000
+    },
+    {
+      "filingCount": 153,
+      "id": "development:BK1802:2001",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "BK1802",
+      "sourceNtaNames": [
+        "Georgetown-Marine Park-Bergen Beach-Mill Basin",
+        "Marine Park-Mill Basin-Bergen Beach"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2001
+    },
+    {
+      "filingCount": 88,
+      "id": "development:BK1802:2002",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "BK1802",
+      "sourceNtaNames": [
+        "Georgetown-Marine Park-Bergen Beach-Mill Basin",
+        "Marine Park-Mill Basin-Bergen Beach"
+      ],
+      "withdrawnFilingCount": 2,
+      "year": 2002
+    },
+    {
+      "filingCount": 310,
+      "id": "development:BK1802:2003",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "BK1802",
+      "sourceNtaNames": [
+        "Georgetown-Marine Park-Bergen Beach-Mill Basin",
+        "Marine Park-Mill Basin-Bergen Beach"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2003
+    },
+    {
+      "filingCount": 293,
+      "id": "development:BK1802:2004",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "BK1802",
+      "sourceNtaNames": [
+        "Georgetown-Marine Park-Bergen Beach-Mill Basin",
+        "Marine Park-Mill Basin-Bergen Beach"
+      ],
+      "withdrawnFilingCount": 21,
+      "year": 2004
+    },
+    {
+      "filingCount": 113,
+      "id": "development:BK1802:2005",
+      "proposedZoningSquareFeet": 6264,
+      "regionId": "BK1802",
+      "sourceNtaNames": [
+        "Georgetown-Marine Park-Bergen Beach-Mill Basin",
+        "Marine Park-Mill Basin-Bergen Beach"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2005
+    },
+    {
+      "filingCount": 103,
+      "id": "development:BK1802:2006",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "BK1802",
+      "sourceNtaNames": [
+        "Georgetown-Marine Park-Bergen Beach-Mill Basin",
+        "Marine Park-Mill Basin-Bergen Beach"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2006
+    },
+    {
+      "filingCount": 14,
+      "id": "development:BK1802:2007",
+      "proposedZoningSquareFeet": 7899,
+      "regionId": "BK1802",
+      "sourceNtaNames": [
+        "Georgetown-Marine Park-Bergen Beach-Mill Basin",
+        "Marine Park-Mill Basin-Bergen Beach"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2007
+    },
+    {
+      "filingCount": 18,
+      "id": "development:BK1802:2008",
+      "proposedZoningSquareFeet": 15632,
+      "regionId": "BK1802",
+      "sourceNtaNames": [
+        "Georgetown-Marine Park-Bergen Beach-Mill Basin",
+        "Marine Park-Mill Basin-Bergen Beach"
+      ],
+      "withdrawnFilingCount": 1,
+      "year": 2008
+    },
+    {
+      "filingCount": 20,
+      "id": "development:BK1802:2009",
+      "proposedZoningSquareFeet": 62979,
+      "regionId": "BK1802",
+      "sourceNtaNames": [
+        "Georgetown-Marine Park-Bergen Beach-Mill Basin",
+        "Marine Park-Mill Basin-Bergen Beach"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2009
+    },
+    {
+      "filingCount": 11,
+      "id": "development:BK1802:2010",
+      "proposedZoningSquareFeet": 120750,
+      "regionId": "BK1802",
+      "sourceNtaNames": [
+        "Georgetown-Marine Park-Bergen Beach-Mill Basin",
+        "Marine Park-Mill Basin-Bergen Beach"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2010
+    },
+    {
+      "filingCount": 10,
+      "id": "development:BK1802:2011",
+      "proposedZoningSquareFeet": 8095,
+      "regionId": "BK1802",
+      "sourceNtaNames": [
+        "Georgetown-Marine Park-Bergen Beach-Mill Basin",
+        "Marine Park-Mill Basin-Bergen Beach"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2011
+    },
+    {
+      "filingCount": 1,
+      "id": "development:BK1802:2012",
+      "proposedZoningSquareFeet": 6297,
+      "regionId": "BK1802",
+      "sourceNtaNames": [
+        "Marine Park-Mill Basin-Bergen Beach"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2012
+    },
+    {
+      "filingCount": 11,
+      "id": "development:BK1802:2013",
+      "proposedZoningSquareFeet": 360380,
+      "regionId": "BK1802",
+      "sourceNtaNames": [
+        "Georgetown-Marine Park-Bergen Beach-Mill Basin",
+        "Marine Park-Mill Basin-Bergen Beach"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2013
+    },
+    {
+      "filingCount": 9,
+      "id": "development:BK1802:2014",
+      "proposedZoningSquareFeet": 8490,
+      "regionId": "BK1802",
+      "sourceNtaNames": [
+        "Georgetown-Marine Park-Bergen Beach-Mill Basin",
+        "Marine Park-Mill Basin-Bergen Beach"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2014
+    },
+    {
+      "filingCount": 54,
+      "id": "development:BK1802:2015",
+      "proposedZoningSquareFeet": 381775,
+      "regionId": "BK1802",
+      "sourceNtaNames": [
+        "Georgetown-Marine Park-Bergen Beach-Mill Basin",
+        "Marine Park-Mill Basin-Bergen Beach"
+      ],
+      "withdrawnFilingCount": 2,
+      "year": 2015
+    },
+    {
+      "filingCount": 12,
+      "id": "development:BK1802:2016",
+      "proposedZoningSquareFeet": 125795,
+      "regionId": "BK1802",
+      "sourceNtaNames": [
+        "Georgetown-Marine Park-Bergen Beach-Mill Basin",
+        "Marine Park-Mill Basin-Bergen Beach"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2016
+    },
+    {
+      "filingCount": 31,
+      "id": "development:BK1802:2017",
+      "proposedZoningSquareFeet": 16157,
+      "regionId": "BK1802",
+      "sourceNtaNames": [
+        "Georgetown-Marine Park-Bergen Beach-Mill Basin",
+        "Marine Park-Mill Basin-Bergen Beach"
+      ],
+      "withdrawnFilingCount": 4,
+      "year": 2017
+    },
+    {
+      "filingCount": 9,
+      "id": "development:BK1802:2018",
+      "proposedZoningSquareFeet": 17111,
+      "regionId": "BK1802",
+      "sourceNtaNames": [
+        "Georgetown-Marine Park-Bergen Beach-Mill Basin",
+        "Marine Park-Mill Basin-Bergen Beach"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2018
+    },
+    {
+      "filingCount": 5,
+      "id": "development:BK1802:2019",
+      "proposedZoningSquareFeet": 10125,
+      "regionId": "BK1802",
+      "sourceNtaNames": [
+        "Georgetown-Marine Park-Bergen Beach-Mill Basin",
+        "Marine Park-Mill Basin-Bergen Beach"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2019
+    },
+    {
+      "filingCount": 26,
+      "id": "development:BK1802:2020",
+      "proposedZoningSquareFeet": 454461,
+      "regionId": "BK1802",
+      "sourceNtaNames": [
+        "Georgetown-Marine Park-Bergen Beach-Mill Basin",
+        "Marine Park-Mill Basin-Bergen Beach"
+      ],
+      "withdrawnFilingCount": 2,
+      "year": 2020
+    }
+  ],
+  "developmentSites": [
+    {
+      "address": null,
+      "bbl": "3086170016",
+      "bin": "3243195",
+      "constructionYear": 2011,
+      "coordinates": [
+        -73.9064082,
+        40.6090676
+      ],
+      "footprint": [
+        [
+          -73.9062565,
+          40.6091111
+        ],
+        [
+          -73.9062393,
+          40.6090746
+        ],
+        [
+          -73.9062502,
+          40.6090717
+        ],
+        [
+          -73.9062476,
+          40.609066
+        ],
+        [
+          -73.9063199,
+          40.6090462
+        ],
+        [
+          -73.9063236,
+          40.6090542
+        ],
+        [
+          -73.9063288,
+          40.6090527
+        ],
+        [
+          -73.9063254,
+          40.6090455
+        ],
+        [
+          -73.90634,
+          40.6090289
+        ],
+        [
+          -73.9063846,
+          40.6090167
+        ],
+        [
+          -73.9064025,
+          40.6090296
+        ],
+        [
+          -73.9064093,
+          40.6090278
+        ],
+        [
+          -73.9064052,
+          40.609019
+        ],
+        [
+          -73.9064798,
+          40.6089986
+        ],
+        [
+          -73.9064847,
+          40.6090089
+        ],
+        [
+          -73.9065473,
+          40.6089917
+        ],
+        [
+          -73.9065741,
+          40.6090486
+        ],
+        [
+          -73.9065202,
+          40.6090634
+        ],
+        [
+          -73.9065265,
+          40.6090768
+        ],
+        [
+          -73.9064278,
+          40.6091069
+        ],
+        [
+          -73.9064199,
+          40.6091204
+        ],
+        [
+          -73.9063944,
+          40.6091274
+        ],
+        [
+          -73.9063719,
+          40.60912
+        ],
+        [
+          -73.9063549,
+          40.6091246
+        ],
+        [
+          -73.9063609,
+          40.6091374
+        ],
+        [
+          -73.9062565,
+          40.6091111
+        ]
+      ],
+      "footprintAreaM2": 427.36,
+      "footprintOrigin": "observed",
+      "heightM": 10.43,
+      "id": "footprint:103540",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2011-07-01",
+          "id": "footprint:103540:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1802",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:103540"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3084520017",
+      "bin": "3238246",
+      "constructionYear": 2011,
+      "coordinates": [
+        -73.9003735,
+        40.617091
+      ],
+      "footprint": [
+        [
+          -73.900463,
+          40.6170838
+        ],
+        [
+          -73.9003204,
+          40.6171753
+        ],
+        [
+          -73.9002393,
+          40.6171018
+        ],
+        [
+          -73.9003818,
+          40.6170103
+        ],
+        [
+          -73.900463,
+          40.6170838
+        ]
+      ],
+      "footprintAreaM2": 292.23,
+      "footprintOrigin": "observed",
+      "heightM": 7.92,
+      "id": "footprint:1060984",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2011-07-01",
+          "id": "footprint:1060984:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1802",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1060984"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3086310021",
+      "bin": "3397973",
+      "constructionYear": 2021,
+      "coordinates": [
+        -73.9097486,
+        40.6178231
+      ],
+      "footprint": [
+        [
+          -73.9097505,
+          40.617894
+        ],
+        [
+          -73.9096468,
+          40.6178141
+        ],
+        [
+          -73.9097508,
+          40.6177141
+        ],
+        [
+          -73.9098445,
+          40.617799
+        ],
+        [
+          -73.9097505,
+          40.617894
+        ]
+      ],
+      "footprintAreaM2": 290.17,
+      "footprintOrigin": "observed",
+      "heightM": 5.18,
+      "id": "footprint:1074298",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2021-07-01",
+          "id": "footprint:1074298:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1802",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1074298"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3086310021",
+      "bin": "3397972",
+      "constructionYear": 2021,
+      "coordinates": [
+        -73.909684,
+        40.6180785
+      ],
+      "footprint": [
+        [
+          -73.9096454,
+          40.6182079
+        ],
+        [
+          -73.9095259,
+          40.6181017
+        ],
+        [
+          -73.9097505,
+          40.617894
+        ],
+        [
+          -73.9098528,
+          40.6179811
+        ],
+        [
+          -73.9096454,
+          40.6182079
+        ]
+      ],
+      "footprintAreaM2": 733.86,
+      "footprintOrigin": "observed",
+      "heightM": 5.18,
+      "id": "footprint:1074300",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2021-07-01",
+          "id": "footprint:1074300:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1802",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1074300"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3076910019",
+      "bin": "3211324",
+      "constructionYear": 2020,
+      "coordinates": [
+        -73.9441519,
+        40.61393
+      ],
+      "footprint": [
+        [
+          -73.9442452,
+          40.614053
+        ],
+        [
+          -73.944075,
+          40.6140728
+        ],
+        [
+          -73.9440096,
+          40.6137458
+        ],
+        [
+          -73.9441844,
+          40.6137255
+        ],
+        [
+          -73.9442452,
+          40.614053
+        ]
+      ],
+      "footprintAreaM2": 942.59,
+      "footprintOrigin": "observed",
+      "heightM": 12.19,
+      "id": "footprint:1078909",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2020-07-01",
+          "id": "footprint:1078909:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1802",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1078909"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3086340021",
+      "bin": "3243506",
+      "constructionYear": 2012,
+      "coordinates": [
+        -73.9097192,
+        40.6137225
+      ],
+      "footprint": [
+        [
+          -73.9096291,
+          40.6137149
+        ],
+        [
+          -73.9097342,
+          40.6136483
+        ],
+        [
+          -73.9098227,
+          40.6137293
+        ],
+        [
+          -73.9097176,
+          40.613796
+        ],
+        [
+          -73.9096291,
+          40.6137149
+        ]
+      ],
+      "footprintAreaM2": 235.31,
+      "footprintOrigin": "observed",
+      "heightM": 10.67,
+      "id": "footprint:107905",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2012-07-01",
+          "id": "footprint:107905:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1802",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:107905"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3086260035",
+      "bin": "3243362",
+      "constructionYear": 2012,
+      "coordinates": [
+        -73.904529,
+        40.6099314
+      ],
+      "footprint": [
+        [
+          -73.9045634,
+          40.6098849
+        ],
+        [
+          -73.9045893,
+          40.6098819
+        ],
+        [
+          -73.9046048,
+          40.6099576
+        ],
+        [
+          -73.9045954,
+          40.6099587
+        ],
+        [
+          -73.9046025,
+          40.6099932
+        ],
+        [
+          -73.9044211,
+          40.6100148
+        ],
+        [
+          -73.9043986,
+          40.6099045
+        ],
+        [
+          -73.9044226,
+          40.6099017
+        ],
+        [
+          -73.9045634,
+          40.6098849
+        ]
+      ],
+      "footprintAreaM2": 346.13,
+      "footprintOrigin": "observed",
+      "heightM": 11.67,
+      "id": "footprint:108253",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2012-07-01",
+          "id": "footprint:108253:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1802",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:108253"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3086140046",
+      "bin": "3243083",
+      "constructionYear": 2011,
+      "coordinates": [
+        -73.903978,
+        40.6054359
+      ],
+      "footprint": [
+        [
+          -73.9039796,
+          40.6054985
+        ],
+        [
+          -73.9039647,
+          40.6054557
+        ],
+        [
+          -73.903937,
+          40.6054613
+        ],
+        [
+          -73.9039159,
+          40.6054004
+        ],
+        [
+          -73.9039435,
+          40.6053948
+        ],
+        [
+          -73.9039174,
+          40.6053198
+        ],
+        [
+          -73.9040122,
+          40.6053006
+        ],
+        [
+          -73.9040851,
+          40.6055104
+        ],
+        [
+          -73.9040446,
+          40.6055186
+        ],
+        [
+          -73.9039796,
+          40.6054985
+        ]
+      ],
+      "footprintAreaM2": 362,
+      "footprintOrigin": "observed",
+      "heightM": 12.67,
+      "id": "footprint:108326",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2011-07-01",
+          "id": "footprint:108326:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1802",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:108326"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3084500040",
+      "bin": "3238194",
+      "constructionYear": 2021,
+      "coordinates": [
+        -73.9025559,
+        40.6171207
+      ],
+      "footprint": [
+        [
+          -73.9025688,
+          40.6171836
+        ],
+        [
+          -73.9024522,
+          40.6170829
+        ],
+        [
+          -73.9025364,
+          40.6170263
+        ],
+        [
+          -73.902653,
+          40.6171271
+        ],
+        [
+          -73.9025688,
+          40.6171836
+        ]
+      ],
+      "footprintAreaM2": 246.12,
+      "footprintOrigin": "observed",
+      "heightM": 10.67,
+      "id": "footprint:1084511",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2021-07-01",
+          "id": "footprint:1084511:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1802",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1084511"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3085420036",
+      "bin": "3241967",
+      "constructionYear": 2022,
+      "coordinates": [
+        -73.9248714,
+        40.6108122
+      ],
+      "footprint": [
+        [
+          -73.924996,
+          40.6108788
+        ],
+        [
+          -73.9249273,
+          40.6109231
+        ],
+        [
+          -73.9247573,
+          40.6107702
+        ],
+        [
+          -73.9248261,
+          40.6107257
+        ],
+        [
+          -73.9248329,
+          40.6107322
+        ],
+        [
+          -73.924996,
+          40.6108788
+        ]
+      ],
+      "footprintAreaM2": 294.63,
+      "footprintOrigin": "observed",
+      "heightM": 7.62,
+      "id": "footprint:1086304",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2022-07-01",
+          "id": "footprint:1086304:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1802",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1086304"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3086160097",
+      "bin": "3428760",
+      "constructionYear": 2022,
+      "coordinates": [
+        -73.906609,
+        40.6130318
+      ],
+      "footprint": [
+        [
+          -73.9067072,
+          40.6130453
+        ],
+        [
+          -73.9064919,
+          40.6130922
+        ],
+        [
+          -73.9064617,
+          40.6130115
+        ],
+        [
+          -73.906677,
+          40.6129647
+        ],
+        [
+          -73.9067072,
+          40.6130453
+        ]
+      ],
+      "footprintAreaM2": 306.66,
+      "footprintOrigin": "observed",
+      "heightM": 10.67,
+      "id": "footprint:1086370",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2022-07-01",
+          "id": "footprint:1086370:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1802",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1086370"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3084700114",
+      "bin": "3343224",
+      "constructionYear": 2010,
+      "coordinates": [
+        -73.9184409,
+        40.6110706
+      ],
+      "footprint": [
+        [
+          -73.9177348,
+          40.6106766
+        ],
+        [
+          -73.9180915,
+          40.6104483
+        ],
+        [
+          -73.9181028,
+          40.6104585
+        ],
+        [
+          -73.9182086,
+          40.6103908
+        ],
+        [
+          -73.9194706,
+          40.6115177
+        ],
+        [
+          -73.9193215,
+          40.6117085
+        ],
+        [
+          -73.9189567,
+          40.6119421
+        ],
+        [
+          -73.9176737,
+          40.6107779
+        ],
+        [
+          -73.917775,
+          40.610713
+        ],
+        [
+          -73.917755,
+          40.6106949
+        ],
+        [
+          -73.9177348,
+          40.6106766
+        ]
+      ],
+      "footprintAreaM2": 18752.48,
+      "footprintOrigin": "observed",
+      "heightM": 16.07,
+      "id": "footprint:467853",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2010-07-01",
+          "id": "footprint:467853:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1802",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:467853"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3086080019",
+      "bin": "3242988",
+      "constructionYear": 2011,
+      "coordinates": [
+        -73.9067667,
+        40.6065178
+      ],
+      "footprint": [
+        [
+          -73.9066869,
+          40.6065855
+        ],
+        [
+          -73.9066972,
+          40.6064441
+        ],
+        [
+          -73.9068325,
+          40.6064498
+        ],
+        [
+          -73.9068274,
+          40.6065197
+        ],
+        [
+          -73.9068008,
+          40.6065186
+        ],
+        [
+          -73.9067956,
+          40.6065901
+        ],
+        [
+          -73.9066869,
+          40.6065855
+        ]
+      ],
+      "footprintAreaM2": 282.13,
+      "footprintOrigin": "observed",
+      "heightM": 10.73,
+      "id": "footprint:490243",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2011-07-01",
+          "id": "footprint:490243:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1802",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:490243"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3078640009",
+      "bin": "3426684",
+      "constructionYear": 2012,
+      "coordinates": [
+        -73.9339866,
+        40.6168083
+      ],
+      "footprint": [
+        [
+          -73.9340187,
+          40.6168807
+        ],
+        [
+          -73.933865,
+          40.6167496
+        ],
+        [
+          -73.9339383,
+          40.6166997
+        ],
+        [
+          -73.934092,
+          40.6168309
+        ],
+        [
+          -73.9340187,
+          40.6168807
+        ]
+      ],
+      "footprintAreaM2": 282.01,
+      "footprintOrigin": "observed",
+      "heightM": 6.79,
+      "id": "footprint:539738",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2012-07-01",
+          "id": "footprint:539738:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1802",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:539738"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3083390003",
+      "bin": "3319877",
+      "constructionYear": 2013,
+      "coordinates": [
+        -73.9172855,
+        40.6272599
+      ],
+      "footprint": [
+        [
+          -73.9171951,
+          40.6273049
+        ],
+        [
+          -73.9170602,
+          40.6272815
+        ],
+        [
+          -73.917234,
+          40.6271668
+        ],
+        [
+          -73.9174313,
+          40.627201
+        ],
+        [
+          -73.9174183,
+          40.6272446
+        ],
+        [
+          -73.9173876,
+          40.6272393
+        ],
+        [
+          -73.9173764,
+          40.6272767
+        ],
+        [
+          -73.9173182,
+          40.6272666
+        ],
+        [
+          -73.9172385,
+          40.6273124
+        ],
+        [
+          -73.9171951,
+          40.6273049
+        ]
+      ],
+      "footprintAreaM2": 486.77,
+      "footprintOrigin": "observed",
+      "heightM": 6.52,
+      "id": "footprint:595010",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2013-07-01",
+          "id": "footprint:595010:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1802",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:595010"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3083390001",
+      "bin": "3235275",
+      "constructionYear": 2013,
+      "coordinates": [
+        -73.9175039,
+        40.6270148
+      ],
+      "footprint": [
+        [
+          -73.9175238,
+          40.6269381
+        ],
+        [
+          -73.9176271,
+          40.6270299
+        ],
+        [
+          -73.917474,
+          40.6271299
+        ],
+        [
+          -73.9173707,
+          40.6270381
+        ],
+        [
+          -73.9175238,
+          40.6269381
+        ]
+      ],
+      "footprintAreaM2": 397.93,
+      "footprintOrigin": "observed",
+      "heightM": 5.18,
+      "id": "footprint:64648",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2013-07-01",
+          "id": "footprint:64648:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1802",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:64648"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3085580044",
+      "bin": "3418341",
+      "constructionYear": 2012,
+      "coordinates": [
+        -73.9229881,
+        40.6084816
+      ],
+      "footprint": [
+        [
+          -73.9226822,
+          40.6085103
+        ],
+        [
+          -73.922854,
+          40.6083971
+        ],
+        [
+          -73.9229146,
+          40.6084505
+        ],
+        [
+          -73.9232892,
+          40.6082036
+        ],
+        [
+          -73.9235479,
+          40.6084316
+        ],
+        [
+          -73.9229964,
+          40.608795
+        ],
+        [
+          -73.9226771,
+          40.6085136
+        ],
+        [
+          -73.9226822,
+          40.6085103
+        ]
+      ],
+      "footprintAreaM2": 3856.2,
+      "footprintOrigin": "observed",
+      "heightM": 7.97,
+      "id": "footprint:84832",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2012-07-01",
+          "id": "footprint:84832:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1802",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:84832"
+      ]
+    },
+    {
+      "address": "2170 MILL AVENUE",
+      "bbl": "3084701150",
+      "bin": "3238592",
+      "constructionYear": null,
+      "coordinates": [
+        -73.912631,
+        40.614299
+      ],
+      "footprint": [
+        [
+          -73.9130964,
+          40.6139457
+        ],
+        [
+          -73.9121656,
+          40.6139457
+        ],
+        [
+          -73.9121656,
+          40.6146523
+        ],
+        [
+          -73.9130964,
+          40.6146523
+        ],
+        [
+          -73.9130964,
+          40.6139457
+        ]
+      ],
+      "footprintAreaM2": 1546.49,
+      "footprintOrigin": "modeled",
+      "heightM": 19.51,
+      "id": "job:320117949:01",
+      "jobId": "320117949",
+      "milestones": [
+        {
+          "date": "2010-01-08",
+          "id": "job:320117949:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 6,
+      "proposedUnits": 54,
+      "proposedZoningSquareFeet": 99878,
+      "regionId": "BK1802",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:1791109"
+      ],
+      "status": "PLAN EXAM - DISAPPROVED",
+      "withdrawn": false
+    },
+    {
+      "address": "1973 RALPH AVENUE",
+      "bbl": "3083410135",
+      "bin": "3428768",
+      "constructionYear": 2021,
+      "coordinates": [
+        -73.918307,
+        40.629452
+      ],
+      "footprint": [
+        [
+          -73.9179057,
+          40.6294132
+        ],
+        [
+          -73.9178206,
+          40.6294174
+        ],
+        [
+          -73.9176343,
+          40.629333
+        ],
+        [
+          -73.9177834,
+          40.6291386
+        ],
+        [
+          -73.9178847,
+          40.629133
+        ],
+        [
+          -73.9179057,
+          40.6294132
+        ]
+      ],
+      "footprintAreaM2": 826.03,
+      "footprintOrigin": "observed",
+      "heightM": 5.49,
+      "id": "job:320688029:01",
+      "jobId": "320688029",
+      "milestones": [
+        {
+          "date": "2013-01-16",
+          "id": "job:320688029:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2015-02-05",
+          "id": "job:320688029:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2021-01-05",
+          "id": "job:320688029:01:fully-permitted:3",
+          "kind": "fully-permitted",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 1,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": 165406,
+      "regionId": "BK1802",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:2192802",
+        "building-footprint:1079432"
+      ],
+      "status": "PERMIT ISSUED - ENTIRE JOB/WORK",
+      "withdrawn": false
+    },
+    {
+      "address": "1415 EAST 71ST STREET",
+      "bbl": "3083930001",
+      "bin": "3428649",
+      "constructionYear": null,
+      "coordinates": [
+        -73.910624,
+        40.622699
+      ],
+      "footprint": [
+        [
+          -73.9114525,
+          40.6220702
+        ],
+        [
+          -73.9097955,
+          40.6220702
+        ],
+        [
+          -73.9097955,
+          40.6233278
+        ],
+        [
+          -73.9114525,
+          40.6233278
+        ],
+        [
+          -73.9114525,
+          40.6220702
+        ]
+      ],
+      "footprintAreaM2": 8389.61,
+      "footprintOrigin": "modeled",
+      "heightM": 4.57,
+      "id": "job:321068660:01",
+      "jobId": "321068660",
+      "milestones": [
+        {
+          "date": "2020-02-04",
+          "id": "job:321068660:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2020-02-20",
+          "id": "job:321068660:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2023-09-08",
+          "id": "job:321068660:01:fully-permitted:3",
+          "kind": "fully-permitted",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 1,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": 90305,
+      "regionId": "BK1802",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:3196466"
+      ],
+      "status": "PERMIT ISSUED - ENTIRE JOB/WORK",
+      "withdrawn": true
+    },
+    {
+      "address": "2150 MILL AVE",
+      "bbl": "3334404",
+      "bin": "3334404",
+      "constructionYear": null,
+      "coordinates": [
+        -73.912915,
+        40.614557
+      ],
+      "footprint": [
+        [
+          -73.913388,
+          40.6141979
+        ],
+        [
+          -73.912442,
+          40.6141979
+        ],
+        [
+          -73.912442,
+          40.6149161
+        ],
+        [
+          -73.913388,
+          40.6149161
+        ],
+        [
+          -73.913388,
+          40.6141979
+        ]
+      ],
+      "footprintAreaM2": 1597.61,
+      "footprintOrigin": "modeled",
+      "heightM": 18.29,
+      "id": "job:321215635:01",
+      "jobId": "321215635",
+      "milestones": [
+        {
+          "date": "2015-09-18",
+          "id": "job:321215635:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2017-12-22",
+          "id": "job:321215635:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2018-07-31",
+          "id": "job:321215635:01:fully-permitted:3",
+          "kind": "fully-permitted",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 6,
+      "proposedUnits": 0,
+      "proposedZoningSquareFeet": 103179,
+      "regionId": "BK1802",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:2511255"
+      ],
+      "status": "PERMIT ISSUED - ENTIRE JOB/WORK",
+      "withdrawn": false
+    },
+    {
+      "address": "2570 FLATBUSH AVENUE",
+      "bbl": "3085900031",
+      "bin": "3423979",
+      "constructionYear": 2019,
+      "coordinates": [
+        -73.920393,
+        40.607904
+      ],
+      "footprint": [
+        [
+          -73.9202599,
+          40.6074243
+        ],
+        [
+          -73.9207757,
+          40.6071134
+        ],
+        [
+          -73.9213475,
+          40.6076645
+        ],
+        [
+          -73.920872,
+          40.6079751
+        ],
+        [
+          -73.9202599,
+          40.6074243
+        ]
+      ],
+      "footprintAreaM2": 7460.33,
+      "footprintOrigin": "observed",
+      "heightM": 9.14,
+      "id": "job:321437487:01",
+      "jobId": "321437487",
+      "milestones": [
+        {
+          "date": "2016-10-11",
+          "id": "job:321437487:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2018-03-22",
+          "id": "job:321437487:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2018-04-16",
+          "id": "job:321437487:01:fully-permitted:3",
+          "kind": "fully-permitted",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 2,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": 55200,
+      "regionId": "BK1802",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:2747804",
+        "building-footprint:1035344"
+      ],
+      "status": "PERMIT ISSUED - ENTIRE JOB/WORK",
+      "withdrawn": false
+    }
+  ],
+  "id": "nyc-real-estate-region-bk1802-v1",
+  "region": {
+    "abbreviation": "MrnPk_MBsn",
+    "areaM2": 58871247.5864,
+    "boroughId": "brooklyn",
+    "boroughLabel": "Brooklyn",
+    "bounds": {
+      "east": -73.8981007,
+      "north": 40.6320683,
+      "south": 40.6035055,
+      "west": -73.9448277
+    },
+    "centroid": [
+      -73.9135722,
+      40.6139455
+    ],
+    "communityDistrictTabulationAreaId": "BK18",
+    "communityDistrictTabulationAreaLabel": "BK18 Canarsie-Flatlands (CD 18 Approximation)",
+    "id": "BK1802",
+    "label": "Marine Park-Mill Basin-Bergen Beach",
+    "polygon": [
+      [
+        -73.9171952,
+        40.6317382
+      ],
+      [
+        -73.9174616,
+        40.6315166
+      ],
+      [
+        -73.9174723,
+        40.6311925
+      ],
+      [
+        -73.9166869,
+        40.6307374
+      ],
+      [
+        -73.9165917,
+        40.6304519
+      ],
+      [
+        -73.9039611,
+        40.6248336
+      ],
+      [
+        -73.9038554,
+        40.6249402
+      ],
+      [
+        -73.9054621,
+        40.6257748
+      ],
+      [
+        -73.9053296,
+        40.625865
+      ],
+      [
+        -73.9031244,
+        40.624738
+      ],
+      [
+        -73.9032085,
+        40.6246408
+      ],
+      [
+        -73.9025466,
+        40.6244442
+      ],
+      [
+        -73.9031323,
+        40.6246023
+      ],
+      [
+        -73.9032705,
+        40.6244842
+      ],
+      [
+        -73.9026933,
+        40.6242133
+      ],
+      [
+        -73.9028326,
+        40.624051
+      ],
+      [
+        -73.9022871,
+        40.6244099
+      ],
+      [
+        -73.9026436,
+        40.6239247
+      ],
+      [
+        -73.9029162,
+        40.6239545
+      ],
+      [
+        -73.9028329,
+        40.6236034
+      ],
+      [
+        -73.9022156,
+        40.6235751
+      ],
+      [
+        -73.9018673,
+        40.6229624
+      ],
+      [
+        -73.900937,
+        40.622599
+      ],
+      [
+        -73.9006052,
+        40.6217379
+      ],
+      [
+        -73.900163,
+        40.6216771
+      ],
+      [
+        -73.9019895,
+        40.6205622
+      ],
+      [
+        -73.8981007,
+        40.617044
+      ],
+      [
+        -73.8985377,
+        40.6162652
+      ],
+      [
+        -73.8985561,
+        40.6151487
+      ],
+      [
+        -73.9021304,
+        40.61278
+      ],
+      [
+        -73.9034728,
+        40.6139866
+      ],
+      [
+        -73.9041898,
+        40.6135646
+      ],
+      [
+        -73.9058711,
+        40.6150633
+      ],
+      [
+        -73.9057346,
+        40.614883
+      ],
+      [
+        -73.9060333,
+        40.6149534
+      ],
+      [
+        -73.9058794,
+        40.6150775
+      ],
+      [
+        -73.9069628,
+        40.616114
+      ],
+      [
+        -73.9071729,
+        40.6160099
+      ],
+      [
+        -73.9067385,
+        40.6162959
+      ],
+      [
+        -73.9072569,
+        40.6160876
+      ],
+      [
+        -73.9070835,
+        40.6162214
+      ],
+      [
+        -73.9074426,
+        40.6162585
+      ],
+      [
+        -73.9070216,
+        40.6165336
+      ],
+      [
+        -73.9075274,
+        40.6163444
+      ],
+      [
+        -73.9072417,
+        40.6165515
+      ],
+      [
+        -73.9075898,
+        40.6166294
+      ],
+      [
+        -73.9076166,
+        40.6168965
+      ],
+      [
+        -73.9079159,
+        40.6169035
+      ],
+      [
+        -73.9079943,
+        40.6171752
+      ],
+      [
+        -73.9083865,
+        40.617391
+      ],
+      [
+        -73.9086035,
+        40.6172655
+      ],
+      [
+        -73.9087909,
+        40.6174364
+      ],
+      [
+        -73.9086333,
+        40.6171679
+      ],
+      [
+        -73.9088369,
+        40.6173116
+      ],
+      [
+        -73.9090715,
+        40.6171604
+      ],
+      [
+        -73.908354,
+        40.616531
+      ],
+      [
+        -73.9087942,
+        40.616873
+      ],
+      [
+        -73.9091385,
+        40.6165316
+      ],
+      [
+        -73.9081056,
+        40.615669
+      ],
+      [
+        -73.9079731,
+        40.6157368
+      ],
+      [
+        -73.9081566,
+        40.6156011
+      ],
+      [
+        -73.9091768,
+        40.6165219
+      ],
+      [
+        -73.9088146,
+        40.6168904
+      ],
+      [
+        -73.9089571,
+        40.6169915
+      ],
+      [
+        -73.9096441,
+        40.6165754
+      ],
+      [
+        -73.9090078,
+        40.6157728
+      ],
+      [
+        -73.907776,
+        40.6152431
+      ],
+      [
+        -73.9053585,
+        40.6130403
+      ],
+      [
+        -73.9042157,
+        40.6123566
+      ],
+      [
+        -73.904286,
+        40.6120168
+      ],
+      [
+        -73.9040433,
+        40.6119987
+      ],
+      [
+        -73.9041409,
+        40.6118961
+      ],
+      [
+        -73.9035098,
+        40.6114065
+      ],
+      [
+        -73.9033105,
+        40.6115472
+      ],
+      [
+        -73.9034941,
+        40.611389
+      ],
+      [
+        -73.9031358,
+        40.6109675
+      ],
+      [
+        -73.902745,
+        40.6109315
+      ],
+      [
+        -73.9022586,
+        40.6104228
+      ],
+      [
+        -73.9016421,
+        40.6057634
+      ],
+      [
+        -73.905243,
+        40.6049101
+      ],
+      [
+        -73.9059746,
+        40.606384
+      ],
+      [
+        -73.9080982,
+        40.6062786
+      ],
+      [
+        -73.9086396,
+        40.6066587
+      ],
+      [
+        -73.909338,
+        40.6064776
+      ],
+      [
+        -73.9098515,
+        40.6059997
+      ],
+      [
+        -73.9088569,
+        40.6050601
+      ],
+      [
+        -73.9083254,
+        40.6040734
+      ],
+      [
+        -73.9109227,
+        40.6035055
+      ],
+      [
+        -73.9136512,
+        40.6039825
+      ],
+      [
+        -73.9167356,
+        40.6068146
+      ],
+      [
+        -73.9166044,
+        40.6070894
+      ],
+      [
+        -73.9167212,
+        40.6076248
+      ],
+      [
+        -73.9163223,
+        40.6086757
+      ],
+      [
+        -73.9167839,
+        40.6087739
+      ],
+      [
+        -73.9165707,
+        40.6094235
+      ],
+      [
+        -73.9168398,
+        40.60876
+      ],
+      [
+        -73.9165092,
+        40.6086298
+      ],
+      [
+        -73.9168896,
+        40.60871
+      ],
+      [
+        -73.916828,
+        40.6089061
+      ],
+      [
+        -73.9170884,
+        40.6088209
+      ],
+      [
+        -73.9168196,
+        40.6089314
+      ],
+      [
+        -73.9166568,
+        40.6094367
+      ],
+      [
+        -73.9167995,
+        40.6094942
+      ],
+      [
+        -73.916566,
+        40.6094378
+      ],
+      [
+        -73.9163859,
+        40.6100889
+      ],
+      [
+        -73.9160608,
+        40.6104305
+      ],
+      [
+        -73.9161648,
+        40.6105156
+      ],
+      [
+        -73.9144954,
+        40.6116532
+      ],
+      [
+        -73.9149342,
+        40.6139582
+      ],
+      [
+        -73.9138605,
+        40.6146423
+      ],
+      [
+        -73.9142807,
+        40.6149388
+      ],
+      [
+        -73.916421,
+        40.6135694
+      ],
+      [
+        -73.9159145,
+        40.6138454
+      ],
+      [
+        -73.9157681,
+        40.6135403
+      ],
+      [
+        -73.9159717,
+        40.6138078
+      ],
+      [
+        -73.9162477,
+        40.6136261
+      ],
+      [
+        -73.9157459,
+        40.6133849
+      ],
+      [
+        -73.9159657,
+        40.6132364
+      ],
+      [
+        -73.9162645,
+        40.6136056
+      ],
+      [
+        -73.9163959,
+        40.6134468
+      ],
+      [
+        -73.9158709,
+        40.61291
+      ],
+      [
+        -73.9160032,
+        40.6128597
+      ],
+      [
+        -73.9164991,
+        40.6135205
+      ],
+      [
+        -73.916628,
+        40.6134436
+      ],
+      [
+        -73.9157318,
+        40.6118308
+      ],
+      [
+        -73.9167465,
+        40.6111785
+      ],
+      [
+        -73.9166731,
+        40.6110058
+      ],
+      [
+        -73.9168292,
+        40.6111181
+      ],
+      [
+        -73.9181104,
+        40.6102084
+      ],
+      [
+        -73.9177319,
+        40.6097825
+      ],
+      [
+        -73.9178664,
+        40.6093272
+      ],
+      [
+        -73.9176787,
+        40.6096629
+      ],
+      [
+        -73.9179627,
+        40.6087859
+      ],
+      [
+        -73.9178197,
+        40.6093043
+      ],
+      [
+        -73.9180296,
+        40.6088467
+      ],
+      [
+        -73.9185567,
+        40.6084983
+      ],
+      [
+        -73.918005,
+        40.6081498
+      ],
+      [
+        -73.9181873,
+        40.6080246
+      ],
+      [
+        -73.9185736,
+        40.6084879
+      ],
+      [
+        -73.9190074,
+        40.6082673
+      ],
+      [
+        -73.9181381,
+        40.6076454
+      ],
+      [
+        -73.9183625,
+        40.6075014
+      ],
+      [
+        -73.9190231,
+        40.6082569
+      ],
+      [
+        -73.919354,
+        40.6080429
+      ],
+      [
+        -73.9182527,
+        40.6072294
+      ],
+      [
+        -73.918503,
+        40.6070712
+      ],
+      [
+        -73.9184016,
+        40.6071549
+      ],
+      [
+        -73.919371,
+        40.6080326
+      ],
+      [
+        -73.9195036,
+        40.6079749
+      ],
+      [
+        -73.9192414,
+        40.6073854
+      ],
+      [
+        -73.9179498,
+        40.6062093
+      ],
+      [
+        -73.9185276,
+        40.6061134
+      ],
+      [
+        -73.9197093,
+        40.6073022
+      ],
+      [
+        -73.9206586,
+        40.6067545
+      ],
+      [
+        -73.9215843,
+        40.6076391
+      ],
+      [
+        -73.9244414,
+        40.6057936
+      ],
+      [
+        -73.9262488,
+        40.6074135
+      ],
+      [
+        -73.9298688,
+        40.6050713
+      ],
+      [
+        -73.9335131,
+        40.6083435
+      ],
+      [
+        -73.9342316,
+        40.6078977
+      ],
+      [
+        -73.9360463,
+        40.6095149
+      ],
+      [
+        -73.9375375,
+        40.6085574
+      ],
+      [
+        -73.939347,
+        40.6101871
+      ],
+      [
+        -73.9423118,
+        40.6082682
+      ],
+      [
+        -73.943547,
+        40.6093466
+      ],
+      [
+        -73.9448277,
+        40.6160462
+      ],
+      [
+        -73.9434696,
+        40.617385
+      ],
+      [
+        -73.9407891,
+        40.6176968
+      ],
+      [
+        -73.936867,
+        40.6202533
+      ],
+      [
+        -73.9332046,
+        40.6169704
+      ],
+      [
+        -73.9317318,
+        40.6179269
+      ],
+      [
+        -73.9262977,
+        40.6131922
+      ],
+      [
+        -73.9264004,
+        40.6144785
+      ],
+      [
+        -73.920624,
+        40.6148387
+      ],
+      [
+        -73.9205269,
+        40.6139427
+      ],
+      [
+        -73.916903,
+        40.6162742
+      ],
+      [
+        -73.9186022,
+        40.6320683
+      ],
+      [
+        -73.9171952,
+        40.6317382
+      ]
+    ],
+    "spatialPolygons": [
+      {
+        "holes": [],
+        "outer": [
+          [
+            -73.9171952,
+            40.6317382
+          ],
+          [
+            -73.9174616,
+            40.6315166
+          ],
+          [
+            -73.9174723,
+            40.6311925
+          ],
+          [
+            -73.9166869,
+            40.6307374
+          ],
+          [
+            -73.9165917,
+            40.6304519
+          ],
+          [
+            -73.9039611,
+            40.6248336
+          ],
+          [
+            -73.9038554,
+            40.6249402
+          ],
+          [
+            -73.9054621,
+            40.6257748
+          ],
+          [
+            -73.9053296,
+            40.625865
+          ],
+          [
+            -73.9031244,
+            40.624738
+          ],
+          [
+            -73.9032085,
+            40.6246408
+          ],
+          [
+            -73.9025466,
+            40.6244442
+          ],
+          [
+            -73.9031323,
+            40.6246023
+          ],
+          [
+            -73.9032705,
+            40.6244842
+          ],
+          [
+            -73.9026933,
+            40.6242133
+          ],
+          [
+            -73.9028326,
+            40.624051
+          ],
+          [
+            -73.9022871,
+            40.6244099
+          ],
+          [
+            -73.9026436,
+            40.6239247
+          ],
+          [
+            -73.9029162,
+            40.6239545
+          ],
+          [
+            -73.9028329,
+            40.6236034
+          ],
+          [
+            -73.9022156,
+            40.6235751
+          ],
+          [
+            -73.9018673,
+            40.6229624
+          ],
+          [
+            -73.900937,
+            40.622599
+          ],
+          [
+            -73.9006052,
+            40.6217379
+          ],
+          [
+            -73.900163,
+            40.6216771
+          ],
+          [
+            -73.9019895,
+            40.6205622
+          ],
+          [
+            -73.8981007,
+            40.617044
+          ],
+          [
+            -73.8985377,
+            40.6162652
+          ],
+          [
+            -73.8985561,
+            40.6151487
+          ],
+          [
+            -73.9021304,
+            40.61278
+          ],
+          [
+            -73.9034728,
+            40.6139866
+          ],
+          [
+            -73.9041898,
+            40.6135646
+          ],
+          [
+            -73.9058711,
+            40.6150633
+          ],
+          [
+            -73.9057346,
+            40.614883
+          ],
+          [
+            -73.9060333,
+            40.6149534
+          ],
+          [
+            -73.9058794,
+            40.6150775
+          ],
+          [
+            -73.9069628,
+            40.616114
+          ],
+          [
+            -73.9071729,
+            40.6160099
+          ],
+          [
+            -73.9067385,
+            40.6162959
+          ],
+          [
+            -73.9072569,
+            40.6160876
+          ],
+          [
+            -73.9070835,
+            40.6162214
+          ],
+          [
+            -73.9074426,
+            40.6162585
+          ],
+          [
+            -73.9070216,
+            40.6165336
+          ],
+          [
+            -73.9075274,
+            40.6163444
+          ],
+          [
+            -73.9072417,
+            40.6165515
+          ],
+          [
+            -73.9075898,
+            40.6166294
+          ],
+          [
+            -73.9076166,
+            40.6168965
+          ],
+          [
+            -73.9079159,
+            40.6169035
+          ],
+          [
+            -73.9079943,
+            40.6171752
+          ],
+          [
+            -73.9083865,
+            40.617391
+          ],
+          [
+            -73.9086035,
+            40.6172655
+          ],
+          [
+            -73.9087909,
+            40.6174364
+          ],
+          [
+            -73.9086333,
+            40.6171679
+          ],
+          [
+            -73.9088369,
+            40.6173116
+          ],
+          [
+            -73.9090715,
+            40.6171604
+          ],
+          [
+            -73.908354,
+            40.616531
+          ],
+          [
+            -73.9087942,
+            40.616873
+          ],
+          [
+            -73.9091385,
+            40.6165316
+          ],
+          [
+            -73.9081056,
+            40.615669
+          ],
+          [
+            -73.9079731,
+            40.6157368
+          ],
+          [
+            -73.9081566,
+            40.6156011
+          ],
+          [
+            -73.9091768,
+            40.6165219
+          ],
+          [
+            -73.9088146,
+            40.6168904
+          ],
+          [
+            -73.9089571,
+            40.6169915
+          ],
+          [
+            -73.9096441,
+            40.6165754
+          ],
+          [
+            -73.9090078,
+            40.6157728
+          ],
+          [
+            -73.907776,
+            40.6152431
+          ],
+          [
+            -73.9053585,
+            40.6130403
+          ],
+          [
+            -73.9042157,
+            40.6123566
+          ],
+          [
+            -73.904286,
+            40.6120168
+          ],
+          [
+            -73.9040433,
+            40.6119987
+          ],
+          [
+            -73.9041409,
+            40.6118961
+          ],
+          [
+            -73.9035098,
+            40.6114065
+          ],
+          [
+            -73.9033105,
+            40.6115472
+          ],
+          [
+            -73.9034941,
+            40.611389
+          ],
+          [
+            -73.9031358,
+            40.6109675
+          ],
+          [
+            -73.902745,
+            40.6109315
+          ],
+          [
+            -73.9022586,
+            40.6104228
+          ],
+          [
+            -73.9016421,
+            40.6057634
+          ],
+          [
+            -73.905243,
+            40.6049101
+          ],
+          [
+            -73.9059746,
+            40.606384
+          ],
+          [
+            -73.9080982,
+            40.6062786
+          ],
+          [
+            -73.9086396,
+            40.6066587
+          ],
+          [
+            -73.909338,
+            40.6064776
+          ],
+          [
+            -73.9098515,
+            40.6059997
+          ],
+          [
+            -73.9088569,
+            40.6050601
+          ],
+          [
+            -73.9083254,
+            40.6040734
+          ],
+          [
+            -73.9109227,
+            40.6035055
+          ],
+          [
+            -73.9136512,
+            40.6039825
+          ],
+          [
+            -73.9167356,
+            40.6068146
+          ],
+          [
+            -73.9166044,
+            40.6070894
+          ],
+          [
+            -73.9167212,
+            40.6076248
+          ],
+          [
+            -73.9163223,
+            40.6086757
+          ],
+          [
+            -73.9167839,
+            40.6087739
+          ],
+          [
+            -73.9165707,
+            40.6094235
+          ],
+          [
+            -73.9168398,
+            40.60876
+          ],
+          [
+            -73.9165092,
+            40.6086298
+          ],
+          [
+            -73.9168896,
+            40.60871
+          ],
+          [
+            -73.916828,
+            40.6089061
+          ],
+          [
+            -73.9170884,
+            40.6088209
+          ],
+          [
+            -73.9168196,
+            40.6089314
+          ],
+          [
+            -73.9166568,
+            40.6094367
+          ],
+          [
+            -73.9167995,
+            40.6094942
+          ],
+          [
+            -73.916566,
+            40.6094378
+          ],
+          [
+            -73.9163859,
+            40.6100889
+          ],
+          [
+            -73.9160608,
+            40.6104305
+          ],
+          [
+            -73.9161648,
+            40.6105156
+          ],
+          [
+            -73.9144954,
+            40.6116532
+          ],
+          [
+            -73.9149342,
+            40.6139582
+          ],
+          [
+            -73.9138605,
+            40.6146423
+          ],
+          [
+            -73.9142807,
+            40.6149388
+          ],
+          [
+            -73.916421,
+            40.6135694
+          ],
+          [
+            -73.9159145,
+            40.6138454
+          ],
+          [
+            -73.9157681,
+            40.6135403
+          ],
+          [
+            -73.9159717,
+            40.6138078
+          ],
+          [
+            -73.9162477,
+            40.6136261
+          ],
+          [
+            -73.9157459,
+            40.6133849
+          ],
+          [
+            -73.9159657,
+            40.6132364
+          ],
+          [
+            -73.9162645,
+            40.6136056
+          ],
+          [
+            -73.9163959,
+            40.6134468
+          ],
+          [
+            -73.9158709,
+            40.61291
+          ],
+          [
+            -73.9160032,
+            40.6128597
+          ],
+          [
+            -73.9164991,
+            40.6135205
+          ],
+          [
+            -73.916628,
+            40.6134436
+          ],
+          [
+            -73.9157318,
+            40.6118308
+          ],
+          [
+            -73.9167465,
+            40.6111785
+          ],
+          [
+            -73.9166731,
+            40.6110058
+          ],
+          [
+            -73.9168292,
+            40.6111181
+          ],
+          [
+            -73.9181104,
+            40.6102084
+          ],
+          [
+            -73.9177319,
+            40.6097825
+          ],
+          [
+            -73.9178664,
+            40.6093272
+          ],
+          [
+            -73.9176787,
+            40.6096629
+          ],
+          [
+            -73.9179627,
+            40.6087859
+          ],
+          [
+            -73.9178197,
+            40.6093043
+          ],
+          [
+            -73.9180296,
+            40.6088467
+          ],
+          [
+            -73.9185567,
+            40.6084983
+          ],
+          [
+            -73.918005,
+            40.6081498
+          ],
+          [
+            -73.9181873,
+            40.6080246
+          ],
+          [
+            -73.9185736,
+            40.6084879
+          ],
+          [
+            -73.9190074,
+            40.6082673
+          ],
+          [
+            -73.9181381,
+            40.6076454
+          ],
+          [
+            -73.9183625,
+            40.6075014
+          ],
+          [
+            -73.9190231,
+            40.6082569
+          ],
+          [
+            -73.919354,
+            40.6080429
+          ],
+          [
+            -73.9182527,
+            40.6072294
+          ],
+          [
+            -73.918503,
+            40.6070712
+          ],
+          [
+            -73.9184016,
+            40.6071549
+          ],
+          [
+            -73.919371,
+            40.6080326
+          ],
+          [
+            -73.9195036,
+            40.6079749
+          ],
+          [
+            -73.9192414,
+            40.6073854
+          ],
+          [
+            -73.9179498,
+            40.6062093
+          ],
+          [
+            -73.9185276,
+            40.6061134
+          ],
+          [
+            -73.9197093,
+            40.6073022
+          ],
+          [
+            -73.9206586,
+            40.6067545
+          ],
+          [
+            -73.9215843,
+            40.6076391
+          ],
+          [
+            -73.9244414,
+            40.6057936
+          ],
+          [
+            -73.9262488,
+            40.6074135
+          ],
+          [
+            -73.9298688,
+            40.6050713
+          ],
+          [
+            -73.9335131,
+            40.6083435
+          ],
+          [
+            -73.9342316,
+            40.6078977
+          ],
+          [
+            -73.9360463,
+            40.6095149
+          ],
+          [
+            -73.9375375,
+            40.6085574
+          ],
+          [
+            -73.939347,
+            40.6101871
+          ],
+          [
+            -73.9423118,
+            40.6082682
+          ],
+          [
+            -73.943547,
+            40.6093466
+          ],
+          [
+            -73.9448277,
+            40.6160462
+          ],
+          [
+            -73.9434696,
+            40.617385
+          ],
+          [
+            -73.9407891,
+            40.6176968
+          ],
+          [
+            -73.936867,
+            40.6202533
+          ],
+          [
+            -73.9332046,
+            40.6169704
+          ],
+          [
+            -73.9317318,
+            40.6179269
+          ],
+          [
+            -73.9262977,
+            40.6131922
+          ],
+          [
+            -73.9264004,
+            40.6144785
+          ],
+          [
+            -73.920624,
+            40.6148387
+          ],
+          [
+            -73.9205269,
+            40.6139427
+          ],
+          [
+            -73.916903,
+            40.6162742
+          ],
+          [
+            -73.9186022,
+            40.6320683
+          ],
+          [
+            -73.9171952,
+            40.6317382
+          ]
+        ]
+      }
+    ]
+  },
+  "saleSeries": [
+    {
+      "id": "sale:BK1802:2016:tax-1",
+      "meanPriceUsd": 677751.41,
+      "medianPriceUsd": 640000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1802",
+      "saleCount": 445,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 599,
+      "year": 2016
+    },
+    {
+      "id": "sale:BK1802:2016:tax-2",
+      "meanPriceUsd": 420615.29,
+      "medianPriceUsd": 425000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1802",
+      "saleCount": 35,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 32,
+      "year": 2016
+    },
+    {
+      "id": "sale:BK1802:2016:tax-4",
+      "meanPriceUsd": 4188642.86,
+      "medianPriceUsd": 2000000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1802",
+      "saleCount": 7,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 10,
+      "year": 2016
+    },
+    {
+      "id": "sale:BK1802:2017:tax-1",
+      "meanPriceUsd": 689184.64,
+      "medianPriceUsd": 666500,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1802",
+      "saleCount": 424,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 583,
+      "year": 2017
+    },
+    {
+      "id": "sale:BK1802:2017:tax-2",
+      "meanPriceUsd": 308200.15,
+      "medianPriceUsd": 205000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1802",
+      "saleCount": 39,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 19,
+      "year": 2017
+    },
+    {
+      "id": "sale:BK1802:2017:tax-4",
+      "meanPriceUsd": 943291.67,
+      "medianPriceUsd": 827500,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1802",
+      "saleCount": 12,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 20,
+      "year": 2017
+    },
+    {
+      "id": "sale:BK1802:2018:tax-1",
+      "meanPriceUsd": 770790.84,
+      "medianPriceUsd": 700000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1802",
+      "saleCount": 393,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 534,
+      "year": 2018
+    },
+    {
+      "id": "sale:BK1802:2018:tax-2",
+      "meanPriceUsd": 410448.28,
+      "medianPriceUsd": 260000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1802",
+      "saleCount": 29,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 23,
+      "year": 2018
+    },
+    {
+      "id": "sale:BK1802:2018:tax-4",
+      "meanPriceUsd": 3114062.5,
+      "medianPriceUsd": 880000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1802",
+      "saleCount": 8,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 11,
+      "year": 2018
+    },
+    {
+      "id": "sale:BK1802:2019:tax-1",
+      "meanPriceUsd": 752403.77,
+      "medianPriceUsd": 715000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1802",
+      "saleCount": 381,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 519,
+      "year": 2019
+    },
+    {
+      "id": "sale:BK1802:2019:tax-2",
+      "meanPriceUsd": 397380.65,
+      "medianPriceUsd": 490000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1802",
+      "saleCount": 31,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 18,
+      "year": 2019
+    },
+    {
+      "id": "sale:BK1802:2019:tax-4",
+      "meanPriceUsd": 11365242.71,
+      "medianPriceUsd": 595000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1802",
+      "saleCount": 24,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 58,
+      "year": 2019
+    },
+    {
+      "id": "sale:BK1802:2020:tax-1",
+      "meanPriceUsd": 782616.29,
+      "medianPriceUsd": 740000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1802",
+      "saleCount": 324,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 449,
+      "year": 2020
+    },
+    {
+      "id": "sale:BK1802:2020:tax-2",
+      "meanPriceUsd": 446347.83,
+      "medianPriceUsd": 500000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1802",
+      "saleCount": 23,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 21,
+      "year": 2020
+    },
+    {
+      "id": "sale:BK1802:2020:tax-4",
+      "meanPriceUsd": 2276605.3,
+      "medianPriceUsd": 612500,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1802",
+      "saleCount": 20,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 31,
+      "year": 2020
+    },
+    {
+      "id": "sale:BK1802:2021:tax-1",
+      "meanPriceUsd": 804622.47,
+      "medianPriceUsd": 766250,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1802",
+      "saleCount": 588,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 825,
+      "year": 2021
+    },
+    {
+      "id": "sale:BK1802:2021:tax-2",
+      "meanPriceUsd": 445166.28,
+      "medianPriceUsd": 405000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1802",
+      "saleCount": 39,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 29,
+      "year": 2021
+    },
+    {
+      "id": "sale:BK1802:2021:tax-4",
+      "meanPriceUsd": 2337661.54,
+      "medianPriceUsd": 599365.5,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1802",
+      "saleCount": 28,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 124,
+      "year": 2021
+    },
+    {
+      "id": "sale:BK1802:2022:tax-1",
+      "meanPriceUsd": 895001.92,
+      "medianPriceUsd": 840000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1802",
+      "saleCount": 417,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 604,
+      "year": 2022
+    },
+    {
+      "id": "sale:BK1802:2022:tax-2",
+      "meanPriceUsd": 478744.41,
+      "medianPriceUsd": 557500,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1802",
+      "saleCount": 34,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 23,
+      "year": 2022
+    },
+    {
+      "id": "sale:BK1802:2022:tax-4",
+      "meanPriceUsd": 2661664.03,
+      "medianPriceUsd": 712775,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1802",
+      "saleCount": 31,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 40,
+      "year": 2022
+    },
+    {
+      "id": "sale:BK1802:2023:tax-1",
+      "meanPriceUsd": 879106.89,
+      "medianPriceUsd": 810000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1802",
+      "saleCount": 331,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 458,
+      "year": 2023
+    },
+    {
+      "id": "sale:BK1802:2023:tax-2",
+      "meanPriceUsd": 415812.8,
+      "medianPriceUsd": 272500,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1802",
+      "saleCount": 30,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 23,
+      "year": 2023
+    },
+    {
+      "id": "sale:BK1802:2023:tax-4",
+      "meanPriceUsd": 1252884.5,
+      "medianPriceUsd": 653294.5,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1802",
+      "saleCount": 12,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 18,
+      "year": 2023
+    },
+    {
+      "id": "sale:BK1802:2024:tax-1",
+      "meanPriceUsd": 838795.86,
+      "medianPriceUsd": 806000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1802",
+      "saleCount": 335,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 453,
+      "year": 2024
+    },
+    {
+      "id": "sale:BK1802:2024:tax-2",
+      "meanPriceUsd": 375728,
+      "medianPriceUsd": 259500,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1802",
+      "saleCount": 30,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 13,
+      "year": 2024
+    },
+    {
+      "id": "sale:BK1802:2024:tax-4",
+      "meanPriceUsd": 2608461.54,
+      "medianPriceUsd": 837500,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1802",
+      "saleCount": 26,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 31,
+      "year": 2024
+    },
+    {
+      "id": "sale:BK1802:2025:tax-1",
+      "meanPriceUsd": 947388.66,
+      "medianPriceUsd": 880000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1802",
+      "saleCount": 332,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 460,
+      "year": 2025
+    },
+    {
+      "id": "sale:BK1802:2025:tax-2",
+      "meanPriceUsd": 663285.6,
+      "medianPriceUsd": 270000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1802",
+      "saleCount": 25,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 20,
+      "year": 2025
+    },
+    {
+      "id": "sale:BK1802:2025:tax-4",
+      "meanPriceUsd": 1012467.65,
+      "medianPriceUsd": 720000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1802",
+      "saleCount": 17,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 18,
+      "year": 2025
+    }
+  ],
+  "schema": "simulatte.nycRealEstateRegionShard.v1",
+  "sourceIdentities": [
+    {
+      "byteCount": 1008463,
+      "path": "nyc-annualized-sales-by-nta.json",
+      "sha256": "14c15020381466196236073ee3753ff7a5d74a76ec6af4605e96564abd2bf99a",
+      "sourceId": "nyc-real-estate-sales-annual"
+    },
+    {
+      "byteCount": 8977616,
+      "path": "nyc-final-certificates-of-occupancy.json",
+      "sha256": "966c237824a79aff9d5137d27b498ba4f3670cc19844738c5ce17a559388030e",
+      "sourceId": "nyc-real-estate-final-occupancy"
+    },
+    {
+      "byteCount": 8802596,
+      "path": "nyc-largest-constructed-footprints-2010-2026.geojson",
+      "sha256": "15745b9c62fa539e683737f0665fe91d95231e68d8c1b598e7ed211114811eb6",
+      "sourceId": "nyc-real-estate-constructed-footprints"
+    },
+    {
+      "byteCount": 1076754,
+      "path": "nyc-largest-new-building-jobs-bronx.json",
+      "sha256": "1a44c6cbfa364639e4b75957b2fab7e3c301f95bcfcfa90c50862fef85f450c1",
+      "sourceId": "nyc-real-estate-new-building-sample-bronx"
+    },
+    {
+      "byteCount": 1085334,
+      "path": "nyc-largest-new-building-jobs-brooklyn.json",
+      "sha256": "389e1825faff440d6fad5a12ed470f84e90859fd732262346a3414c5503693fd",
+      "sourceId": "nyc-real-estate-new-building-sample-brooklyn"
+    },
+    {
+      "byteCount": 1097625,
+      "path": "nyc-largest-new-building-jobs-manhattan.json",
+      "sha256": "6346678de380d58e325db14fc2e0611d993743be29898360e08f092eaa1f88e5",
+      "sourceId": "nyc-real-estate-new-building-sample-manhattan"
+    },
+    {
+      "byteCount": 1091065,
+      "path": "nyc-largest-new-building-jobs-queens.json",
+      "sha256": "79eb6f028b2135214d47a793101f72de695efcb02e4c2802cc10cd062c760a22",
+      "sourceId": "nyc-real-estate-new-building-sample-queens"
+    },
+    {
+      "byteCount": 1120592,
+      "path": "nyc-largest-new-building-jobs-staten-island.json",
+      "sha256": "e0870a431a75bdd235fc09b0ecd7503c45384f5e8b66beba545447c7bb3d960a",
+      "sourceId": "nyc-real-estate-new-building-sample-staten-island"
+    },
+    {
+      "byteCount": 1250280,
+      "path": "nyc-new-building-filings-by-nta-year.json",
+      "sha256": "4b75b0ad54a1ce5241b9c2e303be2cc24781e55a65fbf27be10d00a80bfeadea",
+      "sourceId": "nyc-real-estate-new-building-annual"
+    },
+    {
+      "byteCount": 4576764,
+      "path": "nyc-nta-2020.geojson",
+      "sha256": "c3dd069e094e2d2f647c1c102cd7e0570d033dd6131446bd1943a73210d09c56",
+      "sourceId": "nyc-real-estate-nta-boundaries"
+    },
+    {
+      "byteCount": 2402191,
+      "path": "nyc-pluto-capacity-bronx.json",
+      "sha256": "b45168721525e18a29aafcce335212632607021240869b738cbb96fbe2441389",
+      "sourceId": "nyc-real-estate-pluto-capacity-bronx"
+    },
+    {
+      "byteCount": 2403266,
+      "path": "nyc-pluto-capacity-brooklyn.json",
+      "sha256": "63b33a507c0bc26f7b71669cf032baa4950af2db77ce8712b876ca6f4c9f771b",
+      "sourceId": "nyc-real-estate-pluto-capacity-brooklyn"
+    },
+    {
+      "byteCount": 2464264,
+      "path": "nyc-pluto-capacity-manhattan.json",
+      "sha256": "91e3e1f5dce97a340475b51577458c8e48183f1138c334fbcce27d68001e9d25",
+      "sourceId": "nyc-real-estate-pluto-capacity-manhattan"
+    },
+    {
+      "byteCount": 2418903,
+      "path": "nyc-pluto-capacity-queens.json",
+      "sha256": "02a12d81466e89e05b9be9273198c5f857e86db5d2c95cfb717160ce4ccf99c1",
+      "sourceId": "nyc-real-estate-pluto-capacity-queens"
+    },
+    {
+      "byteCount": 1168016,
+      "path": "nyc-pluto-capacity-staten-island.json",
+      "sha256": "6d488f6ce46fa09930b669429275014a8ecedae6c85041fb465a15633c6a38b0",
+      "sourceId": "nyc-real-estate-pluto-capacity-staten-island"
+    }
+  ],
+  "truth": {
+    "origin": "observed",
+    "temporalStatus": "historical",
+    "uncertainty": {
+      "kind": "missing",
+      "value": {
+        "reason": "Administrative records have missing, revised, duplicated, and source-sampled fields without a shared statistical uncertainty model."
+      }
+    }
+  }
+}

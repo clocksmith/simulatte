@@ -1845,7 +1845,7 @@ body[data-journey-phase="failed"] .scenario-field {
     right: max(10px, env(safe-area-inset-right));
     left: max(10px, env(safe-area-inset-left));
     width: auto;
-    max-height: 112px;
+    max-height: 148px;
     padding: 10px 11px;
   }
 
@@ -1857,14 +1857,15 @@ body[data-journey-phase="failed"] .scenario-field {
   }
 
   .experience-summary dl {
-    display: flex;
-    gap: 14px;
-    overflow-x: auto;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 7px 12px;
+    overflow: visible;
   }
 
   .experience-summary dl > div {
     display: grid;
-    flex: 0 0 auto;
+    min-width: 0;
     grid-template-columns: none;
     gap: 2px;
     border-top: 0;
@@ -1872,6 +1873,8 @@ body[data-journey-phase="failed"] .scenario-field {
   }
 
   .experience-summary dd {
+    min-width: 0;
+    overflow-wrap: anywhere;
     text-align: left;
   }
 
@@ -1933,7 +1936,9 @@ body[data-journey-phase="failed"] .scenario-field {
   }
 
   body[data-experience-shell="experiment"] .plugin-map-ui {
-    top: calc(max(10px, env(safe-area-inset-top)) + 218px);
+    top: calc(max(10px, env(safe-area-inset-top)) + 250px);
+    bottom: calc(max(10px, env(safe-area-inset-bottom)) + 214px);
+    max-height: none;
   }
 
   .mission-dock {

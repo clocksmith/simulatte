@@ -17,6 +17,16 @@
     validateInputs(datasets, scenario);
     const catalog = catalogApi.createCatalogIndex(datasets.catalog);
     const scenarioRow = datasets.demand.scenarios.find((row) => row.id === scenario.scenarioId);
+    const disruptions = normalizeDisruptions(scenario.disruptions || [], datasets, scenarioRow);
+    const cancelledTripIds = new Set(disruptions
+      .filter((row) => row.kind === 'driver-cancellation')
+      .map((row) => row.targetId));
+    const corridorDetours = new Map(disruptions
+      .filter((row) => row.kind === 'bridge-detour')
+      .map((row) => [row.targetId, row.additionalDetourKm]));
+    const stockouts = new Set(disruptions
+      .filter((row) => row.kind === 'stockout')
+      .map((row) => row.targetId));
     const requestIds = new Set(scenarioRow.requestIds);
     const tripIds = new Set(scenarioRow.tripIds);
     const participantsById = new Map(datasets.demand.participants.map((row) => [row.id, row]));
@@ -34,11 +44,13 @@
       }));
     const trips = datasets.demand.trips
       .filter((row) => tripIds.has(row.id))
+      .filter((row) => !cancelledTripIds.has(row.id))
       .filter((row) => scenario.selectedWarehouseIds.includes(row.warehouseId))
       .filter((row) => scenario.compensationModes.includes(row.compensation.mode))
       .map((row) => Object.freeze({
         ...row,
         corridor: corridorsById.get(row.corridorId),
+        disruptionDetourKm: corridorDetours.get(row.corridorId) || 0,
       }));
     const context = Object.freeze({
       catalog,
@@ -48,6 +60,7 @@
       participantsById,
       requests,
       scenario,
+      stockouts,
       trips,
       warehousesById,
     });
@@ -68,9 +81,10 @@
       minimumSavingsUsd: scenario.minimumSavingsUsd,
       freshnessLimitMinutes: scenario.freshnessLimitMinutes,
       allowUnknownAvailability: scenario.allowUnknownAvailability,
+      disruptions,
     });
     const scenarioIdentity = `neighborhood-bulk:${hashIdentity(configurationIdentity)}`;
-    const events = timelineApi.createEvents(scenarioIdentity, active);
+    const events = timelineApi.createEvents(scenarioIdentity, active, disruptions);
     const snapshots = timelineApi.createSnapshots(scenarioIdentity, active, events);
     return deepFreeze({
       schema: 'simulatte.neighborhoodBulkSimulation.v1',
@@ -87,6 +101,8 @@
       settlements: active.settlements,
       unsupported: active.unsupported,
       conservation: active.conservation,
+      disruptions,
+      hasActiveDisruptions: disruptions.length > 0,
       events,
       snapshots,
       catalogReceipt: {
@@ -148,8 +164,18 @@
       packageConserved: nearlyEqual(purchasedUnits, fulfilledUnits + wasteUnits),
       capacityConserved: tripAssignments.every((row) => row.capacity.isValid),
       refrigerationViolations: tripAssignments.filter((row) => !row.freshness.isValid).length,
+      financialConserved: settlements.every((row) => row.receiptReconciled)
+        && nearlyEqual(
+          sum(settlements, (row) => row.itemCostUsd),
+          sum(acceptedGroups, (row) => row.purchaseCostUsd)
+        )
+        && nearlyEqual(
+          sum(settlements, (row) => row.driverCompensationUsd),
+          sum(tripAssignments, (row) => row.compensation.settledUsd)
+        ),
     });
-    if (!conservation.demandConserved || !conservation.packageConserved || !conservation.capacityConserved) {
+    if (!conservation.demandConserved || !conservation.packageConserved
+      || !conservation.capacityConserved || !conservation.financialConserved) {
       throw solverError('bulk_pool_conservation_failed', `Policy ${policyId} failed conservation`, conservation);
     }
     return deepFreeze({
@@ -208,7 +234,10 @@
     const offers = context.catalog.eligibleOffersFor(request.itemId, {
       warehouseIds: context.scenario.selectedWarehouseIds,
       allowUnknownAvailability: context.scenario.allowUnknownAvailability,
-    });
+    }).filter((offer) => (
+      !context.stockouts.has(request.itemId)
+      && !context.stockouts.has(`${request.itemId}:${offer.warehouseId}`)
+    ));
     if (!offers.length) return null;
     if (!ROUTED_POLICIES.has(policyId)) {
       return offers.map((offer) => {
@@ -233,7 +262,7 @@
         : pointStop(request);
       if (!stop) return;
       const oneWayDetourKm = distanceToPolylineKm(stop.coordinates, trip.corridor.coordinates);
-      const detourKm = oneWayDetourKm * 2;
+      const detourKm = oneWayDetourKm * 2 + trip.disruptionDetourKm;
       if (detourKm > Math.min(context.scenario.maximumDetourKm, trip.maximumDetourKm)) return;
       if (request.item.handling.temperatureZone !== 'ambient' && trip.coldCapacityL <= 0) return;
       candidates.push({
@@ -403,28 +432,45 @@
       requestedUnits: 0,
       fulfilledUnits: 0,
       unservedUnits: 0,
-      itemCostUsd: 0,
-      driverCompensationUsd: 0,
-      independentEquivalentCostUsd: 0,
+      itemCostCents: 0,
+      driverCompensationCents: 0,
+      independentEquivalentCostCents: 0,
       allocations: [],
+      receiptBreakdown: {
+        basePriceCents: 0,
+        taxCents: 0,
+        depositCents: 0,
+        tollCents: 0,
+        mileageCents: 0,
+        expenseReimbursementCents: 0,
+        feeCents: 0,
+      },
     }]));
     context.requests.forEach((request) => {
       settlements.get(request.participantId).requestedUnits += request.quantity;
     });
     groups.forEach((group) => {
-      group.allocations.forEach((allocation) => {
+      const costs = allocateCents(group.purchaseCostUsd, group.allocations, (row) => row.quantity);
+      const baselines = allocateCents(
+        group.independentEquivalentCostUsd,
+        group.allocations,
+        (row) => row.quantity
+      );
+      group.allocations.forEach((allocation, allocationIndex) => {
         const row = settlements.get(allocation.participantId);
-        const cost = group.purchaseCostUsd * allocation.quantity / group.allocatedUnits;
-        const baseline = group.independentEquivalentCostUsd * allocation.quantity / group.allocatedUnits;
+        const costCents = costs[allocationIndex];
+        const baselineCents = baselines[allocationIndex];
         row.fulfilledUnits += allocation.quantity;
-        row.itemCostUsd += cost;
-        row.independentEquivalentCostUsd += baseline;
+        row.itemCostCents += costCents;
+        row.independentEquivalentCostCents += baselineCents;
+        row.receiptBreakdown.basePriceCents += costCents;
         row.allocations.push({
           requestId: allocation.requestId,
           itemId: allocation.itemId,
           quantity: allocation.quantity,
-          costUsd: round(cost, 2),
+          costUsd: centsToUsd(costCents),
           poolGroupId: group.id,
+          isFractional: allocation.quantity < (group.item.package?.innerUnits || 1),
         });
       });
     });
@@ -434,21 +480,54 @@
     });
     tripAssignments.forEach((assignment) => {
       const participants = assignment.participantIds;
-      const share = participants.length ? assignment.compensation.settledUsd / participants.length : 0;
-      participants.forEach((participantId) => {
-        settlements.get(participantId).driverCompensationUsd += share;
+      const shares = allocateCents(
+        assignment.compensation.settledUsd,
+        participants,
+        () => 1
+      );
+      const compMode = assignment.compensation.mode;
+      participants.forEach((participantId, participantIndex) => {
+        const row = settlements.get(participantId);
+        const shareCents = shares[participantIndex];
+        row.driverCompensationCents += shareCents;
+        if (compMode === 'fee') {
+          row.receiptBreakdown.feeCents += shareCents;
+        } else if (compMode === 'exact-expenses') {
+          row.receiptBreakdown.expenseReimbursementCents += shareCents;
+        }
       });
     });
     return [...settlements.values()].map((row) => {
-      const totalCostUsd = row.itemCostUsd + row.driverCompensationUsd;
+      const totalCostCents = row.itemCostCents + row.driverCompensationCents;
+      const receiptBreakdown = {
+        basePriceUsd: centsToUsd(row.receiptBreakdown.basePriceCents),
+        taxUsd: centsToUsd(row.receiptBreakdown.taxCents),
+        depositUsd: centsToUsd(row.receiptBreakdown.depositCents),
+        tollUsd: centsToUsd(row.receiptBreakdown.tollCents),
+        mileageUsd: centsToUsd(row.receiptBreakdown.mileageCents),
+        expenseReimbursementUsd: centsToUsd(
+          row.receiptBreakdown.expenseReimbursementCents
+        ),
+        feeUsd: centsToUsd(row.receiptBreakdown.feeCents),
+      };
       return deepFreeze({
-        ...row,
-        itemCostUsd: round(row.itemCostUsd, 2),
-        driverCompensationUsd: round(row.driverCompensationUsd, 2),
-        totalCostUsd: round(totalCostUsd, 2),
-        independentEquivalentCostUsd: round(row.independentEquivalentCostUsd, 2),
-        savingsUsd: round(row.independentEquivalentCostUsd - totalCostUsd, 2),
+        participantId: row.participantId,
+        pseudonym: row.pseudonym,
+        requestedUnits: row.requestedUnits,
+        fulfilledUnits: row.fulfilledUnits,
+        unservedUnits: row.unservedUnits,
+        allocations: row.allocations,
+        itemCostUsd: centsToUsd(row.itemCostCents),
+        driverCompensationUsd: centsToUsd(row.driverCompensationCents),
+        totalCostUsd: centsToUsd(totalCostCents),
+        independentEquivalentCostUsd: centsToUsd(row.independentEquivalentCostCents),
+        savingsUsd: centsToUsd(row.independentEquivalentCostCents - totalCostCents),
         fulfillmentRatio: row.requestedUnits ? row.fulfilledUnits / row.requestedUnits : 1,
+        receiptBreakdown,
+        receiptReconciled: nearlyEqual(
+          sum(Object.values(receiptBreakdown)),
+          centsToUsd(totalCostCents)
+        ),
       });
     }).sort((left, right) => left.participantId.localeCompare(right.participantId));
   }
@@ -578,6 +657,74 @@
     }
   }
 
+  function normalizeDisruptions(rows, datasets, scenarioRow) {
+    if (!Array.isArray(rows)) {
+      throw solverError(
+        'bulk_pool_disruptions_invalid',
+        'Scenario disruptions must be an array'
+      );
+    }
+    const scenarioTripIds = new Set(scenarioRow.tripIds);
+    const tripsById = new Map(datasets.demand.trips.map((row) => [row.id, row]));
+    const scenarioCorridorIds = new Set(
+      scenarioRow.tripIds.map((tripId) => tripsById.get(tripId)?.corridorId).filter(Boolean)
+    );
+    const itemIds = new Set(datasets.catalog.items.map((row) => row.id));
+    const warehouseIds = new Set(datasets.warehouses.warehouses.map((row) => row.id));
+    return Object.freeze(rows.map((row, index) => {
+      const kind = row?.kind;
+      const targetId = row?.targetId;
+      const appliedAfterStep = Number(row?.appliedAfterStep ?? 0);
+      if (!['stockout', 'driver-cancellation', 'bridge-detour'].includes(kind)
+        || typeof targetId !== 'string' || !targetId
+        || !Number.isInteger(appliedAfterStep) || appliedAfterStep < 0) {
+        throw solverError(
+          'bulk_pool_disruption_invalid_input',
+          'Disruption requires a supported kind, targetId, and non-negative appliedAfterStep'
+        );
+      }
+      if (kind === 'driver-cancellation' && !scenarioTripIds.has(targetId)) {
+        throw solverError(
+          'bulk_pool_disruption_target_unknown',
+          `Driver cancellation target ${targetId} is not active in ${scenarioRow.id}`
+        );
+      }
+      if (kind === 'bridge-detour' && !scenarioCorridorIds.has(targetId)) {
+        throw solverError(
+          'bulk_pool_disruption_target_unknown',
+          `Bridge detour target ${targetId} is not active in ${scenarioRow.id}`
+        );
+      }
+      if (kind === 'stockout') {
+        const [itemId, warehouseId] = targetId.split(':');
+        if (!itemIds.has(itemId) || (warehouseId && !warehouseIds.has(warehouseId))) {
+          throw solverError(
+            'bulk_pool_disruption_target_unknown',
+            `Stockout target ${targetId} is not a governed item or item-warehouse pair`
+          );
+        }
+      }
+      const additionalDetourKm = kind === 'bridge-detour'
+        ? Number(row.additionalDetourKm)
+        : 0;
+      if (kind === 'bridge-detour'
+        && (!Number.isFinite(additionalDetourKm)
+          || additionalDetourKm <= 0 || additionalDetourKm > 20)) {
+        throw solverError(
+          'bulk_pool_disruption_detour_invalid',
+          'Bridge detours require additionalDetourKm greater than 0 and at most 20'
+        );
+      }
+      return Object.freeze({
+        id: `disruption-${String(index + 1).padStart(2, '0')}:${kind}:${targetId}`,
+        kind,
+        targetId,
+        appliedAfterStep,
+        ...(kind === 'bridge-detour' ? { additionalDetourKm } : {}),
+      });
+    }));
+  }
+
   function requireDependencies() {
     if (!catalogApi?.createCatalogIndex) {
       throw solverError('bulk_pool_catalog_dependency_missing', 'Catalog index dependency is unavailable');
@@ -666,6 +813,39 @@
     return rows.reduce((total, row) => total + Number(selector(row) || 0), 0);
   }
 
+  function allocateCents(totalUsd, rows, weightFor) {
+    if (!rows.length) return [];
+    const totalCents = Math.round(Number(totalUsd) * 100);
+    const weights = rows.map((row) => Number(weightFor(row)));
+    const weightTotal = sum(weights);
+    if (!Number.isFinite(totalCents) || totalCents < 0
+      || weights.some((weight) => !Number.isFinite(weight) || weight < 0)
+      || weightTotal <= 0) {
+      throw solverError(
+        'bulk_pool_financial_allocation_invalid',
+        'Receipt allocation requires non-negative cents and positive finite weights'
+      );
+    }
+    const exact = weights.map((weight) => totalCents * weight / weightTotal);
+    const allocated = exact.map(Math.floor);
+    let remainder = totalCents - sum(allocated);
+    exact.map((value, index) => ({
+      index,
+      remainder: value - allocated[index],
+    })).sort((left, right) => (
+      right.remainder - left.remainder || left.index - right.index
+    )).forEach((row) => {
+      if (remainder <= 0) return;
+      allocated[row.index] += 1;
+      remainder -= 1;
+    });
+    return allocated;
+  }
+
+  function centsToUsd(value) {
+    return Number((Number(value) / 100).toFixed(2));
+  }
+
   function unique(values) {
     return [...new Set(values)].sort();
   }
@@ -694,8 +874,35 @@
     return error;
   }
 
+  function applyDisruption({ simulation, disruption, datasets, config, appliedAfterStep }) {
+    if (!simulation || simulation.schema !== 'simulatte.neighborhoodBulkSimulation.v1') {
+      throw solverError('bulk_pool_disruption_invalid_simulation', 'Invalid simulation input for disruption');
+    }
+    if (!datasets || !config) {
+      throw solverError(
+        'bulk_pool_disruption_context_missing',
+        'Disruption healing requires the same datasets and configuration as the active run'
+      );
+    }
+    const nextDisruption = {
+      ...disruption,
+      appliedAfterStep: Number.isInteger(appliedAfterStep)
+        ? appliedAfterStep
+        : disruption?.appliedAfterStep,
+    };
+    return runScenario({
+      datasets,
+      config,
+      scenario: {
+        ...simulation.configurationIdentity,
+        disruptions: [...simulation.disruptions, nextDisruption],
+      },
+    });
+  }
+
   return Object.freeze({
     POLICY_IDS,
+    applyDisruption,
     distanceKm,
     distanceToPolylineKm,
     runScenario,

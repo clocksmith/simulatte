@@ -1,0 +1,703 @@
+{
+  "capacitySites": [],
+  "claimBoundary": "This NTA shard preserves every joined row retained from the governed source snapshot. The source snapshot itself samples large DOB jobs, constructed footprints, and PLUTO capacity candidates and is not a complete property history or feasibility inventory.",
+  "contentVersion": "2026-07-27",
+  "coverage": {
+    "capacityCandidates": 0,
+    "compilerRegionCap": null,
+    "developmentForecastSupportedBySector": {
+      "all": false,
+      "tax-class-1": false,
+      "tax-class-2": false,
+      "tax-class-4": false
+    },
+    "developmentSeriesRows": 9,
+    "historicalSites": 2,
+    "priceForecastSupportedBySector": {
+      "all": false,
+      "tax-class-1": false,
+      "tax-class-2": false,
+      "tax-class-4": false
+    },
+    "saleRows": 1,
+    "saleYearsBySector": {
+      "tax-class-1": [],
+      "tax-class-2": [],
+      "tax-class-4": [
+        2022
+      ]
+    },
+    "sectorCandidateCounts": {
+      "all": 0,
+      "tax-class-1": 0,
+      "tax-class-2": 0,
+      "tax-class-4": 0
+    },
+    "sourceSampled": true
+  },
+  "developmentSeries": [
+    {
+      "filingCount": 1,
+      "id": "development:BX2691:2000",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "BX2691",
+      "sourceNtaNames": [
+        "Van Cortlandt Park"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2000
+    },
+    {
+      "filingCount": 2,
+      "id": "development:BX2691:2001",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "BX2691",
+      "sourceNtaNames": [
+        "Van Cortlandt Park"
+      ],
+      "withdrawnFilingCount": 1,
+      "year": 2001
+    },
+    {
+      "filingCount": 3,
+      "id": "development:BX2691:2004",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "BX2691",
+      "sourceNtaNames": [
+        "Van Cortlandt Park"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2004
+    },
+    {
+      "filingCount": 1,
+      "id": "development:BX2691:2005",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "BX2691",
+      "sourceNtaNames": [
+        "Van Cortlandt Park"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2005
+    },
+    {
+      "filingCount": 3,
+      "id": "development:BX2691:2006",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "BX2691",
+      "sourceNtaNames": [
+        "Van Cortlandt Park"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2006
+    },
+    {
+      "filingCount": 3,
+      "id": "development:BX2691:2008",
+      "proposedZoningSquareFeet": 1,
+      "regionId": "BX2691",
+      "sourceNtaNames": [
+        "Van Cortlandt Park"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2008
+    },
+    {
+      "filingCount": 5,
+      "id": "development:BX2691:2009",
+      "proposedZoningSquareFeet": 12757,
+      "regionId": "BX2691",
+      "sourceNtaNames": [
+        "Van Cortlandt Park"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2009
+    },
+    {
+      "filingCount": 2,
+      "id": "development:BX2691:2011",
+      "proposedZoningSquareFeet": 4500,
+      "regionId": "BX2691",
+      "sourceNtaNames": [
+        "Van Cortlandt Park"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2011
+    },
+    {
+      "filingCount": 3,
+      "id": "development:BX2691:2012",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "BX2691",
+      "sourceNtaNames": [
+        "Van Cortlandt Park"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2012
+    }
+  ],
+  "developmentSites": [
+    {
+      "address": null,
+      "bbl": "2059000150",
+      "bin": "2129787",
+      "constructionYear": 2024,
+      "coordinates": [
+        -73.8959427,
+        40.8902751
+      ],
+      "footprint": [
+        [
+          -73.8961454,
+          40.8905835
+        ],
+        [
+          -73.8957572,
+          40.8904821
+        ],
+        [
+          -73.8958786,
+          40.8901726
+        ],
+        [
+          -73.8955966,
+          40.8901002
+        ],
+        [
+          -73.8956425,
+          40.8899989
+        ],
+        [
+          -73.8960342,
+          40.8901013
+        ],
+        [
+          -73.8959955,
+          40.8901856
+        ],
+        [
+          -73.8962886,
+          40.8902679
+        ],
+        [
+          -73.8961454,
+          40.8905835
+        ]
+      ],
+      "footprintAreaM2": 3011.74,
+      "footprintOrigin": "observed",
+      "heightM": 3.05,
+      "id": "footprint:1090289",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2024-07-01",
+          "id": "footprint:1090289:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BX2691",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1090289"
+      ]
+    },
+    {
+      "address": "5959 BROADWAY",
+      "bbl": "2057760621",
+      "bin": "2124471",
+      "constructionYear": 2019,
+      "coordinates": [
+        -73.898533,
+        40.888954
+      ],
+      "footprint": [
+        [
+          -73.8991268,
+          40.8894816
+        ],
+        [
+          -73.8989247,
+          40.8894551
+        ],
+        [
+          -73.8989239,
+          40.8894438
+        ],
+        [
+          -73.8988664,
+          40.8894388
+        ],
+        [
+          -73.8988643,
+          40.8894285
+        ],
+        [
+          -73.8988249,
+          40.8894133
+        ],
+        [
+          -73.898787,
+          40.8893749
+        ],
+        [
+          -73.898765,
+          40.8893363
+        ],
+        [
+          -73.8987628,
+          40.8892926
+        ],
+        [
+          -73.8987548,
+          40.8892915
+        ],
+        [
+          -73.8987813,
+          40.8892431
+        ],
+        [
+          -73.8987679,
+          40.8892411
+        ],
+        [
+          -73.898904,
+          40.8889947
+        ],
+        [
+          -73.8992273,
+          40.8890887
+        ],
+        [
+          -73.8992037,
+          40.8891352
+        ],
+        [
+          -73.8991268,
+          40.8894816
+        ]
+      ],
+      "footprintAreaM2": 2568.96,
+      "footprintOrigin": "observed",
+      "heightM": 17.68,
+      "id": "job:220349193:01",
+      "jobId": "220349193",
+      "milestones": [
+        {
+          "date": "2013-12-13",
+          "id": "job:220349193:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2014-08-26",
+          "id": "job:220349193:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2016-11-04",
+          "id": "job:220349193:01:fully-permitted:3",
+          "kind": "fully-permitted",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2019-04-18",
+          "id": "job:220349193:01:final-certificate-of-occupancy:4",
+          "kind": "final-certificate-of-occupancy",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2019-04-18",
+          "id": "job:220349193:01:signed-off:5",
+          "kind": "signed-off",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 6,
+      "proposedUnits": 72,
+      "proposedZoningSquareFeet": 72429,
+      "regionId": "BX2691",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:2315329",
+        "certificate-of-occupancy:220349193:004",
+        "building-footprint:697264"
+      ],
+      "status": "SIGNED OFF",
+      "withdrawn": false
+    }
+  ],
+  "id": "nyc-real-estate-region-bx2691-v1",
+  "region": {
+    "abbreviation": "VnCrtldtPk",
+    "areaM2": 50658597.5679,
+    "boroughId": "bronx",
+    "boroughLabel": "Bronx",
+    "bounds": {
+      "east": -73.867898,
+      "north": 40.9114174,
+      "south": 40.8827096,
+      "west": -73.8999043
+    },
+    "centroid": [
+      -73.8815317,
+      40.8945333
+    ],
+    "communityDistrictTabulationAreaId": "BX26",
+    "communityDistrictTabulationAreaLabel": "BX26 Van Cortlandt Park (JIA 26 Equivalent)",
+    "id": "BX2691",
+    "label": "Van Cortlandt Park",
+    "polygon": [
+      [
+        -73.867898,
+        40.9029402
+      ],
+      [
+        -73.8684769,
+        40.9020724
+      ],
+      [
+        -73.8699615,
+        40.9008337
+      ],
+      [
+        -73.8714435,
+        40.8999947
+      ],
+      [
+        -73.8739296,
+        40.8989574
+      ],
+      [
+        -73.8752198,
+        40.8981478
+      ],
+      [
+        -73.8764374,
+        40.8968706
+      ],
+      [
+        -73.8771197,
+        40.8954687
+      ],
+      [
+        -73.8800421,
+        40.8952223
+      ],
+      [
+        -73.8804023,
+        40.8932775
+      ],
+      [
+        -73.8803594,
+        40.8925523
+      ],
+      [
+        -73.8791894,
+        40.890307
+      ],
+      [
+        -73.8780048,
+        40.8873372
+      ],
+      [
+        -73.8781494,
+        40.8868738
+      ],
+      [
+        -73.8812442,
+        40.8827096
+      ],
+      [
+        -73.8827483,
+        40.8833974
+      ],
+      [
+        -73.884217,
+        40.8831977
+      ],
+      [
+        -73.8868349,
+        40.884342
+      ],
+      [
+        -73.8875861,
+        40.8842556
+      ],
+      [
+        -73.8999043,
+        40.8865597
+      ],
+      [
+        -73.8967579,
+        40.8926454
+      ],
+      [
+        -73.8964317,
+        40.8936553
+      ],
+      [
+        -73.8971572,
+        40.8993718
+      ],
+      [
+        -73.8963579,
+        40.9032001
+      ],
+      [
+        -73.8966333,
+        40.9114174
+      ],
+      [
+        -73.8709525,
+        40.9038503
+      ],
+      [
+        -73.867898,
+        40.9029402
+      ]
+    ],
+    "spatialPolygons": [
+      {
+        "holes": [],
+        "outer": [
+          [
+            -73.867898,
+            40.9029402
+          ],
+          [
+            -73.8684769,
+            40.9020724
+          ],
+          [
+            -73.8699615,
+            40.9008337
+          ],
+          [
+            -73.8714435,
+            40.8999947
+          ],
+          [
+            -73.8739296,
+            40.8989574
+          ],
+          [
+            -73.8752198,
+            40.8981478
+          ],
+          [
+            -73.8764374,
+            40.8968706
+          ],
+          [
+            -73.8771197,
+            40.8954687
+          ],
+          [
+            -73.8800421,
+            40.8952223
+          ],
+          [
+            -73.8804023,
+            40.8932775
+          ],
+          [
+            -73.8803594,
+            40.8925523
+          ],
+          [
+            -73.8791894,
+            40.890307
+          ],
+          [
+            -73.8780048,
+            40.8873372
+          ],
+          [
+            -73.8781494,
+            40.8868738
+          ],
+          [
+            -73.8812442,
+            40.8827096
+          ],
+          [
+            -73.8827483,
+            40.8833974
+          ],
+          [
+            -73.884217,
+            40.8831977
+          ],
+          [
+            -73.8868349,
+            40.884342
+          ],
+          [
+            -73.8875861,
+            40.8842556
+          ],
+          [
+            -73.8999043,
+            40.8865597
+          ],
+          [
+            -73.8967579,
+            40.8926454
+          ],
+          [
+            -73.8964317,
+            40.8936553
+          ],
+          [
+            -73.8971572,
+            40.8993718
+          ],
+          [
+            -73.8963579,
+            40.9032001
+          ],
+          [
+            -73.8966333,
+            40.9114174
+          ],
+          [
+            -73.8709525,
+            40.9038503
+          ],
+          [
+            -73.867898,
+            40.9029402
+          ]
+        ]
+      }
+    ]
+  },
+  "saleSeries": [
+    {
+      "id": "sale:BX2691:2022:tax-4",
+      "meanPriceUsd": 8437616,
+      "medianPriceUsd": 8437616,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BX2691",
+      "saleCount": 1,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 0,
+      "year": 2022
+    }
+  ],
+  "schema": "simulatte.nycRealEstateRegionShard.v1",
+  "sourceIdentities": [
+    {
+      "byteCount": 1008463,
+      "path": "nyc-annualized-sales-by-nta.json",
+      "sha256": "14c15020381466196236073ee3753ff7a5d74a76ec6af4605e96564abd2bf99a",
+      "sourceId": "nyc-real-estate-sales-annual"
+    },
+    {
+      "byteCount": 8977616,
+      "path": "nyc-final-certificates-of-occupancy.json",
+      "sha256": "966c237824a79aff9d5137d27b498ba4f3670cc19844738c5ce17a559388030e",
+      "sourceId": "nyc-real-estate-final-occupancy"
+    },
+    {
+      "byteCount": 8802596,
+      "path": "nyc-largest-constructed-footprints-2010-2026.geojson",
+      "sha256": "15745b9c62fa539e683737f0665fe91d95231e68d8c1b598e7ed211114811eb6",
+      "sourceId": "nyc-real-estate-constructed-footprints"
+    },
+    {
+      "byteCount": 1076754,
+      "path": "nyc-largest-new-building-jobs-bronx.json",
+      "sha256": "1a44c6cbfa364639e4b75957b2fab7e3c301f95bcfcfa90c50862fef85f450c1",
+      "sourceId": "nyc-real-estate-new-building-sample-bronx"
+    },
+    {
+      "byteCount": 1085334,
+      "path": "nyc-largest-new-building-jobs-brooklyn.json",
+      "sha256": "389e1825faff440d6fad5a12ed470f84e90859fd732262346a3414c5503693fd",
+      "sourceId": "nyc-real-estate-new-building-sample-brooklyn"
+    },
+    {
+      "byteCount": 1097625,
+      "path": "nyc-largest-new-building-jobs-manhattan.json",
+      "sha256": "6346678de380d58e325db14fc2e0611d993743be29898360e08f092eaa1f88e5",
+      "sourceId": "nyc-real-estate-new-building-sample-manhattan"
+    },
+    {
+      "byteCount": 1091065,
+      "path": "nyc-largest-new-building-jobs-queens.json",
+      "sha256": "79eb6f028b2135214d47a793101f72de695efcb02e4c2802cc10cd062c760a22",
+      "sourceId": "nyc-real-estate-new-building-sample-queens"
+    },
+    {
+      "byteCount": 1120592,
+      "path": "nyc-largest-new-building-jobs-staten-island.json",
+      "sha256": "e0870a431a75bdd235fc09b0ecd7503c45384f5e8b66beba545447c7bb3d960a",
+      "sourceId": "nyc-real-estate-new-building-sample-staten-island"
+    },
+    {
+      "byteCount": 1250280,
+      "path": "nyc-new-building-filings-by-nta-year.json",
+      "sha256": "4b75b0ad54a1ce5241b9c2e303be2cc24781e55a65fbf27be10d00a80bfeadea",
+      "sourceId": "nyc-real-estate-new-building-annual"
+    },
+    {
+      "byteCount": 4576764,
+      "path": "nyc-nta-2020.geojson",
+      "sha256": "c3dd069e094e2d2f647c1c102cd7e0570d033dd6131446bd1943a73210d09c56",
+      "sourceId": "nyc-real-estate-nta-boundaries"
+    },
+    {
+      "byteCount": 2402191,
+      "path": "nyc-pluto-capacity-bronx.json",
+      "sha256": "b45168721525e18a29aafcce335212632607021240869b738cbb96fbe2441389",
+      "sourceId": "nyc-real-estate-pluto-capacity-bronx"
+    },
+    {
+      "byteCount": 2403266,
+      "path": "nyc-pluto-capacity-brooklyn.json",
+      "sha256": "63b33a507c0bc26f7b71669cf032baa4950af2db77ce8712b876ca6f4c9f771b",
+      "sourceId": "nyc-real-estate-pluto-capacity-brooklyn"
+    },
+    {
+      "byteCount": 2464264,
+      "path": "nyc-pluto-capacity-manhattan.json",
+      "sha256": "91e3e1f5dce97a340475b51577458c8e48183f1138c334fbcce27d68001e9d25",
+      "sourceId": "nyc-real-estate-pluto-capacity-manhattan"
+    },
+    {
+      "byteCount": 2418903,
+      "path": "nyc-pluto-capacity-queens.json",
+      "sha256": "02a12d81466e89e05b9be9273198c5f857e86db5d2c95cfb717160ce4ccf99c1",
+      "sourceId": "nyc-real-estate-pluto-capacity-queens"
+    },
+    {
+      "byteCount": 1168016,
+      "path": "nyc-pluto-capacity-staten-island.json",
+      "sha256": "6d488f6ce46fa09930b669429275014a8ecedae6c85041fb465a15633c6a38b0",
+      "sourceId": "nyc-real-estate-pluto-capacity-staten-island"
+    }
+  ],
+  "truth": {
+    "origin": "observed",
+    "temporalStatus": "historical",
+    "uncertainty": {
+      "kind": "missing",
+      "value": {
+        "reason": "Administrative records have missing, revised, duplicated, and source-sampled fields without a shared statistical uncertainty model."
+      }
+    }
+  }
+}

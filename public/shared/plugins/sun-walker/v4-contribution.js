@@ -57,6 +57,7 @@
       ...(fastest.id === selected.id
         ? []
         : [routeLayer('fastest-route', 'Fastest route baseline', fastest, 'route.fastest-baseline', 'comparison', 0.55, claim)]),
+      ...walkedSegmentLayers(samples, claim),
       ...shadowAreas.map((shadow) => builder.layer({
         id: shadow.id,
         kind: 'area',
@@ -216,6 +217,45 @@
     });
   }
 
+  function walkedSegmentLayers(samples, provenance) {
+    const bySegmentId = new Map();
+    samples.forEach((sample) => {
+      const row = bySegmentId.get(sample.segmentId) || {
+        segmentId: sample.segmentId,
+        representedSeconds: 0,
+        activeSample: sample,
+      };
+      row.representedSeconds += sample.representedSeconds;
+      row.activeSample = sample;
+      bySegmentId.set(sample.segmentId, row);
+    });
+    return [...bySegmentId.values()].map((row) => builder.layer({
+      id: `sun-walked-segment-${row.segmentId}`,
+      kind: 'path',
+      label: `${exposureLabel(row.activeSample.state)} · ${Math.round(row.representedSeconds)} s sampled`,
+      geometry: builder.geometry('segments', 'city-segment-id', [row.segmentId]),
+      quantity: builder.quantity(
+        `exposure.${row.activeSample.state}`,
+        row.representedSeconds,
+        'seconds',
+        [0, Math.max(1, row.representedSeconds)],
+      ),
+      role: row.activeSample.state === 'direct' ? 'event' : row.activeSample.state === 'unknown' ? 'uncertainty' : 'primary',
+      importance: 0.9,
+      aggregationKey: null,
+      provenance,
+    }));
+  }
+
+  function exposureLabel(state) {
+    return {
+      direct: 'Direct sun',
+      shade: 'Modeled shade',
+      unknown: 'Unknown exposure',
+      night: 'Night',
+    }[state] || state;
+  }
+
   function field(id, label, value, unit, provenance) {
     return { id, label, value, unit, provenance };
   }
@@ -237,5 +277,5 @@
       : 'follow';
   }
 
-  return Object.freeze({ createContribution, exposureNavigationMode });
+  return Object.freeze({ createContribution, exposureNavigationMode, walkedSegmentLayers });
 });

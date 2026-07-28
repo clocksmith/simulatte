@@ -22,6 +22,19 @@
     'exposure.night': '#69738b',
     'actor.pedestrian.route-progress': '#f4fff9',
     'occlusion.shadow-length': '#315878',
+    'cable-family.cat6-copper.transferred': '#36d7e8',
+    'cable-family.cat6-copper.in-transit': '#36d7e8',
+    'cable-family.cat6a-copper.transferred': '#4e87ff',
+    'cable-family.cat6a-copper.in-transit': '#4e87ff',
+    'cable-family.os2-single-mode.transferred': '#e66dff',
+    'cable-family.os2-single-mode.in-transit': '#e66dff',
+    'cable-family.om4-multimode.transferred': '#9d7bff',
+    'cable-family.om4-multimode.in-transit': '#9d7bff',
+    'cable-family.rg6-coax.transferred': '#ffbd58',
+    'cable-family.rg6-coax.in-transit': '#ffbd58',
+    'allocation-policy.cheapest': '#55d8ff',
+    'allocation-policy.fastest': '#ffbd58',
+    'allocation-policy.fairness-first': '#d98cff',
   });
   const QUANTITY_COLOR_RULES = Object.freeze([
     Object.freeze({ pattern: /(?:unserved|dropped|illness|fatality|failure|contamination)/, color: '#ff657a' }),
@@ -157,6 +170,7 @@
       widthPx: layer.kind === 'path'
         ? round(clamp(2.2 + normalized * 0.9 + roleWeight * 0.6 + (selected ? 0.6 : 0), 2.2, 4))
         : null,
+      laneOffsetPx: layer.kind === 'path' ? comparisonLaneOffset(layer.quantity?.kind) : 0,
       radiusPx: ['point', 'actor'].includes(layer.kind)
         ? round(clamp(3 + normalized * 5 + (selected ? 2 : 0), 3, 10))
         : null,
@@ -176,6 +190,14 @@
     if (layer.role === 'comparison') return '#ffbd66';
     if (layer.role === 'uncertainty') return '#9aa3b8';
     return ORIGIN_COLORS[layer.provenance.axes.origin];
+  }
+
+  function comparisonLaneOffset(quantityKind) {
+    return ({
+      'allocation-policy.cheapest': -3.5,
+      'allocation-policy.fastest': 0,
+      'allocation-policy.fairness-first': 3.5,
+    })[quantityKind] || 0;
   }
 
   function clusterPoints(layers, project, radiusPx, envelopesById, semanticDomains) {

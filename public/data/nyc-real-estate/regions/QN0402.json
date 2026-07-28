@@ -1,0 +1,6716 @@
+{
+  "capacitySites": [
+    {
+      "address": "100 STREET",
+      "affordableResidentialFar": 2.4,
+      "availableCommercialFar": 0,
+      "availableFar": 2,
+      "availableResidentialFar": 2,
+      "bbl": "4016080017",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.865308,
+        40.7491009
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:4016080017",
+      "landUseCode": "11",
+      "lotAreaSquareFeet": 2545,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 5090,
+      "potentialResidentialFloorAreaSquareFeet": 5090,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 5,
+      "regionId": "QN0402",
+      "residentialFar": 2,
+      "sourceRowIds": [
+        "pluto:4016080017"
+      ],
+      "zoningDistricts": [
+        "R6B"
+      ]
+    },
+    {
+      "address": "POWER ROAD",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.43,
+      "availableResidentialFar": 2.43,
+      "bbl": "4019000068",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8605308,
+        40.7398481
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:4019000068",
+      "landUseCode": "11",
+      "lotAreaSquareFeet": 1096,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 2663.28,
+      "potentialResidentialFloorAreaSquareFeet": 2663.28,
+      "potentialResidentialUnitsClass1": 1,
+      "potentialResidentialUnitsClass2": 2,
+      "regionId": "QN0402",
+      "residentialFar": 2.43,
+      "sourceRowIds": [
+        "pluto:4019000068"
+      ],
+      "zoningDistricts": [
+        "R6"
+      ]
+    },
+    {
+      "address": "95-09 57 AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.1,
+      "availableResidentialFar": 2.1,
+      "bbl": "4019030001",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 1510,
+      "builtFar": 0.9,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8654876,
+        40.7369693
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4019030001",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 1672,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 3511.2,
+      "potentialResidentialFloorAreaSquareFeet": 3511.2,
+      "potentialResidentialUnitsClass1": 2,
+      "potentialResidentialUnitsClass2": 3,
+      "regionId": "QN0402",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4019030001"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "95-07 57 AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2,
+      "availableResidentialFar": 2,
+      "bbl": "4019030002",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 3420,
+      "builtFar": 1,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8655923,
+        40.736942
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 2,
+      "id": "capacity:4019030002",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 3432,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 6864,
+      "potentialResidentialFloorAreaSquareFeet": 6864,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 7,
+      "regionId": "QN0402",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4019030002"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "95-01 57 AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2,
+      "availableResidentialFar": 2,
+      "bbl": "4019030004",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 3540,
+      "builtFar": 1,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8657295,
+        40.7369064
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 6,
+      "id": "capacity:4019030004",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 3550,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 7100,
+      "potentialResidentialFloorAreaSquareFeet": 7100,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 7,
+      "regionId": "QN0402",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4019030004"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "55-44 96 STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.54,
+      "availableResidentialFar": 2.54,
+      "bbl": "4019030052",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 1394,
+      "builtFar": 0.46,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8653393,
+        40.7371695
+      ],
+      "existingResidentialUnits": 1,
+      "existingTotalUnits": 1,
+      "id": "capacity:4019030052",
+      "landUseCode": "1",
+      "lotAreaSquareFeet": 3000,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 7620,
+      "potentialResidentialFloorAreaSquareFeet": 7620,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 8,
+      "regionId": "QN0402",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4019030052"
+      ],
+      "zoningDistricts": [
+        "R6A",
+        "R5"
+      ]
+    },
+    {
+      "address": "95-13 57 AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.02,
+      "availableResidentialFar": 2.02,
+      "bbl": "4019030056",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 3850,
+      "builtFar": 0.98,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8652675,
+        40.7369718
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 4,
+      "id": "capacity:4019030056",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 3922,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 7922.44,
+      "potentialResidentialFloorAreaSquareFeet": 7922.44,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 8,
+      "regionId": "QN0402",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4019030056"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "96-03 57 AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2,
+      "availableResidentialFar": 2,
+      "bbl": "4019040001",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 4251,
+      "builtFar": 1,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8648341,
+        40.7371689
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 3,
+      "id": "capacity:4019040001",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 4264,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 8528,
+      "potentialResidentialFloorAreaSquareFeet": 8528,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 9,
+      "regionId": "QN0402",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4019040001"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "55-41 96 STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.34,
+      "availableResidentialFar": 2.34,
+      "bbl": "4019040006",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 1328,
+      "builtFar": 0.66,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8648085,
+        40.7373363
+      ],
+      "existingResidentialUnits": 2,
+      "existingTotalUnits": 2,
+      "id": "capacity:4019040006",
+      "landUseCode": "1",
+      "lotAreaSquareFeet": 2000,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 4680,
+      "potentialResidentialFloorAreaSquareFeet": 4680,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 5,
+      "regionId": "QN0402",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4019040006"
+      ],
+      "zoningDistricts": [
+        "R6A",
+        "R5"
+      ]
+    },
+    {
+      "address": "96-19 57 AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.09,
+      "availableResidentialFar": 2.09,
+      "bbl": "4019040047",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 4309,
+      "builtFar": 0.91,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8643322,
+        40.7373302
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 3,
+      "id": "capacity:4019040047",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 4713,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 9850.17,
+      "potentialResidentialFloorAreaSquareFeet": 9850.17,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 10,
+      "regionId": "QN0402",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4019040047"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "96-15 57 AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.18,
+      "availableResidentialFar": 2.18,
+      "bbl": "4019040054",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 4342,
+      "builtFar": 0.82,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8645019,
+        40.7372975
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 2,
+      "id": "capacity:4019040054",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 5297,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 11547.46,
+      "potentialResidentialFloorAreaSquareFeet": 11547.46,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 12,
+      "regionId": "QN0402",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4019040054"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "96-07 57 AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.04,
+      "availableResidentialFar": 2.04,
+      "bbl": "4019040055",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 4284,
+      "builtFar": 0.96,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8646752,
+        40.7372208
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 3,
+      "id": "capacity:4019040055",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 4480,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 9139.2,
+      "potentialResidentialFloorAreaSquareFeet": 9139.2,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 10,
+      "regionId": "QN0402",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4019040055"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "97-01 57 AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.1,
+      "availableResidentialFar": 2.1,
+      "bbl": "4019050001",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 4340,
+      "builtFar": 0.9,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8638557,
+        40.7374038
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 6,
+      "id": "capacity:4019050001",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 4835,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 10153.5,
+      "potentialResidentialFloorAreaSquareFeet": 10153.5,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 11,
+      "regionId": "QN0402",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4019050001"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "55-43 97 STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.58,
+      "availableResidentialFar": 2.58,
+      "bbl": "4019050004",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 1185,
+      "builtFar": 0.42,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8638916,
+        40.7375054
+      ],
+      "existingResidentialUnits": 1,
+      "existingTotalUnits": 1,
+      "id": "capacity:4019050004",
+      "landUseCode": "1",
+      "lotAreaSquareFeet": 2800,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 7224,
+      "potentialResidentialFloorAreaSquareFeet": 7224,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 8,
+      "regionId": "QN0402",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4019050004"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "55-41 97 STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.41,
+      "availableResidentialFar": 2.41,
+      "bbl": "4019050006",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 1185,
+      "builtFar": 0.59,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8639167,
+        40.7375685
+      ],
+      "existingResidentialUnits": 1,
+      "existingTotalUnits": 1,
+      "id": "capacity:4019050006",
+      "landUseCode": "1",
+      "lotAreaSquareFeet": 2000,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 4820,
+      "potentialResidentialFloorAreaSquareFeet": 4820,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 5,
+      "regionId": "QN0402",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4019050006"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "97-11 57 AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.01,
+      "availableResidentialFar": 2.01,
+      "bbl": "4019050048",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 4050,
+      "builtFar": 0.99,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8635127,
+        40.7374939
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 5,
+      "id": "capacity:4019050048",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 4101,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 8243.01,
+      "potentialResidentialFloorAreaSquareFeet": 8243.01,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 9,
+      "regionId": "QN0402",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4019050048"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "97-27 57 AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.33,
+      "availableResidentialFar": 2.33,
+      "bbl": "4019060001",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 24466,
+      "builtFar": 0.67,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8629093,
+        40.7378857
+      ],
+      "existingResidentialUnits": 2,
+      "existingTotalUnits": 3,
+      "id": "capacity:4019060001",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 36415,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 84846.95,
+      "potentialResidentialFloorAreaSquareFeet": 84846.95,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 94,
+      "regionId": "QN0402",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4019060001"
+      ],
+      "zoningDistricts": [
+        "R6A",
+        "R6B"
+      ]
+    },
+    {
+      "address": "98 PLACE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 3,
+      "availableResidentialFar": 3,
+      "bbl": "4019070015",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8622655,
+        40.7386123
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:4019070015",
+      "landUseCode": "11",
+      "lotAreaSquareFeet": 8608,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 25824,
+      "potentialResidentialFloorAreaSquareFeet": 25824,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 28,
+      "regionId": "QN0402",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4019070015"
+      ],
+      "zoningDistricts": [
+        "R7B"
+      ]
+    },
+    {
+      "address": "54-01 99 STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2,
+      "availableResidentialFar": 2,
+      "bbl": "4019090031",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 4175,
+      "builtFar": 1,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8604013,
+        40.7396641
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 5,
+      "id": "capacity:4019090031",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 4175,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 8350,
+      "potentialResidentialFloorAreaSquareFeet": 8350,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 9,
+      "regionId": "QN0402",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4019090031"
+      ],
+      "zoningDistricts": [
+        "R7B"
+      ]
+    },
+    {
+      "address": "54-05 99 STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2,
+      "availableResidentialFar": 2,
+      "bbl": "4019090032",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 3913,
+      "builtFar": 1,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8603184,
+        40.7395981
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 2,
+      "id": "capacity:4019090032",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 3914,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 7828,
+      "potentialResidentialFloorAreaSquareFeet": 7828,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 8,
+      "regionId": "QN0402",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4019090032"
+      ],
+      "zoningDistricts": [
+        "R7B"
+      ]
+    },
+    {
+      "address": "54-07 99 STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2,
+      "availableResidentialFar": 2,
+      "bbl": "4019090034",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 3920,
+      "builtFar": 1,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8602717,
+        40.7395129
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4019090034",
+      "landUseCode": "8",
+      "lotAreaSquareFeet": 3921,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 7842,
+      "potentialResidentialFloorAreaSquareFeet": 7842,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 8,
+      "regionId": "QN0402",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4019090034"
+      ],
+      "zoningDistricts": [
+        "R7B"
+      ]
+    },
+    {
+      "address": "59-01 JUNCTION BOULEVARD",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 2.21,
+      "availableFar": 2.25,
+      "availableResidentialFar": 2.25,
+      "bbl": "4019180018",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 32526,
+      "builtFar": 1.19,
+      "commercialFar": 3.4,
+      "coordinates": [
+        -73.8643834,
+        40.7352031
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 2,
+      "id": "capacity:4019180018",
+      "landUseCode": "8",
+      "lotAreaSquareFeet": 27283,
+      "potentialCommercialFloorAreaSquareFeet": 60295.43,
+      "potentialFloorAreaSquareFeet": 61386.75,
+      "potentialResidentialFloorAreaSquareFeet": 61386.75,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 68,
+      "regionId": "QN0402",
+      "residentialFar": 3.44,
+      "sourceRowIds": [
+        "pluto:4019180018"
+      ],
+      "zoningDistricts": [
+        "C4-4"
+      ]
+    },
+    {
+      "address": "113 CORONA AVENUE",
+      "affordableResidentialFar": 2.4,
+      "availableCommercialFar": 0,
+      "availableFar": 2,
+      "availableResidentialFar": 2,
+      "bbl": "4019260010",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8625611,
+        40.7439842
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:4019260010",
+      "landUseCode": "10",
+      "lotAreaSquareFeet": 10357,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 20714,
+      "potentialResidentialFloorAreaSquareFeet": 20714,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 23,
+      "regionId": "QN0402",
+      "residentialFar": 2,
+      "sourceRowIds": [
+        "pluto:4019260010"
+      ],
+      "zoningDistricts": [
+        "R6B"
+      ]
+    },
+    {
+      "address": "52-01 101 STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.43,
+      "availableResidentialFar": 2.43,
+      "bbl": "4019320031",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8600837,
+        40.7413874
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:4019320031",
+      "landUseCode": "9",
+      "lotAreaSquareFeet": 27500,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 66825,
+      "potentialResidentialFloorAreaSquareFeet": 66825,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 74,
+      "regionId": "QN0402",
+      "residentialFar": 2.43,
+      "sourceRowIds": [
+        "pluto:4019320031"
+      ],
+      "zoningDistricts": [
+        "R6",
+        "R6B"
+      ]
+    },
+    {
+      "address": "101 STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.43,
+      "availableResidentialFar": 2.43,
+      "bbl": "4019360019",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8599023,
+        40.740163
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:4019360019",
+      "landUseCode": "11",
+      "lotAreaSquareFeet": 5000,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 12150,
+      "potentialResidentialFloorAreaSquareFeet": 12150,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 13,
+      "regionId": "QN0402",
+      "residentialFar": 2.43,
+      "sourceRowIds": [
+        "pluto:4019360019"
+      ],
+      "zoningDistricts": [
+        "R6"
+      ]
+    },
+    {
+      "address": "102 STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.43,
+      "availableResidentialFar": 2.43,
+      "bbl": "4019380001",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8595726,
+        40.7407582
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:4019380001",
+      "landUseCode": "9",
+      "lotAreaSquareFeet": 20000,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 48600,
+      "potentialResidentialFloorAreaSquareFeet": 48600,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 54,
+      "regionId": "QN0402",
+      "residentialFar": 2.43,
+      "sourceRowIds": [
+        "pluto:4019380001"
+      ],
+      "zoningDistricts": [
+        "R6"
+      ]
+    },
+    {
+      "address": "54-01 101 STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.43,
+      "availableResidentialFar": 2.43,
+      "bbl": "4019390021",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8590899,
+        40.7403349
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:4019390021",
+      "landUseCode": "9",
+      "lotAreaSquareFeet": 10091,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 24521.13,
+      "potentialResidentialFloorAreaSquareFeet": 24521.13,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 27,
+      "regionId": "QN0402",
+      "residentialFar": 2.43,
+      "sourceRowIds": [
+        "pluto:4019390021"
+      ],
+      "zoningDistricts": [
+        "R6"
+      ]
+    },
+    {
+      "address": "53-05 102 STREET",
+      "affordableResidentialFar": 2.4,
+      "availableCommercialFar": 0,
+      "availableFar": 2,
+      "availableResidentialFar": 2,
+      "bbl": "4019400010",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8589363,
+        40.7413119
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:4019400010",
+      "landUseCode": "11",
+      "lotAreaSquareFeet": 1800,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 3600,
+      "potentialResidentialFloorAreaSquareFeet": 3600,
+      "potentialResidentialUnitsClass1": 2,
+      "potentialResidentialUnitsClass2": 4,
+      "regionId": "QN0402",
+      "residentialFar": 2,
+      "sourceRowIds": [
+        "pluto:4019400010"
+      ],
+      "zoningDistricts": [
+        "R6B"
+      ]
+    },
+    {
+      "address": "105-55 HORACE HARDING EXPWY",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.29,
+      "availableResidentialFar": 2.29,
+      "bbl": "4019640023",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 1960,
+      "builtFar": 0.14,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8525423,
+        40.7377823
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4019640023",
+      "landUseCode": "7",
+      "lotAreaSquareFeet": 13960,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 31968.4,
+      "potentialResidentialFloorAreaSquareFeet": 31968.4,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 35,
+      "regionId": "QN0402",
+      "residentialFar": 2.43,
+      "sourceRowIds": [
+        "pluto:4019640023"
+      ],
+      "zoningDistricts": [
+        "R6"
+      ]
+    },
+    {
+      "address": "56-20 VAN CLEEF STREET",
+      "affordableResidentialFar": 2.4,
+      "availableCommercialFar": 0,
+      "availableFar": 2,
+      "availableResidentialFar": 2,
+      "bbl": "4019670010",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8520496,
+        40.7402932
+      ],
+      "existingResidentialUnits": 2,
+      "existingTotalUnits": 2,
+      "id": "capacity:4019670010",
+      "landUseCode": "10",
+      "lotAreaSquareFeet": 2500,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 5000,
+      "potentialResidentialFloorAreaSquareFeet": 5000,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 5,
+      "regionId": "QN0402",
+      "residentialFar": 2,
+      "sourceRowIds": [
+        "pluto:4019670010"
+      ],
+      "zoningDistricts": [
+        "R6B"
+      ]
+    },
+    {
+      "address": "110-32 CORONA AVENUE",
+      "affordableResidentialFar": 2.4,
+      "availableCommercialFar": 0,
+      "availableFar": 2,
+      "availableResidentialFar": 2,
+      "bbl": "4019680012",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8517486,
+        40.7409351
+      ],
+      "existingResidentialUnits": 3,
+      "existingTotalUnits": 3,
+      "id": "capacity:4019680012",
+      "landUseCode": "10",
+      "lotAreaSquareFeet": 2278,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 4556,
+      "potentialResidentialFloorAreaSquareFeet": 4556,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 5,
+      "regionId": "QN0402",
+      "residentialFar": 2,
+      "sourceRowIds": [
+        "pluto:4019680012"
+      ],
+      "zoningDistricts": [
+        "R6B"
+      ]
+    },
+    {
+      "address": "110-35 HORACE HARDING EXPWY",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.22,
+      "availableResidentialFar": 2.22,
+      "bbl": "4019700039",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 630,
+      "builtFar": 0.21,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8491952,
+        40.738692
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4019700039",
+      "landUseCode": "7",
+      "lotAreaSquareFeet": 3055,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 6782.1,
+      "potentialResidentialFloorAreaSquareFeet": 6782.1,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 7,
+      "regionId": "QN0402",
+      "residentialFar": 2.43,
+      "sourceRowIds": [
+        "pluto:4019700039"
+      ],
+      "zoningDistricts": [
+        "R6"
+      ]
+    },
+    {
+      "address": "110-40 SAULTELL AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.06,
+      "availableResidentialFar": 2.06,
+      "bbl": "4019720028",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 3168,
+      "builtFar": 0.37,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8496967,
+        40.7403203
+      ],
+      "existingResidentialUnits": 2,
+      "existingTotalUnits": 3,
+      "id": "capacity:4019720028",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 8518,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 17547.08,
+      "potentialResidentialFloorAreaSquareFeet": 17547.08,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 19,
+      "regionId": "QN0402",
+      "residentialFar": 2.43,
+      "sourceRowIds": [
+        "pluto:4019720028"
+      ],
+      "zoningDistricts": [
+        "R6"
+      ]
+    },
+    {
+      "address": "111-16 CORONA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.43,
+      "availableResidentialFar": 2.43,
+      "bbl": "4019720036",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8493145,
+        40.7401579
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:4019720036",
+      "landUseCode": "10",
+      "lotAreaSquareFeet": 2474,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 6011.82,
+      "potentialResidentialFloorAreaSquareFeet": 6011.82,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 6,
+      "regionId": "QN0402",
+      "residentialFar": 2.43,
+      "sourceRowIds": [
+        "pluto:4019720036"
+      ],
+      "zoningDistricts": [
+        "R6"
+      ]
+    },
+    {
+      "address": "CORONA AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.43,
+      "availableResidentialFar": 2.43,
+      "bbl": "4019730001",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8477899,
+        40.7393544
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:4019730001",
+      "landUseCode": "9",
+      "lotAreaSquareFeet": 31713,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 77062.59,
+      "potentialResidentialFloorAreaSquareFeet": 77062.59,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 85,
+      "regionId": "QN0402",
+      "residentialFar": 2.43,
+      "sourceRowIds": [
+        "pluto:4019730001"
+      ],
+      "zoningDistricts": [
+        "R6"
+      ]
+    },
+    {
+      "address": "102-13 42 AVENUE",
+      "affordableResidentialFar": 2.4,
+      "availableCommercialFar": 0,
+      "availableFar": 2,
+      "availableResidentialFar": 2,
+      "bbl": "4019770008",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8624706,
+        40.7476538
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:4019770008",
+      "landUseCode": "10",
+      "lotAreaSquareFeet": 1219,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 2438,
+      "potentialResidentialFloorAreaSquareFeet": 2438,
+      "potentialResidentialUnitsClass1": 1,
+      "potentialResidentialUnitsClass2": 2,
+      "regionId": "QN0402",
+      "residentialFar": 2,
+      "sourceRowIds": [
+        "pluto:4019770008"
+      ],
+      "zoningDistricts": [
+        "R6B"
+      ]
+    },
+    {
+      "address": "CORONA AVENUE",
+      "affordableResidentialFar": 2.4,
+      "availableCommercialFar": 0,
+      "availableFar": 2,
+      "availableResidentialFar": 2,
+      "bbl": "4019830040",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8592584,
+        40.7443095
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:4019830040",
+      "landUseCode": "11",
+      "lotAreaSquareFeet": 2275,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 4550,
+      "potentialResidentialFloorAreaSquareFeet": 4550,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 5,
+      "regionId": "QN0402",
+      "residentialFar": 2,
+      "sourceRowIds": [
+        "pluto:4019830040"
+      ],
+      "zoningDistricts": [
+        "R6B"
+      ]
+    },
+    {
+      "address": "43 AVENUE",
+      "affordableResidentialFar": 2.4,
+      "availableCommercialFar": 0,
+      "availableFar": 2,
+      "availableResidentialFar": 2,
+      "bbl": "4019860093",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8606392,
+        40.7484311
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:4019860093",
+      "landUseCode": "10",
+      "lotAreaSquareFeet": 5000,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 10000,
+      "potentialResidentialFloorAreaSquareFeet": 10000,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 11,
+      "regionId": "QN0402",
+      "residentialFar": 2,
+      "sourceRowIds": [
+        "pluto:4019860093"
+      ],
+      "zoningDistricts": [
+        "R6B"
+      ]
+    },
+    {
+      "address": "108 STREET",
+      "affordableResidentialFar": 2.4,
+      "availableCommercialFar": 0,
+      "availableFar": 2,
+      "availableResidentialFar": 2,
+      "bbl": "4019870033",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8578676,
+        40.7483152
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:4019870033",
+      "landUseCode": "11",
+      "lotAreaSquareFeet": 1000,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 2000,
+      "potentialResidentialFloorAreaSquareFeet": 2000,
+      "potentialResidentialUnitsClass1": 1,
+      "potentialResidentialUnitsClass2": 2,
+      "regionId": "QN0402",
+      "residentialFar": 2,
+      "sourceRowIds": [
+        "pluto:4019870033"
+      ],
+      "zoningDistricts": [
+        "R6B"
+      ]
+    },
+    {
+      "address": "108 STREET",
+      "affordableResidentialFar": 2.4,
+      "availableCommercialFar": 0,
+      "availableFar": 2,
+      "availableResidentialFar": 2,
+      "bbl": "4019900041",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8571344,
+        40.746898
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:4019900041",
+      "landUseCode": "10",
+      "lotAreaSquareFeet": 5000,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 10000,
+      "potentialResidentialFloorAreaSquareFeet": 10000,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 11,
+      "regionId": "QN0402",
+      "residentialFar": 2,
+      "sourceRowIds": [
+        "pluto:4019900041"
+      ],
+      "zoningDistricts": [
+        "R6B"
+      ]
+    },
+    {
+      "address": "108 STREET",
+      "affordableResidentialFar": 2.4,
+      "availableCommercialFar": 0,
+      "availableFar": 2,
+      "availableResidentialFar": 2,
+      "bbl": "4019900044",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8570697,
+        40.7467744
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:4019900044",
+      "landUseCode": "10",
+      "lotAreaSquareFeet": 5050,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 10100,
+      "potentialResidentialFloorAreaSquareFeet": 10100,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 11,
+      "regionId": "QN0402",
+      "residentialFar": 2,
+      "sourceRowIds": [
+        "pluto:4019900044"
+      ],
+      "zoningDistricts": [
+        "R6B"
+      ]
+    },
+    {
+      "address": "50-04 108 STREET",
+      "affordableResidentialFar": 2.4,
+      "availableCommercialFar": 0,
+      "availableFar": 2,
+      "availableResidentialFar": 2,
+      "bbl": "4019940013",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8558299,
+        40.744341
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:4019940013",
+      "landUseCode": "10",
+      "lotAreaSquareFeet": 2400,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 4800,
+      "potentialResidentialFloorAreaSquareFeet": 4800,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 5,
+      "regionId": "QN0402",
+      "residentialFar": 2,
+      "sourceRowIds": [
+        "pluto:4019940013"
+      ],
+      "zoningDistricts": [
+        "R6B"
+      ]
+    },
+    {
+      "address": "50-08 108 STREET",
+      "affordableResidentialFar": 2.4,
+      "availableCommercialFar": 0,
+      "availableFar": 2,
+      "availableResidentialFar": 2,
+      "bbl": "4019940015",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8557976,
+        40.7442778
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:4019940015",
+      "landUseCode": "10",
+      "lotAreaSquareFeet": 2500,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 5000,
+      "potentialResidentialFloorAreaSquareFeet": 5000,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 5,
+      "regionId": "QN0402",
+      "residentialFar": 2,
+      "sourceRowIds": [
+        "pluto:4019940015"
+      ],
+      "zoningDistricts": [
+        "R6B"
+      ]
+    },
+    {
+      "address": "50-10 108 STREET",
+      "affordableResidentialFar": 2.4,
+      "availableCommercialFar": 0,
+      "availableFar": 2,
+      "availableResidentialFar": 2,
+      "bbl": "4019940016",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8557616,
+        40.7442119
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:4019940016",
+      "landUseCode": "10",
+      "lotAreaSquareFeet": 2500,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 5000,
+      "potentialResidentialFloorAreaSquareFeet": 5000,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 5,
+      "regionId": "QN0402",
+      "residentialFar": 2,
+      "sourceRowIds": [
+        "pluto:4019940016"
+      ],
+      "zoningDistricts": [
+        "R6B"
+      ]
+    },
+    {
+      "address": "50-12 108 STREET",
+      "affordableResidentialFar": 2.4,
+      "availableCommercialFar": 0,
+      "availableFar": 2,
+      "availableResidentialFar": 2,
+      "bbl": "4019940018",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8557329,
+        40.7441542
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:4019940018",
+      "landUseCode": "10",
+      "lotAreaSquareFeet": 2000,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 4000,
+      "potentialResidentialFloorAreaSquareFeet": 4000,
+      "potentialResidentialUnitsClass1": 2,
+      "potentialResidentialUnitsClass2": 4,
+      "regionId": "QN0402",
+      "residentialFar": 2,
+      "sourceRowIds": [
+        "pluto:4019940018"
+      ],
+      "zoningDistricts": [
+        "R6B"
+      ]
+    },
+    {
+      "address": "108 STREET",
+      "affordableResidentialFar": 2.4,
+      "availableCommercialFar": 0,
+      "availableFar": 2,
+      "availableResidentialFar": 2,
+      "bbl": "4019980062",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.857509,
+        40.7489515
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:4019980062",
+      "landUseCode": "10",
+      "lotAreaSquareFeet": 2500,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 5000,
+      "potentialResidentialFloorAreaSquareFeet": 5000,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 5,
+      "regionId": "QN0402",
+      "residentialFar": 2,
+      "sourceRowIds": [
+        "pluto:4019980062"
+      ],
+      "zoningDistricts": [
+        "R6B"
+      ]
+    },
+    {
+      "address": "45-13 108 STREET",
+      "affordableResidentialFar": 2.4,
+      "availableCommercialFar": 0,
+      "availableFar": 2,
+      "availableResidentialFar": 2,
+      "bbl": "4020010090",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8568297,
+        40.7476469
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:4020010090",
+      "landUseCode": "11",
+      "lotAreaSquareFeet": 2500,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 5000,
+      "potentialResidentialFloorAreaSquareFeet": 5000,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 5,
+      "regionId": "QN0402",
+      "residentialFar": 2,
+      "sourceRowIds": [
+        "pluto:4020010090"
+      ],
+      "zoningDistricts": [
+        "R6B"
+      ]
+    },
+    {
+      "address": "108 STREET",
+      "affordableResidentialFar": 2.4,
+      "availableCommercialFar": 0,
+      "availableFar": 2,
+      "availableResidentialFar": 2,
+      "bbl": "4020010092",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.856862,
+        40.7477128
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:4020010092",
+      "landUseCode": "11",
+      "lotAreaSquareFeet": 2500,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 5000,
+      "potentialResidentialFloorAreaSquareFeet": 5000,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 5,
+      "regionId": "QN0402",
+      "residentialFar": 2,
+      "sourceRowIds": [
+        "pluto:4020010092"
+      ],
+      "zoningDistricts": [
+        "R6B"
+      ]
+    },
+    {
+      "address": "45-05 108 STREET",
+      "affordableResidentialFar": 2.4,
+      "availableCommercialFar": 0,
+      "availableFar": 2,
+      "availableResidentialFar": 2,
+      "bbl": "4020010093",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8568943,
+        40.747776
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:4020010093",
+      "landUseCode": "11",
+      "lotAreaSquareFeet": 2100,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 4200,
+      "potentialResidentialFloorAreaSquareFeet": 4200,
+      "potentialResidentialUnitsClass1": 2,
+      "potentialResidentialUnitsClass2": 4,
+      "regionId": "QN0402",
+      "residentialFar": 2,
+      "sourceRowIds": [
+        "pluto:4020010093"
+      ],
+      "zoningDistricts": [
+        "R6B"
+      ]
+    },
+    {
+      "address": "46-01 108 STREET",
+      "affordableResidentialFar": 2.4,
+      "availableCommercialFar": 0,
+      "availableFar": 2,
+      "availableResidentialFar": 2,
+      "bbl": "4020020001",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8565023,
+        40.7471689
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:4020020001",
+      "landUseCode": "10",
+      "lotAreaSquareFeet": 15000,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 30000,
+      "potentialResidentialFloorAreaSquareFeet": 30000,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 33,
+      "regionId": "QN0402",
+      "residentialFar": 2,
+      "sourceRowIds": [
+        "pluto:4020020001"
+      ],
+      "zoningDistricts": [
+        "R6B"
+      ]
+    },
+    {
+      "address": "49-14 111 STREET",
+      "affordableResidentialFar": 2.4,
+      "availableCommercialFar": 0,
+      "availableFar": 2,
+      "availableResidentialFar": 2,
+      "bbl": "4020050045",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8530699,
+        40.7456275
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:4020050045",
+      "landUseCode": "11",
+      "lotAreaSquareFeet": 2500,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 5000,
+      "potentialResidentialFloorAreaSquareFeet": 5000,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 5,
+      "regionId": "QN0402",
+      "residentialFar": 2,
+      "sourceRowIds": [
+        "pluto:4020050045"
+      ],
+      "zoningDistricts": [
+        "R6B"
+      ]
+    },
+    {
+      "address": "108-47 CORONA AVENUE",
+      "affordableResidentialFar": 2.4,
+      "availableCommercialFar": 0,
+      "availableFar": 2,
+      "availableResidentialFar": 2,
+      "bbl": "4020090070",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8535138,
+        40.7423262
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:4020090070",
+      "landUseCode": "11",
+      "lotAreaSquareFeet": 4895,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 9790,
+      "potentialResidentialFloorAreaSquareFeet": 9790,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 10,
+      "regionId": "QN0402",
+      "residentialFar": 2,
+      "sourceRowIds": [
+        "pluto:4020090070"
+      ],
+      "zoningDistricts": [
+        "R6B"
+      ]
+    }
+  ],
+  "claimBoundary": "This NTA shard preserves every joined row retained from the governed source snapshot. The source snapshot itself samples large DOB jobs, constructed footprints, and PLUTO capacity candidates and is not a complete property history or feasibility inventory.",
+  "contentVersion": "2026-07-27",
+  "coverage": {
+    "capacityCandidates": 52,
+    "compilerRegionCap": null,
+    "developmentForecastSupportedBySector": {
+      "all": false,
+      "tax-class-1": true,
+      "tax-class-2": true,
+      "tax-class-4": true
+    },
+    "developmentSeriesRows": 21,
+    "historicalSites": 66,
+    "priceForecastSupportedBySector": {
+      "all": true,
+      "tax-class-1": true,
+      "tax-class-2": true,
+      "tax-class-4": true
+    },
+    "saleRows": 30,
+    "saleYearsBySector": {
+      "tax-class-1": [
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "tax-class-2": [
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "tax-class-4": [
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024,
+        2025
+      ]
+    },
+    "sectorCandidateCounts": {
+      "all": 0,
+      "tax-class-1": 52,
+      "tax-class-2": 52,
+      "tax-class-4": 1
+    },
+    "sourceSampled": true
+  },
+  "developmentSeries": [
+    {
+      "filingCount": 78,
+      "id": "development:QN0402:2000",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "QN0402",
+      "sourceNtaNames": [
+        "Corona"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2000
+    },
+    {
+      "filingCount": 91,
+      "id": "development:QN0402:2001",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "QN0402",
+      "sourceNtaNames": [
+        "Corona"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2001
+    },
+    {
+      "filingCount": 87,
+      "id": "development:QN0402:2002",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "QN0402",
+      "sourceNtaNames": [
+        "Corona"
+      ],
+      "withdrawnFilingCount": 5,
+      "year": 2002
+    },
+    {
+      "filingCount": 71,
+      "id": "development:QN0402:2003",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "QN0402",
+      "sourceNtaNames": [
+        "Corona"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2003
+    },
+    {
+      "filingCount": 130,
+      "id": "development:QN0402:2004",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "QN0402",
+      "sourceNtaNames": [
+        "Corona"
+      ],
+      "withdrawnFilingCount": 1,
+      "year": 2004
+    },
+    {
+      "filingCount": 112,
+      "id": "development:QN0402:2005",
+      "proposedZoningSquareFeet": 5910,
+      "regionId": "QN0402",
+      "sourceNtaNames": [
+        "Corona"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2005
+    },
+    {
+      "filingCount": 136,
+      "id": "development:QN0402:2006",
+      "proposedZoningSquareFeet": 30267,
+      "regionId": "QN0402",
+      "sourceNtaNames": [
+        "Corona"
+      ],
+      "withdrawnFilingCount": 4,
+      "year": 2006
+    },
+    {
+      "filingCount": 87,
+      "id": "development:QN0402:2007",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "QN0402",
+      "sourceNtaNames": [
+        "Corona"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2007
+    },
+    {
+      "filingCount": 66,
+      "id": "development:QN0402:2008",
+      "proposedZoningSquareFeet": 238045,
+      "regionId": "QN0402",
+      "sourceNtaNames": [
+        "Corona"
+      ],
+      "withdrawnFilingCount": 1,
+      "year": 2008
+    },
+    {
+      "filingCount": 26,
+      "id": "development:QN0402:2009",
+      "proposedZoningSquareFeet": 116380,
+      "regionId": "QN0402",
+      "sourceNtaNames": [
+        "Corona"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2009
+    },
+    {
+      "filingCount": 39,
+      "id": "development:QN0402:2010",
+      "proposedZoningSquareFeet": 159036,
+      "regionId": "QN0402",
+      "sourceNtaNames": [
+        "Corona"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2010
+    },
+    {
+      "filingCount": 26,
+      "id": "development:QN0402:2011",
+      "proposedZoningSquareFeet": 102217,
+      "regionId": "QN0402",
+      "sourceNtaNames": [
+        "Corona"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2011
+    },
+    {
+      "filingCount": 35,
+      "id": "development:QN0402:2012",
+      "proposedZoningSquareFeet": 276451,
+      "regionId": "QN0402",
+      "sourceNtaNames": [
+        "Corona"
+      ],
+      "withdrawnFilingCount": 2,
+      "year": 2012
+    },
+    {
+      "filingCount": 47,
+      "id": "development:QN0402:2013",
+      "proposedZoningSquareFeet": 361050,
+      "regionId": "QN0402",
+      "sourceNtaNames": [
+        "Corona"
+      ],
+      "withdrawnFilingCount": 2,
+      "year": 2013
+    },
+    {
+      "filingCount": 98,
+      "id": "development:QN0402:2014",
+      "proposedZoningSquareFeet": 452167,
+      "regionId": "QN0402",
+      "sourceNtaNames": [
+        "Corona"
+      ],
+      "withdrawnFilingCount": 2,
+      "year": 2014
+    },
+    {
+      "filingCount": 37,
+      "id": "development:QN0402:2015",
+      "proposedZoningSquareFeet": 234354,
+      "regionId": "QN0402",
+      "sourceNtaNames": [
+        "Corona"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2015
+    },
+    {
+      "filingCount": 55,
+      "id": "development:QN0402:2016",
+      "proposedZoningSquareFeet": 375625,
+      "regionId": "QN0402",
+      "sourceNtaNames": [
+        "Corona"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2016
+    },
+    {
+      "filingCount": 52,
+      "id": "development:QN0402:2017",
+      "proposedZoningSquareFeet": 101793,
+      "regionId": "QN0402",
+      "sourceNtaNames": [
+        "Corona"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2017
+    },
+    {
+      "filingCount": 42,
+      "id": "development:QN0402:2018",
+      "proposedZoningSquareFeet": 492602,
+      "regionId": "QN0402",
+      "sourceNtaNames": [
+        "Corona"
+      ],
+      "withdrawnFilingCount": 2,
+      "year": 2018
+    },
+    {
+      "filingCount": 50,
+      "id": "development:QN0402:2019",
+      "proposedZoningSquareFeet": 176467,
+      "regionId": "QN0402",
+      "sourceNtaNames": [
+        "Corona"
+      ],
+      "withdrawnFilingCount": 3,
+      "year": 2019
+    },
+    {
+      "filingCount": 14,
+      "id": "development:QN0402:2020",
+      "proposedZoningSquareFeet": 52705,
+      "regionId": "QN0402",
+      "sourceNtaNames": [
+        "Corona"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2020
+    }
+  ],
+  "developmentSites": [
+    {
+      "address": null,
+      "bbl": "4019840001",
+      "bin": "4437334",
+      "constructionYear": 2017,
+      "coordinates": [
+        -73.8610439,
+        40.7497406
+      ],
+      "footprint": [
+        [
+          -73.861057,
+          40.7496202
+        ],
+        [
+          -73.8611874,
+          40.7498726
+        ],
+        [
+          -73.8610256,
+          40.749921
+        ],
+        [
+          -73.8608928,
+          40.7496692
+        ],
+        [
+          -73.861057,
+          40.7496202
+        ]
+      ],
+      "footprintAreaM2": 776.71,
+      "footprintOrigin": "observed",
+      "heightM": 10.67,
+      "id": "footprint:1034058",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2017-07-01",
+          "id": "footprint:1034058:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0402",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1034058"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4016210013",
+      "bin": "4040550",
+      "constructionYear": 2016,
+      "coordinates": [
+        -73.8672072,
+        40.7430969
+      ],
+      "footprint": [
+        [
+          -73.8673191,
+          40.7431525
+        ],
+        [
+          -73.8670675,
+          40.743119
+        ],
+        [
+          -73.8670828,
+          40.7430398
+        ],
+        [
+          -73.8673187,
+          40.7430707
+        ],
+        [
+          -73.8673191,
+          40.7431525
+        ]
+      ],
+      "footprintAreaM2": 324.82,
+      "footprintOrigin": "observed",
+      "heightM": 16.15,
+      "id": "footprint:1035767",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2016-07-01",
+          "id": "footprint:1035767:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0402",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1035767"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4019310025",
+      "bin": "4596061",
+      "constructionYear": 2018,
+      "coordinates": [
+        -73.8605109,
+        40.7417259
+      ],
+      "footprint": [
+        [
+          -73.8604513,
+          40.74181
+        ],
+        [
+          -73.8603736,
+          40.7417343
+        ],
+        [
+          -73.8606003,
+          40.7415998
+        ],
+        [
+          -73.860678,
+          40.7416755
+        ],
+        [
+          -73.8604513,
+          40.74181
+        ]
+      ],
+      "footprintAreaM2": 451.72,
+      "footprintOrigin": "observed",
+      "heightM": 10.06,
+      "id": "footprint:1040570",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2018-07-01",
+          "id": "footprint:1040570:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0402",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1040570"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4019290064",
+      "bin": "4620276",
+      "constructionYear": 2019,
+      "coordinates": [
+        -73.8592817,
+        40.7439076
+      ],
+      "footprint": [
+        [
+          -73.859346,
+          40.7439746
+        ],
+        [
+          -73.8591639,
+          40.7439602
+        ],
+        [
+          -73.8591849,
+          40.743807
+        ],
+        [
+          -73.8593676,
+          40.7438214
+        ],
+        [
+          -73.859346,
+          40.7439746
+        ]
+      ],
+      "footprintAreaM2": 461.96,
+      "footprintOrigin": "observed",
+      "heightM": 13.72,
+      "id": "footprint:1041264",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2019-07-01",
+          "id": "footprint:1041264:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0402",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1041264"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4016060049",
+      "bin": "4040252",
+      "constructionYear": 2020,
+      "coordinates": [
+        -73.8674104,
+        40.7481542
+      ],
+      "footprint": [
+        [
+          -73.8676004,
+          40.7481389
+        ],
+        [
+          -73.8672343,
+          40.7482636
+        ],
+        [
+          -73.8671691,
+          40.7481396
+        ],
+        [
+          -73.8675271,
+          40.7480122
+        ],
+        [
+          -73.8676004,
+          40.7481389
+        ]
+      ],
+      "footprintAreaM2": 888.88,
+      "footprintOrigin": "observed",
+      "heightM": 13.72,
+      "id": "footprint:1043796",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2020-07-01",
+          "id": "footprint:1043796:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0402",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1043796"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4019850001",
+      "bin": "4620249",
+      "constructionYear": 2017,
+      "coordinates": [
+        -73.8604443,
+        40.7488872
+      ],
+      "footprint": [
+        [
+          -73.8605371,
+          40.7489237
+        ],
+        [
+          -73.8603757,
+          40.7489742
+        ],
+        [
+          -73.8603071,
+          40.7488311
+        ],
+        [
+          -73.8604646,
+          40.7487831
+        ],
+        [
+          -73.8605371,
+          40.7489237
+        ]
+      ],
+      "footprintAreaM2": 426.92,
+      "footprintOrigin": "observed",
+      "heightM": 3.66,
+      "id": "footprint:1047448",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2017-07-01",
+          "id": "footprint:1047448:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0402",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1047448"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4020100033",
+      "bin": "4049829",
+      "constructionYear": 2013,
+      "coordinates": [
+        -73.851268,
+        40.7423326
+      ],
+      "footprint": [
+        [
+          -73.8512695,
+          40.7423864
+        ],
+        [
+          -73.851266,
+          40.7423798
+        ],
+        [
+          -73.8512519,
+          40.7423843
+        ],
+        [
+          -73.8512363,
+          40.7423556
+        ],
+        [
+          -73.8512498,
+          40.7423513
+        ],
+        [
+          -73.8512325,
+          40.7423193
+        ],
+        [
+          -73.8512182,
+          40.7423238
+        ],
+        [
+          -73.8512035,
+          40.7422968
+        ],
+        [
+          -73.8513976,
+          40.7422313
+        ],
+        [
+          -73.8514509,
+          40.7423293
+        ],
+        [
+          -73.8512695,
+          40.7423864
+        ]
+      ],
+      "footprintAreaM2": 356.16,
+      "footprintOrigin": "observed",
+      "heightM": 14.33,
+      "id": "footprint:1057811",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2013-07-01",
+          "id": "footprint:1057811:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0402",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1057811"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4019990068",
+      "bin": "4049391",
+      "constructionYear": 2010,
+      "coordinates": [
+        -73.8572598,
+        40.748407
+      ],
+      "footprint": [
+        [
+          -73.8571756,
+          40.7484021
+        ],
+        [
+          -73.8573509,
+          40.7483502
+        ],
+        [
+          -73.8573859,
+          40.7484138
+        ],
+        [
+          -73.8572112,
+          40.7484666
+        ],
+        [
+          -73.8571756,
+          40.7484021
+        ]
+      ],
+      "footprintAreaM2": 213.52,
+      "footprintOrigin": "observed",
+      "heightM": 12.8,
+      "id": "footprint:1063485",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2010-07-01",
+          "id": "footprint:1063485:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0402",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1063485"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4019670006",
+      "bin": "4618851",
+      "constructionYear": 2021,
+      "coordinates": [
+        -73.8522676,
+        40.7404532
+      ],
+      "footprint": [
+        [
+          -73.8522716,
+          40.7405175
+        ],
+        [
+          -73.8521862,
+          40.7404893
+        ],
+        [
+          -73.8522616,
+          40.7403569
+        ],
+        [
+          -73.852347,
+          40.740385
+        ],
+        [
+          -73.8522716,
+          40.7405175
+        ]
+      ],
+      "footprintAreaM2": 219.68,
+      "footprintOrigin": "observed",
+      "heightM": 9.14,
+      "id": "footprint:1073994",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2021-07-01",
+          "id": "footprint:1073994:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0402",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1073994"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4019930034",
+      "bin": "4049141",
+      "constructionYear": 2019,
+      "coordinates": [
+        -73.8580378,
+        40.7441823
+      ],
+      "footprint": [
+        [
+          -73.8581266,
+          40.7442494
+        ],
+        [
+          -73.857876,
+          40.7442294
+        ],
+        [
+          -73.8579242,
+          40.7440815
+        ],
+        [
+          -73.8581355,
+          40.7441017
+        ],
+        [
+          -73.8581266,
+          40.7442494
+        ]
+      ],
+      "footprintAreaM2": 567.71,
+      "footprintOrigin": "observed",
+      "heightM": 12.19,
+      "id": "footprint:1074221",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2019-07-01",
+          "id": "footprint:1074221:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0402",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1074221"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4019330054",
+      "bin": "4618887",
+      "constructionYear": 2019,
+      "coordinates": [
+        -73.8593516,
+        40.7420114
+      ],
+      "footprint": [
+        [
+          -73.8593724,
+          40.742075
+        ],
+        [
+          -73.8592507,
+          40.7419581
+        ],
+        [
+          -73.8593205,
+          40.741916
+        ],
+        [
+          -73.8594422,
+          40.7420329
+        ],
+        [
+          -73.8593724,
+          40.742075
+        ]
+      ],
+      "footprintAreaM2": 217.12,
+      "footprintOrigin": "observed",
+      "heightM": 12.8,
+      "id": "footprint:1074451",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2019-07-01",
+          "id": "footprint:1074451:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0402",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1074451"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4019330056",
+      "bin": "4617593",
+      "constructionYear": 2019,
+      "coordinates": [
+        -73.8592958,
+        40.742045
+      ],
+      "footprint": [
+        [
+          -73.8593724,
+          40.742075
+        ],
+        [
+          -73.8593026,
+          40.742117
+        ],
+        [
+          -73.8591809,
+          40.7420001
+        ],
+        [
+          -73.8592507,
+          40.7419581
+        ],
+        [
+          -73.8593724,
+          40.742075
+        ]
+      ],
+      "footprintAreaM2": 217.13,
+      "footprintOrigin": "observed",
+      "heightM": 12.8,
+      "id": "footprint:1074453",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2019-07-01",
+          "id": "footprint:1074453:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0402",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1074453"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4019960029",
+      "bin": "4620702",
+      "constructionYear": 2021,
+      "coordinates": [
+        -73.8568289,
+        40.7510614
+      ],
+      "footprint": [
+        [
+          -73.8567619,
+          40.751015
+        ],
+        [
+          -73.8568551,
+          40.7509876
+        ],
+        [
+          -73.8569293,
+          40.7511311
+        ],
+        [
+          -73.8568361,
+          40.7511585
+        ],
+        [
+          -73.8567619,
+          40.751015
+        ]
+      ],
+      "footprintAreaM2": 252.27,
+      "footprintOrigin": "observed",
+      "heightM": 13.72,
+      "id": "footprint:1077903",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2021-07-01",
+          "id": "footprint:1077903:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0402",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1077903"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4019960025",
+      "bin": "4307718",
+      "constructionYear": 2021,
+      "coordinates": [
+        -73.8572028,
+        40.7509516
+      ],
+      "footprint": [
+        [
+          -73.8571349,
+          40.7509054
+        ],
+        [
+          -73.8572327,
+          40.7508766
+        ],
+        [
+          -73.8573022,
+          40.7510216
+        ],
+        [
+          -73.8572091,
+          40.7510489
+        ],
+        [
+          -73.8571349,
+          40.7509054
+        ]
+      ],
+      "footprintAreaM2": 258.18,
+      "footprintOrigin": "observed",
+      "heightM": 13.72,
+      "id": "footprint:1078146",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2021-07-01",
+          "id": "footprint:1078146:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0402",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1078146"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4019960033",
+      "bin": "4619692",
+      "constructionYear": 2021,
+      "coordinates": [
+        -73.8565491,
+        40.7511436
+      ],
+      "footprint": [
+        [
+          -73.8564821,
+          40.7510972
+        ],
+        [
+          -73.8565754,
+          40.7510698
+        ],
+        [
+          -73.8566495,
+          40.7512133
+        ],
+        [
+          -73.8565563,
+          40.7512407
+        ],
+        [
+          -73.8564821,
+          40.7510972
+        ]
+      ],
+      "footprintAreaM2": 252.27,
+      "footprintOrigin": "observed",
+      "heightM": 13.72,
+      "id": "footprint:1078149",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2021-07-01",
+          "id": "footprint:1078149:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0402",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1078149"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4019960031",
+      "bin": "4619691",
+      "constructionYear": 2021,
+      "coordinates": [
+        -73.8566423,
+        40.7511162
+      ],
+      "footprint": [
+        [
+          -73.8565754,
+          40.7510698
+        ],
+        [
+          -73.8566686,
+          40.7510424
+        ],
+        [
+          -73.8567428,
+          40.7511859
+        ],
+        [
+          -73.8566495,
+          40.7512133
+        ],
+        [
+          -73.8565754,
+          40.7510698
+        ]
+      ],
+      "footprintAreaM2": 252.27,
+      "footprintOrigin": "observed",
+      "heightM": 13.72,
+      "id": "footprint:1078153",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2021-07-01",
+          "id": "footprint:1078153:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0402",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1078153"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4019960039",
+      "bin": "4619736",
+      "constructionYear": 2021,
+      "coordinates": [
+        -73.8561846,
+        40.7512507
+      ],
+      "footprint": [
+        [
+          -73.8563888,
+          40.7511246
+        ],
+        [
+          -73.856463,
+          40.7512681
+        ],
+        [
+          -73.8558776,
+          40.7514401
+        ],
+        [
+          -73.8558045,
+          40.7512962
+        ],
+        [
+          -73.8563888,
+          40.7511246
+        ]
+      ],
+      "footprintAreaM2": 1582.12,
+      "footprintOrigin": "observed",
+      "heightM": 13.72,
+      "id": "footprint:1078154",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2021-07-01",
+          "id": "footprint:1078154:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0402",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1078154"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4019960027",
+      "bin": "4619688",
+      "constructionYear": 2021,
+      "coordinates": [
+        -73.8570154,
+        40.7510066
+      ],
+      "footprint": [
+        [
+          -73.8569484,
+          40.7509602
+        ],
+        [
+          -73.8570417,
+          40.7509328
+        ],
+        [
+          -73.8571158,
+          40.7510763
+        ],
+        [
+          -73.8570226,
+          40.7511037
+        ],
+        [
+          -73.8569484,
+          40.7509602
+        ]
+      ],
+      "footprintAreaM2": 252.27,
+      "footprintOrigin": "observed",
+      "heightM": 13.72,
+      "id": "footprint:1078155",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2021-07-01",
+          "id": "footprint:1078155:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0402",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1078155"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4019960028",
+      "bin": "4619689",
+      "constructionYear": 2021,
+      "coordinates": [
+        -73.8569221,
+        40.751034
+      ],
+      "footprint": [
+        [
+          -73.8568551,
+          40.7509876
+        ],
+        [
+          -73.8569484,
+          40.7509602
+        ],
+        [
+          -73.8570226,
+          40.7511037
+        ],
+        [
+          -73.8569293,
+          40.7511311
+        ],
+        [
+          -73.8568551,
+          40.7509876
+        ]
+      ],
+      "footprintAreaM2": 252.27,
+      "footprintOrigin": "observed",
+      "heightM": 13.72,
+      "id": "footprint:1078156",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2021-07-01",
+          "id": "footprint:1078156:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0402",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1078156"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4019960030",
+      "bin": "4619690",
+      "constructionYear": 2021,
+      "coordinates": [
+        -73.8567356,
+        40.7510888
+      ],
+      "footprint": [
+        [
+          -73.8566686,
+          40.7510424
+        ],
+        [
+          -73.8567619,
+          40.751015
+        ],
+        [
+          -73.8568361,
+          40.7511585
+        ],
+        [
+          -73.8567428,
+          40.7511859
+        ],
+        [
+          -73.8566686,
+          40.7510424
+        ]
+      ],
+      "footprintAreaM2": 252.27,
+      "footprintOrigin": "observed",
+      "heightM": 13.72,
+      "id": "footprint:1078157",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2021-07-01",
+          "id": "footprint:1078157:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0402",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1078157"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4019960026",
+      "bin": "4619687",
+      "constructionYear": 2021,
+      "coordinates": [
+        -73.8571086,
+        40.7509792
+      ],
+      "footprint": [
+        [
+          -73.8570417,
+          40.7509328
+        ],
+        [
+          -73.8571349,
+          40.7509054
+        ],
+        [
+          -73.8572091,
+          40.7510489
+        ],
+        [
+          -73.8571158,
+          40.7510763
+        ],
+        [
+          -73.8570417,
+          40.7509328
+        ]
+      ],
+      "footprintAreaM2": 252.27,
+      "footprintOrigin": "observed",
+      "heightM": 13.72,
+      "id": "footprint:1078158",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2021-07-01",
+          "id": "footprint:1078158:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0402",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1078158"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4019960034",
+      "bin": "4619693",
+      "constructionYear": 2021,
+      "coordinates": [
+        -73.8564558,
+        40.751171
+      ],
+      "footprint": [
+        [
+          -73.8563888,
+          40.7511246
+        ],
+        [
+          -73.8564821,
+          40.7510972
+        ],
+        [
+          -73.8565563,
+          40.7512407
+        ],
+        [
+          -73.856463,
+          40.7512681
+        ],
+        [
+          -73.8563888,
+          40.7511246
+        ]
+      ],
+      "footprintAreaM2": 252.27,
+      "footprintOrigin": "observed",
+      "heightM": 13.72,
+      "id": "footprint:1078159",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2021-07-01",
+          "id": "footprint:1078159:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0402",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1078159"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4019510010",
+      "bin": "4048009",
+      "constructionYear": 2022,
+      "coordinates": [
+        -73.8562644,
+        40.7391244
+      ],
+      "footprint": [
+        [
+          -73.8562205,
+          40.7389695
+        ],
+        [
+          -73.8564623,
+          40.7390448
+        ],
+        [
+          -73.8563786,
+          40.7391931
+        ],
+        [
+          -73.8563556,
+          40.739186
+        ],
+        [
+          -73.856344,
+          40.7392044
+        ],
+        [
+          -73.8562681,
+          40.7391805
+        ],
+        [
+          -73.8562786,
+          40.7391618
+        ],
+        [
+          -73.8562335,
+          40.7391482
+        ],
+        [
+          -73.8562246,
+          40.7391646
+        ],
+        [
+          -73.8561509,
+          40.7391432
+        ],
+        [
+          -73.8561592,
+          40.7391288
+        ],
+        [
+          -73.8561408,
+          40.7391231
+        ],
+        [
+          -73.8562205,
+          40.7389695
+        ]
+      ],
+      "footprintAreaM2": 734.18,
+      "footprintOrigin": "observed",
+      "heightM": 16.76,
+      "id": "footprint:1085023",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2022-07-01",
+          "id": "footprint:1085023:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0402",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1085023"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4016050049",
+      "bin": "4040211",
+      "constructionYear": 2022,
+      "coordinates": [
+        -73.8683472,
+        40.7478201
+      ],
+      "footprint": [
+        [
+          -73.868471,
+          40.7478451
+        ],
+        [
+          -73.8682703,
+          40.7479132
+        ],
+        [
+          -73.8682174,
+          40.7478203
+        ],
+        [
+          -73.8682608,
+          40.747806
+        ],
+        [
+          -73.8682659,
+          40.7478141
+        ],
+        [
+          -73.8682992,
+          40.747802
+        ],
+        [
+          -73.8683059,
+          40.7478145
+        ],
+        [
+          -73.8683518,
+          40.7477985
+        ],
+        [
+          -73.8683577,
+          40.7478082
+        ],
+        [
+          -73.8683972,
+          40.7477957
+        ],
+        [
+          -73.8684028,
+          40.7478058
+        ],
+        [
+          -73.8684433,
+          40.7477932
+        ],
+        [
+          -73.868471,
+          40.7478451
+        ]
+      ],
+      "footprintAreaM2": 287.34,
+      "footprintOrigin": "observed",
+      "heightM": 14.33,
+      "id": "footprint:1086837",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2022-07-01",
+          "id": "footprint:1086837:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0402",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1086837"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4016290103",
+      "bin": "4040752",
+      "constructionYear": 2022,
+      "coordinates": [
+        -73.862265,
+        40.7445192
+      ],
+      "footprint": [
+        [
+          -73.8623067,
+          40.7444626
+        ],
+        [
+          -73.8622903,
+          40.7446102
+        ],
+        [
+          -73.8622032,
+          40.7446042
+        ],
+        [
+          -73.8622179,
+          40.7444563
+        ],
+        [
+          -73.8623067,
+          40.7444626
+        ]
+      ],
+      "footprintAreaM2": 214.04,
+      "footprintOrigin": "observed",
+      "heightM": 11.58,
+      "id": "footprint:1086978",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2022-07-01",
+          "id": "footprint:1086978:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0402",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1086978"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4019050046",
+      "bin": "4047190",
+      "constructionYear": 2022,
+      "coordinates": [
+        -73.8634912,
+        40.737679
+      ],
+      "footprint": [
+        [
+          -73.8633914,
+          40.7376741
+        ],
+        [
+          -73.8636151,
+          40.7376215
+        ],
+        [
+          -73.8636411,
+          40.7376869
+        ],
+        [
+          -73.863417,
+          40.7377384
+        ],
+        [
+          -73.8633914,
+          40.7376741
+        ]
+      ],
+      "footprintAreaM2": 259.19,
+      "footprintOrigin": "observed",
+      "heightM": 21.95,
+      "id": "footprint:1087503",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2022-07-01",
+          "id": "footprint:1087503:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0402",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1087503"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4019050047",
+      "bin": "4047191",
+      "constructionYear": 2022,
+      "coordinates": [
+        -73.863506,
+        40.7376143
+      ],
+      "footprint": [
+        [
+          -73.8636024,
+          40.7376244
+        ],
+        [
+          -73.8633914,
+          40.7376741
+        ],
+        [
+          -73.8633616,
+          40.737599
+        ],
+        [
+          -73.8635719,
+          40.7375497
+        ],
+        [
+          -73.8636024,
+          40.7376244
+        ]
+      ],
+      "footprintAreaM2": 282.55,
+      "footprintOrigin": "observed",
+      "heightM": 21.34,
+      "id": "footprint:1087506",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2022-07-01",
+          "id": "footprint:1087506:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0402",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1087506"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4019720027",
+      "bin": "4620892",
+      "constructionYear": 2023,
+      "coordinates": [
+        -73.8497635,
+        40.7401857
+      ],
+      "footprint": [
+        [
+          -73.8496979,
+          40.7401347
+        ],
+        [
+          -73.8498972,
+          40.7401991
+        ],
+        [
+          -73.849862,
+          40.7402622
+        ],
+        [
+          -73.8496627,
+          40.7401979
+        ],
+        [
+          -73.8496979,
+          40.7401347
+        ]
+      ],
+      "footprintAreaM2": 242.99,
+      "footprintOrigin": "observed",
+      "heightM": 15.24,
+      "id": "footprint:1087812",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2023-07-01",
+          "id": "footprint:1087812:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0402",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1087812"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4019720025",
+      "bin": "4620891",
+      "constructionYear": 2023,
+      "coordinates": [
+        -73.8497915,
+        40.7401355
+      ],
+      "footprint": [
+        [
+          -73.8496979,
+          40.7401347
+        ],
+        [
+          -73.8497327,
+          40.7400724
+        ],
+        [
+          -73.849932,
+          40.7401367
+        ],
+        [
+          -73.8498972,
+          40.7401991
+        ],
+        [
+          -73.8496979,
+          40.7401347
+        ]
+      ],
+      "footprintAreaM2": 239.76,
+      "footprintOrigin": "observed",
+      "heightM": 15.24,
+      "id": "footprint:1087814",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2023-07-01",
+          "id": "footprint:1087814:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0402",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1087814"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4019380018",
+      "bin": "4621036",
+      "constructionYear": 2023,
+      "coordinates": [
+        -73.8592787,
+        40.7409896
+      ],
+      "footprint": [
+        [
+          -73.8592146,
+          40.7410663
+        ],
+        [
+          -73.8591588,
+          40.7410105
+        ],
+        [
+          -73.8593204,
+          40.7409138
+        ],
+        [
+          -73.8593773,
+          40.7409687
+        ],
+        [
+          -73.8593607,
+          40.7409788
+        ],
+        [
+          -73.8592146,
+          40.7410663
+        ]
+      ],
+      "footprintAreaM2": 236.46,
+      "footprintOrigin": "observed",
+      "heightM": 12.19,
+      "id": "footprint:1088874",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2023-07-01",
+          "id": "footprint:1088874:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0402",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1088874"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4019840034",
+      "bin": "4619670",
+      "constructionYear": 2022,
+      "coordinates": [
+        -73.8589896,
+        40.7504232
+      ],
+      "footprint": [
+        [
+          -73.8590939,
+          40.7503219
+        ],
+        [
+          -73.8591726,
+          40.7504731
+        ],
+        [
+          -73.8588332,
+          40.7505752
+        ],
+        [
+          -73.8587545,
+          40.750424
+        ],
+        [
+          -73.8590939,
+          40.7503219
+        ]
+      ],
+      "footprintAreaM2": 971.02,
+      "footprintOrigin": "observed",
+      "heightM": 9.14,
+      "id": "footprint:1089111",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2022-07-01",
+          "id": "footprint:1089111:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0402",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1089111"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4016290097",
+      "bin": "4616045",
+      "constructionYear": 2024,
+      "coordinates": [
+        -73.8619652,
+        40.7446056
+      ],
+      "footprint": [
+        [
+          -73.8620173,
+          40.7446753
+        ],
+        [
+          -73.8618324,
+          40.7446614
+        ],
+        [
+          -73.8618403,
+          40.7445901
+        ],
+        [
+          -73.8620013,
+          40.7446056
+        ],
+        [
+          -73.8620127,
+          40.7445148
+        ],
+        [
+          -73.862035,
+          40.7445165
+        ],
+        [
+          -73.8620173,
+          40.7446753
+        ]
+      ],
+      "footprintAreaM2": 246,
+      "footprintOrigin": "observed",
+      "heightM": 9.14,
+      "id": "footprint:1089558",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2024-07-01",
+          "id": "footprint:1089558:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0402",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1089558"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4019680073",
+      "bin": "4625500",
+      "constructionYear": 2022,
+      "coordinates": [
+        -73.8519966,
+        40.7407009
+      ],
+      "footprint": [
+        [
+          -73.8520612,
+          40.7406595
+        ],
+        [
+          -73.8519892,
+          40.7407913
+        ],
+        [
+          -73.8518984,
+          40.7407626
+        ],
+        [
+          -73.8519732,
+          40.7406317
+        ],
+        [
+          -73.8520612,
+          40.7406595
+        ]
+      ],
+      "footprintAreaM2": 225.87,
+      "footprintOrigin": "observed",
+      "heightM": 12.19,
+      "id": "footprint:1090224",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2022-07-01",
+          "id": "footprint:1090224:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0402",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1090224"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4019840004",
+      "bin": "4000000",
+      "constructionYear": 2026,
+      "coordinates": [
+        -73.8609254,
+        40.749805
+      ],
+      "footprint": [
+        [
+          -73.8610034,
+          40.7498788
+        ],
+        [
+          -73.8609187,
+          40.7499032
+        ],
+        [
+          -73.8608087,
+          40.7496949
+        ],
+        [
+          -73.8608928,
+          40.7496692
+        ],
+        [
+          -73.8610034,
+          40.7498788
+        ]
+      ],
+      "footprintAreaM2": 333.68,
+      "footprintOrigin": "observed",
+      "heightM": 9.14,
+      "id": "footprint:1092073",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2026-07-01",
+          "id": "footprint:1092073:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0402",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1092073"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4019970015",
+      "bin": "4618537",
+      "constructionYear": 2017,
+      "coordinates": [
+        -73.8569385,
+        40.7502773
+      ],
+      "footprint": [
+        [
+          -73.8570108,
+          40.7503215
+        ],
+        [
+          -73.8569035,
+          40.7503535
+        ],
+        [
+          -73.85683,
+          40.7502108
+        ],
+        [
+          -73.8569373,
+          40.7501789
+        ],
+        [
+          -73.8570108,
+          40.7503215
+        ]
+      ],
+      "footprintAreaM2": 288.78,
+      "footprintOrigin": "observed",
+      "heightM": 13.72,
+      "id": "footprint:389495",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2017-07-01",
+          "id": "footprint:389495:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0402",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:389495"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4020050073",
+      "bin": "4614960",
+      "constructionYear": 2014,
+      "coordinates": [
+        -73.8545649,
+        40.7451568
+      ],
+      "footprint": [
+        [
+          -73.8545467,
+          40.745209
+        ],
+        [
+          -73.8544719,
+          40.7450715
+        ],
+        [
+          -73.8545773,
+          40.7450384
+        ],
+        [
+          -73.8546478,
+          40.745168
+        ],
+        [
+          -73.8546128,
+          40.745179
+        ],
+        [
+          -73.8546213,
+          40.7451947
+        ],
+        [
+          -73.854594,
+          40.7452033
+        ],
+        [
+          -73.8545898,
+          40.7451955
+        ],
+        [
+          -73.8545467,
+          40.745209
+        ]
+      ],
+      "footprintAreaM2": 276.3,
+      "footprintOrigin": "observed",
+      "heightM": 7.53,
+      "id": "footprint:472841",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2014-07-01",
+          "id": "footprint:472841:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0402",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:472841"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4019620022",
+      "bin": "4591369",
+      "constructionYear": 2010,
+      "coordinates": [
+        -73.8526201,
+        40.7412135
+      ],
+      "footprint": [
+        [
+          -73.8525328,
+          40.7413167
+        ],
+        [
+          -73.8526275,
+          40.7410841
+        ],
+        [
+          -73.8527213,
+          40.7411164
+        ],
+        [
+          -73.8526848,
+          40.7411653
+        ],
+        [
+          -73.8525905,
+          40.7413379
+        ],
+        [
+          -73.852575,
+          40.7413322
+        ],
+        [
+          -73.8525328,
+          40.7413167
+        ]
+      ],
+      "footprintAreaM2": 318.71,
+      "footprintOrigin": "observed",
+      "heightM": 15.2,
+      "id": "footprint:48999",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2010-07-01",
+          "id": "footprint:48999:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0402",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:48999"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4019280018",
+      "bin": "4617248",
+      "constructionYear": 2017,
+      "coordinates": [
+        -73.8604638,
+        40.7439684
+      ],
+      "footprint": [
+        [
+          -73.8605204,
+          40.7440721
+        ],
+        [
+          -73.8603456,
+          40.7440577
+        ],
+        [
+          -73.8603787,
+          40.7438131
+        ],
+        [
+          -73.8605536,
+          40.7438269
+        ],
+        [
+          -73.8605204,
+          40.7440721
+        ]
+      ],
+      "footprintAreaM2": 707.95,
+      "footprintOrigin": "observed",
+      "heightM": 13.41,
+      "id": "footprint:64814",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2017-07-01",
+          "id": "footprint:64814:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0402",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:64814"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4019870030",
+      "bin": "4595545",
+      "constructionYear": 2015,
+      "coordinates": [
+        -73.8579166,
+        40.7485021
+      ],
+      "footprint": [
+        [
+          -73.8579931,
+          40.7484547
+        ],
+        [
+          -73.8580206,
+          40.7485081
+        ],
+        [
+          -73.8578019,
+          40.7485732
+        ],
+        [
+          -73.8577744,
+          40.7485198
+        ],
+        [
+          -73.8579931,
+          40.7484547
+        ]
+      ],
+      "footprintAreaM2": 220.22,
+      "footprintOrigin": "observed",
+      "heightM": 12.19,
+      "id": "footprint:66593",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2015-07-01",
+          "id": "footprint:66593:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0402",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:66593"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4019870031",
+      "bin": "4595542",
+      "constructionYear": 2015,
+      "coordinates": [
+        -73.8578332,
+        40.7484725
+      ],
+      "footprint": [
+        [
+          -73.8577738,
+          40.74852
+        ],
+        [
+          -73.8577405,
+          40.7484553
+        ],
+        [
+          -73.8579223,
+          40.7484012
+        ],
+        [
+          -73.8579556,
+          40.7484658
+        ],
+        [
+          -73.8577738,
+          40.74852
+        ]
+      ],
+      "footprintAreaM2": 221.7,
+      "footprintOrigin": "observed",
+      "heightM": 12.19,
+      "id": "footprint:66594",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2015-07-01",
+          "id": "footprint:66594:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0402",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:66594"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4019560001",
+      "bin": "4595003",
+      "constructionYear": 2012,
+      "coordinates": [
+        -73.8557887,
+        40.7370591
+      ],
+      "footprint": [
+        [
+          -73.8556436,
+          40.7371078
+        ],
+        [
+          -73.8555699,
+          40.7370827
+        ],
+        [
+          -73.8556074,
+          40.7370204
+        ],
+        [
+          -73.8556629,
+          40.7370272
+        ],
+        [
+          -73.8559137,
+          40.7369577
+        ],
+        [
+          -73.8559387,
+          40.7369306
+        ],
+        [
+          -73.8560093,
+          40.7369556
+        ],
+        [
+          -73.8559233,
+          40.7371153
+        ],
+        [
+          -73.8557813,
+          40.7371548
+        ],
+        [
+          -73.8556436,
+          40.7371078
+        ]
+      ],
+      "footprintAreaM2": 840.32,
+      "footprintOrigin": "observed",
+      "heightM": 21.77,
+      "id": "footprint:667628",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2012-07-01",
+          "id": "footprint:667628:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0402",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:667628"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4019960011",
+      "bin": "4607787",
+      "constructionYear": 2017,
+      "coordinates": [
+        -73.8579936,
+        40.7507425
+      ],
+      "footprint": [
+        [
+          -73.8578964,
+          40.7508533
+        ],
+        [
+          -73.8578031,
+          40.7506728
+        ],
+        [
+          -73.8581383,
+          40.7505742
+        ],
+        [
+          -73.8582338,
+          40.7507591
+        ],
+        [
+          -73.8578964,
+          40.7508533
+        ]
+      ],
+      "footprintAreaM2": 1153.97,
+      "footprintOrigin": "observed",
+      "heightM": 0,
+      "id": "footprint:66770",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2017-07-01",
+          "id": "footprint:66770:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0402",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:66770"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4016050024",
+      "bin": "4539421",
+      "constructionYear": 2010,
+      "coordinates": [
+        -73.8678854,
+        40.7479433
+      ],
+      "footprint": [
+        [
+          -73.8678923,
+          40.7480402
+        ],
+        [
+          -73.8678633,
+          40.7479905
+        ],
+        [
+          -73.8678334,
+          40.7480006
+        ],
+        [
+          -73.8677573,
+          40.7478705
+        ],
+        [
+          -73.8678971,
+          40.7478232
+        ],
+        [
+          -73.8679372,
+          40.7478917
+        ],
+        [
+          -73.8680019,
+          40.7478698
+        ],
+        [
+          -73.868067,
+          40.7479811
+        ],
+        [
+          -73.8678923,
+          40.7480402
+        ]
+      ],
+      "footprintAreaM2": 604.61,
+      "footprintOrigin": "observed",
+      "heightM": 15.07,
+      "id": "footprint:67735",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2010-07-01",
+          "id": "footprint:67735:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0402",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:67735"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4019820030",
+      "bin": "4597159",
+      "constructionYear": 2016,
+      "coordinates": [
+        -73.8595899,
+        40.7453887
+      ],
+      "footprint": [
+        [
+          -73.8595942,
+          40.7454859
+        ],
+        [
+          -73.8595534,
+          40.7454117
+        ],
+        [
+          -73.8595385,
+          40.7454162
+        ],
+        [
+          -73.8595162,
+          40.745373
+        ],
+        [
+          -73.8595311,
+          40.7453685
+        ],
+        [
+          -73.8594934,
+          40.7452953
+        ],
+        [
+          -73.8596946,
+          40.7452353
+        ],
+        [
+          -73.8597932,
+          40.7454265
+        ],
+        [
+          -73.8595942,
+          40.7454859
+        ]
+      ],
+      "footprintAreaM2": 736.65,
+      "footprintOrigin": "observed",
+      "heightM": 15.24,
+      "id": "footprint:69012",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2016-07-01",
+          "id": "footprint:69012:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0402",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:69012"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4019500033",
+      "bin": "4542359",
+      "constructionYear": 2014,
+      "coordinates": [
+        -73.8579314,
+        40.7389532
+      ],
+      "footprint": [
+        [
+          -73.8580092,
+          40.7390036
+        ],
+        [
+          -73.8577852,
+          40.7389316
+        ],
+        [
+          -73.857813,
+          40.7388771
+        ],
+        [
+          -73.8580403,
+          40.7389499
+        ],
+        [
+          -73.8580092,
+          40.7390036
+        ]
+      ],
+      "footprintAreaM2": 234.49,
+      "footprintOrigin": "observed",
+      "heightM": 9.45,
+      "id": "footprint:70151",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2014-07-01",
+          "id": "footprint:70151:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0402",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:70151"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4019500032",
+      "bin": "4542475",
+      "constructionYear": 2014,
+      "coordinates": [
+        -73.8579952,
+        40.7389156
+      ],
+      "footprint": [
+        [
+          -73.8580652,
+          40.7389579
+        ],
+        [
+          -73.8578434,
+          40.7388868
+        ],
+        [
+          -73.8578681,
+          40.7388359
+        ],
+        [
+          -73.8580937,
+          40.7389064
+        ],
+        [
+          -73.8580652,
+          40.7389579
+        ]
+      ],
+      "footprintAreaM2": 218.14,
+      "footprintOrigin": "observed",
+      "heightM": 9.75,
+      "id": "footprint:70152",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2014-07-01",
+          "id": "footprint:70152:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0402",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:70152"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4019770039",
+      "bin": "4618215",
+      "constructionYear": 2018,
+      "coordinates": [
+        -73.8612027,
+        40.7477953
+      ],
+      "footprint": [
+        [
+          -73.8611156,
+          40.7477752
+        ],
+        [
+          -73.8612808,
+          40.747725
+        ],
+        [
+          -73.8613348,
+          40.7478257
+        ],
+        [
+          -73.8611666,
+          40.7478755
+        ],
+        [
+          -73.8611156,
+          40.7477752
+        ]
+      ],
+      "footprintAreaM2": 316.96,
+      "footprintOrigin": "observed",
+      "heightM": 15.54,
+      "id": "footprint:71034",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2018-07-01",
+          "id": "footprint:71034:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0402",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:71034"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4020040059",
+      "bin": "4618648",
+      "constructionYear": 2018,
+      "coordinates": [
+        -73.8541547,
+        40.746041
+      ],
+      "footprint": [
+        [
+          -73.8541411,
+          40.7461085
+        ],
+        [
+          -73.8540698,
+          40.7459714
+        ],
+        [
+          -73.8541752,
+          40.7459397
+        ],
+        [
+          -73.8542465,
+          40.7460768
+        ],
+        [
+          -73.8541411,
+          40.7461085
+        ]
+      ],
+      "footprintAreaM2": 273.29,
+      "footprintOrigin": "observed",
+      "heightM": 10.67,
+      "id": "footprint:71226",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2018-07-01",
+          "id": "footprint:71226:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0402",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:71226"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4020040058",
+      "bin": "4596131",
+      "constructionYear": 2018,
+      "coordinates": [
+        -73.8540594,
+        40.746038
+      ],
+      "footprint": [
+        [
+          -73.8540698,
+          40.7459714
+        ],
+        [
+          -73.8541411,
+          40.7461085
+        ],
+        [
+          -73.8540437,
+          40.7461378
+        ],
+        [
+          -73.8539724,
+          40.7460007
+        ],
+        [
+          -73.8540698,
+          40.7459714
+        ]
+      ],
+      "footprintAreaM2": 252.54,
+      "footprintOrigin": "observed",
+      "heightM": 10.67,
+      "id": "footprint:71227",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2018-07-01",
+          "id": "footprint:71227:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0402",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:71227"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4020060007",
+      "bin": "4618802",
+      "constructionYear": 2017,
+      "coordinates": [
+        -73.8547198,
+        40.7446481
+      ],
+      "footprint": [
+        [
+          -73.8547314,
+          40.7445734
+        ],
+        [
+          -73.8548128,
+          40.744726
+        ],
+        [
+          -73.8547025,
+          40.7447601
+        ],
+        [
+          -73.854621,
+          40.7446075
+        ],
+        [
+          -73.8547314,
+          40.7445734
+        ]
+      ],
+      "footprintAreaM2": 320.8,
+      "footprintOrigin": "observed",
+      "heightM": 11.89,
+      "id": "footprint:71283",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2017-07-01",
+          "id": "footprint:71283:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0402",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:71283"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4018920084",
+      "bin": "4617967",
+      "constructionYear": 2018,
+      "coordinates": [
+        -73.8616559,
+        40.7422068
+      ],
+      "footprint": [
+        [
+          -73.8615706,
+          40.7422168
+        ],
+        [
+          -73.8617178,
+          40.7421282
+        ],
+        [
+          -73.8617838,
+          40.7421917
+        ],
+        [
+          -73.8616366,
+          40.7422803
+        ],
+        [
+          -73.8615706,
+          40.7422168
+        ]
+      ],
+      "footprintAreaM2": 248.52,
+      "footprintOrigin": "observed",
+      "heightM": 14.94,
+      "id": "footprint:71670",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2018-07-01",
+          "id": "footprint:71670:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0402",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:71670"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4019910095",
+      "bin": "4607504",
+      "constructionYear": 2016,
+      "coordinates": [
+        -73.8592162,
+        40.7455807
+      ],
+      "footprint": [
+        [
+          -73.8591363,
+          40.7454756
+        ],
+        [
+          -73.8592888,
+          40.745431
+        ],
+        [
+          -73.8594137,
+          40.7456779
+        ],
+        [
+          -73.8590843,
+          40.7457743
+        ],
+        [
+          -73.8590209,
+          40.7456489
+        ],
+        [
+          -73.8591978,
+          40.7455972
+        ],
+        [
+          -73.8591681,
+          40.7455386
+        ],
+        [
+          -73.8591363,
+          40.7454756
+        ]
+      ],
+      "footprintAreaM2": 1123.65,
+      "footprintOrigin": "observed",
+      "heightM": 11.28,
+      "id": "footprint:881140",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2016-07-01",
+          "id": "footprint:881140:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0402",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:881140"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4019820037",
+      "bin": "4538256",
+      "constructionYear": 2010,
+      "coordinates": [
+        -73.8593748,
+        40.7449759
+      ],
+      "footprint": [
+        [
+          -73.8594646,
+          40.7450166
+        ],
+        [
+          -73.8593326,
+          40.7450563
+        ],
+        [
+          -73.8592465,
+          40.7448879
+        ],
+        [
+          -73.8594059,
+          40.7449007
+        ],
+        [
+          -73.8594434,
+          40.7449748
+        ],
+        [
+          -73.8594646,
+          40.7450166
+        ]
+      ],
+      "footprintAreaM2": 355.75,
+      "footprintOrigin": "observed",
+      "heightM": 8.68,
+      "id": "footprint:90355",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2010-07-01",
+          "id": "footprint:90355:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0402",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:90355"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4019810021",
+      "bin": "4520644",
+      "constructionYear": 2014,
+      "coordinates": [
+        -73.860429,
+        40.7460424
+      ],
+      "footprint": [
+        [
+          -73.860439,
+          40.7459523
+        ],
+        [
+          -73.860512,
+          40.7460971
+        ],
+        [
+          -73.86043,
+          40.7461229
+        ],
+        [
+          -73.8603521,
+          40.7459797
+        ],
+        [
+          -73.860439,
+          40.7459523
+        ]
+      ],
+      "footprintAreaM2": 231.65,
+      "footprintOrigin": "observed",
+      "heightM": 9.92,
+      "id": "footprint:90359",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2014-07-01",
+          "id": "footprint:90359:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0402",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:90359"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4020040016",
+      "bin": "4049523",
+      "constructionYear": 2012,
+      "coordinates": [
+        -73.854878,
+        40.7461418
+      ],
+      "footprint": [
+        [
+          -73.8548798,
+          40.746065
+        ],
+        [
+          -73.8549635,
+          40.7462244
+        ],
+        [
+          -73.8548763,
+          40.7462499
+        ],
+        [
+          -73.8547953,
+          40.7460897
+        ],
+        [
+          -73.8548798,
+          40.746065
+        ]
+      ],
+      "footprintAreaM2": 262.14,
+      "footprintOrigin": "observed",
+      "heightM": 13.09,
+      "id": "footprint:90361",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2012-07-01",
+          "id": "footprint:90361:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0402",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:90361"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4019670058",
+      "bin": "4048392",
+      "constructionYear": 2012,
+      "coordinates": [
+        -73.8515737,
+        40.7398299
+      ],
+      "footprint": [
+        [
+          -73.8514934,
+          40.7398903
+        ],
+        [
+          -73.8515807,
+          40.7397277
+        ],
+        [
+          -73.8516526,
+          40.73975
+        ],
+        [
+          -73.8515652,
+          40.7399126
+        ],
+        [
+          -73.8514934,
+          40.7398903
+        ]
+      ],
+      "footprintAreaM2": 223.03,
+      "footprintOrigin": "observed",
+      "heightM": 9.18,
+      "id": "footprint:91231",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2012-07-01",
+          "id": "footprint:91231:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0402",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:91231"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4019040044",
+      "bin": "4539371",
+      "constructionYear": 2012,
+      "coordinates": [
+        -73.8644925,
+        40.7375737
+      ],
+      "footprint": [
+        [
+          -73.8645594,
+          40.7375272
+        ],
+        [
+          -73.8645697,
+          40.7375247
+        ],
+        [
+          -73.8645971,
+          40.7375922
+        ],
+        [
+          -73.8643971,
+          40.737639
+        ],
+        [
+          -73.8643698,
+          40.7375716
+        ],
+        [
+          -73.8645594,
+          40.7375272
+        ]
+      ],
+      "footprintAreaM2": 241.42,
+      "footprintOrigin": "observed",
+      "heightM": 12.12,
+      "id": "footprint:91481",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2012-07-01",
+          "id": "footprint:91481:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0402",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:91481"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4019040045",
+      "bin": "4594979",
+      "constructionYear": 2012,
+      "coordinates": [
+        -73.8644782,
+        40.7375125
+      ],
+      "footprint": [
+        [
+          -73.8645339,
+          40.7374661
+        ],
+        [
+          -73.8645449,
+          40.7374635
+        ],
+        [
+          -73.8645697,
+          40.7375247
+        ],
+        [
+          -73.8643698,
+          40.7375716
+        ],
+        [
+          -73.864345,
+          40.7375103
+        ],
+        [
+          -73.8645339,
+          40.7374661
+        ]
+      ],
+      "footprintAreaM2": 219.4,
+      "footprintOrigin": "observed",
+      "heightM": 12.36,
+      "id": "footprint:91482",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2012-07-01",
+          "id": "footprint:91482:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0402",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:91482"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4019810018",
+      "bin": "4613581",
+      "constructionYear": 2015,
+      "coordinates": [
+        -73.8605251,
+        40.7460261
+      ],
+      "footprint": [
+        [
+          -73.860439,
+          40.7459523
+        ],
+        [
+          -73.860518,
+          40.7459274
+        ],
+        [
+          -73.8605959,
+          40.7460706
+        ],
+        [
+          -73.860512,
+          40.7460971
+        ],
+        [
+          -73.860439,
+          40.7459523
+        ]
+      ],
+      "footprintAreaM2": 223.61,
+      "footprintOrigin": "observed",
+      "heightM": 10.1,
+      "id": "footprint:91938",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2015-07-01",
+          "id": "footprint:91938:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0402",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:91938"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4020130026",
+      "bin": "4542819",
+      "constructionYear": 2014,
+      "coordinates": [
+        -73.8535044,
+        40.7520621
+      ],
+      "footprint": [
+        [
+          -73.8533277,
+          40.7520445
+        ],
+        [
+          -73.8536897,
+          40.7519355
+        ],
+        [
+          -73.8537695,
+          40.7520886
+        ],
+        [
+          -73.8534074,
+          40.7521976
+        ],
+        [
+          -73.8533277,
+          40.7520445
+        ]
+      ],
+      "footprintAreaM2": 1049.1,
+      "footprintOrigin": "observed",
+      "heightM": 14.82,
+      "id": "footprint:95623",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2014-07-01",
+          "id": "footprint:95623:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0402",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:95623"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4019840038",
+      "bin": "4561785",
+      "constructionYear": 2012,
+      "coordinates": [
+        -73.8588145,
+        40.7503088
+      ],
+      "footprint": [
+        [
+          -73.8588261,
+          40.7502821
+        ],
+        [
+          -73.8589125,
+          40.7502568
+        ],
+        [
+          -73.8589408,
+          40.7503126
+        ],
+        [
+          -73.8587374,
+          40.7503722
+        ],
+        [
+          -73.8587091,
+          40.7503164
+        ],
+        [
+          -73.8587307,
+          40.7503101
+        ],
+        [
+          -73.8588261,
+          40.7502821
+        ]
+      ],
+      "footprintAreaM2": 213.28,
+      "footprintOrigin": "observed",
+      "heightM": 12.01,
+      "id": "footprint:95675",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2012-07-01",
+          "id": "footprint:95675:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0402",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:95675"
+      ]
+    },
+    {
+      "address": "98-11 44TH AVENUE",
+      "bbl": "4016280021",
+      "bin": "4547623",
+      "constructionYear": 2020,
+      "coordinates": [
+        -73.865329,
+        40.745709
+      ],
+      "footprint": [
+        [
+          -73.865149,
+          40.7461465
+        ],
+        [
+          -73.8648241,
+          40.7462456
+        ],
+        [
+          -73.8646866,
+          40.7459771
+        ],
+        [
+          -73.8649489,
+          40.7458994
+        ],
+        [
+          -73.8649594,
+          40.7459198
+        ],
+        [
+          -73.8650064,
+          40.7459059
+        ],
+        [
+          -73.8649907,
+          40.7458752
+        ],
+        [
+          -73.8655624,
+          40.7457059
+        ],
+        [
+          -73.8656515,
+          40.7458798
+        ],
+        [
+          -73.8650966,
+          40.7460441
+        ],
+        [
+          -73.865149,
+          40.7461465
+        ]
+      ],
+      "footprintAreaM2": 3445.37,
+      "footprintOrigin": "observed",
+      "heightM": 23.77,
+      "id": "job:402884679:01",
+      "jobId": "402884679",
+      "milestones": [
+        {
+          "date": "2013-06-13",
+          "id": "job:402884679:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2013-12-24",
+          "id": "job:402884679:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2014-07-01",
+          "id": "job:402884679:01:fully-permitted:3",
+          "kind": "fully-permitted",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2020-10-13",
+          "id": "job:402884679:01:final-certificate-of-occupancy:4",
+          "kind": "final-certificate-of-occupancy",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2020-10-13",
+          "id": "job:402884679:01:signed-off:5",
+          "kind": "signed-off",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 5,
+      "proposedUnits": 0,
+      "proposedZoningSquareFeet": 94124,
+      "regionId": "QN0402",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:2253162",
+        "certificate-of-occupancy:402884679:022",
+        "building-footprint:70995"
+      ],
+      "status": "SIGNED OFF",
+      "withdrawn": false
+    },
+    {
+      "address": "43-18 97TH PLACE",
+      "bbl": "4016130017",
+      "bin": "4439257",
+      "constructionYear": 2014,
+      "coordinates": [
+        -73.86725,
+        40.74514
+      ],
+      "footprint": [
+        [
+          -73.8664778,
+          40.7459928
+        ],
+        [
+          -73.8662484,
+          40.7455508
+        ],
+        [
+          -73.8663131,
+          40.7455313
+        ],
+        [
+          -73.8663001,
+          40.7455062
+        ],
+        [
+          -73.8671279,
+          40.7452602
+        ],
+        [
+          -73.867328,
+          40.7456461
+        ],
+        [
+          -73.867302,
+          40.7456539
+        ],
+        [
+          -73.867343,
+          40.745733
+        ],
+        [
+          -73.8666693,
+          40.7459353
+        ],
+        [
+          -73.8664778,
+          40.7459928
+        ]
+      ],
+      "footprintAreaM2": 6878.3,
+      "footprintOrigin": "observed",
+      "heightM": 23.49,
+      "id": "job:402885179:01",
+      "jobId": "402885179",
+      "milestones": [
+        {
+          "date": "2013-02-05",
+          "id": "job:402885179:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2013-02-13",
+          "id": "job:402885179:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2013-10-08",
+          "id": "job:402885179:01:fully-permitted:3",
+          "kind": "fully-permitted",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 5,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": 124240,
+      "regionId": "QN0402",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:2200360",
+        "building-footprint:1075754"
+      ],
+      "status": "PERMIT ISSUED - ENTIRE JOB/WORK",
+      "withdrawn": false
+    },
+    {
+      "address": "50-51 98 STREET",
+      "bbl": "4018910001",
+      "bin": "4620049",
+      "constructionYear": 2019,
+      "coordinates": [
+        -73.864109,
+        40.742167
+      ],
+      "footprint": [
+        [
+          -73.863411,
+          40.7408228
+        ],
+        [
+          -73.863869,
+          40.7419212
+        ],
+        [
+          -73.8637643,
+          40.7419485
+        ],
+        [
+          -73.8637596,
+          40.7419369
+        ],
+        [
+          -73.8637316,
+          40.7419441
+        ],
+        [
+          -73.8637189,
+          40.7419163
+        ],
+        [
+          -73.8636302,
+          40.7419409
+        ],
+        [
+          -73.8634058,
+          40.7413932
+        ],
+        [
+          -73.8633459,
+          40.7412644
+        ],
+        [
+          -73.8632674,
+          40.7412807
+        ],
+        [
+          -73.8631662,
+          40.7410321
+        ],
+        [
+          -73.8632393,
+          40.7410041
+        ],
+        [
+          -73.8632112,
+          40.7409344
+        ],
+        [
+          -73.863411,
+          40.7408228
+        ]
+      ],
+      "footprintAreaM2": 4597.29,
+      "footprintOrigin": "observed",
+      "heightM": 10.97,
+      "id": "job:402885428:01",
+      "jobId": "402885428",
+      "milestones": [
+        {
+          "date": "2014-06-24",
+          "id": "job:402885428:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2014-12-04",
+          "id": "job:402885428:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2015-11-23",
+          "id": "job:402885428:01:fully-permitted:3",
+          "kind": "fully-permitted",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 4,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": 107555,
+      "regionId": "QN0402",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:2366424",
+        "building-footprint:1035173"
+      ],
+      "status": "PERMIT ISSUED - ENTIRE JOB/WORK",
+      "withdrawn": false
+    },
+    {
+      "address": "40-10 99TH STREET",
+      "bbl": "4607476",
+      "bin": "4607476",
+      "constructionYear": null,
+      "coordinates": [
+        -73.866362,
+        40.749108
+      ],
+      "footprint": [
+        [
+          -73.8670625,
+          40.7485773
+        ],
+        [
+          -73.8656615,
+          40.7485773
+        ],
+        [
+          -73.8656615,
+          40.7496387
+        ],
+        [
+          -73.8670625,
+          40.7496387
+        ],
+        [
+          -73.8670625,
+          40.7485773
+        ]
+      ],
+      "footprintAreaM2": 3489.88,
+      "footprintOrigin": "modeled",
+      "heightM": 28.65,
+      "id": "job:402900349:01",
+      "jobId": "402900349",
+      "milestones": [
+        {
+          "date": "2016-04-25",
+          "id": "job:402900349:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2016-11-30",
+          "id": "job:402900349:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2017-05-26",
+          "id": "job:402900349:01:fully-permitted:3",
+          "kind": "fully-permitted",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 5,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": 187824,
+      "regionId": "QN0402",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:2665059"
+      ],
+      "status": "PERMIT ISSUED - ENTIRE JOB/WORK",
+      "withdrawn": false
+    },
+    {
+      "address": "54-25 101ST STREET",
+      "bbl": "4019390011",
+      "bin": "4607925",
+      "constructionYear": 2018,
+      "coordinates": [
+        -73.858943,
+        40.739866
+      ],
+      "footprint": [
+        [
+          -73.8587231,
+          40.7398423
+        ],
+        [
+          -73.8590398,
+          40.740073
+        ],
+        [
+          -73.8588878,
+          40.7401899
+        ],
+        [
+          -73.8588324,
+          40.7401448
+        ],
+        [
+          -73.8588258,
+          40.7401526
+        ],
+        [
+          -73.8587864,
+          40.740129
+        ],
+        [
+          -73.8587742,
+          40.7401383
+        ],
+        [
+          -73.8586625,
+          40.7400609
+        ],
+        [
+          -73.8586747,
+          40.7400545
+        ],
+        [
+          -73.858655,
+          40.7400466
+        ],
+        [
+          -73.8586324,
+          40.7400645
+        ],
+        [
+          -73.858548,
+          40.7400065
+        ],
+        [
+          -73.8585536,
+          40.7400015
+        ],
+        [
+          -73.8585405,
+          40.7399957
+        ],
+        [
+          -73.8585669,
+          40.73997
+        ],
+        [
+          -73.8587041,
+          40.739857
+        ],
+        [
+          -73.8587231,
+          40.7398423
+        ]
+      ],
+      "footprintAreaM2": 1334.11,
+      "footprintOrigin": "observed",
+      "heightM": 24.38,
+      "id": "job:420655017:01",
+      "jobId": "420655017",
+      "milestones": [
+        {
+          "date": "2015-10-01",
+          "id": "job:420655017:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2016-06-09",
+          "id": "job:420655017:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2016-09-07",
+          "id": "job:420655017:01:fully-permitted:3",
+          "kind": "fully-permitted",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2018-11-26",
+          "id": "job:420655017:01:final-certificate-of-occupancy:4",
+          "kind": "final-certificate-of-occupancy",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2018-11-26",
+          "id": "job:420655017:01:signed-off:5",
+          "kind": "signed-off",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 8,
+      "proposedUnits": 68,
+      "proposedZoningSquareFeet": 51783,
+      "regionId": "QN0402",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:2571522",
+        "certificate-of-occupancy:420655017:002",
+        "building-footprint:254450"
+      ],
+      "status": "SIGNED OFF",
+      "withdrawn": false
+    }
+  ],
+  "id": "nyc-real-estate-region-qn0402-v1",
+  "region": {
+    "abbreviation": "Crna",
+    "areaM2": 24025748.0235,
+    "boroughId": "queens",
+    "boroughLabel": "Queens",
+    "bounds": {
+      "east": -73.8475558,
+      "north": 40.7526607,
+      "south": 40.7342817,
+      "west": -73.8694246
+    },
+    "centroid": [
+      -73.8568364,
+      40.7418502
+    ],
+    "communityDistrictTabulationAreaId": "QN04",
+    "communityDistrictTabulationAreaLabel": "QN04 Elmhurst-Corona (CD 4 Approximation)",
+    "id": "QN0402",
+    "label": "Corona",
+    "polygon": [
+      [
+        -73.8475558,
+        40.7390639
+      ],
+      [
+        -73.8519125,
+        40.7374234
+      ],
+      [
+        -73.8563226,
+        40.7365061
+      ],
+      [
+        -73.8587714,
+        40.7357853
+      ],
+      [
+        -73.8588656,
+        40.7359391
+      ],
+      [
+        -73.8646219,
+        40.7342817
+      ],
+      [
+        -73.8658296,
+        40.7366432
+      ],
+      [
+        -73.8675625,
+        40.7409419
+      ],
+      [
+        -73.8674913,
+        40.743302
+      ],
+      [
+        -73.8685293,
+        40.7475883
+      ],
+      [
+        -73.8694246,
+        40.7491569
+      ],
+      [
+        -73.8611171,
+        40.7500242
+      ],
+      [
+        -73.8522045,
+        40.7526607
+      ],
+      [
+        -73.8508644,
+        40.7499956
+      ],
+      [
+        -73.8544258,
+        40.7488517
+      ],
+      [
+        -73.8501156,
+        40.7407236
+      ],
+      [
+        -73.848095,
+        40.740027
+      ],
+      [
+        -73.8477917,
+        40.7398308
+      ],
+      [
+        -73.8476703,
+        40.7391952
+      ],
+      [
+        -73.8475558,
+        40.7390639
+      ]
+    ],
+    "spatialPolygons": [
+      {
+        "holes": [],
+        "outer": [
+          [
+            -73.8475558,
+            40.7390639
+          ],
+          [
+            -73.8519125,
+            40.7374234
+          ],
+          [
+            -73.8563226,
+            40.7365061
+          ],
+          [
+            -73.8587714,
+            40.7357853
+          ],
+          [
+            -73.8588656,
+            40.7359391
+          ],
+          [
+            -73.8646219,
+            40.7342817
+          ],
+          [
+            -73.8658296,
+            40.7366432
+          ],
+          [
+            -73.8675625,
+            40.7409419
+          ],
+          [
+            -73.8674913,
+            40.743302
+          ],
+          [
+            -73.8685293,
+            40.7475883
+          ],
+          [
+            -73.8694246,
+            40.7491569
+          ],
+          [
+            -73.8611171,
+            40.7500242
+          ],
+          [
+            -73.8522045,
+            40.7526607
+          ],
+          [
+            -73.8508644,
+            40.7499956
+          ],
+          [
+            -73.8544258,
+            40.7488517
+          ],
+          [
+            -73.8501156,
+            40.7407236
+          ],
+          [
+            -73.848095,
+            40.740027
+          ],
+          [
+            -73.8477917,
+            40.7398308
+          ],
+          [
+            -73.8476703,
+            40.7391952
+          ],
+          [
+            -73.8475558,
+            40.7390639
+          ]
+        ]
+      }
+    ]
+  },
+  "saleSeries": [
+    {
+      "id": "sale:QN0402:2016:tax-1",
+      "meanPriceUsd": 750030.27,
+      "medianPriceUsd": 720000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0402",
+      "saleCount": 147,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 319,
+      "year": 2016
+    },
+    {
+      "id": "sale:QN0402:2016:tax-2",
+      "meanPriceUsd": 566587.78,
+      "medianPriceUsd": 233450,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0402",
+      "saleCount": 92,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 194,
+      "year": 2016
+    },
+    {
+      "id": "sale:QN0402:2016:tax-4",
+      "meanPriceUsd": 4272142.86,
+      "medianPriceUsd": 2535000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0402",
+      "saleCount": 7,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 19,
+      "year": 2016
+    },
+    {
+      "id": "sale:QN0402:2017:tax-1",
+      "meanPriceUsd": 832370.55,
+      "medianPriceUsd": 813500,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0402",
+      "saleCount": 134,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 291,
+      "year": 2017
+    },
+    {
+      "id": "sale:QN0402:2017:tax-2",
+      "meanPriceUsd": 483803.38,
+      "medianPriceUsd": 235000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0402",
+      "saleCount": 97,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 139,
+      "year": 2017
+    },
+    {
+      "id": "sale:QN0402:2017:tax-4",
+      "meanPriceUsd": 2228000,
+      "medianPriceUsd": 1550000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0402",
+      "saleCount": 6,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 8,
+      "year": 2017
+    },
+    {
+      "id": "sale:QN0402:2018:tax-1",
+      "meanPriceUsd": 874159.66,
+      "medianPriceUsd": 850053.5,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0402",
+      "saleCount": 122,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 264,
+      "year": 2018
+    },
+    {
+      "id": "sale:QN0402:2018:tax-2",
+      "meanPriceUsd": 601463.25,
+      "medianPriceUsd": 286000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0402",
+      "saleCount": 120,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 199,
+      "year": 2018
+    },
+    {
+      "id": "sale:QN0402:2018:tax-4",
+      "meanPriceUsd": 3106666.67,
+      "medianPriceUsd": 1490000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0402",
+      "saleCount": 6,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 13,
+      "year": 2018
+    },
+    {
+      "id": "sale:QN0402:2019:tax-1",
+      "meanPriceUsd": 1019410.42,
+      "medianPriceUsd": 850000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0402",
+      "saleCount": 115,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 240,
+      "year": 2019
+    },
+    {
+      "id": "sale:QN0402:2019:tax-2",
+      "meanPriceUsd": 687391.17,
+      "medianPriceUsd": 355000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0402",
+      "saleCount": 90,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 175,
+      "year": 2019
+    },
+    {
+      "id": "sale:QN0402:2019:tax-4",
+      "meanPriceUsd": 1852785,
+      "medianPriceUsd": 472792.5,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0402",
+      "saleCount": 6,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 15,
+      "year": 2019
+    },
+    {
+      "id": "sale:QN0402:2020:tax-1",
+      "meanPriceUsd": 869943.86,
+      "medianPriceUsd": 820000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0402",
+      "saleCount": 51,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 105,
+      "year": 2020
+    },
+    {
+      "id": "sale:QN0402:2020:tax-2",
+      "meanPriceUsd": 578372.83,
+      "medianPriceUsd": 298623,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0402",
+      "saleCount": 72,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 106,
+      "year": 2020
+    },
+    {
+      "id": "sale:QN0402:2020:tax-4",
+      "meanPriceUsd": 1745635.5,
+      "medianPriceUsd": 305396.5,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0402",
+      "saleCount": 14,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 102,
+      "year": 2020
+    },
+    {
+      "id": "sale:QN0402:2021:tax-1",
+      "meanPriceUsd": 912248.35,
+      "medianPriceUsd": 901000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0402",
+      "saleCount": 107,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 221,
+      "year": 2021
+    },
+    {
+      "id": "sale:QN0402:2021:tax-2",
+      "meanPriceUsd": 600348,
+      "medianPriceUsd": 292500,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0402",
+      "saleCount": 94,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 157,
+      "year": 2021
+    },
+    {
+      "id": "sale:QN0402:2021:tax-4",
+      "meanPriceUsd": 2296428.57,
+      "medianPriceUsd": 1900000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0402",
+      "saleCount": 7,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 15,
+      "year": 2021
+    },
+    {
+      "id": "sale:QN0402:2022:tax-1",
+      "meanPriceUsd": 1111861.69,
+      "medianPriceUsd": 1072000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0402",
+      "saleCount": 116,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 251,
+      "year": 2022
+    },
+    {
+      "id": "sale:QN0402:2022:tax-2",
+      "meanPriceUsd": 608683.3,
+      "medianPriceUsd": 341500,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0402",
+      "saleCount": 120,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 167,
+      "year": 2022
+    },
+    {
+      "id": "sale:QN0402:2022:tax-4",
+      "meanPriceUsd": 11795000,
+      "medianPriceUsd": 1560000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0402",
+      "saleCount": 10,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 14,
+      "year": 2022
+    },
+    {
+      "id": "sale:QN0402:2023:tax-1",
+      "meanPriceUsd": 1059888.97,
+      "medianPriceUsd": 970000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0402",
+      "saleCount": 63,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 141,
+      "year": 2023
+    },
+    {
+      "id": "sale:QN0402:2023:tax-2",
+      "meanPriceUsd": 1325356.51,
+      "medianPriceUsd": 325000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0402",
+      "saleCount": 87,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 497,
+      "year": 2023
+    },
+    {
+      "id": "sale:QN0402:2023:tax-4",
+      "meanPriceUsd": 428342.86,
+      "medianPriceUsd": 304200,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0402",
+      "saleCount": 7,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 8,
+      "year": 2023
+    },
+    {
+      "id": "sale:QN0402:2024:tax-1",
+      "meanPriceUsd": 1025600.11,
+      "medianPriceUsd": 997942.5,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0402",
+      "saleCount": 84,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 175,
+      "year": 2024
+    },
+    {
+      "id": "sale:QN0402:2024:tax-2",
+      "meanPriceUsd": 575442.08,
+      "medianPriceUsd": 283520,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0402",
+      "saleCount": 85,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 115,
+      "year": 2024
+    },
+    {
+      "id": "sale:QN0402:2024:tax-4",
+      "meanPriceUsd": 551280.38,
+      "medianPriceUsd": 455895,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0402",
+      "saleCount": 8,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 10,
+      "year": 2024
+    },
+    {
+      "id": "sale:QN0402:2025:tax-1",
+      "meanPriceUsd": 1026834.56,
+      "medianPriceUsd": 988000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0402",
+      "saleCount": 103,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 228,
+      "year": 2025
+    },
+    {
+      "id": "sale:QN0402:2025:tax-2",
+      "meanPriceUsd": 13171656.46,
+      "medianPriceUsd": 19405109,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0402",
+      "saleCount": 216,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 113,
+      "year": 2025
+    },
+    {
+      "id": "sale:QN0402:2025:tax-4",
+      "meanPriceUsd": 13215351.71,
+      "medianPriceUsd": 3090000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0402",
+      "saleCount": 14,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 13,
+      "year": 2025
+    }
+  ],
+  "schema": "simulatte.nycRealEstateRegionShard.v1",
+  "sourceIdentities": [
+    {
+      "byteCount": 1008463,
+      "path": "nyc-annualized-sales-by-nta.json",
+      "sha256": "14c15020381466196236073ee3753ff7a5d74a76ec6af4605e96564abd2bf99a",
+      "sourceId": "nyc-real-estate-sales-annual"
+    },
+    {
+      "byteCount": 8977616,
+      "path": "nyc-final-certificates-of-occupancy.json",
+      "sha256": "966c237824a79aff9d5137d27b498ba4f3670cc19844738c5ce17a559388030e",
+      "sourceId": "nyc-real-estate-final-occupancy"
+    },
+    {
+      "byteCount": 8802596,
+      "path": "nyc-largest-constructed-footprints-2010-2026.geojson",
+      "sha256": "15745b9c62fa539e683737f0665fe91d95231e68d8c1b598e7ed211114811eb6",
+      "sourceId": "nyc-real-estate-constructed-footprints"
+    },
+    {
+      "byteCount": 1076754,
+      "path": "nyc-largest-new-building-jobs-bronx.json",
+      "sha256": "1a44c6cbfa364639e4b75957b2fab7e3c301f95bcfcfa90c50862fef85f450c1",
+      "sourceId": "nyc-real-estate-new-building-sample-bronx"
+    },
+    {
+      "byteCount": 1085334,
+      "path": "nyc-largest-new-building-jobs-brooklyn.json",
+      "sha256": "389e1825faff440d6fad5a12ed470f84e90859fd732262346a3414c5503693fd",
+      "sourceId": "nyc-real-estate-new-building-sample-brooklyn"
+    },
+    {
+      "byteCount": 1097625,
+      "path": "nyc-largest-new-building-jobs-manhattan.json",
+      "sha256": "6346678de380d58e325db14fc2e0611d993743be29898360e08f092eaa1f88e5",
+      "sourceId": "nyc-real-estate-new-building-sample-manhattan"
+    },
+    {
+      "byteCount": 1091065,
+      "path": "nyc-largest-new-building-jobs-queens.json",
+      "sha256": "79eb6f028b2135214d47a793101f72de695efcb02e4c2802cc10cd062c760a22",
+      "sourceId": "nyc-real-estate-new-building-sample-queens"
+    },
+    {
+      "byteCount": 1120592,
+      "path": "nyc-largest-new-building-jobs-staten-island.json",
+      "sha256": "e0870a431a75bdd235fc09b0ecd7503c45384f5e8b66beba545447c7bb3d960a",
+      "sourceId": "nyc-real-estate-new-building-sample-staten-island"
+    },
+    {
+      "byteCount": 1250280,
+      "path": "nyc-new-building-filings-by-nta-year.json",
+      "sha256": "4b75b0ad54a1ce5241b9c2e303be2cc24781e55a65fbf27be10d00a80bfeadea",
+      "sourceId": "nyc-real-estate-new-building-annual"
+    },
+    {
+      "byteCount": 4576764,
+      "path": "nyc-nta-2020.geojson",
+      "sha256": "c3dd069e094e2d2f647c1c102cd7e0570d033dd6131446bd1943a73210d09c56",
+      "sourceId": "nyc-real-estate-nta-boundaries"
+    },
+    {
+      "byteCount": 2402191,
+      "path": "nyc-pluto-capacity-bronx.json",
+      "sha256": "b45168721525e18a29aafcce335212632607021240869b738cbb96fbe2441389",
+      "sourceId": "nyc-real-estate-pluto-capacity-bronx"
+    },
+    {
+      "byteCount": 2403266,
+      "path": "nyc-pluto-capacity-brooklyn.json",
+      "sha256": "63b33a507c0bc26f7b71669cf032baa4950af2db77ce8712b876ca6f4c9f771b",
+      "sourceId": "nyc-real-estate-pluto-capacity-brooklyn"
+    },
+    {
+      "byteCount": 2464264,
+      "path": "nyc-pluto-capacity-manhattan.json",
+      "sha256": "91e3e1f5dce97a340475b51577458c8e48183f1138c334fbcce27d68001e9d25",
+      "sourceId": "nyc-real-estate-pluto-capacity-manhattan"
+    },
+    {
+      "byteCount": 2418903,
+      "path": "nyc-pluto-capacity-queens.json",
+      "sha256": "02a12d81466e89e05b9be9273198c5f857e86db5d2c95cfb717160ce4ccf99c1",
+      "sourceId": "nyc-real-estate-pluto-capacity-queens"
+    },
+    {
+      "byteCount": 1168016,
+      "path": "nyc-pluto-capacity-staten-island.json",
+      "sha256": "6d488f6ce46fa09930b669429275014a8ecedae6c85041fb465a15633c6a38b0",
+      "sourceId": "nyc-real-estate-pluto-capacity-staten-island"
+    }
+  ],
+  "truth": {
+    "origin": "observed",
+    "temporalStatus": "historical",
+    "uncertainty": {
+      "kind": "missing",
+      "value": {
+        "reason": "Administrative records have missing, revised, duplicated, and source-sampled fields without a shared statistical uncertainty model."
+      }
+    }
+  }
+}

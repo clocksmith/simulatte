@@ -11,28 +11,31 @@
   const ensembleRunner = typeof module === 'object' && module.exports
     ? require('./ensemble-runner.js')
     : root.SimulatteCableTraderEnsemble;
-  const api = factory(network, v4Contribution, comparisonDriver, ensembleRunner);
+  const logisticsPresentation = typeof module === 'object' && module.exports
+    ? require('./logistics-presentation.js')
+    : root.SimulatteCableTraderPresentation;
+  const api = factory(network, v4Contribution, comparisonDriver, ensembleRunner, logisticsPresentation);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulattePluginCableTrader = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createCableTraderPlugin(
   network,
   v4Contribution,
   comparisonDriver,
-  ensembleRunner
+  ensembleRunner,
+  logisticsPresentation
 ) {
   const MAX_PRESENTATION_ACTORS = 64;
 
   async function activate({ sdk, config, scenario = null }) {
     let activeConfig = config;
-    const renderedRequestCount = resolveRenderedRequestCount(config.simulation.renderedRequestCount);
+    resolveRenderedRequestCount(config.simulation.renderedRequestCount);
     const worldModel = sdk.worldQuery.model();
-    const transferRoutes = config.hubs.flatMap((sourceHub) => config.hubs
-      .filter((destinationHub) => destinationHub.id !== sourceHub.id)
-      .map((destinationHub) => {
+    const transferRoutes = config.hubs.flatMap((sourceHub) => config.demandSites
+      .map((destinationSite) => {
         const route = sdk.routing.plan({
           worldModel,
           originNodeId: sourceHub.nodeId,
-          destinationNodeId: destinationHub.nodeId,
+          destinationNodeId: destinationSite.nodeId,
           mode: 'delivery_bike',
           tick: 0,
           mission: { constraints: { avoidStreetNames: [], lanePreference: 'protected' }, task: { type: 'point_to_point' } },
@@ -40,9 +43,9 @@
         });
         const distanceM = route.segmentIds.reduce((total, segmentId) => total + worldModel.segment(segmentId).lengthM, 0);
         return Object.freeze({
-          id: `transfer-${sourceHub.id}-${destinationHub.id}`,
+          id: `route-${sourceHub.id}-${destinationSite.id}`,
           sourceHubId: sourceHub.id,
-          destinationHubId: destinationHub.id,
+          destinationSiteId: destinationSite.id,
           segmentIds: route.segmentIds,
           distanceM,
           costUnits: Math.max(0.1, distanceM / 1000),
@@ -65,19 +68,19 @@
       // The scenario identity already includes the governed seed and cable-family
       // selection. Using the activation-scoped host stream here would make a
       // shuffled scenario differ from the same scenario restored after reload.
-      return network.simulateNetwork(effectiveConfig, transferRoutes);
+      return network.simulateNetwork(effectiveConfig, transferRoutes, {
+        allocationPolicy: effectiveConfig.simulation.allocationObjective,
+      });
     };
     const simulation = simulationFor(scenario);
     const reduceState = createReducer(simulationFor);
     sdk.state.register(reduceState, {
       simulation,
-      inventory: simulation.snapshots[0].inventory,
-      credits: {},
-      lastExchange: null,
       playback: { status: 'ready', day: 0 },
     });
     appendNetworkReceipt(simulation);
-    let activeComparisonRun = await executeComparison(simulation);
+    const activeComparisonRuns = new Map();
+    let activeComparisonRun = await executeComparison(simulation, 'cheapest-vs-fastest');
     let activeComparisonSimulationId = simulation.id;
     let activeEnsembleRun = await executeEnsemble();
 
@@ -94,8 +97,20 @@
         durationDays: result.durationDays,
         summary: result.summary,
         solver: result.solver,
-        dataReceiptIds: ['cable-trader:data:compatibility-priors', 'cable-trader:data:authored-scenario'],
-        modelReceiptIds: ['cable-trader:model:event-generator', 'cable-trader:model:min-cost-flow'],
+        policyId: result.allocationPolicy,
+        controls: {
+          demandPriority: activeConfig.simulation.demandPriority,
+          allowSubstitutes: activeConfig.simulation.allowSubstitutes,
+          reservePolicy: activeConfig.simulation.reservePolicy,
+          transferCapacityMetersPerDay: activeConfig.simulation.transferCapacityMetersPerDay,
+          allocationObjective: activeConfig.simulation.allocationObjective,
+          fairnessWeight: activeConfig.simulation.fairnessWeight,
+          disruptionScenario: activeConfig.simulation.disruptionScenario,
+        },
+        interventions: (activeConfig.simulation.interventions || []).map((row) => ({ ...row })),
+        conservation: result.conservation,
+        dataReceiptIds: ['cable-trader:data:logistics-catalog', 'cable-trader:data:authored-scenario'],
+        modelReceiptIds: ['cable-trader:model:event-generator', 'cable-trader:model:policy-scored-flow'],
         origin: 'simulated',
         temporalStatus: 'forecast',
         uncertainty: {
@@ -118,6 +133,7 @@
           seed: nextScenario?.seed || activeConfig.simulation.seed,
           scenarioId: nextScenario?.id || activeConfig.scenarioModifiers[0].id,
           selectedCableFamilyIds,
+          interventions: [],
         },
       };
       sdk.events.propose({
@@ -133,7 +149,7 @@
       appendNetworkReceipt(nextSimulation);
       if (activeComparisonSimulationId !== nextSimulation.id) {
         await yieldBrowserTask();
-        activeComparisonRun = await executeComparison(nextSimulation);
+        activeComparisonRun = await executeComparison(nextSimulation, 'cheapest-vs-fastest');
         await yieldBrowserTask();
         activeEnsembleRun = await executeEnsemble();
         activeComparisonSimulationId = nextSimulation.id;
@@ -150,7 +166,7 @@
       });
     }
 
-    async function executeComparison(interventionSimulation) {
+    async function executeComparison(interventionSimulation, comparisonId = 'cheapest-vs-fastest') {
       const driver = comparisonDriver || globalThis.SimulatteCableTraderComparison;
       if (!driver?.runComparison) {
         throw new Error('cable_trader_comparison_driver_unavailable');
@@ -159,7 +175,9 @@
         config: activeConfig,
         transferRoutes,
         interventionSimulation,
+        comparisonId,
       });
+      activeComparisonRuns.set(run.comparisonId, run);
       sdk.receipts.append(run.comparisonExecutionReceipt);
       return run;
     }
@@ -190,174 +208,25 @@
       };
     }
 
-    function exchange({ cableTypeId, hubId, direction, requestId }) {
-      const state = sdk.state.read();
-      const key = `${hubId}:${cableTypeId}`;
-      const available = state.inventory[key] || 0;
-      if (!activeConfig.hubs.some((row) => row.id === hubId)
-        || !state.simulation.selectedCableFamilyIds.includes(cableTypeId)) {
-        return { status: 'refused', reason: 'exchange_selection_invalid' };
-      }
-      if (!['deposit', 'withdraw'].includes(direction)) return { status: 'refused', reason: 'exchange_direction_invalid' };
-      if (direction === 'withdraw' && available < 1) return { status: 'refused', reason: 'inventory_unavailable' };
-      if (typeof requestId !== 'string' || !requestId) return { status: 'refused', reason: 'modeled_request_id_invalid' };
-      const event = {
-        pluginId: 'cable-trader',
-        kind: 'cable-trader.exchanged',
-        cableTypeId,
-        hubId,
-        direction,
-        requestId,
-        creditDelta: direction === 'deposit' ? 1 : -1,
-        scenarioId: state.simulation.scenarioId,
-        configurationHash: state.simulation.configurationHash,
-        selectedCableFamilyIds: state.simulation.selectedCableFamilyIds,
-      };
-      sdk.events.propose(event);
-      return { status: 'settled', ...event };
-    }
-
     function view() {
       const state = sdk.state.read();
-      const result = visibleResult(state);
-      const busiestHub = [...result.hubStats].sort((left, right) => right.needs - left.needs || left.id.localeCompare(right.id))[0];
-      const busiestCable = [...result.typeStats].sort((left, right) => right.needs - left.needs || left.id.localeCompare(right.id))[0];
-      const crossHubTransfers = result.flows.filter((flow) => flow.sourceHubId !== flow.destinationHubId).reduce((total, flow) => total + flow.quantity, 0);
-      const visibleRequestCount = crossHubTransfers > 0
-        ? Math.ceil(renderedRequestCount * (result.day / result.durationDays))
-        : 0;
-      const today = result.day > 0 ? state.simulation.daily[result.day - 1] : null;
-      const settled = state.playback.status === 'settled';
-      return [{
-        slot: 'inspector',
-        title: 'Optimal cable network',
-        rows: [
-          { label: 'Playback', value: `Day ${result.day} of ${result.durationDays} · ${state.playback.status}` },
-          { label: 'Seeded month', value: `${state.simulation.durationDays} days · ${state.simulation.seed}` },
-          { label: 'Cable families', value: state.simulation.selectedCableFamilyIds.join(', ') },
-          {
-            label: 'Current event',
-            value: today
-              ? `Day ${today.day}: ${format(today.needs)} requests, ${format(today.returns)} returns, ${format(today.fulfilled)} served`
-              : 'Choose parameters, then play the month.',
-          },
-          ...(today ? [{
-            label: 'Today’s shortage',
-            value: today.fulfilled < today.needs
-              ? `${format(today.needs - today.fulfilled)} requests could not be served`
-              : 'Every modeled request was served',
-          }] : []),
-          { label: 'Needs served', value: result.summary.needs ? `${format(result.summary.fulfilledNeeds)} / ${format(result.summary.needs)} (${result.summary.fulfillmentPercent}%)` : '0 / 0 (not started)' },
-          { label: 'Seeded input events', value: format(result.summary.randomEvents) },
-          { label: 'Exact allocations', value: result.summary.allocations ? `${result.summary.optimalAllocations} / ${result.summary.allocations} (${result.summary.optimalityPercent}%)` : '0 / 0 (not started)' },
-          { label: 'Inventory', value: `${format(result.summary.startingInventory)} → ${format(result.summary.endingInventory)}` },
-          ...(result.day > 0 ? [
-            { label: 'Busiest hub', value: `${busiestHub.label} · ${format(busiestHub.needs)} modeled requests` },
-            { label: 'Top cable', value: `${busiestCable.label} · ${format(busiestCable.needs)} modeled requests` },
-          ] : []),
-          { label: 'Modeled service level', value: result.summary.needs ? `${result.summary.fulfillmentPercent.toFixed(1)}%` : 'not started' },
-          ...(settled ? [{
-            label: 'Scenario variance',
-            value: distributionRange(
-              activeEnsembleRun.distributions.branches.intervention.fulfillmentPercent,
-              '% fulfillment'
-            ),
-          }] : []),
-          { label: 'Average transport cost', value: `${(result.summary.totalBurden / (result.summary.fulfilledNeeds || 1)).toFixed(2)} modeled cost units` },
-          ...inventoryRows(state, result),
-          ...(state.lastExchange ? [{ label: 'Last live exchange', value: `${state.lastExchange.direction} · ${state.lastExchange.hubId}` }] : []),
-        ],
-        actions: [],
-      }, {
-        slot: 'map',
-        title: '30-day cable city',
-        rows: [
-          { label: 'Modeled demand events', value: format(result.summary.modeledRequests) },
-          { label: 'Visible request actors', value: `${format(visibleRequestCount)} of ${format(result.summary.modeledRequests)} modeled requests` },
-          { label: 'Cross-hub transfers', value: format(crossHubTransfers) },
-          { label: 'Solver', value: 'Exact min-cost maximum-flow' },
-        ],
-        actions: [
-          { id: 'focus-network', label: 'Whole network', command: { kind: 'camera.focus', targetId: 'cable-network-overview' } },
-          ...activeConfig.hubs.map((hub) => ({ id: `focus-${hub.id}`, label: hub.label, command: { kind: 'camera.focus', targetId: hub.id } })),
-        ],
-      }];
+      return logisticsPresentation.createViews({
+        config: activeConfig,
+        simulation: state.simulation,
+        playback: state.playback,
+        ensembleRun: activeEnsembleRun,
+        comparisonRuns: [...activeComparisonRuns.values()],
+      });
     }
 
     function present() {
       const state = sdk.state.read();
-      const result = visibleResult(state);
-      const routeByPair = new Map(transferRoutes.map((route) => [`${route.sourceHubId}:${route.destinationHubId}`, route]));
-      const activeFlows = result.flows.filter((flow) => flow.sourceHubId !== flow.destinationHubId && flow.quantity > 0);
-      const maximumNeeds = Math.max(...result.hubStats.map((hub) => hub.needs), 1);
-      if (!activeFlows.length) {
-        return {
-          schema: 'simulatte.pluginPresentation.v1',
-          markers: result.hubStats.map((hub) => ({
-            id: hub.id,
-            label: `${hub.label}: ${format(hub.fulfilled)} served · ${format(hub.endingInventory)} stock`,
-            nodeId: activeConfig.hubs.find((row) => row.id === hub.id).nodeId,
-            tone: hub.needs === maximumNeeds ? 'green' : 'amber',
-            heightM: 16 + (Math.sqrt(hub.needs / maximumNeeds) * 20),
-            radiusM: 4 + (Math.sqrt(hub.needs / maximumNeeds) * 3),
-            intensity: 0.7 + ((hub.needs / maximumNeeds) * 0.8),
-          })),
-          paths: [],
-          actors: [],
-          cameraTargets: [
-            { id: 'cable-network-overview', label: 'Cable exchange network', nodeIds: activeConfig.hubs.map((hub) => hub.nodeId), segmentIds: [], distanceM: 3000 },
-            ...activeConfig.hubs.map((hub) => ({ id: hub.id, label: hub.label, nodeIds: [hub.nodeId], segmentIds: [], distanceM: 620 })),
-          ],
-        };
-      }
-      const maximumFlow = Math.max(...activeFlows.map((flow) => flow.quantity), 1);
-      const paths = activeFlows.map((flow, index) => {
-        const route = routeByPair.get(`${flow.sourceHubId}:${flow.destinationHubId}`);
-        if (!route) return null;
-        return {
-          id: route.id,
-          label: `${format(flow.quantity)} optimal transfers`,
-          segmentIds: route.segmentIds,
-          tone: flowTone(index),
-          widthM: 1.2 + (Math.sqrt(flow.quantity / maximumFlow) * 3.2),
-          intensity: 0.45 + ((flow.quantity / maximumFlow) * 1.25),
-        };
-      }).filter(Boolean);
-      const visibleRequestCount = Math.ceil(renderedRequestCount * (result.day / result.durationDays));
-      const actors = Array.from({ length: visibleRequestCount }, (_, index) => {
-        const flow = selectFlow(activeFlows, index, visibleRequestCount);
-        const route = routeByPair.get(`${flow.sourceHubId}:${flow.destinationHubId}`);
-        if (!route) return null;
-        return {
-          id: `modeled-cable-request-${index + 1}`,
-          label: `Modeled request ${index + 1}`,
-          kind: index % 5 === 0 ? 'scooter' : 'bicycle',
-          segmentIds: route.segmentIds,
-          tone: flowTone(activeFlows.indexOf(flow)),
-          speedMps: 4.4 + ((index % 7) * 0.24),
-          phaseOffsetM: (index * 173) % 2400,
-          isSelected: false,
-        };
-      }).filter(Boolean);
-      const allSegments = [...new Set(transferRoutes.flatMap((route) => route.segmentIds))];
-      return {
-        schema: 'simulatte.pluginPresentation.v1',
-        markers: result.hubStats.map((hub) => ({
-          id: hub.id,
-          label: `${hub.label}: ${format(hub.fulfilled)} served · ${format(hub.endingInventory)} stock`,
-          nodeId: activeConfig.hubs.find((row) => row.id === hub.id).nodeId,
-          tone: hub.needs === maximumNeeds ? 'green' : 'amber',
-          heightM: 16 + (Math.sqrt(hub.needs / maximumNeeds) * 20),
-          radiusM: 4 + (Math.sqrt(hub.needs / maximumNeeds) * 3),
-          intensity: 0.7 + ((hub.needs / maximumNeeds) * 0.8),
-        })),
-        paths,
-        actors,
-        cameraTargets: [
-          { id: 'cable-network-overview', label: 'Cable exchange network', nodeIds: activeConfig.hubs.map((hub) => hub.nodeId), segmentIds: allSegments, distanceM: 3000 },
-          ...activeConfig.hubs.map((hub) => ({ id: hub.id, label: hub.label, nodeIds: [hub.nodeId], segmentIds: [], distanceM: 620 })),
-        ],
-      };
+      return logisticsPresentation.createPresentation({
+        config: activeConfig,
+        simulation: state.simulation,
+        playback: state.playback,
+        transferRoutes,
+      });
     }
 
     function handleAction(actionId, context = {}) {
@@ -371,7 +240,10 @@
         }));
       }
       if (actionId === 'comparison.run' || actionId === 'counterfactual.compare') {
-        return executeComparison(sdk.state.read().simulation).then((run) => {
+        return executeComparison(
+          sdk.state.read().simulation,
+          context.values?.comparisonId || 'cheapest-vs-fastest'
+        ).then((run) => {
           activeComparisonRun = run;
           return {
             status: 'settled',
@@ -392,6 +264,9 @@
             ensembleReceipt: run.receipt,
           };
         });
+      }
+      if (actionId.startsWith('cable-trader.intervene.')) {
+        return applyLiveIntervention(actionId);
       }
       if (actionId !== 'scenario.run') return { status: 'refused', reason: 'unknown_action', actionId };
       const phase = context.values?.phase;
@@ -432,6 +307,56 @@
       return { status: 'refused', reason: 'scenario_phase_invalid', phase: phase || null };
     }
 
+    async function applyLiveIntervention(actionId) {
+      const state = sdk.state.read();
+      if (state.playback.status !== 'running'
+        || state.playback.day < 1
+        || state.playback.day >= state.simulation.durationDays) {
+        return { status: 'refused', reason: 'intervention_requires_active_playback' };
+      }
+      const kind = actionId.slice('cable-trader.intervene.'.length);
+      if (!['route-closure', 'release-reserve'].includes(kind)) {
+        return { status: 'refused', reason: 'intervention_kind_invalid', kind };
+      }
+      const day = state.playback.day + 1;
+      const id = `user-${kind}-day-${day}`;
+      if ((activeConfig.simulation.interventions || []).some((row) => row.id === id)) {
+        return { status: 'refused', reason: 'intervention_already_applied', interventionId: id };
+      }
+      activeConfig = {
+        ...activeConfig,
+        simulation: {
+          ...activeConfig.simulation,
+          interventions: [
+            ...(activeConfig.simulation.interventions || []),
+            { id, kind, day },
+          ],
+        },
+      };
+      sdk.events.propose({
+        pluginId: 'cable-trader',
+        kind: 'cable-trader.intervention-applied',
+        intervention: { id, kind, day },
+        scenario: {
+          id: state.simulation.scenarioProfileId,
+          seed: state.simulation.baseSeed,
+          selectedCableFamilyIds: state.simulation.selectedCableFamilyIds,
+        },
+        playbackDay: state.playback.day,
+      });
+      const nextSimulation = sdk.state.read().simulation;
+      appendNetworkReceipt(nextSimulation);
+      await yieldBrowserTask();
+      activeComparisonRun = await executeComparison(nextSimulation, 'cheapest-vs-fastest');
+      await yieldBrowserTask();
+      activeEnsembleRun = await executeEnsemble();
+      activeComparisonSimulationId = nextSimulation.id;
+      return {
+        ...playbackAction(sdk.state.read()),
+        intervention: { id, kind, day },
+      };
+    }
+
     function startPlayback() {
       const state = sdk.state.read();
       sdk.events.propose({
@@ -454,13 +379,56 @@
         simulation: {
           ...activeConfig.simulation,
           selectedCableFamilyIds,
-          durationDays: integerBetween(values.durationDays, activeConfig.simulation.durationDays, 1, 365, 'durationDays'),
+          durationDays: integerBetween(values.durationDays, activeConfig.simulation.durationDays, 6, 60, 'durationDays'),
           initialInventoryPerHubType: integerBetween(
             values.initialInventoryPerHubType,
             activeConfig.simulation.initialInventoryPerHubType,
             1,
-            100000,
+            12,
             'initialInventoryPerHubType'
+          ),
+          demandPriority: enumValue(
+            values.demandPriority,
+            activeConfig.simulation.demandPriority,
+            ['critical-first', 'deadline-first', 'balanced'],
+            'demandPriority'
+          ),
+          allowSubstitutes: booleanValue(
+            values.allowSubstitutes,
+            activeConfig.simulation.allowSubstitutes,
+            'allowSubstitutes'
+          ),
+          reservePolicy: enumValue(
+            values.reservePolicy,
+            activeConfig.simulation.reservePolicy,
+            ['none', 'one-reel', 'twenty-percent'],
+            'reservePolicy'
+          ),
+          transferCapacityMetersPerDay: integerBetween(
+            values.transferCapacityMetersPerDay,
+            activeConfig.simulation.transferCapacityMetersPerDay,
+            50,
+            10000,
+            'transferCapacityMetersPerDay'
+          ),
+          allocationObjective: enumValue(
+            values.allocationObjective,
+            activeConfig.simulation.allocationObjective,
+            ['cheapest', 'fastest', 'fairness-first'],
+            'allocationObjective'
+          ),
+          fairnessWeight: numberBetween(
+            values.fairnessWeight,
+            activeConfig.simulation.fairnessWeight,
+            0,
+            5,
+            'fairnessWeight'
+          ),
+          disruptionScenario: enumValue(
+            values.disruptionScenario,
+            activeConfig.simulation.disruptionScenario,
+            ['none', 'road-closure', 'damaged-stock', 'surprise-demand', 'fairness-conflict'],
+            'disruptionScenario'
           ),
         },
       };
@@ -472,21 +440,21 @@
       return {
         obligationResults: [
           {
-            obligationId: `cable-trader:month:${state.simulation.id}`,
+            obligationId: `cable-trader:logistics-run:${state.simulation.id}`,
             status: completed ? 'settled' : 'unmet',
             evidence: {
               completedDays: state.playback.day,
               durationDays: state.simulation.durationDays,
               configurationHash: state.simulation.configurationHash,
               selectedCableFamilyIds: state.simulation.selectedCableFamilyIds,
+              interventions: (activeConfig.simulation.interventions || []).map((row) => ({ ...row })),
             },
           },
           {
-            obligationId: `cable-trader:optimality:${state.simulation.id}`,
-            status: completed && state.simulation.summary.optimalityProven ? 'settled' : 'unmet',
+            obligationId: `cable-trader:reel-conservation:${state.simulation.id}`,
+            status: completed && state.simulation.conservation.pass ? 'settled' : 'unmet',
             evidence: {
-              optimalAllocations: state.simulation.summary.optimalAllocations,
-              allocations: state.simulation.summary.allocations,
+              ...state.simulation.conservation,
               configurationHash: state.simulation.configurationHash,
               selectedCableFamilyIds: state.simulation.selectedCableFamilyIds,
             },
@@ -513,8 +481,34 @@
         endingInventory: state.simulation.summary.endingInventory,
         fulfillmentPercent: state.simulation.summary.fulfillmentPercent,
         optimalityProven: state.simulation.summary.optimalityProven,
-        dataReceiptIds: ['cable-trader:data:compatibility-priors', 'cable-trader:data:authored-scenario'],
-        modelReceiptIds: ['cable-trader:model:event-generator', 'cable-trader:model:min-cost-flow'],
+        dataReceiptIds: ['cable-trader:data:logistics-catalog', 'cable-trader:data:authored-scenario'],
+        modelReceiptIds: ['cable-trader:model:event-generator', 'cable-trader:model:policy-scored-flow'],
+        policyId: state.simulation.allocationPolicy,
+        controls: {
+          demandPriority: activeConfig.simulation.demandPriority,
+          allowSubstitutes: activeConfig.simulation.allowSubstitutes,
+          reservePolicy: activeConfig.simulation.reservePolicy,
+          transferCapacityMetersPerDay: activeConfig.simulation.transferCapacityMetersPerDay,
+          allocationObjective: activeConfig.simulation.allocationObjective,
+          fairnessWeight: activeConfig.simulation.fairnessWeight,
+          disruptionScenario: activeConfig.simulation.disruptionScenario,
+        },
+        interventions: (activeConfig.simulation.interventions || []).map((row) => ({ ...row })),
+        conservation: state.simulation.conservation,
+        transferReceipts: state.simulation.transfers.map((row) => ({
+          id: row.id,
+          projectId: row.projectId,
+          reelId: row.reelId,
+          sourceHubId: row.sourceHubId,
+          destinationSiteId: row.destinationSiteId,
+          cableFamilyId: row.cableFamilyId,
+          quantityMeters: row.quantityMeters,
+          dispatchDay: row.dispatchDay,
+          arrivalDay: row.arrivalDay,
+          reason: row.reason,
+          rejectedAlternatives: row.rejectedAlternatives,
+          downstreamConsequence: row.downstreamConsequence,
+        })),
         origin: 'simulated',
         temporalStatus: 'forecast',
         uncertainty: { kind: 'distribution', value: { ensembleSize: 1, seed: state.simulation.seed, intervalStatus: 'not_computed' } },
@@ -531,6 +525,7 @@
         simulation: sdk.state.read().simulation,
         state: sdk.state.read(),
         transferRoutes,
+        comparisonRuns: [...activeComparisonRuns.values()],
       });
     }
 
@@ -542,8 +537,6 @@
       setScenario,
       setCableFamilies,
       capabilities: {
-        'inventory.exchange.v1': exchange,
-        'settlement.credit.v1': exchange,
         // Generic logistics-service field (§17/§18). Food Recall consumes this rather
         // than reaching into Cable Trader's internal state: it returns a transit-delay
         // and availability prior derived from the current allocation, with a claim
@@ -577,28 +570,32 @@
     });
   }
 
-  function createReducer(simulationFor) {
-    return function reduce(state, event) {
-      if (event.kind === 'cable-trader.scenario-selected') {
-        const simulation = simulationFor(event.scenario);
-        return {
-          ...state,
-          simulation,
-          inventory: simulation.snapshots[0].inventory,
-          lastExchange: null,
-          playback: { status: 'ready', day: 0 },
-        };
-      }
-      return reducePlaybackState(state, event);
-    };
+    function createReducer(simulationFor) {
+      return function reduce(state, event) {
+        if (event.kind === 'cable-trader.scenario-selected') {
+          const simulation = simulationFor(event.scenario);
+          return {
+            ...state,
+            simulation,
+            playback: { status: 'ready', day: 0 },
+          };
+        }
+        if (event.kind === 'cable-trader.intervention-applied') {
+          const simulation = simulationFor(event.scenario);
+          return {
+            ...state,
+            simulation,
+            playback: { status: 'running', day: event.playbackDay },
+          };
+        }
+        return reducePlaybackState(state, event);
+      };
   }
 
   function reducePlaybackState(state, event) {
     if (event.kind === 'cable-trader.playback-started') {
       return {
         ...state,
-        inventory: state.simulation.snapshots[0].inventory,
-        lastExchange: null,
         playback: { status: 'running', day: 0 },
       };
     }
@@ -606,18 +603,13 @@
       const snapshot = state.simulation.snapshots[event.day];
       return {
         ...state,
-        inventory: snapshot.inventory,
         playback: {
           status: event.day === state.simulation.durationDays ? 'settled' : 'running',
           day: event.day,
         },
       };
     }
-    if (event.kind !== 'cable-trader.exchanged') return state;
-    const key = `${event.hubId}:${event.cableTypeId}`;
-    const inventory = { ...state.inventory, [key]: (state.inventory[key] || 0) + (event.direction === 'deposit' ? 1 : -1) };
-    const credits = { ...state.credits, [event.requestId]: (state.credits[event.requestId] || 0) + event.creditDelta };
-    return { ...state, inventory, credits, lastExchange: { cableTypeId: event.cableTypeId, hubId: event.hubId, direction: event.direction } };
+    return state;
   }
 
   function resolveRenderedRequestCount(value) {
@@ -636,30 +628,49 @@
     return parsed;
   }
 
+  function numberBetween(value, fallback, minimum, maximum, label) {
+    if (value === undefined || value === null || value === '') return fallback;
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed) || parsed < minimum || parsed > maximum) {
+      throw new Error(`cable_trader_control_invalid: ${label} must be a number from ${minimum} to ${maximum}`);
+    }
+    return parsed;
+  }
+
+  function enumValue(value, fallback, allowed, label) {
+    if (value === undefined || value === null || value === '') return fallback;
+    if (!allowed.includes(value)) {
+      throw new Error(`cable_trader_control_invalid: ${label} must be one of ${allowed.join(', ')}`);
+    }
+    return value;
+  }
+
+  function booleanValue(value, fallback, label) {
+    if (value === undefined || value === null || value === '') return fallback;
+    if (typeof value !== 'boolean') {
+      throw new Error(`cable_trader_control_invalid: ${label} must be a boolean`);
+    }
+    return value;
+  }
+
   function hasParameterValues(values) {
-    return ['selectedCableFamilyIds', 'durationDays', 'initialInventoryPerHubType']
+    return [
+      'selectedCableFamilyIds',
+      'durationDays',
+      'initialInventoryPerHubType',
+      'demandPriority',
+      'allowSubstitutes',
+      'reservePolicy',
+      'transferCapacityMetersPerDay',
+      'allocationObjective',
+      'fairnessWeight',
+      'disruptionScenario',
+    ]
       .some((key) => Object.prototype.hasOwnProperty.call(values || {}, key));
   }
 
   function visibleResult(state) {
     return state.simulation.snapshots[state.playback.day];
-  }
-
-  function inventoryRows(state, result) {
-    return state.simulation.selectedCableFamilyIds.map((cableTypeId) => {
-      const cable = activeLabel(state.simulation.typeStats, cableTypeId);
-      const quantities = state.simulation.hubStats.map((hub) => (
-        result.inventory[`${hub.id}:${cableTypeId}`] || 0
-      ));
-      return {
-        label: `${cable} inventory`,
-        value: quantities.map((quantity, index) => `${state.simulation.hubStats[index].label} ${format(quantity)}`).join(' · '),
-      };
-    });
-  }
-
-  function activeLabel(rows, id) {
-    return rows.find((row) => row.id === id)?.label || id;
   }
 
   function playbackAction(state) {
@@ -673,45 +684,32 @@
       configurationHash: state.simulation.configurationHash,
       selectedCableFamilyIds: state.simulation.selectedCableFamilyIds,
       summary: visibleResult(state).summary,
+      interventions: (state.simulation.exogenous?.interventions || []).map((row) => ({ ...row })),
     };
   }
 
-  function selectFlow(flows, index, count) {
-    const total = flows.reduce((sum, flow) => sum + flow.quantity, 0);
-    let target = ((index + 0.5) / count) * total;
-    for (const flow of flows) { target -= flow.quantity; if (target <= 0) return flow; }
-    return flows.at(-1);
-  }
-
-  function flowTone(index) { return ['cyan', 'blue', 'magenta', 'violet', 'green', 'amber'][index % 6]; }
-  function format(value) { return Number(value).toLocaleString('en-US'); }
-  function distributionRange(distribution, unit) {
-    return `${distribution.minimum.toFixed(2)}–${distribution.maximum.toFixed(2)} ${unit} · declared seeds`;
-  }
   function yieldBrowserTask() { return new Promise((resolve) => setTimeout(resolve, 0)); }
 
-  function validateCompatibilityPriors(value) {
-    if (value?.schema !== 'simulatte.cableCompatibilityPriors.v1'
-      || value.id !== 'cable-compatibility-priors-v1'
+  function validateLogisticsCatalog(value) {
+    if (value?.schema !== 'simulatte.cableLogisticsCatalog.v1'
+      || value.id !== 'cable-logistics-catalog-v1'
       || !Array.isArray(value.sources)
-      || !value.sources.length
-      || !Array.isArray(value.rows)
-      || !value.rows.length
-      || !Array.isArray(value.scenarioOnlyCableTypeIds)
+      || value.sources.length < 3
+      || !Array.isArray(value.families)
+      || !value.families.length
+      || !Array.isArray(value.modeledFields)
+      || !value.modeledFields.length
       || typeof value.claimBoundary !== 'string') {
-      throw new Error('cable_compatibility_priors_invalid');
+      throw new Error('cable_logistics_catalog_invalid');
     }
     const sourceIds = new Set(value.sources.map((row) => row.id));
-    value.rows.forEach((row) => {
+    value.families.forEach((row) => {
       if (!row.id
-        || !Array.isArray(row.connectorFamilyIds)
-        || !row.connectorFamilyIds.length
         || !Array.isArray(row.sourceIds)
+        || !row.sourceIds.length
         || row.sourceIds.some((id) => !sourceIds.has(id))
-        || !row.origin
-        || !row.temporalStatus
-        || !row.uncertainty) {
-        throw new Error(`cable_compatibility_prior_row_invalid: ${row.id || 'missing'}`);
+        || row.identityOrigin !== 'derived') {
+        throw new Error(`cable_logistics_catalog_family_invalid: ${row.id || 'missing'}`);
       }
     });
     return value;
@@ -723,6 +721,7 @@
     }
     const patterns = [
       /\b(?:observed|measured|actual|current|live|operational)\s+(?:hub\s+)?(?:demand|requests?|compatibility outcomes?|inventor(?:y|ies)|stock|transport costs?)\b/gi,
+      /\b(?:observed|measured|actual|current|live|operational)(?:\s+[a-z-]+){1,3}\s+(?:demand|requests?|compatibility outcomes?|inventor(?:y|ies)|stock|transport costs?)\b/gi,
       /\b(?:demand|requests?|compatibility outcomes?|inventor(?:y|ies)|stock|transport costs?)\s+(?:is|are|reflects?|uses?)\s+(?:observed|measured|actual|current|live|operational)\b/gi,
     ];
     for (const pattern of patterns) {
@@ -742,7 +741,7 @@
     activate,
     validatePublicClaim,
     datasetValidators: Object.freeze({
-      'simulatte.cableCompatibilityPriors.v1': validateCompatibilityPriors,
+      'simulatte.cableLogisticsCatalog.v1': validateLogisticsCatalog,
     }),
   });
 });

@@ -84,9 +84,13 @@
         coordinates: Object.freeze(coordinates.map((point) => Object.freeze(normalizeTuple(point, value.coordinateSystem)))),
         value: primitive.quantity?.value || 0,
       }));
-      else if (primitive.kind === 'area') areas.push(freezeRow({
+      else if (['area', 'volume'].includes(primitive.kind)) areas.push(freezeRow({
         ...row,
         coordinates: Object.freeze(coordinates.map((point) => Object.freeze(normalizeTuple(point, value.coordinateSystem)))),
+        height: primitive.kind === 'volume'
+          ? Math.max(0.35, Number(primitive.quantity?.value || 0))
+          : 0.35,
+        isVolume: primitive.kind === 'volume',
       }));
     });
     composition.labels.forEach((label) => {

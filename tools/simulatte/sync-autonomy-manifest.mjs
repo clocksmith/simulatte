@@ -14,6 +14,7 @@ const REFERENCE_KEYS = Object.freeze([
   'placeEmbeddingIndex', 'placeResolutionEvidence', 'modelRuntimeLock',
   'pipelineModelSelection',
   'applicationProfile',
+  'safetyHistoryIndex',
   'curriculum',
   'policyArenaEvidence',
 ]);

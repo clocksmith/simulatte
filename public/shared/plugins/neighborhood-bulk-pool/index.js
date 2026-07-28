@@ -56,7 +56,54 @@
       if (actionId === 'scenario.run') return runPlayback(context);
       if (actionId === 'counterfactual.compare') return compareCounterfactual(context.values?.comparisonId);
       if (actionId === 'catalog.search') return searchCatalog(context.values || context);
+      if (actionId === 'disruption.apply') return applyDisruptionAction(context.values || context);
       return { status: 'refused', reason: 'unknown_action', actionId };
+    }
+
+    function applyDisruptionAction(input) {
+      const state = sdk.state.read();
+      const updatedResult = solver.applyDisruption({
+        simulation: state.result,
+        disruption: input,
+        datasets,
+        config,
+        appliedAfterStep: state.playback.cursor,
+      });
+      const disruptionEvent = updatedResult.events.find((event) => (
+        event.kind === 'bulk-pool.disruption-applied'
+        && event.payload.disruptionId === updatedResult.disruptions.at(-1).id
+      ));
+      result = updatedResult;
+      sdk.events.propose({
+        pluginId: PLUGIN_ID,
+        kind: `${PLUGIN_ID}.disruption-applied`,
+        disruption: input,
+        result: updatedResult,
+        cursor: disruptionEvent?.sequence || 0,
+      });
+      sdk.receipts.append({
+        schema: 'simulatte.plugin.neighborhoodBulkDisruptionReceipt.v1',
+        previousScenarioIdentity: state.result.scenarioIdentity,
+        nextScenarioIdentity: updatedResult.scenarioIdentity,
+        disruption: updatedResult.disruptions.at(-1),
+        previousMetrics: state.result.metrics,
+        healedMetrics: updatedResult.metrics,
+        conservation: updatedResult.conservation,
+        truth: truth(
+          'simulated',
+          'forecast',
+          distribution('The disruption and healed allocation are deterministic scenario results.')
+        ),
+      });
+      return {
+        status: 'running',
+        currentStep: disruptionEvent?.sequence || 0,
+        totalSteps: updatedResult.snapshots.length - 1,
+        previousScenarioIdentity: state.result.scenarioIdentity,
+        scenarioIdentity: updatedResult.scenarioIdentity,
+        disruption: updatedResult.disruptions.at(-1),
+        metrics: updatedResult.snapshots[disruptionEvent?.sequence || 0].metrics,
+      };
     }
 
     function runPlayback(context) {
@@ -209,9 +256,11 @@
           },
           {
             obligationId: `${PLUGIN_ID}:settlement:${state.result.scenarioId}`,
-            status: terminal && conservation.demandConserved ? 'settled' : 'unmet',
+            status: terminal && conservation.demandConserved
+              && conservation.financialConserved ? 'settled' : 'unmet',
             evidence: {
               demandConserved: conservation.demandConserved,
+              financialConserved: conservation.financialConserved,
               householdCostUsd: state.result.metrics.householdCostUsd,
               driverCompensationUsd: state.result.metrics.driverCompensationUsd,
             },
@@ -482,6 +531,14 @@
     }
     if (event.kind === `${PLUGIN_ID}.playback-started`) {
       return { ...state, playback: { status: 'running', cursor: 0 } };
+    }
+    if (event.kind === `${PLUGIN_ID}.disruption-applied`) {
+      return {
+        ...state,
+        result: event.result,
+        playback: { status: 'running', cursor: event.cursor },
+        comparison: null,
+      };
     }
     if (event.kind === `${PLUGIN_ID}.playback-advanced`) {
       const finalCursor = state.result.snapshots.length - 1;

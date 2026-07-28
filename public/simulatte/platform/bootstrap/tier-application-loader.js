@@ -62,7 +62,7 @@
       { id: profile.id, value: profile, receipt: profileLoaded.receipt },
       { id: worldLoaded.value.id, value: worldLoaded.value, receipt: worldLoaded.receipt },
       ...datasetRows.map((row) => ({ id: row.value.id, value: row.value, receipt: row.receipt || { id: row.value.id, sha256: row.sha256, url: row.url } })),
-    ]);
+    ], { loadShard: createShardLoader(governedStore) });
     return Object.freeze({
       schema: 'simulatte.tierLoadedApplication.v1', tier, manifest, tierRow,
       profileEntries: Object.freeze(tierRow.profiles.map((row) => Object.freeze({ ...row }))),
@@ -109,6 +109,42 @@
     Object.keys(pluginValidators).forEach((schemaId) => {
       if (!declaredSchemaIds.has(schemaId)) throw loadError('tier_dataset_validator_undeclared', `Plugin ${entry.manifest.id} registers undeclared validator ${schemaId}`, { pluginId: entry.manifest.id, schemaId });
     });
+  }
+
+  function createShardLoader(store) {
+    return async ({ datasetId, parentReceipt, shard }) => {
+      const startedAt = performanceNow();
+      const loaded = await store.resolve({
+        id: shard.id,
+        path: shard.path,
+        sha256: shard.sha256,
+      }, {
+        baseUrl: parentReceipt?.url,
+        key: `tierDatasetShard:${datasetId}:${shard.id}`,
+      });
+      return {
+        value: loaded.value,
+        sha256: loaded.sha256,
+        receipt: {
+          ...(loaded.receipt || {}),
+          url: loaded.url,
+          loadDurationMs: roundedDuration(performanceNow() - startedAt),
+          transferredBytes: typeof loaded.text === 'string' ? shard.byteCount : 0,
+          retainedBytesEstimate: shard.byteCount,
+          cacheMode: typeof loaded.text === 'string' ? 'network' : 'verified-content-cache',
+        },
+      };
+    };
+  }
+
+  function performanceNow() {
+    return typeof performance !== 'undefined' && typeof performance.now === 'function'
+      ? performance.now()
+      : Date.now();
+  }
+
+  function roundedDuration(value) {
+    return Math.round(Math.max(0, value) * 1000) / 1000;
   }
 
   function validateTierManifest(value) {

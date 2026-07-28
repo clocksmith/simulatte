@@ -1,0 +1,400 @@
+{
+  "capacitySites": [
+    {
+      "address": "752 1 AVENUE",
+      "affordableResidentialFar": 12,
+      "availableCommercialFar": 6.36,
+      "availableFar": 6.36,
+      "availableResidentialFar": 6.36,
+      "bbl": "1013540001",
+      "boroughId": "manhattan",
+      "builtAreaSquareFeet": 2400000,
+      "builtFar": 3.64,
+      "commercialFar": 10,
+      "coordinates": [
+        -73.9674669,
+        40.7503498
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:1013540001",
+      "landUseCode": "8",
+      "lotAreaSquareFeet": 659375,
+      "potentialCommercialFloorAreaSquareFeet": 4193625,
+      "potentialFloorAreaSquareFeet": 4193625,
+      "potentialResidentialFloorAreaSquareFeet": 4193625,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 4659,
+      "regionId": "MN0661",
+      "residentialFar": 10,
+      "sourceRowIds": [
+        "pluto:1013540001"
+      ],
+      "zoningDistricts": [
+        "C5-2"
+      ]
+    },
+    {
+      "address": "421 EAST 42 STREET",
+      "affordableResidentialFar": 12,
+      "availableCommercialFar": 10,
+      "availableFar": 10,
+      "availableResidentialFar": 10,
+      "bbl": "1013540011",
+      "boroughId": "manhattan",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 10,
+      "coordinates": [
+        -73.9686876,
+        40.7485688
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:1013540011",
+      "landUseCode": "7",
+      "lotAreaSquareFeet": 2500,
+      "potentialCommercialFloorAreaSquareFeet": 25000,
+      "potentialFloorAreaSquareFeet": 25000,
+      "potentialResidentialFloorAreaSquareFeet": 25000,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 27,
+      "regionId": "MN0661",
+      "residentialFar": 10,
+      "sourceRowIds": [
+        "pluto:1013540011"
+      ],
+      "zoningDistricts": [
+        "C5-2"
+      ]
+    }
+  ],
+  "claimBoundary": "This NTA shard preserves every joined row retained from the governed source snapshot. The source snapshot itself samples large DOB jobs, constructed footprints, and PLUTO capacity candidates and is not a complete property history or feasibility inventory.",
+  "contentVersion": "2026-07-27",
+  "coverage": {
+    "capacityCandidates": 2,
+    "compilerRegionCap": null,
+    "developmentForecastSupportedBySector": {
+      "all": false,
+      "tax-class-1": true,
+      "tax-class-2": true,
+      "tax-class-4": true
+    },
+    "developmentSeriesRows": 0,
+    "historicalSites": 0,
+    "priceForecastSupportedBySector": {
+      "all": false,
+      "tax-class-1": false,
+      "tax-class-2": false,
+      "tax-class-4": false
+    },
+    "saleRows": 3,
+    "saleYearsBySector": {
+      "tax-class-1": [],
+      "tax-class-2": [],
+      "tax-class-4": [
+        2020,
+        2021,
+        2022
+      ]
+    },
+    "sectorCandidateCounts": {
+      "all": 0,
+      "tax-class-1": 2,
+      "tax-class-2": 2,
+      "tax-class-4": 2
+    },
+    "sourceSampled": true
+  },
+  "developmentSeries": [],
+  "developmentSites": [],
+  "id": "nyc-real-estate-region-mn0661-v1",
+  "region": {
+    "abbreviation": "UN",
+    "areaM2": 1091249.93387,
+    "boroughId": "manhattan",
+    "boroughLabel": "Manhattan",
+    "bounds": {
+      "east": -73.9641598,
+      "north": 40.7526882,
+      "south": 40.7464544,
+      "west": -73.9699869
+    },
+    "centroid": [
+      -73.9660128,
+      40.7498213
+    ],
+    "communityDistrictTabulationAreaId": "MN06",
+    "communityDistrictTabulationAreaLabel": "MN06 East Midtown-Murray Hill (CD 6 Approximation)",
+    "id": "MN0661",
+    "label": "United Nations",
+    "polygon": [
+      [
+        -73.9653248,
+        40.7519372
+      ],
+      [
+        -73.9650555,
+        40.7518126
+      ],
+      [
+        -73.9648622,
+        40.7520111
+      ],
+      [
+        -73.9647095,
+        40.7517194
+      ],
+      [
+        -73.9679127,
+        40.7479709
+      ],
+      [
+        -73.9699869,
+        40.7488687
+      ],
+      [
+        -73.9695446,
+        40.749205
+      ],
+      [
+        -73.9677771,
+        40.751626
+      ],
+      [
+        -73.9676983,
+        40.7520408
+      ],
+      [
+        -73.9672265,
+        40.7526882
+      ],
+      [
+        -73.9654153,
+        40.75195
+      ],
+      [
+        -73.9653248,
+        40.7519372
+      ]
+    ],
+    "spatialPolygons": [
+      {
+        "holes": [],
+        "outer": [
+          [
+            -73.9642123,
+            40.7466043
+          ],
+          [
+            -73.9645832,
+            40.7464544
+          ],
+          [
+            -73.9641598,
+            40.7468655
+          ],
+          [
+            -73.9642119,
+            40.7466667
+          ],
+          [
+            -73.9642123,
+            40.7466043
+          ]
+        ]
+      },
+      {
+        "holes": [],
+        "outer": [
+          [
+            -73.9653248,
+            40.7519372
+          ],
+          [
+            -73.9650555,
+            40.7518126
+          ],
+          [
+            -73.9648622,
+            40.7520111
+          ],
+          [
+            -73.9647095,
+            40.7517194
+          ],
+          [
+            -73.9679127,
+            40.7479709
+          ],
+          [
+            -73.9699869,
+            40.7488687
+          ],
+          [
+            -73.9695446,
+            40.749205
+          ],
+          [
+            -73.9677771,
+            40.751626
+          ],
+          [
+            -73.9676983,
+            40.7520408
+          ],
+          [
+            -73.9672265,
+            40.7526882
+          ],
+          [
+            -73.9654153,
+            40.75195
+          ],
+          [
+            -73.9653248,
+            40.7519372
+          ]
+        ]
+      }
+    ]
+  },
+  "saleSeries": [
+    {
+      "id": "sale:MN0661:2020:tax-4",
+      "meanPriceUsd": 1500000,
+      "medianPriceUsd": 1500000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "MN0661",
+      "saleCount": 1,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 0,
+      "year": 2020
+    },
+    {
+      "id": "sale:MN0661:2021:tax-4",
+      "meanPriceUsd": 1925000,
+      "medianPriceUsd": 1925000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "MN0661",
+      "saleCount": 1,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 0,
+      "year": 2021
+    },
+    {
+      "id": "sale:MN0661:2022:tax-4",
+      "meanPriceUsd": 1100000,
+      "medianPriceUsd": 1100000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "MN0661",
+      "saleCount": 1,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 0,
+      "year": 2022
+    }
+  ],
+  "schema": "simulatte.nycRealEstateRegionShard.v1",
+  "sourceIdentities": [
+    {
+      "byteCount": 1008463,
+      "path": "nyc-annualized-sales-by-nta.json",
+      "sha256": "14c15020381466196236073ee3753ff7a5d74a76ec6af4605e96564abd2bf99a",
+      "sourceId": "nyc-real-estate-sales-annual"
+    },
+    {
+      "byteCount": 8977616,
+      "path": "nyc-final-certificates-of-occupancy.json",
+      "sha256": "966c237824a79aff9d5137d27b498ba4f3670cc19844738c5ce17a559388030e",
+      "sourceId": "nyc-real-estate-final-occupancy"
+    },
+    {
+      "byteCount": 8802596,
+      "path": "nyc-largest-constructed-footprints-2010-2026.geojson",
+      "sha256": "15745b9c62fa539e683737f0665fe91d95231e68d8c1b598e7ed211114811eb6",
+      "sourceId": "nyc-real-estate-constructed-footprints"
+    },
+    {
+      "byteCount": 1076754,
+      "path": "nyc-largest-new-building-jobs-bronx.json",
+      "sha256": "1a44c6cbfa364639e4b75957b2fab7e3c301f95bcfcfa90c50862fef85f450c1",
+      "sourceId": "nyc-real-estate-new-building-sample-bronx"
+    },
+    {
+      "byteCount": 1085334,
+      "path": "nyc-largest-new-building-jobs-brooklyn.json",
+      "sha256": "389e1825faff440d6fad5a12ed470f84e90859fd732262346a3414c5503693fd",
+      "sourceId": "nyc-real-estate-new-building-sample-brooklyn"
+    },
+    {
+      "byteCount": 1097625,
+      "path": "nyc-largest-new-building-jobs-manhattan.json",
+      "sha256": "6346678de380d58e325db14fc2e0611d993743be29898360e08f092eaa1f88e5",
+      "sourceId": "nyc-real-estate-new-building-sample-manhattan"
+    },
+    {
+      "byteCount": 1091065,
+      "path": "nyc-largest-new-building-jobs-queens.json",
+      "sha256": "79eb6f028b2135214d47a793101f72de695efcb02e4c2802cc10cd062c760a22",
+      "sourceId": "nyc-real-estate-new-building-sample-queens"
+    },
+    {
+      "byteCount": 1120592,
+      "path": "nyc-largest-new-building-jobs-staten-island.json",
+      "sha256": "e0870a431a75bdd235fc09b0ecd7503c45384f5e8b66beba545447c7bb3d960a",
+      "sourceId": "nyc-real-estate-new-building-sample-staten-island"
+    },
+    {
+      "byteCount": 1250280,
+      "path": "nyc-new-building-filings-by-nta-year.json",
+      "sha256": "4b75b0ad54a1ce5241b9c2e303be2cc24781e55a65fbf27be10d00a80bfeadea",
+      "sourceId": "nyc-real-estate-new-building-annual"
+    },
+    {
+      "byteCount": 4576764,
+      "path": "nyc-nta-2020.geojson",
+      "sha256": "c3dd069e094e2d2f647c1c102cd7e0570d033dd6131446bd1943a73210d09c56",
+      "sourceId": "nyc-real-estate-nta-boundaries"
+    },
+    {
+      "byteCount": 2402191,
+      "path": "nyc-pluto-capacity-bronx.json",
+      "sha256": "b45168721525e18a29aafcce335212632607021240869b738cbb96fbe2441389",
+      "sourceId": "nyc-real-estate-pluto-capacity-bronx"
+    },
+    {
+      "byteCount": 2403266,
+      "path": "nyc-pluto-capacity-brooklyn.json",
+      "sha256": "63b33a507c0bc26f7b71669cf032baa4950af2db77ce8712b876ca6f4c9f771b",
+      "sourceId": "nyc-real-estate-pluto-capacity-brooklyn"
+    },
+    {
+      "byteCount": 2464264,
+      "path": "nyc-pluto-capacity-manhattan.json",
+      "sha256": "91e3e1f5dce97a340475b51577458c8e48183f1138c334fbcce27d68001e9d25",
+      "sourceId": "nyc-real-estate-pluto-capacity-manhattan"
+    },
+    {
+      "byteCount": 2418903,
+      "path": "nyc-pluto-capacity-queens.json",
+      "sha256": "02a12d81466e89e05b9be9273198c5f857e86db5d2c95cfb717160ce4ccf99c1",
+      "sourceId": "nyc-real-estate-pluto-capacity-queens"
+    },
+    {
+      "byteCount": 1168016,
+      "path": "nyc-pluto-capacity-staten-island.json",
+      "sha256": "6d488f6ce46fa09930b669429275014a8ecedae6c85041fb465a15633c6a38b0",
+      "sourceId": "nyc-real-estate-pluto-capacity-staten-island"
+    }
+  ],
+  "truth": {
+    "origin": "observed",
+    "temporalStatus": "historical",
+    "uncertainty": {
+      "kind": "missing",
+      "value": {
+        "reason": "Administrative records have missing, revised, duplicated, and source-sampled fields without a shared statistical uncertainty model."
+      }
+    }
+  }
+}

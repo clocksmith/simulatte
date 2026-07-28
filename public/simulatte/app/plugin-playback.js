@@ -33,6 +33,7 @@
     let actionQueue = Promise.resolve();
     let seekQueue = Promise.resolve();
     let runGeneration = 0;
+    let interventionLog = [];
     const unsubscribe = clock.subscribe((message) => {
       if (message.type !== 'event') return;
       const generation = runGeneration;
@@ -56,6 +57,7 @@
         throw playbackError('plugin_playback_start_refused', `Plugin ${ownerPluginId} refused playback start`, { actionResult });
       }
       render();
+      await applyInterventionsAtStep(0, runGeneration);
       if (actionResult.status === 'settled') return complete();
       clock.play();
       return snapshot();
@@ -106,8 +108,43 @@
 
     async function replay() {
       const replayValues = normalizedValues(parameterValues);
-      await reset(activeScenario);
+      await reset(activeScenario, { preserveInterventions: true });
       return start({ values: replayValues });
+    }
+
+    async function intervene(actionId, values = {}) {
+      if (typeof actionId !== 'string' || !actionId) {
+        throw playbackError('plugin_playback_intervention_id_invalid', 'Playback intervention expected an action ID');
+      }
+      if (!['running', 'paused'].includes(phase) || !actionResult) {
+        throw playbackError('plugin_playback_intervention_phase_invalid', 'Playback intervention requires an active run');
+      }
+      const shouldResume = phase === 'running';
+      clock.pause();
+      await actionQueue;
+      const entry = Object.freeze({
+        actionId,
+        values: normalizedValues(values),
+        afterStep: actionResult.currentStep || 0,
+      });
+      const result = await dispatchIntervention(entry);
+      if (!['running', 'settled'].includes(result?.status)) {
+        throw playbackError(
+          'plugin_playback_intervention_refused',
+          `Plugin ${ownerPluginId} refused intervention ${actionId}`,
+          { result }
+        );
+      }
+      interventionLog = [...interventionLog, entry];
+      actionResult = result;
+      render();
+      if (shouldResume && result.status === 'running') {
+        setPhase('running');
+        clock.play();
+      } else {
+        setPhase('paused');
+      }
+      return snapshot();
     }
 
     function setPlaybackRate(nextRate) {
@@ -139,11 +176,13 @@
         setPhase('running');
         actionResult = await dispatch('start');
         if (generation !== runGeneration) return snapshot();
+        await applyInterventionsAtStep(0, generation);
         const totalSteps = actionResult?.totalSteps || 0;
         const targetStep = Math.min(requestedStep, totalSteps);
         for (let stepIndex = 0; stepIndex < targetStep && actionResult.status === 'running'; stepIndex += 1) {
           actionResult = await dispatch('step');
           if (generation !== runGeneration) return snapshot();
+          await applyInterventionsAtStep(actionResult.currentStep || 0, generation);
         }
         render();
         clock.seek(currentSimulationTimeMs());
@@ -161,11 +200,14 @@
       setPhase('running');
       activeScenario = receipt.scenario;
       parameterValues = normalizedValues(receipt.parameterValues);
+      interventionLog = normalizedInterventionLog(receipt.interventions);
       await runtime.setScenario(activeScenario);
       actionResult = await dispatch('start');
+      await applyInterventionsAtStep(0, runGeneration);
       const targetStep = receipt.actionResult.currentStep;
       for (let stepIndex = 0; stepIndex < targetStep; stepIndex += 1) {
         actionResult = await dispatch('step');
+        await applyInterventionsAtStep(actionResult.currentStep || 0, runGeneration);
       }
       if (JSON.stringify(actionResult) !== JSON.stringify(receipt.actionResult)) {
         throw playbackError('plugin_playback_restore_diverged', 'Reconstructed action result differs from the stored receipt', {
@@ -195,10 +237,11 @@
       return publishSettlement(settlements, comparisonExecutionReceipts);
     }
 
-    async function reset(nextScenario = activeScenario) {
+    async function reset(nextScenario = activeScenario, { preserveInterventions = false } = {}) {
       clock.pause();
       const generation = ++runGeneration;
       await actionQueue;
+      if (!preserveInterventions) interventionLog = [];
       return resetState(nextScenario, generation);
     }
 
@@ -218,6 +261,8 @@
       if (generation !== runGeneration) return snapshot();
       if (!['running', 'paused'].includes(phase)) return snapshot();
       actionResult = await dispatch('step');
+      if (generation !== runGeneration) return snapshot();
+      await applyInterventionsAtStep(actionResult.currentStep || 0, generation);
       if (generation !== runGeneration) return snapshot();
       render();
       if (actionResult.status === 'settled') return complete(generation);
@@ -270,13 +315,21 @@
     }
 
     function publishSettlement(settlements, comparisonExecutionReceipts = []) {
-      setPhase('completed');
       const frozenComparisons = Object.freeze([...comparisonExecutionReceipts]);
+      // Comparison actions may add branch-specific semantic evidence. Recompile
+      // the presentation after they execute so the terminal map and receipts
+      // describe the same settled run.
+      render();
       const receipt = Object.freeze({
         schema: 'simulatte.pluginPlaybackRunReceipt.v1',
         ownerPluginId,
         scenario: activeScenario,
         parameterValues,
+        interventions: Object.freeze(interventionLog.map((row) => Object.freeze({
+          actionId: row.actionId,
+          values: normalizedValues(row.values),
+          afterStep: row.afterStep,
+        }))),
         actionResult,
         settlements,
         comparisonExecutionReceipt: frozenComparisons[0] || null,
@@ -285,6 +338,7 @@
         runtime: runtime.runtimeReceipt(),
       });
       onSettled?.(receipt);
+      setPhase('completed');
       return snapshot();
     }
 
@@ -293,6 +347,28 @@
         scenario: activeScenario,
         values: { ...parameterValues, phase: nextPhase },
       });
+    }
+
+    function dispatchIntervention(entry) {
+      return runtime.dispatchAction(ownerPluginId, entry.actionId, {
+        scenario: activeScenario,
+        values: entry.values,
+      });
+    }
+
+    async function applyInterventionsAtStep(step, generation) {
+      for (const entry of interventionLog.filter((row) => row.afterStep === step)) {
+        if (generation !== runGeneration) return;
+        const result = await dispatchIntervention(entry);
+        if (!['running', 'settled'].includes(result?.status)) {
+          throw playbackError(
+            'plugin_playback_intervention_replay_refused',
+            `Plugin ${ownerPluginId} refused replayed intervention ${entry.actionId}`,
+            { entry, result }
+          );
+        }
+        actionResult = result;
+      }
     }
 
     function setPhase(nextPhase) {
@@ -345,7 +421,7 @@
       unsubscribe();
     }
 
-    return Object.freeze({ dispose, pause, replay, reset, restore, resume, seek, setPlaybackRate, snapshot, start, step });
+    return Object.freeze({ dispose, intervene, pause, replay, reset, restore, resume, seek, setPlaybackRate, snapshot, start, step });
   }
 
   function validateRestoreReceipt(value, ownerPluginId) {
@@ -367,11 +443,33 @@
     if (value.parameterValues !== undefined && (!value.parameterValues || typeof value.parameterValues !== 'object' || Array.isArray(value.parameterValues))) {
       throw playbackError('plugin_playback_restore_parameters_invalid', 'Stored playback receipt has invalid parameter values');
     }
+    normalizedInterventionLog(value.interventions);
   }
 
   function normalizedValues(value) {
     if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
     return Object.fromEntries(Object.entries(value).map(([key, entry]) => [key, Array.isArray(entry) ? [...entry] : entry]));
+  }
+
+  function normalizedInterventionLog(value) {
+    if (value === undefined) return [];
+    if (!Array.isArray(value)) {
+      throw playbackError('plugin_playback_restore_interventions_invalid', 'Stored playback receipt has invalid interventions');
+    }
+    return value.map((row) => {
+      if (!row
+        || typeof row.actionId !== 'string'
+        || !row.actionId
+        || !Number.isInteger(row.afterStep)
+        || row.afterStep < 0) {
+        throw playbackError('plugin_playback_restore_intervention_invalid', 'Stored playback intervention is incomplete');
+      }
+      return Object.freeze({
+        actionId: row.actionId,
+        values: normalizedValues(row.values),
+        afterStep: row.afterStep,
+      });
+    });
   }
 
   function storageKey(profileId) {

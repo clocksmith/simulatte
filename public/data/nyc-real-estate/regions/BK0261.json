@@ -1,0 +1,1338 @@
+{
+  "capacitySites": [],
+  "claimBoundary": "This NTA shard preserves every joined row retained from the governed source snapshot. The source snapshot itself samples large DOB jobs, constructed footprints, and PLUTO capacity candidates and is not a complete property history or feasibility inventory.",
+  "contentVersion": "2026-07-27",
+  "coverage": {
+    "capacityCandidates": 0,
+    "compilerRegionCap": null,
+    "developmentForecastSupportedBySector": {
+      "all": false,
+      "tax-class-1": false,
+      "tax-class-2": false,
+      "tax-class-4": false
+    },
+    "developmentSeriesRows": 4,
+    "historicalSites": 5,
+    "priceForecastSupportedBySector": {
+      "all": false,
+      "tax-class-1": false,
+      "tax-class-2": false,
+      "tax-class-4": false
+    },
+    "saleRows": 0,
+    "saleYearsBySector": {
+      "tax-class-1": [],
+      "tax-class-2": [],
+      "tax-class-4": []
+    },
+    "sectorCandidateCounts": {
+      "all": 0,
+      "tax-class-1": 0,
+      "tax-class-2": 0,
+      "tax-class-4": 0
+    },
+    "sourceSampled": true
+  },
+  "developmentSeries": [
+    {
+      "filingCount": 8,
+      "id": "development:BK0261:2015",
+      "proposedZoningSquareFeet": 4623724,
+      "regionId": "BK0261",
+      "sourceNtaNames": [
+        "Brooklyn Navy Yard"
+      ],
+      "withdrawnFilingCount": 1,
+      "year": 2015
+    },
+    {
+      "filingCount": 21,
+      "id": "development:BK0261:2016",
+      "proposedZoningSquareFeet": 161095,
+      "regionId": "BK0261",
+      "sourceNtaNames": [
+        "Brooklyn Navy Yard"
+      ],
+      "withdrawnFilingCount": 1,
+      "year": 2016
+    },
+    {
+      "filingCount": 3,
+      "id": "development:BK0261:2017",
+      "proposedZoningSquareFeet": 412031,
+      "regionId": "BK0261",
+      "sourceNtaNames": [
+        "Brooklyn Navy Yard"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2017
+    },
+    {
+      "filingCount": 1,
+      "id": "development:BK0261:2018",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "BK0261",
+      "sourceNtaNames": [
+        "Brooklyn Navy Yard"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2018
+    }
+  ],
+  "developmentSites": [
+    {
+      "address": null,
+      "bbl": "3020230150",
+      "bin": "3395466",
+      "constructionYear": 2013,
+      "coordinates": [
+        -73.9659413,
+        40.7014742
+      ],
+      "footprint": [
+        [
+          -73.9660982,
+          40.7015064
+        ],
+        [
+          -73.9657026,
+          40.7014933
+        ],
+        [
+          -73.9657051,
+          40.7014263
+        ],
+        [
+          -73.9661023,
+          40.7014388
+        ],
+        [
+          -73.9660982,
+          40.7015064
+        ]
+      ],
+      "footprintAreaM2": 436.73,
+      "footprintOrigin": "observed",
+      "heightM": 7.62,
+      "id": "footprint:1086374",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2013-07-01",
+          "id": "footprint:1086374:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK0261",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1086374"
+      ]
+    },
+    {
+      "address": "399 SANDS STREET",
+      "bbl": "3020230001",
+      "bin": "3425612",
+      "constructionYear": 2021,
+      "coordinates": [
+        -73.979588,
+        40.699696
+      ],
+      "footprint": [
+        [
+          -73.9658474,
+          40.7029087
+        ],
+        [
+          -73.9644823,
+          40.7018089
+        ],
+        [
+          -73.9650464,
+          40.7014011
+        ],
+        [
+          -73.9657961,
+          40.7020047
+        ],
+        [
+          -73.9659032,
+          40.7019309
+        ],
+        [
+          -73.9660002,
+          40.7020106
+        ],
+        [
+          -73.9658969,
+          40.7020847
+        ],
+        [
+          -73.9662541,
+          40.7023742
+        ],
+        [
+          -73.9663589,
+          40.702299
+        ],
+        [
+          -73.9665189,
+          40.7024288
+        ],
+        [
+          -73.9658474,
+          40.7029087
+        ]
+      ],
+      "footprintAreaM2": 19945,
+      "footprintOrigin": "observed",
+      "heightM": 19.81,
+      "id": "job:320910289:01",
+      "jobId": "320910289",
+      "milestones": [
+        {
+          "date": "2017-12-19",
+          "id": "job:320910289:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2018-10-29",
+          "id": "job:320910289:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2018-11-20",
+          "id": "job:320910289:01:fully-permitted:3",
+          "kind": "fully-permitted",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2021-06-08",
+          "id": "job:320910289:01:final-certificate-of-occupancy:4",
+          "kind": "final-certificate-of-occupancy",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2021-06-08",
+          "id": "job:320910289:01:signed-off:5",
+          "kind": "signed-off",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 9,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": 412031,
+      "regionId": "BK0261",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:2954840",
+        "certificate-of-occupancy:320910289:009",
+        "building-footprint:1086386"
+      ],
+      "status": "SIGNED OFF",
+      "withdrawn": false
+    },
+    {
+      "address": "21 FLUSHING AVENUE",
+      "bbl": "3020230050",
+      "bin": "3421807",
+      "constructionYear": 2024,
+      "coordinates": [
+        -73.978744,
+        40.698175
+      ],
+      "footprint": [
+        [
+          -73.9788973,
+          40.699158
+        ],
+        [
+          -73.9787885,
+          40.6991502
+        ],
+        [
+          -73.9781822,
+          40.6991901
+        ],
+        [
+          -73.9781188,
+          40.6991348
+        ],
+        [
+          -73.977928,
+          40.6987166
+        ],
+        [
+          -73.9779587,
+          40.6982498
+        ],
+        [
+          -73.9788221,
+          40.6982943
+        ],
+        [
+          -73.9788063,
+          40.6984728
+        ],
+        [
+          -73.9788734,
+          40.6984762
+        ],
+        [
+          -73.9788376,
+          40.6988795
+        ],
+        [
+          -73.9789137,
+          40.6988834
+        ],
+        [
+          -73.9788973,
+          40.699158
+        ]
+      ],
+      "footprintAreaM2": 12822.2,
+      "footprintOrigin": "observed",
+      "heightM": 42.67,
+      "id": "job:321183599:01",
+      "jobId": "321183599",
+      "milestones": [
+        {
+          "date": "2016-06-10",
+          "id": "job:321183599:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2016-10-21",
+          "id": "job:321183599:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2018-01-23",
+          "id": "job:321183599:01:fully-permitted:3",
+          "kind": "fully-permitted",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2024-12-11",
+          "id": "job:321183599:01:final-certificate-of-occupancy:4",
+          "kind": "final-certificate-of-occupancy",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2024-12-11",
+          "id": "job:321183599:01:signed-off:5",
+          "kind": "signed-off",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 5,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": 73695,
+      "regionId": "BK0261",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:2687911",
+        "certificate-of-occupancy:321183599:010",
+        "building-footprint:1032963"
+      ],
+      "status": "SIGNED OFF",
+      "withdrawn": true
+    },
+    {
+      "address": "1 DOCK 72 WAY",
+      "bbl": "3020230001",
+      "bin": "3426946",
+      "constructionYear": 2023,
+      "coordinates": [
+        -73.972176,
+        40.699809
+      ],
+      "footprint": [
+        [
+          -73.9658474,
+          40.7029087
+        ],
+        [
+          -73.9644823,
+          40.7018089
+        ],
+        [
+          -73.9650464,
+          40.7014011
+        ],
+        [
+          -73.9657961,
+          40.7020047
+        ],
+        [
+          -73.9659032,
+          40.7019309
+        ],
+        [
+          -73.9660002,
+          40.7020106
+        ],
+        [
+          -73.9658969,
+          40.7020847
+        ],
+        [
+          -73.9662541,
+          40.7023742
+        ],
+        [
+          -73.9663589,
+          40.702299
+        ],
+        [
+          -73.9665189,
+          40.7024288
+        ],
+        [
+          -73.9658474,
+          40.7029087
+        ]
+      ],
+      "footprintAreaM2": 19945,
+      "footprintOrigin": "observed",
+      "heightM": 19.81,
+      "id": "job:321190563:01",
+      "jobId": "321190563",
+      "milestones": [
+        {
+          "date": "2015-11-13",
+          "id": "job:321190563:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2016-10-06",
+          "id": "job:321190563:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2017-05-23",
+          "id": "job:321190563:01:fully-permitted:3",
+          "kind": "fully-permitted",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 17,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": 4444127,
+      "regionId": "BK0261",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:3176227",
+        "building-footprint:1086386"
+      ],
+      "status": "PERMIT ISSUED - ENTIRE JOB/WORK",
+      "withdrawn": false
+    },
+    {
+      "address": "15 WASHINGTON AVENUE",
+      "bbl": "3335182",
+      "bin": "3335182",
+      "constructionYear": null,
+      "coordinates": [
+        -73.967512,
+        40.701526
+      ],
+      "footprint": [
+        [
+          -73.9683414,
+          40.7008972
+        ],
+        [
+          -73.9666826,
+          40.7008972
+        ],
+        [
+          -73.9666826,
+          40.7021548
+        ],
+        [
+          -73.9683414,
+          40.7021548
+        ],
+        [
+          -73.9683414,
+          40.7008972
+        ]
+      ],
+      "footprintAreaM2": 5561.7,
+      "footprintOrigin": "modeled",
+      "heightM": 18.59,
+      "id": "job:321190983:01",
+      "jobId": "321190983",
+      "milestones": [
+        {
+          "date": "2015-12-07",
+          "id": "job:321190983:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2016-10-31",
+          "id": "job:321190983:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2017-06-07",
+          "id": "job:321190983:01:fully-permitted:3",
+          "kind": "fully-permitted",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 3,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": 179597,
+      "regionId": "BK0261",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:2546023"
+      ],
+      "status": "PERMIT ISSUED - ENTIRE JOB/WORK",
+      "withdrawn": true
+    }
+  ],
+  "id": "nyc-real-estate-region-bk0261-v1",
+  "region": {
+    "abbreviation": "BkNvyYrd",
+    "areaM2": 10106806.1491,
+    "boroughId": "brooklyn",
+    "boroughLabel": "Brooklyn",
+    "bounds": {
+      "east": -73.9621798,
+      "north": 40.7090829,
+      "south": 40.6976358,
+      "west": -73.980904
+    },
+    "centroid": [
+      -73.9741608,
+      40.7037244
+    ],
+    "communityDistrictTabulationAreaId": "BK02",
+    "communityDistrictTabulationAreaLabel": "BK02 Downtown Brooklyn-Fort Greene (CD 2 Approximation)",
+    "id": "BK0261",
+    "label": "Brooklyn Navy Yard",
+    "polygon": [
+      [
+        -73.9723203,
+        40.7090829
+      ],
+      [
+        -73.9702622,
+        40.7068875
+      ],
+      [
+        -73.9704888,
+        40.7054007
+      ],
+      [
+        -73.9701689,
+        40.7053619
+      ],
+      [
+        -73.9701808,
+        40.7049293
+      ],
+      [
+        -73.9676211,
+        40.7033485
+      ],
+      [
+        -73.9675152,
+        40.7034374
+      ],
+      [
+        -73.9674767,
+        40.7039499
+      ],
+      [
+        -73.9692969,
+        40.7050883
+      ],
+      [
+        -73.969293,
+        40.7070933
+      ],
+      [
+        -73.9683833,
+        40.7068294
+      ],
+      [
+        -73.9672096,
+        40.7042557
+      ],
+      [
+        -73.9621798,
+        40.7002207
+      ],
+      [
+        -73.9628396,
+        40.6980387
+      ],
+      [
+        -73.9657748,
+        40.6976358
+      ],
+      [
+        -73.9805442,
+        40.6982465
+      ],
+      [
+        -73.9804048,
+        40.700699
+      ],
+      [
+        -73.9808444,
+        40.7012952
+      ],
+      [
+        -73.9806491,
+        40.7015609
+      ],
+      [
+        -73.980904,
+        40.7018614
+      ],
+      [
+        -73.9800264,
+        40.7021405
+      ],
+      [
+        -73.9802744,
+        40.7030414
+      ],
+      [
+        -73.9793276,
+        40.7047463
+      ],
+      [
+        -73.9791209,
+        40.7055301
+      ],
+      [
+        -73.9789636,
+        40.7055022
+      ],
+      [
+        -73.9788652,
+        40.705868
+      ],
+      [
+        -73.9789277,
+        40.7054962
+      ],
+      [
+        -73.9787383,
+        40.7054631
+      ],
+      [
+        -73.9786391,
+        40.7058306
+      ],
+      [
+        -73.978697,
+        40.7054563
+      ],
+      [
+        -73.9784656,
+        40.7055622
+      ],
+      [
+        -73.9783991,
+        40.7059827
+      ],
+      [
+        -73.978853,
+        40.7060655
+      ],
+      [
+        -73.9783447,
+        40.706
+      ],
+      [
+        -73.9785931,
+        40.7049786
+      ],
+      [
+        -73.9780207,
+        40.704291
+      ],
+      [
+        -73.977212,
+        40.7042139
+      ],
+      [
+        -73.9775122,
+        40.7031968
+      ],
+      [
+        -73.9771356,
+        40.7030056
+      ],
+      [
+        -73.9762386,
+        40.7047756
+      ],
+      [
+        -73.975961,
+        40.7047155
+      ],
+      [
+        -73.9769275,
+        40.7027978
+      ],
+      [
+        -73.9761594,
+        40.7021713
+      ],
+      [
+        -73.9755346,
+        40.7030428
+      ],
+      [
+        -73.9753299,
+        40.7029519
+      ],
+      [
+        -73.9760059,
+        40.7019461
+      ],
+      [
+        -73.9745502,
+        40.7015903
+      ],
+      [
+        -73.9757995,
+        40.6997524
+      ],
+      [
+        -73.9757175,
+        40.6995709
+      ],
+      [
+        -73.97536,
+        40.6995805
+      ],
+      [
+        -73.9741151,
+        40.7013053
+      ],
+      [
+        -73.9729264,
+        40.7002946
+      ],
+      [
+        -73.9725731,
+        40.7000821
+      ],
+      [
+        -73.972392,
+        40.7001663
+      ],
+      [
+        -73.973757,
+        40.7015341
+      ],
+      [
+        -73.9731868,
+        40.7016698
+      ],
+      [
+        -73.9711382,
+        40.6999179
+      ],
+      [
+        -73.970782,
+        40.6999787
+      ],
+      [
+        -73.9733246,
+        40.7024127
+      ],
+      [
+        -73.9728351,
+        40.7027287
+      ],
+      [
+        -73.9698256,
+        40.7002451
+      ],
+      [
+        -73.9694866,
+        40.7005191
+      ],
+      [
+        -73.9728389,
+        40.7033464
+      ],
+      [
+        -73.9726694,
+        40.7035014
+      ],
+      [
+        -73.9692454,
+        40.7013647
+      ],
+      [
+        -73.9689852,
+        40.7017471
+      ],
+      [
+        -73.9723125,
+        40.7038445
+      ],
+      [
+        -73.972158,
+        40.7039702
+      ],
+      [
+        -73.9711034,
+        40.7034597
+      ],
+      [
+        -73.9709331,
+        40.7036248
+      ],
+      [
+        -73.9710196,
+        40.7038156
+      ],
+      [
+        -73.9746557,
+        40.7060743
+      ],
+      [
+        -73.9743908,
+        40.7063258
+      ],
+      [
+        -73.9733923,
+        40.7057332
+      ],
+      [
+        -73.9725488,
+        40.7062045
+      ],
+      [
+        -73.9746297,
+        40.7076811
+      ],
+      [
+        -73.9742362,
+        40.7080244
+      ],
+      [
+        -73.9712249,
+        40.7057899
+      ],
+      [
+        -73.9710966,
+        40.7058501
+      ],
+      [
+        -73.9710569,
+        40.7069464
+      ],
+      [
+        -73.9727576,
+        40.7088313
+      ],
+      [
+        -73.9723203,
+        40.7090829
+      ]
+    ],
+    "spatialPolygons": [
+      {
+        "holes": [],
+        "outer": [
+          [
+            -73.9789292,
+            40.7059316
+          ],
+          [
+            -73.9789311,
+            40.7059249
+          ],
+          [
+            -73.9790608,
+            40.705946
+          ],
+          [
+            -73.9789292,
+            40.7059316
+          ]
+        ]
+      },
+      {
+        "holes": [],
+        "outer": [
+          [
+            -73.9723203,
+            40.7090829
+          ],
+          [
+            -73.9702622,
+            40.7068875
+          ],
+          [
+            -73.9704888,
+            40.7054007
+          ],
+          [
+            -73.9701689,
+            40.7053619
+          ],
+          [
+            -73.9701808,
+            40.7049293
+          ],
+          [
+            -73.9676211,
+            40.7033485
+          ],
+          [
+            -73.9675152,
+            40.7034374
+          ],
+          [
+            -73.9674767,
+            40.7039499
+          ],
+          [
+            -73.9692969,
+            40.7050883
+          ],
+          [
+            -73.969293,
+            40.7070933
+          ],
+          [
+            -73.9683833,
+            40.7068294
+          ],
+          [
+            -73.9672096,
+            40.7042557
+          ],
+          [
+            -73.9621798,
+            40.7002207
+          ],
+          [
+            -73.9628396,
+            40.6980387
+          ],
+          [
+            -73.9657748,
+            40.6976358
+          ],
+          [
+            -73.9805442,
+            40.6982465
+          ],
+          [
+            -73.9804048,
+            40.700699
+          ],
+          [
+            -73.9808444,
+            40.7012952
+          ],
+          [
+            -73.9806491,
+            40.7015609
+          ],
+          [
+            -73.980904,
+            40.7018614
+          ],
+          [
+            -73.9800264,
+            40.7021405
+          ],
+          [
+            -73.9802744,
+            40.7030414
+          ],
+          [
+            -73.9793276,
+            40.7047463
+          ],
+          [
+            -73.9791209,
+            40.7055301
+          ],
+          [
+            -73.9789636,
+            40.7055022
+          ],
+          [
+            -73.9788652,
+            40.705868
+          ],
+          [
+            -73.9789277,
+            40.7054962
+          ],
+          [
+            -73.9787383,
+            40.7054631
+          ],
+          [
+            -73.9786391,
+            40.7058306
+          ],
+          [
+            -73.978697,
+            40.7054563
+          ],
+          [
+            -73.9784656,
+            40.7055622
+          ],
+          [
+            -73.9783991,
+            40.7059827
+          ],
+          [
+            -73.978853,
+            40.7060655
+          ],
+          [
+            -73.9783447,
+            40.706
+          ],
+          [
+            -73.9785931,
+            40.7049786
+          ],
+          [
+            -73.9780207,
+            40.704291
+          ],
+          [
+            -73.977212,
+            40.7042139
+          ],
+          [
+            -73.9775122,
+            40.7031968
+          ],
+          [
+            -73.9771356,
+            40.7030056
+          ],
+          [
+            -73.9762386,
+            40.7047756
+          ],
+          [
+            -73.975961,
+            40.7047155
+          ],
+          [
+            -73.9769275,
+            40.7027978
+          ],
+          [
+            -73.9761594,
+            40.7021713
+          ],
+          [
+            -73.9755346,
+            40.7030428
+          ],
+          [
+            -73.9753299,
+            40.7029519
+          ],
+          [
+            -73.9760059,
+            40.7019461
+          ],
+          [
+            -73.9745502,
+            40.7015903
+          ],
+          [
+            -73.9757995,
+            40.6997524
+          ],
+          [
+            -73.9757175,
+            40.6995709
+          ],
+          [
+            -73.97536,
+            40.6995805
+          ],
+          [
+            -73.9741151,
+            40.7013053
+          ],
+          [
+            -73.9729264,
+            40.7002946
+          ],
+          [
+            -73.9725731,
+            40.7000821
+          ],
+          [
+            -73.972392,
+            40.7001663
+          ],
+          [
+            -73.973757,
+            40.7015341
+          ],
+          [
+            -73.9731868,
+            40.7016698
+          ],
+          [
+            -73.9711382,
+            40.6999179
+          ],
+          [
+            -73.970782,
+            40.6999787
+          ],
+          [
+            -73.9733246,
+            40.7024127
+          ],
+          [
+            -73.9728351,
+            40.7027287
+          ],
+          [
+            -73.9698256,
+            40.7002451
+          ],
+          [
+            -73.9694866,
+            40.7005191
+          ],
+          [
+            -73.9728389,
+            40.7033464
+          ],
+          [
+            -73.9726694,
+            40.7035014
+          ],
+          [
+            -73.9692454,
+            40.7013647
+          ],
+          [
+            -73.9689852,
+            40.7017471
+          ],
+          [
+            -73.9723125,
+            40.7038445
+          ],
+          [
+            -73.972158,
+            40.7039702
+          ],
+          [
+            -73.9711034,
+            40.7034597
+          ],
+          [
+            -73.9709331,
+            40.7036248
+          ],
+          [
+            -73.9710196,
+            40.7038156
+          ],
+          [
+            -73.9746557,
+            40.7060743
+          ],
+          [
+            -73.9743908,
+            40.7063258
+          ],
+          [
+            -73.9733923,
+            40.7057332
+          ],
+          [
+            -73.9725488,
+            40.7062045
+          ],
+          [
+            -73.9746297,
+            40.7076811
+          ],
+          [
+            -73.9742362,
+            40.7080244
+          ],
+          [
+            -73.9712249,
+            40.7057899
+          ],
+          [
+            -73.9710966,
+            40.7058501
+          ],
+          [
+            -73.9710569,
+            40.7069464
+          ],
+          [
+            -73.9727576,
+            40.7088313
+          ],
+          [
+            -73.9723203,
+            40.7090829
+          ]
+        ]
+      }
+    ]
+  },
+  "saleSeries": [],
+  "schema": "simulatte.nycRealEstateRegionShard.v1",
+  "sourceIdentities": [
+    {
+      "byteCount": 1008463,
+      "path": "nyc-annualized-sales-by-nta.json",
+      "sha256": "14c15020381466196236073ee3753ff7a5d74a76ec6af4605e96564abd2bf99a",
+      "sourceId": "nyc-real-estate-sales-annual"
+    },
+    {
+      "byteCount": 8977616,
+      "path": "nyc-final-certificates-of-occupancy.json",
+      "sha256": "966c237824a79aff9d5137d27b498ba4f3670cc19844738c5ce17a559388030e",
+      "sourceId": "nyc-real-estate-final-occupancy"
+    },
+    {
+      "byteCount": 8802596,
+      "path": "nyc-largest-constructed-footprints-2010-2026.geojson",
+      "sha256": "15745b9c62fa539e683737f0665fe91d95231e68d8c1b598e7ed211114811eb6",
+      "sourceId": "nyc-real-estate-constructed-footprints"
+    },
+    {
+      "byteCount": 1076754,
+      "path": "nyc-largest-new-building-jobs-bronx.json",
+      "sha256": "1a44c6cbfa364639e4b75957b2fab7e3c301f95bcfcfa90c50862fef85f450c1",
+      "sourceId": "nyc-real-estate-new-building-sample-bronx"
+    },
+    {
+      "byteCount": 1085334,
+      "path": "nyc-largest-new-building-jobs-brooklyn.json",
+      "sha256": "389e1825faff440d6fad5a12ed470f84e90859fd732262346a3414c5503693fd",
+      "sourceId": "nyc-real-estate-new-building-sample-brooklyn"
+    },
+    {
+      "byteCount": 1097625,
+      "path": "nyc-largest-new-building-jobs-manhattan.json",
+      "sha256": "6346678de380d58e325db14fc2e0611d993743be29898360e08f092eaa1f88e5",
+      "sourceId": "nyc-real-estate-new-building-sample-manhattan"
+    },
+    {
+      "byteCount": 1091065,
+      "path": "nyc-largest-new-building-jobs-queens.json",
+      "sha256": "79eb6f028b2135214d47a793101f72de695efcb02e4c2802cc10cd062c760a22",
+      "sourceId": "nyc-real-estate-new-building-sample-queens"
+    },
+    {
+      "byteCount": 1120592,
+      "path": "nyc-largest-new-building-jobs-staten-island.json",
+      "sha256": "e0870a431a75bdd235fc09b0ecd7503c45384f5e8b66beba545447c7bb3d960a",
+      "sourceId": "nyc-real-estate-new-building-sample-staten-island"
+    },
+    {
+      "byteCount": 1250280,
+      "path": "nyc-new-building-filings-by-nta-year.json",
+      "sha256": "4b75b0ad54a1ce5241b9c2e303be2cc24781e55a65fbf27be10d00a80bfeadea",
+      "sourceId": "nyc-real-estate-new-building-annual"
+    },
+    {
+      "byteCount": 4576764,
+      "path": "nyc-nta-2020.geojson",
+      "sha256": "c3dd069e094e2d2f647c1c102cd7e0570d033dd6131446bd1943a73210d09c56",
+      "sourceId": "nyc-real-estate-nta-boundaries"
+    },
+    {
+      "byteCount": 2402191,
+      "path": "nyc-pluto-capacity-bronx.json",
+      "sha256": "b45168721525e18a29aafcce335212632607021240869b738cbb96fbe2441389",
+      "sourceId": "nyc-real-estate-pluto-capacity-bronx"
+    },
+    {
+      "byteCount": 2403266,
+      "path": "nyc-pluto-capacity-brooklyn.json",
+      "sha256": "63b33a507c0bc26f7b71669cf032baa4950af2db77ce8712b876ca6f4c9f771b",
+      "sourceId": "nyc-real-estate-pluto-capacity-brooklyn"
+    },
+    {
+      "byteCount": 2464264,
+      "path": "nyc-pluto-capacity-manhattan.json",
+      "sha256": "91e3e1f5dce97a340475b51577458c8e48183f1138c334fbcce27d68001e9d25",
+      "sourceId": "nyc-real-estate-pluto-capacity-manhattan"
+    },
+    {
+      "byteCount": 2418903,
+      "path": "nyc-pluto-capacity-queens.json",
+      "sha256": "02a12d81466e89e05b9be9273198c5f857e86db5d2c95cfb717160ce4ccf99c1",
+      "sourceId": "nyc-real-estate-pluto-capacity-queens"
+    },
+    {
+      "byteCount": 1168016,
+      "path": "nyc-pluto-capacity-staten-island.json",
+      "sha256": "6d488f6ce46fa09930b669429275014a8ecedae6c85041fb465a15633c6a38b0",
+      "sourceId": "nyc-real-estate-pluto-capacity-staten-island"
+    }
+  ],
+  "truth": {
+    "origin": "observed",
+    "temporalStatus": "historical",
+    "uncertainty": {
+      "kind": "missing",
+      "value": {
+        "reason": "Administrative records have missing, revised, duplicated, and source-sampled fields without a shared statistical uncertainty model."
+      }
+    }
+  }
+}

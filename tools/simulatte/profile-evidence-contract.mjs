@@ -15,8 +15,8 @@ const PROFILE_IDS = Object.freeze([
   'interstellar-relay-network-v1',
   'maritime-trade-global-v1',
   'neighborhood-bulk-pool-v1',
+  'nyc-development-atlas-v1',
   'orbital-transfer-planner-v1',
-  'safety-explorer-v1',
   'subsea-network-global-v1',
   'sun-walker-v1',
 ]);
@@ -102,7 +102,7 @@ function loadProfiles(root) {
     rows.length === PROFILE_IDS.length
       && rows.every((row, index) => row.value.id === PROFILE_IDS[index]),
     'profile_evidence_profile_inventory_invalid',
-    `Expected the eleven public profiles in canonical order`,
+    `Expected the eleven connected public profiles in canonical order`,
     { actualIds: rows.map((row) => row.value.id), expectedIds: PROFILE_IDS }
   );
   return rows;
@@ -255,7 +255,7 @@ function expandClaims(root, inventory) {
   assert(
     configuredIds.length === PROFILE_IDS.length && configuredIds.every((id, index) => id === PROFILE_IDS[index]),
     'profile_claim_inventory_scope_invalid',
-    'Claim inventory must name all eleven public profiles in canonical order'
+    'Claim inventory must name all eleven connected public profiles in canonical order'
   );
   const claims = loadProfiles(root).flatMap(({ value: profile, relativePath }) => profile.seeds.map((seed) => ({
     id: claimId(profile.id, seed.id),

@@ -187,7 +187,7 @@ async function fixture() {
   return { buildIdentity, claims, contract, plan, receipt, run, sourceIdentity };
 }
 
-test('profile evidence plan enumerates eleven profiles, forty-seven seeds, and two required viewports', async () => {
+test('profile evidence plan enumerates eleven connected profiles, forty-seven seeds, and two required viewports', async () => {
   const { plan } = await fixture();
   assert.equal(plan.profileIds.length, 11);
   assert.equal(new Set(plan.runs.map((run) => `${run.profileId}:${run.seedId}`)).size, 47);

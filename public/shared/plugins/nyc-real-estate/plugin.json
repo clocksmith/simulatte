@@ -1,0 +1,89 @@
+{
+  "configSchema": "./config.schema.json",
+  "consumes": [],
+  "datasets": [
+    {
+      "id": "nyc-real-estate-region-index-2026-v1",
+      "reference": {
+        "id": "nyc-real-estate-region-index-2026-v1",
+        "path": "../../../data/nyc-real-estate/region-index-v1.json",
+        "schemaId": "simulatte.nycRealEstateRegionIndex.v1",
+        "sha256": "d17cafe51f239017dd168d02ce3c250d5ac19bcc6c0f49900b72a11cb4adae70"
+      },
+      "required": true
+    },
+    {
+      "id": "nyc-real-estate-model-governance-v1",
+      "reference": {
+        "id": "nyc-real-estate-model-governance-v1",
+        "path": "../../../data/nyc-real-estate/model-governance-v1.json",
+        "schemaId": "simulatte.nycRealEstateModelGovernance.v1",
+        "sha256": "4a6bc387b12322b14a58c3b9ec36ad70c81a7ff5ebd06ad4cb28ac134be3cf65"
+      },
+      "required": true
+    }
+  ],
+  "defaultConfig": "./default-config.json",
+  "entry": {
+    "globalFactory": "SimulattePluginNycRealEstate",
+    "integrity": "sha384-15b1ddeb580ccc8c5d130e3ffeee529ff5dfcdd433a44a0525a09fd586ee961f8a71bc947e95c801eafba505af616e72",
+    "path": "./index.js"
+  },
+  "extensionPoints": [
+    "request",
+    "event",
+    "settlement",
+    "ui",
+    "presentation"
+  ],
+  "id": "nyc-real-estate",
+  "permissions": [
+    "events.propose.v1",
+    "receipts.append.v1",
+    "state.reduce.v1",
+    "ui.geospatial.v1",
+    "ui.inspector.v1"
+  ],
+  "provides": [
+    "simulation.nyc-development-atlas.v1"
+  ],
+  "receiptSchemas": [
+    "simulatte.plugin.nycRealEstateScenarioReceipt.v1",
+    "simulatte.plugin.nycRealEstateSettlementReceipt.v1",
+    "simulatte.plugin.nycRealEstateComparisonReceipt.v1",
+    "simulatte.comparisonExecutionReceipt.v4"
+  ],
+  "resources": [
+    {
+      "integrity": "sha384-b9036361563d071d6cd5ff9a1168be6fec4e707153676b0f955f0e998e2d84d940446cc0ac859c332a90b0e8b59e7954",
+      "path": "./config.schema.json"
+    },
+    {
+      "integrity": "sha384-a5aa50c85c53cc4989e481aa069c1bdcdab0c108611cbeac462474f4daf91743502b1cd57b5ba601c3f4199453600ce0",
+      "path": "./default-config.json"
+    },
+    {
+      "integrity": "sha384-96ffd27e029eafdf21d70fe45138d197e4819aff39b7202a3b6ee886f050e796654daf8f89e12171ea271989607ef3be",
+      "path": "./v4-contribution.js"
+    },
+    {
+      "integrity": "sha384-def8a1617b030407e51e0c247efc80a75e15e83163fc8cbbeefb591dac79df278df491d19580451596a23d936a212a45",
+      "path": "./comparison-driver.js"
+    },
+    {
+      "integrity": "sha384-1dc5bd375f55d47dfe5c0bf1e7647efa3a9c4225ff9a8ae62e05afdafa2690028d41af269e480f2c0c8e7504e495bf39",
+      "path": "./forecast-statistics.js"
+    },
+    {
+      "integrity": "sha384-e5fbe3c1aa3ecd44d92905bf104704a3e040f9b456e9dc3fdab40fc1b8ded513ef37be28930aba8b467283694b59986d",
+      "path": "./sector-model.js"
+    },
+    {
+      "integrity": "sha384-48ff8368615dc0da461f5e8ef35c05a70267ec47b2da5dd8ae7caf64ad2e5e93b50a90f303efcf3dae20da60d489a195",
+      "path": "./forecast-model.js"
+    }
+  ],
+  "schema": "simulatte.pluginManifest.v2",
+  "sdkVersion": 2,
+  "version": "1.0.0"
+}

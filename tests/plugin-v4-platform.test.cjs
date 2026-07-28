@@ -466,7 +466,7 @@ test('Orbital v4 separates pinned state vectors from forecast transfer modeling'
   assert.equal(contribution.controls.comparisons[0].baselineScenarioId, 'earth-mars-circular-hohmann');
 });
 
-test('the eleven shipped experiences each load one native v4 contribution and City is only the substrate', () => {
+test('the eleven connected experiences each load one native v4 contribution and City is only the substrate', () => {
   const expectedProfiles = [
     'asteroid-defense-v1',
     'cable-trader-pickup-v1',
@@ -475,8 +475,8 @@ test('the eleven shipped experiences each load one native v4 contribution and Ci
     'interstellar-relay-network-v1',
     'maritime-trade-global-v1',
     'neighborhood-bulk-pool-v1',
+    'nyc-development-atlas-v1',
     'orbital-transfer-planner-v1',
-    'safety-explorer-v1',
     'subsea-network-global-v1',
     'sun-walker-v1',
   ];
@@ -484,13 +484,14 @@ test('the eleven shipped experiences each load one native v4 contribution and Ci
   assert.equal(Object.hasOwn(runtimeManifest.profilePlugins, 'simulatte-world-v1'), false);
 
   const profilesDirectory = path.join(__dirname, '../public/data/application-profiles');
-  const jsonFiles = fs.readdirSync(profilesDirectory).filter((name) => name.endsWith('.json')).sort();
-  const profileFiles = jsonFiles.filter((fileName) => {
-    const value = JSON.parse(fs.readFileSync(path.join(profilesDirectory, fileName), 'utf8'));
-    return /^simulatte\.applicationProfile\.v\d+$/.test(value.schema);
-  });
+  const claimInventory = JSON.parse(fs.readFileSync(
+    path.join(profilesDirectory, 'profile-claim-inventory-v1.json'),
+    'utf8',
+  ));
+  const profileFiles = claimInventory.profileIds.map((id) => `${id}.json`).sort();
   assert.deepEqual(profileFiles, expectedProfiles.map((id) => `${id}.json`));
-  assert.deepEqual(jsonFiles.filter((fileName) => !profileFiles.includes(fileName)), ['profile-claim-inventory-v1.json']);
+  assert.equal(fs.existsSync(path.join(profilesDirectory, 'safety-explorer-v1.json')), true);
+  assert.equal(runtimeManifest.profilePlugins['safety-explorer-v1'], undefined);
   profileFiles.forEach((fileName) => {
     const profile = JSON.parse(fs.readFileSync(path.join(profilesDirectory, fileName), 'utf8'));
     assert.equal(profile.plugins.length, 1, `${profile.id} should declare one experience plugin`);

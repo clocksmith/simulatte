@@ -1,0 +1,420 @@
+{
+  "capacitySites": [],
+  "claimBoundary": "This NTA shard preserves every joined row retained from the governed source snapshot. The source snapshot itself samples large DOB jobs, constructed footprints, and PLUTO capacity candidates and is not a complete property history or feasibility inventory.",
+  "contentVersion": "2026-07-27",
+  "coverage": {
+    "capacityCandidates": 0,
+    "compilerRegionCap": null,
+    "developmentForecastSupportedBySector": {
+      "all": false,
+      "tax-class-1": false,
+      "tax-class-2": false,
+      "tax-class-4": false
+    },
+    "developmentSeriesRows": 0,
+    "historicalSites": 0,
+    "priceForecastSupportedBySector": {
+      "all": false,
+      "tax-class-1": false,
+      "tax-class-2": false,
+      "tax-class-4": false
+    },
+    "saleRows": 0,
+    "saleYearsBySector": {
+      "tax-class-1": [],
+      "tax-class-2": [],
+      "tax-class-4": []
+    },
+    "sectorCandidateCounts": {
+      "all": 0,
+      "tax-class-1": 0,
+      "tax-class-2": 0,
+      "tax-class-4": 0
+    },
+    "sourceSampled": true
+  },
+  "developmentSeries": [],
+  "developmentSites": [],
+  "id": "nyc-real-estate-region-qn0871-v1",
+  "region": {
+    "abbreviation": "MtHbrnCem",
+    "areaM2": 9208958.12309,
+    "boroughId": "queens",
+    "boroughLabel": "Queens",
+    "bounds": {
+      "east": -73.8248118,
+      "north": 40.743228,
+      "south": 40.7305532,
+      "west": -73.8371072
+    },
+    "centroid": [
+      -73.8318515,
+      40.7379859
+    ],
+    "communityDistrictTabulationAreaId": "QN08",
+    "communityDistrictTabulationAreaLabel": "QN08 Fresh Meadows-Hillcrest-Briarwood (CD 8 Approximation)",
+    "id": "QN0871",
+    "label": "Mount Hebron & Cedar Grove Cemeteries",
+    "polygon": [
+      [
+        -73.8248118,
+        40.739631
+      ],
+      [
+        -73.8256654,
+        40.7322796
+      ],
+      [
+        -73.8338627,
+        40.7305532
+      ],
+      [
+        -73.8340037,
+        40.7315677
+      ],
+      [
+        -73.8348994,
+        40.7329676
+      ],
+      [
+        -73.8358482,
+        40.7338337
+      ],
+      [
+        -73.8360485,
+        40.7342656
+      ],
+      [
+        -73.8356051,
+        40.7351345
+      ],
+      [
+        -73.8353981,
+        40.7369124
+      ],
+      [
+        -73.8356459,
+        40.738491
+      ],
+      [
+        -73.8362753,
+        40.7395684
+      ],
+      [
+        -73.8366242,
+        40.7393651
+      ],
+      [
+        -73.8367509,
+        40.7397205
+      ],
+      [
+        -73.8371072,
+        40.7413962
+      ],
+      [
+        -73.8369927,
+        40.7420933
+      ],
+      [
+        -73.8360999,
+        40.7424291
+      ],
+      [
+        -73.8358613,
+        40.743228
+      ],
+      [
+        -73.8311555,
+        40.7423409
+      ],
+      [
+        -73.8313387,
+        40.7391706
+      ],
+      [
+        -73.830906,
+        40.7391328
+      ],
+      [
+        -73.8309942,
+        40.7385655
+      ],
+      [
+        -73.8311345,
+        40.7385619
+      ],
+      [
+        -73.8305355,
+        40.7375202
+      ],
+      [
+        -73.8294675,
+        40.7370245
+      ],
+      [
+        -73.8280915,
+        40.7370832
+      ],
+      [
+        -73.8279646,
+        40.7385032
+      ],
+      [
+        -73.8270122,
+        40.738569
+      ],
+      [
+        -73.8259758,
+        40.7390004
+      ],
+      [
+        -73.8255608,
+        40.7394544
+      ],
+      [
+        -73.824948,
+        40.7395671
+      ],
+      [
+        -73.8248118,
+        40.739631
+      ]
+    ],
+    "spatialPolygons": [
+      {
+        "holes": [],
+        "outer": [
+          [
+            -73.8248118,
+            40.739631
+          ],
+          [
+            -73.8256654,
+            40.7322796
+          ],
+          [
+            -73.8338627,
+            40.7305532
+          ],
+          [
+            -73.8340037,
+            40.7315677
+          ],
+          [
+            -73.8348994,
+            40.7329676
+          ],
+          [
+            -73.8358482,
+            40.7338337
+          ],
+          [
+            -73.8360485,
+            40.7342656
+          ],
+          [
+            -73.8356051,
+            40.7351345
+          ],
+          [
+            -73.8353981,
+            40.7369124
+          ],
+          [
+            -73.8356459,
+            40.738491
+          ],
+          [
+            -73.8362753,
+            40.7395684
+          ],
+          [
+            -73.8366242,
+            40.7393651
+          ],
+          [
+            -73.8367509,
+            40.7397205
+          ],
+          [
+            -73.8371072,
+            40.7413962
+          ],
+          [
+            -73.8369927,
+            40.7420933
+          ],
+          [
+            -73.8360999,
+            40.7424291
+          ],
+          [
+            -73.8358613,
+            40.743228
+          ],
+          [
+            -73.8311555,
+            40.7423409
+          ],
+          [
+            -73.8313387,
+            40.7391706
+          ],
+          [
+            -73.830906,
+            40.7391328
+          ],
+          [
+            -73.8309942,
+            40.7385655
+          ],
+          [
+            -73.8311345,
+            40.7385619
+          ],
+          [
+            -73.8305355,
+            40.7375202
+          ],
+          [
+            -73.8294675,
+            40.7370245
+          ],
+          [
+            -73.8280915,
+            40.7370832
+          ],
+          [
+            -73.8279646,
+            40.7385032
+          ],
+          [
+            -73.8270122,
+            40.738569
+          ],
+          [
+            -73.8259758,
+            40.7390004
+          ],
+          [
+            -73.8255608,
+            40.7394544
+          ],
+          [
+            -73.824948,
+            40.7395671
+          ],
+          [
+            -73.8248118,
+            40.739631
+          ]
+        ]
+      }
+    ]
+  },
+  "saleSeries": [],
+  "schema": "simulatte.nycRealEstateRegionShard.v1",
+  "sourceIdentities": [
+    {
+      "byteCount": 1008463,
+      "path": "nyc-annualized-sales-by-nta.json",
+      "sha256": "14c15020381466196236073ee3753ff7a5d74a76ec6af4605e96564abd2bf99a",
+      "sourceId": "nyc-real-estate-sales-annual"
+    },
+    {
+      "byteCount": 8977616,
+      "path": "nyc-final-certificates-of-occupancy.json",
+      "sha256": "966c237824a79aff9d5137d27b498ba4f3670cc19844738c5ce17a559388030e",
+      "sourceId": "nyc-real-estate-final-occupancy"
+    },
+    {
+      "byteCount": 8802596,
+      "path": "nyc-largest-constructed-footprints-2010-2026.geojson",
+      "sha256": "15745b9c62fa539e683737f0665fe91d95231e68d8c1b598e7ed211114811eb6",
+      "sourceId": "nyc-real-estate-constructed-footprints"
+    },
+    {
+      "byteCount": 1076754,
+      "path": "nyc-largest-new-building-jobs-bronx.json",
+      "sha256": "1a44c6cbfa364639e4b75957b2fab7e3c301f95bcfcfa90c50862fef85f450c1",
+      "sourceId": "nyc-real-estate-new-building-sample-bronx"
+    },
+    {
+      "byteCount": 1085334,
+      "path": "nyc-largest-new-building-jobs-brooklyn.json",
+      "sha256": "389e1825faff440d6fad5a12ed470f84e90859fd732262346a3414c5503693fd",
+      "sourceId": "nyc-real-estate-new-building-sample-brooklyn"
+    },
+    {
+      "byteCount": 1097625,
+      "path": "nyc-largest-new-building-jobs-manhattan.json",
+      "sha256": "6346678de380d58e325db14fc2e0611d993743be29898360e08f092eaa1f88e5",
+      "sourceId": "nyc-real-estate-new-building-sample-manhattan"
+    },
+    {
+      "byteCount": 1091065,
+      "path": "nyc-largest-new-building-jobs-queens.json",
+      "sha256": "79eb6f028b2135214d47a793101f72de695efcb02e4c2802cc10cd062c760a22",
+      "sourceId": "nyc-real-estate-new-building-sample-queens"
+    },
+    {
+      "byteCount": 1120592,
+      "path": "nyc-largest-new-building-jobs-staten-island.json",
+      "sha256": "e0870a431a75bdd235fc09b0ecd7503c45384f5e8b66beba545447c7bb3d960a",
+      "sourceId": "nyc-real-estate-new-building-sample-staten-island"
+    },
+    {
+      "byteCount": 1250280,
+      "path": "nyc-new-building-filings-by-nta-year.json",
+      "sha256": "4b75b0ad54a1ce5241b9c2e303be2cc24781e55a65fbf27be10d00a80bfeadea",
+      "sourceId": "nyc-real-estate-new-building-annual"
+    },
+    {
+      "byteCount": 4576764,
+      "path": "nyc-nta-2020.geojson",
+      "sha256": "c3dd069e094e2d2f647c1c102cd7e0570d033dd6131446bd1943a73210d09c56",
+      "sourceId": "nyc-real-estate-nta-boundaries"
+    },
+    {
+      "byteCount": 2402191,
+      "path": "nyc-pluto-capacity-bronx.json",
+      "sha256": "b45168721525e18a29aafcce335212632607021240869b738cbb96fbe2441389",
+      "sourceId": "nyc-real-estate-pluto-capacity-bronx"
+    },
+    {
+      "byteCount": 2403266,
+      "path": "nyc-pluto-capacity-brooklyn.json",
+      "sha256": "63b33a507c0bc26f7b71669cf032baa4950af2db77ce8712b876ca6f4c9f771b",
+      "sourceId": "nyc-real-estate-pluto-capacity-brooklyn"
+    },
+    {
+      "byteCount": 2464264,
+      "path": "nyc-pluto-capacity-manhattan.json",
+      "sha256": "91e3e1f5dce97a340475b51577458c8e48183f1138c334fbcce27d68001e9d25",
+      "sourceId": "nyc-real-estate-pluto-capacity-manhattan"
+    },
+    {
+      "byteCount": 2418903,
+      "path": "nyc-pluto-capacity-queens.json",
+      "sha256": "02a12d81466e89e05b9be9273198c5f857e86db5d2c95cfb717160ce4ccf99c1",
+      "sourceId": "nyc-real-estate-pluto-capacity-queens"
+    },
+    {
+      "byteCount": 1168016,
+      "path": "nyc-pluto-capacity-staten-island.json",
+      "sha256": "6d488f6ce46fa09930b669429275014a8ecedae6c85041fb465a15633c6a38b0",
+      "sourceId": "nyc-real-estate-pluto-capacity-staten-island"
+    }
+  ],
+  "truth": {
+    "origin": "observed",
+    "temporalStatus": "historical",
+    "uncertainty": {
+      "kind": "missing",
+      "value": {
+        "reason": "Administrative records have missing, revised, duplicated, and source-sampled fields without a shared statistical uncertainty model."
+      }
+    }
+  }
+}

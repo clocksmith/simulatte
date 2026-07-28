@@ -1,0 +1,1075 @@
+{
+  "capacitySites": [],
+  "claimBoundary": "This NTA shard preserves every joined row retained from the governed source snapshot. The source snapshot itself samples large DOB jobs, constructed footprints, and PLUTO capacity candidates and is not a complete property history or feasibility inventory.",
+  "contentVersion": "2026-07-27",
+  "coverage": {
+    "capacityCandidates": 0,
+    "compilerRegionCap": null,
+    "developmentForecastSupportedBySector": {
+      "all": false,
+      "tax-class-1": false,
+      "tax-class-2": false,
+      "tax-class-4": false
+    },
+    "developmentSeriesRows": 18,
+    "historicalSites": 2,
+    "priceForecastSupportedBySector": {
+      "all": false,
+      "tax-class-1": false,
+      "tax-class-2": false,
+      "tax-class-4": false
+    },
+    "saleRows": 0,
+    "saleYearsBySector": {
+      "tax-class-1": [],
+      "tax-class-2": [],
+      "tax-class-4": []
+    },
+    "sectorCandidateCounts": {
+      "all": 0,
+      "tax-class-1": 0,
+      "tax-class-2": 0,
+      "tax-class-4": 0
+    },
+    "sourceSampled": true
+  },
+  "developmentSeries": [
+    {
+      "filingCount": 2,
+      "id": "development:MN1292:2000",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "MN1292",
+      "sourceNtaNames": [
+        "Inwood Hill Park",
+        "Marble Hill-Inwood"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2000
+    },
+    {
+      "filingCount": 3,
+      "id": "development:MN1292:2001",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "MN1292",
+      "sourceNtaNames": [
+        "Marble Hill-Inwood"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2001
+    },
+    {
+      "filingCount": 8,
+      "id": "development:MN1292:2002",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "MN1292",
+      "sourceNtaNames": [
+        "Inwood Hill Park",
+        "Marble Hill-Inwood"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2002
+    },
+    {
+      "filingCount": 5,
+      "id": "development:MN1292:2003",
+      "proposedZoningSquareFeet": 43975,
+      "regionId": "MN1292",
+      "sourceNtaNames": [
+        "Marble Hill-Inwood"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2003
+    },
+    {
+      "filingCount": 1,
+      "id": "development:MN1292:2004",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "MN1292",
+      "sourceNtaNames": [
+        "Marble Hill-Inwood"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2004
+    },
+    {
+      "filingCount": 1,
+      "id": "development:MN1292:2005",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "MN1292",
+      "sourceNtaNames": [
+        "Marble Hill-Inwood"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2005
+    },
+    {
+      "filingCount": 4,
+      "id": "development:MN1292:2006",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "MN1292",
+      "sourceNtaNames": [
+        "Marble Hill-Inwood"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2006
+    },
+    {
+      "filingCount": 4,
+      "id": "development:MN1292:2008",
+      "proposedZoningSquareFeet": 82674,
+      "regionId": "MN1292",
+      "sourceNtaNames": [
+        "Marble Hill-Inwood"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2008
+    },
+    {
+      "filingCount": 1,
+      "id": "development:MN1292:2009",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "MN1292",
+      "sourceNtaNames": [
+        "Marble Hill-Inwood"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2009
+    },
+    {
+      "filingCount": 3,
+      "id": "development:MN1292:2010",
+      "proposedZoningSquareFeet": 47700,
+      "regionId": "MN1292",
+      "sourceNtaNames": [
+        "Inwood Hill Park"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2010
+    },
+    {
+      "filingCount": 2,
+      "id": "development:MN1292:2011",
+      "proposedZoningSquareFeet": 30122,
+      "regionId": "MN1292",
+      "sourceNtaNames": [
+        "Marble Hill-Inwood"
+      ],
+      "withdrawnFilingCount": 1,
+      "year": 2011
+    },
+    {
+      "filingCount": 5,
+      "id": "development:MN1292:2012",
+      "proposedZoningSquareFeet": 1056,
+      "regionId": "MN1292",
+      "sourceNtaNames": [
+        "Inwood Hill Park",
+        "Marble Hill-Inwood"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2012
+    },
+    {
+      "filingCount": 1,
+      "id": "development:MN1292:2015",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "MN1292",
+      "sourceNtaNames": [
+        "Marble Hill-Inwood"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2015
+    },
+    {
+      "filingCount": 3,
+      "id": "development:MN1292:2016",
+      "proposedZoningSquareFeet": 4246,
+      "regionId": "MN1292",
+      "sourceNtaNames": [
+        "Marble Hill-Inwood"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2016
+    },
+    {
+      "filingCount": 2,
+      "id": "development:MN1292:2018",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "MN1292",
+      "sourceNtaNames": [
+        "Marble Hill-Inwood"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2018
+    },
+    {
+      "filingCount": 2,
+      "id": "development:MN1292:2019",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "MN1292",
+      "sourceNtaNames": [
+        "Marble Hill-Inwood"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2019
+    },
+    {
+      "filingCount": 4,
+      "id": "development:MN1292:2020",
+      "proposedZoningSquareFeet": 263838,
+      "regionId": "MN1292",
+      "sourceNtaNames": [
+        "Inwood Hill Park",
+        "Marble Hill-Inwood"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2020
+    },
+    {
+      "filingCount": 3,
+      "id": "development:MN1292:2021",
+      "proposedZoningSquareFeet": 230309,
+      "regionId": "MN1292",
+      "sourceNtaNames": [
+        "Inwood Hill Park",
+        "Marble Hill-Inwood"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2021
+    }
+  ],
+  "developmentSites": [
+    {
+      "address": "505 WEST 218TH STREET",
+      "bbl": "1022440001",
+      "bin": "1088461",
+      "constructionYear": 2014,
+      "coordinates": [
+        -73.914462,
+        40.87136
+      ],
+      "footprint": [
+        [
+          -73.915264,
+          40.8731803
+        ],
+        [
+          -73.9153327,
+          40.8731709
+        ],
+        [
+          -73.915429,
+          40.8733179
+        ],
+        [
+          -73.915401,
+          40.8734481
+        ],
+        [
+          -73.915462,
+          40.8734711
+        ],
+        [
+          -73.9154847,
+          40.873554
+        ],
+        [
+          -73.9155108,
+          40.8736173
+        ],
+        [
+          -73.9155574,
+          40.8736745
+        ],
+        [
+          -73.9156309,
+          40.8737379
+        ],
+        [
+          -73.9157225,
+          40.8737896
+        ],
+        [
+          -73.9161331,
+          40.8743937
+        ],
+        [
+          -73.9160363,
+          40.8744481
+        ],
+        [
+          -73.9158616,
+          40.8744219
+        ],
+        [
+          -73.9156338,
+          40.874436
+        ],
+        [
+          -73.9153312,
+          40.8743884
+        ],
+        [
+          -73.9150599,
+          40.8743362
+        ],
+        [
+          -73.9145601,
+          40.874208
+        ],
+        [
+          -73.914377,
+          40.874132
+        ],
+        [
+          -73.9143485,
+          40.8741626
+        ],
+        [
+          -73.9140273,
+          40.8740084
+        ],
+        [
+          -73.915264,
+          40.8731803
+        ]
+      ],
+      "footprintAreaM2": 21756.86,
+      "footprintOrigin": "observed",
+      "heightM": 1.52,
+      "id": "job:120494866:01",
+      "jobId": "120494866",
+      "milestones": [
+        {
+          "date": "2010-10-07",
+          "id": "job:120494866:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2011-07-29",
+          "id": "job:120494866:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2011-08-12",
+          "id": "job:120494866:01:fully-permitted:3",
+          "kind": "fully-permitted",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2014-01-10",
+          "id": "job:120494866:01:final-certificate-of-occupancy:4",
+          "kind": "final-certificate-of-occupancy",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2014-01-10",
+          "id": "job:120494866:01:signed-off:5",
+          "kind": "signed-off",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 5,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": 47700,
+      "regionId": "MN1292",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:1891137",
+        "certificate-of-occupancy:120494866:005",
+        "building-footprint:1088633"
+      ],
+      "status": "SIGNED OFF",
+      "withdrawn": false
+    },
+    {
+      "address": "603 WEST 218 STREET",
+      "bbl": "1022440001",
+      "bin": "1082789",
+      "constructionYear": 2015,
+      "coordinates": [
+        -73.916656,
+        40.872286
+      ],
+      "footprint": [
+        [
+          -73.915264,
+          40.8731803
+        ],
+        [
+          -73.9153327,
+          40.8731709
+        ],
+        [
+          -73.915429,
+          40.8733179
+        ],
+        [
+          -73.915401,
+          40.8734481
+        ],
+        [
+          -73.915462,
+          40.8734711
+        ],
+        [
+          -73.9154847,
+          40.873554
+        ],
+        [
+          -73.9155108,
+          40.8736173
+        ],
+        [
+          -73.9155574,
+          40.8736745
+        ],
+        [
+          -73.9156309,
+          40.8737379
+        ],
+        [
+          -73.9157225,
+          40.8737896
+        ],
+        [
+          -73.9161331,
+          40.8743937
+        ],
+        [
+          -73.9160363,
+          40.8744481
+        ],
+        [
+          -73.9158616,
+          40.8744219
+        ],
+        [
+          -73.9156338,
+          40.874436
+        ],
+        [
+          -73.9153312,
+          40.8743884
+        ],
+        [
+          -73.9150599,
+          40.8743362
+        ],
+        [
+          -73.9145601,
+          40.874208
+        ],
+        [
+          -73.914377,
+          40.874132
+        ],
+        [
+          -73.9143485,
+          40.8741626
+        ],
+        [
+          -73.9140273,
+          40.8740084
+        ],
+        [
+          -73.915264,
+          40.8731803
+        ]
+      ],
+      "footprintAreaM2": 21756.86,
+      "footprintOrigin": "observed",
+      "heightM": 1.52,
+      "id": "job:121208512:01",
+      "jobId": "121208512",
+      "milestones": [
+        {
+          "date": "2020-07-30",
+          "id": "job:121208512:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2021-10-07",
+          "id": "job:121208512:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2021-10-26",
+          "id": "job:121208512:01:fully-permitted:3",
+          "kind": "fully-permitted",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 1,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": 112611,
+      "regionId": "MN1292",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:3236318",
+        "building-footprint:1088633"
+      ],
+      "status": "PERMIT ISSUED - ENTIRE JOB/WORK",
+      "withdrawn": false
+    }
+  ],
+  "id": "nyc-real-estate-region-mn1292-v1",
+  "region": {
+    "abbreviation": "InwdHlPk",
+    "areaM2": 10007466.5428,
+    "boroughId": "manhattan",
+    "boroughLabel": "Manhattan",
+    "bounds": {
+      "east": -73.9115152,
+      "north": 40.8789639,
+      "south": 40.8667414,
+      "west": -73.932206
+    },
+    "centroid": [
+      -73.9227931,
+      40.8740073
+    ],
+    "communityDistrictTabulationAreaId": "MN12",
+    "communityDistrictTabulationAreaLabel": "MN12 Washington Heights-Inwood (CD 12 Equivalent)",
+    "id": "MN1292",
+    "label": "Inwood Hill Park",
+    "polygon": [
+      [
+        -73.9264056,
+        40.8776215
+      ],
+      [
+        -73.9262955,
+        40.8774885
+      ],
+      [
+        -73.9264578,
+        40.8772582
+      ],
+      [
+        -73.9261929,
+        40.8770644
+      ],
+      [
+        -73.9245704,
+        40.8774289
+      ],
+      [
+        -73.9232948,
+        40.8772644
+      ],
+      [
+        -73.9223977,
+        40.8767802
+      ],
+      [
+        -73.922668,
+        40.874982
+      ],
+      [
+        -73.9225764,
+        40.8742952
+      ],
+      [
+        -73.9220832,
+        40.8735838
+      ],
+      [
+        -73.9211174,
+        40.8730335
+      ],
+      [
+        -73.9202923,
+        40.8730984
+      ],
+      [
+        -73.919793,
+        40.8736065
+      ],
+      [
+        -73.920627,
+        40.8742348
+      ],
+      [
+        -73.9208026,
+        40.8741941
+      ],
+      [
+        -73.9207001,
+        40.8743919
+      ],
+      [
+        -73.9211819,
+        40.8751378
+      ],
+      [
+        -73.9208061,
+        40.8754775
+      ],
+      [
+        -73.9188753,
+        40.874679
+      ],
+      [
+        -73.9192744,
+        40.8736519
+      ],
+      [
+        -73.9185,
+        40.8731917
+      ],
+      [
+        -73.9185973,
+        40.8734955
+      ],
+      [
+        -73.917929,
+        40.8739789
+      ],
+      [
+        -73.9175773,
+        40.8745487
+      ],
+      [
+        -73.9178714,
+        40.873905
+      ],
+      [
+        -73.9164357,
+        40.8745097
+      ],
+      [
+        -73.915224,
+        40.8744866
+      ],
+      [
+        -73.9126107,
+        40.8737573
+      ],
+      [
+        -73.9115152,
+        40.8732366
+      ],
+      [
+        -73.9140099,
+        40.8711606
+      ],
+      [
+        -73.9184292,
+        40.8730098
+      ],
+      [
+        -73.9196989,
+        40.8720635
+      ],
+      [
+        -73.9192548,
+        40.8710078
+      ],
+      [
+        -73.9216262,
+        40.8693922
+      ],
+      [
+        -73.9221415,
+        40.8691478
+      ],
+      [
+        -73.9223436,
+        40.869459
+      ],
+      [
+        -73.9261985,
+        40.8685135
+      ],
+      [
+        -73.9287264,
+        40.8667414
+      ],
+      [
+        -73.9315038,
+        40.8690352
+      ],
+      [
+        -73.9315654,
+        40.8695822
+      ],
+      [
+        -73.9321986,
+        40.8698449
+      ],
+      [
+        -73.932206,
+        40.8700964
+      ],
+      [
+        -73.9319138,
+        40.8711295
+      ],
+      [
+        -73.9313766,
+        40.8721086
+      ],
+      [
+        -73.9291797,
+        40.8755555
+      ],
+      [
+        -73.9281462,
+        40.8765225
+      ],
+      [
+        -73.9275308,
+        40.8767105
+      ],
+      [
+        -73.9264159,
+        40.87761
+      ],
+      [
+        -73.9264056,
+        40.8776215
+      ]
+    ],
+    "spatialPolygons": [
+      {
+        "holes": [],
+        "outer": [
+          [
+            -73.9264056,
+            40.8776215
+          ],
+          [
+            -73.9262955,
+            40.8774885
+          ],
+          [
+            -73.9264578,
+            40.8772582
+          ],
+          [
+            -73.9261929,
+            40.8770644
+          ],
+          [
+            -73.9245704,
+            40.8774289
+          ],
+          [
+            -73.9232948,
+            40.8772644
+          ],
+          [
+            -73.9223977,
+            40.8767802
+          ],
+          [
+            -73.922668,
+            40.874982
+          ],
+          [
+            -73.9225764,
+            40.8742952
+          ],
+          [
+            -73.9220832,
+            40.8735838
+          ],
+          [
+            -73.9211174,
+            40.8730335
+          ],
+          [
+            -73.9202923,
+            40.8730984
+          ],
+          [
+            -73.919793,
+            40.8736065
+          ],
+          [
+            -73.920627,
+            40.8742348
+          ],
+          [
+            -73.9208026,
+            40.8741941
+          ],
+          [
+            -73.9207001,
+            40.8743919
+          ],
+          [
+            -73.9211819,
+            40.8751378
+          ],
+          [
+            -73.9208061,
+            40.8754775
+          ],
+          [
+            -73.9188753,
+            40.874679
+          ],
+          [
+            -73.9192744,
+            40.8736519
+          ],
+          [
+            -73.9185,
+            40.8731917
+          ],
+          [
+            -73.9185973,
+            40.8734955
+          ],
+          [
+            -73.917929,
+            40.8739789
+          ],
+          [
+            -73.9175773,
+            40.8745487
+          ],
+          [
+            -73.9178714,
+            40.873905
+          ],
+          [
+            -73.9164357,
+            40.8745097
+          ],
+          [
+            -73.915224,
+            40.8744866
+          ],
+          [
+            -73.9126107,
+            40.8737573
+          ],
+          [
+            -73.9115152,
+            40.8732366
+          ],
+          [
+            -73.9140099,
+            40.8711606
+          ],
+          [
+            -73.9184292,
+            40.8730098
+          ],
+          [
+            -73.9196989,
+            40.8720635
+          ],
+          [
+            -73.9192548,
+            40.8710078
+          ],
+          [
+            -73.9216262,
+            40.8693922
+          ],
+          [
+            -73.9221415,
+            40.8691478
+          ],
+          [
+            -73.9223436,
+            40.869459
+          ],
+          [
+            -73.9261985,
+            40.8685135
+          ],
+          [
+            -73.9287264,
+            40.8667414
+          ],
+          [
+            -73.9315038,
+            40.8690352
+          ],
+          [
+            -73.9315654,
+            40.8695822
+          ],
+          [
+            -73.9321986,
+            40.8698449
+          ],
+          [
+            -73.932206,
+            40.8700964
+          ],
+          [
+            -73.9319138,
+            40.8711295
+          ],
+          [
+            -73.9313766,
+            40.8721086
+          ],
+          [
+            -73.9291797,
+            40.8755555
+          ],
+          [
+            -73.9281462,
+            40.8765225
+          ],
+          [
+            -73.9275308,
+            40.8767105
+          ],
+          [
+            -73.9264159,
+            40.87761
+          ],
+          [
+            -73.9264056,
+            40.8776215
+          ]
+        ]
+      },
+      {
+        "holes": [],
+        "outer": [
+          [
+            -73.9235917,
+            40.8789522
+          ],
+          [
+            -73.9236792,
+            40.8788261
+          ],
+          [
+            -73.9236297,
+            40.8789639
+          ],
+          [
+            -73.9235917,
+            40.8789522
+          ]
+        ]
+      }
+    ]
+  },
+  "saleSeries": [],
+  "schema": "simulatte.nycRealEstateRegionShard.v1",
+  "sourceIdentities": [
+    {
+      "byteCount": 1008463,
+      "path": "nyc-annualized-sales-by-nta.json",
+      "sha256": "14c15020381466196236073ee3753ff7a5d74a76ec6af4605e96564abd2bf99a",
+      "sourceId": "nyc-real-estate-sales-annual"
+    },
+    {
+      "byteCount": 8977616,
+      "path": "nyc-final-certificates-of-occupancy.json",
+      "sha256": "966c237824a79aff9d5137d27b498ba4f3670cc19844738c5ce17a559388030e",
+      "sourceId": "nyc-real-estate-final-occupancy"
+    },
+    {
+      "byteCount": 8802596,
+      "path": "nyc-largest-constructed-footprints-2010-2026.geojson",
+      "sha256": "15745b9c62fa539e683737f0665fe91d95231e68d8c1b598e7ed211114811eb6",
+      "sourceId": "nyc-real-estate-constructed-footprints"
+    },
+    {
+      "byteCount": 1076754,
+      "path": "nyc-largest-new-building-jobs-bronx.json",
+      "sha256": "1a44c6cbfa364639e4b75957b2fab7e3c301f95bcfcfa90c50862fef85f450c1",
+      "sourceId": "nyc-real-estate-new-building-sample-bronx"
+    },
+    {
+      "byteCount": 1085334,
+      "path": "nyc-largest-new-building-jobs-brooklyn.json",
+      "sha256": "389e1825faff440d6fad5a12ed470f84e90859fd732262346a3414c5503693fd",
+      "sourceId": "nyc-real-estate-new-building-sample-brooklyn"
+    },
+    {
+      "byteCount": 1097625,
+      "path": "nyc-largest-new-building-jobs-manhattan.json",
+      "sha256": "6346678de380d58e325db14fc2e0611d993743be29898360e08f092eaa1f88e5",
+      "sourceId": "nyc-real-estate-new-building-sample-manhattan"
+    },
+    {
+      "byteCount": 1091065,
+      "path": "nyc-largest-new-building-jobs-queens.json",
+      "sha256": "79eb6f028b2135214d47a793101f72de695efcb02e4c2802cc10cd062c760a22",
+      "sourceId": "nyc-real-estate-new-building-sample-queens"
+    },
+    {
+      "byteCount": 1120592,
+      "path": "nyc-largest-new-building-jobs-staten-island.json",
+      "sha256": "e0870a431a75bdd235fc09b0ecd7503c45384f5e8b66beba545447c7bb3d960a",
+      "sourceId": "nyc-real-estate-new-building-sample-staten-island"
+    },
+    {
+      "byteCount": 1250280,
+      "path": "nyc-new-building-filings-by-nta-year.json",
+      "sha256": "4b75b0ad54a1ce5241b9c2e303be2cc24781e55a65fbf27be10d00a80bfeadea",
+      "sourceId": "nyc-real-estate-new-building-annual"
+    },
+    {
+      "byteCount": 4576764,
+      "path": "nyc-nta-2020.geojson",
+      "sha256": "c3dd069e094e2d2f647c1c102cd7e0570d033dd6131446bd1943a73210d09c56",
+      "sourceId": "nyc-real-estate-nta-boundaries"
+    },
+    {
+      "byteCount": 2402191,
+      "path": "nyc-pluto-capacity-bronx.json",
+      "sha256": "b45168721525e18a29aafcce335212632607021240869b738cbb96fbe2441389",
+      "sourceId": "nyc-real-estate-pluto-capacity-bronx"
+    },
+    {
+      "byteCount": 2403266,
+      "path": "nyc-pluto-capacity-brooklyn.json",
+      "sha256": "63b33a507c0bc26f7b71669cf032baa4950af2db77ce8712b876ca6f4c9f771b",
+      "sourceId": "nyc-real-estate-pluto-capacity-brooklyn"
+    },
+    {
+      "byteCount": 2464264,
+      "path": "nyc-pluto-capacity-manhattan.json",
+      "sha256": "91e3e1f5dce97a340475b51577458c8e48183f1138c334fbcce27d68001e9d25",
+      "sourceId": "nyc-real-estate-pluto-capacity-manhattan"
+    },
+    {
+      "byteCount": 2418903,
+      "path": "nyc-pluto-capacity-queens.json",
+      "sha256": "02a12d81466e89e05b9be9273198c5f857e86db5d2c95cfb717160ce4ccf99c1",
+      "sourceId": "nyc-real-estate-pluto-capacity-queens"
+    },
+    {
+      "byteCount": 1168016,
+      "path": "nyc-pluto-capacity-staten-island.json",
+      "sha256": "6d488f6ce46fa09930b669429275014a8ecedae6c85041fb465a15633c6a38b0",
+      "sourceId": "nyc-real-estate-pluto-capacity-staten-island"
+    }
+  ],
+  "truth": {
+    "origin": "observed",
+    "temporalStatus": "historical",
+    "uncertainty": {
+      "kind": "missing",
+      "value": {
+        "reason": "Administrative records have missing, revised, duplicated, and source-sampled fields without a shared statistical uncertainty model."
+      }
+    }
+  }
+}

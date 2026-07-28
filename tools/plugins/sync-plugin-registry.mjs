@@ -9,10 +9,7 @@ const OUTPUT = path.join(ROOT, 'public/simulatte/platform/plugin-host/generated-
 const INDEX = path.join(ROOT, 'public/index.html');
 const write = process.argv.includes('--write');
 
-const pluginIds = fs.readdirSync(PLUGINS, { withFileTypes: true })
-  .filter((row) => row.isDirectory() && fs.existsSync(path.join(PLUGINS, row.name, 'plugin.json')))
-  .map((row) => row.name)
-  .sort();
+const pluginIds = connectedPluginIds();
 const rows = pluginIds.map(readPlugin);
 const output = renderRegistry(rows);
 if (write) fs.writeFileSync(OUTPUT, output);
@@ -51,6 +48,32 @@ function readPlugin(pluginId) {
   const configPath = path.resolve(directory, manifest.defaultConfig);
   const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
   return { manifest, configs: { [config.id]: config } };
+}
+
+function connectedPluginIds() {
+  const autonomyManifestPath = path.join(ROOT, 'public/data/simulatte/autonomy-manifest.json');
+  const tierManifestPath = path.join(ROOT, 'public/data/simulatte/tier-application-manifest.json');
+  const autonomyManifest = JSON.parse(fs.readFileSync(autonomyManifestPath, 'utf8'));
+  const tierManifest = JSON.parse(fs.readFileSync(tierManifestPath, 'utf8'));
+  const references = [
+    autonomyManifest.applicationProfile,
+    ...(autonomyManifest.applicationProfiles || []),
+    ...Object.values(tierManifest.tiers || {}).flatMap((tier) => tier.profiles || []),
+  ].filter(Boolean);
+  const profileIds = new Set();
+  const ids = new Set();
+  references.forEach((reference) => {
+    if (profileIds.has(reference.id)) fail(`Connected profile ${reference.id} is declared more than once`);
+    profileIds.add(reference.id);
+    const manifestPath = reference.world ? tierManifestPath : autonomyManifestPath;
+    const profilePath = path.resolve(path.dirname(manifestPath), reference.path);
+    const profile = JSON.parse(fs.readFileSync(profilePath, 'utf8'));
+    if (profile.id !== reference.id) {
+      fail(`Connected profile reference ${reference.id} resolved profile ${profile.id || 'missing'}`);
+    }
+    (profile.plugins || []).forEach((plugin) => ids.add(plugin.id));
+  });
+  return [...ids].sort();
 }
 
 function walk(directory) {

@@ -30,7 +30,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginSunWalker",
-    "integrity": "sha384-08a85357394b3d42348acae3aee80f0bc3266ad63a655033fac3142bb54ffd06b22c50740addfb53fcce4de3786db468",
+    "integrity": "sha384-cde782a572afbccf5b8d2ff815a477c79fe44e03920dcff1e5cece110f81f382764cdb0e91f08f7d6f3f406c38032cd1",
     "path": "./index.js"
   },
   "extensionPoints": [
@@ -98,7 +98,7 @@
       "path": "./sun-route-simulation.js"
     },
     {
-      "integrity": "sha384-cf5c883b20114cb501c4de0147638e0b23d8f61dec834174490cdfebb9ffba89e99b5d3811cb073c8207ccd3a499cda1",
+      "integrity": "sha384-7589bd6167b269b0829a66aadc1515d73bb8a78255a89e4edecc0a81b8fc384c88fd917111eb61ae634768ecf519648b",
       "path": "./v4-contribution.js"
     }
   ],

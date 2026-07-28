@@ -1,0 +1,673 @@
+{
+  "capacitySites": [],
+  "claimBoundary": "This NTA shard preserves every joined row retained from the governed source snapshot. The source snapshot itself samples large DOB jobs, constructed footprints, and PLUTO capacity candidates and is not a complete property history or feasibility inventory.",
+  "contentVersion": "2026-07-27",
+  "coverage": {
+    "capacityCandidates": 0,
+    "compilerRegionCap": null,
+    "developmentForecastSupportedBySector": {
+      "all": false,
+      "tax-class-1": false,
+      "tax-class-2": false,
+      "tax-class-4": false
+    },
+    "developmentSeriesRows": 5,
+    "historicalSites": 2,
+    "priceForecastSupportedBySector": {
+      "all": true,
+      "tax-class-1": false,
+      "tax-class-2": false,
+      "tax-class-4": true
+    },
+    "saleRows": 9,
+    "saleYearsBySector": {
+      "tax-class-1": [
+        2016,
+        2019,
+        2022
+      ],
+      "tax-class-2": [
+        2016
+      ],
+      "tax-class-4": [
+        2016,
+        2020,
+        2023,
+        2024,
+        2025
+      ]
+    },
+    "sectorCandidateCounts": {
+      "all": 0,
+      "tax-class-1": 0,
+      "tax-class-2": 0,
+      "tax-class-4": 0
+    },
+    "sourceSampled": true
+  },
+  "developmentSeries": [
+    {
+      "filingCount": 3,
+      "id": "development:QN0261:2003",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "QN0261",
+      "sourceNtaNames": [
+        "Sunnyside Yards (South)"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2003
+    },
+    {
+      "filingCount": 1,
+      "id": "development:QN0261:2004",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "QN0261",
+      "sourceNtaNames": [
+        "Sunnyside Yards (South)"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2004
+    },
+    {
+      "filingCount": 1,
+      "id": "development:QN0261:2009",
+      "proposedZoningSquareFeet": 13370,
+      "regionId": "QN0261",
+      "sourceNtaNames": [
+        "Sunnyside Yards (South)"
+      ],
+      "withdrawnFilingCount": 1,
+      "year": 2009
+    },
+    {
+      "filingCount": 1,
+      "id": "development:QN0261:2010",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "QN0261",
+      "sourceNtaNames": [
+        "Sunnyside Yards (South)"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2010
+    },
+    {
+      "filingCount": 1,
+      "id": "development:QN0261:2022",
+      "proposedZoningSquareFeet": 160358,
+      "regionId": "QN0261",
+      "sourceNtaNames": [
+        "Sunnyside Yards (South)"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2022
+    }
+  ],
+  "developmentSites": [
+    {
+      "address": null,
+      "bbl": "4002390001",
+      "bin": "4551443",
+      "constructionYear": 2012,
+      "coordinates": [
+        -73.9300123,
+        40.7471548
+      ],
+      "footprint": [
+        [
+          -73.9302455,
+          40.7471647
+        ],
+        [
+          -73.9297069,
+          40.7472707
+        ],
+        [
+          -73.9296625,
+          40.74714
+        ],
+        [
+          -73.930201,
+          40.747034
+        ],
+        [
+          -73.9302455,
+          40.7471647
+        ]
+      ],
+      "footprintAreaM2": 1228.39,
+      "footprintOrigin": "observed",
+      "heightM": 16.15,
+      "id": "footprint:64243",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2012-07-01",
+          "id": "footprint:64243:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0261",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:64243"
+      ]
+    },
+    {
+      "address": "50-25 BARNETT AVENUE",
+      "bbl": "4001190143",
+      "bin": "4430171",
+      "constructionYear": null,
+      "coordinates": [
+        -73.913174,
+        40.750171
+      ],
+      "footprint": [
+        [
+          -73.913721,
+          40.7497566
+        ],
+        [
+          -73.912627,
+          40.7497566
+        ],
+        [
+          -73.912627,
+          40.7505854
+        ],
+        [
+          -73.913721,
+          40.7505854
+        ],
+        [
+          -73.913721,
+          40.7497566
+        ]
+      ],
+      "footprintAreaM2": 2128.25,
+      "footprintOrigin": "modeled",
+      "heightM": 21.95,
+      "id": "job:421134132:01",
+      "jobId": "421134132",
+      "milestones": [
+        {
+          "date": "2022-02-16",
+          "id": "job:421134132:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2023-07-26",
+          "id": "job:421134132:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2024-07-03",
+          "id": "job:421134132:01:fully-permitted:3",
+          "kind": "fully-permitted",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 7,
+      "proposedUnits": 185,
+      "proposedZoningSquareFeet": 160358,
+      "regionId": "QN0261",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:3335174"
+      ],
+      "status": "PERMIT ISSUED - ENTIRE JOB/WORK",
+      "withdrawn": false
+    }
+  ],
+  "id": "nyc-real-estate-region-qn0261-v1",
+  "region": {
+    "abbreviation": "SnnysdYd_S",
+    "areaM2": 8783519.43265,
+    "boroughId": "queens",
+    "boroughLabel": "Queens",
+    "bounds": {
+      "east": -73.9094586,
+      "north": 40.7516433,
+      "south": 40.7428821,
+      "west": -73.9441956
+    },
+    "centroid": [
+      -73.925129,
+      40.7489344
+    ],
+    "communityDistrictTabulationAreaId": "QN02",
+    "communityDistrictTabulationAreaLabel": "QN02 Long Island City-Sunnyside-Woodside (CD 2 Approximation)",
+    "id": "QN0261",
+    "label": "Sunnyside Yards (South)",
+    "polygon": [
+      [
+        -73.9097115,
+        40.7497547
+      ],
+      [
+        -73.91445,
+        40.7502154
+      ],
+      [
+        -73.9203423,
+        40.749159
+      ],
+      [
+        -73.9207978,
+        40.7468907
+      ],
+      [
+        -73.9267709,
+        40.7475924
+      ],
+      [
+        -73.9376968,
+        40.7452386
+      ],
+      [
+        -73.9441956,
+        40.7428821
+      ],
+      [
+        -73.9440103,
+        40.7436395
+      ],
+      [
+        -73.9434274,
+        40.7442312
+      ],
+      [
+        -73.940327,
+        40.7454131
+      ],
+      [
+        -73.9366368,
+        40.7482041
+      ],
+      [
+        -73.9368636,
+        40.7484213
+      ],
+      [
+        -73.9353869,
+        40.7494119
+      ],
+      [
+        -73.9339394,
+        40.7502696
+      ],
+      [
+        -73.9315191,
+        40.7511525
+      ],
+      [
+        -73.9246337,
+        40.7516433
+      ],
+      [
+        -73.9225504,
+        40.7515765
+      ],
+      [
+        -73.9216121,
+        40.7513716
+      ],
+      [
+        -73.9210148,
+        40.7509726
+      ],
+      [
+        -73.920539,
+        40.7497508
+      ],
+      [
+        -73.915256,
+        40.7508456
+      ],
+      [
+        -73.9131434,
+        40.7509671
+      ],
+      [
+        -73.9098432,
+        40.7516387
+      ],
+      [
+        -73.9094586,
+        40.7508551
+      ],
+      [
+        -73.9095162,
+        40.7504417
+      ],
+      [
+        -73.9097115,
+        40.7497547
+      ]
+    ],
+    "spatialPolygons": [
+      {
+        "holes": [],
+        "outer": [
+          [
+            -73.9097115,
+            40.7497547
+          ],
+          [
+            -73.91445,
+            40.7502154
+          ],
+          [
+            -73.9203423,
+            40.749159
+          ],
+          [
+            -73.9207978,
+            40.7468907
+          ],
+          [
+            -73.9267709,
+            40.7475924
+          ],
+          [
+            -73.9376968,
+            40.7452386
+          ],
+          [
+            -73.9441956,
+            40.7428821
+          ],
+          [
+            -73.9440103,
+            40.7436395
+          ],
+          [
+            -73.9434274,
+            40.7442312
+          ],
+          [
+            -73.940327,
+            40.7454131
+          ],
+          [
+            -73.9366368,
+            40.7482041
+          ],
+          [
+            -73.9368636,
+            40.7484213
+          ],
+          [
+            -73.9353869,
+            40.7494119
+          ],
+          [
+            -73.9339394,
+            40.7502696
+          ],
+          [
+            -73.9315191,
+            40.7511525
+          ],
+          [
+            -73.9246337,
+            40.7516433
+          ],
+          [
+            -73.9225504,
+            40.7515765
+          ],
+          [
+            -73.9216121,
+            40.7513716
+          ],
+          [
+            -73.9210148,
+            40.7509726
+          ],
+          [
+            -73.920539,
+            40.7497508
+          ],
+          [
+            -73.915256,
+            40.7508456
+          ],
+          [
+            -73.9131434,
+            40.7509671
+          ],
+          [
+            -73.9098432,
+            40.7516387
+          ],
+          [
+            -73.9094586,
+            40.7508551
+          ],
+          [
+            -73.9095162,
+            40.7504417
+          ],
+          [
+            -73.9097115,
+            40.7497547
+          ]
+        ]
+      }
+    ]
+  },
+  "saleSeries": [
+    {
+      "id": "sale:QN0261:2016:tax-1",
+      "meanPriceUsd": 150000,
+      "medianPriceUsd": 150000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0261",
+      "saleCount": 2,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 0,
+      "year": 2016
+    },
+    {
+      "id": "sale:QN0261:2016:tax-2",
+      "meanPriceUsd": 4300000,
+      "medianPriceUsd": 4300000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0261",
+      "saleCount": 1,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 16,
+      "year": 2016
+    },
+    {
+      "id": "sale:QN0261:2016:tax-4",
+      "meanPriceUsd": 3162500,
+      "medianPriceUsd": 3162500,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0261",
+      "saleCount": 2,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 2,
+      "year": 2016
+    },
+    {
+      "id": "sale:QN0261:2019:tax-1",
+      "meanPriceUsd": 370000,
+      "medianPriceUsd": 370000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0261",
+      "saleCount": 1,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 0,
+      "year": 2019
+    },
+    {
+      "id": "sale:QN0261:2020:tax-4",
+      "meanPriceUsd": 6595000,
+      "medianPriceUsd": 6595000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0261",
+      "saleCount": 1,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 1,
+      "year": 2020
+    },
+    {
+      "id": "sale:QN0261:2022:tax-1",
+      "meanPriceUsd": 202800,
+      "medianPriceUsd": 202800,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0261",
+      "saleCount": 1,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 0,
+      "year": 2022
+    },
+    {
+      "id": "sale:QN0261:2023:tax-4",
+      "meanPriceUsd": 1320000,
+      "medianPriceUsd": 1320000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0261",
+      "saleCount": 1,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 1,
+      "year": 2023
+    },
+    {
+      "id": "sale:QN0261:2024:tax-4",
+      "meanPriceUsd": 6500000,
+      "medianPriceUsd": 6500000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0261",
+      "saleCount": 1,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 186,
+      "year": 2024
+    },
+    {
+      "id": "sale:QN0261:2025:tax-4",
+      "meanPriceUsd": 3100000,
+      "medianPriceUsd": 3100000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0261",
+      "saleCount": 1,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 1,
+      "year": 2025
+    }
+  ],
+  "schema": "simulatte.nycRealEstateRegionShard.v1",
+  "sourceIdentities": [
+    {
+      "byteCount": 1008463,
+      "path": "nyc-annualized-sales-by-nta.json",
+      "sha256": "14c15020381466196236073ee3753ff7a5d74a76ec6af4605e96564abd2bf99a",
+      "sourceId": "nyc-real-estate-sales-annual"
+    },
+    {
+      "byteCount": 8977616,
+      "path": "nyc-final-certificates-of-occupancy.json",
+      "sha256": "966c237824a79aff9d5137d27b498ba4f3670cc19844738c5ce17a559388030e",
+      "sourceId": "nyc-real-estate-final-occupancy"
+    },
+    {
+      "byteCount": 8802596,
+      "path": "nyc-largest-constructed-footprints-2010-2026.geojson",
+      "sha256": "15745b9c62fa539e683737f0665fe91d95231e68d8c1b598e7ed211114811eb6",
+      "sourceId": "nyc-real-estate-constructed-footprints"
+    },
+    {
+      "byteCount": 1076754,
+      "path": "nyc-largest-new-building-jobs-bronx.json",
+      "sha256": "1a44c6cbfa364639e4b75957b2fab7e3c301f95bcfcfa90c50862fef85f450c1",
+      "sourceId": "nyc-real-estate-new-building-sample-bronx"
+    },
+    {
+      "byteCount": 1085334,
+      "path": "nyc-largest-new-building-jobs-brooklyn.json",
+      "sha256": "389e1825faff440d6fad5a12ed470f84e90859fd732262346a3414c5503693fd",
+      "sourceId": "nyc-real-estate-new-building-sample-brooklyn"
+    },
+    {
+      "byteCount": 1097625,
+      "path": "nyc-largest-new-building-jobs-manhattan.json",
+      "sha256": "6346678de380d58e325db14fc2e0611d993743be29898360e08f092eaa1f88e5",
+      "sourceId": "nyc-real-estate-new-building-sample-manhattan"
+    },
+    {
+      "byteCount": 1091065,
+      "path": "nyc-largest-new-building-jobs-queens.json",
+      "sha256": "79eb6f028b2135214d47a793101f72de695efcb02e4c2802cc10cd062c760a22",
+      "sourceId": "nyc-real-estate-new-building-sample-queens"
+    },
+    {
+      "byteCount": 1120592,
+      "path": "nyc-largest-new-building-jobs-staten-island.json",
+      "sha256": "e0870a431a75bdd235fc09b0ecd7503c45384f5e8b66beba545447c7bb3d960a",
+      "sourceId": "nyc-real-estate-new-building-sample-staten-island"
+    },
+    {
+      "byteCount": 1250280,
+      "path": "nyc-new-building-filings-by-nta-year.json",
+      "sha256": "4b75b0ad54a1ce5241b9c2e303be2cc24781e55a65fbf27be10d00a80bfeadea",
+      "sourceId": "nyc-real-estate-new-building-annual"
+    },
+    {
+      "byteCount": 4576764,
+      "path": "nyc-nta-2020.geojson",
+      "sha256": "c3dd069e094e2d2f647c1c102cd7e0570d033dd6131446bd1943a73210d09c56",
+      "sourceId": "nyc-real-estate-nta-boundaries"
+    },
+    {
+      "byteCount": 2402191,
+      "path": "nyc-pluto-capacity-bronx.json",
+      "sha256": "b45168721525e18a29aafcce335212632607021240869b738cbb96fbe2441389",
+      "sourceId": "nyc-real-estate-pluto-capacity-bronx"
+    },
+    {
+      "byteCount": 2403266,
+      "path": "nyc-pluto-capacity-brooklyn.json",
+      "sha256": "63b33a507c0bc26f7b71669cf032baa4950af2db77ce8712b876ca6f4c9f771b",
+      "sourceId": "nyc-real-estate-pluto-capacity-brooklyn"
+    },
+    {
+      "byteCount": 2464264,
+      "path": "nyc-pluto-capacity-manhattan.json",
+      "sha256": "91e3e1f5dce97a340475b51577458c8e48183f1138c334fbcce27d68001e9d25",
+      "sourceId": "nyc-real-estate-pluto-capacity-manhattan"
+    },
+    {
+      "byteCount": 2418903,
+      "path": "nyc-pluto-capacity-queens.json",
+      "sha256": "02a12d81466e89e05b9be9273198c5f857e86db5d2c95cfb717160ce4ccf99c1",
+      "sourceId": "nyc-real-estate-pluto-capacity-queens"
+    },
+    {
+      "byteCount": 1168016,
+      "path": "nyc-pluto-capacity-staten-island.json",
+      "sha256": "6d488f6ce46fa09930b669429275014a8ecedae6c85041fb465a15633c6a38b0",
+      "sourceId": "nyc-real-estate-pluto-capacity-staten-island"
+    }
+  ],
+  "truth": {
+    "origin": "observed",
+    "temporalStatus": "historical",
+    "uncertainty": {
+      "kind": "missing",
+      "value": {
+        "reason": "Administrative records have missing, revised, duplicated, and source-sampled fields without a shared statistical uncertainty model."
+      }
+    }
+  }
+}

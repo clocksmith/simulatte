@@ -1,0 +1,54 @@
+{
+  "schema": "simulatte.cableLogisticsCatalog.v1",
+  "id": "cable-logistics-catalog-v1",
+  "retrievedAt": "2026-07-27T00:00:00Z",
+  "sources": [
+    {
+      "id": "tia-568-d",
+      "title": "TIA-568 Commercial Building Telecommunications Cabling Standards",
+      "url": "https://tiaonline.org/standard/tia-568/",
+      "publisher": "Telecommunications Industry Association",
+      "license": "Public catalog metadata; the standard text is separately licensed."
+    },
+    {
+      "id": "iec-60793-2-10-2019",
+      "title": "IEC 60793-2-10:2019 multimode optical fibre categories",
+      "url": "https://webstore.iec.ch/en/publication/62020",
+      "publisher": "International Electrotechnical Commission",
+      "license": "Public catalog metadata; the standard text is separately licensed."
+    },
+    {
+      "id": "iec-60793-2-50-2015",
+      "title": "IEC 60793-2-50:2015 single-mode optical fibre categories",
+      "url": "https://webstore.iec.ch/en/publication/23740",
+      "publisher": "International Electrotechnical Commission",
+      "license": "Public catalog metadata; the standard text is separately licensed."
+    },
+    {
+      "id": "ansi-scte-15-2022",
+      "title": "ANSI/SCTE 15 2022 coaxial cable specification",
+      "url": "https://account.scte.org/standards/library/catalog/scte-15-specification-for-trunk-feeder-distribution-coaxial-cable/",
+      "publisher": "Society of Cable Telecommunications Engineers",
+      "license": "Public catalog metadata; the standard text is separately licensed."
+    }
+  ],
+  "families": [
+    { "id": "cat6-copper", "sourceIds": ["tia-568-d"], "identityOrigin": "derived" },
+    { "id": "cat6a-copper", "sourceIds": ["tia-568-d"], "identityOrigin": "derived" },
+    { "id": "os2-single-mode", "sourceIds": ["iec-60793-2-50-2015"], "identityOrigin": "derived" },
+    { "id": "om4-multimode", "sourceIds": ["iec-60793-2-10-2019"], "identityOrigin": "derived" },
+    { "id": "rg6-coax", "sourceIds": ["ansi-scte-15-2022"], "identityOrigin": "derived" }
+  ],
+  "modeledFields": [
+    "reelLengthM",
+    "minimumUsefulRemnantM",
+    "modeledCostPerMeter",
+    "demandWeight",
+    "substitutesFor",
+    "depotInventory",
+    "projectDemand",
+    "vehicleCapacity",
+    "deliveryTime"
+  ],
+  "claimBoundary": "Standards catalog pages support cable-family context only. Reel lengths, costs, substitution rules, inventory, demand, routes, disruptions, vehicles, and delivery times are authored scenario assumptions."
+}

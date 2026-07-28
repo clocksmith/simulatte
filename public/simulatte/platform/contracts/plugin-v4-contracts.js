@@ -7,7 +7,7 @@
   const TEMPORAL_STATUSES = Object.freeze(['historical', 'snapshot', 'forecast', 'live']);
   const UNCERTAINTY_KINDS = Object.freeze(['interval', 'distribution', 'confidence', 'missing']);
   const GEOMETRY_KINDS = Object.freeze(['node', 'node-path', 'segments', 'point', 'polyline', 'polygon']);
-  const LAYER_KINDS = Object.freeze(['point', 'path', 'area', 'actor', 'field', 'label']);
+  const LAYER_KINDS = Object.freeze(['point', 'path', 'area', 'volume', 'actor', 'field', 'label']);
   const SEMANTIC_ROLES = Object.freeze(['primary', 'context', 'comparison', 'uncertainty', 'event']);
   const VIEW_MODES = Object.freeze(['overview', 'follow', 'pov', 'compare', 'free']);
   const CONTROL_KINDS = Object.freeze(['number', 'range', 'select', 'multiselect', 'toggle', 'time', 'date', 'datetime-local']);

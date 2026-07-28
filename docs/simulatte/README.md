@@ -23,9 +23,10 @@ and live renderer adoption of atomic tile residency remain outside the claim.
 The target application boundary and resumable extraction sequence are defined
 in [Simulatte plugin platform architecture](plugin-platform-architecture.md).
 Blank remains a separate compiler. Sun Walker, P2P Delivery, Cable Trader,
-Counterfactual Lab, Accessible Journey, Historical Streets, Safety Explorer,
-Amenity Router, and Gig Wage Truth are defined as independently versioned
-Simulatte World plugins composed through a shared host.
+Counterfactual Lab, Accessible Journey, Historical Streets, Amenity Router,
+and Gig Wage Truth are defined as independently versioned Simulatte World
+plugins composed through a shared host. Safety Explorer source remains
+available for historical reference but is not connected to the public host.
 
 It is not a directions wrapper and it is not a physical-autonomy claim. Its
 distinct product is matched simulation evidence for questions such as:

@@ -1,0 +1,487 @@
+{
+  "capacitySites": [],
+  "claimBoundary": "This NTA shard preserves every joined row retained from the governed source snapshot. The source snapshot itself samples large DOB jobs, constructed footprints, and PLUTO capacity candidates and is not a complete property history or feasibility inventory.",
+  "contentVersion": "2026-07-27",
+  "coverage": {
+    "capacityCandidates": 0,
+    "compilerRegionCap": null,
+    "developmentForecastSupportedBySector": {
+      "all": false,
+      "tax-class-1": false,
+      "tax-class-2": false,
+      "tax-class-4": false
+    },
+    "developmentSeriesRows": 4,
+    "historicalSites": 1,
+    "priceForecastSupportedBySector": {
+      "all": false,
+      "tax-class-1": false,
+      "tax-class-2": false,
+      "tax-class-4": false
+    },
+    "saleRows": 0,
+    "saleYearsBySector": {
+      "tax-class-1": [],
+      "tax-class-2": [],
+      "tax-class-4": []
+    },
+    "sectorCandidateCounts": {
+      "all": 0,
+      "tax-class-1": 0,
+      "tax-class-2": 0,
+      "tax-class-4": 0
+    },
+    "sourceSampled": true
+  },
+  "developmentSeries": [
+    {
+      "filingCount": 2,
+      "id": "development:BX1271:2001",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "BX1271",
+      "sourceNtaNames": [
+        "Woodlawn Cemetery"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2001
+    },
+    {
+      "filingCount": 3,
+      "id": "development:BX1271:2002",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "BX1271",
+      "sourceNtaNames": [
+        "Woodlawn Cemetery"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2002
+    },
+    {
+      "filingCount": 1,
+      "id": "development:BX1271:2012",
+      "proposedZoningSquareFeet": 62971,
+      "regionId": "BX1271",
+      "sourceNtaNames": [
+        "Woodlawn Cemetery"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2012
+    },
+    {
+      "filingCount": 2,
+      "id": "development:BX1271:2017",
+      "proposedZoningSquareFeet": 2995,
+      "regionId": "BX1271",
+      "sourceNtaNames": [
+        "Woodlawn Cemetery"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2017
+    }
+  ],
+  "developmentSites": [
+    {
+      "address": "4199 WEBSTER AVENUE",
+      "bbl": "2123994",
+      "bin": "2123994",
+      "constructionYear": 2014,
+      "coordinates": [
+        -73.863587,
+        40.89522
+      ],
+      "footprint": [
+        [
+          -73.8644189,
+          40.8945912
+        ],
+        [
+          -73.8627551,
+          40.8945912
+        ],
+        [
+          -73.8627551,
+          40.8958488
+        ],
+        [
+          -73.8644189,
+          40.8958488
+        ],
+        [
+          -73.8644189,
+          40.8945912
+        ]
+      ],
+      "footprintAreaM2": 5850.19,
+      "footprintOrigin": "modeled",
+      "heightM": 7.32,
+      "id": "job:220222042:01",
+      "jobId": "220222042",
+      "milestones": [
+        {
+          "date": "2012-08-24",
+          "id": "job:220222042:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2013-03-01",
+          "id": "job:220222042:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2013-04-02",
+          "id": "job:220222042:01:fully-permitted:3",
+          "kind": "fully-permitted",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2014-02-04",
+          "id": "job:220222042:01:final-certificate-of-occupancy:4",
+          "kind": "final-certificate-of-occupancy",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2014-02-04",
+          "id": "job:220222042:01:signed-off:5",
+          "kind": "signed-off",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 1,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": 62971,
+      "regionId": "BX1271",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:2062283",
+        "certificate-of-occupancy:220222042:001"
+      ],
+      "status": "SIGNED OFF",
+      "withdrawn": false
+    }
+  ],
+  "id": "nyc-real-estate-region-bx1271-v1",
+  "region": {
+    "abbreviation": "WdlnCem",
+    "areaM2": 17886378.8288,
+    "boroughId": "bronx",
+    "boroughLabel": "Bronx",
+    "bounds": {
+      "east": -73.8635592,
+      "north": 40.8966402,
+      "south": 40.8799477,
+      "west": -73.8804023
+    },
+    "centroid": [
+      -73.8731085,
+      40.8870251
+    ],
+    "communityDistrictTabulationAreaId": "BX12",
+    "communityDistrictTabulationAreaLabel": "BX12 Wakefield-Williamsbridge-Eastchester (CD 12 Approximation)",
+    "id": "BX1271",
+    "label": "Woodlawn Cemetery",
+    "polygon": [
+      [
+        -73.8740675,
+        40.8800389
+      ],
+      [
+        -73.8749459,
+        40.8799477
+      ],
+      [
+        -73.8747924,
+        40.8800751
+      ],
+      [
+        -73.8747026,
+        40.8815538
+      ],
+      [
+        -73.8781258,
+        40.8821537
+      ],
+      [
+        -73.8776068,
+        40.884523
+      ],
+      [
+        -73.8778313,
+        40.8867728
+      ],
+      [
+        -73.8781889,
+        40.8880492
+      ],
+      [
+        -73.8803594,
+        40.8925523
+      ],
+      [
+        -73.8804023,
+        40.8932775
+      ],
+      [
+        -73.8800421,
+        40.8952223
+      ],
+      [
+        -73.8748062,
+        40.8957257
+      ],
+      [
+        -73.8704867,
+        40.8966402
+      ],
+      [
+        -73.8649163,
+        40.8957495
+      ],
+      [
+        -73.8635592,
+        40.895377
+      ],
+      [
+        -73.8636853,
+        40.8943246
+      ],
+      [
+        -73.8670047,
+        40.8890739
+      ],
+      [
+        -73.8687663,
+        40.8842239
+      ],
+      [
+        -73.869211,
+        40.8833247
+      ],
+      [
+        -73.8700173,
+        40.8823445
+      ],
+      [
+        -73.8708357,
+        40.8804541
+      ],
+      [
+        -73.8730733,
+        40.8801344
+      ],
+      [
+        -73.8740675,
+        40.8800389
+      ]
+    ],
+    "spatialPolygons": [
+      {
+        "holes": [],
+        "outer": [
+          [
+            -73.8740675,
+            40.8800389
+          ],
+          [
+            -73.8749459,
+            40.8799477
+          ],
+          [
+            -73.8747924,
+            40.8800751
+          ],
+          [
+            -73.8747026,
+            40.8815538
+          ],
+          [
+            -73.8781258,
+            40.8821537
+          ],
+          [
+            -73.8776068,
+            40.884523
+          ],
+          [
+            -73.8778313,
+            40.8867728
+          ],
+          [
+            -73.8781889,
+            40.8880492
+          ],
+          [
+            -73.8803594,
+            40.8925523
+          ],
+          [
+            -73.8804023,
+            40.8932775
+          ],
+          [
+            -73.8800421,
+            40.8952223
+          ],
+          [
+            -73.8748062,
+            40.8957257
+          ],
+          [
+            -73.8704867,
+            40.8966402
+          ],
+          [
+            -73.8649163,
+            40.8957495
+          ],
+          [
+            -73.8635592,
+            40.895377
+          ],
+          [
+            -73.8636853,
+            40.8943246
+          ],
+          [
+            -73.8670047,
+            40.8890739
+          ],
+          [
+            -73.8687663,
+            40.8842239
+          ],
+          [
+            -73.869211,
+            40.8833247
+          ],
+          [
+            -73.8700173,
+            40.8823445
+          ],
+          [
+            -73.8708357,
+            40.8804541
+          ],
+          [
+            -73.8730733,
+            40.8801344
+          ],
+          [
+            -73.8740675,
+            40.8800389
+          ]
+        ]
+      }
+    ]
+  },
+  "saleSeries": [],
+  "schema": "simulatte.nycRealEstateRegionShard.v1",
+  "sourceIdentities": [
+    {
+      "byteCount": 1008463,
+      "path": "nyc-annualized-sales-by-nta.json",
+      "sha256": "14c15020381466196236073ee3753ff7a5d74a76ec6af4605e96564abd2bf99a",
+      "sourceId": "nyc-real-estate-sales-annual"
+    },
+    {
+      "byteCount": 8977616,
+      "path": "nyc-final-certificates-of-occupancy.json",
+      "sha256": "966c237824a79aff9d5137d27b498ba4f3670cc19844738c5ce17a559388030e",
+      "sourceId": "nyc-real-estate-final-occupancy"
+    },
+    {
+      "byteCount": 8802596,
+      "path": "nyc-largest-constructed-footprints-2010-2026.geojson",
+      "sha256": "15745b9c62fa539e683737f0665fe91d95231e68d8c1b598e7ed211114811eb6",
+      "sourceId": "nyc-real-estate-constructed-footprints"
+    },
+    {
+      "byteCount": 1076754,
+      "path": "nyc-largest-new-building-jobs-bronx.json",
+      "sha256": "1a44c6cbfa364639e4b75957b2fab7e3c301f95bcfcfa90c50862fef85f450c1",
+      "sourceId": "nyc-real-estate-new-building-sample-bronx"
+    },
+    {
+      "byteCount": 1085334,
+      "path": "nyc-largest-new-building-jobs-brooklyn.json",
+      "sha256": "389e1825faff440d6fad5a12ed470f84e90859fd732262346a3414c5503693fd",
+      "sourceId": "nyc-real-estate-new-building-sample-brooklyn"
+    },
+    {
+      "byteCount": 1097625,
+      "path": "nyc-largest-new-building-jobs-manhattan.json",
+      "sha256": "6346678de380d58e325db14fc2e0611d993743be29898360e08f092eaa1f88e5",
+      "sourceId": "nyc-real-estate-new-building-sample-manhattan"
+    },
+    {
+      "byteCount": 1091065,
+      "path": "nyc-largest-new-building-jobs-queens.json",
+      "sha256": "79eb6f028b2135214d47a793101f72de695efcb02e4c2802cc10cd062c760a22",
+      "sourceId": "nyc-real-estate-new-building-sample-queens"
+    },
+    {
+      "byteCount": 1120592,
+      "path": "nyc-largest-new-building-jobs-staten-island.json",
+      "sha256": "e0870a431a75bdd235fc09b0ecd7503c45384f5e8b66beba545447c7bb3d960a",
+      "sourceId": "nyc-real-estate-new-building-sample-staten-island"
+    },
+    {
+      "byteCount": 1250280,
+      "path": "nyc-new-building-filings-by-nta-year.json",
+      "sha256": "4b75b0ad54a1ce5241b9c2e303be2cc24781e55a65fbf27be10d00a80bfeadea",
+      "sourceId": "nyc-real-estate-new-building-annual"
+    },
+    {
+      "byteCount": 4576764,
+      "path": "nyc-nta-2020.geojson",
+      "sha256": "c3dd069e094e2d2f647c1c102cd7e0570d033dd6131446bd1943a73210d09c56",
+      "sourceId": "nyc-real-estate-nta-boundaries"
+    },
+    {
+      "byteCount": 2402191,
+      "path": "nyc-pluto-capacity-bronx.json",
+      "sha256": "b45168721525e18a29aafcce335212632607021240869b738cbb96fbe2441389",
+      "sourceId": "nyc-real-estate-pluto-capacity-bronx"
+    },
+    {
+      "byteCount": 2403266,
+      "path": "nyc-pluto-capacity-brooklyn.json",
+      "sha256": "63b33a507c0bc26f7b71669cf032baa4950af2db77ce8712b876ca6f4c9f771b",
+      "sourceId": "nyc-real-estate-pluto-capacity-brooklyn"
+    },
+    {
+      "byteCount": 2464264,
+      "path": "nyc-pluto-capacity-manhattan.json",
+      "sha256": "91e3e1f5dce97a340475b51577458c8e48183f1138c334fbcce27d68001e9d25",
+      "sourceId": "nyc-real-estate-pluto-capacity-manhattan"
+    },
+    {
+      "byteCount": 2418903,
+      "path": "nyc-pluto-capacity-queens.json",
+      "sha256": "02a12d81466e89e05b9be9273198c5f857e86db5d2c95cfb717160ce4ccf99c1",
+      "sourceId": "nyc-real-estate-pluto-capacity-queens"
+    },
+    {
+      "byteCount": 1168016,
+      "path": "nyc-pluto-capacity-staten-island.json",
+      "sha256": "6d488f6ce46fa09930b669429275014a8ecedae6c85041fb465a15633c6a38b0",
+      "sourceId": "nyc-real-estate-pluto-capacity-staten-island"
+    }
+  ],
+  "truth": {
+    "origin": "observed",
+    "temporalStatus": "historical",
+    "uncertainty": {
+      "kind": "missing",
+      "value": {
+        "reason": "Administrative records have missing, revised, duplicated, and source-sampled fields without a shared statistical uncertainty model."
+      }
+    }
+  }
+}

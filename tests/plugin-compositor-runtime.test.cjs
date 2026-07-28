@@ -5,6 +5,7 @@ const cityPresentation = require('../public/simulatte/app/plugin-presentation.js
 const tierPresentation = require('../public/simulatte/app/tier-plugin-presentation.js');
 const multiTierVisualizer = require('../public/simulatte/app/multi-tier-visualizer.js');
 const semanticLabelOverlay = require('../public/simulatte/app/semantic-label-overlay.js');
+const gpuGeometry = require('../public/simulatte/app/webgpu-geometry.js');
 const contracts = require('../public/simulatte/platform/contracts/plugin-v4-contracts.js');
 const provenanceRegistry = require('../public/simulatte/platform/runtime/provenance-registry.js');
 
@@ -158,6 +159,78 @@ test('City renderer converts compositor pixels into visible world dimensions', (
   assert.equal(compiled.markers[0].radiusM > compiled.markers[0].style.radiusPx, true);
   assert.equal(compiled.markers[0].heightM, compiled.markers[0].radiusM * 3);
   assert.equal(compiled.compositorReceipts[0].policies.screenSpaceWidths, true);
+});
+
+test('semantic volume compiles into an extruded City mesh and retains height in tier views', () => {
+  const base = semanticPresentation();
+  const presentation = {
+    ...base,
+    layers: [{
+      ...base.layers[0],
+      id: 'building',
+      kind: 'volume',
+      label: 'Building under construction',
+      geometry: {
+        kind: 'polygon',
+        coordinateSystem: 'local-m',
+        coordinates: [[0, 0], [20, 0], [20, 20], [0, 20], [0, 0]],
+      },
+      quantity: {
+        kind: 'building-visible-height',
+        value: 48,
+        unit: 'm',
+        domain: [0, 80],
+      },
+    }],
+    viewIntents: [{
+      schema: 'simulatte.viewIntent.v4',
+      id: 'building-overview',
+      mode: 'overview',
+      targetIds: ['building'],
+      reasonEventId: null,
+      priority: 80,
+      transition: 'ease',
+    }],
+  };
+  const city = cityPresentation.compile([{
+    pluginId: 'fixture',
+    presentation,
+  }], {
+    world: {},
+    node() { throw new Error('unused'); },
+    segment() { throw new Error('unused'); },
+  }, {
+    viewport: { width: 400, height: 300 },
+    provenanceReceipts: [provenanceReceipt(presentation)],
+  });
+  assert.equal(city.areas.length, 1);
+  assert.equal(city.areas[0].isVolume, true);
+  assert.equal(city.areas[0].heightM, 48);
+
+  const writer = gpuGeometry.createWriter();
+  gpuGeometry.addExtrudedPolygon(
+    writer,
+    city.areas[0].points,
+    city.areas[0].heightM,
+    gpuGeometry.PLUGIN_TONES.violet,
+    0.5
+  );
+  const vertices = writer.finish();
+  const heights = [];
+  for (let offset = 0; offset < vertices.length; offset += gpuGeometry.FLOATS_PER_VERTEX) {
+    heights.push(vertices[offset + 1]);
+  }
+  assert.equal(Math.max(...heights), 48);
+  assert.ok(Math.min(...heights) <= 0.12);
+  assert.ok(vertices.length / gpuGeometry.FLOATS_PER_VERTEX >= 30);
+
+  const tier = tierPresentation.compileTierPresentation(presentation, 'local-m', {
+    viewport: { width: 400, height: 300 },
+    project: (position) => ({ x: position[0], y: position[1] }),
+    provenanceReceipt: provenanceReceipt(presentation),
+  });
+  assert.equal(tier.areas[0].isVolume, true);
+  assert.equal(tier.areas[0].height, 48);
 });
 
 test('City compiles a semantic actor into a moving actor mesh and camera target', () => {

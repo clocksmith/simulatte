@@ -1,0 +1,3871 @@
+{
+  "capacitySites": [
+    {
+      "address": "835 40 STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.43,
+      "availableResidentialFar": 2.43,
+      "bbl": "3009160053",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9965406,
+        40.6461795
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:3009160053",
+      "landUseCode": "11",
+      "lotAreaSquareFeet": 10017,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 24341.31,
+      "potentialResidentialFloorAreaSquareFeet": 24341.31,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 27,
+      "regionId": "BK1201",
+      "residentialFar": 2.43,
+      "sourceRowIds": [
+        "pluto:3009160053"
+      ],
+      "zoningDistricts": [
+        "R6"
+      ]
+    },
+    {
+      "address": "3901 9 AVENUE",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 3.79,
+      "availableResidentialFar": 3.79,
+      "bbl": "3055830006",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 1962,
+      "builtFar": 0.21,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9950416,
+        40.6456085
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 2,
+      "id": "capacity:3055830006",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 9533,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 36130.07,
+      "potentialResidentialFloorAreaSquareFeet": 36130.07,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 40,
+      "regionId": "BK1201",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3055830006"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    },
+    {
+      "address": "914 39 STREET",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0,
+      "availableFar": 3.42,
+      "availableResidentialFar": 3.42,
+      "bbl": "3055830012",
+      "boroughId": "brooklyn",
+      "builtAreaSquareFeet": 1100,
+      "builtFar": 0.58,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9948722,
+        40.6455042
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:3055830012",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 1903,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 6508.26,
+      "potentialResidentialFloorAreaSquareFeet": 6508.26,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 7,
+      "regionId": "BK1201",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:3055830012"
+      ],
+      "zoningDistricts": [
+        "R7A"
+      ]
+    }
+  ],
+  "claimBoundary": "This NTA shard preserves every joined row retained from the governed source snapshot. The source snapshot itself samples large DOB jobs, constructed footprints, and PLUTO capacity candidates and is not a complete property history or feasibility inventory.",
+  "contentVersion": "2026-07-27",
+  "coverage": {
+    "capacityCandidates": 3,
+    "compilerRegionCap": null,
+    "developmentForecastSupportedBySector": {
+      "all": false,
+      "tax-class-1": true,
+      "tax-class-2": true,
+      "tax-class-4": false
+    },
+    "developmentSeriesRows": 22,
+    "historicalSites": 50,
+    "priceForecastSupportedBySector": {
+      "all": true,
+      "tax-class-1": true,
+      "tax-class-2": true,
+      "tax-class-4": true
+    },
+    "saleRows": 30,
+    "saleYearsBySector": {
+      "tax-class-1": [
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "tax-class-2": [
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "tax-class-4": [
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024,
+        2025
+      ]
+    },
+    "sectorCandidateCounts": {
+      "all": 0,
+      "tax-class-1": 3,
+      "tax-class-2": 3,
+      "tax-class-4": 0
+    },
+    "sourceSampled": true
+  },
+  "developmentSeries": [
+    {
+      "filingCount": 34,
+      "id": "development:BK1201:2000",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "BK1201",
+      "sourceNtaNames": [
+        "Sunset Park (East)-Borough Park (West)",
+        "Sunset Park East"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2000
+    },
+    {
+      "filingCount": 16,
+      "id": "development:BK1201:2001",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "BK1201",
+      "sourceNtaNames": [
+        "Sunset Park (East)-Borough Park (West)",
+        "Sunset Park East"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2001
+    },
+    {
+      "filingCount": 5,
+      "id": "development:BK1201:2002",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "BK1201",
+      "sourceNtaNames": [
+        "Sunset Park (East)-Borough Park (West)",
+        "Sunset Park East"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2002
+    },
+    {
+      "filingCount": 23,
+      "id": "development:BK1201:2003",
+      "proposedZoningSquareFeet": 23013,
+      "regionId": "BK1201",
+      "sourceNtaNames": [
+        "Sunset Park (East)-Borough Park (West)",
+        "Sunset Park East"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2003
+    },
+    {
+      "filingCount": 35,
+      "id": "development:BK1201:2004",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "BK1201",
+      "sourceNtaNames": [
+        "Sunset Park (East)-Borough Park (West)",
+        "Sunset Park East"
+      ],
+      "withdrawnFilingCount": 3,
+      "year": 2004
+    },
+    {
+      "filingCount": 35,
+      "id": "development:BK1201:2005",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "BK1201",
+      "sourceNtaNames": [
+        "Sunset Park (East)-Borough Park (West)",
+        "Sunset Park East"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2005
+    },
+    {
+      "filingCount": 20,
+      "id": "development:BK1201:2006",
+      "proposedZoningSquareFeet": 12075,
+      "regionId": "BK1201",
+      "sourceNtaNames": [
+        "Sunset Park (East)-Borough Park (West)",
+        "Sunset Park East"
+      ],
+      "withdrawnFilingCount": 1,
+      "year": 2006
+    },
+    {
+      "filingCount": 24,
+      "id": "development:BK1201:2007",
+      "proposedZoningSquareFeet": 19099,
+      "regionId": "BK1201",
+      "sourceNtaNames": [
+        "Sunset Park (East)-Borough Park (West)",
+        "Sunset Park East"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2007
+    },
+    {
+      "filingCount": 20,
+      "id": "development:BK1201:2008",
+      "proposedZoningSquareFeet": 87501,
+      "regionId": "BK1201",
+      "sourceNtaNames": [
+        "Sunset Park (East)-Borough Park (West)",
+        "Sunset Park East"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2008
+    },
+    {
+      "filingCount": 11,
+      "id": "development:BK1201:2009",
+      "proposedZoningSquareFeet": 28470,
+      "regionId": "BK1201",
+      "sourceNtaNames": [
+        "Sunset Park (East)-Borough Park (West)",
+        "Sunset Park East"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2009
+    },
+    {
+      "filingCount": 13,
+      "id": "development:BK1201:2010",
+      "proposedZoningSquareFeet": 77223,
+      "regionId": "BK1201",
+      "sourceNtaNames": [
+        "Sunset Park (East)-Borough Park (West)",
+        "Sunset Park East"
+      ],
+      "withdrawnFilingCount": 2,
+      "year": 2010
+    },
+    {
+      "filingCount": 25,
+      "id": "development:BK1201:2011",
+      "proposedZoningSquareFeet": 92517,
+      "regionId": "BK1201",
+      "sourceNtaNames": [
+        "Sunset Park (East)-Borough Park (West)",
+        "Sunset Park East"
+      ],
+      "withdrawnFilingCount": 2,
+      "year": 2011
+    },
+    {
+      "filingCount": 18,
+      "id": "development:BK1201:2012",
+      "proposedZoningSquareFeet": 337961,
+      "regionId": "BK1201",
+      "sourceNtaNames": [
+        "Sunset Park (East)-Borough Park (West)",
+        "Sunset Park East"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2012
+    },
+    {
+      "filingCount": 34,
+      "id": "development:BK1201:2013",
+      "proposedZoningSquareFeet": 339300,
+      "regionId": "BK1201",
+      "sourceNtaNames": [
+        "Sunset Park (East)-Borough Park (West)",
+        "Sunset Park East"
+      ],
+      "withdrawnFilingCount": 1,
+      "year": 2013
+    },
+    {
+      "filingCount": 63,
+      "id": "development:BK1201:2014",
+      "proposedZoningSquareFeet": 299956,
+      "regionId": "BK1201",
+      "sourceNtaNames": [
+        "Sunset Park (East)-Borough Park (West)",
+        "Sunset Park East"
+      ],
+      "withdrawnFilingCount": 3,
+      "year": 2014
+    },
+    {
+      "filingCount": 49,
+      "id": "development:BK1201:2015",
+      "proposedZoningSquareFeet": 163318,
+      "regionId": "BK1201",
+      "sourceNtaNames": [
+        "Sunset Park (East)-Borough Park (West)",
+        "Sunset Park East"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2015
+    },
+    {
+      "filingCount": 49,
+      "id": "development:BK1201:2016",
+      "proposedZoningSquareFeet": 289581,
+      "regionId": "BK1201",
+      "sourceNtaNames": [
+        "Sunset Park (East)-Borough Park (West)",
+        "Sunset Park East"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2016
+    },
+    {
+      "filingCount": 22,
+      "id": "development:BK1201:2017",
+      "proposedZoningSquareFeet": 182045,
+      "regionId": "BK1201",
+      "sourceNtaNames": [
+        "Sunset Park (East)-Borough Park (West)",
+        "Sunset Park East"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2017
+    },
+    {
+      "filingCount": 44,
+      "id": "development:BK1201:2018",
+      "proposedZoningSquareFeet": 244351,
+      "regionId": "BK1201",
+      "sourceNtaNames": [
+        "Sunset Park (East)-Borough Park (West)",
+        "Sunset Park East"
+      ],
+      "withdrawnFilingCount": 2,
+      "year": 2018
+    },
+    {
+      "filingCount": 21,
+      "id": "development:BK1201:2019",
+      "proposedZoningSquareFeet": 76954,
+      "regionId": "BK1201",
+      "sourceNtaNames": [
+        "Sunset Park (East)-Borough Park (West)",
+        "Sunset Park East"
+      ],
+      "withdrawnFilingCount": 1,
+      "year": 2019
+    },
+    {
+      "filingCount": 19,
+      "id": "development:BK1201:2020",
+      "proposedZoningSquareFeet": 280446,
+      "regionId": "BK1201",
+      "sourceNtaNames": [
+        "Sunset Park (East)-Borough Park (West)",
+        "Sunset Park East"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2020
+    },
+    {
+      "filingCount": 1,
+      "id": "development:BK1201:2021",
+      "proposedZoningSquareFeet": 7584,
+      "regionId": "BK1201",
+      "sourceNtaNames": [
+        "Sunset Park East"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2021
+    }
+  ],
+  "developmentSites": [
+    {
+      "address": null,
+      "bbl": "3056790001",
+      "bin": "3425096",
+      "constructionYear": 2019,
+      "coordinates": [
+        -74.0067605,
+        40.6378072
+      ],
+      "footprint": [
+        [
+          -74.0068089,
+          40.637976
+        ],
+        [
+          -74.0064652,
+          40.6377687
+        ],
+        [
+          -74.0066879,
+          40.6375541
+        ],
+        [
+          -74.0070316,
+          40.6377614
+        ],
+        [
+          -74.0068089,
+          40.637976
+        ]
+      ],
+      "footprintAreaM2": 1958.66,
+      "footprintOrigin": "observed",
+      "heightM": 24.69,
+      "id": "footprint:1033801",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2019-07-01",
+          "id": "footprint:1033801:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1201",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1033801"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3056440053",
+      "bin": "3137845",
+      "constructionYear": 2019,
+      "coordinates": [
+        -74.0026188,
+        40.6397863
+      ],
+      "footprint": [
+        [
+          -74.0026402,
+          40.6397185
+        ],
+        [
+          -74.0027161,
+          40.6397644
+        ],
+        [
+          -74.0025878,
+          40.6398877
+        ],
+        [
+          -74.0025096,
+          40.6398424
+        ],
+        [
+          -74.0026402,
+          40.6397185
+        ]
+      ],
+      "footprintAreaM2": 251.77,
+      "footprintOrigin": "observed",
+      "heightM": 16.76,
+      "id": "footprint:1042312",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2019-07-01",
+          "id": "footprint:1042312:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1201",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1042312"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3056870073",
+      "bin": "3139956",
+      "constructionYear": 2020,
+      "coordinates": [
+        -74.0048059,
+        40.6356334
+      ],
+      "footprint": [
+        [
+          -74.0047814,
+          40.6356987
+        ],
+        [
+          -74.0047165,
+          40.6356611
+        ],
+        [
+          -74.0048421,
+          40.6355352
+        ],
+        [
+          -74.0049079,
+          40.6355732
+        ],
+        [
+          -74.0047814,
+          40.6356987
+        ]
+      ],
+      "footprintAreaM2": 212.05,
+      "footprintOrigin": "observed",
+      "heightM": 16.15,
+      "id": "footprint:1043049",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2020-07-01",
+          "id": "footprint:1043049:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1201",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1043049"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3056510062",
+      "bin": "3138180",
+      "constructionYear": 2021,
+      "coordinates": [
+        -74.0037458,
+        40.6395194
+      ],
+      "footprint": [
+        [
+          -74.0038394,
+          40.6394998
+        ],
+        [
+          -74.0037343,
+          40.639601
+        ],
+        [
+          -74.00368,
+          40.6395671
+        ],
+        [
+          -74.0036671,
+          40.6395799
+        ],
+        [
+          -74.0036085,
+          40.639544
+        ],
+        [
+          -74.0037292,
+          40.6394271
+        ],
+        [
+          -74.0038091,
+          40.6394762
+        ],
+        [
+          -74.0038053,
+          40.6394797
+        ],
+        [
+          -74.0038394,
+          40.6394998
+        ]
+      ],
+      "footprintAreaM2": 331.86,
+      "footprintOrigin": "observed",
+      "heightM": 22.25,
+      "id": "footprint:1046693",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2021-07-01",
+          "id": "footprint:1046693:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1201",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1046693"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3052880075",
+      "bin": "3394305",
+      "constructionYear": 2010,
+      "coordinates": [
+        -73.9918335,
+        40.6443729
+      ],
+      "footprint": [
+        [
+          -73.9917477,
+          40.6444054
+        ],
+        [
+          -73.9919554,
+          40.6442079
+        ],
+        [
+          -73.9920074,
+          40.6442394
+        ],
+        [
+          -73.9918002,
+          40.6444373
+        ],
+        [
+          -73.9917904,
+          40.6444314
+        ],
+        [
+          -73.9917477,
+          40.6444054
+        ]
+      ],
+      "footprintAreaM2": 276,
+      "footprintOrigin": "observed",
+      "heightM": 6.71,
+      "id": "footprint:1060305",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2010-07-01",
+          "id": "footprint:1060305:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1201",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1060305"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3056520042",
+      "bin": "3138223",
+      "constructionYear": 2019,
+      "coordinates": [
+        -74.0002431,
+        40.6379
+      ],
+      "footprint": [
+        [
+          -74.0001577,
+          40.6378198
+        ],
+        [
+          -74.0004029,
+          40.6379687
+        ],
+        [
+          -74.0003746,
+          40.6379953
+        ],
+        [
+          -74.0003328,
+          40.6379695
+        ],
+        [
+          -74.0003185,
+          40.6379833
+        ],
+        [
+          -74.0001165,
+          40.6378603
+        ],
+        [
+          -74.0001577,
+          40.6378198
+        ]
+      ],
+      "footprintAreaM2": 247.13,
+      "footprintOrigin": "observed",
+      "heightM": 15.54,
+      "id": "footprint:1074132",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2019-07-01",
+          "id": "footprint:1074132:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1201",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1074132"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3056510060",
+      "bin": "3138179",
+      "constructionYear": 2019,
+      "coordinates": [
+        -74.0035787,
+        40.6394603
+      ],
+      "footprint": [
+        [
+          -74.0036069,
+          40.6393689
+        ],
+        [
+          -74.0037188,
+          40.6394372
+        ],
+        [
+          -74.003601,
+          40.6395514
+        ],
+        [
+          -74.0035393,
+          40.6395154
+        ],
+        [
+          -74.0035522,
+          40.6395029
+        ],
+        [
+          -74.0035002,
+          40.6394709
+        ],
+        [
+          -74.0035047,
+          40.6394667
+        ],
+        [
+          -74.0036069,
+          40.6393689
+        ]
+      ],
+      "footprintAreaM2": 326.45,
+      "footprintOrigin": "observed",
+      "heightM": 21.95,
+      "id": "footprint:1075244",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2019-07-01",
+          "id": "footprint:1075244:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1201",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1075244"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3007600008",
+      "bin": "3012101",
+      "constructionYear": 2020,
+      "coordinates": [
+        -74.0012731,
+        40.6431113
+      ],
+      "footprint": [
+        [
+          -74.0014204,
+          40.6431445
+        ],
+        [
+          -74.001334,
+          40.643229
+        ],
+        [
+          -74.001052,
+          40.6430616
+        ],
+        [
+          -74.0011385,
+          40.6429771
+        ],
+        [
+          -74.0014204,
+          40.6431445
+        ]
+      ],
+      "footprintAreaM2": 625.32,
+      "footprintOrigin": "observed",
+      "heightM": 19.81,
+      "id": "footprint:1078956",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2020-07-01",
+          "id": "footprint:1078956:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1201",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1078956"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3057080042",
+      "bin": "3413957",
+      "constructionYear": 2017,
+      "coordinates": [
+        -74.0060443,
+        40.6336286
+      ],
+      "footprint": [
+        [
+          -74.0060803,
+          40.6335418
+        ],
+        [
+          -74.0061627,
+          40.633593
+        ],
+        [
+          -74.0059907,
+          40.6337583
+        ],
+        [
+          -74.0059074,
+          40.633708
+        ],
+        [
+          -74.0060803,
+          40.6335418
+        ]
+      ],
+      "footprintAreaM2": 367.06,
+      "footprintOrigin": "observed",
+      "heightM": 19.81,
+      "id": "footprint:1079699",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2017-07-01",
+          "id": "footprint:1079699:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1201",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1079699"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3052890083",
+      "bin": "3122949",
+      "constructionYear": 2021,
+      "coordinates": [
+        -73.9913967,
+        40.6449562
+      ],
+      "footprint": [
+        [
+          -73.9913926,
+          40.6450993
+        ],
+        [
+          -73.9911698,
+          40.6449637
+        ],
+        [
+          -73.991403,
+          40.6447416
+        ],
+        [
+          -73.9916257,
+          40.6448772
+        ],
+        [
+          -73.9913926,
+          40.6450993
+        ]
+      ],
+      "footprintAreaM2": 1324.6,
+      "footprintOrigin": "observed",
+      "heightM": 21.34,
+      "id": "footprint:1080621",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2021-07-01",
+          "id": "footprint:1080621:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1201",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1080621"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3056800018",
+      "bin": "3421364",
+      "constructionYear": 2016,
+      "coordinates": [
+        -74.003888,
+        40.6363554
+      ],
+      "footprint": [
+        [
+          -74.0037236,
+          40.6364327
+        ],
+        [
+          -74.0038488,
+          40.6363119
+        ],
+        [
+          -74.0038577,
+          40.6363173
+        ],
+        [
+          -74.0039322,
+          40.6362454
+        ],
+        [
+          -74.0040355,
+          40.6363076
+        ],
+        [
+          -74.0038358,
+          40.6365002
+        ],
+        [
+          -74.0037236,
+          40.6364327
+        ]
+      ],
+      "footprintAreaM2": 556.34,
+      "footprintOrigin": "observed",
+      "heightM": 15.54,
+      "id": "footprint:1080959",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2016-07-01",
+          "id": "footprint:1080959:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1201",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1080959"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3055960040",
+      "bin": "3409021",
+      "constructionYear": 2014,
+      "coordinates": [
+        -73.9935214,
+        40.6420081
+      ],
+      "footprint": [
+        [
+          -73.9936039,
+          40.6419724
+        ],
+        [
+          -73.9934706,
+          40.6421045
+        ],
+        [
+          -73.9933976,
+          40.6420617
+        ],
+        [
+          -73.9935309,
+          40.6419296
+        ],
+        [
+          -73.9936039,
+          40.6419724
+        ]
+      ],
+      "footprintAreaM2": 250.48,
+      "footprintOrigin": "observed",
+      "heightM": 3.96,
+      "id": "footprint:1081209",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2014-07-01",
+          "id": "footprint:1081209:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1201",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1081209"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3055960039",
+      "bin": "3409022",
+      "constructionYear": 2014,
+      "coordinates": [
+        -73.9935523,
+        40.6420683
+      ],
+      "footprint": [
+        [
+          -73.9934706,
+          40.6421045
+        ],
+        [
+          -73.9936039,
+          40.6419724
+        ],
+        [
+          -73.9936749,
+          40.642014
+        ],
+        [
+          -73.9935417,
+          40.6421461
+        ],
+        [
+          -73.9934706,
+          40.6421045
+        ]
+      ],
+      "footprintAreaM2": 243.79,
+      "footprintOrigin": "observed",
+      "heightM": 3.96,
+      "id": "footprint:1081210",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2014-07-01",
+          "id": "footprint:1081210:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1201",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1081210"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3055960038",
+      "bin": "3412957",
+      "constructionYear": 2014,
+      "coordinates": [
+        -73.9936233,
+        40.6421098
+      ],
+      "footprint": [
+        [
+          -73.9935417,
+          40.6421461
+        ],
+        [
+          -73.9936749,
+          40.642014
+        ],
+        [
+          -73.9937457,
+          40.6420554
+        ],
+        [
+          -73.9936125,
+          40.6421875
+        ],
+        [
+          -73.9935417,
+          40.6421461
+        ]
+      ],
+      "footprintAreaM2": 242.91,
+      "footprintOrigin": "observed",
+      "heightM": 3.96,
+      "id": "footprint:1081211",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2014-07-01",
+          "id": "footprint:1081211:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1201",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1081211"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3055960037",
+      "bin": "3412956",
+      "constructionYear": 2014,
+      "coordinates": [
+        -73.9936946,
+        40.6421516
+      ],
+      "footprint": [
+        [
+          -73.9936125,
+          40.6421875
+        ],
+        [
+          -73.9937457,
+          40.6420554
+        ],
+        [
+          -73.9938179,
+          40.6420977
+        ],
+        [
+          -73.9936846,
+          40.6422298
+        ],
+        [
+          -73.9936125,
+          40.6421875
+        ]
+      ],
+      "footprintAreaM2": 247.59,
+      "footprintOrigin": "observed",
+      "heightM": 3.96,
+      "id": "footprint:1081212",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2014-07-01",
+          "id": "footprint:1081212:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1201",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1081212"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3055960036",
+      "bin": "3412955",
+      "constructionYear": 2014,
+      "coordinates": [
+        -73.9937653,
+        40.642193
+      ],
+      "footprint": [
+        [
+          -73.9936846,
+          40.6422298
+        ],
+        [
+          -73.9938179,
+          40.6420977
+        ],
+        [
+          -73.9938863,
+          40.6421377
+        ],
+        [
+          -73.9937531,
+          40.6422698
+        ],
+        [
+          -73.9936846,
+          40.6422298
+        ]
+      ],
+      "footprintAreaM2": 234.8,
+      "footprintOrigin": "observed",
+      "heightM": 3.96,
+      "id": "footprint:1081213",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2014-07-01",
+          "id": "footprint:1081213:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1201",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1081213"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3055870002",
+      "bin": "3426644",
+      "constructionYear": 2022,
+      "coordinates": [
+        -73.9937494,
+        40.6435042
+      ],
+      "footprint": [
+        [
+          -73.9937995,
+          40.6435906
+        ],
+        [
+          -73.9935846,
+          40.6434603
+        ],
+        [
+          -73.9936743,
+          40.6433744
+        ],
+        [
+          -73.9938892,
+          40.6435048
+        ],
+        [
+          -73.9937995,
+          40.6435906
+        ]
+      ],
+      "footprintAreaM2": 492.29,
+      "footprintOrigin": "observed",
+      "heightM": 21.34,
+      "id": "footprint:1084823",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2022-07-01",
+          "id": "footprint:1084823:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1201",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1084823"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3056860051",
+      "bin": "3426824",
+      "constructionYear": 2018,
+      "coordinates": [
+        -74.0059872,
+        40.6363559
+      ],
+      "footprint": [
+        [
+          -74.0061354,
+          40.6363207
+        ],
+        [
+          -74.0059364,
+          40.636512
+        ],
+        [
+          -74.0057648,
+          40.6364089
+        ],
+        [
+          -74.0059641,
+          40.6362172
+        ],
+        [
+          -74.0061354,
+          40.6363207
+        ]
+      ],
+      "footprintAreaM2": 871.75,
+      "footprintOrigin": "observed",
+      "heightM": 16.76,
+      "id": "footprint:1084975",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2018-07-01",
+          "id": "footprint:1084975:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1201",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1084975"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3009080164",
+      "bin": "3429246",
+      "constructionYear": 2022,
+      "coordinates": [
+        -73.9963904,
+        40.6470067
+      ],
+      "footprint": [
+        [
+          -73.9962598,
+          40.6470024
+        ],
+        [
+          -73.9963777,
+          40.6468887
+        ],
+        [
+          -73.9965853,
+          40.6470119
+        ],
+        [
+          -73.9964697,
+          40.6471279
+        ],
+        [
+          -73.9962598,
+          40.6470024
+        ]
+      ],
+      "footprintAreaM2": 628.66,
+      "footprintOrigin": "observed",
+      "heightM": 24.38,
+      "id": "footprint:1085279",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2022-07-01",
+          "id": "footprint:1085279:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1201",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1085279"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3009080162",
+      "bin": "3330494",
+      "constructionYear": 2022,
+      "coordinates": [
+        -73.996247,
+        40.6468838
+      ],
+      "footprint": [
+        [
+          -73.9963777,
+          40.6468887
+        ],
+        [
+          -73.9962598,
+          40.6470024
+        ],
+        [
+          -73.9960505,
+          40.6468766
+        ],
+        [
+          -73.9961691,
+          40.6467624
+        ],
+        [
+          -73.9963777,
+          40.6468887
+        ]
+      ],
+      "footprintAreaM2": 632.27,
+      "footprintOrigin": "observed",
+      "heightM": 24.38,
+      "id": "footprint:1085285",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2022-07-01",
+          "id": "footprint:1085285:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1201",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1085285"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3056580050",
+      "bin": "3138482",
+      "constructionYear": 2021,
+      "coordinates": [
+        -74.0036307,
+        40.6385913
+      ],
+      "footprint": [
+        [
+          -74.0036084,
+          40.6386648
+        ],
+        [
+          -74.0035257,
+          40.6386153
+        ],
+        [
+          -74.0036642,
+          40.6384811
+        ],
+        [
+          -74.0037469,
+          40.6385306
+        ],
+        [
+          -74.0036084,
+          40.6386648
+        ]
+      ],
+      "footprintAreaM2": 293.32,
+      "footprintOrigin": "observed",
+      "heightM": 21.34,
+      "id": "footprint:1085703",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2021-07-01",
+          "id": "footprint:1085703:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1201",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1085703"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3056800080",
+      "bin": "3429088",
+      "constructionYear": 2022,
+      "coordinates": [
+        -74.0044217,
+        40.6362821
+      ],
+      "footprint": [
+        [
+          -74.0044417,
+          40.6362107
+        ],
+        [
+          -74.0045265,
+          40.6362606
+        ],
+        [
+          -74.0043931,
+          40.6363889
+        ],
+        [
+          -74.0043056,
+          40.6363396
+        ],
+        [
+          -74.0044417,
+          40.6362107
+        ]
+      ],
+      "footprintAreaM2": 290.24,
+      "footprintOrigin": "observed",
+      "heightM": 13.72,
+      "id": "footprint:1085784",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2022-07-01",
+          "id": "footprint:1085784:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1201",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1085784"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3056870062",
+      "bin": "3139950",
+      "constructionYear": 2023,
+      "coordinates": [
+        -74.0043183,
+        40.6353876
+      ],
+      "footprint": [
+        [
+          -74.0043704,
+          40.6352824
+        ],
+        [
+          -74.004477,
+          40.6353477
+        ],
+        [
+          -74.0042777,
+          40.6355381
+        ],
+        [
+          -74.004171,
+          40.6354723
+        ],
+        [
+          -74.0042435,
+          40.635403
+        ],
+        [
+          -74.0043704,
+          40.6352824
+        ]
+      ],
+      "footprintAreaM2": 544.9,
+      "footprintOrigin": "observed",
+      "heightM": 16.76,
+      "id": "footprint:1086146",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2023-07-01",
+          "id": "footprint:1086146:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1201",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1086146"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3056940013",
+      "bin": "3429975",
+      "constructionYear": 2025,
+      "coordinates": [
+        -74.0049954,
+        40.6352846
+      ],
+      "footprint": [
+        [
+          -74.0050754,
+          40.6352473
+        ],
+        [
+          -74.004939,
+          40.6353789
+        ],
+        [
+          -74.0048782,
+          40.6353392
+        ],
+        [
+          -74.0050092,
+          40.6352105
+        ],
+        [
+          -74.0050754,
+          40.6352473
+        ]
+      ],
+      "footprintAreaM2": 218.38,
+      "footprintOrigin": "observed",
+      "heightM": 16.46,
+      "id": "footprint:1086154",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2025-07-01",
+          "id": "footprint:1086154:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1201",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1086154"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3056650061",
+      "bin": "3407075",
+      "constructionYear": 2022,
+      "coordinates": [
+        -74.0047508,
+        40.6383864
+      ],
+      "footprint": [
+        [
+          -74.0047561,
+          40.6382637
+        ],
+        [
+          -74.0049283,
+          40.6383621
+        ],
+        [
+          -74.0048113,
+          40.6384819
+        ],
+        [
+          -74.0047517,
+          40.638446
+        ],
+        [
+          -74.0047442,
+          40.6384548
+        ],
+        [
+          -74.0046821,
+          40.6384176
+        ],
+        [
+          -74.0046893,
+          40.6384091
+        ],
+        [
+          -74.0046381,
+          40.6383784
+        ],
+        [
+          -74.0047561,
+          40.6382637
+        ]
+      ],
+      "footprintAreaM2": 537.48,
+      "footprintOrigin": "observed",
+      "heightM": 16.76,
+      "id": "footprint:1086310",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2022-07-01",
+          "id": "footprint:1086310:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1201",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1086310"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3056580006",
+      "bin": "3138444",
+      "constructionYear": 2022,
+      "coordinates": [
+        -74.0049285,
+        40.6396356
+      ],
+      "footprint": [
+        [
+          -74.0050545,
+          40.639656
+        ],
+        [
+          -74.0049648,
+          40.6397419
+        ],
+        [
+          -74.0047392,
+          40.6396052
+        ],
+        [
+          -74.0048294,
+          40.6395188
+        ],
+        [
+          -74.0050545,
+          40.639656
+        ]
+      ],
+      "footprintAreaM2": 518.19,
+      "footprintOrigin": "observed",
+      "heightM": 24.38,
+      "id": "footprint:1086560",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2022-07-01",
+          "id": "footprint:1086560:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1201",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1086560"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3007420072",
+      "bin": "3427368",
+      "constructionYear": 2023,
+      "coordinates": [
+        -74.0001896,
+        40.6437925
+      ],
+      "footprint": [
+        [
+          -73.9999422,
+          40.6438648
+        ],
+        [
+          -74.0001664,
+          40.6436497
+        ],
+        [
+          -74.0001975,
+          40.6436685
+        ],
+        [
+          -74.000193,
+          40.6436728
+        ],
+        [
+          -74.0003332,
+          40.6437575
+        ],
+        [
+          -74.0003376,
+          40.6437532
+        ],
+        [
+          -74.0003696,
+          40.6437726
+        ],
+        [
+          -74.0001454,
+          40.6439877
+        ],
+        [
+          -74.0001172,
+          40.6439707
+        ],
+        [
+          -73.9999422,
+          40.6438648
+        ]
+      ],
+      "footprintAreaM2": 1147.93,
+      "footprintOrigin": "observed",
+      "heightM": 22.56,
+      "id": "footprint:1087728",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2023-07-01",
+          "id": "footprint:1087728:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1201",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1087728"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3056510046",
+      "bin": "3424644",
+      "constructionYear": 2022,
+      "coordinates": [
+        -74.0027279,
+        40.6389215
+      ],
+      "footprint": [
+        [
+          -74.0026288,
+          40.6388888
+        ],
+        [
+          -74.0026712,
+          40.6388478
+        ],
+        [
+          -74.0028764,
+          40.6389707
+        ],
+        [
+          -74.0028341,
+          40.6390117
+        ],
+        [
+          -74.0026288,
+          40.6388888
+        ]
+      ],
+      "footprintAreaM2": 222.5,
+      "footprintOrigin": "observed",
+      "heightM": 13.72,
+      "id": "footprint:1089055",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2022-07-01",
+          "id": "footprint:1089055:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1201",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1089055"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3056650041",
+      "bin": "3429828",
+      "constructionYear": 2024,
+      "coordinates": [
+        -74.0035629,
+        40.6380866
+      ],
+      "footprint": [
+        [
+          -74.0035459,
+          40.6381465
+        ],
+        [
+          -74.0035177,
+          40.6381736
+        ],
+        [
+          -74.0034342,
+          40.6381231
+        ],
+        [
+          -74.003625,
+          40.6379398
+        ],
+        [
+          -74.0037085,
+          40.6379902
+        ],
+        [
+          -74.0035459,
+          40.6381465
+        ]
+      ],
+      "footprintAreaM2": 407.3,
+      "footprintOrigin": "observed",
+      "heightM": 21.34,
+      "id": "footprint:1089269",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2024-07-01",
+          "id": "footprint:1089269:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1201",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1089269"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3057000012",
+      "bin": "3428882",
+      "constructionYear": 2024,
+      "coordinates": [
+        -74.0081221,
+        40.6361259
+      ],
+      "footprint": [
+        [
+          -74.0080955,
+          40.6360259
+        ],
+        [
+          -74.0082609,
+          40.6361239
+        ],
+        [
+          -74.0080412,
+          40.6363378
+        ],
+        [
+          -74.0078761,
+          40.6362394
+        ],
+        [
+          -74.0080955,
+          40.6360259
+        ]
+      ],
+      "footprintAreaM2": 929.52,
+      "footprintOrigin": "observed",
+      "heightM": 29.26,
+      "id": "footprint:1089277",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2024-07-01",
+          "id": "footprint:1089277:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1201",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1089277"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3056200037",
+      "bin": "3428908",
+      "constructionYear": 2024,
+      "coordinates": [
+        -73.9963705,
+        40.6396262
+      ],
+      "footprint": [
+        [
+          -73.9964367,
+          40.6397151
+        ],
+        [
+          -73.9961893,
+          40.6395639
+        ],
+        [
+          -73.9962755,
+          40.6394965
+        ],
+        [
+          -73.9965142,
+          40.6396407
+        ],
+        [
+          -73.9964367,
+          40.6397151
+        ]
+      ],
+      "footprintAreaM2": 478.71,
+      "footprintOrigin": "observed",
+      "heightM": 22.86,
+      "id": "footprint:1089310",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2024-07-01",
+          "id": "footprint:1089310:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1201",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1089310"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3055910027",
+      "bin": "3429176",
+      "constructionYear": 2025,
+      "coordinates": [
+        -73.992936,
+        40.6425649
+      ],
+      "footprint": [
+        [
+          -73.9930978,
+          40.6425868
+        ],
+        [
+          -73.9929745,
+          40.6427039
+        ],
+        [
+          -73.9926933,
+          40.6425321
+        ],
+        [
+          -73.9928167,
+          40.642415
+        ],
+        [
+          -73.9930978,
+          40.6425868
+        ]
+      ],
+      "footprintAreaM2": 883.67,
+      "footprintOrigin": "observed",
+      "heightM": 15.24,
+      "id": "footprint:1089778",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2025-07-01",
+          "id": "footprint:1089778:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1201",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1089778"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3055870038",
+      "bin": "3429454",
+      "constructionYear": 2026,
+      "coordinates": [
+        -73.9918482,
+        40.6426365
+      ],
+      "footprint": [
+        [
+          -73.9917346,
+          40.6428785
+        ],
+        [
+          -73.9915603,
+          40.6427774
+        ],
+        [
+          -73.9915779,
+          40.6427616
+        ],
+        [
+          -73.991558,
+          40.6427496
+        ],
+        [
+          -73.9918864,
+          40.6424248
+        ],
+        [
+          -73.9919046,
+          40.6424352
+        ],
+        [
+          -73.9919865,
+          40.6423579
+        ],
+        [
+          -73.9922602,
+          40.6425225
+        ],
+        [
+          -73.9920655,
+          40.6427105
+        ],
+        [
+          -73.9919753,
+          40.6426571
+        ],
+        [
+          -73.9919114,
+          40.6427189
+        ],
+        [
+          -73.9919049,
+          40.642715
+        ],
+        [
+          -73.9917346,
+          40.6428785
+        ]
+      ],
+      "footprintAreaM2": 2575.2,
+      "footprintOrigin": "observed",
+      "heightM": 22.86,
+      "id": "footprint:1091066",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2026-07-01",
+          "id": "footprint:1091066:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1201",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1091066"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3057070057",
+      "bin": "3140880",
+      "constructionYear": 2012,
+      "coordinates": [
+        -74.0079434,
+        40.634876
+      ],
+      "footprint": [
+        [
+          -74.0078363,
+          40.634942
+        ],
+        [
+          -74.0080462,
+          40.6347418
+        ],
+        [
+          -74.0081042,
+          40.6347772
+        ],
+        [
+          -74.0078937,
+          40.6349771
+        ],
+        [
+          -74.0078363,
+          40.634942
+        ]
+      ],
+      "footprintAreaM2": 309.48,
+      "footprintOrigin": "observed",
+      "heightM": 22.25,
+      "id": "footprint:439205",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2012-07-01",
+          "id": "footprint:439205:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1201",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:439205"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3057010012",
+      "bin": "3140566",
+      "constructionYear": 2016,
+      "coordinates": [
+        -74.0059189,
+        40.6348948
+      ],
+      "footprint": [
+        [
+          -74.0059425,
+          40.6349104
+        ],
+        [
+          -74.005863,
+          40.6349871
+        ],
+        [
+          -74.0058078,
+          40.6349539
+        ],
+        [
+          -74.0059985,
+          40.63477
+        ],
+        [
+          -74.0060537,
+          40.6348032
+        ],
+        [
+          -74.0059425,
+          40.6349104
+        ]
+      ],
+      "footprintAreaM2": 269.33,
+      "footprintOrigin": "observed",
+      "heightM": 16.41,
+      "id": "footprint:52429",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2016-07-01",
+          "id": "footprint:52429:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1201",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:52429"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3055860067",
+      "bin": "3426388",
+      "constructionYear": 2021,
+      "coordinates": [
+        -73.9939966,
+        40.6440966
+      ],
+      "footprint": [
+        [
+          -73.9941053,
+          40.6443368
+        ],
+        [
+          -73.9936567,
+          40.6440669
+        ],
+        [
+          -73.9941189,
+          40.6436459
+        ],
+        [
+          -73.9941053,
+          40.6443368
+        ]
+      ],
+      "footprintAreaM2": 2561.51,
+      "footprintOrigin": "observed",
+      "heightM": 26.52,
+      "id": "footprint:62501",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2021-07-01",
+          "id": "footprint:62501:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1201",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:62501"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3055860043",
+      "bin": "3426390",
+      "constructionYear": 2018,
+      "coordinates": [
+        -73.9946713,
+        40.6440473
+      ],
+      "footprint": [
+        [
+          -73.9946675,
+          40.6439782
+        ],
+        [
+          -73.9947843,
+          40.6440514
+        ],
+        [
+          -73.9946769,
+          40.6441508
+        ],
+        [
+          -73.9945601,
+          40.6440776
+        ],
+        [
+          -73.9946675,
+          40.6439782
+        ]
+      ],
+      "footprintAreaM2": 317.85,
+      "footprintOrigin": "observed",
+      "heightM": 18.29,
+      "id": "footprint:62502",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2018-07-01",
+          "id": "footprint:62502:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1201",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:62502"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3055860024",
+      "bin": "3425005",
+      "constructionYear": 2017,
+      "coordinates": [
+        -73.9948243,
+        40.6445602
+      ],
+      "footprint": [
+        [
+          -73.9948877,
+          40.6444578
+        ],
+        [
+          -73.9949567,
+          40.6445005
+        ],
+        [
+          -73.9947292,
+          40.6447139
+        ],
+        [
+          -73.9946602,
+          40.6446712
+        ],
+        [
+          -73.9948877,
+          40.6444578
+        ]
+      ],
+      "footprintAreaM2": 399.16,
+      "footprintOrigin": "observed",
+      "heightM": 15.24,
+      "id": "footprint:63740",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2017-07-01",
+          "id": "footprint:63740:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1201",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:63740"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3009230024",
+      "bin": "3018229",
+      "constructionYear": 2011,
+      "coordinates": [
+        -73.9975261,
+        40.6453536
+      ],
+      "footprint": [
+        [
+          -73.9974012,
+          40.6454182
+        ],
+        [
+          -73.9976293,
+          40.6452048
+        ],
+        [
+          -73.9977133,
+          40.6452569
+        ],
+        [
+          -73.9974852,
+          40.6454702
+        ],
+        [
+          -73.9974012,
+          40.6454182
+        ]
+      ],
+      "footprintAreaM2": 486.45,
+      "footprintOrigin": "observed",
+      "heightM": 25.3,
+      "id": "footprint:64468",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2011-07-01",
+          "id": "footprint:64468:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1201",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:64468"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3056650014",
+      "bin": "3416939",
+      "constructionYear": 2015,
+      "coordinates": [
+        -74.0050823,
+        40.6389886
+      ],
+      "footprint": [
+        [
+          -74.0051697,
+          40.6389647
+        ],
+        [
+          -74.0050458,
+          40.6390843
+        ],
+        [
+          -74.0049742,
+          40.6390413
+        ],
+        [
+          -74.0051074,
+          40.6389126
+        ],
+        [
+          -74.0051791,
+          40.6389558
+        ],
+        [
+          -74.0051697,
+          40.6389647
+        ]
+      ],
+      "footprintAreaM2": 244.32,
+      "footprintOrigin": "observed",
+      "heightM": 17.37,
+      "id": "footprint:749679",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2015-07-01",
+          "id": "footprint:749679:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1201",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:749679"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3055870060",
+      "bin": "3135417",
+      "constructionYear": 2019,
+      "coordinates": [
+        -73.9928489,
+        40.6429858
+      ],
+      "footprint": [
+        [
+          -73.9928786,
+          40.6429088
+        ],
+        [
+          -73.9929561,
+          40.6429557
+        ],
+        [
+          -73.9928043,
+          40.6431012
+        ],
+        [
+          -73.9927269,
+          40.6430544
+        ],
+        [
+          -73.9928786,
+          40.6429088
+        ]
+      ],
+      "footprintAreaM2": 300.11,
+      "footprintOrigin": "observed",
+      "heightM": 6.4,
+      "id": "footprint:774291",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2019-07-01",
+          "id": "footprint:774291:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1201",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:774291"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3057070033",
+      "bin": "3140865",
+      "constructionYear": 2013,
+      "coordinates": [
+        -74.0075101,
+        40.6349473
+      ],
+      "footprint": [
+        [
+          -74.0074148,
+          40.6350072
+        ],
+        [
+          -74.0076015,
+          40.6348264
+        ],
+        [
+          -74.0076532,
+          40.6348574
+        ],
+        [
+          -74.0074665,
+          40.6350382
+        ],
+        [
+          -74.0074148,
+          40.6350072
+        ]
+      ],
+      "footprintAreaM2": 247.01,
+      "footprintOrigin": "observed",
+      "heightM": 17.22,
+      "id": "footprint:79262",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2013-07-01",
+          "id": "footprint:79262:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1201",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:79262"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3007420049",
+      "bin": "3422146",
+      "constructionYear": 2016,
+      "coordinates": [
+        -73.9988721,
+        40.6430653
+      ],
+      "footprint": [
+        [
+          -73.9987653,
+          40.643133
+        ],
+        [
+          -73.9989757,
+          40.6429299
+        ],
+        [
+          -73.9990322,
+          40.642964
+        ],
+        [
+          -73.9988222,
+          40.6431668
+        ],
+        [
+          -73.9987653,
+          40.643133
+        ]
+      ],
+      "footprintAreaM2": 304.23,
+      "footprintOrigin": "observed",
+      "heightM": 18.29,
+      "id": "footprint:820851",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2016-07-01",
+          "id": "footprint:820851:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1201",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:820851"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3007420048",
+      "bin": "3406988",
+      "constructionYear": 2016,
+      "coordinates": [
+        -73.9988697,
+        40.6429981
+      ],
+      "footprint": [
+        [
+          -73.9989757,
+          40.6429299
+        ],
+        [
+          -73.9987653,
+          40.643133
+        ],
+        [
+          -73.9987105,
+          40.6431005
+        ],
+        [
+          -73.9989212,
+          40.6428971
+        ],
+        [
+          -73.9989757,
+          40.6429299
+        ]
+      ],
+      "footprintAreaM2": 293.75,
+      "footprintOrigin": "observed",
+      "heightM": 18.29,
+      "id": "footprint:820852",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2016-07-01",
+          "id": "footprint:820852:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1201",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:820852"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "3055910049",
+      "bin": "3425991",
+      "constructionYear": 2018,
+      "coordinates": [
+        -73.9933711,
+        40.6424425
+      ],
+      "footprint": [
+        [
+          -73.9933742,
+          40.6425285
+        ],
+        [
+          -73.9932319,
+          40.6424432
+        ],
+        [
+          -73.9933659,
+          40.6423127
+        ],
+        [
+          -73.9935091,
+          40.6423997
+        ],
+        [
+          -73.9933742,
+          40.6425285
+        ]
+      ],
+      "footprintAreaM2": 491.45,
+      "footprintOrigin": "observed",
+      "heightM": 13.72,
+      "id": "footprint:91576",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2018-07-01",
+          "id": "footprint:91576:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BK1201",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:91576"
+      ]
+    },
+    {
+      "address": "4813 9TH AVENUE",
+      "bbl": "3056310001",
+      "bin": "3137303",
+      "constructionYear": 2020,
+      "coordinates": [
+        -74.000472,
+        40.640767
+      ],
+      "footprint": [
+        [
+          -74.0006525,
+          40.6403671
+        ],
+        [
+          -74.0002985,
+          40.6407092
+        ],
+        [
+          -73.9999294,
+          40.6404891
+        ],
+        [
+          -74.0003347,
+          40.640105
+        ],
+        [
+          -74.0006375,
+          40.6402861
+        ],
+        [
+          -74.0005962,
+          40.6403289
+        ],
+        [
+          -74.0006525,
+          40.6403671
+        ]
+      ],
+      "footprintAreaM2": 3677.26,
+      "footprintOrigin": "observed",
+      "heightM": 35.66,
+      "id": "job:320592970:01",
+      "jobId": "320592970",
+      "milestones": [
+        {
+          "date": "2013-11-25",
+          "id": "job:320592970:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2015-06-22",
+          "id": "job:320592970:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2015-08-03",
+          "id": "job:320592970:01:fully-permitted:3",
+          "kind": "fully-permitted",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 7,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": 137992,
+      "regionId": "BK1201",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:2311187",
+        "building-footprint:1074706"
+      ],
+      "status": "PERMIT ISSUED - ENTIRE JOB/WORK",
+      "withdrawn": false
+    },
+    {
+      "address": "4001 NEW UTRECHT AVENUE",
+      "bbl": "3055867502",
+      "bin": "3426388",
+      "constructionYear": 2020,
+      "coordinates": [
+        -73.994155,
+        40.644459
+      ],
+      "footprint": [
+        [
+          -73.9945173,
+          40.6441841
+        ],
+        [
+          -73.9937927,
+          40.6441841
+        ],
+        [
+          -73.9937927,
+          40.6447339
+        ],
+        [
+          -73.9945173,
+          40.6447339
+        ],
+        [
+          -73.9945173,
+          40.6441841
+        ]
+      ],
+      "footprintAreaM2": 936.34,
+      "footprintOrigin": "modeled",
+      "heightM": 21.34,
+      "id": "job:320621993:01",
+      "jobId": "320621993",
+      "milestones": [
+        {
+          "date": "2014-12-22",
+          "id": "job:320621993:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2015-05-07",
+          "id": "job:320621993:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2017-08-01",
+          "id": "job:320621993:01:fully-permitted:3",
+          "kind": "fully-permitted",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2020-07-01",
+          "id": "job:320621993:01:final-certificate-of-occupancy:4",
+          "kind": "final-certificate-of-occupancy",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2020-07-01",
+          "id": "job:320621993:01:signed-off:5",
+          "kind": "signed-off",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 7,
+      "proposedUnits": 65,
+      "proposedZoningSquareFeet": 70551,
+      "regionId": "BK1201",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:2445050",
+        "certificate-of-occupancy:320621993:003"
+      ],
+      "status": "SIGNED OFF",
+      "withdrawn": false
+    },
+    {
+      "address": "4511 8TH AVENUE",
+      "bbl": "3007510001",
+      "bin": "3011760",
+      "constructionYear": 2024,
+      "coordinates": [
+        -74.001041,
+        40.643166
+      ],
+      "footprint": [
+        [
+          -74.0010181,
+          40.6435197
+        ],
+        [
+          -74.0008436,
+          40.6434187
+        ],
+        [
+          -74.0007403,
+          40.6435179
+        ],
+        [
+          -74.0006516,
+          40.6434648
+        ],
+        [
+          -74.0009188,
+          40.6432062
+        ],
+        [
+          -74.0011802,
+          40.6433629
+        ],
+        [
+          -74.0011762,
+          40.6433667
+        ],
+        [
+          -74.0010181,
+          40.6435197
+        ]
+      ],
+      "footprintAreaM2": 1328.75,
+      "footprintOrigin": "observed",
+      "heightM": 25.91,
+      "id": "job:321195041:01",
+      "jobId": "321195041",
+      "milestones": [
+        {
+          "date": "2016-08-25",
+          "id": "job:321195041:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 6,
+      "proposedUnits": 48,
+      "proposedZoningSquareFeet": 62976,
+      "regionId": "BK1201",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:2726418",
+        "building-footprint:1089104"
+      ],
+      "status": "PLAN EXAM - PARTIAL APPROVAL",
+      "withdrawn": false
+    },
+    {
+      "address": "5402 FORT HAMILTON PKWY",
+      "bbl": "3056730042",
+      "bin": "3139211",
+      "constructionYear": 2023,
+      "coordinates": [
+        -74.001355,
+        40.635912
+      ],
+      "footprint": [
+        [
+          -74.0017764,
+          40.6361643
+        ],
+        [
+          -74.0017475,
+          40.6361934
+        ],
+        [
+          -74.001463,
+          40.6360143
+        ],
+        [
+          -74.0017688,
+          40.6358071
+        ],
+        [
+          -74.0020037,
+          40.6359464
+        ],
+        [
+          -74.0018281,
+          40.6361147
+        ],
+        [
+          -74.0017764,
+          40.6361643
+        ]
+      ],
+      "footprintAreaM2": 1690.69,
+      "footprintOrigin": "observed",
+      "heightM": 29.87,
+      "id": "job:321310808:01",
+      "jobId": "321310808",
+      "milestones": [
+        {
+          "date": "2017-04-21",
+          "id": "job:321310808:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 6,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": 50678,
+      "regionId": "BK1201",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:2836754",
+        "building-footprint:1087901"
+      ],
+      "status": "PLAN EXAM - DISAPPROVED",
+      "withdrawn": false
+    },
+    {
+      "address": "4218 FORT HAMILTON PARKWAY",
+      "bbl": "3055960049",
+      "bin": "3135824",
+      "constructionYear": null,
+      "coordinates": [
+        -73.992851,
+        40.641601
+      ],
+      "footprint": [
+        [
+          -73.993123,
+          40.6413946
+        ],
+        [
+          -73.992579,
+          40.6413946
+        ],
+        [
+          -73.992579,
+          40.6418074
+        ],
+        [
+          -73.993123,
+          40.6418074
+        ],
+        [
+          -73.993123,
+          40.6413946
+        ]
+      ],
+      "footprintAreaM2": 527.81,
+      "footprintOrigin": "modeled",
+      "heightM": 66.45,
+      "id": "job:321751500:01",
+      "jobId": "321751500",
+      "milestones": [
+        {
+          "date": "2018-09-17",
+          "id": "job:321751500:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2019-02-11",
+          "id": "job:321751500:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 18,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": 102263,
+      "regionId": "BK1201",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:3076434"
+      ],
+      "status": "PLAN EXAM - APPROVED",
+      "withdrawn": true
+    }
+  ],
+  "id": "nyc-real-estate-region-bk1201-v1",
+  "region": {
+    "abbreviation": "SnstPk_E",
+    "areaM2": 11749149.0802,
+    "boroughId": "brooklyn",
+    "boroughLabel": "Brooklyn",
+    "bounds": {
+      "east": -73.9890587,
+      "north": 40.6483407,
+      "south": 40.6330832,
+      "west": -74.0095571
+    },
+    "centroid": [
+      -73.9968489,
+      40.6418232
+    ],
+    "communityDistrictTabulationAreaId": "BK12",
+    "communityDistrictTabulationAreaLabel": "BK12 Borough Park-Kensington (CD 12 Approximation)",
+    "id": "BK1201",
+    "label": "Sunset Park (East)-Borough Park (West)",
+    "polygon": [
+      [
+        -73.9890587,
+        40.6441192
+      ],
+      [
+        -74.0055649,
+        40.6330832
+      ],
+      [
+        -74.0095571,
+        40.635493
+      ],
+      [
+        -73.9960457,
+        40.6483407
+      ],
+      [
+        -73.9918082,
+        40.645784
+      ],
+      [
+        -73.9890587,
+        40.6441192
+      ]
+    ],
+    "spatialPolygons": [
+      {
+        "holes": [],
+        "outer": [
+          [
+            -73.9890587,
+            40.6441192
+          ],
+          [
+            -74.0055649,
+            40.6330832
+          ],
+          [
+            -74.0095571,
+            40.635493
+          ],
+          [
+            -73.9960457,
+            40.6483407
+          ],
+          [
+            -73.9918082,
+            40.645784
+          ],
+          [
+            -73.9890587,
+            40.6441192
+          ]
+        ]
+      }
+    ]
+  },
+  "saleSeries": [
+    {
+      "id": "sale:BK1201:2016:tax-1",
+      "meanPriceUsd": 1358921.57,
+      "medianPriceUsd": 1280000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1201",
+      "saleCount": 51,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 109,
+      "year": 2016
+    },
+    {
+      "id": "sale:BK1201:2016:tax-2",
+      "meanPriceUsd": 679175.48,
+      "medianPriceUsd": 458500,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1201",
+      "saleCount": 52,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 87,
+      "year": 2016
+    },
+    {
+      "id": "sale:BK1201:2016:tax-4",
+      "meanPriceUsd": 2324687,
+      "medianPriceUsd": 2324687,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1201",
+      "saleCount": 2,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 6,
+      "year": 2016
+    },
+    {
+      "id": "sale:BK1201:2017:tax-1",
+      "meanPriceUsd": 1281312.14,
+      "medianPriceUsd": 1290000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1201",
+      "saleCount": 36,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 81,
+      "year": 2017
+    },
+    {
+      "id": "sale:BK1201:2017:tax-2",
+      "meanPriceUsd": 674276.8,
+      "medianPriceUsd": 494880.5,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1201",
+      "saleCount": 44,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 78,
+      "year": 2017
+    },
+    {
+      "id": "sale:BK1201:2017:tax-4",
+      "meanPriceUsd": 1746009,
+      "medianPriceUsd": 1120799,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1201",
+      "saleCount": 8,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 11,
+      "year": 2017
+    },
+    {
+      "id": "sale:BK1201:2018:tax-1",
+      "meanPriceUsd": 1495653.32,
+      "medianPriceUsd": 1430000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1201",
+      "saleCount": 41,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 88,
+      "year": 2018
+    },
+    {
+      "id": "sale:BK1201:2018:tax-2",
+      "meanPriceUsd": 1473037.35,
+      "medianPriceUsd": 528934,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1201",
+      "saleCount": 84,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 437,
+      "year": 2018
+    },
+    {
+      "id": "sale:BK1201:2018:tax-4",
+      "meanPriceUsd": 10322000,
+      "medianPriceUsd": 6289000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1201",
+      "saleCount": 4,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 3,
+      "year": 2018
+    },
+    {
+      "id": "sale:BK1201:2019:tax-1",
+      "meanPriceUsd": 1641045.24,
+      "medianPriceUsd": 1477500,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1201",
+      "saleCount": 42,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 88,
+      "year": 2019
+    },
+    {
+      "id": "sale:BK1201:2019:tax-2",
+      "meanPriceUsd": 827318.35,
+      "medianPriceUsd": 550975,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1201",
+      "saleCount": 51,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 108,
+      "year": 2019
+    },
+    {
+      "id": "sale:BK1201:2019:tax-4",
+      "meanPriceUsd": 1549068.73,
+      "medianPriceUsd": 716848,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1201",
+      "saleCount": 15,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 14,
+      "year": 2019
+    },
+    {
+      "id": "sale:BK1201:2020:tax-1",
+      "meanPriceUsd": 1484763.16,
+      "medianPriceUsd": 1500000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1201",
+      "saleCount": 38,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 78,
+      "year": 2020
+    },
+    {
+      "id": "sale:BK1201:2020:tax-2",
+      "meanPriceUsd": 709628.85,
+      "medianPriceUsd": 514562.5,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1201",
+      "saleCount": 40,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 47,
+      "year": 2020
+    },
+    {
+      "id": "sale:BK1201:2020:tax-4",
+      "meanPriceUsd": 1186812.38,
+      "medianPriceUsd": 504823,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1201",
+      "saleCount": 13,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 26,
+      "year": 2020
+    },
+    {
+      "id": "sale:BK1201:2021:tax-1",
+      "meanPriceUsd": 1453662.5,
+      "medianPriceUsd": 1445000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1201",
+      "saleCount": 40,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 85,
+      "year": 2021
+    },
+    {
+      "id": "sale:BK1201:2021:tax-2",
+      "meanPriceUsd": 805528.89,
+      "medianPriceUsd": 531000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1201",
+      "saleCount": 84,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 148,
+      "year": 2021
+    },
+    {
+      "id": "sale:BK1201:2021:tax-4",
+      "meanPriceUsd": 4025909.83,
+      "medianPriceUsd": 4325000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1201",
+      "saleCount": 12,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 11,
+      "year": 2021
+    },
+    {
+      "id": "sale:BK1201:2022:tax-1",
+      "meanPriceUsd": 1511259.53,
+      "medianPriceUsd": 1430000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1201",
+      "saleCount": 57,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 120,
+      "year": 2022
+    },
+    {
+      "id": "sale:BK1201:2022:tax-2",
+      "meanPriceUsd": 742459.46,
+      "medianPriceUsd": 548837,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1201",
+      "saleCount": 67,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 126,
+      "year": 2022
+    },
+    {
+      "id": "sale:BK1201:2022:tax-4",
+      "meanPriceUsd": 1679696.37,
+      "medianPriceUsd": 1215695,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1201",
+      "saleCount": 19,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 19,
+      "year": 2022
+    },
+    {
+      "id": "sale:BK1201:2023:tax-1",
+      "meanPriceUsd": 1702077.42,
+      "medianPriceUsd": 1615000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1201",
+      "saleCount": 31,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 74,
+      "year": 2023
+    },
+    {
+      "id": "sale:BK1201:2023:tax-2",
+      "meanPriceUsd": 756734.1,
+      "medianPriceUsd": 615237.5,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1201",
+      "saleCount": 72,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 90,
+      "year": 2023
+    },
+    {
+      "id": "sale:BK1201:2023:tax-4",
+      "meanPriceUsd": 3621721.86,
+      "medianPriceUsd": 1530000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1201",
+      "saleCount": 14,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 17,
+      "year": 2023
+    },
+    {
+      "id": "sale:BK1201:2024:tax-1",
+      "meanPriceUsd": 1597617.68,
+      "medianPriceUsd": 1650000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1201",
+      "saleCount": 34,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 74,
+      "year": 2024
+    },
+    {
+      "id": "sale:BK1201:2024:tax-2",
+      "meanPriceUsd": 853560.59,
+      "medianPriceUsd": 560019,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1201",
+      "saleCount": 66,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 114,
+      "year": 2024
+    },
+    {
+      "id": "sale:BK1201:2024:tax-4",
+      "meanPriceUsd": 3522849.89,
+      "medianPriceUsd": 1301721,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1201",
+      "saleCount": 9,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 12,
+      "year": 2024
+    },
+    {
+      "id": "sale:BK1201:2025:tax-1",
+      "meanPriceUsd": 1867399.98,
+      "medianPriceUsd": 1750000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1201",
+      "saleCount": 45,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 101,
+      "year": 2025
+    },
+    {
+      "id": "sale:BK1201:2025:tax-2",
+      "meanPriceUsd": 857912.78,
+      "medianPriceUsd": 606402,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1201",
+      "saleCount": 88,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 184,
+      "year": 2025
+    },
+    {
+      "id": "sale:BK1201:2025:tax-4",
+      "meanPriceUsd": 1800039.19,
+      "medianPriceUsd": 1041637.5,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BK1201",
+      "saleCount": 16,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 18,
+      "year": 2025
+    }
+  ],
+  "schema": "simulatte.nycRealEstateRegionShard.v1",
+  "sourceIdentities": [
+    {
+      "byteCount": 1008463,
+      "path": "nyc-annualized-sales-by-nta.json",
+      "sha256": "14c15020381466196236073ee3753ff7a5d74a76ec6af4605e96564abd2bf99a",
+      "sourceId": "nyc-real-estate-sales-annual"
+    },
+    {
+      "byteCount": 8977616,
+      "path": "nyc-final-certificates-of-occupancy.json",
+      "sha256": "966c237824a79aff9d5137d27b498ba4f3670cc19844738c5ce17a559388030e",
+      "sourceId": "nyc-real-estate-final-occupancy"
+    },
+    {
+      "byteCount": 8802596,
+      "path": "nyc-largest-constructed-footprints-2010-2026.geojson",
+      "sha256": "15745b9c62fa539e683737f0665fe91d95231e68d8c1b598e7ed211114811eb6",
+      "sourceId": "nyc-real-estate-constructed-footprints"
+    },
+    {
+      "byteCount": 1076754,
+      "path": "nyc-largest-new-building-jobs-bronx.json",
+      "sha256": "1a44c6cbfa364639e4b75957b2fab7e3c301f95bcfcfa90c50862fef85f450c1",
+      "sourceId": "nyc-real-estate-new-building-sample-bronx"
+    },
+    {
+      "byteCount": 1085334,
+      "path": "nyc-largest-new-building-jobs-brooklyn.json",
+      "sha256": "389e1825faff440d6fad5a12ed470f84e90859fd732262346a3414c5503693fd",
+      "sourceId": "nyc-real-estate-new-building-sample-brooklyn"
+    },
+    {
+      "byteCount": 1097625,
+      "path": "nyc-largest-new-building-jobs-manhattan.json",
+      "sha256": "6346678de380d58e325db14fc2e0611d993743be29898360e08f092eaa1f88e5",
+      "sourceId": "nyc-real-estate-new-building-sample-manhattan"
+    },
+    {
+      "byteCount": 1091065,
+      "path": "nyc-largest-new-building-jobs-queens.json",
+      "sha256": "79eb6f028b2135214d47a793101f72de695efcb02e4c2802cc10cd062c760a22",
+      "sourceId": "nyc-real-estate-new-building-sample-queens"
+    },
+    {
+      "byteCount": 1120592,
+      "path": "nyc-largest-new-building-jobs-staten-island.json",
+      "sha256": "e0870a431a75bdd235fc09b0ecd7503c45384f5e8b66beba545447c7bb3d960a",
+      "sourceId": "nyc-real-estate-new-building-sample-staten-island"
+    },
+    {
+      "byteCount": 1250280,
+      "path": "nyc-new-building-filings-by-nta-year.json",
+      "sha256": "4b75b0ad54a1ce5241b9c2e303be2cc24781e55a65fbf27be10d00a80bfeadea",
+      "sourceId": "nyc-real-estate-new-building-annual"
+    },
+    {
+      "byteCount": 4576764,
+      "path": "nyc-nta-2020.geojson",
+      "sha256": "c3dd069e094e2d2f647c1c102cd7e0570d033dd6131446bd1943a73210d09c56",
+      "sourceId": "nyc-real-estate-nta-boundaries"
+    },
+    {
+      "byteCount": 2402191,
+      "path": "nyc-pluto-capacity-bronx.json",
+      "sha256": "b45168721525e18a29aafcce335212632607021240869b738cbb96fbe2441389",
+      "sourceId": "nyc-real-estate-pluto-capacity-bronx"
+    },
+    {
+      "byteCount": 2403266,
+      "path": "nyc-pluto-capacity-brooklyn.json",
+      "sha256": "63b33a507c0bc26f7b71669cf032baa4950af2db77ce8712b876ca6f4c9f771b",
+      "sourceId": "nyc-real-estate-pluto-capacity-brooklyn"
+    },
+    {
+      "byteCount": 2464264,
+      "path": "nyc-pluto-capacity-manhattan.json",
+      "sha256": "91e3e1f5dce97a340475b51577458c8e48183f1138c334fbcce27d68001e9d25",
+      "sourceId": "nyc-real-estate-pluto-capacity-manhattan"
+    },
+    {
+      "byteCount": 2418903,
+      "path": "nyc-pluto-capacity-queens.json",
+      "sha256": "02a12d81466e89e05b9be9273198c5f857e86db5d2c95cfb717160ce4ccf99c1",
+      "sourceId": "nyc-real-estate-pluto-capacity-queens"
+    },
+    {
+      "byteCount": 1168016,
+      "path": "nyc-pluto-capacity-staten-island.json",
+      "sha256": "6d488f6ce46fa09930b669429275014a8ecedae6c85041fb465a15633c6a38b0",
+      "sourceId": "nyc-real-estate-pluto-capacity-staten-island"
+    }
+  ],
+  "truth": {
+    "origin": "observed",
+    "temporalStatus": "historical",
+    "uncertainty": {
+      "kind": "missing",
+      "value": {
+        "reason": "Administrative records have missing, revised, duplicated, and source-sampled fields without a shared statistical uncertainty model."
+      }
+    }
+  }
+}

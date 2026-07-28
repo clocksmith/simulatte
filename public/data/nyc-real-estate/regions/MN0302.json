@@ -1,0 +1,6132 @@
+{
+  "capacitySites": [
+    {
+      "address": "28 ESSEX STREET",
+      "affordableResidentialFar": 7.2,
+      "availableCommercialFar": 0,
+      "availableFar": 5.98,
+      "availableResidentialFar": 5.98,
+      "bbl": "1003110006",
+      "boroughId": "manhattan",
+      "builtAreaSquareFeet": 1849,
+      "builtFar": 0.04,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9891456,
+        40.7158304
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:1003110006",
+      "landUseCode": "9",
+      "lotAreaSquareFeet": 43875,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 262372.5,
+      "potentialResidentialFloorAreaSquareFeet": 262372.5,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 291,
+      "regionId": "MN0302",
+      "residentialFar": 6.02,
+      "sourceRowIds": [
+        "pluto:1003110006"
+      ],
+      "zoningDistricts": [
+        "R8"
+      ]
+    },
+    {
+      "address": "465 GRAND STREET",
+      "affordableResidentialFar": 7.2,
+      "availableCommercialFar": 0,
+      "availableFar": 5.02,
+      "availableResidentialFar": 5.02,
+      "bbl": "1003150070",
+      "boroughId": "manhattan",
+      "builtAreaSquareFeet": 18752,
+      "builtFar": 1,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9840271,
+        40.7148142
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 2,
+      "id": "capacity:1003150070",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 18700,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 93874,
+      "potentialResidentialFloorAreaSquareFeet": 93874,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 104,
+      "regionId": "MN0302",
+      "residentialFar": 6.02,
+      "sourceRowIds": [
+        "pluto:1003150070"
+      ],
+      "zoningDistricts": [
+        "R8"
+      ]
+    },
+    {
+      "address": "DELANCEY STREET",
+      "affordableResidentialFar": 7.2,
+      "availableCommercialFar": 0,
+      "availableFar": 6.02,
+      "availableResidentialFar": 6.02,
+      "bbl": "1003360001",
+      "boroughId": "manhattan",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9831826,
+        40.7161865
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:1003360001",
+      "landUseCode": "10",
+      "lotAreaSquareFeet": 18758,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 112923.16,
+      "potentialResidentialFloorAreaSquareFeet": 112923.16,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 125,
+      "regionId": "MN0302",
+      "residentialFar": 6.02,
+      "sourceRowIds": [
+        "pluto:1003360001"
+      ],
+      "zoningDistricts": [
+        "R8"
+      ]
+    },
+    {
+      "address": "7 BIALYSTOKER PLACE",
+      "affordableResidentialFar": 7.2,
+      "availableCommercialFar": 0,
+      "availableFar": 4.95,
+      "availableResidentialFar": 4.95,
+      "bbl": "1003360017",
+      "boroughId": "manhattan",
+      "builtAreaSquareFeet": 7924,
+      "builtFar": 1.07,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9833127,
+        40.7155497
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:1003360017",
+      "landUseCode": "8",
+      "lotAreaSquareFeet": 7373,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 36496.35,
+      "potentialResidentialFloorAreaSquareFeet": 36496.35,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 40,
+      "regionId": "MN0302",
+      "residentialFar": 6.02,
+      "sourceRowIds": [
+        "pluto:1003360017"
+      ],
+      "zoningDistricts": [
+        "R8"
+      ]
+    },
+    {
+      "address": "31 BIALYSTOKER PLACE",
+      "affordableResidentialFar": 7.2,
+      "availableCommercialFar": 0,
+      "availableFar": 6.02,
+      "availableResidentialFar": 6.02,
+      "bbl": "1003360025",
+      "boroughId": "manhattan",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9828435,
+        40.7163456
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:1003360025",
+      "landUseCode": "11",
+      "lotAreaSquareFeet": 4731,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 28480.62,
+      "potentialResidentialFloorAreaSquareFeet": 28480.62,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 31,
+      "regionId": "MN0302",
+      "residentialFar": 6.02,
+      "sourceRowIds": [
+        "pluto:1003360025"
+      ],
+      "zoningDistricts": [
+        "R8"
+      ]
+    },
+    {
+      "address": "10 PITT STREET",
+      "affordableResidentialFar": 7.2,
+      "availableCommercialFar": 0,
+      "availableFar": 6.02,
+      "availableResidentialFar": 6.02,
+      "bbl": "1003360035",
+      "boroughId": "manhattan",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9836084,
+        40.7156376
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:1003360035",
+      "landUseCode": "10",
+      "lotAreaSquareFeet": 5795,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 34885.9,
+      "potentialResidentialFloorAreaSquareFeet": 34885.9,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 38,
+      "regionId": "MN0302",
+      "residentialFar": 6.02,
+      "sourceRowIds": [
+        "pluto:1003360035"
+      ],
+      "zoningDistricts": [
+        "R8"
+      ]
+    },
+    {
+      "address": "440 GRAND STREET",
+      "affordableResidentialFar": 7.2,
+      "availableCommercialFar": 0,
+      "availableFar": 4.86,
+      "availableResidentialFar": 4.86,
+      "bbl": "1003410026",
+      "boroughId": "manhattan",
+      "builtAreaSquareFeet": 16242,
+      "builtFar": 1.16,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9850874,
+        40.7158354
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:1003410026",
+      "landUseCode": "8",
+      "lotAreaSquareFeet": 13973,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 67908.78,
+      "potentialResidentialFloorAreaSquareFeet": 67908.78,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 75,
+      "regionId": "MN0302",
+      "residentialFar": 6.02,
+      "sourceRowIds": [
+        "pluto:1003410026"
+      ],
+      "zoningDistricts": [
+        "R8"
+      ]
+    },
+    {
+      "address": "GRAND STREET",
+      "affordableResidentialFar": 7.2,
+      "availableCommercialFar": 0,
+      "availableFar": 5.45,
+      "availableResidentialFar": 5.45,
+      "bbl": "1003410030",
+      "boroughId": "manhattan",
+      "builtAreaSquareFeet": 7000,
+      "builtFar": 0.57,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.985394,
+        40.7159205
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:1003410030",
+      "landUseCode": "8",
+      "lotAreaSquareFeet": 12374,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 67438.3,
+      "potentialResidentialFloorAreaSquareFeet": 67438.3,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 74,
+      "regionId": "MN0302",
+      "residentialFar": 6.02,
+      "sourceRowIds": [
+        "pluto:1003410030"
+      ],
+      "zoningDistricts": [
+        "R8"
+      ]
+    },
+    {
+      "address": "426 GRAND STREET",
+      "affordableResidentialFar": 7.2,
+      "availableCommercialFar": 0,
+      "availableFar": 6.02,
+      "availableResidentialFar": 6.02,
+      "bbl": "1003410050",
+      "boroughId": "manhattan",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9855888,
+        40.7158794
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:1003410050",
+      "landUseCode": "10",
+      "lotAreaSquareFeet": 3600,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 21672,
+      "potentialResidentialFloorAreaSquareFeet": 21672,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 24,
+      "regionId": "MN0302",
+      "residentialFar": 6.02,
+      "sourceRowIds": [
+        "pluto:1003410050"
+      ],
+      "zoningDistricts": [
+        "R8"
+      ]
+    },
+    {
+      "address": "145 BROOME STREET",
+      "affordableResidentialFar": 7.2,
+      "availableCommercialFar": 0,
+      "availableFar": 6.02,
+      "availableResidentialFar": 6.02,
+      "bbl": "1003410062",
+      "boroughId": "manhattan",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9850404,
+        40.7162306
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:1003410062",
+      "landUseCode": "11",
+      "lotAreaSquareFeet": 26795,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 161305.9,
+      "potentialResidentialFloorAreaSquareFeet": 161305.9,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 179,
+      "regionId": "MN0302",
+      "residentialFar": 6.02,
+      "sourceRowIds": [
+        "pluto:1003410062"
+      ],
+      "zoningDistricts": [
+        "R8"
+      ]
+    },
+    {
+      "address": "55 PITT STREET",
+      "affordableResidentialFar": 7.2,
+      "availableCommercialFar": 0,
+      "availableFar": 5.03,
+      "availableResidentialFar": 5.03,
+      "bbl": "1003430066",
+      "boroughId": "manhattan",
+      "builtAreaSquareFeet": 2106,
+      "builtFar": 0.99,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9831678,
+        40.717718
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:1003430066",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 2118,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 10653.54,
+      "potentialResidentialFloorAreaSquareFeet": 10653.54,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 11,
+      "regionId": "MN0302",
+      "residentialFar": 6.02,
+      "sourceRowIds": [
+        "pluto:1003430066"
+      ],
+      "zoningDistricts": [
+        "R8A"
+      ]
+    },
+    {
+      "address": "DELANCEY STREET",
+      "affordableResidentialFar": 7.2,
+      "availableCommercialFar": 0,
+      "availableFar": 6.02,
+      "availableResidentialFar": 6.02,
+      "bbl": "1003460039",
+      "boroughId": "manhattan",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9871182,
+        40.7165273
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:1003460039",
+      "landUseCode": "11",
+      "lotAreaSquareFeet": 15485,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 93219.7,
+      "potentialResidentialFloorAreaSquareFeet": 93219.7,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 103,
+      "regionId": "MN0302",
+      "residentialFar": 6.02,
+      "sourceRowIds": [
+        "pluto:1003460039"
+      ],
+      "zoningDistricts": [
+        "R8"
+      ]
+    },
+    {
+      "address": "384 GRAND STREET",
+      "affordableResidentialFar": 10.8,
+      "availableCommercialFar": 0,
+      "availableFar": 5.95,
+      "availableResidentialFar": 5.95,
+      "bbl": "1003460095",
+      "boroughId": "manhattan",
+      "builtAreaSquareFeet": 26377,
+      "builtFar": 3.05,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9876376,
+        40.7164999
+      ],
+      "existingResidentialUnits": 26,
+      "existingTotalUnits": 29,
+      "id": "capacity:1003460095",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 8642,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 51419.9,
+      "potentialResidentialFloorAreaSquareFeet": 51419.9,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 57,
+      "regionId": "MN0302",
+      "residentialFar": 9,
+      "sourceRowIds": [
+        "pluto:1003460095"
+      ],
+      "zoningDistricts": [
+        "R9-1"
+      ]
+    },
+    {
+      "address": "156 DELANCEY STREET",
+      "affordableResidentialFar": 7.2,
+      "availableCommercialFar": 0,
+      "availableFar": 5.02,
+      "availableResidentialFar": 5.02,
+      "bbl": "1003480033",
+      "boroughId": "manhattan",
+      "builtAreaSquareFeet": 2725,
+      "builtFar": 1,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9858913,
+        40.7180972
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 8,
+      "id": "capacity:1003480033",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 2725,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 13679.5,
+      "potentialResidentialFloorAreaSquareFeet": 13679.5,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 15,
+      "regionId": "MN0302",
+      "residentialFar": 6.02,
+      "sourceRowIds": [
+        "pluto:1003480033"
+      ],
+      "zoningDistricts": [
+        "R8A",
+        "C6-2A"
+      ]
+    },
+    {
+      "address": "178 DELANCEY STREET",
+      "affordableResidentialFar": 7.2,
+      "availableCommercialFar": 0,
+      "availableFar": 5.02,
+      "availableResidentialFar": 5.02,
+      "bbl": "1003480070",
+      "boroughId": "manhattan",
+      "builtAreaSquareFeet": 2499,
+      "builtFar": 1,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9848597,
+        40.7178967
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 2,
+      "id": "capacity:1003480070",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 2500,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 12550,
+      "potentialResidentialFloorAreaSquareFeet": 12550,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 13,
+      "regionId": "MN0302",
+      "residentialFar": 6.02,
+      "sourceRowIds": [
+        "pluto:1003480070"
+      ],
+      "zoningDistricts": [
+        "R8A"
+      ]
+    },
+    {
+      "address": "317 EAST HOUSTON STREET",
+      "affordableResidentialFar": 7.2,
+      "availableCommercialFar": 0,
+      "availableFar": 5.02,
+      "availableResidentialFar": 5.02,
+      "bbl": "1003500062",
+      "boroughId": "manhattan",
+      "builtAreaSquareFeet": 1080,
+      "builtFar": 1,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9832355,
+        40.7210337
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:1003500062",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 1080,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 5421.6,
+      "potentialResidentialFloorAreaSquareFeet": 5421.6,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 6,
+      "regionId": "MN0302",
+      "residentialFar": 6.02,
+      "sourceRowIds": [
+        "pluto:1003500062"
+      ],
+      "zoningDistricts": [
+        "R8A"
+      ]
+    },
+    {
+      "address": "173 ATTORNEY STREET",
+      "affordableResidentialFar": 7.2,
+      "availableCommercialFar": 0,
+      "availableFar": 5.04,
+      "availableResidentialFar": 5.04,
+      "bbl": "1003500063",
+      "boroughId": "manhattan",
+      "builtAreaSquareFeet": 1062,
+      "builtFar": 0.98,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.983351,
+        40.7209569
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:1003500063",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 1080,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 5443.2,
+      "potentialResidentialFloorAreaSquareFeet": 5443.2,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 6,
+      "regionId": "MN0302",
+      "residentialFar": 6.02,
+      "sourceRowIds": [
+        "pluto:1003500063"
+      ],
+      "zoningDistricts": [
+        "R8A"
+      ]
+    },
+    {
+      "address": "205 EAST HOUSTON STREET",
+      "affordableResidentialFar": 7.2,
+      "availableCommercialFar": 5.1,
+      "availableFar": 5.12,
+      "availableResidentialFar": 5.12,
+      "bbl": "1004120021",
+      "boroughId": "manhattan",
+      "builtAreaSquareFeet": 6310,
+      "builtFar": 0.9,
+      "commercialFar": 6,
+      "coordinates": [
+        -73.9875067,
+        40.7221816
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:1004120021",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 7003,
+      "potentialCommercialFloorAreaSquareFeet": 35715.3,
+      "potentialFloorAreaSquareFeet": 35855.36,
+      "potentialResidentialFloorAreaSquareFeet": 35855.36,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 39,
+      "regionId": "MN0302",
+      "residentialFar": 6.02,
+      "sourceRowIds": [
+        "pluto:1004120021"
+      ],
+      "zoningDistricts": [
+        "C6-2A",
+        "C4-4A"
+      ]
+    },
+    {
+      "address": "154 ELDRIDGE STREET",
+      "affordableResidentialFar": 7.2,
+      "availableCommercialFar": 6,
+      "availableFar": 6.02,
+      "availableResidentialFar": 6.02,
+      "bbl": "1004150001",
+      "boroughId": "manhattan",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 6,
+      "coordinates": [
+        -73.9909632,
+        40.7196704
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:1004150001",
+      "landUseCode": "11",
+      "lotAreaSquareFeet": 3201,
+      "potentialCommercialFloorAreaSquareFeet": 19206,
+      "potentialFloorAreaSquareFeet": 19270.02,
+      "potentialResidentialFloorAreaSquareFeet": 19270.02,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 21,
+      "regionId": "MN0302",
+      "residentialFar": 6.02,
+      "sourceRowIds": [
+        "pluto:1004150001"
+      ],
+      "zoningDistricts": [
+        "C6-2A"
+      ]
+    },
+    {
+      "address": "329 BROOME STREET",
+      "affordableResidentialFar": 9.02,
+      "availableCommercialFar": 3.24,
+      "availableFar": 4.76,
+      "availableResidentialFar": 4.76,
+      "bbl": "1004230016",
+      "boroughId": "manhattan",
+      "builtAreaSquareFeet": 6130,
+      "builtFar": 2.76,
+      "commercialFar": 6,
+      "coordinates": [
+        -73.9938997,
+        40.7190311
+      ],
+      "existingResidentialUnits": 4,
+      "existingTotalUnits": 6,
+      "id": "capacity:1004230016",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 2225,
+      "potentialCommercialFloorAreaSquareFeet": 7209,
+      "potentialFloorAreaSquareFeet": 10591,
+      "potentialResidentialFloorAreaSquareFeet": 10591,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 11,
+      "regionId": "MN0302",
+      "residentialFar": 7.52,
+      "sourceRowIds": [
+        "pluto:1004230016"
+      ],
+      "zoningDistricts": [
+        "C6-3A"
+      ]
+    },
+    {
+      "address": "141 CHRYSTIE STREET",
+      "affordableResidentialFar": 9.02,
+      "availableCommercialFar": 4.27,
+      "availableFar": 5.79,
+      "availableResidentialFar": 5.79,
+      "bbl": "1004240027",
+      "boroughId": "manhattan",
+      "builtAreaSquareFeet": 4356,
+      "builtFar": 1.73,
+      "commercialFar": 6,
+      "coordinates": [
+        -73.9933622,
+        40.7198051
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:1004240027",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 2520,
+      "potentialCommercialFloorAreaSquareFeet": 10760.4,
+      "potentialFloorAreaSquareFeet": 14590.8,
+      "potentialResidentialFloorAreaSquareFeet": 14590.8,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 16,
+      "regionId": "MN0302",
+      "residentialFar": 7.52,
+      "sourceRowIds": [
+        "pluto:1004240027"
+      ],
+      "zoningDistricts": [
+        "C6-3A"
+      ]
+    },
+    {
+      "address": "324 BROOME STREET",
+      "affordableResidentialFar": 9.02,
+      "availableCommercialFar": 6,
+      "availableFar": 7.52,
+      "availableResidentialFar": 7.52,
+      "bbl": "1004240035",
+      "boroughId": "manhattan",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 6,
+      "coordinates": [
+        -73.9934957,
+        40.719322
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:1004240035",
+      "landUseCode": "11",
+      "lotAreaSquareFeet": 4309,
+      "potentialCommercialFloorAreaSquareFeet": 25854,
+      "potentialFloorAreaSquareFeet": 32403.68,
+      "potentialResidentialFloorAreaSquareFeet": 32403.68,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 36,
+      "regionId": "MN0302",
+      "residentialFar": 7.52,
+      "sourceRowIds": [
+        "pluto:1004240035"
+      ],
+      "zoningDistricts": [
+        "C6-3A"
+      ]
+    },
+    {
+      "address": "159 CHRYSTIE STREET",
+      "affordableResidentialFar": 9.02,
+      "availableCommercialFar": 4,
+      "availableFar": 5.52,
+      "availableResidentialFar": 5.52,
+      "bbl": "1004250035",
+      "boroughId": "manhattan",
+      "builtAreaSquareFeet": 6340,
+      "builtFar": 2,
+      "commercialFar": 6,
+      "coordinates": [
+        -73.9930158,
+        40.7205571
+      ],
+      "existingResidentialUnits": 8,
+      "existingTotalUnits": 9,
+      "id": "capacity:1004250035",
+      "landUseCode": "2",
+      "lotAreaSquareFeet": 3175,
+      "potentialCommercialFloorAreaSquareFeet": 12700,
+      "potentialFloorAreaSquareFeet": 17526,
+      "potentialResidentialFloorAreaSquareFeet": 17526,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 19,
+      "regionId": "MN0302",
+      "residentialFar": 7.52,
+      "sourceRowIds": [
+        "pluto:1004250035"
+      ],
+      "zoningDistricts": [
+        "C6-3A",
+        "C6-1"
+      ]
+    },
+    {
+      "address": "157 CHRYSTIE STREET",
+      "affordableResidentialFar": 9.02,
+      "availableCommercialFar": 4.12,
+      "availableFar": 5.64,
+      "availableResidentialFar": 5.64,
+      "bbl": "1004250036",
+      "boroughId": "manhattan",
+      "builtAreaSquareFeet": 5980,
+      "builtFar": 1.88,
+      "commercialFar": 6,
+      "coordinates": [
+        -73.9930482,
+        40.720494
+      ],
+      "existingResidentialUnits": 6,
+      "existingTotalUnits": 8,
+      "id": "capacity:1004250036",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 3175,
+      "potentialCommercialFloorAreaSquareFeet": 13081,
+      "potentialFloorAreaSquareFeet": 17907,
+      "potentialResidentialFloorAreaSquareFeet": 17907,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 19,
+      "regionId": "MN0302",
+      "residentialFar": 7.52,
+      "sourceRowIds": [
+        "pluto:1004250036"
+      ],
+      "zoningDistricts": [
+        "C6-3A",
+        "C6-1"
+      ]
+    },
+    {
+      "address": "18 DELANCEY STREET",
+      "affordableResidentialFar": 9.02,
+      "availableCommercialFar": 3.99,
+      "availableFar": 5.51,
+      "availableResidentialFar": 5.51,
+      "bbl": "1004250038",
+      "boroughId": "manhattan",
+      "builtAreaSquareFeet": 2930,
+      "builtFar": 2.01,
+      "commercialFar": 6,
+      "coordinates": [
+        -73.9929689,
+        40.7202827
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 2,
+      "id": "capacity:1004250038",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 1459,
+      "potentialCommercialFloorAreaSquareFeet": 5821.41,
+      "potentialFloorAreaSquareFeet": 8039.09,
+      "potentialResidentialFloorAreaSquareFeet": 8039.09,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 8,
+      "regionId": "MN0302",
+      "residentialFar": 7.52,
+      "sourceRowIds": [
+        "pluto:1004250038"
+      ],
+      "zoningDistricts": [
+        "C6-3A"
+      ]
+    },
+    {
+      "address": "189 CHRYSTIE STREET",
+      "affordableResidentialFar": 9.02,
+      "availableCommercialFar": 3.95,
+      "availableFar": 5.47,
+      "availableResidentialFar": 5.47,
+      "bbl": "1004260033",
+      "boroughId": "manhattan",
+      "builtAreaSquareFeet": 5116,
+      "builtFar": 2.05,
+      "commercialFar": 6,
+      "coordinates": [
+        -73.9922797,
+        40.7218855
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 2,
+      "id": "capacity:1004260033",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 2499,
+      "potentialCommercialFloorAreaSquareFeet": 9871.05,
+      "potentialFloorAreaSquareFeet": 13669.53,
+      "potentialResidentialFloorAreaSquareFeet": 13669.53,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 15,
+      "regionId": "MN0302",
+      "residentialFar": 7.52,
+      "sourceRowIds": [
+        "pluto:1004260033"
+      ],
+      "zoningDistricts": [
+        "C6-3A"
+      ]
+    },
+    {
+      "address": "16 RIVINGTON STREET",
+      "affordableResidentialFar": 9.02,
+      "availableCommercialFar": 4.78,
+      "availableFar": 6.3,
+      "availableResidentialFar": 6.3,
+      "bbl": "1004260038",
+      "boroughId": "manhattan",
+      "builtAreaSquareFeet": 8400,
+      "builtFar": 1.22,
+      "commercialFar": 6,
+      "coordinates": [
+        -73.9924637,
+        40.7214931
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:1004260038",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 6900,
+      "potentialCommercialFloorAreaSquareFeet": 32982,
+      "potentialFloorAreaSquareFeet": 43470,
+      "potentialResidentialFloorAreaSquareFeet": 43470,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 48,
+      "regionId": "MN0302",
+      "residentialFar": 7.52,
+      "sourceRowIds": [
+        "pluto:1004260038"
+      ],
+      "zoningDistricts": [
+        "C6-3A"
+      ]
+    },
+    {
+      "address": "271 BOWERY",
+      "affordableResidentialFar": 7.2,
+      "availableCommercialFar": 0,
+      "availableFar": 6.02,
+      "availableResidentialFar": 6.02,
+      "bbl": "1004270014",
+      "boroughId": "manhattan",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9924346,
+        40.7236093
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:1004270014",
+      "landUseCode": "10",
+      "lotAreaSquareFeet": 1730,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 10414.6,
+      "potentialResidentialFloorAreaSquareFeet": 10414.6,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 11,
+      "regionId": "MN0302",
+      "residentialFar": 6.02,
+      "sourceRowIds": [
+        "pluto:1004270014"
+      ],
+      "zoningDistricts": [
+        "R8X",
+        "C6-1"
+      ]
+    }
+  ],
+  "claimBoundary": "This NTA shard preserves every joined row retained from the governed source snapshot. The source snapshot itself samples large DOB jobs, constructed footprints, and PLUTO capacity candidates and is not a complete property history or feasibility inventory.",
+  "contentVersion": "2026-07-27",
+  "coverage": {
+    "capacityCandidates": 28,
+    "compilerRegionCap": null,
+    "developmentForecastSupportedBySector": {
+      "all": false,
+      "tax-class-1": true,
+      "tax-class-2": true,
+      "tax-class-4": true
+    },
+    "developmentSeriesRows": 21,
+    "historicalSites": 62,
+    "priceForecastSupportedBySector": {
+      "all": true,
+      "tax-class-1": true,
+      "tax-class-2": true,
+      "tax-class-4": true
+    },
+    "saleRows": 24,
+    "saleYearsBySector": {
+      "tax-class-1": [
+        2018,
+        2021,
+        2023,
+        2024
+      ],
+      "tax-class-2": [
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "tax-class-4": [
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024,
+        2025
+      ]
+    },
+    "sectorCandidateCounts": {
+      "all": 0,
+      "tax-class-1": 28,
+      "tax-class-2": 28,
+      "tax-class-4": 10
+    },
+    "sourceSampled": true
+  },
+  "developmentSeries": [
+    {
+      "filingCount": 18,
+      "id": "development:MN0302:2000",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "MN0302",
+      "sourceNtaNames": [
+        "Lower East Side"
+      ],
+      "withdrawnFilingCount": 2,
+      "year": 2000
+    },
+    {
+      "filingCount": 37,
+      "id": "development:MN0302:2001",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "MN0302",
+      "sourceNtaNames": [
+        "Lower East Side"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2001
+    },
+    {
+      "filingCount": 13,
+      "id": "development:MN0302:2002",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "MN0302",
+      "sourceNtaNames": [
+        "Lower East Side"
+      ],
+      "withdrawnFilingCount": 2,
+      "year": 2002
+    },
+    {
+      "filingCount": 17,
+      "id": "development:MN0302:2003",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "MN0302",
+      "sourceNtaNames": [
+        "Lower East Side"
+      ],
+      "withdrawnFilingCount": 1,
+      "year": 2003
+    },
+    {
+      "filingCount": 21,
+      "id": "development:MN0302:2004",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "MN0302",
+      "sourceNtaNames": [
+        "Lower East Side"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2004
+    },
+    {
+      "filingCount": 17,
+      "id": "development:MN0302:2005",
+      "proposedZoningSquareFeet": 190450,
+      "regionId": "MN0302",
+      "sourceNtaNames": [
+        "Lower East Side"
+      ],
+      "withdrawnFilingCount": 1,
+      "year": 2005
+    },
+    {
+      "filingCount": 29,
+      "id": "development:MN0302:2006",
+      "proposedZoningSquareFeet": 24572,
+      "regionId": "MN0302",
+      "sourceNtaNames": [
+        "Lower East Side"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2006
+    },
+    {
+      "filingCount": 21,
+      "id": "development:MN0302:2007",
+      "proposedZoningSquareFeet": 46398,
+      "regionId": "MN0302",
+      "sourceNtaNames": [
+        "Lower East Side"
+      ],
+      "withdrawnFilingCount": 1,
+      "year": 2007
+    },
+    {
+      "filingCount": 25,
+      "id": "development:MN0302:2008",
+      "proposedZoningSquareFeet": 345920,
+      "regionId": "MN0302",
+      "sourceNtaNames": [
+        "Lower East Side"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2008
+    },
+    {
+      "filingCount": 21,
+      "id": "development:MN0302:2009",
+      "proposedZoningSquareFeet": 54397,
+      "regionId": "MN0302",
+      "sourceNtaNames": [
+        "Lower East Side"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2009
+    },
+    {
+      "filingCount": 17,
+      "id": "development:MN0302:2010",
+      "proposedZoningSquareFeet": 6834,
+      "regionId": "MN0302",
+      "sourceNtaNames": [
+        "Lower East Side"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2010
+    },
+    {
+      "filingCount": 13,
+      "id": "development:MN0302:2011",
+      "proposedZoningSquareFeet": 260754,
+      "regionId": "MN0302",
+      "sourceNtaNames": [
+        "Lower East Side"
+      ],
+      "withdrawnFilingCount": 1,
+      "year": 2011
+    },
+    {
+      "filingCount": 18,
+      "id": "development:MN0302:2012",
+      "proposedZoningSquareFeet": 653415,
+      "regionId": "MN0302",
+      "sourceNtaNames": [
+        "Lower East Side"
+      ],
+      "withdrawnFilingCount": 2,
+      "year": 2012
+    },
+    {
+      "filingCount": 38,
+      "id": "development:MN0302:2013",
+      "proposedZoningSquareFeet": 538197,
+      "regionId": "MN0302",
+      "sourceNtaNames": [
+        "Lower East Side"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2013
+    },
+    {
+      "filingCount": 51,
+      "id": "development:MN0302:2014",
+      "proposedZoningSquareFeet": 1608859,
+      "regionId": "MN0302",
+      "sourceNtaNames": [
+        "Lower East Side"
+      ],
+      "withdrawnFilingCount": 3,
+      "year": 2014
+    },
+    {
+      "filingCount": 30,
+      "id": "development:MN0302:2015",
+      "proposedZoningSquareFeet": 193569,
+      "regionId": "MN0302",
+      "sourceNtaNames": [
+        "Lower East Side"
+      ],
+      "withdrawnFilingCount": 1,
+      "year": 2015
+    },
+    {
+      "filingCount": 28,
+      "id": "development:MN0302:2016",
+      "proposedZoningSquareFeet": 370563,
+      "regionId": "MN0302",
+      "sourceNtaNames": [
+        "Lower East Side"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2016
+    },
+    {
+      "filingCount": 43,
+      "id": "development:MN0302:2017",
+      "proposedZoningSquareFeet": 2520197,
+      "regionId": "MN0302",
+      "sourceNtaNames": [
+        "Lower East Side"
+      ],
+      "withdrawnFilingCount": 3,
+      "year": 2017
+    },
+    {
+      "filingCount": 18,
+      "id": "development:MN0302:2018",
+      "proposedZoningSquareFeet": 73110,
+      "regionId": "MN0302",
+      "sourceNtaNames": [
+        "Lower East Side"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2018
+    },
+    {
+      "filingCount": 35,
+      "id": "development:MN0302:2019",
+      "proposedZoningSquareFeet": 1191050,
+      "regionId": "MN0302",
+      "sourceNtaNames": [
+        "Lower East Side"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2019
+    },
+    {
+      "filingCount": 21,
+      "id": "development:MN0302:2020",
+      "proposedZoningSquareFeet": 1697712,
+      "regionId": "MN0302",
+      "sourceNtaNames": [
+        "Lower East Side"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2020
+    }
+  ],
+  "developmentSites": [
+    {
+      "address": null,
+      "bbl": "1003460040",
+      "bin": "1089660",
+      "constructionYear": 2018,
+      "coordinates": [
+        -73.9868183,
+        40.7165496
+      ],
+      "footprint": [
+        [
+          -73.986866,
+          40.716779
+        ],
+        [
+          -73.986437,
+          40.7166549
+        ],
+        [
+          -73.9867194,
+          40.7160897
+        ],
+        [
+          -73.987152,
+          40.7162149
+        ],
+        [
+          -73.9868696,
+          40.7167801
+        ],
+        [
+          -73.986866,
+          40.716779
+        ]
+      ],
+      "footprintAreaM2": 4574.91,
+      "footprintOrigin": "observed",
+      "heightM": 57.3,
+      "id": "footprint:1033170",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2018-07-01",
+          "id": "footprint:1033170:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "MN0302",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1033170"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "1003460175",
+      "bin": "1089891",
+      "constructionYear": 2019,
+      "coordinates": [
+        -73.9863609,
+        40.717374
+      ],
+      "footprint": [
+        [
+          -73.98599,
+          40.7174994
+        ],
+        [
+          -73.9862498,
+          40.7169891
+        ],
+        [
+          -73.9869173,
+          40.7171859
+        ],
+        [
+          -73.9866574,
+          40.7176962
+        ],
+        [
+          -73.98599,
+          40.7174994
+        ]
+      ],
+      "footprintAreaM2": 6404.68,
+      "footprintOrigin": "observed",
+      "heightM": 79.25,
+      "id": "footprint:1035659",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2019-07-01",
+          "id": "footprint:1035659:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "MN0302",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1035659"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "1003460150",
+      "bin": "1089905",
+      "constructionYear": 2019,
+      "coordinates": [
+        -73.9872004,
+        40.7176223
+      ],
+      "footprint": [
+        [
+          -73.9868267,
+          40.7177411
+        ],
+        [
+          -73.9870879,
+          40.7172406
+        ],
+        [
+          -73.9877609,
+          40.7174439
+        ],
+        [
+          -73.9874996,
+          40.7179445
+        ],
+        [
+          -73.9868267,
+          40.7177411
+        ]
+      ],
+      "footprintAreaM2": 6375.04,
+      "footprintOrigin": "observed",
+      "heightM": 48.77,
+      "id": "footprint:1035660",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2019-07-01",
+          "id": "footprint:1035660:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "MN0302",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1035660"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "1003530047",
+      "bin": "1090469",
+      "constructionYear": 2017,
+      "coordinates": [
+        -73.98704,
+        40.7186262
+      ],
+      "footprint": [
+        [
+          -73.9871691,
+          40.7186027
+        ],
+        [
+          -73.9870992,
+          40.7187374
+        ],
+        [
+          -73.9868462,
+          40.7186614
+        ],
+        [
+          -73.9869162,
+          40.7185267
+        ],
+        [
+          -73.9871691,
+          40.7186027
+        ]
+      ],
+      "footprintAreaM2": 644.02,
+      "footprintOrigin": "observed",
+      "heightM": 36.58,
+      "id": "footprint:1036016",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2017-07-01",
+          "id": "footprint:1036016:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "MN0302",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1036016"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "1004220042",
+      "bin": "1090468",
+      "constructionYear": 2017,
+      "coordinates": [
+        -73.9903702,
+        40.7227725
+      ],
+      "footprint": [
+        [
+          -73.9904365,
+          40.7228493
+        ],
+        [
+          -73.9902069,
+          40.7227803
+        ],
+        [
+          -73.9902707,
+          40.7226574
+        ],
+        [
+          -73.9905003,
+          40.7227264
+        ],
+        [
+          -73.9904365,
+          40.7228493
+        ]
+      ],
+      "footprintAreaM2": 533.41,
+      "footprintOrigin": "observed",
+      "heightM": 24.38,
+      "id": "footprint:1036018",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2017-07-01",
+          "id": "footprint:1036018:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "MN0302",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1036018"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "1003470071",
+      "bin": "1089451",
+      "constructionYear": 2018,
+      "coordinates": [
+        -73.9857654,
+        40.7171132
+      ],
+      "footprint": [
+        [
+          -73.9858804,
+          40.71732
+        ],
+        [
+          -73.985399,
+          40.7171743
+        ],
+        [
+          -73.9855929,
+          40.7168032
+        ],
+        [
+          -73.9860743,
+          40.7169488
+        ],
+        [
+          -73.9858804,
+          40.71732
+        ]
+      ],
+      "footprintAreaM2": 3383.14,
+      "footprintOrigin": "observed",
+      "heightM": 46.94,
+      "id": "footprint:1036021",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2018-07-01",
+          "id": "footprint:1036021:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "MN0302",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1036021"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "1003520001",
+      "bin": "1090554",
+      "constructionYear": 2018,
+      "coordinates": [
+        -73.9880193,
+        40.7178488
+      ],
+      "footprint": [
+        [
+          -73.9879219,
+          40.7175302
+        ],
+        [
+          -73.9884833,
+          40.7176932
+        ],
+        [
+          -73.9881654,
+          40.7183268
+        ],
+        [
+          -73.987604,
+          40.7181638
+        ],
+        [
+          -73.9879219,
+          40.7175302
+        ]
+      ],
+      "footprintAreaM2": 6663.27,
+      "footprintOrigin": "observed",
+      "heightM": 95.71,
+      "id": "footprint:1036264",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2018-07-01",
+          "id": "footprint:1036264:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "MN0302",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1036264"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "1003490037",
+      "bin": "1090811",
+      "constructionYear": 2018,
+      "coordinates": [
+        -73.9855395,
+        40.719502
+      ],
+      "footprint": [
+        [
+          -73.9856215,
+          40.7196234
+        ],
+        [
+          -73.9853187,
+          40.7195319
+        ],
+        [
+          -73.9854535,
+          40.7192739
+        ],
+        [
+          -73.9857957,
+          40.7193774
+        ],
+        [
+          -73.985661,
+          40.7196354
+        ],
+        [
+          -73.9856215,
+          40.7196234
+        ]
+      ],
+      "footprintAreaM2": 1671.15,
+      "footprintOrigin": "observed",
+      "heightM": 23.16,
+      "id": "footprint:1037724",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2018-07-01",
+          "id": "footprint:1037724:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "MN0302",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1037724"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "1004100034",
+      "bin": "1090742",
+      "constructionYear": 2020,
+      "coordinates": [
+        -73.9894641,
+        40.7192949
+      ],
+      "footprint": [
+        [
+          -73.9893832,
+          40.7193569
+        ],
+        [
+          -73.9894789,
+          40.7191704
+        ],
+        [
+          -73.9895855,
+          40.719202
+        ],
+        [
+          -73.9894899,
+          40.7193886
+        ],
+        [
+          -73.9893832,
+          40.7193569
+        ]
+      ],
+      "footprintAreaM2": 374.82,
+      "footprintOrigin": "observed",
+      "heightM": 36.58,
+      "id": "footprint:1042530",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2020-07-01",
+          "id": "footprint:1042530:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "MN0302",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1042530"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "1004090056",
+      "bin": "1089450",
+      "constructionYear": 2018,
+      "coordinates": [
+        -73.9891501,
+        40.7179853
+      ],
+      "footprint": [
+        [
+          -73.9893615,
+          40.7179504
+        ],
+        [
+          -73.9892506,
+          40.7181636
+        ],
+        [
+          -73.988833,
+          40.7180377
+        ],
+        [
+          -73.988944,
+          40.7178246
+        ],
+        [
+          -73.9893615,
+          40.7179504
+        ]
+      ],
+      "footprintAreaM2": 1683.35,
+      "footprintOrigin": "observed",
+      "heightM": 48.77,
+      "id": "footprint:1073977",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2018-07-01",
+          "id": "footprint:1073977:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "MN0302",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1073977"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "1003500018",
+      "bin": "1004245",
+      "constructionYear": 2019,
+      "coordinates": [
+        -73.9841912,
+        40.7213243
+      ],
+      "footprint": [
+        [
+          -73.9840846,
+          40.721374
+        ],
+        [
+          -73.9841797,
+          40.721195
+        ],
+        [
+          -73.9843495,
+          40.7212493
+        ],
+        [
+          -73.9842577,
+          40.7214295
+        ],
+        [
+          -73.9840846,
+          40.721374
+        ]
+      ],
+      "footprintAreaM2": 587.43,
+      "footprintOrigin": "observed",
+      "heightM": 36.58,
+      "id": "footprint:1074156",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2019-07-01",
+          "id": "footprint:1074156:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "MN0302",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1074156"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "1004120012",
+      "bin": "1090375",
+      "constructionYear": 2017,
+      "coordinates": [
+        -73.9877678,
+        40.7222743
+      ],
+      "footprint": [
+        [
+          -73.9880518,
+          40.7222201
+        ],
+        [
+          -73.9878949,
+          40.7225283
+        ],
+        [
+          -73.9874151,
+          40.722387
+        ],
+        [
+          -73.9875155,
+          40.7221901
+        ],
+        [
+          -73.9876939,
+          40.7222426
+        ],
+        [
+          -73.9877513,
+          40.7221316
+        ],
+        [
+          -73.9880518,
+          40.7222201
+        ]
+      ],
+      "footprintAreaM2": 2406.24,
+      "footprintOrigin": "observed",
+      "heightM": 48.16,
+      "id": "footprint:1076342",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2017-07-01",
+          "id": "footprint:1076342:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "MN0302",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1076342"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "1004250028",
+      "bin": "1090788",
+      "constructionYear": 2022,
+      "coordinates": [
+        -73.9927204,
+        40.7209636
+      ],
+      "footprint": [
+        [
+          -73.9925502,
+          40.7209823
+        ],
+        [
+          -73.9926025,
+          40.7208809
+        ],
+        [
+          -73.9928453,
+          40.720958
+        ],
+        [
+          -73.9928426,
+          40.7209631
+        ],
+        [
+          -73.9928586,
+          40.7209679
+        ],
+        [
+          -73.9928096,
+          40.7210596
+        ],
+        [
+          -73.9925502,
+          40.7209823
+        ]
+      ],
+      "footprintAreaM2": 483.26,
+      "footprintOrigin": "observed",
+      "heightM": 31.09,
+      "id": "footprint:1078175",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2022-07-01",
+          "id": "footprint:1078175:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "MN0302",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1078175"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "1004260027",
+      "bin": "1005718",
+      "constructionYear": 2022,
+      "coordinates": [
+        -73.9920629,
+        40.722252
+      ],
+      "footprint": [
+        [
+          -73.9919031,
+          40.7222649
+        ],
+        [
+          -73.9919702,
+          40.722134
+        ],
+        [
+          -73.9923025,
+          40.7222325
+        ],
+        [
+          -73.9922354,
+          40.7223635
+        ],
+        [
+          -73.9919031,
+          40.7222649
+        ]
+      ],
+      "footprintAreaM2": 819.83,
+      "footprintOrigin": "observed",
+      "heightM": 44.2,
+      "id": "footprint:1085969",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2022-07-01",
+          "id": "footprint:1085969:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "MN0302",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1085969"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "1003460075",
+      "bin": "1091600",
+      "constructionYear": 2023,
+      "coordinates": [
+        -73.987601,
+        40.7169617
+      ],
+      "footprint": [
+        [
+          -73.987666,
+          40.7171734
+        ],
+        [
+          -73.9878694,
+          40.7172334
+        ],
+        [
+          -73.9878267,
+          40.7173174
+        ],
+        [
+          -73.9871523,
+          40.7171174
+        ],
+        [
+          -73.9873919,
+          40.7166521
+        ],
+        [
+          -73.9874213,
+          40.7166608
+        ],
+        [
+          -73.9874389,
+          40.7166262
+        ],
+        [
+          -73.9876826,
+          40.7167002
+        ],
+        [
+          -73.9875879,
+          40.7168794
+        ],
+        [
+          -73.9877374,
+          40.7169224
+        ],
+        [
+          -73.9876521,
+          40.7170877
+        ],
+        [
+          -73.9877024,
+          40.7171029
+        ],
+        [
+          -73.987666,
+          40.7171734
+        ]
+      ],
+      "footprintAreaM2": 3901.28,
+      "footprintOrigin": "observed",
+      "heightM": 113.39,
+      "id": "footprint:1087584",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2023-07-01",
+          "id": "footprint:1087584:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "MN0302",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1087584"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "1003440139",
+      "bin": "1091660",
+      "constructionYear": 2024,
+      "coordinates": [
+        -73.9846827,
+        40.719353
+      ],
+      "footprint": [
+        [
+          -73.9847905,
+          40.7194427
+        ],
+        [
+          -73.9845606,
+          40.7193742
+        ],
+        [
+          -73.9845898,
+          40.7193149
+        ],
+        [
+          -73.9845839,
+          40.7193131
+        ],
+        [
+          -73.9846132,
+          40.7192563
+        ],
+        [
+          -73.9848501,
+          40.719327
+        ],
+        [
+          -73.9847905,
+          40.7194427
+        ]
+      ],
+      "footprintAreaM2": 510.15,
+      "footprintOrigin": "observed",
+      "heightM": 22.56,
+      "id": "footprint:1088070",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2024-07-01",
+          "id": "footprint:1088070:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "MN0302",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1088070"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "1003500047",
+      "bin": "1091763",
+      "constructionYear": 2022,
+      "coordinates": [
+        -73.9838755,
+        40.720829
+      ],
+      "footprint": [
+        [
+          -73.9837444,
+          40.7208118
+        ],
+        [
+          -73.9837705,
+          40.7207625
+        ],
+        [
+          -73.9840721,
+          40.7208548
+        ],
+        [
+          -73.984046,
+          40.7209041
+        ],
+        [
+          -73.9837444,
+          40.7208118
+        ]
+      ],
+      "footprintAreaM2": 282.54,
+      "footprintOrigin": "observed",
+      "heightM": 21.34,
+      "id": "footprint:1088211",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2022-07-01",
+          "id": "footprint:1088211:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "MN0302",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1088211"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "1002410018",
+      "bin": "1091058",
+      "constructionYear": 2024,
+      "coordinates": [
+        -73.9834832,
+        40.7103992
+      ],
+      "footprint": [
+        [
+          -73.9835892,
+          40.7104236
+        ],
+        [
+          -73.9833384,
+          40.7104477
+        ],
+        [
+          -73.9833244,
+          40.7103634
+        ],
+        [
+          -73.9835749,
+          40.7103377
+        ],
+        [
+          -73.9835892,
+          40.7104236
+        ]
+      ],
+      "footprintAreaM2": 354.39,
+      "footprintOrigin": "observed",
+      "heightM": 3.66,
+      "id": "footprint:1089005",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2024-07-01",
+          "id": "footprint:1089005:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "MN0302",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1089005"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "1004180051",
+      "bin": "1091810",
+      "constructionYear": 2024,
+      "coordinates": [
+        -73.9923798,
+        40.7178877
+      ],
+      "footprint": [
+        [
+          -73.9923437,
+          40.7178077
+        ],
+        [
+          -73.9925112,
+          40.7178576
+        ],
+        [
+          -73.9924338,
+          40.7180078
+        ],
+        [
+          -73.9922664,
+          40.7179578
+        ],
+        [
+          -73.9923437,
+          40.7178077
+        ]
+      ],
+      "footprintAreaM2": 474.26,
+      "footprintOrigin": "observed",
+      "heightM": 24.38,
+      "id": "footprint:1089362",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2024-07-01",
+          "id": "footprint:1089362:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "MN0302",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1089362"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "1004080024",
+      "bin": "1091629",
+      "constructionYear": 2025,
+      "coordinates": [
+        -73.9901225,
+        40.7172399
+      ],
+      "footprint": [
+        [
+          -73.9901584,
+          40.7173194
+        ],
+        [
+          -73.9899924,
+          40.7172701
+        ],
+        [
+          -73.9900685,
+          40.7171206
+        ],
+        [
+          -73.9902347,
+          40.7171697
+        ],
+        [
+          -73.9901584,
+          40.7173194
+        ]
+      ],
+      "footprintAreaM2": 467.66,
+      "footprintOrigin": "observed",
+      "heightM": 19.81,
+      "id": "footprint:1090429",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2025-07-01",
+          "id": "footprint:1090429:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "MN0302",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1090429"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "1004090056",
+      "bin": "1090849",
+      "constructionYear": 2018,
+      "coordinates": [
+        -73.988958,
+        40.718195
+      ],
+      "footprint": [
+        [
+          -73.989164,
+          40.7183231
+        ],
+        [
+          -73.9885747,
+          40.7181455
+        ],
+        [
+          -73.9886489,
+          40.718003
+        ],
+        [
+          -73.9892382,
+          40.7181805
+        ],
+        [
+          -73.989164,
+          40.7183231
+        ]
+      ],
+      "footprintAreaM2": 1588.79,
+      "footprintOrigin": "observed",
+      "heightM": 20.42,
+      "id": "footprint:154864",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2018-07-01",
+          "id": "footprint:154864:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "MN0302",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:154864"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "1004120026",
+      "bin": "1005400",
+      "constructionYear": 2015,
+      "coordinates": [
+        -73.9876174,
+        40.7220421
+      ],
+      "footprint": [
+        [
+          -73.9874618,
+          40.7220329
+        ],
+        [
+          -73.9874943,
+          40.7219691
+        ],
+        [
+          -73.9877897,
+          40.7220561
+        ],
+        [
+          -73.9877572,
+          40.7221199
+        ],
+        [
+          -73.9874618,
+          40.7220329
+        ]
+      ],
+      "footprintAreaM2": 354.26,
+      "footprintOrigin": "observed",
+      "heightM": 26.46,
+      "id": "footprint:45534",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2015-07-01",
+          "id": "footprint:45534:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "MN0302",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:45534"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "1004250032",
+      "bin": "1090782",
+      "constructionYear": 2017,
+      "coordinates": [
+        -73.9928818,
+        40.7207406
+      ],
+      "footprint": [
+        [
+          -73.9926905,
+          40.7207277
+        ],
+        [
+          -73.9927238,
+          40.720663
+        ],
+        [
+          -73.9929769,
+          40.7207398
+        ],
+        [
+          -73.9929674,
+          40.7207572
+        ],
+        [
+          -73.9929789,
+          40.720761
+        ],
+        [
+          -73.9929733,
+          40.7207693
+        ],
+        [
+          -73.9929868,
+          40.7207739
+        ],
+        [
+          -73.9929649,
+          40.7208094
+        ],
+        [
+          -73.9926905,
+          40.7207277
+        ]
+      ],
+      "footprintAreaM2": 322.41,
+      "footprintOrigin": "observed",
+      "heightM": 24.99,
+      "id": "footprint:61803",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2017-07-01",
+          "id": "footprint:61803:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "MN0302",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:61803"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "1004230004",
+      "bin": "1005630",
+      "constructionYear": 2016,
+      "coordinates": [
+        -73.99429,
+        40.7186566
+      ],
+      "footprint": [
+        [
+          -73.9941446,
+          40.7186492
+        ],
+        [
+          -73.9941761,
+          40.7185874
+        ],
+        [
+          -73.9945298,
+          40.7186918
+        ],
+        [
+          -73.9945018,
+          40.7187547
+        ],
+        [
+          -73.9941446,
+          40.7186492
+        ]
+      ],
+      "footprintAreaM2": 413.52,
+      "footprintOrigin": "observed",
+      "heightM": 14.38,
+      "id": "footprint:62789",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2016-07-01",
+          "id": "footprint:62789:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "MN0302",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:62789"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "1003430068",
+      "bin": "1089387",
+      "constructionYear": 2013,
+      "coordinates": [
+        -73.9832556,
+        40.717445
+      ],
+      "footprint": [
+        [
+          -73.9832841,
+          40.7172844
+        ],
+        [
+          -73.983534,
+          40.7173596
+        ],
+        [
+          -73.9833661,
+          40.7176826
+        ],
+        [
+          -73.9830327,
+          40.7175822
+        ],
+        [
+          -73.9831025,
+          40.7174481
+        ],
+        [
+          -73.9831859,
+          40.7174733
+        ],
+        [
+          -73.9832841,
+          40.7172844
+        ]
+      ],
+      "footprintAreaM2": 1737.54,
+      "footprintOrigin": "observed",
+      "heightM": 45.42,
+      "id": "footprint:64732",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2013-07-01",
+          "id": "footprint:64732:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "MN0302",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:64732"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "1004080028",
+      "bin": "1081938",
+      "constructionYear": 2013,
+      "coordinates": [
+        -73.9904602,
+        40.7173637
+      ],
+      "footprint": [
+        [
+          -73.9904028,
+          40.7174224
+        ],
+        [
+          -73.9904345,
+          40.7173602
+        ],
+        [
+          -73.9904467,
+          40.7173612
+        ],
+        [
+          -73.9904716,
+          40.7173126
+        ],
+        [
+          -73.9904631,
+          40.7173043
+        ],
+        [
+          -73.9904929,
+          40.717246
+        ],
+        [
+          -73.9905728,
+          40.7172696
+        ],
+        [
+          -73.9904827,
+          40.7174461
+        ],
+        [
+          -73.9904028,
+          40.7174224
+        ]
+      ],
+      "footprintAreaM2": 254.48,
+      "footprintOrigin": "observed",
+      "heightM": 18.02,
+      "id": "footprint:651569",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2013-07-01",
+          "id": "footprint:651569:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "MN0302",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:651569"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "1004080028",
+      "bin": "1088619",
+      "constructionYear": 2013,
+      "coordinates": [
+        -73.9903801,
+        40.7173039
+      ],
+      "footprint": [
+        [
+          -73.9902459,
+          40.7173411
+        ],
+        [
+          -73.9903206,
+          40.717195
+        ],
+        [
+          -73.9904929,
+          40.717246
+        ],
+        [
+          -73.9904443,
+          40.7173411
+        ],
+        [
+          -73.9903775,
+          40.7173213
+        ],
+        [
+          -73.9903514,
+          40.7173723
+        ],
+        [
+          -73.9902459,
+          40.7173411
+        ]
+      ],
+      "footprintAreaM2": 409.77,
+      "footprintOrigin": "observed",
+      "heightM": 24.08,
+      "id": "footprint:66533",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2013-07-01",
+          "id": "footprint:66533:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "MN0302",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:66533"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "1004110025",
+      "bin": "1088645",
+      "constructionYear": 2016,
+      "coordinates": [
+        -73.9882223,
+        40.7207172
+      ],
+      "footprint": [
+        [
+          -73.9881656,
+          40.720657
+        ],
+        [
+          -73.9883563,
+          40.7207108
+        ],
+        [
+          -73.988307,
+          40.7208088
+        ],
+        [
+          -73.9881169,
+          40.7207523
+        ],
+        [
+          -73.9881656,
+          40.720657
+        ]
+      ],
+      "footprintAreaM2": 345.07,
+      "footprintOrigin": "observed",
+      "heightM": 26.21,
+      "id": "footprint:71636",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2016-07-01",
+          "id": "footprint:71636:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "MN0302",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:71636"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "1004130041",
+      "bin": "1090650",
+      "constructionYear": 2017,
+      "coordinates": [
+        -73.9906402,
+        40.718093
+      ],
+      "footprint": [
+        [
+          -73.9906427,
+          40.7181786
+        ],
+        [
+          -73.9905223,
+          40.7181429
+        ],
+        [
+          -73.9906343,
+          40.7179225
+        ],
+        [
+          -73.9907561,
+          40.7179573
+        ],
+        [
+          -73.9906428,
+          40.7181784
+        ],
+        [
+          -73.9906427,
+          40.7181786
+        ]
+      ],
+      "footprintAreaM2": 502.2,
+      "footprintOrigin": "observed",
+      "heightM": 24.38,
+      "id": "footprint:72156",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2017-07-01",
+          "id": "footprint:72156:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "MN0302",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:72156"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "1004150067",
+      "bin": "1088498",
+      "constructionYear": 2018,
+      "coordinates": [
+        -73.9895154,
+        40.7200459
+      ],
+      "footprint": [
+        [
+          -73.9894424,
+          40.7199662
+        ],
+        [
+          -73.9896892,
+          40.7200391
+        ],
+        [
+          -73.9896253,
+          40.7201648
+        ],
+        [
+          -73.9893775,
+          40.7200933
+        ],
+        [
+          -73.9894424,
+          40.7199662
+        ]
+      ],
+      "footprintAreaM2": 587.04,
+      "footprintOrigin": "observed",
+      "heightM": 47.24,
+      "id": "footprint:852801",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2018-07-01",
+          "id": "footprint:852801:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "MN0302",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:852801"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "1003450058",
+      "bin": "1088482",
+      "constructionYear": 2010,
+      "coordinates": [
+        -73.9817406,
+        40.7205161
+      ],
+      "footprint": [
+        [
+          -73.9814893,
+          40.720594
+        ],
+        [
+          -73.9815425,
+          40.7204911
+        ],
+        [
+          -73.9816192,
+          40.720514
+        ],
+        [
+          -73.9817624,
+          40.7202368
+        ],
+        [
+          -73.9817664,
+          40.720238
+        ],
+        [
+          -73.9819157,
+          40.7202826
+        ],
+        [
+          -73.9818045,
+          40.7204977
+        ],
+        [
+          -73.9819078,
+          40.7205286
+        ],
+        [
+          -73.9818616,
+          40.720618
+        ],
+        [
+          -73.9818766,
+          40.7206225
+        ],
+        [
+          -73.9818375,
+          40.7206981
+        ],
+        [
+          -73.9814893,
+          40.720594
+        ]
+      ],
+      "footprintAreaM2": 1591.52,
+      "footprintOrigin": "observed",
+      "heightM": 39.59,
+      "id": "footprint:87479",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2010-07-01",
+          "id": "footprint:87479:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "MN0302",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:87479"
+      ]
+    },
+    {
+      "address": "180 ORCHARD STREET",
+      "bbl": "1004127501",
+      "bin": "1090121",
+      "constructionYear": 2017,
+      "coordinates": [
+        -73.987568,
+        40.72166
+      ],
+      "footprint": [
+        [
+          -73.9878575,
+          40.7214406
+        ],
+        [
+          -73.9872785,
+          40.7214406
+        ],
+        [
+          -73.9872785,
+          40.7218794
+        ],
+        [
+          -73.9878575,
+          40.7218794
+        ],
+        [
+          -73.9878575,
+          40.7214406
+        ]
+      ],
+      "footprintAreaM2": 596.72,
+      "footprintOrigin": "modeled",
+      "heightM": 79.86,
+      "id": "job:104297850:01",
+      "jobId": "104297850",
+      "milestones": [
+        {
+          "date": "2005-11-23",
+          "id": "job:104297850:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2005-11-23",
+          "id": "job:104297850:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2007-10-19",
+          "id": "job:104297850:01:fully-permitted:3",
+          "kind": "fully-permitted",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2017-03-16",
+          "id": "job:104297850:01:final-certificate-of-occupancy:4",
+          "kind": "final-certificate-of-occupancy",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2017-03-16",
+          "id": "job:104297850:01:signed-off:5",
+          "kind": "signed-off",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 24,
+      "proposedUnits": 295,
+      "proposedZoningSquareFeet": 154152,
+      "regionId": "MN0302",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:542823",
+        "certificate-of-occupancy:104297850:015"
+      ],
+      "status": "SIGNED OFF",
+      "withdrawn": false
+    },
+    {
+      "address": "250 BOWERY",
+      "bbl": "1005077502",
+      "bin": "1088773",
+      "constructionYear": 2014,
+      "coordinates": [
+        -73.993015,
+        40.72305
+      ],
+      "footprint": [
+        [
+          -73.9932765,
+          40.7228518
+        ],
+        [
+          -73.9927535,
+          40.7228518
+        ],
+        [
+          -73.9927535,
+          40.7232482
+        ],
+        [
+          -73.9932765,
+          40.7232482
+        ],
+        [
+          -73.9932765,
+          40.7228518
+        ]
+      ],
+      "footprintAreaM2": 486.82,
+      "footprintOrigin": "modeled",
+      "heightM": 25.91,
+      "id": "job:104400300:01",
+      "jobId": "104400300",
+      "milestones": [
+        {
+          "date": "2006-04-07",
+          "id": "job:104400300:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2006-12-06",
+          "id": "job:104400300:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2012-02-08",
+          "id": "job:104400300:01:fully-permitted:3",
+          "kind": "fully-permitted",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2014-04-02",
+          "id": "job:104400300:01:final-certificate-of-occupancy:4",
+          "kind": "final-certificate-of-occupancy",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2014-04-02",
+          "id": "job:104400300:01:signed-off:5",
+          "kind": "signed-off",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 8,
+      "proposedUnits": 24,
+      "proposedZoningSquareFeet": 41921,
+      "regionId": "MN0302",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:557874",
+        "certificate-of-occupancy:104400300:005"
+      ],
+      "status": "SIGNED OFF",
+      "withdrawn": false
+    },
+    {
+      "address": "150 DELANCEY STREET",
+      "bbl": "1003480036",
+      "bin": "1004191",
+      "constructionYear": 2015,
+      "coordinates": [
+        -73.986465,
+        40.717971
+      ],
+      "footprint": [
+        [
+          -73.9862954,
+          40.7184199
+        ],
+        [
+          -73.9861419,
+          40.7183701
+        ],
+        [
+          -73.986176,
+          40.7183014
+        ],
+        [
+          -73.9860318,
+          40.7182601
+        ],
+        [
+          -73.9860888,
+          40.7181369
+        ],
+        [
+          -73.9863975,
+          40.7182288
+        ],
+        [
+          -73.9862954,
+          40.7184199
+        ]
+      ],
+      "footprintAreaM2": 903.3,
+      "footprintOrigin": "observed",
+      "heightM": 25.91,
+      "id": "job:110215035:01",
+      "jobId": "110215035",
+      "milestones": [
+        {
+          "date": "2008-06-24",
+          "id": "job:110215035:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2009-01-02",
+          "id": "job:110215035:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2011-03-15",
+          "id": "job:110215035:01:fully-permitted:3",
+          "kind": "fully-permitted",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2015-10-28",
+          "id": "job:110215035:01:final-certificate-of-occupancy:4",
+          "kind": "final-certificate-of-occupancy",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2015-10-28",
+          "id": "job:110215035:01:signed-off:5",
+          "kind": "signed-off",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 8,
+      "proposedUnits": 132,
+      "proposedZoningSquareFeet": 43030,
+      "regionId": "MN0302",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:1585700",
+        "certificate-of-occupancy:110215035:011",
+        "building-footprint:61410"
+      ],
+      "status": "SIGNED OFF",
+      "withdrawn": false
+    },
+    {
+      "address": "208 DELANCEY STREET",
+      "bbl": "1003437502",
+      "bin": "1089387",
+      "constructionYear": 2023,
+      "coordinates": [
+        -73.983608,
+        40.717054
+      ],
+      "footprint": [
+        [
+          -73.9838605,
+          40.7168626
+        ],
+        [
+          -73.9833555,
+          40.7168626
+        ],
+        [
+          -73.9833555,
+          40.7172454
+        ],
+        [
+          -73.9838605,
+          40.7172454
+        ],
+        [
+          -73.9838605,
+          40.7168626
+        ]
+      ],
+      "footprintAreaM2": 453.76,
+      "footprintOrigin": "modeled",
+      "heightM": 36.58,
+      "id": "job:120838317:01",
+      "jobId": "120838317",
+      "milestones": [
+        {
+          "date": "2011-09-26",
+          "id": "job:120838317:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2012-04-30",
+          "id": "job:120838317:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2013-05-23",
+          "id": "job:120838317:01:fully-permitted:3",
+          "kind": "fully-permitted",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2023-02-07",
+          "id": "job:120838317:01:final-certificate-of-occupancy:4",
+          "kind": "final-certificate-of-occupancy",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2023-02-07",
+          "id": "job:120838317:01:signed-off:5",
+          "kind": "signed-off",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 12,
+      "proposedUnits": 85,
+      "proposedZoningSquareFeet": 58611,
+      "regionId": "MN0302",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:2018370",
+        "certificate-of-occupancy:120838317:001"
+      ],
+      "status": "SIGNED OFF",
+      "withdrawn": false
+    },
+    {
+      "address": "215 CHRYSTIE STREET",
+      "bbl": "1004277507",
+      "bin": "1090397",
+      "constructionYear": null,
+      "coordinates": [
+        -73.991464,
+        40.722786
+      ],
+      "footprint": [
+        [
+          -73.9918627,
+          40.7224838
+        ],
+        [
+          -73.9910653,
+          40.7224838
+        ],
+        [
+          -73.9910653,
+          40.7230882
+        ],
+        [
+          -73.9918627,
+          40.7230882
+        ],
+        [
+          -73.9918627,
+          40.7224838
+        ]
+      ],
+      "footprintAreaM2": 1131.56,
+      "footprintOrigin": "modeled",
+      "heightM": 95.71,
+      "id": "job:121011396:01",
+      "jobId": "121011396",
+      "milestones": [
+        {
+          "date": "2012-03-15",
+          "id": "job:121011396:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2014-07-21",
+          "id": "job:121011396:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2014-08-20",
+          "id": "job:121011396:01:fully-permitted:3",
+          "kind": "fully-permitted",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 28,
+      "proposedUnits": 378,
+      "proposedZoningSquareFeet": 341040,
+      "regionId": "MN0302",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:2077996"
+      ],
+      "status": "PERMIT ISSUED - ENTIRE JOB/WORK",
+      "withdrawn": false
+    },
+    {
+      "address": "139 BOWERY",
+      "bbl": "1004230007",
+      "bin": "1090639",
+      "constructionYear": 2024,
+      "coordinates": [
+        -73.994607,
+        40.718922
+      ],
+      "footprint": [
+        [
+          -73.9944108,
+          40.7189473
+        ],
+        [
+          -73.9940424,
+          40.7188369
+        ],
+        [
+          -73.9941068,
+          40.7187126
+        ],
+        [
+          -73.9944687,
+          40.7188211
+        ],
+        [
+          -73.9944108,
+          40.7189473
+        ]
+      ],
+      "footprintAreaM2": 856.93,
+      "footprintOrigin": "observed",
+      "heightM": 48.77,
+      "id": "job:121185984:01",
+      "jobId": "121185984",
+      "milestones": [
+        {
+          "date": "2014-06-10",
+          "id": "job:121185984:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2015-06-01",
+          "id": "job:121185984:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2019-10-15",
+          "id": "job:121185984:01:fully-permitted:3",
+          "kind": "fully-permitted",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2024-10-28",
+          "id": "job:121185984:01:final-certificate-of-occupancy:4",
+          "kind": "final-certificate-of-occupancy",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2024-10-28",
+          "id": "job:121185984:01:signed-off:5",
+          "kind": "signed-off",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 14,
+      "proposedUnits": 18,
+      "proposedZoningSquareFeet": 53364,
+      "regionId": "MN0302",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:3058385",
+        "certificate-of-occupancy:121185984:001",
+        "building-footprint:1042061"
+      ],
+      "status": "SIGNED OFF",
+      "withdrawn": true
+    },
+    {
+      "address": "145 CLINTON STREET",
+      "bbl": "1003467501",
+      "bin": "1089660",
+      "constructionYear": null,
+      "coordinates": [
+        -73.986375,
+        40.71661
+      ],
+      "footprint": [
+        [
+          -73.986815,
+          40.7162765
+        ],
+        [
+          -73.985935,
+          40.7162765
+        ],
+        [
+          -73.985935,
+          40.7169435
+        ],
+        [
+          -73.986815,
+          40.7169435
+        ],
+        [
+          -73.986815,
+          40.7162765
+        ]
+      ],
+      "footprintAreaM2": 1378.53,
+      "footprintOrigin": "modeled",
+      "heightM": 48.77,
+      "id": "job:121186938:01",
+      "jobId": "121186938",
+      "milestones": [
+        {
+          "date": "2014-09-04",
+          "id": "job:121186938:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2015-06-05",
+          "id": "job:121186938:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2015-11-02",
+          "id": "job:121186938:01:fully-permitted:3",
+          "kind": "fully-permitted",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 15,
+      "proposedUnits": 211,
+      "proposedZoningSquareFeet": 222576,
+      "regionId": "MN0302",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:2395979"
+      ],
+      "status": "PERMIT ISSUED - ENTIRE JOB/WORK",
+      "withdrawn": false
+    },
+    {
+      "address": "175 DELANCEY STREET",
+      "bbl": "1003477501",
+      "bin": "1089451",
+      "constructionYear": null,
+      "coordinates": [
+        -73.985004,
+        40.717466
+      ],
+      "footprint": [
+        [
+          -73.9853617,
+          40.7171949
+        ],
+        [
+          -73.9846463,
+          40.7171949
+        ],
+        [
+          -73.9846463,
+          40.7177371
+        ],
+        [
+          -73.9853617,
+          40.7177371
+        ],
+        [
+          -73.9853617,
+          40.7171949
+        ]
+      ],
+      "footprintAreaM2": 910.69,
+      "footprintOrigin": "modeled",
+      "heightM": 46.94,
+      "id": "job:121187036:01",
+      "jobId": "121187036",
+      "milestones": [
+        {
+          "date": "2014-09-11",
+          "id": "job:121187036:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2015-10-27",
+          "id": "job:121187036:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2016-01-29",
+          "id": "job:121187036:01:fully-permitted:3",
+          "kind": "fully-permitted",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 14,
+      "proposedUnits": 100,
+      "proposedZoningSquareFeet": 137237,
+      "regionId": "MN0302",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:2399369"
+      ],
+      "status": "PERMIT ISSUED - ENTIRE JOB/WORK",
+      "withdrawn": false
+    },
+    {
+      "address": "242 BROOME STREET",
+      "bbl": "1004097502",
+      "bin": "1089450",
+      "constructionYear": null,
+      "coordinates": [
+        -73.989279,
+        40.717845
+      ],
+      "footprint": [
+        [
+          -73.9896398,
+          40.7175715
+        ],
+        [
+          -73.9889182,
+          40.7175715
+        ],
+        [
+          -73.9889182,
+          40.7181185
+        ],
+        [
+          -73.9896398,
+          40.7181185
+        ],
+        [
+          -73.9896398,
+          40.7175715
+        ]
+      ],
+      "footprintAreaM2": 926.95,
+      "footprintOrigin": "modeled",
+      "heightM": 48.77,
+      "id": "job:121187045:01",
+      "jobId": "121187045",
+      "milestones": [
+        {
+          "date": "2014-09-11",
+          "id": "job:121187045:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2015-06-02",
+          "id": "job:121187045:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2016-03-15",
+          "id": "job:121187045:01:fully-permitted:3",
+          "kind": "fully-permitted",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 14,
+      "proposedUnits": 55,
+      "proposedZoningSquareFeet": 139686,
+      "regionId": "MN0302",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:2399405"
+      ],
+      "status": "PERMIT ISSUED - ENTIRE JOB/WORK",
+      "withdrawn": false
+    },
+    {
+      "address": "140 ESSEX STREET",
+      "bbl": "1003540001",
+      "bin": "1090736",
+      "constructionYear": 2020,
+      "coordinates": [
+        -73.987298,
+        40.720291
+      ],
+      "footprint": [
+        [
+          -73.9870756,
+          40.7204403
+        ],
+        [
+          -73.9868365,
+          40.7203693
+        ],
+        [
+          -73.9870345,
+          40.7199813
+        ],
+        [
+          -73.9872393,
+          40.7200421
+        ],
+        [
+          -73.9873251,
+          40.719875
+        ],
+        [
+          -73.9873613,
+          40.7198858
+        ],
+        [
+          -73.9872757,
+          40.7200519
+        ],
+        [
+          -73.9870756,
+          40.7204403
+        ]
+      ],
+      "footprintAreaM2": 1865.24,
+      "footprintOrigin": "observed",
+      "heightM": 29.26,
+      "id": "job:121187642:01",
+      "jobId": "121187642",
+      "milestones": [
+        {
+          "date": "2017-02-27",
+          "id": "job:121187642:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2017-06-14",
+          "id": "job:121187642:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2018-08-06",
+          "id": "job:121187642:01:fully-permitted:3",
+          "kind": "fully-permitted",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 8,
+      "proposedUnits": 93,
+      "proposedZoningSquareFeet": 55723,
+      "regionId": "MN0302",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:2809773",
+        "building-footprint:1084947"
+      ],
+      "status": "PERMIT ISSUED - ENTIRE JOB/WORK",
+      "withdrawn": false
+    },
+    {
+      "address": "171 SUFFOLK STREET",
+      "bbl": "1003550054",
+      "bin": "1090485",
+      "constructionYear": null,
+      "coordinates": [
+        -73.985126,
+        40.72186
+      ],
+      "footprint": [
+        [
+          -73.9853902,
+          40.7216597
+        ],
+        [
+          -73.9848618,
+          40.7216597
+        ],
+        [
+          -73.9848618,
+          40.7220603
+        ],
+        [
+          -73.9853902,
+          40.7220603
+        ],
+        [
+          -73.9853902,
+          40.7216597
+        ]
+      ],
+      "footprintAreaM2": 497,
+      "footprintOrigin": "modeled",
+      "heightM": 39.32,
+      "id": "job:121189711:01",
+      "jobId": "121189711",
+      "milestones": [
+        {
+          "date": "2015-08-10",
+          "id": "job:121189711:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2015-12-21",
+          "id": "job:121189711:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2018-01-09",
+          "id": "job:121189711:01:fully-permitted:3",
+          "kind": "fully-permitted",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 13,
+      "proposedUnits": 88,
+      "proposedZoningSquareFeet": 69545,
+      "regionId": "MN0302",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:2546974"
+      ],
+      "status": "PERMIT ISSUED - ENTIRE JOB/WORK",
+      "withdrawn": false
+    },
+    {
+      "address": "180 BROOME STREET",
+      "bbl": "1003467502",
+      "bin": "1089891",
+      "constructionYear": null,
+      "coordinates": [
+        -73.986324,
+        40.716948
+      ],
+      "footprint": [
+        [
+          -73.9867507,
+          40.7166246
+        ],
+        [
+          -73.9858973,
+          40.7166246
+        ],
+        [
+          -73.9858973,
+          40.7172714
+        ],
+        [
+          -73.9867507,
+          40.7172714
+        ],
+        [
+          -73.9867507,
+          40.7166246
+        ]
+      ],
+      "footprintAreaM2": 1296.24,
+      "footprintOrigin": "modeled",
+      "heightM": 79.25,
+      "id": "job:121191110:01",
+      "jobId": "121191110",
+      "milestones": [
+        {
+          "date": "2016-09-20",
+          "id": "job:121191110:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2017-11-06",
+          "id": "job:121191110:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2018-02-01",
+          "id": "job:121191110:01:fully-permitted:3",
+          "kind": "fully-permitted",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 25,
+      "proposedUnits": 263,
+      "proposedZoningSquareFeet": 348815,
+      "regionId": "MN0302",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:2737485"
+      ],
+      "status": "PERMIT ISSUED - ENTIRE JOB/WORK",
+      "withdrawn": false
+    },
+    {
+      "address": "115 DELANCEY STREET",
+      "bbl": "1003527501",
+      "bin": "1090554",
+      "constructionYear": null,
+      "coordinates": [
+        -73.988085,
+        40.718509
+      ],
+      "footprint": [
+        [
+          -73.9884742,
+          40.718214
+        ],
+        [
+          -73.9876958,
+          40.718214
+        ],
+        [
+          -73.9876958,
+          40.718804
+        ],
+        [
+          -73.9884742,
+          40.718804
+        ],
+        [
+          -73.9884742,
+          40.718214
+        ]
+      ],
+      "footprintAreaM2": 1078.44,
+      "footprintOrigin": "modeled",
+      "heightM": 86.87,
+      "id": "job:121191646:01",
+      "jobId": "121191646",
+      "milestones": [
+        {
+          "date": "2014-09-30",
+          "id": "job:121191646:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2015-06-03",
+          "id": "job:121191646:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2015-11-16",
+          "id": "job:121191646:01:fully-permitted:3",
+          "kind": "fully-permitted",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 26,
+      "proposedUnits": 195,
+      "proposedZoningSquareFeet": 301815,
+      "regionId": "MN0302",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:2408359"
+      ],
+      "status": "PERMIT ISSUED - ENTIRE JOB/WORK",
+      "withdrawn": false
+    },
+    {
+      "address": "202 BROOME STREET",
+      "bbl": "1003467503",
+      "bin": "1089905",
+      "constructionYear": null,
+      "coordinates": [
+        -73.987244,
+        40.717228
+      ],
+      "footprint": [
+        [
+          -73.9877184,
+          40.7168684
+        ],
+        [
+          -73.9867696,
+          40.7168684
+        ],
+        [
+          -73.9867696,
+          40.7175876
+        ],
+        [
+          -73.9877184,
+          40.7175876
+        ],
+        [
+          -73.9877184,
+          40.7168684
+        ]
+      ],
+      "footprintAreaM2": 1602.23,
+      "footprintOrigin": "modeled",
+      "heightM": 57.91,
+      "id": "job:121203937:01",
+      "jobId": "121203937",
+      "milestones": [
+        {
+          "date": "2017-07-18",
+          "id": "job:121203937:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2018-06-26",
+          "id": "job:121203937:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2018-08-07",
+          "id": "job:121203937:01:fully-permitted:3",
+          "kind": "fully-permitted",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 15,
+      "proposedUnits": 83,
+      "proposedZoningSquareFeet": 258694,
+      "regionId": "MN0302",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:2880473"
+      ],
+      "status": "PERMIT ISSUED - ENTIRE JOB/WORK",
+      "withdrawn": true
+    },
+    {
+      "address": "145 BOWERY",
+      "bbl": "1004230009",
+      "bin": "1091667",
+      "constructionYear": 2025,
+      "coordinates": [
+        -73.994527,
+        40.719114
+      ],
+      "footprint": [
+        [
+          -73.9938842,
+          40.719163
+        ],
+        [
+          -73.9940054,
+          40.7189307
+        ],
+        [
+          -73.9943764,
+          40.7190456
+        ],
+        [
+          -73.9942659,
+          40.7192809
+        ],
+        [
+          -73.9938842,
+          40.719163
+        ]
+      ],
+      "footprintAreaM2": 1663.99,
+      "footprintOrigin": "observed",
+      "heightM": 59.13,
+      "id": "job:121205123:01",
+      "jobId": "121205123",
+      "milestones": [
+        {
+          "date": "2019-04-12",
+          "id": "job:121205123:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2020-07-27",
+          "id": "job:121205123:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2020-09-01",
+          "id": "job:121205123:01:fully-permitted:3",
+          "kind": "fully-permitted",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2025-02-10",
+          "id": "job:121205123:01:final-certificate-of-occupancy:4",
+          "kind": "final-certificate-of-occupancy",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2025-02-10",
+          "id": "job:121205123:01:signed-off:5",
+          "kind": "signed-off",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 16,
+      "proposedUnits": 303,
+      "proposedZoningSquareFeet": 88471,
+      "regionId": "MN0302",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:3118268",
+        "certificate-of-occupancy:121205123:001",
+        "building-footprint:1086868"
+      ],
+      "status": "SIGNED OFF",
+      "withdrawn": false
+    },
+    {
+      "address": "165 BROOME STREET",
+      "bbl": "1003410060",
+      "bin": "1090663",
+      "constructionYear": 2025,
+      "coordinates": [
+        -73.985646,
+        40.71672
+      ],
+      "footprint": [
+        [
+          -73.9862608,
+          40.7165865
+        ],
+        [
+          -73.9861591,
+          40.7167836
+        ],
+        [
+          -73.9856212,
+          40.7166199
+        ],
+        [
+          -73.9856461,
+          40.716572
+        ],
+        [
+          -73.9854935,
+          40.7165254
+        ],
+        [
+          -73.9856135,
+          40.7162959
+        ],
+        [
+          -73.985883,
+          40.7163796
+        ],
+        [
+          -73.9859281,
+          40.7162903
+        ],
+        [
+          -73.9863489,
+          40.7164162
+        ],
+        [
+          -73.986296,
+          40.7164904
+        ],
+        [
+          -73.9862427,
+          40.7164739
+        ],
+        [
+          -73.9861944,
+          40.7165659
+        ],
+        [
+          -73.9862608,
+          40.7165865
+        ]
+      ],
+      "footprintAreaM2": 4065.59,
+      "footprintOrigin": "observed",
+      "heightM": 46.33,
+      "id": "job:121205926:01",
+      "jobId": "121205926",
+      "milestones": [
+        {
+          "date": "2019-08-12",
+          "id": "job:121205926:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2022-06-14",
+          "id": "job:121205926:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2022-06-16",
+          "id": "job:121205926:01:fully-permitted:3",
+          "kind": "fully-permitted",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2025-07-24",
+          "id": "job:121205926:01:final-certificate-of-occupancy:4",
+          "kind": "final-certificate-of-occupancy",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2025-07-24",
+          "id": "job:121205926:01:signed-off:5",
+          "kind": "signed-off",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 15,
+      "proposedUnits": 232,
+      "proposedZoningSquareFeet": 770992,
+      "regionId": "MN0302",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:3146962",
+        "certificate-of-occupancy:121205926:001",
+        "building-footprint:1087967"
+      ],
+      "status": "SIGNED OFF",
+      "withdrawn": false
+    },
+    {
+      "address": "232 EAST BROADWAY",
+      "bbl": "1003157501",
+      "bin": "1004055",
+      "constructionYear": null,
+      "coordinates": [
+        -73.986577,
+        40.71437
+      ],
+      "footprint": [
+        [
+          -73.9867908,
+          40.7142079
+        ],
+        [
+          -73.9863632,
+          40.7142079
+        ],
+        [
+          -73.9863632,
+          40.7145321
+        ],
+        [
+          -73.9867908,
+          40.7145321
+        ],
+        [
+          -73.9867908,
+          40.7142079
+        ]
+      ],
+      "footprintAreaM2": 325.42,
+      "footprintOrigin": "modeled",
+      "heightM": 101.5,
+      "id": "job:121206337:01",
+      "jobId": "121206337",
+      "milestones": [
+        {
+          "date": "2019-10-02",
+          "id": "job:121206337:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2021-02-16",
+          "id": "job:121206337:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2021-03-01",
+          "id": "job:121206337:01:fully-permitted:3",
+          "kind": "fully-permitted",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 30,
+      "proposedUnits": 52,
+      "proposedZoningSquareFeet": 105084,
+      "regionId": "MN0302",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:3161588"
+      ],
+      "status": "PERMIT ISSUED - ENTIRE JOB/WORK",
+      "withdrawn": false
+    },
+    {
+      "address": "55 SUFFOLK STREET",
+      "bbl": "1000000",
+      "bin": "1091600",
+      "constructionYear": null,
+      "coordinates": [
+        -73.987158,
+        40.71695
+      ],
+      "footprint": [
+        [
+          -73.9876222,
+          40.7165982
+        ],
+        [
+          -73.9866938,
+          40.7165982
+        ],
+        [
+          -73.9866938,
+          40.7173018
+        ],
+        [
+          -73.9876222,
+          40.7173018
+        ],
+        [
+          -73.9876222,
+          40.7165982
+        ]
+      ],
+      "footprintAreaM2": 1534.1,
+      "footprintOrigin": "modeled",
+      "heightM": 102.11,
+      "id": "job:121207292:01",
+      "jobId": "121207292",
+      "milestones": [
+        {
+          "date": "2020-03-06",
+          "id": "job:121207292:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2021-01-27",
+          "id": "job:121207292:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2021-01-28",
+          "id": "job:121207292:01:fully-permitted:3",
+          "kind": "fully-permitted",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 32,
+      "proposedUnits": 378,
+      "proposedZoningSquareFeet": 528413,
+      "regionId": "MN0302",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:3278065"
+      ],
+      "status": "PERMIT ISSUED - ENTIRE JOB/WORK",
+      "withdrawn": false
+    },
+    {
+      "address": "64 NORFOLK STREET",
+      "bbl": "1003467504",
+      "bin": "1091637",
+      "constructionYear": null,
+      "coordinates": [
+        -73.988013,
+        40.717121
+      ],
+      "footprint": [
+        [
+          -73.9886493,
+          40.7166387
+        ],
+        [
+          -73.9873767,
+          40.7166387
+        ],
+        [
+          -73.9873767,
+          40.7176033
+        ],
+        [
+          -73.9886493,
+          40.7176033
+        ],
+        [
+          -73.9886493,
+          40.7166387
+        ]
+      ],
+      "footprintAreaM2": 2882.59,
+      "footprintOrigin": "modeled",
+      "heightM": 54.86,
+      "id": "job:121207522:01",
+      "jobId": "121207522",
+      "milestones": [
+        {
+          "date": "2020-04-10",
+          "id": "job:121207522:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2021-04-05",
+          "id": "job:121207522:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2021-04-22",
+          "id": "job:121207522:01:fully-permitted:3",
+          "kind": "fully-permitted",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 17,
+      "proposedUnits": 117,
+      "proposedZoningSquareFeet": 527476,
+      "regionId": "MN0302",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:3213809"
+      ],
+      "status": "PERMIT ISSUED - ENTIRE JOB/WORK",
+      "withdrawn": false
+    },
+    {
+      "address": "189 BOWERY",
+      "bbl": "1004250004",
+      "bin": "1090576",
+      "constructionYear": 2021,
+      "coordinates": [
+        -73.993882,
+        40.720695
+      ],
+      "footprint": [
+        [
+          -73.9936499,
+          40.7205004
+        ],
+        [
+          -73.9935747,
+          40.7206474
+        ],
+        [
+          -73.9935287,
+          40.7206337
+        ],
+        [
+          -73.9934723,
+          40.7207429
+        ],
+        [
+          -73.9932501,
+          40.7206765
+        ],
+        [
+          -73.9933161,
+          40.7205486
+        ],
+        [
+          -73.9933596,
+          40.7205616
+        ],
+        [
+          -73.9934262,
+          40.7204326
+        ],
+        [
+          -73.9936499,
+          40.7205004
+        ]
+      ],
+      "footprintAreaM2": 1097.52,
+      "footprintOrigin": "observed",
+      "heightM": 68.28,
+      "id": "job:121324646:01",
+      "jobId": "121324646",
+      "milestones": [
+        {
+          "date": "2012-12-19",
+          "id": "job:121324646:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2014-05-21",
+          "id": "job:121324646:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2015-05-20",
+          "id": "job:121324646:01:fully-permitted:3",
+          "kind": "fully-permitted",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2021-06-22",
+          "id": "job:121324646:01:final-certificate-of-occupancy:4",
+          "kind": "final-certificate-of-occupancy",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2021-06-22",
+          "id": "job:121324646:01:signed-off:5",
+          "kind": "signed-off",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 19,
+      "proposedUnits": 300,
+      "proposedZoningSquareFeet": 79408,
+      "regionId": "MN0302",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:2184177",
+        "certificate-of-occupancy:121324646:014",
+        "building-footprint:68840"
+      ],
+      "status": "SIGNED OFF",
+      "withdrawn": false
+    },
+    {
+      "address": "331 EAST HOUSTON STREET",
+      "bbl": "1003450017",
+      "bin": "1089961",
+      "constructionYear": 2017,
+      "coordinates": [
+        -73.982442,
+        40.721042
+      ],
+      "footprint": [
+        [
+          -73.9826676,
+          40.7209454
+        ],
+        [
+          -73.9824157,
+          40.720868
+        ],
+        [
+          -73.9825169,
+          40.7206656
+        ],
+        [
+          -73.9827746,
+          40.7207419
+        ],
+        [
+          -73.9826676,
+          40.7209454
+        ]
+      ],
+      "footprintAreaM2": 976.3,
+      "footprintOrigin": "observed",
+      "heightM": 38.1,
+      "id": "job:121330005:01",
+      "jobId": "121330005",
+      "milestones": [
+        {
+          "date": "2013-02-21",
+          "id": "job:121330005:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2013-11-18",
+          "id": "job:121330005:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2014-01-21",
+          "id": "job:121330005:01:fully-permitted:3",
+          "kind": "fully-permitted",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2017-03-13",
+          "id": "job:121330005:01:final-certificate-of-occupancy:4",
+          "kind": "final-certificate-of-occupancy",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2017-03-13",
+          "id": "job:121330005:01:signed-off:5",
+          "kind": "signed-off",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 13,
+      "proposedUnits": 78,
+      "proposedZoningSquareFeet": 57559,
+      "regionId": "MN0302",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:2206233",
+        "certificate-of-occupancy:121330005:006",
+        "building-footprint:71651"
+      ],
+      "status": "SIGNED OFF",
+      "withdrawn": false
+    },
+    {
+      "address": "155 ATTORNEY STREET",
+      "bbl": "1003500069",
+      "bin": "1090484",
+      "constructionYear": 2018,
+      "coordinates": [
+        -73.98342,
+        40.720436
+      ],
+      "footprint": [
+        [
+          -73.9834007,
+          40.7206535
+        ],
+        [
+          -73.9835002,
+          40.7204588
+        ],
+        [
+          -73.9837198,
+          40.720526
+        ],
+        [
+          -73.9836197,
+          40.7207167
+        ],
+        [
+          -73.9834007,
+          40.7206535
+        ]
+      ],
+      "footprintAreaM2": 797.18,
+      "footprintOrigin": "observed",
+      "heightM": 30.18,
+      "id": "job:121332174:01",
+      "jobId": "121332174",
+      "milestones": [
+        {
+          "date": "2013-07-23",
+          "id": "job:121332174:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2014-05-12",
+          "id": "job:121332174:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2014-10-17",
+          "id": "job:121332174:01:fully-permitted:3",
+          "kind": "fully-permitted",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2018-08-13",
+          "id": "job:121332174:01:final-certificate-of-occupancy:4",
+          "kind": "final-certificate-of-occupancy",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2018-08-13",
+          "id": "job:121332174:01:signed-off:5",
+          "kind": "signed-off",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 7,
+      "proposedUnits": 37,
+      "proposedZoningSquareFeet": 299772,
+      "regionId": "MN0302",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:2269550",
+        "certificate-of-occupancy:121332174:006",
+        "building-footprint:71378"
+      ],
+      "status": "PERMIT ISSUED - ENTIRE JOB/WORK",
+      "withdrawn": false
+    },
+    {
+      "address": "100 NORFOLK STREET",
+      "bbl": "1003537504",
+      "bin": "1090469",
+      "constructionYear": 2019,
+      "coordinates": [
+        -73.987147,
+        40.718776
+      ],
+      "footprint": [
+        [
+          -73.9873892,
+          40.7185924
+        ],
+        [
+          -73.9869048,
+          40.7185924
+        ],
+        [
+          -73.9869048,
+          40.7189596
+        ],
+        [
+          -73.9873892,
+          40.7189596
+        ],
+        [
+          -73.9873892,
+          40.7185924
+        ]
+      ],
+      "footprintAreaM2": 417.67,
+      "footprintOrigin": "modeled",
+      "heightM": 36.58,
+      "id": "job:121413595:01",
+      "jobId": "121413595",
+      "milestones": [
+        {
+          "date": "2012-10-17",
+          "id": "job:121413595:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2013-01-28",
+          "id": "job:121413595:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2014-12-17",
+          "id": "job:121413595:01:fully-permitted:3",
+          "kind": "fully-permitted",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2019-08-30",
+          "id": "job:121413595:01:final-certificate-of-occupancy:4",
+          "kind": "final-certificate-of-occupancy",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2019-08-30",
+          "id": "job:121413595:01:signed-off:5",
+          "kind": "signed-off",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 12,
+      "proposedUnits": 38,
+      "proposedZoningSquareFeet": 53949,
+      "regionId": "MN0302",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:2163109",
+        "certificate-of-occupancy:121413595:008"
+      ],
+      "status": "SIGNED OFF",
+      "withdrawn": true
+    },
+    {
+      "address": "196 ORCHARD",
+      "bbl": "1004127503",
+      "bin": "1090375",
+      "constructionYear": null,
+      "coordinates": [
+        -73.988073,
+        40.722286
+      ],
+      "footprint": [
+        [
+          -73.9884663,
+          40.7219879
+        ],
+        [
+          -73.9876797,
+          40.7219879
+        ],
+        [
+          -73.9876797,
+          40.7225841
+        ],
+        [
+          -73.9884663,
+          40.7225841
+        ],
+        [
+          -73.9884663,
+          40.7219879
+        ]
+      ],
+      "footprintAreaM2": 1100.98,
+      "footprintOrigin": "modeled",
+      "heightM": 36.58,
+      "id": "job:121473208:01",
+      "jobId": "121473208",
+      "milestones": [
+        {
+          "date": "2013-01-04",
+          "id": "job:121473208:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2013-10-22",
+          "id": "job:121473208:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2017-01-12",
+          "id": "job:121473208:01:fully-permitted:3",
+          "kind": "fully-permitted",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 11,
+      "proposedUnits": 89,
+      "proposedZoningSquareFeet": 130359,
+      "regionId": "MN0302",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:2188909"
+      ],
+      "status": "PERMIT ISSUED - ENTIRE JOB/WORK",
+      "withdrawn": false
+    },
+    {
+      "address": "196 ORCHARD STREET",
+      "bbl": "1004127503",
+      "bin": "1005396",
+      "constructionYear": null,
+      "coordinates": [
+        -73.988073,
+        40.722286
+      ],
+      "footprint": [
+        [
+          -73.9884575,
+          40.7219946
+        ],
+        [
+          -73.9876885,
+          40.7219946
+        ],
+        [
+          -73.9876885,
+          40.7225774
+        ],
+        [
+          -73.9884575,
+          40.7225774
+        ],
+        [
+          -73.9884575,
+          40.7219946
+        ]
+      ],
+      "footprintAreaM2": 1052.09,
+      "footprintOrigin": "modeled",
+      "heightM": 36.58,
+      "id": "job:122193802:01",
+      "jobId": "122193802",
+      "milestones": [
+        {
+          "date": "2014-11-14",
+          "id": "job:122193802:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 10,
+      "proposedUnits": 83,
+      "proposedZoningSquareFeet": 113246,
+      "regionId": "MN0302",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:2429010"
+      ],
+      "status": "PLAN EXAM - DISAPPROVED",
+      "withdrawn": false
+    },
+    {
+      "address": "91 ATTORNEY STREET",
+      "bbl": "1003480064",
+      "bin": "1090483",
+      "constructionYear": 2020,
+      "coordinates": [
+        -73.984557,
+        40.718235
+      ],
+      "footprint": [
+        [
+          -73.9848656,
+          40.7184788
+        ],
+        [
+          -73.9845599,
+          40.7183855
+        ],
+        [
+          -73.9846472,
+          40.71822
+        ],
+        [
+          -73.9849516,
+          40.7183128
+        ],
+        [
+          -73.9848656,
+          40.7184788
+        ]
+      ],
+      "footprintAreaM2": 958.5,
+      "footprintOrigin": "observed",
+      "heightM": 24.38,
+      "id": "job:122483455:01",
+      "jobId": "122483455",
+      "milestones": [
+        {
+          "date": "2015-08-05",
+          "id": "job:122483455:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2017-01-23",
+          "id": "job:122483455:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2018-02-20",
+          "id": "job:122483455:01:fully-permitted:3",
+          "kind": "fully-permitted",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2020-08-05",
+          "id": "job:122483455:01:final-certificate-of-occupancy:4",
+          "kind": "final-certificate-of-occupancy",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2020-08-05",
+          "id": "job:122483455:01:signed-off:5",
+          "kind": "signed-off",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 8,
+      "proposedUnits": 44,
+      "proposedZoningSquareFeet": 46414,
+      "regionId": "MN0302",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:2544730",
+        "certificate-of-occupancy:122483455:004",
+        "building-footprint:236056"
+      ],
+      "status": "SIGNED OFF",
+      "withdrawn": false
+    },
+    {
+      "address": "138 BOWERY",
+      "bbl": "1004700053",
+      "bin": "1090453",
+      "constructionYear": 2019,
+      "coordinates": [
+        -73.994589,
+        40.719018
+      ],
+      "footprint": [
+        [
+          -73.9947324,
+          40.7190807
+        ],
+        [
+          -73.9950735,
+          40.7191982
+        ],
+        [
+          -73.9949922,
+          40.7193238
+        ],
+        [
+          -73.9950089,
+          40.7193296
+        ],
+        [
+          -73.9949701,
+          40.7193948
+        ],
+        [
+          -73.9946517,
+          40.7192852
+        ],
+        [
+          -73.9947324,
+          40.7190807
+        ]
+      ],
+      "footprintAreaM2": 1238.34,
+      "footprintOrigin": "observed",
+      "heightM": 25.91,
+      "id": "job:122521556:01",
+      "jobId": "122521556",
+      "milestones": [
+        {
+          "date": "2015-09-10",
+          "id": "job:122521556:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2016-08-17",
+          "id": "job:122521556:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2016-11-04",
+          "id": "job:122521556:01:fully-permitted:3",
+          "kind": "fully-permitted",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2019-07-24",
+          "id": "job:122521556:01:final-certificate-of-occupancy:4",
+          "kind": "final-certificate-of-occupancy",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2019-07-24",
+          "id": "job:122521556:01:signed-off:5",
+          "kind": "signed-off",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 8,
+      "proposedUnits": 75,
+      "proposedZoningSquareFeet": 44655,
+      "regionId": "MN0302",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:2561939",
+        "certificate-of-occupancy:122521556:005",
+        "building-footprint:675646"
+      ],
+      "status": "SIGNED OFF",
+      "withdrawn": false
+    },
+    {
+      "address": "78 BARUCH DRIVE",
+      "bbl": "1003230001",
+      "bin": "1090388",
+      "constructionYear": null,
+      "coordinates": [
+        -73.978219,
+        40.717495
+      ],
+      "footprint": [
+        [
+          -73.9790486,
+          40.7168662
+        ],
+        [
+          -73.9773894,
+          40.7168662
+        ],
+        [
+          -73.9773894,
+          40.7181238
+        ],
+        [
+          -73.9790486,
+          40.7181238
+        ],
+        [
+          -73.9790486,
+          40.7168662
+        ]
+      ],
+      "footprintAreaM2": 197641.19,
+      "footprintOrigin": "modeled",
+      "heightM": 12.19,
+      "id": "job:123085124:01",
+      "jobId": "123085124",
+      "milestones": [
+        {
+          "date": "2017-05-11",
+          "id": "job:123085124:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2017-10-20",
+          "id": "job:123085124:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2019-02-20",
+          "id": "job:123085124:01:fully-permitted:3",
+          "kind": "fully-permitted",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 1,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": 2127393,
+      "regionId": "MN0302",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:2847291"
+      ],
+      "status": "PERMIT ISSUED - ENTIRE JOB/WORK",
+      "withdrawn": false
+    },
+    {
+      "address": "199 CHRYSTIE STREET",
+      "bbl": "1004267502",
+      "bin": "1005718",
+      "constructionYear": null,
+      "coordinates": [
+        -73.99184,
+        40.722048
+      ],
+      "footprint": [
+        [
+          -73.9920406,
+          40.721896
+        ],
+        [
+          -73.9916394,
+          40.721896
+        ],
+        [
+          -73.9916394,
+          40.7222
+        ],
+        [
+          -73.9920406,
+          40.7222
+        ],
+        [
+          -73.9920406,
+          40.721896
+        ]
+      ],
+      "footprintAreaM2": 286.32,
+      "footprintOrigin": "modeled",
+      "heightM": 44.2,
+      "id": "job:123178499:01",
+      "jobId": "123178499",
+      "milestones": [
+        {
+          "date": "2017-11-22",
+          "id": "job:123178499:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2018-12-20",
+          "id": "job:123178499:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2019-01-29",
+          "id": "job:123178499:01:fully-permitted:3",
+          "kind": "fully-permitted",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 14,
+      "proposedUnits": 14,
+      "proposedZoningSquareFeet": 43147,
+      "regionId": "MN0302",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:2944000"
+      ],
+      "status": "PERMIT ISSUED - ENTIRE JOB/WORK",
+      "withdrawn": false
+    },
+    {
+      "address": "167 CHRYSTIE STREET",
+      "bbl": "1004250030",
+      "bin": "1090824",
+      "constructionYear": 2021,
+      "coordinates": [
+        -73.992485,
+        40.720791
+      ],
+      "footprint": [
+        [
+          -73.9926025,
+          40.7208809
+        ],
+        [
+          -73.9926905,
+          40.7207277
+        ],
+        [
+          -73.9930548,
+          40.7208341
+        ],
+        [
+          -73.9929847,
+          40.7210048
+        ],
+        [
+          -73.9928426,
+          40.7209631
+        ],
+        [
+          -73.9928453,
+          40.720958
+        ],
+        [
+          -73.9926025,
+          40.7208809
+        ]
+      ],
+      "footprintAreaM2": 1134.46,
+      "footprintOrigin": "observed",
+      "heightM": 51.82,
+      "id": "job:123399107:01",
+      "jobId": "123399107",
+      "milestones": [
+        {
+          "date": "2018-08-21",
+          "id": "job:123399107:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2019-05-08",
+          "id": "job:123399107:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2020-03-30",
+          "id": "job:123399107:01:fully-permitted:3",
+          "kind": "fully-permitted",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 16,
+      "proposedUnits": 78,
+      "proposedZoningSquareFeet": 57987,
+      "regionId": "MN0302",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:3064594",
+        "building-footprint:1084845"
+      ],
+      "status": "PERMIT ISSUED - ENTIRE JOB/WORK",
+      "withdrawn": false
+    },
+    {
+      "address": "63 PITT STREET",
+      "bbl": "1003430062",
+      "bin": "1004083",
+      "constructionYear": 2023,
+      "coordinates": [
+        -73.982724,
+        40.717877
+      ],
+      "footprint": [
+        [
+          -73.982937,
+          40.7177691
+        ],
+        [
+          -73.9831705,
+          40.7178422
+        ],
+        [
+          -73.9831037,
+          40.7179659
+        ],
+        [
+          -73.9828701,
+          40.7178928
+        ],
+        [
+          -73.982937,
+          40.7177691
+        ]
+      ],
+      "footprintAreaM2": 552.44,
+      "footprintOrigin": "observed",
+      "heightM": 41.45,
+      "id": "job:123777305:01",
+      "jobId": "123777305",
+      "milestones": [
+        {
+          "date": "2019-06-28",
+          "id": "job:123777305:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2021-04-21",
+          "id": "job:123777305:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2021-08-17",
+          "id": "job:123777305:01:fully-permitted:3",
+          "kind": "fully-permitted",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2023-03-29",
+          "id": "job:123777305:01:final-certificate-of-occupancy:4",
+          "kind": "final-certificate-of-occupancy",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2023-03-29",
+          "id": "job:123777305:01:signed-off:5",
+          "kind": "signed-off",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 12,
+      "proposedUnits": 59,
+      "proposedZoningSquareFeet": 56637,
+      "regionId": "MN0302",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:3138196",
+        "certificate-of-occupancy:123777305:001",
+        "building-footprint:1086007"
+      ],
+      "status": "SIGNED OFF",
+      "withdrawn": false
+    }
+  ],
+  "id": "nyc-real-estate-region-mn0302-v1",
+  "region": {
+    "abbreviation": "LES",
+    "areaM2": 16475484.6432,
+    "boroughId": "manhattan",
+    "boroughLabel": "Manhattan",
+    "bounds": {
+      "east": -73.9735719,
+      "north": 40.7241364,
+      "south": 40.7055424,
+      "west": -73.9948078
+    },
+    "centroid": [
+      -73.9819536,
+      40.7132141
+    ],
+    "communityDistrictTabulationAreaId": "MN03",
+    "communityDistrictTabulationAreaLabel": "MN03 Lower East Side-Chinatown (CD 3 Equivalent)",
+    "id": "MN0302",
+    "label": "Lower East Side",
+    "polygon": [
+      [
+        -73.9750605,
+        40.7187855
+      ],
+      [
+        -73.9735719,
+        40.7185972
+      ],
+      [
+        -73.975129,
+        40.7146212
+      ],
+      [
+        -73.9761237,
+        40.7124603
+      ],
+      [
+        -73.9768188,
+        40.7114196
+      ],
+      [
+        -73.9780797,
+        40.7105323
+      ],
+      [
+        -73.9812865,
+        40.7102183
+      ],
+      [
+        -73.9812458,
+        40.7098262
+      ],
+      [
+        -73.9844965,
+        40.7095097
+      ],
+      [
+        -73.9850651,
+        40.7138069
+      ],
+      [
+        -73.9852284,
+        40.7137929
+      ],
+      [
+        -73.985344,
+        40.7144616
+      ],
+      [
+        -73.9893366,
+        40.7141334
+      ],
+      [
+        -73.9902201,
+        40.7144049
+      ],
+      [
+        -73.9891546,
+        40.7167086
+      ],
+      [
+        -73.9948078,
+        40.7184574
+      ],
+      [
+        -73.9926032,
+        40.7241364
+      ],
+      [
+        -73.9787523,
+        40.7199337
+      ],
+      [
+        -73.9772238,
+        40.7193098
+      ],
+      [
+        -73.9750972,
+        40.7187944
+      ],
+      [
+        -73.9750605,
+        40.7187855
+      ]
+    ],
+    "spatialPolygons": [
+      {
+        "holes": [],
+        "outer": [
+          [
+            -73.982459,
+            40.7055424
+          ],
+          [
+            -73.9824229,
+            40.7058221
+          ],
+          [
+            -73.9810239,
+            40.7058989
+          ],
+          [
+            -73.9823021,
+            40.705737
+          ],
+          [
+            -73.9823734,
+            40.7055434
+          ],
+          [
+            -73.982459,
+            40.7055424
+          ]
+        ]
+      },
+      {
+        "holes": [],
+        "outer": [
+          [
+            -73.9750605,
+            40.7187855
+          ],
+          [
+            -73.9735719,
+            40.7185972
+          ],
+          [
+            -73.975129,
+            40.7146212
+          ],
+          [
+            -73.9761237,
+            40.7124603
+          ],
+          [
+            -73.9768188,
+            40.7114196
+          ],
+          [
+            -73.9780797,
+            40.7105323
+          ],
+          [
+            -73.9812865,
+            40.7102183
+          ],
+          [
+            -73.9812458,
+            40.7098262
+          ],
+          [
+            -73.9844965,
+            40.7095097
+          ],
+          [
+            -73.9850651,
+            40.7138069
+          ],
+          [
+            -73.9852284,
+            40.7137929
+          ],
+          [
+            -73.985344,
+            40.7144616
+          ],
+          [
+            -73.9893366,
+            40.7141334
+          ],
+          [
+            -73.9902201,
+            40.7144049
+          ],
+          [
+            -73.9891546,
+            40.7167086
+          ],
+          [
+            -73.9948078,
+            40.7184574
+          ],
+          [
+            -73.9926032,
+            40.7241364
+          ],
+          [
+            -73.9787523,
+            40.7199337
+          ],
+          [
+            -73.9772238,
+            40.7193098
+          ],
+          [
+            -73.9750972,
+            40.7187944
+          ],
+          [
+            -73.9750605,
+            40.7187855
+          ]
+        ]
+      }
+    ]
+  },
+  "saleSeries": [
+    {
+      "id": "sale:MN0302:2016:tax-2",
+      "meanPriceUsd": 1314996.34,
+      "medianPriceUsd": 822500,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "MN0302",
+      "saleCount": 194,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 179,
+      "year": 2016
+    },
+    {
+      "id": "sale:MN0302:2016:tax-4",
+      "meanPriceUsd": 25782000,
+      "medianPriceUsd": 13050000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "MN0302",
+      "saleCount": 10,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 7,
+      "year": 2016
+    },
+    {
+      "id": "sale:MN0302:2017:tax-2",
+      "meanPriceUsd": 2009705.04,
+      "medianPriceUsd": 850000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "MN0302",
+      "saleCount": 207,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 277,
+      "year": 2017
+    },
+    {
+      "id": "sale:MN0302:2017:tax-4",
+      "meanPriceUsd": 12385000,
+      "medianPriceUsd": 8000000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "MN0302",
+      "saleCount": 10,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 20,
+      "year": 2017
+    },
+    {
+      "id": "sale:MN0302:2018:tax-1",
+      "meanPriceUsd": 5300000,
+      "medianPriceUsd": 5300000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "MN0302",
+      "saleCount": 1,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 3,
+      "year": 2018
+    },
+    {
+      "id": "sale:MN0302:2018:tax-2",
+      "meanPriceUsd": 1884026.02,
+      "medianPriceUsd": 1125166,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "MN0302",
+      "saleCount": 286,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 288,
+      "year": 2018
+    },
+    {
+      "id": "sale:MN0302:2018:tax-4",
+      "meanPriceUsd": 27630484.69,
+      "medianPriceUsd": 8450000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "MN0302",
+      "saleCount": 13,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 38,
+      "year": 2018
+    },
+    {
+      "id": "sale:MN0302:2019:tax-2",
+      "meanPriceUsd": 1789437.82,
+      "medianPriceUsd": 1057500,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "MN0302",
+      "saleCount": 266,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 462,
+      "year": 2019
+    },
+    {
+      "id": "sale:MN0302:2019:tax-4",
+      "meanPriceUsd": 16033068.08,
+      "medianPriceUsd": 4312500,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "MN0302",
+      "saleCount": 24,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 35,
+      "year": 2019
+    },
+    {
+      "id": "sale:MN0302:2020:tax-2",
+      "meanPriceUsd": 1191431.65,
+      "medianPriceUsd": 908750,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "MN0302",
+      "saleCount": 146,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 85,
+      "year": 2020
+    },
+    {
+      "id": "sale:MN0302:2020:tax-4",
+      "meanPriceUsd": 3436812.75,
+      "medianPriceUsd": 995819,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "MN0302",
+      "saleCount": 20,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 20,
+      "year": 2020
+    },
+    {
+      "id": "sale:MN0302:2021:tax-1",
+      "meanPriceUsd": 7500000,
+      "medianPriceUsd": 7500000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "MN0302",
+      "saleCount": 1,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 1,
+      "year": 2021
+    },
+    {
+      "id": "sale:MN0302:2021:tax-2",
+      "meanPriceUsd": 1378773.57,
+      "medianPriceUsd": 860000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "MN0302",
+      "saleCount": 288,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 338,
+      "year": 2021
+    },
+    {
+      "id": "sale:MN0302:2021:tax-4",
+      "meanPriceUsd": 7384210.67,
+      "medianPriceUsd": 4390000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "MN0302",
+      "saleCount": 9,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 24,
+      "year": 2021
+    },
+    {
+      "id": "sale:MN0302:2022:tax-2",
+      "meanPriceUsd": 1859999.7,
+      "medianPriceUsd": 1070000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "MN0302",
+      "saleCount": 348,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 706,
+      "year": 2022
+    },
+    {
+      "id": "sale:MN0302:2022:tax-4",
+      "meanPriceUsd": 3627552.29,
+      "medianPriceUsd": 2762274,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "MN0302",
+      "saleCount": 14,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 23,
+      "year": 2022
+    },
+    {
+      "id": "sale:MN0302:2023:tax-1",
+      "meanPriceUsd": 3751250,
+      "medianPriceUsd": 4140000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "MN0302",
+      "saleCount": 4,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 11,
+      "year": 2023
+    },
+    {
+      "id": "sale:MN0302:2023:tax-2",
+      "meanPriceUsd": 1891595.34,
+      "medianPriceUsd": 1055000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "MN0302",
+      "saleCount": 212,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 870,
+      "year": 2023
+    },
+    {
+      "id": "sale:MN0302:2023:tax-4",
+      "meanPriceUsd": 3646002.35,
+      "medianPriceUsd": 2100000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "MN0302",
+      "saleCount": 17,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 17,
+      "year": 2023
+    },
+    {
+      "id": "sale:MN0302:2024:tax-1",
+      "meanPriceUsd": 5950000,
+      "medianPriceUsd": 5950000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "MN0302",
+      "saleCount": 1,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 3,
+      "year": 2024
+    },
+    {
+      "id": "sale:MN0302:2024:tax-2",
+      "meanPriceUsd": 1890460.24,
+      "medianPriceUsd": 975000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "MN0302",
+      "saleCount": 165,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 262,
+      "year": 2024
+    },
+    {
+      "id": "sale:MN0302:2024:tax-4",
+      "meanPriceUsd": 15748883.32,
+      "medianPriceUsd": 4500000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "MN0302",
+      "saleCount": 22,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 46,
+      "year": 2024
+    },
+    {
+      "id": "sale:MN0302:2025:tax-2",
+      "meanPriceUsd": 1329894.6,
+      "medianPriceUsd": 875000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "MN0302",
+      "saleCount": 211,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 249,
+      "year": 2025
+    },
+    {
+      "id": "sale:MN0302:2025:tax-4",
+      "meanPriceUsd": 10370000,
+      "medianPriceUsd": 5500000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "MN0302",
+      "saleCount": 10,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 10,
+      "year": 2025
+    }
+  ],
+  "schema": "simulatte.nycRealEstateRegionShard.v1",
+  "sourceIdentities": [
+    {
+      "byteCount": 1008463,
+      "path": "nyc-annualized-sales-by-nta.json",
+      "sha256": "14c15020381466196236073ee3753ff7a5d74a76ec6af4605e96564abd2bf99a",
+      "sourceId": "nyc-real-estate-sales-annual"
+    },
+    {
+      "byteCount": 8977616,
+      "path": "nyc-final-certificates-of-occupancy.json",
+      "sha256": "966c237824a79aff9d5137d27b498ba4f3670cc19844738c5ce17a559388030e",
+      "sourceId": "nyc-real-estate-final-occupancy"
+    },
+    {
+      "byteCount": 8802596,
+      "path": "nyc-largest-constructed-footprints-2010-2026.geojson",
+      "sha256": "15745b9c62fa539e683737f0665fe91d95231e68d8c1b598e7ed211114811eb6",
+      "sourceId": "nyc-real-estate-constructed-footprints"
+    },
+    {
+      "byteCount": 1076754,
+      "path": "nyc-largest-new-building-jobs-bronx.json",
+      "sha256": "1a44c6cbfa364639e4b75957b2fab7e3c301f95bcfcfa90c50862fef85f450c1",
+      "sourceId": "nyc-real-estate-new-building-sample-bronx"
+    },
+    {
+      "byteCount": 1085334,
+      "path": "nyc-largest-new-building-jobs-brooklyn.json",
+      "sha256": "389e1825faff440d6fad5a12ed470f84e90859fd732262346a3414c5503693fd",
+      "sourceId": "nyc-real-estate-new-building-sample-brooklyn"
+    },
+    {
+      "byteCount": 1097625,
+      "path": "nyc-largest-new-building-jobs-manhattan.json",
+      "sha256": "6346678de380d58e325db14fc2e0611d993743be29898360e08f092eaa1f88e5",
+      "sourceId": "nyc-real-estate-new-building-sample-manhattan"
+    },
+    {
+      "byteCount": 1091065,
+      "path": "nyc-largest-new-building-jobs-queens.json",
+      "sha256": "79eb6f028b2135214d47a793101f72de695efcb02e4c2802cc10cd062c760a22",
+      "sourceId": "nyc-real-estate-new-building-sample-queens"
+    },
+    {
+      "byteCount": 1120592,
+      "path": "nyc-largest-new-building-jobs-staten-island.json",
+      "sha256": "e0870a431a75bdd235fc09b0ecd7503c45384f5e8b66beba545447c7bb3d960a",
+      "sourceId": "nyc-real-estate-new-building-sample-staten-island"
+    },
+    {
+      "byteCount": 1250280,
+      "path": "nyc-new-building-filings-by-nta-year.json",
+      "sha256": "4b75b0ad54a1ce5241b9c2e303be2cc24781e55a65fbf27be10d00a80bfeadea",
+      "sourceId": "nyc-real-estate-new-building-annual"
+    },
+    {
+      "byteCount": 4576764,
+      "path": "nyc-nta-2020.geojson",
+      "sha256": "c3dd069e094e2d2f647c1c102cd7e0570d033dd6131446bd1943a73210d09c56",
+      "sourceId": "nyc-real-estate-nta-boundaries"
+    },
+    {
+      "byteCount": 2402191,
+      "path": "nyc-pluto-capacity-bronx.json",
+      "sha256": "b45168721525e18a29aafcce335212632607021240869b738cbb96fbe2441389",
+      "sourceId": "nyc-real-estate-pluto-capacity-bronx"
+    },
+    {
+      "byteCount": 2403266,
+      "path": "nyc-pluto-capacity-brooklyn.json",
+      "sha256": "63b33a507c0bc26f7b71669cf032baa4950af2db77ce8712b876ca6f4c9f771b",
+      "sourceId": "nyc-real-estate-pluto-capacity-brooklyn"
+    },
+    {
+      "byteCount": 2464264,
+      "path": "nyc-pluto-capacity-manhattan.json",
+      "sha256": "91e3e1f5dce97a340475b51577458c8e48183f1138c334fbcce27d68001e9d25",
+      "sourceId": "nyc-real-estate-pluto-capacity-manhattan"
+    },
+    {
+      "byteCount": 2418903,
+      "path": "nyc-pluto-capacity-queens.json",
+      "sha256": "02a12d81466e89e05b9be9273198c5f857e86db5d2c95cfb717160ce4ccf99c1",
+      "sourceId": "nyc-real-estate-pluto-capacity-queens"
+    },
+    {
+      "byteCount": 1168016,
+      "path": "nyc-pluto-capacity-staten-island.json",
+      "sha256": "6d488f6ce46fa09930b669429275014a8ecedae6c85041fb465a15633c6a38b0",
+      "sourceId": "nyc-real-estate-pluto-capacity-staten-island"
+    }
+  ],
+  "truth": {
+    "origin": "observed",
+    "temporalStatus": "historical",
+    "uncertainty": {
+      "kind": "missing",
+      "value": {
+        "reason": "Administrative records have missing, revised, duplicated, and source-sampled fields without a shared statistical uncertainty model."
+      }
+    }
+  }
+}

@@ -1,0 +1,2933 @@
+{
+  "capacitySites": [
+    {
+      "address": "1598 BRONXDALE AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.59,
+      "availableResidentialFar": 2.59,
+      "bbl": "2040580002",
+      "boroughId": "bronx",
+      "builtAreaSquareFeet": 2748,
+      "builtFar": 0.41,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8562582,
+        40.8435526
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 2,
+      "id": "capacity:2040580002",
+      "landUseCode": "7",
+      "lotAreaSquareFeet": 6650,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 17223.5,
+      "potentialResidentialFloorAreaSquareFeet": 17223.5,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 19,
+      "regionId": "BX1102",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:2040580002"
+      ],
+      "zoningDistricts": [
+        "R6-1"
+      ]
+    },
+    {
+      "address": "POPLAR STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 3,
+      "availableResidentialFar": 3,
+      "bbl": "2040620001",
+      "boroughId": "bronx",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8521345,
+        40.8435063
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:2040620001",
+      "landUseCode": "11",
+      "lotAreaSquareFeet": 1498,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 4494,
+      "potentialResidentialFloorAreaSquareFeet": 4494,
+      "potentialResidentialUnitsClass1": 2,
+      "potentialResidentialUnitsClass2": 4,
+      "regionId": "BX1102",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:2040620001"
+      ],
+      "zoningDistricts": [
+        "R6-1"
+      ]
+    },
+    {
+      "address": "POPLAR STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 3,
+      "availableResidentialFar": 3,
+      "bbl": "2040620006",
+      "boroughId": "bronx",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8525757,
+        40.8433613
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:2040620006",
+      "landUseCode": "10",
+      "lotAreaSquareFeet": 4004,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 12012,
+      "potentialResidentialFloorAreaSquareFeet": 12012,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 13,
+      "regionId": "BX1102",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:2040620006"
+      ],
+      "zoningDistricts": [
+        "R6-1"
+      ]
+    },
+    {
+      "address": "2423 POPLAR STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 3,
+      "availableResidentialFar": 3,
+      "bbl": "2040620018",
+      "boroughId": "bronx",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8535594,
+        40.8431073
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:2040620018",
+      "landUseCode": "10",
+      "lotAreaSquareFeet": 2125,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 6375,
+      "potentialResidentialFloorAreaSquareFeet": 6375,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 7,
+      "regionId": "BX1102",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:2040620018"
+      ],
+      "zoningDistricts": [
+        "R6-1"
+      ]
+    },
+    {
+      "address": "1514 BRONXDALE AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.69,
+      "availableResidentialFar": 2.69,
+      "bbl": "2040620028",
+      "boroughId": "bronx",
+      "builtAreaSquareFeet": 1319,
+      "builtFar": 0.31,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8544308,
+        40.8429245
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:2040620028",
+      "landUseCode": "7",
+      "lotAreaSquareFeet": 4262,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 11464.78,
+      "potentialResidentialFloorAreaSquareFeet": 11464.78,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 12,
+      "regionId": "BX1102",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:2040620028"
+      ],
+      "zoningDistricts": [
+        "R6-1"
+      ]
+    },
+    {
+      "address": "2421 EAST TREMONT AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.61,
+      "availableResidentialFar": 2.61,
+      "bbl": "2040630007",
+      "boroughId": "bronx",
+      "builtAreaSquareFeet": 2555,
+      "builtFar": 0.39,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8525949,
+        40.842881
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:2040630007",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 6563,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 17129.43,
+      "potentialResidentialFloorAreaSquareFeet": 17129.43,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 19,
+      "regionId": "BX1102",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:2040630007"
+      ],
+      "zoningDistricts": [
+        "R6-1"
+      ]
+    },
+    {
+      "address": "2583 POPLAR STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 3,
+      "availableResidentialFar": 3,
+      "bbl": "2040700101",
+      "boroughId": "bronx",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8475558,
+        40.8448205
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:2040700101",
+      "landUseCode": "10",
+      "lotAreaSquareFeet": 5226,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 15678,
+      "potentialResidentialFloorAreaSquareFeet": 15678,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 17,
+      "regionId": "BX1102",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:2040700101"
+      ],
+      "zoningDistricts": [
+        "R6-1"
+      ]
+    },
+    {
+      "address": "2547 EAST TREMONT AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.86,
+      "availableResidentialFar": 2.86,
+      "bbl": "2040780010",
+      "boroughId": "bronx",
+      "builtAreaSquareFeet": 6970,
+      "builtFar": 0.14,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8487409,
+        40.8434332
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:2040780010",
+      "landUseCode": "8",
+      "lotAreaSquareFeet": 49163,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 140606.18,
+      "potentialResidentialFloorAreaSquareFeet": 140606.18,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 156,
+      "regionId": "BX1102",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:2040780010"
+      ],
+      "zoningDistricts": [
+        "R6-1"
+      ]
+    },
+    {
+      "address": "2543 EAST TREMONT AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.71,
+      "availableResidentialFar": 2.71,
+      "bbl": "2040780123",
+      "boroughId": "bronx",
+      "builtAreaSquareFeet": 10706,
+      "builtFar": 0.29,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8494351,
+        40.8432969
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 2,
+      "id": "capacity:2040780123",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 36734,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 99549.14,
+      "potentialResidentialFloorAreaSquareFeet": 99549.14,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 110,
+      "regionId": "BX1102",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:2040780123"
+      ],
+      "zoningDistricts": [
+        "R6-1"
+      ]
+    },
+    {
+      "address": "1501 WILLIAMSBRIDGE ROAD",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.87,
+      "availableResidentialFar": 2.87,
+      "bbl": "2040790001",
+      "boroughId": "bronx",
+      "builtAreaSquareFeet": 2602,
+      "builtFar": 0.13,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8467613,
+        40.844556
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:2040790001",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 19650,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 56395.5,
+      "potentialResidentialFloorAreaSquareFeet": 56395.5,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 62,
+      "regionId": "BX1102",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:2040790001"
+      ],
+      "zoningDistricts": [
+        "R6-1",
+        "R4"
+      ]
+    },
+    {
+      "address": "PIERCE AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 3,
+      "availableResidentialFar": 3,
+      "bbl": "2040910034",
+      "boroughId": "bronx",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8565467,
+        40.8438796
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:2040910034",
+      "landUseCode": "10",
+      "lotAreaSquareFeet": 6264,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 18792,
+      "potentialResidentialFloorAreaSquareFeet": 18792,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 20,
+      "regionId": "BX1102",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:2040910034"
+      ],
+      "zoningDistricts": [
+        "R6-1"
+      ]
+    },
+    {
+      "address": "907 PIERCE AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.57,
+      "availableResidentialFar": 2.57,
+      "bbl": "2040910037",
+      "boroughId": "bronx",
+      "builtAreaSquareFeet": 1200,
+      "builtFar": 0.43,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8567311,
+        40.8438167
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:2040910037",
+      "landUseCode": "6",
+      "lotAreaSquareFeet": 2772,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 7124.04,
+      "potentialResidentialFloorAreaSquareFeet": 7124.04,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 7,
+      "regionId": "BX1102",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:2040910037"
+      ],
+      "zoningDistricts": [
+        "R6-1"
+      ]
+    },
+    {
+      "address": "1602 BRONXDALE AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.7,
+      "availableResidentialFar": 2.7,
+      "bbl": "2040910039",
+      "boroughId": "bronx",
+      "builtAreaSquareFeet": 1900,
+      "builtFar": 0.3,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8569553,
+        40.8437868
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:2040910039",
+      "landUseCode": "7",
+      "lotAreaSquareFeet": 6290,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 16983,
+      "potentialResidentialFloorAreaSquareFeet": 16983,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 18,
+      "regionId": "BX1102",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:2040910039"
+      ],
+      "zoningDistricts": [
+        "R6-1"
+      ]
+    },
+    {
+      "address": "BRONXDALE AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 3,
+      "availableResidentialFar": 3,
+      "bbl": "2040910045",
+      "boroughId": "bronx",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8570924,
+        40.8438913
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:2040910045",
+      "landUseCode": "11",
+      "lotAreaSquareFeet": 3052,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 9156,
+      "potentialResidentialFloorAreaSquareFeet": 9156,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 10,
+      "regionId": "BX1102",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:2040910045"
+      ],
+      "zoningDistricts": [
+        "R6-1"
+      ]
+    },
+    {
+      "address": "BRONXDALE AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 3,
+      "availableResidentialFar": 3,
+      "bbl": "2040910046",
+      "boroughId": "bronx",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8571933,
+        40.8440177
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:2040910046",
+      "landUseCode": "10",
+      "lotAreaSquareFeet": 10504,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 31512,
+      "potentialResidentialFloorAreaSquareFeet": 31512,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 35,
+      "regionId": "BX1102",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:2040910046"
+      ],
+      "zoningDistricts": [
+        "R6-1"
+      ]
+    },
+    {
+      "address": "1626 BRONXDALE AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.66,
+      "availableResidentialFar": 2.66,
+      "bbl": "2040910050",
+      "boroughId": "bronx",
+      "builtAreaSquareFeet": 4350,
+      "builtFar": 0.34,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8575466,
+        40.8444572
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 2,
+      "id": "capacity:2040910050",
+      "landUseCode": "9",
+      "lotAreaSquareFeet": 12800,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 34048,
+      "potentialResidentialFloorAreaSquareFeet": 34048,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 37,
+      "regionId": "BX1102",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:2040910050"
+      ],
+      "zoningDistricts": [
+        "R6-1"
+      ]
+    },
+    {
+      "address": "1864 EASTCHESTER ROAD",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 3.16,
+      "availableFar": 3.2,
+      "availableResidentialFar": 3.2,
+      "bbl": "2042090001",
+      "boroughId": "bronx",
+      "builtAreaSquareFeet": 1800,
+      "builtFar": 0.24,
+      "commercialFar": 3.4,
+      "coordinates": [
+        -73.8443763,
+        40.8505527
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:2042090001",
+      "landUseCode": "10",
+      "lotAreaSquareFeet": 7500,
+      "potentialCommercialFloorAreaSquareFeet": 23700,
+      "potentialFloorAreaSquareFeet": 24000,
+      "potentialResidentialFloorAreaSquareFeet": 24000,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 26,
+      "regionId": "BX1102",
+      "residentialFar": 3.44,
+      "sourceRowIds": [
+        "pluto:2042090001"
+      ],
+      "zoningDistricts": [
+        "C4-4"
+      ]
+    },
+    {
+      "address": "1870 EASTCHESTER ROAD",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 2.82,
+      "availableFar": 2.86,
+      "availableResidentialFar": 2.86,
+      "bbl": "2042090005",
+      "boroughId": "bronx",
+      "builtAreaSquareFeet": 4183,
+      "builtFar": 0.58,
+      "commercialFar": 3.4,
+      "coordinates": [
+        -73.8442167,
+        40.8507968
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:2042090005",
+      "landUseCode": "7",
+      "lotAreaSquareFeet": 7170,
+      "potentialCommercialFloorAreaSquareFeet": 20219.4,
+      "potentialFloorAreaSquareFeet": 20506.2,
+      "potentialResidentialFloorAreaSquareFeet": 20506.2,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 22,
+      "regionId": "BX1102",
+      "residentialFar": 3.44,
+      "sourceRowIds": [
+        "pluto:2042090005"
+      ],
+      "zoningDistricts": [
+        "C4-4"
+      ]
+    },
+    {
+      "address": "1886 EASTCHESTER ROAD",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 3.06,
+      "availableFar": 3.1,
+      "availableResidentialFar": 3.1,
+      "bbl": "2042090012",
+      "boroughId": "bronx",
+      "builtAreaSquareFeet": 3133,
+      "builtFar": 0.34,
+      "commercialFar": 3.4,
+      "coordinates": [
+        -73.8439483,
+        40.8511779
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:2042090012",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 9270,
+      "potentialCommercialFloorAreaSquareFeet": 28366.2,
+      "potentialFloorAreaSquareFeet": 28737,
+      "potentialResidentialFloorAreaSquareFeet": 28737,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 31,
+      "regionId": "BX1102",
+      "residentialFar": 3.44,
+      "sourceRowIds": [
+        "pluto:2042090012"
+      ],
+      "zoningDistricts": [
+        "C4-4"
+      ]
+    },
+    {
+      "address": "1950 EASTCHESTER ROAD",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 2.63,
+      "availableFar": 2.67,
+      "availableResidentialFar": 2.67,
+      "bbl": "2042090025",
+      "boroughId": "bronx",
+      "builtAreaSquareFeet": 25000,
+      "builtFar": 0.77,
+      "commercialFar": 3.4,
+      "coordinates": [
+        -73.8434371,
+        40.8518442
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 2,
+      "id": "capacity:2042090025",
+      "landUseCode": "6",
+      "lotAreaSquareFeet": 32500,
+      "potentialCommercialFloorAreaSquareFeet": 85475,
+      "potentialFloorAreaSquareFeet": 86775,
+      "potentialResidentialFloorAreaSquareFeet": 86775,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 96,
+      "regionId": "BX1102",
+      "residentialFar": 3.44,
+      "sourceRowIds": [
+        "pluto:2042090025"
+      ],
+      "zoningDistricts": [
+        "C4-4"
+      ]
+    },
+    {
+      "address": "1455 BASSETT AVENUE",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 3.4,
+      "availableFar": 3.44,
+      "availableResidentialFar": 3.44,
+      "bbl": "2042090050",
+      "boroughId": "bronx",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 3.4,
+      "coordinates": [
+        -73.842963,
+        40.8520741
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:2042090050",
+      "landUseCode": null,
+      "lotAreaSquareFeet": 2500,
+      "potentialCommercialFloorAreaSquareFeet": 8500,
+      "potentialFloorAreaSquareFeet": 8600,
+      "potentialResidentialFloorAreaSquareFeet": 8600,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 9,
+      "regionId": "BX1102",
+      "residentialFar": 3.44,
+      "sourceRowIds": [
+        "pluto:2042090050"
+      ],
+      "zoningDistricts": [
+        "C4-4"
+      ]
+    },
+    {
+      "address": "1437 BASSETT AVENUE",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 3.4,
+      "availableFar": 3.44,
+      "availableResidentialFar": 3.44,
+      "bbl": "2042090053",
+      "boroughId": "bronx",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 3.4,
+      "coordinates": [
+        -73.8430791,
+        40.8518876
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:2042090053",
+      "landUseCode": "10",
+      "lotAreaSquareFeet": 2500,
+      "potentialCommercialFloorAreaSquareFeet": 8500,
+      "potentialFloorAreaSquareFeet": 8600,
+      "potentialResidentialFloorAreaSquareFeet": 8600,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 9,
+      "regionId": "BX1102",
+      "residentialFar": 3.44,
+      "sourceRowIds": [
+        "pluto:2042090053"
+      ],
+      "zoningDistricts": [
+        "C4-4"
+      ]
+    },
+    {
+      "address": "BASSETT AVENUE",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 3.4,
+      "availableFar": 3.44,
+      "availableResidentialFar": 3.44,
+      "bbl": "2042090054",
+      "boroughId": "bronx",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 3.4,
+      "coordinates": [
+        -73.8431154,
+        40.8518245
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:2042090054",
+      "landUseCode": "11",
+      "lotAreaSquareFeet": 2500,
+      "potentialCommercialFloorAreaSquareFeet": 8500,
+      "potentialFloorAreaSquareFeet": 8600,
+      "potentialResidentialFloorAreaSquareFeet": 8600,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 9,
+      "regionId": "BX1102",
+      "residentialFar": 3.44,
+      "sourceRowIds": [
+        "pluto:2042090054"
+      ],
+      "zoningDistricts": [
+        "C4-4"
+      ]
+    },
+    {
+      "address": "1504 STILLWELL AVENUE",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 2.91,
+      "availableFar": 2.95,
+      "availableResidentialFar": 2.95,
+      "bbl": "2042190003",
+      "boroughId": "bronx",
+      "builtAreaSquareFeet": 2430,
+      "builtFar": 0.49,
+      "commercialFar": 3.4,
+      "coordinates": [
+        -73.8427909,
+        40.8529878
+      ],
+      "existingResidentialUnits": 3,
+      "existingTotalUnits": 3,
+      "id": "capacity:2042190003",
+      "landUseCode": "2",
+      "lotAreaSquareFeet": 5000,
+      "potentialCommercialFloorAreaSquareFeet": 14550,
+      "potentialFloorAreaSquareFeet": 14750,
+      "potentialResidentialFloorAreaSquareFeet": 14750,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 16,
+      "regionId": "BX1102",
+      "residentialFar": 3.44,
+      "sourceRowIds": [
+        "pluto:2042190003"
+      ],
+      "zoningDistricts": [
+        "C4-4"
+      ]
+    },
+    {
+      "address": "1538 STILLWELL AVENUE",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 3.4,
+      "availableFar": 3.44,
+      "availableResidentialFar": 3.44,
+      "bbl": "2042190016",
+      "boroughId": "bronx",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 3.4,
+      "coordinates": [
+        -73.8420191,
+        40.85378
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:2042190016",
+      "landUseCode": "10",
+      "lotAreaSquareFeet": 22050,
+      "potentialCommercialFloorAreaSquareFeet": 74970,
+      "potentialFloorAreaSquareFeet": 75852,
+      "potentialResidentialFloorAreaSquareFeet": 75852,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 84,
+      "regionId": "BX1102",
+      "residentialFar": 3.44,
+      "sourceRowIds": [
+        "pluto:2042190016"
+      ],
+      "zoningDistricts": [
+        "C4-4"
+      ]
+    },
+    {
+      "address": "1614 MCDONALD STREET",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 3.07,
+      "availableFar": 3.11,
+      "availableResidentialFar": 3.11,
+      "bbl": "2042190035",
+      "boroughId": "bronx",
+      "builtAreaSquareFeet": 3200,
+      "builtFar": 0.33,
+      "commercialFar": 3.4,
+      "coordinates": [
+        -73.8410992,
+        40.8545006
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:2042190035",
+      "landUseCode": "6",
+      "lotAreaSquareFeet": 9750,
+      "potentialCommercialFloorAreaSquareFeet": 29932.5,
+      "potentialFloorAreaSquareFeet": 30322.5,
+      "potentialResidentialFloorAreaSquareFeet": 30322.5,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 33,
+      "regionId": "BX1102",
+      "residentialFar": 3.44,
+      "sourceRowIds": [
+        "pluto:2042190035"
+      ],
+      "zoningDistricts": [
+        "C4-4"
+      ]
+    },
+    {
+      "address": "1563 BASSETT AVENUE",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 3.4,
+      "availableFar": 3.44,
+      "availableResidentialFar": 3.44,
+      "bbl": "2042190039",
+      "boroughId": "bronx",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 3.4,
+      "coordinates": [
+        -73.8412514,
+        40.8543718
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:2042190039",
+      "landUseCode": "11",
+      "lotAreaSquareFeet": 2366,
+      "potentialCommercialFloorAreaSquareFeet": 8044.4,
+      "potentialFloorAreaSquareFeet": 8139.04,
+      "potentialResidentialFloorAreaSquareFeet": 8139.04,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 9,
+      "regionId": "BX1102",
+      "residentialFar": 3.44,
+      "sourceRowIds": [
+        "pluto:2042190039"
+      ],
+      "zoningDistricts": [
+        "C4-4"
+      ]
+    },
+    {
+      "address": "1555 BASSETT AVENUE",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 3.4,
+      "availableFar": 3.44,
+      "availableResidentialFar": 3.44,
+      "bbl": "2042190042",
+      "boroughId": "bronx",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 3.4,
+      "coordinates": [
+        -73.8414542,
+        40.8541855
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:2042190042",
+      "landUseCode": "10",
+      "lotAreaSquareFeet": 4835,
+      "potentialCommercialFloorAreaSquareFeet": 16439,
+      "potentialFloorAreaSquareFeet": 16632.4,
+      "potentialResidentialFloorAreaSquareFeet": 16632.4,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 18,
+      "regionId": "BX1102",
+      "residentialFar": 3.44,
+      "sourceRowIds": [
+        "pluto:2042190042"
+      ],
+      "zoningDistricts": [
+        "C4-4"
+      ]
+    },
+    {
+      "address": "1551 BASSETT AVENUE",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 3.4,
+      "availableFar": 3.44,
+      "availableResidentialFar": 3.44,
+      "bbl": "2042190045",
+      "boroughId": "bronx",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 3.4,
+      "coordinates": [
+        -73.8415593,
+        40.8540758
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:2042190045",
+      "landUseCode": "10",
+      "lotAreaSquareFeet": 4850,
+      "potentialCommercialFloorAreaSquareFeet": 16490,
+      "potentialFloorAreaSquareFeet": 16684,
+      "potentialResidentialFloorAreaSquareFeet": 16684,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 18,
+      "regionId": "BX1102",
+      "residentialFar": 3.44,
+      "sourceRowIds": [
+        "pluto:2042190045"
+      ],
+      "zoningDistricts": [
+        "C4-4"
+      ]
+    },
+    {
+      "address": "1547 BASSETT AVENUE",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 3.07,
+      "availableFar": 3.11,
+      "availableResidentialFar": 3.11,
+      "bbl": "2042190047",
+      "boroughId": "bronx",
+      "builtAreaSquareFeet": 1596,
+      "builtFar": 0.33,
+      "commercialFar": 3.4,
+      "coordinates": [
+        -73.841726,
+        40.8539004
+      ],
+      "existingResidentialUnits": 2,
+      "existingTotalUnits": 2,
+      "id": "capacity:2042190047",
+      "landUseCode": "1",
+      "lotAreaSquareFeet": 4837,
+      "potentialCommercialFloorAreaSquareFeet": 14849.59,
+      "potentialFloorAreaSquareFeet": 15043.07,
+      "potentialResidentialFloorAreaSquareFeet": 15043.07,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 16,
+      "regionId": "BX1102",
+      "residentialFar": 3.44,
+      "sourceRowIds": [
+        "pluto:2042190047"
+      ],
+      "zoningDistricts": [
+        "C4-4"
+      ]
+    },
+    {
+      "address": "1527 BASSETT AVENUE",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 3.4,
+      "availableFar": 3.44,
+      "availableResidentialFar": 3.44,
+      "bbl": "2042190055",
+      "boroughId": "bronx",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 3.4,
+      "coordinates": [
+        -73.8420596,
+        40.8534891
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:2042190055",
+      "landUseCode": "10",
+      "lotAreaSquareFeet": 4884,
+      "potentialCommercialFloorAreaSquareFeet": 16605.6,
+      "potentialFloorAreaSquareFeet": 16800.96,
+      "potentialResidentialFloorAreaSquareFeet": 16800.96,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 18,
+      "regionId": "BX1102",
+      "residentialFar": 3.44,
+      "sourceRowIds": [
+        "pluto:2042190055"
+      ],
+      "zoningDistricts": [
+        "C4-4"
+      ]
+    },
+    {
+      "address": "BASSETT AVENUE",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 3.4,
+      "availableFar": 3.44,
+      "availableResidentialFar": 3.44,
+      "bbl": "2042260290",
+      "boroughId": "bronx",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 3.4,
+      "coordinates": [
+        -73.841532,
+        40.8533923
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:2042260290",
+      "landUseCode": "10",
+      "lotAreaSquareFeet": 24107,
+      "potentialCommercialFloorAreaSquareFeet": 81963.8,
+      "potentialFloorAreaSquareFeet": 82928.08,
+      "potentialResidentialFloorAreaSquareFeet": 82928.08,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 92,
+      "regionId": "BX1102",
+      "residentialFar": 3.44,
+      "sourceRowIds": [
+        "pluto:2042260290"
+      ],
+      "zoningDistricts": [
+        "C4-4"
+      ]
+    },
+    {
+      "address": "1790 EASTCHESTER ROAD",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 2.59,
+      "availableFar": 2.63,
+      "availableResidentialFar": 2.63,
+      "bbl": "2042260401",
+      "boroughId": "bronx",
+      "builtAreaSquareFeet": 4682,
+      "builtFar": 0.81,
+      "commercialFar": 3.4,
+      "coordinates": [
+        -73.8446693,
+        40.8489255
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:2042260401",
+      "landUseCode": "6",
+      "lotAreaSquareFeet": 5750,
+      "potentialCommercialFloorAreaSquareFeet": 14892.5,
+      "potentialFloorAreaSquareFeet": 15122.5,
+      "potentialResidentialFloorAreaSquareFeet": 15122.5,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 16,
+      "regionId": "BX1102",
+      "residentialFar": 3.44,
+      "sourceRowIds": [
+        "pluto:2042260401"
+      ],
+      "zoningDistricts": [
+        "C4-4"
+      ]
+    },
+    {
+      "address": "1812 EASTCHESTER ROAD",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 2.62,
+      "availableFar": 2.66,
+      "availableResidentialFar": 2.66,
+      "bbl": "2042260405",
+      "boroughId": "bronx",
+      "builtAreaSquareFeet": 3016,
+      "builtFar": 0.78,
+      "commercialFar": 3.4,
+      "coordinates": [
+        -73.844716,
+        40.8490326
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:2042260405",
+      "landUseCode": "7",
+      "lotAreaSquareFeet": 3883,
+      "potentialCommercialFloorAreaSquareFeet": 10173.46,
+      "potentialFloorAreaSquareFeet": 10328.78,
+      "potentialResidentialFloorAreaSquareFeet": 10328.78,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 11,
+      "regionId": "BX1102",
+      "residentialFar": 3.44,
+      "sourceRowIds": [
+        "pluto:2042260405"
+      ],
+      "zoningDistricts": [
+        "C4-4"
+      ]
+    },
+    {
+      "address": "1816 EASTCHESTER ROAD",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 2.71,
+      "availableFar": 2.75,
+      "availableResidentialFar": 2.75,
+      "bbl": "2042260408",
+      "boroughId": "bronx",
+      "builtAreaSquareFeet": 4425,
+      "builtFar": 0.69,
+      "commercialFar": 3.4,
+      "coordinates": [
+        -73.8446614,
+        40.8491972
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:2042260408",
+      "landUseCode": "7",
+      "lotAreaSquareFeet": 6368,
+      "potentialCommercialFloorAreaSquareFeet": 17257.28,
+      "potentialFloorAreaSquareFeet": 17512,
+      "potentialResidentialFloorAreaSquareFeet": 17512,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 19,
+      "regionId": "BX1102",
+      "residentialFar": 3.44,
+      "sourceRowIds": [
+        "pluto:2042260408"
+      ],
+      "zoningDistricts": [
+        "C4-4"
+      ]
+    },
+    {
+      "address": "1820 EASTCHESTER ROAD",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 3.17,
+      "availableFar": 3.21,
+      "availableResidentialFar": 3.21,
+      "bbl": "2042260409",
+      "boroughId": "bronx",
+      "builtAreaSquareFeet": 3897,
+      "builtFar": 0.23,
+      "commercialFar": 3.4,
+      "coordinates": [
+        -73.8445415,
+        40.849455
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:2042260409",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 16793,
+      "potentialCommercialFloorAreaSquareFeet": 53233.81,
+      "potentialFloorAreaSquareFeet": 53905.53,
+      "potentialResidentialFloorAreaSquareFeet": 53905.53,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 59,
+      "regionId": "BX1102",
+      "residentialFar": 3.44,
+      "sourceRowIds": [
+        "pluto:2042260409"
+      ],
+      "zoningDistricts": [
+        "C4-4"
+      ]
+    },
+    {
+      "address": "1826 EASTCHESTER ROAD",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 2.63,
+      "availableFar": 2.67,
+      "availableResidentialFar": 2.67,
+      "bbl": "2042260418",
+      "boroughId": "bronx",
+      "builtAreaSquareFeet": 12737,
+      "builtFar": 0.77,
+      "commercialFar": 3.4,
+      "coordinates": [
+        -73.8444216,
+        40.8497403
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:2042260418",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 16491,
+      "potentialCommercialFloorAreaSquareFeet": 43371.33,
+      "potentialFloorAreaSquareFeet": 44030.97,
+      "potentialResidentialFloorAreaSquareFeet": 44030.97,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 48,
+      "regionId": "BX1102",
+      "residentialFar": 3.44,
+      "sourceRowIds": [
+        "pluto:2042260418"
+      ],
+      "zoningDistricts": [
+        "C4-4"
+      ]
+    },
+    {
+      "address": "1842 EASTCHESTER ROAD",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 3.26,
+      "availableFar": 3.3,
+      "availableResidentialFar": 3.3,
+      "bbl": "2042260419",
+      "boroughId": "bronx",
+      "builtAreaSquareFeet": 2360,
+      "builtFar": 0.14,
+      "commercialFar": 3.4,
+      "coordinates": [
+        -73.8442222,
+        40.8499788
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:2042260419",
+      "landUseCode": "10",
+      "lotAreaSquareFeet": 16525,
+      "potentialCommercialFloorAreaSquareFeet": 53871.5,
+      "potentialFloorAreaSquareFeet": 54532.5,
+      "potentialResidentialFloorAreaSquareFeet": 54532.5,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 60,
+      "regionId": "BX1102",
+      "residentialFar": 3.44,
+      "sourceRowIds": [
+        "pluto:2042260419"
+      ],
+      "zoningDistricts": [
+        "C4-4"
+      ]
+    },
+    {
+      "address": "1848 EASTCHESTER ROAD",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 3.4,
+      "availableFar": 3.44,
+      "availableResidentialFar": 3.44,
+      "bbl": "2042260420",
+      "boroughId": "bronx",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 3.4,
+      "coordinates": [
+        -73.8445076,
+        40.8500616
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:2042260420",
+      "landUseCode": "11",
+      "lotAreaSquareFeet": 3519,
+      "potentialCommercialFloorAreaSquareFeet": 11964.6,
+      "potentialFloorAreaSquareFeet": 12105.36,
+      "potentialResidentialFloorAreaSquareFeet": 12105.36,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 13,
+      "regionId": "BX1102",
+      "residentialFar": 3.44,
+      "sourceRowIds": [
+        "pluto:2042260420"
+      ],
+      "zoningDistricts": [
+        "C4-4"
+      ]
+    },
+    {
+      "address": "1850 EASTCHESTER ROAD",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 3.4,
+      "availableFar": 3.44,
+      "availableResidentialFar": 3.44,
+      "bbl": "2042260422",
+      "boroughId": "bronx",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 3.4,
+      "coordinates": [
+        -73.844453,
+        40.8501932
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:2042260422",
+      "landUseCode": "11",
+      "lotAreaSquareFeet": 4156,
+      "potentialCommercialFloorAreaSquareFeet": 14130.4,
+      "potentialFloorAreaSquareFeet": 14296.64,
+      "potentialResidentialFloorAreaSquareFeet": 14296.64,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 15,
+      "regionId": "BX1102",
+      "residentialFar": 3.44,
+      "sourceRowIds": [
+        "pluto:2042260422"
+      ],
+      "zoningDistricts": [
+        "C4-4"
+      ]
+    }
+  ],
+  "claimBoundary": "This NTA shard preserves every joined row retained from the governed source snapshot. The source snapshot itself samples large DOB jobs, constructed footprints, and PLUTO capacity candidates and is not a complete property history or feasibility inventory.",
+  "contentVersion": "2026-07-27",
+  "coverage": {
+    "capacityCandidates": 40,
+    "compilerRegionCap": null,
+    "developmentForecastSupportedBySector": {
+      "all": false,
+      "tax-class-1": true,
+      "tax-class-2": true,
+      "tax-class-4": true
+    },
+    "developmentSeriesRows": 21,
+    "historicalSites": 8,
+    "priceForecastSupportedBySector": {
+      "all": true,
+      "tax-class-1": true,
+      "tax-class-2": true,
+      "tax-class-4": true
+    },
+    "saleRows": 30,
+    "saleYearsBySector": {
+      "tax-class-1": [
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "tax-class-2": [
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "tax-class-4": [
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024,
+        2025
+      ]
+    },
+    "sectorCandidateCounts": {
+      "all": 0,
+      "tax-class-1": 40,
+      "tax-class-2": 40,
+      "tax-class-4": 24
+    },
+    "sourceSampled": true
+  },
+  "developmentSeries": [
+    {
+      "filingCount": 10,
+      "id": "development:BX1102:2000",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "BX1102",
+      "sourceNtaNames": [
+        "Morris Park"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2000
+    },
+    {
+      "filingCount": 9,
+      "id": "development:BX1102:2001",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "BX1102",
+      "sourceNtaNames": [
+        "Morris Park"
+      ],
+      "withdrawnFilingCount": 1,
+      "year": 2001
+    },
+    {
+      "filingCount": 7,
+      "id": "development:BX1102:2002",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "BX1102",
+      "sourceNtaNames": [
+        "Morris Park"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2002
+    },
+    {
+      "filingCount": 2,
+      "id": "development:BX1102:2003",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "BX1102",
+      "sourceNtaNames": [
+        "Morris Park"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2003
+    },
+    {
+      "filingCount": 11,
+      "id": "development:BX1102:2004",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "BX1102",
+      "sourceNtaNames": [
+        "Morris Park"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2004
+    },
+    {
+      "filingCount": 35,
+      "id": "development:BX1102:2005",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "BX1102",
+      "sourceNtaNames": [
+        "Morris Park"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2005
+    },
+    {
+      "filingCount": 19,
+      "id": "development:BX1102:2006",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "BX1102",
+      "sourceNtaNames": [
+        "Morris Park"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2006
+    },
+    {
+      "filingCount": 14,
+      "id": "development:BX1102:2007",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "BX1102",
+      "sourceNtaNames": [
+        "Morris Park"
+      ],
+      "withdrawnFilingCount": 1,
+      "year": 2007
+    },
+    {
+      "filingCount": 10,
+      "id": "development:BX1102:2008",
+      "proposedZoningSquareFeet": 20549,
+      "regionId": "BX1102",
+      "sourceNtaNames": [
+        "Morris Park"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2008
+    },
+    {
+      "filingCount": 5,
+      "id": "development:BX1102:2009",
+      "proposedZoningSquareFeet": 16543,
+      "regionId": "BX1102",
+      "sourceNtaNames": [
+        "Morris Park"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2009
+    },
+    {
+      "filingCount": 1,
+      "id": "development:BX1102:2010",
+      "proposedZoningSquareFeet": 3200,
+      "regionId": "BX1102",
+      "sourceNtaNames": [
+        "Morris Park"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2010
+    },
+    {
+      "filingCount": 4,
+      "id": "development:BX1102:2011",
+      "proposedZoningSquareFeet": 13640,
+      "regionId": "BX1102",
+      "sourceNtaNames": [
+        "Morris Park"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2011
+    },
+    {
+      "filingCount": 5,
+      "id": "development:BX1102:2013",
+      "proposedZoningSquareFeet": 31529,
+      "regionId": "BX1102",
+      "sourceNtaNames": [
+        "Morris Park"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2013
+    },
+    {
+      "filingCount": 10,
+      "id": "development:BX1102:2014",
+      "proposedZoningSquareFeet": 101687,
+      "regionId": "BX1102",
+      "sourceNtaNames": [
+        "Morris Park"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2014
+    },
+    {
+      "filingCount": 4,
+      "id": "development:BX1102:2015",
+      "proposedZoningSquareFeet": 3723,
+      "regionId": "BX1102",
+      "sourceNtaNames": [
+        "Morris Park"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2015
+    },
+    {
+      "filingCount": 6,
+      "id": "development:BX1102:2016",
+      "proposedZoningSquareFeet": 15932,
+      "regionId": "BX1102",
+      "sourceNtaNames": [
+        "Morris Park"
+      ],
+      "withdrawnFilingCount": 2,
+      "year": 2016
+    },
+    {
+      "filingCount": 5,
+      "id": "development:BX1102:2017",
+      "proposedZoningSquareFeet": 26825,
+      "regionId": "BX1102",
+      "sourceNtaNames": [
+        "Morris Park"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2017
+    },
+    {
+      "filingCount": 23,
+      "id": "development:BX1102:2018",
+      "proposedZoningSquareFeet": 50827,
+      "regionId": "BX1102",
+      "sourceNtaNames": [
+        "Morris Park"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2018
+    },
+    {
+      "filingCount": 3,
+      "id": "development:BX1102:2019",
+      "proposedZoningSquareFeet": 4875,
+      "regionId": "BX1102",
+      "sourceNtaNames": [
+        "Morris Park"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2019
+    },
+    {
+      "filingCount": 2,
+      "id": "development:BX1102:2020",
+      "proposedZoningSquareFeet": 92019,
+      "regionId": "BX1102",
+      "sourceNtaNames": [
+        "Morris Park"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2020
+    },
+    {
+      "filingCount": 9,
+      "id": "development:BX1102:2021",
+      "proposedZoningSquareFeet": 5955,
+      "regionId": "BX1102",
+      "sourceNtaNames": [
+        "Morris Park"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2021
+    }
+  ],
+  "developmentSites": [
+    {
+      "address": null,
+      "bbl": "2041110043",
+      "bin": "2117698",
+      "constructionYear": 2021,
+      "coordinates": [
+        -73.8489356,
+        40.8473299
+      ],
+      "footprint": [
+        [
+          -73.8488175,
+          40.8472809
+        ],
+        [
+          -73.8489792,
+          40.8472093
+        ],
+        [
+          -73.8491007,
+          40.847409
+        ],
+        [
+          -73.8489633,
+          40.8474697
+        ],
+        [
+          -73.8488175,
+          40.8472809
+        ]
+      ],
+      "footprintAreaM2": 620.58,
+      "footprintOrigin": "observed",
+      "heightM": 3.96,
+      "id": "footprint:1033267",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2021-07-01",
+          "id": "footprint:1033267:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BX1102",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1033267"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "2043280019",
+      "bin": "2129396",
+      "constructionYear": 2017,
+      "coordinates": [
+        -73.8598727,
+        40.8557947
+      ],
+      "footprint": [
+        [
+          -73.8597761,
+          40.8557792
+        ],
+        [
+          -73.859972,
+          40.8557233
+        ],
+        [
+          -73.8600189,
+          40.8558184
+        ],
+        [
+          -73.8598206,
+          40.8558736
+        ],
+        [
+          -73.8597761,
+          40.8557792
+        ]
+      ],
+      "footprintAreaM2": 347.57,
+      "footprintOrigin": "observed",
+      "heightM": 11.28,
+      "id": "footprint:110859",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2017-07-01",
+          "id": "footprint:110859:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BX1102",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:110859"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "2043140037",
+      "bin": "2128363",
+      "constructionYear": 2018,
+      "coordinates": [
+        -73.8517845,
+        40.8565226
+      ],
+      "footprint": [
+        [
+          -73.851727,
+          40.8565594
+        ],
+        [
+          -73.8517221,
+          40.856518
+        ],
+        [
+          -73.8517117,
+          40.8565187
+        ],
+        [
+          -73.8517082,
+          40.8564901
+        ],
+        [
+          -73.8519433,
+          40.8564712
+        ],
+        [
+          -73.8519523,
+          40.8565418
+        ],
+        [
+          -73.851727,
+          40.8565594
+        ]
+      ],
+      "footprintAreaM2": 266.76,
+      "footprintOrigin": "observed",
+      "heightM": 10.36,
+      "id": "footprint:275803",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2018-07-01",
+          "id": "footprint:275803:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BX1102",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:275803"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "2043140036",
+      "bin": "2128364",
+      "constructionYear": 2018,
+      "coordinates": [
+        -73.8518352,
+        40.856623
+      ],
+      "footprint": [
+        [
+          -73.8519697,
+          40.8565833
+        ],
+        [
+          -73.8519769,
+          40.8566517
+        ],
+        [
+          -73.8517433,
+          40.8566714
+        ],
+        [
+          -73.851739,
+          40.8566344
+        ],
+        [
+          -73.8517258,
+          40.8566351
+        ],
+        [
+          -73.8517221,
+          40.8566015
+        ],
+        [
+          -73.8519697,
+          40.8565833
+        ]
+      ],
+      "footprintAreaM2": 276.71,
+      "footprintOrigin": "observed",
+      "heightM": 10.67,
+      "id": "footprint:275804",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2018-07-01",
+          "id": "footprint:275804:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BX1102",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:275804"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "2043300133",
+      "bin": "2120405",
+      "constructionYear": 2010,
+      "coordinates": [
+        -73.8574335,
+        40.8548651
+      ],
+      "footprint": [
+        [
+          -73.857334,
+          40.8548646
+        ],
+        [
+          -73.8575407,
+          40.8548055
+        ],
+        [
+          -73.8575713,
+          40.8548671
+        ],
+        [
+          -73.8573588,
+          40.8549278
+        ],
+        [
+          -73.8573283,
+          40.8548663
+        ],
+        [
+          -73.857334,
+          40.8548646
+        ]
+      ],
+      "footprintAreaM2": 244.69,
+      "footprintOrigin": "observed",
+      "heightM": 7.32,
+      "id": "footprint:44318",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2010-07-01",
+          "id": "footprint:44318:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "BX1102",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:44318"
+      ]
+    },
+    {
+      "address": "1964 YATES AVENUE",
+      "bbl": "2000000",
+      "bin": "2130474",
+      "constructionYear": null,
+      "coordinates": [
+        -73.852936,
+        40.853833
+      ],
+      "footprint": [
+        [
+          -73.85348,
+          40.8534215
+        ],
+        [
+          -73.852392,
+          40.8534215
+        ],
+        [
+          -73.852392,
+          40.8542445
+        ],
+        [
+          -73.85348,
+          40.8542445
+        ],
+        [
+          -73.85348,
+          40.8534215
+        ]
+      ],
+      "footprintAreaM2": 2098.03,
+      "footprintOrigin": "modeled",
+      "heightM": 22.86,
+      "id": "job:201204393:01",
+      "jobId": "201204393",
+      "milestones": [
+        {
+          "date": "2020-05-06",
+          "id": "job:201204393:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2021-08-16",
+          "id": "job:201204393:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 4,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": 90332,
+      "regionId": "BX1102",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:3217597"
+      ],
+      "status": "PERMIT ISSUED - PARTIAL JOB",
+      "withdrawn": false
+    },
+    {
+      "address": "1538 STILLWELL AVENUE",
+      "bbl": "2047017",
+      "bin": "2047017",
+      "constructionYear": null,
+      "coordinates": [
+        -73.842532,
+        40.853935
+      ],
+      "footprint": [
+        [
+          -73.8428438,
+          40.8536992
+        ],
+        [
+          -73.8422202,
+          40.8536992
+        ],
+        [
+          -73.8422202,
+          40.8541708
+        ],
+        [
+          -73.8428438,
+          40.8541708
+        ],
+        [
+          -73.8428438,
+          40.8536992
+        ]
+      ],
+      "footprintAreaM2": 689.28,
+      "footprintOrigin": "modeled",
+      "heightM": 12.5,
+      "id": "job:220329044:01",
+      "jobId": "220329044",
+      "milestones": [
+        {
+          "date": "2013-08-06",
+          "id": "job:220329044:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2015-07-13",
+          "id": "job:220329044:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 3,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": 22258,
+      "regionId": "BX1102",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:2187920"
+      ],
+      "status": "PLAN EXAM - APPROVED",
+      "withdrawn": false
+    },
+    {
+      "address": "1680 PELHAM PARKWAY",
+      "bbl": "2042230039",
+      "bin": "2128212",
+      "constructionYear": 2017,
+      "coordinates": [
+        -73.83816,
+        40.856259
+      ],
+      "footprint": [
+        [
+          -73.8385823,
+          40.8562308
+        ],
+        [
+          -73.8384327,
+          40.8562084
+        ],
+        [
+          -73.8384303,
+          40.856217
+        ],
+        [
+          -73.8383254,
+          40.8562011
+        ],
+        [
+          -73.838323,
+          40.8562082
+        ],
+        [
+          -73.8380897,
+          40.8561725
+        ],
+        [
+          -73.8380923,
+          40.8561636
+        ],
+        [
+          -73.8379878,
+          40.856147
+        ],
+        [
+          -73.8379897,
+          40.8561367
+        ],
+        [
+          -73.8378406,
+          40.8561132
+        ],
+        [
+          -73.8378703,
+          40.8559986
+        ],
+        [
+          -73.8379504,
+          40.8559698
+        ],
+        [
+          -73.8381402,
+          40.8560019
+        ],
+        [
+          -73.8381508,
+          40.8559602
+        ],
+        [
+          -73.8383776,
+          40.8559984
+        ],
+        [
+          -73.8383685,
+          40.856036
+        ],
+        [
+          -73.8386253,
+          40.8560749
+        ],
+        [
+          -73.8385823,
+          40.8562308
+        ]
+      ],
+      "footprintAreaM2": 2195.87,
+      "footprintOrigin": "observed",
+      "heightM": 19.81,
+      "id": "job:220383467:01",
+      "jobId": "220383467",
+      "milestones": [
+        {
+          "date": "2014-10-06",
+          "id": "job:220383467:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2015-06-15",
+          "id": "job:220383467:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2016-02-05",
+          "id": "job:220383467:01:fully-permitted:3",
+          "kind": "fully-permitted",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2017-10-10",
+          "id": "job:220383467:01:final-certificate-of-occupancy:4",
+          "kind": "final-certificate-of-occupancy",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2017-10-10",
+          "id": "job:220383467:01:signed-off:5",
+          "kind": "signed-off",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 7,
+      "proposedUnits": 129,
+      "proposedZoningSquareFeet": 87662,
+      "regionId": "BX1102",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:2519299",
+        "certificate-of-occupancy:220383467:003",
+        "building-footprint:66693"
+      ],
+      "status": "SIGNED OFF",
+      "withdrawn": false
+    }
+  ],
+  "id": "nyc-real-estate-region-bx1102-v1",
+  "region": {
+    "abbreviation": "MrrsPk",
+    "areaM2": 27833108.6261,
+    "boroughId": "bronx",
+    "boroughLabel": "Bronx",
+    "bounds": {
+      "east": -73.8352396,
+      "north": 40.8587175,
+      "south": 40.8424702,
+      "west": -73.8630394
+    },
+    "centroid": [
+      -73.8480883,
+      40.8516801
+    ],
+    "communityDistrictTabulationAreaId": "BX11",
+    "communityDistrictTabulationAreaLabel": "BX11 Pelham Parkway-Morris Park (CD 11 Approximation)",
+    "id": "BX1102",
+    "label": "Morris Park",
+    "polygon": [
+      [
+        -73.8368192,
+        40.8572768
+      ],
+      [
+        -73.8369121,
+        40.8570081
+      ],
+      [
+        -73.8366756,
+        40.8566527
+      ],
+      [
+        -73.8352396,
+        40.8564932
+      ],
+      [
+        -73.8384321,
+        40.8554689
+      ],
+      [
+        -73.8405019,
+        40.854187
+      ],
+      [
+        -73.8414916,
+        40.8531943
+      ],
+      [
+        -73.8449405,
+        40.8482182
+      ],
+      [
+        -73.8450499,
+        40.8491916
+      ],
+      [
+        -73.8448858,
+        40.8502027
+      ],
+      [
+        -73.8453466,
+        40.8494495
+      ],
+      [
+        -73.8453703,
+        40.8487126
+      ],
+      [
+        -73.8457835,
+        40.8479664
+      ],
+      [
+        -73.8478849,
+        40.845989
+      ],
+      [
+        -73.8462348,
+        40.8444902
+      ],
+      [
+        -73.8480635,
+        40.843068
+      ],
+      [
+        -73.8533352,
+        40.8424702
+      ],
+      [
+        -73.8573811,
+        40.8437163
+      ],
+      [
+        -73.8586537,
+        40.8452864
+      ],
+      [
+        -73.8603866,
+        40.8482356
+      ],
+      [
+        -73.8611924,
+        40.8486035
+      ],
+      [
+        -73.8625092,
+        40.8483623
+      ],
+      [
+        -73.8630394,
+        40.8506113
+      ],
+      [
+        -73.8621195,
+        40.8508062
+      ],
+      [
+        -73.8617907,
+        40.8579829
+      ],
+      [
+        -73.8566366,
+        40.8581153
+      ],
+      [
+        -73.8493089,
+        40.8587175
+      ],
+      [
+        -73.8473975,
+        40.8586825
+      ],
+      [
+        -73.8432955,
+        40.8582904
+      ],
+      [
+        -73.8372409,
+        40.8573573
+      ],
+      [
+        -73.8368192,
+        40.8572768
+      ]
+    ],
+    "spatialPolygons": [
+      {
+        "holes": [],
+        "outer": [
+          [
+            -73.8368192,
+            40.8572768
+          ],
+          [
+            -73.8369121,
+            40.8570081
+          ],
+          [
+            -73.8366756,
+            40.8566527
+          ],
+          [
+            -73.8352396,
+            40.8564932
+          ],
+          [
+            -73.8384321,
+            40.8554689
+          ],
+          [
+            -73.8405019,
+            40.854187
+          ],
+          [
+            -73.8414916,
+            40.8531943
+          ],
+          [
+            -73.8449405,
+            40.8482182
+          ],
+          [
+            -73.8450499,
+            40.8491916
+          ],
+          [
+            -73.8448858,
+            40.8502027
+          ],
+          [
+            -73.8453466,
+            40.8494495
+          ],
+          [
+            -73.8453703,
+            40.8487126
+          ],
+          [
+            -73.8457835,
+            40.8479664
+          ],
+          [
+            -73.8478849,
+            40.845989
+          ],
+          [
+            -73.8462348,
+            40.8444902
+          ],
+          [
+            -73.8480635,
+            40.843068
+          ],
+          [
+            -73.8533352,
+            40.8424702
+          ],
+          [
+            -73.8573811,
+            40.8437163
+          ],
+          [
+            -73.8586537,
+            40.8452864
+          ],
+          [
+            -73.8603866,
+            40.8482356
+          ],
+          [
+            -73.8611924,
+            40.8486035
+          ],
+          [
+            -73.8625092,
+            40.8483623
+          ],
+          [
+            -73.8630394,
+            40.8506113
+          ],
+          [
+            -73.8621195,
+            40.8508062
+          ],
+          [
+            -73.8617907,
+            40.8579829
+          ],
+          [
+            -73.8566366,
+            40.8581153
+          ],
+          [
+            -73.8493089,
+            40.8587175
+          ],
+          [
+            -73.8473975,
+            40.8586825
+          ],
+          [
+            -73.8432955,
+            40.8582904
+          ],
+          [
+            -73.8372409,
+            40.8573573
+          ],
+          [
+            -73.8368192,
+            40.8572768
+          ]
+        ]
+      }
+    ]
+  },
+  "saleSeries": [
+    {
+      "id": "sale:BX1102:2016:tax-1",
+      "meanPriceUsd": 498762.83,
+      "medianPriceUsd": 505000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BX1102",
+      "saleCount": 129,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 223,
+      "year": 2016
+    },
+    {
+      "id": "sale:BX1102:2016:tax-2",
+      "meanPriceUsd": 820125,
+      "medianPriceUsd": 679500,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BX1102",
+      "saleCount": 8,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 49,
+      "year": 2016
+    },
+    {
+      "id": "sale:BX1102:2016:tax-4",
+      "meanPriceUsd": 525821,
+      "medianPriceUsd": 412500,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BX1102",
+      "saleCount": 6,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 12,
+      "year": 2016
+    },
+    {
+      "id": "sale:BX1102:2017:tax-1",
+      "meanPriceUsd": 536834.98,
+      "medianPriceUsd": 518000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BX1102",
+      "saleCount": 143,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 257,
+      "year": 2017
+    },
+    {
+      "id": "sale:BX1102:2017:tax-2",
+      "meanPriceUsd": 563640,
+      "medianPriceUsd": 542500,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BX1102",
+      "saleCount": 10,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 37,
+      "year": 2017
+    },
+    {
+      "id": "sale:BX1102:2017:tax-4",
+      "meanPriceUsd": 963000,
+      "medianPriceUsd": 963000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BX1102",
+      "saleCount": 2,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 5,
+      "year": 2017
+    },
+    {
+      "id": "sale:BX1102:2018:tax-1",
+      "meanPriceUsd": 582240.02,
+      "medianPriceUsd": 572500,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BX1102",
+      "saleCount": 124,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 227,
+      "year": 2018
+    },
+    {
+      "id": "sale:BX1102:2018:tax-2",
+      "meanPriceUsd": 621333.33,
+      "medianPriceUsd": 574500,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BX1102",
+      "saleCount": 6,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 16,
+      "year": 2018
+    },
+    {
+      "id": "sale:BX1102:2018:tax-4",
+      "meanPriceUsd": 11306916.67,
+      "medianPriceUsd": 1650000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BX1102",
+      "saleCount": 12,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 26,
+      "year": 2018
+    },
+    {
+      "id": "sale:BX1102:2019:tax-1",
+      "meanPriceUsd": 624721.25,
+      "medianPriceUsd": 608750,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BX1102",
+      "saleCount": 120,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 204,
+      "year": 2019
+    },
+    {
+      "id": "sale:BX1102:2019:tax-2",
+      "meanPriceUsd": 631037,
+      "medianPriceUsd": 631037,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BX1102",
+      "saleCount": 2,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 5,
+      "year": 2019
+    },
+    {
+      "id": "sale:BX1102:2019:tax-4",
+      "meanPriceUsd": 3197187.5,
+      "medianPriceUsd": 1188750,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BX1102",
+      "saleCount": 8,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 19,
+      "year": 2019
+    },
+    {
+      "id": "sale:BX1102:2020:tax-1",
+      "meanPriceUsd": 666415.26,
+      "medianPriceUsd": 662500,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BX1102",
+      "saleCount": 112,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 207,
+      "year": 2020
+    },
+    {
+      "id": "sale:BX1102:2020:tax-2",
+      "meanPriceUsd": 1974200,
+      "medianPriceUsd": 880000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BX1102",
+      "saleCount": 10,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 93,
+      "year": 2020
+    },
+    {
+      "id": "sale:BX1102:2020:tax-4",
+      "meanPriceUsd": 2282142.86,
+      "medianPriceUsd": 2000000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BX1102",
+      "saleCount": 7,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 17,
+      "year": 2020
+    },
+    {
+      "id": "sale:BX1102:2021:tax-1",
+      "meanPriceUsd": 677672.95,
+      "medianPriceUsd": 690000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BX1102",
+      "saleCount": 193,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 317,
+      "year": 2021
+    },
+    {
+      "id": "sale:BX1102:2021:tax-2",
+      "meanPriceUsd": 880999.93,
+      "medianPriceUsd": 912500,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BX1102",
+      "saleCount": 14,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 58,
+      "year": 2021
+    },
+    {
+      "id": "sale:BX1102:2021:tax-4",
+      "meanPriceUsd": 1916250,
+      "medianPriceUsd": 2037500,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BX1102",
+      "saleCount": 4,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 10,
+      "year": 2021
+    },
+    {
+      "id": "sale:BX1102:2022:tax-1",
+      "meanPriceUsd": 758610.39,
+      "medianPriceUsd": 725000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BX1102",
+      "saleCount": 154,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 264,
+      "year": 2022
+    },
+    {
+      "id": "sale:BX1102:2022:tax-2",
+      "meanPriceUsd": 930000,
+      "medianPriceUsd": 412500,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BX1102",
+      "saleCount": 6,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 22,
+      "year": 2022
+    },
+    {
+      "id": "sale:BX1102:2022:tax-4",
+      "meanPriceUsd": 908333.33,
+      "medianPriceUsd": 750000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BX1102",
+      "saleCount": 6,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 9,
+      "year": 2022
+    },
+    {
+      "id": "sale:BX1102:2023:tax-1",
+      "meanPriceUsd": 759076.67,
+      "medianPriceUsd": 755000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BX1102",
+      "saleCount": 109,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 182,
+      "year": 2023
+    },
+    {
+      "id": "sale:BX1102:2023:tax-2",
+      "meanPriceUsd": 982500,
+      "medianPriceUsd": 1137500,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BX1102",
+      "saleCount": 4,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 18,
+      "year": 2023
+    },
+    {
+      "id": "sale:BX1102:2023:tax-4",
+      "meanPriceUsd": 2462000,
+      "medianPriceUsd": 1750000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BX1102",
+      "saleCount": 5,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 14,
+      "year": 2023
+    },
+    {
+      "id": "sale:BX1102:2024:tax-1",
+      "meanPriceUsd": 792181.72,
+      "medianPriceUsd": 750000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BX1102",
+      "saleCount": 136,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 230,
+      "year": 2024
+    },
+    {
+      "id": "sale:BX1102:2024:tax-2",
+      "meanPriceUsd": 2627762.44,
+      "medianPriceUsd": 275000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BX1102",
+      "saleCount": 9,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 140,
+      "year": 2024
+    },
+    {
+      "id": "sale:BX1102:2024:tax-4",
+      "meanPriceUsd": 2119714.29,
+      "medianPriceUsd": 1775000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BX1102",
+      "saleCount": 7,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 12,
+      "year": 2024
+    },
+    {
+      "id": "sale:BX1102:2025:tax-1",
+      "meanPriceUsd": 809423.82,
+      "medianPriceUsd": 790000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BX1102",
+      "saleCount": 103,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 175,
+      "year": 2025
+    },
+    {
+      "id": "sale:BX1102:2025:tax-2",
+      "meanPriceUsd": 1538291.67,
+      "medianPriceUsd": 1017500,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BX1102",
+      "saleCount": 6,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 90,
+      "year": 2025
+    },
+    {
+      "id": "sale:BX1102:2025:tax-4",
+      "meanPriceUsd": 6430769.23,
+      "medianPriceUsd": 2200000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BX1102",
+      "saleCount": 13,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 20,
+      "year": 2025
+    }
+  ],
+  "schema": "simulatte.nycRealEstateRegionShard.v1",
+  "sourceIdentities": [
+    {
+      "byteCount": 1008463,
+      "path": "nyc-annualized-sales-by-nta.json",
+      "sha256": "14c15020381466196236073ee3753ff7a5d74a76ec6af4605e96564abd2bf99a",
+      "sourceId": "nyc-real-estate-sales-annual"
+    },
+    {
+      "byteCount": 8977616,
+      "path": "nyc-final-certificates-of-occupancy.json",
+      "sha256": "966c237824a79aff9d5137d27b498ba4f3670cc19844738c5ce17a559388030e",
+      "sourceId": "nyc-real-estate-final-occupancy"
+    },
+    {
+      "byteCount": 8802596,
+      "path": "nyc-largest-constructed-footprints-2010-2026.geojson",
+      "sha256": "15745b9c62fa539e683737f0665fe91d95231e68d8c1b598e7ed211114811eb6",
+      "sourceId": "nyc-real-estate-constructed-footprints"
+    },
+    {
+      "byteCount": 1076754,
+      "path": "nyc-largest-new-building-jobs-bronx.json",
+      "sha256": "1a44c6cbfa364639e4b75957b2fab7e3c301f95bcfcfa90c50862fef85f450c1",
+      "sourceId": "nyc-real-estate-new-building-sample-bronx"
+    },
+    {
+      "byteCount": 1085334,
+      "path": "nyc-largest-new-building-jobs-brooklyn.json",
+      "sha256": "389e1825faff440d6fad5a12ed470f84e90859fd732262346a3414c5503693fd",
+      "sourceId": "nyc-real-estate-new-building-sample-brooklyn"
+    },
+    {
+      "byteCount": 1097625,
+      "path": "nyc-largest-new-building-jobs-manhattan.json",
+      "sha256": "6346678de380d58e325db14fc2e0611d993743be29898360e08f092eaa1f88e5",
+      "sourceId": "nyc-real-estate-new-building-sample-manhattan"
+    },
+    {
+      "byteCount": 1091065,
+      "path": "nyc-largest-new-building-jobs-queens.json",
+      "sha256": "79eb6f028b2135214d47a793101f72de695efcb02e4c2802cc10cd062c760a22",
+      "sourceId": "nyc-real-estate-new-building-sample-queens"
+    },
+    {
+      "byteCount": 1120592,
+      "path": "nyc-largest-new-building-jobs-staten-island.json",
+      "sha256": "e0870a431a75bdd235fc09b0ecd7503c45384f5e8b66beba545447c7bb3d960a",
+      "sourceId": "nyc-real-estate-new-building-sample-staten-island"
+    },
+    {
+      "byteCount": 1250280,
+      "path": "nyc-new-building-filings-by-nta-year.json",
+      "sha256": "4b75b0ad54a1ce5241b9c2e303be2cc24781e55a65fbf27be10d00a80bfeadea",
+      "sourceId": "nyc-real-estate-new-building-annual"
+    },
+    {
+      "byteCount": 4576764,
+      "path": "nyc-nta-2020.geojson",
+      "sha256": "c3dd069e094e2d2f647c1c102cd7e0570d033dd6131446bd1943a73210d09c56",
+      "sourceId": "nyc-real-estate-nta-boundaries"
+    },
+    {
+      "byteCount": 2402191,
+      "path": "nyc-pluto-capacity-bronx.json",
+      "sha256": "b45168721525e18a29aafcce335212632607021240869b738cbb96fbe2441389",
+      "sourceId": "nyc-real-estate-pluto-capacity-bronx"
+    },
+    {
+      "byteCount": 2403266,
+      "path": "nyc-pluto-capacity-brooklyn.json",
+      "sha256": "63b33a507c0bc26f7b71669cf032baa4950af2db77ce8712b876ca6f4c9f771b",
+      "sourceId": "nyc-real-estate-pluto-capacity-brooklyn"
+    },
+    {
+      "byteCount": 2464264,
+      "path": "nyc-pluto-capacity-manhattan.json",
+      "sha256": "91e3e1f5dce97a340475b51577458c8e48183f1138c334fbcce27d68001e9d25",
+      "sourceId": "nyc-real-estate-pluto-capacity-manhattan"
+    },
+    {
+      "byteCount": 2418903,
+      "path": "nyc-pluto-capacity-queens.json",
+      "sha256": "02a12d81466e89e05b9be9273198c5f857e86db5d2c95cfb717160ce4ccf99c1",
+      "sourceId": "nyc-real-estate-pluto-capacity-queens"
+    },
+    {
+      "byteCount": 1168016,
+      "path": "nyc-pluto-capacity-staten-island.json",
+      "sha256": "6d488f6ce46fa09930b669429275014a8ecedae6c85041fb465a15633c6a38b0",
+      "sourceId": "nyc-real-estate-pluto-capacity-staten-island"
+    }
+  ],
+  "truth": {
+    "origin": "observed",
+    "temporalStatus": "historical",
+    "uncertainty": {
+      "kind": "missing",
+      "value": {
+        "reason": "Administrative records have missing, revised, duplicated, and source-sampled fields without a shared statistical uncertainty model."
+      }
+    }
+  }
+}

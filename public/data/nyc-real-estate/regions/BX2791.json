@@ -1,0 +1,767 @@
+{
+  "capacitySites": [
+    {
+      "address": "BRONX BOULEVARD",
+      "affordableResidentialFar": 5.6,
+      "availableCommercialFar": 0,
+      "availableFar": 4.66,
+      "availableResidentialFar": 4.66,
+      "bbl": "2033300080",
+      "boroughId": "bronx",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.8777153,
+        40.8694929
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:2033300080",
+      "landUseCode": "7",
+      "lotAreaSquareFeet": 87047,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 405639.02,
+      "potentialResidentialFloorAreaSquareFeet": 405639.02,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 450,
+      "regionId": "BX2791",
+      "residentialFar": 4.66,
+      "sourceRowIds": [
+        "pluto:2033300080"
+      ],
+      "zoningDistricts": [
+        "R7D",
+        "PARK"
+      ]
+    }
+  ],
+  "claimBoundary": "This NTA shard preserves every joined row retained from the governed source snapshot. The source snapshot itself samples large DOB jobs, constructed footprints, and PLUTO capacity candidates and is not a complete property history or feasibility inventory.",
+  "contentVersion": "2026-07-27",
+  "coverage": {
+    "capacityCandidates": 1,
+    "compilerRegionCap": null,
+    "developmentForecastSupportedBySector": {
+      "all": false,
+      "tax-class-1": true,
+      "tax-class-2": true,
+      "tax-class-4": false
+    },
+    "developmentSeriesRows": 17,
+    "historicalSites": 0,
+    "priceForecastSupportedBySector": {
+      "all": false,
+      "tax-class-1": false,
+      "tax-class-2": false,
+      "tax-class-4": false
+    },
+    "saleRows": 1,
+    "saleYearsBySector": {
+      "tax-class-1": [],
+      "tax-class-2": [],
+      "tax-class-4": [
+        2018
+      ]
+    },
+    "sectorCandidateCounts": {
+      "all": 0,
+      "tax-class-1": 1,
+      "tax-class-2": 1,
+      "tax-class-4": 0
+    },
+    "sourceSampled": true
+  },
+  "developmentSeries": [
+    {
+      "filingCount": 1,
+      "id": "development:BX2791:2000",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "BX2791",
+      "sourceNtaNames": [
+        "park-cemetery-etc-Bronx"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2000
+    },
+    {
+      "filingCount": 14,
+      "id": "development:BX2791:2001",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "BX2791",
+      "sourceNtaNames": [
+        "Bronx Park",
+        "park-cemetery-etc-Bronx"
+      ],
+      "withdrawnFilingCount": 2,
+      "year": 2001
+    },
+    {
+      "filingCount": 13,
+      "id": "development:BX2791:2002",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "BX2791",
+      "sourceNtaNames": [
+        "Bronx Park",
+        "park-cemetery-etc-Bronx"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2002
+    },
+    {
+      "filingCount": 12,
+      "id": "development:BX2791:2003",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "BX2791",
+      "sourceNtaNames": [
+        "Bronx Park",
+        "park-cemetery-etc-Bronx"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2003
+    },
+    {
+      "filingCount": 11,
+      "id": "development:BX2791:2004",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "BX2791",
+      "sourceNtaNames": [
+        "Bronx Park",
+        "park-cemetery-etc-Bronx"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2004
+    },
+    {
+      "filingCount": 10,
+      "id": "development:BX2791:2005",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "BX2791",
+      "sourceNtaNames": [
+        "Bronx Park",
+        "park-cemetery-etc-Bronx"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2005
+    },
+    {
+      "filingCount": 10,
+      "id": "development:BX2791:2006",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "BX2791",
+      "sourceNtaNames": [
+        "Bronx Park",
+        "park-cemetery-etc-Bronx"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2006
+    },
+    {
+      "filingCount": 15,
+      "id": "development:BX2791:2009",
+      "proposedZoningSquareFeet": 57024,
+      "regionId": "BX2791",
+      "sourceNtaNames": [
+        "Bronx Park",
+        "park-cemetery-etc-Bronx"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2009
+    },
+    {
+      "filingCount": 10,
+      "id": "development:BX2791:2010",
+      "proposedZoningSquareFeet": 128715,
+      "regionId": "BX2791",
+      "sourceNtaNames": [
+        "Bronx Park",
+        "park-cemetery-etc-Bronx"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2010
+    },
+    {
+      "filingCount": 2,
+      "id": "development:BX2791:2011",
+      "proposedZoningSquareFeet": 143005,
+      "regionId": "BX2791",
+      "sourceNtaNames": [
+        "park-cemetery-etc-Bronx"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2011
+    },
+    {
+      "filingCount": 5,
+      "id": "development:BX2791:2012",
+      "proposedZoningSquareFeet": 125942,
+      "regionId": "BX2791",
+      "sourceNtaNames": [
+        "park-cemetery-etc-Bronx"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2012
+    },
+    {
+      "filingCount": 5,
+      "id": "development:BX2791:2013",
+      "proposedZoningSquareFeet": 102996,
+      "regionId": "BX2791",
+      "sourceNtaNames": [
+        "Bronx Park",
+        "park-cemetery-etc-Bronx"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2013
+    },
+    {
+      "filingCount": 6,
+      "id": "development:BX2791:2014",
+      "proposedZoningSquareFeet": 1932,
+      "regionId": "BX2791",
+      "sourceNtaNames": [
+        "Bronx Park",
+        "park-cemetery-etc-Bronx"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2014
+    },
+    {
+      "filingCount": 3,
+      "id": "development:BX2791:2015",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "BX2791",
+      "sourceNtaNames": [
+        "Bronx Park",
+        "park-cemetery-etc-Bronx"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2015
+    },
+    {
+      "filingCount": 1,
+      "id": "development:BX2791:2017",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "BX2791",
+      "sourceNtaNames": [
+        "park-cemetery-etc-Bronx"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2017
+    },
+    {
+      "filingCount": 7,
+      "id": "development:BX2791:2019",
+      "proposedZoningSquareFeet": 8400,
+      "regionId": "BX2791",
+      "sourceNtaNames": [
+        "Bronx Park",
+        "park-cemetery-etc-Bronx"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2019
+    },
+    {
+      "filingCount": 2,
+      "id": "development:BX2791:2020",
+      "proposedZoningSquareFeet": 15488,
+      "regionId": "BX2791",
+      "sourceNtaNames": [
+        "Bronx Park",
+        "park-cemetery-etc-Bronx"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2020
+    }
+  ],
+  "developmentSites": [],
+  "id": "nyc-real-estate-region-bx2791-v1",
+  "region": {
+    "abbreviation": "BxPk",
+    "areaM2": 33461142.8159,
+    "boroughId": "bronx",
+    "boroughLabel": "Bronx",
+    "bounds": {
+      "east": -73.8682508,
+      "north": 40.8785097,
+      "south": 40.8415206,
+      "west": -73.8839692
+    },
+    "centroid": [
+      -73.8744871,
+      40.8573474
+    ],
+    "communityDistrictTabulationAreaId": "BX27",
+    "communityDistrictTabulationAreaLabel": "BX27 Bronx Park (JIA 27 Approximation)",
+    "id": "BX2791",
+    "label": "Bronx Park",
+    "polygon": [
+      [
+        -73.8705374,
+        40.869674
+      ],
+      [
+        -73.8704053,
+        40.863967
+      ],
+      [
+        -73.8710826,
+        40.857377
+      ],
+      [
+        -73.8708898,
+        40.8572728
+      ],
+      [
+        -73.8695487,
+        40.857726
+      ],
+      [
+        -73.8684154,
+        40.8577804
+      ],
+      [
+        -73.8699042,
+        40.8557733
+      ],
+      [
+        -73.8684691,
+        40.8519707
+      ],
+      [
+        -73.8682508,
+        40.8509596
+      ],
+      [
+        -73.8695236,
+        40.848687
+      ],
+      [
+        -73.8695626,
+        40.8480187
+      ],
+      [
+        -73.8688924,
+        40.8481123
+      ],
+      [
+        -73.8698743,
+        40.8466175
+      ],
+      [
+        -73.8703554,
+        40.8466238
+      ],
+      [
+        -73.8709555,
+        40.8459762
+      ],
+      [
+        -73.8711689,
+        40.8447781
+      ],
+      [
+        -73.871853,
+        40.8445042
+      ],
+      [
+        -73.87211,
+        40.8437001
+      ],
+      [
+        -73.8731115,
+        40.8432507
+      ],
+      [
+        -73.8740147,
+        40.8425377
+      ],
+      [
+        -73.8745918,
+        40.8415206
+      ],
+      [
+        -73.8781755,
+        40.8426177
+      ],
+      [
+        -73.8773391,
+        40.8439918
+      ],
+      [
+        -73.8828445,
+        40.8478172
+      ],
+      [
+        -73.8831198,
+        40.8482211
+      ],
+      [
+        -73.8807304,
+        40.8566766
+      ],
+      [
+        -73.8810068,
+        40.858268
+      ],
+      [
+        -73.8805055,
+        40.8604776
+      ],
+      [
+        -73.880839,
+        40.8612378
+      ],
+      [
+        -73.8820079,
+        40.8620469
+      ],
+      [
+        -73.8837937,
+        40.8641716
+      ],
+      [
+        -73.8839692,
+        40.8648177
+      ],
+      [
+        -73.8836732,
+        40.8654253
+      ],
+      [
+        -73.8826762,
+        40.8660891
+      ],
+      [
+        -73.8830938,
+        40.8666022
+      ],
+      [
+        -73.8761926,
+        40.870477
+      ],
+      [
+        -73.8751885,
+        40.8715758
+      ],
+      [
+        -73.8725525,
+        40.8751752
+      ],
+      [
+        -73.8709441,
+        40.8785097
+      ],
+      [
+        -73.8693615,
+        40.8781117
+      ],
+      [
+        -73.8703151,
+        40.8756175
+      ],
+      [
+        -73.8705619,
+        40.8715108
+      ],
+      [
+        -73.8705374,
+        40.869674
+      ]
+    ],
+    "spatialPolygons": [
+      {
+        "holes": [],
+        "outer": [
+          [
+            -73.8705374,
+            40.869674
+          ],
+          [
+            -73.8704053,
+            40.863967
+          ],
+          [
+            -73.8710826,
+            40.857377
+          ],
+          [
+            -73.8708898,
+            40.8572728
+          ],
+          [
+            -73.8695487,
+            40.857726
+          ],
+          [
+            -73.8684154,
+            40.8577804
+          ],
+          [
+            -73.8699042,
+            40.8557733
+          ],
+          [
+            -73.8684691,
+            40.8519707
+          ],
+          [
+            -73.8682508,
+            40.8509596
+          ],
+          [
+            -73.8695236,
+            40.848687
+          ],
+          [
+            -73.8695626,
+            40.8480187
+          ],
+          [
+            -73.8688924,
+            40.8481123
+          ],
+          [
+            -73.8698743,
+            40.8466175
+          ],
+          [
+            -73.8703554,
+            40.8466238
+          ],
+          [
+            -73.8709555,
+            40.8459762
+          ],
+          [
+            -73.8711689,
+            40.8447781
+          ],
+          [
+            -73.871853,
+            40.8445042
+          ],
+          [
+            -73.87211,
+            40.8437001
+          ],
+          [
+            -73.8731115,
+            40.8432507
+          ],
+          [
+            -73.8740147,
+            40.8425377
+          ],
+          [
+            -73.8745918,
+            40.8415206
+          ],
+          [
+            -73.8781755,
+            40.8426177
+          ],
+          [
+            -73.8773391,
+            40.8439918
+          ],
+          [
+            -73.8828445,
+            40.8478172
+          ],
+          [
+            -73.8831198,
+            40.8482211
+          ],
+          [
+            -73.8807304,
+            40.8566766
+          ],
+          [
+            -73.8810068,
+            40.858268
+          ],
+          [
+            -73.8805055,
+            40.8604776
+          ],
+          [
+            -73.880839,
+            40.8612378
+          ],
+          [
+            -73.8820079,
+            40.8620469
+          ],
+          [
+            -73.8837937,
+            40.8641716
+          ],
+          [
+            -73.8839692,
+            40.8648177
+          ],
+          [
+            -73.8836732,
+            40.8654253
+          ],
+          [
+            -73.8826762,
+            40.8660891
+          ],
+          [
+            -73.8830938,
+            40.8666022
+          ],
+          [
+            -73.8761926,
+            40.870477
+          ],
+          [
+            -73.8751885,
+            40.8715758
+          ],
+          [
+            -73.8725525,
+            40.8751752
+          ],
+          [
+            -73.8709441,
+            40.8785097
+          ],
+          [
+            -73.8693615,
+            40.8781117
+          ],
+          [
+            -73.8703151,
+            40.8756175
+          ],
+          [
+            -73.8705619,
+            40.8715108
+          ],
+          [
+            -73.8705374,
+            40.869674
+          ]
+        ]
+      }
+    ]
+  },
+  "saleSeries": [
+    {
+      "id": "sale:BX2791:2018:tax-4",
+      "meanPriceUsd": 350000,
+      "medianPriceUsd": 350000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "BX2791",
+      "saleCount": 1,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 1,
+      "year": 2018
+    }
+  ],
+  "schema": "simulatte.nycRealEstateRegionShard.v1",
+  "sourceIdentities": [
+    {
+      "byteCount": 1008463,
+      "path": "nyc-annualized-sales-by-nta.json",
+      "sha256": "14c15020381466196236073ee3753ff7a5d74a76ec6af4605e96564abd2bf99a",
+      "sourceId": "nyc-real-estate-sales-annual"
+    },
+    {
+      "byteCount": 8977616,
+      "path": "nyc-final-certificates-of-occupancy.json",
+      "sha256": "966c237824a79aff9d5137d27b498ba4f3670cc19844738c5ce17a559388030e",
+      "sourceId": "nyc-real-estate-final-occupancy"
+    },
+    {
+      "byteCount": 8802596,
+      "path": "nyc-largest-constructed-footprints-2010-2026.geojson",
+      "sha256": "15745b9c62fa539e683737f0665fe91d95231e68d8c1b598e7ed211114811eb6",
+      "sourceId": "nyc-real-estate-constructed-footprints"
+    },
+    {
+      "byteCount": 1076754,
+      "path": "nyc-largest-new-building-jobs-bronx.json",
+      "sha256": "1a44c6cbfa364639e4b75957b2fab7e3c301f95bcfcfa90c50862fef85f450c1",
+      "sourceId": "nyc-real-estate-new-building-sample-bronx"
+    },
+    {
+      "byteCount": 1085334,
+      "path": "nyc-largest-new-building-jobs-brooklyn.json",
+      "sha256": "389e1825faff440d6fad5a12ed470f84e90859fd732262346a3414c5503693fd",
+      "sourceId": "nyc-real-estate-new-building-sample-brooklyn"
+    },
+    {
+      "byteCount": 1097625,
+      "path": "nyc-largest-new-building-jobs-manhattan.json",
+      "sha256": "6346678de380d58e325db14fc2e0611d993743be29898360e08f092eaa1f88e5",
+      "sourceId": "nyc-real-estate-new-building-sample-manhattan"
+    },
+    {
+      "byteCount": 1091065,
+      "path": "nyc-largest-new-building-jobs-queens.json",
+      "sha256": "79eb6f028b2135214d47a793101f72de695efcb02e4c2802cc10cd062c760a22",
+      "sourceId": "nyc-real-estate-new-building-sample-queens"
+    },
+    {
+      "byteCount": 1120592,
+      "path": "nyc-largest-new-building-jobs-staten-island.json",
+      "sha256": "e0870a431a75bdd235fc09b0ecd7503c45384f5e8b66beba545447c7bb3d960a",
+      "sourceId": "nyc-real-estate-new-building-sample-staten-island"
+    },
+    {
+      "byteCount": 1250280,
+      "path": "nyc-new-building-filings-by-nta-year.json",
+      "sha256": "4b75b0ad54a1ce5241b9c2e303be2cc24781e55a65fbf27be10d00a80bfeadea",
+      "sourceId": "nyc-real-estate-new-building-annual"
+    },
+    {
+      "byteCount": 4576764,
+      "path": "nyc-nta-2020.geojson",
+      "sha256": "c3dd069e094e2d2f647c1c102cd7e0570d033dd6131446bd1943a73210d09c56",
+      "sourceId": "nyc-real-estate-nta-boundaries"
+    },
+    {
+      "byteCount": 2402191,
+      "path": "nyc-pluto-capacity-bronx.json",
+      "sha256": "b45168721525e18a29aafcce335212632607021240869b738cbb96fbe2441389",
+      "sourceId": "nyc-real-estate-pluto-capacity-bronx"
+    },
+    {
+      "byteCount": 2403266,
+      "path": "nyc-pluto-capacity-brooklyn.json",
+      "sha256": "63b33a507c0bc26f7b71669cf032baa4950af2db77ce8712b876ca6f4c9f771b",
+      "sourceId": "nyc-real-estate-pluto-capacity-brooklyn"
+    },
+    {
+      "byteCount": 2464264,
+      "path": "nyc-pluto-capacity-manhattan.json",
+      "sha256": "91e3e1f5dce97a340475b51577458c8e48183f1138c334fbcce27d68001e9d25",
+      "sourceId": "nyc-real-estate-pluto-capacity-manhattan"
+    },
+    {
+      "byteCount": 2418903,
+      "path": "nyc-pluto-capacity-queens.json",
+      "sha256": "02a12d81466e89e05b9be9273198c5f857e86db5d2c95cfb717160ce4ccf99c1",
+      "sourceId": "nyc-real-estate-pluto-capacity-queens"
+    },
+    {
+      "byteCount": 1168016,
+      "path": "nyc-pluto-capacity-staten-island.json",
+      "sha256": "6d488f6ce46fa09930b669429275014a8ecedae6c85041fb465a15633c6a38b0",
+      "sourceId": "nyc-real-estate-pluto-capacity-staten-island"
+    }
+  ],
+  "truth": {
+    "origin": "observed",
+    "temporalStatus": "historical",
+    "uncertainty": {
+      "kind": "missing",
+      "value": {
+        "reason": "Administrative records have missing, revised, duplicated, and source-sampled fields without a shared statistical uncertainty model."
+      }
+    }
+  }
+}

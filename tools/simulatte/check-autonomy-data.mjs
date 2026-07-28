@@ -158,7 +158,7 @@ function main() {
       pluginDatasets.set(id, value);
     }
   });
-  const safetyHistoryIndex = pluginDatasets.get('nyc-crash-history-2025-07-to-2026-07-v1');
+  const safetyHistoryIndex = resolveReference(manifest, 'safetyHistoryIndex');
   contracts.validateSafetyHistoryIndex(safetyHistoryIndex, world, manifest.world.sha256);
   contracts.validateCurriculum(curriculum, world);
   contracts.validatePolicyArenaEvidence(policyArenaEvidence);

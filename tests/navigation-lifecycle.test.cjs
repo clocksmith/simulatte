@@ -89,9 +89,9 @@ test('all shipped experiences declare validated story, metric, comparison, and v
     assert.ok(profile.experience.supportedViews.includes(profile.experience.defaultView));
     kinds.set(profileId, profile.experience.kind);
   });
-  assert.equal(kinds.get('safety-explorer-v1'), 'analysis');
+  assert.equal(kinds.has('safety-explorer-v1'), false);
   assert.equal(kinds.get('orbital-transfer-planner-v1'), 'solver');
-  assert.equal([...kinds.values()].filter((kind) => kind === 'simulation').length, 9);
+  assert.equal([...kinds.values()].filter((kind) => kind === 'simulation').length, 10);
 });
 
 test('the shared shell exposes POV and first-class playback controls', () => {
@@ -223,9 +223,12 @@ test('experience documentation link updates and fails closed for unknown profile
 test('experience actions use one honest verb taxonomy', () => {
   const root = path.resolve(__dirname, '..');
   const expected = {
-    'cable-trader-pickup-v1': 'Run exchange',
+    'cable-trader-pickup-v1': {
+      startLabel: 'Run restoration',
+      shuffleLabel: 'Change crisis',
+    },
     'neighborhood-bulk-pool-v1': 'Run pooling experiment',
-    'safety-explorer-v1': 'Analyze corridor',
+    'nyc-development-atlas-v1': 'Replay and forecast NYC',
     'sun-walker-v1': 'Run shaded walk',
     'food-recall-us-v1': 'Run recall experiment',
     'grid-resilience-us-v1': 'Run resilience experiment',
@@ -235,13 +238,16 @@ test('experience actions use one honest verb taxonomy', () => {
     'asteroid-defense-v1': 'Run defense experiment',
     'interstellar-relay-network-v1': 'Run relay experiment',
   };
-  Object.entries(expected).forEach(([profileId, startLabel]) => {
+  Object.entries(expected).forEach(([profileId, expectation]) => {
     const profile = JSON.parse(fs.readFileSync(
       path.join(root, 'public/data/application-profiles', `${profileId}.json`),
       'utf8',
     ));
-    assert.equal(profile.interaction.startLabel, startLabel, profileId);
-    assert.equal(profile.interaction.shuffleLabel, 'Change scenario', profileId);
+    const labels = typeof expectation === 'string'
+      ? { startLabel: expectation, shuffleLabel: 'Change scenario' }
+      : expectation;
+    assert.equal(profile.interaction.startLabel, labels.startLabel, profileId);
+    assert.equal(profile.interaction.shuffleLabel, labels.shuffleLabel, profileId);
   });
 });
 

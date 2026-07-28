@@ -335,6 +335,106 @@ test('trip playback emits one active driver, moving packages, and a bird-eye cam
   );
 });
 
+test('catalog index calculates fractional shares accurately', () => {
+  const index = catalogApi.createCatalogIndex(datasets.catalog);
+  const share = index.calculateFractionalShare(datasets.catalog.items[0].id, 3);
+  assert.equal(share.itemId, datasets.catalog.items[0].id);
+  assert.equal(share.requestedUnits, 3);
+  assert.equal(share.isFractional, true);
+  assert.equal(share.packagesRequired, 1);
+  assert.equal(share.purchasedUnits, share.innerUnits);
+  assert.equal(share.unallocatedUnits, share.innerUnits - 3);
+  assert.ok(share.shareFraction > 0 && share.shareFraction <= 1);
+  assert.ok(share.massKg > 0);
+  assert.ok(share.volumeL > 0);
+  assert.throws(
+    () => index.calculateFractionalShare(datasets.catalog.items[0].id, 0),
+    /bulk_catalog_share_units_invalid/
+  );
+});
+
+test('solver reconciles supported receipt line items without inventing tax or toll splits', () => {
+  const result = solver.runScenario({ datasets, config, scenario });
+  assert.ok(result.settlements.length > 0);
+  assert.equal(result.conservation.financialConserved, true);
+  result.settlements.forEach((settlement) => {
+    const lineItemTotal = Object.values(settlement.receiptBreakdown)
+      .reduce((total, value) => total + value, 0);
+    assert.equal(settlement.receiptReconciled, true);
+    assert.equal(settlement.receiptBreakdown.taxUsd, 0);
+    assert.equal(settlement.receiptBreakdown.depositUsd, 0);
+    assert.equal(settlement.receiptBreakdown.tollUsd, 0);
+    assert.equal(settlement.receiptBreakdown.mileageUsd, 0);
+    assert.equal(
+      Math.round(lineItemTotal * 100),
+      Math.round(settlement.totalCostUsd * 100)
+    );
+    assert.equal(
+      settlement.totalCostUsd,
+      Math.round((settlement.itemCostUsd + settlement.driverCompensationUsd) * 100) / 100
+    );
+  });
+});
+
+test('solver deterministically heals a driver cancellation and regenerates causal playback', () => {
+  const result = solver.runScenario({ datasets, config, scenario });
+  const input = {
+    simulation: result,
+    datasets,
+    config,
+    disruption: {
+      kind: 'driver-cancellation',
+      targetId: 'trip-ember',
+    },
+    appliedAfterStep: 3,
+  };
+  const disrupted = solver.applyDisruption(input);
+  const replayed = solver.applyDisruption(input);
+  assert.deepEqual(disrupted, replayed);
+  assert.notEqual(disrupted.scenarioIdentity, result.scenarioIdentity);
+  assert.notDeepEqual(disrupted.tripAssignments, result.tripAssignments);
+  assert.ok(disrupted.tripAssignments.every((row) => row.tripId !== 'trip-ember'));
+  assert.equal(disrupted.conservation.demandConserved, true);
+  assert.equal(disrupted.conservation.packageConserved, true);
+  assert.equal(disrupted.conservation.capacityConserved, true);
+  assert.equal(disrupted.conservation.financialConserved, true);
+  const event = disrupted.events.find((row) => row.kind === 'bulk-pool.disruption-applied');
+  assert.equal(event.payload.targetId, 'trip-ember');
+  assert.equal(event.payload.planRecomputed, true);
+  assert.equal(disrupted.snapshots[event.sequence].status, 'disruption-applied');
+  assert.throws(() => solver.applyDisruption({
+    ...input,
+    disruption: { kind: 'driver-cancellation', targetId: 'trip-unknown' },
+  }), /bulk_pool_disruption_target_unknown/);
+});
+
+test('plugin disruption action replaces active state and receipts before and after identities', async () => {
+  const harness = createSdkHarness();
+  const instance = await plugin.activate({ sdk: harness.sdk, config, profile, scenario });
+  await instance.handleAction('scenario.run', {
+    scenario,
+    values: { ...scenario, phase: 'start' },
+  });
+  await instance.handleAction('scenario.run', { values: { phase: 'step' } });
+  const applied = await instance.handleAction('disruption.apply', {
+    values: { kind: 'driver-cancellation', targetId: 'trip-ember' },
+  });
+  assert.equal(applied.status, 'running');
+  assert.notEqual(applied.previousScenarioIdentity, applied.scenarioIdentity);
+  const contribution = instance.contributeV4();
+  assert.equal(contribution.state.status, 'disruption-applied');
+  assert.ok(contribution.events.some((row) => (
+    row.kind === 'bulk-pool.disruption-applied'
+    && row.payload.targetId === 'trip-ember'
+  )));
+  assert.ok(harness.receipts.some((row) => (
+    row.schema === 'simulatte.plugin.neighborhoodBulkDisruptionReceipt.v1'
+    && row.previousScenarioIdentity === applied.previousScenarioIdentity
+    && row.nextScenarioIdentity === applied.scenarioIdentity
+    && row.conservation.financialConserved === true
+  )));
+});
+
 function parametersFor(scenarioId, overrides = {}) {
   const row = datasets.demand.scenarios.find((entry) => entry.id === scenarioId);
   return {

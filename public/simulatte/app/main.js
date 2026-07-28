@@ -238,6 +238,12 @@
           elements.cameraFocus.value = targetId;
           return;
         }
+        if (actionId.startsWith(`${pluginId}.intervene.`)) {
+          if (!pluginPlayback?.intervene) throw new Error(`Playback intervention ${actionId} is unavailable before the run starts`);
+          await pluginPlayback.intervene(actionId, values);
+          renderPluginExperience({ mission: activeMissionForPlugins });
+          return;
+        }
         await extensions.dispatchAction(pluginId, actionId, { mission: activeMissionForPlugins, routeObjective: data.applicationProfile.routeObjective, values });
         renderPluginExperience({ mission: activeMissionForPlugins });
       },
@@ -391,7 +397,6 @@
         compositor: renderer.receipt().pluginCompositor,
       });
     }
-
     function renderPluginSummary(runState) {
       renderExperienceSummary(elements, hostRoot.SimulatteWorldTiersBoot.experienceHudSummary({
         profileId: data.applicationProfile.id,
@@ -414,7 +419,6 @@
       navigate: hooks.navigate,
       dispose: disposeApplication,
     });
-
     async function ensureRenderer(worldModel) {
       if (renderer) return renderer;
       renderer = await createRenderer({
@@ -440,11 +444,9 @@
       });
       return renderer;
     }
-
     async function buildController({ keepMissionLocked = false } = {}) {
       return controllerBuilder.build({ keepMissionLocked });
     }
-
     async function recordJourney(targetController) {
       const receipt = await targetController.journeyReceipt();
       receipt.pluginSettlement = await extensions.settle({ journey: receipt });
@@ -457,7 +459,6 @@
       await renderLedger(elements, journeyLedger, data.curriculum, data.world.contentVersion);
       return receipt;
     }
-
     async function tickFrame(timestamp) {
       if (!isRunning || !controller) return;
       if (timestamp - lastStepAt >= stepIntervalMs) {
@@ -466,7 +467,6 @@
       }
       if (isRunning) frameRequest = requestAnimationFrame(tickFrame);
     }
-
     async function runLoop() {
       clearMissionError(elements);
       updateButtons(elements, true, Boolean(controller), controller?.snapshot().state.status || 'active', true);

@@ -2,18 +2,18 @@
   "applicationProfile": {
     "id": "cable-trader-pickup-v1",
     "path": "../application-profiles/cable-trader-pickup-v1.json",
-    "sha256": "4bf7d26b02004b793a87b659cd9add73acd897c1c8fa73a7bac9d92421a2e652"
+    "sha256": "a6e4051f2b3dc014540c49452faa8cf1b458217830461bb280c584cd79729561"
   },
   "applicationProfiles": [
     {
       "id": "neighborhood-bulk-pool-v1",
       "path": "../application-profiles/neighborhood-bulk-pool-v1.json",
-      "sha256": "1cf4449af79fee081098020731f0287c07718ea53842b4817d25a34b80c4717f"
+      "sha256": "629c9534478c769b5a72c0bf93a65381f8b1fa72a73785fdee58715935a7a37e"
     },
     {
-      "id": "safety-explorer-v1",
-      "path": "../application-profiles/safety-explorer-v1.json",
-      "sha256": "e30d5c3737885b581bba55a060a1dd2384afbcd29bf25cb27a32160b282a4c51"
+      "id": "nyc-development-atlas-v1",
+      "path": "../application-profiles/nyc-development-atlas-v1.json",
+      "sha256": "fc200bc366b0de8aaea5d780aa9bea72c076873511ab550d721a40d033ac843e"
     },
     {
       "id": "sun-walker-v1",
@@ -133,6 +133,11 @@
     "entryPath": "/",
     "receiptSchema": "simulatte.autonomyJourneyReceipt.v2",
     "worldLoadMode": "verified_region_composition"
+  },
+  "safetyHistoryIndex": {
+    "id": "nyc-crash-history-2025-07-to-2026-07-v1",
+    "path": "./safety-history-index-v1.json",
+    "sha256": "bb90646fe02e2a4f09efc01713cc9752b2a6dc023d0db211126c0e50a09d3176"
   },
   "schema": "simulatte.autonomyDataManifest.v3",
   "world": {

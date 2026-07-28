@@ -115,7 +115,13 @@
 
   function addPluginPresentation(writer, scene, snapshot) {
     if (!scene) return;
-    scene.areas.forEach((row) => addFlatPolygon(writer, row.points, row.heightM, semanticColor(row), row.intensity));
+    scene.areas.forEach((row) => {
+      if (row.isVolume) {
+        addExtrudedPolygon(writer, row.points, row.heightM, semanticColor(row), row.intensity);
+      } else {
+        addFlatPolygon(writer, row.points, row.heightM, semanticColor(row), row.intensity);
+      }
+    });
     scene.paths.forEach((row) => addRibbon(writer, row.points, row.widthM, 0.92, semanticColor(row), row.intensity));
     scene.markers.forEach((row) => addBeacon(writer, row.point, semanticColor(row), row.heightM, row.radiusM, row.intensity));
     // Geospatial (v3) primitives are already projected into planar scene points by the
@@ -228,6 +234,32 @@
   function addFlatPolygon(writer, points, height, color, emissive = 0) {
     const vertices = openRing(points).map((point) => [point.x, height, -point.y]);
     triangulate(points).forEach(([a, b, c]) => writer.triangle(vertices[a], vertices[b], vertices[c], [0, 1, 0], color, emissive));
+  }
+
+  function addExtrudedPolygon(writer, sourcePoints, sourceHeight, color, emissive = 0) {
+    const points = openRing(sourcePoints);
+    if (points.length < 3) return;
+    const height = Number.isFinite(sourceHeight) ? Math.max(0.35, sourceHeight) : 0.35;
+    const roofVertices = points.map((point) => [point.x, height, -point.y]);
+    triangulate(points).forEach(([a, b, c]) => (
+      writer.triangle(roofVertices[a], roofVertices[b], roofVertices[c], [0, 1, 0], color, emissive)
+    ));
+    const sideColor = [
+      color[0] * 0.58,
+      color[1] * 0.58,
+      color[2] * 0.58,
+      color[3],
+    ];
+    for (let index = 0; index < points.length; index += 1) {
+      const next = (index + 1) % points.length;
+      const a = [points[index].x, 0.12, -points[index].y];
+      const b = [points[next].x, 0.12, -points[next].y];
+      const c = [points[next].x, height, -points[next].y];
+      const d = [points[index].x, height, -points[index].y];
+      const normal = faceNormal(a, b, c);
+      writer.triangle(a, b, c, normal, sideColor, emissive * 0.65);
+      writer.triangle(a, c, d, normal, sideColor, emissive * 0.65);
+    }
   }
 
   function addBuilding(writer, building) {
@@ -407,6 +439,7 @@
     MATERIAL_MODEL: actorGeometry.MATERIAL_MODEL,
     PLUGIN_TONES,
     SUPPORTED_ACTOR_KINDS: actorGeometry.SUPPORTED_ACTOR_KINDS,
+    addExtrudedPolygon,
     addRibbon,
     createDynamicGeometry,
     createStaticGeometry,

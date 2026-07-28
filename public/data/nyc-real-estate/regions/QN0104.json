@@ -1,0 +1,6080 @@
+{
+  "capacitySites": [
+    {
+      "address": "24-42 STEINWAY STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 2.03,
+      "availableFar": 2.03,
+      "availableResidentialFar": 2.03,
+      "bbl": "4006540060",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 1525,
+      "builtFar": 0.97,
+      "commercialFar": 3,
+      "coordinates": [
+        -73.9118149,
+        40.7682466
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4006540060",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 1575,
+      "potentialCommercialFloorAreaSquareFeet": 3197.25,
+      "potentialFloorAreaSquareFeet": 3197.25,
+      "potentialResidentialFloorAreaSquareFeet": 3197.25,
+      "potentialResidentialUnitsClass1": 2,
+      "potentialResidentialUnitsClass2": 3,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006540060"
+      ],
+      "zoningDistricts": [
+        "C4-2A"
+      ]
+    },
+    {
+      "address": "25-70 STEINWAY STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 2.18,
+      "availableFar": 2.18,
+      "availableResidentialFar": 2.18,
+      "bbl": "4006540091",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 3900,
+      "builtFar": 0.82,
+      "commercialFar": 3,
+      "coordinates": [
+        -73.9133191,
+        40.7663977
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4006540091",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 4750,
+      "potentialCommercialFloorAreaSquareFeet": 10355,
+      "potentialFloorAreaSquareFeet": 10355,
+      "potentialResidentialFloorAreaSquareFeet": 10355,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 11,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006540091"
+      ],
+      "zoningDistricts": [
+        "C4-2A"
+      ]
+    },
+    {
+      "address": "24-44 STEINWAY STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 2.03,
+      "availableFar": 2.03,
+      "availableResidentialFar": 2.03,
+      "bbl": "4006540160",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 1525,
+      "builtFar": 0.97,
+      "commercialFar": 3,
+      "coordinates": [
+        -73.9118438,
+        40.7682082
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4006540160",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 1577,
+      "potentialCommercialFloorAreaSquareFeet": 3201.31,
+      "potentialFloorAreaSquareFeet": 3201.31,
+      "potentialResidentialFloorAreaSquareFeet": 3201.31,
+      "potentialResidentialUnitsClass1": 2,
+      "potentialResidentialUnitsClass2": 3,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006540160"
+      ],
+      "zoningDistricts": [
+        "C4-2A"
+      ]
+    },
+    {
+      "address": "38-08 BROADWAY",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 2,
+      "availableFar": 2,
+      "availableResidentialFar": 2,
+      "bbl": "4006560036",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 7500,
+      "builtFar": 1,
+      "commercialFar": 3,
+      "coordinates": [
+        -73.9196024,
+        40.758975
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 3,
+      "id": "capacity:4006560036",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 7500,
+      "potentialCommercialFloorAreaSquareFeet": 15000,
+      "potentialFloorAreaSquareFeet": 15000,
+      "potentialResidentialFloorAreaSquareFeet": 15000,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 16,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006560036"
+      ],
+      "zoningDistricts": [
+        "C4-2A"
+      ]
+    },
+    {
+      "address": "38-16 BROADWAY",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 2,
+      "availableFar": 2,
+      "availableResidentialFar": 2,
+      "bbl": "4006560041",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 4000,
+      "builtFar": 1,
+      "commercialFar": 3,
+      "coordinates": [
+        -73.9193426,
+        40.7588568
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4006560041",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 4000,
+      "potentialCommercialFloorAreaSquareFeet": 8000,
+      "potentialFloorAreaSquareFeet": 8000,
+      "potentialResidentialFloorAreaSquareFeet": 8000,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 8,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006560041"
+      ],
+      "zoningDistricts": [
+        "C4-2A"
+      ]
+    },
+    {
+      "address": "32-16 STEINWAY STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 2.11,
+      "availableFar": 2.11,
+      "availableResidentialFar": 2.11,
+      "bbl": "4006560044",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 4000,
+      "builtFar": 0.89,
+      "commercialFar": 3,
+      "coordinates": [
+        -73.9196606,
+        40.758599
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 3,
+      "id": "capacity:4006560044",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 4500,
+      "potentialCommercialFloorAreaSquareFeet": 9495,
+      "potentialFloorAreaSquareFeet": 9495,
+      "potentialResidentialFloorAreaSquareFeet": 9495,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 10,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006560044"
+      ],
+      "zoningDistricts": [
+        "C4-2A"
+      ]
+    },
+    {
+      "address": "32-22 STEINWAY STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 2.14,
+      "availableFar": 2.14,
+      "availableResidentialFar": 2.14,
+      "bbl": "4006560046",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 1555,
+      "builtFar": 0.86,
+      "commercialFar": 3,
+      "coordinates": [
+        -73.9197293,
+        40.7585167
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4006560046",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 1800,
+      "potentialCommercialFloorAreaSquareFeet": 3852,
+      "potentialFloorAreaSquareFeet": 3852,
+      "potentialResidentialFloorAreaSquareFeet": 3852,
+      "potentialResidentialUnitsClass1": 2,
+      "potentialResidentialUnitsClass2": 4,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006560046"
+      ],
+      "zoningDistricts": [
+        "C4-2A"
+      ]
+    },
+    {
+      "address": "32-34 STEINWAY STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 2.02,
+      "availableFar": 2.02,
+      "availableResidentialFar": 2.02,
+      "bbl": "4006560051",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 8800,
+      "builtFar": 0.98,
+      "commercialFar": 3,
+      "coordinates": [
+        -73.9200401,
+        40.7581327
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 3,
+      "id": "capacity:4006560051",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 9000,
+      "potentialCommercialFloorAreaSquareFeet": 18180,
+      "potentialFloorAreaSquareFeet": 18180,
+      "potentialResidentialFloorAreaSquareFeet": 18180,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 20,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006560051"
+      ],
+      "zoningDistricts": [
+        "C4-2A"
+      ]
+    },
+    {
+      "address": "32-84 STEINWAY STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 2.11,
+      "availableFar": 2.11,
+      "availableResidentialFar": 2.11,
+      "bbl": "4006560070",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 8420,
+      "builtFar": 0.89,
+      "commercialFar": 3,
+      "coordinates": [
+        -73.9209475,
+        40.7570135
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 4,
+      "id": "capacity:4006560070",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 9450,
+      "potentialCommercialFloorAreaSquareFeet": 19939.5,
+      "potentialFloorAreaSquareFeet": 19939.5,
+      "potentialResidentialFloorAreaSquareFeet": 19939.5,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 22,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006560070"
+      ],
+      "zoningDistricts": [
+        "C4-2A"
+      ]
+    },
+    {
+      "address": "31-08 STEINWAY STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 2,
+      "availableFar": 2,
+      "availableResidentialFar": 2,
+      "bbl": "4006580040",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 10760,
+      "builtFar": 1,
+      "commercialFar": 3,
+      "coordinates": [
+        -73.917654,
+        40.7612408
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4006580040",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 10760,
+      "potentialCommercialFloorAreaSquareFeet": 21520,
+      "potentialFloorAreaSquareFeet": 21520,
+      "potentialResidentialFloorAreaSquareFeet": 21520,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 23,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006580040"
+      ],
+      "zoningDistricts": [
+        "C4-2A",
+        "R6A"
+      ]
+    },
+    {
+      "address": "STEINWAY STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 3,
+      "availableFar": 3,
+      "availableResidentialFar": 3,
+      "bbl": "4006580053",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 3,
+      "coordinates": [
+        -73.918106,
+        40.7605714
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:4006580053",
+      "landUseCode": "10",
+      "lotAreaSquareFeet": 13750,
+      "potentialCommercialFloorAreaSquareFeet": 41250,
+      "potentialFloorAreaSquareFeet": 41250,
+      "potentialResidentialFloorAreaSquareFeet": 41250,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 45,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006580053"
+      ],
+      "zoningDistricts": [
+        "C4-2A",
+        "PARK"
+      ]
+    },
+    {
+      "address": "31-50 STEINWAY STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 2,
+      "availableFar": 2,
+      "availableResidentialFar": 2,
+      "bbl": "4006580063",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 1500,
+      "builtFar": 1,
+      "commercialFar": 3,
+      "coordinates": [
+        -73.9184459,
+        40.7600996
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4006580063",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 1500,
+      "potentialCommercialFloorAreaSquareFeet": 3000,
+      "potentialFloorAreaSquareFeet": 3000,
+      "potentialResidentialFloorAreaSquareFeet": 3000,
+      "potentialResidentialUnitsClass1": 2,
+      "potentialResidentialUnitsClass2": 3,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006580063"
+      ],
+      "zoningDistricts": [
+        "C4-2A"
+      ]
+    },
+    {
+      "address": "31-62 STEINWAY STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 2.02,
+      "availableFar": 2.02,
+      "availableResidentialFar": 2.02,
+      "bbl": "4006580067",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 2559,
+      "builtFar": 0.98,
+      "commercialFar": 3,
+      "coordinates": [
+        -73.9186483,
+        40.7598499
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4006580067",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 2610,
+      "potentialCommercialFloorAreaSquareFeet": 5272.2,
+      "potentialFloorAreaSquareFeet": 5272.2,
+      "potentialResidentialFloorAreaSquareFeet": 5272.2,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 5,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006580067"
+      ],
+      "zoningDistricts": [
+        "C4-2A"
+      ]
+    },
+    {
+      "address": "31-68 STEINWAY STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 2.02,
+      "availableFar": 2.02,
+      "availableResidentialFar": 2.02,
+      "bbl": "4006580069",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 2200,
+      "builtFar": 0.98,
+      "commercialFar": 3,
+      "coordinates": [
+        -73.9187387,
+        40.7597375
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4006580069",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 2250,
+      "potentialCommercialFloorAreaSquareFeet": 4545,
+      "potentialFloorAreaSquareFeet": 4545,
+      "potentialResidentialFloorAreaSquareFeet": 4545,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 5,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006580069"
+      ],
+      "zoningDistricts": [
+        "C4-2A"
+      ]
+    },
+    {
+      "address": "31-70 STEINWAY STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 2.02,
+      "availableFar": 2.02,
+      "availableResidentialFar": 2.02,
+      "bbl": "4006580070",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 2200,
+      "builtFar": 0.98,
+      "commercialFar": 3,
+      "coordinates": [
+        -73.9187857,
+        40.7596798
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4006580070",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 2250,
+      "potentialCommercialFloorAreaSquareFeet": 4545,
+      "potentialFloorAreaSquareFeet": 4545,
+      "potentialResidentialFloorAreaSquareFeet": 4545,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 5,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006580070"
+      ],
+      "zoningDistricts": [
+        "C4-2A"
+      ]
+    },
+    {
+      "address": "31-74 STEINWAY STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 2.06,
+      "availableFar": 2.06,
+      "availableResidentialFar": 2.06,
+      "bbl": "4006580071",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 2125,
+      "builtFar": 0.94,
+      "commercialFar": 3,
+      "coordinates": [
+        -73.9188363,
+        40.7596195
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4006580071",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 2250,
+      "potentialCommercialFloorAreaSquareFeet": 4635,
+      "potentialFloorAreaSquareFeet": 4635,
+      "potentialResidentialFloorAreaSquareFeet": 4635,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 5,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006580071"
+      ],
+      "zoningDistricts": [
+        "C4-2A"
+      ]
+    },
+    {
+      "address": "31-76 STEINWAY STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 2.04,
+      "availableFar": 2.04,
+      "availableResidentialFar": 2.04,
+      "bbl": "4006580072",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 2160,
+      "builtFar": 0.96,
+      "commercialFar": 3,
+      "coordinates": [
+        -73.9188833,
+        40.7595619
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4006580072",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 2250,
+      "potentialCommercialFloorAreaSquareFeet": 4590,
+      "potentialFloorAreaSquareFeet": 4590,
+      "potentialResidentialFloorAreaSquareFeet": 4590,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 5,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006580072"
+      ],
+      "zoningDistricts": [
+        "C4-2A"
+      ]
+    },
+    {
+      "address": "31-78 STEINWAY STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 2.07,
+      "availableFar": 2.07,
+      "availableResidentialFar": 2.07,
+      "bbl": "4006580073",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 2100,
+      "builtFar": 0.93,
+      "commercialFar": 3,
+      "coordinates": [
+        -73.9189303,
+        40.7595043
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4006580073",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 2250,
+      "potentialCommercialFloorAreaSquareFeet": 4657.5,
+      "potentialFloorAreaSquareFeet": 4657.5,
+      "potentialResidentialFloorAreaSquareFeet": 4657.5,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 5,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006580073"
+      ],
+      "zoningDistricts": [
+        "C4-2A"
+      ]
+    },
+    {
+      "address": "31-80 STEINWAY STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 2.01,
+      "availableFar": 2.01,
+      "availableResidentialFar": 2.01,
+      "bbl": "4006580074",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 2225,
+      "builtFar": 0.99,
+      "commercialFar": 3,
+      "coordinates": [
+        -73.9189773,
+        40.7594439
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4006580074",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 2250,
+      "potentialCommercialFloorAreaSquareFeet": 4522.5,
+      "potentialFloorAreaSquareFeet": 4522.5,
+      "potentialResidentialFloorAreaSquareFeet": 4522.5,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 5,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006580074"
+      ],
+      "zoningDistricts": [
+        "C4-2A"
+      ]
+    },
+    {
+      "address": "38 STREET",
+      "affordableResidentialFar": 2.4,
+      "availableCommercialFar": 0,
+      "availableFar": 2,
+      "availableResidentialFar": 2,
+      "bbl": "4006600032",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9159181,
+        40.7637318
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:4006600032",
+      "landUseCode": "10",
+      "lotAreaSquareFeet": 25632,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 51264,
+      "potentialResidentialFloorAreaSquareFeet": 51264,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 56,
+      "regionId": "QN0104",
+      "residentialFar": 2,
+      "sourceRowIds": [
+        "pluto:4006600032"
+      ],
+      "zoningDistricts": [
+        "R6B",
+        "C4-2A"
+      ]
+    },
+    {
+      "address": "30-18 STEINWAY STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 2.01,
+      "availableFar": 2.01,
+      "availableResidentialFar": 2.01,
+      "bbl": "4006600053",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 3375,
+      "builtFar": 0.99,
+      "commercialFar": 3,
+      "coordinates": [
+        -73.9156549,
+        40.763523
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4006600053",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 3402,
+      "potentialCommercialFloorAreaSquareFeet": 6838.02,
+      "potentialFloorAreaSquareFeet": 6838.02,
+      "potentialResidentialFloorAreaSquareFeet": 6838.02,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 7,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006600053"
+      ],
+      "zoningDistricts": [
+        "C4-2A"
+      ]
+    },
+    {
+      "address": "30-28 STEINWAY STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 2.01,
+      "availableFar": 2.01,
+      "availableResidentialFar": 2.01,
+      "bbl": "4006600058",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 2205,
+      "builtFar": 0.99,
+      "commercialFar": 3,
+      "coordinates": [
+        -73.9158284,
+        40.7633035
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 2,
+      "id": "capacity:4006600058",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 2238,
+      "potentialCommercialFloorAreaSquareFeet": 4498.38,
+      "potentialFloorAreaSquareFeet": 4498.38,
+      "potentialResidentialFloorAreaSquareFeet": 4498.38,
+      "potentialResidentialUnitsClass1": 2,
+      "potentialResidentialUnitsClass2": 4,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006600058"
+      ],
+      "zoningDistricts": [
+        "C4-2A"
+      ]
+    },
+    {
+      "address": "30-52 STEINWAY STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 2.01,
+      "availableFar": 2.01,
+      "availableResidentialFar": 2.01,
+      "bbl": "4006600071",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 2610,
+      "builtFar": 0.99,
+      "commercialFar": 3,
+      "coordinates": [
+        -73.9163201,
+        40.7626946
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4006600071",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 2631,
+      "potentialCommercialFloorAreaSquareFeet": 5288.31,
+      "potentialFloorAreaSquareFeet": 5288.31,
+      "potentialResidentialFloorAreaSquareFeet": 5288.31,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 5,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006600071"
+      ],
+      "zoningDistricts": [
+        "C4-2A"
+      ]
+    },
+    {
+      "address": "30-70 STEINWAY STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 2,
+      "availableFar": 2,
+      "availableResidentialFar": 2,
+      "bbl": "4006600078",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 3375,
+      "builtFar": 1,
+      "commercialFar": 3,
+      "coordinates": [
+        -73.9166419,
+        40.7622941
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4006600078",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 3390,
+      "potentialCommercialFloorAreaSquareFeet": 6780,
+      "potentialFloorAreaSquareFeet": 6780,
+      "potentialResidentialFloorAreaSquareFeet": 6780,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 7,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006600078"
+      ],
+      "zoningDistricts": [
+        "C4-2A"
+      ]
+    },
+    {
+      "address": "30-80 STEINWAY STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 2,
+      "availableFar": 2,
+      "availableResidentialFar": 2,
+      "bbl": "4006600082",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 2250,
+      "builtFar": 1,
+      "commercialFar": 3,
+      "coordinates": [
+        -73.9168914,
+        40.7619868
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4006600082",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 2258,
+      "potentialCommercialFloorAreaSquareFeet": 4516,
+      "potentialFloorAreaSquareFeet": 4516,
+      "potentialResidentialFloorAreaSquareFeet": 4516,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 5,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006600082"
+      ],
+      "zoningDistricts": [
+        "C4-2A"
+      ]
+    },
+    {
+      "address": "30-90 STEINWAY STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 2.01,
+      "availableFar": 2.01,
+      "availableResidentialFar": 2.01,
+      "bbl": "4006600085",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 1112,
+      "builtFar": 0.99,
+      "commercialFar": 3,
+      "coordinates": [
+        -73.9170251,
+        40.7618195
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4006600085",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 1128,
+      "potentialCommercialFloorAreaSquareFeet": 2267.28,
+      "potentialFloorAreaSquareFeet": 2267.28,
+      "potentialResidentialFloorAreaSquareFeet": 2267.28,
+      "potentialResidentialUnitsClass1": 1,
+      "potentialResidentialUnitsClass2": 2,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006600085"
+      ],
+      "zoningDistricts": [
+        "C4-2A"
+      ]
+    },
+    {
+      "address": "30-66 STEINWAY STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 2.01,
+      "availableFar": 2.01,
+      "availableResidentialFar": 2.01,
+      "bbl": "4006600176",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 1642,
+      "builtFar": 0.99,
+      "commercialFar": 3,
+      "coordinates": [
+        -73.9165913,
+        40.7623599
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4006600176",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 1658,
+      "potentialCommercialFloorAreaSquareFeet": 3332.58,
+      "potentialFloorAreaSquareFeet": 3332.58,
+      "potentialResidentialFloorAreaSquareFeet": 3332.58,
+      "potentialResidentialUnitsClass1": 2,
+      "potentialResidentialUnitsClass2": 3,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006600176"
+      ],
+      "zoningDistricts": [
+        "C4-2A"
+      ]
+    },
+    {
+      "address": "28-45 STEINWAY STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 2,
+      "availableFar": 2,
+      "availableResidentialFar": 2,
+      "bbl": "4006630003",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 3375,
+      "builtFar": 1,
+      "commercialFar": 3,
+      "coordinates": [
+        -73.9143688,
+        40.7642219
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 2,
+      "id": "capacity:4006630003",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 3390,
+      "potentialCommercialFloorAreaSquareFeet": 6780,
+      "potentialFloorAreaSquareFeet": 6780,
+      "potentialResidentialFloorAreaSquareFeet": 6780,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 7,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006630003"
+      ],
+      "zoningDistricts": [
+        "C4-2A"
+      ]
+    },
+    {
+      "address": "28-33 STEINWAY STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 2.33,
+      "availableFar": 2.33,
+      "availableResidentialFar": 2.33,
+      "bbl": "4006630006",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 1500,
+      "builtFar": 0.67,
+      "commercialFar": 3,
+      "coordinates": [
+        -73.9142098,
+        40.7644195
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 2,
+      "id": "capacity:4006630006",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 2253,
+      "potentialCommercialFloorAreaSquareFeet": 5249.49,
+      "potentialFloorAreaSquareFeet": 5249.49,
+      "potentialResidentialFloorAreaSquareFeet": 5249.49,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 5,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006630006"
+      ],
+      "zoningDistricts": [
+        "C4-2A"
+      ]
+    },
+    {
+      "address": "28-29 STEINWAY STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 2,
+      "availableFar": 2,
+      "availableResidentialFar": 2,
+      "bbl": "4006630008",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 2244,
+      "builtFar": 1,
+      "commercialFar": 3,
+      "coordinates": [
+        -73.9141157,
+        40.7645374
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4006630008",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 2248,
+      "potentialCommercialFloorAreaSquareFeet": 4496,
+      "potentialFloorAreaSquareFeet": 4496,
+      "potentialResidentialFloorAreaSquareFeet": 4496,
+      "potentialResidentialUnitsClass1": 2,
+      "potentialResidentialUnitsClass2": 4,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006630008"
+      ],
+      "zoningDistricts": [
+        "C4-2A"
+      ]
+    },
+    {
+      "address": "28-21 STEINWAY STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 2.01,
+      "availableFar": 2.01,
+      "availableResidentialFar": 2.01,
+      "bbl": "4006630012",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 2225,
+      "builtFar": 0.99,
+      "commercialFar": 3,
+      "coordinates": [
+        -73.9139241,
+        40.7647706
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4006630012",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 2239,
+      "potentialCommercialFloorAreaSquareFeet": 4500.39,
+      "potentialFloorAreaSquareFeet": 4500.39,
+      "potentialResidentialFloorAreaSquareFeet": 4500.39,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 5,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006630012"
+      ],
+      "zoningDistricts": [
+        "C4-2A"
+      ]
+    },
+    {
+      "address": "36-02 STEINWAY STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 2,
+      "availableFar": 2,
+      "availableResidentialFar": 2,
+      "bbl": "4006650027",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 10000,
+      "builtFar": 1,
+      "commercialFar": 3,
+      "coordinates": [
+        -73.9238066,
+        40.7535213
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 3,
+      "id": "capacity:4006650027",
+      "landUseCode": "10",
+      "lotAreaSquareFeet": 10000,
+      "potentialCommercialFloorAreaSquareFeet": 20000,
+      "potentialFloorAreaSquareFeet": 20000,
+      "potentialResidentialFloorAreaSquareFeet": 20000,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 22,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006650027"
+      ],
+      "zoningDistricts": [
+        "C4-2A"
+      ]
+    },
+    {
+      "address": "38 STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 2,
+      "availableFar": 3,
+      "availableResidentialFar": 3,
+      "bbl": "4006680002",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 2,
+      "coordinates": [
+        -73.9235603,
+        40.7542869
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:4006680002",
+      "landUseCode": "10",
+      "lotAreaSquareFeet": 5779,
+      "potentialCommercialFloorAreaSquareFeet": 11558,
+      "potentialFloorAreaSquareFeet": 17337,
+      "potentialResidentialFloorAreaSquareFeet": 17337,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 19,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006680002"
+      ],
+      "zoningDistricts": [
+        "M1-4/R6A",
+        "M1-4/R7-3"
+      ]
+    },
+    {
+      "address": "35-18 STEINWAY STREET",
+      "affordableResidentialFar": 6,
+      "availableCommercialFar": 1.24,
+      "availableFar": 4.24,
+      "availableResidentialFar": 4.24,
+      "bbl": "4006680005",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 32736,
+      "builtFar": 0.76,
+      "commercialFar": 2,
+      "coordinates": [
+        -73.9229786,
+        40.7547614
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4006680005",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 43100,
+      "potentialCommercialFloorAreaSquareFeet": 53444,
+      "potentialFloorAreaSquareFeet": 182744,
+      "potentialResidentialFloorAreaSquareFeet": 182744,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 203,
+      "regionId": "QN0104",
+      "residentialFar": 5,
+      "sourceRowIds": [
+        "pluto:4006680005"
+      ],
+      "zoningDistricts": [
+        "M1-4/R7-3",
+        "M1-4/R9"
+      ]
+    },
+    {
+      "address": "35-10 STEINWAY STREET",
+      "affordableResidentialFar": 9.02,
+      "availableCommercialFar": 2,
+      "availableFar": 7.52,
+      "availableResidentialFar": 7.52,
+      "bbl": "4006680006",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 2,
+      "coordinates": [
+        -73.9227496,
+        40.7550293
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:4006680006",
+      "landUseCode": "10",
+      "lotAreaSquareFeet": 32172,
+      "potentialCommercialFloorAreaSquareFeet": 64344,
+      "potentialFloorAreaSquareFeet": 241933.44,
+      "potentialResidentialFloorAreaSquareFeet": 241933.44,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 268,
+      "regionId": "QN0104",
+      "residentialFar": 7.52,
+      "sourceRowIds": [
+        "pluto:4006680006"
+      ],
+      "zoningDistricts": [
+        "M1-4/R9",
+        "M1-4/R7-3"
+      ]
+    },
+    {
+      "address": "35-54 STEINWAY STREET",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0.56,
+      "availableFar": 2.56,
+      "availableResidentialFar": 2.56,
+      "bbl": "4006680042",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 3250,
+      "builtFar": 1.44,
+      "commercialFar": 2,
+      "coordinates": [
+        -73.923532,
+        40.7538286
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4006680042",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 2250,
+      "potentialCommercialFloorAreaSquareFeet": 1260,
+      "potentialFloorAreaSquareFeet": 5760,
+      "potentialResidentialFloorAreaSquareFeet": 5760,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 6,
+      "regionId": "QN0104",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:4006680042"
+      ],
+      "zoningDistricts": [
+        "M1-4/R7A"
+      ]
+    },
+    {
+      "address": "35-53 STEINWAY STREET",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 1,
+      "availableFar": 3,
+      "availableResidentialFar": 3,
+      "bbl": "4006690001",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 4750,
+      "builtFar": 1,
+      "commercialFar": 2,
+      "coordinates": [
+        -73.9229836,
+        40.7536114
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4006690001",
+      "landUseCode": "6",
+      "lotAreaSquareFeet": 4750,
+      "potentialCommercialFloorAreaSquareFeet": 4750,
+      "potentialFloorAreaSquareFeet": 14250,
+      "potentialResidentialFloorAreaSquareFeet": 14250,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 15,
+      "regionId": "QN0104",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:4006690001"
+      ],
+      "zoningDistricts": [
+        "M1-4/R7A"
+      ]
+    },
+    {
+      "address": "35-49 STEINWAY STREET",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 1,
+      "availableFar": 3,
+      "availableResidentialFar": 3,
+      "bbl": "4006690003",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 9500,
+      "builtFar": 1,
+      "commercialFar": 2,
+      "coordinates": [
+        -73.922839,
+        40.7537897
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4006690003",
+      "landUseCode": "7",
+      "lotAreaSquareFeet": 9500,
+      "potentialCommercialFloorAreaSquareFeet": 9500,
+      "potentialFloorAreaSquareFeet": 28500,
+      "potentialResidentialFloorAreaSquareFeet": 28500,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 31,
+      "regionId": "QN0104",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:4006690003"
+      ],
+      "zoningDistricts": [
+        "M1-4/R7A"
+      ]
+    },
+    {
+      "address": "35-41 STEINWAY STREET",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 0.84,
+      "availableFar": 2.84,
+      "availableResidentialFar": 2.84,
+      "bbl": "4006690007",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 4081,
+      "builtFar": 1.16,
+      "commercialFar": 2,
+      "coordinates": [
+        -73.9227125,
+        40.7539488
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4006690007",
+      "landUseCode": "10",
+      "lotAreaSquareFeet": 3515,
+      "potentialCommercialFloorAreaSquareFeet": 2952.6,
+      "potentialFloorAreaSquareFeet": 9982.6,
+      "potentialResidentialFloorAreaSquareFeet": 9982.6,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 11,
+      "regionId": "QN0104",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:4006690007"
+      ],
+      "zoningDistricts": [
+        "M1-4/R7A"
+      ]
+    },
+    {
+      "address": "35-31 STEINWAY STREET",
+      "affordableResidentialFar": 5.01,
+      "availableCommercialFar": 1,
+      "availableFar": 3,
+      "availableResidentialFar": 3,
+      "bbl": "4006690008",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 9595,
+      "builtFar": 1,
+      "commercialFar": 2,
+      "coordinates": [
+        -73.9225824,
+        40.7541106
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 2,
+      "id": "capacity:4006690008",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 9618,
+      "potentialCommercialFloorAreaSquareFeet": 9618,
+      "potentialFloorAreaSquareFeet": 28854,
+      "potentialResidentialFloorAreaSquareFeet": 28854,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 32,
+      "regionId": "QN0104",
+      "residentialFar": 4,
+      "sourceRowIds": [
+        "pluto:4006690008"
+      ],
+      "zoningDistricts": [
+        "M1-4/R7A"
+      ]
+    },
+    {
+      "address": "35-25 STEINWAY STREET",
+      "affordableResidentialFar": 9.02,
+      "availableCommercialFar": 0.98,
+      "availableFar": 6.5,
+      "availableResidentialFar": 6.5,
+      "bbl": "4006690013",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 18360,
+      "builtFar": 1.02,
+      "commercialFar": 2,
+      "coordinates": [
+        -73.9222537,
+        40.7542751
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 3,
+      "id": "capacity:4006690013",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 17932,
+      "potentialCommercialFloorAreaSquareFeet": 17573.36,
+      "potentialFloorAreaSquareFeet": 116558,
+      "potentialResidentialFloorAreaSquareFeet": 116558,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 129,
+      "regionId": "QN0104",
+      "residentialFar": 7.52,
+      "sourceRowIds": [
+        "pluto:4006690013"
+      ],
+      "zoningDistricts": [
+        "M1-4/R9",
+        "M1-4/R7-3"
+      ]
+    },
+    {
+      "address": "35-19 STEINWAY STREET",
+      "affordableResidentialFar": 9.02,
+      "availableCommercialFar": 1.97,
+      "availableFar": 7.49,
+      "availableResidentialFar": 7.49,
+      "bbl": "4006690016",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 823,
+      "builtFar": 0.03,
+      "commercialFar": 2,
+      "coordinates": [
+        -73.9219574,
+        40.7545576
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:4006690016",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 28500,
+      "potentialCommercialFloorAreaSquareFeet": 56145,
+      "potentialFloorAreaSquareFeet": 213465,
+      "potentialResidentialFloorAreaSquareFeet": 213465,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 237,
+      "regionId": "QN0104",
+      "residentialFar": 7.52,
+      "sourceRowIds": [
+        "pluto:4006690016"
+      ],
+      "zoningDistricts": [
+        "M1-4/R9",
+        "M1-4/R7-3"
+      ]
+    },
+    {
+      "address": "35-01 STEINWAY STREET",
+      "affordableResidentialFar": 9.02,
+      "availableCommercialFar": 2,
+      "availableFar": 7.52,
+      "availableResidentialFar": 7.52,
+      "bbl": "4006690020",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 2,
+      "coordinates": [
+        -73.9220257,
+        40.7548047
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:4006690020",
+      "landUseCode": "9",
+      "lotAreaSquareFeet": 9500,
+      "potentialCommercialFloorAreaSquareFeet": 19000,
+      "potentialFloorAreaSquareFeet": 71440,
+      "potentialResidentialFloorAreaSquareFeet": 71440,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 79,
+      "regionId": "QN0104",
+      "residentialFar": 7.52,
+      "sourceRowIds": [
+        "pluto:4006690020"
+      ],
+      "zoningDistricts": [
+        "M1-4/R9"
+      ]
+    },
+    {
+      "address": "35-42 41 STREET",
+      "affordableResidentialFar": 6,
+      "availableCommercialFar": 0.95,
+      "availableFar": 3.95,
+      "availableResidentialFar": 3.95,
+      "bbl": "4006690036",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 13850,
+      "builtFar": 1.05,
+      "commercialFar": 2,
+      "coordinates": [
+        -73.9223227,
+        40.753932
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4006690036",
+      "landUseCode": "6",
+      "lotAreaSquareFeet": 13216,
+      "potentialCommercialFloorAreaSquareFeet": 12555.2,
+      "potentialFloorAreaSquareFeet": 52203.2,
+      "potentialResidentialFloorAreaSquareFeet": 52203.2,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 58,
+      "regionId": "QN0104",
+      "residentialFar": 5,
+      "sourceRowIds": [
+        "pluto:4006690036"
+      ],
+      "zoningDistricts": [
+        "M1-4/R7-3"
+      ]
+    },
+    {
+      "address": "35-33 41 STREET",
+      "affordableResidentialFar": 6,
+      "availableCommercialFar": 1.01,
+      "availableFar": 4.01,
+      "availableResidentialFar": 4.01,
+      "bbl": "4006700004",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 9900,
+      "builtFar": 0.99,
+      "commercialFar": 2,
+      "coordinates": [
+        -73.9218646,
+        40.7536765
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 2,
+      "id": "capacity:4006700004",
+      "landUseCode": "6",
+      "lotAreaSquareFeet": 10020,
+      "potentialCommercialFloorAreaSquareFeet": 10120.2,
+      "potentialFloorAreaSquareFeet": 40180.2,
+      "potentialResidentialFloorAreaSquareFeet": 40180.2,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 44,
+      "regionId": "QN0104",
+      "residentialFar": 5,
+      "sourceRowIds": [
+        "pluto:4006700004"
+      ],
+      "zoningDistricts": [
+        "M1-4/R7-3"
+      ]
+    },
+    {
+      "address": "35-13 41 STREET",
+      "affordableResidentialFar": 6,
+      "availableCommercialFar": 0.69,
+      "availableFar": 3.69,
+      "availableResidentialFar": 3.69,
+      "bbl": "4006700008",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 52500,
+      "builtFar": 1.31,
+      "commercialFar": 2,
+      "coordinates": [
+        -73.9213948,
+        40.7541565
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 6,
+      "id": "capacity:4006700008",
+      "landUseCode": "6",
+      "lotAreaSquareFeet": 40000,
+      "potentialCommercialFloorAreaSquareFeet": 27600,
+      "potentialFloorAreaSquareFeet": 147600,
+      "potentialResidentialFloorAreaSquareFeet": 147600,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 164,
+      "regionId": "QN0104",
+      "residentialFar": 5,
+      "sourceRowIds": [
+        "pluto:4006700008"
+      ],
+      "zoningDistricts": [
+        "M1-4/R7-3",
+        "M1-4/R7X"
+      ]
+    },
+    {
+      "address": "35-02 42 STREET",
+      "affordableResidentialFar": 6,
+      "availableCommercialFar": 1,
+      "availableFar": 4,
+      "availableResidentialFar": 4,
+      "bbl": "4006700020",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 10000,
+      "builtFar": 1,
+      "commercialFar": 2,
+      "coordinates": [
+        -73.9209363,
+        40.7542907
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4006700020",
+      "landUseCode": "6",
+      "lotAreaSquareFeet": 10000,
+      "potentialCommercialFloorAreaSquareFeet": 10000,
+      "potentialFloorAreaSquareFeet": 40000,
+      "potentialResidentialFloorAreaSquareFeet": 40000,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 44,
+      "regionId": "QN0104",
+      "residentialFar": 5,
+      "sourceRowIds": [
+        "pluto:4006700020"
+      ],
+      "zoningDistricts": [
+        "M1-4/R7X"
+      ]
+    },
+    {
+      "address": "35-22 42 STREET",
+      "affordableResidentialFar": 6,
+      "availableCommercialFar": 1,
+      "availableFar": 4,
+      "availableResidentialFar": 4,
+      "bbl": "4006700027",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 6000,
+      "builtFar": 1,
+      "commercialFar": 2,
+      "coordinates": [
+        -73.9212291,
+        40.7539313
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4006700027",
+      "landUseCode": "6",
+      "lotAreaSquareFeet": 6000,
+      "potentialCommercialFloorAreaSquareFeet": 6000,
+      "potentialFloorAreaSquareFeet": 24000,
+      "potentialResidentialFloorAreaSquareFeet": 24000,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 26,
+      "regionId": "QN0104",
+      "residentialFar": 5,
+      "sourceRowIds": [
+        "pluto:4006700027"
+      ],
+      "zoningDistricts": [
+        "M1-4/R7-3"
+      ]
+    },
+    {
+      "address": "35-28 42 STREET",
+      "affordableResidentialFar": 6,
+      "availableCommercialFar": 1,
+      "availableFar": 4,
+      "availableResidentialFar": 4,
+      "bbl": "4006700030",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 6000,
+      "builtFar": 1,
+      "commercialFar": 2,
+      "coordinates": [
+        -73.9213447,
+        40.7537887
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4006700030",
+      "landUseCode": "6",
+      "lotAreaSquareFeet": 6000,
+      "potentialCommercialFloorAreaSquareFeet": 6000,
+      "potentialFloorAreaSquareFeet": 24000,
+      "potentialResidentialFloorAreaSquareFeet": 24000,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 26,
+      "regionId": "QN0104",
+      "residentialFar": 5,
+      "sourceRowIds": [
+        "pluto:4006700030"
+      ],
+      "zoningDistricts": [
+        "M1-4/R7-3"
+      ]
+    },
+    {
+      "address": "35-34 42 STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 1,
+      "availableFar": 2,
+      "availableResidentialFar": 2,
+      "bbl": "4006700033",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 6000,
+      "builtFar": 1,
+      "commercialFar": 2,
+      "coordinates": [
+        -73.9214604,
+        40.7536488
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4006700033",
+      "landUseCode": "7",
+      "lotAreaSquareFeet": 6000,
+      "potentialCommercialFloorAreaSquareFeet": 6000,
+      "potentialFloorAreaSquareFeet": 12000,
+      "potentialResidentialFloorAreaSquareFeet": 12000,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 13,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006700033"
+      ],
+      "zoningDistricts": [
+        "M1-4/R6A"
+      ]
+    },
+    {
+      "address": "35-42 42 STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 1,
+      "availableFar": 2,
+      "availableResidentialFar": 2,
+      "bbl": "4006700036",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 5950,
+      "builtFar": 1,
+      "commercialFar": 2,
+      "coordinates": [
+        -73.9215724,
+        40.7535088
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4006700036",
+      "landUseCode": "7",
+      "lotAreaSquareFeet": 5967,
+      "potentialCommercialFloorAreaSquareFeet": 5967,
+      "potentialFloorAreaSquareFeet": 11934,
+      "potentialResidentialFloorAreaSquareFeet": 11934,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 13,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006700036"
+      ],
+      "zoningDistricts": [
+        "M1-4/R6A"
+      ]
+    },
+    {
+      "address": "41-15 NORTHERN BOULEVARD",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 1.44,
+      "availableFar": 2.44,
+      "availableResidentialFar": 2.44,
+      "bbl": "4006700039",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 7717,
+      "builtFar": 0.56,
+      "commercialFar": 2,
+      "coordinates": [
+        -73.9217857,
+        40.7532812
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4006700039",
+      "landUseCode": "7",
+      "lotAreaSquareFeet": 13769,
+      "potentialCommercialFloorAreaSquareFeet": 19827.36,
+      "potentialFloorAreaSquareFeet": 33596.36,
+      "potentialResidentialFloorAreaSquareFeet": 33596.36,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 37,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006700039"
+      ],
+      "zoningDistricts": [
+        "M1-4/R6A"
+      ]
+    },
+    {
+      "address": "35-45 41 STREET",
+      "affordableResidentialFar": 10.8,
+      "availableCommercialFar": 4,
+      "availableFar": 8,
+      "availableResidentialFar": 8,
+      "bbl": "4006700047",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 15700,
+      "builtFar": 1,
+      "commercialFar": 5,
+      "coordinates": [
+        -73.922114,
+        40.7533747
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4006700047",
+      "landUseCode": "6",
+      "lotAreaSquareFeet": 15767,
+      "potentialCommercialFloorAreaSquareFeet": 63068,
+      "potentialFloorAreaSquareFeet": 126136,
+      "potentialResidentialFloorAreaSquareFeet": 126136,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 140,
+      "regionId": "QN0104",
+      "residentialFar": 9,
+      "sourceRowIds": [
+        "pluto:4006700047"
+      ],
+      "zoningDistricts": [
+        "M1-5/R9-1"
+      ]
+    },
+    {
+      "address": "42-07 NORTHERN BOULEVARD",
+      "affordableResidentialFar": 10.8,
+      "availableCommercialFar": 4,
+      "availableFar": 8,
+      "availableResidentialFar": 8,
+      "bbl": "4006710001",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 24300,
+      "builtFar": 1,
+      "commercialFar": 5,
+      "coordinates": [
+        -73.9208289,
+        40.7535001
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 3,
+      "id": "capacity:4006710001",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 24387,
+      "potentialCommercialFloorAreaSquareFeet": 97548,
+      "potentialFloorAreaSquareFeet": 195096,
+      "potentialResidentialFloorAreaSquareFeet": 195096,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 216,
+      "regionId": "QN0104",
+      "residentialFar": 9,
+      "sourceRowIds": [
+        "pluto:4006710001"
+      ],
+      "zoningDistricts": [
+        "M1-5/R9-1"
+      ]
+    },
+    {
+      "address": "35-17 42 STREET",
+      "affordableResidentialFar": 10.8,
+      "availableCommercialFar": 4,
+      "availableFar": 8,
+      "availableResidentialFar": 8,
+      "bbl": "4006710008",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 10000,
+      "builtFar": 1,
+      "commercialFar": 5,
+      "coordinates": [
+        -73.9206409,
+        40.7538266
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 2,
+      "id": "capacity:4006710008",
+      "landUseCode": "10",
+      "lotAreaSquareFeet": 10000,
+      "potentialCommercialFloorAreaSquareFeet": 40000,
+      "potentialFloorAreaSquareFeet": 80000,
+      "potentialResidentialFloorAreaSquareFeet": 80000,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 88,
+      "regionId": "QN0104",
+      "residentialFar": 9,
+      "sourceRowIds": [
+        "pluto:4006710008"
+      ],
+      "zoningDistricts": [
+        "M1-5/R9-1"
+      ]
+    },
+    {
+      "address": "42-08 35 AVENUE",
+      "affordableResidentialFar": 6,
+      "availableCommercialFar": 1,
+      "availableFar": 4,
+      "availableResidentialFar": 4,
+      "bbl": "4006710012",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 9000,
+      "builtFar": 1,
+      "commercialFar": 2,
+      "coordinates": [
+        -73.9204673,
+        40.754068
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 5,
+      "id": "capacity:4006710012",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 9000,
+      "potentialCommercialFloorAreaSquareFeet": 9000,
+      "potentialFloorAreaSquareFeet": 36000,
+      "potentialResidentialFloorAreaSquareFeet": 36000,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 40,
+      "regionId": "QN0104",
+      "residentialFar": 5,
+      "sourceRowIds": [
+        "pluto:4006710012"
+      ],
+      "zoningDistricts": [
+        "M1-4/R7X"
+      ]
+    },
+    {
+      "address": "42-12 35 AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 1,
+      "availableFar": 2,
+      "availableResidentialFar": 2,
+      "bbl": "4006710016",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 5000,
+      "builtFar": 1,
+      "commercialFar": 2,
+      "coordinates": [
+        -73.9202473,
+        40.7539663
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4006710016",
+      "landUseCode": "10",
+      "lotAreaSquareFeet": 5000,
+      "potentialCommercialFloorAreaSquareFeet": 5000,
+      "potentialFloorAreaSquareFeet": 10000,
+      "potentialResidentialFloorAreaSquareFeet": 10000,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 11,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006710016"
+      ],
+      "zoningDistricts": [
+        "M1-4/R6A"
+      ]
+    },
+    {
+      "address": "35-10 43 STREET",
+      "affordableResidentialFar": 10.8,
+      "availableCommercialFar": 4,
+      "availableFar": 8,
+      "availableResidentialFar": 8,
+      "bbl": "4006710020",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 6000,
+      "builtFar": 1,
+      "commercialFar": 5,
+      "coordinates": [
+        -73.9202909,
+        40.7537303
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4006710020",
+      "landUseCode": "6",
+      "lotAreaSquareFeet": 6000,
+      "potentialCommercialFloorAreaSquareFeet": 24000,
+      "potentialFloorAreaSquareFeet": 48000,
+      "potentialResidentialFloorAreaSquareFeet": 48000,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 53,
+      "regionId": "QN0104",
+      "residentialFar": 9,
+      "sourceRowIds": [
+        "pluto:4006710020"
+      ],
+      "zoningDistricts": [
+        "M1-5/R9-1"
+      ]
+    },
+    {
+      "address": "35-18 43 STREET",
+      "affordableResidentialFar": 10.8,
+      "availableCommercialFar": 4,
+      "availableFar": 8,
+      "availableResidentialFar": 8,
+      "bbl": "4006710023",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 4000,
+      "builtFar": 1,
+      "commercialFar": 5,
+      "coordinates": [
+        -73.9203885,
+        40.7536151
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4006710023",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 4000,
+      "potentialCommercialFloorAreaSquareFeet": 16000,
+      "potentialFloorAreaSquareFeet": 32000,
+      "potentialResidentialFloorAreaSquareFeet": 32000,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 35,
+      "regionId": "QN0104",
+      "residentialFar": 9,
+      "sourceRowIds": [
+        "pluto:4006710023"
+      ],
+      "zoningDistricts": [
+        "M1-5/R9-1"
+      ]
+    },
+    {
+      "address": "34-14 STEINWAY STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 2,
+      "availableFar": 2,
+      "availableResidentialFar": 2,
+      "bbl": "4006720013",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 23250,
+      "builtFar": 1,
+      "commercialFar": 3,
+      "coordinates": [
+        -73.9217316,
+        40.7563031
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 5,
+      "id": "capacity:4006720013",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 23312,
+      "potentialCommercialFloorAreaSquareFeet": 46624,
+      "potentialFloorAreaSquareFeet": 46624,
+      "potentialResidentialFloorAreaSquareFeet": 46624,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 51,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006720013"
+      ],
+      "zoningDistricts": [
+        "C4-2A",
+        "M1-1"
+      ]
+    },
+    {
+      "address": "34-02 STEINWAY STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 2,
+      "availableFar": 2,
+      "availableResidentialFar": 2,
+      "bbl": "4006720025",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 18965,
+      "builtFar": 1,
+      "commercialFar": 3,
+      "coordinates": [
+        -73.9214208,
+        40.7566515
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 3,
+      "id": "capacity:4006720025",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 18985,
+      "potentialCommercialFloorAreaSquareFeet": 37970,
+      "potentialFloorAreaSquareFeet": 37970,
+      "potentialResidentialFloorAreaSquareFeet": 37970,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 42,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006720025"
+      ],
+      "zoningDistricts": [
+        "C4-2A",
+        "M1-1"
+      ]
+    },
+    {
+      "address": "34-30 STEINWAY STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 2,
+      "availableFar": 2,
+      "availableResidentialFar": 2,
+      "bbl": "4006720037",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 9300,
+      "builtFar": 1,
+      "commercialFar": 3,
+      "coordinates": [
+        -73.9219448,
+        40.7560425
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4006720037",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 9315,
+      "potentialCommercialFloorAreaSquareFeet": 18630,
+      "potentialFloorAreaSquareFeet": 18630,
+      "potentialResidentialFloorAreaSquareFeet": 18630,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 20,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006720037"
+      ],
+      "zoningDistricts": [
+        "C4-2A",
+        "M1-1"
+      ]
+    },
+    {
+      "address": "34-44 STEINWAY STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 2,
+      "availableFar": 2,
+      "availableResidentialFar": 2,
+      "bbl": "4006720040",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 8980,
+      "builtFar": 1,
+      "commercialFar": 3,
+      "coordinates": [
+        -73.9219379,
+        40.7557927
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 3,
+      "id": "capacity:4006720040",
+      "landUseCode": "6",
+      "lotAreaSquareFeet": 9011,
+      "potentialCommercialFloorAreaSquareFeet": 18022,
+      "potentialFloorAreaSquareFeet": 18022,
+      "potentialResidentialFloorAreaSquareFeet": 18022,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 20,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006720040"
+      ],
+      "zoningDistricts": [
+        "C4-2A"
+      ]
+    },
+    {
+      "address": "34-50 STEINWAY STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 2,
+      "availableFar": 2,
+      "availableResidentialFar": 2,
+      "bbl": "4006720043",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 12690,
+      "builtFar": 1,
+      "commercialFar": 3,
+      "coordinates": [
+        -73.9221693,
+        40.7555074
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 2,
+      "id": "capacity:4006720043",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 12690,
+      "potentialCommercialFloorAreaSquareFeet": 25380,
+      "potentialFloorAreaSquareFeet": 25380,
+      "potentialResidentialFloorAreaSquareFeet": 25380,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 28,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006720043"
+      ],
+      "zoningDistricts": [
+        "C4-2A"
+      ]
+    },
+    {
+      "address": "34-49 STEINWAY STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 3,
+      "availableFar": 3,
+      "availableResidentialFar": 3,
+      "bbl": "4006730001",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 3,
+      "coordinates": [
+        -73.921545,
+        40.7553945
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:4006730001",
+      "landUseCode": "11",
+      "lotAreaSquareFeet": 47550,
+      "potentialCommercialFloorAreaSquareFeet": 142650,
+      "potentialFloorAreaSquareFeet": 142650,
+      "potentialResidentialFloorAreaSquareFeet": 142650,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 158,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006730001"
+      ],
+      "zoningDistricts": [
+        "C4-2A"
+      ]
+    },
+    {
+      "address": "34-21 STEINWAY STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 2,
+      "availableFar": 2,
+      "availableResidentialFar": 2,
+      "bbl": "4006730014",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 5700,
+      "builtFar": 1,
+      "commercialFar": 3,
+      "coordinates": [
+        -73.9211076,
+        40.7559349
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 2,
+      "id": "capacity:4006730014",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 5700,
+      "potentialCommercialFloorAreaSquareFeet": 11400,
+      "potentialFloorAreaSquareFeet": 11400,
+      "potentialResidentialFloorAreaSquareFeet": 11400,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 12,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006730014"
+      ],
+      "zoningDistricts": [
+        "C4-2A"
+      ]
+    },
+    {
+      "address": "31-79 STEINWAY STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 2,
+      "availableFar": 2,
+      "availableResidentialFar": 2,
+      "bbl": "4006780010",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 2250,
+      "builtFar": 1,
+      "commercialFar": 3,
+      "coordinates": [
+        -73.9184108,
+        40.7592624
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4006780010",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 2250,
+      "potentialCommercialFloorAreaSquareFeet": 4500,
+      "potentialFloorAreaSquareFeet": 4500,
+      "potentialResidentialFloorAreaSquareFeet": 4500,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 5,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006780010"
+      ],
+      "zoningDistricts": [
+        "C4-2A"
+      ]
+    },
+    {
+      "address": "31-75 STEINWAY STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 2.11,
+      "availableFar": 2.11,
+      "availableResidentialFar": 2.11,
+      "bbl": "4006780011",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 2000,
+      "builtFar": 0.89,
+      "commercialFar": 3,
+      "coordinates": [
+        -73.9183638,
+        40.75932
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4006780011",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 2250,
+      "potentialCommercialFloorAreaSquareFeet": 4747.5,
+      "potentialFloorAreaSquareFeet": 4747.5,
+      "potentialResidentialFloorAreaSquareFeet": 4747.5,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 5,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006780011"
+      ],
+      "zoningDistricts": [
+        "C4-2A"
+      ]
+    },
+    {
+      "address": "31-65 STEINWAY STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 2.17,
+      "availableFar": 2.17,
+      "availableResidentialFar": 2.17,
+      "bbl": "4006780015",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 2344,
+      "builtFar": 0.83,
+      "commercialFar": 3,
+      "coordinates": [
+        -73.9182048,
+        40.7595148
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 2,
+      "id": "capacity:4006780015",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 2812,
+      "potentialCommercialFloorAreaSquareFeet": 6102.04,
+      "potentialFloorAreaSquareFeet": 6102.04,
+      "potentialResidentialFloorAreaSquareFeet": 6102.04,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 6,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006780015"
+      ],
+      "zoningDistricts": [
+        "C4-2A"
+      ]
+    },
+    {
+      "address": "31-59 STEINWAY STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 2,
+      "availableFar": 2,
+      "availableResidentialFar": 2,
+      "bbl": "4006780016",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 5624,
+      "builtFar": 1,
+      "commercialFar": 3,
+      "coordinates": [
+        -73.918118,
+        40.7596245
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 2,
+      "id": "capacity:4006780016",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 5625,
+      "potentialCommercialFloorAreaSquareFeet": 11250,
+      "potentialFloorAreaSquareFeet": 11250,
+      "potentialResidentialFloorAreaSquareFeet": 11250,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 12,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006780016"
+      ],
+      "zoningDistricts": [
+        "C4-2A"
+      ]
+    },
+    {
+      "address": "31-55 STEINWAY STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 2,
+      "availableFar": 2,
+      "availableResidentialFar": 2,
+      "bbl": "4006780019",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 2250,
+      "builtFar": 1,
+      "commercialFar": 3,
+      "coordinates": [
+        -73.9179842,
+        40.7597863
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4006780019",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 2250,
+      "potentialCommercialFloorAreaSquareFeet": 4500,
+      "potentialFloorAreaSquareFeet": 4500,
+      "potentialResidentialFloorAreaSquareFeet": 4500,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 5,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006780019"
+      ],
+      "zoningDistricts": [
+        "C4-2A"
+      ]
+    },
+    {
+      "address": "31-39 STEINWAY STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 2.17,
+      "availableFar": 2.17,
+      "availableResidentialFar": 2.17,
+      "bbl": "4006780026",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 1875,
+      "builtFar": 0.83,
+      "commercialFar": 3,
+      "coordinates": [
+        -73.9176553,
+        40.7601951
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4006780026",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 2250,
+      "potentialCommercialFloorAreaSquareFeet": 4882.5,
+      "potentialFloorAreaSquareFeet": 4882.5,
+      "potentialResidentialFloorAreaSquareFeet": 4882.5,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 5,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006780026"
+      ],
+      "zoningDistricts": [
+        "C4-2A"
+      ]
+    },
+    {
+      "address": "31-19 STEINWAY STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 2.28,
+      "availableFar": 2.28,
+      "availableResidentialFar": 2.28,
+      "bbl": "4006780034",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 910,
+      "builtFar": 0.72,
+      "commercialFar": 3,
+      "coordinates": [
+        -73.9172793,
+        40.7606559
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4006780034",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 1260,
+      "potentialCommercialFloorAreaSquareFeet": 2872.8,
+      "potentialFloorAreaSquareFeet": 2872.8,
+      "potentialResidentialFloorAreaSquareFeet": 2872.8,
+      "potentialResidentialUnitsClass1": 1,
+      "potentialResidentialUnitsClass2": 3,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006780034"
+      ],
+      "zoningDistricts": [
+        "C4-2A"
+      ]
+    },
+    {
+      "address": "31-11 STEINWAY STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 2,
+      "availableFar": 2,
+      "availableResidentialFar": 2,
+      "bbl": "4006780036",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 4500,
+      "builtFar": 1,
+      "commercialFar": 3,
+      "coordinates": [
+        -73.9171491,
+        40.760815
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4006780036",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 4500,
+      "potentialCommercialFloorAreaSquareFeet": 9000,
+      "potentialFloorAreaSquareFeet": 9000,
+      "potentialResidentialFloorAreaSquareFeet": 9000,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 10,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006780036"
+      ],
+      "zoningDistricts": [
+        "C4-2A"
+      ]
+    },
+    {
+      "address": "31-09 STEINWAY STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 2.02,
+      "availableFar": 2.02,
+      "availableResidentialFar": 2.02,
+      "bbl": "4006780038",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 2200,
+      "builtFar": 0.98,
+      "commercialFar": 3,
+      "coordinates": [
+        -73.9170768,
+        40.7609028
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4006780038",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 2250,
+      "potentialCommercialFloorAreaSquareFeet": 4545,
+      "potentialFloorAreaSquareFeet": 4545,
+      "potentialResidentialFloorAreaSquareFeet": 4545,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 5,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006780038"
+      ],
+      "zoningDistricts": [
+        "C4-2A"
+      ]
+    },
+    {
+      "address": "30-95 STEINWAY STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 2,
+      "availableFar": 2,
+      "availableResidentialFar": 2,
+      "bbl": "4006800007",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 2250,
+      "builtFar": 1,
+      "commercialFar": 3,
+      "coordinates": [
+        -73.9166358,
+        40.7614267
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4006800007",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 2250,
+      "potentialCommercialFloorAreaSquareFeet": 4500,
+      "potentialFloorAreaSquareFeet": 4500,
+      "potentialResidentialFloorAreaSquareFeet": 4500,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 5,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006800007"
+      ],
+      "zoningDistricts": [
+        "C4-2A"
+      ]
+    },
+    {
+      "address": "30-67 STEINWAY STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 2,
+      "availableFar": 2,
+      "availableResidentialFar": 2,
+      "bbl": "4006800019",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 2250,
+      "builtFar": 1,
+      "commercialFar": 3,
+      "coordinates": [
+        -73.9160682,
+        40.7621235
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4006800019",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 2250,
+      "potentialCommercialFloorAreaSquareFeet": 4500,
+      "potentialFloorAreaSquareFeet": 4500,
+      "potentialResidentialFloorAreaSquareFeet": 4500,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 5,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006800019"
+      ],
+      "zoningDistricts": [
+        "C4-2A"
+      ]
+    },
+    {
+      "address": "30-37 STEINWAY STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 2.17,
+      "availableFar": 2.17,
+      "availableResidentialFar": 2.17,
+      "bbl": "4006800028",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 11230,
+      "builtFar": 0.83,
+      "commercialFar": 3,
+      "coordinates": [
+        -73.9155405,
+        40.7625842
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 3,
+      "id": "capacity:4006800028",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 13473,
+      "potentialCommercialFloorAreaSquareFeet": 29236.41,
+      "potentialFloorAreaSquareFeet": 29236.41,
+      "potentialResidentialFloorAreaSquareFeet": 29236.41,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 32,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006800028"
+      ],
+      "zoningDistricts": [
+        "C4-2A",
+        "R5"
+      ]
+    },
+    {
+      "address": "25-91 STEINWAY STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 2.02,
+      "availableFar": 2.02,
+      "availableResidentialFar": 2.02,
+      "bbl": "4006840008",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 2992,
+      "builtFar": 0.98,
+      "commercialFar": 3,
+      "coordinates": [
+        -73.9132299,
+        40.7656291
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4006840008",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 3042,
+      "potentialCommercialFloorAreaSquareFeet": 6144.84,
+      "potentialFloorAreaSquareFeet": 6144.84,
+      "potentialResidentialFloorAreaSquareFeet": 6144.84,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 6,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006840008"
+      ],
+      "zoningDistricts": [
+        "C4-2A"
+      ]
+    },
+    {
+      "address": "25-89 STEINWAY STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 2.11,
+      "availableFar": 2.11,
+      "availableResidentialFar": 2.11,
+      "bbl": "4006840009",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 1958,
+      "builtFar": 0.89,
+      "commercialFar": 3,
+      "coordinates": [
+        -73.913172,
+        40.7657005
+      ],
+      "existingResidentialUnits": 2,
+      "existingTotalUnits": 3,
+      "id": "capacity:4006840009",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 2200,
+      "potentialCommercialFloorAreaSquareFeet": 4642,
+      "potentialFloorAreaSquareFeet": 4642,
+      "potentialResidentialFloorAreaSquareFeet": 4642,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 5,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006840009"
+      ],
+      "zoningDistricts": [
+        "C4-2A"
+      ]
+    },
+    {
+      "address": "25-87 STEINWAY STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 2.03,
+      "availableFar": 2.03,
+      "availableResidentialFar": 2.03,
+      "bbl": "4006840010",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 2762,
+      "builtFar": 0.97,
+      "commercialFar": 3,
+      "coordinates": [
+        -73.9131142,
+        40.765769
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 2,
+      "id": "capacity:4006840010",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 2850,
+      "potentialCommercialFloorAreaSquareFeet": 5785.5,
+      "potentialFloorAreaSquareFeet": 5785.5,
+      "potentialResidentialFloorAreaSquareFeet": 5785.5,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 6,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006840010"
+      ],
+      "zoningDistricts": [
+        "C4-2A"
+      ]
+    },
+    {
+      "address": "25-79 STEINWAY STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 2.05,
+      "availableFar": 2.05,
+      "availableResidentialFar": 2.05,
+      "bbl": "4006840013",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 3825,
+      "builtFar": 0.95,
+      "commercialFar": 3,
+      "coordinates": [
+        -73.9130419,
+        40.7658568
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 3,
+      "id": "capacity:4006840013",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 4016,
+      "potentialCommercialFloorAreaSquareFeet": 8232.8,
+      "potentialFloorAreaSquareFeet": 8232.8,
+      "potentialResidentialFloorAreaSquareFeet": 8232.8,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 9,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006840013"
+      ],
+      "zoningDistricts": [
+        "C4-2A"
+      ]
+    },
+    {
+      "address": "31-06 43 STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 3,
+      "availableResidentialFar": 3,
+      "bbl": "4006920045",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9151719,
+        40.7601329
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:4006920045",
+      "landUseCode": "11",
+      "lotAreaSquareFeet": 2980,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 8940,
+      "potentialResidentialFloorAreaSquareFeet": 8940,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 9,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006920045"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "31-08 43 STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 3,
+      "availableResidentialFar": 3,
+      "bbl": "4006920046",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.915226,
+        40.7600917
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:4006920046",
+      "landUseCode": "11",
+      "lotAreaSquareFeet": 2980,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 8940,
+      "potentialResidentialFloorAreaSquareFeet": 8940,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 9,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006920046"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "31-10 43 STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.2,
+      "availableResidentialFar": 2.2,
+      "bbl": "4006920148",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 2320,
+      "builtFar": 0.8,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9151829,
+        40.7599929
+      ],
+      "existingResidentialUnits": 2,
+      "existingTotalUnits": 2,
+      "id": "capacity:4006920148",
+      "landUseCode": "1",
+      "lotAreaSquareFeet": 2911,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 6404.2,
+      "potentialResidentialFloorAreaSquareFeet": 6404.2,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 7,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006920148"
+      ],
+      "zoningDistricts": [
+        "R6A",
+        "R5"
+      ]
+    },
+    {
+      "address": "31-05 42 STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.07,
+      "availableResidentialFar": 2.07,
+      "bbl": "4006920343",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 2814,
+      "builtFar": 0.93,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9154929,
+        40.7602868
+      ],
+      "existingResidentialUnits": 2,
+      "existingTotalUnits": 2,
+      "id": "capacity:4006920343",
+      "landUseCode": "1",
+      "lotAreaSquareFeet": 3017,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 6245.19,
+      "potentialResidentialFloorAreaSquareFeet": 6245.19,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 6,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006920343"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "31-02 44 STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.01,
+      "availableResidentialFar": 2.01,
+      "bbl": "4006940001",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 2774,
+      "builtFar": 0.99,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9142014,
+        40.7596848
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4006940001",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 2802,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 5632.02,
+      "potentialResidentialFloorAreaSquareFeet": 5632.02,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 6,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006940001"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "43-02 31 AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.6,
+      "availableResidentialFar": 2.6,
+      "bbl": "4006940004",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 1762,
+      "builtFar": 0.4,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9143276,
+        40.7598276
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4006940004",
+      "landUseCode": "7",
+      "lotAreaSquareFeet": 4368,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 11356.8,
+      "potentialResidentialFloorAreaSquareFeet": 11356.8,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 12,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006940004"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "42 STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 3,
+      "availableResidentialFar": 3,
+      "bbl": "4006980001",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.912861,
+        40.7633837
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:4006980001",
+      "landUseCode": "10",
+      "lotAreaSquareFeet": 2514,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 7542,
+      "potentialResidentialFloorAreaSquareFeet": 7542,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 8,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006980001"
+      ],
+      "zoningDistricts": [
+        "R6A",
+        "R5"
+      ]
+    },
+    {
+      "address": "28-50 43 STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 3,
+      "availableResidentialFar": 3,
+      "bbl": "4006980040",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9125507,
+        40.7632435
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:4006980040",
+      "landUseCode": "10",
+      "lotAreaSquareFeet": 1983,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 5949,
+      "potentialResidentialFloorAreaSquareFeet": 5949,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 6,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006980040"
+      ],
+      "zoningDistricts": [
+        "R6A",
+        "R5"
+      ]
+    },
+    {
+      "address": "42-15 30 AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.05,
+      "availableResidentialFar": 2.05,
+      "bbl": "4006980041",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 7400,
+      "builtFar": 0.95,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9126268,
+        40.7630733
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4006980041",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 7809,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 16008.45,
+      "potentialResidentialFloorAreaSquareFeet": 16008.45,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 17,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006980041"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "42-11 30 AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 3,
+      "availableResidentialFar": 3,
+      "bbl": "4006980044",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9127855,
+        40.7631421
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:4006980044",
+      "landUseCode": "11",
+      "lotAreaSquareFeet": 2400,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 7200,
+      "potentialResidentialFloorAreaSquareFeet": 7200,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 8,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006980044"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "42-07 30 AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2.01,
+      "availableResidentialFar": 2.01,
+      "bbl": "4006980045",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 5000,
+      "builtFar": 0.99,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9129046,
+        40.7631971
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 1,
+      "id": "capacity:4006980045",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 5064,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 10178.64,
+      "potentialResidentialFloorAreaSquareFeet": 10178.64,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 11,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006980045"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "42-03 30 AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 2,
+      "availableResidentialFar": 2,
+      "bbl": "4006980047",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 2508,
+      "builtFar": 1,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.91302,
+        40.763252
+      ],
+      "existingResidentialUnits": 2,
+      "existingTotalUnits": 2,
+      "id": "capacity:4006980047",
+      "landUseCode": "1",
+      "lotAreaSquareFeet": 2500,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 5000,
+      "potentialResidentialFloorAreaSquareFeet": 5000,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 5,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4006980047"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "42-09 28 AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 3,
+      "availableResidentialFar": 3,
+      "bbl": "4007010005",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9115776,
+        40.7647715
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:4007010005",
+      "landUseCode": "11",
+      "lotAreaSquareFeet": 2333,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 6999,
+      "potentialResidentialFloorAreaSquareFeet": 6999,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 7,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4007010005"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "42-01 28 AVENUE",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 3,
+      "availableResidentialFar": 3,
+      "bbl": "4007010006",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9117689,
+        40.7647964
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:4007010006",
+      "landUseCode": "11",
+      "lotAreaSquareFeet": 4500,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 13500,
+      "potentialResidentialFloorAreaSquareFeet": 13500,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 15,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4007010006"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "25-89 42 STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 3,
+      "availableResidentialFar": 3,
+      "bbl": "4007010008",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9116894,
+        40.7648924
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:4007010008",
+      "landUseCode": "11",
+      "lotAreaSquareFeet": 1500,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 4500,
+      "potentialResidentialFloorAreaSquareFeet": 4500,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 5,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4007010008"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "25-87 42 STREET",
+      "affordableResidentialFar": 3.9,
+      "availableCommercialFar": 0,
+      "availableFar": 3,
+      "availableResidentialFar": 3,
+      "bbl": "4007010108",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9116532,
+        40.7649363
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:4007010108",
+      "landUseCode": "11",
+      "lotAreaSquareFeet": 1500,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 4500,
+      "potentialResidentialFloorAreaSquareFeet": 4500,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 5,
+      "regionId": "QN0104",
+      "residentialFar": 3,
+      "sourceRowIds": [
+        "pluto:4007010108"
+      ],
+      "zoningDistricts": [
+        "R6A"
+      ]
+    },
+    {
+      "address": "32-78 48 STREET",
+      "affordableResidentialFar": 5.6,
+      "availableCommercialFar": 0,
+      "availableFar": 3.66,
+      "availableResidentialFar": 3.66,
+      "bbl": "4007230001",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 3818,
+      "builtFar": 1,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.914382,
+        40.7540088
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 6,
+      "id": "capacity:4007230001",
+      "landUseCode": "5",
+      "lotAreaSquareFeet": 3819,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 13977.54,
+      "potentialResidentialFloorAreaSquareFeet": 13977.54,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 15,
+      "regionId": "QN0104",
+      "residentialFar": 4.66,
+      "sourceRowIds": [
+        "pluto:4007230001"
+      ],
+      "zoningDistricts": [
+        "R7D"
+      ]
+    },
+    {
+      "address": "47-15 34 AVENUE",
+      "affordableResidentialFar": 5.6,
+      "availableCommercialFar": 0,
+      "availableFar": 3.79,
+      "availableResidentialFar": 3.79,
+      "bbl": "4007230008",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 23164,
+      "builtFar": 0.87,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9146958,
+        40.7541545
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 5,
+      "id": "capacity:4007230008",
+      "landUseCode": "4",
+      "lotAreaSquareFeet": 26758,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 101412.82,
+      "potentialResidentialFloorAreaSquareFeet": 101412.82,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 112,
+      "regionId": "QN0104",
+      "residentialFar": 4.66,
+      "sourceRowIds": [
+        "pluto:4007230008"
+      ],
+      "zoningDistricts": [
+        "R7D"
+      ]
+    },
+    {
+      "address": "47-12 BROADWAY",
+      "affordableResidentialFar": 2.4,
+      "availableCommercialFar": 0,
+      "availableFar": 2,
+      "availableResidentialFar": 2,
+      "bbl": "4007230038",
+      "boroughId": "queens",
+      "builtAreaSquareFeet": 0,
+      "builtFar": 0,
+      "commercialFar": 0,
+      "coordinates": [
+        -73.9132172,
+        40.7559731
+      ],
+      "existingResidentialUnits": 0,
+      "existingTotalUnits": 0,
+      "id": "capacity:4007230038",
+      "landUseCode": "11",
+      "lotAreaSquareFeet": 2500,
+      "potentialCommercialFloorAreaSquareFeet": 0,
+      "potentialFloorAreaSquareFeet": 5000,
+      "potentialResidentialFloorAreaSquareFeet": 5000,
+      "potentialResidentialUnitsClass1": 3,
+      "potentialResidentialUnitsClass2": 5,
+      "regionId": "QN0104",
+      "residentialFar": 2,
+      "sourceRowIds": [
+        "pluto:4007230038"
+      ],
+      "zoningDistricts": [
+        "R6B"
+      ]
+    }
+  ],
+  "claimBoundary": "This NTA shard preserves every joined row retained from the governed source snapshot. The source snapshot itself samples large DOB jobs, constructed footprints, and PLUTO capacity candidates and is not a complete property history or feasibility inventory.",
+  "contentVersion": "2026-07-27",
+  "coverage": {
+    "capacityCandidates": 101,
+    "compilerRegionCap": null,
+    "developmentForecastSupportedBySector": {
+      "all": false,
+      "tax-class-1": true,
+      "tax-class-2": true,
+      "tax-class-4": true
+    },
+    "developmentSeriesRows": 22,
+    "historicalSites": 27,
+    "priceForecastSupportedBySector": {
+      "all": true,
+      "tax-class-1": true,
+      "tax-class-2": true,
+      "tax-class-4": true
+    },
+    "saleRows": 30,
+    "saleYearsBySector": {
+      "tax-class-1": [
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "tax-class-2": [
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "tax-class-4": [
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024,
+        2025
+      ]
+    },
+    "sectorCandidateCounts": {
+      "all": 0,
+      "tax-class-1": 101,
+      "tax-class-2": 101,
+      "tax-class-4": 81
+    },
+    "sourceSampled": true
+  },
+  "developmentSeries": [
+    {
+      "filingCount": 17,
+      "id": "development:QN0104:2000",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "QN0104",
+      "sourceNtaNames": [
+        "Astoria (East)-Woodside (North)"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2000
+    },
+    {
+      "filingCount": 9,
+      "id": "development:QN0104:2001",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "QN0104",
+      "sourceNtaNames": [
+        "Astoria (East)-Woodside (North)"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2001
+    },
+    {
+      "filingCount": 2,
+      "id": "development:QN0104:2002",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "QN0104",
+      "sourceNtaNames": [
+        "Astoria (East)-Woodside (North)"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2002
+    },
+    {
+      "filingCount": 13,
+      "id": "development:QN0104:2003",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "QN0104",
+      "sourceNtaNames": [
+        "Astoria (East)-Woodside (North)"
+      ],
+      "withdrawnFilingCount": 1,
+      "year": 2003
+    },
+    {
+      "filingCount": 19,
+      "id": "development:QN0104:2004",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "QN0104",
+      "sourceNtaNames": [
+        "Astoria (East)-Woodside (North)"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2004
+    },
+    {
+      "filingCount": 19,
+      "id": "development:QN0104:2005",
+      "proposedZoningSquareFeet": 3113,
+      "regionId": "QN0104",
+      "sourceNtaNames": [
+        "Astoria (East)-Woodside (North)"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2005
+    },
+    {
+      "filingCount": 27,
+      "id": "development:QN0104:2006",
+      "proposedZoningSquareFeet": 7500,
+      "regionId": "QN0104",
+      "sourceNtaNames": [
+        "Astoria (East)-Woodside (North)"
+      ],
+      "withdrawnFilingCount": 1,
+      "year": 2006
+    },
+    {
+      "filingCount": 16,
+      "id": "development:QN0104:2007",
+      "proposedZoningSquareFeet": 5498,
+      "regionId": "QN0104",
+      "sourceNtaNames": [
+        "Astoria (East)-Woodside (North)"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2007
+    },
+    {
+      "filingCount": 15,
+      "id": "development:QN0104:2008",
+      "proposedZoningSquareFeet": 36699,
+      "regionId": "QN0104",
+      "sourceNtaNames": [
+        "Astoria (East)-Woodside (North)"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2008
+    },
+    {
+      "filingCount": 13,
+      "id": "development:QN0104:2009",
+      "proposedZoningSquareFeet": 67939,
+      "regionId": "QN0104",
+      "sourceNtaNames": [
+        "Astoria (East)-Woodside (North)"
+      ],
+      "withdrawnFilingCount": 2,
+      "year": 2009
+    },
+    {
+      "filingCount": 2,
+      "id": "development:QN0104:2010",
+      "proposedZoningSquareFeet": 3060,
+      "regionId": "QN0104",
+      "sourceNtaNames": [
+        "Astoria (East)-Woodside (North)"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2010
+    },
+    {
+      "filingCount": 9,
+      "id": "development:QN0104:2011",
+      "proposedZoningSquareFeet": 38684,
+      "regionId": "QN0104",
+      "sourceNtaNames": [
+        "Astoria (East)-Woodside (North)"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2011
+    },
+    {
+      "filingCount": 1,
+      "id": "development:QN0104:2012",
+      "proposedZoningSquareFeet": 5000,
+      "regionId": "QN0104",
+      "sourceNtaNames": [
+        "Astoria (East)-Woodside (North)"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2012
+    },
+    {
+      "filingCount": 1,
+      "id": "development:QN0104:2013",
+      "proposedZoningSquareFeet": 12669,
+      "regionId": "QN0104",
+      "sourceNtaNames": [
+        "Astoria (East)-Woodside (North)"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2013
+    },
+    {
+      "filingCount": 12,
+      "id": "development:QN0104:2014",
+      "proposedZoningSquareFeet": 31479,
+      "regionId": "QN0104",
+      "sourceNtaNames": [
+        "Astoria (East)-Woodside (North)"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2014
+    },
+    {
+      "filingCount": 16,
+      "id": "development:QN0104:2015",
+      "proposedZoningSquareFeet": 83121,
+      "regionId": "QN0104",
+      "sourceNtaNames": [
+        "Astoria (East)-Woodside (North)"
+      ],
+      "withdrawnFilingCount": 1,
+      "year": 2015
+    },
+    {
+      "filingCount": 7,
+      "id": "development:QN0104:2016",
+      "proposedZoningSquareFeet": 138239,
+      "regionId": "QN0104",
+      "sourceNtaNames": [
+        "Astoria (East)-Woodside (North)"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2016
+    },
+    {
+      "filingCount": 16,
+      "id": "development:QN0104:2017",
+      "proposedZoningSquareFeet": 101906,
+      "regionId": "QN0104",
+      "sourceNtaNames": [
+        "Astoria (East)-Woodside (North)"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2017
+    },
+    {
+      "filingCount": 16,
+      "id": "development:QN0104:2018",
+      "proposedZoningSquareFeet": 69515,
+      "regionId": "QN0104",
+      "sourceNtaNames": [
+        "Astoria (East)-Woodside (North)"
+      ],
+      "withdrawnFilingCount": 1,
+      "year": 2018
+    },
+    {
+      "filingCount": 14,
+      "id": "development:QN0104:2019",
+      "proposedZoningSquareFeet": 25589,
+      "regionId": "QN0104",
+      "sourceNtaNames": [
+        "Astoria (East)-Woodside (North)"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2019
+    },
+    {
+      "filingCount": 2,
+      "id": "development:QN0104:2020",
+      "proposedZoningSquareFeet": 9990,
+      "regionId": "QN0104",
+      "sourceNtaNames": [
+        "Astoria (East)-Woodside (North)"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2020
+    },
+    {
+      "filingCount": 3,
+      "id": "development:QN0104:2021",
+      "proposedZoningSquareFeet": 27573,
+      "regionId": "QN0104",
+      "sourceNtaNames": [
+        "Astoria (East)-Woodside (North)"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2021
+    }
+  ],
+  "developmentSites": [
+    {
+      "address": null,
+      "bbl": "4007330025",
+      "bin": "4617856",
+      "constructionYear": 2018,
+      "coordinates": [
+        -73.9049294,
+        40.7664513
+      ],
+      "footprint": [
+        [
+          -73.9050715,
+          40.7664849
+        ],
+        [
+          -73.9050247,
+          40.7665435
+        ],
+        [
+          -73.9047162,
+          40.7664009
+        ],
+        [
+          -73.9047631,
+          40.7663423
+        ],
+        [
+          -73.9050715,
+          40.7664849
+        ]
+      ],
+      "footprintAreaM2": 405.3,
+      "footprintOrigin": "observed",
+      "heightM": 9.14,
+      "id": "footprint:1035657",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2018-07-01",
+          "id": "footprint:1035657:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0104",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1035657"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4006650034",
+      "bin": "4619734",
+      "constructionYear": 2021,
+      "coordinates": [
+        -73.9243879,
+        40.7529803
+      ],
+      "footprint": [
+        [
+          -73.9248579,
+          40.7524601
+        ],
+        [
+          -73.9249197,
+          40.7526145
+        ],
+        [
+          -73.9245324,
+          40.7527072
+        ],
+        [
+          -73.9241992,
+          40.7531273
+        ],
+        [
+          -73.9243288,
+          40.7531817
+        ],
+        [
+          -73.9243245,
+          40.7532076
+        ],
+        [
+          -73.924229,
+          40.7533131
+        ],
+        [
+          -73.9242056,
+          40.7533073
+        ],
+        [
+          -73.9240634,
+          40.7534837
+        ],
+        [
+          -73.9237584,
+          40.753339
+        ],
+        [
+          -73.9243784,
+          40.7525627
+        ],
+        [
+          -73.9248579,
+          40.7524601
+        ]
+      ],
+      "footprintAreaM2": 5383,
+      "footprintOrigin": "observed",
+      "heightM": 21.34,
+      "id": "footprint:1074377",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2021-07-01",
+          "id": "footprint:1074377:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0104",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1074377"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4006760090",
+      "bin": "4594808",
+      "constructionYear": 2021,
+      "coordinates": [
+        -73.9198938,
+        40.7568133
+      ],
+      "footprint": [
+        [
+          -73.919888,
+          40.7566923
+        ],
+        [
+          -73.9200774,
+          40.7567827
+        ],
+        [
+          -73.9199023,
+          40.7569948
+        ],
+        [
+          -73.919713,
+          40.7569045
+        ],
+        [
+          -73.919888,
+          40.7566923
+        ]
+      ],
+      "footprintAreaM2": 916.2,
+      "footprintOrigin": "observed",
+      "heightM": 15.24,
+      "id": "footprint:1079096",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2021-07-01",
+          "id": "footprint:1079096:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0104",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1079096"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4006540014",
+      "bin": "4607559",
+      "constructionYear": 2021,
+      "coordinates": [
+        -73.9133742,
+        40.7669696
+      ],
+      "footprint": [
+        [
+          -73.9133818,
+          40.7670773
+        ],
+        [
+          -73.9132142,
+          40.7669999
+        ],
+        [
+          -73.9133555,
+          40.7668219
+        ],
+        [
+          -73.9135231,
+          40.7668994
+        ],
+        [
+          -73.9133818,
+          40.7670773
+        ]
+      ],
+      "footprintAreaM2": 666.88,
+      "footprintOrigin": "observed",
+      "heightM": 18.29,
+      "id": "footprint:1084070",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2021-07-01",
+          "id": "footprint:1084070:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0104",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1084070"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4011350048",
+      "bin": "4619443",
+      "constructionYear": 2021,
+      "coordinates": [
+        -73.902903,
+        40.7567458
+      ],
+      "footprint": [
+        [
+          -73.9028273,
+          40.7567207
+        ],
+        [
+          -73.9030023,
+          40.7567033
+        ],
+        [
+          -73.9030165,
+          40.7567832
+        ],
+        [
+          -73.9028416,
+          40.7568012
+        ],
+        [
+          -73.9028273,
+          40.7567207
+        ]
+      ],
+      "footprintAreaM2": 233.46,
+      "footprintOrigin": "observed",
+      "heightM": 9.75,
+      "id": "footprint:1084158",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2021-07-01",
+          "id": "footprint:1084158:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0104",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1084158"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4006540059",
+      "bin": "4605306",
+      "constructionYear": 2021,
+      "coordinates": [
+        -73.9117182,
+        40.76833
+      ],
+      "footprint": [
+        [
+          -73.9115639,
+          40.7683198
+        ],
+        [
+          -73.911657,
+          40.7682091
+        ],
+        [
+          -73.9119492,
+          40.7683444
+        ],
+        [
+          -73.9118568,
+          40.768457
+        ],
+        [
+          -73.9115639,
+          40.7683198
+        ]
+      ],
+      "footprintAreaM2": 740.88,
+      "footprintOrigin": "observed",
+      "heightM": 18.29,
+      "id": "footprint:1084175",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2021-07-01",
+          "id": "footprint:1084175:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0104",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1084175"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4006540011",
+      "bin": "4618444",
+      "constructionYear": 2017,
+      "coordinates": [
+        -73.9135281,
+        40.7667145
+      ],
+      "footprint": [
+        [
+          -73.9134406,
+          40.766705
+        ],
+        [
+          -73.9134844,
+          40.7666493
+        ],
+        [
+          -73.9136592,
+          40.7667287
+        ],
+        [
+          -73.9136154,
+          40.7667844
+        ],
+        [
+          -73.9134406,
+          40.766705
+        ]
+      ],
+      "footprintAreaM2": 216.06,
+      "footprintOrigin": "observed",
+      "heightM": 15.24,
+      "id": "footprint:1085368",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2017-07-01",
+          "id": "footprint:1085368:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0104",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1085368"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4006600064",
+      "bin": "4623005",
+      "constructionYear": 2022,
+      "coordinates": [
+        -73.9159916,
+        40.7629978
+      ],
+      "footprint": [
+        [
+          -73.9158992,
+          40.7629883
+        ],
+        [
+          -73.915948,
+          40.7629272
+        ],
+        [
+          -73.9161309,
+          40.7630125
+        ],
+        [
+          -73.9160807,
+          40.7630728
+        ],
+        [
+          -73.9158992,
+          40.7629883
+        ]
+      ],
+      "footprintAreaM2": 249.64,
+      "footprintOrigin": "observed",
+      "heightM": 18.29,
+      "id": "footprint:1085600",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2022-07-01",
+          "id": "footprint:1085600:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0104",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1085600"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4011360006",
+      "bin": "4437069",
+      "constructionYear": 2016,
+      "coordinates": [
+        -73.9022922,
+        40.7571969
+      ],
+      "footprint": [
+        [
+          -73.9023472,
+          40.757313
+        ],
+        [
+          -73.9022631,
+          40.7573225
+        ],
+        [
+          -73.9022091,
+          40.7570223
+        ],
+        [
+          -73.9022946,
+          40.7570138
+        ],
+        [
+          -73.9023472,
+          40.757313
+        ]
+      ],
+      "footprintAreaM2": 423.43,
+      "footprintOrigin": "observed",
+      "heightM": 4.27,
+      "id": "footprint:1086192",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2016-07-01",
+          "id": "footprint:1086192:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0104",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1086192"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4006540022",
+      "bin": "4010259",
+      "constructionYear": 2016,
+      "coordinates": [
+        -73.9130379,
+        40.7673712
+      ],
+      "footprint": [
+        [
+          -73.9130974,
+          40.767433
+        ],
+        [
+          -73.9128987,
+          40.7673376
+        ],
+        [
+          -73.912948,
+          40.7672783
+        ],
+        [
+          -73.913148,
+          40.7673742
+        ],
+        [
+          -73.9130974,
+          40.767433
+        ]
+      ],
+      "footprintAreaM2": 270.68,
+      "footprintOrigin": "observed",
+      "heightM": 11.58,
+      "id": "footprint:1087175",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2016-07-01",
+          "id": "footprint:1087175:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0104",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1087175"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4011340001",
+      "bin": "4025257",
+      "constructionYear": 2022,
+      "coordinates": [
+        -73.9051661,
+        40.7568355
+      ],
+      "footprint": [
+        [
+          -73.9054539,
+          40.7570842
+        ],
+        [
+          -73.9049669,
+          40.7571381
+        ],
+        [
+          -73.9049366,
+          40.7569627
+        ],
+        [
+          -73.9049507,
+          40.7569614
+        ],
+        [
+          -73.9049917,
+          40.7567164
+        ],
+        [
+          -73.9050287,
+          40.7567138
+        ],
+        [
+          -73.9050096,
+          40.7565999
+        ],
+        [
+          -73.9053194,
+          40.7565682
+        ],
+        [
+          -73.9053399,
+          40.7566827
+        ],
+        [
+          -73.9053757,
+          40.7566793
+        ],
+        [
+          -73.9054539,
+          40.7570842
+        ]
+      ],
+      "footprintAreaM2": 3664.05,
+      "footprintOrigin": "observed",
+      "heightM": 12.19,
+      "id": "footprint:1087209",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2022-07-01",
+          "id": "footprint:1087209:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0104",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1087209"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4007190003",
+      "bin": "4620904",
+      "constructionYear": 2024,
+      "coordinates": [
+        -73.9105981,
+        40.76214
+      ],
+      "footprint": [
+        [
+          -73.9107002,
+          40.7621231
+        ],
+        [
+          -73.910607,
+          40.76224
+        ],
+        [
+          -73.9104451,
+          40.7621654
+        ],
+        [
+          -73.9105383,
+          40.7620485
+        ],
+        [
+          -73.9107002,
+          40.7621231
+        ]
+      ],
+      "footprintAreaM2": 423.36,
+      "footprintOrigin": "observed",
+      "heightM": 12.19,
+      "id": "footprint:1087926",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2024-07-01",
+          "id": "footprint:1087926:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0104",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1087926"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4011550036",
+      "bin": "4623457",
+      "constructionYear": 2014,
+      "coordinates": [
+        -73.9073274,
+        40.7537664
+      ],
+      "footprint": [
+        [
+          -73.9072125,
+          40.7536548
+        ],
+        [
+          -73.9072664,
+          40.7535868
+        ],
+        [
+          -73.9075659,
+          40.7537326
+        ],
+        [
+          -73.9076054,
+          40.7539071
+        ],
+        [
+          -73.9073249,
+          40.7539361
+        ],
+        [
+          -73.9073029,
+          40.7539231
+        ],
+        [
+          -73.9072888,
+          40.7539131
+        ],
+        [
+          -73.9072435,
+          40.7536832
+        ],
+        [
+          -73.9072513,
+          40.7536727
+        ],
+        [
+          -73.9072125,
+          40.7536548
+        ]
+      ],
+      "footprintAreaM2": 1391.95,
+      "footprintOrigin": "observed",
+      "heightM": 9.75,
+      "id": "footprint:1088184",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2014-07-01",
+          "id": "footprint:1088184:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0104",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1088184"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4007040001",
+      "bin": "4620991",
+      "constructionYear": 2024,
+      "coordinates": [
+        -73.9180045,
+        40.7542862
+      ],
+      "footprint": [
+        [
+          -73.9185504,
+          40.753873
+        ],
+        [
+          -73.9185635,
+          40.7539258
+        ],
+        [
+          -73.9184212,
+          40.7540956
+        ],
+        [
+          -73.9182772,
+          40.7541151
+        ],
+        [
+          -73.9182285,
+          40.7541779
+        ],
+        [
+          -73.9182591,
+          40.7542891
+        ],
+        [
+          -73.9178284,
+          40.7548048
+        ],
+        [
+          -73.9176562,
+          40.7547233
+        ],
+        [
+          -73.9178138,
+          40.7545269
+        ],
+        [
+          -73.9176112,
+          40.7544314
+        ],
+        [
+          -73.9174513,
+          40.7546284
+        ],
+        [
+          -73.9172254,
+          40.7545231
+        ],
+        [
+          -73.9176267,
+          40.7540191
+        ],
+        [
+          -73.9185504,
+          40.753873
+        ]
+      ],
+      "footprintAreaM2": 8826.23,
+      "footprintOrigin": "observed",
+      "heightM": 42.67,
+      "id": "footprint:1089026",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2024-07-01",
+          "id": "footprint:1089026:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0104",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1089026"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4006840078",
+      "bin": "4011424",
+      "constructionYear": 2024,
+      "coordinates": [
+        -73.9128179,
+        40.7656352
+      ],
+      "footprint": [
+        [
+          -73.9126932,
+          40.7656107
+        ],
+        [
+          -73.9127407,
+          40.7655509
+        ],
+        [
+          -73.913005,
+          40.765672
+        ],
+        [
+          -73.9129574,
+          40.7657317
+        ],
+        [
+          -73.9126932,
+          40.7656107
+        ]
+      ],
+      "footprintAreaM2": 352.53,
+      "footprintOrigin": "observed",
+      "heightM": 13.48,
+      "id": "footprint:1089092",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2024-07-01",
+          "id": "footprint:1089092:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0104",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1089092"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4007330029",
+      "bin": "4539948",
+      "constructionYear": 2010,
+      "coordinates": [
+        -73.9046497,
+        40.7667794
+      ],
+      "footprint": [
+        [
+          -73.9047415,
+          40.7668862
+        ],
+        [
+          -73.9044379,
+          40.7667503
+        ],
+        [
+          -73.9045698,
+          40.76658
+        ],
+        [
+          -73.904875,
+          40.7667167
+        ],
+        [
+          -73.9047431,
+          40.7668869
+        ],
+        [
+          -73.9047415,
+          40.7668862
+        ]
+      ],
+      "footprintAreaM2": 1144.9,
+      "footprintOrigin": "observed",
+      "heightM": 7.84,
+      "id": "footprint:225000",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2010-07-01",
+          "id": "footprint:225000:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0104",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:225000"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4006560015",
+      "bin": "4618339",
+      "constructionYear": 2023,
+      "coordinates": [
+        -73.9206518,
+        40.7578661
+      ],
+      "footprint": [
+        [
+          -73.9205674,
+          40.7578974
+        ],
+        [
+          -73.9205981,
+          40.7578592
+        ],
+        [
+          -73.9206306,
+          40.7578743
+        ],
+        [
+          -73.9206592,
+          40.7578386
+        ],
+        [
+          -73.9206158,
+          40.7578184
+        ],
+        [
+          -73.9206472,
+          40.7577794
+        ],
+        [
+          -73.9208418,
+          40.7578683
+        ],
+        [
+          -73.9207521,
+          40.7579816
+        ],
+        [
+          -73.9205998,
+          40.7579125
+        ],
+        [
+          -73.9205674,
+          40.7578974
+        ]
+      ],
+      "footprintAreaM2": 448.5,
+      "footprintOrigin": "observed",
+      "heightM": 13.11,
+      "id": "footprint:6024",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2023-07-01",
+          "id": "footprint:6024:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0104",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:6024"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4007250043",
+      "bin": "4595546",
+      "constructionYear": 2017,
+      "coordinates": [
+        -73.9125134,
+        40.7578587
+      ],
+      "footprint": [
+        [
+          -73.9125351,
+          40.7579586
+        ],
+        [
+          -73.9123499,
+          40.7578732
+        ],
+        [
+          -73.9124808,
+          40.7577089
+        ],
+        [
+          -73.912666,
+          40.7577943
+        ],
+        [
+          -73.9125351,
+          40.7579586
+        ]
+      ],
+      "footprintAreaM2": 680.74,
+      "footprintOrigin": "observed",
+      "heightM": 12.19,
+      "id": "footprint:62582",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2017-07-01",
+          "id": "footprint:62582:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0104",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:62582"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4006600004",
+      "bin": "4010626",
+      "constructionYear": 2016,
+      "coordinates": [
+        -73.9175827,
+        40.7618191
+      ],
+      "footprint": [
+        [
+          -73.9174913,
+          40.7618738
+        ],
+        [
+          -73.9176236,
+          40.7617112
+        ],
+        [
+          -73.9177142,
+          40.7617538
+        ],
+        [
+          -73.9175692,
+          40.761932
+        ],
+        [
+          -73.9174786,
+          40.7618893
+        ],
+        [
+          -73.9174913,
+          40.7618738
+        ]
+      ],
+      "footprintAreaM2": 365.34,
+      "footprintOrigin": "observed",
+      "heightM": 12.81,
+      "id": "footprint:63501",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2016-07-01",
+          "id": "footprint:63501:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0104",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:63501"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4006540078",
+      "bin": "4618943",
+      "constructionYear": 2019,
+      "coordinates": [
+        -73.9126956,
+        40.7671405
+      ],
+      "footprint": [
+        [
+          -73.9126164,
+          40.7670391
+        ],
+        [
+          -73.9129087,
+          40.7671761
+        ],
+        [
+          -73.9128143,
+          40.7672925
+        ],
+        [
+          -73.912522,
+          40.7671556
+        ],
+        [
+          -73.9126164,
+          40.7670391
+        ]
+      ],
+      "footprintAreaM2": 768.44,
+      "footprintOrigin": "observed",
+      "heightM": 15.24,
+      "id": "footprint:65959",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2019-07-01",
+          "id": "footprint:65959:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0104",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:65959"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4007110004",
+      "bin": "4543728",
+      "constructionYear": 2014,
+      "coordinates": [
+        -73.9144524,
+        40.7570336
+      ],
+      "footprint": [
+        [
+          -73.9144615,
+          40.7569681
+        ],
+        [
+          -73.9145394,
+          40.7570034
+        ],
+        [
+          -73.9144388,
+          40.7571318
+        ],
+        [
+          -73.9143609,
+          40.7570965
+        ],
+        [
+          -73.9144615,
+          40.7569681
+        ]
+      ],
+      "footprintAreaM2": 221.59,
+      "footprintOrigin": "observed",
+      "heightM": 10.36,
+      "id": "footprint:68474",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2014-07-01",
+          "id": "footprint:68474:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0104",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:68474"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4006580013",
+      "bin": "4010505",
+      "constructionYear": 2014,
+      "coordinates": [
+        -73.9191258,
+        40.7598414
+      ],
+      "footprint": [
+        [
+          -73.919072,
+          40.7597846
+        ],
+        [
+          -73.9192528,
+          40.7598702
+        ],
+        [
+          -73.9192066,
+          40.7599267
+        ],
+        [
+          -73.9190258,
+          40.7598411
+        ],
+        [
+          -73.919072,
+          40.7597846
+        ]
+      ],
+      "footprintAreaM2": 231.82,
+      "footprintOrigin": "observed",
+      "heightM": 11.89,
+      "id": "footprint:68639",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2014-07-01",
+          "id": "footprint:68639:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0104",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:68639"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4006910040",
+      "bin": "4595991",
+      "constructionYear": 2016,
+      "coordinates": [
+        -73.9162871,
+        40.7575112
+      ],
+      "footprint": [
+        [
+          -73.9162751,
+          40.7575814
+        ],
+        [
+          -73.9162371,
+          40.7575639
+        ],
+        [
+          -73.916248,
+          40.7575502
+        ],
+        [
+          -73.9162089,
+          40.7575321
+        ],
+        [
+          -73.9163443,
+          40.7573668
+        ],
+        [
+          -73.9164209,
+          40.7574022
+        ],
+        [
+          -73.9162751,
+          40.7575814
+        ]
+      ],
+      "footprintAreaM2": 298.51,
+      "footprintOrigin": "observed",
+      "heightM": 12.19,
+      "id": "footprint:69191",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2016-07-01",
+          "id": "footprint:69191:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0104",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:69191"
+      ]
+    },
+    {
+      "address": null,
+      "bbl": "4011560030",
+      "bin": "4025995",
+      "constructionYear": 2013,
+      "coordinates": [
+        -73.90619,
+        40.7542985
+      ],
+      "footprint": [
+        [
+          -73.9061069,
+          40.7542763
+        ],
+        [
+          -73.9062997,
+          40.7542547
+        ],
+        [
+          -73.9063146,
+          40.7543318
+        ],
+        [
+          -73.9061217,
+          40.7543534
+        ],
+        [
+          -73.9061069,
+          40.7542763
+        ]
+      ],
+      "footprintAreaM2": 248.53,
+      "footprintOrigin": "observed",
+      "heightM": 3.88,
+      "id": "footprint:93998",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2013-07-01",
+          "id": "footprint:93998:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0104",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:93998"
+      ]
+    },
+    {
+      "address": "36-20 STEINWAY STREET",
+      "bbl": "4006657501",
+      "bin": "4619734",
+      "constructionYear": 2022,
+      "coordinates": [
+        -73.923688,
+        40.753253
+      ],
+      "footprint": [
+        [
+          -73.9242183,
+          40.7528513
+        ],
+        [
+          -73.9231577,
+          40.7528513
+        ],
+        [
+          -73.9231577,
+          40.7536547
+        ],
+        [
+          -73.9242183,
+          40.7536547
+        ],
+        [
+          -73.9242183,
+          40.7528513
+        ]
+      ],
+      "footprintAreaM2": 1999.61,
+      "footprintOrigin": "modeled",
+      "heightM": 21.34,
+      "id": "job:420658559:01",
+      "jobId": "420658559",
+      "milestones": [
+        {
+          "date": "2016-10-07",
+          "id": "job:420658559:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2017-11-09",
+          "id": "job:420658559:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2019-09-27",
+          "id": "job:420658559:01:fully-permitted:3",
+          "kind": "fully-permitted",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2022-06-28",
+          "id": "job:420658559:01:final-certificate-of-occupancy:4",
+          "kind": "final-certificate-of-occupancy",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2022-06-28",
+          "id": "job:420658559:01:signed-off:5",
+          "kind": "signed-off",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 6,
+      "proposedUnits": 143,
+      "proposedZoningSquareFeet": 129142,
+      "regionId": "QN0104",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:2746970",
+        "certificate-of-occupancy:420658559:001"
+      ],
+      "status": "SIGNED OFF",
+      "withdrawn": false
+    },
+    {
+      "address": "47-00 NORTHERN BLVD",
+      "bbl": "4001430001",
+      "bin": "4001351",
+      "constructionYear": null,
+      "coordinates": [
+        -73.915346,
+        40.753766
+      ],
+      "footprint": [
+        [
+          -73.915897,
+          40.7533486
+        ],
+        [
+          -73.914795,
+          40.7533486
+        ],
+        [
+          -73.914795,
+          40.7541834
+        ],
+        [
+          -73.915897,
+          40.7541834
+        ],
+        [
+          -73.915897,
+          40.7533486
+        ]
+      ],
+      "footprintAreaM2": 2159.03,
+      "footprintOrigin": "modeled",
+      "heightM": 13.41,
+      "id": "job:420794536:01",
+      "jobId": "420794536",
+      "milestones": [
+        {
+          "date": "2012-12-12",
+          "id": "job:420794536:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2016-07-19",
+          "id": "job:420794536:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 3,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": 69719,
+      "regionId": "QN0104",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:2181966"
+      ],
+      "status": "PLAN EXAM - APPROVED",
+      "withdrawn": false
+    },
+    {
+      "address": "31-19 56 ST",
+      "bbl": "4011347501",
+      "bin": "4025257",
+      "constructionYear": 2022,
+      "coordinates": [
+        -73.905495,
+        40.757178
+      ],
+      "footprint": [
+        [
+          -73.90596,
+          40.7568258
+        ],
+        [
+          -73.90503,
+          40.7568258
+        ],
+        [
+          -73.90503,
+          40.7575302
+        ],
+        [
+          -73.90596,
+          40.7575302
+        ],
+        [
+          -73.90596,
+          40.7568258
+        ]
+      ],
+      "footprintAreaM2": 1537.38,
+      "footprintOrigin": "modeled",
+      "heightM": 12.19,
+      "id": "job:421405090:01",
+      "jobId": "421405090",
+      "milestones": [
+        {
+          "date": "2017-02-15",
+          "id": "job:421405090:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2018-06-29",
+          "id": "job:421405090:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2019-04-08",
+          "id": "job:421405090:01:fully-permitted:3",
+          "kind": "fully-permitted",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2022-12-19",
+          "id": "job:421405090:01:final-certificate-of-occupancy:4",
+          "kind": "final-certificate-of-occupancy",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2022-12-19",
+          "id": "job:421405090:01:signed-off:5",
+          "kind": "signed-off",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 4,
+      "proposedUnits": 47,
+      "proposedZoningSquareFeet": 66193,
+      "regionId": "QN0104",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:2804616",
+        "certificate-of-occupancy:421405090:001"
+      ],
+      "status": "SIGNED OFF",
+      "withdrawn": false
+    }
+  ],
+  "id": "nyc-real-estate-region-qn0104-v1",
+  "region": {
+    "abbreviation": "Astr_E",
+    "areaM2": 26041929.9836,
+    "boroughId": "queens",
+    "boroughLabel": "Queens",
+    "bounds": {
+      "east": -73.8985422,
+      "north": 40.7690102,
+      "south": 40.7521372,
+      "west": -73.9256274
+    },
+    "centroid": [
+      -73.9071864,
+      40.7615278
+    ],
+    "communityDistrictTabulationAreaId": "QN01",
+    "communityDistrictTabulationAreaLabel": "QN01 Astoria-Queensbridge (CD 1 Equivalent)",
+    "id": "QN0104",
+    "label": "Astoria (East)-Woodside (North)",
+    "polygon": [
+      [
+        -73.9020252,
+        40.7674168
+      ],
+      [
+        -73.9035123,
+        40.7658495
+      ],
+      [
+        -73.902073,
+        40.762381
+      ],
+      [
+        -73.9015285,
+        40.7596279
+      ],
+      [
+        -73.8985549,
+        40.7599241
+      ],
+      [
+        -73.8994502,
+        40.7585977
+      ],
+      [
+        -73.899742,
+        40.7575116
+      ],
+      [
+        -73.8995917,
+        40.7565556
+      ],
+      [
+        -73.8985422,
+        40.7541701
+      ],
+      [
+        -73.9102312,
+        40.7529765
+      ],
+      [
+        -73.9144645,
+        40.7536764
+      ],
+      [
+        -73.9176319,
+        40.7538578
+      ],
+      [
+        -73.9256274,
+        40.7521372
+      ],
+      [
+        -73.9157912,
+        40.7642678
+      ],
+      [
+        -73.9149921,
+        40.7638923
+      ],
+      [
+        -73.9137007,
+        40.7654802
+      ],
+      [
+        -73.914499,
+        40.7658564
+      ],
+      [
+        -73.9119403,
+        40.7690102
+      ],
+      [
+        -73.9057735,
+        40.7680286
+      ],
+      [
+        -73.9041364,
+        40.7675203
+      ],
+      [
+        -73.9022664,
+        40.7674569
+      ],
+      [
+        -73.9020252,
+        40.7674168
+      ]
+    ],
+    "spatialPolygons": [
+      {
+        "holes": [],
+        "outer": [
+          [
+            -73.9020252,
+            40.7674168
+          ],
+          [
+            -73.9035123,
+            40.7658495
+          ],
+          [
+            -73.902073,
+            40.762381
+          ],
+          [
+            -73.9015285,
+            40.7596279
+          ],
+          [
+            -73.8985549,
+            40.7599241
+          ],
+          [
+            -73.8994502,
+            40.7585977
+          ],
+          [
+            -73.899742,
+            40.7575116
+          ],
+          [
+            -73.8995917,
+            40.7565556
+          ],
+          [
+            -73.8985422,
+            40.7541701
+          ],
+          [
+            -73.9102312,
+            40.7529765
+          ],
+          [
+            -73.9144645,
+            40.7536764
+          ],
+          [
+            -73.9176319,
+            40.7538578
+          ],
+          [
+            -73.9256274,
+            40.7521372
+          ],
+          [
+            -73.9157912,
+            40.7642678
+          ],
+          [
+            -73.9149921,
+            40.7638923
+          ],
+          [
+            -73.9137007,
+            40.7654802
+          ],
+          [
+            -73.914499,
+            40.7658564
+          ],
+          [
+            -73.9119403,
+            40.7690102
+          ],
+          [
+            -73.9057735,
+            40.7680286
+          ],
+          [
+            -73.9041364,
+            40.7675203
+          ],
+          [
+            -73.9022664,
+            40.7674569
+          ],
+          [
+            -73.9020252,
+            40.7674168
+          ]
+        ]
+      }
+    ]
+  },
+  "saleSeries": [
+    {
+      "id": "sale:QN0104:2016:tax-1",
+      "meanPriceUsd": 857065.86,
+      "medianPriceUsd": 810000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0104",
+      "saleCount": 59,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 118,
+      "year": 2016
+    },
+    {
+      "id": "sale:QN0104:2016:tax-2",
+      "meanPriceUsd": 618323.02,
+      "medianPriceUsd": 295000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0104",
+      "saleCount": 63,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 89,
+      "year": 2016
+    },
+    {
+      "id": "sale:QN0104:2016:tax-4",
+      "meanPriceUsd": 4498340.6,
+      "medianPriceUsd": 2500000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0104",
+      "saleCount": 15,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 26,
+      "year": 2016
+    },
+    {
+      "id": "sale:QN0104:2017:tax-1",
+      "meanPriceUsd": 983190.56,
+      "medianPriceUsd": 900000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0104",
+      "saleCount": 54,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 111,
+      "year": 2017
+    },
+    {
+      "id": "sale:QN0104:2017:tax-2",
+      "meanPriceUsd": 718722.3,
+      "medianPriceUsd": 375000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0104",
+      "saleCount": 77,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 106,
+      "year": 2017
+    },
+    {
+      "id": "sale:QN0104:2017:tax-4",
+      "meanPriceUsd": 2631251.27,
+      "medianPriceUsd": 2091300,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0104",
+      "saleCount": 11,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 15,
+      "year": 2017
+    },
+    {
+      "id": "sale:QN0104:2018:tax-1",
+      "meanPriceUsd": 1039388.45,
+      "medianPriceUsd": 975000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0104",
+      "saleCount": 65,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 128,
+      "year": 2018
+    },
+    {
+      "id": "sale:QN0104:2018:tax-2",
+      "meanPriceUsd": 793416.74,
+      "medianPriceUsd": 455000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0104",
+      "saleCount": 73,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 124,
+      "year": 2018
+    },
+    {
+      "id": "sale:QN0104:2018:tax-4",
+      "meanPriceUsd": 3033333.33,
+      "medianPriceUsd": 1875000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0104",
+      "saleCount": 9,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 20,
+      "year": 2018
+    },
+    {
+      "id": "sale:QN0104:2019:tax-1",
+      "meanPriceUsd": 1024685.64,
+      "medianPriceUsd": 987000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0104",
+      "saleCount": 66,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 125,
+      "year": 2019
+    },
+    {
+      "id": "sale:QN0104:2019:tax-2",
+      "meanPriceUsd": 824594.71,
+      "medianPriceUsd": 448000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0104",
+      "saleCount": 85,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 135,
+      "year": 2019
+    },
+    {
+      "id": "sale:QN0104:2019:tax-4",
+      "meanPriceUsd": 5574642.86,
+      "medianPriceUsd": 2067500,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0104",
+      "saleCount": 14,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 26,
+      "year": 2019
+    },
+    {
+      "id": "sale:QN0104:2020:tax-1",
+      "meanPriceUsd": 1155552.61,
+      "medianPriceUsd": 1100000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0104",
+      "saleCount": 41,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 81,
+      "year": 2020
+    },
+    {
+      "id": "sale:QN0104:2020:tax-2",
+      "meanPriceUsd": 928491.05,
+      "medianPriceUsd": 547500,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0104",
+      "saleCount": 78,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 182,
+      "year": 2020
+    },
+    {
+      "id": "sale:QN0104:2020:tax-4",
+      "meanPriceUsd": 1940625,
+      "medianPriceUsd": 1800000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0104",
+      "saleCount": 8,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 14,
+      "year": 2020
+    },
+    {
+      "id": "sale:QN0104:2021:tax-1",
+      "meanPriceUsd": 1164053.87,
+      "medianPriceUsd": 1180000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0104",
+      "saleCount": 62,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 131,
+      "year": 2021
+    },
+    {
+      "id": "sale:QN0104:2021:tax-2",
+      "meanPriceUsd": 6239078.01,
+      "medianPriceUsd": 1390000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0104",
+      "saleCount": 134,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 299,
+      "year": 2021
+    },
+    {
+      "id": "sale:QN0104:2021:tax-4",
+      "meanPriceUsd": 9358894.74,
+      "medianPriceUsd": 4464000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0104",
+      "saleCount": 19,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 30,
+      "year": 2021
+    },
+    {
+      "id": "sale:QN0104:2022:tax-1",
+      "meanPriceUsd": 1143660.24,
+      "medianPriceUsd": 1149000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0104",
+      "saleCount": 87,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 180,
+      "year": 2022
+    },
+    {
+      "id": "sale:QN0104:2022:tax-2",
+      "meanPriceUsd": 929396.18,
+      "medianPriceUsd": 559019,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0104",
+      "saleCount": 89,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 194,
+      "year": 2022
+    },
+    {
+      "id": "sale:QN0104:2022:tax-4",
+      "meanPriceUsd": 3887000,
+      "medianPriceUsd": 2650000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0104",
+      "saleCount": 11,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 19,
+      "year": 2022
+    },
+    {
+      "id": "sale:QN0104:2023:tax-1",
+      "meanPriceUsd": 1231023.97,
+      "medianPriceUsd": 1150000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0104",
+      "saleCount": 63,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 133,
+      "year": 2023
+    },
+    {
+      "id": "sale:QN0104:2023:tax-2",
+      "meanPriceUsd": 886705.75,
+      "medianPriceUsd": 538654.5,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0104",
+      "saleCount": 88,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 212,
+      "year": 2023
+    },
+    {
+      "id": "sale:QN0104:2023:tax-4",
+      "meanPriceUsd": 6301964.06,
+      "medianPriceUsd": 5736787.5,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0104",
+      "saleCount": 18,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 27,
+      "year": 2023
+    },
+    {
+      "id": "sale:QN0104:2024:tax-1",
+      "meanPriceUsd": 1116853.95,
+      "medianPriceUsd": 1048888,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0104",
+      "saleCount": 57,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 105,
+      "year": 2024
+    },
+    {
+      "id": "sale:QN0104:2024:tax-2",
+      "meanPriceUsd": 826043.51,
+      "medianPriceUsd": 465000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0104",
+      "saleCount": 69,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 161,
+      "year": 2024
+    },
+    {
+      "id": "sale:QN0104:2024:tax-4",
+      "meanPriceUsd": 5809000,
+      "medianPriceUsd": 2900000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0104",
+      "saleCount": 15,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 37,
+      "year": 2024
+    },
+    {
+      "id": "sale:QN0104:2025:tax-1",
+      "meanPriceUsd": 1302980.95,
+      "medianPriceUsd": 1250000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0104",
+      "saleCount": 63,
+      "sectorId": "tax-class-1",
+      "transferredUnits": 136,
+      "year": 2025
+    },
+    {
+      "id": "sale:QN0104:2025:tax-2",
+      "meanPriceUsd": 835390.69,
+      "medianPriceUsd": 570000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0104",
+      "saleCount": 85,
+      "sectorId": "tax-class-2",
+      "transferredUnits": 216,
+      "year": 2025
+    },
+    {
+      "id": "sale:QN0104:2025:tax-4",
+      "meanPriceUsd": 6279436.61,
+      "medianPriceUsd": 2887500,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0104",
+      "saleCount": 18,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 32,
+      "year": 2025
+    }
+  ],
+  "schema": "simulatte.nycRealEstateRegionShard.v1",
+  "sourceIdentities": [
+    {
+      "byteCount": 1008463,
+      "path": "nyc-annualized-sales-by-nta.json",
+      "sha256": "14c15020381466196236073ee3753ff7a5d74a76ec6af4605e96564abd2bf99a",
+      "sourceId": "nyc-real-estate-sales-annual"
+    },
+    {
+      "byteCount": 8977616,
+      "path": "nyc-final-certificates-of-occupancy.json",
+      "sha256": "966c237824a79aff9d5137d27b498ba4f3670cc19844738c5ce17a559388030e",
+      "sourceId": "nyc-real-estate-final-occupancy"
+    },
+    {
+      "byteCount": 8802596,
+      "path": "nyc-largest-constructed-footprints-2010-2026.geojson",
+      "sha256": "15745b9c62fa539e683737f0665fe91d95231e68d8c1b598e7ed211114811eb6",
+      "sourceId": "nyc-real-estate-constructed-footprints"
+    },
+    {
+      "byteCount": 1076754,
+      "path": "nyc-largest-new-building-jobs-bronx.json",
+      "sha256": "1a44c6cbfa364639e4b75957b2fab7e3c301f95bcfcfa90c50862fef85f450c1",
+      "sourceId": "nyc-real-estate-new-building-sample-bronx"
+    },
+    {
+      "byteCount": 1085334,
+      "path": "nyc-largest-new-building-jobs-brooklyn.json",
+      "sha256": "389e1825faff440d6fad5a12ed470f84e90859fd732262346a3414c5503693fd",
+      "sourceId": "nyc-real-estate-new-building-sample-brooklyn"
+    },
+    {
+      "byteCount": 1097625,
+      "path": "nyc-largest-new-building-jobs-manhattan.json",
+      "sha256": "6346678de380d58e325db14fc2e0611d993743be29898360e08f092eaa1f88e5",
+      "sourceId": "nyc-real-estate-new-building-sample-manhattan"
+    },
+    {
+      "byteCount": 1091065,
+      "path": "nyc-largest-new-building-jobs-queens.json",
+      "sha256": "79eb6f028b2135214d47a793101f72de695efcb02e4c2802cc10cd062c760a22",
+      "sourceId": "nyc-real-estate-new-building-sample-queens"
+    },
+    {
+      "byteCount": 1120592,
+      "path": "nyc-largest-new-building-jobs-staten-island.json",
+      "sha256": "e0870a431a75bdd235fc09b0ecd7503c45384f5e8b66beba545447c7bb3d960a",
+      "sourceId": "nyc-real-estate-new-building-sample-staten-island"
+    },
+    {
+      "byteCount": 1250280,
+      "path": "nyc-new-building-filings-by-nta-year.json",
+      "sha256": "4b75b0ad54a1ce5241b9c2e303be2cc24781e55a65fbf27be10d00a80bfeadea",
+      "sourceId": "nyc-real-estate-new-building-annual"
+    },
+    {
+      "byteCount": 4576764,
+      "path": "nyc-nta-2020.geojson",
+      "sha256": "c3dd069e094e2d2f647c1c102cd7e0570d033dd6131446bd1943a73210d09c56",
+      "sourceId": "nyc-real-estate-nta-boundaries"
+    },
+    {
+      "byteCount": 2402191,
+      "path": "nyc-pluto-capacity-bronx.json",
+      "sha256": "b45168721525e18a29aafcce335212632607021240869b738cbb96fbe2441389",
+      "sourceId": "nyc-real-estate-pluto-capacity-bronx"
+    },
+    {
+      "byteCount": 2403266,
+      "path": "nyc-pluto-capacity-brooklyn.json",
+      "sha256": "63b33a507c0bc26f7b71669cf032baa4950af2db77ce8712b876ca6f4c9f771b",
+      "sourceId": "nyc-real-estate-pluto-capacity-brooklyn"
+    },
+    {
+      "byteCount": 2464264,
+      "path": "nyc-pluto-capacity-manhattan.json",
+      "sha256": "91e3e1f5dce97a340475b51577458c8e48183f1138c334fbcce27d68001e9d25",
+      "sourceId": "nyc-real-estate-pluto-capacity-manhattan"
+    },
+    {
+      "byteCount": 2418903,
+      "path": "nyc-pluto-capacity-queens.json",
+      "sha256": "02a12d81466e89e05b9be9273198c5f857e86db5d2c95cfb717160ce4ccf99c1",
+      "sourceId": "nyc-real-estate-pluto-capacity-queens"
+    },
+    {
+      "byteCount": 1168016,
+      "path": "nyc-pluto-capacity-staten-island.json",
+      "sha256": "6d488f6ce46fa09930b669429275014a8ecedae6c85041fb465a15633c6a38b0",
+      "sourceId": "nyc-real-estate-pluto-capacity-staten-island"
+    }
+  ],
+  "truth": {
+    "origin": "observed",
+    "temporalStatus": "historical",
+    "uncertainty": {
+      "kind": "missing",
+      "value": {
+        "reason": "Administrative records have missing, revised, duplicated, and source-sampled fields without a shared statistical uncertainty model."
+      }
+    }
+  }
+}

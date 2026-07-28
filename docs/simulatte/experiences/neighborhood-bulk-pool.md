@@ -11,7 +11,7 @@ Owner contract: `public/shared/plugins/neighborhood-bulk-pool/index.js`.
 - Default scenario: `weekend-baseline`
 - Contract version: plugin v4 contribution
 - Last verified source: prior browser proof at commit `a5713c1c13ab`
-- Evidence: current worktree browser proof not rerun; prior index contains 8/8 runs
+- Evidence: current disruption and settlement changes have focused code proof only; browser proof has not been rerun
 
 ## What is it?
 
@@ -25,11 +25,11 @@ legally ready marketplace.
 
 1. Load four official warehouse identities and an incomplete scenario catalog.
 2. Generate deterministic household demand for selected product categories.
-3. Screen packages, warehouse offers, availability rules, and freshness limits.
+3. Screen fractional shares, whole packages, warehouse offers, availability rules, vehicle cold capacity, and freshness limits.
 4. Form purchase groups under the selected pooling policy.
 5. Assign coarse handoff stops and modeled driver trips.
 6. Compare independent shopping, bulk-only, existing-trip, and pickup-hub policies.
-7. Settle allocations, household costs, package waste, driving, and compensation.
+7. Recompute the pool after a governed stockout, driver cancellation, or corridor detour action, then settle exact supported line items.
 
 ## What can the user control?
 
@@ -48,8 +48,8 @@ legally ready marketplace.
 ## What does the user see?
 
 - Initial view: Warehouse identities and coarse neighborhood demand envelopes on the City map.
-- During playback: Pseudonymous baskets form packages, driver cars travel to warehouses and household handoffs, package actors move with the assigned trip, rejections remain visible, and costs settle.
-- Selection and inspection: Catalog coverage, warehouse offers, group allocation, trips, and compensation settlements.
+- During playback: Pseudonymous baskets form fractional shares of whole packages, driver cars travel to warehouses and handoffs, package actors move with assigned trips, and rejections remain visible.
+- Selection and inspection: Catalog coverage, warehouse offers, group allocation, temperature custody, trip capacity, disruption receipts, and participant settlement.
 - Comparison view: Four policy outcomes expose changes in cost, waste, service, and incremental driving.
 - Final settlement: Requested and fulfilled units, packages purchased, waste, household cost, and scenario kilometers.
 
@@ -62,17 +62,17 @@ legally ready marketplace.
 | Availability | scenario | Authored offers | snapshot | Unknown values retained | Purchase screening |
 | Household demand | simulated | Seeded demand generator | forecast | Scenario variance | Pool formation |
 | Corridors and detours | modeled | Coarse geospatial model | forecast | Exact streets absent | Trip feasibility |
-| Freshness timing | modeled | Declared transit limits | forecast | No measured cold chain | Assignment screening |
-| Costs, waste, and reputation | simulated | Pool solver and settlement | forecast | Uncalibrated | Policy comparison |
+| Freshness timing | modeled | Declared product and vehicle limits | forecast | No measured cold chain | Cold-capacity and transit screening |
+| Costs, waste, and compensation | simulated | Scenario price and compensation totals | forecast | Taxes, deposits, tolls, and mileage splits unavailable | Exact supported-line reconciliation |
 
 ## How does the simulation work?
 
-- State: Demand, package groups, offers, assignments, trips, handoffs, fulfillment, cost, waste, and compensation.
-- Governing algorithm: Deterministic bounded catalog screening, pooling, capacity checks, and policy-specific assignment.
+- State: Demand, fractional shares, whole packages, offers, assignments, cold custody, disruptions, trips, handoffs, cost, waste, and compensation.
+- Governing algorithm: Deterministic bounded catalog screening, pooling, whole-package allocation, cold-capacity checks, policy-specific assignment, and disruption re-solving.
 - Progression: Causal snapshots move from demand through purchase, handoff, delivery, and settlement.
 - Randomness: Profile presets provide governed seeds; identical controls reproduce identical outputs.
-- Invariants: Purchased units cover allocations, capacity and stop limits hold, and unserved demand remains explicit.
-- Settlement: Every group, trip, household allocation, and compensation obligation reaches a terminal status.
+- Invariants: Demand, whole-package units, vehicle capacity, cold capacity, and supported receipt line items reconcile exactly.
+- Settlement: Every group, trip, household allocation, expense reimbursement, fee, and unsupported cost component reaches an explicit terminal status.
 
 ## How do comparison and playback work?
 
@@ -88,24 +88,24 @@ Can claim:
 
 - Declared policies produce different modeled service, cost, waste, and driving outcomes.
 - Constraints materially change which pools and handoffs are accepted.
-- Official warehouse identities remain traceable.
 - Unknown availability can be included only through an explicit scenario control.
+- A receipted disruption action deterministically rebuilds the allocation from the same governed scenario inputs.
 
 Cannot claim:
 
 - Catalog rows describe live inventory or prices.
 - Modeled households and drivers are real people.
 - Coarse corridors are exact street routes.
-- The experiment proves legal, commercial, or operational readiness.
+- Zero-valued tax, deposit, toll, or mileage fields prove those costs were observed; unavailable component splits remain zero and explicit.
 
 ## What is verified?
 
-- Unit tests: passing in plugin and platform suites
+- Unit tests: 13/13 focused subtests pass for the current worktree
 - Deterministic replay: verified
-- Comparison execution: verified across declared policies
+- Comparison execution: verified across declared policies; disruption healing verifies distinct before and after scenario identities
 - Desktop browser: not rerun for the current worktree
 - Mobile browser: not rerun for the current worktree
-- Known unresolved failures: none in the bound evidence matrix
+- Known unresolved failures: the core UI does not yet expose the plugin disruption action as a public mid-run control
 
 ## Where is it implemented?
 

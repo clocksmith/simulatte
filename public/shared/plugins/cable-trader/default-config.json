@@ -1,91 +1,120 @@
 {
-  "schema": "simulatte.plugin.cableTraderConfig.v4",
-  "id": "cable-trader-network-v4",
+  "schema": "simulatte.plugin.cableTraderConfig.v5",
+  "id": "cable-trader-logistics-v5",
   "cableTypes": [
-    { "id": "usb-c-to-a", "label": "USB-C to USB-A", "labels": ["usb c to a", "usb-c to usb-a", "usb c cable"], "demandWeight": 18 },
-    { "id": "usb-c-to-c", "label": "USB-C to USB-C", "labels": ["usb c to c", "usb-c to usb-c"], "demandWeight": 18 },
-    { "id": "usb-c-to-lightning", "label": "USB-C to Lightning", "labels": ["usb c to lightning", "iphone cable", "lightning cable"], "demandWeight": 10 },
-    { "id": "ethernet-rj45", "label": "Ethernet / RJ45", "labels": ["ethernet", "rj45", "network cable"], "demandWeight": 12 },
-    { "id": "hdmi", "label": "HDMI", "labels": ["hdmi", "display cable"], "demandWeight": 12 },
-    { "id": "displayport", "label": "DisplayPort", "labels": ["displayport", "display port"], "demandWeight": 8 },
-    { "id": "mini-displayport", "label": "Mini DisplayPort", "labels": ["mini displayport", "thunderbolt 2 cable"], "demandWeight": 4 },
-    { "id": "micro-usb", "label": "Micro-USB", "labels": ["micro usb", "micro-usb"], "demandWeight": 5 },
-    { "id": "three-five-mm-audio", "label": "3.5 mm audio", "labels": ["3.5 mm", "aux cable", "audio cable"], "demandWeight": 7 },
-    { "id": "iec-c13-power", "label": "IEC C13 power", "labels": ["iec c13", "computer power cable", "monitor power cable"], "demandWeight": 6 }
+    {
+      "id": "cat6-copper",
+      "label": "Category 6 copper",
+      "shortLabel": "Cat 6",
+      "conductor": "four-pair copper",
+      "reelLengthM": 305,
+      "minimumUsefulRemnantM": 20,
+      "modeledCostPerMeter": 0.72,
+      "demandWeight": 8,
+      "substitutesFor": []
+    },
+    {
+      "id": "cat6a-copper",
+      "label": "Category 6A copper",
+      "shortLabel": "Cat 6A",
+      "conductor": "shielded four-pair copper",
+      "reelLengthM": 305,
+      "minimumUsefulRemnantM": 20,
+      "modeledCostPerMeter": 1.18,
+      "demandWeight": 6,
+      "substitutesFor": ["cat6-copper"]
+    },
+    {
+      "id": "os2-single-mode",
+      "label": "OS2 single-mode fiber",
+      "shortLabel": "OS2",
+      "conductor": "single-mode optical fiber",
+      "reelLengthM": 500,
+      "minimumUsefulRemnantM": 30,
+      "modeledCostPerMeter": 1.64,
+      "demandWeight": 4,
+      "substitutesFor": []
+    },
+    {
+      "id": "om4-multimode",
+      "label": "OM4 multimode fiber",
+      "shortLabel": "OM4",
+      "conductor": "multimode optical fiber",
+      "reelLengthM": 300,
+      "minimumUsefulRemnantM": 25,
+      "modeledCostPerMeter": 2.05,
+      "demandWeight": 3,
+      "substitutesFor": []
+    },
+    {
+      "id": "rg6-coax",
+      "label": "RG-6 coaxial cable",
+      "shortLabel": "RG-6",
+      "conductor": "copper-clad steel coaxial",
+      "reelLengthM": 305,
+      "minimumUsefulRemnantM": 20,
+      "modeledCostPerMeter": 0.48,
+      "demandWeight": 3,
+      "substitutesFor": []
+    }
   ],
   "hubs": [
-    { "id": "union-square-cable-hub", "label": "Union Square", "nodeId": "bike-node-0d9391b2bfa3" },
-    { "id": "east-village-cable-hub", "label": "East Village", "nodeId": "bike-node-ffea919f743c" },
-    { "id": "greenpoint-cable-hub", "label": "Greenpoint", "nodeId": "bike-node-7a95737b9c7d" },
-    { "id": "williamsburg-cable-hub", "label": "North Williamsburg", "nodeId": "bike-node-e25116ea05a4" }
+    { "id": "union-square-depot", "label": "Union Square depot", "nodeId": "bike-node-0d9391b2bfa3" },
+    { "id": "east-village-depot", "label": "East Village depot", "nodeId": "bike-node-ffea919f743c" },
+    { "id": "greenpoint-depot", "label": "Greenpoint depot", "nodeId": "bike-node-7a95737b9c7d" },
+    { "id": "williamsburg-depot", "label": "North Williamsburg depot", "nodeId": "bike-node-e25116ea05a4" }
+  ],
+  "demandSites": [
+    { "id": "hospital-uplink", "label": "Hospital uplink", "nodeId": "bike-node-261ee8be5a25", "defaultPriority": "critical" },
+    { "id": "school-network", "label": "Public school network", "nodeId": "bike-node-a3f0f4b7e7e3", "defaultPriority": "urgent" },
+    { "id": "housing-backbone", "label": "Housing backbone", "nodeId": "bike-node-429dcefa615d", "defaultPriority": "standard" },
+    { "id": "community-media", "label": "Community media room", "nodeId": "bike-node-86300f2cfd65", "defaultPriority": "standard" },
+    { "id": "transit-telemetry", "label": "Transit telemetry", "nodeId": "bike-node-0b79eee2f2ef", "defaultPriority": "urgent" },
+    { "id": "shelter-connectivity", "label": "Emergency shelter", "nodeId": "bike-node-8a641140b02c", "defaultPriority": "critical" }
   ],
   "scenarioModifiers": [
     {
-      "id": "july-baseline",
-      "demandTypeMultipliers": {},
-      "demandHubMultipliers": {},
-      "returnHubMultipliers": {}
+      "id": "backbone-shortage",
+      "demandTypeMultipliers": { "cat6-copper": 1.35, "cat6a-copper": 1.25 },
+      "demandSiteMultipliers": { "housing-backbone": 1.4 }
     },
     {
-      "id": "campus-return-wave",
-      "demandTypeMultipliers": {},
-      "demandHubMultipliers": {
-        "union-square-cable-hub": 1.35,
-        "east-village-cable-hub": 1.5
-      },
-      "returnHubMultipliers": {
-        "union-square-cable-hub": 1.6,
-        "east-village-cable-hub": 1.8
-      }
+      "id": "fiber-restoration",
+      "demandTypeMultipliers": { "os2-single-mode": 1.8, "om4-multimode": 1.4 },
+      "demandSiteMultipliers": { "hospital-uplink": 1.5, "transit-telemetry": 1.3 }
     },
     {
-      "id": "display-cable-surge",
-      "demandTypeMultipliers": {
-        "hdmi": 2,
-        "displayport": 2.25,
-        "mini-displayport": 1.5
-      },
-      "demandHubMultipliers": {},
-      "returnHubMultipliers": {}
+      "id": "emergency-restoration",
+      "demandTypeMultipliers": { "cat6a-copper": 1.4, "os2-single-mode": 1.5 },
+      "demandSiteMultipliers": { "hospital-uplink": 1.7, "shelter-connectivity": 1.8 }
     },
     {
-      "id": "brooklyn-rebalance",
+      "id": "borough-fairness",
       "demandTypeMultipliers": {},
-      "demandHubMultipliers": {
-        "greenpoint-cable-hub": 1.8,
-        "williamsburg-cable-hub": 2
-      },
-      "returnHubMultipliers": {
-        "union-square-cable-hub": 1.7,
-        "east-village-cable-hub": 1.5
-      }
+      "demandSiteMultipliers": { "housing-backbone": 1.6, "community-media": 1.5 }
     }
   ],
   "simulation": {
-    "seed": "cable-city-month-2026-07",
-    "selectedCableFamilyIds": [
-      "usb-c-to-a",
-      "usb-c-to-c",
-      "usb-c-to-lightning",
-      "ethernet-rj45",
-      "hdmi",
-      "displayport",
-      "mini-displayport",
-      "micro-usb",
-      "three-five-mm-audio",
-      "iec-c13-power"
-    ],
+    "seed": "cable-city-logistics-2026-07",
+    "selectedCableFamilyIds": ["cat6-copper", "cat6a-copper", "os2-single-mode", "om4-multimode", "rg6-coax"],
     "ensembleSeeds": [
-      "cable-city-variance-01",
-      "cable-city-variance-02",
-      "cable-city-variance-03",
-      "cable-city-variance-04"
+      "cable-logistics-variance-01",
+      "cable-logistics-variance-02",
+      "cable-logistics-variance-03",
+      "cable-logistics-variance-04"
     ],
-    "durationDays": 30,
-    "needCount": 4096,
-    "returnCount": 4096,
-    "journeyEventCount": 960,
-    "renderedRequestCount": 64,
-    "initialInventoryPerHubType": 8
+    "durationDays": 14,
+    "needCount": 18,
+    "returnCount": 0,
+    "journeyEventCount": 0,
+    "renderedRequestCount": 18,
+    "initialInventoryPerHubType": 2,
+    "demandPriority": "critical-first",
+    "allowSubstitutes": true,
+    "reservePolicy": "one-reel",
+    "transferCapacityMetersPerDay": 900,
+    "allocationObjective": "cheapest",
+    "fairnessWeight": 3,
+    "disruptionScenario": "road-closure"
   }
 }

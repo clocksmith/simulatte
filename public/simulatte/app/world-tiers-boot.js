@@ -19,7 +19,7 @@
   const EXPERIENCE_DOC_PATHS = Object.freeze({
     'cable-trader-pickup-v1': 'cable-trader.md',
     'neighborhood-bulk-pool-v1': 'neighborhood-bulk-pool.md',
-    'safety-explorer-v1': 'safety-explorer.md',
+    'nyc-development-atlas-v1': 'nyc-development-atlas.md',
     'sun-walker-v1': 'sun-walker.md',
     'food-recall-us-v1': 'food-recall.md',
     'grid-resilience-us-v1': 'grid-resilience.md',
@@ -32,7 +32,7 @@
   const PROFILE_LABELS = Object.freeze({
     'cable-trader-pickup-v1': 'Cable Trader',
     'neighborhood-bulk-pool-v1': 'Neighborhood Bulk Pool',
-    'safety-explorer-v1': 'Safety Explorer',
+    'nyc-development-atlas-v1': 'NYC Development Atlas',
     'sun-walker-v1': 'Sun Walker',
     'food-recall-us-v1': 'Food Recall (US)',
     'grid-resilience-us-v1': 'Grid Resilience',

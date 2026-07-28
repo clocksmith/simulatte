@@ -7,11 +7,16 @@ experience. Each page answers the same questions in the same order. Runtime
 profiles, governed data, source code, tests, and evidence receipts remain the
 executable sources of truth.
 
+The aspirational consistency and interest work is tracked in
+[one improvement ledger per experience](improvements/README.md), so current
+state, dated improvement sweeps, and frontier targets remain distinct from
+behavior that executes today.
+
 | Experience | Tier | Status | Real data | Simulation | Comparison | Browser proof |
 |---|---|---|---|---|---|---|
-| [Cable Trader](cable-trader.md) | City | implemented | Connector standards context | Synthetic cable demand and redistribution | Optimized redistribution vs local inventory | Prior commit only |
+| [Cable Trader](cable-trader.md) | City | implemented | City routes and cable-family standards context | Reel, project, transfer, disruption, and arrival logistics | Cheapest, fastest, and fairness-first policies | Current browser proof pending |
 | [Neighborhood Bulk Pool](neighborhood-bulk-pool.md) | City | implemented | Warehouse identities and addresses | Synthetic pooling, handoffs, costs, and waste | Four pooling policies | Prior commit only |
-| [Safety Explorer](safety-explorer.md) | City | implemented | NYC reported collision rows | Fixed sparse-count shrinkage over route evidence | Baseline K vs sensitivity K | Prior commit only |
+| [NYC Development Atlas](nyc-development-atlas.md) | City | implemented | NYC neighborhood, sale, DOB, building, and PLUTO records | Historical building stages and conditional price and development ensembles | Business as usual vs selected development policy | Not tested |
 | [Sun Walker](sun-walker.md) | City | implemented | NYC geometry, 2015 trees, historical weather analog | Arrival-time solar exposure and occlusion | Fastest vs shade-selected route | Prior commit only |
 | [Food Recall](food-recall.md) | Country | implemented | Governed environmental and logistics fields where identified | Synthetic lots, contamination, illness, and recall | Recall intervention vs no recall | Prior commit only |
 | [Grid Resilience](grid-resilience.md) | Country | implemented | Historical EIA and NOAA rows | Interface-constrained dispatch and restoration | Economic baseline vs resilience policy | Prior commit only |

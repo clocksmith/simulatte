@@ -67,12 +67,53 @@ test('plugin runtime activates a least-authority fixture, sequences state, contr
   assert.equal(disposed, true);
 });
 
+test('data catalog lazily loads only declared hash-pinned shards and reuses the verified result', async () => {
+  const reference = {
+    id: 'fixture-region-a-v1',
+    regionId: 'region-a',
+    path: 'regions/region-a.json',
+    schemaId: 'fixture.regionShard.v1',
+    sha256: 'a'.repeat(64),
+    byteCount: 42,
+  };
+  const calls = [];
+  const dataCatalog = catalogApi.createDataCatalog([{
+    id: 'fixture-index-v1',
+    value: { id: 'fixture-index-v1', shards: [reference] },
+    receipt: { sha256: 'b'.repeat(64) },
+  }], {
+    async loadShard(request) {
+      calls.push(request);
+      return {
+        value: { id: reference.id, schema: reference.schemaId, rows: [1, 2, 3] },
+        sha256: reference.sha256,
+        receipt: { cacheMode: 'cold', transferredBytes: reference.byteCount },
+      };
+    },
+  });
+  const view = dataCatalog.createView([{ id: 'fixture-index-v1', required: true }]);
+  const first = await view.loadShard('fixture-index-v1', 'region-a');
+  const second = await view.loadShard('fixture-index-v1', reference.id);
+  assert.equal(calls.length, 1);
+  assert.equal(first, second);
+  assert.equal(first.receipt.schema, 'simulatte.datasetShardLoadReceipt.v1');
+  assert.equal(first.receipt.sha256, reference.sha256);
+  await assert.rejects(
+    view.loadShard('fixture-index-v1', 'region-b'),
+    /data_catalog_shard_undeclared/
+  );
+  await assert.rejects(
+    dataCatalog.createView([]).loadShard('fixture-index-v1', 'region-a'),
+    /data_catalog_access_undeclared/
+  );
+});
+
 test('application interactions expose governed seeds without presenting mission prose as input', () => {
   const profile = JSON.parse(fs.readFileSync(require.resolve('../public/data/application-profiles/cable-trader-pickup-v1.json'), 'utf8'));
   assert.equal(contracts.validateProfile(profile), profile);
   const interaction = interactionApi.resolveInteraction(profile, {});
   assert.equal(interaction.mode, 'playback');
-  assert.equal(interaction.defaultScenario.id, 'july-baseline');
+  assert.equal(interaction.defaultScenario.id, 'backbone-shortage');
   assert.equal(interaction.scenarios.length, 4);
   assert.notEqual(interactionApi.nextScenario(interaction, interaction.defaultScenario.id).seed, interaction.defaultScenario.seed);
 });

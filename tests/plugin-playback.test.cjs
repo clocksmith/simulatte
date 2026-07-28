@@ -62,6 +62,7 @@ function fixture({
     clearTimer: () => {},
   });
   let day = 0;
+  let interventions = [];
   let settledReceipt = null;
   const phases = [];
   const dispatchedValues = [];
@@ -79,10 +80,27 @@ function fixture({
           },
         };
       }
+      if (actionId.includes('.intervene.')) {
+        interventions.push({ actionId, day, values: structuredClone(context.values) });
+        return {
+          status: day === 2 ? 'settled' : 'running',
+          currentStep: day,
+          totalSteps: 2,
+          simulationTimeMs: day * 1000,
+          interventionCount: interventions.length,
+        };
+      }
       dispatchedValues.push(structuredClone(context.values));
       if (context.values.phase === 'start') {
         day = 0;
-        return { status: 'running', currentStep: day, totalSteps: 2, simulationTimeMs: 0 };
+        interventions = [];
+        return {
+          status: 'running',
+          currentStep: day,
+          totalSteps: 2,
+          simulationTimeMs: 0,
+          interventionCount: 0,
+        };
       }
       if (stepGate) await stepGate.promise;
       day += 1;
@@ -91,6 +109,7 @@ function fixture({
         currentStep: day + stepOffset,
         totalSteps: 2 + stepOffset,
         simulationTimeMs: day * 1000,
+        interventionCount: interventions.length,
       };
     },
     async setScenario() { day = 0; },
@@ -243,6 +262,26 @@ test('plugin playback preserves the completed run parameters across replay', asy
     enabled: true,
     phase: 'start',
   });
+});
+
+test('plugin playback receipts and deterministically restores a mid-run intervention', async () => {
+  const original = fixture();
+  await original.controller.start();
+  await original.controller.step();
+  await original.controller.intervene('fixture.intervene.release-reserve', { reason: 'shortage' });
+  await original.controller.step();
+  const receipt = structuredClone(original.settledReceipt());
+  assert.deepEqual(receipt.interventions, [{
+    actionId: 'fixture.intervene.release-reserve',
+    values: { reason: 'shortage' },
+    afterStep: 1,
+  }]);
+  assert.equal(receipt.actionResult.interventionCount, 1);
+
+  const restored = fixture();
+  await restored.controller.restore(receipt);
+  assert.deepEqual(restored.settledReceipt().actionResult, receipt.actionResult);
+  assert.deepEqual(restored.settledReceipt().interventions, receipt.interventions);
 });
 
 test('plugin playback executes and receipts every declared comparison', async () => {

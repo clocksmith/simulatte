@@ -8,10 +8,10 @@
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createNeighborhoodBulkV4(builder) {
   const PLUGIN_ID = 'neighborhood-bulk-pool';
   const MODEL_HASHES = Object.freeze({
-    catalogIndex: 'b5a43046410595e55b3cfe7ed7e042f0ce17fe3f93c36ca73ea4c1b7a0bfa865',
-    poolSolver: '1be28a3a6a5342c8ab24f719ded88758324f6e38a1a924bb8e2d212cedcef1f8',
-    routeScreen: '1be28a3a6a5342c8ab24f719ded88758324f6e38a1a924bb8e2d212cedcef1f8',
-    settlement: '1be28a3a6a5342c8ab24f719ded88758324f6e38a1a924bb8e2d212cedcef1f8',
+    catalogIndex: 'ea332cf023c9ede5cb17e3736927ce35e9c2ad98eb61cc4c7891a1edc749b050',
+    poolSolver: 'c420f87e38de174243e8cacf3f495ac04496528bc0df2a28b2664666155694c3',
+    routeScreen: 'c420f87e38de174243e8cacf3f495ac04496528bc0df2a28b2664666155694c3',
+    settlement: 'c420f87e38de174243e8cacf3f495ac04496528bc0df2a28b2664666155694c3',
   });
 
   function createContribution({ datasets, dataReceipts, config, result, snapshot }) {
@@ -415,7 +415,21 @@
         field('quantity', 'Fulfilled quantity', settlement.fulfilledUnits, 'share units', simulated),
         field('item-cost', 'Item cost', settlement.itemCostUsd, 'USD', simulated),
         field('driver-cost', 'Driver compensation share', settlement.driverCompensationUsd, 'USD', simulated),
+        field('total-cost', 'Total cost', settlement.totalCostUsd, 'USD', simulated),
         field('savings', 'Savings against independent packages', settlement.savingsUsd, 'USD', simulated),
+        field('base-price', 'Base item price', settlement.receiptBreakdown?.basePriceUsd || 0, 'USD', simulated),
+        field('tax', 'Sales tax', settlement.receiptBreakdown?.taxUsd || 0, 'USD', simulated),
+        field('deposit', 'Container deposit', settlement.receiptBreakdown?.depositUsd || 0, 'USD', simulated),
+        field('toll', 'Allocated tolls', settlement.receiptBreakdown?.tollUsd || 0, 'USD', simulated),
+        field('mileage', 'Mileage reimbursement', settlement.receiptBreakdown?.mileageUsd || 0, 'USD', simulated),
+        field(
+          'expense-reimbursement',
+          'Unitemized expense reimbursement',
+          settlement.receiptBreakdown?.expenseReimbursementUsd || 0,
+          'USD',
+          simulated
+        ),
+        field('fee', 'Disclosed service fee', settlement.receiptBreakdown?.feeUsd || 0, 'USD', simulated),
       ],
     }))];
     return rows;

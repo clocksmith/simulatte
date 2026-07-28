@@ -1,0 +1,601 @@
+{
+  "capacitySites": [],
+  "claimBoundary": "This NTA shard preserves every joined row retained from the governed source snapshot. The source snapshot itself samples large DOB jobs, constructed footprints, and PLUTO capacity candidates and is not a complete property history or feasibility inventory.",
+  "contentVersion": "2026-07-27",
+  "coverage": {
+    "capacityCandidates": 0,
+    "compilerRegionCap": null,
+    "developmentForecastSupportedBySector": {
+      "all": false,
+      "tax-class-1": false,
+      "tax-class-2": false,
+      "tax-class-4": false
+    },
+    "developmentSeriesRows": 6,
+    "historicalSites": 2,
+    "priceForecastSupportedBySector": {
+      "all": true,
+      "tax-class-1": false,
+      "tax-class-2": false,
+      "tax-class-4": true
+    },
+    "saleRows": 4,
+    "saleYearsBySector": {
+      "tax-class-1": [],
+      "tax-class-2": [],
+      "tax-class-4": [
+        2017,
+        2018,
+        2023,
+        2024
+      ]
+    },
+    "sectorCandidateCounts": {
+      "all": 0,
+      "tax-class-1": 0,
+      "tax-class-2": 0,
+      "tax-class-4": 0
+    },
+    "sourceSampled": true
+  },
+  "developmentSeries": [
+    {
+      "filingCount": 1,
+      "id": "development:QN0171:2002",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "QN0171",
+      "sourceNtaNames": [
+        "St. Michael's Cemetery"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2002
+    },
+    {
+      "filingCount": 1,
+      "id": "development:QN0171:2003",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "QN0171",
+      "sourceNtaNames": [
+        "St. Michael's Cemetery"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2003
+    },
+    {
+      "filingCount": 1,
+      "id": "development:QN0171:2008",
+      "proposedZoningSquareFeet": 24980,
+      "regionId": "QN0171",
+      "sourceNtaNames": [
+        "St. Michael's Cemetery"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2008
+    },
+    {
+      "filingCount": 1,
+      "id": "development:QN0171:2009",
+      "proposedZoningSquareFeet": 0,
+      "regionId": "QN0171",
+      "sourceNtaNames": [
+        "St. Michael's Cemetery"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2009
+    },
+    {
+      "filingCount": 1,
+      "id": "development:QN0171:2016",
+      "proposedZoningSquareFeet": 18859,
+      "regionId": "QN0171",
+      "sourceNtaNames": [
+        "St. Michael's Cemetery"
+      ],
+      "withdrawnFilingCount": 1,
+      "year": 2016
+    },
+    {
+      "filingCount": 5,
+      "id": "development:QN0171:2018",
+      "proposedZoningSquareFeet": 101456,
+      "regionId": "QN0171",
+      "sourceNtaNames": [
+        "St. Michael's Cemetery"
+      ],
+      "withdrawnFilingCount": 0,
+      "year": 2018
+    }
+  ],
+  "developmentSites": [
+    {
+      "address": null,
+      "bbl": "4010160550",
+      "bin": "4022510",
+      "constructionYear": 2022,
+      "coordinates": [
+        -73.9026313,
+        40.7664089
+      ],
+      "footprint": [
+        [
+          -73.9026283,
+          40.7666236
+        ],
+        [
+          -73.9025036,
+          40.7665487
+        ],
+        [
+          -73.9025697,
+          40.7664826
+        ],
+        [
+          -73.902476,
+          40.7664284
+        ],
+        [
+          -73.902522,
+          40.7663844
+        ],
+        [
+          -73.902506,
+          40.7663751
+        ],
+        [
+          -73.9025236,
+          40.7663565
+        ],
+        [
+          -73.9025135,
+          40.7663506
+        ],
+        [
+          -73.9025363,
+          40.7663275
+        ],
+        [
+          -73.9026681,
+          40.7664037
+        ],
+        [
+          -73.9026837,
+          40.7663893
+        ],
+        [
+          -73.9026413,
+          40.7663656
+        ],
+        [
+          -73.9026777,
+          40.7663247
+        ],
+        [
+          -73.9026514,
+          40.7663176
+        ],
+        [
+          -73.9026478,
+          40.766323
+        ],
+        [
+          -73.902553,
+          40.7662989
+        ],
+        [
+          -73.9025625,
+          40.7662777
+        ],
+        [
+          -73.9026835,
+          40.7663077
+        ],
+        [
+          -73.902692,
+          40.7662906
+        ],
+        [
+          -73.9027773,
+          40.7663126
+        ],
+        [
+          -73.9027829,
+          40.7662986
+        ],
+        [
+          -73.902837,
+          40.7663114
+        ],
+        [
+          -73.9027158,
+          40.766587
+        ],
+        [
+          -73.9026937,
+          40.7665813
+        ],
+        [
+          -73.9026632,
+          40.7666156
+        ],
+        [
+          -73.9026283,
+          40.7666236
+        ]
+      ],
+      "footprintAreaM2": 1129.38,
+      "footprintOrigin": "observed",
+      "heightM": 14.63,
+      "id": "footprint:1086721",
+      "jobId": null,
+      "milestones": [
+        {
+          "date": "2022-07-01",
+          "id": "footprint:1086721:constructed",
+          "kind": "constructed-year",
+          "origin": "observed",
+          "precision": "year"
+        }
+      ],
+      "proposedStories": null,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": null,
+      "regionId": "QN0171",
+      "sourceKind": "constructed-footprint",
+      "sourceRowIds": [
+        "building-footprint:1086721"
+      ]
+    },
+    {
+      "address": "62-05 30TH AVENUE",
+      "bbl": "4010160125",
+      "bin": "4022505",
+      "constructionYear": 2023,
+      "coordinates": [
+        -73.900874,
+        40.759705
+      ],
+      "footprint": [
+        [
+          -73.9016882,
+          40.7590883
+        ],
+        [
+          -73.9000598,
+          40.7590883
+        ],
+        [
+          -73.9000598,
+          40.7603217
+        ],
+        [
+          -73.9016882,
+          40.7603217
+        ],
+        [
+          -73.9016882,
+          40.7590883
+        ]
+      ],
+      "footprintAreaM2": 4712.78,
+      "footprintOrigin": "modeled",
+      "heightM": 9.14,
+      "id": "job:421651750:01",
+      "jobId": "421651750",
+      "milestones": [
+        {
+          "date": "2018-06-28",
+          "id": "job:421651750:01:filed:1",
+          "kind": "filed",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2019-05-17",
+          "id": "job:421651750:01:approved:2",
+          "kind": "approved",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2019-09-13",
+          "id": "job:421651750:01:fully-permitted:3",
+          "kind": "fully-permitted",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2023-12-27",
+          "id": "job:421651750:01:final-certificate-of-occupancy:4",
+          "kind": "final-certificate-of-occupancy",
+          "origin": "observed",
+          "precision": "day"
+        },
+        {
+          "date": "2023-12-27",
+          "id": "job:421651750:01:signed-off:5",
+          "kind": "signed-off",
+          "origin": "observed",
+          "precision": "day"
+        }
+      ],
+      "proposedStories": 2,
+      "proposedUnits": null,
+      "proposedZoningSquareFeet": 101456,
+      "regionId": "QN0171",
+      "sourceKind": "new-building-job",
+      "sourceRowIds": [
+        "dob-now:3040222",
+        "certificate-of-occupancy:421651750:001"
+      ],
+      "status": "SIGNED OFF",
+      "withdrawn": false
+    }
+  ],
+  "id": "nyc-real-estate-region-qn0171-v1",
+  "region": {
+    "abbreviation": "StMchlCem",
+    "areaM2": 4388717.12064,
+    "boroughId": "queens",
+    "boroughLabel": "Queens",
+    "bounds": {
+      "east": -73.8943237,
+      "north": 40.7674168,
+      "south": 40.7596279,
+      "west": -73.9035123
+    },
+    "centroid": [
+      -73.8986214,
+      40.7644132
+    ],
+    "communityDistrictTabulationAreaId": "QN01",
+    "communityDistrictTabulationAreaLabel": "QN01 Astoria-Queensbridge (CD 1 Equivalent)",
+    "id": "QN0171",
+    "label": "St. Michael's Cemetery",
+    "polygon": [
+      [
+        -73.8943237,
+        40.7661465
+      ],
+      [
+        -73.8950966,
+        40.7643566
+      ],
+      [
+        -73.8964565,
+        40.7632048
+      ],
+      [
+        -73.8987725,
+        40.7599156
+      ],
+      [
+        -73.9015285,
+        40.7596279
+      ],
+      [
+        -73.902073,
+        40.762381
+      ],
+      [
+        -73.9035123,
+        40.7658495
+      ],
+      [
+        -73.9021795,
+        40.7673158
+      ],
+      [
+        -73.9020252,
+        40.7674168
+      ],
+      [
+        -73.8945435,
+        40.7661847
+      ],
+      [
+        -73.8943237,
+        40.7661465
+      ]
+    ],
+    "spatialPolygons": [
+      {
+        "holes": [],
+        "outer": [
+          [
+            -73.8943237,
+            40.7661465
+          ],
+          [
+            -73.8950966,
+            40.7643566
+          ],
+          [
+            -73.8964565,
+            40.7632048
+          ],
+          [
+            -73.8987725,
+            40.7599156
+          ],
+          [
+            -73.9015285,
+            40.7596279
+          ],
+          [
+            -73.902073,
+            40.762381
+          ],
+          [
+            -73.9035123,
+            40.7658495
+          ],
+          [
+            -73.9021795,
+            40.7673158
+          ],
+          [
+            -73.9020252,
+            40.7674168
+          ],
+          [
+            -73.8945435,
+            40.7661847
+          ],
+          [
+            -73.8943237,
+            40.7661465
+          ]
+        ]
+      }
+    ]
+  },
+  "saleSeries": [
+    {
+      "id": "sale:QN0171:2017:tax-4",
+      "meanPriceUsd": 9405000,
+      "medianPriceUsd": 9405000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0171",
+      "saleCount": 2,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 5,
+      "year": 2017
+    },
+    {
+      "id": "sale:QN0171:2018:tax-4",
+      "meanPriceUsd": 22750000,
+      "medianPriceUsd": 22750000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0171",
+      "saleCount": 1,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 3,
+      "year": 2018
+    },
+    {
+      "id": "sale:QN0171:2023:tax-4",
+      "meanPriceUsd": 50577899,
+      "medianPriceUsd": 50577899,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0171",
+      "saleCount": 1,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 1,
+      "year": 2023
+    },
+    {
+      "id": "sale:QN0171:2024:tax-4",
+      "meanPriceUsd": 6525000,
+      "medianPriceUsd": 6525000,
+      "priceBasis": "nominal-usd-recorded-sale-filtered",
+      "regionId": "QN0171",
+      "saleCount": 1,
+      "sectorId": "tax-class-4",
+      "transferredUnits": 2,
+      "year": 2024
+    }
+  ],
+  "schema": "simulatte.nycRealEstateRegionShard.v1",
+  "sourceIdentities": [
+    {
+      "byteCount": 1008463,
+      "path": "nyc-annualized-sales-by-nta.json",
+      "sha256": "14c15020381466196236073ee3753ff7a5d74a76ec6af4605e96564abd2bf99a",
+      "sourceId": "nyc-real-estate-sales-annual"
+    },
+    {
+      "byteCount": 8977616,
+      "path": "nyc-final-certificates-of-occupancy.json",
+      "sha256": "966c237824a79aff9d5137d27b498ba4f3670cc19844738c5ce17a559388030e",
+      "sourceId": "nyc-real-estate-final-occupancy"
+    },
+    {
+      "byteCount": 8802596,
+      "path": "nyc-largest-constructed-footprints-2010-2026.geojson",
+      "sha256": "15745b9c62fa539e683737f0665fe91d95231e68d8c1b598e7ed211114811eb6",
+      "sourceId": "nyc-real-estate-constructed-footprints"
+    },
+    {
+      "byteCount": 1076754,
+      "path": "nyc-largest-new-building-jobs-bronx.json",
+      "sha256": "1a44c6cbfa364639e4b75957b2fab7e3c301f95bcfcfa90c50862fef85f450c1",
+      "sourceId": "nyc-real-estate-new-building-sample-bronx"
+    },
+    {
+      "byteCount": 1085334,
+      "path": "nyc-largest-new-building-jobs-brooklyn.json",
+      "sha256": "389e1825faff440d6fad5a12ed470f84e90859fd732262346a3414c5503693fd",
+      "sourceId": "nyc-real-estate-new-building-sample-brooklyn"
+    },
+    {
+      "byteCount": 1097625,
+      "path": "nyc-largest-new-building-jobs-manhattan.json",
+      "sha256": "6346678de380d58e325db14fc2e0611d993743be29898360e08f092eaa1f88e5",
+      "sourceId": "nyc-real-estate-new-building-sample-manhattan"
+    },
+    {
+      "byteCount": 1091065,
+      "path": "nyc-largest-new-building-jobs-queens.json",
+      "sha256": "79eb6f028b2135214d47a793101f72de695efcb02e4c2802cc10cd062c760a22",
+      "sourceId": "nyc-real-estate-new-building-sample-queens"
+    },
+    {
+      "byteCount": 1120592,
+      "path": "nyc-largest-new-building-jobs-staten-island.json",
+      "sha256": "e0870a431a75bdd235fc09b0ecd7503c45384f5e8b66beba545447c7bb3d960a",
+      "sourceId": "nyc-real-estate-new-building-sample-staten-island"
+    },
+    {
+      "byteCount": 1250280,
+      "path": "nyc-new-building-filings-by-nta-year.json",
+      "sha256": "4b75b0ad54a1ce5241b9c2e303be2cc24781e55a65fbf27be10d00a80bfeadea",
+      "sourceId": "nyc-real-estate-new-building-annual"
+    },
+    {
+      "byteCount": 4576764,
+      "path": "nyc-nta-2020.geojson",
+      "sha256": "c3dd069e094e2d2f647c1c102cd7e0570d033dd6131446bd1943a73210d09c56",
+      "sourceId": "nyc-real-estate-nta-boundaries"
+    },
+    {
+      "byteCount": 2402191,
+      "path": "nyc-pluto-capacity-bronx.json",
+      "sha256": "b45168721525e18a29aafcce335212632607021240869b738cbb96fbe2441389",
+      "sourceId": "nyc-real-estate-pluto-capacity-bronx"
+    },
+    {
+      "byteCount": 2403266,
+      "path": "nyc-pluto-capacity-brooklyn.json",
+      "sha256": "63b33a507c0bc26f7b71669cf032baa4950af2db77ce8712b876ca6f4c9f771b",
+      "sourceId": "nyc-real-estate-pluto-capacity-brooklyn"
+    },
+    {
+      "byteCount": 2464264,
+      "path": "nyc-pluto-capacity-manhattan.json",
+      "sha256": "91e3e1f5dce97a340475b51577458c8e48183f1138c334fbcce27d68001e9d25",
+      "sourceId": "nyc-real-estate-pluto-capacity-manhattan"
+    },
+    {
+      "byteCount": 2418903,
+      "path": "nyc-pluto-capacity-queens.json",
+      "sha256": "02a12d81466e89e05b9be9273198c5f857e86db5d2c95cfb717160ce4ccf99c1",
+      "sourceId": "nyc-real-estate-pluto-capacity-queens"
+    },
+    {
+      "byteCount": 1168016,
+      "path": "nyc-pluto-capacity-staten-island.json",
+      "sha256": "6d488f6ce46fa09930b669429275014a8ecedae6c85041fb465a15633c6a38b0",
+      "sourceId": "nyc-real-estate-pluto-capacity-staten-island"
+    }
+  ],
+  "truth": {
+    "origin": "observed",
+    "temporalStatus": "historical",
+    "uncertainty": {
+      "kind": "missing",
+      "value": {
+        "reason": "Administrative records have missing, revised, duplicated, and source-sampled fields without a shared statistical uncertainty model."
+      }
+    }
+  }
+}

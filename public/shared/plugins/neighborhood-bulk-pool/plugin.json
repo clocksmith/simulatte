@@ -56,7 +56,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginNeighborhoodBulkPool",
-    "integrity": "sha384-050b143332826f9c86cbdd1cbf7f000d1537239549f582345a99877d3033f76ff5ae29ee91078f69b8750bc6497fbc1f",
+    "integrity": "sha384-db3dd9f4aaa0cc822d599645dd1ec1e4d8284ea81c897fe05b415b1adf69379c6177a400b8a128948d5481d0498fd1e1",
     "path": "./index.js"
   },
   "extensionPoints": [
@@ -81,6 +81,7 @@
     "simulatte.plugin.neighborhoodBulkScenarioReceipt.v1",
     "simulatte.plugin.neighborhoodBulkSettlementReceipt.v1",
     "simulatte.plugin.neighborhoodBulkComparisonReceipt.v1",
+    "simulatte.plugin.neighborhoodBulkDisruptionReceipt.v1",
     "simulatte.comparisonExecutionReceipt.v4"
   ],
   "resources": [
@@ -93,19 +94,19 @@
       "path": "./default-config.json"
     },
     {
-      "integrity": "sha384-5093ce66c0f7a22237cd79cb2f7b0ac6e7c12b827b5a1a0fc6eb184f9ad4a5e295ff5a22f8508078ca91dc12fc62b839",
+      "integrity": "sha384-2e240f12d9cfc0e60314bc2bb411fb2baa3a4c65006a0ab4e8a442dfe38a7e2908cf1266915c71f65a2a5b0efea013fc",
       "path": "./catalog-index.js"
     },
     {
-      "integrity": "sha384-185993608c08b1668d08fa5a2ee3ad6d10e6bdacc1cd216b54faae3994a2cc9331b494959f892670bd24ab6a584da15b",
+      "integrity": "sha384-5a802d367a0e48480bdac9336d0cc1f5f67e6735bc9a6124055d26adfa2db5425ff5642676787c32d8af6c20a9d47b04",
       "path": "./pool-timeline.js"
     },
     {
-      "integrity": "sha384-0b16deef8e711dccd393813b989f180a74c0cf519f6f3f1d8e5378ad8d230ec0622818f9435b1e91d2adb0156bfac070",
+      "integrity": "sha384-6df1f4cee889bb8569d1bb5a6e15624a3fd32ae700d48a0991bf9ad9d637ef5e048c67c6bded056a019033c20a18afe7",
       "path": "./pool-solver.js"
     },
     {
-      "integrity": "sha384-0335e754788dd066dcf5377ed7064860e51a6b36bd82eb2d733b405acef0c71e64b9c81c7fb4ea9566dc2676484990c8",
+      "integrity": "sha384-6bb0dd19c2e5c01c2ae9da477ed68268cee323620106f05287b95f5a070829af744e4e26cced30105c99e4422cee2e73",
       "path": "./v4-contribution.js"
     }
   ],

@@ -1,19 +1,14 @@
 {
   "configSchema": "./config.schema.json",
-  "consumes": [
-    {
-      "id": "fulfillment.delivery.v1",
-      "required": false
-    }
-  ],
+  "consumes": [],
   "datasets": [
     {
-      "id": "cable-compatibility-priors-v1",
+      "id": "cable-logistics-catalog-v1",
       "reference": {
-        "id": "cable-compatibility-priors-v1",
-        "path": "../../../data/cable-trader/cable-compatibility-priors-v1.json",
-        "schemaId": "simulatte.cableCompatibilityPriors.v1",
-        "sha256": "489761dac36fb64f334a20460f6e43e3858bd0ec909c85ff32e0023c41492e4d"
+        "id": "cable-logistics-catalog-v1",
+        "path": "../../../data/cable-trader/cable-logistics-catalog-v1.json",
+        "schemaId": "simulatte.cableLogisticsCatalog.v1",
+        "sha256": "8d41a7ff73a7073b6d8de7f3703c29726fbfe3586f13b94bc891f426d4fac3ee"
       },
       "required": true
     }
@@ -21,7 +16,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginCableTrader",
-    "integrity": "sha384-f90283aa616d1794149c04c122fa9d411814aeb9e42d3c20309240d25dce6bb6fe267312e5f170384d4a62b89f0856e0",
+    "integrity": "sha384-f3df6da7e31a3a69cb59845424cac5c1b73d1d3037b3188b3f07aeba0adbfff41bc722a501275c34da1c2079c6a17aa9",
     "path": "./index.js"
   },
   "extensionPoints": [
@@ -33,7 +28,6 @@
   ],
   "id": "cable-trader",
   "permissions": [
-    "capabilities.invoke.v1",
     "events.propose.v1",
     "random.stream.v1",
     "receipts.append.v1",
@@ -43,43 +37,54 @@
     "world.query.v1"
   ],
   "provides": [
-    "inventory.exchange.v1",
-    "settlement.credit.v1",
     "field.logistics-service.v1"
   ],
   "receiptSchemas": [
     "simulatte.plugin.cableTraderNetworkReceipt.v1",
     "simulatte.plugin.cableTraderPlaybackReceipt.v1",
     "simulatte.plugin.cableTraderEnsembleReceipt.v1",
+    "simulatte.plugin.cableTraderConservationReceipt.v1",
     "simulatte.comparisonExecutionReceipt.v4"
   ],
   "resources": [
     {
-      "integrity": "sha384-1a8eaba59ad566a2ba199f9027b4906ec6f2577c5d9046f808ffa6b2856c5c00851c2687ed343d84220eebcf57e561e2",
+      "integrity": "sha384-2949c5b7e6e5b8b30fc9a28e72899823370a43666951ea6ea2d0920d955eab22733b58c6d09669e7b43e65320de66e6f",
       "path": "./config.schema.json"
     },
     {
-      "integrity": "sha384-84fca3d31b44be235e42b82a2b504f0484396c1392b28f0a5e4fae933c7380cf19c58d5c004ad8d617037babc8e54025",
+      "integrity": "sha384-a89aba609cd5158adb64925d7166f20d459e28a0874a133bfc63cf04cc14744971b6f464ecec40913108fd62ac32af86",
       "path": "./default-config.json"
     },
     {
-      "integrity": "sha384-5a4974a3e76aacadae4871eea4e620b7d93875c842a0c3b1a0b0ef100e54e0e71c5d73b58b4b4d7d00e6449d2401ad26",
+      "integrity": "sha384-63f83b51c91cc87e478964828fbf9dc0cc556c890ff5e78dc415e055403ac9df7ae01916c561a0d3b8b0c3321d326928",
+      "path": "./logistics-flow-solver.js"
+    },
+    {
+      "integrity": "sha384-39041b80916b2a0cc2a88e7baeb3bbb82112e9de6328c730407cb2041b9d26bba5e7ad5940e2655d9a6f981c73efdd6f",
+      "path": "./logistics-engine.js"
+    },
+    {
+      "integrity": "sha384-14617589f3c2b03b35709910d1c3f56de479b7331774c28df8791c8a5af0c9f3e59148fdb88208b0c25bc9fd209fde5f",
       "path": "./network-simulation.js"
     },
     {
-      "integrity": "sha384-0f4ac949e170f2b1ba24670d877469523a4206769b203b8249cfffdeff1badf4a39e02e02dcb1f90955255adbea77f6a",
+      "integrity": "sha384-4fb1f63cb5915c73c23fa0268298b65d35aca330323cbe6b85d65f5ad63c3c9301f5374655325414c992e1fc6c49ab58",
       "path": "./v4-contribution.js"
     },
     {
-      "integrity": "sha384-bc78fdcdc9d431278df3f5f33a8609b10e7acdc764db704c7f47c23ae347d4f4a5231f2dd730ebc0adf3ee2039dc5d20",
+      "integrity": "sha384-e6998cc27c5a9c51254464ec7a9a545425b37dfeb71a16b6143157e2a89e910450d80a349dcb9c611f21120f336d9c60",
       "path": "./comparison-driver.js"
     },
     {
-      "integrity": "sha384-bc12cc879101e155c93deb21f7163c174ff977e217f1eeaec28c065556c65bd8157fd6039cb1d94a76275e9041905495",
+      "integrity": "sha384-a79414f8bd4aed012350a04fde7c3ca78744cf38fd10fd048770ec6abd3c3af5b406ccc28d8634ecaa80b56ba532ea82",
       "path": "./ensemble-runner.js"
+    },
+    {
+      "integrity": "sha384-9a4cbf42796440c61adc7e8503f49dd1099acc4b224ce69960c3aa7dc168361ee67453dc1e9d71d443d2cb85c1387075",
+      "path": "./logistics-presentation.js"
     }
   ],
   "schema": "simulatte.pluginManifest.v1",
   "sdkVersion": 2,
-  "version": "2.2.0"
+  "version": "3.0.0"
 }

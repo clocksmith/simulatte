@@ -5,7 +5,7 @@
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createNeighborhoodBulkPoolTimeline() {
   const HOUR_MS = 3600000;
 
-  function createEvents(identity, result) {
+  function createEvents(identity, result, disruptions = []) {
     const rows = [{
       kind: 'bulk-pool.demand-registered',
       payload: {
@@ -89,6 +89,23 @@
         fulfilledUnits: result.metrics.fulfilledUnits,
         wasteUnits: result.metrics.wasteUnits,
       },
+    });
+    disruptions.forEach((disruption, disruptionIndex) => {
+      const insertionIndex = Math.min(
+        Math.max(1, disruption.appliedAfterStep + 1 + disruptionIndex),
+        rows.length - 1
+      );
+      rows.splice(insertionIndex, 0, {
+        kind: 'bulk-pool.disruption-applied',
+        payload: {
+          disruptionId: disruption.id,
+          disruptionKind: disruption.kind,
+          targetId: disruption.targetId,
+          appliedAfterStep: disruption.appliedAfterStep,
+          additionalDetourKm: disruption.additionalDetourKm || 0,
+          planRecomputed: true,
+        },
+      });
     });
     return rows.map((row, sequence) => deepFreeze({
       id: `${identity}:event-${sequence}`,
@@ -188,6 +205,7 @@
   function statusForEvent(kind) {
     return ({
       'bulk-pool.demand-registered': 'demand-registered',
+      'bulk-pool.disruption-applied': 'disruption-applied',
       'bulk-pool.package-formed': 'packages-forming',
       'bulk-pool.request-rejected': 'constraints-evaluated',
       'bulk-pool.trip-dispatched': 'trip-dispatched',
@@ -201,6 +219,14 @@
 
   function narrativeForEvent(event, groupsById, tripsById) {
     const payload = event.payload || {};
+    if (event.kind === 'bulk-pool.disruption-applied') {
+      const effect = payload.disruptionKind === 'stockout'
+        ? 'the unavailable offer was removed'
+        : payload.disruptionKind === 'driver-cancellation'
+          ? 'the cancelled trip was removed'
+          : `${payload.additionalDetourKm} km was added to the affected corridor`;
+      return `${payload.disruptionKind.replaceAll('-', ' ')} at ${payload.targetId}: ${effect}, then the pool was recomputed.`;
+    }
     if (event.kind === 'bulk-pool.demand-registered') {
       return `${payload.householdCount} synthetic households requested ${payload.requestedUnits} share units.`;
     }

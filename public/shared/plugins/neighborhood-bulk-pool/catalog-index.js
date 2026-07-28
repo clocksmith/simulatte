@@ -29,6 +29,7 @@
       if (!tokens.length) return Object.freeze([]);
       const warehouseIds = new Set(options.warehouseIds || []);
       const categoryIds = new Set(options.categoryIds || []);
+      const temperatureZones = new Set(options.temperatureZones || []);
       const allowUnknownAvailability = options.allowUnknownAvailability === true;
       const limit = boundedInteger(options.limit, 1, MAXIMUM_RESULTS, 20);
       const candidateIndexes = new Set(tokens.flatMap((token) => postings.get(token) || []));
@@ -36,6 +37,7 @@
       candidateIndexes.forEach((rowIndex) => {
         const item = snapshot.items[rowIndex];
         if (categoryIds.size && !categoryIds.has(item.categoryId)) return;
+        if (temperatureZones.size && !temperatureZones.has(item.handling?.temperatureZone)) return;
         const offers = eligibleOffers(item, { warehouseIds, allowUnknownAvailability });
         if (!offers.length) return;
         const itemTerms = termsFor(item);
@@ -47,6 +49,8 @@
           itemNumber: item.itemNumber,
           name: item.name,
           categoryId: item.categoryId,
+          temperatureZone: item.handling?.temperatureZone || 'ambient',
+          package: Object.freeze({ ...item.package }),
           score,
           offers: Object.freeze(offers),
         }), limit);
@@ -68,6 +72,32 @@
       return item;
     }
 
+    function calculateFractionalShare(itemId, requestedUnits) {
+      const item = requireItem(itemId);
+      const innerUnits = item.package.innerUnits;
+      const units = Number(requestedUnits);
+      if (!Number.isFinite(units) || units <= 0) {
+        throw catalogError(
+          'bulk_catalog_share_units_invalid',
+          `Requested units for ${itemId} must be a finite positive number`
+        );
+      }
+      const packagesRequired = Math.ceil(units / innerUnits);
+      const purchasedUnits = packagesRequired * innerUnits;
+      return Object.freeze({
+        itemId: item.id,
+        requestedUnits: units,
+        innerUnits,
+        packagesRequired,
+        purchasedUnits,
+        unallocatedUnits: Number((purchasedUnits - units).toFixed(4)),
+        shareFraction: Number((units / purchasedUnits).toFixed(4)),
+        isFractional: units % innerUnits !== 0,
+        massKg: Number((item.package.massKg * units / innerUnits).toFixed(3)),
+        volumeL: Number((item.package.volumeL * units / innerUnits).toFixed(3)),
+      });
+    }
+
     return Object.freeze({
       coverage: Object.freeze({ ...snapshot.coverage }),
       itemCount: snapshot.items.length,
@@ -77,6 +107,7 @@
         return offersByItemWarehouse.get(`${itemId}:${warehouseId}`) || null;
       },
       eligibleOffersFor,
+      calculateFractionalShare,
       search,
     });
   }

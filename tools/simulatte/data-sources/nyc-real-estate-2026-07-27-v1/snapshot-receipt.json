@@ -1,0 +1,468 @@
+{
+  "schema": "simulatte.autonomyDataFetchReceipt.v1",
+  "plan": {
+    "schema": "simulatte.autonomyDataFetchPlan.v1",
+    "catalog": {
+      "id": "nyc-autonomy-source-catalog-v1",
+      "sha256": "dc18078f10db5a59cf0f8e949bbe739c5eac5df24fc536598d21a0728797d623",
+      "path": "tools/simulatte/source-catalog-v1.json"
+    },
+    "mode": "snapshot_refresh",
+    "snapshotDate": "2026-07-27",
+    "bounds": {
+      "south": 40.705,
+      "west": -74.015,
+      "north": 40.745,
+      "east": -73.94
+    },
+    "sourceIds": [
+      "nyc-real-estate-constructed-footprints",
+      "nyc-real-estate-final-occupancy",
+      "nyc-real-estate-new-building-annual",
+      "nyc-real-estate-new-building-sample-bronx",
+      "nyc-real-estate-new-building-sample-brooklyn",
+      "nyc-real-estate-new-building-sample-manhattan",
+      "nyc-real-estate-new-building-sample-queens",
+      "nyc-real-estate-new-building-sample-staten-island",
+      "nyc-real-estate-nta-boundaries",
+      "nyc-real-estate-pluto-capacity-bronx",
+      "nyc-real-estate-pluto-capacity-brooklyn",
+      "nyc-real-estate-pluto-capacity-manhattan",
+      "nyc-real-estate-pluto-capacity-queens",
+      "nyc-real-estate-pluto-capacity-staten-island",
+      "nyc-real-estate-sales-annual"
+    ],
+    "requests": [
+      {
+        "id": "nyc-real-estate-constructed-footprints:nyc-largest-constructed-footprints-2010-2026.geojson",
+        "sourceId": "nyc-real-estate-constructed-footprints",
+        "group": "real-estate-history",
+        "dataClass": "map_fact",
+        "authority": "NYC Office of Technology and Innovation",
+        "license": "NYC Open Data Terms of Use",
+        "transport": "socrata_geojson",
+        "url": "https://data.cityofnewyork.us/resource/5zhs-2jue.geojson?$limit=12000&$select=the_geom,bin,doitt_id,shape_area,base_bbl,objectid,construction_year,feature_code,geom_source,ground_elevation,height_roof,last_edited_date,last_status_type,mappluto_bbl&$where=construction_year%20between%202010%20and%202026%20and%20last_status_type='Constructed'&$order=shape_area%20desc,objectid",
+        "output": "nyc-largest-constructed-footprints-2010-2026.geojson",
+        "period": null,
+        "bounds": null,
+        "capabilities": [
+          "historical_building_footprint_replay"
+        ],
+        "entryGate": "Retain the current-snapshot and largest-footprint sampling boundary. Construction year does not establish intermediate stage dates or buildings later demolished."
+      },
+      {
+        "id": "nyc-real-estate-final-occupancy:nyc-final-certificates-of-occupancy.json",
+        "sourceId": "nyc-real-estate-final-occupancy",
+        "group": "real-estate-history",
+        "dataClass": "observed_history",
+        "authority": "NYC Department of Buildings",
+        "license": "NYC Open Data Terms of Use",
+        "transport": "socrata_json",
+        "url": "https://data.cityofnewyork.us/resource/bs8b-p36w.json?$limit=30000&$select=job_number,job_type,c_o_issue_date,bin_number,borough,house_number,street_name,block,lot,postcode,pr_dwelling_unit,ex_dwelling_unit,application_status_raw,filing_status_raw,item_number,issue_type,latitude,longitude,community_board,bin,bbl,nta&$where=job_type='NB'%20and%20issue_type='Final'%20and%20bbl%20is%20not%20null%20and%20latitude%20is%20not%20null%20and%20longitude%20is%20not%20null&$order=c_o_issue_date,job_number,item_number",
+        "output": "nyc-final-certificates-of-occupancy.json",
+        "period": null,
+        "bounds": null,
+        "capabilities": [
+          "historical_occupancy_completion_milestone"
+        ],
+        "entryGate": "Treat final certificate issue as an observed legal occupancy milestone, not proof of lease-up, sale, construction quality, or exact physical completion."
+      },
+      {
+        "id": "nyc-real-estate-new-building-annual:nyc-new-building-filings-by-nta-year.json",
+        "sourceId": "nyc-real-estate-new-building-annual",
+        "group": "real-estate-history",
+        "dataClass": "observed_history",
+        "authority": "NYC Department of Buildings",
+        "license": "NYC Open Data Terms of Use",
+        "transport": "socrata_json",
+        "url": "https://data.cityofnewyork.us/resource/ic3t-wcy2.json?$limit=50000&$select=substring(pre__filing_date,7,4)%20as%20year,gis_nta_name%20as%20nta_name,borough,withdrawal_flag,count(*)%20as%20filing_count,sum(proposed_zoning_sqft)%20as%20proposed_zoning_sqft&$where=job_type='NB'%20and%20gis_nta_name%20is%20not%20null%20and%20pre__filing_date%20is%20not%20null%20and%20substring(pre__filing_date,7,4)%20between%20'2000'%20and%20'2026'&$group=year,nta_name,borough,withdrawal_flag&$order=year,borough,nta_name,withdrawal_flag",
+        "output": "nyc-new-building-filings-by-nta-year.json",
+        "period": null,
+        "bounds": null,
+        "capabilities": [
+          "historical_development_count",
+          "historical_proposed_floor_area"
+        ],
+        "entryGate": "Preserve year, source NTA name, borough, withdrawal status, filing count, and missing proposal area. A filing is not a completed building."
+      },
+      {
+        "id": "nyc-real-estate-new-building-sample-bronx:nyc-largest-new-building-jobs-bronx.json",
+        "sourceId": "nyc-real-estate-new-building-sample-bronx",
+        "group": "real-estate-history",
+        "dataClass": "observed_history",
+        "authority": "NYC Department of Buildings",
+        "license": "NYC Open Data Terms of Use",
+        "transport": "socrata_json",
+        "url": "https://data.cityofnewyork.us/resource/ic3t-wcy2.json?$limit=1200&$select=job_s1_no,job__,doc__,borough,house__,street_name,block,lot,bin__,total_construction_floor_area,job_type,job_status,job_status_descrp,latest_action_date,community___board,withdrawal_flag,pre__filing_date,approved,fully_permitted,signoff_date,initial_cost,existing_zoning_sqft,proposed_zoning_sqft,existingno_of_stories,proposed_no_of_stories,existing_height,proposed_height,existing_dwelling_units,proposed_dwelling_units,zoning_dist1,zoning_dist2,building_class,job_description,gis_latitude,gis_longitude,gis_nta_name,bbl,dobrundate&$where=job_type='NB'%20and%20borough='BRONX'%20and%20bbl%20is%20not%20null%20and%20gis_latitude%20is%20not%20null%20and%20gis_longitude%20is%20not%20null&$order=proposed_zoning_sqft%20desc,job__,doc__",
+        "output": "nyc-largest-new-building-jobs-bronx.json",
+        "period": null,
+        "bounds": null,
+        "capabilities": [
+          "historical_development_milestones",
+          "historical_proposed_units"
+        ],
+        "entryGate": "Parse recorded filing, approval, permit, and signoff dates independently. Preserve the largest-proposed-area sampling boundary, duplicate documents, withdrawals, and missing milestones."
+      },
+      {
+        "id": "nyc-real-estate-new-building-sample-brooklyn:nyc-largest-new-building-jobs-brooklyn.json",
+        "sourceId": "nyc-real-estate-new-building-sample-brooklyn",
+        "group": "real-estate-history",
+        "dataClass": "observed_history",
+        "authority": "NYC Department of Buildings",
+        "license": "NYC Open Data Terms of Use",
+        "transport": "socrata_json",
+        "url": "https://data.cityofnewyork.us/resource/ic3t-wcy2.json?$limit=1200&$select=job_s1_no,job__,doc__,borough,house__,street_name,block,lot,bin__,total_construction_floor_area,job_type,job_status,job_status_descrp,latest_action_date,community___board,withdrawal_flag,pre__filing_date,approved,fully_permitted,signoff_date,initial_cost,existing_zoning_sqft,proposed_zoning_sqft,existingno_of_stories,proposed_no_of_stories,existing_height,proposed_height,existing_dwelling_units,proposed_dwelling_units,zoning_dist1,zoning_dist2,building_class,job_description,gis_latitude,gis_longitude,gis_nta_name,bbl,dobrundate&$where=job_type='NB'%20and%20borough='BROOKLYN'%20and%20bbl%20is%20not%20null%20and%20gis_latitude%20is%20not%20null%20and%20gis_longitude%20is%20not%20null&$order=proposed_zoning_sqft%20desc,job__,doc__",
+        "output": "nyc-largest-new-building-jobs-brooklyn.json",
+        "period": null,
+        "bounds": null,
+        "capabilities": [
+          "historical_development_milestones",
+          "historical_proposed_units"
+        ],
+        "entryGate": "Parse recorded filing, approval, permit, and signoff dates independently. Preserve the largest-proposed-area sampling boundary, duplicate documents, withdrawals, and missing milestones."
+      },
+      {
+        "id": "nyc-real-estate-new-building-sample-manhattan:nyc-largest-new-building-jobs-manhattan.json",
+        "sourceId": "nyc-real-estate-new-building-sample-manhattan",
+        "group": "real-estate-history",
+        "dataClass": "observed_history",
+        "authority": "NYC Department of Buildings",
+        "license": "NYC Open Data Terms of Use",
+        "transport": "socrata_json",
+        "url": "https://data.cityofnewyork.us/resource/ic3t-wcy2.json?$limit=1200&$select=job_s1_no,job__,doc__,borough,house__,street_name,block,lot,bin__,total_construction_floor_area,job_type,job_status,job_status_descrp,latest_action_date,community___board,withdrawal_flag,pre__filing_date,approved,fully_permitted,signoff_date,initial_cost,existing_zoning_sqft,proposed_zoning_sqft,existingno_of_stories,proposed_no_of_stories,existing_height,proposed_height,existing_dwelling_units,proposed_dwelling_units,zoning_dist1,zoning_dist2,building_class,job_description,gis_latitude,gis_longitude,gis_nta_name,bbl,dobrundate&$where=job_type='NB'%20and%20borough='MANHATTAN'%20and%20bbl%20is%20not%20null%20and%20gis_latitude%20is%20not%20null%20and%20gis_longitude%20is%20not%20null&$order=proposed_zoning_sqft%20desc,job__,doc__",
+        "output": "nyc-largest-new-building-jobs-manhattan.json",
+        "period": null,
+        "bounds": null,
+        "capabilities": [
+          "historical_development_milestones",
+          "historical_proposed_units"
+        ],
+        "entryGate": "Parse recorded filing, approval, permit, and signoff dates independently. Preserve the largest-proposed-area sampling boundary, duplicate documents, withdrawals, and missing milestones."
+      },
+      {
+        "id": "nyc-real-estate-new-building-sample-queens:nyc-largest-new-building-jobs-queens.json",
+        "sourceId": "nyc-real-estate-new-building-sample-queens",
+        "group": "real-estate-history",
+        "dataClass": "observed_history",
+        "authority": "NYC Department of Buildings",
+        "license": "NYC Open Data Terms of Use",
+        "transport": "socrata_json",
+        "url": "https://data.cityofnewyork.us/resource/ic3t-wcy2.json?$limit=1200&$select=job_s1_no,job__,doc__,borough,house__,street_name,block,lot,bin__,total_construction_floor_area,job_type,job_status,job_status_descrp,latest_action_date,community___board,withdrawal_flag,pre__filing_date,approved,fully_permitted,signoff_date,initial_cost,existing_zoning_sqft,proposed_zoning_sqft,existingno_of_stories,proposed_no_of_stories,existing_height,proposed_height,existing_dwelling_units,proposed_dwelling_units,zoning_dist1,zoning_dist2,building_class,job_description,gis_latitude,gis_longitude,gis_nta_name,bbl,dobrundate&$where=job_type='NB'%20and%20borough='QUEENS'%20and%20bbl%20is%20not%20null%20and%20gis_latitude%20is%20not%20null%20and%20gis_longitude%20is%20not%20null&$order=proposed_zoning_sqft%20desc,job__,doc__",
+        "output": "nyc-largest-new-building-jobs-queens.json",
+        "period": null,
+        "bounds": null,
+        "capabilities": [
+          "historical_development_milestones",
+          "historical_proposed_units"
+        ],
+        "entryGate": "Parse recorded filing, approval, permit, and signoff dates independently. Preserve the largest-proposed-area sampling boundary, duplicate documents, withdrawals, and missing milestones."
+      },
+      {
+        "id": "nyc-real-estate-new-building-sample-staten-island:nyc-largest-new-building-jobs-staten-island.json",
+        "sourceId": "nyc-real-estate-new-building-sample-staten-island",
+        "group": "real-estate-history",
+        "dataClass": "observed_history",
+        "authority": "NYC Department of Buildings",
+        "license": "NYC Open Data Terms of Use",
+        "transport": "socrata_json",
+        "url": "https://data.cityofnewyork.us/resource/ic3t-wcy2.json?$limit=1200&$select=job_s1_no,job__,doc__,borough,house__,street_name,block,lot,bin__,total_construction_floor_area,job_type,job_status,job_status_descrp,latest_action_date,community___board,withdrawal_flag,pre__filing_date,approved,fully_permitted,signoff_date,initial_cost,existing_zoning_sqft,proposed_zoning_sqft,existingno_of_stories,proposed_no_of_stories,existing_height,proposed_height,existing_dwelling_units,proposed_dwelling_units,zoning_dist1,zoning_dist2,building_class,job_description,gis_latitude,gis_longitude,gis_nta_name,bbl,dobrundate&$where=job_type='NB'%20and%20borough='STATEN%20ISLAND'%20and%20bbl%20is%20not%20null%20and%20gis_latitude%20is%20not%20null%20and%20gis_longitude%20is%20not%20null&$order=proposed_zoning_sqft%20desc,job__,doc__",
+        "output": "nyc-largest-new-building-jobs-staten-island.json",
+        "period": null,
+        "bounds": null,
+        "capabilities": [
+          "historical_development_milestones",
+          "historical_proposed_units"
+        ],
+        "entryGate": "Parse recorded filing, approval, permit, and signoff dates independently. Preserve the largest-proposed-area sampling boundary, duplicate documents, withdrawals, and missing milestones."
+      },
+      {
+        "id": "nyc-real-estate-nta-boundaries:nyc-nta-2020.geojson",
+        "sourceId": "nyc-real-estate-nta-boundaries",
+        "group": "real-estate-history",
+        "dataClass": "map_fact",
+        "authority": "NYC Department of City Planning",
+        "license": "NYC Open Data Terms of Use",
+        "transport": "socrata_geojson",
+        "url": "https://data.cityofnewyork.us/resource/9nt8-h7nd.geojson?$limit=1000&$select=the_geom,borocode,boroname,nta2020,ntaname,ntaabbrev,ntatype,cdta2020,cdtaname,shape_area&$order=nta2020",
+        "output": "nyc-nta-2020.geojson",
+        "period": null,
+        "bounds": null,
+        "capabilities": [
+          "real_estate_region_geometry",
+          "real_estate_spatial_join"
+        ],
+        "entryGate": "Validate polygon closure and NTA identity. NTA boundaries define aggregation only and do not imply market homogeneity."
+      },
+      {
+        "id": "nyc-real-estate-pluto-capacity-bronx:nyc-pluto-capacity-bronx.json",
+        "sourceId": "nyc-real-estate-pluto-capacity-bronx",
+        "group": "real-estate-history",
+        "dataClass": "map_fact",
+        "authority": "NYC Department of City Planning",
+        "license": "NYC Open Data Terms of Use",
+        "transport": "socrata_json",
+        "url": "https://data.cityofnewyork.us/resource/64uk-42ks.json?$limit=5000&$select=borough,block,lot,address,zonedist1,zonedist2,landuse,lotarea,bldgarea,resarea,comarea,numbldgs,numfloors,unitsres,unitstotal,yearbuilt,yearalter1,builtfar,residfar,commfar,facilfar,affresfar,bbl,latitude,longitude&$where=borough='BX'%20and%20latitude%20is%20not%20null%20and%20longitude%20is%20not%20null%20and%20lotarea%20%3E=%201000%20and%20((residfar-builtfar%20%3E=%201)%20or%20(commfar-builtfar%20%3E=%201))&$order=(residfar-builtfar)%20desc,bbl",
+        "output": "nyc-pluto-capacity-bronx.json",
+        "period": null,
+        "bounds": null,
+        "capabilities": [
+          "scenario_development_capacity_candidate"
+        ],
+        "entryGate": "Treat mapped FAR and lot fields as a current planning snapshot. Development feasibility still requires modeled cost, demand, policy, timing, and site constraints."
+      },
+      {
+        "id": "nyc-real-estate-pluto-capacity-brooklyn:nyc-pluto-capacity-brooklyn.json",
+        "sourceId": "nyc-real-estate-pluto-capacity-brooklyn",
+        "group": "real-estate-history",
+        "dataClass": "map_fact",
+        "authority": "NYC Department of City Planning",
+        "license": "NYC Open Data Terms of Use",
+        "transport": "socrata_json",
+        "url": "https://data.cityofnewyork.us/resource/64uk-42ks.json?$limit=5000&$select=borough,block,lot,address,zonedist1,zonedist2,landuse,lotarea,bldgarea,resarea,comarea,numbldgs,numfloors,unitsres,unitstotal,yearbuilt,yearalter1,builtfar,residfar,commfar,facilfar,affresfar,bbl,latitude,longitude&$where=borough='BK'%20and%20latitude%20is%20not%20null%20and%20longitude%20is%20not%20null%20and%20lotarea%20%3E=%201000%20and%20((residfar-builtfar%20%3E=%201)%20or%20(commfar-builtfar%20%3E=%201))&$order=(residfar-builtfar)%20desc,bbl",
+        "output": "nyc-pluto-capacity-brooklyn.json",
+        "period": null,
+        "bounds": null,
+        "capabilities": [
+          "scenario_development_capacity_candidate"
+        ],
+        "entryGate": "Treat mapped FAR and lot fields as a current planning snapshot. Development feasibility still requires modeled cost, demand, policy, timing, and site constraints."
+      },
+      {
+        "id": "nyc-real-estate-pluto-capacity-manhattan:nyc-pluto-capacity-manhattan.json",
+        "sourceId": "nyc-real-estate-pluto-capacity-manhattan",
+        "group": "real-estate-history",
+        "dataClass": "map_fact",
+        "authority": "NYC Department of City Planning",
+        "license": "NYC Open Data Terms of Use",
+        "transport": "socrata_json",
+        "url": "https://data.cityofnewyork.us/resource/64uk-42ks.json?$limit=5000&$select=borough,block,lot,address,zonedist1,zonedist2,landuse,lotarea,bldgarea,resarea,comarea,numbldgs,numfloors,unitsres,unitstotal,yearbuilt,yearalter1,builtfar,residfar,commfar,facilfar,affresfar,bbl,latitude,longitude&$where=borough='MN'%20and%20latitude%20is%20not%20null%20and%20longitude%20is%20not%20null%20and%20lotarea%20%3E=%201000%20and%20((residfar-builtfar%20%3E=%201)%20or%20(commfar-builtfar%20%3E=%201))&$order=(residfar-builtfar)%20desc,bbl",
+        "output": "nyc-pluto-capacity-manhattan.json",
+        "period": null,
+        "bounds": null,
+        "capabilities": [
+          "scenario_development_capacity_candidate"
+        ],
+        "entryGate": "Treat mapped FAR and lot fields as a current planning snapshot. Development feasibility still requires modeled cost, demand, policy, timing, and site constraints."
+      },
+      {
+        "id": "nyc-real-estate-pluto-capacity-queens:nyc-pluto-capacity-queens.json",
+        "sourceId": "nyc-real-estate-pluto-capacity-queens",
+        "group": "real-estate-history",
+        "dataClass": "map_fact",
+        "authority": "NYC Department of City Planning",
+        "license": "NYC Open Data Terms of Use",
+        "transport": "socrata_json",
+        "url": "https://data.cityofnewyork.us/resource/64uk-42ks.json?$limit=5000&$select=borough,block,lot,address,zonedist1,zonedist2,landuse,lotarea,bldgarea,resarea,comarea,numbldgs,numfloors,unitsres,unitstotal,yearbuilt,yearalter1,builtfar,residfar,commfar,facilfar,affresfar,bbl,latitude,longitude&$where=borough='QN'%20and%20latitude%20is%20not%20null%20and%20longitude%20is%20not%20null%20and%20lotarea%20%3E=%201000%20and%20((residfar-builtfar%20%3E=%201)%20or%20(commfar-builtfar%20%3E=%201))&$order=(residfar-builtfar)%20desc,bbl",
+        "output": "nyc-pluto-capacity-queens.json",
+        "period": null,
+        "bounds": null,
+        "capabilities": [
+          "scenario_development_capacity_candidate"
+        ],
+        "entryGate": "Treat mapped FAR and lot fields as a current planning snapshot. Development feasibility still requires modeled cost, demand, policy, timing, and site constraints."
+      },
+      {
+        "id": "nyc-real-estate-pluto-capacity-staten-island:nyc-pluto-capacity-staten-island.json",
+        "sourceId": "nyc-real-estate-pluto-capacity-staten-island",
+        "group": "real-estate-history",
+        "dataClass": "map_fact",
+        "authority": "NYC Department of City Planning",
+        "license": "NYC Open Data Terms of Use",
+        "transport": "socrata_json",
+        "url": "https://data.cityofnewyork.us/resource/64uk-42ks.json?$limit=5000&$select=borough,block,lot,address,zonedist1,zonedist2,landuse,lotarea,bldgarea,resarea,comarea,numbldgs,numfloors,unitsres,unitstotal,yearbuilt,yearalter1,builtfar,residfar,commfar,facilfar,affresfar,bbl,latitude,longitude&$where=borough='SI'%20and%20latitude%20is%20not%20null%20and%20longitude%20is%20not%20null%20and%20lotarea%20%3E=%201000%20and%20((residfar-builtfar%20%3E=%201)%20or%20(commfar-builtfar%20%3E=%201))&$order=(residfar-builtfar)%20desc,bbl",
+        "output": "nyc-pluto-capacity-staten-island.json",
+        "period": null,
+        "bounds": null,
+        "capabilities": [
+          "scenario_development_capacity_candidate"
+        ],
+        "entryGate": "Treat mapped FAR and lot fields as a current planning snapshot. Development feasibility still requires modeled cost, demand, policy, timing, and site constraints."
+      },
+      {
+        "id": "nyc-real-estate-sales-annual:nyc-annualized-sales-by-nta.json",
+        "sourceId": "nyc-real-estate-sales-annual",
+        "group": "real-estate-history",
+        "dataClass": "observed_history",
+        "authority": "NYC Department of Finance",
+        "license": "NYC Open Data Terms of Use",
+        "transport": "socrata_json",
+        "url": "https://data.cityofnewyork.us/resource/w2pb-icbu.json?$limit=50000&$select=date_extract_y(sale_date)%20as%20year,nta,borough,tax_class_at_time_of_sale%20as%20tax_class,count(*)%20as%20sale_count,avg(sale_price)%20as%20mean_sale_price,median(sale_price)%20as%20median_sale_price,sum(total_units)%20as%20transferred_units&$where=sale_price%20between%20100000%20and%201000000000%20and%20nta%20is%20not%20null%20and%20tax_class_at_time_of_sale%20in%20(1,2,4)&$group=year,nta,borough,tax_class&$order=year,nta,tax_class",
+        "output": "nyc-annualized-sales-by-nta.json",
+        "period": null,
+        "bounds": null,
+        "capabilities": [
+          "historical_sale_price_distribution",
+          "historical_sale_count"
+        ],
+        "entryGate": "Retain nominal-dollar status, zero and nominal-sale exclusion, tax-class scope, yearly aggregation, transaction counts, and the absence of a repeat-sales quality adjustment."
+      }
+    ],
+    "claimBoundary": "Catalog registration makes a source fetchable, not executable. Only a compiler and entry gate can promote raw bytes into a governed routing, occurrence, or rendering artifact.",
+    "planSha256": "eb6e9630c248835eac35d07e02817cd3cbfaa2e5e14598dfcf41350fb9650ed0"
+  },
+  "command": [
+    "node",
+    "tools/simulatte/manage-autonomy-data.mjs",
+    "fetch",
+    "--group",
+    "real-estate-history",
+    "--snapshot-date",
+    "2026-07-27",
+    "--out",
+    "artifacts/autonomy-data/nyc-real-estate-governed-2026-07-27"
+  ],
+  "files": [
+    {
+      "requestId": "nyc-real-estate-constructed-footprints:nyc-largest-constructed-footprints-2010-2026.geojson",
+      "sourceId": "nyc-real-estate-constructed-footprints",
+      "output": "nyc-largest-constructed-footprints-2010-2026.geojson",
+      "byteCount": 8802596,
+      "sha256": "15745b9c62fa539e683737f0665fe91d95231e68d8c1b598e7ed211114811eb6",
+      "contentType": "application/vnd.geo+json; charset=UTF-8",
+      "etag": "\"aW5kaWEuNjA3MjRfMl8xNTNCYUhhNHBJNGZmNDlSNlVRaG1NRzZ6RXVQc0U---gziogpDR53_ePhDAxcCY2jjaxmCHzIw--gzip--gzip\"",
+      "lastModified": "Sun, 26 Jul 2026 04:55:57 GMT"
+    },
+    {
+      "requestId": "nyc-real-estate-final-occupancy:nyc-final-certificates-of-occupancy.json",
+      "sourceId": "nyc-real-estate-final-occupancy",
+      "output": "nyc-final-certificates-of-occupancy.json",
+      "byteCount": 8977616,
+      "sha256": "966c237824a79aff9d5137d27b498ba4f3670cc19844738c5ce17a559388030e",
+      "contentType": "application/json;charset=utf-8",
+      "etag": "\"Z29sZi4yNDk3XzNfNDgxM3J1Qk5NVHZEb1oyRkJRdE9DR2ZheXhEbnpmMA---gziuXcZlyVrv2iT1Uj78liPIXTf8wi--gzip--gzip\"",
+      "lastModified": "Sat, 25 Jul 2026 20:33:21 GMT"
+    },
+    {
+      "requestId": "nyc-real-estate-new-building-annual:nyc-new-building-filings-by-nta-year.json",
+      "sourceId": "nyc-real-estate-new-building-annual",
+      "output": "nyc-new-building-filings-by-nta-year.json",
+      "byteCount": 1250280,
+      "sha256": "4b75b0ad54a1ce5241b9c2e303be2cc24781e55a65fbf27be10d00a80bfeadea",
+      "contentType": "application/json;charset=utf-8",
+      "etag": "\"Zm94dHJvdC4xNTY3MF82XzQ1MjQ4ZHJPMG4tM0JZZ0xNVnNibU0xMFdlZUJjR3M---gzioaJxJU4zlydr-D5fiSXbn4aocQlA--gzip--gzip\"",
+      "lastModified": "Mon, 27 Jul 2026 21:30:05 GMT"
+    },
+    {
+      "requestId": "nyc-real-estate-new-building-sample-bronx:nyc-largest-new-building-jobs-bronx.json",
+      "sourceId": "nyc-real-estate-new-building-sample-bronx",
+      "output": "nyc-largest-new-building-jobs-bronx.json",
+      "byteCount": 1076754,
+      "sha256": "1a44c6cbfa364639e4b75957b2fab7e3c301f95bcfcfa90c50862fef85f450c1",
+      "contentType": "application/json;charset=utf-8",
+      "etag": "\"Zm94dHJvdC4xNTY3MF82XzQ1MjRqWE0yUzJQSHVMUm9hR3FBTHl1SmdaMzJxUGc---gzio8h0EkcWo7ZuSv6MZPeRuDrpA_8Q--gzip--gzip\"",
+      "lastModified": "Mon, 27 Jul 2026 21:30:05 GMT"
+    },
+    {
+      "requestId": "nyc-real-estate-new-building-sample-brooklyn:nyc-largest-new-building-jobs-brooklyn.json",
+      "sourceId": "nyc-real-estate-new-building-sample-brooklyn",
+      "output": "nyc-largest-new-building-jobs-brooklyn.json",
+      "byteCount": 1085334,
+      "sha256": "389e1825faff440d6fad5a12ed470f84e90859fd732262346a3414c5503693fd",
+      "contentType": "application/json;charset=utf-8",
+      "etag": "\"Zm94dHJvdC4xNTY3MF82XzQ1MjQ1bVA2cjVRdVhLSWRGYm12dUJUWGo5bkk5TUU---gzio0fGkGpsG1emyKSD7BM2PhvVGtqA--gzip--gzip\"",
+      "lastModified": "Mon, 27 Jul 2026 21:30:05 GMT"
+    },
+    {
+      "requestId": "nyc-real-estate-new-building-sample-manhattan:nyc-largest-new-building-jobs-manhattan.json",
+      "sourceId": "nyc-real-estate-new-building-sample-manhattan",
+      "output": "nyc-largest-new-building-jobs-manhattan.json",
+      "byteCount": 1097625,
+      "sha256": "6346678de380d58e325db14fc2e0611d993743be29898360e08f092eaa1f88e5",
+      "contentType": "application/json;charset=utf-8",
+      "etag": "\"Zm94dHJvdC4xNTY3MF82XzQ1MjRhR2lORDhlRVBjanEtRE53NkpCN3ZWcWJVVWs---gzip695BZsIHBZmraAr6r_3scqAieYw--gzip--gzip\"",
+      "lastModified": "Mon, 27 Jul 2026 21:30:05 GMT"
+    },
+    {
+      "requestId": "nyc-real-estate-new-building-sample-queens:nyc-largest-new-building-jobs-queens.json",
+      "sourceId": "nyc-real-estate-new-building-sample-queens",
+      "output": "nyc-largest-new-building-jobs-queens.json",
+      "byteCount": 1091065,
+      "sha256": "79eb6f028b2135214d47a793101f72de695efcb02e4c2802cc10cd062c760a22",
+      "contentType": "application/json;charset=utf-8",
+      "etag": "\"Zm94dHJvdC4xNTY3MF82XzQ1MjRxZGctT29nbjlFTURsZVdfVDNFYUJtclJsdHM---gzip45ERPnkSdTzBIOk7Nf9oMIFxaAg--gzip--gzip\"",
+      "lastModified": "Mon, 27 Jul 2026 21:30:05 GMT"
+    },
+    {
+      "requestId": "nyc-real-estate-new-building-sample-staten-island:nyc-largest-new-building-jobs-staten-island.json",
+      "sourceId": "nyc-real-estate-new-building-sample-staten-island",
+      "output": "nyc-largest-new-building-jobs-staten-island.json",
+      "byteCount": 1120592,
+      "sha256": "e0870a431a75bdd235fc09b0ecd7503c45384f5e8b66beba545447c7bb3d960a",
+      "contentType": "application/json;charset=utf-8",
+      "etag": "\"Zm94dHJvdC4xNTY3MF82XzQ1MjRLSmhaV0g5ZlhGcDhtc2ZxTTVuc3I0RFk3TVU---gzirgeVouuYzq-rGZM2KCHUFQ3GiYeA--gzip--gzip\"",
+      "lastModified": "Mon, 27 Jul 2026 21:30:05 GMT"
+    },
+    {
+      "requestId": "nyc-real-estate-nta-boundaries:nyc-nta-2020.geojson",
+      "sourceId": "nyc-real-estate-nta-boundaries",
+      "output": "nyc-nta-2020.geojson",
+      "byteCount": 4576764,
+      "sha256": "c3dd069e094e2d2f647c1c102cd7e0570d033dd6131446bd1943a73210d09c56",
+      "contentType": "application/vnd.geo+json; charset=UTF-8",
+      "etag": "\"aG90ZWwuNjIyNzFfMV8zNFZ1a0dZblRwek1IeWxlaTZrakRtRHhPTGY3NA---gzihynyDUp2ud2WLvoStK3aOPlOeBC--gzip--gzip\"",
+      "lastModified": "Thu, 28 May 2026 15:11:18 GMT"
+    },
+    {
+      "requestId": "nyc-real-estate-pluto-capacity-bronx:nyc-pluto-capacity-bronx.json",
+      "sourceId": "nyc-real-estate-pluto-capacity-bronx",
+      "output": "nyc-pluto-capacity-bronx.json",
+      "byteCount": 2402191,
+      "sha256": "b45168721525e18a29aafcce335212632607021240869b738cbb96fbe2441389",
+      "contentType": "application/json;charset=utf-8",
+      "etag": "\"aG90ZWwuMjUzNjdfM18xNTJoM0tIYk5MZHZaam1Mb0labUhaalFBNE5NNVk---gziq8n33gsbdZOKAtNqNMnUmmqfjvOQ--gzip--gzip\"",
+      "lastModified": "Thu, 28 May 2026 19:40:44 GMT"
+    },
+    {
+      "requestId": "nyc-real-estate-pluto-capacity-brooklyn:nyc-pluto-capacity-brooklyn.json",
+      "sourceId": "nyc-real-estate-pluto-capacity-brooklyn",
+      "output": "nyc-pluto-capacity-brooklyn.json",
+      "byteCount": 2403266,
+      "sha256": "63b33a507c0bc26f7b71669cf032baa4950af2db77ce8712b876ca6f4c9f771b",
+      "contentType": "application/json;charset=utf-8",
+      "etag": "\"aG90ZWwuMjUzNjdfM18xNTI1QzZiWlAzS3lsMHY0LUpoeEhWaEEtTl8yYzg---gzipVjfDU0NFX8bj5Q9WYTNb8YZoI5w--gzip--gzip\"",
+      "lastModified": "Thu, 28 May 2026 19:40:44 GMT"
+    },
+    {
+      "requestId": "nyc-real-estate-pluto-capacity-manhattan:nyc-pluto-capacity-manhattan.json",
+      "sourceId": "nyc-real-estate-pluto-capacity-manhattan",
+      "output": "nyc-pluto-capacity-manhattan.json",
+      "byteCount": 2464264,
+      "sha256": "91e3e1f5dce97a340475b51577458c8e48183f1138c334fbcce27d68001e9d25",
+      "contentType": "application/json;charset=utf-8",
+      "etag": "\"aG90ZWwuMjUzNjdfM18xNTI1clFISUhyWjNveGd2OGxCV0ZrWVVpeWpyVDA---gzirmASwwNJ7OQ-M8CAFqlOPrbT0N0A--gzip--gzip\"",
+      "lastModified": "Thu, 28 May 2026 19:40:44 GMT"
+    },
+    {
+      "requestId": "nyc-real-estate-pluto-capacity-queens:nyc-pluto-capacity-queens.json",
+      "sourceId": "nyc-real-estate-pluto-capacity-queens",
+      "output": "nyc-pluto-capacity-queens.json",
+      "byteCount": 2418903,
+      "sha256": "02a12d81466e89e05b9be9273198c5f857e86db5d2c95cfb717160ce4ccf99c1",
+      "contentType": "application/json;charset=utf-8",
+      "etag": "\"aG90ZWwuMjUzNjdfM18xNTJRUU83eFF6ZS1oeHBVc3hPQUFiMDRULWMxT3c---gziq5Wqbz7XFO8WV4Bnkts7JC9mPTCA--gzip--gzip\"",
+      "lastModified": "Thu, 28 May 2026 19:40:44 GMT"
+    },
+    {
+      "requestId": "nyc-real-estate-pluto-capacity-staten-island:nyc-pluto-capacity-staten-island.json",
+      "sourceId": "nyc-real-estate-pluto-capacity-staten-island",
+      "output": "nyc-pluto-capacity-staten-island.json",
+      "byteCount": 1168016,
+      "sha256": "6d488f6ce46fa09930b669429275014a8ecedae6c85041fb465a15633c6a38b0",
+      "contentType": "application/json;charset=utf-8",
+      "etag": "\"aG90ZWwuMjUzNjdfM18xNTI0N09FSnZZV0JZbjJnUW5GS2xseEo2eXRLMW8---gziqhe91REiS30RpCJVFta9uqT4bLAg--gzip--gzip\"",
+      "lastModified": "Thu, 28 May 2026 19:40:44 GMT"
+    },
+    {
+      "requestId": "nyc-real-estate-sales-annual:nyc-annualized-sales-by-nta.json",
+      "sourceId": "nyc-real-estate-sales-annual",
+      "output": "nyc-annualized-sales-by-nta.json",
+      "byteCount": 1008463,
+      "sha256": "14c15020381466196236073ee3753ff7a5d74a76ec6af4605e96564abd2bf99a",
+      "contentType": "application/json;charset=utf-8",
+      "etag": "\"Z29sZi4yOTUxNF8zXzYwY0RNRnlFM1JFekNPMFhwTjZFVXNZcVZHRm44---gzipbYbtpD_HwBenEnuf1_M_-S6tcZM--gzip--gzip\"",
+      "lastModified": "Tue, 09 Jun 2026 18:31:52 GMT"
+    }
+  ],
+  "activation": "staged_not_active",
+  "claimBoundary": "Successful fetching proves byte capture and identity only. No fetched source is routable, simulated, or hosted until its compiler and entry gates pass."
+}

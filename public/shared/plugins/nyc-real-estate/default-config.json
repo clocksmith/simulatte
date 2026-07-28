@@ -1,0 +1,16 @@
+{
+  "schema": "simulatte.plugin.nycRealEstateConfig.v1",
+  "id": "nyc-real-estate-config-v1",
+  "defaultScenarioId": "greenpoint-history-and-growth",
+  "defaultRegionId": "BK0101",
+  "defaultSectorId": "tax-class-2",
+  "historicalStartYear": 2010,
+  "forecastEndYear": 2035,
+  "policyId": "business-as-usual",
+  "financingRatePct": 5.5,
+  "annualDemandGrowthPct": 1.5,
+  "constructionCostIndex": 100,
+  "zoningCapacityMultiplier": 1,
+  "affordableHousingSharePct": 20,
+  "ensembleSize": 31
+}

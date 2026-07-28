@@ -89,7 +89,7 @@ function governedAssets() {
     occurrenceCatalog: readJson(`public/data/simulatte/${manifest.occurrenceCatalog.path.replace(/^\.\//, '')}`),
     rerankerEvidence: readJson(`public/data/simulatte/${manifest.rerankerEvidence.path.replace(/^\.\//, '')}`),
     regionRegistry: readJson(`public/data/simulatte/${manifest.regionRegistry.path.replace(/^\.\//, '')}`),
-    safetyHistoryIndex: pluginDataset('nyc-crash-history-2025-07-to-2026-07-v1'),
+    safetyHistoryIndex: referenced('safetyHistoryIndex'),
     curriculum: readJson(`public/data/simulatte/${manifest.curriculum.path.replace(/^\.\//, '')}`),
     placeEmbeddingIndex: referenced('placeEmbeddingIndex'),
     placeResolutionEvidence: referenced('placeResolutionEvidence'),
@@ -1193,14 +1193,35 @@ test('browser loader verifies raw hashes and rejects tampered assets', async () 
   assert.deepEqual(loaded.applicationProfile.plugins.map((row) => row.id), ['cable-trader']);
   assert.deepEqual(loaded.manifest.applicationProfiles.map((row) => row.id), [
     'neighborhood-bulk-pool-v1',
-    'safety-explorer-v1',
+    'nyc-development-atlas-v1',
     'sun-walker-v1',
   ]);
+  assert.equal(loaded.safetyHistoryIndex.id, loaded.manifest.safetyHistoryIndex.id);
   assert.equal(fs.existsSync(path.join(root, 'public/data/application-profiles/simulatte-world-v1.json')), false);
 
-  const safetyProfile = await dataLoader.loadApplication('http://localhost/data/simulatte/autonomy-manifest.json', fetchFiles, { requestedProfileId: 'safety-explorer-v1' });
-  assert.equal(safetyProfile.applicationProfile.id, 'safety-explorer-v1');
-  assert.deepEqual(safetyProfile.applicationProfile.plugins.map((row) => row.id), ['safety-explorer']);
+  await assert.rejects(
+    dataLoader.loadApplication(
+      'http://localhost/data/simulatte/autonomy-manifest.json',
+      fetchFiles,
+      { requestedProfileId: 'food-recall-us-v1' },
+    ),
+    (error) => error.code === 'application_profile_unknown',
+  );
+  assert.equal(pluginRegistry.entry('food-recall-us').manifest.id, 'food-recall-us');
+  await assert.rejects(
+    dataLoader.loadApplication(
+      'http://localhost/data/simulatte/autonomy-manifest.json',
+      fetchFiles,
+      { requestedProfileId: 'safety-explorer-v1' },
+    ),
+    (error) => error.code === 'application_profile_unknown',
+  );
+  assert.equal(pluginRegistry.entry('safety-explorer'), null);
+
+  const developmentProfile = await dataLoader.loadApplication('http://localhost/data/simulatte/autonomy-manifest.json', fetchFiles, { requestedProfileId: 'nyc-development-atlas-v1' });
+  assert.equal(developmentProfile.applicationProfile.id, 'nyc-development-atlas-v1');
+  assert.deepEqual(developmentProfile.applicationProfile.plugins.map((row) => row.id), ['nyc-real-estate']);
+  assert.equal(pluginRegistry.entry('nyc-real-estate').manifest.id, 'nyc-real-estate');
 
   const staleManifest = structuredClone(loaded.manifest);
   delete staleManifest.missionExamples;
@@ -1337,7 +1358,16 @@ test('every first-party plugin is selectable through a governed profile scoped t
   const profiles = [...cityProfiles, ...tierProfiles];
   // Each plugin must have a focused profile SOMEWHERE (union of the city + governed-tier manifests).
   pluginRegistry.ids.forEach((pluginId) => {
-    assert.ok(profiles.some((profile) => profile.id.startsWith(pluginId) || (pluginId === 'cable-trader' && profile.id === 'cable-trader-pickup-v1')), `${pluginId} should have a focused profile`);
+    const exceptionalProfileIds = {
+      'cable-trader': 'cable-trader-pickup-v1',
+      'nyc-real-estate': 'nyc-development-atlas-v1',
+    };
+    assert.ok(
+      profiles.some((profile) => (
+        profile.id.startsWith(pluginId) || profile.id === exceptionalProfileIds[pluginId]
+      )),
+      `${pluginId} should have a focused profile`
+    );
   });
   // The experience dropdown is scoped by world, so the city manifest must list only city
   // experiences — never another tier's governed profile (which the city app cannot run).

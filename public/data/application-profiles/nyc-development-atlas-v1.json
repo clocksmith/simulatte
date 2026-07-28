@@ -1,0 +1,103 @@
+{
+  "schema": "simulatte.applicationProfile.v2",
+  "id": "nyc-development-atlas-v1",
+  "interaction": {
+    "mode": "playback",
+    "startLabel": "Replay and forecast NYC",
+    "shuffleLabel": "Change scenario"
+  },
+  "experience": {
+    "kind": "simulation",
+    "timelineLabel": "Calendar year",
+    "primaryMeasureKinds": [
+      "median-sale-price",
+      "new-building-filings",
+      "completed-scenario-units",
+      "affordable-scenario-units",
+      "completed-scenario-floor-area"
+    ],
+    "supportedViews": [
+      "overview",
+      "follow",
+      "top",
+      "free",
+      "compare"
+    ],
+    "defaultView": "overview",
+    "comparisonMode": "synchronized",
+    "stages": [
+      {
+        "id": "historical-market",
+        "label": "Recorded market history",
+        "narrative": "Annual neighborhood sale aggregates and administrative development activity enter without inventing missing prices.",
+        "fromProgress": 0
+      },
+      {
+        "id": "construction-replay",
+        "label": "Buildings rise",
+        "narrative": "Recorded filing, permit, construction-year, and occupancy milestones drive visible building stages; interpolated stages remain modeled.",
+        "fromProgress": 0.2
+      },
+      {
+        "id": "current-capacity",
+        "label": "2026 capacity snapshot",
+        "narrative": "Current mapped FAR identifies scenario candidates while explicitly withholding parcel feasibility claims.",
+        "fromProgress": 0.62
+      },
+      {
+        "id": "future-pipeline",
+        "label": "Development scenarios",
+        "narrative": "Financing, demand, construction cost, zoning, affordability, and policy controls determine which candidate projects start and complete.",
+        "fromProgress": 0.68
+      },
+      {
+        "id": "forecast-settlement",
+        "label": "Intervals and comparison",
+        "narrative": "The selected policy settles beside an executable synchronized business-as-usual branch with shared exogenous draws, sector-correct supply, visible spatial evidence, invariants, and explicit forecast-validation refusal where pipeline history is unavailable.",
+        "fromProgress": 0.9
+      }
+    ]
+  },
+  "defaultSeedId": "greenpoint-history-and-growth",
+  "seeds": [
+    {
+      "id": "greenpoint-history-and-growth",
+      "label": "Greenpoint history and growth",
+      "description": "Replay Greenpoint's recorded market and building milestones, then continue under business-as-usual assumptions.",
+      "seed": "nyc-development-greenpoint-001",
+      "missionText": "Replay and forecast Greenpoint residential development and sale prices."
+    },
+    {
+      "id": "long-island-city-capacity-expansion",
+      "label": "Long Island City capacity expansion",
+      "description": "Test a zoning-capacity expansion against the same governed Long Island City history and seed.",
+      "seed": "nyc-development-lic-002",
+      "missionText": "Replay Long Island City and simulate a zoning-capacity expansion scenario."
+    },
+    {
+      "id": "mott-haven-affordability",
+      "label": "Mott Haven affordability",
+      "description": "Explore higher affordable-unit participation and additional capacity in Mott Haven-Port Morris.",
+      "seed": "nyc-development-mott-haven-003",
+      "missionText": "Replay Mott Haven-Port Morris and simulate an affordability-first development policy."
+    },
+    {
+      "id": "soho-financing-squeeze",
+      "label": "SoHo financing squeeze",
+      "description": "Apply high financing and construction costs to commercial development capacity in SoHo, Little Italy, and Hudson Square.",
+      "seed": "nyc-development-soho-004",
+      "missionText": "Replay SoHo commercial property history and simulate a financing squeeze."
+    }
+  ],
+  "camera": {
+    "initialMode": "bird",
+    "runMode": "bird"
+  },
+  "plugins": [
+    {
+      "id": "nyc-real-estate",
+      "configId": "nyc-real-estate-config-v1"
+    }
+  ],
+  "routeObjective": {}
+}

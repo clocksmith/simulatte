@@ -1,0 +1,1958 @@
+{
+  "accepted": {
+    "capacitySites": 22368,
+    "developmentSeries": 4384,
+    "historicalSites": 14536,
+    "regionShards": 262,
+    "regions": 262,
+    "saleSeries": 5749
+  },
+  "claimBoundary": "Compilation establishes deterministic joins, reductions, and output identity only. Forecast validity and rendered recognizability require separate gates.",
+  "compiler": "tools/nyc-real-estate/compile-history.mjs",
+  "compilerVersion": "2.0.0",
+  "inputs": [
+    {
+      "byteCount": 1008463,
+      "path": "nyc-annualized-sales-by-nta.json",
+      "sha256": "14c15020381466196236073ee3753ff7a5d74a76ec6af4605e96564abd2bf99a",
+      "sourceId": "nyc-real-estate-sales-annual"
+    },
+    {
+      "byteCount": 8977616,
+      "path": "nyc-final-certificates-of-occupancy.json",
+      "sha256": "966c237824a79aff9d5137d27b498ba4f3670cc19844738c5ce17a559388030e",
+      "sourceId": "nyc-real-estate-final-occupancy"
+    },
+    {
+      "byteCount": 8802596,
+      "path": "nyc-largest-constructed-footprints-2010-2026.geojson",
+      "sha256": "15745b9c62fa539e683737f0665fe91d95231e68d8c1b598e7ed211114811eb6",
+      "sourceId": "nyc-real-estate-constructed-footprints"
+    },
+    {
+      "byteCount": 1076754,
+      "path": "nyc-largest-new-building-jobs-bronx.json",
+      "sha256": "1a44c6cbfa364639e4b75957b2fab7e3c301f95bcfcfa90c50862fef85f450c1",
+      "sourceId": "nyc-real-estate-new-building-sample-bronx"
+    },
+    {
+      "byteCount": 1085334,
+      "path": "nyc-largest-new-building-jobs-brooklyn.json",
+      "sha256": "389e1825faff440d6fad5a12ed470f84e90859fd732262346a3414c5503693fd",
+      "sourceId": "nyc-real-estate-new-building-sample-brooklyn"
+    },
+    {
+      "byteCount": 1097625,
+      "path": "nyc-largest-new-building-jobs-manhattan.json",
+      "sha256": "6346678de380d58e325db14fc2e0611d993743be29898360e08f092eaa1f88e5",
+      "sourceId": "nyc-real-estate-new-building-sample-manhattan"
+    },
+    {
+      "byteCount": 1091065,
+      "path": "nyc-largest-new-building-jobs-queens.json",
+      "sha256": "79eb6f028b2135214d47a793101f72de695efcb02e4c2802cc10cd062c760a22",
+      "sourceId": "nyc-real-estate-new-building-sample-queens"
+    },
+    {
+      "byteCount": 1120592,
+      "path": "nyc-largest-new-building-jobs-staten-island.json",
+      "sha256": "e0870a431a75bdd235fc09b0ecd7503c45384f5e8b66beba545447c7bb3d960a",
+      "sourceId": "nyc-real-estate-new-building-sample-staten-island"
+    },
+    {
+      "byteCount": 1250280,
+      "path": "nyc-new-building-filings-by-nta-year.json",
+      "sha256": "4b75b0ad54a1ce5241b9c2e303be2cc24781e55a65fbf27be10d00a80bfeadea",
+      "sourceId": "nyc-real-estate-new-building-annual"
+    },
+    {
+      "byteCount": 4576764,
+      "path": "nyc-nta-2020.geojson",
+      "sha256": "c3dd069e094e2d2f647c1c102cd7e0570d033dd6131446bd1943a73210d09c56",
+      "sourceId": "nyc-real-estate-nta-boundaries"
+    },
+    {
+      "byteCount": 2402191,
+      "path": "nyc-pluto-capacity-bronx.json",
+      "sha256": "b45168721525e18a29aafcce335212632607021240869b738cbb96fbe2441389",
+      "sourceId": "nyc-real-estate-pluto-capacity-bronx"
+    },
+    {
+      "byteCount": 2403266,
+      "path": "nyc-pluto-capacity-brooklyn.json",
+      "sha256": "63b33a507c0bc26f7b71669cf032baa4950af2db77ce8712b876ca6f4c9f771b",
+      "sourceId": "nyc-real-estate-pluto-capacity-brooklyn"
+    },
+    {
+      "byteCount": 2464264,
+      "path": "nyc-pluto-capacity-manhattan.json",
+      "sha256": "91e3e1f5dce97a340475b51577458c8e48183f1138c334fbcce27d68001e9d25",
+      "sourceId": "nyc-real-estate-pluto-capacity-manhattan"
+    },
+    {
+      "byteCount": 2418903,
+      "path": "nyc-pluto-capacity-queens.json",
+      "sha256": "02a12d81466e89e05b9be9273198c5f857e86db5d2c95cfb717160ce4ccf99c1",
+      "sourceId": "nyc-real-estate-pluto-capacity-queens"
+    },
+    {
+      "byteCount": 1168016,
+      "path": "nyc-pluto-capacity-staten-island.json",
+      "sha256": "6d488f6ce46fa09930b669429275014a8ecedae6c85041fb465a15633c6a38b0",
+      "sourceId": "nyc-real-estate-pluto-capacity-staten-island"
+    }
+  ],
+  "outputs": [
+    {
+      "byteCount": 349943,
+      "id": "nyc-real-estate-region-index-2026-v1",
+      "path": "public/data/nyc-real-estate/region-index-v1.json",
+      "schema": "simulatte.nycRealEstateRegionIndex.v1",
+      "sha256": "d17cafe51f239017dd168d02ce3c250d5ac19bcc6c0f49900b72a11cb4adae70"
+    },
+    {
+      "byteCount": 383699,
+      "id": "nyc-real-estate-region-bk0101-v1",
+      "path": "public/data/nyc-real-estate/regions/BK0101.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "a050d147b1a9760c7b3b9f1d383ad72a24563b84174d6418b1946b354c0afa39"
+    },
+    {
+      "byteCount": 521446,
+      "id": "nyc-real-estate-region-bk0102-v1",
+      "path": "public/data/nyc-real-estate/regions/BK0102.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "4b5b28f5cdec18f02f9ce091dc81eacba692a6c87e4eddeb6d354d0274320e1d"
+    },
+    {
+      "byteCount": 252259,
+      "id": "nyc-real-estate-region-bk0103-v1",
+      "path": "public/data/nyc-real-estate/regions/BK0103.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "5f800b70055dd06f4879d0a3c727a06e3bb551db5bf27fb6e8ff7b83dad8f6ad"
+    },
+    {
+      "byteCount": 419483,
+      "id": "nyc-real-estate-region-bk0104-v1",
+      "path": "public/data/nyc-real-estate/regions/BK0104.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "abe543cfd1ceac6d4f103c54a65d89b019578e001ba6d46eeafafc15f6a4392f"
+    },
+    {
+      "byteCount": 170224,
+      "id": "nyc-real-estate-region-bk0201-v1",
+      "path": "public/data/nyc-real-estate/regions/BK0201.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "b8060fc9359778bdd0f6394231af946724615e6090b0e2799cc5d7953c98f216"
+    },
+    {
+      "byteCount": 528282,
+      "id": "nyc-real-estate-region-bk0202-v1",
+      "path": "public/data/nyc-real-estate/regions/BK0202.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "3b7e057616d67338eaefeeced911a829ebbe7332617e274c88c5afb31b92b713"
+    },
+    {
+      "byteCount": 253998,
+      "id": "nyc-real-estate-region-bk0203-v1",
+      "path": "public/data/nyc-real-estate/regions/BK0203.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "ab9fb1a94373a36150d5cd80fadf2af381ae3f96b2964831a5796fecf5eb3ea0"
+    },
+    {
+      "byteCount": 201449,
+      "id": "nyc-real-estate-region-bk0204-v1",
+      "path": "public/data/nyc-real-estate/regions/BK0204.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "b26052f989a943b1b1b017589099d97d5d71b364ac618711adf33014fd8a91df"
+    },
+    {
+      "byteCount": 27775,
+      "id": "nyc-real-estate-region-bk0261-v1",
+      "path": "public/data/nyc-real-estate/regions/BK0261.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "bab4002b8a60aa969b1815ec32b40dc8512b723feedc0855ed8f2d6ee8226d44"
+    },
+    {
+      "byteCount": 824303,
+      "id": "nyc-real-estate-region-bk0301-v1",
+      "path": "public/data/nyc-real-estate/regions/BK0301.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "c49f321d916f368304110f72e12b4e2c0536a32dfb741f1c2043dea8c0fbb97e"
+    },
+    {
+      "byteCount": 526093,
+      "id": "nyc-real-estate-region-bk0302-v1",
+      "path": "public/data/nyc-real-estate/regions/BK0302.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "4d43d27cfa78d54bbd2ffb7d772169dc696022d128a35498bb6d20613b86db80"
+    },
+    {
+      "byteCount": 258578,
+      "id": "nyc-real-estate-region-bk0401-v1",
+      "path": "public/data/nyc-real-estate/regions/BK0401.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "6859d3b404166c18b37a3275a1cea0837b6d497a5e164d735e23a2a84ae293b5"
+    },
+    {
+      "byteCount": 188010,
+      "id": "nyc-real-estate-region-bk0402-v1",
+      "path": "public/data/nyc-real-estate/regions/BK0402.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "80d9adfa923f2091ca97874c6ef7676d2dbcecbbc8c41a91a0739f0d6bde16de"
+    },
+    {
+      "byteCount": 8279,
+      "id": "nyc-real-estate-region-bk0471-v1",
+      "path": "public/data/nyc-real-estate/regions/BK0471.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "85df4f5f04cc9508ba98bb71fb105585ec52b7dcc8573ef34ad0e7e511a1189c"
+    },
+    {
+      "byteCount": 189577,
+      "id": "nyc-real-estate-region-bk0501-v1",
+      "path": "public/data/nyc-real-estate/regions/BK0501.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "6c0ff3dad39cc042a1e05766f04d563e209d848b4074b22961d7fabd6a8f8ef0"
+    },
+    {
+      "byteCount": 491314,
+      "id": "nyc-real-estate-region-bk0502-v1",
+      "path": "public/data/nyc-real-estate/regions/BK0502.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "3da035f28b3f10e741159fdcd84c3777ecf2163d3b011876f7aefb7490c367a7"
+    },
+    {
+      "byteCount": 126310,
+      "id": "nyc-real-estate-region-bk0503-v1",
+      "path": "public/data/nyc-real-estate/regions/BK0503.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "db75a783141591b0ac1f4e4fca5454cf2b5bccfbc5dd7daad042a8afb78cdd44"
+    },
+    {
+      "byteCount": 205843,
+      "id": "nyc-real-estate-region-bk0504-v1",
+      "path": "public/data/nyc-real-estate/regions/BK0504.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "a4b155df146c16b3b5f190da41ce9e48b5e81f8756d24286b74468719bbd2565"
+    },
+    {
+      "byteCount": 133956,
+      "id": "nyc-real-estate-region-bk0505-v1",
+      "path": "public/data/nyc-real-estate/regions/BK0505.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "24fdc620e22143178fff2dd60fbf87705961095e231160505d67f7f4a34d1c76"
+    },
+    {
+      "byteCount": 7958,
+      "id": "nyc-real-estate-region-bk0571-v1",
+      "path": "public/data/nyc-real-estate/regions/BK0571.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "2a95448bf2d5a68475db8924119f052ab90416717ff765330598116a40ef6584"
+    },
+    {
+      "byteCount": 576015,
+      "id": "nyc-real-estate-region-bk0601-v1",
+      "path": "public/data/nyc-real-estate/regions/BK0601.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "5fcafac8aee6c0a6a6446c38e56ac65f9dd03c42f949c0fef185b5180655d127"
+    },
+    {
+      "byteCount": 275982,
+      "id": "nyc-real-estate-region-bk0602-v1",
+      "path": "public/data/nyc-real-estate/regions/BK0602.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "25e922f152358dceadfb403725eedd6514eb975463b955a2bda0ff244e8b96d7"
+    },
+    {
+      "byteCount": 68229,
+      "id": "nyc-real-estate-region-bk0701-v1",
+      "path": "public/data/nyc-real-estate/regions/BK0701.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "2c27b543aa890cc3696316bf8bfed2cd7a5f4cd01e2cd96986810180241e8829"
+    },
+    {
+      "byteCount": 234910,
+      "id": "nyc-real-estate-region-bk0702-v1",
+      "path": "public/data/nyc-real-estate/regions/BK0702.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "4dfe24fd521081c557b1a1f0257150a2348e3805ec174bf58511965504565c11"
+    },
+    {
+      "byteCount": 156360,
+      "id": "nyc-real-estate-region-bk0703-v1",
+      "path": "public/data/nyc-real-estate/regions/BK0703.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "429179b8c3cd33dd880f74cb71d7dbfac55fba72af0d7e08428efad1db6381fa"
+    },
+    {
+      "byteCount": 8284,
+      "id": "nyc-real-estate-region-bk0771-v1",
+      "path": "public/data/nyc-real-estate/regions/BK0771.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "7aeb0169f37b7ab8c2c6e85190552c3b079abf4903fa91817fa872dccf8d019b"
+    },
+    {
+      "byteCount": 288481,
+      "id": "nyc-real-estate-region-bk0801-v1",
+      "path": "public/data/nyc-real-estate/regions/BK0801.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "5c6336e958b5288cbeefb0b6bc648202c16ec136b2f59b149c78fface0222ec2"
+    },
+    {
+      "byteCount": 431665,
+      "id": "nyc-real-estate-region-bk0802-v1",
+      "path": "public/data/nyc-real-estate/regions/BK0802.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "770d2c4bd13733f34e6605161a2c13bfd484f30889646f4d35455d1a0877930e"
+    },
+    {
+      "byteCount": 6854,
+      "id": "nyc-real-estate-region-bk0891-v1",
+      "path": "public/data/nyc-real-estate/regions/BK0891.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "e8e88c7203cca483daee26bc2183034c929d2f8f7204255cf6ea7f369f0c2528"
+    },
+    {
+      "byteCount": 281416,
+      "id": "nyc-real-estate-region-bk0901-v1",
+      "path": "public/data/nyc-real-estate/regions/BK0901.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "bec4a9f78a9aa0ab9a0032c4d3c78fe0c9fa0d4b4c2813caba6857104a113b1b"
+    },
+    {
+      "byteCount": 306940,
+      "id": "nyc-real-estate-region-bk0902-v1",
+      "path": "public/data/nyc-real-estate/regions/BK0902.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "68341df8e7d0c9f044949b4db0cabc15c3c57dbb2a2c759a39e72cb32910f318"
+    },
+    {
+      "byteCount": 125824,
+      "id": "nyc-real-estate-region-bk1001-v1",
+      "path": "public/data/nyc-real-estate/regions/BK1001.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "84a8f3e4b61a03f4f6dd5be851253f7065ad602e47587df7fcbc902718b072e8"
+    },
+    {
+      "byteCount": 57305,
+      "id": "nyc-real-estate-region-bk1002-v1",
+      "path": "public/data/nyc-real-estate/regions/BK1002.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "840f6d310f51160db26f77ae65c5afd6737f2507c7cefb228cdd745301e29ec8"
+    },
+    {
+      "byteCount": 11557,
+      "id": "nyc-real-estate-region-bk1061-v1",
+      "path": "public/data/nyc-real-estate/regions/BK1061.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "a5c564d851a9f6197eaddb9cfdcd4416c266e1227ae8207360db450520de9013"
+    },
+    {
+      "byteCount": 7620,
+      "id": "nyc-real-estate-region-bk1091-v1",
+      "path": "public/data/nyc-real-estate/regions/BK1091.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "6f17002f89733ec9ec65e4e39768382e3992d3d64f90242a56d19e277ebf328f"
+    },
+    {
+      "byteCount": 129583,
+      "id": "nyc-real-estate-region-bk1101-v1",
+      "path": "public/data/nyc-real-estate/regions/BK1101.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "78ad50d6af559ae641c66a191e93c01fdd096f153aa85f1e4e07269fe4ee859a"
+    },
+    {
+      "byteCount": 65696,
+      "id": "nyc-real-estate-region-bk1102-v1",
+      "path": "public/data/nyc-real-estate/regions/BK1102.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "38f9d003b50fa18d2eece714d9fcd66042ac5be658fbad309249dd50682a3ff9"
+    },
+    {
+      "byteCount": 184440,
+      "id": "nyc-real-estate-region-bk1103-v1",
+      "path": "public/data/nyc-real-estate/regions/BK1103.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "0325bebeca8824b43db1d2f9c30fb638ced9de907ef469e4d0ead0d89d20e403"
+    },
+    {
+      "byteCount": 88608,
+      "id": "nyc-real-estate-region-bk1201-v1",
+      "path": "public/data/nyc-real-estate/regions/BK1201.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "95adf2da098fb7aa488f5dfcecacc2c89d7818c966a65e08c74ea90a7146add5"
+    },
+    {
+      "byteCount": 383815,
+      "id": "nyc-real-estate-region-bk1202-v1",
+      "path": "public/data/nyc-real-estate/regions/BK1202.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "4ab0d03209934477faff9d38f292c64fd042a11ffe8ef691ca04018bc406d5f2"
+    },
+    {
+      "byteCount": 87535,
+      "id": "nyc-real-estate-region-bk1203-v1",
+      "path": "public/data/nyc-real-estate/regions/BK1203.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "e132fea51600aac935eeb57db370283fd54c2a8b9f59c53d0e547eccd34441e6"
+    },
+    {
+      "byteCount": 157998,
+      "id": "nyc-real-estate-region-bk1204-v1",
+      "path": "public/data/nyc-real-estate/regions/BK1204.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "f731a656b1578025dbaa1644afb65485b79db98d3bd39750372e5efc49a78c67"
+    },
+    {
+      "byteCount": 75050,
+      "id": "nyc-real-estate-region-bk1301-v1",
+      "path": "public/data/nyc-real-estate/regions/BK1301.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "ca188db64a61c03d98609d638bf324588b949c802aec0f63640794103eadf261"
+    },
+    {
+      "byteCount": 206515,
+      "id": "nyc-real-estate-region-bk1302-v1",
+      "path": "public/data/nyc-real-estate/regions/BK1302.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "a5f05b4d4f19659430c7f58f613df88723a35a4741e899eb55068b8f8f0fd7b5"
+    },
+    {
+      "byteCount": 100421,
+      "id": "nyc-real-estate-region-bk1303-v1",
+      "path": "public/data/nyc-real-estate/regions/BK1303.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "add835a06f8d0775a54e6a0824edf869ff3a0afb2257cb634bf14bec274abbcc"
+    },
+    {
+      "byteCount": 9581,
+      "id": "nyc-real-estate-region-bk1391-v1",
+      "path": "public/data/nyc-real-estate/regions/BK1391.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "af9e1446027b7f69a55183fb51974af6f3a2683159110b68201be8f01d70d427"
+    },
+    {
+      "byteCount": 331628,
+      "id": "nyc-real-estate-region-bk1401-v1",
+      "path": "public/data/nyc-real-estate/regions/BK1401.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "529d4cd04e415e25e331fb5a11cfac8db3f6ba10e88abfceafa8dc5d8c15c3c5"
+    },
+    {
+      "byteCount": 166844,
+      "id": "nyc-real-estate-region-bk1402-v1",
+      "path": "public/data/nyc-real-estate/regions/BK1402.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "cd65ed9c8a8b99dcbb5c4c93e96bc2179ea66ba37d971e706ec544c0acc6c68a"
+    },
+    {
+      "byteCount": 269416,
+      "id": "nyc-real-estate-region-bk1403-v1",
+      "path": "public/data/nyc-real-estate/regions/BK1403.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "63d7c27931970b1c4218aaeb4e205b805add687ffbe0dd608c4873e0479890ac"
+    },
+    {
+      "byteCount": 228612,
+      "id": "nyc-real-estate-region-bk1501-v1",
+      "path": "public/data/nyc-real-estate/regions/BK1501.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "08e9add7af6557afdeb6312869cd74f06456db5069d6cb4c8c0238b0a152237c"
+    },
+    {
+      "byteCount": 168600,
+      "id": "nyc-real-estate-region-bk1502-v1",
+      "path": "public/data/nyc-real-estate/regions/BK1502.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "5c5742cf1d4f2cb729285f1aa33743a15cfb9be50801cb598edb21535b8f6d97"
+    },
+    {
+      "byteCount": 190039,
+      "id": "nyc-real-estate-region-bk1503-v1",
+      "path": "public/data/nyc-real-estate/regions/BK1503.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "49df4ca0664a38373dca7860c1ec0014e2a45a01768510aaa7bc6b1b4391c39f"
+    },
+    {
+      "byteCount": 279682,
+      "id": "nyc-real-estate-region-bk1601-v1",
+      "path": "public/data/nyc-real-estate/regions/BK1601.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "85e6f9e1bc8f9169200a1148fbf60190544a30178b57e8e08fab9adc6cfa0092"
+    },
+    {
+      "byteCount": 181670,
+      "id": "nyc-real-estate-region-bk1602-v1",
+      "path": "public/data/nyc-real-estate/regions/BK1602.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "cd2780868e2fc7b6fafca3e76dd4c78442a0d2d592c557708729c6efcb1b4c67"
+    },
+    {
+      "byteCount": 285562,
+      "id": "nyc-real-estate-region-bk1701-v1",
+      "path": "public/data/nyc-real-estate/regions/BK1701.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "8052cf7d9d2dc7d528f3be22f6d62e367eb2e10ba44ae1e124a4868448f0d6f6"
+    },
+    {
+      "byteCount": 101384,
+      "id": "nyc-real-estate-region-bk1702-v1",
+      "path": "public/data/nyc-real-estate/regions/BK1702.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "986ec7809af9dcd75d2bfe2077a3ac2532ff95c219aaf559f6563fe7a3827ed4"
+    },
+    {
+      "byteCount": 39005,
+      "id": "nyc-real-estate-region-bk1703-v1",
+      "path": "public/data/nyc-real-estate/regions/BK1703.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "9e1221101801c3002006d645a8173f75961b1c08fbf3aebdb182c5e0018b439c"
+    },
+    {
+      "byteCount": 35630,
+      "id": "nyc-real-estate-region-bk1704-v1",
+      "path": "public/data/nyc-real-estate/regions/BK1704.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "20cf32314eef1e00c1da3816df2bd49b4f9d41a5345756a21d867ce7fc3d1a9d"
+    },
+    {
+      "byteCount": 7634,
+      "id": "nyc-real-estate-region-bk1771-v1",
+      "path": "public/data/nyc-real-estate/regions/BK1771.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "354e140b87f54435fa1b5182872022748f44d39fbab8755a5ec9d54dbbc69adb"
+    },
+    {
+      "byteCount": 74360,
+      "id": "nyc-real-estate-region-bk1801-v1",
+      "path": "public/data/nyc-real-estate/regions/BK1801.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "fab1605379b1396df305e70ad31705bcaa927d169f3894c8945e3220f013dd5c"
+    },
+    {
+      "byteCount": 76220,
+      "id": "nyc-real-estate-region-bk1802-v1",
+      "path": "public/data/nyc-real-estate/regions/BK1802.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "2f2b04125c0b03694e7f98009aea32e8c1680a3201f0dde3e0bd55ace8593a22"
+    },
+    {
+      "byteCount": 67719,
+      "id": "nyc-real-estate-region-bk1803-v1",
+      "path": "public/data/nyc-real-estate/regions/BK1803.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "1c7b0b79b4d14ed75b1430b22428b95fc954c32856a11d943972430557462a11"
+    },
+    {
+      "byteCount": 33733,
+      "id": "nyc-real-estate-region-bk1891-v1",
+      "path": "public/data/nyc-real-estate/regions/BK1891.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "3399dc6e5f70cfcc7227d35358276d95c436c9f6d9ff4f87723678a1facf4ed9"
+    },
+    {
+      "byteCount": 16757,
+      "id": "nyc-real-estate-region-bk1892-v1",
+      "path": "public/data/nyc-real-estate/regions/BK1892.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "5d96eb4dd0e44593a83326453bfd3819110e3a31e2c5db73509dba9d45044939"
+    },
+    {
+      "byteCount": 11924,
+      "id": "nyc-real-estate-region-bk1893-v1",
+      "path": "public/data/nyc-real-estate/regions/BK1893.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "d01680bdb37619e383cb63eeae47c65c14ae35a10ef79360cabfd6d2b5000b81"
+    },
+    {
+      "byteCount": 15807,
+      "id": "nyc-real-estate-region-bk5591-v1",
+      "path": "public/data/nyc-real-estate/regions/BK5591.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "1c77f9ea53507bd89c1541ae2dd1f586bfaa05836d3c52b83137e3cec9688e5c"
+    },
+    {
+      "byteCount": 21866,
+      "id": "nyc-real-estate-region-bk5691-v1",
+      "path": "public/data/nyc-real-estate/regions/BK5691.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "d9d81812c33b99d2c30438e8acad7aacd7e1d1c067e3847c99607ac899a83ebf"
+    },
+    {
+      "byteCount": 51877,
+      "id": "nyc-real-estate-region-bk5692-v1",
+      "path": "public/data/nyc-real-estate/regions/BK5692.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "026b3dce6cda36126ab56be93fe080b92d4358f3ec7b1148fb330fef43efd028"
+    },
+    {
+      "byteCount": 15274,
+      "id": "nyc-real-estate-region-bk5693-v1",
+      "path": "public/data/nyc-real-estate/regions/BK5693.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "9340a7c5d733d03ec613859b2251031c818f2c458218bc396a8e92c06618987f"
+    },
+    {
+      "byteCount": 347789,
+      "id": "nyc-real-estate-region-bx0101-v1",
+      "path": "public/data/nyc-real-estate/regions/BX0101.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "09bfe11d3585161b2e59e8690806263af88f50a632bbfde145963007a5988acf"
+    },
+    {
+      "byteCount": 282081,
+      "id": "nyc-real-estate-region-bx0102-v1",
+      "path": "public/data/nyc-real-estate/regions/BX0102.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "314ce9753d7a45671e05536d62cb713b9de60a30066f2b780c4f9d5b6f5e9997"
+    },
+    {
+      "byteCount": 106815,
+      "id": "nyc-real-estate-region-bx0201-v1",
+      "path": "public/data/nyc-real-estate/regions/BX0201.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "956f305efc03e58c1ca45d5de895557df3d9f3f6dc025857da16d10e7dfa8ce7"
+    },
+    {
+      "byteCount": 521351,
+      "id": "nyc-real-estate-region-bx0202-v1",
+      "path": "public/data/nyc-real-estate/regions/BX0202.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "fff0e0e90800f77cc6a1b778e6218cd7858af3fc8d06993c6cab5aca715d0b92"
+    },
+    {
+      "byteCount": 10984,
+      "id": "nyc-real-estate-region-bx0291-v1",
+      "path": "public/data/nyc-real-estate/regions/BX0291.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "b92f5fc137a51fb8e9c19b0abfb1bd1b6a13617925733196cb94360392216b65"
+    },
+    {
+      "byteCount": 274832,
+      "id": "nyc-real-estate-region-bx0301-v1",
+      "path": "public/data/nyc-real-estate/regions/BX0301.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "bebb58ceb7d0bbfef912624cf60874e542af4a56cc7848d75b9b228f6ab00bbe"
+    },
+    {
+      "byteCount": 118835,
+      "id": "nyc-real-estate-region-bx0302-v1",
+      "path": "public/data/nyc-real-estate/regions/BX0302.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "c86e036da023090df72922a38f351da5d2c83011fb3bdd898723b3474681c13a"
+    },
+    {
+      "byteCount": 586376,
+      "id": "nyc-real-estate-region-bx0303-v1",
+      "path": "public/data/nyc-real-estate/regions/BX0303.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "9913f3a58f8f3a2b845899ebbd3d22bd2c62abf90a5a29c555aa7dfb0d974067"
+    },
+    {
+      "byteCount": 9829,
+      "id": "nyc-real-estate-region-bx0391-v1",
+      "path": "public/data/nyc-real-estate/regions/BX0391.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "9a84f49d7a02c80973f8685ee74ec8a610c5e22466786588b8a19e6e83dfbaac"
+    },
+    {
+      "byteCount": 406485,
+      "id": "nyc-real-estate-region-bx0401-v1",
+      "path": "public/data/nyc-real-estate/regions/BX0401.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "01cadd54e287bcf5644203c3fd137f5acdf6dba9d0f5741815cc75dbd4c50318"
+    },
+    {
+      "byteCount": 333164,
+      "id": "nyc-real-estate-region-bx0402-v1",
+      "path": "public/data/nyc-real-estate/regions/BX0402.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "84f0711c5c25e32406b0ac49a98afe7ca7aa5533088f4ec1e5286cd456613422"
+    },
+    {
+      "byteCount": 429056,
+      "id": "nyc-real-estate-region-bx0403-v1",
+      "path": "public/data/nyc-real-estate/regions/BX0403.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "c1e1e11b80b2abd44aa6b8cadc321afdd644170ff1a4e7473d2915803d778770"
+    },
+    {
+      "byteCount": 14808,
+      "id": "nyc-real-estate-region-bx0491-v1",
+      "path": "public/data/nyc-real-estate/regions/BX0491.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "ee39a81450f96bbe34f478ff37fef93736fb5abfa2e4f4474455d8280c8bcd94"
+    },
+    {
+      "byteCount": 7626,
+      "id": "nyc-real-estate-region-bx0492-v1",
+      "path": "public/data/nyc-real-estate/regions/BX0492.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "e3a2480219092f9589f6d8adce91362ac5081a80bec744d986ca06fcfe352588"
+    },
+    {
+      "byteCount": 354610,
+      "id": "nyc-real-estate-region-bx0501-v1",
+      "path": "public/data/nyc-real-estate/regions/BX0501.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "d8ca2a5eab821956676a9ff4ecb9075aca8190424ea6463a717249b213ef1202"
+    },
+    {
+      "byteCount": 610585,
+      "id": "nyc-real-estate-region-bx0502-v1",
+      "path": "public/data/nyc-real-estate/regions/BX0502.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "25a0e3ce93222ff3e7db73d3782abbaec73710c6b59876debb1b669a227e5b78"
+    },
+    {
+      "byteCount": 282690,
+      "id": "nyc-real-estate-region-bx0503-v1",
+      "path": "public/data/nyc-real-estate/regions/BX0503.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "80330544c0c139b3fc6ae35f7b6c27c62e6320b9702766e533ff6c720d5a5b01"
+    },
+    {
+      "byteCount": 198760,
+      "id": "nyc-real-estate-region-bx0601-v1",
+      "path": "public/data/nyc-real-estate/regions/BX0601.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "d338660ab53c220f220366c08583222ed9f9ef0270e4a0cd1ff410b925cf48ad"
+    },
+    {
+      "byteCount": 649247,
+      "id": "nyc-real-estate-region-bx0602-v1",
+      "path": "public/data/nyc-real-estate/regions/BX0602.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "3a82cd8a2e132f770aa89da6883f6951cc1d0b2f674655a65587f2c2d3329c77"
+    },
+    {
+      "byteCount": 298361,
+      "id": "nyc-real-estate-region-bx0603-v1",
+      "path": "public/data/nyc-real-estate/regions/BX0603.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "edb0a003fd8d2a7eccfdefb83dec19ca203246b39b99abf41c498944842c3220"
+    },
+    {
+      "byteCount": 195654,
+      "id": "nyc-real-estate-region-bx0701-v1",
+      "path": "public/data/nyc-real-estate/regions/BX0701.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "ae79fb19482c51262a087aac588f467c16237586d73773f45016da020ef8910c"
+    },
+    {
+      "byteCount": 479994,
+      "id": "nyc-real-estate-region-bx0702-v1",
+      "path": "public/data/nyc-real-estate/regions/BX0702.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "7ea96217654f6ad38747d34ff16a060570adbe520652173eb82ecdfefd1350d0"
+    },
+    {
+      "byteCount": 220425,
+      "id": "nyc-real-estate-region-bx0703-v1",
+      "path": "public/data/nyc-real-estate/regions/BX0703.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "55c3cb4e009ccc85317a16d7a410a9b10c2480bae373e8b01fa2af9b540d2f98"
+    },
+    {
+      "byteCount": 135971,
+      "id": "nyc-real-estate-region-bx0801-v1",
+      "path": "public/data/nyc-real-estate/regions/BX0801.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "7c83a5f40fe9b00cb8be1dca33203d816eda650f415b1c6ef0f06a9c0545ba63"
+    },
+    {
+      "byteCount": 85283,
+      "id": "nyc-real-estate-region-bx0802-v1",
+      "path": "public/data/nyc-real-estate/regions/BX0802.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "5aa6921bdee5b68a1d7b7084059df7999fc787b36def39705e644c0a662d0f8e"
+    },
+    {
+      "byteCount": 145268,
+      "id": "nyc-real-estate-region-bx0803-v1",
+      "path": "public/data/nyc-real-estate/regions/BX0803.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "b37b8d210992b948fdd1122544143ce5a18662fcb44b51a30b6dc40afa26cf16"
+    },
+    {
+      "byteCount": 84519,
+      "id": "nyc-real-estate-region-bx0901-v1",
+      "path": "public/data/nyc-real-estate/regions/BX0901.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "8be7ab63297fdf15727015c62223b46cb940c593c97fc57225e335ae4f7224bf"
+    },
+    {
+      "byteCount": 100689,
+      "id": "nyc-real-estate-region-bx0902-v1",
+      "path": "public/data/nyc-real-estate/regions/BX0902.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "fa79c3f4000187aa44a1a6fa3e2b736097281d1c23c3a08ba3bd578d20fb5a02"
+    },
+    {
+      "byteCount": 82409,
+      "id": "nyc-real-estate-region-bx0903-v1",
+      "path": "public/data/nyc-real-estate/regions/BX0903.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "ae659c2826447dfebfb3e88080c7eab4f87d14e15f10d178fb73550e03651a63"
+    },
+    {
+      "byteCount": 47042,
+      "id": "nyc-real-estate-region-bx0904-v1",
+      "path": "public/data/nyc-real-estate/regions/BX0904.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "7b53d5042649e547f0309fb90f5c668f02e8d0e5e2880f449088d8b30dba7212"
+    },
+    {
+      "byteCount": 11693,
+      "id": "nyc-real-estate-region-bx0991-v1",
+      "path": "public/data/nyc-real-estate/regions/BX0991.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "44056fd3499178d79fe990570bc6a5d25cfc13e90681359ad5e4394e0dbbe98e"
+    },
+    {
+      "byteCount": 69196,
+      "id": "nyc-real-estate-region-bx1001-v1",
+      "path": "public/data/nyc-real-estate/regions/BX1001.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "d16c31eb52163983d1476d07bd6262d5ac64aef2f11c6ec93c4dd3f1baf9ecad"
+    },
+    {
+      "byteCount": 97655,
+      "id": "nyc-real-estate-region-bx1002-v1",
+      "path": "public/data/nyc-real-estate/regions/BX1002.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "785e074881bca93d44fe4014eed25529d3cfa68227c4541f3b3b711530da6aad"
+    },
+    {
+      "byteCount": 206080,
+      "id": "nyc-real-estate-region-bx1003-v1",
+      "path": "public/data/nyc-real-estate/regions/BX1003.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "d88e0551cf63b94f53da1a52ac5859891904b145377d2e471dc4b4683fa7389a"
+    },
+    {
+      "byteCount": 49621,
+      "id": "nyc-real-estate-region-bx1004-v1",
+      "path": "public/data/nyc-real-estate/regions/BX1004.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "6eca9fda3fc732c5b325b4bc6186f03fb3c689c74ace2d0012d1fa05c995720c"
+    },
+    {
+      "byteCount": 11951,
+      "id": "nyc-real-estate-region-bx1071-v1",
+      "path": "public/data/nyc-real-estate/regions/BX1071.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "3d1dbc4c2716dbc499b188c4b65095c715afeec60d38205c1c552331c9a250e8"
+    },
+    {
+      "byteCount": 16672,
+      "id": "nyc-real-estate-region-bx1091-v1",
+      "path": "public/data/nyc-real-estate/regions/BX1091.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "de19a11a3ceb6abb250e02b08588974f69c01dc2a2ff790bef870ab032b6c04a"
+    },
+    {
+      "byteCount": 86052,
+      "id": "nyc-real-estate-region-bx1101-v1",
+      "path": "public/data/nyc-real-estate/regions/BX1101.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "47d4ac7bd93039ccd476cb0722ce44e2ff8c9386d3ce9965bdf1418b2331c985"
+    },
+    {
+      "byteCount": 75977,
+      "id": "nyc-real-estate-region-bx1102-v1",
+      "path": "public/data/nyc-real-estate/regions/BX1102.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "efa7d0dedad130fd292f2d535702077977dcfda383c3c57c704af9e239c77614"
+    },
+    {
+      "byteCount": 50790,
+      "id": "nyc-real-estate-region-bx1103-v1",
+      "path": "public/data/nyc-real-estate/regions/BX1103.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "2ba8cb12dce4a35a0b2d2c34c3fc24debbd4120603a04eac9f9b099e667f0e89"
+    },
+    {
+      "byteCount": 90772,
+      "id": "nyc-real-estate-region-bx1104-v1",
+      "path": "public/data/nyc-real-estate/regions/BX1104.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "94b4d09348092cca22116d5b730b454030585ecda8bfe7c6782dd97f9c9918d5"
+    },
+    {
+      "byteCount": 40517,
+      "id": "nyc-real-estate-region-bx1161-v1",
+      "path": "public/data/nyc-real-estate/regions/BX1161.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "b0516c1db7af4548573474222de0d0b931ae0f7e765dd8e987e45a355fcb1498"
+    },
+    {
+      "byteCount": 329049,
+      "id": "nyc-real-estate-region-bx1201-v1",
+      "path": "public/data/nyc-real-estate/regions/BX1201.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "a67d2d27eb9904917786528eb53ad5a1c6398704a3bfa5d0c43cf89828bb698c"
+    },
+    {
+      "byteCount": 96462,
+      "id": "nyc-real-estate-region-bx1202-v1",
+      "path": "public/data/nyc-real-estate/regions/BX1202.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "8bcacf3cc7c13480b2317897309d51d429fdc821bbb1e4fed49021646a4c0abc"
+    },
+    {
+      "byteCount": 140080,
+      "id": "nyc-real-estate-region-bx1203-v1",
+      "path": "public/data/nyc-real-estate/regions/BX1203.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "3e3245ba8dc18cdeabd9eef981b4f53aa563d5d1b0bf544f46a49597369b20e9"
+    },
+    {
+      "byteCount": 11926,
+      "id": "nyc-real-estate-region-bx1271-v1",
+      "path": "public/data/nyc-real-estate/regions/BX1271.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "aded362f961ee6913c986c2f07f0b23db872de374a8db685934bf6301c47edb3"
+    },
+    {
+      "byteCount": 16214,
+      "id": "nyc-real-estate-region-bx2691-v1",
+      "path": "public/data/nyc-real-estate/regions/BX2691.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "b52f4fcdd5e708e7ddf583b9520d5a7663c2678770d0c983000063d2746fbc10"
+    },
+    {
+      "byteCount": 17459,
+      "id": "nyc-real-estate-region-bx2791-v1",
+      "path": "public/data/nyc-real-estate/regions/BX2791.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "37ed8038a0178e495616fd023336dd5235fa84a0596bfd8953ac819258d8cd1c"
+    },
+    {
+      "byteCount": 34185,
+      "id": "nyc-real-estate-region-bx2891-v1",
+      "path": "public/data/nyc-real-estate/regions/BX2891.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "e2036d90f02ee125d2e373a0762c0a4889e4f873702a48ce990e1f5901d8aad5"
+    },
+    {
+      "byteCount": 295871,
+      "id": "nyc-real-estate-region-mn0101-v1",
+      "path": "public/data/nyc-real-estate/regions/MN0101.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "98c8ac09d92b0157bdcf16a813c13d99a45a3cb7a546d5adec7fd5ece9d3c385"
+    },
+    {
+      "byteCount": 200872,
+      "id": "nyc-real-estate-region-mn0102-v1",
+      "path": "public/data/nyc-real-estate/regions/MN0102.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "ff8613c2226bd1c330c54aab95c41cf589a23c5def5b4b52ecd417bc026fd3ba"
+    },
+    {
+      "byteCount": 26000,
+      "id": "nyc-real-estate-region-mn0191-v1",
+      "path": "public/data/nyc-real-estate/regions/MN0191.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "aeec683dc6b73e12e655dba3ff4df16b6809fb19e1aac45090b8cbfec768f244"
+    },
+    {
+      "byteCount": 250286,
+      "id": "nyc-real-estate-region-mn0201-v1",
+      "path": "public/data/nyc-real-estate/regions/MN0201.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "b2e61f4f17cff9c0fd42cb7042d5aea2d36822fa2d54220283e4821c5af93a0e"
+    },
+    {
+      "byteCount": 96647,
+      "id": "nyc-real-estate-region-mn0202-v1",
+      "path": "public/data/nyc-real-estate/regions/MN0202.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "463d6bedb64040b6cd8f99d2e497991333ba1e8139c6c219776998fff2ac075d"
+    },
+    {
+      "byteCount": 88327,
+      "id": "nyc-real-estate-region-mn0203-v1",
+      "path": "public/data/nyc-real-estate/regions/MN0203.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "882c24764be60bb1dd1bacc085597580b1cd265951add388d197cabd722e969f"
+    },
+    {
+      "byteCount": 76437,
+      "id": "nyc-real-estate-region-mn0301-v1",
+      "path": "public/data/nyc-real-estate/regions/MN0301.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "ec3edaec4e2dafda317b018fa86b67337d5b3ad7845f18927015dc5c80114358"
+    },
+    {
+      "byteCount": 146367,
+      "id": "nyc-real-estate-region-mn0302-v1",
+      "path": "public/data/nyc-real-estate/regions/MN0302.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "a2ba35446756efab271be0b35ab33093d8a4a454ba6d5cefe551a794c8f86a65"
+    },
+    {
+      "byteCount": 142594,
+      "id": "nyc-real-estate-region-mn0303-v1",
+      "path": "public/data/nyc-real-estate/regions/MN0303.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "d8d5c965bd8b70c7356bb81ea36c9e2b1127aef5a210242d65f4e2a2509b2251"
+    },
+    {
+      "byteCount": 562066,
+      "id": "nyc-real-estate-region-mn0401-v1",
+      "path": "public/data/nyc-real-estate/regions/MN0401.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "258d66bbd26406f312ac2af8db37db4fd04179000abc77525c99510e568a2d94"
+    },
+    {
+      "byteCount": 320675,
+      "id": "nyc-real-estate-region-mn0402-v1",
+      "path": "public/data/nyc-real-estate/regions/MN0402.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "4958eb9b44b19b430de12f42ec883ee049f108f25783081b13f8a57a53c706be"
+    },
+    {
+      "byteCount": 595030,
+      "id": "nyc-real-estate-region-mn0501-v1",
+      "path": "public/data/nyc-real-estate/regions/MN0501.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "0d8d6eb24db4b2c0b98e570095795c516fddc03972142c0448ac31824877985f"
+    },
+    {
+      "byteCount": 694788,
+      "id": "nyc-real-estate-region-mn0502-v1",
+      "path": "public/data/nyc-real-estate/regions/MN0502.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "9489b63241256d063d52be42604def5a2a74e5e541483f7124a93a4685bc2a1e"
+    },
+    {
+      "byteCount": 16134,
+      "id": "nyc-real-estate-region-mn0601-v1",
+      "path": "public/data/nyc-real-estate/regions/MN0601.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "94bdb8753455e3b2ad2b1a8b56b2eb550abea32c259f3fd7386579057ff80890"
+    },
+    {
+      "byteCount": 170103,
+      "id": "nyc-real-estate-region-mn0602-v1",
+      "path": "public/data/nyc-real-estate/regions/MN0602.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "f3c7f5194991b04d9320a6ecb8717c1c12f7b2b574139a7f864f7e2f9318b1d8"
+    },
+    {
+      "byteCount": 402041,
+      "id": "nyc-real-estate-region-mn0603-v1",
+      "path": "public/data/nyc-real-estate/regions/MN0603.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "f2ae29bb136043a3994bd36612141fe8133046445f9661d015194e605b12de6c"
+    },
+    {
+      "byteCount": 426767,
+      "id": "nyc-real-estate-region-mn0604-v1",
+      "path": "public/data/nyc-real-estate/regions/MN0604.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "b46a726437875205a5fb75213cc6342057f905d9de41463e368ead31c2c3e3ae"
+    },
+    {
+      "byteCount": 10723,
+      "id": "nyc-real-estate-region-mn0661-v1",
+      "path": "public/data/nyc-real-estate/regions/MN0661.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "67aef211d396c8230616d0f06fe795b9263da7322f9e6dcfd9ff7c2960bf6beb"
+    },
+    {
+      "byteCount": 229579,
+      "id": "nyc-real-estate-region-mn0701-v1",
+      "path": "public/data/nyc-real-estate/regions/MN0701.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "1f56a5f0dfe9a9637eb2da7397bfc07675e7e63387becaa40c7cd3fa3af27c59"
+    },
+    {
+      "byteCount": 433620,
+      "id": "nyc-real-estate-region-mn0702-v1",
+      "path": "public/data/nyc-real-estate/regions/MN0702.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "75db45075bea382a3e98194a1a0e722508f63719bd0925ea433f5c27bb040974"
+    },
+    {
+      "byteCount": 56793,
+      "id": "nyc-real-estate-region-mn0703-v1",
+      "path": "public/data/nyc-real-estate/regions/MN0703.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "467f9e5eb9c5de7b64e01bbfc70d610f06b336b8c6fe3e76ca090ab5092bba2d"
+    },
+    {
+      "byteCount": 422780,
+      "id": "nyc-real-estate-region-mn0801-v1",
+      "path": "public/data/nyc-real-estate/regions/MN0801.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "45af4a0db2ed72989d5d9802a46c07032bc2d2b84177ca90f359ed3624b16dd9"
+    },
+    {
+      "byteCount": 746369,
+      "id": "nyc-real-estate-region-mn0802-v1",
+      "path": "public/data/nyc-real-estate/regions/MN0802.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "c45469d0eb5c7807a7cce1e07085a141c4ef24809023d93e605e0000cb8d8d89"
+    },
+    {
+      "byteCount": 434797,
+      "id": "nyc-real-estate-region-mn0803-v1",
+      "path": "public/data/nyc-real-estate/regions/MN0803.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "1704b7e9e3118ad026a3ca16f6016e8c431a4b2fb2d6f1cd7f89f56308781d72"
+    },
+    {
+      "byteCount": 72496,
+      "id": "nyc-real-estate-region-mn0901-v1",
+      "path": "public/data/nyc-real-estate/regions/MN0901.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "6501d44261748b88bd1715f9d4e999c5909d328ce5464f892e321da9fc739e1d"
+    },
+    {
+      "byteCount": 47753,
+      "id": "nyc-real-estate-region-mn0902-v1",
+      "path": "public/data/nyc-real-estate/regions/MN0902.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "dcf18e7c636cf4d349f8178b2853c0f8c800c7898b8a4a0fd3cd59c08884fc30"
+    },
+    {
+      "byteCount": 74204,
+      "id": "nyc-real-estate-region-mn0903-v1",
+      "path": "public/data/nyc-real-estate/regions/MN0903.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "93d7aadebf5a8bb2ec07fd256831984b3b01ecec0a02dbd12e93458a3f33aaef"
+    },
+    {
+      "byteCount": 185287,
+      "id": "nyc-real-estate-region-mn1001-v1",
+      "path": "public/data/nyc-real-estate/regions/MN1001.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "01c0b5c5efc30c8a74a6736ab5d07106d08e17cfdeb3375a395d9a611a4ff902"
+    },
+    {
+      "byteCount": 152385,
+      "id": "nyc-real-estate-region-mn1002-v1",
+      "path": "public/data/nyc-real-estate/regions/MN1002.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "12c12c40fdc254b0029406c8276d0d1afd33f42f5ef2b8de463daee26b066876"
+    },
+    {
+      "byteCount": 204958,
+      "id": "nyc-real-estate-region-mn1101-v1",
+      "path": "public/data/nyc-real-estate/regions/MN1101.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "c78094ec0e3dcbea9177997fbd02e2fbc689835a5a422473d5f8785129f3fb38"
+    },
+    {
+      "byteCount": 423395,
+      "id": "nyc-real-estate-region-mn1102-v1",
+      "path": "public/data/nyc-real-estate/regions/MN1102.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "ba8436f0673b3ff2cdfff71fdbf2216bd53ed63ede0a658531bfb23c3955231b"
+    },
+    {
+      "byteCount": 24699,
+      "id": "nyc-real-estate-region-mn1191-v1",
+      "path": "public/data/nyc-real-estate/regions/MN1191.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "c413058484782731966495395ddc8927c947103ee62164d1f77e854f8338f786"
+    },
+    {
+      "byteCount": 74735,
+      "id": "nyc-real-estate-region-mn1201-v1",
+      "path": "public/data/nyc-real-estate/regions/MN1201.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "6d3d3b248d2ce9f2fa78e4dab5b86fffeda141bfd6f322ec184ca0a4798d8050"
+    },
+    {
+      "byteCount": 56650,
+      "id": "nyc-real-estate-region-mn1202-v1",
+      "path": "public/data/nyc-real-estate/regions/MN1202.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "b70aaa7f169b4c50c5d3573f3037f09202c5001e6f817e80bc227161aac71f23"
+    },
+    {
+      "byteCount": 81735,
+      "id": "nyc-real-estate-region-mn1203-v1",
+      "path": "public/data/nyc-real-estate/regions/MN1203.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "5db07c105f5881ee19432e3ff55f02d9817a07987bee369e3a1e9e4bf8fd5ad3"
+    },
+    {
+      "byteCount": 11002,
+      "id": "nyc-real-estate-region-mn1291-v1",
+      "path": "public/data/nyc-real-estate/regions/MN1291.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "f98c05b0da698e09eb6403b50639f7b83d215d0a8339dfe495a5ec38baa6948e"
+    },
+    {
+      "byteCount": 23170,
+      "id": "nyc-real-estate-region-mn1292-v1",
+      "path": "public/data/nyc-real-estate/regions/MN1292.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "f58cbffd7f9c653e0d75c7212bcff248deec0ad141ecd70e5cd6707d23e6b423"
+    },
+    {
+      "byteCount": 9077,
+      "id": "nyc-real-estate-region-mn6491-v1",
+      "path": "public/data/nyc-real-estate/regions/MN6491.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "6758c02289f62dd65232e2da7994c5833c707053e148a96431af08537c376233"
+    },
+    {
+      "byteCount": 172590,
+      "id": "nyc-real-estate-region-qn0101-v1",
+      "path": "public/data/nyc-real-estate/regions/QN0101.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "67f3e8e6f90ebec28822249931e394641d863e71cc613479a1ee09f8a2f270f7"
+    },
+    {
+      "byteCount": 261412,
+      "id": "nyc-real-estate-region-qn0102-v1",
+      "path": "public/data/nyc-real-estate/regions/QN0102.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "4547915d0850caed6c2442492d96a775b42e256238006abef4a043df6c094b21"
+    },
+    {
+      "byteCount": 377974,
+      "id": "nyc-real-estate-region-qn0103-v1",
+      "path": "public/data/nyc-real-estate/regions/QN0103.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "d2d0683fd352d5b2ed9ea45a831409c3d30c3ebf4a8727651eaea7cb7031cc29"
+    },
+    {
+      "byteCount": 159090,
+      "id": "nyc-real-estate-region-qn0104-v1",
+      "path": "public/data/nyc-real-estate/regions/QN0104.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "34dd91ac06683cece47ab9be02c0dde9a1c22c100a18d0a36886543a4883659e"
+    },
+    {
+      "byteCount": 390846,
+      "id": "nyc-real-estate-region-qn0105-v1",
+      "path": "public/data/nyc-real-estate/regions/QN0105.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "6d3526d6f1d1f20cb30a82af7918ddcee2761c59b1d3480da40d2776818bc276"
+    },
+    {
+      "byteCount": 22181,
+      "id": "nyc-real-estate-region-qn0151-v1",
+      "path": "public/data/nyc-real-estate/regions/QN0151.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "36f1ee6d54f2738684a1ab54124831ccc74b8dab4560e3e32dcb0564235674e3"
+    },
+    {
+      "byteCount": 28967,
+      "id": "nyc-real-estate-region-qn0161-v1",
+      "path": "public/data/nyc-real-estate/regions/QN0161.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "0e9ff996f33f54f3a8acd2116105c2bf5f6634485fb5635c3db5835c40acab9a"
+    },
+    {
+      "byteCount": 14715,
+      "id": "nyc-real-estate-region-qn0171-v1",
+      "path": "public/data/nyc-real-estate/regions/QN0171.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "f37ccfbeb71a527121f25bf039b0b478c49745f1f3eaf8fecce4ccdd1e20e4ad"
+    },
+    {
+      "byteCount": 7357,
+      "id": "nyc-real-estate-region-qn0191-v1",
+      "path": "public/data/nyc-real-estate/regions/QN0191.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "ff03bbb805aa689bd8b5079f041e085a2fb25e4bebb57ee02544f402b3e793c7"
+    },
+    {
+      "byteCount": 690162,
+      "id": "nyc-real-estate-region-qn0201-v1",
+      "path": "public/data/nyc-real-estate/regions/QN0201.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "8bfc11a306dae6c3837b782b476be8372b6781e38135c447358fecb1421278ee"
+    },
+    {
+      "byteCount": 242409,
+      "id": "nyc-real-estate-region-qn0202-v1",
+      "path": "public/data/nyc-real-estate/regions/QN0202.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "4ee9d929030ce3b9a69452711b2a5c3fe03af57b5f362e0a659d8cf3a532428f"
+    },
+    {
+      "byteCount": 219332,
+      "id": "nyc-real-estate-region-qn0203-v1",
+      "path": "public/data/nyc-real-estate/regions/QN0203.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "1fb71e297f928cce64711f6e422e3a598a8fed2eabe6ad0789d3b7de0ce47493"
+    },
+    {
+      "byteCount": 16183,
+      "id": "nyc-real-estate-region-qn0261-v1",
+      "path": "public/data/nyc-real-estate/regions/QN0261.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "ec3ed9834bd913459d26d2c5c00cf7d76b1ac9a3694b1f27286970cffa67891f"
+    },
+    {
+      "byteCount": 9725,
+      "id": "nyc-real-estate-region-qn0271-v1",
+      "path": "public/data/nyc-real-estate/regions/QN0271.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "9073355ca2ead6ac42f38770827ebb39280a77e6b7cc05c65cfaf496c5a7e2d5"
+    },
+    {
+      "byteCount": 101396,
+      "id": "nyc-real-estate-region-qn0301-v1",
+      "path": "public/data/nyc-real-estate/regions/QN0301.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "f93387191601bb0b7de449c254364170cc9e982b74938f5a373ca2227f903ecb"
+    },
+    {
+      "byteCount": 134550,
+      "id": "nyc-real-estate-region-qn0302-v1",
+      "path": "public/data/nyc-real-estate/regions/QN0302.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "3decfe4f23588eff263bb44b813bf2fb39c54ca7407c78ac9a7dd3dde6edbe99"
+    },
+    {
+      "byteCount": 174422,
+      "id": "nyc-real-estate-region-qn0303-v1",
+      "path": "public/data/nyc-real-estate/regions/QN0303.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "f3fb081302f9103c60c0ebd93f875c926573db7dcfbf9f7ca0cb2ffb7408a17d"
+    },
+    {
+      "byteCount": 267342,
+      "id": "nyc-real-estate-region-qn0401-v1",
+      "path": "public/data/nyc-real-estate/regions/QN0401.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "cab7cc027457acd162795a2cec4ace9d7793b706b8e1a826e9cc734761581354"
+    },
+    {
+      "byteCount": 159059,
+      "id": "nyc-real-estate-region-qn0402-v1",
+      "path": "public/data/nyc-real-estate/regions/QN0402.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "ec3e19d5eb4b1616e0d06a9a5a7c9cfd0e0d010f18b0b696c7d9664968ab9037"
+    },
+    {
+      "byteCount": 118948,
+      "id": "nyc-real-estate-region-qn0501-v1",
+      "path": "public/data/nyc-real-estate/regions/QN0501.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "00f12264e57601edc9511ee489504fab4cb6fec265ec0b046f1f462542f7e20b"
+    },
+    {
+      "byteCount": 136806,
+      "id": "nyc-real-estate-region-qn0502-v1",
+      "path": "public/data/nyc-real-estate/regions/QN0502.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "a44b60c1f03624d1400f3fed02c1525c8acfc54adb826ded90c826a034cde852"
+    },
+    {
+      "byteCount": 45871,
+      "id": "nyc-real-estate-region-qn0503-v1",
+      "path": "public/data/nyc-real-estate/regions/QN0503.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "ae26a2bba41bb8fa7b0cf894e1da6525a2c22d993edd0a00e377a085f6bacb4b"
+    },
+    {
+      "byteCount": 56045,
+      "id": "nyc-real-estate-region-qn0504-v1",
+      "path": "public/data/nyc-real-estate/regions/QN0504.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "54c1b6811b125fea23ac2c0484c6a5be2935bdea3aa13f16c7e92f49650b8d09"
+    },
+    {
+      "byteCount": 11080,
+      "id": "nyc-real-estate-region-qn0571-v1",
+      "path": "public/data/nyc-real-estate/regions/QN0571.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "80be9709b07c791e3e6de8701f9ddf900dfb68e0a4334cf4b580598217c81240"
+    },
+    {
+      "byteCount": 8937,
+      "id": "nyc-real-estate-region-qn0572-v1",
+      "path": "public/data/nyc-real-estate/regions/QN0572.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "dbad33ca59a057fb3fc5c009bbd443cf59cec54e89639d59a246a61ee7f5644a"
+    },
+    {
+      "byteCount": 9317,
+      "id": "nyc-real-estate-region-qn0573-v1",
+      "path": "public/data/nyc-real-estate/regions/QN0573.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "3e36d56ad1c502ff6a28044351ce446f05fe3b9970884e3359bfe3ec074db3ae"
+    },
+    {
+      "byteCount": 12902,
+      "id": "nyc-real-estate-region-qn0574-v1",
+      "path": "public/data/nyc-real-estate/regions/QN0574.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "f84fc49397f2f4a0bfaa028ed8ac95eb3e7d28926606e203614455547bbd6438"
+    },
+    {
+      "byteCount": 205377,
+      "id": "nyc-real-estate-region-qn0601-v1",
+      "path": "public/data/nyc-real-estate/regions/QN0601.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "2ddd49f5b24c1cfc8b1a00c3e3ca4e43b0340a526bedb3fb057127ee2a07b44f"
+    },
+    {
+      "byteCount": 267026,
+      "id": "nyc-real-estate-region-qn0602-v1",
+      "path": "public/data/nyc-real-estate/regions/QN0602.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "e4399d2162beb427aa556480431ee33aea6475db4e3672bc6b1c2dc37c7d94b9"
+    },
+    {
+      "byteCount": 230932,
+      "id": "nyc-real-estate-region-qn0701-v1",
+      "path": "public/data/nyc-real-estate/regions/QN0701.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "b3acc9f19263eea0ce194ad28c873cffb3952a452a50637aecc11ba8e8cbabcd"
+    },
+    {
+      "byteCount": 269082,
+      "id": "nyc-real-estate-region-qn0702-v1",
+      "path": "public/data/nyc-real-estate/regions/QN0702.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "1f51a3742ab8fa29b29712727e3968e01ea3e33ba7f1e8c69b0b4059923ee65d"
+    },
+    {
+      "byteCount": 63496,
+      "id": "nyc-real-estate-region-qn0703-v1",
+      "path": "public/data/nyc-real-estate/regions/QN0703.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "42ebe0b71cdbfe998b4bba732209b25594258d7ed3d023772f7d17c92d316e13"
+    },
+    {
+      "byteCount": 182479,
+      "id": "nyc-real-estate-region-qn0704-v1",
+      "path": "public/data/nyc-real-estate/regions/QN0704.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "41efcbf689f3c15339821e5c7ebe5172f6f99318541ef1fd5029eb2de7cb8a27"
+    },
+    {
+      "byteCount": 189283,
+      "id": "nyc-real-estate-region-qn0705-v1",
+      "path": "public/data/nyc-real-estate/regions/QN0705.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "1c3628ce4f2f8182f44328e6c5b89713cc910c522b2f81608ca3dff8af9b85cd"
+    },
+    {
+      "byteCount": 96841,
+      "id": "nyc-real-estate-region-qn0706-v1",
+      "path": "public/data/nyc-real-estate/regions/QN0706.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "b9b1a22bab36f7574d3cbaeda742e28ef9280f91a7f4bf665f2626ce2ab00fa2"
+    },
+    {
+      "byteCount": 508534,
+      "id": "nyc-real-estate-region-qn0707-v1",
+      "path": "public/data/nyc-real-estate/regions/QN0707.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "1a95e73bf6e204749bea1eb586df42c6d68cf53dd089a99c25f67a8ac5b90dcc"
+    },
+    {
+      "byteCount": 11911,
+      "id": "nyc-real-estate-region-qn0761-v1",
+      "path": "public/data/nyc-real-estate/regions/QN0761.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "cfe5970d4801a931954826433da94f4e080dddf828ba883f863ffbfc50006dc1"
+    },
+    {
+      "byteCount": 8401,
+      "id": "nyc-real-estate-region-qn0791-v1",
+      "path": "public/data/nyc-real-estate/regions/QN0791.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "8ce5c70b43972a5d8299d2222281441fb8be7b8fd1c926f23f3b01098f3eab0a"
+    },
+    {
+      "byteCount": 51534,
+      "id": "nyc-real-estate-region-qn0801-v1",
+      "path": "public/data/nyc-real-estate/regions/QN0801.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "80a7452430af0d400b4ecc11162080383c5f7f7eed3a7878ed93c78a83133f86"
+    },
+    {
+      "byteCount": 105953,
+      "id": "nyc-real-estate-region-qn0802-v1",
+      "path": "public/data/nyc-real-estate/regions/QN0802.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "5c32d438d18a739c643a50e0c51fd41c0e4182c3b002c6aec4b89c433c788d53"
+    },
+    {
+      "byteCount": 69400,
+      "id": "nyc-real-estate-region-qn0803-v1",
+      "path": "public/data/nyc-real-estate/regions/QN0803.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "28a38ac74436e455be092632432dee6f54cc60fd0a6abffae7df0c6783473323"
+    },
+    {
+      "byteCount": 138184,
+      "id": "nyc-real-estate-region-qn0804-v1",
+      "path": "public/data/nyc-real-estate/regions/QN0804.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "fb588971659ac32f773a66846560491e6b3d27e9409ea7de7291a9882cea61a6"
+    },
+    {
+      "byteCount": 257324,
+      "id": "nyc-real-estate-region-qn0805-v1",
+      "path": "public/data/nyc-real-estate/regions/QN0805.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "50f777fd9b27e19cc741aa7cb281ef5dcfa6d8c4494dac53b9b0ec6a3aac3dec"
+    },
+    {
+      "byteCount": 9862,
+      "id": "nyc-real-estate-region-qn0871-v1",
+      "path": "public/data/nyc-real-estate/regions/QN0871.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "6424b5987368c168fe5445a558f0806514986d4955af946c01881694adcb040e"
+    },
+    {
+      "byteCount": 9973,
+      "id": "nyc-real-estate-region-qn0891-v1",
+      "path": "public/data/nyc-real-estate/regions/QN0891.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "ba393ff4f0183f7e3a26661234648a556be8429f8e19aa41e14d3fd710ea5970"
+    },
+    {
+      "byteCount": 133008,
+      "id": "nyc-real-estate-region-qn0901-v1",
+      "path": "public/data/nyc-real-estate/regions/QN0901.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "2c9d7b72936ab07ad2f1a9296c38beeef497a2d373be6dc5ee6ccd681fada098"
+    },
+    {
+      "byteCount": 204836,
+      "id": "nyc-real-estate-region-qn0902-v1",
+      "path": "public/data/nyc-real-estate/regions/QN0902.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "a705f2b605d96314b48b004b1c0699722c132c709ed37c9cab594b636f3cf2c0"
+    },
+    {
+      "byteCount": 62758,
+      "id": "nyc-real-estate-region-qn0903-v1",
+      "path": "public/data/nyc-real-estate/regions/QN0903.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "f2b9a6bedb5f48daf9e4a237d9c62c83995357c19040b6b20a0515237fd6d751"
+    },
+    {
+      "byteCount": 54305,
+      "id": "nyc-real-estate-region-qn0904-v1",
+      "path": "public/data/nyc-real-estate/regions/QN0904.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "7fcb0bdaf138ecfc3ba49bc782b696d3ca8dea6bbc04ddde44bc6ce498efc76d"
+    },
+    {
+      "byteCount": 99670,
+      "id": "nyc-real-estate-region-qn0905-v1",
+      "path": "public/data/nyc-real-estate/regions/QN0905.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "6dcbadefdfd82e156d428a70c2cdfa02c67c317005e018e0b91810814dbabeb8"
+    },
+    {
+      "byteCount": 108740,
+      "id": "nyc-real-estate-region-qn1001-v1",
+      "path": "public/data/nyc-real-estate/regions/QN1001.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "ee141f27133b68799875ae8fb253ac2886477692aaf557eac987355f58a72269"
+    },
+    {
+      "byteCount": 88909,
+      "id": "nyc-real-estate-region-qn1002-v1",
+      "path": "public/data/nyc-real-estate/regions/QN1002.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "f263a5faa4828503fc98717bceb2cc184753599855e06a3f6fc21fa7f51a4b10"
+    },
+    {
+      "byteCount": 86748,
+      "id": "nyc-real-estate-region-qn1003-v1",
+      "path": "public/data/nyc-real-estate/regions/QN1003.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "9590e0ece953566770019628fa6e6f1f949387d21b63bb0bc8229c9741241c32"
+    },
+    {
+      "byteCount": 12628,
+      "id": "nyc-real-estate-region-qn1091-v1",
+      "path": "public/data/nyc-real-estate/regions/QN1091.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "6f3f18b16fd6c10f29cd813e9e60e284fba98e72d90ee16a670e960fb31bc1ac"
+    },
+    {
+      "byteCount": 106505,
+      "id": "nyc-real-estate-region-qn1101-v1",
+      "path": "public/data/nyc-real-estate/regions/QN1101.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "44ce0277d046e56712dc38fc2ed1c359e0a858787799c01f7769d512e1d01dc0"
+    },
+    {
+      "byteCount": 202582,
+      "id": "nyc-real-estate-region-qn1102-v1",
+      "path": "public/data/nyc-real-estate/regions/QN1102.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "7d0e7f7648254a72eb6b62d05eb1de7684387ba54c9d0d6869444f1fbb081a43"
+    },
+    {
+      "byteCount": 183475,
+      "id": "nyc-real-estate-region-qn1103-v1",
+      "path": "public/data/nyc-real-estate/regions/QN1103.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "ba7bc04db7fb80510a0a67962e993f049df807db0a1c307d6837cbd7bf19de31"
+    },
+    {
+      "byteCount": 125565,
+      "id": "nyc-real-estate-region-qn1104-v1",
+      "path": "public/data/nyc-real-estate/regions/QN1104.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "c10b10068e3790fccf903e0d3404607013bfc580064740df13e731d37601ff6a"
+    },
+    {
+      "byteCount": 23242,
+      "id": "nyc-real-estate-region-qn1191-v1",
+      "path": "public/data/nyc-real-estate/regions/QN1191.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "f00ca4c76c2e81d9c50dd3504e62258b52a050823548e78cde3bf6b7919306a1"
+    },
+    {
+      "byteCount": 1606564,
+      "id": "nyc-real-estate-region-qn1201-v1",
+      "path": "public/data/nyc-real-estate/regions/QN1201.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "80f53e3a218a50b7d966d277a84c85b67a48bb1883bddece87a021ef6d16515d"
+    },
+    {
+      "byteCount": 430009,
+      "id": "nyc-real-estate-region-qn1202-v1",
+      "path": "public/data/nyc-real-estate/regions/QN1202.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "d5291321377938b4aa488d9d84f28d06a443cb527475a770bec97d3514c054aa"
+    },
+    {
+      "byteCount": 80875,
+      "id": "nyc-real-estate-region-qn1203-v1",
+      "path": "public/data/nyc-real-estate/regions/QN1203.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "bbe5c098e9d982bdab695a9613c410eeb252ebd163bfb8eccc54755f1132ba03"
+    },
+    {
+      "byteCount": 89818,
+      "id": "nyc-real-estate-region-qn1204-v1",
+      "path": "public/data/nyc-real-estate/regions/QN1204.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "e7d5429103dc79463667564a8c2a97af16addd6b268013788e6ca7bea252783d"
+    },
+    {
+      "byteCount": 103171,
+      "id": "nyc-real-estate-region-qn1205-v1",
+      "path": "public/data/nyc-real-estate/regions/QN1205.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "13ecbc5ba73f69b6c66f1a0986180b24fa07fbec7f635cbe60649a813a12dbac"
+    },
+    {
+      "byteCount": 52151,
+      "id": "nyc-real-estate-region-qn1206-v1",
+      "path": "public/data/nyc-real-estate/regions/QN1206.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "396cec3319167fecd6f7253c9462c079b0816f52029eb71f131fac125e3a574b"
+    },
+    {
+      "byteCount": 85333,
+      "id": "nyc-real-estate-region-qn1301-v1",
+      "path": "public/data/nyc-real-estate/regions/QN1301.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "75ba1933056a047d4e5523852d9733fc41245d5452ef55ddd21a282c7275b4e6"
+    },
+    {
+      "byteCount": 58344,
+      "id": "nyc-real-estate-region-qn1302-v1",
+      "path": "public/data/nyc-real-estate/regions/QN1302.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "138ff7048ee8ef5e0af33ce4c28788fd02f5894428694ed0d62e7c1645443311"
+    },
+    {
+      "byteCount": 80073,
+      "id": "nyc-real-estate-region-qn1303-v1",
+      "path": "public/data/nyc-real-estate/regions/QN1303.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "ccd1eadd2c90c01d4728e8c953ded2ec87d0a0d89808f994021531c3560bb913"
+    },
+    {
+      "byteCount": 24300,
+      "id": "nyc-real-estate-region-qn1304-v1",
+      "path": "public/data/nyc-real-estate/regions/QN1304.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "728f0d6dd817cbd9eea90e2f9f75cbae79582a3ac1ab1ca3dd63eebb1d874b6e"
+    },
+    {
+      "byteCount": 63508,
+      "id": "nyc-real-estate-region-qn1305-v1",
+      "path": "public/data/nyc-real-estate/regions/QN1305.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "99e836ac3d4b9519e5dfd30feb91cf4db7eaf5f251a101241167726f2675c910"
+    },
+    {
+      "byteCount": 66864,
+      "id": "nyc-real-estate-region-qn1306-v1",
+      "path": "public/data/nyc-real-estate/regions/QN1306.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "1216c8c042562f0ff2ce5ecfa74fcd9a3fe337873c9750d4191466eda6e4389e"
+    },
+    {
+      "byteCount": 50687,
+      "id": "nyc-real-estate-region-qn1307-v1",
+      "path": "public/data/nyc-real-estate/regions/QN1307.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "302bdff43503677a5afe788729aa04711c9669b1ac4279363f34d7e1b704f27c"
+    },
+    {
+      "byteCount": 7770,
+      "id": "nyc-real-estate-region-qn1371-v1",
+      "path": "public/data/nyc-real-estate/regions/QN1371.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "971b0b8a9948ad0b3977ba877b68db37802986dca4338f7037704c2b87a4b46b"
+    },
+    {
+      "byteCount": 293159,
+      "id": "nyc-real-estate-region-qn1401-v1",
+      "path": "public/data/nyc-real-estate/regions/QN1401.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "f59f329d3912142fba0b949eed529aef507d4f4d7aecab2adf3f676acfbb9881"
+    },
+    {
+      "byteCount": 850600,
+      "id": "nyc-real-estate-region-qn1402-v1",
+      "path": "public/data/nyc-real-estate/regions/QN1402.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "51eb1105e383b2b1c646f17413455eef12506e81a1706e323996b8c1c16ffe9b"
+    },
+    {
+      "byteCount": 261201,
+      "id": "nyc-real-estate-region-qn1403-v1",
+      "path": "public/data/nyc-real-estate/regions/QN1403.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "d8d183e749334ea7245b2857e064756009ccb2560e4517b57762a9ee3ec4ac6d"
+    },
+    {
+      "byteCount": 15018,
+      "id": "nyc-real-estate-region-qn1491-v1",
+      "path": "public/data/nyc-real-estate/regions/QN1491.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "03118730a75f8a79ad8d6c17fa11d76610277536558adadb673bf0c7b3e0dfd4"
+    },
+    {
+      "byteCount": 20030,
+      "id": "nyc-real-estate-region-qn8081-v1",
+      "path": "public/data/nyc-real-estate/regions/QN8081.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "315de8688381132e67b58c47f2cc50ee9f47da928b6416f3d04b71d413d005cd"
+    },
+    {
+      "byteCount": 39316,
+      "id": "nyc-real-estate-region-qn8191-v1",
+      "path": "public/data/nyc-real-estate/regions/QN8191.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "48d44edfd36f184362f85d260676a1da956f5c9e7cee72d83316f33efa4a7587"
+    },
+    {
+      "byteCount": 10848,
+      "id": "nyc-real-estate-region-qn8291-v1",
+      "path": "public/data/nyc-real-estate/regions/QN8291.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "66b52c8cfd97ca22d95825ae7f558f2e228ef865449d36d6639f0d0a3bc28bce"
+    },
+    {
+      "byteCount": 31462,
+      "id": "nyc-real-estate-region-qn8381-v1",
+      "path": "public/data/nyc-real-estate/regions/QN8381.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "80181390d5e95123caa5b5992eac9f84d8bff1f397d4740d15a3ae5aa48e7935"
+    },
+    {
+      "byteCount": 53877,
+      "id": "nyc-real-estate-region-qn8491-v1",
+      "path": "public/data/nyc-real-estate/regions/QN8491.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "101ce0bdaac40fca57c46a5e692ef1415a1f84dae7d4091c355b6e473e12b9bd"
+    },
+    {
+      "byteCount": 22002,
+      "id": "nyc-real-estate-region-qn8492-v1",
+      "path": "public/data/nyc-real-estate/regions/QN8492.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "0c57600fe1641ae11e8180556f56e4789703b8342ccd1c9c76b491a7d9cfa8cb"
+    },
+    {
+      "byteCount": 423371,
+      "id": "nyc-real-estate-region-si0101-v1",
+      "path": "public/data/nyc-real-estate/regions/SI0101.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "482d16780c66988ea621de4687b5681010f2f4005b0f110dd964ca6fd9ae2f59"
+    },
+    {
+      "byteCount": 349937,
+      "id": "nyc-real-estate-region-si0102-v1",
+      "path": "public/data/nyc-real-estate/regions/SI0102.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "c029de8d0429c7bc9980d6e27536726a5c54d2eed2a754a85c829f1b40b3a472"
+    },
+    {
+      "byteCount": 419980,
+      "id": "nyc-real-estate-region-si0103-v1",
+      "path": "public/data/nyc-real-estate/regions/SI0103.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "642212adb6a1ce207a11efad82dc0228c82325d9d4b8fa9f845b4d8be67fc888"
+    },
+    {
+      "byteCount": 170017,
+      "id": "nyc-real-estate-region-si0104-v1",
+      "path": "public/data/nyc-real-estate/regions/SI0104.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "88a8a1ab1e1c863a7eebcf1b553bad07450f044f5b555a292731253d5671d480"
+    },
+    {
+      "byteCount": 168272,
+      "id": "nyc-real-estate-region-si0105-v1",
+      "path": "public/data/nyc-real-estate/regions/SI0105.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "b9177806458726d62a523471a972736207cd8e588c77878f21f1c3379c06de9c"
+    },
+    {
+      "byteCount": 421779,
+      "id": "nyc-real-estate-region-si0106-v1",
+      "path": "public/data/nyc-real-estate/regions/SI0106.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "2d3f7b29a2b869f847dc4546d75930c826982734c864fe54a1c18ad42df9df81"
+    },
+    {
+      "byteCount": 462939,
+      "id": "nyc-real-estate-region-si0107-v1",
+      "path": "public/data/nyc-real-estate/regions/SI0107.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "dde214fd3ee53d1b8a5ae5ade8dff29d412c71bd4bcfa9960b721f39d9e75c6d"
+    },
+    {
+      "byteCount": 8514,
+      "id": "nyc-real-estate-region-si0191-v1",
+      "path": "public/data/nyc-real-estate/regions/SI0191.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "3b32f2caa5bffd1df8b44182982a7d0267ee3a44c87e86c8f59c7247e19b3d1c"
+    },
+    {
+      "byteCount": 268184,
+      "id": "nyc-real-estate-region-si0201-v1",
+      "path": "public/data/nyc-real-estate/regions/SI0201.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "08b488ad78f66c7a4f81871c54571eb5e15928647e6d9fe2f74f0b4fd850a0a4"
+    },
+    {
+      "byteCount": 210361,
+      "id": "nyc-real-estate-region-si0202-v1",
+      "path": "public/data/nyc-real-estate/regions/SI0202.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "1e02807b9a2b425d424406d0be789fb082c4ab06400e049c174fa3e3cfe82446"
+    },
+    {
+      "byteCount": 353379,
+      "id": "nyc-real-estate-region-si0203-v1",
+      "path": "public/data/nyc-real-estate/regions/SI0203.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "8dddde332baa8bede25ea8f20b65fe2a6ee138cc121565dd706fd09faea98916"
+    },
+    {
+      "byteCount": 883086,
+      "id": "nyc-real-estate-region-si0204-v1",
+      "path": "public/data/nyc-real-estate/regions/SI0204.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "8750fb915ccbd0fe2b2cf08ba3bb0716b2babc2ed8ed96eb2445bfb4b1d3d17d"
+    },
+    {
+      "byteCount": 24138,
+      "id": "nyc-real-estate-region-si0291-v1",
+      "path": "public/data/nyc-real-estate/regions/SI0291.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "a96f950bd772d90a292d8e7d50976442dfa771f834ca87724bc2783e8a0ab608"
+    },
+    {
+      "byteCount": 117116,
+      "id": "nyc-real-estate-region-si0301-v1",
+      "path": "public/data/nyc-real-estate/regions/SI0301.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "07a72902c8f5b3d39e9c777236c17303a502c3ec8c714505c7f43272cde8f81a"
+    },
+    {
+      "byteCount": 327842,
+      "id": "nyc-real-estate-region-si0302-v1",
+      "path": "public/data/nyc-real-estate/regions/SI0302.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "462bc433e759d5c70610ae61aedf96dc1138e22f672d83e45cae9468c85701c1"
+    },
+    {
+      "byteCount": 392270,
+      "id": "nyc-real-estate-region-si0303-v1",
+      "path": "public/data/nyc-real-estate/regions/SI0303.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "382572a7471d19a89a1911e15b1f93293df9878136fdc3c3903c8f3667d3302c"
+    },
+    {
+      "byteCount": 1128761,
+      "id": "nyc-real-estate-region-si0304-v1",
+      "path": "public/data/nyc-real-estate/regions/SI0304.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "4320b3ba2d39cf22f760b008bd693a4b9553e4a5c1a9e5b5db5a62be72f97599"
+    },
+    {
+      "byteCount": 1052422,
+      "id": "nyc-real-estate-region-si0305-v1",
+      "path": "public/data/nyc-real-estate/regions/SI0305.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "494052f1137886075e66460e6867e60ea9110967cde0c8352c54b4b58bb9beba"
+    },
+    {
+      "byteCount": 32736,
+      "id": "nyc-real-estate-region-si0391-v1",
+      "path": "public/data/nyc-real-estate/regions/SI0391.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "c2bd6c2c44218d1db875d4fe68762e7be46e2ebe8171b126f6705f5a9c780b59"
+    },
+    {
+      "byteCount": 9080,
+      "id": "nyc-real-estate-region-si9561-v1",
+      "path": "public/data/nyc-real-estate/regions/SI9561.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "c24f5841e66deacab405851303ea0e116656ed1ce2e869e21aa889d4136f2877"
+    },
+    {
+      "byteCount": 7812,
+      "id": "nyc-real-estate-region-si9591-v1",
+      "path": "public/data/nyc-real-estate/regions/SI9591.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "849014976db41a43de0d6ef5f31768cb447ac7c1a827ce49e4e96c11b0b611e3"
+    },
+    {
+      "byteCount": 9851,
+      "id": "nyc-real-estate-region-si9592-v1",
+      "path": "public/data/nyc-real-estate/regions/SI9592.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "aaa555feba5e0be4013724f95e8117e71db6c2c2e9e38ce5926ed07da18e0e37"
+    },
+    {
+      "byteCount": 19433,
+      "id": "nyc-real-estate-region-si9593-v1",
+      "path": "public/data/nyc-real-estate/regions/SI9593.json",
+      "schema": "simulatte.nycRealEstateRegionShard.v1",
+      "sha256": "b5a6e82ada8ddd18bc85d016a9133def662eb68dd3f2f469662d32bff1ab847f"
+    }
+  ],
+  "rejected": {
+    "capacitySites": 162,
+    "developmentSeries": 1108,
+    "footprints": 13,
+    "jobs": 5,
+    "saleSeries": 0
+  },
+  "schema": "simulatte.nycRealEstateCompileReceipt.v1",
+  "sourceReceiptSha256": "c0cb646da894290c7eec156a9110f03218fcee3b950496b72fec6617c53001c1",
+  "sourceSnapshotId": "nyc-real-estate-2026-07-27-v1"
+}
