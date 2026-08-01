@@ -37,9 +37,15 @@
           pending.clear();
         }
 
+        function pipelineWorkerError(message, code) {
+          const error = new Error(message);
+          error.code = code;
+          return error;
+        }
+
         function ensureWorker() {
           if (worker) return worker;
-          if (failed) throw new Error('Pipeline worker unavailable');
+          if (failed) throw pipelineWorkerError('Pipeline worker unavailable', 'SIMULATTE_PIPELINE_WORKER_UNAVAILABLE');
           const baseUrl = (view.document && view.document.baseURI) || view.location.href;
           const url = new URL('./app/workers/simulatte-pipeline-worker.js', baseUrl);
           appendBuildVersion(url, view);
@@ -47,7 +53,7 @@
             worker = new view.Worker(url);
           } catch (error) {
             failed = true;
-            throw error;
+            throw pipelineWorkerError(error && error.message || 'Pipeline worker unavailable', 'SIMULATTE_PIPELINE_WORKER_UNAVAILABLE');
           }
           worker.addEventListener('message', (event) => {
             const data = event && event.data || {};
@@ -62,19 +68,28 @@
             if (data.ok) {
               entry.resolve(data.spec);
             } else {
-              entry.reject(new Error(data.error || 'Pipeline worker compile failed'));
+              entry.reject(pipelineWorkerError(data.error || 'Pipeline worker compile failed', 'SIMULATTE_PIPELINE_COMPILE_FAILED'));
             }
           });
           worker.addEventListener('error', (event) => {
-            rejectAll(new Error(event.message || 'Pipeline worker failed'));
+            rejectAll(pipelineWorkerError(event.message || 'Pipeline worker failed', 'SIMULATTE_PIPELINE_WORKER_UNAVAILABLE'));
           });
           worker.addEventListener('messageerror', () => {
-            rejectAll(new Error('Pipeline worker message clone failed'));
+            rejectAll(pipelineWorkerError('Pipeline worker message clone failed', 'SIMULATTE_PIPELINE_WORKER_UNAVAILABLE'));
           });
           return worker;
         }
 
         return {
+          cancel(message = 'Pipeline worker request superseded') {
+            if (!worker && !pending.size) return;
+            const error = pipelineWorkerError(message, 'SIMULATTE_PIPELINE_ABORTED');
+            error.name = 'AbortError';
+            pending.forEach((entry) => entry.reject(error));
+            pending.clear();
+            if (worker) worker.terminate();
+            worker = null;
+          },
           compile(prompt, options, onProgress = null) {
             try {
               ensureWorker();
@@ -98,7 +113,7 @@
                 });
               } catch (error) {
                 pending.delete(id);
-                reject(error);
+                reject(pipelineWorkerError(error && error.message || 'Pipeline worker request could not be sent', 'SIMULATTE_PIPELINE_WORKER_UNAVAILABLE'));
               }
             });
           },

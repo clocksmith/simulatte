@@ -169,7 +169,7 @@ test('declarative UI renders controls first without deleting dynamic evidence or
 
   const inspectorFragment = roots.inspector.children[0];
   assert.equal(inspectorFragment.children[0].dataset.controlCount, '1');
-  assert.equal(inspectorFragment.children[0].children[0].textContent, 'Experiment parameters (1)');
+  assert.equal(inspectorFragment.children[0].children[0].textContent, 'Controls (1)');
   assert.equal(inspectorFragment.children.length, 3);
   const allocation = find(roots.inspector, (node) => node.tagName === 'dd' && node.textContent === '300 / 300 (100%)');
   const inspection = find(roots.inspector, (node) => node.tagName === 'dd' && node.textContent === '300 items');
@@ -184,7 +184,7 @@ test('declarative UI renders controls first without deleting dynamic evidence or
   assert.deepEqual(host.values('fixture'), {});
 });
 
-test('declarative UI groups dense parameter sets without changing their typed values', () => {
+test('declarative UI keeps dense parameter sets in one flat control panel', () => {
   const documentRef = fakeDocument();
   const inspector = new FakeNode('root', documentRef);
   const host = uiHost.createDeclarativeUiHost({ rootElement: inspector, onAction() {} });
@@ -203,10 +203,10 @@ test('declarative UI groups dense parameter sets without changing their typed va
     inspections: [],
   }]);
 
-  const groups = find(inspector, (node) => node.className === 'plugin-control-groups');
-  assert.ok(groups);
-  assert.ok(groups.children.length >= 3);
-  assert.equal(groups.children.every((group) => group.open), true);
+  const fields = find(inspector, (node) => node.className === 'plugin-controls');
+  assert.ok(fields);
+  assert.equal(fields.children.length, controls.length);
+  assert.equal(find(inspector, (node) => node.className === 'plugin-control-groups'), null);
   assert.deepEqual(host.values('dense-fixture'), {
     demandScenario: 'peak',
     failureIds: ['cut-1'],
@@ -216,6 +216,130 @@ test('declarative UI groups dense parameter sets without changing their typed va
     ensembleSize: 8,
     excludedJurisdictions: [],
   });
+});
+
+test('declarative UI applies a complete typed control snapshot on change', async () => {
+  const documentRef = fakeDocument();
+  const inspector = new FakeNode('root', documentRef);
+  const changes = [];
+  const host = uiHost.createDeclarativeUiHost({
+    rootElement: inspector,
+    onAction() {},
+    onControlChange(change) {
+      changes.push(change);
+    },
+  });
+  host.render([], [{
+    pluginId: 'fixture',
+    controls: {
+      controls: [
+        { ...control('people', 'number', 256), maximum: 1000 },
+        control('enabled', 'toggle', true),
+      ],
+    },
+    inspections: [],
+  }]);
+
+  const people = find(inspector, (node) => node.dataset?.pluginControl === 'people');
+  people.value = '512';
+  await people.dispatch('change');
+  assert.deepEqual(changes, [{
+    pluginId: 'fixture',
+    controlId: 'people',
+    values: { people: 512, enabled: true },
+  }]);
+  assert.equal(people.dataset.applyStatus, 'applied');
+
+  assert.deepEqual(host.setValues('fixture', { people: 768 }), {
+    people: 768,
+    enabled: true,
+  });
+});
+
+test('declarative UI restores the last applied value after a rejected control update', async () => {
+  const documentRef = fakeDocument();
+  const inspector = new FakeNode('root', documentRef);
+  const host = uiHost.createDeclarativeUiHost({
+    rootElement: inspector,
+    onAction() {},
+    async onControlChange() { throw new Error('fixture apply failure'); },
+  });
+  host.render([], [{
+    pluginId: 'fixture',
+    controls: { controls: [{ ...control('people', 'number', 256), maximum: 1000 }] },
+    inspections: [],
+  }]);
+
+  const people = find(inspector, (node) => node.dataset?.pluginControl === 'people');
+  people.value = '512';
+  await people.dispatch('change');
+
+  assert.equal(people.dataset.applyStatus, 'failed');
+  assert.equal(people.value, '256');
+  assert.deepEqual(host.values('fixture'), { people: 256 });
+});
+
+test('declarative UI removes values for controls no longer declared by a contribution', () => {
+  const documentRef = fakeDocument();
+  const inspector = new FakeNode('root', documentRef);
+  const host = uiHost.createDeclarativeUiHost({ rootElement: inspector, onAction() {} });
+  host.render([], [{
+    pluginId: 'fixture',
+    controls: { controls: [control('people', 'number', 256), control('policy', 'select', 'safe', [{ value: 'safe', label: 'Safe' }])] },
+    inspections: [],
+  }]);
+  host.setValues('fixture', { people: 512, policy: 'safe' });
+  host.render([], [{
+    pluginId: 'fixture',
+    controls: { controls: [control('people', 'number', 256)] },
+    inspections: [],
+  }]);
+
+  assert.deepEqual(host.values('fixture'), { people: 512 });
+});
+
+test('declarative UI rejects undeclared control values instead of dispatching stale schema fields', () => {
+  const documentRef = fakeDocument();
+  const inspector = new FakeNode('root', documentRef);
+  const host = uiHost.createDeclarativeUiHost({ rootElement: inspector, onAction() {} });
+  host.render([], [{
+    pluginId: 'fixture',
+    controls: { controls: [control('people', 'number', 256)] },
+    inspections: [],
+  }]);
+
+  assert.throws(
+    () => host.setValues('fixture', { missingControl: 1 }),
+    (error) => error.code === 'plugin_ui_control_unknown'
+  );
+});
+
+test('declarative UI reports rejected actions and restores the control surface', async () => {
+  const documentRef = fakeDocument();
+  const inspector = new FakeNode('root', documentRef);
+  const failures = [];
+  const host = uiHost.createDeclarativeUiHost({
+    rootElement: inspector,
+    async onAction() { throw new Error('fixture action failure'); },
+    onError(error, context) { failures.push({ message: error.message, ...context }); },
+  });
+  host.render([{
+    pluginId: 'fixture',
+    view: {
+      slot: 'inspector',
+      title: 'Fixture',
+      rows: [],
+      fields: [],
+      actions: [{ id: 'fixture.retry', label: 'Retry' }],
+    },
+  }]);
+
+  const button = find(inspector, (node) => node.tagName === 'button');
+  await button.dispatch('click');
+
+  assert.equal(button.disabled, false);
+  assert.equal(button.dataset.actionStatus, 'failed');
+  assert.deepEqual(failures, [{ message: 'fixture action failure', actionId: 'fixture.retry', pluginId: 'fixture' }]);
 });
 
 test('declarative UI formats structured inspection values as readable stable JSON', () => {

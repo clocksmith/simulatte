@@ -5,7 +5,21 @@ const deterministicValues = require('../public/shared/deterministic-values.js');
 const positiveLanguage = require('../public/shared/language/positive-language.js');
 const streetNames = require('../public/shared/streets/street-name.js');
 const tierRegistry = require('../public/simulatte/app/tier-registry.js');
+const phaseContracts = require('../public/blank/pipeline/simulatte-phase-contracts.js');
 const runViewModel = require('../public/blank/app/runtime/run-view-model.js');
+
+function validPhaseEnvelope(phase, artifact, receiptFields = {}) {
+  return phaseContracts.createPhaseEnvelope({
+    phase,
+    runtimeReceiptId: 'runtime:test',
+    artifact,
+    receipts: phaseContracts.PHASE_CONTRACTS[phase].receiptIds.map((id) => ({
+      id,
+      schema: 'simulatte.phaseReceipt.v1',
+      ...(receiptFields[id] || {}),
+    })),
+  });
+}
 
 test('deterministic values preserve the two legacy FNV text encodings', () => {
   assert.equal(deterministicValues.fnv1a32('simulatte'), 2871554795);
@@ -66,35 +80,46 @@ test('run view model retains per-phase artifacts through render and proof settle
   const compiled = runViewModel.recordSpec(initial, {
     phaseArtifacts: {
       phase1: {
-        schema: 'simulatte.phase1.output.v1',
-        inputSchema: 'simulatte.phase1.input.v1',
-        receipts: [{ providerReady: true }],
+        ...validPhaseEnvelope(1, {
+          runtimeContext: {},
+          promptIngress: {},
+          compositionLedger: {},
+        }),
       },
       phase3: {
-        schema: 'simulatte.phase3.output.v2',
-        inputSchema: 'simulatte.phase2.output.v1',
-        receipts: [{ activationCount: 64, missingRequiredSlots: 2 }],
+        ...validPhaseEnvelope(3, {
+          languageGraph: {},
+          sceneLanguageGraph: {},
+          queryPlan: {},
+          retrievalRerankResult: {},
+          activationCloud: {},
+          compositionLedger: {},
+        }, {
+          'phase3-retrieval-rerank': { activationCount: 64, missingRequiredSlots: 2 },
+        }),
       },
     },
   });
   const settled = runViewModel.recordSceneProof(compiled, {
     durationMs: 2.5,
-    phase7Output: {
-      schema: 'simulatte.phase7.output.v2',
-      inputSchema: 'simulatte.phase6.output.v2',
-      artifact: { renderExecution: { frameMs: 1.25 } },
-      receipts: [{ sceneInstanceCount: 12, failedObligations: 0 }],
-    },
-    phase8Output: {
-      schema: 'simulatte.phase8.output.v2',
-      inputSchema: 'simulatte.phase7.output.v2',
-      artifact: {
-        sceneProof: {
-          verdict: 'pass',
-          summary: { requiredCount: 6, lostCount: 0, notProvenCount: 0 },
-        },
+    phase7Output: validPhaseEnvelope(7, {
+      renderExecution: {
+        rendered: true,
+        renderCount: 1,
+        frameMs: 1.25,
+        pixelAudit: { status: 'pass' },
       },
-    },
+      compositionLedger: {},
+    }, {
+      'phase7-webgpu-render': { sceneInstanceCount: 12, failedObligations: 0, unprovenObligations: 0 },
+    }),
+    phase8Output: validPhaseEnvelope(8, {
+      sceneProof: {
+        verdict: 'pass',
+        summary: { requiredCount: 6, lostCount: 0, notProvenCount: 0 },
+      },
+      compositionLedger: {},
+    }),
   });
 
   assert.equal(settled.phases[2].outputIdentity, 'simulatte.phase3.output.v2');

@@ -17,6 +17,40 @@
     return left.sequence - right.sequence;
   }
 
+  function snapshotPayload(value, seen = new WeakMap(), path = 'payload') {
+    if (value === null || typeof value === 'undefined') return value;
+    if (['string', 'number', 'boolean', 'bigint'].includes(typeof value)) return value;
+    if (typeof value !== 'object') {
+      throw schedulerError('scheduler_payload_invalid', `Scheduled event ${path} contains unsupported ${typeof value}`, { path });
+    }
+    if (seen.has(value)) return seen.get(value);
+    const prototype = Object.getPrototypeOf(value);
+    if (!Array.isArray(value) && prototype !== Object.prototype && prototype !== null) {
+      throw schedulerError('scheduler_payload_invalid', `Scheduled event ${path} expected records and arrays`, {
+        path,
+        receivedType: value.constructor?.name || 'object',
+      });
+    }
+    if (Object.getOwnPropertySymbols(value).length) {
+      throw schedulerError('scheduler_payload_invalid', `Scheduled event ${path} contains unsupported symbol keys`, { path });
+    }
+    const copy = Array.isArray(value) ? [] : Object.create(prototype);
+    seen.set(value, copy);
+    Object.keys(value).forEach((key) => {
+      const descriptor = Object.getOwnPropertyDescriptor(value, key);
+      if (!descriptor || typeof descriptor.get === 'function' || typeof descriptor.set === 'function') {
+        throw schedulerError('scheduler_payload_invalid', `Scheduled event ${path}.${key} expected a data property`, { path: `${path}.${key}` });
+      }
+      Object.defineProperty(copy, key, {
+        value: snapshotPayload(descriptor.value, seen, `${path}.${key}`),
+        enumerable: true,
+        configurable: true,
+        writable: true,
+      });
+    });
+    return Object.freeze(copy);
+  }
+
   // Binary min-heap keyed by compareEvents.
   function createHeap() {
     const items = [];
@@ -75,7 +109,7 @@
       if (time < clock) throw schedulerError('scheduler_time_reversed', `Plugin ${pluginId} scheduled ${kind} at ${time} before clock ${clock}`, { kind, time, clock });
       if (typeof kind !== 'string' || !kind) throw schedulerError('scheduler_kind_invalid', 'Scheduled event kind expected non-empty text');
       const id = `${pluginId}:evt:${sequence}`;
-      const event = Object.freeze({ id, time, kind, payload, priority, sequence });
+      const event = Object.freeze({ id, time, kind, payload: snapshotPayload(payload), priority, sequence });
       sequence += 1;
       heap.push(event);
       return id;

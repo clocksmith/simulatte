@@ -162,7 +162,93 @@ async function exercisePlayback(client, minimumStep = 4, {
     })()`);
     if (!selected) throw new Error('Compare camera was unavailable');
   }
-  await new Promise((resolve) => setTimeout(resolve, 250));
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+}
+
+async function exerciseControl(client, profileId) {
+  const mutation = await evaluate(client, `(() => {
+    const platform = globalThis.__simulattePluginPlatformV4;
+    const controls = new Map((platform?.contributions || []).flatMap((contribution) =>
+      (contribution.controls?.controls || []).map((control) => [
+        contribution.pluginId + ':' + control.id,
+        { pluginId: contribution.pluginId, ...control },
+      ])
+    ));
+    const inputs = [...document.querySelectorAll('[data-plugin-control]')];
+    for (const input of inputs) {
+      const pluginId = input.closest('[data-plugin-id]')?.dataset.pluginId || '';
+      const control = controls.get(pluginId + ':' + input.dataset.pluginControl);
+      if (!control) continue;
+      const before = control.value;
+      if (input.type === 'checkbox') {
+        input.checked = !input.checked;
+      } else if (input.tagName === 'SELECT' && input.multiple) {
+        const current = [...input.selectedOptions].map((option) => option.value);
+        const alternate = [...input.options].find((option) => !current.includes(option.value));
+        if (!alternate) continue;
+        [...input.options].forEach((option) => { option.selected = option === alternate; });
+      } else if (input.tagName === 'SELECT') {
+        if (input.options.length < 2) continue;
+        input.selectedIndex = (input.selectedIndex + 1) % input.options.length;
+      } else if (['number', 'range'].includes(input.type)) {
+        const current = Number(input.value);
+        const minimum = input.min === '' ? -Infinity : Number(input.min);
+        const maximum = input.max === '' ? Infinity : Number(input.max);
+        const step = input.step === '' || input.step === 'any' ? 1 : Number(input.step);
+        const candidate = current + step <= maximum ? current + step : current - step;
+        if (!Number.isFinite(candidate) || candidate < minimum || candidate === current) continue;
+        input.value = String(candidate);
+      } else {
+        continue;
+      }
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+      return {
+        pluginId,
+        controlId: input.dataset.pluginControl,
+        before,
+      };
+    }
+    return null;
+  })()`);
+  if (!mutation) throw new Error(`${profileId} had no mutable control`);
+  const started = Date.now();
+  for (;;) {
+    const state = await evaluate(client, `(() => {
+      const mutation = ${JSON.stringify(mutation)};
+      const contribution = (globalThis.__simulattePluginPlatformV4?.contributions || [])
+        .find((row) => row.pluginId === mutation.pluginId);
+      const control = contribution?.controls?.controls?.find((row) => row.id === mutation.controlId);
+      const input = [...document.querySelectorAll('[data-plugin-control]')]
+        .find((row) => row.dataset.pluginControl === mutation.controlId
+          && row.closest('[data-plugin-id]')?.dataset.pluginId === mutation.pluginId);
+      const normalize = (value) => Array.isArray(value)
+        ? value.map(String).sort().join('|')
+        : String(value);
+      const domValue = !input
+        ? null
+        : input.type === 'checkbox'
+          ? input.checked
+          : input.multiple
+            ? [...input.selectedOptions].map((option) => option.value)
+            : input.value;
+      return {
+        phase: document.body?.dataset.journeyPhase || '',
+        status: document.getElementById('runtime-status')?.textContent?.trim() || '',
+        error: globalThis.__simulatteLastFailError?.message || '',
+        contributionValue: control?.value,
+        changed: Boolean(control) && normalize(control.value) !== normalize(mutation.before),
+        domMatches: Boolean(input) && normalize(domValue) === normalize(control?.value),
+      };
+    })()`);
+    if (state.error || state.phase === 'failed') throw new Error(`${profileId} control failed: ${state.error || 'unknown error'}`);
+    if (state.phase === 'ready' && state.status === 'Ready' && state.changed && state.domMatches) {
+      return { ...mutation, after: state.contributionValue, pass: true };
+    }
+    if (Date.now() - started > 60000) {
+      throw new Error(`${profileId} control did not apply immediately: ${JSON.stringify(state)}`);
+    }
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
 }
 
 async function probe(client) {
@@ -207,6 +293,15 @@ async function probe(client) {
       comparisonLayerKinds: (platform?.contributions || []).flatMap((contribution) => (
         contribution.presentation?.layers || []
       )).filter((layer) => layer.role === 'comparison').map((layer) => layer.quantity?.kind),
+      shadowLayerCount: (platform?.contributions || []).flatMap((contribution) => (
+        contribution.presentation?.layers || []
+      )).filter((layer) => layer.quantity?.kind === 'occlusion.shadow-length').length,
+      pedestrianActorCount: (platform?.contributions || []).flatMap((contribution) => (
+        contribution.presentation?.layers || []
+      )).filter((layer) => layer.quantity?.kind === 'actor.pedestrian.route-progress').length,
+      activeViewModes: (platform?.contributions || []).flatMap((contribution) => (
+        contribution.presentation?.viewIntents || []
+      )).map((intent) => intent.mode),
       compareSelected: document.getElementById('camera-compare')?.getAttribute('aria-pressed') === 'true',
       controlsButtonVisible: isVisible(document.getElementById('decisions-button')),
       missionDockVisible: isVisible(document.querySelector('.mission-dock')),
@@ -257,6 +352,7 @@ async function main() {
     await client.send('Page.enable');
     const results = [];
     const filteredRun = process.argv.includes('--profile');
+    const exerciseControls = process.argv.includes('--exercise-controls');
     for (const [tier, profileId] of selectedProfiles()) {
       await client.send('Page.navigate', { url: `http://127.0.0.1:${sitePort}/${tier}/${profileId}` });
       await waitForReady(client, profileId);
@@ -267,7 +363,8 @@ async function main() {
           compare: process.argv.includes('--compare'),
         });
       }
-      results.push(await probe(client));
+      const controlExercise = exerciseControls ? await exerciseControl(client, profileId) : null;
+      results.push({ ...(await probe(client)), controlExercise });
     }
     let switchResult = null;
     if (!filteredRun) {
@@ -311,6 +408,13 @@ async function main() {
           ? []
           : [`${row.profileId}: duplicate plugin HUD surface rendered`]),
         ...(Number(row.firstInspectorControlCount) === row.expected.length ? [] : [`${row.profileId}: parameters were not first in the inspector`]),
+        ...(!exerciseControls || row.controlExercise?.pass ? [] : [`${row.profileId}: control did not apply immediately`]),
+        ...(row.profileId !== 'sun-walker-v1'
+          || (row.shadowLayerCount > 0
+            && row.pedestrianActorCount === 1
+            && !row.activeViewModes.includes('pov'))
+          ? []
+          : [`${row.profileId}: expected visible shadow layers, one walker, and no POV intent`]),
       ];
     });
     if (switchResult?.summaryCount !== undefined && switchResult.summaryCount !== 1) failures.push(`experience switch left ${switchResult.summaryCount} shared summaries`);
@@ -328,7 +432,11 @@ async function main() {
         sideMetrics: row.experienceSummary.text || null,
         pluginHudCards: row.pluginHudCardCount,
         comparisonLayerKinds: row.comparisonLayerKinds,
+        shadowLayerCount: row.shadowLayerCount,
+        pedestrianActorCount: row.pedestrianActorCount,
+        activeViewModes: row.activeViewModes,
         compareSelected: row.compareSelected,
+        controlExercise: row.controlExercise,
       })),
       switchResult,
       screenshotPath,

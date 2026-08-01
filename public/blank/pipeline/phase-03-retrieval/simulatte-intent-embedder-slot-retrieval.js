@@ -945,6 +945,7 @@
       slotFocusTerms,
       slotFocusLexicalScore,
       slotCandidateRolePriority,
+      pushBoundedRank,
     });
 
 })(typeof globalThis !== 'undefined' ? globalThis : window);

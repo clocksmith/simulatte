@@ -141,6 +141,7 @@
 
   function objectTopologyVerified(program = {}) {
     const parts = Array.isArray(program.parts) ? program.parts : [];
+    if (constructionGraphTopologyVerified(program, parts)) return true;
     const ids = parts.map((part) => String(part.id || '').toLowerCase());
     const grammar = String(program.grammarId || '')
       .replace(/^object-grammar\./, '')
@@ -156,6 +157,33 @@
     return Boolean(program.constructionReceipt) &&
       parts.length >= 3 &&
       new Set(parts.map((part) => part.primitive).filter(Boolean)).size >= 2;
+  }
+
+  function constructionGraphTopologyVerified(program = {}, parts = []) {
+    const graph = program.constructionGraph || {};
+    const receipt = program.constructionReceipt || {};
+    const nodes = Array.isArray(graph.nodes) ? graph.nodes : [];
+    const constraints = Array.isArray(graph.constraints) ? graph.constraints : [];
+    const edges = Array.isArray(graph.edges) ? graph.edges : [];
+    if (
+      graph.schema !== 'simulatte.constructionGraph.v1' ||
+      !receipt.topologyId ||
+      graph.topologyId !== receipt.topologyId ||
+      receipt.topologyTargetFit !== true ||
+      !nodes.length
+    ) return false;
+    const nodeIds = new Set(nodes.map((row) => row.id).filter(Boolean));
+    const partsById = new Map(parts.map((row) => [row.id, row]));
+    const completeNodes = nodes.every((node) => {
+      const part = partsById.get(node.id);
+      return part && part.constructionRole === node.role && Boolean(part.primitive);
+    });
+    if (!completeNodes || constraints.length !== edges.length) return false;
+    return constraints.every((constraint) => (
+      constraint.applied === true &&
+      (constraint.sourceNodeIds || []).every((id) => nodeIds.has(id)) &&
+      (constraint.targetNodeIds || []).every((id) => nodeIds.has(id))
+    ));
   }
 
   function objectSemanticFit(program = {}) {
@@ -208,6 +236,7 @@
     OBJECT_GRAMMAR_PART_REQUIREMENTS,
     objectRealizationForScenePacket,
     objectTopologyVerified,
+    constructionGraphTopologyVerified,
     objectSemanticFit,
     objectMorphologyQuality,
   });

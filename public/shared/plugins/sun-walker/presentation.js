@@ -118,7 +118,7 @@
           representationHint: 'station-observation evidence for the historical weather analog, not a live weather field',
         },
       ].filter((layer) => layer.evidenceRefs.length > 0),
-      viewIntents: viewIntents(simulation, snapshot, transitions),
+      viewIntents: viewIntents(simulation, snapshot),
       controls: simulation.controls,
       comparisons: simulation.comparisons,
       pickModel: {
@@ -128,7 +128,7 @@
     });
   }
 
-  function viewIntents(simulation, snapshot, transitions) {
+  function viewIntents(simulation, snapshot) {
     const selected = simulation.candidates.find((row) => row.id === simulation.selectedCandidateId);
     const rows = [{
       schema: 'simulatte.viewIntent.v4',
@@ -153,33 +153,14 @@
         expiresAfterEventId: simulation.timeline.events[snapshot.step + 1]?.id || null,
         preservesManualOverride: true,
       });
-      const transition = transitions.at(-1);
-      if (transition && transition.sampleIndex === snapshot.state.completedSamples - 1) {
-        rows.push({
-          schema: 'simulatte.viewIntent.v4',
-          id: `sun-pov-transition-${snapshot.step}`,
-          mode: 'pov',
-          targets: [{ entityId: 'sun-walker-actor', point: transition.point }],
-          transitionReason: `exposure changed to ${transition.state}`,
-          triggerEventId: snapshot.eventId,
-          priority: 65,
-          expiresAfterEventId: simulation.timeline.events[snapshot.step + 1]?.id || null,
-          preservesManualOverride: true,
-        });
-      }
     }
     if (snapshot.state.status === 'settled') {
       rows.push({
         schema: 'simulatte.viewIntent.v4',
-        id: 'sun-comparison-summary',
-        mode: 'compare',
-        targets: simulation.comparisons[0]
-          ? [
-              { entityId: simulation.comparisons[0].baseline.candidateId },
-              { entityId: simulation.comparisons[0].intervention.candidateId },
-            ]
-          : [],
-        transitionReason: 'walk completed and baseline comparison settled',
+        id: 'sun-completed-overview',
+        mode: 'overview',
+        targets: [{ entityId: selected.id, segmentIds: selected.route.segmentIds }],
+        transitionReason: 'walk completed and the shaded route is ready for review',
         triggerEventId: snapshot.eventId,
         priority: 60,
         expiresAfterEventId: null,

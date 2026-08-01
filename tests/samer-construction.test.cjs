@@ -163,21 +163,24 @@ test('failed screenshot obligations reject a grammar and deterministically compi
 
 test('renderer scene proof reports only become final after required pixel evidence settles', () => {
   const reports = [];
+  const rendererScope = phaseFamily('webGpuRenderer');
+  const sceneRenderPacket = { schema: 'simulatte.sceneRenderPacket.v1' };
+  const packetKey = `proof:${rendererScope.scenePacketRenderEvidenceHash(sceneRenderPacket)}`;
   const renderer = {
     phase7Output: { schema: 'simulatte.phase7.output.v2' },
     phase8Output: { schema: 'simulatte.phase8.output.v2' },
-    sceneRenderPacket: { schema: 'simulatte.sceneRenderPacket.v1' },
-    renderData: { packetKey: 'proof:one', requireLivePixelSamples: true },
+    sceneRenderPacket,
+    renderData: { packetKey, requireLivePixelSamples: true },
     lastPixelReadbackReceipt: null,
     canvas: { dataset: {} },
     onSceneProof: (report) => reports.push(report),
   };
-  const notify = phaseFamily('webGpuRenderer').notifyRendererSceneProof;
+  const notify = rendererScope.notifyRendererSceneProof;
   assert.equal(notify(renderer).final, false);
   renderer.renderData.livePixelSamples = {
     schema: 'simulatte.phase7PixelSampleSet.v1',
     source: 'test-pixel-samples',
-    packetKey: 'proof:one',
+    packetKey,
     samples: [],
   };
   assert.equal(notify(renderer).final, true);

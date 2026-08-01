@@ -6,7 +6,13 @@
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteDeclarativeUiHost = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createDeclarativeUiHostModule(contracts) {
-  function createDeclarativeUiHost({ rootElement, rootElements = null, onAction }) {
+  function createDeclarativeUiHost({
+    rootElement,
+    rootElements = null,
+    onAction,
+    onControlChange = null,
+    onError = null,
+  }) {
     const roots = rootElements || { inspector: rootElement };
     const requiredSlots = ['inspector', 'map'];
     const controlValues = new Map();
@@ -15,6 +21,12 @@
       if (!requiredSlots.includes(slot) || !element || typeof element.replaceChildren !== 'function') throw uiError('plugin_ui_root_invalid', `Declarative UI host received an invalid ${slot} root`, null);
     });
     if (typeof onAction !== 'function') throw uiError('plugin_ui_action_handler_missing', 'Declarative UI host expected an action handler', null);
+    if (onControlChange !== null && typeof onControlChange !== 'function') {
+      throw uiError('plugin_ui_control_handler_invalid', 'Declarative UI host expected a control-change function', null);
+    }
+    if (onError !== null && typeof onError !== 'function') {
+      throw uiError('plugin_ui_error_handler_invalid', 'Declarative UI host expected an error handler function', null);
+    }
 
     function render(contributions, v4Contributions = []) {
       const documentRef = roots.inspector.ownerDocument;
@@ -25,7 +37,14 @@
       ]));
       v4Contributions.forEach((contribution) => {
         if (contribution.controls.controls.length) {
-          fragments.inspector.append(renderControls(documentRef, contribution.pluginId, contribution.controls.controls, controlValues));
+          fragments.inspector.append(renderControls(
+            documentRef,
+            contribution.pluginId,
+            contribution.controls.controls,
+            controlValues,
+            onControlChange,
+            values,
+          ));
         }
       });
       [...contributions].sort((left, right) => left.view.slot.localeCompare(right.view.slot) || left.pluginId.localeCompare(right.pluginId)).forEach(({ pluginId, view }) => {
@@ -93,6 +112,7 @@
             button.textContent = action.label;
             button.addEventListener('click', async () => {
               button.disabled = true;
+              button.dataset.actionStatus = 'applying';
               try {
                 await onAction({
                   pluginId,
@@ -103,6 +123,10 @@
                     ...Object.fromEntries([...fields].map(([id, input]) => [id, input.value])),
                   },
                 });
+                button.dataset.actionStatus = 'applied';
+              } catch (error) {
+                button.dataset.actionStatus = 'failed';
+                onError?.(error, { actionId: action.id, pluginId });
               } finally {
                 button.disabled = false;
               }
@@ -127,51 +151,73 @@
       );
     }
 
+    function setValues(pluginId, nextValues) {
+      if (!nextValues || typeof nextValues !== 'object' || Array.isArray(nextValues)) {
+        throw uiError('plugin_ui_control_values_invalid', 'Declarative UI host expected an object of control values', { pluginId });
+      }
+      const current = controlValues.get(pluginId) || new Map();
+      Object.entries(nextValues).forEach(([id, value]) => {
+        if (!current.has(id)) {
+          throw uiError('plugin_ui_control_unknown', 'Declarative UI host received an undeclared control value', { id, pluginId });
+        }
+        current.set(id, cloneControlValue(value));
+      });
+      controlValues.set(pluginId, current);
+      return values(pluginId);
+    }
+
     function dispose() {
       controlValues.clear();
       Object.values(roots).forEach((element) => element.replaceChildren());
     }
 
-    return Object.freeze({ render, values, dispose });
+    return Object.freeze({ render, values, setValues, dispose });
   }
 
-  function renderControls(documentRef, pluginId, controls, controlValues) {
+  function renderControls(
+    documentRef,
+    pluginId,
+    controls,
+    controlValues,
+    onControlChange,
+    readValues,
+  ) {
     const section = documentRef.createElement('details');
     section.className = 'evidence-section plugin-evidence plugin-parameter-section';
     section.dataset.pluginId = pluginId;
     section.dataset.controlCount = String(controls.length);
     section.open = true;
     const heading = documentRef.createElement('summary');
-    heading.textContent = `Experiment parameters (${controls.length})`;
-    const explanation = documentRef.createElement('p');
-    explanation.className = 'plugin-parameter-note';
-    explanation.textContent = 'These values are applied when you start or replay the simulation.';
+    heading.textContent = `Controls (${controls.length})`;
     const values = controlValues.get(pluginId) || new Map();
     controlValues.set(pluginId, values);
+    const activeControlIds = new Set(controls.map((control) => control.id));
+    [...values.keys()].forEach((id) => {
+      if (!activeControlIds.has(id)) values.delete(id);
+    });
     controls.forEach((control) => {
       if (!values.has(control.id)) values.set(control.id, cloneControlValue(control.value));
     });
-    const fields = renderControlGroups(documentRef, pluginId, controls, values);
-    section.append(heading, explanation, fields);
+    const fields = renderControlFields(
+      documentRef,
+      pluginId,
+      controls,
+      values,
+      onControlChange,
+      readValues,
+    );
+    section.append(heading, fields);
     return section;
   }
 
-  function renderControlGroups(documentRef, pluginId, controls, values) {
-    const container = documentRef.createElement('div');
-    container.className = 'plugin-control-groups';
-    groupControls(controls).forEach((group) => {
-      const section = documentRef.createElement('details');
-      section.className = 'plugin-control-group';
-      section.open = true;
-      const heading = documentRef.createElement('summary');
-      heading.textContent = `${group.label} (${group.controls.length})`;
-      section.append(heading, renderControlFields(documentRef, pluginId, group.controls, values));
-      container.append(section);
-    });
-    return container;
-  }
-
-  function renderControlFields(documentRef, pluginId, controls, values) {
+  function renderControlFields(
+    documentRef,
+    pluginId,
+    controls,
+    values,
+    onControlChange,
+    readValues,
+  ) {
     const fields = documentRef.createElement('div');
     fields.className = 'plugin-controls';
     controls.forEach((control) => {
@@ -183,28 +229,45 @@
       input.className = 'sim-field';
       input.dataset.pluginControl = control.id;
       label.htmlFor = input.id;
-      const updateValue = () => values.set(control.id, readControlInput(input, control));
-      input.addEventListener('input', updateValue);
-      input.addEventListener('change', updateValue);
+      let appliedValue = cloneControlValue(values.get(control.id));
+      let applyRevision = 0;
+      const updateValue = () => {
+        const nextValue = readControlInput(input, control);
+        if (nextValue === undefined) return undefined;
+        values.set(control.id, nextValue);
+        return nextValue;
+      };
+      if (control.kind === 'range') input.addEventListener('input', updateValue);
+      input.addEventListener('change', async () => {
+        const nextValue = updateValue();
+        if (nextValue === undefined) {
+          values.set(control.id, cloneControlValue(appliedValue));
+          writeControlInput(input, control, appliedValue);
+          return;
+        }
+        if (!onControlChange) return;
+        const revision = ++applyRevision;
+        input.dataset.applyStatus = 'applying';
+        try {
+          await onControlChange({
+            pluginId,
+            controlId: control.id,
+            values: readValues(pluginId),
+          });
+          if (revision !== applyRevision) return;
+          appliedValue = cloneControlValue(nextValue);
+          input.dataset.applyStatus = 'applied';
+        } catch (_error) {
+          if (revision !== applyRevision) return;
+          values.set(control.id, cloneControlValue(appliedValue));
+          writeControlInput(input, control, appliedValue);
+          input.dataset.applyStatus = 'failed';
+        }
+      });
       label.append(caption, input);
       fields.append(label);
     });
     return fields;
-  }
-
-  function groupControls(controls) {
-    const groups = [
-      { label: 'Scenario', pattern: /(scenario|campaign|mission|route|departure|epoch|preset|demand|failure|commodity|hazard|vessel|cable|family|origin|destination|terminal)/i, controls: [] },
-      { label: 'Policy', pattern: /(policy|priority|weight|objective|threshold|preference|recall|allocation|routing|strategy|handling|intervention)/i, controls: [] },
-      { label: 'Resources and uncertainty', pattern: /(ensemble|clone|sample|uncertainty|retry|budget|resource|crew|inventory|capacity|speed|duration|days|time|detour|refriger|weather|canopy|emission|storage|reserve)/i, controls: [] },
-      { label: 'Advanced model', pattern: null, controls: [] },
-    ];
-    controls.forEach((control) => {
-      const searchable = `${control.id} ${control.label}`;
-      const group = groups.find((candidate) => candidate.pattern?.test(searchable)) || groups.at(-1);
-      group.controls.push(control);
-    });
-    return groups.filter((group) => group.controls.length);
   }
 
   function createControlInput(documentRef, control, currentValue) {
@@ -236,9 +299,17 @@
   function readControlInput(input, control) {
     if (control.kind === 'toggle') return input.checked;
     if (control.kind === 'multiselect') {
-      return [...input.selectedOptions].map((option) => typedOptionValue(option.value, control.options));
+      const selected = [...input.selectedOptions].map((option) => typedOptionValue(option.value, control.options));
+      return selected.length ? selected : undefined;
     }
-    if (['number', 'range'].includes(control.kind)) return Number(input.value);
+    if (['number', 'range'].includes(control.kind)) {
+      if (String(input.value).trim() === '') return undefined;
+      const value = Number(input.value);
+      if (!Number.isFinite(value)) return undefined;
+      if (Number.isFinite(control.minimum) && value < control.minimum) return undefined;
+      if (Number.isFinite(control.maximum) && value > control.maximum) return undefined;
+      return value;
+    }
     if (control.kind === 'select') return typedOptionValue(input.value, control.options);
     return input.value;
   }
@@ -249,6 +320,20 @@
 
   function cloneControlValue(value) {
     return Array.isArray(value) ? [...value] : value;
+  }
+
+  function writeControlInput(input, control, value) {
+    if (control.kind === 'toggle') {
+      input.checked = Boolean(value);
+      return;
+    }
+    if (control.kind === 'multiselect') {
+      input.children.forEach((option) => {
+        option.selected = (value || []).some((entry) => String(entry) === option.value);
+      });
+      return;
+    }
+    input.value = String(value ?? '');
   }
 
   function domId(value) {

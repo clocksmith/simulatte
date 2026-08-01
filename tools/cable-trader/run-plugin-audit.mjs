@@ -24,12 +24,20 @@ const routing = require(path.join(ROOT, 'public/simulatte/world/route-planner.js
 const outputPath = resolveOutput(process.argv.slice(2));
 
 const worldModel = worldApi.createWorldModel(world);
-const hubs = config.hubs.slice(0, config.simulation.hubCount);
-const locations = config.locations.slice(0, config.simulation.locationCount);
-const routes = hubs.flatMap((hub) => locations.flatMap((location) => (
-  ['from-hub', 'to-hub'].map((direction) => {
-    const originNodeId = direction === 'from-hub' ? hub.nodeId : location.nodeId;
-    const destinationNodeId = direction === 'from-hub' ? location.nodeId : hub.nodeId;
+const activeConfig = {
+  ...config,
+  simulation: { ...config.simulation, scenarioId: profile.defaultSeedId },
+};
+const network = circulation.createNetwork(activeConfig, worldModel);
+const simulation = circulation.simulateCirculation(activeConfig, network);
+const hubById = new Map(network.hubs.map((row) => [row.id, row]));
+const residenceById = new Map(network.residences.map((row) => [row.id, row]));
+const routes = simulation.snapshots[180].visibleJourneys.map((journey) => {
+    const hub = hubById.get(journey.hubId);
+    const residence = residenceById.get(journey.residenceId);
+    const direction = journey.action === 'dropoff' ? 'to-hub' : 'from-hub';
+    const originNodeId = direction === 'from-hub' ? hub.nodeId : residence.nodeId;
+    const destinationNodeId = direction === 'from-hub' ? residence.nodeId : hub.nodeId;
     const route = routing.planRoute({
       worldModel,
       originNodeId,
@@ -43,9 +51,9 @@ const routes = hubs.flatMap((hub) => locations.flatMap((location) => (
       policy,
     });
     return {
-      id: `route-${hub.id}-${location.id}-${direction}`,
+      id: journey.routeId,
       hubId: hub.id,
-      locationId: location.id,
+      residenceId: residence.id,
       direction,
       segmentIds: route.segmentIds,
       distanceM: route.segmentIds.reduce(
@@ -53,12 +61,7 @@ const routes = hubs.flatMap((hub) => locations.flatMap((location) => (
         0
       ),
     };
-  })
-)));
-const simulation = circulation.simulateCirculation({
-  ...config,
-  simulation: { ...config.simulation, scenarioId: profile.defaultSeedId },
-}, routes);
+});
 const state = {
   simulation,
   playback: { status: 'running', day: 180 },
@@ -73,7 +76,7 @@ const journeyLayers = contribution.presentation.layers.filter((row) => (
   row.id.startsWith('path:') || row.id.startsWith('actor:')
 ));
 const hubLayers = contribution.presentation.layers.filter((row) => row.id.startsWith('hub:'));
-const locationLayers = contribution.presentation.layers.filter((row) => row.id.startsWith('location:'));
+const residenceLayer = contribution.presentation.layers.find((row) => row.id === 'residences');
 const publicClaims = profile.seeds.map((row) => plugin.validatePublicClaim(row.description));
 const report = {
   schema: 'simulatte.cableTraderPluginAudit.v2',
@@ -90,7 +93,7 @@ const report = {
     && journeyLayers.length > 0
     && journeyLayers.every((row) => row.geometry.segmentIds.length > 0)
     && hubLayers.length === config.simulation.hubCount
-    && locationLayers.length === config.simulation.locationCount
+    && residenceLayer?.geometry.coordinates.length === config.simulation.peopleCount
     && contribution.controls.comparisons.length === 0
     && publicClaims.length === profile.seeds.length,
   identities: {
@@ -106,7 +109,7 @@ const report = {
     durationDays: simulation.durationDays,
     peopleCount: simulation.people.length,
     hubCount: simulation.activeHubIds.length,
-    locationCount: simulation.activeLocationIds.length,
+    residenceCount: simulation.activeResidenceIds.length,
     eventCount: simulation.events.length,
     snapshotCount: simulation.snapshots.length,
     totalSupply: simulation.summary.totalSupply,
@@ -120,7 +123,7 @@ const report = {
     schema: contribution.presentation.schema,
     layerKinds: [...new Set(contribution.presentation.layers.map((row) => row.kind))],
     hubCount: hubLayers.length,
-    locationCount: locationLayers.length,
+    residenceCount: residenceLayer.geometry.coordinates.length,
     journeyLayerCount: journeyLayers.length,
     routeSegmentReferenceCount: new Set(
       journeyLayers.flatMap((row) => row.geometry.segmentIds)

@@ -148,7 +148,7 @@
             entity.sourceObject,
             geometryProgram.constructionReceipt && geometryProgram.constructionReceipt.targetEntryId,
           ].filter(Boolean)),
-          cardinality: Number(entity.cardinality || 1),
+          cardinality: Number.isFinite(Number(entity.cardinality)) ? Number(entity.cardinality) : 1,
           visualTraits: entity.visualTraits || {},
           stateBindings: entity.stateBindings || {},
           layerSlot,

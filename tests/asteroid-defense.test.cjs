@@ -283,6 +283,10 @@ test('typed controls rebuild once, step existing state, replay exactly, and clos
   assert.deepEqual(replayed, started);
   const contribution = instance.contributeV4();
   assert.equal(contribution.schema, 'simulatte.pluginContribution.v4');
+  assert.ok(contribution.presentation.viewIntents[0].targetIds.length > 0);
+  assert.ok(contribution.presentation.viewIntents[0].targetIds.every((id) => (
+    contribution.presentation.layers.some((row) => row.id === id)
+  )));
   assert.deepEqual(contribution.controls.controls.map((row) => row.id).sort(), [
     'decisionPolicyId',
     'decisionThreshold',

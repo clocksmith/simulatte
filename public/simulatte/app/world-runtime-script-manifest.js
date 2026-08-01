@@ -29,6 +29,7 @@
     'simulatte/platform/render/semantic-compositor.js',
     'simulatte/platform/view/view-director.js',
     'simulatte/app/plugin-view-runtime.js',
+    'simulatte/app/run-control-values.js',
     'simulatte/app/tier-run-controller.js',
     'simulatte/platform/transport/browser-transport.js',
     'simulatte/platform/artifacts/governed-artifact-store.js',

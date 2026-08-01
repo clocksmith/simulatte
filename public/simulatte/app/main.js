@@ -95,12 +95,15 @@
     let profileSelectUi = null;
     let tierVisualizer = null;
     let renderer = null;
+    let rendererPromise = null;
     let placeResolver = null;
     let frameRequest = null;
     let pluginClock = null;
     let pluginViewRuntime = null;
     let pluginPlayback = null;
     let pluginUi = null;
+    let neuralGate = null;
+    let buildRevision = 0;
     let lastPluginContributions = Object.freeze([]);
     let isRunning = false;
     let disposal = null;
@@ -109,29 +112,32 @@
       if (disposal) return disposal;
       disposal = (async () => {
         isRunning = false;
+        buildRevision += 1;
         pluginClock?.pause();
         if (frameRequest !== null) cancelAnimationFrame(frameRequest);
         frameRequest = null;
         lifecycle.abort();
         elements.applicationProfile.disabled = true;
         const resources = {
-          profileSelectUi, placeResolver, tierVisualizer, renderer, extensions, pluginUi,
+          profileSelectUi, placeResolver, tierVisualizer, renderer, extensions, pluginUi, neuralGate,
         };
         profileSelectUi = null;
         placeResolver = null;
         tierVisualizer = null;
         renderer = null;
+        rendererPromise = null;
         extensions = null;
         pluginUi = null;
+        neuralGate = null;
         await mountLifecycleApi.disposeAll([
-          { resource: 'profile-select-sync', dispose: () => resources.profileSelectUi?.sync() },
           { resource: 'place-resolver', dispose: () => resources.placeResolver?.unload() },
           { resource: 'tier-visualizer', dispose: () => resources.tierVisualizer?.destroy() },
           { resource: 'renderer', dispose: () => resources.renderer?.destroy() },
-          { resource: 'plugin-runtime', dispose: () => resources.extensions?.dispose() },
-          { resource: 'plugin-ui', dispose: () => resources.pluginUi?.dispose() },
           { resource: 'plugin-playback', dispose: () => pluginPlayback?.dispose() },
+          { resource: 'plugin-ui', dispose: () => resources.pluginUi?.dispose() },
+          { resource: 'plugin-runtime', dispose: () => resources.extensions?.dispose() },
           { resource: 'profile-select', dispose: () => resources.profileSelectUi?.dispose() },
+          { resource: 'neural-consent', dispose: () => resources.neuralGate?.dispose() },
         ], ({ resource, error }) => log.warn('app.dispose.resource_failed', {
           resource,
           error: log.serializeError(error),
@@ -247,6 +253,24 @@
         await extensions.dispatchAction(pluginId, actionId, { mission: activeMissionForPlugins, routeObjective: data.applicationProfile.routeObjective, values });
         renderPluginExperience({ mission: activeMissionForPlugins });
       },
+      onControlChange: async ({ pluginId, values }) => {
+        if (!pluginPlayback || pluginPlayback.snapshot().ownerPluginId !== pluginId) return;
+        pluginPlaybackApi.clearStoredReceipt(playbackStorage, data.applicationProfile.id);
+        hostRoot.__simulattePluginRunReceipt = null;
+        hostRoot.__simulatteComparisonExecutionReceipts = Object.freeze([]);
+        setJourneyPhase('loading');
+        setRuntimeStatus(elements, 'Applying controls', 'loading');
+        await yieldToFrame();
+        try {
+          await pluginPlayback.applyControls(values);
+          setJourneyPhase('ready');
+          setRuntimeStatus(elements, 'Ready', 'ready');
+        } catch (error) {
+          failRuntime(elements, error);
+          throw error;
+        }
+      },
+      onError: (error) => failRuntime(elements, error),
     });
     pluginUi.render(extensions.views({ mission: null, compositionSize: extensions.activePluginIds.length }));
     applicationProfileSelectApi.renderInteraction(interaction, activeScenario, elements);
@@ -259,12 +283,11 @@
     let terminalJourneyLogged = false;
     let hasJourneyStarted = false;
     let hasAppliedInitialCamera = false;
-    let buildRevision = 0;
     const journeyLedger = ledgerApi.createJourneyLedger();
     const recordedJourneyHashes = new Set();
     const stepIntervalMs = 18;
     const yieldToFrame = () => new Promise((resolve) => requestAnimationFrame(resolve));
-    const neuralGate = await neuralConsentApi.createGate({
+    neuralGate = await neuralConsentApi.createGate({
       root: document,
       modelRuntimeLock: data.modelRuntimeLock,
       toggle: elements.placeResolutionLane,
@@ -349,7 +372,10 @@
         focusSelect: elements.cameraFocus,
         onModeSelected: (mode) => selectCameraMode(elements, mode),
       });
-      if (!pluginClock) pluginClock = simulationClockApi.createClock({ timeline: platform.timeline });
+      if (!pluginClock) pluginClock = simulationClockApi.createClock({
+        timeline: platform.timeline,
+        wallIntervalMs: data.applicationProfile.interaction?.stepDelayMs || 450,
+      });
       const clockState = pluginClock.snapshot();
       const timelineReceipt = platform.timeline.receipt();
       if (clockState.timelineId !== timelineReceipt.id
@@ -366,6 +392,7 @@
           scenario: activeScenario,
           clock: pluginClock,
           getControlValues: pluginUi.values,
+          setControlValues: pluginUi.setValues,
           render: () => renderPluginExperience({ mission: null }),
           onPhase: reflectPluginPlaybackPhase,
           onSettled: (receipt) => {
@@ -421,49 +448,76 @@
     });
     async function ensureRenderer(worldModel) {
       if (renderer) return renderer;
-      renderer = await createRenderer({
-        elements,
-        worldModel,
-        data,
-        lifecycle,
-        stopLoop,
-        fail: (error) => failRuntime(elements, error),
-        onCameraInteraction(cameraInteraction) {
-          pluginViewRuntime?.setManualOverride({
-            mode: cameraInteraction.mode,
-            targetIds: cameraInteraction.targetIds,
-          });
-          selectCameraMode(elements, cameraInteraction.mode);
-        },
-        onManualNavigation(cameraInteraction) {
-          pluginViewRuntime?.setManualOverride({
-            mode: cameraInteraction.mode,
-            targetIds: cameraInteraction.targetIds,
-          });
-        },
-      });
-      return renderer;
+      if (rendererPromise) return rendererPromise;
+      const pending = (async () => {
+        const nextRenderer = await createRenderer({
+          elements,
+          worldModel,
+          data,
+          lifecycle,
+          stopLoop,
+          fail: (error) => failRuntime(elements, error),
+          onCameraInteraction(cameraInteraction) {
+            pluginViewRuntime?.setManualOverride({
+              mode: cameraInteraction.mode,
+              targetIds: cameraInteraction.targetIds,
+            });
+            selectCameraMode(elements, cameraInteraction.mode);
+          },
+          onManualNavigation(cameraInteraction) {
+            pluginViewRuntime?.setManualOverride({
+              mode: cameraInteraction.mode,
+              targetIds: cameraInteraction.targetIds,
+            });
+          },
+        });
+        if (lifecycle.signal.aborted) {
+          nextRenderer.destroy();
+          return null;
+        }
+        renderer = nextRenderer;
+        return renderer;
+      })();
+      rendererPromise = pending;
+      try {
+        return await pending;
+      } finally {
+        if (rendererPromise === pending) rendererPromise = null;
+      }
     }
     async function buildController({ keepMissionLocked = false } = {}) {
       return controllerBuilder.build({ keepMissionLocked });
     }
     async function recordJourney(targetController) {
+      const revision = buildRevision;
+      const activeExtensions = extensions;
+      const mission = activeMission;
       const receipt = await targetController.journeyReceipt();
-      receipt.pluginSettlement = await extensions.settle({ journey: receipt });
-      receipt.pluginRuntime = extensions.runtimeReceipt();
-      renderPluginExperience({ mission: activeMission, journey: receipt });
+      receipt.pluginSettlement = await activeExtensions.settle({ journey: receipt });
+      receipt.pluginRuntime = activeExtensions.runtimeReceipt();
+      if (revision === buildRevision && activeExtensions === extensions) {
+        renderPluginExperience({ mission, journey: receipt });
+      }
       const identity = `${receipt.mission.id}:${receipt.integrity.terminalHash}:${receipt.finalState.status}`;
       if (recordedJourneyHashes.has(identity)) return receipt;
       recordedJourneyHashes.add(identity);
       await journeyLedger.append(receipt);
-      await renderLedger(elements, journeyLedger, data.curriculum, data.world.contentVersion);
+      if (revision === buildRevision && activeExtensions === extensions) {
+        await renderLedger(elements, journeyLedger, data.curriculum, data.world.contentVersion);
+      }
       return receipt;
     }
     async function tickFrame(timestamp) {
       if (!isRunning || !controller) return;
-      if (timestamp - lastStepAt >= stepIntervalMs) {
-        lastStepAt = timestamp;
-        await controller.step();
+      try {
+        if (timestamp - lastStepAt >= stepIntervalMs) {
+          lastStepAt = timestamp;
+          await controller.step();
+        }
+      } catch (error) {
+        stopLoop();
+        failRuntime(elements, error);
+        return;
       }
       if (isRunning) frameRequest = requestAnimationFrame(tickFrame);
     }
@@ -705,6 +759,7 @@
       renderPolicyArena(elements, data.policyArenaEvidence);
       await renderLedger(elements, journeyLedger, data.curriculum, data.world.contentVersion);
       await buildController();
+      lifecycle.throwIfAborted();
       if (storedPlaybackReceipt) {
         if (!pluginPlayback) throw new Error('Stored plugin playback cannot be restored without a playback controller');
         try {
@@ -713,6 +768,7 @@
           pluginPlaybackApi.clearStoredReceipt(playbackStorage, data.applicationProfile.id);
           throw error;
         }
+        lifecycle.throwIfAborted();
       }
 
       // Init the tier visualizer + wire the toolbar dropdown (SimulatteWorldTiersBoot owns landing).
@@ -729,6 +785,7 @@
       // Load the city tier visualizer for this mount. Tier/experience switches are URL-driven and
       // re-boot in place through the shell — no page reload.
       await selectWorldTier(initialTier);
+      lifecycle.throwIfAborted();
       renderPluginExperience({ mission: activeMissionForPlugins });
     } catch (error) {
       // Tear this boot down cleanly (abort listeners, release GPU) and throw so the shell can retry

@@ -34,6 +34,7 @@ test('Phase 5 compiles device bindings, targets, and executable interaction kine
   assert.ok(spec.solverGraph.steps.some((row) => (
     row.operatorType === 'interaction_kinematics' && row.stage === 'controls'
   )));
+  assert.ok(spec.compositionGraph.operators.every((row) => row.id !== 'interaction_kinematics'));
 
   assert.equal(phase6.interactionProgram.schema, 'simulatte.sceneInteractionProgram.v1');
   assert.equal(phase6.interactionProgram.targetCount, spec.interactionIR.targets.length);

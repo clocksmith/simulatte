@@ -4,7 +4,8 @@
   "interaction": {
     "mode": "playback",
     "startLabel": "Start cable exchange",
-    "shuffleLabel": "Change pseudo-year"
+    "shuffleLabel": "Change pseudo-year",
+    "stepDelayMs": 2500
   },
   "experience": {
     "kind": "simulation",
@@ -23,7 +24,7 @@
       {
         "id": "exchange-opens",
         "label": "Exchange opens",
-        "narrative": "Thousands of modeled neighbors begin requesting and offering everyday cables through nearby hubs.",
+        "narrative": "Modeled neighbors, each at a unique residence, begin requesting and offering everyday cables through nearby hubs.",
         "fromProgress": 0
       },
       {
@@ -65,7 +66,7 @@
     {
       "id": "move-in-cycle",
       "label": "Move-in cycle",
-      "description": "A different deterministic year changes the people, hubs, locations, and cable trips that become active each day.",
+      "description": "A different deterministic year changes the people, hubs, unique residences, and cable trips that become active each day.",
       "seed": "cable-circulation-move-in-2026",
       "missionText": "Run the move-in pseudo-year and inspect local cable balance at each hub."
     },

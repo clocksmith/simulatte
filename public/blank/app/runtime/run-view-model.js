@@ -1,8 +1,12 @@
 (function attachSimulatteRunViewModel(root, factory) {
-  const api = factory();
+  const phaseContracts = typeof module === 'object' && module.exports
+    ? require('../../pipeline/simulatte-phase-contracts.js')
+    : root.SimulattePhaseContracts;
+  const api = factory(phaseContracts);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteRunViewModel = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createRunViewModelApi() {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createRunViewModelApi(phaseContracts) {
+  if (!phaseContracts?.validatePhaseEnvelope) throw new Error('simulatte_run_view_model_phase_contracts_missing');
   const PHASES = Object.freeze([
     'Runtime', 'Language', 'Retrieval', 'Grounding',
     'Simulation', 'Visuals', 'Render', 'Proof',
@@ -123,9 +127,10 @@
       const envelope = envelopes[`phase${phase.step}`];
       if (!envelope) return phase;
       const receipts = Array.isArray(envelope.receipts) ? envelope.receipts : [];
+      const valid = phaseEnvelopeValid(envelope, phase.step);
       return {
         ...phase,
-        status: 'passed',
+        status: valid ? 'passed' : 'failed',
         inputIdentity: identity(envelope.inputSchema),
         outputIdentity: identity(envelope.schema),
         candidateCount: phaseMetric(receipts, [
@@ -155,11 +160,13 @@
     const requiredFailures = requiredObligations.filter((row) => (
       row.status === 'lost' || row.status === 'not-proven'
     ));
+    const phase7Valid = phaseEnvelopeValid(phase7, 7) && phase7PixelProofPassed(renderExecution, phase7Receipt);
+    const phase8Valid = phaseEnvelopeValid(phase8, 8) && sceneProof.verdict === 'pass';
     const phases = viewModel.phases.map((phase) => {
       if (phase.step === 7 && phase7.schema) {
         return {
           ...phase,
-          status: 'passed',
+          status: phase7Valid ? 'passed' : 'failed',
           inputIdentity: identity(phase7.inputSchema),
           outputIdentity: identity(phase7.schema),
           durationMs: Number(renderExecution.frameMs || phase.durationMs || 0),
@@ -170,7 +177,7 @@
       if (phase.step === 8 && phase8.schema) {
         return {
           ...phase,
-          status: sceneProof.verdict === 'pass' ? 'passed' : 'failed',
+          status: phase8Valid ? 'passed' : 'failed',
           inputIdentity: identity(phase8.inputSchema || phase7.schema),
           outputIdentity: identity(phase8.schema),
           durationMs: Number(report.durationMs || phase.durationMs || 0),
@@ -180,7 +187,24 @@
       }
       return phase;
     });
-    return finalize(viewModel.runId, sceneProof.verdict === 'pass' ? 'ready' : viewModel.status, phases);
+    return finalize(viewModel.runId, phase7Valid && phase8Valid ? 'ready' : viewModel.status, phases);
+  }
+
+  function phaseEnvelopeValid(envelope, phase) {
+    try {
+      phaseContracts.validatePhaseEnvelope(envelope, phase);
+      return true;
+    } catch (_error) {
+      return false;
+    }
+  }
+
+  function phase7PixelProofPassed(renderExecution, receipt) {
+    return renderExecution?.rendered === true
+      && Number(renderExecution.renderCount || 0) > 0
+      && renderExecution.pixelAudit?.status === 'pass'
+      && Number(receipt?.failedObligations || 0) === 0
+      && Number(receipt?.unprovenObligations || 0) === 0;
   }
 
   function connect(documentRoot, runtimeProgress) {

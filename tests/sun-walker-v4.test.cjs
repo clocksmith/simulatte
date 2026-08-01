@@ -161,8 +161,8 @@ test('semantic layers carry quantities and evidence without permanent styling au
     'weather.historical-analog',
   ]);
   assert.ok(semantic.layers.every((row) => row.evidenceRefs.length > 0));
-  assert.ok(semantic.viewIntents.some((row) => row.mode === 'compare'));
-  assert.ok(semantic.viewIntents.every((row) => row.mode !== 'free'));
+  assert.ok(semantic.viewIntents.some((row) => row.mode === 'overview'));
+  assert.ok(semantic.viewIntents.every((row) => !['free', 'pov'].includes(row.mode)));
   const serialized = JSON.stringify(semantic);
   assert.doesNotMatch(serialized, /"tone"|"color"|"widthM"|"lineWidth"|"labelDensity"|"lodThreshold"/);
   assert.ok(semantic.controls.some((row) => row.id === 'walkingSpeedMps' && row.isEnabled));
@@ -234,12 +234,16 @@ test('plugin lifecycle advances the modeled walk without owning playback delay o
   assert.ok(readyV4.controls.controls.length >= 7);
   assert.ok(readyV4.presentation.layers.some((row) => row.id === 'sun-walker-actor' && row.kind === 'actor'));
   assert.ok(readyV4.presentation.layers.some((row) => row.kind === 'area' && row.quantity.kind === 'occlusion.shadow-length'));
+  assert.ok(readyV4.presentation.layers
+    .filter((row) => row.quantity.kind === 'occlusion.shadow-length')
+    .every((row) => row.role === 'primary'));
+  assert.ok(readyV4.presentation.layers.every((row) => row.aggregationKey !== 'sun-exposure-samples'));
   assert.deepEqual(readyV4.presentation.viewIntents.map((row) => ({
     mode: row.mode,
     targetIds: row.targetIds,
   })), [{
-    mode: 'follow',
-    targetIds: ['sun-walker-actor'],
+    mode: 'overview',
+    targetIds: ['shade-selected-route'],
   }]);
   const contribution = instance.contributeRequest({
     sourceText: 'Take the shadier walk',
@@ -291,19 +295,10 @@ test('plugin lifecycle advances the modeled walk without owning playback delay o
   );
 });
 
-test('exposure transitions request a true POV camera while steady movement remains follow', () => {
-  assert.equal(
-    v4Api.exposureNavigationMode({ state: 'shade' }, { state: 'direct' }),
-    'pov'
-  );
-  assert.equal(
-    v4Api.exposureNavigationMode({ state: 'shade' }, { state: 'shade' }),
-    'follow'
-  );
-  assert.equal(
-    v4Api.exposureNavigationMode({ state: 'shade' }, { state: 'direct' }, true),
-    'compare'
-  );
+test('Sun Walker starts and settles in overview while active movement stays in follow', () => {
+  assert.equal(v4Api.walkerNavigationMode(0), 'overview');
+  assert.equal(v4Api.walkerNavigationMode(1), 'follow');
+  assert.equal(v4Api.walkerNavigationMode(24, true), 'overview');
 });
 
 test('solar reference keeps nighttime distinct from missing geometric evidence', () => {

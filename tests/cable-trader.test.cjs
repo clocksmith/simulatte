@@ -12,19 +12,44 @@ const plugin = require('../public/shared/plugins/cable-trader/index.js');
 const contracts = require('../public/simulatte/platform/contracts/plugin-contracts.js');
 const v4Contracts = require('../public/simulatte/platform/contracts/plugin-v4-contracts.js');
 const provenanceRegistry = require('../public/simulatte/platform/runtime/provenance-registry.js');
+const compositorModule = require('../public/simulatte/platform/render/semantic-compositor.js');
 const config = readJson(path.join(pluginDirectory, 'default-config.json'));
+const worldModel = fixtureWorldModel();
 
-function completeRoutes() {
-  return config.hubs.flatMap((hub, hubIndex) => config.locations.flatMap((location, locationIndex) => (
-    ['from-hub', 'to-hub'].map((direction, directionIndex) => ({
-      id: `route-${hub.id}-${location.id}-${direction}`,
-      hubId: hub.id,
-      locationId: location.id,
-      direction,
-      distanceM: 500 + hubIndex * 100 + locationIndex * 20 + directionIndex,
-      segmentIds: [`segment-${hub.id}-${location.id}-${direction}`],
-    }))
-  )));
+function fixtureWorldModel() {
+  const columns = 12;
+  const rows = 8;
+  const nodes = Array.from({ length: columns * rows }, (unused, index) => ({
+    id: `bike-node-${String(index + 1).padStart(3, '0')}`,
+    label: `Street ${index + 1}`,
+    position: { x: (index % columns) * 100, y: Math.floor(index / columns) * 100 },
+  }));
+  const segments = nodes.flatMap((node, index) => {
+    const next = nodes[(index + 1) % nodes.length];
+    return [
+      {
+        id: `segment-${node.id}-${next.id}`,
+        fromNodeId: node.id,
+        toNodeId: next.id,
+        allowedModes: ['delivery_bike'],
+        lengthM: 100,
+      },
+      {
+        id: `segment-${next.id}-${node.id}`,
+        fromNodeId: next.id,
+        toNodeId: node.id,
+        allowedModes: ['delivery_bike'],
+        lengthM: 100,
+      },
+    ];
+  });
+  const nodeById = new Map(nodes.map((row) => [row.id, row]));
+  const segmentById = new Map(segments.map((row) => [row.id, row]));
+  return {
+    world: { id: 'fixture-city', nodes, segments },
+    node(id) { return nodeById.get(id); },
+    segment(id) { return segmentById.get(id) || { lengthM: 100 }; },
+  };
 }
 
 function scenarioConfig(overrides = {}) {
@@ -38,21 +63,39 @@ function scenarioConfig(overrides = {}) {
   };
 }
 
+function simulationFor(overrides = {}) {
+  const selectedConfig = scenarioConfig(overrides);
+  const network = circulation.createNetwork(selectedConfig, worldModel);
+  return {
+    selectedConfig,
+    network,
+    simulation: circulation.simulateCirculation(selectedConfig, network),
+  };
+}
+
+function routesFor(simulation, day) {
+  return simulation.snapshots[day].visibleJourneys.map((journey, index) => ({
+    id: journey.routeId,
+    hubId: journey.hubId,
+    residenceId: journey.residenceId,
+    direction: journey.action === 'dropoff' ? 'to-hub' : 'from-hub',
+    distanceM: 500 + index,
+    segmentIds: [`segment-route-${index}`],
+  }));
+}
+
 function stubSdk() {
   let reducer = null;
   let state = null;
   const emittedEvents = [];
   const emittedReceipts = [];
+  const routeSegmentId = worldModel.world.segments[0].id;
   return {
     worldQuery: {
-      model() {
-        return { segment() { return { lengthM: 900 }; } };
-      },
+      model() { return worldModel; },
     },
     routing: {
-      plan({ originNodeId, destinationNodeId }) {
-        return { segmentIds: [`segment-${originNodeId}-${destinationNodeId}`] };
-      },
+      plan() { return { segmentIds: [routeSegmentId] }; },
       policy() { return {}; },
     },
     state: {
@@ -80,30 +123,45 @@ function stubSdk() {
   };
 }
 
-test('Cable Trader creates a deterministic 365-day exchange with thousands of stable people', () => {
-  const first = circulation.simulateCirculation(scenarioConfig(), completeRoutes());
-  const replay = circulation.simulateCirculation(scenarioConfig(), completeRoutes());
+test('Cable Trader gives every modeled person one unique residence with a controllable hub network', () => {
+  const { network, simulation } = simulationFor();
+  assert.equal(simulation.people.length, 256);
+  assert.equal(network.residences.length, 256);
+  assert.equal(network.hubs.length, 4);
+  assert.equal(new Set(network.residences.map((row) => row.id)).size, 256);
+  assert.equal(
+    new Set(network.residences.map((row) => `${row.position.x}:${row.position.y}`)).size,
+    256
+  );
+  assert.equal(new Set(simulation.people.map((row) => row.homeResidenceId)).size, 256);
+  assert.ok(simulation.people.every((person) => (
+    network.residences.find((row) => row.id === person.homeResidenceId)?.preferredHubId
+      === person.preferredHubId
+  )));
+});
+
+test('Cable Trader creates a deterministic continuous 365-day exchange', () => {
+  const first = simulationFor().simulation;
+  const replay = simulationFor().simulation;
   assert.deepEqual(first, replay);
   assert.equal(first.schema, 'simulatte.plugin.cableTraderCirculation.v1');
-  assert.equal(first.people.length, 6000);
-  assert.equal(new Set(first.people.map((row) => row.id)).size, 6000);
   assert.equal(first.durationDays, 365);
   assert.equal(first.snapshots.length, 366);
   assert.equal(first.events.length, 365);
   assert.equal(first.activeHubIds.length, 4);
-  assert.equal(first.activeLocationIds.length, 12);
+  assert.equal(first.activeResidenceIds.length, 256);
 });
 
 test('real supply and demand boards balance every cable across hubs and the pseudo-year', () => {
-  const simulation = circulation.simulateCirculation(scenarioConfig(), completeRoutes());
+  const { simulation } = simulationFor();
   assert.equal(simulation.balance.pass, true);
   assert.equal(
     simulation.balance.startingInventory + simulation.balance.supplied,
     simulation.balance.fulfilled + simulation.balance.endingInventory
   );
-  assert.ok(simulation.summary.totalSupply > 10000);
-  assert.ok(simulation.summary.totalDemand > 10000);
-  assert.ok(simulation.summary.cablesReused > 10000);
+  assert.ok(simulation.summary.totalSupply > 1000);
+  assert.ok(simulation.summary.totalDemand > 1000);
+  assert.ok(simulation.summary.cablesReused > 1000);
   simulation.snapshots.forEach((snapshot) => {
     assert.equal(snapshot.global.supply, snapshot.hubBoards.reduce((sum, row) => sum + row.supply, 0));
     assert.equal(snapshot.global.demand, snapshot.hubBoards.reduce((sum, row) => sum + row.demand, 0));
@@ -112,57 +170,62 @@ test('real supply and demand boards balance every cable across hubs and the pseu
   });
 });
 
-test('every traveling person carries a named cable on an explicit pickup or drop-off route', () => {
-  const simulation = circulation.simulateCirculation(scenarioConfig(), completeRoutes());
+test('every traveler moves between their own residence and preferred hub with a named cable', () => {
+  const { simulation } = simulationFor();
   const journeys = simulation.snapshots.flatMap((row) => row.journeys);
-  const people = new Set(simulation.people.map((row) => row.id));
+  const people = new Map(simulation.people.map((row) => [row.id, row]));
   const cables = new Set(simulation.selectedCableTypeIds);
-  assert.ok(journeys.length > 20000);
+  assert.ok(journeys.length > 4000);
   assert.ok(journeys.some((row) => row.action === 'pickup'));
   assert.ok(journeys.some((row) => row.action === 'dropoff'));
-  assert.ok(journeys.every((row) => (
-    people.has(row.personId)
-    && cables.has(row.cableTypeId)
-    && ['pickup', 'dropoff'].includes(row.action)
-    && row.routeId
-  )));
+  assert.ok(journeys.every((journey) => {
+    const person = people.get(journey.personId);
+    return person
+      && journey.residenceId === person.homeResidenceId
+      && journey.hubId === person.preferredHubId
+      && cables.has(journey.cableTypeId)
+      && ['pickup', 'dropoff'].includes(journey.action)
+      && journey.routeId;
+  }));
 });
 
-test('people, hubs, locations, and cable set are causal controls', () => {
-  const baseline = circulation.simulateCirculation(scenarioConfig(), completeRoutes());
+test('people/residences, hubs, and cable set are causal controls', () => {
+  const baseline = simulationFor().simulation;
   const cases = [
     { peopleCount: 9000 },
-    { hubCount: 6 },
-    { locationCount: 16 },
+    { hubCount: 32 },
     { selectedCableTypeIds: ['usb-a-to-c', 'hdmi', 'ethernet'] },
   ];
   cases.forEach((values) => {
-    const candidate = circulation.simulateCirculation(scenarioConfig(values), completeRoutes());
+    const candidate = simulationFor(values).simulation;
     assert.notEqual(candidate.configurationHash, baseline.configurationHash, JSON.stringify(values));
     assert.notDeepEqual(candidate.summary, baseline.summary, JSON.stringify(values));
   });
 });
 
-test('presentation exposes global and per-hub boards plus bounded live people', () => {
-  const simulation = circulation.simulateCirculation(scenarioConfig(), completeRoutes());
+test('presentation keeps the map concise and renders tiny residence and traveler nodes', () => {
+  const { selectedConfig, simulation } = simulationFor();
   const playback = { status: 'running', day: 180 };
-  const views = presentation.createViews({ config, simulation, playback });
+  const views = presentation.createViews({ config: selectedConfig, simulation, playback });
   const board = views.find((row) => row.slot === 'inspector');
+  const map = views.find((row) => row.slot === 'map');
   assert.equal(board.title, 'Live cable exchange board');
   assert.ok(board.rows.some((row) => row.label === 'Global supply today'));
   assert.ok(board.rows.some((row) => row.label === 'Global demand today'));
-  assert.ok(config.hubs.slice(0, 4).every((hub) => board.rows.some((row) => row.label === hub.label)));
+  assert.ok(simulation.hubs.every((hub) => board.rows.some((row) => row.label === hub.label)));
+  assert.ok(map.rows.length <= 6);
   const visual = presentation.createPresentation({
-    config,
+    config: selectedConfig,
     simulation,
     playback,
-    routes: completeRoutes(),
+    routes: routesFor(simulation, playback.day),
   });
   contracts.validatePresentationContribution('cable-trader', visual);
-  assert.equal(visual.actors.length, 24);
-  assert.ok(visual.actors.every((row) => row.kind === 'bicycle' && /Person .* (pick up|drop off)/.test(row.label)));
+  assert.ok(visual.actors.length > 0 && visual.actors.length <= config.simulation.renderedTravelerCount);
+  assert.equal(visual.markers.length, 128);
   assert.equal(visual.markers.filter((row) => row.id.startsWith('hub:')).length, 4);
-  assert.equal(visual.markers.filter((row) => row.id.startsWith('location:')).length, 12);
+  assert.ok(visual.markers.filter((row) => row.id.startsWith('residence:'))
+    .every((row) => row.radiusM <= 0.25 && row.heightM <= 0.5));
 });
 
 test('plugin playback advances live boards and settles the complete year', async () => {
@@ -173,6 +236,7 @@ test('plugin playback advances live boards and settles the complete year', async
     scenario: { id: 'everyday-exchange', seed: 'playback-proof' },
   });
   let action = await instance.handleAction('scenario.run', { values: { phase: 'start' } });
+  assert.deepEqual(Object.keys(sdk.state.read()), ['playback']);
   assert.deepEqual(
     { status: action.status, currentStep: action.currentStep, totalSteps: action.totalSteps },
     { status: 'running', currentStep: 0, totalSteps: 365 }
@@ -191,7 +255,33 @@ test('plugin playback advances live boards and settles the complete year', async
   )));
 });
 
-test('four focused controls rebuild state and remain visible in v4', async () => {
+test('starting with unchanged rendered controls reuses the ready pseudo-year', async () => {
+  const sdk = stubSdk();
+  const instance = await plugin.activate({
+    sdk,
+    config,
+    scenario: { id: 'everyday-exchange', seed: config.simulation.seed },
+  });
+  await instance.handleAction('scenario.run', {
+    scenario: { id: 'everyday-exchange', seed: config.simulation.seed },
+    values: {
+      phase: 'start',
+      peopleCount: config.simulation.peopleCount,
+      hubCount: config.simulation.hubCount,
+      selectedCableTypeIds: config.simulation.selectedCableTypeIds,
+    },
+  });
+  assert.equal(
+    sdk.emittedEvents.filter((row) => row.kind === 'cable-trader.scenario-selected').length,
+    0
+  );
+  assert.equal(
+    sdk.emittedEvents.filter((row) => row.kind === 'cable-trader.playback-started').length,
+    1
+  );
+});
+
+test('three focused controls rebuild people/residences, hubs, and cable set', async () => {
   const instance = await plugin.activate({
     sdk: stubSdk(),
     config,
@@ -201,8 +291,7 @@ test('four focused controls rebuild state and remain visible in v4', async () =>
   const values = {
     phase: 'start',
     peopleCount: 10000,
-    hubCount: 6,
-    locationCount: 16,
+    hubCount: 32,
     selectedCableTypeIds: ['usb-a-to-c', 'usb-c-to-c', 'hdmi', 'ethernet'],
   };
   await instance.handleAction('scenario.run', {
@@ -213,15 +302,16 @@ test('four focused controls rebuild state and remain visible in v4', async () =>
   assert.notEqual(after.state.id, before.state.id);
   assert.deepEqual(
     after.controls.controls.map((row) => row.id),
-    ['peopleCount', 'hubCount', 'locationCount', 'selectedCableTypeIds']
+    ['peopleCount', 'hubCount', 'selectedCableTypeIds']
   );
   Object.entries(values).forEach(([id, value]) => {
     if (id !== 'phase') assert.deepEqual(after.controls.controls.find((row) => row.id === id).value, value);
   });
+  assert.equal(after.state.measures.find((row) => row.kind === 'unique-residences').value, 10000);
   assert.equal(after.controls.comparisons.length, 0);
 });
 
-test('v4 contribution validates hubs, locations, cable journeys, and supply-demand measures', async () => {
+test('v4 contribution validates thousands of residences, hubs, journeys, and supply-demand measures', async () => {
   const instance = await plugin.activate({
     sdk: stubSdk(),
     config,
@@ -231,9 +321,27 @@ test('v4 contribution validates hubs, locations, cable journeys, and supply-dema
   await instance.handleAction('scenario.run', { values: { phase: 'step' } });
   const contribution = instance.contributeV4();
   assert.doesNotThrow(() => v4Contracts.validateContribution(contribution));
-  assert.ok(contribution.presentation.layers.some((row) => row.id.startsWith('hub:')));
-  assert.ok(contribution.presentation.layers.some((row) => row.id.startsWith('location:')));
+  const residences = contribution.presentation.layers.find((row) => row.id === 'residences');
+  assert.equal(residences.geometry.kind, 'point-cloud');
+  assert.equal(residences.geometry.coordinates.length, 256);
+  assert.equal(contribution.presentation.layers.filter((row) => row.id.startsWith('hub:')).length, 4);
   assert.ok(contribution.presentation.layers.some((row) => row.id.startsWith('actor:')));
+  assert.ok(residences.role === 'context' && residences.importance < 0.75 && residences.aggregationKey === null);
+  assert.ok(contribution.presentation.layers.filter((row) => row.id.startsWith('actor:'))
+    .every((row) => row.role === 'context' && row.importance < 0.75));
+  const composition = compositorModule.createCompositor().compose(contribution.presentation, {
+    viewport: { width: 1200, height: 800 },
+    project: (source, geometry, layer) => {
+      if (geometry.coordinates?.length) return geometry.coordinates[0].slice(0, 2);
+      const index = Number(/\d+/.exec(layer.id)?.[0] || 0);
+      return [index % 1200, Math.floor(index / 1200) % 800];
+    },
+  });
+  assert.equal(composition.receipt.visibleLayerCount, contribution.presentation.layers.length);
+  assert.equal(composition.receipt.suppressedLayerIds.length, 0);
+  assert.equal(composition.receipt.labelCount, 0);
+  assert.equal(composition.primitives.filter((row) => row.id === 'residences').length, 1);
+  assert.ok(composition.primitives.find((row) => row.id === 'residences').style.radiusPx < 3);
   assert.ok(contribution.state.measures.some((row) => row.kind === 'cable-supply'));
   assert.ok(contribution.state.measures.some((row) => row.kind === 'cable-demand'));
   assert.ok(contribution.inspections.some((row) => row.label === 'Global supply and demand'));
@@ -241,13 +349,15 @@ test('v4 contribution validates hubs, locations, cable journeys, and supply-dema
   assert.doesNotThrow(() => provenanceRegistry.createPlatformProvenanceReceipt([provenance]));
 });
 
-test('profile describes a continuous community exchange rather than a crisis', () => {
+test('profile describes a readable continuous exchange with a few seconds per day', () => {
   const profile = readJson(path.join(root, 'public/data/application-profiles/cable-trader-pickup-v1.json'));
   assert.equal(profile.plugins[0].configId, config.id);
   assert.equal(profile.interaction.startLabel, 'Start cable exchange');
   assert.equal(profile.interaction.shuffleLabel, 'Change pseudo-year');
+  assert.equal(profile.interaction.stepDelayMs, 2500);
   assert.deepEqual(profile.experience.supportedViews, ['overview', 'follow', 'top']);
   assert.equal(profile.experience.comparisonMode, 'none');
+  assert.ok(profile.experience.stages.some((row) => /unique residence/i.test(row.narrative)));
   assert.ok(profile.experience.stages.some((row) => /365 modeled days/i.test(row.narrative)));
   assert.doesNotMatch(JSON.stringify(profile), /\bcrisis\b/i);
 });
@@ -257,6 +367,7 @@ test('authored cable catalog and public claims preserve the modeled boundary', (
   const catalog = readJson(catalogPath);
   assert.doesNotThrow(() => plugin.datasetValidators[catalog.schema](catalog));
   assert.ok(catalog.modeledFields.includes('cableSupply'));
+  assert.ok(catalog.modeledFields.includes('uniqueResidenceCount'));
   assert.match(catalog.claimBoundary, /not observed/i);
   const manifest = readJson(path.join(pluginDirectory, 'plugin.json'));
   const reference = manifest.datasets.find((row) => row.id === catalog.id).reference;

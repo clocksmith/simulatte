@@ -1283,6 +1283,9 @@ test('platform data boundaries isolate transport, artifact verification, and dec
   assert.equal(resolved.value.id, value.id);
   assert.equal(resolved.sha256, sha256);
   assert.equal(resolved.response.etag, 'fixture-etag');
+  assert.equal(resolved.receipt.cacheMode, 'network');
+  assert.equal(Object.isFrozen(resolved.value), true);
+  assert.equal(Object.isFrozen(resolved.value.rows), true);
   assert.deepEqual(calls, [{ url: 'https://simulatte.test/data/fixture.json', options: { cache: 'no-cache' } }]);
 
   const catalog = dataCatalogApi.createDataCatalog([{ id: value.id, value: resolved.value, receipt: { sha256 } }]);
@@ -1309,6 +1312,64 @@ test('platform data boundaries isolate transport, artifact verification, and dec
     }),
     (error) => error.code === 'asset_hash_mismatch'
   );
+});
+
+test('governed artifact store rehashes and evicts forged persistent cache entries', async () => {
+  const value = { id: 'fixture-v1', rows: [{ id: 'trusted' }] };
+  const text = JSON.stringify(value);
+  const sha256 = crypto.createHash('sha256').update(text).digest('hex');
+  const url = 'https://simulatte.test/data/fixture.json';
+  const artifactKey = `${url}|${sha256}`;
+  const cachePort = (rows) => ({
+    async get(key) { return rows.get(key) || null; },
+    async put(key, entry) { rows.set(key, entry); },
+    async delete(key) { rows.delete(key); },
+  });
+  const legacyRows = new Map([[artifactKey, {
+    value: { id: value.id, rows: [{ id: 'forged' }] },
+  }]]);
+  let recoveryReads = 0;
+  const recovered = await artifactStoreApi.createGovernedArtifactStore({
+    transport: {
+      async readText() {
+        recoveryReads += 1;
+        return { text, url, response: null };
+      },
+    },
+    persistentCache: cachePort(legacyRows),
+  }).resolve({ id: value.id, path: './fixture.json', sha256 }, {
+    baseUrl: 'https://simulatte.test/data/manifest.json',
+    key: 'fixture',
+  });
+  assert.deepEqual(recovered.value, value);
+  assert.equal(legacyRows.has(artifactKey), false);
+  assert.equal(recoveryReads, 1);
+
+  const forgedRows = new Map([[artifactKey, {
+    text: JSON.stringify({ id: value.id, rows: [{ id: 'forged' }] }),
+  }]]);
+  let transportReads = 0;
+  const store = artifactStoreApi.createGovernedArtifactStore({
+    transport: {
+      async readText() {
+        transportReads += 1;
+        return { text, url, response: null };
+      },
+    },
+    persistentCache: cachePort(forgedRows),
+  });
+
+  await assert.rejects(
+    () => store.resolve({ id: value.id, path: './fixture.json', sha256 }, {
+      baseUrl: 'https://simulatte.test/data/manifest.json',
+      key: 'fixture',
+    }),
+    (error) => error.code === 'asset_hash_mismatch'
+      && error.evidence.cacheMode === 'persistent'
+      && error.evidence.actualSha256 !== sha256
+  );
+  assert.equal(forgedRows.has(artifactKey), false);
+  assert.equal(transportReads, 0);
 });
 
 test('autonomy browser surface loads every declared module and stays independent of compiler phases', () => {
@@ -1542,7 +1603,7 @@ test('browser audit validates explicit desktop and mobile viewport contracts', a
     mode: 'overview',
     targetIds: ['hub:union-square'],
   }), {
-    mode: 'bird',
+    mode: 'overview',
     focusId: 'plugin:cable-trader:cable-network-overview',
   });
   assert.deepEqual(audit.semanticCameraExpectation({

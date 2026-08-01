@@ -174,7 +174,7 @@
       "path": "./asteroid-model.js"
     },
     {
-      "integrity": "sha384-f7291a7ff772f1487136f341f41404d0ca1060a368b4e23f0b803162e670613eaa362669f7080072a51cac7c12fd464e",
+      "integrity": "sha384-eccd7c54aabe10721b994e05d8d6fe9eba688ed6a08d745ec1d54ff24b11fa23e3f126198fc23edf96d6bb601efda502",
       "path": "./v4-contribution.js"
     },
     {

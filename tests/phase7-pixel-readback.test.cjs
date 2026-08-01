@@ -7,6 +7,15 @@ const { phaseFamily } = require('./phase-module-fixture.cjs');
 
 const rendererScope = phaseFamily('webGpuRenderer');
 
+function pixelSampleSet(renderData, samples, source = 'phase7-test-readback') {
+  return {
+    schema: 'simulatte.phase7PixelSampleSet.v1',
+    source,
+    packetKey: renderData.packetKey,
+    samples,
+  };
+}
+
 function glacierReadbackFixture() {
   const spec = lab.createSpecFromPrompt('glacier calving into fjord with sea ice waves', {
     allowPrototypeFallback: true,
@@ -62,6 +71,24 @@ test('Phase 7 retries a failed contrast proof at most three times for the same p
   assert.equal(rendererScope.phase7PixelReadbackPlan(renderData, packet, input, { width: 640, height: 360 }), null);
 });
 
+test('Phase 7 snapshots supplied pixel evidence without coercion or mutable references', () => {
+  const { renderData } = glacierReadbackFixture();
+  const source = pixelSampleSet(renderData, [{
+    id: 'hidden-sample',
+    visible: false,
+    rgba: [0, 0, 0, 0],
+  }]);
+  const snapshot = rendererScope.immutableRenderEvidence(source);
+  source.samples[0].visible = true;
+  source.samples[0].rgba[3] = 255;
+
+  assert.equal(snapshot.samples[0].visible, false);
+  assert.equal(snapshot.samples[0].rgba[3], 0);
+  assert.ok(Object.isFrozen(snapshot));
+  assert.ok(Object.isFrozen(snapshot.samples));
+  assert.ok(Object.isFrozen(snapshot.samples[0].rgba));
+});
+
 test('Phase 7 samples the exact target entity before token-similar drawables', () => {
   const drawables = [
     { id: 'open-qubit-chip-1', label: 'qubit chip microwave signal', representedEntityIds: [] },
@@ -95,7 +122,9 @@ test('Phase 7 action proof samples the relation owner instead of a nearby object
   const flying = actions.find((row) => row.obligationId === 'action:flying');
   const wrong = proofApi.renderObligationProof(input.sceneRenderPacket, [flying], null, true, {
     ...renderData,
-    pixelSamples: { samples: [{ obligationId: flying.obligationId, drawableId: 'surface-tree-1:instance:1', rgba: [80, 160, 220, 255] }] },
+    pixelSamples: pixelSampleSet(renderData, [
+      { obligationId: flying.obligationId, drawableId: 'surface-tree-1:instance:1', rgba: [80, 160, 220, 255] },
+    ]),
   })[0];
   assert.equal(wrong.pixelProof.visibleCount, 0);
   assert.equal(wrong.status, 'fail');
@@ -110,11 +139,66 @@ test('Phase 7 count proof requires every declared visible instance', () => {
   const proof = proofApi.renderObligationProof(input.sceneRenderPacket, [count], null, true, {
     ...renderData,
     requireLivePixelSamples: true,
-    pixelSamples: { samples: [{ obligationId: count.obligationId, drawableId: 'surface-cat-1:instance:1', rgba: [80, 160, 220, 255] }] },
+    pixelSamples: pixelSampleSet(renderData, [
+      { obligationId: count.obligationId, drawableId: 'surface-cat-1:instance:1', rgba: [80, 160, 220, 255] },
+    ]),
   })[0];
   assert.equal(proof.pixelProof.expectedCount, 5);
   assert.equal(proof.pixelProof.visibleCount, 1);
   assert.equal(proof.status, 'fail');
+});
+
+test('Phase 7 does not certify required visuals without live pixel readback', () => {
+  const spec = lab.createSpecFromPrompt('a dog', { allowPrototypeFallback: true });
+  const input = lab.createRenderExecutionInput(spec, { t: 0 }, { width: 640, height: 360 });
+  const dog = input.visualObligations.find((row) => row.obligationId === 'entity:dog');
+  const renderData = rendererScope.compileSceneRenderData(input.sceneRenderPacket);
+  const proofApi = require('../public/blank/pipeline/phase-07-render/simulatte-render-proof.js');
+  const proof = proofApi.renderObligationProof(input.sceneRenderPacket, [dog], input.compositionLedger, true, renderData)[0];
+
+  assert.equal(proof.pixelSatisfied, false);
+  assert.equal(proof.pixelProof.reason, 'required visual obligation has no live pixel readback');
+  assert.equal(proof.status, 'fail');
+});
+
+test('Phase 7 absence proof fails closed without a semantic absence detector', () => {
+  const spec = lab.createSpecFromPrompt('a dog but no cat', { allowPrototypeFallback: true });
+  const input = lab.createRenderExecutionInput(spec, { t: 0 }, { width: 640, height: 360 });
+  const absence = input.visualObligations.find((row) => row.constraintKind === 'absence' && row.targetIdentity === 'cat');
+  assert.ok(absence, 'required cat absence reaches Phase 7');
+  const renderData = rendererScope.compileSceneRenderData(input.sceneRenderPacket);
+  renderData.requireLivePixelSamples = true;
+  const plan = rendererScope.phase7PixelReadbackPlan(renderData, input.sceneRenderPacket, input, { width: 640, height: 360 });
+  const samples = plan.samples.filter((row) => row.obligationId === absence.obligationId);
+  assert.equal(samples.length, 0);
+  assert.ok(plan.unmatchedObligationIds.includes(absence.obligationId));
+
+  const proofApi = require('../public/blank/pipeline/phase-07-render/simulatte-render-proof.js');
+  const forbiddenPacket = {
+    ...input.sceneRenderPacket,
+    entities: [
+      ...input.sceneRenderPacket.entities,
+      { id: 'forbidden-cat', label: 'cat', identity: { type: 'cat', label: 'cat' } },
+    ],
+  };
+  const proof = proofApi.renderObligationProof(forbiddenPacket, [absence], input.compositionLedger, true, {
+    ...renderData,
+    pixelSamples: pixelSampleSet(renderData, [
+      { obligationId: absence.obligationId, drawableId: 'surface-dog-1', rgba: [80, 160, 220, 255] },
+    ]),
+  })[0];
+  assert.equal(proof.packetSatisfied, false);
+  assert.equal(proof.status, 'fail');
+
+  const unproven = proofApi.renderObligationProof(input.sceneRenderPacket, [absence], input.compositionLedger, true, {
+    ...renderData,
+    pixelSamples: pixelSampleSet(renderData, [
+      { obligationId: absence.obligationId, drawableId: 'surface-dog-1', rgba: [80, 160, 220, 255] },
+    ]),
+  })[0];
+  assert.equal(unproven.packetSatisfied, true);
+  assert.equal(unproven.pixelProof.reason, 'semantic absence detector unavailable');
+  assert.equal(unproven.status, 'fail');
 });
 
 test('Phase 7 reports readback capacity overflow instead of truncating proof', () => {
@@ -153,25 +237,63 @@ test('Phase 7 proves through only when final projected source geometry crosses t
     ],
     compositionLedger: { obligations: [obligation] },
   };
-  const pixelSamples = { samples: [
-    { id: 'source-pixel', obligationId: obligation.id, rgba: [90, 140, 180, 255] },
-    { id: 'target-pixel', obligationId: obligation.id, rgba: [120, 170, 200, 255] },
-  ] };
   const renderData = {
+    packetKey: `test:relation:${proofApi.scenePacketRenderEvidenceHash(packet)}`,
     requireLivePixelSamples: true,
-    pixelSamples,
     cameraState: {},
     objectParts: [
       { entityId: 'plume-a', center: [0.5, 0.5], size: [0.2, 0.12], depth: 0.5 },
       { entityId: 'detector-a', center: [0.5, 0.5], size: [0.5, 0.4], depth: 0.5 },
     ],
   };
+  const pixelSamples = pixelSampleSet(renderData, [
+    { id: 'source-pixel', obligationId: obligation.id, rgba: [90, 140, 180, 255] },
+    { id: 'target-pixel', obligationId: obligation.id, rgba: [120, 170, 200, 255] },
+  ]);
+  Object.assign(renderData, {
+    pixelSamples,
+  });
   const crossing = proofApi.renderObligationProof(packet, [], packet.compositionLedger, true, renderData)[0];
   assert.equal(crossing.status, 'pass');
   renderData.objectParts[0].center = [0.9, 0.1];
   const missing = proofApi.renderObligationProof(packet, [], packet.compositionLedger, true, renderData)[0];
   assert.equal(missing.geometrySatisfied, false);
   assert.equal(missing.status, 'fail');
+});
+
+test('Phase 7 rejects pixel evidence captured for a different scene packet', () => {
+  const spec = lab.createSpecFromPrompt('a dog', { allowPrototypeFallback: true });
+  const canvas = { width: 640, height: 360 };
+  const input = lab.createRenderExecutionInput(spec, { t: 0 }, canvas);
+  const oldRenderData = rendererScope.compileSceneRenderData(input.sceneRenderPacket);
+  oldRenderData.requireLivePixelSamples = true;
+  const oldPlan = rendererScope.phase7PixelReadbackPlan(
+    oldRenderData, input.sceneRenderPacket, input, canvas
+  );
+  const staleSamples = pixelSampleSet(oldRenderData, oldPlan.samples.map((sample) => ({
+    ...sample,
+    rgba: [80, 160, 220, 255],
+  })));
+  const currentPacket = JSON.parse(JSON.stringify(input.sceneRenderPacket));
+  currentPacket.entities[0].transform.position[0] += 0.25;
+  const currentInput = { ...input, sceneRenderPacket: currentPacket };
+  const currentRenderData = rendererScope.compileSceneRenderData(currentPacket);
+  currentRenderData.requireLivePixelSamples = true;
+  currentRenderData.pixelSamples = staleSamples;
+
+  assert.notEqual(currentRenderData.packetKey, staleSamples.packetKey);
+  assert.ok(rendererScope.phase7PixelReadbackPlan(currentRenderData, currentPacket, currentInput, canvas));
+  const phase7 = lab.runPhase7RenderExecution(currentInput, null, canvas, {
+    ...currentRenderData,
+    rendered: true,
+    renderCount: 1,
+  });
+  const execution = phase7.artifact.renderExecution;
+  assert.equal(execution.pixelAudit.pixelSampleBinding.status, 'fail');
+  assert.equal(execution.pixelAudit.pixelSampleBinding.reason, 'pixel samples are stale for the current render data');
+  assert.ok(execution.visualObligationProof.every((row) => row.status === 'fail'));
+  const phase8 = lab.runPhase8SceneProof(phase7);
+  assert.equal(phase8.artifact.sceneProof.verdict, 'fail');
 });
 
 test('Phase 6 lays out containment, entry, and between relations for final part geometry', () => {

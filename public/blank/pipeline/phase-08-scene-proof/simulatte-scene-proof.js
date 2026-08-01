@@ -42,11 +42,12 @@
       rendererConsumption: renderExecution.rendererConsumption || null,
     }));
     const requiredLost = settledObligations.filter((row) => row.required === true && row.status === 'lost');
+    const requiredUnsupported = settledObligations.filter((row) => row.required === true && row.status === 'unsupported');
     const requiredNotProven = settledObligations.filter((row) => row.required === true && row.status === 'not-proven');
     const interactionProof = settleInteractionReceipt(renderExecution.interactionReceipt || null);
     const verdict = !rendered
       ? 'not-proven'
-      : requiredLost.length || requiredNotProven.length || interactionProof.status === 'fail'
+      : requiredLost.length || requiredUnsupported.length || requiredNotProven.length || interactionProof.status === 'fail'
         ? 'fail'
         : 'pass';
     const summary = {
@@ -56,6 +57,7 @@
       unsupportedCount: countByStatus(settledObligations, 'unsupported'),
       notProvenCount: countByStatus(settledObligations, 'not-proven'),
       requiredLostIds: requiredLost.map((row) => row.obligationId),
+      requiredUnsupportedIds: requiredUnsupported.map((row) => row.obligationId),
       requiredNotProvenIds: requiredNotProven.map((row) => row.obligationId),
     };
     const sceneProof = {
@@ -101,6 +103,7 @@
           unsupportedCount: summary.unsupportedCount,
           notProvenCount: summary.notProvenCount,
           requiredLostIds: summary.requiredLostIds.slice(0, 12),
+          requiredUnsupportedIds: summary.requiredUnsupportedIds.slice(0, 12),
           requiredNotProvenIds: summary.requiredNotProvenIds.slice(0, 12),
           pixelAuditStatus: sceneProof.evidence.pixelAuditStatus,
           perceptualReadyCount: Number(
@@ -317,10 +320,14 @@
       };
     }
     if (row.kind === 'relation') {
+      const visualProof = relationVisualProof(row, obligationId, context.visualProofByObligation);
       const partGraphEvidence = (row.visualEvidence || []).find((value) => (
         /^(?:part-binding|material-binding):/.test(String(value || ''))
       ));
-      if (partGraphEvidence && !carriedFailure) {
+      if (visualProof && visualProof.status === 'fail') {
+        return { ...base, status: base.required ? 'lost' : 'not-proven', reason: 'relation failed Phase 7 visual proof', evidence: ['visualObligationProof'] };
+      }
+      if (partGraphEvidence && visualProof && visualProof.status === 'pass' && !carriedFailure) {
         return { ...base, status: 'preserved', reason: 'relation proven by rendered part graph', evidence: [partGraphEvidence] };
       }
       if (carriedFailure) {
@@ -335,7 +342,10 @@
         if (spatialRelation && !layoutEvidence) {
           return { ...base, status: 'not-proven', reason: 'spatial relation lacks a Phase 6 constraint-layout receipt' };
         }
-        return { ...base, status: 'preserved', reason: 'relation endpoint identities present', evidence: ['packetIdentitySummary'] };
+        if (visualProof && visualProof.status === 'pass') {
+          return { ...base, status: 'preserved', reason: 'relation endpoints and Phase 7 visual proof present', evidence: ['packetIdentitySummary', 'visualObligationProof'] };
+        }
+        return { ...base, status: 'not-proven', reason: 'relation endpoint identities lack Phase 7 visual proof' };
       }
       if (endpoints.length && present.length === 0) {
         return { ...base, status: base.required ? 'lost' : 'unsupported', reason: 'relation endpoint identities missing' };
@@ -377,6 +387,24 @@
       if (targetTerms.some((term) => identityTerms.has(term))) return true;
     }
     return false;
+  }
+
+  function relationVisualProof(row = {}, obligationId = '', proofs = new Map()) {
+    const direct = proofs.get(obligationId);
+    if (direct) return direct;
+    for (const evidence of row.visualEvidence || []) {
+      const match = String(evidence || '').match(/^layout-relation:(.+)$/);
+      if (match) {
+        const linked = proofs.get(match[1]);
+        if (linked) return linked;
+      }
+      const material = String(evidence || '').match(/^material-binding:([^:]+):(.+)$/);
+      if (material) {
+        const linked = proofs.get(`visual:prompt-property-${material[1]}-material-${material[2]}`);
+        if (linked) return linked;
+      }
+    }
+    return null;
   }
 
   function objectRealizationForTarget(rows = [], target = '') {

@@ -133,6 +133,213 @@ test('plugin runtime forwards scenario changes through the generic lifecycle', a
   assert.equal(runtime.runtimeReceipt().scenario.seed, 'second');
 });
 
+test('plugin runtime clones action and capability results before exposing them', async () => {
+  const pluginOutput = { nested: { value: 'original' } };
+  const row = {
+    manifest: manifest({ extensionPoints: [] }),
+    configs: { 'fixture-default-v1': { id: 'fixture-default-v1' } },
+    factory: {
+      async activate() {
+        return {
+          id: 'fixture-plugin',
+          capabilities: { 'fixture.capability.v1': () => pluginOutput },
+          handleAction: () => pluginOutput,
+        };
+      },
+    },
+  };
+  const profile = { schema: 'simulatte.applicationProfile.v1', id: 'immutable-plugin-output-v1', plugins: [{ id: 'fixture-plugin', configId: 'fixture-default-v1' }], routeObjective: {} };
+  const dataCatalog = catalogApi.createDataCatalog([{ id: 'fixture-data-v1', value: {} }]);
+  const runtime = await runtimeApi.createPluginRuntime({ registry: { entry: () => row }, profile, dataCatalog, corePorts: { ui: Object.freeze({ slot: 'inspector' }) } });
+  const capabilityResult = runtime.invoke('fixture.capability.v1', {});
+  const actionResult = await runtime.dispatchAction('fixture-plugin', 'fixture.action', {});
+  pluginOutput.nested.value = 'mutated-by-plugin';
+  assert.equal(capabilityResult.nested.value, 'original');
+  assert.equal(actionResult.nested.value, 'original');
+  assert.equal(Object.isFrozen(capabilityResult.nested), true);
+  assert.equal(Object.isFrozen(actionResult.nested), true);
+});
+
+test('plugin runtime disposes activated plugins when a later activation fails', async () => {
+  let alphaDisposed = 0;
+  const rows = new Map([
+    ['alpha', {
+      manifest: manifest({ id: 'alpha', extensionPoints: [], provides: [] }),
+      configs: { default: { id: 'default' } },
+      factory: { async activate() { return { id: 'alpha', dispose() { alphaDisposed += 1; } }; } },
+    }],
+    ['beta', {
+      manifest: manifest({ id: 'beta', extensionPoints: [], provides: [] }),
+      configs: { default: { id: 'default' } },
+      factory: { async activate() { throw new Error('beta activation failed'); } },
+    }],
+  ]);
+  const profile = { schema: 'simulatte.applicationProfile.v1', id: 'activation-cleanup-v1', plugins: [{ id: 'alpha', configId: 'default' }, { id: 'beta', configId: 'default' }], routeObjective: {} };
+  const dataCatalog = catalogApi.createDataCatalog([{ id: 'fixture-data-v1', value: {} }]);
+  await assert.rejects(runtimeApi.createPluginRuntime({ registry: { entry: (id) => rows.get(id) }, profile, dataCatalog, corePorts: { ui: Object.freeze({ slot: 'inspector' }) } }), /beta activation failed/);
+  assert.equal(alphaDisposed, 1);
+});
+
+test('plugin runtime disposes every plugin and reports disposal failures', async () => {
+  const calls = [];
+  const rows = new Map(['alpha', 'beta'].map((id) => [id, {
+    manifest: manifest({ id, extensionPoints: [], provides: [] }),
+    configs: { default: { id: 'default' } },
+    factory: {
+      async activate() {
+        return {
+          id,
+          dispose() {
+            calls.push(id);
+            if (id === 'beta') throw new Error('beta disposal failed');
+          },
+        };
+      },
+    },
+  }]));
+  const profile = { schema: 'simulatte.applicationProfile.v1', id: 'dispose-all-v1', plugins: [{ id: 'alpha', configId: 'default' }, { id: 'beta', configId: 'default' }], routeObjective: {} };
+  const dataCatalog = catalogApi.createDataCatalog([{ id: 'fixture-data-v1', value: {} }]);
+  const runtime = await runtimeApi.createPluginRuntime({ registry: { entry: (id) => rows.get(id) }, profile, dataCatalog, corePorts: { ui: Object.freeze({ slot: 'inspector' }) } });
+  await assert.rejects(runtime.dispose(), (error) => error.code === 'plugin_runtime_dispose_failed');
+  assert.deepEqual(calls, ['beta', 'alpha']);
+});
+
+test('plugin runtime owns an immutable scenario snapshot', async () => {
+  const sourceScenario = { id: 'source', seed: 'original' };
+  const row = {
+    manifest: manifest({ extensionPoints: [] }),
+    configs: { 'fixture-default-v1': { id: 'fixture-default-v1' } },
+    factory: { async activate() { return { id: 'fixture-plugin' }; } },
+  };
+  const profile = { schema: 'simulatte.applicationProfile.v1', id: 'scenario-snapshot-v1', plugins: [{ id: 'fixture-plugin', configId: 'fixture-default-v1' }], routeObjective: {} };
+  const dataCatalog = catalogApi.createDataCatalog([{ id: 'fixture-data-v1', value: {} }]);
+  const runtime = await runtimeApi.createPluginRuntime({ registry: { entry: () => row }, profile, scenario: sourceScenario, dataCatalog, corePorts: { ui: Object.freeze({ slot: 'inspector' }) } });
+  sourceScenario.seed = 'mutated-outside-runtime';
+  assert.equal(runtime.runtimeReceipt().scenario.seed, 'original');
+});
+
+test('plugin runtime rolls back applied scenario changes after a plugin rejects one', async () => {
+  const alphaScenarios = [];
+  const betaScenarios = [];
+  const rows = new Map([
+    ['alpha', {
+      manifest: manifest({ id: 'alpha', extensionPoints: [], provides: [] }),
+      configs: { default: { id: 'default' } },
+      factory: { async activate() { return { id: 'alpha', setScenario(next) { alphaScenarios.push(next.seed); } }; } },
+    }],
+    ['beta', {
+      manifest: manifest({ id: 'beta', extensionPoints: [], provides: [] }),
+      configs: { default: { id: 'default' } },
+      factory: { async activate() { return { id: 'beta', setScenario(next) { betaScenarios.push(next.seed); if (next.seed === 'rejected') throw new Error('scenario rejected'); } }; } },
+    }],
+  ]);
+  const profile = { schema: 'simulatte.applicationProfile.v1', id: 'scenario-rollback-v1', plugins: [{ id: 'alpha', configId: 'default' }, { id: 'beta', configId: 'default' }], routeObjective: {} };
+  const dataCatalog = catalogApi.createDataCatalog([{ id: 'fixture-data-v1', value: {} }]);
+  const runtime = await runtimeApi.createPluginRuntime({ registry: { entry: (id) => rows.get(id) }, profile, scenario: { seed: 'accepted' }, dataCatalog, corePorts: { ui: Object.freeze({ slot: 'inspector' }) } });
+  await assert.rejects(runtime.setScenario({ seed: 'rejected' }), /scenario rejected/);
+  assert.deepEqual(alphaScenarios, ['rejected', 'accepted']);
+  assert.deepEqual(betaScenarios, ['rejected', 'accepted']);
+  assert.equal(runtime.runtimeReceipt().scenario.seed, 'accepted');
+});
+
+test('plugin runtime serializes overlapping scenario changes', async () => {
+  let releaseFirst;
+  const firstScenarioGate = new Promise((resolve) => { releaseFirst = resolve; });
+  const seen = [];
+  const row = {
+    manifest: manifest({ extensionPoints: [] }),
+    configs: { 'fixture-default-v1': { id: 'fixture-default-v1' } },
+    factory: {
+      async activate() {
+        return {
+          id: 'fixture-plugin',
+          async setScenario(next) {
+            seen.push(`${next.seed}:start`);
+            if (next.seed === 'first') await firstScenarioGate;
+            seen.push(`${next.seed}:end`);
+          },
+        };
+      },
+    },
+  };
+  const profile = { schema: 'simulatte.applicationProfile.v1', id: 'scenario-queue-v1', plugins: [{ id: 'fixture-plugin', configId: 'fixture-default-v1' }], routeObjective: {} };
+  const dataCatalog = catalogApi.createDataCatalog([{ id: 'fixture-data-v1', value: {} }]);
+  const runtime = await runtimeApi.createPluginRuntime({ registry: { entry: () => row }, profile, scenario: { seed: 'initial' }, dataCatalog, corePorts: { ui: Object.freeze({ slot: 'inspector' }) } });
+  const first = runtime.setScenario({ seed: 'first' });
+  await Promise.resolve();
+  const second = runtime.setScenario({ seed: 'second' });
+  releaseFirst();
+  await Promise.all([first, second]);
+  assert.deepEqual(seen, ['first:start', 'first:end', 'second:start', 'second:end']);
+  assert.equal(runtime.runtimeReceipt().scenario.seed, 'second');
+});
+
+test('plugin runtime rejects public work after disposal instead of reading cleared instances', async () => {
+  const row = {
+    manifest: manifest({ extensionPoints: [] }),
+    configs: { 'fixture-default-v1': { id: 'fixture-default-v1' } },
+    factory: { async activate() { return { id: 'fixture-plugin', dispose() {} }; } },
+  };
+  const profile = { schema: 'simulatte.applicationProfile.v1', id: 'disposed-runtime-v1', plugins: [{ id: 'fixture-plugin', configId: 'fixture-default-v1' }], routeObjective: {} };
+  const dataCatalog = catalogApi.createDataCatalog([{ id: 'fixture-data-v1', value: {} }]);
+  const runtime = await runtimeApi.createPluginRuntime({ registry: { entry: () => row }, profile, scenario: { seed: 'initial' }, dataCatalog, corePorts: { ui: Object.freeze({ slot: 'inspector' }) } });
+  await runtime.dispose();
+  assert.throws(() => runtime.views({}), (error) => error.code === 'plugin_runtime_disposed');
+  await assert.rejects(runtime.setScenario({ seed: 'phantom' }), (error) => error.code === 'plugin_runtime_disposed');
+  assert.equal(runtime.runtimeReceipt().scenario.seed, 'initial');
+});
+
+test('plugin runtime disposal is idempotent for overlapping callers', async () => {
+  let disposeCalls = 0;
+  const row = {
+    manifest: manifest({ extensionPoints: [] }),
+    configs: { 'fixture-default-v1': { id: 'fixture-default-v1' } },
+    factory: { async activate() { return { id: 'fixture-plugin', async dispose() { disposeCalls += 1; } }; } },
+  };
+  const profile = { schema: 'simulatte.applicationProfile.v1', id: 'idempotent-dispose-v1', plugins: [{ id: 'fixture-plugin', configId: 'fixture-default-v1' }], routeObjective: {} };
+  const dataCatalog = catalogApi.createDataCatalog([{ id: 'fixture-data-v1', value: {} }]);
+  const runtime = await runtimeApi.createPluginRuntime({ registry: { entry: () => row }, profile, dataCatalog, corePorts: { ui: Object.freeze({ slot: 'inspector' }) } });
+  await Promise.all([runtime.dispose(), runtime.dispose()]);
+  assert.equal(disposeCalls, 1);
+});
+
+test('plugin runtime completes queued scenario work before disposal closes plugins', async () => {
+  let releaseScenario;
+  let markScenarioStart;
+  const scenarioStarted = new Promise((resolve) => { markScenarioStart = resolve; });
+  const scenarioGate = new Promise((resolve) => { releaseScenario = resolve; });
+  const calls = [];
+  const row = {
+    manifest: manifest({ extensionPoints: [] }),
+    configs: { 'fixture-default-v1': { id: 'fixture-default-v1' } },
+    factory: {
+      async activate() {
+        return {
+          id: 'fixture-plugin',
+          async setScenario(next) {
+            calls.push(`scenario:${next.seed}:start`);
+            markScenarioStart();
+            await scenarioGate;
+            calls.push(`scenario:${next.seed}:end`);
+          },
+          dispose() { calls.push('dispose'); },
+        };
+      },
+    },
+  };
+  const profile = { schema: 'simulatte.applicationProfile.v1', id: 'dispose-after-scenario-v1', plugins: [{ id: 'fixture-plugin', configId: 'fixture-default-v1' }], routeObjective: {} };
+  const dataCatalog = catalogApi.createDataCatalog([{ id: 'fixture-data-v1', value: {} }]);
+  const runtime = await runtimeApi.createPluginRuntime({ registry: { entry: () => row }, profile, dataCatalog, corePorts: { ui: Object.freeze({ slot: 'inspector' }) } });
+  const setting = runtime.setScenario({ seed: 'queued' });
+  await scenarioStarted;
+  const disposing = runtime.dispose();
+  await assert.rejects(runtime.setScenario({ seed: 'after-dispose' }), (error) => error.code === 'plugin_runtime_disposed');
+  assert.deepEqual(calls, ['scenario:queued:start']);
+  releaseScenario();
+  await Promise.all([setting, disposing]);
+  assert.deepEqual(calls, ['scenario:queued:start', 'scenario:queued:end', 'dispose']);
+});
+
 test('plugin contracts reject undeclared authority and capability cycles fail before activation', async () => {
   assert.throws(() => contracts.validateManifest(manifest({ permissions: ['fetch.anything'] })), /plugin_permission_unknown/);
   const rows = new Map([

@@ -67,9 +67,19 @@
 
     function phase7PixelReadbackPlan(renderData = null, sceneRenderPacket = {}, renderExecutionInput = null, canvas = null) {
       if (!renderData || renderData.requireLivePixelSamples !== true) return null;
-      if (renderData.pixelSamples || renderData.livePixelReadbackFailed === true) return null;
-      const hasCurrentSamples = renderData.livePixelSamples &&
-        renderData.livePixelSamples.packetKey === renderData.packetKey;
+      if (renderData.livePixelReadbackFailed === true) return null;
+      const suppliedBinding = scope.phase7PixelSampleSetValidation(
+        sceneRenderPacket,
+        renderData,
+        renderData.pixelSamples || null
+      );
+      if (suppliedBinding.valid) return null;
+      const liveBinding = scope.phase7PixelSampleSetValidation(
+        sceneRenderPacket,
+        renderData,
+        renderData.livePixelSamples || null
+      );
+      const hasCurrentSamples = liveBinding.valid;
       if (hasCurrentSamples && renderData.livePixelSamplesStatus === 'pass') return null;
       if (hasCurrentSamples && Number(renderData.livePixelReadbackAttemptCount || 0) >= 3) return null;
       const width = Number(canvas && canvas.width || 0);
@@ -100,6 +110,10 @@
         const before = samples.length;
         if (obligation.constraintKind === 'environment' || obligation.targetIdentity === 'sunset') {
           samples.push(scope.pixelSampleForEnvironmentObligation(obligation, width, height));
+        } else if (obligation.constraintKind === 'absence' || (
+          obligation.constraintKind === 'count' && Number(obligation.expectedCount) === 0
+        )) {
+          // RGBA readback cannot identify an absent semantic target; leave it unproven.
         } else {
           appendPixelSamplesForObligation(
             samples,

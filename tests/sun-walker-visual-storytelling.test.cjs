@@ -114,24 +114,17 @@ function rowValue(rows, label) {
   return rows.find((row) => row.label === label)?.value;
 }
 
-test('Follow and POV intents target the registered walker actor', () => {
+test('Sun Walker uses a route overview and follows the one registered walker without POV jumps', () => {
   const result = simulate();
   const presentation = presentationApi.semanticPresentation(result, 1);
-  ['follow', 'pov'].forEach((mode) => {
-    assert.ok(presentation.viewIntents.some((intent) => (
-      intent.mode === mode
-      && intent.targets.some((target) => target.entityId === 'sun-walker-actor')
-    )));
-  });
-
-  assert.equal(
-    v4Api.exposureNavigationMode({ state: 'shade' }, { state: 'direct' }),
-    'pov'
-  );
-  assert.equal(
-    v4Api.exposureNavigationMode({ state: 'shade' }, { state: 'shade' }),
-    'follow'
-  );
+  assert.ok(presentation.viewIntents.some((intent) => intent.mode === 'overview'));
+  assert.ok(presentation.viewIntents.some((intent) => (
+    intent.mode === 'follow'
+    && intent.targets.some((target) => target.entityId === 'sun-walker-actor')
+  )));
+  assert.ok(presentation.viewIntents.every((intent) => intent.mode !== 'pov'));
+  assert.equal(v4Api.walkerNavigationMode(0), 'overview');
+  assert.equal(v4Api.walkerNavigationMode(1), 'follow');
 });
 
 test('Walker actor position advances while camera target identity remains stable', () => {
@@ -145,6 +138,7 @@ test('Walker actor position advances while camera target identity remains stable
   assert.equal(secondActor.kind, 'actor');
   assert.notDeepEqual(firstActor.geometry.coordinates, secondActor.geometry.coordinates);
   [first, second].forEach((contribution) => {
+    assert.equal(contribution.presentation.viewIntents[0].mode, 'follow');
     assert.deepEqual(contribution.presentation.viewIntents[0].targetIds, ['sun-walker-actor']);
   });
 });

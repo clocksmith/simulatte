@@ -10,12 +10,12 @@ Owner contract: `public/shared/plugins/sun-walker/index.js`.
 - Profile ID: `sun-walker-v1`
 - Default scenario: `village-union-shade`
 - Contract version: plugin v4 contribution
-- Last verified source: prior browser proof at commit `a5713c1c13ab`
-- Evidence: current worktree browser proof not rerun; prior index contains 8/8 runs
+- Last verified source: focused tests plus local desktop and mobile browser audits on 2026-07-28
+- Evidence: 15 projected shadow layers, one pedestrian actor, overview at rest, follow while moving, and no POV intent
 
 ## What is it?
 
-Sun Walker compares candidate walking routes using arrival-time solar position,
+Sun Walker guides one modeled walker along the shadiest eligible route using arrival-time solar position,
 building occlusion, optional historical tree-canopy geometry, and a pinned
 historical weather analog. It reports clear-sky building-occlusion guidance and
 explicit unknown exposure. It does not measure current shade or thermal comfort.
@@ -37,7 +37,7 @@ explicit unknown exposure. It does not measure current shade or thermal comfort.
 | Departure instant | Scenario value | Valid local datetime | Changes solar position at every sample |
 | Maximum absolute detour | 600 seconds | 0 to 86,400 | Caps added travel time |
 | Maximum relative detour | 0.25 | 0 to 10 | Caps detour as a route-time ratio |
-| Direct-sun preference | 1 | 0 to 100 | Changes route-selection objective |
+| Direct-sun preference | 100 | 0 to 100 | Changes route-selection objective; the default strongly prioritizes shade |
 | Walking speed | 1.4 m/s | Positive configured range | Changes arrival time and sun sampling |
 | Historical tree canopy | Enabled | On or off | Includes or removes modeled crown attenuation |
 | Historical weather analog | Enabled | On or off | Includes or removes pinned beam attenuation |
@@ -45,10 +45,10 @@ explicit unknown exposure. It does not measure current shade or thermal comfort.
 
 ## What does the user see?
 
-- Initial view: Candidate and selected walking routes framed over the governed City geometry.
-- During playback: Timestamped samples accumulate direct sun, building shade, canopy shade, night, and unknown exposure.
+- Initial view: A bird’s-eye frame of the shade-selected route and the projected building-shadow polygons.
+- During playback: The camera follows one visible walker while route segments accumulate direct sun, building shade, canopy shade, night, and unknown exposure.
 - Selection and inspection: Causal building rows, environmental evidence, sample times, and accumulated quantities.
-- Comparison view: Fastest and shade-selected routes show aligned travel and exposure totals.
+- Final view: A bird’s-eye route summary keeps the fastest baseline and shade-selected route legible.
 - Final settlement: Direct sun, beam-equivalent exposure, building shade, canopy shade, unknown time, and detour.
 
 ## What is real, derived, modeled, or simulated?
@@ -101,8 +101,8 @@ Cannot claim:
 - Unit tests: passing in `tests/sun-walker-v4.test.cjs`
 - Deterministic replay: verified
 - Comparison execution: verified
-- Desktop browser: not rerun for the current worktree
-- Mobile browser: not rerun for the current worktree
+- Desktop browser: overview, follow, shadows, one pedestrian, and controls pass locally
+- Mobile browser: overview, shadows, one pedestrian, and immediate control application pass locally
 - Known unresolved failures: current canopy and route-time weather are not observed
 
 ## Where is it implemented?

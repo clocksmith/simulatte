@@ -28,6 +28,9 @@ and Gig Wage Truth are defined as independently versioned Simulatte World
 plugins composed through a shared host. Safety Explorer source remains
 available for historical reference but is not connected to the public host.
 
+The cross-product investigation, lifecycle, receipt, compiler-boundary, and
+release procedure is in the [Simulatte Bug-Zapping Guide](bug-zapping-guide.md).
+
 It is not a directions wrapper and it is not a physical-autonomy claim. Its
 distinct product is matched simulation evidence for questions such as:
 

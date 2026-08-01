@@ -90,6 +90,26 @@ test('contact scheduler orders every relay event and reproduces finite light tim
   assert.equal(schedule.schedulerReceipt.processedCount, schedule.trace.length);
 });
 
+test('plugin scheduler snapshots and deeply freezes payloads when scheduled', () => {
+  const scheduler = schedulerApi.createScheduler('fixture');
+  const payload = { entity: { id: 'original' }, evidenceRefs: ['receipt:original'] };
+  scheduler.schedule({ time: 1, kind: 'fixture.event', payload });
+  payload.entity.id = 'mutated';
+  payload.evidenceRefs.push('receipt:forged');
+
+  let observed = null;
+  scheduler.drain((event) => { observed = event.payload; });
+
+  assert.deepEqual(observed, { entity: { id: 'original' }, evidenceRefs: ['receipt:original'] });
+  assert.equal(Object.isFrozen(observed), true);
+  assert.equal(Object.isFrozen(observed.entity), true);
+  assert.equal(Object.isFrozen(observed.evidenceRefs), true);
+  assert.throws(
+    () => scheduler.schedule({ time: 2, kind: 'fixture.map', payload: new Map([['id', 'mutable']]) }),
+    (error) => error.code === 'scheduler_payload_invalid'
+  );
+});
+
 test('interstellar packet integrity uses host SHA-256 and detects payload changes', async () => {
   const packet = { packetId: 'p1', sequence: 0, payload: 'hello', sourceId: 'sol', destinationId: 'target', relayPath: ['sol', 'target'], createdAt: '2026-07-21T00:00:00Z' };
   const identity = await integrity.createPacketIdentity(receipts, packet);

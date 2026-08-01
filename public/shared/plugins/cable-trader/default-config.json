@@ -15,40 +15,11 @@
     { "id": "coax", "label": "Coaxial cable", "shortLabel": "Coax", "tone": "amber", "demandWeight": 3, "supplyWeight": 6 },
     { "id": "laptop-charger", "label": "Universal laptop charging cable", "shortLabel": "Laptop power", "tone": "violet", "demandWeight": 8, "supplyWeight": 5 }
   ],
-  "hubs": [
-    { "id": "union-square", "label": "Union Square hub", "nodeId": "bike-node-0d9391b2bfa3" },
-    { "id": "east-village", "label": "East Village hub", "nodeId": "bike-node-ffea919f743c" },
-    { "id": "greenpoint", "label": "Greenpoint hub", "nodeId": "bike-node-7a95737b9c7d" },
-    { "id": "north-williamsburg", "label": "North Williamsburg hub", "nodeId": "bike-node-e25116ea05a4" },
-    { "id": "west-village", "label": "West Village hub", "nodeId": "bike-node-261ee8be5a25" },
-    { "id": "washington-square", "label": "Washington Square hub", "nodeId": "bike-node-a3f0f4b7e7e3" },
-    { "id": "williamsburg-waterfront", "label": "Williamsburg Waterfront hub", "nodeId": "bike-node-0b79eee2f2ef" },
-    { "id": "mccarren-park", "label": "McCarren Park hub", "nodeId": "bike-node-8a641140b02c" }
-  ],
-  "locations": [
-    { "id": "houston-street", "label": "Houston Street", "nodeId": "bike-node-0027f161deee" },
-    { "id": "allen-street", "label": "Allen Street", "nodeId": "bike-node-0099ac79ed5d" },
-    { "id": "lafayette-street", "label": "Lafayette Street", "nodeId": "bike-node-00e6a4f5b13d" },
-    { "id": "manhattan-avenue", "label": "Manhattan Avenue", "nodeId": "bike-node-00f0c43427ea" },
-    { "id": "hudson-greenway", "label": "Hudson Greenway", "nodeId": "bike-node-00f5e482242f" },
-    { "id": "williamsburg-bridge", "label": "Williamsburg Bridge", "nodeId": "bike-node-019ee0d024c0" },
-    { "id": "east-8th-street", "label": "East 8th Street", "nodeId": "bike-node-020ae31348c7" },
-    { "id": "varick-street", "label": "Varick Street", "nodeId": "bike-node-0219074afbb1" },
-    { "id": "kent-avenue", "label": "Kent Avenue", "nodeId": "bike-node-02581375adf5" },
-    { "id": "driggs-avenue", "label": "Driggs Avenue", "nodeId": "bike-node-0276a7734bae" },
-    { "id": "delancey-street", "label": "Delancey Street", "nodeId": "bike-node-03352f042588" },
-    { "id": "berry-street", "label": "Berry Street", "nodeId": "bike-node-03e4f4137869" },
-    { "id": "stanton-street", "label": "Stanton Street", "nodeId": "bike-node-03ed7cd47daf" },
-    { "id": "franklin-street", "label": "Franklin Street", "nodeId": "bike-node-0432bbd6fe21" },
-    { "id": "east-3rd-street", "label": "East 3rd Street", "nodeId": "bike-node-045777091070" },
-    { "id": "greenwich-street", "label": "Greenwich Street", "nodeId": "bike-node-02e9c58895db" }
-  ],
   "simulation": {
     "seed": "cable-circulation-everyday-2026",
     "durationDays": 365,
-    "peopleCount": 6000,
+    "peopleCount": 256,
     "hubCount": 4,
-    "locationCount": 12,
     "selectedCableTypeIds": [
       "usb-a-to-c",
       "usb-c-to-c",
@@ -65,6 +36,6 @@
     ],
     "initialInventoryPerHubCable": 8,
     "dailyParticipationRate": 0.012,
-    "renderedTravelerCount": 24
+    "renderedTravelerCount": 18
   }
 }

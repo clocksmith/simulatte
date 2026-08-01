@@ -184,12 +184,14 @@
       });
       if (['point', 'point-cluster', 'label'].includes(primitive.kind)) {
         const radiusM = screenPixelsToWorld(style.radiusPx || 4, worldUnitsPerPixel);
-        compiled.markers.push(Object.freeze({
+        const markerPoints = primitive.geometry.kind === 'point-cloud' ? points : [points[0]];
+        markerPoints.forEach((point, index) => compiled.markers.push(Object.freeze({
           ...common,
-          point: points[0],
+          id: markerPoints.length === 1 ? common.id : `${common.id}:point-${index + 1}`,
+          point,
           radiusM,
           heightM: radiusM * 3,
-        }));
+        })));
       } else if (primitive.kind === 'actor') {
         const actorKind = semanticActorKind(primitive.quantity?.kind);
         if (actorKind) {
@@ -204,9 +206,10 @@
           }));
         } else {
           const radiusM = screenPixelsToWorld(style.radiusPx || 5, worldUnitsPerPixel);
+          const progress = semanticActorProgress(primitive.quantity);
           compiled.markers.push(Object.freeze({
             ...common,
-            point: points[0],
+            point: pointAlongPath(points, progress),
             radiusM,
             heightM: radiusM * 2,
           }));

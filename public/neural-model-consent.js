@@ -112,6 +112,7 @@
     fillDialog(dialog, bundle, options.surface);
     let enabled = readGrant(storage, bundle);
     let pending = null;
+    let disposed = false;
     const sync = () => {
       toggle.checked = enabled;
       toggle.setAttribute('aria-checked', String(enabled));
@@ -121,6 +122,7 @@
       if (EventCtor) toggle.dispatchEvent(new EventCtor('neural-model-consent-change', { detail: { enabled, bundle } }));
     };
     const settle = (accepted) => {
+      if (disposed) return;
       if (accepted) {
         writeGrant(storage, bundle);
         enabled = true;
@@ -134,6 +136,7 @@
       if (resolve) resolve(enabled);
     };
     const requestEnable = () => {
+      if (disposed) return Promise.resolve(false);
       if (enabled) return Promise.resolve(true);
       if (pending) return new Promise((resolve) => {
         const previous = pending;
@@ -147,18 +150,42 @@
       enabled = false;
       sync();
     };
-    toggle.addEventListener('change', async () => {
+    const onToggleChange = async () => {
       if (toggle.checked) await requestEnable();
       else disable();
-    });
-    dialog.querySelector('[data-neural-consent="accept"]')?.addEventListener('click', () => settle(true));
-    dialog.querySelector('[data-neural-consent="cancel"]')?.addEventListener('click', () => settle(false));
-    dialog.addEventListener('cancel', (event) => {
+    };
+    const acceptButton = dialog.querySelector('[data-neural-consent="accept"]');
+    const cancelButton = dialog.querySelector('[data-neural-consent="cancel"]');
+    const onAccept = () => settle(true);
+    const onCancelClick = () => settle(false);
+    const onDialogCancel = (event) => {
       event.preventDefault();
       settle(false);
-    });
+    };
+    toggle.addEventListener('change', onToggleChange);
+    acceptButton?.addEventListener('click', onAccept);
+    cancelButton?.addEventListener('click', onCancelClick);
+    dialog.addEventListener('cancel', onDialogCancel);
     sync();
-    return { bundle, isEnabled: () => enabled, requestEnable, disable, sync };
+    return {
+      bundle,
+      isEnabled: () => enabled,
+      requestEnable,
+      disable,
+      sync,
+      dispose() {
+        if (disposed) return;
+        disposed = true;
+        toggle.removeEventListener('change', onToggleChange);
+        acceptButton?.removeEventListener('click', onAccept);
+        cancelButton?.removeEventListener('click', onCancelClick);
+        dialog.removeEventListener('cancel', onDialogCancel);
+        if (dialog.open) dialog.close('disposed');
+        const resolve = pending;
+        pending = null;
+        resolve?.(false);
+      },
+    };
   }
 
   return { STORAGE_KEY, formatBytes, summarizeLock, readGrant, writeGrant, revokeGrant, loadBundle, createGate };

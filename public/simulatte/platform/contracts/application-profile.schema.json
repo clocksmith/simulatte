@@ -311,6 +311,11 @@
             "shuffleLabel": {
               "type": "string",
               "minLength": 1
+            },
+            "stepDelayMs": {
+              "type": "number",
+              "minimum": 16,
+              "maximum": 60000
             }
           }
         },
@@ -483,6 +488,11 @@
             },
             "missionRequired": {
               "type": "boolean"
+            },
+            "stepDelayMs": {
+              "type": "number",
+              "minimum": 16,
+              "maximum": 60000
             }
           }
         },

@@ -2,13 +2,22 @@
   const objectRealization = typeof module === 'object' && module.exports
     ? require('./simulatte-object-realization.js')
     : root.SimulatteObjectRealization;
-  const api = factory(objectRealization);
+  const evidenceBinding = typeof module === 'object' && module.exports
+    ? require('./simulatte-render-evidence-binding.js')
+    : root.SimulatteRenderEvidenceBinding;
+  const api = factory(objectRealization, evidenceBinding);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteRenderProof = api;
-})(typeof globalThis !== 'undefined' ? globalThis : window, function createRenderProofApi(objectRealization = {}) {
+})(typeof globalThis !== 'undefined' ? globalThis : window, function createRenderProofApi(
+  objectRealization = {}, evidenceBinding = {}
+) {
   const objectRealizationForScenePacket = objectRealization.objectRealizationForScenePacket;
+  const phase7PixelSampleSetValidation = evidenceBinding.phase7PixelSampleSetValidation;
   if (typeof objectRealizationForScenePacket !== 'function') {
     throw new Error('SimulatteRenderProof requires SimulatteObjectRealization');
+  }
+  if (typeof phase7PixelSampleSetValidation !== 'function') {
+    throw new Error('SimulatteRenderProof requires SimulatteRenderEvidenceBinding');
   }
   function scenePacketIdentitySummary(sceneRenderPacket = {}) {
     return Array.from(new Set((sceneRenderPacket.entities || [])
@@ -86,7 +95,7 @@
         renderData
       );
       const geometryProof = relationVisualObligationGeometryReceipt(row, sceneRenderPacket, renderData);
-      const pixelProof = visualObligationPixelProof(row, renderData);
+      const pixelProof = visualObligationPixelProof(row, renderData, sceneRenderPacket);
       const pixelSatisfied = rendered && packetSatisfied && geometrySatisfied && pixelProof.satisfied;
       const sourceStatus = row.status || '';
       const status = pixelSatisfied && !phase7FailureStatus(sourceStatus)
@@ -147,8 +156,10 @@
     const sceneInstanceCount = Number(renderData && (
       renderData.objectPartCount ?? renderData.sceneInstanceCount
     ) || 0);
+    const pixelSampleSource = evidenceBinding.phase7PixelSampleSource(renderData, canvas);
+    const pixelSampleBinding = phase7PixelSampleSetValidation(sceneRenderPacket, renderData, pixelSampleSource);
     const livePixelAudit = auditLivePixelSamples(
-      phase7PixelSamples(renderData, canvas),
+      pixelSampleBinding.valid ? normalizePhase7PixelSamples(pixelSampleSource) : [],
       {
         required: Boolean(renderData && renderData.requireLivePixelSamples),
         proofSummary,
@@ -229,6 +240,7 @@
       sceneInstanceCount,
       drawableCount,
       optimizationPath: optimization && optimization.path || '',
+      pixelSampleBinding,
       livePixelAudit,
       literalRealization,
     };
@@ -305,13 +317,45 @@
       entities.find((row) => promptProofEntityMatches(row, obligation.targetIdentity || obligation.target)) || null;
   }
 
-  function visualObligationPixelProof(obligation = {}, renderData = null) {
-    const required = Boolean(renderData && renderData.requireLivePixelSamples);
-    if (!required) return { required: false, satisfied: true, expectedCount: 0, visibleCount: 0, evidence: [] };
+  function visualObligationPixelProof(obligation = {}, renderData = null, sceneRenderPacket = {}) {
+    const absenceConstraint = obligation.constraintKind === 'absence' || (
+      obligation.constraintKind === 'count' && Number(obligation.expectedCount) === 0
+    );
+    if (absenceConstraint) {
+      return {
+        required: true,
+        satisfied: false,
+        expectedCount: 0,
+        visibleCount: 0,
+        evidence: [],
+        reason: 'semantic absence detector unavailable',
+      };
+    }
     const obligationId = obligation.obligationId || obligation.id || '';
-    const rows = normalizePhase7PixelSamples(
-      renderData && (renderData.pixelSamples || renderData.livePixelSamples) || null
-    ).filter((row) => row.obligationId === obligationId);
+    const source = evidenceBinding.phase7PixelSampleSource(renderData);
+    const binding = phase7PixelSampleSetValidation(sceneRenderPacket, renderData, source);
+    if (!binding.valid) {
+      return {
+        required: true,
+        satisfied: false,
+        expectedCount: 1,
+        visibleCount: 0,
+        evidence: [],
+        reason: binding.reason,
+        binding,
+      };
+    }
+    const rows = normalizePhase7PixelSamples(source).filter((row) => row.obligationId === obligationId);
+    if (!rows.length) {
+      return {
+        required: true,
+        satisfied: false,
+        expectedCount: 1,
+        visibleCount: 0,
+        evidence: [],
+        reason: 'required visual obligation has no live pixel readback',
+      };
+    }
     const expectedDrawableIds = obligation.sourceKind === 'action'
       ? Array.from(new Set([...(obligation.evidence || []), ...(obligation.visualEvidence || [])]
         .map((value) => String(value || '').match(/^phase6:entity:(.+)$/))
@@ -344,6 +388,7 @@
     if (!/^visual:prompt-/.test(String(obligation.obligationId || obligation.id || ''))) return null;
     const entities = sceneRenderPacket.entities || [];
     const matching = entities.filter((row) => promptProofEntityMatches(row, obligation.targetIdentity || obligation.target));
+    if (obligation.constraintKind === 'absence') return matching.length === 0;
     if (obligation.constraintKind === 'count') {
       return matching.length === Number(obligation.expectedCount || 0) && matching.every((row) => (
         row.cardinalityReceipt && Number(row.cardinalityReceipt.instanceCount) === Number(obligation.expectedCount)
@@ -378,6 +423,7 @@
       return Boolean(sceneRenderPacket.environmentProgram);
     }
     const matching = rows.filter((row) => promptProofRealizationMatches(row, obligation.targetIdentity || obligation.target));
+    if (obligation.constraintKind === 'absence') return matching.length === 0;
     if (obligation.constraintKind === 'count') {
       return matching.length === Number(obligation.expectedCount || 0) && matching.every((row) => row.realized === true);
     }
@@ -494,21 +540,17 @@
     return hasCanvasPixels ? 'canvas-render-receipt' : 'scene-packet-render-receipt';
   }
 
-  function phase7PixelSamples(renderData = null, canvas = null) {
-    return normalizePhase7PixelSamples(
-      renderData && (renderData.pixelSamples || renderData.livePixelSamples) ||
-      renderData && renderData.renderData && (
-        renderData.renderData.pixelSamples || renderData.renderData.livePixelSamples
-      ) ||
-      canvas && canvas.__simulattePixelSamples ||
-      null
-    );
+  function phase7PixelSamples(renderData = null, canvas = null, sceneRenderPacket = {}) {
+    const source = evidenceBinding.phase7PixelSampleSource(renderData, canvas);
+    return phase7PixelSampleSetValidation(sceneRenderPacket, renderData, source).valid
+      ? normalizePhase7PixelSamples(source)
+      : [];
   }
 
   function normalizePhase7PixelSamples(source = null) {
-    const rows = Array.isArray(source)
-      ? source
-      : source && (source.samples || source.rows || source.pixelSamples) || [];
+    const rows = source && !Array.isArray(source) && Array.isArray(source.samples)
+      ? source.samples
+      : [];
     return rows.map((row, index) => {
       const rgba = normalizeSampleRgba(row && (row.rgba || row.color || row.pixel));
       const contrast = Number.isFinite(Number(row && row.contrast))
@@ -900,5 +942,6 @@
     constructionVisualObligationGeometrySatisfied,
     visualObligationPixelProof,
     promptPixelColorSatisfied,
+    ...evidenceBinding,
   });
 });

@@ -1,6 +1,5 @@
 (function attachSimulatteIntentEmbedderspanretrieval(root) {
   const scope = root.SimulattePhaseModuleRegistry.family('intentEmbedder');
-
     function spanReceiptConfig(config = {}) {
         return {
           enabled: Boolean(config.enabled),
@@ -37,6 +36,28 @@
         if (!Number.isFinite(parsed)) return fallback;
         return Math.max(min, Math.min(max, parsed));
       }
+    function spanEmbeddingCacheEntry(result, index) {
+        const embedding = scope.validateQueryEmbedding(result, index);
+        return Object.freeze({
+          schema: 'simulatte.spanEmbeddingCacheEntry.v1',
+          embedModelId: String(result.embedModelId || ''),
+          embedModelHash: scope.hashHex(result.embedModelHash),
+          embedding: Object.freeze(Array.from(embedding)),
+        });
+      }
+    function spanEmbeddingResultFromCache(entry, index) {
+        if (!entry || entry.schema !== 'simulatte.spanEmbeddingCacheEntry.v1' ||
+          !Object.isFrozen(entry) || !Array.isArray(entry.embedding) || !Object.isFrozen(entry.embedding)) {
+          throw new Error('Phase 3 span embedding cache entry is invalid or mutable');
+        }
+        const result = {
+          embedding: Float32Array.from(entry.embedding),
+          embedModelId: entry.embedModelId,
+          embedModelHash: entry.embedModelHash,
+        };
+        scope.validateQueryEmbedding(result, index);
+        return result;
+      }
     async function embedSpanQueries(payload = {}) {
         const provider = payload.provider;
         const spans = payload.spans || [];
@@ -49,7 +70,10 @@
         const rankId = payload.rankId || 0;
         const started = scope.nowMs();
         const cacheKeyFor = (span) => [
+          payload.runtime && payload.runtime.index && payload.runtime.index.embedModelId || '',
           payload.runtime && payload.runtime.index && payload.runtime.index.embedModelHash || '',
+          payload.runtime && payload.runtime.manifest && payload.runtime.manifest.embedModel &&
+            payload.runtime.manifest.embedModel.dtype || '',
           payload.runtime && payload.runtime.index && payload.runtime.index.embeddingDim || '',
           scope.normalizeSpanText(span.text),
         ].join(':');
@@ -57,7 +81,13 @@
         const rows = spans.map((span) => {
           const cacheKey = cacheKeyFor(span);
           const cached = cache && cache.get(cacheKey);
-          if (cached) return { span, query: cached, cacheHit: true };
+          if (cached) {
+            return {
+              span,
+              query: spanEmbeddingResultFromCache(cached, payload.runtime.index),
+              cacheHit: true,
+            };
+          }
           const row = { span, query: null, cacheHit: false, cacheKey };
           pending.push(row);
           return row;
@@ -100,9 +130,10 @@
         });
         const batchResult = config.batchEmbedding ? await embedSpanBatch(provider, requestRows) : null;
         if (batchResult && batchResult.length === pending.length) {
+          const entries = batchResult.map((result) => spanEmbeddingCacheEntry(result, payload.runtime.index));
           pending.forEach((row, index) => {
-            row.query = batchResult[index];
-            if (cache) cache.set(row.cacheKey, row.query);
+            row.query = spanEmbeddingResultFromCache(entries[index], payload.runtime.index);
+            if (cache) cache.set(row.cacheKey, entries[index]);
           });
           scope.emitRuntimeProgress(progress, trace, {
             source: 'simulatte-intent-embedder',
@@ -122,13 +153,15 @@
           return rows;
         }
         for (const row of pending) {
-          row.query = await provider.embed({
+          const result = await provider.embed({
             text: row.span.text,
             nowIso,
             spanId: row.span.id,
             spanKind: row.span.kind,
           });
-          if (cache) cache.set(row.cacheKey, row.query);
+          const entry = spanEmbeddingCacheEntry(result, payload.runtime.index);
+          row.query = spanEmbeddingResultFromCache(entry, payload.runtime.index);
+          if (cache) cache.set(row.cacheKey, entry);
         }
         scope.emitRuntimeProgress(progress, trace, {
           source: 'simulatte-intent-embedder',
@@ -213,11 +246,12 @@
             ? await safeSpanGpuRank(payload.rankGpu, vector)
             : null;
           const scores = gpuScores || scope.rankCpu(vector, candidateVectors);
-          const primitiveMatches = candidates
-            .map((primitive, index) => scope.spanPrimitiveMatch(span, primitive, scores[index]))
-            .filter((row) => row.score >= config.primitiveScoreFloor)
-            .sort((a, b) => b.score - a.score || a.primitiveId.localeCompare(b.primitiveId))
-            .slice(0, config.perSpanPrimitiveMax);
+          const primitiveMatches = [];
+          for (let index = 0; index < candidates.length; index += 1) {
+            const row = scope.spanPrimitiveMatch(span, candidates[index], scores[index]);
+            if (config.perSpanPrimitiveMax > 0 && row.score >= config.primitiveScoreFloor) scope.pushBoundedRank(primitiveMatches, row, config.perSpanPrimitiveMax);
+          }
+          primitiveMatches.sort((a, b) => b.score - a.score || a.primitiveId.localeCompare(b.primitiveId));
           const cardMatches = scope.rankSurfaceCards(runtime.cardIndex, vector, {
             ...payload.options,
             maxCards: config.perSpanCardMax,
@@ -360,15 +394,18 @@
           const primitiveMax = scope.slotCandidateBudget(slot, 'primitive', config.perSlotPrimitiveMax);
           const cardMax = scope.slotCandidateBudget(slot, 'surfaceCard', config.perSlotCardMax);
           const universeMax = scope.slotCandidateBudget(slot, 'universe', config.perSlotUniverseMax);
-          const primitiveMatches = scope.slotAllowsCandidateType(slot, 'primitive') && primitiveMax > 0
-            ? candidates
-              .map((primitive, index) => scope.annotateConstructionCandidate(
-                slot, slotPrimitiveMatch(slot, primitive, scores[index], config)
-              ))
-              .filter((row) => row.score >= config.primitiveScoreFloor || row.lexicalScore > 0)
-              .sort(slotCandidateSort)
-              .slice(0, primitiveMax)
-            : [];
+          const primitiveMatches = [];
+          if (scope.slotAllowsCandidateType(slot, 'primitive') && primitiveMax > 0) {
+            for (let index = 0; index < candidates.length; index += 1) {
+              const row = scope.annotateConstructionCandidate(
+                slot, slotPrimitiveMatch(slot, candidates[index], scores[index], config)
+              );
+              if (row.score >= config.primitiveScoreFloor || row.lexicalScore > 0) {
+                scope.pushBoundedRank(primitiveMatches, row, primitiveMax);
+              }
+            }
+            primitiveMatches.sort(slotCandidateSort);
+          }
           const cardMatches = scope.slotAllowsCandidateType(slot, 'surface-card') && cardMax > 0
             ? rankSurfaceCardsForSlot(runtime.cardIndex, slot, vector, { ...config, perSlotCardMax: cardMax }, payload.options)
             : [];
@@ -390,7 +427,7 @@
             ...cardMatches,
             ...universeRows,
           ]).sort(slotCandidateSort).slice(0, config.perSlotCandidateMax);
-          const reranked = await rerankSlotCandidates({
+          const reranked = await scope.rerankSlotCandidates({
             candidates: ranked,
             provider,
             rerankProvider: payload.rerankProvider,
@@ -712,216 +749,6 @@
         });
       }
 
-    async function rerankSlotCandidates(payload = {}) {
-        const rows = payload.candidates || [];
-        const config = scope.rerankerConfig(payload.runtime);
-        const capability = scope.resolveRerankerCapability(payload.provider, {
-          rerankProvider: payload.rerankProvider,
-          dopplerModelHandle: null,
-        });
-        const required = scope.rerankerRequired(payload.runtime);
-        if (!rows.length || !config.enabled || !capability) {
-          if (required && config.enabled && !capability) {
-            throw new Error(`intent manifest requires Doppler reranker ${config.id}, but no slot rerank capability is available`);
-          }
-          return {
-            candidates: rows,
-            rerankCall: false,
-            receipt: {
-              schema: 'simulatte.phase3SlotRerankReceipt.v1',
-              rerankerMode: config.enabled ? 'heuristic-slot-ranking' : 'disabled',
-              modelReady: false,
-              modelRequired: required,
-              modelStatus: config.enabled ? 'not-available' : 'disabled',
-              candidateInputCount: rows.length,
-              candidateOutputCount: rows.length,
-            },
-          };
-        }
-        const skipReason = slotRerankSkipReason(payload.slot, rows, payload.constructionMode === true);
-        if (skipReason) {
-          return {
-            candidates: rows,
-            rerankCall: false,
-            receipt: {
-              schema: 'simulatte.phase3SlotRerankReceipt.v1',
-              rerankerMode: 'local-evidence-ranking',
-              model: config.id,
-              rerankerKind: config.kind,
-              modelReady: true,
-              modelRequired: required,
-              modelStatus: 'skipped',
-              modelBackend: capability.backend,
-              skipReason,
-              candidateInputCount: 0,
-              candidateOutputCount: 0,
-              localCandidateCount: rows.length,
-            },
-          };
-        }
-        try {
-          const input = buildSlotRerankInput({
-            promptText: payload.promptText,
-            slot: payload.slot,
-            candidates: rows,
-            runtime: payload.runtime,
-          });
-          input.onProgress = (row = {}) => scope.emitRuntimeProgress(payload.progress, payload.traceEnabled, {
-            source: 'simulatte-intent-embedder',
-            stage: 'slot-model-rerank',
-            percent: 94.1 + (Number(payload.slotIndex || 0) + 0.5) /
-              Math.max(1, Number(payload.slotCount || 1)) * 1.3,
-            message: `${row.scoreCacheHit === true ? 'Reusing score for' : 'Reranking'} scene slot ` +
-              `${Number(payload.slotIndex || 0) + 1}/${Number(payload.slotCount || 1)} candidate ` +
-              `${row.completed || 0}/${row.total || 0}`,
-            traceId: payload.traceId || '',
-            rankId: payload.rankId || 0,
-            slotId: payload.slot && payload.slot.slotId || '',
-            candidateId: row.candidateId || '',
-            completed: row.completed || 0,
-            total: row.total || 0,
-            candidateCount: row.total || 0,
-            scoreCacheHit: row.scoreCacheHit === true,
-            promptTokenCount: row.promptTokenCount || 0,
-            prefixTokenCount: row.prefixTokenCount || 0,
-            prefixStateReused: row.prefixStateReused === true,
-            prefixPreparationDurationMs: row.prefixPreparationDurationMs || 0,
-            prefixTokenizationDurationMs: row.prefixTokenizationDurationMs || 0,
-            prefixResetDurationMs: row.prefixResetDurationMs || 0,
-            prefixPrimingDurationMs: row.prefixPrimingDurationMs || 0,
-            executionDurationMs: row.executionDurationMs || 0,
-          });
-          input.onProgress({ completed: 0, total: input.candidates.length });
-          const result = await capability.rerank(input);
-          const modelRows = scope.normalizeRerankerRows(result);
-          if (!modelRows.length) throw new Error(`Doppler reranker ${config.id} returned no slot candidates`);
-          return {
-            candidates: applySlotModelRerank(rows, modelRows, input.candidates),
-            rerankCall: true,
-            receipt: {
-              schema: 'simulatte.phase3SlotRerankReceipt.v1',
-              rerankerMode: 'doppler-reranker',
-              model: config.id,
-              rerankerKind: config.kind,
-              modelReady: true,
-              modelRequired: required,
-              modelStatus: 'ready',
-              modelBackend: capability.backend,
-              candidateInputCount: input.candidates.length,
-              candidateOutputCount: modelRows.length,
-              candidateInputs: input.candidates.map((row) => ({
-                candidateId: row.candidateId || row.primitiveId,
-                order: row.order,
-                candidateType: row.candidateType,
-                localScore: row.score,
-                lexicalScore: row.lexicalScore,
-              })),
-              candidateOutputs: modelRows.map((row) => ({
-                candidateId: row.primitiveId,
-                rank: row.rank,
-                score: row.score,
-                scoringPath: row.scoringPath,
-                executionDurationMs: row.executionDurationMs,
-              })),
-              ...scope.rerankExecutionSummary(modelRows),
-            },
-          };
-        } catch (err) {
-          if (required) throw err;
-          return {
-            candidates: rows,
-            rerankCall: false,
-            receipt: {
-              schema: 'simulatte.phase3SlotRerankReceipt.v1',
-              rerankerMode: 'heuristic-slot-ranking',
-              modelReady: false,
-              modelRequired: false,
-              modelStatus: 'fallback',
-              modelBackend: capability.backend,
-              fallbackReason: err && err.message ? err.message : String(err),
-              candidateInputCount: rows.length,
-              candidateOutputCount: rows.length,
-            },
-          };
-        }
-      }
-
-    function buildSlotRerankInput({ promptText, slot, candidates, runtime }) {
-        const config = scope.rerankerConfig(runtime);
-        const constructionRows = scope.constructionCandidatesForSlot(
-          slot, candidates, config.maxSlotCandidatesPerCall
-        );
-        const selectedCandidates = (constructionRows.length ? constructionRows : candidates || [])
-          .slice(0, config.maxSlotCandidatesPerCall)
-          .filter((candidate) => candidate.supportOnly !== true);
-        return {
-          schema: 'simulatte.intentSlotRerankInput.v1',
-          phase: 3,
-          phaseId: 'retrieval',
-          stage: scope.slotNeedsModelConstructionEvidence(slot) ? 'construction-hypothesis-rerank' : 'typed-slot-retrieval',
-          reranker: scope.rerankerId(runtime),
-          prompt: slotRerankQuery(promptText, slot),
-          slot: {
-            slotId: slot && slot.slotId || '',
-            slotRole: slot && slot.slotRole || '',
-            entryId: slot && slot.entryId || '',
-            required: !slot || slot.required !== false,
-            queries: slot && slot.queries || [],
-            relationIds: slot && slot.relationIds || [],
-            constructionMode: scope.slotNeedsModelConstructionEvidence(slot),
-          },
-          candidates: selectedCandidates.map((candidate, order) => ({
-            primitiveId: candidate.candidateId || candidate.primitiveId || candidate.id,
-            candidateId: candidate.candidateId || candidate.primitiveId || candidate.id,
-            order,
-            candidateType: candidate.candidateType || '',
-            slotRole: candidate.slotRole || '',
-            label: candidate.label || '',
-            score: Number(candidate.score || 0),
-            modelScore: Number(candidate.modelScore || 0),
-            lexicalScore: Number(candidate.lexicalScore || 0),
-            supportOnly: candidate.supportOnly === true,
-            candidateText: candidate.candidateText || '',
-            construction: candidate.construction || null,
-          })),
-          max: Math.max(1, selectedCandidates.length),
-        };
-      }
-
-    function slotRerankQuery(promptText = '', slot = {}) {
-        const role = String(slot && slot.slotRole || 'scene').trim();
-        const target = scope.slotQueryText(slot);
-        return [
-          `Scene prompt: ${String(promptText || '').trim()}`,
-          `Required ${role} evidence: ${target}`,
-        ].filter((line) => !line.endsWith(': ')).join('\n');
-      }
-
-    function slotRerankSkipReason(slot = {}, candidates = [], constructionMode = false) {
-      if (constructionMode) {
-          if (scope.exactConstructionCandidate(slot, candidates)) {
-            return 'exact-model-indexed-construction';
-          }
-          const constructionRows = scope.constructionCandidatesForSlot(slot, candidates, 3);
-          if (constructionRows.length === 1 && constructionRows[0].construction.targetIdentityBound === true) {
-            return 'data-owned-target-construction';
-          }
-          return constructionRows.length ? '' : 'no-construction-hypothesis';
-      }
-        if (slot && slot.required === false) return 'optional-slot-local-evidence';
-        if ((candidates || []).some((candidate) => candidate.literalSlotMatch === true)) {
-          return 'literal-slot-identity';
-        }
-        if (scope.slotUsesPromptOwnedLocalEvidence(slot)) {
-          return 'prompt-owned-slot-local-evidence';
-        }
-        return '';
-      }
-
-    function applySlotModelRerank(localRows, modelRows, evaluatedRows = modelRows) {
-        return scope.applyRankBandRerank(localRows, modelRows, evaluatedRows, slotCandidateSort);
-      }
-
     function uniqueSlotCandidates(rows = []) {
         const seen = new Set();
         return rows.filter((row) => {
@@ -981,11 +808,6 @@
       rankSurfaceCardsForSlot,
       slotCandidateLiteralMatch,
       slotUniverseCandidates,
-      rerankSlotCandidates,
-      buildSlotRerankInput,
-      slotRerankQuery,
-      slotRerankSkipReason,
-      applySlotModelRerank,
       uniqueSlotCandidates,
       slotCandidateSort,
       slotLexicalScore,

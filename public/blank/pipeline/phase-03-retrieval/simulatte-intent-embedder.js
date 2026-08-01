@@ -17,6 +17,7 @@
     require('./simulatte-intent-embedder-construction-retrieval.js');
     require('./simulatte-intent-embedder-span-retrieval.js');
     require('./simulatte-intent-embedder-slot-retrieval.js');
+    require('./simulatte-intent-embedder-slot-rerank.js');
     require('./simulatte-intent-embedder-rerank-runtime.js');
     require('./simulatte-intent-embedder-manifest-cache.js');
     require('./simulatte-intent-embedder-rerank.js');

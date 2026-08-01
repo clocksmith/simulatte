@@ -258,6 +258,7 @@
               kind: 'action',
               label: predicate.process,
               semanticClass: predicate.process === 'swimming' ? 'locomotion-in-fluid' : predicate.process,
+              poseHint: predicate.poseHint || '',
               source: 'predicate',
               sourceSpanIds: [predicate.verbSpanId].filter(Boolean),
                 required: Boolean(predicate.verbSpanId),
@@ -346,6 +347,9 @@
             fallbackKind || span.kind || 'entry';
           const target = sceneTargetForSpan(span, kind);
           const negated = sceneSpanIsNegated(languageGraph, span);
+          const predicate = kind === 'action'
+            ? (languageGraph.predicates || []).find((row) => row.verbSpanId === span.id)
+            : null;
           return {
         id: sceneEntryIdForSpan(span, kind, languageGraph),
             kind,
@@ -354,6 +358,7 @@
         visualArchetype: span.visualArchetype || '',
         localGeometryGrammarId: span.localGeometryGrammarId || '',
         shapeHints: span.shapeHints || (span.visualArchetype ? [span.visualArchetype] : []),
+        poseHint: predicate && predicate.poseHint || '',
             source: 'prompt',
             sourceSpanIds: [span.id].filter(Boolean),
             required: negated ? false : true,
@@ -602,6 +607,10 @@
 
       function sceneQuerySlotForEntry(entry = {}, role = 'object') {
           const label = entry.label || entry.id || '';
+          const actionVisualTargets = role === 'action' && typeof scope.visualSlotTargetsForAction === 'function'
+            ? scope.visualSlotTargetsForAction(entry)
+            : [];
+          const localActionEvidence = role === 'action' && Boolean(entry.poseHint || actionVisualTargets.length);
           return {
             schema: 'simulatte.sceneQuerySlot.v1',
             slotId: `slot.${role}.${String(entry.id || label).replace(/^[a-z]+:/, '').replace(/[^a-z0-9]+/gi, '_')}`,
@@ -614,6 +623,14 @@
         visualArchetype: entry.visualArchetype || '',
         localGeometryGrammarId: entry.localGeometryGrammarId || '',
         shapeHints: entry.shapeHints || [],
+        ...(role === 'action' ? {
+          modelEvidenceRequired: !localActionEvidence,
+          localEvidenceReason: entry.poseHint
+            ? 'phase2-action-pose-contract'
+            : actionVisualTargets.length ? 'phase2-action-visual-contract' : '',
+          poseHint: entry.poseHint || '',
+          actionVisualTargets,
+        } : {}),
             sourceSpanIds: entry.sourceSpanIds || [],
       queries: role === 'part' ? [
         { kind: 'embedding', text: `constructive part ${label} ${entry.semanticClass || ''} geometry attachment articulation material`.trim() },
@@ -649,7 +666,7 @@
             supportOnly: entry.supportOnly === true,
           })));
           const relations = scope.uniqueById(sceneLanguageGraph.relations || []);
-          const obligations = scope.uniqueById((queryPlan.slots || []).map((slot) => ({
+          const slotObligations = (queryPlan.slots || []).map((slot) => ({
             id: slot.entryId || slot.slotId,
             kind: slot.slotRole === 'actor' ? 'entity' : slot.slotRole,
         ownedByPhase: slot.slotRole === 'visual' || slot.slotRole === 'part' ? 6 :
@@ -663,7 +680,11 @@
             status: slot.slotRole === 'visual' ? 'pending' : 'preserved',
             phase: 2,
             receiptId: 'phase2-language-graph',
-          })));
+          }));
+          const obligations = scope.uniqueById([
+            ...slotObligations,
+            ...phase2NegationObligations(sceneLanguageGraph),
+          ]);
           return normalizeCompositionLedger({
             schema: scope.SCENE_COMPOSITION_LEDGER_SCHEMA,
             sourcePromptHash: sceneLanguageGraph.sourcePromptHash || phase1Ledger && phase1Ledger.sourcePromptHash || '',
@@ -690,6 +711,36 @@
             losses: [],
             unsupported: sceneLanguageGraph.unsupportedSpans || [],
           });
+        }
+
+    function phase2NegationObligations(sceneLanguageGraph = {}) {
+          const entries = [
+            ...(sceneLanguageGraph.entities || []),
+            ...(sceneLanguageGraph.concepts || []),
+            ...(sceneLanguageGraph.parts || []),
+            ...(sceneLanguageGraph.actions || []),
+            ...(sceneLanguageGraph.attributes || []),
+            ...(sceneLanguageGraph.environments || []),
+            ...(sceneLanguageGraph.mediums || []),
+          ].filter((entry) => entry && entry.negated === true && entry.id);
+          return scope.uniqueById(entries.map((entry) => {
+            const entryId = String(entry.id);
+            const target = String(entry.label || entryId.replace(/^[a-z]+:/, ''));
+            return {
+              id: `visual:prompt-absence-${entryId.replace(/[^a-z0-9]+/gi, '-')}`,
+              kind: 'visual',
+              ownedByPhase: 6,
+              required: true,
+              target,
+              targetIdentity: entryId.replace(/^[a-z]+:/, ''),
+              negatedEntryId: entryId,
+              constraintKind: 'absence',
+              sourceSpanIds: (entry.sourceSpanIds || []).slice(),
+              status: 'pending',
+              phase: 2,
+              receiptId: 'phase2-language-graph',
+            };
+          }));
         }
 
     function normalizeCompositionLedger(ledger = {}, overrides = {}) {

@@ -41,3 +41,42 @@ test('invalid runtime locks fail closed', () => {
   assert.throws(() => consent.summarizeLock({ schema: 'simulatte.modelRuntimeLock.v1' }), /missing the pinned Qwen embedding identity/);
   assert.throws(() => consent.summarizeLock({ schema: 'wrong' }), /Invalid Simulatte model runtime lock/);
 });
+
+test('disposed consent gates release persistent control listeners', async () => {
+  class Toggle extends EventTarget {
+    constructor() { super(); this.checked = false; }
+    setAttribute() {}
+  }
+  class Dialog extends EventTarget {
+    constructor() {
+      super();
+      this.open = false;
+      this.accept = new EventTarget();
+      this.cancel = new EventTarget();
+    }
+    querySelector(selector) {
+      return selector.includes('accept') ? this.accept : this.cancel;
+    }
+    showModal() { this.open = true; }
+    close() { this.open = false; }
+  }
+  class CustomEvent extends Event {
+    constructor(type, options) { super(type); this.detail = options.detail; }
+  }
+  const toggle = new Toggle();
+  const dialog = new Dialog();
+  const gate = await consent.createGate({
+    root: { defaultView: { CustomEvent } },
+    storage: memoryStorage(),
+    modelRuntimeLock: lock,
+    toggle,
+    dialog,
+    surface: 'autonomy',
+  });
+
+  gate.dispose();
+  toggle.checked = true;
+  toggle.dispatchEvent(new Event('change'));
+  assert.equal(dialog.open, false);
+  assert.equal(await gate.requestEnable(), false);
+});

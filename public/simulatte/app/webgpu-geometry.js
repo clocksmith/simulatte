@@ -117,17 +117,33 @@
     if (!scene) return;
     scene.areas.forEach((row) => {
       if (row.isVolume) {
-        addExtrudedPolygon(writer, row.points, row.heightM, semanticColor(row), row.intensity);
+        addExtrudedPolygon(writer, row.points, row.heightM, semanticColor(row, 'fill'), row.intensity);
       } else {
-        addFlatPolygon(writer, row.points, row.heightM, semanticColor(row), row.intensity);
+        addFlatPolygon(writer, row.points, row.heightM, semanticColor(row, 'fill'), row.intensity);
+        if (row.semanticKind === 'occlusion.shadow-length' && row.points.length > 2) {
+          addRibbon(
+            writer,
+            [...row.points, row.points[0]],
+            2.2,
+            row.heightM + 0.03,
+            semanticColor(row),
+            0.18
+          );
+        }
       }
     });
     scene.paths.forEach((row) => addRibbon(writer, row.points, row.widthM, 0.92, semanticColor(row), row.intensity));
-    scene.markers.forEach((row) => addBeacon(writer, row.point, semanticColor(row), row.heightM, row.radiusM, row.intensity));
+    scene.markers.forEach((row) => {
+      if (row.semanticKind === 'person-residences') {
+        addTinyNode(writer, row.point, semanticColor(row), row.radiusM, row.intensity);
+        return;
+      }
+      addBeacon(writer, row.point, semanticColor(row), row.heightM, row.radiusM, row.intensity);
+    });
     // Geospatial (v3) primitives are already projected into planar scene points by the
     // presentation compiler, so they draw with the same beacon/ribbon/polygon builders.
-    (scene.choropleths || []).forEach((row) => addFlatPolygon(writer, row.points, 3, semanticColor(row), row.intensity));
-    (scene.geoAreas || []).forEach((row) => addFlatPolygon(writer, row.points, row.heightM, semanticColor(row), row.intensity));
+    (scene.choropleths || []).forEach((row) => addFlatPolygon(writer, row.points, 3, semanticColor(row, 'fill'), row.intensity));
+    (scene.geoAreas || []).forEach((row) => addFlatPolygon(writer, row.points, row.heightM, semanticColor(row, 'fill'), row.intensity));
     (scene.geoPaths || []).forEach((row) => addRibbon(writer, row.points, row.widthM, 0.92, semanticColor(row), row.intensity));
     (scene.geoMarkers || []).forEach((row) => addBeacon(writer, row.point, semanticColor(row), row.heightM, row.radiusM, row.intensity));
     if (scene.sun) addOrb(writer, scene.sun.worldPosition, scene.sun.radiusM, COLORS.sun, scene.sun.intensity);
@@ -135,7 +151,9 @@
     const usesDenseActorSignals = scene.actors.length > DENSE_PLUGIN_ACTOR_THRESHOLD;
     scene.actors.forEach((row, index) => {
       const pose = poseAlongPath(row.points, row.phaseOffsetM + elapsedSeconds * row.speedMps);
-      addBeacon(writer, pose.point, semanticColor(row), row.isSelected ? 12 : 5, row.isSelected ? 3.2 : 1.8, row.isSelected ? 1.2 : 0.72);
+      if (row.kind !== 'pedestrian') {
+        addBeacon(writer, pose.point, semanticColor(row), row.isSelected ? 12 : 5, row.isSelected ? 3.2 : 1.8, row.isSelected ? 1.2 : 0.72);
+      }
       if (usesDenseActorSignals && !row.isSelected) return;
       actorGeometry.addActor(writer, {
         kind: row.kind,
@@ -175,14 +193,14 @@
     return PLUGIN_TONES[id] || PLUGIN_TONES.muted;
   }
 
-  function semanticColor(row) {
+  function semanticColor(row, opacity = 'stroke') {
     const value = row.style?.color;
     if (typeof value !== 'string' || !/^#[a-f0-9]{6}$/i.test(value)) return tone(row.tone);
     return Object.freeze([
       Number.parseInt(value.slice(1, 3), 16) / 255,
       Number.parseInt(value.slice(3, 5), 16) / 255,
       Number.parseInt(value.slice(5, 7), 16) / 255,
-      Number(row.style.strokeOpacity ?? 1),
+      Number(opacity === 'fill' ? row.style.fillOpacity ?? 1 : row.style.strokeOpacity ?? 1),
     ]);
   }
 
@@ -316,6 +334,29 @@
       color,
       emissive,
     });
+  }
+
+  function addTinyNode(writer, point, color, radius, emissive = 0.25) {
+    const x = point.x;
+    const z = -point.y;
+    const y = 0.32;
+    const normal = [0, 1, 0];
+    writer.triangle(
+      [x, y, z - radius],
+      [x + radius, y, z],
+      [x, y, z + radius],
+      normal,
+      color,
+      emissive
+    );
+    writer.triangle(
+      [x, y, z - radius],
+      [x, y, z + radius],
+      [x - radius, y, z],
+      normal,
+      color,
+      emissive
+    );
   }
 
   function addOrb(writer, center, radius, color, emissive = 1.8) {

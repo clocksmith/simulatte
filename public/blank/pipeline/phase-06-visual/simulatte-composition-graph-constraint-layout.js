@@ -301,8 +301,7 @@
     }
 
     function layoutRelationsForSpec(spec = {}, states = []) {
-      const ledger = spec.renderIR && spec.renderIR.compositionLedger ||
-        spec.physicsIR && spec.physicsIR.compositionLedger || {};
+      const ledger = spec.renderIR && spec.renderIR.compositionLedger || {};
       const rows = [];
       for (const relation of ledger.relations || []) {
         const predicate = String(relation.predicate || '').toLowerCase();

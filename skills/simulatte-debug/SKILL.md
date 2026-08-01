@@ -5,6 +5,12 @@ description: Reproduce and fix Simulatte prompt, retrieval, graph, simulation, v
 
 # Simulatte Debug
 
+Before non-trivial investigation or repair, read
+[`docs/simulatte/bug-zapping-guide.md`](../../docs/simulatte/bug-zapping-guide.md).
+It governs ownership boundaries, lifecycle invalidation, immutable evidence,
+race regressions, and focused validation; this skill governs phase-by-phase
+diagnosis.
+
 Find the first phase that loses or invents an obligation. A plausible screenshot does
 not repair a broken contract, and an object field does not prove a visible result.
 

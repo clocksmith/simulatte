@@ -3,9 +3,11 @@
     require('./simulatte-physics-model-dependencies.js');
     require('./simulatte-physics-model-contracts.js');
     require('./simulatte-physics-model-phase-runtime-language.js');
+    require('./simulatte-physics-model-phase-retrieval-boundary.js');
     require('./simulatte-physics-model-phase-retrieval.js');
     require('./simulatte-physics-model-activation-verdicts.js');
     require('./simulatte-physics-model-activation-fusion.js');
+    require('./simulatte-physics-model-phase3-ledger.js');
     require('./simulatte-interaction-ir.js');
     require('./simulatte-physics-model-phase-grounding.js');
     require('./simulatte-physics-model-phase-visual-execution.js');

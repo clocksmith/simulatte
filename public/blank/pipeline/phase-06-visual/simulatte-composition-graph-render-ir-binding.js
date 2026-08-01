@@ -3,8 +3,8 @@
 
     function sceneKindForRenderIR(renderIR, solverGraph, graph, graphObjects, spec) {
         const sceneHint = normalizedSceneHint(renderIR.sceneHint);
-        const directScene = directSceneKindForRenderIR(renderIR, spec);
-        const promptText = directPromptSceneText(renderIR, spec);
+        const directScene = directSceneKindForRenderIR(renderIR);
+        const promptText = directPromptSceneText(renderIR);
         const promptTerrain = (graphObjects || []).some((object) => (
           scope.isPromptGroundedComponent(object, promptText) && hasDirectTerrainSignal([
             object.id,
@@ -40,7 +40,7 @@
         )) return directScene;
         if (residualOptics) return 'optics';
         if (sceneHint && sceneHint !== 'literal-composite') return sceneHint;
-        const signalScene = sceneKindFromRenderIRSignals(renderIR, solverGraph, spec);
+        const signalScene = sceneKindFromRenderIRSignals(renderIR, solverGraph);
         if (signalScene && signalScene !== 'literal-composite') return signalScene;
         const fallbackScene = scope.sceneKindForComposition(
           graph,
@@ -52,10 +52,10 @@
         return signalScene || sceneHint || 'generic';
       }
 
-    function directSceneKindForRenderIR(renderIR, spec) {
+    function directSceneKindForRenderIR(renderIR) {
         return directSceneKindForText(
-          directRenderIRSceneText(renderIR, spec),
-          directPromptSceneText(renderIR, spec)
+          directRenderIRSceneText(renderIR),
+          directPromptSceneText(renderIR)
         );
       }
 
@@ -89,8 +89,8 @@
         return scene && scene !== 'generic' && scene !== 'literal-composite' ? scene : '';
       }
 
-    function sceneKindFromRenderIRSignals(renderIR, solverGraph, spec) {
-        const directText = directRenderIRSceneText(renderIR, spec);
+    function sceneKindFromRenderIRSignals(renderIR, solverGraph) {
+        const directText = directRenderIRSceneText(renderIR);
         if (hasDirectSwimmingSignal(directText)) return 'watershed';
         if (hasDirectAnimalOrPlantSignal(directText) && !hasDirectMechanicalRigSignal(directText)) return 'biology';
         const text = [
@@ -150,9 +150,9 @@
         return '';
       }
 
-    function directRenderIRSceneText(renderIR, spec) {
+    function directRenderIRSceneText(renderIR) {
         return scope.positiveLanguageText([
-          directPromptSceneText(renderIR, spec),
+          directPromptSceneText(renderIR),
           ...((renderIR && renderIR.objects || []).map((object) => [
             object.label,
             object.glyph,
@@ -167,19 +167,13 @@
         ].filter(Boolean).join(' '));
       }
 
-    function directPromptSceneText(renderIR, spec) {
-        const promptParse = spec && spec.promptParse || {};
-        const universeGraph = spec && spec.universeGraph || {};
-        const physicsIR = spec && spec.physicsIR || {};
+    function directPromptSceneText(renderIR) {
         const promptOwnedObjects = (renderIR && renderIR.objects || []).filter((object) => (
           object.directlyGrounded === true ||
           /^prompt\./.test(String(object.semanticRef || object.physicalRef || ''))
         ));
         return scope.positiveLanguageText([
           renderIR && renderIR.prompt,
-          universeGraph.prompt,
-          physicsIR.prompt,
-          ...((promptParse.spans || []).map((span) => span.text)),
           ...promptOwnedObjects.map((object) => [
             object.sourceLabel,
             object.label,
@@ -454,18 +448,22 @@
         return [0.16, 0.12];
       }
 
-    function relationsFromPhysicsIR(spec) {
-        const ir = spec.physicsIR || {};
+    function relationsFromRenderIR(spec = {}) {
+        const ledger = spec.renderIR && spec.renderIR.compositionLedger || {};
         const seen = new Set();
-        return (ir.couplings || []).map((coupling) => ({
-          from: String(coupling.from || '').replace(/^domain:/, ''),
-          to: String(coupling.to || '').replace(/^domain:/, ''),
-          channel: coupling.type || 'coupling',
-          reason: coupling.type || 'coupling',
-          strength: 0.72,
-          operatorId: coupling.operatorId,
+        return (ledger.relations || []).filter((relation) => relation.status === 'preserved').map((relation) => ({
+          id: relation.id || '',
+          kind: relation.kind || 'relation',
+          from: String(relation.from || relation.sourceSpanId || '').replace(/^(?:domain|entity):/, ''),
+          to: String(relation.target || relation.to || relation.targetSpanId || '').replace(/^(?:domain|entity):/, ''),
+          channel: relation.spatialRelation || relation.predicate || relation.process || relation.kind || 'relation',
+          reason: relation.predicate || relation.process || relation.kind || 'relation',
+          strength: Number.isFinite(Number(relation.confidence)) ? Number(relation.confidence) : 0.72,
+          sourceRelationId: relation.id || '',
+          evidenceIds: relation.evidenceIds || [],
+          required: relation.required === true,
         })).filter((relation) => {
-          const key = `${relation.from}:${relation.to}:${relation.channel}:${relation.operatorId || ''}`;
+          const key = `${relation.from}:${relation.to}:${relation.channel}:${relation.sourceRelationId}`;
           if (!relation.from || !relation.to || relation.from === relation.to || seen.has(key)) return false;
           seen.add(key);
           return true;
@@ -956,7 +954,7 @@
       shapeForRenderGlyph,
       poseForRenderObject,
       sizeForRenderGlyph,
-      relationsFromPhysicsIR,
+      relationsFromRenderIR,
       renderObjectForNode,
       rendererPlanForComposition,
       visualIRForRenderProgram,

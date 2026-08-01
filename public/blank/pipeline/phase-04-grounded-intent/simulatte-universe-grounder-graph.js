@@ -748,7 +748,7 @@
     for (const quantity of promptParse.quantities || []) {
       const target = bySpan.get(quantity.targetSpanId);
       if (!target) continue;
-      target.cardinality = Math.max(1, Math.min(32, Math.floor(Number(quantity.value || 1))));
+      target.cardinality = Math.max(0, Math.floor(Number.isFinite(Number(quantity.value)) ? Number(quantity.value) : 1));
       obligations.push(promptVisualObligation('count', target, {
         expectedCount: target.cardinality,
         countMode: quantity.mode || 'exact',

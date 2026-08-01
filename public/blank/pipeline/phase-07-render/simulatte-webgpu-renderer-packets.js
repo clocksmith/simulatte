@@ -558,7 +558,16 @@
           scenePacketFieldCount(packet),
           scenePacketEffectCount(packet),
           scenePacketSpatialHash(packet),
+          scenePacketRenderDataHash(packet),
         ].join(':');
+      }
+
+    function scenePacketRenderDataHash(packet) {
+        return scope.scenePacketRenderEvidenceHash(packet || {});
+      }
+
+    function stableRenderDataValue(value) {
+        return scope.stableRenderEvidenceValue(value);
       }
 
     function scenePacketResolvedSceneId(packet, sceneKind = '') {
@@ -826,6 +835,8 @@
       emptySceneRenderPacket,
       compileSceneRenderData,
       sceneRenderPacketRenderDataKey,
+      scenePacketRenderDataHash,
+      stableRenderDataValue,
       scenePacketResolvedSceneId,
       scenePacketFeatureVector,
       scenePacketAtomUniformVector,

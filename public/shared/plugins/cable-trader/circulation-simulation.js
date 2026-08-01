@@ -3,23 +3,74 @@
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteCableTraderCirculation = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createCableTraderCirculation() {
-  function simulateCirculation(config, routes) {
+  const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
+
+  function createNetwork(config, worldModel) {
     const settings = validateConfig(config);
-    const hubs = config.hubs.slice(0, settings.hubCount);
-    const locations = config.locations.slice(0, settings.locationCount);
+    const routableNodes = largestRoutableComponent(worldModel);
+    if (routableNodes.length <= settings.hubCount) {
+      throw new Error(`Cable Trader needs more than ${settings.hubCount} mutually routable city nodes`);
+    }
+    const networkSeed = [
+      config.simulation.seed,
+      config.simulation.scenarioId || 'everyday-exchange',
+      settings.peopleCount,
+      settings.hubCount,
+      worldModel.world.id || 'world',
+    ].join(':');
+    const hubs = selectSpreadHubs(routableNodes, settings.hubCount, networkSeed);
+    const hubNodeIds = new Set(hubs.map((row) => row.nodeId));
+    const anchorNodes = routableNodes.filter((row) => !hubNodeIds.has(row.id));
+    const offset = fnv1a(`${networkSeed}:residence-offset`) % anchorNodes.length;
+    const stride = coprimeStride(anchorNodes.length, fnv1a(`${networkSeed}:residence-stride`));
+    const angleOffset = fnv1a(`${networkSeed}:residence-angle`) / 0xffffffff * Math.PI * 2;
+    const residences = Array.from({ length: settings.peopleCount }, (unused, index) => {
+      const anchorIndex = (offset + index * stride) % anchorNodes.length;
+      const anchor = anchorNodes[anchorIndex];
+      const lap = Math.floor(index / anchorNodes.length);
+      const radiusM = 1.2 + lap * 1.35;
+      const angle = angleOffset + index * GOLDEN_ANGLE;
+      const position = {
+        x: Number((anchor.position.x + Math.cos(angle) * radiusM).toFixed(6)),
+        y: Number((anchor.position.y + Math.sin(angle) * radiusM).toFixed(6)),
+      };
+      const preferredHub = nearestHub(position, hubs);
+      return {
+        id: `residence-${String(index + 1).padStart(5, '0')}`,
+        label: `Residence ${String(index + 1).padStart(5, '0')}`,
+        nodeId: anchor.id,
+        position,
+        preferredHubId: preferredHub.id,
+      };
+    });
+    return {
+      schema: 'simulatte.plugin.cableTraderNetwork.v1',
+      worldId: worldModel.world.id || 'world',
+      hubs,
+      residences,
+    };
+  }
+
+  function simulateCirculation(config, network) {
+    const settings = validateConfig(config);
+    validateNetwork(network, settings);
+    const hubs = network.hubs;
+    const residences = network.residences;
+    const residenceById = new Map(residences.map((row) => [row.id, row]));
     const cableTypes = config.cableTypes.filter((row) => settings.selectedCableTypeIds.includes(row.id));
-    const routeByKey = validateRoutes(routes, hubs, locations);
-    const identity = createScenarioIdentity(config);
+    const identity = createScenarioIdentity(config, network);
     const random = createRandom(identity.seed);
-    const people = createPeople(settings.peopleCount, locations, hubs, random);
+    const people = residences.map((residence, index) => ({
+      id: `person-${String(index + 1).padStart(5, '0')}`,
+      homeResidenceId: residence.id,
+      preferredHubId: residence.preferredHubId,
+    }));
+    const peopleById = new Map(people.map((row) => [row.id, row]));
+    const hubById = new Map(hubs.map((row) => [row.id, row]));
     const inventory = createMatrix(hubs, cableTypes, settings.initialInventoryPerHubCable);
     const backlog = createMatrix(hubs, cableTypes, 0);
-    const cumulative = {
-      supply: 0,
-      demand: 0,
-      fulfilled: 0,
-      journeys: 0,
-    };
+    const waitingQueues = createMatrix(hubs, cableTypes, () => []);
+    const cumulative = { supply: 0, demand: 0, fulfilled: 0, journeys: 0 };
     const snapshots = [
       createSnapshot({
         day: 0,
@@ -48,8 +99,8 @@
 
       for (let actionIndex = 0; actionIndex < actionCount; actionIndex += 1) {
         const person = nextPerson(people, usedPeople, random);
-        const hub = hubs[Math.floor(random() * hubs.length)];
-        const location = locations[Math.floor(random() * locations.length)];
+        const residence = residenceById.get(person.homeResidenceId);
+        const hub = hubById.get(person.preferredHubId);
         const action = random() < 0.5 ? 'dropoff' : 'pickup';
         const cableType = weightedChoice(
           cableTypes,
@@ -68,8 +119,7 @@
             person,
             cableType,
             hub,
-            location,
-            route: routeByKey.get(routeKey(hub.id, location.id, 'to-hub')),
+            residence,
             random,
           }));
           cumulative.journeys += 1;
@@ -78,7 +128,9 @@
             backlog[hub.id][cableType.id] -= 1;
             board.fulfilled += 1;
             cumulative.fulfilled += 1;
-            const waitingPerson = nextPerson(people, usedPeople, random);
+            const waitingPersonId = waitingQueues[hub.id][cableType.id].shift();
+            const waitingPerson = peopleById.get(waitingPersonId);
+            const waitingResidence = residenceById.get(waitingPerson.homeResidenceId);
             journeys.push(createJourney({
               day,
               sequence: journeys.length,
@@ -86,12 +138,7 @@
               person: waitingPerson,
               cableType,
               hub,
-              location: config.locations.find((row) => row.id === waitingPerson.homeLocationId) || location,
-              route: routeByKey.get(routeKey(
-                hub.id,
-                (config.locations.find((row) => row.id === waitingPerson.homeLocationId) || location).id,
-                'from-hub'
-              )),
+              residence: waitingResidence,
               random,
               matchedFromBacklog: true,
             }));
@@ -115,13 +162,13 @@
             person,
             cableType,
             hub,
-            location,
-            route: routeByKey.get(routeKey(hub.id, location.id, 'from-hub')),
+            residence,
             random,
           }));
           cumulative.journeys += 1;
         } else {
           backlog[hub.id][cableType.id] += 1;
+          waitingQueues[hub.id][cableType.id].push(person.id);
         }
       }
 
@@ -165,8 +212,8 @@
     };
     const summary = {
       peopleCount: people.length,
+      residenceCount: residences.length,
       hubCount: hubs.length,
-      locationCount: locations.length,
       cableTypeCount: cableTypes.length,
       durationDays: settings.durationDays,
       totalSupply: cumulative.supply,
@@ -189,17 +236,19 @@
       selectedCableTypeIds: identity.selectedCableTypeIds,
       durationDays: settings.durationDays,
       people,
+      hubs,
+      residences,
       activeHubIds: hubs.map((row) => row.id),
-      activeLocationIds: locations.map((row) => row.id),
+      activeResidenceIds: residences.map((row) => row.id),
       events,
       snapshots,
       summary,
       balance,
-      claimBoundary: 'People, cable supply, demand, inventories, and journeys are deterministic modeled activity. City nodes and route geometry come from the governed world; no exchange operations are observed.',
+      claimBoundary: 'People, unique residences, cable supply, demand, inventories, and journeys are deterministic modeled activity. Residence anchors and route geometry come from the governed city network; no exchange operations are observed.',
     };
   }
 
-  function createScenarioIdentity(config) {
+  function createScenarioIdentity(config, network = null) {
     const selectedCableTypeIds = normalizeCableTypeIds(
       config.cableTypes,
       config.simulation.selectedCableTypeIds
@@ -214,13 +263,15 @@
       durationDays: config.simulation.durationDays,
       peopleCount: config.simulation.peopleCount,
       hubCount: config.simulation.hubCount,
-      locationCount: config.simulation.locationCount,
       selectedCableTypeIds,
       initialInventoryPerHubCable: config.simulation.initialInventoryPerHubCable,
       dailyParticipationRate: config.simulation.dailyParticipationRate,
       renderedTravelerCount: config.simulation.renderedTravelerCount,
-      hubs: config.hubs.slice(0, config.simulation.hubCount).map(placeIdentity),
-      locations: config.locations.slice(0, config.simulation.locationCount).map(placeIdentity),
+      worldId: network?.worldId || null,
+      hubs: network?.hubs?.map(placeIdentity) || [],
+      residenceAnchorsHash: network
+        ? contentHash(network.residences.map((row) => row.nodeId).join('|'))
+        : null,
       cableTypes: config.cableTypes
         .filter((row) => selectedCableTypeIds.includes(row.id))
         .map((row) => ({
@@ -241,14 +292,6 @@
     };
   }
 
-  function createPeople(count, locations, hubs, random) {
-    return Array.from({ length: count }, (unused, index) => ({
-      id: `person-${String(index + 1).padStart(5, '0')}`,
-      homeLocationId: locations[Math.floor(random() * locations.length)].id,
-      preferredHubId: hubs[Math.floor(random() * hubs.length)].id,
-    }));
-  }
-
   function createJourney({
     day,
     sequence,
@@ -256,14 +299,11 @@
     person,
     cableType,
     hub,
-    location,
-    route,
+    residence,
     random,
     matchedFromBacklog = false,
   }) {
-    if (!route) {
-      throw new Error(`Cable Trader route missing for ${action} between ${hub.id} and ${location.id}`);
-    }
+    const direction = action === 'dropoff' ? 'to-hub' : 'from-hub';
     return {
       id: `journey-day-${day}-${String(sequence + 1).padStart(3, '0')}`,
       day,
@@ -271,8 +311,8 @@
       action,
       cableTypeId: cableType.id,
       hubId: hub.id,
-      locationId: location.id,
-      routeId: route.id,
+      residenceId: residence.id,
+      routeId: routeId(hub.id, residence.id, direction),
       progress: Number(random().toFixed(4)),
       matchedFromBacklog,
     };
@@ -353,6 +393,113 @@
     return sample.map((row) => ({ ...row }));
   }
 
+  function largestRoutableComponent(worldModel) {
+    if (!worldModel?.world?.nodes || !worldModel?.world?.segments) {
+      throw new Error('Cable Trader requires a governed city network');
+    }
+    const segments = worldModel.world.segments.filter((row) => (
+      Array.isArray(row.allowedModes) && row.allowedModes.includes('delivery_bike')
+    ));
+    const eligibleIds = new Set(segments.flatMap((row) => [row.fromNodeId, row.toNodeId]));
+    const nodes = worldModel.world.nodes
+      .filter((row) => eligibleIds.has(row.id) && finitePoint(row.position))
+      .sort((left, right) => left.id.localeCompare(right.id));
+    const nodeById = new Map(nodes.map((row) => [row.id, row]));
+    const outgoing = new Map(nodes.map((row) => [row.id, []]));
+    const incoming = new Map(nodes.map((row) => [row.id, []]));
+    segments.forEach((segment) => {
+      if (!nodeById.has(segment.fromNodeId) || !nodeById.has(segment.toNodeId)) return;
+      outgoing.get(segment.fromNodeId).push(segment.toNodeId);
+      incoming.get(segment.toNodeId).push(segment.fromNodeId);
+    });
+    const order = finishingOrder(nodes.map((row) => row.id), outgoing);
+    const seen = new Set();
+    const components = [];
+    order.reverse().forEach((start) => {
+      if (seen.has(start)) return;
+      const component = [];
+      const stack = [start];
+      seen.add(start);
+      while (stack.length) {
+        const id = stack.pop();
+        component.push(nodeById.get(id));
+        incoming.get(id).forEach((next) => {
+          if (seen.has(next)) return;
+          seen.add(next);
+          stack.push(next);
+        });
+      }
+      components.push(component.sort((left, right) => left.id.localeCompare(right.id)));
+    });
+    const largest = components.sort((left, right) => (
+      right.length - left.length || left[0].id.localeCompare(right[0].id)
+    ))[0];
+    if (!largest?.length) throw new Error('Cable Trader could not find a routable city component');
+    return largest;
+  }
+
+  function finishingOrder(ids, outgoing) {
+    const seen = new Set();
+    const order = [];
+    ids.forEach((start) => {
+      if (seen.has(start)) return;
+      const stack = [[start, 0]];
+      seen.add(start);
+      while (stack.length) {
+        const row = stack.at(-1);
+        const neighbors = outgoing.get(row[0]);
+        if (row[1] < neighbors.length) {
+          const next = neighbors[row[1]];
+          row[1] += 1;
+          if (!seen.has(next)) {
+            seen.add(next);
+            stack.push([next, 0]);
+          }
+        } else {
+          order.push(row[0]);
+          stack.pop();
+        }
+      }
+    });
+    return order;
+  }
+
+  function selectSpreadHubs(nodes, count, seed) {
+    const first = nodes[fnv1a(`${seed}:first-hub`) % nodes.length];
+    const selected = [first];
+    const selectedIds = new Set([first.id]);
+    while (selected.length < count) {
+      let best = null;
+      let bestDistance = -1;
+      nodes.forEach((node) => {
+        if (selectedIds.has(node.id)) return;
+        const distance = Math.min(...selected.map((hub) => squaredDistance(node.position, hub.position)));
+        if (distance > bestDistance || (distance === bestDistance && node.id < best.id)) {
+          best = node;
+          bestDistance = distance;
+        }
+      });
+      selected.push(best);
+      selectedIds.add(best.id);
+    }
+    return selected.map((node, index) => ({
+      id: `hub-${String(index + 1).padStart(2, '0')}`,
+      label: `Hub ${String(index + 1).padStart(2, '0')}`,
+      nodeId: node.id,
+      position: { x: node.position.x, y: node.position.y },
+    }));
+  }
+
+  function nearestHub(position, hubs) {
+    return hubs.reduce((best, hub) => {
+      const distance = squaredDistance(position, hub.position);
+      if (!best || distance < best.distance || (distance === best.distance && hub.id < best.hub.id)) {
+        return { hub, distance };
+      }
+      return best;
+    }, null).hub;
+  }
+
   function emptyDailyBoards(hubs, cableTypes) {
     return Object.fromEntries(hubs.map((hub) => [
       hub.id,
@@ -366,7 +513,10 @@
   function createMatrix(hubs, cableTypes, value) {
     return Object.fromEntries(hubs.map((hub) => [
       hub.id,
-      Object.fromEntries(cableTypes.map((cableType) => [cableType.id, value])),
+      Object.fromEntries(cableTypes.map((cableType) => [
+        cableType.id,
+        typeof value === 'function' ? value() : value,
+      ])),
     ]));
   }
 
@@ -378,29 +528,29 @@
     if (!settings || settings.durationDays !== 365) {
       throw new Error('Cable Trader requires one 365-day pseudo-year');
     }
-    integerBetween(settings.peopleCount, 1000, 25000, 'peopleCount');
-    integerBetween(settings.hubCount, 2, config.hubs.length, 'hubCount');
-    integerBetween(settings.locationCount, 4, config.locations.length, 'locationCount');
+    integerBetween(settings.peopleCount, 64, 10000, 'peopleCount');
+    integerBetween(settings.hubCount, 4, 64, 'hubCount');
     integerBetween(settings.renderedTravelerCount, 1, 64, 'renderedTravelerCount');
     normalizeCableTypeIds(config.cableTypes, settings.selectedCableTypeIds);
     return settings;
   }
 
-  function validateRoutes(routes, hubs, locations) {
-    if (!Array.isArray(routes)) throw new Error('Cable Trader routes are missing');
-    const routeByKey = new Map(routes.map((row) => [
-      routeKey(row.hubId, row.locationId, row.direction),
-      row,
-    ]));
-    hubs.forEach((hub) => locations.forEach((location) => {
-      ['to-hub', 'from-hub'].forEach((direction) => {
-        const route = routeByKey.get(routeKey(hub.id, location.id, direction));
-        if (!route?.segmentIds?.length) {
-          throw new Error(`Cable Trader route missing: ${hub.id}/${location.id}/${direction}`);
-        }
-      });
-    }));
-    return routeByKey;
+  function validateNetwork(network, settings) {
+    if (network?.schema !== 'simulatte.plugin.cableTraderNetwork.v1') {
+      throw new Error('Cable Trader network is missing');
+    }
+    if (network.hubs?.length !== settings.hubCount) {
+      throw new Error(`Cable Trader network expected ${settings.hubCount} hubs`);
+    }
+    if (network.residences?.length !== settings.peopleCount) {
+      throw new Error(`Cable Trader network expected ${settings.peopleCount} unique residences`);
+    }
+    if (new Set(network.residences.map((row) => row.id)).size !== network.residences.length) {
+      throw new Error('Cable Trader residence IDs must be unique');
+    }
+    if (new Set(network.residences.map((row) => `${row.position.x}:${row.position.y}`)).size !== network.residences.length) {
+      throw new Error('Cable Trader residence positions must be unique');
+    }
   }
 
   function normalizeCableTypeIds(cableTypes, selectedIds) {
@@ -446,12 +596,37 @@
     return annualWave * weekendFactor;
   }
 
-  function routeKey(hubId, locationId, direction) {
-    return `${hubId}:${locationId}:${direction}`;
+  function routeKey(hubId, residenceId, direction) {
+    return `${hubId}:${residenceId}:${direction}`;
+  }
+
+  function routeId(hubId, residenceId, direction) {
+    return `route-${hubId}-${residenceId}-${direction}`;
   }
 
   function placeIdentity(row) {
     return { id: row.id, nodeId: row.nodeId };
+  }
+
+  function coprimeStride(count, seed) {
+    let stride = Math.max(1, seed % count);
+    while (greatestCommonDivisor(stride, count) !== 1) stride = (stride + 1) % count || 1;
+    return stride;
+  }
+
+  function greatestCommonDivisor(left, right) {
+    let a = left;
+    let b = right;
+    while (b) [a, b] = [b, a % b];
+    return a;
+  }
+
+  function squaredDistance(left, right) {
+    return (left.x - right.x) ** 2 + (left.y - right.y) ** 2;
+  }
+
+  function finitePoint(value) {
+    return value && Number.isFinite(value.x) && Number.isFinite(value.y);
   }
 
   function integerBetween(value, minimum, maximum, label) {
@@ -501,8 +676,10 @@
   return Object.freeze({
     canonical,
     contentHash,
+    createNetwork,
     createScenarioIdentity,
     normalizeCableTypeIds,
+    routeId,
     routeKey,
     simulateCirculation,
   });

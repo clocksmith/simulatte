@@ -180,10 +180,11 @@
 
   function validateProfileInteraction(value) {
     assertObject(value.interaction, 'application_profile_interaction_invalid', `Profile ${value.id} interaction expected an object`);
-    assertExactKeys(value.interaction, ['mode', 'startLabel', 'shuffleLabel'], `Profile ${value.id} interaction`);
+    assertAllowedKeys(value.interaction, ['mode', 'startLabel', 'shuffleLabel', 'stepDelayMs'], ['mode', 'startLabel', 'shuffleLabel'], `Profile ${value.id} interaction`);
     if (!['explorer', 'form', 'playback', 'request', 'route'].includes(value.interaction.mode)) fail('application_profile_interaction_mode_invalid', `Profile ${value.id} interaction mode is invalid`, value.interaction);
     text(value.interaction.startLabel, 'application_profile_interaction_label_invalid', `Profile ${value.id} start label`);
     text(value.interaction.shuffleLabel, 'application_profile_interaction_label_invalid', `Profile ${value.id} shuffle label`);
+    if (value.interaction.stepDelayMs !== undefined) finiteRange(value.interaction.stepDelayMs, 16, 60000, 'application_profile_interaction_step_delay_invalid', `Profile ${value.id} step delay`);
     if (!Array.isArray(value.seeds) || value.seeds.length < 2) fail('application_profile_seeds_invalid', `Profile ${value.id} expected at least two seeds`, null);
     const ids = new Set();
     const seeds = new Set();
@@ -200,11 +201,12 @@
 
   function validateProfileScenarioInteraction(value) {
     assertObject(value.interaction, 'application_profile_interaction_invalid', `Profile ${value.id} interaction expected an object`);
-    assertAllowedKeys(value.interaction, ['mode', 'simulationOwnerPluginId', 'missionRequired', 'startLabel', 'shuffleLabel'], ['mode', 'startLabel', 'shuffleLabel'], `Profile ${value.id} interaction`);
+    assertAllowedKeys(value.interaction, ['mode', 'simulationOwnerPluginId', 'missionRequired', 'startLabel', 'shuffleLabel', 'stepDelayMs'], ['mode', 'startLabel', 'shuffleLabel'], `Profile ${value.id} interaction`);
     if (value.interaction.missionRequired !== undefined && typeof value.interaction.missionRequired !== 'boolean') fail('application_profile_interaction_mission_required_invalid', `Profile ${value.id} missionRequired expected a boolean`, value.interaction);
     if (!['scenario', 'simulation'].includes(value.interaction.mode)) fail('application_profile_interaction_mode_invalid', `Profile ${value.id} interaction mode is invalid`, value.interaction);
     text(value.interaction.startLabel, 'application_profile_interaction_label_invalid', `Profile ${value.id} start label`);
     text(value.interaction.shuffleLabel, 'application_profile_interaction_label_invalid', `Profile ${value.id} shuffle label`);
+    if (value.interaction.stepDelayMs !== undefined) finiteRange(value.interaction.stepDelayMs, 16, 60000, 'application_profile_interaction_step_delay_invalid', `Profile ${value.id} step delay`);
     if (value.interaction.simulationOwnerPluginId !== undefined) {
       text(value.interaction.simulationOwnerPluginId, 'application_profile_interaction_owner_invalid', `Profile ${value.id} simulation owner`);
       if (!value.plugins.some((row) => row.id === value.interaction.simulationOwnerPluginId)) fail('application_profile_interaction_owner_inactive', `Profile ${value.id} simulation owner ${value.interaction.simulationOwnerPluginId} is not an active plugin`, { owner: value.interaction.simulationOwnerPluginId });

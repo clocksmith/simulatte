@@ -297,6 +297,8 @@
           const params = paramsOverride || readPromptParams(promptInput, {});
           const serial = buildSerial + 1;
           buildSerial = serial;
+          if (embedder && typeof embedder.cancel === 'function') embedder.cancel();
+          if (pipelineCompiler && typeof pipelineCompiler.cancel === 'function') pipelineCompiler.cancel();
           constructionRetryPending = false;
           if (!String(prompt || '').trim()) {
             beginTrainingRun(trainingRun, prompt, params, serial);
@@ -639,6 +641,8 @@
             try {
               return await pipelineCompiler.compile(prompt, options, onPhaseProgress);
             } catch (error) {
+              if (error && error.code === 'SIMULATTE_PIPELINE_ABORTED') throw error;
+              if (!error || error.code !== 'SIMULATTE_PIPELINE_WORKER_UNAVAILABLE') throw error;
               if (typeof console !== 'undefined' && console.warn) {
                 console.warn('[simulatte.pipeline] worker compile fell back to main thread', error);
               }

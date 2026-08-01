@@ -8,10 +8,10 @@ Owner contract: [Sun Walker current experience](../sun-walker.md).
 |---|---|
 | Consistency baseline | 9/10 code candidate |
 | Interest baseline | 9/10 code candidate |
-| Runtime status | Implemented, browser review pending |
-| Current strength | A moving walker actor, progressive segment exposure, camera Follow and POV targets, and snapshot-bound exposure metrics execute |
-| Primary gap | Desktop and mobile browser proof for camera attachment, exposure color legibility, HUD agreement, and frame pacing |
-| Browser evidence | Not run for the current worktree |
+| Runtime status | Implemented; current desktop and mobile browser proof passes |
+| Current strength | One moving walker, progressive segment exposure, visible projected shadows, and overview/follow camera targets execute |
+| Primary gap | Direct user review of shadow legibility and route choice |
+| Browser evidence | Current audits verify 15 projected shadow layers, one pedestrian, overview/follow intent, and immediate controls |
 | Frontier review | Authored; visual acceptance pending |
 
 ## Improvement sweeps
@@ -32,8 +32,10 @@ and comparison playback.
 
 ## Acceptance gates
 
-- [ ] Browser Follow and POV remain attached while the actor advances between samples.
+- [x] Browser overview and Follow remain attached while the actor advances between samples; POV is intentionally unavailable.
 - [ ] Walked-segment colors remain legible and agree with the current exposure state.
 - [ ] Inspector totals match visible direct, shade, unknown, and night progression.
 - [ ] Departure time and detour changes produce recognizable route and exposure changes.
 - [ ] Desktop and mobile browser reviews prove the embodied journey without clipping or frame stalls.
+- [ ] Projected shadow fills and outlines remain distinct from buildings, parks, and route lines.
+- [ ] Direct user review confirms that the display reads as one person seeking shade.

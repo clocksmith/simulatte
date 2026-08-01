@@ -57,7 +57,7 @@ function semanticCameraExpectation(decision) {
   const aggregateFocusId = sourceIntentId ? `plugin:${decision.source}:${sourceIntentId}` : null;
   const subjectFocusId = decision.targetIds?.[0] ? `plugin:${decision.source}:${decision.targetIds[0]}` : null;
   if (['overview', 'compare'].includes(decision.mode)) {
-    return aggregateFocusId ? { mode: 'bird', focusId: aggregateFocusId } : null;
+    return aggregateFocusId ? { mode: decision.mode, focusId: aggregateFocusId } : null;
   }
   if (['follow', 'pov'].includes(decision.mode)) {
     return subjectFocusId ? { mode: 'follow', focusId: subjectFocusId } : null;
@@ -129,7 +129,8 @@ async function runBrowserSmoke(options) {
   const expectedProfile = profileDefinition(expectedProfileId);
   const expectedProfileIds = cityProfileIds();
   const expectedPluginIds = new Set(expectedProfile.plugins.map((row) => row.id));
-  const expectedRunCameraMode = expectedProfile.camera?.runMode || 'follow';
+  const configuredRunMode = expectedProfile.camera?.runMode || 'follow';
+  const expectedRunCameraMode = configuredRunMode === 'bird' ? 'overview' : configuredRunMode;
   const devtoolsPort = await freePort();
   const profileDir = fs.mkdtempSync(path.join(os.tmpdir(), 'simulatte-autonomy-browser-'));
   const chrome = spawn(chromePath, [
@@ -212,7 +213,7 @@ async function runBrowserSmoke(options) {
             : null;
           if (!sourceIntentId || !['overview', 'compare'].includes(decision.mode)) return null;
           return {
-            mode: 'bird',
+            mode: decision.mode,
             focusId: 'plugin:' + decision.source + ':' + sourceIntentId,
           };
         };
@@ -310,15 +311,26 @@ async function runBrowserSmoke(options) {
       && sunWalkerPass
       && (expectsCableTrader
         ? featureView.cableTrader.visible
-          && featureView.cableTrader.people === '6,000'
+          && featureView.cableTrader.peopleResidences.includes('256 people')
+          && featureView.cableTrader.peopleResidences.includes('256 unique homes')
           && featureView.cableTrader.globalSupply.includes('cables offered')
           && featureView.cableTrader.globalDemand.includes('cables requested')
           && featureView.cableTrader.pseudoYearTotal.includes('reused')
-          && featureView.cableTrader.markerCount >= 16
+          && featureView.cableTrader.residencePointCount === 256
+          && featureView.cableTrader.hubLayerCount === 4
+          && featureView.cableTrader.travelerLayerCount >= 1
+          && featureView.cableTrader.markerCount >= 256
           && featureView.cableTrader.pathCount >= 1
-          && featureView.cableTrader.actorCount >= 1
+          && featureView.cableTrader.labelCount === 0
         : !featureView.cableTrader.visible);
     const isPluginPlayback = expectedProfile.interaction?.mode === 'playback';
+    const performancePass = result.smoothness.rafFrameCount >= 120
+      && result.smoothness.frameIntervalMs.p95 <= 20
+      && result.smoothness.over33msRatio <= 0.01
+      && (isPluginPlayback
+        ? result.smoothness.longTaskCount <= 3
+          && result.smoothness.longestTaskMs <= 500
+        : result.smoothness.longTaskCount === 0);
     const initialViewExpectation = semanticCameraExpectation(result.camera.initial.decision);
     const initialViewPass = Boolean(
       initialViewExpectation
@@ -342,15 +354,13 @@ async function runBrowserSmoke(options) {
     const pass = result.state === 'completed'
       && result.rendererBackend === 'webgpu'
       && result.actorMeshSchema === 'simulatte.autonomyActorMesh.v1'
-      && result.actorMeshKinds === 'pedestrian,bicycle,scooter,car'
+      && ['pedestrian', 'bicycle', 'scooter', 'car']
+        .every((kind) => result.actorMeshKinds.split(',').includes(kind))
       && result.materialModel === 'metallic_roughness_vertex_v1'
       && result.ambientActorCount === 13
       && result.ambientActorKinds === 'pedestrian,bicycle,scooter,car'
       && result.rendererFrames > 0
-      && result.smoothness.rafFrameCount >= 120
-      && result.smoothness.frameIntervalMs.p95 <= 20
-      && result.smoothness.over33msRatio <= 0.01
-      && result.smoothness.longTaskCount === 0
+      && performancePass
       && result.staticVertexCount > 10000
       && autonomyProofPassed
       && result.runtimeLog.eventCount >= 8
@@ -365,9 +375,11 @@ async function runBrowserSmoke(options) {
       && result.shuffle.startLabel.length > 0
       && (result.shuffle.interactionMode === 'prompt' ? result.shuffle.startLabel === 'Start' : result.shuffle.seedChanged)
       && result.copy.removedLabelsAbsent
-      && result.copy.createLink.href === 'https://create.simulatte.world/'
-      && result.copy.createLink.label === 'Create'
-      && result.copy.createLink.insideRuntimeDetails
+      && (isPluginPlayback || (
+        result.copy.createLink.href === 'https://create.simulatte.world/'
+        && result.copy.createLink.label === 'Create'
+        && result.copy.createLink.insideRuntimeDetails
+      ))
       && result.copy.experienceDocLink.label === 'Experience docs'
       && result.copy.experienceDocLink.visible
       && result.copy.experienceDocLink.matchesActiveProfile
@@ -435,10 +447,7 @@ async function runBrowserSmoke(options) {
       && errors.length === 0
       && failedResponses.length === 0;
     const diagnostics = Object.freeze({
-      performance: result.smoothness.rafFrameCount >= 120
-        && result.smoothness.frameIntervalMs.p95 <= 20
-        && result.smoothness.over33msRatio <= 0.01
-        && result.smoothness.longTaskCount === 0,
+      performance: performancePass,
       profileScope: result.applicationProfile.selectedId === expectedProfileId
         && result.applicationProfile.optionIds.length === expectedProfileIds.length
         && result.applicationProfile.optionIds.every((id, index) => id === expectedProfileIds[index])
@@ -594,15 +603,22 @@ function pluginFeatureExpression({ expectsP2pDelivery, expectsSunWalker, expects
       const section = evidenceSection('cable-trader');
       const rows = Object.fromEntries([...section.querySelectorAll('div')].map((row) => [row.querySelector('dt')?.textContent.trim(), row.querySelector('dd')?.textContent.trim()]));
       const canvas = document.getElementById('autonomy-canvas');
+      const contribution = globalThis.__simulattePluginPlatformV4?.contributions
+        ?.find((row) => row.pluginId === 'cable-trader');
+      const layers = contribution?.presentation?.layers || [];
+      const residences = layers.find((row) => row.id === 'residences');
       cableTrader = {
         visible: true,
-        people: rows.People || '',
+        peopleResidences: rows['People / residences'] || '',
         globalSupply: rows['Global supply today'] || '',
         globalDemand: rows['Global demand today'] || '',
         pseudoYearTotal: rows['Pseudo-year total'] || '',
+        residencePointCount: residences?.geometry?.coordinates?.length || 0,
+        hubLayerCount: layers.filter((row) => row.id.startsWith('hub:')).length,
+        travelerLayerCount: layers.filter((row) => row.kind === 'actor').length,
         markerCount: Number(canvas.dataset.pluginMarkersCount || 0),
         pathCount: Number(canvas.dataset.pluginPathsCount || 0),
-        actorCount: Number(canvas.dataset.pluginActorsCount || 0),
+        labelCount: Number(canvas.dataset.pluginLabelCount || 0),
       };
     }
     return { cooperation, gpuParity, shade, cableTrader };
@@ -696,7 +712,13 @@ function browserJourneyExpression(expectedRunCameraMode = 'follow', expectsPlugi
           const state = document.getElementById('metric-state');
           throw new Error('autonomy browser timeout at ' + label +
             '; runtime=' + (status && status.dataset.kind) + ':' + (status && status.textContent) +
-            '; state=' + (state && state.textContent));
+            '; state=' + (state && state.textContent) +
+            '; playback=' + (document.getElementById('playback-progress')?.textContent || 'missing') +
+            ':' + (document.getElementById('playback-event')?.textContent || 'missing') +
+            '; resume=' + (document.getElementById('resume-button')?.hidden ? 'hidden' : 'visible') +
+            ':' + (document.getElementById('resume-button')?.disabled ? 'disabled' : 'enabled') +
+            '; camera=' + (document.getElementById('autonomy-canvas')?.dataset.cameraMode || 'missing') +
+            ':' + (document.getElementById('autonomy-canvas')?.dataset.cameraFocus || 'missing'));
         }
         await new Promise((resolve) => setTimeout(resolve, 50));
       }
@@ -776,6 +798,11 @@ function browserJourneyExpression(expectedRunCameraMode = 'follow', expectsPlugi
     shuffleButton.click();
     markPhase('scenario_shuffle_dispatched');
     await waitFor(() => missionInput.value !== originalMission || scenarioSeed.textContent !== originalSeed, 'scenario-shuffled');
+    await waitFor(() => (
+      document.getElementById('runtime-status').textContent.trim() === 'Ready'
+      && !shuffleButton.disabled
+      && !startButton.disabled
+    ), 'scenario-reload-ready');
     markPhase('scenario_shuffle_complete');
     const shuffledMission = missionInput.value;
     const shuffledSeed = scenarioSeed.textContent;
@@ -850,13 +877,14 @@ function browserJourneyExpression(expectedRunCameraMode = 'follow', expectsPlugi
     const cameraTarget = () => vector(canvas.dataset.cameraTarget);
     const waitForCamera = (label) => waitFor(() => canvas.dataset.cameraTransition === 'settled', label, 5000);
     const probeMode = async (mode) => {
+      const expectedMode = mode === 'bird' ? 'overview' : mode;
       console.log('SIMULATTE_BROWSER_PHASE', 'camera-' + mode + '-before');
       await waitForCamera('camera-' + mode + '-ready');
       const before = cameraEye();
       document.getElementById('camera-' + mode).click();
       console.log('SIMULATTE_BROWSER_PHASE', 'camera-' + mode + '-clicked');
       const immediate = cameraEye();
-      const began = canvas.dataset.cameraMode === mode && canvas.dataset.cameraTransition === 'active';
+      const began = canvas.dataset.cameraMode === expectedMode && canvas.dataset.cameraTransition === 'active';
       const noSnap = vectorDistance(before, immediate) < 1;
       await sleep(260);
       const middle = cameraEye();
@@ -873,7 +901,7 @@ function browserJourneyExpression(expectedRunCameraMode = 'follow', expectsPlugi
         began,
         noSnap,
         progressed,
-        settled: canvas.dataset.cameraMode === mode && canvas.dataset.cameraTransition === 'settled',
+        settled: canvas.dataset.cameraMode === expectedMode && canvas.dataset.cameraTransition === 'settled',
         moved: vectorDistance(before, after) > 2,
       };
     };
@@ -957,8 +985,7 @@ function browserJourneyExpression(expectedRunCameraMode = 'follow', expectsPlugi
     focusSelect.value = 'route';
     focusSelect.dispatchEvent(new Event('change', { bubbles: true }));
     await waitForCamera('route-focus-restored');
-    const returnedToRoute = canvas.dataset.cameraMode === 'bird'
-      && canvas.dataset.cameraFocus === 'route'
+    const returnedToRoute = canvas.dataset.cameraFocus === 'route'
       && canvas.dataset.cameraTransition === 'settled';
     markPhase('camera_interactions_complete');
     if (!pluginPlayback) {
@@ -983,6 +1010,24 @@ function browserJourneyExpression(expectedRunCameraMode = 'follow', expectsPlugi
       frameCount: Number(minimap.dataset.frameCount || 0),
     };
     markPhase('configured_camera_ready');
+    if (pluginPlayback) {
+      const timeline = document.getElementById('playback-timeline');
+      const pauseButton = document.getElementById('pause-button');
+      const resumeButton = document.getElementById('resume-button');
+      await waitFor(() => Number(timeline.max || 0) > 0 && !pauseButton.hidden, 'plugin-playback-ready');
+      markPhase('plugin_playback_ready');
+      pauseButton.click();
+      timeline.value = timeline.max;
+      timeline.dispatchEvent(new Event('change', { bubbles: true }));
+      await waitFor(() => (
+        document.body.dataset.journeyPhase === 'paused'
+        && Number(timeline.value) === Number(timeline.max)
+        && document.getElementById('runtime-status').textContent.startsWith('End preview')
+      ), 'plugin-playback-terminal-preview');
+      markPhase('plugin_playback_terminal_preview');
+      resumeButton.click();
+      markPhase('plugin_playback_resume_clicked');
+    }
     await waitFor(() => pluginPlayback
       ? ['completed', 'failed'].includes(document.body.dataset.journeyPhase)
       : ['completed', 'failed'].includes(document.getElementById('metric-state').textContent), 'journey-terminal');

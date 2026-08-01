@@ -148,7 +148,7 @@
         constructionProvenance: (node.constructionProvenance || []).slice(),
         properties: (node.properties || []).map((row) => ({ ...row })),
         partGraph: (node.partGraph || []).map((row) => ({ ...row })),
-        cardinality: node.cardinality || 1,
+        cardinality: Number.isFinite(Number(node.cardinality)) ? Number(node.cardinality) : 1,
         poseHint: node.poseHint ? { ...node.poseHint } : null,
         directlyGrounded: node.directlyGrounded === true || node.indexName === 'prompt-typed-slot',
         glyph: node.shapeHints && node.shapeHints[0] || 'body',

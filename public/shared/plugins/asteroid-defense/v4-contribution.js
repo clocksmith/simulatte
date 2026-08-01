@@ -270,6 +270,24 @@
       payload: row.payload,
       provenance: simulated,
     }));
+    const availableLayerIds = new Set(layers.map((row) => row.id));
+    const preferredTargetIds = snapshot.status.includes('intervention') && interventionActor.length
+      ? [
+        ...interventionActor.filter((row) => row.kind === 'actor').map((row) => row.id),
+        ...(actorPosition ? ['asteroid-active-clone'] : []),
+      ]
+      : snapshot.status.includes('propagating') && actorPosition
+        ? ['asteroid-active-clone', 'earth-encounter-target']
+        : snapshot.status === 'settled'
+          ? ['earth-encounter-target', 'asteroid-representative-trajectory']
+          : ['asteroid-representative-trajectory', 'earth-reference-trajectory'];
+    const viewTargetIds = preferredTargetIds.filter((id) => availableLayerIds.has(id));
+    if (!viewTargetIds.length) {
+      viewTargetIds.push(...layers
+        .filter((row) => row.id.startsWith('jpl-neo-context:'))
+        .slice(0, 24)
+        .map((row) => row.id));
+    }
     const presentation = builder.presentation({
       pluginId: PLUGIN_ID,
       coordinateSystem: 'heliocentric-ecliptic-au',
@@ -282,16 +300,7 @@
           : snapshot.status.includes('intervention') && interventionActor.length ? 'follow'
             : snapshot.status.includes('propagating') && actorPosition ? 'follow'
               : snapshot.status === 'settled' ? 'compare' : 'overview',
-        targetIds: snapshot.status.includes('intervention') && interventionActor.length
-          ? [
-            ...interventionActor.filter((row) => row.kind === 'actor').map((row) => row.id),
-            ...(actorPosition ? ['asteroid-active-clone'] : []),
-          ]
-          : snapshot.status.includes('propagating') && actorPosition
-            ? ['asteroid-active-clone', 'earth-encounter-target']
-            : snapshot.status === 'settled'
-              ? ['earth-encounter-target', 'asteroid-representative-trajectory']
-              : ['asteroid-representative-trajectory', 'earth-reference-trajectory'],
+        targetIds: viewTargetIds,
         reasonEventId: snapshot.eventIds.at(-1) || null,
         priority: 75,
       })],

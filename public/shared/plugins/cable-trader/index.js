@@ -20,19 +20,26 @@
     let activeConfig = withScenario(config, scenario);
     const worldModel = sdk.worldQuery.model();
     const routeCache = new Map();
+    let activeNetwork = circulation.createNetwork(activeConfig, worldModel);
 
-    function ensureRoutes() {
-      const hubs = activeConfig.hubs.slice(0, activeConfig.simulation.hubCount);
-      const locations = activeConfig.locations.slice(0, activeConfig.simulation.locationCount);
-      hubs.forEach((hub) => locations.forEach((location) => {
-        planDirection(hub, location, 'from-hub', hub.nodeId, location.nodeId);
-        planDirection(hub, location, 'to-hub', location.nodeId, hub.nodeId);
-      }));
-      return [...routeCache.values()];
+    function routesForVisibleJourneys(simulation, day) {
+      const visible = simulation.snapshots[day];
+      const hubById = new Map(activeNetwork.hubs.map((row) => [row.id, row]));
+      const residenceById = new Map(activeNetwork.residences.map((row) => [row.id, row]));
+      visible.visibleJourneys.forEach((journey) => {
+        const hub = hubById.get(journey.hubId);
+        const residence = residenceById.get(journey.residenceId);
+        const direction = journey.action === 'dropoff' ? 'to-hub' : 'from-hub';
+        const originNodeId = direction === 'from-hub' ? hub.nodeId : residence.nodeId;
+        const destinationNodeId = direction === 'from-hub' ? residence.nodeId : hub.nodeId;
+        planDirection(hub, residence, direction, originNodeId, destinationNodeId);
+      });
+      const visibleIds = new Set(visible.visibleJourneys.map((row) => row.routeId));
+      return [...routeCache.values()].filter((row) => visibleIds.has(row.id));
     }
 
-    function planDirection(hub, location, direction, originNodeId, destinationNodeId) {
-      const key = circulation.routeKey(hub.id, location.id, direction);
+    function planDirection(hub, residence, direction, originNodeId, destinationNodeId) {
+      const key = circulation.routeKey(hub.id, residence.id, direction);
       if (routeCache.has(key)) return;
       const route = sdk.routing.plan({
         worldModel,
@@ -54,9 +61,9 @@
         0
       );
       routeCache.set(key, {
-        id: `route-${hub.id}-${location.id}-${direction}`,
+        id: circulation.routeId(hub.id, residence.id, direction),
         hubId: hub.id,
-        locationId: location.id,
+        residenceId: residence.id,
         direction,
         segmentIds: route.segmentIds,
         distanceM,
@@ -65,15 +72,23 @@
 
     function simulationFor(nextScenario = null) {
       if (nextScenario) activeConfig = withScenario(activeConfig, nextScenario);
-      return circulation.simulateCirculation(activeConfig, ensureRoutes());
+      routeCache.clear();
+      activeNetwork = circulation.createNetwork(activeConfig, worldModel);
+      return circulation.simulateCirculation(activeConfig, activeNetwork);
     }
 
-    const simulation = simulationFor();
-    sdk.state.register(createReducer(simulationFor), {
-      simulation,
+    let activeSimulation = simulationFor();
+    sdk.state.register(createReducer({
+      selectScenario(nextScenario) {
+        activeSimulation = simulationFor(nextScenario);
+      },
+      durationDays() {
+        return activeSimulation.durationDays;
+      },
+    }), {
       playback: { status: 'ready', day: 0 },
     });
-    appendNetworkReceipt(simulation);
+    appendNetworkReceipt(activeSimulation);
 
     function appendNetworkReceipt(result) {
       sdk.receipts.append({
@@ -85,7 +100,7 @@
         durationDays: result.durationDays,
         peopleCount: result.people.length,
         hubIds: result.activeHubIds,
-        locationIds: result.activeLocationIds,
+        residenceCount: result.residences.length,
         selectedCableTypeIds: result.selectedCableTypeIds,
         summary: result.summary,
         balance: result.balance,
@@ -95,25 +110,30 @@
       });
     }
 
-    async function setScenario(nextScenario) {
+    async function setScenario(nextScenario, { forceRebuild = false } = {}) {
+      const scenarioId = nextScenario?.id || activeConfig.simulation.scenarioId || 'everyday-exchange';
+      const seed = nextScenario?.seed || activeConfig.simulation.seed;
+      const reuseSimulation = !forceRebuild
+        && scenarioId === activeConfig.simulation.scenarioId
+        && seed === activeConfig.simulation.seed;
       sdk.events.propose({
         pluginId: 'cable-trader',
         kind: 'cable-trader.scenario-selected',
         scenario: {
-          id: nextScenario?.id || activeConfig.simulation.scenarioId || 'everyday-exchange',
-          seed: nextScenario?.seed || activeConfig.simulation.seed,
+          id: scenarioId,
+          seed,
         },
+        reuseSimulation,
       });
-      const nextSimulation = sdk.state.read().simulation;
-      appendNetworkReceipt(nextSimulation);
-      return nextSimulation.summary;
+      appendNetworkReceipt(activeSimulation);
+      return activeSimulation.summary;
     }
 
     function view() {
       const state = sdk.state.read();
       return presentation.createViews({
         config: activeConfig,
-        simulation: state.simulation,
+        simulation: activeSimulation,
         playback: state.playback,
       });
     }
@@ -122,9 +142,9 @@
       const state = sdk.state.read();
       return presentation.createPresentation({
         config: activeConfig,
-        simulation: state.simulation,
+        simulation: activeSimulation,
         playback: state.playback,
-        routes: ensureRoutes(),
+        routes: routesForVisibleJourneys(activeSimulation, state.playback.day),
       });
     }
 
@@ -134,52 +154,63 @@
       }
       const phase = context.values?.phase;
       if (phase === 'start' && hasParameterValues(context.values)) {
-        applyParameterValues(context.values);
-        return setScenario({
+        const nextScenario = {
           id: context.scenario?.id || activeConfig.simulation.scenarioId,
           seed: context.scenario?.seed || activeConfig.simulation.seed,
-        }).then(startPlayback);
+        };
+        const parametersChanged = applyParameterValues(context.values);
+        const scenarioChanged = nextScenario.id !== activeConfig.simulation.scenarioId
+          || nextScenario.seed !== activeConfig.simulation.seed;
+        if (parametersChanged || scenarioChanged) {
+          return setScenario(nextScenario, { forceRebuild: parametersChanged })
+            .then(() => startPlayback({ presentationChanged: true }));
+        }
+        return startPlayback({ presentationChanged: false });
       }
       const state = sdk.state.read();
       if (phase === undefined) {
         startPlayback();
-        for (let day = 1; day <= state.simulation.durationDays; day += 1) advancePlayback(day);
-        appendPlaybackReceipt(sdk.state.read());
-        return { ...playbackAction(sdk.state.read()), compatibilityMode: 'eager_v1_v3_host' };
+        for (let day = 1; day <= activeSimulation.durationDays; day += 1) advancePlayback(day);
+        appendPlaybackReceipt(sdk.state.read().playback);
+        return {
+          ...playbackAction(activeSimulation, sdk.state.read().playback),
+          compatibilityMode: 'eager_v1_v3_host',
+        };
       }
-      if (phase === 'start') return startPlayback();
+      if (phase === 'start') return startPlayback({ presentationChanged: false });
       if (phase === 'step') {
         if (state.playback.status !== 'running') {
           return { status: 'refused', reason: 'playback_not_running' };
         }
-        const day = Math.min(state.simulation.durationDays, state.playback.day + 1);
+        const day = Math.min(activeSimulation.durationDays, state.playback.day + 1);
         advancePlayback(day);
         const nextState = sdk.state.read();
-        if (nextState.playback.status === 'settled') appendPlaybackReceipt(nextState);
-        return playbackAction(nextState);
+        if (nextState.playback.status === 'settled') appendPlaybackReceipt(nextState.playback);
+        return playbackAction(activeSimulation, nextState.playback);
       }
       return { status: 'refused', reason: 'scenario_phase_invalid', phase: phase || null };
     }
 
-    function startPlayback() {
-      const state = sdk.state.read();
+    function startPlayback({ presentationChanged = false } = {}) {
       sdk.events.propose({
         pluginId: 'cable-trader',
         kind: 'cable-trader.playback-started',
-        scenarioId: state.simulation.scenarioId,
-        configurationHash: state.simulation.configurationHash,
+        scenarioId: activeSimulation.scenarioId,
+        configurationHash: activeSimulation.configurationHash,
       });
-      return playbackAction(sdk.state.read());
+      return {
+        ...playbackAction(activeSimulation, sdk.state.read().playback),
+        presentationChanged,
+      };
     }
 
     function advancePlayback(day) {
-      const state = sdk.state.read();
       sdk.events.propose({
         pluginId: 'cable-trader',
         kind: 'cable-trader.playback-advanced',
         day,
-        scenarioId: state.simulation.scenarioId,
-        configurationHash: state.simulation.configurationHash,
+        scenarioId: activeSimulation.scenarioId,
+        configurationHash: activeSimulation.configurationHash,
       });
     }
 
@@ -188,34 +219,33 @@
         activeConfig.cableTypes,
         values.selectedCableTypeIds ?? activeConfig.simulation.selectedCableTypeIds
       );
-      activeConfig = {
-        ...activeConfig,
-        simulation: {
-          ...activeConfig.simulation,
-          peopleCount: integerBetween(
-            values.peopleCount,
-            activeConfig.simulation.peopleCount,
-            1000,
-            25000,
-            'peopleCount'
-          ),
-          hubCount: integerBetween(
-            values.hubCount,
-            activeConfig.simulation.hubCount,
-            2,
-            activeConfig.hubs.length,
-            'hubCount'
-          ),
-          locationCount: integerBetween(
-            values.locationCount,
-            activeConfig.simulation.locationCount,
-            4,
-            activeConfig.locations.length,
-            'locationCount'
-          ),
-          selectedCableTypeIds,
-        },
+      const nextSimulation = {
+        ...activeConfig.simulation,
+        peopleCount: integerBetween(
+          values.peopleCount,
+          activeConfig.simulation.peopleCount,
+          64,
+          10000,
+          'peopleCount'
+        ),
+        hubCount: integerBetween(
+          values.hubCount,
+          activeConfig.simulation.hubCount,
+          4,
+          64,
+          'hubCount'
+        ),
+        selectedCableTypeIds,
       };
+      const changed = nextSimulation.peopleCount !== activeConfig.simulation.peopleCount
+        || nextSimulation.hubCount !== activeConfig.simulation.hubCount
+        || nextSimulation.selectedCableTypeIds.join('|')
+          !== activeConfig.simulation.selectedCableTypeIds.join('|');
+      if (changed) activeConfig = {
+        ...activeConfig,
+        simulation: nextSimulation,
+      };
+      return changed;
     }
 
     function contributeRequest({ sourceText, mission = null }) {
@@ -225,12 +255,11 @@
       if (!mission) {
         return {
           recognized: true,
-          executableSourceText: `Bike from ${activeConfig.locations[0].label} to ${activeConfig.hubs[0].label}.`,
+          executableSourceText: `Bike from ${activeNetwork.residences[0].label} to ${activeNetwork.hubs[0].label}.`,
           obligations: [],
           unresolved: [],
         };
       }
-      const activeSimulation = sdk.state.read().simulation;
       return {
         recognized: true,
         obligations: [{
@@ -245,51 +274,51 @@
     function settle() {
       const state = sdk.state.read();
       const completed = state.playback.status === 'settled'
-        && state.playback.day === state.simulation.durationDays;
+        && state.playback.day === activeSimulation.durationDays;
       return {
         obligationResults: [
           {
-            obligationId: `cable-trader:circulation-run:${state.simulation.id}`,
+            obligationId: `cable-trader:circulation-run:${activeSimulation.id}`,
             status: completed ? 'settled' : 'unmet',
             evidence: {
               completedDays: state.playback.day,
-              durationDays: state.simulation.durationDays,
-              peopleCount: state.simulation.people.length,
-              configurationHash: state.simulation.configurationHash,
+              durationDays: activeSimulation.durationDays,
+              peopleCount: activeSimulation.people.length,
+              configurationHash: activeSimulation.configurationHash,
             },
           },
           {
-            obligationId: `cable-trader:cable-balance:${state.simulation.id}`,
-            status: completed && state.simulation.balance.pass ? 'settled' : 'unmet',
-            evidence: { ...state.simulation.balance },
+            obligationId: `cable-trader:cable-balance:${activeSimulation.id}`,
+            status: completed && activeSimulation.balance.pass ? 'settled' : 'unmet',
+            evidence: { ...activeSimulation.balance },
           },
         ],
-        stateIdentity: `${state.simulation.id}:day-${state.playback.day}:${state.playback.status}`,
+        stateIdentity: `${activeSimulation.id}:day-${state.playback.day}:${state.playback.status}`,
         losses: completed
           ? []
           : [{
             kind: 'playback_incomplete',
             completedDays: state.playback.day,
-            durationDays: state.simulation.durationDays,
+            durationDays: activeSimulation.durationDays,
           }],
       };
     }
 
-    function appendPlaybackReceipt(state) {
+    function appendPlaybackReceipt(playback) {
       sdk.receipts.append({
         schema: 'simulatte.plugin.cableTraderPlaybackReceipt.v2',
-        simulationId: state.simulation.id,
-        scenarioId: state.simulation.scenarioId,
-        configurationHash: state.simulation.configurationHash,
-        completedDays: state.playback.day,
-        durationDays: state.simulation.durationDays,
-        peopleCount: state.simulation.people.length,
-        eventIds: state.simulation.events.map((row) => row.id),
-        summary: state.simulation.summary,
-        balance: state.simulation.balance,
+        simulationId: activeSimulation.id,
+        scenarioId: activeSimulation.scenarioId,
+        configurationHash: activeSimulation.configurationHash,
+        completedDays: playback.day,
+        durationDays: activeSimulation.durationDays,
+        peopleCount: activeSimulation.people.length,
+        eventIds: activeSimulation.events.map((row) => row.id),
+        summary: activeSimulation.summary,
+        balance: activeSimulation.balance,
         origin: 'simulated',
         temporalStatus: 'forecast',
-        claimBoundary: state.simulation.claimBoundary,
+        claimBoundary: activeSimulation.claimBoundary,
       });
     }
 
@@ -300,9 +329,9 @@
       const state = sdk.state.read();
       return v4Contribution.createContribution({
         config: activeConfig,
-        simulation: state.simulation,
+        simulation: activeSimulation,
         state,
-        routes: ensureRoutes(),
+        routes: routesForVisibleJourneys(activeSimulation, state.playback.day),
       });
     }
 
@@ -314,7 +343,7 @@
       setScenario,
       capabilities: {
         'field.logistics-service.v1': (input) => {
-          const result = sdk.state.read().simulation;
+          const result = activeSimulation;
           const fulfillmentRate = result.summary.totalDemand
             ? result.summary.cablesReused / result.summary.totalDemand
             : 1;
@@ -338,26 +367,23 @@
     });
   }
 
-  function createReducer(simulationFor) {
+  function createReducer({ selectScenario, durationDays }) {
     return function reduce(state, event) {
       if (event.kind === 'cable-trader.scenario-selected') {
+        if (!event.reuseSimulation) selectScenario(event.scenario);
         return {
-          ...state,
-          simulation: simulationFor(event.scenario),
           playback: { status: 'ready', day: 0 },
         };
       }
       if (event.kind === 'cable-trader.playback-started') {
         return {
-          ...state,
           playback: { status: 'running', day: 0 },
         };
       }
       if (event.kind === 'cable-trader.playback-advanced') {
         return {
-          ...state,
           playback: {
-            status: event.day === state.simulation.durationDays ? 'settled' : 'running',
+            status: event.day === durationDays() ? 'settled' : 'running',
             day: event.day,
           },
         };
@@ -387,19 +413,19 @@
   }
 
   function hasParameterValues(values) {
-    return ['peopleCount', 'hubCount', 'locationCount', 'selectedCableTypeIds']
+    return ['peopleCount', 'hubCount', 'selectedCableTypeIds']
       .some((key) => Object.prototype.hasOwnProperty.call(values || {}, key));
   }
 
-  function playbackAction(state) {
-    const visible = state.simulation.snapshots[state.playback.day];
+  function playbackAction(simulation, playback) {
+    const visible = simulation.snapshots[playback.day];
     return {
-      status: state.playback.status === 'settled' ? 'settled' : 'running',
-      currentStep: state.playback.day,
-      totalSteps: state.simulation.durationDays,
-      simulationId: state.simulation.id,
-      scenarioId: state.simulation.scenarioId,
-      configurationHash: state.simulation.configurationHash,
+      status: playback.status === 'settled' ? 'settled' : 'running',
+      currentStep: playback.day,
+      totalSteps: simulation.durationDays,
+      simulationId: simulation.id,
+      scenarioId: simulation.scenarioId,
+      configurationHash: simulation.configurationHash,
       summary: {
         day: visible.day,
         supply: visible.global.supply,

@@ -86,6 +86,7 @@ obligation coverage.
 ## Guardrails
 
 - Read [STYLE_GUIDE.md](STYLE_GUIDE.md) before non-trivial edits.
+- Read [docs/simulatte/bug-zapping-guide.md](docs/simulatte/bug-zapping-guide.md) before non-trivial defect investigation or repair.
 - Keep assets and links deploy-safe for static hosting.
 - Prefer relative paths for site resources.
 - Avoid adding server/runtime assumptions unless explicitly requested.

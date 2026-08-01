@@ -14,7 +14,7 @@ behavior that executes today.
 
 | Experience | Tier | Status | Real data | Simulation | Comparison | Browser proof |
 |---|---|---|---|---|---|---|
-| [Cable Trader](cable-trader.md) | City | implemented | City routes and an authored everyday cable taxonomy | 6,000 stable people, hub inventory, supply, demand, pickups, and drop-offs | One continuous 365-day exchange | Desktop and mobile proof pending for the v6 rebuild |
+| [Cable Trader](cable-trader.md) | City | implemented | City routes and an authored everyday cable taxonomy | 256 stable people by default, hub inventory, supply, demand, pickups, and drop-offs | One continuous 365-day exchange | Desktop and mobile proof pending for the v6 rebuild |
 | [Neighborhood Bulk Pool](neighborhood-bulk-pool.md) | City | implemented | Warehouse identities and addresses | Synthetic pooling, handoffs, costs, and waste | Four pooling policies | Prior commit only |
 | [NYC Development Atlas](nyc-development-atlas.md) | City | implemented | NYC neighborhood, sale, DOB, building, and PLUTO records | Historical building stages and conditional price and development ensembles | Business as usual vs selected development policy | Not tested |
 | [Sun Walker](sun-walker.md) | City | implemented | NYC geometry, 2015 trees, historical weather analog | Arrival-time solar exposure and occlusion | Fastest vs shade-selected route | Prior commit only |

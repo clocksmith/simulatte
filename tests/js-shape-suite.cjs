@@ -2323,13 +2323,11 @@ test('pipeline phases consume only neighboring compiled artifacts after intent g
   const webgpu = runtimeSource('simulatte-webgpu-renderer.js');
   const visualOperatorCompiler = runtimeSource('simulatte-visual-operator-compiler.js');
   const activationCloud = runtimeSource('simulatte-activation-cloud.js');
-  const physicsIRCall = model.match(/nextIR = scope\.buildPhysicsIR\(\{\s*universeGraph,[\s\S]*?\n\s*\}\);/);
+  const phase5Compile = model.match(/const nextPhase5 = phaseArtifacts\.phase5 \|\| scope\.runPhase5SimulationCompile\(nextPhase4, runtimeContext\);/);
   const directLanguageText = visualOperatorCompiler.match(/function directLanguageText\(context = \{\}\) \{[\s\S]*?\n  \}/);
 
-  assert.ok(physicsIRCall, 'physics model should compile PhysicsIR through a visible call site');
-  assert.match(physicsIRCall[0], /scope\.buildPhysicsIR\(\{\s*universeGraph,/);
-  assert.doesNotMatch(physicsIRCall[0], /prompt,/);
-  assert.doesNotMatch(physicsIRCall[0], /promptParse,/);
+  assert.ok(phase5Compile, 'physics model should use the canonical Phase 5 compiler once');
+  assert.match(phase5Compile[0], /scope\.runPhase5SimulationCompile\(nextPhase4, runtimeContext\)/);
   assert.match(physicsIR, /const prompt = universeGraph\.prompt \|\| ''/);
   assert.doesNotMatch(physicsIR, /input\.prompt \|\| universeGraph\.prompt/);
 
@@ -2376,7 +2374,9 @@ test('pipeline phases consume only neighboring compiled artifacts after intent g
   assert.match(model, /Phase 7 input expected sceneRenderPacket simulatte\.sceneRenderPacket\.v1/);
   assert.match(model, /buildCompositionGraph\(phase6Input\)/);
   assert.match(model, /compileCompositionToRenderProgram\(nextCompositionGraph, phase6Input\)/);
-  assert.match(composition, /const conceptGraph = Array\.isArray\(universeGraph\.nodes\)/);
+  assert.match(composition, /source: 'phase5-render-ir-selection-priors'/);
+  assert.match(composition, /function relationsFromRenderIR\(spec = \{\}\)/);
+  assert.doesNotMatch(composition, /\b(?:universeGraph|promptParse|physicsIR)\b/);
   assert.match(composition, /const brief = spec && spec\.renderIR && spec\.renderIR\.intentBriefReceipt/);
   assert.match(composition, /function visualObjectAcceptanceLedger/);
   assert.match(composition, /simulatte\.visualObjectAcceptanceLedger\.v1/);
@@ -2923,6 +2923,50 @@ test('model-backed intent retrieval uses a 1024d Qwen index and keeps the unqual
   assert.match(html, /intent-runtime-fill/);
   assert.equal(fs.existsSync(workerShimPath), false);
   assert.equal(fs.existsSync(workerPath), false);
+});
+
+test('model slot reranking stays in its own loaded Phase 3 retrieval shard', () => {
+  const span = fs.readFileSync(path.join(
+    root, 'public', 'blank', 'pipeline', 'phase-03-retrieval', 'simulatte-intent-embedder-span-retrieval.js'
+  ), 'utf8');
+  const rerank = fs.readFileSync(path.join(
+    root, 'public', 'blank', 'pipeline', 'phase-03-retrieval', 'simulatte-intent-embedder-slot-rerank.js'
+  ), 'utf8');
+  const scripts = runtimeScriptManifest.browser;
+  const slotIndex = scripts.indexOf('pipeline/phase-03-retrieval/simulatte-intent-embedder-slot-retrieval.js');
+  const rerankIndex = scripts.indexOf('pipeline/phase-03-retrieval/simulatte-intent-embedder-slot-rerank.js');
+  const cacheIndex = scripts.indexOf('pipeline/phase-03-retrieval/simulatte-intent-embedder-manifest-cache.js');
+
+  assert.ok(slotIndex >= 0 && rerankIndex > slotIndex && cacheIndex > rerankIndex);
+  assert.match(span, /scope\.rerankSlotCandidates\(/);
+  assert.doesNotMatch(span, /function rerankSlotCandidates/);
+  assert.match(rerank, /function rerankSlotCandidates/);
+  assert.match(rerank, /simulatte\.phase3SlotRerankReceipt\.v1/);
+});
+
+test('Phase 6 composition accepts semantic authority only from its Phase 5 render boundary', () => {
+  const phase6Root = path.join(root, 'public', 'blank', 'pipeline', 'phase-06-visual');
+  const sources = fs.readdirSync(phase6Root)
+    .filter((file) => file.endsWith('.js'))
+    .map((file) => fs.readFileSync(path.join(phase6Root, file), 'utf8'))
+    .join('\n');
+
+  assert.doesNotMatch(sources, /\b(?:universeGraph|promptParse|physicsIR)\b/);
+  assert.match(sources, /function relationsFromRenderIR/);
+  assert.match(sources, /scope\.relationsFromRenderIR\(spec\)/);
+});
+
+test('pipeline phases load Phase 3 retrieval boundary checks before retrieval work', () => {
+  const boundary = 'pipeline/phase-05-simulation/simulatte-physics-model-phase-retrieval-boundary.js';
+  const retrieval = 'pipeline/phase-05-simulation/simulatte-physics-model-phase-retrieval.js';
+  const model = fs.readFileSync(path.join(
+    root, 'public', 'blank', 'pipeline', 'phase-05-simulation', 'simulatte-physics-model.js'
+  ), 'utf8');
+
+  assert.ok(runtimeScriptManifest.browser.indexOf(boundary) >= 0);
+  assert.ok(runtimeScriptManifest.browser.indexOf(boundary) < runtimeScriptManifest.browser.indexOf(retrieval));
+  assert.match(model, /require\('\.\/simulatte-physics-model-phase-retrieval-boundary\.js'\);/);
+  assert.match(model, /require\('\.\/simulatte-physics-model-phase-retrieval\.js'\);/);
 });
 
 test('product path removed the parallel world planner and legacy pipeline export', () => {

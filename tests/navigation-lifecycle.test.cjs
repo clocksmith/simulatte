@@ -70,6 +70,19 @@ test('experience HUD summary binds the active profile, scenario, and V4 state me
   });
 });
 
+test('world-tier clock snapshots governed scenario time and fails closed when absent', () => {
+  const startClock = bootApi.createScenarioClock({ id: 'start-instant', startInstant: '2035-01-01T00:00:00Z' });
+  assert.equal(startClock.instantForMission(), '2035-01-01T00:00:00.000Z');
+  assert.equal(startClock.iso(), '2035-01-01T00:00:00.000Z');
+  assert.equal(startClock.now(), Date.parse('2035-01-01T00:00:00Z'));
+
+  const epochClock = bootApi.createScenarioClock({ id: 'epoch-start', epochStart: '2030-09-15T00:00:00Z' });
+  assert.equal(epochClock.instantForMission(), '2030-09-15T00:00:00.000Z');
+
+  const invalidClock = bootApi.createScenarioClock({ id: 'missing-time' });
+  assert.throws(() => invalidClock.now(), (error) => error.code === 'world_tiers_clock_scenario_instant_invalid');
+});
+
 test('all shipped experiences declare validated story, metric, comparison, and view behavior', () => {
   const root = path.resolve(__dirname, '..');
   const inventory = JSON.parse(fs.readFileSync(
@@ -371,6 +384,35 @@ test('app shell clears stale side metrics before a different experience boots', 
   }
 });
 
+test('app shell reloads the tier default when browser history removes an experience segment', async () => {
+  const calls = [];
+  const canonicalRoutes = [];
+  const shell = bootApi.createAppShell({
+    router: { canonicalize(route) { canonicalRoutes.push(route); }, start() {} },
+    boot: async (tier, experience) => {
+      calls.push({ tier, experience });
+      return { tier, experience: experience || 'tier-default-v1', dispose() {} };
+    },
+    landing: {
+      classList: { add() {}, remove() {} },
+      querySelector() { return null; },
+      addEventListener() {},
+    },
+  });
+
+  await shell.renderRoute({ tier: 'world', experience: 'alternate-v1' });
+  await shell.renderRoute({ tier: 'world', experience: null });
+
+  assert.deepEqual(calls, [
+    { tier: 'world', experience: 'alternate-v1' },
+    { tier: 'world', experience: null },
+  ]);
+  assert.deepEqual(canonicalRoutes, [
+    { tier: 'world', experience: 'alternate-v1' },
+    { tier: 'world', experience: 'tier-default-v1' },
+  ]);
+});
+
 test('app shell hides the mounted world synchronously and keeps only the loader until replacement boot completes', async () => {
   const previousDocument = global.document;
   const teardownGate = deferred();
@@ -473,4 +515,34 @@ test('app shell aborts and releases a terminally failed boot attempt', async () 
     (error) => error === failure
   );
   assert.equal(failedSignal.aborted, true);
+});
+
+test('app shell recovers an unknown governed-tier experience with that tier default', async () => {
+  const calls = [];
+  const canonicalRoutes = [];
+  const shell = bootApi.createAppShell({
+    router: { canonicalize(route) { canonicalRoutes.push(route); }, start() {} },
+    boot: async (tier, experience) => {
+      calls.push({ tier, experience });
+      if (experience) {
+        const error = new Error('Profile is not available for tier');
+        error.code = 'tier_profile_unknown';
+        throw error;
+      }
+      return { tier, experience: 'tier-default-v1', dispose() {} };
+    },
+    landing: {
+      classList: { add() {}, remove() {} },
+      querySelector() { return null; },
+      addEventListener() {},
+    },
+  });
+
+  await shell.renderRoute({ tier: 'world', experience: 'removed-experience-v1' });
+
+  assert.deepEqual(calls, [
+    { tier: 'world', experience: 'removed-experience-v1' },
+    { tier: 'world', experience: null },
+  ]);
+  assert.deepEqual(canonicalRoutes, [{ tier: 'world', experience: 'tier-default-v1' }]);
 });

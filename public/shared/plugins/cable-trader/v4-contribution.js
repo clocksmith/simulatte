@@ -8,14 +8,15 @@
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createCableTraderV4Contribution(builder) {
   const PLUGIN_ID = 'cable-trader';
   const DAY_MS = 86400000;
+  const residenceLayerCache = new WeakMap();
   const DATASET_REFERENCE = Object.freeze({
     id: 'cable-circulation-catalog-v1',
     path: '../../../data/cable-trader/cable-circulation-catalog-v1.json',
-    sha256: '5694a3049a8f6b8036599a64545535531adffc2413720776b344a6ac959451b6',
+    sha256: '4de18f918739242970e47f77c419ced2980ab8943a9d3f73f0b31a451535df5e',
     schemaId: 'simulatte.cableCirculationCatalog.v1',
   });
   const MODEL_IDENTITIES = Object.freeze({
-    circulationModelHash: '6a70009eafa90588144ed192deba09e2a4190072e993ffec5faf86e112cec837',
+    circulationModelHash: '35a9533f20a0b7dacf829135777bfd320b72eb99720334dd3b129e8d1d0bb7af',
   });
 
   function createContribution({ config, simulation, state, routes }) {
@@ -26,6 +27,7 @@
       kind: 'authored synthetic community cable exchange',
       seed: simulation.seed,
       peopleCount: simulation.people.length,
+      residenceCount: simulation.residences.length,
       selectedCableTypeIds: simulation.selectedCableTypeIds,
     });
     const catalogRecord = builder.datasetRecord(DATASET_REFERENCE.id, {
@@ -40,7 +42,7 @@
       contentHash: MODEL_IDENTITIES.circulationModelHash,
       parentIds: [scenarioRecord.id, catalogRecord.id],
       metadata: {
-        algorithm: 'seeded_person_hub_spoke_circulation_v1',
+        algorithm: 'seeded_unique_residence_hub_spoke_circulation_v2',
         durationDays: simulation.durationDays,
         balancePass: simulation.balance.pass,
       },
@@ -76,9 +78,9 @@
       provenance: simulated,
     }));
     const layers = [
-      ...hubLayers(config, simulation, visible, scenario),
-      ...locationLayers(config, simulation, visible, scenario),
-      ...journeyLayers(config, visible, routeById, simulated),
+      ...hubLayers(simulation, visible, scenario),
+      ...residenceLayers(simulation, scenario),
+      ...journeyLayers(config, simulation, visible, routeById, simulated),
     ];
     const presentation = builder.presentation({
       pluginId: PLUGIN_ID,
@@ -90,7 +92,7 @@
           mode: 'overview',
           targetIds: [
             ...simulation.activeHubIds.map((id) => `hub:${id}`),
-            ...simulation.activeLocationIds.map((id) => `location:${id}`),
+            'residences',
           ],
           reasonEventId: visible.day ? events[visible.day - 1]?.id || null : null,
           priority: 50,
@@ -98,9 +100,8 @@
       ],
     });
     const controls = builder.controls([
-      numeric('peopleCount', 'People', simulation.people.length, 1000, 25000, 1000, scenario),
-      numeric('hubCount', 'Hubs', simulation.activeHubIds.length, 2, config.hubs.length, 1, scenario),
-      numeric('locationCount', 'Locations', simulation.activeLocationIds.length, 4, config.locations.length, 1, scenario),
+      numeric('peopleCount', 'People / unique residences', simulation.people.length, 64, 10000, 64, scenario),
+      numeric('hubCount', 'Hubs', simulation.activeHubIds.length, 4, 64, 1, scenario),
       multiSelect(
         'selectedCableTypeIds',
         'Cable set',
@@ -118,6 +119,7 @@
       eventIds: events.slice(0, visible.day).map((row) => row.id),
       measures: [
         builder.quantity('people', simulation.people.length, 'people'),
+        builder.quantity('unique-residences', simulation.residences.length, 'residences'),
         builder.quantity('cable-supply', visible.global.supply, 'cables/day'),
         builder.quantity('cable-demand', visible.global.demand, 'cables/day'),
         builder.quantity('cables-reused', visible.cumulative.fulfilled, 'cables'),
@@ -138,53 +140,55 @@
     });
   }
 
-  function hubLayers(config, simulation, visible, provenance) {
-    return activeHubs(config, simulation).map((hub) => {
+  function hubLayers(simulation, visible, provenance) {
+    return simulation.hubs.map((hub) => {
       const board = visible.hubBoards.find((row) => row.id === hub.id);
       return builder.layer({
         id: `hub:${hub.id}`,
         kind: 'point',
-        label: `${hub.label} · ${board.supply} in · ${board.demand} asked · ${board.inventory} available · ${board.waiting} waiting`,
+        label: hub.label,
         geometry: builder.geometry('node', 'city-node-id', [hub.nodeId]),
         quantity: builder.quantity('hub-cable-inventory', board.inventory, 'cables'),
         role: 'primary',
-        importance: 0.95,
+        importance: 0.72,
         aggregationKey: 'cable-exchange-hubs',
         provenance,
       });
     });
   }
 
-  function locationLayers(config, simulation, visible, provenance) {
-    return activeLocations(config, simulation).map((location) => {
-      const journeys = visible.journeys.filter((row) => row.locationId === location.id).length;
-      return builder.layer({
-        id: `location:${location.id}`,
-        kind: 'point',
-        label: `${location.label} · ${journeys} cable trips today`,
-        geometry: builder.geometry('node', 'city-node-id', [location.nodeId]),
-        quantity: builder.quantity('community-cable-trips', journeys, 'trips/day'),
-        role: journeys ? 'primary' : 'context',
-        importance: journeys ? 0.78 : 0.38,
-        aggregationKey: 'cable-exchange-locations',
-        provenance,
-      });
-    });
+  function residenceLayers(simulation, provenance) {
+    if (residenceLayerCache.has(simulation)) return residenceLayerCache.get(simulation);
+    const layers = Object.freeze([builder.layer({
+      id: 'residences',
+      kind: 'point',
+      label: `${simulation.residences.length.toLocaleString('en-US')} unique residences`,
+      geometry: builder.geometry(
+        'point-cloud',
+        'city-planar-m',
+        simulation.residences.map((row) => [row.position.x, row.position.y, 0])
+      ),
+      quantity: builder.quantity('person-residences', simulation.residences.length, 'residences'),
+      role: 'context',
+      importance: 0.08,
+      aggregationKey: null,
+      provenance,
+    })]);
+    residenceLayerCache.set(simulation, layers);
+    return layers;
   }
 
-  function journeyLayers(config, visible, routeById, provenance) {
+  function journeyLayers(config, simulation, visible, routeById, provenance) {
     const cableById = new Map(config.cableTypes.map((row) => [row.id, row]));
-    const hubById = new Map(config.hubs.map((row) => [row.id, row]));
-    const locationById = new Map(config.locations.map((row) => [row.id, row]));
+    const hubById = new Map(simulation.hubs.map((row) => [row.id, row]));
     return visible.visibleJourneys.flatMap((journey) => {
       const route = routeById.get(journey.routeId);
       if (!route?.segmentIds?.length) return [];
       const cable = cableById.get(journey.cableTypeId);
       const hub = hubById.get(journey.hubId);
-      const location = locationById.get(journey.locationId);
       const label = journey.action === 'dropoff'
-        ? `${personLabel(journey.personId)} drops off ${cable.shortLabel} at ${hub.label} from ${location.label}`
-        : `${personLabel(journey.personId)} picks up ${cable.shortLabel} at ${hub.label} for ${location.label}`;
+        ? `${personLabel(journey.personId)} carries ${cable.shortLabel} to ${hub.label}`
+        : `${personLabel(journey.personId)} carries ${cable.shortLabel} home`;
       return [
         builder.layer({
           id: `path:${journey.id}`,
@@ -193,7 +197,7 @@
           geometry: builder.geometry('segments', 'city-segment-id', route.segmentIds),
           quantity: builder.quantity(`cable.${journey.cableTypeId}.${journey.action}`, 1, 'cable'),
           role: 'event',
-          importance: 0.72,
+          importance: 0.52,
           aggregationKey: `cable-route:${journey.action}`,
           provenance,
         }),
@@ -203,14 +207,14 @@
           label,
           geometry: builder.geometry('segments', 'city-segment-id', route.segmentIds),
           quantity: builder.quantity(
-            `actor.bicycle.cable-${journey.action}`,
+            `traveler.cable-${journey.cableTypeId}.${journey.action}`,
             journey.progress,
             'ratio',
             [0, 1]
           ),
-          role: 'event',
-          importance: 1,
-          aggregationKey: `cable-person:${journey.action}`,
+          role: 'context',
+          importance: 0.7,
+          aggregationKey: null,
           provenance,
         }),
       ];
@@ -218,8 +222,8 @@
   }
 
   function inspections(config, simulation, visible, provenance) {
-    const hubById = new Map(config.hubs.map((row) => [row.id, row]));
-    const locationById = new Map(config.locations.map((row) => [row.id, row]));
+    const hubById = new Map(simulation.hubs.map((row) => [row.id, row]));
+    const residenceById = new Map(simulation.residences.map((row) => [row.id, row]));
     const cableById = new Map(config.cableTypes.map((row) => [row.id, row]));
     return [
       {
@@ -229,13 +233,15 @@
         fields: [
           field('day', 'Pseudo-day', visible.day, provenance, 'day'),
           field('people', 'People', simulation.people.length, provenance, 'people'),
+          field('residences', 'Unique residences', simulation.residences.length, provenance, 'residences'),
+          field('hubs', 'Hubs', simulation.hubs.length, provenance, 'hubs'),
           field('supply', 'Supply today', visible.global.supply, provenance, 'cables'),
           field('demand', 'Demand today', visible.global.demand, provenance, 'cables'),
           field('reused', 'Reused this year', visible.cumulative.fulfilled, provenance, 'cables'),
           field('waiting', 'Waiting requests', visible.global.waiting, provenance, 'cables'),
         ],
       },
-      ...activeHubs(config, simulation).map((hub) => {
+      ...simulation.hubs.map((hub) => {
         const board = visible.hubBoards.find((row) => row.id === hub.id);
         return {
           id: `inspection:${simulation.id}:${hub.id}:day-${visible.day}`,
@@ -258,20 +264,10 @@
           field('action', 'Action', journey.action, provenance),
           field('cable', 'Cable', cableById.get(journey.cableTypeId).label, provenance),
           field('hub', 'Hub', hubById.get(journey.hubId).label, provenance),
-          field('location', 'Location', locationById.get(journey.locationId).label, provenance),
+          field('residence', 'Residence', residenceById.get(journey.residenceId).label, provenance),
         ],
       })),
     ];
-  }
-
-  function activeHubs(config, simulation) {
-    const active = new Set(simulation.activeHubIds);
-    return config.hubs.filter((row) => active.has(row.id));
-  }
-
-  function activeLocations(config, simulation) {
-    const active = new Set(simulation.activeLocationIds);
-    return config.locations.filter((row) => active.has(row.id));
   }
 
   function field(id, label, value, provenance, unit = null) {

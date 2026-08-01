@@ -470,9 +470,7 @@
   }
 
   function compiledIntentBrief(context = {}) {
-    return context && context.spec && context.spec.universeGraph && context.spec.universeGraph.intentBrief ||
-      context && context.spec && context.spec.renderIR && context.spec.renderIR.intentBriefReceipt ||
-      null;
+    return context && context.spec && context.spec.renderIR && context.spec.renderIR.intentBriefReceipt || null;
   }
 
   function compiledIntentBriefText(context = {}) {

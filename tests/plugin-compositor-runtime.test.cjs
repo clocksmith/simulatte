@@ -161,6 +161,89 @@ test('City renderer converts compositor pixels into visible world dimensions', (
   assert.equal(compiled.compositorReceipts[0].policies.screenSpaceWidths, true);
 });
 
+test('City expands one governed point-cloud layer into individual tiny markers', () => {
+  const base = semanticPresentation();
+  const presentation = {
+    ...base,
+    layers: [{
+      ...base.layers[1],
+      id: 'residences',
+      label: 'Three unique residences',
+      geometry: {
+        kind: 'point-cloud',
+        coordinateSystem: 'local-m',
+        coordinates: [[0, 0], [10, 20], [30, 40]],
+      },
+      quantity: { kind: 'person-residences', value: 3, unit: 'residences', domain: null },
+      aggregationKey: null,
+      importance: 0.08,
+    }],
+    viewIntents: [{
+      schema: 'simulatte.viewIntent.v4',
+      id: 'residence-overview',
+      mode: 'overview',
+      targetIds: ['residences'],
+      reasonEventId: null,
+      priority: 50,
+      transition: 'ease',
+    }],
+  };
+  const compiled = cityPresentation.compile([{
+    pluginId: 'fixture',
+    presentation,
+  }], {
+    world: {},
+    node() { throw new Error('unused'); },
+    segment() { throw new Error('unused'); },
+  }, {
+    viewport: { width: 400, height: 300 },
+    provenanceReceipts: [provenanceReceipt(presentation)],
+  });
+  assert.equal(compiled.markers.length, 3);
+  assert.equal(new Set(compiled.markers.map((row) => row.id)).size, 3);
+  assert.ok(compiled.markers.every((row) => row.radiusM <= 1));
+  assert.deepEqual(
+    compiled.markers.map((row) => [row.point.x, row.point.y]),
+    [[0, 0], [10, 20], [30, 40]]
+  );
+});
+
+test('City renders residence point clouds as lightweight six-vertex nodes', () => {
+  const markerCount = 100;
+  const scene = {
+    areas: [],
+    paths: [],
+    markers: Array.from({ length: markerCount }, (unused, index) => ({
+      point: { x: index, y: index },
+      semanticKind: 'person-residences',
+      tone: 'muted',
+      radiusM: 0.5,
+      intensity: 0.2,
+    })),
+    actors: [],
+    choropleths: [],
+    geoAreas: [],
+    geoPaths: [],
+    geoMarkers: [],
+    sun: null,
+  };
+  const geometry = gpuGeometry.createDynamicGeometry({
+    blockedSegmentIds: () => [],
+    signalRows: () => [],
+    activeActors: () => [],
+  }, {
+    route: { segmentIds: [] },
+    state: {
+      tick: 0,
+      taskType: 'simulation',
+      position: { x: 0, y: 0 },
+      suppressPrimaryActor: true,
+      simulatedTimeSeconds: 0,
+    },
+  }, null, [], null, scene);
+  assert.equal(geometry.length / gpuGeometry.FLOATS_PER_VERTEX, markerCount * 6);
+});
+
 test('semantic volume compiles into an extruded City mesh and retains height in tier views', () => {
   const base = semanticPresentation();
   const presentation = {

@@ -300,8 +300,18 @@
             proof.pixelSamples
           ) || null;
           if (samples) {
-            this.renderData.pixelSamples = samples;
-            this.renderData.pixelSampleSource = 'renderExecutionInput';
+            const binding = scope.phase7PixelSampleSetValidation(
+              this.sceneRenderPacket || {}, this.renderData, samples
+            );
+            if (binding.valid) {
+              this.renderData.pixelSamples = scope.immutableRenderEvidence(samples);
+              this.renderData.pixelSampleSource = 'renderExecutionInput';
+              delete this.renderData.pixelSampleRejection;
+            } else {
+              delete this.renderData.pixelSamples;
+              delete this.renderData.pixelSampleSource;
+              this.renderData.pixelSampleRejection = binding;
+            }
           } else if (this.renderData.pixelSampleSource === 'renderExecutionInput') {
             delete this.renderData.pixelSamples;
             delete this.renderData.pixelSampleSource;
@@ -528,13 +538,13 @@
 
         applyPixelReadbackSamples(readback, samples, renderCount, frameMs) {
           if (!this.renderData || this.renderData.packetKey !== readback.packetKey) return;
-          const sampleSet = {
+          const sampleSet = scope.immutableRenderEvidence({
             schema: 'simulatte.phase7PixelSampleSet.v1',
             source: 'webgpu-texture-copy-readback',
             packetKey: readback.packetKey,
             readbackSerial: readback.serial,
             samples,
-          };
+          });
           this.renderData.livePixelSamples = sampleSet;
           this.renderData.livePixelReadbackFailed = false;
           this.canvas.__simulattePixelSamples = sampleSet;

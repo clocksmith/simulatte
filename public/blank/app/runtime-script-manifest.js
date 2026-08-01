@@ -57,6 +57,7 @@
     'pipeline/phase-03-retrieval/simulatte-intent-embedder-construction-retrieval.js',
     'pipeline/phase-03-retrieval/simulatte-intent-embedder-span-retrieval.js',
     'pipeline/phase-03-retrieval/simulatte-intent-embedder-slot-retrieval.js',
+    'pipeline/phase-03-retrieval/simulatte-intent-embedder-slot-rerank.js',
     'pipeline/phase-03-retrieval/simulatte-intent-embedder-rerank-runtime.js',
     'pipeline/phase-03-retrieval/simulatte-intent-embedder-manifest-cache.js',
     'pipeline/phase-03-retrieval/simulatte-intent-embedder-rerank.js',
@@ -169,6 +170,7 @@
   );
   const renderProof = group(
     'pipeline/phase-07-render/simulatte-object-realization.js',
+    'pipeline/phase-07-render/simulatte-render-evidence-binding.js',
     'pipeline/phase-07-render/simulatte-render-proof.js'
   );
   const webGpuRenderer = group(
@@ -194,9 +196,11 @@
     'pipeline/phase-05-simulation/simulatte-physics-model-dependencies.js',
     'pipeline/phase-05-simulation/simulatte-physics-model-contracts.js',
     'pipeline/phase-05-simulation/simulatte-physics-model-phase-runtime-language.js',
+    'pipeline/phase-05-simulation/simulatte-physics-model-phase-retrieval-boundary.js',
     'pipeline/phase-05-simulation/simulatte-physics-model-phase-retrieval.js',
     'pipeline/phase-05-simulation/simulatte-physics-model-activation-verdicts.js',
     'pipeline/phase-05-simulation/simulatte-physics-model-activation-fusion.js',
+    'pipeline/phase-05-simulation/simulatte-physics-model-phase3-ledger.js',
     'pipeline/phase-05-simulation/simulatte-physics-model-phase-grounding.js',
     'pipeline/phase-05-simulation/simulatte-physics-model-phase-visual-execution.js',
     'pipeline/phase-05-simulation/simulatte-physics-model-phase-simulation.js',

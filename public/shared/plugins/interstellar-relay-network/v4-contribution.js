@@ -209,8 +209,20 @@
       ? result.controls.requiredRelayIds
       : ['none'];
     const controls = builder.controls([
-      select('sourceId', 'From star', result.controls.sourceId, options.stars, modeled),
-      select('targetId', 'To star', result.controls.targetId, options.stars, modeled),
+      select(
+        'sourceId',
+        'From star',
+        result.controls.sourceId,
+        options.stars.filter((row) => row.value !== result.controls.targetId),
+        modeled
+      ),
+      select(
+        'targetId',
+        'To star',
+        result.controls.targetId,
+        options.stars.filter((row) => row.value !== result.controls.sourceId),
+        modeled
+      ),
       select('routingMode', 'Routing mode', result.controls.routingMode, routeModes(), modeled),
       select('routeObjective', 'Route objective', result.controls.routeObjective, routeObjectives(), modeled),
       multiselect('requiredRelayIds', 'Required relay stars', requiredRelays, options.relays, modeled),

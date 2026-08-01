@@ -3,7 +3,7 @@
   "id": "sun-walker-default-v1",
   "seed": "sun-walker-clear-sky-v2",
   "maximumAlternatives": 3,
-  "directSunWeight": 1,
+  "directSunWeight": 100,
   "unknownWeight": 2,
   "maximumAddedTimeSeconds": 600,
   "maximumAddedRatio": 0.25,

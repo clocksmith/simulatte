@@ -568,9 +568,10 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
     canvas.addEventListener('contextmenu', (event) => event.preventDefault());
     canvas.addEventListener('wheel', (event) => {
       event.preventDefault();
-      camera.setCameraMode(state, 'free', performance.now());
+      const trackedMode = ['follow', 'pov'].includes(state.mode);
+      if (!trackedMode) camera.setCameraMode(state, 'free', performance.now());
       canvas.dataset.cameraInteraction = 'zoom';
-      onInteraction?.({ control: 'zoom', mode: 'free', targetIds: [] });
+      onInteraction?.({ control: 'zoom', mode: trackedMode ? state.mode : 'free', targetIds: [] });
       camera.zoomCamera(state, event.deltaY);
     }, { passive: false });
   }

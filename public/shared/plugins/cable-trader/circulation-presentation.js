@@ -3,11 +3,12 @@
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteCableTraderPresentation = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createCableTraderPresentation() {
+  const V1_MARKER_LIMIT = 128;
+
   function createViews({ config, simulation, playback }) {
     const visible = simulation.snapshots[playback.day];
     const cableTypes = selectedCableTypes(config);
-    const hubs = activeHubs(config);
-    const locations = activeLocations(config);
+    const hubs = simulation.hubs;
     return [{
       slot: 'inspector',
       title: 'Live cable exchange board',
@@ -18,14 +19,17 @@
             ? `Pseudo-day ${visible.day} of ${visible.durationDays}`
             : 'Network ready · start the continuous pseudo-year',
         },
-        { label: 'People', value: format(simulation.people.length) },
+        {
+          label: 'People / residences',
+          value: `${format(simulation.people.length)} people · ${format(simulation.residences.length)} unique homes`,
+        },
         { label: 'Global supply today', value: `${format(visible.global.supply)} cables offered` },
         { label: 'Global demand today', value: `${format(visible.global.demand)} cables requested` },
         { label: 'Reused today', value: `${format(visible.global.fulfilled)} pickups fulfilled` },
         { label: 'Waiting globally', value: `${format(visible.global.waiting)} open requests` },
         {
           label: 'Traveling now',
-          value: `${format(visible.global.journeys)} modeled trips · ${format(visible.global.renderedJourneys)} shown`,
+          value: `${format(visible.global.journeys)} modeled trips · ${format(visible.global.renderedJourneys)} visible`,
         },
         {
           label: 'Pseudo-year total',
@@ -42,60 +46,39 @@
       actions: [],
     }, {
       slot: 'map',
-      title: 'Hub supply and demand',
+      title: 'Cable exchange',
       rows: [
         {
           label: 'Global',
           value: `${visible.global.supply} in · ${visible.global.demand} asked · ${visible.global.inventory} available · ${visible.global.waiting} waiting`,
         },
-        ...hubs.map((hub) => {
-          const board = visible.hubBoards.find((row) => row.id === hub.id);
-          return {
-            label: hub.label.replace(/ hub$/, ''),
-            value: `${board.supply} in · ${board.demand} asked · ${board.inventory} available · ${board.waiting} waiting`,
-          };
-        }),
+        {
+          label: 'Network',
+          value: `${format(hubs.length)} hubs · ${format(simulation.residences.length)} unique residences · ${cableTypes.length} cable types`,
+        },
         {
           label: 'Traveling',
-          value: `${visible.global.journeys} people with cables · ${visible.global.renderedJourneys} shown`,
-        },
-        {
-          label: 'Active network',
-          value: `${hubs.length} hubs · ${locations.length} locations · ${cableTypes.length} cable types`,
-        },
-        {
-          label: 'Flow',
-          value: 'Pickup rides out · drop-off rides in',
+          value: `${visible.global.journeys} people carrying cables · ${visible.global.renderedJourneys} visible`,
         },
       ],
-      actions: [
-        {
-          id: 'focus-network',
-          label: 'Whole exchange',
-          command: { kind: 'camera.focus', targetId: 'cable-network-overview' },
-        },
-        ...visible.visibleJourneys.slice(0, 3).map((journey) => ({
-          id: `follow-${journey.id}`,
-          label: `Follow ${personLabel(journey.personId)} ${journey.action}`,
-          command: { kind: 'camera.focus', targetId: `journey:${journey.id}` },
-        })),
-      ],
+      actions: [{
+        id: 'focus-network',
+        label: 'Whole exchange',
+        command: { kind: 'camera.focus', targetId: 'cable-network-overview' },
+      }],
     }];
   }
 
   function createPresentation({ config, simulation, playback, routes }) {
     const visible = simulation.snapshots[playback.day];
-    const hubs = activeHubs(config);
-    const locations = activeLocations(config);
+    const hubs = simulation.hubs;
+    const residences = simulation.residences;
     const cableTypeById = new Map(selectedCableTypes(config).map((row) => [row.id, row]));
     const hubById = new Map(hubs.map((row) => [row.id, row]));
-    const locationById = new Map(locations.map((row) => [row.id, row]));
+    const residenceById = new Map(residences.map((row) => [row.id, row]));
     const routeById = new Map(routes.map((row) => [row.id, row]));
     const maximumInventory = Math.max(...visible.hubBoards.map((row) => row.inventory), 1);
-    const locationTrips = new Map(locations.map((row) => [row.id, 0]));
-    visible.journeys.forEach((row) => {
-      locationTrips.set(row.locationId, (locationTrips.get(row.locationId) || 0) + 1);
-    });
+    const residenceMarkerLimit = Math.max(0, V1_MARKER_LIMIT - hubs.length);
 
     const markers = [
       ...hubs.map((hub) => {
@@ -103,59 +86,67 @@
         const pressure = board.waiting > board.inventory;
         return {
           id: `hub:${hub.id}`,
-          label: `${hub.label} · ${board.supply} in · ${board.demand} asked · ${board.inventory} available · ${board.waiting} waiting`,
+          label: hub.label,
           nodeId: hub.nodeId,
           tone: pressure ? 'magenta' : 'green',
-          heightM: 13 + Math.sqrt(board.inventory / maximumInventory) * 20,
-          radiusM: 4.5 + Math.sqrt(board.inventory / maximumInventory) * 3,
-          intensity: pressure ? 1.5 : 1.05,
+          heightM: 8 + Math.sqrt(board.inventory / maximumInventory) * 10,
+          radiusM: 2.5 + Math.sqrt(board.inventory / maximumInventory) * 1.5,
+          intensity: pressure ? 1.25 : 0.9,
         };
       }),
-      ...locations.map((location) => {
-        const tripCount = locationTrips.get(location.id) || 0;
-        return {
-          id: `location:${location.id}`,
-          label: `${location.label} · ${tripCount} cable trips today`,
-          nodeId: location.nodeId,
-          tone: tripCount ? 'cyan' : 'muted',
-          heightM: tripCount ? 11 + Math.sqrt(tripCount) * 2 : 7,
-          radiusM: tripCount ? 3.5 : 2.5,
-          intensity: tripCount ? 1.1 : 0.45,
-        };
-      }),
+      ...residences.slice(0, residenceMarkerLimit).map((residence) => ({
+        id: `residence:${residence.id}`,
+        label: residence.label,
+        nodeId: residence.nodeId,
+        tone: 'muted',
+        heightM: 0.5,
+        radiusM: 0.25,
+        intensity: 0.22,
+      })),
     ];
-    const paths = visible.visibleJourneys.map((journey) => {
+    const paths = visible.visibleJourneys.flatMap((journey) => {
       const route = routeById.get(journey.routeId);
+      if (!route) return [];
       const cableType = cableTypeById.get(journey.cableTypeId);
-      return {
+      return [{
         id: `journey:${journey.id}`,
-        label: journeyLabel(journey, cableType, hubById.get(journey.hubId), locationById.get(journey.locationId)),
+        label: journeyLabel(
+          journey,
+          cableType,
+          hubById.get(journey.hubId),
+          residenceById.get(journey.residenceId)
+        ),
         segmentIds: route.segmentIds,
         tone: cableType?.tone || 'cyan',
-        widthM: journey.action === 'pickup' ? 1.8 : 1.25,
-        intensity: journey.action === 'pickup' ? 1.35 : 0.95,
-      };
+        widthM: 0.45,
+        intensity: 0.55,
+      }];
     });
-    const actors = visible.visibleJourneys.map((journey) => {
+    const actors = visible.visibleJourneys.flatMap((journey) => {
       const route = routeById.get(journey.routeId);
+      if (!route) return [];
       const cableType = cableTypeById.get(journey.cableTypeId);
-      return {
+      return [{
         id: `person:${journey.id}`,
-        label: journeyLabel(journey, cableType, hubById.get(journey.hubId), locationById.get(journey.locationId)),
-        kind: 'bicycle',
+        label: journeyLabel(
+          journey,
+          cableType,
+          hubById.get(journey.hubId),
+          residenceById.get(journey.residenceId)
+        ),
+        kind: 'pedestrian',
         segmentIds: route.segmentIds,
         tone: cableType?.tone || 'cyan',
         speedMps: 1.35,
         phaseOffsetM: Math.max(0, journey.progress * route.distanceM),
         isSelected: false,
-      };
+      }];
     });
-    const allSegments = [...new Set(routes
-      .filter((row) => (
-        simulation.activeHubIds.includes(row.hubId)
-        && simulation.activeLocationIds.includes(row.locationId)
-      ))
-      .flatMap((row) => row.segmentIds))];
+    const allSegments = [...new Set(routes.flatMap((row) => row.segmentIds))];
+    const overviewNodes = [...new Set([
+      ...hubs.map((row) => row.nodeId),
+      ...residences.map((row) => row.nodeId),
+    ])].slice(0, 128);
     return {
       schema: 'simulatte.pluginPresentation.v1',
       markers,
@@ -165,40 +156,36 @@
         {
           id: 'cable-network-overview',
           label: 'Community cable exchange',
-          nodeIds: [...hubs, ...locations].map((row) => row.nodeId),
+          nodeIds: overviewNodes,
           segmentIds: allSegments,
           distanceM: 4200,
         },
-        ...visible.visibleJourneys.slice(0, 8).map((journey) => ({
-          id: `journey:${journey.id}`,
-          label: `Follow ${personLabel(journey.personId)}`,
-          nodeIds: [],
-          segmentIds: routeById.get(journey.routeId).segmentIds,
-          distanceM: 480,
-        })),
+        ...visible.visibleJourneys.slice(0, 8).flatMap((journey) => {
+          const route = routeById.get(journey.routeId);
+          if (!route) return [];
+          return [{
+            id: `journey:${journey.id}`,
+            label: `Follow ${personLabel(journey.personId)}`,
+            nodeIds: [],
+            segmentIds: route.segmentIds,
+            distanceM: 480,
+          }];
+        }),
       ],
     };
   }
 
-  function journeyLabel(journey, cableType, hub, location) {
+  function journeyLabel(journey, cableType, hub, residence) {
     const cable = cableType?.shortLabel || journey.cableTypeId;
     if (journey.action === 'dropoff') {
-      return `${personLabel(journey.personId)} · drop off ${cable} · ${location?.label} → ${hub?.label}`;
+      return `${personLabel(journey.personId)} · ${cable} · ${residence?.label} → ${hub?.label}`;
     }
-    return `${personLabel(journey.personId)} · pick up ${cable} · ${hub?.label} → ${location?.label}`;
+    return `${personLabel(journey.personId)} · ${cable} · ${hub?.label} → ${residence?.label}`;
   }
 
   function selectedCableTypes(config) {
     const selected = new Set(config.simulation.selectedCableTypeIds);
     return config.cableTypes.filter((row) => selected.has(row.id));
-  }
-
-  function activeHubs(config) {
-    return config.hubs.slice(0, config.simulation.hubCount);
-  }
-
-  function activeLocations(config) {
-    return config.locations.slice(0, config.simulation.locationCount);
   }
 
   function personLabel(id) {

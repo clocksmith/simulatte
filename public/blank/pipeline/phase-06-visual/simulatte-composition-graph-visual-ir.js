@@ -635,9 +635,7 @@
       }
 
     function augmentVisualReceiptsWithIntentBrief(receipts, spec, sceneKind) {
-        const brief = spec && spec.renderIR && spec.renderIR.intentBriefReceipt ||
-          spec && spec.universeGraph && spec.universeGraph.intentBrief ||
-          null;
+        const brief = spec && spec.renderIR && spec.renderIR.intentBriefReceipt || null;
         if (!brief) return receipts;
         const row = {
           schema: 'simulatte.visualIntentBriefReceipt.v1',

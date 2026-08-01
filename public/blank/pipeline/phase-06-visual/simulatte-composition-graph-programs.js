@@ -612,8 +612,7 @@
     }
 
     function materialAttributeConceptIds(spec = {}) {
-      const ledger = spec && spec.renderIR && spec.renderIR.compositionLedger ||
-        spec && spec.physicsIR && spec.physicsIR.compositionLedger || {};
+      const ledger = spec && spec.renderIR && spec.renderIR.compositionLedger || {};
       return new Set((ledger.relations || [])
         .filter((relation) => relation.process === 'material_assignment')
         .map((relation) => String(relation.from || '').replace(/^[a-z]+:/, ''))

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Cable Trader circulation configuration v6",
   "type": "object",
-  "required": ["schema", "id", "cableTypes", "hubs", "locations", "simulation"],
+  "required": ["schema", "id", "cableTypes", "simulation"],
   "additionalProperties": false,
   "properties": {
     "schema": { "const": "simulatte.plugin.cableTraderConfig.v6" },
@@ -25,18 +25,6 @@
         }
       }
     },
-    "hubs": {
-      "type": "array",
-      "minItems": 2,
-      "maxItems": 12,
-      "items": { "$ref": "#/$defs/place" }
-    },
-    "locations": {
-      "type": "array",
-      "minItems": 4,
-      "maxItems": 32,
-      "items": { "$ref": "#/$defs/place" }
-    },
     "simulation": {
       "type": "object",
       "required": [
@@ -44,7 +32,6 @@
         "durationDays",
         "peopleCount",
         "hubCount",
-        "locationCount",
         "selectedCableTypeIds",
         "initialInventoryPerHubCable",
         "dailyParticipationRate",
@@ -54,9 +41,8 @@
       "properties": {
         "seed": { "type": "string", "minLength": 1 },
         "durationDays": { "const": 365 },
-        "peopleCount": { "type": "integer", "minimum": 1000, "maximum": 25000 },
-        "hubCount": { "type": "integer", "minimum": 2, "maximum": 12 },
-        "locationCount": { "type": "integer", "minimum": 4, "maximum": 32 },
+        "peopleCount": { "type": "integer", "minimum": 64, "maximum": 10000 },
+        "hubCount": { "type": "integer", "minimum": 4, "maximum": 64 },
         "selectedCableTypeIds": {
           "type": "array",
           "minItems": 1,
@@ -67,18 +53,6 @@
         "initialInventoryPerHubCable": { "type": "integer", "minimum": 0, "maximum": 100 },
         "dailyParticipationRate": { "type": "number", "exclusiveMinimum": 0, "maximum": 0.1 },
         "renderedTravelerCount": { "type": "integer", "minimum": 1, "maximum": 64 }
-      }
-    }
-  },
-  "$defs": {
-    "place": {
-      "type": "object",
-      "required": ["id", "label", "nodeId"],
-      "additionalProperties": false,
-      "properties": {
-        "id": { "type": "string", "minLength": 1 },
-        "label": { "type": "string", "minLength": 1 },
-        "nodeId": { "type": "string", "minLength": 1 }
       }
     }
   }

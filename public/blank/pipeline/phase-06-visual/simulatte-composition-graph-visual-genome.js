@@ -576,8 +576,7 @@
 
     function compiledVisualGenomeText(graph, objects, fields, solverPlan, spec, sceneKind) {
         const visualAffordances = scope.causalAffordancesFromSpec(spec, sceneKind);
-        const compositionLedger = spec && spec.renderIR && spec.renderIR.compositionLedger ||
-          spec && spec.physicsIR && spec.physicsIR.compositionLedger || {};
+        const compositionLedger = spec && spec.renderIR && spec.renderIR.compositionLedger || {};
         return [
           sceneKind,
           ...(objects || []).map((object) => [

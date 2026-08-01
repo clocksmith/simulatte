@@ -13,6 +13,13 @@ function fixture({
   eventTimes = [1000, 2000],
   stepGate = null,
   comparisonIds = [],
+  startPresentationChanged,
+  startGate = null,
+  interventionGate = null,
+  terminalAtStart = false,
+  scenarioChanges = null,
+  scenario = { id: 'fixture-scenario', seed: 'fixture-seed' },
+  interventionDispatches = null,
 } = {}) {
   const provenance = contracts.createProvenance({
     origin: 'simulated',
@@ -65,8 +72,12 @@ function fixture({
   let interventions = [];
   let settledReceipt = null;
   const phases = [];
+  const phaseSnapshots = [];
   const dispatchedValues = [];
+  const reflectedControlValues = [];
   const errors = [];
+  let renderCount = 0;
+  let settlementCount = 0;
   const runtime = {
     async dispatchAction(_pluginId, actionId, context) {
       if (actionId === 'counterfactual.compare') {
@@ -81,6 +92,8 @@ function fixture({
         };
       }
       if (actionId.includes('.intervene.')) {
+        interventionDispatches?.push(actionId);
+        if (interventionGate) await interventionGate.promise;
         interventions.push({ actionId, day, values: structuredClone(context.values) });
         return {
           status: day === 2 ? 'settled' : 'running',
@@ -92,14 +105,16 @@ function fixture({
       }
       dispatchedValues.push(structuredClone(context.values));
       if (context.values.phase === 'start') {
+        if (startGate) await startGate.promise;
         day = 0;
         interventions = [];
         return {
-          status: 'running',
-          currentStep: day,
-          totalSteps: 2,
+          status: terminalAtStart ? 'settled' : 'running',
+          currentStep: terminalAtStart ? 1 : day,
+          totalSteps: terminalAtStart ? 1 : 2,
           simulationTimeMs: 0,
           interventionCount: 0,
+          ...(startPresentationChanged === undefined ? {} : { presentationChanged: startPresentationChanged }),
         };
       }
       if (stepGate) await stepGate.promise;
@@ -112,8 +127,12 @@ function fixture({
         interventionCount: interventions.length,
       };
     },
-    async setScenario() { day = 0; },
+    async setScenario(nextScenario) {
+      scenarioChanges?.push(structuredClone(nextScenario));
+      day = 0;
+    },
     async settle() {
+      settlementCount += 1;
       return [{
         pluginId: 'fixture',
         obligationResults: [{
@@ -149,17 +168,32 @@ function fixture({
   const controller = playbackApi.createController({
     runtime,
     ownerPluginId: 'fixture',
-    scenario: { id: 'fixture-scenario', seed: 'fixture-seed' },
+    scenario,
     clock,
     getControlValues: () => (
       typeof controlValues === 'function' ? controlValues() : controlValues
     ),
-    render() {},
-    onPhase: (phase) => phases.push(phase),
+    setControlValues: (_pluginId, values) => reflectedControlValues.push(structuredClone(values)),
+    render() { renderCount += 1; },
+    onPhase: (phase, snapshot) => {
+      phases.push(phase);
+      phaseSnapshots.push(snapshot);
+    },
     onSettled: (receipt) => { settledReceipt = receipt; },
     onError: (error) => errors.push(error),
   });
-  return { clock, controller, dispatchedValues, errors, phases, settledReceipt: () => settledReceipt };
+  return {
+    clock,
+    controller,
+    dispatchedValues,
+    errors,
+    phases,
+    phaseSnapshots,
+    reflectedControlValues,
+    renderCount: () => renderCount,
+    settlementCount: () => settlementCount,
+    settledReceipt: () => settledReceipt,
+  };
 }
 
 test('plugin playback advances on the shared clock and settles terminal obligations', async () => {
@@ -170,7 +204,9 @@ test('plugin playback advances on the shared clock and settles terminal obligati
   assert.equal(lane.controller.snapshot().currentStep, 1);
   await lane.controller.step();
   assert.equal(lane.controller.snapshot().phase, 'completed');
-  assert.deepEqual(lane.phases, ['running', 'paused', 'paused', 'completed']);
+  assert.deepEqual(lane.phases, ['running', 'running', 'paused', 'paused', 'paused', 'completed']);
+  assert.equal(lane.phaseSnapshots[1].totalSteps, 2);
+  assert.equal(lane.phaseSnapshots[3].currentStep, 1);
   assert.equal(lane.settledReceipt().settlements[0].obligationResults[0].status, 'settled');
 });
 
@@ -197,6 +233,19 @@ test('plugin playback restores a settled run deterministically from its receipt'
   assert.deepEqual(restored.settledReceipt().settlements, receipt.settlements);
 });
 
+test('plugin playback restores an immediately settled run without dispatching a step', async () => {
+  const original = fixture({ terminalAtStart: true });
+  await original.controller.start();
+  const receipt = structuredClone(original.settledReceipt());
+  const restored = fixture({ terminalAtStart: true });
+
+  await restored.controller.restore(receipt);
+
+  assert.equal(restored.controller.snapshot().phase, 'completed');
+  assert.equal(restored.dispatchedValues.length, 1);
+  assert.deepEqual(restored.settledReceipt().actionResult, receipt.actionResult);
+});
+
 test('plugin playback refuses a reload whose deterministic reconstruction diverges', async () => {
   const original = fixture();
   await original.controller.start();
@@ -209,6 +258,8 @@ test('plugin playback refuses a reload whose deterministic reconstruction diverg
     changed.controller.restore(receipt),
     (error) => error.code === 'plugin_playback_restore_diverged'
   );
+  assert.equal(changed.controller.snapshot().phase, 'failed');
+  assert.equal(changed.errors.at(-1).code, 'plugin_playback_restore_diverged');
 });
 
 test('plugin playback receipt storage is profile-scoped and recoverable', () => {
@@ -241,12 +292,136 @@ test('plugin playback sends typed experiment parameters on every phase and recei
   assert.deepEqual(lane.settledReceipt().parameterValues, parameterValues);
 });
 
+test('plugin playback snapshots scenario and terminal evidence before publishing a receipt', async () => {
+  const scenario = { id: 'fixture-scenario', seed: 'original-seed' };
+  const lane = fixture({ scenario });
+  await lane.controller.start();
+  await lane.controller.step();
+  await lane.controller.step();
+  const receipt = lane.settledReceipt();
+  scenario.seed = 'mutated-after-settlement';
+
+  assert.equal(receipt.scenario.seed, 'original-seed');
+  assert.equal(Object.isFrozen(receipt), true);
+  assert.equal(Object.isFrozen(receipt.actionResult), true);
+  assert.equal(Object.isFrozen(receipt.settlements[0].obligationResults[0]), true);
+});
+
 test('plugin playback captures controls when Step starts a ready run', async () => {
   const parameterValues = { durationDays: 4, enabled: true };
   const lane = fixture({ controlValues: parameterValues });
   await lane.controller.step();
   assert.deepEqual(lane.dispatchedValues[0], { ...parameterValues, phase: 'start' });
   assert.equal(lane.controller.snapshot().phase, 'paused');
+});
+
+test('plugin playback applies changed controls immediately and returns to a configured ready state', async () => {
+  const lane = fixture({ controlValues: { peopleCount: 256, hubCount: 4 } });
+  await lane.controller.start();
+  await lane.controller.step();
+  const result = await lane.controller.applyControls({ peopleCount: 512, hubCount: 8 });
+
+  assert.equal(result.phase, 'ready');
+  assert.equal(result.currentStep, 0);
+  assert.equal(result.actionStatus, 'running');
+  assert.deepEqual(lane.dispatchedValues.at(-1), {
+    peopleCount: 512,
+    hubCount: 8,
+    phase: 'start',
+  });
+  assert.deepEqual(lane.reflectedControlValues.at(-1), {
+    peopleCount: 512,
+    hubCount: 8,
+  });
+  assert.equal(lane.clock.snapshot().currentMs, 0);
+});
+
+test('plugin playback starts a configured preview without dispatching start twice', async () => {
+  const lane = fixture();
+  await lane.controller.applyControls({ peopleCount: 512, hubCount: 8 });
+  assert.equal(lane.dispatchedValues.length, 1);
+
+  await lane.controller.start();
+
+  assert.equal(lane.dispatchedValues.length, 1);
+  assert.equal(lane.controller.snapshot().phase, 'running');
+});
+
+test('plugin playback Start does not reset a paused simulation', async () => {
+  const lane = fixture();
+  await lane.controller.start();
+  await lane.controller.step();
+  const before = lane.dispatchedValues.length;
+
+  await lane.controller.start();
+
+  assert.equal(lane.controller.snapshot().phase, 'paused');
+  assert.equal(lane.controller.snapshot().currentStep, 1);
+  assert.equal(lane.dispatchedValues.length, before);
+});
+
+test('plugin playback drops an in-flight start after disposal', async () => {
+  let releaseStart;
+  const startGate = { promise: new Promise((resolve) => { releaseStart = resolve; }) };
+  const lane = fixture({ startGate });
+  const starting = lane.controller.start();
+  await Promise.resolve();
+  lane.controller.dispose();
+  releaseStart();
+  await starting;
+
+  assert.equal(lane.renderCount(), 0);
+  assert.equal(lane.clock.snapshot().state, 'paused');
+});
+
+test('plugin playback closes its public API after disposal', async () => {
+  const lane = fixture();
+  lane.controller.dispose();
+
+  await assert.rejects(lane.controller.start(), (error) => error.code === 'plugin_playback_disposed');
+  await assert.rejects(lane.controller.seek(0), (error) => error.code === 'plugin_playback_disposed');
+  assert.throws(() => lane.controller.pause(), (error) => error.code === 'plugin_playback_disposed');
+  assert.deepEqual(lane.dispatchedValues, []);
+});
+
+test('plugin playback drops queued reconstruction after disposal', async () => {
+  let releaseStart;
+  const startGate = { promise: new Promise((resolve) => { releaseStart = resolve; }) };
+  const lane = fixture({ startGate });
+  const applying = lane.controller.applyControls({ peopleCount: 512 });
+  await Promise.resolve();
+  const seeking = lane.controller.seek(0);
+  lane.controller.dispose();
+  releaseStart();
+
+  await applying;
+  await assert.rejects(seeking, (error) => error.code === 'plugin_playback_disposed');
+  assert.equal(lane.dispatchedValues.length, 0);
+});
+
+test('plugin playback discards an intervention superseded by a control rebuild', async () => {
+  let releaseIntervention;
+  const interventionGate = {
+    promise: new Promise((resolve) => { releaseIntervention = resolve; }),
+  };
+  const lane = fixture({ interventionGate });
+  await lane.controller.start();
+  const intervening = lane.controller.intervene('fixture.intervene.release-reserve', { reason: 'shortage' });
+  await Promise.resolve();
+  const applying = lane.controller.applyControls({ peopleCount: 512 });
+  releaseIntervention();
+  await Promise.all([intervening, applying]);
+
+  assert.equal(lane.controller.snapshot().phase, 'ready');
+  assert.equal(lane.controller.snapshot().currentStep, 0);
+});
+
+test('plugin playback skips a redundant ready-state render when start preserves the presentation', async () => {
+  const lane = fixture({ startPresentationChanged: false });
+  await lane.controller.start();
+  assert.equal(lane.renderCount(), 0);
+  await lane.controller.seek(2);
+  assert.equal(lane.renderCount(), 1);
 });
 
 test('plugin playback preserves the completed run parameters across replay', async () => {
@@ -313,6 +488,33 @@ test('plugin playback seek clamps stale targets and requires an explicit termina
   assert.ok(lane.settledReceipt());
 });
 
+test('plugin playback commits a terminal preview only once under concurrent steps', async () => {
+  const lane = fixture();
+  await lane.controller.start();
+  await lane.controller.seek(99);
+
+  await Promise.all([lane.controller.step(), lane.controller.step()]);
+
+  assert.equal(lane.controller.snapshot().phase, 'completed');
+  assert.equal(lane.settlementCount(), 1);
+});
+
+test('plugin playback serializes overlapping intervention actions', async () => {
+  let releaseIntervention;
+  const interventionGate = { promise: new Promise((resolve) => { releaseIntervention = resolve; }) };
+  const interventionDispatches = [];
+  const lane = fixture({ interventionGate, interventionDispatches });
+  await lane.controller.start();
+  const first = lane.controller.intervene('fixture.intervene.first', { sequence: 1 });
+  const second = lane.controller.intervene('fixture.intervene.second', { sequence: 2 });
+  await new Promise((resolve) => setImmediate(resolve));
+
+  assert.deepEqual(interventionDispatches, ['fixture.intervene.first']);
+  releaseIntervention();
+  await Promise.all([first, second]);
+  assert.deepEqual(interventionDispatches, ['fixture.intervene.first', 'fixture.intervene.second']);
+});
+
 test('plugin playback seek aligns the clock by simulation time rather than event index', async () => {
   const lane = fixture({ eventTimes: [100, 900, 2000] });
   await lane.controller.start();
@@ -338,4 +540,43 @@ test('plugin playback seek drains an in-flight clock step before reconstructing'
   assert.equal(reconstructed.currentStep, 0);
   assert.equal(reconstructed.actionStatus, 'running');
   assert.equal(lane.clock.snapshot().currentMs, 0);
+});
+
+test('plugin playback restore drains old queued actions before resetting its scenario', async () => {
+  const original = fixture();
+  await original.controller.start();
+  await original.controller.step();
+  await original.controller.step();
+  const receipt = structuredClone(original.settledReceipt());
+
+  let releaseStep;
+  const stepGate = { promise: new Promise((resolve) => { releaseStep = resolve; }) };
+  const scenarioChanges = [];
+  const lane = fixture({ stepGate, scenarioChanges });
+  await lane.controller.start();
+  lane.clock.step(1);
+  await Promise.resolve();
+  const restoring = lane.controller.restore(receipt);
+  await Promise.resolve();
+  assert.deepEqual(scenarioChanges, []);
+
+  releaseStep();
+  await restoring;
+  assert.deepEqual(scenarioChanges, [{ id: 'fixture-scenario', seed: 'fixture-seed' }]);
+  assert.equal(lane.controller.snapshot().phase, 'completed');
+});
+
+test('plugin playback restore rejects a newly introduced comparison proof', async () => {
+  const original = fixture();
+  await original.controller.start();
+  await original.controller.step();
+  await original.controller.step();
+  const receipt = structuredClone(original.settledReceipt());
+  const changed = fixture({ comparisonIds: ['new-comparison'] });
+
+  await assert.rejects(
+    changed.controller.restore(receipt),
+    (error) => error.code === 'plugin_playback_restore_comparison_diverged'
+  );
+  assert.equal(changed.controller.snapshot().phase, 'failed');
 });

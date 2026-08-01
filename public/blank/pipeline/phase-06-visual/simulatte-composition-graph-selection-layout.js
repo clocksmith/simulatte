@@ -8,53 +8,34 @@
     function buildCompositionGraph(spec = {}) {
         const contract = spec.contract || {};
         const graph = contract.graph || {};
-        const universeGraph = spec.universeGraph || {};
         const priors = selectionPriors(spec);
         const selected = selectGraphNodes(spec, priors);
         const nodes = selected.map((component, index) => (
           compositionNode(component, index, selected.length, spec, contract, priors)
         ));
-        const relations = compositionRelations(nodes, graph, universeGraph, spec);
+        const relations = compositionRelations(nodes, graph, spec);
         const operators = scope.compositionOperatorsForSpec(spec, graph);
         return {
           schema: scope.COMPOSITION_SCHEMA,
           graphId: `${spec.id || 'sim'}-cg`,
-          intentText: compiledIntentText(universeGraph, spec),
+          intentText: compiledIntentText(spec),
           nodes,
           relations,
           operators,
           priors,
           provenance: {
             composer: 'simulatte.grid-like-composition.v1',
-            source: 'concept-graph-selection-priors',
-            conceptCount: Array.isArray(universeGraph.nodes) ? universeGraph.nodes.length : 0,
+            source: 'phase5-render-ir-selection-priors',
+            conceptCount: Array.isArray(spec.renderIR && spec.renderIR.objects) ? spec.renderIR.objects.length : 0,
             primitiveCount: nodes.length,
           },
         };
       }
 
-    function compiledIntentText(universeGraph = {}, spec = {}) {
+    function compiledIntentText(spec = {}) {
         const renderIR = spec.renderIR || {};
         return [
-          ...(universeGraph.nodes || []).map((node) => [
-            node.id,
-            node.canonicalId,
-            node.primitiveId,
-            node.label,
-            node.kind,
-            node.semanticType,
-            ...(node.domains || []),
-            ...(node.tags || []),
-            ...(node.operatorHints || []),
-          ].filter(Boolean).join(' ')),
-          ...(universeGraph.visualAffordances || []).map((row) => [
-            row.id,
-            row.causalRelationId,
-            row.sceneKind,
-            row.geometry,
-            ...(row.shaderHints || []),
-            ...(row.motionHints || []),
-          ].filter(Boolean).join(' ')),
+          renderIR.prompt,
           ...(renderIR.objects || []).map((object) => [
             object.id,
             object.label,
@@ -82,16 +63,8 @@
       }
 
     function selectionPriors(spec = {}) {
-        const universeGraph = spec.universeGraph || {};
-        const conceptGraph = Array.isArray(universeGraph.nodes) ? universeGraph.nodes : [];
-        return conceptGraph
-          .map((concept, index) => ({
-            primitiveId: concept.primitiveId || concept.canonicalId || concept.id,
-            score: Number.isFinite(Number(concept.score)) ? Number(concept.score) : 0,
-            domains: concept.domains || [],
-            rank: index,
-          }))
-          .sort((a, b) => b.score - a.score || a.rank - b.rank);
+        void spec;
+        return [];
       }
 
     function selectGraphNodes(spec, priors) {
@@ -132,12 +105,8 @@
       }
 
     function compiledPromptTextForSelection(spec = {}) {
-        const promptParse = spec.promptParse || {};
         return [
-          spec.name,
           spec.renderIR && spec.renderIR.prompt,
-          spec.physicsIR && spec.physicsIR.prompt,
-          ...((promptParse.spans || []).map((span) => span.text)),
         ].filter(Boolean).join(' ').toLowerCase();
       }
 
@@ -344,21 +313,19 @@
         return nodes.find((node) => node.id === id) || null;
       }
 
-    function compositionRelations(nodes, graph, universeGraph = {}, spec = {}) {
-        const valid = new Set(nodes.map((node) => node.primitiveId));
-        const ledger = spec.renderIR && spec.renderIR.compositionLedger ||
-          spec.physicsIR && spec.physicsIR.compositionLedger || null;
+    function compositionRelations(nodes, graph, spec = {}) {
+        const ledger = spec.renderIR && spec.renderIR.compositionLedger || null;
         const hasAuthoritativeLedger = Boolean(ledger && Array.isArray(ledger.relations));
         const evidenceEdges = hasAuthoritativeLedger
-          ? ledger.relations.map((relation) => ({
+          ? ledger.relations.filter((relation) => relation.status === 'preserved').map((relation) => ({
             ...relation,
             type: relation.spatialRelation || relation.predicate || relation.kind,
             to: relation.kind === 'spatial-constraint' ? relation.to : relation.target || relation.to,
           }))
-          : universeGraph.edges || [];
+          : [];
         const promptRelations = evidenceEdges.map((edge) => {
-          const fromNode = compositionNodeForRelationReference(nodes, universeGraph, edge.from, spec);
-          const toNode = compositionNodeForRelationReference(nodes, universeGraph, edge.to, spec);
+          const fromNode = compositionNodeForRelationReference(nodes, edge.from, spec);
+          const toNode = compositionNodeForRelationReference(nodes, edge.to, spec);
           if (!fromNode || !toNode || fromNode === toNode) return null;
           return {
             from: fromNode.primitiveId,
@@ -369,16 +336,8 @@
             strength: Number.isFinite(Number(edge.confidence)) ? Number(edge.confidence) : 0.64,
           };
         }).filter(Boolean);
-        const contractRelations = (hasAuthoritativeLedger ? [] : graph.edges || [])
-          .filter((edge) => valid.has(edge.from) && valid.has(edge.to) && (edge.channel || edge.kind || edge.type))
-          .map((edge) => ({
-            from: edge.from,
-            to: edge.to,
-            channel: edge.channel || edge.kind || edge.type,
-            predicate: edge.predicate || '',
-            sourceRelationId: edge.id || '',
-            strength: Number.isFinite(Number(edge.weight)) ? Number(edge.weight) : 0.64,
-          }));
+        void graph;
+        const contractRelations = [];
         const unique = new Map();
         for (const relation of [...promptRelations, ...contractRelations]) {
           const key = `${relation.from}:${relation.to}:${relation.channel}`;
@@ -387,10 +346,7 @@
         return Array.from(unique.values()).slice(0, 42);
       }
 
-    function compositionNodeForRelationReference(nodes = [], universeGraph = {}, reference = '', spec = {}) {
-        const source = (universeGraph.nodes || []).find((node) => (
-          node.id === reference || node.canonicalId === reference || node.primitiveId === reference
-        ));
+    function compositionNodeForRelationReference(nodes = [], reference = '', spec = {}) {
         const referenceTokens = relationIdentityTokens(reference);
         const renderRows = [
           ...((spec.renderIR && spec.renderIR.objects) || []),
@@ -403,12 +359,6 @@
         });
         const sourceTokens = relationIdentityTokens([
           reference,
-          source && source.id,
-          source && source.canonicalId,
-          source && source.primitiveId,
-          source && source.label,
-          ...((source && source.aliases) || []),
-          ...((source && source.shapeHints) || []),
           ...renderRows.flatMap((row) => [
             row.id, row.semanticRef, row.physicalRef, row.label, row.role, ...(row.aliases || []),
           ]),
@@ -738,7 +688,7 @@
           constructionProvenance: object.constructionProvenance || [],
           properties: object.properties || [],
           partGraph: object.partGraph || [],
-          cardinality: object.cardinality || 1,
+          cardinality: Number.isFinite(Number(object.cardinality)) ? Number(object.cardinality) : 1,
           poseHint: object.poseHint || null,
           directlyGrounded: object.directlyGrounded === true,
           domainTags: object.domainTags || [],
@@ -803,6 +753,7 @@
           visualObjectLedger: objectLedger.summary,
         };
         const visualIR = scope.visualIRForRenderProgram(graph, objects, fields, solverPlan, spec, rendererPlan, sceneKind);
+        const relations = scope.relationsFromRenderIR(spec);
         return {
           schema: scope.RENDER_PROGRAM_SCHEMA,
           sourceGraphId: graph.graphId,
@@ -811,7 +762,7 @@
           objects,
           supportObjects: objectLedger.rejected,
           visualAcceptance: objectLedger.receipts,
-          relations: scope.relationsFromPhysicsIR(spec),
+          relations,
           fields,
           emitters: scope.emittersForComposition(graph),
           solverPlan,
@@ -824,7 +775,7 @@
           provenance: {
             compiler: 'simulatte.render-ir-to-render-program.v1',
             nodeCount: objects.length,
-            relationCount: spec.physicsIR ? (spec.physicsIR.couplings || []).length : 0,
+            relationCount: relations.length,
             operatorCount: solverGraph.steps ? solverGraph.steps.length : 0,
             visualRegimes: scope.uniqueList(objects.map((object) => object.visualRegime)),
             dominantRegime: rendererPlan.dominantRegime,
@@ -882,7 +833,9 @@
           ),
           properties: binding.properties || object.properties || [],
           partGraph: binding.partGraph || object.partGraph || [],
-          cardinality: binding.cardinality || object.cardinality || 1,
+          cardinality: Number.isFinite(Number(binding.cardinality))
+            ? Number(binding.cardinality)
+            : (Number.isFinite(Number(object.cardinality)) ? Number(object.cardinality) : 1),
           poseHint: binding.poseHint || object.poseHint || null,
           directlyGrounded: binding.directlyGrounded === true || object.directlyGrounded === true,
           domainTags: binding.domainTags || object.domainTags || [],

@@ -3,15 +3,42 @@ const test = require('node:test');
 
 const lab = require('../public/blank/pipeline/phase-05-simulation/simulatte-physics-model.js');
 const sceneProof = require('../public/blank/pipeline/phase-08-scene-proof/simulatte-scene-proof.js');
+require('../public/blank/pipeline/phase-07-render/simulatte-webgpu-renderer.js');
+
+const rendererScope = globalThis.SimulattePhaseModuleRegistry.family('webGpuRenderer');
 
 function renderedPhase7(prompt) {
   const spec = lab.createSpecFromPrompt(prompt, { allowPrototypeFallback: true });
-  const renderExecutionInput = lab.createRenderExecutionInput(spec, { t: 0 }, { width: 640, height: 360 });
-  return lab.runPhase7RenderExecution(renderExecutionInput, null, { width: 640, height: 360 }, {
+  const canvas = { width: 640, height: 360 };
+  const renderExecutionInput = lab.createRenderExecutionInput(spec, { t: 0 }, canvas);
+  const renderData = rendererScope.compileSceneRenderData(renderExecutionInput.sceneRenderPacket);
+  renderData.requireLivePixelSamples = true;
+  const readbackPlan = rendererScope.phase7PixelReadbackPlan(
+    renderData,
+    renderExecutionInput.sceneRenderPacket,
+    renderExecutionInput,
+    canvas
+  );
+  assert.ok(readbackPlan, 'Phase 7 fixture creates a pixel-readback plan');
+  const absentObligationIds = renderExecutionInput.visualObligations
+    .filter((row) => row.constraintKind === 'absence')
+    .map((row) => row.obligationId || row.id);
+  assert.deepEqual(readbackPlan.unmatchedObligationIds, absentObligationIds);
+  const pixelSamples = {
+    schema: 'simulatte.phase7PixelSampleSet.v1',
+    source: 'scene-proof-test-readback',
+    packetKey: renderData.packetKey,
+    samples: readbackPlan.samples.map((sample) => ({
+      ...sample,
+      rgba: [80, 160, 220, 255],
+    })),
+  };
+  return lab.runPhase7RenderExecution(renderExecutionInput, null, canvas, {
+    ...renderData,
     rendered: true,
     renderCount: 3,
     frameMs: 1.5,
-    pixelAudit: { schema: 'simulatte.phase7PixelAudit.v1', status: 'pass' },
+    pixelSamples,
   });
 }
 
@@ -75,6 +102,37 @@ test('scene proof fails closed when a required entity never rendered', () => {
   assert.ok(phase8.artifact.compositionLedger.losses.some((row) => row.entryId === dogRow.obligationId));
 });
 
+test('scene proof never certifies a required unsupported obligation', () => {
+  const phase7 = renderedPhase7('dogs and cats swimming in a lake');
+  const unsupportedId = 'visual:unsupported-required-concept';
+  const tampered = {
+    ...phase7,
+    artifact: {
+      ...phase7.artifact,
+      compositionLedger: {
+        ...phase7.artifact.compositionLedger,
+        obligations: [
+          ...phase7.artifact.compositionLedger.obligations,
+          {
+            id: unsupportedId,
+            kind: 'visual',
+            target: 'unavailable concept',
+            required: true,
+            status: 'unsupported',
+          },
+        ],
+      },
+    },
+  };
+
+  const proof = lab.runPhase8SceneProof(tampered).artifact.sceneProof;
+  const unsupported = proof.settledObligations.find((row) => row.obligationId === unsupportedId);
+
+  assert.equal(unsupported.status, 'unsupported');
+  assert.equal(proof.verdict, 'fail');
+  assert.ok(proof.summary.requiredUnsupportedIds.includes(unsupportedId));
+});
+
 test('scene proof fails a required identity when its live pixel obligation fails', () => {
   const phase7 = renderedPhase7('dogs and cats swimming in a lake');
   const visual = phase7.artifact.renderExecution.visualObligationProof || [];
@@ -97,6 +155,123 @@ test('scene proof fails a required identity when its live pixel obligation fails
   assert.equal(dog.status, 'lost');
   assert.equal(dog.reason, 'required identity failed live pixel proof');
   assert.equal(proof.verdict, 'fail');
+});
+
+test('scene proof fails closed for negated identities without a semantic absence proof', () => {
+  const phase7 = renderedPhase7('a dog but no cat');
+  const absence = phase7.artifact.compositionLedger.obligations.find((row) => row.constraintKind === 'absence');
+  assert.ok(absence, 'Phase 2 carries an absence obligation to Phase 7');
+  const absenceId = absence.obligationId || absence.id;
+  const settled = lab.runPhase8SceneProof(phase7).artifact.sceneProof;
+  const cat = settled.settledObligations.find((row) => row.obligationId === absenceId);
+  assert.equal(cat.status, 'lost');
+  assert.ok(cat.evidence.includes('visualObligationProof'));
+  assert.equal(settled.verdict, 'fail');
+
+  const tampered = {
+    ...phase7,
+    artifact: {
+      ...phase7.artifact,
+      renderExecution: {
+        ...phase7.artifact.renderExecution,
+        visualObligationProof: [
+          ...(phase7.artifact.renderExecution.visualObligationProof || [])
+            .filter((row) => row.obligationId !== absenceId),
+          { obligationId: absenceId, status: 'fail', required: true },
+        ],
+      },
+    },
+  };
+  const failed = lab.runPhase8SceneProof(tampered).artifact.sceneProof;
+  assert.equal(failed.settledObligations.find((row) => row.obligationId === absenceId).status, 'lost');
+  assert.equal(failed.verdict, 'fail');
+});
+
+test('scene proof never certifies a spatial relation from endpoints and Phase 6 layout alone', () => {
+  const phase7 = renderedPhase7('a parcel on a conveyor belt');
+  const relation = phase7.artifact.compositionLedger.obligations.find((row) => (
+    row.kind === 'relation' && /^relation:spatial:/.test(row.obligationId || row.id || '')
+  ));
+  assert.ok(relation, 'spatial relation obligation exists');
+  const relationId = relation.obligationId || relation.id;
+  const withoutRelationProof = {
+    ...phase7,
+    artifact: {
+      ...phase7.artifact,
+      renderExecution: {
+        ...phase7.artifact.renderExecution,
+        visualObligationProof: (phase7.artifact.renderExecution.visualObligationProof || [])
+          .filter((row) => row.obligationId !== relationId),
+      },
+    },
+  };
+
+  const proof = lab.runPhase8SceneProof(withoutRelationProof).artifact.sceneProof;
+  const relationProof = proof.settledObligations.find((row) => row.obligationId === relationId);
+  assert.equal(relationProof.status, 'not-proven');
+  assert.equal(relationProof.reason, 'relation endpoint identities lack Phase 7 visual proof');
+  assert.equal(proof.verdict, 'fail');
+});
+
+test('scene proof may settle a relation source only through its linked spatial Phase 7 proof', () => {
+  const phase7 = renderedPhase7('a parcel on a conveyor belt');
+  const sourceRelation = phase7.artifact.compositionLedger.obligations.find((row) => (
+    row.kind === 'relation' && /:spatial-constraint:/.test(row.obligationId || row.id || '')
+  ));
+  const spatialRelation = phase7.artifact.compositionLedger.obligations.find((row) => (
+    row.kind === 'relation' && /^relation:spatial:/.test(row.obligationId || row.id || '')
+  ));
+  assert.ok(sourceRelation && spatialRelation, 'linked relation obligations exist');
+  const spatialId = spatialRelation.obligationId || spatialRelation.id;
+  const sourceId = sourceRelation.obligationId || sourceRelation.id;
+  const linkedProof = {
+    ...phase7,
+    artifact: {
+      ...phase7.artifact,
+      renderExecution: {
+        ...phase7.artifact.renderExecution,
+        visualObligationProof: [
+          ...(phase7.artifact.renderExecution.visualObligationProof || [])
+            .filter((row) => row.obligationId !== spatialId),
+          { obligationId: spatialId, status: 'pass', required: true },
+        ],
+      },
+    },
+  };
+
+  const proof = lab.runPhase8SceneProof(linkedProof).artifact.sceneProof;
+  const sourceProof = proof.settledObligations.find((row) => row.obligationId === sourceId);
+  assert.equal(sourceProof.status, 'preserved');
+  assert.ok(sourceProof.evidence.includes('visualObligationProof'));
+});
+
+test('scene proof settles a material relation through its linked Phase 7 material proof', () => {
+  const phase7 = renderedPhase7('a glass greenhouse');
+  const relation = phase7.artifact.compositionLedger.obligations.find((row) => (
+    row.kind === 'relation' && (row.visualEvidence || []).some((value) => /^material-binding:/.test(value))
+  ));
+  assert.ok(relation, 'material relation obligation exists');
+  const evidence = relation.visualEvidence.find((value) => /^material-binding:/.test(value));
+  const [, entityId, material] = evidence.match(/^material-binding:([^:]+):(.+)$/);
+  const propertyId = `visual:prompt-property-${entityId}-material-${material}`;
+  const proof = lab.runPhase8SceneProof({
+    ...phase7,
+    artifact: {
+      ...phase7.artifact,
+      renderExecution: {
+        ...phase7.artifact.renderExecution,
+        visualObligationProof: [
+          ...(phase7.artifact.renderExecution.visualObligationProof || [])
+            .filter((row) => row.obligationId !== propertyId),
+          { obligationId: propertyId, status: 'pass', required: true },
+        ],
+      },
+    },
+  }).artifact.sceneProof;
+  const settled = proof.settledObligations.find((row) => row.obligationId === (relation.obligationId || relation.id));
+
+  assert.equal(settled.status, 'preserved');
+  assert.ok(settled.evidence.includes(evidence));
 });
 
 test('scene proof identity settlement requires whole-word identity evidence', () => {
@@ -227,5 +402,5 @@ test('scene proof selects realized exact compound geometry after generic support
     assert.equal(row.status, 'preserved');
     assert.equal(row.reason, 'identity has a rendered literal geometry program');
   }
-  assert.equal(proof.verdict, 'pass');
+  assert.equal(proof.verdict, 'fail');
 });

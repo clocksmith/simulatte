@@ -2,12 +2,18 @@
   const comparisonAdapter = typeof module === 'object' && module.exports
     ? require('../platform/core/simulation/comparison-result-adapter.js')
     : root.SimulatteComparisonResultAdapter;
-  const api = factory(comparisonAdapter);
+  const controlValues = typeof module === 'object' && module.exports
+    ? require('./run-control-values.js')
+    : root.SimulatteRunControlValues;
+  const api = factory(comparisonAdapter, controlValues);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteTierRunController = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createTierRunControllerApi(
-  comparisonAdapter
+  comparisonAdapter,
+  controlValues
 ) {
+  if (!controlValues) throw new Error('tier_run_control_values_missing');
+  const { isRunnableResult, normalizeValues, sameValues } = controlValues;
   const STORAGE_PREFIX = 'simulatte:tier-run:v1:';
   const RESTORE_ENVELOPE_SCHEMA = 'simulatte.tierRunRestoreEnvelope.v1';
 
@@ -20,6 +26,7 @@
     resetRuntime,
     buildReceipt,
     getControlValues = () => ({}),
+    setControlValues = () => {},
     onState,
     onReceipt,
     onError,
@@ -45,10 +52,15 @@
     let parameterValues = {};
     let playbackRate = 1;
     let seekQueue = Promise.resolve();
+    let hasPreparedStart = false;
+    let restoreExpectation = null;
+    let disposed = false;
+    let completion = null;
 
     function snapshot() {
       return Object.freeze({
         schema: 'simulatte.tierRunControllerState.v1',
+        ownerPluginId,
         state,
         stepCount,
         currentStep: Number.isInteger(scenarioResult?.currentStep) ? scenarioResult.currentStep : stepCount,
@@ -62,24 +74,39 @@
     }
 
     async function start({ restored = false, values = null } = {}) {
+      assertActive();
       if (['running', 'paused'].includes(state)) return snapshot();
       cancelTimer();
       const generation = ++runGeneration;
       const nextParameterValues = normalizeValues(
-        values === null ? getControlValues(ownerPluginId) : values
+        values === null && hasPreparedStart ? parameterValues : values === null ? getControlValues(ownerPluginId) : values
       );
-      if (['settled', 'failed'].includes(state)) await resetRuntime();
+      const preparedResult = hasPreparedStart
+        && state === 'idle'
+        && isRunnableResult(scenarioResult)
+        && sameValues(parameterValues, nextParameterValues);
+      if (['settled', 'failed'].includes(state)) {
+        await resetRuntime();
+        if (generation !== runGeneration) return snapshot();
+      }
       state = 'running';
-      stepCount = 0;
+      stepCount = preparedResult && Number.isInteger(scenarioResult?.currentStep)
+        ? scenarioResult.currentStep
+        : 0;
       isRestoring = restored;
-      scenarioResult = null;
+      if (!preparedResult) scenarioResult = null;
       finalReceipt = null;
       parameterValues = nextParameterValues;
+      hasPreparedStart = false;
+      setControlValues(ownerPluginId, parameterValues);
       reflect();
       try {
-        let result = await dispatchScenario({ phase: 'start' });
-        if (result?.status === 'refused' && ['scenario_phase_invalid', 'unknown_action'].includes(result.reason)) {
-          result = await dispatchScenario({});
+        let result = scenarioResult;
+        if (!preparedResult) {
+          result = await dispatchScenario({ phase: 'start' });
+          if (result?.status === 'refused' && ['scenario_phase_invalid', 'unknown_action'].includes(result.reason)) {
+            result = await dispatchScenario({});
+          }
         }
         if (generation !== runGeneration) return snapshot();
         scenarioResult = result;
@@ -93,12 +120,13 @@
         );
         return snapshot();
       } catch (error) {
-        fail(error);
+        if (generation === runGeneration) fail(error);
         throw error;
       }
     }
 
     function pause() {
+      assertActive();
       if (state !== 'running') return snapshot();
       cancelTimer();
       state = 'paused';
@@ -107,12 +135,14 @@
     }
 
     async function resume() {
+      assertActive();
       if (state !== 'paused') return snapshot();
+      const generation = runGeneration;
       if (isTerminalResult(scenarioResult)) {
         try {
-          await complete(runGeneration);
+          await complete(generation);
         } catch (error) {
-          fail(error);
+          if (generation === runGeneration) fail(error);
           throw error;
         }
         return snapshot();
@@ -124,30 +154,32 @@
     }
 
     async function step() {
+      assertActive();
       if (!['running', 'paused'].includes(state)) return snapshot();
+      const generation = runGeneration;
       const shouldResume = state === 'running';
       cancelTimer();
       state = 'paused';
       reflect();
       if (isTerminalResult(scenarioResult)) {
         try {
-          await complete(runGeneration);
+          await complete(generation);
         } catch (error) {
-          fail(error);
+          if (generation === runGeneration) fail(error);
           throw error;
         }
         return snapshot();
       }
       try {
-        await advance(runGeneration);
+        await advance(generation);
       } catch (error) {
-        fail(error);
+        if (generation === runGeneration) fail(error);
         throw error;
       }
       if (shouldResume && state === 'paused') {
         state = 'running';
         reflect();
-        schedule(runGeneration);
+        schedule(generation);
       } else if (state === 'paused') {
         reflect();
       }
@@ -155,31 +187,38 @@
     }
 
     async function replay() {
+      assertActive();
       const replayValues = normalizeValues(parameterValues);
       cancelTimer();
-      runGeneration += 1;
+      const generation = ++runGeneration;
       state = 'idle';
+      hasPreparedStart = false;
       reflect();
       await resetRuntime();
+      if (generation !== runGeneration) return snapshot();
       return start({ values: replayValues });
     }
 
     async function reset() {
+      assertActive();
       cancelTimer();
-      runGeneration += 1;
+      const generation = ++runGeneration;
       state = 'idle';
       stepCount = 0;
       isRestoring = false;
       scenarioResult = null;
       finalReceipt = null;
       parameterValues = {};
+      hasPreparedStart = false;
       clearStoredReceipt(storage, profileId);
       await resetRuntime();
+      if (generation !== runGeneration) return snapshot();
       reflect();
       return snapshot();
     }
 
     function setPlaybackRate(nextRate) {
+      assertActive();
       const value = Number(nextRate);
       if (!Number.isFinite(value) || value <= 0 || value > 16) {
         throw controllerError('tier_run_playback_rate_invalid', 'Playback rate expected a number above 0 and at most 16');
@@ -194,6 +233,7 @@
     }
 
     function seek(targetStep) {
+      if (disposed) return Promise.reject(controllerError('tier_run_disposed', 'Tier run controller is no longer active'));
       if (!Number.isInteger(targetStep) || targetStep < 0) {
         return Promise.reject(controllerError('tier_run_seek_invalid', 'Timeline seek expected a non-negative step'));
       }
@@ -202,7 +242,56 @@
       return pending;
     }
 
+    function applyControls(values) {
+      if (disposed) return Promise.reject(controllerError('tier_run_disposed', 'Tier run controller is no longer active'));
+      const pending = seekQueue.then(() => applyControlValues(values));
+      seekQueue = pending.catch(() => {});
+      return pending;
+    }
+
+    async function applyControlValues(values) {
+      assertActive();
+      cancelTimer();
+      const generation = ++runGeneration;
+      state = 'idle';
+      stepCount = 0;
+      isRestoring = false;
+      scenarioResult = null;
+      finalReceipt = null;
+      parameterValues = normalizeValues(values);
+      hasPreparedStart = false;
+      clearStoredReceipt(storage, profileId);
+      reflect();
+      try {
+        await resetRuntime();
+        if (generation !== runGeneration) return snapshot();
+        setControlValues(ownerPluginId, parameterValues);
+        let result = await dispatchScenario({ phase: 'start' });
+        if (result?.status === 'refused' && ['scenario_phase_invalid', 'unknown_action'].includes(result.reason)) {
+          result = await dispatchScenario({});
+        }
+        if (!['running', 'settled', 'failed'].includes(result?.status)) {
+          throw controllerError(
+            'tier_controls_refused',
+            `${ownerPluginId} refused the updated controls`,
+            { result }
+          );
+        }
+        if (generation !== runGeneration) return snapshot();
+        scenarioResult = result;
+        render();
+        state = 'idle';
+        hasPreparedStart = isRunnableResult(result);
+        reflect();
+        return snapshot();
+      } catch (error) {
+        if (generation === runGeneration) fail(error);
+        throw error;
+      }
+    }
+
     async function reconstructAtStep(requestedStep) {
+      assertActive();
       cancelTimer();
       const generation = ++runGeneration;
       try {
@@ -211,6 +300,7 @@
         state = 'running';
         stepCount = 0;
         scenarioResult = await dispatchScenario({ phase: 'start' });
+        hasPreparedStart = false;
         if (generation !== runGeneration) return snapshot();
         const totalSteps = Number.isInteger(scenarioResult?.totalSteps) ? scenarioResult.totalSteps : 0;
         const targetStep = Math.min(requestedStep, totalSteps);
@@ -230,6 +320,7 @@
     }
 
     async function restore() {
+      assertActive();
       const stored = readStoredReceipt(storage, profileId);
       if (!stored) return false;
       if (stored.profileId !== profileId
@@ -238,16 +329,25 @@
         clearStoredReceipt(storage, profileId);
         return false;
       }
-      await start({ restored: true, values: stored.parameterValues || {} });
-      cancelTimer();
-      while (['running', 'paused'].includes(state)) {
-        state = 'running';
-        await advance(runGeneration);
+      restoreExpectation = stored.terminal;
+      try {
+        await start({ restored: true, values: stored.parameterValues || {} });
+        const generation = runGeneration;
+        cancelTimer();
+        while (['running', 'paused'].includes(state)) {
+          if (generation !== runGeneration) return false;
+          state = 'running';
+          await advance(generation);
+        }
+        return generation === runGeneration && state === 'settled';
+      } finally {
+        restoreExpectation = null;
       }
-      return state === 'settled';
     }
 
     function dispose() {
+      if (disposed) return;
+      disposed = true;
       runGeneration += 1;
       cancelTimer();
     }
@@ -274,6 +374,17 @@
 
     async function complete(generation) {
       if (generation !== runGeneration) return;
+      if (completion?.generation === generation) return completion.promise;
+      const promise = completeRun(generation);
+      completion = Object.freeze({ generation, promise });
+      try {
+        return await promise;
+      } finally {
+        if (completion?.promise === promise && state !== 'settled') completion = null;
+      }
+    }
+
+    async function completeRun(generation) {
       cancelTimer();
       const runtime = requiredRuntime(getRuntime());
       const platform = runtime.platformV4({ scenario, compositionSize: runtime.activePluginIds.length });
@@ -293,6 +404,7 @@
           'counterfactual.compare',
           { scenario, values: { comparisonId: definition.id } }
         );
+        if (generation !== runGeneration) return;
         if (comparisonResult?.status !== 'settled' || !comparisonResult.comparisonBranches) {
           throw controllerError(
             'tier_comparison_execution_missing',
@@ -300,13 +412,15 @@
           );
         }
         comparisons.push(comparisonResult);
-        comparisonExecutionReceipts.push(await comparisonAdapter.createSettledComparison({
+        const comparisonExecutionReceipt = await comparisonAdapter.createSettledComparison({
           pluginId: ownerPluginId,
           scenario,
           comparisonId: definition.id,
           branches: comparisonResult.comparisonBranches,
           contribution,
-        }));
+        });
+        if (generation !== runGeneration) return;
+        comparisonExecutionReceipts.push(comparisonExecutionReceipt);
       }
       const comparisonResult = comparisons[0] || null;
       const comparisonExecutionReceipt = comparisonExecutionReceipts[0] || null;
@@ -319,7 +433,8 @@
         comparisonExecutionReceipts: Object.freeze(comparisonExecutionReceipts),
       });
       const settlement = await runtime.settle({ scenario, actionResult });
-      finalReceipt = Object.freeze(buildReceipt({
+      if (generation !== runGeneration) return;
+      const candidateReceipt = Object.freeze(buildReceipt({
         actionResult,
         settlement,
         comparisonExecutionReceipt,
@@ -327,7 +442,17 @@
         parameterValues,
         restored: isRestoring,
       }));
+      if (restoreExpectation) {
+        try {
+          assertRestoredTerminal(profileId, restoreExpectation, candidateReceipt);
+        } catch (error) {
+          clearStoredReceipt(storage, profileId);
+          throw error;
+        }
+      }
+      finalReceipt = candidateReceipt;
       writeStoredReceipt(storage, profileId, finalReceipt);
+      if (generation !== runGeneration) return;
       state = 'settled';
       render();
       reflect();
@@ -352,7 +477,7 @@
         timerId = null;
         try {
           await advance(generation);
-          if (state === 'running') schedule(generation);
+          if (generation === runGeneration && state === 'running') schedule(generation);
         } catch (error) {
           if (generation === runGeneration) fail(error);
         }
@@ -372,11 +497,17 @@
       onError?.(error);
     }
 
+    function assertActive() {
+      if (!disposed) return;
+      throw controllerError('tier_run_disposed', 'Tier run controller is no longer active');
+    }
+
     function reflect() {
       onState?.(snapshot());
     }
 
     return Object.freeze({
+      applyControls,
       dispose,
       pause,
       receipt: () => finalReceipt,
@@ -409,7 +540,7 @@
       const serialized = storage.getItem(storageKey(profileId));
       if (!serialized) return null;
       const value = JSON.parse(serialized);
-      if (value?.schema === RESTORE_ENVELOPE_SCHEMA) return value;
+      if (isRestoreEnvelope(value, profileId)) return value;
       clearStoredReceipt(storage, profileId);
       return null;
     } catch (_error) {
@@ -473,6 +604,38 @@
     });
   }
 
+  function isRestoreEnvelope(value, profileId) {
+    return value?.schema === RESTORE_ENVELOPE_SCHEMA
+      && value.profileId === profileId
+      && typeof value.scenario?.id === 'string'
+      && !!value.scenario.id
+      && typeof value.scenario?.seed === 'string'
+      && !!value.scenario.seed
+      && !!value.parameterValues
+      && typeof value.parameterValues === 'object'
+      && !Array.isArray(value.parameterValues)
+      && (value.terminal?.receiptSchema === null || typeof value.terminal?.receiptSchema === 'string')
+      && (value.terminal?.status === null || typeof value.terminal?.status === 'string')
+      && (value.terminal?.comparisonId === null || typeof value.terminal?.comparisonId === 'string')
+      && Array.isArray(value.terminal?.comparisonIds)
+      && value.terminal.comparisonIds.every((id) => typeof id === 'string' && !!id);
+  }
+
+  function assertRestoredTerminal(profileId, expected, receipt) {
+    const actual = createRestoreEnvelope(profileId, receipt).terminal;
+    if (expected.receiptSchema === actual.receiptSchema
+      && expected.status === actual.status
+      && expected.comparisonId === actual.comparisonId
+      && JSON.stringify(expected.comparisonIds) === JSON.stringify(actual.comparisonIds)) {
+      return;
+    }
+    throw controllerError(
+      'tier_run_restore_diverged',
+      'Reconstructed terminal identity differs from the stored receipt',
+      { expected, actual }
+    );
+  }
+
   function clearStoredReceipt(storage, profileId) {
     if (!storage || typeof storage.removeItem !== 'function') return;
     storage.removeItem(storageKey(profileId));
@@ -484,11 +647,6 @@
     error.code = code;
     error.evidence = evidence;
     return error;
-  }
-
-  function normalizeValues(value) {
-    if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
-    return Object.fromEntries(Object.entries(value).map(([key, entry]) => [key, Array.isArray(entry) ? [...entry] : entry]));
   }
 
   return Object.freeze({

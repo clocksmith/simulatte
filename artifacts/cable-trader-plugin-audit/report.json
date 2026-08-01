@@ -2,10 +2,10 @@
   "schema": "simulatte.cableTraderPluginAudit.v2",
   "pass": true,
   "identities": {
-    "simulationId": "everyday-exchange:4cd829942466d03122de",
+    "simulationId": "everyday-exchange:ccb8b05104b1e5f0bbff",
     "scenarioId": "everyday-exchange",
-    "seed": "cable-circulation-everyday-2026:configuration:4cd829942466d031",
-    "configurationHash": "4cd829942466d03122de019628e8a9138da02c60f6b9c9cd1d897ff2f6bb469f",
+    "seed": "cable-circulation-everyday-2026:configuration:ccb8b05104b1e5f0",
+    "configurationHash": "ccb8b05104b1e5f0bbff6e17874f80ee6cc65935ec289cc414a475fb9a4389d2",
     "selectedCableTypeIds": [
       "usb-a-to-c",
       "usb-c-to-c",
@@ -24,27 +24,27 @@
     "cableCatalog": {
       "id": "cable-circulation-catalog-v1",
       "path": "../../../data/cable-trader/cable-circulation-catalog-v1.json",
-      "sha256": "5694a3049a8f6b8036599a64545535531adffc2413720776b344a6ac959451b6",
+      "sha256": "4de18f918739242970e47f77c419ced2980ab8943a9d3f73f0b31a451535df5e",
       "schemaId": "simulatte.cableCirculationCatalog.v1"
     }
   },
   "simulation": {
     "durationDays": 365,
     "peopleCount": 6000,
-    "hubCount": 4,
-    "locationCount": 12,
+    "hubCount": 24,
+    "residenceCount": 6000,
     "eventCount": 365,
     "snapshotCount": 366,
-    "totalSupply": 13296,
-    "totalDemand": 13140,
-    "cablesReused": 11434,
-    "waitingDemand": 1706,
-    "totalJourneys": 24730,
+    "totalSupply": 13236,
+    "totalDemand": 13200,
+    "cablesReused": 12062,
+    "waitingDemand": 1138,
+    "totalJourneys": 25298,
     "balance": {
-      "startingInventory": 384,
-      "supplied": 13296,
-      "fulfilled": 11434,
-      "endingInventory": 2246,
+      "startingInventory": 2304,
+      "supplied": 13236,
+      "fulfilled": 12062,
+      "endingInventory": 3478,
       "pass": true
     }
   },
@@ -55,20 +55,19 @@
       "path",
       "actor"
     ],
-    "hubCount": 4,
-    "locationCount": 12,
-    "journeyLayerCount": 48,
-    "routeSegmentReferenceCount": 551
+    "hubCount": 24,
+    "residenceCount": 6000,
+    "journeyLayerCount": 36,
+    "routeSegmentReferenceCount": 337
   },
   "controls": [
     "peopleCount",
     "hubCount",
-    "locationCount",
     "selectedCableTypeIds"
   ],
   "publicClaimValidation": {
     "status": "pass",
-    "claimCount": 3
+    "claimCount": 4
   },
   "comparisons": [],
   "viewIntents": [
@@ -77,27 +76,36 @@
       "id": "cable-network-overview",
       "mode": "overview",
       "targetIds": [
-        "hub:union-square",
-        "hub:east-village",
-        "hub:greenpoint",
-        "hub:north-williamsburg",
-        "location:houston-street",
-        "location:allen-street",
-        "location:lafayette-street",
-        "location:manhattan-avenue",
-        "location:hudson-greenway",
-        "location:williamsburg-bridge",
-        "location:east-8th-street",
-        "location:varick-street",
-        "location:kent-avenue",
-        "location:driggs-avenue",
-        "location:delancey-street",
-        "location:berry-street"
+        "hub:hub-01",
+        "hub:hub-02",
+        "hub:hub-03",
+        "hub:hub-04",
+        "hub:hub-05",
+        "hub:hub-06",
+        "hub:hub-07",
+        "hub:hub-08",
+        "hub:hub-09",
+        "hub:hub-10",
+        "hub:hub-11",
+        "hub:hub-12",
+        "hub:hub-13",
+        "hub:hub-14",
+        "hub:hub-15",
+        "hub:hub-16",
+        "hub:hub-17",
+        "hub:hub-18",
+        "hub:hub-19",
+        "hub:hub-20",
+        "hub:hub-21",
+        "hub:hub-22",
+        "hub:hub-23",
+        "hub:hub-24",
+        "residences"
       ],
-      "reasonEventId": "everyday-exchange:4cd829942466d03122de:day-180",
+      "reasonEventId": "everyday-exchange:ccb8b05104b1e5f0bbff:day-180",
       "priority": 50,
       "transition": "ease"
     }
   ],
-  "claimBoundary": "People, cable supply, demand, inventories, and journeys are deterministic modeled activity. City nodes and route geometry come from the governed world; no exchange operations are observed."
+  "claimBoundary": "People, unique residences, cable supply, demand, inventories, and journeys are deterministic modeled activity. Residence anchors and route geometry come from the governed city network; no exchange operations are observed."
 }

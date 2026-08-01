@@ -41,6 +41,39 @@ const webgpuRendererScope = phaseFamily('webGpuRenderer');
 const compositionGraphScope = phaseFamily('compositionGraph');
 const intentEmbedderScope = phaseFamily('intentEmbedder');
 
+function phase7ReadbackRenderData(renderExecutionInput, canvas = { width: 640, height: 360 }) {
+  const renderData = webgpuRendererScope.compileSceneRenderData(renderExecutionInput.sceneRenderPacket);
+  renderData.requireLivePixelSamples = true;
+  const plan = webgpuRendererScope.phase7PixelReadbackPlan(
+    renderData,
+    renderExecutionInput.sceneRenderPacket,
+    renderExecutionInput,
+    canvas
+  );
+  assert.ok(plan, 'Phase 7 proof fixture creates a readback plan');
+  assert.deepEqual(plan.unmatchedObligationIds, []);
+  return {
+    ...renderData,
+    pixelSamples: {
+      schema: 'simulatte.phase7PixelSampleSet.v1',
+      source: 'physical-compiler-test-readback',
+      packetKey: renderData.packetKey,
+      samples: plan.samples.map((sample) => ({
+        ...sample,
+        rgba: rgbaForExpectedPixelValue(sample.expectedValue),
+        backgroundRgba: [0, 0, 0, 255],
+      })),
+    },
+  };
+}
+
+function rgbaForExpectedPixelValue(value = '') {
+  if (/^#[a-f0-9]{6}$/i.test(value)) {
+    return [1, 3, 5].map((offset) => parseInt(value.slice(offset, offset + 2), 16)).concat(255);
+  }
+  return [80, 160, 220, 255];
+}
+
 function runtimeSourceFromFile(file, seen = new Set()) {
   if (seen.has(file)) return '';
   seen.add(file);
@@ -337,6 +370,48 @@ test('Phase 2 does not invent water targets for unrelated intransitive clauses',
   )));
 });
 
+test('Phase 2 preserves an unlisted trailing action and Phase 3 fails closed without capability evidence', () => {
+  const parsed = universeParser.parsePrompt('a person dancing');
+  const dancing = parsed.spans.find((span) => span.text === 'dancing');
+
+  assert.equal(dancing.kind, 'process');
+  assert.equal(dancing.syntacticPromotion, 'subject-process');
+  assert.ok(parsed.clauses.some((clause) => (
+    clause.verbSpanId === dancing.id && clause.objectSpanId === null
+  )));
+
+  const spec = lab.createSpecFromPrompt('a person dancing', {
+    allowPrototypeFallback: true,
+  });
+  const phase2 = spec.phaseArtifacts.phase2.artifact;
+  assert.ok(phase2.sceneLanguageGraph.actions.some((row) => (
+    row.id === 'action:dancing' && row.required === true
+  )));
+  assert.equal(phase2.sceneLanguageGraph.unsupportedSpans.some((row) => row.text === 'dancing'), false);
+  assert.ok(phase2.compositionLedger.obligations.some((row) => (
+    row.id === 'action:dancing' && row.required === true
+  )));
+  const dancingSlot = spec.phaseArtifacts.phase3.artifact.activationCloud.slotEvidence
+    .find((row) => row.entryId === 'action:dancing');
+  assert.equal(dancingSlot.status, 'pending');
+  assert.equal(dancingSlot.acceptedCount, 0);
+  assert.ok(dancingSlot.supportOnlyCandidates.every((row) => (
+    row.source === 'prompt-typed-slot' || row.source === 'language-predicate'
+  )));
+  assert.ok(spec.phaseArtifacts.phase3.artifact.compositionLedger.obligations.some((row) => (
+    row.id === 'action:dancing' && row.status === 'unsupported'
+  )));
+  assert.ok(spec.phaseArtifacts.phase4.artifact.groundedIntent.unsupported.some((row) => (
+    row.id === 'unsupported:action:dancing'
+  )));
+
+  const running = lab.createSpecFromPrompt('a person running', { allowPrototypeFallback: true });
+  const runningSlot = running.phaseArtifacts.phase3.artifact.activationCloud.slotEvidence
+    .find((row) => row.entryId === 'action:running');
+  assert.equal(runningSlot.status, 'preserved');
+  assert.ok(runningSlot.acceptedCandidates.some((row) => row.source === 'phase2-action-pose-contract'));
+});
+
 test('Phase 2 marks typed relations as local evidence instead of requesting model identity work', () => {
   const spec = lab.createSpecFromPrompt('an octopus holding a glass teapot', {
     allowPrototypeFallback: true,
@@ -486,6 +561,36 @@ test('Phase 2 extends coordinated negation and promotes syntactic process terms'
     [3, 'exact'],
     [7, 'exact'],
   ]);
+
+  const wordQuantity = universeParser.parsePrompt('five cats in a galaxy');
+  assert.deepEqual(wordQuantity.quantities.map((row) => [row.value, row.mode || 'exact', row.source || 'explicit-quantity']), [
+    [5, 'exact', 'explicit-quantity'],
+  ]);
+  const wordQuantitySpec = lab.createSpecFromPrompt('five cats in a galaxy', { allowPrototypeFallback: true });
+  assert.ok(wordQuantitySpec.phaseArtifacts.phase6.artifact.compositionLedger.obligations.some((row) => (
+    row.constraintKind === 'count' && row.targetIdentity === 'cat' && row.expectedCount === 5 && row.countMode === 'exact'
+  )));
+  for (const [prompt, expectedCount] of [
+    ['zero cats in a galaxy', 0],
+    ['thirteen cats in a galaxy', 13],
+    ['twenty one cats in a galaxy', 21],
+    ['one hundred and twenty one cats in a galaxy', 121],
+  ]) {
+    const parsed = universeParser.parsePrompt(prompt);
+    assert.equal(parsed.quantities[0].value, expectedCount, prompt);
+    const compiled = lab.createSpecFromPrompt(prompt, { allowPrototypeFallback: true });
+    assert.ok(compiled.phaseArtifacts.phase4.artifact.groundedIntent.acceptedGraph.promptVisualObligations.some((row) => (
+      row.constraintKind === 'count' && row.targetIdentity === 'cat' && row.expectedCount === expectedCount && row.countMode === 'exact'
+    )), prompt);
+    assert.ok(compiled.phaseArtifacts.phase6.artifact.compositionLedger.obligations.some((row) => (
+      row.constraintKind === 'count' && row.targetIdentity === 'cat' && row.expectedCount === expectedCount && row.countMode === 'exact'
+    )), prompt);
+    if (expectedCount === 0) {
+      assert.equal(compiled.phaseArtifacts.phase6.artifact.visualCompile.sceneRenderPacket.entities.filter((row) => (
+        row.identity && row.identity.type === 'cat'
+      )).length, 0, prompt);
+    }
+  }
 });
 
 test('Phase 2 keeps comma-delimited fuel nouns out of the process ledger', () => {
@@ -1203,6 +1308,76 @@ test('Phase 3 rejects retrieval evidence whose top-level prompt hash is stale', 
     }),
     /Phase 3 retrieval evidence prompt hash mismatch/
   );
+});
+
+test('Phase 3 rejects missing Phase 2 artifacts and unbound retrieval evidence', () => {
+  const prompt = 'dogs swimming in a lake';
+  const phase1 = lab.runPhase1RuntimeGate(prompt, { allowPrototypeFallback: true });
+  const phase2 = lab.runPhase2LanguageGraph(phase1);
+  const missingQueryPlan = {
+    ...phase2,
+    artifact: {
+      ...phase2.artifact,
+      queryPlan: null,
+    },
+  };
+
+  assert.throws(
+    () => lab.runPhase3Retrieval(missingQueryPlan, {}),
+    /Phase 3 input missing required Phase 2 artifact\.queryPlan/
+  );
+  assert.throws(
+    () => lab.runPhase3Retrieval(phase2, {
+      retrievalEvidence: {
+        rankedPrimitives: [{ id: 'cat', label: 'cat', source: 'unbound', score: 1 }],
+      },
+    }),
+    /Phase 3 retrieval evidence sourcePromptHash is required/
+  );
+});
+
+test('Phase 3 span embedding cache detaches mutable provider and consumer vectors', async () => {
+  const embedModelHash = 'a'.repeat(64);
+  const providerResult = {
+    embedding: Float32Array.from([1, 0]),
+    embedModelId: 'span-cache-probe',
+    embedModelHash,
+  };
+  const cache = new Map();
+  let providerCalls = 0;
+  const payload = {
+    provider: {
+      async embed() {
+        providerCalls += 1;
+        return providerResult;
+      },
+    },
+    runtime: {
+      index: {
+        embedModelId: 'span-cache-probe',
+        embedModelHash,
+        embeddingDim: 2,
+      },
+      manifest: { embedModel: { dtype: 'f32' } },
+    },
+    spans: [{ id: 'span1', kind: 'process', text: 'dancing' }],
+    config: { cache: true, batchEmbedding: false },
+    cache,
+    options: { nowIso: '2026-07-31T00:00:00.000Z' },
+  };
+
+  const first = await intentEmbedderScope.embedSpanQueries(payload);
+  first[0].query.embedding.set([0.25, 0.75]);
+  providerResult.embedding.set([0, 1]);
+  const second = await intentEmbedderScope.embedSpanQueries(payload);
+  const retained = cache.values().next().value;
+
+  assert.equal(providerCalls, 1);
+  assert.equal(second[0].cacheHit, true);
+  assert.deepEqual(Array.from(second[0].query.embedding), [1, 0]);
+  assert.notEqual(first[0].query, second[0].query);
+  assert.equal(Object.isFrozen(retained), true);
+  assert.equal(Object.isFrozen(retained.embedding), true);
 });
 
 test('grounding rejects associative generated identities lacking prompt evidence', () => {
@@ -2056,7 +2231,10 @@ test('part-scoped properties bind robot eyes and articulated straw arms into one
     .filter((row) => row.id.startsWith('visual:prompt-'));
   assert.ok(promptObligations.length >= 3);
   assert.ok(promptObligations.every((row) => row.status === 'preserved'));
-  const phase7 = lab.runPhase7RenderExecution(lab.createRenderExecutionInput(spec), null, null, {
+  const phase7Input = lab.createRenderExecutionInput(spec);
+  const phase7Canvas = { width: 640, height: 360 };
+  const phase7 = lab.runPhase7RenderExecution(phase7Input, null, phase7Canvas, {
+    ...phase7ReadbackRenderData(phase7Input, phase7Canvas),
     rendered: true,
     renderCount: 1,
     drawCount: objectParts.length,
@@ -2102,7 +2280,10 @@ test('cardinality pose spatial color and environment contracts lower into one re
     spec.renderProgram.visualIR.compositionLedger.obligations.find((row) => row.id === 'environment:sunset').status,
     'preserved'
   );
-  const phase7 = lab.runPhase7RenderExecution(lab.createRenderExecutionInput(spec), null, null, {
+  const phase7Input = lab.createRenderExecutionInput(spec);
+  const phase7Canvas = { width: 640, height: 360 };
+  const phase7 = lab.runPhase7RenderExecution(phase7Input, null, phase7Canvas, {
+    ...phase7ReadbackRenderData(phase7Input, phase7Canvas),
     rendered: true,
     renderCount: 1,
     drawCount: webgpuRendererScope.scenePacketObjectParts(packet).length,
@@ -2112,7 +2293,12 @@ test('cardinality pose spatial color and environment contracts lower into one re
     .every((row) => row.status === 'pass'));
   assert.equal(phase7.artifact.renderExecution.environmentProgram.kind, 'sunset');
   assert.equal(phase7.artifact.renderExecution.pixelAudit.literalRealization.status, 'pass');
-  assert.equal(globalThis.SimulatteSceneProof.settleSceneProof(phase7).artifact.sceneProof.verdict, 'pass');
+  const sceneProof = globalThis.SimulatteSceneProof.settleSceneProof(phase7).artifact.sceneProof;
+  assert.equal(sceneProof.verdict, 'pass');
+  assert.equal(
+    sceneProof.settledObligations.find((row) => row.obligationId === 'relation:spatial:entity-bird:over:entity-castle').status,
+    'preserved'
+  );
   assert.equal(webgpuRendererScope.promptPixelColorSatisfied([220, 58, 56, 255], '#ef3340'), true);
   assert.equal(webgpuRendererScope.promptPixelColorSatisfied([20, 21, 25, 255], '#111318'), true);
   assert.equal(webgpuRendererScope.promptPixelColorSatisfied([230, 112, 34, 255], '#f47b20'), true);
@@ -2325,6 +2511,67 @@ test('Phase 6 solves typed spatial constraints and canonicalizes visual concepts
   ]);
   assert.equal(renderAnchors.length, 1);
   assert.equal(renderAnchors[0].id, 'render-waves');
+});
+
+test('Phase 6 takes relation and prompt authority only from RenderIR', () => {
+  const renderIR = {
+    prompt: 'a red cube above a blue sphere',
+    compositionLedger: {
+      relations: [{
+        id: 'relation:spatial:entity-cube:above:entity-sphere',
+        kind: 'spatial-constraint',
+        from: 'entity:cube',
+        to: 'entity:sphere',
+        predicate: 'above',
+        spatialRelation: 'above',
+        evidenceIds: ['clause1'],
+        required: true,
+        status: 'preserved',
+      }],
+    },
+  };
+  const poisonedSpec = {
+    renderIR,
+    universeGraph: { prompt: 'an optics laboratory' },
+    promptParse: { spans: [{ text: 'a galaxy' }] },
+    physicsIR: {
+      prompt: 'a volcano',
+      couplings: [{ from: 'domain:volcano', to: 'domain:galaxy', type: 'coupling' }],
+      compositionLedger: {
+        relations: [{
+          kind: 'spatial-constraint',
+          from: 'prompt-body-subject',
+          to: 'prompt-body-target',
+          spatialRelation: 'above',
+        }],
+      },
+    },
+  };
+
+  assert.equal(compositionGraphScope.directPromptSceneText(renderIR, poisonedSpec), renderIR.prompt);
+  assert.deepEqual(compositionGraphScope.relationsFromRenderIR(poisonedSpec), [{
+    id: 'relation:spatial:entity-cube:above:entity-sphere',
+    kind: 'spatial-constraint',
+    from: 'cube',
+    to: 'sphere',
+    channel: 'above',
+    reason: 'above',
+    strength: 0.72,
+    sourceRelationId: 'relation:spatial:entity-cube:above:entity-sphere',
+    evidenceIds: ['clause1'],
+    required: true,
+  }]);
+  const layout = compositionGraphScope.constraintLayoutObjects([
+    { id: 'subject', semanticRef: 'prompt.body.subject', sourceLabel: 'subject', directlyGrounded: true },
+    { id: 'target', semanticRef: 'prompt.body.target', sourceLabel: 'target', directlyGrounded: true },
+  ], 'mechanical', { ...poisonedSpec, renderIR: { ...renderIR, compositionLedger: { relations: [] } } }, {});
+  assert.ok(layout.every((row) => row.layoutReceipt.relationCount === 0));
+
+  const compiled = lab.createSpecFromPrompt(renderIR.prompt, { allowPrototypeFallback: true });
+  assert.ok(compiled.renderProgram.relations.some((relation) => (
+    relation.id === 'relation:spatial:entity-cube:above:entity-sphere'
+  )));
+  assert.equal(compiled.renderProgram.provenance.relationCount, compiled.renderProgram.relations.length);
 });
 
 test('prompt-owned identities override an incorrect network render layer', () => {
@@ -2628,8 +2875,9 @@ test('phase envelopes enforce neighboring pipeline handoffs', () => {
   );
   assert.equal(sideChannelPhase3.artifact.groundedIntent.acceptedGraph, null);
 
-  const phase7RenderData = webgpuRendererScope.compileSceneRenderData(renderExecutionInput.sceneRenderPacket);
-  const phase7 = lab.runPhase7RenderExecution(renderExecutionInput, null, null, {
+  const phase7Canvas = { width: 640, height: 360 };
+  const phase7RenderData = phase7ReadbackRenderData(renderExecutionInput, phase7Canvas);
+  const phase7 = lab.runPhase7RenderExecution(renderExecutionInput, null, phase7Canvas, {
     ...phase7RenderData,
     rendered: true,
     renderCount: 1,
@@ -2696,11 +2944,16 @@ test('Phase 7 live pixel proof gates required visual obligation samples', () => 
     renderExecutionInput,
     canvas
   );
-  const pixelSamples = readbackPlan.samples.map((sample, index) => ({
-    ...sample,
-    rgba: [40 + index * 10, 130, 220, 255],
-    backgroundRgba: [0, 0, 0, 255],
-  }));
+  const pixelSamples = {
+    schema: 'simulatte.phase7PixelSampleSet.v1',
+    source: 'physical-compiler-test-readback',
+    packetKey: compiledRenderData.packetKey,
+    samples: readbackPlan.samples.map((sample, index) => ({
+      ...sample,
+      rgba: [40 + index * 10, 130, 220, 255],
+      backgroundRgba: [0, 0, 0, 255],
+    })),
+  };
   const proven = lab.runPhase7RenderExecution(renderExecutionInput, null, canvas, {
     ...compiledRenderData,
     rendered: true,
@@ -2955,7 +3208,7 @@ test('WebGPU phase 8 layer summary follows compiled VisualIR structures', () => 
       assert.equal(renderer.renderData.drawCount, Number(canvas.dataset.sceneRenderDrawCount));
       assert.equal(renderer.renderData.sceneInstanceCount, Number(canvas.dataset.webgpuSceneInstanceCount));
       assert.match(canvas.dataset.sceneRenderSpatialHash || '', /^[0-9a-f]{8}$/);
-      assert.match(canvas.dataset.phase7RenderDataKey || '', /^[a-z0-9-]+:\d+:\d+:\d+:[0-9a-f]{8}$/);
+      assert.match(canvas.dataset.phase7RenderDataKey || '', /^[a-z0-9-]+:\d+:\d+:\d+:[0-9a-f]{8}:[0-9a-f]{8}$/);
       assert.match(canvas.dataset.sceneObjectUniforms || '', /@/, `${prompt} should pack scene object uniforms`);
       assert.match(canvas.dataset.sceneObjectIdentities || '', /@/, `${prompt} should report packed scene object identities`);
       assert.equal(renderer.renderData.drawCount, Number(canvas.dataset.sceneRenderDrawCount));

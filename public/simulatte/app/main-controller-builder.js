@@ -71,9 +71,11 @@
       if (useNeuralPlaces && await modelSelection.ensureConsent() !== true) {
         throw new Error('Selected place model requires local model consent');
       }
+      if (!isCurrent()) return null;
       let placeResolver = getPlaceResolver();
       if (useNeuralPlaces && !placeResolver) {
         await runtimeLoaderApi.loadOptionalModel();
+        if (!isCurrent()) return null;
         const activeNeuralPlaceApi = neuralPlaceApi || hostRoot.SimulatteNeuralPlaceResolver;
         if (!activeNeuralPlaceApi?.createPlaceResolver) {
           throw new Error('Neural place resolver failed to load');

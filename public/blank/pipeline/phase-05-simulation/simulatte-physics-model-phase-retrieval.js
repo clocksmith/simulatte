@@ -149,6 +149,7 @@
             spatialRelation: clause.spatialRelation || '',
             causalAffordance: clause.causalAffordance || '',
             implicitObject: clause.implicitObject || '',
+            poseHint: clause.poseHint || '',
           })),
           quantities: Array.isArray(promptParse.quantities) ? promptParse.quantities.map((row) => ({ ...row })) : [],
           negations: spans.filter((span) => span.kind === 'negation').concat(
@@ -272,12 +273,12 @@
     function runPhase3Retrieval(phase2Output, runtimeContext = {}) {
           scope.assertPhaseEnvelope(phase2Output, 2, 'Phase 3 input');
           const phase2Artifact = phase2Output.artifact || {};
-          const languageGraph = phase2Artifact.languageGraph || {};
-          const sceneLanguageGraph = phase2Artifact.sceneLanguageGraph || scope.sceneLanguageGraphFromLanguageGraph(languageGraph);
-            const queryPlan = phase2Artifact.queryPlan || scope.queryPlanFromSceneLanguageGraph(sceneLanguageGraph);
+          const languageGraph = scope.requiredPhase2Artifact(phase2Artifact, 'languageGraph');
+          const sceneLanguageGraph = scope.requiredPhase2Artifact(phase2Artifact, 'sceneLanguageGraph');
+            const queryPlan = scope.requiredPhase2Artifact(phase2Artifact, 'queryPlan');
             const query = String(languageGraph.sourceText || '');
             const retrievalEvidence = runtimeContext && runtimeContext.retrievalEvidence || {};
-            assertPhase3RetrievalEvidencePromptHash(retrievalEvidence, sceneLanguageGraph.sourcePromptHash || scope.stableTextHash(query));
+            scope.assertPhase3RetrievalEvidencePromptHash(retrievalEvidence, sceneLanguageGraph.sourcePromptHash || scope.stableTextHash(query));
             const rawRankedPrimitives = retrievalEvidence.rankedPrimitives || retrievalEvidence.primitiveMatches || [];
           const primitiveCuration = curatePhase3PrimitiveCandidates(rawRankedPrimitives, languageGraph);
           const rankedPrimitives = primitiveCuration.rankedPrimitives;
@@ -421,25 +422,6 @@
             },
           ],
         });
-        }
-
-    function assertPhase3RetrievalEvidencePromptHash(retrievalEvidence = {}, expectedHash = '') {
-          if (!expectedHash || !retrievalEvidence || typeof retrievalEvidence !== 'object') return;
-          const topLevel = String(retrievalEvidence.sourcePromptHash || retrievalEvidence.promptHash || '');
-          if (topLevel && topLevel !== expectedHash) {
-            throw new Error(`Phase 3 retrieval evidence prompt hash mismatch: expected ${expectedHash}, received ${topLevel}`);
-          }
-          const rows = [
-            ['slotRetrieval', retrievalEvidence.slotRetrieval],
-            ['spanRetrieval', retrievalEvidence.spanRetrieval],
-            ['queryPlan', retrievalEvidence.queryPlan],
-          ];
-          for (const [label, row] of rows) {
-            const actual = row && row.sourcePromptHash;
-            if (actual && actual !== expectedHash) {
-              throw new Error(`Phase 3 ${label}.sourcePromptHash mismatch: expected ${expectedHash}, received ${actual}`);
-            }
-          }
         }
 
     function curatePhase3PrimitiveCandidates(rows = [], languageGraph = {}) {
@@ -714,7 +696,10 @@
           ...phase3RowsForSlot(slot, buckets, rankedCards, rankedUniverseRows),
         ]);
             return rows.slice(0, phase3SlotBudget(slot)).map((row) => {
-              const supportOnly = row.supportOnly === true || slot.slotRole === 'support';
+              const promptOnlyAction = slot.slotRole === 'action' && slot.modelEvidenceRequired === true && (
+                row.source === 'prompt-typed-slot' || row.source === 'language-predicate'
+              );
+              const supportOnly = row.supportOnly === true || slot.slotRole === 'support' || promptOnlyAction;
               const candidateId = row.candidateId || row.id || row.cardId || row.canonicalId || row.primitiveId || '';
               return {
                 id: candidateId,
@@ -796,12 +781,14 @@
           semanticClass: slot.semanticClass || '',
           visualArchetype: slot.visualArchetype || '',
           shapeHints: slot.shapeHints || [],
-          source: 'prompt-typed-slot',
+          source: role === 'action' && slot.localEvidenceReason || 'prompt-typed-slot',
           score: 1,
-          supportOnly: role === 'concept',
+          supportOnly: role === 'concept' || role === 'action' && slot.modelEvidenceRequired === true,
           identityEvidence: /^(?:actor|object|part|environment|medium)$/.test(role),
           reason: role === 'concept'
             ? 'untyped Phase 2 term remains support-only until retrieval establishes a semantic role'
+            : role === 'action' && slot.modelEvidenceRequired === true
+              ? 'prompt language preserves the action but does not prove executable action support'
             : 'typed Phase 2 slot preserves literal prompt identity',
         };
       }
@@ -951,7 +938,6 @@
       languageGraphSpans,
       semanticStopwordHas,
       runPhase3Retrieval,
-      assertPhase3RetrievalEvidencePromptHash,
       curatePhase3PrimitiveCandidates,
       phase3TypedEvidenceBuckets,
       phase3EvidenceSlot,

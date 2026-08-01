@@ -2,7 +2,7 @@
   "applicationProfile": {
     "id": "cable-trader-pickup-v1",
     "path": "../application-profiles/cable-trader-pickup-v1.json",
-    "sha256": "6ab23d441d48f064f8d99f969ad11cf49a6d530c2d40ba6e7186dc1ce09276ea"
+    "sha256": "3390b832fb4eba44a6b5f3da3de4d97fcfc887f8d7a9cf03f34837076cd0284a"
   },
   "applicationProfiles": [
     {
@@ -18,7 +18,7 @@
     {
       "id": "sun-walker-v1",
       "path": "../application-profiles/sun-walker-v1.json",
-      "sha256": "865991f8e12880cad0aafcace7fa414f4e4c91798548ee65ebb899d138ee9ef3"
+      "sha256": "e17650a50e58e5e84987f5dabe5e7dd9a78f7e98a414a6373155b397aec5ff7d"
     }
   ],
   "claimBoundary": "This manifest governs bicycle-delivery, pedestrian-loop, and neighborhood bulk-pooling simulations in New York City. Park circuits follow frozen property boundaries, not surveyed sidewalk centerlines. Bulk-pool corridors outside the governed street graph are modeled geospatial scenarios. It does not claim live conditions, real warehouse inventory, physical-world autonomy, or control of a real vehicle.",

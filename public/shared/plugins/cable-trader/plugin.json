@@ -8,7 +8,7 @@
         "id": "cable-circulation-catalog-v1",
         "path": "../../../data/cable-trader/cable-circulation-catalog-v1.json",
         "schemaId": "simulatte.cableCirculationCatalog.v1",
-        "sha256": "5694a3049a8f6b8036599a64545535531adffc2413720776b344a6ac959451b6"
+        "sha256": "4de18f918739242970e47f77c419ced2980ab8943a9d3f73f0b31a451535df5e"
       },
       "required": true
     }
@@ -16,7 +16,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginCableTrader",
-    "integrity": "sha384-5f1d2200bc805374ef32b4f30605625744885995e82abfde05183db40154f8efb38bfa126a14639825d2fedc7953fe32",
+    "integrity": "sha384-df2dda070f5743334ea11cac9ee2fed20a71c464ac5dbf0e0e15bd1fa72ad63dbd833d717d2eb07ead421ebbcd4e17f7",
     "path": "./index.js"
   },
   "extensionPoints": [
@@ -45,23 +45,23 @@
   ],
   "resources": [
     {
-      "integrity": "sha384-9841d5609a8199f3046b1b5a268dc4000105358204e565963ce787d50606c0d00195b6683e2b6f59fc831af7f28d2f9c",
+      "integrity": "sha384-26d55c475bb4c8740725da27396eb77237bd58efbad973cbfa30735114cfa930d0036dbb56709a16b3ea18d3e2504bf0",
       "path": "./config.schema.json"
     },
     {
-      "integrity": "sha384-ac84260e82f694bcb1840746347803b1e413fa8ec5876836e86c4f568c7a555eec89107df58cdba0e97e893bb3cdbb23",
+      "integrity": "sha384-8c2fdbe5a1c155f1876ae67c2e449fe6b76fdab27375b0dedae7eff9398f4d725be3751599fab343ff66a4f01d4a7e4b",
       "path": "./default-config.json"
     },
     {
-      "integrity": "sha384-68cba7ea283a098e12228e2048b3d2240dffdb761212950f47ecb1b8d8475214bb236fc2f6acc702a27b99873777cc9d",
+      "integrity": "sha384-3c738f415d929f3a81f3338cb83d9e873b60ff527f9d8b92dcb6fe82cdda8a5004aecc933a31aebe084b091a2d13f2ab",
       "path": "./circulation-presentation.js"
     },
     {
-      "integrity": "sha384-dfdd63425cedb27adbe52f0f3b26ec4fb27a903949838e9c11258be85568ded78b740fc184a9e2c8e298eedc51fe3aeb",
+      "integrity": "sha384-a656ed40e45748510030b0244182832207df32b837a0b293c18d10e6d9643d933ba47fad3e4c3efa2ecafb89d8db053d",
       "path": "./circulation-simulation.js"
     },
     {
-      "integrity": "sha384-af1b60be0cad247e9768f63c4c86fdc9bdf5628c021ad4e9b3cd2e83574337993dbc2dfafecfd17fca420caa60f2d6dd",
+      "integrity": "sha384-47134353125387990efa6dc7d076f21c693ce089bd8b790a4218a0d721cf3d7acf75f65fe0267d10e3be9a9c9e072061",
       "path": "./v4-contribution.js"
     }
   ],

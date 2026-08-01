@@ -6,7 +6,7 @@
   const ORIGINS = Object.freeze(['observed', 'derived', 'modeled', 'simulated', 'scenario']);
   const TEMPORAL_STATUSES = Object.freeze(['historical', 'snapshot', 'forecast', 'live']);
   const UNCERTAINTY_KINDS = Object.freeze(['interval', 'distribution', 'confidence', 'missing']);
-  const GEOMETRY_KINDS = Object.freeze(['node', 'node-path', 'segments', 'point', 'polyline', 'polygon']);
+  const GEOMETRY_KINDS = Object.freeze(['node', 'node-path', 'segments', 'point', 'point-cloud', 'polyline', 'polygon']);
   const LAYER_KINDS = Object.freeze(['point', 'path', 'area', 'volume', 'actor', 'field', 'label']);
   const SEMANTIC_ROLES = Object.freeze(['primary', 'context', 'comparison', 'uncertainty', 'event']);
   const VIEW_MODES = Object.freeze(['overview', 'follow', 'pov', 'compare', 'free']);
@@ -107,6 +107,7 @@
     if (value.kind === 'node-path' && nodeIds.length < 2) fail('plugin_v4_geometry_node_path_invalid', `${label} node path expected at least two node IDs`);
     if (value.kind === 'segments' && !segmentIds.length) fail('plugin_v4_geometry_segments_invalid', `${label} segment geometry expected segment IDs`);
     if (value.kind === 'point' && coordinates.length !== 1) fail('plugin_v4_geometry_point_invalid', `${label} point geometry expected one coordinate`);
+    if (value.kind === 'point-cloud' && (!coordinates.length || coordinates.length > 50000)) fail('plugin_v4_geometry_point_cloud_invalid', `${label} point-cloud geometry expected 1..50000 coordinates`);
     if (value.kind === 'polyline' && coordinates.length < 2) fail('plugin_v4_geometry_polyline_invalid', `${label} polyline expected at least two coordinates`);
     if (value.kind === 'polygon' && coordinates.length < 3) fail('plugin_v4_geometry_polygon_invalid', `${label} polygon expected at least three coordinates`);
     return value;

@@ -66,12 +66,16 @@ test('activation fusion issues per-obligation verdicts with strength and provena
   }
 });
 
-test('negated entities produce negative evidence and never reach the accepted graph', () => {
+test('negated entities carry a required absence obligation without reaching the accepted graph', () => {
   const { spec, activationCloud } = fusedActivationCloud('dogs but no cats swim in the lake');
   const negatedEntries = activationCloud.negativeEvidence.filter((row) => row.kind === 'negated-entry');
   assert.ok(negatedEntries.some((row) => /cat/.test(`${row.entryId} ${row.label}`)));
 
-  assert.ok(!activationCloud.obligationVerdicts.some((row) => row.obligationId === 'entity:cat'));
+  const absenceId = 'visual:prompt-absence-entity-cat';
+  const catAbsence = activationCloud.obligationVerdicts.find((row) => row.obligationId === absenceId);
+  assert.ok(catAbsence, 'negated cat remains a receipted obligation');
+  assert.equal(catAbsence.verdict, 'negated');
+  assert.equal(catAbsence.required, true);
 
   const grounded = spec.phaseArtifacts.phase4.artifact.groundedIntent;
   const acceptedNodes = grounded.acceptedGraph && grounded.acceptedGraph.nodes || [];
@@ -80,6 +84,12 @@ test('negated entities produce negative evidence and never reach the accepted gr
   ));
   assert.equal(catAccepted.length, 0);
   assert.ok(grounded.negativeEvidence.some((row) => /cat/.test(`${row.entryId} ${row.label}`)));
+
+  const phase6Ledger = spec.phaseArtifacts.phase6.artifact.compositionLedger;
+  const phase6Absence = phase6Ledger.obligations.find((row) => row.id === absenceId);
+  assert.ok(phase6Absence, 'absence obligation reaches Phase 6');
+  assert.equal(phase6Absence.constraintKind, 'absence');
+  assert.equal(phase6Absence.status, 'preserved');
 
   const dogVerdict = activationCloud.obligationVerdicts.find((row) => row.obligationId === 'entity:dog');
   assert.ok(dogVerdict);
@@ -171,4 +181,16 @@ test('verdict rows settle negation conflicts and slot ambiguity deterministicall
     negativeEvidence,
   });
   assert.deepEqual(rerun, verdicts);
+});
+
+test('Phase 3 carries deferred slots instead of recording an unaccepted optional slot as lost', () => {
+  const { spec } = fusedActivationCloud('a red cube');
+  const ledger = spec.phaseArtifacts.phase3.artifact.compositionLedger;
+  const cube = ledger.obligations.find((row) => row.id === 'concept:cube');
+  const delta = ledger.phaseDeltas.find((row) => row.phase === 3 && row.entryId === 'concept:cube');
+
+  assert.equal(cube.status, 'preserved');
+  assert.equal(cube.required, false);
+  assert.equal(delta.operation, 'carried');
+  assert.equal(ledger.losses.some((row) => row.entryId === 'concept:cube'), false);
 });

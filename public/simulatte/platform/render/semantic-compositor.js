@@ -21,7 +21,7 @@
     'exposure.unknown': '#9aa3b8',
     'exposure.night': '#69738b',
     'actor.pedestrian.route-progress': '#f4fff9',
-    'occlusion.shadow-length': '#315878',
+    'occlusion.shadow-length': '#6c8ca3',
     'cable-family.cat6-copper.transferred': '#36d7e8',
     'cable-family.cat6-copper.in-transit': '#36d7e8',
     'cable-family.cat6a-copper.transferred': '#4e87ff',
@@ -42,7 +42,7 @@
     Object.freeze({ pattern: /(?:utilization|reserve|queue|burden|delay|refrigeration)/, color: '#ffb84f' }),
     Object.freeze({ pattern: /(?:trajectory|delta-v|heliocentric|encounter|latency|distance)/, color: '#a993ff' }),
     Object.freeze({ pattern: /(?:observation|crash|injury|residual|source-rank)/, color: '#ff8f70' }),
-    Object.freeze({ pattern: /(?:actor|progress|packet|transferred|service)/, color: '#46d9ff' }),
+    Object.freeze({ pattern: /(?:actor|traveler|progress|packet|transferred|service)/, color: '#46d9ff' }),
   ]);
   const ROLE_ORDER = Object.freeze({
     primary: 5,
@@ -172,13 +172,23 @@
         : null,
       laneOffsetPx: layer.kind === 'path' ? comparisonLaneOffset(layer.quantity?.kind) : 0,
       radiusPx: ['point', 'actor'].includes(layer.kind)
-        ? round(clamp(3 + normalized * 5 + (selected ? 2 : 0), 3, 10))
+        ? contextPointRadius(layer, normalized, selected)
         : null,
       fillOpacity: round(clamp(0.18 + roleWeight * 0.36 + (selected ? 0.18 : 0) - (uncertain ? 0.1 : 0), 0.12, 0.82)),
       strokeOpacity: round(clamp(0.48 + roleWeight * 0.42 - (uncertain ? 0.1 : 0), 0.35, 1)),
       dash: uncertaintyDash(layer.provenance.axes.uncertainty),
       emphasis: selected ? 'selected' : layer.role,
     });
+  }
+
+  function contextPointRadius(layer, normalized, selected) {
+    const isUnaggregatedContextPoint = ['point', 'actor'].includes(layer.kind)
+      && layer.role === 'context'
+      && layer.aggregationKey === null;
+    if (isUnaggregatedContextPoint) {
+      return round(clamp(1.1 + normalized * 1.8 + (selected ? 1.2 : 0), 1.1, 4));
+    }
+    return round(clamp(3 + normalized * 5 + (selected ? 2 : 0), 3, 10));
   }
 
   function colorForLayer(layer) {

@@ -19,7 +19,7 @@
   "modeledFields": [
     "people",
     "hubCount",
-    "locationCount",
+    "uniqueResidenceCount",
     "cableSupply",
     "cableDemand",
     "hubInventory",

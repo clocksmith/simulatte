@@ -166,48 +166,6 @@
             : null
           );
         const universeGraph = mergeUniverseGraphIntentBrief(selectedUniverseGraph, intent.intentBrief || null);
-        let nextIR = overrides.physicsIR || spec.physicsIR || null;
-        if (!nextIR && scope.buildPhysicsIR && universeGraph) {
-          nextIR = scope.buildPhysicsIR({
-            universeGraph,
-            objects: spec.objects || [],
-            params: spec.params || {},
-            contract: spec.contract,
-          });
-        }
-        const validationReceipt = overrides.validationReceipt || spec.validationReceipt || (
-          nextIR && scope.validatePhysicsIR ? scope.validatePhysicsIR(nextIR) : null
-        );
-        if (nextIR && validationReceipt) {
-          nextIR = {
-            ...nextIR,
-            receipt: {
-              exact: validationReceipt.exact || [],
-              approximate: validationReceipt.approximate || [],
-              unresolved: validationReceipt.unresolved || [],
-              unsupported: validationReceipt.unsupported || [],
-            },
-          };
-        }
-        const solverGraph = overrides.solverGraph || spec.solverGraph || (
-          nextIR && scope.compileSolverGraph ? scope.compileSolverGraph(nextIR, validationReceipt) : null
-        );
-        const nextRenderIR = overrides.renderIR || spec.renderIR || (
-          nextIR && solverGraph && scope.compileRenderIR
-            ? attachRenderIRPhaseInputs(scope.compileRenderIR(nextIR, solverGraph, universeGraph), universeGraph)
-            : null
-        );
-        const nextInteractionIR = overrides.interactionIR || spec.interactionIR || (
-          nextIR && solverGraph && scope.compileInteractionIR
-            ? scope.compileInteractionIR({
-              acceptedGraph: universeGraph,
-              physicsIR: nextIR,
-              solverGraph,
-              renderIR: nextRenderIR,
-              controls: spec.controls || [],
-            })
-            : null
-        );
         const nextIntent = intent && promptParse && universeGraph
           ? { ...intent, promptParse, universeGraph }
           : intent;
@@ -254,11 +212,11 @@
           intent: nextIntent,
           promptParse,
           universeGraph,
-          physicsIR: simulationCompile.physicsIR || nextIR,
-          validationReceipt: simulationCompile.validationReceipt || validationReceipt,
-          solverGraph: simulationCompile.solverGraph || solverGraph,
-          renderIR: simulationCompile.renderIR || nextRenderIR,
-          interactionIR: simulationCompile.interactionIR || nextInteractionIR,
+          physicsIR: simulationCompile.physicsIR || overrides.physicsIR || spec.physicsIR || null,
+          validationReceipt: simulationCompile.validationReceipt || overrides.validationReceipt || spec.validationReceipt || null,
+          solverGraph: simulationCompile.solverGraph || overrides.solverGraph || spec.solverGraph || null,
+          renderIR: simulationCompile.renderIR || overrides.renderIR || spec.renderIR || null,
+          interactionIR: simulationCompile.interactionIR || overrides.interactionIR || spec.interactionIR || null,
           phaseArtifacts: scope.mergePhaseArtifacts(phaseArtifacts, generatedPhaseArtifacts, scope.phaseArtifactSet(nextPhase4, nextPhase5)),
         };
       }

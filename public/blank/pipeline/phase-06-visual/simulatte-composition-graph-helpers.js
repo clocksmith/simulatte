@@ -8,7 +8,7 @@
         if (registry && typeof registry.sceneHintForObjects === 'function') {
           const hint = scope.normalizedSceneHint(registry.sceneHintForObjects(
             objects || [],
-            (spec && spec.physicsIR) || {},
+            {},
             (spec && spec.solverGraph) || {}
           ));
           if (hint && hint !== 'literal-composite') return hint;
@@ -18,7 +18,7 @@
 
     function resolveSceneKind(graph, objects, fields, spec) {
         const semantic = sceneKindFromSemantics(graph, objects, fields, spec);
-        const promptText = scope.directPromptSceneText((spec && spec.renderIR) || {}, spec || {});
+        const promptText = scope.directPromptSceneText((spec && spec.renderIR) || {});
         const objectText = (objects || []).map(scope.renderObjectText).join(' ');
         const directScene = scope.directSceneKindForText([promptText, objectText].join(' '), promptText);
         if (directScene && scope.broadSceneHintCanYieldToDirectLanguage(semantic)) return directScene;
@@ -111,16 +111,9 @@
 
     function compositionPromptText(graph = {}, spec = {}) {
         const renderIR = spec.renderIR || {};
-        const universeGraph = spec.universeGraph || {};
-        const physicsIR = spec.physicsIR || {};
-        const promptParse = spec.promptParse || {};
         return scope.positiveLanguageText([
           renderIR.prompt,
-          universeGraph.prompt,
-          physicsIR.prompt,
-          spec.name,
           graph.intentText,
-          ...(promptParse.spans || []).map((span) => span.text),
         ].filter(Boolean).join(' '));
       }
 
@@ -429,22 +422,17 @@
       }
 
     function compositionOperatorsForSpec(spec = {}, legacyGraph = {}) {
-        const physicsOperators = spec.physicsIR && Array.isArray(spec.physicsIR.operators)
-          ? spec.physicsIR.operators
-          : null;
         const solverSteps = spec.solverGraph && Array.isArray(spec.solverGraph.steps)
           ? spec.solverGraph.steps
           : null;
-        const source = physicsOperators !== null ? physicsOperators
-          : solverSteps !== null ? solverSteps
-            : legacyGraph.operators || [];
-        const executableIds = new Set((solverSteps || []).map((row) => row.operatorId).filter(Boolean));
+        const source = (solverSteps || []).filter((row) => row.operatorType !== 'interaction_kinematics');
+        const executableIds = new Set(source.map((row) => row.operatorId).filter(Boolean));
         return source.map((operator, index) => ({
           id: operator.type || operator.operatorType || operator.id || `operator-${index + 1}`,
           sourceOperatorId: operator.id || operator.operatorId || '',
           inputs: operator.inputs || operator.reads || [],
           outputs: operator.outputs || operator.writes || [],
-          executable: solverSteps === null || executableIds.has(operator.id || operator.operatorId),
+          executable: executableIds.has(operator.id || operator.operatorId),
         }));
       }
 

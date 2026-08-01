@@ -61,11 +61,15 @@
         quantityKind: primitive.quantity?.kind || '',
         quantityValue: primitive.quantity?.value ?? null,
       });
-      if (['point', 'point-cluster', 'label'].includes(primitive.kind)) markers.push(freezeRow({
-        ...row,
-        position: normalizeTuple(coordinates[0], value.coordinateSystem),
-        radius: style.radiusPx || 4,
-      }));
+      if (['point', 'point-cluster', 'label'].includes(primitive.kind)) {
+        const markerCoordinates = primitive.geometry.kind === 'point-cloud' ? coordinates : [coordinates[0]];
+        markerCoordinates.forEach((coordinate, index) => markers.push(freezeRow({
+          ...row,
+          id: markerCoordinates.length === 1 ? row.id : `${row.id}:point-${index + 1}`,
+          position: normalizeTuple(coordinate, value.coordinateSystem),
+          radius: style.radiusPx || 4,
+        })));
+      }
       else if (primitive.kind === 'actor') actors.push(freezeRow({
         ...row,
         position: normalizeTuple(

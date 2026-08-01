@@ -1,5 +1,6 @@
 (function attachSimulatteIntentEmbeddervectors(root) {
   const scope = root.SimulattePhaseModuleRegistry.family('intentEmbedder');
+    const gpuRankPipelineCache = new WeakMap();
 
     function normalizeRerankerRows(result) {
         const rows = Array.isArray(result)
@@ -303,45 +304,64 @@
         candidateVectors.forEach((vector, index) => {
           candidateData.set(vector, index * dimensions);
         });
-        const queryBuffer = gpuBuffer(device, queryData, GPUBufferUsage.STORAGE);
-        const candidateBuffer = gpuBuffer(device, candidateData, GPUBufferUsage.STORAGE);
-        const scoreBuffer = device.createBuffer({
-          size: count * 4,
-          usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
-        });
-        const readBuffer = device.createBuffer({
-          size: count * 4,
-          usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
-        });
-        const uniformData = new Uint32Array([dimensions, count]);
-        const uniformBuffer = gpuBuffer(device, uniformData, GPUBufferUsage.UNIFORM);
+        const buffers = [];
+        let readBuffer = null;
+        try {
+          const queryBuffer = gpuBuffer(device, queryData, GPUBufferUsage.STORAGE);
+          const candidateBuffer = gpuBuffer(device, candidateData, GPUBufferUsage.STORAGE);
+          const scoreBuffer = device.createBuffer({
+            size: count * 4,
+            usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
+          });
+          readBuffer = device.createBuffer({
+            size: count * 4,
+            usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
+          });
+          const uniformBuffer = gpuBuffer(device, new Uint32Array([dimensions, count]), GPUBufferUsage.UNIFORM);
+          buffers.push(queryBuffer, candidateBuffer, scoreBuffer, readBuffer, uniformBuffer);
+          const pipeline = rankGpuPipeline(device);
+          const bindGroup = device.createBindGroup({
+            layout: pipeline.getBindGroupLayout(0),
+            entries: [
+              { binding: 0, resource: { buffer: queryBuffer } },
+              { binding: 1, resource: { buffer: candidateBuffer } },
+              { binding: 2, resource: { buffer: scoreBuffer } },
+              { binding: 3, resource: { buffer: uniformBuffer } },
+            ],
+          });
+          const encoder = device.createCommandEncoder();
+          const pass = encoder.beginComputePass();
+          pass.setPipeline(pipeline);
+          pass.setBindGroup(0, bindGroup);
+          pass.dispatchWorkgroups(Math.ceil(count / 64));
+          pass.end();
+          encoder.copyBufferToBuffer(scoreBuffer, 0, readBuffer, 0, count * 4);
+          device.queue.submit([encoder.finish()]);
+          await readBuffer.mapAsync(GPUMapMode.READ);
+          return Array.from(new Float32Array(readBuffer.getMappedRange().slice(0)));
+        } finally {
+          for (const buffer of buffers) {
+            try {
+              if (buffer === readBuffer && buffer.mapState === 'mapped') buffer.unmap();
+              buffer.destroy();
+            } catch (_cleanupError) {
+              // Mapping or device failures do not justify retaining transient rank buffers.
+            }
+          }
+        }
+    }
+
+    function rankGpuPipeline(device) {
+        let pipeline = gpuRankPipelineCache.get(device);
+        if (pipeline) return pipeline;
         const shader = device.createShaderModule({ code: rankShader() });
-        const pipeline = device.createComputePipeline({
+        pipeline = device.createComputePipeline({
           layout: 'auto',
           compute: { module: shader, entryPoint: 'main' },
         });
-        const bindGroup = device.createBindGroup({
-          layout: pipeline.getBindGroupLayout(0),
-          entries: [
-            { binding: 0, resource: { buffer: queryBuffer } },
-            { binding: 1, resource: { buffer: candidateBuffer } },
-            { binding: 2, resource: { buffer: scoreBuffer } },
-            { binding: 3, resource: { buffer: uniformBuffer } },
-          ],
-        });
-        const encoder = device.createCommandEncoder();
-        const pass = encoder.beginComputePass();
-        pass.setPipeline(pipeline);
-        pass.setBindGroup(0, bindGroup);
-        pass.dispatchWorkgroups(Math.ceil(count / 64));
-        pass.end();
-        encoder.copyBufferToBuffer(scoreBuffer, 0, readBuffer, 0, count * 4);
-        device.queue.submit([encoder.finish()]);
-        await readBuffer.mapAsync(GPUMapMode.READ);
-        const scores = new Float32Array(readBuffer.getMappedRange().slice(0));
-        readBuffer.unmap();
-        return Array.from(scores);
-    }
+        gpuRankPipelineCache.set(device, pipeline);
+        return pipeline;
+      }
 
     async function rankWithOwnerGpu(owner, dimensions, queryVector, candidateVectors) {
       if (!candidateVectors.length) return null;
@@ -357,11 +377,30 @@
         : await owner.gpuPromise;
       if (!device) return null;
       try {
-        return await rankWebGpu(device, dimensions, queryVector, candidateVectors);
+        const cache = gpuRankScoreCache(owner, candidateVectors);
+        const key = rankVectorCacheKey(dimensions, queryVector);
+        if (cache.has(key)) return cache.get(key);
+        const scores = await rankWebGpu(device, dimensions, queryVector, candidateVectors);
+        cache.set(key, scores);
+        return scores;
       } catch (_error) {
         return null;
       }
     }
+
+    function gpuRankScoreCache(owner, candidateVectors) {
+        if (!owner.gpuRankScoreCaches) owner.gpuRankScoreCaches = new WeakMap();
+        let cache = owner.gpuRankScoreCaches.get(candidateVectors);
+        if (!cache) {
+          cache = new Map();
+          owner.gpuRankScoreCaches.set(candidateVectors, cache);
+        }
+        return cache;
+      }
+
+    function rankVectorCacheKey(dimensions, vector) {
+        return `${dimensions}:${Array.from(vector || [], (value) => Number(value || 0).toString()).join(',')}`;
+      }
 
     function gpuBuffer(device, data, usage) {
         const buffer = device.createBuffer({
@@ -476,7 +515,10 @@
       mergeRagScores,
       rankCpu,
       rankWebGpu,
+      rankGpuPipeline,
       rankWithOwnerGpu,
+      gpuRankScoreCache,
+      rankVectorCacheKey,
       gpuBuffer,
       rankShader,
       dot,

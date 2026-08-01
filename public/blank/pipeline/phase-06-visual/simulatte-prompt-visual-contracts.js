@@ -559,8 +559,14 @@
       const matchingEntities = entities.filter((entity) => promptEntityMatches(entity, obligation));
       let satisfied = false;
       const evidence = [];
-      if (obligation.constraintKind === 'count') {
-        satisfied = matchingEntities.some((entity) => Number(entity.cardinality || 1) === Number(obligation.expectedCount));
+      if (obligation.constraintKind === 'absence') {
+        satisfied = matchingEntities.length === 0;
+        if (satisfied) evidence.push(`absence:${obligation.targetIdentity || obligation.target}`);
+      } else if (obligation.constraintKind === 'count') {
+        const expectedCount = Number(obligation.expectedCount);
+        satisfied = expectedCount === 0
+          ? matchingEntities.length === 0 || matchingEntities.every((entity) => Number(entity.cardinality) === 0)
+          : matchingEntities.some((entity) => Number(entity.cardinality || 1) === expectedCount);
         if (satisfied) evidence.push(`cardinality:${obligation.targetIdentity}:${obligation.expectedCount}`);
       } else if (obligation.constraintKind === 'pose') {
         satisfied = matchingEntities.some((entity) => (
@@ -625,7 +631,10 @@
 
     function expandPromptCardinalityPackets(rows = []) {
       return rows.flatMap((row) => {
-        const count = Math.max(1, Math.min(16, Math.floor(Number(row.cardinality || 1))));
+        const count = Math.max(0, Math.min(16, Math.floor(
+          Number.isFinite(Number(row.cardinality)) ? Number(row.cardinality) : 1
+        )));
+        if (count === 0) return [];
         if (count === 1) return [row];
         return Array.from({ length: count }, (_, index) => promptCardinalityPacket(row, index, count));
       });

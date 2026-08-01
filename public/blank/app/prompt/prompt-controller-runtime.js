@@ -67,6 +67,13 @@
           pending.clear();
         }
 
+        function abortedError(message = 'Intent worker request superseded') {
+          const error = new Error(message);
+          error.name = 'AbortError';
+          error.code = 'SIMULATTE_INTENT_ABORTED';
+          return error;
+        }
+
         function ensureWorker() {
           if (worker) return worker;
           if (failed) throw new Error('Intent worker unavailable');
@@ -139,6 +146,15 @@
 
         return {
           backend: 'intent-worker',
+          cancel(message) {
+            if (!worker && !pending.size) return;
+            const error = abortedError(message);
+            pending.forEach((entry) => entry.reject(error));
+            pending.clear();
+            if (worker) worker.terminate();
+            worker = null;
+            queue = Promise.resolve();
+          },
           loadModel() {
             return request('simulatte:intent-worker:load', {}, {
               onProgress,

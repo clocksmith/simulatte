@@ -187,6 +187,19 @@ test('Phase 7 carries morphology parameters through the storage buffer contract'
   assert.ok(renderData.morphologySubmission.dynamicAccentPartCount > 0);
 });
 
+test('construction graph receipts verify submitted topology without primitive diversity', () => {
+  const spec = lab.createSpecFromPrompt('yellow excavator beside a glass greenhouse', {
+    allowPrototypeFallback: true,
+  });
+  const packet = spec.phaseArtifacts.phase6.artifact.visualCompile.sceneRenderPacket;
+  const realization = renderer.objectRealizationForScenePacket(packet, renderer.scenePacketObjectParts(packet));
+
+  for (const row of realization.rows) {
+    assert.equal(row.topologyVerified, true, `${row.identityType}: construction topology`);
+    assert.equal(row.realized, true, `${row.identityType}: submitted construction realization`);
+  }
+});
+
 test('non-literal field helpers do not become generic object boxes', () => {
   const spec = lab.createSpecFromPrompt(
     'neutrino detector in underground water tank with photon cones and phototube array',
@@ -205,12 +218,31 @@ test('non-literal field helpers do not become generic object boxes', () => {
 
 test('Phase 8 fails a visible object whose morphology is not specific enough', () => {
   const spec = lab.createSpecFromPrompt('a dog', { allowPrototypeFallback: true });
-  const input = lab.createRenderExecutionInput(spec, { t: 0 }, { width: 640, height: 360 });
+  const canvas = { width: 640, height: 360 };
+  const input = lab.createRenderExecutionInput(spec, { t: 0 }, canvas);
   const renderData = renderer.compileSceneRenderData(input.sceneRenderPacket);
-  const phase7 = lab.runPhase7RenderExecution(input, null, { width: 640, height: 360 }, {
+  renderData.requireLivePixelSamples = true;
+  const readbackPlan = renderer.phase7PixelReadbackPlan(
+    renderData,
+    input.sceneRenderPacket,
+    input,
+    canvas
+  );
+  assert.ok(readbackPlan);
+  assert.deepEqual(readbackPlan.unmatchedObligationIds, []);
+  const phase7 = lab.runPhase7RenderExecution(input, null, canvas, {
     ...renderData,
     rendered: true,
     renderCount: 1,
+    pixelSamples: {
+      schema: 'simulatte.phase7PixelSampleSet.v1',
+      source: 'visual-morphology-test-readback',
+      packetKey: renderData.packetKey,
+      samples: readbackPlan.samples.map((sample) => ({
+        ...sample,
+        rgba: [80, 160, 220, 255],
+      })),
+    },
   });
   const rows = phase7.artifact.renderExecution.objectRealization.rows.map((row) => (
     row.identityType === 'dog'

@@ -61,6 +61,15 @@
     const receipts = [];
     const stateHost = stateApi.createPluginStateHost(graph.order);
     const sourceReceipts = await verifyEntries(selectedRows, artifactStore, effectiveRegistryBaseUrl);
+    scenario = stateApi.freezeClone(scenario);
+    let scenarioQueue = Promise.resolve();
+    let lifecycle = 'active';
+    let disposalPromise = null;
+
+    function assertActive() {
+      if (lifecycle === 'active') return;
+      throw runtimeError('plugin_runtime_disposed', 'Plugin runtime is no longer active', { lifecycle });
+    }
 
     function appendReceipt(pluginId, receipt) {
       const manifest = rowsById.get(pluginId)?.manifest;
@@ -89,24 +98,33 @@
       }
       const capability = instances.get(providerId)?.capabilities?.[capabilityId];
       if (typeof capability !== 'function') throw runtimeError('plugin_capability_implementation_missing', `Provider ${providerId} did not implement ${capabilityId}`, { providerId, capabilityId });
-      return capability(stateApi.freezeClone(input));
+      return freezeCapabilityResult(capability(stateApi.freezeClone(input)));
     }
 
-    for (const pluginId of graph.order) {
-      const row = rowsById.get(pluginId);
-      const datasets = dataCatalog.createView(row.manifest.datasets);
-      const sdk = sdkApi.createPluginSdk({
-        manifest: row.manifest,
-        datasets,
-        corePorts,
-        stateHost,
-        capabilityInvoke: (capabilityId, input) => invokeCapability(pluginId, capabilityId, input),
-        receiptSink: appendReceipt,
-      });
-      const instance = await row.factory.activate({ sdk, config: stateApi.freezeClone(row.config), profile: stateApi.freezeClone(profile), scenario: stateApi.freezeClone(scenario) });
-      contracts.validatePluginInstance(pluginId, instance, row.manifest);
-      validateDeclaredExtensions(row.manifest, instance);
-      instances.set(pluginId, instance);
+    try {
+      for (const pluginId of graph.order) {
+        const row = rowsById.get(pluginId);
+        const datasets = dataCatalog.createView(row.manifest.datasets);
+        const sdk = sdkApi.createPluginSdk({
+          manifest: row.manifest,
+          datasets,
+          corePorts,
+          stateHost,
+          capabilityInvoke: (capabilityId, input) => invokeCapability(pluginId, capabilityId, input),
+          receiptSink: appendReceipt,
+        });
+        const instance = await row.factory.activate({ sdk, config: stateApi.freezeClone(row.config), profile: stateApi.freezeClone(profile), scenario: stateApi.freezeClone(scenario) });
+        contracts.validatePluginInstance(pluginId, instance, row.manifest);
+        validateDeclaredExtensions(row.manifest, instance);
+        instances.set(pluginId, instance);
+      }
+    } catch (error) {
+      try {
+        await disposeInstances();
+      } catch (cleanupError) {
+        if (error && typeof error === 'object') error.cleanupError = cleanupError;
+      }
+      throw error;
     }
 
     graph.disabledOptional.forEach((row) => receipts.push(stateApi.freezeClone({
@@ -118,6 +136,7 @@
     })));
 
     async function contributeRequest(context) {
+      assertActive();
       const output = [];
       for (const pluginId of graph.order) {
         const instance = instances.get(pluginId);
@@ -134,6 +153,7 @@
     }
 
     function routeContributors(context) {
+      assertActive();
       const contributors = graph.order.flatMap((pluginId) => {
         const instance = instances.get(pluginId);
         if (typeof instance.createRouteContributor !== 'function') return [];
@@ -160,6 +180,7 @@
     }
 
     async function settle(context) {
+      assertActive();
       const output = [];
       for (const pluginId of graph.order) {
         const instance = instances.get(pluginId);
@@ -171,6 +192,7 @@
     }
 
     function views(context) {
+      assertActive();
       return Object.freeze(graph.order.flatMap((pluginId) => {
         const instance = instances.get(pluginId);
         if (typeof instance.view !== 'function') return [];
@@ -182,6 +204,7 @@
     }
 
     function presentations(context) {
+      assertActive();
       return Object.freeze(graph.order.flatMap((pluginId) => {
         const instance = instances.get(pluginId);
         if (typeof instance.present !== 'function') return [];
@@ -196,6 +219,7 @@
     }
 
     function contributionsV4(context) {
+      assertActive();
       return collectContributionsV4(context).contributions;
     }
 
@@ -235,6 +259,7 @@
     }
 
     function platformV4(context) {
+      assertActive();
       const collected = collectContributionsV4(context);
       const contributions = collected.contributions;
       const registry = provenanceApi.createProvenanceRegistry();
@@ -275,34 +300,79 @@
     }
 
     async function dispatchAction(pluginId, actionId, context = {}) {
+      assertActive();
       const instance = instances.get(pluginId);
       if (!instance) throw runtimeError('plugin_action_plugin_missing', `Action targets inactive plugin ${pluginId}`, { pluginId, actionId });
       if (typeof instance.handleAction !== 'function') throw runtimeError('plugin_action_unsupported', `Plugin ${pluginId} does not handle actions`, { pluginId, actionId });
-      return instance.handleAction(actionId, stateApi.freezeClone(context));
+      return stateApi.freezeClone(await instance.handleAction(actionId, stateApi.freezeClone(context)));
     }
 
     function invoke(capabilityId, input) {
+      assertActive();
       const providerId = graph.providers.get(capabilityId);
       if (!providerId) throw runtimeError('plugin_capability_provider_missing', `No active plugin provides ${capabilityId}`, { capabilityId });
       const capability = instances.get(providerId)?.capabilities?.[capabilityId];
       if (typeof capability !== 'function') throw runtimeError('plugin_capability_implementation_missing', `Provider ${providerId} did not implement ${capabilityId}`, { providerId, capabilityId });
-      return capability(stateApi.freezeClone(input));
+      return freezeCapabilityResult(capability(stateApi.freezeClone(input)));
     }
 
     async function dispose() {
-      for (const pluginId of [...graph.order].reverse()) {
-        const instance = instances.get(pluginId);
-        if (typeof instance.dispose === 'function') await instance.dispose();
-      }
-      instances.clear();
+      if (disposalPromise) return disposalPromise;
+      lifecycle = 'disposing';
+      disposalPromise = scenarioQueue
+        .then(() => disposeInstances())
+        .finally(() => { lifecycle = 'disposed'; });
+      return disposalPromise;
     }
 
-    async function setScenario(nextScenario) {
-      scenario = stateApi.freezeClone(nextScenario);
-      for (const pluginId of graph.order) {
+    async function disposeInstances() {
+      const failures = [];
+      for (const pluginId of [...graph.order].reverse()) {
         const instance = instances.get(pluginId);
-        if (typeof instance.setScenario === 'function') await instance.setScenario(scenario);
+        if (typeof instance?.dispose !== 'function') continue;
+        try {
+          await instance.dispose();
+        } catch (error) {
+          failures.push({ message: error?.message || String(error), pluginId });
+        }
       }
+      instances.clear();
+      if (failures.length) {
+        throw runtimeError('plugin_runtime_dispose_failed', 'One or more plugin instances failed to dispose', { failures });
+      }
+    }
+
+    function setScenario(nextScenario) {
+      if (lifecycle !== 'active') return Promise.reject(runtimeError('plugin_runtime_disposed', 'Plugin runtime is no longer active', { lifecycle }));
+      const pending = scenarioQueue.then(() => applyScenario(nextScenario));
+      scenarioQueue = pending.catch(() => {});
+      return pending;
+    }
+
+    async function applyScenario(nextScenario) {
+      const previousScenario = scenario;
+      const candidateScenario = stateApi.freezeClone(nextScenario);
+      const updatedInstances = [];
+      try {
+        for (const pluginId of graph.order) {
+          const instance = instances.get(pluginId);
+          if (typeof instance?.setScenario !== 'function') continue;
+          updatedInstances.push(instance);
+          await instance.setScenario(candidateScenario);
+        }
+      } catch (error) {
+        const rollbackFailures = [];
+        for (const instance of updatedInstances.reverse()) {
+          try {
+            await instance.setScenario(previousScenario);
+          } catch (rollbackError) {
+            rollbackFailures.push({ message: rollbackError?.message || String(rollbackError) });
+          }
+        }
+        if (rollbackFailures.length && error && typeof error === 'object') error.rollbackFailures = rollbackFailures;
+        throw error;
+      }
+      scenario = candidateScenario;
       return scenario;
     }
 
@@ -318,6 +388,13 @@
         pluginReceipts: receipts,
         events: stateHost.trace(),
       });
+    }
+
+    function freezeCapabilityResult(value) {
+      if (value && typeof value.then === 'function') {
+        return value.then((result) => stateApi.freezeClone(result));
+      }
+      return stateApi.freezeClone(value);
     }
 
     return Object.freeze({

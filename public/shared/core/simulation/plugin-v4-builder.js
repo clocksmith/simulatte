@@ -326,7 +326,7 @@
       coordinateSystem,
       nodeIds: kind === 'node' || kind === 'node-path' ? values : [],
       segmentIds: kind === 'segments' ? values : [],
-      coordinates: ['point', 'polyline', 'polygon'].includes(kind) ? values : [],
+      coordinates: ['point', 'point-cloud', 'polyline', 'polygon'].includes(kind) ? values : [],
     };
     return deepFreeze(value);
   }

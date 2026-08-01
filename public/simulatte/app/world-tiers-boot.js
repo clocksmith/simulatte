@@ -127,8 +127,7 @@
         return;
       }
       if (current && current.tier === route.tier) {
-        const wantedExperience = route.experience || current.experience;
-        if (wantedExperience === current.experience) {
+        if (route.experience === current.experience) {
           router.canonicalize({ tier: current.tier, experience: current.experience });
           return;
         }
@@ -152,7 +151,7 @@
         // A genuinely unknown/removed experience id should not strand the visitor. Any failure
         // inside a known experience must remain visible instead of silently booting a different
         // product and producing evidence for the wrong route.
-        if(route.experience&&error?.code==='application_profile_unknown') {
+        if (route.experience && (error?.code === 'application_profile_unknown' || error?.code === 'tier_profile_unknown')) {
           try {
             booted = await boot(route.tier, null, { signal: attempt.signal });
           } catch (retryError) {
@@ -254,7 +253,6 @@
     let pluginUi=null;
     let simulationClock=null;
     let viewDirector=null;
-    let viewIntentIds=new Set();
     let runController=null;
     let removeManualView=null;
     let lastPluginContributions=Object.freeze([]);
@@ -389,7 +387,7 @@
     function environmentSnapshots(){ const ids=['us.environment.snapshot.v1']; return Object.fromEntries(ids.flatMap((id)=>{try{const value=data.dataCatalog.optional(id);return value?[[id,value]]:[];}catch(_error){return[];}})); }
     function createCorePorts(scenario){
       return Object.freeze({
-        clock:Object.freeze({instantForMission:()=>scenario?.epochStart||new Date().toISOString(),now:()=>Date.now(),iso:()=>new Date().toISOString()}),
+        clock:createScenarioClock(scenario),
         worldQuery:Object.freeze({query:()=>data.world}),
         routing:Object.freeze({contribute:()=>{}}),
         tier:Object.freeze({schema:'simulatte.tierQuery.v1',id:tier,worldId:data.world.id,profileId:data.applicationProfile.id,snapshot:()=>data.world}),
@@ -407,11 +405,30 @@
       pluginUi?.dispose?.();
       if(runtime)await runtime.dispose();
       runtime=await root.SimulattePluginRuntime.createPluginRuntime({registry:root.SimulatteGeneratedPluginRegistry,profile:data.applicationProfile,scenario,dataCatalog:data.dataCatalog,artifactStore:data.artifactStore,registryBaseUrl:data.registryBaseUrl,corePorts:createCorePorts(scenario)});
-      pluginUi=root.SimulatteDeclarativeUiHost.createDeclarativeUiHost({rootElements:{inspector:elements.pluginInspector,map:elements.pluginMapUi},onAction:async({pluginId,actionId,command,values})=>{
-        if(command?.kind==='camera.focus'){viewDirector?.setManualOverride({mode:'free',targetIds:[command.targetId]});tierVisualizer.focusPluginTarget?.(`plugin:${pluginId}:${command.targetId}`);return;}
-        await runtime.dispatchAction(pluginId,actionId,{values,scenario:activeScenario,routeObjective:data.applicationProfile.routeObjective});
-        renderPlugins();
-      }});
+      pluginUi=root.SimulatteDeclarativeUiHost.createDeclarativeUiHost({
+        rootElements:{inspector:elements.pluginInspector,map:elements.pluginMapUi},
+        onAction:async({pluginId,actionId,command,values})=>{
+          if(command?.kind==='camera.focus'){viewDirector?.setManualOverride({mode:'free',targetIds:[command.targetId]});tierVisualizer.focusPluginTarget?.(`plugin:${pluginId}:${command.targetId}`);return;}
+          await runtime.dispatchAction(pluginId,actionId,{values,scenario:activeScenario,routeObjective:data.applicationProfile.routeObjective});
+          renderPlugins();
+        },
+        onControlChange:async({pluginId,values})=>{
+          if(!runController||runController.snapshot().ownerPluginId!==pluginId)return;
+          root.SimulatteTierRunController.clearStoredReceipt(root.sessionStorage,data.applicationProfile.id);
+          root.__simulatteTierRunReceipt=null;
+          root.__simulatteComparisonExecutionReceipts=Object.freeze([]);
+          ctx.setJourneyPhase?.('loading');
+          ctx.setRuntimeStatus?.(elements,'Applying controls','loading');
+          await new Promise((resolve)=>requestAnimationFrame(resolve));
+          try{
+            await runController.applyControls(values);
+            ctx.setJourneyPhase?.('ready');
+            ctx.setRuntimeStatus?.(elements,'Ready','ready');
+          }
+          catch(error){reportRunFailure(error);throw error;}
+        },
+        onError:(error)=>reportRunFailure(error),
+      });
       renderPlugins();
     }
     function renderPlugins(){
@@ -432,11 +449,9 @@
       const previousViewState=viewDirector?.snapshot();
       const manualDecision=previousViewState?.manualOverride?previousViewState.decision:null;
       viewDirector=root.SimulatteViewDirector.createViewDirector({provenanceReceipts:platform.provenanceReceipts});
-      viewIntentIds=new Set();
       platform.contributions.forEach((contribution)=>contribution.presentation.viewIntents.forEach((intent)=>{
         const hosted=Object.freeze({...intent,id:`${contribution.pluginId}:${intent.id}`});
         viewDirector.submit(hosted,{source:contribution.pluginId});
-        viewIntentIds.add(hosted.id);
       }));
       if(manualDecision)viewDirector.setManualOverride({mode:manualDecision.mode,targetIds:manualDecision.targetIds});
       const viewState=viewDirector.snapshot();
@@ -485,7 +500,9 @@
         scenario:activeScenario,
         profileId:data.applicationProfile.id,
         comparisonRequired:data.applicationProfile.experience?.comparisonMode!=='none',
-        getControlValues:pluginUi.values,
+        stepDelayMs:data.applicationProfile.interaction.stepDelayMs,
+        getControlValues:(pluginId)=>pluginUi.values(pluginId),
+        setControlValues:(pluginId,values)=>pluginUi.setValues(pluginId,values),
         storage:root.sessionStorage,
         render:renderPlugins,
         resetRuntime:()=>activateScenario(activeScenario),
@@ -601,6 +618,7 @@
       });
       on(window,'pagehide',()=>{void dispose();},{once:true});
       const restored=await runController.restore();
+      lifecycle.throwIfAborted();
       if(!restored){ctx.setJourneyPhase?.('ready');ctx.setRuntimeStatus?.(elements,'Ready','ready');}
       return Object.freeze({ tier, experience: data.applicationProfile.id, dispose });
     } catch (error) {
@@ -612,6 +630,21 @@
   function populateProfileSelect(select,entries,selectedId){select.replaceChildren(...entries.map((entry)=>{const option=document.createElement('option');option.value=entry.id;option.textContent=labelForProfile(entry.id);option.selected=entry.id===selectedId;return option;}));select.value=selectedId;}
   function labelForProfile(id){if(PROFILE_LABELS[id])return PROFILE_LABELS[id];return String(id).replace(/-v\d+$/,'').split('-').filter(Boolean).map((part)=>part.charAt(0).toUpperCase()+part.slice(1)).join(' ');}
   function experienceHudSummary(options) { return experiencePresentationApi.summarize(options); }
+  function createScenarioClock(scenario = {}) {
+    const source = String(scenario?.epochStart || scenario?.startInstant || '').trim();
+    const milliseconds = Date.parse(source);
+    if (!source || !Number.isFinite(milliseconds)) {
+      const unavailable = () => {
+        const error = new Error('world_tiers_clock_scenario_instant_invalid: clock.read.v1 requires scenario.epochStart or scenario.startInstant');
+        error.code = 'world_tiers_clock_scenario_instant_invalid';
+        error.evidence = Object.freeze({ scenarioId: String(scenario?.id || ''), source });
+        throw error;
+      };
+      return Object.freeze({ instantForMission: unavailable, now: unavailable, iso: unavailable });
+    }
+    const instant = new Date(milliseconds).toISOString();
+    return Object.freeze({ instantForMission: () => instant, now: () => milliseconds, iso: () => instant });
+  }
   function preferredTierCameraTarget(targets, mode) {
     return [...(targets || [])]
       .filter((target) => target.viewMode === mode || (mode === 'pov' && target.viewMode === 'follow'))
@@ -629,6 +662,7 @@
     wireTierControls,
     bootGovernedTierExplorer,
     experienceHudSummary,
+    createScenarioClock,
     preferredTierCameraTarget,
     labelForProfile,
     populateProfileSelect,

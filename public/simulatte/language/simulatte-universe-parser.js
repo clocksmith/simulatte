@@ -24,6 +24,13 @@
   const TERM_STOPWORDS = new Set(LANGUAGE_LEXICON.termStopwords || []);
   const NEGATION_WORDS = Object.freeze(['no', 'not', 'never', 'without', 'none', 'cannot', "can't", 'wont', "won't"]);
   const NEGATION_RE = new RegExp(`\\b(?:${NEGATION_WORDS.join('|')})\\b`);
+  const CARDINAL_WORDS = Object.freeze({
+    zero: 0, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6,
+    seven: 7, eight: 8, nine: 9, ten: 10, eleven: 11, twelve: 12,
+    thirteen: 13, fourteen: 14, fifteen: 15, sixteen: 16, seventeen: 17,
+    eighteen: 18, nineteen: 19, twenty: 20, thirty: 30, forty: 40,
+    fifty: 50, sixty: 60, seventy: 70, eighty: 80, ninety: 90,
+  });
   const SPATIAL_PREPOSITIONS = Object.freeze([
     'in front of', 'attached to', 'inside', 'outside', 'within', 'through', 'between',
     'beside', 'behind', 'around', 'above', 'below', 'under', 'over', 'onto', 'into',
@@ -73,18 +80,43 @@
       return indexes;
     }));
     for (let index = 0; index < tokens.length; index += 1) {
-      const token = tokens[index];
-      if (covered.has(index) || !/^\d+$/.test(token.text)) continue;
+      const quantity = explicitQuantityAt(tokens, index);
+      if (!quantity || Array.from({ length: quantity.tokenEnd - index + 1 }, (_, offset) => covered.has(index + offset)).some(Boolean)) continue;
       spans.push({
-        text: token.text,
+        text: tokens.slice(index, quantity.tokenEnd + 1).map((row) => row.text).join(' '),
         kind: 'quantity',
-        value: Number(token.text),
-        start: token.start,
-        end: token.end,
+        value: quantity.value,
+        start: tokens[index].start,
+        end: tokens[quantity.tokenEnd].end,
         tokenStart: index,
-        tokenEnd: index,
+        tokenEnd: quantity.tokenEnd,
       });
+      index = quantity.tokenEnd;
     }
+  }
+
+  function explicitQuantityAt(tokens, index) {
+    const first = tokens[index] && tokens[index].text;
+    if (/^\d+$/.test(first || '')) return { value: Number(first), tokenEnd: index };
+    const firstValue = CARDINAL_WORDS[first];
+    if (!Number.isInteger(firstValue)) return null;
+    let value = firstValue;
+    let tokenEnd = index;
+    if (value >= 20 && value % 10 === 0 && CARDINAL_WORDS[tokens[tokenEnd + 1] && tokens[tokenEnd + 1].text] > 0 && CARDINAL_WORDS[tokens[tokenEnd + 1].text] < 10) {
+      value += CARDINAL_WORDS[tokens[tokenEnd + 1].text];
+      tokenEnd += 1;
+    }
+    if (value > 0 && value < 10 && tokens[tokenEnd + 1] && tokens[tokenEnd + 1].text === 'hundred') {
+      value *= 100;
+      tokenEnd += 1;
+      if (tokens[tokenEnd + 1] && tokens[tokenEnd + 1].text === 'and') tokenEnd += 1;
+      const tail = explicitQuantityAt(tokens, tokenEnd + 1);
+      if (tail && tail.value < 100) {
+        value += tail.value;
+        tokenEnd = tail.tokenEnd;
+      }
+    }
+    return { value, tokenEnd };
   }
 
   function tokenize(prompt) {
@@ -308,11 +340,18 @@
       const nearBefore = before && span.tokenStart - before.tokenEnd <= 2;
       const nearAfter = immediateAfter && immediateAfter.tokenStart - span.tokenEnd <= (modifierAfter ? 3 : 2);
       const verbForm = /(?:ing|ed|en|ize|ise|ify|ates?|s)$/.test(token);
+      const intransitiveTail = !immediateAfter && before && before.kind === 'entity' &&
+        /(?:ing|ed)$/.test(token) && !String(sourceText).slice(before.end, span.start).trim();
       const listSeparatorBeforeObject = /[,;]/.test(String(sourceText).slice(span.end, immediateAfter && immediateAfter.start));
-      if (!nearBefore || !nearAfter || !argumentKinds.has(immediateAfter.kind) || !verbForm || singularEntity || listSeparatorBeforeObject) {
+      const subjectProcessObject = nearAfter && argumentKinds.has(immediateAfter.kind);
+      if (!nearBefore || (!subjectProcessObject && !intransitiveTail) || !verbForm || singularEntity || listSeparatorBeforeObject) {
         return span;
       }
-      return { ...span, kind: 'process', syntacticPromotion: 'subject-process-object' };
+      return {
+        ...span,
+        kind: 'process',
+        syntacticPromotion: intransitiveTail ? 'subject-process' : 'subject-process-object',
+      };
     });
   }
 
@@ -849,7 +888,7 @@
         id: `quantity${index + 1}`,
         quantitySpanId: quantity.id,
         targetSpanId: target && target.id || '',
-        value: Math.max(1, Math.floor(Number(quantity.value || quantity.text || 1))),
+        value: Math.max(0, Math.floor(Number.isFinite(Number(quantity.value)) ? Number(quantity.value) : Number(quantity.text || 1))),
         unit: 'instances',
       };
     }).filter((row) => row.targetSpanId);

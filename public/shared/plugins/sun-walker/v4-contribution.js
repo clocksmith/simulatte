@@ -68,7 +68,7 @@
           shadow.points.map((point) => [point.x, point.y, 0]),
         ),
         quantity: builder.quantity('occlusion.shadow-length', shadow.lengthM, 'meters'),
-        role: 'context',
+        role: 'primary',
         importance: 0.7,
         aggregationKey: null,
         provenance: builder.provenance({
@@ -78,27 +78,6 @@
           records: [
             model,
             ...buildingRows.filter((row) => row.rowId === shadow.sourceBuildingId),
-          ],
-        }),
-      })),
-      ...samples.map((sample) => builder.layer({
-        id: sample.id,
-        kind: 'point',
-        label: `${sample.state} at ${sample.timestamp}`,
-        geometry: builder.geometry('point', 'city-local-m', [[sample.point.x, sample.point.y, 0]]),
-        quantity: builder.quantity(`exposure.${sample.state}`, sample.representedSeconds, 'seconds'),
-        role: sample.state === 'direct' ? 'event' : sample.state === 'unknown' ? 'uncertainty' : 'context',
-        importance: sample.state === 'direct' ? 0.85 : 0.4,
-        aggregationKey: 'sun-exposure-samples',
-        provenance: builder.provenance({
-          origin: 'modeled',
-          temporalStatus: 'forecast',
-          uncertainty: simulation.modelReceipt.uncertainty,
-          records: [
-            model,
-            ...buildingRows.filter((row) => row.rowId === sample.occluderId),
-            ...canopyRows.filter((row) => row.rowId === sample.environment.canopy.sourceRowId),
-            ...weatherRows.filter((row) => row.rowId === sample.environment.weather.sourceRowId),
           ],
         }),
       })),
@@ -129,24 +108,23 @@
     const activeEvent = events[Math.min(step, events.length - 1)] || null;
     const settledTargetIds = fastest.id === selected.id ? ['shade-selected-route'] : ['shade-selected-route', 'fastest-route'];
     const isSettled = snapshot.state.status === 'settled';
-    const previousSample = samples.length > 1 ? samples.at(-2) : null;
-    const navigationMode = exposureNavigationMode(previousSample, activeSample, isSettled);
-    const isExposureTransition = navigationMode === 'pov';
+    const navigationMode = walkerNavigationMode(step, isSettled);
+    const isOverview = navigationMode === 'overview';
     const presentation = builder.presentation({
       pluginId: PLUGIN_ID,
       coordinateSystem: 'city-node-segment-id',
       epoch: simulation.departureAt,
       layers,
       viewIntents: [builder.viewIntent({
-        id: isSettled
-          ? 'sun-route-comparison'
-          : isExposureTransition
-            ? 'sun-exposure-transition'
-            : 'sun-walker-navigation',
-        mode: isSettled ? 'compare' : navigationMode,
-        targetIds: isSettled ? settledTargetIds : ['sun-walker-actor'],
+        id: isSettled ? 'sun-route-summary' : isOverview ? 'sun-route-overview' : 'sun-walker-navigation',
+        mode: navigationMode,
+        targetIds: isSettled
+          ? settledTargetIds
+          : isOverview
+            ? ['shade-selected-route']
+            : ['sun-walker-actor'],
         reasonEventId: activeEvent?.id || null,
-        priority: isSettled ? 65 : isExposureTransition ? 70 : 55,
+        priority: isSettled ? 65 : isOverview ? 50 : 55,
       })],
     });
     const controls = builder.controls(simulation.controls.filter((row) => row.isEnabled !== false).map((row) => ({
@@ -269,13 +247,9 @@
     }[id] || { minimum: null, maximum: null, step: null };
   }
 
-  function exposureNavigationMode(previousSample, activeSample, settled = false) {
-    if (settled) return 'compare';
-    return activeSample?.state === 'direct'
-      || (previousSample && activeSample && previousSample.state !== activeSample.state)
-      ? 'pov'
-      : 'follow';
+  function walkerNavigationMode(step, settled = false) {
+    return settled || step === 0 ? 'overview' : 'follow';
   }
 
-  return Object.freeze({ createContribution, exposureNavigationMode, walkedSegmentLayers });
+  return Object.freeze({ createContribution, walkedSegmentLayers, walkerNavigationMode });
 });
