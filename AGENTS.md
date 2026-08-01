@@ -100,11 +100,19 @@ obligation coverage.
 
 - Treat Simulatte intent as the strict browser simulation pipeline product, not Gamma, Doppler, Reploid, or Poolday.
 - If the user asks about app structure, start with the broad boundary: `public/simulatte/` owns the Simulatte world simulator at `/`; `public/blank/` owns the prompt-to-pixels compiler at `/blank/`; `public/shared/` and `public/data/` own shared and governed assets.
+- Treat pasted options, quoted recommendations, and previous agent answers as context, not as the user's selection. The latest explicit user direction controls.
 - Do not preserve confusing taxonomy when the user is simplifying. Use plain job names such as start, page, state, controls, and drawing when they match behavior.
 - For pipeline work, respect the fixed phase order the user gives. Do not add split phases or reverse traversal unless asked.
 - Phase N consumes the exact Phase N-1 output plus allowed runtime context only. Fix loose validators, side channels, audit fallbacks, and compatibility inputs as boundary bugs.
 - When visuals look repetitive or semantically wrong, inspect the named phase boundary first and show the concrete artifact mismatch before broad rewrites.
 - Training commands are operational commands: start the training workflow, report the server/browser URL or exact blocker, and keep the run state clear.
+
+## Fictional Satire And Copy
+
+- Use fully fictional institutions and characters for satirical or critical narrative copy. Do not use real names or near-name parodies unless the user explicitly requests them.
+- Fictionalize the complete narrative identity, including names, branding, slogans, biographies, titles, and distinctive visual cues. A spelling change alone is not fictionalization.
+- Make the critique legible through incentives, authority, decisions, dependencies, and consequences rather than recognition of a real-world target.
+- Preserve canonical real names when they are governed factual data, geographic labels, provenance, citations, or source identities. Do not fictionalize evidence records to satisfy a narrative-copy rule.
 
 ## No speculative engineering timelines
 

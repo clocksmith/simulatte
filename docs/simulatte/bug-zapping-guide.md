@@ -56,8 +56,10 @@ stale, unproven, or mismatched input fails closed with a receipt.
 - Apply the smallest valid containment first. Halt invalid downstream work,
   mark the obligation unsupported or lost, and prevent reuse of corrupted cache
   or receipt state.
-- Give retries a strict budget and terminal state. Every async attempt settles
-  on success, error, timeout, cancellation, and disposal.
+- Give retries and bounded work a strict budget and terminal state. Check the
+  budget before consuming queued work. Every synchronous or async attempt
+  settles on success, error, timeout, cancellation, and disposal; handler
+  failure prevents reuse of partially advanced state.
 - Test adversarial near-misses, not only happy paths: stale prompt hash,
   forged or mutated receipt, missing provider proof, wrong model or index
   identity, and an obligation reintroduced after exclusion.
@@ -135,6 +137,9 @@ Treat plugin outputs, restore payloads, and receipts as hostile mutable input.
 - Validate shape before use.
 - Deep-clone before retaining, comparing, persisting, or exposing data.
 - Deep-freeze retained evidence; shallow `Object.freeze` is insufficient.
+- `Object.freeze` does not make `Map`, `Set`, or typed-array contents immutable.
+  Expose read-only collection facades, retain detached typed-array snapshots,
+  and return detached copies when consumers require mutable buffers.
 - Retain cloned scenario, controls, actions, capabilities, settlements,
   comparisons, and restore inputs.
 - Do not publish an object that a plugin or callback can mutate later.
@@ -246,6 +251,8 @@ The regression belongs at the failing boundary and must fail on the old path.
 | Duplicate terminal settlement | Start competing terminal calls and assert one committed settlement and comparison per generation |
 | Disposal race | Queue work, dispose before it begins, and assert no plugin call or render starts |
 | Mutable plugin output | Mutate the original nested plugin object after handoff and assert the retained receipt is unchanged and frozen |
+| Mutable collection or typed array | Call `set`, `delete`, or `clear` on an exposed collection and mutate provider and consumer typed arrays; assert retained evidence and later cache hits are unchanged |
+| Scheduler handler or budget failure | Throw inside a handler and exhaust the event budget; assert failed work is not counted as processed, work beyond the budget is not dequeued, and the scheduler enters an inspectable terminal state |
 | Invalid reload | Corrupt envelope shape or terminal evidence, reload, and assert saved state is cleared with a failure receipt |
 | Phase side channel | Poison an upstream field and assert the downstream phase output is unchanged or rejects missing authoritative input |
 | Missing model/index/provider | Remove evidence and assert an unsupported or blocked receipt, never a plausible substitute |
@@ -305,9 +312,9 @@ report the guard and the direct focused lanes separately.
 
 ## Evidence And Performance Rules
 
-- Cache keys include every behavior-changing identity: model, dtype,
-  dimensions, index hash, normalized query, ranking policy, and construction
-  policy.
+- Cache keys include every behavior-changing identity: artifact ID, declared
+  dependency graph, model, dtype, dimensions, index hash, normalized query,
+  ranking policy, and construction policy.
 - Reuse only a proven compatible model handle and GPU device. Destroy or
   unmap transient GPU resources deterministically.
 - Batch independent embedding work only when the provider supports it and

@@ -97,14 +97,38 @@
   }
 
   function createScheduler(pluginId, { maxEvents = 1000000 } = {}) {
+    validateEventBudget(maxEvents, 'scheduler maxEvents');
     const heap = createHeap();
     const cancelled = new Set();
     let sequence = 0;
     let clock = 0;
     let processed = 0;
     const log = [];
+    let terminalFailure = null;
+
+    function assertOperational(operation) {
+      if (!terminalFailure) return;
+      throw schedulerError('scheduler_terminal', `Plugin ${pluginId} cannot ${operation} after ${terminalFailure.code}`, {
+        pluginId,
+        operation,
+        failure: terminalFailure,
+      });
+    }
+
+    function fail(code, event, cause = null) {
+      terminalFailure = Object.freeze({
+        code,
+        eventId: event?.id || null,
+        eventKind: event?.kind || null,
+        eventTime: event?.time ?? null,
+        causeCode: typeof cause?.code === 'string' ? cause.code : null,
+        causeMessage: typeof cause?.message === 'string' ? cause.message : null,
+      });
+      return terminalFailure;
+    }
 
     function schedule({ time, kind, payload = null, priority = 0 } = {}) {
+      assertOperational('schedule events');
       if (!Number.isFinite(time)) throw schedulerError('scheduler_time_invalid', `Scheduled event time expected a finite number, received ${time}`);
       if (time < clock) throw schedulerError('scheduler_time_reversed', `Plugin ${pluginId} scheduled ${kind} at ${time} before clock ${clock}`, { kind, time, clock });
       if (typeof kind !== 'string' || !kind) throw schedulerError('scheduler_kind_invalid', 'Scheduled event kind expected non-empty text');
@@ -116,21 +140,51 @@
     }
 
     // Supersession: a cancelled event id is skipped when it surfaces from the heap.
-    function cancel(eventId) { cancelled.add(eventId); }
+    function cancel(eventId) {
+      assertOperational('cancel events');
+      cancelled.add(eventId);
+    }
 
     // Drain the queue in deterministic order. The handler may schedule further events
     // (which must be at time >= current clock). Exhausting the budget fails closed.
     function drain(handler, { maxEvents: localMax = maxEvents } = {}) {
+      assertOperational('drain events');
+      if (typeof handler !== 'function') throw schedulerError('scheduler_handler_invalid', 'Scheduler drain expected an event handler');
+      validateEventBudget(localMax, 'drain maxEvents');
       let count = 0;
       while (heap.size > 0) {
+        const next = heap.peek();
+        if (cancelled.has(next.id)) {
+          heap.pop();
+          continue;
+        }
+        if (count >= localMax) {
+          const failure = fail('scheduler_budget_exhausted', next);
+          throw schedulerError('scheduler_budget_exhausted', `Plugin ${pluginId} scheduler exhausted its ${localMax} event budget`, {
+            pluginId,
+            processedThisDrain: count,
+            processedTotal: processed,
+            blockedEventId: next.id,
+            failure,
+          });
+        }
         const event = heap.pop();
-        if (cancelled.has(event.id)) continue;
         clock = event.time;
+        try {
+          const outcome = handler(event, { schedule, cancel, clock });
+          if (outcome && typeof outcome.then === 'function') {
+            throw schedulerError('scheduler_handler_async_unsupported', `Plugin ${pluginId} scheduler handlers must settle synchronously`, {
+              pluginId,
+              eventId: event.id,
+            });
+          }
+        } catch (error) {
+          fail('scheduler_handler_failed', event, error);
+          throw error;
+        }
         count += 1;
         processed += 1;
-        if (count > localMax) throw schedulerError('scheduler_budget_exhausted', `Plugin ${pluginId} scheduler exceeded ${localMax} events`, { pluginId, processed });
         log.push(Object.freeze({ id: event.id, time: event.time, kind: event.kind, priority: event.priority }));
-        handler(event, { schedule, cancel, clock });
       }
       return count;
     }
@@ -144,6 +198,8 @@
         cancelledCount: cancelled.size,
         finalClock: clock,
         eventLogHashInputs: log.length,
+        terminalState: terminalFailure ? 'failed' : (heap.size ? 'ready' : 'settled'),
+        failure: terminalFailure,
       });
     }
 
@@ -172,6 +228,12 @@
     error.code = code;
     error.evidence = evidence;
     return error;
+  }
+
+  function validateEventBudget(value, label) {
+    if (!Number.isSafeInteger(value) || value < 0) {
+      throw schedulerError('scheduler_budget_invalid', `${label} expected a non-negative safe integer, received ${value}`, { value });
+    }
   }
 
   return { SCHEMA, createSchedulerPort, createScheduler, compareEvents };

@@ -110,6 +110,45 @@ test('plugin scheduler snapshots and deeply freezes payloads when scheduled', ()
   );
 });
 
+test('plugin scheduler fails terminally without consuming work beyond its budget', () => {
+  const failed = schedulerApi.createScheduler('failed-handler');
+  failed.schedule({ time: 1, kind: 'fixture.first' });
+  failed.schedule({ time: 2, kind: 'fixture.second' });
+  assert.throws(() => failed.drain(() => { throw new Error('handler_failed'); }), /handler_failed/);
+  assert.deepEqual(failed.receipt(), {
+    schema: 'simulatte.schedulerReceipt.v1',
+    pluginId: 'failed-handler',
+    scheduledCount: 2,
+    processedCount: 0,
+    cancelledCount: 0,
+    finalClock: 1,
+    eventLogHashInputs: 0,
+    terminalState: 'failed',
+    failure: {
+      code: 'scheduler_handler_failed',
+      eventId: 'failed-handler:evt:0',
+      eventKind: 'fixture.first',
+      eventTime: 1,
+      causeCode: null,
+      causeMessage: 'handler_failed',
+    },
+  });
+  assert.throws(() => failed.drain(() => {}), (error) => error.code === 'scheduler_terminal');
+
+  const budgeted = schedulerApi.createScheduler('budgeted');
+  budgeted.schedule({ time: 1, kind: 'fixture.first' });
+  budgeted.schedule({ time: 2, kind: 'fixture.second' });
+  assert.throws(
+    () => budgeted.drain(() => {}, { maxEvents: 1 }),
+    (error) => error.code === 'scheduler_budget_exhausted' && error.evidence.blockedEventId === 'budgeted:evt:1'
+  );
+  assert.equal(budgeted.receipt().processedCount, 1);
+  assert.equal(budgeted.receipt().eventLogHashInputs, 1);
+  assert.equal(budgeted.pending(), 1);
+  assert.equal(budgeted.receipt().failure.eventId, 'budgeted:evt:1');
+  assert.throws(() => budgeted.schedule({ time: 3, kind: 'fixture.third' }), (error) => error.code === 'scheduler_terminal');
+});
+
 test('interstellar packet integrity uses host SHA-256 and detects payload changes', async () => {
   const packet = { packetId: 'p1', sequence: 0, payload: 'hello', sourceId: 'sol', destinationId: 'target', relayPath: ['sol', 'target'], createdAt: '2026-07-21T00:00:00Z' };
   const identity = await integrity.createPacketIdentity(receipts, packet);

@@ -95,11 +95,15 @@
 
     async function resolve(reference, { baseUrl, key = reference?.id || 'artifact' } = {}) {
       validateReference(reference, key);
+      reference = snapshotReference(reference, key);
       if (typeof baseUrl !== 'string' || !baseUrl) {
         throw artifactError('artifact_base_url_missing', `${key} expected a base URL`, { key, baseUrl: baseUrl || null });
       }
       const url = new URL(reference.path, baseUrl).toString();
-      const cacheKey = `${url}|${reference.sha256 || reference.integrity}|${reference.schemaId || ''}`;
+      const dependencyIdentity = reference.dependencies === undefined
+        ? 'embedded'
+        : `declared-${await receipts.sha256Hex(reference.dependencies)}`;
+      const cacheKey = `${url}|${reference.id}|${reference.sha256}|${reference.schemaId || ''}|${dependencyIdentity}`;
       if (cache.has(cacheKey)) return cache.get(cacheKey);
       const artifactKey = `${url}|${reference.sha256}`;
       let cacheMode = 'network';
@@ -167,7 +171,7 @@
     async function resolveDependencies(reference, value, loadedUrl, key) {
       const declarations = reference.dependencies || value.dependencies || [];
       if (!Array.isArray(declarations)) throw artifactError('artifact_dependencies_invalid', `${key} dependencies expected an array`, { key });
-      if (!declarations.length) return new Map();
+      if (!declarations.length) return createReadonlyMap([], key);
       return resolveGraph(declarations.map((dependency, index) => ({
         key: dependency.key || dependency.id || `${key}:dependency:${index}`,
         reference: dependency,
@@ -187,7 +191,7 @@
         row.key,
         await resolve(row.reference, { baseUrl: row.baseUrl || baseUrl, key: row.key }),
       ]));
-      return new Map(resolved);
+      return createReadonlyMap(resolved, 'artifact graph');
     }
 
     function clear() {
@@ -237,6 +241,42 @@
     if (!value || typeof value !== 'object' || Object.isFrozen(value)) return value;
     Object.values(value).forEach(deepFreeze);
     return Object.freeze(value);
+  }
+
+  function snapshotReference(reference, key) {
+    try {
+      return deepFreeze(JSON.parse(receipts.canonicalJson(reference)));
+    } catch (error) {
+      throw artifactError('artifact_reference_invalid', `${key} expected canonical JSON reference data, received ${error.message}`, {
+        key,
+        cause: error.message,
+      });
+    }
+  }
+
+  function createReadonlyMap(entries, key) {
+    const target = new Map(entries);
+    let readonly = null;
+    const rejectMutation = (method) => {
+      throw artifactError('artifact_dependency_map_immutable', `${key} dependencies cannot be changed with ${method}`, { key, method });
+    };
+    readonly = new Proxy(target, {
+      get(map, property) {
+        if (property === 'set' || property === 'delete' || property === 'clear') {
+          return () => rejectMutation(property);
+        }
+        if (property === 'forEach') {
+          return (callback, thisArg) => {
+            if (typeof callback !== 'function') return map.forEach(callback, thisArg);
+            return map.forEach((value, entryKey) => callback.call(thisArg, value, entryKey, readonly));
+          };
+        }
+        if (property === 'constructor') return Map;
+        const value = Reflect.get(map, property, map);
+        return typeof value === 'function' ? value.bind(map) : value;
+      },
+    });
+    return Object.freeze(readonly);
   }
 
   function parseJsonDocument(loaded) {

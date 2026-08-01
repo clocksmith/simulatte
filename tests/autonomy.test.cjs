@@ -1372,6 +1372,62 @@ test('governed artifact store rehashes and evicts forged persistent cache entrie
   assert.equal(transportReads, 0);
 });
 
+test('governed artifact dependency graphs are immutable and cache-bound to their declaration', async () => {
+  const rootValue = { id: 'root-v1', rows: [] };
+  const childValue = { id: 'child-v1', rows: [] };
+  const rootText = JSON.stringify(rootValue);
+  const childText = JSON.stringify(childValue);
+  const rootSha256 = crypto.createHash('sha256').update(rootText).digest('hex');
+  const childSha256 = crypto.createHash('sha256').update(childText).digest('hex');
+  const reads = [];
+  const store = artifactStoreApi.createGovernedArtifactStore({
+    transport: {
+      async readText(url) {
+        reads.push(url);
+        return { text: url.endsWith('/child.json') ? childText : rootText, url, response: null };
+      },
+    },
+    persistentCache: { async get() { return null; }, async put() {}, async delete() {} },
+  });
+  const rootReference = { id: rootValue.id, path: './root.json', sha256: rootSha256 };
+  const withoutDependencies = await store.resolve(rootReference, {
+    baseUrl: 'https://simulatte.test/data/manifest.json',
+    key: 'root',
+  });
+  assert.equal(withoutDependencies.dependencies instanceof Map, true);
+  assert.equal(Object.isFrozen(withoutDependencies.dependencies), true);
+  assert.throws(
+    () => withoutDependencies.dependencies.set('forged', { value: { id: 'forged' } }),
+    (error) => error.code === 'artifact_dependency_map_immutable'
+  );
+
+  const withDependencies = await store.resolve({
+    ...rootReference,
+    dependencies: [{ id: childValue.id, path: './child.json', sha256: childSha256 }],
+  }, {
+    baseUrl: 'https://simulatte.test/data/manifest.json',
+    key: 'root',
+  });
+  assert.equal(withDependencies.dependencies.get(childValue.id).value.id, childValue.id);
+  assert.deepEqual(withDependencies.receipt.dependencyIds, [childValue.id]);
+  assert.equal(reads.filter((url) => url.endsWith('/root.json')).length, 2);
+  assert.equal(reads.filter((url) => url.endsWith('/child.json')).length, 1);
+  withDependencies.dependencies.forEach((value, dependencyId, map) => {
+    assert.equal(map, withDependencies.dependencies);
+    assert.equal(value.value.id, dependencyId);
+  });
+  await assert.rejects(
+    () => store.resolve({ ...rootReference, id: 'wrong-root-v1' }, {
+      baseUrl: 'https://simulatte.test/data/manifest.json',
+      key: 'wrong-root',
+    }),
+    (error) => error.code === 'asset_identity_mismatch'
+      && error.evidence.expectedId === 'wrong-root-v1'
+      && error.evidence.actualId === rootValue.id
+  );
+  assert.equal(reads.filter((url) => url.endsWith('/root.json')).length, 3);
+});
+
 test('autonomy browser surface loads every declared module and stays independent of compiler phases', () => {
   const html = fs.readFileSync(path.join(publicDir, 'index.html'), 'utf8');
   const compatibilityHtml = fs.readFileSync(path.join(root, 'public/index.html'), 'utf8');
