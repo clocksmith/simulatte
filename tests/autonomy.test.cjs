@@ -515,6 +515,17 @@ test('one actor mesh contract renders mobile actors and carried packages', () =>
   );
 });
 
+test('city road colors remain visible without competing with route overlays', () => {
+  const luminance = ([red, green, blue]) => red * 0.2126 + green * 0.7152 + blue * 0.0722;
+  const roadLuminance = luminance(gpuGeometry.COLORS.road);
+  const majorRoadLuminance = luminance(gpuGeometry.COLORS.roadMajor);
+  const landLuminance = luminance(gpuGeometry.COLORS.land);
+
+  assert.ok(roadLuminance - landLuminance >= 0.14);
+  assert.ok(majorRoadLuminance - roadLuminance >= 0.08);
+  assert.ok(majorRoadLuminance < luminance(gpuGeometry.COLORS.route));
+});
+
 test('world actors expose path heading and reject unregistered render kinds', () => {
   const motion = worldApi.samplePolyline([{ x: 0, y: 0 }, { x: 0, y: 10 }], 0.25);
   assert.deepEqual(motion.position, { x: 0, y: 2.5 });
