@@ -274,7 +274,6 @@ function browserProbeExpression(run, seedIndex) {
     };
     sampleMemory();
     const memorySamplerId = setInterval(sampleMemory, 25);
-    const readyFrameCount = Number(document.getElementById('autonomy-canvas')?.dataset.frameCount || 0);
     let firstMeaningfulFrame = null;
     const servedVersionResponse = await fetch('/version.json', { cache: 'no-store' });
     if (!servedVersionResponse.ok) throw new Error('profile evidence served build identity unavailable');
@@ -348,6 +347,8 @@ function browserProbeExpression(run, seedIndex) {
       }
       await waitFor(() => document.body.dataset.journeyPhase === 'completed', label + '-terminal-commit', 45000);
     };
+    const readyFrameCount = Number(document.getElementById('autonomy-canvas')?.dataset.frameCount || 0);
+    const firstMeaningfulFrameStartedAt = performance.now();
     document.getElementById('start-button').click();
     await waitFor(() => {
       const canvas = document.getElementById('autonomy-canvas');
@@ -357,9 +358,12 @@ function browserProbeExpression(run, seedIndex) {
         : document.body.dataset.journeyPhase !== 'ready';
       return renderAdvanced && Array.isArray(platform?.contributions) && platform.contributions.length > 0;
     }, 'first-meaningful-frame');
+    const firstMeaningfulFramePageAt = performance.now();
     firstMeaningfulFrame = {
       status: 'pass',
-      atMs: performance.now(),
+      atMs: firstMeaningfulFramePageAt - firstMeaningfulFrameStartedAt,
+      navigationAtMs: firstMeaningfulFramePageAt,
+      basis: 'start-action-to-new-governed-frame',
       frameCount: ${JSON.stringify(run.tier === 'city')}
         ? Number(document.getElementById('autonomy-canvas')?.dataset.frameCount || 0)
         : frameTimes.length,

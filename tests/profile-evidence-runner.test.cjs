@@ -178,7 +178,16 @@ async function fixture({ profileId = null } = {}) {
       performance: {
         frameCount: 2,
         elapsedMs: 5,
-        firstMeaningfulFrame: { status: 'pass', atMs: 1, frameCount: 1, contributionCount: 1, semanticLayerCount: 1, compositorReceiptCount: 1 },
+        firstMeaningfulFrame: {
+          status: 'pass',
+          atMs: 1,
+          navigationAtMs: 10,
+          basis: 'start-action-to-new-governed-frame',
+          frameCount: 1,
+          contributionCount: 1,
+          semanticLayerCount: 1,
+          compositorReceiptCount: 1,
+        },
         framePacing: { status: 'pass', sampleCount: 3, p50Ms: 16, p95Ms: 17, maxMs: 18, over50MsCount: 0 },
         memory: {
           status: 'pass',
@@ -418,6 +427,17 @@ test('performance, replay, interaction, and deployment screenshot evidence fail 
   assert.ok(validation.failures.includes('interaction_coverage_invalid'));
   assert.ok(validation.failures.includes('deployment_screenshot_binding_invalid'));
   assert.ok(validation.failures.includes('claim_evidence_unresolved'));
+});
+
+test('first meaningful frame evidence binds the budget to the start action and preserves navigation timing', async () => {
+  const { claims, contract, receipt, run, sourceIdentity } = await fixture();
+  receipt.evidence.performance.firstMeaningfulFrame.basis = 'navigation-start';
+  let validation = contract.validateReceipt({ receipt, run, sourceIdentity, claims });
+  assert.ok(validation.failures.includes('first_meaningful_frame_invalid'));
+  receipt.evidence.performance.firstMeaningfulFrame.basis = 'start-action-to-new-governed-frame';
+  receipt.evidence.performance.firstMeaningfulFrame.navigationAtMs = 0.5;
+  validation = contract.validateReceipt({ receipt, run, sourceIdentity, claims });
+  assert.ok(validation.failures.includes('first_meaningful_frame_invalid'));
 });
 
 test('declared profile performance budgets fail closed on latency, pacing, and heap regressions', async () => {
@@ -719,6 +739,19 @@ test('browser capture searches executed comparison receipts and preserves City p
   assert.match(expression, /const compactRunReceipt = async/);
   assert.match(expression, /runReceipt: compactedRunReceipt/);
   assert.match(expression, /platformReceipt: platformReceipt \? \{/);
+  assert.ok(
+    expression.indexOf('const readyFrameCount') > expression.indexOf('governed-seed expected='),
+    'the render baseline must be captured after the requested governed seed is ready',
+  );
+  assert.ok(
+    expression.indexOf('const readyFrameCount') < expression.indexOf("document.getElementById('start-button').click()"),
+    'the render baseline must be captured immediately before the start action',
+  );
+  assert.match(expression, /const firstMeaningfulFrameStartedAt = performance\.now\(\)/);
+  assert.match(expression, /const firstMeaningfulFramePageAt = performance\.now\(\)/);
+  assert.match(expression, /atMs: firstMeaningfulFramePageAt - firstMeaningfulFrameStartedAt/);
+  assert.match(expression, /navigationAtMs: firstMeaningfulFramePageAt/);
+  assert.match(expression, /basis: 'start-action-to-new-governed-frame'/);
   const source = fs.readFileSync(path.join(ROOT, 'tools/simulatte/profile-evidence-browser.mjs'), 'utf8');
   assert.match(source, /__simulattePluginRunReceipt/);
   assert.match(source, /beforeReceipt: isPluginPlayback \? beforeReceipt/);

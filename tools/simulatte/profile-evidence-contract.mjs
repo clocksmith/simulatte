@@ -596,8 +596,11 @@ function validateReceipt({ receipt, run, sourceIdentity, claims }) {
   const performanceEvidence = receipt.evidence?.performance;
   if (
     performanceEvidence?.firstMeaningfulFrame?.status !== 'pass'
+    || performanceEvidence.firstMeaningfulFrame.basis !== 'start-action-to-new-governed-frame'
     || !Number.isFinite(performanceEvidence.firstMeaningfulFrame.atMs)
     || performanceEvidence.firstMeaningfulFrame.atMs < 0
+    || !Number.isFinite(performanceEvidence.firstMeaningfulFrame.navigationAtMs)
+    || performanceEvidence.firstMeaningfulFrame.navigationAtMs < performanceEvidence.firstMeaningfulFrame.atMs
     || !(
       performanceEvidence.firstMeaningfulFrame.frameCount >= 1
       || performanceEvidence.firstMeaningfulFrame.compositorReceiptCount >= 1
