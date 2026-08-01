@@ -1270,20 +1270,31 @@ test('browser loader verifies raw hashes and rejects tampered assets', async () 
   assert.equal(developmentProfile.receipt.assets.world.source, 'profile_declared_plugin_owned_context');
   assert.equal(developmentProfile.receipt.assets.world.sha256, null);
   assert.equal(developmentProfile.receipt.assets.world.expectedSha256, developmentProfile.manifest.world.sha256);
+  assert.deepEqual(developmentProfile.embodiments, []);
+  assert.equal(developmentProfile.defaultEmbodiment, null);
+  assert.equal(developmentProfile.occurrenceCatalog, null);
+  assert.equal(developmentProfile.rerankerEvidence, null);
+  assert.equal(developmentProfile.placeEmbeddingIndex, null);
+  assert.equal(developmentProfile.placeResolutionEvidence, null);
   assert.equal(developmentProfile.safetyHistoryIndex, null);
-  assert.deepEqual(developmentProfile.receipt.notConsumedAssets, [{
-    key: 'safetyHistoryIndex',
-    id: developmentProfile.manifest.safetyHistoryIndex.id,
-    expectedSha256: developmentProfile.manifest.safetyHistoryIndex.sha256,
-    status: 'not-consumed',
-    reason: 'profile-owned presentation does not request safety history or City routing',
-  }]);
+  assert.equal(developmentProfile.curriculum, null);
+  assert.equal(developmentProfile.policyArenaEvidence, null);
+  assert.deepEqual(developmentProfile.receipt.notConsumedAssets.map((row) => row.key), [
+    'occurrenceCatalog', 'rerankerEvidence', 'placeEmbeddingIndex', 'placeResolutionEvidence',
+    'safetyHistoryIndex', 'curriculum', 'policyArenaEvidence',
+    'embodiment', 'embodiment', 'embodiment', 'embodiment',
+  ]);
+  assert.ok(developmentProfile.receipt.notConsumedAssets.every((row) => (
+    row.id && /^[a-f0-9]{64}$/.test(row.expectedSha256) && row.status === 'not-consumed'
+  )));
   assert.equal(developmentProfile.dataCatalog.ids.includes('world.graph.v1'), false);
   assert.equal(developmentProfile.dataCatalog.ids.includes('world.buildings.v1'), false);
   assert.equal(typeof developmentProfile.loadRenderGeometry, 'undefined');
   assert.equal(developmentRequests.some((row) => row.url.includes('/regions/packs/')), false);
   assert.equal(developmentRequests.some((row) => row.url.includes('.geometry.json')), false);
   assert.equal(developmentRequests.some((row) => row.url.includes('nyc-crash-history')), false);
+  assert.equal(developmentRequests.some((row) => row.url.includes('place-embedding-index')), false);
+  assert.equal(developmentRequests.some((row) => row.url.includes('/embodiments/')), false);
 
   const staleManifest = structuredClone(loaded.manifest);
   delete staleManifest.missionExamples;

@@ -40,6 +40,15 @@
   root.SimulatteApplicationLoader = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createApplicationLoader(contracts, receipts, regions, runtimeLog, browserTransport, artifactStore, dataCatalog, pluginContracts, schemaRegistry, pluginRegistry, pluginPaths, loadContext) {
   assertDependencies();
+  const PROFILE_OWNED_OMITTED_KEYS = Object.freeze([
+    'occurrenceCatalog',
+    'rerankerEvidence',
+    'placeEmbeddingIndex',
+    'placeResolutionEvidence',
+    'safetyHistoryIndex',
+    'curriculum',
+    'policyArenaEvidence',
+  ]);
 
   async function loadApplication(
     manifestUrl = '../data/simulatte/autonomy-manifest.json',
@@ -70,7 +79,7 @@
     const selectedProfile = selectApplicationProfile(manifest.value, requestedProfileId);
     const preflightPluginOwnedWorld = selectedProfile.worldDetail === 'plugin-owned';
     const directKeys = ['policy', 'occurrenceCatalog', 'rerankerEvidence', 'regionRegistry', 'placeEmbeddingIndex', 'placeResolutionEvidence', 'modelRuntimeLock', 'pipelineModelSelection', 'applicationProfile', 'safetyHistoryIndex', 'curriculum', 'policyArenaEvidence']
-      .filter((key) => !(preflightPluginOwnedWorld && key === 'safetyHistoryIndex'));
+      .filter((key) => !(preflightPluginOwnedWorld && PROFILE_OWNED_OMITTED_KEYS.includes(key)));
     const resolvedReferences = await services.artifacts.resolveGraph(directKeys.map((key) => ({ key, reference: key === 'applicationProfile' ? selectedProfile : manifest.value[key] })), { baseUrl: resolvedManifestUrl });
     const refs = [...resolvedReferences.entries()];
     const loaded = Object.fromEntries(refs);
@@ -83,12 +92,12 @@
         actualWorldDetail: loaded.applicationProfile.value.experience?.worldDetail || null,
       });
     }
-    const embodimentRows = await Promise.all(manifest.value.embodiments.map(async (reference) => ({
+    const embodimentRows = preflightPluginOwnedWorld ? [] : await Promise.all(manifest.value.embodiments.map(async (reference) => ({
       reference,
       loaded: await services.artifacts.resolve(reference, { baseUrl: resolvedManifestUrl, key: `embodiment:${reference.id}` }),
     })));
     const defaultEmbodimentRow = embodimentRows.find((row) => row.reference.id === manifest.value.defaultEmbodimentId);
-    if (!defaultEmbodimentRow) throw loadError('default_embodiment_missing', `Default embodiment ${manifest.value.defaultEmbodimentId} was not loaded`, { defaultEmbodimentId: manifest.value.defaultEmbodimentId });
+    if (!pluginOwnsWorldDetail && !defaultEmbodimentRow) throw loadError('default_embodiment_missing', `Default embodiment ${manifest.value.defaultEmbodimentId} was not loaded`, { defaultEmbodimentId: manifest.value.defaultEmbodimentId });
     const registry = loaded.regionRegistry.value;
     contracts.validateRegionRegistry(registry);
     const packRows = pluginOwnsWorldDetail ? [] : await Promise.all(registry.packs.map(async (reference) => {
@@ -144,11 +153,13 @@
         worldHash
       );
     }
-    contracts.validatePlaceEmbeddingIndex(loaded.placeEmbeddingIndex.value, loaded.modelRuntimeLock.value);
-    contracts.validatePlaceResolutionEvidence(loaded.placeResolutionEvidence.value, loaded.placeEmbeddingIndex.value, loaded.modelRuntimeLock.value);
+    if (!pluginOwnsWorldDetail) {
+      contracts.validatePlaceEmbeddingIndex(loaded.placeEmbeddingIndex.value, loaded.modelRuntimeLock.value);
+      contracts.validatePlaceResolutionEvidence(loaded.placeResolutionEvidence.value, loaded.placeEmbeddingIndex.value, loaded.modelRuntimeLock.value);
+    }
     await yieldToHost();
     if (!pluginOwnsWorldDetail) contracts.validateCurriculum(loaded.curriculum.value, composition.world);
-    contracts.validatePolicyArenaEvidence(loaded.policyArenaEvidence.value);
+    if (!pluginOwnsWorldDetail) contracts.validatePolicyArenaEvidence(loaded.policyArenaEvidence.value);
     embodimentRows.forEach((row) => contracts.validateEmbodiment(row.loaded.value));
     contracts.validatePolicy(loaded.policy.value);
     const pluginDatasetBundle = await resolvePluginDatasets({ profile: loaded.applicationProfile.value, transport: services.transport, world: composition.world, worldHash });
@@ -170,19 +181,19 @@
       dataCatalog: catalog,
       world: catalog.require(composition.world.id),
       embodiments: embodimentRows.map((row) => catalog.require(row.loaded.value.id)),
-      defaultEmbodiment: catalog.require(defaultEmbodimentRow.loaded.value.id),
+      defaultEmbodiment: defaultEmbodimentRow ? catalog.require(defaultEmbodimentRow.loaded.value.id) : null,
       policy: catalog.require(loaded.policy.value.id),
       featureCatalog: catalog.require(composition.featureCatalog.id),
-      occurrenceCatalog: catalog.require(loaded.occurrenceCatalog.value.id),
-      rerankerEvidence: catalog.require(loaded.rerankerEvidence.value.id),
-      placeEmbeddingIndex: catalog.require(loaded.placeEmbeddingIndex.value.id),
-      placeResolutionEvidence: catalog.require(loaded.placeResolutionEvidence.value.id),
+      occurrenceCatalog: loaded.occurrenceCatalog ? catalog.require(loaded.occurrenceCatalog.value.id) : null,
+      rerankerEvidence: loaded.rerankerEvidence ? catalog.require(loaded.rerankerEvidence.value.id) : null,
+      placeEmbeddingIndex: loaded.placeEmbeddingIndex ? catalog.require(loaded.placeEmbeddingIndex.value.id) : null,
+      placeResolutionEvidence: loaded.placeResolutionEvidence ? catalog.require(loaded.placeResolutionEvidence.value.id) : null,
       modelRuntimeLock: catalog.require(loaded.modelRuntimeLock.value.id),
       pipelineModelSelection: catalog.require(loaded.pipelineModelSelection.value.id),
       applicationProfile: catalog.require(loaded.applicationProfile.value.id),
       safetyHistoryIndex: loaded.safetyHistoryIndex ? catalog.require(loaded.safetyHistoryIndex.value.id) : null,
-      curriculum: catalog.require(loaded.curriculum.value.id),
-      policyArenaEvidence: catalog.require(loaded.policyArenaEvidence.value.id),
+      curriculum: loaded.curriculum ? catalog.require(loaded.curriculum.value.id) : null,
+      policyArenaEvidence: loaded.policyArenaEvidence ? catalog.require(loaded.policyArenaEvidence.value.id) : null,
       regionRegistry: catalog.require(registry.id),
       regionPacks: packRows.map((row) => catalog.require(row.value.id)),
       regionComposition: composition.receipt,
@@ -213,13 +224,22 @@
         regionComposition: structuredClone(composition.receipt),
         renderGeometryStatus: pluginOwnsWorldDetail ? 'plugin-owned' : initialGeometry ? 'ready' : 'deferred',
         routingStatus: pluginOwnsWorldDetail ? 'not-consumed' : 'ready',
-        notConsumedAssets: pluginOwnsWorldDetail ? [{
-          key: 'safetyHistoryIndex',
-          id: manifest.value.safetyHistoryIndex.id,
-          expectedSha256: manifest.value.safetyHistoryIndex.sha256,
-          status: 'not-consumed',
-          reason: 'profile-owned presentation does not request safety history or City routing',
-        }] : [],
+        notConsumedAssets: pluginOwnsWorldDetail ? [
+          ...PROFILE_OWNED_OMITTED_KEYS.map((key) => ({
+            key,
+            id: manifest.value[key].id,
+            expectedSha256: manifest.value[key].sha256,
+            status: 'not-consumed',
+            reason: 'profile-owned presentation does not request City routing evidence',
+          })),
+          ...manifest.value.embodiments.map((reference) => ({
+            key: 'embodiment',
+            id: reference.id,
+            expectedSha256: reference.sha256,
+            status: 'not-consumed',
+            reason: 'profile-owned presentation does not execute City movement actors',
+          })),
+        ] : [],
         claimBoundary: manifest.value.claimBoundary,
       },
     };
