@@ -1270,11 +1270,20 @@ test('browser loader verifies raw hashes and rejects tampered assets', async () 
   assert.equal(developmentProfile.receipt.assets.world.source, 'profile_declared_plugin_owned_context');
   assert.equal(developmentProfile.receipt.assets.world.sha256, null);
   assert.equal(developmentProfile.receipt.assets.world.expectedSha256, developmentProfile.manifest.world.sha256);
+  assert.equal(developmentProfile.safetyHistoryIndex, null);
+  assert.deepEqual(developmentProfile.receipt.notConsumedAssets, [{
+    key: 'safetyHistoryIndex',
+    id: developmentProfile.manifest.safetyHistoryIndex.id,
+    expectedSha256: developmentProfile.manifest.safetyHistoryIndex.sha256,
+    status: 'not-consumed',
+    reason: 'profile-owned presentation does not request safety history or City routing',
+  }]);
   assert.equal(developmentProfile.dataCatalog.ids.includes('world.graph.v1'), false);
   assert.equal(developmentProfile.dataCatalog.ids.includes('world.buildings.v1'), false);
   assert.equal(typeof developmentProfile.loadRenderGeometry, 'undefined');
   assert.equal(developmentRequests.some((row) => row.url.includes('/regions/packs/')), false);
   assert.equal(developmentRequests.some((row) => row.url.includes('.geometry.json')), false);
+  assert.equal(developmentRequests.some((row) => row.url.includes('nyc-crash-history')), false);
 
   const staleManifest = structuredClone(loaded.manifest);
   delete staleManifest.missionExamples;

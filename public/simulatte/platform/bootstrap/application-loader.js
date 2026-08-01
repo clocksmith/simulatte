@@ -67,13 +67,22 @@
       schema: manifest.value.schema,
       missionExampleCount: manifest.value.missionExamples.length,
     });
-    const directKeys = ['policy', 'occurrenceCatalog', 'rerankerEvidence', 'regionRegistry', 'placeEmbeddingIndex', 'placeResolutionEvidence', 'modelRuntimeLock', 'pipelineModelSelection', 'applicationProfile', 'safetyHistoryIndex', 'curriculum', 'policyArenaEvidence'];
     const selectedProfile = selectApplicationProfile(manifest.value, requestedProfileId);
+    const preflightPluginOwnedWorld = selectedProfile.worldDetail === 'plugin-owned';
+    const directKeys = ['policy', 'occurrenceCatalog', 'rerankerEvidence', 'regionRegistry', 'placeEmbeddingIndex', 'placeResolutionEvidence', 'modelRuntimeLock', 'pipelineModelSelection', 'applicationProfile', 'safetyHistoryIndex', 'curriculum', 'policyArenaEvidence']
+      .filter((key) => !(preflightPluginOwnedWorld && key === 'safetyHistoryIndex'));
     const resolvedReferences = await services.artifacts.resolveGraph(directKeys.map((key) => ({ key, reference: key === 'applicationProfile' ? selectedProfile : manifest.value[key] })), { baseUrl: resolvedManifestUrl });
     const refs = [...resolvedReferences.entries()];
     const loaded = Object.fromEntries(refs);
     pluginContracts.validateProfile(loaded.applicationProfile.value);
     const pluginOwnsWorldDetail = loaded.applicationProfile.value.experience?.worldDetail === 'plugin-owned';
+    if (selectedProfile.worldDetail && selectedProfile.worldDetail !== loaded.applicationProfile.value.experience?.worldDetail) {
+      throw loadError('application_profile_world_detail_mismatch', `Profile reference ${selectedProfile.id} expected world detail ${selectedProfile.worldDetail}, received ${loaded.applicationProfile.value.experience?.worldDetail || 'missing'}`, {
+        profileId: selectedProfile.id,
+        expectedWorldDetail: selectedProfile.worldDetail,
+        actualWorldDetail: loaded.applicationProfile.value.experience?.worldDetail || null,
+      });
+    }
     const embodimentRows = await Promise.all(manifest.value.embodiments.map(async (reference) => ({
       reference,
       loaded: await services.artifacts.resolve(reference, { baseUrl: resolvedManifestUrl, key: `embodiment:${reference.id}` }),
@@ -171,7 +180,7 @@
       modelRuntimeLock: catalog.require(loaded.modelRuntimeLock.value.id),
       pipelineModelSelection: catalog.require(loaded.pipelineModelSelection.value.id),
       applicationProfile: catalog.require(loaded.applicationProfile.value.id),
-      safetyHistoryIndex: catalog.require(loaded.safetyHistoryIndex.value.id),
+      safetyHistoryIndex: loaded.safetyHistoryIndex ? catalog.require(loaded.safetyHistoryIndex.value.id) : null,
       curriculum: catalog.require(loaded.curriculum.value.id),
       policyArenaEvidence: catalog.require(loaded.policyArenaEvidence.value.id),
       regionRegistry: catalog.require(registry.id),
@@ -204,6 +213,13 @@
         regionComposition: structuredClone(composition.receipt),
         renderGeometryStatus: pluginOwnsWorldDetail ? 'plugin-owned' : initialGeometry ? 'ready' : 'deferred',
         routingStatus: pluginOwnsWorldDetail ? 'not-consumed' : 'ready',
+        notConsumedAssets: pluginOwnsWorldDetail ? [{
+          key: 'safetyHistoryIndex',
+          id: manifest.value.safetyHistoryIndex.id,
+          expectedSha256: manifest.value.safetyHistoryIndex.sha256,
+          status: 'not-consumed',
+          reason: 'profile-owned presentation does not request safety history or City routing',
+        }] : [],
         claimBoundary: manifest.value.claimBoundary,
       },
     };

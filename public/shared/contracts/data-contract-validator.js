@@ -62,7 +62,13 @@
     });
     const profiles = v.array(manifest.applicationProfiles || [], '$.applicationProfiles');
     uniqueRows(profiles, 'id', '$.applicationProfiles', v);
-    profiles.forEach((ref, index) => { v.string(ref.path, `$.applicationProfiles[${index}].path`); v.sha(ref.sha256, `$.applicationProfiles[${index}].sha256`); });
+    profiles.forEach((ref, index) => {
+      v.string(ref.path, `$.applicationProfiles[${index}].path`);
+      v.sha(ref.sha256, `$.applicationProfiles[${index}].sha256`);
+      if (ref.worldDetail !== undefined && !['substrate', 'plugin-owned'].includes(ref.worldDetail)) {
+        v.fail(`$.applicationProfiles[${index}].worldDetail`, 'substrate or plugin-owned', ref.worldDetail);
+      }
+    });
     const embodiments = v.array(manifest.embodiments, '$.embodiments', 2);
     uniqueRows(embodiments, 'id', '$.embodiments', v);
     embodiments.forEach((ref, index) => {

@@ -15,7 +15,7 @@
       ],
       "output": {
         "path": "public/data/simulatte/autonomy-manifest.json",
-        "sha256": "e134d60591f39ec121ad15c3f21c1f2d8782901f0b983bb3daf5868f47645de8"
+        "sha256": "ccd4f1266654aecc8bbe7533b45fb968e2fb7e22d043f7dc8d5d403102b36837"
       },
       "contentVersion": "autonomy-nyc-multimodal-v1",
       "activationState": "active",
