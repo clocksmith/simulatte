@@ -243,8 +243,13 @@ function validateIndex({ outputDirectory, plan, claims, identity }) {
   const index = readJson(indexPath);
   const indexFailures = [];
   const planSha256 = sha256Bytes(fs.readFileSync(path.join(outputDirectory, 'plan.json')));
+  const freezePath = path.join(outputDirectory, 'release-freeze.json');
+  const expectedReleaseIdentitySha256 = sha256Bytes(canonicalJson(currentReleaseIdentity(ROOT, identity)));
   if (index.planSha256 !== planSha256) indexFailures.push('evidence_plan_stale');
   if (index.claimInventorySha256 !== sha256File(INVENTORY_PATH)) indexFailures.push('claim_inventory_stale');
+  if (!fs.existsSync(freezePath)) indexFailures.push('release_freeze_missing');
+  else if (sha256File(freezePath) !== expectedReleaseIdentitySha256) indexFailures.push('release_freeze_stale');
+  if (index.releaseIdentitySha256 !== expectedReleaseIdentitySha256) indexFailures.push('release_freeze_identity_stale');
   if (index.totalRuns !== plan.runs.length) indexFailures.push('run_count_mismatch');
   const rowsById = new Map(index.runs.map((row) => [row.runId, row]));
   const validations = plan.runs.map((run) => {
@@ -268,7 +273,7 @@ function validateIndex({ outputDirectory, plan, claims, identity }) {
   return validations;
 }
 
-async function captureAll({ options, plan, claims, identity }) {
+async function captureAll({ options, plan, claims, identity, releaseIdentitySha256 }) {
   const selectedRuns = options.runIds.length
     ? plan.runs.filter((run) => options.runIds.includes(run.id))
     : plan.runs;
@@ -342,6 +347,7 @@ async function captureAll({ options, plan, claims, identity }) {
     schema: 'simulatte.profileEvidenceIndex.v1',
     planSha256: sha256Bytes(fs.readFileSync(path.join(options.outputDirectory, 'plan.json'))),
     claimInventorySha256: sha256File(INVENTORY_PATH),
+    releaseIdentitySha256,
     sourceIdentity: identity,
     totalRuns: selectedRuns.length,
     requiredRuns: plan.runs.length,
@@ -370,7 +376,13 @@ async function main() {
     return;
   }
   let report = null;
-  if (options.capture) report = await captureAll({ options, plan, claims, identity });
+  if (options.capture) {
+    const releaseIdentitySha256 = writeReleaseFreeze(
+      options.outputDirectory,
+      currentReleaseIdentity(ROOT, identity),
+    );
+    report = await captureAll({ options, plan, claims, identity, releaseIdentitySha256 });
+  }
   if (options.check) {
     const validations = validateIndex({ outputDirectory: options.outputDirectory, plan, claims, identity });
     const passed = validations.filter((row) => row.pass).length;
@@ -400,5 +412,6 @@ export {
   prepareCaptureDirectory,
   profileClosureMatrix,
   validateIndex,
+  writeReleaseFreeze,
   worktreeSha256,
 };

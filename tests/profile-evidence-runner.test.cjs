@@ -244,6 +244,33 @@ test('profile evidence plan enumerates eleven connected profiles, forty-seven se
   assert.ok(plan.runs.filter((run) => run.tier === 'city').every((run) => run.interactionPath.includes('terminal-commit')));
 });
 
+test('release freeze binds registries, profiles, plugins, datasets, and browser build identity', async () => {
+  const contract = await import(CONTRACT_URL);
+  const identity = contract.currentReleaseIdentity(ROOT, {
+    buildId: 'release-build',
+    commitSha: 'a'.repeat(40),
+    worktreeSha256: 'b'.repeat(64),
+  });
+  assert.equal(identity.schema, 'simulatte.profileEvidenceReleaseIdentity.v1');
+  assert.equal(identity.build.buildId, 'release-build');
+  assert.equal(identity.profiles.length, 11);
+  assert.equal(identity.plugins.length, 11);
+  assert.ok(identity.datasets.length >= 11);
+  assert.deepEqual(identity.registries.map((row) => row.id), [
+    'city-profile-registry',
+    'tier-profile-registry',
+    'profile-claim-inventory',
+    'generated-artifact-inventory',
+    'generated-plugin-registry',
+  ]);
+  [...identity.registries, ...identity.profiles, ...identity.plugins].forEach((row) => {
+    assert.match(row.sha256, /^[a-f0-9]{64}$/);
+  });
+  identity.datasets.filter((row) => row.resolution === 'manifest-reference').forEach((row) => {
+    assert.match(row.sha256, /^[a-f0-9]{64}$/);
+  });
+});
+
 test('claim inventory assigns one stable claim ID to every published seed description', async () => {
   const { claims } = await fixture();
   assert.equal(claims.length, 47);
