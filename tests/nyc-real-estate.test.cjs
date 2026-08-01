@@ -242,6 +242,18 @@ test('V4 has dynamic controls, complete inspections, citywide overview, and comp
     .map((row) => row.id);
   const inspectedIds = new Set(story.inspections.flatMap((row) => row.targetIds));
   visibleBuildingIds.forEach((id) => assert.ok(inspectedIds.has(id), id));
+  assert.ok(
+    story.presentation.layers.filter((row) => row.id.startsWith('historical:')).length
+      <= v4Api.VISUAL_DETAIL_LIMITS.historicalBuildings
+  );
+  assert.ok(
+    story.presentation.layers.filter((row) => row.id.startsWith('future:')).length
+      <= v4Api.VISUAL_DETAIL_LIMITS.futureProjects
+  );
+  assert.ok(
+    story.presentation.layers.filter((row) => row.id.startsWith('milestone:')).length
+      <= v4Api.VISUAL_DETAIL_LIMITS.milestoneLabels
+  );
   const surfaceIds = story.presentation.layers
     .filter((row) => row.id.startsWith('price-surface:'))
     .map((row) => row.id);

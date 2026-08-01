@@ -73,7 +73,7 @@
       "path": "./default-config.json"
     },
     {
-      "integrity": "sha384-1b660a7ebf4635eb756772f8091923d0f86e9705ea8b1b15866193b9ceb7ceec9b6bf951fef93eda3ed124fdd33390f3",
+      "integrity": "sha384-3045967d7d89e0692c185cac2a014c721305ba45f0f2431fa7fd3a24b6f62e5f33bab8d2163cb6f54b535f3d0a462d03",
       "path": "./v4-contribution.js"
     },
     {

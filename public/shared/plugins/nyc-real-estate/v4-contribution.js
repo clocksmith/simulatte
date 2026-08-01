@@ -15,6 +15,13 @@
     priceSurface: '8cb13c2c6435dd58dd98d213a5a75f54201bf9b29bbdf351bff0932b152b1b68',
     governance: '4a6bc387b12322b14a58c3b9ec36ad70c81a7ff5ebd06ad4cb28ac134be3cf65',
   });
+  const VISUAL_DETAIL_LIMITS = Object.freeze({
+    historicalBuildings: 48,
+    futureProjects: 32,
+    milestoneLabels: 16,
+    capacitySites: 48,
+    comparisonProjectsPerBranch: 24,
+  });
 
   function createContribution({
     datasets,
@@ -264,6 +271,33 @@
     simulated,
     comparison,
   }) {
+    const milestoneTargetIds = new Set(snapshot.milestoneEvents.map((row) => row.targetLayerId));
+    const historicalBuildingStates = boundedRows(
+      snapshot.historicalBuildingStates,
+      VISUAL_DETAIL_LIMITS.historicalBuildings,
+      (row) => (milestoneTargetIds.has(`historical:${row.id}`) ? 1_000_000 : 0) + row.targetHeightM
+    );
+    const futureProjectStates = boundedRows(
+      snapshot.futureProjectStates,
+      VISUAL_DETAIL_LIMITS.futureProjects,
+      (row) => (milestoneTargetIds.has(`future:${row.id}`) ? 1_000_000 : 0) + row.heightM
+    );
+    const visibleBuildingIds = new Set([
+      ...historicalBuildingStates.map((row) => `historical:${row.id}`),
+      ...futureProjectStates.map((row) => `future:${row.id}`),
+    ]);
+    const milestoneEvents = boundedRows(
+      snapshot.milestoneEvents.filter((row) => visibleBuildingIds.has(row.targetLayerId)),
+      VISUAL_DETAIL_LIMITS.milestoneLabels,
+      (row) => row.priority
+    );
+    const capacitySites = snapshot.year === 2026
+      ? boundedRows(
+        result.capacitySites,
+        VISUAL_DETAIL_LIMITS.capacitySites,
+        (row) => capacityValue(row, result.sectorProfile)
+      )
+      : [];
     const selectedSurface = surfaceYear.regions.find((row) => row.regionId === result.region.id);
     const priceQuantity = selectedSurface?.p50Usd === null
       ? builder.quantity('price-observation-available', 0, 'state', [0, 1])
@@ -316,7 +350,7 @@
         aggregationKey: null,
         provenance: snapshot.phase === 'scenario-forecast' ? simulated : observed,
       }),
-      ...snapshot.historicalBuildingStates.map((row) => builder.layer({
+      ...historicalBuildingStates.map((row) => builder.layer({
         id: `historical:${row.id}`,
         kind: 'volume',
         label: row.label,
@@ -332,7 +366,7 @@
         aggregationKey: 'historical-building-replay',
         provenance: row.stageOrigin === 'observed' ? observed : modeledHistorical,
       })),
-      ...snapshot.futureProjectStates.map((row) => builder.layer({
+      ...futureProjectStates.map((row) => builder.layer({
         id: `future:${row.id}`,
         kind: 'volume',
         label: projectLabel(row),
@@ -348,10 +382,10 @@
         aggregationKey: 'future-development-projects',
         provenance: simulated,
       })),
-      ...snapshot.milestoneEvents.map((row) => {
-        const building = snapshot.historicalBuildingStates.find((site) => (
+      ...milestoneEvents.map((row) => {
+        const building = historicalBuildingStates.find((site) => (
           `historical:${site.id}` === row.targetLayerId
-        )) || snapshot.futureProjectStates.find((site) => (
+        )) || futureProjectStates.find((site) => (
           `future:${site.id}` === row.targetLayerId
         ));
         if (!building) return null;
@@ -382,7 +416,7 @@
               : observed,
         });
       }).filter(Boolean),
-      ...(snapshot.year === 2026 ? result.capacitySites.map((row) => builder.layer({
+      ...capacitySites.map((row) => builder.layer({
         id: `capacity:${row.id}`,
         kind: 'point',
         label: capacityLabel(row, result.sectorProfile),
@@ -400,7 +434,7 @@
         importance: 0.58,
         aggregationKey: 'development-capacity-candidates',
         provenance: snapshotEvidence,
-      })) : []),
+      })),
       ...createComparisonLayers(result, comparison, simulated),
     ];
     return layers;
@@ -453,7 +487,11 @@
           aggregationKey: null,
           provenance: simulated,
         }),
-        ...branch.projects.map((project) => builder.layer({
+        ...boundedRows(
+          branch.projects,
+          VISUAL_DETAIL_LIMITS.comparisonProjectsPerBranch,
+          (project) => project.heightM
+        ).map((project) => builder.layer({
           id: `comparison:${role}:${project.id}`,
           kind: 'volume',
           label: `${role} · ${projectLabel(project)}`,
@@ -577,6 +615,13 @@
         field('active', 'Active scenario projects', snapshot.metrics.activeProjects, 'projects', simulated),
         field('units', 'Completed scenario units', snapshot.metrics.cumulativeCompletedUnits, 'units', simulated),
         field('floor-area', 'Completed scenario floor area', snapshot.metrics.cumulativeCompletedFloorAreaSquareFeet, 'square feet', simulated),
+        field(
+          'visual-detail-boundary',
+          'Map detail boundary',
+          `The heatmap shows all 262 neighborhoods. Selected-region detail deterministically shows up to ${VISUAL_DETAIL_LIMITS.historicalBuildings} historical buildings, ${VISUAL_DETAIL_LIMITS.futureProjects} scenario projects, ${VISUAL_DETAIL_LIMITS.milestoneLabels} milestone labels, and ${VISUAL_DETAIL_LIMITS.capacitySites} highest-capacity sites; full uncapped counts remain in evidence and settlement.`,
+          null,
+          modeledHistorical
+        ),
         ...(result.sectorProfile.allowsAffordableUnits
           ? [field('affordable', 'Affordable scenario units', snapshot.metrics.cumulativeAffordableUnits, 'units', simulated)]
           : []),
@@ -723,6 +768,20 @@
     ];
   }
 
+  function boundedRows(rows, limit, score) {
+    if (rows.length <= limit) return rows;
+    return rows
+      .map((row, index) => ({ row, index, score: Number(score(row)) || 0 }))
+      .sort((left, right) => (
+        right.score - left.score
+        || String(left.row.id).localeCompare(String(right.row.id))
+        || left.index - right.index
+      ))
+      .slice(0, limit)
+      .sort((left, right) => left.index - right.index)
+      .map(({ row }) => row);
+  }
+
   function shiftGeometry(ring, longitudeOffset) {
     return ring.map((point) => [
       point[0] + longitudeOffset,
@@ -802,5 +861,5 @@
     }
   }
 
-  return Object.freeze({ MODEL_HASHES, createContribution });
+  return Object.freeze({ MODEL_HASHES, VISUAL_DETAIL_LIMITS, createContribution });
 });
