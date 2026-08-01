@@ -256,6 +256,56 @@ function currentSourceIdentity(root, run, buildIdentity = {}) {
   };
 }
 
+function currentReleaseIdentity(root, buildIdentity = {}) {
+  const profileRows = loadProfiles(root);
+  const pluginsById = new Map();
+  profileRows.forEach(({ value: profile }) => {
+    pluginSourceIdentities(root, profile).forEach((plugin) => {
+      if (!pluginsById.has(plugin.id)) pluginsById.set(plugin.id, plugin);
+    });
+  });
+  const plugins = [...pluginsById.values()].sort((left, right) => left.id.localeCompare(right.id));
+  const registryFiles = [
+    ['city-profile-registry', 'public/data/simulatte/autonomy-manifest.json'],
+    ['tier-profile-registry', 'public/data/simulatte/tier-application-manifest.json'],
+    ['profile-claim-inventory', 'public/data/application-profiles/profile-claim-inventory-v1.json'],
+    ['generated-artifact-inventory', 'public/data/generated-artifact-inventory.json'],
+    ['generated-plugin-registry', 'public/simulatte/platform/plugin-host/generated-plugin-registry.js'],
+  ];
+  return {
+    schema: 'simulatte.profileEvidenceReleaseIdentity.v1',
+    build: {
+      buildId: buildIdentity.buildId || readJson(path.join(root, 'public/version.json')).build,
+      commitSha: buildIdentity.commitSha || null,
+      worktreeSha256: buildIdentity.worktreeSha256 || null,
+    },
+    registries: registryFiles.map(([id, relativePath]) => ({
+      id,
+      path: relativePath,
+      sha256: sha256File(path.join(root, relativePath)),
+    })),
+    profiles: profileRows.map((row) => ({
+      id: row.value.id,
+      path: row.relativePath,
+      sha256: row.sha256,
+    })),
+    plugins: plugins.map((plugin) => ({
+      id: plugin.id,
+      path: plugin.path,
+      sha256: plugin.sha256,
+      version: plugin.version,
+    })),
+    datasets: plugins.flatMap((plugin) => plugin.datasets.map((dataset) => ({
+      pluginId: plugin.id,
+      id: dataset.id,
+      required: dataset.required,
+      resolution: dataset.resolution,
+      path: dataset.path || null,
+      sha256: dataset.sha256 || null,
+    }))).sort((left, right) => `${left.pluginId}:${left.id}`.localeCompare(`${right.pluginId}:${right.id}`)),
+  };
+}
+
 function claimId(profileId, seedId) {
   return `${profileId}.seed.${seedId}.description`;
 }
@@ -663,6 +713,7 @@ export {
   buildEvidencePlan,
   canonicalJson,
   claimId,
+  currentReleaseIdentity,
   currentSourceIdentity,
   expandClaims,
   isRestoredRunEvidence,

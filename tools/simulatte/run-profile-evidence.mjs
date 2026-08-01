@@ -7,6 +7,8 @@ import { fileURLToPath } from 'node:url';
 import {
   addressReceipt,
   buildEvidencePlan,
+  canonicalJson,
+  currentReleaseIdentity,
   currentSourceIdentity,
   expandClaims,
   readJson,
@@ -159,9 +161,15 @@ function prepareCaptureDirectory(outputDirectory) {
   for (const relativePath of ['receipts', 'screenshots']) {
     fs.rmSync(path.join(outputDirectory, relativePath), { recursive: true, force: true });
   }
-  for (const relativePath of ['index.json', 'summary.md']) {
+  for (const relativePath of ['index.json', 'release-freeze.json', 'summary.md']) {
     fs.rmSync(path.join(outputDirectory, relativePath), { force: true });
   }
+}
+
+function writeReleaseFreeze(outputDirectory, releaseIdentity) {
+  const content = canonicalJson(releaseIdentity);
+  fs.writeFileSync(path.join(outputDirectory, 'release-freeze.json'), content);
+  return sha256Bytes(content);
 }
 
 function relativeArtifactLink(outputDirectory, filePath) {
