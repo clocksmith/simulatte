@@ -66,6 +66,7 @@ function compactRunReceiptReference(receipt) {
     },
     status: receipt.actionResult?.status || receipt.status || null,
     scenarioIdentity: receipt.actionResult?.scenarioIdentity || null,
+    settlements: receipt.settlements || null,
     eventCount: Array.isArray(events) ? events.length : 0,
     pluginReceiptCount: Array.isArray(pluginReceipts) ? pluginReceipts.length : 0,
     restorationIdentity,
@@ -88,6 +89,21 @@ function compactCapturedEvidence(captured) {
       events: (captured.evidence?.events || []).map(compactEventReference),
     },
   };
+}
+
+async function withTimeout(promise, limitMs, label) {
+  let timeoutId;
+  const timeout = new Promise((_, reject) => {
+    timeoutId = setTimeout(
+      () => reject(new Error(`profile evidence host timeout at ${label} after ${limitMs}ms`)),
+      limitMs,
+    );
+  });
+  try {
+    return await Promise.race([promise, timeout]);
+  } finally {
+    clearTimeout(timeoutId);
+  }
 }
 
 async function freePort() {
@@ -417,11 +433,12 @@ function browserProbeExpression(run, seedIndex) {
       if (!value || typeof value !== 'object') return value;
       return Object.fromEntries(Object.keys(value).sort().map((key) => [key, canonicalize(value[key])]));
     };
-    const sha256Value = async (value) => {
-      const bytes = new TextEncoder().encode(JSON.stringify(canonicalize(value)));
+    const sha256Text = async (content) => {
+      const bytes = new TextEncoder().encode(content);
       const digest = await crypto.subtle.digest('SHA-256', bytes);
       return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
     };
+    const sha256Value = async (value) => sha256Text(JSON.stringify(canonicalize(value)) + '\\n');
     const currentRunReceipt = () => globalThis.__simulatteTierRunReceipt
       || globalThis.__simulattePluginRunReceipt
       || null;
@@ -509,6 +526,57 @@ function browserProbeExpression(run, seedIndex) {
     const settlements = tierReceipt?.settlement
       ? (Array.isArray(tierReceipt.settlement) ? tierReceipt.settlement.flat() : [tierReceipt.settlement])
       : pluginRunReceipt?.settlements || [];
+    const compactRunReceipt = async (receipt) => {
+      if (!receipt || typeof receipt !== 'object') return null;
+      const content = JSON.stringify(receipt);
+      const restorationIdentity = receipt.schema === 'simulatte.pluginPlaybackRunReceipt.v1'
+        && receipt.actionResult?.status === 'settled'
+        && receipt.ownerPluginId
+        && receipt.scenario?.id
+        && receipt.scenario?.seed
+        && Array.isArray(receipt.settlements)
+        && receipt.settlements.length > 0
+        ? {
+            ownerPluginId: receipt.ownerPluginId,
+            scenarioId: receipt.scenario.id,
+            seed: receipt.scenario.seed,
+            currentStep: receipt.actionResult.currentStep,
+            totalSteps: receipt.actionResult.totalSteps,
+            settlementSha256: await sha256Value(receipt.settlements),
+            clock: {
+              timelineId: receipt.clock?.state?.timelineId || null,
+              timelineEventCount: receipt.clock?.timeline?.eventCount ?? null,
+              currentMs: receipt.clock?.state?.currentMs ?? null,
+              cursor: receipt.clock?.state?.cursor ?? null,
+            },
+          }
+        : null;
+      return {
+        schema: 'simulatte.profileEvidenceRunReceiptRef.v1',
+        originalSchema: receipt.schema || null,
+        profileId: receipt.profileId || null,
+        tier: receipt.tier || null,
+        ownerPluginId: receipt.ownerPluginId || null,
+        scenario: {
+          id: receipt.scenario?.id || null,
+          seed: receipt.scenario?.seed || null,
+        },
+        status: receipt.actionResult?.status || receipt.status || null,
+        scenarioIdentity: receipt.actionResult?.scenarioIdentity || null,
+        settlements: receipt.settlements || null,
+        eventCount: Array.isArray(receipt.runtime?.events || receipt.pluginRuntime?.events)
+          ? (receipt.runtime?.events || receipt.pluginRuntime?.events).length
+          : 0,
+        pluginReceiptCount: Array.isArray(receipt.runtime?.pluginReceipts || receipt.pluginRuntime?.pluginReceipts)
+          ? (receipt.runtime?.pluginReceipts || receipt.pluginRuntime?.pluginReceipts).length
+          : 0,
+        restorationIdentity,
+        restorationIdentitySha256: restorationIdentity ? await sha256Value(restorationIdentity) : null,
+        contentSha256: await sha256Text(content),
+        byteLength: new TextEncoder().encode(content).byteLength,
+      };
+    };
+    const compactedRunReceipt = await compactRunReceipt(runReceipt);
     const canvas = document.getElementById('autonomy-canvas');
     const canvasRect = canvas?.getBoundingClientRect() || null;
     const visibleRect = (element) => {
@@ -568,12 +636,18 @@ function browserProbeExpression(run, seedIndex) {
       runtime: {
         path: native ? 'native-v4' : contributionSources.some((row) => row.source === 'legacy-adapter') ? 'legacy-adapter' : 'unproven-v4',
         profileId: ${JSON.stringify(run.profileId)},
-        platformReceipt,
+        platformReceipt: platformReceipt ? {
+          schema: platformReceipt.schema || null,
+          id: platformReceipt.id || null,
+          provenanceReceiptCount: Array.isArray(platformReceipt.provenanceReceipts)
+            ? platformReceipt.provenanceReceipts.length
+            : 0,
+        } : null,
         clockReceipt: platform?.clock || null,
         viewReceipt: platform?.view || null,
         compositorReceipts: Array.isArray(platform?.compositor) ? platform.compositor : [],
         datasetEvidence,
-        runReceipt,
+        runReceipt: compactedRunReceipt,
         contributionSources,
       },
       evidence: {
@@ -684,13 +758,13 @@ async function captureBrowserRun({ chromePath, baseUrl, run, sourceIdentity, cla
     });
     const url = new URL(run.route, baseUrl);
     const loaded = client.once('Page.loadEventFired');
-    await client.send('Page.navigate', { url: url.toString() });
-    await loaded;
-    const evaluated = await client.send('Runtime.evaluate', {
+    await withTimeout(client.send('Page.navigate', { url: url.toString() }), 30000, 'page-navigate');
+    await withTimeout(loaded, 30000, 'page-load');
+    const evaluated = await withTimeout(client.send('Runtime.evaluate', {
       expression: browserProbeExpression(run, seedIndex),
       awaitPromise: true,
       returnByValue: true,
-    });
+    }), 180000, 'browser-probe');
     if (evaluated.exceptionDetails) throw new Error(evaluated.exceptionDetails.exception?.description || evaluated.exceptionDetails.text);
     const browserVersion = await client.send('Browser.getVersion');
     const gpu = await client.send('Runtime.evaluate', {
@@ -704,7 +778,11 @@ async function captureBrowserRun({ chromePath, baseUrl, run, sourceIdentity, cla
       awaitPromise: true,
       returnByValue: true,
     });
-    const screenshotResult = await client.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false });
+    const screenshotResult = await withTimeout(
+      client.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false }),
+      30000,
+      'screenshot',
+    );
     const screenshot = Buffer.from(screenshotResult.data, 'base64');
     const screenshotSha256 = sha256Bytes(screenshot);
     const screenshotDirectory = path.join(outputDirectory, 'screenshots', 'sha256');
@@ -713,10 +791,10 @@ async function captureBrowserRun({ chromePath, baseUrl, run, sourceIdentity, cla
     if (!fs.existsSync(screenshotPath)) fs.writeFileSync(screenshotPath, screenshot);
     const captured = compactCapturedEvidence(evaluated.result.value);
     const reloaded = client.once('Page.loadEventFired');
-    await client.send('Page.reload', { ignoreCache: false });
-    await reloaded;
+    await withTimeout(client.send('Page.reload', { ignoreCache: false }), 30000, 'page-reload');
+    await withTimeout(reloaded, 30000, 'page-reload-load');
     const beforeRunReceipt = captured.runtime.runReceipt;
-    const reload = await client.send('Runtime.evaluate', {
+    const reload = await withTimeout(client.send('Runtime.evaluate', {
       expression: `(async () => {
         const beforeReceipt = ${JSON.stringify(beforeRunReceipt)};
         const isPluginPlayback = beforeReceipt?.originalSchema === 'simulatte.pluginPlaybackRunReceipt.v1'
@@ -750,7 +828,7 @@ async function captureBrowserRun({ chromePath, baseUrl, run, sourceIdentity, cla
       })()`,
       awaitPromise: true,
       returnByValue: true,
-    });
+    }), 60000, 'reload-restoration');
     const reloadEvidence = reload.result.value;
     if (reloadEvidence.kind === 'plugin-playback') {
       reloadEvidence.beforeReceipt = compactRunReceiptReference(reloadEvidence.beforeReceipt);

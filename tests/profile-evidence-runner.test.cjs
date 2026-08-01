@@ -675,11 +675,16 @@ test('browser capture searches executed comparison receipts and preserves City p
   assert.match(expression, /clockReceipt: platform\?\.clock/);
   assert.match(expression, /viewReceipt: platform\?\.view/);
   assert.match(expression, /compositorReceipts: Array\.isArray\(platform\?\.compositor\)/);
+  assert.match(expression, /const compactRunReceipt = async/);
+  assert.match(expression, /runReceipt: compactedRunReceipt/);
+  assert.match(expression, /platformReceipt: platformReceipt \? \{/);
   const source = fs.readFileSync(path.join(ROOT, 'tools/simulatte/profile-evidence-browser.mjs'), 'utf8');
   assert.match(source, /__simulattePluginRunReceipt/);
   assert.match(source, /beforeReceipt: isPluginPlayback \? beforeReceipt/);
   assert.match(source, /afterReceipt: isPluginPlayback \? afterReceipt/);
   assert.doesNotMatch(source, /readyAt/);
+  assert.match(source, /withTimeout\(client\.send\('Runtime\.evaluate'/);
+  assert.match(source, /180000, 'browser-probe'/);
   assert.match(source, /if \(client\) await client\.close\(\)/);
 });
 
