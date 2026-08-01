@@ -280,6 +280,25 @@ test('v4 contribution renders semantic WGS84 evidence and every accepted control
     contribution.presentation.layers.filter((row) => row.id.startsWith('warehouse:')).length,
     4
   );
+  assert.equal(
+    contribution.presentation.layers.filter((row) => row.id.startsWith('network-corridor:')).length,
+    datasets.routes.corridors.length
+  );
+  assert.equal(
+    contribution.presentation.layers.filter((row) => row.id.startsWith('neighborhood:')).length,
+    datasets.routes.neighborhoods.length
+  );
+  const defaultView = contribution.presentation.viewIntents[0];
+  assert.equal(defaultView.mode, 'overview');
+  assert.ok(defaultView.targetIds.every((id) => (
+    id.startsWith('network-corridor:')
+      || id.startsWith('neighborhood:')
+      || id.startsWith('warehouse:')
+  )));
+  datasets.routes.corridors.forEach((corridor) => {
+    const warehouse = datasets.warehouses.warehouses.find((row) => row.id === corridor.warehouseId);
+    assert.deepEqual(corridor.coordinates[0], warehouse.coordinates);
+  });
   assert.ok(contribution.presentation.layers.some((row) => row.quantity?.kind === 'catalog-offer-rows'));
   assert.ok(contribution.provenanceRecords.length >= manifest.datasets.length + 4);
   assert.ok(contribution.inspections.some((row) => JSON.stringify(row).includes('modeled-warehouse-scale')));
@@ -329,10 +348,34 @@ test('trip playback emits one active driver, moving packages, and a bird-eye cam
   const overview = contribution.presentation.viewIntents.find((row) => row.mode === 'overview');
   assert.ok(overview);
   assert.ok(overview.targetIds.some((id) => id.startsWith('driver:')));
+  const firstDriverProgress = drivers[0].quantity.value;
+  playback = await instance.handleAction('scenario.run', { values: { phase: 'step' } });
+  contribution = instance.contributeV4();
+  const nextDriver = contribution.presentation.layers.find((row) => row.id === drivers[0].id);
+  assert.ok(nextDriver);
+  assert.ok(nextDriver.quantity.value > firstDriverProgress);
   assert.equal(
     contribution.presentation.layers.some((row) => row.id.startsWith('stop:') && row.kind === 'actor'),
     false
   );
+});
+
+test('settled playback keeps the modeled Costco network in the overview', async () => {
+  const harness = createSdkHarness();
+  const instance = await plugin.activate({ sdk: harness.sdk, config, profile, scenario });
+  let playback = await instance.handleAction('scenario.run', {
+    scenario,
+    values: { ...scenario, phase: 'start' },
+  });
+  while (playback.status === 'running') {
+    playback = await instance.handleAction('scenario.run', { values: { phase: 'step' } });
+  }
+  const contribution = instance.contributeV4();
+  assert.equal(contribution.state.status, 'settled');
+  assert.equal(contribution.presentation.viewIntents[0].mode, 'overview');
+  assert.ok(contribution.presentation.viewIntents[0].targetIds.some(
+    (id) => id.startsWith('network-corridor:')
+  ));
 });
 
 test('catalog index calculates fractional shares accurately', () => {

@@ -28,6 +28,9 @@ const CITY_INTERACTIONS = Object.freeze([
   'pause',
   'step',
   'resume',
+  'seek',
+  'terminal-preview',
+  'terminal-commit',
   'settle',
   'replay',
   'reload',
@@ -122,12 +125,19 @@ function buildEvidencePlan(root) {
   const profiles = loadProfiles(root);
   const runs = profiles.flatMap((row) => row.value.seeds.flatMap((seed) => VIEWPORTS.map((viewport) => {
     const interactionPath = interactionsFor(row.value);
+    const comparisonMode = row.value.experience?.comparisonMode;
+    assert(
+      typeof comparisonMode === 'string' && comparisonMode.length > 0,
+      'profile_evidence_comparison_policy_missing',
+      `Profile ${row.value.id} must declare an experience comparison mode`
+    );
     const identity = {
       profileId: row.value.id,
       seedId: seed.id,
       seed: seed.seed,
       viewportId: viewport.id,
       interactionPath,
+      comparisonMode,
     };
     return Object.freeze({
       id: `run-${sha256Value(identity).slice(0, 20)}`,
@@ -141,6 +151,7 @@ function buildEvidencePlan(root) {
       pluginIds: row.value.plugins.map((plugin) => plugin.id),
       viewport,
       interactionPath,
+      comparisonMode,
     });
   })));
   return Object.freeze({
@@ -413,9 +424,30 @@ function selectorResult(receipt, selector, context) {
   if (selector.operator === 'settled-execution-receipts') return Array.isArray(actual)
     && actual.length > 0
     && actual.every(isSettledComparisonExecutionReceipt);
+  if (selector.operator === 'comparison-policy-satisfied') return Array.isArray(actual)
+    && (expected === 'none'
+      ? actual.length === 0
+      : actual.length > 0 && actual.every(isSettledComparisonExecutionReceipt));
   if (selector.operator === 'settled-receipts') return Array.isArray(actual)
     && actual.length > 0
     && actual.every(isSettledEvidenceReceipt);
+  if (selector.operator === 'complete-performance-evidence') return actual?.firstMeaningfulFrame?.status === 'pass'
+    && actual?.framePacing?.status === 'pass'
+    && actual?.memory?.status === 'pass';
+  if (selector.operator === 'deterministic-replay') return actual?.attempted === true
+    && actual?.deterministic === true
+    && /^[a-f0-9]{64}$/i.test(actual?.beforeSha256 || '')
+    && actual.beforeSha256 === actual.afterSha256;
+  if (selector.operator === 'complete-interaction-coverage') return Array.isArray(actual?.observed)
+    && Array.isArray(actual?.missing)
+    && actual.missing.length === 0
+    && Array.isArray(expected)
+    && expected.every((step) => actual.observed.includes(step));
+  if (selector.operator === 'deployment-bound-screenshot') return actual?.status === 'pass'
+    && actual.servedBuildId === receipt.sourceIdentity?.build?.buildId
+    && receipt.evidence?.screenshot?.buildId === actual.servedBuildId
+    && receipt.evidence?.screenshot?.servedBuildId === actual.servedBuildId
+    && receipt.evidence?.screenshot?.pageUrl === actual.pageUrl;
   if (selector.operator === 'restored-run') return isRestoredRunEvidence(actual, context.run);
   throw new Error(`profile_claim_selector_operator_invalid: Unknown selector operator ${selector.operator}`);
 }
@@ -464,6 +496,7 @@ function validateReceipt({ receipt, run, sourceIdentity, claims }) {
   if (receipt.run?.profileId !== run.profileId) failures.push('profile_identity_mismatch');
   if (receipt.run?.seedId !== run.seedId || receipt.run?.seed !== run.seed) failures.push('seed_identity_mismatch');
   if (receipt.run?.viewportId !== run.viewport.id) failures.push('viewport_identity_mismatch');
+  if (receipt.run?.comparisonMode !== run.comparisonMode) failures.push('comparison_policy_mismatch');
   if (receipt.runtime?.path !== 'native-v4') failures.push(receipt.runtime?.path === 'legacy-adapter' ? 'legacy_only_evidence' : 'runtime_path_mismatch');
   if (receipt.runtime?.clockReceipt?.schema !== 'simulatte.simulationClockReceipt.v4') {
     failures.push('platform_clock_receipt_invalid');
@@ -496,11 +529,11 @@ function validateReceipt({ receipt, run, sourceIdentity, claims }) {
     ) {
       failures.push('visual_camera_intent_mismatch');
     }
+    const decidedCameraMode = receipt.runtime?.viewReceipt?.state?.decision?.mode;
     if (
       run.tier === 'city'
-      &&
-      ['overview', 'compare'].includes(receipt.runtime?.viewReceipt?.state?.decision?.mode)
-      && visual.camera?.mode !== 'bird'
+      && ['overview', 'compare'].includes(decidedCameraMode)
+      && visual.camera?.mode !== decidedCameraMode
     ) {
       failures.push('visual_camera_mode_mismatch');
     }
@@ -508,7 +541,62 @@ function validateReceipt({ receipt, run, sourceIdentity, claims }) {
       failures.push('visual_camera_transition_unsettled');
     }
   }
-  if (!Array.isArray(receipt.evidence?.comparisons) || !receipt.evidence.comparisons.length) {
+  const performanceEvidence = receipt.evidence?.performance;
+  if (
+    performanceEvidence?.firstMeaningfulFrame?.status !== 'pass'
+    || !Number.isFinite(performanceEvidence.firstMeaningfulFrame.atMs)
+    || performanceEvidence.firstMeaningfulFrame.atMs < 0
+    || !(
+      performanceEvidence.firstMeaningfulFrame.frameCount >= 1
+      || performanceEvidence.firstMeaningfulFrame.compositorReceiptCount >= 1
+    )
+    || !(performanceEvidence.firstMeaningfulFrame.contributionCount >= 1)
+  ) failures.push('first_meaningful_frame_invalid');
+  if (
+    performanceEvidence?.framePacing?.status !== 'pass'
+    || !(performanceEvidence.framePacing.sampleCount >= 2)
+    || !Number.isFinite(performanceEvidence.framePacing.p50Ms)
+    || !Number.isFinite(performanceEvidence.framePacing.p95Ms)
+    || !Number.isFinite(performanceEvidence.framePacing.maxMs)
+  ) failures.push('frame_pacing_evidence_invalid');
+  if (
+    performanceEvidence?.memory?.status !== 'pass'
+    || !(performanceEvidence.memory.sampleCount >= 1)
+    || !Number.isFinite(performanceEvidence.memory.initialUsedJsHeapBytes)
+    || !Number.isFinite(performanceEvidence.memory.finalUsedJsHeapBytes)
+    || !Number.isFinite(performanceEvidence.memory.peakUsedJsHeapBytes)
+    || performanceEvidence.memory.peakUsedJsHeapBytes < performanceEvidence.memory.initialUsedJsHeapBytes
+  ) failures.push('memory_evidence_invalid');
+  const replay = receipt.evidence?.replay;
+  if (
+    replay?.attempted !== true
+    || replay.deterministic !== true
+    || !/^[a-f0-9]{64}$/i.test(replay.beforeSha256 || '')
+    || replay.beforeSha256 !== replay.afterSha256
+  ) failures.push('deterministic_replay_invalid');
+  const interactionCoverage = receipt.evidence?.interactionCoverage;
+  if (
+    !Array.isArray(interactionCoverage?.expected)
+    || !Array.isArray(interactionCoverage?.observed)
+    || !Array.isArray(interactionCoverage?.missing)
+    || interactionCoverage.missing.length > 0
+    || run.interactionPath.some((step) => !interactionCoverage.observed.includes(step))
+  ) failures.push('interaction_coverage_invalid');
+  const deployment = receipt.evidence?.deployment;
+  const screenshot = receipt.evidence?.screenshot;
+  if (
+    deployment?.status !== 'pass'
+    || deployment.servedBuildId !== sourceIdentity.build.buildId
+    || deployment.route !== run.route
+    || screenshot?.buildId !== sourceIdentity.build.buildId
+    || screenshot?.servedBuildId !== deployment.servedBuildId
+    || screenshot?.pageUrl !== deployment.pageUrl
+  ) failures.push('deployment_screenshot_binding_invalid');
+  if (run.comparisonMode === 'none') {
+    if (!Array.isArray(receipt.evidence?.comparisons) || receipt.evidence.comparisons.length) {
+      failures.push('comparison_policy_none_violated');
+    }
+  } else if (!Array.isArray(receipt.evidence?.comparisons) || !receipt.evidence.comparisons.length) {
     failures.push('comparison_execution_receipt_missing');
   } else if (!receipt.evidence.comparisons.every(isSettledComparisonExecutionReceipt)) {
     failures.push('comparison_execution_receipt_invalid');

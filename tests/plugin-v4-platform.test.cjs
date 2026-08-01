@@ -331,6 +331,30 @@ test('semantic compositor gives consequential quantities distinct domain colors'
   assert.equal(compositorModule.styleForLayer(queue).color, '#ffb84f');
 });
 
+test('semantic compositor maps governed neighborhood prices onto a shared heat scale', () => {
+  const base = presentation().layers[0];
+  const priceLayer = (id, value) => ({
+    ...base,
+    id,
+    kind: 'field',
+    aggregationKey: 'nyc-price-surface:2025',
+    quantity: {
+      kind: 'observed-neighborhood-median-sale-price',
+      value,
+      unit: 'nominal USD',
+      domain: [100000, 1000000],
+    },
+  });
+  const low = compositorModule.styleForLayer(priceLayer('low', 100000), false, [100000, 1000000]);
+  const middle = compositorModule.styleForLayer(priceLayer('middle', 550000), false, [100000, 1000000]);
+  const high = compositorModule.styleForLayer(priceLayer('high', 1000000), false, [100000, 1000000]);
+  assert.equal(low.color, '#255f9e');
+  assert.equal(middle.color, '#f1d26a');
+  assert.equal(high.color, '#c83f4f');
+  assert.equal(new Set([low.color, middle.color, high.color]).size, 3);
+  assert.equal(low.fillOpacity, 0.66);
+});
+
 test('View Director arbitrates intents while manual navigation remains authoritative', () => {
   const director = viewDirectorModule.createViewDirector();
   presentation().viewIntents.forEach((intent) => director.submit(intent));

@@ -11,7 +11,7 @@
     "timelineLabel": "Pooling stage",
     "primaryMeasureKinds": ["requested-share-units", "fulfilled-share-units", "packages-purchased", "household-cost", "package-waste"],
     "supportedViews": ["overview", "top"],
-    "defaultView": "top",
+    "defaultView": "overview",
     "comparisonMode": "synchronized",
     "stages": [
       { "id": "demand-registers", "label": "Baskets arrive", "narrative": "Synthetic household baskets register fractional demand by product and neighborhood.", "fromProgress": 0 },
@@ -52,8 +52,8 @@
     }
   ],
   "camera": {
-    "initialMode": "top",
-    "runMode": "top"
+    "initialMode": "bird",
+    "runMode": "bird"
   },
   "plugins": [
     {

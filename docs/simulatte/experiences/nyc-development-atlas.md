@@ -12,33 +12,35 @@ Owner contract:
 - Default scenario: `greenpoint-history-and-growth`
 - Contract version: native plugin v4, application profile v2
 - Last verified source: NYC Open Data snapshot compiled 2026-07-27
-- Evidence: code and governed-data audit in progress; desktop and mobile
-  browser evidence have not been captured
+- Evidence: focused code, governed-data, and desktop browser proof passed;
+  full desktop/mobile release evidence remains in progress
 
 ## What is it?
 
-The user becomes a neighborhood planner exploring how recorded sales and
-building activity changed, then tests conditional development futures. The
-experience replays administrative milestones and visibly raises buildings
-before forecasting price intervals and project pipelines. It never appraises a
-property, predicts a permit, or presents scenario output as observed fact.
+The user explores a citywide neighborhood price heatmap through recorded years
+and conditional forecast years, while retaining a selected neighborhood's
+detailed building and development model. It never appraises a property,
+predicts a permit, or presents scenario output as observed fact.
 
 ## What does it actually do?
 
-1. Loads a 342 KiB index of 262 NYC Neighborhood Tabulation Areas, then
-   hash-verifies and loads only the selected region shard containing annual
+1. Loads a 3.1 MB city-surface artifact containing governed geometry and 5,749
+   annual price aggregates for 262 NYC Neighborhood Tabulation Areas, then
+   hash-verifies and loads only the selected detail shard containing annual
    sale aggregates, building filings, final occupancy milestones, current
    footprints, and PLUTO capacity candidates.
 2. Selects one neighborhood, property tax class, historical range, future
    horizon, policy, and market assumptions.
-3. Replays each calendar year, showing only governed sale observations and
-   recorded administrative activity.
+3. Replays each calendar year as one shared neighborhood heat scale, showing
+   governed observations, explicit gaps, and recorded administrative activity.
 4. Interpolates visible construction stages between recorded milestones while
    preserving their modeled origin.
 5. Refuses price forecasting when the selected tax class has fewer than four
    observed price years and refuses development generation when compatible
    capacity is absent.
-6. Runs 31 deterministic future members that choose tax-class-compatible
+6. Runs a deterministic 31-member price-only surface for each supported
+   neighborhood with zero neighborhood development-supply effect, alongside
+   31 detailed selected-region members that choose tax-class-compatible
    projects, advance construction, conserve units or floor area, and produce
    p10, p50, and p90 prices where supported.
 7. Executes business-as-usual and selected-policy branches through the shared
@@ -53,7 +55,7 @@ property, predicts a permit, or presents scenario output as observed fact.
 |---|---:|---|---|
 | Neighborhood area | Greenpoint | 262 NYC 2020 NTAs | Replaces polygons, sale history, sites, capacity, calibration, and forecast |
 | Property tax class | Tax class 2 | Classes 1, 2, 4, or weighted proxy | Selects the price target and sector-correct development model; mixed-class development is refused |
-| Historical replay begins | 2010 | 2010 to 2020 | Rebuilds timeline length, clock, events, and visible history |
+| Historical replay begins | 2016 | 2010 to 2020 | Rebuilds timeline length, clock, events, and visible history; unsupported earlier years remain missing |
 | Scenario forecast ends | 2035 | 2030 to 2040 | Changes project time, compounding, intervals, and terminal settlement |
 | Development policy | Business as usual | Five governed policies | Changes project starts, capacity, affordability context, and price growth |
 | Development financing rate | 5.5% | 2% to 12% | Changes start capacity and annual price pressure |
@@ -64,14 +66,18 @@ property, predicts a permit, or presents scenario output as observed fact.
 
 ## What does the user see?
 
-- Initial view: The selected neighborhood boundary, earliest governed year, recorded buildings, current year, price status, and side metrics.
-- During playback: Buildings rise through recorded or explicitly inferred stages while price, filings, pipeline, units, and narrative advance annually.
+- Initial view: All 262 governed neighborhood polygons, the earliest selected
+  year, shared 5th-to-95th-percentile heat scale, coverage counts, selected
+  neighborhood, price status, and side metrics.
+- During playback: The citywide surface advances through observed years, an
+  explicitly missing 2026 price snapshot, and conditional forecast years while
+  selected-region buildings rise through recorded or inferred stages.
 - Selection and inspection: Every visible historical building, capacity
   candidate, future project, and comparison project exposes source row IDs,
   geometry origin, sector output, stage origin, assumptions, and limitations.
-- Comparison view: Executed business-as-usual and selected-policy regions and
-  buildings appear side by side, sharing data, seed, sector, clock, and exact
-  exogenous draws.
+- Comparison evidence: Executed business-as-usual and selected-policy detail
+  branches retain spatial layers and receipts without replacing the default
+  citywide overview.
 - Final settlement: The last year reports interval ordering or sparse refusal,
   conserved candidate states, completed sector output, comparison evidence
   closure, and the claim boundary.
@@ -90,6 +96,8 @@ property, predicts a permit, or presents scenario output as observed fact.
 | Capacity candidate | observed | PLUTO zoning and lot fields | snapshot | FAR does not prove feasibility | Scenario candidate set |
 | Future project start and completion | simulated | Conditional development model | forecast | Seeded scenario variation | Future pipeline |
 | Future neighborhood price interval | simulated | 31-member conditional ensemble | forecast | Not calibrated parcel probability | p10, p50, p90 comparison |
+| Citywide historical price surface | observed | Compact governed NTA surface artifact | historical | Missing years remain missing | Shared heatmap |
+| Citywide forecast price surface | simulated | 31-member price-only neighborhood lane | forecast | Zero neighborhood development-supply effect; sparse regions refused | Shared heatmap |
 
 ## How does the simulation work?
 
@@ -139,17 +147,19 @@ property, predicts a permit, or presents scenario output as observed fact.
 - Deterministic replay: focused model and registered-runtime coverage exists
 - Comparison execution: shared lockstep engine, common-draw identity, clock
   synchronization, and evidence closure have focused coverage
-- Desktop browser: not tested
+- Desktop browser: targeted Greenpoint run passed camera, compositor, pixel
+  readback, replay, comparison, reload, and settlement gates on 2026-08-01
 - Mobile browser: not tested
-- Known unresolved failures: current screenshots, pixel recognizability, and production deployment are not verified
+- Known unresolved failures: full mobile/human review and production deployment
+  are not verified
 
 ## Where is it implemented?
 
 - [Plugin entry](../../../public/shared/plugins/nyc-real-estate/index.js)
 - [Forecast model](../../../public/shared/plugins/nyc-real-estate/forecast-model.js)
-- [Sector model](../../../public/shared/plugins/nyc-real-estate/sector-model.js)
-- [Comparison driver](../../../public/shared/plugins/nyc-real-estate/comparison-driver.js)
+- [Citywide price surface](../../../public/shared/plugins/nyc-real-estate/price-surface.js)
 - [Semantic presentation](../../../public/shared/plugins/nyc-real-estate/v4-contribution.js)
 - [Region and shard index](../../../public/data/nyc-real-estate/region-index-v1.json)
+- [City surface artifact](../../../public/data/nyc-real-estate/city-surface-v1.json)
 - [Model governance](../../../public/data/nyc-real-estate/model-governance-v1.json)
 - [Governed compiler](../../../tools/nyc-real-estate/compile-history.mjs)

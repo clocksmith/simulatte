@@ -73,14 +73,13 @@
     }));
     const activeEvent = [...events].reverse()
       .find((row) => row.simulationTimeMs <= snapshot.simulationTimeMs) || null;
-    const activeTripIds = new Set(
-      snapshot.activeTripAssignmentId ? [snapshot.activeTripAssignmentId] : []
-    );
     const activeDriverIds = layers
       .filter((row) => row.id.startsWith('driver:'))
       .map((row) => row.id);
-    const activeTargets = layers
-      .filter((row) => row.role === 'primary' || row.role === 'event')
+    const networkTargets = layers
+      .filter((row) => row.id.startsWith('network-corridor:')
+        || row.id.startsWith('neighborhood:')
+        || row.id.startsWith('warehouse:'))
       .map((row) => row.id);
     const presentation = builder.presentation({
       pluginId: PLUGIN_ID,
@@ -89,12 +88,8 @@
       viewIntents: [
         builder.viewIntent({
           id: `bulk-pool-view:${snapshot.id}`,
-          mode: snapshot.status === 'settled' ? 'compare' : 'overview',
-          targetIds: activeTripIds.size && snapshot.status !== 'settled'
-            ? activeDriverIds
-            : activeTargets.length
-              ? activeTargets
-            : layers.filter((row) => row.id.startsWith('warehouse:')).map((row) => row.id),
+          mode: 'overview',
+          targetIds: [...networkTargets, ...activeDriverIds],
           reasonEventId: activeEvent?.id || null,
           priority: 68,
         }),
@@ -184,6 +179,28 @@
         role: 'comparison',
         importance: 0.66,
         aggregationKey: 'bulk-pool-modeled-coverage',
+        provenance: modeled,
+      })),
+      ...datasets.routes.corridors.map((row) => builder.layer({
+        id: `network-corridor:${row.id}`,
+        kind: 'path',
+        label: `${row.label} · modeled Costco distribution corridor`,
+        geometry: builder.geometry('polyline', 'wgs84', row.coordinates),
+        quantity: builder.quantity('modeled-distribution-corridor', 1, 'corridor', [0, 1]),
+        role: 'primary',
+        importance: 0.88,
+        aggregationKey: null,
+        provenance: modeled,
+      })),
+      ...datasets.routes.neighborhoods.map((row) => builder.layer({
+        id: `neighborhood:${row.id}`,
+        kind: 'point',
+        label: `${row.label} · modeled handoff destination`,
+        geometry: builder.geometry('point', 'wgs84', [[...row.coordinates, 0]]),
+        quantity: builder.quantity('modeled-handoff-destination', 1, 'destination', [0, 1]),
+        role: 'context',
+        importance: 0.78,
+        aggregationKey: null,
         provenance: modeled,
       })),
       ...datasets.warehouses.warehouses.map((row) => builder.layer({

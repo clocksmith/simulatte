@@ -21,12 +21,22 @@
         "sha256": "4a6bc387b12322b14a58c3b9ec36ad70c81a7ff5ebd06ad4cb28ac134be3cf65"
       },
       "required": true
+    },
+    {
+      "id": "nyc-real-estate-city-surface-2026-v1",
+      "reference": {
+        "id": "nyc-real-estate-city-surface-2026-v1",
+        "path": "../../../data/nyc-real-estate/city-surface-v1.json",
+        "schemaId": "simulatte.nycRealEstateCitySurface.v1",
+        "sha256": "0f607a451a599783746cdf43063f215ce1eebd5f2df997c7aa3b00293b698c84"
+      },
+      "required": true
     }
   ],
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginNycRealEstate",
-    "integrity": "sha384-15b1ddeb580ccc8c5d130e3ffeee529ff5dfcdd433a44a0525a09fd586ee961f8a71bc947e95c801eafba505af616e72",
+    "integrity": "sha384-865bf72ea9d174206de2f54440bb43585687e448178baef87354133d6336c33670c7bd1d5e173646b6d3e0acf200a8df",
     "path": "./index.js"
   },
   "extensionPoints": [
@@ -59,11 +69,11 @@
       "path": "./config.schema.json"
     },
     {
-      "integrity": "sha384-a5aa50c85c53cc4989e481aa069c1bdcdab0c108611cbeac462474f4daf91743502b1cd57b5ba601c3f4199453600ce0",
+      "integrity": "sha384-f670c8093925d6a9a8892dfaebea373f065914591b9099c47eb6ac3e6165a7511fdbfa5bcd9f113499550f13506a108b",
       "path": "./default-config.json"
     },
     {
-      "integrity": "sha384-96ffd27e029eafdf21d70fe45138d197e4819aff39b7202a3b6ee886f050e796654daf8f89e12171ea271989607ef3be",
+      "integrity": "sha384-bf3b9b7c5bcbba3ae3741ba3991f5a6ba47c528abf7506f73f1f61ec0a19e180b2d029a81187e32f4807b89f78d420eb",
       "path": "./v4-contribution.js"
     },
     {
@@ -79,8 +89,12 @@
       "path": "./sector-model.js"
     },
     {
-      "integrity": "sha384-48ff8368615dc0da461f5e8ef35c05a70267ec47b2da5dd8ae7caf64ad2e5e93b50a90f303efcf3dae20da60d489a195",
+      "integrity": "sha384-4938c4bf84b253da627db2a955930d9e9faedaf1d12414828f445d40da744105fa1ec9735aef43c7a5d8f2dc6fac312d",
       "path": "./forecast-model.js"
+    },
+    {
+      "integrity": "sha384-442e19a6f4bda6dca64d61f418b5b345ee85217603408f612e0ad3f5c80d908d7e246b6cee5bd26bd178d256944e3afb",
+      "path": "./price-surface.js"
     }
   ],
   "schema": "simulatte.pluginManifest.v2",

@@ -16,6 +16,7 @@
   const { isRunnableResult, normalizeValues, sameValues } = controlValues;
   const STORAGE_PREFIX = 'simulatte:tier-run:v1:';
   const RESTORE_ENVELOPE_SCHEMA = 'simulatte.tierRunRestoreEnvelope.v1';
+  const RECONSTRUCTION_STEPS_PER_YIELD = 4;
 
   function createController({
     getRuntime,
@@ -34,6 +35,7 @@
     stepDelayMs = 500,
     setTimer = setTimeout,
     clearTimer = clearTimeout,
+    yieldControl = defaultYieldControl,
     comparisonRequired = true,
   }) {
     if (typeof getRuntime !== 'function' || typeof resetRuntime !== 'function') {
@@ -41,6 +43,9 @@
     }
     if (typeof render !== 'function' || typeof buildReceipt !== 'function') {
       throw controllerError('tier_run_callbacks_invalid', 'Tier run controller requires render and receipt callbacks');
+    }
+    if (typeof yieldControl !== 'function') {
+      throw controllerError('tier_run_yield_invalid', 'Tier run controller yield control must be a function');
     }
     let state = 'idle';
     let timerId = null;
@@ -308,6 +313,10 @@
           stepCount += 1;
           scenarioResult = await dispatchScenario({ phase: 'step' });
           if (generation !== runGeneration) return snapshot();
+          if (stepCount < targetStep && stepCount % RECONSTRUCTION_STEPS_PER_YIELD === 0) {
+            await yieldControl();
+            if (generation !== runGeneration) return snapshot();
+          }
         }
         render();
         state = 'paused';
@@ -639,6 +648,10 @@
   function clearStoredReceipt(storage, profileId) {
     if (!storage || typeof storage.removeItem !== 'function') return;
     storage.removeItem(storageKey(profileId));
+  }
+
+  function defaultYieldControl() {
+    return new Promise((resolve) => globalThis.setTimeout(resolve, 0));
   }
 
   function controllerError(code, message, evidence = null) {

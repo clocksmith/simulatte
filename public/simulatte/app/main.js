@@ -401,7 +401,15 @@
               receipt.comparisonExecutionReceipts
                 || (receipt.comparisonExecutionReceipt ? [receipt.comparisonExecutionReceipt] : [])
             );
-            pluginPlaybackApi.saveStoredReceipt(playbackStorage, data.applicationProfile.id, receipt);
+            const persisted = pluginPlaybackApi.saveStoredReceipt(
+              playbackStorage,
+              data.applicationProfile.id,
+              receipt
+            );
+            if (!persisted) log.warn('plugin.playback.persistence.skipped', {
+              profileId: data.applicationProfile.id,
+              reason: 'browser_storage_unavailable',
+            });
           },
           onError: (error) => failRuntime(elements, error),
         });
@@ -601,6 +609,7 @@
       try {
         pluginPlaybackApi.clearStoredReceipt(playbackStorage, data.applicationProfile.id);
         hostRoot.__simulattePluginRunReceipt = null;
+        pluginUi.resetValues();
         if (pluginPlayback) await pluginPlayback.reset(nextScenario);
         else await extensions.setScenario(nextScenario);
         activeScenario = nextScenario;

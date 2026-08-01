@@ -536,9 +536,14 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
     values.set(camera.viewProjection, 0);
     values.set([...camera.eye, 1], 16);
     values.set(directionToSun.map((value) => -value).concat(0), 20);
-    values.set([0.008, 0.025, 0.05, 0.00013], 24);
+    values.set([0.008, 0.025, 0.05, fogDensityForEye(camera.eye)], 24);
     values.set([seconds, canvas.width, canvas.height, 0], 28);
     device.queue.writeBuffer(buffer, 0, values);
+  }
+
+  function fogDensityForEye(eye) {
+    const altitude = Math.max(1, Math.abs(Number(eye?.[1] || 0)));
+    return Math.min(0.00013, 0.22 / altitude);
   }
 
   function installCameraControls(canvas, state, camera, onInteraction) {
@@ -645,5 +650,5 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
     return error;
   }
 
-  return { MINIMAP_RADIUS_M, SHADER, cameraForMinimap, createCanvasRenderer, readAdapterInfo, rendererError, resolveCameraController, resolvedSimulationTimeSeconds, snapshotAtRenderTime };
+  return { MINIMAP_RADIUS_M, SHADER, cameraForMinimap, createCanvasRenderer, fogDensityForEye, readAdapterInfo, rendererError, resolveCameraController, resolvedSimulationTimeSeconds, snapshotAtRenderTime };
 });

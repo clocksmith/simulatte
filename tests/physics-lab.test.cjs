@@ -1640,6 +1640,7 @@ test('Phase 3 keeps known visual identities local and model-ranks unresolved con
     const visualSlot = result.slotRetrieval.bySlot.find((row) => row.slotRole === 'visual');
 
     assert.equal(result.slotRetrieval.schema, 'simulatte.phase3SlotRetrieval.v1');
+    assert.equal(result.sourcePromptHash, queryPlan.sourcePromptHash);
     assert.ok(universeLoadReceipt.loadedIndexNames.includes('shapes'));
     assert.ok(universeLoadReceipt.loadedIndexNames.includes('analogs'));
     assert.equal(universeLoadReceipt.loadedIndexNames.includes('synonyms'), false);

@@ -45,6 +45,7 @@ function memoryStorage() {
 
 function fakeRuntime({
   progressive = true,
+  totalSteps = 2,
   dispatchedValues = [],
   terminalStatus = 'settled',
   comparisonIds = ['fixture-comparison'],
@@ -84,14 +85,14 @@ function fakeRuntime({
       };
       if (context.values.phase === 'start') {
         step = 0;
-        return { status: 'running', step, currentStep: 0, totalSteps: 2 };
+        return { status: 'running', step, currentStep: 0, totalSteps };
       }
       step += 1;
       return {
-        status: step === 2 ? terminalStatus : 'running',
+        status: step === totalSteps ? terminalStatus : 'running',
         step,
         currentStep: step,
-        totalSteps: 2,
+        totalSteps,
       };
     },
     platformV4() {
@@ -132,6 +133,7 @@ function create(runtime, storage, states, receipts, controlValues = {}, options 
     storage,
     setTimer: options.setTimer || (() => 1),
     clearTimer() {},
+    yieldControl: options.yieldControl,
   });
 }
 
@@ -505,6 +507,22 @@ test('tier controller seek clamps stale targets and commits terminal preview exp
   await controller.resume();
   assert.equal(controller.snapshot().state, 'settled');
   assert.equal(receipts.length, 1);
+});
+
+test('tier controller yields between bounded reconstruction batches', async () => {
+  let yieldCount = 0;
+  const controller = create(
+    fakeRuntime({ totalSteps: 10 }),
+    memoryStorage(),
+    [],
+    [],
+    {},
+    { yieldControl: async () => { yieldCount += 1; } }
+  );
+  await controller.start();
+  const preview = await controller.seek(99);
+  assert.equal(preview.currentStep, 10);
+  assert.equal(yieldCount, 2);
 });
 
 test('tier controller commits a terminal preview only once under concurrent steps', async () => {

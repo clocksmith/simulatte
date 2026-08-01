@@ -11,11 +11,13 @@ const plugin = require(join(PLUGIN_DIRECTORY, 'index.js'));
 const model = require(join(PLUGIN_DIRECTORY, 'forecast-model.js'));
 const comparisonApi = require(join(PLUGIN_DIRECTORY, 'comparison-driver.js'));
 const v4Api = require(join(PLUGIN_DIRECTORY, 'v4-contribution.js'));
+const surfaceApi = require(join(PLUGIN_DIRECTORY, 'price-surface.js'));
 const config = json(join(PLUGIN_DIRECTORY, 'default-config.json'));
 const manifest = json(join(PLUGIN_DIRECTORY, 'plugin.json'));
 const profile = json(join(ROOT, 'public/data/application-profiles/nyc-development-atlas-v1.json'));
 const index = json(join(DATA_DIRECTORY, 'region-index-v1.json'));
 const governance = json(join(DATA_DIRECTORY, 'model-governance-v1.json'));
+const surface = json(join(DATA_DIRECTORY, 'city-surface-v1.json'));
 const compileReceipt = json(join(DATA_DIRECTORY, 'compile-receipt-v1.json'));
 const sourceDirectory = join(
   ROOT,
@@ -38,7 +40,7 @@ const baseParameters = Object.freeze({
   affordableHousingSharePct: 30,
 });
 
-test('source receipt and 263 compiler outputs bind every governed byte', () => {
+test('source receipt and 264 compiler outputs bind every governed byte', () => {
   assert.equal(sourceReceipt.files.length, 15);
   for (const row of sourceReceipt.files) {
     const bytes = readFileSync(join(sourceDirectory, row.output));
@@ -47,9 +49,11 @@ test('source receipt and 263 compiler outputs bind every governed byte', () => {
   }
   assert.equal(index.regions.length, 262);
   assert.equal(index.shards.length, 262);
-  assert.equal(compileReceipt.outputs.length, 263);
+  assert.equal(compileReceipt.outputs.length, 264);
   assert.deepEqual(compileReceipt.accepted, {
     capacitySites: 22368,
+    citySurfaceRegions: 262,
+    citySurfaceSaleRows: 5749,
     developmentSeries: 4384,
     historicalSites: 14536,
     regionShards: 262,
@@ -61,6 +65,19 @@ test('source receipt and 263 compiler outputs bind every governed byte', () => {
     assert.equal(bytes.length, output.byteCount, output.path);
     assert.equal(sha256(bytes), output.sha256, output.path);
   }
+});
+
+test('city surface binds every neighborhood polygon and annual sale aggregate', () => {
+  assert.equal(surface.schema, 'simulatte.nycRealEstateCitySurface.v1');
+  assert.equal(plugin.validateCitySurface(surface), surface);
+  assert.equal(surface.regions.length, 262);
+  assert.equal(surface.regions.reduce((sum, row) => sum + row.saleSeries.length, 0), 5749);
+  assert.ok(surface.regions.every((row) => (
+    row.polygon.length >= 4
+    && row.polygon[0][0] === row.polygon.at(-1)[0]
+    && row.polygon[0][1] === row.polygon.at(-1)[1]
+  )));
+  assert.match(surface.claimBoundary, /no forecast values/i);
 });
 
 test('all region shards are declared, hash-pinned, uncapped, and structurally valid', () => {
@@ -165,6 +182,25 @@ test('baseline and intervention share exact exogenous draws and calibration fail
   assert.equal(first.conservation.unitsConserved, true);
 });
 
+test('city price surface is deterministic, uses one shared domain, and refuses sparse regions', () => {
+  const first = surfaceFor(baseParameters);
+  const second = surfaceFor(baseParameters);
+  assert.deepEqual(first, second);
+  const observed = first.years.find((row) => row.year === 2025);
+  const missing = first.years.find((row) => row.year === 2026);
+  const forecast = first.years.find((row) => row.year === 2035);
+  assert.equal(observed.regions.length, 262);
+  assert.ok(observed.availableRegionCount > 0);
+  assert.ok(observed.domainUsd[0] < observed.domainUsd[1]);
+  assert.equal(missing.availableRegionCount, 0);
+  assert.ok(missing.regions.every((row) => row.status === 'missing-governed-current-price'));
+  assert.ok(forecast.regions.some((row) => row.status === 'scenario-forecast'));
+  assert.ok(forecast.regions.some((row) => row.status === 'refused-insufficient-price-history'));
+  assert.ok(forecast.regions.filter((row) => row.status.startsWith('refused')).every((row) => (
+    row.p10Usd === null && row.p50Usd === null && row.p90Usd === null
+  )));
+});
+
 test('shared comparison executes branches in lockstep with closed evidence', async () => {
   const result = run(baseParameters);
   const comparison = await comparisonApi.runComparison({
@@ -186,7 +222,7 @@ test('shared comparison executes branches in lockstep with closed evidence', asy
   );
 });
 
-test('V4 has dynamic controls, complete object inspections, milestone focus, and compare layers', async () => {
+test('V4 has dynamic controls, complete inspections, citywide overview, and compare layers', async () => {
   const result = run(baseParameters);
   const shard = shardFor('BK0101');
   const datasets = datasetBundle(shard);
@@ -195,18 +231,22 @@ test('V4 has dynamic controls, complete object inspections, milestone focus, and
     datasets,
     dataReceipts: datasets.dataReceipts,
     result,
+    priceSurface: surfaceFor(baseParameters),
     snapshot: storySnapshot,
   });
-  assert.equal(story.presentation.viewIntents[0].mode, 'follow');
-  assert.deepEqual(story.presentation.viewIntents[0].targetIds, [
-    storySnapshot.storyFocus.targetLayerId,
-  ]);
+  assert.equal(story.presentation.viewIntents[0].mode, 'overview');
+  assert.equal(story.presentation.viewIntents[0].targetIds.length, 262);
   assert.equal(story.controls.controls.length, 10);
   const visibleBuildingIds = story.presentation.layers
     .filter((row) => row.id.startsWith('historical:') || row.id.startsWith('future:'))
     .map((row) => row.id);
   const inspectedIds = new Set(story.inspections.flatMap((row) => row.targetIds));
   visibleBuildingIds.forEach((id) => assert.ok(inspectedIds.has(id), id));
+  const surfaceIds = story.presentation.layers
+    .filter((row) => row.id.startsWith('price-surface:'))
+    .map((row) => row.id);
+  assert.equal(surfaceIds.length, 262);
+  surfaceIds.forEach((id) => assert.ok(inspectedIds.has(id), id));
 
   const comparison = await comparisonApi.runComparison({
     result,
@@ -216,10 +256,12 @@ test('V4 has dynamic controls, complete object inspections, milestone focus, and
     datasets,
     dataReceipts: datasets.dataReceipts,
     result,
+    priceSurface: surfaceFor(baseParameters),
     snapshot: result.snapshots.at(-1),
     comparison,
   });
-  assert.equal(terminal.presentation.viewIntents[0].mode, 'compare');
+  assert.equal(terminal.presentation.viewIntents[0].mode, 'overview');
+  assert.equal(terminal.presentation.viewIntents[0].targetIds.length, 262);
   assert.ok(terminal.presentation.layers.some((row) => row.id === 'comparison:baseline:region'));
   assert.ok(terminal.presentation.layers.some((row) => row.id === 'comparison:intervention:region'));
   assert.ok(terminal.presentation.layers.filter((row) => row.role === 'comparison').length > 2);
@@ -230,6 +272,7 @@ test('V4 has dynamic controls, complete object inspections, milestone focus, and
     datasets: datasetBundle(class4Shard),
     dataReceipts: receiptsFor('MN0201'),
     result: class4,
+    priceSurface: surfaceFor({ ...baseParameters, sectorId: 'tax-class-4', regionId: 'MN0201' }),
     snapshot: class4.snapshots.at(-1),
   });
   assert.equal(class4Contribution.controls.controls.length, 9);
@@ -254,7 +297,7 @@ test('plugin lazily loads one selected shard, compares, settles, and replays', a
   assert.equal(comparison.status, 'settled');
   assert.ok(comparison.comparisonBranches.baseline);
   assert.ok(harness.receipts.some((row) => row.schema === 'simulatte.comparisonExecutionReceipt.v4'));
-  assert.equal(instance.contributeV4().presentation.viewIntents[0].mode, 'compare');
+  assert.equal(instance.contributeV4().presentation.viewIntents[0].mode, 'overview');
   let playback = started;
   while (playback.status === 'running') {
     playback = await instance.handleAction('scenario.run', { values: { phase: 'step' } });
@@ -268,11 +311,37 @@ test('plugin lazily loads one selected shard, compares, settles, and replays', a
   assert.deepEqual(replayed, started);
 });
 
+test('scenario selection applies its own region and policy defaults', async () => {
+  const harness = createSdkHarness();
+  const initialScenario = profile.seeds[0];
+  const nextScenario = profile.seeds[1];
+  const instance = await plugin.activate({
+    sdk: harness.sdk,
+    config,
+    profile,
+    scenario: initialScenario,
+  });
+
+  await instance.setScenario(nextScenario);
+  const contribution = instance.contributeV4();
+  assert.equal(contribution.presentation.viewIntents[0].mode, 'overview');
+  const started = await instance.handleAction('scenario.run', {
+    scenario: nextScenario,
+    values: { phase: 'start' },
+  });
+
+  assert.equal(started.acceptedParameters.regionId, 'QN0201');
+  assert.equal(started.acceptedParameters.policyId, 'zoning-capacity-expansion');
+  assert.equal(started.acceptedParameters.zoningCapacityMultiplier, 1.35);
+  assert.deepEqual(harness.shardLoads, ['BK0101', 'QN0201']);
+});
+
 test('model hashes bind every executable model and governance artifact', () => {
   assert.equal(v4Api.MODEL_HASHES.forecast, fileHash('forecast-model.js'));
   assert.equal(v4Api.MODEL_HASHES.statistics, fileHash('forecast-statistics.js'));
   assert.equal(v4Api.MODEL_HASHES.sector, fileHash('sector-model.js'));
   assert.equal(v4Api.MODEL_HASHES.comparison, fileHash('comparison-driver.js'));
+  assert.equal(v4Api.MODEL_HASHES.priceSurface, fileHash('price-surface.js'));
   assert.equal(
     v4Api.MODEL_HASHES.governance,
     sha256(readFileSync(join(DATA_DIRECTORY, 'model-governance-v1.json')))
@@ -282,6 +351,10 @@ test('model hashes bind every executable model and governance artifact', () => {
 function run(parameters) {
   const shard = shardFor(parameters.regionId);
   return model.runScenario({ index, shard, governance, parameters });
+}
+
+function surfaceFor(parameters) {
+  return surfaceApi.runSurface({ surface, governance, parameters });
 }
 
 function shardFor(regionId) {
@@ -294,6 +367,7 @@ function datasetBundle(shard) {
     index,
     shard,
     governance,
+    surface,
     shardReceipt: dataReceipts.at(-1),
     dataReceipts,
   });

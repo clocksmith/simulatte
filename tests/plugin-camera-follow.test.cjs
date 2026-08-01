@@ -93,6 +93,21 @@ test('overview, free, and compare retain distinct camera modes and framing', () 
   assert.notDeepEqual(free.eye, overview.eye);
 });
 
+test('wide plugin overviews expand the far plane to keep their evidence visible', () => {
+  const state = cameraState();
+  state.mode = 'overview';
+  state.distance = 30000;
+  const pose = camera.advanceCamera(state, snapshot, worldModel, 1.5, 0);
+  assert.equal(pose.far, 75000);
+  assert.ok(pose.far > state.distance);
+});
+
+test('wide overview altitude reduces fog without changing the near-view ceiling', () => {
+  assert.equal(webgpuRenderer.fogDensityForEye([0, 1000, 0]), 0.00013);
+  assert.ok(webgpuRenderer.fogDensityForEye([0, 50000, 0]) < 0.000005);
+  assert.ok(webgpuRenderer.fogDensityForEye([0, 50000, 0]) > 0);
+});
+
 test('City camera buttons send the exact advertised modes and select semantic targets', () => {
   const previousDocument = global.document;
   const node = () => ({

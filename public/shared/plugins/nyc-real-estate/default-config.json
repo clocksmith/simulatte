@@ -4,7 +4,7 @@
   "defaultScenarioId": "greenpoint-history-and-growth",
   "defaultRegionId": "BK0101",
   "defaultSectorId": "tax-class-2",
-  "historicalStartYear": 2010,
+  "historicalStartYear": 2016,
   "forecastEndYear": 2035,
   "policyId": "business-as-usual",
   "financingRatePct": 5.5,

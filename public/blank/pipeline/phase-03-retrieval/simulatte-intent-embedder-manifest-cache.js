@@ -244,6 +244,8 @@
 
         async rankPrompt(prompt, primitives, options = {}) {
           const promptText = String(prompt || '').trim();
+          const sourcePromptHash = String(options.queryPlan && options.queryPlan.sourcePromptHash
+            || options.sceneLanguageGraph && options.sceneLanguageGraph.sourcePromptHash || '');
           const progress = scope.progressHandler(options, this.onProgress);
           const trace = this.traceEnabled || scope.traceEnabled(options);
           const rankId = ++this.rankSerial;
@@ -390,6 +392,7 @@
             dopplerIntent: null,
           });
           scope.emitIntentPreview(options, {
+            sourcePromptHash,
             model: scope.modelSummary(runtime, query, provider),
             backend: provider.backend || 'doppler-embedding',
             rankBackend: gpuScores ? 'webgpu' : 'cpu',
@@ -472,6 +475,7 @@
             durationMs: scope.elapsedMsSince(rankStarted),
           });
           return {
+            sourcePromptHash,
             model: scope.modelSummary(runtime, query, provider),
             backend: provider.backend || 'doppler-embedding',
             rankBackend: gpuScores ? 'webgpu' : 'cpu',

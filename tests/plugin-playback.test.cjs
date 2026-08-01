@@ -270,12 +270,48 @@ test('plugin playback receipt storage is profile-scoped and recoverable', () => 
     removeItem: (key) => values.delete(key),
   };
   const receipt = { schema: 'simulatte.pluginPlaybackRunReceipt.v1', ownerPluginId: 'fixture' };
-  playbackApi.saveStoredReceipt(storage, 'profile-a', receipt);
+  assert.equal(playbackApi.saveStoredReceipt(storage, 'profile-a', receipt), true);
   assert.deepEqual(playbackApi.loadStoredReceipt(storage, 'profile-a'), receipt);
   assert.equal(playbackApi.loadStoredReceipt(storage, 'profile-b'), null);
   playbackApi.clearStoredReceipt(storage, 'profile-a');
   assert.equal(playbackApi.loadStoredReceipt(storage, 'profile-a'), null);
   assert.equal(playbackApi.browserStorage({ sessionStorage: storage }), storage);
+});
+
+test('plugin playback stores only evidence required for deterministic reconstruction', () => {
+  const values = new Map();
+  const storage = {
+    getItem: (key) => values.get(key) || null,
+    setItem: (key, value) => values.set(key, value),
+    removeItem: (key) => values.delete(key),
+  };
+  const receipt = {
+    schema: 'simulatte.pluginPlaybackRunReceipt.v1',
+    ownerPluginId: 'fixture',
+    runtime: { events: Array.from({ length: 1000 }, (_, index) => ({ index })) },
+    comparisonExecutionReceipt: { id: 'comparison-a' },
+    comparisonExecutionReceipts: [{ id: 'comparison-a' }],
+  };
+
+  assert.equal(playbackApi.saveStoredReceipt(storage, 'profile-a', receipt), true);
+  assert.deepEqual(playbackApi.loadStoredReceipt(storage, 'profile-a'), {
+    schema: receipt.schema,
+    ownerPluginId: 'fixture',
+    comparisonExecutionReceipts: [{ id: 'comparison-a' }],
+  });
+  assert.ok(receipt.runtime.events.length === 1000, 'the in-memory evidence remains complete');
+});
+
+test('plugin playback storage exhaustion does not fail a completed run', () => {
+  const storage = {
+    getItem: () => null,
+    setItem() { throw new Error('quota exceeded'); },
+    removeItem() {},
+  };
+
+  assert.equal(playbackApi.saveStoredReceipt(storage, 'profile-a', {
+    schema: 'simulatte.pluginPlaybackRunReceipt.v1',
+  }), false);
 });
 
 test('plugin playback sends typed experiment parameters on every phase and receipts them', async () => {

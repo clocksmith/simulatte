@@ -237,6 +237,39 @@ function browserProbeExpression(run, seedIndex) {
       }
     };
     await waitFor(() => document.body?.dataset.journeyPhase === 'ready', 'ready');
+    const frameTimes = [];
+    let frameSamplerActive = true;
+    let frameSamplerId = 0;
+    const sampleFrame = (atMs) => {
+      if (!frameSamplerActive) return;
+      if (frameTimes.length < 8192) frameTimes.push(atMs);
+      frameSamplerId = requestAnimationFrame(sampleFrame);
+    };
+    frameSamplerId = requestAnimationFrame(sampleFrame);
+    const memorySamples = [];
+    const sampleMemory = () => {
+      const memory = performance.memory;
+      if (!memory) return;
+      const usedJsHeapBytes = Number(memory.usedJSHeapSize);
+      const totalJsHeapBytes = Number(memory.totalJSHeapSize);
+      if (Number.isFinite(usedJsHeapBytes) && Number.isFinite(totalJsHeapBytes)) {
+        memorySamples.push({ atMs: performance.now(), usedJsHeapBytes, totalJsHeapBytes });
+      }
+    };
+    sampleMemory();
+    const memorySamplerId = setInterval(sampleMemory, 25);
+    const readyFrameCount = Number(document.getElementById('autonomy-canvas')?.dataset.frameCount || 0);
+    let firstMeaningfulFrame = null;
+    const servedVersionResponse = await fetch('/version.json', { cache: 'no-store' });
+    if (!servedVersionResponse.ok) throw new Error('profile evidence served build identity unavailable');
+    const servedVersion = await servedVersionResponse.json();
+    const deployment = {
+      status: typeof servedVersion?.build === 'string' && servedVersion.build ? 'pass' : 'fail',
+      servedBuildId: servedVersion?.build || null,
+      pageUrl: location.href,
+      route: location.pathname,
+      versionUrl: new URL('/version.json', location.href).toString(),
+    };
     const expectedSeed = ${JSON.stringify(run.seed)};
     const seedText = () => document.getElementById('scenario-seed')?.textContent || '';
     for (let index = 0; index < ${seedIndex}; index += 1) {
@@ -269,7 +302,57 @@ function browserProbeExpression(run, seedIndex) {
       tick: Number(document.getElementById('metric-tick')?.textContent || 0),
       atMs: performance.now(),
     }];
+    const commitTimelineTerminal = async (label, recordLifecycle = false) => {
+      const timeline = document.getElementById('playback-timeline');
+      await waitFor(
+        () => timeline
+          && !timeline.hidden
+          && Number.isInteger(Number(timeline.max))
+          && Number(timeline.max) > 0,
+        label + '-timeline-ready',
+        10000
+      );
+      timeline.value = timeline.max;
+      timeline.dispatchEvent(new Event('change', { bubbles: true }));
+      await waitFor(
+        () => document.body.dataset.journeyPhase === 'completed'
+          || ((document.getElementById('runtime-status')?.textContent || '').includes('End preview')
+            && Number(timeline.value) === Number(timeline.max)),
+        label + '-terminal-preview',
+        45000
+      );
+      if (recordLifecycle) lifecycle.push('seek', 'terminal-preview');
+      if (document.body.dataset.journeyPhase !== 'completed') {
+        const commit = document.getElementById('resume-button');
+        if (!commit || commit.hidden || commit.disabled) {
+          throw new Error('profile evidence terminal commit control unavailable at ' + label);
+        }
+        commit.click();
+        if (recordLifecycle) lifecycle.push('terminal-commit');
+      }
+      await waitFor(() => document.body.dataset.journeyPhase === 'completed', label + '-terminal-commit', 45000);
+    };
     document.getElementById('start-button').click();
+    await waitFor(() => {
+      const canvas = document.getElementById('autonomy-canvas');
+      const platform = globalThis.__simulattePluginPlatformV4;
+      const renderAdvanced = ${JSON.stringify(run.tier === 'city')}
+        ? Number(canvas?.dataset.frameCount || 0) > readyFrameCount
+        : document.body.dataset.journeyPhase !== 'ready';
+      return renderAdvanced && Array.isArray(platform?.contributions) && platform.contributions.length > 0;
+    }, 'first-meaningful-frame');
+    firstMeaningfulFrame = {
+      status: 'pass',
+      atMs: performance.now(),
+      frameCount: ${JSON.stringify(run.tier === 'city')}
+        ? Number(document.getElementById('autonomy-canvas')?.dataset.frameCount || 0)
+        : frameTimes.length,
+      renderSignal: ${JSON.stringify(run.tier === 'city')} ? 'city-canvas-frame' : 'tier-run-phase-frame',
+      contributionCount: globalThis.__simulattePluginPlatformV4?.contributions?.length || 0,
+      semanticLayerCount: (globalThis.__simulattePluginPlatformV4?.contributions || [])
+        .reduce((sum, row) => sum + (row?.presentation?.layers?.length || 0), 0),
+      compositorReceiptCount: globalThis.__simulattePluginPlatformV4?.compositor?.length || 0,
+    };
     const pause = document.getElementById('pause-button');
     if (pause && !pause.hidden && !pause.disabled) {
       await new Promise((resolve) => setTimeout(resolve, 25));
@@ -304,6 +387,9 @@ function browserProbeExpression(run, seedIndex) {
         if (!lifecycle.includes('resume')) lifecycle.push('resume');
       }
     }
+    const hasProgressiveTimeline = !document.getElementById('playback-timeline-control')?.hidden
+      && Number(document.getElementById('playback-timeline')?.max || 0) > 0;
+    if (hasProgressiveTimeline) await commitTimelineTerminal('settlement', true);
     const started = performance.now();
     while (!['completed', 'failed'].includes(document.body.dataset.journeyPhase)) {
       progressiveStates.push({
@@ -326,11 +412,51 @@ function browserProbeExpression(run, seedIndex) {
       tick: Number(document.getElementById('metric-tick')?.textContent || 0),
       atMs: performance.now(),
     });
+    const canonicalize = (value) => {
+      if (Array.isArray(value)) return value.map(canonicalize);
+      if (!value || typeof value !== 'object') return value;
+      return Object.fromEntries(Object.keys(value).sort().map((key) => [key, canonicalize(value[key])]));
+    };
+    const sha256Value = async (value) => {
+      const bytes = new TextEncoder().encode(JSON.stringify(canonicalize(value)));
+      const digest = await crypto.subtle.digest('SHA-256', bytes);
+      return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
+    };
+    const currentRunReceipt = () => globalThis.__simulatteTierRunReceipt
+      || globalThis.__simulattePluginRunReceipt
+      || null;
+    const replayIdentity = (receipt) => receipt?.schema === 'simulatte.pluginPlaybackRunReceipt.v1'
+      ? {
+          schema: receipt.schema,
+          ownerPluginId: receipt.ownerPluginId,
+          scenario: receipt.scenario,
+          parameterValues: receipt.parameterValues,
+          interventions: receipt.interventions,
+          actionResult: receipt.actionResult,
+          settlements: receipt.settlements,
+          comparisonExecutionReceipts: receipt.comparisonExecutionReceipts,
+          clock: receipt.clock,
+        }
+      : {
+          schema: receipt?.schema,
+          tier: receipt?.tier,
+          profileId: receipt?.profileId,
+          scenario: receipt?.scenario,
+          parameterValues: receipt?.parameterValues,
+          actionResult: receipt?.actionResult,
+          settlement: receipt?.settlement,
+        };
+    const replayBeforeSha256 = await sha256Value(replayIdentity(currentRunReceipt()));
+    let replayAfterSha256 = null;
     const replay = document.getElementById('replay-button');
     if (replay && !replay.hidden && !replay.disabled) {
       replay.click();
       await waitFor(() => document.body.dataset.journeyPhase !== 'completed', 'replay-started');
-      await waitFor(() => document.body.dataset.journeyPhase === 'completed', 'replay');
+      const replayHasTimeline = !document.getElementById('playback-timeline-control')?.hidden
+        && Number(document.getElementById('playback-timeline')?.max || 0) > 0;
+      if (replayHasTimeline) await commitTimelineTerminal('replay');
+      else await waitFor(() => document.body.dataset.journeyPhase === 'completed', 'replay');
+      replayAfterSha256 = await sha256Value(replayIdentity(currentRunReceipt()));
       lifecycle.push('replay');
     }
     await waitFor(() => {
@@ -423,6 +549,21 @@ function browserProbeExpression(run, seedIndex) {
     const expectedFocusId = ${JSON.stringify(run.tier === 'city')} && sourceIntentId && ['overview', 'compare'].includes(viewDecision.mode)
       ? 'plugin:' + viewDecision.source + ':' + sourceIntentId
       : null;
+    frameSamplerActive = false;
+    cancelAnimationFrame(frameSamplerId);
+    clearInterval(memorySamplerId);
+    sampleMemory();
+    const frameIntervals = frameTimes.slice(1).map((value, index) => value - frameTimes[index]);
+    const sortedFrameIntervals = [...frameIntervals].sort((left, right) => left - right);
+    const percentile = (values, fraction) => values.length
+      ? values[Math.min(values.length - 1, Math.floor((values.length - 1) * fraction))]
+      : null;
+    const usedHeapValues = memorySamples.map((row) => row.usedJsHeapBytes);
+    const interactionCoverage = {
+      expected: ${JSON.stringify(run.interactionPath)},
+      observed: lifecycle,
+      missing: ${JSON.stringify(run.interactionPath)}.filter((step) => !lifecycle.includes(step)),
+    };
     return {
       runtime: {
         path: native ? 'native-v4' : contributionSources.some((row) => row.source === 'legacy-adapter') ? 'legacy-adapter' : 'unproven-v4',
@@ -441,6 +582,14 @@ function browserProbeExpression(run, seedIndex) {
         progressiveStates,
         comparisons,
         settlements,
+        replay: {
+          attempted: Boolean(replay),
+          beforeSha256: replayBeforeSha256,
+          afterSha256: replayAfterSha256,
+          deterministic: Boolean(replayAfterSha256 && replayAfterSha256 === replayBeforeSha256),
+        },
+        deployment,
+        interactionCoverage,
         reload: null,
         lifecycle,
         visual: {
@@ -468,6 +617,23 @@ function browserProbeExpression(run, seedIndex) {
         performance: {
           frameCount: Number(document.getElementById('autonomy-canvas')?.dataset.frameCount || progressiveStates.length),
           elapsedMs: performance.now() - started,
+          firstMeaningfulFrame,
+          framePacing: {
+            status: frameIntervals.length > 1 ? 'pass' : 'fail',
+            sampleCount: frameIntervals.length,
+            p50Ms: percentile(sortedFrameIntervals, 0.5),
+            p95Ms: percentile(sortedFrameIntervals, 0.95),
+            maxMs: sortedFrameIntervals.at(-1) ?? null,
+            over50MsCount: frameIntervals.filter((value) => value > 50).length,
+          },
+          memory: {
+            status: usedHeapValues.length ? 'pass' : 'fail',
+            sampleCount: usedHeapValues.length,
+            initialUsedJsHeapBytes: usedHeapValues[0] ?? null,
+            finalUsedJsHeapBytes: usedHeapValues.at(-1) ?? null,
+            peakUsedJsHeapBytes: usedHeapValues.length ? Math.max(...usedHeapValues) : null,
+            finalTotalJsHeapBytes: memorySamples.at(-1)?.totalJsHeapBytes ?? null,
+          },
         },
       },
       integrity: {
@@ -484,6 +650,7 @@ async function captureBrowserRun({ chromePath, baseUrl, run, sourceIdentity, cla
   const chrome = spawn(chromePath, [
     '--headless=new',
     '--enable-unsafe-webgpu',
+    '--enable-precise-memory-info',
     '--disable-background-networking',
     '--no-first-run',
     '--no-default-browser-check',
@@ -595,12 +762,20 @@ async function captureBrowserRun({ chromePath, baseUrl, run, sourceIdentity, cla
       captured.integrity.status = 'contradictory';
       captured.integrity.contradictions.push(reload.result.value.reason);
     }
+    captured.evidence.interactionCoverage = {
+      expected: run.interactionPath,
+      observed: captured.evidence.lifecycle,
+      missing: run.interactionPath.filter((step) => !captured.evidence.lifecycle.includes(step)),
+    };
     captured.evidence.console = consoleRows;
     captured.evidence.consoleErrors = consoleErrors;
     captured.evidence.screenshot = {
       sha256: screenshotSha256,
       path: path.relative(outputDirectory, screenshotPath),
       byteLength: screenshot.length,
+      buildId: sourceIdentity.build.buildId,
+      servedBuildId: captured.evidence.deployment?.servedBuildId || null,
+      pageUrl: captured.evidence.deployment?.pageUrl || null,
     };
     captured.evidence.pixelReadback = { ...inspectPng(screenshot), sha256: screenshotSha256 };
     return {
@@ -613,6 +788,7 @@ async function captureBrowserRun({ chromePath, baseUrl, run, sourceIdentity, cla
         seed: run.seed,
         viewportId: run.viewport.id,
         interactionPath: run.interactionPath,
+        comparisonMode: run.comparisonMode,
       },
       sourceIdentity,
       browser: {

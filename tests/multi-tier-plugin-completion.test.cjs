@@ -191,6 +191,29 @@ test('settlement, capability, and reducer boundaries fail closed', () => {
   assert.throws(() => host.propose('fixture', { pluginId: 'fixture', kind: 'fixture.invalid-state' }), /plugin_reducer_state_invalid/);
 });
 
+test('plugin state reducers retain unchanged immutable simulation subtrees', () => {
+  const source = { snapshots: Array.from({ length: 100 }, (_, index) => ({ index })) };
+  const host = stateHostApi.createPluginStateHost(['fixture']);
+  host.register('fixture', (state, event) => ({
+    ...state,
+    cursor: event.cursor,
+  }), { result: source, cursor: 0 });
+  source.snapshots[0].index = -1;
+  const before = host.read('fixture');
+
+  host.propose('fixture', {
+    pluginId: 'fixture',
+    kind: 'fixture.advanced',
+    cursor: 1,
+  });
+  const after = host.read('fixture');
+
+  assert.equal(before.result.snapshots[0].index, 0, 'registration clones external state');
+  assert.equal(after.cursor, 1);
+  assert.strictEqual(after.result, before.result, 'unchanged frozen result is retained');
+  assert.equal(Object.isFrozen(after), true);
+});
+
 test('tier presentation compiler namespaces coordinate-native output', () => {
   const rows = tierPresentation.compileContributions([{ pluginId: 'fixture', presentation: {
     schema: 'simulatte.pluginPresentation.v3',

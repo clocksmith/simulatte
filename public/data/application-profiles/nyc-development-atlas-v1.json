@@ -11,10 +11,10 @@
     "timelineLabel": "Calendar year",
     "primaryMeasureKinds": [
       "median-sale-price",
-      "new-building-filings",
-      "completed-scenario-units",
-      "affordable-scenario-units",
-      "completed-scenario-floor-area"
+      "neighborhoods-priced",
+      "heat-scale-low",
+      "heat-scale-high",
+      "new-building-filings"
     ],
     "supportedViews": [
       "overview",
@@ -29,7 +29,7 @@
       {
         "id": "historical-market",
         "label": "Recorded market history",
-        "narrative": "Annual neighborhood sale aggregates and administrative development activity enter without inventing missing prices.",
+        "narrative": "A citywide neighborhood heatmap shows governed annual sale aggregates on one shared 5th-to-95th-percentile color scale without inventing missing prices.",
         "fromProgress": 0
       },
       {
@@ -47,7 +47,7 @@
       {
         "id": "future-pipeline",
         "label": "Development scenarios",
-        "narrative": "Financing, demand, construction cost, zoning, affordability, and policy controls determine which candidate projects start and complete.",
+        "narrative": "A 31-member conditional price-only surface spreads across governed neighborhoods while selected-region development remains a separate detailed model.",
         "fromProgress": 0.68
       },
       {

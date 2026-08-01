@@ -8,18 +8,23 @@
   const comparisonApi = typeof module === 'object' && module.exports
     ? require('./comparison-driver.js')
     : root.SimulatteNycRealEstateComparison;
-  const api = factory(model, v4Api, comparisonApi);
+  const surfaceApi = typeof module === 'object' && module.exports
+    ? require('./price-surface.js')
+    : root.SimulatteNycRealEstatePriceSurface;
+  const api = factory(model, v4Api, comparisonApi, surfaceApi);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulattePluginNycRealEstate = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createNycRealEstatePlugin(
   model,
   v4Api,
-  comparisonApi
+  comparisonApi,
+  surfaceApi
 ) {
   const PLUGIN_ID = 'nyc-real-estate';
   const DATASETS = Object.freeze({
     index: 'nyc-real-estate-region-index-2026-v1',
     governance: 'nyc-real-estate-model-governance-v1',
+    surface: 'nyc-real-estate-city-surface-2026-v1',
   });
   const SCENARIO_DEFAULTS = Object.freeze({
     'greenpoint-history-and-growth': Object.freeze({
@@ -71,7 +76,18 @@
     let acceptedParameters = validateParameters({}, selectedScenario, config, fixedDatasets);
     let datasets = await loadRegionData(sdk, fixedDatasets, acceptedParameters.regionId);
     let result = run(acceptedParameters);
-    sdk.state.register(reduce, initialState(result, acceptedParameters));
+    let priceSurface = runPriceSurface(acceptedParameters);
+    sdk.state.register((state, event) => {
+      if (event.kind === `${PLUGIN_ID}.scenario-computed`) {
+        return {
+          result,
+          acceptedParameters,
+          playback: { status: 'ready', cursor: 0 },
+          comparison: null,
+        };
+      }
+      return reduce(state, event);
+    }, initialState(result, acceptedParameters));
     appendScenarioReceipt(result, acceptedParameters);
 
     function run(parameters) {
@@ -83,14 +99,23 @@
       });
     }
 
+    function runPriceSurface(parameters) {
+      return surfaceApi.runSurface({
+        surface: datasets.surface,
+        governance: datasets.governance,
+        parameters,
+      });
+    }
+
     async function recompute(values, nextScenario) {
       acceptedParameters = validateParameters(values, nextScenario, config, fixedDatasets);
       datasets = await loadRegionData(sdk, fixedDatasets, acceptedParameters.regionId);
       result = run(acceptedParameters);
+      priceSurface = runPriceSurface(acceptedParameters);
       sdk.events.propose({
         pluginId: PLUGIN_ID,
         kind: `${PLUGIN_ID}.scenario-computed`,
-        result,
+        scenarioIdentity: result.scenarioIdentity,
         acceptedParameters,
       });
       appendScenarioReceipt(result, acceptedParameters);
@@ -112,8 +137,19 @@
     async function runPlayback(context) {
       const phase = context.values?.phase;
       if (phase === 'start') {
-        selectedScenario = normalizeScenario(context.scenario || selectedScenario, config);
-        await recompute(context.values || {}, selectedScenario);
+        const nextScenario = normalizeScenario(context.scenario || selectedScenario, config);
+        const nextParameters = validateParameters(
+          context.values || {},
+          nextScenario,
+          config,
+          fixedDatasets
+        );
+        const state = sdk.state.read();
+        const canReuseReadyResult = state.playback.status === 'ready'
+          && result.scenarioId === nextScenario.scenarioId
+          && sameParameters(acceptedParameters, nextParameters);
+        selectedScenario = nextScenario;
+        if (!canReuseReadyResult) await recompute(context.values || {}, selectedScenario);
         sdk.events.propose({
           pluginId: PLUGIN_ID,
           kind: `${PLUGIN_ID}.playback-started`,
@@ -329,7 +365,9 @@
         datasets,
         dataReceipts: datasets.dataReceipts,
         result: state.result,
+        priceSurface,
         snapshot: currentSnapshot(state),
+        playbackStatus: state.playback.status,
         comparison: state.comparison?.comparison || null,
       });
     }
@@ -409,9 +447,9 @@
       ...config,
       ...(SCENARIO_DEFAULTS[selectedScenario.scenarioId] || {}),
     };
-    const regionId = textControl(values.regionId, defaults.defaultRegionId || defaults.regionId, 'regionId');
+    const regionId = textControl(values.regionId, defaults.regionId || defaults.defaultRegionId, 'regionId');
     requireKnown(regionId, new Set(datasets.index.regions.map((row) => row.id)), 'regionId');
-    const sectorId = textControl(values.sectorId, defaults.defaultSectorId || defaults.sectorId, 'sectorId');
+    const sectorId = textControl(values.sectorId, defaults.sectorId || defaults.defaultSectorId, 'sectorId');
     requireKnown(sectorId, new Set(model.SECTOR_IDS), 'sectorId');
     const policyId = textControl(values.policyId, defaults.policyId, 'policyId');
     requireKnown(policyId, new Set(datasets.governance.policies.map((row) => row.id)), 'policyId');
@@ -444,6 +482,7 @@
     return deepFreeze({
       index: sdk.datasets.require(DATASETS.index),
       governance: sdk.datasets.require(DATASETS.governance),
+      surface: validateCitySurface(sdk.datasets.require(DATASETS.surface)),
       dataReceipts,
     });
   }
@@ -562,6 +601,22 @@
     return value;
   }
 
+  function validateCitySurface(value) {
+    if (value?.schema !== 'simulatte.nycRealEstateCitySurface.v1'
+      || value?.id !== DATASETS.surface
+      || !Array.isArray(value.regions)
+      || value.regions.length !== 262
+      || value.regions.some((row) => (
+        !row?.id
+        || !Array.isArray(row.polygon)
+        || row.polygon.length < 4
+        || !Array.isArray(row.saleSeries)
+      ))) {
+      throw pluginError('nyc_real_estate_city_surface_invalid', 'Expected 262 governed neighborhood polygons and sale series');
+    }
+    return value;
+  }
+
   function validateRegionShard(value) {
     if (value?.schema !== 'simulatte.nycRealEstateRegionShard.v1'
       || !value.region?.id
@@ -591,6 +646,7 @@
   const datasetValidators = Object.freeze({
     'simulatte.nycRealEstateRegionIndex.v1': validateRegionIndex,
     'simulatte.nycRealEstateModelGovernance.v1': validateGovernance,
+    'simulatte.nycRealEstateCitySurface.v1': validateCitySurface,
   });
 
   function textControl(value, fallback, label) {
@@ -613,6 +669,15 @@
     return selected;
   }
 
+  function sameParameters(left, right) {
+    const leftKeys = Object.keys(left).sort();
+    const rightKeys = Object.keys(right).sort();
+    return leftKeys.length === rightKeys.length
+      && leftKeys.every((key, index) => (
+        key === rightKeys[index] && Object.is(left[key], right[key])
+      ));
+  }
+
   function requireKnown(value, allowed, label) {
     if (!allowed.has(value)) {
       throw pluginError('nyc_real_estate_control_invalid', `${label} contains unknown value ${value}`);
@@ -620,7 +685,8 @@
   }
 
   function requireDependencies() {
-    if (!model?.runScenario || !v4Api?.createContribution || !comparisonApi?.runComparison) {
+    if (!model?.runScenario || !v4Api?.createContribution || !comparisonApi?.runComparison
+      || !surfaceApi?.runSurface) {
       throw pluginError('nyc_real_estate_dependency_missing', 'NYC Development Atlas runtime modules are incomplete');
     }
   }
@@ -656,6 +722,7 @@
     SCENARIO_DEFAULTS,
     activate,
     datasetValidators,
+    validateCitySurface,
     validateGovernance,
     validateRegionIndex,
     validateRegionShard,

@@ -31,24 +31,47 @@
     let selectedScenario = normalizeScenario(scenario, config);
     let acceptedParameters = validateParameters({}, selectedScenario, config, datasets);
     let result = run(acceptedParameters);
-    sdk.state.register(reduce, initialState(result, acceptedParameters));
+    sdk.state.register((state, event) => {
+      if (event.kind === `${PLUGIN_ID}.scenario-computed`) {
+        return {
+          result,
+          acceptedParameters,
+          playback: { status: 'ready', cursor: 0 },
+          comparison: null,
+        };
+      }
+      if (event.kind === `${PLUGIN_ID}.disruption-applied`) {
+        return {
+          ...state,
+          result,
+          playback: { status: 'running', cursor: event.cursor },
+          comparison: null,
+        };
+      }
+      return reduce(state, event);
+    }, initialState(result, acceptedParameters));
     appendScenarioReceipt(result, acceptedParameters);
 
     function run(parameters) {
       return solver.runScenario({ datasets, config, scenario: parameters });
     }
 
-    function setScenario(nextScenario) {
-      selectedScenario = normalizeScenario(nextScenario, config);
-      acceptedParameters = validateParameters({}, selectedScenario, config, datasets);
+    function recompute(values, nextScenario) {
+      acceptedParameters = validateParameters(values, nextScenario, config, datasets);
       result = run(acceptedParameters);
       sdk.events.propose({
         pluginId: PLUGIN_ID,
         kind: `${PLUGIN_ID}.scenario-computed`,
-        result,
+        scenarioIdentity: result.scenarioIdentity,
         acceptedParameters,
       });
       appendScenarioReceipt(result, acceptedParameters);
+      return result;
+    }
+
+    function setScenario(nextScenario) {
+      selectedScenario = normalizeScenario(nextScenario, config);
+      recompute({}, selectedScenario);
       return scenarioSummary(result);
     }
 
@@ -78,7 +101,7 @@
         pluginId: PLUGIN_ID,
         kind: `${PLUGIN_ID}.disruption-applied`,
         disruption: input,
-        result: updatedResult,
+        scenarioIdentity: updatedResult.scenarioIdentity,
         cursor: disruptionEvent?.sequence || 0,
       });
       sdk.receipts.append({
@@ -109,21 +132,19 @@
     function runPlayback(context) {
       const phase = context.values?.phase;
       if (phase === 'start') {
-        selectedScenario = normalizeScenario(context.scenario || selectedScenario, config);
-        acceptedParameters = validateParameters(context.values || {}, selectedScenario, config, datasets);
-        result = run(acceptedParameters);
-        sdk.events.propose({
-          pluginId: PLUGIN_ID,
-          kind: `${PLUGIN_ID}.scenario-computed`,
-          result,
-          acceptedParameters,
-        });
+        const nextScenario = normalizeScenario(context.scenario || selectedScenario, config);
+        const nextParameters = validateParameters(context.values || {}, nextScenario, config, datasets);
+        const state = sdk.state.read();
+        const canReuseReadyResult = state.playback.status === 'ready'
+          && result.scenarioId === nextScenario.scenarioId
+          && sameParameters(acceptedParameters, nextParameters);
+        selectedScenario = nextScenario;
+        if (!canReuseReadyResult) recompute(context.values || {}, selectedScenario);
         sdk.events.propose({
           pluginId: PLUGIN_ID,
           kind: `${PLUGIN_ID}.playback-started`,
           acceptedParameters,
         });
-        appendScenarioReceipt(result, acceptedParameters);
         return playbackResult(sdk.state.read());
       }
       if (phase === 'step') {
@@ -689,6 +710,22 @@
   function requireKnown(values, allowed, label) {
     const unknown = values.find((row) => !allowed.has(row));
     if (unknown) throw pluginError('bulk_pool_control_invalid', `${label} contains unknown value ${unknown}`);
+  }
+
+  function sameParameters(left, right) {
+    const leftKeys = Object.keys(left || {}).sort();
+    const rightKeys = Object.keys(right || {}).sort();
+    if (leftKeys.length !== rightKeys.length
+      || leftKeys.some((key, index) => key !== rightKeys[index])) return false;
+    return leftKeys.every((key) => {
+      const leftValue = left[key];
+      const rightValue = right[key];
+      if (!Array.isArray(leftValue) || !Array.isArray(rightValue)) {
+        return Object.is(leftValue, rightValue);
+      }
+      return leftValue.length === rightValue.length
+        && leftValue.every((value, index) => Object.is(value, rightValue[index]));
+    });
   }
 
   function requireDependencies() {

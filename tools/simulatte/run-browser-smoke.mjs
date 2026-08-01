@@ -1090,6 +1090,9 @@ function browserJourneyExpression(expectedRunCameraMode = 'follow', expectsPlugi
       runtimeLog: {
         eventCount: runtimeEvents.length,
         eventNames: runtimeEventNames,
+        failures: runtimeEvents
+          .filter((row) => row.level === 'error')
+          .map((row) => ({ event: row.event, details: row.details })),
         requiredEventsPresent: requiredRuntimeEvents.every((event) => runtimeEventNames.includes(event)),
         manifestMissionExampleCount: manifestEvent?.details?.missionExampleCount ?? null,
         manifestCacheMode: manifestEvent?.details?.response?.cacheMode ?? null,

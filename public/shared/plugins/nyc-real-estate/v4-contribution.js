@@ -8,14 +8,23 @@
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createNycRealEstateV4(builder) {
   const PLUGIN_ID = 'nyc-real-estate';
   const MODEL_HASHES = Object.freeze({
-    forecast: '26cd88bdde719adcfddb62570e0b11f7350f56581f5c726db759067d81c49be8',
+    forecast: '9a0b9fa35a6eb3ba081fcb17e34d271924326c67cc8624bb51b3507ac279e237',
     statistics: '9d772eb897587edf847f42c1cde23ba1569ca3f5c86975e2d679f2fde88f7051',
     sector: 'be6f30d622cde56325f163fd7c92082723928f724c46244eee588b6f53a71ec8',
     comparison: '674ea3927e2c418b7de3f190ca81d25657e6a0d9dc480cf3be41304abc1ec1cb',
+    priceSurface: '8cb13c2c6435dd58dd98d213a5a75f54201bf9b29bbdf351bff0932b152b1b68',
     governance: '4a6bc387b12322b14a58c3b9ec36ad70c81a7ff5ebd06ad4cb28ac134be3cf65',
   });
 
-  function createContribution({ datasets, dataReceipts, result, snapshot, comparison = null }) {
+  function createContribution({
+    datasets,
+    dataReceipts,
+    result,
+    priceSurface,
+    snapshot,
+    playbackStatus = 'running',
+    comparison = null,
+  }) {
     requireBuilder();
     const records = dataReceipts.map((receipt) => builder.datasetRecord(
       receipt.datasetId,
@@ -23,6 +32,10 @@
       metadataFor(receipt.datasetId, datasets)
     ));
     const recordById = new Map(records.map((row) => [row.id, row]));
+    const surfaceYear = priceSurface?.years?.find((row) => row.year === snapshot.year);
+    if (!surfaceYear || surfaceYear.regions.length !== 262) {
+      throw new Error(`nyc_real_estate_price_surface_year_missing: ${snapshot.year}`);
+    }
     const modelRecords = [
       modelRecord(
         'forecast-engine',
@@ -53,6 +66,13 @@
         'lockstep baseline and intervention execution with common exogenous draws'
       ),
       modelRecord(
+        'price-surface',
+        MODEL_HASHES.priceSurface,
+        [recordById.get('nyc-real-estate-city-surface-2026-v1'), recordById.get('nyc-real-estate-model-governance-v1')],
+        result,
+        'deterministic 31-member neighborhood price-only surface with zero development-supply effect'
+      ),
+      modelRecord(
         'model-governance',
         MODEL_HASHES.governance,
         [recordById.get('nyc-real-estate-model-governance-v1')],
@@ -81,10 +101,35 @@
         interpretation: 'Conditional scenario distribution, not an individual property appraisal.',
       },
     }, [modelRecords[0], modelRecords[1], modelRecords[2]]);
+    const surfaceObserved = provenance('observed', 'historical', {
+      kind: 'missing',
+      value: { reason: 'Annual neighborhood sale medians do not include a shared statistical error model.' },
+    }, [recordById.get('nyc-real-estate-city-surface-2026-v1')]);
+    const surfaceSimulated = provenance('simulated', 'forecast', {
+      kind: 'distribution',
+      value: {
+        ensembleSize: priceSurface.ensembleSize,
+        interval: 'p10-p90',
+        interpretation: priceSurface.claimBoundary,
+      },
+    }, [modelRecords.find((row) => row.id.endsWith(':price-surface'))]);
+    const surfaceSnapshot = provenance('observed', 'snapshot', {
+      kind: 'missing',
+      value: { reason: 'No governed 2026 neighborhood sale-price aggregate is present.' },
+    }, [recordById.get('nyc-real-estate-city-surface-2026-v1')]);
+    const surfaceUnsupported = provenance('derived', 'forecast', {
+      kind: 'missing',
+      value: { reason: 'Forecast refused because the governed neighborhood price history is insufficient.' },
+    }, [recordById.get('nyc-real-estate-city-surface-2026-v1'), modelRecords.find((row) => row.id.endsWith(':price-surface'))]);
     const layers = createLayers({
       result,
+      surfaceYear,
       snapshot,
       observed,
+      surfaceObserved,
+      surfaceSimulated,
+      surfaceSnapshot,
+      surfaceUnsupported,
       snapshotEvidence,
       modeledHistorical,
       simulated,
@@ -104,12 +149,8 @@
         : observed,
     }));
     const currentEvent = events.find((row) => row.id === snapshot.eventIds[0]) || null;
-    const primaryTargets = layers
-      .filter((row) => ['primary', 'event', 'comparison'].includes(row.role))
-      .map((row) => row.id);
-    const storyTarget = snapshot.storyFocus?.targetLayerId || null;
-    const comparisonTargets = layers
-      .filter((row) => row.role === 'comparison')
+    const surfaceTargets = layers
+      .filter((row) => row.id.startsWith('price-surface:'))
       .map((row) => row.id);
     const presentation = builder.presentation({
       pluginId: PLUGIN_ID,
@@ -119,17 +160,9 @@
       viewIntents: [
         builder.viewIntent({
           id: `nyc-development-view:${snapshot.id}`,
-          mode: comparison
-            ? 'compare'
-            : storyTarget
-              ? 'follow'
-              : 'overview',
-          targetIds: comparison
-            ? comparisonTargets
-            : storyTarget
-              ? [storyTarget]
-              : primaryTargets.length
-                ? primaryTargets
+          mode: 'overview',
+          targetIds: surfaceTargets.length
+                ? surfaceTargets
                 : ['selected-region'],
           reasonEventId: currentEvent?.id || null,
           priority: 82,
@@ -162,6 +195,14 @@
       measures: [
         builder.quantity('calendar-year', snapshot.year, 'year'),
         ...priceMeasures,
+        builder.quantity('neighborhoods-priced', surfaceYear.availableRegionCount, 'neighborhoods'),
+        builder.quantity('neighborhoods-missing-price', surfaceYear.missingRegionCount, 'neighborhoods'),
+        ...(surfaceYear.domainUsd
+          ? [
+            builder.quantity('heat-scale-low', surfaceYear.domainUsd[0], 'nominal USD'),
+            builder.quantity('heat-scale-high', surfaceYear.domainUsd[1], 'nominal USD'),
+          ]
+          : []),
         builder.quantity('new-building-filings', snapshot.metrics.filingCount, 'filings'),
         builder.quantity('active-scenario-projects', snapshot.metrics.activeProjects, 'projects'),
         ...(result.sectorProfile.capacityUnit === 'square feet'
@@ -193,8 +234,13 @@
       state: progressiveState,
       inspections: createInspections(
         result,
+        surfaceYear,
         snapshot,
         observed,
+        surfaceObserved,
+        surfaceSimulated,
+        surfaceSnapshot,
+        surfaceUnsupported,
         snapshotEvidence,
         modeledHistorical,
         simulated,
@@ -206,22 +252,48 @@
 
   function createLayers({
     result,
+    surfaceYear,
     snapshot,
     observed,
+    surfaceObserved,
+    surfaceSimulated,
+    surfaceSnapshot,
+    surfaceUnsupported,
     snapshotEvidence,
     modeledHistorical,
     simulated,
     comparison,
   }) {
-    const priceQuantity = snapshot.price.p50Usd === null
+    const selectedSurface = surfaceYear.regions.find((row) => row.regionId === result.region.id);
+    const priceQuantity = selectedSurface?.p50Usd === null
       ? builder.quantity('price-observation-available', 0, 'state', [0, 1])
       : builder.quantity(
-        snapshot.price.status === 'observed' ? 'observed-median-sale-price' : 'forecast-median-sale-price',
-        snapshot.price.p50Usd,
+        selectedSurface.status === 'observed' ? 'observed-neighborhood-median-sale-price' : 'forecast-neighborhood-median-sale-price',
+        selectedSurface.p50Usd,
         'nominal USD',
-        [0, Math.max(snapshot.price.p90Usd * 1.1, 1)]
+        surfaceYear.domainUsd
       );
     const layers = [
+      ...surfaceYear.regions.map((row) => builder.layer({
+        id: `price-surface:${row.regionId}`,
+        kind: 'field',
+        label: `${row.label}, ${row.boroughLabel} · ${snapshot.year}`,
+        geometry: builder.geometry('polygon', 'wgs84', row.polygon),
+        quantity: Number.isFinite(row.p50Usd)
+          ? builder.quantity(
+            row.status === 'observed'
+              ? 'observed-neighborhood-median-sale-price'
+              : 'forecast-neighborhood-median-sale-price',
+            row.p50Usd,
+            'nominal USD',
+            surfaceYear.domainUsd
+          )
+          : builder.quantity('neighborhood-price-availability', 0, 'state', [0, 1]),
+        role: row.regionId === result.region.id ? 'primary' : 'context',
+        importance: row.regionId === result.region.id ? 0.98 : 0.68,
+        aggregationKey: `nyc-price-surface:${snapshot.year}`,
+        provenance: surfaceProvenance(row, surfaceObserved, surfaceSimulated, surfaceSnapshot, surfaceUnsupported),
+      })),
       builder.layer({
         id: 'selected-region',
         kind: 'field',
@@ -231,7 +303,7 @@
         role: 'primary',
         importance: 0.92,
         aggregationKey: 'nyc-development-selected-region',
-        provenance: snapshot.price.status === 'scenario-forecast' ? simulated : observed,
+        provenance: surfaceProvenance(selectedSurface, surfaceObserved, surfaceSimulated, surfaceSnapshot, surfaceUnsupported),
       }),
       builder.layer({
         id: 'selected-region-label',
@@ -450,8 +522,13 @@
 
   function createInspections(
     result,
+    surfaceYear,
     snapshot,
     observed,
+    surfaceObserved,
+    surfaceSimulated,
+    surfaceSnapshot,
+    surfaceUnsupported,
     capacity,
     modeledHistorical,
     simulated,
@@ -471,7 +548,23 @@
           ]
           : []),
       ];
-    return [{
+    return [...surfaceYear.regions.map((row) => ({
+      id: `inspect:price-surface:${row.regionId}`,
+      label: `${row.label}, ${row.boroughLabel} price surface`,
+      targetIds: [`price-surface:${row.regionId}`],
+      fields: [
+        field('year', 'Calendar year', row.year, 'year', surfaceProvenance(row, surfaceObserved, surfaceSimulated, surfaceSnapshot, surfaceUnsupported)),
+        field('status', 'Price status', row.status, null, surfaceProvenance(row, surfaceObserved, surfaceSimulated, surfaceSnapshot, surfaceUnsupported)),
+        field('price', 'Median sale price', row.p50Usd ?? 'not available', Number.isFinite(row.p50Usd) ? 'nominal USD' : null, surfaceProvenance(row, surfaceObserved, surfaceSimulated, surfaceSnapshot, surfaceUnsupported)),
+        field('interval-lower', 'Interval lower', row.p10Usd ?? 'not available', Number.isFinite(row.p10Usd) ? 'nominal USD' : null, surfaceProvenance(row, surfaceObserved, surfaceSimulated, surfaceSnapshot, surfaceUnsupported)),
+        field('interval-upper', 'Interval upper', row.p90Usd ?? 'not available', Number.isFinite(row.p90Usd) ? 'nominal USD' : null, surfaceProvenance(row, surfaceObserved, surfaceSimulated, surfaceSnapshot, surfaceUnsupported)),
+        field('sales', 'Recorded sales', row.saleCount ?? 'not applicable', Number.isFinite(row.saleCount) ? 'sales' : null, surfaceProvenance(row, surfaceObserved, surfaceSimulated, surfaceSnapshot, surfaceUnsupported)),
+        field('basis', 'Price basis', row.basis ?? 'missing governed evidence', null, surfaceProvenance(row, surfaceObserved, surfaceSimulated, surfaceSnapshot, surfaceUnsupported)),
+        field('boundary', 'Forecast boundary', row.status === 'scenario-forecast'
+          ? 'Price-only scenario; neighborhood development-supply effect is not modeled'
+          : 'Governed annual sale aggregate; not a parcel appraisal', null, surfaceProvenance(row, surfaceObserved, surfaceSimulated, surfaceSnapshot, surfaceUnsupported)),
+      ],
+    })), {
       id: 'selected-region-summary',
       label: `${result.region.label} timeline`,
       targetIds: ['selected-region'],
@@ -586,6 +679,13 @@
         ],
       }))];
     });
+  }
+
+  function surfaceProvenance(row, observed, simulated, snapshot, unsupported) {
+    if (row?.status === 'scenario-forecast') return simulated;
+    if (row?.year === 2026) return snapshot;
+    if (row?.year > 2026) return unsupported;
+    return observed;
   }
 
   function projectLabel(row) {

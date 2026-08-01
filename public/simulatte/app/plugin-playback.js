@@ -656,8 +656,22 @@
   }
 
   function saveStoredReceipt(storage, profileId, receipt) {
-    if (!storage || typeof storage.setItem !== 'function') return;
-    storage.setItem(storageKey(profileId), JSON.stringify(receipt));
+    if (!storage || typeof storage.setItem !== 'function') return false;
+    const storedReceipt = {
+      ...receipt,
+      // The runtime receipt is retained by the in-memory/export evidence path. It
+      // can contain complete event payloads and is not needed to reconstruct a run.
+      runtime: undefined,
+      // The array is canonical; do not store its legacy first-item alias twice.
+      comparisonExecutionReceipt: undefined,
+    };
+    try {
+      storage.setItem(storageKey(profileId), JSON.stringify(storedReceipt));
+      return true;
+    } catch (_error) {
+      try { storage.removeItem?.(storageKey(profileId)); } catch (_clearError) { /* best effort */ }
+      return false;
+    }
   }
 
   function clearStoredReceipt(storage, profileId) {

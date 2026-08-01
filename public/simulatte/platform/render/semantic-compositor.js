@@ -14,6 +14,8 @@
     scenario: '#ff7c9c',
   });
   const QUANTITY_COLORS = Object.freeze({
+    'modeled-distribution-corridor': '#63f3ff',
+    'modeled-handoff-destination': '#e8fff8',
     'route.shade-selected': '#56e6a2',
     'route.fastest-baseline': '#ffb85c',
     'exposure.direct': '#ffd75f',
@@ -53,7 +55,7 @@
   });
 
   function createCompositor({
-    maxVisibleLayers = 240,
+    maxVisibleLayers = 384,
     maxLabels = 28,
     pointClusterRadiusPx = 18,
   } = {}) {
@@ -165,8 +167,10 @@
     const normalized = normalizeQuantity(layer.quantity, semanticDomain);
     const uncertain = layer.provenance.axes.uncertainty !== null;
     const roleWeight = ROLE_ORDER[layer.role] / 5;
+    const isPriceHeatmap = /^(?:observed|forecast)-neighborhood-median-sale-price$/
+      .test(layer.quantity?.kind || '');
     return deepFreeze({
-      color: colorForLayer(layer),
+      color: colorForLayer(layer, normalized),
       widthPx: layer.kind === 'path'
         ? round(clamp(2.2 + normalized * 0.9 + roleWeight * 0.6 + (selected ? 0.6 : 0), 2.2, 4))
         : null,
@@ -174,8 +178,12 @@
       radiusPx: ['point', 'actor'].includes(layer.kind)
         ? contextPointRadius(layer, normalized, selected)
         : null,
-      fillOpacity: round(clamp(0.18 + roleWeight * 0.36 + (selected ? 0.18 : 0) - (uncertain ? 0.1 : 0), 0.12, 0.82)),
-      strokeOpacity: round(clamp(0.48 + roleWeight * 0.42 - (uncertain ? 0.1 : 0), 0.35, 1)),
+      fillOpacity: isPriceHeatmap
+        ? (selected ? 0.82 : uncertain ? 0.66 : 0.74)
+        : round(clamp(0.18 + roleWeight * 0.36 + (selected ? 0.18 : 0) - (uncertain ? 0.1 : 0), 0.12, 0.82)),
+      strokeOpacity: isPriceHeatmap
+        ? (selected ? 1 : 0.9)
+        : round(clamp(0.48 + roleWeight * 0.42 - (uncertain ? 0.1 : 0), 0.35, 1)),
       dash: uncertaintyDash(layer.provenance.axes.uncertainty),
       emphasis: selected ? 'selected' : layer.role,
     });
@@ -191,8 +199,11 @@
     return round(clamp(3 + normalized * 5 + (selected ? 2 : 0), 3, 10));
   }
 
-  function colorForLayer(layer) {
+  function colorForLayer(layer, normalized = normalizeQuantity(layer.quantity)) {
     const quantityKind = layer.quantity?.kind || '';
+    if (/^(?:observed|forecast)-neighborhood-median-sale-price$/.test(quantityKind)) {
+      return heatmapColor(normalized);
+    }
     const exact = QUANTITY_COLORS[quantityKind];
     if (exact) return exact;
     const rule = QUANTITY_COLOR_RULES.find((row) => row.pattern.test(quantityKind));
@@ -309,11 +320,18 @@
       if (!layer.quantity || layer.aggregationKey === null) return;
       const key = quantityCohortKey(layer);
       const rows = cohorts.get(key) || [];
-      rows.push(layer.quantity.value);
+      rows.push(layer.quantity);
       cohorts.set(key, rows);
     });
-    return new Map([...cohorts.entries()].flatMap(([key, values]) => {
-      if (values.length < 2) return [];
+    return new Map([...cohorts.entries()].flatMap(([key, quantities]) => {
+      if (quantities.length < 2) return [];
+      const declaredDomains = unique(quantities
+        .filter((row) => Array.isArray(row.domain))
+        .map((row) => canonical(row.domain)));
+      if (declaredDomains.length === 1 && quantities.every((row) => Array.isArray(row.domain))) {
+        return [[key, quantities[0].domain]];
+      }
+      const values = quantities.map((row) => row.value);
       const minimum = Math.min(...values);
       const maximum = Math.max(...values);
       const lower = minimum >= 0 ? 0 : minimum;
@@ -324,6 +342,20 @@
   function quantityCohortKey(layer) {
     if (!layer.quantity) return '';
     return `${layer.aggregationKey || layer.kind}:${layer.quantity.kind}:${layer.quantity.unit}`;
+  }
+
+  function heatmapColor(normalized) {
+    const value = clamp(normalized, 0, 1);
+    return value <= 0.5
+      ? interpolateHex('#255f9e', '#f1d26a', value * 2)
+      : interpolateHex('#f1d26a', '#c83f4f', (value - 0.5) * 2);
+  }
+
+  function interpolateHex(left, right, ratio) {
+    const from = [1, 3, 5].map((index) => Number.parseInt(left.slice(index, index + 2), 16));
+    const to = [1, 3, 5].map((index) => Number.parseInt(right.slice(index, index + 2), 16));
+    return `#${from.map((value, index) => Math.round(value + (to[index] - value) * ratio)
+      .toString(16).padStart(2, '0')).join('')}`;
   }
 
   function mergeProvenance(rows) {

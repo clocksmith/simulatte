@@ -298,6 +298,24 @@ test('declarative UI removes values for controls no longer declared by a contrib
   assert.deepEqual(host.values('fixture'), { people: 512 });
 });
 
+test('declarative UI resets preserved controls when the scenario changes', () => {
+  const documentRef = fakeDocument();
+  const inspector = new FakeNode('root', documentRef);
+  const host = uiHost.createDeclarativeUiHost({ rootElement: inspector, onAction() {} });
+  const contribution = (people) => ({
+    pluginId: 'fixture',
+    controls: { controls: [control('people', 'number', people)] },
+    inspections: [],
+  });
+  host.render([], [contribution(256)]);
+  host.setValues('fixture', { people: 512 });
+
+  host.resetValues('fixture');
+  host.render([], [contribution(768)]);
+
+  assert.deepEqual(host.values('fixture'), { people: 768 });
+});
+
 test('declarative UI rejects undeclared control values instead of dispatching stale schema fields', () => {
   const documentRef = fakeDocument();
   const inspector = new FakeNode('root', documentRef);
@@ -349,4 +367,36 @@ test('declarative UI formats structured inspection values as readable stable JSO
   );
   assert.equal(uiHost.formatFieldValue(['north', 'south'], null), 'north, south');
   assert.equal(uiHost.formatFieldValue(null, 'MW'), 'Not available MW');
+});
+
+test('declarative UI lazily hydrates object-specific inspections', () => {
+  const documentRef = fakeDocument();
+  const inspector = new FakeNode('root', documentRef);
+  const host = uiHost.createDeclarativeUiHost({ rootElement: inspector, onAction() {} });
+  const inspection = (index) => ({
+    id: `inspection:${index}`,
+    label: `Inspection ${index}`,
+    targetIds: [`target:${index}`],
+    fields: [{
+      id: 'value',
+      label: 'Value',
+      value: index,
+      unit: 'items',
+      provenance: {
+        axes: { origin: 'observed', temporalStatus: 'snapshot', uncertainty: null },
+        evidenceRefs: [],
+      },
+    }],
+  });
+  host.render([], [{
+    pluginId: 'fixture',
+    controls: { controls: [] },
+    inspections: [0, 1, 2, 3].map(inspection),
+  }]);
+  const fourth = inspector.children[0].children[3];
+
+  assert.equal(find(fourth, (node) => node.tagName === 'dd'), null);
+  fourth.open = true;
+  fourth.dispatch('toggle');
+  assert.equal(find(fourth, (node) => node.tagName === 'dd').textContent, '3 items');
 });

@@ -15,6 +15,7 @@ import {
   validPoint,
   withinBounds,
 } from './geometry.mjs';
+import { createCitySurfaceArtifact } from './compile-city-surface.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const SOURCE_DIRECTORY = path.join(
@@ -23,6 +24,7 @@ const SOURCE_DIRECTORY = path.join(
 );
 const OUTPUT_DIRECTORY = path.join(ROOT, 'public/data/nyc-real-estate');
 const INDEX_OUTPUT = path.join(OUTPUT_DIRECTORY, 'region-index-v1.json');
+const CITY_SURFACE_OUTPUT = path.join(OUTPUT_DIRECTORY, 'city-surface-v1.json');
 const SHARD_DIRECTORY = path.join(OUTPUT_DIRECTORY, 'regions');
 const RECEIPT_OUTPUT = path.join(OUTPUT_DIRECTORY, 'compile-receipt-v1.json');
 const SOURCE_RECEIPT = 'snapshot-receipt.json';
@@ -170,7 +172,14 @@ function main() {
     },
     claimBoundary: 'This index supports selection and hash-pinned on-demand loading only. Coverage flags gate experiments and never fabricate missing NTA evidence.',
   };
+  const citySurfaceArtifact = createCitySurfaceArtifact({
+    regions,
+    saleRows: sales.rows,
+    shardRows,
+    sourceIdentities,
+  });
   writeJson(INDEX_OUTPUT, indexArtifact);
+  writeJson(CITY_SURFACE_OUTPUT, citySurfaceArtifact);
   const compileReceipt = {
     schema: 'simulatte.nycRealEstateCompileReceipt.v1',
     compiler: 'tools/nyc-real-estate/compile-history.mjs',
@@ -180,6 +189,11 @@ function main() {
     inputs: sourceIdentities,
     outputs: [
       outputIdentity(INDEX_OUTPUT, indexArtifact.id, indexArtifact.schema),
+      outputIdentity(
+        CITY_SURFACE_OUTPUT,
+        citySurfaceArtifact.id,
+        citySurfaceArtifact.schema
+      ),
       ...shardRows.map(({
         coverage: _coverage,
         regionId: _regionId,
@@ -194,6 +208,9 @@ function main() {
       historicalSites: historical.sites.length,
       capacitySites: capacity.sites.length,
       regionShards: shardRows.length,
+      citySurfaceRegions: citySurfaceArtifact.regions.length,
+      citySurfaceSaleRows: citySurfaceArtifact.regions
+        .reduce((sum, row) => sum + row.saleSeries.length, 0),
     },
     rejected: {
       saleSeries: sales.rejected,

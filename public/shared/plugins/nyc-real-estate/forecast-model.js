@@ -945,6 +945,7 @@
     derivePriceSeries,
     evaluateBacktest,
     futureProjectState,
+    historicalMomentum,
     historicalSiteState,
     runScenario,
   });

@@ -94,6 +94,7 @@ function failedReceipt(run, sourceIdentity, claims, error) {
       seed: run.seed,
       viewportId: run.viewport.id,
       interactionPath: run.interactionPath,
+      comparisonMode: run.comparisonMode,
     },
     sourceIdentity,
     browser: null,
@@ -104,13 +105,22 @@ function failedReceipt(run, sourceIdentity, claims, error) {
       progressiveStates: [],
       comparisons: [],
       settlements: [],
+      replay: { attempted: false, beforeSha256: null, afterSha256: null, deterministic: false },
+      deployment: { status: 'fail', servedBuildId: null, pageUrl: null, route: null, versionUrl: null },
+      interactionCoverage: { expected: run.interactionPath, observed: [], missing: run.interactionPath },
       console: [],
       consoleErrors: [{
         type: 'capture',
         values: [error.code || error.name || 'Error', error.message],
         evidence: error.evidence || null,
       }],
-      performance: { frameCount: 0, elapsedMs: null },
+      performance: {
+        frameCount: 0,
+        elapsedMs: null,
+        firstMeaningfulFrame: { status: 'fail', atMs: null, frameCount: 0, contributionCount: 0, semanticLayerCount: 0, compositorReceiptCount: 0 },
+        framePacing: { status: 'fail', sampleCount: 0, p50Ms: null, p95Ms: null, maxMs: null, over50MsCount: 0 },
+        memory: { status: 'fail', sampleCount: 0, initialUsedJsHeapBytes: null, finalUsedJsHeapBytes: null, peakUsedJsHeapBytes: null, finalTotalJsHeapBytes: null },
+      },
       screenshot: null,
       pixelReadback: { status: 'fail' },
       visual: null,
@@ -159,12 +169,15 @@ function relativeArtifactLink(outputDirectory, filePath) {
 }
 
 function writeSummary(outputDirectory, report) {
+  const status = evidenceReportStatus(report);
   const lines = [
     '# Simulatte profile evidence',
     '',
-    `Status: ${report.pass ? 'pass' : 'fail'}`,
+    `Status: ${status}`,
     '',
-    `Runs: ${report.passedRuns}/${report.totalRuns} passed`,
+    `Captured runs: ${report.passedRuns}/${report.totalRuns} passed`,
+    '',
+    `Release coverage: ${report.totalRuns}/${report.requiredRuns} runs (${report.coverageComplete ? 'complete' : 'incomplete'})`,
     '',
     '| Profile | Passed | Total | Blocking failures |',
     '| --- | ---: | ---: | --- |',
@@ -176,6 +189,11 @@ function writeSummary(outputDirectory, report) {
     '',
   ];
   fs.writeFileSync(path.join(outputDirectory, 'summary.md'), `${lines.join('\n')}\n`);
+}
+
+function evidenceReportStatus(report) {
+  if (!report.capturePass) return 'fail';
+  return report.coverageComplete ? 'pass' : 'partial-pass';
 }
 
 function profileClosureMatrix(rows) {
@@ -318,7 +336,10 @@ async function captureAll({ options, plan, claims, identity }) {
     claimInventorySha256: sha256File(INVENTORY_PATH),
     sourceIdentity: identity,
     totalRuns: selectedRuns.length,
+    requiredRuns: plan.runs.length,
     passedRuns: rows.filter((row) => row.pass).length,
+    capturePass: rows.every((row) => row.pass),
+    coverageComplete: selectedRuns.length === plan.runs.length,
     pass: rows.every((row) => row.pass) && selectedRuns.length === plan.runs.length,
     profiles: profileClosureMatrix(rows),
     runs: rows,
@@ -347,7 +368,7 @@ async function main() {
     const passed = validations.filter((row) => row.pass).length;
     console.log(`PROFILE-EVIDENCE check runs=${validations.length} passed=${passed} failed=${validations.length - passed}`);
     if (passed !== plan.runs.length || validations.length !== plan.runs.length) process.exitCode = 1;
-  } else if (report && !report.pass) {
+  } else if (report && !report.capturePass) {
     process.exitCode = 1;
   }
 }
@@ -366,6 +387,7 @@ export {
   attemptSourceIdentity,
   buildIdentity,
   failedReceipt,
+  evidenceReportStatus,
   parseArgs,
   prepareCaptureDirectory,
   profileClosureMatrix,

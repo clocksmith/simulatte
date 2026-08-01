@@ -9,11 +9,11 @@ Owner contract:
 |---|---|
 | Consistency baseline | 9/10 post-fix code audit; browser score pending |
 | Interest baseline | 9/10 post-fix code audit; browser score pending |
-| Runtime status | Implemented with lazy NTA shards, sparse refusal, sector-specific supply, shared executable comparison, complete inspections, and milestone focus |
-| Current strength | Governed NYC evidence now remains connected through region selection, replay, forecast refusal or simulation, lockstep comparison, visible layers, inspections, and receipts |
-| Primary gap | Desktop and mobile recognizability, frame performance, and screenshot-to-build binding remain unproved because browser evidence was intentionally not run |
-| Browser evidence | Not tested on the current worktree |
-| Frontier review | Complete code and data review; pixel review pending |
+| Runtime status | Implemented with a governed 262-neighborhood historical/forecast price surface, lazy detail shards, sparse refusal, sector-specific supply, shared executable comparison, and complete inspections |
+| Current strength | Default overview now keeps the citywide heatmap visible while provenance, missing years, forecast limits, selected-region detail, replay, and comparison remain connected |
+| Primary gap | Full mobile and human recognizability review, frame-performance budgets across every seed, and deployed screenshot-to-build binding remain open |
+| Browser evidence | Targeted Greenpoint desktop evidence passed on the local WebGPU path; full 94-run evidence matrix is pending |
+| Frontier review | Code, governed data, and targeted pixel review complete; full release matrix pending |
 
 ## Improvement sweeps
 
@@ -22,6 +22,7 @@ Owner contract:
 | 2026-07-27 | Governed NYC ingestion, annual replay, ensemble engine, causal controls, semantic buildings, receipts, and registration | Implemented; 8/8 Atlas tests, 78/78 focused tests, and 747/747 non-browser tests reported passing | Immutable source receipt, compile receipt, all-region execution, control sensitivity, deterministic replay, native v4 contribution |
 | 2026-07-27 | Deep correctness and experience audit | Found shared comparison, sparse refusal, sector modeling, visual evidence, coverage, and loading gaps that existing tests do not exercise | `forecast-model.js`, `index.js`, `v4-contribution.js`, compiled dataset coverage, and application profile review |
 | 2026-07-27 | Correctness and evidence closure sweep | Replaced capped monoliths with 262 hash-pinned shards; added refusal gates, tax-class rules, common draws, shared lockstep comparison, branch layers, complete inspections, milestone focus, and fail-closed validation | 263-output compile receipt, all-shard hash checks, sparse and sector tests, comparison receipt, V4 object-inspection closure |
+| 2026-08-01 | Citywide price-surface and default-view correction | Added a compact 262-region governed surface, deterministic price-only forecasts, shared heat colors and range, citywide overview targets, adaptive wide-camera fog, inspections, schema gates, and focused browser proof | 264-output compile receipt, 3.1 MB surface, 5,749 sale rows, 262 inspected layers, focused tests, desktop WebGPU screenshot and pixel readback |
 
 ## Frontier improvements
 
@@ -140,3 +141,7 @@ mobile memory without dropping consequential sites silently.
       branch, uncertainty, and metric recognizability.
 - [ ] Screenshots, pixel evidence, runtime receipts, dataset hashes, and build
       identity bind to the same executed browser path.
+- [x] Default and settled views frame all governed NYC neighborhoods as a
+      recognizable price surface instead of isolating the selected project.
+- [x] Historical observations, the missing 2026 snapshot, forecast intervals,
+      and sparse-region refusals remain visibly and semantically distinct.

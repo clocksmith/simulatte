@@ -8,12 +8,12 @@
     {
       "id": "neighborhood-bulk-pool-v1",
       "path": "../application-profiles/neighborhood-bulk-pool-v1.json",
-      "sha256": "629c9534478c769b5a72c0bf93a65381f8b1fa72a73785fdee58715935a7a37e"
+      "sha256": "59e952bc88337bff00acd2cdbd5e695384f481fec81732154db734d38f52f5f4"
     },
     {
       "id": "nyc-development-atlas-v1",
       "path": "../application-profiles/nyc-development-atlas-v1.json",
-      "sha256": "fc200bc366b0de8aaea5d780aa9bea72c076873511ab550d721a40d033ac843e"
+      "sha256": "b510625aea69548ee8ab136e987ec8b9397c66b007ad36d7e3c33ebe324fa6aa"
     },
     {
       "id": "sun-walker-v1",

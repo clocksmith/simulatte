@@ -1,6 +1,8 @@
 {
   "accepted": {
     "capacitySites": 22368,
+    "citySurfaceRegions": 262,
+    "citySurfaceSaleRows": 5749,
     "developmentSeries": 4384,
     "historicalSites": 14536,
     "regionShards": 262,
@@ -109,6 +111,13 @@
       "path": "public/data/nyc-real-estate/region-index-v1.json",
       "schema": "simulatte.nycRealEstateRegionIndex.v1",
       "sha256": "d17cafe51f239017dd168d02ce3c250d5ac19bcc6c0f49900b72a11cb4adae70"
+    },
+    {
+      "byteCount": 3076177,
+      "id": "nyc-real-estate-city-surface-2026-v1",
+      "path": "public/data/nyc-real-estate/city-surface-v1.json",
+      "schema": "simulatte.nycRealEstateCitySurface.v1",
+      "sha256": "0f607a451a599783746cdf43063f215ce1eebd5f2df997c7aa3b00293b698c84"
     },
     {
       "byteCount": 383699,

@@ -56,7 +56,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginNeighborhoodBulkPool",
-    "integrity": "sha384-db3dd9f4aaa0cc822d599645dd1ec1e4d8284ea81c897fe05b415b1adf69379c6177a400b8a128948d5481d0498fd1e1",
+    "integrity": "sha384-5408fe3389e68e35bbbd8f8cc41358298728cadaf33207df854bac6f432ad8a473b50528e71dc32716704f816b040ba7",
     "path": "./index.js"
   },
   "extensionPoints": [
@@ -106,7 +106,7 @@
       "path": "./pool-solver.js"
     },
     {
-      "integrity": "sha384-6bb0dd19c2e5c01c2ae9da477ed68268cee323620106f05287b95f5a070829af744e4e26cced30105c99e4422cee2e73",
+      "integrity": "sha384-b182ad152db9c698090afe85b359603627dcf86ed1ee9cce60adc52750c053fab622c45b86a5773370977b6ea88aead3",
       "path": "./v4-contribution.js"
     }
   ],

@@ -14,6 +14,7 @@ const PUBLIC = path.join(ROOT, 'public');
 const PROFILES = [
   ['city', 'cable-trader-pickup-v1'],
   ['city', 'neighborhood-bulk-pool-v1'],
+  ['city', 'nyc-development-atlas-v1'],
   ['city', 'sun-walker-v1'],
   ['country', 'food-recall-us-v1'],
   ['country', 'grid-resilience-us-v1'],

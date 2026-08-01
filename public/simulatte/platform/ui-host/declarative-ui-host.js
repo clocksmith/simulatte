@@ -138,8 +138,13 @@
         fragments[view.slot].append(section);
       });
       v4Contributions.forEach((contribution) => {
-        contribution.inspections.forEach((inspection) => {
-          fragments.inspector.append(renderInspection(documentRef, contribution.pluginId, inspection));
+        contribution.inspections.forEach((inspection, index) => {
+          fragments.inspector.append(renderInspection(
+            documentRef,
+            contribution.pluginId,
+            inspection,
+            index < 3
+          ));
         });
       });
       Object.entries(roots).forEach(([slot, element]) => element.replaceChildren(fragments[slot]));
@@ -166,12 +171,17 @@
       return values(pluginId);
     }
 
+    function resetValues(pluginId = null) {
+      if (pluginId === null) controlValues.clear();
+      else controlValues.delete(pluginId);
+    }
+
     function dispose() {
       controlValues.clear();
       Object.values(roots).forEach((element) => element.replaceChildren());
     }
 
-    return Object.freeze({ render, values, setValues, dispose });
+    return Object.freeze({ render, values, setValues, resetValues, dispose });
   }
 
   function renderControls(
@@ -340,7 +350,7 @@
     return String(value).replace(/[^a-zA-Z0-9_-]+/g, '-');
   }
 
-  function renderInspection(documentRef, pluginId, inspection) {
+  function renderInspection(documentRef, pluginId, inspection, eager = false) {
     const section = documentRef.createElement('details');
     section.className = 'evidence-section plugin-evidence';
     section.dataset.pluginId = pluginId;
@@ -348,22 +358,29 @@
     const heading = documentRef.createElement('summary');
     heading.textContent = inspection.label;
     section.append(heading);
-    const rows = documentRef.createElement('dl');
-    rows.className = 'plugin-facts';
-    inspection.fields.forEach((field) => {
-      const container = documentRef.createElement('div');
-      const term = documentRef.createElement('dt');
-      const description = documentRef.createElement('dd');
-      term.textContent = field.label;
-      description.textContent = formatFieldValue(field.value, field.unit);
-      description.title = provenanceSummary(field.provenance);
-      description.dataset.origin = field.provenance.axes.origin;
-      description.dataset.temporalStatus = field.provenance.axes.temporalStatus;
-      description.dataset.evidenceIds = field.provenance.evidenceRefs.map((row) => row.id).join(' ');
-      container.append(term, description);
-      rows.append(container);
-    });
-    section.append(rows);
+    let hydrated = false;
+    const hydrate = () => {
+      if (hydrated) return;
+      hydrated = true;
+      const rows = documentRef.createElement('dl');
+      rows.className = 'plugin-facts';
+      inspection.fields.forEach((field) => {
+        const container = documentRef.createElement('div');
+        const term = documentRef.createElement('dt');
+        const description = documentRef.createElement('dd');
+        term.textContent = field.label;
+        description.textContent = formatFieldValue(field.value, field.unit);
+        description.title = provenanceSummary(field.provenance);
+        description.dataset.origin = field.provenance.axes.origin;
+        description.dataset.temporalStatus = field.provenance.axes.temporalStatus;
+        description.dataset.evidenceIds = field.provenance.evidenceRefs.map((row) => row.id).join(' ');
+        container.append(term, description);
+        rows.append(container);
+      });
+      section.append(rows);
+    };
+    if (eager) hydrate();
+    else section.addEventListener('toggle', () => { if (section.open) hydrate(); });
     return section;
   }
 

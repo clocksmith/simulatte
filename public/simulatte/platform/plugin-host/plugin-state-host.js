@@ -28,7 +28,10 @@
       if (reducer) {
         const nextState = reducer(states.get(pluginId), row);
         if (!nextState || typeof nextState !== 'object' || Array.isArray(nextState)) throw stateError('plugin_reducer_state_invalid', `Plugin ${pluginId} reducer expected a plain state object`, { pluginId, receivedType: Array.isArray(nextState) ? 'array' : typeof nextState });
-        states.set(pluginId, freezeClone(nextState));
+        // Reducers receive only frozen state and a cloned, frozen event. Freeze
+        // their delta in place so unchanged immutable subtrees remain O(1) to
+        // retain instead of cloning the full simulation result on every tick.
+        states.set(pluginId, deepFreeze(nextState));
       }
       events.push(row);
       return row;

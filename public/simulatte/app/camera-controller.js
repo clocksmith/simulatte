@@ -263,7 +263,7 @@
       target: [...state.orbitTarget],
       fieldOfViewRadians: (state.mode === 'top' ? 42 : isCompare ? 54 : 46) * Math.PI / 180,
       near: 1,
-      far: 20000,
+      far: Math.max(20000, distance * 2.5),
     };
   }
 

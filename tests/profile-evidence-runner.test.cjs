@@ -82,12 +82,14 @@ function playbackReceipt(run) {
   };
 }
 
-async function fixture() {
+async function fixture({ profileId = null } = {}) {
   const contract = await import(CONTRACT_URL);
   const plan = contract.buildEvidencePlan(ROOT);
   const inventory = contract.readJson(INVENTORY_PATH);
   const claims = contract.expandClaims(ROOT, inventory);
-  const run = plan.runs.find((row) => row.tier === 'city');
+  const run = plan.runs.find((row) => profileId
+    ? row.profileId === profileId
+    : row.tier === 'city' && row.comparisonMode !== 'none');
   const buildIdentity = {
     buildId: 'test-build',
     commitSha: 'a'.repeat(40),
@@ -120,6 +122,7 @@ async function fixture() {
       seed: run.seed,
       viewportId: run.viewport.id,
       interactionPath: run.interactionPath,
+      comparisonMode: run.comparisonMode,
     },
     sourceIdentity: structuredClone(sourceIdentity),
     browser: {
@@ -152,10 +155,47 @@ async function fixture() {
       progressiveStates: [{ phase: 'running' }, { phase: 'completed' }],
       comparisons: [settledComparisonReceipt()],
       settlements: [{ id: 'settlement-1', status: 'settled' }],
+      replay: {
+        attempted: true,
+        beforeSha256: 'e'.repeat(64),
+        afterSha256: 'e'.repeat(64),
+        deterministic: true,
+      },
+      deployment: {
+        status: 'pass',
+        servedBuildId: buildIdentity.buildId,
+        pageUrl: `http://127.0.0.1${run.route}`,
+        route: run.route,
+        versionUrl: 'http://127.0.0.1/version.json',
+      },
+      interactionCoverage: {
+        expected: [...run.interactionPath],
+        observed: [...run.interactionPath],
+        missing: [],
+      },
       console: [],
       consoleErrors: [],
-      performance: { frameCount: 2, elapsedMs: 5 },
-      screenshot: { sha256: 'c'.repeat(64), path: 'screenshots/c.png' },
+      performance: {
+        frameCount: 2,
+        elapsedMs: 5,
+        firstMeaningfulFrame: { status: 'pass', atMs: 1, frameCount: 1, contributionCount: 1, semanticLayerCount: 1, compositorReceiptCount: 1 },
+        framePacing: { status: 'pass', sampleCount: 3, p50Ms: 16, p95Ms: 17, maxMs: 18, over50MsCount: 0 },
+        memory: {
+          status: 'pass',
+          sampleCount: 2,
+          initialUsedJsHeapBytes: 100,
+          finalUsedJsHeapBytes: 110,
+          peakUsedJsHeapBytes: 120,
+          finalTotalJsHeapBytes: 200,
+        },
+      },
+      screenshot: {
+        sha256: 'c'.repeat(64),
+        path: 'screenshots/c.png',
+        buildId: buildIdentity.buildId,
+        servedBuildId: buildIdentity.buildId,
+        pageUrl: `http://127.0.0.1${run.route}`,
+      },
       pixelReadback: { status: 'pass', sampleCount: 256, distinctColorCount: 4 },
       visual: {
         schema: 'simulatte.renderedEvidence.v1',
@@ -164,7 +204,7 @@ async function fixture() {
         obstructionRatio: 0,
         largestOverlayRatio: 0,
         camera: {
-          mode: 'bird',
+          mode: 'overview',
           focusId: `plugin:${run.pluginIds[0]}:overview`,
           transition: 'settled',
           expectedFocusId: `plugin:${run.pluginIds[0]}:overview`,
@@ -199,6 +239,9 @@ test('profile evidence plan enumerates eleven connected profiles, forty-seven se
   assert.ok(plan.runs.every((run) => run.interactionPath.includes('settle')));
   assert.ok(plan.runs.every((run) => run.interactionPath.includes('replay')));
   assert.ok(plan.runs.every((run) => run.interactionPath.includes('reload')));
+  assert.ok(plan.runs.filter((run) => run.tier === 'city').every((run) => run.interactionPath.includes('seek')));
+  assert.ok(plan.runs.filter((run) => run.tier === 'city').every((run) => run.interactionPath.includes('terminal-preview')));
+  assert.ok(plan.runs.filter((run) => run.tier === 'city').every((run) => run.interactionPath.includes('terminal-commit')));
 });
 
 test('claim inventory assigns one stable claim ID to every published seed description', async () => {
@@ -329,6 +372,25 @@ test('rendered evidence fails closed on missing visuals, dominant overlays, and 
   assert.ok(validation.failures.includes('plugin_overlay_obstruction_excessive'));
   assert.ok(validation.failures.includes('plugin_overlay_dominant'));
   assert.ok(validation.failures.includes('visual_camera_intent_mismatch'));
+  assert.ok(validation.failures.includes('visual_camera_mode_mismatch'));
+});
+
+test('performance, replay, interaction, and deployment screenshot evidence fail closed independently', async () => {
+  const { claims, contract, receipt, run, sourceIdentity } = await fixture();
+  receipt.evidence.performance.firstMeaningfulFrame.status = 'fail';
+  receipt.evidence.performance.framePacing.status = 'fail';
+  receipt.evidence.performance.memory.status = 'fail';
+  receipt.evidence.replay.deterministic = false;
+  receipt.evidence.interactionCoverage.missing = ['replay'];
+  receipt.evidence.deployment.servedBuildId = 'different-build';
+  const validation = contract.validateReceipt({ receipt, run, sourceIdentity, claims });
+  assert.ok(validation.failures.includes('first_meaningful_frame_invalid'));
+  assert.ok(validation.failures.includes('frame_pacing_evidence_invalid'));
+  assert.ok(validation.failures.includes('memory_evidence_invalid'));
+  assert.ok(validation.failures.includes('deterministic_replay_invalid'));
+  assert.ok(validation.failures.includes('interaction_coverage_invalid'));
+  assert.ok(validation.failures.includes('deployment_screenshot_binding_invalid'));
+  assert.ok(validation.failures.includes('claim_evidence_unresolved'));
 });
 
 test('comparison evidence requires an executed settled receipt, never definition metadata', async () => {
@@ -360,6 +422,17 @@ test('comparison evidence refuses completed, failed, and unsettled executions', 
     const validation = contract.validateReceipt({ receipt, run, sourceIdentity, claims });
     assert.ok(validation.failures.includes('comparison_execution_receipt_invalid'));
   }
+});
+
+test('comparison evidence proves a profile-declared none policy with no execution receipts', async () => {
+  const { claims, contract, receipt, run, sourceIdentity } = await fixture({ profileId: 'cable-trader-pickup-v1' });
+  assert.equal(run.comparisonMode, 'none');
+  receipt.evidence.comparisons = [];
+  let validation = contract.validateReceipt({ receipt, run, sourceIdentity, claims });
+  assert.equal(validation.pass, true);
+  receipt.evidence.comparisons = [settledComparisonReceipt()];
+  validation = contract.validateReceipt({ receipt, run, sourceIdentity, claims });
+  assert.ok(validation.failures.includes('comparison_policy_none_violated'));
 });
 
 test('City reload evidence requires the same settled plugin playback identity', async () => {
@@ -545,6 +618,13 @@ test('release evidence reports a profile closure matrix with exact failure count
   ]);
 });
 
+test('targeted evidence distinguishes passing captures from incomplete release coverage', async () => {
+  const runner = await import(RUNNER_URL);
+  assert.equal(runner.evidenceReportStatus({ capturePass: true, coverageComplete: false }), 'partial-pass');
+  assert.equal(runner.evidenceReportStatus({ capturePass: true, coverageComplete: true }), 'pass');
+  assert.equal(runner.evidenceReportStatus({ capturePass: false, coverageComplete: false }), 'fail');
+});
+
 test('browser capture searches executed comparison receipts and preserves City playback receipts across reload', async () => {
   const browser = await import(BROWSER_URL);
   const { run } = await fixture();
@@ -556,6 +636,9 @@ test('browser capture searches executed comparison receipts and preserves City p
   assert.match(expression, /scenario-controls-ready/);
   assert.match(expression, /previousClockCursor/);
   assert.match(expression, /previousTierStepCount/);
+  assert.match(expression, /commitTimelineTerminal/);
+  assert.match(expression, /terminal-preview/);
+  assert.match(expression, /terminal-commit/);
   assert.match(expression, /simulatte\.comparisonExecutionReceipt\.v4/);
   assert.doesNotMatch(expression, /controls\?\.comparisons|comparisonDefinition/);
   assert.match(expression, /runtimeReceipt\?\.pluginReceipts/);
