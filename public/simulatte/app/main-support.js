@@ -186,8 +186,8 @@
       const renderer = await canvasApi.createCanvasRenderer(elements.autonomyCanvas, worldModel, {
         minimapCanvas: elements.followMinimap,
         labelCanvas: elements.semanticLabelCanvas,
-        regionRegistry: data.regionRegistry,
-        regionPacks: data.regionPacks,
+        regionRegistry: data.applicationProfile.experience?.worldDetail === 'plugin-owned' ? null : data.regionRegistry,
+        regionPacks: data.applicationProfile.experience?.worldDetail === 'plugin-owned' ? [] : data.regionPacks,
         onFailure: (error) => {
           stopLoop();
           fail(error);

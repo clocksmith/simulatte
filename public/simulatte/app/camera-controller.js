@@ -36,7 +36,10 @@
   }
 
   function createCameraTargets(world, worldModel, regionRegistry = null, regionPacks = []) {
-    const routeBounds = boundsForSegmentIds(world.scenario.defaultRoute.segmentIds, worldModel);
+    const routeSegmentIds = world.scenario.defaultRoute.segmentIds;
+    const routeBounds = routeSegmentIds.length
+      ? boundsForSegmentIds(routeSegmentIds, worldModel)
+      : world.coordinateSystem.bounds;
     const routeDistance = routeCameraDistance(world);
     const targets = [{
       id: 'route',

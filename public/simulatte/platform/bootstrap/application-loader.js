@@ -72,6 +72,8 @@
     const resolvedReferences = await services.artifacts.resolveGraph(directKeys.map((key) => ({ key, reference: key === 'applicationProfile' ? selectedProfile : manifest.value[key] })), { baseUrl: resolvedManifestUrl });
     const refs = [...resolvedReferences.entries()];
     const loaded = Object.fromEntries(refs);
+    pluginContracts.validateProfile(loaded.applicationProfile.value);
+    const pluginOwnsWorldDetail = loaded.applicationProfile.value.experience?.worldDetail === 'plugin-owned';
     const embodimentRows = await Promise.all(manifest.value.embodiments.map(async (reference) => ({
       reference,
       loaded: await services.artifacts.resolve(reference, { baseUrl: resolvedManifestUrl, key: `embodiment:${reference.id}` }),
@@ -80,20 +82,22 @@
     if (!defaultEmbodimentRow) throw loadError('default_embodiment_missing', `Default embodiment ${manifest.value.defaultEmbodimentId} was not loaded`, { defaultEmbodimentId: manifest.value.defaultEmbodimentId });
     const registry = loaded.regionRegistry.value;
     contracts.validateRegionRegistry(registry);
-    const packRows = await Promise.all(registry.packs.map(async (reference) => {
+    const packRows = pluginOwnsWorldDetail ? [] : await Promise.all(registry.packs.map(async (reference) => {
       const row = await services.artifacts.resolve(reference, { baseUrl: loaded.regionRegistry.url, key: `regionPack:${reference.id}` });
       contracts.validateRegionPack(row.value, registry);
       return row;
     }));
-    const initialGeometry = deferRenderGeometry
+    const initialGeometry = deferRenderGeometry || pluginOwnsWorldDetail
       ? null
       : await resolveRegionGeometry(registry, loaded.regionRegistry.url, services);
     await yieldToHost();
-    const composition = regions.mergeRegionPacks(
-      registry,
-      packRows.map((row) => row.value),
-      initialGeometry && initialGeometry.geometryByPackId
-    );
+    const composition = pluginOwnsWorldDetail
+      ? createProfileOwnedWorldContext(registry, loaded.applicationProfile.value)
+      : regions.mergeRegionPacks(
+        registry,
+        packRows.map((row) => row.value),
+        initialGeometry && initialGeometry.geometryByPackId
+      );
     // Integrity without re-hashing the composed world on the main thread. Every region
     // pack is already sha256-verified on download against the (also verified) registry,
     // and mergeRegionPacks structurally validates the composition (exact pack ids, seam
@@ -101,33 +105,40 @@
     // we only cross-check that manifest and registry agree on them. Re-encoding and
     // hashing ~64 MB of merged JSON every boot was the dominant load-time CPU/memory
     // cost and is redundant with that chain.
-    const worldHash = composition.receipt.expectedWorldSha256;
-    const featureCatalogHash = composition.receipt.expectedFeatureCatalogSha256;
-    assertCompositionHash('world', manifest.value.world.sha256, worldHash, composition.receipt);
-    assertCompositionHash('featureCatalog', manifest.value.featureCatalog.sha256, featureCatalogHash, composition.receipt);
+    const worldHash = pluginOwnsWorldDetail ? null : composition.receipt.expectedWorldSha256;
+    const featureCatalogHash = pluginOwnsWorldDetail ? null : composition.receipt.expectedFeatureCatalogSha256;
+    if (!pluginOwnsWorldDetail) {
+      assertCompositionHash('world', manifest.value.world.sha256, worldHash, composition.receipt);
+      assertCompositionHash('featureCatalog', manifest.value.featureCatalog.sha256, featureCatalogHash, composition.receipt);
+    }
     await yieldToHost();
-    contracts.validateFeatureCatalog(composition.featureCatalog);
-    if (!deferRenderGeometry) contracts.validateWorld(composition.world, composition.featureCatalog);
+    if (!pluginOwnsWorldDetail) {
+      contracts.validateFeatureCatalog(composition.featureCatalog);
+      if (!deferRenderGeometry) contracts.validateWorld(composition.world, composition.featureCatalog);
+    }
     await yieldToHost();
-    contracts.validateOccurrenceCatalog(loaded.occurrenceCatalog.value, composition.world);
-    contracts.validateRerankerEvidence(loaded.rerankerEvidence.value, composition.featureCatalog, {
-      world: worldHash,
-      featureCatalog: featureCatalogHash,
-      embodiment: defaultEmbodimentRow.loaded.sha256,
-      policy: loaded.policy.sha256,
-    });
+    if (!pluginOwnsWorldDetail) {
+      contracts.validateOccurrenceCatalog(loaded.occurrenceCatalog.value, composition.world);
+      contracts.validateRerankerEvidence(loaded.rerankerEvidence.value, composition.featureCatalog, {
+        world: worldHash,
+        featureCatalog: featureCatalogHash,
+        embodiment: defaultEmbodimentRow.loaded.sha256,
+        policy: loaded.policy.sha256,
+      });
+    }
     contracts.validateModelRuntimeLock(loaded.modelRuntimeLock.value);
     validatePipelineModelSelection(loaded.pipelineModelSelection.value, loaded.modelRuntimeLock.value);
-    pluginContracts.validateProfile(loaded.applicationProfile.value);
-    contracts.validateSafetyHistoryIndex(
-      loaded.safetyHistoryIndex.value,
-      composition.world,
-      worldHash
-    );
+    if (!pluginOwnsWorldDetail) {
+      contracts.validateSafetyHistoryIndex(
+        loaded.safetyHistoryIndex.value,
+        composition.world,
+        worldHash
+      );
+    }
     contracts.validatePlaceEmbeddingIndex(loaded.placeEmbeddingIndex.value, loaded.modelRuntimeLock.value);
     contracts.validatePlaceResolutionEvidence(loaded.placeResolutionEvidence.value, loaded.placeEmbeddingIndex.value, loaded.modelRuntimeLock.value);
     await yieldToHost();
-    contracts.validateCurriculum(loaded.curriculum.value, composition.world);
+    if (!pluginOwnsWorldDetail) contracts.validateCurriculum(loaded.curriculum.value, composition.world);
     contracts.validatePolicyArenaEvidence(loaded.policyArenaEvidence.value);
     embodimentRows.forEach((row) => contracts.validateEmbodiment(row.loaded.value));
     contracts.validatePolicy(loaded.policy.value);
@@ -142,6 +153,7 @@
       composition,
       worldHash,
       featureCatalogHash,
+      exposeCoreWorldViews: !pluginOwnsWorldDetail,
     });
     const result = {
       schema: 'simulatte.autonomyLoadedData.v2',
@@ -176,17 +188,26 @@
           world: {
             id: composition.world.id,
             sha256: worldHash,
-            source: initialGeometry ? 'verified_region_composition' : 'verified_region_routing_composition',
+            expectedSha256: pluginOwnsWorldDetail ? manifest.value.world.sha256 : undefined,
+            source: pluginOwnsWorldDetail
+              ? 'profile_declared_plugin_owned_context'
+              : initialGeometry ? 'verified_region_composition' : 'verified_region_routing_composition',
           },
-          featureCatalog: { id: composition.featureCatalog.id, sha256: featureCatalogHash, source: 'verified_region_composition' },
+          featureCatalog: {
+            id: composition.featureCatalog.id,
+            sha256: featureCatalogHash,
+            expectedSha256: pluginOwnsWorldDetail ? manifest.value.featureCatalog.sha256 : undefined,
+            source: pluginOwnsWorldDetail ? 'profile_declared_not_consumed' : 'verified_region_composition',
+          },
         },
         regionPacks: packRows.map(assetReceipt),
         regionComposition: structuredClone(composition.receipt),
-        renderGeometryStatus: initialGeometry ? 'ready' : 'deferred',
+        renderGeometryStatus: pluginOwnsWorldDetail ? 'plugin-owned' : initialGeometry ? 'ready' : 'deferred',
+        routingStatus: pluginOwnsWorldDetail ? 'not-consumed' : 'ready',
         claimBoundary: manifest.value.claimBoundary,
       },
     };
-    if (deferRenderGeometry) {
+    if (deferRenderGeometry && !pluginOwnsWorldDetail) {
       let geometryHydrationPromise = null;
       Object.defineProperty(result, 'loadRenderGeometry', {
         enumerable: false,
@@ -223,7 +244,8 @@
         segments: composition.world.segments.length,
         featureCards: composition.featureCatalog.cards.length,
       },
-      renderGeometryStatus: initialGeometry ? 'ready' : 'deferred',
+      renderGeometryStatus: pluginOwnsWorldDetail ? 'plugin-owned' : initialGeometry ? 'ready' : 'deferred',
+      routingStatus: pluginOwnsWorldDetail ? 'not-consumed' : 'ready',
     });
     return result;
   }
@@ -383,18 +405,96 @@
     composition,
     worldHash,
     featureCatalogHash,
+    exposeCoreWorldViews = true,
   }) {
     const entries = [
       ...refs.map(([, row]) => ({ id: row.value.id, value: row.value, receipt: assetReceipt(row) })),
       ...embodimentRows.map((row) => ({ id: row.loaded.value.id, value: row.loaded.value, receipt: assetReceipt(row.loaded) })),
       ...packRows.map((row) => ({ id: row.value.id, value: row.value, receipt: assetReceipt(row) })),
       ...pluginDatasetRows.map((row) => ({ id: row.value.id, value: row.value, receipt: assetReceipt(row) })),
-      { id: composition.world.id, value: composition.world, receipt: { id: composition.world.id, sha256: worldHash, source: 'verified_region_composition' } },
-      { id: composition.featureCatalog.id, value: composition.featureCatalog, receipt: { id: composition.featureCatalog.id, sha256: featureCatalogHash, source: 'verified_region_composition' } },
-      { id: 'world.buildings.v1', value: composition.world, receipt: { id: composition.world.id, sha256: worldHash, source: 'verified_region_composition', view: 'buildings' } },
-      { id: 'world.graph.v1', value: composition.world, receipt: { id: composition.world.id, sha256: worldHash, source: 'verified_region_composition', view: 'routing_graph' } },
+      { id: composition.world.id, value: composition.world, receipt: { id: composition.world.id, sha256: worldHash, source: exposeCoreWorldViews ? 'verified_region_composition' : 'profile_declared_plugin_owned_context' } },
+      { id: composition.featureCatalog.id, value: composition.featureCatalog, receipt: { id: composition.featureCatalog.id, sha256: featureCatalogHash, source: exposeCoreWorldViews ? 'verified_region_composition' : 'profile_declared_not_consumed' } },
+      ...(exposeCoreWorldViews ? [
+        { id: 'world.buildings.v1', value: composition.world, receipt: { id: composition.world.id, sha256: worldHash, source: 'verified_region_composition', view: 'buildings' } },
+        { id: 'world.graph.v1', value: composition.world, receipt: { id: composition.world.id, sha256: worldHash, source: 'verified_region_composition', view: 'routing_graph' } },
+      ] : []),
     ];
     return dataCatalog.createDataCatalog(entries, { loadShard: pluginDatasetShardLoader });
+  }
+
+  function createProfileOwnedWorldContext(registry, profile) {
+    const worldTemplate = structuredClone(registry.worldTemplate);
+    const featureTemplate = structuredClone(registry.featureCatalogTemplate);
+    const contextId = `${profile.id}:plugin-owned-world-context:v1`;
+    const featureContextId = `${profile.id}:plugin-owned-feature-context:v1`;
+    const world = {
+      ...worldTemplate,
+      id: contextId,
+      label: `${profile.label} plugin-owned world context`,
+      contentVersion: contextId,
+      provenance: {
+        sourceKind: 'profile_owned_world_context',
+        sourceId: profile.id,
+        snapshotDate: worldTemplate.provenance?.snapshotDate || null,
+        claimBoundary: 'This artifact supplies only the governed coordinate frame for a plugin-owned presentation. It contains no City routing graph, building view, live conditions, or evidence for plugin-rendered claims.',
+      },
+      circuits: [], nodes: [], segments: [], signals: [], actors: [], disruptions: [],
+      scenario: {
+        schema: worldTemplate.scenario.schema,
+        timeZone: worldTemplate.scenario.timeZone,
+        defaultStartLocalMinutes: worldTemplate.scenario.defaultStartLocalMinutes,
+        defaultRoute: {
+          algorithm: 'profile_owned_no_core_route',
+          distanceM: 0,
+          nodeIds: [],
+          segmentIds: [],
+        },
+        liveConditionsUsed: false,
+        modeledAssumptions: [],
+      },
+      renderGeometry: {
+        schema: worldTemplate.renderGeometry.schema,
+        coordinateSystem: worldTemplate.renderGeometry.coordinateSystem,
+        claimBoundary: 'No core render geometry is loaded. Visible world detail must come from the selected plugin with its own evidence bindings.',
+        land: [], parks: [], streets: [], buildings: [], bikeFacilities: [],
+      },
+    };
+    const featureCatalog = {
+      ...featureTemplate,
+      id: featureContextId,
+      contentVersion: featureContextId,
+      cards: [],
+      index: {
+        ...featureTemplate.index,
+        cardCount: 0,
+        tokenToCardIds: {},
+        kindToCardIds: {},
+      },
+      provenance: {
+        sourceKind: 'profile_declared_not_consumed',
+        sourceId: profile.id,
+        worldId: contextId,
+        claimBoundary: 'The core feature catalog is not consumed by this plugin-owned experience.',
+      },
+    };
+    return {
+      world,
+      featureCatalog,
+      receipt: {
+        schema: 'simulatte.profileOwnedWorldContextReceipt.v1',
+        id: `${profile.id}:profile-owned-world-context-receipt:v1`,
+        profileId: profile.id,
+        registryId: registry.id,
+        cityId: registry.city.id,
+        packIds: [],
+        seamNodeIds: [],
+        duplicateNodeCount: 0,
+        routingStatus: 'not-consumed',
+        renderDetailOwner: 'plugin',
+        expectedCoreWorldSha256: registry.composition.worldSha256,
+        expectedCoreFeatureCatalogSha256: registry.composition.featureCatalogSha256,
+      },
+    };
   }
 
   async function resolvePluginDatasets({ profile, transport, world, worldHash }) {

@@ -439,6 +439,31 @@ test('camera targets expose every composed region and pan between modes without 
   assert.equal(nearFollowPose.followDistance, state.followDistance);
 });
 
+test('camera targets use the governed coordinate bounds when a plugin-owned world has no core route', () => {
+  const rows = governedAssets();
+  const world = {
+    ...structuredClone(rows.world),
+    nodes: [], segments: [], signals: [], actors: [], disruptions: [], circuits: [],
+    scenario: {
+      ...structuredClone(rows.world.scenario),
+      defaultRoute: { algorithm: 'profile_owned_no_core_route', distanceM: 0, nodeIds: [], segmentIds: [] },
+    },
+  };
+  const targets = cameraApi.createCameraTargets(world, worldApi.createWorldModel(world));
+  assert.deepEqual(targets, [{
+    id: 'route',
+    kind: 'route',
+    label: 'Full route',
+    target: [
+      (world.coordinateSystem.bounds.minimumX + world.coordinateSystem.bounds.maximumX) / 2,
+      0,
+      -(world.coordinateSystem.bounds.minimumY + world.coordinateSystem.bounds.maximumY) / 2,
+    ],
+    distance: targets[0].distance,
+  }]);
+  assert.ok(Number.isFinite(targets[0].distance));
+});
+
 test('follow minimap uses a finite north-up orthographic camera centered on the agent', () => {
   const snapshot = { state: { position: { x: 2105.25, y: -486.5 } } };
   const camera = rendererApi.cameraForMinimap(snapshot, { width: 320, height: 240 });
@@ -1229,10 +1254,27 @@ test('browser loader verifies raw hashes and rejects tampered assets', async () 
   );
   assert.equal(pluginRegistry.entry('safety-explorer'), null);
 
+  const requestCountBeforeDevelopmentProfile = requests.length;
   const developmentProfile = await dataLoader.loadApplication('http://localhost/data/simulatte/autonomy-manifest.json', fetchFiles, { requestedProfileId: 'nyc-development-atlas-v1' });
+  const developmentRequests = requests.slice(requestCountBeforeDevelopmentProfile);
   assert.equal(developmentProfile.applicationProfile.id, 'nyc-development-atlas-v1');
   assert.deepEqual(developmentProfile.applicationProfile.plugins.map((row) => row.id), ['nyc-real-estate']);
   assert.equal(pluginRegistry.entry('nyc-real-estate').manifest.id, 'nyc-real-estate');
+  assert.equal(developmentProfile.world.id, 'nyc-development-atlas-v1:plugin-owned-world-context:v1');
+  assert.equal(developmentProfile.world.nodes.length, 0);
+  assert.equal(developmentProfile.regionPacks.length, 0);
+  assert.equal(developmentProfile.regionComposition.routingStatus, 'not-consumed');
+  assert.equal(developmentProfile.regionComposition.renderDetailOwner, 'plugin');
+  assert.equal(developmentProfile.receipt.routingStatus, 'not-consumed');
+  assert.equal(developmentProfile.receipt.renderGeometryStatus, 'plugin-owned');
+  assert.equal(developmentProfile.receipt.assets.world.source, 'profile_declared_plugin_owned_context');
+  assert.equal(developmentProfile.receipt.assets.world.sha256, null);
+  assert.equal(developmentProfile.receipt.assets.world.expectedSha256, developmentProfile.manifest.world.sha256);
+  assert.equal(developmentProfile.dataCatalog.ids.includes('world.graph.v1'), false);
+  assert.equal(developmentProfile.dataCatalog.ids.includes('world.buildings.v1'), false);
+  assert.equal(typeof developmentProfile.loadRenderGeometry, 'undefined');
+  assert.equal(developmentRequests.some((row) => row.url.includes('/regions/packs/')), false);
+  assert.equal(developmentRequests.some((row) => row.url.includes('.geometry.json')), false);
 
   const staleManifest = structuredClone(loaded.manifest);
   delete staleManifest.missionExamples;

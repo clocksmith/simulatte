@@ -210,13 +210,14 @@
       await ensureRenderer(playbackWorld);
       if (!isCurrent()) return null;
       const initialNode = data.world.nodes[0];
+      const initialPosition = initialNode?.position || { x: 0, y: 0 };
       const snapshot = {
         route: { segmentIds: [] },
         state: {
           tick: 0,
           taskType: 'playback',
-          currentNodeId: initialNode.id,
-          position: { ...initialNode.position },
+          currentNodeId: initialNode?.id || null,
+          position: { ...initialPosition },
           suppressPrimaryActor: true,
           distanceTraveledM: 0,
           speedMps: 0,
