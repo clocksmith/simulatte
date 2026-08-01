@@ -168,7 +168,7 @@
       profile: data.applicationProfile,
       tier: initialTier,
     });
-    if (typeof data.loadRenderGeometry === 'function') { setRuntimeStatus(elements, 'Loading map detail', 'loading'); await new Promise((resolve) => requestAnimationFrame(resolve)); lifecycle.throwIfAborted(); data = await data.loadRenderGeometry(); lifecycle.throwIfAborted(); }
+    if (typeof data.loadRenderGeometry === 'function' && data.applicationProfile.experience?.worldDetail !== 'plugin-owned') { setRuntimeStatus(elements, 'Loading map detail', 'loading'); await new Promise((resolve) => requestAnimationFrame(resolve)); lifecycle.throwIfAborted(); data = await data.loadRenderGeometry(); lifecycle.throwIfAborted(); }
     const playbackStorage = pluginPlaybackApi?.browserStorage?.(hostRoot) || null;
     let storedPlaybackReceipt = interaction.mode === 'playback'
       ? pluginPlaybackApi.loadStoredReceipt(playbackStorage, data.applicationProfile.id)

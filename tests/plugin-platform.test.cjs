@@ -473,6 +473,31 @@ test('experience camera configuration targets only an active plugin', () => {
   assert.equal(experienceCameraApi.runCameraMode({ runMode: 'bird' }), 'overview');
 });
 
+test('application profiles declare when plugin evidence owns the visible world detail', () => {
+  const profile = require('../public/data/application-profiles/nyc-development-atlas-v1.json');
+  assert.equal(contracts.validateProfile(profile), profile);
+  assert.equal(profile.experience.worldDetail, 'plugin-owned');
+  assert.deepEqual(profile.experience.performanceBudget, {
+    firstMeaningfulFrameMs: 4000,
+    p95FrameMs: 350,
+    peakHeapMiB: 384,
+  });
+  assert.throws(
+    () => contracts.validateProfile({
+      ...profile,
+      experience: { ...profile.experience, worldDetail: 'approximate' },
+    }),
+    /application_profile_experience_world_detail_invalid/
+  );
+  assert.throws(
+    () => contracts.validateProfile({
+      ...profile,
+      experience: { ...profile.experience, performanceBudget: { ...profile.experience.performanceBudget, p95FrameMs: 0 } },
+    }),
+    /application_profile_experience_performance_budget_invalid/
+  );
+});
+
 test('platform bootstrap has no named plugin import', () => {
   const source = fs.readFileSync(require.resolve('../public/simulatte/platform/bootstrap/application-loader.js'), 'utf8');
   assert.doesNotMatch(source, /(?:require\(['"][^'"]*\/plugins\/|SimulatteCooperativeContracts)/);

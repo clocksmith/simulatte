@@ -400,3 +400,40 @@ test('declarative UI lazily hydrates object-specific inspections', () => {
   fourth.dispatch('toggle');
   assert.equal(find(fourth, (node) => node.tagName === 'dd').textContent, '3 items');
 });
+
+test('declarative UI bounds initial inspection DOM and hydrates the remainder on demand', () => {
+  const documentRef = fakeDocument();
+  const inspector = new FakeNode('root', documentRef);
+  const host = uiHost.createDeclarativeUiHost({ rootElement: inspector, onAction() {} });
+  const inspections = Array.from({ length: 262 }, (_, index) => ({
+    id: `inspection:${index}`,
+    label: `Inspection ${index}`,
+    targetIds: [`target:${index}`],
+    fields: [{
+      id: 'value',
+      label: 'Value',
+      value: index,
+      unit: 'items',
+      provenance: {
+        axes: { origin: 'observed', temporalStatus: 'snapshot', uncertainty: null },
+        evidenceRefs: [],
+      },
+    }],
+  }));
+  host.render([], [{
+    pluginId: 'fixture',
+    controls: { controls: [] },
+    inspections,
+  }]);
+
+  const fragment = inspector.children[0];
+  assert.equal(fragment.children.length, uiHost.INITIAL_INSPECTION_COUNT + 1);
+  const deferred = fragment.children.at(-1);
+  assert.equal(deferred.dataset.deferredInspectionCount, '250');
+  assert.equal(find(deferred, (node) => node.textContent === 'Inspection 261'), null);
+
+  deferred.open = true;
+  deferred.dispatch('toggle');
+  assert.ok(find(deferred, (node) => node.textContent === 'Inspection 261'));
+  assert.equal(deferred.children.length, 251);
+});

@@ -42,7 +42,7 @@
         return subjectEnvelope(row.id, 'settlement', row.provenance, recordsById);
       }),
     ];
-    return freezeClone({
+    return deepFreeze({
       schema: 'simulatte.contributionProvenanceReceipt.v4',
       pluginId: contribution.pluginId,
       envelopes: subjects,
@@ -62,15 +62,15 @@
       return receipt.envelopes.map((envelope) => {
         contracts.validateProvenanceEnvelope(envelope, `Platform provenance ${receipt.pluginId}:${envelope.subjectId}`);
         const key = `${receipt.pluginId}:${envelope.subjectId}`;
-        const identity = canonical(envelope);
-        if (seen.has(key) && seen.get(key) !== identity) {
+        const existing = seen.get(key);
+        if (existing && canonical(existing) !== canonical(envelope)) {
           throw registryError('provenance_platform_subject_conflict', `Platform provenance subject ${key} changed identity`);
         }
-        seen.set(key, identity);
+        seen.set(key, existing || envelope);
         return envelope;
       });
     });
-    return freezeClone({
+    return deepFreeze({
       schema: 'simulatte.platformProvenanceReceipt.v4',
       pluginIds: contributionReceipts.map((row) => row.pluginId).sort(),
       contributionCount: contributionReceipts.length,
@@ -98,7 +98,8 @@
         origin: provenance.axes.origin,
       });
     }
-    return contracts.createProvenanceEnvelope({
+    const envelope = {
+      schema: 'simulatte.provenanceEnvelope.v4',
       subjectId,
       subjectKind,
       axes: provenance.axes,
@@ -113,7 +114,9 @@
       contentVersions: unique(records.flatMap((row) => row.envelope.contentVersions)),
       licenseRequired: records.some((row) => row.envelope.licenseRequired),
       licenseIdentifiers: unique(records.flatMap((row) => row.envelope.licenseIdentifiers)),
-    });
+    };
+    contracts.validateProvenanceEnvelope(envelope, `${subjectKind} ${subjectId} envelope`);
+    return deepFreeze(envelope);
   }
 
   function coverageForEnvelopes(envelopes) {
@@ -121,7 +124,7 @@
       key,
       envelopes.filter((row) => select(row) === key).length,
     ])));
-    return freezeClone({
+    return deepFreeze({
       schema: 'simulatte.provenanceCoverageMatrix.v4',
       subjectCount: envelopes.length,
       byOrigin: count(contracts.ORIGINS, (row) => row.axes.origin),

@@ -6,6 +6,9 @@
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulatteDeclarativeUiHost = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createDeclarativeUiHostModule(contracts) {
+  const INITIAL_INSPECTION_COUNT = 12;
+  const EAGER_INSPECTION_COUNT = 3;
+
   function createDeclarativeUiHost({
     rootElement,
     rootElements = null,
@@ -137,16 +140,9 @@
         }
         fragments[view.slot].append(section);
       });
-      v4Contributions.forEach((contribution) => {
-        contribution.inspections.forEach((inspection, index) => {
-          fragments.inspector.append(renderInspection(
-            documentRef,
-            contribution.pluginId,
-            inspection,
-            index < 3
-          ));
-        });
-      });
+      v4Contributions.forEach((contribution) => fragments.inspector.append(
+        ...renderInspectionCollection(documentRef, contribution.pluginId, contribution.inspections)
+      ));
       Object.entries(roots).forEach(([slot, element]) => element.replaceChildren(fragments[slot]));
     }
 
@@ -384,6 +380,30 @@
     return section;
   }
 
+  function renderInspectionCollection(documentRef, pluginId, inspections) {
+    const initial = inspections.slice(0, INITIAL_INSPECTION_COUNT).map((inspection, index) => (
+      renderInspection(documentRef, pluginId, inspection, index < EAGER_INSPECTION_COUNT)
+    ));
+    const deferred = inspections.slice(INITIAL_INSPECTION_COUNT);
+    if (!deferred.length) return initial;
+    const section = documentRef.createElement('details');
+    section.className = 'evidence-section plugin-evidence plugin-deferred-inspections';
+    section.dataset.pluginId = pluginId;
+    section.dataset.deferredInspectionCount = String(deferred.length);
+    const heading = documentRef.createElement('summary');
+    heading.textContent = `More evidence (${deferred.length})`;
+    section.append(heading);
+    let hydrated = false;
+    section.addEventListener('toggle', () => {
+      if (!section.open || hydrated) return;
+      hydrated = true;
+      deferred.forEach((inspection) => section.append(
+        renderInspection(documentRef, pluginId, inspection, false)
+      ));
+    });
+    return [...initial, section];
+  }
+
   function provenanceSummary(provenance) {
     const uncertainty = provenance.axes.uncertainty
       ? `${provenance.axes.uncertainty.kind} uncertainty`
@@ -426,5 +446,5 @@
     return error;
   }
 
-  return { createDeclarativeUiHost, formatFieldValue };
+  return { INITIAL_INSPECTION_COUNT, createDeclarativeUiHost, formatFieldValue };
 });

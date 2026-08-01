@@ -420,6 +420,47 @@ test('performance, replay, interaction, and deployment screenshot evidence fail 
   assert.ok(validation.failures.includes('claim_evidence_unresolved'));
 });
 
+test('declared profile performance budgets fail closed on latency, pacing, and heap regressions', async () => {
+  const { claims, contract, receipt, run, sourceIdentity } = await fixture();
+  const budgetedRun = {
+    ...run,
+    performanceBudget: {
+      firstMeaningfulFrameMs: 0.5,
+      p95FrameMs: 16,
+      peakHeapMiB: 0.0001,
+    },
+  };
+  const validation = contract.validateReceipt({
+    receipt,
+    run: budgetedRun,
+    sourceIdentity,
+    claims,
+  });
+  assert.ok(validation.failures.includes('first_meaningful_frame_budget_exceeded'));
+  assert.ok(validation.failures.includes('frame_pacing_budget_exceeded'));
+  assert.ok(validation.failures.includes('memory_budget_exceeded'));
+});
+
+test('declared performance budgets preserve named evidence failures for missing measurements', async () => {
+  const { claims, contract, receipt, run, sourceIdentity } = await fixture();
+  const validation = contract.validateReceipt({
+    receipt: { ...receipt, evidence: { ...receipt.evidence, performance: null } },
+    run: {
+      ...run,
+      performanceBudget: {
+        firstMeaningfulFrameMs: 4000,
+        p95FrameMs: 350,
+        peakHeapMiB: 384,
+      },
+    },
+    sourceIdentity,
+    claims,
+  });
+  assert.ok(validation.failures.includes('first_meaningful_frame_invalid'));
+  assert.ok(validation.failures.includes('frame_pacing_evidence_invalid'));
+  assert.ok(validation.failures.includes('memory_evidence_invalid'));
+});
+
 test('comparison evidence requires an executed settled receipt, never definition metadata', async () => {
   const { claims, contract, receipt, run, sourceIdentity } = await fixture();
   assert.equal(contract.isSettledComparisonExecutionReceipt(receipt.evidence.comparisons[0]), true);

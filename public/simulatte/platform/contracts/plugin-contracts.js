@@ -117,8 +117,9 @@
   function validateExperiencePresentation(value) {
     const experience = value.experience;
     assertObject(experience, 'application_profile_experience_invalid', `Profile ${value.id} experience expected an object`);
-    assertExactKeys(
+    assertAllowedKeys(
       experience,
+      ['kind', 'timelineLabel', 'primaryMeasureKinds', 'supportedViews', 'defaultView', 'comparisonMode', 'worldDetail', 'performanceBudget', 'stages'],
       ['kind', 'timelineLabel', 'primaryMeasureKinds', 'supportedViews', 'defaultView', 'comparisonMode', 'stages'],
       `Profile ${value.id} experience`
     );
@@ -140,6 +141,13 @@
     }
     if (!['none', 'sensitivity', 'synchronized'].includes(experience.comparisonMode)) {
       fail('application_profile_experience_comparison_invalid', `Profile ${value.id} comparison mode is invalid`, experience);
+    }
+    if (experience.worldDetail !== undefined && !['substrate', 'plugin-owned'].includes(experience.worldDetail)) {
+      fail('application_profile_experience_world_detail_invalid', `Profile ${value.id} world detail is invalid`, experience);
+    }
+    if (experience.performanceBudget !== undefined) {
+      assertExactKeys(experience.performanceBudget, ['firstMeaningfulFrameMs', 'p95FrameMs', 'peakHeapMiB'], `Profile ${value.id} performance budget`);
+      Object.entries(experience.performanceBudget).forEach(([key, limit]) => finiteRange(limit, 1, 600000, 'application_profile_experience_performance_budget_invalid', `Profile ${value.id} performance budget ${key}`));
     }
     if (!Array.isArray(experience.stages) || experience.stages.length < 2) {
       fail('application_profile_experience_stages_invalid', `Profile ${value.id} expected at least two experience stages`, experience);

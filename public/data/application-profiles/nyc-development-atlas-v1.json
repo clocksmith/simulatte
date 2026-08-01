@@ -25,6 +25,12 @@
     ],
     "defaultView": "overview",
     "comparisonMode": "synchronized",
+    "worldDetail": "plugin-owned",
+    "performanceBudget": {
+      "firstMeaningfulFrameMs": 4000,
+      "p95FrameMs": 350,
+      "peakHeapMiB": 384
+    },
     "stages": [
       {
         "id": "historical-market",

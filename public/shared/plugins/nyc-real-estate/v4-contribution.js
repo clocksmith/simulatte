@@ -548,7 +548,7 @@
           ]
           : []),
       ];
-    return [...surfaceYear.regions.map((row) => ({
+    const surfaceInspections = surfaceYear.regions.map((row) => ({
       id: `inspect:price-surface:${row.regionId}`,
       label: `${row.label}, ${row.boroughLabel} price surface`,
       targetIds: [`price-surface:${row.regionId}`],
@@ -564,7 +564,8 @@
           ? 'Price-only scenario; neighborhood development-supply effect is not modeled'
           : 'Governed annual sale aggregate; not a parcel appraisal', null, surfaceProvenance(row, surfaceObserved, surfaceSimulated, surfaceSnapshot, surfaceUnsupported)),
       ],
-    })), {
+    }));
+    return [{
       id: 'selected-region-summary',
       label: `${result.region.label} timeline`,
       targetIds: ['selected-region'],
@@ -605,7 +606,7 @@
         field('source-sampled', 'Source snapshot sampled', result.coverage.sourceSampled ? 'yes' : 'no', null, capacity),
         field('boundary', 'Meaning', 'Mapped FAR capacity is not a parcel feasibility or permit prediction', null, capacity),
       ],
-    }, ...snapshot.historicalBuildingStates.map((row) => ({
+    }, ...surfaceInspections, ...snapshot.historicalBuildingStates.map((row) => ({
       id: `inspect:historical:${row.id}`,
       label: row.address || row.jobId || row.id,
       targetIds: [`historical:${row.id}`],

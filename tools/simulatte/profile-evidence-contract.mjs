@@ -138,6 +138,7 @@ function buildEvidencePlan(root) {
       viewportId: viewport.id,
       interactionPath,
       comparisonMode,
+      performanceBudget: row.value.experience?.performanceBudget || null,
     };
     return Object.freeze({
       id: `run-${sha256Value(identity).slice(0, 20)}`,
@@ -152,6 +153,7 @@ function buildEvidencePlan(root) {
       viewport,
       interactionPath,
       comparisonMode,
+      performanceBudget: row.value.experience?.performanceBudget || null,
     });
   })));
   return Object.freeze({
@@ -617,6 +619,12 @@ function validateReceipt({ receipt, run, sourceIdentity, claims }) {
     || !Number.isFinite(performanceEvidence.memory.peakUsedJsHeapBytes)
     || performanceEvidence.memory.peakUsedJsHeapBytes < performanceEvidence.memory.initialUsedJsHeapBytes
   ) failures.push('memory_evidence_invalid');
+  const performanceBudget = run.performanceBudget;
+  if (performanceBudget) {
+    if (performanceEvidence?.firstMeaningfulFrame?.atMs > performanceBudget.firstMeaningfulFrameMs) failures.push('first_meaningful_frame_budget_exceeded');
+    if (performanceEvidence?.framePacing?.p95Ms > performanceBudget.p95FrameMs) failures.push('frame_pacing_budget_exceeded');
+    if (performanceEvidence?.memory?.peakUsedJsHeapBytes > performanceBudget.peakHeapMiB * 1024 * 1024) failures.push('memory_budget_exceeded');
+  }
   const replay = receipt.evidence?.replay;
   if (
     replay?.attempted !== true
