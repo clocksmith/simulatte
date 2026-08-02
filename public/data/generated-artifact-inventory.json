@@ -15,7 +15,7 @@
       ],
       "output": {
         "path": "public/data/simulatte/autonomy-manifest.json",
-        "sha256": "d424f298170a00e967ed026a69b88fea1747ad02eb7fb8f16028656a6b68076b"
+        "sha256": "beb501a3eee4a04f58c5be934951ee9ce98f7cc79ca69505793ea42a9179d943"
       },
       "contentVersion": "autonomy-nyc-multimodal-v1",
       "activationState": "active",
@@ -51,7 +51,7 @@
       ],
       "output": {
         "path": "public/data/simulatte-embedder/manifest.json",
-        "sha256": "6fdb91089deb4aa774204144b415c8a23b2ba203ac01166ca1bc45000c56dd50"
+        "sha256": "9fe057f4329c408cdf8e92f5e4f44ffdc39fbb41dc5be9a5f1b7d6eed1af0a12"
       },
       "contentVersion": "simulatte-model-backed-intent-retrieval-v1",
       "activationState": "active",
@@ -69,7 +69,7 @@
       ],
       "output": {
         "path": "public/data/simulatte-universe/manifest.json",
-        "sha256": "c324d6f4fad1d70b262db0cc5907fb0eeca1be1f72a2da789f84f14b5e418177"
+        "sha256": "e59af3fe3c7e12f3c86a6a9b5b14e71c0522b45c0307fec69c95880aa413c396"
       },
       "contentVersion": "simulatte-universe-multi-index-v1",
       "activationState": "active",

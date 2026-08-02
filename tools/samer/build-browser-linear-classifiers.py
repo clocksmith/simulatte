@@ -15,15 +15,21 @@ from sklearn.svm import LinearSVC
 ROOT = Path(__file__).resolve().parents[2]
 SOURCE = ROOT / "tools/samer/classification-jobs-v1.json"
 OUTPUT = ROOT / "public/data/simulatte-compact-classifiers.js"
+MODEL_RUNTIME_LOCK = ROOT / "public/data/simulatte-embedder/model-runtime-lock.json"
 EXPECTED_SKLEARN_VERSION = "1.9.0"
 
 
+def canonical_number(value):
+    rounded = round(float(value), 8)
+    return 0.0 if rounded == 0 else rounded
+
+
 def round_rows(rows):
-    return [[round(float(value), 8) for value in row] for row in rows]
+    return [[canonical_number(value) for value in row] for row in rows]
 
 
 def round_values(values):
-    return [round(float(value), 8) for value in values]
+    return [canonical_number(value) for value in values]
 
 
 def label_prototype(job, label):
@@ -197,6 +203,27 @@ def render(artifact):
     ))
 
 
+def sync_model_runtime_lock(rendered, check):
+    lock = json.loads(MODEL_RUNTIME_LOCK.read_text())
+    artifact = lock.get("classification", {}).get("artifact")
+    if not isinstance(artifact, dict):
+        raise ValueError("model runtime lock classification artifact is required")
+    expected = {
+        "sha256": hashlib.sha256(rendered.encode("utf-8")).hexdigest(),
+        "sizeBytes": len(rendered.encode("utf-8")),
+    }
+    stale = {key: artifact.get(key) for key, value in expected.items() if artifact.get(key) != value}
+    if not stale:
+        return
+    if check:
+        raise SystemExit(
+            "model runtime lock compact classifier artifact metadata is stale: "
+            + ", ".join(sorted(stale))
+        )
+    artifact.update(expected)
+    MODEL_RUNTIME_LOCK.write_text(f"{json.dumps(lock, indent=2)}\n")
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--check", action="store_true")
@@ -212,9 +239,11 @@ def main():
         current = OUTPUT.read_text() if OUTPUT.exists() else ""
         if current != rendered:
             raise SystemExit("public/data/simulatte-compact-classifiers.js is stale")
+        sync_model_runtime_lock(rendered, check=True)
         print("Browser compact classifier artifact is synchronized.")
         return
     OUTPUT.write_text(rendered)
+    sync_model_runtime_lock(rendered, check=False)
     print("Wrote browser compact classifier artifact.")
 
 
