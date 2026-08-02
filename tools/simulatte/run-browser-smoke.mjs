@@ -321,7 +321,7 @@ async function runBrowserSmoke(options) {
           && featureView.cableTrader.travelerLayerCount >= 1
           && featureView.cableTrader.markerCount >= 256
           && featureView.cableTrader.pathCount >= 1
-          && featureView.cableTrader.labelCount === 0
+          && featureView.cableTrader.labelCount > 0
         : !featureView.cableTrader.visible);
     const isPluginPlayback = expectedProfile.interaction?.mode === 'playback';
     const performancePass = result.smoothness.rafFrameCount >= 120
