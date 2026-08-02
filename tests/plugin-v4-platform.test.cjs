@@ -535,3 +535,17 @@ test('the eleven connected experiences each load one native v4 contribution and 
     );
   });
 });
+
+test('City WGS84 plugin geometry uses the world local origin instead of the country fallback', () => {
+  const geography = require('../public/simulatte/platform/plugin-host/plugin-geography.js');
+  const world = require('../public/data/simulatte/worlds/nyc-core-autonomy-v1.json');
+  const projection = geography.createProjection(geography.projectionFromWorld(world));
+  const origin = world.coordinateSystem.originWgs84;
+  assert.deepEqual(projection.project({
+    longitude: origin.longitude,
+    latitude: origin.latitude,
+  }), { x: 0, y: 0 });
+  const neighborhood = projection.project({ longitude: -73.9387, latitude: 40.7957 });
+  assert.ok(neighborhood.x > 3000 && neighborhood.x < 3500);
+  assert.ok(neighborhood.y > 7500 && neighborhood.y < 8000);
+});

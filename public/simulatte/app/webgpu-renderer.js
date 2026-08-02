@@ -172,6 +172,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       dynamicBuffer: null,
       dynamicCapacity: 0,
       frameCount: 0,
+      frameCpuMs: [],
       firstFrameAt: null,
       startedAt: performance.now(),
       animationFrame: null,
@@ -255,6 +256,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
 
     function drawFrame(timestamp = performance.now()) {
       if (state.isDestroyed || !state.latestSnapshot) return;
+      const cpuStartedAt = performance.now();
       resizeCanvas(canvas, device, format, state);
       const pose = cameraApi.advanceCamera(state, state.latestSnapshot, worldModel, canvas.width / canvas.height, timestamp);
       const camera = cameraForPose(pose, canvas);
@@ -302,6 +304,8 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
       canvas.dataset.frameCount = String(state.frameCount);
       canvas.dataset.staticVertexCount = String(staticData.length / geometry.FLOATS_PER_VERTEX);
       canvas.dataset.dynamicVertexCount = String(state.dynamicData.length / geometry.FLOATS_PER_VERTEX);
+      if (state.frameCpuMs.length >= 512) state.frameCpuMs.shift();
+      state.frameCpuMs.push(performance.now() - cpuStartedAt);
     }
 
     function encodeScene(encoder, { label, resolveTarget, targets, bindGroup: sceneBindGroup, clearValue }) {
@@ -397,6 +401,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
         width: canvas.width,
         height: canvas.height,
         format: 'rgba8unorm',
+        sourceBackend: 'webgpu',
         sourceFormat: format,
         sourceFrameCount: state.frameCount,
         rgbaBase64: btoa(binary),
@@ -452,6 +457,12 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
         staticVertexCount: staticData.length / geometry.FLOATS_PER_VERTEX,
         dynamicVertexCount: state.dynamicData.length / geometry.FLOATS_PER_VERTEX,
         frameCount: state.frameCount,
+        renderCpu: {
+          basis: 'main-thread-command-encoding-and-submit',
+          sampleCount: state.frameCpuMs.length,
+          totalMs: state.frameCpuMs.reduce((sum, value) => sum + value, 0),
+          maxMs: Math.max(0, ...state.frameCpuMs),
+        },
         firstFrameMs: state.firstFrameAt ? Number((state.firstFrameAt - state.startedAt).toFixed(3)) : null,
         worldId: worldModel.world.id,
         buildingCount: worldModel.world.renderGeometry.buildings.length,
@@ -497,6 +508,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
     function destroy() {
       state.isDestroyed = true;
       delete canvas.__simulatteCaptureRenderPixels;
+      delete canvas.__simulatteRenderReceipt;
       if (state.animationFrame !== null) cancelAnimationFrame(state.animationFrame);
       staticBuffer.destroy();
       state.dynamicBuffer?.destroy();
@@ -511,6 +523,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4<f32> {
     }
 
     canvas.__simulatteCaptureRenderPixels = capturePixels;
+    canvas.__simulatteRenderReceipt = receipt;
     state.animationFrame = requestAnimationFrame(animationFrame);
     return {
       render,

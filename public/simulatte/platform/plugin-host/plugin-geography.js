@@ -21,8 +21,17 @@
 
   function projectionFromWorld(world) {
     const declared = world && world.coordinateSystem && world.coordinateSystem.projection;
-    if (!declared) return DEFAULT_PROJECTION;
-    return Object.freeze({ ...DEFAULT_PROJECTION, ...declared });
+    if (declared) return Object.freeze({ ...DEFAULT_PROJECTION, ...declared });
+    const origin = world && world.coordinateSystem && world.coordinateSystem.originWgs84;
+    if (Number.isFinite(origin?.longitude) && Number.isFinite(origin?.latitude)) {
+      return Object.freeze({
+        ...DEFAULT_PROJECTION,
+        originLongitude: origin.longitude,
+        originLatitude: origin.latitude,
+        referenceLatitude: origin.latitude,
+      });
+    }
+    return DEFAULT_PROJECTION;
   }
 
   function createProjection(projection) {

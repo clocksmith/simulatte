@@ -7,6 +7,7 @@ import zlib from 'node:zlib';
 import { spawn } from 'node:child_process';
 import { CdpClient, findChrome } from './run-browser-smoke.mjs';
 import { encodeRgbaPng } from './profile-evidence-png.mjs';
+import { removeGeneratedProfileDirectory, stopChild } from './profile-evidence-process.mjs';
 import { createStaticSiteServer } from './static-site-server.mjs';
 import {
   canonicalJson,
@@ -132,21 +133,6 @@ async function waitForDevtools(port, child) {
   throw new Error(`Chrome DevTools did not become ready on port ${port}`);
 }
 
-async function stopChild(child) {
-  if (!child || child.exitCode !== null || child.signalCode !== null) return;
-  let resolveExit;
-  const exited = new Promise((resolve) => { resolveExit = resolve; });
-  child.once('exit', resolveExit);
-  child.kill('SIGTERM');
-  const stopped = await Promise.race([
-    exited.then(() => true),
-    new Promise((resolve) => setTimeout(() => resolve(false), 2000)),
-  ]);
-  if (stopped || child.exitCode !== null || child.signalCode !== null) return;
-  child.kill('SIGKILL');
-  await exited;
-}
-
 async function waitForReloadedDocument(client, previousTimeOrigin) {
   const deadline = Date.now() + 60000;
   while (Date.now() < deadline) {
@@ -195,7 +181,7 @@ function unfilterPng(raw, width, height, channels) {
   return output;
 }
 
-function inspectPng(buffer) {
+function inspectPng(buffer, method) {
   const signature = buffer.subarray(0, 8).toString('hex');
   if (signature !== '89504e470d0a1a0a') throw new Error('profile_evidence_screenshot_not_png');
   let offset = 8;
@@ -235,7 +221,7 @@ function inspectPng(buffer) {
     }
   }
   return {
-    method: 'cdp-compositor-png-samples',
+    method,
     width,
     height,
     sampleCount,
@@ -277,27 +263,9 @@ function browserProbeExpression(run, seedIndex) {
       }
     };
     await waitFor(() => document.body?.dataset.journeyPhase === 'ready', 'ready');
-    const frameTimes = [];
-    let frameSamplerActive = true;
-    let frameSamplerId = 0;
-    const sampleFrame = (atMs) => {
-      if (!frameSamplerActive) return;
-      if (frameTimes.length < 8192) frameTimes.push(atMs);
-      frameSamplerId = requestAnimationFrame(sampleFrame);
-    };
-    frameSamplerId = requestAnimationFrame(sampleFrame);
-    const memorySamples = [];
-    const sampleMemory = () => {
-      const memory = performance.memory;
-      if (!memory) return;
-      const usedJsHeapBytes = Number(memory.usedJSHeapSize);
-      const totalJsHeapBytes = Number(memory.totalJSHeapSize);
-      if (Number.isFinite(usedJsHeapBytes) && Number.isFinite(totalJsHeapBytes)) {
-        memorySamples.push({ atMs: performance.now(), usedJsHeapBytes, totalJsHeapBytes });
-      }
-    };
-    sampleMemory();
-    const memorySamplerId = setInterval(sampleMemory, 25);
+    const renderCanvas = document.getElementById(${JSON.stringify(run.tier === 'city' ? 'autonomy-canvas' : 'overlay-canvas')});
+    const navigation = performance.getEntriesByType('navigation')[0];
+    const coldStartup = { status: 'pass', basis: 'navigation-to-ready', durationMs: performance.now(), responseEndMs: Number(navigation?.responseEnd || 0) };
     let firstMeaningfulFrame = null;
     const servedVersionResponse = await fetch('/version.json', { cache: 'no-store' });
     if (!servedVersionResponse.ok) throw new Error('profile evidence served build identity unavailable');
@@ -328,6 +296,37 @@ function browserProbeExpression(run, seedIndex) {
       'governed-seed expected=' + expectedSeed + ' actual=' + seedText(),
       5000
     );
+    const performanceWindowBasis = 'selected-governed-seed-ready-to-lifecycle-camera-settled';
+    const captureStartedAt = performance.now();
+    const performanceMarks = [{ label: 'window-start', atMs: captureStartedAt }];
+    const markPerformance = (label) => performanceMarks.push({ label, atMs: performance.now() });
+    const longTasks = [];
+    let longTaskSupported = typeof PerformanceObserver === 'function' && PerformanceObserver.supportedEntryTypes?.includes('longtask');
+    const longTaskObserver = longTaskSupported ? new PerformanceObserver((list) => {
+      list.getEntries().forEach((entry) => longTasks.push({ startTime: entry.startTime, duration: entry.duration }));
+    }) : null;
+    try { longTaskObserver?.observe({ type: 'longtask' }); } catch { longTaskSupported = false; }
+    const frameTimes = [];
+    let frameSamplerActive = true;
+    let frameSamplerId = 0;
+    const sampleFrame = (atMs) => {
+      if (!frameSamplerActive) return;
+      if (frameTimes.length < 8192) frameTimes.push(atMs);
+      frameSamplerId = requestAnimationFrame(sampleFrame);
+    };
+    frameSamplerId = requestAnimationFrame(sampleFrame);
+    const memorySamples = [];
+    const sampleMemory = () => {
+      const memory = performance.memory;
+      if (!memory) return;
+      const usedJsHeapBytes = Number(memory.usedJSHeapSize);
+      const totalJsHeapBytes = Number(memory.totalJSHeapSize);
+      if (Number.isFinite(usedJsHeapBytes) && Number.isFinite(totalJsHeapBytes)) {
+        memorySamples.push({ atMs: performance.now(), usedJsHeapBytes, totalJsHeapBytes });
+      }
+    };
+    sampleMemory();
+    const memorySamplerId = setInterval(sampleMemory, 25);
     const controls = Array.from(document.querySelectorAll('button, input, select, [role="button"]')).map((element) => ({
       id: element.id || element.name || element.dataset.actionId || element.getAttribute('aria-label') || element.textContent?.trim(),
       kind: element.tagName.toLowerCase(),
@@ -353,6 +352,7 @@ function browserProbeExpression(run, seedIndex) {
       );
       timeline.value = timeline.max;
       timeline.dispatchEvent(new Event('change', { bubbles: true }));
+      markPerformance(label + '-seek');
       await waitFor(
         () => document.body.dataset.journeyPhase === 'completed'
           || ((document.getElementById('runtime-status')?.textContent || '').includes('End preview')
@@ -360,6 +360,7 @@ function browserProbeExpression(run, seedIndex) {
         label + '-terminal-preview',
         45000
       );
+      markPerformance(label + '-terminal-preview');
       if (recordLifecycle) lifecycle.push('seek', 'terminal-preview');
       if (document.body.dataset.journeyPhase !== 'completed') {
         const commit = document.getElementById('resume-button');
@@ -367,19 +368,19 @@ function browserProbeExpression(run, seedIndex) {
           throw new Error('profile evidence terminal commit control unavailable at ' + label);
         }
         commit.click();
+        markPerformance(label + '-terminal-commit');
         if (recordLifecycle) lifecycle.push('terminal-commit');
       }
       await waitFor(() => document.body.dataset.journeyPhase === 'completed', label + '-terminal-commit', 45000);
+      markPerformance(label + '-completed');
     };
-    const readyFrameCount = Number(document.getElementById('autonomy-canvas')?.dataset.frameCount || 0);
+    const readyFrameCount = Number(renderCanvas?.dataset.frameCount || 0);
     const firstMeaningfulFrameStartedAt = performance.now();
+    markPerformance('start-action');
     document.getElementById('start-button').click();
     await waitFor(() => {
-      const canvas = document.getElementById('autonomy-canvas');
       const platform = globalThis.__simulattePluginPlatformV4;
-      const renderAdvanced = ${JSON.stringify(run.tier === 'city')}
-        ? Number(canvas?.dataset.frameCount || 0) > readyFrameCount
-        : document.body.dataset.journeyPhase !== 'ready';
+      const renderAdvanced = Number(renderCanvas?.dataset.frameCount || 0) > readyFrameCount;
       return renderAdvanced && Array.isArray(platform?.contributions) && platform.contributions.length > 0;
     }, 'first-meaningful-frame');
     const firstMeaningfulFramePageAt = performance.now();
@@ -388,24 +389,25 @@ function browserProbeExpression(run, seedIndex) {
       atMs: firstMeaningfulFramePageAt - firstMeaningfulFrameStartedAt,
       navigationAtMs: firstMeaningfulFramePageAt,
       basis: 'start-action-to-new-governed-frame',
-      frameCount: ${JSON.stringify(run.tier === 'city')}
-        ? Number(document.getElementById('autonomy-canvas')?.dataset.frameCount || 0)
-        : frameTimes.length,
-      renderSignal: ${JSON.stringify(run.tier === 'city')} ? 'city-canvas-frame' : 'tier-run-phase-frame',
+      frameCount: Number(renderCanvas?.dataset.frameCount || 0),
+      renderSignal: ${JSON.stringify(run.tier === 'city')} ? 'city-canvas-frame' : 'tier-canvas2d-frame',
       contributionCount: globalThis.__simulattePluginPlatformV4?.contributions?.length || 0,
       semanticLayerCount: (globalThis.__simulattePluginPlatformV4?.contributions || [])
         .reduce((sum, row) => sum + (row?.presentation?.layers?.length || 0), 0),
       compositorReceiptCount: globalThis.__simulattePluginPlatformV4?.compositor?.length || 0,
     };
+    markPerformance('first-meaningful-frame');
     const pause = document.getElementById('pause-button');
     if (pause && !pause.hidden && !pause.disabled) {
       await new Promise((resolve) => setTimeout(resolve, 25));
       pause.click();
       lifecycle.push('pause');
+      markPerformance('pause');
       const resume = document.getElementById('resume-button');
       if (resume && !resume.hidden && !resume.disabled) {
         resume.click();
         lifecycle.push('resume');
+        markPerformance('resume');
         if (!pause.hidden && !pause.disabled) pause.click();
       }
       const step = document.getElementById('step-button');
@@ -425,23 +427,25 @@ function browserProbeExpression(run, seedIndex) {
           10000
         );
         lifecycle.push('step');
+        markPerformance('step');
       }
       if (resume && !resume.hidden && !resume.disabled) {
         resume.click();
         if (!lifecycle.includes('resume')) lifecycle.push('resume');
+        markPerformance('resume-after-step');
       }
     }
     const hasProgressiveTimeline = !document.getElementById('playback-timeline-control')?.hidden
       && Number(document.getElementById('playback-timeline')?.max || 0) > 0;
     if (hasProgressiveTimeline) await commitTimelineTerminal('settlement', true);
-    const started = performance.now();
+    const settlementStartedAt = performance.now();
     while (!['completed', 'failed'].includes(document.body.dataset.journeyPhase)) {
       progressiveStates.push({
         phase: document.body.dataset.journeyPhase,
         tick: Number(document.getElementById('metric-tick')?.textContent || 0),
         atMs: performance.now(),
       });
-      if (performance.now() - started > 45000) {
+      if (performance.now() - settlementStartedAt > 45000) {
         throw new Error('profile evidence timeout at settlement phase='
           + (document.body.dataset.journeyPhase || 'missing')
           + ' status=' + (document.getElementById('runtime-status')?.textContent || 'missing')
@@ -451,6 +455,7 @@ function browserProbeExpression(run, seedIndex) {
       await new Promise((resolve) => setTimeout(resolve, 50));
     }
     lifecycle.push('settle');
+    markPerformance('settled');
     progressiveStates.push({
       phase: document.body.dataset.journeyPhase,
       tick: Number(document.getElementById('metric-tick')?.textContent || 0),
@@ -491,23 +496,46 @@ function browserProbeExpression(run, seedIndex) {
           actionResult: receipt?.actionResult,
           settlement: receipt?.settlement,
         };
-    const replayBeforeSha256 = await sha256Value(replayIdentity(currentRunReceipt()));
-    let replayAfterSha256 = null;
+    const replayBeforeIdentity = replayIdentity(currentRunReceipt());
+    let replayAfterIdentity = null;
     const replay = document.getElementById('replay-button');
     if (replay && !replay.hidden && !replay.disabled) {
+      markPerformance('replay-action');
       replay.click();
       await waitFor(() => document.body.dataset.journeyPhase !== 'completed', 'replay-started');
       const replayHasTimeline = !document.getElementById('playback-timeline-control')?.hidden
         && Number(document.getElementById('playback-timeline')?.max || 0) > 0;
       if (replayHasTimeline) await commitTimelineTerminal('replay');
       else await waitFor(() => document.body.dataset.journeyPhase === 'completed', 'replay');
-      replayAfterSha256 = await sha256Value(replayIdentity(currentRunReceipt()));
+      replayAfterIdentity = replayIdentity(currentRunReceipt());
       lifecycle.push('replay');
+      markPerformance('replay-completed');
     }
     await waitFor(() => {
       const transition = document.getElementById('autonomy-canvas')?.dataset.cameraTransition;
       return !transition || transition === 'settled';
     }, 'camera-settled', 5000);
+    markPerformance('camera-settled');
+    const performanceCompletedAt = performance.now();
+    longTaskObserver?.takeRecords().forEach((entry) => longTasks.push({ startTime: entry.startTime, duration: entry.duration }));
+    longTaskObserver?.disconnect();
+    frameSamplerActive = false;
+    cancelAnimationFrame(frameSamplerId);
+    clearInterval(memorySamplerId);
+    sampleMemory();
+    const frameIntervalEntries = frameTimes.slice(1).map((value, index) => ({
+      startTime: frameTimes[index],
+      endTime: value,
+      duration: value - frameTimes[index],
+    }));
+    const frameIntervals = frameIntervalEntries.map((entry) => entry.duration);
+    const sortedFrameIntervals = [...frameIntervals].sort((left, right) => left - right);
+    const percentile = (values, fraction) => values.length
+      ? values[Math.min(values.length - 1, Math.floor((values.length - 1) * fraction))]
+      : null;
+    const usedHeapValues = memorySamples.map((row) => row.usedJsHeapBytes);
+    const replayBeforeSha256 = await sha256Value(replayBeforeIdentity);
+    const replayAfterSha256 = replayAfterIdentity ? await sha256Value(replayAfterIdentity) : null;
     const tierReceipt = globalThis.__simulatteTierRunReceipt || null;
     const pluginRunReceipt = globalThis.__simulattePluginRunReceipt || null;
     const runReceipt = tierReceipt || pluginRunReceipt;
@@ -605,7 +633,7 @@ function browserProbeExpression(run, seedIndex) {
       };
     };
     const compactedRunReceipt = await compactRunReceipt(runReceipt);
-    const canvas = document.getElementById('autonomy-canvas');
+    const canvas = renderCanvas;
     const canvasRect = canvas?.getBoundingClientRect() || null;
     const visibleRect = (element) => {
       if (!element) return null;
@@ -645,17 +673,6 @@ function browserProbeExpression(run, seedIndex) {
     const expectedFocusId = ${JSON.stringify(run.tier === 'city')} && sourceIntentId && ['overview', 'compare'].includes(viewDecision.mode)
       ? 'plugin:' + viewDecision.source + ':' + sourceIntentId
       : null;
-    const performanceCompletedAt = performance.now();
-    frameSamplerActive = false;
-    cancelAnimationFrame(frameSamplerId);
-    clearInterval(memorySamplerId);
-    sampleMemory();
-    const frameIntervals = frameTimes.slice(1).map((value, index) => value - frameTimes[index]);
-    const sortedFrameIntervals = [...frameIntervals].sort((left, right) => left - right);
-    const percentile = (values, fraction) => values.length
-      ? values[Math.min(values.length - 1, Math.floor((values.length - 1) * fraction))]
-      : null;
-    const usedHeapValues = memorySamples.map((row) => row.usedJsHeapBytes);
     const interactionCoverage = {
       expected: ${JSON.stringify(run.interactionPath)},
       observed: lifecycle,
@@ -718,18 +735,26 @@ function browserProbeExpression(run, seedIndex) {
           },
         },
         performance: {
-          frameCount: Number(document.getElementById('autonomy-canvas')?.dataset.frameCount || progressiveStates.length),
-          elapsedMs: performanceCompletedAt - started,
+          frameCount: Number(renderCanvas?.dataset.frameCount || progressiveStates.length),
+          elapsedMs: performanceCompletedAt - captureStartedAt,
+          basis: 'governed-lifecycle-after-ready',
+          windowBasis: performanceWindowBasis,
+          coldStartup,
           firstMeaningfulFrame,
           framePacing: {
+            basis: performanceWindowBasis,
             status: frameIntervals.length > 1 ? 'pass' : 'fail',
             sampleCount: frameIntervals.length,
             p50Ms: percentile(sortedFrameIntervals, 0.5),
             p95Ms: percentile(sortedFrameIntervals, 0.95),
             maxMs: sortedFrameIntervals.at(-1) ?? null,
             over50MsCount: frameIntervals.filter((value) => value > 50).length,
+            worstIntervals: frameIntervalEntries
+              .sort((left, right) => right.duration - left.duration)
+              .slice(0, 20),
           },
           memory: {
+            basis: performanceWindowBasis,
             status: usedHeapValues.length ? 'pass' : 'fail',
             sampleCount: usedHeapValues.length,
             initialUsedJsHeapBytes: usedHeapValues[0] ?? null,
@@ -737,6 +762,18 @@ function browserProbeExpression(run, seedIndex) {
             peakUsedJsHeapBytes: usedHeapValues.length ? Math.max(...usedHeapValues) : null,
             finalTotalJsHeapBytes: memorySamples.at(-1)?.totalJsHeapBytes ?? null,
           },
+          longTasks: {
+            basis: performanceWindowBasis,
+            status: longTaskSupported ? 'pass' : 'unsupported',
+            sampleCount: longTasks.length,
+            totalMs: longTasks.reduce((sum, row) => sum + row.duration, 0),
+            maxMs: Math.max(0, ...longTasks.map((row) => row.duration)),
+            entries: [...longTasks]
+              .sort((left, right) => right.duration - left.duration)
+              .slice(0, 20),
+          },
+          marks: performanceMarks,
+          rendererCpu: renderCanvas?.__simulatteRenderReceipt?.().renderCpu || null,
         },
       },
       integrity: {
@@ -748,6 +785,7 @@ function browserProbeExpression(run, seedIndex) {
 }
 
 async function captureBrowserRun({ chromePath, baseUrl, run, sourceIdentity, claims, outputDirectory, seedIndex }) {
+  const renderCanvasId = run.tier === 'city' ? 'autonomy-canvas' : 'overlay-canvas';
   const debugPort = await freePort();
   const profileDirectory = fs.mkdtempSync(path.join(os.tmpdir(), `simulatte-profile-evidence-${run.profileId}-`));
   const chrome = spawn(chromePath, [
@@ -795,18 +833,14 @@ async function captureBrowserRun({ chromePath, baseUrl, run, sourceIdentity, cla
       returnByValue: true,
     }), 180000, 'browser-probe');
     if (evaluated.exceptionDetails) throw new Error(evaluated.exceptionDetails.exception?.description || evaluated.exceptionDetails.text);
-    const browserVersion = await client.send('Browser.getVersion');
-    const gpu = await client.send('Runtime.evaluate', {
-      expression: `(async () => {
-        if (!navigator.gpu) return { available: false };
-        const adapter = await navigator.gpu.requestAdapter();
-        if (!adapter) return { available: false };
-        const info = adapter.info || {};
-        return { available: true, vendor: info.vendor || null, architecture: info.architecture || null, device: info.device || null, description: info.description || null };
+    const browserVersion = await withTimeout(client.send('Browser.getVersion'), 10000, 'browser-version');
+    const gpu = await withTimeout(client.send('Runtime.evaluate', {
+      expression: `(() => {
+        const receipt = document.getElementById(${JSON.stringify(renderCanvasId)})?.__simulatteRenderReceipt?.();
+        return receipt?.adapter ? { available: true, ...receipt.adapter } : { available: false, rendererBackend: receipt?.backend || null };
       })()`,
-      awaitPromise: true,
       returnByValue: true,
-    });
+    }), 10000, 'gpu-identity');
     const screenshotResult = await withTimeout(
       client.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false }),
       30000,
@@ -819,10 +853,10 @@ async function captureBrowserRun({ chromePath, baseUrl, run, sourceIdentity, cla
     const pageScreenshotPath = path.join(pageScreenshotDirectory, `${pageScreenshotSha256}.png`);
     if (!fs.existsSync(pageScreenshotPath)) fs.writeFileSync(pageScreenshotPath, pageScreenshot);
     const captured = compactCapturedEvidence(evaluated.result.value);
-    const beforeReloadOrigin = await client.send('Runtime.evaluate', {
+    const beforeReloadOrigin = await withTimeout(client.send('Runtime.evaluate', {
       expression: 'performance.timeOrigin',
       returnByValue: true,
-    });
+    }), 10000, 'reload-origin');
     await withTimeout(client.send('Page.reload', { ignoreCache: false }), 30000, 'page-reload');
     await waitForReloadedDocument(client, beforeReloadOrigin.result.value);
     const beforeRunReceipt = captured.runtime.runReceipt;
@@ -834,17 +868,17 @@ async function captureBrowserRun({ chromePath, baseUrl, run, sourceIdentity, cla
         const receipt = () => isPluginPlayback
           ? globalThis.__simulattePluginRunReceipt || null
           : globalThis.__simulatteTierRunReceipt || null;
+        const phase = () => document.body?.dataset.journeyPhase || 'loading';
         const started = performance.now();
-        while (!receipt() || document.body.dataset.journeyPhase !== 'completed') {
-          const phase = document.body.dataset.journeyPhase;
-          if (phase === 'failed') break;
+        while (!receipt() || phase() !== 'completed') {
+          if (phase() === 'failed') break;
           if (performance.now() - started > 45000) break;
           await new Promise((resolve) => setTimeout(resolve, 25));
         }
         const afterReceipt = receipt();
         const beforeScenario = beforeReceipt?.scenario || null;
         const afterScenario = afterReceipt?.scenario || null;
-        const restored = Boolean(afterReceipt && document.body.dataset.journeyPhase === 'completed');
+        const restored = Boolean(afterReceipt && phase() === 'completed');
         return {
           attempted: true,
           kind: isPluginPlayback ? 'plugin-playback' : 'tier-run',
@@ -861,6 +895,9 @@ async function captureBrowserRun({ chromePath, baseUrl, run, sourceIdentity, cla
       awaitPromise: true,
       returnByValue: true,
     }), 60000, 'reload-restoration');
+    if (reload.exceptionDetails) {
+      throw new Error(reload.exceptionDetails.exception?.description || reload.exceptionDetails.text);
+    }
     const reloadEvidence = reload.result.value;
     if (reloadEvidence.kind === 'plugin-playback') {
       reloadEvidence.beforeReceipt = compactRunReceiptReference(reloadEvidence.beforeReceipt);
@@ -874,7 +911,7 @@ async function captureBrowserRun({ chromePath, baseUrl, run, sourceIdentity, cla
     }
     const renderCapture = await withTimeout(client.send('Runtime.evaluate', {
       expression: `(async () => {
-        const capture = document.getElementById('autonomy-canvas')?.__simulatteCaptureRenderPixels;
+        const capture = document.getElementById(${JSON.stringify(renderCanvasId)})?.__simulatteCaptureRenderPixels;
         return typeof capture === 'function' ? capture() : null;
       })()`,
       awaitPromise: true,
@@ -905,19 +942,23 @@ async function captureBrowserRun({ chromePath, baseUrl, run, sourceIdentity, cla
       pageUrl: captured.evidence.deployment?.pageUrl || null,
     };
     captured.evidence.screenshot = {
-      kind: 'webgpu-canvas-readback',
+      kind: renderPixels.sourceBackend === 'webgpu' ? 'webgpu-canvas-readback' : 'canvas2d-canvas-readback',
       sha256: screenshotSha256,
       path: path.relative(outputDirectory, screenshotPath),
       byteLength: screenshot.length,
       width: renderPixels?.width || null,
       height: renderPixels?.height || null,
       sourceFormat: renderPixels?.sourceFormat || null,
+      sourceBackend: renderPixels?.sourceBackend || null,
       sourceFrameCount: renderPixels?.sourceFrameCount ?? null,
       buildId: sourceIdentity.build.buildId,
       servedBuildId: captured.evidence.deployment?.servedBuildId || null,
       pageUrl: captured.evidence.deployment?.pageUrl || null,
     };
-    captured.evidence.pixelReadback = { ...inspectPng(screenshot), sha256: screenshotSha256 };
+    const pixelMethod = renderPixels.sourceBackend === 'webgpu'
+      ? 'webgpu-texture-readback-png-samples'
+      : 'canvas2d-image-data-png-samples';
+    captured.evidence.pixelReadback = { ...inspectPng(screenshot, pixelMethod), sha256: screenshotSha256 };
     return {
       schema: 'simulatte.profileEvidenceReceipt.v1',
       capturedAt: new Date().toISOString(),
@@ -941,9 +982,17 @@ async function captureBrowserRun({ chromePath, baseUrl, run, sourceIdentity, cla
       claims: claims.map((claim) => ({ id: claim.id, sentence: claim.sentence })),
     };
   } finally {
-    if (client) await client.close();
+    if (client) {
+      try {
+        await withTimeout(client.send('Browser.close'), 5000, 'browser-close');
+      } catch {
+        // Chrome can close the protocol socket before acknowledging Browser.close.
+      }
+      await client.close();
+    }
     await stopChild(chrome);
-    fs.rmSync(profileDirectory, { recursive: true, force: true, maxRetries: 50, retryDelay: 100 });
+    const cleanup = await removeGeneratedProfileDirectory(profileDirectory);
+    if (!cleanup.removed) console.warn(`PROFILE-EVIDENCE cleanup=deferred path=${cleanup.path} error=${cleanup.error}`);
   }
 }
 

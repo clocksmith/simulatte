@@ -17,6 +17,11 @@
     "supportedViews": ["overview", "free", "compare"],
     "defaultView": "overview",
     "comparisonMode": "synchronized",
+    "performanceBudget": {
+      "firstMeaningfulFrameMs": 500,
+      "p95FrameMs": 500,
+      "peakHeapMiB": 64
+    },
     "stages": [
       { "id": "traffic-allocates", "label": "Traffic allocated", "narrative": "Modeled demand is conserved across governed landing and cable identities.", "fromProgress": 0 },
       { "id": "failure-isolates", "label": "Failure applied", "narrative": "Selected cable or landing failures remove capacity and expose disconnected demand.", "fromProgress": 0.2 },

@@ -187,6 +187,8 @@ function writeSummary(outputDirectory, report) {
     '',
     `Release coverage: ${report.totalRuns}/${report.requiredRuns} runs (${report.coverageComplete ? 'complete' : 'incomplete'})`,
     '',
+    'Human visual adjudication: required for every passing run. See [human-review-queue.json](human-review-queue.json).',
+    '',
     '| Profile | Passed | Total | Blocking failures |',
     '| --- | ---: | ---: | --- |',
     ...report.profiles.map((row) => `| ${row.profileId} | ${row.passedRuns} | ${row.totalRuns} | ${Object.entries(row.failureCounts).map(([failure, count]) => `${failure} (${count})`).join(', ') || 'none'} |`),
@@ -197,6 +199,79 @@ function writeSummary(outputDirectory, report) {
     '',
   ];
   fs.writeFileSync(path.join(outputDirectory, 'summary.md'), `${lines.join('\n')}\n`);
+}
+
+function verifiedVisualAsset(outputDirectory, evidence, kind) {
+  if (!evidence) return null;
+  const root = path.resolve(outputDirectory);
+  const assetPath = path.resolve(root, evidence.path || '');
+  if (!assetPath.startsWith(`${root}${path.sep}`)) throw new Error(`profile_evidence_${kind}_path_invalid`);
+  if (!fs.existsSync(assetPath)) throw new Error(`profile_evidence_${kind}_missing: ${evidence.path}`);
+  if (sha256File(assetPath) !== evidence.sha256) throw new Error(`profile_evidence_${kind}_hash_mismatch: ${evidence.path}`);
+  return {
+    sha256: evidence.sha256,
+    path: evidence.path,
+    ...(kind === 'canvas_screenshot' ? {
+      kind: evidence.kind,
+      sourceBackend: evidence.sourceBackend,
+      width: evidence.width ?? null,
+      height: evidence.height ?? null,
+    } : {}),
+  };
+}
+
+function writeHumanReviewQueue(outputDirectory, report) {
+  const indexPath = path.join(outputDirectory, 'index.json');
+  const rows = report.runs.map((row) => {
+    const receipt = verifyStoredReceipt(outputDirectory, row);
+    const screenshot = receipt.evidence?.screenshot || null;
+    const pageScreenshot = receipt.evidence?.pageScreenshot || null;
+    const renderEvidence = {
+      compositorReceipts: receipt.runtime?.compositorReceipts || [],
+      contributionSources: receipt.runtime?.contributionSources || [],
+      pixelReadback: receipt.evidence?.pixelReadback || null,
+      visual: receipt.evidence?.visual || null,
+    };
+    return {
+      runId: row.runId,
+      profileId: row.profileId,
+      seedId: row.seedId,
+      viewportId: row.viewportId,
+      machineStatus: row.pass ? 'ready' : 'blocked',
+      receiptSha256: row.receiptSha256,
+      receiptPath: row.receiptPath,
+      buildIdentity: receipt.sourceIdentity?.build || null,
+      deployment: receipt.evidence?.deployment || null,
+      canvasScreenshot: verifiedVisualAsset(outputDirectory, screenshot, 'canvas_screenshot'),
+      pageScreenshot: verifiedVisualAsset(outputDirectory, pageScreenshot, 'page_screenshot'),
+      renderEvidenceSha256: sha256Bytes(canonicalJson(renderEvidence)),
+      reviewStatus: row.pass ? 'human-adjudication-required' : 'blocked-on-machine-evidence',
+    };
+  });
+  const queue = {
+    schema: 'simulatte.profileEvidenceHumanReviewQueue.v1',
+    status: report.capturePass && report.coverageComplete
+      ? 'human-adjudication-required'
+      : 'machine-evidence-incomplete',
+    indexSha256: sha256File(indexPath),
+    requiredBindings: [
+      'runId',
+      'receiptSha256',
+      'buildIdentity',
+      'deployment',
+      'canvasScreenshot.sha256',
+      'renderEvidenceSha256',
+      'reviewerId',
+      'reviewedAt',
+      'verdict',
+    ],
+    requiredVerdicts: ['recognizability', 'truth-boundary-legibility'],
+    totalRuns: rows.length,
+    pendingRuns: rows.filter((row) => row.reviewStatus === 'human-adjudication-required').length,
+    rows,
+  };
+  fs.writeFileSync(path.join(outputDirectory, 'human-review-queue.json'), canonicalJson(queue));
+  return queue;
 }
 
 function evidenceReportStatus(report) {
@@ -360,6 +435,7 @@ async function captureAll({ options, plan, claims, identity, releaseIdentitySha2
   };
   fs.writeFileSync(path.join(options.outputDirectory, 'index.json'), `${JSON.stringify(report, null, 2)}\n`);
   writeSummary(options.outputDirectory, report);
+  writeHumanReviewQueue(options.outputDirectory, report);
   return report;
 }
 
@@ -412,6 +488,7 @@ export {
   prepareCaptureDirectory,
   profileClosureMatrix,
   validateIndex,
+  writeHumanReviewQueue,
   writeReleaseFreeze,
   worktreeSha256,
 };

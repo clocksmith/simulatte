@@ -17,6 +17,11 @@
     "supportedViews": ["overview", "follow", "free", "compare"],
     "defaultView": "overview",
     "comparisonMode": "synchronized",
+    "performanceBudget": {
+      "firstMeaningfulFrameMs": 2250,
+      "p95FrameMs": 4250,
+      "peakHeapMiB": 192
+    },
     "stages": [
       { "id": "observations-arrive", "label": "Observations arrive", "narrative": "Synthetic noisy observations arrive without exposing the hidden scenario truth.", "fromProgress": 0 },
       { "id": "orbit-fits", "label": "Orbit and covariance fit", "narrative": "Residuals and the uncertainty ensemble change as follow-up observations are incorporated.", "fromProgress": 0.22 },

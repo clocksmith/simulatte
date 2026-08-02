@@ -2648,7 +2648,7 @@ test('model-backed intent retrieval uses a 1024d Qwen index and keeps the unqual
   assert.equal(rawManifest.modelRuntimeLock.id, modelRuntimeLock.id);
   assert.equal(rawManifest.modelRuntimeLock.number, modelRuntimeLock.number);
   assert.equal(modelRuntimeLock.schema, 'simulatte.modelRuntimeLock.v1');
-  assert.equal(modelRuntimeLock.number, 13);
+  assert.equal(modelRuntimeLock.number, 14);
   assert.equal(Object.hasOwn(rawManifest, 'embedModel'), false);
   assert.equal(Object.hasOwn(rawManifest, 'reranker'), false);
     assert.equal(Object.hasOwn(rawManifest, 'runtime'), false);

@@ -17,6 +17,7 @@ function fixture({
   startGate = null,
   interventionGate = null,
   terminalAtStart = false,
+  terminalStep = 2,
   scenarioChanges = null,
   scenario = { id: 'fixture-scenario', seed: 'fixture-seed' },
   interventionDispatches = null,
@@ -96,9 +97,9 @@ function fixture({
         if (interventionGate) await interventionGate.promise;
         interventions.push({ actionId, day, values: structuredClone(context.values) });
         return {
-          status: day === 2 ? 'settled' : 'running',
+          status: day === terminalStep ? 'settled' : 'running',
           currentStep: day,
-          totalSteps: 2,
+          totalSteps: terminalStep,
           simulationTimeMs: day * 1000,
           interventionCount: interventions.length,
         };
@@ -111,7 +112,7 @@ function fixture({
         return {
           status: terminalAtStart ? 'settled' : 'running',
           currentStep: terminalAtStart ? 1 : day,
-          totalSteps: terminalAtStart ? 1 : 2,
+          totalSteps: terminalAtStart ? 1 : terminalStep,
           simulationTimeMs: 0,
           interventionCount: 0,
           ...(startPresentationChanged === undefined ? {} : { presentationChanged: startPresentationChanged }),
@@ -120,9 +121,9 @@ function fixture({
       if (stepGate) await stepGate.promise;
       day += 1;
       return {
-        status: day === 2 ? 'settled' : 'running',
+        status: day === terminalStep ? 'settled' : 'running',
         currentStep: day + stepOffset,
-        totalSteps: 2 + stepOffset,
+        totalSteps: terminalStep + stepOffset,
         simulationTimeMs: day * 1000,
         interventionCount: interventions.length,
       };
@@ -522,6 +523,57 @@ test('plugin playback seek clamps stale targets and requires an explicit termina
   await lane.controller.resume();
   assert.equal(lane.controller.snapshot().phase, 'completed');
   assert.ok(lane.settledReceipt());
+});
+
+test('plugin playback yields each reconstructed step for a bounded history', async () => {
+  const originalRequestAnimationFrame = globalThis.requestAnimationFrame;
+  let yieldedFrames = 0;
+  globalThis.requestAnimationFrame = (callback) => {
+    yieldedFrames += 1;
+    queueMicrotask(() => callback(yieldedFrames * 16));
+    return yieldedFrames;
+  };
+  try {
+    const lane = fixture({
+      terminalStep: 18,
+      eventTimes: Array.from({ length: 18 }, (_, index) => (index + 1) * 1000),
+    });
+    await lane.controller.start();
+    const preview = await lane.controller.seek(99);
+    assert.equal(preview.currentStep, 18);
+    assert.equal(preview.terminalPreview, true);
+    assert.ok(yieldedFrames >= 18);
+  } finally {
+    if (originalRequestAnimationFrame === undefined) delete globalThis.requestAnimationFrame;
+    else globalThis.requestAnimationFrame = originalRequestAnimationFrame;
+  }
+});
+
+test('plugin playback time-slices large cheap histories without forcing a frame per step', async () => {
+  const originalRequestAnimationFrame = globalThis.requestAnimationFrame;
+  const originalPerformance = globalThis.performance;
+  let yieldedFrames = 0;
+  globalThis.performance = { now: () => 0 };
+  globalThis.requestAnimationFrame = (callback) => {
+    yieldedFrames += 1;
+    queueMicrotask(() => callback(yieldedFrames * 16));
+    return yieldedFrames;
+  };
+  try {
+    const lane = fixture({
+      terminalStep: 365,
+      eventTimes: Array.from({ length: 365 }, (_, index) => (index + 1) * 1000),
+    });
+    await lane.controller.start();
+    const preview = await lane.controller.seek(999);
+    assert.equal(preview.currentStep, 365);
+    assert.equal(preview.terminalPreview, true);
+    assert.equal(yieldedFrames, 2);
+  } finally {
+    globalThis.performance = originalPerformance;
+    if (originalRequestAnimationFrame === undefined) delete globalThis.requestAnimationFrame;
+    else globalThis.requestAnimationFrame = originalRequestAnimationFrame;
+  }
 });
 
 test('plugin playback commits a terminal preview only once under concurrent steps', async () => {

@@ -60,6 +60,10 @@
 
       this.width = 0;
       this.height = 0;
+      this.frameCount = 0;
+      this.frameCpuMs = [];
+      this.canvas.__simulatteCaptureRenderPixels = () => captureCanvasPixels(this.canvas, this.ctx, this.frameCount);
+      this.canvas.__simulatteRenderReceipt = () => canvas2dRenderReceipt(this.frameCount, this.frameCpuMs);
 
       this.hudElement = null;
       this.pluginLayer = tierPresentation?.createLayer({
@@ -174,6 +178,8 @@
     destroy() {
       this.stop();
       this.removeHud();
+      delete this.canvas.__simulatteCaptureRenderPixels;
+      delete this.canvas.__simulatteRenderReceipt;
       this.lifecycle.abort();
     }
 
@@ -689,6 +695,7 @@
     }
 
     draw() {
+      const cpuStartedAt = performance.now();
       const { ctx, width, height } = this;
       ctx.clearRect(0, 0, width, height);
 
@@ -696,7 +703,10 @@
       ctx.fillStyle = '#060606';
       ctx.fillRect(0, 0, width, height);
 
-      if (!this.data) return;
+      if (!this.data) {
+        this.recordFrame(cpuStartedAt);
+        return;
+      }
 
       ctx.save();
 
@@ -711,6 +721,14 @@
 
       if (this.pluginLayer) this.pluginLayer.render(ctx);
       ctx.restore();
+      this.recordFrame(cpuStartedAt);
+    }
+
+    recordFrame(cpuStartedAt) {
+      this.frameCount += 1;
+      if (this.frameCpuMs.length >= 512) this.frameCpuMs.shift();
+      this.frameCpuMs.push(performance.now() - cpuStartedAt);
+      this.canvas.dataset.frameCount = String(this.frameCount);
     }
 
     // --- DRAW SOLAR SYSTEM ---
@@ -824,5 +842,36 @@
     return new TierVisualizer(canvas, containerId);
   }
 
-  return { createTierVisualizer, coordinateEvidenceView, countryEvidenceView };
+  function captureCanvasPixels(canvas, context, frameCount) {
+    const image = context.getImageData(0, 0, canvas.width, canvas.height);
+    let binary = '';
+    for (let offset = 0; offset < image.data.length; offset += 32768) {
+      binary += String.fromCharCode(...image.data.subarray(offset, offset + 32768));
+    }
+    return {
+      schema: 'simulatte.tierRenderPixels.v1',
+      width: canvas.width,
+      height: canvas.height,
+      format: 'rgba8unorm',
+      sourceBackend: 'canvas2d',
+      sourceFormat: 'rgba8unorm',
+      sourceFrameCount: frameCount,
+      rgbaBase64: btoa(binary),
+    };
+  }
+
+  function canvas2dRenderReceipt(frameCount, frameCpuMs) {
+    return {
+      backend: 'canvas2d',
+      frameCount,
+      renderCpu: {
+        basis: 'main-thread-canvas2d-render',
+        sampleCount: frameCpuMs.length,
+        totalMs: frameCpuMs.reduce((sum, value) => sum + value, 0),
+        maxMs: Math.max(0, ...frameCpuMs),
+      },
+    };
+  }
+
+  return { canvas2dRenderReceipt, captureCanvasPixels, createTierVisualizer, coordinateEvidenceView, countryEvidenceView };
 });

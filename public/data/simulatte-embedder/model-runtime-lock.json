@@ -1,7 +1,7 @@
 {
   "schema": "simulatte.modelRuntimeLock.v1",
   "id": "simulatte-doppler-qwen-runtime-lock",
-  "number": 13,
+  "number": 14,
   "doppler": {
     "moduleUrl": "../../vendor/doppler/src/index.js",
     "deviceModuleUrl": "../../vendor/doppler/src/tooling-exports/device.js",
@@ -112,8 +112,8 @@
     "artifact": {
       "id": "simulatte-browser-compact-classifiers-v1",
       "path": "../simulatte-compact-classifiers.js",
-      "sha256": "ea3f89e658691090fe92e09aa5ee6f9a1b975a571edbfdf263f8198cf5a6270a",
-      "sizeBytes": 767938
+      "sha256": "b622e49600eebe178c794a4739b9e4a292b6a622f83f5128a40c8fc6e5c7d28a",
+      "sizeBytes": 767935
     },
     "execution": {
       "defaultCompactCandidateId": "multinomial-nb-tfidf-head",

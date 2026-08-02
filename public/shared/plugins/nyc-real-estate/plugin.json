@@ -36,7 +36,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginNycRealEstate",
-    "integrity": "sha384-865bf72ea9d174206de2f54440bb43585687e448178baef87354133d6336c33670c7bd1d5e173646b6d3e0acf200a8df",
+    "integrity": "sha384-68a8996e2c2411939a571ee1ba69bb5d46a59400cb04f2a51f69019a0ff9894786f3bb49b65c1506c9030f21f40c13ad",
     "path": "./index.js"
   },
   "extensionPoints": [

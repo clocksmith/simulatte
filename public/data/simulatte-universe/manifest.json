@@ -111,13 +111,13 @@
     }
   },
   "modelRuntimeLock": {
+    "id": "simulatte-doppler-qwen-runtime-lock",
+    "number": 14,
     "artifact": "../simulatte-embedder/model-runtime-lock.json",
     "artifactHash": {
       "alg": "sha256",
-      "hex": "2eadfbbccfa9a746fc82696c8c3990363bec2d5367c4360570426b3f9b20baf2"
-    },
-    "id": "simulatte-doppler-qwen-runtime-lock",
-    "number": 13
+      "hex": "d0d8fb501132ca3181e0af20bb3fb7bc680e23ee7873cf1039ea34996ef19805"
+    }
   },
   "schema": "simulatte.universeManifest.v1"
 }

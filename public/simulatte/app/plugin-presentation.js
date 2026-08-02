@@ -142,7 +142,9 @@
       );
     });
     const viewport = validViewport(options.viewport) ? options.viewport : { width: 1024, height: 768 };
-    const worldUnitsPerPixel = renderScaleForPoints([...layerPoints.values()].flat(), viewport);
+    const allLayerPoints = [...layerPoints.values()].flat();
+    const projectionBounds = boundsForPoints(allLayerPoints);
+    const worldUnitsPerPixel = renderScaleForBounds(projectionBounds, viewport);
     const selectedIds = (options.selectedIds || [])
       .map((id) => id.startsWith(`plugin:${pluginId}:`) ? id.slice(`plugin:${pluginId}:`.length) : id)
       .filter((id) => presentation.layers.some((layer) => layer.id === id));
@@ -151,7 +153,7 @@
       selectedIds,
       viewport,
       provenanceReceipt: provenanceReceiptFor(options.provenanceReceipts, pluginId),
-      project: (_source, _geometry, layer) => projectLayer(layerPoints.get(layer.id), layerPoints, viewport),
+      project: (_source, _geometry, layer) => projectLayer(layerPoints.get(layer.id), projectionBounds, viewport),
     });
     compiled.compositorReceipts.push(Object.freeze({
       pluginId,
@@ -168,7 +170,8 @@
       }));
     });
     composition.primitives.forEach((primitive) => {
-      const points = resolveSemanticGeometry(primitive.geometry, worldModel, pluginId, projection, primitive.id);
+      const points = layerPoints.get(primitive.id)
+        || resolveSemanticGeometry(primitive.geometry, worldModel, pluginId, projection, primitive.id);
       const style = primitive.style;
       const common = Object.freeze({
         id: namespace(primitive.id),
@@ -311,20 +314,15 @@
       .join(' ');
   }
 
-  function projectLayer(points, allLayerPoints, viewport) {
+  function projectLayer(points, bounds, viewport) {
     const source = centerPoint(points || []);
-    const allPoints = [...allLayerPoints.values()].flat();
-    if (!allPoints.length) return [viewport.width / 2, viewport.height / 2];
-    const minimumX = Math.min(...allPoints.map((row) => row.x));
-    const maximumX = Math.max(...allPoints.map((row) => row.x));
-    const minimumY = Math.min(...allPoints.map((row) => row.y));
-    const maximumY = Math.max(...allPoints.map((row) => row.y));
-    const spanX = Math.max(1, maximumX - minimumX);
-    const spanY = Math.max(1, maximumY - minimumY);
+    if (!bounds) return [viewport.width / 2, viewport.height / 2];
+    const spanX = Math.max(1, bounds.maximumX - bounds.minimumX);
+    const spanY = Math.max(1, bounds.maximumY - bounds.minimumY);
     const padding = Math.min(24, viewport.width / 8, viewport.height / 8);
     return [
-      padding + ((source.x - minimumX) / spanX) * Math.max(1, viewport.width - padding * 2),
-      padding + ((source.y - minimumY) / spanY) * Math.max(1, viewport.height - padding * 2),
+      padding + ((source.x - bounds.minimumX) / spanX) * Math.max(1, viewport.width - padding * 2),
+      padding + ((source.y - bounds.minimumY) / spanY) * Math.max(1, viewport.height - padding * 2),
     ];
   }
 
@@ -344,10 +342,25 @@
       && value.height > 0;
   }
 
-  function renderScaleForPoints(points, viewport) {
-    if (!points.length) return 1;
-    const spanX = Math.max(...points.map((row) => row.x)) - Math.min(...points.map((row) => row.x));
-    const spanY = Math.max(...points.map((row) => row.y)) - Math.min(...points.map((row) => row.y));
+  function boundsForPoints(points) {
+    if (!points.length) return null;
+    let minimumX = Infinity;
+    let maximumX = -Infinity;
+    let minimumY = Infinity;
+    let maximumY = -Infinity;
+    points.forEach((point) => {
+      minimumX = Math.min(minimumX, point.x);
+      maximumX = Math.max(maximumX, point.x);
+      minimumY = Math.min(minimumY, point.y);
+      maximumY = Math.max(maximumY, point.y);
+    });
+    return Object.freeze({ minimumX, maximumX, minimumY, maximumY });
+  }
+
+  function renderScaleForBounds(bounds, viewport) {
+    if (!bounds) return 1;
+    const spanX = bounds.maximumX - bounds.minimumX;
+    const spanY = bounds.maximumY - bounds.minimumY;
     const horizontalPixels = Math.max(1, viewport.width - Math.min(48, viewport.width / 4));
     const verticalPixels = Math.max(1, viewport.height - Math.min(48, viewport.height / 4));
     const perspectiveFitScale = Math.hypot(spanX, spanY) * 1.2 / verticalPixels;

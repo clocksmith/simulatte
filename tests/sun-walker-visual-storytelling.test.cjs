@@ -165,6 +165,7 @@ test('Walked-segment colors and inspector metrics agree with completed samples',
       unknown: '#9aa3b8',
       night: '#69738b',
     }[activeSample.state]);
+    assert.equal(compositor.styleForLayer(segment).widthPx, 7);
     assert.equal(measures['direct-sun'], snapshot.state.directSunSeconds);
     assert.equal(measures.shade, snapshot.state.shadeSeconds);
     assert.equal(measures.unknown, snapshot.state.unknownSeconds);

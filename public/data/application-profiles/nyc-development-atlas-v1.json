@@ -27,9 +27,9 @@
     "comparisonMode": "synchronized",
     "worldDetail": "plugin-owned",
     "performanceBudget": {
-      "firstMeaningfulFrameMs": 4000,
+      "firstMeaningfulFrameMs": 250,
       "p95FrameMs": 350,
-      "peakHeapMiB": 384
+      "peakHeapMiB": 192
     },
     "stages": [
       {

@@ -6,6 +6,8 @@
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulattePluginV4Builder = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createPluginV4Builder(contracts) {
+  const builtContributions = new WeakSet();
+
   function datasetRecord(id, receipt, metadata = {}) {
     const contentHash = receipt?.sha256 || receipt?.contentHash || receipt?.reference?.sha256;
     if (typeof contentHash !== 'string' || !contentHash) throw builderError('plugin_v4_dataset_hash_missing', `Dataset ${id} has no content hash`);
@@ -303,7 +305,13 @@
       provenanceRecords,
     };
     contracts.validateContribution(value);
-    return deepFreeze(value);
+    const frozen = deepFreeze(value);
+    builtContributions.add(frozen);
+    return frozen;
+  }
+
+  function isBuiltContribution(value) {
+    return Boolean(value && builtContributions.has(value));
   }
 
   function viewIntent({ id, mode, targetIds = [], reasonEventId = null, priority = 0, transition = 'ease' }) {
@@ -357,6 +365,7 @@
     evidence,
     event,
     geometry,
+    isBuiltContribution,
     layer,
     modelRecord,
     presentation,

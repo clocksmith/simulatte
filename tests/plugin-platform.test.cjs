@@ -478,9 +478,9 @@ test('application profiles declare when plugin evidence owns the visible world d
   assert.equal(contracts.validateProfile(profile), profile);
   assert.equal(profile.experience.worldDetail, 'plugin-owned');
   assert.deepEqual(profile.experience.performanceBudget, {
-    firstMeaningfulFrameMs: 4000,
+    firstMeaningfulFrameMs: 250,
     p95FrameMs: 350,
-    peakHeapMiB: 384,
+    peakHeapMiB: 192,
   });
   assert.throws(
     () => contracts.validateProfile({
@@ -496,6 +496,31 @@ test('application profiles declare when plugin evidence owns the visible world d
     }),
     /application_profile_experience_performance_budget_invalid/
   );
+});
+
+test('every connected application profile declares an explicit performance budget', () => {
+  const expectedBudgets = {
+    'asteroid-defense-v1': [2250, 4250, 192],
+    'cable-trader-pickup-v1': [250, 750, 480],
+    'food-recall-us-v1': [250, 250, 64],
+    'grid-resilience-us-v1': [250, 250, 96],
+    'interstellar-relay-network-v1': [250, 250, 64],
+    'maritime-trade-global-v1': [250, 250, 96],
+    'neighborhood-bulk-pool-v1': [250, 250, 448],
+    'nyc-development-atlas-v1': [250, 350, 192],
+    'orbital-transfer-planner-v1': [500, 500, 96],
+    'subsea-network-global-v1': [500, 500, 64],
+    'sun-walker-v1': [750, 1750, 512],
+  };
+  for (const [profileId, [firstMeaningfulFrameMs, p95FrameMs, peakHeapMiB]] of Object.entries(expectedBudgets)) {
+    const profile = require(`../public/data/application-profiles/${profileId}.json`);
+    assert.equal(contracts.validateProfile(profile), profile);
+    assert.deepEqual(profile.experience.performanceBudget, {
+      firstMeaningfulFrameMs,
+      p95FrameMs,
+      peakHeapMiB,
+    });
+  }
 });
 
 test('platform bootstrap has no named plugin import', () => {

@@ -9,6 +9,23 @@ const gpuGeometry = require('../public/simulatte/app/webgpu-geometry.js');
 const contracts = require('../public/simulatte/platform/contracts/plugin-v4-contracts.js');
 const provenanceRegistry = require('../public/simulatte/platform/runtime/provenance-registry.js');
 
+test('tier renderer exposes exact Canvas2D pixels and bounded render cost', () => {
+  const rgba = new Uint8ClampedArray([1, 2, 3, 255, 4, 5, 6, 255]);
+  const capture = multiTierVisualizer.captureCanvasPixels(
+    { width: 2, height: 1 },
+    { getImageData: () => ({ data: rgba }) },
+    7,
+  );
+  assert.equal(capture.sourceBackend, 'canvas2d');
+  assert.equal(capture.sourceFrameCount, 7);
+  assert.deepEqual([...Buffer.from(capture.rgbaBase64, 'base64')], [...rgba]);
+  assert.deepEqual(multiTierVisualizer.canvas2dRenderReceipt(2, [1.5, 2.5]), {
+    backend: 'canvas2d',
+    frameCount: 2,
+    renderCpu: { basis: 'main-thread-canvas2d-render', sampleCount: 2, totalMs: 4, maxMs: 2.5 },
+  });
+});
+
 const provenance = contracts.createProvenance({
   origin: 'simulated',
   temporalStatus: 'forecast',

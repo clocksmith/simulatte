@@ -30,6 +30,7 @@
     const datasets = loadDatasets(sdk);
     let selectedScenario = normalizeScenario(scenario, config);
     let acceptedParameters = validateParameters({}, selectedScenario, config, datasets);
+    let solveCount = 0;
     let result = run(acceptedParameters);
     sdk.state.register((state, event) => {
       if (event.kind === `${PLUGIN_ID}.scenario-computed`) {
@@ -50,28 +51,39 @@
       }
       return reduce(state, event);
     }, initialState(result, acceptedParameters));
-    appendScenarioReceipt(result, acceptedParameters);
+    appendScenarioReceipt(result, acceptedParameters, false);
 
     function run(parameters) {
+      solveCount += 1;
       return solver.runScenario({ datasets, config, scenario: parameters });
     }
 
-    function recompute(values, nextScenario) {
-      acceptedParameters = validateParameters(values, nextScenario, config, datasets);
-      result = run(acceptedParameters);
+    function publishScenarioResult(resultReuse) {
       sdk.events.propose({
         pluginId: PLUGIN_ID,
         kind: `${PLUGIN_ID}.scenario-computed`,
         scenarioIdentity: result.scenarioIdentity,
         acceptedParameters,
+        resultReuse,
+        solveCount,
       });
-      appendScenarioReceipt(result, acceptedParameters);
+      appendScenarioReceipt(result, acceptedParameters, resultReuse);
+    }
+
+    function recompute(values, nextScenario) {
+      acceptedParameters = validateParameters(values, nextScenario, config, datasets);
+      result = run(acceptedParameters);
+      publishScenarioResult(false);
       return result;
     }
 
     function setScenario(nextScenario) {
-      selectedScenario = normalizeScenario(nextScenario, config);
-      recompute({}, selectedScenario);
+      const normalized = normalizeScenario(nextScenario, config);
+      const canReuse = result.scenarioId === normalized.scenarioId
+        && result.seed === normalized.seed;
+      selectedScenario = normalized;
+      if (canReuse) publishScenarioResult(true);
+      else recompute({}, selectedScenario);
       return scenarioSummary(result);
     }
 
@@ -348,7 +360,7 @@
       });
     }
 
-    function appendScenarioReceipt(value, parameters) {
+    function appendScenarioReceipt(value, parameters, resultReuse) {
       sdk.receipts.append({
         schema: 'simulatte.plugin.neighborhoodBulkScenarioReceipt.v1',
         scenarioIdentity: value.scenarioIdentity,
@@ -359,6 +371,8 @@
         catalogReceipt: value.catalogReceipt,
         terminalMetrics: value.metrics,
         conservation: value.conservation,
+        resultReuse,
+        solveCount,
         claimBoundary: value.claimBoundary,
         truth: truth(
           'simulated',

@@ -17,6 +17,11 @@
     "supportedViews": ["overview", "free", "compare"],
     "defaultView": "overview",
     "comparisonMode": "synchronized",
+    "performanceBudget": {
+      "firstMeaningfulFrameMs": 250,
+      "p95FrameMs": 250,
+      "peakHeapMiB": 64
+    },
     "stages": [
       { "id": "route-builds", "label": "Route built", "narrative": "Endpoint motion, optical budgets, packet size, and routing constraints determine the hop sequence.", "fromProgress": 0 },
       { "id": "link-acquires", "label": "Link acquisition", "narrative": "Terminal acquisition, queueing, operations state, and failures gate transmission.", "fromProgress": 0.16 },

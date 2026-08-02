@@ -298,6 +298,7 @@ test('plugin lazily loads one selected shard, compares, settles, and replays', a
   const harness = createSdkHarness();
   const scenario = profile.seeds[0];
   const instance = await plugin.activate({ sdk: harness.sdk, config, profile, scenario });
+  assert.equal(instance.contributeV4(), instance.contributeV4());
   assert.deepEqual(harness.shardLoads, ['BK0101']);
   const values = { ...baseParameters, scenarioId: scenario.id, phase: 'start' };
   const started = await instance.handleAction('scenario.run', { scenario, values });

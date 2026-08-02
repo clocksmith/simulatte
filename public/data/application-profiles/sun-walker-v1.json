@@ -9,6 +9,11 @@
     "supportedViews": ["overview", "follow", "top"],
     "defaultView": "overview",
     "comparisonMode": "synchronized",
+    "performanceBudget": {
+      "firstMeaningfulFrameMs": 750,
+      "p95FrameMs": 1750,
+      "peakHeapMiB": 512
+    },
     "stages": [
       { "id": "routes-evaluate", "label": "Routes evaluated", "narrative": "Fastest and shade-selected routes are sampled at their modeled arrival times.", "fromProgress": 0 },
       { "id": "walker-departs", "label": "Walker departs", "narrative": "The walker advances through direct sun, building shade, canopy attenuation, and unknown exposure.", "fromProgress": 0.08 },

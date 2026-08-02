@@ -485,7 +485,10 @@ function selectorResult(receipt, selector, context) {
     && actual.every(isSettledEvidenceReceipt);
   if (selector.operator === 'complete-performance-evidence') return actual?.firstMeaningfulFrame?.status === 'pass'
     && actual?.framePacing?.status === 'pass'
-    && actual?.memory?.status === 'pass';
+    && actual?.memory?.status === 'pass'
+    && actual?.coldStartup?.status === 'pass'
+    && actual?.longTasks?.status === 'pass'
+    && actual?.rendererCpu?.sampleCount >= 1;
   if (selector.operator === 'deterministic-replay') return actual?.attempted === true
     && actual?.deterministic === true
     && /^[a-f0-9]{64}$/i.test(actual?.beforeSha256 || '')
@@ -495,12 +498,15 @@ function selectorResult(receipt, selector, context) {
     && actual.missing.length === 0
     && Array.isArray(expected)
     && expected.every((step) => actual.observed.includes(step));
-  if (selector.operator === 'deployment-bound-screenshot') return actual?.status === 'pass'
-    && actual.servedBuildId === receipt.sourceIdentity?.build?.buildId
-    && receipt.evidence?.screenshot?.kind === 'webgpu-canvas-readback'
-    && receipt.evidence?.screenshot?.buildId === actual.servedBuildId
-    && receipt.evidence?.screenshot?.servedBuildId === actual.servedBuildId
-    && receipt.evidence?.screenshot?.pageUrl === actual.pageUrl;
+  if (selector.operator === 'deployment-bound-screenshot') {
+    const kind = context.run.tier === 'city' ? 'webgpu-canvas-readback' : 'canvas2d-canvas-readback';
+    return actual?.status === 'pass'
+      && actual.servedBuildId === receipt.sourceIdentity?.build?.buildId
+      && receipt.evidence?.screenshot?.kind === kind
+      && receipt.evidence?.screenshot?.buildId === actual.servedBuildId
+      && receipt.evidence?.screenshot?.servedBuildId === actual.servedBuildId
+      && receipt.evidence?.screenshot?.pageUrl === actual.pageUrl;
+  }
   if (selector.operator === 'restored-run') return isRestoredRunEvidence(actual, context.run);
   throw new Error(`profile_claim_selector_operator_invalid: Unknown selector operator ${selector.operator}`);
 }
@@ -595,6 +601,21 @@ function validateReceipt({ receipt, run, sourceIdentity, claims }) {
     }
   }
   const performanceEvidence = receipt.evidence?.performance;
+  const performanceWindowBasis = 'selected-governed-seed-ready-to-lifecycle-camera-settled';
+  if (
+    performanceEvidence?.basis !== 'governed-lifecycle-after-ready'
+    || performanceEvidence.windowBasis !== performanceWindowBasis
+    || !Number.isFinite(performanceEvidence.elapsedMs)
+    || performanceEvidence.elapsedMs < 0
+  ) failures.push('performance_lifecycle_duration_invalid');
+  if (
+    performanceEvidence?.coldStartup?.status !== 'pass'
+    || performanceEvidence.coldStartup.basis !== 'navigation-to-ready'
+    || !Number.isFinite(performanceEvidence.coldStartup.durationMs)
+    || performanceEvidence.coldStartup.durationMs < 0
+    || !Number.isFinite(performanceEvidence.coldStartup.responseEndMs)
+    || performanceEvidence.coldStartup.responseEndMs > performanceEvidence.coldStartup.durationMs
+  ) failures.push('cold_startup_evidence_invalid');
   if (
     performanceEvidence?.firstMeaningfulFrame?.status !== 'pass'
     || performanceEvidence.firstMeaningfulFrame.basis !== 'start-action-to-new-governed-frame'
@@ -610,6 +631,7 @@ function validateReceipt({ receipt, run, sourceIdentity, claims }) {
   ) failures.push('first_meaningful_frame_invalid');
   if (
     performanceEvidence?.framePacing?.status !== 'pass'
+    || performanceEvidence.framePacing.basis !== performanceWindowBasis
     || !(performanceEvidence.framePacing.sampleCount >= 2)
     || !Number.isFinite(performanceEvidence.framePacing.p50Ms)
     || !Number.isFinite(performanceEvidence.framePacing.p95Ms)
@@ -617,12 +639,31 @@ function validateReceipt({ receipt, run, sourceIdentity, claims }) {
   ) failures.push('frame_pacing_evidence_invalid');
   if (
     performanceEvidence?.memory?.status !== 'pass'
+    || performanceEvidence.memory.basis !== performanceWindowBasis
     || !(performanceEvidence.memory.sampleCount >= 1)
     || !Number.isFinite(performanceEvidence.memory.initialUsedJsHeapBytes)
     || !Number.isFinite(performanceEvidence.memory.finalUsedJsHeapBytes)
     || !Number.isFinite(performanceEvidence.memory.peakUsedJsHeapBytes)
     || performanceEvidence.memory.peakUsedJsHeapBytes < performanceEvidence.memory.initialUsedJsHeapBytes
   ) failures.push('memory_evidence_invalid');
+  if (
+    performanceEvidence?.longTasks?.status !== 'pass'
+    || performanceEvidence.longTasks.basis !== performanceWindowBasis
+    || !Number.isInteger(performanceEvidence.longTasks.sampleCount)
+    || performanceEvidence.longTasks.sampleCount < 0
+    || !Number.isFinite(performanceEvidence.longTasks.totalMs)
+    || !Number.isFinite(performanceEvidence.longTasks.maxMs)
+    || performanceEvidence.longTasks.totalMs < performanceEvidence.longTasks.maxMs
+  ) failures.push('long_task_evidence_invalid');
+  const rendererCpuBasis = run.tier === 'city'
+    ? 'main-thread-command-encoding-and-submit'
+    : 'main-thread-canvas2d-render';
+  if (
+    performanceEvidence?.rendererCpu?.basis !== rendererCpuBasis
+    || !(performanceEvidence.rendererCpu.sampleCount >= 1)
+    || !Number.isFinite(performanceEvidence.rendererCpu.totalMs)
+    || !Number.isFinite(performanceEvidence.rendererCpu.maxMs)
+  ) failures.push('renderer_cpu_evidence_invalid');
   const performanceBudget = run.performanceBudget;
   if (performanceBudget) {
     if (performanceEvidence?.firstMeaningfulFrame?.atMs > performanceBudget.firstMeaningfulFrameMs) failures.push('first_meaningful_frame_budget_exceeded');
@@ -646,14 +687,18 @@ function validateReceipt({ receipt, run, sourceIdentity, claims }) {
   ) failures.push('interaction_coverage_invalid');
   const deployment = receipt.evidence?.deployment;
   const screenshot = receipt.evidence?.screenshot;
+  const screenshotKind = run.tier === 'city' ? 'webgpu-canvas-readback' : 'canvas2d-canvas-readback';
+  const pixelMethod = run.tier === 'city' ? 'webgpu-texture-readback-png-samples' : 'canvas2d-image-data-png-samples';
   if (
     deployment?.status !== 'pass'
     || deployment.servedBuildId !== sourceIdentity.build.buildId
     || deployment.route !== run.route
-    || screenshot?.kind !== 'webgpu-canvas-readback'
+    || screenshot?.kind !== screenshotKind
     || screenshot?.buildId !== sourceIdentity.build.buildId
     || screenshot?.servedBuildId !== deployment.servedBuildId
     || screenshot?.pageUrl !== deployment.pageUrl
+    || receipt.evidence?.pixelReadback?.method !== pixelMethod
+    || receipt.evidence.pixelReadback.status !== 'pass'
   ) failures.push('deployment_screenshot_binding_invalid');
   if (run.comparisonMode === 'none') {
     if (!Array.isArray(receipt.evidence?.comparisons) || receipt.evidence.comparisons.length) {

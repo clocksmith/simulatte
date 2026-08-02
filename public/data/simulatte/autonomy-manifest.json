@@ -2,24 +2,24 @@
   "applicationProfile": {
     "id": "cable-trader-pickup-v1",
     "path": "../application-profiles/cable-trader-pickup-v1.json",
-    "sha256": "3390b832fb4eba44a6b5f3da3de4d97fcfc887f8d7a9cf03f34837076cd0284a"
+    "sha256": "56512563e01330aa16ca98fb4e914f22395759e3239c43c539112f0fb2d17db4"
   },
   "applicationProfiles": [
     {
       "id": "neighborhood-bulk-pool-v1",
       "path": "../application-profiles/neighborhood-bulk-pool-v1.json",
-      "sha256": "59e952bc88337bff00acd2cdbd5e695384f481fec81732154db734d38f52f5f4"
+      "sha256": "8877ac358a798d85470b1117fc2ce386ccb64233878a1844ceeccfdbbca4fa1c"
     },
     {
       "id": "nyc-development-atlas-v1",
       "path": "../application-profiles/nyc-development-atlas-v1.json",
-      "sha256": "99d233a229e4973d101c1598748cae0e8dd800f44663bfbc752bb883d35a9139",
+      "sha256": "a70736764676310ec0927bb6fa87cc2a1d68de062d33026f308bcbf2015011b4",
       "worldDetail": "plugin-owned"
     },
     {
       "id": "sun-walker-v1",
       "path": "../application-profiles/sun-walker-v1.json",
-      "sha256": "e17650a50e58e5e84987f5dabe5e7dd9a78f7e98a414a6373155b397aec5ff7d"
+      "sha256": "a93b151ff421f1231249ed7683bd183225758142cd5f397a95a5f550af80f14d"
     }
   ],
   "claimBoundary": "This manifest governs bicycle-delivery, pedestrian-loop, and neighborhood bulk-pooling simulations in New York City. Park circuits follow frozen property boundaries, not surveyed sidewalk centerlines. Bulk-pool corridors outside the governed street graph are modeled geospatial scenarios. It does not claim live conditions, real warehouse inventory, physical-world autonomy, or control of a real vehicle.",
@@ -78,7 +78,7 @@
   "modelRuntimeLock": {
     "id": "simulatte-doppler-qwen-runtime-lock",
     "path": "../simulatte-embedder/model-runtime-lock.json",
-    "sha256": "2eadfbbccfa9a746fc82696c8c3990363bec2d5367c4360570426b3f9b20baf2"
+    "sha256": "d0d8fb501132ca3181e0af20bb3fb7bc680e23ee7873cf1039ea34996ef19805"
   },
   "occurrenceCatalog": {
     "id": "nyc-replay-patterns-v1",
@@ -88,7 +88,7 @@
   "pipelineModelSelection": {
     "id": "simulatte-pipeline-model-selection-v1",
     "path": "../pipeline-model-selection.json",
-    "sha256": "2e192120c82b0c4db426d50347baa1161a10997c90c7ccea949f75455095f8bf"
+    "sha256": "14f2d45d6639f28d352b5bd1e2cfb270b333b8d356dd010fe9ac6a903f714afc"
   },
   "placeEmbeddingIndex": {
     "id": "nyc-core-place-embedding-index-v1",

@@ -172,7 +172,7 @@
     return deepFreeze({
       color: colorForLayer(layer, normalized),
       widthPx: layer.kind === 'path'
-        ? round(clamp(2.2 + normalized * 0.9 + roleWeight * 0.6 + (selected ? 0.6 : 0), 2.2, 4))
+        ? pathWidth(layer, normalized, roleWeight, selected)
         : null,
       laneOffsetPx: layer.kind === 'path' ? comparisonLaneOffset(layer.quantity?.kind) : 0,
       radiusPx: ['point', 'actor'].includes(layer.kind)
@@ -187,6 +187,14 @@
       dash: uncertaintyDash(layer.provenance.axes.uncertainty),
       emphasis: selected ? 'selected' : layer.role,
     });
+  }
+
+  function pathWidth(layer, normalized, roleWeight, selected) {
+    const quantityKind = layer.quantity?.kind || '';
+    if (quantityKind.startsWith('exposure.')) return selected ? 9 : 7;
+    if (quantityKind === 'route.shade-selected') return selected ? 7 : 5.5;
+    if (quantityKind === 'route.fastest-baseline') return selected ? 6 : 4.5;
+    return round(clamp(2.2 + normalized * 0.9 + roleWeight * 0.6 + (selected ? 0.6 : 0), 2.2, 4));
   }
 
   function contextPointRadius(layer, normalized, selected) {

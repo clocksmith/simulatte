@@ -10,6 +10,7 @@ const CONTRACT_URL = pathToFileURL(path.join(ROOT, 'tools/simulatte/profile-evid
 const BROWSER_URL = pathToFileURL(path.join(ROOT, 'tools/simulatte/profile-evidence-browser.mjs')).href;
 const RUNNER_URL = pathToFileURL(path.join(ROOT, 'tools/simulatte/run-profile-evidence.mjs')).href;
 const PNG_URL = pathToFileURL(path.join(ROOT, 'tools/simulatte/profile-evidence-png.mjs')).href;
+const PROCESS_URL = pathToFileURL(path.join(ROOT, 'tools/simulatte/profile-evidence-process.mjs')).href;
 const INVENTORY_PATH = path.join(ROOT, 'public/data/application-profiles/profile-claim-inventory-v1.json');
 
 function settledComparisonReceipt() {
@@ -76,6 +77,19 @@ test('render readback encodes exact RGBA bytes as a bounded PNG', async () => {
   assert.throws(
     () => encodeRgbaPng({ width: 2, height: 1, format: 'rgba8unorm', rgbaBase64: 'AA==' }),
     /render_byte_length_invalid/
+  );
+});
+
+test('browser cleanup removes only generated temporary profile directories', async () => {
+  const processApi = await import(PROCESS_URL);
+  const generated = fs.mkdtempSync(path.join(os.tmpdir(), 'simulatte-profile-evidence-test-'));
+  fs.writeFileSync(path.join(generated, 'Browser State'), 'temporary');
+  const cleanup = await processApi.removeGeneratedProfileDirectory(generated);
+  assert.equal(cleanup.removed, true);
+  assert.equal(fs.existsSync(generated), false);
+  await assert.rejects(
+    processApi.removeGeneratedProfileDirectory(path.join(ROOT, 'public')),
+    /profile_evidence_cleanup_target_invalid/,
   );
 });
 
@@ -196,6 +210,9 @@ async function fixture({ profileId = null } = {}) {
       performance: {
         frameCount: 2,
         elapsedMs: 5,
+        basis: 'governed-lifecycle-after-ready',
+        windowBasis: 'selected-governed-seed-ready-to-lifecycle-camera-settled',
+        coldStartup: { status: 'pass', basis: 'navigation-to-ready', durationMs: 10, responseEndMs: 2 },
         firstMeaningfulFrame: {
           status: 'pass',
           atMs: 1,
@@ -206,8 +223,17 @@ async function fixture({ profileId = null } = {}) {
           semanticLayerCount: 1,
           compositorReceiptCount: 1,
         },
-        framePacing: { status: 'pass', sampleCount: 3, p50Ms: 16, p95Ms: 17, maxMs: 18, over50MsCount: 0 },
+        framePacing: {
+          basis: 'selected-governed-seed-ready-to-lifecycle-camera-settled',
+          status: 'pass',
+          sampleCount: 3,
+          p50Ms: 16,
+          p95Ms: 17,
+          maxMs: 18,
+          over50MsCount: 0,
+        },
         memory: {
+          basis: 'selected-governed-seed-ready-to-lifecycle-camera-settled',
           status: 'pass',
           sampleCount: 2,
           initialUsedJsHeapBytes: 100,
@@ -215,16 +241,35 @@ async function fixture({ profileId = null } = {}) {
           peakUsedJsHeapBytes: 120,
           finalTotalJsHeapBytes: 200,
         },
+        longTasks: {
+          basis: 'selected-governed-seed-ready-to-lifecycle-camera-settled',
+          status: 'pass',
+          sampleCount: 0,
+          totalMs: 0,
+          maxMs: 0,
+        },
+        rendererCpu: {
+          basis: run.tier === 'city' ? 'main-thread-command-encoding-and-submit' : 'main-thread-canvas2d-render',
+          sampleCount: 2,
+          totalMs: 2,
+          maxMs: 1,
+        },
       },
       screenshot: {
-        kind: 'webgpu-canvas-readback',
+        kind: run.tier === 'city' ? 'webgpu-canvas-readback' : 'canvas2d-canvas-readback',
         sha256: 'c'.repeat(64),
         path: 'screenshots/c.png',
         buildId: buildIdentity.buildId,
         servedBuildId: buildIdentity.buildId,
         pageUrl: `http://127.0.0.1${run.route}`,
+        sourceBackend: run.tier === 'city' ? 'webgpu' : 'canvas2d',
       },
-      pixelReadback: { status: 'pass', sampleCount: 256, distinctColorCount: 4 },
+      pixelReadback: {
+        method: run.tier === 'city' ? 'webgpu-texture-readback-png-samples' : 'canvas2d-image-data-png-samples',
+        status: 'pass',
+        sampleCount: 256,
+        distinctColorCount: 4,
+      },
       visual: {
         schema: 'simulatte.renderedEvidence.v1',
         canvas: { x: 0, y: 0, width: run.viewport.width, height: run.viewport.height },
@@ -313,6 +358,14 @@ test('complete native browser evidence settles its profile claim', async () => {
   assert.equal(validation.pass, true);
   assert.deepEqual(validation.failures, []);
   assert.ok(validation.claimResults.every((row) => row.pass));
+});
+
+test('complete tier browser evidence binds actual Canvas2D image data', async () => {
+  const { claims, contract, receipt, run, sourceIdentity } = await fixture({ profileId: 'food-recall-us-v1' });
+  const validation = contract.validateReceipt({ receipt, run, sourceIdentity, claims });
+  assert.equal(receipt.evidence.screenshot.kind, 'canvas2d-canvas-readback');
+  assert.equal(receipt.evidence.pixelReadback.method, 'canvas2d-image-data-png-samples');
+  assert.equal(validation.failures.includes('deployment_screenshot_binding_invalid'), false);
 });
 
 test('browser evidence replaces repeated simulation payloads with content-addressed references', async () => {
@@ -435,6 +488,9 @@ test('performance, replay, interaction, and deployment screenshot evidence fail 
   receipt.evidence.performance.firstMeaningfulFrame.status = 'fail';
   receipt.evidence.performance.framePacing.status = 'fail';
   receipt.evidence.performance.memory.status = 'fail';
+  receipt.evidence.performance.coldStartup.status = 'fail';
+  receipt.evidence.performance.longTasks.status = 'unsupported';
+  receipt.evidence.performance.rendererCpu.sampleCount = 0;
   receipt.evidence.replay.deterministic = false;
   receipt.evidence.interactionCoverage.missing = ['replay'];
   receipt.evidence.deployment.servedBuildId = 'different-build';
@@ -442,6 +498,9 @@ test('performance, replay, interaction, and deployment screenshot evidence fail 
   assert.ok(validation.failures.includes('first_meaningful_frame_invalid'));
   assert.ok(validation.failures.includes('frame_pacing_evidence_invalid'));
   assert.ok(validation.failures.includes('memory_evidence_invalid'));
+  assert.ok(validation.failures.includes('cold_startup_evidence_invalid'));
+  assert.ok(validation.failures.includes('long_task_evidence_invalid'));
+  assert.ok(validation.failures.includes('renderer_cpu_evidence_invalid'));
   assert.ok(validation.failures.includes('deterministic_replay_invalid'));
   assert.ok(validation.failures.includes('interaction_coverage_invalid'));
   assert.ok(validation.failures.includes('deployment_screenshot_binding_invalid'));
@@ -459,12 +518,28 @@ test('first meaningful frame evidence binds the budget to the start action and p
   assert.ok(validation.failures.includes('first_meaningful_frame_invalid'));
 });
 
+test('performance evidence binds pacing, heap, and long tasks to the governed lifecycle window', async () => {
+  const { claims, contract, receipt, run, sourceIdentity } = await fixture();
+  receipt.evidence.performance.windowBasis = 'navigation-to-receipt-serialization';
+  receipt.evidence.performance.framePacing.basis = 'navigation-to-receipt-serialization';
+  receipt.evidence.performance.memory.basis = 'navigation-to-receipt-serialization';
+  receipt.evidence.performance.longTasks.basis = 'navigation-to-receipt-serialization';
+  const validation = contract.validateReceipt({ receipt, run, sourceIdentity, claims });
+  assert.ok(validation.failures.includes('performance_lifecycle_duration_invalid'));
+  assert.ok(validation.failures.includes('frame_pacing_evidence_invalid'));
+  assert.ok(validation.failures.includes('memory_evidence_invalid'));
+  assert.ok(validation.failures.includes('long_task_evidence_invalid'));
+});
+
 test('deployment evidence rejects page captures in place of WebGPU canvas pixels', async () => {
   const { claims, contract, receipt, run, sourceIdentity } = await fixture();
   receipt.evidence.screenshot.kind = 'page-capture-fallback';
   const validation = contract.validateReceipt({ receipt, run, sourceIdentity, claims });
   assert.ok(validation.failures.includes('deployment_screenshot_binding_invalid'));
   assert.ok(validation.failures.includes('claim_evidence_unresolved'));
+  receipt.evidence.screenshot.kind = 'webgpu-canvas-readback';
+  receipt.evidence.pixelReadback.method = 'cdp-compositor-png-samples';
+  assert.ok(contract.validateReceipt({ receipt, run, sourceIdentity, claims }).failures.includes('deployment_screenshot_binding_invalid'));
 });
 
 test('declared profile performance budgets fail closed on latency, pacing, and heap regressions', async () => {
@@ -740,6 +815,61 @@ test('targeted evidence distinguishes passing captures from incomplete release c
   assert.equal(runner.evidenceReportStatus({ capturePass: false, coverageComplete: false }), 'fail');
 });
 
+test('human review queue binds verified screenshots, receipts, build, deployment, and render evidence', async () => {
+  const runner = await import(RUNNER_URL);
+  const { contract, receipt, run } = await fixture();
+  const outputDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'simulatte-profile-review-'));
+  const canvasBytes = Buffer.from('canvas screenshot');
+  const pageBytes = Buffer.from('page screenshot');
+  const canvasPath = 'screenshots/canvas/sha256/canvas.png';
+  const pagePath = 'screenshots/page/sha256/page.png';
+  fs.mkdirSync(path.join(outputDirectory, path.dirname(canvasPath)), { recursive: true });
+  fs.mkdirSync(path.join(outputDirectory, path.dirname(pagePath)), { recursive: true });
+  fs.writeFileSync(path.join(outputDirectory, canvasPath), canvasBytes);
+  fs.writeFileSync(path.join(outputDirectory, pagePath), pageBytes);
+  receipt.evidence.screenshot = {
+    ...receipt.evidence.screenshot,
+    sha256: contract.sha256Bytes(canvasBytes),
+    path: canvasPath,
+  };
+  receipt.evidence.pageScreenshot = {
+    sha256: contract.sha256Bytes(pageBytes),
+    path: pagePath,
+  };
+  const stored = contract.storeReceipt(path.join(outputDirectory, 'receipts'), receipt);
+  const row = {
+    runId: run.id,
+    profileId: run.profileId,
+    seedId: run.seedId,
+    viewportId: run.viewport.id,
+    receiptSha256: stored.sha256,
+    receiptPath: path.relative(outputDirectory, stored.path).split(path.sep).join('/'),
+    pass: true,
+    failures: [],
+  };
+  fs.writeFileSync(path.join(outputDirectory, 'index.json'), '{}\n');
+  const queue = runner.writeHumanReviewQueue(outputDirectory, {
+    capturePass: true,
+    coverageComplete: true,
+    runs: [row],
+  });
+  assert.equal(queue.status, 'human-adjudication-required');
+  assert.equal(queue.pendingRuns, 1);
+  assert.equal(queue.rows[0].receiptSha256, stored.sha256);
+  assert.equal(queue.rows[0].canvasScreenshot.sha256, receipt.evidence.screenshot.sha256);
+  assert.equal(queue.rows[0].pageScreenshot.sha256, receipt.evidence.pageScreenshot.sha256);
+  assert.equal(queue.rows[0].buildIdentity.buildId, 'test-build');
+  assert.equal(queue.rows[0].deployment.route, run.route);
+  assert.match(queue.rows[0].renderEvidenceSha256, /^[a-f0-9]{64}$/);
+  assert.equal(queue.rows[0].reviewStatus, 'human-adjudication-required');
+  fs.writeFileSync(path.join(outputDirectory, canvasPath), 'tampered');
+  assert.throws(
+    () => runner.writeHumanReviewQueue(outputDirectory, { capturePass: true, coverageComplete: true, runs: [row] }),
+    /profile_evidence_canvas_screenshot_hash_mismatch/,
+  );
+  fs.rmSync(outputDirectory, { recursive: true, force: true });
+});
+
 test('browser capture searches executed comparison receipts and preserves City playback receipts across reload', async () => {
   const browser = await import(BROWSER_URL);
   const { run } = await fixture();
@@ -783,10 +913,15 @@ test('browser capture searches executed comparison receipts and preserves City p
   assert.match(source, /__simulattePluginRunReceipt/);
   assert.match(source, /beforeReceipt: isPluginPlayback \? beforeReceipt/);
   assert.match(source, /afterReceipt: isPluginPlayback \? afterReceipt/);
+  assert.match(source, /document\.body\?\.dataset\.journeyPhase \|\| 'loading'/);
+  assert.match(source, /if \(reload\.exceptionDetails\)/);
   assert.doesNotMatch(source, /readyAt/);
   assert.match(source, /withTimeout\(client\.send\('Runtime\.evaluate'/);
   assert.match(source, /180000, 'browser-probe'/);
-  assert.match(source, /if \(client\) await client\.close\(\)/);
+  assert.match(source, /client\.send\('Browser\.close'\)/);
+  assert.match(source, /await client\.close\(\)/);
+  assert.match(source, /receipt\?\.adapter/);
+  assert.doesNotMatch(source, /navigator\.gpu\.requestAdapter\(\)/);
 });
 
 test('reload evidence waits for a different browser document instead of a delayed load event', async () => {

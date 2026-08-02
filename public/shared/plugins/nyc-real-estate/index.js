@@ -77,6 +77,7 @@
     let datasets = await loadRegionData(sdk, fixedDatasets, acceptedParameters.regionId);
     let result = run(acceptedParameters);
     let priceSurface = runPriceSurface(acceptedParameters);
+    const contributionCache = new Map();
     sdk.state.register((state, event) => {
       if (event.kind === `${PLUGIN_ID}.scenario-computed`) {
         return {
@@ -112,6 +113,7 @@
       datasets = await loadRegionData(sdk, fixedDatasets, acceptedParameters.regionId);
       result = run(acceptedParameters);
       priceSurface = runPriceSurface(acceptedParameters);
+      contributionCache.clear();
       sdk.events.propose({
         pluginId: PLUGIN_ID,
         kind: `${PLUGIN_ID}.scenario-computed`,
@@ -361,15 +363,24 @@
 
     function contributeV4() {
       const state = sdk.state.read();
-      return v4Api.createContribution({
+      const snapshot = currentSnapshot(state);
+      const comparison = state.comparison?.comparison || null;
+      const comparisonIdentity = comparison?.comparisonExecutionReceipt?.id || 'none';
+      const cacheKey = `${state.result.scenarioIdentity}:${snapshot.id}:${comparisonIdentity}`;
+      const cached = contributionCache.get(cacheKey);
+      if (cached) return cached;
+      const contribution = v4Api.createContribution({
         datasets,
         dataReceipts: datasets.dataReceipts,
         result: state.result,
         priceSurface,
-        snapshot: currentSnapshot(state),
+        snapshot,
         playbackStatus: state.playback.status,
-        comparison: state.comparison?.comparison || null,
+        comparison,
       });
+      contributionCache.set(cacheKey, contribution);
+      if (contributionCache.size > 8) contributionCache.delete(contributionCache.keys().next().value);
+      return contribution;
     }
 
     function appendScenarioReceipt(value, parameters) {

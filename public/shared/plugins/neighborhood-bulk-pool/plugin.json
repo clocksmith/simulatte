@@ -56,7 +56,7 @@
   "defaultConfig": "./default-config.json",
   "entry": {
     "globalFactory": "SimulattePluginNeighborhoodBulkPool",
-    "integrity": "sha384-5408fe3389e68e35bbbd8f8cc41358298728cadaf33207df854bac6f432ad8a473b50528e71dc32716704f816b040ba7",
+    "integrity": "sha384-4b9058b8421fda1541577ce68f2df915818f92ac7302a458aedd973b7b6303eb9aacaa6029113c242baf31bd0860b317",
     "path": "./index.js"
   },
   "extensionPoints": [

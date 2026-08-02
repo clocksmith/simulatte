@@ -26,8 +26,11 @@
   const provenanceApi = typeof module === 'object' && module.exports
     ? require('../runtime/provenance-registry.js')
     : root.SimulatteProvenanceRegistry;
+  const v4Builder = typeof module === 'object' && module.exports
+    ? require('../../../shared/core/simulation/plugin-v4-builder.js')
+    : root.SimulattePluginV4Builder;
   const pluginAssetPaths = pluginPaths || createDefaultPluginAssetPaths();
-  const api = factory(contracts, graphApi, stateApi, sdkApi, pluginAssetPaths, v4Contracts, v4Adapters, timelineApi, provenanceApi);
+  const api = factory(contracts, graphApi, stateApi, sdkApi, pluginAssetPaths, v4Contracts, v4Adapters, timelineApi, provenanceApi, v4Builder);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.SimulattePluginRuntime = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createPluginRuntimeModule(
@@ -39,7 +42,8 @@
   v4Contracts,
   v4Adapters,
   timelineApi,
-  provenanceApi
+  provenanceApi,
+  v4Builder
 ) {
   async function createPluginRuntime({ registry, profile, scenario = null, dataCatalog, artifactStore = null, registryBaseUrl = null, corePorts = {} }) {
     const effectiveRegistryBaseUrl = registryBaseUrl || pluginPaths.sharedRootUrl(documentBase());
@@ -234,7 +238,9 @@
           if (contribution.schema === 'simulatte.pluginContribution.v4') {
             v4Contracts.validateContribution(contribution, `Plugin ${pluginId} v4 contribution`);
             sources.push(Object.freeze({ pluginId, source: 'native-v4' }));
-            return [stateApi.freezeClone(contribution)];
+            return [v4Builder?.isBuiltContribution?.(contribution)
+              ? contribution
+              : stateApi.freezeClone(contribution)];
           }
         }
         if (typeof instance.present !== 'function') return [];
@@ -286,7 +292,7 @@
         provenanceCoverage,
         timeline,
         provenance: registry,
-        receipt: stateApi.freezeClone({
+        receipt: stateApi.deepFreeze({
           schema: 'simulatte.pluginPlatformReceipt.v4',
           profileId: profile.id,
           pluginIds: contributions.map((contribution) => contribution.pluginId),

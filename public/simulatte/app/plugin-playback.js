@@ -276,11 +276,14 @@
         if (generation !== runGeneration) return snapshot();
         const totalSteps = actionResult?.totalSteps || 0;
         const targetStep = Math.min(requestedStep, totalSteps);
+        let playbackSliceStartedAt = hostNow();
         for (let stepIndex = 0; stepIndex < targetStep && actionResult.status === 'running'; stepIndex += 1) {
           actionResult = await dispatch('step');
           if (generation !== runGeneration) return snapshot();
           await applyInterventionsAtStep(actionResult.currentStep || 0, generation);
-          await yieldPlaybackBatch(stepIndex, targetStep);
+          if (await yieldPlaybackBatch(stepIndex, targetStep, playbackSliceStartedAt)) {
+            playbackSliceStartedAt = hostNow();
+          }
           if (generation !== runGeneration) return snapshot();
         }
         await yieldToHost();
@@ -321,11 +324,14 @@
         await yieldToHost();
         if (generation !== runGeneration) return snapshot();
         const targetStep = receipt.actionResult.currentStep;
+        let playbackSliceStartedAt = hostNow();
         for (let stepIndex = 0; stepIndex < targetStep && actionResult.status === 'running'; stepIndex += 1) {
           actionResult = await dispatch('step');
           if (generation !== runGeneration) return snapshot();
           await applyInterventionsAtStep(actionResult.currentStep || 0, generation);
-          await yieldPlaybackBatch(stepIndex, targetStep);
+          if (await yieldPlaybackBatch(stepIndex, targetStep, playbackSliceStartedAt)) {
+            playbackSliceStartedAt = hostNow();
+          }
           if (generation !== runGeneration) return snapshot();
         }
         if (JSON.stringify(actionResult) !== JSON.stringify(receipt.actionResult)) {
@@ -496,13 +502,23 @@
       });
     }
 
-    function yieldPlaybackBatch(stepIndex, targetStep) {
+    async function yieldPlaybackBatch(stepIndex, targetStep, sliceStartedAt) {
       const completed = stepIndex + 1;
-      if (completed >= targetStep || completed % 8 !== 0) return Promise.resolve();
-      return yieldToHost();
+      if (completed >= targetStep) return false;
+      const boundedHistory = targetStep <= 64;
+      if (!boundedHistory && hostNow() - sliceStartedAt < 16) return false;
+      await yieldToHost();
+      return true;
+    }
+
+    function hostNow() {
+      return typeof globalThis.performance?.now === 'function' ? globalThis.performance.now() : Date.now();
     }
 
     function yieldToHost() {
+      if (typeof requestAnimationFrame === 'function') {
+        return new Promise((resolve) => requestAnimationFrame(() => resolve()));
+      }
       return new Promise((resolve) => setTimeout(resolve, 0));
     }
 

@@ -17,6 +17,11 @@
     "supportedViews": ["overview", "free", "compare"],
     "defaultView": "overview",
     "comparisonMode": "synchronized",
+    "performanceBudget": {
+      "firstMeaningfulFrameMs": 500,
+      "p95FrameMs": 500,
+      "peakHeapMiB": 96
+    },
     "stages": [
       { "id": "states-load", "label": "States loaded", "narrative": "Pinned state vectors, frames, epochs, bounds, and solver tolerances define the search.", "fromProgress": 0 },
       { "id": "candidates-search", "label": "Candidates searched", "narrative": "Lambert branches converge, fail numerically, or violate declared constraints.", "fromProgress": 0.18 },

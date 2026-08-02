@@ -223,6 +223,31 @@ test('typed controls rebuild the run, step without recomputation, and replay exa
   }), /bulk_pool_control_invalid/);
 });
 
+test('same-scenario reset reuses the frozen deterministic result and receipts solver work', async () => {
+  const harness = createSdkHarness();
+  const instance = await plugin.activate({ sdk: harness.sdk, config, profile, scenario });
+  const scenarioReceipts = () => harness.receipts.filter(
+    (row) => row.schema === 'simulatte.plugin.neighborhoodBulkScenarioReceipt.v1'
+  );
+  assert.deepEqual(
+    { resultReuse: scenarioReceipts().at(-1).resultReuse, solveCount: scenarioReceipts().at(-1).solveCount },
+    { resultReuse: false, solveCount: 1 }
+  );
+  const reused = await instance.setScenario(scenario);
+  assert.equal(reused.scenarioIdentity, scenarioReceipts().at(-1).scenarioIdentity);
+  assert.deepEqual(
+    { resultReuse: scenarioReceipts().at(-1).resultReuse, solveCount: scenarioReceipts().at(-1).solveCount },
+    { resultReuse: true, solveCount: 1 }
+  );
+  const changed = await instance.setScenario({ ...scenario, seed: 'bulk-pool-different-seed' });
+  assert.equal(changed.scenarioIdentity, scenarioReceipts().at(-1).scenarioIdentity);
+  assert.notEqual(changed.scenarioIdentity, reused.scenarioIdentity);
+  assert.deepEqual(
+    { resultReuse: scenarioReceipts().at(-1).resultReuse, solveCount: scenarioReceipts().at(-1).solveCount },
+    { resultReuse: false, solveCount: 2 }
+  );
+});
+
 test('all declared comparisons share exogenous inputs and execute their intended policy pair', async () => {
   const harness = createSdkHarness();
   const instance = await plugin.activate({ sdk: harness.sdk, config, profile, scenario });
