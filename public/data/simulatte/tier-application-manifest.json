@@ -9,7 +9,7 @@
         {
           "id": "food-recall-us-v1",
           "path": "../application-profiles/food-recall-us-v1.json",
-          "sha256": "68a96d261ec4f4ed24deb0d7e350da8e2e9956f0f1500d3c05b928fa55ef6721",
+          "sha256": "c7e4efa6b9e7d2dfb90ffc96c873bae72f446990b5faf3228611e72e55907f56",
           "world": {
             "id": "us-national-regions-v1",
             "path": "./worlds/us-national-regions-v1.json",
@@ -59,7 +59,7 @@
         {
           "id": "interstellar-relay-network-v1",
           "path": "../application-profiles/interstellar-relay-network-v1.json",
-          "sha256": "47f21a0467f5e45babfa2ac6ff159781e6b77c7d671e3b4ee4a72dbcf710f1df",
+          "sha256": "a6daca92b5b7492e8e068a969191f4725824267ccd7443dd466bc25b06f6fe9b",
           "world": {
             "id": "gaia-dr3-stellar-neighborhood-v1",
             "path": "./worlds/gaia-dr3-stellar-neighborhood-v1.json",
@@ -74,7 +74,7 @@
         {
           "id": "maritime-trade-global-v1",
           "path": "../application-profiles/maritime-trade-global-v1.json",
-          "sha256": "8a44a20e610e524dcdc86738f66fa4d595fe6869a20585e72ac88727ae305a15",
+          "sha256": "3cc717f6d656f43d88018181b8dc7680fba0e30072ebb621f62be1a83ebb7ff8",
           "world": {
             "id": "earth-global-topology-v1",
             "path": "./worlds/earth-global-topology-v1.json",

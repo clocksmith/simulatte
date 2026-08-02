@@ -8,7 +8,7 @@ Owner contract: `public/shared/plugins/interstellar-relay-network/index.js`.
 - Tier and world: Star Chart, `gaia-dr3-stellar-neighborhood-v1`
 - Plugin ID: `interstellar-relay-network`
 - Profile ID: `interstellar-relay-network-v1`
-- Default scenario: `sol-proxima-direct`
+- Default scenario: `sol-proxima-barnard-relay`
 - Contract version: plugin v4 contribution
 - Last verified source: prior browser proof at commit `a5713c1c13ab`
 - Evidence: current worktree browser proof not rerun; prior index contains 8/8 runs

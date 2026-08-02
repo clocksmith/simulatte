@@ -29,7 +29,7 @@
       { "id": "recall-settles", "label": "Recall settles", "narrative": "Traceback, removal, illnesses, waste, and the no-recall branch close from shared inputs.", "fromProgress": 0.78 }
     ]
   },
-  "defaultSeedId": "leafy-green-baseline",
+  "defaultSeedId": "egg-cold-chain",
   "seeds": [
     {
       "id": "leafy-green-baseline",

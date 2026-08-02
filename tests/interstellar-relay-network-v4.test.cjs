@@ -365,7 +365,10 @@ test('comparison reuses seed and epoch while reporting latency, rate, energy, an
   const host = await activateDefault();
   const result = await host.instance.handleAction('counterfactual.compare');
   assert.equal(result.status, 'settled');
-  assert.equal(result.comparison.commonSeed, host.profile.seeds[0].seed);
+  assert.equal(
+    result.comparison.commonSeed,
+    host.profile.seeds.find((row) => row.id === host.profile.defaultSeedId).seed,
+  );
   assert.equal(result.comparison.baseline.scenarioId, result.comparison.intervention.scenarioId);
   assert.deepEqual(
     Object.keys(result.comparison.differences).sort(),

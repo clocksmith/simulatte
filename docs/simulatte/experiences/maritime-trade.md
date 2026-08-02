@@ -8,7 +8,7 @@ Owner contract: `public/shared/plugins/maritime-trade-global/index.js`.
 - Tier and world: World, `earth-global-topology-v1`
 - Plugin ID: `maritime-trade-global`
 - Profile ID: `maritime-trade-global-v1`
-- Default scenario: `asia-europe-mainline`
+- Default scenario: `suez-closure-cape-reroute`
 - Contract version: plugin v4 contribution
 - Last verified source: prior browser proof at commit `a5713c1c13ab`
 - Evidence: current worktree browser proof not rerun; prior index contains 10/10 runs

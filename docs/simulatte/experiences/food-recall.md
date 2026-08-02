@@ -8,7 +8,7 @@ Owner contract: `public/shared/plugins/food-recall-us/index.js`.
 - Tier and world: Country, `us-national-regions-v1`
 - Plugin ID: `food-recall-us`
 - Profile ID: `food-recall-us-v1`
-- Default scenario: `leafy-green-baseline`
+- Default scenario: `egg-cold-chain`
 - Contract version: plugin v4 contribution
 - Last verified source: prior browser proof at commit `a5713c1c13ab`
 - Evidence: current worktree browser proof not rerun; prior index contains 8/8 runs

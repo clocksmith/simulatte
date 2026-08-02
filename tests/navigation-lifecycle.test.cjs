@@ -7,6 +7,7 @@ const lifecycleApi = require('../public/simulatte/app/mount-lifecycle.js');
 const routerApi = require('../public/simulatte/app/router.js');
 const bootApi = require('../public/simulatte/app/world-tiers-boot.js');
 const mainView = require('../public/simulatte/app/main-view.js');
+const profileSelectApi = require('../public/simulatte/app/application-profile-select.js');
 const pluginContracts = require('../public/simulatte/platform/contracts/plugin-contracts.js');
 
 function deferred() {
@@ -105,6 +106,24 @@ test('all shipped experiences declare validated story, metric, comparison, and v
   assert.equal(kinds.has('safety-explorer-v1'), false);
   assert.equal(kinds.get('orbital-transfer-planner-v1'), 'solver');
   assert.equal([...kinds.values()].filter((kind) => kind === 'simulation').length, 10);
+});
+
+test('default scenarios foreground the governing disruption or relay mechanism', () => {
+  const root = path.resolve(__dirname, '..');
+  const expectedDefaults = {
+    'food-recall-us-v1': 'egg-cold-chain',
+    'maritime-trade-global-v1': 'suez-closure-cape-reroute',
+    'interstellar-relay-network-v1': 'sol-proxima-barnard-relay',
+  };
+  Object.entries(expectedDefaults).forEach(([profileId, seedId]) => {
+    const profile = JSON.parse(fs.readFileSync(
+      path.join(root, 'public/data/application-profiles', `${profileId}.json`),
+      'utf8',
+    ));
+    const interaction = profileSelectApi.resolveInteraction(profile, {});
+    assert.equal(profile.defaultSeedId, seedId, profileId);
+    assert.equal(interaction.defaultScenario.id, seedId, profileId);
+  });
 });
 
 test('the shared shell exposes POV and first-class playback controls', () => {

@@ -29,7 +29,7 @@
       { "id": "cargo-delivers", "label": "Cargo delivered", "narrative": "Custody, transit, queue distribution, and emissions sensitivity settle independently.", "fromProgress": 0.84 }
     ]
   },
-  "defaultSeedId": "asia-europe-mainline",
+  "defaultSeedId": "suez-closure-cape-reroute",
   "seeds": [
     {
       "id": "asia-europe-mainline",

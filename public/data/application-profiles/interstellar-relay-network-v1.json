@@ -29,7 +29,7 @@
       { "id": "delivery-settles", "label": "Delivery settles", "narrative": "Latency, rate, energy, reliability, omissions, and direct-route comparison close together.", "fromProgress": 0.82 }
     ]
   },
-  "defaultSeedId": "sol-proxima-direct",
+  "defaultSeedId": "sol-proxima-barnard-relay",
   "seeds": [
     {
       "id": "sol-proxima-direct",
